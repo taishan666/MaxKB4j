@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tarzan.maxkb4j.module.team.mapper.TeamMemberPermissionMapper">
+
+    <!-- 多个字段中某个字段的类型处理器配置 -->
+    <resultMap id="permissionResultMap" type="com.tarzan.maxkb4j.module.team.vo.TeamMemberPermissionVO">
+        <result property="operate" column="operate"  typeHandler="com.tarzan.maxkb4j.handler.MemberOperateHandler"/>
+    </resultMap>
+
+    <select id="getPermissionByMemberId"  resultMap="permissionResultMap">
+        SELECT
+            app_or_dataset.*,
+            team_member_permission.member_id,
+            team_member_permission.operate
+        FROM
+            (
+                SELECT
+                    "id",
+                    "name",
+                    'DATASET' AS "type",
+                    user_id
+                FROM
+                    dataset
+                WHERE
+                    "user_id" = #{teamId}
+                UNION
+                SELECT
+                    "id",
+                    "name",
+                    'APPLICATION' AS "type",
+                    user_id
+                FROM
+                    application
+                WHERE
+                    "user_id" =#{teamId}
+            ) app_or_dataset
+                LEFT JOIN ( SELECT * FROM team_member_permission WHERE member_id = #{memberId} ) team_member_permission ON team_member_permission.target = app_or_dataset."id"
+    </select>
+
+</mapper>
