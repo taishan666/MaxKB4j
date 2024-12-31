@@ -18,11 +18,10 @@ public class MemberOperateHandler extends BaseTypeHandler<JSONObject> {
     @Override
     public void setNonNullParameter(PreparedStatement ps, int i, JSONObject parameter, JdbcType jdbcType) throws SQLException {
         if(null != parameter){
-            PGobject jsonObject = new PGobject();
-            jsonObject.setType("varchar[]");
-            jsonObject.setValue(toDBValue(parameter));
-            ps.setObject(i, jsonObject);
-         //   ps.setObject(i, toDBValue(parameter));
+            PGobject pGobject = new PGobject();
+            pGobject.setType("varchar[]");
+            pGobject.setValue(toDBValue(parameter));
+            ps.setObject(i, pGobject);
         }
     }
 

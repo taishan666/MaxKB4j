@@ -48,8 +48,7 @@ public class JOSNTypeHandler extends BaseTypeHandler<JSON> {
         return (null != value && !value.isEmpty());
     }
 
-    public String toJson(Object obj) {
-        return JSON.toJSONString(obj, SerializerFeature.WriteMapNullValue,
-                SerializerFeature.WriteNullListAsEmpty, SerializerFeature.WriteNullStringAsEmpty);
+    public String toJson(JSON parameter) {
+        return parameter.toString();
     }
 }

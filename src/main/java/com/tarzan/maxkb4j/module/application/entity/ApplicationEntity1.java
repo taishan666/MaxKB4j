@@ -1,3 +1,4 @@
+/*
 package com.tarzan.maxkb4j.module.application.entity;
 
 import com.alibaba.fastjson.JSONObject;
@@ -5,17 +6,18 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tarzan.maxkb4j.handler.JOSNObjectTypeHandler;
 import com.tarzan.maxkb4j.handler.UUIDTypeHandler;
 import lombok.Data;
 
 import java.util.Date;
 import java.util.UUID;
 
+*/
 /**
   * @author tarzan
   * @date 2024-12-25 13:09:53
-  */
+  *//*
+
 @Data
 @TableName(value = "application",autoResultMap = true)
 public class ApplicationEntity1 {
@@ -119,3 +121,4 @@ public class ApplicationEntity1 {
 	@TableField(typeHandler = JOSNObjectTypeHandler.class)
 	private JSONObject fileUploadSetting;
 } 
+*/

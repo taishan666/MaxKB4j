@@ -14,7 +14,7 @@ import java.util.UUID;
   */
 @Data
 @TableName("problem_paragraph_mapping")
-public class ProblemParagraphMappingEntity {
+public class ProblemParagraphEntity {
 	
 	@TableField(fill = FieldFill.INSERT)
 	private Date createTime;

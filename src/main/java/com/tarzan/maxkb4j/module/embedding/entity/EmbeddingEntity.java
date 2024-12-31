@@ -1,33 +1,47 @@
 package com.tarzan.maxkb4j.module.embedding.entity;
 
+import com.baomidou.mybatisplus.annotation.FieldFill;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.tarzan.maxkb4j.handler.EmbeddingTypeHandler;
+import com.tarzan.maxkb4j.handler.JOSNBTypeHandler;
+import com.tarzan.maxkb4j.handler.TSVectorTypeHandler;
+import com.tarzan.maxkb4j.handler.UUIDTypeHandler;
+import com.tarzan.maxkb4j.util.SearchIndex;
 import lombok.Data;
 import com.alibaba.fastjson.JSONObject;
- /**
+
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+
+/**
   * @author tarzan
   * @date 2024-12-30 18:08:16
   */
 @Data
 @TableName("embedding")
 public class EmbeddingEntity {
-	//null
-	private String id;
+	@TableId
+	@TableField(fill = FieldFill.INSERT,typeHandler = UUIDTypeHandler.class)
+	private UUID id;
 	//null
 	private String sourceId;
 	//null
 	private String sourceType;
 	//null
 	private Boolean isActive;
-	//null
-	private Long embedding;
-	//null
+	@TableField(typeHandler = EmbeddingTypeHandler.class)
+	private List<Float> embedding;
+	@TableField(typeHandler = JOSNBTypeHandler.class)
 	private JSONObject meta;
-	//null
-	private String datasetId;
-	//null
-	private String documentId;
-	//null
-	private String paragraphId;
-	//null
-	private Long searchVector;
+	@TableField(typeHandler = UUIDTypeHandler.class)
+	private UUID datasetId;
+	@TableField(typeHandler = UUIDTypeHandler.class)
+	private UUID documentId;
+	@TableField(typeHandler = UUIDTypeHandler.class)
+	private UUID paragraphId;
+	@TableField(typeHandler = TSVectorTypeHandler.class)
+	private Set<SearchIndex> searchVector;
 } 

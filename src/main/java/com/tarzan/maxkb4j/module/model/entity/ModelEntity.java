@@ -4,8 +4,8 @@ import com.alibaba.fastjson.JSONArray;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tarzan.maxkb4j.handler.JOSNObjectTypeHandler;
 import com.tarzan.maxkb4j.handler.JOSNBTypeHandler;
+import com.tarzan.maxkb4j.handler.JOSNTypeHandler;
 import com.tarzan.maxkb4j.handler.UUIDTypeHandler;
 import com.tarzan.maxkb4j.module.common.entity.BaseEntity;
 import lombok.Data;
@@ -39,7 +39,7 @@ public class ModelEntity extends BaseEntity {
     @TableField(typeHandler = UUIDTypeHandler.class)
     private UUID userId;
     
-	@TableField(typeHandler = JOSNObjectTypeHandler.class)
+	@TableField(typeHandler = JOSNBTypeHandler.class)
     private JSONObject meta;
     
     private String status;

@@ -11,7 +11,7 @@ import java.util.UUID;
 
 @Slf4j
 @Component
-public class MyMetaObjectHandler implements MetaObjectHandler {
+public class FieldMetaObjectHandler implements MetaObjectHandler {
 
     @Override
     public void insertFill(MetaObject metaObject) {

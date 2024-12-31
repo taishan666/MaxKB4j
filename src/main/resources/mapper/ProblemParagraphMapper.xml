@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tarzan.maxkb4j.module.dataset.mapper.ProblemParagraphMapper">
+
+    <select id="getProblemsByDocIds" resultType="com.tarzan.maxkb4j.module.dataset.vo.ProblemParagraphVO">
+        SELECT
+            ppm.ID,
+            P."content",
+            ppm.dataset_id,
+            ppm.document_id,
+            ppm.paragraph_id,
+            ppm.problem_id
+        FROM
+            problem_paragraph_mapping ppm
+        LEFT JOIN problem P ON P.ID = ppm.problem_id
+        WHERE ppm.document_id in
+        <foreach item="id" collection="docIds" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+
+</mapper>

@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import com.tarzan.maxkb4j.module.dataset.mapper.ProblemMapper;
 import com.tarzan.maxkb4j.module.dataset.entity.ProblemEntity;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -20,4 +21,5 @@ public class ProblemService extends ServiceImpl<ProblemMapper, ProblemEntity>{
     public IPage<ProblemVO> getProblemsByDatasetId(Page<ProblemEntity> problemPage, UUID id) {
         return baseMapper.getProblemsByDatasetId(problemPage, id);
     }
+
 }

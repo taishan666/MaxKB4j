@@ -2,16 +2,14 @@ package com.tarzan.maxkb4j.module.dataset.entity;
 
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.baomidou.mybatisplus.extension.handlers.FastjsonTypeHandler;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tarzan.maxkb4j.handler.JOSNObjectTypeHandler;
+import com.tarzan.maxkb4j.handler.JOSNBTypeHandler;
 import com.tarzan.maxkb4j.handler.UUIDTypeHandler;
 import com.tarzan.maxkb4j.module.common.entity.BaseEntity;
 import lombok.Data;
 import com.alibaba.fastjson.JSONObject;
 import lombok.EqualsAndHashCode;
 
-import java.util.Date;
 import java.util.UUID;
 
 /**
@@ -28,7 +26,7 @@ public class DatasetEntity extends BaseEntity {
     private String desc;
     
     private String type;
-    @TableField(typeHandler = JOSNObjectTypeHandler.class)
+    @TableField(typeHandler = JOSNBTypeHandler.class)
     private JSONObject meta;
     
 	@JsonProperty("user_id")

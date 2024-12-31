@@ -17,14 +17,9 @@ import com.tarzan.maxkb4j.module.dataset.dto.ParagraphDTO;
 import com.tarzan.maxkb4j.module.dataset.entity.*;
 import com.tarzan.maxkb4j.module.dataset.mapper.DatasetMapper;
 import com.tarzan.maxkb4j.module.dataset.vo.*;
+import com.tarzan.maxkb4j.module.embedding.entity.EmbeddingEntity;
 import com.tarzan.maxkb4j.module.embedding.service.EmbeddingService;
 import com.tarzan.maxkb4j.util.BeanUtil;
-import dev.langchain4j.data.embedding.Embedding;
-import dev.langchain4j.data.segment.TextSegment;
-import dev.langchain4j.model.dashscope.QwenEmbeddingModel;
-import dev.langchain4j.model.embedding.EmbeddingModel;
-import dev.langchain4j.store.embedding.EmbeddingStore;
-import dev.langchain4j.store.embedding.pgvector.PgVectorEmbeddingStore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -52,16 +47,9 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
     @Autowired
     private ParagraphService paragraphService;
     @Autowired
-    private ProblemParagraphMappingService problemParagraphMappingService;
+    private ProblemParagraphService problemParagraphMappingService;
     @Autowired
     private EmbeddingService embeddingService;
-
-    @Value(value = "${spring.datasource.username}")
-    private String dbUsername;
-    @Value(value = "${spring.datasource.password}")
-    private String dbPassword;
-    @Value(value = "${spring.datasource.url}")
-    private String dbUrl;
 
 
     public IPage<DatasetVO> selectDatasetPage(Page<DatasetVO> datasetPage, QueryDTO query) {
@@ -113,7 +101,7 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
     }
 
     public List<DocumentEntity> listDocByDatasetId(UUID id) {
-        return documentService.list();
+        return documentService.lambdaQuery().eq(DocumentEntity::getDatasetId, id).list();
     }
 
     public boolean updateProblemById(ProblemEntity problem) {
@@ -124,10 +112,13 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
         return problemService.removeById(problemId);
     }
 
+    @Transactional
     public boolean deleteProblemByDatasetIds(List<String> problemIds) {
         if (CollectionUtils.isEmpty(problemIds)) {
             return false;
         }
+        problemParagraphMappingService.lambdaUpdate().in(ProblemParagraphEntity::getParagraphId, problemIds.stream().map(UUID::fromString).toList()).remove();
+        embeddingService.lambdaUpdate().in(EmbeddingEntity::getSourceId, problemIds).remove();
         List<UUID> paragraphIds = problemIds.stream().map(UUID::fromString).toList();
         return problemService.lambdaUpdate().in(ProblemEntity::getId, paragraphIds).remove();
     }
@@ -138,31 +129,33 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
     }
 
     public List<ParagraphEntity> getParagraphByProblemId(UUID problemId) {
-        List<ProblemParagraphMappingEntity> list = problemParagraphMappingService.lambdaQuery()
-                .select(ProblemParagraphMappingEntity::getParagraphId).eq(ProblemParagraphMappingEntity::getProblemId, problemId).list();
+        List<ProblemParagraphEntity> list = problemParagraphMappingService.lambdaQuery()
+                .select(ProblemParagraphEntity::getParagraphId).eq(ProblemParagraphEntity::getProblemId, problemId).list();
         if (!CollectionUtils.isEmpty(list)) {
-            List<UUID> paragraphIds = list.stream().map(ProblemParagraphMappingEntity::getParagraphId).toList();
+            List<UUID> paragraphIds = list.stream().map(ProblemParagraphEntity::getParagraphId).toList();
             return paragraphService.lambdaQuery().in(ParagraphEntity::getId, paragraphIds).list();
         }
         return Collections.emptyList();
     }
 
+    @Transactional
     public boolean association(UUID datasetId, UUID docId, UUID paragraphId, UUID problemId) {
-        ProblemParagraphMappingEntity entity = new ProblemParagraphMappingEntity();
+        ProblemParagraphEntity entity = new ProblemParagraphEntity();
         entity.setDatasetId(datasetId);
         entity.setProblemId(problemId);
         entity.setParagraphId(paragraphId);
         entity.setDocumentId(docId);
-        return problemParagraphMappingService.save(entity);
+        return problemParagraphMappingService.save(entity)&&embeddingService.createProblem(datasetId,docId,paragraphId,problemId);;
     }
 
+    @Transactional
     public boolean unAssociation(UUID datasetId, UUID docId, UUID paragraphId, UUID problemId) {
         return problemParagraphMappingService.lambdaUpdate()
-                .eq(ProblemParagraphMappingEntity::getParagraphId, paragraphId)
-                .eq(ProblemParagraphMappingEntity::getDocumentId, docId)
-                .eq(ProblemParagraphMappingEntity::getProblemId, problemId)
-                .eq(ProblemParagraphMappingEntity::getDatasetId, datasetId)
-                .remove();
+                .eq(ProblemParagraphEntity::getParagraphId, paragraphId)
+                .eq(ProblemParagraphEntity::getDocumentId, docId)
+                .eq(ProblemParagraphEntity::getProblemId, problemId)
+                .eq(ProblemParagraphEntity::getDatasetId, datasetId)
+                .remove()&&embeddingService.lambdaUpdate().eq(EmbeddingEntity::getSourceId,problemId.toString()).eq(EmbeddingEntity::getParagraphId,paragraphId).remove();
     }
 
     public DocumentEntity getDocByDocId(UUID docId) {
@@ -198,9 +191,9 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
             List<String> problemContents = problems.stream().map(ProblemEntity::getContent).toList();
             problems = problemService.lambdaQuery().in(ProblemEntity::getContent, problemContents).list();
             List<UUID> problemIds = problems.stream().map(ProblemEntity::getId).toList();
-            List<ProblemParagraphMappingEntity> problemParagraphMappingEntities = new ArrayList<>();
+            List<ProblemParagraphEntity> problemParagraphMappingEntities = new ArrayList<>();
             problemIds.forEach(problemId -> {
-                ProblemParagraphMappingEntity entity = new ProblemParagraphMappingEntity();
+                ProblemParagraphEntity entity = new ProblemParagraphEntity();
                 entity.setDatasetId(paragraph.getDatasetId());
                 entity.setProblemId(problemId);
                 entity.setParagraphId(paragraph.getId());
@@ -213,10 +206,10 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
     }
 
     public List<ProblemEntity> getProblemsByParagraphId(UUID paragraphId) {
-        List<ProblemParagraphMappingEntity> list = problemParagraphMappingService.lambdaQuery()
-                .select(ProblemParagraphMappingEntity::getProblemId).eq(ProblemParagraphMappingEntity::getParagraphId, paragraphId).list();
+        List<ProblemParagraphEntity> list = problemParagraphMappingService.lambdaQuery()
+                .select(ProblemParagraphEntity::getProblemId).eq(ProblemParagraphEntity::getParagraphId, paragraphId).list();
         if (!CollectionUtils.isEmpty(list)) {
-            List<UUID> problemIds = list.stream().map(ProblemParagraphMappingEntity::getProblemId).toList();
+            List<UUID> problemIds = list.stream().map(ProblemParagraphEntity::getProblemId).toList();
             return problemService.lambdaQuery().in(ProblemEntity::getId, problemIds).list();
         }
         return Collections.emptyList();
@@ -295,49 +288,7 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
     }
 
     public boolean batchRefresh(UUID datasetId, DatasetBatchHitHandlingDTO dto) {
-        List<UUID> ids = dto.getIdList();
-        if (!CollectionUtils.isEmpty(ids)) {
-            EmbeddingModel embeddingModel = new QwenEmbeddingModel(null,"sk-80611638022146a2bc9a1ec9b566cc54","text-embedding-v2");
-            EmbeddingStore<TextSegment> embeddingStore = PgVectorEmbeddingStore.builder()
-                    .host(this.getDbHost())
-                    .port(this.getDbPort())
-                    .database(this.getDbName())
-                    .user(dbUsername)
-                    .password(dbPassword)
-                    .table("my_embeddings")
-                    .dimension(embeddingModel.dimension())
-                    .build();
-            List<ParagraphEntity> paragraphEntities = paragraphService.lambdaQuery().in(ParagraphEntity::getDocumentId, ids).list();
-            for (ParagraphEntity paragraph : paragraphEntities) {
-                TextSegment segment = TextSegment.from(paragraph.getContent());
-                Embedding embedding = embeddingModel.embed(segment).content();
-                embeddingStore.add(embedding, segment);
-            }
-         //   ContentRetriever contentRetriever = EmbeddingStoreContentRetriever.builder().build();
-            return true;
-        }
-        return false;
-    }
-
-    private String getDbName() {
-        String[] split = dbUrl.split("/");
-        String s = split[3];
-        String[] split1 = s.split("\\?");
-        return split1[0];
-    }
-
-    private String getDbHost() {
-        String[] split = dbUrl.split("/");
-        String s = split[2];
-        String[] split1 = s.split(":");
-        return split1[0];
-    }
-
-    private int getDbPort() {
-        String[] split = dbUrl.split("/");
-        String s = split[2];
-        String[] split1 = s.split(":");
-        return Integer.parseInt(split1[1]);
+        return embeddingService.embedByDocIds(dto.getIdList());
     }
 
 

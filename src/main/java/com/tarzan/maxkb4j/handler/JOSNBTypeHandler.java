@@ -16,10 +16,10 @@ public class JOSNBTypeHandler extends BaseTypeHandler<JSON> {
     @Override
     public void setNonNullParameter(PreparedStatement ps, int i, JSON parameter, JdbcType jdbcType) throws SQLException {
         if(null != parameter){
-            PGobject jsonObject = new PGobject();
-            jsonObject.setType("jsonb");
-            jsonObject.setValue(toJson(parameter));
-            ps.setObject(i, jsonObject);
+            PGobject pGobject = new PGobject();
+            pGobject.setType("jsonb");
+            pGobject.setValue(toJson(parameter));
+            ps.setObject(i, pGobject);
         }
     }
 
