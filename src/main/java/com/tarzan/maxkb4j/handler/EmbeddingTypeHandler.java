@@ -1,6 +1,5 @@
 package com.tarzan.maxkb4j.handler;
 
-import com.tarzan.maxkb4j.util.SearchIndex;
 import org.apache.ibatis.type.BaseTypeHandler;
 import org.apache.ibatis.type.JdbcType;
 import org.postgresql.util.PGobject;

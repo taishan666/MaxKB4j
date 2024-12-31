@@ -1,6 +1,6 @@
 package com.tarzan.maxkb4j.handler;
 
-import com.alibaba.fastjson.JSONObject;
+import com.tarzan.maxkb4j.module.common.dto.MemberOperate;
 import org.apache.ibatis.type.BaseTypeHandler;
 import org.apache.ibatis.type.JdbcType;
 import org.postgresql.util.PGobject;
@@ -10,13 +10,14 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class MemberOperateHandler extends BaseTypeHandler<JSONObject> {
+public class MemberOperateTypeHandler extends BaseTypeHandler<MemberOperate> {
 
     @Override
-    public void setNonNullParameter(PreparedStatement ps, int i, JSONObject parameter, JdbcType jdbcType) throws SQLException {
+    public void setNonNullParameter(PreparedStatement ps, int i, MemberOperate parameter, JdbcType jdbcType) throws SQLException {
         if(null != parameter){
             PGobject pGobject = new PGobject();
             pGobject.setType("varchar[]");
@@ -26,25 +27,25 @@ public class MemberOperateHandler extends BaseTypeHandler<JSONObject> {
     }
 
     @Override
-    public JSONObject getNullableResult(ResultSet rs, String columnName) throws SQLException {
+    public MemberOperate getNullableResult(ResultSet rs, String columnName) throws SQLException {
         String value = rs.getString(columnName);
         return convert(value);
     }
 
     @Override
-    public JSONObject getNullableResult(ResultSet rs, int columnIndex) throws SQLException {
+    public MemberOperate getNullableResult(ResultSet rs, int columnIndex) throws SQLException {
         String value = rs.getString(columnIndex);
         return convert(value);
     }
 
     @Override
-    public JSONObject getNullableResult(CallableStatement cs, int columnIndex) throws SQLException {
+    public MemberOperate getNullableResult(CallableStatement cs, int columnIndex) throws SQLException {
         String value = cs.getString(columnIndex);
         return convert(value);
     }
 
-    private JSONObject convert(String value){
-        JSONObject json = new JSONObject();
+    private MemberOperate convert(String value){
+        MemberOperate obj = new MemberOperate();
         if(notNull(value)){
             // 1. 去掉大括号
             String noBraces = value.replace("{", "").replace("}", "");
@@ -52,38 +53,27 @@ public class MemberOperateHandler extends BaseTypeHandler<JSONObject> {
             Set<String> set = Arrays.stream(noBraces.split(","))
                     .map(String::trim) // 去除每个元素的前后空格
                     .collect(Collectors.toSet());
-            if(set.contains("USE")){
-                json.put("USE",true);
-            }else {
-                json.put("USE",false);
-            }
-            if(set.contains("MANAGE")){
-                json.put("MANAGE",true);
-            }else {
-                json.put("MANAGE",false);
-            }
-            return json;
+            obj.setUSE(set.contains("USE"));
+            obj.setMANAGE(set.contains("MANAGE"));
         }
-        return json;
+        return obj;
     }
 
     private boolean notNull(String value){
         return (null != value && !value.isEmpty());
     }
 
-    public String toDBValue(JSONObject json) {
-        if(null == json){
+    public String toDBValue(MemberOperate value) {
+        if(null == value){
             return "{}";
         }
         StringBuilder sb = new StringBuilder();
         sb.append("{");
-        boolean userFlag=json.getBooleanValue("USE");
-        if(userFlag){
+        if(Objects.nonNull(value.getUSE())&&value.getUSE()){
             sb.append("USE");
         }
-        boolean manageFlag=json.getBooleanValue("MANAGE");
-        if(manageFlag){
-            if(userFlag){
+        if(Objects.nonNull(value.getMANAGE())&&value.getMANAGE()){
+            if(Objects.nonNull(value.getUSE())&&value.getUSE()){
                 sb.append(",");
             }
             sb.append("MANAGE");

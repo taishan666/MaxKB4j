@@ -8,7 +8,7 @@ import com.tarzan.maxkb4j.handler.EmbeddingTypeHandler;
 import com.tarzan.maxkb4j.handler.JOSNBTypeHandler;
 import com.tarzan.maxkb4j.handler.TSVectorTypeHandler;
 import com.tarzan.maxkb4j.handler.UUIDTypeHandler;
-import com.tarzan.maxkb4j.util.SearchIndex;
+import com.tarzan.maxkb4j.module.common.dto.SearchIndex;
 import lombok.Data;
 import com.alibaba.fastjson.JSONObject;
 

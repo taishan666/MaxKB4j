@@ -1,7 +1,7 @@
 package com.tarzan.maxkb4j.module.team.vo;
 
-import com.alibaba.fastjson.JSONObject;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tarzan.maxkb4j.module.common.dto.MemberOperate;
 import lombok.Data;
 
 import java.util.UUID;
@@ -16,5 +16,5 @@ public class TeamMemberPermissionVO {
     @JsonProperty("target_id")
     private UUID targetId;
     private UUID memberId;
-    private JSONObject operate;
+    private MemberOperate operate;
 }

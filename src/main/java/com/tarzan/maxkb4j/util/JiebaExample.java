@@ -1,9 +1,9 @@
 package com.tarzan.maxkb4j.util;
 
 import com.huaban.analysis.jieba.JiebaSegmenter;
+import com.tarzan.maxkb4j.module.common.dto.WordIndex;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
