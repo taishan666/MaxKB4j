@@ -38,11 +38,10 @@ public class EmbeddingService extends ServiceImpl<EmbeddingMapper, EmbeddingEnti
     private ParagraphService paragraphService;
     @Autowired
     private ProblemParagraphService problemParagraphMappingService;
-
-    EmbeddingModel embeddingModel = new QwenEmbeddingModel(null,"sk-80611638022146a2bc9a1ec9b566cc54","text-embedding-v2");
     @Autowired
     private ProblemService problemService;
 
+    EmbeddingModel embeddingModel = new QwenEmbeddingModel(null,"sk-80611638022146a2bc9a1ec9b566cc54","text-embedding-v2");
     public List<HitTestVO> dataSearch(UUID id, HitTestDTO dto) {
         Response<Embedding> res= embeddingModel.embed(dto.getQuery_text());
         List<HitTestVO> list= new ArrayList<>();
@@ -174,7 +173,8 @@ public class EmbeddingService extends ServiceImpl<EmbeddingMapper, EmbeddingEnti
             embeddingEntity.setSearchVector(toTsVector(problem.getContent()));
             Response<Embedding> res= embeddingModel.embed(problem.getContent());
             embeddingEntity.setEmbedding(res.content().vectorAsList());
-            this.save(embeddingEntity);
+            return this.save(embeddingEntity);
         }
+        return false;
     }
 }
