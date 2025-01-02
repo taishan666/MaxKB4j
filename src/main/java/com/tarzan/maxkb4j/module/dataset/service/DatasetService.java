@@ -305,4 +305,8 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
         });
         return paragraphs;
     }
+
+    public boolean reEmbedding(UUID datasetId) {
+        return embeddingService.embedByDatasetIds(datasetId);
+    }
 }

@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.tarzan.maxkb4j.module.application.dto.ChatImproveDTO;
 import com.tarzan.maxkb4j.module.application.dto.ChatQueryDTO;
+import com.tarzan.maxkb4j.module.application.entity.ApplicationApiKeyEntity;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationEntity;
 import com.tarzan.maxkb4j.module.application.service.ApplicationService;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationAccessTokenEntity;
@@ -70,8 +71,33 @@ public class ApplicationController{
     }
 
     @GetMapping("api/application/{appId}/access_token")
-    public R<ApplicationAccessTokenEntity> accessToken(@PathVariable("appId") UUID appId){
-        return R.success(applicationService.accessToken(appId));
+    public R<ApplicationAccessTokenEntity> getAccessToken(@PathVariable("appId") UUID appId){
+        return R.success(applicationService.getAccessToken(appId));
+    }
+
+    @PutMapping("api/application/{appId}/access_token")
+    public R<Boolean> updateAccessToken(@PathVariable("appId") UUID appId,@RequestBody ApplicationAccessTokenEntity entity){
+        return R.success(applicationService.updateAccessToken(appId,entity));
+    }
+
+    @GetMapping("api/application/{appId}/api_key")
+    public R<List<ApplicationApiKeyEntity>> listApikey(@PathVariable("appId") UUID appId){
+        return R.success(applicationService.listApikey(appId));
+    }
+
+    @PostMapping("api/application/{appId}/api_key")
+    public R<Boolean> createApikey(@PathVariable("appId") UUID appId){
+        return R.success(applicationService.createApikey(appId));
+    }
+
+    @PutMapping("api/application/{appId}/api_key/{apiKeyId}")
+    public R<Boolean> updateApikey(@PathVariable("appId") UUID appId, @PathVariable("apiKeyId") UUID apiKeyId, @RequestBody ApplicationApiKeyEntity apiKeyEntity){
+        return R.success(applicationService.updateApikey(appId,apiKeyId,apiKeyEntity));
+    }
+
+    @DeleteMapping("api/application/{appId}/api_key/{apiKeyId}")
+    public R<Boolean> deleteApikey(@PathVariable("appId") UUID appId,@PathVariable("apiKeyId") UUID apiKeyId){
+        return R.success(applicationService.deleteApikey(appId,apiKeyId));
     }
 
     @GetMapping("api/application/{appId}/model")

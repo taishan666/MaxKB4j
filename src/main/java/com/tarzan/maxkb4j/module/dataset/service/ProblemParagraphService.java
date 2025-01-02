@@ -19,4 +19,8 @@ public class ProblemParagraphService extends ServiceImpl<ProblemParagraphMapper,
     public List<ProblemParagraphVO> getProblemsByDocIds(List<UUID>  docIds){
         return baseMapper.getProblemsByDocIds(docIds);
     }
+
+    public List<ProblemParagraphVO> getProblemsByDatasetId(UUID datasetId){
+        return baseMapper.getProblemsByDatasetId(datasetId);
+    }
 }

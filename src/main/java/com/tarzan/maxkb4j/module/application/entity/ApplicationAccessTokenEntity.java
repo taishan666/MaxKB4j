@@ -1,6 +1,7 @@
 package com.tarzan.maxkb4j.module.application.entity;
 
 import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tarzan.maxkb4j.handler.UUIDTypeHandler;
@@ -24,6 +25,7 @@ public class ApplicationAccessTokenEntity {
     private Date updateTime;
     
     @JsonProperty("application_id")
+    @TableId
 	@TableField(typeHandler = UUIDTypeHandler.class)
     private UUID applicationId;
     

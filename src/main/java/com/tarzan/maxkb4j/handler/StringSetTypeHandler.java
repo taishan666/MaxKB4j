@@ -1,6 +1,5 @@
 package com.tarzan.maxkb4j.handler;
 
-import com.tarzan.maxkb4j.module.common.dto.MemberOperate;
 import org.apache.ibatis.type.BaseTypeHandler;
 import org.apache.ibatis.type.JdbcType;
 import org.postgresql.util.PGobject;
@@ -10,14 +9,13 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Arrays;
-import java.util.Objects;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class MemberOperateTypeHandler extends BaseTypeHandler<MemberOperate> {
-
+public class StringSetTypeHandler extends BaseTypeHandler<Set<String>> {
     @Override
-    public void setNonNullParameter(PreparedStatement ps, int i, MemberOperate parameter, JdbcType jdbcType) throws SQLException {
+    public void setNonNullParameter(PreparedStatement ps, int i, Set<String> parameter, JdbcType jdbcType) throws SQLException {
         PGobject pGobject = new PGobject();
         pGobject.setType("varchar[]");
         pGobject.setValue(toDBValue(parameter));
@@ -25,57 +23,51 @@ public class MemberOperateTypeHandler extends BaseTypeHandler<MemberOperate> {
     }
 
     @Override
-    public MemberOperate getNullableResult(ResultSet rs, String columnName) throws SQLException {
+    public Set<String> getNullableResult(ResultSet rs, String columnName) throws SQLException {
         String value = rs.getString(columnName);
         return convert(value);
     }
 
     @Override
-    public MemberOperate getNullableResult(ResultSet rs, int columnIndex) throws SQLException {
+    public Set<String> getNullableResult(ResultSet rs, int columnIndex) throws SQLException {
         String value = rs.getString(columnIndex);
         return convert(value);
     }
 
     @Override
-    public MemberOperate getNullableResult(CallableStatement cs, int columnIndex) throws SQLException {
+    public Set<String> getNullableResult(CallableStatement cs, int columnIndex) throws SQLException {
         String value = cs.getString(columnIndex);
         return convert(value);
     }
 
-    private MemberOperate convert(String value){
-        MemberOperate obj = new MemberOperate();
+    private Set<String> convert(String value){
         if(notNull(value)){
             // 1. 去掉大括号
             String noBraces = value.replace("{", "").replace("}", "");
             // 2. 分割字符串并去除空格
-            Set<String> set = Arrays.stream(noBraces.split(","))
+            return Arrays.stream(noBraces.split(","))
                     .map(String::trim) // 去除每个元素的前后空格
                     .collect(Collectors.toSet());
-            obj.setUSE(set.contains("USE"));
-            obj.setMANAGE(set.contains("MANAGE"));
         }
-        return obj;
+        return new HashSet<>();
     }
 
     private boolean notNull(String value){
         return (null != value && !value.isEmpty());
     }
 
-    public String toDBValue(MemberOperate value) {
-        if(null == value){
+
+    public String toDBValue(Set<String> value) {
+        System.out.println("ssssssssssssssss");
+        if(null == value || value.isEmpty()){
             return "{}";
         }
         StringBuilder sb = new StringBuilder();
         sb.append("{");
-        if(Objects.nonNull(value.getUSE())&&value.getUSE()){
-            sb.append("USE");
+        for (String s : value) {
+            sb.append(s).append(",");
         }
-        if(Objects.nonNull(value.getMANAGE())&&value.getMANAGE()){
-            if(Objects.nonNull(value.getUSE())&&value.getUSE()){
-                sb.append(",");
-            }
-            sb.append("MANAGE");
-        }
+        sb.deleteCharAt(sb.length()-1);
         sb.append("}");
         return sb.toString();
     }

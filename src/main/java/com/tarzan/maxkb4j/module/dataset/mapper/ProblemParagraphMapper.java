@@ -13,4 +13,6 @@ import java.util.UUID;
  */
 public interface ProblemParagraphMapper extends BaseMapper<ProblemParagraphEntity>{
     List<ProblemParagraphVO> getProblemsByDocIds(List<UUID>  docIds);
+
+    List<ProblemParagraphVO> getProblemsByDatasetId(UUID datasetId);
 }

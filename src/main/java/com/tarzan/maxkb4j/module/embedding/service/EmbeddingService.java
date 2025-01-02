@@ -177,4 +177,45 @@ public class EmbeddingService extends ServiceImpl<EmbeddingMapper, EmbeddingEnti
         }
         return false;
     }
+
+    @Transactional
+    public boolean embedByDatasetIds(UUID datasetId) {
+            List<EmbeddingEntity> embeddingEntities=new ArrayList<>();
+            this.lambdaUpdate().in(EmbeddingEntity::getDatasetId,datasetId).remove();
+            List<ParagraphEntity> paragraphEntities = paragraphService.lambdaQuery().in(ParagraphEntity::getDatasetId, datasetId).list();
+            for (ParagraphEntity paragraph: paragraphEntities) {
+                EmbeddingEntity embeddingEntity = new EmbeddingEntity();
+                embeddingEntity.setId(UUID.randomUUID());
+                embeddingEntity.setDatasetId(paragraph.getDatasetId());
+                embeddingEntity.setDocumentId(paragraph.getDocumentId());
+                embeddingEntity.setParagraphId(paragraph.getId());
+                embeddingEntity.setMeta(new JSONObject());
+                embeddingEntity.setSourceId(paragraph.getId().toString());
+                embeddingEntity.setSourceType("1");
+                embeddingEntity.setIsActive(paragraph.getIsActive());
+                embeddingEntity.setSearchVector(toTsVector(paragraph.getTitle()+paragraph.getContent()));
+                Response<Embedding> res= embeddingModel.embed(paragraph.getTitle()+paragraph.getContent());
+                embeddingEntity.setEmbedding(res.content().vectorAsList());
+                embeddingEntities.add(embeddingEntity);
+            }
+            List<ProblemParagraphVO> problemParagraphVOS=problemParagraphMappingService.getProblemsByDatasetId(datasetId);
+            if (!CollectionUtils.isEmpty(problemParagraphVOS)) {
+                for (ProblemParagraphVO pp : problemParagraphVOS) {
+                    EmbeddingEntity embeddingEntity = new EmbeddingEntity();
+                    embeddingEntity.setId(UUID.randomUUID());
+                    embeddingEntity.setDatasetId(pp.getDatasetId());
+                    embeddingEntity.setDocumentId(pp.getDocumentId());
+                    embeddingEntity.setParagraphId(pp.getParagraphId());
+                    embeddingEntity.setMeta(new JSONObject());
+                    embeddingEntity.setSourceId(pp.getProblemId().toString());
+                    embeddingEntity.setSourceType("0");
+                    embeddingEntity.setIsActive(true);
+                    embeddingEntity.setSearchVector(toTsVector(pp.getContent()));
+                    Response<Embedding> res= embeddingModel.embed(pp.getContent());
+                    embeddingEntity.setEmbedding(res.content().vectorAsList());
+                    embeddingEntities.add(embeddingEntity);
+                }
+            }
+            return this.saveBatch(embeddingEntities);
+    }
 }

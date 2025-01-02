@@ -44,9 +44,9 @@ public class UserController{
 		System.out.println(StpUtil.isLogin());
 		System.out.println(StpUtil.isSafe());
 		System.out.println(StpUtil.isSwitch());
-		if(!StpUtil.isLogin()){
-		   return R.fail(1002,"token无效");
-		}
+		/*if(!StpUtil.isLogin()){
+		   return R.fail(1002,"身份验证信息不正确！非法用户");
+		}*/
 		JSONObject json=new JSONObject();
 		json.put("id","f0dd8f71-e4ee-11ee-8c84-a8a1595801ab");
 		List<String> permissions=new ArrayList<String>();

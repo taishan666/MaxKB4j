@@ -18,5 +18,18 @@
             #{id}
         </foreach>
     </select>
+    <select id="getProblemsByDatasetId" resultType="com.tarzan.maxkb4j.module.dataset.vo.ProblemParagraphVO">
+        SELECT
+        ppm.ID,
+        P."content",
+        ppm.dataset_id,
+        ppm.document_id,
+        ppm.paragraph_id,
+        ppm.problem_id
+        FROM
+        problem_paragraph_mapping ppm
+        LEFT JOIN problem P ON P.ID = ppm.problem_id
+        WHERE ppm.dataset_id =   #{datasetId}
+    </select>
 
 </mapper>

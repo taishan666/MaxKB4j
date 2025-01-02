@@ -65,6 +65,11 @@ public class DatasetController{
         return R.success(datasetService.hitTest(id,dto));
     }
 
+    @PutMapping("api/dataset/{id}/re_embedding")
+    public R<Boolean> reEmbedding(@PathVariable("id") UUID id){
+        return R.success(datasetService.reEmbedding(id));
+    }
+
     @PutMapping("api/dataset/{id}")
     public R<Boolean> updateDatasetById(@PathVariable("id") UUID id,@RequestBody DatasetEntity datasetEntity){
         datasetEntity.setId(id);

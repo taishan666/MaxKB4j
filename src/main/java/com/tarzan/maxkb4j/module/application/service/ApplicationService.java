@@ -54,6 +54,8 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     private ApplicationChatService applicationChatService;
     @Autowired
     private ApplicationPublicAccessClientService applicationPublicAccessClientService;
+    @Autowired
+    private ApplicationApiKeyService applicationApiKeyService;
 
     public IPage<ApplicationEntity> selectAppPage(int page, int size, QueryDTO query) {
         Page<ApplicationEntity> appPage = new Page<>(page, size);
@@ -77,8 +79,13 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     }
 
 
-    public ApplicationAccessTokenEntity accessToken(UUID appId) {
+    public ApplicationAccessTokenEntity getAccessToken(UUID appId) {
         return accessTokenService.accessToken(appId);
+    }
+
+    public boolean updateAccessToken(UUID appId,ApplicationAccessTokenEntity entity) {
+        entity.setApplicationId(appId);
+        return accessTokenService.updateById(entity);
     }
 
     public List<DatasetEntity> getDatasets(UUID appId) {
@@ -190,5 +197,30 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
             }
         }
         return null;
+    }
+
+    public List<ApplicationApiKeyEntity> listApikey(UUID appId) {
+        return applicationApiKeyService.lambdaQuery().eq(ApplicationApiKeyEntity::getApplicationId, appId).list();
+    }
+
+    public boolean createApikey(UUID appId) {
+        ApplicationApiKeyEntity entity=new ApplicationApiKeyEntity();
+        entity.setApplicationId(appId);
+        entity.setIsActive(true);
+        entity.setAllowCrossDomain(false);
+        String uuid=UUID.randomUUID().toString();
+        entity.setSecretKey("maxKb4j-"+uuid.replaceAll("-",""));
+        entity.setUserId(UUID.fromString(StpUtil.getLoginIdAsString()));
+        entity.setCrossDomainList(new HashSet<>());
+        return applicationApiKeyService.save(entity);
+    }
+
+    public boolean updateApikey(UUID appId,UUID apikeyId,ApplicationApiKeyEntity entity) {
+        entity.setId(apikeyId);
+        return applicationApiKeyService.updateById(entity);
+    }
+
+    public boolean deleteApikey(UUID appId,UUID apikeyId) {
+        return applicationApiKeyService.removeById(apikeyId);
     }
 }
