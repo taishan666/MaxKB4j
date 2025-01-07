@@ -26,4 +26,6 @@ public interface DocumentMapper extends BaseMapper<DocumentEntity>{
     void updateStatusMetaByIds(List<UUID> ids);
 
     void updateStatusById(UUID id, int type,int status,int up,int next);
+
+    void updateStatusByIds(List<UUID> ids, int type, int status, int i, int i1);
 }

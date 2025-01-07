@@ -311,6 +311,7 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
         paragraphService.lambdaUpdate().set(ParagraphEntity::getStatus, "nn0").in(ParagraphEntity::getDocumentId, docIds).update();
         documentService.lambdaUpdate().set(DocumentEntity::getStatus, "nn0").in(DocumentEntity::getId, docIds).update();
         documentService.updateStatusMetaByIds(docIds);
+        documentService.updateStatusByIds(docIds,1,0);
         log.warn("come in");
         embeddingService.embedByDocIds(datasetId,docIds);
         log.warn("come over");

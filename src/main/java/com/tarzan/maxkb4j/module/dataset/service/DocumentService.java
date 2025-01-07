@@ -45,6 +45,9 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
     public void updateStatusById(UUID docId, int type,int status) {
         baseMapper.updateStatusById(docId,type,status,type-1,type+1);
     }
+    public void updateStatusByIds(List<UUID> ids, int type,int status) {
+        baseMapper.updateStatusByIds(ids,type,status,type-1,type+1);
+    }
 
     public void updateStatusMetaByIds(List<UUID> ids) {
         baseMapper.updateStatusMetaByIds(ids);
