@@ -1,6 +1,8 @@
 package com.tarzan.maxkb4j.module.team.entity;
 
+import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.tarzan.maxkb4j.handler.UUIDTypeHandler;
 import lombok.Data;
@@ -18,8 +20,9 @@ public class TeamEntity {
 	private Date createTime;
 	
 	private Date updateTime;
-	
-	@TableField(typeHandler = UUIDTypeHandler.class)
+
+	@TableId(value = "user_id", type = IdType.INPUT)
+	//@TableField(typeHandler = UUIDTypeHandler.class)
 	private UUID userId;
 	
 	private String name;

@@ -65,7 +65,7 @@ public class TSVectorTypeHandler extends BaseTypeHandler<Set<SearchIndex>> {
     public String toTSVector(Set<SearchIndex> parameter) {
         StringBuilder sb = new StringBuilder();
         parameter.forEach(e->{
-            sb.append("'").append(e.getWord()).append("'").append("':").append(e.getIndices()).append(" ");
+            sb.append("'").append(e.getWord()).append("'").append(":").append(e.getIndices()).append(" ");
         });
         return sb.toString();
     }

@@ -7,16 +7,14 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationEntity;
 import com.tarzan.maxkb4j.module.common.dto.DeleteDTO;
 import com.tarzan.maxkb4j.module.common.dto.QueryDTO;
-import com.tarzan.maxkb4j.module.dataset.dto.DatasetBatchHitHandlingDTO;
-import com.tarzan.maxkb4j.module.dataset.dto.DocumentNameDTO;
-import com.tarzan.maxkb4j.module.dataset.dto.HitTestDTO;
-import com.tarzan.maxkb4j.module.dataset.dto.ParagraphDTO;
+import com.tarzan.maxkb4j.module.dataset.dto.*;
 import com.tarzan.maxkb4j.module.dataset.entity.DatasetEntity;
 import com.tarzan.maxkb4j.module.dataset.entity.DocumentEntity;
 import com.tarzan.maxkb4j.module.dataset.entity.ParagraphEntity;
 import com.tarzan.maxkb4j.module.dataset.entity.ProblemEntity;
 import com.tarzan.maxkb4j.module.dataset.service.DatasetService;
 import com.tarzan.maxkb4j.module.dataset.vo.*;
+import com.tarzan.maxkb4j.module.model.entity.ModelEntity;
 import com.tarzan.maxkb4j.tool.api.R;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -92,10 +90,20 @@ public class DatasetController{
         return R.success(datasetService.getApplicationByDatasetId(id));
     }
 
+    @GetMapping("api/dataset/{id}/model")
+    public R<List<ModelEntity>> getModels(@PathVariable String id){
+        return R.success(datasetService.getModels(id));
+    }
+
 
     @GetMapping("api/dataset/{id}/document")
     public R<List<DocumentEntity>> listDocByDatasetId(@PathVariable UUID id){
         return R.success(datasetService.listDocByDatasetId(id));
+    }
+
+    @PutMapping("api/dataset/{id}/document/batch_generate_related")
+    public R<Boolean> batchGenerateRelated(@PathVariable UUID id,@RequestBody GenerateProblemDTO dto){
+        return R.success(datasetService.batchGenerateRelated(id,dto));
     }
 
     @PutMapping("api/dataset/{sourceId:" + UUID_REGEX + "}/document/migrate/{targetId:" + UUID_REGEX + "}")
@@ -126,6 +134,17 @@ public class DatasetController{
     @GetMapping("api/dataset/{id}/document/{documentId}")
     public R<DocumentEntity> getDocByDocId(@PathVariable String id, @PathVariable("documentId") String documentId){
         return R.success(datasetService.getDocByDocId(UUID.fromString(documentId)));
+    }
+
+    @PutMapping("api/dataset/{id}/document/{documentId}/refresh")
+    public R<Boolean> refresh(@PathVariable UUID id, @PathVariable("documentId") UUID documentId){
+        return R.success(datasetService.refresh(id,documentId));
+    }
+
+    @PutMapping("api/dataset/{id}/document/{documentId}/cancel_task")
+    public R<Boolean> cancelTask(@PathVariable String id, @PathVariable("documentId") UUID documentId,@RequestBody JSONObject json){
+        System.out.println(json.toString());
+        return R.success(datasetService.cancelTask(documentId,1));
     }
 
     @PutMapping("api/dataset/{id}/document/{documentId}")

@@ -1,6 +1,7 @@
 package com.tarzan.maxkb4j.module.dataset.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.tarzan.maxkb4j.module.dataset.entity.ProblemEntity;
 import com.tarzan.maxkb4j.module.dataset.entity.ProblemParagraphEntity;
 import com.tarzan.maxkb4j.module.dataset.vo.ProblemParagraphVO;
 
@@ -15,4 +16,7 @@ public interface ProblemParagraphMapper extends BaseMapper<ProblemParagraphEntit
     List<ProblemParagraphVO> getProblemsByDocIds(List<UUID>  docIds);
 
     List<ProblemParagraphVO> getProblemsByDatasetId(UUID datasetId);
+
+
+    List<ProblemEntity> getProblemsByParagraphId(UUID paragraphId);
 }

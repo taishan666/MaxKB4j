@@ -1,8 +1,6 @@
 package com.tarzan.maxkb4j.module.systemSetting.entity;
 
-import com.baomidou.mybatisplus.annotation.FieldFill;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.*;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tarzan.maxkb4j.handler.JOSNBTypeHandler;
 import lombok.Data;
@@ -25,6 +23,7 @@ public class SystemSettingEntity {
     @TableField(fill = FieldFill.INSERT_UPDATE)
     private Date updateTime;
     //0 邮箱 1 密匙
+    @TableId(value = "type", type = IdType.INPUT)
     private Integer type;
     @TableField(typeHandler = JOSNBTypeHandler.class)
     private JSONObject meta;

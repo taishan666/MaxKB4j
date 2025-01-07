@@ -14,4 +14,6 @@ import java.util.UUID;
 public interface ParagraphMapper extends BaseMapper<ParagraphEntity>{
 
     List<ParagraphVO> retrievalParagraph(List<UUID> paragraphIds);
+
+    void updateStatusById(UUID id, int type, int status,int up,int next);
 }

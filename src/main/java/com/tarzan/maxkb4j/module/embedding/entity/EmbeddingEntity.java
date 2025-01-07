@@ -26,11 +26,11 @@ public class EmbeddingEntity {
 	@TableId
 	@TableField(fill = FieldFill.INSERT,typeHandler = UUIDTypeHandler.class)
 	private UUID id;
-	//null
+	
 	private String sourceId;
-	//null
+	
 	private String sourceType;
-	//null
+	
 	private Boolean isActive;
 	@TableField(typeHandler = EmbeddingTypeHandler.class)
 	private List<Float> embedding;

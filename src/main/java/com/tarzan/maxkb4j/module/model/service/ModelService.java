@@ -18,6 +18,7 @@ import java.util.UUID;
 public class ModelService extends ServiceImpl<ModelMapper, ModelEntity>{
 
     public List<ModelEntity> getUserIdAndType(UUID userId, String modelType) {
+        modelType= StringUtils.isBlank(modelType)?"LLM":modelType;
         return this.list(Wrappers.<ModelEntity>lambdaQuery().eq(ModelEntity::getUserId, userId).eq(ModelEntity::getModelType, modelType));
     }
 

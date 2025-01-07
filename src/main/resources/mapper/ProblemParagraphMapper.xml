@@ -31,5 +31,14 @@
         LEFT JOIN problem P ON P.ID = ppm.problem_id
         WHERE ppm.dataset_id =   #{datasetId}
     </select>
+    <select id="getProblemsByParagraphId" resultType="com.tarzan.maxkb4j.module.dataset.entity.ProblemEntity">
+        SELECT
+            P.ID,
+            P."content"
+        FROM
+            problem_paragraph_mapping ppm
+                LEFT JOIN problem P ON P.ID = ppm.problem_id
+        WHERE ppm.paragraph_id =   #{paragraphId}
+    </select>
 
 </mapper>

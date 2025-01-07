@@ -10,15 +10,14 @@ import com.tarzan.maxkb4j.module.application.entity.ApplicationEntity;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationDatasetMappingMapper;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationMapper;
 import com.tarzan.maxkb4j.module.common.dto.QueryDTO;
-import com.tarzan.maxkb4j.module.dataset.dto.DatasetBatchHitHandlingDTO;
-import com.tarzan.maxkb4j.module.dataset.dto.DocumentNameDTO;
-import com.tarzan.maxkb4j.module.dataset.dto.HitTestDTO;
-import com.tarzan.maxkb4j.module.dataset.dto.ParagraphDTO;
+import com.tarzan.maxkb4j.module.dataset.dto.*;
 import com.tarzan.maxkb4j.module.dataset.entity.*;
 import com.tarzan.maxkb4j.module.dataset.mapper.DatasetMapper;
 import com.tarzan.maxkb4j.module.dataset.vo.*;
 import com.tarzan.maxkb4j.module.embedding.entity.EmbeddingEntity;
 import com.tarzan.maxkb4j.module.embedding.service.EmbeddingService;
+import com.tarzan.maxkb4j.module.model.entity.ModelEntity;
+import com.tarzan.maxkb4j.module.model.service.ModelService;
 import com.tarzan.maxkb4j.util.BeanUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -49,6 +48,8 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
     private ProblemParagraphService problemParagraphMappingService;
     @Autowired
     private EmbeddingService embeddingService;
+    @Autowired
+    private ModelService modelService;
 
 
     public IPage<DatasetVO> selectDatasetPage(Page<DatasetVO> datasetPage, QueryDTO query) {
@@ -107,7 +108,9 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
         return problemService.updateById(problem);
     }
 
+    @Transactional
     public boolean deleteProblemByDatasetId(UUID problemId) {
+        problemParagraphMappingService.lambdaUpdate().eq(ProblemParagraphEntity::getProblemId, problemId).remove();
         return problemService.removeById(problemId);
     }
 
@@ -116,7 +119,7 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
         if (CollectionUtils.isEmpty(problemIds)) {
             return false;
         }
-        problemParagraphMappingService.lambdaUpdate().in(ProblemParagraphEntity::getParagraphId, problemIds.stream().map(UUID::fromString).toList()).remove();
+        problemParagraphMappingService.lambdaUpdate().in(ProblemParagraphEntity::getProblemId, problemIds.stream().map(UUID::fromString).toList()).remove();
         embeddingService.lambdaUpdate().in(EmbeddingEntity::getSourceId, problemIds).remove();
         List<UUID> paragraphIds = problemIds.stream().map(UUID::fromString).toList();
         return problemService.lambdaUpdate().in(ProblemEntity::getId, paragraphIds).remove();
@@ -144,7 +147,7 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
         entity.setProblemId(problemId);
         entity.setParagraphId(paragraphId);
         entity.setDocumentId(docId);
-        return problemParagraphMappingService.save(entity)&&embeddingService.createProblem(datasetId,docId,paragraphId,problemId);
+        return problemParagraphMappingService.save(entity) && embeddingService.createProblem(datasetId, docId, paragraphId, problemId);
     }
 
     @Transactional
@@ -154,26 +157,33 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
                 .eq(ProblemParagraphEntity::getDocumentId, docId)
                 .eq(ProblemParagraphEntity::getProblemId, problemId)
                 .eq(ProblemParagraphEntity::getDatasetId, datasetId)
-                .remove()&&embeddingService.lambdaUpdate().eq(EmbeddingEntity::getSourceId,problemId.toString()).eq(EmbeddingEntity::getParagraphId,paragraphId).remove();
+                .remove() && embeddingService.lambdaUpdate().eq(EmbeddingEntity::getSourceId, problemId.toString()).eq(EmbeddingEntity::getParagraphId, paragraphId).remove();
     }
 
     public DocumentEntity getDocByDocId(UUID docId) {
         return documentService.getById(docId);
     }
 
+    @Transactional
     public boolean updateParagraphByParagraphId(ParagraphEntity paragraph) {
+        if(Objects.nonNull(paragraph.getIsActive())){
+            embeddingService.lambdaUpdate().set(EmbeddingEntity::getIsActive,paragraph.getIsActive()).eq(EmbeddingEntity::getParagraphId,paragraph.getId()).update();
+        }
         return paragraphService.updateById(paragraph);
     }
-
+    @Transactional
     public boolean deleteParagraphByParagraphId(UUID paragraphId) {
+        embeddingService.lambdaUpdate().eq(EmbeddingEntity::getParagraphId,paragraphId).remove();
         return paragraphService.removeById(paragraphId);
     }
 
+    @Transactional
     public boolean deleteBatchParagraphByParagraphIds(List<String> idList) {
         if (CollectionUtils.isEmpty(idList)) {
             return false;
         }
         List<UUID> paragraphIds = idList.stream().map(UUID::fromString).toList();
+        embeddingService.lambdaUpdate().in(EmbeddingEntity::getParagraphId,paragraphIds).remove();
         return paragraphService.lambdaUpdate().in(ParagraphEntity::getId, paragraphIds).remove();
     }
 
@@ -265,9 +275,9 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
     }
 
     public boolean createBatchDoc(UUID datasetId, List<DocumentNameDTO> docs) {
-        if(!CollectionUtils.isEmpty(docs)){
-            List<DocumentEntity> documentEntities=new ArrayList<>();
-            docs.forEach(e->{
+        if (!CollectionUtils.isEmpty(docs)) {
+            List<DocumentEntity> documentEntities = new ArrayList<>();
+            docs.forEach(e -> {
                 DocumentEntity documentEntity = new DocumentEntity();
                 documentEntity.setDatasetId(datasetId);
                 documentEntity.setName(e.getName());
@@ -281,25 +291,42 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
                 documentEntity.setDirectlyReturnSimilarity(0.9);
                 documentEntities.add(documentEntity);
             });
-           return documentService.saveBatch(documentEntities);
+            return documentService.saveBatch(documentEntities);
         }
         return false;
     }
 
+    @Transactional
     public boolean batchRefresh(UUID datasetId, DatasetBatchHitHandlingDTO dto) {
-        return embeddingService.embedByDocIds(dto.getIdList());
+        return embedByDocIds(datasetId,dto.getIdList());
+    }
+
+    @Transactional
+    public boolean refresh(UUID datasetId,UUID docId) {
+        return embedByDocIds(datasetId,List.of(docId));
+    }
+
+
+    public boolean embedByDocIds(UUID datasetId,List<UUID> docIds) {
+        paragraphService.lambdaUpdate().set(ParagraphEntity::getStatus, "nn0").in(ParagraphEntity::getDocumentId, docIds).update();
+        documentService.lambdaUpdate().set(DocumentEntity::getStatus, "nn0").in(DocumentEntity::getId, docIds).update();
+        documentService.updateStatusMetaByIds(docIds);
+        log.warn("come in");
+        embeddingService.embedByDocIds(datasetId,docIds);
+        log.warn("come over");
+        return true;
     }
 
 
     public List<ParagraphVO> hitTest(UUID id, HitTestDTO dto) {
-        List<HitTestVO> list=embeddingService.dataSearch(id,dto);
-        List<UUID> paragraphIds=list.stream().map(HitTestVO::getParagraphId).toList();
-        if(CollectionUtils.isEmpty(paragraphIds)){
+        List<HitTestVO> list = embeddingService.dataSearch(id, dto);
+        List<UUID> paragraphIds = list.stream().map(HitTestVO::getParagraphId).toList();
+        if (CollectionUtils.isEmpty(paragraphIds)) {
             return Collections.emptyList();
         }
-        Map<UUID,Double> map=list.stream().collect(Collectors.toMap(HitTestVO::getParagraphId,HitTestVO::getComprehensiveScore));
-        List<ParagraphVO> paragraphs= paragraphService.retrievalParagraph(paragraphIds);
-        paragraphs.forEach(e->{
+        Map<UUID, Double> map = list.stream().collect(Collectors.toMap(HitTestVO::getParagraphId, HitTestVO::getComprehensiveScore));
+        List<ParagraphVO> paragraphs = paragraphService.retrievalParagraph(paragraphIds);
+        paragraphs.forEach(e -> {
             e.setSimilarity(map.get(e.getId()));
             e.setComprehensiveScore(map.get(e.getId()));
         });
@@ -307,6 +334,23 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
     }
 
     public boolean reEmbedding(UUID datasetId) {
-        return embeddingService.embedByDatasetIds(datasetId);
+        return embeddingService.embedByDatasetId(datasetId);
+    }
+
+    public List<ModelEntity> getModels(String id) {
+        return modelService.models("LLM");
+    }
+
+    public boolean batchGenerateRelated(UUID id, GenerateProblemDTO dto) {
+        List<ParagraphEntity> paragraphs = documentService.getParagraphsByDocIds(dto.getDocument_id_list());
+        problemService.batchGenerateRelated(id,paragraphs, dto);
+        return true;
+    }
+
+    public boolean cancelTask(UUID docId,int type) {
+        DocumentEntity entity=new DocumentEntity();
+        entity.setId(docId);
+        entity.setStatus("nn2");
+        return documentService.updateById(entity);
     }
 }

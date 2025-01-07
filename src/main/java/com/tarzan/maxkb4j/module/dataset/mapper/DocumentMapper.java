@@ -9,6 +9,7 @@ import com.tarzan.maxkb4j.module.dataset.vo.DocumentVO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -19,4 +20,10 @@ import java.util.UUID;
 public interface DocumentMapper extends BaseMapper<DocumentEntity>{
 
     IPage<DocumentVO> selectDocPage(Page<DocumentVO> docPage, UUID datasetId,@Param("query") QueryDTO query);
+
+    boolean updateStatusMetaById(UUID id);
+
+    void updateStatusMetaByIds(List<UUID> ids);
+
+    void updateStatusById(UUID id, int type,int status,int up,int next);
 }

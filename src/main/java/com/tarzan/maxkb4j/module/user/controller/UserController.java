@@ -1,5 +1,7 @@
 package com.tarzan.maxkb4j.module.user.controller;
 
+import cn.dev33.satoken.context.SaHolder;
+import cn.dev33.satoken.router.SaRouter;
 import cn.dev33.satoken.stp.StpUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -40,12 +42,9 @@ public class UserController{
 
 	@GetMapping("api/user")
 	public R<JSONObject> getUser(HttpServletRequest request){
-		System.out.println("api/user");
-		System.out.println(StpUtil.isLogin());
-		System.out.println(StpUtil.isSafe());
-		System.out.println(StpUtil.isSwitch());
 		/*if(!StpUtil.isLogin()){
-		   return R.fail(1002,"身份验证信息不正确！非法用户");
+			SaHolder.getResponse().redirect("http://localhost:3000/login");
+			SaRouter.back();
 		}*/
 		JSONObject json=new JSONObject();
 		json.put("id","f0dd8f71-e4ee-11ee-8c84-a8a1595801ab");
