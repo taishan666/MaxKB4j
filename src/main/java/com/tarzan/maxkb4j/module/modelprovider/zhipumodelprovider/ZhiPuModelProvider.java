@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 import java.io.InputStream;
 import java.util.List;
 
-@Component
+@Component("model_zhipu_provider")
 public class ZhiPuModelProvider implements IModelProvider {
     @Override
     public ModelProvideInfo getModelProvideInfo() {

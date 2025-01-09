@@ -8,9 +8,10 @@ import com.tarzan.maxkb4j.util.IoUtil;
 import org.springframework.stereotype.Component;
 
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 
-@Component
+@Component("model_kimi_provider")
 public class KimiModelProvider implements IModelProvider {
     @Override
     public ModelProvideInfo getModelProvideInfo() {
@@ -26,6 +27,9 @@ public class KimiModelProvider implements IModelProvider {
 
     @Override
     public List<ModelInfo> getModelList() {
-        return List.of();
+        List<ModelInfo> modelInfos = new ArrayList<>();
+        modelInfos.add(new ModelInfo("moonshot-v1-8k","","LLM"));
+        modelInfos.add(new ModelInfo("moonshot-v1-32k","","LLM"));
+        return modelInfos;
     }
 }

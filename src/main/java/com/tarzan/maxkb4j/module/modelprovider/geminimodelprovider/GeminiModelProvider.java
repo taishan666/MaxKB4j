@@ -8,9 +8,10 @@ import com.tarzan.maxkb4j.util.IoUtil;
 import org.springframework.stereotype.Component;
 
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 
-@Component
+@Component("model_gemini_provider")
 public class GeminiModelProvider implements IModelProvider {
     @Override
     public ModelProvideInfo getModelProvideInfo() {
@@ -26,6 +27,12 @@ public class GeminiModelProvider implements IModelProvider {
 
     @Override
     public List<ModelInfo> getModelList() {
-        return List.of();
+        List<ModelInfo> modelInfos = new ArrayList<>();
+        modelInfos.add(new ModelInfo("gemini-1.0-pro","","LLM"));
+        modelInfos.add(new ModelInfo("gemini-1.0-pro-visio","","LLM"));
+        modelInfos.add(new ModelInfo("models/embedding-001","","EMBEDDING"));
+        modelInfos.add(new ModelInfo("gemini-1.5-flash","","STT"));
+        modelInfos.add(new ModelInfo("gemini-1.5-flash","","IMAGE"));
+        return modelInfos;
     }
 }

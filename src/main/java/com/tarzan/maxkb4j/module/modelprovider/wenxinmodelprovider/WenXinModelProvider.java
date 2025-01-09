@@ -9,9 +9,10 @@ import com.tarzan.maxkb4j.util.IoUtil;
 import org.springframework.stereotype.Component;
 
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 
-@Component
+@Component("model_wenxin_provider")
 public class WenXinModelProvider implements IModelProvider {
     @Override
     public ModelProvideInfo getModelProvideInfo() {
@@ -27,6 +28,11 @@ public class WenXinModelProvider implements IModelProvider {
 
     @Override
     public List<ModelInfo> getModelList() {
-        return List.of();
+        List<ModelInfo> modelInfos = new ArrayList<>();
+        modelInfos.add(new ModelInfo("ERNIE-Bot-4","","LLM"));
+        modelInfos.add(new ModelInfo("ERNIE-Bot","","LLM"));
+        modelInfos.add(new ModelInfo("ERNIE-Bot-turbo","","LLM"));
+        modelInfos.add(new ModelInfo("Embedding-V1","","EMBEDDING"));
+        return modelInfos;
     }
 }

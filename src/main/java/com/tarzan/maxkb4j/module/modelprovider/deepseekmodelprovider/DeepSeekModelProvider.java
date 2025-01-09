@@ -8,9 +8,10 @@ import com.tarzan.maxkb4j.util.IoUtil;
 import org.springframework.stereotype.Component;
 
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 
-@Component
+@Component("model_deepseek_provider")
 public class DeepSeekModelProvider implements IModelProvider {
     @Override
     public ModelProvideInfo getModelProvideInfo() {
@@ -26,6 +27,9 @@ public class DeepSeekModelProvider implements IModelProvider {
 
     @Override
     public List<ModelInfo> getModelList() {
-        return List.of();
+        List<ModelInfo> modelInfos = new ArrayList<>();
+        modelInfos.add(new ModelInfo("deepseek-chat","","LLM"));
+        modelInfos.add(new ModelInfo("deepseek-coder","","LLM"));
+        return modelInfos;
     }
 }

@@ -37,6 +37,7 @@ public class AliYunBaiLianModelProvider implements IModelProvider {
         modelInfos.add(new ModelInfo("cosyvoice-v1","","TTS"));
         modelInfos.add(new ModelInfo("qwen-vl-plus","","IMAGE"));
         modelInfos.add(new ModelInfo("qwen-vl-max","","IMAGE"));
+        modelInfos.add(new ModelInfo("wanx-v1","","TTI"));
         modelInfos.add(new ModelInfo("gte-rerank","","RERANKER"));
         return modelInfos;
     }
