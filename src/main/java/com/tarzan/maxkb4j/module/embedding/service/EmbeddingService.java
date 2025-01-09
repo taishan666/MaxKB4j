@@ -17,13 +17,8 @@ import com.tarzan.maxkb4j.module.dataset.vo.HitTestVO;
 import com.tarzan.maxkb4j.module.dataset.vo.ProblemParagraphVO;
 import com.tarzan.maxkb4j.module.common.dto.SearchIndex;
 import com.tarzan.maxkb4j.module.common.dto.WordIndex;
-import com.tarzan.maxkb4j.module.model.entity.ModelEntity;
 import com.tarzan.maxkb4j.module.model.service.ModelService;
-import com.tarzan.maxkb4j.module.systemSetting.entity.SystemSettingEntity;
-import com.tarzan.maxkb4j.module.systemSetting.service.SystemSettingService;
-import com.tarzan.maxkb4j.util.RSAUtil;
 import dev.langchain4j.data.embedding.Embedding;
-import dev.langchain4j.model.dashscope.QwenEmbeddingModel;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.model.output.Response;
 import lombok.extern.slf4j.Slf4j;
@@ -58,8 +53,7 @@ public class EmbeddingService extends ServiceImpl<EmbeddingMapper, EmbeddingEnti
     private ModelService modelService;
     @Autowired
     private DatasetMapper datasetMapper;
-    @Autowired
-    private SystemSettingService systemSettingService;
+
 
     JiebaSegmenter jiebaSegmenter = new JiebaSegmenter();
 
@@ -127,6 +121,7 @@ public class EmbeddingService extends ServiceImpl<EmbeddingMapper, EmbeddingEnti
         }
     }
 
+    @Transactional
     public boolean embedProblemParagraphs(List<ParagraphEntity> paragraphs, List<ProblemParagraphVO> problemParagraphs,EmbeddingModel embeddingModel) {
         List<EmbeddingEntity> embeddingEntities = new ArrayList<>();
         for (ParagraphEntity paragraph : paragraphs) {
@@ -187,16 +182,7 @@ public class EmbeddingService extends ServiceImpl<EmbeddingMapper, EmbeddingEnti
 
     public EmbeddingModel getDatasetEmbeddingModel(UUID datasetId){
         DatasetEntity dataset=datasetMapper.selectById(datasetId);
-        ModelEntity model=modelService.getById(dataset.getEmbeddingModeId());
-        SystemSettingEntity systemSetting=systemSettingService.lambdaQuery().eq(SystemSettingEntity::getType,1).one();
-        try {
-            String credential= RSAUtil.rsaLongDecrypt(model.getCredential(),systemSetting.getMeta().getString("value"));
-            JSONObject json=JSONObject.parseObject(credential);
-            return new QwenEmbeddingModel(null, json.getString("dashscope_api_key"), model.getModelName());
-        } catch (Exception e) {
-            log.error(e.getMessage());
-        }
-        return null;
+        return modelService.getEmbeddingModelById(dataset.getEmbeddingModeId());
     }
 
 
@@ -278,6 +264,7 @@ public class EmbeddingService extends ServiceImpl<EmbeddingMapper, EmbeddingEnti
     }
 
 
+    @Transactional
     public boolean embedByDatasetId(UUID datasetId) {
         EmbeddingModel embeddingModel=getDatasetEmbeddingModel(datasetId);
         this.lambdaUpdate().in(EmbeddingEntity::getDatasetId, datasetId).remove();

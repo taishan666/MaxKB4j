@@ -37,13 +37,17 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         return Collections.emptyList();
     }
 
+    public List<ParagraphEntity> getParagraphsByDocId(UUID docId) {
+        return getParagraphsByDocIds(List.of(docId));
+    }
+
     public void updateStatusMetaById(UUID id){
         baseMapper.updateStatusMetaById(id);
     }
 
     //type 1向量化 2 生成问题 3同步
     public void updateStatusById(UUID docId, int type,int status) {
-        baseMapper.updateStatusById(docId,type,status,type-1,type+1);
+        updateStatusByIds(List.of(docId),type,status);
     }
     public void updateStatusByIds(List<UUID> ids, int type,int status) {
         baseMapper.updateStatusByIds(ids,type,status,type-1,type+1);

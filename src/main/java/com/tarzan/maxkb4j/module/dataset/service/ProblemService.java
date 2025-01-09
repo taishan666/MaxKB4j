@@ -1,31 +1,26 @@
 package com.tarzan.maxkb4j.module.dataset.service;
 
-import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tarzan.maxkb4j.module.dataset.dto.GenerateProblemDTO;
 import com.tarzan.maxkb4j.module.dataset.dto.ProblemDTO;
 import com.tarzan.maxkb4j.module.dataset.entity.ParagraphEntity;
+import com.tarzan.maxkb4j.module.dataset.entity.ProblemEntity;
 import com.tarzan.maxkb4j.module.dataset.entity.ProblemParagraphEntity;
+import com.tarzan.maxkb4j.module.dataset.mapper.ProblemMapper;
 import com.tarzan.maxkb4j.module.dataset.vo.ProblemVO;
 import com.tarzan.maxkb4j.module.embedding.service.EmbeddingService;
-import com.tarzan.maxkb4j.module.model.entity.ModelEntity;
 import com.tarzan.maxkb4j.module.model.service.ModelService;
-import com.tarzan.maxkb4j.module.systemSetting.entity.SystemSettingEntity;
-import com.tarzan.maxkb4j.module.systemSetting.service.SystemSettingService;
 import com.tarzan.maxkb4j.util.BeanUtil;
-import com.tarzan.maxkb4j.util.RSAUtil;
 import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.model.chat.ChatLanguageModel;
 import dev.langchain4j.model.chat.request.ChatRequest;
 import dev.langchain4j.model.chat.response.ChatResponse;
-import dev.langchain4j.model.dashscope.QwenChatModel;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import com.tarzan.maxkb4j.module.dataset.mapper.ProblemMapper;
-import com.tarzan.maxkb4j.module.dataset.entity.ProblemEntity;
 import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
@@ -38,6 +33,7 @@ import java.util.regex.Pattern;
  * @author tarzan
  * @date 2024-12-26 10:45:40
  */
+@Slf4j
 @Service
 public class ProblemService extends ServiceImpl<ProblemMapper, ProblemEntity>{
 
@@ -46,27 +42,25 @@ public class ProblemService extends ServiceImpl<ProblemMapper, ProblemEntity>{
     @Autowired
     private EmbeddingService embeddingService;
     @Autowired
-    private ModelService modelService;
+    private DocumentService documentService;
     @Autowired
-    private SystemSettingService systemSettingService;
+    private ParagraphService paragraphService;
+    @Autowired
+    private ModelService modelService;
 
     public IPage<ProblemVO> getProblemsByDatasetId(Page<ProblemEntity> problemPage, UUID id) {
         return baseMapper.getProblemsByDatasetId(problemPage, id);
     }
 
     @Async
-    public void batchGenerateRelated(UUID datasetId,List<ParagraphEntity> paragraphs, GenerateProblemDTO dto) {
-        ModelEntity model=modelService.getById(dto.getModel_id());
-        SystemSettingEntity systemSetting=systemSettingService.lambdaQuery().eq(SystemSettingEntity::getType,1).one();
+    public void batchGenerateRelated(UUID datasetId,UUID docId, GenerateProblemDTO dto) {
+        documentService.updateStatusById(docId,2,1);
         try {
-            String credential= RSAUtil.rsaLongDecrypt(model.getCredential(),systemSetting.getMeta().getString("value"));
-            JSONObject json=JSONObject.parseObject(credential);
-            ChatLanguageModel chatModel = QwenChatModel.builder()
-                    .apiKey(json.getString("api_key"))
-                    .modelName(model.getModelName())
-                    .build();
+            List<ParagraphEntity> paragraphs = documentService.getParagraphsByDocId(docId);
+            ChatLanguageModel chatModel = modelService.getChatModelById(dto.getModel_id());
             List<ProblemDTO> problemDTOS = new ArrayList<>();
             for (ParagraphEntity paragraph : paragraphs) {
+                log.info("开始---->生成问题:{}", paragraph.getId());
                 UserMessage userMessage = UserMessage.from(dto.getPrompt().replace("{data}", paragraph.getContent()));
                 ChatRequest chatRequest = ChatRequest.builder()
                         .messages(userMessage)
@@ -84,6 +78,9 @@ public class ProblemService extends ServiceImpl<ProblemMapper, ProblemEntity>{
                     problemDTO.setParagraphId(paragraph.getId());
                     problemDTOS.add(problemDTO);
                 }
+                paragraphService.updateStatusById(paragraph.getId(),2,2);
+                documentService.updateStatusMetaById(paragraph.getDocumentId());
+                log.info("结束---->生成问题:{}", paragraph.getId());
             }
             List<ProblemEntity> problemEntities=BeanUtil.copyList(problemDTOS, ProblemEntity.class);
             baseMapper.insert(problemEntities);
@@ -100,6 +97,7 @@ public class ProblemService extends ServiceImpl<ProblemMapper, ProblemEntity>{
                 problemParagraphService.saveBatch(problemParagraphs);
                 embeddingService.createProblems(datasetId,problemDTOS);
             }
+            documentService.updateStatusById(docId,2,2);
         } catch (Exception e) {
             log.error(e.getMessage());
         }

@@ -308,13 +308,10 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
 
 
     public boolean embedByDocIds(UUID datasetId,List<UUID> docIds) {
-        paragraphService.lambdaUpdate().set(ParagraphEntity::getStatus, "nn0").in(ParagraphEntity::getDocumentId, docIds).update();
-        documentService.lambdaUpdate().set(DocumentEntity::getStatus, "nn0").in(DocumentEntity::getId, docIds).update();
+        paragraphService.updateStatusByDocIds(docIds,1,0);
         documentService.updateStatusMetaByIds(docIds);
         documentService.updateStatusByIds(docIds,1,0);
-        log.warn("come in");
         embeddingService.embedByDocIds(datasetId,docIds);
-        log.warn("come over");
         return true;
     }
 
@@ -343,8 +340,12 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
     }
 
     public boolean batchGenerateRelated(UUID id, GenerateProblemDTO dto) {
-        List<ParagraphEntity> paragraphs = documentService.getParagraphsByDocIds(dto.getDocument_id_list());
-        problemService.batchGenerateRelated(id,paragraphs, dto);
+        paragraphService.updateStatusByDocIds(dto.getDocument_id_list(),2,0);
+        documentService.updateStatusMetaByIds(dto.getDocument_id_list());
+        documentService.updateStatusByIds(dto.getDocument_id_list(),2,0);
+        for (UUID docId : dto.getDocument_id_list()) {
+            problemService.batchGenerateRelated(id,docId, dto);
+        }
         return true;
     }
 

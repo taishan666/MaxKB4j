@@ -23,4 +23,8 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
     public void updateStatusById(UUID id, int type, int status) {
         baseMapper.updateStatusById(id,type,status,type-1,type+1);
     }
+
+    public void updateStatusByDocIds(List<UUID> docIds, int type,int status)  {
+        baseMapper.updateStatusByDocIds(docIds,type,status,type-1,type+1);
+    }
 }

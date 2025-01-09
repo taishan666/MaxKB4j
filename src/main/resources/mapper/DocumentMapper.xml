@@ -36,21 +36,6 @@
         ) tmp
         WHERE "document".id="tmp".document_id;
     </update>
-    <update id="updateStatusById">
-        UPDATE "document"
-        SET status = reverse (
-                SUBSTRING ( reverse ( LPAD( status, 3, 'n' ) ) :: TEXT FROM 1 FOR #{up} ) || #{status} || SUBSTRING ( reverse ( LPAD( status, 3, 'n' ) ) :: TEXT FROM #{next} )
-                     ),
-            status_meta = jsonb_set (
-                    "document".status_meta,
-                    ARRAY['state_time', #{type}::TEXT],
-                    jsonb_set (
-                            COALESCE ("document".status_meta #> ARRAY['state_time', #{type}::TEXT], jsonb_build_object ( #{status}, now() ) ),
-                            ARRAY[#{status}::TEXT],
-                            CONCAT ( '"', now( ), '"' ) :: JSONB
-                    )
-            ) WHERE "id" = #{id};
-    </update>
     <update id="updateStatusMetaByIds">
         UPDATE "document"
         SET status_meta = jsonb_set ( "document".status_meta, '{aggs}', tmp.status_meta )
