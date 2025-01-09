@@ -1,7 +1,6 @@
 package com.tarzan.maxkb4j.module.common.entity;
 
 import com.baomidou.mybatisplus.annotation.FieldFill;
-import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -14,9 +13,8 @@ import java.util.UUID;
 @Data
 public class BaseEntity {
 
-   // @TableId(value = "id", type = IdType.INPUT)
-  //  @TableField(fill = FieldFill.INSERT,typeHandler = UUIDTypeHandler.class)
     @TableId
+    @TableField(typeHandler = UUIDTypeHandler.class)
     private UUID id;
 
     @JsonProperty("create_time")

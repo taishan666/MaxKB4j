@@ -69,7 +69,6 @@ public class UserService extends ServiceImpl<UserMapper, UserEntity> {
             SaTokenInfo tokenInfo = StpUtil.getTokenInfo();
             System.out.println(tokenInfo);
             return tokenInfo.getTokenValue();
-
         }
         return null;
     }

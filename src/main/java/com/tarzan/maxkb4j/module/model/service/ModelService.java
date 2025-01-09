@@ -51,7 +51,7 @@ public class ModelService extends ServiceImpl<ModelMapper, ModelEntity>{
     }
 
     public List<ModelVO> models(String name, String createUser, String permissionType, String modelType) {
-        List<UserEntity> users=userService.lambdaQuery().select(UserEntity::getId).select(UserEntity::getUsername).list();
+        List<UserEntity> users=userService.lambdaQuery().list();
         Map<UUID,String> userMap=users.stream().collect(Collectors.toMap(UserEntity::getId, UserEntity::getUsername));
         LambdaQueryWrapper<ModelEntity> wrapper=Wrappers.lambdaQuery();
         if(StringUtils.isNotBlank(name)){

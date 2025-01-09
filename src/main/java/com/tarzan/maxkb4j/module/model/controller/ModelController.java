@@ -122,6 +122,11 @@ public class ModelController{
 		return R.success(modelService.getById(id));
 	}
 
+	@DeleteMapping("api/model/{id}")
+	public R<Boolean> delete(@PathVariable UUID id){
+		return R.success(modelService.removeById(id));
+	}
+
 	@PutMapping("api/model/{id}")
 	public R<ModelEntity> update(@PathVariable UUID id,@RequestBody ModelDTO dto){
 		System.out.println(dto);
