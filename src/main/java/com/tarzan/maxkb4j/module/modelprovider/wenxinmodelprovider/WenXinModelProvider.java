@@ -26,7 +26,7 @@ public class WenXinModelProvider implements IModelProvider {
     }
 
     @Override
-    public List<ModelInfo> getModelList(String modelType) {
+    public List<ModelInfo> getModelList() {
         return List.of();
     }
 }

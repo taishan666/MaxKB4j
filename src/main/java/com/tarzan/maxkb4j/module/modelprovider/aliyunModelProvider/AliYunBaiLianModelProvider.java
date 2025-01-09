@@ -38,6 +38,6 @@ public class AliYunBaiLianModelProvider implements IModelProvider {
         modelInfos.add(new ModelInfo("qwen-vl-plus","","IMAGE"));
         modelInfos.add(new ModelInfo("qwen-vl-max","","IMAGE"));
         modelInfos.add(new ModelInfo("gte-rerank","","RERANKER"));
-        return modelInfos.stream().filter(e->e.getModelType().equals(modelType)).toList();
+        return modelInfos;
     }
 }

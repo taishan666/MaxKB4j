@@ -97,12 +97,12 @@ public class ModelController{
 
 	@GetMapping("api/provider/model_form")
 	public R< List<ModelInfo>> modelForm(String provider, String model_type,String model_name){
-		return R.success(modelProviderMap.get(provider).getModelList(model_type));
+		return R.success(modelProviderMap.get(provider).getModelList());
 	}
 
 	@GetMapping("api/provider/model_params_form")
 	public R<List<ModelInfo>> modelParamsForm(String provider, String model_type,String model_name){
-		return R.success(modelProviderMap.get(provider).getModelList(model_type));
+		return R.success(modelProviderMap.get(provider).getModelList());
 	}
 
 	@GetMapping("api/model")
