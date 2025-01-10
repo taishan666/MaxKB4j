@@ -13,7 +13,10 @@ import com.tarzan.maxkb4j.module.common.dto.QueryDTO;
 import com.tarzan.maxkb4j.module.dataset.dto.*;
 import com.tarzan.maxkb4j.module.dataset.entity.*;
 import com.tarzan.maxkb4j.module.dataset.mapper.DatasetMapper;
-import com.tarzan.maxkb4j.module.dataset.vo.*;
+import com.tarzan.maxkb4j.module.dataset.vo.DatasetVO;
+import com.tarzan.maxkb4j.module.dataset.vo.DocumentVO;
+import com.tarzan.maxkb4j.module.dataset.vo.ParagraphVO;
+import com.tarzan.maxkb4j.module.dataset.vo.ProblemVO;
 import com.tarzan.maxkb4j.module.embedding.entity.EmbeddingEntity;
 import com.tarzan.maxkb4j.module.embedding.service.EmbeddingService;
 import com.tarzan.maxkb4j.module.model.entity.ModelEntity;
@@ -25,7 +28,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * @author tarzan
@@ -317,18 +319,7 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
 
 
     public List<ParagraphVO> hitTest(UUID id, HitTestDTO dto) {
-        List<HitTestVO> list = embeddingService.dataSearch(id, dto);
-        List<UUID> paragraphIds = list.stream().map(HitTestVO::getParagraphId).toList();
-        if (CollectionUtils.isEmpty(paragraphIds)) {
-            return Collections.emptyList();
-        }
-        Map<UUID, Double> map = list.stream().collect(Collectors.toMap(HitTestVO::getParagraphId, HitTestVO::getComprehensiveScore));
-        List<ParagraphVO> paragraphs = paragraphService.retrievalParagraph(paragraphIds);
-        paragraphs.forEach(e -> {
-            e.setSimilarity(map.get(e.getId()));
-            e.setComprehensiveScore(map.get(e.getId()));
-        });
-        return paragraphs;
+        return embeddingService.paragraphSearch(id,dto);
     }
 
     public boolean reEmbedding(UUID datasetId) {

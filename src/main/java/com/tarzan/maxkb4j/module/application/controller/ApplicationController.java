@@ -1,14 +1,15 @@
 package com.tarzan.maxkb4j.module.application.controller;
 
 import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.tarzan.maxkb4j.module.application.dto.ChatImproveDTO;
 import com.tarzan.maxkb4j.module.application.dto.ChatQueryDTO;
+import com.tarzan.maxkb4j.module.application.entity.ApplicationAccessTokenEntity;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationApiKeyEntity;
+import com.tarzan.maxkb4j.module.application.entity.ApplicationChatEntity;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationEntity;
 import com.tarzan.maxkb4j.module.application.service.ApplicationService;
-import com.tarzan.maxkb4j.module.application.entity.ApplicationAccessTokenEntity;
-import com.tarzan.maxkb4j.module.application.entity.ApplicationChatEntity;
 import com.tarzan.maxkb4j.module.application.vo.ApplicationStatisticsVO;
 import com.tarzan.maxkb4j.module.application.vo.ApplicationVO;
 import com.tarzan.maxkb4j.module.common.dto.QueryDTO;
@@ -16,9 +17,9 @@ import com.tarzan.maxkb4j.module.dataset.entity.DatasetEntity;
 import com.tarzan.maxkb4j.module.model.entity.ModelEntity;
 import com.tarzan.maxkb4j.tool.api.R;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import lombok.AllArgsConstructor;
 
 import java.util.List;
 import java.util.UUID;
@@ -42,6 +43,23 @@ public class ApplicationController{
     @PostMapping("api/application")
     public R<ApplicationEntity> createApp(@RequestBody ApplicationEntity application){
         return R.success(applicationService.createApp(application));
+    }
+
+    @PostMapping("api/application/chat/open")
+    public R<UUID> chatOpen(@RequestBody ApplicationEntity application){
+        return R.success(applicationService.chatOpen(application));
+    }
+
+    @PostMapping("api/application/chat_message/{chatId}")
+    public R<UUID> chatMessage(@PathVariable UUID chatId,@RequestBody JSONObject params){
+        System.out.println(params);
+        return R.success(applicationService.chatMessage(chatId,params));
+    }
+
+    @GetMapping("api/application/{id}/chat//chat_record")
+    public R<UUID> chatRecord(@PathVariable UUID id,@RequestBody JSONObject jsonObject){
+        System.out.println(jsonObject);
+        return R.success(UUID.randomUUID());
     }
 
     @GetMapping("api/application/{page}/{size}")

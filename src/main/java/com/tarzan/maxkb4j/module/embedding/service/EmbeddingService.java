@@ -14,6 +14,7 @@ import com.tarzan.maxkb4j.module.dataset.service.DocumentService;
 import com.tarzan.maxkb4j.module.dataset.service.ParagraphService;
 import com.tarzan.maxkb4j.module.dataset.service.ProblemParagraphService;
 import com.tarzan.maxkb4j.module.dataset.vo.HitTestVO;
+import com.tarzan.maxkb4j.module.dataset.vo.ParagraphVO;
 import com.tarzan.maxkb4j.module.dataset.vo.ProblemParagraphVO;
 import com.tarzan.maxkb4j.module.common.dto.SearchIndex;
 import com.tarzan.maxkb4j.module.common.dto.WordIndex;
@@ -60,18 +61,32 @@ public class EmbeddingService extends ServiceImpl<EmbeddingMapper, EmbeddingEnti
     public List<HitTestVO> dataSearch(UUID datasetId, HitTestDTO dto) {
         EmbeddingModel embeddingModel=getDatasetEmbeddingModel(datasetId);
         Response<Embedding> res = embeddingModel.embed(dto.getQuery_text());
-        List<HitTestVO> list = new ArrayList<>();
         if ("embedding".equals(dto.getSearch_mode())) {
-            list = baseMapper.embeddingSearch(datasetId, dto, res.content().vector());
+            return baseMapper.embeddingSearch(datasetId, dto, res.content().vector());
         }
         if ("keywords".equals(dto.getSearch_mode())) {
             dto.setQuery_text(toTsQuery(dto.getQuery_text()));
-            list = baseMapper.keywordsSearch(datasetId, dto);
+            return baseMapper.keywordsSearch(datasetId, dto);
         }
         if ("blend".equals(dto.getSearch_mode())) {
-            list = baseMapper.HybridSearch(datasetId, dto, res.content().vector());
+            return baseMapper.HybridSearch(datasetId, dto, res.content().vector());
         }
-        return list;
+        return Collections.emptyList();
+    }
+
+    public List<ParagraphVO> paragraphSearch(UUID datasetId, HitTestDTO dto) {
+        List<HitTestVO> list = dataSearch(datasetId, dto);
+        List<UUID> paragraphIds = list.stream().map(HitTestVO::getParagraphId).toList();
+        if (CollectionUtils.isEmpty(paragraphIds)) {
+            return Collections.emptyList();
+        }
+        Map<UUID, Double> map = list.stream().collect(Collectors.toMap(HitTestVO::getParagraphId, HitTestVO::getComprehensiveScore));
+        List<ParagraphVO> paragraphs = paragraphService.retrievalParagraph(paragraphIds);
+        paragraphs.forEach(e -> {
+            e.setSimilarity(map.get(e.getId()));
+            e.setComprehensiveScore(map.get(e.getId()));
+        });
+        return paragraphs;
     }
 
 

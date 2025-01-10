@@ -34,11 +34,11 @@ public class MyBatisPlusTool {
     /**
      * 数据库表名
      */
-    private static String tableName = "application_api_key";
+    private static String tableName = "application_chat_record";
     /**
      * 数据库别名,可以与数据库表名相同,用于生成实体类
      */
-    private static String aliasName = "applicationApiKey";
+    private static String aliasName = "applicationChatRecord";
     /**
      * mapper.xml命名空间路径
      */

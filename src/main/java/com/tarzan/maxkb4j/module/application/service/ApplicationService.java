@@ -15,6 +15,10 @@ import com.tarzan.maxkb4j.module.application.mapper.ApplicationMapper;
 import com.tarzan.maxkb4j.module.application.vo.ApplicationPublicAccessClientStatisticsVO;
 import com.tarzan.maxkb4j.module.application.vo.ApplicationStatisticsVO;
 import com.tarzan.maxkb4j.module.application.vo.ApplicationVO;
+import com.tarzan.maxkb4j.module.chatpipeline.*;
+import com.tarzan.maxkb4j.module.chatpipeline.chatstep.impl.BaseChatStep;
+import com.tarzan.maxkb4j.module.chatpipeline.generatehumanmessagestep.impl.GenerateHumanMessageStep;
+import com.tarzan.maxkb4j.module.chatpipeline.searchdatasetstep.impl.SearchDatasetStep;
 import com.tarzan.maxkb4j.module.common.dto.QueryDTO;
 import com.tarzan.maxkb4j.module.dataset.entity.DatasetEntity;
 import com.tarzan.maxkb4j.module.dataset.service.DatasetService;
@@ -222,5 +226,26 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
 
     public boolean deleteApikey(UUID appId,UUID apikeyId) {
         return applicationApiKeyService.removeById(apikeyId);
+    }
+
+    public UUID chatMessage(UUID chatId, JSONObject json) {
+        PipelineManage.Builder pipeline_manage_builder = new PipelineManage.Builder();
+        pipeline_manage_builder.appendStep(SearchDatasetStep.class);
+        pipeline_manage_builder.appendStep(GenerateHumanMessageStep.class);
+        pipeline_manage_builder.appendStep(BaseChatStep.class);
+        PipelineManage pipelineManage=pipeline_manage_builder.addBaseToResponse(new SystemToResponse()).build();
+        ChatInfo chatInfo=ChatCache.get(chatId);
+        Map<String,Object> params=chatInfo.toPipelineManageParams(new PostHandler(chatInfo));
+        params.put("message",json.getString("message"));
+        pipelineManage.run(params);
+        return null;
+    }
+
+    public UUID chatOpen(ApplicationEntity application) {
+        ChatInfo chatInfo=new ChatInfo();
+        chatInfo.setChatId(UUID.randomUUID());
+        chatInfo.setApplication(application);
+        ChatCache.put(chatInfo.getChatId(), chatInfo);
+        return chatInfo.getChatId();
     }
 }

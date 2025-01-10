@@ -10,6 +10,7 @@ import com.tarzan.maxkb4j.module.common.entity.BaseEntity;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -94,4 +95,8 @@ public class ApplicationEntity extends BaseEntity {
     @JsonProperty("file_upload_setting")
     @TableField(typeHandler = JOSNBTypeHandler.class)
     private JSONObject fileUploadSetting;
+
+    @JsonProperty("dataset_id_list")
+    @TableField(exist = false)
+    private List<UUID> datasetIdList;
 } 
