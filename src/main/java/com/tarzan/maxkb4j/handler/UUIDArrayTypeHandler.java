@@ -11,65 +11,68 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.UUID;
 
-@Component
-public class StringSetTypeHandler extends BaseTypeHandler<Set<String>> {
+@Component("uuid_array_type_handler")
+public class UUIDArrayTypeHandler extends BaseTypeHandler<UUID[]> {
+
+
     @Override
-    public void setNonNullParameter(PreparedStatement ps, int i, Set<String> parameter, JdbcType jdbcType) throws SQLException {
-        System.out.println("StringSetTypeHandler");
-        PGobject pGobject = new PGobject();
-        pGobject.setType("varchar[]");
-        pGobject.setValue(toDBValue(parameter));
-        ps.setObject(i, pGobject);
+    public void setNonNullParameter(PreparedStatement ps, int i, UUID[] parameter, JdbcType jdbcType) throws SQLException {
+        if(null != parameter){
+            PGobject pGobject = new PGobject();
+            pGobject.setType("UUID[]");
+            pGobject.setValue(toDBValue(parameter));
+            System.out.println(pGobject.getValue());
+            ps.setObject(i, pGobject);
+        }
     }
 
     @Override
-    public Set<String> getNullableResult(ResultSet rs, String columnName) throws SQLException {
+    public UUID[] getNullableResult(ResultSet rs, String columnName) throws SQLException {
         String value = rs.getString(columnName);
         return convert(value);
     }
 
     @Override
-    public Set<String> getNullableResult(ResultSet rs, int columnIndex) throws SQLException {
+    public UUID[] getNullableResult(ResultSet rs, int columnIndex) throws SQLException {
         String value = rs.getString(columnIndex);
         return convert(value);
     }
 
     @Override
-    public Set<String> getNullableResult(CallableStatement cs, int columnIndex) throws SQLException {
+    public UUID[] getNullableResult(CallableStatement cs, int columnIndex) throws SQLException {
         String value = cs.getString(columnIndex);
         return convert(value);
     }
 
-    private Set<String> convert(String value){
+    private UUID[] convert(String value){
         if(notNull(value)){
+            System.out.println("value:"+value);
             // 1. 去掉大括号
             String noBraces = value.replace("{", "").replace("}", "");
             if(StringUtils.isNotBlank(noBraces)){
                 // 2. 分割字符串并去除空格
+                // 去除每个元素的前后空格
                 return Arrays.stream(noBraces.split(","))
-                        .map(String::trim) // 去除每个元素的前后空格
-                        .collect(Collectors.toSet());
+                        .map(e -> UUID.fromString(e.trim())).distinct().toArray(UUID[]::new);
             }
+
         }
-        return new HashSet<>();
+        return new UUID[0];
     }
 
     private boolean notNull(String value){
         return (null != value && !value.isEmpty());
     }
 
-
-    public String toDBValue(Set<String> value) {
-        if(null == value || value.isEmpty()){
+    public String toDBValue(UUID[] value) {
+        if(null == value || value.length==0){
             return "{}";
         }
         StringBuilder sb = new StringBuilder();
         sb.append("{");
-        for (String s : value) {
+        for (UUID s : value) {
             sb.append(s).append(",");
         }
         sb.deleteCharAt(sb.length()-1);

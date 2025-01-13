@@ -1,12 +1,10 @@
 package com.tarzan.maxkb4j.module.chatpipeline;
 
 import com.alibaba.fastjson.JSONObject;
-import com.tarzan.maxkb4j.module.BaseToResponse;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -43,18 +41,19 @@ public class PipelineManage {
         for (IBaseChatPipelineStep step : stepList) {
             step.run(this);
         }
+       // this.context.put("run_time", System.currentTimeMillis());
     }
 
-    public Map<String, Map<String, Object>> getDetails() {
-        Map<String, Map<String, Object>> detailsMap = new HashMap<>();
+    public JSONObject getDetails() {
+        JSONObject details = new JSONObject();
         for (IBaseChatPipelineStep row : stepList) {
-            Map<String, Object> item = row.getDetails();
+            JSONObject item = row.getDetails();
             if (item != null) {
-                String stepType = (String) item.get("step_type");
-                detailsMap.put(stepType, item);
+                String stepType = item.getString("step_type");
+                details.put(stepType, item);
             }
         }
-        return detailsMap;
+        return details;
     }
 
     public static class Builder {

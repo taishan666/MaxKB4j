@@ -1,12 +1,17 @@
 package com.tarzan.maxkb4j.module.application.entity;
 
 import com.alibaba.fastjson.JSONObject;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tarzan.maxkb4j.handler.JOSNBArrayTypeHandler;
+import com.tarzan.maxkb4j.handler.JOSNBTypeHandler;
+import com.tarzan.maxkb4j.handler.UUIDArrayTypeHandler;
 import com.tarzan.maxkb4j.module.common.entity.BaseEntity;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -17,28 +22,34 @@ import java.util.UUID;
 @Data
 @TableName("application_chat_record")
 public class ApplicationChatRecordEntity extends BaseEntity {
-	
+	@JsonProperty("vote_status")
 	private String voteStatus;
-	
+	@JsonProperty("problem_text")
 	private String problemText;
-	
+	@JsonProperty("answer_text")
 	private String answerText;
-	
+	@JsonProperty("message_tokens")
 	private Integer messageTokens;
-	
+
+	@JsonProperty("answer_tokens")
 	private Integer answerTokens;
-	
-	//private Integer const;
-	
+	@JsonProperty("const")
+	@TableField(value = "const")
+	private Integer constant;
+	@TableField(typeHandler = JOSNBTypeHandler.class)
 	private JSONObject details;
-	
-	private Long improveParagraphIdList;
-	
+
+	@JsonProperty("improve_paragraph_id_list")
+	@TableField(typeHandler = UUIDArrayTypeHandler.class)
+	private UUID[] improveParagraphIdList;
+
+	@JsonProperty("run_time")
 	private Double runTime;
 	
 	private Integer index;
 	
 	private UUID chatId;
-	
-	private List<String> answerTextList;
+	@JsonProperty("answer_text_list")
+	@TableField(typeHandler = JOSNBArrayTypeHandler.class)
+	private Set<String> answerTextList;
 } 

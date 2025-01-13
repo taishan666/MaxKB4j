@@ -3,6 +3,9 @@ package com.tarzan.maxkb4j.module.embedding.service;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.huaban.analysis.jieba.JiebaSegmenter;
+import com.tarzan.maxkb4j.module.common.dto.SearchIndex;
+import com.tarzan.maxkb4j.module.common.dto.TSVector;
+import com.tarzan.maxkb4j.module.common.dto.WordIndex;
 import com.tarzan.maxkb4j.module.dataset.dto.HitTestDTO;
 import com.tarzan.maxkb4j.module.dataset.dto.ProblemDTO;
 import com.tarzan.maxkb4j.module.dataset.entity.DatasetEntity;
@@ -16,8 +19,8 @@ import com.tarzan.maxkb4j.module.dataset.service.ProblemParagraphService;
 import com.tarzan.maxkb4j.module.dataset.vo.HitTestVO;
 import com.tarzan.maxkb4j.module.dataset.vo.ParagraphVO;
 import com.tarzan.maxkb4j.module.dataset.vo.ProblemParagraphVO;
-import com.tarzan.maxkb4j.module.common.dto.SearchIndex;
-import com.tarzan.maxkb4j.module.common.dto.WordIndex;
+import com.tarzan.maxkb4j.module.embedding.entity.EmbeddingEntity;
+import com.tarzan.maxkb4j.module.embedding.mapper.EmbeddingMapper;
 import com.tarzan.maxkb4j.module.model.service.ModelService;
 import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.model.embedding.EmbeddingModel;
@@ -26,8 +29,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import com.tarzan.maxkb4j.module.embedding.mapper.EmbeddingMapper;
-import com.tarzan.maxkb4j.module.embedding.entity.EmbeddingEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
@@ -203,7 +204,8 @@ public class EmbeddingService extends ServiceImpl<EmbeddingMapper, EmbeddingEnti
 
 
 
-    private Set<SearchIndex> toTsVector(String text) {
+    private TSVector toTsVector(String text) {
+        TSVector tsVector=new TSVector();
         List<String> segmentations = filterPunctuation(jiebaSegmenter.sentenceProcess(text));
         List<WordIndex> wordIndices = new ArrayList<>();
         for (int i = 0; i < segmentations.size(); i++) {
@@ -225,7 +227,8 @@ public class EmbeddingService extends ServiceImpl<EmbeddingMapper, EmbeddingEnti
             searchIndex.setIndices(sb.toString());
             searchVector.add(searchIndex);
         });
-        return searchVector;
+        tsVector.setSearchVector(searchVector);
+        return tsVector;
     }
 
 

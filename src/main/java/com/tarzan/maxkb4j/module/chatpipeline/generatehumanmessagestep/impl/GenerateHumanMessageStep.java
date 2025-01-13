@@ -15,7 +15,6 @@ import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 public class GenerateHumanMessageStep extends IGenerateHumanMessageStep {
 
@@ -77,8 +76,9 @@ public class GenerateHumanMessageStep extends IGenerateHumanMessageStep {
 
     }
 
+
     @Override
-    public Map<String, Object> getDetails() {
-        return Map.of();
+    public JSONObject getDetails() {
+        return new JSONObject();
     }
 }

@@ -6,6 +6,7 @@ import com.tarzan.maxkb4j.module.application.entity.ApplicationWorkFlowVersionEn
 import com.tarzan.maxkb4j.util.BeanUtil;
 import lombok.Data;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -17,7 +18,7 @@ public class ChatInfo {
     private ApplicationEntity application;
     private List<UUID> datasetIds;
     private List<UUID> excludeDocumentIds;
-    private List<ApplicationChatRecordEntity> chatRecordList;
+    private List<ApplicationChatRecordEntity> chatRecordList= new ArrayList<>();
     private ApplicationWorkFlowVersionEntity workFlowVersion;
 
     public Map<String, Object> toBasePipelineManageParams(){

@@ -12,6 +12,7 @@ import com.tarzan.maxkb4j.module.application.dto.ChatImproveDTO;
 import com.tarzan.maxkb4j.module.application.dto.ChatQueryDTO;
 import com.tarzan.maxkb4j.module.application.entity.*;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationMapper;
+import com.tarzan.maxkb4j.module.application.vo.ApplicationChatRecordVO;
 import com.tarzan.maxkb4j.module.application.vo.ApplicationPublicAccessClientStatisticsVO;
 import com.tarzan.maxkb4j.module.application.vo.ApplicationStatisticsVO;
 import com.tarzan.maxkb4j.module.application.vo.ApplicationVO;
@@ -60,6 +61,8 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     private ApplicationPublicAccessClientService applicationPublicAccessClientService;
     @Autowired
     private ApplicationApiKeyService applicationApiKeyService;
+    @Autowired
+    private ApplicationChatRecordService chatRecordService;
 
     public IPage<ApplicationEntity> selectAppPage(int page, int size, QueryDTO query) {
         Page<ApplicationEntity> appPage = new Page<>(page, size);
@@ -228,17 +231,32 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         return applicationApiKeyService.removeById(apikeyId);
     }
 
-    public UUID chatMessage(UUID chatId, JSONObject json) {
+    public JSONObject chatMessage(UUID chatId, JSONObject json) {
         PipelineManage.Builder pipeline_manage_builder = new PipelineManage.Builder();
         pipeline_manage_builder.appendStep(SearchDatasetStep.class);
         pipeline_manage_builder.appendStep(GenerateHumanMessageStep.class);
         pipeline_manage_builder.appendStep(BaseChatStep.class);
         PipelineManage pipelineManage=pipeline_manage_builder.addBaseToResponse(new SystemToResponse()).build();
         ChatInfo chatInfo=ChatCache.get(chatId);
-        Map<String,Object> params=chatInfo.toPipelineManageParams(new PostHandler(chatInfo));
-        params.put("message",json.getString("message"));
+        if(chatInfo==null){
+            return null;
+        }
+        ApplicationChatEntity chatEntity=new ApplicationChatEntity();
+        chatEntity.setId(chatId);
+        UUID appId=chatInfo.getApplication().getId();
+        chatEntity.setApplicationId(chatInfo.getApplication().getId());
+        String message=json.getString("message");
+        chatEntity.setDigest(message);
+        ApplicationPublicAccessClientEntity clientEntity=applicationPublicAccessClientService.lambdaQuery().eq(ApplicationPublicAccessClientEntity::getApplicationId,appId).one();
+        chatEntity.setClientId(clientEntity.getId());
+        chatEntity.setIsDeleted(false);
+        applicationChatService.saveOrUpdate(chatEntity);
+        PostResponseHandler postResponseHandler= new PostHandler(chatInfo);
+        Map<String,Object> params=chatInfo.toPipelineManageParams(postResponseHandler);
+        params.put("message",message);
         pipelineManage.run(params);
-        return null;
+
+        return  pipelineManage.getContext().getJSONObject("chat_result");
     }
 
     public UUID chatOpen(ApplicationEntity application) {
@@ -247,5 +265,9 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         chatInfo.setApplication(application);
         ChatCache.put(chatInfo.getChatId(), chatInfo);
         return chatInfo.getChatId();
+    }
+
+    public ApplicationChatRecordVO getChatRecordInfo(UUID chatId,UUID chatRecordId) {
+       return chatRecordService.getChatRecordInfo(chatId,chatRecordId);
     }
 }

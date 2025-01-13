@@ -12,6 +12,8 @@ public class ParagraphVO extends ParagraphEntity {
     private String datasetName;
     @JsonProperty("document_name")
     private String documentName;
+    @JsonProperty("hit_handling_method")
+    private String hitHandlingMethod;
     private Double similarity;
     @JsonProperty("comprehensive_score")
     private Double comprehensiveScore;

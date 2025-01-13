@@ -1,9 +1,11 @@
 package com.tarzan.maxkb4j.handler;
 
 import com.tarzan.maxkb4j.module.common.dto.SearchIndex;
+import com.tarzan.maxkb4j.module.common.dto.TSVector;
 import org.apache.ibatis.type.BaseTypeHandler;
 import org.apache.ibatis.type.JdbcType;
 import org.postgresql.util.PGobject;
+import org.springframework.stereotype.Component;
 
 import java.sql.CallableStatement;
 import java.sql.PreparedStatement;
@@ -12,10 +14,10 @@ import java.sql.SQLException;
 import java.util.HashSet;
 import java.util.Set;
 
-
-public class TSVectorTypeHandler extends BaseTypeHandler<Set<SearchIndex>> {
+@Component
+public class TSVectorTypeHandler extends BaseTypeHandler<TSVector> {
     @Override
-    public void setNonNullParameter(PreparedStatement ps, int i, Set<SearchIndex> parameter, JdbcType jdbcType) throws SQLException {
+    public void setNonNullParameter(PreparedStatement ps, int i, TSVector parameter, JdbcType jdbcType) throws SQLException {
         if(null != parameter){
             PGobject pGobject = new PGobject();
             pGobject.setType("tsvector");
@@ -25,25 +27,26 @@ public class TSVectorTypeHandler extends BaseTypeHandler<Set<SearchIndex>> {
     }
 
     @Override
-    public Set<SearchIndex> getNullableResult(ResultSet rs, String columnName) throws SQLException {
+    public TSVector getNullableResult(ResultSet rs, String columnName) throws SQLException {
         String value = rs.getString(columnName);
         return convert(value);
     }
 
     @Override
-    public Set<SearchIndex> getNullableResult(ResultSet rs, int columnIndex) throws SQLException {
+    public TSVector getNullableResult(ResultSet rs, int columnIndex) throws SQLException {
         String value = rs.getString(columnIndex);
         return convert(value);
     }
 
     @Override
-    public Set<SearchIndex> getNullableResult(CallableStatement cs, int columnIndex) throws SQLException {
+    public TSVector getNullableResult(CallableStatement cs, int columnIndex) throws SQLException {
         String value = cs.getString(columnIndex);
         return convert(value);
     }
 
 
-    private Set<SearchIndex>  convert(String value){
+    private TSVector convert(String value){
+        TSVector tsvector = new TSVector();
         if(notNull(value)){
             Set<SearchIndex> set = new HashSet<>();
             String[] words = value.split(" ");
@@ -54,17 +57,18 @@ public class TSVectorTypeHandler extends BaseTypeHandler<Set<SearchIndex>> {
                 index.setWord(kv[1]);
                 set.add(index);
             }
+            tsvector.setSearchVector(set);
         }
-        return new HashSet<>();
+        return tsvector;
     }
 
     private boolean notNull(String value){
         return (null != value && !value.isEmpty());
     }
 
-    public String toTSVector(Set<SearchIndex> parameter) {
+    public String toTSVector(TSVector parameter) {
         StringBuilder sb = new StringBuilder();
-        parameter.forEach(e->{
+        parameter.getSearchVector().forEach(e->{
             sb.append("'").append(e.getWord()).append("'").append(":").append(e.getIndices()).append(" ");
         });
         return sb.toString();

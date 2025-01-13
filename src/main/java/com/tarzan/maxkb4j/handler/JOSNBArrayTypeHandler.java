@@ -15,14 +15,14 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-@Component
-public class StringSetTypeHandler extends BaseTypeHandler<Set<String>> {
+@Component("josnb_array_type_handler")
+public class JOSNBArrayTypeHandler extends BaseTypeHandler<Set<String>> {
     @Override
     public void setNonNullParameter(PreparedStatement ps, int i, Set<String> parameter, JdbcType jdbcType) throws SQLException {
-        System.out.println("StringSetTypeHandler");
         PGobject pGobject = new PGobject();
-        pGobject.setType("varchar[]");
+        pGobject.setType("jsonb[]");
         pGobject.setValue(toDBValue(parameter));
+        System.out.println("JOSNBArrayTypeHandler setNonNullParameter"+pGobject.getValue());
         ps.setObject(i, pGobject);
     }
 
@@ -70,7 +70,7 @@ public class StringSetTypeHandler extends BaseTypeHandler<Set<String>> {
         StringBuilder sb = new StringBuilder();
         sb.append("{");
         for (String s : value) {
-            sb.append(s).append(",");
+            sb.append("\"").append("\\").append("\"").append(s).append("\\").append("\"").append("\"").append(",");
         }
         sb.deleteCharAt(sb.length()-1);
         sb.append("}");

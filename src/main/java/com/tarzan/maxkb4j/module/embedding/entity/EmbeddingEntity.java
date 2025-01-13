@@ -1,5 +1,6 @@
 package com.tarzan.maxkb4j.module.embedding.entity;
 
+import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
@@ -8,12 +9,10 @@ import com.tarzan.maxkb4j.handler.EmbeddingTypeHandler;
 import com.tarzan.maxkb4j.handler.JOSNBTypeHandler;
 import com.tarzan.maxkb4j.handler.TSVectorTypeHandler;
 import com.tarzan.maxkb4j.handler.UUIDTypeHandler;
-import com.tarzan.maxkb4j.module.common.dto.SearchIndex;
+import com.tarzan.maxkb4j.module.common.dto.TSVector;
 import lombok.Data;
-import com.alibaba.fastjson.JSONObject;
 
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -43,5 +42,5 @@ public class EmbeddingEntity {
 	@TableField(typeHandler = UUIDTypeHandler.class)
 	private UUID paragraphId;
 	@TableField(typeHandler = TSVectorTypeHandler.class)
-	private Set<SearchIndex> searchVector;
+	private TSVector searchVector;
 } 

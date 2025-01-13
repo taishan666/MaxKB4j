@@ -38,7 +38,8 @@
     <select id="retrievalParagraph" resultType="com.tarzan.maxkb4j.module.dataset.vo.ParagraphVO">
         SELECT
             ph.*,
-            doc."name" AS document_name
+            doc."name" AS document_name,
+            doc."hit_handling_method" AS hit_handling_method
         FROM
             paragraph ph
                 LEFT JOIN "document" doc ON ph.document_id = doc.ID

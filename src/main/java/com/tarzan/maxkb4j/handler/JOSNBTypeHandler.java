@@ -5,12 +5,14 @@ import com.alibaba.fastjson.serializer.SerializerFeature;
 import org.apache.ibatis.type.BaseTypeHandler;
 import org.apache.ibatis.type.JdbcType;
 import org.postgresql.util.PGobject;
+import org.springframework.stereotype.Component;
 
 import java.sql.CallableStatement;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+@Component
 public class JOSNBTypeHandler extends BaseTypeHandler<JSON> {
 
     @Override
