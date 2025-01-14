@@ -129,7 +129,6 @@ public class ModelController{
 
 	@PutMapping("api/model/{id}")
 	public R<ModelEntity> update(@PathVariable UUID id,@RequestBody ModelDTO dto){
-		System.out.println(dto);
 		ModelEntity modelEntity= BeanUtil.copy(dto, ModelEntity.class);
 		modelEntity.setId(id);
 		modelService.updateById(modelEntity);
@@ -144,7 +143,6 @@ public class ModelController{
 
 	@PutMapping("api/model/{id}/model_params_form")
 	public R<JSONArray> updateModelParamsForm(@PathVariable UUID id,@RequestBody JSONArray array){
-		System.out.println(array);
 		ModelEntity modelEntity= new ModelEntity();
 		modelEntity.setId(id);
 		modelEntity.setModelParamsForm(array);

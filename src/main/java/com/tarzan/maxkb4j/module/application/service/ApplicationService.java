@@ -16,10 +16,14 @@ import com.tarzan.maxkb4j.module.application.vo.ApplicationChatRecordVO;
 import com.tarzan.maxkb4j.module.application.vo.ApplicationPublicAccessClientStatisticsVO;
 import com.tarzan.maxkb4j.module.application.vo.ApplicationStatisticsVO;
 import com.tarzan.maxkb4j.module.application.vo.ApplicationVO;
-import com.tarzan.maxkb4j.module.chatpipeline.*;
-import com.tarzan.maxkb4j.module.chatpipeline.chatstep.impl.BaseChatStep;
-import com.tarzan.maxkb4j.module.chatpipeline.generatehumanmessagestep.impl.GenerateHumanMessageStep;
-import com.tarzan.maxkb4j.module.chatpipeline.searchdatasetstep.impl.SearchDatasetStep;
+import com.tarzan.maxkb4j.module.chatpipeline.ChatCache;
+import com.tarzan.maxkb4j.module.chatpipeline.ChatInfo;
+import com.tarzan.maxkb4j.module.chatpipeline.PipelineManage;
+import com.tarzan.maxkb4j.module.chatpipeline.handler.PostResponseHandler;
+import com.tarzan.maxkb4j.module.chatpipeline.response.impl.SystemToResponse;
+import com.tarzan.maxkb4j.module.chatpipeline.step.chatstep.impl.BaseChatStep;
+import com.tarzan.maxkb4j.module.chatpipeline.step.generatehumanmessagestep.impl.GenerateHumanMessageStep;
+import com.tarzan.maxkb4j.module.chatpipeline.step.searchdatasetstep.impl.SearchDatasetStep;
 import com.tarzan.maxkb4j.module.common.dto.QueryDTO;
 import com.tarzan.maxkb4j.module.dataset.entity.DatasetEntity;
 import com.tarzan.maxkb4j.module.dataset.service.DatasetService;
@@ -31,6 +35,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
+import reactor.core.publisher.Flux;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -63,6 +68,14 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     private ApplicationApiKeyService applicationApiKeyService;
     @Autowired
     private ApplicationChatRecordService chatRecordService;
+    @Autowired
+    private BaseChatStep baseChatStep;
+    @Autowired
+    private GenerateHumanMessageStep generateHumanMessageStep;
+    @Autowired
+    private SearchDatasetStep searchDatasetStep;
+    @Autowired
+    private PostResponseHandler postResponseHandler;
 
     public IPage<ApplicationEntity> selectAppPage(int page, int size, QueryDTO query) {
         Page<ApplicationEntity> appPage = new Page<>(page, size);
@@ -231,11 +244,14 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         return applicationApiKeyService.removeById(apikeyId);
     }
 
-    public JSONObject chatMessage(UUID chatId, JSONObject json) {
+    public Flux<JSONObject> chatMessage(UUID chatId, JSONObject json) {
         PipelineManage.Builder pipeline_manage_builder = new PipelineManage.Builder();
-        pipeline_manage_builder.appendStep(SearchDatasetStep.class);
-        pipeline_manage_builder.appendStep(GenerateHumanMessageStep.class);
-        pipeline_manage_builder.appendStep(BaseChatStep.class);
+       // pipeline_manage_builder.appendStep(SearchDatasetStep.class);
+       // pipeline_manage_builder.appendStep(GenerateHumanMessageStep.class);
+       // pipeline_manage_builder.appendStep(BaseChatStep.class);
+        pipeline_manage_builder.addStep(searchDatasetStep);
+        pipeline_manage_builder.addStep(generateHumanMessageStep);
+        pipeline_manage_builder.addStep(baseChatStep);
         PipelineManage pipelineManage=pipeline_manage_builder.addBaseToResponse(new SystemToResponse()).build();
         ChatInfo chatInfo=ChatCache.get(chatId);
         if(chatInfo==null){
@@ -246,17 +262,18 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         UUID appId=chatInfo.getApplication().getId();
         chatEntity.setApplicationId(chatInfo.getApplication().getId());
         String message=json.getString("message");
+        boolean reChat = json.getBoolean("re_chat");
+        if(reChat){
+            //todo
+        }
         chatEntity.setDigest(message);
         ApplicationPublicAccessClientEntity clientEntity=applicationPublicAccessClientService.lambdaQuery().eq(ApplicationPublicAccessClientEntity::getApplicationId,appId).one();
         chatEntity.setClientId(clientEntity.getId());
         chatEntity.setIsDeleted(false);
         applicationChatService.saveOrUpdate(chatEntity);
-        PostResponseHandler postResponseHandler= new PostHandler(chatInfo);
-        Map<String,Object> params=chatInfo.toPipelineManageParams(postResponseHandler);
-        params.put("message",message);
-        pipelineManage.run(params);
-
-        return  pipelineManage.getContext().getJSONObject("chat_result");
+        Map<String,Object> params=chatInfo.toPipelineManageParams(message,postResponseHandler);
+        return (Flux<JSONObject>) pipelineManage.run(params);
+        //return (Flux<JSONObject>) pipelineManage.context.get("chat_result");
     }
 
     public UUID chatOpen(ApplicationEntity application) {
@@ -267,7 +284,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         return chatInfo.getChatId();
     }
 
-    public ApplicationChatRecordVO getChatRecordInfo(UUID chatId,UUID chatRecordId) {
+    public ApplicationChatRecordVO getChatRecordInfo(UUID chatId, UUID chatRecordId) {
        return chatRecordService.getChatRecordInfo(chatId,chatRecordId);
     }
 }

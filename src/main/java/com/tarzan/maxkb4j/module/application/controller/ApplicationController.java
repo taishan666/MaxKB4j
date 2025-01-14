@@ -5,7 +5,10 @@ import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.tarzan.maxkb4j.module.application.dto.ChatImproveDTO;
 import com.tarzan.maxkb4j.module.application.dto.ChatQueryDTO;
-import com.tarzan.maxkb4j.module.application.entity.*;
+import com.tarzan.maxkb4j.module.application.entity.ApplicationAccessTokenEntity;
+import com.tarzan.maxkb4j.module.application.entity.ApplicationApiKeyEntity;
+import com.tarzan.maxkb4j.module.application.entity.ApplicationChatEntity;
+import com.tarzan.maxkb4j.module.application.entity.ApplicationEntity;
 import com.tarzan.maxkb4j.module.application.service.ApplicationService;
 import com.tarzan.maxkb4j.module.application.vo.ApplicationChatRecordVO;
 import com.tarzan.maxkb4j.module.application.vo.ApplicationStatisticsVO;
@@ -52,13 +55,11 @@ public class ApplicationController{
 
     @PostMapping(path ="api/application/chat_message/{chatId}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<JSONObject> chatMessage(@PathVariable UUID chatId, @RequestBody JSONObject params){
-        System.out.println(params);
-        return Flux.just(applicationService.chatMessage(chatId,params));
+        return applicationService.chatMessage(chatId,params);
     }
 
     @GetMapping("api/application/{id}/chat/{chatId}/chat_record/{chatRecordId}")
     public R<ApplicationChatRecordVO> chatRecord(@PathVariable UUID id, @PathVariable UUID chatId, @PathVariable UUID chatRecordId){
-        System.out.println("chatRecord");
         return R.success(applicationService.getChatRecordInfo(chatId,chatRecordId));
     }
 

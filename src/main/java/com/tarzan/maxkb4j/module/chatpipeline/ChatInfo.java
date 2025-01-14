@@ -3,6 +3,7 @@ package com.tarzan.maxkb4j.module.chatpipeline;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationChatRecordEntity;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationEntity;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationWorkFlowVersionEntity;
+import com.tarzan.maxkb4j.module.chatpipeline.handler.PostResponseHandler;
 import com.tarzan.maxkb4j.util.BeanUtil;
 import lombok.Data;
 
@@ -25,8 +26,9 @@ public class ChatInfo {
         return BeanUtil.toMap(this);
     }
 
-    public Map<String, Object> toPipelineManageParams(PostResponseHandler postResponseHandler){
+    public Map<String, Object> toPipelineManageParams(String problem_text, PostResponseHandler postResponseHandler){
         Map<String, Object> params = toBasePipelineManageParams();
+        params.put("problem_text", problem_text);
         params.put("postResponseHandler", postResponseHandler);
         return params;
     }

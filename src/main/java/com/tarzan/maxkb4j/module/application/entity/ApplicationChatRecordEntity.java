@@ -7,11 +7,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tarzan.maxkb4j.handler.JOSNBArrayTypeHandler;
 import com.tarzan.maxkb4j.handler.JOSNBTypeHandler;
 import com.tarzan.maxkb4j.handler.UUIDArrayTypeHandler;
+import com.tarzan.maxkb4j.handler.UUIDTypeHandler;
 import com.tarzan.maxkb4j.module.common.entity.BaseEntity;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-import java.util.Set;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -47,9 +48,11 @@ public class ApplicationChatRecordEntity extends BaseEntity {
 	private Double runTime;
 	
 	private Integer index;
-	
+
+	@TableField(typeHandler = UUIDTypeHandler.class)
 	private UUID chatId;
+
 	@JsonProperty("answer_text_list")
 	@TableField(typeHandler = JOSNBArrayTypeHandler.class)
-	private Set<String> answerTextList;
+	private List<String> answerTextList;
 } 

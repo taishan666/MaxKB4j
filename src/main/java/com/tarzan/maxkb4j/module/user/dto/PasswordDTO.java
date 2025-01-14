@@ -9,7 +9,4 @@ public class PasswordDTO {
     @JsonProperty("re_password")
     private String rePassword;
 
-    public static void main(String[] args) {
-        System.out.println();
-    }
 }

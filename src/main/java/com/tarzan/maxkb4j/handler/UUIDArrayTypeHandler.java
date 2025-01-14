@@ -23,7 +23,6 @@ public class UUIDArrayTypeHandler extends BaseTypeHandler<UUID[]> {
             PGobject pGobject = new PGobject();
             pGobject.setType("UUID[]");
             pGobject.setValue(toDBValue(parameter));
-            System.out.println(pGobject.getValue());
             ps.setObject(i, pGobject);
         }
     }
@@ -48,7 +47,6 @@ public class UUIDArrayTypeHandler extends BaseTypeHandler<UUID[]> {
 
     private UUID[] convert(String value){
         if(notNull(value)){
-            System.out.println("value:"+value);
             // 1. 去掉大括号
             String noBraces = value.replace("{", "").replace("}", "");
             if(StringUtils.isNotBlank(noBraces)){

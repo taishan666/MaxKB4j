@@ -143,7 +143,6 @@ public class DatasetController{
 
     @PutMapping("api/dataset/{id}/document/{documentId}/cancel_task")
     public R<Boolean> cancelTask(@PathVariable String id, @PathVariable("documentId") UUID documentId,@RequestBody JSONObject json){
-        System.out.println(json.toString());
         return R.success(datasetService.cancelTask(documentId,1));
     }
 
@@ -187,7 +186,6 @@ public class DatasetController{
 
     @DeleteMapping("api/dataset/{id}/document/{documentId}/paragraph/_batch")
     public R<Boolean> deleteBatchParagraphByParagraphId(@PathVariable String id, @PathVariable("documentId") String documentId, @RequestBody DeleteDTO dto){
-        System.out.println("deleteBatchParagraphByParagraphId");
         return R.success(datasetService.deleteBatchParagraphByParagraphIds(dto.getIdList()));
     }
 

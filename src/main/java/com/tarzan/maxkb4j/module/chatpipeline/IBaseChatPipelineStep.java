@@ -7,15 +7,15 @@ public abstract class IBaseChatPipelineStep {
 
    // public abstract void validArgs(PipelineManage manage);
 
-    public void run(PipelineManage manage) {
+    public Object run(PipelineManage manage) {
         long startTime = System.currentTimeMillis();
         context.put("start_time", startTime);
       //  validArgs(manage);
-        _run(manage);
-        context.put("run_time", System.currentTimeMillis() - startTime);
+        return _run(manage);
+       // context.put("run_time", (System.currentTimeMillis()-startTime)/1000F);
     }
 
-    protected abstract void _run(PipelineManage manage);
+    protected abstract Object _run(PipelineManage manage);
 
     public void execute() {}
 

@@ -15,8 +15,10 @@ import com.tarzan.maxkb4j.module.user.service.UserService;
 import com.tarzan.maxkb4j.util.BeanUtil;
 import com.tarzan.maxkb4j.util.RSAUtil;
 import dev.langchain4j.model.chat.ChatLanguageModel;
+import dev.langchain4j.model.chat.StreamingChatLanguageModel;
 import dev.langchain4j.model.dashscope.QwenChatModel;
 import dev.langchain4j.model.dashscope.QwenEmbeddingModel;
+import dev.langchain4j.model.dashscope.QwenStreamingChatModel;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -102,11 +104,23 @@ public class ModelService extends ServiceImpl<ModelMapper, ModelEntity>{
 
     public ChatLanguageModel getChatModelById(UUID modelId) {
         ModelEntity model=this.getById(modelId);
-        SystemSettingEntity systemSetting=systemSettingService.lambdaQuery().eq(SystemSettingEntity::getType,1).one();
         try {
-            String credential= RSAUtil.rsaLongDecrypt(model.getCredential(),systemSetting.getMeta().getString("value"));
             JSONObject json=getModelInfo(modelId);
             return QwenChatModel.builder()
+                    .apiKey(json.getString("api_key"))
+                    .modelName(model.getModelName())
+                    .build();
+        } catch (Exception e) {
+            log.error(e.getMessage());
+        }
+        return null;
+    }
+
+    public StreamingChatLanguageModel getStreamingChatModelById(UUID modelId) {
+        ModelEntity model=this.getById(modelId);
+        try {
+            JSONObject json=getModelInfo(modelId);
+            return QwenStreamingChatModel.builder()
                     .apiKey(json.getString("api_key"))
                     .modelName(model.getModelName())
                     .build();
