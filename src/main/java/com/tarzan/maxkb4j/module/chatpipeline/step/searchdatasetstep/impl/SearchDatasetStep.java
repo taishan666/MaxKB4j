@@ -20,33 +20,37 @@ public class SearchDatasetStep extends ISearchDatasetStep {
     private EmbeddingService embeddingService;
 
     @Override
-    protected List<ParagraphVO> execute(PipelineManage manage) throws Exception {
+    protected List<ParagraphVO> execute(PipelineManage manage) {
+        long startTime = System.currentTimeMillis();
         JSONObject context=manage.context;
         ApplicationEntity application=(ApplicationEntity)context.get("application");
         super.context.put("model_name","test_model");
         UUID datasetId=application.getDatasetIdList().get(0);
-        String problem=manage.context.getString("problem_text");
-        super.context.put("problem_text",problem);
+        String problemText=manage.context.getString("problem_text");
+        super.context.put("problem_text",problemText);
         JSONObject datasetSetting=application.getDatasetSetting();
         HitTestDTO hitTestDTO=new HitTestDTO();
-        hitTestDTO.setQuery_text(problem);
+        hitTestDTO.setQuery_text(problemText);
         hitTestDTO.setSearch_mode(datasetSetting.getString("search_mode"));
         hitTestDTO.setSimilarity(datasetSetting.getDouble("similarity"));
         hitTestDTO.setTop_number(datasetSetting.getInteger("top_n"));
-       // EmbeddingService embeddingService=SpringUtil.getBean(EmbeddingService.class);
-        return embeddingService.paragraphSearch(datasetId,hitTestDTO);
+        List<ParagraphVO> res= embeddingService.paragraphSearch(datasetId,hitTestDTO);
+        System.out.println("search 耗时 "+(System.currentTimeMillis()-startTime)+" ms");
+        super.context.put("message_tokens",0);
+        super.context.put("answer_tokens",0);
+        return res;
     }
 
     @Override
     public JSONObject getDetails() {
         JSONObject details=new JSONObject();
         details.put("step_type","search_step");
-        details.put("paragraph_list",super.context.getJSONArray("paragraph_list"));
-        details.put("run_time",super.context.getLong("run_time"));
-        details.put("problem_text",super.context.getString("problem_text"));
+        details.put("paragraph_list",super.context.get("paragraph_list"));
+        details.put("run_time",super.context.get("run_time"));
+        details.put("problem_text",super.context.get("problem_text"));
         details.put("model_name",super.context.get("model_name"));
-        details.put("message_tokens",0);
-        details.put("answer_tokens",0);
+        details.put("message_tokens",super.context.get("message_tokens"));
+        details.put("answer_tokens",super.context.get("answer_tokens"));
         details.put("cost",0);
         return details;
     }

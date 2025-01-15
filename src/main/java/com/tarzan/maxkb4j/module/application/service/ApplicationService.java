@@ -20,9 +20,9 @@ import com.tarzan.maxkb4j.module.chatpipeline.ChatCache;
 import com.tarzan.maxkb4j.module.chatpipeline.ChatInfo;
 import com.tarzan.maxkb4j.module.chatpipeline.PipelineManage;
 import com.tarzan.maxkb4j.module.chatpipeline.handler.PostResponseHandler;
-import com.tarzan.maxkb4j.module.chatpipeline.response.impl.SystemToResponse;
 import com.tarzan.maxkb4j.module.chatpipeline.step.chatstep.impl.BaseChatStep;
 import com.tarzan.maxkb4j.module.chatpipeline.step.generatehumanmessagestep.impl.GenerateHumanMessageStep;
+import com.tarzan.maxkb4j.module.chatpipeline.step.resetproblemstep.impl.BaseResetProblemStep;
 import com.tarzan.maxkb4j.module.chatpipeline.step.searchdatasetstep.impl.SearchDatasetStep;
 import com.tarzan.maxkb4j.module.common.dto.QueryDTO;
 import com.tarzan.maxkb4j.module.dataset.entity.DatasetEntity;
@@ -71,9 +71,9 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     @Autowired
     private BaseChatStep baseChatStep;
     @Autowired
-    private GenerateHumanMessageStep generateHumanMessageStep;
-    @Autowired
     private SearchDatasetStep searchDatasetStep;
+    @Autowired
+    private BaseResetProblemStep baseResetProblemStep;
     @Autowired
     private PostResponseHandler postResponseHandler;
 
@@ -245,40 +245,42 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     }
 
     public Flux<JSONObject> chatMessage(UUID chatId, JSONObject json) {
-        PipelineManage.Builder pipeline_manage_builder = new PipelineManage.Builder();
-       // pipeline_manage_builder.appendStep(SearchDatasetStep.class);
-       // pipeline_manage_builder.appendStep(GenerateHumanMessageStep.class);
-       // pipeline_manage_builder.appendStep(BaseChatStep.class);
-        pipeline_manage_builder.addStep(searchDatasetStep);
-        pipeline_manage_builder.addStep(generateHumanMessageStep);
-        pipeline_manage_builder.addStep(baseChatStep);
-        PipelineManage pipelineManage=pipeline_manage_builder.addBaseToResponse(new SystemToResponse()).build();
         ChatInfo chatInfo=ChatCache.get(chatId);
         if(chatInfo==null){
             return null;
         }
-        ApplicationChatEntity chatEntity=new ApplicationChatEntity();
-        chatEntity.setId(chatId);
-        UUID appId=chatInfo.getApplication().getId();
-        chatEntity.setApplicationId(chatInfo.getApplication().getId());
-        String message=json.getString("message");
+        String problemText=json.getString("message");
         boolean reChat = json.getBoolean("re_chat");
         if(reChat){
             //todo
         }
-        chatEntity.setDigest(message);
+        ApplicationEntity application=chatInfo.getApplication();
+   /*     ApplicationChatEntity chatEntity=new ApplicationChatEntity();
+        chatEntity.setId(chatId);
+        UUID appId=application.getId();
+        chatEntity.setApplicationId(appId);
+        chatEntity.setDigest(problemText);
         ApplicationPublicAccessClientEntity clientEntity=applicationPublicAccessClientService.lambdaQuery().eq(ApplicationPublicAccessClientEntity::getApplicationId,appId).one();
         chatEntity.setClientId(clientEntity.getId());
         chatEntity.setIsDeleted(false);
-        applicationChatService.saveOrUpdate(chatEntity);
-        Map<String,Object> params=chatInfo.toPipelineManageParams(message,postResponseHandler);
-        return (Flux<JSONObject>) pipelineManage.run(params);
-        //return (Flux<JSONObject>) pipelineManage.context.get("chat_result");
+        applicationChatService.saveOrUpdate(chatEntity);*/
+        PipelineManage.Builder pipelineManageBuilder = new PipelineManage.Builder();
+        if(application.getProblemOptimization()){
+            pipelineManageBuilder.addStep(baseResetProblemStep);
+        }
+        pipelineManageBuilder.addStep(searchDatasetStep);
+        pipelineManageBuilder.addStep(GenerateHumanMessageStep.class);
+        pipelineManageBuilder.addStep(baseChatStep);
+        PipelineManage pipelineManage=pipelineManageBuilder.build();
+        Map<String,Object> params=chatInfo.toPipelineManageParams(problemText,postResponseHandler);
+        pipelineManage.run(params);
+        return pipelineManage.response;
     }
 
     public UUID chatOpen(ApplicationEntity application) {
         ChatInfo chatInfo=new ChatInfo();
         chatInfo.setChatId(UUID.randomUUID());
+        application.setId(null);
         chatInfo.setApplication(application);
         ChatCache.put(chatInfo.getChatId(), chatInfo);
         return chatInfo.getChatId();

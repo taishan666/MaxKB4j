@@ -1,9 +1,8 @@
 package com.tarzan.maxkb4j.module.chatpipeline;
 
 import com.alibaba.fastjson.JSONObject;
-import com.tarzan.maxkb4j.module.chatpipeline.response.BaseToResponse;
-import com.tarzan.maxkb4j.module.chatpipeline.response.impl.SystemToResponse;
 import lombok.extern.slf4j.Slf4j;
+import reactor.core.publisher.Flux;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,12 +12,13 @@ import java.util.Map;
 public class PipelineManage {
     public List<IBaseChatPipelineStep> stepList;
     public JSONObject context;
-    public BaseToResponse baseToResponse;
+    public Flux<JSONObject> response;
 
-    public PipelineManage(List<IBaseChatPipelineStep> stepList, BaseToResponse baseToResponse) {
+    public PipelineManage(List<IBaseChatPipelineStep> stepList) {
         this.stepList = stepList;
         this.context = new JSONObject();
-        this.baseToResponse = baseToResponse != null ? baseToResponse : new SystemToResponse();
+        this.context.put("message_tokens", 0);
+        this.context.put("answer_tokens", 0);
     }
 
 
@@ -31,25 +31,15 @@ public class PipelineManage {
         return null;
     }
 
-    public Object run(Map<String, Object> context) {
+    public void run(Map<String, Object> context) {
         this.context.put("start_time", System.currentTimeMillis());
         if (context != null) {
             this.context.putAll(context);
         }
-        for (int i = 0; i < stepList.size(); i++) {
-            IBaseChatPipelineStep step=stepList.get(i);
-            if(i==stepList.size()-1){
-                return  step.run(this);
-            }else {
-                step.run(this);
-            }
-        }
-
-       /* for (IBaseChatPipelineStep step : stepList) {
+        for (IBaseChatPipelineStep step : stepList) {
             step.run(this);
-        }*/
-       // this.context.put("run_time", System.currentTimeMillis());
-        return null;
+        }
+        this.context.put("run_time", System.currentTimeMillis());
     }
 
 
@@ -67,9 +57,8 @@ public class PipelineManage {
 
     public static class Builder {
         private final List<IBaseChatPipelineStep> stepList = new ArrayList<>();
-        private BaseToResponse baseToResponse = new SystemToResponse();
 
-        public void appendStep(Class<? extends IBaseChatPipelineStep> step) {
+        public void addStep(Class<? extends IBaseChatPipelineStep> step) {
             stepList.add(instantiateStep(step));
         }
 
@@ -77,13 +66,8 @@ public class PipelineManage {
             stepList.add(step);
         }
 
-        public Builder addBaseToResponse(BaseToResponse baseToResponse) {
-            this.baseToResponse = baseToResponse;
-            return this;
-        }
-
         public PipelineManage build() {
-            return new PipelineManage(stepList, baseToResponse);
+            return new PipelineManage(stepList);
         }
     }
 }

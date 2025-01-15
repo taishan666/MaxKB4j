@@ -1,17 +1,14 @@
-package com.tarzan.maxkb4j.module.chatpipeline.step.searchdatasetstep;
+package com.tarzan.maxkb4j.module.chatpipeline.step.resetproblemstep;
 
 import com.tarzan.maxkb4j.module.chatpipeline.IBaseChatPipelineStep;
 import com.tarzan.maxkb4j.module.chatpipeline.PipelineManage;
-import com.tarzan.maxkb4j.module.dataset.vo.ParagraphVO;
 
-import java.util.List;
+public abstract class IResetProblemStep extends IBaseChatPipelineStep {
 
-public abstract class ISearchDatasetStep extends IBaseChatPipelineStep {
     @Override
     protected void _run(PipelineManage manage) {
-        List<ParagraphVO> paragraphList = execute(manage);
-        manage.context.put("paragraph_list", paragraphList);
-        super.context.put("paragraph_list", paragraphList);
+        String paddingProblemText = execute(manage);
+        manage.context.put("padding_problem_text", paddingProblemText);
         //累加tokens
         int messageTokens=manage.context.getInteger("message_tokens");
         int answerTokens=manage.context.getInteger("answer_tokens");
@@ -21,5 +18,5 @@ public abstract class ISearchDatasetStep extends IBaseChatPipelineStep {
         manage.context.put("answer_tokens",answerTokens+thisAnswerTokens);
     }
 
-    protected abstract List<ParagraphVO> execute(PipelineManage manage);
+    protected abstract String execute(PipelineManage manage);
 }

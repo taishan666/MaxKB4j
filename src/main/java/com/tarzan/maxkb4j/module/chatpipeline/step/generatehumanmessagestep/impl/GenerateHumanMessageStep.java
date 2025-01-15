@@ -11,54 +11,52 @@ import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.data.message.UserMessage;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.List;
 
-@Component
 public class GenerateHumanMessageStep extends IGenerateHumanMessageStep {
 
     @Override
-    protected List<ChatMessage> execute(PipelineManage manage) throws Exception {
+    protected List<ChatMessage> execute(PipelineManage manage) {
         List<ChatMessage> messages = new ArrayList<>();
         JSONObject context = manage.context;
         List<ParagraphVO> paragraphList = (List<ParagraphVO>) context.get("paragraph_list");
         List<ApplicationChatRecordEntity> chatRecordList = (List<ApplicationChatRecordEntity>) context.get("chatRecordList");
-        ApplicationEntity application = context.getJSONObject("application").toJavaObject(ApplicationEntity.class);
+        ApplicationEntity application = (ApplicationEntity) context.get("application");
         JSONObject modelSetting = application.getModelSetting();
         String system = modelSetting.getString("system");
         String prompt = modelSetting.getString("prompt");
         String problem = context.getString("problem_text");
         JSONObject datasetSetting = application.getDatasetSetting();
-        int maxParagraphCharNumber=datasetSetting.getInteger("max_paragraph_char_number");
-        JSONObject noReferencesSetting=datasetSetting.getJSONObject("no_references_setting");
-        int dialogueNumber=application.getDialogueNumber();
+        int maxParagraphCharNumber = datasetSetting.getInteger("max_paragraph_char_number");
+        JSONObject noReferencesSetting = datasetSetting.getJSONObject("no_references_setting");
+        int dialogueNumber = application.getDialogueNumber();
 
-        if (StringUtils.isBlank(system)) {
+        if (StringUtils.isNotBlank(system)) {
             messages.add(SystemMessage.from(system));
         }
-        if(!CollectionUtils.isEmpty(chatRecordList)){
+        if (!CollectionUtils.isEmpty(chatRecordList)) {
             int startIndex = chatRecordList.size() - dialogueNumber;
-            if(startIndex>0){
-                chatRecordList=chatRecordList.subList(startIndex,chatRecordList.size());
+            if (startIndex > 0) {
+                chatRecordList = chatRecordList.subList(startIndex, chatRecordList.size());
             }
             for (ApplicationChatRecordEntity chatRecord : chatRecordList) {
                 messages.add(UserMessage.from(chatRecord.getProblemText()));
                 messages.add(AiMessage.from(chatRecord.getAnswerText()));
             }
         }
-        messages.add(toHumanMessage(prompt,problem,paragraphList,maxParagraphCharNumber,noReferencesSetting));
+        messages.add(toHumanMessage(prompt, problem, paragraphList, maxParagraphCharNumber, noReferencesSetting));
         return messages;
     }
 
-    public ChatMessage toHumanMessage(String prompt, String problem, List<ParagraphVO> paragraphList, int maxParagraphCharNumber,JSONObject noReferencesSetting) {
+    public ChatMessage toHumanMessage(String prompt, String problem, List<ParagraphVO> paragraphList, int maxParagraphCharNumber, JSONObject noReferencesSetting) {
         if (CollectionUtils.isEmpty(paragraphList)) {
-            if("ai_questioning".equals(noReferencesSetting.getString("status"))){
-                String value=noReferencesSetting.getString("value");
+            if ("ai_questioning".equals(noReferencesSetting.getString("status"))) {
+                String value = noReferencesSetting.getString("value");
                 return UserMessage.from(value.replace("{question}", problem));
-            }else {
+            } else {
                 return UserMessage.from(prompt.replace("{data}", "").replace("{question}", problem));
             }
         } else {
@@ -68,7 +66,7 @@ public class GenerateHumanMessageStep extends IGenerateHumanMessageStep {
                 String content = p.getTitle() + ":" + p.getContent();
                 temp.append(content);
                 if (temp.length() > maxParagraphCharNumber) {
-                    String rowData = content.substring(0,  temp.length()-maxParagraphCharNumber);
+                    String rowData = content.substring(0, temp.length() - maxParagraphCharNumber);
                     data.append("<data>").append(rowData).append("</data>");
                     break;
                 } else {

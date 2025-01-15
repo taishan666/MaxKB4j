@@ -26,9 +26,9 @@ public class ChatInfo {
         return BeanUtil.toMap(this);
     }
 
-    public Map<String, Object> toPipelineManageParams(String problem_text, PostResponseHandler postResponseHandler){
+    public Map<String, Object> toPipelineManageParams(String problemText, PostResponseHandler postResponseHandler){
         Map<String, Object> params = toBasePipelineManageParams();
-        params.put("problem_text", problem_text);
+        params.put("problem_text", problemText);
         params.put("postResponseHandler", postResponseHandler);
         return params;
     }

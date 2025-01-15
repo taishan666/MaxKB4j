@@ -3,6 +3,7 @@ package com.tarzan.maxkb4j.module.application.entity;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tarzan.maxkb4j.handler.JOSNBArrayTypeHandler;
 import com.tarzan.maxkb4j.handler.JOSNBTypeHandler;
@@ -38,6 +39,7 @@ public class ApplicationChatRecordEntity extends BaseEntity {
 	@TableField(value = "const")
 	private Integer constant;
 	@TableField(typeHandler = JOSNBTypeHandler.class)
+	@JsonIgnore
 	private JSONObject details;
 
 	@JsonProperty("improve_paragraph_id_list")
