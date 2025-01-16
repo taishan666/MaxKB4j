@@ -26,12 +26,13 @@ public class ChatInfo {
         return BeanUtil.toMap(this);
     }
 
-    public Map<String, Object> toPipelineManageParams(String problemText,PostResponseHandler postResponseHandler,List<UUID> excludeParagraphIds, UUID clientId,String clientType, boolean stream){
+    public Map<String, Object> toPipelineManageParams(String problemText,PostResponseHandler postResponseHandler,List<UUID> excludeParagraphIds, String clientId,String clientType, boolean stream){
         Map<String, Object> params = toBasePipelineManageParams();
         params.put("problem_text", problemText);
         params.put("postResponseHandler", postResponseHandler);
         params.put("exclude_paragraph_ids", excludeParagraphIds);
-        params.put("client_id", clientId);
+        UUID client_id=clientId==null?null:UUID.fromString(clientId);
+        params.put("client_id", client_id);
         params.put("client_type", clientType);
         params.put("stream", stream);
         return params;

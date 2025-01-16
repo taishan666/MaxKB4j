@@ -59,24 +59,24 @@ public class EmbeddingService extends ServiceImpl<EmbeddingMapper, EmbeddingEnti
 
     JiebaSegmenter jiebaSegmenter = new JiebaSegmenter();
 
-    public List<HitTestVO> dataSearch(UUID datasetId, HitTestDTO dto) {
-        EmbeddingModel embeddingModel=getDatasetEmbeddingModel(datasetId);
+    public List<HitTestVO> dataSearch(List<UUID> datasetIds, HitTestDTO dto) {
+        EmbeddingModel embeddingModel=getDatasetEmbeddingModel(datasetIds.get(0));
         Response<Embedding> res = embeddingModel.embed(dto.getQuery_text());
         if ("embedding".equals(dto.getSearch_mode())) {
-            return baseMapper.embeddingSearch(datasetId, dto, res.content().vector());
+            return baseMapper.embeddingSearch(datasetIds, dto, res.content().vector());
         }
         if ("keywords".equals(dto.getSearch_mode())) {
             dto.setQuery_text(toTsQuery(dto.getQuery_text()));
-            return baseMapper.keywordsSearch(datasetId, dto);
+            return baseMapper.keywordsSearch(datasetIds, dto);
         }
         if ("blend".equals(dto.getSearch_mode())) {
-            return baseMapper.HybridSearch(datasetId, dto, res.content().vector());
+            return baseMapper.HybridSearch(datasetIds, dto, res.content().vector());
         }
         return Collections.emptyList();
     }
 
-    public List<ParagraphVO> paragraphSearch(UUID datasetId, HitTestDTO dto) {
-        List<HitTestVO> list = dataSearch(datasetId, dto);
+    public List<ParagraphVO> paragraphSearch(List<UUID> datasetIds, HitTestDTO dto) {
+        List<HitTestVO> list = dataSearch(datasetIds, dto);
         List<UUID> paragraphIds = list.stream().map(HitTestVO::getParagraphId).toList();
         if (CollectionUtils.isEmpty(paragraphIds)) {
             return Collections.emptyList();

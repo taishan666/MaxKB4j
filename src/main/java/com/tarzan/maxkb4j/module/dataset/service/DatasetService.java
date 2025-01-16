@@ -329,7 +329,7 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
 
 
     public List<ParagraphVO> hitTest(UUID id, HitTestDTO dto) {
-        return embeddingService.paragraphSearch(id,dto);
+        return embeddingService.paragraphSearch(List.of(id),dto);
     }
 
     public boolean reEmbedding(UUID datasetId) {

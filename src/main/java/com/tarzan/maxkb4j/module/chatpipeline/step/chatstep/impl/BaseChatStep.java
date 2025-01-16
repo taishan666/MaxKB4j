@@ -101,7 +101,7 @@ public class BaseChatStep extends IChatStep {
 
             @Override
             public void onError(Throwable error) {
-                JSONObject json = toResponse(chatId, chatRecordId, error.getMessage(), true, 0, 0);
+                JSONObject json = toResponse(chatId, chatRecordId, "网络异常！请重试。。。", true, 0, 0);
                 sink.emitNext(json, Sinks.EmitFailureHandler.FAIL_FAST);
                 sink.emitError(error, Sinks.EmitFailureHandler.FAIL_FAST);
             }

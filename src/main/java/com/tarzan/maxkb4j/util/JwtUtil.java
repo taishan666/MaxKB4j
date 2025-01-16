@@ -1,10 +1,13 @@
 package com.tarzan.maxkb4j.util;
 
 import io.jsonwebtoken.*;
+import io.jsonwebtoken.impl.DefaultClaims;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Date;
 import java.util.Map;
 
+@Slf4j
 public class JwtUtil {
 
     private static final String SECRET = "maxKB4j"; // 使用你的密钥替换
@@ -26,10 +29,11 @@ public class JwtUtil {
                     .parseClaimsJws(token)
                     .getBody();
         } catch (SignatureException e) {
-            throw new SignatureException("Invalid JWT signature");
+            log.error("Invalid JWT signature");
         } catch (Exception e) {
-            throw new RuntimeException("Unable to parse JWT token");
+            log.error("Unable to parse JWT token");
         }
+        return new DefaultClaims();
     }
 
     public static boolean isTokenExpired(Claims claims) {

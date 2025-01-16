@@ -12,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.UUID;
 
 @Component
 public class SearchDatasetStep extends ISearchDatasetStep {
@@ -26,7 +25,6 @@ public class SearchDatasetStep extends ISearchDatasetStep {
         JSONObject context=manage.context;
         ApplicationEntity application=(ApplicationEntity)context.get("application");
         super.context.put("model_name","test_model");
-        UUID datasetId=application.getDatasetIdList().get(0);
         String problemText=manage.context.getString("problem_text");
         super.context.put("problem_text",problemText);
         String paddingProblemText=context.getString("padding_problem_text");
@@ -37,7 +35,7 @@ public class SearchDatasetStep extends ISearchDatasetStep {
         hitTestDTO.setSearch_mode(datasetSetting.getString("search_mode"));
         hitTestDTO.setSimilarity(datasetSetting.getDouble("similarity"));
         hitTestDTO.setTop_number(datasetSetting.getInteger("top_n"));
-        List<ParagraphVO> paragraphList= embeddingService.paragraphSearch(datasetId,hitTestDTO);
+        List<ParagraphVO> paragraphList= embeddingService.paragraphSearch(application.getDatasetIdList(),hitTestDTO);
         System.out.println("search 耗时 "+(System.currentTimeMillis()-startTime)+" ms");
         super.context.put("message_tokens",0);
         super.context.put("answer_tokens",0);

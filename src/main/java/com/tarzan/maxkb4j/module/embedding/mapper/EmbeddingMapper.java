@@ -15,10 +15,10 @@ import java.util.UUID;
  */
 public interface EmbeddingMapper extends BaseMapper<EmbeddingEntity>{
 
-    List<HitTestVO> embeddingSearch(@Param("datasetId") UUID datasetId, @Param("query") HitTestDTO query, @Param("embedding") float[] embedding);
+    List<HitTestVO> embeddingSearch(List<UUID> datasetIds, @Param("query") HitTestDTO query, @Param("embedding") float[] embedding);
 
-    List<HitTestVO> keywordsSearch(UUID datasetId,@Param("query") HitTestDTO dto);
+    List<HitTestVO> keywordsSearch(List<UUID>  datasetIds,@Param("query") HitTestDTO query);
 
-    List<HitTestVO> HybridSearch(@Param("datasetId")UUID datasetId, @Param("query") HitTestDTO dto,@Param("embedding") float[] embedding);
+    List<HitTestVO> HybridSearch(List<UUID>  datasetIds, @Param("query") HitTestDTO query,@Param("embedding") float[] embedding);
  
 }

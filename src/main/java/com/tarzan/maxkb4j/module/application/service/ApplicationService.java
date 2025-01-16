@@ -276,10 +276,10 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         PipelineManage pipelineManage=pipelineManageBuilder.build();
         String authorization=request.getHeader("Authorization");
         Claims claims=JwtUtil.parseToken(authorization);
+        boolean stream= json.getBoolean("stream") == null || json.getBoolean("stream");
         String clientId= (String) claims.get("client_id");
         String clientType= (String) claims.get("type");
-        boolean stream= json.getBoolean("stream") == null || json.getBoolean("stream");
-        Map<String,Object> params=chatInfo.toPipelineManageParams(problemText,postResponseHandler,excludeParagraphIds,UUID.fromString(clientId),clientType,stream);
+        Map<String,Object> params=chatInfo.toPipelineManageParams(problemText,postResponseHandler,excludeParagraphIds,clientId,clientType,stream);
         pipelineManage.run(params);
         return pipelineManage.response;
     }
