@@ -1,7 +1,7 @@
 package com.tarzan.maxkb4j.handler;
 
-import com.tarzan.maxkb4j.module.common.dto.SearchIndex;
-import com.tarzan.maxkb4j.module.common.dto.TSVector;
+import com.tarzan.maxkb4j.common.dto.SearchIndex;
+import com.tarzan.maxkb4j.common.dto.TSVector;
 import org.apache.ibatis.type.BaseTypeHandler;
 import org.apache.ibatis.type.JdbcType;
 import org.postgresql.util.PGobject;

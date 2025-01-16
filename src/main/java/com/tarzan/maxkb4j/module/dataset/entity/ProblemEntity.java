@@ -3,11 +3,10 @@ package com.tarzan.maxkb4j.module.dataset.entity;
 import com.baomidou.mybatisplus.annotation.*;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tarzan.maxkb4j.handler.UUIDTypeHandler;
-import com.tarzan.maxkb4j.module.common.entity.BaseEntity;
+import com.tarzan.maxkb4j.common.entity.BaseEntity;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-import java.util.Date;
 import java.util.UUID;
 
 /**

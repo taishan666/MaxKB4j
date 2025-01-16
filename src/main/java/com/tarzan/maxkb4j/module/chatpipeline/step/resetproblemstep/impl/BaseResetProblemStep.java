@@ -52,7 +52,19 @@ public class BaseResetProblemStep extends IResetProblemStep {
         historyMessages.add(UserMessage.from(resetPrompt.replace("{question}", problemText)));
         Response<AiMessage> res = chatModel.generate(historyMessages);
         String content=res.content().text();
-        String paddingProblem="";
+        String paddingProblem = getString(content);
+        TokenUsage tokenUsage = res.tokenUsage();
+        super.context.put("model_id", modelId);
+        super.context.put("problem_text", context.getString("problem_text"));
+        super.context.put("message_tokens", tokenUsage.inputTokenCount());
+        super.context.put("answer_tokens", tokenUsage.outputTokenCount());
+        super.context.put("padding_problem_text", paddingProblem);
+        System.out.println("BaseResetProblemStep 耗时 "+(System.currentTimeMillis()-startTime)+" ms");
+        return paddingProblem;
+    }
+
+    private String getString(String content) {
+        String paddingProblem = "";
         if (content.contains("<data>") && content.contains("</data>")) {
             int start = content.indexOf("<data>") + 6; // 加6是因为"<data>".length()等于6
             int end = content.indexOf("</data>");
@@ -63,13 +75,6 @@ public class BaseResetProblemStep extends IResetProblemStep {
         } else if (!content.isEmpty()) {
             paddingProblem = content;
         }
-        TokenUsage tokenUsage = res.tokenUsage();
-        super.context.put("model_id", modelId);
-        super.context.put("problem_text", context.getString("problem_text"));
-        super.context.put("message_tokens", tokenUsage.inputTokenCount());
-        super.context.put("answer_tokens", tokenUsage.outputTokenCount());
-        super.context.put("padding_problem_text", paddingProblem);
-        System.out.println("BaseChatStep 耗时 "+(System.currentTimeMillis()-startTime)+" ms");
         return paddingProblem;
     }
 

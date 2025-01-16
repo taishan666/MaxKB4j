@@ -9,7 +9,7 @@ import com.tarzan.maxkb4j.handler.JOSNBArrayTypeHandler;
 import com.tarzan.maxkb4j.handler.JOSNBTypeHandler;
 import com.tarzan.maxkb4j.handler.UUIDArrayTypeHandler;
 import com.tarzan.maxkb4j.handler.UUIDTypeHandler;
-import com.tarzan.maxkb4j.module.common.entity.BaseEntity;
+import com.tarzan.maxkb4j.common.entity.BaseEntity;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -47,11 +47,12 @@ public class ApplicationChatRecordEntity extends BaseEntity {
 	private UUID[] improveParagraphIdList;
 
 	@JsonProperty("run_time")
-	private Double runTime;
+	private Float runTime;
 	
 	private Integer index;
 
 	@TableField(typeHandler = UUIDTypeHandler.class)
+	@JsonProperty("chat_id")
 	private UUID chatId;
 
 	@JsonProperty("answer_text_list")

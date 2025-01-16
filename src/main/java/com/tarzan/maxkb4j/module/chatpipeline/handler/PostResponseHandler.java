@@ -7,5 +7,5 @@ import java.util.UUID;
 
 public abstract class PostResponseHandler {
 
-    public abstract void handler(ChatInfo chatInfo, UUID chatId, UUID chatRecordId,String problemText, String answerText, PipelineManage manage, String paddingProblemText, UUID clientId);
+    public abstract void handler(ChatInfo chatInfo, UUID chatId, UUID chatRecordId,String problemText, String answerText, PipelineManage manage, UUID clientId);
 }

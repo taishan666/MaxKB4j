@@ -9,7 +9,7 @@ import com.tarzan.maxkb4j.handler.EmbeddingTypeHandler;
 import com.tarzan.maxkb4j.handler.JOSNBTypeHandler;
 import com.tarzan.maxkb4j.handler.TSVectorTypeHandler;
 import com.tarzan.maxkb4j.handler.UUIDTypeHandler;
-import com.tarzan.maxkb4j.module.common.dto.TSVector;
+import com.tarzan.maxkb4j.common.dto.TSVector;
 import lombok.Data;
 
 import java.util.List;

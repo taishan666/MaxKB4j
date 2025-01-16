@@ -1,6 +1,6 @@
 package com.tarzan.maxkb4j.handler;
 
-import com.tarzan.maxkb4j.module.common.dto.MemberOperate;
+import com.tarzan.maxkb4j.common.dto.MemberOperate;
 import org.apache.ibatis.type.BaseTypeHandler;
 import org.apache.ibatis.type.JdbcType;
 import org.postgresql.util.PGobject;

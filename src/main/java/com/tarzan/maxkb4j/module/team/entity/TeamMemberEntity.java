@@ -6,13 +6,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import com.tarzan.maxkb4j.handler.UUIDTypeHandler;
-import com.tarzan.maxkb4j.module.common.entity.BaseEntity;
+import com.tarzan.maxkb4j.common.entity.BaseEntity;
 import com.tarzan.maxkb4j.serializer.NullRootSerializer;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import java.util.UUID;
-import java.util.Date;
 
 /**
  * @author tarzan

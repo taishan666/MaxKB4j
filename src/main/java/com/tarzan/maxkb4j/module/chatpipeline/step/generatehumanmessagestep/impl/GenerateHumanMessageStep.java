@@ -28,7 +28,9 @@ public class GenerateHumanMessageStep extends IGenerateHumanMessageStep {
         JSONObject modelSetting = application.getModelSetting();
         String system = modelSetting.getString("system");
         String prompt = modelSetting.getString("prompt");
-        String problem = context.getString("problem_text");
+        String problemText = context.getString("problem_text");
+        String paddingProblemText=context.getString("padding_problem_text");
+        String execProblemText = StringUtils.isNotBlank(paddingProblemText)?paddingProblemText:problemText;
         JSONObject datasetSetting = application.getDatasetSetting();
         int maxParagraphCharNumber = datasetSetting.getInteger("max_paragraph_char_number");
         JSONObject noReferencesSetting = datasetSetting.getJSONObject("no_references_setting");
@@ -47,7 +49,7 @@ public class GenerateHumanMessageStep extends IGenerateHumanMessageStep {
                 messages.add(AiMessage.from(chatRecord.getAnswerText()));
             }
         }
-        messages.add(toHumanMessage(prompt, problem, paragraphList, maxParagraphCharNumber, noReferencesSetting));
+        messages.add(toHumanMessage(prompt, execProblemText, paragraphList, maxParagraphCharNumber, noReferencesSetting));
         return messages;
     }
 

@@ -1,4 +1,4 @@
-package com.tarzan.maxkb4j.module.common.entity;
+package com.tarzan.maxkb4j.common.entity;
 
 import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.TableField;

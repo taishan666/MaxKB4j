@@ -3,7 +3,7 @@ package com.tarzan.maxkb4j.module.dataset.mapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.tarzan.maxkb4j.module.common.dto.QueryDTO;
+import com.tarzan.maxkb4j.common.dto.QueryDTO;
 import com.tarzan.maxkb4j.module.dataset.entity.DocumentEntity;
 import com.tarzan.maxkb4j.module.dataset.vo.DocumentVO;
 import org.apache.ibatis.annotations.Mapper;

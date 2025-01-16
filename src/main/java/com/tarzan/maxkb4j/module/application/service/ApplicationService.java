@@ -8,6 +8,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.tarzan.maxkb4j.common.dto.QueryDTO;
 import com.tarzan.maxkb4j.module.application.dto.ChatImproveDTO;
 import com.tarzan.maxkb4j.module.application.dto.ChatQueryDTO;
 import com.tarzan.maxkb4j.module.application.entity.*;
@@ -24,12 +25,15 @@ import com.tarzan.maxkb4j.module.chatpipeline.step.chatstep.impl.BaseChatStep;
 import com.tarzan.maxkb4j.module.chatpipeline.step.generatehumanmessagestep.impl.GenerateHumanMessageStep;
 import com.tarzan.maxkb4j.module.chatpipeline.step.resetproblemstep.impl.BaseResetProblemStep;
 import com.tarzan.maxkb4j.module.chatpipeline.step.searchdatasetstep.impl.SearchDatasetStep;
-import com.tarzan.maxkb4j.module.common.dto.QueryDTO;
 import com.tarzan.maxkb4j.module.dataset.entity.DatasetEntity;
 import com.tarzan.maxkb4j.module.dataset.service.DatasetService;
+import com.tarzan.maxkb4j.module.dataset.vo.ParagraphVO;
 import com.tarzan.maxkb4j.module.model.entity.ModelEntity;
 import com.tarzan.maxkb4j.module.model.service.ModelService;
 import com.tarzan.maxkb4j.util.BeanUtil;
+import com.tarzan.maxkb4j.util.JwtUtil;
+import io.jsonwebtoken.Claims;
+import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -76,6 +80,8 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     private BaseResetProblemStep baseResetProblemStep;
     @Autowired
     private PostResponseHandler postResponseHandler;
+    @Autowired
+    private ApplicationAccessTokenService applicationAccessTokenService;
 
     public IPage<ApplicationEntity> selectAppPage(int page, int size, QueryDTO query) {
         Page<ApplicationEntity> appPage = new Page<>(page, size);
@@ -244,26 +250,22 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         return applicationApiKeyService.removeById(apikeyId);
     }
 
-    public Flux<JSONObject> chatMessage(UUID chatId, JSONObject json) {
-        ChatInfo chatInfo=ChatCache.get(chatId);
-        if(chatInfo==null){
-            return null;
-        }
+    public Flux<JSONObject> chatMessage(UUID chatId, JSONObject json,HttpServletRequest request) {
+        ChatInfo chatInfo=getChatInfo(chatId);
         String problemText=json.getString("message");
-        boolean reChat = json.getBoolean("re_chat");
+        boolean reChat = json.getBooleanValue("rechat");
+        List<UUID> excludeParagraphIds=new ArrayList<>();
         if(reChat){
-            //todo
+            UUID chatRecordId = json.getObject("chat_record_id",UUID.class);
+            if(Objects.nonNull(chatRecordId)){
+                ApplicationChatRecordVO chatRecord=getChatRecordInfo(chatId,chatRecordId);
+                List<ParagraphVO>  paragraphs=chatRecord.getParagraphList();
+                if(!CollectionUtils.isEmpty(paragraphs)){
+                    excludeParagraphIds=paragraphs.stream().map(ParagraphVO::getId).toList();
+                }
+            }
         }
         ApplicationEntity application=chatInfo.getApplication();
-   /*     ApplicationChatEntity chatEntity=new ApplicationChatEntity();
-        chatEntity.setId(chatId);
-        UUID appId=application.getId();
-        chatEntity.setApplicationId(appId);
-        chatEntity.setDigest(problemText);
-        ApplicationPublicAccessClientEntity clientEntity=applicationPublicAccessClientService.lambdaQuery().eq(ApplicationPublicAccessClientEntity::getApplicationId,appId).one();
-        chatEntity.setClientId(clientEntity.getId());
-        chatEntity.setIsDeleted(false);
-        applicationChatService.saveOrUpdate(chatEntity);*/
         PipelineManage.Builder pipelineManageBuilder = new PipelineManage.Builder();
         if(application.getProblemOptimization()){
             pipelineManageBuilder.addStep(baseResetProblemStep);
@@ -272,12 +274,15 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         pipelineManageBuilder.addStep(GenerateHumanMessageStep.class);
         pipelineManageBuilder.addStep(baseChatStep);
         PipelineManage pipelineManage=pipelineManageBuilder.build();
-        Map<String,Object> params=chatInfo.toPipelineManageParams(problemText,postResponseHandler);
+        String authorization=request.getHeader("Authorization");
+        Claims claims=JwtUtil.parseToken(authorization);
+        String clientId= (String) claims.get("client_id");
+        Map<String,Object> params=chatInfo.toPipelineManageParams(problemText,UUID.fromString(clientId),excludeParagraphIds,postResponseHandler);
         pipelineManage.run(params);
         return pipelineManage.response;
     }
 
-    public UUID chatOpen(ApplicationEntity application) {
+    public UUID chatOpenTest(ApplicationEntity application) {
         ChatInfo chatInfo=new ChatInfo();
         chatInfo.setChatId(UUID.randomUUID());
         application.setId(null);
@@ -286,7 +291,160 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         return chatInfo.getChatId();
     }
 
+    public UUID chatOpen(UUID appId) {
+        ChatInfo chatInfo=new ChatInfo();
+        chatInfo.setChatId(UUID.randomUUID());
+        ApplicationEntity application=this.getById(appId);
+        List<ApplicationDatasetMappingEntity> list=applicationDatasetMappingService.lambdaQuery().eq(ApplicationDatasetMappingEntity::getApplicationId, application.getId()).list();
+        application.setDatasetIdList(list.stream().map(ApplicationDatasetMappingEntity::getDatasetId).toList());
+        chatInfo.setApplication(application);
+        ChatCache.put(chatInfo.getChatId(), chatInfo);
+        return chatInfo.getChatId();
+    }
+
+    private ChatInfo getChatInfo(UUID chatId) {
+        ChatInfo chatInfo=ChatCache.get(chatId);
+        if(chatInfo==null){
+            return reChatOpen(chatId);
+        }
+        return chatInfo;
+    }
+
+    public ChatInfo reChatOpen(UUID chatId) {
+        ChatInfo chatInfo=new ChatInfo();
+        ApplicationChatEntity chatEntity=chatService.getById(chatId);
+        chatInfo.setChatId(chatId);
+        ApplicationEntity application=this.getById(chatEntity.getApplicationId());
+        List<ApplicationDatasetMappingEntity> list=applicationDatasetMappingService.lambdaQuery().eq(ApplicationDatasetMappingEntity::getApplicationId, application.getId()).list();
+        application.setDatasetIdList(list.stream().map(ApplicationDatasetMappingEntity::getDatasetId).toList());
+        chatInfo.setApplication(application);
+        ChatCache.put(chatInfo.getChatId(), chatInfo);
+        return chatInfo;
+    }
+
     public ApplicationChatRecordVO getChatRecordInfo(UUID chatId, UUID chatRecordId) {
        return chatRecordService.getChatRecordInfo(chatId,chatRecordId);
+    }
+
+    public String authentication(HttpServletRequest request,JSONObject params) {
+        String token = request.getHeader("Authorization");
+        Map<String, Object> tokenDetails = null;
+
+        try {
+            // 校验token
+            if (token != null && !token.isEmpty()) {
+                tokenDetails = JwtUtil.parseToken(token); // 假设parseToken方法用于解析token
+            }
+        } catch (Exception e) {
+            token = null;
+        }
+
+    /*    if (withValid) {
+            this.isValid(); // 假设有此方法来校验有效性
+        }*/
+
+        String accessToken = params.getString("access_token"); // 假设getData()返回一个Map
+        ApplicationAccessTokenEntity applicationAccessToken = applicationAccessTokenService.lambdaQuery().eq(ApplicationAccessTokenEntity::getAccessToken, accessToken).one();
+        if (applicationAccessToken != null && applicationAccessToken.getIsActive()) {
+            ApplicationEntity application=this.lambdaQuery().select(ApplicationEntity::getUserId).eq(ApplicationEntity::getId, applicationAccessToken.getApplicationId()).one();
+            Map<String, Object> authentication = new HashMap<>();
+            JSONObject authenticationValue = params.getJSONObject("authentication_value");
+            String clientId;
+            if (tokenDetails != null && tokenDetails.containsKey("client_id")) {
+                clientId = (String) tokenDetails.get("client_id");
+                authentication = (Map<String, Object>) tokenDetails.get("authentication");
+            } else {
+                clientId = UUID.randomUUID().toString();
+            }
+
+            if (authenticationValue != null) {
+                // 认证用户token
+               // authAuthenticationValue(authenticationValue, applicationAccessToken.getApplicationId());
+                authentication.put("type", authenticationValue.get("type"));
+                authentication.put("value", passwordEncrypt(authenticationValue.getString("value"))); // 假设passwordEncrypt方法存在
+            }
+
+            Map<String,Object> data = new HashMap<>();
+            data.put("application_id", applicationAccessToken.getApplicationId());
+            data.put("user_id", application.getUserId());
+            data.put("access_token", applicationAccessToken.getAccessToken());
+            data.put("type", "APPLICATION_ACCESS_TOKEN");
+            data.put("client_id", clientId);
+            data.put("authentication", authentication);
+
+            return JwtUtil.createToken(data);
+        } else {
+            log.error("404");
+        }
+        return token;
+    }
+
+/*    public void authAuthenticationValue(String authenticationValue, String applicationId) throws Exception {
+        ApplicationSettingModel applicationSettingModel = DBModelManage.getModel("application_setting");
+        XpackCache xpackCache = DBModelManage.getModel("xpack_cache");
+        boolean X_PACK_LICENSE_IS_VALID = (xpackCache != null) && Boolean.TRUE.equals(xpackCache.get("XPACK_LICENSE_IS_VALID"));
+
+        if (applicationSettingModel != null && X_PACK_LICENSE_IS_VALID) {
+            ApplicationSetting applicationSetting = findApplicationSetting(applicationSettingModel, applicationId);
+            if (applicationSetting != null && applicationSetting.getAuthentication() != null && authenticationValue != null) {
+                Map<String, Object> authValueMap = parseAuthenticationValue(authenticationValue); // 假设存在解析authenticationValue的方法
+
+                if ("password".equals(authValueMap.get("type"))) {
+                    if (!authPassword(authValueMap, applicationSetting.getAuthenticationValue())) {
+                        throw new AppApiException(1005, "密码错误");
+                    }
+                }
+            }
+        }
+    }*/
+
+    private  String passwordEncrypt(String text){
+        return text;
+    }
+
+    public JSONObject appProfile() {
+        String res="{\n" +
+                "        \"id\": \"5959452f-bf8d-11ef-ac9b-bad5470d815f\",\n" +
+                "        \"name\": \"\\u5b66\\u6821\\u5ba2\\u670d\",\n" +
+                "        \"desc\": \"\\u5b66\\u6821\\u5ba2\\u670d\",\n" +
+                "        \"prologue\": \"\\u60a8\\u597d\\uff0c\\u6211\\u662f XXX \\u5c0f\\u52a9\\u624b\\uff0c\\u60a8\\u53ef\\u4ee5\\u5411\\u6211\\u63d0\\u51fa XXX \\u4f7f\\u7528\\u95ee\\u9898\\u3002\\n- XXX \\u4e3b\\u8981\\u529f\\u80fd\\u6709\\u4ec0\\u4e48\\uff1f\\n- XXX \\u5982\\u4f55\\u6536\\u8d39\\uff1f\\n- \\u9700\\u8981\\u8f6c\\u4eba\\u5de5\\u670d\\u52a1\",\n" +
+                "        \"dialogue_number\": 2,\n" +
+                "        \"icon\": \"/ui/favicon.ico\",\n" +
+                "        \"type\": \"SIMPLE\",\n" +
+                "        \"stt_model_id\": null,\n" +
+                "        \"tts_model_id\": null,\n" +
+                "        \"stt_model_enable\": false,\n" +
+                "        \"tts_model_enable\": false,\n" +
+                "        \"tts_type\": \"BROWSER\",\n" +
+                "        \"file_upload_enable\": false,\n" +
+                "        \"file_upload_setting\": {\n" +
+                "            \"audio\": false,\n" +
+                "            \"image\": false,\n" +
+                "            \"video\": false,\n" +
+                "            \"document\": true,\n" +
+                "            \"maxFiles\": 3,\n" +
+                "            \"fileLimit\": 31\n" +
+                "        },\n" +
+                "        \"work_flow\": {},\n" +
+                "        \"show_source\": true,\n" +
+                "        \"multiple_rounds_dialogue\": true\n" +
+                "    }";
+        return JSONObject.parseObject(res);
+    }
+
+    public IPage<ApplicationChatEntity> clientChatPage(UUID appId,int page, int size,HttpServletRequest request) {
+        String authorization=request.getHeader("Authorization");
+        Claims claims=JwtUtil.parseToken(authorization);
+        String clientId= (String) claims.get("client_id");
+        return chatService.clientChatPage(appId,UUID.fromString(clientId),page,size);
+    }
+
+    public IPage<ApplicationChatRecordVO> chatRecordPage(UUID chatId, int page, int size) {
+        return chatRecordService.chatRecordPage(chatId,page,size);
+    }
+
+    public Boolean getChatRecordVote(UUID chatRecordId, ApplicationChatRecordEntity chatRecord) {
+        chatRecord.setId(chatRecordId);
+        return chatRecordService.updateById(chatRecord);
     }
 }

@@ -1,15 +1,16 @@
 package com.tarzan.maxkb4j.module.dataset.service;
 
 import com.alibaba.fastjson.JSONObject;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.tarzan.maxkb4j.common.dto.QueryDTO;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationDatasetMappingEntity;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationEntity;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationDatasetMappingMapper;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationMapper;
-import com.tarzan.maxkb4j.module.common.dto.QueryDTO;
 import com.tarzan.maxkb4j.module.dataset.dto.*;
 import com.tarzan.maxkb4j.module.dataset.entity.*;
 import com.tarzan.maxkb4j.module.dataset.mapper.DatasetMapper;
@@ -22,6 +23,7 @@ import com.tarzan.maxkb4j.module.embedding.service.EmbeddingService;
 import com.tarzan.maxkb4j.module.model.entity.ModelEntity;
 import com.tarzan.maxkb4j.module.model.service.ModelService;
 import com.tarzan.maxkb4j.util.BeanUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -127,9 +129,17 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
         return problemService.lambdaUpdate().in(ProblemEntity::getId, paragraphIds).remove();
     }
 
-    public IPage<ParagraphEntity> pageParagraphByDocId(UUID docId, int page, int size) {
+    public IPage<ParagraphEntity> pageParagraphByDocId(UUID docId, int page, int size,String title,String content) {
         Page<ParagraphEntity> paragraphPage = new Page<>(page, size);
-        return paragraphService.lambdaQuery().eq(ParagraphEntity::getDocumentId, docId).page(paragraphPage);
+        LambdaQueryWrapper<ParagraphEntity> wrapper=Wrappers.lambdaQuery();
+        wrapper.eq(ParagraphEntity::getDocumentId, docId);
+        if (StringUtils.isNotBlank(title)){
+            wrapper.like(ParagraphEntity::getTitle, title);
+        }
+        if (StringUtils.isNotBlank(content)){
+            wrapper.like(ParagraphEntity::getContent, content);
+        }
+        return paragraphService.page(paragraphPage,wrapper);
     }
 
     public List<ParagraphEntity> getParagraphByProblemId(UUID problemId) {

@@ -66,9 +66,9 @@ public class R<T> implements Serializable {
         return new R(code, data, data == null ? "暂无承载数据" : message);
     }
 
-    public static <T> R<T> success(String message) {
+ /*   public static <T> R<T> success(String message) {
         return new R(ResultCode.SUCCESS, message);
-    }
+    }*/
 
     public static <T> R<T> success(T data) {
         return new R(ResultCode.SUCCESS,data, "操作成功");
@@ -103,7 +103,7 @@ public class R<T> implements Serializable {
     }
 
     public static <T> R<T> status(boolean flag) {
-        return flag ? success("操作成功") : fail("操作失败");
+        return flag ? (R<T>) success("操作成功") : fail("操作失败");
     }
 
     public static <T> R<T> pkIsNull() {

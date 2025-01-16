@@ -3,9 +3,9 @@ package com.tarzan.maxkb4j.module.embedding.service;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.huaban.analysis.jieba.JiebaSegmenter;
-import com.tarzan.maxkb4j.module.common.dto.SearchIndex;
-import com.tarzan.maxkb4j.module.common.dto.TSVector;
-import com.tarzan.maxkb4j.module.common.dto.WordIndex;
+import com.tarzan.maxkb4j.common.dto.SearchIndex;
+import com.tarzan.maxkb4j.common.dto.TSVector;
+import com.tarzan.maxkb4j.common.dto.WordIndex;
 import com.tarzan.maxkb4j.module.dataset.dto.HitTestDTO;
 import com.tarzan.maxkb4j.module.dataset.dto.ProblemDTO;
 import com.tarzan.maxkb4j.module.dataset.entity.DatasetEntity;
@@ -84,8 +84,9 @@ public class EmbeddingService extends ServiceImpl<EmbeddingMapper, EmbeddingEnti
         Map<UUID, Double> map = list.stream().collect(Collectors.toMap(HitTestVO::getParagraphId, HitTestVO::getComprehensiveScore));
         List<ParagraphVO> paragraphs = paragraphService.retrievalParagraph(paragraphIds);
         paragraphs.forEach(e -> {
-            e.setSimilarity(map.get(e.getId()));
-            e.setComprehensiveScore(map.get(e.getId()));
+            double score = map.get(e.getId());
+            e.setSimilarity(score);
+            e.setComprehensiveScore(score);
         });
         return paragraphs;
     }
@@ -105,7 +106,7 @@ public class EmbeddingService extends ServiceImpl<EmbeddingMapper, EmbeddingEnti
             paragraphEmbed.setSourceType("1");
             paragraphEmbed.setIsActive(paragraph.getIsActive());
             paragraphEmbed.setSearchVector(toTsVector(paragraph.getTitle() + paragraph.getContent()));
-            Response<Embedding> res = embeddingModel.embed(paragraph.getTitle() + paragraph.getContent());
+            Response<Embedding> res = embeddingModel.embed(paragraph.getTitle()+":" + paragraph.getContent());
             paragraphEmbed.setEmbedding(res.content().vectorAsList());
             embeddingEntities.add(paragraphEmbed);
             List<ProblemEntity> problems=problemParagraphMappingService.getProblemsByParagraphId(paragraph.getId());

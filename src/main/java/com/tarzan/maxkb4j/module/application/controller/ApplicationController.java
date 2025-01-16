@@ -5,15 +5,12 @@ import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.tarzan.maxkb4j.module.application.dto.ChatImproveDTO;
 import com.tarzan.maxkb4j.module.application.dto.ChatQueryDTO;
-import com.tarzan.maxkb4j.module.application.entity.ApplicationAccessTokenEntity;
-import com.tarzan.maxkb4j.module.application.entity.ApplicationApiKeyEntity;
-import com.tarzan.maxkb4j.module.application.entity.ApplicationChatEntity;
-import com.tarzan.maxkb4j.module.application.entity.ApplicationEntity;
+import com.tarzan.maxkb4j.module.application.entity.*;
 import com.tarzan.maxkb4j.module.application.service.ApplicationService;
 import com.tarzan.maxkb4j.module.application.vo.ApplicationChatRecordVO;
 import com.tarzan.maxkb4j.module.application.vo.ApplicationStatisticsVO;
 import com.tarzan.maxkb4j.module.application.vo.ApplicationVO;
-import com.tarzan.maxkb4j.module.common.dto.QueryDTO;
+import com.tarzan.maxkb4j.common.dto.QueryDTO;
 import com.tarzan.maxkb4j.module.dataset.entity.DatasetEntity;
 import com.tarzan.maxkb4j.module.model.entity.ModelEntity;
 import com.tarzan.maxkb4j.tool.api.R;
@@ -48,19 +45,51 @@ public class ApplicationController{
         return R.success(applicationService.createApp(application));
     }
 
+    @PostMapping("api/application/authentication")
+    public R<String> authentication(HttpServletRequest request,@RequestBody JSONObject json){
+        return R.success(applicationService.authentication(request,json));
+    }
+
+    @GetMapping("api/application/profile")
+    public R<JSONObject> appProfile(){
+        return R.success(applicationService.appProfile());
+    }
+
+    @GetMapping("api/application/{appId}/chat/client/{page}/{size}")
+    public R<IPage<ApplicationChatEntity>> clientChatPage(@PathVariable("appId")UUID appId, @PathVariable("page")int page, @PathVariable("size")int size,HttpServletRequest request){
+        return R.success(applicationService.clientChatPage(appId,page,size,request));
+    }
+
+
     @PostMapping("api/application/chat/open")
-    public R<UUID> chatOpen(@RequestBody ApplicationEntity application){
-        return R.success(applicationService.chatOpen(application));
+    public R<UUID> chatOpenTest(@RequestBody ApplicationEntity application){
+        return R.success(applicationService.chatOpenTest(application));
+    }
+
+    @GetMapping("api/application/{appId}/chat/open")
+    public R<UUID> chatOpen(@PathVariable("appId") UUID appId){
+        return R.success(applicationService.chatOpen(appId));
     }
 
     @PostMapping(path ="api/application/chat_message/{chatId}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<JSONObject> chatMessage(@PathVariable UUID chatId, @RequestBody JSONObject params){
-        return applicationService.chatMessage(chatId,params);
+    public Flux<JSONObject> chatMessage(@PathVariable UUID chatId, @RequestBody JSONObject params,HttpServletRequest request){
+        return applicationService.chatMessage(chatId,params,request);
     }
 
     @GetMapping("api/application/{id}/chat/{chatId}/chat_record/{chatRecordId}")
     public R<ApplicationChatRecordVO> chatRecord(@PathVariable UUID id, @PathVariable UUID chatId, @PathVariable UUID chatRecordId){
         return R.success(applicationService.getChatRecordInfo(chatId,chatRecordId));
+    }
+
+    @PutMapping("api/application/{id}/chat/{chatId}/chat_record/{chatRecordId}/vote")
+    public R<Boolean> vote(@PathVariable UUID id, @PathVariable UUID chatId, @PathVariable UUID chatRecordId,@RequestBody ApplicationChatRecordEntity chatRecord){
+        return R.success(applicationService.getChatRecordVote(chatRecordId,chatRecord));
+    }
+
+
+    @GetMapping("api/application/{id}/chat/{chatId}/chat_record/{page}/{size}")
+    public R<IPage<ApplicationChatRecordVO>> chatRecordPage(@PathVariable UUID id, @PathVariable UUID chatId,@PathVariable int page, @PathVariable int size){
+        return R.success(applicationService.chatRecordPage(chatId,page,size));
     }
 
     @GetMapping("api/application/{page}/{size}")

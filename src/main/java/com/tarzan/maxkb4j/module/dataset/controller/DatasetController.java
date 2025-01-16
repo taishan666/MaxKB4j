@@ -5,8 +5,8 @@ import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationEntity;
-import com.tarzan.maxkb4j.module.common.dto.DeleteDTO;
-import com.tarzan.maxkb4j.module.common.dto.QueryDTO;
+import com.tarzan.maxkb4j.common.dto.DeleteDTO;
+import com.tarzan.maxkb4j.common.dto.QueryDTO;
 import com.tarzan.maxkb4j.module.dataset.dto.*;
 import com.tarzan.maxkb4j.module.dataset.entity.DatasetEntity;
 import com.tarzan.maxkb4j.module.dataset.entity.DocumentEntity;
@@ -169,8 +169,8 @@ public class DatasetController{
     }
 
     @GetMapping("api/dataset/{id}/document/{documentId}/paragraph/{page}/{size}")
-    public R<IPage<ParagraphEntity>> getParagraphByProblemId(@PathVariable String id, @PathVariable("documentId") String documentId,@PathVariable("page")int page, @PathVariable("size")int size){
-        return R.success(datasetService.pageParagraphByDocId(UUID.fromString(documentId),page,size));
+    public R<IPage<ParagraphEntity>> getParagraphByProblemId(@PathVariable String id, @PathVariable("documentId") String documentId,@PathVariable("page")int page, @PathVariable("size")int size,String title,String content){
+        return R.success(datasetService.pageParagraphByDocId(UUID.fromString(documentId),page,size,title,content));
     }
 
     @PutMapping("api/dataset/{id}/document/{documentId}/paragraph/{paragraphId}")

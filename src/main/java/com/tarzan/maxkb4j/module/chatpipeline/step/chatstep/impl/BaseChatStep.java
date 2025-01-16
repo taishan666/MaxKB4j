@@ -59,43 +59,45 @@ public class BaseChatStep extends IChatStep {
                                              String problemText, PostResponseHandler postResponseHandler) {
         long startTime = System.currentTimeMillis();
         StreamingChatLanguageModel chatModel = modelService.getStreamingChatModelById(modelId);
-        UUID chatRecordId = UUID.randomUUID();
-        JSONObject selfContext=super.context;
+        JSONObject selfContext = super.context;
         // 初始化一个可变的Publisher，如Sinks.many()来代替Flux.just()
         Sinks.Many<JSONObject> sink = Sinks.many().multicast().onBackpressureBuffer();
         StreamingResponseHandler<AiMessage> responseHandler = new StreamingResponseHandler<>() {
+            final UUID chatRecordId = UUID.randomUUID();
+
             @Override
             public void onNext(String token) {
-                JSONObject json=toResponse(chatId, chatRecordId, token, false, 0, 0);
+                JSONObject json = toResponse(chatId, chatRecordId, token, false, 0, 0);
                 sink.tryEmitNext(json);
             }
 
             @Override
             public void onComplete(Response<AiMessage> response) {
-                TokenUsage tokenUsage=response.tokenUsage();
-                String answerText=response.content().text();
+                TokenUsage tokenUsage = response.tokenUsage();
+                String answerText = response.content().text();
                 selfContext.put("message_list", messageList);
                 selfContext.put("answer_text", answerText);
                 int thisMessageTokens = tokenUsage.inputTokenCount();
                 int thisAnswerTokens = tokenUsage.outputTokenCount();
-                int messageTokens=manage.context.getInteger("message_tokens");
-                int answerTokens=manage.context.getInteger("answer_tokens");
+                int messageTokens = manage.context.getInteger("message_tokens");
+                int answerTokens = manage.context.getInteger("answer_tokens");
                 selfContext.put("message_tokens", thisMessageTokens);
                 selfContext.put("answer_tokens", thisAnswerTokens);
-                manage.context.put("message_tokens", messageTokens+thisMessageTokens);
-                manage.context.put("answer_tokens", answerTokens+thisAnswerTokens);
-                postResponseHandler.handler(ChatCache.get(chatId),chatId, chatRecordId, problemText, answerText, manage, null, null);
-                JSONObject json=toResponse(chatId, chatRecordId, "", true, tokenUsage.outputTokenCount(), tokenUsage.inputTokenCount());
+                manage.context.put("message_tokens", messageTokens + thisMessageTokens);
+                manage.context.put("answer_tokens", answerTokens + thisAnswerTokens);
+                UUID clientId=manage.context.getObject("client_id",UUID.class);
+                postResponseHandler.handler(ChatCache.get(chatId), chatId, chatRecordId, problemText, answerText, manage,  clientId);
+                JSONObject json = toResponse(chatId, chatRecordId, "", true, tokenUsage.outputTokenCount(), tokenUsage.inputTokenCount());
                 sink.tryEmitNext(json);
                 sink.tryEmitComplete();
-                System.out.println("BaseChatStep 耗时 "+(System.currentTimeMillis()-startTime)+" ms");
+                System.out.println("BaseChatStep 耗时 " + (System.currentTimeMillis() - startTime) + " ms");
             }
 
             @Override
             public void onError(Throwable error) {
-                JSONObject json=toResponse(chatId, chatRecordId, error.getMessage(), true, 0, 0);
+                JSONObject json = toResponse(chatId, chatRecordId, error.getMessage(), true, 0, 0);
                 sink.emitNext(json, Sinks.EmitFailureHandler.FAIL_FAST);
-                sink.emitError(error,Sinks.EmitFailureHandler.FAIL_FAST);
+                sink.emitError(error, Sinks.EmitFailureHandler.FAIL_FAST);
             }
         };
         getStreamResult(messageList, chatModel, paragraphList, noReferencesSetting, problemText, responseHandler);
@@ -119,36 +121,37 @@ public class BaseChatStep extends IChatStep {
             }
         }
         TokenUsage tokenUsage = new TokenUsage(0, 0, 0);
-        String status = noReferencesSetting.getString("status");
-        if (!CollectionUtils.isEmpty(directlyReturnChunkList)) {
-            String text = directlyReturnChunkList.get(0).text();
-            Response<AiMessage> res = Response.from(AiMessage.from(text), tokenUsage);
-            responseHandler.onNext(text);
-            responseHandler.onComplete(res);
-        } else if (paragraphList.isEmpty() && "designated_answer".equals(status)) {
-            String value = noReferencesSetting.getString("value");
-            String text = value.replace("{question}", problemText);
-            Response<AiMessage> res = Response.from(AiMessage.from(text), tokenUsage);
-            responseHandler.onNext(text);
-            responseHandler.onComplete(res);
-        }
         if (chatModel == null) {
             String text = "抱歉，没有配置 AI 模型，无法优化引用分段，请先去应用中设置 AI 模型。";
             Response<AiMessage> res = Response.from(AiMessage.from(text), tokenUsage);
             responseHandler.onNext(text);
             responseHandler.onComplete(res);
         } else {
-            chatModel.generate(messageList, responseHandler);
+            String status = noReferencesSetting.getString("status");
+            if (!CollectionUtils.isEmpty(directlyReturnChunkList)) {
+                String text = directlyReturnChunkList.get(0).text();
+                Response<AiMessage> res = Response.from(AiMessage.from(text), tokenUsage);
+                responseHandler.onNext(text);
+                responseHandler.onComplete(res);
+            } else if (paragraphList.isEmpty() && "designated_answer".equals(status)) {
+                String value = noReferencesSetting.getString("value");
+                String text = value.replace("{question}", problemText);
+                Response<AiMessage> res = Response.from(AiMessage.from(text), tokenUsage);
+                responseHandler.onNext(text);
+                responseHandler.onComplete(res);
+            }else {
+                chatModel.generate(messageList, responseHandler);
+            }
         }
     }
 
     protected Flux<JSONObject> executeBlock(UUID chatId,
-                                      List<ChatMessage> messageList,
-                                      UUID modelId,
-                                      List<ParagraphVO> paragraphList,
-                                      JSONObject noReferencesSetting,
-                                      PipelineManage manage,
-                                      String problemText, PostResponseHandler postResponseHandler) {
+                                            List<ChatMessage> messageList,
+                                            UUID modelId,
+                                            List<ParagraphVO> paragraphList,
+                                            JSONObject noReferencesSetting,
+                                            PipelineManage manage,
+                                            String problemText, PostResponseHandler postResponseHandler) {
         ChatLanguageModel chatModel = modelService.getChatModelById(modelId);
         Response<AiMessage> res = getBlockResult(messageList, chatModel, paragraphList, noReferencesSetting, problemText);
         UUID chatRecordId = UUID.randomUUID();
@@ -156,17 +159,18 @@ public class BaseChatStep extends IChatStep {
         super.context.put("answer_text", res.content().text());
         int thisMessageTokens = res.tokenUsage().inputTokenCount();
         int thisAnswerTokens = res.tokenUsage().outputTokenCount();
-        int messageTokens=manage.context.getInteger("message_tokens");
-        int answerTokens=manage.context.getInteger("answer_tokens");
+        int messageTokens = manage.context.getInteger("message_tokens");
+        int answerTokens = manage.context.getInteger("answer_tokens");
         super.context.put("message_tokens", thisMessageTokens);
         super.context.put("answer_tokens", thisAnswerTokens);
-        manage.context.put("message_tokens", messageTokens+thisMessageTokens);
-        manage.context.put("answer_tokens", answerTokens+thisAnswerTokens);
+        manage.context.put("message_tokens", messageTokens + thisMessageTokens);
+        manage.context.put("answer_tokens", answerTokens + thisAnswerTokens);
         long startTime = manage.context.getLong("start_time");
         manage.context.put("run_time", (System.currentTimeMillis() - startTime) / 1000F);
-        postResponseHandler.handler(ChatCache.get(chatId),chatId, chatRecordId, problemText,
-                res.content().text(), manage, null, null);
-        JSONObject json=toResponse(chatId, chatRecordId, res.content().text(), true, answerTokens, messageTokens);
+        UUID clientId=manage.context.getObject("client_id",UUID.class);
+        postResponseHandler.handler(ChatCache.get(chatId), chatId, chatRecordId, problemText,
+                res.content().text(), manage,  clientId);
+        JSONObject json = toResponse(chatId, chatRecordId, res.content().text(), true, answerTokens, messageTokens);
         return Flux.just(json);
     }
 
@@ -209,23 +213,23 @@ public class BaseChatStep extends IChatStep {
         JSONArray newMessageList = new JSONArray();
         for (Object o : messageList) {
             JSONObject message = new JSONObject();
-            if(o instanceof SystemMessage systemMessage) {
-                message.put("role","ai");
-                message.put("content",systemMessage.text());
+            if (o instanceof SystemMessage systemMessage) {
+                message.put("role", "ai");
+                message.put("content", systemMessage.text());
             }
-            if(o instanceof UserMessage userMessage) {
-                message.put("role","user");
-                message.put("content",userMessage.singleText());
+            if (o instanceof UserMessage userMessage) {
+                message.put("role", "user");
+                message.put("content", userMessage.singleText());
             }
-            if(o instanceof AiMessage aiMessage) {
-                message.put("role","ai");
-                message.put("content",aiMessage.text());
+            if (o instanceof AiMessage aiMessage) {
+                message.put("role", "ai");
+                message.put("content", aiMessage.text());
             }
             newMessageList.add(message);
         }
         JSONObject aiMessage = new JSONObject();
-        aiMessage.put("role","ai");
-        aiMessage.put("content",answerText);
+        aiMessage.put("role", "ai");
+        aiMessage.put("content", answerText);
         newMessageList.add(aiMessage);
         return newMessageList;
     }
@@ -233,9 +237,10 @@ public class BaseChatStep extends IChatStep {
 
     @Override
     public JSONObject getDetails() {
+        long startTime = super.context.getLong("start_time");
         JSONObject details = new JSONObject();
         details.put("step_type", "chat_step");
-        details.put("run_time", super.context.get("run_time"));
+        details.put("run_time", (System.currentTimeMillis() - startTime) / 1000F);
         details.put("model_id", super.context.get("model_id"));
         details.put("message_list", resetMessageList(super.context.getJSONArray("message_list"), super.context.getString("answer_text")));
         details.put("message_tokens", super.context.get("message_tokens"));
@@ -244,21 +249,23 @@ public class BaseChatStep extends IChatStep {
         return details;
     }
 
-    public JSONObject toResponse(UUID chatId, UUID chatRecordId,String content, Boolean isEnd, int completionTokens,
-                                 int promptTokens){
-        JSONObject result = new JSONObject();
-        result.put("chat_id", chatId);
-        result.put("chat_record_id", chatRecordId);
-        result.put("operate", true);
-        result.put("content", content);
-        result.put("node_id", "ai-chat-node");
-        result.put("node_type", "ai-chat-node");
-        result.put("node_is_end", true);
-        result.put("view_type", "many_view");
-        result.put("is_end", isEnd);
-        // result.put("completion_tokens", completion_tokens);
-        // result.put("prompt_tokens", prompt_tokens);
-        //  result.put("other_params", other_params);
-        return result;
+    public JSONObject toResponse(UUID chatId, UUID chatRecordId, String content, Boolean isEnd, int completionTokens,
+                                 int promptTokens) {
+        JSONObject data = new JSONObject();
+        data.put("chat_id", chatId);
+        data.put("chat_record_id", chatRecordId);
+        data.put("operate", true);
+        data.put("content", content);
+        data.put("node_id", "ai-chat-node");
+        data.put("node_type", "ai-chat-node");
+        data.put("node_is_end", true);
+        data.put("view_type", "many_view");
+        data.put("is_end", isEnd);
+        JSONObject usage = new JSONObject();
+        usage.put("completion_tokens", completionTokens);
+        usage.put("prompt_tokens", promptTokens);
+        usage.put("total_tokens", (promptTokens + completionTokens));
+        data.put("usage", usage);
+        return data;
     }
 }

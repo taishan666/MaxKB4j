@@ -3,6 +3,10 @@ package com.tarzan.maxkb4j.module.application.service;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationChatRecordEntity;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatRecordMapper;
@@ -11,6 +15,7 @@ import com.tarzan.maxkb4j.module.chatpipeline.ChatCache;
 import com.tarzan.maxkb4j.module.chatpipeline.ChatInfo;
 import com.tarzan.maxkb4j.module.dataset.vo.ParagraphVO;
 import com.tarzan.maxkb4j.util.BeanUtil;
+import com.tarzan.maxkb4j.util.PageUtil;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -29,6 +34,13 @@ public class ApplicationChatRecordService extends ServiceImpl<ApplicationChatRec
         if(Objects.isNull(chatRecord)) {
             chatRecord = this.getById(chatRecordId);
         }
+        return convert(chatRecord);
+    }
+
+    private ApplicationChatRecordVO convert(ApplicationChatRecordEntity  chatRecord){
+        if(Objects.isNull(chatRecord)) {
+            return null;
+        }
         ApplicationChatRecordVO chatRecordVO = BeanUtil.copy(chatRecord, ApplicationChatRecordVO.class);
         JSONObject details=chatRecord.getDetails();
         if(!details.isEmpty()){
@@ -41,7 +53,7 @@ public class ApplicationChatRecordService extends ServiceImpl<ApplicationChatRec
                 }
             }
             JSONObject problemPadding=details.getJSONObject("problem_padding");
-            if(!problemPadding.isEmpty()){
+            if(problemPadding!=null){
                 chatRecordVO.setPaddingProblemText(problemPadding.getString("padding_problem_text"));
             }
             List<JSONObject> executionDetails= new ArrayList<>();
@@ -52,6 +64,13 @@ public class ApplicationChatRecordService extends ServiceImpl<ApplicationChatRec
             chatRecordVO.setExecutionDetails(executionDetails);
         }
         return chatRecordVO;
+    }
 
+    public IPage<ApplicationChatRecordVO> chatRecordPage(UUID chatId, int page, int size) {
+        Page<ApplicationChatRecordEntity> chatRecordpage = new Page<>(page, size);
+        LambdaQueryWrapper<ApplicationChatRecordEntity> wrapper = Wrappers.lambdaQuery();
+        wrapper.eq(ApplicationChatRecordEntity::getChatId,chatId);
+        IPage<ApplicationChatRecordEntity> chatRecordIpage=this.page(chatRecordpage, wrapper);
+        return PageUtil.copy(chatRecordIpage, this::convert);
     }
 }

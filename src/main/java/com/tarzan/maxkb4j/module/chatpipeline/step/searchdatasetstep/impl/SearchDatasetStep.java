@@ -7,6 +7,7 @@ import com.tarzan.maxkb4j.module.chatpipeline.step.searchdatasetstep.ISearchData
 import com.tarzan.maxkb4j.module.dataset.dto.HitTestDTO;
 import com.tarzan.maxkb4j.module.dataset.vo.ParagraphVO;
 import com.tarzan.maxkb4j.module.embedding.service.EmbeddingService;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -28,9 +29,11 @@ public class SearchDatasetStep extends ISearchDatasetStep {
         UUID datasetId=application.getDatasetIdList().get(0);
         String problemText=manage.context.getString("problem_text");
         super.context.put("problem_text",problemText);
+        String paddingProblemText=context.getString("padding_problem_text");
+        String execProblemText = StringUtils.isNotBlank(paddingProblemText)?paddingProblemText:problemText;
         JSONObject datasetSetting=application.getDatasetSetting();
         HitTestDTO hitTestDTO=new HitTestDTO();
-        hitTestDTO.setQuery_text(problemText);
+        hitTestDTO.setQuery_text(execProblemText);
         hitTestDTO.setSearch_mode(datasetSetting.getString("search_mode"));
         hitTestDTO.setSimilarity(datasetSetting.getDouble("similarity"));
         hitTestDTO.setTop_number(datasetSetting.getInteger("top_n"));
