@@ -39,7 +39,8 @@
         SELECT
             ph.*,
             doc."name" AS document_name,
-            doc."hit_handling_method" AS hit_handling_method
+            doc."hit_handling_method",
+            doc."directly_return_similarity"
         FROM
             paragraph ph
                 LEFT JOIN "document" doc ON ph.document_id = doc.ID

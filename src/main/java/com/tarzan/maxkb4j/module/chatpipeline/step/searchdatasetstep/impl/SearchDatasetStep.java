@@ -37,11 +37,11 @@ public class SearchDatasetStep extends ISearchDatasetStep {
         hitTestDTO.setSearch_mode(datasetSetting.getString("search_mode"));
         hitTestDTO.setSimilarity(datasetSetting.getDouble("similarity"));
         hitTestDTO.setTop_number(datasetSetting.getInteger("top_n"));
-        List<ParagraphVO> res= embeddingService.paragraphSearch(datasetId,hitTestDTO);
+        List<ParagraphVO> paragraphList= embeddingService.paragraphSearch(datasetId,hitTestDTO);
         System.out.println("search 耗时 "+(System.currentTimeMillis()-startTime)+" ms");
         super.context.put("message_tokens",0);
         super.context.put("answer_tokens",0);
-        return res;
+        return paragraphList;
     }
 
     @Override

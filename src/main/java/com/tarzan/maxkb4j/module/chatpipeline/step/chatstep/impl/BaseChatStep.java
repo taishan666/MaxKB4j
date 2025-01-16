@@ -116,7 +116,7 @@ public class BaseChatStep extends IChatStep {
         }
         List<AiMessage> directlyReturnChunkList = new ArrayList<>();
         for (ParagraphVO paragraph : paragraphList) {
-            if ("directly_return".equals(paragraph.getHitHandlingMethod())) {
+            if ("directly_return".equals(paragraph.getHitHandlingMethod())&&paragraph.getSimilarity() >= paragraph.getDirectlyReturnSimilarity()) {
                 directlyReturnChunkList.add(AiMessage.from(paragraph.getContent()));
             }
         }

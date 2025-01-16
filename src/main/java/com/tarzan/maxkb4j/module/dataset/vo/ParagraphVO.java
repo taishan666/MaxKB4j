@@ -15,6 +15,7 @@ public class ParagraphVO extends ParagraphEntity {
     @JsonProperty("hit_handling_method")
     private String hitHandlingMethod;
     private Double similarity;
+    private Double directlyReturnSimilarity;
     @JsonProperty("comprehensive_score")
     private Double comprehensiveScore;
 }
