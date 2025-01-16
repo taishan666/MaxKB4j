@@ -3,6 +3,8 @@ package com.tarzan.maxkb4j.module.chatpipeline.step.chatstep.impl;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationEntity;
+import com.tarzan.maxkb4j.module.application.entity.ApplicationPublicAccessClientEntity;
+import com.tarzan.maxkb4j.module.application.service.ApplicationPublicAccessClientService;
 import com.tarzan.maxkb4j.module.chatpipeline.ChatCache;
 import com.tarzan.maxkb4j.module.chatpipeline.PipelineManage;
 import com.tarzan.maxkb4j.module.chatpipeline.handler.PostResponseHandler;
@@ -33,6 +35,8 @@ public class BaseChatStep extends IChatStep {
 
     @Autowired
     private ModelService modelService;
+    @Autowired
+    private ApplicationPublicAccessClientService publicAccessClientService;
 
     @Override
     protected Flux<JSONObject> execute(PipelineManage manage) {
@@ -86,6 +90,8 @@ public class BaseChatStep extends IChatStep {
                 manage.context.put("message_tokens", messageTokens + thisMessageTokens);
                 manage.context.put("answer_tokens", answerTokens + thisAnswerTokens);
                 UUID clientId=manage.context.getObject("client_id",UUID.class);
+                String clientType=manage.context.getString("client_type");
+                addAccessNum(clientId,clientType);
                 postResponseHandler.handler(ChatCache.get(chatId), chatId, chatRecordId, problemText, answerText, manage,  clientId);
                 JSONObject json = toResponse(chatId, chatRecordId, "", true, tokenUsage.outputTokenCount(), tokenUsage.inputTokenCount());
                 sink.tryEmitNext(json);
@@ -268,4 +274,16 @@ public class BaseChatStep extends IChatStep {
         data.put("usage", usage);
         return data;
     }
+
+    private void addAccessNum(UUID clientId, String clientType){
+        if("APPLICATION_ACCESS_TOKEN".equals(clientType)){
+            ApplicationPublicAccessClientEntity publicAccessClient=publicAccessClientService.getById(clientId);
+            if(publicAccessClient!=null){
+                publicAccessClient.setAccessNum(publicAccessClient.getAccessNum()+1);
+                publicAccessClient.setIntradayAccessNum(publicAccessClient.getIntradayAccessNum()+1);
+                publicAccessClientService.updateById(publicAccessClient);
+            }
+        }
+    }
+
 }

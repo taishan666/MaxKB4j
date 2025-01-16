@@ -277,7 +277,9 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         String authorization=request.getHeader("Authorization");
         Claims claims=JwtUtil.parseToken(authorization);
         String clientId= (String) claims.get("client_id");
-        Map<String,Object> params=chatInfo.toPipelineManageParams(problemText,UUID.fromString(clientId),excludeParagraphIds,postResponseHandler);
+        String clientType= (String) claims.get("type");
+        boolean stream= json.getBoolean("stream") == null || json.getBoolean("stream");
+        Map<String,Object> params=chatInfo.toPipelineManageParams(problemText,postResponseHandler,excludeParagraphIds,UUID.fromString(clientId),clientType,stream);
         pipelineManage.run(params);
         return pipelineManage.response;
     }
