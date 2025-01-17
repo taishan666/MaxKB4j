@@ -328,6 +328,10 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
     }
 
 
+    public List<ParagraphVO> hitTest(List<UUID> ids, HitTestDTO dto) {
+        return embeddingService.paragraphSearch(ids,dto);
+    }
+
     public List<ParagraphVO> hitTest(UUID id, HitTestDTO dto) {
         return embeddingService.paragraphSearch(List.of(id),dto);
     }
@@ -355,5 +359,16 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
         entity.setId(docId);
         entity.setStatus("nn2");
         return documentService.updateById(entity);
+    }
+
+    @Transactional
+    public Boolean deleteDatasetById(UUID id) {
+        problemParagraphMappingService.lambdaUpdate().eq(ProblemParagraphEntity::getDatasetId,id).remove();
+        problemService.lambdaUpdate().eq(ProblemEntity::getDatasetId, id).remove();
+        paragraphService.lambdaUpdate().eq(ParagraphEntity::getDatasetId,id).remove();
+        documentService.lambdaUpdate().eq(DocumentEntity::getDatasetId, id).remove();
+        applicationDatasetMappingMapper.delete(Wrappers.<ApplicationDatasetMappingEntity>lambdaQuery().eq(ApplicationDatasetMappingEntity::getDatasetId,id));
+        embeddingService.lambdaUpdate().eq(EmbeddingEntity::getDatasetId,id).remove();
+        return this.removeById(id);
     }
 }

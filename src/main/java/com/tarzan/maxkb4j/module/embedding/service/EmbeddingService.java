@@ -100,7 +100,7 @@ public class EmbeddingService extends ServiceImpl<EmbeddingMapper, EmbeddingEnti
             paragraphEmbed.setId(UUID.randomUUID());
             paragraphEmbed.setDatasetId(paragraph.getDatasetId());
             paragraphEmbed.setDocumentId(paragraph.getDocumentId());
-            paragraphEmbed.setParagraphId(paragraph.getId());
+            paragraphEmbed.setParagraphId((UUID) paragraph.getId());
             paragraphEmbed.setMeta(new JSONObject());
             paragraphEmbed.setSourceId(paragraph.getId().toString());
             paragraphEmbed.setSourceType("1");

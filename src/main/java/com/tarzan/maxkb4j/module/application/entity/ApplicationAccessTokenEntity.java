@@ -1,13 +1,13 @@
 package com.tarzan.maxkb4j.module.application.entity;
 
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.*;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tarzan.maxkb4j.handler.StringSetTypeHandler;
 import com.tarzan.maxkb4j.handler.UUIDTypeHandler;
 import lombok.Data;
 
 import java.util.Date;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -17,13 +17,15 @@ import java.util.UUID;
 @Data
 @TableName("application_access_token")
 public class ApplicationAccessTokenEntity {
-    
+
     @JsonProperty("create_time")
+    @TableField(fill = FieldFill.INSERT)
     private Date createTime;
-    
+
     @JsonProperty("update_time")
+    @TableField(fill = FieldFill.INSERT_UPDATE)
     private Date updateTime;
-    
+
     @JsonProperty("application_id")
     @TableId
 	@TableField(typeHandler = UUIDTypeHandler.class)
@@ -31,6 +33,10 @@ public class ApplicationAccessTokenEntity {
     
     @JsonProperty("access_token")
     private String accessToken;
+
+    @JsonProperty("access_token_reset")
+    @TableField(exist = false)
+    private Boolean accessTokenReset;
     
     @JsonProperty("is_active")
     private Boolean isActive;
@@ -41,8 +47,9 @@ public class ApplicationAccessTokenEntity {
     @JsonProperty("white_active")
     private Boolean whiteActive;
     
-/*    @JsonProperty("white_list")
-    private List<String> whiteList;*/
+    @JsonProperty("white_list")
+    @TableField(typeHandler = StringSetTypeHandler.class)
+    private Set<String> whiteList;
     
     @JsonProperty("show_source")
     private Boolean showSource;

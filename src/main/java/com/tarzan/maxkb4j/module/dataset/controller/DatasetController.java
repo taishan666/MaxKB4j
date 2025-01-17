@@ -76,7 +76,7 @@ public class DatasetController{
 
     @DeleteMapping("api/dataset/{id}")
     public R<Boolean> deleteDatasetById(@PathVariable("id") UUID id){
-        return R.success(datasetService.removeById(id));
+        return R.success(datasetService.deleteDatasetById(id));
     }
 
     @GetMapping("api/dataset/{page}/{size}")

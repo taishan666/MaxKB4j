@@ -19,7 +19,6 @@ import java.util.stream.Collectors;
 public class StringSetTypeHandler extends BaseTypeHandler<Set<String>> {
     @Override
     public void setNonNullParameter(PreparedStatement ps, int i, Set<String> parameter, JdbcType jdbcType) throws SQLException {
-        System.out.println("StringSetTypeHandler");
         PGobject pGobject = new PGobject();
         pGobject.setType("varchar[]");
         pGobject.setValue(toDBValue(parameter));

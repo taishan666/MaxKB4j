@@ -2,10 +2,15 @@ package com.tarzan.maxkb4j.module.dataset.dto;
 
 import lombok.Data;
 
+import java.util.UUID;
+
 @Data
 public class HitTestDTO {
     private String  query_text;
     private String  search_mode;
     private Double  similarity;
     private Integer  top_number;
+    private Boolean  problem_optimization;
+    private UUID reranker_model_id;
+    private String  problem_optimization_prompt;
 }

@@ -11,7 +11,9 @@ import com.tarzan.maxkb4j.module.application.vo.ApplicationChatRecordVO;
 import com.tarzan.maxkb4j.module.application.vo.ApplicationStatisticsVO;
 import com.tarzan.maxkb4j.module.application.vo.ApplicationVO;
 import com.tarzan.maxkb4j.common.dto.QueryDTO;
+import com.tarzan.maxkb4j.module.dataset.dto.HitTestDTO;
 import com.tarzan.maxkb4j.module.dataset.entity.DatasetEntity;
+import com.tarzan.maxkb4j.module.dataset.vo.ParagraphVO;
 import com.tarzan.maxkb4j.module.model.entity.ModelEntity;
 import com.tarzan.maxkb4j.tool.api.R;
 import jakarta.servlet.http.HttpServletRequest;
@@ -46,13 +48,18 @@ public class ApplicationController{
     }
 
     @PostMapping("api/application/authentication")
-    public R<String> authentication(HttpServletRequest request,@RequestBody JSONObject json){
+    public R<String> authentication(HttpServletRequest request,@RequestBody JSONObject json) throws Exception {
         return R.success(applicationService.authentication(request,json));
     }
 
+    @GetMapping("api/application/{id}/hit_test")
+    public R<List<ParagraphVO>> hitTest(@PathVariable("id") UUID id, HitTestDTO dto){
+        return R.success(applicationService.hitTest(id,dto));
+    }
+
     @GetMapping("api/application/profile")
-    public R<JSONObject> appProfile(){
-        return R.success(applicationService.appProfile());
+    public R<JSONObject> appProfile(HttpServletRequest request){
+        return R.success(applicationService.appProfile(request));
     }
 
     @GetMapping("api/application/{appId}/chat/client/{page}/{size}")
@@ -107,6 +114,11 @@ public class ApplicationController{
         return R.success(applicationService.deleteByAppId(UUID.fromString(appId)));
     }
 
+    @GetMapping("api/valid/application/{type}")
+    public R<Boolean> copyApp(@PathVariable("type") int type){
+        return R.success(applicationService.copyApp(type));
+    }
+
     @PutMapping("api/application/{appId}")
     public R<Boolean> updateByAppId(@PathVariable("appId") String appId,@RequestBody ApplicationEntity entity){
         entity.setId(UUID.fromString(appId));
@@ -124,7 +136,7 @@ public class ApplicationController{
     }
 
     @PutMapping("api/application/{appId}/access_token")
-    public R<Boolean> updateAccessToken(@PathVariable("appId") UUID appId,@RequestBody ApplicationAccessTokenEntity entity){
+    public R<ApplicationAccessTokenEntity> updateAccessToken(@PathVariable("appId") UUID appId,@RequestBody ApplicationAccessTokenEntity entity){
         return R.success(applicationService.updateAccessToken(appId,entity));
     }
 
