@@ -16,10 +16,12 @@ import com.tarzan.maxkb4j.module.dataset.service.DatasetService;
 import com.tarzan.maxkb4j.module.dataset.vo.*;
 import com.tarzan.maxkb4j.module.model.entity.ModelEntity;
 import com.tarzan.maxkb4j.tool.api.R;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 
@@ -33,9 +35,6 @@ public class DatasetController{
 
     @Autowired
     private DatasetService datasetService;
-
-    // 使用正则表达式定义UUID格式
-    private static final String UUID_REGEX = "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}";
 
 
     @GetMapping("api/dataset")
@@ -85,13 +84,23 @@ public class DatasetController{
         return R.success(datasetService.selectDatasetPage(datasetPage,query));
     }
 
+    @GetMapping("api/dataset/{id}/export")
+    public void export(@PathVariable("id") UUID id, HttpServletResponse response) throws IOException {
+        datasetService.exportExcelByDatasetId(id,response);
+    }
+
+    @GetMapping("api/dataset/{id}/document/{docId}/export")
+    public void export(@PathVariable("id") UUID id,@PathVariable("docId") UUID docId, HttpServletResponse response) throws IOException {
+        datasetService.exportExcelByDocId(docId,response);
+    }
+
     @GetMapping("api/dataset/{id}/application")
-    public R<List<ApplicationEntity>> getApplicationByDatasetId(@PathVariable String id){
+    public R<List<ApplicationEntity>> getApplicationByDatasetId(@PathVariable UUID id){
         return R.success(datasetService.getApplicationByDatasetId(id));
     }
 
     @GetMapping("api/dataset/{id}/model")
-    public R<List<ModelEntity>> getModels(@PathVariable String id){
+    public R<List<ModelEntity>> getModels(@PathVariable UUID id){
         return R.success(datasetService.getModels(id));
     }
 
@@ -106,7 +115,7 @@ public class DatasetController{
         return R.success(datasetService.batchGenerateRelated(id,dto));
     }
 
-    @PutMapping("api/dataset/{sourceId:" + UUID_REGEX + "}/document/migrate/{targetId:" + UUID_REGEX + "}")
+    @PutMapping("api/dataset/{sourceId}/document/migrate/{targetId}")
     public R<Boolean> migrateDoc(@PathVariable("sourceId") UUID sourceId,@PathVariable("targetId") UUID targetId,@RequestBody List<UUID> docIds){
         return R.success(datasetService.migrateDoc(sourceId,targetId,docIds));
     }
@@ -127,13 +136,13 @@ public class DatasetController{
     }
 
     @DeleteMapping("api/dataset/{id}/document/_bach")
-    public R<Boolean> deleteBatchDocByDocIds(@PathVariable("id") String id, @RequestBody DeleteDTO dto){
+    public R<Boolean> deleteBatchDocByDocIds(@PathVariable("id") UUID id, @RequestBody DeleteDTO dto){
         return R.success(datasetService.deleteBatchDocByDocIds(dto.getIdList()));
     }
 
     @GetMapping("api/dataset/{id}/document/{documentId}")
-    public R<DocumentEntity> getDocByDocId(@PathVariable String id, @PathVariable("documentId") String documentId){
-        return R.success(datasetService.getDocByDocId(UUID.fromString(documentId)));
+    public R<DocumentEntity> getDocByDocId(@PathVariable UUID id, @PathVariable("documentId") UUID documentId){
+        return R.success(datasetService.getDocByDocId(documentId));
     }
 
     @PutMapping("api/dataset/{id}/document/{documentId}/refresh")
@@ -142,7 +151,7 @@ public class DatasetController{
     }
 
     @PutMapping("api/dataset/{id}/document/{documentId}/cancel_task")
-    public R<Boolean> cancelTask(@PathVariable String id, @PathVariable("documentId") UUID documentId,@RequestBody JSONObject json){
+    public R<Boolean> cancelTask(@PathVariable UUID id, @PathVariable("documentId") UUID documentId,@RequestBody JSONObject json){
         return R.success(datasetService.cancelTask(documentId,1));
     }
 
@@ -162,79 +171,79 @@ public class DatasetController{
     }
 
     @PostMapping("api/dataset/{id}/document/{documentId}/paragraph")
-    public R<Boolean> createParagraph(@PathVariable String id, @PathVariable("documentId") String documentId,@RequestBody ParagraphDTO paragraph){
-        paragraph.setDatasetId(UUID.fromString(id));
-        paragraph.setDocumentId(UUID.fromString(documentId));
+    public R<Boolean> createParagraph(@PathVariable UUID id, @PathVariable("documentId") UUID documentId,@RequestBody ParagraphDTO paragraph){
+        paragraph.setDatasetId(id);
+        paragraph.setDocumentId(documentId);
         return R.success(datasetService.createParagraph(paragraph));
     }
 
     @GetMapping("api/dataset/{id}/document/{documentId}/paragraph/{page}/{size}")
-    public R<IPage<ParagraphEntity>> getParagraphByProblemId(@PathVariable String id, @PathVariable("documentId") String documentId,@PathVariable("page")int page, @PathVariable("size")int size,String title,String content){
-        return R.success(datasetService.pageParagraphByDocId(UUID.fromString(documentId),page,size,title,content));
+    public R<IPage<ParagraphEntity>> getParagraphByProblemId(@PathVariable UUID id, @PathVariable("documentId") UUID documentId,@PathVariable("page")int page, @PathVariable("size")int size,String title,String content){
+        return R.success(datasetService.pageParagraphByDocId(documentId,page,size,title,content));
     }
 
     @PutMapping("api/dataset/{id}/document/{documentId}/paragraph/{paragraphId}")
-    public R<Boolean> updateParagraphByParagraphId(@PathVariable String id, @PathVariable("documentId") String documentId,@PathVariable("paragraphId")String paragraphId,@RequestBody ParagraphEntity paragraph){
-        paragraph.setId(UUID.fromString(paragraphId));
+    public R<Boolean> updateParagraphByParagraphId(@PathVariable UUID id, @PathVariable("documentId") UUID documentId,@PathVariable("paragraphId")UUID paragraphId,@RequestBody ParagraphEntity paragraph){
+        paragraph.setId(paragraphId);
         return R.success(datasetService.updateParagraphByParagraphId(paragraph));
     }
 
     @DeleteMapping("api/dataset/{id}/document/{documentId}/paragraph/{paragraphId}")
-    public R<Boolean> deleteParagraphByParagraphId(@PathVariable String id, @PathVariable("documentId") String documentId,@PathVariable("paragraphId")String paragraphId){
-        return R.success(datasetService.deleteParagraphByParagraphId(UUID.fromString(paragraphId)));
+    public R<Boolean> deleteParagraphByParagraphId(@PathVariable UUID id, @PathVariable("documentId") UUID documentId,@PathVariable("paragraphId")UUID paragraphId){
+        return R.success(datasetService.deleteParagraphByParagraphId(paragraphId));
     }
 
     @DeleteMapping("api/dataset/{id}/document/{documentId}/paragraph/_batch")
-    public R<Boolean> deleteBatchParagraphByParagraphId(@PathVariable String id, @PathVariable("documentId") String documentId, @RequestBody DeleteDTO dto){
+    public R<Boolean> deleteBatchParagraphByParagraphId(@PathVariable UUID id, @PathVariable("documentId") UUID documentId, @RequestBody DeleteDTO dto){
         return R.success(datasetService.deleteBatchParagraphByParagraphIds(dto.getIdList()));
     }
 
     @GetMapping("api/dataset/{id}/document/{documentId}/paragraph/{paragraphId}/problem")
-    public R<List<ProblemEntity>> getProblemsByParagraphId(@PathVariable String id, @PathVariable("documentId") String documentId,@PathVariable("paragraphId")String paragraphId){
-        return R.success(datasetService.getProblemsByParagraphId(UUID.fromString(paragraphId)));
+    public R<List<ProblemEntity>> getProblemsByParagraphId(@PathVariable UUID id, @PathVariable("documentId") UUID documentId,@PathVariable("paragraphId")UUID paragraphId){
+        return R.success(datasetService.getProblemsByParagraphId(paragraphId));
     }
 
     @PutMapping("api/dataset/{id}/document/{documentId}/paragraph/{paragraphId}/problem/{problemId}/association")
-    public R<Boolean> association(@PathVariable String id, @PathVariable("documentId") String documentId,@PathVariable("paragraphId")String paragraphId, @PathVariable("problemId")String problemId){
-        return R.success(datasetService.association(UUID.fromString(id),UUID.fromString(documentId),UUID.fromString(paragraphId),UUID.fromString(problemId)));
+    public R<Boolean> association(@PathVariable UUID id, @PathVariable("documentId") UUID documentId,@PathVariable("paragraphId")UUID paragraphId, @PathVariable("problemId")UUID problemId){
+        return R.success(datasetService.association(id,documentId,paragraphId,problemId));
     }
 
     @PutMapping("api/dataset/{id}/document/{documentId}/paragraph/{paragraphId}/problem/{problemId}/un_association")
-    public R<Boolean> unAssociation(@PathVariable String id, @PathVariable("documentId") String documentId,@PathVariable("paragraphId")String paragraphId, @PathVariable("problemId")String problemId){
-        return R.success(datasetService.unAssociation(UUID.fromString(id),UUID.fromString(documentId),UUID.fromString(paragraphId),UUID.fromString(problemId)));
+    public R<Boolean> unAssociation(@PathVariable UUID id, @PathVariable("documentId") UUID documentId,@PathVariable("paragraphId")UUID paragraphId, @PathVariable("problemId")UUID problemId){
+        return R.success(datasetService.unAssociation(id,documentId,paragraphId,problemId));
     }
 
 
     @PostMapping("api/dataset/{id}/problem")
-    public R<Boolean> createProblemsByDatasetId(@PathVariable String id,@RequestBody List<String> problems){
-        return R.success(datasetService.createProblemsByDatasetId(UUID.fromString(id),problems));
+    public R<Boolean> createProblemsByDatasetId(@PathVariable UUID id,@RequestBody List<String> problems){
+        return R.success(datasetService.createProblemsByDatasetId(id,problems));
     }
 
     @PutMapping("api/dataset/{id}/problem/{problemId}")
-    public R<Boolean> updateProblemByDatasetId(@PathVariable String id,@PathVariable String problemId,@RequestBody ProblemEntity problem){
-        problem.setId(UUID.fromString(problemId));
+    public R<Boolean> updateProblemByDatasetId(@PathVariable UUID id,@PathVariable UUID problemId,@RequestBody ProblemEntity problem){
+        problem.setId(problemId);
         return R.success(datasetService.updateProblemById(problem));
     }
 
     @DeleteMapping("api/dataset/{id}/problem/{problemId}")
-    public R<Boolean> deleteProblemByDatasetId(@PathVariable("id") String id, @PathVariable("problemId") String problemId){
-        return R.success(datasetService.deleteProblemByDatasetId(UUID.fromString(problemId)));
+    public R<Boolean> deleteProblemByDatasetId(@PathVariable("id") UUID id, @PathVariable("problemId") UUID problemId){
+        return R.success(datasetService.deleteProblemByDatasetId(problemId));
     }
 
     @DeleteMapping("api/dataset/{id}/problem/_batch")
-    public R<Boolean> deleteBatchProblemByDatasetId(@PathVariable("id") String id, @RequestBody List<String> problemIds){
+    public R<Boolean> deleteBatchProblemByDatasetId(@PathVariable("id") UUID id, @RequestBody List<UUID> problemIds){
         return R.success(datasetService.deleteProblemByDatasetIds(problemIds));
     }
 
 
     @GetMapping("api/dataset/{id}/problem/{page}/{size}")
-    public R<IPage<ProblemVO>> getProblemsByDatasetId(@PathVariable String id, @PathVariable("page")int page, @PathVariable("size")int size){
-        return R.success(datasetService.getProblemsByDatasetId(UUID.fromString(id),page,size));
+    public R<IPage<ProblemVO>> getProblemsByDatasetId(@PathVariable UUID id, @PathVariable("page")int page, @PathVariable("size")int size){
+        return R.success(datasetService.getProblemsByDatasetId(id,page,size));
     }
 
     @GetMapping("api/dataset/{id}/problem/{problemId}/paragraph")
-    public R<List<ParagraphEntity>> getParagraphByProblemId(@PathVariable String id,@PathVariable("problemId") String problemId){
-        return R.success(datasetService.getParagraphByProblemId(UUID.fromString(problemId)));
+    public R<List<ParagraphEntity>> getParagraphByProblemId(@PathVariable UUID id,@PathVariable("problemId") UUID problemId){
+        return R.success(datasetService.getParagraphByProblemId(problemId));
     }
 
 

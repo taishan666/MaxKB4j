@@ -3,7 +3,7 @@
 <mapper namespace="com.tarzan.maxkb4j.module.team.mapper.TeamMemberPermissionMapper">
 
     <!-- 多个字段中某个字段的类型处理器配置 -->
-    <resultMap id="permissionResultMap" type="com.tarzan.maxkb4j.module.team.vo.TeamMemberPermissionVO">
+    <resultMap id="permissionResultMap" type="com.tarzan.maxkb4j.module.system.team.vo.TeamMemberPermissionVO">
         <result property="operate" column="operate"  typeHandler="com.tarzan.maxkb4j.handler.MemberOperateTypeHandler"/>
     </resultMap>
 

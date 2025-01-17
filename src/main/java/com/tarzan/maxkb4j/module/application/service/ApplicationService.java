@@ -521,4 +521,8 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     public boolean copyApp(int type) {
         return true;
     }
+
+    public String textToSpeech(UUID uuid,String text) {
+        return "";
+    }
 }

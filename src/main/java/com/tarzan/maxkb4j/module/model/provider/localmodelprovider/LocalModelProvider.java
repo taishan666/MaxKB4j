@@ -1,0 +1,31 @@
+package com.tarzan.maxkb4j.module.model.provider.localmodelprovider;
+
+import com.tarzan.maxkb4j.module.model.provider.IModelProvider;
+import com.tarzan.maxkb4j.module.model.provider.ModelInfo;
+import com.tarzan.maxkb4j.module.model.provider.ModelProvideInfo;
+import com.tarzan.maxkb4j.module.model.provider.aliyunModelProvider.AliYunBaiLianModelProvider;
+import com.tarzan.maxkb4j.util.IoUtil;
+import org.springframework.stereotype.Component;
+
+import java.io.InputStream;
+import java.util.List;
+
+@Component
+public class LocalModelProvider implements IModelProvider {
+    @Override
+    public ModelProvideInfo getModelProvideInfo() {
+        ModelProvideInfo info = new ModelProvideInfo();
+        info.setProvider("model_local_provider");
+        info.setName("本地模型");
+        ClassLoader classLoader = AliYunBaiLianModelProvider.class.getClassLoader();
+        InputStream inputStream = classLoader.getResourceAsStream("icon/local_icon.svg");
+        String icon= IoUtil.readToString(inputStream);
+        info.setIcon(icon);
+        return info;
+    }
+
+    @Override
+    public List<ModelInfo> getModelList() {
+        return List.of();
+    }
+}

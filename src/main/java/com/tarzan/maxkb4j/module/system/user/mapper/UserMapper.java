@@ -1,0 +1,14 @@
+package com.tarzan.maxkb4j.module.system.user.mapper;
+
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.tarzan.maxkb4j.module.system.user.entity.UserEntity;
+import org.apache.ibatis.annotations.Mapper;
+
+
+/**
+ * @author tarzan
+ * @date 2024-12-25 11:27:27
+ */
+@Mapper
+public interface UserMapper extends BaseMapper<UserEntity>{
+}

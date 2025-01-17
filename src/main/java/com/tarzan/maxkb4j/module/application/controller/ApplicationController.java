@@ -3,6 +3,7 @@ package com.tarzan.maxkb4j.module.application.controller;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.tarzan.maxkb4j.common.dto.QueryDTO;
 import com.tarzan.maxkb4j.module.application.dto.ChatImproveDTO;
 import com.tarzan.maxkb4j.module.application.dto.ChatQueryDTO;
 import com.tarzan.maxkb4j.module.application.entity.*;
@@ -10,7 +11,6 @@ import com.tarzan.maxkb4j.module.application.service.ApplicationService;
 import com.tarzan.maxkb4j.module.application.vo.ApplicationChatRecordVO;
 import com.tarzan.maxkb4j.module.application.vo.ApplicationStatisticsVO;
 import com.tarzan.maxkb4j.module.application.vo.ApplicationVO;
-import com.tarzan.maxkb4j.common.dto.QueryDTO;
 import com.tarzan.maxkb4j.module.dataset.dto.HitTestDTO;
 import com.tarzan.maxkb4j.module.dataset.entity.DatasetEntity;
 import com.tarzan.maxkb4j.module.dataset.vo.ParagraphVO;
@@ -105,13 +105,19 @@ public class ApplicationController{
     }
 
     @GetMapping("api/application/{appId}")
-    public R<ApplicationVO> getByAppId(@PathVariable("appId") String appId){
-        return R.success(applicationService.getAppById(UUID.fromString(appId)));
+    public R<ApplicationVO> getByAppId(@PathVariable("appId") UUID appId){
+        return R.success(applicationService.getAppById(appId));
     }
 
     @DeleteMapping("api/application/{appId}")
-    public R<Boolean> deleteByAppId(@PathVariable("appId") String appId){
-        return R.success(applicationService.deleteByAppId(UUID.fromString(appId)));
+    public R<Boolean> deleteByAppId(@PathVariable("appId") UUID appId){
+        return R.success(applicationService.deleteByAppId(appId));
+    }
+
+    @PostMapping("api/application/{appId}/text_to_speech")
+    public R<String> textToSpeech(@PathVariable("appId") UUID appId,@RequestBody String text){
+        System.out.println(text);
+        return R.success(applicationService.textToSpeech(appId,text));
     }
 
     @GetMapping("api/valid/application/{type}")
@@ -120,14 +126,14 @@ public class ApplicationController{
     }
 
     @PutMapping("api/application/{appId}")
-    public R<Boolean> updateByAppId(@PathVariable("appId") String appId,@RequestBody ApplicationEntity entity){
-        entity.setId(UUID.fromString(appId));
+    public R<Boolean> updateByAppId(@PathVariable("appId") UUID appId,@RequestBody ApplicationEntity entity){
+        entity.setId(appId);
         return R.success(applicationService.updateById(entity));
     }
 
     @GetMapping("api/application/{appId}/application")
-    public R<ApplicationEntity> getByAppId1(@PathVariable("appId") String appId){
-        return R.success(applicationService.getById(UUID.fromString(appId)));
+    public R<ApplicationEntity> getByAppId1(@PathVariable("appId") UUID appId){
+        return R.success(applicationService.getById(appId));
     }
 
     @GetMapping("api/application/{appId}/access_token")
@@ -161,13 +167,13 @@ public class ApplicationController{
     }
 
     @GetMapping("api/application/{appId}/model")
-    public R<List<ModelEntity>> model(@PathVariable("appId") String appId, String model_type){
-        return R.success(applicationService.getAppModels(UUID.fromString(appId),model_type));
+    public R<List<ModelEntity>> model(@PathVariable("appId") UUID appId, String model_type){
+        return R.success(applicationService.getAppModels(appId,model_type));
     }
 
     @GetMapping("api/application/{appId}/list_dataset")
-    public R<List<DatasetEntity>> datasets(@PathVariable("appId") String appId){
-        return R.success(applicationService.getDatasets(UUID.fromString(appId)));
+    public R<List<DatasetEntity>> datasets(@PathVariable("appId") UUID appId){
+        return R.success(applicationService.getDatasets(appId));
     }
 
     @PostMapping("api/application/{appId}/dataset/{datasetId}/improve")

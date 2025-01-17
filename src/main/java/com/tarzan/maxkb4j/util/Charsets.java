@@ -1,11 +1,8 @@
 package com.tarzan.maxkb4j.util;
 
 
-import org.apache.poi.util.StringUtil;
-
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.nio.charset.UnsupportedCharsetException;
 
 public class Charsets {
     public static final Charset ISO_8859_1;
@@ -16,10 +13,6 @@ public class Charsets {
     public static final String UTF_8_NAME;
 
     public Charsets() {
-    }
-
-    public static Charset charset(String charsetName) throws UnsupportedCharsetException {
-        return StringUtil.isBlank(charsetName) ? Charset.defaultCharset() : Charset.forName(charsetName);
     }
 
     static {

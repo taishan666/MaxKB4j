@@ -1,5 +1,8 @@
 package com.tarzan.maxkb4j.module.dataset.service;
 
+import com.alibaba.excel.EasyExcel;
+import com.alibaba.excel.ExcelWriter;
+import com.alibaba.excel.write.metadata.WriteSheet;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -13,6 +16,7 @@ import com.tarzan.maxkb4j.module.application.mapper.ApplicationDatasetMappingMap
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationMapper;
 import com.tarzan.maxkb4j.module.dataset.dto.*;
 import com.tarzan.maxkb4j.module.dataset.entity.*;
+import com.tarzan.maxkb4j.module.dataset.excel.DatasetExcel;
 import com.tarzan.maxkb4j.module.dataset.mapper.DatasetMapper;
 import com.tarzan.maxkb4j.module.dataset.vo.DatasetVO;
 import com.tarzan.maxkb4j.module.dataset.vo.DocumentVO;
@@ -23,12 +27,18 @@ import com.tarzan.maxkb4j.module.embedding.service.EmbeddingService;
 import com.tarzan.maxkb4j.module.model.entity.ModelEntity;
 import com.tarzan.maxkb4j.module.model.service.ModelService;
 import com.tarzan.maxkb4j.util.BeanUtil;
+import com.tarzan.maxkb4j.util.ExcelUtil;
+import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
+import java.io.IOException;
+import java.io.OutputStream;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 /**
@@ -74,7 +84,7 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
         return problemService.getProblemsByDatasetId(problemPage, id);
     }
 
-    public List<ApplicationEntity> getApplicationByDatasetId(String id) {
+    public List<ApplicationEntity> getApplicationByDatasetId(UUID id) {
         return applicationMapper.selectList(null);
     }
 
@@ -119,14 +129,13 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
     }
 
     @Transactional
-    public boolean deleteProblemByDatasetIds(List<String> problemIds) {
+    public boolean deleteProblemByDatasetIds(List<UUID> problemIds) {
         if (CollectionUtils.isEmpty(problemIds)) {
             return false;
         }
-        problemParagraphMappingService.lambdaUpdate().in(ProblemParagraphEntity::getProblemId, problemIds.stream().map(UUID::fromString).toList()).remove();
-        embeddingService.lambdaUpdate().in(EmbeddingEntity::getSourceId, problemIds).remove();
-        List<UUID> paragraphIds = problemIds.stream().map(UUID::fromString).toList();
-        return problemService.lambdaUpdate().in(ProblemEntity::getId, paragraphIds).remove();
+        problemParagraphMappingService.lambdaUpdate().in(ProblemParagraphEntity::getProblemId, problemIds).remove();
+        embeddingService.lambdaUpdate().in(EmbeddingEntity::getSourceId, problemIds.stream().map(UUID::toString).toList()).remove();
+        return problemService.lambdaUpdate().in(ProblemEntity::getId, problemIds).remove();
     }
 
     public IPage<ParagraphEntity> pageParagraphByDocId(UUID docId, int page, int size,String title,String content) {
@@ -190,11 +199,10 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
     }
 
     @Transactional
-    public boolean deleteBatchParagraphByParagraphIds(List<String> idList) {
-        if (CollectionUtils.isEmpty(idList)) {
+    public boolean deleteBatchParagraphByParagraphIds(List<UUID> paragraphIds) {
+        if (CollectionUtils.isEmpty(paragraphIds)) {
             return false;
         }
-        List<UUID> paragraphIds = idList.stream().map(UUID::fromString).toList();
         embeddingService.lambdaUpdate().in(EmbeddingEntity::getParagraphId,paragraphIds).remove();
         return paragraphService.lambdaUpdate().in(ParagraphEntity::getId, paragraphIds).remove();
     }
@@ -237,11 +245,10 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
     }
 
 
-    public boolean deleteBatchDocByDocIds(List<String> idList) {
-        if (CollectionUtils.isEmpty(idList)) {
+    public boolean deleteBatchDocByDocIds(List<UUID> docIds) {
+        if (CollectionUtils.isEmpty(docIds)) {
             return false;
         }
-        List<UUID> docIds = idList.stream().map(UUID::fromString).toList();
         return documentService.lambdaUpdate().in(DocumentEntity::getId, docIds).remove();
     }
 
@@ -340,7 +347,7 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
         return embeddingService.embedByDatasetId(datasetId);
     }
 
-    public List<ModelEntity> getModels(String id) {
+    public List<ModelEntity> getModels(UUID id) {
         return modelService.models("LLM");
     }
 
@@ -370,5 +377,51 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
         applicationDatasetMappingMapper.delete(Wrappers.<ApplicationDatasetMappingEntity>lambdaQuery().eq(ApplicationDatasetMappingEntity::getDatasetId,id));
         embeddingService.lambdaUpdate().eq(EmbeddingEntity::getDatasetId,id).remove();
         return this.removeById(id);
+    }
+
+    public void exportExcelByDatasetId(UUID id, HttpServletResponse response) throws IOException {
+        DatasetEntity dataset=this.getById(id);
+        List<DocumentEntity> docs=documentService.lambdaQuery().eq(DocumentEntity::getDatasetId,id).list();
+        response.setContentType("application/vnd.ms-excel");
+        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
+        String fileName = URLEncoder.encode(dataset.getName(), StandardCharsets.UTF_8);
+        response.setHeader("Content-disposition", "attachment;filename=" + fileName + ".xlsx");
+        OutputStream outputStream=response.getOutputStream();
+        // 创建 EasyExcel 写入器
+        ExcelWriter excelWriter = EasyExcel.write(outputStream, DatasetExcel.class).build();
+        for (DocumentEntity doc : docs) {
+            List<DatasetExcel> list=getDatasetExcelByDoc(doc);
+            // 使用同一个写入器添加新的 sheet 页
+            WriteSheet writeSheet = EasyExcel.writerSheet(doc.getName()).build();
+            excelWriter.write(list, writeSheet);
+        }
+        // 完成写入操作
+        excelWriter.finish();
+    }
+
+    public void exportExcelByDocId(UUID docId, HttpServletResponse response) {
+        DocumentEntity doc=documentService.getById(docId);
+        List<DatasetExcel> list=getDatasetExcelByDoc(doc);
+        ExcelUtil.export(response,doc.getName(),doc.getName(),list,DatasetExcel.class);
+    }
+
+    private List<DatasetExcel> getDatasetExcelByDoc(DocumentEntity doc) {
+        List<DatasetExcel> list=new ArrayList<>();
+        List<ParagraphEntity> paragraphs=paragraphService.lambdaQuery().eq(ParagraphEntity::getDocumentId,doc.getId()).list();
+        for (ParagraphEntity paragraph : paragraphs) {
+            DatasetExcel excel=new DatasetExcel();
+            excel.setTitle(paragraph.getTitle());
+            excel.setContent(paragraph.getContent());
+            List<ProblemEntity> problemEntities=problemParagraphMappingService.getProblemsByParagraphId(paragraph.getId());
+            StringBuilder sb = new StringBuilder();
+            if(!CollectionUtils.isEmpty(problemEntities)){
+                List<String> problems=problemEntities.stream().map(ProblemEntity::getContent).toList();
+                String result = String.join("\n", problems);
+                sb.append(result);
+            }
+            excel.setProblems(sb.toString());
+            list.add(excel);
+        }
+        return list;
     }
 }
