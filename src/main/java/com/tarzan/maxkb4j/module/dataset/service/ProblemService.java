@@ -52,13 +52,13 @@ public class ProblemService extends ServiceImpl<ProblemMapper, ProblemEntity>{
     }
 
     @Async
-    public void batchGenerateRelated(UUID datasetId,UUID docId, GenerateProblemDTO dto) {
+    public void batchGenerateRelated(UUID datasetId,UUID docId, List<ParagraphEntity> paragraphs, GenerateProblemDTO dto) {
         List<ProblemEntity> problemEntities=new ArrayList<>();
         List<ProblemParagraphEntity> problemParagraphs=new ArrayList<>();
         List<ProblemEntity> dbProblemEntities = this.lambdaQuery().eq(ProblemEntity::getDatasetId, datasetId).list();
         documentService.updateStatusById(docId,2,1);
         try {
-            List<ParagraphEntity> paragraphs = documentService.getParagraphsByDocId(docId);
+
             ChatLanguageModel chatModel = modelService.getChatModelById(dto.getModel_id());
             List<ProblemDTO> problemDTOS = new ArrayList<>();
             for (ParagraphEntity paragraph : paragraphs) {

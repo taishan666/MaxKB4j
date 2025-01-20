@@ -138,6 +138,11 @@ public class DatasetController{
         return R.success(datasetService.batchGenerateRelated(id,dto));
     }
 
+    @PutMapping("api/dataset/{id}/document/{docId}/paragraph/batch_generate_related")
+    public R<Boolean> paragraphBatchGenerateRelated(@PathVariable UUID id,@PathVariable UUID docId,@RequestBody GenerateProblemDTO dto){
+        return R.success(datasetService.paragraphBatchGenerateRelated(id,docId,dto));
+    }
+
     @PutMapping("api/dataset/{sourceId}/document/migrate/{targetId}")
     public R<Boolean> migrateDoc(@PathVariable("sourceId") UUID sourceId,@PathVariable("targetId") UUID targetId,@RequestBody List<UUID> docIds){
         return R.success(datasetService.migrateDoc(sourceId,targetId,docIds));
@@ -267,6 +272,11 @@ public class DatasetController{
     @GetMapping("api/dataset/{id}/problem/{problemId}/paragraph")
     public R<List<ParagraphEntity>> getParagraphByProblemId(@PathVariable UUID id,@PathVariable("problemId") UUID problemId){
         return R.success(datasetService.getParagraphByProblemId(problemId));
+    }
+
+    @PutMapping("api/dataset/{sourceDatasetId}/document/{sourceDocId}/paragraph/migrate/dataset/{targetDatasetId}/document/{targetDocId}")
+    public R<Boolean> paragraphMigrate(@PathVariable UUID sourceDatasetId,@PathVariable UUID sourceDocId,@PathVariable UUID targetDatasetId,@PathVariable UUID targetDocId,@RequestBody List<UUID> paragraphIds){
+        return R.success(datasetService.paragraphMigrate(sourceDatasetId,sourceDocId,targetDatasetId,targetDocId,paragraphIds));
     }
 
 
