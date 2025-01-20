@@ -1,9 +1,9 @@
-package com.tarzan.maxkb4j.module.chatpipeline;
+package com.tarzan.maxkb4j.module.application.chatpipeline;
 
 import com.tarzan.maxkb4j.module.application.entity.ApplicationChatRecordEntity;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationEntity;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationWorkFlowVersionEntity;
-import com.tarzan.maxkb4j.module.chatpipeline.handler.PostResponseHandler;
+import com.tarzan.maxkb4j.module.application.chatpipeline.handler.PostResponseHandler;
 import com.tarzan.maxkb4j.util.BeanUtil;
 import lombok.Data;
 

@@ -12,7 +12,6 @@ import com.tarzan.maxkb4j.module.dataset.mapper.ProblemMapper;
 import com.tarzan.maxkb4j.module.dataset.vo.ProblemVO;
 import com.tarzan.maxkb4j.module.embedding.service.EmbeddingService;
 import com.tarzan.maxkb4j.module.model.service.ModelService;
-import com.tarzan.maxkb4j.util.BeanUtil;
 import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.model.chat.ChatLanguageModel;
 import dev.langchain4j.model.chat.request.ChatRequest;
@@ -48,12 +47,15 @@ public class ProblemService extends ServiceImpl<ProblemMapper, ProblemEntity>{
     @Autowired
     private ModelService modelService;
 
-    public IPage<ProblemVO> getProblemsByDatasetId(Page<ProblemEntity> problemPage, UUID id) {
-        return baseMapper.getProblemsByDatasetId(problemPage, id);
+    public IPage<ProblemVO> getProblemsByDatasetId(Page<ProblemEntity> problemPage, UUID id,String content) {
+        return baseMapper.getProblemsByDatasetId(problemPage, id,content);
     }
 
     @Async
     public void batchGenerateRelated(UUID datasetId,UUID docId, GenerateProblemDTO dto) {
+        List<ProblemEntity> problemEntities=new ArrayList<>();
+        List<ProblemParagraphEntity> problemParagraphs=new ArrayList<>();
+        List<ProblemEntity> dbProblemEntities = this.lambdaQuery().eq(ProblemEntity::getDatasetId, datasetId).list();
         documentService.updateStatusById(docId,2,1);
         try {
             List<ParagraphEntity> paragraphs = documentService.getParagraphsByDocId(docId);
@@ -67,41 +69,57 @@ public class ProblemService extends ServiceImpl<ProblemMapper, ProblemEntity>{
                         .build();
                 ChatResponse chatResponse = chatModel.chat(chatRequest);
                 String output = chatResponse.aiMessage().text();
-                List<String> problems = extractProblems(output);
-                for (String problem : problems) {
-                    ProblemDTO problemDTO = new ProblemDTO();
-                    problemDTO.setId(UUID.randomUUID());
-                    problemDTO.setDatasetId(paragraph.getDatasetId());
-                    problemDTO.setContent(problem);
-                    problemDTO.setHitNum(0);
-                    problemDTO.setDocumentId(paragraph.getDocumentId());
-                    problemDTO.setParagraphId(paragraph.getId());
-                    problemDTOS.add(problemDTO);
+                List<String> problems =extractProblems(output);
+                if (!CollectionUtils.isEmpty(problems)) {
+                    for (String problem : problems) {
+                        UUID problemId=UUID.randomUUID();
+                        ProblemEntity existingProblem =findProblem(problem, problemEntities,dbProblemEntities);
+                        if(existingProblem==null){
+                            ProblemEntity entity = new ProblemEntity();
+                            entity.setId(problemId);
+                            entity.setDatasetId(datasetId);
+                            entity.setHitNum(0);
+                            entity.setContent(problem);
+                            problemEntities.add(entity);
+                        }else {
+                            problemId = existingProblem.getId();
+                        }
+                        ProblemParagraphEntity problemParagraph=new ProblemParagraphEntity();
+                        problemParagraph.setProblemId(problemId);
+                        problemParagraph.setParagraphId(paragraph.getId());
+                        problemParagraph.setDatasetId(datasetId);
+                        problemParagraph.setDocumentId(docId);
+                        problemParagraphs.add(problemParagraph);
+                    }
+                    embeddingService.createProblems(datasetId,problemDTOS);
                 }
                 paragraphService.updateStatusById(paragraph.getId(),2,2);
                 documentService.updateStatusMetaById(paragraph.getDocumentId());
                 log.info("结束---->生成问题:{}", paragraph.getId());
             }
-            List<ProblemEntity> problemEntities=BeanUtil.copyList(problemDTOS, ProblemEntity.class);
             baseMapper.insert(problemEntities);
-            if (!CollectionUtils.isEmpty(problemDTOS)) {
-                List<ProblemParagraphEntity> problemParagraphs=new ArrayList<>();
-                for (ProblemDTO problem : problemDTOS) {
-                    ProblemParagraphEntity problemParagraph=new ProblemParagraphEntity();
-                    problemParagraph.setProblemId(problem.getId());
-                    problemParagraph.setParagraphId(problem.getParagraphId());
-                    problemParagraph.setDatasetId(problem.getDatasetId());
-                    problemParagraph.setDocumentId(problem.getDocumentId());
-                    problemParagraphs.add(problemParagraph);
-                }
-                problemParagraphService.saveBatch(problemParagraphs);
-                embeddingService.createProblems(datasetId,problemDTOS);
-            }
+            problemParagraphService.saveBatch(problemParagraphs);
             documentService.updateStatusById(docId,2,2);
         } catch (Exception e) {
             log.error(e.getMessage());
         }
 
+    }
+
+    private ProblemEntity findProblem(String problem, List<ProblemEntity> problemEntities,List<ProblemEntity> dbProblemEntities) {
+        if (!CollectionUtils.isEmpty(dbProblemEntities)) {
+            return dbProblemEntities.stream()
+                    .filter(e -> e.getContent().equals(problem))
+                    .findFirst()
+                    .orElse(null);
+        }
+        if (!CollectionUtils.isEmpty(problemEntities)) {
+            return problemEntities.stream()
+                    .filter(e -> e.getContent().equals(problem))
+                    .findFirst()
+                    .orElse(null);
+        }
+        return null;
     }
 
     public List<String> extractProblems(String output) {

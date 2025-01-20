@@ -20,6 +20,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
@@ -89,9 +90,31 @@ public class DatasetController{
         datasetService.exportExcelByDatasetId(id,response);
     }
 
+
+
+    @GetMapping("api/dataset/{id}/export_zip")
+    public void exportZip(@PathVariable("id") UUID id, HttpServletResponse response) throws IOException {
+        datasetService.exportExcelZipByDatasetId(id,response);
+    }
+
+    @DeleteMapping("api/dataset/{id}/document/{docId}")
+    public  R<Boolean>  deleteDoc(@PathVariable("id") UUID id, @PathVariable("docId") UUID docId) throws IOException {
+        return R.success(datasetService.deleteDoc(docId));
+    }
+
     @GetMapping("api/dataset/{id}/document/{docId}/export")
     public void export(@PathVariable("id") UUID id,@PathVariable("docId") UUID docId, HttpServletResponse response) throws IOException {
         datasetService.exportExcelByDocId(docId,response);
+    }
+
+    @GetMapping("api/dataset/{id}/document/{docId}/export_zip")
+    public void exportZip(@PathVariable("id") UUID id,@PathVariable("docId") UUID docId, HttpServletResponse response) throws IOException {
+        datasetService.exportExcelZipByDocId(docId,response);
+    }
+
+    @PostMapping("api/dataset/{id}/document/qa")
+    public void importQa(@PathVariable("id") UUID id, MultipartFile file) throws IOException {
+        datasetService.importQa(id,file);
     }
 
     @GetMapping("api/dataset/{id}/application")
@@ -237,8 +260,8 @@ public class DatasetController{
 
 
     @GetMapping("api/dataset/{id}/problem/{page}/{size}")
-    public R<IPage<ProblemVO>> getProblemsByDatasetId(@PathVariable UUID id, @PathVariable("page")int page, @PathVariable("size")int size){
-        return R.success(datasetService.getProblemsByDatasetId(id,page,size));
+    public R<IPage<ProblemVO>> getProblemsByDatasetId(@PathVariable UUID id, @PathVariable("page")int page, @PathVariable("size")int size,String content){
+        return R.success(datasetService.getProblemsByDatasetId(id,page,size,content));
     }
 
     @GetMapping("api/dataset/{id}/problem/{problemId}/paragraph")

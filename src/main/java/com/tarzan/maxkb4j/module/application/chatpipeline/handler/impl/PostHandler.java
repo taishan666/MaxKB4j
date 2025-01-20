@@ -1,14 +1,14 @@
-package com.tarzan.maxkb4j.module.chatpipeline.handler.impl;
+package com.tarzan.maxkb4j.module.application.chatpipeline.handler.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationChatEntity;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationChatRecordEntity;
 import com.tarzan.maxkb4j.module.application.service.ApplicationChatRecordService;
 import com.tarzan.maxkb4j.module.application.service.ApplicationChatService;
-import com.tarzan.maxkb4j.module.chatpipeline.ChatCache;
-import com.tarzan.maxkb4j.module.chatpipeline.ChatInfo;
-import com.tarzan.maxkb4j.module.chatpipeline.PipelineManage;
-import com.tarzan.maxkb4j.module.chatpipeline.handler.PostResponseHandler;
+import com.tarzan.maxkb4j.module.application.chatpipeline.ChatCache;
+import com.tarzan.maxkb4j.module.application.chatpipeline.ChatInfo;
+import com.tarzan.maxkb4j.module.application.chatpipeline.PipelineManage;
+import com.tarzan.maxkb4j.module.application.chatpipeline.handler.PostResponseHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 

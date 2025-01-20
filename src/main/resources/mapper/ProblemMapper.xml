@@ -11,8 +11,13 @@
                 LEFT JOIN
             problem_paragraph_mapping ppm ON p.id = ppm.problem_id
         WHERE p.DATASET_ID = #{datasetId}
+        <if test="content != null and content != ''">
+            and p.content like CONCAT('%',#{content},'%')
+        </if>
         GROUP BY
             p.id
+        ORDER BY
+            p.create_time DESC
     </select>
 
 </mapper>

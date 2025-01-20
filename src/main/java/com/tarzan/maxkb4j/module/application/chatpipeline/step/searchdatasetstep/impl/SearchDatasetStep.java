@@ -1,9 +1,9 @@
-package com.tarzan.maxkb4j.module.chatpipeline.step.searchdatasetstep.impl;
+package com.tarzan.maxkb4j.module.application.chatpipeline.step.searchdatasetstep.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationEntity;
-import com.tarzan.maxkb4j.module.chatpipeline.PipelineManage;
-import com.tarzan.maxkb4j.module.chatpipeline.step.searchdatasetstep.ISearchDatasetStep;
+import com.tarzan.maxkb4j.module.application.chatpipeline.PipelineManage;
+import com.tarzan.maxkb4j.module.application.chatpipeline.step.searchdatasetstep.ISearchDatasetStep;
 import com.tarzan.maxkb4j.module.dataset.dto.HitTestDTO;
 import com.tarzan.maxkb4j.module.dataset.vo.ParagraphVO;
 import com.tarzan.maxkb4j.module.embedding.service.EmbeddingService;

@@ -97,7 +97,7 @@ public class EmbeddingService extends ServiceImpl<EmbeddingMapper, EmbeddingEnti
             List<EmbeddingEntity> embeddingEntities = new ArrayList<>();
             log.info("开始---->向量化段落:{}", paragraph.getId());
             EmbeddingEntity paragraphEmbed = new EmbeddingEntity();
-            paragraphEmbed.setId(UUID.randomUUID());
+            paragraphEmbed.setId(UUID.randomUUID().toString());
             paragraphEmbed.setDatasetId(paragraph.getDatasetId());
             paragraphEmbed.setDocumentId(paragraph.getDocumentId());
             paragraphEmbed.setParagraphId((UUID) paragraph.getId());
@@ -112,7 +112,7 @@ public class EmbeddingService extends ServiceImpl<EmbeddingMapper, EmbeddingEnti
             List<ProblemEntity> problems=problemParagraphMappingService.getProblemsByParagraphId(paragraph.getId());
             for (ProblemEntity problem : problems) {
                 EmbeddingEntity problemEmbed = new EmbeddingEntity();
-                problemEmbed.setId(UUID.randomUUID());
+                problemEmbed.setId(UUID.randomUUID().toString());
                 problemEmbed.setDatasetId(paragraph.getDatasetId());
                 problemEmbed.setDocumentId(paragraph.getDocumentId());
                 problemEmbed.setParagraphId(paragraph.getId());
@@ -143,7 +143,7 @@ public class EmbeddingService extends ServiceImpl<EmbeddingMapper, EmbeddingEnti
         List<EmbeddingEntity> embeddingEntities = new ArrayList<>();
         for (ParagraphEntity paragraph : paragraphs) {
             EmbeddingEntity embeddingEntity = new EmbeddingEntity();
-            embeddingEntity.setId(UUID.randomUUID());
+            embeddingEntity.setId(UUID.randomUUID().toString());
             embeddingEntity.setDatasetId(paragraph.getDatasetId());
             embeddingEntity.setDocumentId(paragraph.getDocumentId());
             embeddingEntity.setParagraphId(paragraph.getId());
@@ -162,7 +162,7 @@ public class EmbeddingService extends ServiceImpl<EmbeddingMapper, EmbeddingEnti
                 Response<Embedding> res = embeddingModel.embed(v.get(0).getContent());
                 v.forEach(pp -> {
                     EmbeddingEntity embeddingEntity = new EmbeddingEntity();
-                    embeddingEntity.setId(UUID.randomUUID());
+                    embeddingEntity.setId(UUID.randomUUID().toString());
                     embeddingEntity.setDatasetId(pp.getDatasetId());
                     embeddingEntity.setDocumentId(pp.getDocumentId());
                     embeddingEntity.setParagraphId(pp.getParagraphId());
@@ -266,7 +266,7 @@ public class EmbeddingService extends ServiceImpl<EmbeddingMapper, EmbeddingEnti
         ProblemEntity problem = problemMapper.selectById(problemId);
         if (Objects.nonNull(problem)) {
             EmbeddingEntity embeddingEntity = new EmbeddingEntity();
-            embeddingEntity.setId(UUID.randomUUID());
+            embeddingEntity.setId(UUID.randomUUID().toString());
             embeddingEntity.setDatasetId(datasetId);
             embeddingEntity.setDocumentId(docId);
             embeddingEntity.setParagraphId(paragraphId);
@@ -299,7 +299,7 @@ public class EmbeddingService extends ServiceImpl<EmbeddingMapper, EmbeddingEnti
             List<EmbeddingEntity> embeddingEntities = new ArrayList<>();
             for (ProblemDTO problem : problemDTOS) {
                 EmbeddingEntity embeddingEntity = new EmbeddingEntity();
-                embeddingEntity.setId(UUID.randomUUID());
+                embeddingEntity.setId(UUID.randomUUID().toString());
                 embeddingEntity.setDatasetId(problem.getDatasetId());
                 embeddingEntity.setDocumentId(problem.getDocumentId());
                 embeddingEntity.setParagraphId(problem.getParagraphId());

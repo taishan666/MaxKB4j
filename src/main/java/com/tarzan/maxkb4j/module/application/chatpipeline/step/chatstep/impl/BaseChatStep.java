@@ -1,14 +1,14 @@
-package com.tarzan.maxkb4j.module.chatpipeline.step.chatstep.impl;
+package com.tarzan.maxkb4j.module.application.chatpipeline.step.chatstep.impl;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationEntity;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationPublicAccessClientEntity;
 import com.tarzan.maxkb4j.module.application.service.ApplicationPublicAccessClientService;
-import com.tarzan.maxkb4j.module.chatpipeline.ChatCache;
-import com.tarzan.maxkb4j.module.chatpipeline.PipelineManage;
-import com.tarzan.maxkb4j.module.chatpipeline.handler.PostResponseHandler;
-import com.tarzan.maxkb4j.module.chatpipeline.step.chatstep.IChatStep;
+import com.tarzan.maxkb4j.module.application.chatpipeline.ChatCache;
+import com.tarzan.maxkb4j.module.application.chatpipeline.PipelineManage;
+import com.tarzan.maxkb4j.module.application.chatpipeline.handler.PostResponseHandler;
+import com.tarzan.maxkb4j.module.application.chatpipeline.step.chatstep.IChatStep;
 import com.tarzan.maxkb4j.module.dataset.vo.ParagraphVO;
 import com.tarzan.maxkb4j.module.model.service.ModelService;
 import dev.langchain4j.data.message.AiMessage;

@@ -1,4 +1,4 @@
-package com.tarzan.maxkb4j.module.chatpipeline;
+package com.tarzan.maxkb4j.module.application.chatpipeline;
 
 import java.util.Map;
 import java.util.UUID;

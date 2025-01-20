@@ -1,15 +1,14 @@
 package com.tarzan.maxkb4j.module.embedding.entity;
 
 import com.alibaba.fastjson.JSONObject;
-import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.tarzan.maxkb4j.common.dto.TSVector;
 import com.tarzan.maxkb4j.handler.EmbeddingTypeHandler;
 import com.tarzan.maxkb4j.handler.JOSNBTypeHandler;
 import com.tarzan.maxkb4j.handler.TSVectorTypeHandler;
 import com.tarzan.maxkb4j.handler.UUIDTypeHandler;
-import com.tarzan.maxkb4j.common.dto.TSVector;
 import lombok.Data;
 
 import java.util.List;
@@ -22,9 +21,9 @@ import java.util.UUID;
 @Data
 @TableName("embedding")
 public class EmbeddingEntity {
+
 	@TableId
-	@TableField(fill = FieldFill.INSERT,typeHandler = UUIDTypeHandler.class)
-	private UUID id;
+	private String id;
 	
 	private String sourceId;
 	

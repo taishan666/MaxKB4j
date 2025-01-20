@@ -1,7 +1,7 @@
-package com.tarzan.maxkb4j.module.chatpipeline.handler;
+package com.tarzan.maxkb4j.module.application.chatpipeline.handler;
 
-import com.tarzan.maxkb4j.module.chatpipeline.ChatInfo;
-import com.tarzan.maxkb4j.module.chatpipeline.PipelineManage;
+import com.tarzan.maxkb4j.module.application.chatpipeline.ChatInfo;
+import com.tarzan.maxkb4j.module.application.chatpipeline.PipelineManage;
 
 import java.util.UUID;
 

@@ -1,10 +1,10 @@
-package com.tarzan.maxkb4j.module.chatpipeline.step.resetproblemstep.impl;
+package com.tarzan.maxkb4j.module.application.chatpipeline.step.resetproblemstep.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationChatRecordEntity;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationEntity;
-import com.tarzan.maxkb4j.module.chatpipeline.PipelineManage;
-import com.tarzan.maxkb4j.module.chatpipeline.step.resetproblemstep.IResetProblemStep;
+import com.tarzan.maxkb4j.module.application.chatpipeline.PipelineManage;
+import com.tarzan.maxkb4j.module.application.chatpipeline.step.resetproblemstep.IResetProblemStep;
 import com.tarzan.maxkb4j.module.model.service.ModelService;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
