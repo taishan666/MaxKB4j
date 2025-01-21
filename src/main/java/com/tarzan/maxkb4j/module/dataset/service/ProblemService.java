@@ -11,11 +11,11 @@ import com.tarzan.maxkb4j.module.dataset.entity.ProblemParagraphEntity;
 import com.tarzan.maxkb4j.module.dataset.mapper.ProblemMapper;
 import com.tarzan.maxkb4j.module.dataset.vo.ProblemVO;
 import com.tarzan.maxkb4j.module.embedding.service.EmbeddingService;
+import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
 import com.tarzan.maxkb4j.module.model.service.ModelService;
+import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.UserMessage;
-import dev.langchain4j.model.chat.ChatLanguageModel;
-import dev.langchain4j.model.chat.request.ChatRequest;
-import dev.langchain4j.model.chat.response.ChatResponse;
+import dev.langchain4j.model.output.Response;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
@@ -58,17 +58,13 @@ public class ProblemService extends ServiceImpl<ProblemMapper, ProblemEntity>{
         List<ProblemEntity> dbProblemEntities = this.lambdaQuery().eq(ProblemEntity::getDatasetId, datasetId).list();
         documentService.updateStatusById(docId,2,1);
         try {
-
-            ChatLanguageModel chatModel = modelService.getChatModelById(dto.getModel_id());
+            BaseChatModel chatModel = modelService.getModelById(dto.getModel_id());
             List<ProblemDTO> problemDTOS = new ArrayList<>();
             for (ParagraphEntity paragraph : paragraphs) {
                 log.info("开始---->生成问题:{}", paragraph.getId());
                 UserMessage userMessage = UserMessage.from(dto.getPrompt().replace("{data}", paragraph.getContent()));
-                ChatRequest chatRequest = ChatRequest.builder()
-                        .messages(userMessage)
-                        .build();
-                ChatResponse chatResponse = chatModel.chat(chatRequest);
-                String output = chatResponse.aiMessage().text();
+                Response<AiMessage> res = chatModel.generate(userMessage);
+                String output = res.content().text();
                 List<String> problems =extractProblems(output);
                 if (!CollectionUtils.isEmpty(problems)) {
                     for (String problem : problems) {

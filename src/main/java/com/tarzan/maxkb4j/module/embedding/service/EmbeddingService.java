@@ -202,7 +202,7 @@ public class EmbeddingService extends ServiceImpl<EmbeddingMapper, EmbeddingEnti
 
     public EmbeddingModel getDatasetEmbeddingModel(UUID datasetId){
         DatasetEntity dataset=datasetMapper.selectById(datasetId);
-        return modelService.getEmbeddingModelById(dataset.getEmbeddingModeId());
+        return modelService.getModelById(dataset.getEmbeddingModeId());
     }
 
 

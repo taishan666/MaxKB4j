@@ -1,15 +1,15 @@
 package com.tarzan.maxkb4j.module.application.chatpipeline.step.resetproblemstep.impl;
 
 import com.alibaba.fastjson.JSONObject;
-import com.tarzan.maxkb4j.module.application.entity.ApplicationChatRecordEntity;
-import com.tarzan.maxkb4j.module.application.entity.ApplicationEntity;
 import com.tarzan.maxkb4j.module.application.chatpipeline.PipelineManage;
 import com.tarzan.maxkb4j.module.application.chatpipeline.step.resetproblemstep.IResetProblemStep;
+import com.tarzan.maxkb4j.module.application.entity.ApplicationChatRecordEntity;
+import com.tarzan.maxkb4j.module.application.entity.ApplicationEntity;
+import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
 import com.tarzan.maxkb4j.module.model.service.ModelService;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.UserMessage;
-import dev.langchain4j.model.chat.ChatLanguageModel;
 import dev.langchain4j.model.output.Response;
 import dev.langchain4j.model.output.TokenUsage;
 import org.apache.commons.lang3.StringUtils;
@@ -46,7 +46,7 @@ public class BaseResetProblemStep extends IResetProblemStep {
             historyMessages.add(AiMessage.from(chatRecord.getAnswerText()));
         }
         UUID modelId = application.getModelId();
-        ChatLanguageModel chatModel = modelService.getChatModelById(modelId);
+        BaseChatModel chatModel = modelService.getModelById(modelId);
         String resetPrompt = StringUtils.isNotBlank(problemOptimizationPrompt) ? problemOptimizationPrompt : prompt;
         String problemText = context.getString("problem_text");
         historyMessages.add(UserMessage.from(resetPrompt.replace("{question}", problemText)));

@@ -3,29 +3,31 @@ package com.tarzan.maxkb4j.module.model.controller;
 import com.alibaba.fastjson.JSONArray;
 import com.tarzan.maxkb4j.module.model.dto.ModelDTO;
 import com.tarzan.maxkb4j.module.model.entity.ModelEntity;
-import com.tarzan.maxkb4j.module.model.service.ModelService;
-import com.tarzan.maxkb4j.module.model.vo.ModelVO;
 import com.tarzan.maxkb4j.module.model.provider.IModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.KeyAndValueVO;
 import com.tarzan.maxkb4j.module.model.provider.ModelInfo;
 import com.tarzan.maxkb4j.module.model.provider.ModelProvideInfo;
-import com.tarzan.maxkb4j.module.model.provider.aliyunModelProvider.AliYunBaiLianModelProvider;
-import com.tarzan.maxkb4j.module.model.provider.awsbedrockmodelprovider.AwsBedrockModelProvider;
-import com.tarzan.maxkb4j.module.model.provider.azuremodelprovider.AzureModelProvider;
-import com.tarzan.maxkb4j.module.model.provider.deepseekmodelprovider.DeepSeekModelProvider;
-import com.tarzan.maxkb4j.module.model.provider.geminimodelprovider.GeminiModelProvider;
-import com.tarzan.maxkb4j.module.model.provider.kimimodelprovider.KimiModelProvider;
-import com.tarzan.maxkb4j.module.model.provider.localmodelprovider.LocalModelProvider;
-import com.tarzan.maxkb4j.module.model.provider.ollamamodelprovider.OLlamaModelProvider;
-import com.tarzan.maxkb4j.module.model.provider.openaimodelprovider.OpenaiModelProvider;
-import com.tarzan.maxkb4j.module.model.provider.qwenmodelprovider.QwenModelProvider;
-import com.tarzan.maxkb4j.module.model.provider.tencentmodelprovider.TencentModelProvider;
-import com.tarzan.maxkb4j.module.model.provider.vllmmodelprovider.VLlmModelProvider;
-import com.tarzan.maxkb4j.module.model.provider.volcanicenginemodelprovider.VolcanicEngineModelProvider;
-import com.tarzan.maxkb4j.module.model.provider.wenxinmodelprovider.WenXinModelProvider;
-import com.tarzan.maxkb4j.module.model.provider.xfmodelprovider.XfModelProvider;
-import com.tarzan.maxkb4j.module.model.provider.xinferencemodelprovider.XInferenceModelProvider;
-import com.tarzan.maxkb4j.module.model.provider.zhipumodelprovider.ZhiPuModelProvider;
+import com.tarzan.maxkb4j.module.model.provider.enums.ModelProviderEnum;
+import com.tarzan.maxkb4j.module.model.provider.enums.ModelTypeEnum;
+import com.tarzan.maxkb4j.module.model.provider.impl.aliyunModelProvider.AliYunBaiLianModelProvider;
+import com.tarzan.maxkb4j.module.model.provider.impl.awsbedrockmodelprovider.AwsBedrockModelProvider;
+import com.tarzan.maxkb4j.module.model.provider.impl.azuremodelprovider.AzureModelProvider;
+import com.tarzan.maxkb4j.module.model.provider.impl.deepseekmodelprovider.DeepSeekModelProvider;
+import com.tarzan.maxkb4j.module.model.provider.impl.geminimodelprovider.GeminiModelProvider;
+import com.tarzan.maxkb4j.module.model.provider.impl.kimimodelprovider.KimiModelProvider;
+import com.tarzan.maxkb4j.module.model.provider.impl.localmodelprovider.LocalModelProvider;
+import com.tarzan.maxkb4j.module.model.provider.impl.ollamamodelprovider.OLlamaModelProvider;
+import com.tarzan.maxkb4j.module.model.provider.impl.openaimodelprovider.OpenaiModelProvider;
+import com.tarzan.maxkb4j.module.model.provider.impl.qwenmodelprovider.QwenModelProvider;
+import com.tarzan.maxkb4j.module.model.provider.impl.tencentmodelprovider.TencentModelProvider;
+import com.tarzan.maxkb4j.module.model.provider.impl.vllmmodelprovider.VLlmModelProvider;
+import com.tarzan.maxkb4j.module.model.provider.impl.volcanicenginemodelprovider.VolcanicEngineModelProvider;
+import com.tarzan.maxkb4j.module.model.provider.impl.wenxinmodelprovider.WenXinModelProvider;
+import com.tarzan.maxkb4j.module.model.provider.impl.xfmodelprovider.XfModelProvider;
+import com.tarzan.maxkb4j.module.model.provider.impl.xinferencemodelprovider.XInferenceModelProvider;
+import com.tarzan.maxkb4j.module.model.provider.impl.zhipumodelprovider.ZhiPuModelProvider;
+import com.tarzan.maxkb4j.module.model.service.ModelService;
+import com.tarzan.maxkb4j.module.model.vo.ModelVO;
 import com.tarzan.maxkb4j.tool.api.R;
 import com.tarzan.maxkb4j.util.BeanUtil;
 import lombok.AllArgsConstructor;
@@ -33,7 +35,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
 /**
@@ -46,8 +47,6 @@ public class ModelController{
 
 	@Autowired
 	private ModelService modelService;
-	@Autowired
-	private Map<String, IModelProvider> modelProviderMap;
 
     @GetMapping("api/provider")
 	public R<Set<ModelProvideInfo>> provider(){
@@ -75,15 +74,9 @@ public class ModelController{
 
 	@GetMapping("api/provider/model_type_list")
 	public R<List<KeyAndValueVO>> modelTypeList(String provider){
-		List<ModelInfo> modelInfos=modelProviderMap.get(provider).getModelList();
-		List<KeyAndValueVO> list= new CopyOnWriteArrayList<>();
-		list.add(new KeyAndValueVO("大语言模型","LLM"));
-		list.add(new KeyAndValueVO("向量模型","EMBEDDING"));
-		list.add(new KeyAndValueVO("语音识别","STT"));
-		list.add(new KeyAndValueVO("语音合成","TTS"));
-		list.add(new KeyAndValueVO("图片理解","IMAGE"));
-		list.add(new KeyAndValueVO("图片生成","TTI"));
-		list.add(new KeyAndValueVO("重排模型","RERANKER"));
+		IModelProvider modelProvider=ModelProviderEnum.get(provider);
+		List<ModelInfo> modelInfos=modelProvider.getModelList();
+		List<KeyAndValueVO> list= ModelTypeEnum.getModelTypeList();
 		Map<String,List<ModelInfo>> map=modelInfos.stream().collect(Collectors.groupingBy(ModelInfo::getModelType));
 		Set<String> keys=map.keySet();
         list.removeIf(e -> !keys.contains(e.getValue()));
@@ -92,19 +85,22 @@ public class ModelController{
 
 	@GetMapping("api/provider/model_list")
 	public R< List<ModelInfo>> modelList(String provider, String model_type){
-		List<ModelInfo> modelInfos=modelProviderMap.get(provider).getModelList();
+		IModelProvider modelProvider=ModelProviderEnum.get(provider);
+		List<ModelInfo> modelInfos=modelProvider.getModelList();
 		List<ModelInfo>  modelList=modelInfos.stream().filter(e->e.getModelType().equals(model_type)).toList();
 		return R.success(modelList);
 	}
 
 	@GetMapping("api/provider/model_form")
 	public R< List<ModelInfo>> modelForm(String provider, String model_type,String model_name){
-		return R.success(modelProviderMap.get(provider).getModelList());
+		IModelProvider modelProvider=ModelProviderEnum.get(provider);
+		return R.success(modelProvider.getModelList());
 	}
 
 	@GetMapping("api/provider/model_params_form")
 	public R<List<ModelInfo>> modelParamsForm(String provider, String model_type,String model_name){
-		return R.success(modelProviderMap.get(provider).getModelList());
+		IModelProvider modelProvider=ModelProviderEnum.get(provider);
+		return R.success(modelProvider.getModelList());
 	}
 
 	@GetMapping("api/model")

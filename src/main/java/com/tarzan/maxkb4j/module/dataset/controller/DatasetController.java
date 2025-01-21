@@ -124,7 +124,7 @@ public class DatasetController{
 
     @PostMapping("api/dataset/document/split")
     public R<List<TextSegmentVO>>  split(MultipartFile[] file) throws IOException {
-        datasetService.split(file);
+        return R.success(datasetService.split(file));
     }
 
     @GetMapping("api/dataset/{id}/application")

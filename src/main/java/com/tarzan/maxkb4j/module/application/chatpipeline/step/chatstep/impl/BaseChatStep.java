@@ -2,22 +2,21 @@ package com.tarzan.maxkb4j.module.application.chatpipeline.step.chatstep.impl;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.tarzan.maxkb4j.module.application.entity.ApplicationEntity;
-import com.tarzan.maxkb4j.module.application.entity.ApplicationPublicAccessClientEntity;
-import com.tarzan.maxkb4j.module.application.service.ApplicationPublicAccessClientService;
 import com.tarzan.maxkb4j.module.application.chatpipeline.ChatCache;
 import com.tarzan.maxkb4j.module.application.chatpipeline.PipelineManage;
 import com.tarzan.maxkb4j.module.application.chatpipeline.handler.PostResponseHandler;
 import com.tarzan.maxkb4j.module.application.chatpipeline.step.chatstep.IChatStep;
+import com.tarzan.maxkb4j.module.application.entity.ApplicationEntity;
+import com.tarzan.maxkb4j.module.application.entity.ApplicationPublicAccessClientEntity;
+import com.tarzan.maxkb4j.module.application.service.ApplicationPublicAccessClientService;
 import com.tarzan.maxkb4j.module.dataset.vo.ParagraphVO;
+import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
 import com.tarzan.maxkb4j.module.model.service.ModelService;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.model.StreamingResponseHandler;
-import dev.langchain4j.model.chat.ChatLanguageModel;
-import dev.langchain4j.model.chat.StreamingChatLanguageModel;
 import dev.langchain4j.model.output.Response;
 import dev.langchain4j.model.output.TokenUsage;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,7 +61,7 @@ public class BaseChatStep extends IChatStep {
                                              PipelineManage manage,
                                              String problemText, PostResponseHandler postResponseHandler) {
         long startTime = System.currentTimeMillis();
-        StreamingChatLanguageModel chatModel = modelService.getStreamingChatModelById(modelId);
+        BaseChatModel chatModel = modelService.getModelById(modelId);
         JSONObject selfContext = super.context;
         // 初始化一个可变的Publisher，如Sinks.many()来代替Flux.just()
         Sinks.Many<JSONObject> sink = Sinks.many().multicast().onBackpressureBuffer();
@@ -112,7 +111,7 @@ public class BaseChatStep extends IChatStep {
 
 
     private void getStreamResult(List<ChatMessage> messageList,
-                                 StreamingChatLanguageModel chatModel,
+                                 BaseChatModel chatModel,
                                  List<ParagraphVO> paragraphList,
                                  JSONObject noReferencesSetting,
                                  String problemText, StreamingResponseHandler<AiMessage> responseHandler) {
@@ -146,7 +145,7 @@ public class BaseChatStep extends IChatStep {
                 responseHandler.onNext(text);
                 responseHandler.onComplete(res);
             }else {
-                chatModel.generate(messageList, responseHandler);
+                chatModel.stream(messageList, responseHandler);
             }
         }
     }
@@ -158,7 +157,7 @@ public class BaseChatStep extends IChatStep {
                                             JSONObject noReferencesSetting,
                                             PipelineManage manage,
                                             String problemText, PostResponseHandler postResponseHandler) {
-        ChatLanguageModel chatModel = modelService.getChatModelById(modelId);
+        BaseChatModel chatModel = modelService.getModelById(modelId);
         Response<AiMessage> res = getBlockResult(messageList, chatModel, paragraphList, noReferencesSetting, problemText);
         UUID chatRecordId = UUID.randomUUID();
         super.context.put("message_list", messageList);
@@ -182,7 +181,7 @@ public class BaseChatStep extends IChatStep {
 
 
     private Response<AiMessage> getBlockResult(List<ChatMessage> messageList,
-                                               ChatLanguageModel chatModel,
+                                               BaseChatModel chatModel,
                                                List<ParagraphVO> paragraphList,
                                                JSONObject noReferencesSetting,
                                                String problemText) {
