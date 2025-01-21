@@ -2,13 +2,13 @@ package com.tarzan.maxkb4j.module.model.provider.impl.aliyunModelProvider.model;
 
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
-import com.tarzan.maxkb4j.module.model.provider.MaxKBBaseModel;
+import com.tarzan.maxkb4j.module.model.provider.BaseModel;
 import dev.langchain4j.model.chat.ChatLanguageModel;
 import dev.langchain4j.model.chat.StreamingChatLanguageModel;
 import dev.langchain4j.model.dashscope.QwenChatModel;
 import dev.langchain4j.model.dashscope.QwenStreamingChatModel;
 
-public class BaiLianChatModel extends BaseChatModel implements MaxKBBaseModel {
+public class BaiLianChatModel extends BaseChatModel implements BaseModel {
 
     @Override
     public <T> T newInstance(String modelName, JSONObject credential) {

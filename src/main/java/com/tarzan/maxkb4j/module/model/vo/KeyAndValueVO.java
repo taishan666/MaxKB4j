@@ -1,4 +1,4 @@
-package com.tarzan.maxkb4j.module.model.provider;
+package com.tarzan.maxkb4j.module.model.vo;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

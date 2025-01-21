@@ -10,9 +10,9 @@ public class ModelInfo {
     private String desc;
     @JsonProperty("model_type")
     private String modelType;
-    private MaxKBBaseModel modelClass;
+    private BaseModel modelClass;
 
-    public ModelInfo(String name, String desc, String modelType, MaxKBBaseModel modelClass) {
+    public ModelInfo(String name, String desc, String modelType, BaseModel modelClass) {
         this.name = name;
         this.desc = desc;
         this.modelType = modelType;

@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.tarzan.maxkb4j.module.model.dto.ModelDTO;
 import com.tarzan.maxkb4j.module.model.entity.ModelEntity;
 import com.tarzan.maxkb4j.module.model.provider.IModelProvider;
-import com.tarzan.maxkb4j.module.model.provider.KeyAndValueVO;
+import com.tarzan.maxkb4j.module.model.vo.KeyAndValueVO;
 import com.tarzan.maxkb4j.module.model.provider.ModelInfo;
 import com.tarzan.maxkb4j.module.model.provider.ModelProvideInfo;
 import com.tarzan.maxkb4j.module.model.provider.enums.ModelProviderEnum;

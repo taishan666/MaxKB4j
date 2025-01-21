@@ -1,6 +1,6 @@
 package com.tarzan.maxkb4j.module.model.provider.enums;
 
-import com.tarzan.maxkb4j.module.model.provider.KeyAndValueVO;
+import com.tarzan.maxkb4j.module.model.vo.KeyAndValueVO;
 import lombok.Getter;
 
 import java.util.ArrayList;
