@@ -2,6 +2,8 @@ package com.tarzan.maxkb4j.module.dataset.service;
 
 import com.alibaba.excel.EasyExcel;
 import com.alibaba.excel.ExcelWriter;
+import com.alibaba.excel.context.AnalysisContext;
+import com.alibaba.excel.event.AnalysisEventListener;
 import com.alibaba.excel.read.listener.PageReadListener;
 import com.alibaba.excel.write.metadata.WriteSheet;
 import com.alibaba.fastjson.JSON;
@@ -21,10 +23,7 @@ import com.tarzan.maxkb4j.module.dataset.entity.*;
 import com.tarzan.maxkb4j.module.dataset.excel.DatasetExcel;
 import com.tarzan.maxkb4j.module.dataset.mapper.DatasetMapper;
 import com.tarzan.maxkb4j.module.dataset.mapper.ProblemMapper;
-import com.tarzan.maxkb4j.module.dataset.vo.DatasetVO;
-import com.tarzan.maxkb4j.module.dataset.vo.DocumentVO;
-import com.tarzan.maxkb4j.module.dataset.vo.ParagraphVO;
-import com.tarzan.maxkb4j.module.dataset.vo.ProblemVO;
+import com.tarzan.maxkb4j.module.dataset.vo.*;
 import com.tarzan.maxkb4j.module.embedding.entity.EmbeddingEntity;
 import com.tarzan.maxkb4j.module.embedding.service.EmbeddingService;
 import com.tarzan.maxkb4j.module.model.entity.ModelEntity;
@@ -455,8 +454,8 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
         documentService.updateStatusMetaByIds(dto.getDocument_id_list());
         documentService.updateStatusByIds(dto.getDocument_id_list(), 2, 0);
         for (UUID docId : dto.getDocument_id_list()) {
-            List<ParagraphEntity> paragraphs =paragraphService.lambdaQuery().eq(ParagraphEntity::getDocumentId, docId).list();
-            problemService.batchGenerateRelated(datasetId, docId, paragraphs,dto);
+            List<ParagraphEntity> paragraphs = paragraphService.lambdaQuery().eq(ParagraphEntity::getDocumentId, docId).list();
+            problemService.batchGenerateRelated(datasetId, docId, paragraphs, dto);
         }
         return true;
     }
@@ -598,7 +597,7 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
                         .registerReadListener(new PageReadListener<DatasetExcel>(dataList -> {
                             for (DatasetExcel data : dataList) {
                                 log.info("在Sheet {} 中读取到一条数据{}", sheetName, JSON.toJSONString(data));
-                                ParagraphEntity paragraph = getParagraphEntity(datasetId, data, doc.getId());
+                                ParagraphEntity paragraph = getParagraphEntity(datasetId, data.getTitle(),data.getContent(), doc.getId());
                                 paragraphs.add(paragraph);
                                 doc.setCharLength(doc.getCharLength() + paragraph.getContent().length());
                                 if (StringUtils.isNotBlank(data.getProblems())) {
@@ -625,7 +624,6 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
                                             problemParagraphs.add(problemParagraph);
                                         }
                                     }
-
                                 }
                             }
                         })).doRead();
@@ -662,11 +660,11 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
     }
 
     @NotNull
-    private ParagraphEntity getParagraphEntity(UUID datasetId, DatasetExcel data, UUID docId) {
+    private ParagraphEntity getParagraphEntity(UUID datasetId, String title, String content,UUID docId) {
         ParagraphEntity paragraph = new ParagraphEntity();
         paragraph.setId(UUID.randomUUID());
-        paragraph.setTitle(data.getTitle() == null ? "" : data.getTitle());
-        paragraph.setContent(data.getContent() == null ? "" : data.getContent());
+        paragraph.setTitle(title== null ? "" : title);
+        paragraph.setContent(content == null ? "" : content);
         paragraph.setDatasetId(datasetId);
         paragraph.setStatus("nn2");
         paragraph.setHitNum(0);
@@ -677,22 +675,24 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
     }
 
     @Transactional
-    public void importQa(UUID datasetId, MultipartFile file) throws IOException {
-        String fileName = file.getOriginalFilename();
-        if (fileName != null && fileName.toLowerCase().endsWith(".zip")) {
-            try (InputStream fis = file.getInputStream();
-                 ZipArchiveInputStream zipIn = new ZipArchiveInputStream(fis)) {
-                ArchiveEntry entry;
-                while ((entry = zipIn.getNextEntry()) != null) {
-                    // 假设ZIP包内只有一个文件或主要处理第一个找到的Excel文件
-                    if (!entry.isDirectory() && (entry.getName().toLowerCase().endsWith(".xls") || entry.getName().endsWith(".xlsx") || entry.getName().endsWith(".csv"))) {
-                        processExcelFile(datasetId, IOUtils.toByteArray(zipIn));
-                        break; // 如果只处理一个文件，则在此处跳出循环
+    public void importQa(UUID datasetId, MultipartFile[] file) throws IOException {
+        for (MultipartFile uploadFile : file) {
+            String fileName = uploadFile.getOriginalFilename();
+            if (fileName != null && fileName.toLowerCase().endsWith(".zip")) {
+                try (InputStream fis = uploadFile.getInputStream();
+                     ZipArchiveInputStream zipIn = new ZipArchiveInputStream(fis)) {
+                    ArchiveEntry entry;
+                    while ((entry = zipIn.getNextEntry()) != null) {
+                        // 假设ZIP包内只有一个文件或主要处理第一个找到的Excel文件
+                        if (!entry.isDirectory() && (entry.getName().toLowerCase().endsWith(".xls") || entry.getName().endsWith(".xlsx") || entry.getName().endsWith(".csv"))) {
+                            processExcelFile(datasetId, IOUtils.toByteArray(zipIn));
+                            break; // 如果只处理一个文件，则在此处跳出循环
+                        }
                     }
                 }
+            } else {
+                processExcelFile(datasetId, uploadFile.getBytes());
             }
-        } else {
-            processExcelFile(datasetId, file.getBytes());
         }
     }
 
@@ -732,21 +732,21 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
                 .select(ParagraphEntity::getContent)
                 .eq(ParagraphEntity::getDocumentId, sourceDocId)
                 .list();
-        DocumentEntity sourceDoc= documentService.getById(sourceDocId);
+        DocumentEntity sourceDoc = documentService.getById(sourceDocId);
         sourceDoc.setCharLength(0);
         for (ParagraphEntity paragraph : sourceDocParagraphs) {
-            sourceDoc.setCharLength(sourceDoc.getCharLength()+paragraph.getContent().length());
+            sourceDoc.setCharLength(sourceDoc.getCharLength() + paragraph.getContent().length());
         }
         List<ParagraphEntity> targetDocParagraphs = paragraphService.lambdaQuery()
                 .select(ParagraphEntity::getContent)
                 .eq(ParagraphEntity::getDocumentId, targetDocId)
                 .list();
-        DocumentEntity targetDoc= documentService.getById(targetDocId);
+        DocumentEntity targetDoc = documentService.getById(targetDocId);
         targetDoc.setCharLength(0);
         for (ParagraphEntity paragraph : targetDocParagraphs) {
-            targetDoc.setCharLength(targetDoc.getCharLength()+paragraph.getContent().length());
+            targetDoc.setCharLength(targetDoc.getCharLength() + paragraph.getContent().length());
         }
-        return documentService.updateById(sourceDoc)&&documentService.updateById(targetDoc);
+        return documentService.updateById(sourceDoc) && documentService.updateById(targetDoc);
     }
 
     public Boolean paragraphBatchGenerateRelated(UUID datasetId, UUID docId, GenerateProblemDTO dto) {
@@ -754,7 +754,54 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
         documentService.updateStatusMetaByIds(List.of(docId));
         documentService.updateStatusByIds(List.of(docId), 2, 0);
         List<ParagraphEntity> paragraphs = paragraphService.listByIds(dto.getParagraph_id_list());
-        problemService.batchGenerateRelated(datasetId, docId,paragraphs, dto);
+        problemService.batchGenerateRelated(datasetId, docId, paragraphs, dto);
         return true;
+    }
+
+    @Transactional
+    public void importTable(UUID datasetId, MultipartFile[] file) throws IOException {
+        for (MultipartFile uploadFile : file) {
+            System.out.println(uploadFile.getOriginalFilename());
+            List<String> list = new ArrayList<>();
+            EasyExcel.read(uploadFile.getInputStream(), new AnalysisEventListener<Map<Integer, String>>() {
+                Map<Integer, String> headMap=new LinkedHashMap<>();
+                // 表头信息会在此方法中获取
+                @Override
+                public void invokeHeadMap(Map<Integer, String> headMap, AnalysisContext context) {
+                    this.headMap=headMap;
+                }
+                // 每一行数据都会调用此方法
+                @Override
+                public void invoke(Map<Integer, String> data, AnalysisContext context) {
+                    StringBuilder sb = new StringBuilder();
+                    for (Integer i : data.keySet()) {
+                        String value =data.get(i)==null?"":data.get(i);
+                        sb.append(headMap.get(i)).append(":").append(value).append(";");
+                    }
+                    sb.deleteCharAt(sb.length()-1);
+                    list.add(sb.toString());
+                }
+
+                @Override
+                public void doAfterAllAnalysed(AnalysisContext analysisContext) {
+                    log.info("所有数据解析完成！");
+                }
+            }).sheet().doRead();
+            List<ParagraphEntity> paragraphs = new ArrayList<>();
+            DocumentEntity doc = createDocument(datasetId, uploadFile.getOriginalFilename());
+            if(!CollectionUtils.isEmpty(list)){
+                for (String text : list) {
+                    doc.setCharLength(doc.getCharLength()+text.length());
+                    ParagraphEntity paragraph = getParagraphEntity(datasetId, "",text, doc.getId());
+                    paragraphs.add(paragraph);
+                }
+                documentService.save(doc);
+                paragraphService.saveBatch(paragraphs);
+            }
+        }
+    }
+
+    public List<TextSegmentVO> split(MultipartFile[] file) {
+        return Collections.emptyList();
     }
 }

@@ -21,6 +21,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import reactor.core.publisher.Flux;
 
 import java.util.List;
@@ -55,6 +56,11 @@ public class ApplicationController{
     @GetMapping("api/application/{id}/hit_test")
     public R<List<ParagraphVO>> hitTest(@PathVariable("id") UUID id, HitTestDTO dto){
         return R.success(applicationService.hitTest(id,dto));
+    }
+
+    @PutMapping("api/application/{id}/edit_icon")
+    public R<Boolean> editIcon(@PathVariable("id") UUID id, MultipartFile file){
+        return R.success(applicationService.editIcon(id,file));
     }
 
     @GetMapping("api/application/profile")

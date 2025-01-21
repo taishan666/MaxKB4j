@@ -113,8 +113,18 @@ public class DatasetController{
     }
 
     @PostMapping("api/dataset/{id}/document/qa")
-    public void importQa(@PathVariable("id") UUID id, MultipartFile file) throws IOException {
+    public void importQa(@PathVariable("id") UUID id, MultipartFile[] file) throws IOException {
         datasetService.importQa(id,file);
+    }
+
+    @PostMapping("api/dataset/{id}/document/table")
+    public void importTable(@PathVariable("id") UUID id, MultipartFile[] file) throws IOException {
+        datasetService.importTable(id,file);
+    }
+
+    @PostMapping("api/dataset/document/split")
+    public R<List<TextSegmentVO>>  split(MultipartFile[] file) throws IOException {
+        datasetService.split(file);
     }
 
     @GetMapping("api/dataset/{id}/application")

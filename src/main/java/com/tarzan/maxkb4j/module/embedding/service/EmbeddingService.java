@@ -59,7 +59,7 @@ public class EmbeddingService extends ServiceImpl<EmbeddingMapper, EmbeddingEnti
 
     JiebaSegmenter jiebaSegmenter = new JiebaSegmenter();
 
-    public List<HitTestVO> dataSearch(List<UUID> datasetIds, HitTestDTO dto) {
+    private List<HitTestVO> dataSearch(List<UUID> datasetIds, HitTestDTO dto) {
         EmbeddingModel embeddingModel=getDatasetEmbeddingModel(datasetIds.get(0));
         Response<Embedding> res = embeddingModel.embed(dto.getQuery_text());
         if ("embedding".equals(dto.getSearch_mode())) {
@@ -76,6 +76,9 @@ public class EmbeddingService extends ServiceImpl<EmbeddingMapper, EmbeddingEnti
     }
 
     public List<ParagraphVO> paragraphSearch(List<UUID> datasetIds, HitTestDTO dto) {
+        if (CollectionUtils.isEmpty(datasetIds)) {
+            return Collections.emptyList();
+        }
         List<HitTestVO> list = dataSearch(datasetIds, dto);
         List<UUID> paragraphIds = list.stream().map(HitTestVO::getParagraphId).toList();
         if (CollectionUtils.isEmpty(paragraphIds)) {
