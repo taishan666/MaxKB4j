@@ -9,6 +9,7 @@ import com.tarzan.maxkb4j.module.model.provider.enums.ModelTypeEnum;
 import com.tarzan.maxkb4j.module.model.provider.impl.aliyunModelProvider.model.BaiLianChatModel;
 import com.tarzan.maxkb4j.module.model.provider.impl.aliyunModelProvider.model.BaiLianEmbedding;
 import com.tarzan.maxkb4j.module.model.provider.impl.aliyunModelProvider.model.BaiLianTextToSpeech;
+import com.tarzan.maxkb4j.module.model.provider.impl.aliyunModelProvider.model.QWenTextToImageModel;
 import com.tarzan.maxkb4j.util.IoUtil;
 
 import java.io.InputStream;
@@ -46,7 +47,7 @@ public class AliYunBaiLianModelProvider extends IModelProvider {
         modelInfos.add(new ModelInfo("cosyvoice-v1","",ModelTypeEnum.TTS.name(),new BaiLianTextToSpeech()));
         modelInfos.add(new ModelInfo("qwen-vl-plus","",ModelTypeEnum.IMAGE.name(),null));
         modelInfos.add(new ModelInfo("qwen-vl-max","",ModelTypeEnum.IMAGE.name(),null));
-        modelInfos.add(new ModelInfo("wanx-v1","",ModelTypeEnum.TTI.name(),null));
+        modelInfos.add(new ModelInfo("wanx-v1","",ModelTypeEnum.TTI.name(),new QWenTextToImageModel()));
         modelInfos.add(new ModelInfo("gte-rerank","",ModelTypeEnum.RERANKER.name(),null));
         return modelInfos;
     }
