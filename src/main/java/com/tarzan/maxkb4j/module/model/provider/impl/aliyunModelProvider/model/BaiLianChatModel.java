@@ -12,8 +12,6 @@ public class BaiLianChatModel extends BaseChatModel implements BaseModel {
 
     @Override
     public <T> T newInstance(String modelName, JSONObject credential) {
-        System.out.println("BaiLianChatModel");
-        System.out.println("credential"+credential);
         StreamingChatLanguageModel streamingChatModel = QwenStreamingChatModel.builder()
                 .apiKey(credential.getString("api_key"))
                 .modelName(modelName)

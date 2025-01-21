@@ -7,8 +7,6 @@ import dev.langchain4j.model.dashscope.QwenEmbeddingModel;
 public class BaiLianEmbedding implements BaseModel {
     @Override
     public <T> T newInstance(String modelName, JSONObject credential) {
-        System.out.println("BaiLianEmbedding");
-        System.out.println("credential"+credential);
         QwenEmbeddingModel model=new QwenEmbeddingModel(null, credential.getString("dashscope_api_key"), modelName);
         return (T) model;
     }
