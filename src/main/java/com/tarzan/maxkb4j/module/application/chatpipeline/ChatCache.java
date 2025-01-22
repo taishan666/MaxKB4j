@@ -1,16 +1,15 @@
 package com.tarzan.maxkb4j.module.application.chatpipeline;
 
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ChatCache {
-    private final static Map<UUID,ChatInfo> CHAT_CACHE = new ConcurrentHashMap<>();
+    private final static Map<String,ChatInfo> CHAT_CACHE = new ConcurrentHashMap<>();
 
-    public static void put(UUID uuid, ChatInfo chatInfo) {
-        CHAT_CACHE.put(uuid, chatInfo);
+    public static void put(String chatId, ChatInfo chatInfo) {
+        CHAT_CACHE.put(chatId, chatInfo);
     }
-    public static ChatInfo get(UUID uuid) {
-        return CHAT_CACHE.get(uuid);
+    public static ChatInfo get(String chatId) {
+        return CHAT_CACHE.get(chatId);
     }
 }

@@ -4,13 +4,11 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tarzan.maxkb4j.handler.JOSNBTypeHandler;
-import com.tarzan.maxkb4j.handler.UUIDTypeHandler;
 import com.tarzan.maxkb4j.common.entity.BaseEntity;
 import lombok.Data;
 import com.alibaba.fastjson.JSONObject;
 import lombok.EqualsAndHashCode;
 
-import java.util.UUID;
 
 /**
  * @author tarzan
@@ -30,10 +28,8 @@ public class DatasetEntity extends BaseEntity {
     private JSONObject meta;
     
 	@JsonProperty("user_id")
-    @TableField(typeHandler = UUIDTypeHandler.class)
-    private UUID userId;
+    private String userId;
     
 	@JsonProperty("embedding_mode_id")
-    @TableField(typeHandler = UUIDTypeHandler.class)
-    private UUID embeddingModeId;
+    private String embeddingModeId;
 } 

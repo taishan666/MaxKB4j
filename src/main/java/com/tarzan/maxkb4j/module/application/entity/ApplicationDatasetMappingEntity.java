@@ -1,13 +1,9 @@
 package com.tarzan.maxkb4j.module.application.entity;
 
-import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.tarzan.maxkb4j.handler.UUIDTypeHandler;
 import com.tarzan.maxkb4j.common.entity.BaseEntity;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-
-import java.util.UUID;
 
 /**
   * @author tarzan
@@ -18,8 +14,6 @@ import java.util.UUID;
 @TableName("application_dataset_mapping")
 public class ApplicationDatasetMappingEntity extends BaseEntity {
 
-	@TableField(typeHandler = UUIDTypeHandler.class)
-	private UUID applicationId;
-	@TableField(typeHandler = UUIDTypeHandler.class)
-	private UUID datasetId;
+	private String applicationId;
+	private String datasetId;
 } 

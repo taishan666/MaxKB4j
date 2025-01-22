@@ -1,7 +1,7 @@
 package com.tarzan.maxkb4j.handler;
+
 import org.apache.ibatis.type.BaseTypeHandler;
 import org.apache.ibatis.type.JdbcType;
-import org.springframework.stereotype.Component;
 
 import java.sql.CallableStatement;
 import java.sql.PreparedStatement;
@@ -9,7 +9,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.UUID;
 
-@Component
 public class UUIDTypeHandler extends BaseTypeHandler<UUID> {
 
 

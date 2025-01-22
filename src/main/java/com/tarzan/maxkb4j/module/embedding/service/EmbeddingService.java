@@ -59,7 +59,7 @@ public class EmbeddingService extends ServiceImpl<EmbeddingMapper, EmbeddingEnti
 
     JiebaSegmenter jiebaSegmenter = new JiebaSegmenter();
 
-    private List<HitTestVO> dataSearch(List<UUID> datasetIds, HitTestDTO dto) {
+    private List<HitTestVO> dataSearch(List<String> datasetIds, HitTestDTO dto) {
         EmbeddingModel embeddingModel=getDatasetEmbeddingModel(datasetIds.get(0));
         Response<Embedding> res = embeddingModel.embed(dto.getQuery_text());
         if ("embedding".equals(dto.getSearch_mode())) {
@@ -75,16 +75,16 @@ public class EmbeddingService extends ServiceImpl<EmbeddingMapper, EmbeddingEnti
         return Collections.emptyList();
     }
 
-    public List<ParagraphVO> paragraphSearch(List<UUID> datasetIds, HitTestDTO dto) {
+    public List<ParagraphVO> paragraphSearch(List<String> datasetIds, HitTestDTO dto) {
         if (CollectionUtils.isEmpty(datasetIds)) {
             return Collections.emptyList();
         }
         List<HitTestVO> list = dataSearch(datasetIds, dto);
-        List<UUID> paragraphIds = list.stream().map(HitTestVO::getParagraphId).toList();
+        List<String> paragraphIds = list.stream().map(HitTestVO::getParagraphId).toList();
         if (CollectionUtils.isEmpty(paragraphIds)) {
             return Collections.emptyList();
         }
-        Map<UUID, Double> map = list.stream().collect(Collectors.toMap(HitTestVO::getParagraphId, HitTestVO::getComprehensiveScore));
+        Map<String, Double> map = list.stream().collect(Collectors.toMap(HitTestVO::getParagraphId, HitTestVO::getComprehensiveScore));
         List<ParagraphVO> paragraphs = paragraphService.retrievalParagraph(paragraphIds);
         paragraphs.forEach(e -> {
             double score = map.get(e.getId());
@@ -100,12 +100,11 @@ public class EmbeddingService extends ServiceImpl<EmbeddingMapper, EmbeddingEnti
             List<EmbeddingEntity> embeddingEntities = new ArrayList<>();
             log.info("开始---->向量化段落:{}", paragraph.getId());
             EmbeddingEntity paragraphEmbed = new EmbeddingEntity();
-            paragraphEmbed.setId(UUID.randomUUID().toString());
             paragraphEmbed.setDatasetId(paragraph.getDatasetId());
             paragraphEmbed.setDocumentId(paragraph.getDocumentId());
-            paragraphEmbed.setParagraphId((UUID) paragraph.getId());
+            paragraphEmbed.setParagraphId(paragraph.getId());
             paragraphEmbed.setMeta(new JSONObject());
-            paragraphEmbed.setSourceId(paragraph.getId().toString());
+            paragraphEmbed.setSourceId(paragraph.getId());
             paragraphEmbed.setSourceType("1");
             paragraphEmbed.setIsActive(paragraph.getIsActive());
             paragraphEmbed.setSearchVector(toTsVector(paragraph.getTitle() + paragraph.getContent()));
@@ -115,12 +114,12 @@ public class EmbeddingService extends ServiceImpl<EmbeddingMapper, EmbeddingEnti
             List<ProblemEntity> problems=problemParagraphMappingService.getProblemsByParagraphId(paragraph.getId());
             for (ProblemEntity problem : problems) {
                 EmbeddingEntity problemEmbed = new EmbeddingEntity();
-                problemEmbed.setId(UUID.randomUUID().toString());
                 problemEmbed.setDatasetId(paragraph.getDatasetId());
                 problemEmbed.setDocumentId(paragraph.getDocumentId());
                 problemEmbed.setParagraphId(paragraph.getId());
                 problemEmbed.setMeta(new JSONObject());
-                problemEmbed.setSourceId(problem.getId().toString());
+                problemEmbed.setSourceId(problem.getId());
+                paragraphEmbed.setSourceId(problem.getId());
                 problemEmbed.setSourceType("0");
                 problemEmbed.setIsActive(paragraph.getIsActive());
                 problemEmbed.setSearchVector(toTsVector(problem.getContent()));
@@ -136,7 +135,7 @@ public class EmbeddingService extends ServiceImpl<EmbeddingMapper, EmbeddingEnti
     }
 
     public void embedParagraphs(List<ParagraphEntity> paragraphs,EmbeddingModel embeddingModel) {
-        paragraphs.parallelStream().forEach(paragraph -> {
+        paragraphs.forEach(paragraph -> {
             embedParagraph(paragraph,embeddingModel);
         });
     }
@@ -146,12 +145,11 @@ public class EmbeddingService extends ServiceImpl<EmbeddingMapper, EmbeddingEnti
         List<EmbeddingEntity> embeddingEntities = new ArrayList<>();
         for (ParagraphEntity paragraph : paragraphs) {
             EmbeddingEntity embeddingEntity = new EmbeddingEntity();
-            embeddingEntity.setId(UUID.randomUUID().toString());
             embeddingEntity.setDatasetId(paragraph.getDatasetId());
             embeddingEntity.setDocumentId(paragraph.getDocumentId());
             embeddingEntity.setParagraphId(paragraph.getId());
             embeddingEntity.setMeta(new JSONObject());
-            embeddingEntity.setSourceId(paragraph.getId().toString());
+            embeddingEntity.setSourceId(paragraph.getId());
             embeddingEntity.setSourceType("1");
             embeddingEntity.setIsActive(paragraph.getIsActive());
             embeddingEntity.setSearchVector(toTsVector(paragraph.getTitle() + paragraph.getContent()));
@@ -160,17 +158,16 @@ public class EmbeddingService extends ServiceImpl<EmbeddingMapper, EmbeddingEnti
             embeddingEntities.add(embeddingEntity);
         }
         if (!CollectionUtils.isEmpty(problemParagraphs)) {
-            Map<UUID, List<ProblemParagraphVO>> map = problemParagraphs.stream().collect(Collectors.groupingBy(ProblemParagraphVO::getProblemId));
+            Map<String, List<ProblemParagraphVO>> map = problemParagraphs.stream().collect(Collectors.groupingBy(ProblemParagraphVO::getProblemId));
             map.forEach((k, v) -> {
                 Response<Embedding> res = embeddingModel.embed(v.get(0).getContent());
                 v.forEach(pp -> {
                     EmbeddingEntity embeddingEntity = new EmbeddingEntity();
-                    embeddingEntity.setId(UUID.randomUUID().toString());
                     embeddingEntity.setDatasetId(pp.getDatasetId());
                     embeddingEntity.setDocumentId(pp.getDocumentId());
                     embeddingEntity.setParagraphId(pp.getParagraphId());
                     embeddingEntity.setMeta(new JSONObject());
-                    embeddingEntity.setSourceId(pp.getProblemId().toString());
+                    embeddingEntity.setSourceId(pp.getProblemId());
                     embeddingEntity.setSourceType("0");
                     embeddingEntity.setIsActive(true);
                     embeddingEntity.setSearchVector(toTsVector(pp.getContent()));
@@ -183,7 +180,7 @@ public class EmbeddingService extends ServiceImpl<EmbeddingMapper, EmbeddingEnti
     }
 
     @Async
-    public void embedByDocIds(UUID datasetId,List<UUID> docIds) {
+    public void embedByDocIds(String datasetId,List<String> docIds) {
         if (!CollectionUtils.isEmpty(docIds)) {
             EmbeddingModel embeddingModel=getDatasetEmbeddingModel(datasetId);
             docIds.parallelStream().forEach(docId -> {
@@ -200,7 +197,7 @@ public class EmbeddingService extends ServiceImpl<EmbeddingMapper, EmbeddingEnti
     }
 
 
-    public EmbeddingModel getDatasetEmbeddingModel(UUID datasetId){
+    public EmbeddingModel getDatasetEmbeddingModel(String datasetId){
         DatasetEntity dataset=datasetMapper.selectById(datasetId);
         return modelService.getModelById(dataset.getEmbeddingModeId());
     }
@@ -264,17 +261,16 @@ public class EmbeddingService extends ServiceImpl<EmbeddingMapper, EmbeddingEnti
         return result;
     }
 
-    public boolean createProblem(UUID datasetId, UUID docId, UUID paragraphId, UUID problemId) {
+    public boolean createProblem(String datasetId, String docId, String paragraphId, String problemId) {
         EmbeddingModel embeddingModel=getDatasetEmbeddingModel(datasetId);
         ProblemEntity problem = problemMapper.selectById(problemId);
         if (Objects.nonNull(problem)) {
             EmbeddingEntity embeddingEntity = new EmbeddingEntity();
-            embeddingEntity.setId(UUID.randomUUID().toString());
             embeddingEntity.setDatasetId(datasetId);
             embeddingEntity.setDocumentId(docId);
             embeddingEntity.setParagraphId(paragraphId);
             embeddingEntity.setMeta(new JSONObject());
-            embeddingEntity.setSourceId(problemId.toString());
+            embeddingEntity.setSourceId(problemId);
             embeddingEntity.setSourceType("0");
             embeddingEntity.setIsActive(true);
             embeddingEntity.setSearchVector(toTsVector(problem.getContent()));
@@ -287,7 +283,7 @@ public class EmbeddingService extends ServiceImpl<EmbeddingMapper, EmbeddingEnti
 
 
     @Transactional
-    public boolean embedByDatasetId(UUID datasetId) {
+    public boolean embedByDatasetId(String datasetId) {
         EmbeddingModel embeddingModel=getDatasetEmbeddingModel(datasetId);
         this.lambdaUpdate().in(EmbeddingEntity::getDatasetId, datasetId).remove();
         List<ParagraphEntity> paragraphEntities = paragraphService.lambdaQuery().in(ParagraphEntity::getDatasetId, datasetId).list();
@@ -296,18 +292,39 @@ public class EmbeddingService extends ServiceImpl<EmbeddingMapper, EmbeddingEnti
     }
 
     @Transactional
-    public void createProblems(UUID datasetId,List<ProblemDTO> problemDTOS) {
+    public void createProblems(String datasetId,List<ProblemDTO> problemDTOS) {
         EmbeddingModel embeddingModel=getDatasetEmbeddingModel(datasetId);
         if (!CollectionUtils.isEmpty(problemDTOS)) {
             List<EmbeddingEntity> embeddingEntities = new ArrayList<>();
             for (ProblemDTO problem : problemDTOS) {
                 EmbeddingEntity embeddingEntity = new EmbeddingEntity();
-                embeddingEntity.setId(UUID.randomUUID().toString());
                 embeddingEntity.setDatasetId(problem.getDatasetId());
                 embeddingEntity.setDocumentId(problem.getDocumentId());
                 embeddingEntity.setParagraphId(problem.getParagraphId());
                 embeddingEntity.setMeta(new JSONObject());
-                embeddingEntity.setSourceId(problem.getId().toString());
+                embeddingEntity.setSourceId(problem.getId());
+                embeddingEntity.setSourceType("0");
+                embeddingEntity.setIsActive(true);
+                embeddingEntity.setSearchVector(toTsVector(problem.getContent()));
+                Response<Embedding> res = embeddingModel.embed(problem.getContent());
+                embeddingEntity.setEmbedding(res.content().vectorAsList());
+                embeddingEntities.add(embeddingEntity);
+            }
+            this.saveBatch(embeddingEntities);
+        }
+    }
+
+    @Transactional
+    public void createProblems(EmbeddingModel embeddingModel,List<ProblemEntity> problems,String docId,String paragraphId) {
+        if (!CollectionUtils.isEmpty(problems)) {
+            List<EmbeddingEntity> embeddingEntities = new ArrayList<>();
+            for (ProblemEntity problem : problems) {
+                EmbeddingEntity embeddingEntity = new EmbeddingEntity();
+                embeddingEntity.setDatasetId(problem.getDatasetId());
+                embeddingEntity.setDocumentId(docId);
+                embeddingEntity.setParagraphId(paragraphId);
+                embeddingEntity.setMeta(new JSONObject());
+                embeddingEntity.setSourceId(problem.getId());
                 embeddingEntity.setSourceType("0");
                 embeddingEntity.setIsActive(true);
                 embeddingEntity.setSearchVector(toTsVector(problem.getContent()));

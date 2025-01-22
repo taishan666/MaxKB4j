@@ -47,10 +47,10 @@ public class UserService extends ServiceImpl<UserMapper, UserEntity> {
     }
 
     @Transactional
-    public boolean deleteUserById(UUID userId) {
+    public boolean deleteUserById(String userId) {
         boolean f1 = teamService.deleteUserById(userId);
         boolean f2 = removeById(userId);
-        return true;
+        return f1&&f2;
     }
 
     public List<UserDTO> listByType(String type) {
@@ -82,9 +82,12 @@ public class UserService extends ServiceImpl<UserMapper, UserEntity> {
     }
 
     public UserVO getUserById(String userId) {
-        UserEntity userEntity = this.getById(UUID.fromString(userId));
+        UserEntity userEntity = this.getById(userId);
+        if (Objects.isNull(userEntity)){
+            return null;
+        }
         UserVO user = BeanUtil.copy(userEntity, UserVO.class);
-        List<PermissionVO> permissionVOS=baseMapper.getUserPermissionById(UUID.fromString(userId));
+        List<PermissionVO> permissionVOS=baseMapper.getUserPermissionById(userId);
         List<String> permissions=new ArrayList<>();
         for (PermissionVO permission : permissionVOS) {
             String operateItems = permission.getOperate();

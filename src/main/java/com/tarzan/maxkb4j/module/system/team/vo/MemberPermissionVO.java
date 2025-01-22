@@ -9,12 +9,12 @@ import java.util.UUID;
 @Data
 public class MemberPermissionVO {
 
-    private UUID id;
+    private String id;
     private String name;
     private String type;
-    private UUID userId;
+    private String userId;
     @JsonProperty("target_id")
-    private UUID targetId;
-    private UUID memberId;
+    private String targetId;
+    private String memberId;
     private MemberOperate operate;
 }

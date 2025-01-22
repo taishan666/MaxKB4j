@@ -6,7 +6,6 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import java.util.List;
-import java.util.UUID;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -18,5 +17,5 @@ public class DatasetVO extends DatasetEntity {
     @JsonProperty("document_count")
     private int documentCount;
     @JsonProperty("application_id_list")
-    private List<UUID> applicationidList;
+    private List<String> applicationidList;
 }

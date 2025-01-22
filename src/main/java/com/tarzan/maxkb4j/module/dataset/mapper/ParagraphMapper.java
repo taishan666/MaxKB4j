@@ -5,7 +5,6 @@ import com.tarzan.maxkb4j.module.dataset.entity.ParagraphEntity;
 import com.tarzan.maxkb4j.module.dataset.vo.ParagraphVO;
 
 import java.util.List;
-import java.util.UUID;
 
 /**
  * @author tarzan
@@ -13,9 +12,9 @@ import java.util.UUID;
  */
 public interface ParagraphMapper extends BaseMapper<ParagraphEntity>{
 
-    List<ParagraphVO> retrievalParagraph(List<UUID> paragraphIds);
+    List<ParagraphVO> retrievalParagraph(List<String> paragraphIds);
 
-    void updateStatusById(UUID id, int type, int status,int up,int next);
+    void updateStatusById(String id, int type, int status,int up,int next);
 
-    void updateStatusByDocIds(List<UUID> docIds, int type, int status,int up,int next);
+    void updateStatusByDocIds(List<String> docIds, int type, int status,int up,int next);
 }

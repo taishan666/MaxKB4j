@@ -2,6 +2,7 @@ package com.tarzan.maxkb4j.module.application.chatpipeline.step.chatstep.impl;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.tarzan.maxkb4j.module.application.chatpipeline.ChatCache;
 import com.tarzan.maxkb4j.module.application.chatpipeline.PipelineManage;
 import com.tarzan.maxkb4j.module.application.chatpipeline.handler.PostResponseHandler;
@@ -27,7 +28,6 @@ import reactor.core.publisher.Sinks;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 @Component
 public class BaseChatStep extends IChatStep {
@@ -43,19 +43,19 @@ public class BaseChatStep extends IChatStep {
         ApplicationEntity application = (ApplicationEntity) context.get("application");
         List<ChatMessage> messages = (List<ChatMessage>) context.get("message_list");
         List<ParagraphVO> paragraphList = (List<ParagraphVO>) context.get("paragraph_list");
-        UUID modelId = application.getModelId();
+        String modelId = application.getModelId();
         super.context.put("model_id", modelId);
         PostResponseHandler postResponseHandler = (PostResponseHandler) context.get("postResponseHandler");
         String problemText = context.getString("problem_text");
         JSONObject datasetSetting = application.getDatasetSetting();
         JSONObject noReferencesSetting = datasetSetting.getJSONObject("no_references_setting");
-        UUID chatId = UUID.fromString(context.getString("chatId"));
+        String chatId = context.getString("chatId");
         return executeStream(chatId, messages, modelId, paragraphList, noReferencesSetting, manage, problemText, postResponseHandler);
     }
 
-    protected Flux<JSONObject> executeStream(UUID chatId,
+    protected Flux<JSONObject> executeStream(String chatId,
                                              List<ChatMessage> messageList,
-                                             UUID modelId,
+                                             String modelId,
                                              List<ParagraphVO> paragraphList,
                                              JSONObject noReferencesSetting,
                                              PipelineManage manage,
@@ -66,7 +66,7 @@ public class BaseChatStep extends IChatStep {
         // 初始化一个可变的Publisher，如Sinks.many()来代替Flux.just()
         Sinks.Many<JSONObject> sink = Sinks.many().multicast().onBackpressureBuffer();
         StreamingResponseHandler<AiMessage> responseHandler = new StreamingResponseHandler<>() {
-            final UUID chatRecordId = UUID.randomUUID();
+            final String chatRecordId = IdWorker.get32UUID();
 
             @Override
             public void onNext(String token) {
@@ -88,7 +88,7 @@ public class BaseChatStep extends IChatStep {
                 selfContext.put("answer_tokens", thisAnswerTokens);
                 manage.context.put("message_tokens", messageTokens + thisMessageTokens);
                 manage.context.put("answer_tokens", answerTokens + thisAnswerTokens);
-                UUID clientId=manage.context.getObject("client_id",UUID.class);
+                String clientId=manage.context.getString("client_id");
                 String clientType=manage.context.getString("client_type");
                 addAccessNum(clientId,clientType);
                 postResponseHandler.handler(ChatCache.get(chatId), chatId, chatRecordId, problemText, answerText, manage,  clientId);
@@ -150,16 +150,16 @@ public class BaseChatStep extends IChatStep {
         }
     }
 
-    protected Flux<JSONObject> executeBlock(UUID chatId,
+    protected Flux<JSONObject> executeBlock(String chatId,
                                             List<ChatMessage> messageList,
-                                            UUID modelId,
+                                            String modelId,
                                             List<ParagraphVO> paragraphList,
                                             JSONObject noReferencesSetting,
                                             PipelineManage manage,
                                             String problemText, PostResponseHandler postResponseHandler) {
         BaseChatModel chatModel = modelService.getModelById(modelId);
         Response<AiMessage> res = getBlockResult(messageList, chatModel, paragraphList, noReferencesSetting, problemText);
-        UUID chatRecordId = UUID.randomUUID();
+        String chatRecordId = IdWorker.get32UUID();
         super.context.put("message_list", messageList);
         super.context.put("answer_text", res.content().text());
         int thisMessageTokens = res.tokenUsage().inputTokenCount();
@@ -172,7 +172,7 @@ public class BaseChatStep extends IChatStep {
         manage.context.put("answer_tokens", answerTokens + thisAnswerTokens);
         long startTime = manage.context.getLong("start_time");
         manage.context.put("run_time", (System.currentTimeMillis() - startTime) / 1000F);
-        UUID clientId=manage.context.getObject("client_id",UUID.class);
+        String clientId=manage.context.getString("client_id");
         postResponseHandler.handler(ChatCache.get(chatId), chatId, chatRecordId, problemText,
                 res.content().text(), manage,  clientId);
         JSONObject json = toResponse(chatId, chatRecordId, res.content().text(), true, answerTokens, messageTokens);
@@ -254,7 +254,7 @@ public class BaseChatStep extends IChatStep {
         return details;
     }
 
-    public JSONObject toResponse(UUID chatId, UUID chatRecordId, String content, Boolean isEnd, int completionTokens,
+    public JSONObject toResponse(String chatId, String chatRecordId, String content, Boolean isEnd, int completionTokens,
                                  int promptTokens) {
         JSONObject data = new JSONObject();
         data.put("chat_id", chatId);
@@ -274,7 +274,7 @@ public class BaseChatStep extends IChatStep {
         return data;
     }
 
-    private void addAccessNum(UUID clientId, String clientType){
+    private void addAccessNum(String clientId, String clientType){
         if("APPLICATION_ACCESS_TOKEN".equals(clientType)){
             ApplicationPublicAccessClientEntity publicAccessClient=publicAccessClientService.getById(clientId);
             if(publicAccessClient!=null){

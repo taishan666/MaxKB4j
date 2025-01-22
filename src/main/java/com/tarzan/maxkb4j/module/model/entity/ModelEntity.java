@@ -5,13 +5,10 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tarzan.maxkb4j.handler.JOSNBTypeHandler;
-import com.tarzan.maxkb4j.handler.UUIDTypeHandler;
 import com.tarzan.maxkb4j.common.entity.BaseEntity;
 import lombok.Data;
 import com.alibaba.fastjson.JSONObject;
 import lombok.EqualsAndHashCode;
-
-import java.util.UUID;
 
 /**
  * @author tarzan
@@ -35,8 +32,7 @@ public class ModelEntity extends BaseEntity {
     private String credential;
     
 	@JsonProperty("user_id")
-    @TableField(typeHandler = UUIDTypeHandler.class)
-    private UUID userId;
+    private String userId;
     
 	@TableField(typeHandler = JOSNBTypeHandler.class)
     private JSONObject meta;

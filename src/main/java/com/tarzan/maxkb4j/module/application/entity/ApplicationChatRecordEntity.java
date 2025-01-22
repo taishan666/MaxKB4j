@@ -5,16 +5,14 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tarzan.maxkb4j.common.entity.BaseEntity;
 import com.tarzan.maxkb4j.handler.JOSNBArrayTypeHandler;
 import com.tarzan.maxkb4j.handler.JOSNBTypeHandler;
-import com.tarzan.maxkb4j.handler.UUIDArrayTypeHandler;
-import com.tarzan.maxkb4j.handler.UUIDTypeHandler;
-import com.tarzan.maxkb4j.common.entity.BaseEntity;
+import com.tarzan.maxkb4j.handler.StringArrayTypeHandler;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import java.util.List;
-import java.util.UUID;
 
 /**
   * @author tarzan
@@ -43,17 +41,16 @@ public class ApplicationChatRecordEntity extends BaseEntity {
 	private JSONObject details;
 
 	@JsonProperty("improve_paragraph_id_list")
-	@TableField(typeHandler = UUIDArrayTypeHandler.class)
-	private UUID[] improveParagraphIdList;
+	@TableField(typeHandler = StringArrayTypeHandler.class)
+	private String[] improveParagraphIdList;
 
 	@JsonProperty("run_time")
 	private Float runTime;
 	
 	private Integer index;
 
-	@TableField(typeHandler = UUIDTypeHandler.class)
 	@JsonProperty("chat_id")
-	private UUID chatId;
+	private String chatId;
 
 	@JsonProperty("answer_text_list")
 	@TableField(typeHandler = JOSNBArrayTypeHandler.class)

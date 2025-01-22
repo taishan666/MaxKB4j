@@ -11,8 +11,8 @@ public class ChatImproveDTO {
     @JsonProperty("chat_ids")
     private List<UUID> chatIds;
     @JsonProperty("dataset_id")
-    private UUID datasetId;
+    private String datasetId;
     @JsonProperty("document_id")
-    private UUID documentId;
+    private String documentId;
 
 }

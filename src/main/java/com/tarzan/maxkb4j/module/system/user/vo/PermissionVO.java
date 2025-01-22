@@ -6,8 +6,8 @@ import java.util.UUID;
 
 @Data
 public class PermissionVO {
-    private UUID id;
+    private String id;
     private String type;
-    private UUID userId;
+    private String userId;
     private String operate;
 }

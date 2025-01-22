@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -101,7 +102,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         return this.page(appPage, wrapper);
     }
 
-    public List<ModelEntity> getAppModels(UUID appId, String modelType) {
+    public List<ModelEntity> getAppModels(String appId, String modelType) {
         modelType = StringUtils.isBlank(modelType) ? "LLM" : modelType;
         ApplicationEntity app = getById(appId);
         if (app == null) {
@@ -111,11 +112,11 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     }
 
 
-    public ApplicationAccessTokenEntity getAccessToken(UUID appId) {
+    public ApplicationAccessTokenEntity getAccessToken(String appId) {
         return accessTokenService.accessToken(appId);
     }
 
-    public ApplicationAccessTokenEntity updateAccessToken(UUID appId, ApplicationAccessTokenEntity entity) {
+    public ApplicationAccessTokenEntity updateAccessToken(String appId, ApplicationAccessTokenEntity entity) {
         entity.setApplicationId(appId);
         if (entity.getAccessTokenReset() != null && entity.getAccessTokenReset()) {
             entity.setAccessToken(MD5Util.encrypt(UUID.randomUUID().toString(), 8, 24));
@@ -124,7 +125,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         return accessTokenService.getById(appId);
     }
 
-    public List<DatasetEntity> getDatasets(UUID appId) {
+    public List<DatasetEntity> getDatasets(String appId) {
         ApplicationEntity app = getById(appId);
         if (app == null) {
             return Collections.emptyList();
@@ -134,11 +135,11 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
 
     public IPage<ApplicationChatEntity> chatLogs(String appId, int page, int size, ChatQueryDTO query) {
         Page<ApplicationChatEntity> chatPage = new Page<>(page, size);
-        return chatService.chatLogs(chatPage, UUID.fromString(appId), query);
+        return chatService.chatLogs(chatPage, appId, query);
     }
 
     public JSONArray modelParams(String appId, String modelId) {
-        ModelEntity model = modelService.getById(UUID.fromString(modelId));
+        ModelEntity model = modelService.getById(modelId);
         if (model == null) {
             return new JSONArray();
         }
@@ -146,7 +147,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     }
 
     @Transactional
-    public boolean deleteByAppId(UUID appId) {
+    public boolean deleteByAppId(String appId) {
         accessTokenService.remove(Wrappers.<ApplicationAccessTokenEntity>lambdaQuery().eq(ApplicationAccessTokenEntity::getApplicationId, appId));
         workFlowVersionService.remove(Wrappers.<ApplicationWorkFlowVersionEntity>lambdaQuery().eq(ApplicationWorkFlowVersionEntity::getApplicationId, appId));
         applicationDatasetMappingService.remove(Wrappers.<ApplicationDatasetMappingEntity>lambdaQuery().eq(ApplicationDatasetMappingEntity::getApplicationId, appId));
@@ -156,14 +157,14 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     @Transactional
     public ApplicationEntity createApp(ApplicationEntity application) {
         String userId = StpUtil.getLoginIdAsString();
-        application.setId(UUID.randomUUID());
-        application.setUserId(UUID.fromString(userId));
+        application.setUserId(userId);
         application.setIcon("");
         application.setWorkFlow(new JSONObject());
         application.setTtsModelParamsSetting(new JSONObject());
         application.setCleanTime(1000 * 365);
         application.setFileUploadEnable(false);
         application.setFileUploadSetting(new JSONObject());
+        this.save(application);
         ApplicationAccessTokenEntity accessToken = new ApplicationAccessTokenEntity();
         accessToken.setApplicationId(application.getId());
         accessToken.setAccessNum(0);
@@ -173,21 +174,20 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         accessToken.setWhiteList(new HashSet<>());
         accessToken.setAccessToken(MD5Util.encrypt(UUID.randomUUID().toString(), 8, 24));
         applicationAccessTokenService.save(accessToken);
-        this.save(application);
         return application;
     }
 
-    public boolean improveChatLogs(UUID appId, ChatImproveDTO dto) {
+    public boolean improveChatLogs(String appId, ChatImproveDTO dto) {
         return false;
     }
 
-    public ApplicationVO getAppById(UUID appId) {
+    public ApplicationVO getAppById(String appId) {
         ApplicationEntity entity = this.getById(appId);
         if (entity == null) {
             return null;
         }
         ApplicationVO vo = BeanUtil.copy(entity, ApplicationVO.class);
-        List<UUID> datasetIds = new ArrayList<>();
+        List<String> datasetIds = new ArrayList<>();
         List<ApplicationDatasetMappingEntity> mappingEntities = applicationDatasetMappingService.lambdaQuery()
                 .select(ApplicationDatasetMappingEntity::getDatasetId)
                 .eq(ApplicationDatasetMappingEntity::getApplicationId, appId).list();
@@ -195,13 +195,16 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
             datasetIds = mappingEntities.stream().map(ApplicationDatasetMappingEntity::getDatasetId).toList();
         }
         vo.setDatasetIdList(datasetIds);
+        vo.setModel(entity.getModelId());
+        vo.setSttModel(entity.getSttModelId());
+        vo.setTtsModel(entity.getTtsModelId());
         return vo;
     }
 
     // 定义日期格式
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
-    public List<ApplicationStatisticsVO> statistics(UUID appId, ChatQueryDTO query) {
+    public List<ApplicationStatisticsVO> statistics(String appId, ChatQueryDTO query) {
         List<ApplicationStatisticsVO> result = new ArrayList<>();
         List<ApplicationStatisticsVO> list = applicationChatService.statistics(appId, query);
         List<ApplicationPublicAccessClientStatisticsVO> AccessClientList = applicationPublicAccessClientService.statistics(appId, query);
@@ -248,32 +251,32 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         return null;
     }
 
-    public List<ApplicationApiKeyEntity> listApikey(UUID appId) {
+    public List<ApplicationApiKeyEntity> listApikey(String appId) {
         return applicationApiKeyService.lambdaQuery().eq(ApplicationApiKeyEntity::getApplicationId, appId).list();
     }
 
-    public boolean createApikey(UUID appId) {
+    public boolean createApikey(String appId) {
         ApplicationApiKeyEntity entity = new ApplicationApiKeyEntity();
         entity.setApplicationId(appId);
         entity.setIsActive(true);
         entity.setAllowCrossDomain(false);
         String uuid = UUID.randomUUID().toString();
         entity.setSecretKey("maxKb4j-" + uuid.replaceAll("-", ""));
-        entity.setUserId(UUID.fromString(StpUtil.getLoginIdAsString()));
+        entity.setUserId(StpUtil.getLoginIdAsString());
         entity.setCrossDomainList(new HashSet<>());
         return applicationApiKeyService.save(entity);
     }
 
-    public boolean updateApikey(UUID appId, UUID apikeyId, ApplicationApiKeyEntity entity) {
+    public boolean updateApikey(String appId, String apikeyId, ApplicationApiKeyEntity entity) {
         entity.setId(apikeyId);
         return applicationApiKeyService.updateById(entity);
     }
 
-    public boolean deleteApikey(UUID appId, UUID apikeyId) {
+    public boolean deleteApikey(String appId, String apikeyId) {
         return applicationApiKeyService.removeById(apikeyId);
     }
 
-    public Flux<JSONObject> chatMessage(UUID chatId, JSONObject json, HttpServletRequest request) {
+    public Flux<JSONObject> chatMessage(String chatId, JSONObject json, HttpServletRequest request) {
         String authorization = request.getHeader("Authorization");
         Claims claims = JwtUtil.parseToken(authorization);
         String clientId = (String) claims.get("client_id");
@@ -284,7 +287,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         }
         if (!claims.isEmpty()) {
             try {
-                isValidApplication(chatInfo, UUID.fromString(clientId), clientType);
+                isValidApplication(chatInfo, clientId, clientType);
             } catch (Exception e) {
                 JSONObject data = new JSONObject();
                 data.put("content", e.getMessage());
@@ -294,9 +297,9 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         boolean stream = json.getBoolean("stream") == null || json.getBoolean("stream");
         String problemText = json.getString("message");
         boolean reChat = json.getBooleanValue("rechat");
-        List<UUID> excludeParagraphIds = new ArrayList<>();
+        List<String> excludeParagraphIds = new ArrayList<>();
         if (reChat) {
-            UUID chatRecordId = json.getObject("chat_record_id", UUID.class);
+            String chatRecordId = json.getObject("chat_record_id", String.class);
             if (Objects.nonNull(chatRecordId)) {
                 ApplicationChatRecordVO chatRecord = getChatRecordInfo(chatId, chatRecordId);
                 List<ParagraphVO> paragraphs = chatRecord.getParagraphList();
@@ -305,6 +308,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
                 }
             }
         }
+        assert chatInfo != null;
         ApplicationEntity application = chatInfo.getApplication();
         PipelineManage.Builder pipelineManageBuilder = new PipelineManage.Builder();
         if (application.getProblemOptimization()) {
@@ -320,16 +324,16 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         return pipelineManage.response;
     }
 
-    public void isValidApplication(ChatInfo chatInfo, UUID clientId, String clientType) throws Exception {
+    public void isValidApplication(ChatInfo chatInfo, String clientId, String clientType) throws Exception {
         isValidIntraDayAccessNum(chatInfo.getApplication().getId(), clientId, clientType);
-        UUID modelId = chatInfo.getApplication().getModelId();
+        String modelId = chatInfo.getApplication().getModelId();
         ModelEntity model = modelService.getById(modelId);
         if (Objects.isNull(model) || !"SUCCESS".equals(model.getStatus())) {
             throw new Exception("当前模型不可用");
         }
     }
 
-    public void isValidIntraDayAccessNum(UUID appId, UUID clientId, String clientType) throws Exception {
+    public void isValidIntraDayAccessNum(String appId, String clientId, String clientType) throws Exception {
         if ("APPLICATION_ACCESS_TOKEN".equals(clientType)) {
             ApplicationPublicAccessClientEntity accessClient = applicationPublicAccessClientService.getById(clientId);
             if (Objects.isNull(accessClient)) {
@@ -347,18 +351,18 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         }
     }
 
-    public UUID chatOpenTest(ApplicationEntity application) {
+    public String chatOpenTest(ApplicationEntity application) {
         ChatInfo chatInfo = new ChatInfo();
-        chatInfo.setChatId(UUID.randomUUID());
+        chatInfo.setChatId(IdWorker.get32UUID());
         application.setId(null);
         chatInfo.setApplication(application);
         ChatCache.put(chatInfo.getChatId(), chatInfo);
         return chatInfo.getChatId();
     }
 
-    public UUID chatOpen(UUID appId) {
+    public String chatOpen(String appId) {
         ChatInfo chatInfo = new ChatInfo();
-        chatInfo.setChatId(UUID.randomUUID());
+        chatInfo.setChatId(IdWorker.get32UUID());
         ApplicationEntity application = this.getById(appId);
         List<ApplicationDatasetMappingEntity> list = applicationDatasetMappingService.lambdaQuery().eq(ApplicationDatasetMappingEntity::getApplicationId, application.getId()).list();
         application.setDatasetIdList(list.stream().map(ApplicationDatasetMappingEntity::getDatasetId).toList());
@@ -367,7 +371,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         return chatInfo.getChatId();
     }
 
-    private ChatInfo getChatInfo(UUID chatId) {
+    private ChatInfo getChatInfo(String chatId) {
         ChatInfo chatInfo = ChatCache.get(chatId);
         if (chatInfo == null) {
             return reChatOpen(chatId);
@@ -375,7 +379,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         return chatInfo;
     }
 
-    public ChatInfo reChatOpen(UUID chatId) {
+    public ChatInfo reChatOpen(String chatId) {
         ChatInfo chatInfo = new ChatInfo();
         ApplicationChatEntity chatEntity = chatService.getById(chatId);
         chatInfo.setChatId(chatId);
@@ -387,7 +391,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         return chatInfo;
     }
 
-    public ApplicationChatRecordVO getChatRecordInfo(UUID chatId, UUID chatRecordId) {
+    public ApplicationChatRecordVO getChatRecordInfo(String chatId, String chatRecordId) {
         return chatRecordService.getChatRecordInfo(chatId, chatRecordId);
     }
 
@@ -419,7 +423,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
                 clientId = (String) tokenDetails.get("client_id");
                 authentication = (Map<String, Object>) tokenDetails.get("authentication");
             } else {
-                clientId = UUID.randomUUID().toString();
+                clientId = IdWorker.get32UUID();
             }
 
             if (authenticationValue != null) {
@@ -471,8 +475,8 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         String authorization = request.getHeader("Authorization");
         Claims claims = JwtUtil.parseToken(authorization);
         String appId = (String) claims.get("application_id");
-        ApplicationEntity application = this.getById(UUID.fromString(appId));
-        ApplicationAccessTokenEntity appAccessToken = applicationAccessTokenService.getById(UUID.fromString(appId));
+        ApplicationEntity application = this.getById(appId);
+        ApplicationAccessTokenEntity appAccessToken = applicationAccessTokenService.getById(appId);
         JSONObject result = new JSONObject();
         result.put("id", appId);
         result.put("type", application.getType());
@@ -494,38 +498,38 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         return result;
     }
 
-    public IPage<ApplicationChatEntity> clientChatPage(UUID appId, int page, int size, HttpServletRequest request) {
+    public IPage<ApplicationChatEntity> clientChatPage(String appId, int page, int size, HttpServletRequest request) {
         String authorization = request.getHeader("Authorization");
         Claims claims = JwtUtil.parseToken(authorization);
         String clientId = (String) claims.get("client_id");
-        return chatService.clientChatPage(appId, UUID.fromString(clientId), page, size);
+        return chatService.clientChatPage(appId, clientId, page, size);
     }
 
-    public IPage<ApplicationChatRecordVO> chatRecordPage(UUID chatId, int page, int size) {
+    public IPage<ApplicationChatRecordVO> chatRecordPage(String chatId, int page, int size) {
         return chatRecordService.chatRecordPage(chatId, page, size);
     }
 
-    public Boolean getChatRecordVote(UUID chatRecordId, ApplicationChatRecordEntity chatRecord) {
+    public Boolean getChatRecordVote(String chatRecordId, ApplicationChatRecordEntity chatRecord) {
         chatRecord.setId(chatRecordId);
         return chatRecordService.updateById(chatRecord);
     }
 
-    public List<ParagraphVO> hitTest(UUID id, HitTestDTO dto) {
+    public List<ParagraphVO> hitTest(String id, HitTestDTO dto) {
         List<ApplicationDatasetMappingEntity> mapping = applicationDatasetMappingService.lambdaQuery()
                 .select(ApplicationDatasetMappingEntity::getDatasetId)
                 .eq(ApplicationDatasetMappingEntity::getApplicationId, id).list();
         if (CollectionUtils.isEmpty(mapping)) {
             return Collections.emptyList();
         }
-        List<UUID> datasetIds = mapping.stream().map(ApplicationDatasetMappingEntity::getDatasetId).toList();
+        List<String> datasetIds = mapping.stream().map(ApplicationDatasetMappingEntity::getDatasetId).toList();
         return datasetService.hitTest(datasetIds, dto);
     }
 
-    public String textToSpeech(UUID uuid, String text) {
+    public String textToSpeech(String uuid, String text) {
         return "";
     }
 
-    public boolean editIcon(UUID id, MultipartFile file) {
+    public boolean editIcon(String id, MultipartFile file) {
         ApplicationEntity application = new ApplicationEntity();
         application.setId(id);
         application.setIcon(imageService.upload(file));
@@ -533,16 +537,16 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     }
 
     @Transactional
-    public Boolean updateAppById(UUID appId, ApplicationVO appVO) {
+    public Boolean updateAppById(String appId, ApplicationVO appVO) {
         ApplicationEntity application= BeanUtil.copy(appVO, ApplicationEntity.class);
         application.setId(appId);
         applicationDatasetMappingService.lambdaUpdate().eq(ApplicationDatasetMappingEntity::getApplicationId,appId).remove();
         if(!CollectionUtils.isEmpty(appVO.getDatasetIdList())){
             List<ApplicationDatasetMappingEntity> mappingList = new ArrayList<>();
-            for (UUID uuid : appVO.getDatasetIdList()) {
+            for (String datasetId : appVO.getDatasetIdList()) {
                 ApplicationDatasetMappingEntity mapping = new ApplicationDatasetMappingEntity();
                 mapping.setApplicationId(appId);
-                mapping.setDatasetId(uuid);
+                mapping.setDatasetId(datasetId);
                 mappingList.add(mapping);
             }
            applicationDatasetMappingService.saveBatch(mappingList);

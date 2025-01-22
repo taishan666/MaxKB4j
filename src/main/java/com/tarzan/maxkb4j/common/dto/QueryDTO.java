@@ -9,5 +9,5 @@ import java.util.UUID;
 public class QueryDTO {
     private String name;
     @JsonProperty("select_user_id")
-    private UUID selectUserId;
+    private String selectUserId;
 }

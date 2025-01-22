@@ -6,7 +6,6 @@ import com.tarzan.maxkb4j.module.system.team.vo.MemberVO;
 import org.apache.ibatis.annotations.Mapper;
 
 import java.util.List;
-import java.util.UUID;
 
 /**
  * @author tarzan
@@ -15,5 +14,5 @@ import java.util.UUID;
 @Mapper
 public interface TeamMemberMapper extends BaseMapper<TeamMemberEntity>{
 
-    List<MemberVO> getByUserId(UUID userId);
+    List<MemberVO> getByUserId(String userId);
 }

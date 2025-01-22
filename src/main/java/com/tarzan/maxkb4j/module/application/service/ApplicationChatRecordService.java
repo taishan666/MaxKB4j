@@ -28,11 +28,14 @@ import java.util.*;
 @Service
 public class ApplicationChatRecordService extends ServiceImpl<ApplicationChatRecordMapper, ApplicationChatRecordEntity>{
 
-    public ApplicationChatRecordVO getChatRecordInfo(UUID chatId,UUID chatRecordId) {
+    public ApplicationChatRecordVO getChatRecordInfo(String chatId,String chatRecordId) {
         ChatInfo chatInfo= ChatCache.get(chatId);
-        ApplicationChatRecordEntity  chatRecord=chatInfo.getChatRecordList().stream().filter(e->e.getId().equals(chatRecordId)).findFirst().orElse(null);
-        if(Objects.isNull(chatRecord)) {
-            chatRecord = this.getById(chatRecordId);
+        ApplicationChatRecordEntity  chatRecord=null;
+        if(Objects.nonNull(chatInfo)&&!CollectionUtils.isEmpty(chatInfo.getChatRecordList())) {
+            chatRecord = chatInfo.getChatRecordList().stream().filter(e->e.getId().equals(chatRecordId)).findFirst().orElse(null);
+        }
+        if(Objects.isNull(chatRecord)){
+            chatRecord=this.getById(chatRecordId);
         }
         return convert(chatRecord);
     }
@@ -66,7 +69,7 @@ public class ApplicationChatRecordService extends ServiceImpl<ApplicationChatRec
         return chatRecordVO;
     }
 
-    public IPage<ApplicationChatRecordVO> chatRecordPage(UUID chatId, int page, int size) {
+    public IPage<ApplicationChatRecordVO> chatRecordPage(String chatId, int page, int size) {
         Page<ApplicationChatRecordEntity> chatRecordpage = new Page<>(page, size);
         LambdaQueryWrapper<ApplicationChatRecordEntity> wrapper = Wrappers.lambdaQuery();
         wrapper.eq(ApplicationChatRecordEntity::getChatId,chatId);

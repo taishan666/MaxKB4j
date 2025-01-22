@@ -7,7 +7,6 @@ import com.tarzan.maxkb4j.module.embedding.entity.EmbeddingEntity;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
-import java.util.UUID;
 
 /**
  * @author tarzan
@@ -15,10 +14,10 @@ import java.util.UUID;
  */
 public interface EmbeddingMapper extends BaseMapper<EmbeddingEntity>{
 
-    List<HitTestVO> embeddingSearch(List<UUID> datasetIds, @Param("query") HitTestDTO query, @Param("embedding") float[] embedding);
+    List<HitTestVO> embeddingSearch(List<String> datasetIds, @Param("query") HitTestDTO query, @Param("embedding") float[] embedding);
 
-    List<HitTestVO> keywordsSearch(List<UUID>  datasetIds,@Param("query") HitTestDTO query);
+    List<HitTestVO> keywordsSearch(List<String>  datasetIds,@Param("query") HitTestDTO query);
 
-    List<HitTestVO> HybridSearch(List<UUID>  datasetIds, @Param("query") HitTestDTO query,@Param("embedding") float[] embedding);
+    List<HitTestVO> HybridSearch(List<String>  datasetIds, @Param("query") HitTestDTO query,@Param("embedding") float[] embedding);
  
 }

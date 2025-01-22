@@ -11,6 +11,6 @@ public class HitTestDTO {
     private Double  similarity;
     private Integer  top_number;
     private Boolean  problem_optimization;
-    private UUID reranker_model_id;
+    private String reranker_model_id;
     private String  problem_optimization_prompt;
 }

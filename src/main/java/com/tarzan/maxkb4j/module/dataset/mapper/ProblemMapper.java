@@ -6,15 +6,13 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.tarzan.maxkb4j.module.dataset.entity.ProblemEntity;
 import com.tarzan.maxkb4j.module.dataset.vo.ProblemVO;
 
-import java.util.UUID;
-
 /**
  * @author tarzan
  * @date 2024-12-26 10:45:40
  */
 public interface ProblemMapper extends BaseMapper<ProblemEntity>{
 
-    IPage<ProblemVO> getProblemsByDatasetId(Page<ProblemEntity> problemPage, UUID datasetId,String content);
+    IPage<ProblemVO> getProblemsByDatasetId(Page<ProblemEntity> problemPage, String datasetId,String content);
 
 
 }

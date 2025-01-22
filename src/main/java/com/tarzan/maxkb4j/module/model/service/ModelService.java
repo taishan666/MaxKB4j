@@ -20,7 +20,6 @@ import org.springframework.stereotype.Service;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -35,7 +34,7 @@ public class ModelService extends ServiceImpl<ModelMapper, ModelEntity> {
     @Autowired
     private UserService userService;
 
-    public List<ModelEntity> getUserIdAndType(UUID userId, String modelType) {
+    public List<ModelEntity> getUserIdAndType(String userId, String modelType) {
         modelType = StringUtils.isBlank(modelType) ? "LLM" : modelType;
         return this.list(Wrappers.<ModelEntity>lambdaQuery().eq(ModelEntity::getUserId, userId).eq(ModelEntity::getModelType, modelType));
     }
@@ -47,13 +46,13 @@ public class ModelService extends ServiceImpl<ModelMapper, ModelEntity> {
 
     public List<ModelVO> models(String name, String createUser, String permissionType, String modelType) {
         List<UserEntity> users = userService.lambdaQuery().list();
-        Map<UUID, String> userMap = users.stream().collect(Collectors.toMap(UserEntity::getId, UserEntity::getUsername));
+        Map<String, String> userMap = users.stream().collect(Collectors.toMap(UserEntity::getId, UserEntity::getUsername));
         LambdaQueryWrapper<ModelEntity> wrapper = Wrappers.lambdaQuery();
         if (StringUtils.isNotBlank(name)) {
             wrapper.like(ModelEntity::getName, name);
         }
         if (StringUtils.isNotBlank(createUser)) {
-            wrapper.eq(ModelEntity::getUserId, UUID.fromString(createUser));
+            wrapper.eq(ModelEntity::getUserId, createUser);
         }
         if (StringUtils.isNotBlank(permissionType)) {
             wrapper.eq(ModelEntity::getPermissionType, permissionType);
@@ -70,7 +69,7 @@ public class ModelService extends ServiceImpl<ModelMapper, ModelEntity> {
         return Collections.emptyList();
     }
 
-    public <T> T getModelById(UUID modelId) {
+    public <T> T getModelById(String modelId) {
         ModelEntity model = this.getById(modelId);
         SystemSettingEntity systemSetting = systemSettingService.lambdaQuery().eq(SystemSettingEntity::getType, 1).one();
         return ModelManage.getModel(model, systemSetting.getMeta().getString("value"));

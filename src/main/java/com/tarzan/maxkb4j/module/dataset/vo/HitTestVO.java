@@ -6,7 +6,7 @@ import java.util.UUID;
 
 @Data
 public class HitTestVO {
-    private UUID paragraphId;
+    private String paragraphId;
     private Double similarity;
     private Double comprehensiveScore;
 }

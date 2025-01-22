@@ -216,6 +216,11 @@
             <artifactId>jieba-analysis</artifactId>
             <version>1.0.2</version>
         </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.5.12</version>
+        </dependency>
 
 
         <!--        <dependency>
@@ -255,14 +260,14 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
-                <configuration>
+             <!--   <configuration>
                     <excludes>
                         <exclude>
                             <groupId>org.projectlombok</groupId>
                             <artifactId>lombok</artifactId>
                         </exclude>
                     </excludes>
-                </configuration>
+                </configuration>-->
             </plugin>
         </plugins>
     </build>

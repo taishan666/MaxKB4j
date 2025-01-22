@@ -15,7 +15,7 @@ import java.util.UUID;
  */
 @Service
 public class TeamMemberPermissionService extends ServiceImpl<TeamMemberPermissionMapper, TeamMemberPermissionEntity>{
-   public List<MemberPermissionVO> getPermissionByMemberId(UUID teamId, UUID memberId){
+   public List<MemberPermissionVO> getPermissionByMemberId(String teamId, String memberId){
        return baseMapper.getPermissionByMemberId(teamId, memberId);
    }
 }

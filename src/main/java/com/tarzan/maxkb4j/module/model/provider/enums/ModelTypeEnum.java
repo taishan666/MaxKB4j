@@ -17,16 +17,16 @@ public enum ModelTypeEnum {
     RERANKER("重排模型"),
     ;
 
-    final private String name;
+    final private String modelType;
 
-    ModelTypeEnum(String name) {
-        this.name = name;
+    ModelTypeEnum(String modelType) {
+        this.modelType = modelType;
     }
 
     public static List<KeyAndValueVO> getModelTypeList() {
         List<KeyAndValueVO> list = new ArrayList<>();
         for (ModelTypeEnum modelType : ModelTypeEnum.values()) {
-            list.add(new KeyAndValueVO(modelType.name(), modelType.getName()));
+            list.add(new KeyAndValueVO( modelType.getModelType(),modelType.name()));
         }
         return list;
     }

@@ -12,7 +12,6 @@ import com.tarzan.maxkb4j.module.application.vo.ApplicationStatisticsVO;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.UUID;
 
 /**
  * @author tarzan
@@ -21,15 +20,15 @@ import java.util.UUID;
 @Service
 public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, ApplicationChatEntity>{
 
-    public IPage<ApplicationChatEntity> chatLogs(Page<ApplicationChatEntity> page, UUID appId, ChatQueryDTO query) {
+    public IPage<ApplicationChatEntity> chatLogs(Page<ApplicationChatEntity> page, String appId, ChatQueryDTO query) {
         return baseMapper.chatLogs(page,appId,query);
     }
 
-    public List<ApplicationStatisticsVO> statistics(UUID appId, ChatQueryDTO query) {
+    public List<ApplicationStatisticsVO> statistics(String appId, ChatQueryDTO query) {
         return baseMapper.statistics(appId,query);
     }
 
-    public IPage<ApplicationChatEntity> clientChatPage(UUID appId,UUID clientId, int page, int size) {
+    public IPage<ApplicationChatEntity> clientChatPage(String appId,String clientId, int page, int size) {
         Page<ApplicationChatEntity> chatPage = new Page<>(page, size);
         LambdaQueryWrapper<ApplicationChatEntity> wrapper = Wrappers.lambdaQuery();
         wrapper.eq(ApplicationChatEntity::getApplicationId,appId);

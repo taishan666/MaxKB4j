@@ -3,12 +3,10 @@ package com.tarzan.maxkb4j.module.application.entity;
 import com.baomidou.mybatisplus.annotation.*;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tarzan.maxkb4j.handler.StringSetTypeHandler;
-import com.tarzan.maxkb4j.handler.UUIDTypeHandler;
 import lombok.Data;
 
 import java.util.Date;
 import java.util.Set;
-import java.util.UUID;
 
 /**
  * @author tarzan
@@ -28,8 +26,7 @@ public class ApplicationAccessTokenEntity {
 
     @JsonProperty("application_id")
     @TableId
-	@TableField(typeHandler = UUIDTypeHandler.class)
-    private UUID applicationId;
+    private String applicationId;
     
     @JsonProperty("access_token")
     private String accessToken;

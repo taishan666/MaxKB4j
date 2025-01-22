@@ -1,13 +1,9 @@
 package com.tarzan.maxkb4j.module.dataset.vo;
 
-import com.baomidou.mybatisplus.annotation.TableField;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tarzan.maxkb4j.handler.UUIDTypeHandler;
 import com.tarzan.maxkb4j.module.dataset.entity.ProblemEntity;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-
-import java.util.UUID;
 
 
 @Data
@@ -17,8 +13,6 @@ public class ProblemVO extends ProblemEntity {
     @JsonProperty("paragraph_count")
     private Integer paragraphCount;
 
-    @TableField(typeHandler = UUIDTypeHandler.class)
-    private UUID documentId;
-    @TableField(typeHandler = UUIDTypeHandler.class)
-    private UUID paragraphId;
+    private String documentId;
+    private String paragraphId;
 }

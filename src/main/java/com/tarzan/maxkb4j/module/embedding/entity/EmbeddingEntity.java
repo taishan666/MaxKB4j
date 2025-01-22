@@ -8,11 +8,9 @@ import com.tarzan.maxkb4j.common.dto.TSVector;
 import com.tarzan.maxkb4j.handler.EmbeddingTypeHandler;
 import com.tarzan.maxkb4j.handler.JOSNBTypeHandler;
 import com.tarzan.maxkb4j.handler.TSVectorTypeHandler;
-import com.tarzan.maxkb4j.handler.UUIDTypeHandler;
 import lombok.Data;
 
 import java.util.List;
-import java.util.UUID;
 
 /**
   * @author tarzan
@@ -34,12 +32,9 @@ public class EmbeddingEntity {
 	private List<Float> embedding;
 	@TableField(typeHandler = JOSNBTypeHandler.class)
 	private JSONObject meta;
-	@TableField(typeHandler = UUIDTypeHandler.class)
-	private UUID datasetId;
-	@TableField(typeHandler = UUIDTypeHandler.class)
-	private UUID documentId;
-	@TableField(typeHandler = UUIDTypeHandler.class)
-	private UUID paragraphId;
+	private String datasetId;
+	private String documentId;
+	private String paragraphId;
 	@TableField(typeHandler = TSVectorTypeHandler.class)
 	private TSVector searchVector;
 } 

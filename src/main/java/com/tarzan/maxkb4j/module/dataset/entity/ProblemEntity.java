@@ -2,12 +2,9 @@ package com.tarzan.maxkb4j.module.dataset.entity;
 
 import com.baomidou.mybatisplus.annotation.*;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tarzan.maxkb4j.handler.UUIDTypeHandler;
 import com.tarzan.maxkb4j.common.entity.BaseEntity;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-
-import java.util.UUID;
 
 /**
  * @author tarzan
@@ -24,7 +21,6 @@ public class ProblemEntity extends BaseEntity {
     private Integer hitNum;
     
 	@JsonProperty("dataset_id")
-    @TableField(typeHandler = UUIDTypeHandler.class)
-    private UUID datasetId;
+    private String datasetId;
 
 }

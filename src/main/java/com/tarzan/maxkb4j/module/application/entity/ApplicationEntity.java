@@ -4,14 +4,12 @@ import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tarzan.maxkb4j.handler.JOSNBTypeHandler;
-import com.tarzan.maxkb4j.handler.UUIDTypeHandler;
 import com.tarzan.maxkb4j.common.entity.BaseEntity;
+import com.tarzan.maxkb4j.handler.JOSNBTypeHandler;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import java.util.List;
-import java.util.UUID;
 
 /**
  * @author tarzan
@@ -42,13 +40,11 @@ public class ApplicationEntity extends BaseEntity {
     @JsonProperty("problem_optimization")
     private Boolean problemOptimization;
 
-    @JsonProperty("model")
-    @TableField(typeHandler = UUIDTypeHandler.class)
-    private UUID modelId;
+    @JsonProperty("model_id")
+    private String modelId;
 
     @JsonProperty("user_id")
-    @TableField(typeHandler = UUIDTypeHandler.class)
-    private UUID userId;
+    private String userId;
 
     private String icon;
 
@@ -62,16 +58,14 @@ public class ApplicationEntity extends BaseEntity {
     @TableField(typeHandler = JOSNBTypeHandler.class)
     private JSONObject modelParamsSetting;
 
-    @JsonProperty("stt_model")
-    @TableField(typeHandler = UUIDTypeHandler.class)
-    private UUID sttModelId;
+    @JsonProperty("stt_model_id")
+    private String sttModelId;
 
     @JsonProperty("stt_model_enable")
     private Boolean sttModelEnable;
 
-    @JsonProperty("tts_model")
-    @TableField(typeHandler = UUIDTypeHandler.class)
-    private UUID ttsModelId;
+    @JsonProperty("tts_model_id")
+    private String ttsModelId;
 
     @JsonProperty("tts_model_enable")
     private Boolean ttsModelEnable;
@@ -98,5 +92,5 @@ public class ApplicationEntity extends BaseEntity {
 
     @JsonProperty("dataset_id_list")
     @TableField(exist = false)
-    private List<UUID> datasetIdList;
+    private List<String> datasetIdList;
 } 

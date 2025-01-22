@@ -6,8 +6,8 @@ import com.tarzan.maxkb4j.module.system.team.dto.TeamMemberPermissionDTO;
 import com.tarzan.maxkb4j.module.system.team.entity.TeamMemberEntity;
 import com.tarzan.maxkb4j.module.system.team.entity.TeamMemberPermissionEntity;
 import com.tarzan.maxkb4j.module.system.team.mapper.TeamMemberMapper;
-import com.tarzan.maxkb4j.module.system.team.vo.MemberVO;
 import com.tarzan.maxkb4j.module.system.team.vo.MemberPermissionVO;
+import com.tarzan.maxkb4j.module.system.team.vo.MemberVO;
 import com.tarzan.maxkb4j.module.system.user.entity.UserEntity;
 import com.tarzan.maxkb4j.module.system.user.mapper.UserMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +18,6 @@ import org.springframework.util.CollectionUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -33,7 +32,7 @@ public class TeamMemberService extends ServiceImpl<TeamMemberMapper, TeamMemberE
     @Autowired
     private TeamMemberPermissionService teamMemberPermissionService;
 
-    public List<MemberVO> getByUserId(UUID userId) {
+    public List<MemberVO> getByUserId(String userId) {
         List<MemberVO> result= new ArrayList<>();
         MemberVO manageMember = new MemberVO();
         UserEntity user= userMapper.selectById(userId);
@@ -49,17 +48,17 @@ public class TeamMemberService extends ServiceImpl<TeamMemberMapper, TeamMemberE
         return result;
     }
 
-    public boolean deleteByUserId(UUID userId) {
+    public boolean deleteByUserId(String userId) {
         return this.lambdaUpdate().eq(TeamMemberEntity::getUserId, userId).remove();
     }
 
-    public boolean isExist(List<UUID> userIds) {
+    public boolean isExist(List<String> userIds) {
         long count=this.lambdaQuery().in(TeamMemberEntity::getUserId, userIds).count();
         return count>0;
     }
 
     @Transactional
-    public boolean addBatchTeamMember(List<UUID> userIds,UUID manageUserId) {
+    public boolean addBatchTeamMember(List<String> userIds,String manageUserId) {
         if(CollectionUtils.isEmpty(userIds)) {
             return false;
         }
@@ -72,13 +71,13 @@ public class TeamMemberService extends ServiceImpl<TeamMemberMapper, TeamMemberE
         return this.saveBatch(teamMemberEntities);
     }
 
-    public Map<String, List<MemberPermissionVO>> getPermissionByMemberId(UUID memberId) {
+    public Map<String, List<MemberPermissionVO>> getPermissionByMemberId(String memberId) {
         TeamMemberEntity entity=this.getById(memberId);
         return getMemberPermissions(entity.getTeamId(),entity.getId());
     }
 
     @Transactional
-    public Map<String, List<MemberPermissionVO>> updateTeamMemberById(UUID teamMemberId, TeamMemberPermissionDTO dto) {
+    public Map<String, List<MemberPermissionVO>> updateTeamMemberById(String teamMemberId, TeamMemberPermissionDTO dto) {
         List<MemberPermissionVO> permissions=dto.getTeamMemberPermissionList();
         if(!CollectionUtils.isEmpty(permissions)) {
             teamMemberPermissionService.remove(Wrappers.<TeamMemberPermissionEntity>lambdaUpdate().eq(TeamMemberPermissionEntity::getMemberId,teamMemberId));
@@ -95,7 +94,7 @@ public class TeamMemberService extends ServiceImpl<TeamMemberMapper, TeamMemberE
         return getPermissionByMemberId(teamMemberId);
     }
 
-    public Map<String, List<MemberPermissionVO>> getMemberPermissions(UUID teamId, UUID memberId) {
+    public Map<String, List<MemberPermissionVO>> getMemberPermissions(String teamId, String memberId) {
         List<MemberPermissionVO> list=teamMemberPermissionService.getPermissionByMemberId(teamId,memberId);
         return list.stream().collect(Collectors.groupingBy(MemberPermissionVO::getType));
     }

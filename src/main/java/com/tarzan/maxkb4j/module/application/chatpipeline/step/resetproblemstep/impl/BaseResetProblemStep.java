@@ -18,7 +18,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 @Component
 public class BaseResetProblemStep extends IResetProblemStep {
@@ -45,7 +44,7 @@ public class BaseResetProblemStep extends IResetProblemStep {
             historyMessages.add(UserMessage.from(chatRecord.getProblemText()));
             historyMessages.add(AiMessage.from(chatRecord.getAnswerText()));
         }
-        UUID modelId = application.getModelId();
+        String modelId = application.getModelId();
         BaseChatModel chatModel = modelService.getModelById(modelId);
         String resetPrompt = StringUtils.isNotBlank(problemOptimizationPrompt) ? problemOptimizationPrompt : prompt;
         String problemText = context.getString("problem_text");

@@ -7,8 +7,6 @@ import com.tarzan.maxkb4j.common.entity.BaseEntity;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-import java.util.UUID;
-
 /**
  * @author tarzan
  * @date 2024-12-26 09:50:23
@@ -21,9 +19,9 @@ public class ApplicationChatEntity extends BaseEntity {
     @TableField(value = "abstract")
     private String digest;
 	@JsonProperty("application_id")
-    private UUID applicationId;
+    private String applicationId;
 	@JsonProperty("client_id")
-    private UUID clientId;
+    private String clientId;
 	@JsonProperty("is_deleted")
     private Boolean isDeleted;
 } 

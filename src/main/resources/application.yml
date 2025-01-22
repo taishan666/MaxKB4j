@@ -5,7 +5,7 @@ spring:
   application:
       name: MaxKB4j
   datasource:
-    url: jdbc:postgresql://localhost:5432/maxkb
+    url: jdbc:postgresql://localhost:5432/Maxkb4j
     username: username
     password: password
     driver-class-name: org.postgresql.Driver
@@ -19,7 +19,6 @@ mybatis-plus:
       capital-mode: false
       table-format: "\"%s\""
       column-format:  "\"%s\""
-      id-type: none
   mapper-locations: classpath:mapper/**/*.xml,mapper/*.xml
   type-aliases-package: com.tarzan.**.entity
   #type-handlers-package: com.tarzan.maxkb4j.handler

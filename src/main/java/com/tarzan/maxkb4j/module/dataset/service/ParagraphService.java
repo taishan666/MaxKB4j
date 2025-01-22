@@ -7,7 +7,6 @@ import com.tarzan.maxkb4j.module.dataset.vo.ParagraphVO;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.UUID;
 
 /**
  * @author tarzan
@@ -16,15 +15,15 @@ import java.util.UUID;
 @Service
 public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEntity>{
 
-    public List<ParagraphVO> retrievalParagraph(List<UUID> paragraphIds) {
+    public List<ParagraphVO> retrievalParagraph(List<String> paragraphIds) {
         return baseMapper.retrievalParagraph(paragraphIds);
     }
 
-    public void updateStatusById(UUID id, int type, int status) {
+    public void updateStatusById(String id, int type, int status) {
         baseMapper.updateStatusById(id,type,status,type-1,type+1);
     }
 
-    public void updateStatusByDocIds(List<UUID> docIds, int type,int status)  {
+    public void updateStatusByDocIds(List<String> docIds, int type,int status)  {
         baseMapper.updateStatusByDocIds(docIds,type,status,type-1,type+1);
     }
 }

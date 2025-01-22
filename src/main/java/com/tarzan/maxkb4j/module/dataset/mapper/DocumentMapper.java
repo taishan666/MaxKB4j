@@ -10,7 +10,6 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
-import java.util.UUID;
 
 /**
  * @author tarzan
@@ -19,11 +18,11 @@ import java.util.UUID;
 @Mapper
 public interface DocumentMapper extends BaseMapper<DocumentEntity>{
 
-    IPage<DocumentVO> selectDocPage(Page<DocumentVO> docPage, UUID datasetId,@Param("query") QueryDTO query);
+    IPage<DocumentVO> selectDocPage(Page<DocumentVO> docPage, String datasetId,@Param("query") QueryDTO query);
 
-    boolean updateStatusMetaById(UUID id);
+    boolean updateStatusMetaById(String id);
 
-    void updateStatusMetaByIds(List<UUID> ids);
+    void updateStatusMetaByIds(List<String> ids);
 
-    void updateStatusByIds(List<UUID> ids, int type, int status, int up, int next);
+    void updateStatusByIds(List<String> ids, int type, int status, int up, int next);
 }

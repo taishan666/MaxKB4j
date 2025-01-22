@@ -4,9 +4,7 @@
 
     <!-- 多个字段中某个字段的类型处理器配置 -->
     <resultMap id="docResultMap" type="com.tarzan.maxkb4j.module.dataset.vo.DocumentVO">
-        <result property="id" column="id" typeHandler="com.tarzan.maxkb4j.handler.UUIDTypeHandler" />
         <result property="meta" column="meta" typeHandler="com.baomidou.mybatisplus.extension.handlers.FastjsonTypeHandler" />
-        <result property="datasetId" column="dataset_id" typeHandler="com.tarzan.maxkb4j.handler.UUIDTypeHandler" />
         <result property="statusMeta" column="status_meta" typeHandler="com.baomidou.mybatisplus.extension.handlers.FastjsonTypeHandler" />
     </resultMap>
     <update id="updateStatusMetaById">

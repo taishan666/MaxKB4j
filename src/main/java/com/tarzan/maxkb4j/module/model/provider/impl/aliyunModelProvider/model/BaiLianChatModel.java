@@ -7,6 +7,8 @@ import dev.langchain4j.model.chat.ChatLanguageModel;
 import dev.langchain4j.model.chat.StreamingChatLanguageModel;
 import dev.langchain4j.community.model.dashscope.QwenChatModel;
 import dev.langchain4j.community.model.dashscope.QwenStreamingChatModel;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 public class BaiLianChatModel extends BaseChatModel implements BaseModel {
 

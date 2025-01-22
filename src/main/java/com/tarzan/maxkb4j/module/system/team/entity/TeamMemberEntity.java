@@ -1,17 +1,13 @@
 package com.tarzan.maxkb4j.module.system.team.entity;
 
-import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
-import com.tarzan.maxkb4j.handler.UUIDTypeHandler;
 import com.tarzan.maxkb4j.common.entity.BaseEntity;
 import com.tarzan.maxkb4j.serializer.NullRootSerializer;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-
-import java.util.UUID;
 
 /**
  * @author tarzan
@@ -22,12 +18,9 @@ import java.util.UUID;
 @TableName("team_member")
 public class TeamMemberEntity extends BaseEntity {
     @JsonSerialize(using = ToStringSerializer.class, nullsUsing = NullRootSerializer.class)
-	@TableField(typeHandler = UUIDTypeHandler.class)
-    private UUID id;
+    private String id;
     @JsonProperty("team_id")
-	@TableField(typeHandler = UUIDTypeHandler.class)
-    private UUID teamId;
+    private String teamId;
     @JsonProperty("user_id")
-	@TableField(typeHandler = UUIDTypeHandler.class)
-    private UUID userId;
+    private String userId;
 } 

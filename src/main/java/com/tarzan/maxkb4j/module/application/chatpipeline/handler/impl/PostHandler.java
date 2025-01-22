@@ -12,9 +12,9 @@ import com.tarzan.maxkb4j.module.application.chatpipeline.handler.PostResponseHa
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.lang.String;
 import java.util.List;
 import java.util.Objects;
-import java.util.UUID;
 
 @Component
 public class PostHandler extends PostResponseHandler {
@@ -25,7 +25,7 @@ public class PostHandler extends PostResponseHandler {
     private ApplicationChatRecordService chatRecordService;
 
     @Override
-    public void handler(ChatInfo chatInfo, UUID chatId, UUID chatRecordId, String problemText, String answerText, PipelineManage manage, UUID clientId) {
+    public void handler(ChatInfo chatInfo, String chatId, String chatRecordId, String problemText, String answerText, PipelineManage manage, String clientId) {
         long startTime = manage.context.getLong("start_time");
         JSONObject context = manage.context;
         ApplicationChatRecordEntity chatRecord = new ApplicationChatRecordEntity();
@@ -41,13 +41,13 @@ public class PostHandler extends PostResponseHandler {
         chatRecord.setVoteStatus("-1");
         chatRecord.setConstant(0);
         chatRecord.setDetails(manage.getDetails());
-        chatRecord.setImproveParagraphIdList(new UUID[0]);
+        chatRecord.setImproveParagraphIdList(new String[0]);
         chatInfo.getChatRecordList().add(chatRecord);
         ChatCache.put(chatInfo.getChatId(), chatInfo);
         if (Objects.nonNull(chatInfo.getApplication().getId())) {
             ApplicationChatEntity chatEntity = new ApplicationChatEntity();
             chatEntity.setId(chatId);
-            UUID appId = chatInfo.getApplication().getId();
+            String appId = chatInfo.getApplication().getId();
             chatEntity.setApplicationId(appId);
             problemText=problemText.length()>50?problemText.substring(0,50):problemText;
             chatEntity.setDigest(problemText);

@@ -6,7 +6,6 @@ import com.tarzan.maxkb4j.module.system.user.vo.PermissionVO;
 import org.apache.ibatis.annotations.Mapper;
 
 import java.util.List;
-import java.util.UUID;
 
 
 /**
@@ -15,5 +14,5 @@ import java.util.UUID;
  */
 @Mapper
 public interface UserMapper extends BaseMapper<UserEntity>{
-    List<PermissionVO> getUserPermissionById(UUID userId);
+    List<PermissionVO> getUserPermissionById(String userId);
 }

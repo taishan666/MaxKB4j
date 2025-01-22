@@ -6,11 +6,15 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import java.util.List;
-import java.util.UUID;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class ApplicationVO extends ApplicationEntity {
     @JsonProperty("dataset_id_list")
-    private List<UUID> datasetIdList;
+    private List<String> datasetIdList;
+    private String model;
+    @JsonProperty("stt_model")
+    private String sttModel;
+    @JsonProperty("tts_model")
+    private String ttsModel;
 }

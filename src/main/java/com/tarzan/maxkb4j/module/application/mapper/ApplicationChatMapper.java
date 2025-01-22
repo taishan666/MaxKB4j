@@ -9,7 +9,6 @@ import com.tarzan.maxkb4j.module.application.vo.ApplicationStatisticsVO;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
-import java.util.UUID;
 
 /**
  * @author tarzan
@@ -17,8 +16,8 @@ import java.util.UUID;
  */
 public interface ApplicationChatMapper extends BaseMapper<ApplicationChatEntity>{
 
-    IPage<ApplicationChatEntity> chatLogs(Page<ApplicationChatEntity> page, UUID appId,@Param("query") ChatQueryDTO query);
+    IPage<ApplicationChatEntity> chatLogs(Page<ApplicationChatEntity> page, String appId,@Param("query") ChatQueryDTO query);
 
 
-    List<ApplicationStatisticsVO> statistics(UUID appId,@Param("query") ChatQueryDTO query);
+    List<ApplicationStatisticsVO> statistics(String appId,@Param("query") ChatQueryDTO query);
 }

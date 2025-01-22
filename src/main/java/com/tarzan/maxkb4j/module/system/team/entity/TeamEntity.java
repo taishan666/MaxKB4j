@@ -21,7 +21,7 @@ public class TeamEntity {
 
 	@TableId(value = "user_id", type = IdType.INPUT)
 	//@TableField(typeHandler = UUIDTypeHandler.class)
-	private UUID userId;
+	private String userId;
 	
 	private String name;
 } 

@@ -17,6 +17,6 @@ import java.util.UUID;
 @Mapper
 public interface ApplicationPublicAccessClientMapper extends BaseMapper<ApplicationPublicAccessClientEntity>{
 
-    List<ApplicationPublicAccessClientStatisticsVO> statistics(UUID appId, @Param("query") ChatQueryDTO query);
+    List<ApplicationPublicAccessClientStatisticsVO> statistics(String appId, @Param("query") ChatQueryDTO query);
 
 }

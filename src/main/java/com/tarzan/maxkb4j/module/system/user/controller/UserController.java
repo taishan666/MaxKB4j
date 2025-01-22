@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.UUID;
 
 /**
  * @author tarzan
@@ -82,18 +81,18 @@ public class UserController{
 	}
 
 	@PutMapping("api/user_manage/{id}")
-	public R<Boolean> updateUserById(@PathVariable("id")UUID id,@RequestBody UserEntity user){
+	public R<Boolean> updateUserById(@PathVariable("id")String id,@RequestBody UserEntity user){
 		user.setId(id);
 		return R.success(userService.updateById(user));
 	}
 
 	@DeleteMapping("api/user_manage/{id}")
-	public R<Boolean> deleteUserById(@PathVariable("id")UUID id){
+	public R<Boolean> deleteUserById(@PathVariable("id")String id){
 		return R.success(userService.deleteUserById(id));
 	}
 
 	@PutMapping("api/user_manage/{id}/re_password")
-	public R<Boolean> updatePassword(@PathVariable("id")UUID id,@RequestBody PasswordDTO dto){
+	public R<Boolean> updatePassword(@PathVariable("id")String id,@RequestBody PasswordDTO dto){
 		if(!Objects.equals(dto.getPassword(), dto.getRePassword())){
 			return R.fail("密码输入不一致");
 		}

@@ -1,11 +1,9 @@
 package com.tarzan.maxkb4j.module.application.service;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import org.springframework.stereotype.Service;
-import com.tarzan.maxkb4j.module.application.mapper.ApplicationAccessTokenMapper;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationAccessTokenEntity;
-
-import java.util.UUID;
+import com.tarzan.maxkb4j.module.application.mapper.ApplicationAccessTokenMapper;
+import org.springframework.stereotype.Service;
 
 /**
  * @author tarzan
@@ -13,7 +11,7 @@ import java.util.UUID;
  */
 @Service
 public class ApplicationAccessTokenService extends ServiceImpl<ApplicationAccessTokenMapper, ApplicationAccessTokenEntity>{
-    public ApplicationAccessTokenEntity accessToken(UUID appId) {
+    public ApplicationAccessTokenEntity accessToken(String appId) {
         return  this.lambdaQuery().eq(ApplicationAccessTokenEntity::getApplicationId, appId).one();
     }
 }

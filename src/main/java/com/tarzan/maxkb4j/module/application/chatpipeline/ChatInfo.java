@@ -15,7 +15,7 @@ import java.util.UUID;
 @Data
 public class ChatInfo {
 
-    private UUID chatId;
+    private String chatId;
     private ApplicationEntity application;
     private List<UUID> datasetIds;
     private List<UUID> excludeDocumentIds;
@@ -26,12 +26,12 @@ public class ChatInfo {
         return BeanUtil.toMap(this);
     }
 
-    public Map<String, Object> toPipelineManageParams(String problemText,PostResponseHandler postResponseHandler,List<UUID> excludeParagraphIds, String clientId,String clientType, boolean stream){
+    public Map<String, Object> toPipelineManageParams(String problemText,PostResponseHandler postResponseHandler,List<String> excludeParagraphIds, String clientId,String clientType, boolean stream){
         Map<String, Object> params = toBasePipelineManageParams();
         params.put("problem_text", problemText);
         params.put("postResponseHandler", postResponseHandler);
         params.put("exclude_paragraph_ids", excludeParagraphIds);
-        UUID client_id=clientId==null?null:UUID.fromString(clientId);
+        String client_id=clientId==null?"":clientId;
         params.put("client_id", client_id);
         params.put("client_type", clientType);
         params.put("stream", stream);

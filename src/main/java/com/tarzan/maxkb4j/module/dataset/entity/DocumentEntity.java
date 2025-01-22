@@ -4,13 +4,11 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tarzan.maxkb4j.handler.JOSNBTypeHandler;
-import com.tarzan.maxkb4j.handler.UUIDTypeHandler;
 import com.tarzan.maxkb4j.common.entity.BaseEntity;
 import lombok.Data;
 import com.alibaba.fastjson.JSONObject;
 import lombok.EqualsAndHashCode;
 
-import java.util.UUID;
 
 /**
   * @author tarzan
@@ -36,9 +34,8 @@ public class DocumentEntity extends BaseEntity {
 	@TableField(typeHandler = JOSNBTypeHandler.class)
 	private JSONObject meta;
 	
-	@TableField(typeHandler = UUIDTypeHandler.class)
 	@JsonProperty("dataset_id")
-	private UUID datasetId;
+	private String datasetId;
 	
 	@JsonProperty("hit_handling_method")
 	private String hitHandlingMethod;
