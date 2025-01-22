@@ -225,7 +225,7 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
         paragraph.setStatus("nn2");
         paragraph.setHitNum(0);
         paragraph.setIsActive(true);
-        paragraph.setStatusMeta(new JSONObject());
+        paragraph.setStatusMeta(paragraph.defaultStatusMeta());
         flag = paragraphService.save(paragraph);
         List<ProblemEntity> problems = paragraph.getProblemList();
         if (!CollectionUtils.isEmpty(problems)) {
@@ -327,7 +327,7 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
         documentEntity.setMeta(new JSONObject());
         documentEntity.setCharLength(0);
         documentEntity.setStatus("nn2");
-        documentEntity.setStatusMeta(new JSONObject());
+        documentEntity.setStatusMeta(documentEntity.defaultStatusMeta());
         documentEntity.setIsActive(true);
         documentEntity.setType("0");
         documentEntity.setHitHandlingMethod("optimization");
@@ -580,7 +580,7 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
         paragraph.setStatus("nn2");
         paragraph.setHitNum(0);
         paragraph.setIsActive(true);
-        paragraph.setStatusMeta(new JSONObject());
+        paragraph.setStatusMeta(paragraph.defaultStatusMeta());
         paragraph.setDocumentId(docId);
         return paragraph;
     }
