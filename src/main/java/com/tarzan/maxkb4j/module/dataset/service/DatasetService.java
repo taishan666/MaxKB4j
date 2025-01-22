@@ -230,7 +230,9 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
     }
 
     @Transactional
-    public boolean createParagraph(ParagraphDTO paragraph) {
+    public boolean createParagraph(UUID datasetId,UUID docId,ParagraphDTO paragraph) {
+        paragraph.setDatasetId(datasetId);
+        paragraph.setDocumentId(docId);
         boolean flag;
         paragraph.setStatus("nn2");
         paragraph.setHitNum(0);
@@ -803,5 +805,56 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
 
     public List<TextSegmentVO> split(MultipartFile[] file) {
         return Collections.emptyList();
+    }
+
+    public void exportTemplate(String type, HttpServletResponse response, String csvPath, String excelPath, String csvFileName, String excelFileName) throws Exception {
+        // 设置字符编码
+        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
+        String fileName = "";
+        String contentType = "";
+        InputStream inputStream = null;
+        ClassLoader classLoader = getClass().getClassLoader();
+
+        if("csv".equals(type)){
+            contentType = "text/csv";
+            fileName = URLEncoder.encode(csvFileName, StandardCharsets.UTF_8);
+            inputStream = classLoader.getResourceAsStream(csvPath);
+        } else if("excel".equals(type)){
+            contentType = "application/vnd.ms-excel"; // 更准确的Excel MIME类型
+            fileName = URLEncoder.encode(excelFileName, StandardCharsets.UTF_8);
+            inputStream = classLoader.getResourceAsStream(excelPath);
+        }
+
+        if(inputStream != null){
+            try (OutputStream outputStream = response.getOutputStream()) {
+                // 设置响应内容类型和头部信息
+                response.setContentType(contentType);
+                response.setHeader("Content-disposition", "attachment;filename=" + fileName);
+
+                byte[] buffer = new byte[1024];
+                int bytesRead;
+                while ((bytesRead = inputStream.read(buffer)) != -1) {
+                    outputStream.write(buffer, 0, bytesRead);
+                }
+                outputStream.flush();
+            } finally {
+                // 确保输入流被关闭，即使发生异常
+                inputStream.close();
+            }
+        } else {
+            throw new Exception("无法找到指定类型的模板文件");
+        }
+    }
+
+    public void tableTemplateExport(String type, HttpServletResponse response) throws Exception {
+        exportTemplate(type, response, "template/MaxKB4J表格模板.csv", "template/MaxKB4J表格模板.xlsx", "csv_template.csv", "excel_template.xlsx");
+    }
+
+    public void templateExport(String type, HttpServletResponse response) throws Exception {
+        exportTemplate(type, response, "template/csv_template.csv", "template/excel_template.xlsx", "csv_template.csv", "excel_template.xlsx");
+    }
+
+    public List<DatasetEntity> listByUserId(UUID userId) {
+        return this.lambdaQuery().eq(DatasetEntity::getUserId, userId).list();
     }
 }

@@ -1,7 +1,6 @@
 package com.tarzan.maxkb4j.module.system.team.controller;
 
 import cn.dev33.satoken.stp.StpUtil;
-import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.module.system.team.dto.TeamMemberPermissionDTO;
 import com.tarzan.maxkb4j.module.system.team.service.TeamMemberService;
 import com.tarzan.maxkb4j.module.system.team.vo.MemberVO;
@@ -32,58 +31,9 @@ public class TeamMemberController{
     }
 
     @GetMapping("api/team/member/root")
-    public R<JSONObject> teamRootMember(){
-        String res="{\n" +
-                "        \"APPLICATION\": [\n" +
-                "            {\n" +
-                "                \"id\": \"0e3eee95-c0cc-11ef-8f1c-bad5470d815f\",\n" +
-                "                \"name\": \"\\u5de5\\u4f5c\\u6d4166\",\n" +
-                "                \"type\": \"APPLICATION\",\n" +
-                "                \"user_id\": \"f0dd8f71-e4ee-11ee-8c84-a8a1595801ab\",\n" +
-                "                \"member_id\": \"root\",\n" +
-                "                \"operate\": {\n" +
-                "                    \"USE\": true,\n" +
-                "                    \"MANAGE\": true\n" +
-                "                }\n" +
-                "            },\n" +
-                "            {\n" +
-                "                \"id\": \"4368e2cb-c4e1-11ef-912f-d8808373b6e1\",\n" +
-                "                \"name\": \"DSADSA\",\n" +
-                "                \"type\": \"APPLICATION\",\n" +
-                "                \"user_id\": \"f0dd8f71-e4ee-11ee-8c84-a8a1595801ab\",\n" +
-                "                \"member_id\": \"root\",\n" +
-                "                \"operate\": {\n" +
-                "                    \"USE\": true,\n" +
-                "                    \"MANAGE\": true\n" +
-                "                }\n" +
-                "            },\n" +
-                "            {\n" +
-                "                \"id\": \"5959452f-bf8d-11ef-ac9b-bad5470d815f\",\n" +
-                "                \"name\": \"\\u5b66\\u6821\\u5ba2\\u670d\",\n" +
-                "                \"type\": \"APPLICATION\",\n" +
-                "                \"user_id\": \"f0dd8f71-e4ee-11ee-8c84-a8a1595801ab\",\n" +
-                "                \"member_id\": \"root\",\n" +
-                "                \"operate\": {\n" +
-                "                    \"USE\": true,\n" +
-                "                    \"MANAGE\": true\n" +
-                "                }\n" +
-                "            }\n" +
-                "        ],\n" +
-                "        \"DATASET\": [\n" +
-                "            {\n" +
-                "                \"id\": \"712fe46c-c00d-11ef-88ed-bad5470d815f\",\n" +
-                "                \"name\": \"\\u77f3\\u5bb6\\u5e84\\u533b\\u4e13\\u5ba2\\u670d\\u77e5\\u8bc6\\u5e93\",\n" +
-                "                \"type\": \"DATASET\",\n" +
-                "                \"user_id\": \"f0dd8f71-e4ee-11ee-8c84-a8a1595801ab\",\n" +
-                "                \"member_id\": \"root\",\n" +
-                "                \"operate\": {\n" +
-                "                    \"USE\": true,\n" +
-                "                    \"MANAGE\": true\n" +
-                "                }\n" +
-                "            }\n" +
-                "        ]\n" +
-                "    }";
-        return R.success(JSONObject.parseObject(res));
+    public R<Map<String, List<TeamMemberPermissionVO>>> teamRootMember(){
+        UUID userId = UUID.fromString(StpUtil.getLoginIdAsString());
+        return R.success(teamMemberService.getMemberPermissions(userId,UUID.randomUUID()));
     }
 
     @GetMapping("api/team/member/{teamMemberId}")

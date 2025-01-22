@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.tarzan.maxkb4j.module.team.mapper.TeamMemberMapper">
+<mapper namespace="com.tarzan.maxkb4j.module.system.team.mapper.TeamMemberMapper">
 
     <select id="getByUserId" resultType="com.tarzan.maxkb4j.module.system.team.vo.MemberVO">
         SELECT

@@ -33,180 +33,179 @@ import java.util.UUID;
  */
 @RestController
 @AllArgsConstructor
-public class ApplicationController{
+public class ApplicationController {
 
     @Autowired
     private ApplicationService applicationService;
 
     @GetMapping("api/application")
-    public R<List<ApplicationEntity>> listApps(){
+    public R<List<ApplicationEntity>> listApps() {
         return R.success(applicationService.list());
     }
 
     @PostMapping("api/application")
-    public R<ApplicationEntity> createApp(@RequestBody ApplicationEntity application){
+    public R<ApplicationEntity> createApp(@RequestBody ApplicationEntity application) {
         return R.success(applicationService.createApp(application));
     }
 
     @PostMapping("api/application/authentication")
-    public R<String> authentication(HttpServletRequest request,@RequestBody JSONObject json) throws Exception {
-        return R.success(applicationService.authentication(request,json));
+    public R<String> authentication(HttpServletRequest request, @RequestBody JSONObject json) throws Exception {
+        return R.success(applicationService.authentication(request, json));
     }
 
     @GetMapping("api/application/{id}/hit_test")
-    public R<List<ParagraphVO>> hitTest(@PathVariable("id") UUID id, HitTestDTO dto){
-        return R.success(applicationService.hitTest(id,dto));
+    public R<List<ParagraphVO>> hitTest(@PathVariable("id") UUID id, HitTestDTO dto) {
+        return R.success(applicationService.hitTest(id, dto));
     }
 
     @PutMapping("api/application/{id}/edit_icon")
-    public R<Boolean> editIcon(@PathVariable("id") UUID id, MultipartFile file){
-        return R.success(applicationService.editIcon(id,file));
+    public R<Boolean> editIcon(@PathVariable("id") UUID id, MultipartFile file) {
+        return R.success(applicationService.editIcon(id, file));
     }
 
     @GetMapping("api/application/profile")
-    public R<JSONObject> appProfile(HttpServletRequest request){
+    public R<JSONObject> appProfile(HttpServletRequest request) {
         return R.success(applicationService.appProfile(request));
     }
 
     @GetMapping("api/application/{appId}/chat/client/{page}/{size}")
-    public R<IPage<ApplicationChatEntity>> clientChatPage(@PathVariable("appId")UUID appId, @PathVariable("page")int page, @PathVariable("size")int size,HttpServletRequest request){
-        return R.success(applicationService.clientChatPage(appId,page,size,request));
+    public R<IPage<ApplicationChatEntity>> clientChatPage(@PathVariable("appId") UUID appId, @PathVariable("page") int page, @PathVariable("size") int size, HttpServletRequest request) {
+        return R.success(applicationService.clientChatPage(appId, page, size, request));
     }
 
 
     @PostMapping("api/application/chat/open")
-    public R<UUID> chatOpenTest(@RequestBody ApplicationEntity application){
+    public R<UUID> chatOpenTest(@RequestBody ApplicationEntity application) {
         return R.success(applicationService.chatOpenTest(application));
     }
 
     @GetMapping("api/application/{appId}/chat/open")
-    public R<UUID> chatOpen(@PathVariable("appId") UUID appId){
+    public R<UUID> chatOpen(@PathVariable("appId") UUID appId) {
         return R.success(applicationService.chatOpen(appId));
     }
 
-    @PostMapping(path ="api/application/chat_message/{chatId}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<JSONObject> chatMessage(@PathVariable UUID chatId, @RequestBody JSONObject params,HttpServletRequest request){
-        return applicationService.chatMessage(chatId,params,request);
+    @PostMapping(path = "api/application/chat_message/{chatId}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public Flux<JSONObject> chatMessage(@PathVariable UUID chatId, @RequestBody JSONObject params, HttpServletRequest request) {
+        return applicationService.chatMessage(chatId, params, request);
     }
 
     @GetMapping("api/application/{id}/chat/{chatId}/chat_record/{chatRecordId}")
-    public R<ApplicationChatRecordVO> chatRecord(@PathVariable UUID id, @PathVariable UUID chatId, @PathVariable UUID chatRecordId){
-        return R.success(applicationService.getChatRecordInfo(chatId,chatRecordId));
+    public R<ApplicationChatRecordVO> chatRecord(@PathVariable UUID id, @PathVariable UUID chatId, @PathVariable UUID chatRecordId) {
+        return R.success(applicationService.getChatRecordInfo(chatId, chatRecordId));
     }
 
     @PutMapping("api/application/{id}/chat/{chatId}/chat_record/{chatRecordId}/vote")
-    public R<Boolean> vote(@PathVariable UUID id, @PathVariable UUID chatId, @PathVariable UUID chatRecordId,@RequestBody ApplicationChatRecordEntity chatRecord){
-        return R.success(applicationService.getChatRecordVote(chatRecordId,chatRecord));
+    public R<Boolean> vote(@PathVariable UUID id, @PathVariable UUID chatId, @PathVariable UUID chatRecordId, @RequestBody ApplicationChatRecordEntity chatRecord) {
+        return R.success(applicationService.getChatRecordVote(chatRecordId, chatRecord));
     }
 
-
     @GetMapping("api/application/{id}/chat/{chatId}/chat_record/{page}/{size}")
-    public R<IPage<ApplicationChatRecordVO>> chatRecordPage(@PathVariable UUID id, @PathVariable UUID chatId,@PathVariable int page, @PathVariable int size){
-        return R.success(applicationService.chatRecordPage(chatId,page,size));
+    public R<IPage<ApplicationChatRecordVO>> chatRecordPage(@PathVariable UUID id, @PathVariable UUID chatId, @PathVariable int page, @PathVariable int size) {
+        return R.success(applicationService.chatRecordPage(chatId, page, size));
     }
 
     @GetMapping("api/application/{page}/{size}")
-    public R<IPage<ApplicationEntity>> userApplications(@PathVariable("page")int page, @PathVariable("size")int size, QueryDTO query){
-        return R.success(applicationService.selectAppPage(page,size,query));
+    public R<IPage<ApplicationEntity>> userApplications(@PathVariable("page") int page, @PathVariable("size") int size, QueryDTO query) {
+        return R.success(applicationService.selectAppPage(page, size, query));
     }
 
     @GetMapping("api/application/{appId}")
-    public R<ApplicationVO> getByAppId(@PathVariable("appId") UUID appId){
+    public R<ApplicationVO> getByAppId(@PathVariable("appId") UUID appId) {
         return R.success(applicationService.getAppById(appId));
     }
 
     @DeleteMapping("api/application/{appId}")
-    public R<Boolean> deleteByAppId(@PathVariable("appId") UUID appId){
+    public R<Boolean> deleteByAppId(@PathVariable("appId") UUID appId) {
         return R.success(applicationService.deleteByAppId(appId));
     }
 
     @PostMapping("api/application/{appId}/text_to_speech")
-    public R<String> textToSpeech(@PathVariable("appId") UUID appId,@RequestBody String text){
+    public R<String> textToSpeech(@PathVariable("appId") UUID appId, @RequestBody String text) {
         System.out.println(text);
-        return R.success(applicationService.textToSpeech(appId,text));
+        return R.success(applicationService.textToSpeech(appId, text));
     }
 
     @GetMapping("api/valid/application/{type}")
-    public R<Boolean> copyApp(@PathVariable("type") int type){
+    public R<Boolean> copyApp(@PathVariable("type") int type) {
         return R.success(true);
     }
 
     @PutMapping("api/application/{appId}")
-    public R<Boolean> updateByAppId(@PathVariable("appId") UUID appId,@RequestBody ApplicationVO appVO){
-        return R.success(applicationService.updateAppById(appId,appVO));
+    public R<Boolean> updateByAppId(@PathVariable("appId") UUID appId, @RequestBody ApplicationVO appVO) {
+        return R.success(applicationService.updateAppById(appId, appVO));
     }
 
     @GetMapping("api/application/{appId}/application")
-    public R<ApplicationEntity> getByAppId1(@PathVariable("appId") UUID appId){
+    public R<ApplicationEntity> getByAppId1(@PathVariable("appId") UUID appId) {
         return R.success(applicationService.getById(appId));
     }
 
     @GetMapping("api/application/{appId}/access_token")
-    public R<ApplicationAccessTokenEntity> getAccessToken(@PathVariable("appId") UUID appId){
+    public R<ApplicationAccessTokenEntity> getAccessToken(@PathVariable("appId") UUID appId) {
         return R.success(applicationService.getAccessToken(appId));
     }
 
     @PutMapping("api/application/{appId}/access_token")
-    public R<ApplicationAccessTokenEntity> updateAccessToken(@PathVariable("appId") UUID appId,@RequestBody ApplicationAccessTokenEntity entity){
-        return R.success(applicationService.updateAccessToken(appId,entity));
+    public R<ApplicationAccessTokenEntity> updateAccessToken(@PathVariable("appId") UUID appId, @RequestBody ApplicationAccessTokenEntity entity) {
+        return R.success(applicationService.updateAccessToken(appId, entity));
     }
 
     @GetMapping("api/application/{appId}/api_key")
-    public R<List<ApplicationApiKeyEntity>> listApikey(@PathVariable("appId") UUID appId){
+    public R<List<ApplicationApiKeyEntity>> listApikey(@PathVariable("appId") UUID appId) {
         return R.success(applicationService.listApikey(appId));
     }
 
     @PostMapping("api/application/{appId}/api_key")
-    public R<Boolean> createApikey(@PathVariable("appId") UUID appId){
+    public R<Boolean> createApikey(@PathVariable("appId") UUID appId) {
         return R.success(applicationService.createApikey(appId));
     }
 
     @PutMapping("api/application/{appId}/api_key/{apiKeyId}")
-    public R<Boolean> updateApikey(@PathVariable("appId") UUID appId, @PathVariable("apiKeyId") UUID apiKeyId, @RequestBody ApplicationApiKeyEntity apiKeyEntity){
-        return R.success(applicationService.updateApikey(appId,apiKeyId,apiKeyEntity));
+    public R<Boolean> updateApikey(@PathVariable("appId") UUID appId, @PathVariable("apiKeyId") UUID apiKeyId, @RequestBody ApplicationApiKeyEntity apiKeyEntity) {
+        return R.success(applicationService.updateApikey(appId, apiKeyId, apiKeyEntity));
     }
 
     @DeleteMapping("api/application/{appId}/api_key/{apiKeyId}")
-    public R<Boolean> deleteApikey(@PathVariable("appId") UUID appId,@PathVariable("apiKeyId") UUID apiKeyId){
-        return R.success(applicationService.deleteApikey(appId,apiKeyId));
+    public R<Boolean> deleteApikey(@PathVariable("appId") UUID appId, @PathVariable("apiKeyId") UUID apiKeyId) {
+        return R.success(applicationService.deleteApikey(appId, apiKeyId));
     }
 
     @GetMapping("api/application/{appId}/model")
-    public R<List<ModelEntity>> model(@PathVariable("appId") UUID appId, String model_type){
-        return R.success(applicationService.getAppModels(appId,model_type));
+    public R<List<ModelEntity>> model(@PathVariable("appId") UUID appId, String model_type) {
+        return R.success(applicationService.getAppModels(appId, model_type));
     }
 
     @GetMapping("api/application/{appId}/list_dataset")
-    public R<List<DatasetEntity>> datasets(@PathVariable("appId") UUID appId){
+    public R<List<DatasetEntity>> datasets(@PathVariable("appId") UUID appId) {
         return R.success(applicationService.getDatasets(appId));
     }
 
     @PostMapping("api/application/{appId}/dataset/{datasetId}/improve")
-    public R<Boolean> improveChatLogs(@PathVariable("appId") UUID appId, @PathVariable("appId") UUID datasetId, ChatImproveDTO dto){
-        return R.success(applicationService.improveChatLogs(appId,dto));
+    public R<Boolean> improveChatLogs(@PathVariable("appId") UUID appId, @PathVariable("appId") UUID datasetId, ChatImproveDTO dto) {
+        return R.success(applicationService.improveChatLogs(appId, dto));
     }
 
     @GetMapping("api/application/{appId}/chat/{page}/{size}")
-    public R<IPage<ApplicationChatEntity>> chatLogs(@PathVariable("appId") String appId, @PathVariable("page")int page, @PathVariable("size")int size, HttpServletRequest request){
+    public R<IPage<ApplicationChatEntity>> chatLogs(@PathVariable("appId") String appId, @PathVariable("page") int page, @PathVariable("size") int size, HttpServletRequest request) {
         ChatQueryDTO query = new ChatQueryDTO();
         query.setKeyword(request.getParameter("abstract"));
         query.setStartTime(request.getParameter("start_time"));
         query.setEndTime(request.getParameter("end_time"));
-        return R.success(applicationService.chatLogs(appId,page,size,query));
+        return R.success(applicationService.chatLogs(appId, page, size, query));
     }
 
     @GetMapping("api/application/{appId}/model_params_form/{modelId}")
-    public R<JSONArray> modelParams(@PathVariable("appId") String appId, @PathVariable("modelId")String modelId){
-        return R.success(applicationService.modelParams(appId,modelId));
+    public R<JSONArray> modelParams(@PathVariable("appId") String appId, @PathVariable("modelId") String modelId) {
+        return R.success(applicationService.modelParams(appId, modelId));
     }
 
     @GetMapping("api/application/{appId}/statistics/chat_record_aggregate_trend")
-    public R<List<ApplicationStatisticsVO>> statistics(@PathVariable("appId") UUID appId,HttpServletRequest request){
+    public R<List<ApplicationStatisticsVO>> statistics(@PathVariable("appId") UUID appId, HttpServletRequest request) {
         ChatQueryDTO query = new ChatQueryDTO();
         query.setKeyword(request.getParameter("abstract"));
         query.setStartTime(request.getParameter("start_time"));
         query.setEndTime(request.getParameter("end_time"));
-        return R.success(applicationService.statistics(appId,query));
+        return R.success(applicationService.statistics(appId, query));
     }
 
 }

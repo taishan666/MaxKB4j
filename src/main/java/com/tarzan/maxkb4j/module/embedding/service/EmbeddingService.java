@@ -136,9 +136,9 @@ public class EmbeddingService extends ServiceImpl<EmbeddingMapper, EmbeddingEnti
     }
 
     public void embedParagraphs(List<ParagraphEntity> paragraphs,EmbeddingModel embeddingModel) {
-        for (ParagraphEntity paragraph : paragraphs) {
+        paragraphs.parallelStream().forEach(paragraph -> {
             embedParagraph(paragraph,embeddingModel);
-        }
+        });
     }
 
     @Transactional
@@ -186,7 +186,7 @@ public class EmbeddingService extends ServiceImpl<EmbeddingMapper, EmbeddingEnti
     public void embedByDocIds(UUID datasetId,List<UUID> docIds) {
         if (!CollectionUtils.isEmpty(docIds)) {
             EmbeddingModel embeddingModel=getDatasetEmbeddingModel(datasetId);
-            for (UUID docId : docIds) {
+            docIds.parallelStream().forEach(docId -> {
                 documentService.updateStatusById(docId,1,1);
                 //清除之前向量
                 this.lambdaUpdate().eq(EmbeddingEntity::getDocumentId, docId).remove();
@@ -195,7 +195,7 @@ public class EmbeddingService extends ServiceImpl<EmbeddingMapper, EmbeddingEnti
                 embedParagraphs(paragraphEntities,embeddingModel);
                 documentService.updateStatusById(docId,1,2);
                 log.info("结束--->向量化文档:{}", docId);
-            }
+            });
         }
     }
 

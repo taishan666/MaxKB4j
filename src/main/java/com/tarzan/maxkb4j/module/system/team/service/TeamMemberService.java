@@ -72,10 +72,9 @@ public class TeamMemberService extends ServiceImpl<TeamMemberMapper, TeamMemberE
         return this.saveBatch(teamMemberEntities);
     }
 
-    public Map<String, List<TeamMemberPermissionVO>> getPermissionByMemberId(UUID teamMemberId) {
-        TeamMemberEntity entity=this.getById(teamMemberId);
-        List<TeamMemberPermissionVO> list=teamMemberPermissionService.getPermissionByMemberId(entity.getTeamId(),entity.getId());
-        return list.stream().collect(Collectors.groupingBy(TeamMemberPermissionVO::getType));
+    public Map<String, List<TeamMemberPermissionVO>> getPermissionByMemberId(UUID memberId) {
+        TeamMemberEntity entity=this.getById(memberId);
+        return getMemberPermissions(entity.getTeamId(),entity.getId());
     }
 
     @Transactional
@@ -94,5 +93,10 @@ public class TeamMemberService extends ServiceImpl<TeamMemberMapper, TeamMemberE
             teamMemberPermissionService.saveBatch(entities);
         }
         return getPermissionByMemberId(teamMemberId);
+    }
+
+    public Map<String, List<TeamMemberPermissionVO>> getMemberPermissions(UUID teamId,UUID memberId) {
+        List<TeamMemberPermissionVO> list=teamMemberPermissionService.getPermissionByMemberId(teamId,memberId);
+        return list.stream().collect(Collectors.groupingBy(TeamMemberPermissionVO::getType));
     }
 }

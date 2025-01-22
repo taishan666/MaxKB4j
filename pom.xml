@@ -44,7 +44,6 @@
             <artifactId>bcpkix-jdk15on</artifactId>
             <version>1.70</version> <!-- 请根据需要选择版本 -->
         </dependency>
-
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-webflux</artifactId>
@@ -172,23 +171,29 @@
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
         </dependency>
-       <!-- <dependency>
-            <groupId>dev.langchain4j</groupId>
-            <artifactId>langchain4j-open-ai-spring-boot-starter</artifactId>
-            <version>1.0.0-alpha1</version>
-        </dependency>-->
+        <!-- <dependency>
+             <groupId>dev.langchain4j</groupId>
+             <artifactId>langchain4j-open-ai-spring-boot-starter</artifactId>
+             <version>1.0.0-alpha1</version>
+         </dependency>-->
         <!-- https://mvnrepository.com/artifact/dev.langchain4j/langchain4j -->
-    <!--    <dependency>
-            <groupId>dev.langchain4j</groupId>
-            <artifactId>langchain4j</artifactId>
-            <version>1.0.0-alpha1</version>
-        &lt;!&ndash;    <scope>test</scope>&ndash;&gt;
-        </dependency>-->
+        <!--    <dependency>
+                <groupId>dev.langchain4j</groupId>
+                <artifactId>langchain4j</artifactId>
+                <version>1.0.0-alpha1</version>
+            &lt;!&ndash;    <scope>test</scope>&ndash;&gt;
+            </dependency>-->
         <!-- https://mvnrepository.com/artifact/dev.langchain4j/langchain4j-embeddings -->
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-embeddings</artifactId>
             <version>1.0.0-alpha1</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.commons</groupId>
+                    <artifactId>commons-compress</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>dev.langchain4j</groupId>
@@ -201,24 +206,11 @@
             <artifactId>langchain4j-easy-rag</artifactId>
             <version>1.0.0-alpha1</version>
         </dependency>-->
-
-        <!-- https://mvnrepository.com/artifact/dev.langchain4j/langchain4j-dashscope -->
-      <!--  <dependency>
-            <groupId>dev.langchain4j</groupId>
-            <artifactId>langchain4j-dashscope</artifactId>
-            <version>0.36.2</version>
-        </dependency>-->
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-community-dashscope</artifactId>
             <version>1.0.0-alpha1</version>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/dev.langchain4j/langchain4j-elasticsearch -->
-      <!--  <dependency>
-            <groupId>dev.langchain4j</groupId>
-            <artifactId>langchain4j-elasticsearch</artifactId>
-            <version>1.0.0-alpha1</version>
-        </dependency>-->
         <dependency>
             <groupId>com.huaban</groupId>
             <artifactId>jieba-analysis</artifactId>
@@ -242,17 +234,6 @@
                   <scope>test</scope>
               </dependency>-->
     </dependencies>
-    <!--    <dependencyManagement>
-            <dependencies>
-                <dependency>
-                    <groupId>org.springframework.ai</groupId>
-                    <artifactId>spring-ai-bom</artifactId>
-                    <version>${spring-ai.version}</version>
-                    <type>pom</type>
-                    <scope>import</scope>
-                </dependency>
-            </dependencies>
-        </dependencyManagement>-->
 
     <repositories>
         <repository>
@@ -266,13 +247,6 @@
 
     <build>
         <resources>
-           <!-- <resource>
-                <directory>src/main/java</directory>
-                <includes>
-                    <include>**/*.xml</include>
-                    <include>**/*.svg</include>
-                </includes>
-            </resource>-->
             <resource>
                 <directory>src/main/resources</directory>
             </resource>
