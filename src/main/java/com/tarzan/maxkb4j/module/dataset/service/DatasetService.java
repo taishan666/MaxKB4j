@@ -107,6 +107,9 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
 
     public DatasetVO getByDatasetId(String id) {
         DatasetEntity entity = baseMapper.selectById(id);
+        if(Objects.isNull(entity)){
+            return null;
+        }
         DatasetVO vo = BeanUtil.copy(entity, DatasetVO.class);
         List<ApplicationDatasetMappingEntity> apps = applicationDatasetMappingMapper.selectList(Wrappers.lambdaQuery(ApplicationDatasetMappingEntity.class)
                 .select(ApplicationDatasetMappingEntity::getApplicationId)

@@ -5,14 +5,11 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tarzan.maxkb4j.common.dto.QueryDTO;
 import com.tarzan.maxkb4j.module.dataset.entity.DocumentEntity;
-import com.tarzan.maxkb4j.module.dataset.entity.ParagraphEntity;
 import com.tarzan.maxkb4j.module.dataset.mapper.DocumentMapper;
 import com.tarzan.maxkb4j.module.dataset.vo.DocumentVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -29,16 +26,8 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         return baseMapper.selectDocPage(docPage, datasetId,query);
     }
 
-    public List<ParagraphEntity> getParagraphsByDocIds(List<String> docIds) {
-        if(!CollectionUtils.isEmpty(docIds)){
-            return paragraphService.lambdaQuery().in(ParagraphEntity::getDocumentId,docIds).list();
-        }
-        return Collections.emptyList();
-    }
-
-
     public void updateStatusMetaById(String id){
-        baseMapper.updateStatusMetaById(id);
+        baseMapper.updateStatusMetaByIds(List.of(id));
     }
 
     //type 1向量化 2 生成问题 3同步
