@@ -7,7 +7,7 @@ import com.tarzan.maxkb4j.module.system.team.entity.TeamMemberEntity;
 import com.tarzan.maxkb4j.module.system.team.entity.TeamMemberPermissionEntity;
 import com.tarzan.maxkb4j.module.system.team.mapper.TeamMemberMapper;
 import com.tarzan.maxkb4j.module.system.team.vo.MemberVO;
-import com.tarzan.maxkb4j.module.system.team.vo.TeamMemberPermissionVO;
+import com.tarzan.maxkb4j.module.system.team.vo.MemberPermissionVO;
 import com.tarzan.maxkb4j.module.system.user.entity.UserEntity;
 import com.tarzan.maxkb4j.module.system.user.mapper.UserMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,14 +72,14 @@ public class TeamMemberService extends ServiceImpl<TeamMemberMapper, TeamMemberE
         return this.saveBatch(teamMemberEntities);
     }
 
-    public Map<String, List<TeamMemberPermissionVO>> getPermissionByMemberId(UUID memberId) {
+    public Map<String, List<MemberPermissionVO>> getPermissionByMemberId(UUID memberId) {
         TeamMemberEntity entity=this.getById(memberId);
         return getMemberPermissions(entity.getTeamId(),entity.getId());
     }
 
     @Transactional
-    public Map<String, List<TeamMemberPermissionVO>> updateTeamMemberById(UUID teamMemberId, TeamMemberPermissionDTO dto) {
-        List<TeamMemberPermissionVO> permissions=dto.getTeamMemberPermissionList();
+    public Map<String, List<MemberPermissionVO>> updateTeamMemberById(UUID teamMemberId, TeamMemberPermissionDTO dto) {
+        List<MemberPermissionVO> permissions=dto.getTeamMemberPermissionList();
         if(!CollectionUtils.isEmpty(permissions)) {
             teamMemberPermissionService.remove(Wrappers.<TeamMemberPermissionEntity>lambdaUpdate().eq(TeamMemberPermissionEntity::getMemberId,teamMemberId));
             List<TeamMemberPermissionEntity> entities=permissions.stream().map(e->{
@@ -95,8 +95,8 @@ public class TeamMemberService extends ServiceImpl<TeamMemberMapper, TeamMemberE
         return getPermissionByMemberId(teamMemberId);
     }
 
-    public Map<String, List<TeamMemberPermissionVO>> getMemberPermissions(UUID teamId,UUID memberId) {
-        List<TeamMemberPermissionVO> list=teamMemberPermissionService.getPermissionByMemberId(teamId,memberId);
-        return list.stream().collect(Collectors.groupingBy(TeamMemberPermissionVO::getType));
+    public Map<String, List<MemberPermissionVO>> getMemberPermissions(UUID teamId, UUID memberId) {
+        List<MemberPermissionVO> list=teamMemberPermissionService.getPermissionByMemberId(teamId,memberId);
+        return list.stream().collect(Collectors.groupingBy(MemberPermissionVO::getType));
     }
 }

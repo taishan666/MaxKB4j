@@ -2,7 +2,7 @@ package com.tarzan.maxkb4j.module.system.team.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.tarzan.maxkb4j.module.system.team.entity.TeamMemberPermissionEntity;
-import com.tarzan.maxkb4j.module.system.team.vo.TeamMemberPermissionVO;
+import com.tarzan.maxkb4j.module.system.team.vo.MemberPermissionVO;
 
 import java.util.List;
 import java.util.UUID;
@@ -13,5 +13,5 @@ import java.util.UUID;
  */
 public interface TeamMemberPermissionMapper extends BaseMapper<TeamMemberPermissionEntity>{
 
-   List<TeamMemberPermissionVO> getPermissionByMemberId(UUID teamId,UUID memberId);
+   List<MemberPermissionVO> getPermissionByMemberId(UUID teamId, UUID memberId);
 }

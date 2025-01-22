@@ -4,7 +4,7 @@ import cn.dev33.satoken.stp.StpUtil;
 import com.tarzan.maxkb4j.module.system.team.dto.TeamMemberPermissionDTO;
 import com.tarzan.maxkb4j.module.system.team.service.TeamMemberService;
 import com.tarzan.maxkb4j.module.system.team.vo.MemberVO;
-import com.tarzan.maxkb4j.module.system.team.vo.TeamMemberPermissionVO;
+import com.tarzan.maxkb4j.module.system.team.vo.MemberPermissionVO;
 import com.tarzan.maxkb4j.tool.api.R;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,18 +31,18 @@ public class TeamMemberController{
     }
 
     @GetMapping("api/team/member/root")
-    public R<Map<String, List<TeamMemberPermissionVO>>> teamRootMember(){
+    public R<Map<String, List<MemberPermissionVO>>> teamRootMember(){
         UUID userId = UUID.fromString(StpUtil.getLoginIdAsString());
         return R.success(teamMemberService.getMemberPermissions(userId,UUID.randomUUID()));
     }
 
     @GetMapping("api/team/member/{teamMemberId}")
-    public R<Map<String, List<TeamMemberPermissionVO>>> getTeamMemberById(@PathVariable("teamMemberId") UUID teamMemberId){
+    public R<Map<String, List<MemberPermissionVO>>> getTeamMemberById(@PathVariable("teamMemberId") UUID teamMemberId){
         return R.success(teamMemberService.getPermissionByMemberId(teamMemberId));
     }
 
     @PutMapping("api/team/member/{teamMemberId}")
-    public R<Map<String, List<TeamMemberPermissionVO>>> updateTeamMemberById(@PathVariable("teamMemberId") UUID teamMemberId,@RequestBody TeamMemberPermissionDTO dto){
+    public R<Map<String, List<MemberPermissionVO>>> updateTeamMemberById(@PathVariable("teamMemberId") UUID teamMemberId, @RequestBody TeamMemberPermissionDTO dto){
         return R.success(teamMemberService.updateTeamMemberById(teamMemberId,dto));
     }
 

@@ -7,7 +7,7 @@ import lombok.Data;
 import java.util.UUID;
 
 @Data
-public class TeamMemberPermissionVO {
+public class MemberPermissionVO {
 
     private UUID id;
     private String name;

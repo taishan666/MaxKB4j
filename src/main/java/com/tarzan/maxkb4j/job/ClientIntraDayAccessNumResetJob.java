@@ -17,7 +17,7 @@ public class ClientIntraDayAccessNumResetJob {
 
     private final ApplicationPublicAccessClientService accessClientService;
 
-    @Scheduled(cron = "0/1 * * * * ? ")
+    @Scheduled(cron = "0 0 0 * * *")
     public void execute() {
         log.info("开始重置intraDayAccessNum");
         accessClientService.lambdaUpdate().set(ApplicationPublicAccessClientEntity::getIntraDayAccessNum,0);
