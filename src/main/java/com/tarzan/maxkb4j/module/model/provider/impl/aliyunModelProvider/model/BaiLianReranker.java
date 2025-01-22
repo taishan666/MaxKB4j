@@ -1,7 +1,11 @@
 package com.tarzan.maxkb4j.module.model.provider.impl.aliyunModelProvider.model;
 
+import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.module.model.provider.BaseModel;
-import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
 
-public class BaiLianReranker extends BaseChatModel implements BaseModel {
+public class BaiLianReranker  implements BaseModel {
+    @Override
+    public <T> T newInstance(String modelName, JSONObject modelCredential) {
+        return null;
+    }
 }

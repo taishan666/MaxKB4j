@@ -118,8 +118,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     public ApplicationAccessTokenEntity updateAccessToken(UUID appId, ApplicationAccessTokenEntity entity) {
         entity.setApplicationId(appId);
         if (entity.getAccessTokenReset() != null && entity.getAccessTokenReset()) {
-            //todo
-            entity.setAccessToken("4142eb2fdb5b986e");
+            entity.setAccessToken(MD5Util.encrypt(UUID.randomUUID().toString(), 8, 24));
         }
         accessTokenService.updateById(entity);
         return accessTokenService.getById(appId);
@@ -338,11 +337,11 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
                 accessClient.setId(clientId);
                 accessClient.setApplicationId(appId);
                 accessClient.setAccessNum(0);
-                accessClient.setIntradayAccessNum(0);
+                accessClient.setIntraDayAccessNum(0);
                 applicationPublicAccessClientService.save(accessClient);
             }
             ApplicationAccessTokenEntity appAccessToken = applicationAccessTokenService.lambdaQuery().eq(ApplicationAccessTokenEntity::getApplicationId, appId).one();
-            if (appAccessToken.getAccessNum() < accessClient.getIntradayAccessNum()) {
+            if (appAccessToken.getAccessNum() < accessClient.getIntraDayAccessNum()) {
                 throw new Exception("访问次数超过今日访问量");
             }
         }
@@ -522,10 +521,6 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         return datasetService.hitTest(datasetIds, dto);
     }
 
-    public boolean copyApp(int type) {
-        return true;
-    }
-
     public String textToSpeech(UUID uuid, String text) {
         return "";
     }
@@ -534,6 +529,24 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         ApplicationEntity application = new ApplicationEntity();
         application.setId(id);
         application.setIcon(imageService.upload(file));
+        return this.updateById(application);
+    }
+
+    @Transactional
+    public Boolean updateAppById(UUID appId, ApplicationVO appVO) {
+        ApplicationEntity application= BeanUtil.copy(appVO, ApplicationEntity.class);
+        application.setId(appId);
+        applicationDatasetMappingService.lambdaUpdate().eq(ApplicationDatasetMappingEntity::getApplicationId,appId).remove();
+        if(!CollectionUtils.isEmpty(appVO.getDatasetIdList())){
+            List<ApplicationDatasetMappingEntity> mappingList = new ArrayList<>();
+            for (UUID uuid : appVO.getDatasetIdList()) {
+                ApplicationDatasetMappingEntity mapping = new ApplicationDatasetMappingEntity();
+                mapping.setApplicationId(appId);
+                mapping.setDatasetId(uuid);
+                mappingList.add(mapping);
+            }
+           applicationDatasetMappingService.saveBatch(mappingList);
+        }
         return this.updateById(application);
     }
 }

@@ -35,6 +35,17 @@
             <version>4.0.3</version>
         </dependency>
         <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcprov-jdk15on</artifactId>
+            <version>1.70</version>
+        </dependency>
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcpkix-jdk15on</artifactId>
+            <version>1.70</version> <!-- 请根据需要选择版本 -->
+        </dependency>
+
+        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-webflux</artifactId>
             <exclusions>
@@ -147,19 +158,6 @@
                   <groupId>org.flywaydb</groupId>
                   <artifactId>flyway-database-postgresql</artifactId>
               </dependency>-->
-        <!--        <dependency>
-                    <groupId>org.springframework.ai</groupId>
-                    <artifactId>spring-ai-markdown-document-reader</artifactId>
-                </dependency>
-                <dependency>
-                    <groupId>org.springframework.ai</groupId>
-                    <artifactId>spring-ai-pdf-document-reader</artifactId>
-                </dependency>
-                <dependency>
-                    <groupId>org.springframework.ai</groupId>
-                    <artifactId>spring-ai-pgvector-store-spring-boot-starter</artifactId>
-                </dependency>-->
-
         <!--   <dependency>
                <groupId>org.springframework.boot</groupId>
                <artifactId>spring-boot-devtools</artifactId>
@@ -198,24 +196,29 @@
             <version>1.0.0-alpha1</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/dev.langchain4j/langchain4j-easy-rag -->
-        <dependency>
+        <!--<dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-easy-rag</artifactId>
             <version>1.0.0-alpha1</version>
-        </dependency>
+        </dependency>-->
 
         <!-- https://mvnrepository.com/artifact/dev.langchain4j/langchain4j-dashscope -->
-        <dependency>
+      <!--  <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-dashscope</artifactId>
             <version>0.36.2</version>
+        </dependency>-->
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-community-dashscope</artifactId>
+            <version>1.0.0-alpha1</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/dev.langchain4j/langchain4j-elasticsearch -->
-        <dependency>
+      <!--  <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-elasticsearch</artifactId>
             <version>1.0.0-alpha1</version>
-        </dependency>
+        </dependency>-->
         <dependency>
             <groupId>com.huaban</groupId>
             <artifactId>jieba-analysis</artifactId>
@@ -260,50 +263,21 @@
             </snapshots>
         </repository>
     </repositories>
-<!--    <repositories>
-       &lt;!&ndash; <repository>
-            <id>spring-milestones</id>
-            <name>Spring Milestones</name>
-            <url>https://repo.spring.io/milestone</url>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </repository>&ndash;&gt;
-        <repository>
-            <id>snapshots-repo</id>
-            <url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-        </repository>
-    </repositories>-->
 
     <build>
         <resources>
-            <resource>
+           <!-- <resource>
                 <directory>src/main/java</directory>
                 <includes>
                     <include>**/*.xml</include>
                     <include>**/*.svg</include>
                 </includes>
-            </resource>
+            </resource>-->
             <resource>
                 <directory>src/main/resources</directory>
             </resource>
         </resources>
         <plugins>
-            <!--    <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-compiler-plugin</artifactId>
-                    <configuration>
-                        <annotationProcessorPaths>
-                            <path>
-                                <groupId>org.projectlombok</groupId>
-                                <artifactId>lombok</artifactId>
-                            </path>
-                        </annotationProcessorPaths>
-                    </configuration>
-                </plugin>-->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>

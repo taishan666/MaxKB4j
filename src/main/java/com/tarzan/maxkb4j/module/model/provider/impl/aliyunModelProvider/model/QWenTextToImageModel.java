@@ -3,7 +3,7 @@ package com.tarzan.maxkb4j.module.model.provider.impl.aliyunModelProvider.model;
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.module.model.provider.BaseModel;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseTextToImage;
-import dev.langchain4j.model.dashscope.WanxImageModel;
+import dev.langchain4j.community.model.dashscope.WanxImageModel;
 
 public class QWenTextToImageModel extends BaseTextToImage implements BaseModel {
 

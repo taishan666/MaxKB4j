@@ -279,7 +279,7 @@ public class BaseChatStep extends IChatStep {
             ApplicationPublicAccessClientEntity publicAccessClient=publicAccessClientService.getById(clientId);
             if(publicAccessClient!=null){
                 publicAccessClient.setAccessNum(publicAccessClient.getAccessNum()+1);
-                publicAccessClient.setIntradayAccessNum(publicAccessClient.getIntradayAccessNum()+1);
+                publicAccessClient.setIntraDayAccessNum(publicAccessClient.getIntraDayAccessNum()+1);
                 publicAccessClientService.updateById(publicAccessClient);
             }
         }

@@ -12,16 +12,17 @@ import com.tarzan.maxkb4j.module.system.team.service.TeamService;
 import com.tarzan.maxkb4j.module.system.user.dto.UserDTO;
 import com.tarzan.maxkb4j.module.system.user.dto.UserLoginDTO;
 import com.tarzan.maxkb4j.module.system.user.entity.UserEntity;
+import com.tarzan.maxkb4j.module.system.user.enums.PermissionEnum;
 import com.tarzan.maxkb4j.module.system.user.mapper.UserMapper;
+import com.tarzan.maxkb4j.module.system.user.vo.PermissionVO;
+import com.tarzan.maxkb4j.module.system.user.vo.UserVO;
+import com.tarzan.maxkb4j.util.BeanUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * @author tarzan
@@ -47,8 +48,8 @@ public class UserService extends ServiceImpl<UserMapper, UserEntity> {
 
     @Transactional
     public boolean deleteUserById(UUID userId) {
-         boolean f1=teamService.deleteUserById(userId);
-         boolean f2=removeById(userId);
+        boolean f1 = teamService.deleteUserById(userId);
+        boolean f2 = removeById(userId);
         return true;
     }
 
@@ -78,5 +79,31 @@ public class UserService extends ServiceImpl<UserMapper, UserEntity> {
         user.setIsActive(true);
         user.setSource("LOCAL");
         return save(user);
+    }
+
+    public UserVO getUserById(String userId) {
+        UserEntity userEntity = this.getById(UUID.fromString(userId));
+        UserVO user = BeanUtil.copy(userEntity, UserVO.class);
+        List<PermissionVO> permissionVOS=baseMapper.getUserPermissionById(UUID.fromString(userId));
+        List<String> permissions=new ArrayList<>();
+        for (PermissionVO permission : permissionVOS) {
+            String operateItems = permission.getOperate();
+            String noBraces = operateItems.replace("{", "").replace("}", "");
+            Arrays.stream(noBraces.split(",")).forEach(item->{
+                String operate = permission.getType() +
+                        ":" +
+                        item +
+                        ":" +
+                        permission.getId();
+                permissions.add(operate);
+            });
+        }
+        PermissionEnum.getAllPermissions().forEach(e->{
+            String operate = e.getGroup() + ":" + e.getOperate();
+            permissions.add(operate);
+        });
+        user.setPermissions(permissions);
+        user.setIsEditPassword("d880e722c47a34d8e9fce789fc62389d".equals(user.getPassword())&&"ADMIN".equals(user.getRole()));
+        return user;
     }
 }

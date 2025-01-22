@@ -20,7 +20,7 @@ public class ApplicationPublicAccessClientEntity extends BaseEntity {
 	
 	private Integer accessNum;
 
-	private Integer intradayAccessNum;
+	private Integer intraDayAccessNum;
 	@TableField(typeHandler = UUIDTypeHandler.class)
 	private UUID applicationId;
 } 

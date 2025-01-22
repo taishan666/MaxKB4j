@@ -128,13 +128,12 @@ public class ApplicationController{
 
     @GetMapping("api/valid/application/{type}")
     public R<Boolean> copyApp(@PathVariable("type") int type){
-        return R.success(applicationService.copyApp(type));
+        return R.success(true);
     }
 
     @PutMapping("api/application/{appId}")
-    public R<Boolean> updateByAppId(@PathVariable("appId") UUID appId,@RequestBody ApplicationEntity entity){
-        entity.setId(appId);
-        return R.success(applicationService.updateById(entity));
+    public R<Boolean> updateByAppId(@PathVariable("appId") UUID appId,@RequestBody ApplicationVO appVO){
+        return R.success(applicationService.updateAppById(appId,appVO));
     }
 
     @GetMapping("api/application/{appId}/application")

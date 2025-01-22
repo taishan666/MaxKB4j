@@ -62,14 +62,14 @@ public class ApplicationEntity extends BaseEntity {
     @TableField(typeHandler = JOSNBTypeHandler.class)
     private JSONObject modelParamsSetting;
 
-    @JsonProperty("stt_model_id")
+    @JsonProperty("stt_model")
     @TableField(typeHandler = UUIDTypeHandler.class)
     private UUID sttModelId;
 
     @JsonProperty("stt_model_enable")
     private Boolean sttModelEnable;
 
-    @JsonProperty("tts_model_id")
+    @JsonProperty("tts_model")
     @TableField(typeHandler = UUIDTypeHandler.class)
     private UUID ttsModelId;
 

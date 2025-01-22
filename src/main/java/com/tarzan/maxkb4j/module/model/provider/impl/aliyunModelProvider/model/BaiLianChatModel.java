@@ -1,12 +1,12 @@
 package com.tarzan.maxkb4j.module.model.provider.impl.aliyunModelProvider.model;
 
 import com.alibaba.fastjson.JSONObject;
-import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
 import com.tarzan.maxkb4j.module.model.provider.BaseModel;
+import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
 import dev.langchain4j.model.chat.ChatLanguageModel;
 import dev.langchain4j.model.chat.StreamingChatLanguageModel;
-import dev.langchain4j.model.dashscope.QwenChatModel;
-import dev.langchain4j.model.dashscope.QwenStreamingChatModel;
+import dev.langchain4j.community.model.dashscope.QwenChatModel;
+import dev.langchain4j.community.model.dashscope.QwenStreamingChatModel;
 
 public class BaiLianChatModel extends BaseChatModel implements BaseModel {
 

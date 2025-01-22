@@ -2,7 +2,11 @@ package com.tarzan.maxkb4j.module.system.user.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.tarzan.maxkb4j.module.system.user.entity.UserEntity;
+import com.tarzan.maxkb4j.module.system.user.vo.PermissionVO;
 import org.apache.ibatis.annotations.Mapper;
+
+import java.util.List;
+import java.util.UUID;
 
 
 /**
@@ -11,4 +15,5 @@ import org.apache.ibatis.annotations.Mapper;
  */
 @Mapper
 public interface UserMapper extends BaseMapper<UserEntity>{
+    List<PermissionVO> getUserPermissionById(UUID userId);
 }

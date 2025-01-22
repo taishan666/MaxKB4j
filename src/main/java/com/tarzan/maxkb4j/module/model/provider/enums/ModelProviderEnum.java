@@ -36,7 +36,7 @@ public enum ModelProviderEnum {
     Openai("OpenAI","Openai", new OpenaiModelProvider()),
     QWen("通义千问","QWen", new QwenModelProvider()),
     Tencent("腾讯混元","Tencent", new TencentModelProvider()),
-    VLlm("","VLlm", new VLlmModelProvider()),
+    VLlm("VLlm","VLlm", new VLlmModelProvider()),
     VolcanicEngine("火山引擎","VolcanicEngine", new VolcanicEngineModelProvider()),
     WenXin("文心一言","WenXin", new WenXinModelProvider()),
     XunFei("讯飞星火","XunFei", new XfModelProvider()),

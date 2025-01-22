@@ -15,7 +15,6 @@ public abstract class IModelProvider {
     <T> T getModel(String modelName, String modelType, JSONObject modelCredential){
         List<ModelInfo> modelList=getModelList();
         ModelInfo modelInfo =  modelList.stream().filter(model -> model.getModelType().equals(modelType) && model.getName().equals(modelName)).findFirst().orElse(null);
-        System.out.println("modelInfo="+modelInfo);
         assert modelInfo != null;
         return modelInfo.getModelClass().newInstance(modelName, modelCredential);
     }

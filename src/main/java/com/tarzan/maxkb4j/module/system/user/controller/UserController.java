@@ -8,12 +8,11 @@ import com.tarzan.maxkb4j.module.system.user.dto.UserDTO;
 import com.tarzan.maxkb4j.module.system.user.dto.UserLoginDTO;
 import com.tarzan.maxkb4j.module.system.user.entity.UserEntity;
 import com.tarzan.maxkb4j.module.system.user.service.UserService;
+import com.tarzan.maxkb4j.module.system.user.vo.UserVO;
 import com.tarzan.maxkb4j.tool.api.R;
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -39,45 +38,12 @@ public class UserController{
 	}
 
 	@GetMapping("api/user")
-	public R<JSONObject> getUser(HttpServletRequest request){
+	public R<UserVO> getUser(){
 		/*if(!StpUtil.isLogin()){
 			SaHolder.getResponse().redirect("http://localhost:3000/login");
 			SaRouter.back();
 		}*/
-		JSONObject json=new JSONObject();
-		json.put("id","f0dd8f71-e4ee-11ee-8c84-a8a1595801ab");
-		List<String> permissions=new ArrayList<String>();
-		permissions.add("APPLICATION:MANAGE:0e3eee95-c0cc-11ef-8f1c-bad5470d815f");
-		permissions.add("APPLICATION:USE:0e3eee95-c0cc-11ef-8f1c-bad5470d815f");
-		permissions.add("APPLICATION:DELETE:0e3eee95-c0cc-11ef-8f1c-bad5470d815f");
-		permissions.add("APPLICATION:MANAGE:0e3eee95-c0cc-11ef-8f1c-bad5470d815f");
-		permissions.add("DATASET:MANAGE:712fe46c-c00d-11ef-88ed-bad5470d815f");
-		permissions.add("USER:READ");
-		permissions.add("USER:EDIT");
-		permissions.add("DATASET:CREATE");
-		permissions.add("DATASET:USE");
-		permissions.add("DATASET:READ");
-		permissions.add("DATASET:EDIT");
-		permissions.add("DATASET:DELETE");
-		permissions.add("APPLICATION:READ");
-		permissions.add("APPLICATION:CREATE");
-		permissions.add("APPLICATION:DELETE");
-		permissions.add("APPLICATION:EDIT");
-		permissions.add("SETTING:READ");
-		permissions.add("MODEL:READ");
-		permissions.add("MODEL:CREATE");
-		permissions.add("MODEL:DELETE");
-		permissions.add("MODEL:EDIT");
-		permissions.add("TEAM:READ");
-		permissions.add("TEAM:CREATE");
-		permissions.add("TEAM:DELETE");
-		permissions.add("TEAM:EDIT");
-		json.put("permissions",permissions);
-		json.put("role","ADMIN");
-		json.put("username","admin");
-		json.put("email","");
-		json.put("is_edit_password",false);
-		return R.success(json);
+		return R.success(userService.getUserById(StpUtil.getLoginIdAsString()));
 	}
 
 	@PostMapping("api/user/login")
