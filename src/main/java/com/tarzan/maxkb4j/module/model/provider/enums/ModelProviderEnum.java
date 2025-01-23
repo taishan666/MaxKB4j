@@ -31,17 +31,17 @@ public enum ModelProviderEnum {
     DeepSeek("DeepSeek","DeepSeek", new DeepSeekModelProvider()),
     Gemini("Google DeepMind","Gemini", new GeminiModelProvider()),
     Kimi("月之暗面","Kimi", new KimiModelProvider()),
-    Local("本地模型","Local", new LocalModelProvider()),
-    OLlama("OLlama","OLlama", new OLlamaModelProvider()),
     Openai("OpenAI","Openai", new OpenaiModelProvider()),
     QWen("通义千问","QWen", new QwenModelProvider()),
     Tencent("腾讯混元","Tencent", new TencentModelProvider()),
-    VLlm("VLlm","VLlm", new VLlmModelProvider()),
     VolcanicEngine("火山引擎","VolcanicEngine", new VolcanicEngineModelProvider()),
     WenXin("文心一言","WenXin", new WenXinModelProvider()),
     XunFei("讯飞星火","XunFei", new XfModelProvider()),
-    XInference("Xorbits Inference","XInference", new XInferenceModelProvider()),
-    ZhiPu("智谱清言","ZhiPu", new ZhiPuModelProvider());
+    ZhiPu("智谱清言","ZhiPu", new ZhiPuModelProvider()),
+    Local("本地模型","model_local_provider", new LocalModelProvider()),
+    OLlama("OLlama","model_ollama_provider", new OLlamaModelProvider()),
+    VLlm("VLlm","model_vllm_provider", new VLlmModelProvider()),
+    XInference("Xorbits Inference","model_xinference_provider", new XInferenceModelProvider());
 
     private final String name;
     private final String provider;

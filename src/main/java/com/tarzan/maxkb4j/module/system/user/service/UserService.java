@@ -11,6 +11,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.tarzan.maxkb4j.module.system.setting.service.EmailService;
+import com.tarzan.maxkb4j.module.system.team.entity.TeamEntity;
 import com.tarzan.maxkb4j.module.system.team.service.TeamService;
 import com.tarzan.maxkb4j.module.system.user.dto.PasswordDTO;
 import com.tarzan.maxkb4j.module.system.user.dto.UserDTO;
@@ -92,11 +93,16 @@ public class UserService extends ServiceImpl<UserMapper, UserEntity> {
         return null;
     }
 
+    @Transactional
     public boolean createUser(UserEntity user) {
         user.setRole("USER");
         user.setIsActive(true);
         user.setSource("LOCAL");
-        return save(user);
+        save(user);
+        TeamEntity team = new TeamEntity();
+        team.setUserId(user.getId());
+        team.setName(user.getUsername()+"的团队");
+        return teamService.save(team);
     }
 
     public UserVO getUserById(String userId) {

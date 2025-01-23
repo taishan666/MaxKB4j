@@ -228,12 +228,12 @@ public class DatasetController{
     @PutMapping("api/dataset/{id}/document/{docId}/paragraph/{paragraphId}")
     public R<Boolean> updateParagraphByParagraphId(@PathVariable String id, @PathVariable("docId") String docId,@PathVariable("paragraphId")String paragraphId,@RequestBody ParagraphEntity paragraph){
         paragraph.setId(paragraphId);
-        return R.success(datasetService.updateParagraphByParagraphId(paragraph));
+        return R.success(datasetService.updateParagraphByParagraphId(docId,paragraph));
     }
 
     @DeleteMapping("api/dataset/{id}/document/{docId}/paragraph/{paragraphId}")
     public R<Boolean> deleteParagraphByParagraphId(@PathVariable String id, @PathVariable("docId") String docId,@PathVariable("paragraphId")String paragraphId){
-        return R.success(datasetService.deleteParagraphByParagraphId(paragraphId));
+        return R.success(datasetService.deleteParagraphByParagraphId(docId,paragraphId));
     }
 
     @DeleteMapping("api/dataset/{id}/document/{docId}/paragraph/_batch")

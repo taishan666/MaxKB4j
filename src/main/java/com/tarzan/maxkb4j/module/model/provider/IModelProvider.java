@@ -1,6 +1,6 @@
 package com.tarzan.maxkb4j.module.model.provider;
 
-import com.alibaba.fastjson.JSONObject;
+import com.tarzan.maxkb4j.module.model.entity.ModelCredential;
 
 import java.util.List;
 
@@ -12,11 +12,13 @@ public abstract class IModelProvider {
 
     public abstract List<ModelInfo> getModelList();
 
-    public BaseModelCredential getModelCredential(String modelName, String modelType){
-        return getModelInfoManage().getModelInfo(modelType,modelName).getModelCredential();
+    public BaseModelCredential getModelCredential( String modelType,String modelName){
+        ModelInfoManage modelInfoManage=getModelInfoManage();
+        ModelInfo modelInfo = modelInfoManage.getModelInfo(modelType,modelName);
+        return modelInfo.getModelCredential();
     };
 
-    <T> T getModel(String modelName, String modelType, JSONObject modelCredential) {
+    <T> T getModel(String modelName, String modelType, ModelCredential modelCredential) {
         List<ModelInfo> modelList = getModelList();
         ModelInfo modelInfo = modelList.stream().filter(model -> model.getModelType().equals(modelType) && model.getName().equals(modelName)).findFirst().orElse(null);
         assert modelInfo != null;

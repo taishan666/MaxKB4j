@@ -1,11 +1,9 @@
 package com.tarzan.maxkb4j.module.system.team.entity;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.*;
 import lombok.Data;
+
 import java.util.Date;
-import java.util.UUID;
 
 /**
   * @author tarzan
@@ -14,13 +12,13 @@ import java.util.UUID;
 @Data
 @TableName("team")
 public class TeamEntity {
-	
+
+	@TableField(fill = FieldFill.INSERT)
 	private Date createTime;
-	
+	@TableField(fill = FieldFill.INSERT_UPDATE)
 	private Date updateTime;
 
 	@TableId(value = "user_id", type = IdType.INPUT)
-	//@TableField(typeHandler = UUIDTypeHandler.class)
 	private String userId;
 	
 	private String name;

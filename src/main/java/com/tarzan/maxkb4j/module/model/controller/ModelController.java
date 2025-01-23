@@ -1,8 +1,8 @@
 package com.tarzan.maxkb4j.module.model.controller;
 
+import cn.dev33.satoken.stp.StpUtil;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.tarzan.maxkb4j.module.model.dto.ModelDTO;
 import com.tarzan.maxkb4j.module.model.entity.ModelEntity;
 import com.tarzan.maxkb4j.module.model.provider.IModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.ModelInfo;
@@ -26,11 +26,11 @@ import com.tarzan.maxkb4j.module.model.provider.impl.wenxinmodelprovider.WenXinM
 import com.tarzan.maxkb4j.module.model.provider.impl.xfmodelprovider.XfModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.impl.xinferencemodelprovider.XInferenceModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.impl.zhipumodelprovider.ZhiPuModelProvider;
+import com.tarzan.maxkb4j.module.model.provider.vo.ModelInputVO;
 import com.tarzan.maxkb4j.module.model.service.ModelService;
 import com.tarzan.maxkb4j.module.model.vo.KeyAndValueVO;
 import com.tarzan.maxkb4j.module.model.vo.ModelVO;
 import com.tarzan.maxkb4j.tool.api.R;
-import com.tarzan.maxkb4j.util.BeanUtil;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -96,19 +96,22 @@ public class ModelController{
 	}
 
 	@GetMapping("api/provider/model_form")
-	public R<List<JSONObject>> modelForm(String provider, String model_type, String model_name){
+	public R<List<ModelInputVO>> modelForm(String provider, String model_type, String model_name){
 		IModelProvider modelProvider=ModelProviderEnum.get(provider);
 		return R.success(modelProvider.getModelCredential(model_type, model_name).toForm());
 	}
 
 	@GetMapping("api/provider/model_params_form")
-	public R<List<JSONObject>> modelParamsForm(String provider, String model_type,String model_name){
+	public R<List<ModelInputVO>> modelParamsForm(String provider, String model_type,String model_name){
 		IModelProvider modelProvider=ModelProviderEnum.get(provider);
-		return R.success(modelProvider.getModelCredential(model_type, model_name).getModelParamsSettingForm(model_name));
+		return R.success(modelProvider.getModelCredential(model_type, model_name).getModelParamsSettingForm());
 	}
 
 	@PostMapping("api/model")
 	public R<Boolean> createModel(@RequestBody ModelEntity model){
+		model.setUserId(StpUtil.getLoginIdAsString());
+		model.setMeta(new JSONObject());
+		model.setStatus("SUCCESS");
 		return R.success(modelService.save(model));
 	}
 
@@ -122,10 +125,10 @@ public class ModelController{
 		return R.success(modelService.getById(id));
 	}
 
-	@PostMapping("api/model/{id}")
+/*	@PostMapping("api/model/{id}")
 	public R<ModelEntity> create(@PathVariable String id){
 		return R.success(modelService.getById(id));
-	}
+	}*/
 
 	@DeleteMapping("api/model/{id}")
 	public R<Boolean> delete(@PathVariable String id){
@@ -133,11 +136,11 @@ public class ModelController{
 	}
 
 	@PutMapping("api/model/{id}")
-	public R<ModelEntity> update(@PathVariable String id,@RequestBody ModelDTO dto){
-		ModelEntity modelEntity= BeanUtil.copy(dto, ModelEntity.class);
-		modelEntity.setId(id);
-		modelService.updateById(modelEntity);
-		return R.success(modelEntity);
+	public R<ModelEntity> update(@PathVariable String id,@RequestBody ModelEntity model){
+		System.out.println(model);
+		model.setId(id);
+		modelService.updateById(model);
+		return R.success(model);
 	}
 
 	@GetMapping("api/model/{id}/model_params_form")

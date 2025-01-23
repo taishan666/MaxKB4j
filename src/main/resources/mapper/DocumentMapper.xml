@@ -55,6 +55,15 @@
             #{id}
         </foreach>
     </update>
+    <update id="updateCharLengthById">
+        UPDATE document d
+        SET char_length = (
+            SELECT SUM(CHAR_LENGTH(content))
+            FROM paragraph p
+            WHERE p.document_id = d.id
+        )
+        WHERE d.id=#{id};
+    </update>
 
     <select id="selectDocPage"  resultMap="docResultMap">
         SELECT

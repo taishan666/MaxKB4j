@@ -1,6 +1,10 @@
 package com.tarzan.maxkb4j.listener;
 
+import com.tarzan.maxkb4j.module.system.setting.cache.SystemCache;
+import com.tarzan.maxkb4j.module.system.setting.entity.SystemSettingEntity;
+import com.tarzan.maxkb4j.module.system.setting.service.SystemSettingService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationStartedEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -10,6 +14,7 @@ import org.springframework.stereotype.Component;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.List;
 
 /**
  *
@@ -20,9 +25,15 @@ import java.net.UnknownHostException;
 @Component
 public class StartedListener implements ApplicationListener<ApplicationStartedEvent> {
 
+    @Autowired
+    private SystemSettingService systemSettingService;
 
     @Override
     public void onApplicationEvent(@NonNull ApplicationStartedEvent event) {
+        List<SystemSettingEntity> systemSettings=systemSettingService.list();
+        for (SystemSettingEntity systemSetting : systemSettings) {
+            SystemCache.put(systemSetting.getType(),systemSetting.getMeta());
+        }
         printStartInfo(event);
     }
 

@@ -41,4 +41,8 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
     public void updateStatusMetaByIds(List<String> ids) {
         baseMapper.updateStatusMetaByIds(ids);
     }
+
+    public boolean updateCharLengthById(String id) {
+       return baseMapper.updateCharLengthById(id);
+    }
 }

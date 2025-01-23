@@ -9,8 +9,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ModelManage {
 
-    public static <T> T getModel(ModelEntity model,String encryptPrivateKey) {
-        return getProvider(model.getProvider()).getModel(model.getModelName(), model.getModelType(), getCredential(model.getCredential(),encryptPrivateKey));
+    public static <T> T getModel(ModelEntity model) {
+        return getProvider(model.getProvider()).getModel(model.getModelName(), model.getModelType(), model.getCredential());
     }
 
 

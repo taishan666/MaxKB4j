@@ -107,7 +107,7 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
 
     public DatasetVO getByDatasetId(String id) {
         DatasetEntity entity = baseMapper.selectById(id);
-        if(Objects.isNull(entity)){
+        if (Objects.isNull(entity)) {
             return null;
         }
         DatasetVO vo = BeanUtil.copy(entity, DatasetVO.class);
@@ -195,16 +195,18 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
     }
 
     @Transactional
-    public boolean updateParagraphByParagraphId(ParagraphEntity paragraph) {
+    public boolean updateParagraphByParagraphId(String docId, ParagraphEntity paragraph) {
         if (Objects.nonNull(paragraph.getIsActive())) {
             embeddingService.lambdaUpdate().set(EmbeddingEntity::getIsActive, paragraph.getIsActive()).eq(EmbeddingEntity::getParagraphId, paragraph.getId()).update();
         }
-        return paragraphService.updateById(paragraph);
+        paragraphService.updateById(paragraph);
+        return documentService.updateCharLengthById(docId);
     }
 
     @Transactional
-    public boolean deleteParagraphByParagraphId(String paragraphId) {
+    public boolean deleteParagraphByParagraphId(String docId,String paragraphId) {
         embeddingService.lambdaUpdate().eq(EmbeddingEntity::getParagraphId, paragraphId).remove();
+        documentService.updateCharLengthById(docId);
         return paragraphService.removeById(paragraphId);
     }
 
@@ -218,7 +220,7 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
     }
 
     @Transactional
-    public boolean createParagraph(String datasetId,String docId,ParagraphDTO paragraph) {
+    public boolean createParagraph(String datasetId, String docId, ParagraphDTO paragraph) {
         paragraph.setDatasetId(datasetId);
         paragraph.setDocumentId(docId);
         boolean flag;
@@ -227,6 +229,7 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
         paragraph.setIsActive(true);
         paragraph.setStatusMeta(paragraph.defaultStatusMeta());
         flag = paragraphService.save(paragraph);
+        documentService.updateCharLengthById(docId);
         List<ProblemEntity> problems = paragraph.getProblemList();
         if (!CollectionUtils.isEmpty(problems)) {
             List<String> problemContents = problems.stream().map(ProblemEntity::getContent).toList();
@@ -373,13 +376,13 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
     }
 
     public boolean batchGenerateRelated(String datasetId, GenerateProblemDTO dto) {
-        if(CollectionUtils.isEmpty(dto.getDocument_id_list())){
+        if (CollectionUtils.isEmpty(dto.getDocument_id_list())) {
             return false;
         }
         paragraphService.updateStatusByDocIds(dto.getDocument_id_list(), 2, 0);
         documentService.updateStatusMetaByIds(dto.getDocument_id_list());
         documentService.updateStatusByIds(dto.getDocument_id_list(), 2, 0);
-        DatasetEntity dataset=this.getById(datasetId);
+        DatasetEntity dataset = this.getById(datasetId);
         dto.getDocument_id_list().parallelStream().forEach(docId -> {
             List<ParagraphEntity> paragraphs = paragraphService.lambdaQuery().eq(ParagraphEntity::getDocumentId, docId).list();
             problemService.batchGenerateRelated(dataset, docId, paragraphs, dto);
@@ -524,7 +527,7 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
                         .registerReadListener(new PageReadListener<DatasetExcel>(dataList -> {
                             for (DatasetExcel data : dataList) {
                                 log.info("在Sheet {} 中读取到一条数据{}", sheetName, JSON.toJSONString(data));
-                                ParagraphEntity paragraph = getParagraphEntity(datasetId, data.getTitle(),data.getContent(), doc.getId());
+                                ParagraphEntity paragraph = getParagraphEntity(datasetId, data.getTitle(), data.getContent(), doc.getId());
                                 paragraphs.add(paragraph);
                                 doc.setCharLength(doc.getCharLength() + paragraph.getContent().length());
                                 if (StringUtils.isNotBlank(data.getProblems())) {
@@ -571,10 +574,10 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
     }
 
     @NotNull
-    private ParagraphEntity getParagraphEntity(String datasetId, String title, String content,String docId) {
+    private ParagraphEntity getParagraphEntity(String datasetId, String title, String content, String docId) {
         ParagraphEntity paragraph = new ParagraphEntity();
         paragraph.setId(IdWorker.get32UUID());
-        paragraph.setTitle(title== null ? "" : title);
+        paragraph.setTitle(title == null ? "" : title);
         paragraph.setContent(content == null ? "" : content);
         paragraph.setDatasetId(datasetId);
         paragraph.setStatus("nn2");
@@ -639,25 +642,8 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
                 .set(ParagraphEntity::getDatasetId, targetDatasetId)
                 .set(ParagraphEntity::getDocumentId, targetDocId)
                 .update();
-        List<ParagraphEntity> sourceDocParagraphs = paragraphService.lambdaQuery()
-                .select(ParagraphEntity::getContent)
-                .eq(ParagraphEntity::getDocumentId, sourceDocId)
-                .list();
-        DocumentEntity sourceDoc = documentService.getById(sourceDocId);
-        sourceDoc.setCharLength(0);
-        for (ParagraphEntity paragraph : sourceDocParagraphs) {
-            sourceDoc.setCharLength(sourceDoc.getCharLength() + paragraph.getContent().length());
-        }
-        List<ParagraphEntity> targetDocParagraphs = paragraphService.lambdaQuery()
-                .select(ParagraphEntity::getContent)
-                .eq(ParagraphEntity::getDocumentId, targetDocId)
-                .list();
-        DocumentEntity targetDoc = documentService.getById(targetDocId);
-        targetDoc.setCharLength(0);
-        for (ParagraphEntity paragraph : targetDocParagraphs) {
-            targetDoc.setCharLength(targetDoc.getCharLength() + paragraph.getContent().length());
-        }
-        return documentService.updateById(sourceDoc) && documentService.updateById(targetDoc);
+        documentService.updateCharLengthById(sourceDocId);
+        return documentService.updateCharLengthById(targetDocId);
     }
 
     public Boolean paragraphBatchGenerateRelated(String datasetId, String docId, GenerateProblemDTO dto) {
@@ -665,7 +651,7 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
         documentService.updateStatusMetaByIds(List.of(docId));
         documentService.updateStatusByIds(List.of(docId), 2, 0);
         List<ParagraphEntity> paragraphs = paragraphService.listByIds(dto.getParagraph_id_list());
-        DatasetEntity dataset=this.getById(datasetId);
+        DatasetEntity dataset = this.getById(datasetId);
         problemService.batchGenerateRelated(dataset, docId, paragraphs, dto);
         return true;
     }
@@ -676,21 +662,23 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
             System.out.println(uploadFile.getOriginalFilename());
             List<String> list = new ArrayList<>();
             EasyExcel.read(uploadFile.getInputStream(), new AnalysisEventListener<Map<Integer, String>>() {
-                Map<Integer, String> headMap=new LinkedHashMap<>();
+                Map<Integer, String> headMap = new LinkedHashMap<>();
+
                 // 表头信息会在此方法中获取
                 @Override
                 public void invokeHeadMap(Map<Integer, String> headMap, AnalysisContext context) {
-                    this.headMap=headMap;
+                    this.headMap = headMap;
                 }
+
                 // 每一行数据都会调用此方法
                 @Override
                 public void invoke(Map<Integer, String> data, AnalysisContext context) {
                     StringBuilder sb = new StringBuilder();
                     for (Integer i : data.keySet()) {
-                        String value =data.get(i)==null?"":data.get(i);
+                        String value = data.get(i) == null ? "" : data.get(i);
                         sb.append(headMap.get(i)).append(":").append(value).append(";");
                     }
-                    sb.deleteCharAt(sb.length()-1);
+                    sb.deleteCharAt(sb.length() - 1);
                     list.add(sb.toString());
                 }
 
@@ -701,10 +689,10 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
             }).sheet().doRead();
             List<ParagraphEntity> paragraphs = new ArrayList<>();
             DocumentEntity doc = createDocument(datasetId, uploadFile.getOriginalFilename());
-            if(!CollectionUtils.isEmpty(list)){
+            if (!CollectionUtils.isEmpty(list)) {
                 for (String text : list) {
-                    doc.setCharLength(doc.getCharLength()+text.length());
-                    ParagraphEntity paragraph = getParagraphEntity(datasetId, "",text, doc.getId());
+                    doc.setCharLength(doc.getCharLength() + text.length());
+                    ParagraphEntity paragraph = getParagraphEntity(datasetId, "", text, doc.getId());
                     paragraphs.add(paragraph);
                 }
                 documentService.save(doc);
@@ -725,17 +713,17 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
         InputStream inputStream = null;
         ClassLoader classLoader = getClass().getClassLoader();
 
-        if("csv".equals(type)){
+        if ("csv".equals(type)) {
             contentType = "text/csv";
             fileName = URLEncoder.encode(csvFileName, StandardCharsets.UTF_8);
             inputStream = classLoader.getResourceAsStream(csvPath);
-        } else if("excel".equals(type)){
+        } else if ("excel".equals(type)) {
             contentType = "application/vnd.ms-excel"; // 更准确的Excel MIME类型
             fileName = URLEncoder.encode(excelFileName, StandardCharsets.UTF_8);
             inputStream = classLoader.getResourceAsStream(excelPath);
         }
 
-        if(inputStream != null){
+        if (inputStream != null) {
             try (OutputStream outputStream = response.getOutputStream()) {
                 // 设置响应内容类型和头部信息
                 response.setContentType(contentType);

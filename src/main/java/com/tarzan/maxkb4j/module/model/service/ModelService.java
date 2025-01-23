@@ -8,8 +8,6 @@ import com.tarzan.maxkb4j.module.model.entity.ModelEntity;
 import com.tarzan.maxkb4j.module.model.mapper.ModelMapper;
 import com.tarzan.maxkb4j.module.model.provider.ModelManage;
 import com.tarzan.maxkb4j.module.model.vo.ModelVO;
-import com.tarzan.maxkb4j.module.system.setting.entity.SystemSettingEntity;
-import com.tarzan.maxkb4j.module.system.setting.service.SystemSettingService;
 import com.tarzan.maxkb4j.module.system.user.entity.UserEntity;
 import com.tarzan.maxkb4j.module.system.user.service.UserService;
 import com.tarzan.maxkb4j.util.BeanUtil;
@@ -28,9 +26,6 @@ import java.util.stream.Collectors;
  */
 @Service
 public class ModelService extends ServiceImpl<ModelMapper, ModelEntity> {
-
-    @Autowired
-    private SystemSettingService systemSettingService;
     @Autowired
     private UserService userService;
 
@@ -71,8 +66,7 @@ public class ModelService extends ServiceImpl<ModelMapper, ModelEntity> {
 
     public <T> T getModelById(String modelId) {
         ModelEntity model = this.getById(modelId);
-        SystemSettingEntity systemSetting = systemSettingService.lambdaQuery().eq(SystemSettingEntity::getType, 1).one();
-        return ModelManage.getModel(model, systemSetting.getMeta().getString("value"));
+        return ModelManage.getModel(model);
     }
 
 

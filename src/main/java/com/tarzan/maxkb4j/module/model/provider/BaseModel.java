@@ -1,8 +1,8 @@
 package com.tarzan.maxkb4j.module.model.provider;
 
-import com.alibaba.fastjson.JSONObject;
+import com.tarzan.maxkb4j.module.model.entity.ModelCredential;
 
 public interface BaseModel {
 
-      <T> T newInstance(String modelName, JSONObject modelCredential);
+      <T> T newInstance(String modelName, ModelCredential modelCredential);
 }

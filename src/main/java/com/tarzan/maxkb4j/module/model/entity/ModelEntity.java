@@ -1,13 +1,14 @@
 package com.tarzan.maxkb4j.module.model.entity;
 
 import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tarzan.maxkb4j.handler.JOSNBTypeHandler;
 import com.tarzan.maxkb4j.common.entity.BaseEntity;
+import com.tarzan.maxkb4j.handler.JOSNBTypeHandler;
+import com.tarzan.maxkb4j.handler.ModelCredentialTypeHandler;
 import lombok.Data;
-import com.alibaba.fastjson.JSONObject;
 import lombok.EqualsAndHashCode;
 
 /**
@@ -28,8 +29,9 @@ public class ModelEntity extends BaseEntity {
     private String modelName;
     
     private String provider;
-    
-    private String credential;
+
+    @TableField(typeHandler = ModelCredentialTypeHandler.class)
+    private ModelCredential credential;
     
 	@JsonProperty("user_id")
     private String userId;

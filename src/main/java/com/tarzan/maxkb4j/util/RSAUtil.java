@@ -62,11 +62,12 @@ public class RSAUtil{
         cipher.init(Cipher.ENCRYPT_MODE, publicKey);
         return byteToBase64(cipher.doFinal(plainText.getBytes()));
     }
+    public static String encrypt(String plainText, String publicKey) throws Exception {
+        return encrypt(plainText,importPublicKey(publicKey));
+    }
 
-    public static String decrypt(String cipherText, String privateKey) throws Exception {
-        Cipher cipher = Cipher.getInstance("RSA");
-        cipher.init(Cipher.DECRYPT_MODE, importPrivateKey(privateKey));
-        return new String(cipher.doFinal(Base64.getDecoder().decode(cipherText)));
+    public static String encryptPem(String plainText, String publicKey) throws Exception {
+        return encrypt(plainText,readPublicKeyPEM(publicKey));
     }
 
     public static String decrypt(String cipherText, PrivateKey privateKey) throws Exception {
@@ -74,6 +75,12 @@ public class RSAUtil{
         cipher.init(Cipher.DECRYPT_MODE, privateKey);
         return new String(cipher.doFinal(Base64.getDecoder().decode(cipherText)));
     }
+
+    public static String decrypt(String cipherText, String privateKey) throws Exception {
+        return decrypt(cipherText,importPrivateKey(privateKey));
+    }
+
+
 
     public static void main(String[] args) {
         try {
@@ -109,8 +116,15 @@ public class RSAUtil{
         Security.addProvider(new BouncyCastleProvider());
     }
 
+    private static String readPublicKeyPEM(String pemContent) throws IOException {
+        // 去除PEM头尾标记和换行符
+        return pemContent
+                .replace("-----BEGIN PUBLIC KEY-----", "")
+                .replace("-----END PUBLIC KEY-----", "")
+                .replaceAll("\\s", "");
+    }
 
-    private static byte[] readEncryptedPEM(String pemContent) throws IOException {
+    private static byte[] readEncryptPrivatePEM(String pemContent) throws IOException {
         // 去除PEM头尾标记和换行符
         String base64Encoded = pemContent
                 .replace("-----BEGIN ENCRYPTED PRIVATE KEY-----", "")
@@ -122,7 +136,7 @@ public class RSAUtil{
 
     private static PrivateKey decryptPrivateKey1(String encodedKey, String passphrase) throws Exception {
         // 解析并解密 PKCS#8 加密私钥
-        PKCS8EncryptedPrivateKeyInfo encPrivateInfo = new PKCS8EncryptedPrivateKeyInfo(readEncryptedPEM(encodedKey));
+        PKCS8EncryptedPrivateKeyInfo encPrivateInfo = new PKCS8EncryptedPrivateKeyInfo(readEncryptPrivatePEM(encodedKey));
         JcePKCSPBEInputDecryptorProviderBuilder builder = new JcePKCSPBEInputDecryptorProviderBuilder().setProvider("BC");
         InputDecryptorProvider idp = builder.build(passphrase.toCharArray());
         PrivateKeyInfo privateInfo = encPrivateInfo.decryptPrivateKeyInfo(idp);
