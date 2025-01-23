@@ -10,6 +10,7 @@ import com.tarzan.maxkb4j.module.system.user.entity.UserEntity;
 import com.tarzan.maxkb4j.module.system.user.service.UserService;
 import com.tarzan.maxkb4j.module.system.user.vo.UserVO;
 import com.tarzan.maxkb4j.tool.api.R;
+import jakarta.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -96,9 +97,18 @@ public class UserController{
 		if(!Objects.equals(dto.getPassword(), dto.getRePassword())){
 			return R.fail("密码输入不一致");
 		}
-		UserEntity user = new UserEntity();
-		user.setId(id);
-		user.setPassword(dto.getPassword());
-		return R.success(userService.updateById(user));
+		return R.success(userService.updatePassword(id,dto));
 	}
+
+	@PostMapping("/api/user/current/send_email")
+	public R<Boolean> sendEmail() throws MessagingException {
+		return R.success(userService.sendEmailCode());
+	}
+
+	@PostMapping("/api/user/current/reset_password")
+	public R<Boolean> resetPassword(@RequestBody PasswordDTO dto) {
+		return R.success(userService.resetPassword(dto));
+	}
+
+
 }
