@@ -14,7 +14,5 @@ public interface ParagraphMapper extends BaseMapper<ParagraphEntity>{
 
     List<ParagraphVO> retrievalParagraph(List<String> paragraphIds);
 
-    void updateStatusById(String id, int type, int status,int up,int next);
-
     void updateStatusByDocIds(List<String> docIds, int type, int status,int up,int next);
 }

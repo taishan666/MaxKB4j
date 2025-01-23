@@ -87,7 +87,6 @@ public class UserService extends ServiceImpl<UserMapper, UserEntity> {
         if (Objects.nonNull(userEntity)) {
             StpUtil.login(userEntity.getId());
             SaTokenInfo tokenInfo = StpUtil.getTokenInfo();
-            System.out.println(tokenInfo);
             return tokenInfo.getTokenValue();
         }
         return null;

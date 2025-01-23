@@ -4,37 +4,52 @@
 
     <!-- 多个字段中某个字段的类型处理器配置 -->
     <resultMap id="permissionResultMap" type="com.tarzan.maxkb4j.module.system.team.vo.MemberPermissionVO">
-        <result property="operate" column="operate"  typeHandler="com.tarzan.maxkb4j.handler.MemberOperateTypeHandler"/>
+        <result property="operate" column="operate" typeHandler="com.tarzan.maxkb4j.handler.MemberOperateTypeHandler"/>
     </resultMap>
 
-    <select id="getPermissionByMemberId"  resultMap="permissionResultMap">
+    <select id="getPermissionByMemberId" resultMap="permissionResultMap">
         SELECT
-            app_or_dataset.*,
-            team_member_permission.member_id,
-            team_member_permission.operate
+        app_or_dataset.*,
+        team_member_permission.member_id,
+        team_member_permission.operate
         FROM
-            (
-                SELECT
-                    "id",
-                    "name",
-                    'DATASET' AS "type",
-                    user_id
-                FROM
-                    dataset
-                WHERE
-                    "user_id" = #{teamId}
-                UNION
-                SELECT
-                    "id",
-                    "name",
-                    'APPLICATION' AS "type",
-                    user_id
-                FROM
-                    application
-                WHERE
-                    "user_id" =#{teamId}
-            ) app_or_dataset
-                LEFT JOIN ( SELECT * FROM team_member_permission WHERE member_id = #{memberId} ) team_member_permission ON team_member_permission.target = app_or_dataset."id"
+        (
+        SELECT
+        "id",
+        "name",
+        'DATASET' AS "type",
+        user_id
+        FROM
+        dataset
+        WHERE
+        "user_id" = #{teamId}
+        UNION
+        SELECT
+        "id",
+        "name",
+        'APPLICATION' AS "type",
+        user_id
+        FROM
+        application
+        WHERE
+        "user_id" =#{teamId}
+        ) app_or_dataset
+        LEFT JOIN (
+        SELECT * FROM team_member_permission
+        <where>
+            <if test="memberId != null">
+                AND "member_id" = #{memberId}
+            </if>
+        </where>
+        ) team_member_permission ON team_member_permission.target = app_or_dataset."id"
+    </select>
+    <select id="getUseTargets" resultType="java.lang.String">
+        SELECT target
+        FROM team_member_permission tmp
+        LEFT JOIN "team_member" tm ON tm.ID = tmp.member_id
+        WHERE tm.user_id = #{userId}
+          AND tmp.auth_target_type = #{type}
+          AND tmp.operate @> ARRAY[#{operate}]::varchar[];
     </select>
 
 </mapper>

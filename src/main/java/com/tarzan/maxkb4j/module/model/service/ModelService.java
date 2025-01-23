@@ -1,5 +1,6 @@
 package com.tarzan.maxkb4j.module.model.service;
 
+import cn.dev33.satoken.stp.StpUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -55,10 +56,12 @@ public class ModelService extends ServiceImpl<ModelMapper, ModelEntity> {
         if (StringUtils.isNotBlank(modelType)) {
             wrapper.eq(ModelEntity::getModelType, modelType);
         }
+        wrapper.eq(ModelEntity::getUserId, StpUtil.getLoginIdAsString());
+        wrapper.or().eq(ModelEntity::getPermissionType, "PUBLIC");
         List<ModelEntity> modelEntities = baseMapper.selectList(wrapper);
         if (CollectionUtils.isNotEmpty(modelEntities)) {
             List<ModelVO> models = BeanUtil.copyList(modelEntities, ModelVO.class);
-            models.forEach(model -> model.setUsername(userMap.get(model.getId())));
+            models.forEach(model -> model.setUsername(userMap.get(model.getUserId())));
             return models;
         }
         return Collections.emptyList();

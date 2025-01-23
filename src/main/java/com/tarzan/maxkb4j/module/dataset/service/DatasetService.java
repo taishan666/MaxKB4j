@@ -1,5 +1,6 @@
 package com.tarzan.maxkb4j.module.dataset.service;
 
+import cn.dev33.satoken.stp.StpUtil;
 import com.alibaba.excel.EasyExcel;
 import com.alibaba.excel.ExcelWriter;
 import com.alibaba.excel.context.AnalysisContext;
@@ -84,7 +85,10 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
 
 
     public IPage<DatasetVO> selectDatasetPage(Page<DatasetVO> datasetPage, QueryDTO query) {
-        return baseMapper.selectDatasetPage(datasetPage, query);
+        if(Objects.isNull(query.getSelectUserId())){
+            query.setSelectUserId(StpUtil.getLoginIdAsString());
+        }
+        return baseMapper.selectDatasetPage(datasetPage, query,"USE");
     }
 
     public List<DatasetEntity> getUserId(String userId) {

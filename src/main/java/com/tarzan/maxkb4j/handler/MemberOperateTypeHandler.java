@@ -53,8 +53,8 @@ public class MemberOperateTypeHandler extends BaseTypeHandler<MemberOperate> {
             Set<String> set = Arrays.stream(noBraces.split(","))
                     .map(String::trim) // 去除每个元素的前后空格
                     .collect(Collectors.toSet());
-            obj.setUSE(set.contains("USE"));
-            obj.setMANAGE(set.contains("MANAGE"));
+            obj.setUse(set.contains("USE"));
+            obj.setManage(set.contains("MANAGE"));
         }
         return obj;
     }
@@ -69,11 +69,11 @@ public class MemberOperateTypeHandler extends BaseTypeHandler<MemberOperate> {
         }
         StringBuilder sb = new StringBuilder();
         sb.append("{");
-        if(Objects.nonNull(value.getUSE())&&value.getUSE()){
+        if(Objects.nonNull(value.getUse())&&value.getUse()){
             sb.append("USE");
         }
-        if(Objects.nonNull(value.getMANAGE())&&value.getMANAGE()){
-            if(Objects.nonNull(value.getUSE())&&value.getUSE()){
+        if(Objects.nonNull(value.getManage())&&value.getManage()){
+            if(Objects.nonNull(value.getUse())&&value.getUse()){
                 sb.append(",");
             }
             sb.append("MANAGE");

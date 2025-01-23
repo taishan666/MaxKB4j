@@ -1,7 +1,6 @@
 package com.tarzan.maxkb4j.module.system.team.controller;
 
 import cn.dev33.satoken.stp.StpUtil;
-import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.tarzan.maxkb4j.module.system.team.dto.TeamMemberPermissionDTO;
 import com.tarzan.maxkb4j.module.system.team.service.TeamMemberService;
 import com.tarzan.maxkb4j.module.system.team.vo.MemberPermissionVO;
@@ -28,11 +27,6 @@ public class TeamMemberController{
     @GetMapping("api/team/member")
     public R<List<MemberVO>> teamMembers(){
         return R.success(teamMemberService.getByUserId(StpUtil.getLoginIdAsString()));
-    }
-
-    @GetMapping("api/team/member/root")
-    public R<Map<String, List<MemberPermissionVO>>> teamRootMember(){
-        return R.success(teamMemberService.getMemberPermissions(StpUtil.getLoginIdAsString(), IdWorker.get32UUID()));
     }
 
     @GetMapping("api/team/member/{teamMemberId}")

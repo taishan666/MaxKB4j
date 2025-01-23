@@ -1,5 +1,6 @@
 package com.tarzan.maxkb4j.module.system.team.service;
 
+import cn.dev33.satoken.stp.StpUtil;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tarzan.maxkb4j.module.system.team.dto.TeamMemberPermissionDTO;
@@ -72,9 +73,21 @@ public class TeamMemberService extends ServiceImpl<TeamMemberMapper, TeamMemberE
     }
 
     public Map<String, List<MemberPermissionVO>> getPermissionByMemberId(String memberId) {
-        TeamMemberEntity entity=this.getById(memberId);
-        return getMemberPermissions(entity.getTeamId(),entity.getId());
+        if("root".equals(memberId)) {
+            List<MemberPermissionVO> list=teamMemberPermissionService.getPermissionByMemberId(StpUtil.getLoginIdAsString(),null);
+            list.forEach(e->{
+                e.getOperate().setManage(true);
+                e.getOperate().setUse(true);
+            });
+            return list.stream().collect(Collectors.groupingBy(MemberPermissionVO::getType));
+        }else {
+            TeamMemberEntity entity=this.getById(memberId);
+            List<MemberPermissionVO> list=teamMemberPermissionService.getPermissionByMemberId(entity.getTeamId(),entity.getId());
+            return list.stream().collect(Collectors.groupingBy(MemberPermissionVO::getType));
+        }
     }
+
+
 
     @Transactional
     public Map<String, List<MemberPermissionVO>> updateTeamMemberById(String teamMemberId, TeamMemberPermissionDTO dto) {
@@ -94,8 +107,4 @@ public class TeamMemberService extends ServiceImpl<TeamMemberMapper, TeamMemberE
         return getPermissionByMemberId(teamMemberId);
     }
 
-    public Map<String, List<MemberPermissionVO>> getMemberPermissions(String teamId, String memberId) {
-        List<MemberPermissionVO> list=teamMemberPermissionService.getPermissionByMemberId(teamId,memberId);
-        return list.stream().collect(Collectors.groupingBy(MemberPermissionVO::getType));
-    }
 }

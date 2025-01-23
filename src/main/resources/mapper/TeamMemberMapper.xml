@@ -11,6 +11,8 @@
         FROM
             team_member tm
         LEFT JOIN "user" u ON tm.user_id = u.ID
+        WHERE
+            tm.team_id = #{userId}
     </select>
 
 </mapper>

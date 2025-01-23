@@ -14,6 +14,6 @@ import org.apache.ibatis.annotations.Param;
  */
 public interface DatasetMapper extends BaseMapper<DatasetEntity>{
 
-    IPage<DatasetVO> selectDatasetPage(Page<DatasetVO> page,  @Param("query") QueryDTO query);
+    IPage<DatasetVO> selectDatasetPage(Page<DatasetVO> page,  @Param("query") QueryDTO query,String operate);
 
 }

@@ -1,13 +1,12 @@
 package com.tarzan.maxkb4j.module.system.team.service;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.tarzan.maxkb4j.module.system.team.entity.TeamMemberPermissionEntity;
+import com.tarzan.maxkb4j.module.system.team.mapper.TeamMemberPermissionMapper;
 import com.tarzan.maxkb4j.module.system.team.vo.MemberPermissionVO;
 import org.springframework.stereotype.Service;
-import com.tarzan.maxkb4j.module.system.team.mapper.TeamMemberPermissionMapper;
-import com.tarzan.maxkb4j.module.system.team.entity.TeamMemberPermissionEntity;
 
 import java.util.List;
-import java.util.UUID;
 
 /**
  * @author tarzan
@@ -18,4 +17,8 @@ public class TeamMemberPermissionService extends ServiceImpl<TeamMemberPermissio
    public List<MemberPermissionVO> getPermissionByMemberId(String teamId, String memberId){
        return baseMapper.getPermissionByMemberId(teamId, memberId);
    }
+
+    public List<String> getUseTargets(String type,String userId) {
+        return baseMapper.getUseTargets(userId,"USE", type);
+    }
 }

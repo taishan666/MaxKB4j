@@ -33,6 +33,7 @@ import com.tarzan.maxkb4j.module.dataset.vo.ParagraphVO;
 import com.tarzan.maxkb4j.module.image.service.ImageService;
 import com.tarzan.maxkb4j.module.model.entity.ModelEntity;
 import com.tarzan.maxkb4j.module.model.service.ModelService;
+import com.tarzan.maxkb4j.module.system.team.service.TeamMemberPermissionService;
 import com.tarzan.maxkb4j.util.BeanUtil;
 import com.tarzan.maxkb4j.util.JwtUtil;
 import com.tarzan.maxkb4j.util.MD5Util;
@@ -89,8 +90,11 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     private ApplicationAccessTokenService applicationAccessTokenService;
     @Autowired
     private ImageService imageService;
+    @Autowired
+    private TeamMemberPermissionService memberPermissionService;
 
     public IPage<ApplicationEntity> selectAppPage(int page, int size, QueryDTO query) {
+        String loginId=StpUtil.getLoginIdAsString();
         Page<ApplicationEntity> appPage = new Page<>(page, size);
         LambdaQueryWrapper<ApplicationEntity> wrapper = Wrappers.lambdaQuery();
         if (StringUtils.isNotBlank(query.getName())) {
@@ -98,6 +102,11 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         }
         if (Objects.nonNull(query.getSelectUserId())) {
             wrapper.eq(ApplicationEntity::getUserId, query.getSelectUserId());
+        }
+        wrapper.eq(ApplicationEntity::getUserId, loginId);
+        List<String> useTargetIds =memberPermissionService.getUseTargets("APPLICATION",loginId);
+        if (!CollectionUtils.isEmpty(useTargetIds)){
+            wrapper.or().in(ApplicationEntity::getId, useTargetIds);
         }
         return this.page(appPage, wrapper);
     }

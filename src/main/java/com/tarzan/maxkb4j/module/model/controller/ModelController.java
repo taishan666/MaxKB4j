@@ -137,7 +137,6 @@ public class ModelController{
 
 	@PutMapping("api/model/{id}")
 	public R<ModelEntity> update(@PathVariable String id,@RequestBody ModelEntity model){
-		System.out.println(model);
 		model.setId(id);
 		modelService.updateById(model);
 		return R.success(model);

@@ -13,4 +13,6 @@ import java.util.List;
 public interface TeamMemberPermissionMapper extends BaseMapper<TeamMemberPermissionEntity>{
 
    List<MemberPermissionVO> getPermissionByMemberId(String teamId, String memberId);
+
+   List<String> getUseTargets(String userId,String operate, String type);
 }
