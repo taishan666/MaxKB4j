@@ -8,7 +8,6 @@ import com.alibaba.excel.event.AnalysisEventListener;
 import com.alibaba.excel.read.listener.PageReadListener;
 import com.alibaba.excel.write.metadata.WriteSheet;
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
@@ -231,7 +230,7 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
         paragraph.setStatus("nn2");
         paragraph.setHitNum(0);
         paragraph.setIsActive(true);
-        paragraph.setStatusMeta(paragraph.defaultStatusMeta());
+        //paragraph.setStatusMeta(paragraph.defaultStatusMeta());
         flag = paragraphService.save(paragraph);
         documentService.updateCharLengthById(docId);
         List<ProblemEntity> problems = paragraph.getProblemList();
@@ -315,12 +314,23 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
         return documentEntity;
     }
 
+    @Transactional
     public boolean createBatchDoc(String datasetId, List<DocumentNameDTO> docs) {
         if (!CollectionUtils.isEmpty(docs)) {
             List<DocumentEntity> documentEntities = new ArrayList<>();
-            docs.forEach(e -> {
-                documentEntities.add(createDocument(datasetId, e.getName()));
+            List<ParagraphEntity> paragraphEntities = new ArrayList<>();
+            docs.parallelStream().forEach(e -> {
+                DocumentEntity doc=createDocument(datasetId, e.getName());
+                documentEntities.add(doc);
+                if(!CollectionUtils.isEmpty(e.getParagraphs())){
+                    e.getParagraphs().forEach(p->{
+                        paragraphEntities.add(createParagraph(datasetId, doc.getId(), p));
+                    });
+                }
             });
+            if(!CollectionUtils.isEmpty(paragraphEntities)){
+                paragraphService.saveBatch(paragraphEntities);
+            }
             return documentService.saveBatch(documentEntities);
         }
         return false;
@@ -331,16 +341,19 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
         documentEntity.setId(IdWorker.get32UUID());
         documentEntity.setDatasetId(datasetId);
         documentEntity.setName(name);
-        documentEntity.setMeta(new JSONObject());
+        //documentEntity.setMeta(new JSONObject());
         documentEntity.setCharLength(0);
         documentEntity.setStatus("nn2");
-        documentEntity.setStatusMeta(documentEntity.defaultStatusMeta());
-        documentEntity.setIsActive(true);
+       // documentEntity.setStatusMeta(documentEntity.defaultStatusMeta());
+       // documentEntity.setIsActive(true);
         documentEntity.setType("0");
         documentEntity.setHitHandlingMethod("optimization");
         documentEntity.setDirectlyReturnSimilarity(0.9);
         return documentEntity;
+    }
 
+    public ParagraphEntity createParagraph(String datasetId,String docId, ParagraphSimpleDTO paragraph) {
+        return getParagraphEntity(datasetId,docId,paragraph.getTitle(),paragraph.getContent());
     }
 
     @Transactional
@@ -540,11 +553,10 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
                                         String problemId = IdWorker.get32UUID();
                                         ProblemEntity existingProblem = problemService.findProblem(problem, problemEntities, dbProblemEntities);
                                         if (existingProblem == null) {
-                                            ProblemEntity problemEntity = new ProblemEntity();
+                                            ProblemEntity problemEntity = ProblemEntity.createDefault();
                                             problemEntity.setId(problemId);
                                             problemEntity.setDatasetId(datasetId);
                                             problemEntity.setContent(problem);
-                                            problemEntity.setHitNum(0);
                                             problemEntities.add(problemEntity);
                                         } else {
                                             problemId = existingProblem.getId();
@@ -586,8 +598,8 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
         paragraph.setDatasetId(datasetId);
         paragraph.setStatus("nn2");
         paragraph.setHitNum(0);
-        paragraph.setIsActive(true);
-        paragraph.setStatusMeta(paragraph.defaultStatusMeta());
+       // paragraph.setIsActive(true);
+       // paragraph.setStatusMeta(paragraph.defaultStatusMeta());
         paragraph.setDocumentId(docId);
         return paragraph;
     }

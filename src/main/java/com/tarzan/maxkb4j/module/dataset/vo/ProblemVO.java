@@ -2,11 +2,13 @@ package com.tarzan.maxkb4j.module.dataset.vo;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tarzan.maxkb4j.module.dataset.entity.ProblemEntity;
-import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 
 
-@Data
+@Getter
+@Setter
 @EqualsAndHashCode(callSuper = true)
 public class ProblemVO extends ProblemEntity {
 
@@ -15,4 +17,8 @@ public class ProblemVO extends ProblemEntity {
 
     private String documentId;
     private String paragraphId;
+
+    public ProblemVO(Integer hitNum) {
+        super(hitNum);
+    }
 }

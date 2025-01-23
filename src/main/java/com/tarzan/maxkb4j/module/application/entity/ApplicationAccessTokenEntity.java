@@ -1,11 +1,15 @@
 package com.tarzan.maxkb4j.module.application.entity;
 
-import com.baomidou.mybatisplus.annotation.*;
+import com.baomidou.mybatisplus.annotation.FieldFill;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tarzan.maxkb4j.handler.StringSetTypeHandler;
 import lombok.Data;
 
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -50,4 +54,16 @@ public class ApplicationAccessTokenEntity {
     
     @JsonProperty("show_source")
     private Boolean showSource;
-} 
+
+    public ApplicationAccessTokenEntity(Boolean isActive, Integer accessNum, Boolean whiteActive, Set<String> whiteList, Boolean showSource) {
+        this.isActive = isActive;
+        this.accessNum = accessNum;
+        this.whiteActive = whiteActive;
+        this.whiteList = whiteList;
+        this.showSource = showSource;
+    }
+
+    public static ApplicationAccessTokenEntity createDefault() {
+        return new ApplicationAccessTokenEntity(true,0,false,new HashSet<>(),false);
+    }
+}

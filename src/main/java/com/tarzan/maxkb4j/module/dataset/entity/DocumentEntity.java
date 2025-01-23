@@ -47,9 +47,4 @@ public class DocumentEntity extends BaseEntity {
 	@JsonProperty("status_meta")
 	private JSONObject statusMeta;
 
-	public JSONObject defaultStatusMeta() {
-		JSONObject statusMeta = new JSONObject();
-		statusMeta.put("state_time", new JSONObject());
-		return statusMeta;
-	}
 } 

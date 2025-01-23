@@ -174,13 +174,8 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         application.setFileUploadEnable(false);
         application.setFileUploadSetting(new JSONObject());
         this.save(application);
-        ApplicationAccessTokenEntity accessToken = new ApplicationAccessTokenEntity();
+        ApplicationAccessTokenEntity accessToken = ApplicationAccessTokenEntity.createDefault();
         accessToken.setApplicationId(application.getId());
-        accessToken.setAccessNum(0);
-        accessToken.setIsActive(true);
-        accessToken.setShowSource(false);
-        accessToken.setWhiteActive(false);
-        accessToken.setWhiteList(new HashSet<>());
         accessToken.setAccessToken(MD5Util.encrypt(UUID.randomUUID().toString(), 8, 24));
         applicationAccessTokenService.save(accessToken);
         return application;

@@ -74,10 +74,9 @@ public class ProblemService extends ServiceImpl<ProblemMapper, ProblemEntity>{
                         String problemId= IdWorker.get32UUID();
                         ProblemEntity existingProblem =findProblem(problem, docProblems,dbProblemEntities);
                         if(existingProblem==null){
-                            ProblemEntity entity = new ProblemEntity();
+                            ProblemEntity entity = ProblemEntity.createDefault();
                             entity.setId(problemId);
                             entity.setDatasetId(dataset.getId());
-                            entity.setHitNum(0);
                             entity.setContent(problem);
                             paragraphProblems.add(entity);
                             docProblems.add(entity);
@@ -116,7 +115,6 @@ public class ProblemService extends ServiceImpl<ProblemMapper, ProblemEntity>{
                 if (existingProblem == null) {
                     ProblemEntity entity = new ProblemEntity();
                     entity.setDatasetId(id);
-                    entity.setHitNum(0);
                     entity.setContent(problem);
                     problemEntities.add(entity);
                 }

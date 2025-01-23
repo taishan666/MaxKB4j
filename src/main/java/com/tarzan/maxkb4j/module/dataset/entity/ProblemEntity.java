@@ -1,10 +1,11 @@
 package com.tarzan.maxkb4j.module.dataset.entity;
 
-import com.baomidou.mybatisplus.annotation.*;
+import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tarzan.maxkb4j.common.entity.BaseEntity;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 /**
  * @author tarzan
@@ -13,6 +14,7 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 @Data
 @TableName("problem")
+@NoArgsConstructor
 public class ProblemEntity extends BaseEntity {
     
     private String content;
@@ -23,4 +25,12 @@ public class ProblemEntity extends BaseEntity {
 	@JsonProperty("dataset_id")
     private String datasetId;
 
+
+    public ProblemEntity(Integer hitNum) {
+        this.hitNum = hitNum;
+    }
+
+    public static ProblemEntity createDefault() {
+        return new ProblemEntity(0);
+    }
 }

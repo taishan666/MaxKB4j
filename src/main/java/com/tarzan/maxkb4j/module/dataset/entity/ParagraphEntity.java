@@ -35,9 +35,4 @@ public class ParagraphEntity extends BaseEntity {
 	@TableField(typeHandler = JOSNBTypeHandler.class)
 	private JSONObject statusMeta;
 
-	public JSONObject defaultStatusMeta() {
-		JSONObject statusMeta = new JSONObject();
-		statusMeta.put("state_time", new JSONObject());
-		return statusMeta;
-	}
-} 
+}
