@@ -1,6 +1,7 @@
 package com.tarzan.maxkb4j.module.model.service;
 
 import cn.dev33.satoken.stp.StpUtil;
+import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -68,6 +69,11 @@ public class ModelService extends ServiceImpl<ModelMapper, ModelEntity> {
     }
 
     public <T> T getModelById(String modelId) {
+        ModelEntity model = this.getById(modelId);
+        return ModelManage.getModel(model);
+    }
+
+    public <T> T getModelById(String modelId, JSONObject modelParams) {
         ModelEntity model = this.getById(modelId);
         return ModelManage.getModel(model);
     }
