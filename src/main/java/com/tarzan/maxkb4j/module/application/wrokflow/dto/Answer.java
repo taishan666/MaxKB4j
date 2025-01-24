@@ -1,7 +1,10 @@
 package com.tarzan.maxkb4j.module.application.wrokflow.dto;
 
+import lombok.Data;
+
 import java.util.Map;
 
+@Data
 public class Answer {
     String viewType;
     String content;

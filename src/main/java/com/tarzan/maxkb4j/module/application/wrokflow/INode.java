@@ -5,6 +5,7 @@ import com.tarzan.maxkb4j.module.application.wrokflow.dto.Answer;
 import com.tarzan.maxkb4j.module.application.wrokflow.dto.BaseParams;
 import com.tarzan.maxkb4j.module.application.wrokflow.dto.FlowParams;
 import com.tarzan.maxkb4j.module.application.wrokflow.dto.NodeResult;
+import lombok.Data;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -12,11 +13,12 @@ import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.function.Consumer;
 
+@Data
 public abstract class INode {
     public static final String MANY_VIEW = "many_view";
     protected int status = 200;
     protected String errMessage = "";
-    protected JSONObject node;
+    protected Node node;
     protected JSONObject nodeParams;
     protected FlowParams workflowParams;
     protected WorkflowManage workflowManage;
@@ -32,19 +34,20 @@ public abstract class INode {
         this(null, null, null, null);
     }
 
-    public INode(JSONObject node, FlowParams workflowParams, WorkflowManage workflowManage, List<String> upNodeIdList) {
+    public INode(Node node, FlowParams workflowParams, WorkflowManage workflowManage, List<String> upNodeIdList) {
         this.node = node;
         this.workflowParams = workflowParams;
         this.workflowManage = workflowManage;
         this.upNodeIdList = upNodeIdList != null ? upNodeIdList : new ArrayList<>();
         this.nodeParams = getNodeParams(node);
         this.context = new HashMap<>();
+        this.id=node.getId();
         this.runtimeNodeId = generateRuntimeNodeId();
     }
 
-    private JSONObject getNodeParams(JSONObject node) {
-        if (node.containsKey("properties") && node.getJSONObject("properties").containsKey("node_data")) {
-            return  node.getJSONObject("properties").getJSONObject("node_data");
+    private JSONObject getNodeParams(Node node) {
+        if (Objects.nonNull(node.getProperties()) && node.getProperties().containsKey("node_data")) {
+            return  node.getProperties().getJSONObject("node_data");
         }
         return new JSONObject();
     }
@@ -52,7 +55,7 @@ public abstract class INode {
     private String generateRuntimeNodeId() {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-1");
-            String input = Arrays.toString(upNodeIdList.stream().sorted().toArray()) + node.get("id").toString();
+            String input = Arrays.toString(upNodeIdList.stream().sorted().toArray()) + node.getId();
             byte[] hashBytes = digest.digest(input.getBytes(StandardCharsets.UTF_8));
             StringBuilder hexString = new StringBuilder();
             for (byte b : hashBytes) {
@@ -83,7 +86,7 @@ public abstract class INode {
         }
 
         // Ensure proper type casting before comparison
-        Object statusObj = ((Map<?, ?>) node.get("properties")).get("status");
+        Object statusObj = ((Map<?, ?>) node.getProperties().get("status"));
         if (statusObj instanceof Integer && (Integer) statusObj != 200) {
             throw new Exception("Node is not available");
         } else if (statusObj instanceof String) {
@@ -122,8 +125,8 @@ public abstract class INode {
 
     public abstract NodeResult _run();
 
-    public Map<String, Object> getDetails(int index) {
-        return new HashMap<>();
+    public JSONObject getDetails(int index) {
+        return new JSONObject();
     }
 
     public List<Answer> getAnswerList() {

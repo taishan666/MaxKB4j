@@ -8,7 +8,7 @@ public class NodeResult {
     private final WriteContextFunction writeContextFunc;
     private final IsInterruptFunction isInterrupt;
 
-    public NodeResult(Map<String, Object> nodeVariable, Map<String, Object> of, WriteContextFunction writeContextFunc) {
+    public NodeResult(Map<String, Object> nodeVariable, Map<String, Object> workflowVariable, WriteContextFunction writeContextFunc) {
         this.nodeVariable = nodeVariable;
         this.workflowVariable = workflowVariable;
         this.writeContextFunc = writeContextFunc;
