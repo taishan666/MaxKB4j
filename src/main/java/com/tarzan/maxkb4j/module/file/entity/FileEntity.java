@@ -11,16 +11,16 @@ import java.util.Date;
 @Data
 @TableName("file")
 public class FileEntity {
-	//null
+	
 	private Date createTime;
-	//null
+	
 	private Date updateTime;
-	//null
+	
 	private String id;
-	//null
+	
 	private String fileName;
-	//null
+	
 	private Integer loid;
-	//null
+	
 	private JSONObject meta;
 } 

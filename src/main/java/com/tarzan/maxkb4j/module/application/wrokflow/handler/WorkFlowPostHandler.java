@@ -1,26 +1,17 @@
 package com.tarzan.maxkb4j.module.application.wrokflow.handler;
 
 import com.tarzan.maxkb4j.module.application.chatpipeline.ChatInfo;
-import com.tarzan.maxkb4j.module.application.entity.ApplicationChatRecordEntity;
-import com.tarzan.maxkb4j.module.application.entity.ApplicationPublicAccessClientEntity;
-import com.tarzan.maxkb4j.module.application.enums.AuthenticationType;
 import com.tarzan.maxkb4j.module.application.service.ApplicationPublicAccessClientService;
-import com.tarzan.maxkb4j.module.application.wrokflow.WorkflowManage;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.time.Instant;
-import java.util.List;
-import java.util.Map;
 
 @Component
 @Data
 public class WorkFlowPostHandler {
 
     @Autowired
-    private ApplicationPublicAccessClientService ApplicationPublicAccessClientService;
+    private ApplicationPublicAccessClientService accessClientService;
 
     private ChatInfo chatInfo;
     private String clientId;
@@ -32,7 +23,7 @@ public class WorkFlowPostHandler {
         this.clientType = clientType;
     }
 
-    public void handler(String chatId, String chatRecordId, Map<String, Object> answer, WorkflowManage workflow) {
+ /*   public void handler(String chatId, String chatRecordId, Map<String, Object> answer, WorkflowManage workflow) {
         String question = workflow.getParams().getQuestion();
         Map<String, Map<String, Object>> details = workflow.getRuntimeDetails();
 
@@ -46,10 +37,10 @@ public class WorkFlowPostHandler {
                 .mapToInt(row -> ((Number)row.get("answer_tokens")).intValue())
                 .sum();
 
-        List<Map<String, Object>> answerTextList = workflow.getAnswerTextList();
+        List<Answer> answerTextList = workflow.getAnswerTextList();
         StringBuilder answerText = new StringBuilder();
-        for (Map<String, Object> answerEntry : answerTextList) {
-            answerText.append(answerEntry.get("content")).append("\n\n");
+        for (Answer answerEntry : answerTextList) {
+            answerText.append(answerEntry.getContent()).append("\n\n");
         }
 
         ApplicationChatRecordEntity chatRecord;
@@ -72,13 +63,15 @@ public class WorkFlowPostHandler {
         ChatCache.set(chatId, chatInfo, 30 * 60);
 
         if (clientType.equals(AuthenticationType.APPLICATION_ACCESS_TOKEN.name())) {
-            ApplicationPublicAccessClientEntity applicationPublicAccessClient = ApplicationPublicAccessClientService;
+            ApplicationPublicAccessClientEntity applicationPublicAccessClient = accessClientService.getById(clientId);
             if (applicationPublicAccessClient != null) {
                 applicationPublicAccessClient.setAccessNum(applicationPublicAccessClient.getAccessNum() + 1);
-                applicationPublicAccessClient.setIntradayAccessNum(applicationPublicAccessClient.getIntradayAccessNum() + 1);
-                applicationPublicAccessClient.save();
+                applicationPublicAccessClient.setIntraDayAccessNum(applicationPublicAccessClient.getIntraDayAccessNum() + 1);
+                accessClientService.save(applicationPublicAccessClient);
             }
         }
     }
+*/
+
 }
 

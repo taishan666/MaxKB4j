@@ -4,7 +4,6 @@ import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.module.application.wrokflow.dto.Answer;
 import com.tarzan.maxkb4j.module.application.wrokflow.dto.BaseParams;
 import com.tarzan.maxkb4j.module.application.wrokflow.dto.FlowParams;
-import com.tarzan.maxkb4j.module.application.wrokflow.dto.NodeResult;
 import lombok.Data;
 
 import java.nio.charset.StandardCharsets;
@@ -18,6 +17,7 @@ public abstract class INode {
     public static final String MANY_VIEW = "many_view";
     protected int status = 200;
     protected String errMessage = "";
+    protected String type;
     protected Node node;
     protected JSONObject nodeParams;
     protected FlowParams workflowParams;
@@ -69,12 +69,12 @@ public abstract class INode {
         }
     }
 
-    public void validArgs(JSONObject nodeParams, JSONObject flowParams) throws Exception {
-        BaseParams flowParamsClass = getFlowParamsClass(flowParams);
+    public void validArgs(JSONObject nodeParams, FlowParams flowParams) throws Exception {
+      //  BaseParams flowParamsClass = getFlowParamsClass(flowParams);
         BaseParams nodeParamsClass = getNodeParamsClass(nodeParams);
 
-        if (flowParamsClass != null) {
-            if (!flowParamsClass.isValid()) {
+        if (flowParams != null) {
+            if (!flowParams.isValid()) {
                 throw new Exception("Invalid flow params");
             }
         }

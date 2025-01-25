@@ -78,6 +78,7 @@ public class WorkflowManage {
         this.answer += content;
         this.answerList.add(content);
     }
+
     public List<Answer> getAnswerTextList() {
         List<Answer> answerList = nodeContext.stream()
                 .map(INode::getAnswerList)
@@ -88,9 +89,7 @@ public class WorkflowManage {
         List<Answer> result = new ArrayList<>();
         Answer upNode = null;
 
-        for (int index = 0; index < answerList.size(); index++) {
-            Answer currentAnswer = answerList.get(index);
-
+        for (Answer currentAnswer : answerList) {
             if (!currentAnswer.getContent().isEmpty()) {
                 if (upNode == null || "single_view".equals(currentAnswer.getViewType()) ||
                         ("many_view".equals(currentAnswer.getViewType()) && "single_view".equals(upNode.getViewType()))) {
@@ -120,7 +119,7 @@ public class WorkflowManage {
         // 实现细节取决于你的具体需求
     }
 
-    public String generatePrompt(String prompt){
+    public String generatePrompt(String prompt) {
         return "";
     }
 
@@ -137,7 +136,7 @@ public class WorkflowManage {
             JSONObject details = new JSONObject();
 
             if (chatRecord != null && chatRecord.getDetails() != null) {
-                 details = chatRecord.getDetails().getJSONObject(node.getRuntimeNodeId());
+                details = chatRecord.getDetails().getJSONObject(node.getRuntimeNodeId());
                 if (details != null && !startNode.getRuntimeNodeId().equals(node.getRuntimeNodeId())) {
                     detailsResult.put(node.getRuntimeNodeId(), details);
                     continue;
@@ -154,4 +153,97 @@ public class WorkflowManage {
 
         return detailsResult;
     }
+
+    public void appendNode(INode currentNode) {
+        for (int i = 0; i < this.nodeContext.size(); i++) {
+            INode node = this.nodeContext.get(i);
+            if (currentNode.id.equals(node.id) && currentNode.runtimeNodeId.equals(node.runtimeNodeId)) {
+                this.nodeContext.set(i, node);
+                return;
+            }
+        }
+        this.nodeContext.add(currentNode);
+    }
+
+    public NodeResultFuture runNodeFuture(INode node) {
+        try {
+            node.validArgs(node.nodeParams, node.workflowParams);
+            NodeResult result = node.run();
+            return new NodeResultFuture(result, null, 200);
+        } catch (Exception ex) {
+            return new NodeResultFuture(null, ex, 500);
+        }
+    }
+
+    private boolean hasNextNode(INode currentNode, NodeResult nodeResult) {
+        if (nodeResult != null && nodeResult.isAssertionResult()) {
+            for (Edge edge : flow.getEdges()) {
+                if (edge.getSourceNodeId().equals(currentNode.id)) {
+                    String branchId = (String) nodeResult.getNodeVariable().get("branch_id");
+                    String expectedSourceAnchorId = String.format("%s_%s_right", edge.getSourceNodeId(), branchId);
+                    if (expectedSourceAnchorId.equals(edge.getSourceNodeId())) {
+                        return true;
+                    }
+                }
+            }
+        } else {
+            for (Edge edge : flow.getEdges()) {
+                if (edge.getSourceNodeId().equals(currentNode.id)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public boolean isResult(INode currentNode, NodeResult currentNodeResult) {
+        if (currentNode.getNodeParams() == null) {
+            return false;
+        }
+        boolean defaultVal = !hasNextNode(currentNode, currentNodeResult);
+        Boolean isResult = currentNode.getNodeParams().getBoolean("is_result");
+        return isResult==null?defaultVal:isResult;
+    }
+
+    public NodeResult runNode(INode node) {
+        return node.run();
+    }
+
+    public boolean dependentNode(String lastNodeId, INode node){
+        if(Objects.equals(lastNodeId, node.id)){
+            if ("form-node".equals(node.type)){
+               Object formData =node.getContext().get("form_data");
+                return formData!=null;
+            }
+            return true;
+        }
+        return false;
+    }
+
+    public boolean dependentNodeBeenExecuted(String nodeId) {
+        // 获取所有目标节点ID等于给定nodeId的边的源节点ID列表
+        List<String> upNodeIdList = new ArrayList<>();
+        for (Edge edge : this.flow.getEdges()) {
+            if (edge.getTargetNodeId().equals(nodeId)) {
+                upNodeIdList.add(edge.getSourceNodeId());
+            }
+        }
+
+        // 检查每个上游节点是否都已执行
+        for (String upNodeId : upNodeIdList) {
+            boolean anyMatch = false;
+            for (INode node : this.nodeContext) {
+                if (dependentNode(upNodeId, node)) {
+                    anyMatch = true;
+                    break;
+                }
+            }
+            if (!anyMatch) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+
 }

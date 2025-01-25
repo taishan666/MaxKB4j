@@ -1,5 +1,6 @@
 package com.tarzan.maxkb4j.module.application.controller;
 
+import cn.dev33.satoken.annotation.SaCheckPermission;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -50,6 +51,11 @@ public class ApplicationController {
     @PostMapping("api/application/authentication")
     public R<String> authentication(HttpServletRequest request, @RequestBody JSONObject json) throws Exception {
         return R.success(applicationService.authentication(request, json));
+    }
+
+    @GetMapping("api/application/{id}/function_lib")
+    public R<List<String>> functionLib(@PathVariable("id") String id) {
+        return R.success(List.of());
     }
 
     @GetMapping("api/application/{id}/hit_test")
@@ -113,6 +119,7 @@ public class ApplicationController {
         return R.success(applicationService.getAppById(appId));
     }
 
+    @SaCheckPermission("APPLICATION:MANAGE")
     @DeleteMapping("api/application/{appId}")
     public R<Boolean> deleteByAppId(@PathVariable("appId") String appId) {
         return R.success(applicationService.deleteByAppId(appId));

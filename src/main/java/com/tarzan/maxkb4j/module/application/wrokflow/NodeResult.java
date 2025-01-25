@@ -1,12 +1,15 @@
-package com.tarzan.maxkb4j.module.application.wrokflow.dto;
+package com.tarzan.maxkb4j.module.application.wrokflow;
+
+import lombok.Data;
 
 import java.util.Map;
 
+@Data
 public class NodeResult {
-    private final Map<String, Object> nodeVariable;
-    private final Map<String, Object> workflowVariable;
-    private final WriteContextFunction writeContextFunc;
-    private final IsInterruptFunction isInterrupt;
+    private  Map<String, Object> nodeVariable;
+    private  Map<String, Object> workflowVariable;
+    private  WriteContextFunction writeContextFunc;
+    private  IsInterruptFunction isInterrupt;
 
     public NodeResult(Map<String, Object> nodeVariable, Map<String, Object> workflowVariable, WriteContextFunction writeContextFunc) {
         this.nodeVariable = nodeVariable;
@@ -33,5 +36,10 @@ public class NodeResult {
         this.writeContextFunc = writeContextFunc;
         this.isInterrupt = isInterrupt;
     }
+
+    public boolean isAssertionResult(){
+        return this.nodeVariable.containsKey("branch_id");
+    }
+
 
 }

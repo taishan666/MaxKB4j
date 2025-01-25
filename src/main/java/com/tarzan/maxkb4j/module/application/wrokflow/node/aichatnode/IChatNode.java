@@ -3,7 +3,7 @@ package com.tarzan.maxkb4j.module.application.wrokflow.node.aichatnode;
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.module.application.wrokflow.dto.FlowParams;
 import com.tarzan.maxkb4j.module.application.wrokflow.INode;
-import com.tarzan.maxkb4j.module.application.wrokflow.dto.NodeResult;
+import com.tarzan.maxkb4j.module.application.wrokflow.NodeResult;
 import com.tarzan.maxkb4j.module.application.wrokflow.node.aichatnode.dto.ChatNodeParams;
 
 public abstract class IChatNode extends INode {

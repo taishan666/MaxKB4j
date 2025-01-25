@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.module.application.wrokflow.INode;
 import com.tarzan.maxkb4j.module.application.wrokflow.dto.BaseParams;
 import com.tarzan.maxkb4j.module.application.wrokflow.dto.FlowParams;
-import com.tarzan.maxkb4j.module.application.wrokflow.dto.NodeResult;
+import com.tarzan.maxkb4j.module.application.wrokflow.NodeResult;
 
 public abstract class IStarNode extends INode {
     String type="start-node";

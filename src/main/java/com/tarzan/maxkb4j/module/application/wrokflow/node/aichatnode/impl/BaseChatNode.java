@@ -3,7 +3,7 @@ package com.tarzan.maxkb4j.module.application.wrokflow.node.aichatnode.impl;
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationChatRecordEntity;
 import com.tarzan.maxkb4j.module.application.wrokflow.dto.FlowParams;
-import com.tarzan.maxkb4j.module.application.wrokflow.dto.NodeResult;
+import com.tarzan.maxkb4j.module.application.wrokflow.NodeResult;
 import com.tarzan.maxkb4j.module.application.wrokflow.node.aichatnode.IChatNode;
 import com.tarzan.maxkb4j.module.application.wrokflow.node.aichatnode.dto.ChatNodeParams;
 import com.tarzan.maxkb4j.module.model.entity.ModelEntity;
