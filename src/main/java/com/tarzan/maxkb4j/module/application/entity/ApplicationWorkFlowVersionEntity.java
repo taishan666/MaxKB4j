@@ -22,4 +22,8 @@ public class ApplicationWorkFlowVersionEntity extends BaseEntity {
 	private String name;
 	private String publishUserId;
 	private String publishUserName;
-} 
+
+	public ApplicationWorkFlowVersionEntity(JSONObject workFlow) {
+		this.workFlow = workFlow;
+	}
+}

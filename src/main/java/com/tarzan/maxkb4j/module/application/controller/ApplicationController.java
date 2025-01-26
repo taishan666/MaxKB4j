@@ -1,11 +1,11 @@
 package com.tarzan.maxkb4j.module.application.controller;
 
-import cn.dev33.satoken.annotation.SaCheckPermission;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.tarzan.maxkb4j.common.dto.QueryDTO;
 import com.tarzan.maxkb4j.module.application.dto.ChatImproveDTO;
+import com.tarzan.maxkb4j.module.application.dto.ChatMessageDTO;
 import com.tarzan.maxkb4j.module.application.dto.ChatQueryDTO;
 import com.tarzan.maxkb4j.module.application.entity.*;
 import com.tarzan.maxkb4j.module.application.service.ApplicationService;
@@ -84,13 +84,18 @@ public class ApplicationController {
         return R.success(applicationService.chatOpenTest(application));
     }
 
+    @PostMapping("api/application/chat_workflow/open")
+    public R<String> chatWorkflowOpenTest(@RequestBody ApplicationEntity application) {
+        return R.success(applicationService.chatWorkflowOpenTest(application));
+    }
+
     @GetMapping("api/application/{appId}/chat/open")
     public R<String> chatOpen(@PathVariable("appId") String appId) {
         return R.success(applicationService.chatOpen(appId));
     }
 
     @PostMapping(path = "api/application/chat_message/{chatId}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<JSONObject> chatMessage(@PathVariable String chatId, @RequestBody JSONObject params, HttpServletRequest request) {
+    public Flux<JSONObject> chatMessage(@PathVariable String chatId, @RequestBody ChatMessageDTO params, HttpServletRequest request) {
         return applicationService.chatMessage(chatId, params, request);
     }
 
@@ -119,7 +124,7 @@ public class ApplicationController {
         return R.success(applicationService.getAppById(appId));
     }
 
-    @SaCheckPermission("APPLICATION:MANAGE")
+   // @SaCheckPermission("APPLICATION:MANAGE")
     @DeleteMapping("api/application/{appId}")
     public R<Boolean> deleteByAppId(@PathVariable("appId") String appId) {
         return R.success(applicationService.deleteByAppId(appId));

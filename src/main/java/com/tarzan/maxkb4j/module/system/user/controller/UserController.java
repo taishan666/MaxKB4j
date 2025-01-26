@@ -1,5 +1,6 @@
 package com.tarzan.maxkb4j.module.system.user.controller;
 
+import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.stp.StpUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -37,12 +38,9 @@ public class UserController{
 
 	}
 
+	@SaCheckLogin
 	@GetMapping("api/user")
 	public R<UserVO> getUser(){
-		/*if(!StpUtil.isLogin()){
-			SaHolder.getResponse().redirect("http://localhost:3000/login");
-			SaRouter.back();
-		}*/
 		return R.success(userService.getUserById(StpUtil.getLoginIdAsString()));
 	}
 

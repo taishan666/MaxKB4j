@@ -38,4 +38,7 @@ public class ChatInfo {
         return params;
     }
 
+    public void addChatRecord(ApplicationChatRecordEntity chatRecord, String clientId) {
+
+    }
 }

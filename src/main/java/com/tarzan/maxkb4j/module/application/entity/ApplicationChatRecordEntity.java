@@ -13,6 +13,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import java.util.List;
+import java.util.Map;
 
 /**
   * @author tarzan
@@ -55,4 +56,10 @@ public class ApplicationChatRecordEntity extends BaseEntity {
 	@JsonProperty("answer_text_list")
 	@TableField(typeHandler = JOSNBArrayTypeHandler.class)
 	private List<String> answerTextList;
-} 
+
+	public ApplicationChatRecordEntity() {
+	}
+
+	public ApplicationChatRecordEntity(String chatRecordId, String chatId, String question, String string, Map<String, JSONObject> details, int messageTokens, int answerTokens, List<String> answerTextList, long startTime, int i) {
+	}
+}

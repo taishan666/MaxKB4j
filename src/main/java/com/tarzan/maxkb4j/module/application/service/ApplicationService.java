@@ -19,6 +19,7 @@ import com.tarzan.maxkb4j.module.application.chatpipeline.step.generatehumanmess
 import com.tarzan.maxkb4j.module.application.chatpipeline.step.resetproblemstep.impl.BaseResetProblemStep;
 import com.tarzan.maxkb4j.module.application.chatpipeline.step.searchdatasetstep.impl.SearchDatasetStep;
 import com.tarzan.maxkb4j.module.application.dto.ChatImproveDTO;
+import com.tarzan.maxkb4j.module.application.dto.ChatMessageDTO;
 import com.tarzan.maxkb4j.module.application.dto.ChatQueryDTO;
 import com.tarzan.maxkb4j.module.application.entity.*;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationMapper;
@@ -26,6 +27,11 @@ import com.tarzan.maxkb4j.module.application.vo.ApplicationChatRecordVO;
 import com.tarzan.maxkb4j.module.application.vo.ApplicationPublicAccessClientStatisticsVO;
 import com.tarzan.maxkb4j.module.application.vo.ApplicationStatisticsVO;
 import com.tarzan.maxkb4j.module.application.vo.ApplicationVO;
+import com.tarzan.maxkb4j.module.application.workflow.Flow;
+import com.tarzan.maxkb4j.module.application.workflow.WorkflowManage;
+import com.tarzan.maxkb4j.module.application.workflow.dto.FlowParams;
+import com.tarzan.maxkb4j.module.application.workflow.dto.SystemToResponse;
+import com.tarzan.maxkb4j.module.application.workflow.handler.WorkFlowPostHandler;
 import com.tarzan.maxkb4j.module.dataset.dto.HitTestDTO;
 import com.tarzan.maxkb4j.module.dataset.entity.DatasetEntity;
 import com.tarzan.maxkb4j.module.dataset.service.DatasetService;
@@ -35,6 +41,7 @@ import com.tarzan.maxkb4j.module.model.entity.ModelEntity;
 import com.tarzan.maxkb4j.module.model.service.ModelService;
 import com.tarzan.maxkb4j.module.system.team.service.TeamMemberPermissionService;
 import com.tarzan.maxkb4j.util.BeanUtil;
+import com.tarzan.maxkb4j.util.FileUtil;
 import com.tarzan.maxkb4j.util.JwtUtil;
 import com.tarzan.maxkb4j.util.MD5Util;
 import io.jsonwebtoken.Claims;
@@ -47,6 +54,11 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.web.multipart.MultipartFile;
 import reactor.core.publisher.Flux;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -94,7 +106,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     private TeamMemberPermissionService memberPermissionService;
 
     public IPage<ApplicationEntity> selectAppPage(int page, int size, QueryDTO query) {
-        String loginId=StpUtil.getLoginIdAsString();
+        String loginId = StpUtil.getLoginIdAsString();
         Page<ApplicationEntity> appPage = new Page<>(page, size);
         LambdaQueryWrapper<ApplicationEntity> wrapper = Wrappers.lambdaQuery();
         if (StringUtils.isNotBlank(query.getName())) {
@@ -104,8 +116,8 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
             wrapper.eq(ApplicationEntity::getUserId, query.getSelectUserId());
         }
         wrapper.eq(ApplicationEntity::getUserId, loginId);
-        List<String> useTargetIds =memberPermissionService.getUseTargets("APPLICATION",loginId);
-        if (!CollectionUtils.isEmpty(useTargetIds)){
+        List<String> useTargetIds = memberPermissionService.getUseTargets("APPLICATION", loginId);
+        if (!CollectionUtils.isEmpty(useTargetIds)) {
             wrapper.or().in(ApplicationEntity::getId, useTargetIds);
         }
         return this.page(appPage, wrapper);
@@ -165,6 +177,80 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
 
     @Transactional
     public ApplicationEntity createApp(ApplicationEntity application) {
+        if ("WORK_FLOW".equals(application.getType())) {
+            application = createWorkflow(application);
+        } else {
+            application = createSimple(application);
+        }
+        return application;
+    }
+
+    public ApplicationEntity createWorkflow(ApplicationEntity application) {
+        String userId = StpUtil.getLoginIdAsString();
+        if (Objects.isNull(application.getWorkFlow())) {
+            Path path = getWorkflowFilePath("zh");
+            String defaultWorkflowJson = FileUtil.readToString(path.toFile());
+            JSONObject workFlow = JSONObject.parseObject(defaultWorkflowJson);
+            assert workFlow != null;
+            JSONArray nodes = workFlow.getJSONArray("nodes");
+            for (int i = 0; i < nodes.size(); i++) {
+                JSONObject node = nodes.getJSONObject(i);
+                if ("base-node".equals(node.getString("id"))) {
+                    JSONObject properties = node.getJSONObject("properties");
+                    JSONObject nodeData = properties.getJSONObject("node_data");
+                    nodeData.put("name", application.getName());
+                    nodeData.put("desc", application.getDesc());
+                    nodeData.put("prologue", application.getPrologue());
+                }
+            }
+            application.setWorkFlow(workFlow);
+        }
+        application.setUserId(userId);
+        application.setIcon("");
+        application.setTtsModelParamsSetting(new JSONObject());
+        application.setCleanTime(1000 * 365);
+        application.setFileUploadEnable(false);
+        application.setFileUploadSetting(new JSONObject());
+        this.save(application);
+        ApplicationAccessTokenEntity accessToken = ApplicationAccessTokenEntity.createDefault();
+        accessToken.setApplicationId(application.getId());
+        accessToken.setAccessToken(MD5Util.encrypt(UUID.randomUUID().toString(), 8, 24));
+        applicationAccessTokenService.save(accessToken);
+        return application;
+    }
+
+
+    private Path getWorkflowFilePath(String language) {
+        try {
+            // 获取当前类的绝对路径并转换为文件对象
+            File currentClassFile = new File(Objects.requireNonNull(this.getClass().getResource("")).getFile());
+            // 获取当前类所在的上级目录
+            File parentDir = currentClassFile.getParentFile();
+            String fileName = String.format("default_workflow_%s.json", toLocale(language));
+            File workflow = new File(parentDir, "workflow");
+            File json = new File(workflow, "json");
+            // 构造目标文件路径
+            File targetFile = new File(json, fileName);
+            // 确认文件存在
+            if (targetFile.exists()) {
+                // 读取文件内容
+                String content = new String(Files.readAllBytes(Paths.get(targetFile.toURI())));
+                System.out.println(content);
+            } else {
+                targetFile = new File(parentDir, "workflow/json/default_workflow_zh.json");
+            }
+            return targetFile.toPath();
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to read file", e);
+        }
+    }
+
+    private static String toLocale(String language) {
+        // 实现细节取决于实际的应用逻辑
+        return language; // 这里简化处理，直接返回语言代码
+    }
+
+    public ApplicationEntity createSimple(ApplicationEntity application) {
         String userId = StpUtil.getLoginIdAsString();
         application.setUserId(userId);
         application.setIcon("");
@@ -280,7 +366,62 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         return applicationApiKeyService.removeById(apikeyId);
     }
 
-    public Flux<JSONObject> chatMessage(String chatId, JSONObject json, HttpServletRequest request) {
+    public Flux<JSONObject> chatMessage(String chatId, ChatMessageDTO dto, HttpServletRequest request) {
+        ChatInfo chatInfo = getChatInfo(chatId);
+        if (chatInfo.getApplication().getType().equals("SIMPLE")) {
+            return chatSimple(chatId, dto, request);
+        } else {
+            return chatWorkflow(chatId, dto, request);
+        }
+
+    }
+
+    public Flux<JSONObject> chatWorkflow(String chatId, ChatMessageDTO dto, HttpServletRequest request) {
+        String authorization = request.getHeader("Authorization");
+        Claims claims = JwtUtil.parseToken(authorization);
+        String clientId = (String) claims.get("client_id");
+        String clientType = (String) claims.get("type");
+        ChatInfo chatInfo = getChatInfo(chatId);
+        if (chatInfo == null) {
+            System.err.println("会话不存在");
+        }
+        if (!claims.isEmpty()) {
+            try {
+                assert chatInfo != null;
+                isValidApplication(chatInfo, clientId, clientType);
+            } catch (Exception e) {
+                JSONObject data = new JSONObject();
+                data.put("content", e.getMessage());
+                return Flux.just(data);
+            }
+        }
+        boolean reChat = dto.getReChat();
+        ApplicationChatRecordVO chatRecord = null;
+        if (reChat) {
+            String chatRecordId = dto.getChatRecordId();
+            if (Objects.nonNull(chatRecordId)) {
+                 chatRecord = getChatRecordInfo(chatId, chatRecordId);
+            }
+        }
+        assert chatInfo != null;
+        FlowParams flowParams = new FlowParams();
+        WorkflowManage workflowManage = new WorkflowManage(Flow.newInstance(chatInfo.getWorkFlowVersion().getWorkFlow()),
+                flowParams,
+                new WorkFlowPostHandler(chatInfo, clientId, clientType),
+                new SystemToResponse(),
+                dto.getFormData(),
+                dto.getImageList(),
+                dto.getDocumentList(),
+                dto.getAudioList(),
+                null,
+                null,
+                chatRecord,
+                null);
+        workflowManage.run();
+        return Flux.just();
+    }
+
+    public Flux<JSONObject> chatSimple(String chatId, ChatMessageDTO dto, HttpServletRequest request) {
         String authorization = request.getHeader("Authorization");
         Claims claims = JwtUtil.parseToken(authorization);
         String clientId = (String) claims.get("client_id");
@@ -298,12 +439,12 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
                 return Flux.just(data);
             }
         }
-        boolean stream = json.getBoolean("stream") == null || json.getBoolean("stream");
-        String problemText = json.getString("message");
-        boolean reChat = json.getBooleanValue("rechat");
+        boolean stream = dto.getStream() == null || dto.getStream();
+        String problemText = dto.getMessage();
+        boolean reChat = dto.getReChat();
         List<String> excludeParagraphIds = new ArrayList<>();
         if (reChat) {
-            String chatRecordId = json.getObject("chat_record_id", String.class);
+            String chatRecordId = dto.getChatRecordId();
             if (Objects.nonNull(chatRecordId)) {
                 ApplicationChatRecordVO chatRecord = getChatRecordInfo(chatId, chatRecordId);
                 List<ParagraphVO> paragraphs = chatRecord.getParagraphList();
@@ -315,7 +456,8 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         assert chatInfo != null;
         ApplicationEntity application = chatInfo.getApplication();
         PipelineManage.Builder pipelineManageBuilder = new PipelineManage.Builder();
-        if (application.getProblemOptimization()) {
+        Boolean problemOptimization = application.getProblemOptimization();
+        if (Objects.nonNull(problemOptimization) && problemOptimization) {
             pipelineManageBuilder.addStep(baseResetProblemStep);
         }
         pipelineManageBuilder.addStep(searchDatasetStep);
@@ -360,6 +502,20 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         chatInfo.setChatId(IdWorker.get32UUID());
         application.setId(null);
         chatInfo.setApplication(application);
+        ChatCache.put(chatInfo.getChatId(), chatInfo);
+        return chatInfo.getChatId();
+    }
+
+    public String chatWorkflowOpenTest(ApplicationEntity application) {
+        ChatInfo chatInfo = new ChatInfo();
+        chatInfo.setChatId(IdWorker.get32UUID());
+        application.setId(null);
+        ApplicationWorkFlowVersionEntity workflowVersion = new ApplicationWorkFlowVersionEntity(application.getWorkFlow());
+        application.setDialogueNumber(3);
+        application.setType("WORKFLOW");
+        application.setUserId(StpUtil.getLoginIdAsString());
+        chatInfo.setApplication(application);
+        chatInfo.setWorkFlowVersion(workflowVersion);
         ChatCache.put(chatInfo.getChatId(), chatInfo);
         return chatInfo.getChatId();
     }
@@ -542,10 +698,10 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
 
     @Transactional
     public Boolean updateAppById(String appId, ApplicationVO appVO) {
-        ApplicationEntity application= BeanUtil.copy(appVO, ApplicationEntity.class);
+        ApplicationEntity application = BeanUtil.copy(appVO, ApplicationEntity.class);
         application.setId(appId);
-        applicationDatasetMappingService.lambdaUpdate().eq(ApplicationDatasetMappingEntity::getApplicationId,appId).remove();
-        if(!CollectionUtils.isEmpty(appVO.getDatasetIdList())){
+        applicationDatasetMappingService.lambdaUpdate().eq(ApplicationDatasetMappingEntity::getApplicationId, appId).remove();
+        if (!CollectionUtils.isEmpty(appVO.getDatasetIdList())) {
             List<ApplicationDatasetMappingEntity> mappingList = new ArrayList<>();
             for (String datasetId : appVO.getDatasetIdList()) {
                 ApplicationDatasetMappingEntity mapping = new ApplicationDatasetMappingEntity();
@@ -553,7 +709,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
                 mapping.setDatasetId(datasetId);
                 mappingList.add(mapping);
             }
-           applicationDatasetMappingService.saveBatch(mappingList);
+            applicationDatasetMappingService.saveBatch(mappingList);
         }
         return this.updateById(application);
     }
