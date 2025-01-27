@@ -18,6 +18,7 @@ import com.tarzan.maxkb4j.module.application.chatpipeline.step.chatstep.impl.Bas
 import com.tarzan.maxkb4j.module.application.chatpipeline.step.generatehumanmessagestep.impl.GenerateHumanMessageStep;
 import com.tarzan.maxkb4j.module.application.chatpipeline.step.resetproblemstep.impl.BaseResetProblemStep;
 import com.tarzan.maxkb4j.module.application.chatpipeline.step.searchdatasetstep.impl.SearchDatasetStep;
+import com.tarzan.maxkb4j.module.application.dto.ApplicationAccessTokenDTO;
 import com.tarzan.maxkb4j.module.application.dto.ChatImproveDTO;
 import com.tarzan.maxkb4j.module.application.dto.ChatMessageDTO;
 import com.tarzan.maxkb4j.module.application.dto.ChatQueryDTO;
@@ -137,12 +138,12 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         return accessTokenService.accessToken(appId);
     }
 
-    public ApplicationAccessTokenEntity updateAccessToken(String appId, ApplicationAccessTokenEntity entity) {
-        entity.setApplicationId(appId);
-        if (entity.getAccessTokenReset() != null && entity.getAccessTokenReset()) {
-            entity.setAccessToken(MD5Util.encrypt(UUID.randomUUID().toString(), 8, 24));
+    public ApplicationAccessTokenEntity updateAccessToken(String appId, ApplicationAccessTokenDTO dto) {
+        dto.setApplicationId(appId);
+        if (dto.getAccessTokenReset() != null && dto.getAccessTokenReset()) {
+            dto.setAccessToken(MD5Util.encrypt(UUID.randomUUID().toString(), 8, 24));
         }
-        accessTokenService.updateById(entity);
+        accessTokenService.updateById(BeanUtil.copy(dto,ApplicationAccessTokenEntity.class));
         return accessTokenService.getById(appId);
     }
 
@@ -417,8 +418,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
                 null,
                 chatRecord,
                 null);
-        workflowManage.run();
-        return Flux.just();
+        return  workflowManage.run();
     }
 
     public Flux<JSONObject> chatSimple(String chatId, ChatMessageDTO dto, HttpServletRequest request) {

@@ -7,7 +7,6 @@ import com.tarzan.maxkb4j.module.application.entity.ApplicationChatRecordEntity;
 import com.tarzan.maxkb4j.module.application.workflow.WorkflowManage;
 import lombok.Data;
 
-import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 
@@ -41,9 +40,7 @@ public class WorkFlowPostHandler {
                 .mapToInt(row -> ((Number)row.get("answer_tokens")).intValue())
                 .sum();
         JSONObject finalDetails=new JSONObject();
-        details.forEach((key, value) -> {
-            finalDetails.put(key, value);
-        });
+        finalDetails.putAll(details);
         List<String> answerTextList = workflow.getAnswerTextList();
         StringBuilder answerText = new StringBuilder();
         for (String answer1: answerTextList) {
@@ -53,7 +50,7 @@ public class WorkFlowPostHandler {
         ApplicationChatRecordEntity chatRecord;
         if (workflow.getChatRecord() != null) {
             chatRecord = workflow.getChatRecord();
-            chatRecord.setAnswerText(answerText.toString());
+            chatRecord.setAnswerText(answer);
             chatRecord.setDetails(finalDetails);
             chatRecord.setMessageTokens(messageTokens);
             chatRecord.setAnswerTokens(answerTokens);
@@ -63,9 +60,8 @@ public class WorkFlowPostHandler {
         } else {
             chatRecord = new ApplicationChatRecordEntity(chatRecordId, chatId, question, answerText.toString(), details,
                     messageTokens, answerTokens, answerTextList,
-                    Instant.now().getEpochSecond() - (Long)workflow.getContext().get("start_time"), 0);
+                    System.currentTimeMillis() - (Long)workflow.getContext().get("start_time"), 0);
         }
-
         chatInfo.addChatRecord(chatRecord, clientId);
         // 重新设置缓存
         ChatCache.put(chatId, chatInfo);

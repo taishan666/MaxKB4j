@@ -1,6 +1,5 @@
 package com.tarzan.maxkb4j.module.application.workflow;
 
-import cn.dev33.satoken.util.SaResult;
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.module.application.vo.ApplicationChatRecordVO;
 import com.tarzan.maxkb4j.module.application.workflow.dto.Answer;
@@ -8,9 +7,11 @@ import com.tarzan.maxkb4j.module.application.workflow.dto.BaseToResponse;
 import com.tarzan.maxkb4j.module.application.workflow.dto.FlowParams;
 import com.tarzan.maxkb4j.module.application.workflow.handler.WorkFlowPostHandler;
 import lombok.Data;
+import reactor.core.publisher.Flux;
 
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantLock;
 
 
@@ -39,7 +40,7 @@ public class WorkflowManage {
     private Object childNode; // 根据实际需要定义类型
     private  List<Future<?>> futureList = new ArrayList<>();
     private List<INode> nodeContext = new ArrayList<>();
-    private ExecutorService executorService;
+    private ExecutorService executorService=Executors.newFixedThreadPool(5);
 
     public WorkflowManage(Flow flow, FlowParams params, WorkFlowPostHandler workFlowPostHandler,
                           BaseToResponse baseToResponse, Map<String, Object> formData, List<Object> imageList,
@@ -125,29 +126,112 @@ public class WorkflowManage {
         // 实现细节取决于你的具体需求
     }
 
-    public void run() {
+    public Flux<JSONObject> run() {
      //   closeOldConnections();
       //  String language = getLanguage();
         String language = "zh";
         if (params.getStream()) {
-            runStream(startNode, null, language);
+            return runStream(startNode, null, language);
         } else {
-            runBlock(language);
+            return runBlock(language);
         }
     }
 
-    public void runStream(INode currentNode, NodeResultFuture nodeResultFuture, String language) {
-
+    //todo 改造成Flux<JSONObject>
+    public Flux<JSONObject> runStream(INode currentNode, Future<?> nodeResultFuture, String language) {
+        runChainAsync(currentNode, nodeResultFuture, language);
+        return awaitResult();
     }
+
+    public Iterator<String> toStreamResponseSimple(Iterator<String> iterator) {
+        return iterator;
+    }
+
+    public Flux<JSONObject> awaitResult() {
+        NodeChunkManage nodeChunkManage = this.nodeChunkManage;
+        WorkflowManage workflow = this;
+        AtomicBoolean isFinished = new AtomicBoolean(false);
+
+        return Flux.create(sink -> {
+            // 使用单独线程来模拟异步操作
+            new Thread(() -> {
+                while (isRun()) {
+                    JSONObject chunk = nodeChunkManage.pop();
+                    if (chunk != null) {
+                        sink.next(chunk);
+                    }
+                }
+
+                // 处理结束后的工作流
+                Map<String, JSONObject> details = getRuntimeDetails();
+                int messageTokens = details.values().stream()
+                        .filter(row -> row.containsKey("message_tokens") && row.get("message_tokens") != null)
+                        .mapToInt(row -> (int) row.get("message_tokens"))
+                        .sum();
+                int answerTokens = details.values().stream()
+                        .filter(row -> row.containsKey("answer_tokens") && row.get("answer_tokens") != null)
+                        .mapToInt(row -> (int) row.get("answer_tokens"))
+                        .sum();
+
+                workFlowPostHandler.handler(params.getChatId(), params.getChatRecordId(),
+                        answer, workflow);
+
+                sink.next(baseToResponse.toStreamChunkResponse(params.getChatId(),
+                        params.getChatRecordId(), "", new LinkedList<>(), "", true, messageTokens, answerTokens));
+                sink.complete(); // 结束整个 Flux 流
+
+                isFinished.set(true); // 标记完成
+            }).start();
+        });
+    }
+
+/*    public Flux<String> awaitResult() {
+        NodeChunkManage nodeChunkManage= this.nodeChunkManage;
+        WorkflowManage workflow= this;
+        return new Iterator<>() {
+            private boolean isFinished = false;
+            @Override
+            public boolean hasNext() {
+                // 判断是否还有下一个chunk
+                return !isFinished;
+            }
+
+            @Override
+            public  String next() {
+                while (isRun()) {
+                    String chunk = nodeChunkManage.pop();
+                    if (chunk != null) {
+                        return chunk;
+                    }
+                }
+
+                // 处理结束后的工作流
+                Map<String, JSONObject> details = getRuntimeDetails();
+                int messageTokens = details.values().stream()
+                        .filter(row -> row.containsKey("message_tokens") && row.get("message_tokens") != null)
+                        .mapToInt(row -> (int) row.get("message_tokens"))
+                        .sum();
+                int answerTokens = details.values().stream()
+                        .filter(row -> row.containsKey("answer_tokens") && row.get("answer_tokens") != null)
+                        .mapToInt(row -> (int) row.get("answer_tokens"))
+                        .sum();
+
+                workFlowPostHandler.handler(params.getChatId(), params.getChatRecordId(),
+                        answer, workflow);
+                isFinished = true;
+                // 这里返回一个特殊的结束标识或结果对象
+                return baseToResponse.toStreamChunkResponse(params.getChatId(),
+                        params.getChatRecordId(), "", new LinkedList<>(), "", true, messageTokens, answerTokens);
+            }
+        };
+    }*/
 
     public void runChainAsync(INode currentNode,Future<?> nodeResultFuture, String language) {
         // 提交任务给线程池执行，并获取对应的Future对象
         Future<?> future = executorService.submit(() -> {
             try {
                 runChainManage(currentNode, nodeResultFuture, language);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            } catch (ExecutionException e) {
+            } catch (InterruptedException | ExecutionException e) {
                 throw new RuntimeException(e);
             }
         });
@@ -229,7 +313,7 @@ public class WorkflowManage {
     }
 
 
-    public SaResult runBlock(String language) {
+    public Flux<JSONObject> runBlock(String language) {
         if (language == null || language.isEmpty()) {
             language = "zh";
         }
@@ -264,13 +348,14 @@ public class WorkflowManage {
 
         workFlowPostHandler.handler(chatId, chatRecordId, answerText.toString(), this);
 
-        return baseToResponse.toBlockResponse(chatId,
+        baseToResponse.toBlockResponse(chatId,
                 chatRecordId,
                 answerText.toString(),
                 true,
                 messageTokens,
                 answerTokens,
                 getStatus());
+        return Flux.just(new JSONObject());
     }
 
     public boolean isRun() {

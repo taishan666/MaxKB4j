@@ -1,5 +1,6 @@
 package com.tarzan.maxkb4j.module.application.workflow;
 
+import com.alibaba.fastjson.JSONObject;
 import lombok.Data;
 
 import java.util.ArrayList;
@@ -9,18 +10,18 @@ import java.util.Objects;
 @Data
 public class NodeChunk {
     private Integer status;
-    private List<String> chunkList;
+    private List<JSONObject> chunkList;
 
     public NodeChunk() {
         this.status = 0;
         this.chunkList = new ArrayList<>();
     }
 
-    public void addChunk(String chunk) {
+    public void addChunk(JSONObject chunk) {
         this.chunkList.add(chunk);
     }
 
-    public void end(String chunk){
+    public void end(JSONObject chunk){
         if(Objects.nonNull(chunk)){
             this.chunkList.add(chunk);
         }

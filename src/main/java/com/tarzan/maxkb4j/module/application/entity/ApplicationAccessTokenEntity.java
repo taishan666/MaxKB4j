@@ -34,10 +34,6 @@ public class ApplicationAccessTokenEntity {
     
     @JsonProperty("access_token")
     private String accessToken;
-
-    @JsonProperty("access_token_reset")
-    @TableField(exist = false)
-    private Boolean accessTokenReset;
     
     @JsonProperty("is_active")
     private Boolean isActive;
@@ -54,6 +50,9 @@ public class ApplicationAccessTokenEntity {
     
     @JsonProperty("show_source")
     private Boolean showSource;
+
+    public ApplicationAccessTokenEntity() {
+    }
 
     public ApplicationAccessTokenEntity(Boolean isActive, Integer accessNum, Boolean whiteActive, Set<String> whiteList, Boolean showSource) {
         this.isActive = isActive;

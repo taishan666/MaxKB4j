@@ -1,6 +1,7 @@
 package com.tarzan.maxkb4j.module.application.workflow.dto;
 
 import cn.dev33.satoken.util.SaResult;
+import com.alibaba.fastjson.JSONObject;
 
 import java.util.List;
 
@@ -34,9 +35,9 @@ public abstract class BaseToResponse {
      * @param promptTokens     提示的token数
      * @param otherParams      其他参数
      */
-    public abstract String toStreamChunkResponse(String chatId, String chatRecordId, String nodeId,
-                                               List<String> upNodeIdList, String content, boolean isEnd,
-                                               int completionTokens, int promptTokens);
+    public abstract JSONObject toStreamChunkResponse(String chatId, String chatRecordId, String nodeId,
+                                                     List<String> upNodeIdList, String content, boolean isEnd,
+                                                     int completionTokens, int promptTokens);
 
     /**
      * 格式化流式块响应。
