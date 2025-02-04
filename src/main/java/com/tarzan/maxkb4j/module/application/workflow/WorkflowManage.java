@@ -1,6 +1,7 @@
 package com.tarzan.maxkb4j.module.application.workflow;
 
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.annotation.JSONField;
 import com.tarzan.maxkb4j.module.application.vo.ApplicationChatRecordVO;
 import com.tarzan.maxkb4j.module.application.workflow.dto.Answer;
 import com.tarzan.maxkb4j.module.application.workflow.dto.BaseToResponse;
@@ -28,9 +29,10 @@ public class WorkflowManage {
     private Flow flow;
     private final ReentrantLock lock = new ReentrantLock();
     private JSONObject context = new JSONObject();
+    @JSONField(serialize = false)
     private NodeChunkManage nodeChunkManage;
     private WorkFlowPostHandler workFlowPostHandler;
-    private Object currentNode;
+    private INode currentNode;
     private NodeResult currentResult;
     private String answer = "";
     private List<String> answerList = new ArrayList<>(Collections.singletonList(""));
@@ -161,6 +163,8 @@ public class WorkflowManage {
                 JSONObject chunk = nodeChunkManage.pop();
                 if (chunk != null) {
                     sink.next(chunk);
+                }else {
+                    break;
                 }
             }
 
@@ -175,7 +179,7 @@ public class WorkflowManage {
                     .mapToInt(row -> (int) row.get("answer_tokens"))
                     .sum();
 
-            workFlowPostHandler.handler(params.getChatId(), params.getChatRecordId(),
+            workFlowPostHandler.handler(this.params.getChatId(), this.params.getChatRecordId(),
                     answer, workflow);
 
             sink.next(baseToResponse.toStreamChunkResponse(params.getChatId(),
@@ -196,7 +200,6 @@ public class WorkflowManage {
                 throw new RuntimeException(e);
             }
         });
-        System.out.println(future);
         // 将Future对象添加到futureList列表中
         futureList.add(future);
     }
@@ -233,33 +236,37 @@ public class WorkflowManage {
             currentNode = NodeFactory.getNode(startNode.getType());
             System.out.println("currentNode="+currentNode);
         }
-
+        System.out.println(1);
         // 添加节点块
+        assert currentNode != null;
         nodeChunkManage.addNodeChunk(currentNode.getNodeChunk());
-
+        System.out.println(2);
         // 添加节点
         appendNode(currentNode);
-
+        System.out.println(3);
         // 执行链式任务
         NodeResult result = runChain(currentNode, nodeResultFuture.get());
-
+        System.out.println(4);
         if (result == null) {
             return;
         }
-
+        System.out.println(5);
         // 获取下一个节点列表
         List<INode> nodeList = getNextNodeList(currentNode, result);
-
+        System.out.println(6);
         if (nodeList.size() == 1) {
+            System.out.println(7);
             runChainManage(nodeList.get(0), null, language);
         } else if (nodeList.size() > 1) {
+            System.out.println(8);
             // 对节点进行排序
             List<INode> sortedNodeRunList = nodeList.stream()
                     .sorted(Comparator.comparingInt(n -> n.getNode().getY()))
                     .toList();
-
+            System.out.println(9);
             // 提交子任务并获取Future对象
             List<Future<?>> resultList = new ArrayList<>();
+            System.out.println(10);
             for (INode node : sortedNodeRunList) {
                 Future<?> future = executorService.submit(() -> {
                     try {
@@ -268,16 +275,19 @@ public class WorkflowManage {
                         throw new RuntimeException(e);
                     }
                 });
+                System.out.println(11);
                 synchronized (futureList) {
                     futureList.add(future);
                 }
+                System.out.println(12);
                 resultList.add(future);
             }
-
+            System.out.println(13);
             // 等待所有子任务完成（可选）
             for (Future<?> future : resultList) {
                 future.get(); // 这里会阻塞直到子任务完成
             }
+            System.out.println(14);
         }
     }
 
@@ -286,28 +296,33 @@ public class WorkflowManage {
     }
 
     public NodeResult runChain(INode currentNode, NodeResultFuture nodeResultFuture) {
+        System.out.println(31);
         // 处理默认的nodeResultFuture
         if (nodeResultFuture == null) {
+            System.out.println(32);
             nodeResultFuture = runNodeFuture(currentNode);
         }
-
+        System.out.println(33);
         try {
             // 获取stream参数并处理默认值
             boolean isStream = params.getStream();
-
+            System.out.println(34);
             // 根据流模式选择处理方法
             NodeResult result;
+            System.out.println(35);
             if (isStream) {
+                System.out.println(36);
                 result = handEventNodeResult(currentNode, nodeResultFuture);
             } else {
+                System.out.println(37);
                 result = handleNodeResult(currentNode, nodeResultFuture);
             }
-
+            System.out.println(38);
             return result;
         } catch (Exception e) {
+            System.out.println(39);
             e.printStackTrace();
         }
-
         return null;
     }
 
@@ -445,14 +460,12 @@ public class WorkflowManage {
 
     public boolean isRun(long timeout, TimeUnit timeUnit) {
         int futureListLen = futureList.size();
-
+        System.out.println("futureListLen="+futureListLen);
         // 创建两个列表用于存储已完成和未完成的任务
         List<Future<?>> done = new ArrayList<>();
         List<Future<?>> notDone = new ArrayList<>(futureList);
 
         long endTime = System.nanoTime() + timeUnit.toNanos(timeout);
-        boolean timeoutReached = false;
-
         // 遍历所有Future对象并检查它们的状态
         for (Future<?> future : notDone) {
             try {

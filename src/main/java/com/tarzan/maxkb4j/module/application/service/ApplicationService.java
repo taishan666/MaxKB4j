@@ -375,7 +375,6 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         } else {
             return chatWorkflow(chatId, dto, request);
         }
-
     }
 
     public Flux<JSONObject> chatWorkflow(String chatId, ChatMessageDTO dto, HttpServletRequest request) {
@@ -408,6 +407,8 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         }
         assert chatInfo != null;
         FlowParams flowParams = new FlowParams();
+        flowParams.setChatId(chatInfo.getChatId());
+        flowParams.setChatRecordId(dto.getChatRecordId()==null?IdWorker.get32UUID():dto.getChatRecordId());
         WorkflowManage workflowManage = new WorkflowManage(Flow.newInstance(chatInfo.getWorkFlowVersion().getWorkFlow()),
                 flowParams,
                 new WorkFlowPostHandler(chatInfo, clientId, clientType),
@@ -420,6 +421,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
                 null,
                 chatRecord,
                 null);
+        System.out.println("workflowManage.run()");
         return  workflowManage.run();
     }
 

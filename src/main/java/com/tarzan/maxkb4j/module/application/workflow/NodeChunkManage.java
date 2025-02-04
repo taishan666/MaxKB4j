@@ -1,6 +1,7 @@
 package com.tarzan.maxkb4j.module.application.workflow;
 
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.annotation.JSONField;
 import lombok.Data;
 
 import java.util.ArrayList;
@@ -10,6 +11,7 @@ import java.util.List;
 public class NodeChunkManage {
     private List<NodeChunk> nodeChunkList;
     private NodeChunk currentNodeChunk;
+    @JSONField(serialize = false)
     private WorkflowManage workflow;
 
     public NodeChunkManage(WorkflowManage workflow) {
@@ -49,5 +51,13 @@ public class NodeChunkManage {
             }
         }
         return null;
+    }
+
+    @Override
+    public String toString() {
+        return "NodeChunkManage{" +
+                "nodeChunkList=" + nodeChunkList +
+                ", currentNodeChunk=" + currentNodeChunk +
+                '}';
     }
 }

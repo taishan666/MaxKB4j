@@ -58,9 +58,10 @@ public class WorkFlowPostHandler {
             long startTime = workflow.getContext().getLong("start_time");
             chatRecord.setRunTime((System.currentTimeMillis() - startTime) / 1000F);
         } else {
+            long startTime= workflow.getContext().getLongValue("start_time");
             chatRecord = new ApplicationChatRecordEntity(chatRecordId, chatId, question, answerText.toString(), details,
                     messageTokens, answerTokens, answerTextList,
-                    System.currentTimeMillis() - (Long)workflow.getContext().get("start_time"), 0);
+                    System.currentTimeMillis() - startTime, 0);
         }
         chatInfo.addChatRecord(chatRecord, clientId);
         // 重新设置缓存
