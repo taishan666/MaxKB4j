@@ -1,6 +1,8 @@
 package com.tarzan.maxkb4j.module.application.workflow;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.TypeReference;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
@@ -14,16 +16,25 @@ public class Flow {
     private List<Edge> edges;
     private final static List<String> endNodes=List.of("ai-chat-node", "reply-node", "function-node", "function-lib-node", "application-node",
             "image-understand-node", "speech-to-text-node", "text-to-speech-node", "image-generate-node");
+
     public Flow(List<Node> nodes, List<Edge> edges) {
         this.nodes = nodes;
         this.edges = edges;
     }
 
-    public static  Flow newInstance(JSONObject flow){
-       /* List<Node> nodes= (List<Node>) flow.get("nodes");
-        List<Edge> edges= (List<Node>) flow.get("edges");
-        return new Flow(nodes,edges);*/
-        return flow.toJavaObject(Flow.class);
+    public static Flow newInstance(JSONObject flowJson) {
+        // 使用TypeReference来指定复杂的类型
+        return JSON.parseObject(flowJson.toJSONString(), new TypeReference<Flow>() {});
+    }
+
+    public static  Flow newInstance1(JSONObject flow){
+        Flow res= flow.toJavaObject(Flow.class);
+        System.out.println("res="+res);
+        System.out.println("res getNodes="+res.getNodes());
+        for (Node node : res.getNodes()) {
+            System.out.println("res node="+node);
+        }
+        return res;
     }
 
     public Node getStartNode(){

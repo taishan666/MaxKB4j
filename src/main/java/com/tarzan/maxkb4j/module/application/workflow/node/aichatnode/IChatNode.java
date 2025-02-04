@@ -8,7 +8,10 @@ import com.tarzan.maxkb4j.module.application.workflow.node.aichatnode.dto.ChatNo
 
 public abstract class IChatNode extends INode {
 
-    String type="ai-chat-node";
+    @Override
+    public String getType() {
+        return "ai-chat-node";
+    }
 
     @Override
     public ChatNodeParams getNodeParamsClass(JSONObject nodeParams) {

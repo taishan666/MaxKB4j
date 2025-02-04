@@ -14,7 +14,7 @@ import java.util.function.Consumer;
 
 @Data
 public abstract class INode {
-    public static final String MANY_VIEW = "many_view";
+    public  String viewType = "many_view";
     protected int status = 200;
     protected String errMessage = "";
     protected String type;
@@ -22,8 +22,6 @@ public abstract class INode {
     protected JSONObject nodeParams;
     protected FlowParams workflowParams;
     protected WorkflowManage workflowManage;
-    protected Map<String, Object> nodeParamsSerializer;
-    protected Map<String, Object> flowParamsSerializer;
     protected Map<String, Object> context;
     protected String answerText;
     protected String id;
@@ -133,7 +131,7 @@ public abstract class INode {
         if (this.answerText == null) {
             return null;
         }
-        Answer answer = new Answer(this.answerText, MANY_VIEW, this.runtimeNodeId,
+        Answer answer = new Answer(this.answerText, "MANY_VIEW", this.runtimeNodeId,
                 this.workflowParams.getChatRecordId(), new HashMap<>());
         return Collections.singletonList(answer);
     }

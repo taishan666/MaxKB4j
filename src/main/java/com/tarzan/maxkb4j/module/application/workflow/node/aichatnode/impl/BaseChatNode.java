@@ -2,7 +2,9 @@ package com.tarzan.maxkb4j.module.application.workflow.node.aichatnode.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationChatRecordEntity;
+import com.tarzan.maxkb4j.module.application.workflow.INode;
 import com.tarzan.maxkb4j.module.application.workflow.NodeResult;
+import com.tarzan.maxkb4j.module.application.workflow.WorkflowManage;
 import com.tarzan.maxkb4j.module.application.workflow.dto.FlowParams;
 import com.tarzan.maxkb4j.module.application.workflow.node.aichatnode.IChatNode;
 import com.tarzan.maxkb4j.module.application.workflow.node.aichatnode.dto.ChatNodeParams;
@@ -29,6 +31,18 @@ public class BaseChatNode extends IChatNode {
     @Autowired
     private ModelService modelService;
 
+    private static Map<String, JSONObject>  writeContextStream(Map<String, Object> nodeVariable, Map<String, Object> workflowVariable, INode currentNode, WorkflowManage workflow){
+        Object response= nodeVariable.get("result");
+        //TODO
+        return writeContext(nodeVariable,workflowVariable,currentNode,workflow);
+    }
+    private static Map<String, JSONObject>  writeContext(Map<String, Object> nodeVariable, Map<String, Object> workflowVariable, INode currentNode, WorkflowManage workflow){
+        Object response= nodeVariable.get("result");
+        //TODO
+        return null;
+    }
+
+
     @Override
     public NodeResult execute(ChatNodeParams nodeParams, FlowParams flowParams) {
         if (Objects.isNull(nodeParams.getDialogueType())) {
@@ -44,16 +58,29 @@ public class BaseChatNode extends IChatNode {
         this.context.put("question", question.singleText());
         List<ChatMessage> messageList = generateMessageList(nodeParams.getSystem(), nodeParams.getPrompt(), historyMessage);
         this.context.put("message_list", messageList);
-        Response<AiMessage> res = chatModel.generate(messageList);
-        Map<String, Object> nodeVariable = Map.of(
-                "result", res,
-                "chat_model", chatModel,
-                "message_list", messageList,
-                "history_message", historyMessage,
-                "question", question.singleText()
-        );
-        return new NodeResult(nodeVariable, Map.of(), (node, workflow) -> {
-        });
+        if(flowParams.getStream()){
+            Response<AiMessage> res = chatModel.generate(messageList);
+            Map<String, Object> nodeVariable = Map.of(
+                    "result", res,
+                    "chat_model", chatModel,
+                    "message_list", messageList,
+                    "history_message", historyMessage,
+                    "question", question.singleText()
+            );
+            return new NodeResult(nodeVariable, Map.of(), this, super.workflowManage,BaseChatNode::writeContextStream);
+        }else {
+            Response<AiMessage> res = chatModel.generate(messageList);
+            Map<String, Object> nodeVariable = Map.of(
+                    "result", res,
+                    "chat_model", chatModel,
+                    "message_list", messageList,
+                    "history_message", historyMessage,
+                    "question", question.singleText()
+            );
+            return new NodeResult(nodeVariable, Map.of(), this, super.workflowManage,BaseChatNode::writeContext);
+        }
+
+
     }
 
     private JSONObject getDefaultModelParamsSetting(String modelId) {

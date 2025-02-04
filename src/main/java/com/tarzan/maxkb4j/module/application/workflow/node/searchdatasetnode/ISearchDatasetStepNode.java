@@ -8,8 +8,10 @@ import com.tarzan.maxkb4j.module.application.workflow.node.searchdatasetnode.dto
 
 public abstract class ISearchDatasetStepNode extends INode {
 
-    String type="search-dataset-node";
-
+    @Override
+    public String getType() {
+        return "search-dataset-node";
+    }
     @Override
     public SearchDatasetStepNodeParams getNodeParamsClass(JSONObject nodeParams) {
         return nodeParams.toJavaObject(SearchDatasetStepNodeParams.class);

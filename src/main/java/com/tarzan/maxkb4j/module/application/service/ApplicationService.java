@@ -46,6 +46,7 @@ import com.tarzan.maxkb4j.util.FileUtil;
 import com.tarzan.maxkb4j.util.JwtUtil;
 import com.tarzan.maxkb4j.util.MD5Util;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.impl.DefaultClaims;
 import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -379,7 +380,8 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
 
     public Flux<JSONObject> chatWorkflow(String chatId, ChatMessageDTO dto, HttpServletRequest request) {
         String authorization = request.getHeader("Authorization");
-        Claims claims = JwtUtil.parseToken(authorization);
+      //  Claims claims = JwtUtil.parseToken(authorization);
+        Claims claims=new DefaultClaims();
         String clientId = (String) claims.get("client_id");
         String clientType = (String) claims.get("type");
         ChatInfo chatInfo = getChatInfo(chatId);

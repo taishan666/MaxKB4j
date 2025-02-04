@@ -13,6 +13,11 @@ public class SystemToResponse extends BaseToResponse{
 
     @Override
     public JSONObject toStreamChunkResponse(String chatId, String chatRecordId, String nodeId, List<String> upNodeIdList, String content, boolean isEnd, int completionTokens, int promptTokens) {
+        return toStreamChunkResponse(chatId,chatRecordId,nodeId,upNodeIdList,content,isEnd,completionTokens,promptTokens,null);
+    }
+
+    @Override
+    public JSONObject toStreamChunkResponse(String chatId, String chatRecordId, String nodeId, List<String> upNodeIdList, String content, boolean isEnd, int completionTokens, int promptTokens,ChunkInfo otherParams) {
         JSONObject result=new JSONObject();
         // 添加各个参数到 JSON 对象中
         result.put("chat_id", chatId);
@@ -23,6 +28,14 @@ public class SystemToResponse extends BaseToResponse{
         result.put("is_end", isEnd);
         result.put("completion_tokens", completionTokens);
         result.put("prompt_tokens", promptTokens);
+        if(otherParams!=null){
+            result.put("node_type", otherParams.getNodeType());
+            result.put("runtime_node_id", otherParams.getRuntimeNodeId());
+            result.put("view_type", otherParams.getViewType());
+            result.put("child_node", otherParams.getChildNode());
+            result.put("node_is_end", otherParams.getNodeIsEnd());
+            result.put("real_node_id", otherParams.getRealNodeId());
+        }
         return result;
     }
 }

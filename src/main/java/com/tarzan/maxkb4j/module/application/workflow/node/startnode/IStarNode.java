@@ -7,7 +7,11 @@ import com.tarzan.maxkb4j.module.application.workflow.dto.BaseParams;
 import com.tarzan.maxkb4j.module.application.workflow.dto.FlowParams;
 
 public abstract class IStarNode extends INode {
-    String type = "start-node";
+
+    @Override
+    public String getType() {
+        return "start-node";
+    }
 
     @Override
     public BaseParams getNodeParamsClass(JSONObject nodeParams) {

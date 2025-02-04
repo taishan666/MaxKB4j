@@ -8,7 +8,11 @@ import com.tarzan.maxkb4j.module.application.workflow.node.applicationnode.dto.A
 
 public abstract class IApplicationNode extends INode {
 
-    String type="application-node";
+
+    @Override
+    public String getType() {
+        return "application-node";
+    }
 
     @Override
     public ApplicationNodeParams getNodeParamsClass(JSONObject nodeParams) {

@@ -39,6 +39,10 @@ public abstract class BaseToResponse {
                                                      List<String> upNodeIdList, String content, boolean isEnd,
                                                      int completionTokens, int promptTokens);
 
+    public abstract JSONObject toStreamChunkResponse(String chatId, String chatRecordId, String nodeId,
+                                                     List<String> upNodeIdList, String content, boolean isEnd,
+                                                     int completionTokens, int promptTokens,ChunkInfo chunkInfo);
+
     /**
      * 格式化流式块响应。
      *
