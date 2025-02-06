@@ -3,7 +3,6 @@ package com.tarzan.maxkb4j.module.application.workflow;
 import com.alibaba.fastjson.JSONObject;
 import lombok.Data;
 
-import java.util.HashMap;
 import java.util.Map;
 
 @Data
@@ -13,18 +12,11 @@ public class NodeResult {
     private  WriteContextFunction writeContextFunc;
     private  IsInterruptFunction isInterrupt;
 
-    public NodeResult(Map<String, Object> nodeVariable, Map<String, Object> workflowVariable, WriteContextFunction writeContextFunc) {
+    public NodeResult(Map<String, Object> nodeVariable, Map<String, Object> workflowVariable) {
         this.nodeVariable = nodeVariable;
         this.workflowVariable = workflowVariable;
-        this.writeContextFunc = writeContextFunc;
-        this.isInterrupt = null;
-    }
-
-    public NodeResult(WriteContextFunction writeContextFunc) {
-        this.nodeVariable = new HashMap<>();
-        this.workflowVariable = new HashMap<>();
-        this.writeContextFunc = writeContextFunc;
-        this.isInterrupt = null;
+        this.writeContextFunc = this::defaultWriteContextFunc;
+        this.isInterrupt = this::defaultIsInterrupt;
     }
 
     public NodeResult(Map<String, Object> nodeVariable, Map<String, Object> workflowVariable , INode currentNode, WorkflowManage workflow,WriteContextFunction writeContextFunc) {
@@ -35,28 +27,55 @@ public class NodeResult {
     }
 
 
-    public Map<String, JSONObject> writeContext(INode currentNode, WorkflowManage workflowManage) {
+    public JSONObject writeContext(INode currentNode, WorkflowManage workflowManage) {
         return this.writeContextFunc.apply(nodeVariable, workflowVariable,currentNode,workflowManage);
     }
+
+    public boolean isInterruptExec(INode currentNode) {
+        return this.isInterrupt.apply(currentNode);
+    }
+
+    public  boolean defaultIsInterrupt(INode node) {
+        return node.getType().equals("form-node")&& !node.getContext().getBooleanValue("is_submit");
+    }
+
+    public  JSONObject defaultWriteContextFunc(Map<String, Object> stepVariable, Map<String, Object> globalVariable, INode node, WorkflowManage workflow) {
+        if (stepVariable != null) {
+            for (Map.Entry<String, Object> entry : stepVariable.entrySet()) {
+                node.getContext().put(entry.getKey(), entry.getValue());
+            }
+            if (workflow.isResult(node, new NodeResult(stepVariable, globalVariable)) && stepVariable.containsKey("answer")) {
+                String answer = (String) stepVariable.get("answer");
+                System.out.println(answer); // Java中没有yield，这里用打印代替输出
+                node.answerText = answer;
+            }
+        }
+
+        if (globalVariable != null) {
+            for (Map.Entry<String, Object> entry : globalVariable.entrySet()) {
+                workflow.getContext().put(entry.getKey(), entry.getValue());
+            }
+        }
+
+        if (node.context.containsKey("start_time")) {
+            long runTime = System.currentTimeMillis() - (long) node.context.get("start_time");
+            node.context.put("run_time", runTime);
+        }
+
+        return node.getContext();
+    }
+
+
 
 
     @FunctionalInterface
     public interface WriteContextFunction {
-        Map<String, JSONObject>  apply(Map<String, Object> nodeVariable, Map<String, Object> workflowVariable, INode node, WorkflowManage workflow);
+        JSONObject  apply(Map<String, Object> nodeVariable, Map<String, Object> workflowVariable, INode node, WorkflowManage workflow);
     }
 
     @FunctionalInterface
     interface IsInterruptFunction {
-        boolean apply(Object current_node, Map<String, Object> nodeVariable, Map<String, Object> workflowVariable);
-    }
-
-
-    public NodeResult(Map<String, Object> nodeVariable, Map<String, Object> workflowVariable,
-                      WriteContextFunction writeContextFunc, IsInterruptFunction isInterrupt) {
-        this.nodeVariable = nodeVariable;
-        this.workflowVariable = workflowVariable;
-        this.writeContextFunc = writeContextFunc;
-        this.isInterrupt = isInterrupt;
+        boolean apply(INode current_node);
     }
 
     public boolean isAssertionResult(){

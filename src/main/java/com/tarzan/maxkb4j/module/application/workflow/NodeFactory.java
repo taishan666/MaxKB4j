@@ -22,8 +22,6 @@ public class NodeFactory {
     }
 
     public static INode getNode(String nodeType) {
-        System.out.println("nodeType="+nodeType);
-        System.out.println("nodeList="+nodeList);
         for (INode node : nodeList) {
             if (node.getType().equals(nodeType)) {
                 return node;

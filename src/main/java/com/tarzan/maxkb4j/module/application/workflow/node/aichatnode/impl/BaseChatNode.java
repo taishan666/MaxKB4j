@@ -6,6 +6,7 @@ import com.tarzan.maxkb4j.module.application.workflow.INode;
 import com.tarzan.maxkb4j.module.application.workflow.NodeResult;
 import com.tarzan.maxkb4j.module.application.workflow.WorkflowManage;
 import com.tarzan.maxkb4j.module.application.workflow.dto.FlowParams;
+import com.tarzan.maxkb4j.module.application.workflow.node.NodeDetail;
 import com.tarzan.maxkb4j.module.application.workflow.node.aichatnode.IChatNode;
 import com.tarzan.maxkb4j.module.application.workflow.node.aichatnode.dto.ChatNodeParams;
 import com.tarzan.maxkb4j.module.model.entity.ModelEntity;
@@ -31,12 +32,12 @@ public class BaseChatNode extends IChatNode {
     @Autowired
     private ModelService modelService;
 
-    private static Map<String, JSONObject>  writeContextStream(Map<String, Object> nodeVariable, Map<String, Object> workflowVariable, INode currentNode, WorkflowManage workflow){
+    private static JSONObject writeContextStream(Map<String, Object> nodeVariable, Map<String, Object> workflowVariable, INode currentNode, WorkflowManage workflow){
         Object response= nodeVariable.get("result");
         //TODO
         return writeContext(nodeVariable,workflowVariable,currentNode,workflow);
     }
-    private static Map<String, JSONObject>  writeContext(Map<String, Object> nodeVariable, Map<String, Object> workflowVariable, INode currentNode, WorkflowManage workflow){
+    private static JSONObject  writeContext(Map<String, Object> nodeVariable, Map<String, Object> workflowVariable, INode currentNode, WorkflowManage workflow){
         Object response= nodeVariable.get("result");
         //TODO
         return null;
@@ -109,4 +110,10 @@ public class BaseChatNode extends IChatNode {
     }
 
 
+    @Override
+    public void saveContext(NodeDetail nodeDetail, WorkflowManage workflowManage) {
+        this.context.put("question", nodeDetail.getQuestion());
+        this.context.put("answer", nodeDetail.getAnswer());
+        this.answerText=nodeDetail.getAnswer();
+    }
 }

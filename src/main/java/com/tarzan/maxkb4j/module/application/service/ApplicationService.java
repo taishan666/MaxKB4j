@@ -421,7 +421,6 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
                 null,
                 chatRecord,
                 null);
-        System.out.println("workflowManage.run()");
         return  workflowManage.run();
     }
 

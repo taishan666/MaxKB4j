@@ -2,21 +2,26 @@ package com.tarzan.maxkb4j.module.application.workflow;
 
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.annotation.JSONField;
+import com.tarzan.maxkb4j.module.application.entity.ApplicationChatRecordEntity;
 import com.tarzan.maxkb4j.module.application.vo.ApplicationChatRecordVO;
 import com.tarzan.maxkb4j.module.application.workflow.dto.Answer;
 import com.tarzan.maxkb4j.module.application.workflow.dto.BaseToResponse;
 import com.tarzan.maxkb4j.module.application.workflow.dto.ChunkInfo;
 import com.tarzan.maxkb4j.module.application.workflow.dto.FlowParams;
 import com.tarzan.maxkb4j.module.application.workflow.handler.WorkFlowPostHandler;
+import com.tarzan.maxkb4j.module.application.workflow.node.NodeDetail;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
 
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Function;
 
 
+@Slf4j
 @Data
 public class WorkflowManage {
     private String startNodeId;
@@ -48,7 +53,7 @@ public class WorkflowManage {
     public WorkflowManage(Flow flow, FlowParams params, WorkFlowPostHandler workFlowPostHandler,
                           BaseToResponse baseToResponse, Map<String, Object> formData, List<Object> imageList,
                           List<Object> documentList, List<Object> audioList, String startNodeId,
-                          Object startNodeData, ApplicationChatRecordVO chatRecord, Object childNode) {
+                          Map<String, Object> startNodeData, ApplicationChatRecordVO chatRecord, Object childNode) {
         if (formData != null) {
             this.formData = formData;
         }
@@ -61,7 +66,12 @@ public class WorkflowManage {
         if (audioList != null) {
             this.audioList = audioList;
         }
-        this.startNodeId = startNodeId;
+        if (startNodeId != null) {
+            this.startNodeId = startNodeId;
+            this.loadNode(chatRecord, startNodeId, startNodeData);
+        }else {
+            this.nodeContext= new ArrayList<>();
+        }
         this.params = params;
         this.flow = flow;
         this.workFlowPostHandler = workFlowPostHandler;
@@ -69,10 +79,6 @@ public class WorkflowManage {
         this.chatRecord = chatRecord;
         this.childNode = childNode;
         this.nodeChunkManage = new NodeChunkManage(this);
-
-        if (startNodeId != null) {
-            loadNode(chatRecord, startNodeId, startNodeData);
-        }
     }
 
     public boolean answerIsNotEmpty() {
@@ -125,8 +131,70 @@ public class WorkflowManage {
         return result;
     }
 
-    private void loadNode(Object chatRecord, String startNodeId, Object startNodeData) {
-        // 实现细节取决于你的具体需求
+    public void loadNode(ApplicationChatRecordEntity chatRecord, String startNodeId, Map<String, Object> startNodeData) {
+        nodeContext.clear();
+        this.answer = chatRecord.getAnswerText();
+        this.answerList = new ArrayList<>(chatRecord.getAnswerTextList());
+        this.answerList.add("");
+       // List<NodeDetail> nodeDetails=chatRecord.getDetails()
+        List<NodeDetail> sortedDetails = chatRecord.getDetails().values().stream()
+                .map(NodeDetail.class::cast)
+                .sorted(Comparator.comparingInt(NodeDetail::getIndex))
+                .toList();
+
+        for (NodeDetail nodeDetail : sortedDetails) {
+            String nodeId = nodeDetail.getNodeId();
+            if (nodeDetail.getRuntimeNodeId().equals(startNodeId)) {
+                // 处理起始节点
+                this.startNode = getNodeClsById(
+                        nodeId,
+                        nodeDetail.getLastNodeIdList(),
+                        n -> {
+                            JSONObject params = new JSONObject();
+                            boolean isResult = "application-node".equals(n.getType());
+
+                            // 合并节点数据
+                            if (n.getProperties().containsKey("node_data")) {
+                                params.putAll(n.getProperties().getJSONObject("node_data"));
+                            }
+
+                            params.put("form_data", startNodeData);
+                            params.put("node_data", startNodeData);
+                            params.put("child_node", childNode); // 假设childNode方法存在
+                            params.put("is_result", isResult);
+                            return params;
+                        }
+                );
+
+                // 合并验证参数
+                assert startNode != null;
+                JSONObject validationParams = startNode.getNodeParams();
+                validationParams.put("form_data", startNodeData);
+                try {
+                    startNode.validArgs(validationParams, startNode.getWorkflowParams());
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+
+                if ("application-node".equals(startNode.getType())) {
+                    startNode.getContext().put("application_node_dict",
+                            nodeDetail.getApplicationNodeDict());
+                }
+
+                nodeContext.add(startNode);
+                continue;
+            }
+
+            // 处理普通节点
+            INode node = getNodeClsById(nodeId, nodeDetail.getLastNodeIdList());
+            try {
+                node.validArgs(node.getNodeParams(), node.getWorkflowParams());
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+            node.saveContext(nodeDetail, this);
+            nodeContext.add(node);
+        }
     }
 
     public Flux<JSONObject> run() {
@@ -141,7 +209,7 @@ public class WorkflowManage {
     }
 
     //todo 改造成Flux<JSONObject>
-    public Flux<JSONObject> runStream(INode currentNode, Future<NodeResultFuture> nodeResultFuture, String language) {
+    public Flux<JSONObject> runStream(INode currentNode,NodeResultFuture nodeResultFuture, String language) {
         runChainAsync(currentNode, nodeResultFuture, language);
         return awaitResult();
     }
@@ -155,18 +223,30 @@ public class WorkflowManage {
         WorkflowManage workflow = this;
         AtomicBoolean isFinished = new AtomicBoolean(false);
         System.out.println(isFinished);
+        System.out.println("awaitResult");
         return Flux.create(sink -> {
             // 使用单独线程来模拟异步操作
             System.out.println("nodeChunkManage="+nodeChunkManage);
             while (isRun()) {
                 System.out.println("isRun");
                 JSONObject chunk = nodeChunkManage.pop();
+                System.out.println("chunk="+chunk);
                 if (chunk != null) {
                     sink.next(chunk);
                 }else {
                     break;
                 }
             }
+
+           /* while (true) {
+                JSONObject chunk = nodeChunkManage.pop();
+                System.out.println("chunk="+chunk);
+                if (chunk != null) {
+                    sink.next(chunk);
+                }else {
+                    break;
+                }
+            }*/
 
             // 处理结束后的工作流
             Map<String, JSONObject> details = getRuntimeDetails();
@@ -191,7 +271,7 @@ public class WorkflowManage {
     }
 
 
-    public void runChainAsync(INode currentNode,Future<NodeResultFuture> nodeResultFuture, String language) {
+    public void runChainAsync(INode currentNode,NodeResultFuture nodeResultFuture, String language) {
         // 提交任务给线程池执行，并获取对应的Future对象
         Future<?> future = executorService.submit(() -> {
             try {
@@ -205,10 +285,8 @@ public class WorkflowManage {
     }
 
     public INode getNode(String type) {
-        System.out.println("nodeContext="+nodeContext);
         for (INode iNode : nodeContext) {
             if (iNode.getType().equals(type)){
-                System.out.println("iNode="+iNode);
                 return iNode;
             }
         }
@@ -226,7 +304,17 @@ public class WorkflowManage {
       //  return this.flow.getNodes().parallelStream().filter(node -> node.getType().equals("start-node")).findFirst().orElse(null);
     }
 
-    public void runChainManage(INode currentNode, Future<NodeResultFuture> nodeResultFuture, String language) throws InterruptedException, ExecutionException {
+    public Node getBaseNode() {
+        for (Node node : this.flow.getNodes()) {
+            if("base-node".equals(node.getType())){
+                return node;
+            }
+        }
+        return null;
+        //  return this.flow.getNodes().parallelStream().filter(node -> node.getType().equals("start-node")).findFirst().orElse(null);
+    }
+
+    public void runChainManage(INode currentNode, NodeResultFuture nodeResultFuture, String language) throws InterruptedException, ExecutionException {
         // 激活翻译（假设有一个类似功能的类）
        // Translation.activate(language);
         System.out.println("runChainManage");
@@ -245,7 +333,7 @@ public class WorkflowManage {
         appendNode(currentNode);
         System.out.println(3);
         // 执行链式任务
-        NodeResult result = runChain(currentNode, nodeResultFuture.get());
+        NodeResult result = runChain(currentNode, nodeResultFuture);
         System.out.println(4);
         if (result == null) {
             return;
@@ -253,6 +341,7 @@ public class WorkflowManage {
         System.out.println(5);
         // 获取下一个节点列表
         List<INode> nodeList = getNextNodeList(currentNode, result);
+        System.out.println("nodeList="+nodeList);
         System.out.println(6);
         if (nodeList.size() == 1) {
             System.out.println(7);
@@ -291,9 +380,102 @@ public class WorkflowManage {
         }
     }
 
-    private List<INode> getNextNodeList(INode currentNode, NodeResult result) {
-        return List.of();
+
+    public List<INode> getNextNodeList(INode currentNode, NodeResult currentNodeResult) {
+        List<INode> nodeList = new ArrayList<>();
+        System.out.println("getNextNodeList="+currentNode);
+        System.out.println("getNextNodeList="+currentNodeResult);
+        // 判断是否中断执行
+        if (currentNodeResult != null && currentNodeResult.isInterruptExec(currentNode)) {
+            return nodeList;
+        }
+
+        if (currentNodeResult != null && currentNodeResult.isAssertionResult()) {
+            // 处理断言结果分支
+            for (Edge edge : flow.getEdges()) {
+                if (edge.getSourceNodeId().equals(currentNode.getId())) {
+                    // 构造预期的sourceAnchorId
+                    Map<String, Object> nodeVariables = currentNodeResult.getNodeVariable();
+                    String branchId = nodeVariables != null ? (String) nodeVariables.getOrDefault("branch_id", "") : "";
+                    String expectedAnchorId = String.format("%s_%s_right", currentNode.getId(), branchId);
+                    if (expectedAnchorId.equals(edge.getSourceNodeId())) {
+                        processEdge(edge, currentNode, nodeList);
+                    }
+                }
+            }
+        } else {
+            // 处理非断言结果分支
+            for (Edge edge : flow.getEdges()) {
+                if (edge.getSourceNodeId().equals(currentNode.getId())) {
+                    processEdge(edge, currentNode, nodeList);
+                }
+            }
+        }
+        return nodeList;
     }
+
+
+    private void processEdge(Edge edge, INode currentNode, List<INode> nodeList) {
+        // 查找目标节点
+        Optional<Node> targetNodeOpt = flow.getNodes().stream()
+                .filter(node -> node.getId().equals(edge.getTargetNodeId()))
+                .findFirst();
+
+        if (targetNodeOpt.isEmpty()) {
+            return;
+        }
+
+        Node targetNode = targetNodeOpt.get();
+        String condition = (String) targetNode.getProperties().getOrDefault("condition", "AND");
+
+        // 处理节点依赖
+        if ("AND".equals(condition)) {
+            if (dependentNodeBeenExecuted(edge.getTargetNodeId())) {
+                addNodeToList(edge.getTargetNodeId(), currentNode, nodeList);
+            }
+        } else {
+            addNodeToList(edge.getTargetNodeId(), currentNode, nodeList);
+        }
+    }
+
+    private void addNodeToList(String targetNodeId, INode currentNode, List<INode> nodeList) {
+        // 构建上游节点ID列表
+        List<String> newUpNodeIds = new ArrayList<>();
+        if (currentNode.getLastNodeIdList() != null) {
+            newUpNodeIds.addAll(currentNode.getLastNodeIdList());
+        }
+        newUpNodeIds.add(currentNode.getNode().getId());
+
+        // 获取节点实例并添加到列表
+        INode nextNode = getNodeClsById(targetNodeId, newUpNodeIds);
+        if (nextNode != null) {
+            nodeList.add(nextNode);
+        }
+    }
+
+    private INode getNodeClsById(String targetNodeId, List<String> newUpNodeIds){
+        return getNodeClsById(targetNodeId, newUpNodeIds,null);
+    }
+
+    private INode getNodeClsById(String nodeId, List<String> lastNodeIds,
+                                Function<Node, JSONObject> paramGenerator) {
+        for (Node node : this.flow.getNodes()) {
+            if (nodeId.equals(node.getId())){
+                INode nodeInstance= getNode(node.getType());
+                nodeInstance.setNode(node);
+                nodeInstance.setWorkflowParams(this.params);
+                nodeInstance.setLastNodeIdList(lastNodeIds);
+                if(paramGenerator!=null){
+                    nodeInstance.setNodeParams(paramGenerator.apply(node));
+                }
+               return nodeInstance;
+            }
+        }
+        return null;
+    }
+
+
+
 
     public NodeResult runChain(INode currentNode, NodeResultFuture nodeResultFuture) {
         System.out.println(31);
@@ -312,6 +494,7 @@ public class WorkflowManage {
             System.out.println(35);
             if (isStream) {
                 System.out.println(36);
+                System.out.println("nodeResultFuture="+nodeResultFuture);
                 result = handEventNodeResult(currentNode, nodeResultFuture);
             } else {
                 System.out.println(37);
@@ -330,29 +513,31 @@ public class WorkflowManage {
         String realNodeId = currentNode.getRuntimeNodeId();
         Map<String, Object> child_node = new HashMap<>();
         String view_type = currentNode.getViewType();
+        NodeResult currentResult = nodeResultFuture.getResult();
         try {
-            NodeResult currentResult = nodeResultFuture.getResult();
-            Map<String, JSONObject>  result = currentResult.writeContext(currentNode, this);
+            JSONObject  result = currentResult.writeContext(currentNode, this);
             if (result != null) {
                 if (isResult(currentNode, currentResult)) {
-                    for (JSONObject r : result.values()) {
+                    for (Object r : result.values()) {
                         Object content = r;
                         child_node = new HashMap<>();
                         boolean node_is_end = false;
                         view_type = currentNode.getViewType();
                         if (r != null) {
-                            content = ((Map<String, Object>) r).get("content");
-                            child_node.put("runtime_node_id", ((Map<String, Object>) r).get("runtime_node_id"));
-                            child_node.put("chat_record_id", ((Map<String, Object>) r).get("chat_record_id"));
-                            child_node.put("child_node", ((Map<String, Object>) r).get("child_node"));
-                            realNodeId = (String) ((Map<String, Object>) r).get("real_node_id");
-                            node_is_end = (boolean) r.getOrDefault("node_is_end", false);
-                            view_type = (String) ((Map<String, Object>) r).get("view_type");
+                            JSONObject json= (JSONObject) r;
+                            content = json.get("content");
+                            child_node.put("runtime_node_id", json.get("runtime_node_id"));
+                            child_node.put("chat_record_id", json.get("chat_record_id"));
+                            child_node.put("child_node", json.get("child_node"));
+                            realNodeId = (String) json.get("real_node_id");
+                            node_is_end = (boolean) json.getOrDefault("node_is_end", false);
+                            view_type = (String) json.get("view_type");
                         }
+                        assert content != null;
                         JSONObject chunk = this.getBaseToResponse().toStreamChunkResponse(getParams().getChatId(),
                                 getParams().getChatRecordId(),
                                 currentNode.getId(),
-                                currentNode.getUpNodeIdList(),
+                                currentNode.getLastNodeIdList(),
                                 content.toString(), false, 0, 0,
                                 new ChunkInfo(currentNode.getType(),
                                         currentNode.runtimeNodeId,
@@ -365,7 +550,7 @@ public class WorkflowManage {
                     JSONObject endChunk = this.getBaseToResponse().toStreamChunkResponse(getParams().getChatId(),
                             getParams().getChatRecordId(),
                             currentNode.getId(),
-                            currentNode.getUpNodeIdList(),
+                            currentNode.getLastNodeIdList(),
                             "", false, 0, 0,
                             new ChunkInfo(currentNode.getType(),
                                     realNodeId,
@@ -378,15 +563,15 @@ public class WorkflowManage {
                     // Assuming list(result) is meant to process each item in result
                     for (Object ignored : result.values()) {}
                 }
-                return currentResult;
             }
         } catch (Exception e) {
+           // e.printStackTrace();
             // Exception handling
             //StackTrace.print(e); // Placeholder for exception logging
             JSONObject errorChunk = this.getBaseToResponse().toStreamChunkResponse(getParams().getChatId(),
                     getParams().getChatRecordId(),
                     currentNode.getId(),
-                    currentNode.getUpNodeIdList(),
+                    currentNode.getLastNodeIdList(),
                     e.getMessage(), false, 0, 0,
                     new ChunkInfo(currentNode.getType(),
                             currentNode.getRuntimeNodeId(),
@@ -397,11 +582,10 @@ public class WorkflowManage {
             currentNode.getNodeChunk().addChunk(errorChunk);
             currentNode.getWriteErrorContext(e);
             this.status = 500;
-            return null;
         } finally {
             currentNode.getNodeChunk().end(null);
         }
-        return null;
+        return currentResult;
     }
 
     public NodeResult handleNodeResult(INode currentNode, NodeResultFuture nodeResultFuture) {
@@ -519,7 +703,7 @@ public class WorkflowManage {
 
             details = node.getDetails(index);
             details.put("node_id", node.getId());
-            details.put("up_node_id_list", node.getUpNodeIdList());
+            details.put("up_node_id_list", node.getLastNodeIdList());
             details.put("runtime_node_id", node.getRuntimeNodeId());
 
             detailsResult.put(node.getRuntimeNodeId(), details);
@@ -541,10 +725,15 @@ public class WorkflowManage {
 
     public NodeResultFuture runNodeFuture(INode node) {
         try {
-            node.validArgs(node.nodeParams, node.workflowParams);
+          //  node.validArgs(node.nodeParams, node.workflowParams);
+            System.out.println("INode="+node);
+            node.setWorkflowManage(this);
             NodeResult result = node.run();
+            System.out.println("NodeResult1="+result);
             return new NodeResultFuture(result, null, 200);
         } catch (Exception ex) {
+            ex.printStackTrace();
+            System.out.println("NodeResult2="+ex);
             return new NodeResultFuture(null, ex, 500);
         }
     }
@@ -580,6 +769,7 @@ public class WorkflowManage {
     }
 
     public NodeResult runNode(INode node) {
+      //  node.setWorkflowManage(this);
         return node.run();
     }
 

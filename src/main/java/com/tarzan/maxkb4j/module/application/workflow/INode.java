@@ -4,17 +4,17 @@ import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.module.application.workflow.dto.Answer;
 import com.tarzan.maxkb4j.module.application.workflow.dto.BaseParams;
 import com.tarzan.maxkb4j.module.application.workflow.dto.FlowParams;
+import com.tarzan.maxkb4j.module.application.workflow.node.NodeDetail;
 import lombok.Data;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
-import java.util.function.Consumer;
 
 @Data
 public abstract class INode {
-    public  String viewType = "many_view";
+    String viewType = "many_view";
     protected int status = 200;
     protected String errMessage = "";
     protected String type;
@@ -22,26 +22,29 @@ public abstract class INode {
     protected JSONObject nodeParams;
     protected FlowParams workflowParams;
     protected WorkflowManage workflowManage;
-    protected Map<String, Object> context;
+    protected JSONObject context=new JSONObject();
     protected String answerText;
     protected String id;
-    protected List<String> upNodeIdList;
+    protected List<String> lastNodeIdList;
+    private NodeChunk nodeChunk=new NodeChunk();
     protected String runtimeNodeId;
-    protected NodeChunk nodeChunk;
+
 
     public INode() {
     }
 
-    public INode(Node node, FlowParams workflowParams, WorkflowManage workflowManage, List<String> upNodeIdList) {
+
+/*  public INode(Node node, FlowParams workflowParams, WorkflowManage workflowManage, List<String> upNodeIdList) {
         this.node = node;
         this.workflowParams = workflowParams;
         this.workflowManage = workflowManage;
         this.upNodeIdList = upNodeIdList != null ? upNodeIdList : new ArrayList<>();
         this.nodeParams = getNodeParams(node);
-        this.context = new HashMap<>();
+        this.context = new JSONObject();
         this.id=node.getId();
+        this.nodeChunk = new NodeChunk();
         this.runtimeNodeId = generateRuntimeNodeId();
-    }
+    }*/
 
     private JSONObject getNodeParams(Node node) {
         if (Objects.nonNull(node.getProperties()) && node.getProperties().containsKey("node_data")) {
@@ -53,7 +56,7 @@ public abstract class INode {
     private String generateRuntimeNodeId() {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-1");
-            String input = Arrays.toString(upNodeIdList.stream().sorted().toArray()) + node.getId();
+            String input = Arrays.toString(lastNodeIdList.stream().sorted().toArray()) + node.getId();
             byte[] hashBytes = digest.digest(input.getBytes(StandardCharsets.UTF_8));
             StringBuilder hexString = new StringBuilder();
             for (byte b : hashBytes) {
@@ -84,7 +87,7 @@ public abstract class INode {
         }
 
         // Ensure proper type casting before comparison
-        Object statusObj = ((Map<?, ?>) node.getProperties().get("status"));
+        Object statusObj = node.getProperties().get("status");
         if (statusObj instanceof Integer && (Integer) statusObj != 200) {
             throw new Exception("Node is not available");
         } else if (statusObj instanceof String) {
@@ -106,11 +109,11 @@ public abstract class INode {
         return flowParams.toJavaObject(FlowParams.class);
     }
 
-    public Consumer<Answer> getWriteErrorContext(Exception e) {
+    public void getWriteErrorContext(Exception e) {
         this.status = 500;
         this.errMessage = e.getMessage();
-        this.context.put("run_time", System.currentTimeMillis() - (long) this.context.get("start_time"));
-        return answer -> {};
+        long startTime= this.context.getLongValue("start_time");
+        this.context.put("run_time", System.currentTimeMillis() - startTime);
     }
 
     public NodeResult run() {
@@ -154,6 +157,28 @@ public abstract class INode {
         }
         return value;
     }
+
+    public JSONObject getDefaultGlobalVariable(List<JSONObject> inputFieldList) {
+        JSONObject resultMap = new JSONObject();
+
+        if (inputFieldList == null) {
+            return resultMap;
+        }
+
+        for (Map<String, Object> item : inputFieldList) {
+            if (item.containsKey("default_value")) {
+                Object defaultValue = item.get("default_value");
+                if (defaultValue != null) {
+                    String variableName = (String) item.get("variable");
+                    resultMap.put(variableName, defaultValue);
+                }
+            }
+        }
+
+        return resultMap;
+    }
+
+    public abstract void saveContext(NodeDetail nodeDetail, WorkflowManage workflowManage);
 }
 
 

@@ -10,6 +10,7 @@ import javax.validation.Validation;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
 import javax.validation.constraints.*;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -19,7 +20,7 @@ public class FlowParams extends BaseParams {
 
     @JsonProperty("history_chat_record")
     @NotEmpty(message = "历史对答不能为空")
-    private List<ApplicationChatRecordEntity> historyChatRecord;
+    private List<ApplicationChatRecordEntity> historyChatRecord=new ArrayList<>();
 
     @JsonProperty("question")
     @NotBlank(message = "用户问题不能为空")

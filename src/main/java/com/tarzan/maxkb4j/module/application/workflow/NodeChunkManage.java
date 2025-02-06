@@ -28,14 +28,15 @@ public class NodeChunkManage {
     }
 
     public JSONObject pop() {
+        System.out.println("currentNodeChunk="+currentNodeChunk);
         if (currentNodeChunk == null) {
             if (!nodeChunkList.isEmpty()) {
                 currentNodeChunk = nodeChunkList.remove(0);
             }
         }
-
         if (currentNodeChunk != null) {
             if (!currentNodeChunk.getChunkList().isEmpty()) {
+                System.out.println("currentNodeChunk1="+currentNodeChunk);
                 return currentNodeChunk.getChunkList().remove(0);
             } else if (currentNodeChunk.isEnd()) {
                 currentNodeChunk = null;
@@ -43,13 +44,16 @@ public class NodeChunkManage {
                     String chatId = workflow.getParams().getChatId();
                     String chatRecordId = workflow.getParams().getChatRecordId();
                     JSONObject chunk = workflow.getBaseToResponse().toStreamChunkResponse(chatId, chatRecordId, null,null,"\n\n", false, 0, 0);
+                    System.out.println("currentNodeChunk3="+chunk);
                     workflow.appendAnswer("\n\n");
                     return chunk;
                 } else {
+                    System.out.println("currentNodeChunk4="+currentNodeChunk);
                     return pop();
                 }
             }
         }
+        System.out.println("currentNodeChunk5="+currentNodeChunk);
         return null;
     }
 
