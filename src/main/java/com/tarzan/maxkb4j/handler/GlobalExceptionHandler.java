@@ -38,6 +38,13 @@ public class GlobalExceptionHandler{
         return SaResult.error(e.getMessage());
     }
 
+    @ExceptionHandler(NullPointerException.class)
+    @ResponseBody
+    public SaResult handleException(NullPointerException e) {
+        log.error("空指针异常: {}", e.getMessage(), e);
+        return SaResult.error(e.getMessage());
+    }
+
 
 }
 

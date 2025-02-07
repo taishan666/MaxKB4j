@@ -22,33 +22,29 @@ public abstract class INode {
     protected JSONObject nodeParams;
     protected FlowParams workflowParams;
     protected WorkflowManage workflowManage;
-    protected JSONObject context=new JSONObject();
+    protected JSONObject context;
     protected String answerText;
     protected String id;
     protected List<String> lastNodeIdList;
-    private NodeChunk nodeChunk=new NodeChunk();
+    private NodeChunk nodeChunk;
     protected String runtimeNodeId;
 
 
     public INode() {
+        this.context = new JSONObject();
+        this.lastNodeIdList=new ArrayList<>();
+        this.nodeChunk = new NodeChunk();
+        this.runtimeNodeId= generateRuntimeNodeId();
     }
 
-
-/*  public INode(Node node, FlowParams workflowParams, WorkflowManage workflowManage, List<String> upNodeIdList) {
+    public void setNode(Node node) {
         this.node = node;
-        this.workflowParams = workflowParams;
-        this.workflowManage = workflowManage;
-        this.upNodeIdList = upNodeIdList != null ? upNodeIdList : new ArrayList<>();
         this.nodeParams = getNodeParams(node);
-        this.context = new JSONObject();
-        this.id=node.getId();
-        this.nodeChunk = new NodeChunk();
-        this.runtimeNodeId = generateRuntimeNodeId();
-    }*/
+    }
 
     private JSONObject getNodeParams(Node node) {
         if (Objects.nonNull(node.getProperties()) && node.getProperties().containsKey("node_data")) {
-            return  node.getProperties().getJSONObject("node_data");
+            return node.getProperties().getJSONObject("node_data");
         }
         return new JSONObject();
     }
@@ -56,7 +52,9 @@ public abstract class INode {
     private String generateRuntimeNodeId() {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-1");
-            String input = Arrays.toString(lastNodeIdList.stream().sorted().toArray()) + node.getId();
+            assert lastNodeIdList != null;
+            assert node != null;
+            String input = Arrays.toString(lastNodeIdList.stream().sorted().toArray()) + id;
             byte[] hashBytes = digest.digest(input.getBytes(StandardCharsets.UTF_8));
             StringBuilder hexString = new StringBuilder();
             for (byte b : hashBytes) {
@@ -71,7 +69,7 @@ public abstract class INode {
     }
 
     public void validArgs(JSONObject nodeParams, FlowParams flowParams) throws Exception {
-      //  BaseParams flowParamsClass = getFlowParamsClass(flowParams);
+        //  BaseParams flowParamsClass = getFlowParamsClass(flowParams);
         BaseParams nodeParamsClass = getNodeParamsClass(nodeParams);
 
         if (flowParams != null) {
@@ -103,6 +101,7 @@ public abstract class INode {
             throw new Exception("Status not found or invalid type");
         }
     }
+
     public abstract BaseParams getNodeParamsClass(JSONObject nodeParams);
 
     public BaseParams getFlowParamsClass(JSONObject flowParams) {
@@ -112,7 +111,7 @@ public abstract class INode {
     public void getWriteErrorContext(Exception e) {
         this.status = 500;
         this.errMessage = e.getMessage();
-        long startTime= this.context.getLongValue("start_time");
+        long startTime = this.context.getLongValue("start_time");
         this.context.put("run_time", System.currentTimeMillis() - startTime);
     }
 
@@ -179,6 +178,25 @@ public abstract class INode {
     }
 
     public abstract void saveContext(NodeDetail nodeDetail, WorkflowManage workflowManage);
+
+    @Override
+    public String toString() {
+        return "INode{" +
+                "viewType='" + viewType + '\'' +
+                ", status=" + status +
+                ", errMessage='" + errMessage + '\'' +
+                ", type='" + type + '\'' +
+                ", node=" + node +
+                ", nodeParams=" + nodeParams +
+                ", workflowParams=" + workflowParams +
+                ", context=" + context +
+                ", answerText='" + answerText + '\'' +
+                ", id='" + id + '\'' +
+                ", lastNodeIdList=" + lastNodeIdList +
+                ", nodeChunk=" + nodeChunk +
+                ", runtimeNodeId='" + runtimeNodeId + '\'' +
+                '}';
+    }
 }
 
 

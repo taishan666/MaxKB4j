@@ -36,7 +36,7 @@ public class FlowParams extends BaseParams {
 
     @JsonProperty("stream")
     @NotNull(message = "流式输出不能为空")
-    private Boolean stream=true;
+    private Boolean stream;
 
     @JsonProperty("client_id")
     private String clientId;

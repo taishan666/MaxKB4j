@@ -12,25 +12,27 @@ import com.tarzan.maxkb4j.module.application.workflow.node.aichatnode.dto.ChatNo
 import com.tarzan.maxkb4j.module.model.entity.ModelEntity;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
 import com.tarzan.maxkb4j.module.model.service.ModelService;
+import com.tarzan.maxkb4j.util.SpringUtil;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.model.output.Response;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-@Component
 public class BaseChatNode extends IChatNode {
 
-    @Autowired
-    private ModelService modelService;
+    private final ModelService modelService;
+
+    public BaseChatNode() {
+        this.modelService = SpringUtil.getBean(ModelService.class);
+    }
+
 
     private static JSONObject writeContextStream(Map<String, Object> nodeVariable, Map<String, Object> workflowVariable, INode currentNode, WorkflowManage workflow){
         Object response= nodeVariable.get("result");
@@ -57,12 +59,13 @@ public class BaseChatNode extends IChatNode {
         this.context.put("history_message", historyMessage);
         UserMessage question = generatePromptQuestion(nodeParams.getPrompt());
         this.context.put("question", question.singleText());
-        List<ChatMessage> messageList = generateMessageList(nodeParams.getSystem(), nodeParams.getPrompt(), historyMessage);
+        List<ChatMessage> messageList = generateMessageList(nodeParams.getSystem(), question , historyMessage);
         this.context.put("message_list", messageList);
         if(flowParams.getStream()){
             Response<AiMessage> res = chatModel.generate(messageList);
+            System.out.println(res);
             Map<String, Object> nodeVariable = Map.of(
-                    "result", res,
+                    "result", res.content().text(),
                     "chat_model", chatModel,
                     "message_list", messageList,
                     "history_message", historyMessage,
@@ -81,7 +84,6 @@ public class BaseChatNode extends IChatNode {
             return new NodeResult(nodeVariable, Map.of(), this, super.workflowManage,BaseChatNode::writeContext);
         }
 
-
     }
 
     private JSONObject getDefaultModelParamsSetting(String modelId) {
@@ -90,11 +92,12 @@ public class BaseChatNode extends IChatNode {
     }
 
 
-    public List<ChatMessage> generateMessageList(String system, String prompt, List<ApplicationChatRecordEntity> historyChatRecord) {
+    public List<ChatMessage> generateMessageList(String system, UserMessage question , List<ApplicationChatRecordEntity> historyChatRecord) {
         List<ChatMessage> messageList = new ArrayList<>();
         if(StringUtils.isNotBlank(system)){
             messageList.add(SystemMessage.from(system));
         }
+        messageList.add(question);
         return messageList;
     }
 

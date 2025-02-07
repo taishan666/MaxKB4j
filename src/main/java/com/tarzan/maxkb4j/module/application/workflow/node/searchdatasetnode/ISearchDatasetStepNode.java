@@ -6,6 +6,8 @@ import com.tarzan.maxkb4j.module.application.workflow.NodeResult;
 import com.tarzan.maxkb4j.module.application.workflow.dto.FlowParams;
 import com.tarzan.maxkb4j.module.application.workflow.node.searchdatasetnode.dto.SearchDatasetStepNodeParams;
 
+import java.util.Objects;
+
 public abstract class ISearchDatasetStepNode extends INode {
 
     @Override
@@ -14,6 +16,9 @@ public abstract class ISearchDatasetStepNode extends INode {
     }
     @Override
     public SearchDatasetStepNodeParams getNodeParamsClass(JSONObject nodeParams) {
+        if(Objects.isNull(nodeParams)){
+            return null;
+        }
         return nodeParams.toJavaObject(SearchDatasetStepNodeParams.class);
     }
 

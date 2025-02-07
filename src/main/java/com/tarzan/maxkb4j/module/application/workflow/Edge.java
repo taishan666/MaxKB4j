@@ -15,6 +15,8 @@ public class Edge {
     private Point endPoint;
     private List<Point> pointsList;
     private JSONObject properties;
+    private String sourceAnchorId;
+    private String targetAnchorId;
 
 }
 @Data

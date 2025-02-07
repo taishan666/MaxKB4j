@@ -20,12 +20,14 @@ public class NodeDetail {
     private String answer;
 
     private long runtime;
-
+    private String branchId;
+    private String branchName;
     private List<String> lastNodeIdList;
 
     private JSONObject applicationNodeDict;
 
     private List<ParagraphVO> paragraphList;
+
 
     private List<Object> imageList = new ArrayList<>();
     private List<Object> documentList = new ArrayList<>();

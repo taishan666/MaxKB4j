@@ -409,6 +409,12 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         FlowParams flowParams = new FlowParams();
         flowParams.setChatId(chatInfo.getChatId());
         flowParams.setChatRecordId(dto.getChatRecordId()==null?IdWorker.get32UUID():dto.getChatRecordId());
+        flowParams.setQuestion(dto.getMessage());
+        flowParams.setReChat(dto.getReChat());
+        flowParams.setUserId(StpUtil.getLoginIdAsString());
+        flowParams.setClientId(clientId);
+        flowParams.setClientType(clientType);
+        flowParams.setStream(dto.getStream() == null || dto.getStream());
         WorkflowManage workflowManage = new WorkflowManage(Flow.newInstance(chatInfo.getWorkFlowVersion().getWorkFlow()),
                 flowParams,
                 new WorkFlowPostHandler(chatInfo, clientId, clientType),
