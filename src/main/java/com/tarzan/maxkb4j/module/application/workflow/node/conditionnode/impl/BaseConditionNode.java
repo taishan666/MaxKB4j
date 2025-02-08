@@ -4,17 +4,41 @@ import com.tarzan.maxkb4j.module.application.workflow.NodeResult;
 import com.tarzan.maxkb4j.module.application.workflow.WorkflowManage;
 import com.tarzan.maxkb4j.module.application.workflow.node.NodeDetail;
 import com.tarzan.maxkb4j.module.application.workflow.node.conditionnode.IConditionNode;
+import com.tarzan.maxkb4j.module.application.workflow.node.conditionnode.compare.Compare;
+import com.tarzan.maxkb4j.module.application.workflow.node.conditionnode.compare.impl.*;
 import com.tarzan.maxkb4j.module.application.workflow.node.conditionnode.dto.Condition;
 import com.tarzan.maxkb4j.module.application.workflow.node.conditionnode.dto.ConditionBranch;
 import com.tarzan.maxkb4j.module.application.workflow.node.conditionnode.dto.ConditionNodeParams;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 public class BaseConditionNode extends IConditionNode {
+
+    static List<Compare> compareHandleList = new ArrayList<>();
+
+    static {
+        compareHandleList.add(new GECompare());
+        compareHandleList.add(new GTCompare());
+        compareHandleList.add(new ContainCompare());
+        compareHandleList.add(new EqualCompare());
+        compareHandleList.add(new LTCompare());
+        compareHandleList.add(new LECompare());
+        compareHandleList.add(new LengthLECompare());
+        compareHandleList.add(new LengthLTCompare());
+        compareHandleList.add(new LengthEqualCompare());
+        compareHandleList.add(new LengthGECompare());
+        compareHandleList.add(new LengthGTCompare());
+        compareHandleList.add(new IsNullCompare());
+        compareHandleList.add(new IsNotNullCompare());
+        compareHandleList.add(new NotContainCompare());
+    }
+
     @Override
     public NodeResult execute(ConditionNodeParams nodeParams) {
         ConditionBranch branch = _execute(nodeParams.getBranch());
+        System.out.println("Branch: " + branch);
         assert branch != null;
         return new NodeResult(Map.of("branch_id", branch.getId(), "branch_name", branch.getType()), Map.of());
     }
@@ -34,9 +58,11 @@ public class BaseConditionNode extends IConditionNode {
 
         boolean result = conditionType.equals("and");
         for (Condition row : conditions) {
+            System.out.println("Condition: " + row.getField() + ", Compare: " + row.getCompare() + ", Value: " + row.getValue());
             boolean conditionResult = assertion(row.getField(),
                     row.getCompare(),
                     row.getValue());
+            System.out.println("Condition Result: " + conditionResult);
             if (conditionType.equals("and")) {
                 result &= conditionResult;
             } else {
@@ -47,16 +73,15 @@ public class BaseConditionNode extends IConditionNode {
     }
 
     // Method to perform assertions on fields.
-    private boolean assertion(List<String> fieldList, String compareOperation, Object valueToCompare) {
-        // Implementation of getting field_value would depend on how you implement workflow_manage in Java.
-        // For simplicity, assume we have a method called getField which works similarly.
+    private boolean assertion(List<String> fieldList, String compare, String valueToCompare) {
         Object fieldValue = super.workflowManage.getReferenceField(fieldList.get(0),fieldList.subList(1, fieldList.size()));
-
-        // Implementation of compare handlers should be done as separate classes implementing an interface or abstract class.
-        // Here we just simulate it with a placeholder.
-        if (!compareOperation.equals("equals")) return false;
-        assert fieldValue != null;
-        return fieldValue.equals(valueToCompare);
+        System.out.println("fieldName "+fieldList.get(1) +" fieldValue: " + fieldValue+ ", Compare: " + compare + ", Value: " + valueToCompare);
+        for (Compare compareHandler : compareHandleList) {
+            if(compareHandler.support(compare)){
+                return compareHandler.compare(fieldValue, valueToCompare);
+            }
+        }
+        return false;
     }
 
     @Override

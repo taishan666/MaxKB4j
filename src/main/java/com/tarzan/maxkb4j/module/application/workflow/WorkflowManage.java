@@ -17,7 +17,6 @@ import reactor.core.publisher.Flux;
 
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
 
@@ -81,7 +80,7 @@ public class WorkflowManage {
     }
 
     public boolean answerIsNotEmpty() {
-        if (answerList.isEmpty()) {
+        if (answerList==null||answerList.isEmpty()) {
             return false;
         }
         String lastAnswer = answerList.get(answerList.size() - 1);
@@ -220,8 +219,6 @@ public class WorkflowManage {
     public Flux<JSONObject> awaitResult() {
         NodeChunkManage nodeChunkManage = this.nodeChunkManage;
         WorkflowManage workflow = this;
-        AtomicBoolean isFinished = new AtomicBoolean(false);
-        System.out.println(isFinished);
         System.out.println("awaitResult");
         return Flux.create(sink -> {
             // 使用单独线程来模拟异步操作
@@ -264,8 +261,6 @@ public class WorkflowManage {
             sink.next(baseToResponse.toStreamChunkResponse(params.getChatId(),
                     params.getChatRecordId(), "", new LinkedList<>(), "", true, messageTokens, answerTokens));
             sink.complete(); // 结束整个 Flux 流
-
-            isFinished.set(true); // 标记完成
         });
     }
 
@@ -315,42 +310,33 @@ public class WorkflowManage {
         if (currentNode == null) {
             Node startNode = getStartNode();
             currentNode = NodeFactory.getNode(startNode.getType(), startNode, params, this);
-            System.out.println("currentNode=" + currentNode);
-        }
 
-        System.out.println(1);
-        // 添加节点块
+        }
         assert currentNode != null;
+        // 添加节点块
         nodeChunkManage.addNodeChunk(currentNode.getNodeChunk());
-        System.out.println(2);
         // 添加节点
         appendNode(currentNode);
-        System.out.println(3);
         // 执行链式任务
         NodeResult result = runChain(currentNode, nodeResultFuture);
-        System.out.println(4);
         if (result == null) {
             return;
         }
 
-        System.out.println(5);
         // 获取下一个节点列表
         List<INode> nodeList = getNextNodeList(currentNode, result);
-        System.out.println("nodeList=" + nodeList);
-        System.out.println(6);
+
         if (nodeList.size() == 1) {
-            System.out.println(7);
+            System.out.println("node getType=" + nodeList.get(0).getType());
             runChainManage(nodeList.get(0), null, language);
         } else if (nodeList.size() > 1) {
-            System.out.println(8);
+            System.out.println("node getType1=" + nodeList.get(0).getType());
             // 对节点进行排序
             List<INode> sortedNodeRunList = nodeList.stream()
                     .sorted(Comparator.comparingInt(n -> n.getNode().getY()))
                     .toList();
-            System.out.println(9);
             // 提交子任务并获取Future对象
             //List<Future<?>> resultList = new ArrayList<>();
-            System.out.println(10);
             for (INode node : sortedNodeRunList) {
           /*      Future<?> future = executorService.submit(() -> {
                     try {
@@ -365,19 +351,15 @@ public class WorkflowManage {
                 } catch (InterruptedException | ExecutionException e) {
                     throw new RuntimeException(e);
                 }
-                System.out.println(11);
              /*   synchronized (futureList) {
                     futureList.add(future);
                 }*/
-                System.out.println(12);
               //  resultList.add(future);
             }
-            System.out.println(13);
             // 等待所有子任务完成（可选）
            /* for (Future<?> future : resultList) {
                 future.get(); // 这里会阻塞直到子任务完成
             }*/
-            System.out.println(14);
         }
     }
 
@@ -427,7 +409,6 @@ public class WorkflowManage {
         // 处理节点依赖
         if ("AND".equals(condition)) {
             if (dependentNodeBeenExecuted(edge.getTargetNodeId())) {
-                System.out.println("1");
                 addNodeToList(edge.getTargetNodeId(), currentNode, nodeList);
             }
         } else {
@@ -458,7 +439,6 @@ public class WorkflowManage {
                                  Function<Node, JSONObject> getNodeParams) {
         for (Node node : this.flow.getNodes()) {
             if (nodeId.equals(node.getId())) {
-                System.out.println(node.getType());
                 return NodeFactory.getNode(node.getType(), node, params, this, lastNodeIds, getNodeParams);
             }
         }
@@ -467,31 +447,22 @@ public class WorkflowManage {
 
 
     public NodeResult runChain(INode currentNode, NodeResultFuture nodeResultFuture) {
-        System.out.println(31);
         // 处理默认的nodeResultFuture
         if (nodeResultFuture == null) {
-            System.out.println(32);
             nodeResultFuture = runNodeFuture(currentNode);
         }
-        System.out.println(33);
         try {
             // 获取stream参数并处理默认值
             boolean isStream = params.getStream();
-            System.out.println(34);
             // 根据流模式选择处理方法
             NodeResult result;
-            System.out.println(35);
             if (isStream) {
-                System.out.println(36);
                 result = handEventNodeResult(currentNode, nodeResultFuture);
             } else {
-                System.out.println(37);
                 result = handleNodeResult(currentNode, nodeResultFuture);
             }
-            System.out.println(38);
             return result;
         } catch (Exception e) {
-            System.out.println(39);
             e.printStackTrace();
         }
         return null;
@@ -501,12 +472,32 @@ public class WorkflowManage {
         String realNodeId = currentNode.getRuntimeNodeId();
         Map<String, Object> child_node = new HashMap<>();
         String view_type = currentNode.getViewType();
+        System.out.println("currentNode="+currentNode.getType()+" currentResult="+nodeResultFuture.getResult());
         NodeResult currentResult = nodeResultFuture.getResult();
         try {
             JSONObject result = currentResult.writeContext(currentNode, this);
             if (result != null) {
                 if (isResult(currentNode, currentResult)) {
-                    for (Object r : result.values()) {
+                    System.out.println("result1="+result);
+                    Object content = result.get("content");
+                  //  child_node.put("runtime_node_id", json.get("runtime_node_id"));
+                  //  child_node.put("chat_record_id", json.get("chat_record_id"));
+                 //   child_node.put("child_node", json.get("child_node"));
+                  //  realNodeId = (String) json.get("real_node_id");
+                    boolean node_is_end = (boolean) result.getOrDefault("node_is_end", false);
+                    JSONObject chunk = this.getBaseToResponse().toStreamChunkResponse(getParams().getChatId(),
+                            getParams().getChatRecordId(),
+                            currentNode.getId(),
+                            currentNode.getLastNodeIdList(),
+                            content==null?"":content.toString(), false, 0, 0,
+                            new ChunkInfo(currentNode.getType(),
+                                    currentNode.runtimeNodeId,
+                                    view_type,
+                                    child_node,
+                                    node_is_end,
+                                    realNodeId));
+                    currentNode.getNodeChunk().addChunk(chunk);
+   /*                 for (Object r : result.values()) {
                         Object content = r;
                         child_node = new HashMap<>();
                         boolean node_is_end = false;
@@ -521,6 +512,7 @@ public class WorkflowManage {
                             view_type = (String) json.get("view_type");
                         }
                         assert content != null;
+                        System.out.println("content="+content);
                         JSONObject chunk = this.getBaseToResponse().toStreamChunkResponse(getParams().getChatId(),
                                 getParams().getChatRecordId(),
                                 currentNode.getId(),
@@ -533,7 +525,7 @@ public class WorkflowManage {
                                         node_is_end,
                                         realNodeId));
                         currentNode.getNodeChunk().addChunk(chunk);
-                    }
+                    }*/
                     JSONObject endChunk = this.getBaseToResponse().toStreamChunkResponse(getParams().getChatId(),
                             getParams().getChatRecordId(),
                             currentNode.getId(),
@@ -546,16 +538,10 @@ public class WorkflowManage {
                                     true,
                                     realNodeId));
                     currentNode.getNodeChunk().addChunk(endChunk);
-                } else {
-                    // Assuming list(result) is meant to process each item in result
-                    for (Object ignored : result.values()) {
-                    }
                 }
             }
         } catch (Exception e) {
-            // e.printStackTrace();
-            // Exception handling
-            //StackTrace.print(e); // Placeholder for exception logging
+            System.err.println("异常="+e.getMessage());
             JSONObject errorChunk = this.getBaseToResponse().toStreamChunkResponse(getParams().getChatId(),
                     getParams().getChatRecordId(),
                     currentNode.getId(),
@@ -587,9 +573,9 @@ public class WorkflowManage {
         }
 
         runChainAsync(null, null, language);
-        while (!isRun()) {
+      /*  while (!isRun()) {
             break;
-        }
+        }*/
 
         Map<String, JSONObject> details = getRuntimeDetails();
         int messageTokens = details.values().stream()
@@ -741,36 +727,6 @@ public class WorkflowManage {
         }
         return prompt;
     }
-    public String resetPrompt1(String prompt) {
-        String placeholder = "{}";
-        for (Node node : flow.getNodes()) { // 假设getNodes()返回节点列表
-            JSONObject properties = node.getProperties();
-            JSONObject nodeConfig = properties.getJSONObject("config");
-            if (nodeConfig != null) {
-                JSONArray fields = nodeConfig.getJSONArray("fields");
-                if(fields!=null){
-                    for (int i = 0; i < fields.size(); i++) {
-                        JSONObject field=fields.getJSONObject(i);
-                        String globeLabel = properties.getString("stepName") + "." + field.getString("value");
-                        String globeValue = "context.get('" + node.getId() + "'," + placeholder + ").get('" + field.getString("value") + "','')";
-                        prompt = prompt.replace(globeLabel, globeValue);
-                    }
-                }
-                JSONArray globalFields = nodeConfig.getJSONArray("globalFields");
-                if(globalFields!=null){
-                    for (int i = 0; i < globalFields.size(); i++) {
-                        JSONObject globalField=globalFields.getJSONObject(i);
-                        String globeLabel = "全局变量." +  globalField.getString("value");
-                        String globeLabelNew = "global." + globalField.getString("value");
-                        String globeValue = "context.get('global').get('" + globalField.getString("value") + "','')";
-                        prompt = prompt.replace(globeLabel, globeValue).replace(globeLabelNew, globeLabel);
-                    }
-                }
-            }
-        }
-        return prompt;
-    }
-
 
     public Map<String, JSONObject> getRuntimeDetails() {
         Map<String, JSONObject> detailsResult = new HashMap<>();
@@ -782,7 +738,7 @@ public class WorkflowManage {
         for (int index = 0; index < nodeContext.size(); index++) {
             INode node = nodeContext.get(index);
 
-            JSONObject details = new JSONObject();
+            JSONObject details;
 
             if (chatRecord != null && chatRecord.getDetails() != null) {
                 details = chatRecord.getDetails().getJSONObject(node.getRuntimeNodeId());
@@ -821,8 +777,6 @@ public class WorkflowManage {
             NodeResult result = node.run();
             return new NodeResultFuture(result, null, 200);
         } catch (Exception ex) {
-            ex.printStackTrace();
-            System.out.println("NodeResult2=" + ex);
             return new NodeResultFuture(null, ex, 500);
         }
     }
@@ -830,17 +784,18 @@ public class WorkflowManage {
     private boolean hasNextNode(INode currentNode, NodeResult nodeResult) {
         if (nodeResult != null && nodeResult.isAssertionResult()) {
             for (Edge edge : flow.getEdges()) {
-                if (edge.getSourceNodeId().equals(currentNode.id)) {
+                if (edge.getSourceNodeId().equals(currentNode.getId())) {
                     String branchId = (String) nodeResult.getNodeVariable().get("branch_id");
                     String expectedSourceAnchorId = String.format("%s_%s_right", edge.getSourceNodeId(), branchId);
-                    if (expectedSourceAnchorId.equals(edge.getSourceNodeId())) {
+                    System.out.println("expectedSourceAnchorId="+expectedSourceAnchorId+" edge.getSourceAnchorId()="+edge.getSourceAnchorId());
+                    if (expectedSourceAnchorId.equals(edge.getSourceAnchorId())) {
                         return true;
                     }
                 }
             }
         } else {
             for (Edge edge : flow.getEdges()) {
-                if (edge.getSourceNodeId().equals(currentNode.id)) {
+                if (edge.getSourceNodeId().equals(currentNode.getId())) {
                     return true;
                 }
             }
@@ -854,6 +809,7 @@ public class WorkflowManage {
         }
         boolean defaultVal = !hasNextNode(currentNode, currentNodeResult);
         Boolean isResult = currentNode.getNodeParams().getBoolean("is_result");
+        System.out.println("isResult= "+ currentNode.getType()+" defaultVal="+defaultVal+" isResult="+isResult);
         return isResult == null ? defaultVal : isResult;
     }
 
@@ -900,9 +856,9 @@ public class WorkflowManage {
 
     public Object getReferenceField(String nodeId, List<String> fields) {
         if ("global".equals(nodeId)) {
-            return context.get(fields.get(0));
+            return INode.getField(this.context,fields.get(0));
         } else {
-            return this.getNodeById(nodeId).getReferenceField(fields);
+            return this.getNodeById(nodeId).getReferenceField(fields.get(0));
         }
     }
 

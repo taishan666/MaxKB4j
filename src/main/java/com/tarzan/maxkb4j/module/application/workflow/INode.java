@@ -138,23 +138,12 @@ public abstract class INode {
         return Collections.singletonList(answer);
     }
 
-    protected Object getReferenceField(List<String> fields) {
+    protected Object getReferenceField(String fields) {
         return getField(context, fields);
     }
 
-    private static Object getField(Map<String, Object> obj, List<String> fields) {
-        Object value = obj;
-        for (String field : fields) {
-            if (value instanceof Map) {
-                value = ((Map<?, ?>) value).get(field);
-                if (value == null) {
-                    return null;
-                }
-            } else {
-                return null;
-            }
-        }
-        return value;
+    protected static Object getField(Map<String, Object> context, String field) {
+        return context.get(field);
     }
 
     public JSONObject getDefaultGlobalVariable(List<JSONObject> inputFieldList) {

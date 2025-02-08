@@ -6,6 +6,8 @@ import com.tarzan.maxkb4j.module.application.workflow.NodeResult;
 import com.tarzan.maxkb4j.module.application.workflow.dto.FlowParams;
 import com.tarzan.maxkb4j.module.application.workflow.node.applicationnode.dto.ApplicationNodeParams;
 
+import java.util.Objects;
+
 public abstract class IApplicationNode extends INode {
 
 
@@ -16,6 +18,9 @@ public abstract class IApplicationNode extends INode {
 
     @Override
     public ApplicationNodeParams getNodeParamsClass(JSONObject nodeParams) {
+        if(Objects.isNull(nodeParams)){
+            return new ApplicationNodeParams();
+        }
         return nodeParams.toJavaObject(ApplicationNodeParams.class);
     }
 

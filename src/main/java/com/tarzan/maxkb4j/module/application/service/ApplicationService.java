@@ -57,10 +57,7 @@ import org.springframework.web.multipart.MultipartFile;
 import reactor.core.publisher.Flux;
 
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -223,28 +220,20 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
 
 
     private Path getWorkflowFilePath(String language) {
-        try {
-            // 获取当前类的绝对路径并转换为文件对象
-            File currentClassFile = new File(Objects.requireNonNull(this.getClass().getResource("")).getFile());
-            // 获取当前类所在的上级目录
-            File parentDir = currentClassFile.getParentFile();
-            String fileName = String.format("default_workflow_%s.json", toLocale(language));
-            File workflow = new File(parentDir, "workflow");
-            File json = new File(workflow, "json");
-            // 构造目标文件路径
-            File targetFile = new File(json, fileName);
-            // 确认文件存在
-            if (targetFile.exists()) {
-                // 读取文件内容
-                String content = new String(Files.readAllBytes(Paths.get(targetFile.toURI())));
-                System.out.println(content);
-            } else {
-                targetFile = new File(parentDir, "workflow/json/default_workflow_zh.json");
-            }
-            return targetFile.toPath();
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to read file", e);
+        // 获取当前类的绝对路径并转换为文件对象
+        File currentClassFile = new File(Objects.requireNonNull(this.getClass().getResource("")).getFile());
+        // 获取当前类所在的上级目录
+        File parentDir = currentClassFile.getParentFile();
+        String fileName = String.format("default_workflow_%s.json", toLocale(language));
+        File workflow = new File(parentDir, "workflow");
+        File json = new File(workflow, "json");
+        // 构造目标文件路径
+        File targetFile = new File(json, fileName);
+        // 确认文件存在
+        if (!targetFile.exists()) {
+            targetFile = new File(parentDir, "workflow/json/default_workflow_zh.json");
         }
+        return targetFile.toPath();
     }
 
     private static String toLocale(String language) {

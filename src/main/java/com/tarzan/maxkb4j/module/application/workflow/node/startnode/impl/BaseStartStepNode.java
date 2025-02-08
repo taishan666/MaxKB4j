@@ -53,7 +53,7 @@ public class BaseStartStepNode extends IStarNode {
         // 构建返回的map
         Map<String, Object> resultMap = new HashMap<>();
         resultMap.put("time", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
-        resultMap.put("start_time", System.currentTimeMillis() / 1000.0); // 转换为秒级时间戳
+        resultMap.put("start_time", System.currentTimeMillis());
         resultMap.put("history_context", historyContext);
         resultMap.put("chat_id", chatId);
 

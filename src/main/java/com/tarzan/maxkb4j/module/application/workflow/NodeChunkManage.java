@@ -1,7 +1,6 @@
 package com.tarzan.maxkb4j.module.application.workflow;
 
 import com.alibaba.fastjson.JSONObject;
-import com.alibaba.fastjson.annotation.JSONField;
 import lombok.Data;
 
 import java.util.ArrayList;
@@ -11,7 +10,6 @@ import java.util.List;
 public class NodeChunkManage {
     private List<NodeChunk> nodeChunkList;
     private NodeChunk currentNodeChunk;
-    @JSONField(serialize = false)
     private WorkflowManage workflow;
 
     public NodeChunkManage(WorkflowManage workflow) {
@@ -20,7 +18,9 @@ public class NodeChunkManage {
     }
 
     public void addNodeChunk(NodeChunk nodeChunk) {
-        nodeChunkList.add(nodeChunk);
+        if(!contains(nodeChunk)){
+            nodeChunkList.add(nodeChunk);
+        }
     }
 
     public boolean contains(NodeChunk nodeChunk){

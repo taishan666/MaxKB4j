@@ -5,6 +5,7 @@ import com.tarzan.maxkb4j.module.application.workflow.dto.FlowParams;
 import com.tarzan.maxkb4j.module.application.workflow.node.aichatnode.impl.BaseChatNode;
 import com.tarzan.maxkb4j.module.application.workflow.node.applicationnode.impl.BaseApplicationNode;
 import com.tarzan.maxkb4j.module.application.workflow.node.conditionnode.impl.BaseConditionNode;
+import com.tarzan.maxkb4j.module.application.workflow.node.directreplynode.impl.BaseReplyNode;
 import com.tarzan.maxkb4j.module.application.workflow.node.searchdatasetnode.impl.BaseSearchDatasetNode;
 import com.tarzan.maxkb4j.module.application.workflow.node.startnode.impl.BaseStartStepNode;
 
@@ -24,6 +25,7 @@ public class NodeFactory {
         nodeList.add(new BaseApplicationNode());
         nodeList.add(new BaseSearchDatasetNode());
         nodeList.add(new BaseConditionNode());
+        nodeList.add(new BaseReplyNode());
         // 添加其他节点...
     }
 

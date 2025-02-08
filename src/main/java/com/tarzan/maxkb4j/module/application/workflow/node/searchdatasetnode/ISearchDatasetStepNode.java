@@ -17,7 +17,7 @@ public abstract class ISearchDatasetStepNode extends INode {
     @Override
     public SearchDatasetStepNodeParams getNodeParamsClass(JSONObject nodeParams) {
         if(Objects.isNull(nodeParams)){
-            return null;
+            return new SearchDatasetStepNodeParams();
         }
         return nodeParams.toJavaObject(SearchDatasetStepNodeParams.class);
     }

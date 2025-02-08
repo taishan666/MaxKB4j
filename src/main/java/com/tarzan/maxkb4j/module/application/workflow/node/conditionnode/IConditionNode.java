@@ -17,7 +17,7 @@ public abstract class IConditionNode extends INode {
     @Override
     public ConditionNodeParams getNodeParamsClass(JSONObject nodeParams) {
         if(Objects.isNull(nodeParams)){
-            return null;
+            return new ConditionNodeParams();
         }
         return nodeParams.toJavaObject(ConditionNodeParams.class);
     }

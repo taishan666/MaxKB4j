@@ -35,7 +35,7 @@ public class BaseChatNode extends IChatNode {
 
 
     private static JSONObject writeContextStream(Map<String, Object> nodeVariable, Map<String, Object> workflowVariable, INode currentNode, WorkflowManage workflow){
-        Object response= nodeVariable.get("result");
+        Response<AiMessage> res= (Response<AiMessage>) nodeVariable.get("result");
         //TODO
         return writeContext(nodeVariable,workflowVariable,currentNode,workflow);
     }
@@ -63,15 +63,15 @@ public class BaseChatNode extends IChatNode {
         this.context.put("message_list", messageList);
         if(flowParams.getStream()){
             Response<AiMessage> res = chatModel.generate(messageList);
-            System.out.println(res);
             Map<String, Object> nodeVariable = Map.of(
-                    "result", res.content().text(),
+                    "content", res.content().text(),
                     "chat_model", chatModel,
+                    "answer", res.content().text(),
                     "message_list", messageList,
                     "history_message", historyMessage,
                     "question", question.singleText()
             );
-            return new NodeResult(nodeVariable, Map.of(), this, super.workflowManage,BaseChatNode::writeContextStream);
+            return new NodeResult(nodeVariable, Map.of());
         }else {
             Response<AiMessage> res = chatModel.generate(messageList);
             Map<String, Object> nodeVariable = Map.of(
@@ -81,7 +81,7 @@ public class BaseChatNode extends IChatNode {
                     "history_message", historyMessage,
                     "question", question.singleText()
             );
-            return new NodeResult(nodeVariable, Map.of(), this, super.workflowManage,BaseChatNode::writeContext);
+            return new NodeResult(nodeVariable, Map.of(), BaseChatNode::writeContext);
         }
 
     }

@@ -6,6 +6,8 @@ import com.tarzan.maxkb4j.module.application.workflow.NodeResult;
 import com.tarzan.maxkb4j.module.application.workflow.dto.FlowParams;
 import com.tarzan.maxkb4j.module.application.workflow.node.aichatnode.dto.ChatNodeParams;
 
+import java.util.Objects;
+
 public abstract class IChatNode extends INode {
 
     @Override
@@ -15,6 +17,9 @@ public abstract class IChatNode extends INode {
 
     @Override
     public ChatNodeParams getNodeParamsClass(JSONObject nodeParams) {
+        if(Objects.isNull(nodeParams)){
+            return new ChatNodeParams();
+        }
         return nodeParams.toJavaObject(ChatNodeParams.class);
     }
 
