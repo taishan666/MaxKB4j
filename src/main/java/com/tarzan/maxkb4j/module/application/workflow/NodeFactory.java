@@ -29,9 +29,10 @@ public class NodeFactory {
         // 添加其他节点...
     }
 
-    public static INode getNode(String nodeType) {
+    private static INode getNode(String nodeType) {
         for (INode node : nodeList) {
             if (node.getType().equals(nodeType)) {
+             //   return BeanUtil.copy(node, INode.class);
                 return node;
             }
         }
@@ -46,6 +47,7 @@ public class NodeFactory {
             inode.setNode(node);
             inode.setWorkflowParams(workflowParams);
             inode.setWorkflowManage(workflowManage);
+            inode.setNodeChunk(new NodeChunk());
             return inode;
         }
         return null;

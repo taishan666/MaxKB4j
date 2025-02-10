@@ -9,7 +9,11 @@ import dev.langchain4j.model.chat.DisabledStreamingChatLanguageModel;
 import dev.langchain4j.model.chat.StreamingChatLanguageModel;
 import dev.langchain4j.model.output.Response;
 
+import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class BaseChatModel  {
 
@@ -29,6 +33,50 @@ public class BaseChatModel  {
     public void stream(List<ChatMessage> messages, StreamingResponseHandler<AiMessage> handler){
         streamingChatModel.generate(messages, handler);
     }
+
+    public Iterator<AiMessage> stream(List<ChatMessage> messages) {
+        final BlockingQueue<AiMessage> messageQueue = new LinkedBlockingQueue<>();
+        final AtomicBoolean isCompleted = new AtomicBoolean(false);
+
+        StreamingResponseHandler<AiMessage> handler = new StreamingResponseHandler<>() {
+            @Override
+            public void onNext(String s) {
+                messageQueue.add(new AiMessage(s));
+            }
+
+            @Override
+            public void onComplete(Response<AiMessage> response) {
+                messageQueue.add(new AiMessage(""));
+                isCompleted.set(true); // 标记流完成
+            }
+
+            @Override
+            public void onError(Throwable throwable) {
+                isCompleted.set(true); // 出错时也标记完成
+            }
+        };
+
+        streamingChatModel.generate(messages, handler);
+
+        return  new Iterator<>() {
+            @Override
+            public boolean hasNext() {
+                // 队列不为空或流未完成时继续
+                return  !messageQueue.isEmpty()||!isCompleted.get();
+            }
+
+            @Override
+            public AiMessage next() {
+                do {
+                    AiMessage message = messageQueue.poll();
+                    if (message != null) return message;
+                } while (!isCompleted.get());
+                return null;
+            }
+        };
+    }
+
+
 
     public Response<AiMessage> generate(ChatMessage... messages){
         return chatModel.generate(messages);

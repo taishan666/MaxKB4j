@@ -10,10 +10,12 @@ import com.tarzan.maxkb4j.module.application.workflow.dto.ChunkInfo;
 import com.tarzan.maxkb4j.module.application.workflow.dto.FlowParams;
 import com.tarzan.maxkb4j.module.application.workflow.handler.WorkFlowPostHandler;
 import com.tarzan.maxkb4j.module.application.workflow.node.NodeDetail;
+import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.model.input.PromptTemplate;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Sinks;
 
 import java.util.*;
 import java.util.concurrent.*;
@@ -80,7 +82,7 @@ public class WorkflowManage {
     }
 
     public boolean answerIsNotEmpty() {
-        if (answerList==null||answerList.isEmpty()) {
+        if (answerList == null || answerList.isEmpty()) {
             return false;
         }
         String lastAnswer = answerList.get(answerList.size() - 1);
@@ -206,68 +208,64 @@ public class WorkflowManage {
         }
     }
 
-    //todo 改造成Flux<JSONObject>
+
     public Flux<JSONObject> runStream(INode currentNode, NodeResultFuture nodeResultFuture, String language) {
         runChainAsync(currentNode, nodeResultFuture, language);
+        System.out.println("runChainAsync over");
         return awaitResult();
-    }
-
-    public Iterator<String> toStreamResponseSimple(Iterator<String> iterator) {
-        return iterator;
     }
 
     public Flux<JSONObject> awaitResult() {
         NodeChunkManage nodeChunkManage = this.nodeChunkManage;
         WorkflowManage workflow = this;
-        System.out.println("awaitResult");
-        return Flux.create(sink -> {
-            // 使用单独线程来模拟异步操作
-        /*    while (isRun()) {
 
-            }*/
-            while (true) {
-                JSONObject chunk = nodeChunkManage.pop();
-                if (chunk != null) {
-                    sink.next(chunk);
-                } else {
-                    break;
+        // 使用 Sinks.Many 来创建一个事件驱动的异步流
+        Sinks.Many<JSONObject> sink = Sinks.many().multicast().onBackpressureBuffer();
+
+        // 启动一个异步任务来监听 nodeChunkManage 的变化
+        executorService.submit(() -> {
+            try {
+                while (isRun()) {
+                    JSONObject chunk = nodeChunkManage.pop();
+
+                    if (chunk != null) {
+                        // 将数据发送到 Sinks
+                        // System.out.println("awaitResult=" + chunk);
+                        sink.tryEmitNext(chunk);
+                    }
                 }
+                System.out.println("isDone= true");
+                // 处理结束后的工作流
+                Map<String, JSONObject> details = getRuntimeDetails();
+                int messageTokens = details.values().stream()
+                        .filter(row -> row.containsKey("message_tokens") && row.get("message_tokens") != null)
+                        .mapToInt(row -> (int) row.get("message_tokens"))
+                        .sum();
+                int answerTokens = details.values().stream()
+                        .filter(row -> row.containsKey("answer_tokens") && row.get("answer_tokens") != null)
+                        .mapToInt(row -> (int) row.get("answer_tokens"))
+                        .sum();
+
+                workFlowPostHandler.handler(this.params.getChatId(), this.params.getChatRecordId(),
+                        answer, workflow);
+
+                // 发送最后一条消息并完成流
+                sink.tryEmitNext(baseToResponse.toStreamChunkResponse(params.getChatId(),
+                        params.getChatRecordId(), "", new LinkedList<>(), "156", true, messageTokens, answerTokens));
+                sink.tryEmitComplete();
+            } catch (Exception e) {
+                sink.tryEmitError(e);
             }
-
-           /* while (true) {
-                JSONObject chunk = nodeChunkManage.pop();
-                System.out.println("chunk="+chunk);
-                if (chunk != null) {
-                    sink.next(chunk);
-                }else {
-                    break;
-                }
-            }*/
-
-            // 处理结束后的工作流
-            Map<String, JSONObject> details = getRuntimeDetails();
-            int messageTokens = details.values().stream()
-                    .filter(row -> row.containsKey("message_tokens") && row.get("message_tokens") != null)
-                    .mapToInt(row -> (int) row.get("message_tokens"))
-                    .sum();
-            int answerTokens = details.values().stream()
-                    .filter(row -> row.containsKey("answer_tokens") && row.get("answer_tokens") != null)
-                    .mapToInt(row -> (int) row.get("answer_tokens"))
-                    .sum();
-
-            workFlowPostHandler.handler(this.params.getChatId(), this.params.getChatRecordId(),
-                    answer, workflow);
-
-            sink.next(baseToResponse.toStreamChunkResponse(params.getChatId(),
-                    params.getChatRecordId(), "", new LinkedList<>(), "", true, messageTokens, answerTokens));
-            sink.complete(); // 结束整个 Flux 流
         });
+
+        // 返回由 Sinks 转换为 Flux 的流
+        return sink.asFlux();
     }
 
 
     public void runChainAsync(INode currentNode, NodeResultFuture nodeResultFuture, String language) {
         // 提交任务给线程池执行，并获取对应的Future对象
-/*        Future<?> future = executorService.submit(() -> {
+        Future<?> future = executorService.submit(() -> {
             try {
                 runChainManage(currentNode, nodeResultFuture, language);
             } catch (InterruptedException | ExecutionException e) {
@@ -275,33 +273,16 @@ public class WorkflowManage {
             }
         });
         // 将Future对象添加到futureList列表中
-        futureList.add(future);*/
-        try {
-            runChainManage(currentNode, nodeResultFuture, language);
-        } catch (InterruptedException | ExecutionException e) {
-            throw new RuntimeException(e);
-        }
+        futureList.add(future);
     }
 
 
     public Node getStartNode() {
-        for (Node node : this.flow.getNodes()) {
-            if ("start-node".equals(node.getType())) {
-                return node;
-            }
-        }
-        return null;
-        //  return this.flow.getNodes().parallelStream().filter(node -> node.getType().equals("start-node")).findFirst().orElse(null);
+        return this.flow.getNodes().parallelStream().filter(node -> node.getType().equals("start-node")).findFirst().orElse(null);
     }
 
     public Node getBaseNode() {
-        for (Node node : this.flow.getNodes()) {
-            if ("base-node".equals(node.getType())) {
-                return node;
-            }
-        }
-        return null;
-        //  return this.flow.getNodes().parallelStream().filter(node -> node.getType().equals("start-node")).findFirst().orElse(null);
+        return this.flow.getNodes().parallelStream().filter(node -> node.getType().equals("start-node")).findFirst().orElse(null);
     }
 
     public void runChainManage(INode currentNode, NodeResultFuture nodeResultFuture, String language) throws InterruptedException, ExecutionException {
@@ -310,15 +291,17 @@ public class WorkflowManage {
         if (currentNode == null) {
             Node startNode = getStartNode();
             currentNode = NodeFactory.getNode(startNode.getType(), startNode, params, this);
-
         }
+
         assert currentNode != null;
+        System.out.println("currentNode=" + currentNode.getType() + " getNodeChunk=" + currentNode.getNodeChunk());
         // 添加节点块
         nodeChunkManage.addNodeChunk(currentNode.getNodeChunk());
         // 添加节点
         appendNode(currentNode);
         // 执行链式任务
         NodeResult result = runChain(currentNode, nodeResultFuture);
+
         if (result == null) {
             return;
         }
@@ -330,36 +313,23 @@ public class WorkflowManage {
             System.out.println("node getType=" + nodeList.get(0).getType());
             runChainManage(nodeList.get(0), null, language);
         } else if (nodeList.size() > 1) {
-            System.out.println("node getType1=" + nodeList.get(0).getType());
             // 对节点进行排序
             List<INode> sortedNodeRunList = nodeList.stream()
                     .sorted(Comparator.comparingInt(n -> n.getNode().getY()))
                     .toList();
             // 提交子任务并获取Future对象
-            //List<Future<?>> resultList = new ArrayList<>();
             for (INode node : sortedNodeRunList) {
-          /*      Future<?> future = executorService.submit(() -> {
+                Future<?> future = executorService.submit(() -> {
                     try {
                         runChainManage(node, null, language);
                     } catch (InterruptedException | ExecutionException e) {
                         throw new RuntimeException(e);
                     }
-                });*/
-
-                try {
-                    runChainManage(node, null, language);
-                } catch (InterruptedException | ExecutionException e) {
-                    throw new RuntimeException(e);
-                }
-             /*   synchronized (futureList) {
+                });
+                synchronized (futureList) {
                     futureList.add(future);
-                }*/
-              //  resultList.add(future);
+                }
             }
-            // 等待所有子任务完成（可选）
-           /* for (Future<?> future : resultList) {
-                future.get(); // 这里会阻塞直到子任务完成
-            }*/
         }
     }
 
@@ -458,6 +428,7 @@ public class WorkflowManage {
             NodeResult result;
             if (isStream) {
                 result = handEventNodeResult(currentNode, nodeResultFuture);
+                // System.out.println("currentNode=" + currentNode.getType()+" getNodeChunk="+currentNode.getNodeChunk());
             } else {
                 result = handleNodeResult(currentNode, nodeResultFuture);
             }
@@ -472,60 +443,51 @@ public class WorkflowManage {
         String realNodeId = currentNode.getRuntimeNodeId();
         Map<String, Object> child_node = new HashMap<>();
         String view_type = currentNode.getViewType();
-        System.out.println("currentNode="+currentNode.getType()+" currentResult="+nodeResultFuture.getResult());
         NodeResult currentResult = nodeResultFuture.getResult();
         try {
-            JSONObject result = currentResult.writeContext(currentNode, this);
+            Object result = currentResult.writeContext(currentNode, this);
             if (result != null) {
                 if (isResult(currentNode, currentResult)) {
-                    System.out.println("result1="+result);
-                    Object content = result.get("content");
-                  //  child_node.put("runtime_node_id", json.get("runtime_node_id"));
-                  //  child_node.put("chat_record_id", json.get("chat_record_id"));
-                 //   child_node.put("child_node", json.get("child_node"));
-                  //  realNodeId = (String) json.get("real_node_id");
-                    boolean node_is_end = (boolean) result.getOrDefault("node_is_end", false);
-                    JSONObject chunk = this.getBaseToResponse().toStreamChunkResponse(getParams().getChatId(),
-                            getParams().getChatRecordId(),
-                            currentNode.getId(),
-                            currentNode.getLastNodeIdList(),
-                            content==null?"":content.toString(), false, 0, 0,
-                            new ChunkInfo(currentNode.getType(),
-                                    currentNode.runtimeNodeId,
-                                    view_type,
-                                    child_node,
-                                    node_is_end,
-                                    realNodeId));
-                    currentNode.getNodeChunk().addChunk(chunk);
-   /*                 for (Object r : result.values()) {
-                        Object content = r;
-                        child_node = new HashMap<>();
-                        boolean node_is_end = false;
-                        view_type = currentNode.getViewType();
-                        if (r instanceof JSONObject json) {
-                            content = json.get("content");
-                            child_node.put("runtime_node_id", json.get("runtime_node_id"));
-                            child_node.put("chat_record_id", json.get("chat_record_id"));
-                            child_node.put("child_node", json.get("child_node"));
-                            realNodeId = (String) json.get("real_node_id");
-                            node_is_end = (boolean) json.getOrDefault("node_is_end", false);
-                            view_type = (String) json.get("view_type");
+                    String content = "";
+                    if (result instanceof Iterator) {
+                        Iterator<AiMessage> iterator = (Iterator<AiMessage>) result;
+                        int i = 0;
+                        while (iterator.hasNext()) {
+                            AiMessage aiMessage = iterator.next();
+                            System.out.println("iterable" + i + "  " + aiMessage.text());
+                            content = aiMessage.text();
+                            JSONObject chunk = this.getBaseToResponse().toStreamChunkResponse(getParams().getChatId(),
+                                    getParams().getChatRecordId(),
+                                    currentNode.getId(),
+                                    currentNode.getLastNodeIdList(),
+                                    content,
+                                    false, 0, 0,
+                                    new ChunkInfo(currentNode.getType(),
+                                            currentNode.runtimeNodeId,
+                                            view_type,
+                                            child_node,
+                                            false,
+                                            realNodeId));
+                            currentNode.getNodeChunk().addChunk(chunk);
+                            i++;
                         }
-                        assert content != null;
-                        System.out.println("content="+content);
+                    }
+                    if (result instanceof JSONObject) {
+                        content = ((JSONObject) result).getString("content");
                         JSONObject chunk = this.getBaseToResponse().toStreamChunkResponse(getParams().getChatId(),
                                 getParams().getChatRecordId(),
                                 currentNode.getId(),
                                 currentNode.getLastNodeIdList(),
-                                content.toString(), false, 0, 0,
+                                content,
+                                false, 0, 0,
                                 new ChunkInfo(currentNode.getType(),
                                         currentNode.runtimeNodeId,
                                         view_type,
                                         child_node,
-                                        node_is_end,
+                                        false,
                                         realNodeId));
                         currentNode.getNodeChunk().addChunk(chunk);
-                    }*/
+                    }
                     JSONObject endChunk = this.getBaseToResponse().toStreamChunkResponse(getParams().getChatId(),
                             getParams().getChatRecordId(),
                             currentNode.getId(),
@@ -541,7 +503,7 @@ public class WorkflowManage {
                 }
             }
         } catch (Exception e) {
-            System.err.println("异常="+e.getMessage());
+            System.err.println("异常=" + e.getMessage());
             JSONObject errorChunk = this.getBaseToResponse().toStreamChunkResponse(getParams().getChatId(),
                     getParams().getChatRecordId(),
                     currentNode.getId(),
@@ -612,17 +574,20 @@ public class WorkflowManage {
         return Flux.just(new JSONObject());
     }
 
-    public boolean isRun() {
+/*    public boolean isRun() {
         return isRun(500, TimeUnit.MILLISECONDS);
-    }
+    }*/
 
-    public boolean isRun(long timeout, TimeUnit timeUnit) {
+    public boolean isRun() {
+        List<Boolean> list = new ArrayList<>();
         for (Future<?> future : futureList) {
-            if (future.isDone()) {
-                return false;
-            }
+            list.add(future.isDone());
         }
-        return true;
+        boolean flag = true;
+        for (Boolean b : list) {
+            flag = flag && b;
+        }
+        return !flag;
     }
 
     public boolean isRun1(long timeout, TimeUnit timeUnit) {
@@ -668,13 +633,13 @@ public class WorkflowManage {
     }
 
 
-    public  Map<String, Object> jsonToMap(JSONObject jsonObject) {
+    public Map<String, Object> jsonToMap(JSONObject jsonObject) {
         Map<String, Object> resultMap = new HashMap<>();
-        iteratorJson("",jsonObject, resultMap);
+        iteratorJson("", jsonObject, resultMap);
         return resultMap;
     }
 
-    private  void iteratorJson(String parentKey,JSONObject json, Map<String, Object> resultMap) {
+    private void iteratorJson(String parentKey, JSONObject json, Map<String, Object> resultMap) {
         Set<String> keys = json.keySet();
         for (String key : keys) {
             Object value = json.get(key);
@@ -706,20 +671,20 @@ public class WorkflowManage {
             JSONObject nodeConfig = properties.getJSONObject("config");
             if (nodeConfig != null) {
                 JSONArray fields = nodeConfig.getJSONArray("fields");
-                if(fields!=null){
+                if (fields != null) {
                     for (int i = 0; i < fields.size(); i++) {
-                        JSONObject field=fields.getJSONObject(i);
+                        JSONObject field = fields.getJSONObject(i);
                         String globeLabel = properties.getString("stepName") + "." + field.getString("value");
-                        String globeValue = node.getId()+"."+field.getString("value") ;
+                        String globeValue = node.getId() + "." + field.getString("value");
                         prompt = prompt.replace(globeLabel, globeValue);
                     }
                 }
                 JSONArray globalFields = nodeConfig.getJSONArray("globalFields");
-                if(globalFields!=null){
+                if (globalFields != null) {
                     for (int i = 0; i < globalFields.size(); i++) {
-                        JSONObject globalField=globalFields.getJSONObject(i);
-                        String globeLabel = "全局变量." +  globalField.getString("value");
-                        String globeValue = "global."+globalField.getString("value") ;
+                        JSONObject globalField = globalFields.getJSONObject(i);
+                        String globeLabel = "全局变量." + globalField.getString("value");
+                        String globeValue = "global." + globalField.getString("value");
                         prompt = prompt.replace(globeLabel, globeValue);
                     }
                 }
@@ -787,7 +752,6 @@ public class WorkflowManage {
                 if (edge.getSourceNodeId().equals(currentNode.getId())) {
                     String branchId = (String) nodeResult.getNodeVariable().get("branch_id");
                     String expectedSourceAnchorId = String.format("%s_%s_right", edge.getSourceNodeId(), branchId);
-                    System.out.println("expectedSourceAnchorId="+expectedSourceAnchorId+" edge.getSourceAnchorId()="+edge.getSourceAnchorId());
                     if (expectedSourceAnchorId.equals(edge.getSourceAnchorId())) {
                         return true;
                     }
@@ -809,13 +773,7 @@ public class WorkflowManage {
         }
         boolean defaultVal = !hasNextNode(currentNode, currentNodeResult);
         Boolean isResult = currentNode.getNodeParams().getBoolean("is_result");
-        System.out.println("isResult= "+ currentNode.getType()+" defaultVal="+defaultVal+" isResult="+isResult);
         return isResult == null ? defaultVal : isResult;
-    }
-
-    public NodeResult runNode(INode node) {
-        //  node.setWorkflowManage(this);
-        return node.run();
     }
 
     public boolean dependentNode(String lastNodeId, INode node) {
@@ -856,7 +814,7 @@ public class WorkflowManage {
 
     public Object getReferenceField(String nodeId, List<String> fields) {
         if ("global".equals(nodeId)) {
-            return INode.getField(this.context,fields.get(0));
+            return INode.getField(this.context, fields.get(0));
         } else {
             return this.getNodeById(nodeId).getReferenceField(fields.get(0));
         }

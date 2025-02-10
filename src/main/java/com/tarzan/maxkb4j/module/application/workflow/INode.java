@@ -104,9 +104,6 @@ public abstract class INode {
 
     public abstract BaseParams getNodeParamsClass(JSONObject nodeParams);
 
-    public BaseParams getFlowParamsClass(JSONObject flowParams) {
-        return flowParams.toJavaObject(FlowParams.class);
-    }
 
     public void getWriteErrorContext(Exception e) {
         this.status = 500;

@@ -38,7 +38,6 @@ public class BaseConditionNode extends IConditionNode {
     @Override
     public NodeResult execute(ConditionNodeParams nodeParams) {
         ConditionBranch branch = _execute(nodeParams.getBranch());
-        System.out.println("Branch: " + branch);
         assert branch != null;
         return new NodeResult(Map.of("branch_id", branch.getId(), "branch_name", branch.getType()), Map.of());
     }
@@ -58,11 +57,9 @@ public class BaseConditionNode extends IConditionNode {
 
         boolean result = conditionType.equals("and");
         for (Condition row : conditions) {
-            System.out.println("Condition: " + row.getField() + ", Compare: " + row.getCompare() + ", Value: " + row.getValue());
             boolean conditionResult = assertion(row.getField(),
                     row.getCompare(),
                     row.getValue());
-            System.out.println("Condition Result: " + conditionResult);
             if (conditionType.equals("and")) {
                 result &= conditionResult;
             } else {
@@ -75,7 +72,6 @@ public class BaseConditionNode extends IConditionNode {
     // Method to perform assertions on fields.
     private boolean assertion(List<String> fieldList, String compare, String valueToCompare) {
         Object fieldValue = super.workflowManage.getReferenceField(fieldList.get(0),fieldList.subList(1, fieldList.size()));
-        System.out.println("fieldName "+fieldList.get(1) +" fieldValue: " + fieldValue+ ", Compare: " + compare + ", Value: " + valueToCompare);
         for (Compare compareHandler : compareHandleList) {
             if(compareHandler.support(compare)){
                 return compareHandler.compare(fieldValue, valueToCompare);

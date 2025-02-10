@@ -27,7 +27,7 @@ public class NodeResult {
     }
 
 
-    public JSONObject writeContext(INode currentNode, WorkflowManage workflowManage) {
+    public Object writeContext(INode currentNode, WorkflowManage workflowManage) {
         return this.writeContextFunc.apply(nodeVariable, workflowVariable,currentNode,workflowManage);
     }
 
@@ -44,7 +44,7 @@ public class NodeResult {
             node.context.putAll(stepVariable);
             if (workflow.isResult(node, new NodeResult(stepVariable, globalVariable)) && stepVariable.containsKey("answer")) {
                 node.answerText = (String) stepVariable.get("answer");
-                node.context.put("content", node.answerText);
+               // node.context.put("content", node.answerText);
             }
         }
         if (globalVariable != null) {
@@ -62,7 +62,7 @@ public class NodeResult {
 
     @FunctionalInterface
     public interface WriteContextFunction {
-        JSONObject  apply(Map<String, Object> nodeVariable, Map<String, Object> workflowVariable, INode node, WorkflowManage workflow);
+        Object  apply(Map<String, Object> nodeVariable, Map<String, Object> workflowVariable, INode node, WorkflowManage workflow);
     }
 
     @FunctionalInterface

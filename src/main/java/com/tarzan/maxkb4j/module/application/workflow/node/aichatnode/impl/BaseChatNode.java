@@ -20,10 +20,7 @@ import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.model.output.Response;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 public class BaseChatNode extends IChatNode {
 
@@ -34,10 +31,10 @@ public class BaseChatNode extends IChatNode {
     }
 
 
-    private static JSONObject writeContextStream(Map<String, Object> nodeVariable, Map<String, Object> workflowVariable, INode currentNode, WorkflowManage workflow){
-        Response<AiMessage> res= (Response<AiMessage>) nodeVariable.get("result");
+    private Iterator<AiMessage> writeContextStream(Map<String, Object> nodeVariable, Map<String, Object> workflowVariable, INode currentNode, WorkflowManage workflow){
+        return (Iterator<AiMessage>) nodeVariable.get("result");
         //TODO
-        return writeContext(nodeVariable,workflowVariable,currentNode,workflow);
+      //  return writeContext(nodeVariable,workflowVariable,currentNode,workflow);
     }
     private static JSONObject  writeContext(Map<String, Object> nodeVariable, Map<String, Object> workflowVariable, INode currentNode, WorkflowManage workflow){
         Object response= nodeVariable.get("result");
@@ -62,16 +59,16 @@ public class BaseChatNode extends IChatNode {
         List<ChatMessage> messageList = generateMessageList(nodeParams.getSystem(), question , historyMessage);
         this.context.put("message_list", messageList);
         if(flowParams.getStream()){
-            Response<AiMessage> res = chatModel.generate(messageList);
+            Iterator<AiMessage> res=chatModel.stream(messageList);
             Map<String, Object> nodeVariable = Map.of(
-                    "content", res.content().text(),
+                    "result", res,
                     "chat_model", chatModel,
-                    "answer", res.content().text(),
+                    "answer", "测试",
                     "message_list", messageList,
                     "history_message", historyMessage,
                     "question", question.singleText()
             );
-            return new NodeResult(nodeVariable, Map.of());
+            return new NodeResult(nodeVariable, Map.of(),this::writeContextStream);
         }else {
             Response<AiMessage> res = chatModel.generate(messageList);
             Map<String, Object> nodeVariable = Map.of(
@@ -81,7 +78,7 @@ public class BaseChatNode extends IChatNode {
                     "history_message", historyMessage,
                     "question", question.singleText()
             );
-            return new NodeResult(nodeVariable, Map.of(), BaseChatNode::writeContext);
+            return new NodeResult(nodeVariable, Map.of());
         }
 
     }
