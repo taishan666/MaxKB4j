@@ -39,6 +39,6 @@ public class ChatInfo {
     }
 
     public void addChatRecord(ApplicationChatRecordEntity chatRecord, String clientId) {
-
+          this.chatRecordList.add(chatRecord);
     }
 }

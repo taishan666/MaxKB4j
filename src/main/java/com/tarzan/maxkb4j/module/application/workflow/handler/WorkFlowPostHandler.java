@@ -59,9 +59,21 @@ public class WorkFlowPostHandler {
             chatRecord.setRunTime((System.currentTimeMillis() - startTime) / 1000F);
         } else {
             long startTime= workflow.getContext().getLongValue("start_time");
-            chatRecord = new ApplicationChatRecordEntity(chatRecordId, chatId, question, answerText.toString(), details,
-                    messageTokens, answerTokens, answerTextList,
-                    System.currentTimeMillis() - startTime, 0);
+            System.out.println("startTime:"+startTime);
+            chatRecord = new ApplicationChatRecordEntity();
+            chatRecord.setId(chatRecordId);
+            chatRecord.setChatId(chatId);
+            chatRecord.setProblemText(question);
+            chatRecord.setAnswerText(answerText.toString());
+            chatRecord.setIndex(chatInfo.getChatRecordList().size() + 1);
+            chatRecord.setMessageTokens(messageTokens);
+            chatRecord.setAnswerTokens(answerTokens);
+            chatRecord.setAnswerTextList(answerTextList);
+            System.out.println((System.currentTimeMillis() - startTime));
+            chatRecord.setRunTime((System.currentTimeMillis() - startTime) / 1000F);
+            chatRecord.setVoteStatus("-1");
+            chatRecord.setConstant(0);
+            chatRecord.setDetails(finalDetails);
         }
         chatInfo.addChatRecord(chatRecord, clientId);
         // 重新设置缓存

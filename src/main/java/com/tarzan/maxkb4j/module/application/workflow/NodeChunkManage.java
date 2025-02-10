@@ -28,7 +28,6 @@ public class NodeChunkManage {
         }
         if (currentNodeChunk != null) {
             if (!currentNodeChunk.getChunkList().isEmpty()) {
-                System.out.println("currentNodeChunk2:" + currentNodeChunk);
                 return currentNodeChunk.getChunkList().remove(0);
             } else {
                 if (currentNodeChunk.isEnd()) {

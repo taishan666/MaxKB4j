@@ -200,6 +200,7 @@ public class WorkflowManage {
     public Flux<JSONObject> run() {
         //   closeOldConnections();
         //  String language = getLanguage();
+        context.put("start_time", System.currentTimeMillis());
         String language = "zh";
         if (params.getStream()) {
             return runStream(startNode, null, language);
@@ -211,7 +212,6 @@ public class WorkflowManage {
 
     public Flux<JSONObject> runStream(INode currentNode, NodeResultFuture nodeResultFuture, String language) {
         runChainAsync(currentNode, nodeResultFuture, language);
-        System.out.println("runChainAsync over");
         return awaitResult();
     }
 
@@ -227,14 +227,11 @@ public class WorkflowManage {
             try {
                 while (isRun()) {
                     JSONObject chunk = nodeChunkManage.pop();
-
                     if (chunk != null) {
                         // 将数据发送到 Sinks
-                        // System.out.println("awaitResult=" + chunk);
                         sink.tryEmitNext(chunk);
                     }
                 }
-                System.out.println("isDone= true");
                 // 处理结束后的工作流
                 Map<String, JSONObject> details = getRuntimeDetails();
                 int messageTokens = details.values().stream()
@@ -294,7 +291,6 @@ public class WorkflowManage {
         }
 
         assert currentNode != null;
-        System.out.println("currentNode=" + currentNode.getType() + " getNodeChunk=" + currentNode.getNodeChunk());
         // 添加节点块
         nodeChunkManage.addNodeChunk(currentNode.getNodeChunk());
         // 添加节点
@@ -454,7 +450,7 @@ public class WorkflowManage {
                         int i = 0;
                         while (iterator.hasNext()) {
                             AiMessage aiMessage = iterator.next();
-                            System.out.println("iterable" + i + "  " + aiMessage.text());
+                           // System.out.println("iterable" + i + "  " + aiMessage.text());
                             content = aiMessage.text();
                             JSONObject chunk = this.getBaseToResponse().toStreamChunkResponse(getParams().getChatId(),
                                     getParams().getChatRecordId(),

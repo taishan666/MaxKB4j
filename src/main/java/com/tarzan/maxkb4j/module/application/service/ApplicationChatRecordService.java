@@ -48,7 +48,7 @@ public class ApplicationChatRecordService extends ServiceImpl<ApplicationChatRec
         JSONObject details=chatRecord.getDetails();
         if(!details.isEmpty()){
             JSONObject searchStep=details.getJSONObject("search_step");
-            if(!searchStep.isEmpty()){
+            if(searchStep!=null&&!searchStep.isEmpty()){
                 JSONArray paragraphList=searchStep.getJSONArray("paragraph_list");
                 if(!CollectionUtils.isEmpty(paragraphList)){
                     String json=JSONObject.toJSONString(paragraphList);
@@ -56,7 +56,7 @@ public class ApplicationChatRecordService extends ServiceImpl<ApplicationChatRec
                 }
             }
             JSONObject problemPadding=details.getJSONObject("problem_padding");
-            if(problemPadding!=null){
+            if(problemPadding!=null&&!problemPadding.isEmpty()){
                 chatRecordVO.setPaddingProblemText(problemPadding.getString("padding_problem_text"));
             }
             List<JSONObject> executionDetails= new ArrayList<>();
