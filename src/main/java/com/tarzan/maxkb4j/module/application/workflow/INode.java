@@ -151,11 +151,9 @@ public abstract class INode {
 
     public JSONObject getDefaultGlobalVariable(List<JSONObject> inputFieldList) {
         JSONObject resultMap = new JSONObject();
-
         if (inputFieldList == null) {
             return resultMap;
         }
-
         for (Map<String, Object> item : inputFieldList) {
             if (item.containsKey("default_value")) {
                 Object defaultValue = item.get("default_value");
