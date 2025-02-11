@@ -129,7 +129,6 @@ public abstract class INode {
         detail.put("run_time",context.getInteger("run_time"));
         detail.put("status",status);
         detail.put("err_message",errMessage);
-        detail.put("answer",context.getString("answer"));
         return detail;
     }
 

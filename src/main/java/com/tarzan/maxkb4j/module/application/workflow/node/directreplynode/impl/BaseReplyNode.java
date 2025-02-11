@@ -31,7 +31,9 @@ public class BaseReplyNode extends IReplyNode {
 
     @Override
     public JSONObject getDetail(int index) {
-        return super.getDetail(index);
+        JSONObject detail = super.getDetail(index);
+        detail.put("answer",context.getString("answer"));
+        return detail;
     }
 
     @Override

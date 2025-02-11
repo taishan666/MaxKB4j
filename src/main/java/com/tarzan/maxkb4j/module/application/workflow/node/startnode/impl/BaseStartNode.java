@@ -68,19 +68,13 @@ public class BaseStartNode extends IStarNode {
 
     @Override
     public JSONObject getDetail(int index) {
-        JSONObject details = new JSONObject();
-        details.put("name",node.getProperties().getString("stepName"));
-        details.put("index",index);
-        details.put("question",context.getString("question"));
-        details.put("run_time",context.getInteger("run_time"));
-        details.put("type",node.getType());
-        details.put("status",status);
-        details.put("err_message",errMessage);
-        details.put("image_list",context.get("image"));
-        details.put("document_list",context.get("document"));
-        details.put("audio_list",context.get("audio"));
-        details.put("global_fields",node.getProperties().get("globalFields"));
-        return details;
+        JSONObject detail = super.getDetail(index);
+        detail.put("question",context.getString("question"));
+        detail.put("image_list",context.get("image"));
+        detail.put("document_list",context.get("document"));
+        detail.put("audio_list",context.get("audio"));
+        detail.put("global_fields",node.getProperties().get("globalFields"));
+        return detail;
     }
 
     @Override

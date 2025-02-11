@@ -35,19 +35,13 @@ public class BaseChatNode extends IChatNode {
 
     @Override
     public JSONObject getDetail(int index) {
-        JSONObject detail = new JSONObject();
-        detail.put("name", node.getProperties().getString("name"));
-        detail.put("index", index);
-        detail.put("run_time", context.getFloatValue("run_time"));
+        JSONObject detail = super.getDetail(index);
         detail.put("system", context.getString("system"));
         detail.put("history_message", new ArrayList<>());
         detail.put("question", context.getString("question"));
         detail.put("answer", context.getString("answer"));
-        detail.put("type", node.getType());
         detail.put("message_tokens", context.getInteger("message_tokens"));
         detail.put("answer_tokens", context.getInteger("answer_tokens"));
-        detail.put("status", context.getInteger("status"));
-        detail.put("err_message", context.getString("err_message"));
         return detail;
     }
 

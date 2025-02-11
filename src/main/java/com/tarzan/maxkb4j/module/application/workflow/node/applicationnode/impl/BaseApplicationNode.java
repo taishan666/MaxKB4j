@@ -16,24 +16,18 @@ public class BaseApplicationNode extends IApplicationNode {
 
     @Override
     public JSONObject getDetail(int index) {
-        JSONObject details = new JSONObject();
-        details.put("index", index);
-        details.put("name", node.getProperties().getString("stepName"));
-        details.put("type", node.getType());
-        details.put("run_time", context.getInteger("run_time"));
-        details.put("status", status);
-        details.put("err_message", errMessage);
-        details.put("info", node.getProperties().getString("node_data"));
-        details.put("question", context.getString("question"));
-        details.put("answer", context.getString("answer"));
-        details.put("message_tokens", context.getString("message_tokens"));
-        details.put("answer_tokens", context.getString("answer_tokens"));
-        details.put("image_list", context.get("image"));
-        details.put("document_list", context.get("document"));
-        details.put("audio_list", context.get("audio"));
-        details.put("global_fields", node.getProperties().get("globalFields"));
-        details.put("application_node_dict", context.get("application_node_dict"));
-        return  details;
+        JSONObject detail = super.getDetail(index);
+        detail.put("info", node.getProperties().getString("node_data"));
+        detail.put("question", context.getString("question"));
+        detail.put("answer", context.getString("answer"));
+        detail.put("message_tokens", context.getString("message_tokens"));
+        detail.put("answer_tokens", context.getString("answer_tokens"));
+        detail.put("image_list", context.get("image"));
+        detail.put("document_list", context.get("document"));
+        detail.put("audio_list", context.get("audio"));
+        detail.put("global_fields", node.getProperties().get("globalFields"));
+        detail.put("application_node_dict", context.get("application_node_dict"));
+        return  detail;
     }
 
     @Override
