@@ -1,8 +1,8 @@
 package com.tarzan.maxkb4j.module.application.workflow.node.directreplynode.impl;
 
+import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.module.application.workflow.NodeResult;
 import com.tarzan.maxkb4j.module.application.workflow.WorkflowManage;
-import com.tarzan.maxkb4j.module.application.workflow.node.NodeDetail;
 import com.tarzan.maxkb4j.module.application.workflow.node.directreplynode.IReplyNode;
 import com.tarzan.maxkb4j.module.application.workflow.node.directreplynode.dto.ReplyNodeParams;
 
@@ -30,8 +30,13 @@ public class BaseReplyNode extends IReplyNode {
     }
 
     @Override
-    public void saveContext(NodeDetail nodeDetail, WorkflowManage workflowManage) {
-        this.context.put("answer",nodeDetail.getAnswer());
-        this.answerText=nodeDetail.getAnswer();
+    public JSONObject getDetail(int index) {
+        return super.getDetail(index);
+    }
+
+    @Override
+    public void saveContext(JSONObject nodeDetail, WorkflowManage workflowManage) {
+        this.context.put("answer",nodeDetail.get("answer"));
+        this.answerText=nodeDetail.getString("answer");
     }
 }

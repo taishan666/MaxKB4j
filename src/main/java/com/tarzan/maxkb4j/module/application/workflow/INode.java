@@ -4,7 +4,6 @@ import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.module.application.workflow.dto.Answer;
 import com.tarzan.maxkb4j.module.application.workflow.dto.BaseParams;
 import com.tarzan.maxkb4j.module.application.workflow.dto.FlowParams;
-import com.tarzan.maxkb4j.module.application.workflow.node.NodeDetail;
 import lombok.Data;
 
 import java.nio.charset.StandardCharsets;
@@ -122,8 +121,16 @@ public abstract class INode {
 
     public abstract NodeResult _run();
 
-    public JSONObject getDetails(int index) {
-        return new JSONObject();
+    public JSONObject getDetail(int index){
+        JSONObject detail=new JSONObject();
+        detail.put("name",node.getProperties().getString("stepName"));
+        detail.put("index",index);
+        detail.put("type",node.getType());
+        detail.put("run_time",context.getInteger("run_time"));
+        detail.put("status",status);
+        detail.put("err_message",errMessage);
+        detail.put("answer",context.getString("answer"));
+        return detail;
     }
 
     public List<Answer> getAnswerList() {
@@ -163,7 +170,7 @@ public abstract class INode {
         return resultMap;
     }
 
-    public abstract void saveContext(NodeDetail nodeDetail, WorkflowManage workflowManage);
+    public abstract void saveContext(JSONObject nodeDetail, WorkflowManage workflowManage);
 
     @Override
     public String toString() {

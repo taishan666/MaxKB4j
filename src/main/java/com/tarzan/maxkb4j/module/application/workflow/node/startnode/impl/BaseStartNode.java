@@ -6,14 +6,13 @@ import com.tarzan.maxkb4j.module.application.workflow.Node;
 import com.tarzan.maxkb4j.module.application.workflow.NodeResult;
 import com.tarzan.maxkb4j.module.application.workflow.WorkflowManage;
 import com.tarzan.maxkb4j.module.application.workflow.dto.FlowParams;
-import com.tarzan.maxkb4j.module.application.workflow.node.NodeDetail;
 import com.tarzan.maxkb4j.module.application.workflow.node.startnode.IStarNode;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
-public class BaseStartStepNode extends IStarNode {
+public class BaseStartNode extends IStarNode {
     @Override
     public NodeResult execute(FlowParams workflowParams, WorkflowManage workflowManage) {
         // 获取基础节点
@@ -49,6 +48,7 @@ public class BaseStartStepNode extends IStarNode {
 
         // 获取chat_id并确保其为字符串形式
         String chatId = workflowParams.getChatId();
+        System.out.println("chat_id: " + chatId);
 
         // 构建返回的map
         Map<String, Object> resultMap = new HashMap<>();
@@ -67,7 +67,24 @@ public class BaseStartStepNode extends IStarNode {
 
 
     @Override
-    public void saveContext(NodeDetail nodeDetail, WorkflowManage workflowManage) {
+    public JSONObject getDetail(int index) {
+        JSONObject details = new JSONObject();
+        details.put("name",node.getProperties().getString("stepName"));
+        details.put("index",index);
+        details.put("question",context.getString("question"));
+        details.put("run_time",context.getInteger("run_time"));
+        details.put("type",node.getType());
+        details.put("status",status);
+        details.put("err_message",errMessage);
+        details.put("image_list",context.get("image"));
+        details.put("document_list",context.get("document"));
+        details.put("audio_list",context.get("audio"));
+        details.put("global_fields",node.getProperties().get("globalFields"));
+        return details;
+    }
+
+    @Override
+    public void saveContext(JSONObject nodeDetail, WorkflowManage workflowManage) {
 
     }
 }

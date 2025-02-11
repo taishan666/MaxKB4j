@@ -1,16 +1,15 @@
 package com.tarzan.maxkb4j.module.application.workflow.node.searchdatasetnode.impl;
 
+import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.module.application.workflow.NodeResult;
 import com.tarzan.maxkb4j.module.application.workflow.WorkflowManage;
 import com.tarzan.maxkb4j.module.application.workflow.dto.FlowParams;
-import com.tarzan.maxkb4j.module.application.workflow.node.NodeDetail;
 import com.tarzan.maxkb4j.module.application.workflow.node.searchdatasetnode.ISearchDatasetStepNode;
 import com.tarzan.maxkb4j.module.application.workflow.node.searchdatasetnode.dto.DatasetSetting;
 import com.tarzan.maxkb4j.module.application.workflow.node.searchdatasetnode.dto.SearchDatasetStepNodeParams;
 import com.tarzan.maxkb4j.module.dataset.vo.ParagraphVO;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -18,20 +17,34 @@ import java.util.stream.Collectors;
 public class BaseSearchDatasetNode extends ISearchDatasetStepNode {
     @Override
     public NodeResult execute(SearchDatasetStepNodeParams nodeParams, FlowParams workflowParams) {
-        Map<String, Object> workflowVariable = new HashMap<>();
         // 构建节点变量
-        Map<String, Object> nodeVariable = new HashMap<>();
-        nodeVariable.put("paragraph_list", new ArrayList<>());
-        nodeVariable.put("is_hit_handling_method_list", new ArrayList<>());
-        nodeVariable.put("data", "");
-        nodeVariable.put("directly_return", "");
-        nodeVariable.put("question", workflowParams.getQuestion());
-        return new NodeResult(nodeVariable, workflowVariable);
+        Map<String, Object> nodeVariable = Map.of(
+                "paragraph_list", new ArrayList<>(),
+                "is_hit_handling_method_list", new ArrayList<>(),
+                "data", "",
+                "directly_return", "",
+                "question", workflowParams.getQuestion()
+        );
+        return new NodeResult(nodeVariable, Map.of());
     }
 
     @Override
-    public void saveContext(NodeDetail details, WorkflowManage workflowManage) {
-        List<ParagraphVO> result =  details.getParagraphList();
+    public JSONObject getDetail(int index) {
+        JSONObject detail = new JSONObject();
+        detail.put("name", node.getProperties().getString("stepName"));
+        detail.put("index", index);
+        detail.put("type", node.getType());
+        detail.put("run_time", context.getInteger("run_time"));
+        detail.put("status", status);
+        detail.put("err_message", errMessage);
+        detail.put("question", context.getString("question"));
+        detail.put("paragraph_list", context.get("paragraph_list"));
+        return detail;
+    }
+
+    @Override
+    public void saveContext(JSONObject detail, WorkflowManage workflowManage) {
+        List<ParagraphVO> result = (List<ParagraphVO>) detail.get("paragraph_list");
         DatasetSetting datasetSetting = super.getNodeParamsClass(nodeParams).getDatasetSetting();
 
         String directlyReturn = result.stream()
@@ -42,8 +55,8 @@ public class BaseSearchDatasetNode extends ISearchDatasetStepNode {
                 .collect(Collectors.joining("\n"));
 
         context.put("paragraph_list", result);
-        context.put("question", details.getQuestion());
-        context.put("run_time", details.getRuntime());
+        context.put("question", detail.get("question"));
+        context.put("run_time", detail.get("run_time"));
 
 /*        List<Map<String, Object>> isHitHandlingMethodList = result.stream()
                 .filter(row -> "true".equals(row.get("is_hit_handling_method")))

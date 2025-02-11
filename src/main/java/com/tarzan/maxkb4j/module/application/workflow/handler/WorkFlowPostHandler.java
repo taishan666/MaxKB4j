@@ -4,23 +4,25 @@ import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.module.application.chatpipeline.ChatCache;
 import com.tarzan.maxkb4j.module.application.chatpipeline.ChatInfo;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationChatRecordEntity;
+import com.tarzan.maxkb4j.module.application.entity.ApplicationPublicAccessClientEntity;
+import com.tarzan.maxkb4j.module.application.enums.AuthenticationType;
+import com.tarzan.maxkb4j.module.application.service.ApplicationPublicAccessClientService;
 import com.tarzan.maxkb4j.module.application.workflow.WorkflowManage;
+import com.tarzan.maxkb4j.util.SpringUtil;
 import lombok.Data;
 
 import java.util.List;
-import java.util.Map;
 
 @Data
 public class WorkFlowPostHandler {
 
-   // @Autowired
-   // private ApplicationPublicAccessClientService accessClientService;
-
+    private final ApplicationPublicAccessClientService accessClientService;
     private ChatInfo chatInfo;
     private String clientId;
     private String clientType;
 
     public WorkFlowPostHandler(ChatInfo chatInfo, String clientId, String clientType) {
+        this.accessClientService = SpringUtil.getBean(ApplicationPublicAccessClientService.class);
         this.chatInfo = chatInfo;
         this.clientId = clientId;
         this.clientType = clientType;
@@ -28,19 +30,19 @@ public class WorkFlowPostHandler {
 
     public void handler(String chatId, String chatRecordId, String answer, WorkflowManage workflow) {
         String question = workflow.getParams().getQuestion();
-        Map<String, JSONObject> details = workflow.getRuntimeDetails();
+        JSONObject details = workflow.getRuntimeDetails();
 
         int messageTokens = details.values().stream()
+                .map(row -> (JSONObject) row)
                 .filter(row -> row.containsKey("message_tokens") && row.get("message_tokens") != null)
-                .mapToInt(row -> ((Number)row.get("message_tokens")).intValue())
+                .mapToInt(row -> row.getIntValue("message_tokens"))
                 .sum();
 
         int answerTokens = details.values().stream()
+                .map(row -> (JSONObject) row)
                 .filter(row -> row.containsKey("answer_tokens") && row.get("answer_tokens") != null)
-                .mapToInt(row -> ((Number)row.get("answer_tokens")).intValue())
+                .mapToInt(row -> row.getIntValue("answer_tokens"))
                 .sum();
-        JSONObject finalDetails=new JSONObject();
-        finalDetails.putAll(details);
         List<String> answerTextList = workflow.getAnswerTextList();
         StringBuilder answerText = new StringBuilder();
         for (String answer1: answerTextList) {
@@ -51,7 +53,7 @@ public class WorkFlowPostHandler {
         if (workflow.getChatRecord() != null) {
             chatRecord = workflow.getChatRecord();
             chatRecord.setAnswerText(answer);
-            chatRecord.setDetails(finalDetails);
+            chatRecord.setDetails(new JSONObject(details));
             chatRecord.setMessageTokens(messageTokens);
             chatRecord.setAnswerTokens(answerTokens);
             chatRecord.setAnswerTextList(answerTextList);
@@ -59,7 +61,6 @@ public class WorkFlowPostHandler {
             chatRecord.setRunTime((System.currentTimeMillis() - startTime) / 1000F);
         } else {
             long startTime= workflow.getContext().getLongValue("start_time");
-            System.out.println("startTime:"+startTime);
             chatRecord = new ApplicationChatRecordEntity();
             chatRecord.setId(chatRecordId);
             chatRecord.setChatId(chatId);
@@ -69,24 +70,23 @@ public class WorkFlowPostHandler {
             chatRecord.setMessageTokens(messageTokens);
             chatRecord.setAnswerTokens(answerTokens);
             chatRecord.setAnswerTextList(answerTextList);
-            System.out.println((System.currentTimeMillis() - startTime));
             chatRecord.setRunTime((System.currentTimeMillis() - startTime) / 1000F);
             chatRecord.setVoteStatus("-1");
             chatRecord.setConstant(0);
-            chatRecord.setDetails(finalDetails);
+            chatRecord.setDetails(details);
         }
         chatInfo.addChatRecord(chatRecord, clientId);
         // 重新设置缓存
         ChatCache.put(chatId, chatInfo);
 
-       /* if (clientType.equals(AuthenticationType.APPLICATION_ACCESS_TOKEN.name())) {
+        if (clientType!=null&&clientType.equals(AuthenticationType.APPLICATION_ACCESS_TOKEN.name())) {
             ApplicationPublicAccessClientEntity applicationPublicAccessClient = accessClientService.getById(clientId);
             if (applicationPublicAccessClient != null) {
                 applicationPublicAccessClient.setAccessNum(applicationPublicAccessClient.getAccessNum() + 1);
                 applicationPublicAccessClient.setIntraDayAccessNum(applicationPublicAccessClient.getIntraDayAccessNum() + 1);
                 accessClientService.save(applicationPublicAccessClient);
             }
-        }*/
+        }
     }
 
 }

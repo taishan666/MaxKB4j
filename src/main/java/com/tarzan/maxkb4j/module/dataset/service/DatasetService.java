@@ -760,11 +760,11 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
     }
 
     public void tableTemplateExport(String type, HttpServletResponse response) throws Exception {
-        exportTemplate(type, response, "template/MaxKB4J表格模板.csv", "template/MaxKB4J表格模板.xlsx", "csv_template.csv", "excel_template.xlsx");
+        exportTemplate(type, response, "templates/MaxKB4J表格模板.csv", "templates/MaxKB4J表格模板.xlsx", "csv_template.csv", "excel_template.xlsx");
     }
 
     public void templateExport(String type, HttpServletResponse response) throws Exception {
-        exportTemplate(type, response, "template/csv_template.csv", "template/excel_template.xlsx", "csv_template.csv", "excel_template.xlsx");
+        exportTemplate(type, response, "templates/csv_template.csv", "templates/excel_template.xlsx", "csv_template.csv", "excel_template.xlsx");
     }
 
     public List<DatasetEntity> listByUserId(String userId) {

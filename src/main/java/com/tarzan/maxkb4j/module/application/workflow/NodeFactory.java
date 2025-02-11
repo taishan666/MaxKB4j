@@ -7,7 +7,7 @@ import com.tarzan.maxkb4j.module.application.workflow.node.applicationnode.impl.
 import com.tarzan.maxkb4j.module.application.workflow.node.conditionnode.impl.BaseConditionNode;
 import com.tarzan.maxkb4j.module.application.workflow.node.directreplynode.impl.BaseReplyNode;
 import com.tarzan.maxkb4j.module.application.workflow.node.searchdatasetnode.impl.BaseSearchDatasetNode;
-import com.tarzan.maxkb4j.module.application.workflow.node.startnode.impl.BaseStartStepNode;
+import com.tarzan.maxkb4j.module.application.workflow.node.startnode.impl.BaseStartNode;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,7 +20,7 @@ public class NodeFactory {
 
     static {
         // 初始化节点列表
-        nodeList.add(new BaseStartStepNode());
+        nodeList.add(new BaseStartNode());
         nodeList.add(new BaseChatNode());
         nodeList.add(new BaseApplicationNode());
         nodeList.add(new BaseSearchDatasetNode());

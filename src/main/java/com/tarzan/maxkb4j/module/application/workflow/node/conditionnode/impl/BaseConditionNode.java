@@ -1,8 +1,8 @@
 package com.tarzan.maxkb4j.module.application.workflow.node.conditionnode.impl;
 
+import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.module.application.workflow.NodeResult;
 import com.tarzan.maxkb4j.module.application.workflow.WorkflowManage;
-import com.tarzan.maxkb4j.module.application.workflow.node.NodeDetail;
 import com.tarzan.maxkb4j.module.application.workflow.node.conditionnode.IConditionNode;
 import com.tarzan.maxkb4j.module.application.workflow.node.conditionnode.compare.Compare;
 import com.tarzan.maxkb4j.module.application.workflow.node.conditionnode.compare.impl.*;
@@ -81,8 +81,23 @@ public class BaseConditionNode extends IConditionNode {
     }
 
     @Override
-    public void saveContext(NodeDetail nodeDetail, WorkflowManage workflowManage) {
-        super.context.put("branch_id",nodeDetail.getBranchId());
-        super.context.put("'branch_name'",nodeDetail.getBranchName());
+    public JSONObject getDetail(int index) {
+        JSONObject detail=new JSONObject();
+        detail.put("name",node.getProperties().getString("stepName"));
+        detail.put("index",index);
+        detail.put("type",node.getType());
+        detail.put("run_time",context.getInteger("run_time"));
+        detail.put("status",status);
+        detail.put("err_message",errMessage);
+        detail.put("answer",context.getString("answer"));
+        detail.put("branch_id",context.getString("branch_id"));
+        detail.put("branch_name",context.getString("branch_name"));
+        return detail;
+    }
+
+    @Override
+    public void saveContext(JSONObject nodeDetail, WorkflowManage workflowManage) {
+        super.context.put("branch_id",nodeDetail.get("branch_id"));
+        super.context.put("'branch_name'",nodeDetail.get("branch_name"));
     }
 }

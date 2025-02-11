@@ -1,12 +1,12 @@
 package com.tarzan.maxkb4j.module.application.workflow.node.aichatnode.impl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.tarzan.maxkb4j.module.application.ChatStream;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationChatRecordEntity;
 import com.tarzan.maxkb4j.module.application.workflow.INode;
 import com.tarzan.maxkb4j.module.application.workflow.NodeResult;
 import com.tarzan.maxkb4j.module.application.workflow.WorkflowManage;
 import com.tarzan.maxkb4j.module.application.workflow.dto.FlowParams;
-import com.tarzan.maxkb4j.module.application.workflow.node.NodeDetail;
 import com.tarzan.maxkb4j.module.application.workflow.node.aichatnode.IChatNode;
 import com.tarzan.maxkb4j.module.application.workflow.node.aichatnode.dto.ChatNodeParams;
 import com.tarzan.maxkb4j.module.model.entity.ModelEntity;
@@ -20,7 +20,10 @@ import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.model.output.Response;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 public class BaseChatNode extends IChatNode {
 
@@ -30,16 +33,27 @@ public class BaseChatNode extends IChatNode {
         this.modelService = SpringUtil.getBean(ModelService.class);
     }
 
-
-    private Iterator<AiMessage> writeContextStream(Map<String, Object> nodeVariable, Map<String, Object> workflowVariable, INode currentNode, WorkflowManage workflow){
-        return (Iterator<AiMessage>) nodeVariable.get("result");
-        //TODO
-      //  return writeContext(nodeVariable,workflowVariable,currentNode,workflow);
+    @Override
+    public JSONObject getDetail(int index) {
+        JSONObject detail = new JSONObject();
+        detail.put("name", node.getProperties().getString("name"));
+        detail.put("index", index);
+        detail.put("run_time", context.getFloatValue("run_time"));
+        detail.put("system", context.getString("system"));
+        detail.put("history_message", new ArrayList<>());
+        detail.put("question", context.getString("question"));
+        detail.put("answer", context.getString("answer"));
+        detail.put("type", node.getType());
+        detail.put("message_tokens", context.getInteger("message_tokens"));
+        detail.put("answer_tokens", context.getInteger("answer_tokens"));
+        detail.put("status", context.getInteger("status"));
+        detail.put("err_message", context.getString("err_message"));
+        return detail;
     }
-    private static JSONObject  writeContext(Map<String, Object> nodeVariable, Map<String, Object> workflowVariable, INode currentNode, WorkflowManage workflow){
-        Object response= nodeVariable.get("result");
-        //TODO
-        return null;
+
+
+    private ChatStream writeContextStream(Map<String, Object> nodeVariable, Map<String, Object> workflowVariable, INode currentNode, WorkflowManage workflow){
+        return (ChatStream) nodeVariable.get("result");
     }
 
 
@@ -59,9 +73,9 @@ public class BaseChatNode extends IChatNode {
         List<ChatMessage> messageList = generateMessageList(nodeParams.getSystem(), question , historyMessage);
         this.context.put("message_list", messageList);
         if(flowParams.getStream()){
-            Iterator<AiMessage> res=chatModel.stream(messageList);
+            ChatStream chatStream=chatModel.stream(messageList);
             Map<String, Object> nodeVariable = Map.of(
-                    "result", res,
+                    "result", chatStream,
                     "chat_model", chatModel,
                     "answer", "测试",
                     "message_list", messageList,
@@ -100,7 +114,6 @@ public class BaseChatNode extends IChatNode {
 
     public List<ApplicationChatRecordEntity> getHistoryMessage(List<ApplicationChatRecordEntity> historyChatRecord, int dialogueNumber, String dialogueType, String runtimeNodeId) {
         int startIndex = Math.max(historyChatRecord.size() - dialogueNumber, 0);
-
         // 使用Stream API和flatMap来代替Python中的reduce操作
         return historyChatRecord.subList(startIndex, historyChatRecord.size());
     }
@@ -111,9 +124,9 @@ public class BaseChatNode extends IChatNode {
 
 
     @Override
-    public void saveContext(NodeDetail nodeDetail, WorkflowManage workflowManage) {
-        this.context.put("question", nodeDetail.getQuestion());
-        this.context.put("answer", nodeDetail.getAnswer());
-        this.answerText=nodeDetail.getAnswer();
+    public void saveContext(JSONObject nodeDetail, WorkflowManage workflowManage) {
+        this.context.put("question", nodeDetail.get("question"));
+        this.context.put("answer", nodeDetail.get("answer"));
+        this.answerText=nodeDetail.getString("answer");
     }
 }

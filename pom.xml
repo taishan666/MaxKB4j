@@ -183,18 +183,11 @@
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
         </dependency>
-        <!-- <dependency>
-             <groupId>dev.langchain4j</groupId>
-             <artifactId>langchain4j-open-ai-spring-boot-starter</artifactId>
-             <version>1.0.0-alpha1</version>
-         </dependency>-->
-        <!-- https://mvnrepository.com/artifact/dev.langchain4j/langchain4j -->
-        <!--    <dependency>
-                <groupId>dev.langchain4j</groupId>
-                <artifactId>langchain4j</artifactId>
-                <version>1.0.0-alpha1</version>
-            &lt;!&ndash;    <scope>test</scope>&ndash;&gt;
-            </dependency>-->
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-spring-boot-starter</artifactId>
+            <version>1.0.0-beta1</version>
+        </dependency>
         <!-- https://mvnrepository.com/artifact/dev.langchain4j/langchain4j-embeddings -->
         <dependency>
             <groupId>dev.langchain4j</groupId>
