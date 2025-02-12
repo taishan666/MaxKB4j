@@ -44,6 +44,7 @@ public class BaseChatModel {
             private Consumer<Response<AiMessage>> onCompleteConsumer;
             private Consumer<Throwable> onErrorConsumer;
 
+
             @Override
             public TokenStream onNext(Consumer<String> consumer) {
                 this.onNextConsumer = consumer;
@@ -62,6 +63,7 @@ public class BaseChatModel {
                 return this;
             }
 
+
             @Override
             public void start() {
                 if (isRunning) {
@@ -71,17 +73,26 @@ public class BaseChatModel {
                 StreamingResponseHandler<AiMessage> handler = new StreamingResponseHandler<>() {
                     @Override
                     public void onNext(String s) {
-                        onNextConsumer.accept(s);
+                        System.out.println("onNextConsumer="+onNextConsumer+" "+s);
+                        if (onNextConsumer != null){
+                            onNextConsumer.accept(s);
+                        }
                     }
 
                     @Override
                     public void onComplete(Response<AiMessage> response) {
-                        onCompleteConsumer.accept(response);
+                        System.out.println("onCompleteConsumer="+onCompleteConsumer);
+                        if (onCompleteConsumer != null){
+                            onCompleteConsumer.accept(response);
+                        }
                     }
 
                     @Override
                     public void onError(Throwable throwable) {
-                        onErrorConsumer.accept(throwable);
+                        System.out.println("onErrorConsumer="+onErrorConsumer);
+                        if(onErrorConsumer!=null){
+                            onErrorConsumer.accept(throwable);
+                        }
                     }
                 };
                 streamingChatModel.generate(messages, handler);
@@ -89,8 +100,8 @@ public class BaseChatModel {
         };
     }
 
-
     public ChatStream stream(List<ChatMessage> messages) {
+        long startTime = System.currentTimeMillis();
         final BlockingQueue<AiMessage> messageQueue = new LinkedBlockingQueue<>();
         final AtomicBoolean isCompleted = new AtomicBoolean(false);
         ChatStream chatStream = new ChatStream();
@@ -102,7 +113,9 @@ public class BaseChatModel {
 
             @Override
             public void onComplete(Response<AiMessage> response) {
-                chatStream.setResponse(response);
+                System.out.println("耗时 onComplete "+(System.currentTimeMillis()-startTime)+" ms");
+                // 调用 ChatStream 的回调函数
+                chatStream.invokeOnComplete(response);
                 messageQueue.add(new AiMessage(""));
                 isCompleted.set(true); // 标记流完成
             }

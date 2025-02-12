@@ -18,6 +18,7 @@ import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.model.output.Response;
+import dev.langchain4j.model.output.TokenUsage;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
@@ -46,30 +47,50 @@ public class BaseChatNode extends IChatNode {
     }
 
 
-    private ChatStream writeContextStream(Map<String, Object> nodeVariable, Map<String, Object> workflowVariable, INode currentNode, WorkflowManage workflow){
-        return (ChatStream) nodeVariable.get("result");
+    private ChatStream writeContextStream(Map<String, Object> nodeVariable, Map<String, Object> workflowVariable, INode currentNode, WorkflowManage workflow) {
+        long startTime = System.currentTimeMillis();
+        ChatStream chatStream = (ChatStream) nodeVariable.get("result");
+        chatStream.onCompleteCallback((response) -> {
+            TokenUsage tokenUsage = response.tokenUsage();
+            context.put("message_tokens", tokenUsage.inputTokenCount());
+            context.put("answer_tokens", tokenUsage.outputTokenCount());
+            context.put("answer", response.content().text());
+            context.put("question", nodeVariable.get("question"));
+            context.put("history_message", nodeVariable.get("history_message"));
+            long runTime = System.currentTimeMillis() - context.getLongValue("start_time");
+            System.out.println("耗时1 "+(System.currentTimeMillis()-startTime)+" ms");
+            context.put("run_time", runTime/1000F);
+        });
+        return chatStream;
     }
-
 
     @Override
     public NodeResult execute(ChatNodeParams nodeParams, FlowParams flowParams) {
+        long startTime = System.currentTimeMillis();
         if (Objects.isNull(nodeParams.getDialogueType())) {
             nodeParams.setDialogueType("WORKFLOW");
         }
         if (Objects.isNull(nodeParams.getModelParamsSetting())) {
             nodeParams.setModelParamsSetting(getDefaultModelParamsSetting(nodeParams.getModelId()));
         }
-        BaseChatModel chatModel = modelService.getModelById(nodeParams.getModelId(),nodeParams.getModelParamsSetting());
+        System.out.println("execute耗时1 "+(System.currentTimeMillis()-startTime)+" ms");
+        BaseChatModel chatModel = modelService.getModelById(nodeParams.getModelId(), nodeParams.getModelParamsSetting());
+        System.out.println("execute耗时2 "+(System.currentTimeMillis()-startTime)+" ms");
         List<ApplicationChatRecordEntity> historyMessage = getHistoryMessage(flowParams.getHistoryChatRecord(), nodeParams.getDialogueNumber(), nodeParams.getDialogueType(), super.runtimeNodeId);
         this.context.put("history_message", historyMessage);
+        System.out.println("execute耗时3 "+(System.currentTimeMillis()-startTime)+" ms");
         UserMessage question = generatePromptQuestion(nodeParams.getPrompt());
         this.context.put("question", question.singleText());
+        System.out.println("execute耗时4 "+(System.currentTimeMillis()-startTime)+" ms");
         String system = workflowManage.generatePrompt(nodeParams.getSystem());
         this.context.put("system", system);
-        List<ChatMessage> messageList = generateMessageList(system, question , historyMessage);
+        System.out.println("execute耗时5 "+(System.currentTimeMillis()-startTime)+" ms");
+        List<ChatMessage> messageList = generateMessageList(system, question, historyMessage);
         this.context.put("message_list", messageList);
-        if(flowParams.getStream()){
-            ChatStream chatStream=chatModel.stream(messageList);
+        System.out.println("execute耗时6 "+(System.currentTimeMillis()-startTime)+" ms");
+        if (flowParams.getStream()) {
+            ChatStream chatStream = chatModel.stream(messageList);
+            System.out.println("execute耗时7 "+(System.currentTimeMillis()-startTime)+" ms");
             Map<String, Object> nodeVariable = Map.of(
                     "result", chatStream,
                     "chat_model", chatModel,
@@ -77,8 +98,9 @@ public class BaseChatNode extends IChatNode {
                     "history_message", historyMessage,
                     "question", question.singleText()
             );
-            return new NodeResult(nodeVariable, Map.of(),this::writeContextStream);
-        }else {
+            System.out.println("execute耗时8 "+(System.currentTimeMillis()-startTime)+" ms");
+            return new NodeResult(nodeVariable, Map.of(), this::writeContextStream);
+        } else {
             Response<AiMessage> res = chatModel.generate(messageList);
             Map<String, Object> nodeVariable = Map.of(
                     "result", res,
@@ -93,14 +115,14 @@ public class BaseChatNode extends IChatNode {
     }
 
     private JSONObject getDefaultModelParamsSetting(String modelId) {
-        ModelEntity model = modelService.getById(modelId);
+        ModelEntity model = modelService.getCacheById(modelId);
         return new JSONObject();
     }
 
 
-    public List<ChatMessage> generateMessageList(String system, UserMessage question , List<ApplicationChatRecordEntity> historyChatRecord) {
+    public List<ChatMessage> generateMessageList(String system, UserMessage question, List<ApplicationChatRecordEntity> historyChatRecord) {
         List<ChatMessage> messageList = new ArrayList<>();
-        if(StringUtils.isNotBlank(system)){
+        if (StringUtils.isNotBlank(system)) {
             messageList.add(SystemMessage.from(system));
         }
         messageList.add(question);
@@ -122,6 +144,6 @@ public class BaseChatNode extends IChatNode {
     public void saveContext(JSONObject detail, WorkflowManage workflowManage) {
         this.context.put("question", detail.get("question"));
         this.context.put("answer", detail.get("answer"));
-        this.answerText=detail.getString("answer");
+        this.answerText = detail.getString("answer");
     }
 }

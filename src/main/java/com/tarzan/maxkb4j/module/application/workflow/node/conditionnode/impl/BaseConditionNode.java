@@ -41,6 +41,7 @@ public class BaseConditionNode extends IConditionNode {
         assert branch != null;
         return new NodeResult(Map.of("branch_id", branch.getId(), "branch_name", branch.getType()), Map.of());
     }
+
     private ConditionBranch _execute(List<ConditionBranch> branchList) {
         for (ConditionBranch branch : branchList) {
             if (branchAssertion(branch)) {

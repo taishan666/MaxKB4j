@@ -15,6 +15,7 @@ import com.tarzan.maxkb4j.module.system.user.service.UserService;
 import com.tarzan.maxkb4j.util.BeanUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
@@ -68,11 +69,19 @@ public class ModelService extends ServiceImpl<ModelMapper, ModelEntity> {
         return Collections.emptyList();
     }
 
+    //todo 缓存处理
+    @Cacheable(cacheNames = "model", key = "#modelId")
     public <T> T getModelById(String modelId) {
         ModelEntity model = this.getById(modelId);
         return ModelManage.getModel(model);
     }
 
+    @Cacheable(cacheNames = "model_info", key = "#modelId")
+    public ModelEntity getCacheById(String modelId) {
+        return this.getById(modelId);
+    }
+
+    //todo 缓存处理
     public <T> T getModelById(String modelId, JSONObject modelParams) {
         ModelEntity model = this.getById(modelId);
         return ModelManage.getModel(model);

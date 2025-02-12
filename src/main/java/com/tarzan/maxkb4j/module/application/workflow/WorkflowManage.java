@@ -3,6 +3,7 @@ package com.tarzan.maxkb4j.module.application.workflow;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.module.application.ChatStream;
+import com.tarzan.maxkb4j.module.application.TokenStream;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationChatRecordEntity;
 import com.tarzan.maxkb4j.module.application.vo.ApplicationChatRecordVO;
 import com.tarzan.maxkb4j.module.application.workflow.dto.Answer;
@@ -12,10 +13,9 @@ import com.tarzan.maxkb4j.module.application.workflow.dto.FlowParams;
 import com.tarzan.maxkb4j.module.application.workflow.handler.WorkFlowPostHandler;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.model.input.PromptTemplate;
-import dev.langchain4j.model.output.Response;
-import dev.langchain4j.model.output.TokenUsage;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Sinks;
 
@@ -442,6 +442,26 @@ public class WorkflowManage {
             if (result != null) {
                 if (isResult(currentNode, currentResult)) {
                     String content = "";
+                    if (result instanceof TokenStream tokenStream) {
+                        System.out.println("TokenStream come in");
+                        tokenStream.onNext((text) -> {
+                            System.out.println(text);
+                            JSONObject chunk = this.getBaseToResponse().toStreamChunkResponse(getParams().getChatId(),
+                                    getParams().getChatRecordId(),
+                                    currentNode.getId(),
+                                    currentNode.getLastNodeIdList(),
+                                    text,
+                                    false, 0, 0,
+                                    new ChunkInfo(currentNode.getType(),
+                                            currentNode.runtimeNodeId,
+                                            view_type,
+                                            child_node,
+                                            false,
+                                            realNodeId));
+                            currentNode.getNodeChunk().addChunk(chunk);
+                        });
+                        tokenStream.start();
+                    }
                     if (result instanceof ChatStream chatStream) {
                         Iterator<AiMessage> iterator = chatStream.getIterator();
                         while (iterator.hasNext()) {
@@ -461,11 +481,6 @@ public class WorkflowManage {
                                             realNodeId));
                             currentNode.getNodeChunk().addChunk(chunk);
                         }
-                        Response<AiMessage> response = chatStream.getResponse();
-                        TokenUsage tokenUsage = response.tokenUsage();
-                        currentNode.context.put("message_tokens", tokenUsage.inputTokenCount());
-                        currentNode.context.put("answer_tokens", tokenUsage.outputTokenCount());
-                        currentNode.context.put("answer", response.content().text());
                     }
                     if (result instanceof Iterator) {
                         Iterator<AiMessage> iterator = (Iterator<AiMessage>) result;
@@ -521,6 +536,7 @@ public class WorkflowManage {
                 }
             }
         } catch (Exception e) {
+            e.printStackTrace();
             System.err.println("异常=" + e.getMessage());
             JSONObject errorChunk = this.getBaseToResponse().toStreamChunkResponse(getParams().getChatId(),
                     getParams().getChatRecordId(),
@@ -576,9 +592,6 @@ public class WorkflowManage {
         return Flux.just(new JSONObject());
     }
 
-/*    public boolean isRun() {
-        return isRun(500, TimeUnit.MILLISECONDS);
-    }*/
 
     public boolean isRun() {
         List<Boolean> list = new ArrayList<>();
@@ -628,10 +641,14 @@ public class WorkflowManage {
 
 
     public String generatePrompt(String prompt) {
+        prompt = prompt==null?"":prompt;
         prompt = this.resetPrompt(prompt);
-        PromptTemplate promptTemplate = PromptTemplate.from(prompt);
-        Map<String, Object> context = this.getWorkflowContent();
-        return promptTemplate.apply(context).text();
+        if(StringUtils.isNotBlank(prompt)){
+            PromptTemplate promptTemplate = PromptTemplate.from(prompt);
+            Map<String, Object> context = this.getWorkflowContent();
+            return promptTemplate.apply(context).text();
+        }
+        return prompt;
     }
 
 
@@ -697,43 +714,9 @@ public class WorkflowManage {
 
     public JSONObject getRuntimeDetails() {
         JSONObject detailsResult = new JSONObject();
-
         if (nodeContext == null || nodeContext.isEmpty()) {
             return detailsResult;
         }
-
-        for (int index = 0; index < nodeContext.size(); index++) {
-            INode node = nodeContext.get(index);
-
-            JSONObject details;
-
-            if (chatRecord != null && chatRecord.getDetails() != null) {
-                details = chatRecord.getDetails().getJSONObject(node.getRuntimeNodeId());
-                if (details != null && !startNode.getRuntimeNodeId().equals(node.getRuntimeNodeId())) {
-                    detailsResult.put(node.getRuntimeNodeId(), details);
-                    continue;
-                }
-            }
-
-            details = node.getDetail(index);
-            details.put("node_id", node.getId());
-            details.put("up_node_id_list", node.getLastNodeIdList());
-            details.put("runtime_node_id", node.getRuntimeNodeId());
-
-            detailsResult.put(node.getRuntimeNodeId(), details);
-        }
-
-        return detailsResult;
-    }
-
-
-    public Map<String, JSONObject> getRuntimeDetails1() {
-        Map<String, JSONObject> detailsResult = new HashMap<>();
-
-        if (nodeContext == null || nodeContext.isEmpty()) {
-            return detailsResult;
-        }
-
         for (int index = 0; index < nodeContext.size(); index++) {
             INode node = nodeContext.get(index);
 

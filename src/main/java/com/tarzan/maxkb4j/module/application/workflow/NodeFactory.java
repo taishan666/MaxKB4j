@@ -16,20 +16,20 @@ import java.util.function.Function;
 
 public class NodeFactory {
 
-    private static final List<INode> nodeList = new ArrayList<>();
+    private final List<INode> nodeList;
 
-    static {
-        // 初始化节点列表
+    public NodeFactory() {
+        // 初始化 node_list
+        nodeList = new ArrayList<>();
         nodeList.add(new BaseStartNode());
         nodeList.add(new BaseChatNode());
-        nodeList.add(new BaseApplicationNode());
         nodeList.add(new BaseSearchDatasetNode());
         nodeList.add(new BaseConditionNode());
         nodeList.add(new BaseReplyNode());
-        // 添加其他节点...
+        nodeList.add(new BaseApplicationNode());
     }
 
-    private static INode getNode(String nodeType) {
+    private  INode getNode(String nodeType) {
         for (INode node : nodeList) {
             if (node.getType().equals(nodeType)) {
                 return node;
@@ -39,15 +39,16 @@ public class NodeFactory {
     }
 
     public static INode getNode(String nodeType, Node node, FlowParams workflowParams, WorkflowManage workflowManage) {
-        INode inode=getNode(nodeType);
+        NodeFactory nodeFactory = new NodeFactory();
+        INode inode=nodeFactory.getNode(nodeType);
         if(Objects.nonNull(inode)){
             inode.setId(node.getId());
             inode.setType(nodeType);
             inode.setNode(node);
-            inode.setLastNodeIdList(new ArrayList<>());
+            //inode.setLastNodeIdList(new ArrayList<>());
             inode.setWorkflowParams(workflowParams);
             inode.setWorkflowManage(workflowManage);
-            inode.setNodeChunk(new NodeChunk());
+           // inode.setNodeChunk(new NodeChunk());
             return inode;
         }
         return null;

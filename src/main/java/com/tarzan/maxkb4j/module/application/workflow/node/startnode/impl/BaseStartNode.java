@@ -75,7 +75,6 @@ public class BaseStartNode extends IStarNode {
         detail.put("audio_list",context.get("audio"));
         JSONObject config=node.getProperties().getJSONObject("config");
         JSONArray globalFields=config.getJSONArray("globalFields");
-        System.out.println("globalFields="+globalFields);
         for (int i = 0; i < globalFields.size(); i++) {
             JSONObject globalField=globalFields.getJSONObject(i);
             String value=globalField.getString("value");
