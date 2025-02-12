@@ -102,7 +102,7 @@ public class BaseChatModel {
 
             @Override
             public void onComplete(Response<AiMessage> response) {
-                chatStream.setTokenUsage(response.tokenUsage());
+                chatStream.setResponse(response);
                 messageQueue.add(new AiMessage(""));
                 isCompleted.set(true); // 标记流完成
             }

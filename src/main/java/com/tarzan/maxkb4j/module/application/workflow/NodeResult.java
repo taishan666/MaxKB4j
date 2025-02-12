@@ -44,15 +44,14 @@ public class NodeResult {
             node.context.putAll(stepVariable);
             if (workflow.isResult(node, new NodeResult(stepVariable, globalVariable)) && stepVariable.containsKey("answer")) {
                 node.answerText = (String) stepVariable.get("answer");
-               // node.context.put("content", node.answerText);
             }
         }
         if (globalVariable != null) {
-            node.context.putAll(globalVariable);
+            workflow.getContext().putAll(globalVariable);
         }
         if (node.context.containsKey("start_time")) {
-            long runTime = System.currentTimeMillis() - (long) node.context.get("start_time");
-            node.context.put("run_time", runTime);
+            long runTime = System.currentTimeMillis() - node.context.getLongValue("start_time");
+            node.context.put("run_time", runTime/1000F);
         }
         return node.getContext();
     }

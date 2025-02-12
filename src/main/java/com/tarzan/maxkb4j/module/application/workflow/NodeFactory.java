@@ -32,7 +32,6 @@ public class NodeFactory {
     private static INode getNode(String nodeType) {
         for (INode node : nodeList) {
             if (node.getType().equals(nodeType)) {
-             //   return BeanUtil.copy(node, INode.class);
                 return node;
             }
         }
@@ -45,6 +44,7 @@ public class NodeFactory {
             inode.setId(node.getId());
             inode.setType(nodeType);
             inode.setNode(node);
+            inode.setLastNodeIdList(new ArrayList<>());
             inode.setWorkflowParams(workflowParams);
             inode.setWorkflowManage(workflowManage);
             inode.setNodeChunk(new NodeChunk());

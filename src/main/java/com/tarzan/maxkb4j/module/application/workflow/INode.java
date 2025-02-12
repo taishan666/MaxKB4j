@@ -33,12 +33,17 @@ public abstract class INode {
         this.context = new JSONObject();
         this.lastNodeIdList=new ArrayList<>();
         this.nodeChunk = new NodeChunk();
-        this.runtimeNodeId= generateRuntimeNodeId();
     }
 
     public void setNode(Node node) {
+        this.id = node.getId();
         this.node = node;
         this.nodeParams = getNodeParams(node);
+    }
+
+    public void setLastNodeIdList(List<String> lastNodeIdList) {
+        this.lastNodeIdList = lastNodeIdList;
+        this.runtimeNodeId= generateRuntimeNodeId();
     }
 
     private JSONObject getNodeParams(Node node) {
@@ -52,7 +57,6 @@ public abstract class INode {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-1");
             assert lastNodeIdList != null;
-            assert node != null;
             String input = Arrays.toString(lastNodeIdList.stream().sorted().toArray()) + id;
             byte[] hashBytes = digest.digest(input.getBytes(StandardCharsets.UTF_8));
             StringBuilder hexString = new StringBuilder();
@@ -108,14 +112,14 @@ public abstract class INode {
         this.status = 500;
         this.errMessage = e.getMessage();
         long startTime = this.context.getLongValue("start_time");
-        this.context.put("run_time", System.currentTimeMillis() - startTime);
+        this.context.put("run_time", (System.currentTimeMillis() - startTime)/1000F);
     }
 
     public NodeResult run() {
         long startTime = System.currentTimeMillis();
         this.context.put("start_time", startTime);
         NodeResult result = _run();
-        this.context.put("run_time", System.currentTimeMillis() - startTime);
+        this.context.put("run_time", (System.currentTimeMillis() - startTime)/1000F);
         return result;
     }
 
@@ -126,7 +130,7 @@ public abstract class INode {
         detail.put("name",node.getProperties().getString("stepName"));
         detail.put("index",index);
         detail.put("type",node.getType());
-        detail.put("run_time",context.getInteger("run_time"));
+        detail.put("run_time",context.getFloatValue("run_time"));
         detail.put("status",status);
         detail.put("err_message",errMessage);
         return detail;

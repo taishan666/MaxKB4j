@@ -1,5 +1,6 @@
 package com.tarzan.maxkb4j.module.application.workflow.node.startnode.impl;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationChatRecordEntity;
 import com.tarzan.maxkb4j.module.application.workflow.Node;
@@ -30,7 +31,6 @@ public class BaseStartNode extends IStarNode {
         nodeVariable.put("image", workflowManage.getImageList());
         nodeVariable.put("document", workflowManage.getDocumentList());
         nodeVariable.put("audio", workflowManage.getAudioList());
-
         return new NodeResult(nodeVariable, workflowVariable);
     }
 
@@ -73,12 +73,22 @@ public class BaseStartNode extends IStarNode {
         detail.put("image_list",context.get("image"));
         detail.put("document_list",context.get("document"));
         detail.put("audio_list",context.get("audio"));
-        detail.put("global_fields",node.getProperties().get("globalFields"));
+        JSONObject config=node.getProperties().getJSONObject("config");
+        JSONArray globalFields=config.getJSONArray("globalFields");
+        System.out.println("globalFields="+globalFields);
+        for (int i = 0; i < globalFields.size(); i++) {
+            JSONObject globalField=globalFields.getJSONObject(i);
+            String value=globalField.getString("value");
+            globalField.put("key",value);
+            globalField.put("value",workflowManage.getContext().getString(value));
+        }
+        detail.put("global_fields",globalFields);
         return detail;
     }
 
     @Override
     public void saveContext(JSONObject detail, WorkflowManage workflowManage) {
+        System.out.println("start saveContext");
         // 获取基础节点
         Node baseNode = workflowManage.getBaseNode();
         // 获取默认全局变量
@@ -101,6 +111,7 @@ public class BaseStartNode extends IStarNode {
 
         // 将工作流变量添加到上下文中
         for (Map.Entry<String, Object> entry : workflowVariable.entrySet()) {
+            System.out.println("Key: " + entry.getKey() + ", Value: " + entry.getValue());
             workflowManage.getContext().put(entry.getKey(), entry.getValue());
         }
     }

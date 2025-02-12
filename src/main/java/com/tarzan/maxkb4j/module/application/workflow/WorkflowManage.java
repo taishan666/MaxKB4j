@@ -12,6 +12,7 @@ import com.tarzan.maxkb4j.module.application.workflow.dto.FlowParams;
 import com.tarzan.maxkb4j.module.application.workflow.handler.WorkFlowPostHandler;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.model.input.PromptTemplate;
+import dev.langchain4j.model.output.Response;
 import dev.langchain4j.model.output.TokenUsage;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -441,29 +442,6 @@ public class WorkflowManage {
             if (result != null) {
                 if (isResult(currentNode, currentResult)) {
                     String content = "";
-       /*             if (result instanceof TokenStream tokenStream) {
-                        System.out.println("tokenStream  start" );
-                        tokenStream.onNext(token->{
-                                    System.out.println("token="+token);
-                                    JSONObject chunk = this.getBaseToResponse().toStreamChunkResponse(getParams().getChatId(),
-                                            getParams().getChatRecordId(),
-                                            currentNode.getId(),
-                                            currentNode.getLastNodeIdList(),
-                                            token,
-                                            false, 0, 0,
-                                            new ChunkInfo(currentNode.getType(),
-                                                    currentNode.runtimeNodeId,
-                                                    view_type,
-                                                    child_node,
-                                                    false,
-                                                    realNodeId));
-                                    currentNode.getNodeChunk().addChunk(chunk);
-                                })
-                                .onComplete(System.out::println)
-                                .onError(Throwable::printStackTrace)
-                                .start();
-                        System.out.println("tokenStream  over" );
-                    }*/
                     if (result instanceof ChatStream chatStream) {
                         Iterator<AiMessage> iterator = chatStream.getIterator();
                         while (iterator.hasNext()) {
@@ -483,9 +461,11 @@ public class WorkflowManage {
                                             realNodeId));
                             currentNode.getNodeChunk().addChunk(chunk);
                         }
-                        TokenUsage tokenUsage = chatStream.getTokenUsage();
+                        Response<AiMessage> response = chatStream.getResponse();
+                        TokenUsage tokenUsage = response.tokenUsage();
                         currentNode.context.put("message_tokens", tokenUsage.inputTokenCount());
                         currentNode.context.put("answer_tokens", tokenUsage.outputTokenCount());
+                        currentNode.context.put("answer", response.content().text());
                     }
                     if (result instanceof Iterator) {
                         Iterator<AiMessage> iterator = (Iterator<AiMessage>) result;

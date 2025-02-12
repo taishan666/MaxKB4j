@@ -64,14 +64,15 @@ public class BaseChatNode extends IChatNode {
         this.context.put("history_message", historyMessage);
         UserMessage question = generatePromptQuestion(nodeParams.getPrompt());
         this.context.put("question", question.singleText());
-        List<ChatMessage> messageList = generateMessageList(nodeParams.getSystem(), question , historyMessage);
+        String system = workflowManage.generatePrompt(nodeParams.getSystem());
+        this.context.put("system", system);
+        List<ChatMessage> messageList = generateMessageList(system, question , historyMessage);
         this.context.put("message_list", messageList);
         if(flowParams.getStream()){
             ChatStream chatStream=chatModel.stream(messageList);
             Map<String, Object> nodeVariable = Map.of(
                     "result", chatStream,
                     "chat_model", chatModel,
-                    "answer", "测试",
                     "message_list", messageList,
                     "history_message", historyMessage,
                     "question", question.singleText()
@@ -118,9 +119,9 @@ public class BaseChatNode extends IChatNode {
 
 
     @Override
-    public void saveContext(JSONObject nodeDetail, WorkflowManage workflowManage) {
-        this.context.put("question", nodeDetail.get("question"));
-        this.context.put("answer", nodeDetail.get("answer"));
-        this.answerText=nodeDetail.getString("answer");
+    public void saveContext(JSONObject detail, WorkflowManage workflowManage) {
+        this.context.put("question", detail.get("question"));
+        this.context.put("answer", detail.get("answer"));
+        this.answerText=detail.getString("answer");
     }
 }
