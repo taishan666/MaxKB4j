@@ -32,4 +32,8 @@ public class UserEntity extends BaseEntity {
     private Boolean isActive;
 
     private String source;
+
+    private String language;
+
+
 } 

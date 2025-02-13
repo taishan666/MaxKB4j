@@ -74,6 +74,11 @@ public class UserController{
 		return R.success(userService.selectUserPage(page,size,email_or_username));
 	}
 
+	@PostMapping("api/user/language")
+	public R<Boolean> language(@RequestBody UserEntity user){
+		return R.success(userService.updateLanguage(user));
+	}
+
 	@PostMapping("api/user_manage")
 	public R<Boolean> createUser(@RequestBody UserEntity user){
 		return R.success(userService.createUser(user));

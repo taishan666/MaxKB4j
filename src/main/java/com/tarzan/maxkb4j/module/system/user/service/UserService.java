@@ -154,4 +154,9 @@ public class UserService extends ServiceImpl<UserMapper, UserEntity> {
         user.setPassword(SaSecureUtil.md5(dto.getPassword()));
         return updateById(user);
     }
+
+    public Boolean updateLanguage(UserEntity user) {
+        user.setId(StpUtil.getLoginIdAsString());
+        return updateById(user);
+    }
 }

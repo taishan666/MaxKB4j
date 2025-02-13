@@ -2,7 +2,6 @@
 package com.tarzan.maxkb4j.handler;
 
 import cn.dev33.satoken.exception.NotLoginException;
-import cn.dev33.satoken.util.SaResult;
 import com.tarzan.maxkb4j.tool.api.R;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -33,16 +32,16 @@ public class GlobalExceptionHandler{
 
     @ExceptionHandler(Exception.class)
     @ResponseBody
-    public SaResult handleException(Exception e) {
+    public R<String>  handleException(Exception e) {
         log.error("异常: {}", e.getMessage(), e);
-        return SaResult.error(e.getMessage());
+        return R.fail(500, e.getMessage());
     }
 
     @ExceptionHandler(NullPointerException.class)
     @ResponseBody
-    public SaResult handleException(NullPointerException e) {
+    public R<String>  handleException(NullPointerException e) {
         log.error("空指针异常: {}", e.getMessage(), e);
-        return SaResult.error(e.getMessage());
+        return R.fail(500, e.getMessage());
     }
 
 

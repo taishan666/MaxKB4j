@@ -190,7 +190,8 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     public ApplicationEntity createWorkflow(ApplicationEntity application) {
         String userId = StpUtil.getLoginIdAsString();
         if (Objects.isNull(application.getWorkFlow())) {
-            Path path = getWorkflowFilePath("zh");
+            UserEntity user= userService.getById(userId);
+            Path path = getWorkflowFilePath(user.getLanguage());
             String defaultWorkflowJson = FileUtil.readToString(path.toFile());
             JSONObject workFlow = JSONObject.parseObject(defaultWorkflowJson);
             assert workFlow != null;
@@ -237,6 +238,12 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
 
     private static String toLocale(String language) {
         // 实现细节取决于实际的应用逻辑
+        if(StringUtils.isNotBlank(language)){
+            if(!language.endsWith("Hant")){
+                language=language.split("-")[0];
+            }
+            language=language.replaceAll("-","_");
+        }
         return language; // 这里简化处理，直接返回语言代码
     }
 
@@ -653,13 +660,14 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         String appId = (String) claims.get("application_id");
         ApplicationEntity application = this.getById(appId);
         ApplicationAccessTokenEntity appAccessToken = accessTokenService.getById(appId);
+        UserEntity user = userService.getById(application.getUserId());
         JSONObject result = new JSONObject();
         result.put("id", appId);
         result.put("type", application.getType());
         result.put("name", application.getName());
         result.put("desc", application.getDesc());
         result.put("icon", application.getIcon());
-        result.put("language", "zh-CN");
+        result.put("language", user.getLanguage());
         result.put("prologue", application.getPrologue());
         result.put("dialogue_number", application.getDialogueNumber());
         result.put("multiple_rounds_dialogue", application.getDialogueNumber() > 0);
