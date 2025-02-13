@@ -20,7 +20,7 @@ public class StringArrayTypeHandler extends BaseTypeHandler<String[]> {
     public void setNonNullParameter(PreparedStatement ps, int i, String[] parameter, JdbcType jdbcType) throws SQLException {
         if(null != parameter){
             PGobject pGobject = new PGobject();
-            pGobject.setType("String[]");
+            pGobject.setType("varchar[]");
             pGobject.setValue(toDBValue(parameter));
             ps.setObject(i, pGobject);
         }

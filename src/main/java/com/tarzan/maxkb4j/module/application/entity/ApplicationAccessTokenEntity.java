@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tarzan.maxkb4j.handler.StringSetTypeHandler;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.Date;
 import java.util.HashSet;
@@ -16,6 +17,7 @@ import java.util.Set;
  * @author tarzan
  * @date 2024-12-25 18:05:58
  */
+@NoArgsConstructor
 @Data
 @TableName("application_access_token")
 public class ApplicationAccessTokenEntity {
@@ -51,9 +53,6 @@ public class ApplicationAccessTokenEntity {
     @JsonProperty("show_source")
     private Boolean showSource;
 
-    public ApplicationAccessTokenEntity() {
-    }
-
     public ApplicationAccessTokenEntity(Boolean isActive, Integer accessNum, Boolean whiteActive, Set<String> whiteList, Boolean showSource) {
         this.isActive = isActive;
         this.accessNum = accessNum;
@@ -63,6 +62,6 @@ public class ApplicationAccessTokenEntity {
     }
 
     public static ApplicationAccessTokenEntity createDefault() {
-        return new ApplicationAccessTokenEntity(true,0,false,new HashSet<>(),false);
+        return new ApplicationAccessTokenEntity(true,100,false,new HashSet<>(),false);
     }
 }

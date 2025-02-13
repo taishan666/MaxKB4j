@@ -69,6 +69,11 @@ public class ApplicationController {
         return R.success(applicationService.editIcon(id, file));
     }
 
+    @PutMapping("api/application/{id}/publish")
+    public R<Boolean> publish(@PathVariable("id") String id, @RequestBody JSONObject workflow) {
+        return R.success(applicationService.publish(id, workflow));
+    }
+
     @GetMapping("api/application/profile")
     public R<JSONObject> appProfile(HttpServletRequest request) {
         return R.success(applicationService.appProfile(request));

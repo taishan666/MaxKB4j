@@ -16,13 +16,13 @@ import java.util.List;
 @Data
 public class WorkFlowPostHandler {
 
-    private final ApplicationPublicAccessClientService accessClientService;
+    private final ApplicationPublicAccessClientService publicAccessClientService;
     private ChatInfo chatInfo;
     private String clientId;
     private String clientType;
 
     public WorkFlowPostHandler(ChatInfo chatInfo, String clientId, String clientType) {
-        this.accessClientService = SpringUtil.getBean(ApplicationPublicAccessClientService.class);
+        this.publicAccessClientService = SpringUtil.getBean(ApplicationPublicAccessClientService.class);
         this.chatInfo = chatInfo;
         this.clientId = clientId;
         this.clientType = clientType;
@@ -80,11 +80,11 @@ public class WorkFlowPostHandler {
         ChatCache.put(chatId, chatInfo);
 
         if (clientType!=null&&clientType.equals(AuthenticationType.APPLICATION_ACCESS_TOKEN.name())) {
-            ApplicationPublicAccessClientEntity applicationPublicAccessClient = accessClientService.getById(clientId);
+            ApplicationPublicAccessClientEntity applicationPublicAccessClient = publicAccessClientService.getById(clientId);
             if (applicationPublicAccessClient != null) {
                 applicationPublicAccessClient.setAccessNum(applicationPublicAccessClient.getAccessNum() + 1);
                 applicationPublicAccessClient.setIntraDayAccessNum(applicationPublicAccessClient.getIntraDayAccessNum() + 1);
-                accessClientService.save(applicationPublicAccessClient);
+                publicAccessClientService.updateById(applicationPublicAccessClient);
             }
         }
     }

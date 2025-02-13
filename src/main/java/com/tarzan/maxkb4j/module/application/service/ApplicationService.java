@@ -41,12 +41,13 @@ import com.tarzan.maxkb4j.module.image.service.ImageService;
 import com.tarzan.maxkb4j.module.model.entity.ModelEntity;
 import com.tarzan.maxkb4j.module.model.service.ModelService;
 import com.tarzan.maxkb4j.module.system.team.service.TeamMemberPermissionService;
+import com.tarzan.maxkb4j.module.system.user.entity.UserEntity;
+import com.tarzan.maxkb4j.module.system.user.service.UserService;
 import com.tarzan.maxkb4j.util.BeanUtil;
 import com.tarzan.maxkb4j.util.FileUtil;
 import com.tarzan.maxkb4j.util.JwtUtil;
 import com.tarzan.maxkb4j.util.MD5Util;
 import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.impl.DefaultClaims;
 import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -80,13 +81,11 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     @Autowired
     private ApplicationWorkFlowVersionService workFlowVersionService;
     @Autowired
-    private ApplicationDatasetMappingService applicationDatasetMappingService;
+    private ApplicationDatasetMappingService datasetMappingService;
     @Autowired
-    private ApplicationChatService applicationChatService;
+    private ApplicationPublicAccessClientService publicAccessClientService;
     @Autowired
-    private ApplicationPublicAccessClientService applicationPublicAccessClientService;
-    @Autowired
-    private ApplicationApiKeyService applicationApiKeyService;
+    private ApplicationApiKeyService apiKeyService;
     @Autowired
     private ApplicationChatRecordService chatRecordService;
     @Autowired
@@ -98,11 +97,11 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     @Autowired
     private PostResponseHandler postResponseHandler;
     @Autowired
-    private ApplicationAccessTokenService applicationAccessTokenService;
-    @Autowired
     private ImageService imageService;
     @Autowired
     private TeamMemberPermissionService memberPermissionService;
+    @Autowired
+    private UserService userService;
 
     public IPage<ApplicationEntity> selectAppPage(int page, int size, QueryDTO query) {
         String loginId = StpUtil.getLoginIdAsString();
@@ -170,7 +169,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     public boolean deleteByAppId(String appId) {
         accessTokenService.remove(Wrappers.<ApplicationAccessTokenEntity>lambdaQuery().eq(ApplicationAccessTokenEntity::getApplicationId, appId));
         workFlowVersionService.remove(Wrappers.<ApplicationWorkFlowVersionEntity>lambdaQuery().eq(ApplicationWorkFlowVersionEntity::getApplicationId, appId));
-        applicationDatasetMappingService.remove(Wrappers.<ApplicationDatasetMappingEntity>lambdaQuery().eq(ApplicationDatasetMappingEntity::getApplicationId, appId));
+        datasetMappingService.remove(Wrappers.<ApplicationDatasetMappingEntity>lambdaQuery().eq(ApplicationDatasetMappingEntity::getApplicationId, appId));
         return this.removeById(appId);
     }
 
@@ -181,6 +180,10 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         } else {
             application = createSimple(application);
         }
+        ApplicationAccessTokenEntity accessToken = ApplicationAccessTokenEntity.createDefault();
+        accessToken.setApplicationId(application.getId());
+        accessToken.setAccessToken(MD5Util.encrypt(UUID.randomUUID().toString(), 8, 24));
+        accessTokenService.save(accessToken);
         return application;
     }
 
@@ -211,10 +214,6 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         application.setFileUploadEnable(false);
         application.setFileUploadSetting(new JSONObject());
         this.save(application);
-        ApplicationAccessTokenEntity accessToken = ApplicationAccessTokenEntity.createDefault();
-        accessToken.setApplicationId(application.getId());
-        accessToken.setAccessToken(MD5Util.encrypt(UUID.randomUUID().toString(), 8, 24));
-        applicationAccessTokenService.save(accessToken);
         return application;
     }
 
@@ -251,10 +250,6 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         application.setFileUploadEnable(false);
         application.setFileUploadSetting(new JSONObject());
         this.save(application);
-        ApplicationAccessTokenEntity accessToken = ApplicationAccessTokenEntity.createDefault();
-        accessToken.setApplicationId(application.getId());
-        accessToken.setAccessToken(MD5Util.encrypt(UUID.randomUUID().toString(), 8, 24));
-        applicationAccessTokenService.save(accessToken);
         return application;
     }
 
@@ -269,7 +264,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         }
         ApplicationVO vo = BeanUtil.copy(entity, ApplicationVO.class);
         List<String> datasetIds = new ArrayList<>();
-        List<ApplicationDatasetMappingEntity> mappingEntities = applicationDatasetMappingService.lambdaQuery()
+        List<ApplicationDatasetMappingEntity> mappingEntities = datasetMappingService.lambdaQuery()
                 .select(ApplicationDatasetMappingEntity::getDatasetId)
                 .eq(ApplicationDatasetMappingEntity::getApplicationId, appId).list();
         if (!CollectionUtils.isEmpty(mappingEntities)) {
@@ -287,8 +282,8 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
 
     public List<ApplicationStatisticsVO> statistics(String appId, ChatQueryDTO query) {
         List<ApplicationStatisticsVO> result = new ArrayList<>();
-        List<ApplicationStatisticsVO> list = applicationChatService.statistics(appId, query);
-        List<ApplicationPublicAccessClientStatisticsVO> AccessClientList = applicationPublicAccessClientService.statistics(appId, query);
+        List<ApplicationStatisticsVO> list = chatService.statistics(appId, query);
+        List<ApplicationPublicAccessClientStatisticsVO> AccessClientList = publicAccessClientService.statistics(appId, query);
         // 将字符串解析为LocalDate对象
         LocalDate startDate = LocalDate.parse(query.getStartTime(), formatter);
         LocalDate endDate = LocalDate.parse(query.getEndTime(), formatter);
@@ -333,7 +328,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     }
 
     public List<ApplicationApiKeyEntity> listApikey(String appId) {
-        return applicationApiKeyService.lambdaQuery().eq(ApplicationApiKeyEntity::getApplicationId, appId).list();
+        return apiKeyService.lambdaQuery().eq(ApplicationApiKeyEntity::getApplicationId, appId).list();
     }
 
     public boolean createApikey(String appId) {
@@ -345,16 +340,16 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         entity.setSecretKey("maxKb4j-" + uuid.replaceAll("-", ""));
         entity.setUserId(StpUtil.getLoginIdAsString());
         entity.setCrossDomainList(new HashSet<>());
-        return applicationApiKeyService.save(entity);
+        return apiKeyService.save(entity);
     }
 
     public boolean updateApikey(String appId, String apikeyId, ApplicationApiKeyEntity entity) {
         entity.setId(apikeyId);
-        return applicationApiKeyService.updateById(entity);
+        return apiKeyService.updateById(entity);
     }
 
     public boolean deleteApikey(String appId, String apikeyId) {
-        return applicationApiKeyService.removeById(apikeyId);
+        return apiKeyService.removeById(apikeyId);
     }
 
     public Flux<JSONObject> chatMessage(String chatId, ChatMessageDTO dto, HttpServletRequest request) {
@@ -368,22 +363,21 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
 
     public Flux<JSONObject> chatWorkflow(String chatId, ChatMessageDTO dto, HttpServletRequest request) {
         String authorization = request.getHeader("Authorization");
-      //  Claims claims = JwtUtil.parseToken(authorization);
-        Claims claims=new DefaultClaims();
+        Claims claims = JwtUtil.parseToken(authorization);
         String clientId = (String) claims.get("client_id");
         String clientType = (String) claims.get("type");
         ChatInfo chatInfo = getChatInfo(chatId);
         if (chatInfo == null) {
             System.err.println("会话不存在");
-        }
-        if (!claims.isEmpty()) {
-            try {
-                assert chatInfo != null;
-                isValidApplication(chatInfo, clientId, clientType);
-            } catch (Exception e) {
-                JSONObject data = new JSONObject();
-                data.put("content", e.getMessage());
-                return Flux.just(data);
+        }else {
+            if (!claims.isEmpty()) {
+                try {
+                    isValidIntraDayAccessNum(chatInfo.getApplication().getId(), clientId, clientType);
+                } catch (Exception e) {
+                    JSONObject data = new JSONObject();
+                    data.put("content", e.getMessage());
+                    return Flux.just(data);
+                }
             }
         }
         boolean reChat = dto.getReChat();
@@ -427,16 +421,19 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         ChatInfo chatInfo = getChatInfo(chatId);
         if (chatInfo == null) {
             System.err.println("会话不存在");
-        }
-        if (!claims.isEmpty()) {
-            try {
-                isValidApplication(chatInfo, clientId, clientType);
-            } catch (Exception e) {
-                JSONObject data = new JSONObject();
-                data.put("content", e.getMessage());
-                return Flux.just(data);
+        }else {
+            if (!claims.isEmpty()) {
+                try {
+                    isValidApplication(chatInfo, clientId, clientType);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    JSONObject data = new JSONObject();
+                    data.put("content", "系统错误！");
+                    return Flux.just(data);
+                }
             }
         }
+
         boolean stream = dto.getStream() == null || dto.getStream();
         String problemText = dto.getMessage();
         boolean reChat = dto.getReChat();
@@ -479,16 +476,16 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
 
     public void isValidIntraDayAccessNum(String appId, String clientId, String clientType) throws Exception {
         if ("APPLICATION_ACCESS_TOKEN".equals(clientType)) {
-            ApplicationPublicAccessClientEntity accessClient = applicationPublicAccessClientService.getById(clientId);
+            ApplicationPublicAccessClientEntity accessClient = publicAccessClientService.getById(clientId);
             if (Objects.isNull(accessClient)) {
                 accessClient = new ApplicationPublicAccessClientEntity();
                 accessClient.setId(clientId);
                 accessClient.setApplicationId(appId);
                 accessClient.setAccessNum(0);
                 accessClient.setIntraDayAccessNum(0);
-                applicationPublicAccessClientService.save(accessClient);
+                publicAccessClientService.save(accessClient);
             }
-            ApplicationAccessTokenEntity appAccessToken = applicationAccessTokenService.lambdaQuery().eq(ApplicationAccessTokenEntity::getApplicationId, appId).one();
+            ApplicationAccessTokenEntity appAccessToken = accessTokenService.lambdaQuery().eq(ApplicationAccessTokenEntity::getApplicationId, appId).one();
             if (appAccessToken.getAccessNum() < accessClient.getIntraDayAccessNum()) {
                 throw new Exception("访问次数超过今日访问量");
             }
@@ -508,7 +505,8 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         ChatInfo chatInfo = new ChatInfo();
         chatInfo.setChatId(IdWorker.get32UUID());
         application.setId(null);
-        ApplicationWorkFlowVersionEntity workflowVersion = new ApplicationWorkFlowVersionEntity(application.getWorkFlow());
+        ApplicationWorkFlowVersionEntity workflowVersion = new ApplicationWorkFlowVersionEntity();
+        workflowVersion.setWorkFlow(application.getWorkFlow());
         application.setDialogueNumber(3);
         application.setType("WORKFLOW");
         application.setUserId(StpUtil.getLoginIdAsString());
@@ -519,12 +517,32 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     }
 
     public String chatOpen(String appId) {
+        ApplicationEntity application = this.getById(appId);
+        if("SIMPLE".equals(application.getType())){
+            return chatOpenSimple(application);
+        }else {
+            return chatOpenWorkflow(application);
+        }
+    }
+
+    public String chatOpenSimple(ApplicationEntity application) {
         ChatInfo chatInfo = new ChatInfo();
         chatInfo.setChatId(IdWorker.get32UUID());
-        ApplicationEntity application = this.getById(appId);
-        List<ApplicationDatasetMappingEntity> list = applicationDatasetMappingService.lambdaQuery().eq(ApplicationDatasetMappingEntity::getApplicationId, application.getId()).list();
+        List<ApplicationDatasetMappingEntity> list = datasetMappingService.lambdaQuery().eq(ApplicationDatasetMappingEntity::getApplicationId, application.getId()).list();
         application.setDatasetIdList(list.stream().map(ApplicationDatasetMappingEntity::getDatasetId).toList());
         chatInfo.setApplication(application);
+        ChatCache.put(chatInfo.getChatId(), chatInfo);
+        return chatInfo.getChatId();
+    }
+    public String chatOpenWorkflow(ApplicationEntity application) {
+        ChatInfo chatInfo = new ChatInfo();
+        chatInfo.setChatId(IdWorker.get32UUID());
+        ApplicationWorkFlowVersionEntity workFlowVersion = workFlowVersionService.lambdaQuery()
+                .eq(ApplicationWorkFlowVersionEntity::getApplicationId, application.getId())
+                .orderByDesc(ApplicationWorkFlowVersionEntity::getCreateTime)
+                .last("limit 1").one();
+        chatInfo.setApplication(application);
+        chatInfo.setWorkFlowVersion(workFlowVersion);
         ChatCache.put(chatInfo.getChatId(), chatInfo);
         return chatInfo.getChatId();
     }
@@ -542,7 +560,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         ApplicationChatEntity chatEntity = chatService.getById(chatId);
         chatInfo.setChatId(chatId);
         ApplicationEntity application = this.getById(chatEntity.getApplicationId());
-        List<ApplicationDatasetMappingEntity> list = applicationDatasetMappingService.lambdaQuery().eq(ApplicationDatasetMappingEntity::getApplicationId, application.getId()).list();
+        List<ApplicationDatasetMappingEntity> list = datasetMappingService.lambdaQuery().eq(ApplicationDatasetMappingEntity::getApplicationId, application.getId()).list();
         application.setDatasetIdList(list.stream().map(ApplicationDatasetMappingEntity::getDatasetId).toList());
         chatInfo.setApplication(application);
         ChatCache.put(chatInfo.getChatId(), chatInfo);
@@ -571,7 +589,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         }*/
 
         String accessToken = params.getString("access_token"); // 假设getData()返回一个Map
-        ApplicationAccessTokenEntity applicationAccessToken = applicationAccessTokenService.lambdaQuery().eq(ApplicationAccessTokenEntity::getAccessToken, accessToken).one();
+        ApplicationAccessTokenEntity applicationAccessToken = accessTokenService.lambdaQuery().eq(ApplicationAccessTokenEntity::getAccessToken, accessToken).one();
         if (applicationAccessToken != null && applicationAccessToken.getIsActive()) {
             ApplicationEntity application = this.lambdaQuery().select(ApplicationEntity::getUserId).eq(ApplicationEntity::getId, applicationAccessToken.getApplicationId()).one();
             Map<String, Object> authentication = new HashMap<>();
@@ -634,20 +652,23 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         Claims claims = JwtUtil.parseToken(authorization);
         String appId = (String) claims.get("application_id");
         ApplicationEntity application = this.getById(appId);
-        ApplicationAccessTokenEntity appAccessToken = applicationAccessTokenService.getById(appId);
+        ApplicationAccessTokenEntity appAccessToken = accessTokenService.getById(appId);
         JSONObject result = new JSONObject();
         result.put("id", appId);
         result.put("type", application.getType());
         result.put("name", application.getName());
         result.put("desc", application.getDesc());
         result.put("icon", application.getIcon());
+        result.put("language", "zh-CN");
         result.put("prologue", application.getPrologue());
         result.put("dialogue_number", application.getDialogueNumber());
         result.put("multiple_rounds_dialogue", application.getDialogueNumber() > 0);
         result.put("file_upload_enable", application.getFileUploadEnable());
         result.put("file_upload_setting", application.getFileUploadSetting());
+        result.put("stt_autosend", application.getSttModelEnable());
         result.put("stt_model_enable", application.getSttModelEnable());
         result.put("stt_model_id", application.getSttModelId());
+        result.put("tts_autoplay", application.getSttModelEnable());
         result.put("tts_model_enable", application.getSttModelEnable());
         result.put("tts_type", application.getTtsType());
         result.put("tts_model_id", application.getTtsModelId());
@@ -673,7 +694,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     }
 
     public List<ParagraphVO> hitTest(String id, HitTestDTO dto) {
-        List<ApplicationDatasetMappingEntity> mapping = applicationDatasetMappingService.lambdaQuery()
+        List<ApplicationDatasetMappingEntity> mapping = datasetMappingService.lambdaQuery()
                 .select(ApplicationDatasetMappingEntity::getDatasetId)
                 .eq(ApplicationDatasetMappingEntity::getApplicationId, id).list();
         if (CollectionUtils.isEmpty(mapping)) {
@@ -698,7 +719,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     public Boolean updateAppById(String appId, ApplicationVO appVO) {
         ApplicationEntity application = BeanUtil.copy(appVO, ApplicationEntity.class);
         application.setId(appId);
-        applicationDatasetMappingService.lambdaUpdate().eq(ApplicationDatasetMappingEntity::getApplicationId, appId).remove();
+        datasetMappingService.lambdaUpdate().eq(ApplicationDatasetMappingEntity::getApplicationId, appId).remove();
         if (!CollectionUtils.isEmpty(appVO.getDatasetIdList())) {
             List<ApplicationDatasetMappingEntity> mappingList = new ArrayList<>();
             for (String datasetId : appVO.getDatasetIdList()) {
@@ -707,8 +728,25 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
                 mapping.setDatasetId(datasetId);
                 mappingList.add(mapping);
             }
-            applicationDatasetMappingService.saveBatch(mappingList);
+            datasetMappingService.saveBatch(mappingList);
         }
         return this.updateById(application);
+    }
+
+    public Boolean publish(String id, JSONObject workflow) {
+        if(Objects.nonNull(workflow)&& workflow.containsKey("work_flow")){
+            ApplicationEntity application=this.getById(id);
+            long count=workFlowVersionService.count(Wrappers.<ApplicationWorkFlowVersionEntity>lambdaQuery().eq(ApplicationWorkFlowVersionEntity::getApplicationId,id));
+            ApplicationWorkFlowVersionEntity entity=new ApplicationWorkFlowVersionEntity();
+            entity.setWorkFlow(workflow.getJSONObject("work_flow"));
+            entity.setApplicationId(id);
+            entity.setName(application.getName()+"-V"+(count+1));
+            entity.setPublishUserId(StpUtil.getLoginIdAsString());
+            UserEntity user = userService.getById(StpUtil.getLoginIdAsString());
+            entity.setPublishUserName(user.getUsername());
+            return workFlowVersionService.save(entity);
+        }
+        return false;
+
     }
 }
