@@ -1,7 +1,7 @@
 package com.tarzan.maxkb4j.module.application.workflow.node.aichatnode.impl;
 
 import com.alibaba.fastjson.JSONObject;
-import com.tarzan.maxkb4j.module.application.ChatStream;
+import com.tarzan.maxkb4j.module.application.workflow.ChatStream;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationChatRecordEntity;
 import com.tarzan.maxkb4j.module.application.workflow.INode;
 import com.tarzan.maxkb4j.module.application.workflow.NodeResult;

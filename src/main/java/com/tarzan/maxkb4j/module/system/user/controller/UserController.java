@@ -84,6 +84,11 @@ public class UserController{
 		return R.success(userService.createUser(user));
 	}
 
+	@GetMapping("api/valid/user/{id}")
+	public R<Boolean> validUserById(@PathVariable("id")String id){
+		//todo 验证用户是否存在
+		return R.success(true);
+	}
 	@PutMapping("api/user_manage/{id}")
 	public R<Boolean> updateUserById(@PathVariable("id")String id,@RequestBody UserEntity user){
 		user.setId(id);

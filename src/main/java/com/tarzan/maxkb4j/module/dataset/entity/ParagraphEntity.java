@@ -1,6 +1,7 @@
 package com.tarzan.maxkb4j.module.dataset.entity;
 
 import com.alibaba.fastjson.JSONObject;
+import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -32,7 +33,7 @@ public class ParagraphEntity extends BaseEntity {
 	@JsonProperty("document_id")
 	private String documentId;
 	@JsonProperty("status_Meta")
-	@TableField(typeHandler = JOSNBTypeHandler.class)
+	@TableField(typeHandler = JOSNBTypeHandler.class,fill = FieldFill.INSERT)
 	private JSONObject statusMeta;
 
 }

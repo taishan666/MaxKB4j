@@ -118,6 +118,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         if (!CollectionUtils.isEmpty(useTargetIds)) {
             wrapper.or().in(ApplicationEntity::getId, useTargetIds);
         }
+        wrapper.orderByDesc(ApplicationEntity::getCreateTime);
         return this.page(appPage, wrapper);
     }
 

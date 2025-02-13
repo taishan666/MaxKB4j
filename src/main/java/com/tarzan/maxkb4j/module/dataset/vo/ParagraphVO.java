@@ -18,4 +18,8 @@ public class ParagraphVO extends ParagraphEntity {
     private Double directlyReturnSimilarity;
     @JsonProperty("comprehensive_score")
     private Double comprehensiveScore;
+
+   public boolean isHitHandlingMethod(){
+       return "directly_return".equals(hitHandlingMethod)&& similarity>=directlyReturnSimilarity;
+   }
 }

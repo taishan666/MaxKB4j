@@ -98,9 +98,11 @@ public class UserService extends ServiceImpl<UserMapper, UserEntity> {
 
     @Transactional
     public boolean createUser(UserEntity user) {
+        UserEntity admin= this.getById(StpUtil.getLoginIdAsString());
         user.setRole("USER");
         user.setIsActive(true);
         user.setSource("LOCAL");
+        user.setLanguage(admin.getLanguage());
         save(user);
         TeamEntity team = new TeamEntity();
         team.setUserId(user.getId());

@@ -37,10 +37,11 @@
                     AND tmp.operate @> ARRAY[#{operate}]::varchar[]
                 )
             </if>
-
         </where>
         GROUP BY
-        d.ID
+           d.ID
+        ORDER BY
+           d.create_time DESC
     </select>
 
 </mapper>

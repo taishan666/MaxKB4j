@@ -94,6 +94,15 @@ public class EmbeddingService extends ServiceImpl<EmbeddingMapper, EmbeddingEnti
         return paragraphs;
     }
 
+    public List<ParagraphVO> paragraphSearch(String question,List<String> datasetIds,List<String> excludeParagraphIds,int TopN,float similarity,String searchMode) {
+        HitTestDTO dto=new HitTestDTO();
+        dto.setQuery_text(question);
+        dto.setSearch_mode(searchMode);
+        dto.setSimilarity(similarity);
+        dto.setTop_number(TopN);
+        return paragraphSearch(datasetIds,dto);
+    }
+
 
     public void embedParagraph(ParagraphEntity paragraph,EmbeddingModel embeddingModel) {
         if (paragraph != null) {

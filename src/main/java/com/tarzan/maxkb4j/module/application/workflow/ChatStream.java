@@ -1,4 +1,4 @@
-package com.tarzan.maxkb4j.module.application;
+package com.tarzan.maxkb4j.module.application.workflow;
 
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.model.output.Response;

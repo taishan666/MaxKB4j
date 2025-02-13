@@ -1,5 +1,6 @@
 package com.tarzan.maxkb4j.module.dataset.entity;
 
+import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -43,7 +44,7 @@ public class DocumentEntity extends BaseEntity {
 	@JsonProperty("directly_return_similarity")
 	private Double directlyReturnSimilarity;
 	
-	@TableField(typeHandler = JOSNBTypeHandler.class)
+	@TableField(typeHandler = JOSNBTypeHandler.class,fill = FieldFill.INSERT)
 	@JsonProperty("status_meta")
 	private JSONObject statusMeta;
 
