@@ -11,7 +11,7 @@ public class ChatStream {
 
     @Getter
     @Setter
-    private Iterator<AiMessage> iterator;
+    private Iterator<String> iterator;
 
     // 提供设置回调函数的方法
     // 将 onCompleteConsumer 改为一个回调函数接口

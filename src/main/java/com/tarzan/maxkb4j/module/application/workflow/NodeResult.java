@@ -1,16 +1,18 @@
 package com.tarzan.maxkb4j.module.application.workflow;
 
-import com.alibaba.fastjson.JSONObject;
 import lombok.Data;
 
+import java.util.Iterator;
 import java.util.Map;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 @Data
 public class NodeResult {
-    private  Map<String, Object> nodeVariable;
-    private  Map<String, Object> workflowVariable;
-    private  WriteContextFunction writeContextFunc;
-    private  IsInterruptFunction isInterrupt;
+    private Map<String, Object> nodeVariable;
+    private Map<String, Object> workflowVariable;
+    private WriteContextFunction writeContextFunc;
+    private IsInterruptFunction isInterrupt;
 
     public NodeResult(Map<String, Object> nodeVariable, Map<String, Object> workflowVariable) {
         this.nodeVariable = nodeVariable;
@@ -19,7 +21,7 @@ public class NodeResult {
         this.isInterrupt = this::defaultIsInterrupt;
     }
 
-    public NodeResult(Map<String, Object> nodeVariable, Map<String, Object> workflowVariable , WriteContextFunction writeContextFunc) {
+    public NodeResult(Map<String, Object> nodeVariable, Map<String, Object> workflowVariable, WriteContextFunction writeContextFunc) {
         this.nodeVariable = nodeVariable;
         this.workflowVariable = workflowVariable;
         this.writeContextFunc = writeContextFunc;
@@ -28,22 +30,24 @@ public class NodeResult {
 
 
     public Object writeContext(INode currentNode, WorkflowManage workflowManage) {
-        return this.writeContextFunc.apply(nodeVariable, workflowVariable,currentNode,workflowManage);
+        return this.writeContextFunc.apply(nodeVariable, workflowVariable, currentNode, workflowManage);
     }
 
     public boolean isInterruptExec(INode currentNode) {
         return this.isInterrupt.apply(currentNode);
     }
 
-    public  boolean defaultIsInterrupt(INode node) {
-        return node.getType().equals("form-node")&& !node.getContext().getBooleanValue("is_submit");
+    public boolean defaultIsInterrupt(INode node) {
+        return node.getType().equals("form-node") && !node.getContext().getBooleanValue("is_submit");
     }
 
-    public  JSONObject defaultWriteContextFunc(Map<String, Object> stepVariable, Map<String, Object> globalVariable, INode node, WorkflowManage workflow) {
+    public Iterator<String> defaultWriteContextFunc(Map<String, Object> stepVariable, Map<String, Object> globalVariable, INode node, WorkflowManage workflow) {
+        final BlockingQueue<String> messageQueue = new LinkedBlockingQueue<>();
         if (stepVariable != null) {
             node.context.putAll(stepVariable);
             if (workflow.isResult(node, new NodeResult(stepVariable, globalVariable)) && stepVariable.containsKey("answer")) {
                 node.answerText = (String) stepVariable.get("answer");
+                messageQueue.add(node.answerText);
             }
         }
         if (globalVariable != null) {
@@ -51,17 +55,25 @@ public class NodeResult {
         }
         if (node.context.containsKey("start_time")) {
             long runTime = System.currentTimeMillis() - node.context.getLongValue("start_time");
-            node.context.put("run_time", runTime/1000F);
+            node.context.put("run_time", runTime / 1000F);
         }
-        return node.getContext();
+        return new Iterator<>() {
+            @Override
+            public boolean hasNext() {
+                return !messageQueue.isEmpty();
+            }
+
+            @Override
+            public String next() {
+                return messageQueue.poll();
+            }
+        };
     }
-
-
 
 
     @FunctionalInterface
     public interface WriteContextFunction {
-        Object  apply(Map<String, Object> nodeVariable, Map<String, Object> workflowVariable, INode node, WorkflowManage workflow);
+        Object apply(Map<String, Object> nodeVariable, Map<String, Object> workflowVariable, INode node, WorkflowManage workflow);
     }
 
     @FunctionalInterface
@@ -69,7 +81,7 @@ public class NodeResult {
         boolean apply(INode current_node);
     }
 
-    public boolean isAssertionResult(){
+    public boolean isAssertionResult() {
         return this.nodeVariable.containsKey("branch_id");
     }
 

@@ -2,8 +2,6 @@ package com.tarzan.maxkb4j.module.application.workflow;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.tarzan.maxkb4j.module.application.ChatStream;
-import com.tarzan.maxkb4j.module.application.TokenStream;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationChatRecordEntity;
 import com.tarzan.maxkb4j.module.application.vo.ApplicationChatRecordVO;
 import com.tarzan.maxkb4j.module.application.workflow.dto.Answer;
@@ -11,7 +9,6 @@ import com.tarzan.maxkb4j.module.application.workflow.dto.BaseToResponse;
 import com.tarzan.maxkb4j.module.application.workflow.dto.ChunkInfo;
 import com.tarzan.maxkb4j.module.application.workflow.dto.FlowParams;
 import com.tarzan.maxkb4j.module.application.workflow.handler.WorkFlowPostHandler;
-import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.model.input.PromptTemplate;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -234,19 +231,6 @@ public class WorkflowManage {
                 }
                 workFlowPostHandler.handler(this.params.getChatId(), this.params.getChatRecordId(),
                         answer, workflow);
-                // 处理结束后的工作流
-            /*    Map<String, JSONObject> details = getRuntimeDetails();
-                int messageTokens = details.values().stream()
-                        .filter(row -> row.containsKey("message_tokens") && row.get("message_tokens") != null)
-                        .mapToInt(row -> (int) row.get("message_tokens"))
-                        .sum();
-                int answerTokens = details.values().stream()
-                        .filter(row -> row.containsKey("answer_tokens") && row.get("answer_tokens") != null)
-                        .mapToInt(row -> (int) row.get("answer_tokens"))
-                        .sum();
-                // 发送最后一条消息并完成流
-                sink.tryEmitNext(baseToResponse.toStreamChunkResponse(params.getChatId(),
-                        params.getChatRecordId(), "", new LinkedList<>(), "156", true, messageTokens, answerTokens));*/
                 sink.tryEmitComplete();
             } catch (Exception e) {
                 sink.tryEmitError(e);
@@ -442,31 +426,10 @@ public class WorkflowManage {
             if (result != null) {
                 if (isResult(currentNode, currentResult)) {
                     String content = "";
-                    if (result instanceof TokenStream tokenStream) {
-                        System.out.println("TokenStream come in");
-                        tokenStream.onNext((text) -> {
-                            System.out.println(text);
-                            JSONObject chunk = this.getBaseToResponse().toStreamChunkResponse(getParams().getChatId(),
-                                    getParams().getChatRecordId(),
-                                    currentNode.getId(),
-                                    currentNode.getLastNodeIdList(),
-                                    text,
-                                    false, 0, 0,
-                                    new ChunkInfo(currentNode.getType(),
-                                            currentNode.runtimeNodeId,
-                                            view_type,
-                                            child_node,
-                                            false,
-                                            realNodeId));
-                            currentNode.getNodeChunk().addChunk(chunk);
-                        });
-                        tokenStream.start();
-                    }
-                    if (result instanceof ChatStream chatStream) {
-                        Iterator<AiMessage> iterator = chatStream.getIterator();
+                /*    if (result instanceof ChatStream chatStream) {
+                        Iterator<String> iterator = chatStream.getIterator();
                         while (iterator.hasNext()) {
-                            AiMessage aiMessage = iterator.next();
-                            content = aiMessage.text();
+                            content = iterator.next();
                             JSONObject chunk = this.getBaseToResponse().toStreamChunkResponse(getParams().getChatId(),
                                     getParams().getChatRecordId(),
                                     currentNode.getId(),
@@ -481,14 +444,11 @@ public class WorkflowManage {
                                             realNodeId));
                             currentNode.getNodeChunk().addChunk(chunk);
                         }
-                    }
+                    }*/
                     if (result instanceof Iterator) {
-                        Iterator<AiMessage> iterator = (Iterator<AiMessage>) result;
-                        int i = 0;
+                        Iterator<String> iterator = (Iterator<String>) result;
                         while (iterator.hasNext()) {
-                            AiMessage aiMessage = iterator.next();
-                            // System.out.println("iterable" + i + "  " + aiMessage.text());
-                            content = aiMessage.text();
+                            content = iterator.next();
                             JSONObject chunk = this.getBaseToResponse().toStreamChunkResponse(getParams().getChatId(),
                                     getParams().getChatRecordId(),
                                     currentNode.getId(),
@@ -502,25 +462,9 @@ public class WorkflowManage {
                                             false,
                                             realNodeId));
                             currentNode.getNodeChunk().addChunk(chunk);
-                            i++;
                         }
                     }
-                    if (result instanceof JSONObject) {
-                        content = ((JSONObject) result).getString("content");
-                        JSONObject chunk = this.getBaseToResponse().toStreamChunkResponse(getParams().getChatId(),
-                                getParams().getChatRecordId(),
-                                currentNode.getId(),
-                                currentNode.getLastNodeIdList(),
-                                content,
-                                false, 0, 0,
-                                new ChunkInfo(currentNode.getType(),
-                                        currentNode.runtimeNodeId,
-                                        view_type,
-                                        child_node,
-                                        false,
-                                        realNodeId));
-                        currentNode.getNodeChunk().addChunk(chunk);
-                    }
+
                     JSONObject endChunk = this.getBaseToResponse().toStreamChunkResponse(getParams().getChatId(),
                             getParams().getChatRecordId(),
                             currentNode.getId(),
@@ -642,8 +586,8 @@ public class WorkflowManage {
 
     public String generatePrompt(String prompt) {
         prompt = prompt==null?"":prompt;
-        prompt = this.resetPrompt(prompt);
         if(StringUtils.isNotBlank(prompt)){
+            prompt = this.resetPrompt(prompt);
             PromptTemplate promptTemplate = PromptTemplate.from(prompt);
             Map<String, Object> context = this.getWorkflowContent();
             return promptTemplate.apply(context).text();

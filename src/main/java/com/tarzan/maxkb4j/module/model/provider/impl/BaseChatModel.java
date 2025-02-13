@@ -1,7 +1,6 @@
 package com.tarzan.maxkb4j.module.model.provider.impl;
 
 import com.tarzan.maxkb4j.module.application.ChatStream;
-import com.tarzan.maxkb4j.module.application.TokenStream;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.model.StreamingResponseHandler;
@@ -16,7 +15,6 @@ import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Consumer;
 
 public class BaseChatModel {
 
@@ -37,78 +35,16 @@ public class BaseChatModel {
         streamingChatModel.generate(messages, handler);
     }
 
-    public TokenStream stream0(List<ChatMessage> messages) {
-        return new TokenStream() {
-            private boolean isRunning = false;
-            private Consumer<String> onNextConsumer;
-            private Consumer<Response<AiMessage>> onCompleteConsumer;
-            private Consumer<Throwable> onErrorConsumer;
-
-
-            @Override
-            public TokenStream onNext(Consumer<String> consumer) {
-                this.onNextConsumer = consumer;
-                return this;
-            }
-
-            @Override
-            public TokenStream onComplete(Consumer<Response<AiMessage>> consumer) {
-                this.onCompleteConsumer = consumer;
-                return this;
-            }
-
-            @Override
-            public TokenStream onError(Consumer<Throwable> consumer) {
-                this.onErrorConsumer = consumer;
-                return this;
-            }
-
-
-            @Override
-            public void start() {
-                if (isRunning) {
-                    throw new IllegalStateException("Stream is already running.");
-                }
-                isRunning = true;
-                StreamingResponseHandler<AiMessage> handler = new StreamingResponseHandler<>() {
-                    @Override
-                    public void onNext(String s) {
-                        System.out.println("onNextConsumer="+onNextConsumer+" "+s);
-                        if (onNextConsumer != null){
-                            onNextConsumer.accept(s);
-                        }
-                    }
-
-                    @Override
-                    public void onComplete(Response<AiMessage> response) {
-                        System.out.println("onCompleteConsumer="+onCompleteConsumer);
-                        if (onCompleteConsumer != null){
-                            onCompleteConsumer.accept(response);
-                        }
-                    }
-
-                    @Override
-                    public void onError(Throwable throwable) {
-                        System.out.println("onErrorConsumer="+onErrorConsumer);
-                        if(onErrorConsumer!=null){
-                            onErrorConsumer.accept(throwable);
-                        }
-                    }
-                };
-                streamingChatModel.generate(messages, handler);
-            }
-        };
-    }
 
     public ChatStream stream(List<ChatMessage> messages) {
         long startTime = System.currentTimeMillis();
-        final BlockingQueue<AiMessage> messageQueue = new LinkedBlockingQueue<>();
+        final BlockingQueue<String> messageQueue = new LinkedBlockingQueue<>();
         final AtomicBoolean isCompleted = new AtomicBoolean(false);
         ChatStream chatStream = new ChatStream();
         StreamingResponseHandler<AiMessage> handler = new StreamingResponseHandler<>() {
             @Override
-            public void onNext(String s) {
-                messageQueue.add(new AiMessage(s));
+            public void onNext(String token) {
+                messageQueue.add(token);
             }
 
             @Override
@@ -116,7 +52,7 @@ public class BaseChatModel {
                 System.out.println("耗时 onComplete "+(System.currentTimeMillis()-startTime)+" ms");
                 // 调用 ChatStream 的回调函数
                 chatStream.invokeOnComplete(response);
-                messageQueue.add(new AiMessage(""));
+                messageQueue.add("");
                 isCompleted.set(true); // 标记流完成
             }
 
@@ -128,7 +64,7 @@ public class BaseChatModel {
 
         streamingChatModel.generate(messages, handler);
 
-        Iterator<AiMessage> iterator = new Iterator<>() {
+        Iterator<String> iterator = new Iterator<>() {
             @Override
             public boolean hasNext() {
                 // 队列不为空或流未完成时继续
@@ -136,9 +72,9 @@ public class BaseChatModel {
             }
 
             @Override
-            public AiMessage next() {
+            public String next() {
                 do {
-                    AiMessage message = messageQueue.poll();
+                    String message = messageQueue.poll();
                     if (message != null) return message;
                 } while (!isCompleted.get());
                 return null;
@@ -146,51 +82,6 @@ public class BaseChatModel {
         };
         chatStream.setIterator(iterator);
         return chatStream;
-    }
-
-
-
-    public Iterator<AiMessage> stream1(List<ChatMessage> messages) {
-        final BlockingQueue<AiMessage> messageQueue = new LinkedBlockingQueue<>();
-        final AtomicBoolean isCompleted = new AtomicBoolean(false);
-
-        StreamingResponseHandler<AiMessage> handler = new StreamingResponseHandler<>() {
-            @Override
-            public void onNext(String s) {
-                messageQueue.add(new AiMessage(s));
-            }
-
-            @Override
-            public void onComplete(Response<AiMessage> response) {
-                response.tokenUsage();
-                messageQueue.add(new AiMessage(""));
-                isCompleted.set(true); // 标记流完成
-            }
-
-            @Override
-            public void onError(Throwable throwable) {
-                isCompleted.set(true); // 出错时也标记完成
-            }
-        };
-
-        streamingChatModel.generate(messages, handler);
-
-        return new Iterator<>() {
-            @Override
-            public boolean hasNext() {
-                // 队列不为空或流未完成时继续
-                return !messageQueue.isEmpty() || !isCompleted.get();
-            }
-
-            @Override
-            public AiMessage next() {
-                do {
-                    AiMessage message = messageQueue.poll();
-                    if (message != null) return message;
-                } while (!isCompleted.get());
-                return null;
-            }
-        };
     }
 
 

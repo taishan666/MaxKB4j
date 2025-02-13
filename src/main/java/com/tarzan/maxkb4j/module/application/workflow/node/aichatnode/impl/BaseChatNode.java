@@ -9,7 +9,6 @@ import com.tarzan.maxkb4j.module.application.workflow.WorkflowManage;
 import com.tarzan.maxkb4j.module.application.workflow.dto.FlowParams;
 import com.tarzan.maxkb4j.module.application.workflow.node.aichatnode.IChatNode;
 import com.tarzan.maxkb4j.module.application.workflow.node.aichatnode.dto.ChatNodeParams;
-import com.tarzan.maxkb4j.module.model.entity.ModelEntity;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
 import com.tarzan.maxkb4j.module.model.service.ModelService;
 import com.tarzan.maxkb4j.util.SpringUtil;
@@ -21,10 +20,7 @@ import dev.langchain4j.model.output.Response;
 import dev.langchain4j.model.output.TokenUsage;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 public class BaseChatNode extends IChatNode {
 
@@ -47,7 +43,7 @@ public class BaseChatNode extends IChatNode {
     }
 
 
-    private ChatStream writeContextStream(Map<String, Object> nodeVariable, Map<String, Object> workflowVariable, INode currentNode, WorkflowManage workflow) {
+    private Iterator<String> writeContextStream(Map<String, Object> nodeVariable, Map<String, Object> workflowVariable, INode currentNode, WorkflowManage workflow) {
         long startTime = System.currentTimeMillis();
         ChatStream chatStream = (ChatStream) nodeVariable.get("result");
         chatStream.onCompleteCallback((response) -> {
@@ -61,7 +57,7 @@ public class BaseChatNode extends IChatNode {
             System.out.println("耗时1 "+(System.currentTimeMillis()-startTime)+" ms");
             context.put("run_time", runTime/1000F);
         });
-        return chatStream;
+        return chatStream.getIterator();
     }
 
     @Override
@@ -98,7 +94,6 @@ public class BaseChatNode extends IChatNode {
                     "history_message", historyMessage,
                     "question", question.singleText()
             );
-            System.out.println("execute耗时8 "+(System.currentTimeMillis()-startTime)+" ms");
             return new NodeResult(nodeVariable, Map.of(), this::writeContextStream);
         } else {
             Response<AiMessage> res = chatModel.generate(messageList);
@@ -115,7 +110,7 @@ public class BaseChatNode extends IChatNode {
     }
 
     private JSONObject getDefaultModelParamsSetting(String modelId) {
-        ModelEntity model = modelService.getCacheById(modelId);
+       // ModelEntity model = modelService.getCacheById(modelId);
         return new JSONObject();
     }
 
