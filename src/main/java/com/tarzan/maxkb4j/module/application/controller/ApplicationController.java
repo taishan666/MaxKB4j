@@ -153,8 +153,8 @@ public class ApplicationController {
     }
 
     @GetMapping("api/application/{appId}/application")
-    public R<ApplicationEntity> getByAppId1(@PathVariable("appId") String appId) {
-        return R.success(applicationService.getById(appId));
+    public R<List<ApplicationEntity>> listByUserId(@PathVariable("appId") String appId) {
+        return R.success(applicationService.listByUserId(appId));
     }
 
     @GetMapping("api/application/{appId}/access_token")

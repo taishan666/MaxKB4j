@@ -56,4 +56,7 @@ public class ApplicationChatRecordEntity extends BaseEntity {
 	@TableField(typeHandler = JOSNBArrayTypeHandler.class)
 	private List<String> answerTextList;
 
+    public JSONObject getNodeDetailsByRuntimeNodeId(String runtimeNodeId) {
+		return details.getJSONObject(runtimeNodeId);
+    }
 }

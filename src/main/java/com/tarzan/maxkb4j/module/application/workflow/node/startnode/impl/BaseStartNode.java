@@ -6,6 +6,7 @@ import com.tarzan.maxkb4j.module.application.entity.ApplicationChatRecordEntity;
 import com.tarzan.maxkb4j.module.application.workflow.Node;
 import com.tarzan.maxkb4j.module.application.workflow.NodeResult;
 import com.tarzan.maxkb4j.module.application.workflow.WorkflowManage;
+import com.tarzan.maxkb4j.module.application.workflow.dto.ChatRecordSimple;
 import com.tarzan.maxkb4j.module.application.workflow.dto.FlowParams;
 import com.tarzan.maxkb4j.module.application.workflow.node.startnode.IStarNode;
 
@@ -37,12 +38,11 @@ public class BaseStartNode extends IStarNode {
     public Map<String, Object> getGlobalVariable(FlowParams workflowParams, WorkflowManage workflowManage) {
         // 获取历史聊天记录
         List<ApplicationChatRecordEntity> historyChatRecord = workflowParams.getHistoryChatRecord();
-        List<Map<String, String>> historyContext = new ArrayList<>();
-
+        List<ChatRecordSimple> historyContext = new ArrayList<>();
         for (ApplicationChatRecordEntity chatRecord : historyChatRecord) {
-            Map<String, String> record = new HashMap<>();
-            record.put("question", chatRecord.getProblemText());
-            record.put("answer", chatRecord.getAnswerText());
+            ChatRecordSimple record = new ChatRecordSimple();
+            record.setQuestion(chatRecord.getProblemText());
+            record.setAnswer(chatRecord.getAnswerText());
             historyContext.add(record);
         }
 

@@ -1,5 +1,6 @@
 package com.tarzan.maxkb4j.module.application.workflow.node.aichatnode.impl;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.module.application.workflow.ChatStream;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationChatRecordEntity;
@@ -19,6 +20,7 @@ import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.model.output.Response;
 import dev.langchain4j.model.output.TokenUsage;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.util.CollectionUtils;
 
 import java.util.*;
 
@@ -34,7 +36,8 @@ public class BaseChatNode extends IChatNode {
     public JSONObject getDetail(int index) {
         JSONObject detail = super.getDetail(index);
         detail.put("system", context.getString("system"));
-        detail.put("history_message", new ArrayList<>());
+        List<ChatMessage> historyMessage = (List<ChatMessage>) context.get("history_message");
+        detail.put("history_message", resetMessageList(historyMessage));
         detail.put("question", context.getString("question"));
         detail.put("answer", context.getString("answer"));
         detail.put("message_tokens", context.getInteger("message_tokens"));
@@ -42,20 +45,46 @@ public class BaseChatNode extends IChatNode {
         return detail;
     }
 
+    public JSONArray resetMessageList(List<ChatMessage> historyMessage) {
+        if (CollectionUtils.isEmpty(historyMessage)) {
+            return new JSONArray();
+        }
+        JSONArray newMessageList = new JSONArray();
+        for (ChatMessage chatMessage : historyMessage) {
+            JSONObject message = new JSONObject();
+            if (chatMessage instanceof SystemMessage systemMessage) {
+                message.put("role", "ai");
+                message.put("content", systemMessage.text());
+            }
+            if (chatMessage instanceof UserMessage userMessage) {
+                message.put("role", "user");
+                message.put("content", userMessage.singleText());
+            }
+            if (chatMessage instanceof AiMessage aiMessage) {
+                message.put("role", "ai");
+                message.put("content", aiMessage.text());
+            }
+            newMessageList.add(message);
+        }
+        return newMessageList;
+    }
+
 
     private Iterator<String> writeContextStream(Map<String, Object> nodeVariable, Map<String, Object> workflowVariable, INode currentNode, WorkflowManage workflow) {
         long startTime = System.currentTimeMillis();
         ChatStream chatStream = (ChatStream) nodeVariable.get("result");
         chatStream.onCompleteCallback((response) -> {
+            String answer = response.content().text();
+            workflow.setAnswer(answer);
             TokenUsage tokenUsage = response.tokenUsage();
             context.put("message_tokens", tokenUsage.inputTokenCount());
             context.put("answer_tokens", tokenUsage.outputTokenCount());
-            context.put("answer", response.content().text());
+            context.put("answer", answer);
             context.put("question", nodeVariable.get("question"));
             context.put("history_message", nodeVariable.get("history_message"));
             long runTime = System.currentTimeMillis() - context.getLongValue("start_time");
-            System.out.println("耗时1 "+(System.currentTimeMillis()-startTime)+" ms");
-            context.put("run_time", runTime/1000F);
+            System.out.println("耗时1 " + (System.currentTimeMillis() - startTime) + " ms");
+            context.put("run_time", runTime / 1000F);
         });
         return chatStream.getIterator();
     }
@@ -69,24 +98,19 @@ public class BaseChatNode extends IChatNode {
         if (Objects.isNull(nodeParams.getModelParamsSetting())) {
             nodeParams.setModelParamsSetting(getDefaultModelParamsSetting(nodeParams.getModelId()));
         }
-        System.out.println("execute耗时1 "+(System.currentTimeMillis()-startTime)+" ms");
+        System.out.println("execute耗时1 " + (System.currentTimeMillis() - startTime) + " ms");
         BaseChatModel chatModel = modelService.getModelById(nodeParams.getModelId(), nodeParams.getModelParamsSetting());
-        System.out.println("execute耗时2 "+(System.currentTimeMillis()-startTime)+" ms");
-        List<ApplicationChatRecordEntity> historyMessage = getHistoryMessage(flowParams.getHistoryChatRecord(), nodeParams.getDialogueNumber(), nodeParams.getDialogueType(), super.runtimeNodeId);
+        System.out.println("execute耗时2 " + (System.currentTimeMillis() - startTime) + " ms");
+        List<ChatMessage> historyMessage = getHistoryMessage(flowParams.getHistoryChatRecord(), nodeParams.getDialogueNumber(), nodeParams.getDialogueType(), super.runtimeNodeId);
         this.context.put("history_message", historyMessage);
-        System.out.println("execute耗时3 "+(System.currentTimeMillis()-startTime)+" ms");
         UserMessage question = generatePromptQuestion(nodeParams.getPrompt());
         this.context.put("question", question.singleText());
-        System.out.println("execute耗时4 "+(System.currentTimeMillis()-startTime)+" ms");
         String system = workflowManage.generatePrompt(nodeParams.getSystem());
         this.context.put("system", system);
-        System.out.println("execute耗时5 "+(System.currentTimeMillis()-startTime)+" ms");
         List<ChatMessage> messageList = generateMessageList(system, question, historyMessage);
-        this.context.put("message_list", messageList);
-        System.out.println("execute耗时6 "+(System.currentTimeMillis()-startTime)+" ms");
         if (flowParams.getStream()) {
             ChatStream chatStream = chatModel.stream(messageList);
-            System.out.println("execute耗时7 "+(System.currentTimeMillis()-startTime)+" ms");
+            System.out.println("execute耗时7 " + (System.currentTimeMillis() - startTime) + " ms");
             Map<String, Object> nodeVariable = Map.of(
                     "result", chatStream,
                     "chat_model", chatModel,
@@ -110,24 +134,63 @@ public class BaseChatNode extends IChatNode {
     }
 
     private JSONObject getDefaultModelParamsSetting(String modelId) {
-       // ModelEntity model = modelService.getCacheById(modelId);
+        // ModelEntity model = modelService.getCacheById(modelId);
         return new JSONObject();
     }
 
 
-    public List<ChatMessage> generateMessageList(String system, UserMessage question, List<ApplicationChatRecordEntity> historyChatRecord) {
+    public List<ChatMessage> generateMessageList(String system, UserMessage question, List<ChatMessage> historyMessages) {
         List<ChatMessage> messageList = new ArrayList<>();
         if (StringUtils.isNotBlank(system)) {
             messageList.add(SystemMessage.from(system));
         }
+        messageList.addAll(historyMessages);
         messageList.add(question);
         return messageList;
     }
 
-    public List<ApplicationChatRecordEntity> getHistoryMessage(List<ApplicationChatRecordEntity> historyChatRecord, int dialogueNumber, String dialogueType, String runtimeNodeId) {
+    public List<ChatMessage> getHistoryMessage(List<ApplicationChatRecordEntity> historyChatRecord, int dialogueNumber, String dialogueType, String runtimeNodeId) {
+        List<ChatMessage> historyMessage = new ArrayList<>();
         int startIndex = Math.max(historyChatRecord.size() - dialogueNumber, 0);
+        // 遍历指定范围内的聊天记录
+        for (int index = startIndex; index < historyChatRecord.size(); index++) {
+            // 获取每条消息并添加到历史消息列表中
+            historyMessage.addAll(getMessage(historyChatRecord.get(index), dialogueType, runtimeNodeId));
+        }
         // 使用Stream API和flatMap来代替Python中的reduce操作
-        return historyChatRecord.subList(startIndex, historyChatRecord.size());
+        return historyMessage;
+    }
+
+    private List<ChatMessage> getMessage(ApplicationChatRecordEntity chatRecord, String dialogueType, String runtimeNodeId) {
+        if ("NODE".equals(dialogueType)) {
+            return getNodeMessage(chatRecord, runtimeNodeId);
+        } else {
+            return getNodeMessage(chatRecord);
+        }
+    }
+
+    public List<ChatMessage> getNodeMessage(ApplicationChatRecordEntity chatRecord) {
+        List<ChatMessage> messages = new ArrayList<>();
+        messages.add(new UserMessage(chatRecord.getProblemText()));
+        messages.add(new AiMessage(chatRecord.getAnswerText()));
+        return messages;
+    }
+
+    public List<ChatMessage> getNodeMessage(ApplicationChatRecordEntity chatRecord, String runtimeNodeId) {
+        // 获取节点详情
+        JSONObject nodeDetails = chatRecord.getNodeDetailsByRuntimeNodeId(runtimeNodeId);
+
+        // 如果节点详情为空，返回空列表
+        if (nodeDetails == null) {
+            return new ArrayList<>();
+        }
+
+        // 创建消息列表
+        List<ChatMessage> messages = new ArrayList<>();
+        messages.add(new UserMessage(nodeDetails.getString("question")));
+        messages.add(new AiMessage(nodeDetails.getString("answer")));
+
+        return messages;
     }
 
     public UserMessage generatePromptQuestion(String prompt) {

@@ -44,11 +44,6 @@ public class WorkFlowPostHandler {
                 .mapToInt(row -> row.getIntValue("answer_tokens"))
                 .sum();
         List<String> answerTextList = workflow.getAnswerTextList();
-        StringBuilder answerText = new StringBuilder();
-        for (String answer1: answerTextList) {
-            answerText.append(answer1).append("\n\n");
-        }
-
         ApplicationChatRecordEntity chatRecord;
         if (workflow.getChatRecord() != null) {
             chatRecord = workflow.getChatRecord();
@@ -65,7 +60,7 @@ public class WorkFlowPostHandler {
             chatRecord.setId(chatRecordId);
             chatRecord.setChatId(chatId);
             chatRecord.setProblemText(question);
-            chatRecord.setAnswerText(answerText.toString());
+            chatRecord.setAnswerText(answer);
             chatRecord.setIndex(chatInfo.getChatRecordList().size() + 1);
             chatRecord.setMessageTokens(messageTokens);
             chatRecord.setAnswerTokens(answerTokens);

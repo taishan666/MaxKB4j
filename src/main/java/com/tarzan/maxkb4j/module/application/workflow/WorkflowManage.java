@@ -524,7 +524,7 @@ public class WorkflowManage {
         String chatId = params.getChatId();
         String chatRecordId = params.getChatRecordId();
 
-        workFlowPostHandler.handler(chatId, chatRecordId, answerText.toString(), this);
+       // workFlowPostHandler.handler(chatId, chatRecordId, answerText.toString(), this);
 
         baseToResponse.toBlockResponse(chatId,
                 chatRecordId,

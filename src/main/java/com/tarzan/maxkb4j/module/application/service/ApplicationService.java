@@ -406,6 +406,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         flowParams.setClientId(clientId);
         flowParams.setClientType(clientType);
         flowParams.setStream(dto.getStream() == null || dto.getStream());
+        flowParams.setHistoryChatRecord(chatInfo.getChatRecordList());
         WorkflowManage workflowManage = new WorkflowManage(Flow.newInstance(chatInfo.getWorkFlowVersion().getWorkFlow()),
                 flowParams,
                 new WorkFlowPostHandler(chatInfo, clientId, clientType),
@@ -757,5 +758,15 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         }
         return false;
 
+    }
+
+    public List<ApplicationEntity> listByUserId(String appId) {
+        ApplicationEntity application=this.getById(appId);
+        String userId=StpUtil.getLoginIdAsString();
+        String appUserId=application.getUserId();
+        if (!userId.equals(appUserId)){
+            return Collections.emptyList();
+        }
+        return this.lambdaQuery().eq(ApplicationEntity::getUserId,appUserId).list();
     }
 }
