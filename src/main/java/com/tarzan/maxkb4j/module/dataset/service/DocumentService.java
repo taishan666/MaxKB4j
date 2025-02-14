@@ -7,7 +7,6 @@ import com.tarzan.maxkb4j.common.dto.QueryDTO;
 import com.tarzan.maxkb4j.module.dataset.entity.DocumentEntity;
 import com.tarzan.maxkb4j.module.dataset.mapper.DocumentMapper;
 import com.tarzan.maxkb4j.module.dataset.vo.DocumentVO;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -18,9 +17,6 @@ import java.util.List;
  */
 @Service
 public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>{
-
-    @Autowired
-    private ParagraphService paragraphService;
 
     public IPage<DocumentVO> selectDocPage(Page<DocumentVO> docPage, String datasetId, QueryDTO query) {
         return baseMapper.selectDocPage(docPage, datasetId,query);

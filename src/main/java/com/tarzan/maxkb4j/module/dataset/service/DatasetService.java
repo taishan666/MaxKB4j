@@ -24,7 +24,6 @@ import com.tarzan.maxkb4j.module.dataset.dto.*;
 import com.tarzan.maxkb4j.module.dataset.entity.*;
 import com.tarzan.maxkb4j.module.dataset.excel.DatasetExcel;
 import com.tarzan.maxkb4j.module.dataset.mapper.DatasetMapper;
-import com.tarzan.maxkb4j.module.dataset.mapper.ProblemMapper;
 import com.tarzan.maxkb4j.module.dataset.vo.*;
 import com.tarzan.maxkb4j.module.embedding.entity.EmbeddingEntity;
 import com.tarzan.maxkb4j.module.embedding.service.EmbeddingService;
@@ -87,8 +86,6 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
     private ModelService modelService;
     @Autowired
     private ProblemParagraphService problemParagraphService;
-    @Autowired
-    private ProblemMapper problemMapper;
 
 
     public IPage<DatasetVO> selectDatasetPage(Page<DatasetVO> datasetPage, QueryDTO query) {
@@ -113,6 +110,7 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
     }
 
     public List<ApplicationEntity> getApplicationByDatasetId(String id) {
+        //TODO 缓存处理
         return applicationMapper.selectList(null);
     }
 
@@ -198,7 +196,7 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
                 .eq(ProblemParagraphEntity::getDocumentId, docId)
                 .eq(ProblemParagraphEntity::getProblemId, problemId)
                 .eq(ProblemParagraphEntity::getDatasetId, datasetId)
-                .remove() && embeddingService.lambdaUpdate().eq(EmbeddingEntity::getSourceId, problemId.toString()).eq(EmbeddingEntity::getParagraphId, paragraphId).remove();
+                .remove() && embeddingService.lambdaUpdate().eq(EmbeddingEntity::getSourceId, problemId).eq(EmbeddingEntity::getParagraphId, paragraphId).remove();
     }
 
     public DocumentEntity getDocByDocId(String docId) {
@@ -331,9 +329,7 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
                 DocumentEntity doc=createDocument(datasetId, e.getName());
                 documentEntities.add(doc);
                 if(!CollectionUtils.isEmpty(e.getParagraphs())){
-                    e.getParagraphs().forEach(p->{
-                        paragraphEntities.add(createParagraph(datasetId, doc.getId(), p));
-                    });
+                    e.getParagraphs().forEach(p-> paragraphEntities.add(createParagraph(datasetId, doc.getId(), p)));
                 }
             });
             if(!CollectionUtils.isEmpty(paragraphEntities)){
@@ -466,7 +462,7 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
         zipOutputStream.finish();
         zipOutputStream.close();
 
-        // 将所有数据写入最终的输出流
+        // 将所有数据写入最终输出流
         OutputStream outputStream = response.getOutputStream();
         byteArrayOutputStream.writeTo(outputStream);
         outputStream.flush();
@@ -552,7 +548,7 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
                         .registerReadListener(new PageReadListener<DatasetExcel>(dataList -> {
                             for (DatasetExcel data : dataList) {
                                 log.info("在Sheet {} 中读取到一条数据{}", sheetName, JSON.toJSONString(data));
-                                ParagraphEntity paragraph = getParagraphEntity(datasetId, data.getTitle(), data.getContent(), doc.getId());
+                                ParagraphEntity paragraph = getParagraphEntity(datasetId,doc.getId(), data.getTitle(), data.getContent());
                                 paragraphs.add(paragraph);
                                 doc.setCharLength(doc.getCharLength() + paragraph.getContent().length());
                                 if (StringUtils.isNotBlank(data.getProblems())) {
@@ -598,7 +594,7 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
     }
 
     @NotNull
-    private ParagraphEntity getParagraphEntity(String datasetId, String title, String content, String docId) {
+    private ParagraphEntity getParagraphEntity(String datasetId,String docId, String title, String content) {
         ParagraphEntity paragraph = new ParagraphEntity();
         paragraph.setId(IdWorker.get32UUID());
         paragraph.setTitle(title == null ? "" : title);
@@ -715,7 +711,7 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
             if (!CollectionUtils.isEmpty(list)) {
                 for (String text : list) {
                     doc.setCharLength(doc.getCharLength() + text.length());
-                    ParagraphEntity paragraph = getParagraphEntity(datasetId, "", text, doc.getId());
+                    ParagraphEntity paragraph = getParagraphEntity(datasetId, doc.getId(), "", text);
                     paragraphs.add(paragraph);
                 }
                 documentService.save(doc);
