@@ -88,4 +88,15 @@ public class ModelService extends ServiceImpl<ModelMapper, ModelEntity> {
     }
 
 
+    public Boolean createModel(ModelEntity model) {
+        String userId = StpUtil.getLoginIdAsString();
+        long count=this.lambdaQuery().eq(ModelEntity::getName, model.getName()).eq(ModelEntity::getUserId, userId).count();
+        if(count>0){
+            return false;
+        }
+        model.setUserId(userId);
+        model.setMeta(new JSONObject());
+        model.setStatus("SUCCESS");
+        return save(model);
+    }
 }

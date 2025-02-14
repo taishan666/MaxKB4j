@@ -32,6 +32,12 @@ import com.tarzan.maxkb4j.module.model.entity.ModelEntity;
 import com.tarzan.maxkb4j.module.model.service.ModelService;
 import com.tarzan.maxkb4j.util.BeanUtil;
 import com.tarzan.maxkb4j.util.ExcelUtil;
+import dev.langchain4j.data.document.Document;
+import dev.langchain4j.data.document.DocumentParser;
+import dev.langchain4j.data.document.DocumentSplitter;
+import dev.langchain4j.data.document.parser.apache.tika.ApacheTikaDocumentParser;
+import dev.langchain4j.data.document.splitter.DocumentBySentenceSplitter;
+import dev.langchain4j.data.segment.TextSegment;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.compress.archivers.ArchiveEntry;
@@ -51,6 +57,7 @@ import java.io.*;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -717,8 +724,32 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
         }
     }
 
-    public List<TextSegmentVO> split(MultipartFile[] file) {
-        return Collections.emptyList();
+    private final DocumentParser parser = new ApacheTikaDocumentParser();
+    private final DocumentSplitter splitter = new DocumentBySentenceSplitter(512, 20);
+
+    public List<TextSegmentVO> split(MultipartFile[] files) {
+        List<TextSegmentVO> list = new ArrayList<>();
+        for (MultipartFile file : files) {
+            if (file == null || file.isEmpty()) {
+                continue; // 或抛出异常根据业务需求
+            }
+            TextSegmentVO textSegmentVO = new TextSegmentVO();
+            textSegmentVO.setName(file.getOriginalFilename());
+            try (InputStream inputStream = file.getInputStream()) {
+                Document document = parser.parse(inputStream);
+                List<TextSegment> textSegments = splitter.split(document);
+                List<ParagraphSimpleVO> content = textSegments.stream()
+                        .map(segment -> new ParagraphSimpleVO(segment.text()))
+                        .collect(Collectors.toList());
+
+                textSegmentVO.setContent(content);
+            } catch (IOException e) {
+                // 添加日志记录
+                throw new RuntimeException("File processing failed: " + file.getOriginalFilename(), e);
+            }
+            list.add(textSegmentVO);
+        }
+        return list;
     }
 
     public void exportTemplate(String type, HttpServletResponse response, String csvPath, String excelPath, String csvFileName, String excelFileName) throws Exception {
@@ -728,7 +759,6 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
         String contentType = "";
         InputStream inputStream = null;
         ClassLoader classLoader = getClass().getClassLoader();
-
         if ("csv".equals(type)) {
             contentType = "text/csv";
             fileName = URLEncoder.encode(csvFileName, StandardCharsets.UTF_8);

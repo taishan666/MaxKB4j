@@ -8,4 +8,8 @@ public class ParagraphSimpleVO {
     private String title;
 
     private String content;
+
+    public ParagraphSimpleVO(String content) {
+        this.content = content;
+    }
 }

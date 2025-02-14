@@ -1,8 +1,6 @@
 package com.tarzan.maxkb4j.module.model.controller;
 
-import cn.dev33.satoken.stp.StpUtil;
 import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.module.model.entity.ModelEntity;
 import com.tarzan.maxkb4j.module.model.provider.IModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.ModelInfo;
@@ -109,10 +107,7 @@ public class ModelController{
 
 	@PostMapping("api/model")
 	public R<Boolean> createModel(@RequestBody ModelEntity model){
-		model.setUserId(StpUtil.getLoginIdAsString());
-		model.setMeta(new JSONObject());
-		model.setStatus("SUCCESS");
-		return R.success(modelService.save(model));
+		return R.success(modelService.createModel(model));
 	}
 
 	@GetMapping("api/model")

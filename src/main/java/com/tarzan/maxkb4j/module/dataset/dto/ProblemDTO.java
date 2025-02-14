@@ -12,7 +12,4 @@ public class ProblemDTO extends ProblemEntity {
     @JsonProperty("document_id")
     private String documentId;
 
-    public ProblemDTO(Integer hitNum) {
-        super(hitNum);
-    }
 }

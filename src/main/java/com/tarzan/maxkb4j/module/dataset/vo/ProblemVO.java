@@ -18,7 +18,4 @@ public class ProblemVO extends ProblemEntity {
     private String documentId;
     private String paragraphId;
 
-    public ProblemVO(Integer hitNum) {
-        super(hitNum);
-    }
 }

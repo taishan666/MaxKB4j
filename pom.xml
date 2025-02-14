@@ -188,11 +188,16 @@
             <artifactId>langchain4j-spring-boot-starter</artifactId>
             <version>1.0.0-beta1</version>
         </dependency>
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-document-parser-apache-tika</artifactId>
+            <version>1.0.0-beta1</version>
+        </dependency>
         <!-- https://mvnrepository.com/artifact/dev.langchain4j/langchain4j-embeddings -->
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-embeddings</artifactId>
-            <version>1.0.0-alpha1</version>
+            <version>1.0.0-beta1</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.apache.commons</groupId>
@@ -203,7 +208,7 @@
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-pgvector</artifactId>
-            <version>1.0.0-alpha1</version>
+            <version>1.0.0-beta1</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/dev.langchain4j/langchain4j-easy-rag -->
         <!--<dependency>
@@ -214,7 +219,7 @@
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-community-dashscope</artifactId>
-            <version>1.0.0-alpha1</version>
+            <version>1.0.0-beta1</version>
         </dependency>
         <dependency>
             <groupId>com.huaban</groupId>

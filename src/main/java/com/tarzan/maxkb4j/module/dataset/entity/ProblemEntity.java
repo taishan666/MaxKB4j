@@ -26,11 +26,10 @@ public class ProblemEntity extends BaseEntity {
     private String datasetId;
 
 
-    public ProblemEntity(Integer hitNum) {
-        this.hitNum = hitNum;
-    }
 
     public static ProblemEntity createDefault() {
-        return new ProblemEntity(0);
+        ProblemEntity entity= new ProblemEntity();
+        entity.setHitNum(0);
+        return entity;
     }
 }
