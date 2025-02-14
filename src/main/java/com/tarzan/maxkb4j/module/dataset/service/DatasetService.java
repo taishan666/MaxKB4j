@@ -29,12 +29,15 @@ import com.tarzan.maxkb4j.module.embedding.entity.EmbeddingEntity;
 import com.tarzan.maxkb4j.module.embedding.service.EmbeddingService;
 import com.tarzan.maxkb4j.module.model.entity.ModelEntity;
 import com.tarzan.maxkb4j.module.model.service.ModelService;
+import com.tarzan.maxkb4j.module.model.vo.KeyAndValueVO;
 import com.tarzan.maxkb4j.util.BeanUtil;
 import com.tarzan.maxkb4j.util.ExcelUtil;
 import dev.langchain4j.data.document.Document;
 import dev.langchain4j.data.document.DocumentParser;
 import dev.langchain4j.data.document.DocumentSplitter;
 import dev.langchain4j.data.document.parser.apache.tika.ApacheTikaDocumentParser;
+import dev.langchain4j.data.document.splitter.DocumentByCharacterSplitter;
+import dev.langchain4j.data.document.splitter.DocumentByRegexSplitter;
 import dev.langchain4j.data.document.splitter.DocumentBySentenceSplitter;
 import dev.langchain4j.data.segment.TextSegment;
 import jakarta.servlet.http.HttpServletResponse;
@@ -56,6 +59,9 @@ import java.io.*;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -89,10 +95,10 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
 
 
     public IPage<DatasetVO> selectDatasetPage(Page<DatasetVO> datasetPage, QueryDTO query) {
-        if(Objects.isNull(query.getSelectUserId())){
+        if (Objects.isNull(query.getSelectUserId())) {
             query.setSelectUserId(StpUtil.getLoginIdAsString());
         }
-        return baseMapper.selectDatasetPage(datasetPage, query,"USE");
+        return baseMapper.selectDatasetPage(datasetPage, query, "USE");
     }
 
     public List<DatasetEntity> getUserId(String userId) {
@@ -213,7 +219,7 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
     }
 
     @Transactional
-    public boolean deleteParagraphByParagraphId(String docId,String paragraphId) {
+    public boolean deleteParagraphByParagraphId(String docId, String paragraphId) {
         embeddingService.lambdaUpdate().eq(EmbeddingEntity::getParagraphId, paragraphId).remove();
         documentService.updateCharLengthById(docId);
         return paragraphService.removeById(paragraphId);
@@ -326,13 +332,13 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
             List<DocumentEntity> documentEntities = new ArrayList<>();
             List<ParagraphEntity> paragraphEntities = new ArrayList<>();
             docs.parallelStream().forEach(e -> {
-                DocumentEntity doc=createDocument(datasetId, e.getName());
+                DocumentEntity doc = createDocument(datasetId, e.getName());
                 documentEntities.add(doc);
-                if(!CollectionUtils.isEmpty(e.getParagraphs())){
-                    e.getParagraphs().forEach(p-> paragraphEntities.add(createParagraph(datasetId, doc.getId(), p)));
+                if (!CollectionUtils.isEmpty(e.getParagraphs())) {
+                    e.getParagraphs().forEach(p -> paragraphEntities.add(createParagraph(datasetId, doc.getId(), p)));
                 }
             });
-            if(!CollectionUtils.isEmpty(paragraphEntities)){
+            if (!CollectionUtils.isEmpty(paragraphEntities)) {
                 paragraphService.saveBatch(paragraphEntities);
             }
             return documentService.saveBatch(documentEntities);
@@ -356,8 +362,8 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
         return documentEntity;
     }
 
-    public ParagraphEntity createParagraph(String datasetId,String docId, ParagraphSimpleDTO paragraph) {
-        return getParagraphEntity(datasetId,docId,paragraph.getTitle(),paragraph.getContent());
+    public ParagraphEntity createParagraph(String datasetId, String docId, ParagraphSimpleDTO paragraph) {
+        return getParagraphEntity(datasetId, docId, paragraph.getTitle(), paragraph.getContent());
     }
 
     @Transactional
@@ -548,7 +554,7 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
                         .registerReadListener(new PageReadListener<DatasetExcel>(dataList -> {
                             for (DatasetExcel data : dataList) {
                                 log.info("在Sheet {} 中读取到一条数据{}", sheetName, JSON.toJSONString(data));
-                                ParagraphEntity paragraph = getParagraphEntity(datasetId,doc.getId(), data.getTitle(), data.getContent());
+                                ParagraphEntity paragraph = getParagraphEntity(datasetId, doc.getId(), data.getTitle(), data.getContent());
                                 paragraphs.add(paragraph);
                                 doc.setCharLength(doc.getCharLength() + paragraph.getContent().length());
                                 if (StringUtils.isNotBlank(data.getProblems())) {
@@ -594,7 +600,7 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
     }
 
     @NotNull
-    private ParagraphEntity getParagraphEntity(String datasetId,String docId, String title, String content) {
+    private ParagraphEntity getParagraphEntity(String datasetId, String docId, String title, String content) {
         ParagraphEntity paragraph = new ParagraphEntity();
         paragraph.setId(IdWorker.get32UUID());
         paragraph.setTitle(title == null ? "" : title);
@@ -603,7 +609,7 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
         paragraph.setStatus("nn2");
         paragraph.setHitNum(0);
         paragraph.setIsActive(true);
-       // paragraph.setStatusMeta(paragraph.defaultStatusMeta());
+        // paragraph.setStatusMeta(paragraph.defaultStatusMeta());
         paragraph.setDocumentId(docId);
         return paragraph;
     }
@@ -683,6 +689,7 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
             List<String> list = new ArrayList<>();
             EasyExcel.read(uploadFile.getInputStream(), new AnalysisEventListener<Map<Integer, String>>() {
                 Map<Integer, String> headMap = new LinkedHashMap<>();
+
                 // 表头信息会在此方法中获取
                 @Override
                 public void invokeHeadMap(Map<Integer, String> headMap, AnalysisContext context) {
@@ -721,9 +728,9 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
     }
 
     private final DocumentParser parser = new ApacheTikaDocumentParser();
-    private final DocumentSplitter splitter = new DocumentBySentenceSplitter(512, 20);
+    private final DocumentSplitter defaultSplitter = new DocumentBySentenceSplitter(512, 20);
 
-    public List<TextSegmentVO> split(MultipartFile[] files) {
+    public List<TextSegmentVO> split(MultipartFile[] files, String[] patterns, Integer limit, Boolean withFilter) {
         List<TextSegmentVO> list = new ArrayList<>();
         for (MultipartFile file : files) {
             if (file == null || file.isEmpty()) {
@@ -733,7 +740,7 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
             textSegmentVO.setName(file.getOriginalFilename());
             try (InputStream inputStream = file.getInputStream()) {
                 Document document = parser.parse(inputStream);
-                List<TextSegment> textSegments = splitter.split(document);
+                List<TextSegment> textSegments = getTextSegments(document, patterns, limit, withFilter);
                 List<ParagraphSimpleVO> content = textSegments.stream()
                         .map(segment -> new ParagraphSimpleVO(segment.text()))
                         .collect(Collectors.toList());
@@ -747,6 +754,55 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
         }
         return list;
     }
+
+    public static <T> Predicate<T> distinctByKey(Function<? super T, ?> keyExtractor) {
+        Set<Object> seen = ConcurrentHashMap.newKeySet();
+        return t -> seen.add(keyExtractor.apply(t));
+    }
+
+    private List<TextSegment> getTextSegments(Document document, String[] patterns, Integer limit, Boolean withFilter) {
+        if (patterns != null) {
+            List<TextSegment> textSegments = recursive(document, patterns, limit);
+            if (withFilter) {
+                textSegments = textSegments.stream()
+                        .filter(e -> StringUtils.isNotBlank(e.text()))
+                        .filter(distinctByKey(TextSegment::text))
+                        .collect(Collectors.toList());
+            }
+            return textSegments;
+        } else {
+            return defaultSplitter.split(document);
+        }
+    }
+
+    public List<TextSegment> recursive(Document document, String[] patterns, Integer limit) {
+        List<TextSegment> textSegments = new ArrayList<>();
+        for (int i = 0; i < patterns.length; i++) {
+            String pattern = patterns[i];
+            if (i == 0) {
+                DocumentSplitter splitter = new DocumentByRegexSplitter(pattern, "", 1, 0, new DocumentByCharacterSplitter(limit, 0));
+                textSegments = recursive(splitter.split(document), pattern);
+            } else {
+                textSegments = recursive(textSegments, pattern);
+            }
+        }
+        return textSegments;
+    }
+
+    public List<TextSegment> recursive(List<TextSegment> segments, String pattern) {
+        List<TextSegment> result = new ArrayList<>();
+        for (TextSegment segment : segments) {
+            String text = segment.text();
+            if (StringUtils.isNotBlank(text)) {
+                String[] split = text.split(pattern);
+                for (String s : split) {
+                    result.add(TextSegment.textSegment(s));
+                }
+            }
+        }
+        return result;
+    }
+
 
     public void exportTemplate(String type, HttpServletResponse response, String csvPath, String excelPath, String csvFileName, String excelFileName) throws Exception {
         // 设置字符编码
@@ -796,5 +852,24 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
 
     public List<DatasetEntity> listByUserId(String userId) {
         return this.lambdaQuery().eq(DatasetEntity::getUserId, userId).list();
+    }
+
+    public List<KeyAndValueVO> splitPattern() {
+        List<KeyAndValueVO> resultList = new ArrayList<>();
+        resultList.add(new KeyAndValueVO("#", "(?<=^)# .*|(?<=\\n)# .*"));
+        resultList.add(new KeyAndValueVO("##", "(?<=\\n)(?<!#)## (?!#).*|(?<=^)(?<!#)## (?!#).*"));
+        resultList.add(new KeyAndValueVO("##", "(?<=\\n)(?<!#)## (?!#).*|(?<=^)(?<!#)## (?!#).*"));
+        resultList.add(new KeyAndValueVO("###", "(?<=\\n)(?<!#)### (?!#).*|(?<=^)(?<!#)### (?!#).*"));
+        resultList.add(new KeyAndValueVO("####", "(?<=\\n)(?<!#)#### (?!#).*|(?<=^)(?<!#)#### (?!#).*"));
+        resultList.add(new KeyAndValueVO("#####", "(?<=\\n)(?<!#)##### (?!#).*|(?<=^)(?<!#)##### (?!#).*"));
+        resultList.add(new KeyAndValueVO("######", "(?<=\\n)(?<!#)###### (?!#).*|(?<=^)(?<!#)###### (?!#).*"));
+        resultList.add(new KeyAndValueVO("-", "(?<! )- .*"));
+        resultList.add(new KeyAndValueVO("space", "(?<! ) (?! )"));
+        resultList.add(new KeyAndValueVO("semicolon", "(?<!；)；(?!；)"));
+        resultList.add(new KeyAndValueVO("comma", "(?<!，)，(?!，)"));
+        resultList.add(new KeyAndValueVO("period", "(?<!。)。(?!。)"));
+        resultList.add(new KeyAndValueVO("enter", "(?<!\\n)\\n(?!\\n)"));
+        resultList.add(new KeyAndValueVO("blank line", "(?<!\\n)\\n\\n(?!\\n)"));
+        return resultList;
     }
 }
