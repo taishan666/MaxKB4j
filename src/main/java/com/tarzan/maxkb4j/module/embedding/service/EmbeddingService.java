@@ -7,7 +7,6 @@ import com.tarzan.maxkb4j.common.dto.SearchIndex;
 import com.tarzan.maxkb4j.common.dto.TSVector;
 import com.tarzan.maxkb4j.common.dto.WordIndex;
 import com.tarzan.maxkb4j.module.dataset.dto.HitTestDTO;
-import com.tarzan.maxkb4j.module.dataset.dto.ProblemDTO;
 import com.tarzan.maxkb4j.module.dataset.entity.DatasetEntity;
 import com.tarzan.maxkb4j.module.dataset.entity.ParagraphEntity;
 import com.tarzan.maxkb4j.module.dataset.entity.ProblemEntity;
@@ -26,6 +25,7 @@ import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.model.output.Response;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.poi.util.StringUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -63,7 +63,7 @@ public class EmbeddingService extends ServiceImpl<EmbeddingMapper, EmbeddingEnti
         EmbeddingModel embeddingModel=getDatasetEmbeddingModel(datasetIds.get(0));
         Response<Embedding> res = embeddingModel.embed(dto.getQuery_text());
         if ("embedding".equals(dto.getSearch_mode())) {
-            return baseMapper.embeddingSearch(datasetIds, dto, res.content().vector());
+            return baseMapper.embeddingSearch(datasetIds, dto.getTop_number(),dto.getSimilarity(), res.content().vector());
         }
         if ("keywords".equals(dto.getSearch_mode())) {
             dto.setQuery_text(toTsQuery(dto.getQuery_text()));
@@ -117,7 +117,12 @@ public class EmbeddingService extends ServiceImpl<EmbeddingMapper, EmbeddingEnti
             paragraphEmbed.setSourceType("1");
             paragraphEmbed.setIsActive(paragraph.getIsActive());
             paragraphEmbed.setSearchVector(toTsVector(paragraph.getTitle() + paragraph.getContent()));
-            Response<Embedding> res = embeddingModel.embed(paragraph.getTitle()+":" + paragraph.getContent());
+            Response<Embedding> res;
+            if(StringUtil.isNotBlank(paragraph.getTitle())){
+                res = embeddingModel.embed(paragraph.getTitle() + paragraph.getContent());
+            }else {
+                res = embeddingModel.embed(paragraph.getContent());
+            }
             paragraphEmbed.setEmbedding(res.content().vectorAsList());
             embeddingEntities.add(paragraphEmbed);
             List<ProblemEntity> problems=problemParagraphMappingService.getProblemsByParagraphId(paragraph.getId());
@@ -162,7 +167,13 @@ public class EmbeddingService extends ServiceImpl<EmbeddingMapper, EmbeddingEnti
             embeddingEntity.setSourceType("1");
             embeddingEntity.setIsActive(paragraph.getIsActive());
             embeddingEntity.setSearchVector(toTsVector(paragraph.getTitle() + paragraph.getContent()));
-            Response<Embedding> res = embeddingModel.embed(paragraph.getTitle() + paragraph.getContent());
+            embeddingModel.embed(paragraph.getTitle() + paragraph.getContent());
+            Response<Embedding> res;
+            if(StringUtil.isNotBlank(paragraph.getTitle())){
+                res = embeddingModel.embed(paragraph.getTitle() + paragraph.getContent());
+            }else {
+                res = embeddingModel.embed(paragraph.getContent());
+            }
             embeddingEntity.setEmbedding(res.content().vectorAsList());
             embeddingEntities.add(embeddingEntity);
         }
@@ -298,29 +309,6 @@ public class EmbeddingService extends ServiceImpl<EmbeddingMapper, EmbeddingEnti
         List<ParagraphEntity> paragraphEntities = paragraphService.lambdaQuery().in(ParagraphEntity::getDatasetId, datasetId).list();
         List<ProblemParagraphVO> problemParagraphVOS = problemParagraphMappingService.getProblemsByDatasetId(datasetId);
         return embedProblemParagraphs(paragraphEntities, problemParagraphVOS,embeddingModel);
-    }
-
-    @Transactional
-    public void createProblems(String datasetId,List<ProblemDTO> problemDTOS) {
-        EmbeddingModel embeddingModel=getDatasetEmbeddingModel(datasetId);
-        if (!CollectionUtils.isEmpty(problemDTOS)) {
-            List<EmbeddingEntity> embeddingEntities = new ArrayList<>();
-            for (ProblemDTO problem : problemDTOS) {
-                EmbeddingEntity embeddingEntity = new EmbeddingEntity();
-                embeddingEntity.setDatasetId(problem.getDatasetId());
-                embeddingEntity.setDocumentId(problem.getDocumentId());
-                embeddingEntity.setParagraphId(problem.getParagraphId());
-                embeddingEntity.setMeta(new JSONObject());
-                embeddingEntity.setSourceId(problem.getId());
-                embeddingEntity.setSourceType("0");
-                embeddingEntity.setIsActive(true);
-                embeddingEntity.setSearchVector(toTsVector(problem.getContent()));
-                Response<Embedding> res = embeddingModel.embed(problem.getContent());
-                embeddingEntity.setEmbedding(res.content().vectorAsList());
-                embeddingEntities.add(embeddingEntity);
-            }
-            this.saveBatch(embeddingEntities);
-        }
     }
 
     @Transactional

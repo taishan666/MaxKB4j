@@ -1,15 +1,17 @@
 package com.tarzan.maxkb4j.handler;
 
+import com.pgvector.PGvector;
 import org.apache.ibatis.type.BaseTypeHandler;
 import org.apache.ibatis.type.JdbcType;
-import org.postgresql.util.PGobject;
 import org.springframework.stereotype.Component;
 
 import java.sql.CallableStatement;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
@@ -17,10 +19,8 @@ public class EmbeddingTypeHandler extends BaseTypeHandler<List<Float>> {
     @Override
     public void setNonNullParameter(PreparedStatement ps, int i, List<Float> parameter, JdbcType jdbcType) throws SQLException {
         if(null != parameter){
-            PGobject pGobject = new PGobject();
-            pGobject.setType("vector");
-            pGobject.setValue(toValueString(parameter));
-            ps.setObject(i, pGobject);
+            PGvector pGvector = new PGvector(parameter);
+            ps.setObject(i, pGvector);
         }
     }
 

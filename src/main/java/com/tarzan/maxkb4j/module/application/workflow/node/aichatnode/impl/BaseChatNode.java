@@ -19,7 +19,6 @@ import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.model.chat.response.ChatResponse;
 import dev.langchain4j.model.output.TokenUsage;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.CollectionUtils;
 
 import java.util.*;
@@ -105,7 +104,7 @@ public class BaseChatNode extends IChatNode {
         this.context.put("question", question.singleText());
         String system = workflowManage.generatePrompt(nodeParams.getSystem());
         this.context.put("system", system);
-        List<ChatMessage> messageList = generateMessageList(system, question, historyMessage);
+        List<ChatMessage> messageList =  super.workflowManage.generateMessageList(system, question, historyMessage);
         if (flowParams.getStream()) {
             ChatStream chatStream = chatModel.stream(messageList);
             System.out.println("execute耗时7 " + (System.currentTimeMillis() - startTime) + " ms");
@@ -137,15 +136,7 @@ public class BaseChatNode extends IChatNode {
     }
 
 
-    public List<ChatMessage> generateMessageList(String system, UserMessage question, List<ChatMessage> historyMessages) {
-        List<ChatMessage> messageList = new ArrayList<>();
-        if (StringUtils.isNotBlank(system)) {
-            messageList.add(SystemMessage.from(system));
-        }
-        messageList.addAll(historyMessages);
-        messageList.add(question);
-        return messageList;
-    }
+
 
     public List<ChatMessage> getHistoryMessage(List<ApplicationChatRecordEntity> historyChatRecord, int dialogueNumber, String dialogueType, String runtimeNodeId) {
         List<ChatMessage> historyMessage = new ArrayList<>();
@@ -177,12 +168,10 @@ public class BaseChatNode extends IChatNode {
     public List<ChatMessage> getNodeMessage(ApplicationChatRecordEntity chatRecord, String runtimeNodeId) {
         // 获取节点详情
         JSONObject nodeDetails = chatRecord.getNodeDetailsByRuntimeNodeId(runtimeNodeId);
-
         // 如果节点详情为空，返回空列表
         if (nodeDetails == null) {
             return new ArrayList<>();
         }
-
         // 创建消息列表
         List<ChatMessage> messages = new ArrayList<>();
         messages.add(new UserMessage(nodeDetails.getString("question")));

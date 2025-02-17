@@ -6,6 +6,7 @@ import com.tarzan.maxkb4j.module.application.workflow.node.aichatnode.impl.BaseC
 import com.tarzan.maxkb4j.module.application.workflow.node.applicationnode.impl.BaseApplicationNode;
 import com.tarzan.maxkb4j.module.application.workflow.node.conditionnode.impl.BaseConditionNode;
 import com.tarzan.maxkb4j.module.application.workflow.node.directreplynode.impl.BaseReplyNode;
+import com.tarzan.maxkb4j.module.application.workflow.node.questionnode.impl.BaseQuestionNode;
 import com.tarzan.maxkb4j.module.application.workflow.node.searchdatasetnode.impl.BaseSearchDatasetNode;
 import com.tarzan.maxkb4j.module.application.workflow.node.startnode.impl.BaseStartNode;
 
@@ -27,6 +28,7 @@ public class NodeFactory {
         nodeList.add(new BaseConditionNode());
         nodeList.add(new BaseReplyNode());
         nodeList.add(new BaseApplicationNode());
+        nodeList.add(new BaseQuestionNode());
     }
 
     private  INode getNode(String nodeType) {

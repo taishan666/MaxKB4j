@@ -9,6 +9,9 @@ import com.tarzan.maxkb4j.module.application.workflow.dto.BaseToResponse;
 import com.tarzan.maxkb4j.module.application.workflow.dto.ChunkInfo;
 import com.tarzan.maxkb4j.module.application.workflow.dto.FlowParams;
 import com.tarzan.maxkb4j.module.application.workflow.handler.WorkFlowPostHandler;
+import dev.langchain4j.data.message.ChatMessage;
+import dev.langchain4j.data.message.SystemMessage;
+import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.model.input.PromptTemplate;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -265,6 +268,7 @@ public class WorkflowManage {
     }
 
     public void runChainManage(INode currentNode, NodeResultFuture nodeResultFuture, String language) throws InterruptedException, ExecutionException {
+        System.out.println("runChainManage");
         // 激活翻译（假设有一个类似功能的类）
         // Translation.activate(language);
         if (currentNode == null) {
@@ -279,14 +283,14 @@ public class WorkflowManage {
         appendNode(currentNode);
         // 执行链式任务
         NodeResult result = runChain(currentNode, nodeResultFuture);
-
+        System.out.println("NodeResult="+result);
         if (result == null) {
             return;
         }
 
         // 获取下一个节点列表
         List<INode> nodeList = getNextNodeList(currentNode, result);
-
+        System.out.println("nodeList="+nodeList);
         if (nodeList.size() == 1) {
             System.out.println("node getType=" + nodeList.get(0).getType());
             runChainManage(nodeList.get(0), null, language);
@@ -426,25 +430,6 @@ public class WorkflowManage {
             if (result != null) {
                 if (isResult(currentNode, currentResult)) {
                     String content = "";
-                /*    if (result instanceof ChatStream chatStream) {
-                        Iterator<String> iterator = chatStream.getIterator();
-                        while (iterator.hasNext()) {
-                            content = iterator.next();
-                            JSONObject chunk = this.getBaseToResponse().toStreamChunkResponse(getParams().getChatId(),
-                                    getParams().getChatRecordId(),
-                                    currentNode.getId(),
-                                    currentNode.getLastNodeIdList(),
-                                    content,
-                                    false, 0, 0,
-                                    new ChunkInfo(currentNode.getType(),
-                                            currentNode.runtimeNodeId,
-                                            view_type,
-                                            child_node,
-                                            false,
-                                            realNodeId));
-                            currentNode.getNodeChunk().addChunk(chunk);
-                        }
-                    }*/
                     if (result instanceof Iterator) {
                         Iterator<String> iterator = (Iterator<String>) result;
                         while (iterator.hasNext()) {
@@ -593,6 +578,20 @@ public class WorkflowManage {
             return promptTemplate.apply(context).text();
         }
         return prompt;
+    }
+
+    public UserMessage generatePromptQuestion(String prompt) {
+        return UserMessage.from(this.generatePrompt(prompt));
+    }
+
+    public List<ChatMessage> generateMessageList(String system, UserMessage question, List<ChatMessage> historyMessages) {
+        List<ChatMessage> messageList = new ArrayList<>();
+        if (StringUtils.isNotBlank(system)) {
+            messageList.add(SystemMessage.from(system));
+        }
+        messageList.addAll(historyMessages);
+        messageList.add(question);
+        return messageList;
     }
 
 

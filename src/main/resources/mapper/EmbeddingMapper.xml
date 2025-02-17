@@ -11,7 +11,7 @@
                   paragraph_id,
                   similarity AS comprehensive_score
               FROM
-                  ( SELECT paragraph_id, ( 1 - (  <![CDATA[embedding <=> CAST (#{ embedding } AS vector)]]>) ) AS similarity
+                  ( SELECT paragraph_id, (2 - (<![CDATA[embedding <=> CAST (#{referenceEmbedding  } AS vector)]]>))/2 AS similarity
               FROM embedding
               WHERE
                   dataset_id IN
@@ -22,10 +22,16 @@
               ORDER BY
                   paragraph_id,
                   similarity DESC) DISTINCT_TEMP
-        WHERE comprehensive_score > #{query.similarity }
+        WHERE comprehensive_score > #{minScore}
         ORDER BY comprehensive_score DESC
-            LIMIT #{query.top_number}
+            LIMIT #{maxResults}
     </select>
+    <select id="embeddingSearch1" resultType="com.tarzan.maxkb4j.module.dataset.vo.HitTestVO">
+        <![CDATA[
+            SELECT  paragraph_id, (2 - (embedding <=> #{referenceEmbedding }::vector)) / 2 AS comprehensive_score  FROM embedding WHERE round((embedding <=> #{referenceEmbedding }::vector):: numeric, 8) <= round((2 - 2 * #{minScore})::numeric, 8)  ORDER BY paragraph_id,embedding <=> #{referenceEmbedding }::vector LIMIT #{maxResults};
+       ]]>
+    </select>
+
     <select id="keywordsSearch" resultType="com.tarzan.maxkb4j.module.dataset.vo.HitTestVO">
         SELECT
             paragraph_id,
