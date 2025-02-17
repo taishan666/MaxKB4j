@@ -67,8 +67,8 @@ public class BaseStartNode extends IStarNode {
 
 
     @Override
-    public JSONObject getDetail(int index) {
-        JSONObject detail = super.getDetail(index);
+    public JSONObject getDetail() {
+        JSONObject detail = new JSONObject();
         detail.put("question",context.getString("question"));
         detail.put("image_list",context.get("image"));
         detail.put("document_list",context.get("document"));

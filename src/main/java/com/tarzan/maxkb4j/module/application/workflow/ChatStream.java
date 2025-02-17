@@ -1,7 +1,6 @@
 package com.tarzan.maxkb4j.module.application.workflow;
 
-import dev.langchain4j.data.message.AiMessage;
-import dev.langchain4j.model.output.Response;
+import dev.langchain4j.model.chat.response.ChatResponse;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -23,11 +22,11 @@ public class ChatStream {
 
     // 定义回调函数接口
     public interface OnCompleteCallback {
-        void onComplete(Response<AiMessage> response);
+        void onComplete(ChatResponse response);
     }
 
     // 调用回调函数的方法
-    public void invokeOnComplete(Response<AiMessage> response) {
+    public void invokeOnComplete(ChatResponse response) {
         if (completeCallback != null) {
             completeCallback.onComplete(response);
         }

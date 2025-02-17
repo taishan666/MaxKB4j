@@ -17,8 +17,8 @@ import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.data.message.UserMessage;
-import dev.langchain4j.model.StreamingResponseHandler;
-import dev.langchain4j.model.output.Response;
+import dev.langchain4j.model.chat.response.ChatResponse;
+import dev.langchain4j.model.chat.response.StreamingChatResponseHandler;
 import dev.langchain4j.model.output.TokenUsage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -65,7 +65,46 @@ public class BaseChatStep extends IChatStep {
         JSONObject selfContext = super.context;
         // 初始化一个可变的Publisher，如Sinks.many()来代替Flux.just()
         Sinks.Many<JSONObject> sink = Sinks.many().multicast().onBackpressureBuffer();
-        StreamingResponseHandler<AiMessage> responseHandler = new StreamingResponseHandler<>() {
+        StreamingChatResponseHandler responseHandler = new StreamingChatResponseHandler() {
+            final String chatRecordId = IdWorker.get32UUID();
+            @Override
+            public void onPartialResponse(String token) {
+                JSONObject json = toResponse(chatId, chatRecordId, token, false, 0, 0);
+                sink.tryEmitNext(json);
+            }
+
+            @Override
+            public void onCompleteResponse(ChatResponse response) {
+                TokenUsage tokenUsage = response.tokenUsage();
+                String answerText = response.aiMessage().text();
+                selfContext.put("message_list", messageList);
+                selfContext.put("answer_text", answerText);
+                int thisMessageTokens = tokenUsage.inputTokenCount();
+                int thisAnswerTokens = tokenUsage.outputTokenCount();
+                int messageTokens = manage.context.getInteger("message_tokens");
+                int answerTokens = manage.context.getInteger("answer_tokens");
+                selfContext.put("message_tokens", thisMessageTokens);
+                selfContext.put("answer_tokens", thisAnswerTokens);
+                manage.context.put("message_tokens", messageTokens + thisMessageTokens);
+                manage.context.put("answer_tokens", answerTokens + thisAnswerTokens);
+                String clientId=manage.context.getString("client_id");
+                String clientType=manage.context.getString("client_type");
+                addAccessNum(clientId,clientType);
+                postResponseHandler.handler(ChatCache.get(chatId), chatId, chatRecordId, problemText, answerText, manage,  clientId);
+                JSONObject json = toResponse(chatId, chatRecordId, "", true, tokenUsage.outputTokenCount(), tokenUsage.inputTokenCount());
+                sink.tryEmitNext(json);
+                sink.tryEmitComplete();
+                System.out.println("BaseChatStep 耗时 " + (System.currentTimeMillis() - startTime) + " ms");
+            }
+
+            @Override
+            public void onError(Throwable throwable) {
+                JSONObject json = toResponse(chatId, chatRecordId, "网络异常！请重试。。。", true, 0, 0);
+                sink.emitNext(json, Sinks.EmitFailureHandler.FAIL_FAST);
+                sink.emitError(throwable, Sinks.EmitFailureHandler.FAIL_FAST);
+            }
+        };
+        /*StreamingResponseHandler<AiMessage> responseHandler = new StreamingResponseHandler<>() {
             final String chatRecordId = IdWorker.get32UUID();
 
             @Override
@@ -104,7 +143,7 @@ public class BaseChatStep extends IChatStep {
                 sink.emitNext(json, Sinks.EmitFailureHandler.FAIL_FAST);
                 sink.emitError(error, Sinks.EmitFailureHandler.FAIL_FAST);
             }
-        };
+        };*/
         getStreamResult(messageList, chatModel, paragraphList, noReferencesSetting, problemText, responseHandler);
         return sink.asFlux();
     }
@@ -114,7 +153,7 @@ public class BaseChatStep extends IChatStep {
                                  BaseChatModel chatModel,
                                  List<ParagraphVO> paragraphList,
                                  JSONObject noReferencesSetting,
-                                 String problemText, StreamingResponseHandler<AiMessage> responseHandler) {
+                                 String problemText, StreamingChatResponseHandler responseHandler) {
 
         if (CollectionUtils.isEmpty(paragraphList)) {
             paragraphList = new ArrayList<>();
@@ -128,22 +167,22 @@ public class BaseChatStep extends IChatStep {
         TokenUsage tokenUsage = new TokenUsage(0, 0, 0);
         if (chatModel == null) {
             String text = "抱歉，没有配置 AI 模型，无法优化引用分段，请先去应用中设置 AI 模型。";
-            Response<AiMessage> res = Response.from(AiMessage.from(text), tokenUsage);
-            responseHandler.onNext(text);
-            responseHandler.onComplete(res);
+            ChatResponse res= ChatResponse.builder().aiMessage(AiMessage.from(text)).tokenUsage(tokenUsage).build();
+            responseHandler.onPartialResponse(text);
+            responseHandler.onCompleteResponse(res);
         } else {
             String status = noReferencesSetting.getString("status");
             if (!CollectionUtils.isEmpty(directlyReturnChunkList)) {
                 String text = directlyReturnChunkList.get(0).text();
-                Response<AiMessage> res = Response.from(AiMessage.from(text), tokenUsage);
-                responseHandler.onNext(text);
-                responseHandler.onComplete(res);
+                ChatResponse res= ChatResponse.builder().aiMessage(AiMessage.from(text)).tokenUsage(tokenUsage).build();
+                responseHandler.onPartialResponse(text);
+                responseHandler.onCompleteResponse(res);
             } else if (paragraphList.isEmpty() && "designated_answer".equals(status)) {
                 String value = noReferencesSetting.getString("value");
                 String text = value.replace("{question}", problemText);
-                Response<AiMessage> res = Response.from(AiMessage.from(text), tokenUsage);
-                responseHandler.onNext(text);
-                responseHandler.onComplete(res);
+                ChatResponse res= ChatResponse.builder().aiMessage(AiMessage.from(text)).tokenUsage(tokenUsage).build();
+                responseHandler.onPartialResponse(text);
+                responseHandler.onCompleteResponse(res);
             }else {
                 chatModel.stream(messageList, responseHandler);
             }
@@ -158,10 +197,10 @@ public class BaseChatStep extends IChatStep {
                                             PipelineManage manage,
                                             String problemText, PostResponseHandler postResponseHandler) {
         BaseChatModel chatModel = modelService.getModelById(modelId);
-        Response<AiMessage> res = getBlockResult(messageList, chatModel, paragraphList, noReferencesSetting, problemText);
+        ChatResponse res = getBlockResult(messageList, chatModel, paragraphList, noReferencesSetting, problemText);
         String chatRecordId = IdWorker.get32UUID();
         super.context.put("message_list", messageList);
-        super.context.put("answer_text", res.content().text());
+        super.context.put("answer_text", res.aiMessage().text());
         int thisMessageTokens = res.tokenUsage().inputTokenCount();
         int thisAnswerTokens = res.tokenUsage().outputTokenCount();
         int messageTokens = manage.context.getInteger("message_tokens");
@@ -174,17 +213,17 @@ public class BaseChatStep extends IChatStep {
         manage.context.put("run_time", (System.currentTimeMillis() - startTime) / 1000F);
         String clientId=manage.context.getString("client_id");
         postResponseHandler.handler(ChatCache.get(chatId), chatId, chatRecordId, problemText,
-                res.content().text(), manage,  clientId);
-        JSONObject json = toResponse(chatId, chatRecordId, res.content().text(), true, answerTokens, messageTokens);
+                res.aiMessage().text(), manage,  clientId);
+        JSONObject json = toResponse(chatId, chatRecordId, res.aiMessage().text(), true, answerTokens, messageTokens);
         return Flux.just(json);
     }
 
 
-    private Response<AiMessage> getBlockResult(List<ChatMessage> messageList,
-                                               BaseChatModel chatModel,
-                                               List<ParagraphVO> paragraphList,
-                                               JSONObject noReferencesSetting,
-                                               String problemText) {
+    private ChatResponse getBlockResult(List<ChatMessage> messageList,
+                                        BaseChatModel chatModel,
+                                        List<ParagraphVO> paragraphList,
+                                        JSONObject noReferencesSetting,
+                                        String problemText) {
 
         if (CollectionUtils.isEmpty(paragraphList)) {
             paragraphList = new ArrayList<>();
@@ -198,13 +237,13 @@ public class BaseChatStep extends IChatStep {
         TokenUsage tokenUsage = new TokenUsage(0, 0, 0);
         String status = noReferencesSetting.getString("status");
         if (!CollectionUtils.isEmpty(directlyReturnChunkList)) {
-            return Response.from(directlyReturnChunkList.get(0), tokenUsage);
+            return ChatResponse.builder().aiMessage(directlyReturnChunkList.get(0)).tokenUsage(tokenUsage).build();
         } else if (paragraphList.isEmpty() && "designated_answer".equals(status)) {
             String value = noReferencesSetting.getString("value");
-            return Response.from(AiMessage.from(value.replace("{question}", problemText)), tokenUsage);
+            return ChatResponse.builder().aiMessage(AiMessage.from(value.replace("{question}", problemText))).tokenUsage(tokenUsage).build();
         }
         if (chatModel == null) {
-            return Response.from(AiMessage.from("抱歉，没有配置 AI 模型，无法优化引用分段，请先去应用中设置 AI 模型。"), tokenUsage);
+            return ChatResponse.builder().aiMessage(AiMessage.from("抱歉，没有配置 AI 模型，无法优化引用分段，请先去应用中设置 AI 模型。")).tokenUsage(tokenUsage).build();
         } else {
             return chatModel.generate(messageList);
         }

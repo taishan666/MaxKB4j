@@ -133,8 +133,11 @@ public abstract class INode {
         detail.put("run_time",context.getFloatValue("run_time"));
         detail.put("status",status);
         detail.put("err_message",errMessage);
+        detail.putAll(getDetail());
         return detail;
     }
+
+    public abstract JSONObject getDetail();
 
     public List<Answer> getAnswerList() {
         if (this.answerText == null) {
@@ -172,6 +175,8 @@ public abstract class INode {
     }
 
     public abstract void saveContext(JSONObject nodeDetail, WorkflowManage workflowManage);
+
+    public abstract String getType();
 
     @Override
     public String toString() {

@@ -82,8 +82,8 @@ public class BaseConditionNode extends IConditionNode {
     }
 
     @Override
-    public JSONObject getDetail(int index) {
-        JSONObject detail = super.getDetail(index);
+    public JSONObject getDetail() {
+        JSONObject detail = new JSONObject();
         detail.put("answer",context.getString("answer"));
         detail.put("branch_id",context.getString("branch_id"));
         detail.put("branch_name",context.getString("branch_name"));

@@ -14,10 +14,9 @@ import com.tarzan.maxkb4j.module.dataset.vo.ProblemVO;
 import com.tarzan.maxkb4j.module.embedding.service.EmbeddingService;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
 import com.tarzan.maxkb4j.module.model.service.ModelService;
-import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.UserMessage;
+import dev.langchain4j.model.chat.response.ChatResponse;
 import dev.langchain4j.model.embedding.EmbeddingModel;
-import dev.langchain4j.model.output.Response;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
@@ -65,8 +64,8 @@ public class ProblemService extends ServiceImpl<ProblemMapper, ProblemEntity>{
             paragraphs.parallelStream().forEach(paragraph -> {
                 log.info("开始---->生成问题:{}", paragraph.getId());
                 UserMessage userMessage = UserMessage.from(dto.getPrompt().replace("{data}", paragraph.getContent()));
-                Response<AiMessage> res = chatModel.generate(userMessage);
-                String output = res.content().text();
+                ChatResponse res = chatModel.generate(userMessage);
+                String output = res.aiMessage().text();
                 List<String> problems =extractProblems(output);
                 List<ProblemEntity> paragraphProblems=new ArrayList<>();
                 if (!CollectionUtils.isEmpty(problems)) {

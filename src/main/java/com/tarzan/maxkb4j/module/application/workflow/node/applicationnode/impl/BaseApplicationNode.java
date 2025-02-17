@@ -15,8 +15,8 @@ public class BaseApplicationNode extends IApplicationNode {
     }
 
     @Override
-    public JSONObject getDetail(int index) {
-        JSONObject detail = super.getDetail(index);
+    public JSONObject getDetail() {
+        JSONObject detail = new JSONObject();
         detail.put("info", node.getProperties().getString("node_data"));
         detail.put("question", context.getString("question"));
         detail.put("answer", context.getString("answer"));

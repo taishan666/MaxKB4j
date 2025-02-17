@@ -1,14 +1,13 @@
 package com.tarzan.maxkb4j.module.model.provider.impl;
 
 import com.tarzan.maxkb4j.module.application.workflow.ChatStream;
-import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
-import dev.langchain4j.model.StreamingResponseHandler;
 import dev.langchain4j.model.chat.ChatLanguageModel;
 import dev.langchain4j.model.chat.DisabledChatLanguageModel;
 import dev.langchain4j.model.chat.DisabledStreamingChatLanguageModel;
 import dev.langchain4j.model.chat.StreamingChatLanguageModel;
-import dev.langchain4j.model.output.Response;
+import dev.langchain4j.model.chat.response.ChatResponse;
+import dev.langchain4j.model.chat.response.StreamingChatResponseHandler;
 
 import java.util.Iterator;
 import java.util.List;
@@ -31,8 +30,8 @@ public class BaseChatModel {
         this.chatModel = chatModel;
     }
 
-    public void stream(List<ChatMessage> messages, StreamingResponseHandler<AiMessage> handler) {
-        streamingChatModel.generate(messages, handler);
+    public void stream(List<ChatMessage> messages, StreamingChatResponseHandler handler) {
+        streamingChatModel.chat(messages, handler);
     }
 
 
@@ -41,7 +40,27 @@ public class BaseChatModel {
         final BlockingQueue<String> messageQueue = new LinkedBlockingQueue<>();
         final AtomicBoolean isCompleted = new AtomicBoolean(false);
         ChatStream chatStream = new ChatStream();
-        StreamingResponseHandler<AiMessage> handler = new StreamingResponseHandler<>() {
+        StreamingChatResponseHandler handler = new StreamingChatResponseHandler() {
+            @Override
+            public void onPartialResponse(String token) {
+                messageQueue.add(token);
+            }
+
+            @Override
+            public void onCompleteResponse(ChatResponse chatResponse) {
+                System.out.println("耗时 onComplete "+(System.currentTimeMillis()-startTime)+" ms");
+                // 调用 ChatStream 的回调函数
+                chatStream.invokeOnComplete(chatResponse);
+                messageQueue.add("");
+                isCompleted.set(true); // 标记流完成
+            }
+
+            @Override
+            public void onError(Throwable throwable) {
+                isCompleted.set(true); // 出错时也标记完成
+            }
+        };
+/*        StreamingResponseHandler<AiMessage> handler = new StreamingResponseHandler<>() {
             @Override
             public void onNext(String token) {
                 messageQueue.add(token);
@@ -60,9 +79,9 @@ public class BaseChatModel {
             public void onError(Throwable throwable) {
                 isCompleted.set(true); // 出错时也标记完成
             }
-        };
+        };*/
 
-        streamingChatModel.generate(messages, handler);
+        streamingChatModel.chat(messages, handler);
 
         Iterator<String> iterator = new Iterator<>() {
             @Override
@@ -85,12 +104,12 @@ public class BaseChatModel {
     }
 
 
-    public Response<AiMessage> generate(ChatMessage... messages) {
-        return chatModel.generate(messages);
+    public ChatResponse generate(ChatMessage... messages) {
+        return chatModel.chat(messages);
     }
 
-    public Response<AiMessage> generate(List<ChatMessage> messages) {
-        return chatModel.generate(messages);
+    public ChatResponse generate(List<ChatMessage> messages) {
+        return chatModel.chat(messages);
     }
 
 }
