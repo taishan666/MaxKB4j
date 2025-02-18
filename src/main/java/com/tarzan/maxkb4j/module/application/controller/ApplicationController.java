@@ -59,6 +59,16 @@ public class ApplicationController {
         return R.success(List.of());
     }
 
+    @GetMapping("api/application/{id}/work_flow_version")
+    public R<List<ApplicationWorkFlowVersionEntity>> workFlowVersionList(@PathVariable("id") String id) {
+        return R.success(applicationService.workFlowVersionList(id));
+    }
+
+    @PutMapping("api/application/{id}/work_flow_version/{versionId}")
+    public R<Boolean> updateWorkFlowVersion(@PathVariable("id") String id,@PathVariable("versionId") String versionId,@RequestBody ApplicationWorkFlowVersionEntity versionEntity) {
+        return R.success(applicationService.updateWorkFlowVersion(versionId,versionEntity));
+    }
+
     @GetMapping("api/application/{id}/hit_test")
     public R<List<ParagraphVO>> hitTest(@PathVariable("id") String id, HitTestDTO dto) {
         return R.success(applicationService.hitTest(id, dto));

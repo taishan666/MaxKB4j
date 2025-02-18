@@ -769,4 +769,13 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         }
         return this.lambdaQuery().eq(ApplicationEntity::getUserId,appUserId).list();
     }
+
+    public List<ApplicationWorkFlowVersionEntity> workFlowVersionList(String id) {
+        return workFlowVersionService.lambdaQuery().eq(ApplicationWorkFlowVersionEntity::getApplicationId, id).orderByDesc(ApplicationWorkFlowVersionEntity::getCreateTime).list();
+    }
+
+    public Boolean updateWorkFlowVersion(String versionId,ApplicationWorkFlowVersionEntity versionEntity) {
+        versionEntity.setId(versionId);
+        return workFlowVersionService.updateById(versionEntity);
+    }
 }
