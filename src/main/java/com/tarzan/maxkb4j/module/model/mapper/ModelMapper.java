@@ -4,8 +4,6 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.tarzan.maxkb4j.module.model.entity.ModelEntity;
 import org.apache.ibatis.annotations.Mapper;
 
-import java.util.List;
-import java.util.UUID;
 
 /**
  * @author tarzan

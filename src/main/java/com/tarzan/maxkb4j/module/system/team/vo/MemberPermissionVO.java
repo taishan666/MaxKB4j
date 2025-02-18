@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tarzan.maxkb4j.common.dto.MemberOperate;
 import lombok.Data;
 
-import java.util.UUID;
 
 @Data
 public class MemberPermissionVO {

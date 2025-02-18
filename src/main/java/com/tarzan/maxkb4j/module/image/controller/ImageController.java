@@ -11,8 +11,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.UUID;
-
 /**
  * @author tarzan
  * @date 2025-01-21 09:35:03
@@ -24,7 +22,7 @@ public class ImageController{
 	private	final ImageService imageService;
 
 	@GetMapping(value = "api/image/{id}", produces = MediaType.IMAGE_JPEG_VALUE)
-	public ResponseEntity<byte[]> editIcon(@PathVariable("id") UUID id){
+	public ResponseEntity<byte[]> editIcon(@PathVariable("id") String id){
 		final HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(MediaType.IMAGE_JPEG); // 根据实际情况调整MediaType
 		ImageEntity image=imageService.getById(id);

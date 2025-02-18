@@ -20,7 +20,7 @@ public class ApplicationNodeParams extends BaseParams {
 
     private List<String> apiInputFieldList; // Optional
 
-    private List<String> userInputFieldList; // Optional, assuming UUIDs are used
+    private List<String> userInputFieldList; // Optional,
 
     private List<String> imageList; // Optional
 

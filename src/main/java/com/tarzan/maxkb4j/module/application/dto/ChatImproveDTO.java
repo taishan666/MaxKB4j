@@ -4,12 +4,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 import java.util.List;
-import java.util.UUID;
 
 @Data
 public class ChatImproveDTO {
     @JsonProperty("chat_ids")
-    private List<UUID> chatIds;
+    private List<String> chatIds;
     @JsonProperty("dataset_id")
     private String datasetId;
     @JsonProperty("document_id")

@@ -1,24 +1,23 @@
 package com.tarzan.maxkb4j.module.application.chatpipeline;
 
+import com.tarzan.maxkb4j.module.application.chatpipeline.handler.PostResponseHandler;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationChatRecordEntity;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationEntity;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationWorkFlowVersionEntity;
-import com.tarzan.maxkb4j.module.application.chatpipeline.handler.PostResponseHandler;
 import com.tarzan.maxkb4j.util.BeanUtil;
 import lombok.Data;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 @Data
 public class ChatInfo {
 
     private String chatId;
     private ApplicationEntity application;
-    private List<UUID> datasetIds;
-    private List<UUID> excludeDocumentIds;
+    private List<String> datasetIds;
+    private List<String> excludeDocumentIds;
     private List<ApplicationChatRecordEntity> chatRecordList= new ArrayList<>();
     private ApplicationWorkFlowVersionEntity workFlowVersion;
 

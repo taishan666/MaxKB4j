@@ -4,7 +4,6 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationAccessTokenEntity;
 import org.apache.ibatis.annotations.Mapper;
 
-import java.util.UUID;
 
 /**
  * @author tarzan
