@@ -15,6 +15,8 @@ import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.opencsv.CSVReader;
+import com.opencsv.exceptions.CsvValidationException;
 import com.tarzan.maxkb4j.common.dto.QueryDTO;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationDatasetMappingEntity;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationEntity;
@@ -533,6 +535,32 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
     }
 
     @Transactional
+    protected void processCsvFile(String datasetId, MultipartFile file) throws IOException {
+        List<ParagraphEntity> paragraphs = new ArrayList<>();
+        DocumentEntity doc = createDocument(datasetId, file.getOriginalFilename());
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(file.getInputStream(), StandardCharsets.UTF_8));
+             CSVReader csvReader = new CSVReader(br)) {
+            String[] values;
+            while ((values = csvReader.readNext()) != null) {
+                if (values.length > 1) {
+                    String title = values[0];
+                    String content = values[1];
+                    ParagraphEntity paragraph = getParagraphEntity(datasetId, doc.getId(), title, content);
+                    paragraphs.add(paragraph);
+                    doc.setCharLength(doc.getCharLength() + paragraph.getContent().length());
+                }
+            }
+        } catch (CsvValidationException e) {
+            throw new RuntimeException(e);
+        }
+        documentService.save(doc);
+        if (!CollectionUtils.isEmpty(paragraphs)) {
+            paragraphService.saveBatch(paragraphs);
+        }
+
+    }
+
+    @Transactional
     protected void processExcelFile(String datasetId, byte[] fileBytes) throws IOException {
         try (InputStream fis = new ByteArrayInputStream(fileBytes)) {
             Workbook workbook = WorkbookFactory.create(fis);
@@ -630,6 +658,9 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
                         }
                     }
                 }
+            }
+            if (fileName != null && fileName.toLowerCase().endsWith(".csv")) {
+                processCsvFile(datasetId, uploadFile);
             } else {
                 processExcelFile(datasetId, uploadFile.getBytes());
             }

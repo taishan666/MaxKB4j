@@ -283,14 +283,12 @@ public class WorkflowManage {
         appendNode(currentNode);
         // 执行链式任务
         NodeResult result = runChain(currentNode, nodeResultFuture);
-        System.out.println("NodeResult="+result);
         if (result == null) {
             return;
         }
 
         // 获取下一个节点列表
         List<INode> nodeList = getNextNodeList(currentNode, result);
-        System.out.println("nodeList="+nodeList);
         if (nodeList.size() == 1) {
             System.out.println("node getType=" + nodeList.get(0).getType());
             runChainManage(nodeList.get(0), null, language);
