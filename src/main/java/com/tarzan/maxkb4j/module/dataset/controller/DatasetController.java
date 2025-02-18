@@ -215,7 +215,7 @@ public class DatasetController {
     }
 
     @DeleteMapping("api/dataset/{id}/document/{docId}")
-    public R<Boolean> deleteDoc(@PathVariable("id") String id, @PathVariable("docId") String docId) throws IOException {
+    public R<Boolean> deleteDoc(@PathVariable("id") String id, @PathVariable("docId") String docId) {
         return R.success(datasetService.deleteDoc(docId));
     }
 

@@ -670,8 +670,8 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
     @Transactional
     public boolean deleteDoc(String docId) {
         List<ProblemParagraphEntity> list = problemParagraphService.lambdaQuery().select(ProblemParagraphEntity::getProblemId).eq(ProblemParagraphEntity::getDocumentId, docId).list();
-        problemParagraphService.lambdaUpdate().eq(ProblemParagraphEntity::getDocumentId, docId).update();
-        paragraphService.lambdaUpdate().eq(ParagraphEntity::getDocumentId, docId).update();
+        problemParagraphService.lambdaUpdate().eq(ProblemParagraphEntity::getDocumentId, docId).remove();
+        paragraphService.lambdaUpdate().eq(ParagraphEntity::getDocumentId, docId).remove();
         if (!CollectionUtils.isEmpty(list)) {
             problemService.removeBatchByIds(list.stream().map(ProblemParagraphEntity::getProblemId).toList());
         }
