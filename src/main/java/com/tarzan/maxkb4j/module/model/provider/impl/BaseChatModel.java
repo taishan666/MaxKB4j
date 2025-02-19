@@ -34,6 +34,13 @@ public class BaseChatModel {
         streamingChatModel.chat(messages, handler);
     }
 
+    public ChatLanguageModel getChatModel() {
+        return chatModel;
+    }
+
+    public StreamingChatLanguageModel getStreamingChatModel() {
+        return streamingChatModel;
+    }
 
     public ChatStream stream(List<ChatMessage> messages) {
         long startTime = System.currentTimeMillis();

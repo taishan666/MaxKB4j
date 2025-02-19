@@ -17,12 +17,13 @@ import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.model.chat.response.ChatResponse;
 import dev.langchain4j.model.output.TokenUsage;
+import dev.langchain4j.rag.query.Metadata;
+import dev.langchain4j.rag.query.Query;
+import dev.langchain4j.rag.query.transformer.CompressingQueryTransformer;
+import dev.langchain4j.rag.query.transformer.QueryTransformer;
 import org.springframework.util.CollectionUtils;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.regex.Pattern;
 
 public class BaseQuestionNode extends IQuestionNode {
@@ -32,8 +33,43 @@ public class BaseQuestionNode extends IQuestionNode {
     public BaseQuestionNode() {
         this.modelService = SpringUtil.getBean(ModelService.class);
     }
+
     @Override
     public NodeResult execute(QuestionParams nodeParams, FlowParams flowParams) {
+        long startTime = System.currentTimeMillis();
+        if (Objects.isNull(nodeParams.getModelParamsSetting())) {
+            nodeParams.setModelParamsSetting(getDefaultModelParamsSetting(nodeParams.getModelId()));
+        }
+        System.out.println("execute耗时1 " + (System.currentTimeMillis() - startTime) + " ms");
+        BaseChatModel chatModel = modelService.getModelById(nodeParams.getModelId(), nodeParams.getModelParamsSetting());
+        System.out.println("execute耗时2 " + (System.currentTimeMillis() - startTime) + " ms");
+        List<ChatMessage> historyMessage = getHistoryMessage(flowParams.getHistoryChatRecord(), nodeParams.getDialogueNumber());
+        this.context.put("history_message", historyMessage);
+        UserMessage question = super.workflowManage.generatePromptQuestion(nodeParams.getPrompt());
+        this.context.put("question", question.singleText());
+        String system = workflowManage.generatePrompt(nodeParams.getSystem());
+        this.context.put("system", system);
+        List<ChatMessage> messageList =  super.workflowManage.generateMessageList(system, question, historyMessage);
+        QueryTransformer queryTransformer=new CompressingQueryTransformer(chatModel.getChatModel());
+        Metadata metadata=new Metadata(question, flowParams.getChatId(), historyMessage);
+        Query query=new Query(flowParams.getQuestion(),metadata);
+        Collection<Query> list= queryTransformer.transform(query);
+        StringBuilder answerSb=new StringBuilder();
+        for (Query queryResult : list) {
+            answerSb.append(queryResult.text());
+        }
+        Map<String, Object> nodeVariable = Map.of(
+                "answer", answerSb.toString(),
+                "chat_model", chatModel,
+                "message_list", messageList,
+                "history_message", historyMessage,
+                "question", question.singleText()
+        );
+        context.put("message_tokens", 0);
+        context.put("answer_tokens", 0);
+        return new NodeResult(nodeVariable, Map.of());
+    }
+    public NodeResult execute1(QuestionParams nodeParams, FlowParams flowParams) {
         long startTime = System.currentTimeMillis();
         if (Objects.isNull(nodeParams.getModelParamsSetting())) {
             nodeParams.setModelParamsSetting(getDefaultModelParamsSetting(nodeParams.getModelId()));
