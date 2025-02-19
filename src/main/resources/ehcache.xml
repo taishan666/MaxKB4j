@@ -1,0 +1,18 @@
+<config xmlns="http://www.ehcache.org/v3"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.ehcache.org/v3
+        https://www.ehcache.org/schema/ehcache-core-3.0.xsd">
+
+<!--    <persistence directory="java.io.tmpdir"/>-->
+    <persistence directory="/data"/> <!-- 持久化目录 -->
+    <cache alias="chatCache">
+        <expiry>
+            <ttl unit="minutes">5</ttl> <!-- 5分钟过期 -->
+        </expiry>
+        <resources>
+            <heap unit="MB">10</heap>    <!-- 堆内存分配 -->
+            <offheap unit="MB">50</offheap> <!-- 堆外内存 -->
+        </resources>
+    </cache>
+
+</config>

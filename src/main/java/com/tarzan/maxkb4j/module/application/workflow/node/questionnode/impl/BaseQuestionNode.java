@@ -36,13 +36,10 @@ public class BaseQuestionNode extends IQuestionNode {
 
     @Override
     public NodeResult execute(QuestionParams nodeParams, FlowParams flowParams) {
-        long startTime = System.currentTimeMillis();
         if (Objects.isNull(nodeParams.getModelParamsSetting())) {
             nodeParams.setModelParamsSetting(getDefaultModelParamsSetting(nodeParams.getModelId()));
         }
-        System.out.println("execute耗时1 " + (System.currentTimeMillis() - startTime) + " ms");
         BaseChatModel chatModel = modelService.getModelById(nodeParams.getModelId(), nodeParams.getModelParamsSetting());
-        System.out.println("execute耗时2 " + (System.currentTimeMillis() - startTime) + " ms");
         List<ChatMessage> historyMessage = getHistoryMessage(flowParams.getHistoryChatRecord(), nodeParams.getDialogueNumber());
         this.context.put("history_message", historyMessage);
         UserMessage question = super.workflowManage.generatePromptQuestion(nodeParams.getPrompt());

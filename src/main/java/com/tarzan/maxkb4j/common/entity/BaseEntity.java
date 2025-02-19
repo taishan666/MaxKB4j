@@ -9,10 +9,11 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.tarzan.maxkb4j.serializer.NullRootSerializer;
 import lombok.Data;
 
+import java.io.Serializable;
 import java.util.Date;
 
 @Data
-public class BaseEntity {
+public class BaseEntity implements Serializable {
 
     @JsonSerialize(nullsUsing = NullRootSerializer.class)
     @TableId(type = IdType.ASSIGN_UUID)

@@ -29,6 +29,7 @@
             <artifactId>sa-token-spring-boot3-starter</artifactId>
             <version>1.39.0</version>
         </dependency>
+
         <!-- Sa-Token 整合 SpringAOP 实现注解鉴权 -->
         <dependency>
             <groupId>cn.dev33</groupId>
@@ -46,7 +47,11 @@
             <artifactId>opencsv</artifactId>
             <version>5.7.1</version> <!-- 请根据最新版本调整 -->
         </dependency>
-
+        <!-- Spring Boot 缓存支持 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-cache</artifactId>
+        </dependency>
         <dependency>
             <groupId>com.alibaba</groupId>
             <artifactId>easyexcel</artifactId>

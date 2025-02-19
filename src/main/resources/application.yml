@@ -22,6 +22,7 @@ spring:
     #prefix: classpath:/template/
     #suffix: .html
 
+
 mybatis-plus:
   global-config:
     db-config:

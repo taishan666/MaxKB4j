@@ -7,12 +7,13 @@ import com.tarzan.maxkb4j.module.application.entity.ApplicationWorkFlowVersionEn
 import com.tarzan.maxkb4j.util.BeanUtil;
 import lombok.Data;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 @Data
-public class ChatInfo {
+public class ChatInfo implements Serializable {
 
     private String chatId;
     private ApplicationEntity application;
