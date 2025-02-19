@@ -51,21 +51,21 @@ todo
 
 ## 我的技术专栏
 
--《**AI大模型应用开发**》：[https://blog.csdn.net/weixin_40986713/category_12606825.html](https://blog.csdn.net/weixin_40986713/category_12606825.html)
+- **《AI大模型应用开发》**：[https://blog.csdn.net/weixin_40986713/category_12606825.html](https://blog.csdn.net/weixin_40986713/category_12606825.html)
 
--《**AI语音合成与识别**》：[https://blog.csdn.net/weixin_40986713/category_12735457.html](https://blog.csdn.net/weixin_40986713/category_12735457.html)
+- **《AI语音合成与识别》**》：[https://blog.csdn.net/weixin_40986713/category_12735457.html](https://blog.csdn.net/weixin_40986713/category_12735457.html)
 
--《**AI绘画 | Stable diffusion**》：[https://blog.csdn.net/weixin_40986713/category_12481790.html](https://blog.csdn.net/weixin_40986713/category_12481790.html)
+- **《AI绘画 | Stable diffusion》**：[https://blog.csdn.net/weixin_40986713/category_12481790.html](https://blog.csdn.net/weixin_40986713/category_12481790.html)
 
--《**JAVA OPC UA专栏**》：[https://blog.csdn.net/weixin_40986713/category_12356608.html](https://blog.csdn.net/weixin_40986713/category_12356608.html)
+- **《JAVA OPC UA专栏》**：[https://blog.csdn.net/weixin_40986713/category_12356608.html](https://blog.csdn.net/weixin_40986713/category_12356608.html)
 
--《**java高级技术专栏**》：[https://blog.csdn.net/weixin_40986713/category_10796066.html](https://blog.csdn.net/weixin_40986713/category_10796066.html)
+- **《java高级技术专栏》**：[https://blog.csdn.net/weixin_40986713/category_10796066.html](https://blog.csdn.net/weixin_40986713/category_10796066.html)
 
--《**java Selenium自动化爬虫**》：[https://blog.csdn.net/weixin_40986713/category_12165790.html](https://blog.csdn.net/weixin_40986713/category_12165790.html)
+- **《java Selenium自动化爬虫》**：[https://blog.csdn.net/weixin_40986713/category_12165790.html](https://blog.csdn.net/weixin_40986713/category_12165790.html)
 
--《**java 推荐算法专栏**》：[https://blog.csdn.net/weixin_40986713/category_12268014.html](https://blog.csdn.net/weixin_40986713/category_12268014.html)
+- **《java 推荐算法专栏》**：[https://blog.csdn.net/weixin_40986713/category_12268014.html](https://blog.csdn.net/weixin_40986713/category_12268014.html)
 
--《**Java视频图像处理专栏**》：[https://blog.csdn.net/weixin_40986713/category_11109931.html](https://blog.csdn.net/weixin_40986713/category_11109931.html)
+- **《Java视频图像处理专栏》**：[https://blog.csdn.net/weixin_40986713/category_11109931.html](https://blog.csdn.net/weixin_40986713/category_11109931.html)
 
 
 ## License
