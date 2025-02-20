@@ -53,6 +53,18 @@ public abstract class INode {
         return new JSONObject();
     }
 
+
+
+    public abstract String getType();
+
+    public abstract BaseParams getNodeParamsClass(JSONObject nodeParams);
+
+    public abstract NodeResult _run();
+
+    public abstract JSONObject getDetail();
+
+    public abstract void saveContext(JSONObject nodeDetail, WorkflowManage workflowManage);
+
     private String generateRuntimeNodeId() {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-1");
@@ -105,7 +117,7 @@ public abstract class INode {
         }
     }
 
-    public abstract BaseParams getNodeParamsClass(JSONObject nodeParams);
+
 
 
     public void getWriteErrorContext(Exception e) {
@@ -123,7 +135,7 @@ public abstract class INode {
         return result;
     }
 
-    public abstract NodeResult _run();
+
 
     public JSONObject getDetail(int index){
         JSONObject detail=new JSONObject();
@@ -137,7 +149,7 @@ public abstract class INode {
         return detail;
     }
 
-    public abstract JSONObject getDetail();
+
 
     public List<Answer> getAnswerList() {
         if (this.answerText == null) {
@@ -170,13 +182,10 @@ public abstract class INode {
                 }
             }
         }
-
         return resultMap;
     }
 
-    public abstract void saveContext(JSONObject nodeDetail, WorkflowManage workflowManage);
 
-    public abstract String getType();
 
     @Override
     public String toString() {
