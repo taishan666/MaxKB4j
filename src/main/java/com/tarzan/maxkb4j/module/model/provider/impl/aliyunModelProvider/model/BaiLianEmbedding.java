@@ -7,11 +7,10 @@ import dev.langchain4j.community.model.dashscope.QwenEmbeddingModel;
 public class BaiLianEmbedding implements BaseModel {
     @Override
     public <T> T newInstance(String modelName, ModelCredential credential) {
-        QwenEmbeddingModel model = QwenEmbeddingModel.builder()
+        return (T) QwenEmbeddingModel.builder()
                 //.baseUrl(credential.getApiBase())
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
                 .build();
-        return (T) model;
     }
 }

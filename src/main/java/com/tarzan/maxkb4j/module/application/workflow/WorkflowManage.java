@@ -268,7 +268,6 @@ public class WorkflowManage {
     }
 
     public void runChainManage(INode currentNode, NodeResultFuture nodeResultFuture, String language) throws InterruptedException, ExecutionException {
-        System.out.println("runChainManage");
         // 激活翻译（假设有一个类似功能的类）
         // Translation.activate(language);
         if (currentNode == null) {
@@ -700,6 +699,7 @@ public class WorkflowManage {
             NodeResult result = node.run();
             return new NodeResultFuture(result, null, 200);
         } catch (Exception ex) {
+            log.error(ex.getMessage());
             return new NodeResultFuture(null, ex, 500);
         }
     }

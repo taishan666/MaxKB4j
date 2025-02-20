@@ -43,7 +43,6 @@ public class ChatCache {
         cacheManager.init();  // 重新初始化
         // 验证缓存加载
         Cache<String, ChatInfo> cache = cacheManager.getCache("chatCache", String.class, ChatInfo.class);
-        cache.forEach(entry -> System.out.println("Loaded: " + entry.getKey()));
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             System.out.println("Closing cache manager...");
             cacheManager.close();  // 确保调用 close()
@@ -51,13 +50,11 @@ public class ChatCache {
     }
 
 public static void put(String chatId, ChatInfo chatInfo) {
-    System.out.println("放入 id=" + chatId);
     Cache<String, ChatInfo> cache = cacheManager.getCache("chatCache", String.class, ChatInfo.class);
     cache.put(chatId, chatInfo);
 }
 
 public static ChatInfo get(String chatId) {
-    System.out.println("读取 id=" + chatId);
     Cache<String, ChatInfo> cache = cacheManager.getCache("chatCache", String.class, ChatInfo.class);
     return cache.get(chatId);
 }
