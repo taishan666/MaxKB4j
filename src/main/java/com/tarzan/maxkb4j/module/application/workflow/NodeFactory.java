@@ -10,6 +10,7 @@ import com.tarzan.maxkb4j.module.application.workflow.node.imagegeneratenode.imp
 import com.tarzan.maxkb4j.module.application.workflow.node.questionnode.impl.BaseQuestionNode;
 import com.tarzan.maxkb4j.module.application.workflow.node.searchdatasetnode.impl.BaseSearchDatasetNode;
 import com.tarzan.maxkb4j.module.application.workflow.node.startnode.impl.BaseStartNode;
+import com.tarzan.maxkb4j.module.application.workflow.node.texttospeechnode.impl.BaseTextToSpeechNode;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,6 +32,7 @@ public class NodeFactory {
         nodeList.add(new BaseApplicationNode());
         nodeList.add(new BaseQuestionNode());
         nodeList.add(new BaseImageGenerateNode());
+        nodeList.add(new BaseTextToSpeechNode());
     }
 
     private  INode getNode(String nodeType) {

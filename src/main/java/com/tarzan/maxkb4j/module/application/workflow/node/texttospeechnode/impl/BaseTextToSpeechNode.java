@@ -1,0 +1,54 @@
+package com.tarzan.maxkb4j.module.application.workflow.node.texttospeechnode.impl;
+
+import com.alibaba.fastjson.JSONObject;
+import com.tarzan.maxkb4j.module.application.workflow.NodeResult;
+import com.tarzan.maxkb4j.module.application.workflow.WorkflowManage;
+import com.tarzan.maxkb4j.module.application.workflow.dto.FlowParams;
+import com.tarzan.maxkb4j.module.application.workflow.node.texttospeechnode.ITextToSpeechNode;
+import com.tarzan.maxkb4j.module.application.workflow.node.texttospeechnode.dto.TextToSpeechParams;
+import com.tarzan.maxkb4j.module.file.service.FileService;
+import com.tarzan.maxkb4j.module.model.provider.impl.BaseTextToSpeech;
+import com.tarzan.maxkb4j.module.model.service.ModelService;
+import com.tarzan.maxkb4j.util.SpringUtil;
+
+import java.util.List;
+import java.util.Map;
+
+public class BaseTextToSpeechNode extends ITextToSpeechNode {
+
+    private final FileService fileService;
+    private final ModelService modelService;
+
+    public BaseTextToSpeechNode() {
+        this.fileService = SpringUtil.getBean(FileService.class);
+        this.modelService = SpringUtil.getBean(ModelService.class);
+    }
+    @Override
+    public NodeResult execute(TextToSpeechParams nodeParams, FlowParams workflowParams) {
+        List<String> contentList=nodeParams.getContentList();
+        Object content=super.getWorkflowManage().getReferenceField(contentList.get(0),contentList.subList(1, contentList.size()));
+        context.put("content",content);
+        BaseTextToSpeech ttsModel = modelService.getModelById(nodeParams.getModelId(), nodeParams.getModelParamsSetting());
+        byte[]  audioData = ttsModel.textToSpeech(content.toString());
+        String fileUrl = fileService.uploadAudio(audioData);
+        System.out.println(fileUrl);
+        // 使用字符串拼接生成 HTML 音频标签
+        String audioLabel = "<audio src=\"" + fileUrl + "\" controls style=\"width: 300px; height: 43px\"></audio>";
+        // 输出生成的 HTML 标签
+        System.out.println(audioLabel);
+        return new NodeResult(Map.of("answer",audioLabel,"result",List.of(fileUrl)),Map.of());
+    }
+
+    @Override
+    public JSONObject getDetail() {
+        JSONObject detail = new JSONObject();
+        detail.put("content",context.getString("content"));
+        detail.put("answer",context.getString("answer"));
+        return detail;
+    }
+
+    @Override
+    public void saveContext(JSONObject nodeDetail, WorkflowManage workflowManage) {
+
+    }
+}
