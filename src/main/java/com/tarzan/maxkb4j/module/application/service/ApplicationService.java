@@ -39,6 +39,7 @@ import com.tarzan.maxkb4j.module.dataset.service.DatasetService;
 import com.tarzan.maxkb4j.module.dataset.vo.ParagraphVO;
 import com.tarzan.maxkb4j.module.image.service.ImageService;
 import com.tarzan.maxkb4j.module.model.entity.ModelEntity;
+import com.tarzan.maxkb4j.module.model.provider.impl.BaseTextToSpeech;
 import com.tarzan.maxkb4j.module.model.service.ModelService;
 import com.tarzan.maxkb4j.module.system.team.service.TeamMemberPermissionService;
 import com.tarzan.maxkb4j.module.system.user.entity.UserEntity;
@@ -141,7 +142,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         if (dto.getAccessTokenReset() != null && dto.getAccessTokenReset()) {
             dto.setAccessToken(MD5Util.encrypt(UUID.randomUUID().toString(), 8, 24));
         }
-        accessTokenService.updateById(BeanUtil.copy(dto,ApplicationAccessTokenEntity.class));
+        accessTokenService.updateById(BeanUtil.copy(dto, ApplicationAccessTokenEntity.class));
         return accessTokenService.getById(appId);
     }
 
@@ -191,7 +192,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     public ApplicationEntity createWorkflow(ApplicationEntity application) {
         String userId = StpUtil.getLoginIdAsString();
         if (Objects.isNull(application.getWorkFlow())) {
-            UserEntity user= userService.getById(userId);
+            UserEntity user = userService.getById(userId);
             Path path = getWorkflowFilePath(user.getLanguage());
             String defaultWorkflowJson = FileUtil.readToString(path.toFile());
             JSONObject workFlow = JSONObject.parseObject(defaultWorkflowJson);
@@ -239,11 +240,11 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
 
     private static String toLocale(String language) {
         // 实现细节取决于实际的应用逻辑
-        if(StringUtils.isNotBlank(language)){
-            if(!language.endsWith("Hant")){
-                language=language.split("-")[0];
+        if (StringUtils.isNotBlank(language)) {
+            if (!language.endsWith("Hant")) {
+                language = language.split("-")[0];
             }
-            language=language.replaceAll("-","_");
+            language = language.replaceAll("-", "_");
         }
         return language; // 这里简化处理，直接返回语言代码
     }
@@ -377,7 +378,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         ChatInfo chatInfo = getChatInfo(chatId);
         if (chatInfo == null) {
             System.err.println("会话不存在");
-        }else {
+        } else {
             if (!claims.isEmpty()) {
                 try {
                     isValidIntraDayAccessNum(chatInfo.getApplication().getId(), clientId, clientType);
@@ -393,13 +394,13 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         if (reChat) {
             String chatRecordId = dto.getChatRecordId();
             if (Objects.nonNull(chatRecordId)) {
-                 chatRecord = getChatRecordInfo(chatId, chatRecordId);
+                chatRecord = getChatRecordInfo(chatId, chatRecordId);
             }
         }
         assert chatInfo != null;
         FlowParams flowParams = new FlowParams();
         flowParams.setChatId(chatInfo.getChatId());
-        flowParams.setChatRecordId(dto.getChatRecordId()==null?IdWorker.get32UUID():dto.getChatRecordId());
+        flowParams.setChatRecordId(dto.getChatRecordId() == null ? IdWorker.get32UUID() : dto.getChatRecordId());
         flowParams.setQuestion(dto.getMessage());
         flowParams.setReChat(dto.getReChat());
         flowParams.setUserId(StpUtil.getLoginIdAsString());
@@ -419,7 +420,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
                 null,
                 chatRecord,
                 null);
-        return  workflowManage.run();
+        return workflowManage.run();
     }
 
     public Flux<JSONObject> chatSimple(String chatId, ChatMessageDTO dto, HttpServletRequest request) {
@@ -430,7 +431,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         ChatInfo chatInfo = getChatInfo(chatId);
         if (chatInfo == null) {
             System.err.println("会话不存在");
-        }else {
+        } else {
             if (!claims.isEmpty()) {
                 try {
                     isValidApplication(chatInfo, clientId, clientType);
@@ -527,9 +528,9 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
 
     public String chatOpen(String appId) {
         ApplicationEntity application = this.getById(appId);
-        if("SIMPLE".equals(application.getType())){
+        if ("SIMPLE".equals(application.getType())) {
             return chatOpenSimple(application);
-        }else {
+        } else {
             return chatOpenWorkflow(application);
         }
     }
@@ -543,6 +544,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         ChatCache.put(chatInfo.getChatId(), chatInfo);
         return chatInfo.getChatId();
     }
+
     public String chatOpenWorkflow(ApplicationEntity application) {
         ChatInfo chatInfo = new ChatInfo();
         chatInfo.setChatId(IdWorker.get32UUID());
@@ -714,8 +716,14 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         return datasetService.hitTest(datasetIds, dto);
     }
 
-    public String textToSpeech(String uuid, String text) {
-        return "";
+    public byte[] textToSpeech(String id, JSONObject data) {
+        String text = data.getString("text");
+        ApplicationEntity app = this.getById(id);
+        if("BROWSER".equals(app.getTtsType())){
+           return new byte[0];
+        }
+        BaseTextToSpeech ttsModel = modelService.getModelById(app.getTtsModelId());
+        return ttsModel.textToSpeech(text);
     }
 
     public boolean editIcon(String id, MultipartFile file) {
@@ -729,6 +737,29 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     public Boolean updateAppById(String appId, ApplicationVO appVO) {
         ApplicationEntity application = BeanUtil.copy(appVO, ApplicationEntity.class);
         application.setId(appId);
+        JSONObject workFlow = appVO.getWorkFlow();
+        if (Objects.nonNull(workFlow)&&!workFlow.isEmpty()){
+            JSONArray nodes= workFlow.getJSONArray("nodes");
+            JSONObject baseNode= nodes.getJSONObject(0);
+            if (Objects.nonNull(baseNode)){
+                String type= baseNode.getString("type");
+                if (type.equals("base-node")){
+                    JSONObject properties= baseNode.getJSONObject("properties");
+                    JSONObject nodeData= properties.getJSONObject("node_data");
+                    application.setName(nodeData.getString("name"));
+                    application.setDesc(nodeData.getString("desc"));
+                    application.setPrologue(nodeData.getString("prologue"));
+                    application.setFileUploadEnable(nodeData.getBoolean("file_upload_enable"));
+                    application.setFileUploadSetting(nodeData.getJSONObject("file_upload_setting"));
+                    application.setTtsModelEnable(nodeData.getBoolean("stt_model_enable"));
+                    application.setSttModelId(nodeData.getString("stt_model_id"));
+                    application.setTtsModelEnable(nodeData.getBoolean("tts_model_enable"));
+                    application.setTtsType(nodeData.getString("tts_type"));
+                    application.setTtsModelId(nodeData.getString("tts_model_id"));
+                    application.setTtsType(nodeData.getString("tts_type"));
+                }
+            }
+        }
         datasetMappingService.lambdaUpdate().eq(ApplicationDatasetMappingEntity::getApplicationId, appId).remove();
         if (!CollectionUtils.isEmpty(appVO.getDatasetIdList())) {
             List<ApplicationDatasetMappingEntity> mappingList = new ArrayList<>();
@@ -744,13 +775,13 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     }
 
     public Boolean publish(String id, JSONObject workflow) {
-        if(Objects.nonNull(workflow)&& workflow.containsKey("work_flow")){
-            ApplicationEntity application=this.getById(id);
-            long count=workFlowVersionService.count(Wrappers.<ApplicationWorkFlowVersionEntity>lambdaQuery().eq(ApplicationWorkFlowVersionEntity::getApplicationId,id));
-            ApplicationWorkFlowVersionEntity entity=new ApplicationWorkFlowVersionEntity();
+        if (Objects.nonNull(workflow) && workflow.containsKey("work_flow")) {
+            ApplicationEntity application = this.getById(id);
+            long count = workFlowVersionService.count(Wrappers.<ApplicationWorkFlowVersionEntity>lambdaQuery().eq(ApplicationWorkFlowVersionEntity::getApplicationId, id));
+            ApplicationWorkFlowVersionEntity entity = new ApplicationWorkFlowVersionEntity();
             entity.setWorkFlow(workflow.getJSONObject("work_flow"));
             entity.setApplicationId(id);
-            entity.setName(application.getName()+"-V"+(count+1));
+            entity.setName(application.getName() + "-V" + (count + 1));
             entity.setPublishUserId(StpUtil.getLoginIdAsString());
             UserEntity user = userService.getById(StpUtil.getLoginIdAsString());
             entity.setPublishUserName(user.getUsername());
@@ -761,20 +792,20 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     }
 
     public List<ApplicationEntity> listByUserId(String appId) {
-        ApplicationEntity application=this.getById(appId);
-        String userId=StpUtil.getLoginIdAsString();
-        String appUserId=application.getUserId();
-        if (!userId.equals(appUserId)){
+        ApplicationEntity application = this.getById(appId);
+        String userId = StpUtil.getLoginIdAsString();
+        String appUserId = application.getUserId();
+        if (!userId.equals(appUserId)) {
             return Collections.emptyList();
         }
-        return this.lambdaQuery().eq(ApplicationEntity::getUserId,appUserId).list();
+        return this.lambdaQuery().eq(ApplicationEntity::getUserId, appUserId).list();
     }
 
     public List<ApplicationWorkFlowVersionEntity> workFlowVersionList(String id) {
         return workFlowVersionService.lambdaQuery().eq(ApplicationWorkFlowVersionEntity::getApplicationId, id).orderByDesc(ApplicationWorkFlowVersionEntity::getCreateTime).list();
     }
 
-    public Boolean updateWorkFlowVersion(String versionId,ApplicationWorkFlowVersionEntity versionEntity) {
+    public Boolean updateWorkFlowVersion(String versionId, ApplicationWorkFlowVersionEntity versionEntity) {
         versionEntity.setId(versionId);
         return workFlowVersionService.updateById(versionEntity);
     }

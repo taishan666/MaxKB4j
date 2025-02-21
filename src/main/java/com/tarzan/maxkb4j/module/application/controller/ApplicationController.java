@@ -21,7 +21,10 @@ import com.tarzan.maxkb4j.tool.api.R;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import reactor.core.publisher.Flux;
@@ -147,9 +150,12 @@ public class ApplicationController {
     }
 
     @PostMapping("api/application/{appId}/text_to_speech")
-    public R<String> textToSpeech(@PathVariable("appId") String appId, @RequestBody String text) {
-        System.out.println(text);
-        return R.success(applicationService.textToSpeech(appId, text));
+    public ResponseEntity<byte[]> textToSpeech(@PathVariable("appId") String appId, @RequestBody JSONObject data) {
+        // 设置 HTTP 响应头
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(org.springframework.http.MediaType.parseMediaType("audio/mp3"));
+        headers.setContentDispositionFormData("attachment", "abc.mp3");
+        return new ResponseEntity<>(applicationService.textToSpeech(appId, data), headers, HttpStatus.OK);
     }
 
     @GetMapping("api/valid/application/{type}")
