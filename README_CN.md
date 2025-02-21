@@ -46,7 +46,7 @@ todo
 - 前端：[Vue.js](https://cn.vuejs.org/)
 - 后端：[Java / Springboot](https://www.djangoproject.com/)
 - 缓存：[Ehcache](https://www.ehcache.org/)
-- LangChain：[LangChain4j](https://docs.langchain4j.dev/)
+- LangChain4j：[LangChain4j](https://docs.langchain4j.dev/)
 - 向量数据库：[PostgreSQL / pgvector](https://www.postgresql.org/)
 
 ## 我的技术专栏
