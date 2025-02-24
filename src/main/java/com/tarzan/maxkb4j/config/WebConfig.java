@@ -1,3 +1,4 @@
+/*
 package com.tarzan.maxkb4j.config;
 
 import org.springframework.context.annotation.Configuration;
@@ -14,4 +15,4 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addResourceHandler("/uploads/**")
                 .addResourceLocations("file:" + uploadDir + "/");
     }
-}
+}*/

@@ -61,6 +61,7 @@ import org.springframework.web.multipart.MultipartFile;
 import reactor.core.publisher.Flux;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -817,7 +818,11 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     public List<FileVO> uploadFile(String id, String chatId, MultipartFile[] files) {
         List<FileVO> fileList = new ArrayList<>();
         for (MultipartFile file : files) {
-            fileList.add(fileService.uploadFile(file));
+            try {
+                fileList.add(fileService.uploadFile(file.getOriginalFilename(),file.getBytes()));
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
         return fileList;
     }

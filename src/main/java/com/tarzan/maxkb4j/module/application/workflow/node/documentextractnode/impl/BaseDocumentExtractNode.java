@@ -35,6 +35,7 @@ public class BaseDocumentExtractNode extends IDocumentExtractNode {
         for (Map<String,Object> fileMap : documents) {
             byte[] data= fileService.getBytes((String) fileMap.get("file_id"));
             Document document = parser.parse(new ByteArrayInputStream(data));
+            //todo 图片处理
             String text = "### "+fileMap.get("name")+"\n"+document.text()+splitter;
             sb.append(text);
         }
