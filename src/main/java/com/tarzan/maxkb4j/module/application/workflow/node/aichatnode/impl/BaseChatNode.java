@@ -34,13 +34,13 @@ public class BaseChatNode extends IChatNode {
     @Override
     public JSONObject getDetail() {
         JSONObject detail = new JSONObject();
-        detail.put("system", context.getString("system"));
+        detail.put("system", context.get("system"));
         List<ChatMessage> historyMessage = (List<ChatMessage>) context.get("history_message");
         detail.put("history_message", resetMessageList(historyMessage));
-        detail.put("question", context.getString("question"));
-        detail.put("answer", context.getString("answer"));
-        detail.put("message_tokens", context.getInteger("message_tokens"));
-        detail.put("answer_tokens", context.getInteger("answer_tokens"));
+        detail.put("question", context.get("question"));
+        detail.put("answer", context.get("answer"));
+        detail.put("message_tokens", context.get("message_tokens"));
+        detail.put("answer_tokens", context.get("answer_tokens"));
         return detail;
     }
 
@@ -80,7 +80,7 @@ public class BaseChatNode extends IChatNode {
             context.put("answer", answer);
             context.put("question", nodeVariable.get("question"));
             context.put("history_message", nodeVariable.get("history_message"));
-            long runTime = System.currentTimeMillis() - context.getLongValue("start_time");
+            long runTime = System.currentTimeMillis() - (long)context.get("start_time");
             context.put("run_time", runTime / 1000F);
         });
         return chatStream.getIterator();

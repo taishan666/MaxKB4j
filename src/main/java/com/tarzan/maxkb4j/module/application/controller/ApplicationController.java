@@ -16,6 +16,7 @@ import com.tarzan.maxkb4j.module.application.vo.ApplicationVO;
 import com.tarzan.maxkb4j.module.dataset.dto.HitTestDTO;
 import com.tarzan.maxkb4j.module.dataset.entity.DatasetEntity;
 import com.tarzan.maxkb4j.module.dataset.vo.ParagraphVO;
+import com.tarzan.maxkb4j.module.file.vo.FileVO;
 import com.tarzan.maxkb4j.module.model.entity.ModelEntity;
 import com.tarzan.maxkb4j.tool.api.R;
 import jakarta.servlet.http.HttpServletRequest;
@@ -128,10 +129,16 @@ public class ApplicationController {
         return R.success(applicationService.getChatRecordVote(chatRecordId, chatRecord));
     }
 
-    @GetMapping("api/application/{id}/chat/{chatId}/chat_record/{page}/{size}")
+    @PostMapping("api/application/{id}/chat/{chatId}/upload_file")
+    public R<List<FileVO>> uploadFile(@PathVariable String id, @PathVariable String chatId, MultipartFile[] file) {
+        return R.success(applicationService.uploadFile(id,chatId,file));
+    }
+
+    @PostMapping("api/application/{id}/chat/{chatId}/chat_record/{page}/{size}")
     public R<IPage<ApplicationChatRecordVO>> chatRecordPage(@PathVariable String id, @PathVariable String chatId, @PathVariable int page, @PathVariable int size) {
         return R.success(applicationService.chatRecordPage(chatId, page, size));
     }
+
 
     @GetMapping("api/application/{page}/{size}")
     public R<IPage<ApplicationEntity>> userApplications(@PathVariable("page") int page, @PathVariable("size") int size, QueryDTO query) {

@@ -81,7 +81,7 @@ public class BaseSearchDatasetNode extends ISearchDatasetStepNode {
     @Override
     public JSONObject getDetail() {
         JSONObject detail = new JSONObject();
-        detail.put("question", context.getString("question"));
+        detail.put("question", context.get("question"));
         detail.put("paragraph_list", context.get("paragraph_list"));
         return detail;
     }

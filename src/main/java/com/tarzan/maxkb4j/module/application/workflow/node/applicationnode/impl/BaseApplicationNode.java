@@ -18,10 +18,10 @@ public class BaseApplicationNode extends IApplicationNode {
     public JSONObject getDetail() {
         JSONObject detail = new JSONObject();
         detail.put("info", node.getProperties().getString("node_data"));
-        detail.put("question", context.getString("question"));
-        detail.put("answer", context.getString("answer"));
-        detail.put("message_tokens", context.getString("message_tokens"));
-        detail.put("answer_tokens", context.getString("answer_tokens"));
+        detail.put("question", context.get("question"));
+        detail.put("answer", context.get("answer"));
+        detail.put("message_tokens", context.get("message_tokens"));
+        detail.put("answer_tokens", context.get("answer_tokens"));
         detail.put("image_list", context.get("image"));
         detail.put("document_list", context.get("document"));
         detail.put("audio_list", context.get("audio"));

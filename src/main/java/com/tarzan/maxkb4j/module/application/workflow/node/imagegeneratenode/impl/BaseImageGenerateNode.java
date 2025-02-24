@@ -35,7 +35,7 @@ public class BaseImageGenerateNode extends IImageGenerateNode {
     @Override
     public JSONObject getDetail() {
         JSONObject detail = new JSONObject();
-        detail.put("answer",context.getString("answer"));
+        detail.put("answer",context.get("answer"));
         return detail;
     }
 

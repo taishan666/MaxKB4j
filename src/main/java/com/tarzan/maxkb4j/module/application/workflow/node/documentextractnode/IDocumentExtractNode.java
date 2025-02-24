@@ -1,0 +1,28 @@
+package com.tarzan.maxkb4j.module.application.workflow.node.documentextractnode;
+
+import com.alibaba.fastjson.JSONObject;
+import com.tarzan.maxkb4j.module.application.workflow.INode;
+import com.tarzan.maxkb4j.module.application.workflow.NodeResult;
+import com.tarzan.maxkb4j.module.application.workflow.node.documentextractnode.dto.DocumentExtractParams;
+
+public abstract class IDocumentExtractNode extends INode {
+    @Override
+    public String getType() {
+        return "document-extract-node";
+    }
+
+    @Override
+    public DocumentExtractParams getNodeParamsClass(JSONObject nodeParams) {
+        System.out.println(nodeParams);
+        return nodeParams.toJavaObject(DocumentExtractParams.class);
+    }
+
+
+    @Override
+    public NodeResult _run() {
+        return this.execute(getNodeParamsClass(super.nodeParams));
+    }
+
+    public abstract NodeResult execute(DocumentExtractParams nodeParams);
+
+}

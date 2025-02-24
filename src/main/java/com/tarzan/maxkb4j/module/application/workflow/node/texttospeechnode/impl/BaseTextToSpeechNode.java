@@ -42,8 +42,8 @@ public class BaseTextToSpeechNode extends ITextToSpeechNode {
     @Override
     public JSONObject getDetail() {
         JSONObject detail = new JSONObject();
-        detail.put("content",context.getString("content"));
-        detail.put("answer",context.getString("answer"));
+        detail.put("content",context.get("content"));
+        detail.put("answer",context.get("answer"));
         return detail;
     }
 

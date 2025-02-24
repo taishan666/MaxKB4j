@@ -1,6 +1,7 @@
 package com.tarzan.maxkb4j.module.file.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.tarzan.maxkb4j.common.entity.BaseEntity;
 import lombok.Data;
 import com.alibaba.fastjson.JSONObject;
 import java.util.Date;
@@ -10,13 +11,7 @@ import java.util.Date;
   */
 @Data
 @TableName("file")
-public class FileEntity {
-	
-	private Date createTime;
-	
-	private Date updateTime;
-	
-	private String id;
+public class FileEntity extends BaseEntity {
 	
 	private String fileName;
 	

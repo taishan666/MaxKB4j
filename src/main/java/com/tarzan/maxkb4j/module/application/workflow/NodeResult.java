@@ -38,7 +38,7 @@ public class NodeResult {
     }
 
     public boolean defaultIsInterrupt(INode node) {
-        return node.getType().equals("form-node") && !node.getContext().getBooleanValue("is_submit");
+        return node.getType().equals("form-node") && !(boolean)node.getContext().get("is_submit");
     }
 
     public Iterator<String> defaultWriteContextFunc(Map<String, Object> stepVariable, Map<String, Object> globalVariable, INode node, WorkflowManage workflow) {
@@ -54,7 +54,7 @@ public class NodeResult {
             workflow.getContext().putAll(globalVariable);
         }
         if (node.context.containsKey("start_time")) {
-            long runTime = System.currentTimeMillis() - node.context.getLongValue("start_time");
+            long runTime = System.currentTimeMillis() - (long)node.context.get("start_time");
             node.context.put("run_time", runTime / 1000F);
         }
         return new Iterator<>() {

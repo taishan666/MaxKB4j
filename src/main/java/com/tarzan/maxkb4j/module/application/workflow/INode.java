@@ -21,7 +21,7 @@ public abstract class INode {
     protected JSONObject nodeParams;
     protected FlowParams workflowParams;
     protected WorkflowManage workflowManage;
-    protected JSONObject context;
+    protected Map<String, Object> context;
     protected String answerText;
     protected String id;
     protected List<String> lastNodeIdList;
@@ -30,7 +30,7 @@ public abstract class INode {
 
 
     public INode() {
-        this.context = new JSONObject();
+        this.context = new LinkedHashMap<>();
         this.lastNodeIdList=new ArrayList<>();
         this.nodeChunk = new NodeChunk();
     }
@@ -123,7 +123,7 @@ public abstract class INode {
     public void getWriteErrorContext(Exception e) {
         this.status = 500;
         this.errMessage = e.getMessage();
-        long startTime = this.context.getLongValue("start_time");
+        long startTime = (long) this.context.get("start_time");
         this.context.put("run_time", (System.currentTimeMillis() - startTime)/1000F);
     }
 
@@ -142,7 +142,7 @@ public abstract class INode {
         detail.put("name",node.getProperties().getString("stepName"));
         detail.put("index",index);
         detail.put("type",node.getType());
-        detail.put("run_time",context.getFloatValue("run_time"));
+        detail.put("run_time",context.get("run_time"));
         detail.put("status",status);
         detail.put("err_message",errMessage);
         detail.putAll(getDetail());
