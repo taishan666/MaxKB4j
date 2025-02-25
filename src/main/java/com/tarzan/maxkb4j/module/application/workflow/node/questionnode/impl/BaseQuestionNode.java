@@ -12,6 +12,7 @@ import com.tarzan.maxkb4j.module.model.service.ModelService;
 import com.tarzan.maxkb4j.util.SpringUtil;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
+import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.rag.query.Metadata;
 import dev.langchain4j.rag.query.Query;
@@ -56,9 +57,31 @@ public class BaseQuestionNode extends IQuestionNode {
                 "history_message", historyMessage,
                 "question", question.singleText()
         );
-        context.put("message_tokens", 0);
-        context.put("answer_tokens", 0);
+        StringBuilder messageListSb=new StringBuilder();
+        for (ChatMessage chatMessage : messageList) {
+            if (chatMessage instanceof UserMessage userMessage){
+                messageListSb.append(userMessage.singleText());
+            }
+            if (chatMessage instanceof AiMessage aiMessage){
+                messageListSb.append(aiMessage.text());
+            }
+            if (chatMessage instanceof SystemMessage systemMessage){
+                messageListSb.append(systemMessage.text());
+            }
+        }
+        context.put("message_tokens", countTokens(messageListSb.toString()));
+        context.put("answer_tokens", countTokens(answerSb.toString()));
         return new NodeResult(nodeVariable, Map.of());
+    }
+
+    public static int countTokens(String text) {
+        if (text == null || text.isEmpty()) {
+            return 0;
+        }
+
+        // 使用 StringTokenizer 按空格分割文本
+        StringTokenizer tokenizer = new StringTokenizer(text, " \t\n\r\f,.!?;:\"'()[]{}<>");
+        return tokenizer.countTokens();
     }
 
     public List<ChatMessage> getHistoryMessage(List<ApplicationChatRecordEntity> historyChatRecord, int dialogueNumber ) {
