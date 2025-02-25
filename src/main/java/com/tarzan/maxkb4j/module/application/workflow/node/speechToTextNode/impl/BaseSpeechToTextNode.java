@@ -30,8 +30,6 @@ public class BaseSpeechToTextNode extends ISpeechToTextNode {
         Object res = super.getWorkflowManage().getReferenceField(audioList.get(0), audioList.subList(1, audioList.size()));
         BaseSpeechToText sttModel = modelService.getModelById(nodeParams.getSttModelId());
         List<JSONObject> audioFiles = (List<JSONObject>) res;
-      //  List<Map<String,Object>> audioFiles= (List<Map<String,Object>>) res;
-        System.out.println(res);
         StringBuilder sb = new StringBuilder();
         for (JSONObject file: audioFiles) {
             byte[] data = fileService.getBytes(file.getString("file_id"));

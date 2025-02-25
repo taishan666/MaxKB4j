@@ -1,6 +1,5 @@
 package com.tarzan.maxkb4j.module.application.workflow.node.aichatnode.impl;
 
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationChatRecordEntity;
 import com.tarzan.maxkb4j.module.application.workflow.ChatStream;
@@ -15,11 +14,9 @@ import com.tarzan.maxkb4j.module.model.service.ModelService;
 import com.tarzan.maxkb4j.util.SpringUtil;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
-import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.model.chat.response.ChatResponse;
 import dev.langchain4j.model.output.TokenUsage;
-import org.springframework.util.CollectionUtils;
 
 import java.util.*;
 
@@ -44,30 +41,6 @@ public class BaseChatNode extends IChatNode {
         return detail;
     }
 
-    public JSONArray resetMessageList(List<ChatMessage> historyMessage) {
-        if (CollectionUtils.isEmpty(historyMessage)) {
-            return new JSONArray();
-        }
-        JSONArray newMessageList = new JSONArray();
-        for (ChatMessage chatMessage : historyMessage) {
-            JSONObject message = new JSONObject();
-            if (chatMessage instanceof SystemMessage systemMessage) {
-                message.put("role", "ai");
-                message.put("content", systemMessage.text());
-            }
-            if (chatMessage instanceof UserMessage userMessage) {
-                message.put("role", "user");
-                message.put("content", userMessage.singleText());
-            }
-            if (chatMessage instanceof AiMessage aiMessage) {
-                message.put("role", "ai");
-                message.put("content", aiMessage.text());
-            }
-            newMessageList.add(message);
-        }
-        return newMessageList;
-    }
-
 
     private Iterator<String> writeContextStream(Map<String, Object> nodeVariable, Map<String, Object> workflowVariable, INode currentNode, WorkflowManage workflow) {
         ChatStream chatStream = (ChatStream) nodeVariable.get("result");
@@ -78,8 +51,8 @@ public class BaseChatNode extends IChatNode {
             context.put("message_tokens", tokenUsage.inputTokenCount());
             context.put("answer_tokens", tokenUsage.outputTokenCount());
             context.put("answer", answer);
-           // context.put("question", nodeVariable.get("question"));
-          //  context.put("history_message", nodeVariable.get("history_message"));
+            context.put("question", nodeVariable.get("question"));
+            context.put("history_message", nodeVariable.get("history_message"));
             long runTime = System.currentTimeMillis() - (long)context.get("start_time");
             context.put("run_time", runTime / 1000F);
         });

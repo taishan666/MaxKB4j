@@ -1,11 +1,18 @@
 package com.tarzan.maxkb4j.module.application.workflow.node.aichatnode;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.module.application.workflow.INode;
 import com.tarzan.maxkb4j.module.application.workflow.NodeResult;
 import com.tarzan.maxkb4j.module.application.workflow.dto.FlowParams;
 import com.tarzan.maxkb4j.module.application.workflow.node.aichatnode.dto.ChatNodeParams;
+import dev.langchain4j.data.message.AiMessage;
+import dev.langchain4j.data.message.ChatMessage;
+import dev.langchain4j.data.message.SystemMessage;
+import dev.langchain4j.data.message.UserMessage;
+import org.springframework.util.CollectionUtils;
 
+import java.util.List;
 import java.util.Objects;
 
 public abstract class IChatNode extends INode {
@@ -29,4 +36,6 @@ public abstract class IChatNode extends INode {
     }
 
     public abstract NodeResult execute(ChatNodeParams nodeParams, FlowParams workflowParams);
+
+
 }

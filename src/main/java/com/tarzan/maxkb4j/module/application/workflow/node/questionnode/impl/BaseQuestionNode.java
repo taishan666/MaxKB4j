@@ -1,6 +1,5 @@
 package com.tarzan.maxkb4j.module.application.workflow.node.questionnode.impl;
 
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationChatRecordEntity;
 import com.tarzan.maxkb4j.module.application.workflow.NodeResult;
@@ -13,15 +12,11 @@ import com.tarzan.maxkb4j.module.model.service.ModelService;
 import com.tarzan.maxkb4j.util.SpringUtil;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
-import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.data.message.UserMessage;
-import dev.langchain4j.model.chat.response.ChatResponse;
-import dev.langchain4j.model.output.TokenUsage;
 import dev.langchain4j.rag.query.Metadata;
 import dev.langchain4j.rag.query.Query;
 import dev.langchain4j.rag.query.transformer.CompressingQueryTransformer;
 import dev.langchain4j.rag.query.transformer.QueryTransformer;
-import org.springframework.util.CollectionUtils;
 
 import java.util.*;
 import java.util.regex.Pattern;
@@ -50,6 +45,7 @@ public class BaseQuestionNode extends IQuestionNode {
         Collection<Query> list= queryTransformer.transform(query);
         StringBuilder answerSb=new StringBuilder();
         for (Query queryResult : list) {
+            System.out.println(queryResult.metadata());
             answerSb.append(queryResult.text());
         }
         Map<String, Object> nodeVariable = Map.of(
@@ -84,30 +80,6 @@ public class BaseQuestionNode extends IQuestionNode {
     private JSONObject getDefaultModelParamsSetting(String modelId) {
         // ModelEntity model = modelService.getCacheById(modelId);
         return new JSONObject();
-    }
-
-    public JSONArray resetMessageList(List<ChatMessage> historyMessage) {
-        if (CollectionUtils.isEmpty(historyMessage)) {
-            return new JSONArray();
-        }
-        JSONArray newMessageList = new JSONArray();
-        for (ChatMessage chatMessage : historyMessage) {
-            JSONObject message = new JSONObject();
-            if (chatMessage instanceof SystemMessage systemMessage) {
-                message.put("role", "ai");
-                message.put("content", systemMessage.text());
-            }
-            if (chatMessage instanceof UserMessage userMessage) {
-                message.put("role", "user");
-                message.put("content", userMessage.singleText());
-            }
-            if (chatMessage instanceof AiMessage aiMessage) {
-                message.put("role", "ai");
-                message.put("content", aiMessage.text());
-            }
-            newMessageList.add(message);
-        }
-        return newMessageList;
     }
 
     @Override

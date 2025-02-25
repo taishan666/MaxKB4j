@@ -1,10 +1,16 @@
 package com.tarzan.maxkb4j.module.application.workflow;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.module.application.workflow.dto.Answer;
 import com.tarzan.maxkb4j.module.application.workflow.dto.BaseParams;
 import com.tarzan.maxkb4j.module.application.workflow.dto.FlowParams;
+import dev.langchain4j.data.message.AiMessage;
+import dev.langchain4j.data.message.ChatMessage;
+import dev.langchain4j.data.message.SystemMessage;
+import dev.langchain4j.data.message.UserMessage;
 import lombok.Data;
+import org.springframework.util.CollectionUtils;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -86,19 +92,16 @@ public abstract class INode {
     public void validArgs(JSONObject nodeParams, FlowParams flowParams) throws Exception {
         //  BaseParams flowParamsClass = getFlowParamsClass(flowParams);
         BaseParams nodeParamsClass = getNodeParamsClass(nodeParams);
-
         if (flowParams != null) {
             if (!flowParams.isValid()) {
                 throw new Exception("Invalid flow params");
             }
         }
-
         if (nodeParamsClass != null) {
             if (!nodeParamsClass.isValid()) {
                 throw new Exception("Invalid node params");
             }
         }
-
         // Ensure proper type casting before comparison
         Object statusObj = node.getProperties().get("status");
         if (statusObj instanceof Integer && (Integer) statusObj != 200) {
@@ -183,6 +186,30 @@ public abstract class INode {
             }
         }
         return resultMap;
+    }
+
+    public JSONArray resetMessageList(List<ChatMessage> historyMessage) {
+        if (CollectionUtils.isEmpty(historyMessage)) {
+            return new JSONArray();
+        }
+        JSONArray newMessageList = new JSONArray();
+        for (ChatMessage chatMessage : historyMessage) {
+            JSONObject message = new JSONObject();
+            if (chatMessage instanceof SystemMessage systemMessage) {
+                message.put("role", "ai");
+                message.put("content", systemMessage.text());
+            }
+            if (chatMessage instanceof UserMessage userMessage) {
+                message.put("role", "user");
+                message.put("content", userMessage.singleText());
+            }
+            if (chatMessage instanceof AiMessage aiMessage) {
+                message.put("role", "ai");
+                message.put("content", aiMessage.text());
+            }
+            newMessageList.add(message);
+        }
+        return newMessageList;
     }
 
 
