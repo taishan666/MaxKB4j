@@ -1,20 +1,21 @@
 package com.tarzan.maxkb4j.module.model.provider.impl.aliyunModelProvider.model;
 
-import com.alibaba.dashscope.audio.ttsv2.SpeechSynthesisParam;
-import com.alibaba.dashscope.audio.ttsv2.SpeechSynthesizer;
+import com.alibaba.dashscope.audio.asr.recognition.Recognition;
+import com.alibaba.dashscope.audio.asr.recognition.RecognitionParam;
 import com.tarzan.maxkb4j.module.model.entity.ModelCredential;
 import com.tarzan.maxkb4j.module.model.provider.BaseModel;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseSpeechToText;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.ByteBuffer;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
+@NoArgsConstructor
 public class BaiLianSpeechToText extends BaseSpeechToText implements BaseModel {
 
     private String apiBase;
@@ -29,27 +30,32 @@ public class BaiLianSpeechToText extends BaseSpeechToText implements BaseModel {
 
     @Override
     public <T> T newInstance(String modelName, ModelCredential credential) {
-        return (T) new BaiLianSpeechToText(credential.getApiBase(),credential.getApiKey());
+        return (T) new BaiLianSpeechToText(credential.getApiBase(), credential.getApiKey());
     }
 
     @Override
-    public String speechToText(File audioFile) {
-        SpeechSynthesisParam param =
-                SpeechSynthesisParam.builder()
-                        // 若没有将API Key配置到环境变量中，需将下面这行代码注释放开，并将apiKey替换为自己的API Key
-                        // .apiKey(apikey)
-                        .model("")
-                        .voice("")
+    public String speechToText(byte[] audioBytes) {
+        // 创建Recognition实例
+        Recognition recognizer = new Recognition();
+        // 创建RecognitionParam
+        RecognitionParam param =
+                RecognitionParam.builder()
+                        .apiKey(apiKey)
+                        .model("paraformer-realtime-v2")
+                        .format("wav")
+                        .sampleRate(16000)
+                        // “language_hints”只支持paraformer-v2和paraformer-realtime-v2模型
+                        .parameter("language_hints", new String[]{"zh", "en"})
                         .build();
-        SpeechSynthesizer synthesizer = new SpeechSynthesizer(param, null);
-        ByteBuffer audio = synthesizer.call("今天天气怎么样？");
-        File file = new File("output.mp3");
-        System.out.print("requestId: " + synthesizer.getLastRequestId());
-        try (FileOutputStream fos = new FileOutputStream(file)) {
-            fos.write(audio.array());
+          // 创建临时文件
+        Path tempFile = null;
+        try {
+            tempFile = Files.createTempFile("temp_audio",".wav");
+            // 将 byte[] 写入临时文件
+            Files.write(tempFile, audioBytes);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        return "";
+        return recognizer.call(param, tempFile.toFile());
     }
 }

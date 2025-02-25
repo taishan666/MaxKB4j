@@ -32,12 +32,10 @@ public class BaseTextToSpeechNode extends ITextToSpeechNode {
         BaseTextToSpeech ttsModel = modelService.getModelById(nodeParams.getModelId(), nodeParams.getModelParamsSetting());
         byte[]  audioData = ttsModel.textToSpeech(content.toString());
         FileVO fileVO = fileService.uploadFile("generated_audio.mp3",audioData);
-        System.out.println(fileVO.getUrl());
         // 使用字符串拼接生成 HTML 音频标签
         String audioLabel = "<audio src=\"" + fileVO.getUrl() + "\" controls style=\"width: 300px; height: 43px\"></audio>";
         // 输出生成的 HTML 标签
-        System.out.println(audioLabel);
-        return new NodeResult(Map.of("answer",audioLabel,"result",List.of(fileVO.getUrl())),Map.of());
+        return new NodeResult(Map.of("answer",audioLabel,"result",List.of(fileVO)),Map.of());
     }
 
     @Override

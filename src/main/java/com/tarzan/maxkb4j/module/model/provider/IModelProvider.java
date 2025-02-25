@@ -15,6 +15,7 @@ public abstract class IModelProvider {
     public BaseModelCredential getModelCredential( String modelType,String modelName){
         ModelInfoManage modelInfoManage=getModelInfoManage();
         ModelInfo modelInfo = modelInfoManage.getModelInfo(modelType,modelName);
+        assert modelInfo != null;
         return modelInfo.getModelCredential();
     };
 
@@ -22,7 +23,7 @@ public abstract class IModelProvider {
         List<ModelInfo> modelList = getModelList();
         ModelInfo modelInfo = modelList.stream().filter(model -> model.getModelType().equals(modelType) && model.getName().equals(modelName)).findFirst().orElse(null);
         assert modelInfo != null;
-        return getModelInfoManage().getModelInfo(modelType,modelName).getModelClass().newInstance(modelName, modelCredential);
+        return modelInfo.getModelClass().newInstance(modelName, modelCredential);
     }
 
 }

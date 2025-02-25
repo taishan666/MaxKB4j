@@ -289,7 +289,6 @@ public class WorkflowManage {
         // 获取下一个节点列表
         List<INode> nodeList = getNextNodeList(currentNode, result);
         if (nodeList.size() == 1) {
-            System.out.println("node getType=" + nodeList.get(0).getType());
             runChainManage(nodeList.get(0), null, language);
         } else if (nodeList.size() > 1) {
             // 对节点进行排序
@@ -699,6 +698,7 @@ public class WorkflowManage {
             NodeResult result = node.run();
             return new NodeResultFuture(result, null, 200);
         } catch (Exception ex) {
+            log.error(node.getType());
             log.error(ex.getMessage());
             return new NodeResultFuture(null, ex, 500);
         }

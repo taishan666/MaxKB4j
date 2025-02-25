@@ -13,7 +13,6 @@ public abstract class IDocumentExtractNode extends INode {
 
     @Override
     public DocumentExtractParams getNodeParamsClass(JSONObject nodeParams) {
-        System.out.println(nodeParams);
         return nodeParams.toJavaObject(DocumentExtractParams.class);
     }
 

@@ -26,7 +26,8 @@ public class BaseReplyNode extends IReplyNode {
     }
 
     private String getReferenceContent(List<String> fields){
-        return (String)this.workflowManage.getReferenceField(fields.get(0),fields.subList(1, fields.size()));
+        Object res=this.workflowManage.getReferenceField(fields.get(0),fields.subList(1, fields.size()));
+        return res==null?"":res.toString();
     }
 
     @Override

@@ -22,7 +22,7 @@ public class FileService extends ServiceImpl<FileMapper, FileEntity>{
     public FileVO uploadFile(String fileName, byte[] fileBytes) {
         FileVO vo=new FileVO();
         String sql = "SELECT lo_from_bytea(?, ?::bytea) AS loid";
-        int loid = 0;
+        int loid;
         loid = jdbcTemplate.queryForObject(sql, (rs, rowNum) -> rs.getInt("loid"), 0, fileBytes);
         FileEntity fileEntity=new FileEntity();
         fileEntity.setFileName(fileName);
@@ -33,6 +33,16 @@ public class FileService extends ServiceImpl<FileMapper, FileEntity>{
         vo.setName(fileName);
         vo.setUrl("/api/file/"+fileEntity.getId());
         return vo;
+    }
+
+    public void updateFile(String fileId, byte[] fileBytes) {
+        String sql = "SELECT lo_from_bytea(?, ?::bytea) AS loid";
+        int loid;
+        loid = jdbcTemplate.queryForObject(sql, (rs, rowNum) -> rs.getInt("loid"), 0, fileBytes);
+        FileEntity fileEntity=new FileEntity();
+        fileEntity.setId(fileId);
+        fileEntity.setLoid(loid);
+        updateById(fileEntity);
     }
 
     public byte[] getBytes(String id) {

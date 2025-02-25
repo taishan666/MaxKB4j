@@ -7,10 +7,7 @@ import com.tarzan.maxkb4j.module.model.provider.ModelProvideInfo;
 import com.tarzan.maxkb4j.module.model.provider.enums.ModelProviderEnum;
 import com.tarzan.maxkb4j.module.model.provider.enums.ModelTypeEnum;
 import com.tarzan.maxkb4j.module.model.provider.impl.aliyunModelProvider.credential.BaiLianLLMModelCredential;
-import com.tarzan.maxkb4j.module.model.provider.impl.aliyunModelProvider.model.BaiLianChatModel;
-import com.tarzan.maxkb4j.module.model.provider.impl.aliyunModelProvider.model.BaiLianEmbedding;
-import com.tarzan.maxkb4j.module.model.provider.impl.aliyunModelProvider.model.BaiLianTextToSpeech;
-import com.tarzan.maxkb4j.module.model.provider.impl.aliyunModelProvider.model.QWenTextToImageModel;
+import com.tarzan.maxkb4j.module.model.provider.impl.aliyunModelProvider.model.*;
 import com.tarzan.maxkb4j.util.IoUtil;
 
 import java.io.InputStream;
@@ -44,7 +41,7 @@ public class AliYunBaiLianModelProvider extends IModelProvider {
         modelInfos.add(new ModelInfo("qwen-max","", ModelTypeEnum.LLM.name(),new BaiLianLLMModelCredential(), new BaiLianChatModel()));
         modelInfos.add(new ModelInfo("text-embedding-v2","", ModelTypeEnum.EMBEDDING.name(),new BaiLianEmbedding()));
         modelInfos.add(new ModelInfo("text-embedding-v3","", ModelTypeEnum.EMBEDDING.name(),new BaiLianEmbedding()));
-        modelInfos.add(new ModelInfo("paraformer-realtime-v2","", ModelTypeEnum.STT.name(),new BaiLianLLMModelCredential(), new BaiLianTextToSpeech()));
+        modelInfos.add(new ModelInfo("paraformer-realtime-v2","", ModelTypeEnum.STT.name(),new BaiLianLLMModelCredential(), new BaiLianSpeechToText()));
         modelInfos.add(new ModelInfo("cosyvoice-v1","",ModelTypeEnum.TTS.name(),new BaiLianLLMModelCredential(), new BaiLianTextToSpeech()));
         modelInfos.add(new ModelInfo("qwen-vl-plus","",ModelTypeEnum.IMAGE.name(),null));
         modelInfos.add(new ModelInfo("qwen-vl-max","",ModelTypeEnum.IMAGE.name(),null));

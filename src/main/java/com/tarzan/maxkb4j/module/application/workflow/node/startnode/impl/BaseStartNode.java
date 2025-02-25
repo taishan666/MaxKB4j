@@ -47,7 +47,6 @@ public class BaseStartNode extends IStarNode {
         }
         // 获取chat_id并确保其为字符串形式
         String chatId = workflowParams.getChatId();
-        System.out.println("chat_id: " + chatId);
         // 构建返回的map
         Map<String, Object> resultMap = new HashMap<>();
         resultMap.put("time", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
