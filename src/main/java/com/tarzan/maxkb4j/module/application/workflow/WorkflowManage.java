@@ -30,9 +30,9 @@ public class WorkflowManage {
     private String startNodeId;
     private INode startNode;
     private Map<String, Object> formData = new HashMap<>();
-    private List<Object> imageList = new ArrayList<>();
-    private List<Object> documentList = new ArrayList<>();
-    private List<Object> audioList = new ArrayList<>();
+    private List<JSONObject> imageList = new ArrayList<>();
+    private List<JSONObject> documentList = new ArrayList<>();
+    private List<JSONObject> audioList = new ArrayList<>();
     private FlowParams params;
     private Flow flow;
     private final ReentrantLock lock = new ReentrantLock();
@@ -53,8 +53,8 @@ public class WorkflowManage {
     private ExecutorService executorService = Executors.newFixedThreadPool(5);
 
     public WorkflowManage(Flow flow, FlowParams params, WorkFlowPostHandler workFlowPostHandler,
-                          BaseToResponse baseToResponse, Map<String, Object> formData, List<Object> imageList,
-                          List<Object> documentList, List<Object> audioList, String startNodeId,
+                          BaseToResponse baseToResponse, Map<String, Object> formData, List<JSONObject> imageList,
+                          List<JSONObject> documentList, List<JSONObject> audioList, String startNodeId,
                           Map<String, Object> startNodeData, ApplicationChatRecordVO chatRecord, Object childNode) {
         if (formData != null) {
             this.formData = formData;

@@ -2,6 +2,9 @@ package com.tarzan.maxkb4j.module.model.provider.impl.aliyunModelProvider.model;
 
 import com.alibaba.dashscope.audio.asr.recognition.Recognition;
 import com.alibaba.dashscope.audio.asr.recognition.RecognitionParam;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.module.model.entity.ModelCredential;
 import com.tarzan.maxkb4j.module.model.provider.BaseModel;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseSpeechToText;
@@ -42,20 +45,23 @@ public class BaiLianSpeechToText extends BaseSpeechToText implements BaseModel {
                 RecognitionParam.builder()
                         .apiKey(apiKey)
                         .model("paraformer-realtime-v2")
-                        .format("wav")
-                        .sampleRate(16000)
-                        // “language_hints”只支持paraformer-v2和paraformer-realtime-v2模型
+                        .format("mp3")
+                        .sampleRate(22050)
                         .parameter("language_hints", new String[]{"zh", "en"})
                         .build();
-          // 创建临时文件
-        Path tempFile = null;
+        // 创建临时文件
+        Path tempFile;
         try {
-            tempFile = Files.createTempFile("temp_audio",".wav");
+            tempFile = Files.createTempFile("temp_audio",".mp3");
             // 将 byte[] 写入临时文件
             Files.write(tempFile, audioBytes);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        return recognizer.call(param, tempFile.toFile());
+        String result= recognizer.call(param, tempFile.toFile());
+        JSONObject json = JSON.parseObject(result);
+        JSONArray sentences= json.getJSONArray("sentences");
+        return sentences.getJSONObject(0).getString("text");
     }
+
 }

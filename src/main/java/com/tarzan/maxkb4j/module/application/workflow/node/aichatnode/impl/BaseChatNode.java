@@ -78,8 +78,8 @@ public class BaseChatNode extends IChatNode {
             context.put("message_tokens", tokenUsage.inputTokenCount());
             context.put("answer_tokens", tokenUsage.outputTokenCount());
             context.put("answer", answer);
-            context.put("question", nodeVariable.get("question"));
-            context.put("history_message", nodeVariable.get("history_message"));
+           // context.put("question", nodeVariable.get("question"));
+          //  context.put("history_message", nodeVariable.get("history_message"));
             long runTime = System.currentTimeMillis() - (long)context.get("start_time");
             context.put("run_time", runTime / 1000F);
         });
@@ -99,17 +99,15 @@ public class BaseChatNode extends IChatNode {
         BaseChatModel chatModel = modelService.getModelById(nodeParams.getModelId(), nodeParams.getModelParamsSetting());
         System.out.println("execute耗时2 " + (System.currentTimeMillis() - startTime) + " ms");
         List<ChatMessage> historyMessage = getHistoryMessage(flowParams.getHistoryChatRecord(), nodeParams.getDialogueNumber(), nodeParams.getDialogueType(), super.runtimeNodeId);
-        this.context.put("history_message", historyMessage);
         UserMessage question = generatePromptQuestion(nodeParams.getPrompt());
-        this.context.put("question", question.singleText());
         String system = workflowManage.generatePrompt(nodeParams.getSystem());
-        this.context.put("system", system);
         List<ChatMessage> messageList =  super.workflowManage.generateMessageList(system, question, historyMessage);
         if (flowParams.getStream()) {
             ChatStream chatStream = chatModel.stream(messageList);
             System.out.println("execute耗时7 " + (System.currentTimeMillis() - startTime) + " ms");
             Map<String, Object> nodeVariable = Map.of(
                     "result", chatStream,
+                    "system", system,
                     "chat_model", chatModel,
                     "message_list", messageList,
                     "history_message", historyMessage,

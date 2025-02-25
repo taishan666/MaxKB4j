@@ -38,7 +38,6 @@ import com.tarzan.maxkb4j.module.dataset.entity.DatasetEntity;
 import com.tarzan.maxkb4j.module.dataset.service.DatasetService;
 import com.tarzan.maxkb4j.module.dataset.vo.ParagraphVO;
 import com.tarzan.maxkb4j.module.file.service.FileService;
-import com.tarzan.maxkb4j.module.file.vo.FileVO;
 import com.tarzan.maxkb4j.module.image.service.ImageService;
 import com.tarzan.maxkb4j.module.model.entity.ModelEntity;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseTextToSpeech;
@@ -815,8 +814,8 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         return workFlowVersionService.updateById(versionEntity);
     }
 
-    public List<FileVO> uploadFile(String id, String chatId, MultipartFile[] files) {
-        List<FileVO> fileList = new ArrayList<>();
+    public List<JSONObject> uploadFile(String id, String chatId, MultipartFile[] files) {
+        List<JSONObject> fileList = new ArrayList<>();
         for (MultipartFile file : files) {
             try {
                 fileList.add(fileService.uploadFile(file.getOriginalFilename(),file.getBytes()));

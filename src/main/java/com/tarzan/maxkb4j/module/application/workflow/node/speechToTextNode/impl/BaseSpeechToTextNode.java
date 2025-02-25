@@ -29,16 +29,16 @@ public class BaseSpeechToTextNode extends ISpeechToTextNode {
         List<String> audioList = nodeParams.getAudioList();
         Object res = super.getWorkflowManage().getReferenceField(audioList.get(0), audioList.subList(1, audioList.size()));
         BaseSpeechToText sttModel = modelService.getModelById(nodeParams.getSttModelId());
-      //  List<FileVO> audioFiles = (List<FileVO>) res;
-        List<Map<String,Object>> audioFiles= (List<Map<String,Object>>) res;
+        List<JSONObject> audioFiles = (List<JSONObject>) res;
+      //  List<Map<String,Object>> audioFiles= (List<Map<String,Object>>) res;
         System.out.println(res);
         StringBuilder sb = new StringBuilder();
-        for (Map<String,Object> map : audioFiles) {
-            byte[] data = fileService.getBytes((String) map.get("file_id"));
+        for (JSONObject file: audioFiles) {
+            byte[] data = fileService.getBytes(file.getString("file_id"));
             String result = sttModel.speechToText(data);
             sb.append(result);
         }
-        return new NodeResult(Map.of("answer", sb.toString(), "result", "123"), Map.of());
+        return new NodeResult(Map.of("answer", sb.toString(), "result", sb.toString(), "audio_list", audioList), Map.of());
     }
 
     @Override

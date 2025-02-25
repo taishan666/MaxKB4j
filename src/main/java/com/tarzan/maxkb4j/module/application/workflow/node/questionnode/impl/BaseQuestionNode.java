@@ -41,11 +41,8 @@ public class BaseQuestionNode extends IQuestionNode {
         }
         BaseChatModel chatModel = modelService.getModelById(nodeParams.getModelId(), nodeParams.getModelParamsSetting());
         List<ChatMessage> historyMessage = getHistoryMessage(flowParams.getHistoryChatRecord(), nodeParams.getDialogueNumber());
-        this.context.put("history_message", historyMessage);
         UserMessage question = super.workflowManage.generatePromptQuestion(nodeParams.getPrompt());
-        this.context.put("question", question.singleText());
         String system = workflowManage.generatePrompt(nodeParams.getSystem());
-        this.context.put("system", system);
         List<ChatMessage> messageList =  super.workflowManage.generateMessageList(system, question, historyMessage);
         QueryTransformer queryTransformer=new CompressingQueryTransformer(chatModel.getChatModel());
         Metadata metadata=new Metadata(question, flowParams.getChatId(), historyMessage);
@@ -58,40 +55,13 @@ public class BaseQuestionNode extends IQuestionNode {
         Map<String, Object> nodeVariable = Map.of(
                 "answer", answerSb.toString(),
                 "chat_model", chatModel,
+                "system",system,
                 "message_list", messageList,
                 "history_message", historyMessage,
                 "question", question.singleText()
         );
         context.put("message_tokens", 0);
         context.put("answer_tokens", 0);
-        return new NodeResult(nodeVariable, Map.of());
-    }
-    public NodeResult execute1(QuestionParams nodeParams, FlowParams flowParams) {
-        long startTime = System.currentTimeMillis();
-        if (Objects.isNull(nodeParams.getModelParamsSetting())) {
-            nodeParams.setModelParamsSetting(getDefaultModelParamsSetting(nodeParams.getModelId()));
-        }
-        System.out.println("execute耗时1 " + (System.currentTimeMillis() - startTime) + " ms");
-        BaseChatModel chatModel = modelService.getModelById(nodeParams.getModelId(), nodeParams.getModelParamsSetting());
-        System.out.println("execute耗时2 " + (System.currentTimeMillis() - startTime) + " ms");
-        List<ChatMessage> historyMessage = getHistoryMessage(flowParams.getHistoryChatRecord(), nodeParams.getDialogueNumber());
-        this.context.put("history_message", historyMessage);
-        UserMessage question = super.workflowManage.generatePromptQuestion(nodeParams.getPrompt());
-        this.context.put("question", question.singleText());
-        String system = workflowManage.generatePrompt(nodeParams.getSystem());
-        this.context.put("system", system);
-        List<ChatMessage> messageList =  super.workflowManage.generateMessageList(system, question, historyMessage);
-        ChatResponse res = chatModel.generate(messageList);
-        Map<String, Object> nodeVariable = Map.of(
-                "answer", res.aiMessage().text(),
-                "chat_model", chatModel,
-                "message_list", messageList,
-                "history_message", historyMessage,
-                "question", question.singleText()
-        );
-        TokenUsage tokenUsage = res.tokenUsage();
-        context.put("message_tokens", tokenUsage.inputTokenCount());
-        context.put("answer_tokens", tokenUsage.outputTokenCount());
         return new NodeResult(nodeVariable, Map.of());
     }
 

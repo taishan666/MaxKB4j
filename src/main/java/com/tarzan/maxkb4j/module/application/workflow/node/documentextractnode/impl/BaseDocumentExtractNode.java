@@ -6,7 +6,6 @@ import com.tarzan.maxkb4j.module.application.workflow.WorkflowManage;
 import com.tarzan.maxkb4j.module.application.workflow.node.documentextractnode.IDocumentExtractNode;
 import com.tarzan.maxkb4j.module.application.workflow.node.documentextractnode.dto.DocumentExtractParams;
 import com.tarzan.maxkb4j.module.file.service.FileService;
-import com.tarzan.maxkb4j.module.file.vo.FileVO;
 import com.tarzan.maxkb4j.util.SpringUtil;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.apache.poi.xwpf.usermodel.XWPFParagraph;
@@ -136,9 +135,9 @@ public class BaseDocumentExtractNode extends IDocumentExtractNode {
                         String src = attrs.getValue("src");
                         if (src != null && src.startsWith("embedded:")) {
                             String imageName = src.split(":")[1];
-                            FileVO image=fileService.uploadFile(imageName, new byte[0]);
-                            imageMap.put(imageName, image.getFileId());
-                            markdown.append("![").append(imageName).append("](").append(image.getUrl()).append(")\n");
+                            JSONObject image=fileService.uploadFile(imageName, new byte[0]);
+                            imageMap.put(imageName, image.getString("file_id"));
+                            markdown.append("![").append(imageName).append("](").append(image.getString("url")).append(")\n");
                         }
                     }
                 }

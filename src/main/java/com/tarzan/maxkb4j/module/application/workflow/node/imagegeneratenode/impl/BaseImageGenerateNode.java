@@ -27,7 +27,6 @@ public class BaseImageGenerateNode extends IImageGenerateNode {
         ImageModel ttiModel = modelService.getModelById(nodeParams.getModelId(), nodeParams.getModelParamsSetting());
         Response<Image> res = ttiModel.generate(prompt+negativePrompt);
         Image image = res.content();
-        System.out.println(image.url());
         String answer ="!["+prompt+"](" + image.url() + ")";
         return new NodeResult(Map.of("answer",answer,"image",image.url()),Map.of());
     }

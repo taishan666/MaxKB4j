@@ -19,7 +19,22 @@ public class FileService extends ServiceImpl<FileMapper, FileEntity>{
 
     private final JdbcTemplate jdbcTemplate;
 
-    public FileVO uploadFile(String fileName, byte[] fileBytes) {
+    public JSONObject uploadFile(String fileName, byte[] fileBytes) {
+        JSONObject vo=new JSONObject();
+        String sql = "SELECT lo_from_bytea(?, ?::bytea) AS loid";
+        int loid;
+        loid = jdbcTemplate.queryForObject(sql, (rs, rowNum) -> rs.getInt("loid"), 0, fileBytes);
+        FileEntity fileEntity=new FileEntity();
+        fileEntity.setFileName(fileName);
+        fileEntity.setLoid(loid);
+        fileEntity.setMeta(new JSONObject());
+        save(fileEntity);
+        vo.put("file_id",fileEntity.getId());
+        vo.put("name",fileName);
+        vo.put("url","/api/file/"+fileEntity.getId());
+        return vo;
+    }
+    public FileVO uploadFile1(String fileName, byte[] fileBytes) {
         FileVO vo=new FileVO();
         String sql = "SELECT lo_from_bytea(?, ?::bytea) AS loid";
         int loid;

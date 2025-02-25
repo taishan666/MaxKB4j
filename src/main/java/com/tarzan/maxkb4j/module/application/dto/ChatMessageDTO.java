@@ -16,12 +16,12 @@ public class ChatMessageDTO {
     @JsonProperty("form_data")
     private JSONObject formData;
     @JsonProperty("audio_list")
-    private List<Object> audioList;
+    private List<JSONObject> audioList;
     @JsonProperty("document_list")
-    private List<Object> documentList;
+    private List<JSONObject> documentList;
     @JsonProperty("image_list")
-    private List<Object> imageList;
+    private List<JSONObject> imageList;
     @JsonProperty("video_list")
-    private List<Object> videoList;
+    private List<JSONObject> videoList;
 
 }
