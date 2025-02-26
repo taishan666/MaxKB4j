@@ -15,10 +15,13 @@ import com.tarzan.maxkb4j.module.application.workflow.node.speechtotext.impl.Bas
 import com.tarzan.maxkb4j.module.application.workflow.node.start.impl.BaseStartNode;
 import com.tarzan.maxkb4j.module.application.workflow.node.texttospeech.impl.BaseTextToSpeechNode;
 import com.tarzan.maxkb4j.module.application.workflow.node.variableassign.impl.BaseVariableAssignNode;
+import org.reflections.Reflections;
 
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Function;
 
 public class NodeFactory {
@@ -41,6 +44,35 @@ public class NodeFactory {
         nodeList.add(new BaseSpeechToTextNode());
         nodeList.add(new BaseVariableAssignNode());
         nodeList.add(new BaseFunctionNode());
+    }
+
+    public static void main(String[] args) {
+        List<INode> nodes = getSubclassInstances(INode.class, "com.tarzan.maxkb4j.module.application.workflow.node");
+        for (INode node : nodes) {
+            System.out.println(node.getType()+" "+node.hashCode());
+        }
+    }
+
+    public static <T> List<T> getSubclassInstances(Class<T> targetClass,String basePackage) {
+        // 指定包名进行扫描
+        Reflections reflections = new Reflections(basePackage);
+        // 获取所有子类（包括非直接继承）
+        Set<Class<? extends T>> subClasses = reflections.getSubTypesOf(targetClass);
+        List<T> instances = new ArrayList<>();
+        for (Class<? extends T> clazz : subClasses) {
+            try {
+                // 跳过抽象类和接口
+                if (clazz.isInterface() || Modifier.isAbstract(clazz.getModifiers())) {
+                    continue;
+                }
+                // 通过默认构造函数创建实例
+                T instance = clazz.getDeclaredConstructor().newInstance();
+                instances.add(instance);
+            } catch (Exception e) {
+                System.err.println("无法实例化类: " + clazz.getName() + ", 错误: " + e.getMessage());
+            }
+        }
+        return instances;
     }
 
     private  INode getNode(String nodeType) {
