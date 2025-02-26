@@ -1,18 +1,15 @@
 package com.tarzan.maxkb4j.module.application.workflow.dto;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationChatRecordEntity;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-import javax.validation.ConstraintViolation;
-import javax.validation.Validation;
-import javax.validation.Validator;
-import javax.validation.ValidatorFactory;
-import javax.validation.constraints.*;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -53,7 +50,7 @@ public class FlowParams extends BaseParams {
     private Boolean reChat;
 
     // Example of how to validate the serializer
-    public boolean isValid() {
+/*    public boolean isValid() {
         ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
         Validator validator = factory.getValidator();
         Set<ConstraintViolation<FlowParams>> violations = validator.validate(this);
@@ -65,9 +62,9 @@ public class FlowParams extends BaseParams {
             return false;
         }
         return true;
-    }
+    }*/
 
-    public static void main(String[] args) throws Exception {
+/*    public static void main(String[] args) throws Exception {
         ObjectMapper objectMapper = new ObjectMapper();
         String jsonInput = "{...}"; // Your JSON input here
 
@@ -77,5 +74,5 @@ public class FlowParams extends BaseParams {
         } else {
             System.out.println("Validation failed");
         }
-    }
+    }*/
 }

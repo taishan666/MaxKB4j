@@ -49,7 +49,7 @@ public class WorkflowManage {
     private BaseToResponse baseToResponse;
     private ApplicationChatRecordVO chatRecord;
     private Map<String, CompletableFuture<?>> awaitFutureMap = new HashMap<>();
-    private Object childNode; // 根据实际需要定义类型
+    private JSONObject childNode; // 根据实际需要定义类型
     private final List<Future<?>> futureList = new ArrayList<>();
     private List<INode> nodeContext = new ArrayList<>();
     private ExecutorService executorService = Executors.newFixedThreadPool(5);
@@ -57,7 +57,7 @@ public class WorkflowManage {
     public WorkflowManage(Flow flow, FlowParams params, WorkFlowPostHandler workFlowPostHandler,
                           BaseToResponse baseToResponse, Map<String, Object> formData, List<JSONObject> imageList,
                           List<JSONObject> documentList, List<JSONObject> audioList, String startNodeId,
-                          Map<String, Object> startNodeData, ApplicationChatRecordVO chatRecord, Object childNode) {
+                          Map<String, Object> startNodeData, ApplicationChatRecordVO chatRecord, JSONObject childNode) {
         if (formData != null) {
             this.formData = formData;
         }
@@ -510,19 +510,6 @@ public class WorkflowManage {
             flag = flag && b;
         }
         return !flag;
-    }
-
-    public String generatePrompt1(String prompt) {
-        prompt = prompt == null ? "" : prompt;
-        if (StringUtils.isNotBlank(prompt)) {
-            prompt = this.resetPrompt(prompt);
-            Map<String, Object> context = new HashMap<>();
-            context.put("start-node.question", "你好");
-            context.put("e339e792-e205-4bd6-b995-426b54f7ac54.data", "我是洛阳泰山智能客服");
-            PromptTemplate promptTemplate = PromptTemplate.from(prompt);
-            return promptTemplate.apply(context).text();
-        }
-        return prompt;
     }
 
 

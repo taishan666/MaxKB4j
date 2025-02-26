@@ -7,6 +7,7 @@ import com.tarzan.maxkb4j.module.application.workflow.node.application.impl.Base
 import com.tarzan.maxkb4j.module.application.workflow.node.condition.impl.BaseConditionNode;
 import com.tarzan.maxkb4j.module.application.workflow.node.directreply.impl.BaseReplyNode;
 import com.tarzan.maxkb4j.module.application.workflow.node.documentextract.impl.BaseDocumentExtractNode;
+import com.tarzan.maxkb4j.module.application.workflow.node.function.impl.BaseFunctionNode;
 import com.tarzan.maxkb4j.module.application.workflow.node.imagegenerate.impl.BaseImageGenerateNode;
 import com.tarzan.maxkb4j.module.application.workflow.node.question.impl.BaseQuestionNode;
 import com.tarzan.maxkb4j.module.application.workflow.node.searchdataset.impl.BaseSearchDatasetNode;
@@ -39,6 +40,7 @@ public class NodeFactory {
         nodeList.add(new BaseDocumentExtractNode());
         nodeList.add(new BaseSpeechToTextNode());
         nodeList.add(new BaseVariableAssignNode());
+        nodeList.add(new BaseFunctionNode());
     }
 
     private  INode getNode(String nodeType) {
