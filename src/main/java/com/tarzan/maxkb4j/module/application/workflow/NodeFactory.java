@@ -2,17 +2,18 @@ package com.tarzan.maxkb4j.module.application.workflow;
 
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.module.application.workflow.dto.FlowParams;
-import com.tarzan.maxkb4j.module.application.workflow.node.aichatnode.impl.BaseChatNode;
-import com.tarzan.maxkb4j.module.application.workflow.node.applicationnode.impl.BaseApplicationNode;
-import com.tarzan.maxkb4j.module.application.workflow.node.conditionnode.impl.BaseConditionNode;
-import com.tarzan.maxkb4j.module.application.workflow.node.directreplynode.impl.BaseReplyNode;
-import com.tarzan.maxkb4j.module.application.workflow.node.documentextractnode.impl.BaseDocumentExtractNode;
-import com.tarzan.maxkb4j.module.application.workflow.node.imagegeneratenode.impl.BaseImageGenerateNode;
-import com.tarzan.maxkb4j.module.application.workflow.node.questionnode.impl.BaseQuestionNode;
-import com.tarzan.maxkb4j.module.application.workflow.node.searchdatasetnode.impl.BaseSearchDatasetNode;
-import com.tarzan.maxkb4j.module.application.workflow.node.speechToTextNode.impl.BaseSpeechToTextNode;
-import com.tarzan.maxkb4j.module.application.workflow.node.startnode.impl.BaseStartNode;
-import com.tarzan.maxkb4j.module.application.workflow.node.texttospeechnode.impl.BaseTextToSpeechNode;
+import com.tarzan.maxkb4j.module.application.workflow.node.aichat.impl.BaseChatNode;
+import com.tarzan.maxkb4j.module.application.workflow.node.application.impl.BaseApplicationNode;
+import com.tarzan.maxkb4j.module.application.workflow.node.condition.impl.BaseConditionNode;
+import com.tarzan.maxkb4j.module.application.workflow.node.directreply.impl.BaseReplyNode;
+import com.tarzan.maxkb4j.module.application.workflow.node.documentextract.impl.BaseDocumentExtractNode;
+import com.tarzan.maxkb4j.module.application.workflow.node.imagegenerate.impl.BaseImageGenerateNode;
+import com.tarzan.maxkb4j.module.application.workflow.node.question.impl.BaseQuestionNode;
+import com.tarzan.maxkb4j.module.application.workflow.node.searchdataset.impl.BaseSearchDatasetNode;
+import com.tarzan.maxkb4j.module.application.workflow.node.speechtotext.impl.BaseSpeechToTextNode;
+import com.tarzan.maxkb4j.module.application.workflow.node.start.impl.BaseStartNode;
+import com.tarzan.maxkb4j.module.application.workflow.node.texttospeech.impl.BaseTextToSpeechNode;
+import com.tarzan.maxkb4j.module.application.workflow.node.variableassign.impl.BaseVariableAssignNode;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,6 +38,7 @@ public class NodeFactory {
         nodeList.add(new BaseTextToSpeechNode());
         nodeList.add(new BaseDocumentExtractNode());
         nodeList.add(new BaseSpeechToTextNode());
+        nodeList.add(new BaseVariableAssignNode());
     }
 
     private  INode getNode(String nodeType) {
