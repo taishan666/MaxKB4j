@@ -12,7 +12,7 @@ import java.util.List;
 @Data
 public class FormNodeParams extends BaseParams {
     @JsonProperty("form_field_list")
-    private List<String> formFieldList;
+    private List<JSONObject> formFieldList;
     @JsonProperty("form_content_format")
     private String formContentFormat;
     @JsonProperty("form_data")
