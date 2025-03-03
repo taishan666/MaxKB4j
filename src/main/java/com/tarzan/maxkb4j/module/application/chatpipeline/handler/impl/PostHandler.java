@@ -1,18 +1,17 @@
 package com.tarzan.maxkb4j.module.application.chatpipeline.handler.impl;
 
 import com.alibaba.fastjson.JSONObject;
-import com.tarzan.maxkb4j.module.application.entity.ApplicationChatEntity;
-import com.tarzan.maxkb4j.module.application.entity.ApplicationChatRecordEntity;
-import com.tarzan.maxkb4j.module.application.service.ApplicationChatRecordService;
-import com.tarzan.maxkb4j.module.application.service.ApplicationChatService;
 import com.tarzan.maxkb4j.module.application.cache.ChatCache;
-import com.tarzan.maxkb4j.module.application.dto.ChatInfo;
 import com.tarzan.maxkb4j.module.application.chatpipeline.PipelineManage;
 import com.tarzan.maxkb4j.module.application.chatpipeline.handler.PostResponseHandler;
+import com.tarzan.maxkb4j.module.application.dto.ChatInfo;
+import com.tarzan.maxkb4j.module.application.entity.ApplicationChatEntity;
+import com.tarzan.maxkb4j.module.application.entity.ApplicationChatRecordEntity;
+import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatMapper;
+import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatRecordMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.lang.String;
 import java.util.List;
 import java.util.Objects;
 
@@ -20,9 +19,9 @@ import java.util.Objects;
 public class PostHandler extends PostResponseHandler {
 
     @Autowired
-    private ApplicationChatService chatService;
+    private ApplicationChatMapper chatMapper;
     @Autowired
-    private ApplicationChatRecordService chatRecordService;
+    private ApplicationChatRecordMapper chatRecordMapper;
 
     @Override
     public void handler(ChatInfo chatInfo, String chatId, String chatRecordId, String problemText, String answerText, PipelineManage manage, String clientId) {
@@ -53,8 +52,8 @@ public class PostHandler extends PostResponseHandler {
             chatEntity.setDigest(problemText);
             chatEntity.setClientId(clientId);
             chatEntity.setIsDeleted(false);
-            chatService.saveOrUpdate(chatEntity);
-            chatRecordService.save(chatRecord);
+            chatMapper.insertOrUpdate(chatEntity);
+            chatRecordMapper.insert(chatRecord);
         }
     }
 

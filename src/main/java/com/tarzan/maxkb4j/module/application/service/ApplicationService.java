@@ -12,14 +12,11 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tarzan.maxkb4j.common.dto.QueryDTO;
 import com.tarzan.maxkb4j.module.application.dto.ApplicationAccessTokenDTO;
 import com.tarzan.maxkb4j.module.application.dto.ChatImproveDTO;
-import com.tarzan.maxkb4j.module.application.dto.ChatQueryDTO;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationAccessTokenEntity;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationDatasetMappingEntity;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationEntity;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationWorkFlowVersionEntity;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationMapper;
-import com.tarzan.maxkb4j.module.application.vo.ApplicationPublicAccessClientStatisticsVO;
-import com.tarzan.maxkb4j.module.application.vo.ApplicationStatisticsVO;
 import com.tarzan.maxkb4j.module.application.vo.ApplicationVO;
 import com.tarzan.maxkb4j.module.dataset.dto.HitTestDTO;
 import com.tarzan.maxkb4j.module.dataset.entity.DatasetEntity;
@@ -47,8 +44,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.nio.file.Path;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 /**
@@ -65,13 +60,9 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     @Autowired
     private DatasetService datasetService;
     @Autowired
-    private ApplicationChatService chatService;
-    @Autowired
     private ApplicationWorkFlowVersionService workFlowVersionService;
     @Autowired
     private ApplicationDatasetMappingService datasetMappingService;
-    @Autowired
-    private ApplicationPublicAccessClientService publicAccessClientService;
     @Autowired
     private ImageService imageService;
     @Autowired
@@ -258,55 +249,6 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         return vo;
     }
 
-    // 定义日期格式
-    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-
-    public List<ApplicationStatisticsVO> statistics(String appId, ChatQueryDTO query) {
-        List<ApplicationStatisticsVO> result = new ArrayList<>();
-        List<ApplicationStatisticsVO> list = chatService.statistics(appId, query);
-        List<ApplicationPublicAccessClientStatisticsVO> AccessClientList = publicAccessClientService.statistics(appId, query);
-        // 将字符串解析为LocalDate对象
-        LocalDate startDate = LocalDate.parse(query.getStartTime(), formatter);
-        LocalDate endDate = LocalDate.parse(query.getEndTime(), formatter);
-        // 遍历从开始日期到结束日期之间的所有日期
-        for (LocalDate date = startDate; !date.isAfter(endDate); date = date.plusDays(1)) {
-            String day = date.format(formatter);
-            ApplicationStatisticsVO vo = getApplicationStatisticsVO(list, day);
-            ApplicationPublicAccessClientStatisticsVO accessClientStatisticsVO = getApplicationPublicAccessClientStatisticsVO(AccessClientList, day);
-            if (accessClientStatisticsVO != null) {
-                vo.setCustomerAddedCount(accessClientStatisticsVO.getCustomerAddedCount());
-            }
-            result.add(vo);
-        }
-        return result;
-    }
-
-    public ApplicationStatisticsVO getApplicationStatisticsVO(List<ApplicationStatisticsVO> list, String day) {
-        if (!CollectionUtils.isEmpty(list)) {
-            Optional<ApplicationStatisticsVO> optional = list.stream().filter(e -> e.getDay().equals(day)).findFirst();
-            if (optional.isPresent()) {
-                return optional.get();
-            }
-        }
-        ApplicationStatisticsVO vo = new ApplicationStatisticsVO();
-        vo.setDay(day);
-        vo.setStarNum(0);
-        vo.setTokensNum(0);
-        vo.setCustomerNum(0);
-        vo.setChatRecordCount(0);
-        vo.setTrampleNum(0);
-        return vo;
-    }
-
-    public ApplicationPublicAccessClientStatisticsVO getApplicationPublicAccessClientStatisticsVO(List<ApplicationPublicAccessClientStatisticsVO> list, String day) {
-        if (!CollectionUtils.isEmpty(list)) {
-            Optional<ApplicationPublicAccessClientStatisticsVO> optional = list.stream().filter(e -> e.getDay().equals(day)).findFirst();
-            if (optional.isPresent()) {
-                return optional.get();
-            }
-        }
-        return null;
-    }
 
 
 

@@ -1,6 +1,7 @@
 package com.tarzan.maxkb4j.module.embedding.service;
 
 import com.alibaba.fastjson.JSONObject;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.huaban.analysis.jieba.JiebaSegmenter;
 import com.tarzan.maxkb4j.common.dto.SearchIndex;
@@ -11,10 +12,9 @@ import com.tarzan.maxkb4j.module.dataset.entity.DatasetEntity;
 import com.tarzan.maxkb4j.module.dataset.entity.ParagraphEntity;
 import com.tarzan.maxkb4j.module.dataset.entity.ProblemEntity;
 import com.tarzan.maxkb4j.module.dataset.mapper.DatasetMapper;
+import com.tarzan.maxkb4j.module.dataset.mapper.ParagraphMapper;
 import com.tarzan.maxkb4j.module.dataset.mapper.ProblemMapper;
-import com.tarzan.maxkb4j.module.dataset.service.DocumentService;
-import com.tarzan.maxkb4j.module.dataset.service.ParagraphService;
-import com.tarzan.maxkb4j.module.dataset.service.ProblemParagraphService;
+import com.tarzan.maxkb4j.module.dataset.mapper.ProblemParagraphMapper;
 import com.tarzan.maxkb4j.module.dataset.vo.HitTestVO;
 import com.tarzan.maxkb4j.module.dataset.vo.ParagraphVO;
 import com.tarzan.maxkb4j.module.dataset.vo.ProblemParagraphVO;
@@ -27,7 +27,6 @@ import dev.langchain4j.model.output.Response;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.util.StringUtil;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -44,13 +43,11 @@ import java.util.stream.Collectors;
 public class EmbeddingService extends ServiceImpl<EmbeddingMapper, EmbeddingEntity> {
 
     @Autowired
-    private ParagraphService paragraphService;
+    private ParagraphMapper paragraphMapper;
     @Autowired
-    private ProblemParagraphService problemParagraphMappingService;
+    private ProblemParagraphMapper problemParagraphMappingMapper;
     @Autowired
     private ProblemMapper problemMapper;
-    @Autowired
-    private DocumentService documentService;
     @Autowired
     private ModelService modelService;
     @Autowired
@@ -85,7 +82,7 @@ public class EmbeddingService extends ServiceImpl<EmbeddingMapper, EmbeddingEnti
             return Collections.emptyList();
         }
         Map<String, Double> map = list.stream().collect(Collectors.toMap(HitTestVO::getParagraphId, HitTestVO::getComprehensiveScore));
-        List<ParagraphVO> paragraphs = paragraphService.retrievalParagraph(paragraphIds);
+        List<ParagraphVO> paragraphs = paragraphMapper.retrievalParagraph(paragraphIds);
         paragraphs.forEach(e -> {
             double score = map.get(e.getId());
             e.setSimilarity(score);
@@ -101,57 +98,6 @@ public class EmbeddingService extends ServiceImpl<EmbeddingMapper, EmbeddingEnti
         dto.setSimilarity(similarity);
         dto.setTop_number(TopN);
         return paragraphSearch(datasetIds,dto);
-    }
-
-
-    public void embedParagraph(ParagraphEntity paragraph,EmbeddingModel embeddingModel) {
-        if (paragraph != null) {
-            List<EmbeddingEntity> embeddingEntities = new ArrayList<>();
-            log.info("开始---->向量化段落:{}", paragraph.getId());
-            EmbeddingEntity paragraphEmbed = new EmbeddingEntity();
-            paragraphEmbed.setDatasetId(paragraph.getDatasetId());
-            paragraphEmbed.setDocumentId(paragraph.getDocumentId());
-            paragraphEmbed.setParagraphId(paragraph.getId());
-            paragraphEmbed.setMeta(new JSONObject());
-            paragraphEmbed.setSourceId(paragraph.getId());
-            paragraphEmbed.setSourceType("1");
-            paragraphEmbed.setIsActive(paragraph.getIsActive());
-            paragraphEmbed.setSearchVector(toTsVector(paragraph.getTitle() + paragraph.getContent()));
-            Response<Embedding> res;
-            if(StringUtil.isNotBlank(paragraph.getTitle())){
-                res = embeddingModel.embed(paragraph.getTitle() + paragraph.getContent());
-            }else {
-                res = embeddingModel.embed(paragraph.getContent());
-            }
-            paragraphEmbed.setEmbedding(res.content().vectorAsList());
-            embeddingEntities.add(paragraphEmbed);
-            List<ProblemEntity> problems=problemParagraphMappingService.getProblemsByParagraphId(paragraph.getId());
-            for (ProblemEntity problem : problems) {
-                EmbeddingEntity problemEmbed = new EmbeddingEntity();
-                problemEmbed.setDatasetId(paragraph.getDatasetId());
-                problemEmbed.setDocumentId(paragraph.getDocumentId());
-                problemEmbed.setParagraphId(paragraph.getId());
-                problemEmbed.setMeta(new JSONObject());
-                problemEmbed.setSourceId(problem.getId());
-                paragraphEmbed.setSourceId(problem.getId());
-                problemEmbed.setSourceType("0");
-                problemEmbed.setIsActive(paragraph.getIsActive());
-                problemEmbed.setSearchVector(toTsVector(problem.getContent()));
-                Response<Embedding> res1 = embeddingModel.embed(problem.getContent());
-                problemEmbed.setEmbedding(res1.content().vectorAsList());
-                embeddingEntities.add(problemEmbed);
-            }
-            baseMapper.insert(embeddingEntities);
-            paragraphService.updateStatusById(paragraph.getId(),1,2);
-            documentService.updateStatusMetaById(paragraph.getDocumentId());
-            log.info("结束---->向量化段落:{}", paragraph.getId());
-        }
-    }
-
-    public void embedParagraphs(List<ParagraphEntity> paragraphs,EmbeddingModel embeddingModel) {
-        paragraphs.forEach(paragraph -> {
-            embedParagraph(paragraph,embeddingModel);
-        });
     }
 
     @Transactional
@@ -199,22 +145,7 @@ public class EmbeddingService extends ServiceImpl<EmbeddingMapper, EmbeddingEnti
         return this.saveBatch(embeddingEntities);
     }
 
-    @Async
-    public void embedByDocIds(String datasetId,List<String> docIds) {
-        if (!CollectionUtils.isEmpty(docIds)) {
-            EmbeddingModel embeddingModel=getDatasetEmbeddingModel(datasetId);
-            docIds.parallelStream().forEach(docId -> {
-                documentService.updateStatusById(docId,1,1);
-                //清除之前向量
-                this.lambdaUpdate().eq(EmbeddingEntity::getDocumentId, docId).remove();
-                log.info("开始--->向量化文档:{}", docId);
-                List<ParagraphEntity> paragraphEntities = paragraphService.lambdaQuery().eq(ParagraphEntity::getDocumentId, docId).list();
-                embedParagraphs(paragraphEntities,embeddingModel);
-                documentService.updateStatusById(docId,1,2);
-                log.info("结束--->向量化文档:{}", docId);
-            });
-        }
-    }
+
 
 
     public EmbeddingModel getDatasetEmbeddingModel(String datasetId){
@@ -225,7 +156,7 @@ public class EmbeddingService extends ServiceImpl<EmbeddingMapper, EmbeddingEnti
 
 
 
-    private TSVector toTsVector(String text) {
+    public TSVector toTsVector(String text) {
         TSVector tsVector=new TSVector();
         List<String> segmentations = filterPunctuation(jiebaSegmenter.sentenceProcess(text));
         List<WordIndex> wordIndices = new ArrayList<>();
@@ -306,8 +237,8 @@ public class EmbeddingService extends ServiceImpl<EmbeddingMapper, EmbeddingEnti
     public boolean embedByDatasetId(String datasetId) {
         EmbeddingModel embeddingModel=getDatasetEmbeddingModel(datasetId);
         this.lambdaUpdate().in(EmbeddingEntity::getDatasetId, datasetId).remove();
-        List<ParagraphEntity> paragraphEntities = paragraphService.lambdaQuery().in(ParagraphEntity::getDatasetId, datasetId).list();
-        List<ProblemParagraphVO> problemParagraphVOS = problemParagraphMappingService.getProblemsByDatasetId(datasetId);
+        List<ParagraphEntity> paragraphEntities = paragraphMapper.selectList(Wrappers.<ParagraphEntity>lambdaQuery().in(ParagraphEntity::getDatasetId, datasetId));
+        List<ProblemParagraphVO> problemParagraphVOS = problemParagraphMappingMapper.getProblems(datasetId,null);
         return embedProblemParagraphs(paragraphEntities, problemParagraphVOS,embeddingModel);
     }
 

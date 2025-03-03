@@ -5,7 +5,6 @@ import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tarzan.maxkb4j.module.dataset.dto.GenerateProblemDTO;
-import com.tarzan.maxkb4j.module.dataset.entity.DatasetEntity;
 import com.tarzan.maxkb4j.module.dataset.entity.ParagraphEntity;
 import com.tarzan.maxkb4j.module.dataset.entity.ProblemEntity;
 import com.tarzan.maxkb4j.module.dataset.entity.ProblemParagraphEntity;
@@ -13,7 +12,6 @@ import com.tarzan.maxkb4j.module.dataset.mapper.ProblemMapper;
 import com.tarzan.maxkb4j.module.dataset.vo.ProblemVO;
 import com.tarzan.maxkb4j.module.embedding.service.EmbeddingService;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
-import com.tarzan.maxkb4j.module.model.service.ModelService;
 import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.model.chat.response.ChatResponse;
 import dev.langchain4j.model.embedding.EmbeddingModel;
@@ -35,73 +33,50 @@ import java.util.regex.Pattern;
  */
 @Slf4j
 @Service
-public class ProblemService extends ServiceImpl<ProblemMapper, ProblemEntity>{
+public class ProblemService extends ServiceImpl<ProblemMapper, ProblemEntity> {
 
-    @Autowired
-    private ProblemParagraphService problemParagraphService;
+
     @Autowired
     private EmbeddingService embeddingService;
-    @Autowired
-    private DocumentService documentService;
-    @Autowired
-    private ParagraphService paragraphService;
-    @Autowired
-    private ModelService modelService;
+
 
     public IPage<ProblemVO> getProblemsByDatasetId(Page<ProblemEntity> problemPage, String id, String content) {
-        return baseMapper.getProblemsByDatasetId(problemPage, id,content);
+        return baseMapper.getProblemsByDatasetId(problemPage, id, content);
     }
 
-    @Async
-    public void batchGenerateRelated(DatasetEntity dataset,String docId, List<ParagraphEntity> paragraphs, GenerateProblemDTO dto) {
-        List<ProblemEntity> docProblems=new ArrayList<>();
-        List<ProblemParagraphEntity> problemParagraphs=new ArrayList<>();
-        List<ProblemEntity> dbProblemEntities = this.lambdaQuery().eq(ProblemEntity::getDatasetId, dataset.getId()).list();
-        documentService.updateStatusById(docId,2,1);
-        try {
-            BaseChatModel chatModel = modelService.getModelById(dto.getModel_id());
-            EmbeddingModel embeddingModel=modelService.getModelById(dataset.getEmbeddingModeId());
-            paragraphs.parallelStream().forEach(paragraph -> {
-                log.info("开始---->生成问题:{}", paragraph.getId());
-                UserMessage userMessage = UserMessage.from(dto.getPrompt().replace("{data}", paragraph.getContent()));
-                ChatResponse res = chatModel.generate(userMessage);
-                String output = res.aiMessage().text();
-                List<String> problems =extractProblems(output);
-                List<ProblemEntity> paragraphProblems=new ArrayList<>();
-                if (!CollectionUtils.isEmpty(problems)) {
-                    for (String problem : problems) {
-                        String problemId= IdWorker.get32UUID();
-                        ProblemEntity existingProblem =findProblem(problem, docProblems,dbProblemEntities);
-                        if(existingProblem==null){
-                            ProblemEntity entity = ProblemEntity.createDefault();
-                            entity.setId(problemId);
-                            entity.setDatasetId(dataset.getId());
-                            entity.setContent(problem);
-                            paragraphProblems.add(entity);
-                            docProblems.add(entity);
-                        }else {
-                            problemId = existingProblem.getId();
-                        }
-                        ProblemParagraphEntity problemParagraph=new ProblemParagraphEntity();
-                        problemParagraph.setProblemId(problemId);
-                        problemParagraph.setParagraphId(paragraph.getId());
-                        problemParagraph.setDatasetId(dataset.getId());
-                        problemParagraph.setDocumentId(docId);
-                        problemParagraphs.add(problemParagraph);
-                    }
-                }
-                embeddingService.createProblems(embeddingModel,paragraphProblems,docId,paragraph.getId());
-                paragraphService.updateStatusById(paragraph.getId(),2,2);
-                documentService.updateStatusMetaById(paragraph.getDocumentId());
-                log.info("结束---->生成问题:{}", paragraph.getId());
-            });
-            baseMapper.insert(docProblems);
-            problemParagraphService.saveBatch(problemParagraphs);
-            documentService.updateStatusById(docId,2,2);
-        } catch (Exception e) {
-            log.error(e.getMessage());
-        }
 
+    @Async
+    public void generateRelated(BaseChatModel chatModel, EmbeddingModel embeddingModel, String datasetId, String docId, ParagraphEntity paragraph, List<ProblemEntity> dbProblemEntities, List<ProblemEntity> docProblems, GenerateProblemDTO dto) {
+        log.info("开始---->生成问题:{}", paragraph.getId());
+        UserMessage userMessage = UserMessage.from(dto.getPrompt().replace("{data}", paragraph.getContent()));
+        ChatResponse res = chatModel.generate(userMessage);
+        String output = res.aiMessage().text();
+        List<String> problems = extractProblems(output);
+        List<ProblemEntity> paragraphProblems = new ArrayList<>();
+        if (!CollectionUtils.isEmpty(problems)) {
+            for (String problem : problems) {
+                String problemId = IdWorker.get32UUID();
+                ProblemEntity existingProblem = findProblem(problem, docProblems, dbProblemEntities);
+                if (existingProblem == null) {
+                    ProblemEntity entity = ProblemEntity.createDefault();
+                    entity.setId(problemId);
+                    entity.setDatasetId(datasetId);
+                    entity.setContent(problem);
+                    paragraphProblems.add(entity);
+                    baseMapper.insert(entity);
+                    docProblems.add(entity);
+                } else {
+                    problemId = existingProblem.getId();
+                }
+                ProblemParagraphEntity problemParagraph = new ProblemParagraphEntity();
+                problemParagraph.setProblemId(problemId);
+                problemParagraph.setParagraphId(paragraph.getId());
+                problemParagraph.setDatasetId(datasetId);
+                problemParagraph.setDocumentId(docId);
+            }
+        }
+        embeddingService.createProblems(embeddingModel, paragraphProblems, docId, paragraph.getId());
+        log.info("结束---->生成问题:{}", paragraph.getId());
     }
 
     @Transactional
@@ -123,16 +98,16 @@ public class ProblemService extends ServiceImpl<ProblemMapper, ProblemEntity>{
         return false;
     }
 
-    public ProblemEntity findProblem(String problem, List<ProblemEntity> problemEntities,List<ProblemEntity> dbProblemEntities) {
-        ProblemEntity existingProblem =null;
+    public ProblemEntity findProblem(String problem, List<ProblemEntity> problemEntities, List<ProblemEntity> dbProblemEntities) {
+        ProblemEntity existingProblem = null;
         if (!CollectionUtils.isEmpty(dbProblemEntities)) {
-            existingProblem= dbProblemEntities.stream()
+            existingProblem = dbProblemEntities.stream()
                     .filter(e -> e.getContent().equals(problem))
                     .findFirst()
                     .orElse(null);
         }
-        if (!CollectionUtils.isEmpty(problemEntities)&&existingProblem==null) {
-            existingProblem= problemEntities.stream()
+        if (!CollectionUtils.isEmpty(problemEntities) && existingProblem == null) {
+            existingProblem = problemEntities.stream()
                     .filter(e -> e.getContent().equals(problem))
                     .findFirst()
                     .orElse(null);

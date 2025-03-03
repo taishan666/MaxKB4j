@@ -6,12 +6,10 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.tarzan.maxkb4j.common.dto.QueryDTO;
 import com.tarzan.maxkb4j.module.application.dto.ApplicationAccessTokenDTO;
 import com.tarzan.maxkb4j.module.application.dto.ChatImproveDTO;
-import com.tarzan.maxkb4j.module.application.dto.ChatQueryDTO;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationAccessTokenEntity;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationEntity;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationWorkFlowVersionEntity;
 import com.tarzan.maxkb4j.module.application.service.ApplicationService;
-import com.tarzan.maxkb4j.module.application.vo.ApplicationStatisticsVO;
 import com.tarzan.maxkb4j.module.application.vo.ApplicationVO;
 import com.tarzan.maxkb4j.module.dataset.dto.HitTestDTO;
 import com.tarzan.maxkb4j.module.dataset.entity.DatasetEntity;
@@ -160,13 +158,6 @@ public class ApplicationController {
         return R.success(applicationService.modelParams(appId, modelId));
     }
 
-    @GetMapping("api/application/{appId}/statistics/chat_record_aggregate_trend")
-    public R<List<ApplicationStatisticsVO>> statistics(@PathVariable("appId") String appId, HttpServletRequest request) {
-        ChatQueryDTO query = new ChatQueryDTO();
-        query.setKeyword(request.getParameter("abstract"));
-        query.setStartTime(request.getParameter("start_time"));
-        query.setEndTime(request.getParameter("end_time"));
-        return R.success(applicationService.statistics(appId, query));
-    }
+
 
 }

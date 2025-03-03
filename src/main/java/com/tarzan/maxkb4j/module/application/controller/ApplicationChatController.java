@@ -9,6 +9,7 @@ import com.tarzan.maxkb4j.module.application.entity.ApplicationChatRecordEntity;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationEntity;
 import com.tarzan.maxkb4j.module.application.service.ApplicationChatService;
 import com.tarzan.maxkb4j.module.application.vo.ApplicationChatRecordVO;
+import com.tarzan.maxkb4j.module.application.vo.ApplicationStatisticsVO;
 import com.tarzan.maxkb4j.tool.api.R;
 import com.tarzan.maxkb4j.util.JwtUtil;
 import io.jsonwebtoken.Claims;
@@ -88,6 +89,15 @@ public class ApplicationChatController {
         query.setStartTime(request.getParameter("start_time"));
         query.setEndTime(request.getParameter("end_time"));
         return R.success(chatService.chatLogs(appId, page, size, query));
+    }
+
+    @GetMapping("api/application/{appId}/statistics/chat_record_aggregate_trend")
+    public R<List<ApplicationStatisticsVO>> statistics(@PathVariable("appId") String appId, HttpServletRequest request) {
+        ChatQueryDTO query = new ChatQueryDTO();
+        query.setKeyword(request.getParameter("abstract"));
+        query.setStartTime(request.getParameter("start_time"));
+        query.setEndTime(request.getParameter("end_time"));
+        return R.success(chatService.statistics(appId, query));
     }
 
 
