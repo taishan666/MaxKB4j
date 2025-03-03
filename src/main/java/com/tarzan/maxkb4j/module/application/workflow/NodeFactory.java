@@ -7,10 +7,12 @@ import com.tarzan.maxkb4j.module.application.workflow.node.application.impl.Base
 import com.tarzan.maxkb4j.module.application.workflow.node.condition.impl.BaseConditionNode;
 import com.tarzan.maxkb4j.module.application.workflow.node.directreply.impl.BaseReplyNode;
 import com.tarzan.maxkb4j.module.application.workflow.node.documentextract.impl.BaseDocumentExtractNode;
+import com.tarzan.maxkb4j.module.application.workflow.node.formcollect.impl.FormNode;
 import com.tarzan.maxkb4j.module.application.workflow.node.function.impl.BaseFunctionNode;
 import com.tarzan.maxkb4j.module.application.workflow.node.imagegenerate.impl.BaseImageGenerateNode;
 import com.tarzan.maxkb4j.module.application.workflow.node.imageunderstand.impl.BaseImageUnderstandNode;
 import com.tarzan.maxkb4j.module.application.workflow.node.question.impl.BaseQuestionNode;
+import com.tarzan.maxkb4j.module.application.workflow.node.reranker.impl.RerankerNode;
 import com.tarzan.maxkb4j.module.application.workflow.node.searchdataset.impl.BaseSearchDatasetNode;
 import com.tarzan.maxkb4j.module.application.workflow.node.speechtotext.impl.BaseSpeechToTextNode;
 import com.tarzan.maxkb4j.module.application.workflow.node.start.impl.BaseStartNode;
@@ -46,6 +48,8 @@ public class NodeFactory {
         nodeList.add(new BaseVariableAssignNode());
         nodeList.add(new BaseFunctionNode());
         nodeList.add(new BaseImageUnderstandNode());
+        nodeList.add(new RerankerNode());
+        nodeList.add(new FormNode());
     }
 
     public static void main(String[] args) {

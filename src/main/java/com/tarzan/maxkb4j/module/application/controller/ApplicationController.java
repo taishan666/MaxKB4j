@@ -6,11 +6,11 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.tarzan.maxkb4j.common.dto.QueryDTO;
 import com.tarzan.maxkb4j.module.application.dto.ApplicationAccessTokenDTO;
 import com.tarzan.maxkb4j.module.application.dto.ChatImproveDTO;
-import com.tarzan.maxkb4j.module.application.dto.ChatMessageDTO;
 import com.tarzan.maxkb4j.module.application.dto.ChatQueryDTO;
-import com.tarzan.maxkb4j.module.application.entity.*;
+import com.tarzan.maxkb4j.module.application.entity.ApplicationAccessTokenEntity;
+import com.tarzan.maxkb4j.module.application.entity.ApplicationEntity;
+import com.tarzan.maxkb4j.module.application.entity.ApplicationWorkFlowVersionEntity;
 import com.tarzan.maxkb4j.module.application.service.ApplicationService;
-import com.tarzan.maxkb4j.module.application.vo.ApplicationChatRecordVO;
 import com.tarzan.maxkb4j.module.application.vo.ApplicationStatisticsVO;
 import com.tarzan.maxkb4j.module.application.vo.ApplicationVO;
 import com.tarzan.maxkb4j.module.dataset.dto.HitTestDTO;
@@ -23,11 +23,9 @@ import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import reactor.core.publisher.Flux;
 
 import java.util.List;
 
@@ -92,53 +90,6 @@ public class ApplicationController {
         return R.success(applicationService.appProfile(request));
     }
 
-    @GetMapping("api/application/{appId}/chat/client/{page}/{size}")
-    public R<IPage<ApplicationChatEntity>> clientChatPage(@PathVariable("appId") String appId, @PathVariable("page") int page, @PathVariable("size") int size, HttpServletRequest request) {
-        return R.success(applicationService.clientChatPage(appId, page, size, request));
-    }
-
-
-    @PostMapping("api/application/chat/open")
-    public R<String> chatOpenTest(@RequestBody ApplicationEntity application) {
-        return R.success(applicationService.chatOpenTest(application));
-    }
-
-    @PostMapping("api/application/chat_workflow/open")
-    public R<String> chatWorkflowOpenTest(@RequestBody ApplicationEntity application) {
-        return R.success(applicationService.chatWorkflowOpenTest(application));
-    }
-
-    @GetMapping("api/application/{appId}/chat/open")
-    public R<String> chatOpen(@PathVariable("appId") String appId) {
-        return R.success(applicationService.chatOpen(appId));
-    }
-
-    @PostMapping(path = "api/application/chat_message/{chatId}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<JSONObject> chatMessage(@PathVariable String chatId, @RequestBody ChatMessageDTO params, HttpServletRequest request) {
-        return applicationService.chatMessage(chatId, params, request);
-    }
-
-    @GetMapping("api/application/{id}/chat/{chatId}/chat_record/{chatRecordId}")
-    public R<ApplicationChatRecordVO> chatRecord(@PathVariable String id, @PathVariable String chatId, @PathVariable String chatRecordId) {
-        return R.success(applicationService.getChatRecordInfo(chatId, chatRecordId));
-    }
-
-    @PutMapping("api/application/{id}/chat/{chatId}/chat_record/{chatRecordId}/vote")
-    public R<Boolean> vote(@PathVariable String id, @PathVariable String chatId, @PathVariable String chatRecordId, @RequestBody ApplicationChatRecordEntity chatRecord) {
-        return R.success(applicationService.getChatRecordVote(chatRecordId, chatRecord));
-    }
-
-    @PostMapping("api/application/{id}/chat/{chatId}/upload_file")
-    public R<List<JSONObject>> uploadFile(@PathVariable String id, @PathVariable String chatId, MultipartFile[] file) {
-        return R.success(applicationService.uploadFile(id,chatId,file));
-    }
-
-    @PostMapping("api/application/{id}/chat/{chatId}/chat_record/{page}/{size}")
-    public R<IPage<ApplicationChatRecordVO>> chatRecordPage(@PathVariable String id, @PathVariable String chatId, @PathVariable int page, @PathVariable int size) {
-        return R.success(applicationService.chatRecordPage(chatId, page, size));
-    }
-
-
     @GetMapping("api/application/{page}/{size}")
     public R<IPage<ApplicationEntity>> userApplications(@PathVariable("page") int page, @PathVariable("size") int size, QueryDTO query) {
         return R.success(applicationService.selectAppPage(page, size, query));
@@ -189,26 +140,6 @@ public class ApplicationController {
         return R.success(applicationService.updateAccessToken(appId, dto));
     }
 
-    @GetMapping("api/application/{appId}/api_key")
-    public R<List<ApplicationApiKeyEntity>> listApikey(@PathVariable("appId") String appId) {
-        return R.success(applicationService.listApikey(appId));
-    }
-
-    @PostMapping("api/application/{appId}/api_key")
-    public R<Boolean> createApikey(@PathVariable("appId") String appId) {
-        return R.success(applicationService.createApikey(appId));
-    }
-
-    @PutMapping("api/application/{appId}/api_key/{apiKeyId}")
-    public R<Boolean> updateApikey(@PathVariable("appId") String appId, @PathVariable("apiKeyId") String apiKeyId, @RequestBody ApplicationApiKeyEntity apiKeyEntity) {
-        return R.success(applicationService.updateApikey(appId, apiKeyId, apiKeyEntity));
-    }
-
-    @DeleteMapping("api/application/{appId}/api_key/{apiKeyId}")
-    public R<Boolean> deleteApikey(@PathVariable("appId") String appId, @PathVariable("apiKeyId") String apiKeyId) {
-        return R.success(applicationService.deleteApikey(appId, apiKeyId));
-    }
-
     @GetMapping("api/application/{appId}/model")
     public R<List<ModelEntity>> model(@PathVariable("appId") String appId, String model_type) {
         return R.success(applicationService.getAppModels(appId, model_type));
@@ -222,15 +153,6 @@ public class ApplicationController {
     @PostMapping("api/application/{appId}/dataset/{datasetId}/improve")
     public R<Boolean> improveChatLogs(@PathVariable("appId") String appId, @PathVariable("appId") String datasetId, ChatImproveDTO dto) {
         return R.success(applicationService.improveChatLogs(appId, dto));
-    }
-
-    @GetMapping("api/application/{appId}/chat/{page}/{size}")
-    public R<IPage<ApplicationChatEntity>> chatLogs(@PathVariable("appId") String appId, @PathVariable("page") int page, @PathVariable("size") int size, HttpServletRequest request) {
-        ChatQueryDTO query = new ChatQueryDTO();
-        query.setKeyword(request.getParameter("abstract"));
-        query.setStartTime(request.getParameter("start_time"));
-        query.setEndTime(request.getParameter("end_time"));
-        return R.success(applicationService.chatLogs(appId, page, size, query));
     }
 
     @GetMapping("api/application/{appId}/model_params_form/{modelId}")
