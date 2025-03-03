@@ -1,6 +1,6 @@
 package com.tarzan.maxkb4j.module.application.chatpipeline.handler;
 
-import com.tarzan.maxkb4j.module.application.chatpipeline.ChatInfo;
+import com.tarzan.maxkb4j.module.application.dto.ChatInfo;
 import com.tarzan.maxkb4j.module.application.chatpipeline.PipelineManage;
 
 public abstract class PostResponseHandler {

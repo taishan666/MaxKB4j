@@ -9,6 +9,7 @@ import com.tarzan.maxkb4j.module.application.workflow.dto.BaseToResponse;
 import com.tarzan.maxkb4j.module.application.workflow.dto.ChunkInfo;
 import com.tarzan.maxkb4j.module.application.workflow.dto.FlowParams;
 import com.tarzan.maxkb4j.module.application.workflow.handler.WorkFlowPostHandler;
+import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.data.message.UserMessage;
@@ -769,6 +770,51 @@ public class WorkflowManage {
         }
         return null;
     }
+
+
+
+    public List<ChatMessage> getHistoryMessage(List<ApplicationChatRecordEntity> historyChatRecord, int dialogueNumber, String dialogueType, String runtimeNodeId) {
+        List<ChatMessage> historyMessage = new ArrayList<>();
+        int startIndex = Math.max(historyChatRecord.size() - dialogueNumber, 0);
+        // 遍历指定范围内的聊天记录
+        for (int index = startIndex; index < historyChatRecord.size(); index++) {
+            // 获取每条消息并添加到历史消息列表中
+            historyMessage.addAll(getMessage(historyChatRecord.get(index), dialogueType, runtimeNodeId));
+        }
+        // 使用Stream API和flatMap来代替Python中的reduce操作
+        return historyMessage;
+    }
+
+    private List<ChatMessage> getMessage(ApplicationChatRecordEntity chatRecord, String dialogueType, String runtimeNodeId) {
+        if ("NODE".equals(dialogueType)) {
+            return getNodeMessage(chatRecord, runtimeNodeId);
+        } else {
+            return getNodeMessage(chatRecord);
+        }
+    }
+
+    public List<ChatMessage> getNodeMessage(ApplicationChatRecordEntity chatRecord) {
+        List<ChatMessage> messages = new ArrayList<>();
+        messages.add(new UserMessage(chatRecord.getProblemText()));
+        messages.add(new AiMessage(chatRecord.getAnswerText()));
+        return messages;
+    }
+
+    public List<ChatMessage> getNodeMessage(ApplicationChatRecordEntity chatRecord, String runtimeNodeId) {
+        // 获取节点详情
+        JSONObject nodeDetails = chatRecord.getNodeDetailsByRuntimeNodeId(runtimeNodeId);
+        // 如果节点详情为空，返回空列表
+        if (nodeDetails == null) {
+            return new ArrayList<>();
+        }
+        // 创建消息列表
+        List<ChatMessage> messages = new ArrayList<>();
+        messages.add(new UserMessage(nodeDetails.getString("question")));
+        messages.add(new AiMessage(nodeDetails.getString("answer")));
+
+        return messages;
+    }
+
 
 
 }

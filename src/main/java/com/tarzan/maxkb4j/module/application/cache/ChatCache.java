@@ -1,5 +1,6 @@
-package com.tarzan.maxkb4j.module.application.chatpipeline;
+package com.tarzan.maxkb4j.module.application.cache;
 
+import com.tarzan.maxkb4j.module.application.dto.ChatInfo;
 import org.ehcache.Cache;
 import org.ehcache.CacheManager;
 import org.ehcache.config.builders.CacheConfigurationBuilder;
@@ -42,7 +43,6 @@ public class ChatCache {
                 .build();
         cacheManager.init();  // 重新初始化
         // 验证缓存加载
-        Cache<String, ChatInfo> cache = cacheManager.getCache("chatCache", String.class, ChatInfo.class);
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             System.out.println("Closing cache manager...");
             cacheManager.close();  // 确保调用 close()

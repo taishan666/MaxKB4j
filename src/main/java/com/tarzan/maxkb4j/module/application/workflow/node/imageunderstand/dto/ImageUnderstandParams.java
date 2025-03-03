@@ -21,7 +21,7 @@ public class ImageUnderstandParams extends BaseParams {
     private String dialogueType;
     @JsonProperty("is_result")
     private Boolean isResult;
-    private List<JSONObject> imageList;
+    private List<String> imageList;
     @JsonProperty("model_params_setting")
     private JSONObject modelParamsSetting;
 

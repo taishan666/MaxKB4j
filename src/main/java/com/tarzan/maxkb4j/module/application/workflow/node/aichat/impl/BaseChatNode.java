@@ -1,7 +1,6 @@
 package com.tarzan.maxkb4j.module.application.workflow.node.aichat.impl;
 
 import com.alibaba.fastjson.JSONObject;
-import com.tarzan.maxkb4j.module.application.entity.ApplicationChatRecordEntity;
 import com.tarzan.maxkb4j.module.application.workflow.ChatStream;
 import com.tarzan.maxkb4j.module.application.workflow.INode;
 import com.tarzan.maxkb4j.module.application.workflow.NodeResult;
@@ -18,7 +17,10 @@ import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.model.chat.response.ChatResponse;
 import dev.langchain4j.model.output.TokenUsage;
 
-import java.util.*;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 public class BaseChatNode extends IChatNode {
 
@@ -71,8 +73,8 @@ public class BaseChatNode extends IChatNode {
         System.out.println("execute耗时1 " + (System.currentTimeMillis() - startTime) + " ms");
         BaseChatModel chatModel = modelService.getModelById(nodeParams.getModelId(), nodeParams.getModelParamsSetting());
         System.out.println("execute耗时2 " + (System.currentTimeMillis() - startTime) + " ms");
-        List<ChatMessage> historyMessage = getHistoryMessage(flowParams.getHistoryChatRecord(), nodeParams.getDialogueNumber(), nodeParams.getDialogueType(), super.runtimeNodeId);
-        UserMessage question = generatePromptQuestion(nodeParams.getPrompt());
+        List<ChatMessage> historyMessage = workflowManage.getHistoryMessage(flowParams.getHistoryChatRecord(), nodeParams.getDialogueNumber(), nodeParams.getDialogueType(), super.runtimeNodeId);
+        UserMessage question =  workflowManage.generatePromptQuestion(nodeParams.getPrompt());
         String system = workflowManage.generatePrompt(nodeParams.getSystem());
         List<ChatMessage> messageList =  super.workflowManage.generateMessageList(system, question, historyMessage);
         if (nodeParams.getIsResult()) {
@@ -113,52 +115,6 @@ public class BaseChatNode extends IChatNode {
 
 
 
-
-    public List<ChatMessage> getHistoryMessage(List<ApplicationChatRecordEntity> historyChatRecord, int dialogueNumber, String dialogueType, String runtimeNodeId) {
-        List<ChatMessage> historyMessage = new ArrayList<>();
-        int startIndex = Math.max(historyChatRecord.size() - dialogueNumber, 0);
-        // 遍历指定范围内的聊天记录
-        for (int index = startIndex; index < historyChatRecord.size(); index++) {
-            // 获取每条消息并添加到历史消息列表中
-            historyMessage.addAll(getMessage(historyChatRecord.get(index), dialogueType, runtimeNodeId));
-        }
-        // 使用Stream API和flatMap来代替Python中的reduce操作
-        return historyMessage;
-    }
-
-    private List<ChatMessage> getMessage(ApplicationChatRecordEntity chatRecord, String dialogueType, String runtimeNodeId) {
-        if ("NODE".equals(dialogueType)) {
-            return getNodeMessage(chatRecord, runtimeNodeId);
-        } else {
-            return getNodeMessage(chatRecord);
-        }
-    }
-
-    public List<ChatMessage> getNodeMessage(ApplicationChatRecordEntity chatRecord) {
-        List<ChatMessage> messages = new ArrayList<>();
-        messages.add(new UserMessage(chatRecord.getProblemText()));
-        messages.add(new AiMessage(chatRecord.getAnswerText()));
-        return messages;
-    }
-
-    public List<ChatMessage> getNodeMessage(ApplicationChatRecordEntity chatRecord, String runtimeNodeId) {
-        // 获取节点详情
-        JSONObject nodeDetails = chatRecord.getNodeDetailsByRuntimeNodeId(runtimeNodeId);
-        // 如果节点详情为空，返回空列表
-        if (nodeDetails == null) {
-            return new ArrayList<>();
-        }
-        // 创建消息列表
-        List<ChatMessage> messages = new ArrayList<>();
-        messages.add(new UserMessage(nodeDetails.getString("question")));
-        messages.add(new AiMessage(nodeDetails.getString("answer")));
-
-        return messages;
-    }
-
-    public UserMessage generatePromptQuestion(String prompt) {
-        return UserMessage.from(super.workflowManage.generatePrompt(prompt));
-    }
 
 
     @Override

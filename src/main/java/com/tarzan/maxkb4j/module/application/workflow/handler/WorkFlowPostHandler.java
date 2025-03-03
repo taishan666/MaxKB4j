@@ -1,8 +1,8 @@
 package com.tarzan.maxkb4j.module.application.workflow.handler;
 
 import com.alibaba.fastjson.JSONObject;
-import com.tarzan.maxkb4j.module.application.chatpipeline.ChatCache;
-import com.tarzan.maxkb4j.module.application.chatpipeline.ChatInfo;
+import com.tarzan.maxkb4j.module.application.cache.ChatCache;
+import com.tarzan.maxkb4j.module.application.dto.ChatInfo;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationChatRecordEntity;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationPublicAccessClientEntity;
 import com.tarzan.maxkb4j.module.application.enums.AuthenticationType;
