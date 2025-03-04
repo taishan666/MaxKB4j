@@ -8,6 +8,7 @@ import dev.langchain4j.model.chat.DisabledStreamingChatLanguageModel;
 import dev.langchain4j.model.chat.StreamingChatLanguageModel;
 import dev.langchain4j.model.chat.response.ChatResponse;
 import dev.langchain4j.model.chat.response.StreamingChatResponseHandler;
+import lombok.Getter;
 
 import java.util.Iterator;
 import java.util.List;
@@ -15,6 +16,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+@Getter
 public class BaseChatModel {
 
     private final ChatLanguageModel chatModel;
@@ -32,14 +34,6 @@ public class BaseChatModel {
 
     public void stream(List<ChatMessage> messages, StreamingChatResponseHandler handler) {
         streamingChatModel.chat(messages, handler);
-    }
-
-    public ChatLanguageModel getChatModel() {
-        return chatModel;
-    }
-
-    public StreamingChatLanguageModel getStreamingChatModel() {
-        return streamingChatModel;
     }
 
     public ChatStream stream(List<ChatMessage> messages) {

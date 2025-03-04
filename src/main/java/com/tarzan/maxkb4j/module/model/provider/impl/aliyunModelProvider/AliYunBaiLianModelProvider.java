@@ -46,7 +46,7 @@ public class AliYunBaiLianModelProvider extends IModelProvider {
         modelInfos.add(new ModelInfo("qwen-vl-plus","",ModelTypeEnum.IMAGE.name(),new BaiLianLLMModelCredential(), new BaiLianChatModel()));
         modelInfos.add(new ModelInfo("qwen-vl-max","",ModelTypeEnum.IMAGE.name(),new BaiLianLLMModelCredential(), new BaiLianChatModel()));
         modelInfos.add(new ModelInfo("wanx2.1-t2i-turbo","",ModelTypeEnum.TTI.name(),new BaiLianLLMModelCredential(),new QWenTextToImageModel()));
-        modelInfos.add(new ModelInfo("gte-rerank","",ModelTypeEnum.RERANKER.name(),null));
+        modelInfos.add(new ModelInfo("gte-rerank","",ModelTypeEnum.RERANKER.name(),new BaiLianLLMModelCredential(),new BaiLianReranker()));
         return modelInfos;
     }
 

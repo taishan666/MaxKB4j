@@ -223,6 +223,13 @@ public class WorkflowManage {
                         sink.tryEmitNext(chunk);
                     }
                 }
+                JSONObject endChunk = this.getBaseToResponse().toStreamChunkResponse(getParams().getChatId(),
+                        getParams().getChatRecordId(),
+                        "",
+                        List.of(),
+                        "", true, 0, 0,
+                        new ChunkInfo());
+                sink.tryEmitNext(endChunk);
                 workFlowPostHandler.handler(this.params.getChatId(), this.params.getChatRecordId(),
                         answer, workflow);
                 sink.tryEmitComplete();

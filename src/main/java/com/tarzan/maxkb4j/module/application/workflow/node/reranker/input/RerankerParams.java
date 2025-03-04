@@ -17,5 +17,5 @@ public class RerankerParams extends BaseParams {
     @JsonProperty("reranker_model_id")
     private String rerankerModelId;
     @JsonProperty("reranker_reference_list")
-    private List<String> rerankerReferenceList;
+    private List<List<String>> rerankerReferenceList;
 }
