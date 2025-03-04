@@ -66,13 +66,10 @@ public class FormNode extends IFormNode {
 
     @Override
     public JSONObject getDetail() {
-        System.out.println("表单详情。。。");
         JSONObject detail = new JSONObject();
         detail.put("result", context.get("result"));
         detail.put("form_field_list", context.get("form_field_list"));
         detail.put("form_content_format", context.get("form_content_format"));
-        System.out.println("form_data="+context.get("form_data"));
-        System.out.println("is_submit="+context.get("is_submit"));
         detail.put("form_data", context.get("form_data"));
         detail.put("is_submit", context.get("is_submit"));
         return detail;
