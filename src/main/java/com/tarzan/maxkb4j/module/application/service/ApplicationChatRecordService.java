@@ -32,7 +32,10 @@ public class ApplicationChatRecordService extends ServiceImpl<ApplicationChatRec
         ChatInfo chatInfo= ChatCache.get(chatId);
         ApplicationChatRecordEntity  chatRecord=null;
         if(Objects.nonNull(chatInfo)&&!CollectionUtils.isEmpty(chatInfo.getChatRecordList())) {
-            chatRecord = chatInfo.getChatRecordList().stream().filter(e->e.getId().equals(chatRecordId)).findFirst().orElse(null);
+            chatRecord = chatInfo.getChatRecordList().stream()
+                    .filter(e -> e.getId().equals(chatRecordId))
+                    .reduce((first, second) -> second) // 保留最后一个匹配的元素
+                    .orElse(null);
         }
         if(Objects.isNull(chatRecord)){
             chatRecord=this.getById(chatRecordId);

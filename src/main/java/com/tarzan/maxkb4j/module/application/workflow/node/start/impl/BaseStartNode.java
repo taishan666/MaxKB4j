@@ -98,14 +98,12 @@ public class BaseStartNode extends IStarNode {
         this.context.put("document", detail.get("document_list"));
         this.context.put("image", detail.get("image_list"));
         this.context.put("audio", detail.get("audio_list"));
-
         // 设置状态和错误信息
         this.status = detail.getIntValue("status");
         this.errMessage = detail.getString("err_message");
-
         // 将工作流变量添加到上下文中
         for (Map.Entry<String, Object> entry : workflowVariable.entrySet()) {
-            System.out.println("Key: " + entry.getKey() + ", Value: " + entry.getValue());
+           // System.out.println("Key: " + entry.getKey() + ", Value: " + entry.getValue());
             workflowManage.getContext().put(entry.getKey(), entry.getValue());
         }
     }

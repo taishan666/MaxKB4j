@@ -447,6 +447,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
 
     public List<ApplicationEntity> listByUserId(String appId) {
         ApplicationEntity application = this.getById(appId);
+        //todo application为null
         String userId = StpUtil.getLoginIdAsString();
         String appUserId = application.getUserId();
         if (!userId.equals(appUserId)) {

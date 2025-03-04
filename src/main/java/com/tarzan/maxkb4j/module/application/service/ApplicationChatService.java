@@ -35,6 +35,7 @@ import com.tarzan.maxkb4j.module.model.service.ModelService;
 import com.tarzan.maxkb4j.util.JwtUtil;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.HttpServletRequest;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -202,7 +203,6 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
                 }
             }
         }
-
         boolean stream = dto.getStream() == null || dto.getStream();
         String problemText = dto.getMessage();
         boolean reChat = dto.getReChat();
@@ -253,13 +253,10 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
                 }
             }
         }
-        boolean reChat = dto.getReChat();
         ApplicationChatRecordVO chatRecord = null;
-        if (reChat) {
-            String chatRecordId = dto.getChatRecordId();
-            if (Objects.nonNull(chatRecordId)) {
-                chatRecord = getChatRecordInfo(chatId, chatRecordId);
-            }
+        String chatRecordId = dto.getChatRecordId();
+        if(StringUtils.isNotBlank(chatRecordId)){
+            chatRecord = getChatRecordInfo(chatId, chatRecordId);
         }
         assert chatInfo != null;
         FlowParams flowParams = new FlowParams();
@@ -280,8 +277,8 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
                 dto.getImageList(),
                 dto.getDocumentList(),
                 dto.getAudioList(),
-                null,
-                null,
+                dto.getRuntimeNodeId(),
+                dto.getNodeData(),
                 chatRecord,
                 null);
         return workflowManage.run();

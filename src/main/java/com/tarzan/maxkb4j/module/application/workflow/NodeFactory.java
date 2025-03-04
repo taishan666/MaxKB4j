@@ -59,7 +59,7 @@ public class NodeFactory {
         }
     }
 
-    public static <T> List<T> getSubclassInstances(Class<T> targetClass,String basePackage) {
+    private static <T> List<T> getSubclassInstances(Class<T> targetClass,String basePackage) {
         // 指定包名进行扫描
         Reflections reflections = new Reflections(basePackage);
         // 获取所有子类（包括非直接继承）
@@ -90,25 +90,34 @@ public class NodeFactory {
         return null;
     }
 
-    public static INode getNode(String nodeType, Node node, FlowParams workflowParams, WorkflowManage workflowManage) {
+    public static INode getNode1(String nodeType, Node node, FlowParams workflowParams, WorkflowManage workflowManage) {
         NodeFactory nodeFactory = new NodeFactory();
         INode inode=nodeFactory.getNode(nodeType);
         if(Objects.nonNull(inode)){
             inode.setId(node.getId());
             inode.setType(nodeType);
             inode.setNode(node);
-            //inode.setLastNodeIdList(new ArrayList<>());
+            inode.setLastNodeIdList(new ArrayList<>());
             inode.setWorkflowParams(workflowParams);
             inode.setWorkflowManage(workflowManage);
-           // inode.setNodeChunk(new NodeChunk());
             return inode;
         }
         return null;
     }
 
+    public static INode getNode(String nodeType, Node node, FlowParams workflowParams, WorkflowManage workflowManage) {
+        return getNode(nodeType,node,workflowParams,workflowManage,new ArrayList<>(),null);
+    }
+
     public static INode getNode(String nodeType, Node node, FlowParams workflowParams, WorkflowManage workflowManage, List<String> lastNodeIds, Function<Node, JSONObject> getNodeParams) {
-        INode inode=getNode(nodeType, node, workflowParams, workflowManage);
+        NodeFactory nodeFactory = new NodeFactory();
+        INode inode=nodeFactory.getNode(nodeType);
         if(Objects.nonNull(inode)){
+            inode.setId(node.getId());
+            inode.setType(nodeType);
+            inode.setNode(node);
+            inode.setWorkflowParams(workflowParams);
+            inode.setWorkflowManage(workflowManage);
             inode.setLastNodeIdList(lastNodeIds);
             if(Objects.nonNull(getNodeParams)){
                 inode.setNodeParams(getNodeParams.apply(node));

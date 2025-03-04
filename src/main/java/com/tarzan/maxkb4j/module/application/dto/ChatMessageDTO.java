@@ -9,12 +9,17 @@ import java.util.List;
 @Data
 public class ChatMessageDTO {
     private String message;
+    @JsonProperty("chat_record_id")
     private String chatRecordId;
     private Boolean stream;
     @JsonProperty("re_chat")
     private Boolean reChat;
     @JsonProperty("form_data")
     private JSONObject formData;
+    @JsonProperty("node_data")
+    private JSONObject nodeData;
+    @JsonProperty("runtime_node_id")
+    private String runtimeNodeId;
     @JsonProperty("audio_list")
     private List<JSONObject> audioList;
     @JsonProperty("document_list")

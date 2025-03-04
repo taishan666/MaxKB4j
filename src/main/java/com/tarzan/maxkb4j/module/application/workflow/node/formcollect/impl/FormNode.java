@@ -16,9 +16,9 @@ import java.util.Map;
 public class FormNode extends IFormNode {
     @Override
     public NodeResult execute(FormNodeParams nodeParams) {
-        List<JSONObject> formFieldList= nodeParams.getFormFieldList();
-        JSONObject formData= nodeParams.getFormData();
-        String formContentFormat= nodeParams.getFormContentFormat();
+        List<JSONObject> formFieldList = nodeParams.getFormFieldList();
+        JSONObject formData = nodeParams.getFormData();
+        String formContentFormat = nodeParams.getFormContentFormat();
         if (formData != null) {
             context.put("is_submit", true);
             context.put("form_data", formData);
@@ -36,17 +36,15 @@ public class FormNode extends IFormNode {
         formSetting.put("chat_record_id", super.getWorkflowParams().getChatRecordId());
         formSetting.put("is_submit", context.getOrDefault("is_submit", false));
         String form = "<form_rander>" + formSetting + "</form_rander>";
-        // Get workflow content and reset prompt
+        // Get workflow content and reset prompt todo
         Map<String, Object> contextContent = workflowManage.getWorkflowContent();
         String updatedFormContentFormat = workflowManage.resetPrompt(formContentFormat);
         PromptTemplate promptTemplate = PromptTemplate.from(updatedFormContentFormat);
         String value = promptTemplate.apply(Map.of("form", form)).text();
-        System.out.println("value="+value);
         // Format the prompt template
-        // value 值血药转码
-        return new NodeResult(Map.of("result", value,"answer", value,
+        return new NodeResult(Map.of("result", value, "answer", value,
                 "form_field_list", formFieldList,
-                "form_content_format",formContentFormat), Map.of());
+                "form_content_format", formContentFormat), Map.of());
     }
 
     @Override
@@ -68,8 +66,15 @@ public class FormNode extends IFormNode {
 
     @Override
     public JSONObject getDetail() {
+        System.out.println("表单详情。。。");
         JSONObject detail = new JSONObject();
-        detail.put("result",context.get("result"));
+        detail.put("result", context.get("result"));
+        detail.put("form_field_list", context.get("form_field_list"));
+        detail.put("form_content_format", context.get("form_content_format"));
+        System.out.println("form_data="+context.get("form_data"));
+        System.out.println("is_submit="+context.get("is_submit"));
+        detail.put("form_data", context.get("form_data"));
+        detail.put("is_submit", context.get("is_submit"));
         return detail;
     }
 

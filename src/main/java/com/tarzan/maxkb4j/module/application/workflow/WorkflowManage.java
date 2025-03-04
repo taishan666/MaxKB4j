@@ -71,12 +71,6 @@ public class WorkflowManage {
         if (audioList != null) {
             this.audioList = audioList;
         }
-        if (startNodeId != null) {
-            this.startNodeId = startNodeId;
-            this.loadNode(chatRecord, startNodeId, startNodeData);
-        } else {
-            this.nodeContext = new ArrayList<>();
-        }
         this.params = params;
         this.flow = flow;
         this.workFlowPostHandler = workFlowPostHandler;
@@ -84,6 +78,12 @@ public class WorkflowManage {
         this.chatRecord = chatRecord;
         this.childNode = childNode;
         this.nodeChunkManage = new NodeChunkManage(this);
+        if (startNodeId != null) {
+            this.startNodeId = startNodeId;
+            this.loadNode(chatRecord, startNodeId, startNodeData);
+        } else {
+            this.nodeContext = new ArrayList<>();
+        }
     }
 
     public boolean answerIsNotEmpty() {
@@ -167,11 +167,11 @@ public class WorkflowManage {
                 assert startNode != null;
                 JSONObject validationParams = startNode.getNodeParams();
                 validationParams.put("form_data", startNodeData);
-                try {
+             /*   try {
                     startNode.validArgs(validationParams, startNode.getWorkflowParams());
                 } catch (Exception e) {
                     throw new RuntimeException(e);
-                }
+                }*/
                 if ("application-node".equals(startNode.getType())) {
                     startNode.getContext().put("application_node_dict", nodeDetail.get("application_node_dict"));
                 }
@@ -180,11 +180,11 @@ public class WorkflowManage {
             }
             // 处理普通节点
             INode node = getNodeClsById(nodeId, (List<String>) nodeDetail.get("up_node_id_list"));
-            try {
+          /*  try {
                 node.validArgs(node.getNodeParams(), node.getWorkflowParams());
             } catch (Exception e) {
                 throw new RuntimeException(e);
-            }
+            }*/
             node.saveContext(nodeDetail, this);
             nodeContext.add(node);
         }
