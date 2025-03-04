@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.module.application.workflow.NodeResult;
 import com.tarzan.maxkb4j.module.application.workflow.WorkflowManage;
 import com.tarzan.maxkb4j.module.application.workflow.node.function.IFunctionNode;
-import com.tarzan.maxkb4j.module.application.workflow.node.function.dto.FunctionParams;
+import com.tarzan.maxkb4j.module.application.workflow.node.function.input.FunctionParams;
 import org.python.core.*;
 import org.python.util.PythonInterpreter;
 

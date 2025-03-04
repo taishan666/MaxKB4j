@@ -7,7 +7,7 @@ import com.tarzan.maxkb4j.module.application.workflow.NodeResult;
 import com.tarzan.maxkb4j.module.application.workflow.WorkflowManage;
 import com.tarzan.maxkb4j.module.application.workflow.dto.FlowParams;
 import com.tarzan.maxkb4j.module.application.workflow.node.aichat.IChatNode;
-import com.tarzan.maxkb4j.module.application.workflow.node.aichat.dto.ChatNodeParams;
+import com.tarzan.maxkb4j.module.application.workflow.node.aichat.input.ChatNodeParams;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
 import com.tarzan.maxkb4j.module.model.service.ModelService;
 import com.tarzan.maxkb4j.util.SpringUtil;

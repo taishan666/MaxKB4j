@@ -3,7 +3,7 @@ package com.tarzan.maxkb4j.module.application.workflow.node.function;
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.module.application.workflow.INode;
 import com.tarzan.maxkb4j.module.application.workflow.NodeResult;
-import com.tarzan.maxkb4j.module.application.workflow.node.function.dto.FunctionParams;
+import com.tarzan.maxkb4j.module.application.workflow.node.function.input.FunctionParams;
 
 public abstract class IFunctionNode extends INode {
     @Override

@@ -3,7 +3,7 @@ package com.tarzan.maxkb4j.module.application.workflow.node.formcollect;
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.module.application.workflow.INode;
 import com.tarzan.maxkb4j.module.application.workflow.NodeResult;
-import com.tarzan.maxkb4j.module.application.workflow.node.formcollect.dto.FormNodeParams;
+import com.tarzan.maxkb4j.module.application.workflow.node.formcollect.input.FormNodeParams;
 
 public abstract class IFormNode extends INode {
     @Override

@@ -6,7 +6,7 @@ import com.tarzan.maxkb4j.module.application.workflow.NodeResult;
 import com.tarzan.maxkb4j.module.application.workflow.WorkflowManage;
 import com.tarzan.maxkb4j.module.application.workflow.dto.FlowParams;
 import com.tarzan.maxkb4j.module.application.workflow.node.question.IQuestionNode;
-import com.tarzan.maxkb4j.module.application.workflow.node.question.dto.QuestionParams;
+import com.tarzan.maxkb4j.module.application.workflow.node.question.input.QuestionParams;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
 import com.tarzan.maxkb4j.module.model.service.ModelService;
 import com.tarzan.maxkb4j.util.SpringUtil;

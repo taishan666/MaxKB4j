@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.module.application.workflow.NodeResult;
 import com.tarzan.maxkb4j.module.application.workflow.WorkflowManage;
 import com.tarzan.maxkb4j.module.application.workflow.node.documentextract.IDocumentExtractNode;
-import com.tarzan.maxkb4j.module.application.workflow.node.documentextract.dto.DocumentExtractParams;
+import com.tarzan.maxkb4j.module.application.workflow.node.documentextract.input.DocumentExtractParams;
 import com.tarzan.maxkb4j.module.file.service.FileService;
 import com.tarzan.maxkb4j.util.SpringUtil;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;

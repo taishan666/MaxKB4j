@@ -5,7 +5,7 @@ import com.tarzan.maxkb4j.module.application.workflow.NodeResult;
 import com.tarzan.maxkb4j.module.application.workflow.WorkflowManage;
 import com.tarzan.maxkb4j.module.application.workflow.dto.FlowParams;
 import com.tarzan.maxkb4j.module.application.workflow.node.application.IApplicationNode;
-import com.tarzan.maxkb4j.module.application.workflow.node.application.dto.ApplicationNodeParams;
+import com.tarzan.maxkb4j.module.application.workflow.node.application.input.ApplicationNodeParams;
 
 public class BaseApplicationNode extends IApplicationNode {
 

@@ -5,7 +5,7 @@ import com.tarzan.maxkb4j.module.application.workflow.NodeResult;
 import com.tarzan.maxkb4j.module.application.workflow.WorkflowManage;
 import com.tarzan.maxkb4j.module.application.workflow.dto.FlowParams;
 import com.tarzan.maxkb4j.module.application.workflow.node.texttospeech.ITextToSpeechNode;
-import com.tarzan.maxkb4j.module.application.workflow.node.texttospeech.dto.TextToSpeechParams;
+import com.tarzan.maxkb4j.module.application.workflow.node.texttospeech.input.TextToSpeechParams;
 import com.tarzan.maxkb4j.module.file.service.FileService;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseTextToSpeech;
 import com.tarzan.maxkb4j.module.model.service.ModelService;

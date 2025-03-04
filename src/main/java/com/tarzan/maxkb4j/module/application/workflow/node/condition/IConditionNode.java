@@ -3,7 +3,7 @@ package com.tarzan.maxkb4j.module.application.workflow.node.condition;
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.module.application.workflow.INode;
 import com.tarzan.maxkb4j.module.application.workflow.NodeResult;
-import com.tarzan.maxkb4j.module.application.workflow.node.condition.dto.ConditionNodeParams;
+import com.tarzan.maxkb4j.module.application.workflow.node.condition.input.ConditionNodeParams;
 
 import java.util.Objects;
 

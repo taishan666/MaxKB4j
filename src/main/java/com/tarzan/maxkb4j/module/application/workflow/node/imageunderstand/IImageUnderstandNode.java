@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.module.application.workflow.INode;
 import com.tarzan.maxkb4j.module.application.workflow.NodeResult;
 import com.tarzan.maxkb4j.module.application.workflow.dto.FlowParams;
-import com.tarzan.maxkb4j.module.application.workflow.node.imageunderstand.dto.ImageUnderstandParams;
+import com.tarzan.maxkb4j.module.application.workflow.node.imageunderstand.input.ImageUnderstandParams;
 
 public abstract class IImageUnderstandNode extends INode {
     @Override

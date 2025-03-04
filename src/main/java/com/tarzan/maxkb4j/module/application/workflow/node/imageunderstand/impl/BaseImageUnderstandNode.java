@@ -5,7 +5,7 @@ import com.tarzan.maxkb4j.module.application.workflow.NodeResult;
 import com.tarzan.maxkb4j.module.application.workflow.WorkflowManage;
 import com.tarzan.maxkb4j.module.application.workflow.dto.FlowParams;
 import com.tarzan.maxkb4j.module.application.workflow.node.imageunderstand.IImageUnderstandNode;
-import com.tarzan.maxkb4j.module.application.workflow.node.imageunderstand.dto.ImageUnderstandParams;
+import com.tarzan.maxkb4j.module.application.workflow.node.imageunderstand.input.ImageUnderstandParams;
 import com.tarzan.maxkb4j.module.file.service.FileService;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
 import com.tarzan.maxkb4j.module.model.service.ModelService;

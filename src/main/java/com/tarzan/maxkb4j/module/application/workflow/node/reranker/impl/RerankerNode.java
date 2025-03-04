@@ -5,7 +5,7 @@ import com.tarzan.maxkb4j.module.application.workflow.NodeResult;
 import com.tarzan.maxkb4j.module.application.workflow.WorkflowManage;
 import com.tarzan.maxkb4j.module.application.workflow.dto.FlowParams;
 import com.tarzan.maxkb4j.module.application.workflow.node.reranker.IRerankerNode;
-import com.tarzan.maxkb4j.module.application.workflow.node.reranker.dto.RerankerParams;
+import com.tarzan.maxkb4j.module.application.workflow.node.reranker.input.RerankerParams;
 
 import java.util.Map;
 

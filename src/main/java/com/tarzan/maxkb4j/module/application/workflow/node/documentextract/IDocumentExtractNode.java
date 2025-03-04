@@ -3,7 +3,7 @@ package com.tarzan.maxkb4j.module.application.workflow.node.documentextract;
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.module.application.workflow.INode;
 import com.tarzan.maxkb4j.module.application.workflow.NodeResult;
-import com.tarzan.maxkb4j.module.application.workflow.node.documentextract.dto.DocumentExtractParams;
+import com.tarzan.maxkb4j.module.application.workflow.node.documentextract.input.DocumentExtractParams;
 
 public abstract class IDocumentExtractNode extends INode {
     @Override

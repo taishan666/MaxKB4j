@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.module.application.workflow.NodeResult;
 import com.tarzan.maxkb4j.module.application.workflow.WorkflowManage;
 import com.tarzan.maxkb4j.module.application.workflow.node.imagegenerate.IImageGenerateNode;
-import com.tarzan.maxkb4j.module.application.workflow.node.imagegenerate.dto.ImageGenerateParams;
+import com.tarzan.maxkb4j.module.application.workflow.node.imagegenerate.input.ImageGenerateParams;
 import com.tarzan.maxkb4j.module.model.service.ModelService;
 import com.tarzan.maxkb4j.util.SpringUtil;
 import dev.langchain4j.data.image.Image;

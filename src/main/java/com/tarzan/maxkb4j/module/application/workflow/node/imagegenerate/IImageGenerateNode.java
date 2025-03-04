@@ -3,7 +3,7 @@ package com.tarzan.maxkb4j.module.application.workflow.node.imagegenerate;
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.module.application.workflow.INode;
 import com.tarzan.maxkb4j.module.application.workflow.NodeResult;
-import com.tarzan.maxkb4j.module.application.workflow.node.imagegenerate.dto.ImageGenerateParams;
+import com.tarzan.maxkb4j.module.application.workflow.node.imagegenerate.input.ImageGenerateParams;
 
 import java.util.Objects;
 

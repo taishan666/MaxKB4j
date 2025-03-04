@@ -5,7 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.module.application.workflow.INode;
 import com.tarzan.maxkb4j.module.application.workflow.NodeResult;
 import com.tarzan.maxkb4j.module.application.workflow.dto.FlowParams;
-import com.tarzan.maxkb4j.module.application.workflow.node.variableassign.dto.VariableAssignParams;
+import com.tarzan.maxkb4j.module.application.workflow.node.variableassign.input.VariableAssignParams;
 
 public abstract class IVariableAssignNode extends INode {
     @Override

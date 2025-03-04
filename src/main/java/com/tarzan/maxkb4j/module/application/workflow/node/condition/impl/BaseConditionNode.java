@@ -6,9 +6,9 @@ import com.tarzan.maxkb4j.module.application.workflow.WorkflowManage;
 import com.tarzan.maxkb4j.module.application.workflow.node.condition.IConditionNode;
 import com.tarzan.maxkb4j.module.application.workflow.node.condition.compare.Compare;
 import com.tarzan.maxkb4j.module.application.workflow.node.condition.compare.impl.*;
-import com.tarzan.maxkb4j.module.application.workflow.node.condition.dto.Condition;
-import com.tarzan.maxkb4j.module.application.workflow.node.condition.dto.ConditionBranch;
-import com.tarzan.maxkb4j.module.application.workflow.node.condition.dto.ConditionNodeParams;
+import com.tarzan.maxkb4j.module.application.workflow.node.condition.input.Condition;
+import com.tarzan.maxkb4j.module.application.workflow.node.condition.input.ConditionBranch;
+import com.tarzan.maxkb4j.module.application.workflow.node.condition.input.ConditionNodeParams;
 
 import java.util.ArrayList;
 import java.util.List;

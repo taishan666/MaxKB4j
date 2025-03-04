@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.module.application.workflow.INode;
 import com.tarzan.maxkb4j.module.application.workflow.NodeResult;
 import com.tarzan.maxkb4j.module.application.workflow.dto.FlowParams;
-import com.tarzan.maxkb4j.module.application.workflow.node.searchdataset.dto.SearchDatasetStepNodeParams;
+import com.tarzan.maxkb4j.module.application.workflow.node.searchdataset.input.SearchDatasetStepNodeParams;
 
 import java.util.Objects;
 

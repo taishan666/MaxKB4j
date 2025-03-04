@@ -5,7 +5,7 @@ import com.tarzan.maxkb4j.module.application.workflow.NodeResult;
 import com.tarzan.maxkb4j.module.application.workflow.WorkflowManage;
 import com.tarzan.maxkb4j.module.application.workflow.dto.Answer;
 import com.tarzan.maxkb4j.module.application.workflow.node.formcollect.IFormNode;
-import com.tarzan.maxkb4j.module.application.workflow.node.formcollect.dto.FormNodeParams;
+import com.tarzan.maxkb4j.module.application.workflow.node.formcollect.input.FormNodeParams;
 import dev.langchain4j.model.input.PromptTemplate;
 
 import java.util.Collections;
