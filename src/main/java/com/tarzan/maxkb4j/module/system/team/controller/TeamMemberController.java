@@ -7,7 +7,6 @@ import com.tarzan.maxkb4j.module.system.team.vo.MemberPermissionVO;
 import com.tarzan.maxkb4j.module.system.team.vo.MemberVO;
 import com.tarzan.maxkb4j.tool.api.R;
 import lombok.AllArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,8 +20,7 @@ import java.util.Map;
 @AllArgsConstructor
 public class TeamMemberController{
 
-    @Autowired
-    private TeamMemberService teamMemberService;
+    private final TeamMemberService teamMemberService;
 
     @GetMapping("api/team/member")
     public R<List<MemberVO>> teamMembers(){

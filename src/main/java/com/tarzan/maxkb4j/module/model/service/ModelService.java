@@ -13,8 +13,8 @@ import com.tarzan.maxkb4j.module.model.vo.ModelVO;
 import com.tarzan.maxkb4j.module.system.user.entity.UserEntity;
 import com.tarzan.maxkb4j.module.system.user.service.UserService;
 import com.tarzan.maxkb4j.util.BeanUtil;
+import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
@@ -28,9 +28,10 @@ import java.util.stream.Collectors;
  * @date 2024-12-25 12:22:22
  */
 @Service
+@AllArgsConstructor
 public class ModelService extends ServiceImpl<ModelMapper, ModelEntity> {
-    @Autowired
-    private UserService userService;
+
+    private final UserService userService;
 
     public List<ModelEntity> getUserIdAndType(String userId, String modelType) {
         modelType = StringUtils.isBlank(modelType) ? "LLM" : modelType;
@@ -69,17 +70,12 @@ public class ModelService extends ServiceImpl<ModelMapper, ModelEntity> {
         return Collections.emptyList();
     }
 
-    //todo 缓存处理
     @Cacheable(cacheNames = "model", key = "#modelId")
     public <T> T getModelById(String modelId) {
         ModelEntity model = this.getById(modelId);
         return ModelManage.getModel(model);
     }
 
-    @Cacheable(cacheNames = "model_info", key = "#modelId")
-    public ModelEntity getCacheById(String modelId) {
-        return this.getById(modelId);
-    }
 
     //todo 缓存处理
     public <T> T getModelById(String modelId, JSONObject modelParams) {
@@ -98,5 +94,11 @@ public class ModelService extends ServiceImpl<ModelMapper, ModelEntity> {
         model.setMeta(new JSONObject());
         model.setStatus("SUCCESS");
         return save(model);
+    }
+
+    public ModelEntity updateModel(String id, ModelEntity model) {
+        model.setId(id);
+        this.updateById(model);
+        return model;
     }
 }

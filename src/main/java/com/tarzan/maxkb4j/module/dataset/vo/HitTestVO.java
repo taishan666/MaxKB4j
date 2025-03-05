@@ -6,6 +6,5 @@ import lombok.Data;
 @Data
 public class HitTestVO {
     private String paragraphId;
-    private Double similarity;
-    private Double comprehensiveScore;
+    private Double score;
 }

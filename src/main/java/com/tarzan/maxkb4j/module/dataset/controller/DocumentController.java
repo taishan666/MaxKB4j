@@ -11,15 +11,15 @@ import com.tarzan.maxkb4j.module.dataset.dto.ParagraphDTO;
 import com.tarzan.maxkb4j.module.dataset.entity.DocumentEntity;
 import com.tarzan.maxkb4j.module.dataset.entity.ParagraphEntity;
 import com.tarzan.maxkb4j.module.dataset.entity.ProblemEntity;
-import com.tarzan.maxkb4j.module.dataset.service.DatasetService;
 import com.tarzan.maxkb4j.module.dataset.service.DocumentService;
+import com.tarzan.maxkb4j.module.dataset.service.EmbedTextService;
+import com.tarzan.maxkb4j.module.dataset.service.ProblemParagraphService;
 import com.tarzan.maxkb4j.module.dataset.vo.DocumentVO;
 import com.tarzan.maxkb4j.module.dataset.vo.TextSegmentVO;
 import com.tarzan.maxkb4j.module.model.vo.KeyAndValueVO;
 import com.tarzan.maxkb4j.tool.api.R;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -34,10 +34,9 @@ import java.util.List;
 @AllArgsConstructor
 public class DocumentController {
 
-    @Autowired
-    private DatasetService datasetService;
-    @Autowired
-    private DocumentService documentService;
+    private final DocumentService documentService;
+    private final ProblemParagraphService problemParagraphService;
+    private final EmbedTextService embedTextService;
 
 
     @GetMapping("api/dataset/{id}/document/{docId}/export")
@@ -46,7 +45,7 @@ public class DocumentController {
     }
 
     @GetMapping("api/dataset/{id}/document/{docId}/export_zip")
-    public void exportZip(@PathVariable("id") String id, @PathVariable("docId") String docId, HttpServletResponse response) throws IOException {
+    public void exportZip(@PathVariable("id") String id, @PathVariable("docId") String docId, HttpServletResponse response) {
         documentService.exportExcelZipByDocId(docId, response);
     }
 
@@ -87,12 +86,12 @@ public class DocumentController {
 
     @PutMapping("api/dataset/{id}/document/batch_generate_related")
     public R<Boolean> batchGenerateRelated(@PathVariable String id, @RequestBody GenerateProblemDTO dto) {
-        return R.success(datasetService.batchGenerateRelated(id, dto));
+        return R.success(embedTextService.batchGenerateRelated(id, dto));
     }
 
     @PutMapping("api/dataset/{id}/document/{docId}/paragraph/batch_generate_related")
     public R<Boolean> paragraphBatchGenerateRelated(@PathVariable String id, @PathVariable String docId, @RequestBody GenerateProblemDTO dto) {
-        return R.success(datasetService.paragraphBatchGenerateRelated(id, docId, dto));
+        return R.success(embedTextService.paragraphBatchGenerateRelated(id, docId, dto));
     }
 
     @PutMapping("api/dataset/{sourceId}/document/migrate/{targetId}")
@@ -123,11 +122,11 @@ public class DocumentController {
 
     @PutMapping("api/dataset/{id}/document/{docId}/refresh")
     public R<Boolean> refresh(@PathVariable String id, @PathVariable("docId") String docId) {
-        return R.success(datasetService.refresh(id, docId));
+        return R.success(embedTextService.refresh(id, docId));
     }
     @PutMapping("api/dataset/{id}/document/batch_refresh")
     public R<Boolean> batchRefresh(@PathVariable String id, @RequestBody DatasetBatchHitHandlingDTO dto) {
-        return R.success(datasetService.batchRefresh(id, dto));
+        return R.success(embedTextService.batchRefresh(id, dto));
     }
 
     @PutMapping("api/dataset/{id}/document/{docId}/cancel_task")
@@ -162,8 +161,7 @@ public class DocumentController {
 
     @PutMapping("api/dataset/{id}/document/{docId}/paragraph/{paragraphId}")
     public R<Boolean> updateParagraphByParagraphId(@PathVariable String id, @PathVariable("docId") String docId, @PathVariable("paragraphId") String paragraphId, @RequestBody ParagraphEntity paragraph) {
-        paragraph.setId(paragraphId);
-        return R.success(documentService.updateParagraphByParagraphId(docId, paragraph));
+        return R.success(documentService.updateParagraphByParagraphId(docId,paragraphId, paragraph));
     }
 
 
@@ -184,12 +182,12 @@ public class DocumentController {
 
     @PutMapping("api/dataset/{id}/document/{docId}/paragraph/{paragraphId}/problem/{problemId}/association")
     public R<Boolean> association(@PathVariable String id, @PathVariable("docId") String docId, @PathVariable("paragraphId") String paragraphId, @PathVariable("problemId") String problemId) {
-        return R.success(documentService.association(id, docId, paragraphId, problemId));
+        return R.success(problemParagraphService.association(id, docId, paragraphId, problemId));
     }
 
     @PutMapping("api/dataset/{id}/document/{docId}/paragraph/{paragraphId}/problem/{problemId}/un_association")
     public R<Boolean> unAssociation(@PathVariable String id, @PathVariable("docId") String docId, @PathVariable("paragraphId") String paragraphId, @PathVariable("problemId") String problemId) {
-        return R.success(documentService.unAssociation(id, docId, paragraphId, problemId));
+        return R.success(problemParagraphService.unAssociation(id, docId, paragraphId, problemId));
     }
 
     @PutMapping("api/dataset/{sourceDatasetId}/document/{sourceDocId}/paragraph/migrate/dataset/{targetDatasetId}/document/{targetDocId}")

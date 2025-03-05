@@ -4,6 +4,7 @@ import cn.dev33.satoken.stp.StpUtil;
 import com.alibaba.excel.EasyExcel;
 import com.alibaba.excel.ExcelWriter;
 import com.alibaba.excel.write.metadata.WriteSheet;
+import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -13,17 +14,18 @@ import com.tarzan.maxkb4j.module.application.entity.ApplicationDatasetMappingEnt
 import com.tarzan.maxkb4j.module.application.entity.ApplicationEntity;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationDatasetMappingMapper;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationMapper;
-import com.tarzan.maxkb4j.module.dataset.dto.DatasetBatchHitHandlingDTO;
-import com.tarzan.maxkb4j.module.dataset.dto.GenerateProblemDTO;
-import com.tarzan.maxkb4j.module.dataset.dto.HitTestDTO;
 import com.tarzan.maxkb4j.module.dataset.entity.*;
 import com.tarzan.maxkb4j.module.dataset.excel.DatasetExcel;
 import com.tarzan.maxkb4j.module.dataset.mapper.DatasetMapper;
-import com.tarzan.maxkb4j.module.dataset.vo.*;
+import com.tarzan.maxkb4j.module.dataset.mapper.DocumentMapper;
+import com.tarzan.maxkb4j.module.dataset.mapper.ProblemParagraphMapper;
+import com.tarzan.maxkb4j.module.dataset.vo.DatasetVO;
+import com.tarzan.maxkb4j.module.dataset.vo.ParagraphSimpleVO;
+import com.tarzan.maxkb4j.module.dataset.vo.ProblemVO;
+import com.tarzan.maxkb4j.module.dataset.vo.TextSegmentVO;
 import com.tarzan.maxkb4j.module.embedding.entity.EmbeddingEntity;
 import com.tarzan.maxkb4j.module.embedding.service.EmbeddingService;
 import com.tarzan.maxkb4j.module.model.entity.ModelEntity;
-import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
 import com.tarzan.maxkb4j.module.model.service.ModelService;
 import com.tarzan.maxkb4j.util.BeanUtil;
 import dev.langchain4j.data.document.Document;
@@ -34,11 +36,10 @@ import dev.langchain4j.data.document.splitter.DocumentByCharacterSplitter;
 import dev.langchain4j.data.document.splitter.DocumentByRegexSplitter;
 import dev.langchain4j.data.document.splitter.DocumentBySentenceSplitter;
 import dev.langchain4j.data.segment.TextSegment;
-import dev.langchain4j.model.embedding.EmbeddingModel;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -64,24 +65,18 @@ import java.util.zip.ZipOutputStream;
  */
 @Slf4j
 @Service
+@AllArgsConstructor
 public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
 
-    @Autowired
-    private DocumentService documentService;
-    @Autowired
-    private ProblemService problemService;
-    @Autowired
-    private ApplicationMapper applicationMapper;
-    @Autowired
-    private ApplicationDatasetMappingMapper applicationDatasetMappingMapper;
-    @Autowired
-    private ParagraphService paragraphService;
-    @Autowired
-    private ProblemParagraphService problemParagraphMappingService;
-    @Autowired
-    private EmbeddingService embeddingService;
-    @Autowired
-    private ModelService modelService;
+    private final DocumentMapper documentMapper;
+    private final ProblemService problemService;
+    private final ApplicationMapper applicationMapper;
+    private final ApplicationDatasetMappingMapper applicationDatasetMappingMapper;
+    private final ParagraphService paragraphService;
+    private final ProblemParagraphMapper problemParagraphMapper;
+    private final EmbeddingService embeddingService;
+    private final ModelService modelService;
+
 
 
     public IPage<DatasetVO> selectDatasetPage(Page<DatasetVO> datasetPage, QueryDTO query) {
@@ -128,40 +123,21 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
     }
 
     @Transactional
-    public boolean deleteProblemByDatasetId(String problemId) {
-        problemParagraphMappingService.lambdaUpdate().eq(ProblemParagraphEntity::getProblemId, problemId).remove();
-        return problemService.removeById(problemId);
+    public boolean deleteProblemById(String problemId) {
+        return problemService.deleteProblemByIds(List.of(problemId));
     }
 
     @Transactional
-    public boolean deleteProblemByDatasetIds(List<String> problemIds) {
-        if (CollectionUtils.isEmpty(problemIds)) {
-            return false;
-        }
-        problemParagraphMappingService.lambdaUpdate().in(ProblemParagraphEntity::getProblemId, problemIds).remove();
-        embeddingService.lambdaUpdate().in(EmbeddingEntity::getSourceId, problemIds.stream().map(String::toString).toList()).remove();
-        return problemService.lambdaUpdate().in(ProblemEntity::getId, problemIds).remove();
+    public boolean deleteProblemByIds(List<String> problemIds) {
+        return  problemService.deleteProblemByIds(problemIds);
+
     }
 
-    @Transactional
-    public boolean refresh(String datasetId, String docId) {
-        return documentService.embedByDocIds(getDatasetEmbeddingModel(datasetId),datasetId, List.of(docId));
-    }
-
-    @Transactional
-    public boolean batchRefresh(String datasetId, DatasetBatchHitHandlingDTO dto) {
-        return documentService.embedByDocIds(getDatasetEmbeddingModel(datasetId),datasetId, dto.getIdList());
-    }
-
-    public EmbeddingModel getDatasetEmbeddingModel(String datasetId){
-        DatasetEntity dataset=baseMapper.selectById(datasetId);
-        return modelService.getModelById(dataset.getEmbeddingModeId());
-    }
 
 
     public List<ParagraphEntity> getParagraphByProblemId(String problemId) {
-        List<ProblemParagraphEntity> list = problemParagraphMappingService.lambdaQuery()
-                .select(ProblemParagraphEntity::getParagraphId).eq(ProblemParagraphEntity::getProblemId, problemId).list();
+        List<ProblemParagraphEntity> list = problemParagraphMapper.selectList(Wrappers.<ProblemParagraphEntity>lambdaQuery()
+                .select(ProblemParagraphEntity::getParagraphId).eq(ProblemParagraphEntity::getProblemId, problemId));
         if (!CollectionUtils.isEmpty(list)) {
             List<String> paragraphIds = list.stream().map(ProblemParagraphEntity::getParagraphId).toList();
             return paragraphService.lambdaQuery().in(ParagraphEntity::getId, paragraphIds).list();
@@ -169,53 +145,18 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
         return Collections.emptyList();
     }
 
-    public List<ParagraphVO> hitTest(List<String> ids, HitTestDTO dto) {
-        return embeddingService.paragraphSearch(ids, dto);
-    }
 
-    public List<ParagraphVO> hitTest(String id, HitTestDTO dto) {
-        return embeddingService.paragraphSearch(List.of(id), dto);
-    }
-
-    public boolean reEmbedding(String datasetId) {
-        return embeddingService.embedByDatasetId(datasetId);
-    }
 
     public List<ModelEntity> getModels(String id) {
         return modelService.models("LLM");
     }
 
-    public boolean batchGenerateRelated(String datasetId, GenerateProblemDTO dto) {
-        if (CollectionUtils.isEmpty(dto.getDocument_id_list())) {
-            return false;
-        }
-        paragraphService.updateStatusByDocIds(dto.getDocument_id_list(), 2, 0);
-        documentService.updateStatusMetaByIds(dto.getDocument_id_list());
-        documentService.updateStatusByIds(dto.getDocument_id_list(), 2, 0);
-        DatasetEntity dataset = this.getById(datasetId);
-        BaseChatModel chatModel = modelService.getModelById(dto.getModel_id());
-        EmbeddingModel embeddingModel=modelService.getModelById(dataset.getEmbeddingModeId());
-        dto.getDocument_id_list().parallelStream().forEach(docId -> {
-            List<ParagraphEntity> paragraphs = paragraphService.lambdaQuery().eq(ParagraphEntity::getDocumentId, docId).list();
-            List<ProblemEntity> docProblems=new ArrayList<>();
-            List<ProblemEntity> dbProblemEntities = problemService.lambdaQuery().eq(ProblemEntity::getDatasetId, datasetId).list();
-            documentService.updateStatusById(docId,2,1);
-            paragraphs.parallelStream().forEach(paragraph -> {
-                problemService.generateRelated(chatModel,embeddingModel,datasetId, docId, paragraph,dbProblemEntities,docProblems, dto);
-                paragraphService.updateStatusById(paragraph.getId(),2,2);
-                documentService.updateStatusMetaById(paragraph.getDocumentId());
-            });
-            documentService.updateStatusById(docId,2,2);
-        });
-        return true;
-    }
-
     @Transactional
     public Boolean deleteDatasetById(String id) {
-        problemParagraphMappingService.lambdaUpdate().eq(ProblemParagraphEntity::getDatasetId, id).remove();
+        problemParagraphMapper.delete(Wrappers.<ProblemParagraphEntity>lambdaQuery().eq(ProblemParagraphEntity::getDatasetId, id));
         problemService.lambdaUpdate().eq(ProblemEntity::getDatasetId, id).remove();
         paragraphService.lambdaUpdate().eq(ParagraphEntity::getDatasetId, id).remove();
-        documentService.lambdaUpdate().eq(DocumentEntity::getDatasetId, id).remove();
+        documentMapper.delete(Wrappers.<DocumentEntity>lambdaQuery().eq(DocumentEntity::getDatasetId, id));
         applicationDatasetMappingMapper.delete(Wrappers.<ApplicationDatasetMappingEntity>lambdaQuery().eq(ApplicationDatasetMappingEntity::getDatasetId, id));
         embeddingService.lambdaUpdate().eq(EmbeddingEntity::getDatasetId, id).remove();
         return this.removeById(id);
@@ -263,13 +204,13 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
 
     public void exportExcelZipByDatasetId(String id, HttpServletResponse response) throws IOException {
         DatasetEntity dataset = this.getById(id);
-        List<DocumentEntity> docs = documentService.lambdaQuery().eq(DocumentEntity::getDatasetId, id).list();
+        List<DocumentEntity> docs = documentMapper.selectList(Wrappers.<DocumentEntity>lambdaQuery().eq(DocumentEntity::getDatasetId, id));
         exportExcelZipByDocs(docs, dataset.getName(), response);
     }
 
     public void exportExcelByDatasetId(String id, HttpServletResponse response) throws IOException {
         DatasetEntity dataset = this.getById(id);
-        List<DocumentEntity> docs = documentService.lambdaQuery().eq(DocumentEntity::getDatasetId, id).list();
+        List<DocumentEntity> docs = documentMapper.selectList(Wrappers.<DocumentEntity>lambdaQuery().eq(DocumentEntity::getDatasetId, id));
         response.setContentType("application/vnd.ms-excel");
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());
         String fileName = URLEncoder.encode(dataset.getName(), StandardCharsets.UTF_8);
@@ -296,7 +237,7 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
             DatasetExcel excel = new DatasetExcel();
             excel.setTitle(paragraph.getTitle());
             excel.setContent(paragraph.getContent());
-            List<ProblemEntity> problemEntities = problemParagraphMappingService.getProblemsByParagraphId(paragraph.getId());
+            List<ProblemEntity> problemEntities = problemParagraphMapper.getProblemsByParagraphId(paragraph.getId());
             StringBuilder sb = new StringBuilder();
             if (!CollectionUtils.isEmpty(problemEntities)) {
                 List<String> problems = problemEntities.stream().map(ProblemEntity::getContent).toList();
@@ -309,25 +250,6 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
         return list;
     }
 
-
-    public Boolean paragraphBatchGenerateRelated(String datasetId, String docId, GenerateProblemDTO dto) {
-        paragraphService.updateStatusByDocIds(List.of(docId), 2, 0);
-        documentService.updateStatusMetaByIds(List.of(docId));
-        documentService.updateStatusByIds(List.of(docId), 2, 0);
-        DatasetEntity dataset = this.getById(datasetId);
-        BaseChatModel chatModel = modelService.getModelById(dto.getModel_id());
-        EmbeddingModel embeddingModel=modelService.getModelById(dataset.getEmbeddingModeId());
-        List<ParagraphEntity> paragraphs = paragraphService.lambdaQuery().eq(ParagraphEntity::getDocumentId, docId).list();
-        List<ProblemEntity> docProblems=new ArrayList<>();
-        List<ProblemEntity> dbProblemEntities = problemService.lambdaQuery().eq(ProblemEntity::getDatasetId, datasetId).list();
-        documentService.updateStatusById(docId,2,1);
-        paragraphs.parallelStream().forEach(paragraph -> {
-            problemService.generateRelated(chatModel,embeddingModel,datasetId, docId, paragraph,dbProblemEntities,docProblems, dto);
-            documentService.updateStatusMetaById(paragraph.getDocumentId());
-        });
-        documentService.updateStatusById(docId,2,2);
-        return true;
-    }
 
     private final DocumentParser parser = new ApacheTikaDocumentParser();
     private final DocumentSplitter defaultSplitter = new DocumentBySentenceSplitter(512, 20);
@@ -405,12 +327,15 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
         return result;
     }
 
-
-
-
     public List<DatasetEntity> listByUserId(String userId) {
         return this.lambdaQuery().eq(DatasetEntity::getUserId, userId).list();
     }
 
-
+    public DatasetEntity createDataset(DatasetEntity dataset) {
+        dataset.setMeta(new JSONObject());
+        String userId = StpUtil.getLoginIdAsString();
+        dataset.setUserId(userId);
+        this.save(dataset);
+        return dataset;
+    }
 }

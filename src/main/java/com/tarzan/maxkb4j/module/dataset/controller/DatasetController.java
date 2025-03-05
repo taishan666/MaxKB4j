@@ -1,7 +1,6 @@
 package com.tarzan.maxkb4j.module.dataset.controller;
 
 import cn.dev33.satoken.stp.StpUtil;
-import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.tarzan.maxkb4j.common.dto.QueryDTO;
@@ -11,6 +10,8 @@ import com.tarzan.maxkb4j.module.dataset.entity.DatasetEntity;
 import com.tarzan.maxkb4j.module.dataset.entity.ParagraphEntity;
 import com.tarzan.maxkb4j.module.dataset.entity.ProblemEntity;
 import com.tarzan.maxkb4j.module.dataset.service.DatasetService;
+import com.tarzan.maxkb4j.module.dataset.service.EmbedTextService;
+import com.tarzan.maxkb4j.module.dataset.service.RetrieveService;
 import com.tarzan.maxkb4j.module.dataset.vo.DatasetVO;
 import com.tarzan.maxkb4j.module.dataset.vo.ParagraphVO;
 import com.tarzan.maxkb4j.module.dataset.vo.ProblemVO;
@@ -18,7 +19,6 @@ import com.tarzan.maxkb4j.module.model.entity.ModelEntity;
 import com.tarzan.maxkb4j.tool.api.R;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -32,8 +32,9 @@ import java.util.List;
 @AllArgsConstructor
 public class DatasetController {
 
-    @Autowired
-    private DatasetService datasetService;
+    private final DatasetService datasetService;
+    private final RetrieveService retrieveService;
+    private final EmbedTextService embedTextService;
 
 
     @GetMapping("api/dataset")
@@ -44,11 +45,12 @@ public class DatasetController {
 
     @PostMapping("api/dataset")
     public R<DatasetEntity> createDataset(@RequestBody DatasetEntity dataset) {
-        dataset.setMeta(new JSONObject());
-        String userId = StpUtil.getLoginIdAsString();
-        dataset.setUserId(userId);
-        datasetService.save(dataset);
-        return R.success(dataset);
+        return R.success(datasetService.createDataset(dataset));
+    }
+
+    @PostMapping("api/dataset/web")
+    public R<DatasetEntity> createDatasetWeb(@RequestBody DatasetEntity dataset) {
+        return R.success(datasetService.createDataset(dataset));
     }
 
     @GetMapping("api/dataset/{id}")
@@ -64,12 +66,12 @@ public class DatasetController {
 
     @GetMapping("api/dataset/{id}/hit_test")
     public R<List<ParagraphVO>> hitTest(@PathVariable("id") String id, HitTestDTO dto) {
-        return R.success(datasetService.hitTest(id, dto));
+        return R.success(retrieveService.paragraphSearch(List.of(id), dto));
     }
 
     @PutMapping("api/dataset/{id}/re_embedding")
     public R<Boolean> reEmbedding(@PathVariable("id") String id) {
-        return R.success(datasetService.reEmbedding(id));
+        return R.success(embedTextService.reEmbedding(id));
     }
 
     @PutMapping("api/dataset/{id}")
@@ -123,12 +125,12 @@ public class DatasetController {
 
     @DeleteMapping("api/dataset/{id}/problem/{problemId}")
     public R<Boolean> deleteProblemByDatasetId(@PathVariable("id") String id, @PathVariable("problemId") String problemId) {
-        return R.success(datasetService.deleteProblemByDatasetId(problemId));
+        return R.success(datasetService.deleteProblemById(problemId));
     }
 
     @DeleteMapping("api/dataset/{id}/problem/_batch")
     public R<Boolean> deleteBatchProblemByDatasetId(@PathVariable("id") String id, @RequestBody List<String> problemIds) {
-        return R.success(datasetService.deleteProblemByDatasetIds(problemIds));
+        return R.success(datasetService.deleteProblemByIds(problemIds));
     }
 
 
@@ -141,6 +143,8 @@ public class DatasetController {
     public R<List<ParagraphEntity>> getParagraphByProblemId(@PathVariable String id, @PathVariable("problemId") String problemId) {
         return R.success(datasetService.getParagraphByProblemId(problemId));
     }
+
+
 
 
 }

@@ -21,6 +21,7 @@ import com.tarzan.maxkb4j.module.application.vo.ApplicationVO;
 import com.tarzan.maxkb4j.module.dataset.dto.HitTestDTO;
 import com.tarzan.maxkb4j.module.dataset.entity.DatasetEntity;
 import com.tarzan.maxkb4j.module.dataset.service.DatasetService;
+import com.tarzan.maxkb4j.module.dataset.service.RetrieveService;
 import com.tarzan.maxkb4j.module.dataset.vo.ParagraphVO;
 import com.tarzan.maxkb4j.module.image.service.ImageService;
 import com.tarzan.maxkb4j.module.model.entity.ModelEntity;
@@ -35,8 +36,8 @@ import com.tarzan.maxkb4j.util.JwtUtil;
 import com.tarzan.maxkb4j.util.MD5Util;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -51,24 +52,18 @@ import java.util.*;
  * @date 2024-12-25 13:09:54
  */
 @Service
+@AllArgsConstructor
 public class ApplicationService extends ServiceImpl<ApplicationMapper, ApplicationEntity> {
 
-    @Autowired
-    private ModelService modelService;
-    @Autowired
-    private ApplicationAccessTokenService accessTokenService;
-    @Autowired
-    private DatasetService datasetService;
-    @Autowired
-    private ApplicationWorkFlowVersionService workFlowVersionService;
-    @Autowired
-    private ApplicationDatasetMappingService datasetMappingService;
-    @Autowired
-    private ImageService imageService;
-    @Autowired
-    private TeamMemberPermissionService memberPermissionService;
-    @Autowired
-    private UserService userService;
+    private final ModelService modelService;
+    private final ApplicationAccessTokenService accessTokenService;
+    private final DatasetService datasetService;
+    private final ApplicationWorkFlowVersionService workFlowVersionService;
+    private final ApplicationDatasetMappingService datasetMappingService;
+    private final ImageService imageService;
+    private final TeamMemberPermissionService memberPermissionService;
+    private final UserService userService;
+    private final RetrieveService retrieveService;
 
     public IPage<ApplicationEntity> selectAppPage(int page, int size, QueryDTO query) {
         String loginId = StpUtil.getLoginIdAsString();
@@ -367,7 +362,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
             return Collections.emptyList();
         }
         List<String> datasetIds = mapping.stream().map(ApplicationDatasetMappingEntity::getDatasetId).toList();
-        return datasetService.hitTest(datasetIds, dto);
+        return retrieveService.paragraphSearch(datasetIds, dto);
     }
 
     public byte[] textToSpeech(String id, JSONObject data) {

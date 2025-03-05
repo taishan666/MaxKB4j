@@ -1,0 +1,93 @@
+package com.tarzan.maxkb4j.module.dataset.service;
+
+import com.tarzan.maxkb4j.module.dataset.dto.DatasetBatchHitHandlingDTO;
+import com.tarzan.maxkb4j.module.dataset.dto.GenerateProblemDTO;
+import com.tarzan.maxkb4j.module.dataset.entity.DatasetEntity;
+import com.tarzan.maxkb4j.module.dataset.entity.ParagraphEntity;
+import com.tarzan.maxkb4j.module.dataset.entity.ProblemEntity;
+import com.tarzan.maxkb4j.module.embedding.service.EmbeddingService;
+import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
+import com.tarzan.maxkb4j.module.model.service.ModelService;
+import dev.langchain4j.model.embedding.EmbeddingModel;
+import lombok.AllArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
+
+import java.util.ArrayList;
+import java.util.List;
+
+@Service
+@AllArgsConstructor
+public class EmbedTextService {
+
+
+    private final DocumentService documentService;
+    private final DatasetBaseService datasetService;
+    private final ParagraphService paragraphService;
+    private final ProblemService problemService;
+    private final ModelService modelService;
+    private final EmbeddingService embeddingService;
+    @Transactional
+    public boolean refresh(String datasetId, String docId) {
+        return documentService.embedByDocIds(datasetService.getDatasetEmbeddingModel(datasetId),datasetId, List.of(docId));
+    }
+
+    @Transactional
+    public boolean batchRefresh(String datasetId, DatasetBatchHitHandlingDTO dto) {
+        return documentService.embedByDocIds(datasetService.getDatasetEmbeddingModel(datasetId),datasetId, dto.getIdList());
+    }
+
+    public boolean reEmbedding(String datasetId) {
+        EmbeddingModel embeddingModel=datasetService.getDatasetEmbeddingModel(datasetId);
+        return embeddingService.embedByDatasetId(datasetId,embeddingModel);
+    }
+
+
+    public boolean batchGenerateRelated(String datasetId, GenerateProblemDTO dto) {
+        if (CollectionUtils.isEmpty(dto.getDocument_id_list())) {
+            return false;
+        }
+        paragraphService.updateStatusByDocIds(dto.getDocument_id_list(), 2, 0);
+        documentService.updateStatusMetaByIds(dto.getDocument_id_list());
+        documentService.updateStatusByIds(dto.getDocument_id_list(), 2, 0);
+        DatasetEntity dataset = datasetService.getById(datasetId);
+        BaseChatModel chatModel = modelService.getModelById(dto.getModel_id());
+        EmbeddingModel embeddingModel=modelService.getModelById(dataset.getEmbeddingModeId());
+        dto.getDocument_id_list().parallelStream().forEach(docId -> {
+            List<ParagraphEntity> paragraphs = paragraphService.lambdaQuery().eq(ParagraphEntity::getDocumentId, docId).list();
+            List<ProblemEntity> docProblems=new ArrayList<>();
+            List<ProblemEntity> dbProblemEntities = problemService.lambdaQuery().eq(ProblemEntity::getDatasetId, datasetId).list();
+            documentService.updateStatusById(docId,2,1);
+            paragraphs.parallelStream().forEach(paragraph -> {
+                problemService.generateRelated(chatModel,embeddingModel,datasetId, docId, paragraph,dbProblemEntities,docProblems, dto);
+                paragraphService.updateStatusById(paragraph.getId(),2,2);
+                documentService.updateStatusMetaById(paragraph.getDocumentId());
+            });
+            documentService.updateStatusById(docId,2,2);
+        });
+        return true;
+    }
+
+
+    public Boolean paragraphBatchGenerateRelated(String datasetId, String docId, GenerateProblemDTO dto) {
+        paragraphService.updateStatusByDocIds(List.of(docId), 2, 0);
+        documentService.updateStatusMetaByIds(List.of(docId));
+        documentService.updateStatusByIds(List.of(docId), 2, 0);
+        DatasetEntity dataset = datasetService.getById(datasetId);
+        BaseChatModel chatModel = modelService.getModelById(dto.getModel_id());
+        EmbeddingModel embeddingModel=modelService.getModelById(dataset.getEmbeddingModeId());
+        List<ParagraphEntity> paragraphs = paragraphService.lambdaQuery().eq(ParagraphEntity::getDocumentId, docId).list();
+        List<ProblemEntity> docProblems=new ArrayList<>();
+        List<ProblemEntity> dbProblemEntities = problemService.lambdaQuery().eq(ProblemEntity::getDatasetId, datasetId).list();
+        documentService.updateStatusById(docId,2,1);
+        paragraphs.parallelStream().forEach(paragraph -> {
+            problemService.generateRelated(chatModel,embeddingModel,datasetId, docId, paragraph,dbProblemEntities,docProblems, dto);
+            documentService.updateStatusMetaById(paragraph.getDocumentId());
+        });
+        documentService.updateStatusById(docId,2,2);
+        return true;
+    }
+
+
+}

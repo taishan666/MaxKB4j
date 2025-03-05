@@ -12,7 +12,7 @@ import com.tarzan.maxkb4j.module.system.user.service.UserService;
 import com.tarzan.maxkb4j.module.system.user.vo.UserVO;
 import com.tarzan.maxkb4j.tool.api.R;
 import jakarta.mail.MessagingException;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -23,10 +23,10 @@ import java.util.Objects;
  * @date 2024-12-25 11:17:00
  */
 @RestController
+@AllArgsConstructor
 public class UserController{
 
-	@Autowired
-	private UserService userService;
+	private final UserService userService;
 
 	@GetMapping("api/profile")
 	public R<JSONObject> getProfile(){

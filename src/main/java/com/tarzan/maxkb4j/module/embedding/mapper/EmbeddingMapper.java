@@ -14,8 +14,6 @@ import java.util.List;
  */
 public interface EmbeddingMapper extends BaseMapper<EmbeddingEntity>{
 
-  //  List<HitTestVO> embeddingSearch(List<String> datasetIds, @Param("query") HitTestDTO query, @Param("embedding") float[] embedding);
-
     List<HitTestVO> embeddingSearch(List<String> datasetIds, @Param("maxResults") int maxResults,@Param("minScore") double minScore,@Param("referenceEmbedding") float[]  referenceEmbedding );
 
     List<HitTestVO> keywordsSearch(List<String>  datasetIds,@Param("query") HitTestDTO query);

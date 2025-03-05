@@ -18,7 +18,6 @@ import com.tarzan.maxkb4j.module.model.entity.ModelEntity;
 import com.tarzan.maxkb4j.tool.api.R;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -35,8 +34,7 @@ import java.util.List;
 @AllArgsConstructor
 public class ApplicationController {
 
-    @Autowired
-    private ApplicationService applicationService;
+    private final ApplicationService applicationService;
 
     @GetMapping("api/application")
     public R<List<ApplicationEntity>> listApps() {
@@ -115,6 +113,7 @@ public class ApplicationController {
 
     @GetMapping("api/valid/application/{type}")
     public R<Boolean> copyApp(@PathVariable("type") int type) {
+        //todo
         return R.success(true);
     }
 

@@ -7,26 +7,20 @@ import com.huaban.analysis.jieba.JiebaSegmenter;
 import com.tarzan.maxkb4j.common.dto.SearchIndex;
 import com.tarzan.maxkb4j.common.dto.TSVector;
 import com.tarzan.maxkb4j.common.dto.WordIndex;
-import com.tarzan.maxkb4j.module.dataset.dto.HitTestDTO;
-import com.tarzan.maxkb4j.module.dataset.entity.DatasetEntity;
 import com.tarzan.maxkb4j.module.dataset.entity.ParagraphEntity;
 import com.tarzan.maxkb4j.module.dataset.entity.ProblemEntity;
-import com.tarzan.maxkb4j.module.dataset.mapper.DatasetMapper;
 import com.tarzan.maxkb4j.module.dataset.mapper.ParagraphMapper;
 import com.tarzan.maxkb4j.module.dataset.mapper.ProblemMapper;
 import com.tarzan.maxkb4j.module.dataset.mapper.ProblemParagraphMapper;
-import com.tarzan.maxkb4j.module.dataset.vo.HitTestVO;
-import com.tarzan.maxkb4j.module.dataset.vo.ParagraphVO;
 import com.tarzan.maxkb4j.module.dataset.vo.ProblemParagraphVO;
 import com.tarzan.maxkb4j.module.embedding.entity.EmbeddingEntity;
 import com.tarzan.maxkb4j.module.embedding.mapper.EmbeddingMapper;
-import com.tarzan.maxkb4j.module.model.service.ModelService;
 import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.model.output.Response;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.util.StringUtil;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -40,65 +34,14 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @Service
+@AllArgsConstructor
 public class EmbeddingService extends ServiceImpl<EmbeddingMapper, EmbeddingEntity> {
 
-    @Autowired
-    private ParagraphMapper paragraphMapper;
-    @Autowired
-    private ProblemParagraphMapper problemParagraphMappingMapper;
-    @Autowired
-    private ProblemMapper problemMapper;
-    @Autowired
-    private ModelService modelService;
-    @Autowired
-    private DatasetMapper datasetMapper;
+    private final ParagraphMapper paragraphMapper;
+    private final ProblemParagraphMapper problemParagraphMappingMapper;
+    private final ProblemMapper problemMapper;
+    private final JiebaSegmenter jiebaSegmenter = new JiebaSegmenter();
 
-
-    JiebaSegmenter jiebaSegmenter = new JiebaSegmenter();
-
-    private List<HitTestVO> dataSearch(List<String> datasetIds, HitTestDTO dto) {
-        EmbeddingModel embeddingModel=getDatasetEmbeddingModel(datasetIds.get(0));
-        Response<Embedding> res = embeddingModel.embed(dto.getQuery_text());
-        if ("embedding".equals(dto.getSearch_mode())) {
-            return baseMapper.embeddingSearch(datasetIds, dto.getTop_number(),dto.getSimilarity(), res.content().vector());
-        }
-        if ("keywords".equals(dto.getSearch_mode())) {
-            dto.setQuery_text(toTsQuery(dto.getQuery_text()));
-            return baseMapper.keywordsSearch(datasetIds, dto);
-        }
-        if ("blend".equals(dto.getSearch_mode())) {
-            return baseMapper.HybridSearch(datasetIds, dto, res.content().vector());
-        }
-        return Collections.emptyList();
-    }
-
-    public List<ParagraphVO> paragraphSearch(List<String> datasetIds, HitTestDTO dto) {
-        if (CollectionUtils.isEmpty(datasetIds)) {
-            return Collections.emptyList();
-        }
-        List<HitTestVO> list = dataSearch(datasetIds, dto);
-        List<String> paragraphIds = list.stream().map(HitTestVO::getParagraphId).toList();
-        if (CollectionUtils.isEmpty(paragraphIds)) {
-            return Collections.emptyList();
-        }
-        Map<String, Double> map = list.stream().collect(Collectors.toMap(HitTestVO::getParagraphId, HitTestVO::getComprehensiveScore));
-        List<ParagraphVO> paragraphs = paragraphMapper.retrievalParagraph(paragraphIds);
-        paragraphs.forEach(e -> {
-            double score = map.get(e.getId());
-            e.setSimilarity(score);
-            e.setComprehensiveScore(score);
-        });
-        return paragraphs;
-    }
-
-    public List<ParagraphVO> paragraphSearch(String question,List<String> datasetIds,List<String> excludeParagraphIds,int TopN,float similarity,String searchMode) {
-        HitTestDTO dto=new HitTestDTO();
-        dto.setQuery_text(question);
-        dto.setSearch_mode(searchMode);
-        dto.setSimilarity(similarity);
-        dto.setTop_number(TopN);
-        return paragraphSearch(datasetIds,dto);
-    }
 
     @Transactional
     public boolean embedProblemParagraphs(List<ParagraphEntity> paragraphs, List<ProblemParagraphVO> problemParagraphs,EmbeddingModel embeddingModel) {
@@ -146,16 +89,6 @@ public class EmbeddingService extends ServiceImpl<EmbeddingMapper, EmbeddingEnti
     }
 
 
-
-
-    public EmbeddingModel getDatasetEmbeddingModel(String datasetId){
-        DatasetEntity dataset=datasetMapper.selectById(datasetId);
-        return modelService.getModelById(dataset.getEmbeddingModeId());
-    }
-
-
-
-
     public TSVector toTsVector(String text) {
         TSVector tsVector=new TSVector();
         List<String> segmentations = filterPunctuation(jiebaSegmenter.sentenceProcess(text));
@@ -184,36 +117,7 @@ public class EmbeddingService extends ServiceImpl<EmbeddingMapper, EmbeddingEnti
     }
 
 
-    private String toTsQuery(String text) {
-        List<String> words = filterPunctuation(jiebaSegmenter.sentenceProcess(text));
-        StringBuilder sb = new StringBuilder();
-        for (String word : words) {
-            sb.append(word).append("|");
-        }
-        sb.deleteCharAt(sb.length() - 1);
-        return sb.toString();
-    }
-
-
-    private static List<String> filterPunctuation(List<String> words) {
-        String[] filteredWords = {"", ",", ".", "。", "=", "，", "、", "：", "；", "（", "）"};
-        List<String> result = new ArrayList<>();
-        for (String word : words) {
-            word = word.toLowerCase().trim();
-            for (String filteredWord : filteredWords) {
-                if (word.contains(filteredWord)) {
-                    word = word.replaceAll(filteredWord, "");
-                }
-            }
-            if (!word.isEmpty()) {
-                result.add(word);
-            }
-        }
-        return result;
-    }
-
-    public boolean createProblem(String datasetId, String docId, String paragraphId, String problemId) {
-        EmbeddingModel embeddingModel=getDatasetEmbeddingModel(datasetId);
+    public boolean createProblem(String datasetId, String docId, String paragraphId, String problemId,EmbeddingModel embeddingModel) {
         ProblemEntity problem = problemMapper.selectById(problemId);
         if (Objects.nonNull(problem)) {
             EmbeddingEntity embeddingEntity = new EmbeddingEntity();
@@ -234,8 +138,7 @@ public class EmbeddingService extends ServiceImpl<EmbeddingMapper, EmbeddingEnti
 
 
     @Transactional
-    public boolean embedByDatasetId(String datasetId) {
-        EmbeddingModel embeddingModel=getDatasetEmbeddingModel(datasetId);
+    public boolean embedByDatasetId(String datasetId,EmbeddingModel embeddingModel) {
         this.lambdaUpdate().in(EmbeddingEntity::getDatasetId, datasetId).remove();
         List<ParagraphEntity> paragraphEntities = paragraphMapper.selectList(Wrappers.<ParagraphEntity>lambdaQuery().in(ParagraphEntity::getDatasetId, datasetId));
         List<ProblemParagraphVO> problemParagraphVOS = problemParagraphMappingMapper.getProblems(datasetId,null);
@@ -262,5 +165,22 @@ public class EmbeddingService extends ServiceImpl<EmbeddingMapper, EmbeddingEnti
             }
             this.saveBatch(embeddingEntities);
         }
+    }
+
+    private static List<String> filterPunctuation(List<String> words) {
+        var filteredWords = new String[]{"", ",", ".", "。", "=", "，", "、", "：", "；", "（", "）"};
+        List<String> result = new ArrayList<>();
+        for (String word : words) {
+            word = word.toLowerCase().trim();
+            for (String filteredWord : filteredWords) {
+                if (word.contains(filteredWord)) {
+                    word = word.replaceAll(filteredWord, "");
+                }
+            }
+            if (!word.isEmpty()) {
+                result.add(word);
+            }
+        }
+        return result;
     }
 }

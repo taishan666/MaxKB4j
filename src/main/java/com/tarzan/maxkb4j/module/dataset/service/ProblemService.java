@@ -10,13 +10,14 @@ import com.tarzan.maxkb4j.module.dataset.entity.ProblemEntity;
 import com.tarzan.maxkb4j.module.dataset.entity.ProblemParagraphEntity;
 import com.tarzan.maxkb4j.module.dataset.mapper.ProblemMapper;
 import com.tarzan.maxkb4j.module.dataset.vo.ProblemVO;
+import com.tarzan.maxkb4j.module.embedding.entity.EmbeddingEntity;
 import com.tarzan.maxkb4j.module.embedding.service.EmbeddingService;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
 import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.model.chat.response.ChatResponse;
 import dev.langchain4j.model.embedding.EmbeddingModel;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,11 +34,12 @@ import java.util.regex.Pattern;
  */
 @Slf4j
 @Service
+@AllArgsConstructor
 public class ProblemService extends ServiceImpl<ProblemMapper, ProblemEntity> {
 
 
-    @Autowired
-    private EmbeddingService embeddingService;
+    private final EmbeddingService embeddingService;
+    private final ProblemParagraphService problemParagraphService;
 
 
     public IPage<ProblemVO> getProblemsByDatasetId(Page<ProblemEntity> problemPage, String id, String content) {
@@ -150,5 +152,15 @@ public class ProblemService extends ServiceImpl<ProblemMapper, ProblemEntity> {
         }
 
         return problem;
+    }
+
+    @Transactional
+    public boolean deleteProblemByIds(List<String> problemIds) {
+        if (CollectionUtils.isEmpty(problemIds)) {
+            return false;
+        }
+        problemParagraphService.lambdaUpdate().in(ProblemParagraphEntity::getProblemId, problemIds).remove();
+        embeddingService.lambdaUpdate().in(EmbeddingEntity::getSourceId, problemIds.stream().map(String::toString).toList()).remove();
+        return this.removeByIds(problemIds);
     }
 }

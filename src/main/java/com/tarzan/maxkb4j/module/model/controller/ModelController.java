@@ -30,7 +30,6 @@ import com.tarzan.maxkb4j.module.model.vo.KeyAndValueVO;
 import com.tarzan.maxkb4j.module.model.vo.ModelVO;
 import com.tarzan.maxkb4j.tool.api.R;
 import lombok.AllArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashSet;
@@ -47,8 +46,7 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 public class ModelController{
 
-	@Autowired
-	private ModelService modelService;
+	private final ModelService modelService;
 
     @GetMapping("api/provider")
 	public R<Set<ModelProvideInfo>> provider(){
@@ -120,11 +118,6 @@ public class ModelController{
 		return R.success(modelService.getById(id));
 	}
 
-/*	@PostMapping("api/model/{id}")
-	public R<ModelEntity> create(@PathVariable String id){
-		return R.success(modelService.getById(id));
-	}*/
-
 	@DeleteMapping("api/model/{id}")
 	public R<Boolean> delete(@PathVariable String id){
 		return R.success(modelService.removeById(id));
@@ -132,9 +125,7 @@ public class ModelController{
 
 	@PutMapping("api/model/{id}")
 	public R<ModelEntity> update(@PathVariable String id,@RequestBody ModelEntity model){
-		model.setId(id);
-		modelService.updateById(model);
-		return R.success(model);
+		return R.success(modelService.updateModel(id,model));
 	}
 
 	@GetMapping("api/model/{id}/model_params_form")

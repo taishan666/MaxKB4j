@@ -4,7 +4,6 @@ import com.tarzan.maxkb4j.module.application.entity.ApplicationApiKeyEntity;
 import com.tarzan.maxkb4j.module.application.service.ApplicationApiKeyService;
 import com.tarzan.maxkb4j.tool.api.R;
 import lombok.AllArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -17,8 +16,7 @@ import java.util.List;
 @AllArgsConstructor
 public class ApplicationKeyController {
 
-    @Autowired
-    private ApplicationApiKeyService apiKeyService;
+    private final ApplicationApiKeyService apiKeyService;
 
     @GetMapping("api/application/{appId}/api_key")
     public R<List<ApplicationApiKeyEntity>> listApikey(@PathVariable("appId") String appId) {

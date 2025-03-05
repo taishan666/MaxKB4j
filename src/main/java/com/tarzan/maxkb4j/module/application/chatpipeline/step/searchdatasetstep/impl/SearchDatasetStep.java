@@ -1,23 +1,23 @@
 package com.tarzan.maxkb4j.module.application.chatpipeline.step.searchdatasetstep.impl;
 
 import com.alibaba.fastjson.JSONObject;
-import com.tarzan.maxkb4j.module.application.entity.ApplicationEntity;
 import com.tarzan.maxkb4j.module.application.chatpipeline.PipelineManage;
 import com.tarzan.maxkb4j.module.application.chatpipeline.step.searchdatasetstep.ISearchDatasetStep;
+import com.tarzan.maxkb4j.module.application.entity.ApplicationEntity;
 import com.tarzan.maxkb4j.module.dataset.dto.HitTestDTO;
+import com.tarzan.maxkb4j.module.dataset.service.RetrieveService;
 import com.tarzan.maxkb4j.module.dataset.vo.ParagraphVO;
-import com.tarzan.maxkb4j.module.embedding.service.EmbeddingService;
+import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 
 @Component
+@AllArgsConstructor
 public class SearchDatasetStep extends ISearchDatasetStep {
 
-    @Autowired
-    private EmbeddingService embeddingService;
+    private final RetrieveService retrieveService;
 
     @Override
     protected List<ParagraphVO> execute(PipelineManage manage) {
@@ -35,7 +35,7 @@ public class SearchDatasetStep extends ISearchDatasetStep {
         hitTestDTO.setSearch_mode(datasetSetting.getString("search_mode"));
         hitTestDTO.setSimilarity(datasetSetting.getFloat("similarity"));
         hitTestDTO.setTop_number(datasetSetting.getInteger("top_n"));
-        List<ParagraphVO> paragraphList= embeddingService.paragraphSearch(application.getDatasetIdList(),hitTestDTO);
+        List<ParagraphVO> paragraphList= retrieveService.paragraphSearch(application.getDatasetIdList(),hitTestDTO);
         System.out.println("search 耗时 "+(System.currentTimeMillis()-startTime)+" ms");
         super.context.put("message_tokens",0);
         super.context.put("answer_tokens",0);

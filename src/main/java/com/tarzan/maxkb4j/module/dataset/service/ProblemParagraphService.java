@@ -6,8 +6,10 @@ import com.tarzan.maxkb4j.module.dataset.entity.ProblemParagraphEntity;
 import com.tarzan.maxkb4j.module.dataset.mapper.ProblemParagraphMapper;
 import com.tarzan.maxkb4j.module.embedding.entity.EmbeddingEntity;
 import com.tarzan.maxkb4j.module.embedding.service.EmbeddingService;
-import org.springframework.beans.factory.annotation.Autowired;
+import dev.langchain4j.model.embedding.EmbeddingModel;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -16,24 +18,28 @@ import java.util.List;
  * @date 2024-12-27 11:23:44
  */
 @Service
+@AllArgsConstructor
 public class ProblemParagraphService extends ServiceImpl<ProblemParagraphMapper, ProblemParagraphEntity>{
 
-    @Autowired
-    private EmbeddingService embeddingService;
+    private final EmbeddingService embeddingService;
+
+    private final DatasetBaseService datasetService;
 
     public List<ProblemEntity> getProblemsByParagraphId(String paragraphId) {
         return baseMapper.getProblemsByParagraphId(paragraphId);
     }
-
+    @Transactional
     public boolean association(String datasetId, String docId, String paragraphId, String problemId) {
         ProblemParagraphEntity entity = new ProblemParagraphEntity();
         entity.setDatasetId(datasetId);
         entity.setProblemId(problemId);
         entity.setParagraphId(paragraphId);
         entity.setDocumentId(docId);
-        return this.save(entity) && embeddingService.createProblem(datasetId, docId, paragraphId, problemId);
+        EmbeddingModel embeddingModel=datasetService.getDatasetEmbeddingModel(datasetId);
+        return this.save(entity) && embeddingService.createProblem(datasetId, docId, paragraphId, problemId,embeddingModel);
     }
 
+    @Transactional
     public boolean unAssociation(String datasetId, String docId, String paragraphId, String problemId) {
         return this.lambdaUpdate()
                 .eq(ProblemParagraphEntity::getParagraphId, paragraphId)

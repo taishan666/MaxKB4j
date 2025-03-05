@@ -15,7 +15,6 @@ import com.tarzan.maxkb4j.util.JwtUtil;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -31,8 +30,7 @@ import java.util.List;
 @AllArgsConstructor
 public class ApplicationChatController {
 
-    @Autowired
-    private ApplicationChatService chatService;
+    private final ApplicationChatService chatService;
 
     @GetMapping("api/application/{appId}/chat/client/{page}/{size}")
     public R<IPage<ApplicationChatEntity>> clientChatPage(@PathVariable("appId") String appId, @PathVariable("page") int page, @PathVariable("size") int size, HttpServletRequest request) {

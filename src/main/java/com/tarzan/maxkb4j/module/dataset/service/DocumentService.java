@@ -42,6 +42,7 @@ import dev.langchain4j.data.document.splitter.DocumentBySentenceSplitter;
 import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream;
@@ -49,7 +50,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -72,14 +72,12 @@ import java.util.zip.ZipOutputStream;
  */
 @Slf4j
 @Service
+@AllArgsConstructor
 public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>{
 
-    @Autowired
-    private ParagraphService paragraphService;
-    @Autowired
-    private ProblemService problemService;
-    @Autowired
-    private ProblemParagraphService problemParagraphService;
+    private final ParagraphService paragraphService;
+    private final ProblemService problemService;
+    private final ProblemParagraphService problemParagraphService;
 
     public IPage<DocumentVO> selectDocPage(Page<DocumentVO> docPage, String datasetId, QueryDTO query) {
         return baseMapper.selectDocPage(docPage, datasetId,query);
@@ -603,9 +601,9 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         return this.removeById(docId);
     }
 
-    public IPage<DocumentVO> getDocByDatasetId(String id, int page, int size, QueryDTO query) {
+    public IPage<DocumentVO> getDocByDatasetId(String datasetId, int page, int size, QueryDTO query) {
         Page<DocumentVO> docPage = new Page<>(page, size);
-        return this.selectDocPage(docPage, id, query);
+        return this.selectDocPage(docPage, datasetId, query);
     }
 
     @Transactional
@@ -652,7 +650,8 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
     }
 
     @Transactional
-    public boolean updateParagraphByParagraphId(String docId, ParagraphEntity paragraph) {
+    public boolean updateParagraphByParagraphId(String docId,String paragraphId, ParagraphEntity paragraph) {
+        paragraph.setId(paragraphId);
         paragraphService.updateParagraphById(paragraph);
         return this.updateCharLengthById(docId);
     }
@@ -677,16 +676,6 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
             return problemService.lambdaQuery().in(ProblemEntity::getId, problemIds).list();
         }
         return Collections.emptyList();
-    }
-
-    @Transactional
-    public boolean association(String datasetId, String docId, String paragraphId, String problemId) {
-        return problemParagraphService.association(datasetId,docId, paragraphId, problemId);
-    }
-
-    @Transactional
-    public boolean unAssociation(String datasetId, String docId, String paragraphId, String problemId) {
-        return problemParagraphService.unAssociation(datasetId,docId, paragraphId, problemId);
     }
 
 

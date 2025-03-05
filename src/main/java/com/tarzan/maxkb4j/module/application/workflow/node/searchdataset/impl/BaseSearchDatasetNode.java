@@ -7,8 +7,8 @@ import com.tarzan.maxkb4j.module.application.workflow.dto.FlowParams;
 import com.tarzan.maxkb4j.module.application.workflow.node.searchdataset.ISearchDatasetStepNode;
 import com.tarzan.maxkb4j.module.application.workflow.node.searchdataset.input.DatasetSetting;
 import com.tarzan.maxkb4j.module.application.workflow.node.searchdataset.input.SearchDatasetStepNodeParams;
+import com.tarzan.maxkb4j.module.dataset.service.RetrieveService;
 import com.tarzan.maxkb4j.module.dataset.vo.ParagraphVO;
-import com.tarzan.maxkb4j.module.embedding.service.EmbeddingService;
 import com.tarzan.maxkb4j.util.SpringUtil;
 import org.apache.commons.lang3.StringUtils;
 
@@ -20,15 +20,15 @@ import java.util.stream.Collectors;
 public class BaseSearchDatasetNode extends ISearchDatasetStepNode {
 
 
-    private final EmbeddingService embeddingService;
+    private final RetrieveService retrieveService;
 
     public BaseSearchDatasetNode() {
-        this.embeddingService = SpringUtil.getBean(EmbeddingService.class);
+        this.retrieveService = SpringUtil.getBean(RetrieveService.class);
     }
     @Override
     public NodeResult execute(SearchDatasetStepNodeParams nodeParams, FlowParams workflowParams) {
         DatasetSetting datasetSetting=nodeParams.getDatasetSetting();
-        List<ParagraphVO> paragraphList= embeddingService.paragraphSearch(workflowParams.getQuestion(),nodeParams.getDatasetIdList(), Collections.emptyList(),datasetSetting.getTopN(),datasetSetting.getSimilarity(),datasetSetting.getSearchMode());
+        List<ParagraphVO> paragraphList= retrieveService.paragraphSearch(workflowParams.getQuestion(),nodeParams.getDatasetIdList(), Collections.emptyList(),datasetSetting.getTopN(),datasetSetting.getSimilarity(),datasetSetting.getSearchMode());
         List<ParagraphVO> isHitHandlingMethodList=paragraphList.stream().filter(ParagraphVO::isHitHandlingMethod).toList();
         Map<String, Object> nodeVariable = Map.of(
                 "paragraph_list", paragraphList,
