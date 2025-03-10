@@ -15,7 +15,7 @@ import org.springframework.context.annotation.Configuration;
  * @date 2025年1月11日
  */
 @Configuration
-@MapperScan(basePackages = "com.tarzan.maxkb4j.module.model.info.mapper")
+@MapperScan(basePackages = "com.tarzan.**.mapper")
 public class MybatisPlusConfig {
 
     /**

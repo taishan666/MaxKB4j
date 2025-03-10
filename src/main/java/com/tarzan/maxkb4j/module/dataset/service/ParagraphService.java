@@ -34,7 +34,7 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
 
     private final ProblemService problemService;
     private final ProblemParagraphService problemParagraphService;
-    private final TextSegmentService textSegmentService;
+  //  private final TextSegmentService textSegmentService;
     private final EmbeddingMapper embeddingMapper;
 
     public void updateStatusById(String id, int type, int status) {
@@ -106,7 +106,7 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
                 problemEmbed.setEmbedding(res1.content().vectorAsList());
                 embeddingEntities.add(problemEmbed);
             }
-            textSegmentService.saveBatch(embeddingEntities);
+          //  textSegmentService.saveBatch(embeddingEntities);
             embeddingMapper.insert(embeddingEntities);
             this.updateStatusById(paragraph.getId(),1,2);
             log.info("结束---->向量化段落:{}", paragraph.getId());

@@ -9,19 +9,18 @@ import com.tarzan.maxkb4j.module.application.entity.ApplicationChatEntity;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationChatRecordEntity;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatMapper;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatRecordMapper;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Objects;
 
+@AllArgsConstructor
 @Component
 public class PostHandler extends PostResponseHandler {
 
-    @Autowired
-    private ApplicationChatMapper chatMapper;
-    @Autowired
-    private ApplicationChatRecordMapper chatRecordMapper;
+    private final ApplicationChatMapper chatMapper;
+    private final ApplicationChatRecordMapper chatRecordMapper;
 
     @Override
     public void handler(ChatInfo chatInfo, String chatId, String chatRecordId, String problemText, String answerText, PipelineManage manage, String clientId) {

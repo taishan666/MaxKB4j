@@ -1,6 +1,5 @@
 package com.tarzan.maxkb4j.module.dataset.service;
 
-import com.tarzan.maxkb4j.module.dataset.repository.TextSegmentRepository;
 import com.tarzan.maxkb4j.module.embedding.entity.EmbeddingEntity;
 import lombok.AllArgsConstructor;
 import org.springframework.data.elasticsearch.client.elc.ElasticsearchTemplate;
@@ -17,11 +16,11 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 public class TextSegmentService {
 
-    private final TextSegmentRepository repository;
+  //  private final TextSegmentRepository repository;
     private final ElasticsearchTemplate elasticsearchTemplate;
 
     public void saveBatch(List<EmbeddingEntity> entities) {
-        repository.saveAll(entities);
+      //  repository.saveAll(entities);
     }
 
 

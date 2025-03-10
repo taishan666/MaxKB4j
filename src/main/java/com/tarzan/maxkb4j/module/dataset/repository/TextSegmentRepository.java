@@ -1,3 +1,4 @@
+/*
 package com.tarzan.maxkb4j.module.dataset.repository;
 
 import com.tarzan.maxkb4j.module.embedding.entity.EmbeddingEntity;
@@ -9,3 +10,4 @@ public interface TextSegmentRepository extends ElasticsearchRepository<Embedding
 
     List<EmbeddingEntity> findByContent(String content);
 }
+*/

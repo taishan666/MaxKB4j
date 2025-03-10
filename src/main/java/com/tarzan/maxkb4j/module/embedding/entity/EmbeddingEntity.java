@@ -43,7 +43,6 @@ public class EmbeddingEntity {
 	@Field(type = FieldType.Text, searchAnalyzer = "standard", analyzer = "standard")
 	private String content;
 
-	@Score
 	private float score; // 匹配度得分
 	//@TableField(typeHandler = TSVectorTypeHandler.class)
 	//private TSVector searchVector;
