@@ -4,11 +4,13 @@ import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.tarzan.maxkb4j.common.dto.TSVector;
 import com.tarzan.maxkb4j.handler.EmbeddingTypeHandler;
 import com.tarzan.maxkb4j.handler.JOSNBTypeHandler;
-import com.tarzan.maxkb4j.handler.TSVectorTypeHandler;
 import lombok.Data;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.elasticsearch.annotations.Document;
+import org.springframework.data.elasticsearch.annotations.Field;
+import org.springframework.data.elasticsearch.annotations.FieldType;
 
 import java.util.List;
 
@@ -18,9 +20,11 @@ import java.util.List;
   */
 @Data
 @TableName("embedding")
+@Document(indexName = "embedding")
 public class EmbeddingEntity {
 
 	@TableId
+	@Id
 	private String id;
 	
 	private String sourceId;
@@ -35,6 +39,12 @@ public class EmbeddingEntity {
 	private String datasetId;
 	private String documentId;
 	private String paragraphId;
-	@TableField(typeHandler = TSVectorTypeHandler.class)
-	private TSVector searchVector;
+	@TableField(exist = false)
+	@Field(type = FieldType.Text, searchAnalyzer = "standard", analyzer = "standard")
+	private String content;
+
+	@Score
+	private float score; // 匹配度得分
+	//@TableField(typeHandler = TSVectorTypeHandler.class)
+	//private TSVector searchVector;
 } 

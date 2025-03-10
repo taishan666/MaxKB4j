@@ -1,7 +1,7 @@
-package com.tarzan.maxkb4j.module.model.controller;
+package com.tarzan.maxkb4j.module.model.info.controller;
 
 import com.alibaba.fastjson.JSONArray;
-import com.tarzan.maxkb4j.module.model.entity.ModelEntity;
+import com.tarzan.maxkb4j.module.model.info.entity.ModelEntity;
 import com.tarzan.maxkb4j.module.model.provider.IModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.ModelInfo;
 import com.tarzan.maxkb4j.module.model.provider.ModelProvideInfo;
@@ -25,9 +25,9 @@ import com.tarzan.maxkb4j.module.model.provider.impl.xfmodelprovider.XfModelProv
 import com.tarzan.maxkb4j.module.model.provider.impl.xinferencemodelprovider.XInferenceModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.impl.zhipumodelprovider.ZhiPuModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.vo.ModelInputVO;
-import com.tarzan.maxkb4j.module.model.service.ModelService;
-import com.tarzan.maxkb4j.module.model.vo.KeyAndValueVO;
-import com.tarzan.maxkb4j.module.model.vo.ModelVO;
+import com.tarzan.maxkb4j.module.model.info.service.ModelService;
+import com.tarzan.maxkb4j.module.model.info.vo.KeyAndValueVO;
+import com.tarzan.maxkb4j.module.model.info.vo.ModelVO;
 import com.tarzan.maxkb4j.tool.api.R;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;

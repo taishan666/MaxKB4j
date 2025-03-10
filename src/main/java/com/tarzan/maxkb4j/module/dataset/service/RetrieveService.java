@@ -5,6 +5,7 @@ import com.tarzan.maxkb4j.module.dataset.dto.HitTestDTO;
 import com.tarzan.maxkb4j.module.dataset.mapper.ParagraphMapper;
 import com.tarzan.maxkb4j.module.dataset.vo.HitTestVO;
 import com.tarzan.maxkb4j.module.dataset.vo.ParagraphVO;
+import com.tarzan.maxkb4j.module.embedding.entity.EmbeddingEntity;
 import com.tarzan.maxkb4j.module.embedding.mapper.EmbeddingMapper;
 import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.model.embedding.EmbeddingModel;
@@ -27,8 +28,7 @@ public class RetrieveService {
     private final ParagraphMapper paragraphMapper;
     private final JiebaSegmenter jiebaSegmenter = new JiebaSegmenter();
     private final DatasetBaseService datasetService;
-
-
+    private final TextSegmentService fullTextSearchService;
 
 
     public List<ParagraphVO> paragraphSearch(String question,List<String> datasetIds,List<String> excludeParagraphIds,int TopN,float similarity,String searchMode) {
@@ -49,8 +49,16 @@ public class RetrieveService {
             return embeddingMapper.embeddingSearch(datasetIds, dto.getTop_number(),dto.getSimilarity(), res.content().vector());
         }
         if ("keywords".equals(dto.getSearch_mode())) {
-            dto.setQuery_text(toTsQuery(dto.getQuery_text()));
-            return embeddingMapper.keywordsSearch(datasetIds, dto);
+            System.out.println("keywords 耗时 "+(System.currentTimeMillis()-startTime)+" ms");
+           // dto.setQuery_text(toTsQuery(dto.getQuery_text()));
+            List<EmbeddingEntity> results = fullTextSearchService.search(datasetIds,dto.getQuery_text(), dto.getTop_number());
+            for (EmbeddingEntity result : results) {
+                System.out.println(result.getParagraphId());
+                System.out.println(result.getScore());
+            }
+            System.out.println("fullTextSearchService 耗时 "+(System.currentTimeMillis()-startTime)+" ms");
+            return new ArrayList<>();
+           // return embeddingMapper.keywordsSearch(datasetIds, dto);
         }
         if ("blend".equals(dto.getSearch_mode())) {
             return embeddingMapper.HybridSearch(datasetIds, dto, res.content().vector());
@@ -69,7 +77,7 @@ public class RetrieveService {
         if (CollectionUtils.isEmpty(paragraphIds)) {
             return Collections.emptyList();
         }
-        Map<String, Double> map = list.stream().collect(Collectors.toMap(HitTestVO::getParagraphId, HitTestVO::getScore));
+        Map<String, Float> map = list.stream().collect(Collectors.toMap(HitTestVO::getParagraphId, HitTestVO::getScore));
         List<ParagraphVO> paragraphs = paragraphMapper.retrievalParagraph(paragraphIds);
         paragraphs.forEach(e -> {
             double score = map.get(e.getId());

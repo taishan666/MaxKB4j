@@ -22,7 +22,6 @@ import java.util.List;
 public class ProblemParagraphService extends ServiceImpl<ProblemParagraphMapper, ProblemParagraphEntity>{
 
     private final EmbeddingService embeddingService;
-
     private final DatasetBaseService datasetService;
 
     public List<ProblemEntity> getProblemsByParagraphId(String paragraphId) {

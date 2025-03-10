@@ -16,7 +16,7 @@ import com.tarzan.maxkb4j.module.dataset.service.EmbedTextService;
 import com.tarzan.maxkb4j.module.dataset.service.ProblemParagraphService;
 import com.tarzan.maxkb4j.module.dataset.vo.DocumentVO;
 import com.tarzan.maxkb4j.module.dataset.vo.TextSegmentVO;
-import com.tarzan.maxkb4j.module.model.vo.KeyAndValueVO;
+import com.tarzan.maxkb4j.module.model.info.vo.KeyAndValueVO;
 import com.tarzan.maxkb4j.tool.api.R;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;

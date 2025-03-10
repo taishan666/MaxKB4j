@@ -1,6 +1,6 @@
 package com.tarzan.maxkb4j.module.model.provider;
 
-import com.tarzan.maxkb4j.module.model.entity.ModelCredential;
+import com.tarzan.maxkb4j.module.model.info.entity.ModelCredential;
 
 public interface BaseModel {
 

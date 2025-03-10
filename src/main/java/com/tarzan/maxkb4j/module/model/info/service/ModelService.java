@@ -1,4 +1,4 @@
-package com.tarzan.maxkb4j.module.model.service;
+package com.tarzan.maxkb4j.module.model.info.service;
 
 import cn.dev33.satoken.stp.StpUtil;
 import com.alibaba.fastjson.JSONObject;
@@ -6,10 +6,10 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.tarzan.maxkb4j.module.model.entity.ModelEntity;
-import com.tarzan.maxkb4j.module.model.mapper.ModelMapper;
+import com.tarzan.maxkb4j.module.model.info.entity.ModelEntity;
+import com.tarzan.maxkb4j.module.model.info.mapper.ModelMapper;
 import com.tarzan.maxkb4j.module.model.provider.ModelManage;
-import com.tarzan.maxkb4j.module.model.vo.ModelVO;
+import com.tarzan.maxkb4j.module.model.info.vo.ModelVO;
 import com.tarzan.maxkb4j.module.system.user.entity.UserEntity;
 import com.tarzan.maxkb4j.module.system.user.service.UserService;
 import com.tarzan.maxkb4j.util.BeanUtil;

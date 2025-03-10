@@ -8,7 +8,7 @@ import com.tarzan.maxkb4j.module.application.workflow.node.imageunderstand.IImag
 import com.tarzan.maxkb4j.module.application.workflow.node.imageunderstand.input.ImageUnderstandParams;
 import com.tarzan.maxkb4j.module.file.service.FileService;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
-import com.tarzan.maxkb4j.module.model.service.ModelService;
+import com.tarzan.maxkb4j.module.model.info.service.ModelService;
 import com.tarzan.maxkb4j.util.SpringUtil;
 import dev.langchain4j.data.message.*;
 import dev.langchain4j.model.chat.response.ChatResponse;

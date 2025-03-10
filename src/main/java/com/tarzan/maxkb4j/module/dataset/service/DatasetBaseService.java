@@ -2,7 +2,7 @@ package com.tarzan.maxkb4j.module.dataset.service;
 
 import com.tarzan.maxkb4j.module.dataset.entity.DatasetEntity;
 import com.tarzan.maxkb4j.module.dataset.mapper.DatasetMapper;
-import com.tarzan.maxkb4j.module.model.service.ModelService;
+import com.tarzan.maxkb4j.module.model.info.service.ModelService;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import lombok.AllArgsConstructor;
 import org.springframework.cache.annotation.Cacheable;

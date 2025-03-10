@@ -2,7 +2,7 @@ package com.tarzan.maxkb4j.handler;
 
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson2.JSON;
-import com.tarzan.maxkb4j.module.model.entity.ModelCredential;
+import com.tarzan.maxkb4j.module.model.info.entity.ModelCredential;
 import com.tarzan.maxkb4j.module.system.setting.cache.SystemCache;
 import com.tarzan.maxkb4j.util.RSAUtil;
 import lombok.extern.slf4j.Slf4j;

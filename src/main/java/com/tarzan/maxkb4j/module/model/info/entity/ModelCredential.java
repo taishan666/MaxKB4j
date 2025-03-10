@@ -1,4 +1,4 @@
-package com.tarzan.maxkb4j.module.model.entity;
+package com.tarzan.maxkb4j.module.model.info.entity;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;

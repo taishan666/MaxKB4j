@@ -8,7 +8,7 @@ import com.tarzan.maxkb4j.module.application.workflow.node.texttospeech.ITextToS
 import com.tarzan.maxkb4j.module.application.workflow.node.texttospeech.input.TextToSpeechParams;
 import com.tarzan.maxkb4j.module.file.service.FileService;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseTextToSpeech;
-import com.tarzan.maxkb4j.module.model.service.ModelService;
+import com.tarzan.maxkb4j.module.model.info.service.ModelService;
 import com.tarzan.maxkb4j.util.SpringUtil;
 
 import java.util.List;

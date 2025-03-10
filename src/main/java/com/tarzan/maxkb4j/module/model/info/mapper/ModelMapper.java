@@ -1,7 +1,7 @@
-package com.tarzan.maxkb4j.module.model.mapper;
+package com.tarzan.maxkb4j.module.model.info.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.tarzan.maxkb4j.module.model.entity.ModelEntity;
+import com.tarzan.maxkb4j.module.model.info.entity.ModelEntity;
 import org.apache.ibatis.annotations.Mapper;
 
 

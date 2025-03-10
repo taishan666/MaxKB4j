@@ -1,6 +1,6 @@
-package com.tarzan.maxkb4j.module.model.vo;
+package com.tarzan.maxkb4j.module.model.info.vo;
 
-import com.tarzan.maxkb4j.module.model.entity.ModelEntity;
+import com.tarzan.maxkb4j.module.model.info.entity.ModelEntity;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 

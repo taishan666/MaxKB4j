@@ -30,7 +30,7 @@ import com.tarzan.maxkb4j.module.dataset.mapper.DocumentMapper;
 import com.tarzan.maxkb4j.module.dataset.vo.DocumentVO;
 import com.tarzan.maxkb4j.module.dataset.vo.ParagraphSimpleVO;
 import com.tarzan.maxkb4j.module.dataset.vo.TextSegmentVO;
-import com.tarzan.maxkb4j.module.model.vo.KeyAndValueVO;
+import com.tarzan.maxkb4j.module.model.info.vo.KeyAndValueVO;
 import com.tarzan.maxkb4j.util.ExcelUtil;
 import dev.langchain4j.data.document.Document;
 import dev.langchain4j.data.document.DocumentParser;

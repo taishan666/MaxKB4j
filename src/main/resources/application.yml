@@ -15,6 +15,10 @@ spring:
     username: username
     password: password
     driver-class-name: org.postgresql.Driver
+  elasticsearch:
+    uris: http://localhost:9200
+    username: elastic
+    password: elastic
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss
     time-zone: GMT+8

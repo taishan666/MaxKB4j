@@ -25,21 +25,15 @@
         ORDER BY score DESC
             LIMIT #{maxResults}
     </select>
-    <select id="embeddingSearch1" resultType="com.tarzan.maxkb4j.module.dataset.vo.HitTestVO">
-        <![CDATA[
-            SELECT  paragraph_id, (2 - (embedding <=> #{referenceEmbedding }::vector)) / 2 AS comprehensive_score  FROM embedding WHERE round((embedding <=> #{referenceEmbedding }::vector):: numeric, 8) <= round((2 - 2 * #{minScore})::numeric, 8)  ORDER BY paragraph_id,embedding <=> #{referenceEmbedding }::vector LIMIT #{maxResults};
-       ]]>
-    </select>
 
     <select id="keywordsSearch" resultType="com.tarzan.maxkb4j.module.dataset.vo.HitTestVO">
         SELECT
             paragraph_id,
-            comprehensive_score,
-            comprehensive_score AS similarity
+            score
         FROM
             (
             SELECT DISTINCT ON (paragraph_id) paragraph_id,
-                   ts_rank_cd( search_vector, to_tsquery(#{query.query_text} ), 0 ) AS comprehensive_score
+                   ts_rank_cd( search_vector, to_tsquery(#{query.query_text} ), 0 ) AS score
                               FROM embedding
                                 WHERE
                                 dataset_id IN
@@ -48,45 +42,22 @@
                                 </foreach>
                                 AND is_active
               ) T
-        WHERE T.comprehensive_score > #{query.similarity}
+        WHERE T.score > #{query.similarity}
         ORDER BY
-            T.comprehensive_score DESC
+            T.score DESC
             LIMIT #{query.top_number}
     </select>
 
-    <select id="keywordsSearch1" resultType="com.tarzan.maxkb4j.module.dataset.vo.HitTestVO">
-        SELECT
-        paragraph_id,
-        comprehensive_score,
-        comprehensive_score AS similarity
-        FROM
-        (
-        SELECT DISTINCT ON (paragraph_id) paragraph_id,
-        ts_rank_cd( search_vector, to_tsquery(#{query.query_text} ), 0 ) AS comprehensive_score
-        FROM embedding
-        WHERE
-        dataset_id IN
-        <foreach item="id" collection="datasetIds" open="(" separator="," close=")">
-            #{id}
-        </foreach>
-        AND is_active
-        AND search_vector @@to_tsquery(#{query.query_text})
-        ) T
-        WHERE T.comprehensive_score > #{query.similarity}
-        ORDER BY
-        T.comprehensive_score DESC
-        LIMIT 10
-    </select>
+
     <select id="HybridSearch" resultType="com.tarzan.maxkb4j.module.dataset.vo.HitTestVO">
         SELECT paragraph_id,
-               comprehensive_score,
-               comprehensive_score AS similarity
+               score
         FROM (SELECT DISTINCT
               ON (paragraph_id)
                   paragraph_id,
-                  similarity AS comprehensive_score
+                  score
               FROM
-                  ((1-( <![CDATA[embedding <=> CAST(#{ embedding } AS vector)]]> ))+ts_rank_cd( search_vector, to_tsquery(#{query.query_text} ), 0 )) AS similarity
+                  ((1-( <![CDATA[embedding <=> CAST(#{ embedding } AS vector)]]> ))+ts_rank_cd( search_vector, to_tsquery(#{query.query_text} ), 0 )) AS score
                   FROM embedding
                   WHERE
                     dataset_id IN
@@ -96,9 +67,9 @@
                   AND is_active) TEMP
               ORDER BY
                   paragraph_id,
-                  similarity DESC) DISTINCT_TEMP
-        WHERE comprehensive_score > #{query.similarity }
-        ORDER BY comprehensive_score DESC
+                  score DESC) DISTINCT_TEMP
+        WHERE score > #{query.similarity }
+        ORDER BY score DESC
             LIMIT #{query.top_number}
     </select>
 

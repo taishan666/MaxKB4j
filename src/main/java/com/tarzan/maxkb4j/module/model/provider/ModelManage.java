@@ -1,7 +1,7 @@
 package com.tarzan.maxkb4j.module.model.provider;
 
 import com.alibaba.fastjson.JSONObject;
-import com.tarzan.maxkb4j.module.model.entity.ModelEntity;
+import com.tarzan.maxkb4j.module.model.info.entity.ModelEntity;
 import com.tarzan.maxkb4j.module.model.provider.enums.ModelProviderEnum;
 import com.tarzan.maxkb4j.util.RSAUtil;
 import lombok.extern.slf4j.Slf4j;

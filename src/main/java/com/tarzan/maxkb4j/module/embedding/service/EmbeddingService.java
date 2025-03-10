@@ -55,7 +55,7 @@ public class EmbeddingService extends ServiceImpl<EmbeddingMapper, EmbeddingEnti
             embeddingEntity.setSourceId(paragraph.getId());
             embeddingEntity.setSourceType("1");
             embeddingEntity.setIsActive(paragraph.getIsActive());
-            embeddingEntity.setSearchVector(toTsVector(paragraph.getTitle() + paragraph.getContent()));
+          //  embeddingEntity.setSearchVector(toTsVector(paragraph.getTitle() + paragraph.getContent()));
             embeddingModel.embed(paragraph.getTitle() + paragraph.getContent());
             Response<Embedding> res;
             if(StringUtil.isNotBlank(paragraph.getTitle())){
@@ -79,7 +79,7 @@ public class EmbeddingService extends ServiceImpl<EmbeddingMapper, EmbeddingEnti
                     embeddingEntity.setSourceId(pp.getProblemId());
                     embeddingEntity.setSourceType("0");
                     embeddingEntity.setIsActive(true);
-                    embeddingEntity.setSearchVector(toTsVector(pp.getContent()));
+                  //  embeddingEntity.setSearchVector(toTsVector(pp.getContent()));
                     embeddingEntity.setEmbedding(res.content().vectorAsList());
                     embeddingEntities.add(embeddingEntity);
                 });
@@ -128,7 +128,7 @@ public class EmbeddingService extends ServiceImpl<EmbeddingMapper, EmbeddingEnti
             embeddingEntity.setSourceId(problemId);
             embeddingEntity.setSourceType("0");
             embeddingEntity.setIsActive(true);
-            embeddingEntity.setSearchVector(toTsVector(problem.getContent()));
+         //   embeddingEntity.setSearchVector(toTsVector(problem.getContent()));
             Response<Embedding> res = embeddingModel.embed(problem.getContent());
             embeddingEntity.setEmbedding(res.content().vectorAsList());
             return this.save(embeddingEntity);
@@ -158,7 +158,7 @@ public class EmbeddingService extends ServiceImpl<EmbeddingMapper, EmbeddingEnti
                 embeddingEntity.setSourceId(problem.getId());
                 embeddingEntity.setSourceType("0");
                 embeddingEntity.setIsActive(true);
-                embeddingEntity.setSearchVector(toTsVector(problem.getContent()));
+              //  embeddingEntity.setSearchVector(toTsVector(problem.getContent()));
                 Response<Embedding> res = embeddingModel.embed(problem.getContent());
                 embeddingEntity.setEmbedding(res.content().vectorAsList());
                 embeddingEntities.add(embeddingEntity);
