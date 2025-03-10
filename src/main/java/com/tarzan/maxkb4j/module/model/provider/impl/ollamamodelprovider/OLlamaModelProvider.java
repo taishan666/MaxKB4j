@@ -2,7 +2,6 @@ package com.tarzan.maxkb4j.module.model.provider.impl.ollamamodelprovider;
 
 import com.tarzan.maxkb4j.module.model.provider.IModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.ModelInfo;
-import com.tarzan.maxkb4j.module.model.provider.ModelInfoManage;
 import com.tarzan.maxkb4j.module.model.provider.ModelProvideInfo;
 import com.tarzan.maxkb4j.module.model.provider.enums.ModelProviderEnum;
 import com.tarzan.maxkb4j.module.model.provider.enums.ModelTypeEnum;
@@ -31,19 +30,14 @@ public class OLlamaModelProvider extends IModelProvider {
     }
 
     @Override
-    public ModelInfoManage getModelInfoManage() {
-        return null;
-    }
-
-    @Override
     public List<ModelInfo> getModelList() {
         List<ModelInfo> modelInfos = new ArrayList<>();
-        modelInfos.add(new ModelInfo("qwen:7b","", ModelTypeEnum.LLM.name(), new OllamaChat()));
-        modelInfos.add(new ModelInfo("llama3:8b","", ModelTypeEnum.LLM.name(), new OllamaChat()));
-        modelInfos.add(new ModelInfo("deepseek-r1:8b","", ModelTypeEnum.LLM.name(),new OllamaChat()));
-        modelInfos.add(new ModelInfo("nomic-embed-text","", ModelTypeEnum.EMBEDDING.name(),new OllamaEmbedding()));
-        modelInfos.add(new ModelInfo("llava:7b","",ModelTypeEnum.IMAGE.name(), new OllamaChat()));
-        modelInfos.add(new ModelInfo("llava:13b","",ModelTypeEnum.IMAGE.name(), new OllamaChat()));
+        modelInfos.add(new ModelInfo("qwen:7b","", ModelTypeEnum.LLM.name(), new OllamaChat(),true,false));
+        modelInfos.add(new ModelInfo("llama3:8b","", ModelTypeEnum.LLM.name(), new OllamaChat(),true,false));
+        modelInfos.add(new ModelInfo("deepseek-r1:8b","", ModelTypeEnum.LLM.name(),new OllamaChat(),true,false));
+        modelInfos.add(new ModelInfo("nomic-embed-text","", ModelTypeEnum.EMBEDDING.name(),new OllamaEmbedding(),true,false));
+        modelInfos.add(new ModelInfo("llava:7b","",ModelTypeEnum.IMAGE.name(), new OllamaChat(),true,false));
+        modelInfos.add(new ModelInfo("llava:13b","",ModelTypeEnum.IMAGE.name(), new OllamaChat(),true,false));
        // modelInfos.add(new ModelInfo("linux6200/bge-reranker-v2-m3","",ModelTypeEnum.RERANKER.name(),new BaiLianReranker()));
         return modelInfos;
     }

@@ -8,7 +8,9 @@ public abstract class IModelProvider {
 
     public abstract ModelProvideInfo getModelProvideInfo();
 
-    public abstract ModelInfoManage getModelInfoManage();
+    public ModelInfoManage getModelInfoManage() {
+        return new ModelInfoManage(getModelList());
+    }
 
     public abstract List<ModelInfo> getModelList();
 

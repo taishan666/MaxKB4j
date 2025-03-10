@@ -21,7 +21,16 @@ public class ModelInfo {
         this.desc = desc;
         this.modelType = modelType;
         this.modelClass = modelClass;
-        this.modelCredential = new BaseModelCredential();
+        this.modelCredential = new BaseModelCredential(false,true);
+    }
+
+    public ModelInfo(String name, String desc, String modelType, BaseModel modelClass, boolean needUrl,boolean needApiKey) {
+        this.name = name;
+        this.desc = desc;
+        this.modelType = modelType;
+        this.modelClass = modelClass;
+        this.modelCredential = new BaseModelCredential(needUrl,needApiKey);
+
     }
 
     public ModelInfo(String name, String desc, String modelType, BaseModel modelClass,BaseModelCredential modelCredential) {

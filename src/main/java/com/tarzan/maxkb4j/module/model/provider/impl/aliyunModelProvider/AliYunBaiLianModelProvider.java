@@ -2,7 +2,6 @@ package com.tarzan.maxkb4j.module.model.provider.impl.aliyunModelProvider;
 
 import com.tarzan.maxkb4j.module.model.provider.IModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.ModelInfo;
-import com.tarzan.maxkb4j.module.model.provider.ModelInfoManage;
 import com.tarzan.maxkb4j.module.model.provider.ModelProvideInfo;
 import com.tarzan.maxkb4j.module.model.provider.enums.ModelProviderEnum;
 import com.tarzan.maxkb4j.module.model.provider.enums.ModelTypeEnum;
@@ -25,11 +24,6 @@ public class AliYunBaiLianModelProvider extends IModelProvider {
         String icon= IoUtil.readToString(inputStream);
         info.setIcon(icon);
         return info;
-    }
-
-    @Override
-    public ModelInfoManage getModelInfoManage() {
-        return new ModelInfoManage(getModelList());
     }
 
     @Override

@@ -2,10 +2,16 @@ package com.tarzan.maxkb4j.module.model.provider;
 
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.module.model.provider.vo.ModelInputVO;
+import lombok.AllArgsConstructor;
 
+import java.util.ArrayList;
 import java.util.List;
 
+@AllArgsConstructor
 public  class BaseModelCredential {
+
+    private boolean needBaseUrl;
+    private boolean needApiKey;
 
     protected JSONObject encryptionDict(JSONObject modelInfo) {
         return null;
@@ -60,10 +66,21 @@ public  class BaseModelCredential {
     }
 
     public List<ModelInputVO> toForm() {
-        ModelInputVO input=new ModelInputVO();
-        input.setInput_type("PasswordInput");
-        input.setLabel("API Key");
-        input.setField("api_key");
-        return List.of(input);
+        List<ModelInputVO> list=new ArrayList<>(2);
+        if(needBaseUrl){
+            ModelInputVO input1=new ModelInputVO();
+            input1.setInput_type("TextInput");
+            input1.setLabel("API 域名");
+            input1.setField("api_base");
+            list.add(input1);
+        }
+        if(needApiKey){
+            ModelInputVO input2=new ModelInputVO();
+            input2.setInput_type("PasswordInput");
+            input2.setLabel("API Key");
+            input2.setField("api_key");
+            list.add(input2);
+        }
+        return list;
     }
 }

@@ -2,7 +2,6 @@ package com.tarzan.maxkb4j.module.model.provider.impl.xinferencemodelprovider;
 
 import com.tarzan.maxkb4j.module.model.provider.IModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.ModelInfo;
-import com.tarzan.maxkb4j.module.model.provider.ModelInfoManage;
 import com.tarzan.maxkb4j.module.model.provider.ModelProvideInfo;
 import com.tarzan.maxkb4j.module.model.provider.enums.ModelProviderEnum;
 import com.tarzan.maxkb4j.module.model.provider.enums.ModelTypeEnum;
@@ -32,20 +31,15 @@ public class XInferenceModelProvider extends IModelProvider {
     }
 
     @Override
-    public ModelInfoManage getModelInfoManage() {
-        return null;
-    }
-
-    @Override
     public List<ModelInfo> getModelList() {
         List<ModelInfo> modelInfos = new ArrayList<>();
-        modelInfos.add(new ModelInfo("qwen:7b","", ModelTypeEnum.LLM.name(), new XinferenceChat()));
-        modelInfos.add(new ModelInfo("llama3:8b","", ModelTypeEnum.LLM.name(), new XinferenceChat()));
-        modelInfos.add(new ModelInfo("deepseek-r1:8b","", ModelTypeEnum.LLM.name(),new XinferenceChat()));
-        modelInfos.add(new ModelInfo("bge-base-zh","", ModelTypeEnum.EMBEDDING.name(),new XinferenceEmbedding()));
-        modelInfos.add(new ModelInfo("llava:7b","",ModelTypeEnum.IMAGE.name(), new XinferenceChat()));
-        modelInfos.add(new ModelInfo("llava:13b","",ModelTypeEnum.IMAGE.name(), new XinferenceChat()));
-        modelInfos.add(new ModelInfo("sdxl-turbo","",ModelTypeEnum.TTI.name(), new XinferenceImage()));
+        modelInfos.add(new ModelInfo("qwen:7b","", ModelTypeEnum.LLM.name(), new XinferenceChat(),true,true));
+        modelInfos.add(new ModelInfo("llama3:8b","", ModelTypeEnum.LLM.name(), new XinferenceChat(),true,true));
+        modelInfos.add(new ModelInfo("deepseek-r1:8b","", ModelTypeEnum.LLM.name(),new XinferenceChat(),true,true));
+        modelInfos.add(new ModelInfo("bge-base-zh","", ModelTypeEnum.EMBEDDING.name(),new XinferenceEmbedding(),true,true));
+        modelInfos.add(new ModelInfo("llava:7b","",ModelTypeEnum.IMAGE.name(), new XinferenceChat(),true,true));
+        modelInfos.add(new ModelInfo("llava:13b","",ModelTypeEnum.IMAGE.name(), new XinferenceChat(),true,true));
+        modelInfos.add(new ModelInfo("sdxl-turbo","",ModelTypeEnum.TTI.name(), new XinferenceImage(),true,true));
        // modelInfos.add(new ModelInfo("linux6200/bge-reranker-v2-m3","",ModelTypeEnum.RERANKER.name(),new BaiLianReranker()));
         return modelInfos;
     }
