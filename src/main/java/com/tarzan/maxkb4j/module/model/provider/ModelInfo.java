@@ -20,16 +20,16 @@ public class ModelInfo {
         this.name = name;
         this.desc = desc;
         this.modelType = modelType;
-        this.modelCredential = null;
         this.modelClass = modelClass;
+        this.modelCredential = new BaseModelCredential();
     }
 
-    public ModelInfo(String name, String desc, String modelType,BaseModelCredential modelCredential, BaseModel modelClass) {
+    public ModelInfo(String name, String desc, String modelType, BaseModel modelClass,BaseModelCredential modelCredential) {
         this.name = name;
         this.desc = desc;
         this.modelType = modelType;
-        this.modelCredential = modelCredential;
         this.modelClass = modelClass;
+        this.modelCredential = modelCredential;
     }
 
 }
