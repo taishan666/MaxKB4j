@@ -30,14 +30,8 @@ public class BaseVariableAssignNode extends IVariableAssignNode {
                     String type = (String) variable.get("type");
                     if (Arrays.asList("dict", "array").contains(type)) {
                         Object value = variable.get("value");
-                        Object val;
-                        if (value instanceof Map || value instanceof List) {
-                            val = value;
-                        } else {
-                            val = value;
-                        }
-                        workflowManage.getContext().put(fields.get(1), val);
-                        result.put("output_value", variable.put("value", val));
+                        workflowManage.getContext().put(fields.get(1), value);
+                        result.put("output_value", variable.put("value", value));
                     } else {
                         workflowManage.getContext().put(fields.get(1), variable.get("value"));
                         result.put("output_value", variable.get("value"));

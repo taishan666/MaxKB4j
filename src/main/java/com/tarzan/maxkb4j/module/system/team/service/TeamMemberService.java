@@ -11,6 +11,7 @@ import com.tarzan.maxkb4j.module.system.team.vo.MemberPermissionVO;
 import com.tarzan.maxkb4j.module.system.team.vo.MemberVO;
 import com.tarzan.maxkb4j.module.system.user.entity.UserEntity;
 import com.tarzan.maxkb4j.module.system.user.mapper.UserMapper;
+import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,12 +27,11 @@ import java.util.stream.Collectors;
  * @date 2024-12-25 12:42:39
  */
 @Service
+@AllArgsConstructor
 public class TeamMemberService extends ServiceImpl<TeamMemberMapper, TeamMemberEntity>{
 
-    @Autowired
-    private UserMapper userMapper;
-    @Autowired
-    private TeamMemberPermissionService teamMemberPermissionService;
+    private final UserMapper userMapper;
+    private final TeamMemberPermissionService teamMemberPermissionService;
 
     public List<MemberVO> getByUserId(String userId) {
         List<MemberVO> result= new ArrayList<>();

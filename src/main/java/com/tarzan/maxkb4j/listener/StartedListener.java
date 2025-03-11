@@ -54,11 +54,7 @@ public class StartedListener implements ApplicationListener<ApplicationStartedEv
         if (contextPath == null) {
             contextPath = "";
         }
-        log.info("\n----------------------------------------------------------\n\t" +
-                "Application is running! Access URLs:\n\t" +
-                "Local: \t\thttp://localhost:" + port + contextPath + "\n\t" +
-                "External: \thttp://" + ip + ':' + port + contextPath + '\n' +
-                "----------------------------------------------------------");
+        log.info("\n----------------------------------------------------------\n\tApplication is running! Access URLs:\n\tLocal: \t\thttp://localhost:{}{}\n\tExternal: \thttp://{}:{}{}\n----------------------------------------------------------", port, contextPath, ip, port, contextPath);
     }
 
 

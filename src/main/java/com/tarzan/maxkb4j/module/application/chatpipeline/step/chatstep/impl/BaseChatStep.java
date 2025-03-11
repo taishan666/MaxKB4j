@@ -20,6 +20,7 @@ import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.model.chat.response.ChatResponse;
 import dev.langchain4j.model.chat.response.StreamingChatResponseHandler;
 import dev.langchain4j.model.output.TokenUsage;
+import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
@@ -30,12 +31,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Component
+@AllArgsConstructor
 public class BaseChatStep extends IChatStep {
 
-    @Autowired
-    private ModelService modelService;
-    @Autowired
-    private ApplicationPublicAccessClientService publicAccessClientService;
+    private final ModelService modelService;
+    private final ApplicationPublicAccessClientService publicAccessClientService;
 
     @Override
     protected Flux<JSONObject> execute(PipelineManage manage) {

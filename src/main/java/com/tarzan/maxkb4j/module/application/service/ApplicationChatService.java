@@ -35,8 +35,8 @@ import com.tarzan.maxkb4j.module.model.info.service.ModelService;
 import com.tarzan.maxkb4j.util.JwtUtil;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.multipart.MultipartFile;
@@ -52,32 +52,21 @@ import java.util.*;
  * @date 2024-12-26 09:50:23
  */
 @Service
+@AllArgsConstructor
 public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, ApplicationChatEntity>{
 
-    @Autowired
-    private ApplicationService applicationService;
-    @Autowired
-    private ApplicationDatasetMappingService datasetMappingService;
-    @Autowired
-    private ApplicationWorkFlowVersionService workFlowVersionService;
-    @Autowired
-    private ApplicationPublicAccessClientService publicAccessClientService;
-    @Autowired
-    private ApplicationAccessTokenService accessTokenService;
-    @Autowired
-    private ApplicationChatRecordService chatRecordService;
-    @Autowired
-    private ModelService modelService;
-    @Autowired
-    private FileService fileService;
-    @Autowired
-    private BaseChatStep baseChatStep;
-    @Autowired
-    private SearchDatasetStep searchDatasetStep;
-    @Autowired
-    private BaseResetProblemStep baseResetProblemStep;
-    @Autowired
-    private PostResponseHandler postResponseHandler;
+    private final ApplicationService applicationService;
+    private final ApplicationDatasetMappingService datasetMappingService;
+    private final ApplicationWorkFlowVersionService workFlowVersionService;
+    private final ApplicationPublicAccessClientService publicAccessClientService;
+    private final ApplicationAccessTokenService accessTokenService;
+    private final ApplicationChatRecordService chatRecordService;
+    private final ModelService modelService;
+    private final FileService fileService;
+    private final BaseChatStep baseChatStep;
+    private final SearchDatasetStep searchDatasetStep;
+    private final BaseResetProblemStep baseResetProblemStep;
+    private final PostResponseHandler postResponseHandler;
 
 
     public IPage<ApplicationChatEntity> chatLogs(String appId, int page, int size, ChatQueryDTO query) {
@@ -335,7 +324,7 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
 
 
     // 定义日期格式
-    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    static DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     public List<ApplicationStatisticsVO> statistics(String appId, ChatQueryDTO query) {
         List<ApplicationStatisticsVO> result = new ArrayList<>();

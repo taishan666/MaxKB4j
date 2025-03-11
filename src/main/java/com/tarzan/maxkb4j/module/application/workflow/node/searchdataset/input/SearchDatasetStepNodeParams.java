@@ -2,9 +2,11 @@ package com.tarzan.maxkb4j.module.application.workflow.node.searchdataset.input;
 
 import com.tarzan.maxkb4j.module.application.workflow.dto.BaseParams;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.util.List;
 
+@EqualsAndHashCode(callSuper = true)
 @Data
 public class SearchDatasetStepNodeParams extends BaseParams {
     private List<String> datasetIdList;

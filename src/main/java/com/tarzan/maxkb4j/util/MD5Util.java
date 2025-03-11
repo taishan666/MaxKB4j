@@ -7,14 +7,13 @@ public class MD5Util {
 
 
     public static String encrypt(String text){
-        MessageDigest md = null;
+        MessageDigest md;
         try {
             md = MessageDigest.getInstance("MD5");
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         }
         byte[] hashInBytes = md.digest(text.getBytes());
-
         // 将字节数组转换成16进制表示的字符串
         StringBuilder sb = new StringBuilder();
         for (byte b : hashInBytes) {

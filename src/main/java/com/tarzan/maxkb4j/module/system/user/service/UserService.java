@@ -22,6 +22,7 @@ import com.tarzan.maxkb4j.module.system.user.mapper.UserMapper;
 import com.tarzan.maxkb4j.module.system.user.vo.UserVO;
 import com.tarzan.maxkb4j.util.BeanUtil;
 import jakarta.mail.MessagingException;
+import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -39,14 +40,12 @@ import java.util.concurrent.TimeUnit;
  * @date 2024-12-25 11:27:27
  */
 @Service
+@AllArgsConstructor
 public class UserService extends ServiceImpl<UserMapper, UserEntity> {
 
-    @Autowired
-    private TeamService teamService;
-    @Autowired
-    private EmailService emailService;
-    @Autowired
-    private StpInterface stpInterface;
+    private final TeamService teamService;
+    private final EmailService emailService;
+    private final StpInterface stpInterface;
 
     // 创建缓存并配置
     private static final Cache<String, String> AUTH_CODE_CACHE = Caffeine.newBuilder()

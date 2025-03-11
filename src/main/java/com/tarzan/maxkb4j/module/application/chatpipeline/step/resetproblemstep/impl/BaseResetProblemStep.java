@@ -5,25 +5,25 @@ import com.tarzan.maxkb4j.module.application.chatpipeline.PipelineManage;
 import com.tarzan.maxkb4j.module.application.chatpipeline.step.resetproblemstep.IResetProblemStep;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationChatRecordEntity;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationEntity;
-import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
+import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.model.chat.response.ChatResponse;
 import dev.langchain4j.model.output.TokenUsage;
+import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Component
+@AllArgsConstructor
 public class BaseResetProblemStep extends IResetProblemStep {
 
-    @Autowired
-    private ModelService modelService;
+    private final ModelService modelService;
 
     private final static String prompt = "()里面是用户问题,根据上下文回答揣测用户问题({question}) 要求: 输出一个补全问题,并且放在<data></data>标签中";
 

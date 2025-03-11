@@ -8,6 +8,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Serial;
 import java.text.SimpleDateFormat;
 import java.time.ZoneId;
 import java.util.Locale;
@@ -41,6 +42,7 @@ public class JsonUtil {
 
 
     private static class JacksonObjectMapper extends ObjectMapper {
+        @Serial
         private static final long serialVersionUID = 4288193147502386170L;
         private static final Locale CHINA;
 
@@ -60,7 +62,7 @@ public class JsonUtil {
             super.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
             super.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
             super.configure(JsonParser.Feature.ALLOW_SINGLE_QUOTES, true);
-            super.getDeserializationConfig().withoutFeatures(new DeserializationFeature[]{DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES});
+            super.getDeserializationConfig().withoutFeatures(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
             super.registerModule(new JavaTimeModule());
             super.findAndRegisterModules();
         }

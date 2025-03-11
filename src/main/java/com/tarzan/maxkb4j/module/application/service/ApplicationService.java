@@ -257,7 +257,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
                 tokenDetails = JwtUtil.parseToken(token); // 假设parseToken方法用于解析token
             }
         } catch (Exception e) {
-            token = null;
+            log.error("token校验失败", e);
         }
 
     /*    if (withValid) {
