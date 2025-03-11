@@ -15,12 +15,7 @@ spring:
     username: username
     password: password
     driver-class-name: org.postgresql.Driver
-  elasticsearch:
-    uris: http://localhost:9200
   data:
-    elasticsearch:
-      repositories:
-        enabled: true
     mongodb:
       database: ${MONGO_DATABASE:MaxKB4j}
       uri: mongodb://${MONGO_USERNAME:myusername}:${MONGO_PASSWORD:mypassword}@${MONGO_HOST:localhost}:27017
