@@ -38,12 +38,16 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
     private final EmbeddingMapper embeddingMapper;
 
     public void updateStatusById(String id, int type, int status) {
-        baseMapper.updateStatusByDocIds(List.of(id),type,status,type-1,type+1);
+        baseMapper.updateStatusById(id,type,status,type-1,type+1);
+    }
+    public void updateStatusByDocId(String docId, int type,int status)  {
+        baseMapper.updateStatusByDocId(docId,type,status,type-1,type+1);
     }
 
-    public void updateStatusByDocIds(List<String> docIds, int type,int status)  {
-        baseMapper.updateStatusByDocIds(docIds,type,status,type-1,type+1);
-    }
+
+/*    public void updateStatusByIds(List<String> paragraphIds, int type,int status)  {
+        baseMapper.updateStatusByIds(paragraphIds,type,status,type-1,type+1);
+    }*/
 
     @Transactional
     public void migrateDoc(String sourceId, String targetId, List<String> docIds) {
@@ -67,6 +71,7 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
 
     public void embedParagraph(ParagraphEntity paragraph,EmbeddingModel embeddingModel) {
         if (paragraph != null) {
+            this.updateStatusById(paragraph.getId(),1,1);
             //清除之前向量
             embeddingMapper.delete(Wrappers.<EmbeddingEntity>lambdaQuery().eq(EmbeddingEntity::getDocumentId, paragraph.getId()));
             List<EmbeddingEntity> embeddingEntities = new ArrayList<>();

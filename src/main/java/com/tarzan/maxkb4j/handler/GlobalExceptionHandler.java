@@ -3,6 +3,7 @@ package com.tarzan.maxkb4j.handler;
 
 import cn.dev33.satoken.exception.NotLoginException;
 import com.tarzan.maxkb4j.tool.api.R;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -24,8 +25,9 @@ public class GlobalExceptionHandler{
     // 捕获未登录异常
     @ExceptionHandler(NotLoginException.class)
     @ResponseBody
-    public R<String> handleNotLogin(NotLoginException e) {
+    public R<String> handleNotLogin(NotLoginException e, HttpServletResponse response) {
         log.error("未登录异常: {}", e.getMessage(), e);
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 设置HTTP状态码为401
         return R.fail(401, e.getMessage());
     }
 

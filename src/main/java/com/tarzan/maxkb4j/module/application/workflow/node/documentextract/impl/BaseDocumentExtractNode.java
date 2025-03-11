@@ -7,10 +7,6 @@ import com.tarzan.maxkb4j.module.application.workflow.node.documentextract.IDocu
 import com.tarzan.maxkb4j.module.application.workflow.node.documentextract.input.DocumentExtractParams;
 import com.tarzan.maxkb4j.module.file.service.FileService;
 import com.tarzan.maxkb4j.util.SpringUtil;
-import org.apache.poi.xwpf.usermodel.XWPFDocument;
-import org.apache.poi.xwpf.usermodel.XWPFParagraph;
-import org.apache.poi.xwpf.usermodel.XWPFPicture;
-import org.apache.poi.xwpf.usermodel.XWPFRun;
 import org.apache.tika.exception.TikaException;
 import org.apache.tika.extractor.EmbeddedDocumentExtractor;
 import org.apache.tika.metadata.Metadata;
@@ -41,7 +37,7 @@ public class BaseDocumentExtractNode extends IDocumentExtractNode {
 
     String splitter = "\n-----------------------------------\n";
 
-    public NodeResult execute1(DocumentExtractParams nodeParams)  {
+/*    public NodeResult execute1(DocumentExtractParams nodeParams)  {
         // 假设我们有一个 Supplier<ContentHandler>
         List<String> documentList=nodeParams.getDocumentList();
         Object res=super.getWorkflowManage().getReferenceField(documentList.get(0),documentList.subList(1,documentList.size()));
@@ -90,7 +86,7 @@ public class BaseDocumentExtractNode extends IDocumentExtractNode {
             sb.append(text);
         }
         return new NodeResult(Map.of("content",sb.toString()),Map.of());
-    }
+    }*/
     @Override
     public NodeResult execute(DocumentExtractParams nodeParams) {
         // 假设我们有一个 Supplier<ContentHandler>

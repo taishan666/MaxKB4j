@@ -29,12 +29,10 @@ public class EmbedTextService {
     private final ModelService modelService;
     private final EmbeddingService embeddingService;
 
-    @Transactional
     public boolean refresh(String datasetId, String docId) {
         return documentService.embedByDocIds(datasetService.getDatasetEmbeddingModel(datasetId), datasetId, List.of(docId));
     }
 
-    @Transactional
     public boolean batchRefresh(String datasetId, DatasetBatchHitHandlingDTO dto) {
         return documentService.embedByDocIds(datasetService.getDatasetEmbeddingModel(datasetId), datasetId, dto.getIdList());
     }
@@ -49,9 +47,9 @@ public class EmbedTextService {
         if (CollectionUtils.isEmpty(dto.getDocument_id_list())) {
             return false;
         }
-        paragraphService.updateStatusByDocIds(dto.getDocument_id_list(), 2, 0);
-        documentService.updateStatusMetaByIds(dto.getDocument_id_list());
-        documentService.updateStatusByIds(dto.getDocument_id_list(), 2, 0);
+      //  paragraphService.updateStatusByDocIds(dto.getDocument_id_list(), 2, 0);
+      //  documentService.updateStatusMetaByIds(dto.getDocument_id_list());
+     //   documentService.updateStatusByIds(dto.getDocument_id_list(), 2, 0);
         DatasetEntity dataset = datasetService.getById(datasetId);
         BaseChatModel chatModel = modelService.getModelById(dto.getModel_id());
         EmbeddingModel embeddingModel = modelService.getModelById(dataset.getEmbeddingModeId());
@@ -72,9 +70,9 @@ public class EmbedTextService {
 
 
     public boolean paragraphBatchGenerateRelated(String datasetId, String docId, GenerateProblemDTO dto) {
-        paragraphService.updateStatusByDocIds(List.of(docId), 2, 0);
-        documentService.updateStatusMetaByIds(List.of(docId));
-        documentService.updateStatusByIds(List.of(docId), 2, 0);
+       // paragraphService.updateStatusByDocIds(List.of(docId), 2, 0);
+      //  documentService.updateStatusMetaByIds(List.of(docId));
+      //  documentService.updateStatusByIds(List.of(docId), 2, 0);
         DatasetEntity dataset = datasetService.getById(datasetId);
         BaseChatModel chatModel = modelService.getModelById(dto.getModel_id());
         EmbeddingModel embeddingModel = modelService.getModelById(dataset.getEmbeddingModeId());

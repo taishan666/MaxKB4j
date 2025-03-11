@@ -78,26 +78,21 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
     private final ParagraphService paragraphService;
     private final ProblemService problemService;
     private final ProblemParagraphService problemParagraphService;
+    private final DocumentParseService documentParseService;
 
     public IPage<DocumentVO> selectDocPage(Page<DocumentVO> docPage, String datasetId, QueryDTO query) {
         return baseMapper.selectDocPage(docPage, datasetId,query);
     }
 
     public void updateStatusMetaById(String id){
-        baseMapper.updateStatusMetaByIds(List.of(id));
+        baseMapper.updateStatusMetaById(id);
     }
 
     //type 1向量化 2 生成问题 3同步
-    public void updateStatusById(String docId, int type,int status) {
-        updateStatusByIds(List.of(docId),type,status);
-    }
-    public void updateStatusByIds(List<String> ids, int type,int status) {
-        baseMapper.updateStatusByIds(ids,type,status,type-1,type+1);
+    public void updateStatusById(String id, int type,int status) {
+        baseMapper.updateStatusById(id,type,status,type-1,type+1);
     }
 
-    public void updateStatusMetaByIds(List<String> ids) {
-        baseMapper.updateStatusMetaByIds(ids);
-    }
 
     public boolean updateCharLengthById(String id) {
        return baseMapper.updateCharLengthById(id);
@@ -368,6 +363,31 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
             TextSegmentVO textSegmentVO = new TextSegmentVO();
             textSegmentVO.setName(file.getOriginalFilename());
             try (InputStream inputStream = file.getInputStream()) {
+                String docText = documentParseService.extractText(inputStream);
+                List<TextSegment> textSegments = getTextSegments(Document.document(docText), patterns, limit, withFilter);
+                List<ParagraphSimpleVO> content = textSegments.stream()
+                        .map(segment -> new ParagraphSimpleVO(segment.text()))
+                        .collect(Collectors.toList());
+
+                textSegmentVO.setContent(content);
+            } catch (IOException e) {
+                // 添加日志记录
+                throw new RuntimeException("File processing failed: " + file.getOriginalFilename(), e);
+            }
+            list.add(textSegmentVO);
+        }
+        return list;
+    }
+
+    public List<TextSegmentVO> split1(MultipartFile[] files, String[] patterns, Integer limit, Boolean withFilter) {
+        List<TextSegmentVO> list = new ArrayList<>();
+        for (MultipartFile file : files) {
+            if (file == null || file.isEmpty()) {
+                continue; // 或抛出异常根据业务需求
+            }
+            TextSegmentVO textSegmentVO = new TextSegmentVO();
+            textSegmentVO.setName(file.getOriginalFilename());
+            try (InputStream inputStream = file.getInputStream()) {
                 Document document = parser.parse(inputStream);
                 List<TextSegment> textSegments = getTextSegments(document, patterns, limit, withFilter);
                 List<ParagraphSimpleVO> content = textSegments.stream()
@@ -521,7 +541,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         documentEntity.setName(name);
         documentEntity.setMeta(new JSONObject());
         documentEntity.setCharLength(0);
-        documentEntity.setStatus("nn2");
+        documentEntity.setStatus("nn0");
         //documentEntity.setStatusMeta(documentEntity.defaultStatusMeta());
         documentEntity.setIsActive(true);
         documentEntity.setType("0");
@@ -539,7 +559,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         paragraph.setTitle(title == null ? "" : title);
         paragraph.setContent(content == null ? "" : content);
         paragraph.setDatasetId(datasetId);
-        paragraph.setStatus("nn2");
+        paragraph.setStatus("nn0");
         paragraph.setHitNum(0);
         paragraph.setIsActive(true);
         // paragraph.setStatusMeta(paragraph.defaultStatusMeta());
@@ -559,16 +579,16 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
 
     public boolean embedByDocIds(EmbeddingModel embeddingModel,String datasetId, List<String> docIds) {
         if (!CollectionUtils.isEmpty(docIds)) {
-            paragraphService.updateStatusByDocIds(docIds, 1, 0);
-            this.updateStatusMetaByIds(docIds);
-            this.updateStatusByIds(docIds, 1, 0);
-            docIds.parallelStream().forEach(docId -> {
-                this.updateStatusById(docId,1,1);
+            docIds.forEach(docId -> {
+                this.updateStatusById(docId,1,0);
+                paragraphService.updateStatusByDocId(docId, 1, 0);
+                this.updateStatusMetaById(docId);
                 log.info("开始--->向量化文档:{}", docId);
                 List<ParagraphEntity> paragraphs = paragraphService.lambdaQuery().eq(ParagraphEntity::getDocumentId, docId).list();
+                this.updateStatusById(docId,1,1);
                 paragraphs.forEach(paragraph -> {
                     paragraphService.embedParagraph(paragraph,embeddingModel);
-                    this.updateStatusMetaById(paragraph.getDocumentId());
+                    this.updateStatusMetaById(docId);
                 });
                 this.updateStatusById(docId,1,2);
                 log.info("结束--->向量化文档:{}", docId);
