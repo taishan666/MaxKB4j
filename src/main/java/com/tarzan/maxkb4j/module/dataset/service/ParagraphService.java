@@ -3,6 +3,7 @@ package com.tarzan.maxkb4j.module.dataset.service;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.huaban.analysis.jieba.JiebaSegmenter;
 import com.tarzan.maxkb4j.module.dataset.entity.ParagraphEntity;
 import com.tarzan.maxkb4j.module.dataset.entity.ProblemEntity;
 import com.tarzan.maxkb4j.module.dataset.entity.ProblemParagraphEntity;
@@ -15,6 +16,9 @@ import dev.langchain4j.model.output.Response;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.util.StringUtil;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -34,7 +38,7 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
 
     private final ProblemService problemService;
     private final ProblemParagraphService problemParagraphService;
-  //  private final TextSegmentService textSegmentService;
+    private final MongoTemplate mongoTemplate;
     private final EmbeddingMapper embeddingMapper;
 
     public void updateStatusById(String id, int type, int status) {
@@ -73,7 +77,9 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
         if (paragraph != null) {
             this.updateStatusById(paragraph.getId(),1,1);
             //清除之前向量
-            embeddingMapper.delete(Wrappers.<EmbeddingEntity>lambdaQuery().eq(EmbeddingEntity::getDocumentId, paragraph.getId()));
+            embeddingMapper.delete(Wrappers.<EmbeddingEntity>lambdaQuery().eq(EmbeddingEntity::getParagraphId, paragraph.getId()));
+            Query query = new Query(Criteria.where("paragraphId").is(paragraph.getId()));
+            mongoTemplate.remove(query,EmbeddingEntity.class);
             List<EmbeddingEntity> embeddingEntities = new ArrayList<>();
             log.info("开始---->向量化段落:{}", paragraph.getId());
             EmbeddingEntity paragraphEmbed = new EmbeddingEntity();
@@ -84,7 +90,7 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
             paragraphEmbed.setSourceId(paragraph.getId());
             paragraphEmbed.setSourceType("1");
             paragraphEmbed.setIsActive(paragraph.getIsActive());
-            paragraphEmbed.setContent(paragraph.getTitle() + paragraph.getContent());
+            paragraphEmbed.setContent(segmentContent(paragraph.getTitle() + paragraph.getContent()));
           //  paragraphEmbed.setSearchVector(new TSVector());
             Response<Embedding> res;
             if(StringUtil.isNotBlank(paragraph.getTitle())){
@@ -106,16 +112,26 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
                 problemEmbed.setSourceType("0");
                 problemEmbed.setIsActive(paragraph.getIsActive());
               //  paragraphEmbed.setSearchVector(new TSVector());
-                problemEmbed.setContent(problem.getContent());
+                problemEmbed.setContent(segmentContent(problem.getContent()));
                 Response<Embedding> res1 = embeddingModel.embed(problem.getContent());
                 problemEmbed.setEmbedding(res1.content().vectorAsList());
                 embeddingEntities.add(problemEmbed);
             }
-          //  textSegmentService.saveBatch(embeddingEntities);
             embeddingMapper.insert(embeddingEntities);
+            mongoTemplate.insertAll(embeddingEntities);
             this.updateStatusById(paragraph.getId(),1,2);
             log.info("结束---->向量化段落:{}", paragraph.getId());
         }
+    }
+
+    public  List<String> segment(String text){
+        JiebaSegmenter jiebaSegmenter = new JiebaSegmenter(); // true: 细粒度模式
+        return jiebaSegmenter.sentenceProcess(text);
+    }
+
+    public  String segmentContent(String text) {
+        List<String> tokens =segment(text);
+        return String.join(" ", tokens);
     }
 
 

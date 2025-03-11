@@ -19,6 +19,7 @@ import java.util.List;
 public class Retriever {
 
     public static void main(String[] args) {
+
         String apiKey = "";
         EmbeddingModel embeddingModel = QwenEmbeddingModel.builder()
                 .apiKey(apiKey)

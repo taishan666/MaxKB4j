@@ -17,8 +17,13 @@ spring:
     driver-class-name: org.postgresql.Driver
   elasticsearch:
     uris: http://localhost:9200
-    username: elastic
-    password: elastic
+  data:
+    elasticsearch:
+      repositories:
+        enabled: true
+    mongodb:
+      database: ${MONGO_DATABASE:MaxKB4j}
+      uri: mongodb://${MONGO_USERNAME:myusername}:${MONGO_PASSWORD:mypassword}@${MONGO_HOST:localhost}:27017
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss
     time-zone: GMT+8

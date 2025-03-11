@@ -1,146 +1,97 @@
 package com.tarzan.maxkb4j.module.dataset.service;
 
+import com.huaban.analysis.jieba.JiebaSegmenter;
 import com.tarzan.maxkb4j.module.dataset.vo.HitTestVO;
+import com.tarzan.maxkb4j.module.embedding.entity.EmbeddingEntity;
 import lombok.AllArgsConstructor;
-import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.document.Document;
-import org.apache.lucene.index.DirectoryReader;
-import org.apache.lucene.index.Term;
-import org.apache.lucene.queryparser.classic.ParseException;
-import org.apache.lucene.queryparser.classic.QueryParser;
-import org.apache.lucene.search.*;
-import org.apache.lucene.store.Directory;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.mongodb.MongoExpression;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.aggregation.Aggregation;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.TextCriteria;
+import org.springframework.data.mongodb.core.query.TextQuery;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 @Service
 @AllArgsConstructor
 public class FullTextSearchService {
 
-    private final Directory directory;
+    private final MongoTemplate mongoTemplate;
 
-    private final Analyzer analyzer;
+    public List<HitTestVO> search(List<String> datasetIds, String keyword, int maxResults) {
+        // 假设 textCriteria 和 keyword 已经定义好
+        TextCriteria textCriteria = TextCriteria.forDefaultLanguage().matching(segmentContent(keyword));
+        // 创建文本查询
+        Query query = TextQuery.queryText(textCriteria)
+                .addCriteria(Criteria.where("datasetId").in(datasetIds));
+        // 构建聚合管道
+        Aggregation aggregation = Aggregation.newAggregation(
+                // 步骤1: 应用查询条件（文本搜索 + datasetId过滤）
+                Aggregation.match(textCriteria),
+                Aggregation.match(Criteria.where("datasetId").in(datasetIds)),
+                // 步骤2: 添加文本搜索得分字段
+                Aggregation.addFields()
+                        .addField("score")
+                        .withValueOf(MongoExpression.create("{$meta: 'textScore'}"))
+                        .build(),
 
-    public List<SearchResult> search1(List<String> datasetIds,String queryStr, int maxResults){
-        try {
-            DirectoryReader reader = DirectoryReader.open(directory);
-            IndexSearcher searcher = new IndexSearcher(reader);
-            QueryParser parser = new QueryParser("content", analyzer); // 默认搜索content字段
-            Query query = parser.parse(QueryParser.escape(queryStr)); // 转义特殊字符
+                // 步骤3: 按得分降序排序（确保每个paragraphId的最高分排在第一）
+                Aggregation.sort(Sort.Direction.DESC, "score"),
 
-            TopDocs topDocs = searcher.search(query, maxResults);
-            List<SearchResult> results = new ArrayList<>();
-            float maxScore = -1;
-            for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
-                if (scoreDoc.score > maxScore) {
-                    maxScore = scoreDoc.score;
-                }
-            }
-            for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
-                Document doc = searcher.doc(scoreDoc.doc);
-                results.add(new SearchResult(
-                        doc.get("content"),
-                        scoreDoc.score/maxScore
-                ));
-            }
-            reader.close();
-            return results;
-        } catch (IOException | ParseException e) {
-            throw new RuntimeException(e);
+                // 步骤4: 按paragraphId分组，取每组第一个文档（最高分）
+                Aggregation.group("paragraphId")
+                        .first("$$ROOT").as("highestScoreDoc"),
+
+                // 步骤5: 将嵌套文档提升为根文档
+                Aggregation.replaceRoot("highestScoreDoc"),
+
+                // 步骤6: 再次按得分降序排序全局结果
+                Aggregation.sort(Sort.Direction.DESC, "score"),
+
+                // 步骤7: 限制最终返回数量
+                Aggregation.limit(maxResults)
+        );
+
+        // 执行聚合查询
+        List<EmbeddingEntity> entities = mongoTemplate.aggregate(
+                aggregation,
+                mongoTemplate.getCollectionName(EmbeddingEntity.class), // 获取集合名
+                EmbeddingEntity.class
+        ).getMappedResults();
+        //归一化处理
+        for (EmbeddingEntity entity : entities) {
+            entity.setScore(entity.getScore() / 2);
         }
+        return entities.stream().map(entity -> new HitTestVO(entity.getParagraphId(), entity.getScore())).toList();
     }
 
-    public List<HitTestVO> search(List<String> datasetIds, String queryStr, int maxResults) {
-        try {
-            DirectoryReader reader = DirectoryReader.open(directory);
-            IndexSearcher searcher = new IndexSearcher(reader);
-
-            // 创建一个布尔查询
-            BooleanQuery.Builder booleanQueryBuilder = new BooleanQuery.Builder();
-
-            // 添加文本查询条件
-            QueryParser contentParser = new QueryParser("content", analyzer); // 默认搜索content字段
-            Query textQuery = contentParser.parse(QueryParser.escape(queryStr)); // 转义特殊字符
-
-            // 将文本查询添加为必须匹配的部分
-            booleanQueryBuilder.add(textQuery, BooleanClause.Occur.MUST);
-
-            // 为每个datasetId创建TermQuery，并将它们用 SHOULD 组合起来
-            BooleanQuery.Builder datasetQueryBuilder = new BooleanQuery.Builder();
-            for (String datasetId : datasetIds) {
-                TermQuery datasetQuery = new TermQuery(new Term("datasetId", datasetId));
-                datasetQueryBuilder.add(datasetQuery, BooleanClause.Occur.SHOULD);
-            }
-
-            // 将dataset查询添加为必须匹配的部分
-            booleanQueryBuilder.add(datasetQueryBuilder.build(), BooleanClause.Occur.MUST);
-
-            // 执行查询
-            TopDocs topDocs = searcher.search(booleanQueryBuilder.build(), maxResults);
-            List<HitTestVO> results = new ArrayList<>();
-            float maxScore = 1;
-
-            // 遍历结果，找到最高分数（如果需要的话）
-            for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
-                if (scoreDoc.score > maxScore) {
-                    maxScore = scoreDoc.score;
-                }
-            }
-
-            // 处理和标准化得分
-            for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
-                Document doc = searcher.doc(scoreDoc.doc);
-                float score = scoreDoc.score / maxScore;
-                results.add(new HitTestVO(
-                        doc.get("paragraphId"),
-                        score
-                ));
-            }
-
-            reader.close();
-            return results;
-        } catch (IOException | ParseException e) {
-            throw new RuntimeException(e);
+    public List<HitTestVO> search1(List<String> datasetIds, String keyword, int maxResults) {
+        // 创建文本搜索条件
+        TextCriteria textCriteria = TextCriteria.forDefaultLanguage().matching(segmentContent(keyword));
+        Query query = TextQuery.queryText(textCriteria).includeScore("content").sortByScore()
+                .addCriteria(Criteria.where("datasetId").in(datasetIds))
+                .limit(maxResults);
+        // 执行查询
+        List<EmbeddingEntity> entities = mongoTemplate.find(query, EmbeddingEntity.class);
+        //归一化处理
+        for (EmbeddingEntity entity : entities) {
+            entity.setScore(entity.getScore() / 2);
         }
+        return entities.stream().map(entity -> new HitTestVO(entity.getParagraphId(), entity.getScore())).toList();
     }
 
-    public List<HitTestVO> search2(List<String> datasetIds, String queryStr, int maxResults) {
-        try {
-            DirectoryReader reader = DirectoryReader.open(directory);
-            IndexSearcher searcher = new IndexSearcher(reader);
-            QueryParser parser = new QueryParser("content", analyzer); // 默认搜索content字段
-            Query query = parser.parse(QueryParser.escape(queryStr)); // 转义特殊字符
-            TopDocs topDocs = searcher.search(query, maxResults);
-            List<HitTestVO> results = new ArrayList<>();
-            float maxScore = 1;
-            // 首先找到最高分数
-            for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
-                System.out.println("score:"+scoreDoc.score);
-                if (scoreDoc.score > maxScore) {
-                    maxScore = scoreDoc.score;
-                }
-            }
-            // 然后过滤和标准化得分
-            for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
-                Document doc = searcher.doc(scoreDoc.doc);
-                // 过滤出documentId在datasetIds中的文档
-                String datasetId=doc.get("datasetId");
-                if (Objects.nonNull(datasetId)&&datasetIds.contains(datasetId)) {
-                    float score= scoreDoc.score/maxScore;
-                    results.add(new HitTestVO(
-                            doc.get("paragraphId"),
-                            score
-                    ));
-                }
-            }
-            reader.close();
-            return results;
-        } catch (IOException | ParseException e) {
-            throw new RuntimeException(e);
-        }
+    public List<String> segment(String text) {
+        JiebaSegmenter jiebaSegmenter = new JiebaSegmenter(); // true: 细粒度模式
+        return jiebaSegmenter.sentenceProcess(text);
     }
+
+    public String segmentContent(String text) {
+        List<String> tokens = segment(text);
+        return String.join(" ", tokens);
+    }
+
 }

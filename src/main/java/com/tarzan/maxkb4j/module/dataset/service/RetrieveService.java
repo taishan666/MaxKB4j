@@ -5,29 +5,22 @@ import com.tarzan.maxkb4j.module.dataset.dto.HitTestDTO;
 import com.tarzan.maxkb4j.module.dataset.mapper.ParagraphMapper;
 import com.tarzan.maxkb4j.module.dataset.vo.HitTestVO;
 import com.tarzan.maxkb4j.module.dataset.vo.ParagraphVO;
-import com.tarzan.maxkb4j.module.embedding.mapper.EmbeddingMapper;
-import dev.langchain4j.data.embedding.Embedding;
-import dev.langchain4j.model.embedding.EmbeddingModel;
-import dev.langchain4j.model.output.Response;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
 public class RetrieveService {
 
-    private final EmbeddingMapper embeddingMapper;
+    private final EmbedTextService embedTextService;
     private final ParagraphMapper paragraphMapper;
     private final JiebaSegmenter jiebaSegmenter = new JiebaSegmenter();
     private final DatasetBaseService datasetService;
-   // private final TextSegmentService fullTextSearchService;
+    private final FullTextSearchService fullTextSearchService;
 
 
     public List<ParagraphVO> paragraphSearch(String question,List<String> datasetIds,List<String> excludeParagraphIds,int TopN,float similarity,String searchMode) {
@@ -41,26 +34,36 @@ public class RetrieveService {
 
     private List<HitTestVO> dataSearch(List<String> datasetIds, HitTestDTO dto) {
         long startTime = System.currentTimeMillis();
-        EmbeddingModel embeddingModel=datasetService.getDatasetEmbeddingModel(datasetIds.get(0));
-        Response<Embedding> res = embeddingModel.embed(dto.getQuery_text());
         if ("embedding".equals(dto.getSearch_mode())) {
-            System.out.println("embedding 耗时 "+(System.currentTimeMillis()-startTime)+" ms");
-            return embeddingMapper.embeddingSearch(datasetIds, dto.getTop_number(),dto.getSimilarity(), res.content().vector());
+            return embedTextService.search(datasetIds, dto.getQuery_text(), dto.getTop_number(),dto.getSimilarity());
         }
         if ("keywords".equals(dto.getSearch_mode())) {
-            System.out.println("keywords 耗时 "+(System.currentTimeMillis()-startTime)+" ms");
-           // dto.setQuery_text(toTsQuery(dto.getQuery_text()));
-         /*   List<EmbeddingEntity> results = fullTextSearchService.search(datasetIds,dto.getQuery_text(), dto.getTop_number());
-            for (EmbeddingEntity result : results) {
-                System.out.println(result.getParagraphId());
-                System.out.println(result.getScore());
-            }*/
+            List<HitTestVO> results = fullTextSearchService.search(datasetIds,dto.getQuery_text(), dto.getTop_number());
             System.out.println("fullTextSearchService 耗时 "+(System.currentTimeMillis()-startTime)+" ms");
-            return new ArrayList<>();
-           // return embeddingMapper.keywordsSearch(datasetIds, dto);
+            return results;
         }
         if ("blend".equals(dto.getSearch_mode())) {
-            return embeddingMapper.HybridSearch(datasetIds, dto, res.content().vector());
+            Map<String,Float> map=new LinkedHashMap<>();
+            List<HitTestVO> results =new ArrayList<>();
+            List<HitTestVO> embedResults = embedTextService.search(datasetIds, dto.getQuery_text(), dto.getTop_number(),dto.getSimilarity());
+            List<HitTestVO> fullTextResults = fullTextSearchService.search(datasetIds,dto.getQuery_text(), dto.getTop_number());
+            for (HitTestVO embedResult : embedResults) {
+                map.put(embedResult.getParagraphId(), embedResult.getScore());
+            }
+            for (HitTestVO fullTextResult : fullTextResults) {
+                if(map.containsKey(fullTextResult.getParagraphId())){
+                    if(map.get(fullTextResult.getParagraphId())<fullTextResult.getScore()){
+                        map.put(fullTextResult.getParagraphId(), fullTextResult.getScore());
+                    }
+                }else {
+                    map.put(fullTextResult.getParagraphId(), fullTextResult.getScore());
+                }
+            }
+            map.forEach((key, value) -> {
+                results.add(new HitTestVO(key,value));
+            });
+            int endIndex=Math.min(dto.getTop_number(),results.size());
+            return results.subList(0, endIndex);
         }
         return Collections.emptyList();
     }
@@ -83,7 +86,6 @@ public class RetrieveService {
             e.setSimilarity(score);
             e.setComprehensiveScore(score);
         });
-        System.out.println("paragraphSearch1 耗时 "+(System.currentTimeMillis()-startTime)+" ms");
         return paragraphs;
     }
 

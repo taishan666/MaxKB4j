@@ -12,6 +12,7 @@ import com.tarzan.maxkb4j.module.dataset.entity.ProblemEntity;
 import com.tarzan.maxkb4j.module.dataset.mapper.ParagraphMapper;
 import com.tarzan.maxkb4j.module.dataset.mapper.ProblemMapper;
 import com.tarzan.maxkb4j.module.dataset.mapper.ProblemParagraphMapper;
+import com.tarzan.maxkb4j.module.dataset.vo.HitTestVO;
 import com.tarzan.maxkb4j.module.dataset.vo.ProblemParagraphVO;
 import com.tarzan.maxkb4j.module.embedding.entity.EmbeddingEntity;
 import com.tarzan.maxkb4j.module.embedding.mapper.EmbeddingMapper;
@@ -182,5 +183,9 @@ public class EmbeddingService extends ServiceImpl<EmbeddingMapper, EmbeddingEnti
             }
         }
         return result;
+    }
+
+    public List<HitTestVO> embeddingSearch(List<String> datasetIds,int maxResults, double minScore,float[]  referenceEmbedding ){
+        return baseMapper.embeddingSearch(datasetIds,maxResults,minScore,referenceEmbedding);
     }
 }

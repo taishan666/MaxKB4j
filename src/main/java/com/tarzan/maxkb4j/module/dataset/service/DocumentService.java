@@ -50,6 +50,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -576,8 +577,8 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         return this.lambdaUpdate().in(DocumentEntity::getId, docIds).remove();
     }
 
-
-    public boolean embedByDocIds(EmbeddingModel embeddingModel,List<String> docIds) {
+    @Async
+    public void embedByDocIds(EmbeddingModel embeddingModel,List<String> docIds) {
         if (!CollectionUtils.isEmpty(docIds)) {
             docIds.forEach(docId -> {
                 this.updateStatusById(docId,1,0);
@@ -594,7 +595,6 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
                 log.info("结束--->向量化文档:{}", docId);
             });
         }
-        return true;
     }
 
     public boolean cancelTask(String docId, int type) {
