@@ -6,12 +6,11 @@ import com.tarzan.maxkb4j.module.dataset.entity.DatasetEntity;
 import com.tarzan.maxkb4j.module.dataset.entity.ParagraphEntity;
 import com.tarzan.maxkb4j.module.dataset.entity.ProblemEntity;
 import com.tarzan.maxkb4j.module.embedding.service.EmbeddingService;
-import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
+import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
@@ -30,16 +29,15 @@ public class EmbedTextService {
     private final EmbeddingService embeddingService;
 
     public boolean refresh(String datasetId, String docId) {
-        return documentService.embedByDocIds(datasetService.getDatasetEmbeddingModel(datasetId), datasetId, List.of(docId));
+        return documentService.embedByDocIds(datasetService.getDatasetEmbeddingModel(datasetId), List.of(docId));
     }
 
     public boolean batchRefresh(String datasetId, DatasetBatchHitHandlingDTO dto) {
-        return documentService.embedByDocIds(datasetService.getDatasetEmbeddingModel(datasetId), datasetId, dto.getIdList());
+        return documentService.embedByDocIds(datasetService.getDatasetEmbeddingModel(datasetId), dto.getIdList());
     }
 
     public boolean reEmbedding(String datasetId) {
-        EmbeddingModel embeddingModel = datasetService.getDatasetEmbeddingModel(datasetId);
-        return embeddingService.embedByDatasetId(datasetId, embeddingModel);
+        return embeddingService.embedByDatasetId(datasetId, datasetService.getDatasetEmbeddingModel(datasetId));
     }
 
 

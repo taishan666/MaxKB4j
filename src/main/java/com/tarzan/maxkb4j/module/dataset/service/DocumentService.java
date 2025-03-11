@@ -577,7 +577,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
     }
 
 
-    public boolean embedByDocIds(EmbeddingModel embeddingModel,String datasetId, List<String> docIds) {
+    public boolean embedByDocIds(EmbeddingModel embeddingModel,List<String> docIds) {
         if (!CollectionUtils.isEmpty(docIds)) {
             docIds.forEach(docId -> {
                 this.updateStatusById(docId,1,0);
