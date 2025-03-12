@@ -2,6 +2,7 @@ package com.tarzan.maxkb4j.module.application.service;
 
 import cn.dev33.satoken.stp.SaLoginModel;
 import cn.dev33.satoken.stp.StpUtil;
+import cn.hutool.json.JSONUtil;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -13,6 +14,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tarzan.maxkb4j.common.dto.QueryDTO;
 import com.tarzan.maxkb4j.module.application.dto.ApplicationAccessTokenDTO;
 import com.tarzan.maxkb4j.module.application.dto.ChatImproveDTO;
+import com.tarzan.maxkb4j.module.application.dto.MaxKb4J;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationAccessTokenEntity;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationDatasetMappingEntity;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationEntity;
@@ -33,6 +35,7 @@ import com.tarzan.maxkb4j.module.system.user.entity.UserEntity;
 import com.tarzan.maxkb4j.module.system.user.service.UserService;
 import com.tarzan.maxkb4j.util.*;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -41,6 +44,10 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.*;
 
@@ -240,10 +247,11 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         vo.setTtsModel(entity.getTtsModelId());
         return vo;
     }
-    public String authentication(HttpServletRequest request, JSONObject params){
-        String clientType="";
+
+    public String authentication(HttpServletRequest request, JSONObject params) {
+        String clientType = "";
         try {
-             clientType = (String) StpUtil.getExtra("client_type");
+            clientType = (String) StpUtil.getExtra("client_type");
         } catch (Exception e) {
             log.error("获取客户端类型失败", e);
         }
@@ -256,7 +264,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
                 loginModel.setExtra("application_id", appAccessToken.getApplicationId());
                 loginModel.setExtra("client_id", IdWorker.get32UUID());
                 loginModel.setExtra("client_type", clientType);
-                StpUtil.login(IdWorker.get32UUID(),loginModel);
+                StpUtil.login(IdWorker.get32UUID(), loginModel);
             }
         }
         return StpUtil.getTokenValue();
@@ -477,4 +485,29 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         return workFlowVersionService.updateById(versionEntity);
     }
 
+    public void appExport(String id, HttpServletResponse response) throws IOException {
+        ApplicationEntity app = this.getById(id);
+        MaxKb4J maxKb4J = new MaxKb4J(app, new ArrayList<>(), "v1");
+        byte[] bytes = JSONUtil.toJsonStr(maxKb4J).getBytes(StandardCharsets.UTF_8);
+        response.setContentType("text/plain");
+        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
+        String fileName = URLEncoder.encode(app.getName(), StandardCharsets.UTF_8);
+        response.setHeader("Content-disposition", "attachment;filename=" + fileName + ".mk");
+        OutputStream outputStream = response.getOutputStream();
+        outputStream.write(bytes);
+    }
+
+    @Transactional
+    public boolean appImport(MultipartFile file) throws IOException {
+        String text = IoUtil.readToString(file.getInputStream());
+        MaxKb4J maxKb4J = JSONObject.parseObject(text, MaxKb4J.class);
+        ApplicationEntity application=maxKb4J.getApplication();
+        application.setId(null);
+        boolean flag= this.save(application);
+        ApplicationAccessTokenEntity accessToken = ApplicationAccessTokenEntity.createDefault();
+        accessToken.setApplicationId(application.getId());
+        accessToken.setAccessToken(MD5Util.encrypt(UUID.randomUUID().toString(), 8, 24));
+        accessTokenService.save(accessToken);
+        return flag;
+    }
 }

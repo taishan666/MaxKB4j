@@ -38,9 +38,7 @@ public class RetrieveService {
             return embedTextService.search(datasetIds, dto.getQuery_text(), dto.getTop_number(),dto.getSimilarity());
         }
         if ("keywords".equals(dto.getSearch_mode())) {
-            List<HitTestVO> results = fullTextSearchService.search(datasetIds,dto.getQuery_text(), dto.getTop_number());
-            System.out.println("fullTextSearchService 耗时 "+(System.currentTimeMillis()-startTime)+" ms");
-            return results;
+            return fullTextSearchService.search(datasetIds,dto.getQuery_text(), dto.getTop_number());
         }
         if ("blend".equals(dto.getSearch_mode())) {
             Map<String,Float> map=new LinkedHashMap<>();

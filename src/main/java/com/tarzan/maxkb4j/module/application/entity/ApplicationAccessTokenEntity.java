@@ -53,15 +53,19 @@ public class ApplicationAccessTokenEntity {
     @JsonProperty("show_source")
     private Boolean showSource;
 
-    public ApplicationAccessTokenEntity(Boolean isActive, Integer accessNum, Boolean whiteActive, Set<String> whiteList, Boolean showSource) {
+    private String language;
+
+
+    public ApplicationAccessTokenEntity(Boolean isActive, Integer accessNum, Boolean whiteActive, Set<String> whiteList, Boolean showSource,String language) {
         this.isActive = isActive;
         this.accessNum = accessNum;
         this.whiteActive = whiteActive;
         this.whiteList = whiteList;
         this.showSource = showSource;
+        this.language = language;
     }
 
     public static ApplicationAccessTokenEntity createDefault() {
-        return new ApplicationAccessTokenEntity(true,100,false,new HashSet<>(),false);
+        return new ApplicationAccessTokenEntity(true,100,false,new HashSet<>(),false,"zh-CH");
     }
 }

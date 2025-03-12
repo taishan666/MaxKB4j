@@ -26,8 +26,7 @@ public class FullTextSearchService {
         // 假设 textCriteria 和 keyword 已经定义好
         TextCriteria textCriteria = TextCriteria.forDefaultLanguage().matching(segmentContent(keyword));
         // 创建文本查询
-        Query query = TextQuery.queryText(textCriteria)
-                .addCriteria(Criteria.where("datasetId").in(datasetIds));
+        // Query query = TextQuery.queryText(textCriteria).addCriteria(Criteria.where("datasetId").in(datasetIds));
         // 构建聚合管道
         Aggregation aggregation = Aggregation.newAggregation(
                 // 步骤1: 应用查询条件（文本搜索 + datasetId过滤）

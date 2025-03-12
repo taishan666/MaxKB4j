@@ -17,6 +17,7 @@ import com.tarzan.maxkb4j.module.dataset.vo.ParagraphVO;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelEntity;
 import com.tarzan.maxkb4j.tool.api.R;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -24,6 +25,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -44,6 +46,11 @@ public class ApplicationController {
     @PostMapping("api/application")
     public R<ApplicationEntity> createApp(@RequestBody ApplicationEntity application) {
         return R.success(applicationService.createApp(application));
+    }
+
+    @PostMapping("api/application/import")
+    public R<Boolean> appImport(MultipartFile file) throws Exception {
+        return R.status(applicationService.appImport(file));
     }
 
     @PostMapping("api/application/authentication")
@@ -84,6 +91,11 @@ public class ApplicationController {
     @GetMapping("api/application/profile")
     public R<JSONObject> appProfile(HttpServletRequest request) {
         return R.success(applicationService.appProfile(request));
+    }
+
+    @GetMapping("api/application/{id}/export")
+    public void appExport(@PathVariable("id") String id,HttpServletResponse response) throws IOException {
+        applicationService.appExport(id,response);
     }
 
     @GetMapping("api/application/{page}/{size}")
