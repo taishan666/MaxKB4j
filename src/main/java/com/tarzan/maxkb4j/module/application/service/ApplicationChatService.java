@@ -32,8 +32,6 @@ import com.tarzan.maxkb4j.module.dataset.vo.ParagraphVO;
 import com.tarzan.maxkb4j.module.file.service.FileService;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelEntity;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
-import com.tarzan.maxkb4j.util.JwtUtil;
-import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -173,23 +171,19 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
     }
 
     public Flux<JSONObject> chatSimple(String chatId, ChatMessageDTO dto, HttpServletRequest request) {
-        String authorization = request.getHeader("Authorization");
-        Claims claims = JwtUtil.parseToken(authorization);
-        String clientId = (String) claims.get("client_id");
-        String clientType = (String) claims.get("type");
+        String clientId = (String) StpUtil.getExtra("client_id");
+        String clientType = (String) StpUtil.getExtra("client_type");
         ChatInfo chatInfo = getChatInfo(chatId);
         if (chatInfo == null) {
             System.err.println("会话不存在");
         } else {
-            if (!claims.isEmpty()) {
-                try {
-                    isValidApplication(chatInfo, clientId, clientType);
-                } catch (Exception e) {
-                    log.error("会话不存在", e);
-                    JSONObject data = new JSONObject();
-                    data.put("content", "系统错误！");
-                    return Flux.just(data);
-                }
+            try {
+                isValidApplication(chatInfo, clientId, clientType);
+            } catch (Exception e) {
+                log.error("会话不存在", e);
+                JSONObject data = new JSONObject();
+                data.put("content", "系统错误！");
+                return Flux.just(data);
             }
         }
         boolean stream = dto.getStream() == null || dto.getStream();
@@ -224,22 +218,18 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
     }
 
     public Flux<JSONObject> chatWorkflow(String chatId, ChatMessageDTO dto, HttpServletRequest request) {
-        String authorization = request.getHeader("Authorization");
-        Claims claims = JwtUtil.parseToken(authorization);
-        String clientId = (String) claims.get("client_id");
-        String clientType = (String) claims.get("type");
+        String clientId = (String) StpUtil.getExtra("client_id");
+        String clientType = (String) StpUtil.getExtra("client_type");
         ChatInfo chatInfo = getChatInfo(chatId);
         if (chatInfo == null) {
             System.err.println("会话不存在");
         } else {
-            if (!claims.isEmpty()) {
-                try {
-                    isValidIntraDayAccessNum(chatInfo.getApplication().getId(), clientId, clientType);
-                } catch (Exception e) {
-                    JSONObject data = new JSONObject();
-                    data.put("content", e.getMessage());
-                    return Flux.just(data);
-                }
+            try {
+                isValidIntraDayAccessNum(chatInfo.getApplication().getId(), clientId, clientType);
+            } catch (Exception e) {
+                JSONObject data = new JSONObject();
+                data.put("content", e.getMessage());
+                return Flux.just(data);
             }
         }
         ApplicationChatRecordVO chatRecord = null;

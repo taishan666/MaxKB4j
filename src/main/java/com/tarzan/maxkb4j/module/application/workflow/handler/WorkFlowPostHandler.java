@@ -70,7 +70,7 @@ public class WorkFlowPostHandler {
             chatRecord.setConstant(0);
             chatRecord.setDetails(details);
         }
-        chatInfo.addChatRecord(chatRecord, clientId);
+        chatInfo.addChatRecord(chatRecord);
         // 重新设置缓存
         ChatCache.put(chatId, chatInfo);
 

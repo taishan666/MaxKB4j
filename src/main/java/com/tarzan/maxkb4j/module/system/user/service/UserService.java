@@ -1,7 +1,6 @@
 package com.tarzan.maxkb4j.module.system.user.service;
 
 import cn.dev33.satoken.secure.SaSecureUtil;
-import cn.dev33.satoken.stp.SaTokenInfo;
 import cn.dev33.satoken.stp.StpInterface;
 import cn.dev33.satoken.stp.StpUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -24,7 +23,6 @@ import com.tarzan.maxkb4j.util.BeanUtil;
 import jakarta.mail.MessagingException;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.thymeleaf.context.Context;
@@ -89,8 +87,7 @@ public class UserService extends ServiceImpl<UserMapper, UserEntity> {
                 .eq(UserEntity::getPassword, password).one();
         if (Objects.nonNull(userEntity)) {
             StpUtil.login(userEntity.getId());
-            SaTokenInfo tokenInfo = StpUtil.getTokenInfo();
-            return tokenInfo.getTokenValue();
+            return StpUtil.getTokenValue();
         }
         return null;
     }

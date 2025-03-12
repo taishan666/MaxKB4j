@@ -38,7 +38,7 @@ public class ChatInfo implements Serializable {
         return params;
     }
 
-    public void addChatRecord(ApplicationChatRecordEntity chatRecord, String clientId) {
+    public void addChatRecord(ApplicationChatRecordEntity chatRecord) {
           this.chatRecordList.add(chatRecord);
     }
 }

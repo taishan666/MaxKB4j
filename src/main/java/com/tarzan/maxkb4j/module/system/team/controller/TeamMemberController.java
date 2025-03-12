@@ -47,6 +47,6 @@ public class TeamMemberController{
         if(teamMemberService.isExist(userIds)){
             return R.fail("团队中已存在当前成员,不要重复添加");
         }
-        return R.success(teamMemberService.addBatchTeamMember(userIds,StpUtil.getLoginIdAsString()));
+        return R.success(teamMemberService.addBatchTeamMember(userIds, StpUtil.getLoginIdAsString()));
     }
 }

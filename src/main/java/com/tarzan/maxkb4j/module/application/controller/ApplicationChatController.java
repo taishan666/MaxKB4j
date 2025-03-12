@@ -1,5 +1,6 @@
 package com.tarzan.maxkb4j.module.application.controller;
 
+import cn.dev33.satoken.stp.StpUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.tarzan.maxkb4j.module.application.dto.ChatMessageDTO;
@@ -11,8 +12,6 @@ import com.tarzan.maxkb4j.module.application.service.ApplicationChatService;
 import com.tarzan.maxkb4j.module.application.vo.ApplicationChatRecordVO;
 import com.tarzan.maxkb4j.module.application.vo.ApplicationStatisticsVO;
 import com.tarzan.maxkb4j.tool.api.R;
-import com.tarzan.maxkb4j.util.JwtUtil;
-import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
 import org.springframework.http.MediaType;
@@ -34,9 +33,9 @@ public class ApplicationChatController {
 
     @GetMapping("api/application/{appId}/chat/client/{page}/{size}")
     public R<IPage<ApplicationChatEntity>> clientChatPage(@PathVariable("appId") String appId, @PathVariable("page") int page, @PathVariable("size") int size, HttpServletRequest request) {
-        String authorization = request.getHeader("Authorization");
-        Claims claims = JwtUtil.parseToken(authorization);
-        String clientId = (String) claims.get("client_id");
+      //  String authorization = request.getHeader("Authorization");
+       // Claims claims = JwtUtil.parseToken(authorization);
+        String clientId = (String) StpUtil.getExtra("client_id");
         return R.success(chatService.clientChatPage(appId, clientId, page, size));
     }
 

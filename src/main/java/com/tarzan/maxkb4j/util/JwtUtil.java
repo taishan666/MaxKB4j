@@ -27,15 +27,17 @@ public class JwtUtil {
      * 一旦客户端得知这个secret, 那就意味着客户端是可以自我签发jwt了。
      * 应该大于等于 256位(长度32及以上的字符串)，并且是随机的字符串
      */
-    private final static String SECRET = "maxKB4j";
+    private final static String SECRET = "asdasdasifhueuiwyurfewbfjsdafjk";
     /**
      * 秘钥实例
      */
-    public static final SecretKey KEY = Keys.hmacShaKeyFor(SECRET.getBytes());
+  //  public static final SecretKey KEY = Keys.hmacShaKeyFor(SECRET.getBytes());
+
+    public static final SecretKey KEY =  Keys.secretKeyFor(SignatureAlgorithm.HS256);
     /**
      * jwt签发者
      */
-    private final static String JWT_ISS = "Tiam";
+    private final static String JWT_ISS = "tarzan";
     /**
      * jwt主题
      */
@@ -62,7 +64,7 @@ public class JwtUtil {
                 // 签发者
                 .issuer(JWT_ISS)
                 // 签名
-                .signWith(KEY, ALGORITHM);
+                .signWith(KEY);
         params.forEach(builder::claim);
         return builder.compact();
     }
@@ -73,7 +75,7 @@ public class JwtUtil {
      * @param token token
      * @return Jws<Claims>
      */
-    public static Jws<Claims> parseClaim(String token) {
+    public static Jws<Claims> parseClaim(String token) throws JwtException, IllegalArgumentException{
         return Jwts.parser()
                 .verifyWith(KEY)
                 .build()
@@ -85,7 +87,8 @@ public class JwtUtil {
     }
 
     public static Claims parseToken(String token) {
-        return parseClaim(token).getPayload();
+        Claims claims= parseClaim(token).getPayload();
+        return claims==null?Jwts.claims().build():claims;
     }
 
 
@@ -93,17 +96,4 @@ public class JwtUtil {
         return claims.getExpiration().before(new Date());
     }
 
- /*   public static void main(String[] args) {
-        String token = JwtUtil.createToken("user123");
-        System.out.println("Generated Token: " + token);
-
-        try {
-            Claims claims = JwtUtil.parseToken(token);
-            System.out.println("Subject: " + claims.getSubject());
-            System.out.println("Expiration: " + claims.getExpiration());
-            System.out.println("Is Expired: " + isTokenExpired(claims));
-        } catch (SignatureException e) {
-            System.out.println(e.getMessage());
-        }
-    }*/
 }

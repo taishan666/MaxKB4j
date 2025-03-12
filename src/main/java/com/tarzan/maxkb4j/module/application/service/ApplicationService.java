@@ -1,5 +1,6 @@
 package com.tarzan.maxkb4j.module.application.service;
 
+import cn.dev33.satoken.stp.SaLoginModel;
 import cn.dev33.satoken.stp.StpUtil;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -25,16 +26,12 @@ import com.tarzan.maxkb4j.module.dataset.service.RetrieveService;
 import com.tarzan.maxkb4j.module.dataset.vo.ParagraphVO;
 import com.tarzan.maxkb4j.module.image.service.ImageService;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelEntity;
-import com.tarzan.maxkb4j.module.model.provider.impl.BaseTextToSpeech;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
+import com.tarzan.maxkb4j.module.model.provider.impl.BaseTextToSpeech;
 import com.tarzan.maxkb4j.module.system.team.service.TeamMemberPermissionService;
 import com.tarzan.maxkb4j.module.system.user.entity.UserEntity;
 import com.tarzan.maxkb4j.module.system.user.service.UserService;
-import com.tarzan.maxkb4j.util.BeanUtil;
-import com.tarzan.maxkb4j.util.FileUtil;
-import com.tarzan.maxkb4j.util.JwtUtil;
-import com.tarzan.maxkb4j.util.MD5Util;
-import io.jsonwebtoken.Claims;
+import com.tarzan.maxkb4j.util.*;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -243,11 +240,30 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         vo.setTtsModel(entity.getTtsModelId());
         return vo;
     }
+    public String authentication(HttpServletRequest request, JSONObject params){
+        String clientType="";
+        try {
+             clientType = (String) StpUtil.getExtra("client_type");
+        } catch (Exception e) {
+            log.error("获取客户端类型失败", e);
+        }
+        if (!"APPLICATION_ACCESS_TOKEN".equals(clientType)) {
+            String accessToken = params.getString("access_token");
+            ApplicationAccessTokenEntity appAccessToken = accessTokenService.lambdaQuery().eq(ApplicationAccessTokenEntity::getAccessToken, accessToken).one();
+            if (appAccessToken != null && appAccessToken.getIsActive()) {
+                //ApplicationEntity application = this.lambdaQuery().select(ApplicationEntity::getUserId).eq(ApplicationEntity::getId, applicationAccessToken.getApplicationId()).one();
+                SaLoginModel loginModel = new SaLoginModel();
+                loginModel.setExtra("application_id", appAccessToken.getApplicationId());
+                loginModel.setExtra("client_id", IdWorker.get32UUID());
+                loginModel.setExtra("client_type", clientType);
+                StpUtil.login(IdWorker.get32UUID(),loginModel);
+            }
+        }
+        return StpUtil.getTokenValue();
+    }
 
 
-
-
-    public String authentication(HttpServletRequest request, JSONObject params) throws Exception {
+    public String authentication1(HttpServletRequest request, JSONObject params) throws Exception {
         String token = request.getHeader("Authorization");
         Map<String, Object> tokenDetails = null;
 
@@ -324,9 +340,10 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     }
 
     public JSONObject appProfile(HttpServletRequest request) {
-        String authorization = request.getHeader("Authorization");
+       /* String authorization = request.getHeader("Authorization");
         Claims claims = JwtUtil.parseToken(authorization);
-        String appId = (String) claims.get("application_id");
+        String appId = (String) claims.get("application_id");*/
+        String appId = (String) StpUtil.getExtra("application_id");
         ApplicationEntity application = this.getById(appId);
         ApplicationAccessTokenEntity appAccessToken = accessTokenService.getById(appId);
         UserEntity user = userService.getById(application.getUserId());
@@ -368,8 +385,8 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     public byte[] textToSpeech(String id, JSONObject data) {
         String text = data.getString("text");
         ApplicationEntity app = this.getById(id);
-        if("BROWSER".equals(app.getTtsType())){
-           return new byte[0];
+        if ("BROWSER".equals(app.getTtsType())) {
+            return new byte[0];
         }
         BaseTextToSpeech ttsModel = modelService.getModelById(app.getTtsModelId());
         return ttsModel.textToSpeech(text);
@@ -387,14 +404,14 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         ApplicationEntity application = BeanUtil.copy(appVO, ApplicationEntity.class);
         application.setId(appId);
         JSONObject workFlow = appVO.getWorkFlow();
-        if (Objects.nonNull(workFlow)&&!workFlow.isEmpty()){
-            JSONArray nodes= workFlow.getJSONArray("nodes");
-            JSONObject baseNode= nodes.getJSONObject(0);
-            if (Objects.nonNull(baseNode)){
-                String type= baseNode.getString("type");
-                if (type.equals("base-node")){
-                    JSONObject properties= baseNode.getJSONObject("properties");
-                    JSONObject nodeData= properties.getJSONObject("node_data");
+        if (Objects.nonNull(workFlow) && !workFlow.isEmpty()) {
+            JSONArray nodes = workFlow.getJSONArray("nodes");
+            JSONObject baseNode = nodes.getJSONObject(0);
+            if (Objects.nonNull(baseNode)) {
+                String type = baseNode.getString("type");
+                if (type.equals("base-node")) {
+                    JSONObject properties = baseNode.getJSONObject("properties");
+                    JSONObject nodeData = properties.getJSONObject("node_data");
                     application.setName(nodeData.getString("name"));
                     application.setDesc(nodeData.getString("desc"));
                     application.setPrologue(nodeData.getString("prologue"));

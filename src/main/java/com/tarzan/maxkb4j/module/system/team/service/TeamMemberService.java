@@ -12,7 +12,6 @@ import com.tarzan.maxkb4j.module.system.team.vo.MemberVO;
 import com.tarzan.maxkb4j.module.system.user.entity.UserEntity;
 import com.tarzan.maxkb4j.module.system.user.mapper.UserMapper;
 import lombok.AllArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
