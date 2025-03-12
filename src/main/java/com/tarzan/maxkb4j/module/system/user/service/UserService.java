@@ -1,6 +1,7 @@
 package com.tarzan.maxkb4j.module.system.user.service;
 
 import cn.dev33.satoken.secure.SaSecureUtil;
+import cn.dev33.satoken.stp.SaLoginModel;
 import cn.dev33.satoken.stp.StpInterface;
 import cn.dev33.satoken.stp.StpUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -86,6 +87,12 @@ public class UserService extends ServiceImpl<UserMapper, UserEntity> {
                 .eq(UserEntity::getUsername, dto.getUsername())
                 .eq(UserEntity::getPassword, password).one();
         if (Objects.nonNull(userEntity)) {
+            SaLoginModel loginModel = new SaLoginModel();
+            loginModel.setExtra("username", userEntity.getUsername());
+            loginModel.setExtra("email", userEntity.getEmail());
+            loginModel.setExtra("language", userEntity.getLanguage());
+          //  loginModel.setExtra("client_id", IdWorker.get32UUID());
+           // loginModel.setExtra("client_type", AuthenticationType.USER.name());
             StpUtil.login(userEntity.getId());
             return StpUtil.getTokenValue();
         }
@@ -94,11 +101,11 @@ public class UserService extends ServiceImpl<UserMapper, UserEntity> {
 
     @Transactional
     public boolean createUser(UserEntity user) {
-        UserEntity admin= this.getById(StpUtil.getLoginIdAsString());
+      //  UserEntity admin= this.getById(StpUtil.getLoginIdAsString());
         user.setRole("USER");
         user.setIsActive(true);
         user.setSource("LOCAL");
-        user.setLanguage(admin.getLanguage());
+        user.setLanguage((String) StpUtil.getExtra("language"));
         save(user);
         TeamEntity team = new TeamEntity();
         team.setUserId(user.getId());
@@ -118,12 +125,12 @@ public class UserService extends ServiceImpl<UserMapper, UserEntity> {
     }
 
     public Boolean sendEmailCode() throws MessagingException {
-        UserEntity user= this.getById(StpUtil.getLoginIdAsString());
+       // UserEntity user= this.getById(StpUtil.getLoginIdAsString());
         Context context = new Context();
         String code = generateCode();
         context.setVariable("code", code);
-        AUTH_CODE_CACHE.put(user.getUsername(), code);
-        emailService.sendMessage(user.getEmail(), "【智能知识库问答系统-修改密码】", "email_template", context);
+        AUTH_CODE_CACHE.put((String) StpUtil.getExtra("username"), code);
+        emailService.sendMessage((String) StpUtil.getExtra("email"), "【智能知识库问答系统-修改密码】", "email_template", context);
         return true;
     }
 
@@ -133,12 +140,12 @@ public class UserService extends ServiceImpl<UserMapper, UserEntity> {
     }
 
     public Boolean resetPassword(PasswordDTO dto) {
-        UserEntity user= this.getById(StpUtil.getLoginIdAsString());
-        String code=AUTH_CODE_CACHE.getIfPresent(user.getUsername());
+        //UserEntity user= this.getById(StpUtil.getLoginIdAsString());
+        String code=AUTH_CODE_CACHE.getIfPresent(StpUtil.getExtra("username"));
         if(dto.getCode().equals(code)){
             if(dto.getPassword().equals(dto.getRePassword())){
                 UserEntity userEntity = new UserEntity();
-                userEntity.setId(user.getId());
+                userEntity.setId(StpUtil.getLoginIdAsString());
                 userEntity.setPassword(SaSecureUtil.md5(dto.getPassword()));
                 return updateById(userEntity);
             }

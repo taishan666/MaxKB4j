@@ -333,8 +333,7 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
 
     public DatasetEntity createDataset(DatasetEntity dataset) {
         dataset.setMeta(new JSONObject());
-        String userId = StpUtil.getLoginIdAsString();
-        dataset.setUserId(userId);
+        dataset.setUserId(StpUtil.getLoginIdAsString());
         this.save(dataset);
         return dataset;
     }

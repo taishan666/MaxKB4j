@@ -151,10 +151,8 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     }
 
     public ApplicationEntity createWorkflow(ApplicationEntity application) {
-        String userId = StpUtil.getLoginIdAsString();
         if (Objects.isNull(application.getWorkFlow())) {
-            UserEntity user = userService.getById(userId);
-            Path path = getWorkflowFilePath(user.getLanguage());
+            Path path = getWorkflowFilePath((String) StpUtil.getExtra("language"));
             String defaultWorkflowJson = FileUtil.readToString(path.toFile());
             JSONObject workFlow = JSONObject.parseObject(defaultWorkflowJson);
             assert workFlow != null;
@@ -171,7 +169,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
             }
             application.setWorkFlow(workFlow);
         }
-        application.setUserId(userId);
+        application.setUserId(StpUtil.getLoginIdAsString());
         application.setIcon("");
         application.setTtsModelParamsSetting(new JSONObject());
         application.setCleanTime(1000 * 365);
@@ -211,8 +209,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     }
 
     public ApplicationEntity createSimple(ApplicationEntity application) {
-        String userId = StpUtil.getLoginIdAsString();
-        application.setUserId(userId);
+        application.setUserId(StpUtil.getLoginIdAsString());
         application.setIcon("");
         application.setWorkFlow(new JSONObject());
         application.setTtsModelParamsSetting(new JSONObject());
@@ -457,8 +454,8 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
             entity.setApplicationId(id);
             entity.setName(application.getName() + "-V" + (count + 1));
             entity.setPublishUserId(StpUtil.getLoginIdAsString());
-            UserEntity user = userService.getById(StpUtil.getLoginIdAsString());
-            entity.setPublishUserName(user.getUsername());
+           // UserEntity user = userService.getById(StpUtil.getLoginIdAsString());
+            entity.setPublishUserName((String) StpUtil.getExtra("username"));
             return workFlowVersionService.save(entity);
         }
         return false;
@@ -467,7 +464,9 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
 
     public List<ApplicationEntity> listByUserId(String appId) {
         ApplicationEntity application = this.getById(appId);
-        //todo application为null
+        if(Objects.isNull(application)){
+            return Collections.emptyList();
+        }
         String userId = StpUtil.getLoginIdAsString();
         String appUserId = application.getUserId();
         if (!userId.equals(appUserId)) {

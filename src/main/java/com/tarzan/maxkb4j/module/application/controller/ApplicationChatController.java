@@ -33,8 +33,6 @@ public class ApplicationChatController {
 
     @GetMapping("api/application/{appId}/chat/client/{page}/{size}")
     public R<IPage<ApplicationChatEntity>> clientChatPage(@PathVariable("appId") String appId, @PathVariable("page") int page, @PathVariable("size") int size, HttpServletRequest request) {
-      //  String authorization = request.getHeader("Authorization");
-       // Claims claims = JwtUtil.parseToken(authorization);
         String clientId = (String) StpUtil.getExtra("client_id");
         return R.success(chatService.clientChatPage(appId, clientId, page, size));
     }
