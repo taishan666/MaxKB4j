@@ -6,12 +6,14 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tarzan.maxkb4j.handler.StringSetTypeHandler;
+import com.tarzan.maxkb4j.util.MD5Util;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 
 /**
  * @author tarzan
@@ -63,6 +65,7 @@ public class ApplicationAccessTokenEntity {
         this.whiteList = whiteList;
         this.showSource = showSource;
         this.language = language;
+        this.accessToken=MD5Util.encrypt(UUID.randomUUID().toString(), 8, 24);
     }
 
     public static ApplicationAccessTokenEntity createDefault() {

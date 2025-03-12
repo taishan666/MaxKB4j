@@ -145,7 +145,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         }
         ApplicationAccessTokenEntity accessToken = ApplicationAccessTokenEntity.createDefault();
         accessToken.setApplicationId(application.getId());
-        accessToken.setAccessToken(MD5Util.encrypt(UUID.randomUUID().toString(), 8, 24));
+        accessToken.setLanguage((String) StpUtil.getExtra("language"));
         accessTokenService.save(accessToken);
         return application;
     }
@@ -505,7 +505,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         boolean flag= this.save(application);
         ApplicationAccessTokenEntity accessToken = ApplicationAccessTokenEntity.createDefault();
         accessToken.setApplicationId(application.getId());
-        accessToken.setAccessToken(MD5Util.encrypt(UUID.randomUUID().toString(), 8, 24));
+        accessToken.setLanguage((String) StpUtil.getExtra("language"));
         accessTokenService.save(accessToken);
         return flag;
     }
