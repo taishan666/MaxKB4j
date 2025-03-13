@@ -8,7 +8,7 @@ package com.tarzan.maxkb4j.exception;
  * @date 2025年1月11日
  */
 
-public class AppException extends RuntimeException {
+public class ApiException extends RuntimeException {
 
 
     /**
@@ -17,7 +17,7 @@ public class AppException extends RuntimeException {
      * initialized by a call to {@link #initCause}.
      */
 
-    public AppException() {
+    public ApiException() {
         super();
     }
 
@@ -31,7 +31,7 @@ public class AppException extends RuntimeException {
      *                later retrieval by the {@link #getMessage()} method.
      */
 
-    public AppException(String message) {
+    public ApiException(String message) {
         super(message);
     }
 
@@ -51,7 +51,7 @@ public class AppException extends RuntimeException {
      * @since 1.4
      */
 
-    public AppException(String message, Throwable cause) {
+    public ApiException(String message, Throwable cause) {
         super(message, cause);
     }
 }

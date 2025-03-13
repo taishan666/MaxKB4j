@@ -11,6 +11,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import com.tarzan.maxkb4j.exception.ApiException;
 import com.tarzan.maxkb4j.module.system.setting.service.EmailService;
 import com.tarzan.maxkb4j.module.system.team.entity.TeamEntity;
 import com.tarzan.maxkb4j.module.system.team.service.TeamService;
@@ -86,17 +87,20 @@ public class UserService extends ServiceImpl<UserMapper, UserEntity> {
         UserEntity userEntity = this.lambdaQuery()
                 .eq(UserEntity::getUsername, dto.getUsername())
                 .eq(UserEntity::getPassword, password).one();
-        if (Objects.nonNull(userEntity)) {
-            SaLoginModel loginModel = new SaLoginModel();
-            loginModel.setExtra("username", userEntity.getUsername());
-            loginModel.setExtra("email", userEntity.getEmail());
-            loginModel.setExtra("language", userEntity.getLanguage());
-          //  loginModel.setExtra("client_id", IdWorker.get32UUID());
-           // loginModel.setExtra("client_type", AuthenticationType.USER.name());
-            StpUtil.login(userEntity.getId());
-            return StpUtil.getTokenValue();
+        if(Objects.isNull(userEntity)){
+            throw new ApiException("用户名或密码错误");
         }
-        return null;
+        if(!userEntity.getIsActive()){
+            throw new ApiException("该用户已被禁用，请联系管理员！");
+        }
+        SaLoginModel loginModel = new SaLoginModel();
+        loginModel.setExtra("username", userEntity.getUsername());
+        loginModel.setExtra("email", userEntity.getEmail());
+        loginModel.setExtra("language", userEntity.getLanguage());
+        //loginModel.setExtra("client_id", IdWorker.get32UUID());
+        //loginModel.setExtra("client_type", AuthenticationType.USER.name());
+        StpUtil.login(userEntity.getId());
+        return StpUtil.getTokenValue();
     }
 
     @Transactional
@@ -163,5 +167,10 @@ public class UserService extends ServiceImpl<UserMapper, UserEntity> {
     public Boolean updateLanguage(UserEntity user) {
         user.setId(StpUtil.getLoginIdAsString());
         return updateById(user);
+    }
+
+    public Boolean validUserById(String id) {
+        UserEntity user=this.getById(id);
+        return Objects.nonNull(user);
     }
 }
