@@ -12,9 +12,7 @@ import lombok.Setter;
 @EqualsAndHashCode(callSuper = true)
 public class ProblemVO extends ProblemEntity {
 
-    @JsonProperty("paragraph_count")
     private Integer paragraphCount;
-
     private String documentId;
     private String paragraphId;
 

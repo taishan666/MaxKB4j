@@ -65,7 +65,8 @@ public class FullTextSearchService {
             float score = (entity.getScore() - minScore) / (maxScore - minScore);
             entity.setScore(score);
         }
-        entities=entities.subList(0, maxResults);
+        int endIndex=Math.min(maxResults, entities.size());
+        entities=entities.subList(0, endIndex);
         return entities.stream().map(entity -> new HitTestVO(entity.getParagraphId(), entity.getScore())).toList();
     }
 

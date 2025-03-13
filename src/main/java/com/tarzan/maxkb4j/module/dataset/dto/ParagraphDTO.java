@@ -1,6 +1,5 @@
 package com.tarzan.maxkb4j.module.dataset.dto;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tarzan.maxkb4j.module.dataset.entity.ParagraphEntity;
 import com.tarzan.maxkb4j.module.dataset.entity.ProblemEntity;
 import lombok.Data;
@@ -12,6 +11,5 @@ import java.util.List;
 @Data
 public class ParagraphDTO extends ParagraphEntity {
 
-    @JsonProperty("problem_list")
     private List<ProblemEntity> problemList;
 }

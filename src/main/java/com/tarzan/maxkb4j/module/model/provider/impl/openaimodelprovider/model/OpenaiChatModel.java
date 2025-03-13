@@ -13,12 +13,12 @@ public class OpenaiChatModel extends BaseChatModel implements BaseModel {
     @Override
     public <T> T newInstance(String modelName, ModelCredential credential) {
         StreamingChatLanguageModel streamingChatModel = OpenAiStreamingChatModel.builder()
-               // .baseUrl(credential.getApiBase())
+               // .baseUrl(credential.getBaseUrl())
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
                 .build();
         ChatLanguageModel chatModel = OpenAiChatModel.builder()
-             //   .baseUrl(credential.getApiBase())
+             //   .baseUrl(credential.getBaseUrl())
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
                 .build();

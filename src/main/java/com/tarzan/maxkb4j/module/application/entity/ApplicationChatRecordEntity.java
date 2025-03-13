@@ -22,16 +22,10 @@ import java.util.List;
 @Data
 @TableName("application_chat_record")
 public class ApplicationChatRecordEntity extends BaseEntity {
-	@JsonProperty("vote_status")
 	private String voteStatus;
-	@JsonProperty("problem_text")
 	private String problemText;
-	@JsonProperty("answer_text")
 	private String answerText;
-	@JsonProperty("message_tokens")
 	private Integer messageTokens;
-
-	@JsonProperty("answer_tokens")
 	private Integer answerTokens;
 	@JsonProperty("const")
 	@TableField(value = "const")
@@ -39,20 +33,11 @@ public class ApplicationChatRecordEntity extends BaseEntity {
 	@TableField(typeHandler = JOSNBTypeHandler.class)
 	@JsonIgnore
 	private JSONObject details;
-
-	@JsonProperty("improve_paragraph_id_list")
 	@TableField(typeHandler = StringArrayTypeHandler.class)
 	private String[] improveParagraphIdList;
-
-	@JsonProperty("run_time")
 	private Float runTime;
-	
 	private Integer index;
-
-	@JsonProperty("chat_id")
 	private String chatId;
-
-	@JsonProperty("answer_text_list")
 	@TableField(typeHandler = JOSNBArrayTypeHandler.class)
 	private List<String> answerTextList;
 

@@ -6,8 +6,8 @@ import java.util.List;
 
 @Data
 public class GenerateProblemDTO {
-    private List<String> document_id_list;
-    private List<String> paragraph_id_list;
-    private String model_id;
+    private List<String> documentIdList;
+    private List<String> paragraphIdList;
+    private String modelId;
     private String prompt;
 }

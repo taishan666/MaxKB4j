@@ -47,16 +47,16 @@ public class EmbedTextService {
 
 
     public boolean batchGenerateRelated(String datasetId, GenerateProblemDTO dto) {
-        if (CollectionUtils.isEmpty(dto.getDocument_id_list())) {
+        if (CollectionUtils.isEmpty(dto.getDocumentIdList())) {
             return false;
         }
       //  paragraphService.updateStatusByDocIds(dto.getDocument_id_list(), 2, 0);
       //  documentService.updateStatusMetaByIds(dto.getDocument_id_list());
      //   documentService.updateStatusByIds(dto.getDocument_id_list(), 2, 0);
         DatasetEntity dataset = datasetService.getById(datasetId);
-        BaseChatModel chatModel = modelService.getModelById(dto.getModel_id());
+        BaseChatModel chatModel = modelService.getModelById(dto.getModelId());
         EmbeddingModel embeddingModel = modelService.getModelById(dataset.getEmbeddingModeId());
-        dto.getDocument_id_list().parallelStream().forEach(docId -> {
+        dto.getDocumentIdList().parallelStream().forEach(docId -> {
             List<ParagraphEntity> paragraphs = paragraphService.lambdaQuery().eq(ParagraphEntity::getDocumentId, docId).list();
             List<ProblemEntity> docProblems = new ArrayList<>();
             List<ProblemEntity> dbProblemEntities = problemService.lambdaQuery().eq(ProblemEntity::getDatasetId, datasetId).list();
@@ -77,7 +77,7 @@ public class EmbedTextService {
       //  documentService.updateStatusMetaByIds(List.of(docId));
       //  documentService.updateStatusByIds(List.of(docId), 2, 0);
         DatasetEntity dataset = datasetService.getById(datasetId);
-        BaseChatModel chatModel = modelService.getModelById(dto.getModel_id());
+        BaseChatModel chatModel = modelService.getModelById(dto.getModelId());
         EmbeddingModel embeddingModel = modelService.getModelById(dataset.getEmbeddingModeId());
         List<ParagraphEntity> paragraphs = paragraphService.lambdaQuery().eq(ParagraphEntity::getDocumentId, docId).list();
         List<ProblemEntity> docProblems = new ArrayList<>();

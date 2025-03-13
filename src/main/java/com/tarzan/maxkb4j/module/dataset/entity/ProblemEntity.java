@@ -18,14 +18,8 @@ import lombok.NoArgsConstructor;
 public class ProblemEntity extends BaseEntity {
     
     private String content;
-    
-	@JsonProperty("hit_num")
     private Integer hitNum;
-    
-	@JsonProperty("dataset_id")
     private String datasetId;
-
-
 
     public static ProblemEntity createDefault() {
         ProblemEntity entity= new ProblemEntity();

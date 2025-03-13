@@ -27,12 +27,9 @@ public class FunctionLibEntity extends BaseEntity {
     private String code;
 
     @TableField(typeHandler = JOSNBArrayTypeHandler.class)
-    @JsonProperty("input_field_list")
     private List<JSONObject> inputFieldList;
 
     private String userId;
-	@JsonProperty("is_active")
     private Boolean isActive;
-	@JsonProperty("permission_type")
     private String permissionType;
 } 

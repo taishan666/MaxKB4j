@@ -12,12 +12,12 @@ public class XinferenceChat extends BaseChatModel implements BaseModel {
     @Override
     public <T> T newInstance(String modelName, ModelCredential credential) {
         StreamingChatLanguageModel streamingChatModel = XinferenceStreamingChatModel.builder()
-                .baseUrl(credential.getApiBase())
+                .baseUrl(credential.getBaseUrl())
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
                 .build();
         ChatLanguageModel chatModel = XinferenceChatModel.builder()
-                .baseUrl(credential.getApiBase())
+                .baseUrl(credential.getBaseUrl())
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
                 .build();

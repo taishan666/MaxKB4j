@@ -1,6 +1,6 @@
 package com.tarzan.maxkb4j.module.application.enums;
 
-public enum AuthenticationType {
+public enum AuthType {
 
     /* 普通用户 */
     USER,
@@ -9,5 +9,5 @@ public enum AuthenticationType {
     /* 第三方对接平台*/
     PLATFORM,
     /*公共访问链接*/
-    APPLICATION_ACCESS_TOKEN;
+    APP_ACCESS_TOKEN;
 }

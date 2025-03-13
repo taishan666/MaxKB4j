@@ -8,7 +8,7 @@ public class OllamaEmbedding implements BaseModel {
     @Override
     public <T> T newInstance(String modelName, ModelCredential credential) {
         return (T) OllamaEmbeddingModel.builder()
-                .baseUrl(credential.getApiBase())
+                .baseUrl(credential.getBaseUrl())
                 .modelName(modelName)
                 .build();
     }

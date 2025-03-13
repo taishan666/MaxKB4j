@@ -8,7 +8,7 @@ public class QianfanEmbedding implements BaseModel {
     @Override
     public <T> T newInstance(String modelName, ModelCredential credential) {
         return (T) QianfanEmbeddingModel.builder()
-                //.baseUrl(credential.getApiBase())
+                //.baseUrl(credential.getBaseUrl())
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
                 .build();

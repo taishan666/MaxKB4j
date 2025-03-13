@@ -5,7 +5,7 @@ import com.tarzan.maxkb4j.module.application.cache.ChatCache;
 import com.tarzan.maxkb4j.module.application.dto.ChatInfo;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationChatRecordEntity;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationPublicAccessClientEntity;
-import com.tarzan.maxkb4j.module.application.enums.AuthenticationType;
+import com.tarzan.maxkb4j.module.application.enums.AuthType;
 import com.tarzan.maxkb4j.module.application.service.ApplicationPublicAccessClientService;
 import com.tarzan.maxkb4j.module.application.workflow.WorkflowManage;
 import com.tarzan.maxkb4j.util.SpringUtil;
@@ -74,7 +74,7 @@ public class WorkFlowPostHandler {
         // 重新设置缓存
         ChatCache.put(chatId, chatInfo);
 
-        if (clientType!=null&&clientType.equals(AuthenticationType.APPLICATION_ACCESS_TOKEN.name())) {
+        if (clientType!=null&&clientType.equals(AuthType.APP_ACCESS_TOKEN.name())) {
             ApplicationPublicAccessClientEntity applicationPublicAccessClient = publicAccessClientService.getById(clientId);
             if (applicationPublicAccessClient != null) {
                 applicationPublicAccessClient.setAccessNum(applicationPublicAccessClient.getAccessNum() + 1);

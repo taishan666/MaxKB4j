@@ -53,7 +53,7 @@ public class Retriever {
         List<Content> contents = contentRetriever.retrieve(new Query(queryText));
         System.out.println(contents);
         ChatLanguageModel chatModel = QwenChatModel.builder()
-                //   .baseUrl(credential.getApiBase())
+                //   .baseUrl(credential.getBaseUrl())
                 .apiKey(apiKey)
                 .modelName("qwen-plus")
                 .build();

@@ -25,25 +25,25 @@ public class RetrieveService {
 
     public List<ParagraphVO> paragraphSearch(String question,List<String> datasetIds,List<String> excludeParagraphIds,int TopN,float similarity,String searchMode) {
         HitTestDTO dto=new HitTestDTO();
-        dto.setQuery_text(question);
-        dto.setSearch_mode(searchMode);
+        dto.setQueryText(question);
+        dto.setSearchMode(searchMode);
         dto.setSimilarity(similarity);
-        dto.setTop_number(TopN);
+        dto.setTopNumber(TopN);
         return paragraphSearch(datasetIds,dto);
     }
 
     private List<HitTestVO> dataSearch(List<String> datasetIds, HitTestDTO dto) {
-        if ("embedding".equals(dto.getSearch_mode())) {
-            return embedTextService.search(datasetIds, dto.getQuery_text(), dto.getTop_number(),dto.getSimilarity());
+        if ("embedding".equals(dto.getSearchMode())) {
+            return embedTextService.search(datasetIds, dto.getQueryText(), dto.getTopNumber(),dto.getSimilarity());
         }
-        if ("keywords".equals(dto.getSearch_mode())) {
-            return fullTextSearchService.search(datasetIds,dto.getQuery_text(), dto.getTop_number());
+        if ("keywords".equals(dto.getSearchMode())) {
+            return fullTextSearchService.search(datasetIds,dto.getQueryText(), dto.getTopNumber());
         }
-        if ("blend".equals(dto.getSearch_mode())) {
+        if ("blend".equals(dto.getSearchMode())) {
             Map<String,Float> map=new LinkedHashMap<>();
             List<HitTestVO> results =new ArrayList<>();
-            List<HitTestVO> embedResults = embedTextService.search(datasetIds, dto.getQuery_text(), dto.getTop_number(),dto.getSimilarity());
-            List<HitTestVO> fullTextResults = fullTextSearchService.search(datasetIds,dto.getQuery_text(), dto.getTop_number());
+            List<HitTestVO> embedResults = embedTextService.search(datasetIds, dto.getQueryText(), dto.getTopNumber(),dto.getSimilarity());
+            List<HitTestVO> fullTextResults = fullTextSearchService.search(datasetIds,dto.getQueryText(), dto.getTopNumber());
             for (HitTestVO embedResult : embedResults) {
                 map.put(embedResult.getParagraphId(), embedResult.getScore());
             }
@@ -59,7 +59,7 @@ public class RetrieveService {
             map.forEach((key, value) -> {
                 results.add(new HitTestVO(key,value));
             });
-            int endIndex=Math.min(dto.getTop_number(),results.size());
+            int endIndex=Math.min(dto.getTopNumber(),results.size());
             return results.subList(0, endIndex);
         }
         return Collections.emptyList();

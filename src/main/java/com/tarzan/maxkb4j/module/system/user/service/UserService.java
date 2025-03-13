@@ -12,6 +12,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.tarzan.maxkb4j.exception.ApiException;
+import com.tarzan.maxkb4j.module.application.enums.AuthType;
 import com.tarzan.maxkb4j.module.system.setting.service.EmailService;
 import com.tarzan.maxkb4j.module.system.team.entity.TeamEntity;
 import com.tarzan.maxkb4j.module.system.team.service.TeamService;
@@ -97,9 +98,9 @@ public class UserService extends ServiceImpl<UserMapper, UserEntity> {
         loginModel.setExtra("username", userEntity.getUsername());
         loginModel.setExtra("email", userEntity.getEmail());
         loginModel.setExtra("language", userEntity.getLanguage());
-        //loginModel.setExtra("client_id", IdWorker.get32UUID());
-        //loginModel.setExtra("client_type", AuthenticationType.USER.name());
-        StpUtil.login(userEntity.getId());
+        loginModel.setExtra("client_id", userEntity.getId());
+        loginModel.setExtra("client_type", AuthType.USER.name());
+        StpUtil.login(userEntity.getId(),loginModel);
         return StpUtil.getTokenValue();
     }
 

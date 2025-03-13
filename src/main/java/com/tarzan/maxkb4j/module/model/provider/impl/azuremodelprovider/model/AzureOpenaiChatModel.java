@@ -13,12 +13,12 @@ public class AzureOpenaiChatModel extends BaseChatModel implements BaseModel {
     @Override
     public <T> T newInstance(String modelName, ModelCredential credential) {
         StreamingChatLanguageModel streamingChatModel = AzureOpenAiStreamingChatModel.builder()
-               // .baseUrl(credential.getApiBase())
+               // .baseUrl(credential.getBaseUrl())
                 .apiKey(credential.getApiKey())
                 .deploymentName(modelName)
                 .build();
         ChatLanguageModel chatModel = AzureOpenAiChatModel.builder()
-             //   .baseUrl(credential.getApiBase())
+             //   .baseUrl(credential.getBaseUrl())
                 .apiKey(credential.getApiKey())
                 .deploymentName(modelName)
                 .build();

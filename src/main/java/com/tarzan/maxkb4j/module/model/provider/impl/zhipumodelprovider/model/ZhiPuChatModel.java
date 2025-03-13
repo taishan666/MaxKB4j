@@ -13,12 +13,12 @@ public class ZhiPuChatModel extends BaseChatModel implements BaseModel {
     @Override
     public <T> T newInstance(String modelName, ModelCredential credential) {
         StreamingChatLanguageModel streamingChatModel = ZhipuAiStreamingChatModel.builder()
-               // .baseUrl(credential.getApiBase())
+               // .baseUrl(credential.getBaseUrl())
                 .apiKey(credential.getApiKey())
                 .model(modelName)
                 .build();
         ChatLanguageModel chatModel = ZhipuAiChatModel.builder()
-             //   .baseUrl(credential.getApiBase())
+             //   .baseUrl(credential.getBaseUrl())
                 .apiKey(credential.getApiKey())
                 .model(modelName)
                 .build();

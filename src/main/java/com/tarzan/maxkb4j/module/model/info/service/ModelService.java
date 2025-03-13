@@ -78,6 +78,7 @@ public class ModelService extends ServiceImpl<ModelMapper, ModelEntity> {
 
 
     //todo 缓存处理
+    @Cacheable(cacheNames = "model_params", key = "#modelId")
     public <T> T getModelById(String modelId, JSONObject modelParams) {
         ModelEntity model = this.getById(modelId);
         return ModelManage.getModel(model);

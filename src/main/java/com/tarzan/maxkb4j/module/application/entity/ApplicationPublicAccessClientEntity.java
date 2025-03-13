@@ -15,7 +15,6 @@ import lombok.EqualsAndHashCode;
 public class ApplicationPublicAccessClientEntity extends BaseEntity {
 	
 	private Integer accessNum;
-
 	private Integer intraDayAccessNum;
 	private String applicationId;
 } 

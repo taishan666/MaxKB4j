@@ -27,9 +27,7 @@ public class DatasetEntity extends BaseEntity {
     @TableField(typeHandler = JOSNBTypeHandler.class)
     private JSONObject meta;
     
-	@JsonProperty("user_id")
     private String userId;
     
-	@JsonProperty("embedding_mode_id")
     private String embeddingModeId;
 } 

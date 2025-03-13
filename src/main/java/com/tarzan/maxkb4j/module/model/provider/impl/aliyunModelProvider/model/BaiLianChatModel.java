@@ -13,12 +13,12 @@ public class BaiLianChatModel extends BaseChatModel implements BaseModel {
     @Override
     public <T> T newInstance(String modelName, ModelCredential credential) {
         StreamingChatLanguageModel streamingChatModel = QwenStreamingChatModel.builder()
-               // .baseUrl(credential.getApiBase())
+               // .baseUrl(credential.getBaseUrl())
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
                 .build();
         ChatLanguageModel chatModel = QwenChatModel.builder()
-             //   .baseUrl(credential.getApiBase())
+             //   .baseUrl(credential.getBaseUrl())
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
                 .build();

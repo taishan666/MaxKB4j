@@ -12,11 +12,11 @@ public class OllamaChat extends BaseChatModel implements BaseModel {
     @Override
     public <T> T newInstance(String modelName, ModelCredential credential) {
         StreamingChatLanguageModel streamingChatModel = OllamaStreamingChatModel.builder()
-                .baseUrl(credential.getApiBase())
+                .baseUrl(credential.getBaseUrl())
                 .modelName(modelName)
                 .build();
         ChatLanguageModel chatModel = OllamaChatModel.builder()
-                .baseUrl(credential.getApiBase())
+                .baseUrl(credential.getBaseUrl())
                 .modelName(modelName)
                 .build();
         // 使用构造函数实例化对象

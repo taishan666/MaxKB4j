@@ -72,7 +72,7 @@ public class ApplicationChatController {
         return R.success(chatService.uploadFile(id,chatId,file));
     }
 
-    @PostMapping("api/application/{id}/chat/{chatId}/chat_record/{page}/{size}")
+    @GetMapping("api/application/{id}/chat/{chatId}/chat_record/{page}/{size}")
     public R<IPage<ApplicationChatRecordVO>> chatRecordPage(@PathVariable String id, @PathVariable String chatId, @PathVariable int page, @PathVariable int size) {
         return R.success(chatService.chatRecordPage(chatId, page, size));
     }

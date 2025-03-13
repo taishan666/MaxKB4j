@@ -8,7 +8,7 @@ public class ZhiPuEmbedding implements BaseModel {
     @Override
     public <T> T newInstance(String modelName, ModelCredential credential) {
         return (T) ZhipuAiEmbeddingModel.builder()
-                //.baseUrl(credential.getApiBase())
+                //.baseUrl(credential.getBaseUrl())
                 .apiKey(credential.getApiKey())
                 .model(modelName)
                 .build();

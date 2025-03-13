@@ -7,10 +7,7 @@ import java.util.List;
 
 @Data
 public class DatasetBatchHitHandlingDTO {
-    @JsonProperty("hit_handling_method")
     private String hitHandlingMethod;
-    @JsonProperty("directly_return_similarity")
     private Double directlyReturnSimilarity;
-    @JsonProperty("id_list")
     private List<String> idList;
 }

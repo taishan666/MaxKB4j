@@ -18,15 +18,11 @@ import java.util.Set;
 @Data
 @TableName("application_api_key")
 public class ApplicationApiKeyEntity extends BaseEntity {
-	@JsonProperty("secret_key")
 	private String secretKey;
-	@JsonProperty("is_active")
 	private Boolean isActive;
 	private String applicationId;
 	private String userId;
-	@JsonProperty("allow_cross_domain")
 	private Boolean allowCrossDomain;
-	@JsonProperty("cross_domain_list")
 	@TableField(typeHandler = StringSetTypeHandler.class)
 	private Set<String> crossDomainList;
 } 

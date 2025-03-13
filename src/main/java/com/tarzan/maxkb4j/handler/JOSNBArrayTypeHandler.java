@@ -12,7 +12,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 @Component
@@ -51,9 +50,9 @@ public class JOSNBArrayTypeHandler extends BaseTypeHandler<List<Object>> {
             noBraces=noBraces.replace("\"\"","");
             if(StringUtils.isNotBlank(noBraces)){
                 // 2. 分割字符串并去除空格
-                return Collections.singletonList(Arrays.stream(noBraces.split(","))
-                        .map(String::trim) // 去除每个元素的前后空格
-                        .toList());
+                return Arrays.stream(noBraces.split(","))
+                        .map(e->(Object) e.trim()) // 去除每个元素的前后空格
+                        .toList();
             }
         }
         return new ArrayList<>();

@@ -22,10 +22,8 @@ public class ModelEntity extends BaseEntity {
 
     private String name;
     
-	@JsonProperty("model_type")
     private String modelType;
     
-	@JsonProperty("model_name")
     private String modelName;
     
     private String provider;
@@ -33,7 +31,6 @@ public class ModelEntity extends BaseEntity {
     @TableField(typeHandler = ModelCredentialTypeHandler.class)
     private ModelCredential credential;
     
-	@JsonProperty("user_id")
     private String userId;
     
 	@TableField(typeHandler = JOSNBTypeHandler.class)
@@ -41,10 +38,8 @@ public class ModelEntity extends BaseEntity {
     
     private String status;
     
-	@JsonProperty("permission_type")
     private String permissionType;
     
-	@JsonProperty("model_params_form")
     @TableField(typeHandler = JOSNBTypeHandler.class)
     private JSONArray modelParamsForm;
 } 

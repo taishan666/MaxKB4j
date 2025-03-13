@@ -4,11 +4,11 @@ import lombok.Data;
 
 @Data
 public class HitTestDTO {
-    private String  query_text;
-    private String  search_mode;
+    private String  queryText;
+    private String  searchMode;
     private Float  similarity;
-    private Integer  top_number;
-    private Boolean  problem_optimization;
-    private String reranker_model_id;
-    private String  problem_optimization_prompt;
+    private Integer  topNumber;
+    private Boolean  problemOptimization;
+    private String rerankerModelId;
+    private String  problemOptimizationPrompt;
 }

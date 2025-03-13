@@ -10,7 +10,6 @@ import lombok.EqualsAndHashCode;
 public class ProblemParagraphVO extends ProblemParagraphEntity {
     private String content;
     private String datasetId;
-    @JsonProperty("document_id")
     private String documentId;
     private String paragraphId;
     private String problemId;

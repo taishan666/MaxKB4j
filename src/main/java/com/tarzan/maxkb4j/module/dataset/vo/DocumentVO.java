@@ -8,6 +8,5 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class DocumentVO extends DocumentEntity {
-    @JsonProperty("paragraph_count")
     private Integer paragraphCount;
 }

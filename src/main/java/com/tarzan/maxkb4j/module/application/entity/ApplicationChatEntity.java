@@ -18,10 +18,7 @@ public class ApplicationChatEntity extends BaseEntity {
 	@JsonProperty("abstract")
     @TableField(value = "abstract")
     private String digest;
-	@JsonProperty("application_id")
     private String applicationId;
-	@JsonProperty("client_id")
     private String clientId;
-	@JsonProperty("is_deleted")
     private Boolean isDeleted;
 } 

@@ -54,8 +54,8 @@ public class ApplicationController {
     }
 
     @PostMapping("api/application/authentication")
-    public R<String> authentication(HttpServletRequest request, @RequestBody JSONObject json) throws Exception {
-        return R.success(applicationService.authentication(request, json));
+    public R<String> authentication(@RequestBody JSONObject params) throws Exception {
+        return R.success(applicationService.authentication(params));
     }
 
     @GetMapping("api/application/{id}/function_lib")

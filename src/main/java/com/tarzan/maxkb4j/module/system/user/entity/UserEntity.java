@@ -19,7 +19,6 @@ public class UserEntity extends BaseEntity {
 
     private String phone;
 
-    @JsonProperty("nick_name")
     private String nickName;
 
     private String username;
@@ -28,7 +27,6 @@ public class UserEntity extends BaseEntity {
 
     private String role;
 
-    @JsonProperty("is_active")
     private Boolean isActive;
 
     private String source;

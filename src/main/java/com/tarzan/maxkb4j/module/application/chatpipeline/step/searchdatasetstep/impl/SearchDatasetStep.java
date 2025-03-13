@@ -31,10 +31,10 @@ public class SearchDatasetStep extends ISearchDatasetStep {
         String execProblemText = StringUtils.isNotBlank(paddingProblemText)?paddingProblemText:problemText;
         JSONObject datasetSetting=application.getDatasetSetting();
         HitTestDTO hitTestDTO=new HitTestDTO();
-        hitTestDTO.setQuery_text(execProblemText);
-        hitTestDTO.setSearch_mode(datasetSetting.getString("search_mode"));
+        hitTestDTO.setQueryText(execProblemText);
+        hitTestDTO.setSearchMode(datasetSetting.getString("search_mode"));
         hitTestDTO.setSimilarity(datasetSetting.getFloat("similarity"));
-        hitTestDTO.setTop_number(datasetSetting.getInteger("top_n"));
+        hitTestDTO.setTopNumber(datasetSetting.getInteger("top_n"));
         List<ParagraphVO> paragraphList= retrieveService.paragraphSearch(application.getDatasetIdList(),hitTestDTO);
         System.out.println("search 耗时 "+(System.currentTimeMillis()-startTime)+" ms");
         super.context.put("message_tokens",0);

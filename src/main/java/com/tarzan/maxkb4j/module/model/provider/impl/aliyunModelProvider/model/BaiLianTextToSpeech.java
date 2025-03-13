@@ -33,7 +33,7 @@ public class BaiLianTextToSpeech extends BaseTextToSpeech implements BaseModel {
     }
     @Override
     public <T> T newInstance(String modelName, ModelCredential credential) {
-        return (T) new BaiLianTextToSpeech(credential.getApiBase(),credential.getApiKey(),modelName);
+        return (T) new BaiLianTextToSpeech(credential.getBaseUrl(),credential.getApiKey(),modelName);
     }
 
     @Override

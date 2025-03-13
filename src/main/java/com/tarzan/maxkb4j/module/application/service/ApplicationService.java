@@ -19,6 +19,7 @@ import com.tarzan.maxkb4j.module.application.entity.ApplicationAccessTokenEntity
 import com.tarzan.maxkb4j.module.application.entity.ApplicationDatasetMappingEntity;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationEntity;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationWorkFlowVersionEntity;
+import com.tarzan.maxkb4j.module.application.enums.AuthType;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationMapper;
 import com.tarzan.maxkb4j.module.application.vo.ApplicationVO;
 import com.tarzan.maxkb4j.module.dataset.dto.HitTestDTO;
@@ -245,7 +246,39 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         return vo;
     }
 
+
+    //todo 优化逻辑
+    public String authentication(JSONObject params) {
+        String accessToken = params.getString("access_token");
+        ApplicationAccessTokenEntity appAccessToken = accessTokenService.lambdaQuery().eq(ApplicationAccessTokenEntity::getAccessToken, accessToken).one();
+        SaLoginModel loginModel = new SaLoginModel();
+        if(StpUtil.isLogin()){
+            System.out.println(StpUtil.getTokenInfo());
+            UserEntity userEntity =userService.getById(StpUtil.getLoginIdAsString());
+            loginModel.setExtra("username", userEntity.getUsername());
+            loginModel.setExtra("email", userEntity.getEmail());
+            loginModel.setExtra("language", userEntity.getLanguage());
+            loginModel.setExtra("client_id", userEntity.getId());
+            loginModel.setExtra("client_type", AuthType.USER.name());
+            loginModel.setExtra("application_id", appAccessToken.getApplicationId());
+            StpUtil.login(userEntity.getId(),loginModel);
+            System.out.println(StpUtil.getTokenInfo());
+        }else {
+            if (appAccessToken != null && appAccessToken.getIsActive()) {
+                //ApplicationEntity application = this.lambdaQuery().select(ApplicationEntity::getUserId).eq(ApplicationEntity::getId, applicationAccessToken.getApplicationId()).one();
+                loginModel.setExtra("application_id", appAccessToken.getApplicationId());
+                loginModel.setExtra("client_id", IdWorker.get32UUID());
+                loginModel.setExtra("client_type", AuthType.APP_ACCESS_TOKEN.name());
+                loginModel.setDevice(AuthType.APP_ACCESS_TOKEN.name());
+                StpUtil.login(IdWorker.get32UUID(), loginModel);
+                System.out.println(StpUtil.getTokenInfo());
+            }
+        }
+        return StpUtil.getTokenValue();
+    }
+
     public String authentication(HttpServletRequest request, JSONObject params) {
+        // todo
         String clientType = "";
         try {
             clientType = (String) StpUtil.getExtra("client_type");
@@ -266,6 +299,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         }
         return StpUtil.getTokenValue();
     }
+
 
 
     public String authentication1(HttpServletRequest request, JSONObject params) throws Exception {
@@ -345,9 +379,6 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     }
 
     public JSONObject appProfile(HttpServletRequest request) {
-       /* String authorization = request.getHeader("Authorization");
-        Claims claims = JwtUtil.parseToken(authorization);
-        String appId = (String) claims.get("application_id");*/
         String appId = (String) StpUtil.getExtra("application_id");
         ApplicationEntity application = this.getById(appId);
         ApplicationAccessTokenEntity appAccessToken = accessTokenService.getById(appId);
@@ -360,19 +391,19 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         result.put("icon", application.getIcon());
         result.put("language", user.getLanguage());
         result.put("prologue", application.getPrologue());
-        result.put("dialogue_number", application.getDialogueNumber());
-        result.put("multiple_rounds_dialogue", application.getDialogueNumber() > 0);
-        result.put("file_upload_enable", application.getFileUploadEnable());
-        result.put("file_upload_setting", application.getFileUploadSetting());
-        result.put("stt_autosend", application.getSttModelEnable());
-        result.put("stt_model_enable", application.getSttModelEnable());
-        result.put("stt_model_id", application.getSttModelId());
-        result.put("tts_autoplay", application.getSttModelEnable());
-        result.put("tts_model_enable", application.getSttModelEnable());
-        result.put("tts_type", application.getTtsType());
-        result.put("tts_model_id", application.getTtsModelId());
-        result.put("work_flow", application.getWorkFlow());
-        result.put("show_source", appAccessToken.getShowSource());
+        result.put("dialogueNumber", application.getDialogueNumber());
+        result.put("multipleRoundsDialogue", application.getDialogueNumber() > 0);
+        result.put("fileUploadEnable", application.getFileUploadEnable());
+        result.put("fileUploadSetting", application.getFileUploadSetting());
+        result.put("sttAutoSend", application.getSttModelEnable());
+        result.put("sttModelEnable", application.getSttModelEnable());
+        result.put("sttModelId", application.getSttModelId());
+        result.put("ttsAutoplay", application.getSttModelEnable());
+        result.put("ttsModelEnable", application.getSttModelEnable());
+        result.put("ttsType", application.getTtsType());
+        result.put("ttsModelId", application.getTtsModelId());
+        result.put("workFlow", application.getWorkFlow());
+        result.put("showSource", appAccessToken.getShowSource());
         return result;
     }
 
@@ -454,7 +485,6 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
             entity.setApplicationId(id);
             entity.setName(application.getName() + "-V" + (count + 1));
             entity.setPublishUserId(StpUtil.getLoginIdAsString());
-           // UserEntity user = userService.getById(StpUtil.getLoginIdAsString());
             entity.setPublishUserName((String) StpUtil.getExtra("username"));
             return workFlowVersionService.save(entity);
         }

@@ -22,12 +22,10 @@ public class DocumentEntity extends BaseEntity {
 	
 	private String name;
 	
-	@JsonProperty("char_length")
 	private Integer charLength;
 	
 	private String status;
 	
-	@JsonProperty("is_active")
 	private Boolean isActive;
 	
 	private String type;
@@ -35,17 +33,13 @@ public class DocumentEntity extends BaseEntity {
 	@TableField(typeHandler = JOSNBTypeHandler.class)
 	private JSONObject meta;
 	
-	@JsonProperty("dataset_id")
 	private String datasetId;
 	
-	@JsonProperty("hit_handling_method")
 	private String hitHandlingMethod;
 	
-	@JsonProperty("directly_return_similarity")
 	private Double directlyReturnSimilarity;
 	
 	@TableField(typeHandler = JOSNBTypeHandler.class,fill = FieldFill.INSERT)
-	@JsonProperty("status_meta")
 	private JSONObject statusMeta;
 
 } 

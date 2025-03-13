@@ -63,23 +63,19 @@ public class BaseChatNode extends IChatNode {
 
     @Override
     public NodeResult execute(ChatNodeParams nodeParams, FlowParams flowParams) {
-        long startTime = System.currentTimeMillis();
         if (Objects.isNull(nodeParams.getDialogueType())) {
             nodeParams.setDialogueType("WORKFLOW");
         }
         if (Objects.isNull(nodeParams.getModelParamsSetting())) {
             nodeParams.setModelParamsSetting(getDefaultModelParamsSetting(nodeParams.getModelId()));
         }
-        System.out.println("execute耗时1 " + (System.currentTimeMillis() - startTime) + " ms");
         BaseChatModel chatModel = modelService.getModelById(nodeParams.getModelId(), nodeParams.getModelParamsSetting());
-        System.out.println("execute耗时2 " + (System.currentTimeMillis() - startTime) + " ms");
         List<ChatMessage> historyMessage = workflowManage.getHistoryMessage(flowParams.getHistoryChatRecord(), nodeParams.getDialogueNumber(), nodeParams.getDialogueType(), super.runtimeNodeId);
         UserMessage question =  workflowManage.generatePromptQuestion(nodeParams.getPrompt());
         String system = workflowManage.generatePrompt(nodeParams.getSystem());
         List<ChatMessage> messageList =  super.workflowManage.generateMessageList(system, question, historyMessage);
         if (nodeParams.getIsResult()) {
             ChatStream chatStream = chatModel.stream(messageList);
-            System.out.println("execute耗时7 " + (System.currentTimeMillis() - startTime) + " ms");
             Map<String, Object> nodeVariable = Map.of(
                     "result", chatStream,
                     "system", system,
