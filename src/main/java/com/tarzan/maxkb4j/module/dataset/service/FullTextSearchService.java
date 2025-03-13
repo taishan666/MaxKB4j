@@ -9,9 +9,7 @@ import org.springframework.data.mongodb.MongoExpression;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.Aggregation;
 import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.TextCriteria;
-import org.springframework.data.mongodb.core.query.TextQuery;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -52,7 +50,7 @@ public class FullTextSearchService {
                 Aggregation.sort(Sort.Direction.DESC, "score"),
 
                 // 步骤7: 限制最终返回数量
-                Aggregation.limit(maxResults)
+                Aggregation.limit(maxResults+100)
         );
 
         // 执行聚合查询
@@ -61,27 +59,16 @@ public class FullTextSearchService {
                 mongoTemplate.getCollectionName(EmbeddingEntity.class), // 获取集合名
                 EmbeddingEntity.class
         ).getMappedResults();
-        //归一化处理
+        float maxScore=entities.get(0).getScore();
+        float minScore=entities.get(entities.size()-1).getScore();
         for (EmbeddingEntity entity : entities) {
-            entity.setScore(entity.getScore() / 2);
+            float score = (entity.getScore() - minScore) / (maxScore - minScore);
+            entity.setScore(score);
         }
+        entities=entities.subList(0, maxResults);
         return entities.stream().map(entity -> new HitTestVO(entity.getParagraphId(), entity.getScore())).toList();
     }
 
-    public List<HitTestVO> search1(List<String> datasetIds, String keyword, int maxResults) {
-        // 创建文本搜索条件
-        TextCriteria textCriteria = TextCriteria.forDefaultLanguage().matching(segmentContent(keyword));
-        Query query = TextQuery.queryText(textCriteria).includeScore("content").sortByScore()
-                .addCriteria(Criteria.where("datasetId").in(datasetIds))
-                .limit(maxResults);
-        // 执行查询
-        List<EmbeddingEntity> entities = mongoTemplate.find(query, EmbeddingEntity.class);
-        //归一化处理
-        for (EmbeddingEntity entity : entities) {
-            entity.setScore(entity.getScore() / 2);
-        }
-        return entities.stream().map(entity -> new HitTestVO(entity.getParagraphId(), entity.getScore())).toList();
-    }
 
     public List<String> segment(String text) {
         JiebaSegmenter jiebaSegmenter = new JiebaSegmenter(); // true: 细粒度模式

@@ -33,7 +33,6 @@ public class RetrieveService {
     }
 
     private List<HitTestVO> dataSearch(List<String> datasetIds, HitTestDTO dto) {
-        long startTime = System.currentTimeMillis();
         if ("embedding".equals(dto.getSearch_mode())) {
             return embedTextService.search(datasetIds, dto.getQuery_text(), dto.getTop_number(),dto.getSimilarity());
         }
