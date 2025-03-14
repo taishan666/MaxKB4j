@@ -17,7 +17,7 @@ public class DatasetBaseService {
     @Cacheable(cacheNames = "dataset_embedding_model", key = "#datasetId")
     public EmbeddingModel getDatasetEmbeddingModel(String datasetId){
         DatasetEntity dataset=datasetMapper.selectById(datasetId);
-        return modelService.getModelById(dataset.getEmbeddingModeId());
+        return modelService.getModelById(dataset.getEmbeddingModelId());
     }
 
     public DatasetEntity getById(String datasetId) {

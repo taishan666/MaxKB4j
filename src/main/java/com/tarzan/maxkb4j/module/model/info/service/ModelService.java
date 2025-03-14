@@ -43,7 +43,7 @@ public class ModelService extends ServiceImpl<ModelMapper, ModelEntity> {
         return baseMapper.selectList(Wrappers.<ModelEntity>lambdaQuery().eq(ModelEntity::getModelType, modelType));
     }
 
-    public List<ModelVO> models(String name, String createUser, String permissionType, String modelType) {
+    public List<ModelVO> models(String name, String createUser, String permissionType, String modelType, String provider) {
         List<UserEntity> users = userService.lambdaQuery().list();
         Map<String, String> userMap = users.stream().collect(Collectors.toMap(UserEntity::getId, UserEntity::getUsername));
         LambdaQueryWrapper<ModelEntity> wrapper = Wrappers.lambdaQuery();
@@ -59,8 +59,12 @@ public class ModelService extends ServiceImpl<ModelMapper, ModelEntity> {
         if (StringUtils.isNotBlank(modelType)) {
             wrapper.eq(ModelEntity::getModelType, modelType);
         }
+        if (StringUtils.isNotBlank(provider)) {
+            wrapper.eq(ModelEntity::getProvider, provider);
+        }
         wrapper.eq(ModelEntity::getUserId, StpUtil.getLoginIdAsString());
         wrapper.or().eq(ModelEntity::getPermissionType, "PUBLIC");
+        wrapper.orderByDesc(ModelEntity::getCreateTime);
         List<ModelEntity> modelEntities = baseMapper.selectList(wrapper);
         if (CollectionUtils.isNotEmpty(modelEntities)) {
             List<ModelVO> models = BeanUtil.copyList(modelEntities, ModelVO.class);

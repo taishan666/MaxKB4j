@@ -74,23 +74,23 @@ public class ModelController{
 	}
 
 	@GetMapping("api/provider/model_list")
-	public R<List<ModelInfo>> modelList(String provider, String model_type){
+	public R<List<ModelInfo>> modelList(String provider, String modelType){
 		IModelProvider modelProvider=ModelProviderEnum.get(provider);
 		List<ModelInfo> modelInfos=modelProvider.getModelList();
-		List<ModelInfo>  modelList=modelInfos.stream().filter(e->e.getModelType().equals(model_type)).toList();
+		List<ModelInfo>  modelList=modelInfos.stream().filter(e->e.getModelType().equals(modelType)).toList();
 		return R.success(modelList);
 	}
 
 	@GetMapping("api/provider/model_form")
-	public R<List<ModelInputVO>> modelForm(String provider, String model_type, String model_name){
+	public R<List<ModelInputVO>> modelForm(String provider, String modelType, String modelName){
 		IModelProvider modelProvider=ModelProviderEnum.get(provider);
-		return R.success(modelProvider.getModelCredential(model_type, model_name).toForm());
+		return R.success(modelProvider.getModelCredential(modelType, modelName).toForm());
 	}
 
 	@GetMapping("api/provider/model_params_form")
-	public R<List<ModelInputVO>> modelParamsForm(String provider, String model_type,String model_name){
+	public R<List<ModelInputVO>> modelParamsForm(String provider, String modelType,String modelName){
 		IModelProvider modelProvider=ModelProviderEnum.get(provider);
-		return R.success(modelProvider.getModelCredential(model_type, model_name).getModelParamsSettingForm());
+		return R.success(modelProvider.getModelCredential(modelType, modelName).getModelParamsSettingForm());
 	}
 
 	@PostMapping("api/model")
@@ -99,8 +99,8 @@ public class ModelController{
 	}
 
 	@GetMapping("api/model")
-	public R<List<ModelVO>> models(String name, String create_user, String permission_type, String model_type){
-		return R.success(modelService.models(name,create_user,permission_type,model_type));
+	public R<List<ModelVO>> models(String name, String createUser, String permissionType, String modelType,String provider){
+		return R.success(modelService.models(name,createUser,permissionType,modelType,provider));
 	}
 
 	@GetMapping("api/model/{id}")

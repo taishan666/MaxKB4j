@@ -92,6 +92,7 @@ public class ProblemService extends ServiceImpl<ProblemMapper, ProblemEntity> {
                     ProblemEntity entity = new ProblemEntity();
                     entity.setDatasetId(id);
                     entity.setContent(problem);
+                    entity.setHitNum(0);
                     problemEntities.add(entity);
                 }
             }

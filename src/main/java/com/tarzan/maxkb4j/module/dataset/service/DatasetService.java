@@ -110,7 +110,7 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
                 .select(ApplicationDatasetMappingEntity::getApplicationId)
                 .eq(ApplicationDatasetMappingEntity::getDatasetId, id));
         List<String> appIds = apps.stream().map(ApplicationDatasetMappingEntity::getApplicationId).toList();
-        vo.setApplicationidList(appIds);
+        vo.setApplicationIdList(appIds);
         return vo;
     }
 

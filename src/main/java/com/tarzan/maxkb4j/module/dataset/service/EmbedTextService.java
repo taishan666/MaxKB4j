@@ -55,7 +55,7 @@ public class EmbedTextService {
      //   documentService.updateStatusByIds(dto.getDocument_id_list(), 2, 0);
         DatasetEntity dataset = datasetService.getById(datasetId);
         BaseChatModel chatModel = modelService.getModelById(dto.getModelId());
-        EmbeddingModel embeddingModel = modelService.getModelById(dataset.getEmbeddingModeId());
+        EmbeddingModel embeddingModel = modelService.getModelById(dataset.getEmbeddingModelId());
         dto.getDocumentIdList().parallelStream().forEach(docId -> {
             List<ParagraphEntity> paragraphs = paragraphService.lambdaQuery().eq(ParagraphEntity::getDocumentId, docId).list();
             List<ProblemEntity> docProblems = new ArrayList<>();
@@ -78,7 +78,7 @@ public class EmbedTextService {
       //  documentService.updateStatusByIds(List.of(docId), 2, 0);
         DatasetEntity dataset = datasetService.getById(datasetId);
         BaseChatModel chatModel = modelService.getModelById(dto.getModelId());
-        EmbeddingModel embeddingModel = modelService.getModelById(dataset.getEmbeddingModeId());
+        EmbeddingModel embeddingModel = modelService.getModelById(dataset.getEmbeddingModelId());
         List<ParagraphEntity> paragraphs = paragraphService.lambdaQuery().eq(ParagraphEntity::getDocumentId, docId).list();
         List<ProblemEntity> docProblems = new ArrayList<>();
         List<ProblemEntity> dbProblemEntities = problemService.lambdaQuery().eq(ProblemEntity::getDatasetId, datasetId).list();
