@@ -46,7 +46,7 @@ public class BaseChatNode extends IChatNode {
 
     private Iterator<String> writeContextStream(Map<String, Object> nodeVariable, Map<String, Object> workflowVariable, INode currentNode, WorkflowManage workflow) {
         ChatStream chatStream = (ChatStream) nodeVariable.get("result");
-        chatStream.onCompleteCallback((response) -> {
+        chatStream.setCallback((response) -> {
             String answer = response.aiMessage().text();
             workflow.setAnswer(answer);
             TokenUsage tokenUsage = response.tokenUsage();

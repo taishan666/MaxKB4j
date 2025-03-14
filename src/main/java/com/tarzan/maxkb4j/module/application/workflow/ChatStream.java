@@ -6,29 +6,25 @@ import lombok.Setter;
 
 import java.util.Iterator;
 
+@Setter
 public class ChatStream {
 
     @Getter
-    @Setter
     private Iterator<String> iterator;
 
+    //该方法要在 setIterator() 方法之前调用
     // 提供设置回调函数的方法
-    // 将 onCompleteConsumer 改为一个回调函数接口
-    private OnCompleteCallback completeCallback;
-
-    public void onCompleteCallback(OnCompleteCallback completeCallback){
-         this.completeCallback = completeCallback;
-    }
+    private Callback callback;
 
     // 定义回调函数接口
-    public interface OnCompleteCallback {
-        void onComplete(ChatResponse response);
+    public interface Callback {
+        void onCallback(ChatResponse result);
     }
 
     // 调用回调函数的方法
-    public void invokeOnComplete(ChatResponse response) {
-        if (completeCallback != null) {
-            completeCallback.onComplete(response);
+    public void onComplete(ChatResponse response) {
+        if (callback != null) {
+            callback.onCallback(response);
         }
     }
 

@@ -10,6 +10,7 @@ import com.tarzan.maxkb4j.module.application.chatpipeline.step.chatstep.IChatSte
 import com.tarzan.maxkb4j.module.application.entity.ApplicationEntity;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationPublicAccessClientEntity;
 import com.tarzan.maxkb4j.module.application.service.ApplicationPublicAccessClientService;
+import com.tarzan.maxkb4j.module.application.workflow.ChatStream;
 import com.tarzan.maxkb4j.module.dataset.vo.ParagraphVO;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
@@ -27,7 +28,9 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Sinks;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 @Component
 @AllArgsConstructor
@@ -59,10 +62,10 @@ public class BaseChatStep extends IChatStep {
                                              JSONObject noReferencesSetting,
                                              PipelineManage manage,
                                              String problemText, PostResponseHandler postResponseHandler) {
-        long startTime = System.currentTimeMillis();
+     //   long startTime = System.currentTimeMillis();
         BaseChatModel chatModel = modelService.getModelById(modelId);
-        JSONObject selfContext = super.context;
-        // 初始化一个可变的Publisher，如Sinks.many()来代替Flux.just()
+      //  JSONObject selfContext = super.context;
+   /*     // 初始化一个可变的Publisher，如Sinks.many()来代替Flux.just()
         Sinks.Many<JSONObject> sink = Sinks.many().multicast().onBackpressureBuffer();
         StreamingChatResponseHandler responseHandler = new StreamingChatResponseHandler() {
             final String chatRecordId = IdWorker.get32UUID();
@@ -102,53 +105,127 @@ public class BaseChatStep extends IChatStep {
                 sink.emitNext(json, Sinks.EmitFailureHandler.FAIL_FAST);
                 sink.emitError(throwable, Sinks.EmitFailureHandler.FAIL_FAST);
             }
+        };*/
+        String chatRecordId = IdWorker.get32UUID();
+        return getStreamResult(chatId, chatRecordId, messageList, chatModel, paragraphList, noReferencesSetting,problemText,manage,postResponseHandler);
+    }
+
+    protected Flux<JSONObject> executeStream1(String chatId,
+                                              List<ChatMessage> messageList,
+                                              String modelId,
+                                              List<ParagraphVO> paragraphList,
+                                              JSONObject noReferencesSetting,
+                                              PipelineManage manage,
+                                              String problemText, PostResponseHandler postResponseHandler) {
+        long startTime = System.currentTimeMillis();
+        BaseChatModel chatModel = modelService.getModelById(modelId);
+        JSONObject selfContext = super.context;
+        // 初始化一个可变的Publisher，如Sinks.many()来代替Flux.just()
+        Sinks.Many<JSONObject> sink = Sinks.many().multicast().onBackpressureBuffer();
+        StreamingChatResponseHandler responseHandler = new StreamingChatResponseHandler() {
+            final String chatRecordId = IdWorker.get32UUID();
+
+            @Override
+            public void onPartialResponse(String token) {
+                JSONObject json = toResponse(chatId, chatRecordId, token, false, 0, 0);
+                sink.tryEmitNext(json);
+            }
+
+            @Override
+            public void onCompleteResponse(ChatResponse response) {
+                TokenUsage tokenUsage = response.tokenUsage();
+                String answerText = response.aiMessage().text();
+                selfContext.put("message_list", messageList);
+                selfContext.put("answer_text", answerText);
+                int thisMessageTokens = tokenUsage.inputTokenCount();
+                int thisAnswerTokens = tokenUsage.outputTokenCount();
+                int messageTokens = manage.context.getInteger("message_tokens");
+                int answerTokens = manage.context.getInteger("answer_tokens");
+                selfContext.put("message_tokens", thisMessageTokens);
+                selfContext.put("answer_tokens", thisAnswerTokens);
+                manage.context.put("message_tokens", messageTokens + thisMessageTokens);
+                manage.context.put("answer_tokens", answerTokens + thisAnswerTokens);
+                String clientId = manage.context.getString("client_id");
+                String clientType = manage.context.getString("client_type");
+                addAccessNum(clientId, clientType);
+                postResponseHandler.handler(ChatCache.get(chatId), chatId, chatRecordId, problemText, answerText, manage, clientId);
+                JSONObject json = toResponse(chatId, chatRecordId, "", true, tokenUsage.outputTokenCount(), tokenUsage.inputTokenCount());
+                sink.tryEmitNext(json);
+                sink.tryEmitComplete();
+                System.out.println("BaseChatStep 耗时 " + (System.currentTimeMillis() - startTime) + " ms");
+            }
+
+            @Override
+            public void onError(Throwable throwable) {
+                JSONObject json = toResponse(chatId, chatRecordId, "网络异常！请重试。。。", true, 0, 0);
+                sink.emitNext(json, Sinks.EmitFailureHandler.FAIL_FAST);
+                sink.emitError(throwable, Sinks.EmitFailureHandler.FAIL_FAST);
+            }
         };
-        getStreamResult(messageList, chatModel, paragraphList, noReferencesSetting, problemText, responseHandler);
+       // getStreamResult(messageList, chatModel, paragraphList, noReferencesSetting, problemText, responseHandler);
         return sink.asFlux();
     }
 
 
-    private void getStreamResult(List<ChatMessage> messageList,
-                                 BaseChatModel chatModel,
-                                 List<ParagraphVO> paragraphList,
-                                 JSONObject noReferencesSetting,
-                                 String problemText, StreamingChatResponseHandler responseHandler) {
-
+    private Flux<JSONObject> getStreamResult(String chatId, String chatRecordId, List<ChatMessage> messageList,
+                                             BaseChatModel chatModel,
+                                             List<ParagraphVO> paragraphList,
+                                             JSONObject noReferencesSetting,
+                                             String problemText, PipelineManage manage, PostResponseHandler postResponseHandler) {
+        Sinks.Many<JSONObject> sink = Sinks.many().multicast().onBackpressureBuffer();
         if (CollectionUtils.isEmpty(paragraphList)) {
             paragraphList = new ArrayList<>();
         }
         List<AiMessage> directlyReturnChunkList = new ArrayList<>();
         for (ParagraphVO paragraph : paragraphList) {
-            if ("directly_return".equals(paragraph.getHitHandlingMethod())&&paragraph.getSimilarity() >= paragraph.getDirectlyReturnSimilarity()) {
+            if ("directly_return".equals(paragraph.getHitHandlingMethod()) && paragraph.getSimilarity() >= paragraph.getDirectlyReturnSimilarity()) {
                 directlyReturnChunkList.add(AiMessage.from(paragraph.getContent()));
             }
         }
-        TokenUsage tokenUsage = new TokenUsage(0, 0, 0);
         if (chatModel == null) {
             String text = "抱歉，没有配置 AI 模型，无法优化引用分段，请先去应用中设置 AI 模型。";
-            ChatResponse res= ChatResponse.builder().aiMessage(AiMessage.from(text)).tokenUsage(tokenUsage).build();
-            responseHandler.onPartialResponse(text);
-            responseHandler.onCompleteResponse(res);
+            JSONObject json = toResponse(chatId, chatRecordId, text, false, 0, 0);
+            sink.tryEmitNext(json);
         } else {
             if (!CollectionUtils.isEmpty(directlyReturnChunkList)) {
                 String text = directlyReturnChunkList.get(0).text();
-                ChatResponse res= ChatResponse.builder().aiMessage(AiMessage.from(text)).tokenUsage(tokenUsage).build();
-                responseHandler.onPartialResponse(text);
-                responseHandler.onCompleteResponse(res);
+                sink.tryEmitNext(toResponse(chatId, chatRecordId, text, false, 0, 0));
             } else if (paragraphList.isEmpty()) {
                 String status = noReferencesSetting.getString("status");
-                System.out.println("status"+status);
-                if("designated_answer".equals(status)){
+                System.out.println("status" + status);
+                if ("designated_answer".equals(status)) {
                     String value = noReferencesSetting.getString("value");
                     String text = value.replace("{question}", problemText);
-                    ChatResponse res= ChatResponse.builder().aiMessage(AiMessage.from(text)).tokenUsage(tokenUsage).build();
-                    responseHandler.onPartialResponse(text);
-                    responseHandler.onCompleteResponse(res);
-                }else {
-                    chatModel.stream(messageList, responseHandler);
+                    sink.tryEmitNext(toResponse(chatId, chatRecordId, text, false, 0, 0));
                 }
+            }else {
+                ChatStream chatStream = chatModel.stream(messageList);
+                chatStream.setCallback((response) -> {
+                    String answerText = response.aiMessage().text();
+                    TokenUsage tokenUsage = response.tokenUsage();
+                    sink.tryEmitNext(toResponse(chatId, chatRecordId, "", true, tokenUsage.outputTokenCount(), tokenUsage.inputTokenCount()));
+                    sink.tryEmitComplete();
+                    int thisMessageTokens = tokenUsage.inputTokenCount();
+                    int thisAnswerTokens = tokenUsage.outputTokenCount();
+                    int messageTokens = manage.context.getInteger("message_tokens");
+                    int answerTokens = manage.context.getInteger("answer_tokens");
+                    manage.context.put("message_tokens", messageTokens + thisMessageTokens);
+                    manage.context.put("answer_tokens", answerTokens + thisAnswerTokens);
+                    String clientId = manage.context.getString("client_id");
+                    String clientType = manage.context.getString("client_type");
+                    addAccessNum(clientId, clientType);
+                    postResponseHandler.handler(ChatCache.get(chatId), chatId, chatRecordId, problemText, answerText, manage, clientId);
+                });
+                CompletableFuture.runAsync(() -> {
+                    // 这里放置需要异步执行的代码
+                    Iterator<String> iterator = chatStream.getIterator();
+                    while (chatStream.getIterator().hasNext()) {
+                        sink.tryEmitNext(toResponse(chatId, chatRecordId, iterator.next(), false, 0, 0));
+                    }
+                }).thenRun(() -> {});
             }
         }
+        return sink.asFlux();
     }
 
     protected Flux<JSONObject> executeBlock(String chatId,
@@ -173,9 +250,9 @@ public class BaseChatStep extends IChatStep {
         manage.context.put("answer_tokens", answerTokens + thisAnswerTokens);
         long startTime = manage.context.getLong("start_time");
         manage.context.put("run_time", (System.currentTimeMillis() - startTime) / 1000F);
-        String clientId=manage.context.getString("client_id");
+        String clientId = manage.context.getString("client_id");
         postResponseHandler.handler(ChatCache.get(chatId), chatId, chatRecordId, problemText,
-                res.aiMessage().text(), manage,  clientId);
+                res.aiMessage().text(), manage, clientId);
         JSONObject json = toResponse(chatId, chatRecordId, res.aiMessage().text(), true, answerTokens, messageTokens);
         return Flux.just(json);
     }
@@ -275,12 +352,12 @@ public class BaseChatStep extends IChatStep {
         return data;
     }
 
-    private void addAccessNum(String clientId, String clientType){
-        if("APPLICATION_ACCESS_TOKEN".equals(clientType)){
-            ApplicationPublicAccessClientEntity publicAccessClient=publicAccessClientService.getById(clientId);
-            if(publicAccessClient!=null){
-                publicAccessClient.setAccessNum(publicAccessClient.getAccessNum()+1);
-                publicAccessClient.setIntraDayAccessNum(publicAccessClient.getIntraDayAccessNum()+1);
+    private void addAccessNum(String clientId, String clientType) {
+        if ("APPLICATION_ACCESS_TOKEN".equals(clientType)) {
+            ApplicationPublicAccessClientEntity publicAccessClient = publicAccessClientService.getById(clientId);
+            if (publicAccessClient != null) {
+                publicAccessClient.setAccessNum(publicAccessClient.getAccessNum() + 1);
+                publicAccessClient.setIntraDayAccessNum(publicAccessClient.getIntraDayAccessNum() + 1);
                 publicAccessClientService.updateById(publicAccessClient);
             }
         }

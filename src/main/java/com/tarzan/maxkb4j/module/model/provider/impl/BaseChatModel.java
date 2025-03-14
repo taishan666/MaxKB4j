@@ -51,13 +51,14 @@ public class BaseChatModel {
             public void onCompleteResponse(ChatResponse chatResponse) {
                 System.out.println("耗时 onComplete "+(System.currentTimeMillis()-startTime)+" ms");
                 // 调用 ChatStream 的回调函数
-                chatStream.invokeOnComplete(chatResponse);
+                chatStream.onComplete(chatResponse);
                 messageQueue.add("");
                 isCompleted.set(true); // 标记流完成
             }
 
             @Override
             public void onError(Throwable throwable) {
+                messageQueue.add(throwable.getMessage());
                 isCompleted.set(true); // 出错时也标记完成
             }
         };
