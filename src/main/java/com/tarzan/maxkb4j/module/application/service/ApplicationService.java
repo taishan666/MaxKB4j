@@ -378,32 +378,31 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         return text;
     }
 
-    public JSONObject appProfile(HttpServletRequest request) {
+    public JSONObject appProfile() {
         String appId = (String) StpUtil.getExtra("application_id");
         ApplicationEntity application = this.getById(appId);
         ApplicationAccessTokenEntity appAccessToken = accessTokenService.getById(appId);
-        UserEntity user = userService.getById(application.getUserId());
         JSONObject result = new JSONObject();
         result.put("id", appId);
         result.put("type", application.getType());
         result.put("name", application.getName());
         result.put("desc", application.getDesc());
         result.put("icon", application.getIcon());
-        result.put("language", user.getLanguage());
         result.put("prologue", application.getPrologue());
         result.put("dialogueNumber", application.getDialogueNumber());
         result.put("multipleRoundsDialogue", application.getDialogueNumber() > 0);
         result.put("fileUploadEnable", application.getFileUploadEnable());
         result.put("fileUploadSetting", application.getFileUploadSetting());
-        result.put("sttAutoSend", application.getSttModelEnable());
         result.put("sttModelEnable", application.getSttModelEnable());
+        result.put("sttAutoSend", application.getSttAutoSend());
         result.put("sttModelId", application.getSttModelId());
-        result.put("ttsAutoplay", application.getSttModelEnable());
         result.put("ttsModelEnable", application.getSttModelEnable());
+        result.put("ttsAutoplay", application.getTtsAutoplay());
         result.put("ttsType", application.getTtsType());
         result.put("ttsModelId", application.getTtsModelId());
         result.put("workFlow", application.getWorkFlow());
         result.put("showSource", appAccessToken.getShowSource());
+        result.put("language", appAccessToken.getLanguage());
         return result;
     }
 

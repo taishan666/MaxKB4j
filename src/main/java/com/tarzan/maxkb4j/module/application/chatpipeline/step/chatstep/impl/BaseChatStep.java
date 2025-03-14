@@ -11,8 +11,8 @@ import com.tarzan.maxkb4j.module.application.entity.ApplicationEntity;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationPublicAccessClientEntity;
 import com.tarzan.maxkb4j.module.application.service.ApplicationPublicAccessClientService;
 import com.tarzan.maxkb4j.module.dataset.vo.ParagraphVO;
-import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
+import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.SystemMessage;
@@ -21,7 +21,6 @@ import dev.langchain4j.model.chat.response.ChatResponse;
 import dev.langchain4j.model.chat.response.StreamingChatResponseHandler;
 import dev.langchain4j.model.output.TokenUsage;
 import lombok.AllArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import reactor.core.publisher.Flux;
@@ -48,7 +47,7 @@ public class BaseChatStep extends IChatStep {
         PostResponseHandler postResponseHandler = (PostResponseHandler) context.get("postResponseHandler");
         String problemText = context.getString("problem_text");
         JSONObject datasetSetting = application.getDatasetSetting();
-        JSONObject noReferencesSetting = datasetSetting.getJSONObject("no_references_setting");
+        JSONObject noReferencesSetting = datasetSetting.getJSONObject("noReferencesSetting");
         String chatId = context.getString("chatId");
         return executeStream(chatId, messages, modelId, paragraphList, noReferencesSetting, manage, problemText, postResponseHandler);
     }
@@ -104,46 +103,6 @@ public class BaseChatStep extends IChatStep {
                 sink.emitError(throwable, Sinks.EmitFailureHandler.FAIL_FAST);
             }
         };
-        /*StreamingResponseHandler<AiMessage> responseHandler = new StreamingResponseHandler<>() {
-            final String chatRecordId = IdWorker.get32UUID();
-
-            @Override
-            public void onNext(String token) {
-                JSONObject json = toResponse(chatId, chatRecordId, token, false, 0, 0);
-                sink.tryEmitNext(json);
-            }
-
-            @Override
-            public void onComplete(Response<AiMessage> response) {
-                TokenUsage tokenUsage = response.tokenUsage();
-                String answerText = response.content().text();
-                selfContext.put("message_list", messageList);
-                selfContext.put("answer_text", answerText);
-                int thisMessageTokens = tokenUsage.inputTokenCount();
-                int thisAnswerTokens = tokenUsage.outputTokenCount();
-                int messageTokens = manage.context.getInteger("message_tokens");
-                int answerTokens = manage.context.getInteger("answer_tokens");
-                selfContext.put("message_tokens", thisMessageTokens);
-                selfContext.put("answer_tokens", thisAnswerTokens);
-                manage.context.put("message_tokens", messageTokens + thisMessageTokens);
-                manage.context.put("answer_tokens", answerTokens + thisAnswerTokens);
-                String clientId=manage.context.getString("client_id");
-                String clientType=manage.context.getString("client_type");
-                addAccessNum(clientId,clientType);
-                postResponseHandler.handler(ChatCache.get(chatId), chatId, chatRecordId, problemText, answerText, manage,  clientId);
-                JSONObject json = toResponse(chatId, chatRecordId, "", true, tokenUsage.outputTokenCount(), tokenUsage.inputTokenCount());
-                sink.tryEmitNext(json);
-                sink.tryEmitComplete();
-                System.out.println("BaseChatStep 耗时 " + (System.currentTimeMillis() - startTime) + " ms");
-            }
-
-            @Override
-            public void onError(Throwable error) {
-                JSONObject json = toResponse(chatId, chatRecordId, "网络异常！请重试。。。", true, 0, 0);
-                sink.emitNext(json, Sinks.EmitFailureHandler.FAIL_FAST);
-                sink.emitError(error, Sinks.EmitFailureHandler.FAIL_FAST);
-            }
-        };*/
         getStreamResult(messageList, chatModel, paragraphList, noReferencesSetting, problemText, responseHandler);
         return sink.asFlux();
     }
@@ -171,20 +130,23 @@ public class BaseChatStep extends IChatStep {
             responseHandler.onPartialResponse(text);
             responseHandler.onCompleteResponse(res);
         } else {
-            String status = noReferencesSetting.getString("status");
             if (!CollectionUtils.isEmpty(directlyReturnChunkList)) {
                 String text = directlyReturnChunkList.get(0).text();
                 ChatResponse res= ChatResponse.builder().aiMessage(AiMessage.from(text)).tokenUsage(tokenUsage).build();
                 responseHandler.onPartialResponse(text);
                 responseHandler.onCompleteResponse(res);
-            } else if (paragraphList.isEmpty() && "designated_answer".equals(status)) {
-                String value = noReferencesSetting.getString("value");
-                String text = value.replace("{question}", problemText);
-                ChatResponse res= ChatResponse.builder().aiMessage(AiMessage.from(text)).tokenUsage(tokenUsage).build();
-                responseHandler.onPartialResponse(text);
-                responseHandler.onCompleteResponse(res);
-            }else {
-                chatModel.stream(messageList, responseHandler);
+            } else if (paragraphList.isEmpty()) {
+                String status = noReferencesSetting.getString("status");
+                System.out.println("status"+status);
+                if("designated_answer".equals(status)){
+                    String value = noReferencesSetting.getString("value");
+                    String text = value.replace("{question}", problemText);
+                    ChatResponse res= ChatResponse.builder().aiMessage(AiMessage.from(text)).tokenUsage(tokenUsage).build();
+                    responseHandler.onPartialResponse(text);
+                    responseHandler.onCompleteResponse(res);
+                }else {
+                    chatModel.stream(messageList, responseHandler);
+                }
             }
         }
     }

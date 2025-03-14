@@ -53,9 +53,13 @@ public class ApplicationEntity extends BaseEntity {
 
     private Boolean sttModelEnable;
 
+    private Boolean sttAutoSend;
+
     private String ttsModelId;
 
     private Boolean ttsModelEnable;
+
+    private Boolean ttsAutoplay;
 
     private String ttsType;
 

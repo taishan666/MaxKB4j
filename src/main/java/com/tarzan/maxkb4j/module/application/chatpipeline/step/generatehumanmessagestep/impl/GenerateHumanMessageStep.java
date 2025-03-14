@@ -32,8 +32,8 @@ public class GenerateHumanMessageStep extends IGenerateHumanMessageStep {
         String paddingProblemText=context.getString("padding_problem_text");
         String execProblemText = StringUtils.isNotBlank(paddingProblemText)?paddingProblemText:problemText;
         JSONObject datasetSetting = application.getDatasetSetting();
-        int maxParagraphCharNumber = datasetSetting.getInteger("max_paragraph_char_number");
-        JSONObject noReferencesSetting = datasetSetting.getJSONObject("no_references_setting");
+        int maxParagraphCharNumber = datasetSetting.getInteger("maxParagraphCharNumber");
+        JSONObject noReferencesSetting = datasetSetting.getJSONObject("noReferencesSetting");
         int dialogueNumber = application.getDialogueNumber();
 
         if (StringUtils.isNotBlank(system)) {

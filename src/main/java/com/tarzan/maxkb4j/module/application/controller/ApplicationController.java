@@ -16,7 +16,6 @@ import com.tarzan.maxkb4j.module.dataset.entity.DatasetEntity;
 import com.tarzan.maxkb4j.module.dataset.vo.ParagraphVO;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelEntity;
 import com.tarzan.maxkb4j.tool.api.R;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpHeaders;
@@ -89,8 +88,8 @@ public class ApplicationController {
     }
 
     @GetMapping("api/application/profile")
-    public R<JSONObject> appProfile(HttpServletRequest request) {
-        return R.success(applicationService.appProfile(request));
+    public R<JSONObject> appProfile() {
+        return R.success(applicationService.appProfile());
     }
 
     @GetMapping("api/application/{id}/export")
@@ -150,8 +149,8 @@ public class ApplicationController {
     }
 
     @GetMapping("api/application/{appId}/model")
-    public R<List<ModelEntity>> model(@PathVariable("appId") String appId, String model_type) {
-        return R.success(applicationService.getAppModels(appId, model_type));
+    public R<List<ModelEntity>> model(@PathVariable("appId") String appId, String modelType) {
+        return R.success(applicationService.getAppModels(appId, modelType));
     }
 
     @GetMapping("api/application/{appId}/list_dataset")
