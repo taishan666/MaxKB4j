@@ -61,6 +61,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -522,10 +523,15 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
             List<ParagraphEntity> paragraphEntities = new ArrayList<>();
             docs.parallelStream().forEach(e -> {
                 DocumentEntity doc = createDocument(datasetId, e.getName());
-                documentEntities.add(doc);
+                AtomicInteger docCharLength = new AtomicInteger();
                 if (!CollectionUtils.isEmpty(e.getParagraphs())) {
-                    e.getParagraphs().forEach(p -> paragraphEntities.add(createParagraph(datasetId, doc.getId(), p)));
+                    e.getParagraphs().forEach(p ->{
+                        paragraphEntities.add(createParagraph(datasetId, doc.getId(), p));
+                        docCharLength.addAndGet(p.getContent().length());
+                    });
                 }
+                doc.setCharLength(docCharLength.get());
+                documentEntities.add(doc);
             });
             if (!CollectionUtils.isEmpty(paragraphEntities)) {
                 paragraphService.saveBatch(paragraphEntities);
