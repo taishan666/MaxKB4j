@@ -11,7 +11,9 @@ import org.springframework.data.mongodb.core.aggregation.Aggregation;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.TextCriteria;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
+import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -50,24 +52,26 @@ public class FullTextSearchService {
                 Aggregation.sort(Sort.Direction.DESC, "score"),
 
                 // 步骤7: 限制最终返回数量
-                Aggregation.limit(maxResults+100)
+                Aggregation.limit(maxResults + 100)
         );
 
         // 执行聚合查询
-        List<EmbeddingEntity> entities = mongoTemplate.aggregate(
+        List<EmbeddingEntity> result = mongoTemplate.aggregate(
                 aggregation,
                 mongoTemplate.getCollectionName(EmbeddingEntity.class), // 获取集合名
                 EmbeddingEntity.class
         ).getMappedResults();
-        float maxScore=entities.get(0).getScore();
-        float minScore=entities.get(entities.size()-1).getScore();
-        for (EmbeddingEntity entity : entities) {
-            float score = (entity.getScore() - minScore) / (maxScore - minScore);
+        if (CollectionUtils.isEmpty(result)) {
+            return Collections.emptyList();
+        }
+        float maxScore = Math.max(result.get(0).getScore(),2);
+        for (EmbeddingEntity entity : result) {
+            float score = entity.getScore()/ maxScore;
             entity.setScore(score);
         }
-        int endIndex=Math.min(maxResults, entities.size());
-        entities=entities.subList(0, endIndex);
-        return entities.stream().map(entity -> new HitTestVO(entity.getParagraphId(), entity.getScore())).toList();
+        int endIndex = Math.min(maxResults, result.size());
+        result = result.subList(0, endIndex);
+        return result.stream().map(entity -> new HitTestVO(entity.getParagraphId(), entity.getScore())).toList();
     }
 
 

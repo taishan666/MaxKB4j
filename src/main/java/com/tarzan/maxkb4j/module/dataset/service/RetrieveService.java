@@ -79,10 +79,11 @@ public class RetrieveService {
         Map<String, Float> map = list.stream().collect(Collectors.toMap(HitTestVO::getParagraphId, HitTestVO::getScore));
         List<ParagraphVO> paragraphs = paragraphMapper.retrievalParagraph(paragraphIds);
         paragraphs.forEach(e -> {
-            double score = map.get(e.getId());
+            float score = map.get(e.getId());
             e.setSimilarity(score);
             e.setComprehensiveScore(score);
         });
+        paragraphs.sort(Comparator.comparing(ParagraphVO::getSimilarity).reversed());
         return paragraphs;
     }
 

@@ -613,7 +613,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
     public DocumentEntity updateDocByDocId(String docId, DocumentEntity documentEntity) {
         documentEntity.setId(docId);
         this.updateById(documentEntity);
-        return documentEntity;
+        return this.getById(docId);
     }
 
     @Transactional
