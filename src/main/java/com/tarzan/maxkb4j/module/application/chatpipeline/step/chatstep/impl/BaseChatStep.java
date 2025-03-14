@@ -19,7 +19,6 @@ import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.model.chat.response.ChatResponse;
-import dev.langchain4j.model.chat.response.StreamingChatResponseHandler;
 import dev.langchain4j.model.output.TokenUsage;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -43,7 +42,7 @@ public class BaseChatStep extends IChatStep {
     protected Flux<JSONObject> execute(PipelineManage manage) {
         JSONObject context = manage.context;
         ApplicationEntity application = (ApplicationEntity) context.get("application");
-        List<ChatMessage> messages = (List<ChatMessage>) context.get("message_list");
+        List<ChatMessage> messageList = (List<ChatMessage>) context.get("message_list");
         List<ParagraphVO> paragraphList = (List<ParagraphVO>) context.get("paragraph_list");
         String modelId = application.getModelId();
         super.context.put("model_id", modelId);
@@ -52,126 +51,18 @@ public class BaseChatStep extends IChatStep {
         JSONObject datasetSetting = application.getDatasetSetting();
         JSONObject noReferencesSetting = datasetSetting.getJSONObject("noReferencesSetting");
         String chatId = context.getString("chatId");
-        return executeStream(chatId, messages, modelId, paragraphList, noReferencesSetting, manage, problemText, postResponseHandler);
-    }
-
-    protected Flux<JSONObject> executeStream(String chatId,
-                                             List<ChatMessage> messageList,
-                                             String modelId,
-                                             List<ParagraphVO> paragraphList,
-                                             JSONObject noReferencesSetting,
-                                             PipelineManage manage,
-                                             String problemText, PostResponseHandler postResponseHandler) {
-     //   long startTime = System.currentTimeMillis();
-        BaseChatModel chatModel = modelService.getModelById(modelId);
-      //  JSONObject selfContext = super.context;
-   /*     // 初始化一个可变的Publisher，如Sinks.many()来代替Flux.just()
-        Sinks.Many<JSONObject> sink = Sinks.many().multicast().onBackpressureBuffer();
-        StreamingChatResponseHandler responseHandler = new StreamingChatResponseHandler() {
-            final String chatRecordId = IdWorker.get32UUID();
-            @Override
-            public void onPartialResponse(String token) {
-                JSONObject json = toResponse(chatId, chatRecordId, token, false, 0, 0);
-                sink.tryEmitNext(json);
-            }
-
-            @Override
-            public void onCompleteResponse(ChatResponse response) {
-                TokenUsage tokenUsage = response.tokenUsage();
-                String answerText = response.aiMessage().text();
-                selfContext.put("message_list", messageList);
-                selfContext.put("answer_text", answerText);
-                int thisMessageTokens = tokenUsage.inputTokenCount();
-                int thisAnswerTokens = tokenUsage.outputTokenCount();
-                int messageTokens = manage.context.getInteger("message_tokens");
-                int answerTokens = manage.context.getInteger("answer_tokens");
-                selfContext.put("message_tokens", thisMessageTokens);
-                selfContext.put("answer_tokens", thisAnswerTokens);
-                manage.context.put("message_tokens", messageTokens + thisMessageTokens);
-                manage.context.put("answer_tokens", answerTokens + thisAnswerTokens);
-                String clientId=manage.context.getString("client_id");
-                String clientType=manage.context.getString("client_type");
-                addAccessNum(clientId,clientType);
-                postResponseHandler.handler(ChatCache.get(chatId), chatId, chatRecordId, problemText, answerText, manage,  clientId);
-                JSONObject json = toResponse(chatId, chatRecordId, "", true, tokenUsage.outputTokenCount(), tokenUsage.inputTokenCount());
-                sink.tryEmitNext(json);
-                sink.tryEmitComplete();
-                System.out.println("BaseChatStep 耗时 " + (System.currentTimeMillis() - startTime) + " ms");
-            }
-
-            @Override
-            public void onError(Throwable throwable) {
-                JSONObject json = toResponse(chatId, chatRecordId, "网络异常！请重试。。。", true, 0, 0);
-                sink.emitNext(json, Sinks.EmitFailureHandler.FAIL_FAST);
-                sink.emitError(throwable, Sinks.EmitFailureHandler.FAIL_FAST);
-            }
-        };*/
         String chatRecordId = IdWorker.get32UUID();
-        return getStreamResult(chatId, chatRecordId, messageList, chatModel, paragraphList, noReferencesSetting,problemText,manage,postResponseHandler);
-    }
-
-    protected Flux<JSONObject> executeStream1(String chatId,
-                                              List<ChatMessage> messageList,
-                                              String modelId,
-                                              List<ParagraphVO> paragraphList,
-                                              JSONObject noReferencesSetting,
-                                              PipelineManage manage,
-                                              String problemText, PostResponseHandler postResponseHandler) {
-        long startTime = System.currentTimeMillis();
         BaseChatModel chatModel = modelService.getModelById(modelId);
-        JSONObject selfContext = super.context;
-        // 初始化一个可变的Publisher，如Sinks.many()来代替Flux.just()
-        Sinks.Many<JSONObject> sink = Sinks.many().multicast().onBackpressureBuffer();
-        StreamingChatResponseHandler responseHandler = new StreamingChatResponseHandler() {
-            final String chatRecordId = IdWorker.get32UUID();
-
-            @Override
-            public void onPartialResponse(String token) {
-                JSONObject json = toResponse(chatId, chatRecordId, token, false, 0, 0);
-                sink.tryEmitNext(json);
-            }
-
-            @Override
-            public void onCompleteResponse(ChatResponse response) {
-                TokenUsage tokenUsage = response.tokenUsage();
-                String answerText = response.aiMessage().text();
-                selfContext.put("message_list", messageList);
-                selfContext.put("answer_text", answerText);
-                int thisMessageTokens = tokenUsage.inputTokenCount();
-                int thisAnswerTokens = tokenUsage.outputTokenCount();
-                int messageTokens = manage.context.getInteger("message_tokens");
-                int answerTokens = manage.context.getInteger("answer_tokens");
-                selfContext.put("message_tokens", thisMessageTokens);
-                selfContext.put("answer_tokens", thisAnswerTokens);
-                manage.context.put("message_tokens", messageTokens + thisMessageTokens);
-                manage.context.put("answer_tokens", answerTokens + thisAnswerTokens);
-                String clientId = manage.context.getString("client_id");
-                String clientType = manage.context.getString("client_type");
-                addAccessNum(clientId, clientType);
-                postResponseHandler.handler(ChatCache.get(chatId), chatId, chatRecordId, problemText, answerText, manage, clientId);
-                JSONObject json = toResponse(chatId, chatRecordId, "", true, tokenUsage.outputTokenCount(), tokenUsage.inputTokenCount());
-                sink.tryEmitNext(json);
-                sink.tryEmitComplete();
-                System.out.println("BaseChatStep 耗时 " + (System.currentTimeMillis() - startTime) + " ms");
-            }
-
-            @Override
-            public void onError(Throwable throwable) {
-                JSONObject json = toResponse(chatId, chatRecordId, "网络异常！请重试。。。", true, 0, 0);
-                sink.emitNext(json, Sinks.EmitFailureHandler.FAIL_FAST);
-                sink.emitError(throwable, Sinks.EmitFailureHandler.FAIL_FAST);
-            }
-        };
-       // getStreamResult(messageList, chatModel, paragraphList, noReferencesSetting, problemText, responseHandler);
-        return sink.asFlux();
+        boolean stream = true;
+        return getFluxResult(chatId, chatRecordId, messageList, chatModel, paragraphList, noReferencesSetting, problemText, manage, postResponseHandler, stream);
     }
 
 
-    private Flux<JSONObject> getStreamResult(String chatId, String chatRecordId, List<ChatMessage> messageList,
-                                             BaseChatModel chatModel,
-                                             List<ParagraphVO> paragraphList,
-                                             JSONObject noReferencesSetting,
-                                             String problemText, PipelineManage manage, PostResponseHandler postResponseHandler) {
+    private Flux<JSONObject> getFluxResult(String chatId, String chatRecordId, List<ChatMessage> messageList,
+                                           BaseChatModel chatModel,
+                                           List<ParagraphVO> paragraphList,
+                                           JSONObject noReferencesSetting,
+                                           String problemText, PipelineManage manage, PostResponseHandler postResponseHandler, boolean stream) {
         Sinks.Many<JSONObject> sink = Sinks.many().multicast().onBackpressureBuffer();
         if (CollectionUtils.isEmpty(paragraphList)) {
             paragraphList = new ArrayList<>();
@@ -198,95 +89,49 @@ public class BaseChatStep extends IChatStep {
                     String text = value.replace("{question}", problemText);
                     sink.tryEmitNext(toResponse(chatId, chatRecordId, text, false, 0, 0));
                 }
-            }else {
-                ChatStream chatStream = chatModel.stream(messageList);
-                chatStream.setCallback((response) -> {
-                    String answerText = response.aiMessage().text();
-                    TokenUsage tokenUsage = response.tokenUsage();
-                    sink.tryEmitNext(toResponse(chatId, chatRecordId, "", true, tokenUsage.outputTokenCount(), tokenUsage.inputTokenCount()));
+            } else {
+                int messageTokens = manage.context.getInteger("message_tokens");
+                int answerTokens = manage.context.getInteger("answer_tokens");
+                String clientId = manage.context.getString("client_id");
+                String clientType = manage.context.getString("client_type");
+                if (stream) {
+                    ChatStream chatStream = chatModel.stream(messageList);
+                    chatStream.setCallback((response) -> {
+                        String  answerText=response.aiMessage().text();
+                        TokenUsage tokenUsage=response.tokenUsage();
+                        int thisMessageTokens = tokenUsage.inputTokenCount();
+                        int thisAnswerTokens = tokenUsage.outputTokenCount();
+                        manage.context.put("message_tokens", messageTokens + thisMessageTokens);
+                        manage.context.put("answer_tokens", answerTokens + thisAnswerTokens);
+                        addAccessNum(clientId, clientType);
+                        postResponseHandler.handler(ChatCache.get(chatId), chatId, chatRecordId, problemText, answerText, manage, clientId);
+                    });
+                    CompletableFuture.runAsync(() -> {
+                        // 这里放置需要异步执行的代码
+                        Iterator<String> iterator = chatStream.getIterator();
+                        while (chatStream.getIterator().hasNext()) {
+                            sink.tryEmitNext(toResponse(chatId, chatRecordId, iterator.next(), false, 0, 0));
+                        }
+                    }).thenRun(() -> {
+                        sink.tryEmitNext(toResponse(chatId, chatRecordId, "", true, 0, 0));
+                        sink.tryEmitComplete();
+                    });
+                } else {
+                    ChatResponse response = chatModel.generate(messageList);
+                    String  answerText=response.aiMessage().text();
+                    TokenUsage tokenUsage=response.tokenUsage();
+                    sink.tryEmitNext(toResponse(chatId, chatRecordId, answerText, true, 0, 0));
                     sink.tryEmitComplete();
                     int thisMessageTokens = tokenUsage.inputTokenCount();
                     int thisAnswerTokens = tokenUsage.outputTokenCount();
-                    int messageTokens = manage.context.getInteger("message_tokens");
-                    int answerTokens = manage.context.getInteger("answer_tokens");
                     manage.context.put("message_tokens", messageTokens + thisMessageTokens);
                     manage.context.put("answer_tokens", answerTokens + thisAnswerTokens);
-                    String clientId = manage.context.getString("client_id");
-                    String clientType = manage.context.getString("client_type");
                     addAccessNum(clientId, clientType);
                     postResponseHandler.handler(ChatCache.get(chatId), chatId, chatRecordId, problemText, answerText, manage, clientId);
-                });
-                CompletableFuture.runAsync(() -> {
-                    // 这里放置需要异步执行的代码
-                    Iterator<String> iterator = chatStream.getIterator();
-                    while (chatStream.getIterator().hasNext()) {
-                        sink.tryEmitNext(toResponse(chatId, chatRecordId, iterator.next(), false, 0, 0));
-                    }
-                }).thenRun(() -> {});
+                }
             }
         }
         return sink.asFlux();
-    }
-
-    protected Flux<JSONObject> executeBlock(String chatId,
-                                            List<ChatMessage> messageList,
-                                            String modelId,
-                                            List<ParagraphVO> paragraphList,
-                                            JSONObject noReferencesSetting,
-                                            PipelineManage manage,
-                                            String problemText, PostResponseHandler postResponseHandler) {
-        BaseChatModel chatModel = modelService.getModelById(modelId);
-        ChatResponse res = getBlockResult(messageList, chatModel, paragraphList, noReferencesSetting, problemText);
-        String chatRecordId = IdWorker.get32UUID();
-        super.context.put("message_list", messageList);
-        super.context.put("answer_text", res.aiMessage().text());
-        int thisMessageTokens = res.tokenUsage().inputTokenCount();
-        int thisAnswerTokens = res.tokenUsage().outputTokenCount();
-        int messageTokens = manage.context.getInteger("message_tokens");
-        int answerTokens = manage.context.getInteger("answer_tokens");
-        super.context.put("message_tokens", thisMessageTokens);
-        super.context.put("answer_tokens", thisAnswerTokens);
-        manage.context.put("message_tokens", messageTokens + thisMessageTokens);
-        manage.context.put("answer_tokens", answerTokens + thisAnswerTokens);
-        long startTime = manage.context.getLong("start_time");
-        manage.context.put("run_time", (System.currentTimeMillis() - startTime) / 1000F);
-        String clientId = manage.context.getString("client_id");
-        postResponseHandler.handler(ChatCache.get(chatId), chatId, chatRecordId, problemText,
-                res.aiMessage().text(), manage, clientId);
-        JSONObject json = toResponse(chatId, chatRecordId, res.aiMessage().text(), true, answerTokens, messageTokens);
-        return Flux.just(json);
-    }
-
-
-    private ChatResponse getBlockResult(List<ChatMessage> messageList,
-                                        BaseChatModel chatModel,
-                                        List<ParagraphVO> paragraphList,
-                                        JSONObject noReferencesSetting,
-                                        String problemText) {
-
-        if (CollectionUtils.isEmpty(paragraphList)) {
-            paragraphList = new ArrayList<>();
-        }
-        List<AiMessage> directlyReturnChunkList = new ArrayList<>();
-        for (ParagraphVO paragraph : paragraphList) {
-            if ("directly_return".equals(paragraph.getHitHandlingMethod())) {
-                directlyReturnChunkList.add(AiMessage.from(paragraph.getContent()));
-            }
-        }
-        TokenUsage tokenUsage = new TokenUsage(0, 0, 0);
-        String status = noReferencesSetting.getString("status");
-        if (!CollectionUtils.isEmpty(directlyReturnChunkList)) {
-            return ChatResponse.builder().aiMessage(directlyReturnChunkList.get(0)).tokenUsage(tokenUsage).build();
-        } else if (paragraphList.isEmpty() && "designated_answer".equals(status)) {
-            String value = noReferencesSetting.getString("value");
-            return ChatResponse.builder().aiMessage(AiMessage.from(value.replace("{question}", problemText))).tokenUsage(tokenUsage).build();
-        }
-        if (chatModel == null) {
-            return ChatResponse.builder().aiMessage(AiMessage.from("抱歉，没有配置 AI 模型，无法优化引用分段，请先去应用中设置 AI 模型。")).tokenUsage(tokenUsage).build();
-        } else {
-            return chatModel.generate(messageList);
-        }
-
     }
 
     public JSONArray resetMessageList(JSONArray messageList, String answerText) {
