@@ -170,8 +170,8 @@ public class UserService extends ServiceImpl<UserMapper, UserEntity> {
         return updateById(user);
     }
 
-    public Boolean validUserById(String id) {
-        UserEntity user=this.getById(id);
-        return Objects.nonNull(user);
+    public UserEntity validUserById(String id) {
+        //todo
+        return this.getById(id);
     }
 }
