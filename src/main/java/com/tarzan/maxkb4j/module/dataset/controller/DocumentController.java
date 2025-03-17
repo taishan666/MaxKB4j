@@ -4,10 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.tarzan.maxkb4j.common.dto.DeleteDTO;
 import com.tarzan.maxkb4j.common.dto.QueryDTO;
-import com.tarzan.maxkb4j.module.dataset.dto.DatasetBatchHitHandlingDTO;
-import com.tarzan.maxkb4j.module.dataset.dto.DocumentNameDTO;
-import com.tarzan.maxkb4j.module.dataset.dto.GenerateProblemDTO;
-import com.tarzan.maxkb4j.module.dataset.dto.ParagraphDTO;
+import com.tarzan.maxkb4j.module.dataset.dto.*;
 import com.tarzan.maxkb4j.module.dataset.entity.DocumentEntity;
 import com.tarzan.maxkb4j.module.dataset.entity.ParagraphEntity;
 import com.tarzan.maxkb4j.module.dataset.entity.ProblemEntity;
@@ -38,6 +35,11 @@ public class DocumentController {
     private final ProblemParagraphService problemParagraphService;
     private final EmbedTextService embedTextService;
 
+
+    @PostMapping("api/dataset/{id}/document/web")
+    public void web(@PathVariable("id") String id, @RequestBody WebUrlDTO params) throws IOException {
+        documentService.web(id,params);
+    }
 
     @GetMapping("api/dataset/{id}/document/{docId}/export")
     public void export(@PathVariable("id") String id, @PathVariable("docId") String docId, HttpServletResponse response) throws IOException {

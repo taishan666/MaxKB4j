@@ -17,10 +17,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.opencsv.CSVReader;
 import com.opencsv.exceptions.CsvValidationException;
 import com.tarzan.maxkb4j.common.dto.QueryDTO;
-import com.tarzan.maxkb4j.module.dataset.dto.DatasetBatchHitHandlingDTO;
-import com.tarzan.maxkb4j.module.dataset.dto.DocumentNameDTO;
-import com.tarzan.maxkb4j.module.dataset.dto.ParagraphDTO;
-import com.tarzan.maxkb4j.module.dataset.dto.ParagraphSimpleDTO;
+import com.tarzan.maxkb4j.module.dataset.dto.*;
 import com.tarzan.maxkb4j.module.dataset.entity.DocumentEntity;
 import com.tarzan.maxkb4j.module.dataset.entity.ParagraphEntity;
 import com.tarzan.maxkb4j.module.dataset.entity.ProblemEntity;
@@ -32,6 +29,7 @@ import com.tarzan.maxkb4j.module.dataset.vo.ParagraphSimpleVO;
 import com.tarzan.maxkb4j.module.dataset.vo.TextSegmentVO;
 import com.tarzan.maxkb4j.module.model.info.vo.KeyAndValueVO;
 import com.tarzan.maxkb4j.util.ExcelUtil;
+import com.tarzan.maxkb4j.util.JsoupUtil;
 import dev.langchain4j.data.document.Document;
 import dev.langchain4j.data.document.DocumentParser;
 import dev.langchain4j.data.document.DocumentSplitter;
@@ -50,6 +48,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.jsoup.select.Elements;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -379,7 +378,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         return list;
     }
 
-    public List<TextSegmentVO> split1(MultipartFile[] files, String[] patterns, Integer limit, Boolean withFilter) {
+/*    public List<TextSegmentVO> split1(MultipartFile[] files, String[] patterns, Integer limit, Boolean withFilter) {
         List<TextSegmentVO> list = new ArrayList<>();
         for (MultipartFile file : files) {
             if (file == null || file.isEmpty()) {
@@ -402,7 +401,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
             list.add(textSegmentVO);
         }
         return list;
-    }
+    }*/
 
     private List<TextSegment> getTextSegments(Document document, String[] patterns, Integer limit, Boolean withFilter) {
         if (patterns != null) {
@@ -748,5 +747,31 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         resultList.add(new KeyAndValueVO("enter", "(?<!\\n)\\n(?!\\n)"));
         resultList.add(new KeyAndValueVO("blank line", "(?<!\\n)\\n\\n(?!\\n)"));
         return resultList;
+    }
+
+    @Transactional
+    public void web(String datasetId, WebUrlDTO params) {
+        System.out.println(params);
+        if(StringUtils.isBlank(params.getSelector())){
+            params.setSelector("body");
+        }
+        List<DocumentEntity> docs=new ArrayList<>();
+        List<ParagraphEntity> paragraphs=new ArrayList<>();
+        params.getSourceUrlList().forEach(url -> {
+           org.jsoup.nodes.Document  html=JsoupUtil.getDocument(url);
+            Elements elements=html.select(params.getSelector());
+            Document document=Document.document(elements.text());
+            DocumentEntity doc = createDocument(datasetId, JsoupUtil.getTitle(html));
+            List<TextSegment> textSegments= defaultSplitter.split(document);
+            for (TextSegment textSegment : textSegments) {
+                System.out.println(textSegment);
+                ParagraphEntity paragraph = getParagraphEntity(datasetId, doc.getId(), "", textSegment.text());
+                paragraphs.add(paragraph);
+                doc.setCharLength(doc.getCharLength()+paragraph.getContent().length());
+            }
+            docs.add(doc);
+        });
+        this.saveBatch(docs);
+        paragraphService.saveBatch(paragraphs);
     }
 }
