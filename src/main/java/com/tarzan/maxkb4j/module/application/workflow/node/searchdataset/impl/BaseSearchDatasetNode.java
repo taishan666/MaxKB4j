@@ -1,11 +1,11 @@
 package com.tarzan.maxkb4j.module.application.workflow.node.searchdataset.impl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.tarzan.maxkb4j.module.application.entity.DatasetSetting;
 import com.tarzan.maxkb4j.module.application.workflow.NodeResult;
 import com.tarzan.maxkb4j.module.application.workflow.WorkflowManage;
 import com.tarzan.maxkb4j.module.application.workflow.dto.FlowParams;
 import com.tarzan.maxkb4j.module.application.workflow.node.searchdataset.ISearchDatasetStepNode;
-import com.tarzan.maxkb4j.module.application.workflow.node.searchdataset.input.DatasetSetting;
 import com.tarzan.maxkb4j.module.application.workflow.node.searchdataset.input.SearchDatasetStepNodeParams;
 import com.tarzan.maxkb4j.module.dataset.service.RetrieveService;
 import com.tarzan.maxkb4j.module.dataset.vo.ParagraphVO;

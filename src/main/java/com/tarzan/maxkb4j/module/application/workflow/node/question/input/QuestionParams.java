@@ -9,15 +9,11 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class QuestionParams extends BaseParams {
-    @JsonProperty("model_id")
     private String modelId;
     private String system;
     private String prompt;
-    @JsonProperty("dialogue_number")
     private Integer dialogueNumber;
-    @JsonProperty("is_result")
     private Boolean isResult;
-    @JsonProperty("model_params_setting")
     private JSONObject modelParamsSetting;
     @Override
     public boolean isValid() {

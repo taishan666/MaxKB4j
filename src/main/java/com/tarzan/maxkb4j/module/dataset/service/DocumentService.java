@@ -186,7 +186,6 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         try (InputStream fis = new ByteArrayInputStream(fileBytes)) {
             Workbook workbook = WorkbookFactory.create(fis);
             int numberOfSheets = workbook.getNumberOfSheets();
-            System.out.println("Sheet 数量: " + numberOfSheets);
             List<ProblemEntity> dbProblemEntities = problemService.lambdaQuery().eq(ProblemEntity::getDatasetId, datasetId).list();
             List<ProblemEntity> problemEntities = new ArrayList<>();
             List<ProblemParagraphEntity> problemParagraphs = new ArrayList<>();
@@ -194,7 +193,6 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
             List<DocumentEntity> docs = new ArrayList<>();
             for (int i = 0; i < numberOfSheets; i++) {
                 String sheetName = workbook.getSheetName(i);
-                System.out.println("Sheet 名称: " + sheetName);
                 DocumentEntity doc = createDocument(datasetId, sheetName);
                 // 对于每一个Sheet进行数据读取
                 EasyExcel.read(new ByteArrayInputStream(fileBytes))

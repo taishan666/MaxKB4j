@@ -10,18 +10,12 @@ import lombok.EqualsAndHashCode;
 @Data
 public class ImageGenerateParams extends BaseParams {
 
-    @JsonProperty("model_id")
     private String modelId;
     private String prompt;
-    @JsonProperty("negative_prompt")
     private String negativePrompt;
-    @JsonProperty("dialogue_number")
     private Integer dialogueNumber;
-    @JsonProperty("dialogue_type")
     private String dialogueType;
-    @JsonProperty("is_result")
     private Boolean isResult;
-    @JsonProperty("model_params_setting")
     private JSONObject modelParamsSetting;
 
     @Override

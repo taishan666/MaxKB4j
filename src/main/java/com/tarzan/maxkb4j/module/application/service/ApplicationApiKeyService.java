@@ -28,7 +28,6 @@ public class ApplicationApiKeyService extends ServiceImpl<ApplicationApiKeyMappe
         entity.setAllowCrossDomain(false);
         String uuid = UUID.randomUUID().toString();
         entity.setSecretKey("maxKb4j-" + uuid.replaceAll("-", ""));
-        System.out.println(StpUtil.getTokenInfo());
         entity.setUserId(StpUtil.getLoginIdAsString());
         entity.setCrossDomainList(new HashSet<>());
         return this.save(entity);

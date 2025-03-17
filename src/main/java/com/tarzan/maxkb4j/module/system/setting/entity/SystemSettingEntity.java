@@ -15,11 +15,9 @@ import java.util.Date;
 @Data
 @TableName("system_setting")
 public class SystemSettingEntity {
-    @JsonProperty("create_time")
     @TableField(fill = FieldFill.INSERT)
     private Date createTime;
 
-    @JsonProperty("update_time")
     @TableField(fill = FieldFill.INSERT_UPDATE)
     private Date updateTime;
     //0 邮箱 1 密匙

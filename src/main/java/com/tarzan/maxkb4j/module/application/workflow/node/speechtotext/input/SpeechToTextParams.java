@@ -11,11 +11,8 @@ import java.util.List;
 @Data
 public class SpeechToTextParams extends BaseParams {
 
-    @JsonProperty("stt_model_id")
     private String sttModelId;
-    @JsonProperty("is_result")
     private Boolean isResult;
-    @JsonProperty("audio_list")
     private List<String> audioList;
 
     @Override

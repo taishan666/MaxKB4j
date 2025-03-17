@@ -11,10 +11,7 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class FormNodeParams extends BaseParams {
-    @JsonProperty("form_field_list")
     private List<JSONObject> formFieldList;
-    @JsonProperty("form_content_format")
     private String formContentFormat;
-    @JsonProperty("form_data")
     private JSONObject formData;
 }

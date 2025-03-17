@@ -1,61 +1,30 @@
 package com.tarzan.maxkb4j.module.application.cache;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import com.tarzan.maxkb4j.module.application.dto.ChatInfo;
-import org.ehcache.Cache;
-import org.ehcache.CacheManager;
-import org.ehcache.config.builders.CacheConfigurationBuilder;
-import org.ehcache.config.builders.CacheManagerBuilder;
-import org.ehcache.config.builders.ExpiryPolicyBuilder;
-import org.ehcache.config.builders.ResourcePoolsBuilder;
-import org.ehcache.config.units.EntryUnit;
-import org.ehcache.config.units.MemoryUnit;
 
-import java.io.File;
-import java.time.Duration;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 
 public class ChatCache {
 
-    private final static CacheManager cacheManager;
+    // 创建缓存实例，设置最大容量为100，过期时间为10分钟
+    private static final Cache<String, ChatInfo> cache = Caffeine.newBuilder()
+            .maximumSize(100) // 设置缓存的最大容量
+            .expireAfterWrite(30, TimeUnit.MINUTES) // 设置写入后30分钟过期
+            .build();
 
-    private final static String persistent = "data";
-
-    static {
-        File persistentFile = new File(persistent);
-        // 公共配置
-        ResourcePoolsBuilder resourcePools = ResourcePoolsBuilder.newResourcePoolsBuilder()
-                .heap(1000, EntryUnit.ENTRIES)
-                .offheap(100, MemoryUnit.MB)
-                .disk(200, MemoryUnit.MB, true);
-
-        CacheConfigurationBuilder<String, ChatInfo> config =
-                CacheConfigurationBuilder.newCacheConfigurationBuilder(
-                        String.class,
-                        ChatInfo.class,
-                        resourcePools
-                ).withExpiry(  // 关键修改点：添加过期策略
-                        ExpiryPolicyBuilder.timeToLiveExpiration(
-                                Duration.ofMinutes(30)  // 30分钟后过期
-                        )
-                );
-        cacheManager = CacheManagerBuilder.newCacheManagerBuilder()
-                .with(CacheManagerBuilder.persistence(persistentFile))
-                .withCache("chatCache", config)
-                .build();
-        cacheManager.init();  // 重新初始化
-        // 验证缓存加载
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            System.out.println("Closing cache manager...");
-            cacheManager.close();  // 确保调用 close()
-        }));
+    public static void put(String chatId, ChatInfo chatInfo) {
+        cache.put(chatId, chatInfo);
     }
 
-public static void put(String chatId, ChatInfo chatInfo) {
-    Cache<String, ChatInfo> cache = cacheManager.getCache("chatCache", String.class, ChatInfo.class);
-    cache.put(chatId, chatInfo);
-}
-
-public static ChatInfo get(String chatId) {
-    Cache<String, ChatInfo> cache = cacheManager.getCache("chatCache", String.class, ChatInfo.class);
-    return cache.get(chatId);
-}
+    public static ChatInfo get(String chatId) {
+        // 定义一个函数，用于在缓存未命中时生成 ChatInfo 对象
+        Function<String, ChatInfo> loader = key -> {
+            // 根据键生成 ChatInfo 实例的逻辑
+            return new ChatInfo(); // 示例：实际应用中应替换为具体的生成逻辑
+        };
+        return cache.get(chatId,loader);
+    }
 }

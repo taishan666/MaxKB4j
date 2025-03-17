@@ -7,7 +7,6 @@ import lombok.Data;
 public class PasswordDTO {
     private String code;
     private String password;
-    @JsonProperty("re_password")
     private String rePassword;
 
 }

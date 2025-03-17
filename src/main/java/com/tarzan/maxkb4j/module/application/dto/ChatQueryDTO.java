@@ -9,8 +9,6 @@ public class ChatQueryDTO {
 
     @JsonProperty("abstract")
     private String keyword;
-    @JsonProperty("start_time")
     private String startTime;
-    @JsonProperty("end_time")
     private String endTime;
 }

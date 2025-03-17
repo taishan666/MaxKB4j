@@ -253,7 +253,6 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         ApplicationAccessTokenEntity appAccessToken = accessTokenService.lambdaQuery().eq(ApplicationAccessTokenEntity::getAccessToken, accessToken).one();
         SaLoginModel loginModel = new SaLoginModel();
         if(StpUtil.isLogin()){
-            System.out.println(StpUtil.getTokenInfo());
             UserEntity userEntity =userService.getById(StpUtil.getLoginIdAsString());
             loginModel.setExtra("username", userEntity.getUsername());
             loginModel.setExtra("email", userEntity.getEmail());
@@ -262,7 +261,6 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
             loginModel.setExtra("client_type", AuthType.USER.name());
             loginModel.setExtra("application_id", appAccessToken.getApplicationId());
             StpUtil.login(userEntity.getId(),loginModel);
-            System.out.println(StpUtil.getTokenInfo());
         }else {
             if (appAccessToken != null && appAccessToken.getIsActive()) {
                 //ApplicationEntity application = this.lambdaQuery().select(ApplicationEntity::getUserId).eq(ApplicationEntity::getId, applicationAccessToken.getApplicationId()).one();
@@ -271,7 +269,6 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
                 loginModel.setExtra("client_type", AuthType.APP_ACCESS_TOKEN.name());
                 loginModel.setDevice(AuthType.APP_ACCESS_TOKEN.name());
                 StpUtil.login(IdWorker.get32UUID(), loginModel);
-                System.out.println(StpUtil.getTokenInfo());
             }
         }
         return StpUtil.getTokenValue();

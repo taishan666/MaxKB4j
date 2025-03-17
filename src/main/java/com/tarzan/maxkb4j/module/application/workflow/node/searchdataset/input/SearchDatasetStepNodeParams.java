@@ -1,5 +1,6 @@
 package com.tarzan.maxkb4j.module.application.workflow.node.searchdataset.input;
 
+import com.tarzan.maxkb4j.module.application.entity.DatasetSetting;
 import com.tarzan.maxkb4j.module.application.workflow.dto.BaseParams;
 import lombok.Data;
 import lombok.EqualsAndHashCode;

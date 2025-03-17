@@ -15,8 +15,6 @@ import lombok.EqualsAndHashCode;
 @TableName("team_member")
 public class TeamMemberEntity extends BaseEntity {
 
-    @JsonProperty("team_id")
     private String teamId;
-    @JsonProperty("user_id")
     private String userId;
 } 

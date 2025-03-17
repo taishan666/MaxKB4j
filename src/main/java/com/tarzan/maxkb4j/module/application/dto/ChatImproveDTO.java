@@ -7,11 +7,8 @@ import java.util.List;
 
 @Data
 public class ChatImproveDTO {
-    @JsonProperty("chat_ids")
     private List<String> chatIds;
-    @JsonProperty("dataset_id")
     private String datasetId;
-    @JsonProperty("document_id")
     private String documentId;
 
 }

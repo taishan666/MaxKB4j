@@ -8,6 +8,5 @@ import java.util.List;
 @Data
 public class DeleteDTO {
 
-    @JsonProperty("id_list")
     private List<String> idList;
 }

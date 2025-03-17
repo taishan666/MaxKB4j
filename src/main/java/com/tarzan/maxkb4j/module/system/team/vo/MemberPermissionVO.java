@@ -12,7 +12,6 @@ public class MemberPermissionVO {
     private String name;
     private String type;
     private String userId;
-    @JsonProperty("target_id")
     private String targetId;
     private String memberId;
     private MemberOperate operate;

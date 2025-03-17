@@ -7,6 +7,5 @@ import lombok.Data;
 @Data
 public class QueryDTO {
     private String name;
-    @JsonProperty("select_user_id")
     private String selectUserId;
 }

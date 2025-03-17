@@ -9,6 +9,5 @@ import lombok.EqualsAndHashCode;
 @Data
 public class ApplicationAccessTokenDTO extends ApplicationAccessTokenEntity {
 
-    @JsonProperty("access_token_reset")
     private Boolean accessTokenReset;
 }

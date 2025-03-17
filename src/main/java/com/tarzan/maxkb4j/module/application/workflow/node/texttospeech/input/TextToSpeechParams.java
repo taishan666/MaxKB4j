@@ -12,13 +12,9 @@ import java.util.List;
 @Data
 public class TextToSpeechParams extends BaseParams {
 
-    @JsonProperty("tts_model_id")
     private String modelId;
-    @JsonProperty("is_result")
     private Boolean isResult;
-    @JsonProperty("content_list")
     private List<String> contentList;
-    @JsonProperty("model_params_setting")
     private JSONObject modelParamsSetting;
     @Override
     public boolean isValid() {

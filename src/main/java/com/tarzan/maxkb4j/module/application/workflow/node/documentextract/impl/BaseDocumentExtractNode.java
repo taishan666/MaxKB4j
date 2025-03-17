@@ -167,8 +167,6 @@ public class BaseDocumentExtractNode extends IDocumentExtractNode {
             } catch (IOException | SAXException | TikaException e) {
                 throw new RuntimeException(e);
             }
-            System.out.println("文件内容:" + contentHandler.getMarkdown());
-
             String text = "### "+fileMap.get("name")+"\n"+contentHandler.getMarkdown()+splitter;
             sb.append(text);
         }

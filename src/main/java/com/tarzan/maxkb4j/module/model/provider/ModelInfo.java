@@ -9,7 +9,6 @@ public class ModelInfo {
 
     private String name;
     private String desc;
-    @JsonProperty("model_type")
     private String modelType;
     @JsonIgnore
     private BaseModelCredential modelCredential;

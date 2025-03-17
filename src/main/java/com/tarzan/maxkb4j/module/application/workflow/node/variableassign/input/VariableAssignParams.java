@@ -12,7 +12,6 @@ import java.util.Map;
 @Data
 public class VariableAssignParams extends BaseParams {
 
-    @JsonProperty("variable_list")
     private List<Map<String, Object>> variableList;
 
     @Override

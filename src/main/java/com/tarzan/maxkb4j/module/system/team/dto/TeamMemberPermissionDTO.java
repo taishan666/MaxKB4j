@@ -9,6 +9,5 @@ import java.util.List;
 @Data
 public class TeamMemberPermissionDTO {
 
-    @JsonProperty("team_member_permission_list")
     private List<MemberPermissionVO> teamMemberPermissionList;
 }

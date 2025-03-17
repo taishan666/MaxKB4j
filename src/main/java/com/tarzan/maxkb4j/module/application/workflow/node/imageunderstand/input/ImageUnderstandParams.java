@@ -11,18 +11,13 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class ImageUnderstandParams extends BaseParams {
-    @JsonProperty("model_id")
     private String modelId;
     private String system;
     private String prompt;
-    @JsonProperty("dialogue_number")
     private Integer dialogueNumber;
-    @JsonProperty("dialogue_type")
     private String dialogueType;
-    @JsonProperty("is_result")
     private Boolean isResult;
     private List<String> imageList;
-    @JsonProperty("model_params_setting")
     private JSONObject modelParamsSetting;
 
     @Override

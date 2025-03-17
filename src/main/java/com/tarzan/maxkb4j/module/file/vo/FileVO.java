@@ -5,7 +5,6 @@ import lombok.Data;
 
 @Data
 public class FileVO {
-    @JsonProperty("file_id")
     private String fileId;
     private String name;
     private String url;

@@ -10,17 +10,12 @@ import lombok.EqualsAndHashCode;
 @Data
 public class ChatNodeParams extends BaseParams {
 
-    @JsonProperty("model_id")
     private String modelId;
     private String system;
     private String prompt;
-    @JsonProperty("dialogue_number")
     private int dialogueNumber;
-    @JsonProperty("is_result")
     private Boolean isResult;
-    @JsonProperty("model_params_setting")
     private JSONObject modelParamsSetting;
-    @JsonProperty("dialogue_type")
     private String dialogueType;
 
     @Override

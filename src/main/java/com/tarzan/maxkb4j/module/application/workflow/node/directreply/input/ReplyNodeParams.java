@@ -10,11 +10,9 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class ReplyNodeParams extends BaseParams {
-    @JsonProperty("reply_type")
     private String replyType;
     private List<String> fields;
     private String content;
-    @JsonProperty("is_result")
     private Boolean isResult;
     @Override
     public boolean isValid() {

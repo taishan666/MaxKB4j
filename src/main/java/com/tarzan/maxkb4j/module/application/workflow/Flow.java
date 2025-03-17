@@ -27,16 +27,6 @@ public class Flow {
         return JSON.parseObject(flowJson.toJSONString(), new TypeReference<Flow>() {});
     }
 
-    public static  Flow newInstance1(JSONObject flow){
-        Flow res= flow.toJavaObject(Flow.class);
-        System.out.println("res="+res);
-        System.out.println("res getNodes="+res.getNodes());
-        for (Node node : res.getNodes()) {
-            System.out.println("res node="+node);
-        }
-        return res;
-    }
-
     public Node getStartNode(){
         return this.nodes.stream().filter(node -> node.getId().equals("start-node")).findFirst().orElse(null);
     }
