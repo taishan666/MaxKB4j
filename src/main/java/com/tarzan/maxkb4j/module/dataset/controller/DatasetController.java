@@ -58,12 +58,6 @@ public class DatasetController {
         return R.success(datasetService.getByDatasetId(id));
     }
 
-    @GetMapping("api/valid/dataset/{id}")
-    public R<Boolean> validDatasetById(@PathVariable("id") String id) {
-        //todo
-        return R.success(true);
-    }
-
     @GetMapping("api/dataset/{id}/hit_test")
     public R<List<ParagraphVO>> hitTest(@PathVariable("id") String id, HitTestDTO dto) {
         return R.success(retrieveService.paragraphSearch(List.of(id), dto));

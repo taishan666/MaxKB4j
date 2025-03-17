@@ -84,10 +84,6 @@ public class UserController{
 		return R.status(userService.createUser(user));
 	}
 
-	@GetMapping("api/valid/user/{id}")
-	public R<UserEntity> validUserById(@PathVariable("id")String id){
-		return R.data(userService.validUserById(id));
-	}
 	@PutMapping("api/user_manage/{id}")
 	public R<Boolean> updateUserById(@PathVariable("id")String id,@RequestBody UserEntity user){
 		user.setId(id);

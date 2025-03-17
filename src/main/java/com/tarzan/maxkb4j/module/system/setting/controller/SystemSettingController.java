@@ -2,6 +2,7 @@ package com.tarzan.maxkb4j.module.system.setting.controller;
 
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.module.system.setting.entity.SystemSettingEntity;
+import com.tarzan.maxkb4j.module.system.user.entity.UserEntity;
 import com.tarzan.maxkb4j.tool.api.R;
 import org.springframework.web.bind.annotation.*;
 import lombok.AllArgsConstructor;
@@ -35,5 +36,10 @@ public class SystemSettingController{
 	@PutMapping("api/email_setting")
 	public R<Boolean> saveEmailSetting(@RequestBody JSONObject meta){
 		return R.status(systemSettingService.saveEmailSetting(meta));
+	}
+
+	@GetMapping("api/valid/{type}/{count}")
+	public R<UserEntity> valid(@PathVariable("type")String type,@PathVariable("count")int count){
+		return R.status(count>0);
 	}
 }

@@ -122,12 +122,6 @@ public class ApplicationController {
         return new ResponseEntity<>(applicationService.textToSpeech(appId, data), headers, HttpStatus.OK);
     }
 
-    @GetMapping("api/valid/application/{type}")
-    public R<Boolean> copyApp(@PathVariable("type") int type) {
-        //todo
-        return R.success(true);
-    }
-
     @PutMapping("api/application/{appId}")
     public R<Boolean> updateByAppId(@PathVariable("appId") String appId, @RequestBody ApplicationVO appVO) {
         return R.success(applicationService.updateAppById(appId, appVO));
