@@ -594,7 +594,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
                 List<ParagraphEntity> paragraphs = paragraphService.lambdaQuery().eq(ParagraphEntity::getDocumentId, docId).list();
                 this.updateStatusById(docId,1,1);
                 paragraphs.forEach(paragraph -> {
-                    paragraphService.embedParagraph(paragraph,embeddingModel);
+                    paragraphService.paragraphIndex(paragraph,embeddingModel);
                     this.updateStatusMetaById(docId);
                 });
                 this.updateStatusById(docId,1,2);

@@ -3,29 +3,23 @@ package com.tarzan.maxkb4j.module.dataset.service;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.huaban.analysis.jieba.JiebaSegmenter;
+import com.tarzan.maxkb4j.module.dataset.entity.EmbeddingEntity;
 import com.tarzan.maxkb4j.module.dataset.entity.ParagraphEntity;
 import com.tarzan.maxkb4j.module.dataset.entity.ProblemEntity;
 import com.tarzan.maxkb4j.module.dataset.entity.ProblemParagraphEntity;
+import com.tarzan.maxkb4j.module.dataset.mapper.EmbeddingMapper;
 import com.tarzan.maxkb4j.module.dataset.mapper.ParagraphMapper;
-import com.tarzan.maxkb4j.module.embedding.entity.EmbeddingEntity;
-import com.tarzan.maxkb4j.module.embedding.mapper.EmbeddingMapper;
 import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.model.output.Response;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.util.StringUtil;
-import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * @author tarzan
@@ -38,7 +32,7 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
 
     private final ProblemService problemService;
     private final ProblemParagraphService problemParagraphService;
-    private final MongoTemplate mongoTemplate;
+    private final DataIndexService dataIndexService;
     private final EmbeddingMapper embeddingMapper;
 
     public void updateStatusById(String id, int type, int status) {
@@ -55,31 +49,31 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
 
     @Transactional
     public void migrateDoc(String sourceId, String targetId, List<String> docIds) {
-        embeddingMapper.update(Wrappers.<EmbeddingEntity>lambdaUpdate().set(EmbeddingEntity::getDatasetId, targetId).eq(EmbeddingEntity::getDatasetId, sourceId));
-        this.lambdaUpdate().set(ParagraphEntity::getDatasetId, targetId).eq(ParagraphEntity::getDatasetId, sourceId).update();
+        //todo 优化考虑 问题同时关联了需要迁移的文档和没有迁移的文档段落时该如何处理
+        embeddingMapper.update(Wrappers.<EmbeddingEntity>lambdaUpdate().set(EmbeddingEntity::getDatasetId, targetId).in(EmbeddingEntity::getDocumentId,docIds));
+        this.lambdaUpdate().set(ParagraphEntity::getDatasetId, targetId).in(ParagraphEntity::getDocumentId, docIds).update();
         problemService.lambdaUpdate().set(ProblemEntity::getDatasetId, targetId).eq(ProblemEntity::getDatasetId, sourceId).update();
         problemParagraphService.lambdaUpdate().set(ProblemParagraphEntity::getDatasetId, targetId).eq(ProblemParagraphEntity::getDatasetId, sourceId).update();
     }
 
     @Transactional
     public void deleteByDocIds(List<String> docIds) {
-        embeddingMapper.delete(Wrappers.<EmbeddingEntity>lambdaQuery().in(EmbeddingEntity::getDocumentId, docIds));
+        dataIndexService.removeByDocIds(docIds);
         this.lambdaUpdate().in(ParagraphEntity::getDocumentId, docIds).remove();
-        List<ProblemParagraphEntity> list = problemParagraphService.lambdaQuery().select(ProblemParagraphEntity::getProblemId).in(ProblemParagraphEntity::getDocumentId, docIds).list();
+      //  List<ProblemParagraphEntity> list = problemParagraphService.lambdaQuery().select(ProblemParagraphEntity::getProblemId).in(ProblemParagraphEntity::getDocumentId, docIds).list();
         problemParagraphService.lambdaUpdate().in(ProblemParagraphEntity::getDocumentId, docIds).remove();
-        if (!CollectionUtils.isEmpty(list)) {
+        /*if (!CollectionUtils.isEmpty(list)) {
+              // todo 如果问题关联多个段落，根据段落删除问题不太好
               problemService.removeByIds(list.stream().map(ProblemParagraphEntity::getProblemId).toList());
-        }
+        }*/
     }
 
 
-    public void embedParagraph(ParagraphEntity paragraph,EmbeddingModel embeddingModel) {
+    public void paragraphIndex(ParagraphEntity paragraph,EmbeddingModel embeddingModel) {
         if (paragraph != null) {
             this.updateStatusById(paragraph.getId(),1,1);
             //清除之前向量
-            embeddingMapper.delete(Wrappers.<EmbeddingEntity>lambdaQuery().eq(EmbeddingEntity::getParagraphId, paragraph.getId()));
-            Query query = new Query(Criteria.where("paragraphId").is(paragraph.getId()));
-            mongoTemplate.remove(query,EmbeddingEntity.class);
+            dataIndexService.removeByParagraphId(paragraph.getId());
             List<EmbeddingEntity> embeddingEntities = new ArrayList<>();
             log.info("开始---->向量化段落:{}", paragraph.getId());
             EmbeddingEntity paragraphEmbed = new EmbeddingEntity();
@@ -90,7 +84,7 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
             paragraphEmbed.setSourceId(paragraph.getId());
             paragraphEmbed.setSourceType("1");
             paragraphEmbed.setIsActive(paragraph.getIsActive());
-            paragraphEmbed.setContent(segmentContent(paragraph.getTitle() + paragraph.getContent()));
+            paragraphEmbed.setContent(paragraph.getTitle() + paragraph.getContent());
           //  paragraphEmbed.setSearchVector(new TSVector());
             Response<Embedding> res;
             if(StringUtil.isNotBlank(paragraph.getTitle())){
@@ -112,43 +106,26 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
                 problemEmbed.setSourceType("0");
                 problemEmbed.setIsActive(paragraph.getIsActive());
               //  paragraphEmbed.setSearchVector(new TSVector());
-                problemEmbed.setContent(segmentContent(problem.getContent()));
+                problemEmbed.setContent(problem.getContent());
                 Response<Embedding> res1 = embeddingModel.embed(problem.getContent());
                 problemEmbed.setEmbedding(res1.content().vectorAsList());
                 embeddingEntities.add(problemEmbed);
             }
-            embeddingMapper.insert(embeddingEntities);
-            mongoTemplate.insertAll(embeddingEntities);
+            dataIndexService.insertAll(embeddingEntities);
             this.updateStatusById(paragraph.getId(),1,2);
             log.info("结束---->向量化段落:{}", paragraph.getId());
         }
     }
 
-    public  List<String> segment(String text){
-        JiebaSegmenter jiebaSegmenter = new JiebaSegmenter(); // true: 细粒度模式
-        return jiebaSegmenter.sentenceProcess(text);
-    }
-
-    public  String segmentContent(String text) {
-        List<String> tokens =segment(text);
-        return String.join(" ", tokens);
-    }
-
-
     @Transactional
     public void updateParagraphById(ParagraphEntity paragraph) {
-        if (Objects.nonNull(paragraph.getIsActive())) {
-            embeddingMapper.update(Wrappers.<EmbeddingEntity>lambdaUpdate().set(EmbeddingEntity::getIsActive, paragraph.getIsActive()).eq(EmbeddingEntity::getParagraphId, paragraph.getId()));
-        }
+        dataIndexService.updateActiveByParagraph(paragraph);
         this.updateById(paragraph);
     }
 
     @Transactional
     public boolean deleteBatchParagraphByIds(List<String> paragraphIds) {
-        if (CollectionUtils.isEmpty(paragraphIds)) {
-            return false;
-        }
-        embeddingMapper.delete(Wrappers.<EmbeddingEntity>lambdaQuery().in(EmbeddingEntity::getParagraphId, paragraphIds));
+        dataIndexService.removeByParagraphIds(paragraphIds);
         return this.removeByIds(paragraphIds);
     }
 }

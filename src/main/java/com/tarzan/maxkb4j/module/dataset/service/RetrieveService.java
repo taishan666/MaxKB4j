@@ -20,7 +20,7 @@ public class RetrieveService {
     private final ParagraphMapper paragraphMapper;
     private final JiebaSegmenter jiebaSegmenter = new JiebaSegmenter();
     private final DatasetBaseService datasetService;
-    private final FullTextSearchService fullTextSearchService;
+    private final FullTextIndexService fullTextIndexService;
 
 
     public List<ParagraphVO> paragraphSearch(String question,List<String> datasetIds,List<String> excludeParagraphIds,int TopN,float similarity,String searchMode) {
@@ -37,13 +37,13 @@ public class RetrieveService {
             return embedTextService.search(datasetIds, dto.getQueryText(), dto.getTopNumber(),dto.getSimilarity());
         }
         if ("keywords".equals(dto.getSearchMode())) {
-            return fullTextSearchService.search(datasetIds,dto.getQueryText(), dto.getTopNumber());
+            return fullTextIndexService.search(datasetIds,dto.getQueryText(), dto.getTopNumber());
         }
         if ("blend".equals(dto.getSearchMode())) {
             Map<String,Float> map=new LinkedHashMap<>();
             List<HitTestVO> results =new ArrayList<>();
             List<HitTestVO> embedResults = embedTextService.search(datasetIds, dto.getQueryText(), dto.getTopNumber(),dto.getSimilarity());
-            List<HitTestVO> fullTextResults = fullTextSearchService.search(datasetIds,dto.getQueryText(), dto.getTopNumber());
+            List<HitTestVO> fullTextResults = fullTextIndexService.search(datasetIds,dto.getQueryText(), dto.getTopNumber());
             for (HitTestVO embedResult : embedResults) {
                 map.put(embedResult.getParagraphId(), embedResult.getScore());
             }

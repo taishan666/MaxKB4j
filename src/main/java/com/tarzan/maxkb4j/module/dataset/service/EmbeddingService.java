@@ -1,4 +1,4 @@
-package com.tarzan.maxkb4j.module.embedding.service;
+package com.tarzan.maxkb4j.module.dataset.service;
 
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -14,8 +14,8 @@ import com.tarzan.maxkb4j.module.dataset.mapper.ProblemMapper;
 import com.tarzan.maxkb4j.module.dataset.mapper.ProblemParagraphMapper;
 import com.tarzan.maxkb4j.module.dataset.vo.HitTestVO;
 import com.tarzan.maxkb4j.module.dataset.vo.ProblemParagraphVO;
-import com.tarzan.maxkb4j.module.embedding.entity.EmbeddingEntity;
-import com.tarzan.maxkb4j.module.embedding.mapper.EmbeddingMapper;
+import com.tarzan.maxkb4j.module.dataset.entity.EmbeddingEntity;
+import com.tarzan.maxkb4j.module.dataset.mapper.EmbeddingMapper;
 import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.model.output.Response;

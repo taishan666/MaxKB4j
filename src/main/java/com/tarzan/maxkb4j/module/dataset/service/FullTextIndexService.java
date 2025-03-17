@@ -1,8 +1,8 @@
 package com.tarzan.maxkb4j.module.dataset.service;
 
 import com.huaban.analysis.jieba.JiebaSegmenter;
+import com.tarzan.maxkb4j.module.dataset.entity.EmbeddingEntity;
 import com.tarzan.maxkb4j.module.dataset.vo.HitTestVO;
-import com.tarzan.maxkb4j.module.embedding.entity.EmbeddingEntity;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.MongoExpression;
@@ -18,7 +18,7 @@ import java.util.List;
 
 @Service
 @AllArgsConstructor
-public class FullTextSearchService {
+public class FullTextIndexService {
 
     private final MongoTemplate mongoTemplate;
 
@@ -74,14 +74,9 @@ public class FullTextSearchService {
         return result.stream().map(entity -> new HitTestVO(entity.getParagraphId(), entity.getScore())).toList();
     }
 
-
-    public List<String> segment(String text) {
-        JiebaSegmenter jiebaSegmenter = new JiebaSegmenter(); // true: 细粒度模式
-        return jiebaSegmenter.sentenceProcess(text);
-    }
-
     public String segmentContent(String text) {
-        List<String> tokens = segment(text);
+        JiebaSegmenter jiebaSegmenter = new JiebaSegmenter();
+        List<String> tokens = jiebaSegmenter.sentenceProcess(text);
         return String.join(" ", tokens);
     }
 
