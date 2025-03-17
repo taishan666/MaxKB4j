@@ -52,7 +52,7 @@ public class FullTextIndexService {
                 Aggregation.sort(Sort.Direction.DESC, "score"),
 
                 // 步骤7: 限制最终返回数量
-                Aggregation.limit(maxResults + 100)
+                Aggregation.limit(maxResults)
         );
 
         // 执行聚合查询

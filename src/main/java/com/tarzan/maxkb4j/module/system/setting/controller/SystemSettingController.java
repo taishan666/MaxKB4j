@@ -2,11 +2,10 @@ package com.tarzan.maxkb4j.module.system.setting.controller;
 
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.module.system.setting.entity.SystemSettingEntity;
-import com.tarzan.maxkb4j.module.system.user.entity.UserEntity;
-import com.tarzan.maxkb4j.tool.api.R;
-import org.springframework.web.bind.annotation.*;
-import lombok.AllArgsConstructor;
 import com.tarzan.maxkb4j.module.system.setting.service.SystemSettingService;
+import com.tarzan.maxkb4j.tool.api.R;
+import lombok.AllArgsConstructor;
+import org.springframework.web.bind.annotation.*;
 /**
  * @author tarzan
  * @date 2024-12-31 17:33:32
@@ -39,7 +38,8 @@ public class SystemSettingController{
 	}
 
 	@GetMapping("api/valid/{type}/{count}")
-	public R<UserEntity> valid(@PathVariable("type")String type,@PathVariable("count")int count){
+	public R<Boolean> valid(@PathVariable("type")String type,@PathVariable("count")int count){
+		//todo
 		return R.status(count>0);
 	}
 }
