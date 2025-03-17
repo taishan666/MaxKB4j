@@ -23,8 +23,6 @@ import com.tarzan.maxkb4j.module.dataset.vo.DatasetVO;
 import com.tarzan.maxkb4j.module.dataset.vo.ParagraphSimpleVO;
 import com.tarzan.maxkb4j.module.dataset.vo.ProblemVO;
 import com.tarzan.maxkb4j.module.dataset.vo.TextSegmentVO;
-import com.tarzan.maxkb4j.module.dataset.entity.EmbeddingEntity;
-import com.tarzan.maxkb4j.module.dataset.mapper.EmbeddingMapper;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelEntity;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
 import com.tarzan.maxkb4j.util.BeanUtil;
@@ -74,7 +72,7 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
     private final ApplicationDatasetMappingMapper applicationDatasetMappingMapper;
     private final ParagraphService paragraphService;
     private final ProblemParagraphMapper problemParagraphMapper;
-    private final EmbeddingMapper embeddingMapper;
+    private final DataIndexService dataIndexService;
     private final ModelService modelService;
 
 
@@ -158,7 +156,7 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
         paragraphService.lambdaUpdate().eq(ParagraphEntity::getDatasetId, id).remove();
         documentMapper.delete(Wrappers.<DocumentEntity>lambdaQuery().eq(DocumentEntity::getDatasetId, id));
         applicationDatasetMappingMapper.delete(Wrappers.<ApplicationDatasetMappingEntity>lambdaQuery().eq(ApplicationDatasetMappingEntity::getDatasetId, id));
-        embeddingMapper.delete(Wrappers.<EmbeddingEntity>lambdaQuery().eq(EmbeddingEntity::getDatasetId, id));
+        dataIndexService.removeByDatasetId(id);
         return this.removeById(id);
     }
 

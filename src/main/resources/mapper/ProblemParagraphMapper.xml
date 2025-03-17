@@ -14,7 +14,7 @@
         problem_paragraph_mapping ppm
         LEFT JOIN problem P ON P.ID = ppm.problem_id
         <where>
-            <if test="datasetId != null datasetId != ''">
+            <if test="datasetId != null and datasetId != ''">
                 AND ppm.dataset_id =   #{datasetId}
             </if>
             <if test="docIds != null and docIds.size() > 0">

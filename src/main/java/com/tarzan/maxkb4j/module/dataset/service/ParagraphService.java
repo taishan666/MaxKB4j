@@ -1,13 +1,11 @@
 package com.tarzan.maxkb4j.module.dataset.service;
 
 import com.alibaba.fastjson.JSONObject;
-import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tarzan.maxkb4j.module.dataset.entity.EmbeddingEntity;
 import com.tarzan.maxkb4j.module.dataset.entity.ParagraphEntity;
 import com.tarzan.maxkb4j.module.dataset.entity.ProblemEntity;
 import com.tarzan.maxkb4j.module.dataset.entity.ProblemParagraphEntity;
-import com.tarzan.maxkb4j.module.dataset.mapper.EmbeddingMapper;
 import com.tarzan.maxkb4j.module.dataset.mapper.ParagraphMapper;
 import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.model.embedding.EmbeddingModel;
@@ -33,7 +31,6 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
     private final ProblemService problemService;
     private final ProblemParagraphService problemParagraphService;
     private final DataIndexService dataIndexService;
-    private final EmbeddingMapper embeddingMapper;
 
     public void updateStatusById(String id, int type, int status) {
         baseMapper.updateStatusById(id,type,status,type-1,type+1);
@@ -50,7 +47,7 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
     @Transactional
     public void migrateDoc(String sourceId, String targetId, List<String> docIds) {
         //todo 优化考虑 问题同时关联了需要迁移的文档和没有迁移的文档段落时该如何处理
-        embeddingMapper.update(Wrappers.<EmbeddingEntity>lambdaUpdate().set(EmbeddingEntity::getDatasetId, targetId).in(EmbeddingEntity::getDocumentId,docIds));
+        dataIndexService.migrateDoc(targetId,docIds);
         this.lambdaUpdate().set(ParagraphEntity::getDatasetId, targetId).in(ParagraphEntity::getDocumentId, docIds).update();
         problemService.lambdaUpdate().set(ProblemEntity::getDatasetId, targetId).eq(ProblemEntity::getDatasetId, sourceId).update();
         problemParagraphService.lambdaUpdate().set(ProblemParagraphEntity::getDatasetId, targetId).eq(ProblemParagraphEntity::getDatasetId, sourceId).update();
