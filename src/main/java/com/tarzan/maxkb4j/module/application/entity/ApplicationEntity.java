@@ -4,7 +4,9 @@ import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.tarzan.maxkb4j.common.entity.BaseEntity;
+import com.tarzan.maxkb4j.handler.DatasetSettingTypeHandler;
 import com.tarzan.maxkb4j.handler.JOSNBTypeHandler;
+import com.tarzan.maxkb4j.handler.LlmModelSettingTypeHandler;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -27,11 +29,11 @@ public class ApplicationEntity extends BaseEntity {
 
     private Integer dialogueNumber;
 
-    @TableField(typeHandler = JOSNBTypeHandler.class)
-    private JSONObject datasetSetting;
+    @TableField(typeHandler = DatasetSettingTypeHandler.class)
+    private DatasetSetting datasetSetting;
 
-    @TableField(typeHandler = JOSNBTypeHandler.class)
-    private JSONObject modelSetting;
+    @TableField(typeHandler = LlmModelSettingTypeHandler.class)
+    private LlmModelSetting modelSetting;
 
     private Boolean problemOptimization;
 

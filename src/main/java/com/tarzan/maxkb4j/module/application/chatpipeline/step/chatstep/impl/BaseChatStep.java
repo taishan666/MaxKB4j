@@ -9,6 +9,8 @@ import com.tarzan.maxkb4j.module.application.chatpipeline.handler.PostResponseHa
 import com.tarzan.maxkb4j.module.application.chatpipeline.step.chatstep.IChatStep;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationEntity;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationPublicAccessClientEntity;
+import com.tarzan.maxkb4j.module.application.entity.DatasetSetting;
+import com.tarzan.maxkb4j.module.application.entity.NoReferencesSetting;
 import com.tarzan.maxkb4j.module.application.service.ApplicationPublicAccessClientService;
 import com.tarzan.maxkb4j.module.application.workflow.ChatStream;
 import com.tarzan.maxkb4j.module.dataset.vo.ParagraphVO;
@@ -48,8 +50,8 @@ public class BaseChatStep extends IChatStep {
         super.context.put("model_id", modelId);
         PostResponseHandler postResponseHandler = (PostResponseHandler) context.get("postResponseHandler");
         String problemText = context.getString("problem_text");
-        JSONObject datasetSetting = application.getDatasetSetting();
-        JSONObject noReferencesSetting = datasetSetting.getJSONObject("noReferencesSetting");
+        DatasetSetting datasetSetting = application.getDatasetSetting();
+        NoReferencesSetting noReferencesSetting = datasetSetting.getNoReferencesSetting();
         String chatId = context.getString("chatId");
         String chatRecordId = IdWorker.get32UUID();
         BaseChatModel chatModel = modelService.getModelById(modelId);
@@ -61,7 +63,7 @@ public class BaseChatStep extends IChatStep {
     private Flux<JSONObject> getFluxResult(String chatId, String chatRecordId, List<ChatMessage> messageList,
                                            BaseChatModel chatModel,
                                            List<ParagraphVO> paragraphList,
-                                           JSONObject noReferencesSetting,
+                                           NoReferencesSetting noReferencesSetting,
                                            String problemText, PipelineManage manage, PostResponseHandler postResponseHandler, boolean stream) {
         Sinks.Many<JSONObject> sink = Sinks.many().multicast().onBackpressureBuffer();
         if (CollectionUtils.isEmpty(paragraphList)) {
@@ -82,10 +84,9 @@ public class BaseChatStep extends IChatStep {
                 String text = directlyReturnChunkList.get(0).text();
                 sink.tryEmitNext(toResponse(chatId, chatRecordId, text, false, 0, 0));
             } else if (paragraphList.isEmpty()) {
-                String status = noReferencesSetting.getString("status");
-                System.out.println("status" + status);
+                String status = noReferencesSetting.getStatus();
                 if ("designated_answer".equals(status)) {
-                    String value = noReferencesSetting.getString("value");
+                    String value = noReferencesSetting.getValue();
                     String text = value.replace("{question}", problemText);
                     sink.tryEmitNext(toResponse(chatId, chatRecordId, text, false, 0, 0));
                 }

@@ -1,8 +1,7 @@
 package com.tarzan.maxkb4j.module.application.chatpipeline.step.generatehumanmessagestep.impl;
 
 import com.alibaba.fastjson.JSONObject;
-import com.tarzan.maxkb4j.module.application.entity.ApplicationChatRecordEntity;
-import com.tarzan.maxkb4j.module.application.entity.ApplicationEntity;
+import com.tarzan.maxkb4j.module.application.entity.*;
 import com.tarzan.maxkb4j.module.application.chatpipeline.PipelineManage;
 import com.tarzan.maxkb4j.module.application.chatpipeline.step.generatehumanmessagestep.IGenerateHumanMessageStep;
 import com.tarzan.maxkb4j.module.dataset.vo.ParagraphVO;
@@ -25,15 +24,15 @@ public class GenerateHumanMessageStep extends IGenerateHumanMessageStep {
         List<ParagraphVO> paragraphList = (List<ParagraphVO>) context.get("paragraph_list");
         List<ApplicationChatRecordEntity> chatRecordList = (List<ApplicationChatRecordEntity>) context.get("chatRecordList");
         ApplicationEntity application = (ApplicationEntity) context.get("application");
-        JSONObject modelSetting = application.getModelSetting();
-        String system = modelSetting.getString("system");
-        String prompt = modelSetting.getString("prompt");
+        LlmModelSetting modelSetting = application.getModelSetting();
+        String system = modelSetting.getSystem();
+        String prompt = modelSetting.getPrompt();
         String problemText = context.getString("problem_text");
         String paddingProblemText=context.getString("padding_problem_text");
         String execProblemText = StringUtils.isNotBlank(paddingProblemText)?paddingProblemText:problemText;
-        JSONObject datasetSetting = application.getDatasetSetting();
-        int maxParagraphCharNumber = datasetSetting.getInteger("maxParagraphCharNumber");
-        JSONObject noReferencesSetting = datasetSetting.getJSONObject("noReferencesSetting");
+        DatasetSetting datasetSetting = application.getDatasetSetting();
+        int maxParagraphCharNumber = datasetSetting.getMaxParagraphCharNumber();
+        NoReferencesSetting noReferencesSetting = datasetSetting.getNoReferencesSetting();
         int dialogueNumber = application.getDialogueNumber();
 
         if (StringUtils.isNotBlank(system)) {
@@ -53,10 +52,10 @@ public class GenerateHumanMessageStep extends IGenerateHumanMessageStep {
         return messages;
     }
 
-    public ChatMessage toHumanMessage(String prompt, String problem, List<ParagraphVO> paragraphList, int maxParagraphCharNumber, JSONObject noReferencesSetting) {
+    public ChatMessage toHumanMessage(String prompt, String problem, List<ParagraphVO> paragraphList, int maxParagraphCharNumber, NoReferencesSetting noReferencesSetting) {
         if (CollectionUtils.isEmpty(paragraphList)) {
-            if ("ai_questioning".equals(noReferencesSetting.getString("status"))) {
-                String value = noReferencesSetting.getString("value");
+            if ("ai_questioning".equals(noReferencesSetting.getStatus())) {
+                String value = noReferencesSetting.getValue();
                 return UserMessage.from(value.replace("{question}", problem));
             } else {
                 return UserMessage.from(prompt.replace("{data}", "").replace("{question}", problem));
