@@ -41,6 +41,11 @@ public class DocumentController {
         documentService.web(id,params);
     }
 
+    @PutMapping("api/dataset/{id}/document/{docId}/sync")
+    public void sync(@PathVariable("id") String id,@PathVariable("docId") String docId) throws IOException {
+        documentService.sync(id,docId);
+    }
+
     @GetMapping("api/dataset/{id}/document/{docId}/export")
     public void export(@PathVariable("id") String id, @PathVariable("docId") String docId, HttpServletResponse response) throws IOException {
         documentService.exportExcelByDocId(docId, response);

@@ -20,7 +20,7 @@ public class DataIndexJob {
 
     @Scheduled(cron = "0/1 * * * * *")
     public void execute() {
-        List<DocumentEntity> docs=documentService.lambdaQuery().likeLeft(DocumentEntity::getStatus, "0").last("limit 10").list();
+        List<DocumentEntity> docs=documentService.lambdaQuery().select(DocumentEntity::getId, DocumentEntity::getDatasetId).likeLeft(DocumentEntity::getStatus, "0").last("limit 10").list();
         docs.parallelStream().forEach(doc -> {
             documentService.createIndexByDocId(datasetService.getDatasetEmbeddingModel(doc.getDatasetId()),doc.getId());
         });

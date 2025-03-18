@@ -1,13 +1,12 @@
 package com.tarzan.maxkb4j.module.dataset.entity;
 
+import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tarzan.maxkb4j.handler.JOSNBTypeHandler;
 import com.tarzan.maxkb4j.common.entity.BaseEntity;
+import com.tarzan.maxkb4j.handler.JOSNBTypeHandler;
 import lombok.Data;
-import com.alibaba.fastjson.JSONObject;
 import lombok.EqualsAndHashCode;
 
 
@@ -28,7 +27,7 @@ public class DocumentEntity extends BaseEntity {
 	
 	private Boolean isActive;
 	
-	private String type;
+	private Integer type;
 	
 	@TableField(typeHandler = JOSNBTypeHandler.class)
 	private JSONObject meta;

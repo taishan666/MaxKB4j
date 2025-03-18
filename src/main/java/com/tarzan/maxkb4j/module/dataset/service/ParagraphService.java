@@ -57,12 +57,13 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
     public void deleteByDocIds(List<String> docIds) {
         dataIndexService.removeByDocIds(docIds);
         this.lambdaUpdate().in(ParagraphEntity::getDocumentId, docIds).remove();
-      //  List<ProblemParagraphEntity> list = problemParagraphService.lambdaQuery().select(ProblemParagraphEntity::getProblemId).in(ProblemParagraphEntity::getDocumentId, docIds).list();
-        problemParagraphService.lambdaUpdate().in(ProblemParagraphEntity::getDocumentId, docIds).remove();
+        //  List<ProblemParagraphEntity> list = problemParagraphService.lambdaQuery().select(ProblemParagraphEntity::getProblemId).in(ProblemParagraphEntity::getDocumentId, docIds).list();
         /*if (!CollectionUtils.isEmpty(list)) {
               // todo 如果问题关联多个段落，根据段落删除问题不太好
               problemService.removeByIds(list.stream().map(ProblemParagraphEntity::getProblemId).toList());
         }*/
+        problemParagraphService.lambdaUpdate().in(ProblemParagraphEntity::getDocumentId, docIds).remove();
+
     }
 
 

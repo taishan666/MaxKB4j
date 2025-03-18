@@ -22,6 +22,7 @@ import com.tarzan.maxkb4j.module.dataset.entity.DocumentEntity;
 import com.tarzan.maxkb4j.module.dataset.entity.ParagraphEntity;
 import com.tarzan.maxkb4j.module.dataset.entity.ProblemEntity;
 import com.tarzan.maxkb4j.module.dataset.entity.ProblemParagraphEntity;
+import com.tarzan.maxkb4j.module.dataset.enums.DocType;
 import com.tarzan.maxkb4j.module.dataset.excel.DatasetExcel;
 import com.tarzan.maxkb4j.module.dataset.mapper.DocumentMapper;
 import com.tarzan.maxkb4j.module.dataset.vo.DocumentVO;
@@ -155,7 +156,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
     @Transactional
     protected void processCsvFile(String datasetId, MultipartFile file) throws IOException {
         List<ParagraphEntity> paragraphs = new ArrayList<>();
-        DocumentEntity doc = createDocument(datasetId, file.getOriginalFilename());
+        DocumentEntity doc = createDocument(datasetId, file.getOriginalFilename(), DocType.BASE.getType());
         try (BufferedReader br = new BufferedReader(new InputStreamReader(file.getInputStream(), StandardCharsets.UTF_8));
              CSVReader csvReader = new CSVReader(br)) {
             String[] values;
@@ -189,7 +190,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
             List<DocumentEntity> docs = new ArrayList<>();
             for (int i = 0; i < numberOfSheets; i++) {
                 String sheetName = workbook.getSheetName(i);
-                DocumentEntity doc = createDocument(datasetId, sheetName);
+                DocumentEntity doc = createDocument(datasetId, sheetName,DocType.BASE.getType());
                 // 对于每一个Sheet进行数据读取
                 EasyExcel.read(new ByteArrayInputStream(fileBytes))
                         .sheet(sheetName) // 使用Sheet编号读取
@@ -268,7 +269,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
                 }
             }).sheet().doRead();
             List<ParagraphEntity> paragraphs = new ArrayList<>();
-            DocumentEntity doc = createDocument(datasetId, uploadFile.getOriginalFilename());
+            DocumentEntity doc = createDocument(datasetId, uploadFile.getOriginalFilename(),DocType.BASE.getType());
             if (!CollectionUtils.isEmpty(list)) {
                 for (String text : list) {
                     doc.setCharLength(doc.getCharLength() + text.length());
@@ -516,7 +517,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
             List<DocumentEntity> documentEntities = new ArrayList<>();
             List<ParagraphEntity> paragraphEntities = new ArrayList<>();
             docs.parallelStream().forEach(e -> {
-                DocumentEntity doc = createDocument(datasetId, e.getName());
+                DocumentEntity doc = createDocument(datasetId, e.getName(),DocType.BASE.getType());
                 AtomicInteger docCharLength = new AtomicInteger();
                 if (!CollectionUtils.isEmpty(e.getParagraphs())) {
                     e.getParagraphs().forEach(p ->{
@@ -535,7 +536,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         return false;
     }
 
-    public DocumentEntity createDocument(String datasetId, String name) {
+    public DocumentEntity createDocument(String datasetId, String name,Integer type) {
         DocumentEntity documentEntity = new DocumentEntity();
         documentEntity.setId(IdWorker.get32UUID());
         documentEntity.setDatasetId(datasetId);
@@ -545,7 +546,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         documentEntity.setStatus("nn0");
         //documentEntity.setStatusMeta(documentEntity.defaultStatusMeta());
         documentEntity.setIsActive(true);
-        documentEntity.setType("0");
+        documentEntity.setType(type);
         documentEntity.setHitHandlingMethod("optimization");
         documentEntity.setDirectlyReturnSimilarity(0.9);
         return documentEntity;
@@ -758,17 +759,27 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
 
     @Transactional
     public void web(String datasetId, WebUrlDTO params) {
-        System.out.println(params);
-        if(StringUtils.isBlank(params.getSelector())){
-            params.setSelector("body");
+        webDoc(datasetId, params.getSourceUrlList(), params.getSelector());
+    }
+
+    @Transactional
+    public void webDoc(String datasetId,List<String> sourceUrlList,String selector) {
+        System.out.println(selector);
+        if(StringUtils.isBlank(selector)){
+            selector="body";
         }
         List<DocumentEntity> docs=new ArrayList<>();
         List<ParagraphEntity> paragraphs=new ArrayList<>();
-        params.getSourceUrlList().forEach(url -> {
-           org.jsoup.nodes.Document  html=JsoupUtil.getDocument(url);
-            Elements elements=html.select(params.getSelector());
+        String finalSelector = selector;
+        sourceUrlList.forEach(url -> {
+            org.jsoup.nodes.Document  html=JsoupUtil.getDocument(url);
+            Elements elements=html.select(finalSelector);
             Document document=Document.document(elements.text());
-            DocumentEntity doc = createDocument(datasetId, JsoupUtil.getTitle(html));
+            DocumentEntity doc = createDocument(datasetId, JsoupUtil.getTitle(html),DocType.WEB.getType());
+            JSONObject meta=new JSONObject();
+            meta.put("source_url",url);
+            meta.put("selector", finalSelector);
+            doc.setMeta(meta);
             List<TextSegment> textSegments= defaultSplitter.split(document);
             for (TextSegment textSegment : textSegments) {
                 System.out.println(textSegment);
@@ -780,5 +791,12 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         });
         this.saveBatch(docs);
         paragraphService.saveBatch(paragraphs);
+    }
+
+    @Transactional
+    public void sync(String datasetId, String docId) {
+        DocumentEntity doc = this.getById(docId);
+        deleteBatchDocByDocIds(List.of(docId));
+        webDoc(datasetId, List.of(doc.getMeta().getString("source_url")),doc.getMeta().getString("selector"));
     }
 }
