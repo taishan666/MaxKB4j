@@ -22,7 +22,7 @@
         WHERE
             "user_id" = #{userId} UNION
         SELECT
-            team_member_permission.target AS "id",
+            team_member_permission.target_id AS "id",
             team_member_permission.auth_target_type AS "type",
             team_member.user_id AS user_id,
             team_member_permission.operate AS "operate"
@@ -30,6 +30,6 @@
             team_member team_member
                 LEFT JOIN team_member_permission team_member_permission ON team_member.ID = team_member_permission.member_id
         WHERE
-            team_member.user_id = #{userId} AND team_member_permission.target IS NOT NULL
+            team_member.user_id = #{userId} AND team_member_permission.target_id IS NOT NULL
     </select>
 </mapper>

@@ -10,15 +10,6 @@ spring:
     multipart:
       max-file-size: 100MB
       max-request-size: 100MB
-  datasource:
-    url: jdbc:postgresql://localhost:5432/Maxkb4j
-    username: username
-    password: password
-    driver-class-name: org.postgresql.Driver
-  data:
-    mongodb:
-      database: ${MONGO_DATABASE:MaxKB4j}
-      uri: mongodb://${MONGO_USERNAME:myusername}:${MONGO_PASSWORD:mypassword}@${MONGO_HOST:localhost}:27017
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss
     time-zone: GMT+8

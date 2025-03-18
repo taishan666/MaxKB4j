@@ -98,7 +98,7 @@ public class TeamMemberService extends ServiceImpl<TeamMemberMapper, TeamMemberE
                 entity.setMemberId(teamMemberId);
                 entity.setAuthTargetType(e.getType());
                 entity.setOperate(e.getOperate());
-                entity.setTarget(e.getTargetId());
+                entity.setTargetId(e.getTargetId());
                 return entity;
             }).toList();
             teamMemberPermissionService.saveBatch(entities);

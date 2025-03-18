@@ -41,10 +41,10 @@
                 AND "member_id" = #{memberId}
             </if>
         </where>
-        ) team_member_permission ON team_member_permission.target = app_or_dataset."id"
+        ) team_member_permission ON team_member_permission.target_id = app_or_dataset."id"
     </select>
     <select id="getUseTargets" resultType="java.lang.String">
-        SELECT target
+        SELECT target_id
         FROM team_member_permission tmp
         LEFT JOIN "team_member" tm ON tm.ID = tmp.member_id
         WHERE tm.user_id = #{userId}

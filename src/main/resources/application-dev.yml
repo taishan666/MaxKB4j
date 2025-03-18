@@ -1,0 +1,19 @@
+server:
+  port: 8080
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/Maxkb4j
+    username: username
+    password: password
+    driver-class-name: org.postgresql.Driver
+  data:
+    mongodb:
+      database: ${MONGO_DATABASE:MaxKB4j}
+      uri: mongodb://${MONGO_USERNAME:myusername}:${MONGO_PASSWORD:mypassword}@${MONGO_HOST:localhost}:27017
+
+decorator:
+  datasource:
+    p6spy:
+      # 日志格式
+      log-format: "\ntime:%(executionTime) || sql:%(sql)\n"

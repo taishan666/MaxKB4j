@@ -81,9 +81,6 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
     private final ProblemParagraphService problemParagraphService;
     private final DocumentParseService documentParseService;
 
-    public IPage<DocumentVO> selectDocPage(Page<DocumentVO> docPage, String datasetId, QueryDTO query) {
-        return baseMapper.selectDocPage(docPage, datasetId,query);
-    }
 
     public void updateStatusMetaById(String id){
         baseMapper.updateStatusMetaById(id);
@@ -584,26 +581,36 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
     public void embedByDocIds(EmbeddingModel embeddingModel,List<String> docIds) {
         if (!CollectionUtils.isEmpty(docIds)) {
             docIds.forEach(docId -> {
-                this.updateStatusById(docId,1,0);
                 paragraphService.updateStatusByDocId(docId, 1, 0);
+                this.updateStatusById(docId,1,0);
+                //目的是为了显示进度计数
                 this.updateStatusMetaById(docId);
-                log.info("开始--->向量化文档:{}", docId);
-                List<ParagraphEntity> paragraphs = paragraphService.lambdaQuery().eq(ParagraphEntity::getDocumentId, docId).list();
-                this.updateStatusById(docId,1,1);
-                paragraphs.forEach(paragraph -> {
-                    paragraphService.paragraphIndex(paragraph,embeddingModel);
-                    this.updateStatusMetaById(docId);
-                });
-                this.updateStatusById(docId,1,2);
-                log.info("结束--->向量化文档:{}", docId);
             });
         }
+    }
+
+
+    public void createIndexByDocId(EmbeddingModel embeddingModel,String docId) {
+        log.info("开始--->文档索引:{}", docId);
+        List<ParagraphEntity> paragraphs = paragraphService.lambdaQuery().eq(ParagraphEntity::getDocumentId, docId).list();
+        this.updateStatusById(docId,1,1);
+        paragraphs.forEach(paragraph -> {
+            paragraphService.paragraphIndex(paragraph,embeddingModel);
+            this.updateStatusMetaById(docId);
+        });
+        this.updateStatusById(docId,1,2);
+        log.info("结束--->文档索引:{}", docId);
     }
 
     public boolean cancelTask(String docId, int type) {
         DocumentEntity entity = new DocumentEntity();
         entity.setId(docId);
-        entity.setStatus("nn2");
+        String status=entity.getStatus();
+        if(type==1){
+            entity.setStatus(status.replace(status.substring(2), "3"));
+        }else if(type==2){
+            entity.setStatus(status.replace(status.substring(1,2), "3"));
+        }
         return this.updateById(entity);
     }
 
@@ -626,7 +633,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
 
     public IPage<DocumentVO> getDocByDatasetId(String datasetId, int page, int size, QueryDTO query) {
         Page<DocumentVO> docPage = new Page<>(page, size);
-        return this.selectDocPage(docPage, datasetId, query);
+        return baseMapper.selectDocPage(docPage, datasetId,query);
     }
 
     @Transactional

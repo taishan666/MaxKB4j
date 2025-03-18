@@ -17,7 +17,7 @@
         dataset d
         LEFT JOIN "document" doc ON d.ID = doc.dataset_id
         LEFT JOIN application_dataset_mapping adm ON d.ID = adm.dataset_id
-        LEFT JOIN team_member_permission tmp ON d.ID = tmp.target
+        LEFT JOIN team_member_permission tmp ON d.ID = tmp.target_id
         <where>
             (
             <if test="query.selectUserId != null and query.selectUserId != ''">
@@ -29,7 +29,7 @@
             )
             <if test="operate != null and operate != ''">
                 OR d.id IN (
-                    SELECT target
+                    SELECT target_id
                     FROM team_member_permission tmp
                     LEFT JOIN "team_member" tm ON tm.ID = tmp.member_id
                     WHERE tm.user_id = #{query.selectUserId}

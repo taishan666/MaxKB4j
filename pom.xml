@@ -28,6 +28,11 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.github.gavlyukovskiy</groupId>
+            <artifactId>p6spy-spring-boot-starter</artifactId>
+            <version>1.10.0</version>
+        </dependency>
         <!-- Spring Boot 缓存支持 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

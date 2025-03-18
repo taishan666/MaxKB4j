@@ -16,7 +16,6 @@ import org.xml.sax.Attributes;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.SAXException;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.LinkedHashMap;
@@ -27,11 +26,6 @@ import java.util.Map;
 public class DocumentParseService {
 
     private final FileService fileService;
-
-
-    public String extractText(byte[] data) {
-        return extractText(new ByteArrayInputStream(data));
-    }
 
     public String extractText(InputStream inputStream) {
         // 初始化解析器、元数据和上下文

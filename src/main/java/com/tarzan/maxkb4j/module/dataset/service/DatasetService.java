@@ -185,14 +185,11 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
         zipOutputStream.putNextEntry(zipEntry);
         zipOutputStream.write(excelOutputStream.toByteArray()); // 将字节输出流转为字节数组写入
         zipOutputStream.closeEntry();
-
         // 关闭Excel相关的资源
         excelOutputStream.close();
-
         // 完成ZIP文件的写入
         zipOutputStream.finish();
         zipOutputStream.close();
-
         // 将所有数据写入最终输出流
         OutputStream outputStream = response.getOutputStream();
         byteArrayOutputStream.writeTo(outputStream);

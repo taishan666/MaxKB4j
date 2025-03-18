@@ -19,7 +19,7 @@ public class TeamMemberPermissionEntity extends BaseEntity {
 
 	private String authTargetType;
 
-	private String target;
+	private String targetId;
 	@TableField(typeHandler = MemberOperateTypeHandler.class)
 	private MemberOperate operate;
 	private String memberId;
