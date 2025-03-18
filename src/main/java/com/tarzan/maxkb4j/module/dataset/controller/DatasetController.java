@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.tarzan.maxkb4j.common.dto.QueryDTO;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationEntity;
+import com.tarzan.maxkb4j.module.dataset.dto.DatasetDTO;
 import com.tarzan.maxkb4j.module.dataset.dto.HitTestDTO;
 import com.tarzan.maxkb4j.module.dataset.entity.DatasetEntity;
 import com.tarzan.maxkb4j.module.dataset.entity.ParagraphEntity;
@@ -49,9 +50,9 @@ public class DatasetController {
     }
 
     @PostMapping("api/dataset/web")
-    public R<DatasetEntity> createDatasetWeb(@RequestBody DatasetEntity dataset) {
+    public R<DatasetEntity> createDatasetWeb(@RequestBody DatasetDTO dataset) {
         //todo web
-        return R.success(datasetService.createDataset(dataset));
+        return R.success(datasetService.createWebDataset(dataset));
     }
 
     @GetMapping("api/dataset/{id}")

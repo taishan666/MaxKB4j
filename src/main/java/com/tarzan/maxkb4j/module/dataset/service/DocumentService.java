@@ -49,6 +49,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -645,7 +646,6 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         paragraph.setStatus("nn2");
         paragraph.setHitNum(0);
         paragraph.setIsActive(true);
-        //paragraph.setStatusMeta(paragraph.defaultStatusMeta());
         flag = paragraphService.save(paragraph);
         this.updateCharLengthById(docId);
         List<ProblemEntity> problems = paragraph.getProblemList();
@@ -762,9 +762,35 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         webDoc(datasetId, params.getSourceUrlList(), params.getSelector());
     }
 
+    @Async
+    @Transactional
+    public void webDataset(String datasetId,String baseUrl,String selector) {
+        if(StringUtils.isBlank(selector)){
+            selector="body";
+        }
+        String finalSelector = selector;
+        baseUrl=baseUrl.endsWith("/")?baseUrl.substring(0,baseUrl.length()-1):baseUrl;
+        org.jsoup.nodes.Document  html=JsoupUtil.getDocument(baseUrl);
+        Elements elements=html.select(finalSelector);
+        List<String> sourceUrlList=new ArrayList<>();
+        sourceUrlList.add(baseUrl);
+        Elements links= elements.select("a");
+        for (Element link : links) {
+            String href=link.attr("href");
+            String url=baseUrl+href;
+            String[]  catalogs=href.split("/");
+            if (!sourceUrlList.contains(url)&&href.startsWith("/")&&catalogs.length==2){
+                if(!href.contains("?")&&!href.contains("#")){
+                    sourceUrlList.add(baseUrl+href);
+                }
+            }
+        }
+        webDoc(datasetId, sourceUrlList,finalSelector);
+    }
+
+
     @Transactional
     public void webDoc(String datasetId,List<String> sourceUrlList,String selector) {
-        System.out.println(selector);
         if(StringUtils.isBlank(selector)){
             selector="body";
         }
@@ -782,7 +808,6 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
             doc.setMeta(meta);
             List<TextSegment> textSegments= defaultSplitter.split(document);
             for (TextSegment textSegment : textSegments) {
-                System.out.println(textSegment);
                 ParagraphEntity paragraph = getParagraphEntity(datasetId, doc.getId(), "", textSegment.text());
                 paragraphs.add(paragraph);
                 doc.setCharLength(doc.getCharLength()+paragraph.getContent().length());

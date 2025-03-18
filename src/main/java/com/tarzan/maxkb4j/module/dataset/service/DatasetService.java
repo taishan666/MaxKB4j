@@ -14,6 +14,7 @@ import com.tarzan.maxkb4j.module.application.entity.ApplicationDatasetMappingEnt
 import com.tarzan.maxkb4j.module.application.entity.ApplicationEntity;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationDatasetMappingMapper;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationMapper;
+import com.tarzan.maxkb4j.module.dataset.dto.DatasetDTO;
 import com.tarzan.maxkb4j.module.dataset.entity.*;
 import com.tarzan.maxkb4j.module.dataset.excel.DatasetExcel;
 import com.tarzan.maxkb4j.module.dataset.mapper.DatasetMapper;
@@ -74,7 +75,7 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
     private final ProblemParagraphMapper problemParagraphMapper;
     private final DataIndexService dataIndexService;
     private final ModelService modelService;
-
+    private final DocumentService documentService;
 
 
     public IPage<DatasetVO> selectDatasetPage(Page<DatasetVO> datasetPage, QueryDTO query) {
@@ -330,6 +331,17 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
         dataset.setMeta(new JSONObject());
         dataset.setUserId(StpUtil.getLoginIdAsString());
         this.save(dataset);
+        return dataset;
+    }
+
+    public DatasetEntity createWebDataset(DatasetDTO dataset) {
+        dataset.setUserId(StpUtil.getLoginIdAsString());
+        JSONObject meta = new JSONObject();
+        meta.put("source_url",dataset.getSourceUrl());
+        meta.put("selector",dataset.getSelector());
+        dataset.setMeta(meta);
+        this.save(dataset);
+        documentService.webDataset(dataset.getId(),dataset.getSourceUrl(),dataset.getSelector());
         return dataset;
     }
 }

@@ -17,3 +17,4 @@ decorator:
     p6spy:
       # 日志格式
       log-format: "\ntime:%(executionTime) || sql:%(sql)\n"
+      enable-logging: false
