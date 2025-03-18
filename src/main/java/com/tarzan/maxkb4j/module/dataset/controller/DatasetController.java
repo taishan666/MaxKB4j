@@ -8,14 +8,11 @@ import com.tarzan.maxkb4j.module.application.entity.ApplicationEntity;
 import com.tarzan.maxkb4j.module.dataset.dto.DatasetDTO;
 import com.tarzan.maxkb4j.module.dataset.dto.HitTestDTO;
 import com.tarzan.maxkb4j.module.dataset.entity.DatasetEntity;
-import com.tarzan.maxkb4j.module.dataset.entity.ParagraphEntity;
-import com.tarzan.maxkb4j.module.dataset.entity.ProblemEntity;
 import com.tarzan.maxkb4j.module.dataset.service.DatasetService;
 import com.tarzan.maxkb4j.module.dataset.service.EmbedTextService;
 import com.tarzan.maxkb4j.module.dataset.service.RetrieveService;
 import com.tarzan.maxkb4j.module.dataset.vo.DatasetVO;
 import com.tarzan.maxkb4j.module.dataset.vo.ParagraphVO;
-import com.tarzan.maxkb4j.module.dataset.vo.ProblemVO;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelEntity;
 import com.tarzan.maxkb4j.tool.api.R;
 import jakarta.servlet.http.HttpServletResponse;
@@ -43,7 +40,6 @@ public class DatasetController {
         return R.success(datasetService.listByUserId(StpUtil.getLoginIdAsString()));
     }
 
-
     @PostMapping("api/dataset")
     public R<DatasetEntity> createDataset(@RequestBody DatasetEntity dataset) {
         return R.success(datasetService.createDataset(dataset));
@@ -51,7 +47,6 @@ public class DatasetController {
 
     @PostMapping("api/dataset/web")
     public R<DatasetEntity> createDatasetWeb(@RequestBody DatasetDTO dataset) {
-        //todo web
         return R.success(datasetService.createWebDataset(dataset));
     }
 
@@ -107,39 +102,6 @@ public class DatasetController {
     public R<List<ModelEntity>> getModels(@PathVariable String id) {
         return R.success(datasetService.getModels(id));
     }
-
-    @PostMapping("api/dataset/{id}/problem")
-    public R<Boolean> createProblemsByDatasetId(@PathVariable String id, @RequestBody List<String> problems) {
-        return R.success(datasetService.createProblemsByDatasetId(id, problems));
-    }
-
-    @PutMapping("api/dataset/{id}/problem/{problemId}")
-    public R<Boolean> updateProblemByDatasetId(@PathVariable String id, @PathVariable String problemId, @RequestBody ProblemEntity problem) {
-        problem.setId(problemId);
-        return R.success(datasetService.updateProblemById(problem));
-    }
-
-    @DeleteMapping("api/dataset/{id}/problem/{problemId}")
-    public R<Boolean> deleteProblemByDatasetId(@PathVariable("id") String id, @PathVariable("problemId") String problemId) {
-        return R.success(datasetService.deleteProblemById(problemId));
-    }
-
-    @DeleteMapping("api/dataset/{id}/problem/_batch")
-    public R<Boolean> deleteBatchProblemByDatasetId(@PathVariable("id") String id, @RequestBody List<String> problemIds) {
-        return R.success(datasetService.deleteProblemByIds(problemIds));
-    }
-
-
-    @GetMapping("api/dataset/{id}/problem/{page}/{size}")
-    public R<IPage<ProblemVO>> getProblemsByDatasetId(@PathVariable String id, @PathVariable("page") int page, @PathVariable("size") int size, String content) {
-        return R.success(datasetService.getProblemsByDatasetId(id, page, size, content));
-    }
-
-    @GetMapping("api/dataset/{id}/problem/{problemId}/paragraph")
-    public R<List<ParagraphEntity>> getParagraphByProblemId(@PathVariable String id, @PathVariable("problemId") String problemId) {
-        return R.success(datasetService.getParagraphByProblemId(problemId));
-    }
-
 
 
 
