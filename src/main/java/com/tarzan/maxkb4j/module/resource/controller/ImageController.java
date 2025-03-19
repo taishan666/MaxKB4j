@@ -1,7 +1,7 @@
-package com.tarzan.maxkb4j.module.image.controller;
+package com.tarzan.maxkb4j.module.resource.controller;
 
-import com.tarzan.maxkb4j.module.image.entity.ImageEntity;
-import com.tarzan.maxkb4j.module.image.service.ImageService;
+import com.tarzan.maxkb4j.module.resource.entity.ImageEntity;
+import com.tarzan.maxkb4j.module.resource.service.ImageService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;

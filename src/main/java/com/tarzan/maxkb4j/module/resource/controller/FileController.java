@@ -1,4 +1,4 @@
-package com.tarzan.maxkb4j.module.file.controller;
+package com.tarzan.maxkb4j.module.resource.controller;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 import lombok.AllArgsConstructor;
-import com.tarzan.maxkb4j.module.file.service.FileService;
+import com.tarzan.maxkb4j.module.resource.service.FileService;
 /**
  * @author tarzan
  * @date 2025-01-21 09:34:51

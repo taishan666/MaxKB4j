@@ -27,7 +27,7 @@ import com.tarzan.maxkb4j.module.dataset.entity.DatasetEntity;
 import com.tarzan.maxkb4j.module.dataset.service.DatasetService;
 import com.tarzan.maxkb4j.module.dataset.service.RetrieveService;
 import com.tarzan.maxkb4j.module.dataset.vo.ParagraphVO;
-import com.tarzan.maxkb4j.module.image.service.ImageService;
+import com.tarzan.maxkb4j.module.resource.service.ImageService;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelEntity;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseTextToSpeech;

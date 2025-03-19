@@ -1,4 +1,4 @@
-package com.tarzan.maxkb4j.module.file.entity;
+package com.tarzan.maxkb4j.module.resource.entity;
 
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.annotation.TableName;

@@ -5,7 +5,7 @@ import com.tarzan.maxkb4j.module.application.workflow.NodeResult;
 import com.tarzan.maxkb4j.module.application.workflow.WorkflowManage;
 import com.tarzan.maxkb4j.module.application.workflow.node.documentextract.IDocumentExtractNode;
 import com.tarzan.maxkb4j.module.application.workflow.node.documentextract.input.DocumentExtractParams;
-import com.tarzan.maxkb4j.module.file.service.FileService;
+import com.tarzan.maxkb4j.module.resource.service.FileService;
 import com.tarzan.maxkb4j.util.SpringUtil;
 import org.apache.tika.exception.TikaException;
 import org.apache.tika.extractor.EmbeddedDocumentExtractor;

@@ -3,7 +3,7 @@ package com.tarzan.maxkb4j.module.application.workflow.node.variableassign.impl;
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.module.application.workflow.NodeResult;
 import com.tarzan.maxkb4j.module.application.workflow.WorkflowManage;
-import com.tarzan.maxkb4j.module.application.workflow.dto.FlowParams;
+import com.tarzan.maxkb4j.module.application.workflow.node.start.input.FlowParams;
 import com.tarzan.maxkb4j.module.application.workflow.node.variableassign.IVariableAssignNode;
 import com.tarzan.maxkb4j.module.application.workflow.node.variableassign.input.VariableAssignParams;
 

@@ -17,8 +17,8 @@ public class PipelineManage {
     public PipelineManage(List<IBaseChatPipelineStep> stepList) {
         this.stepList = stepList;
         this.context = new JSONObject();
-        this.context.put("message_tokens", 0);
-        this.context.put("answer_tokens", 0);
+        this.context.put("messageTokens", 0);
+        this.context.put("answerTokens", 0);
     }
 
 
@@ -39,7 +39,7 @@ public class PipelineManage {
         for (IBaseChatPipelineStep step : stepList) {
             step.run(this);
         }
-        this.context.put("run_time", System.currentTimeMillis());
+        this.context.put("runTime", System.currentTimeMillis());
     }
 
 

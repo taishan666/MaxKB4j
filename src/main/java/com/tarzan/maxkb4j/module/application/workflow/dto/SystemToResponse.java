@@ -1,14 +1,13 @@
 package com.tarzan.maxkb4j.module.application.workflow.dto;
 
-import cn.dev33.satoken.util.SaResult;
 import com.alibaba.fastjson.JSONObject;
 
 import java.util.List;
 
 public class SystemToResponse extends BaseToResponse{
     @Override
-    public SaResult toBlockResponse(String chatId, String chatRecordId, String content, boolean isEnd, int completionTokens, int promptTokens, int status) {
-         return SaResult.ok().setData(content);
+    public JSONObject toBlockResponse(String chatId, String chatRecordId, String content, boolean isEnd, int completionTokens, int promptTokens, int status) {
+         return new JSONObject();
     }
 
     @Override

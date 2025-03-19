@@ -4,7 +4,8 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.module.application.workflow.dto.Answer;
 import com.tarzan.maxkb4j.module.application.workflow.dto.BaseParams;
-import com.tarzan.maxkb4j.module.application.workflow.dto.FlowParams;
+import com.tarzan.maxkb4j.module.application.workflow.info.Node;
+import com.tarzan.maxkb4j.module.application.workflow.node.start.input.FlowParams;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.SystemMessage;
@@ -127,14 +128,14 @@ public abstract class INode {
         this.status = 500;
         this.errMessage = e.getMessage();
         long startTime = (long) this.context.get("start_time");
-        this.context.put("run_time", (System.currentTimeMillis() - startTime)/1000F);
+        this.context.put("runTime", (System.currentTimeMillis() - startTime)/1000F);
     }
 
     public NodeResult run() {
         long startTime = System.currentTimeMillis();
         this.context.put("start_time", startTime);
         NodeResult result = _run();
-        this.context.put("run_time", (System.currentTimeMillis() - startTime)/1000F);
+        this.context.put("runTime", (System.currentTimeMillis() - startTime)/1000F);
         return result;
     }
 
@@ -145,7 +146,7 @@ public abstract class INode {
         detail.put("name",node.getProperties().getString("stepName"));
         detail.put("index",index);
         detail.put("type",node.getType());
-        detail.put("run_time",context.get("run_time"));
+        detail.put("runTime",context.get("runTime"));
         detail.put("status",status);
         detail.put("err_message",errMessage);
         detail.putAll(getDetail());

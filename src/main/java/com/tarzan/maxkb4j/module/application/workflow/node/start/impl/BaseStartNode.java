@@ -3,11 +3,11 @@ package com.tarzan.maxkb4j.module.application.workflow.node.start.impl;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationChatRecordEntity;
-import com.tarzan.maxkb4j.module.application.workflow.Node;
+import com.tarzan.maxkb4j.module.application.workflow.info.Node;
 import com.tarzan.maxkb4j.module.application.workflow.NodeResult;
 import com.tarzan.maxkb4j.module.application.workflow.WorkflowManage;
 import com.tarzan.maxkb4j.module.application.workflow.dto.ChatRecordSimple;
-import com.tarzan.maxkb4j.module.application.workflow.dto.FlowParams;
+import com.tarzan.maxkb4j.module.application.workflow.node.start.input.FlowParams;
 import com.tarzan.maxkb4j.module.application.workflow.node.start.IStarNode;
 
 import java.time.LocalDateTime;
@@ -94,7 +94,7 @@ public class BaseStartNode extends IStarNode {
         workflowVariable.putAll(getGlobalVariable(workflowParams, workflowManage));
         // 设置上下文
         this.context.put("question", detail.get("question"));
-        this.context.put("run_time", detail.get("run_time"));
+        this.context.put("runTime", detail.get("runTime"));
         this.context.put("document", detail.get("document_list"));
         this.context.put("image", detail.get("image_list"));
         this.context.put("audio", detail.get("audio_list"));

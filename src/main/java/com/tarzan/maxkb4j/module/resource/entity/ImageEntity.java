@@ -1,4 +1,4 @@
-package com.tarzan.maxkb4j.module.image.entity;
+package com.tarzan.maxkb4j.module.resource.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.tarzan.maxkb4j.common.entity.BaseEntity;

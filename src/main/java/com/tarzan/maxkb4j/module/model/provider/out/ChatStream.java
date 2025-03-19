@@ -1,4 +1,4 @@
-package com.tarzan.maxkb4j.module.application.workflow;
+package com.tarzan.maxkb4j.module.model.provider.out;
 
 import dev.langchain4j.model.chat.response.ChatResponse;
 import lombok.Getter;

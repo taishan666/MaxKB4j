@@ -1,6 +1,5 @@
 package com.tarzan.maxkb4j.module.application.workflow.dto;
 
-import cn.dev33.satoken.util.SaResult;
 import com.alibaba.fastjson.JSONObject;
 
 import java.util.List;
@@ -18,7 +17,7 @@ public abstract class BaseToResponse {
      * @param promptTokens     提示的token数
      * @param status           HTTP状态码
      */
-    public abstract SaResult toBlockResponse(String chatId, String chatRecordId, String content, boolean isEnd,
+    public abstract JSONObject toBlockResponse(String chatId, String chatRecordId, String content, boolean isEnd,
                                              int completionTokens, int promptTokens,
                                              int status);
 
@@ -43,13 +42,4 @@ public abstract class BaseToResponse {
                                                      List<String> upNodeIdList, String content, boolean isEnd,
                                                      int completionTokens, int promptTokens,ChunkInfo chunkInfo);
 
-    /**
-     * 格式化流式块响应。
-     *
-     * @param responseStr 响应字符串
-     * @return 格式化后的响应字符串
-     */
-    public  String formatStreamChunk(String responseStr) {
-        return "data: " + responseStr + "\n\n";
-    }
 }

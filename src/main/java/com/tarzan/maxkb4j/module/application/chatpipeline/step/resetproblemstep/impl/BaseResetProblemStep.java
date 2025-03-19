@@ -55,8 +55,8 @@ public class BaseResetProblemStep extends IResetProblemStep {
         TokenUsage tokenUsage = res.tokenUsage();
         super.context.put("model_id", modelId);
         super.context.put("problem_text", context.getString("problem_text"));
-        super.context.put("message_tokens", tokenUsage.inputTokenCount());
-        super.context.put("answer_tokens", tokenUsage.outputTokenCount());
+        super.context.put("messageTokens", tokenUsage.inputTokenCount());
+        super.context.put("answerTokens", tokenUsage.outputTokenCount());
         super.context.put("padding_problem_text", paddingProblem);
         System.out.println("BaseResetProblemStep 耗时 "+(System.currentTimeMillis()-startTime)+" ms");
         return paddingProblem;
@@ -82,11 +82,11 @@ public class BaseResetProblemStep extends IResetProblemStep {
         JSONObject details=new JSONObject();
         details.put("step_type","problem_padding");
         details.put("model_id",super.context.get("model_id"));
-        details.put("run_time",super.context.get("run_time"));
+        details.put("runTime",super.context.get("runTime"));
         details.put("problem_text",super.context.get("problem_text"));
         details.put("padding_problem_text",super.context.get("padding_problem_text"));
-        details.put("message_tokens", super.context.get("message_tokens"));
-        details.put("answer_tokens", super.context.get("answer_tokens"));
+        details.put("messageTokens", super.context.get("messageTokens"));
+        details.put("answerTokens", super.context.get("answerTokens"));
         details.put("cost",0);
         return details;
     }

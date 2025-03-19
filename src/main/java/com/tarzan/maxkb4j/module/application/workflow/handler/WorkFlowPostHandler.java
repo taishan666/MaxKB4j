@@ -34,14 +34,14 @@ public class WorkFlowPostHandler {
 
         int messageTokens = details.values().stream()
                 .map(row -> (JSONObject) row)
-                .filter(row -> row.containsKey("message_tokens") && row.get("message_tokens") != null)
-                .mapToInt(row -> row.getIntValue("message_tokens"))
+                .filter(row -> row.containsKey("messageTokens") && row.get("messageTokens") != null)
+                .mapToInt(row -> row.getIntValue("messageTokens"))
                 .sum();
 
         int answerTokens = details.values().stream()
                 .map(row -> (JSONObject) row)
-                .filter(row -> row.containsKey("answer_tokens") && row.get("answer_tokens") != null)
-                .mapToInt(row -> row.getIntValue("answer_tokens"))
+                .filter(row -> row.containsKey("answerTokens") && row.get("answerTokens") != null)
+                .mapToInt(row -> row.getIntValue("answerTokens"))
                 .sum();
         List<String> answerTextList = workflow.getAnswerTextList();
         ApplicationChatRecordEntity chatRecord;

@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.module.application.entity.DatasetSetting;
 import com.tarzan.maxkb4j.module.application.workflow.NodeResult;
 import com.tarzan.maxkb4j.module.application.workflow.WorkflowManage;
-import com.tarzan.maxkb4j.module.application.workflow.dto.FlowParams;
+import com.tarzan.maxkb4j.module.application.workflow.node.start.input.FlowParams;
 import com.tarzan.maxkb4j.module.application.workflow.node.searchdataset.ISearchDatasetStepNode;
 import com.tarzan.maxkb4j.module.application.workflow.node.searchdataset.input.SearchDatasetStepNodeParams;
 import com.tarzan.maxkb4j.module.dataset.service.RetrieveService;
@@ -100,7 +100,7 @@ public class BaseSearchDatasetNode extends ISearchDatasetStepNode {
 
         context.put("paragraph_list", result);
         context.put("question", detail.get("question"));
-        context.put("run_time", detail.get("run_time"));
+        context.put("runTime", detail.get("runTime"));
 
 /*        List<Map<String, Object>> isHitHandlingMethodList = result.stream()
                 .filter(row -> "true".equals(row.get("is_hit_handling_method")))

@@ -13,12 +13,12 @@ public abstract class ISearchDatasetStep extends IBaseChatPipelineStep {
         manage.context.put("paragraph_list", paragraphList);
         super.context.put("paragraph_list", paragraphList);
         //累加tokens
-        int messageTokens=manage.context.getInteger("message_tokens");
-        int answerTokens=manage.context.getInteger("answer_tokens");
-        int thisMessageTokens=super.context.getInteger("message_tokens");
-        int thisAnswerTokens=super.context.getInteger("answer_tokens");
-        manage.context.put("message_tokens",messageTokens+thisMessageTokens);
-        manage.context.put("answer_tokens",answerTokens+thisAnswerTokens);
+        int messageTokens=manage.context.getInteger("messageTokens");
+        int answerTokens=manage.context.getInteger("answerTokens");
+        int thisMessageTokens=super.context.getInteger("messageTokens");
+        int thisAnswerTokens=super.context.getInteger("answerTokens");
+        manage.context.put("messageTokens",messageTokens+thisMessageTokens);
+        manage.context.put("answerTokens",answerTokens+thisAnswerTokens);
     }
 
     protected abstract List<ParagraphVO> execute(PipelineManage manage);

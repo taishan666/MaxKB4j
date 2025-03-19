@@ -1,4 +1,4 @@
-package com.tarzan.maxkb4j.module.application.workflow;
+package com.tarzan.maxkb4j.module.application.workflow.info;
 
 import com.alibaba.fastjson.JSONObject;
 import lombok.Data;

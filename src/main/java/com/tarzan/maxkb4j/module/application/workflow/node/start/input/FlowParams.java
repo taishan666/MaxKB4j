@@ -1,6 +1,7 @@
-package com.tarzan.maxkb4j.module.application.workflow.dto;
+package com.tarzan.maxkb4j.module.application.workflow.node.start.input;
 
 import com.tarzan.maxkb4j.module.application.entity.ApplicationChatRecordEntity;
+import com.tarzan.maxkb4j.module.application.workflow.dto.BaseParams;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 

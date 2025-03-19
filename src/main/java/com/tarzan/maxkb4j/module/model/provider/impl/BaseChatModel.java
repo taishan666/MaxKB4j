@@ -1,6 +1,6 @@
 package com.tarzan.maxkb4j.module.model.provider.impl;
 
-import com.tarzan.maxkb4j.module.application.workflow.ChatStream;
+import com.tarzan.maxkb4j.module.model.provider.out.ChatStream;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.model.chat.ChatLanguageModel;
 import dev.langchain4j.model.chat.DisabledChatLanguageModel;

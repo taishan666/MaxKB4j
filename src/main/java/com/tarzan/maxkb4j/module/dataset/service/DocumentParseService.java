@@ -1,7 +1,7 @@
 package com.tarzan.maxkb4j.module.dataset.service;
 
 import com.alibaba.fastjson.JSONObject;
-import com.tarzan.maxkb4j.module.file.service.FileService;
+import com.tarzan.maxkb4j.module.resource.service.FileService;
 import lombok.AllArgsConstructor;
 import org.apache.tika.exception.TikaException;
 import org.apache.tika.extractor.EmbeddedDocumentExtractor;

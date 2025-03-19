@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationChatRecordEntity;
 import com.tarzan.maxkb4j.module.application.workflow.NodeResult;
 import com.tarzan.maxkb4j.module.application.workflow.WorkflowManage;
-import com.tarzan.maxkb4j.module.application.workflow.dto.FlowParams;
+import com.tarzan.maxkb4j.module.application.workflow.node.start.input.FlowParams;
 import com.tarzan.maxkb4j.module.application.workflow.node.question.IQuestionNode;
 import com.tarzan.maxkb4j.module.application.workflow.node.question.input.QuestionParams;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
@@ -69,8 +69,8 @@ public class BaseQuestionNode extends IQuestionNode {
                 messageListSb.append(systemMessage.text());
             }
         }
-        context.put("message_tokens", countTokens(messageListSb.toString()));
-        context.put("answer_tokens", countTokens(answerSb.toString()));
+        context.put("messageTokens", countTokens(messageListSb.toString()));
+        context.put("answerTokens", countTokens(answerSb.toString()));
         return new NodeResult(nodeVariable, Map.of());
     }
 
@@ -112,8 +112,8 @@ public class BaseQuestionNode extends IQuestionNode {
         List<ChatMessage> historyMessage = (List<ChatMessage>) context.get("history_message");
         detail.put("history_message", resetMessageList(historyMessage));
         detail.put("answer", context.get("answer"));
-        detail.put("message_tokens", context.get("message_tokens"));
-        detail.put("answer_tokens", context.get("answer_tokens"));
+        detail.put("messageTokens", context.get("messageTokens"));
+        detail.put("answerTokens", context.get("answerTokens"));
         return detail;
     }
 

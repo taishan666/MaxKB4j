@@ -12,7 +12,7 @@ import com.tarzan.maxkb4j.module.application.entity.ApplicationPublicAccessClien
 import com.tarzan.maxkb4j.module.application.entity.DatasetSetting;
 import com.tarzan.maxkb4j.module.application.entity.NoReferencesSetting;
 import com.tarzan.maxkb4j.module.application.service.ApplicationPublicAccessClientService;
-import com.tarzan.maxkb4j.module.application.workflow.ChatStream;
+import com.tarzan.maxkb4j.module.model.provider.out.ChatStream;
 import com.tarzan.maxkb4j.module.dataset.vo.ParagraphVO;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
@@ -91,8 +91,8 @@ public class BaseChatStep extends IChatStep {
                     sink.tryEmitNext(toResponse(chatId, chatRecordId, text, false, 0, 0));
                 }
             } else {
-                int messageTokens = manage.context.getInteger("message_tokens");
-                int answerTokens = manage.context.getInteger("answer_tokens");
+                int messageTokens = manage.context.getInteger("messageTokens");
+                int answerTokens = manage.context.getInteger("answerTokens");
                 String clientId = manage.context.getString("client_id");
                 String clientType = manage.context.getString("client_type");
                 if (stream) {
@@ -102,8 +102,8 @@ public class BaseChatStep extends IChatStep {
                         TokenUsage tokenUsage=response.tokenUsage();
                         int thisMessageTokens = tokenUsage.inputTokenCount();
                         int thisAnswerTokens = tokenUsage.outputTokenCount();
-                        manage.context.put("message_tokens", messageTokens + thisMessageTokens);
-                        manage.context.put("answer_tokens", answerTokens + thisAnswerTokens);
+                        manage.context.put("messageTokens", messageTokens + thisMessageTokens);
+                        manage.context.put("answerTokens", answerTokens + thisAnswerTokens);
                         addAccessNum(clientId, clientType);
                         postResponseHandler.handler(ChatCache.get(chatId), chatId, chatRecordId, problemText, answerText, manage, clientId);
                     });
@@ -125,8 +125,8 @@ public class BaseChatStep extends IChatStep {
                     sink.tryEmitComplete();
                     int thisMessageTokens = tokenUsage.inputTokenCount();
                     int thisAnswerTokens = tokenUsage.outputTokenCount();
-                    manage.context.put("message_tokens", messageTokens + thisMessageTokens);
-                    manage.context.put("answer_tokens", answerTokens + thisAnswerTokens);
+                    manage.context.put("messageTokens", messageTokens + thisMessageTokens);
+                    manage.context.put("answerTokens", answerTokens + thisAnswerTokens);
                     addAccessNum(clientId, clientType);
                     postResponseHandler.handler(ChatCache.get(chatId), chatId, chatRecordId, problemText, answerText, manage, clientId);
                 }
@@ -169,11 +169,11 @@ public class BaseChatStep extends IChatStep {
         long startTime = super.context.getLong("start_time");
         JSONObject details = new JSONObject();
         details.put("step_type", "chat_step");
-        details.put("run_time", (System.currentTimeMillis() - startTime) / 1000F);
+        details.put("runTime", (System.currentTimeMillis() - startTime) / 1000F);
         details.put("model_id", super.context.get("model_id"));
         details.put("message_list", resetMessageList(super.context.getJSONArray("message_list"), super.context.getString("answer_text")));
-        details.put("message_tokens", super.context.get("message_tokens"));
-        details.put("answer_tokens", super.context.get("answer_tokens"));
+        details.put("messageTokens", super.context.get("messageTokens"));
+        details.put("answerTokens", super.context.get("answerTokens"));
         details.put("cost", 0);
         return details;
     }

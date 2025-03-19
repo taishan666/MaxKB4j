@@ -12,7 +12,7 @@ public abstract class IBaseChatPipelineStep {
         context.put("start_time", startTime);
       //  validArgs(manage);
         _run(manage);
-        context.put("run_time", (System.currentTimeMillis()-startTime)/1000F);
+        context.put("runTime", (System.currentTimeMillis()-startTime)/1000F);
     }
 
     protected abstract void _run(PipelineManage manage);

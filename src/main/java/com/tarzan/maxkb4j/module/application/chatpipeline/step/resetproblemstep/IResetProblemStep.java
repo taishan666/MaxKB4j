@@ -10,12 +10,12 @@ public abstract class IResetProblemStep extends IBaseChatPipelineStep {
         String paddingProblemText = execute(manage);
         manage.context.put("padding_problem_text", paddingProblemText);
         //累加tokens
-        int messageTokens=manage.context.getInteger("message_tokens");
-        int answerTokens=manage.context.getInteger("answer_tokens");
-        int thisMessageTokens=super.context.getInteger("message_tokens");
-        int thisAnswerTokens=super.context.getInteger("answer_tokens");
-        manage.context.put("message_tokens",messageTokens+thisMessageTokens);
-        manage.context.put("answer_tokens",answerTokens+thisAnswerTokens);
+        int messageTokens=manage.context.getInteger("messageTokens");
+        int answerTokens=manage.context.getInteger("answerTokens");
+        int thisMessageTokens=super.context.getInteger("messageTokens");
+        int thisAnswerTokens=super.context.getInteger("answerTokens");
+        manage.context.put("messageTokens",messageTokens+thisMessageTokens);
+        manage.context.put("answerTokens",answerTokens+thisAnswerTokens);
     }
 
     protected abstract String execute(PipelineManage manage);

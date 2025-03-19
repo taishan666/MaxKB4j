@@ -1,9 +1,9 @@
-package com.tarzan.maxkb4j.module.image.service;
+package com.tarzan.maxkb4j.module.resource.service;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.stereotype.Service;
-import com.tarzan.maxkb4j.module.image.mapper.ImageMapper;
-import com.tarzan.maxkb4j.module.image.entity.ImageEntity;
+import com.tarzan.maxkb4j.module.resource.mapper.ImageMapper;
+import com.tarzan.maxkb4j.module.resource.entity.ImageEntity;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;

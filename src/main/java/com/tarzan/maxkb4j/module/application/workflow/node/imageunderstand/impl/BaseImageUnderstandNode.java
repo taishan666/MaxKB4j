@@ -3,10 +3,10 @@ package com.tarzan.maxkb4j.module.application.workflow.node.imageunderstand.impl
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.module.application.workflow.NodeResult;
 import com.tarzan.maxkb4j.module.application.workflow.WorkflowManage;
-import com.tarzan.maxkb4j.module.application.workflow.dto.FlowParams;
+import com.tarzan.maxkb4j.module.application.workflow.node.start.input.FlowParams;
 import com.tarzan.maxkb4j.module.application.workflow.node.imageunderstand.IImageUnderstandNode;
 import com.tarzan.maxkb4j.module.application.workflow.node.imageunderstand.input.ImageUnderstandParams;
-import com.tarzan.maxkb4j.module.file.service.FileService;
+import com.tarzan.maxkb4j.module.resource.service.FileService;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
 import com.tarzan.maxkb4j.util.SpringUtil;
@@ -65,8 +65,8 @@ public class BaseImageUnderstandNode extends IImageUnderstandNode {
                 "history_message", historyMessage,
                 "question", question,
                 "answer", aiMessage.text(),
-                "message_tokens", tokenUsage.inputTokenCount(),
-                "answer_tokens", tokenUsage.outputTokenCount()
+                "messageTokens", tokenUsage.inputTokenCount(),
+                "answerTokens", tokenUsage.outputTokenCount()
         );
         return new NodeResult(nodeVariable, Map.of());
     }
@@ -75,8 +75,8 @@ public class BaseImageUnderstandNode extends IImageUnderstandNode {
     public JSONObject getDetail() {
         JSONObject detail = new JSONObject();
         detail.put("answer",context.get("answer"));
-        detail.put("message_tokens", context.get("message_tokens"));
-        detail.put("answer_tokens", context.get("answer_tokens"));
+        detail.put("messageTokens", context.get("messageTokens"));
+        detail.put("answerTokens", context.get("answerTokens"));
         return detail;
     }
 

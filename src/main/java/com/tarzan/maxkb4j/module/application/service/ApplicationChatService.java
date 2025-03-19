@@ -23,13 +23,13 @@ import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatMapper;
 import com.tarzan.maxkb4j.module.application.vo.ApplicationChatRecordVO;
 import com.tarzan.maxkb4j.module.application.vo.ApplicationPublicAccessClientStatisticsVO;
 import com.tarzan.maxkb4j.module.application.vo.ApplicationStatisticsVO;
-import com.tarzan.maxkb4j.module.application.workflow.Flow;
+import com.tarzan.maxkb4j.module.application.workflow.info.Flow;
 import com.tarzan.maxkb4j.module.application.workflow.WorkflowManage;
-import com.tarzan.maxkb4j.module.application.workflow.dto.FlowParams;
+import com.tarzan.maxkb4j.module.application.workflow.node.start.input.FlowParams;
 import com.tarzan.maxkb4j.module.application.workflow.dto.SystemToResponse;
 import com.tarzan.maxkb4j.module.application.workflow.handler.WorkFlowPostHandler;
 import com.tarzan.maxkb4j.module.dataset.vo.ParagraphVO;
-import com.tarzan.maxkb4j.module.file.service.FileService;
+import com.tarzan.maxkb4j.module.resource.service.FileService;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelEntity;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -163,6 +163,9 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
 
     public Flux<JSONObject> chatMessage(String chatId, ChatMessageDTO dto, HttpServletRequest request) {
         ChatInfo chatInfo = getChatInfo(chatId);
+        if (chatInfo == null){
+            throw new RuntimeException("会话不存在");
+        }
         if (chatInfo.getApplication().getType().equals("SIMPLE")) {
             return chatSimple(chatId, dto, request);
         } else {

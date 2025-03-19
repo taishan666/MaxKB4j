@@ -5,7 +5,7 @@ import com.tarzan.maxkb4j.module.application.workflow.INode;
 import com.tarzan.maxkb4j.module.application.workflow.NodeResult;
 import com.tarzan.maxkb4j.module.application.workflow.WorkflowManage;
 import com.tarzan.maxkb4j.module.application.workflow.dto.BaseParams;
-import com.tarzan.maxkb4j.module.application.workflow.dto.FlowParams;
+import com.tarzan.maxkb4j.module.application.workflow.node.start.input.FlowParams;
 
 public abstract class IStarNode extends INode {
 

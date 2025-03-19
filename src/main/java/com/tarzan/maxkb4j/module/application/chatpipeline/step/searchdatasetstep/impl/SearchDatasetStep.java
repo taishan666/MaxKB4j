@@ -33,8 +33,8 @@ public class SearchDatasetStep extends ISearchDatasetStep {
         DatasetSetting datasetSetting=application.getDatasetSetting();
         List<ParagraphVO> paragraphList= retrieveService.paragraphSearch(execProblemText,application.getDatasetIdList(), Collections.emptyList(),datasetSetting.getTopN(),datasetSetting.getSimilarity(),datasetSetting.getSearchMode());
         System.out.println("search 耗时 "+(System.currentTimeMillis()-startTime)+" ms");
-        super.context.put("message_tokens",0);
-        super.context.put("answer_tokens",0);
+        super.context.put("messageTokens",0);
+        super.context.put("answerTokens",0);
         return paragraphList;
     }
 
@@ -43,11 +43,11 @@ public class SearchDatasetStep extends ISearchDatasetStep {
         JSONObject details=new JSONObject();
         details.put("step_type","search_step");
         details.put("paragraph_list",super.context.get("paragraph_list"));
-        details.put("run_time",super.context.get("run_time"));
+        details.put("runTime",super.context.get("runTime"));
         details.put("problem_text",super.context.get("problem_text"));
         details.put("model_name",super.context.get("model_name"));
-        details.put("message_tokens",super.context.get("message_tokens"));
-        details.put("answer_tokens",super.context.get("answer_tokens"));
+        details.put("messageTokens",super.context.get("messageTokens"));
+        details.put("answerTokens",super.context.get("answerTokens"));
         details.put("cost",0);
         return details;
     }

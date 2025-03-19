@@ -55,7 +55,7 @@ public class NodeResult {
         }
         if (node.context.containsKey("start_time")) {
             long runTime = System.currentTimeMillis() - (long)node.context.get("start_time");
-            node.context.put("run_time", runTime / 1000F);
+            node.context.put("runTime", runTime / 1000F);
         }
         return new Iterator<>() {
             @Override

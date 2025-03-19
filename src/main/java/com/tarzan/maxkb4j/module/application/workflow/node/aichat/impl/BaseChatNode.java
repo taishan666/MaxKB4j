@@ -1,11 +1,11 @@
 package com.tarzan.maxkb4j.module.application.workflow.node.aichat.impl;
 
 import com.alibaba.fastjson.JSONObject;
-import com.tarzan.maxkb4j.module.application.workflow.ChatStream;
+import com.tarzan.maxkb4j.module.model.provider.out.ChatStream;
 import com.tarzan.maxkb4j.module.application.workflow.INode;
 import com.tarzan.maxkb4j.module.application.workflow.NodeResult;
 import com.tarzan.maxkb4j.module.application.workflow.WorkflowManage;
-import com.tarzan.maxkb4j.module.application.workflow.dto.FlowParams;
+import com.tarzan.maxkb4j.module.application.workflow.node.start.input.FlowParams;
 import com.tarzan.maxkb4j.module.application.workflow.node.aichat.IChatNode;
 import com.tarzan.maxkb4j.module.application.workflow.node.aichat.input.ChatNodeParams;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
@@ -38,8 +38,8 @@ public class BaseChatNode extends IChatNode {
         detail.put("history_message", resetMessageList(historyMessage));
         detail.put("question", context.get("question"));
         detail.put("answer", context.get("answer"));
-        detail.put("message_tokens", context.get("message_tokens"));
-        detail.put("answer_tokens", context.get("answer_tokens"));
+        detail.put("messageTokens", context.get("messageTokens"));
+        detail.put("answerTokens", context.get("answerTokens"));
         return detail;
     }
 
@@ -50,13 +50,13 @@ public class BaseChatNode extends IChatNode {
             String answer = response.aiMessage().text();
             workflow.setAnswer(answer);
             TokenUsage tokenUsage = response.tokenUsage();
-            context.put("message_tokens", tokenUsage.inputTokenCount());
-            context.put("answer_tokens", tokenUsage.outputTokenCount());
+            context.put("messageTokens", tokenUsage.inputTokenCount());
+            context.put("answerTokens", tokenUsage.outputTokenCount());
             context.put("answer", answer);
             context.put("question", nodeVariable.get("question"));
             context.put("history_message", nodeVariable.get("history_message"));
             long runTime = System.currentTimeMillis() - (long)context.get("start_time");
-            context.put("run_time", runTime / 1000F);
+            context.put("runTime", runTime / 1000F);
         });
         return chatStream.getIterator();
     }
@@ -96,8 +96,8 @@ public class BaseChatNode extends IChatNode {
                     "history_message", historyMessage,
                     "question", question.singleText(),
                     "answer", aiMessage.text(),
-                    "message_tokens", tokenUsage.inputTokenCount(),
-                    "answer_tokens", tokenUsage.outputTokenCount()
+                    "messageTokens", tokenUsage.inputTokenCount(),
+                    "answerTokens", tokenUsage.outputTokenCount()
             );
             return new NodeResult(nodeVariable, Map.of());
         }
