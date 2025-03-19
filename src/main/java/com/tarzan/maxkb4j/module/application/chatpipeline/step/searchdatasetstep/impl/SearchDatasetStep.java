@@ -25,7 +25,8 @@ public class SearchDatasetStep extends ISearchDatasetStep {
         long startTime = System.currentTimeMillis();
         JSONObject context=manage.context;
         ApplicationEntity application=(ApplicationEntity)context.get("application");
-        super.context.put("model_name","test_model");
+        //EmbeddingModel embeddingModel=datasetService.getDatasetEmbeddingModel(application.getDatasetIdList().get(0));
+        //super.context.put("model_name",embeddingModel);
         String problemText=manage.context.getString("problem_text");
         super.context.put("problem_text",problemText);
         String paddingProblemText=context.getString("padding_problem_text");

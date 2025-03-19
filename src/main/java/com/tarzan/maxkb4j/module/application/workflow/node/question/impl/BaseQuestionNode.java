@@ -4,15 +4,15 @@ import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationChatRecordEntity;
 import com.tarzan.maxkb4j.module.application.workflow.NodeResult;
 import com.tarzan.maxkb4j.module.application.workflow.WorkflowManage;
-import com.tarzan.maxkb4j.module.application.workflow.node.start.input.FlowParams;
 import com.tarzan.maxkb4j.module.application.workflow.node.question.IQuestionNode;
 import com.tarzan.maxkb4j.module.application.workflow.node.question.input.QuestionParams;
-import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
+import com.tarzan.maxkb4j.module.application.workflow.node.start.input.FlowParams;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
+import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
 import com.tarzan.maxkb4j.util.SpringUtil;
+import com.tarzan.maxkb4j.util.TokenUtil;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
-import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.rag.query.Metadata;
 import dev.langchain4j.rag.query.Query;
@@ -57,31 +57,12 @@ public class BaseQuestionNode extends IQuestionNode {
                 "history_message", historyMessage,
                 "question", question.singleText()
         );
-        StringBuilder messageListSb=new StringBuilder();
-        for (ChatMessage chatMessage : messageList) {
-            if (chatMessage instanceof UserMessage userMessage){
-                messageListSb.append(userMessage.singleText());
-            }
-            if (chatMessage instanceof AiMessage aiMessage){
-                messageListSb.append(aiMessage.text());
-            }
-            if (chatMessage instanceof SystemMessage systemMessage){
-                messageListSb.append(systemMessage.text());
-            }
-        }
-        context.put("messageTokens", countTokens(messageListSb.toString()));
-        context.put("answerTokens", countTokens(answerSb.toString()));
+        context.put("messageTokens", TokenUtil.countTokens(messageList));
+        context.put("answerTokens", TokenUtil.countTokens(answerSb.toString()));
         return new NodeResult(nodeVariable, Map.of());
     }
 
-    public static int countTokens(String text) {
-        if (text == null || text.isEmpty()) {
-            return 0;
-        }
-        // 使用 StringTokenizer 按空格分割文本
-        StringTokenizer tokenizer = new StringTokenizer(text, " \t\n\r\f,.!?;:\"'()[]{}<>");
-        return tokenizer.countTokens();
-    }
+
 
     public List<ChatMessage> getHistoryMessage(List<ApplicationChatRecordEntity> historyChatRecord, int dialogueNumber ) {
         List<ChatMessage> historyMessage = new ArrayList<>();

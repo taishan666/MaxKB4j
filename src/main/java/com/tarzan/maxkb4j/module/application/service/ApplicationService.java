@@ -173,7 +173,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         application.setUserId(StpUtil.getLoginIdAsString());
         application.setIcon("");
         application.setTtsModelParamsSetting(new JSONObject());
-        application.setCleanTime(1000 * 365);
+        application.setCleanTime(365);
         application.setFileUploadEnable(false);
         application.setFileUploadSetting(new JSONObject());
         this.save(application);
@@ -214,7 +214,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         application.setIcon("");
         application.setWorkFlow(new JSONObject());
         application.setTtsModelParamsSetting(new JSONObject());
-        application.setCleanTime(1000 * 365);
+        application.setCleanTime(365);
         application.setFileUploadEnable(false);
         application.setFileUploadSetting(new JSONObject());
         this.save(application);

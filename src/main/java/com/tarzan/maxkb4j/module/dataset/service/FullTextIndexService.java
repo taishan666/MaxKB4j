@@ -25,8 +25,6 @@ public class FullTextIndexService {
     public List<HitTestVO> search(List<String> datasetIds, String keyword, int maxResults) {
         // 假设 textCriteria 和 keyword 已经定义好
         TextCriteria textCriteria = TextCriteria.forDefaultLanguage().matching(segmentContent(keyword));
-        // 创建文本查询
-        // Query query = TextQuery.queryText(textCriteria).addCriteria(Criteria.where("datasetId").in(datasetIds));
         // 构建聚合管道
         Aggregation aggregation = Aggregation.newAggregation(
                 // 步骤1: 应用查询条件（文本搜索 + datasetId过滤）
@@ -54,7 +52,6 @@ public class FullTextIndexService {
                 // 步骤7: 限制最终返回数量
                 Aggregation.limit(maxResults)
         );
-
         // 执行聚合查询
         List<EmbeddingEntity> result = mongoTemplate.aggregate(
                 aggregation,
@@ -66,6 +63,7 @@ public class FullTextIndexService {
         }
         float maxScore = Math.max(result.get(0).getScore(),2);
         for (EmbeddingEntity entity : result) {
+         //   System.out.println(entity.getScore()+" "+maxScore);
             float score = entity.getScore()/ maxScore;
             entity.setScore(score);
         }

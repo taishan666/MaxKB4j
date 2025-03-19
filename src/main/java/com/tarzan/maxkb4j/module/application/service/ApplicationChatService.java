@@ -8,6 +8,7 @@ import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.tarzan.maxkb4j.exception.ApiException;
 import com.tarzan.maxkb4j.module.application.cache.ChatCache;
 import com.tarzan.maxkb4j.module.application.chatpipeline.PipelineManage;
 import com.tarzan.maxkb4j.module.application.chatpipeline.handler.PostResponseHandler;
@@ -138,8 +139,11 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
     }
 
     public ChatInfo reChatOpen(String chatId) {
-        ChatInfo chatInfo = new ChatInfo();
         ApplicationChatEntity chatEntity = this.getById(chatId);
+        if (chatEntity == null){
+            return null;
+        }
+        ChatInfo chatInfo = new ChatInfo();
         chatInfo.setChatId(chatId);
         ApplicationEntity application = applicationService.getById(chatEntity.getApplicationId());
         List<ApplicationDatasetMappingEntity> list = datasetMappingService.lambdaQuery().eq(ApplicationDatasetMappingEntity::getApplicationId, application.getId()).list();
@@ -157,38 +161,28 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
         return chatInfo;
     }
 
-    public ApplicationChatRecordVO getChatRecordInfo(String chatId, String chatRecordId) {
-        return chatRecordService.getChatRecordInfo(chatId, chatRecordId);
-    }
+/*    public ApplicationChatRecordVO getChatRecordInfo(ChatInfo chatInfo, String chatRecordId) {
+        return chatRecordService.getChatRecordInfo(chatInfo, chatRecordId);
+    }*/
 
     public Flux<JSONObject> chatMessage(String chatId, ChatMessageDTO dto, HttpServletRequest request) {
-        ChatInfo chatInfo = getChatInfo(chatId);
-        if (chatInfo == null){
-            throw new RuntimeException("会话不存在");
-        }
-        if (chatInfo.getApplication().getType().equals("SIMPLE")) {
-            return chatSimple(chatId, dto, request);
-        } else {
-            return chatWorkflow(chatId, dto, request);
-        }
-    }
-
-    public Flux<JSONObject> chatSimple(String chatId, ChatMessageDTO dto, HttpServletRequest request) {
         String clientId = (String) StpUtil.getExtra("client_id");
         String clientType = (String) StpUtil.getExtra("client_type");
         ChatInfo chatInfo = getChatInfo(chatId);
-        if (chatInfo == null) {
-            System.err.println("会话不存在");
-        } else {
-            try {
-                isValidApplication(chatInfo, clientId, clientType);
-            } catch (Exception e) {
-                log.error("会话不存在", e);
-                JSONObject data = new JSONObject();
-                data.put("content", "系统错误！");
-                return Flux.just(data);
-            }
+        try {
+            isValidIntraDayAccessNum(chatInfo.getApplication().getId(), clientId, clientType);
+        } catch (Exception e) {
+            JSONObject data = new SystemToResponse().toBlockResponse(chatId, "1", "会话不存在", true, 0, 0);
+            return Flux.just(data);
         }
+        if (chatInfo.getApplication().getType().equals("SIMPLE")) {
+            return chatSimple(chatInfo, dto,clientId,clientType);
+        } else {
+            return chatWorkflow(chatInfo, dto,clientId,clientType);
+        }
+    }
+
+    public Flux<JSONObject> chatSimple(ChatInfo chatInfo, ChatMessageDTO dto,String clientId,String clientType) {
         boolean stream = dto.getStream() == null || dto.getStream();
         String problemText = dto.getMessage();
         boolean reChat = dto.getReChat();
@@ -196,14 +190,13 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
         if (reChat) {
             String chatRecordId = dto.getChatRecordId();
             if (Objects.nonNull(chatRecordId)) {
-                ApplicationChatRecordVO chatRecord = getChatRecordInfo(chatId, chatRecordId);
+                ApplicationChatRecordVO chatRecord = chatRecordService.getChatRecordInfo(chatInfo, chatRecordId);
                 List<ParagraphVO> paragraphs = chatRecord.getParagraphList();
                 if (!CollectionUtils.isEmpty(paragraphs)) {
                     excludeParagraphIds = paragraphs.stream().map(ParagraphVO::getId).toList();
                 }
             }
         }
-        assert chatInfo != null;
         ApplicationEntity application = chatInfo.getApplication();
         PipelineManage.Builder pipelineManageBuilder = new PipelineManage.Builder();
         Boolean problemOptimization = application.getProblemOptimization();
@@ -220,27 +213,12 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
         return pipelineManage.response;
     }
 
-    public Flux<JSONObject> chatWorkflow(String chatId, ChatMessageDTO dto, HttpServletRequest request) {
-        String clientId = (String) StpUtil.getExtra("client_id");
-        String clientType = (String) StpUtil.getExtra("client_type");
-        ChatInfo chatInfo = getChatInfo(chatId);
-        if (chatInfo == null) {
-            System.err.println("会话不存在");
-        } else {
-            try {
-                isValidIntraDayAccessNum(chatInfo.getApplication().getId(), clientId, clientType);
-            } catch (Exception e) {
-                JSONObject data = new JSONObject();
-                data.put("content", e.getMessage());
-                return Flux.just(data);
-            }
-        }
+    public Flux<JSONObject> chatWorkflow(ChatInfo chatInfo, ChatMessageDTO dto,String clientId,String clientType) {
         ApplicationChatRecordVO chatRecord = null;
         String chatRecordId = dto.getChatRecordId();
         if(StringUtils.isNotBlank(chatRecordId)){
-            chatRecord = getChatRecordInfo(chatId, chatRecordId);
+            chatRecord = chatRecordService.getChatRecordInfo(chatInfo, chatRecordId);
         }
-        assert chatInfo != null;
         FlowParams flowParams = new FlowParams();
         flowParams.setChatId(chatInfo.getChatId());
         flowParams.setChatRecordId(dto.getChatRecordId() == null ? IdWorker.get32UUID() : dto.getChatRecordId());
@@ -285,11 +263,14 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
     }
 
     public void isValidApplication(ChatInfo chatInfo, String clientId, String clientType) throws Exception {
+        if (chatInfo == null) {
+            throw new ApiException("会话不存在");
+        }
         isValidIntraDayAccessNum(chatInfo.getApplication().getId(), clientId, clientType);
         String modelId = chatInfo.getApplication().getModelId();
         ModelEntity model = modelService.getById(modelId);
         if (Objects.isNull(model) || !"SUCCESS".equals(model.getStatus())) {
-            throw new Exception("当前模型不可用");
+            throw new ApiException("当前模型不可用");
         }
     }
 

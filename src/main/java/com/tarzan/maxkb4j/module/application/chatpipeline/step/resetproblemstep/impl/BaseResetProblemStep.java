@@ -7,16 +7,22 @@ import com.tarzan.maxkb4j.module.application.entity.ApplicationChatRecordEntity;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationEntity;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
+import com.tarzan.maxkb4j.util.TokenUtil;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.model.chat.response.ChatResponse;
 import dev.langchain4j.model.output.TokenUsage;
+import dev.langchain4j.rag.query.Metadata;
+import dev.langchain4j.rag.query.Query;
+import dev.langchain4j.rag.query.transformer.CompressingQueryTransformer;
+import dev.langchain4j.rag.query.transformer.QueryTransformer;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 @Component
@@ -29,6 +35,42 @@ public class BaseResetProblemStep extends IResetProblemStep {
 
     @Override
     protected String execute(PipelineManage manage) {
+        long startTime = System.currentTimeMillis();
+        JSONObject context = manage.context;
+        ApplicationEntity application = (ApplicationEntity) context.get("application");
+        List<ApplicationChatRecordEntity> chatRecordList = (List<ApplicationChatRecordEntity>) context.get("chatRecordList");
+        //TODO 按照设定聊天记录更好，还是取近3条的更好，需要验证,数量越小接口返回越快
+        int messageNum=chatRecordList.size();
+        chatRecordList=messageNum>3?chatRecordList.subList(messageNum-3,messageNum):chatRecordList;
+        List<ChatMessage> historyMessages=new ArrayList<>();
+        for (ApplicationChatRecordEntity chatRecord : chatRecordList) {
+            historyMessages.add(UserMessage.from(chatRecord.getProblemText()));
+            historyMessages.add(AiMessage.from(chatRecord.getAnswerText()));
+        }
+        String modelId = application.getModelId();
+        BaseChatModel chatModel = modelService.getModelById(modelId);
+        QueryTransformer queryTransformer=new CompressingQueryTransformer(chatModel.getChatModel());
+        String question = context.getString("problem_text");
+        String chatId = context.getString("chatId");
+        Metadata metadata=new Metadata(UserMessage.from(question), chatId, historyMessages);
+        Query query=new Query(question,metadata);
+        Collection<Query> list= queryTransformer.transform(query);
+        StringBuilder answerSb=new StringBuilder();
+        for (Query queryResult : list) {
+            answerSb.append(queryResult.text());
+        }
+        String paddingProblem=answerSb.toString();
+        super.context.put("model_id", modelId);
+        super.context.put("problem_text", question);
+        super.context.put("messageTokens", TokenUtil.countTokens(historyMessages));
+        super.context.put("answerTokens", TokenUtil.countTokens(paddingProblem));
+        super.context.put("padding_problem_text", paddingProblem);
+        System.out.println("BaseResetProblemStep 耗时 "+(System.currentTimeMillis()-startTime)+" ms");
+        return paddingProblem;
+    }
+
+
+    protected String execute1(PipelineManage manage) {
         long startTime = System.currentTimeMillis();
         JSONObject context = manage.context;
         ApplicationEntity application = (ApplicationEntity) context.get("application");

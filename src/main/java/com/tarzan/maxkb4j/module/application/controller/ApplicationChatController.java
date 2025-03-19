@@ -3,11 +3,13 @@ package com.tarzan.maxkb4j.module.application.controller;
 import cn.dev33.satoken.stp.StpUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.tarzan.maxkb4j.module.application.cache.ChatCache;
 import com.tarzan.maxkb4j.module.application.dto.ChatMessageDTO;
 import com.tarzan.maxkb4j.module.application.dto.ChatQueryDTO;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationChatEntity;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationChatRecordEntity;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationEntity;
+import com.tarzan.maxkb4j.module.application.service.ApplicationChatRecordService;
 import com.tarzan.maxkb4j.module.application.service.ApplicationChatService;
 import com.tarzan.maxkb4j.module.application.vo.ApplicationChatRecordVO;
 import com.tarzan.maxkb4j.module.application.vo.ApplicationStatisticsVO;
@@ -30,6 +32,7 @@ import java.util.List;
 public class ApplicationChatController {
 
     private final ApplicationChatService chatService;
+    private final ApplicationChatRecordService chatRecordService;
 
     @GetMapping("api/application/{appId}/chat/client/{page}/{size}")
     public R<IPage<ApplicationChatEntity>> clientChatPage(@PathVariable("appId") String appId, @PathVariable("page") int page, @PathVariable("size") int size, HttpServletRequest request) {
@@ -59,7 +62,7 @@ public class ApplicationChatController {
 
     @GetMapping("api/application/{id}/chat/{chatId}/chat_record/{chatRecordId}")
     public R<ApplicationChatRecordVO> chatRecord(@PathVariable String id, @PathVariable String chatId, @PathVariable String chatRecordId) {
-        return R.success(chatService.getChatRecordInfo(chatId, chatRecordId));
+        return R.success(chatRecordService.getChatRecordInfo(ChatCache.get(chatId), chatRecordId));
     }
 
     @PutMapping("api/application/{id}/chat/{chatId}/chat_record/{chatRecordId}/vote")

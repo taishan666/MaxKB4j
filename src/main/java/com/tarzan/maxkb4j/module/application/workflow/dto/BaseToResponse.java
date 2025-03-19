@@ -18,8 +18,7 @@ public abstract class BaseToResponse {
      * @param status           HTTP状态码
      */
     public abstract JSONObject toBlockResponse(String chatId, String chatRecordId, String content, boolean isEnd,
-                                             int completionTokens, int promptTokens,
-                                             int status);
+                                             int completionTokens, int promptTokens);
 
     /**
      * 将当前对象转换为流式块响应。

@@ -97,6 +97,11 @@ public class EmbedTextService {
         return embeddingService.embeddingSearch(datasetIds, maxResults,minScore, res.content().vector());
     }
 
+    public List<HitTestVO> search(EmbeddingModel embeddingModel,List<String> datasetIds, String keyword,int maxResults,float minScore) {
+        Response<Embedding> res = embeddingModel.embed(keyword);
+        return embeddingService.embeddingSearch(datasetIds, maxResults,minScore, res.content().vector());
+    }
+
 
 
 }

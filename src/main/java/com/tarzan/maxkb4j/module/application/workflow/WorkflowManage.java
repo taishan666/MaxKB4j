@@ -505,8 +505,7 @@ public class WorkflowManage {
                 answerText.toString(),
                 true,
                 0,
-                0,
-                getStatus());
+                0);
         return Flux.just(new JSONObject());
     }
 

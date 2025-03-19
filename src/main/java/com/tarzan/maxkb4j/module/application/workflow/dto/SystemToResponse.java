@@ -6,8 +6,23 @@ import java.util.List;
 
 public class SystemToResponse extends BaseToResponse{
     @Override
-    public JSONObject toBlockResponse(String chatId, String chatRecordId, String content, boolean isEnd, int completionTokens, int promptTokens, int status) {
-         return new JSONObject();
+    public JSONObject toBlockResponse(String chatId, String chatRecordId, String content, boolean isEnd, int completionTokens, int promptTokens) {
+        JSONObject data = new JSONObject();
+        data.put("chat_id", chatId);
+        data.put("chat_record_id", chatRecordId);
+        data.put("operate", true);
+        data.put("content", content);
+        data.put("node_id", "ai-chat-node");
+        data.put("node_type", "ai-chat-node");
+        data.put("node_is_end", true);
+        data.put("view_type", "many_view");
+        data.put("is_end", isEnd);
+        JSONObject usage = new JSONObject();
+        usage.put("completion_tokens", completionTokens);
+        usage.put("prompt_tokens", promptTokens);
+        usage.put("total_tokens", (promptTokens + completionTokens));
+        data.put("usage", usage);
+        return data;
     }
 
     @Override

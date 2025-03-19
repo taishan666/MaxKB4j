@@ -23,7 +23,7 @@ public class ChatCache {
         // 定义一个函数，用于在缓存未命中时生成 ChatInfo 对象
         Function<String, ChatInfo> loader = key -> {
             // 根据键生成 ChatInfo 实例的逻辑
-            return new ChatInfo(); // 示例：实际应用中应替换为具体的生成逻辑
+            return null; // 示例：实际应用中应替换为具体的生成逻辑
         };
         return cache.get(chatId,loader);
     }

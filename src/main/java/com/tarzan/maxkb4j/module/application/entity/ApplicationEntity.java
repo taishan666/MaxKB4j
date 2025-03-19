@@ -70,6 +70,7 @@ public class ApplicationEntity extends BaseEntity {
     @TableField(typeHandler = JOSNBTypeHandler.class)
     private JSONObject ttsModelParamsSetting;
 
+    /*单位天*/
     private Integer cleanTime;
 
     private Boolean fileUploadEnable;

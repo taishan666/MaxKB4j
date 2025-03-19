@@ -12,7 +12,7 @@ import com.tarzan.maxkb4j.module.application.entity.ApplicationPublicAccessClien
 import com.tarzan.maxkb4j.module.application.entity.DatasetSetting;
 import com.tarzan.maxkb4j.module.application.entity.NoReferencesSetting;
 import com.tarzan.maxkb4j.module.application.service.ApplicationPublicAccessClientService;
-import com.tarzan.maxkb4j.module.model.provider.out.ChatStream;
+import com.tarzan.maxkb4j.module.assistant.Assistant;
 import com.tarzan.maxkb4j.module.dataset.vo.ParagraphVO;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
@@ -22,6 +22,8 @@ import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.model.chat.response.ChatResponse;
 import dev.langchain4j.model.output.TokenUsage;
+import dev.langchain4j.service.AiServices;
+import dev.langchain4j.service.TokenStream;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
@@ -29,9 +31,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Sinks;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 
 @Component
 @AllArgsConstructor
@@ -96,27 +96,26 @@ public class BaseChatStep extends IChatStep {
                 String clientId = manage.context.getString("client_id");
                 String clientType = manage.context.getString("client_type");
                 if (stream) {
-                    ChatStream chatStream = chatModel.stream(messageList);
-                    chatStream.setCallback((response) -> {
-                        String  answerText=response.aiMessage().text();
-                        TokenUsage tokenUsage=response.tokenUsage();
-                        int thisMessageTokens = tokenUsage.inputTokenCount();
-                        int thisAnswerTokens = tokenUsage.outputTokenCount();
-                        manage.context.put("messageTokens", messageTokens + thisMessageTokens);
-                        manage.context.put("answerTokens", answerTokens + thisAnswerTokens);
-                        addAccessNum(clientId, clientType);
-                        postResponseHandler.handler(ChatCache.get(chatId), chatId, chatRecordId, problemText, answerText, manage, clientId);
-                    });
-                    CompletableFuture.runAsync(() -> {
-                        // 这里放置需要异步执行的代码
-                        Iterator<String> iterator = chatStream.getIterator();
-                        while (chatStream.getIterator().hasNext()) {
-                            sink.tryEmitNext(toResponse(chatId, chatRecordId, iterator.next(), false, 0, 0));
-                        }
-                    }).thenRun(() -> {
-                        sink.tryEmitNext(toResponse(chatId, chatRecordId, "", true, 0, 0));
-                        sink.tryEmitComplete();
-                    });
+                    Assistant assistant = AiServices.create(Assistant.class,chatModel.getStreamingChatModel());
+                    TokenStream tokenStream = assistant.chatStream(messageList);
+                    tokenStream.onPartialResponse(text -> sink.tryEmitNext(toResponse(chatId, chatRecordId, text, false, 0, 0)))
+                            .onCompleteResponse(response->{
+                                String  answerText=response.aiMessage().text();
+                                TokenUsage tokenUsage=response.tokenUsage();
+                                int thisMessageTokens = tokenUsage.inputTokenCount();
+                                int thisAnswerTokens = tokenUsage.outputTokenCount();
+                                manage.context.put("messageTokens", messageTokens + thisMessageTokens);
+                                manage.context.put("answerTokens", answerTokens + thisAnswerTokens);
+                                addAccessNum(clientId, clientType);
+                                postResponseHandler.handler(ChatCache.get(chatId), chatId, chatRecordId, problemText, answerText, manage, clientId);
+                                sink.tryEmitNext(toResponse(chatId, chatRecordId, "", true, 0, 0));
+                                sink.tryEmitComplete();
+                            })
+                            .onError(error->{
+                                sink.tryEmitNext(toResponse(chatId, chatRecordId, "", true, 0, 0));
+                                sink.tryEmitComplete();
+                            })
+                            .start();
                 } else {
                     ChatResponse response = chatModel.generate(messageList);
                     String  answerText=response.aiMessage().text();
