@@ -11,10 +11,10 @@
                 },
                 "height": 825.6,
                 "stepName": "基本信息",
-                "node_data": {
+                "nodeData": {
                     "desc": "",
-                    "name": "maxkb4j application",
-                    "prologue": "您好，我是 MaxKB 小助手，您可以向我提出 MaxKB 使用问题。\n- MaxKB 主要功能有什么？\n- MaxKB 支持哪些大语言模型？\n- MaxKB 支持哪些文档类型？"
+                    "name": "MaxKB4J application",
+                    "prologue": "您好，我是 MaxKB4J 小助手，您可以向我提出 MaxKB 使用问题。\n- MaxKB 主要功能有什么？\n- MaxKB 支持哪些大语言模型？\n- MaxKB 支持哪些文档类型？"
                 },
                 "inputFieldList": [
 
@@ -85,7 +85,7 @@
                 },
                 "height": 794,
                 "stepName": "知识库检索",
-                "node_data": {
+                "nodeData": {
                     "datasetIdList": [
 
                     ],
@@ -95,7 +95,7 @@
                         "searchMode": "embedding",
                         "maxParagraphCharNumber": 5000
                     },
-                    "question_reference_address": [
+                    "questionReferenceAddress": [
                         "start-node",
                         "question"
                     ],
@@ -122,7 +122,7 @@
                 },
                 "height": 543.675,
                 "stepName": "判断器",
-                "node_data": {
+                "nodeData": {
                     "branch": [
                         {
                             "id": "1009",
@@ -164,7 +164,7 @@
                         }
                     ]
                 },
-                "branch_condition_list": [
+                "branchConditionList": [
                     {
                         "index": 0,
                         "height": 121.225,
@@ -199,7 +199,7 @@
                 },
                 "height": 378,
                 "stepName": "指定回复",
-                "node_data": {
+                "nodeData": {
                     "fields": [
                         "b931efe5-5b66-46e0-ae3b-0160cb18eeb5",
                         "directly_return"
@@ -226,7 +226,7 @@
                 },
                 "height": 763,
                 "stepName": "AI 对话",
-                "node_data": {
+                "nodeData": {
                     "prompt": "已知信息：\n{{知识库检索.data}}\n问题：\n{{开始.question}}",
                     "system": "",
                     "modelId": "",
@@ -251,7 +251,7 @@
                 },
                 "height": 763,
                 "stepName": "AI 对话1",
-                "node_data": {
+                "nodeData": {
                     "prompt": "{{开始.question}}",
                     "system": "",
                     "modelId": "",

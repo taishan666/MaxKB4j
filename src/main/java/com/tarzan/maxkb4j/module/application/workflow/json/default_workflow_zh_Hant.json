@@ -11,12 +11,12 @@
                 },
                 "height": 825.6,
                 "stepName": "基本資訊",
-                "node_data": {
+                "nodeData": {
                     "desc": "",
-                    "name": "maxkbapplication",
-                    "prologue": "您好，我是MaxKB小助手，您可以向我提出MaxKB使用問題。\n- MaxKB主要功能有什麼？\n- MaxKB支持哪些大語言模型？\n- MaxKB支持哪些文檔類型？"
+                    "name": "MaxKB4J application",
+                    "prologue": "您好，我是maxKb4j小助手，您可以向我提出MaxKB使用問題。\n- MaxKB主要功能有什麼？\n- MaxKB支持哪些大語言模型？\n- MaxKB支持哪些文檔類型？"
                 },
-                "input_field_list": [
+                "inputFieldList": [
 
                 ]
             }
@@ -85,21 +85,21 @@
                 },
                 "height": 794,
                 "stepName": "知識庫檢索",
-                "node_data": {
-                    "dataset_id_list": [
+                "nodeData": {
+                    "datasetIdList": [
 
                     ],
-                    "dataset_setting": {
+                    "datasetSetting": {
                         "top_n": 3,
                         "similarity": 0.6,
                         "search_mode": "embedding",
                         "max_paragraph_char_number": 5000
                     },
-                    "question_reference_address": [
+                    "questionReferenceAddress": [
                         "start-node",
                         "question"
                     ],
-                    "source_dataset_id_list": [
+                    "sourceDatasetIdList": [
 
                     ]
                 }
@@ -122,7 +122,7 @@
                 },
                 "height": 543.675,
                 "stepName": "判斷器",
-                "node_data": {
+                "nodeData": {
                     "branch": [
                         {
                             "id": "1009",
@@ -164,7 +164,7 @@
                         }
                     ]
                 },
-                "branch_condition_list": [
+                "branchConditionList": [
                     {
                         "index": 0,
                         "height": 121.225,
@@ -199,14 +199,14 @@
                 },
                 "height": 378,
                 "stepName": "指定回覆",
-                "node_data": {
+                "nodeData": {
                     "fields": [
                         "b931efe5-5b66-46e0-ae3b-0160cb18eeb5",
                         "directly_return"
                     ],
                     "content": "",
-                    "reply_type": "referencing",
-                    "is_result": true
+                    "replyType": "referencing",
+                    "isResult": true
                 }
             }
         },
@@ -226,12 +226,12 @@
                 },
                 "height": 763,
                 "stepName": "AI 對話",
-                "node_data": {
+                "nodeData": {
                     "prompt": "已知資訊：\n{{知識庫檢索.data}}\n問題：\n{{開始.question}}",
                     "system": "",
-                    "model_id": "",
-                    "dialogue_number": 0,
-                    "is_result": true
+                    "modelId": "",
+                    "dialogueNumber": 0,
+                    "isResult": true
                 }
             }
         },
@@ -251,12 +251,12 @@
                 },
                 "height": 763,
                 "stepName": "AI 對話1",
-                "node_data": {
+                "nodeData": {
                     "prompt": "{{開始.question}}",
                     "system": "",
-                    "model_id": "",
-                    "dialogue_number": 0,
-                    "is_result": true
+                    "modelId": "",
+                    "dialogueNumber": 0,
+                    "isResult": true
                 }
             }
         }

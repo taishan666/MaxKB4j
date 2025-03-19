@@ -162,7 +162,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
                 JSONObject node = nodes.getJSONObject(i);
                 if ("base-node".equals(node.getString("id"))) {
                     JSONObject properties = node.getJSONObject("properties");
-                    JSONObject nodeData = properties.getJSONObject("node_data");
+                    JSONObject nodeData = properties.getJSONObject("nodeData");
                     nodeData.put("name", application.getName());
                     nodeData.put("desc", application.getDesc());
                     nodeData.put("prologue", application.getPrologue());
@@ -443,7 +443,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
                 String type = baseNode.getString("type");
                 if (type.equals("base-node")) {
                     JSONObject properties = baseNode.getJSONObject("properties");
-                    JSONObject nodeData = properties.getJSONObject("node_data");
+                    JSONObject nodeData = properties.getJSONObject("nodeData");
                     application.setName(nodeData.getString("name"));
                     application.setDesc(nodeData.getString("desc"));
                     application.setPrologue(nodeData.getString("prologue"));

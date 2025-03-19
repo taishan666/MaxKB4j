@@ -21,7 +21,7 @@ public class BaseStartNode extends IStarNode {
         Node baseNode = workflowManage.getBaseNode();
         // 获取默认全局变量
         List<JSONObject> inputFieldList = (List<JSONObject>) baseNode.getProperties()
-                .getOrDefault("input_field_list", Collections.emptyList());
+                .getOrDefault("inputFieldList", Collections.emptyList());
         JSONObject defaultGlobalVariable = getDefaultGlobalVariable(inputFieldList);
         // 合并全局变量
         Map<String, Object> workflowVariable = new HashMap<>(defaultGlobalVariable);
@@ -87,7 +87,7 @@ public class BaseStartNode extends IStarNode {
         Node baseNode = workflowManage.getBaseNode();
         // 获取默认全局变量
         List<JSONObject> inputFieldList = (List<JSONObject>) baseNode.getProperties()
-                .getOrDefault("input_field_list", Collections.emptyList());
+                .getOrDefault("inputFieldList", Collections.emptyList());
         JSONObject defaultGlobalVariable = getDefaultGlobalVariable(inputFieldList);
         // 合并全局变量
         Map<String, Object> workflowVariable = new HashMap<>(defaultGlobalVariable);

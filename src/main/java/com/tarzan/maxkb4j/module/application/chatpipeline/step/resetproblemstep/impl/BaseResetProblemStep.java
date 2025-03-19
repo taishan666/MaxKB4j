@@ -60,7 +60,7 @@ public class BaseResetProblemStep extends IResetProblemStep {
             answerSb.append(queryResult.text());
         }
         String paddingProblem=answerSb.toString();
-        super.context.put("model_id", modelId);
+        super.context.put("modelId", modelId);
         super.context.put("problem_text", question);
         super.context.put("messageTokens", TokenUtil.countTokens(historyMessages));
         super.context.put("answerTokens", TokenUtil.countTokens(paddingProblem));
@@ -95,7 +95,7 @@ public class BaseResetProblemStep extends IResetProblemStep {
         String content=res.aiMessage().text();
         String paddingProblem = getString(content);
         TokenUsage tokenUsage = res.tokenUsage();
-        super.context.put("model_id", modelId);
+        super.context.put("modelId", modelId);
         super.context.put("problem_text", context.getString("problem_text"));
         super.context.put("messageTokens", tokenUsage.inputTokenCount());
         super.context.put("answerTokens", tokenUsage.outputTokenCount());
@@ -123,7 +123,7 @@ public class BaseResetProblemStep extends IResetProblemStep {
     public JSONObject getDetails() {
         JSONObject details=new JSONObject();
         details.put("step_type","problem_padding");
-        details.put("model_id",super.context.get("model_id"));
+        details.put("modelId",super.context.get("modelId"));
         details.put("runTime",super.context.get("runTime"));
         details.put("problem_text",super.context.get("problem_text"));
         details.put("padding_problem_text",super.context.get("padding_problem_text"));

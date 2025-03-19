@@ -20,19 +20,20 @@ import com.tarzan.maxkb4j.module.application.dto.ChatInfo;
 import com.tarzan.maxkb4j.module.application.dto.ChatMessageDTO;
 import com.tarzan.maxkb4j.module.application.dto.ChatQueryDTO;
 import com.tarzan.maxkb4j.module.application.entity.*;
+import com.tarzan.maxkb4j.module.application.enums.AuthType;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatMapper;
 import com.tarzan.maxkb4j.module.application.vo.ApplicationChatRecordVO;
 import com.tarzan.maxkb4j.module.application.vo.ApplicationPublicAccessClientStatisticsVO;
 import com.tarzan.maxkb4j.module.application.vo.ApplicationStatisticsVO;
-import com.tarzan.maxkb4j.module.application.workflow.info.Flow;
 import com.tarzan.maxkb4j.module.application.workflow.WorkflowManage;
-import com.tarzan.maxkb4j.module.application.workflow.node.start.input.FlowParams;
 import com.tarzan.maxkb4j.module.application.workflow.dto.SystemToResponse;
 import com.tarzan.maxkb4j.module.application.workflow.handler.WorkFlowPostHandler;
+import com.tarzan.maxkb4j.module.application.workflow.info.Flow;
+import com.tarzan.maxkb4j.module.application.workflow.node.start.input.FlowParams;
 import com.tarzan.maxkb4j.module.dataset.vo.ParagraphVO;
-import com.tarzan.maxkb4j.module.resource.service.FileService;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelEntity;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
+import com.tarzan.maxkb4j.module.resource.service.FileService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -161,16 +162,13 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
         return chatInfo;
     }
 
-/*    public ApplicationChatRecordVO getChatRecordInfo(ChatInfo chatInfo, String chatRecordId) {
-        return chatRecordService.getChatRecordInfo(chatInfo, chatRecordId);
-    }*/
 
     public Flux<JSONObject> chatMessage(String chatId, ChatMessageDTO dto, HttpServletRequest request) {
         String clientId = (String) StpUtil.getExtra("client_id");
         String clientType = (String) StpUtil.getExtra("client_type");
         ChatInfo chatInfo = getChatInfo(chatId);
         try {
-            isValidIntraDayAccessNum(chatInfo.getApplication().getId(), clientId, clientType);
+            isValidApplication(chatInfo, clientId, clientType);
         } catch (Exception e) {
             JSONObject data = new SystemToResponse().toBlockResponse(chatId, "1", "会话不存在", true, 0, 0);
             return Flux.just(data);
@@ -183,6 +181,11 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
     }
 
     public Flux<JSONObject> chatSimple(ChatInfo chatInfo, ChatMessageDTO dto,String clientId,String clientType) {
+        String modelId = chatInfo.getApplication().getModelId();
+        ModelEntity model = modelService.getById(modelId);
+        if (Objects.isNull(model) || !"SUCCESS".equals(model.getStatus())) {
+            throw new ApiException("当前模型不可用");
+        }
         boolean stream = dto.getStream() == null || dto.getStream();
         String problemText = dto.getMessage();
         boolean reChat = dto.getReChat();
@@ -245,7 +248,7 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
     }
 
     public void isValidIntraDayAccessNum(String appId, String clientId, String clientType) throws Exception {
-        if ("APPLICATION_ACCESS_TOKEN".equals(clientType)) {
+        if (AuthType.APP_ACCESS_TOKEN.name().equals(clientType)) {
             ApplicationPublicAccessClientEntity accessClient = publicAccessClientService.getById(clientId);
             if (Objects.isNull(accessClient)) {
                 accessClient = new ApplicationPublicAccessClientEntity();
@@ -267,11 +270,6 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
             throw new ApiException("会话不存在");
         }
         isValidIntraDayAccessNum(chatInfo.getApplication().getId(), clientId, clientType);
-        String modelId = chatInfo.getApplication().getModelId();
-        ModelEntity model = modelService.getById(modelId);
-        if (Objects.isNull(model) || !"SUCCESS".equals(model.getStatus())) {
-            throw new ApiException("当前模型不可用");
-        }
     }
 
     public IPage<ApplicationChatRecordVO> chatRecordPage(String chatId, int page, int size) {

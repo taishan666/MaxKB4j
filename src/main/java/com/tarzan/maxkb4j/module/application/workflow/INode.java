@@ -54,8 +54,8 @@ public abstract class INode {
     }
 
     private JSONObject getNodeParams(Node node) {
-        if (Objects.nonNull(node.getProperties()) && node.getProperties().containsKey("node_data")) {
-            return node.getProperties().getJSONObject("node_data");
+        if (Objects.nonNull(node.getProperties()) && node.getProperties().containsKey("nodeData")) {
+            return node.getProperties().getJSONObject("nodeData");
         }
         return new JSONObject();
     }

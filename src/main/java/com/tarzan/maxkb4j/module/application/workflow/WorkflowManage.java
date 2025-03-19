@@ -156,13 +156,13 @@ public class WorkflowManage {
                             JSONObject params = new JSONObject();
                             boolean isResult = "application-node".equals(n.getType());
                             // 合并节点数据
-                            if (n.getProperties().containsKey("node_data")) {
-                                params.putAll(n.getProperties().getJSONObject("node_data"));
+                            if (n.getProperties().containsKey("nodeData")) {
+                                params.putAll(n.getProperties().getJSONObject("nodeData"));
                             }
                             params.put("form_data", startNodeData);
-                            params.put("node_data", startNodeData);
+                            params.put("nodeData", startNodeData);
                             params.put("child_node", childNode); // 假设childNode方法存在
-                            params.put("is_result", isResult);
+                            params.put("isResult", isResult);
                             return params;
                         }
                 );
@@ -724,7 +724,7 @@ public class WorkflowManage {
             return false;
         }
         boolean defaultVal = !hasNextNode(currentNode, currentNodeResult);
-        Boolean isResult = currentNode.getNodeParams().getBoolean("is_result");
+        Boolean isResult = currentNode.getNodeParams().getBoolean("isResult");
         return isResult == null ? defaultVal : isResult;
     }
 

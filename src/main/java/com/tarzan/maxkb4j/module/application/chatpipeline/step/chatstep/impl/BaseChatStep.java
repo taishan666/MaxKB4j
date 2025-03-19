@@ -47,7 +47,7 @@ public class BaseChatStep extends IChatStep {
         List<ChatMessage> messageList = (List<ChatMessage>) context.get("message_list");
         List<ParagraphVO> paragraphList = (List<ParagraphVO>) context.get("paragraph_list");
         String modelId = application.getModelId();
-        super.context.put("model_id", modelId);
+        super.context.put("modelId", modelId);
         PostResponseHandler postResponseHandler = (PostResponseHandler) context.get("postResponseHandler");
         String problemText = context.getString("problem_text");
         DatasetSetting datasetSetting = application.getDatasetSetting();
@@ -169,7 +169,7 @@ public class BaseChatStep extends IChatStep {
         JSONObject details = new JSONObject();
         details.put("step_type", "chat_step");
         details.put("runTime", (System.currentTimeMillis() - startTime) / 1000F);
-        details.put("model_id", super.context.get("model_id"));
+        details.put("modelId", super.context.get("modelId"));
         details.put("message_list", resetMessageList(super.context.getJSONArray("message_list"), super.context.getString("answer_text")));
         details.put("messageTokens", super.context.get("messageTokens"));
         details.put("answerTokens", super.context.get("answerTokens"));

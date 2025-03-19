@@ -22,11 +22,11 @@ CREATE TABLE "public"."application" (
                                         "name" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
                                         "desc" varchar(512) COLLATE "pg_catalog"."default" NOT NULL,
                                         "prologue" varchar(4096) COLLATE "pg_catalog"."default" NOT NULL,
-                                        "dialogue_number" int4 NOT NULL,
-                                        "dataset_setting" jsonb NOT NULL,
+                                        "dialogueNumber" int4 NOT NULL,
+                                        "datasetSetting" jsonb NOT NULL,
                                         "model_setting" jsonb NOT NULL,
                                         "problem_optimization" bool NOT NULL,
-                                        "model_id" varchar(50),
+                                        "modelId" varchar(50),
                                         "user_id" varchar(50) NOT NULL,
                                         "icon" varchar(256) COLLATE "pg_catalog"."default" NOT NULL,
                                         "type" varchar(256) COLLATE "pg_catalog"."default" NOT NULL,
@@ -241,7 +241,7 @@ CREATE TABLE "public"."function_lib" (
                                          "name" varchar(64) COLLATE "pg_catalog"."default" NOT NULL,
                                          "desc" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
                                          "code" varchar(102400) COLLATE "pg_catalog"."default" NOT NULL,
-                                         "input_field_list" jsonb[] NOT NULL,
+                                         "inputFieldList" jsonb[] NOT NULL,
                                          "user_id" varchar(50) NOT NULL,
                                          "is_active" bool NOT NULL,
                                          "permission_type" varchar(20) COLLATE "pg_catalog"."default" NOT NULL
@@ -433,7 +433,7 @@ SELECT setval('"public"."setting_modelparam_id_seq"', 1, false);
 -- Indexes structure for table application
 -- ----------------------------
 CREATE INDEX "application_model_id_e80b5b34" ON "public"."application" USING btree (
-    "model_id" "pg_catalog"."varchar_pattern_ops" ASC NULLS LAST
+    "modelId" "pg_catalog"."varchar_pattern_ops" ASC NULLS LAST
     );
 CREATE INDEX "application_stt_model_id_10e736db" ON "public"."application" USING btree (
     "stt_model_id" "pg_catalog"."varchar_pattern_ops" ASC NULLS LAST

@@ -1,7 +1,6 @@
 package com.tarzan.maxkb4j.module.application.dto;
 
 import com.alibaba.fastjson.JSONObject;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 import java.util.List;
@@ -12,9 +11,7 @@ public class ChatMessageDTO {
     private String chatRecordId;
     private Boolean stream;
     private Boolean reChat;
-    @JsonProperty("form_data")
     private JSONObject formData;
-    @JsonProperty("node_data")
     private JSONObject nodeData;
     private String runtimeNodeId;
     private List<JSONObject> audioList;

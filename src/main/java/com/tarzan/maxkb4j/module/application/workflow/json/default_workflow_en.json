@@ -11,12 +11,12 @@
                 },
                 "height": 825.6,
                 "stepName": "Base",
-                "node_data": {
+                "nodeData": {
                     "desc": "",
-                    "name": "maxkbapplication",
-                    "prologue": "Hello, I am the MaxKB assistant. You can ask me about MaxKB usage issues.\n-What are the main functions of MaxKB?\n-What major language models does MaxKB support?\n-What document types does MaxKB support?"
+                    "name": "MaxKB4J application",
+                    "prologue": "Hello, I am the MaxKB4J assistant. You can ask me about MaxKB usage issues.\n-What are the main functions of MaxKB?\n-What major language models does MaxKB support?\n-What document types does MaxKB support?"
                 },
-                "input_field_list": [
+                "inputFieldList": [
 
                 ]
             }
@@ -85,21 +85,21 @@
                 },
                 "height": 794,
                 "stepName": "Knowledge Search",
-                "node_data": {
-                    "dataset_id_list": [
+                "nodeData": {
+                    "datasetIdList": [
 
                     ],
-                    "dataset_setting": {
+                    "datasetSetting": {
                         "top_n": 3,
                         "similarity": 0.6,
                         "search_mode": "embedding",
                         "max_paragraph_char_number": 5000
                     },
-                    "question_reference_address": [
+                    "questionReferenceAddress": [
                         "start-node",
                         "question"
                     ],
-                    "source_dataset_id_list": [
+                    "sourceDatasetIdList": [
 
                     ]
                 }
@@ -122,7 +122,7 @@
                 },
                 "height": 543.675,
                 "stepName": "Conditional Branch",
-                "node_data": {
+                "nodeData": {
                     "branch": [
                         {
                             "id": "1009",
@@ -164,7 +164,7 @@
                         }
                     ]
                 },
-                "branch_condition_list": [
+                "branchConditionList": [
                     {
                         "index": 0,
                         "height": 121.225,
@@ -199,14 +199,14 @@
                 },
                 "height": 378,
                 "stepName": "Specified Reply",
-                "node_data": {
+                "nodeData": {
                     "fields": [
                         "b931efe5-5b66-46e0-ae3b-0160cb18eeb5",
                         "directly_return"
                     ],
                     "content": "",
-                    "reply_type": "referencing",
-                    "is_result": true
+                    "replyType": "referencing",
+                    "isResult": true
                 }
             }
         },
@@ -226,12 +226,12 @@
                 },
                 "height": 763,
                 "stepName": "AI Chat",
-                "node_data": {
+                "nodeData": {
                     "prompt": "Known information:\n{{Knowledge Search.data}}\nQuestion:\n{{Start.question}}",
                     "system": "",
-                    "model_id": "",
-                    "dialogue_number": 0,
-                    "is_result": true
+                    "modelId": "",
+                    "dialogueNumber": 0,
+                    "isResult": true
                 }
             }
         },
@@ -251,12 +251,12 @@
                 },
                 "height": 763,
                 "stepName": "AI Chat1",
-                "node_data": {
+                "nodeData": {
                     "prompt": "{{Start.question}}",
                     "system": "",
-                    "model_id": "",
-                    "dialogue_number": 0,
-                    "is_result": true
+                    "modelId": "",
+                    "dialogueNumber": 0,
+                    "isResult": true
                 }
             }
         }
