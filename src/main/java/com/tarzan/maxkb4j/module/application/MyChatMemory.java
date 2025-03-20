@@ -85,6 +85,7 @@ public class MyChatMemory implements ChatMemory {
 
     @Override
     public List<ChatMessage> messages() {
+        System.out.println("list messages-------------------------------------------");
         return new LinkedList<>(chatStore.getOrDefault(id(),new ArrayList<>()));
     }
 

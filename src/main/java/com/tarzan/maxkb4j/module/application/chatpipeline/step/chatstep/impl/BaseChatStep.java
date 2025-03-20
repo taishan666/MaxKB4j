@@ -8,7 +8,10 @@ import com.tarzan.maxkb4j.module.application.cache.ChatCache;
 import com.tarzan.maxkb4j.module.application.chatpipeline.PipelineManage;
 import com.tarzan.maxkb4j.module.application.chatpipeline.handler.PostResponseHandler;
 import com.tarzan.maxkb4j.module.application.chatpipeline.step.chatstep.IChatStep;
-import com.tarzan.maxkb4j.module.application.entity.*;
+import com.tarzan.maxkb4j.module.application.entity.ApplicationEntity;
+import com.tarzan.maxkb4j.module.application.entity.ApplicationPublicAccessClientEntity;
+import com.tarzan.maxkb4j.module.application.entity.DatasetSetting;
+import com.tarzan.maxkb4j.module.application.entity.NoReferencesSetting;
 import com.tarzan.maxkb4j.module.application.service.ApplicationPublicAccessClientService;
 import com.tarzan.maxkb4j.module.assistant.Assistant;
 import com.tarzan.maxkb4j.module.dataset.MyContentRetriever;
@@ -19,7 +22,7 @@ import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.data.message.UserMessage;
-import dev.langchain4j.model.chat.response.ChatResponse;
+import dev.langchain4j.memory.chat.MessageWindowChatMemory;
 import dev.langchain4j.model.output.TokenUsage;
 import dev.langchain4j.service.AiServices;
 import dev.langchain4j.service.TokenStream;
@@ -38,7 +41,6 @@ public class BaseChatStep extends IChatStep {
 
     private final ModelService modelService;
     private final ApplicationPublicAccessClientService publicAccessClientService;
-
     @Override
     protected Flux<JSONObject> execute(PipelineManage manage) {
         JSONObject context = manage.context;
@@ -49,13 +51,14 @@ public class BaseChatStep extends IChatStep {
         super.context.put("modelId", modelId);
         PostResponseHandler postResponseHandler = (PostResponseHandler) context.get("postResponseHandler");
         String problemText = context.getString("problem_text");
+        String systemText = application.getModelSetting().getSystem();
         DatasetSetting datasetSetting = application.getDatasetSetting();
         NoReferencesSetting noReferencesSetting = datasetSetting.getNoReferencesSetting();
         String chatId = context.getString("chatId");
         String chatRecordId = IdWorker.get32UUID();
         BaseChatModel chatModel = modelService.getModelById(modelId);
         boolean stream = true;
-        return getFluxResult(chatId, chatRecordId, messageList, chatModel, paragraphList, noReferencesSetting, problemText, manage, postResponseHandler, stream);
+        return getFluxResult(chatId, chatRecordId, messageList, chatModel, paragraphList, noReferencesSetting,systemText, problemText, manage, postResponseHandler, stream);
     }
 
 
@@ -63,7 +66,7 @@ public class BaseChatStep extends IChatStep {
                                            BaseChatModel chatModel,
                                            List<ParagraphVO> paragraphList,
                                            NoReferencesSetting noReferencesSetting,
-                                           String problemText, PipelineManage manage, PostResponseHandler postResponseHandler, boolean stream) {
+                                           String systemText,String problemText, PipelineManage manage, PostResponseHandler postResponseHandler, boolean stream) {
         Sinks.Many<JSONObject> sink = Sinks.many().multicast().onBackpressureBuffer();
         if (CollectionUtils.isEmpty(paragraphList)) {
             paragraphList = new ArrayList<>();
@@ -96,12 +99,15 @@ public class BaseChatStep extends IChatStep {
                 String clientType = manage.context.getString("client_type");
                 MyChatMemory chatMemory=new MyChatMemory(5,5000);
                 chatMemory.add1(messageList);
+                Assistant assistant =  AiServices.builder(Assistant.class)
+                        .systemMessageProvider(chatMemoryId ->systemText)
+                    //    .chatLanguageModel(chatModel.getChatModel())
+                        .streamingChatLanguageModel(chatModel.getStreamingChatModel())
+                        .chatMemory(chatMemory)
+                       // .chatMemoryProvider(memoryId -> MessageWindowChatMemory.withMaxMessages(10))
+                        .contentRetriever(new MyContentRetriever(paragraphList))
+                        .build();
                 if (stream) {
-                    Assistant assistant =  AiServices.builder(Assistant.class)
-                            .streamingChatLanguageModel(chatModel.getStreamingChatModel())
-                            .chatMemory(chatMemory)
-                            .contentRetriever(new MyContentRetriever(paragraphList))
-                            .build();
                     TokenStream tokenStream = assistant.chatStream(problemText);
                     tokenStream.onPartialResponse(text -> sink.tryEmitNext(toResponse(chatId, chatRecordId, text, false, 0, 0)))
                             .onCompleteResponse(response->{
@@ -122,14 +128,10 @@ public class BaseChatStep extends IChatStep {
                             })
                             .start();
                 } else {
-                    Assistant assistant =  AiServices.builder(Assistant.class)
-                            .streamingChatLanguageModel(chatModel.getStreamingChatModel())
-                            .chatMemory(chatMemory)
-                            .contentRetriever(new MyContentRetriever(paragraphList))
-                            .build();
-                    ChatResponse response = assistant.chat(problemText);
-                    String  answerText=response.aiMessage().text();
-                    TokenUsage tokenUsage=response.tokenUsage();
+              /*      String response = assistant.chat(problemText);
+                    System.out.println(response);
+                    String  answerText=response;
+                    TokenUsage tokenUsage=new TokenUsage();
                     sink.tryEmitNext(toResponse(chatId, chatRecordId, answerText, true, 0, 0));
                     sink.tryEmitComplete();
                     int thisMessageTokens = tokenUsage.inputTokenCount();
@@ -137,7 +139,7 @@ public class BaseChatStep extends IChatStep {
                     manage.context.put("messageTokens", messageTokens + thisMessageTokens);
                     manage.context.put("answerTokens", answerTokens + thisAnswerTokens);
                     addAccessNum(clientId, clientType);
-                    postResponseHandler.handler(ChatCache.get(chatId), chatId, chatRecordId, problemText, answerText, manage, clientId);
+                    postResponseHandler.handler(ChatCache.get(chatId), chatId, chatRecordId, problemText, answerText, manage, clientId);*/
                 }
             }
         }

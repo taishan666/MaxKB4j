@@ -35,7 +35,7 @@ public class SearchDatasetStep extends ISearchDatasetStep {
         DatasetSetting datasetSetting=application.getDatasetSetting();
         List<CompletableFuture<List<ParagraphVO>>> futureList = new ArrayList<>();
         futureList.add(CompletableFuture.supplyAsync(()->retrieveService.paragraphSearch(problemText,application.getDatasetIdList(), List.of(),datasetSetting)));
-        if(StringUtils.isNotBlank(paddingProblemText)){
+        if(StringUtils.isNotBlank(paddingProblemText)&&!problemText.equals(paddingProblemText)){
             futureList.add(CompletableFuture.supplyAsync(()->retrieveService.paragraphSearch(paddingProblemText,application.getDatasetIdList(), List.of(),datasetSetting)));
         }
         List<ParagraphVO> paragraphList= futureList.stream().flatMap(future-> future.join().stream()).toList();

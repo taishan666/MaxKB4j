@@ -53,7 +53,7 @@ public class BaseResetProblemStep extends IResetProblemStep {
         historyMessages.add(SystemMessage.from(system));
         for (ApplicationChatRecordEntity chatRecord : chatRecordList) {
             historyMessages.add(UserMessage.from(chatRecord.getProblemText()));
-            historyMessages.add(AiMessage.from(chatRecord.getAnswerText()));
+          //  historyMessages.add(AiMessage.from(chatRecord.getAnswerText()));
         }
         String modelId = application.getModelId();
         BaseChatModel chatModel = modelService.getModelById(modelId);
