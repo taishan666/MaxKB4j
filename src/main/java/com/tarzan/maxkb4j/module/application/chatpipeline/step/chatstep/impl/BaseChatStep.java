@@ -94,10 +94,9 @@ public class BaseChatStep extends IChatStep {
                 int answerTokens = manage.context.getInteger("answerTokens");
                 String clientId = manage.context.getString("client_id");
                 String clientType = manage.context.getString("client_type");
+                MyChatMemory chatMemory=new MyChatMemory(5,5000);
+                chatMemory.add1(messageList);
                 if (stream) {
-                   // Assistant assistant = AiServices.create(Assistant.class,chatModel.getStreamingChatModel());
-                    MyChatMemory chatMemory=new MyChatMemory(5,5000);
-                    chatMemory.add1(messageList);
                     Assistant assistant =  AiServices.builder(Assistant.class)
                             .streamingChatLanguageModel(chatModel.getStreamingChatModel())
                             .chatMemory(chatMemory)
@@ -123,7 +122,12 @@ public class BaseChatStep extends IChatStep {
                             })
                             .start();
                 } else {
-                    ChatResponse response = chatModel.generate(messageList);
+                    Assistant assistant =  AiServices.builder(Assistant.class)
+                            .streamingChatLanguageModel(chatModel.getStreamingChatModel())
+                            .chatMemory(chatMemory)
+                            .contentRetriever(new MyContentRetriever(paragraphList))
+                            .build();
+                    ChatResponse response = assistant.chat(problemText);
                     String  answerText=response.aiMessage().text();
                     TokenUsage tokenUsage=response.tokenUsage();
                     sink.tryEmitNext(toResponse(chatId, chatRecordId, answerText, true, 0, 0));
