@@ -22,7 +22,7 @@ public class FullTextIndexService {
 
     private final MongoTemplate mongoTemplate;
 
-    public List<HitTestVO> search(List<String> datasetIds, String keyword, int maxResults) {
+    public List<HitTestVO> search(List<String> datasetIds, String keyword, int maxResults,float minScore) {
         // 假设 textCriteria 和 keyword 已经定义好
         TextCriteria textCriteria = TextCriteria.forDefaultLanguage().matching(segmentContent(keyword));
         // 构建聚合管道

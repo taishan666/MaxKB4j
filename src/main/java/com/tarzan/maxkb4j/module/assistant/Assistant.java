@@ -13,4 +13,6 @@ public interface Assistant {
     Flux<String> chatFlux(List<ChatMessage> messages);
 
     TokenStream chatStream(List<ChatMessage> messages);
+
+    TokenStream chatStream(String message);
 }

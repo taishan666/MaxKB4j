@@ -8,12 +8,15 @@ import com.tarzan.maxkb4j.module.application.entity.DatasetSetting;
 import com.tarzan.maxkb4j.module.dataset.service.RetrieveService;
 import com.tarzan.maxkb4j.module.dataset.vo.ParagraphVO;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
+@Slf4j
 @Component
 @AllArgsConstructor
 public class SearchDatasetStep extends ISearchDatasetStep {
@@ -25,15 +28,18 @@ public class SearchDatasetStep extends ISearchDatasetStep {
         long startTime = System.currentTimeMillis();
         JSONObject context=manage.context;
         ApplicationEntity application=(ApplicationEntity)context.get("application");
-        //EmbeddingModel embeddingModel=datasetService.getDatasetEmbeddingModel(application.getDatasetIdList().get(0));
-        //super.context.put("model_name",embeddingModel);
         String problemText=manage.context.getString("problem_text");
         super.context.put("problem_text",problemText);
         String paddingProblemText=context.getString("padding_problem_text");
-        String execProblemText = StringUtils.isNotBlank(paddingProblemText)?paddingProblemText:problemText;
+   //     String execProblemText = StringUtils.isNotBlank(paddingProblemText)?paddingProblemText:problemText;
         DatasetSetting datasetSetting=application.getDatasetSetting();
-        List<ParagraphVO> paragraphList= retrieveService.paragraphSearch(execProblemText,application.getDatasetIdList(), Collections.emptyList(),datasetSetting.getTopN(),datasetSetting.getSimilarity(),datasetSetting.getSearchMode());
-        System.out.println("search 耗时 "+(System.currentTimeMillis()-startTime)+" ms");
+        List<CompletableFuture<List<ParagraphVO>>> futureList = new ArrayList<>();
+        futureList.add(CompletableFuture.supplyAsync(()->retrieveService.paragraphSearch(problemText,application.getDatasetIdList(), List.of(),datasetSetting)));
+        if(StringUtils.isNotBlank(paddingProblemText)){
+            futureList.add(CompletableFuture.supplyAsync(()->retrieveService.paragraphSearch(paddingProblemText,application.getDatasetIdList(), List.of(),datasetSetting)));
+        }
+        List<ParagraphVO> paragraphList= futureList.stream().flatMap(future-> future.join().stream()).toList();
+        log.info("dataset search 耗时 {} ms", System.currentTimeMillis() - startTime);
         super.context.put("messageTokens",0);
         super.context.put("answerTokens",0);
         return paragraphList;

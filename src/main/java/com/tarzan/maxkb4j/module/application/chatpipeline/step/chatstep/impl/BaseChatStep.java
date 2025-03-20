@@ -3,16 +3,15 @@ package com.tarzan.maxkb4j.module.application.chatpipeline.step.chatstep.impl;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
+import com.tarzan.maxkb4j.module.application.MyChatMemory;
 import com.tarzan.maxkb4j.module.application.cache.ChatCache;
 import com.tarzan.maxkb4j.module.application.chatpipeline.PipelineManage;
 import com.tarzan.maxkb4j.module.application.chatpipeline.handler.PostResponseHandler;
 import com.tarzan.maxkb4j.module.application.chatpipeline.step.chatstep.IChatStep;
-import com.tarzan.maxkb4j.module.application.entity.ApplicationEntity;
-import com.tarzan.maxkb4j.module.application.entity.ApplicationPublicAccessClientEntity;
-import com.tarzan.maxkb4j.module.application.entity.DatasetSetting;
-import com.tarzan.maxkb4j.module.application.entity.NoReferencesSetting;
+import com.tarzan.maxkb4j.module.application.entity.*;
 import com.tarzan.maxkb4j.module.application.service.ApplicationPublicAccessClientService;
 import com.tarzan.maxkb4j.module.assistant.Assistant;
+import com.tarzan.maxkb4j.module.dataset.MyContentRetriever;
 import com.tarzan.maxkb4j.module.dataset.vo.ParagraphVO;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
@@ -80,24 +79,31 @@ public class BaseChatStep extends IChatStep {
             JSONObject json = toResponse(chatId, chatRecordId, text, false, 0, 0);
             sink.tryEmitNext(json);
         } else {
+            String status = noReferencesSetting.getStatus();
             if (!CollectionUtils.isEmpty(directlyReturnChunkList)) {
                 String text = directlyReturnChunkList.get(0).text();
-                sink.tryEmitNext(toResponse(chatId, chatRecordId, text, false, 0, 0));
-            } else if (paragraphList.isEmpty()) {
-                String status = noReferencesSetting.getStatus();
-                if ("designated_answer".equals(status)) {
+                sink.tryEmitNext(toResponse(chatId, chatRecordId, text, true, 0, 0));
+                sink.tryEmitComplete();
+            } else if (paragraphList.isEmpty()&&"designated_answer".equals(status)) {
                     String value = noReferencesSetting.getValue();
                     String text = value.replace("{question}", problemText);
-                    sink.tryEmitNext(toResponse(chatId, chatRecordId, text, false, 0, 0));
-                }
+                    sink.tryEmitNext(toResponse(chatId, chatRecordId, text, true, 0, 0));
+                    sink.tryEmitComplete();
             } else {
                 int messageTokens = manage.context.getInteger("messageTokens");
                 int answerTokens = manage.context.getInteger("answerTokens");
                 String clientId = manage.context.getString("client_id");
                 String clientType = manage.context.getString("client_type");
                 if (stream) {
-                    Assistant assistant = AiServices.create(Assistant.class,chatModel.getStreamingChatModel());
-                    TokenStream tokenStream = assistant.chatStream(messageList);
+                   // Assistant assistant = AiServices.create(Assistant.class,chatModel.getStreamingChatModel());
+                    MyChatMemory chatMemory=new MyChatMemory(5,5000);
+                    chatMemory.add1(messageList);
+                    Assistant assistant =  AiServices.builder(Assistant.class)
+                            .streamingChatLanguageModel(chatModel.getStreamingChatModel())
+                            .chatMemory(chatMemory)
+                            .contentRetriever(new MyContentRetriever(paragraphList))
+                            .build();
+                    TokenStream tokenStream = assistant.chatStream(problemText);
                     tokenStream.onPartialResponse(text -> sink.tryEmitNext(toResponse(chatId, chatRecordId, text, false, 0, 0)))
                             .onCompleteResponse(response->{
                                 String  answerText=response.aiMessage().text();

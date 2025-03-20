@@ -34,7 +34,6 @@ public class GenerateHumanMessageStep extends IGenerateHumanMessageStep {
         int maxParagraphCharNumber = datasetSetting.getMaxParagraphCharNumber();
         NoReferencesSetting noReferencesSetting = datasetSetting.getNoReferencesSetting();
         int dialogueNumber = application.getDialogueNumber();
-
         if (StringUtils.isNotBlank(system)) {
             messages.add(SystemMessage.from(system));
         }
@@ -48,7 +47,7 @@ public class GenerateHumanMessageStep extends IGenerateHumanMessageStep {
                 messages.add(AiMessage.from(chatRecord.getAnswerText()));
             }
         }
-        messages.add(toHumanMessage(prompt, execProblemText, paragraphList, maxParagraphCharNumber, noReferencesSetting));
+      //  messages.add(toHumanMessage(prompt, execProblemText, paragraphList, maxParagraphCharNumber, noReferencesSetting));
         return messages;
     }
 

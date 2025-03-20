@@ -1,23 +1,26 @@
 package com.tarzan.maxkb4j.module.application.chatpipeline.step.resetproblemstep.impl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.tarzan.maxkb4j.module.application.MyCompressingQueryTransformer;
 import com.tarzan.maxkb4j.module.application.chatpipeline.PipelineManage;
 import com.tarzan.maxkb4j.module.application.chatpipeline.step.resetproblemstep.IResetProblemStep;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationChatRecordEntity;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationEntity;
+import com.tarzan.maxkb4j.module.application.entity.LlmModelSetting;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
 import com.tarzan.maxkb4j.util.TokenUtil;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
+import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.model.chat.response.ChatResponse;
 import dev.langchain4j.model.output.TokenUsage;
 import dev.langchain4j.rag.query.Metadata;
 import dev.langchain4j.rag.query.Query;
-import dev.langchain4j.rag.query.transformer.CompressingQueryTransformer;
 import dev.langchain4j.rag.query.transformer.QueryTransformer;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
@@ -25,6 +28,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+@Slf4j
 @Component
 @AllArgsConstructor
 public class BaseResetProblemStep extends IResetProblemStep {
@@ -43,13 +47,17 @@ public class BaseResetProblemStep extends IResetProblemStep {
         int messageNum=chatRecordList.size();
         chatRecordList=messageNum>3?chatRecordList.subList(messageNum-3,messageNum):chatRecordList;
         List<ChatMessage> historyMessages=new ArrayList<>();
+        LlmModelSetting modelSetting = application.getModelSetting();
+        String system = modelSetting.getSystem();
+       // String prompt = modelSetting.getPrompt();
+        historyMessages.add(SystemMessage.from(system));
         for (ApplicationChatRecordEntity chatRecord : chatRecordList) {
             historyMessages.add(UserMessage.from(chatRecord.getProblemText()));
             historyMessages.add(AiMessage.from(chatRecord.getAnswerText()));
         }
         String modelId = application.getModelId();
         BaseChatModel chatModel = modelService.getModelById(modelId);
-        QueryTransformer queryTransformer=new CompressingQueryTransformer(chatModel.getChatModel());
+        QueryTransformer queryTransformer=new MyCompressingQueryTransformer(chatModel.getChatModel());
         String question = context.getString("problem_text");
         String chatId = context.getString("chatId");
         Metadata metadata=new Metadata(UserMessage.from(question), chatId, historyMessages);
@@ -65,7 +73,7 @@ public class BaseResetProblemStep extends IResetProblemStep {
         super.context.put("messageTokens", TokenUtil.countTokens(historyMessages));
         super.context.put("answerTokens", TokenUtil.countTokens(paddingProblem));
         super.context.put("padding_problem_text", paddingProblem);
-        System.out.println("BaseResetProblemStep 耗时 "+(System.currentTimeMillis()-startTime)+" ms");
+        log.info("BaseResetProblemStep 耗时 {} ms", System.currentTimeMillis() - startTime);
         return paddingProblem;
     }
 
