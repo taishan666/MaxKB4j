@@ -2,8 +2,7 @@ package com.tarzan.maxkb4j.tool.api;
 
 
 import com.tarzan.maxkb4j.util.ObjectUtil;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.lang.Nullable;
 
 import java.io.Serial;
@@ -13,15 +12,15 @@ import java.util.Optional;
  * @author tarzan
  * @date 2024-12-25 10:20:33
  */
-@ApiModel(description = "返回信息")
+@Schema(description = "返回信息")
 public class R<T> implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
-    @ApiModelProperty(value = "状态码", required = true)
+    @Schema(description = "状态码")
     private int code;
-    @ApiModelProperty("承载数据")
+    @Schema(description = "承载数据")
     private T data;
-    @ApiModelProperty(value = "返回消息", required = true)
+    @Schema(description = "返回消息")
     private String message;
 
     private R(IResultCode resultCode) {

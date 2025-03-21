@@ -9,7 +9,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 
 /**
@@ -34,12 +33,12 @@ public class GlobalExceptionHandler{
     }
 
 
-    @ExceptionHandler(Exception.class)
+    /*@ExceptionHandler(Exception.class)
     @ResponseBody
     public R<String>  handleException(Exception e) {
         log.error("异常: {}", e.getMessage(), e);
         return R.fail(500, e.getMessage());
-    }
+    }*/
 
     @ExceptionHandler(NullPointerException.class)
     @ResponseBody
@@ -48,12 +47,12 @@ public class GlobalExceptionHandler{
         return R.fail(500, e.getMessage());
     }
 
-    @ExceptionHandler(NoResourceFoundException.class)
+ /*   @ExceptionHandler(NoResourceFoundException.class)
     @ResponseBody
     public R<String>  handleException(NoResourceFoundException e) {
         log.error("未发现资源异常: {}", e.getMessage(), e);
         return R.fail(404, e.getMessage());
-    }
+    }*/
 
     @ExceptionHandler(ApiException.class)
     @ResponseBody

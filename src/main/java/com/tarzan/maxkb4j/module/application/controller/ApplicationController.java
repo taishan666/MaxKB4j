@@ -16,6 +16,7 @@ import com.tarzan.maxkb4j.module.dataset.entity.DatasetEntity;
 import com.tarzan.maxkb4j.module.dataset.vo.ParagraphVO;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelEntity;
 import com.tarzan.maxkb4j.tool.api.R;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpHeaders;
@@ -32,6 +33,7 @@ import java.util.List;
  * @author tarzan
  * @date 2024-12-25 13:09:54
  */
+@Tag(name = "传感器点位管理", description = "传感器点位管理")
 @RestController
 @AllArgsConstructor
 public class ApplicationController {
