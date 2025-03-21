@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
  */
 @Service
 @AllArgsConstructor
-public class ModelService extends ServiceImpl<ModelMapper, ModelEntity> {
+public class ModelCacheService extends ServiceImpl<ModelMapper, ModelEntity> {
 
     private final UserService userService;
 
@@ -89,7 +89,7 @@ public class ModelService extends ServiceImpl<ModelMapper, ModelEntity> {
     }
 
     public <T> T getModelById(String modelId,JSONObject modelParams) {
-        ModelEntity model = getCacheModelById(modelId);
+        ModelEntity model = this.getById(modelId);
         return ModelManage.build(model,modelParams);
     }
 

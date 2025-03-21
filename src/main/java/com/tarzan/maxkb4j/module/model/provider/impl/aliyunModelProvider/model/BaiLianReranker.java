@@ -28,7 +28,7 @@ public class BaiLianReranker extends BaseReranker implements BaseModel {
     }
 
     @Override
-    public <T> T newInstance(String modelName, ModelCredential credential) {
+    public <T> T build(String modelName, ModelCredential credential, JSONObject params) {
         params.put("model", modelName);
         JSONObject parameters = new JSONObject();
         parameters.put("return_documents", true);

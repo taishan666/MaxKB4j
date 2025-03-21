@@ -1,5 +1,6 @@
 package com.tarzan.maxkb4j.module.model.provider.impl.aliyunModelProvider.model;
 
+import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelCredential;
 import com.tarzan.maxkb4j.module.model.provider.BaseModel;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
@@ -22,7 +23,7 @@ import java.util.Map;
 public class BaiLianChatModel extends BaseChatModel implements BaseModel {
 
     @Override
-    public <T> T newInstance(String modelName, ModelCredential credential) {
+    public <T> T build(String modelName, ModelCredential credential, JSONObject params) {
         StreamingChatLanguageModel streamingChatModel = QwenStreamingChatModel.builder()
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)

@@ -1,5 +1,6 @@
 package com.tarzan.maxkb4j.module.model.provider.impl.wenxinmodelprovider.model;
 
+import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelCredential;
 import com.tarzan.maxkb4j.module.model.provider.BaseModel;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
@@ -11,7 +12,7 @@ import dev.langchain4j.model.chat.StreamingChatLanguageModel;
 public class QianFanChatModel extends BaseChatModel implements BaseModel {
 
     @Override
-    public <T> T newInstance(String modelName, ModelCredential credential) {
+    public <T> T build(String modelName, ModelCredential credential, JSONObject params) {
         StreamingChatLanguageModel streamingChatModel = QianfanStreamingChatModel.builder()
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)

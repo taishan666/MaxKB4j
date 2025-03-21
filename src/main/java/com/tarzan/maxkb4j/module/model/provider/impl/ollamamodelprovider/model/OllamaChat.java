@@ -1,5 +1,6 @@
 package com.tarzan.maxkb4j.module.model.provider.impl.ollamamodelprovider.model;
 
+import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelCredential;
 import com.tarzan.maxkb4j.module.model.provider.BaseModel;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
@@ -10,7 +11,7 @@ import dev.langchain4j.model.ollama.OllamaStreamingChatModel;
 
 public class OllamaChat extends BaseChatModel implements BaseModel {
     @Override
-    public <T> T newInstance(String modelName, ModelCredential credential) {
+    public <T> T build(String modelName, ModelCredential credential, JSONObject params) {
         StreamingChatLanguageModel streamingChatModel = OllamaStreamingChatModel.builder()
                 .baseUrl(credential.getBaseUrl())
                 .modelName(modelName)

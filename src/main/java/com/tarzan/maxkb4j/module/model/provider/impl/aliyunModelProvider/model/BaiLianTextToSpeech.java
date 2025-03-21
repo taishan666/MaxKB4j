@@ -2,6 +2,7 @@ package com.tarzan.maxkb4j.module.model.provider.impl.aliyunModelProvider.model;
 
 import com.alibaba.dashscope.audio.ttsv2.SpeechSynthesisParam;
 import com.alibaba.dashscope.audio.ttsv2.SpeechSynthesizer;
+import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelCredential;
 import com.tarzan.maxkb4j.module.model.provider.BaseModel;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseTextToSpeech;
@@ -32,7 +33,7 @@ public class BaiLianTextToSpeech extends BaseTextToSpeech implements BaseModel {
         this.modelName = modelName;
     }
     @Override
-    public <T> T newInstance(String modelName, ModelCredential credential) {
+    public <T> T build(String modelName, ModelCredential credential, JSONObject params) {
         return (T) new BaiLianTextToSpeech(credential.getBaseUrl(),credential.getApiKey(),modelName);
     }
 

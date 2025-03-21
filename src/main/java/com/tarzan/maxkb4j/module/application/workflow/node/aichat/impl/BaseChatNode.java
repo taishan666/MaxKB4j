@@ -1,15 +1,15 @@
 package com.tarzan.maxkb4j.module.application.workflow.node.aichat.impl;
 
 import com.alibaba.fastjson.JSONObject;
-import com.tarzan.maxkb4j.module.model.provider.out.ChatStream;
 import com.tarzan.maxkb4j.module.application.workflow.INode;
 import com.tarzan.maxkb4j.module.application.workflow.NodeResult;
 import com.tarzan.maxkb4j.module.application.workflow.WorkflowManage;
-import com.tarzan.maxkb4j.module.application.workflow.node.start.input.FlowParams;
 import com.tarzan.maxkb4j.module.application.workflow.node.aichat.IChatNode;
 import com.tarzan.maxkb4j.module.application.workflow.node.aichat.input.ChatNodeParams;
-import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
+import com.tarzan.maxkb4j.module.application.workflow.node.start.input.FlowParams;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
+import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
+import com.tarzan.maxkb4j.module.model.provider.out.ChatStream;
 import com.tarzan.maxkb4j.util.SpringUtil;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
@@ -66,10 +66,10 @@ public class BaseChatNode extends IChatNode {
         if (Objects.isNull(nodeParams.getDialogueType())) {
             nodeParams.setDialogueType("WORKFLOW");
         }
-        if (Objects.isNull(nodeParams.getModelParamsSetting())) {
+     /*   if (Objects.isNull(nodeParams.getModelParamsSetting())) {
             nodeParams.setModelParamsSetting(getDefaultModelParamsSetting(nodeParams.getModelId()));
-        }
-        BaseChatModel chatModel = modelService.getModelById(nodeParams.getModelId(), nodeParams.getModelParamsSetting());
+        }*/
+        BaseChatModel chatModel=modelService.getModelById(nodeParams.getModelId(),nodeParams.getModelParamsSetting());
         List<ChatMessage> historyMessage = workflowManage.getHistoryMessage(flowParams.getHistoryChatRecord(), nodeParams.getDialogueNumber(), nodeParams.getDialogueType(), super.runtimeNodeId);
         UserMessage question =  workflowManage.generatePromptQuestion(nodeParams.getPrompt());
         String system = workflowManage.generatePrompt(nodeParams.getSystem());
@@ -104,10 +104,10 @@ public class BaseChatNode extends IChatNode {
 
     }
 
-    private JSONObject getDefaultModelParamsSetting(String modelId) {
+/*    private JSONObject getDefaultModelParamsSetting(String modelId) {
         // ModelEntity model = modelService.getCacheById(modelId);
         return new JSONObject();
-    }
+    }*/
 
 
 
