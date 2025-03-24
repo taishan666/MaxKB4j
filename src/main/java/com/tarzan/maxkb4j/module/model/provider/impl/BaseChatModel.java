@@ -37,7 +37,6 @@ public class BaseChatModel {
     }
 
     public ChatStream stream(List<ChatMessage> messages) {
-        long startTime = System.currentTimeMillis();
         final BlockingQueue<String> messageQueue = new LinkedBlockingQueue<>();
         final AtomicBoolean isCompleted = new AtomicBoolean(false);
         ChatStream chatStream = new ChatStream();
@@ -49,7 +48,6 @@ public class BaseChatModel {
 
             @Override
             public void onCompleteResponse(ChatResponse chatResponse) {
-                System.out.println("耗时 onComplete "+(System.currentTimeMillis()-startTime)+" ms");
                 // 调用 ChatStream 的回调函数
                 chatStream.onComplete(chatResponse);
                 messageQueue.add("");
@@ -62,29 +60,7 @@ public class BaseChatModel {
                 isCompleted.set(true); // 出错时也标记完成
             }
         };
-/*        StreamingResponseHandler<AiMessage> handler = new StreamingResponseHandler<>() {
-            @Override
-            public void onNext(String token) {
-                messageQueue.add(token);
-            }
-
-            @Override
-            public void onComplete(Response<AiMessage> response) {
-                System.out.println("耗时 onComplete "+(System.currentTimeMillis()-startTime)+" ms");
-                // 调用 ChatStream 的回调函数
-                chatStream.invokeOnComplete(response);
-                messageQueue.add("");
-                isCompleted.set(true); // 标记流完成
-            }
-
-            @Override
-            public void onError(Throwable throwable) {
-                isCompleted.set(true); // 出错时也标记完成
-            }
-        };*/
-
         streamingChatModel.chat(messages, handler);
-
         Iterator<String> iterator = new Iterator<>() {
             @Override
             public boolean hasNext() {

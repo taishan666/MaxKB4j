@@ -221,12 +221,6 @@ public class WorkflowManage {
                     }
                 }
                 ChatMessageVO endInfo=new ChatMessageVO(getParams().getChatId(),getParams().getChatRecordId(),"",true);
-               /* JSONObject endChunk = this.getBaseToResponse().toStreamChunkResponse(getParams().getChatId(),
-                        getParams().getChatRecordId(),
-                        "",
-                        List.of(),
-                        "", true, 0, 0,
-                        new ChunkInfo());*/
                 sink.tryEmitNext(endInfo);
                 workFlowPostHandler.handler(this.params.getChatId(), this.params.getChatRecordId(),
                         answer, workflow);
@@ -269,13 +263,11 @@ public class WorkflowManage {
             Node startNode = getStartNode();
             currentNode = NodeFactory.getNode(startNode.getType(), startNode, params, this);
         }
-
         assert currentNode != null;
         // 添加节点块
         nodeChunkManage.addNodeChunk(currentNode.getNodeChunk());
         // 添加节点
         appendNode(currentNode);
-        System.out.println(currentNode.getType());
         // 执行链式任务
         NodeResult result = runChain(currentNode, nodeResultFuture);
         if (result == null) {
@@ -299,9 +291,7 @@ public class WorkflowManage {
                         throw new RuntimeException(e);
                     }
                 });
-                synchronized (futureList) {
-                    futureList.add(future);
-                }
+                futureList.add(future);
             }
         }
     }
@@ -422,34 +412,10 @@ public class WorkflowManage {
                         Iterator<String> iterator = (Iterator<String>) result;
                         while (iterator.hasNext()) {
                             content = iterator.next();
-                           /* JSONObject chunk = this.getBaseToResponse().toStreamChunkResponse(getParams().getChatId(),
-                                    getParams().getChatRecordId(),
-                                    currentNode.getId(),
-                                    currentNode.getLastNodeIdList(),
-                                    content,
-                                    false, 0, 0,
-                                    new ChunkInfo(currentNode.getType(),
-                                            currentNode.runtimeNodeId,
-                                            view_type,
-                                            child_node,
-                                            false,
-                                            realNodeId));*/
                             ChatMessageVO chunk=new ChatMessageVO(getParams().getChatId(),getParams().getChatRecordId(),content,runtimeNodeId,currentNode.getType(),view_type,false,false);
                             currentNode.getNodeChunk().addChunk(chunk);
                         }
                     }
-/*
-                    JSONObject endChunk = this.getBaseToResponse().toStreamChunkResponse(getParams().getChatId(),
-                            getParams().getChatRecordId(),
-                            currentNode.getId(),
-                            currentNode.getLastNodeIdList(),
-                            "", false, 0, 0,
-                            new ChunkInfo(currentNode.getType(),
-                                    realNodeId,
-                                    view_type,
-                                    child_node,
-                                    true,
-                                    realNodeId));*/
                     ChatMessageVO endChunk=new ChatMessageVO(getParams().getChatId(),getParams().getChatRecordId(),"",currentNode.runtimeNodeId,currentNode.getType(),view_type,true,false);
                     currentNode.getNodeChunk().addChunk(endChunk);
                 }

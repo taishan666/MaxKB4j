@@ -19,19 +19,23 @@ import com.tarzan.maxkb4j.module.application.workflow.node.start.impl.BaseStartN
 import com.tarzan.maxkb4j.module.application.workflow.node.start.input.FlowParams;
 import com.tarzan.maxkb4j.module.application.workflow.node.texttospeech.impl.BaseTextToSpeechNode;
 import com.tarzan.maxkb4j.module.application.workflow.node.variableassign.impl.BaseVariableAssignNode;
+import org.reflections.Reflections;
 
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Function;
 
-public class NodeFactory {
+public class NodeFactory1 {
 
-    private static final List<INode> nodeList = new ArrayList<>();;
+    private  final List<INode> nodeList;
 
 
-    public static void InitNodes(){
+    public NodeFactory1() {
         // 初始化 node_list
+        nodeList = new ArrayList<>();
         nodeList.add(new BaseStartNode());
         nodeList.add(new BaseChatNode());
         nodeList.add(new BaseSearchDatasetNode());
@@ -50,14 +54,55 @@ public class NodeFactory {
         nodeList.add(new FormNode());
     }
 
-    private static INode getNode(String nodeType) {
+    public static void main(String[] args) {
+        List<INode> nodes = getSubclassInstances(INode.class, "com.tarzan.maxkb4j.module.application.workflow.node");
+        for (INode node : nodes) {
+            System.out.println(node.getType()+" "+node.hashCode());
+        }
+    }
+
+    private static <T> List<T> getSubclassInstances(Class<T> targetClass,String basePackage) {
+        // 指定包名进行扫描
+        Reflections reflections = new Reflections(basePackage);
+        // 获取所有子类（包括非直接继承）
+        Set<Class<? extends T>> subClasses = reflections.getSubTypesOf(targetClass);
+        List<T> instances = new ArrayList<>();
+        for (Class<? extends T> clazz : subClasses) {
+            try {
+                // 跳过抽象类和接口
+                if (clazz.isInterface() || Modifier.isAbstract(clazz.getModifiers())) {
+                    continue;
+                }
+                // 通过默认构造函数创建实例
+                T instance = clazz.getDeclaredConstructor().newInstance();
+                instances.add(instance);
+            } catch (Exception e) {
+                System.err.println("无法实例化类: " + clazz.getName() + ", 错误: " + e.getMessage());
+            }
+        }
+        return instances;
+    }
+
+    private  INode getNode(String nodeType) {
         for (INode node : nodeList) {
             if (node.getType().equals(nodeType)) {
-                node.setStatus(200);
-                node.setErrMessage("");
-                node.setNodeChunk(new NodeChunk());
                 return node;
             }
+        }
+        return null;
+    }
+
+    public static INode getNode1(String nodeType, Node node, FlowParams workflowParams, WorkflowManage workflowManage) {
+        NodeFactory1 nodeFactory = new NodeFactory1();
+        INode inode=nodeFactory.getNode(nodeType);
+        if(Objects.nonNull(inode)){
+            inode.setId(node.getId());
+            inode.setType(nodeType);
+            inode.setNode(node);
+            inode.setLastNodeIdList(new ArrayList<>());
+            inode.setWorkflowParams(workflowParams);
+            inode.setWorkflowManage(workflowManage);
+            return inode;
         }
         return null;
     }
@@ -67,7 +112,11 @@ public class NodeFactory {
     }
 
     public static INode getNode(String nodeType, Node node, FlowParams workflowParams, WorkflowManage workflowManage, List<String> lastNodeIds, Function<Node, JSONObject> getNodeParams) {
-        INode inode=getNode(nodeType);
+        long startTime = System.currentTimeMillis();
+        NodeFactory1 nodeFactory = new NodeFactory1();
+        System.out.println("getNode 耗时0 "+(System.currentTimeMillis()-startTime)+" ms");
+        INode inode=nodeFactory.getNode(nodeType);
+        System.out.println("getNode 耗时1 "+(System.currentTimeMillis()-startTime)+" ms");
         if(Objects.nonNull(inode)){
             inode.setId(node.getId());
             inode.setType(nodeType);
@@ -78,9 +127,9 @@ public class NodeFactory {
             if(Objects.nonNull(getNodeParams)){
                 inode.setNodeParams(getNodeParams.apply(node));
             }
+            System.out.println("getNode 耗时2 "+(System.currentTimeMillis()-startTime)+" ms");
             return inode;
         }
         return null;
     }
-
 }

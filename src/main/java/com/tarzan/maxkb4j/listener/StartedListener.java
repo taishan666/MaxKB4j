@@ -1,5 +1,6 @@
 package com.tarzan.maxkb4j.listener;
 
+import com.tarzan.maxkb4j.module.application.workflow.NodeFactory;
 import com.tarzan.maxkb4j.module.system.setting.cache.SystemCache;
 import com.tarzan.maxkb4j.module.system.setting.entity.SystemSettingEntity;
 import com.tarzan.maxkb4j.module.system.setting.service.SystemSettingService;
@@ -34,6 +35,7 @@ public class StartedListener implements ApplicationListener<ApplicationStartedEv
         for (SystemSettingEntity systemSetting : systemSettings) {
             SystemCache.put(systemSetting.getType(),systemSetting.getMeta());
         }
+        NodeFactory.InitNodes();
         printStartInfo(event);
     }
 
