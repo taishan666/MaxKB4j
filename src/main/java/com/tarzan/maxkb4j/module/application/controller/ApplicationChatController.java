@@ -3,18 +3,17 @@ package com.tarzan.maxkb4j.module.application.controller;
 import cn.dev33.satoken.stp.StpUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.tarzan.maxkb4j.module.application.cache.ChatCache;
 import com.tarzan.maxkb4j.module.application.dto.ChatMessageDTO;
 import com.tarzan.maxkb4j.module.application.dto.ChatQueryDTO;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationChatEntity;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationChatRecordEntity;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationEntity;
-import com.tarzan.maxkb4j.module.application.service.ApplicationChatRecordService;
 import com.tarzan.maxkb4j.module.application.service.ApplicationChatService;
 import com.tarzan.maxkb4j.module.application.vo.ApplicationChatRecordVO;
-import com.tarzan.maxkb4j.module.application.vo.ApplicationStatisticsVO;
+import com.tarzan.maxkb4j.module.application.vo.ChatMessageVO;
 import com.tarzan.maxkb4j.tool.api.R;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
@@ -32,7 +31,6 @@ import java.util.List;
 public class ApplicationChatController {
 
     private final ApplicationChatService chatService;
-    private final ApplicationChatRecordService chatRecordService;
 
     @GetMapping("api/application/{appId}/chat/client/{page}/{size}")
     public R<IPage<ApplicationChatEntity>> clientChatPage(@PathVariable("appId") String appId, @PathVariable("page") int page, @PathVariable("size") int size, HttpServletRequest request) {
@@ -56,13 +54,8 @@ public class ApplicationChatController {
     }
 
     @PostMapping(path = "api/application/chat_message/{chatId}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<JSONObject> chatMessage(@PathVariable String chatId, @RequestBody ChatMessageDTO params, HttpServletRequest request) {
+    public Flux<ChatMessageVO> chatMessage(@PathVariable String chatId, @RequestBody ChatMessageDTO params, HttpServletRequest request) {
         return chatService.chatMessage(chatId, params, request);
-    }
-
-    @GetMapping("api/application/{id}/chat/{chatId}/chat_record/{chatRecordId}")
-    public R<ApplicationChatRecordVO> chatRecord(@PathVariable String id, @PathVariable String chatId, @PathVariable String chatRecordId) {
-        return R.success(chatRecordService.getChatRecordInfo(ChatCache.get(chatId), chatRecordId));
     }
 
     @PutMapping("api/application/{id}/chat/{chatId}/chat_record/{chatRecordId}/vote")
@@ -89,15 +82,9 @@ public class ApplicationChatController {
         return R.success(chatService.chatLogs(appId, page, size, query));
     }
 
-    @GetMapping("api/application/{appId}/statistics/chat_record_aggregate_trend")
-    public R<List<ApplicationStatisticsVO>> statistics(@PathVariable("appId") String appId, HttpServletRequest request) {
-        ChatQueryDTO query = new ChatQueryDTO();
-        query.setKeyword(request.getParameter("abstract"));
-        query.setStartTime(request.getParameter("start_time"));
-        query.setEndTime(request.getParameter("end_time"));
-        return R.success(chatService.statistics(appId, query));
+    @PostMapping("api/application/{id}/chat/export")
+    public void export(@PathVariable String id, HttpServletResponse response) {
+         chatService.chatExport(id,response);
     }
-
-
 
 }

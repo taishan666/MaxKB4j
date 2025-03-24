@@ -39,13 +39,13 @@ public abstract class INode {
     public INode() {
         this.context = new LinkedHashMap<>();
         this.lastNodeIdList=new ArrayList<>();
-        this.nodeChunk = new NodeChunk();
     }
 
     public void setNode(Node node) {
         this.id = node.getId();
         this.node = node;
         this.nodeParams = getNodeParams(node);
+        this.nodeChunk = new NodeChunk(this.id);
     }
 
     public void setLastNodeIdList(List<String> lastNodeIdList) {

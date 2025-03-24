@@ -13,6 +13,7 @@ import com.tarzan.maxkb4j.module.application.entity.ApplicationPublicAccessClien
 import com.tarzan.maxkb4j.module.application.entity.DatasetSetting;
 import com.tarzan.maxkb4j.module.application.entity.NoReferencesSetting;
 import com.tarzan.maxkb4j.module.application.service.ApplicationPublicAccessClientService;
+import com.tarzan.maxkb4j.module.application.vo.ChatMessageVO;
 import com.tarzan.maxkb4j.module.assistant.Assistant;
 import com.tarzan.maxkb4j.module.dataset.MyContentRetriever;
 import com.tarzan.maxkb4j.module.dataset.vo.ParagraphVO;
@@ -22,7 +23,6 @@ import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.data.message.UserMessage;
-import dev.langchain4j.memory.chat.MessageWindowChatMemory;
 import dev.langchain4j.model.output.TokenUsage;
 import dev.langchain4j.service.AiServices;
 import dev.langchain4j.service.TokenStream;
@@ -42,7 +42,7 @@ public class BaseChatStep extends IChatStep {
     private final ModelService modelService;
     private final ApplicationPublicAccessClientService publicAccessClientService;
     @Override
-    protected Flux<JSONObject> execute(PipelineManage manage) {
+    protected Flux<ChatMessageVO> execute(PipelineManage manage) {
         JSONObject context = manage.context;
         ApplicationEntity application = (ApplicationEntity) context.get("application");
         List<ChatMessage> messageList = (List<ChatMessage>) context.get("message_list");
@@ -62,12 +62,12 @@ public class BaseChatStep extends IChatStep {
     }
 
 
-    private Flux<JSONObject> getFluxResult(String chatId, String chatRecordId, List<ChatMessage> messageList,
+    private Flux<ChatMessageVO> getFluxResult(String chatId, String chatRecordId, List<ChatMessage> messageList,
                                            BaseChatModel chatModel,
                                            List<ParagraphVO> paragraphList,
                                            NoReferencesSetting noReferencesSetting,
                                            String systemText,String problemText, PipelineManage manage, PostResponseHandler postResponseHandler, boolean stream) {
-        Sinks.Many<JSONObject> sink = Sinks.many().multicast().onBackpressureBuffer();
+        Sinks.Many<ChatMessageVO> sink = Sinks.many().multicast().onBackpressureBuffer();
         if (CollectionUtils.isEmpty(paragraphList)) {
             paragraphList = new ArrayList<>();
         }
@@ -79,18 +79,18 @@ public class BaseChatStep extends IChatStep {
         }
         if (chatModel == null) {
             String text = "抱歉，没有配置 AI 模型，无法优化引用分段，请先去应用中设置 AI 模型。";
-            JSONObject json = toResponse(chatId, chatRecordId, text, false, 0, 0);
-            sink.tryEmitNext(json);
+          //  JSONObject json = toResponse(chatId, chatRecordId, text, true, 0, 0);
+            sink.tryEmitNext(new ChatMessageVO(chatId,chatRecordId,text,true));
         } else {
             String status = noReferencesSetting.getStatus();
             if (!CollectionUtils.isEmpty(directlyReturnChunkList)) {
                 String text = directlyReturnChunkList.get(0).text();
-                sink.tryEmitNext(toResponse(chatId, chatRecordId, text, true, 0, 0));
+                sink.tryEmitNext(new ChatMessageVO(chatId,chatRecordId,text,true));
                 sink.tryEmitComplete();
             } else if (paragraphList.isEmpty()&&"designated_answer".equals(status)) {
                     String value = noReferencesSetting.getValue();
                     String text = value.replace("{question}", problemText);
-                    sink.tryEmitNext(toResponse(chatId, chatRecordId, text, true, 0, 0));
+                    sink.tryEmitNext(new ChatMessageVO(chatId,chatRecordId,text,true));
                     sink.tryEmitComplete();
             } else {
                 int messageTokens = manage.context.getInteger("messageTokens");
@@ -109,7 +109,7 @@ public class BaseChatStep extends IChatStep {
                         .build();
                 if (stream) {
                     TokenStream tokenStream = assistant.chatStream(problemText);
-                    tokenStream.onPartialResponse(text -> sink.tryEmitNext(toResponse(chatId, chatRecordId, text, false, 0, 0)))
+                    tokenStream.onPartialResponse(text -> sink.tryEmitNext(new ChatMessageVO(chatId,chatRecordId,text,false)))
                             .onCompleteResponse(response->{
                                 String  answerText=response.aiMessage().text();
                                 TokenUsage tokenUsage=response.tokenUsage();
@@ -119,11 +119,11 @@ public class BaseChatStep extends IChatStep {
                                 manage.context.put("answerTokens", answerTokens + thisAnswerTokens);
                                 addAccessNum(clientId, clientType);
                                 postResponseHandler.handler(ChatCache.get(chatId), chatId, chatRecordId, problemText, answerText, manage, clientId);
-                                sink.tryEmitNext(toResponse(chatId, chatRecordId, "", true, 0, 0));
+                                sink.tryEmitNext(new ChatMessageVO(chatId,chatRecordId,"",true));
                                 sink.tryEmitComplete();
                             })
                             .onError(error->{
-                                sink.tryEmitNext(toResponse(chatId, chatRecordId, "", true, 0, 0));
+                                sink.tryEmitNext(new ChatMessageVO(chatId,chatRecordId,"",true));
                                 sink.tryEmitComplete();
                             })
                             .start();
@@ -193,7 +193,7 @@ public class BaseChatStep extends IChatStep {
                                  int promptTokens) {
         JSONObject data = new JSONObject();
         data.put("chat_id", chatId);
-        data.put("chat_record_id", chatRecordId);
+        data.put("chatRecordId", chatRecordId);
         data.put("operate", true);
         data.put("content", content);
         data.put("node_id", "ai-chat-node");

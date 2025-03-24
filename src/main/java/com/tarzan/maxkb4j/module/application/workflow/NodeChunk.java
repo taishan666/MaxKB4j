@@ -1,6 +1,6 @@
 package com.tarzan.maxkb4j.module.application.workflow;
 
-import com.alibaba.fastjson.JSONObject;
+import com.tarzan.maxkb4j.module.application.vo.ChatMessageVO;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
@@ -11,22 +11,27 @@ import java.util.concurrent.CopyOnWriteArrayList;
 @Slf4j
 @Data
 public class NodeChunk {
-    private long id;
+    private String id;
     private Integer status;
-    private List<JSONObject> chunkList;
+    private List<ChatMessageVO> chunkList;
 
     public NodeChunk() {
-        this.id = System.currentTimeMillis();
+        this.id = String.valueOf(System.currentTimeMillis());
         this.status = 0;
         this.chunkList =new CopyOnWriteArrayList<>();
     }
 
-    public void addChunk(JSONObject chunk) {
-       // System.out.println("chunk="+chunk);
+    public NodeChunk(String id) {
+        this.id = id;
+        this.status = 0;
+        this.chunkList =new CopyOnWriteArrayList<>();
+    }
+
+    public void addChunk(ChatMessageVO chunk) {
         this.chunkList.add(chunk);
     }
 
-    public void end(JSONObject chunk){
+    public void end(ChatMessageVO chunk){
         if(Objects.nonNull(chunk)){
             this.chunkList.add(chunk);
         }

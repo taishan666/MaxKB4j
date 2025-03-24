@@ -1,6 +1,6 @@
 package com.tarzan.maxkb4j.module.application.workflow;
 
-import com.alibaba.fastjson.JSONObject;
+import com.tarzan.maxkb4j.module.application.vo.ChatMessageVO;
 import lombok.Data;
 
 import java.util.List;
@@ -21,7 +21,7 @@ public class NodeChunkManage {
         nodeChunkList.add(nodeChunk);
     }
 
-    public JSONObject pop() {
+    public ChatMessageVO pop() {
         NodeChunk currentNodeChunk = null;
         if (!nodeChunkList.isEmpty()) {
             currentNodeChunk = nodeChunkList.get(0);
@@ -34,7 +34,8 @@ public class NodeChunkManage {
                     if (workflow.answerIsNotEmpty()) {
                         String chatId = workflow.getParams().getChatId();
                         String chatRecordId = workflow.getParams().getChatRecordId();
-                        JSONObject chunk = workflow.getBaseToResponse().toStreamChunkResponse(chatId, chatRecordId, null, null, "\n\n", false, 0, 0);
+                        ChatMessageVO chunk=new ChatMessageVO(chatId,chatRecordId,"","","","",true,false);
+                      //  ChatMessageVO chunk = workflow.getBaseToResponse().toStreamChunkResponse(chatId, chatRecordId, null, null, "\n\n", false, 0, 0);
                         workflow.appendAnswer("\n\n");
                         return chunk;
                     }

@@ -23,8 +23,7 @@ import com.tarzan.maxkb4j.module.application.entity.*;
 import com.tarzan.maxkb4j.module.application.enums.AuthType;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatMapper;
 import com.tarzan.maxkb4j.module.application.vo.ApplicationChatRecordVO;
-import com.tarzan.maxkb4j.module.application.vo.ApplicationPublicAccessClientStatisticsVO;
-import com.tarzan.maxkb4j.module.application.vo.ApplicationStatisticsVO;
+import com.tarzan.maxkb4j.module.application.vo.ChatMessageVO;
 import com.tarzan.maxkb4j.module.application.workflow.WorkflowManage;
 import com.tarzan.maxkb4j.module.application.workflow.dto.SystemToResponse;
 import com.tarzan.maxkb4j.module.application.workflow.handler.WorkFlowPostHandler;
@@ -35,6 +34,7 @@ import com.tarzan.maxkb4j.module.model.info.entity.ModelEntity;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
 import com.tarzan.maxkb4j.module.resource.service.FileService;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -43,9 +43,10 @@ import org.springframework.web.multipart.MultipartFile;
 import reactor.core.publisher.Flux;
 
 import java.io.IOException;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 /**
  * @author tarzan
@@ -163,7 +164,7 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
     }
 
 
-    public Flux<JSONObject> chatMessage(String chatId, ChatMessageDTO dto, HttpServletRequest request) {
+    public Flux<ChatMessageVO> chatMessage(String chatId, ChatMessageDTO dto, HttpServletRequest request) {
         String clientId = (String) StpUtil.getExtra("client_id");
         String clientType = (String) StpUtil.getExtra("client_type");
         ChatInfo chatInfo = getChatInfo(chatId);
@@ -171,7 +172,7 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
             isValidApplication(chatInfo, clientId, clientType);
         } catch (Exception e) {
             JSONObject data = new SystemToResponse().toBlockResponse(chatId, "1", "会话不存在", true, 0, 0);
-            return Flux.just(data);
+            return Flux.just(new ChatMessageVO(chatId,  "会话不存在", true));
         }
         if (chatInfo.getApplication().getType().equals("SIMPLE")) {
             return chatSimple(chatInfo, dto,clientId,clientType);
@@ -180,7 +181,7 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
         }
     }
 
-    public Flux<JSONObject> chatSimple(ChatInfo chatInfo, ChatMessageDTO dto,String clientId,String clientType) {
+    public Flux<ChatMessageVO> chatSimple(ChatInfo chatInfo, ChatMessageDTO dto, String clientId, String clientType) {
         String modelId = chatInfo.getApplication().getModelId();
         ModelEntity model = modelService.getById(modelId);
         if (Objects.isNull(model) || !"SUCCESS".equals(model.getStatus())) {
@@ -216,7 +217,7 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
         return pipelineManage.response;
     }
 
-    public Flux<JSONObject> chatWorkflow(ChatInfo chatInfo, ChatMessageDTO dto,String clientId,String clientType) {
+    public Flux<ChatMessageVO> chatWorkflow(ChatInfo chatInfo, ChatMessageDTO dto,String clientId,String clientType) {
         ApplicationChatRecordVO chatRecord = null;
         String chatRecordId = dto.getChatRecordId();
         if(StringUtils.isNotBlank(chatRecordId)){
@@ -294,54 +295,7 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
         return fileList;
     }
 
+    public void chatExport(String id, HttpServletResponse response) {
 
-    // 定义日期格式
-    static DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-
-    public List<ApplicationStatisticsVO> statistics(String appId, ChatQueryDTO query) {
-        List<ApplicationStatisticsVO> result = new ArrayList<>();
-        List<ApplicationStatisticsVO> list = baseMapper.statistics(appId, query);
-        List<ApplicationPublicAccessClientStatisticsVO> AccessClientList = publicAccessClientService.statistics(appId, query);
-        // 将字符串解析为LocalDate对象
-        LocalDate startDate = LocalDate.parse(query.getStartTime(), formatter);
-        LocalDate endDate = LocalDate.parse(query.getEndTime(), formatter);
-        // 遍历从开始日期到结束日期之间的所有日期
-        for (LocalDate date = startDate; !date.isAfter(endDate); date = date.plusDays(1)) {
-            String day = date.format(formatter);
-            ApplicationStatisticsVO vo = getApplicationStatisticsVO(list, day);
-            ApplicationPublicAccessClientStatisticsVO accessClientStatisticsVO = getApplicationPublicAccessClientStatisticsVO(AccessClientList, day);
-            if (accessClientStatisticsVO != null) {
-                vo.setCustomerAddedCount(accessClientStatisticsVO.getCustomerAddedCount());
-            }
-            result.add(vo);
-        }
-        return result;
-    }
-
-    public ApplicationStatisticsVO getApplicationStatisticsVO(List<ApplicationStatisticsVO> list, String day) {
-        if (!CollectionUtils.isEmpty(list)) {
-            Optional<ApplicationStatisticsVO> optional = list.stream().filter(e -> e.getDay().equals(day)).findFirst();
-            if (optional.isPresent()) {
-                return optional.get();
-            }
-        }
-        ApplicationStatisticsVO vo = new ApplicationStatisticsVO();
-        vo.setDay(day);
-        vo.setStarNum(0);
-        vo.setTokensNum(0);
-        vo.setCustomerNum(0);
-        vo.setChatRecordCount(0);
-        vo.setTrampleNum(0);
-        return vo;
-    }
-
-    public ApplicationPublicAccessClientStatisticsVO getApplicationPublicAccessClientStatisticsVO(List<ApplicationPublicAccessClientStatisticsVO> list, String day) {
-        if (!CollectionUtils.isEmpty(list)) {
-            Optional<ApplicationPublicAccessClientStatisticsVO> optional = list.stream().filter(e -> e.getDay().equals(day)).findFirst();
-            if (optional.isPresent()) {
-                return optional.get();
-            }
-        }
-        return null;
     }
 }

@@ -1,6 +1,7 @@
 package com.tarzan.maxkb4j.module.application.chatpipeline;
 
 import com.alibaba.fastjson.JSONObject;
+import com.tarzan.maxkb4j.module.application.vo.ChatMessageVO;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
 
@@ -12,7 +13,7 @@ import java.util.Map;
 public class PipelineManage {
     public List<IBaseChatPipelineStep> stepList;
     public JSONObject context;
-    public Flux<JSONObject> response;
+    public Flux<ChatMessageVO> response;
 
     public PipelineManage(List<IBaseChatPipelineStep> stepList) {
         this.stepList = stepList;

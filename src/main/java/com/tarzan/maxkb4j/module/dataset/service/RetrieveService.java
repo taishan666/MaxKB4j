@@ -2,6 +2,7 @@ package com.tarzan.maxkb4j.module.dataset.service;
 
 import com.tarzan.maxkb4j.module.application.entity.DatasetSetting;
 import com.tarzan.maxkb4j.module.dataset.dto.HitTestDTO;
+import com.tarzan.maxkb4j.module.dataset.enums.SearchType;
 import com.tarzan.maxkb4j.module.dataset.mapper.ParagraphMapper;
 import com.tarzan.maxkb4j.module.dataset.vo.HitTestVO;
 import com.tarzan.maxkb4j.module.dataset.vo.ParagraphVO;
@@ -41,13 +42,13 @@ public class RetrieveService {
     }
 
     private List<HitTestVO> dataSearch(List<String> datasetIds, HitTestDTO dto) {
-        if ("embedding".equals(dto.getSearchMode())) {
+        if (SearchType.embedding.name().equals(dto.getSearchMode())) {
             return embedTextService.search(datasetIds, dto.getQueryText(), dto.getTopNumber(), dto.getSimilarity());
         }
-        if ("keywords".equals(dto.getSearchMode())) {
+        if (SearchType.keywords.name().equals(dto.getSearchMode())) {
             return fullTextIndexService.search(datasetIds, dto.getQueryText(), dto.getTopNumber(), dto.getSimilarity());
         }
-        if ("blend".equals(dto.getSearchMode())) {
+        if (SearchType.blend.name().equals(dto.getSearchMode())) {
             Map<String, Float> map = new LinkedHashMap<>();
             List<HitTestVO> results = new ArrayList<>();
             List<CompletableFuture<List<HitTestVO>>> futureList = new ArrayList<>();

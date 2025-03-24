@@ -28,16 +28,15 @@ public class FormNode extends IFormNode {
         } else {
             context.put("is_submit", false);
         }
-
         // Create form_setting map
         JSONObject formSetting = new JSONObject();
         formSetting.put("form_field_list", formFieldList);
-        formSetting.put("runtime_node_id", super.getRuntimeNodeId());
-        formSetting.put("chat_record_id", super.getWorkflowParams().getChatRecordId());
+        formSetting.put("runtimeNodeId", super.getRuntimeNodeId());
+        formSetting.put("chatRecordId", super.getWorkflowParams().getChatRecordId());
         formSetting.put("is_submit", context.getOrDefault("is_submit", false));
         String form = "<form_rander>" + formSetting + "</form_rander>";
         // Get workflow content and reset prompt todo
-        Map<String, Object> contextContent = workflowManage.getWorkflowContent();
+     //   Map<String, Object> contextContent = workflowManage.getWorkflowContent();
         String updatedFormContentFormat = workflowManage.resetPrompt(formContentFormat);
         PromptTemplate promptTemplate = PromptTemplate.from(updatedFormContentFormat);
         String value = promptTemplate.apply(Map.of("form", form)).text();
@@ -52,8 +51,8 @@ public class FormNode extends IFormNode {
         String formContentFormat = (String) context.get("form_content_format");
         JSONObject formSetting = new JSONObject();
         formSetting.put("form_field_list", context.get("form_field_list"));
-        formSetting.put("runtime_node_id", super.getRuntimeNodeId());
-        formSetting.put("chat_record_id", super.getWorkflowParams().getChatRecordId());
+        formSetting.put("runtimeNodeId", super.getRuntimeNodeId());
+        formSetting.put("chatRecordId", super.getWorkflowParams().getChatRecordId());
         formSetting.put("is_submit", context.getOrDefault("is_submit", false));
         String form = "<form_rander>" + formSetting + "</form_rander>";
         String updatedFormContentFormat = workflowManage.resetPrompt(formContentFormat);
