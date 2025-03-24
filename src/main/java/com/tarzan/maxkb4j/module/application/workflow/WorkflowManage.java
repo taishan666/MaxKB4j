@@ -7,11 +7,11 @@ import com.tarzan.maxkb4j.module.application.vo.ApplicationChatRecordVO;
 import com.tarzan.maxkb4j.module.application.workflow.dto.Answer;
 import com.tarzan.maxkb4j.module.application.workflow.dto.BaseToResponse;
 import com.tarzan.maxkb4j.module.application.workflow.dto.ChunkInfo;
+import com.tarzan.maxkb4j.module.application.workflow.handler.WorkFlowPostHandler;
 import com.tarzan.maxkb4j.module.application.workflow.info.Edge;
 import com.tarzan.maxkb4j.module.application.workflow.info.Flow;
 import com.tarzan.maxkb4j.module.application.workflow.info.Node;
 import com.tarzan.maxkb4j.module.application.workflow.node.start.input.FlowParams;
-import com.tarzan.maxkb4j.module.application.workflow.handler.WorkFlowPostHandler;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.SystemMessage;
@@ -25,7 +25,6 @@ import reactor.core.publisher.Sinks;
 
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -40,8 +39,8 @@ public class WorkflowManage {
     private List<JSONObject> documentList = new ArrayList<>();
     private List<JSONObject> audioList = new ArrayList<>();
     private FlowParams params;
-    private com.tarzan.maxkb4j.module.application.workflow.info.Flow flow;
-    private final ReentrantLock lock = new ReentrantLock();
+    private Flow flow;
+  //  private final ReentrantLock lock = new ReentrantLock();
     private JSONObject context = new JSONObject();
     private NodeChunkManage nodeChunkManage;
     private WorkFlowPostHandler workFlowPostHandler;
@@ -52,7 +51,7 @@ public class WorkflowManage {
     private int status = 200;
     private BaseToResponse baseToResponse;
     private ApplicationChatRecordVO chatRecord;
-    private Map<String, CompletableFuture<?>> awaitFutureMap = new HashMap<>();
+  //  private Map<String, CompletableFuture<?>> awaitFutureMap = new HashMap<>();
     private JSONObject childNode; // 根据实际需要定义类型
     private final List<Future<?>> futureList = new ArrayList<>();
     private List<INode> nodeContext = new ArrayList<>();
