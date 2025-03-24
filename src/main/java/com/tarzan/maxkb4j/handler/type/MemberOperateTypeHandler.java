@@ -1,4 +1,4 @@
-package com.tarzan.maxkb4j.handler;
+package com.tarzan.maxkb4j.handler.type;
 
 import com.tarzan.maxkb4j.common.dto.MemberOperate;
 import org.apache.ibatis.type.BaseTypeHandler;

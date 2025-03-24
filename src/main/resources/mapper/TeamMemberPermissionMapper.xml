@@ -4,7 +4,7 @@
 
     <!-- 多个字段中某个字段的类型处理器配置 -->
     <resultMap id="permissionResultMap" type="com.tarzan.maxkb4j.module.system.team.vo.MemberPermissionVO">
-        <result property="operate" column="operate" typeHandler="com.tarzan.maxkb4j.handler.MemberOperateTypeHandler"/>
+        <result property="operate" column="operate" typeHandler="com.tarzan.maxkb4j.handler.type.MemberOperateTypeHandler"/>
     </resultMap>
 
     <select id="getPermissionByMemberId" resultMap="permissionResultMap">

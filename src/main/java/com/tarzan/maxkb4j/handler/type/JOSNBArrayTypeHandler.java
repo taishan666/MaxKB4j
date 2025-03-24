@@ -1,4 +1,4 @@
-package com.tarzan.maxkb4j.handler;
+package com.tarzan.maxkb4j.handler.type;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.type.BaseTypeHandler;

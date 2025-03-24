@@ -16,6 +16,8 @@ import com.tarzan.maxkb4j.module.application.enums.AuthType;
 import com.tarzan.maxkb4j.module.system.setting.service.EmailService;
 import com.tarzan.maxkb4j.module.system.team.entity.TeamEntity;
 import com.tarzan.maxkb4j.module.system.team.service.TeamService;
+import com.tarzan.maxkb4j.module.system.user.constants.RoleType;
+import com.tarzan.maxkb4j.module.system.user.constants.UserSource;
 import com.tarzan.maxkb4j.module.system.user.dto.PasswordDTO;
 import com.tarzan.maxkb4j.module.system.user.dto.UserDTO;
 import com.tarzan.maxkb4j.module.system.user.dto.UserLoginDTO;
@@ -106,16 +108,34 @@ public class UserService extends ServiceImpl<UserMapper, UserEntity> {
 
     @Transactional
     public boolean createUser(UserEntity user) {
-      //  UserEntity admin= this.getById(StpUtil.getLoginIdAsString());
-        user.setRole("USER");
+        user.setRole(RoleType.USER);
         user.setIsActive(true);
-        user.setSource("LOCAL");
+        user.setSource(UserSource.LOCAL);
         user.setLanguage((String) StpUtil.getExtra("language"));
         save(user);
         TeamEntity team = new TeamEntity();
         team.setUserId(user.getId());
         team.setName(user.getUsername()+"的团队");
         return teamService.save(team);
+    }
+
+    @Transactional
+    public void createAdminUser(String username, String password) {
+        UserEntity user=new UserEntity();
+        user.setNickName("系统管理员");
+        user.setUsername(username);
+        user.setPassword(SaSecureUtil.md5(password));
+        user.setRole(RoleType.ADMIN);
+        user.setIsActive(true);
+        user.setSource(UserSource.LOCAL);
+        user.setLanguage("zh-CN");
+        user.setPhone("");
+        user.setEmail("");
+        save(user);
+        TeamEntity team = new TeamEntity();
+        team.setUserId(user.getId());
+        team.setName(user.getUsername()+"的团队");
+        teamService.save(team);
     }
 
     public UserVO getUserById(String userId) {

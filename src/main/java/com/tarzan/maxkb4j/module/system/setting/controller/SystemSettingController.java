@@ -2,6 +2,7 @@ package com.tarzan.maxkb4j.module.system.setting.controller;
 
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.module.system.setting.entity.SystemSettingEntity;
+import com.tarzan.maxkb4j.module.system.setting.enums.SettingType;
 import com.tarzan.maxkb4j.module.system.setting.service.SystemSettingService;
 import com.tarzan.maxkb4j.tool.api.R;
 import lombok.AllArgsConstructor;
@@ -34,7 +35,7 @@ public class SystemSettingController{
 
 	@PutMapping("api/email_setting")
 	public R<Boolean> saveEmailSetting(@RequestBody JSONObject meta){
-		return R.status(systemSettingService.saveEmailSetting(meta));
+		return R.status(systemSettingService.save(meta, SettingType.Email.getType()));
 	}
 
 	@GetMapping("api/valid/{type}/{count}")

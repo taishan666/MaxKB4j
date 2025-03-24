@@ -1,4 +1,4 @@
-package com.tarzan.maxkb4j.handler;
+package com.tarzan.maxkb4j.handler.type;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.serializer.SerializerFeature;

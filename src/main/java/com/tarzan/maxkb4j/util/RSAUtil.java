@@ -116,7 +116,7 @@ public class RSAUtil{
         Security.addProvider(new BouncyCastleProvider());
     }
 
-    private static String readPublicKeyPEM(String pemContent) throws IOException {
+    private static String readPublicKeyPEM(String pemContent) {
         // 去除PEM头尾标记和换行符
         return pemContent
                 .replace("-----BEGIN PUBLIC KEY-----", "")
@@ -124,7 +124,7 @@ public class RSAUtil{
                 .replaceAll("\\s", "");
     }
 
-    private static byte[] readEncryptPrivatePEM(String pemContent) throws IOException {
+    private static byte[] readEncryptPrivatePEM(String pemContent) {
         // 去除PEM头尾标记和换行符
         String base64Encoded = pemContent
                 .replace("-----BEGIN ENCRYPTED PRIVATE KEY-----", "")
@@ -132,6 +132,8 @@ public class RSAUtil{
                 .replaceAll("\\s", "");
         return Base64.getDecoder().decode(base64Encoded);
     }
+
+
 
 
     private static PrivateKey decryptPrivateKey1(String encodedKey, String passphrase) throws Exception {
@@ -143,7 +145,7 @@ public class RSAUtil{
         return KeyFactory.getInstance("RSA").generatePrivate(new PKCS8EncodedKeySpec(privateInfo.getEncoded()));
     }
 
-    public static String encryptPrivateKey1(PrivateKey privateKey, String passphrase) throws Exception {
+    private static String encryptPrivateKeyPem(PrivateKey privateKey, String passphrase) throws Exception {
         PrivateKeyInfo privateKeyInfo = PrivateKeyInfo.getInstance(privateKey.getEncoded());
         // 构建加密器
         JcePKCSPBEOutputEncryptorBuilder builder = new JcePKCSPBEOutputEncryptorBuilder(PKCSObjectIdentifiers.pbeWithSHA1AndDES_CBC);
@@ -152,12 +154,30 @@ public class RSAUtil{
         PKCS8EncryptedPrivateKeyInfo encryptedPrivateKeyInfo = new PKCS8EncryptedPrivateKeyInfoBuilder(privateKeyInfo)
                 .build(encryptor);
         // 将加密后的私钥转换为PEM格式
-        StringWriter stringWriter = new StringWriter();
+    /*    StringWriter stringWriter = new StringWriter();
         try (PemWriter pemWriter = new PemWriter(stringWriter)) {
             PemObject pemObject = new PemObject("ENCRYPTED PRIVATE KEY", encryptedPrivateKeyInfo.getEncoded());
             pemWriter.writeObject(pemObject);
+        }*/
+        return convertPEM(encryptedPrivateKeyInfo.getEncoded(),"ENCRYPTED PRIVATE KEY");
+    }
+
+    public static String convertPEM(byte[] encoded,String type)  throws Exception {
+        // 将加密后的私钥转换为PEM格式
+        StringWriter stringWriter = new StringWriter();
+        try (PemWriter pemWriter = new PemWriter(stringWriter)) {
+            PemObject pemObject = new PemObject(type, encoded);
+            pemWriter.writeObject(pemObject);
         }
         return stringWriter.toString();
+    }
+
+    public static String publicKeyPem(PublicKey publicKey) throws Exception {
+        return convertPEM(publicKey.getEncoded(),"PUBLIC KEY");
+    }
+
+    public static String encryptPrivateKeyPem(PrivateKey privateKey) throws Exception {
+        return encryptPrivateKeyPem(privateKey,password);
     }
 
 

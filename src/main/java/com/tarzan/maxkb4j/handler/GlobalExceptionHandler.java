@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import javax.crypto.BadPaddingException;
+
 
 /**
  * 异常统一处理
@@ -39,6 +41,13 @@ public class GlobalExceptionHandler{
         log.error("异常: {}", e.getMessage(), e);
         return R.fail(500, e.getMessage());
     }*/
+
+    @ExceptionHandler(BadPaddingException.class)
+    @ResponseBody
+    public R<String>  handleException(BadPaddingException e) {
+        log.error("RSA解密异常: {}", e.getMessage(), e);
+        return R.fail(500, e.getMessage());
+    }
 
     @ExceptionHandler(NullPointerException.class)
     @ResponseBody

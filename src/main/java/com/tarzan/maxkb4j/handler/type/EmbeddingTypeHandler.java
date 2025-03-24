@@ -1,4 +1,4 @@
-package com.tarzan.maxkb4j.handler;
+package com.tarzan.maxkb4j.handler.type;
 
 import com.pgvector.PGvector;
 import org.apache.ibatis.type.BaseTypeHandler;

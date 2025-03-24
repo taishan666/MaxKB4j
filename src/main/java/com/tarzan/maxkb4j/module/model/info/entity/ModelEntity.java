@@ -4,10 +4,9 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tarzan.maxkb4j.common.entity.BaseEntity;
-import com.tarzan.maxkb4j.handler.JOSNBTypeHandler;
-import com.tarzan.maxkb4j.handler.ModelCredentialTypeHandler;
+import com.tarzan.maxkb4j.handler.type.JOSNBTypeHandler;
+import com.tarzan.maxkb4j.handler.type.ModelCredentialTypeHandler;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
