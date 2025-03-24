@@ -15,16 +15,15 @@ import com.tarzan.maxkb4j.common.dto.QueryDTO;
 import com.tarzan.maxkb4j.module.application.dto.ApplicationAccessTokenDTO;
 import com.tarzan.maxkb4j.module.application.dto.ChatImproveDTO;
 import com.tarzan.maxkb4j.module.application.dto.MaxKb4J;
-import com.tarzan.maxkb4j.module.application.entity.ApplicationAccessTokenEntity;
-import com.tarzan.maxkb4j.module.application.entity.ApplicationDatasetMappingEntity;
-import com.tarzan.maxkb4j.module.application.entity.ApplicationEntity;
-import com.tarzan.maxkb4j.module.application.entity.ApplicationWorkFlowVersionEntity;
+import com.tarzan.maxkb4j.module.application.entity.*;
 import com.tarzan.maxkb4j.module.application.enums.AuthType;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationMapper;
 import com.tarzan.maxkb4j.module.application.vo.ApplicationVO;
 import com.tarzan.maxkb4j.module.dataset.dto.HitTestDTO;
 import com.tarzan.maxkb4j.module.dataset.entity.DatasetEntity;
+import com.tarzan.maxkb4j.module.dataset.entity.ParagraphEntity;
 import com.tarzan.maxkb4j.module.dataset.service.DatasetService;
+import com.tarzan.maxkb4j.module.dataset.service.ParagraphService;
 import com.tarzan.maxkb4j.module.dataset.service.RetrieveService;
 import com.tarzan.maxkb4j.module.dataset.vo.ParagraphVO;
 import com.tarzan.maxkb4j.module.resource.service.ImageService;
@@ -69,6 +68,8 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     private final TeamMemberPermissionService memberPermissionService;
     private final UserService userService;
     private final RetrieveService retrieveService;
+    private final ApplicationChatRecordService applicationChatRecordService;
+    private final ParagraphService paragraphService;
 
     public IPage<ApplicationEntity> selectAppPage(int page, int size, QueryDTO query) {
         String loginId = StpUtil.getLoginIdAsString();
@@ -222,8 +223,20 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     }
 
     public boolean improveChatLogs(String appId, ChatImproveDTO dto) {
-        //todo
-        return false;
+        List<ApplicationChatRecordEntity> chatRecords =applicationChatRecordService.lambdaQuery().in(ApplicationChatRecordEntity::getId, dto.getChatIds()).list();
+        List<ParagraphEntity> paragraphs =chatRecords.stream().map(e->{
+            ParagraphEntity paragraphEntity = new ParagraphEntity();
+            paragraphEntity.setDatasetId(dto.getDatasetId());
+            paragraphEntity.setDocumentId(dto.getDocumentId());
+            paragraphEntity.setTitle(e.getProblemText());
+            paragraphEntity.setContent(e.getAnswerText());
+            paragraphEntity.setHitNum(0);
+            paragraphEntity.setIsActive(true);
+            paragraphEntity.setStatus("nn0");
+            return paragraphEntity;
+        }).toList();
+        //todo 嵌入到问题数据库里和文本关联
+        return paragraphService.saveBatch(paragraphs);
     }
 
     public ApplicationVO getAppById(String appId) {
