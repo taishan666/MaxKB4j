@@ -31,6 +31,7 @@ import java.util.concurrent.Future;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 @Slf4j
 @Data
@@ -415,6 +416,12 @@ public class WorkflowManage {
                             ChatMessageVO chunk=new ChatMessageVO(getParams().getChatId(),getParams().getChatRecordId(),content,runtimeNodeId,currentNode.getType(),view_type,false,false);
                             currentNode.getNodeChunk().addChunk(chunk);
                         }
+                    }
+                    if (result instanceof Stream<?> chatStream) {
+                        chatStream.forEach(text -> {
+                            ChatMessageVO chunk=new ChatMessageVO(getParams().getChatId(),getParams().getChatRecordId(),text.toString(),runtimeNodeId,currentNode.getType(),view_type,false,false);
+                            currentNode.getNodeChunk().addChunk(chunk);
+                        });
                     }
                     ChatMessageVO endChunk=new ChatMessageVO(getParams().getChatId(),getParams().getChatRecordId(),"",currentNode.runtimeNodeId,currentNode.getType(),view_type,true,false);
                     currentNode.getNodeChunk().addChunk(endChunk);

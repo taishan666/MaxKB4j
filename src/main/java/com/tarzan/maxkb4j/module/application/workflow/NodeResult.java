@@ -2,10 +2,8 @@ package com.tarzan.maxkb4j.module.application.workflow;
 
 import lombok.Data;
 
-import java.util.Iterator;
 import java.util.Map;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.stream.Stream;
 
 @Data
 public class NodeResult {
@@ -41,13 +39,13 @@ public class NodeResult {
         return node.getType().equals("form-node") && !(boolean)node.getContext().get("is_submit");
     }
 
-    public Iterator<String> defaultWriteContextFunc(Map<String, Object> stepVariable, Map<String, Object> globalVariable, INode node, WorkflowManage workflow) {
-        final BlockingQueue<String> messageQueue = new LinkedBlockingQueue<>();
+    public Stream<String> defaultWriteContextFunc(Map<String, Object> stepVariable, Map<String, Object> globalVariable, INode node, WorkflowManage workflow) {
+        Stream.Builder<String> steambuilder = Stream.builder();
         if (stepVariable != null) {
             node.context.putAll(stepVariable);
             if (workflow.isResult(node, new NodeResult(stepVariable, globalVariable)) && stepVariable.containsKey("answer")) {
                 node.answerText = (String) stepVariable.get("answer");
-                messageQueue.add(node.answerText);
+                steambuilder.add(node.answerText);
             }
         }
         if (globalVariable != null) {
@@ -57,17 +55,7 @@ public class NodeResult {
             long runTime = System.currentTimeMillis() - (long)node.context.get("start_time");
             node.context.put("runTime", runTime / 1000F);
         }
-        return new Iterator<>() {
-            @Override
-            public boolean hasNext() {
-                return !messageQueue.isEmpty();
-            }
-
-            @Override
-            public String next() {
-                return messageQueue.poll();
-            }
-        };
+        return steambuilder.build();
     }
 
 
