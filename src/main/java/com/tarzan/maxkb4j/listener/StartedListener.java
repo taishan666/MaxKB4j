@@ -1,7 +1,7 @@
 package com.tarzan.maxkb4j.listener;
 
 import com.alibaba.fastjson.JSONObject;
-import com.tarzan.maxkb4j.module.application.workflow.NodeFactory;
+import com.tarzan.maxkb4j.core.workflow.NodeFactory;
 import com.tarzan.maxkb4j.module.system.setting.cache.SystemCache;
 import com.tarzan.maxkb4j.module.system.setting.entity.SystemSettingEntity;
 import com.tarzan.maxkb4j.module.system.setting.enums.SettingType;

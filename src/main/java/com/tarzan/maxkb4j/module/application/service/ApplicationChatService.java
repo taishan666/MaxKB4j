@@ -24,11 +24,10 @@ import com.tarzan.maxkb4j.module.application.enums.AuthType;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatMapper;
 import com.tarzan.maxkb4j.module.application.vo.ApplicationChatRecordVO;
 import com.tarzan.maxkb4j.module.application.vo.ChatMessageVO;
-import com.tarzan.maxkb4j.module.application.workflow.WorkflowManage;
-import com.tarzan.maxkb4j.module.application.workflow.dto.SystemToResponse;
-import com.tarzan.maxkb4j.module.application.workflow.handler.WorkFlowPostHandler;
-import com.tarzan.maxkb4j.module.application.workflow.info.Flow;
-import com.tarzan.maxkb4j.module.application.workflow.node.start.input.FlowParams;
+import com.tarzan.maxkb4j.core.workflow.WorkflowManage;
+import com.tarzan.maxkb4j.core.workflow.handler.WorkFlowPostHandler;
+import com.tarzan.maxkb4j.core.workflow.info.Flow;
+import com.tarzan.maxkb4j.core.workflow.node.start.input.FlowParams;
 import com.tarzan.maxkb4j.module.dataset.vo.ParagraphVO;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelEntity;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
@@ -171,7 +170,6 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
         try {
             isValidApplication(chatInfo, clientId, clientType);
         } catch (Exception e) {
-            JSONObject data = new SystemToResponse().toBlockResponse(chatId, "1", "会话不存在", true, 0, 0);
             return Flux.just(new ChatMessageVO(chatId,  "会话不存在", true));
         }
         if (chatInfo.getApplication().getType().equals("SIMPLE")) {
@@ -236,7 +234,6 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
         WorkflowManage workflowManage = new WorkflowManage(Flow.newInstance(chatInfo.getWorkFlowVersion().getWorkFlow()),
                 flowParams,
                 new WorkFlowPostHandler(chatInfo, clientId, clientType),
-                new SystemToResponse(),
                 dto.getFormData(),
                 dto.getImageList(),
                 dto.getDocumentList(),
