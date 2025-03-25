@@ -2,7 +2,7 @@ package com.tarzan.maxkb4j.module.application.controller;
 
 import com.tarzan.maxkb4j.module.application.entity.ApplicationApiKeyEntity;
 import com.tarzan.maxkb4j.module.application.service.ApplicationApiKeyService;
-import com.tarzan.maxkb4j.tool.api.R;
+import com.tarzan.maxkb4j.core.api.R;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 

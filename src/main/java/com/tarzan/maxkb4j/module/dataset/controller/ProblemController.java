@@ -5,7 +5,7 @@ import com.tarzan.maxkb4j.module.dataset.entity.ParagraphEntity;
 import com.tarzan.maxkb4j.module.dataset.entity.ProblemEntity;
 import com.tarzan.maxkb4j.module.dataset.service.DatasetService;
 import com.tarzan.maxkb4j.module.dataset.vo.ProblemVO;
-import com.tarzan.maxkb4j.tool.api.R;
+import com.tarzan.maxkb4j.core.api.R;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 

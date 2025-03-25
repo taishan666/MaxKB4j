@@ -18,7 +18,7 @@ import com.tarzan.maxkb4j.module.model.provider.impl.wenxinmodelprovider.WenXinM
 import com.tarzan.maxkb4j.module.model.provider.impl.xinferencemodelprovider.XInferenceModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.impl.zhipumodelprovider.ZhiPuModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.vo.ModelInputVO;
-import com.tarzan.maxkb4j.tool.api.R;
+import com.tarzan.maxkb4j.core.api.R;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 

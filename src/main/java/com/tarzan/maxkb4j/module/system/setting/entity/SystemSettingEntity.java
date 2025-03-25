@@ -1,7 +1,7 @@
 package com.tarzan.maxkb4j.module.system.setting.entity;
 
 import com.baomidou.mybatisplus.annotation.*;
-import com.tarzan.maxkb4j.handler.type.JOSNBTypeHandler;
+import com.tarzan.maxkb4j.core.handler.type.JOSNBTypeHandler;
 import lombok.Data;
 import com.alibaba.fastjson.JSONObject;
 

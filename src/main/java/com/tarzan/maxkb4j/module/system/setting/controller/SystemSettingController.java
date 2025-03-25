@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.module.system.setting.entity.SystemSettingEntity;
 import com.tarzan.maxkb4j.module.system.setting.enums.SettingType;
 import com.tarzan.maxkb4j.module.system.setting.service.SystemSettingService;
-import com.tarzan.maxkb4j.tool.api.R;
+import com.tarzan.maxkb4j.core.api.R;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 /**

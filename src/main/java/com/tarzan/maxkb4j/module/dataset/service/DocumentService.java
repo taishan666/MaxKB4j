@@ -16,7 +16,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.opencsv.CSVReader;
 import com.opencsv.exceptions.CsvValidationException;
-import com.tarzan.maxkb4j.common.dto.QueryDTO;
+import com.tarzan.maxkb4j.core.common.dto.QueryDTO;
 import com.tarzan.maxkb4j.module.dataset.dto.*;
 import com.tarzan.maxkb4j.module.dataset.entity.DocumentEntity;
 import com.tarzan.maxkb4j.module.dataset.entity.ParagraphEntity;

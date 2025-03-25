@@ -1,7 +1,6 @@
 package com.tarzan.maxkb4j.module.system.team.vo;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tarzan.maxkb4j.common.dto.MemberOperate;
+import com.tarzan.maxkb4j.core.common.dto.MemberOperate;
 import lombok.Data;
 
 

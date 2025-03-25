@@ -3,7 +3,7 @@ package com.tarzan.maxkb4j.module.application.workflow.info;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
-import com.tarzan.maxkb4j.exception.ApiException;
+import com.tarzan.maxkb4j.core.exception.ApiException;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 

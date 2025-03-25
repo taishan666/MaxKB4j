@@ -1,7 +1,7 @@
 package com.tarzan.maxkb4j.util;
 
 import com.huaban.analysis.jieba.JiebaSegmenter;
-import com.tarzan.maxkb4j.common.dto.WordIndex;
+import com.tarzan.maxkb4j.core.common.dto.WordIndex;
 
 import java.util.ArrayList;
 import java.util.List;

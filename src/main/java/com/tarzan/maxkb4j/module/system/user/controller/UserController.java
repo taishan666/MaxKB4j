@@ -10,7 +10,7 @@ import com.tarzan.maxkb4j.module.system.user.dto.UserLoginDTO;
 import com.tarzan.maxkb4j.module.system.user.entity.UserEntity;
 import com.tarzan.maxkb4j.module.system.user.service.UserService;
 import com.tarzan.maxkb4j.module.system.user.vo.UserVO;
-import com.tarzan.maxkb4j.tool.api.R;
+import com.tarzan.maxkb4j.core.api.R;
 import jakarta.mail.MessagingException;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;

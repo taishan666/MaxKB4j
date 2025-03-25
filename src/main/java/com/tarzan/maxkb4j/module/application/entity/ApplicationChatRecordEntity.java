@@ -5,10 +5,10 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tarzan.maxkb4j.common.entity.BaseEntity;
-import com.tarzan.maxkb4j.handler.type.JOSNBArrayTypeHandler;
-import com.tarzan.maxkb4j.handler.type.JOSNBTypeHandler;
-import com.tarzan.maxkb4j.handler.type.StringArrayTypeHandler;
+import com.tarzan.maxkb4j.core.common.entity.BaseEntity;
+import com.tarzan.maxkb4j.core.handler.type.JOSNBArrayTypeHandler;
+import com.tarzan.maxkb4j.core.handler.type.JOSNBTypeHandler;
+import com.tarzan.maxkb4j.core.handler.type.StringArrayTypeHandler;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 

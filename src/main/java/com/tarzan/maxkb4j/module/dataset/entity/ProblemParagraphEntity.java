@@ -1,7 +1,7 @@
 package com.tarzan.maxkb4j.module.dataset.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.tarzan.maxkb4j.common.entity.BaseEntity;
+import com.tarzan.maxkb4j.core.common.entity.BaseEntity;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 

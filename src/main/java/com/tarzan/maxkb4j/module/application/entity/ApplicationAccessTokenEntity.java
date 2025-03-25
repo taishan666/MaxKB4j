@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.tarzan.maxkb4j.handler.type.StringSetTypeHandler;
+import com.tarzan.maxkb4j.core.handler.type.StringSetTypeHandler;
 import com.tarzan.maxkb4j.util.MD5Util;
 import lombok.Data;
 import lombok.NoArgsConstructor;

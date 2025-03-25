@@ -5,7 +5,7 @@ import com.tarzan.maxkb4j.module.system.team.dto.TeamMemberPermissionDTO;
 import com.tarzan.maxkb4j.module.system.team.service.TeamMemberService;
 import com.tarzan.maxkb4j.module.system.team.vo.MemberPermissionVO;
 import com.tarzan.maxkb4j.module.system.team.vo.MemberVO;
-import com.tarzan.maxkb4j.tool.api.R;
+import com.tarzan.maxkb4j.core.api.R;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
