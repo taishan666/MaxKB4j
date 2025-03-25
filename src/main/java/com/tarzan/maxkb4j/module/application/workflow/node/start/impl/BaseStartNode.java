@@ -27,11 +27,12 @@ public class BaseStartNode extends IStarNode {
         Map<String, Object> workflowVariable = new HashMap<>(defaultGlobalVariable);
         workflowVariable.putAll(getGlobalVariable(workflowParams, workflowManage));
         // 构建节点变量
-        Map<String, Object> nodeVariable = new HashMap<>();
-        nodeVariable.put("question", workflowParams.getQuestion());
-        nodeVariable.put("image", workflowManage.getImageList());
-        nodeVariable.put("document", workflowManage.getDocumentList());
-        nodeVariable.put("audio", workflowManage.getAudioList());
+        Map<String, Object> nodeVariable = Map.of(
+                "question", workflowParams.getQuestion(),
+                "image", workflowManage.getImageList(),
+                "document", workflowManage.getDocumentList(),
+                "audio", workflowManage.getAudioList()
+        );
         return new NodeResult(nodeVariable, workflowVariable);
     }
 
@@ -82,7 +83,6 @@ public class BaseStartNode extends IStarNode {
 
     @Override
     public void saveContext(JSONObject detail, WorkflowManage workflowManage) {
-        System.out.println("start saveContext");
         // 获取基础节点
         Node baseNode = workflowManage.getBaseNode();
         // 获取默认全局变量
@@ -103,7 +103,6 @@ public class BaseStartNode extends IStarNode {
         this.errMessage = detail.getString("err_message");
         // 将工作流变量添加到上下文中
         for (Map.Entry<String, Object> entry : workflowVariable.entrySet()) {
-           // System.out.println("Key: " + entry.getKey() + ", Value: " + entry.getValue());
             workflowManage.getContext().put(entry.getKey(), entry.getValue());
         }
     }

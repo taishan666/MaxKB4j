@@ -7,7 +7,7 @@ import com.tarzan.maxkb4j.module.application.workflow.node.start.input.FlowParam
 import com.tarzan.maxkb4j.module.application.workflow.node.reranker.IRerankerNode;
 import com.tarzan.maxkb4j.module.application.workflow.node.reranker.input.RerankerParams;
 import com.tarzan.maxkb4j.module.dataset.vo.ParagraphVO;
-import com.tarzan.maxkb4j.module.model.provider.BaseReranker;
+import com.tarzan.maxkb4j.module.model.provider.impl.BaseReranker;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
 import com.tarzan.maxkb4j.util.SpringUtil;
 

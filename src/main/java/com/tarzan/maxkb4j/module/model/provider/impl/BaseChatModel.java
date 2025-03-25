@@ -1,20 +1,14 @@
 package com.tarzan.maxkb4j.module.model.provider.impl;
 
-import com.tarzan.maxkb4j.module.model.provider.out.ChatStream;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.model.chat.ChatLanguageModel;
 import dev.langchain4j.model.chat.DisabledChatLanguageModel;
 import dev.langchain4j.model.chat.DisabledStreamingChatLanguageModel;
 import dev.langchain4j.model.chat.StreamingChatLanguageModel;
 import dev.langchain4j.model.chat.response.ChatResponse;
-import dev.langchain4j.model.chat.response.StreamingChatResponseHandler;
 import lombok.Getter;
 
-import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 @Getter
 public class BaseChatModel {
@@ -32,7 +26,7 @@ public class BaseChatModel {
         this.chatModel = chatModel;
     }
 
-    public void stream(List<ChatMessage> messages, StreamingChatResponseHandler handler) {
+/*    public void stream(List<ChatMessage> messages, StreamingChatResponseHandler handler) {
         streamingChatModel.chat(messages, handler);
     }
 
@@ -79,7 +73,7 @@ public class BaseChatModel {
         };
         chatStream.setIterator(iterator);
         return chatStream;
-    }
+    }*/
 
 
     public ChatResponse generate(ChatMessage... messages) {

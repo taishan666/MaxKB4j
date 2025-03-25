@@ -1,4 +1,4 @@
-package com.tarzan.maxkb4j.module.model.provider;
+package com.tarzan.maxkb4j.module.model.provider.impl;
 
 import java.util.List;
 import java.util.Map;

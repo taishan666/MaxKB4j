@@ -1,4 +1,4 @@
-package com.tarzan.maxkb4j.module.application;
+package com.tarzan.maxkb4j.module.rag;
 
 import com.tarzan.maxkb4j.module.application.entity.ApplicationChatRecordEntity;
 import dev.langchain4j.data.message.AiMessage;
