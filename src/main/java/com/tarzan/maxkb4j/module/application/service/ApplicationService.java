@@ -486,11 +486,11 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     }
 
     public Boolean publish(String id, JSONObject workflow) {
-        if (Objects.nonNull(workflow) && workflow.containsKey("work_flow")) {
+        if (Objects.nonNull(workflow) && workflow.containsKey("workFlow")) {
             ApplicationEntity application = this.getById(id);
             long count = workFlowVersionService.count(Wrappers.<ApplicationWorkFlowVersionEntity>lambdaQuery().eq(ApplicationWorkFlowVersionEntity::getApplicationId, id));
             ApplicationWorkFlowVersionEntity entity = new ApplicationWorkFlowVersionEntity();
-            entity.setWorkFlow(workflow.getJSONObject("work_flow"));
+            entity.setWorkFlow(workflow.getJSONObject("workFlow"));
             entity.setApplicationId(id);
             entity.setName(application.getName() + "-V" + (count + 1));
             entity.setPublishUserId(StpUtil.getLoginIdAsString());

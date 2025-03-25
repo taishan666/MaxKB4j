@@ -43,7 +43,6 @@ public class WorkflowManage {
     private List<JSONObject> audioList;
     private FlowParams params;
     private Flow flow;
-    //  private final ReentrantLock lock = new ReentrantLock();
     private JSONObject context = new JSONObject();
     private NodeChunkManage nodeChunkManage;
     private WorkFlowPostHandler workFlowPostHandler;
@@ -53,7 +52,6 @@ public class WorkflowManage {
     private List<String> answerList = new ArrayList<>(Collections.singletonList(""));
     private int status = 200;
     private ApplicationChatRecordVO chatRecord;
-    //  private Map<String, CompletableFuture<?>> awaitFutureMap = new HashMap<>();
     private JSONObject childNode; // 根据实际需要定义类型
     private final List<Future<?>> futureList = new ArrayList<>();
     private List<INode> nodeContext = new ArrayList<>();
