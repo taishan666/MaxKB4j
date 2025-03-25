@@ -424,7 +424,7 @@ CREATE TABLE "public"."application_chat_record" (
                                                     "answer_text" varchar(40960) COLLATE "pg_catalog"."default" NOT NULL,
                                                     "message_tokens" int4 NOT NULL,
                                                     "answer_tokens" int4 NOT NULL,
-                                                    "const" int4 NOT NULL,
+                                                    "cost" int4 NOT NULL,
                                                     "details" jsonb NOT NULL,
                                                     "improve_paragraph_id_list" varchar(50)[] COLLATE "pg_catalog"."default" NOT NULL,
                                                     "run_time" float8 NOT NULL,

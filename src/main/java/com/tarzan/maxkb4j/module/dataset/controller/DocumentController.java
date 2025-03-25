@@ -2,7 +2,7 @@ package com.tarzan.maxkb4j.module.dataset.controller;
 
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.tarzan.maxkb4j.core.common.dto.DeleteDTO;
+import com.tarzan.maxkb4j.module.dataset.dto.DeleteDTO;
 import com.tarzan.maxkb4j.core.common.dto.QueryDTO;
 import com.tarzan.maxkb4j.module.dataset.dto.*;
 import com.tarzan.maxkb4j.module.dataset.entity.DocumentEntity;

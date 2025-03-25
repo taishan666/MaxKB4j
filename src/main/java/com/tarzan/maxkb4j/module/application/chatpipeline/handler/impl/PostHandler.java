@@ -37,7 +37,7 @@ public class PostHandler extends PostResponseHandler {
         chatRecord.setAnswerTextList(List.of(answerText));
         chatRecord.setRunTime((System.currentTimeMillis() - startTime) / 1000F);
         chatRecord.setVoteStatus("-1");
-        chatRecord.setConstant(0);
+        chatRecord.setCost(0);
         chatRecord.setDetails(manage.getDetails());
         chatRecord.setImproveParagraphIdList(new String[0]);
         chatInfo.getChatRecordList().add(chatRecord);

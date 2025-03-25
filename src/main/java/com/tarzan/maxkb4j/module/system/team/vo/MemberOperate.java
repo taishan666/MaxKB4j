@@ -1,4 +1,4 @@
-package com.tarzan.maxkb4j.core.common.dto;
+package com.tarzan.maxkb4j.module.system.team.vo;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;

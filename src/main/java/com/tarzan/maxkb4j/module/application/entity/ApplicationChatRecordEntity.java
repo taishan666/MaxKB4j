@@ -27,8 +27,6 @@ public class ApplicationChatRecordEntity extends BaseEntity {
 	private String answerText;
 	private Integer messageTokens;
 	private Integer answerTokens;
-	@JsonProperty("const")
-	@TableField(value = "const")
 	private Integer cost;
 	@TableField(typeHandler = JOSNBTypeHandler.class)
 	@JsonIgnore
