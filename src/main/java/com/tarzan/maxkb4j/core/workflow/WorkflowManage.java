@@ -49,7 +49,7 @@ public class WorkflowManage {
     private INode currentNode;
     private NodeResult currentResult;
     private String answer = "";
-    private List<String> answerList = new ArrayList<>(Collections.singletonList(""));
+   // private List<String> answerList = new ArrayList<>(Collections.singletonList(""));
     private int status = 200;
     private ApplicationChatRecordVO chatRecord;
     private JSONObject childNode; // 根据实际需要定义类型
@@ -79,19 +79,6 @@ public class WorkflowManage {
         }
     }
 
-    public boolean answerIsNotEmpty() {
-        if (answerList == null || answerList.isEmpty()) {
-            return false;
-        }
-        String lastAnswer = answerList.get(answerList.size() - 1);
-        return lastAnswer != null && !lastAnswer.trim().isEmpty();
-    }
-
-
-    public void appendAnswer(String content) {
-        this.answer += content;
-        this.answerList.add(content);
-    }
 
     public List<String> getAnswerTextList() {
         List<Answer> answerList = nodeContext.stream()
@@ -129,8 +116,6 @@ public class WorkflowManage {
     public void loadNode(ApplicationChatRecordEntity chatRecord, String startNodeId, Map<String, Object> startNodeData) {
         nodeContext.clear();
         this.answer = chatRecord.getAnswerText();
-        this.answerList = new ArrayList<>(chatRecord.getAnswerTextList());
-        this.answerList.add("");
         List<JSONObject> sortedDetails = chatRecord.getDetails().values().stream()
                 .map(row -> (JSONObject) row)
                 .sorted(Comparator.comparingInt(e -> e.getIntValue("index")))
@@ -444,23 +429,6 @@ public class WorkflowManage {
             language = "zh";
         }
         runChainAsync(null, null, language);
-        List<String> answerTextList = getAnswerTextList();
-        StringBuilder answerText = new StringBuilder();
-        for (String answer : answerTextList) {
-            if (!answerText.isEmpty()) {
-                answerText.append("\n\n");
-            }
-            answerText.append(answer);
-        }
-        String chatId = params.getChatId();
-        String chatRecordId = params.getChatRecordId();
-        // workFlowPostHandler.handler(chatId, chatRecordId, answerText.toString(), this);
- /*       baseToResponse.toBlockResponse(chatId,
-                chatRecordId,
-                answerText.toString(),
-                true,
-                0,
-                0);*/
         return Flux.just(new ChatMessageVO());
     }
 

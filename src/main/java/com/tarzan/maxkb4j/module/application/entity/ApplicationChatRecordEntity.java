@@ -29,7 +29,7 @@ public class ApplicationChatRecordEntity extends BaseEntity {
 	private Integer answerTokens;
 	@JsonProperty("const")
 	@TableField(value = "const")
-	private Integer constant;
+	private Integer cost;
 	@TableField(typeHandler = JOSNBTypeHandler.class)
 	@JsonIgnore
 	private JSONObject details;

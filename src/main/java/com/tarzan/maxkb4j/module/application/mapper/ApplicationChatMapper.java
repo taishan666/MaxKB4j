@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.tarzan.maxkb4j.module.application.dto.ChatQueryDTO;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationChatEntity;
 import com.tarzan.maxkb4j.module.application.vo.ApplicationStatisticsVO;
+import com.tarzan.maxkb4j.module.application.vo.ChatRecordDetailVO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -22,4 +23,6 @@ public interface ApplicationChatMapper extends BaseMapper<ApplicationChatEntity>
 
 
     List<ApplicationStatisticsVO> statistics(String appId,@Param("query") ChatQueryDTO query);
+
+    List<ChatRecordDetailVO> chatRecordDetail(String ids);
 }

@@ -31,14 +31,14 @@ public class NodeChunkManage {
                 return currentNodeChunk.getChunkList().remove(0);
             } else {
                 if (currentNodeChunk.isEnd()) {
-                    if (workflow.answerIsNotEmpty()) {
+                  /*  if (workflow.answerIsNotEmpty()) {
                         String chatId = workflow.getParams().getChatId();
                         String chatRecordId = workflow.getParams().getChatRecordId();
                         ChatMessageVO chunk=new ChatMessageVO(chatId,chatRecordId,"","","","",true,false);
                       //  ChatMessageVO chunk = workflow.getBaseToResponse().toStreamChunkResponse(chatId, chatRecordId, null, null, "\n\n", false, 0, 0);
                         workflow.appendAnswer("\n\n");
                         return chunk;
-                    }
+                    }*/
                     nodeChunkList.remove(0);
                 }
             }

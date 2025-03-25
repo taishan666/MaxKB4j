@@ -150,6 +150,11 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
         List<ApplicationDatasetMappingEntity> list = datasetMappingService.lambdaQuery().eq(ApplicationDatasetMappingEntity::getApplicationId, application.getId()).list();
         application.setDatasetIdList(list.stream().map(ApplicationDatasetMappingEntity::getDatasetId).toList());
         chatInfo.setApplication(application);
+        ApplicationWorkFlowVersionEntity workFlowVersion = workFlowVersionService.lambdaQuery()
+                .eq(ApplicationWorkFlowVersionEntity::getApplicationId, application.getId())
+                .orderByDesc(ApplicationWorkFlowVersionEntity::getCreateTime)
+                .last("limit 1").one();
+        chatInfo.setWorkFlowVersion(workFlowVersion);
         ChatCache.put(chatInfo.getChatId(), chatInfo);
         return chatInfo;
     }
@@ -293,6 +298,6 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
     }
 
     public void chatExport(String id, HttpServletResponse response) {
-
+          baseMapper.chatRecordDetail(id);
     }
 }
