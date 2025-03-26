@@ -1,12 +1,11 @@
 package com.tarzan.maxkb4j.module.application.controller;
 
+import com.tarzan.maxkb4j.core.api.R;
 import com.tarzan.maxkb4j.module.application.cache.ChatCache;
 import com.tarzan.maxkb4j.module.application.dto.ChatQueryDTO;
 import com.tarzan.maxkb4j.module.application.service.ApplicationChatRecordService;
 import com.tarzan.maxkb4j.module.application.vo.ApplicationChatRecordVO;
 import com.tarzan.maxkb4j.module.application.vo.ApplicationStatisticsVO;
-import com.tarzan.maxkb4j.core.api.R;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -34,11 +33,11 @@ public class ApplicationChatRecordController {
 
 
     @GetMapping("api/application/{appId}/statistics/chat_record_aggregate_trend")
-    public R<List<ApplicationStatisticsVO>> statistics(@PathVariable("appId") String appId, HttpServletRequest request) {
-        ChatQueryDTO query = new ChatQueryDTO();
+    public R<List<ApplicationStatisticsVO>> statistics(@PathVariable("appId") String appId, ChatQueryDTO query) {
+   /*     ChatQueryDTO query = new ChatQueryDTO();
         query.setKeyword(request.getParameter("abstract"));
         query.setStartTime(request.getParameter("start_time"));
-        query.setEndTime(request.getParameter("end_time"));
+        query.setEndTime(request.getParameter("end_time"));*/
         return R.success(chatRecordService.statistics(appId, query));
     }
 

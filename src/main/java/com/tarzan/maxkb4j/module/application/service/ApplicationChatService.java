@@ -10,25 +10,25 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tarzan.maxkb4j.core.exception.ApiException;
+import com.tarzan.maxkb4j.core.workflow.WorkflowManage;
+import com.tarzan.maxkb4j.core.workflow.handler.WorkFlowPostHandler;
+import com.tarzan.maxkb4j.core.workflow.info.Flow;
+import com.tarzan.maxkb4j.core.workflow.node.start.input.FlowParams;
 import com.tarzan.maxkb4j.module.application.cache.ChatCache;
 import com.tarzan.maxkb4j.module.application.chatpipeline.PipelineManage;
 import com.tarzan.maxkb4j.module.application.chatpipeline.handler.PostResponseHandler;
 import com.tarzan.maxkb4j.module.application.chatpipeline.step.chatstep.impl.BaseChatStep;
-import com.tarzan.maxkb4j.module.application.chatpipeline.step.generatehumanmessagestep.impl.GenerateHumanMessageStep;
 import com.tarzan.maxkb4j.module.application.chatpipeline.step.resetproblemstep.impl.BaseResetProblemStep;
 import com.tarzan.maxkb4j.module.application.chatpipeline.step.searchdatasetstep.impl.SearchDatasetStep;
 import com.tarzan.maxkb4j.module.application.dto.ChatInfo;
 import com.tarzan.maxkb4j.module.application.dto.ChatMessageDTO;
 import com.tarzan.maxkb4j.module.application.dto.ChatQueryDTO;
 import com.tarzan.maxkb4j.module.application.entity.*;
+import com.tarzan.maxkb4j.module.application.enums.AppType;
 import com.tarzan.maxkb4j.module.application.enums.AuthType;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatMapper;
 import com.tarzan.maxkb4j.module.application.vo.ApplicationChatRecordVO;
 import com.tarzan.maxkb4j.module.application.vo.ChatMessageVO;
-import com.tarzan.maxkb4j.core.workflow.WorkflowManage;
-import com.tarzan.maxkb4j.core.workflow.handler.WorkFlowPostHandler;
-import com.tarzan.maxkb4j.core.workflow.info.Flow;
-import com.tarzan.maxkb4j.core.workflow.node.start.input.FlowParams;
 import com.tarzan.maxkb4j.module.application.vo.ChatRecordDetailVO;
 import com.tarzan.maxkb4j.module.dataset.vo.ParagraphVO;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelEntity;
@@ -88,8 +88,9 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
     public String chatOpenTest(ApplicationEntity application) {
         ChatInfo chatInfo = new ChatInfo();
         chatInfo.setChatId(IdWorker.get32UUID());
-        application.setId(null);
+        //application.setId(null);
         chatInfo.setApplication(application);
+        application.setType(AppType.SIMPLE.name());
         ChatCache.put(chatInfo.getChatId(), chatInfo);
         return chatInfo.getChatId();
     }
@@ -97,11 +98,11 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
     public String chatWorkflowOpenTest(ApplicationEntity application) {
         ChatInfo chatInfo = new ChatInfo();
         chatInfo.setChatId(IdWorker.get32UUID());
-        application.setId(null);
+       // application.setId(null);
         ApplicationWorkFlowVersionEntity workflowVersion = new ApplicationWorkFlowVersionEntity();
         workflowVersion.setWorkFlow(application.getWorkFlow());
         application.setDialogueNumber(3);
-        application.setType("WORKFLOW");
+        application.setType(AppType.WORKFLOW.name());
         application.setUserId(StpUtil.getLoginIdAsString());
         chatInfo.setApplication(application);
         chatInfo.setWorkFlowVersion(workflowVersion);
@@ -177,7 +178,7 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
         try {
             isValidApplication(chatInfo, clientId, clientType);
         } catch (Exception e) {
-            return Flux.just(new ChatMessageVO(chatId,  "会话不存在", true));
+            return Flux.just(new ChatMessageVO(chatId,  e.getMessage(), true));
         }
         if (chatInfo.getApplication().getType().equals("SIMPLE")) {
             return chatSimple(chatInfo, dto,clientId,clientType);
@@ -213,7 +214,6 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
             pipelineManageBuilder.addStep(baseResetProblemStep);
         }
         pipelineManageBuilder.addStep(searchDatasetStep);
-        pipelineManageBuilder.addStep(GenerateHumanMessageStep.class);
         pipelineManageBuilder.addStep(baseChatStep);
         PipelineManage pipelineManage = pipelineManageBuilder.build();
 

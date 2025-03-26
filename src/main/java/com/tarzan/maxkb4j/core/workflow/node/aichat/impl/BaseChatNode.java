@@ -1,7 +1,6 @@
 package com.tarzan.maxkb4j.core.workflow.node.aichat.impl;
 
 import com.alibaba.fastjson.JSONObject;
-import com.tarzan.maxkb4j.module.rag.MyChatMemory;
 import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.NodeResult;
 import com.tarzan.maxkb4j.core.workflow.WorkflowManage;
@@ -108,8 +107,7 @@ public class BaseChatNode extends IChatNode {
         List<ChatMessage> messageList = super.workflowManage.generateMessageList(system, question, historyMessage);
         if (nodeParams.getIsResult()) {
             //   ChatStream chatStream = chatModel.stream(messageList);
-            MyChatMemory chatMemory = new MyChatMemory(5, 5000);
-            chatMemory.add1(messageList);
+           // MyChatMemory chatMemory = new MyChatMemory(5, 5000);
             Assistant assistant = AiServices.builder(Assistant.class)
                     //     .systemMessageProvider(chatMemoryId ->system)
                     //    .chatLanguageModel(chatModel.getChatModel())

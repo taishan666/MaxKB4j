@@ -3,30 +3,27 @@ package com.tarzan.maxkb4j.module.application.chatpipeline.step.chatstep.impl;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
-import com.tarzan.maxkb4j.module.rag.MyChatMemory;
 import com.tarzan.maxkb4j.module.application.cache.ChatCache;
 import com.tarzan.maxkb4j.module.application.chatpipeline.PipelineManage;
 import com.tarzan.maxkb4j.module.application.chatpipeline.handler.PostResponseHandler;
 import com.tarzan.maxkb4j.module.application.chatpipeline.step.chatstep.IChatStep;
-import com.tarzan.maxkb4j.module.application.entity.ApplicationEntity;
-import com.tarzan.maxkb4j.module.application.entity.ApplicationPublicAccessClientEntity;
-import com.tarzan.maxkb4j.module.application.entity.DatasetSetting;
-import com.tarzan.maxkb4j.module.application.entity.NoReferencesSetting;
+import com.tarzan.maxkb4j.module.application.entity.*;
 import com.tarzan.maxkb4j.module.application.service.ApplicationPublicAccessClientService;
 import com.tarzan.maxkb4j.module.application.vo.ChatMessageVO;
 import com.tarzan.maxkb4j.module.assistant.Assistant;
-import com.tarzan.maxkb4j.module.rag.MyContentRetriever;
 import com.tarzan.maxkb4j.module.dataset.vo.ParagraphVO;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
+import com.tarzan.maxkb4j.module.rag.MyChatMemory;
+import com.tarzan.maxkb4j.module.rag.MyContentRetriever;
 import dev.langchain4j.data.message.AiMessage;
-import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.model.output.TokenUsage;
 import dev.langchain4j.service.AiServices;
 import dev.langchain4j.service.TokenStream;
 import lombok.AllArgsConstructor;
+import org.jsoup.internal.StringUtil;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import reactor.core.publisher.Flux;
@@ -45,7 +42,9 @@ public class BaseChatStep extends IChatStep {
     protected Flux<ChatMessageVO> execute(PipelineManage manage) {
         JSONObject context = manage.context;
         ApplicationEntity application = (ApplicationEntity) context.get("application");
-        List<ChatMessage> messageList = (List<ChatMessage>) context.get("message_list");
+       // List<ChatMessage> messageList = (List<ChatMessage>) context.get("message_list");
+        int dialogueNumber = application.getDialogueNumber();
+        List<ApplicationChatRecordEntity> chatRecordList = (List<ApplicationChatRecordEntity>) context.get("chatRecordList");
         List<ParagraphVO> paragraphList = (List<ParagraphVO>) context.get("paragraph_list");
         String modelId = application.getModelId();
         super.context.put("modelId", modelId);
@@ -55,18 +54,18 @@ public class BaseChatStep extends IChatStep {
         DatasetSetting datasetSetting = application.getDatasetSetting();
         NoReferencesSetting noReferencesSetting = datasetSetting.getNoReferencesSetting();
         String chatId = context.getString("chatId");
-        String chatRecordId = IdWorker.get32UUID();
         BaseChatModel chatModel = modelService.getModelById(modelId);
         boolean stream = true;
-        return getFluxResult(chatId, chatRecordId, messageList, chatModel, paragraphList, noReferencesSetting,systemText, problemText, manage, postResponseHandler, stream);
+        return getFluxResult(chatId, chatRecordList,dialogueNumber, chatModel, paragraphList, noReferencesSetting,systemText, problemText, manage, postResponseHandler, stream);
     }
 
 
-    private Flux<ChatMessageVO> getFluxResult(String chatId, String chatRecordId, List<ChatMessage> messageList,
+    private Flux<ChatMessageVO> getFluxResult(String chatId, List<ApplicationChatRecordEntity> chatRecordList,int dialogueNumber,
                                            BaseChatModel chatModel,
                                            List<ParagraphVO> paragraphList,
                                            NoReferencesSetting noReferencesSetting,
                                            String systemText,String problemText, PipelineManage manage, PostResponseHandler postResponseHandler, boolean stream) {
+        String chatRecordId = IdWorker.get32UUID();
         Sinks.Many<ChatMessageVO> sink = Sinks.many().multicast().onBackpressureBuffer();
         if (CollectionUtils.isEmpty(paragraphList)) {
             paragraphList = new ArrayList<>();
@@ -79,7 +78,6 @@ public class BaseChatStep extends IChatStep {
         }
         if (chatModel == null) {
             String text = "抱歉，没有配置 AI 模型，无法优化引用分段，请先去应用中设置 AI 模型。";
-          //  JSONObject json = toResponse(chatId, chatRecordId, text, true, 0, 0);
             sink.tryEmitNext(new ChatMessageVO(chatId,chatRecordId,text,true));
         } else {
             String status = noReferencesSetting.getStatus();
@@ -97,14 +95,13 @@ public class BaseChatStep extends IChatStep {
                 int answerTokens = manage.context.getInteger("answerTokens");
                 String clientId = manage.context.getString("client_id");
                 String clientType = manage.context.getString("client_type");
-                MyChatMemory chatMemory=new MyChatMemory(5,5000);
-                chatMemory.add1(messageList);
+                MyChatMemory chatMemory=new MyChatMemory(chatRecordList,dialogueNumber);
+                String system= StringUtil.isBlank(systemText)?"You're an intelligent assistant":systemText;
                 Assistant assistant =  AiServices.builder(Assistant.class)
-                        .systemMessageProvider(chatMemoryId ->systemText)
+                        .systemMessageProvider(chatMemoryId ->system)
                     //    .chatLanguageModel(chatModel.getChatModel())
                         .streamingChatLanguageModel(chatModel.getStreamingChatModel())
                         .chatMemory(chatMemory)
-                       // .chatMemoryProvider(memoryId -> MessageWindowChatMemory.withMaxMessages(10))
                         .contentRetriever(new MyContentRetriever(paragraphList))
                         .build();
                 if (stream) {
@@ -189,25 +186,6 @@ public class BaseChatStep extends IChatStep {
         return details;
     }
 
-    public JSONObject toResponse(String chatId, String chatRecordId, String content, Boolean isEnd, int completionTokens,
-                                 int promptTokens) {
-        JSONObject data = new JSONObject();
-        data.put("chat_id", chatId);
-        data.put("chatRecordId", chatRecordId);
-        data.put("operate", true);
-        data.put("content", content);
-        data.put("node_id", "ai-chat-node");
-        data.put("node_type", "ai-chat-node");
-        data.put("node_is_end", true);
-        data.put("view_type", "many_view");
-        data.put("is_end", isEnd);
-        JSONObject usage = new JSONObject();
-        usage.put("completion_tokens", completionTokens);
-        usage.put("prompt_tokens", promptTokens);
-        usage.put("total_tokens", (promptTokens + completionTokens));
-        data.put("usage", usage);
-        return data;
-    }
 
     private void addAccessNum(String clientId, String clientType) {
         if ("APPLICATION_ACCESS_TOKEN".equals(clientType)) {

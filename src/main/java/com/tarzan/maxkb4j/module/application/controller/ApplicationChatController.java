@@ -75,11 +75,11 @@ public class ApplicationChatController {
     }
 
     @GetMapping("api/application/{appId}/chat/{page}/{size}")
-    public R<IPage<ApplicationChatEntity>> chatLogs(@PathVariable("appId") String appId, @PathVariable("page") int page, @PathVariable("size") int size, HttpServletRequest request) {
-        ChatQueryDTO query = new ChatQueryDTO();
+    public R<IPage<ApplicationChatEntity>> chatLogs(@PathVariable("appId") String appId, @PathVariable("page") int page, @PathVariable("size") int size, ChatQueryDTO query) {
+   /*     ChatQueryDTO query = new ChatQueryDTO();
         query.setKeyword(request.getParameter("abstract"));
         query.setStartTime(request.getParameter("start_time"));
-        query.setEndTime(request.getParameter("end_time"));
+        query.setEndTime(request.getParameter("end_time"));*/
         return R.success(chatService.chatLogs(appId, page, size, query));
     }
 

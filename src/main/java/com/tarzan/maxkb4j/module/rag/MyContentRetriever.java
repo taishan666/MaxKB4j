@@ -13,7 +13,7 @@ public class MyContentRetriever implements ContentRetriever {
     private final List<ParagraphVO> paragraphList;
 
     public MyContentRetriever(List<ParagraphVO> paragraphList) {
-        System.out.println("paragraphList size: "+paragraphList.size());
+       // System.out.println("paragraphList size: "+paragraphList.size());
         this.paragraphList = paragraphList;
     }
 
