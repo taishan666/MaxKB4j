@@ -1,9 +1,9 @@
-预计下周可以出可以部署使用的版本！！！
+
 <h3 align="center">基于大模型和 RAG 的知识库问答系统</h3>
 <h4 align="center">开箱即用、灵活的RAG知识库加工作流聊天机器人</h4>
 
 
-MaxKB4j = Max Knowledge Base for Java，是一款基于java语言开发的大语言模型和 RAG 的开源知识库问答系统，广泛应用于智能客服、企业内部知识库、学术研究与教育等场景。
+MaxKB4j = Max Knowledge Base for Java，是一款基于Java语言开发的LLM工作流应用和 RAG 的开源LLMOps平台，项目主要间接了MaxKB和FastGPT,并将两个的优势结合到一个项目上，使用高性能、高稳定性以及安全可靠的JAVA语言重新设计开发。MaxKB4j广泛应用于智能客服、企业内部知识库、学术研究与教育等场景。
 
 - **开箱即用**：支持直接上传文档 / 自动爬取在线文档，支持文本自动拆分、向量化和 RAG（检索增强生成），有效减少大模型幻觉，智能问答交互体验好；
 - **模型中立**：支持对接各种大模型，包括本地私有大模型（DeekSeek R1 / Llama 3 / Qwen 2 等）、国内公共大模型（通义千问 / 腾讯混元 / 字节豆包 / 百度千帆 / 智谱 AI / Kimi 等）和国外公共大模型（OpenAI / Claude / Gemini 等）；
@@ -18,12 +18,15 @@ MaxKB4j = Max Knowledge Base for Java，是一款基于java语言开发的大语
 ## 快速开始
 
 ```
-todo
+java -jar maxkb4j-1.0.0.jar
 ```
 
+## 技术交流
 
-## 技术交流&问题反馈
-     有问题尽量提交issues,或者通过我的博客留言，我很忙有很多事要做，不重要的事不要打扰我！ 
+[《看看这个！👉 点击技术交流社区！🔥》](https://blog.csdn.net/weixin_40986713/category_12606825.html)
+
+## 问题反馈
+     有问题提交issues,或者通过我的博客留言！ 
 
 ## 案例展示
 
@@ -47,8 +50,8 @@ todo
 ## 技术栈
 
 - 前端：[Vue.js](https://cn.vuejs.org/)
-- 后端：[Java / Springboot](https://www.djangoproject.com/)
-- 缓存：[Ehcache](https://www.ehcache.org/)
+- 后端：[Java17 / Springboot3](https://www.djangoproject.com/)
+- 缓存：[caffeine](https://github.com/ben-manes/caffeine)
 - LangChain4j：[LangChain4j](https://docs.langchain4j.dev/)
 - 向量数据库：[PostgreSQL / pgvector](https://www.postgresql.org/)
 - 全文检索数据库：[MongoDB](https://www.mongodb.com/)
@@ -60,16 +63,6 @@ todo
 - **《AI语音合成与识别》**》：[https://blog.csdn.net/weixin_40986713/category_12735457.html](https://blog.csdn.net/weixin_40986713/category_12735457.html)
 
 - **《AI绘画 | Stable diffusion》**：[https://blog.csdn.net/weixin_40986713/category_12481790.html](https://blog.csdn.net/weixin_40986713/category_12481790.html)
-
-- **《JAVA OPC UA专栏》**：[https://blog.csdn.net/weixin_40986713/category_12356608.html](https://blog.csdn.net/weixin_40986713/category_12356608.html)
-
-- **《java高级技术专栏》**：[https://blog.csdn.net/weixin_40986713/category_10796066.html](https://blog.csdn.net/weixin_40986713/category_10796066.html)
-
-- **《java Selenium自动化爬虫》**：[https://blog.csdn.net/weixin_40986713/category_12165790.html](https://blog.csdn.net/weixin_40986713/category_12165790.html)
-
-- **《java 推荐算法专栏》**：[https://blog.csdn.net/weixin_40986713/category_12268014.html](https://blog.csdn.net/weixin_40986713/category_12268014.html)
-
-- **《Java视频图像处理专栏》**：[https://blog.csdn.net/weixin_40986713/category_11109931.html](https://blog.csdn.net/weixin_40986713/category_11109931.html)
 
 
 ## License
