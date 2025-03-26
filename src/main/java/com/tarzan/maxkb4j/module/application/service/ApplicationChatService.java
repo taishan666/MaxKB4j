@@ -89,7 +89,7 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
     public String chatOpenTest(ApplicationEntity application) {
         ChatInfo chatInfo = new ChatInfo();
         chatInfo.setChatId(IdWorker.get32UUID());
-        //application.setId(null);
+        application.setId(null);
         chatInfo.setApplication(application);
         application.setType(AppType.SIMPLE.name());
         ChatCache.put(chatInfo.getChatId(), chatInfo);
@@ -99,7 +99,7 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
     public String chatWorkflowOpenTest(ApplicationEntity application) {
         ChatInfo chatInfo = new ChatInfo();
         chatInfo.setChatId(IdWorker.get32UUID());
-       // application.setId(null);
+        application.setId(null);
         ApplicationWorkFlowVersionEntity workflowVersion = new ApplicationWorkFlowVersionEntity();
         workflowVersion.setWorkFlow(application.getWorkFlow());
         application.setDialogueNumber(3);
@@ -113,7 +113,7 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
 
     public String chatOpen(String appId) {
         ApplicationEntity application = applicationService.getById(appId);
-        if ("SIMPLE".equals(application.getType())) {
+        if (AppType.SIMPLE.name().equals(application.getType())) {
             return chatOpenSimple(application);
         } else {
             return chatOpenWorkflow(application);
@@ -264,9 +264,11 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
                 accessClient.setIntraDayAccessNum(0);
                 publicAccessClientService.save(accessClient);
             }
-            ApplicationAccessTokenEntity appAccessToken = accessTokenService.lambdaQuery().eq(ApplicationAccessTokenEntity::getApplicationId, appId).one();
-            if (appAccessToken.getAccessNum() < accessClient.getIntraDayAccessNum()) {
-                throw new Exception("访问次数超过今日访问量");
+            if(Objects.nonNull(appId)){
+                ApplicationAccessTokenEntity appAccessToken = accessTokenService.lambdaQuery().eq(ApplicationAccessTokenEntity::getApplicationId, appId).one();
+                if (appAccessToken.getAccessNum() < accessClient.getIntraDayAccessNum()) {
+                    throw new Exception("访问次数超过今日访问量");
+                }
             }
         }
     }
