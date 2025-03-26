@@ -24,5 +24,5 @@ public interface ApplicationChatMapper extends BaseMapper<ApplicationChatEntity>
 
     List<ApplicationStatisticsVO> statistics(String appId,@Param("query") ChatQueryDTO query);
 
-    List<ChatRecordDetailVO> chatRecordDetail(String ids);
+    List<ChatRecordDetailVO> chatRecordDetail(List<String>  ids);
 }

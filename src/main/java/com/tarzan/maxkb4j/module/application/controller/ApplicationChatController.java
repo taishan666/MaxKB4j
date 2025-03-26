@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import reactor.core.publisher.Flux;
 
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -83,8 +84,8 @@ public class ApplicationChatController {
     }
 
     @PostMapping("api/application/{id}/chat/export")
-    public void export(@PathVariable String id, HttpServletResponse response) {
-         chatService.chatExport(id,response);
+    public void export(@PathVariable String id,@RequestBody List<String> selectIds,HttpServletResponse response) throws IOException {
+         chatService.chatExport(selectIds,response);
     }
 
 }

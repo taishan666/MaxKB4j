@@ -97,8 +97,8 @@ public class WorkFlowPostHandler {
                     ApplicationChatEntity chatEntity = new ApplicationChatEntity();
                     chatEntity.setId(chatId);
                     chatEntity.setApplicationId(appId);
-                    String problemText=question.length()>50?question.substring(0,50):question;
-                    chatEntity.setDigest(problemText);
+                    String problemOverview=question.length()>50?question.substring(0,50):question;
+                    chatEntity.setOverview(problemOverview);
                     chatEntity.setClientId(clientId);
                     chatEntity.setIsDeleted(false);
                     chatMapper.insertOrUpdate(chatEntity);

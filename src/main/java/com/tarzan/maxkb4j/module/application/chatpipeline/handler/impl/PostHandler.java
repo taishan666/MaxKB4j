@@ -48,7 +48,7 @@ public class PostHandler extends PostResponseHandler {
             String appId = chatInfo.getApplication().getId();
             chatEntity.setApplicationId(appId);
             problemText=problemText.length()>50?problemText.substring(0,50):problemText;
-            chatEntity.setDigest(problemText);
+            chatEntity.setOverview(problemText);
             chatEntity.setClientId(clientId);
             chatEntity.setIsDeleted(false);
             chatMapper.insertOrUpdate(chatEntity);

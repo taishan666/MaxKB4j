@@ -387,7 +387,7 @@ CREATE TABLE "public"."application_chat" (
                                              "create_time" timestamptz(6) NOT NULL,
                                              "update_time" timestamptz(6) NOT NULL,
                                              "id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
-                                             "abstract" varchar(1024) COLLATE "pg_catalog"."default" NOT NULL,
+                                             "overview" varchar(1024) COLLATE "pg_catalog"."default" NOT NULL,
                                              "application_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
                                              "client_id" varchar(50) COLLATE "pg_catalog"."default",
                                              "is_deleted" bool NOT NULL

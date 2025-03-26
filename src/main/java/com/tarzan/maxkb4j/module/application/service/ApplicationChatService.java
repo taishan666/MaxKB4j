@@ -1,6 +1,7 @@
 package com.tarzan.maxkb4j.module.application.service;
 
 import cn.dev33.satoken.stp.StpUtil;
+import com.alibaba.excel.EasyExcel;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -28,6 +29,7 @@ import com.tarzan.maxkb4j.core.workflow.WorkflowManage;
 import com.tarzan.maxkb4j.core.workflow.handler.WorkFlowPostHandler;
 import com.tarzan.maxkb4j.core.workflow.info.Flow;
 import com.tarzan.maxkb4j.core.workflow.node.start.input.FlowParams;
+import com.tarzan.maxkb4j.module.application.vo.ChatRecordDetailVO;
 import com.tarzan.maxkb4j.module.dataset.vo.ParagraphVO;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelEntity;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
@@ -297,7 +299,8 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
         return fileList;
     }
 
-    public void chatExport(String id, HttpServletResponse response) {
-          baseMapper.chatRecordDetail(id);
+    public void chatExport(List<String> ids, HttpServletResponse response) throws IOException {
+        List<ChatRecordDetailVO> rows=baseMapper.chatRecordDetail(ids);
+        EasyExcel.write(response.getOutputStream(), ChatRecordDetailVO.class).sheet("sheet").doWrite(rows);
     }
 }

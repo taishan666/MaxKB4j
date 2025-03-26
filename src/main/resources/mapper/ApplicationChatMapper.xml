@@ -2,10 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.tarzan.maxkb4j.module.application.mapper.ApplicationChatMapper">
 
-    <resultMap id="chatResultMap" type="com.tarzan.maxkb4j.module.application.vo.ApplicationChatVO">
-        <result property="digest" column="abstract"  />
-    </resultMap>
-    <select id="chatLogs"  resultMap="chatResultMap">
+    <select id="chatLogs"  resultType="com.tarzan.maxkb4j.module.application.vo.ApplicationChatVO">
         SELECT
             chat.*,
             COUNT(chat_record.chat_id) chat_record_count
@@ -15,7 +12,7 @@
         <where>
             APPLICATION_ID = #{appId}
             <if test="query.keyword != null and query.keyword != ''">
-                and chat.abstract like CONCAT('%',#{query.keyword},'%')
+                and chat.overview like CONCAT('%',#{query.keyword},'%')
             </if>
             <if test="query.startTime != null and query.startTime != ''">
                 and  <![CDATA[TO_CHAR(chat.update_time, 'YYYY-MM-DD') >= #{query.startTime} ]]>
@@ -51,7 +48,7 @@
         GROUP BY "day";
     </select>
     <select id="chatRecordDetail" resultType="com.tarzan.maxkb4j.module.application.vo.ChatRecordDetailVO">
-        SELECT record.chat_id,chat.abstract,record.vote_status,record.problem_text,record.answer_text, record.const,record."index", record.run_time, record.create_time
+        SELECT record.chat_id,chat.overview,record.vote_status,record.problem_text,record.answer_text, record.cost,record."index", record.run_time, record.create_time
         FROM application_chat chat
         LEFT JOIN application_chat_record record
         ON chat.id=record.chat_id
