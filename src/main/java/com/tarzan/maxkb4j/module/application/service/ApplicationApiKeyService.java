@@ -42,4 +42,8 @@ public class ApplicationApiKeyService extends ServiceImpl<ApplicationApiKeyMappe
     public Boolean deleteApikey(String appId, String apiKeyId) {
         return this.removeById(apiKeyId);
     }
+
+    public ApplicationApiKeyEntity getBySecretKey(String secretKey) {
+        return this.lambdaQuery().eq(ApplicationApiKeyEntity::getSecretKey, secretKey).one();
+    }
 }

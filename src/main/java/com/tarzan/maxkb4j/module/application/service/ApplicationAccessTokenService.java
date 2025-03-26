@@ -14,4 +14,8 @@ public class ApplicationAccessTokenService extends ServiceImpl<ApplicationAccess
     public ApplicationAccessTokenEntity accessToken(String appId) {
         return  this.lambdaQuery().eq(ApplicationAccessTokenEntity::getApplicationId, appId).one();
     }
+
+    public ApplicationAccessTokenEntity getByToken(String accessToken) {
+        return this.lambdaQuery().eq(ApplicationAccessTokenEntity::getAccessToken, accessToken).one();
+    }
 }

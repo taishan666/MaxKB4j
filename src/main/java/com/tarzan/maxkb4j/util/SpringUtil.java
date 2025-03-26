@@ -13,6 +13,8 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 
+import java.util.Map;
+
 @Component
 public class SpringUtil implements ApplicationContextAware {
     private static final Logger log = LoggerFactory.getLogger(SpringUtil.class);
@@ -20,7 +22,9 @@ public class SpringUtil implements ApplicationContextAware {
 
     public SpringUtil() {
     }
-
+    public static <T> Map<String, T> getBeansOfType(Class<T> type) {
+        return getBeanFactory().getBeansOfType(type);
+    }
     public static DefaultListableBeanFactory getBeanFactory() {
         return (DefaultListableBeanFactory)context.getBeanFactory();
     }

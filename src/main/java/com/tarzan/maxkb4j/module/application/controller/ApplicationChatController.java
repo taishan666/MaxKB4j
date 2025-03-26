@@ -34,9 +34,20 @@ public class ApplicationChatController {
     private final ApplicationChatService chatService;
 
     @GetMapping("api/application/{appId}/chat/client/{page}/{size}")
-    public R<IPage<ApplicationChatEntity>> clientChatPage(@PathVariable("appId") String appId, @PathVariable("page") int page, @PathVariable("size") int size, HttpServletRequest request) {
+    public R<IPage<ApplicationChatEntity>> clientChatPage(@PathVariable("appId") String appId, @PathVariable("page") int page, @PathVariable("size") int size) {
         String clientId = (String) StpUtil.getExtra("client_id");
         return R.success(chatService.clientChatPage(appId, clientId, page, size));
+    }
+
+    @PutMapping("api/application/{appId}/chat/client/{chatId}")
+    public R<Boolean> updateChat(@PathVariable("appId") String appId, @PathVariable("chatId") String chatId,@RequestBody ApplicationChatEntity chatEntity) {
+        chatEntity.setId(chatId);
+        return R.success(chatService.updateById(chatEntity));
+    }
+
+    @DeleteMapping("api/application/{appId}/chat/client/{chatId}")
+    public R<Boolean> deleteChat(@PathVariable("appId") String appId, @PathVariable("chatId") String chatId) {
+        return R.success(chatService.deleteById(chatId));
     }
 
     @PostMapping("api/application/chat/open")

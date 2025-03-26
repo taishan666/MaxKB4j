@@ -271,15 +271,17 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
             loginModel.setExtra("email", userEntity.getEmail());
             loginModel.setExtra("language", userEntity.getLanguage());
             loginModel.setExtra("client_id", userEntity.getId());
-            loginModel.setExtra("client_type", AuthType.APP_ACCESS_TOKEN.name());
+            loginModel.setExtra("client_type", AuthType.ACCESS_TOKEN.name());
             loginModel.setExtra("application_id", appAccessToken.getApplicationId());
+            loginModel.setExtra(AuthType.ACCESS_TOKEN.name(), accessToken);
             StpUtil.login(userEntity.getId(),loginModel);
         }else {
             if (appAccessToken != null && appAccessToken.getIsActive()) {
                 loginModel.setExtra("application_id", appAccessToken.getApplicationId());
                 loginModel.setExtra("client_id", IdWorker.get32UUID());
-                loginModel.setExtra("client_type", AuthType.APP_ACCESS_TOKEN.name());
-                loginModel.setDevice(AuthType.APP_ACCESS_TOKEN.name());
+                loginModel.setExtra("client_type", AuthType.ACCESS_TOKEN.name());
+                loginModel.setDevice(AuthType.ACCESS_TOKEN.name());
+                loginModel.setExtra(AuthType.ACCESS_TOKEN.name(), accessToken);
                 StpUtil.login(IdWorker.get32UUID(), loginModel);
             }
         }

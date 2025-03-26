@@ -84,7 +84,7 @@ public class WorkFlowPostHandler {
         // 重新设置缓存
         ChatCache.put(chatId, chatInfo);
 
-        if (clientType!=null&&clientType.equals(AuthType.APP_ACCESS_TOKEN.name())) {
+        if (clientType!=null&&clientType.equals(AuthType.ACCESS_TOKEN.name())) {
             ApplicationPublicAccessClientEntity applicationPublicAccessClient = publicAccessClientService.getById(clientId);
             if (applicationPublicAccessClient != null) {
                 applicationPublicAccessClient.setAccessNum(applicationPublicAccessClient.getAccessNum() + 1);

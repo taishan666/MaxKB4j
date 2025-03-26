@@ -1,12 +1,16 @@
 
 package com.tarzan.maxkb4j.config;
 
+import com.tarzan.maxkb4j.core.interceptor.AuthInterceptor;
+import lombok.AllArgsConstructor;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
+
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
@@ -14,6 +18,17 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addResourceHandler("doc.html").addResourceLocations("classpath:/META-INF/resources/");
         registry.addResourceHandler("/webjars/**").addResourceLocations("classpath:/META-INF/resources/webjars/");
     }
+
+    /**
+     * 注册sa-token的拦截器
+     */
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        // 拦截所有请求
+        registry.addInterceptor(new AuthInterceptor()).addPathPatterns("/**");
+    }
+
+
 
 
 /*    @Override

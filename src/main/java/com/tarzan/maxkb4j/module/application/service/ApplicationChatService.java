@@ -39,6 +39,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.multipart.MultipartFile;
 import reactor.core.publisher.Flux;
@@ -253,7 +254,7 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
     }
 
     public void isValidIntraDayAccessNum(String appId, String clientId, String clientType) throws Exception {
-        if (AuthType.APP_ACCESS_TOKEN.name().equals(clientType)) {
+        if (AuthType.ACCESS_TOKEN.name().equals(clientType)) {
             ApplicationPublicAccessClientEntity accessClient = publicAccessClientService.getById(clientId);
             if (Objects.isNull(accessClient)) {
                 accessClient = new ApplicationPublicAccessClientEntity();
@@ -302,5 +303,11 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
     public void chatExport(List<String> ids, HttpServletResponse response) throws IOException {
         List<ChatRecordDetailVO> rows=baseMapper.chatRecordDetail(ids);
         EasyExcel.write(response.getOutputStream(), ChatRecordDetailVO.class).sheet("sheet").doWrite(rows);
+    }
+
+    @Transactional
+    public Boolean deleteById(String chatId) {
+        chatRecordService.lambdaUpdate().eq(ApplicationChatRecordEntity::getChatId, chatId).remove();
+        return this.removeById(chatId);
     }
 }
