@@ -19,11 +19,15 @@ public class BaiLianChatModel extends BaseChatModel implements BaseModel {
         StreamingChatLanguageModel streamingChatModel = QwenStreamingChatModel.builder()
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
+                .temperature(params==null?null:params.getFloat("temperature"))
+                .maxTokens(params==null?null:params.getInteger("max_tokens"))
                 .listeners(List.of(new LlmListener()))
                 .build();
         ChatLanguageModel chatModel = QwenChatModel.builder()
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
+                .temperature(params==null?null:params.getFloat("temperature"))
+                .maxTokens(params==null?null:params.getInteger("max_tokens"))
                 .listeners(List.of(new LlmListener()))
                 .build();
         // 使用构造函数实例化对象

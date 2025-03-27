@@ -50,11 +50,12 @@ public class BaseChatStep extends IChatStep {
         super.context.put("modelId", modelId);
         PostResponseHandler postResponseHandler = (PostResponseHandler) context.get("postResponseHandler");
         String problemText = context.getString("problem_text");
+        JSONObject params=application.getModelParamsSetting();
         String systemText = application.getModelSetting().getSystem();
         DatasetSetting datasetSetting = application.getDatasetSetting();
         NoReferencesSetting noReferencesSetting = datasetSetting.getNoReferencesSetting();
         String chatId = context.getString("chatId");
-        BaseChatModel chatModel = modelService.getModelById(modelId);
+        BaseChatModel chatModel = modelService.getModelById(modelId, params);
         boolean stream = true;
         return getFluxResult(chatId, chatRecordList,dialogueNumber, chatModel, paragraphList, noReferencesSetting,systemText, problemText, manage, postResponseHandler, stream);
     }
