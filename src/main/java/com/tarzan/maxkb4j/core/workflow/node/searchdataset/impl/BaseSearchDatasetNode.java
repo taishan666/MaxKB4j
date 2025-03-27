@@ -28,7 +28,9 @@ public class BaseSearchDatasetNode extends ISearchDatasetStepNode {
     @Override
     public NodeResult execute(SearchDatasetStepNodeParams nodeParams, FlowParams workflowParams) {
         DatasetSetting datasetSetting=nodeParams.getDatasetSetting();
-        List<ParagraphVO> paragraphList= retrieveService.paragraphSearch(workflowParams.getQuestion(),nodeParams.getDatasetIdList(), Collections.emptyList(),datasetSetting.getTopN(),datasetSetting.getSimilarity(),datasetSetting.getSearchMode());
+        List<String> fields=nodeParams.getQuestionReferenceAddress();
+        String question= (String)workflowManage.getReferenceField(fields.get(0),fields.subList(1, fields.size()));
+        List<ParagraphVO> paragraphList= retrieveService.paragraphSearch(question,nodeParams.getDatasetIdList(), Collections.emptyList(),datasetSetting.getTopN(),datasetSetting.getSimilarity(),datasetSetting.getSearchMode());
         List<ParagraphVO> isHitHandlingMethodList=paragraphList.stream().filter(ParagraphVO::isHitHandlingMethod).toList();
         Map<String, Object> nodeVariable = Map.of(
                 "paragraph_list", paragraphList,

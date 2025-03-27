@@ -16,7 +16,6 @@ import com.tarzan.maxkb4j.module.rag.MyContentRetriever;
 import com.tarzan.maxkb4j.util.SpringUtil;
 import com.tarzan.maxkb4j.util.StringUtil;
 import dev.langchain4j.data.message.ChatMessage;
-import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.model.output.TokenUsage;
 import dev.langchain4j.service.AiServices;
 import dev.langchain4j.service.TokenStream;
@@ -85,13 +84,15 @@ public class BaseChatNode extends IChatNode {
      /*   if (Objects.isNull(nodeParams.getModelParamsSetting())) {
             nodeParams.setModelParamsSetting(getDefaultModelParamsSetting(nodeParams.getModelId()));
         }*/
-        List<ParagraphVO> paragraphList = (List<ParagraphVO>) context.get("paragraph_list");
+        List<String> fields=nodeParams.getDatasetReferenceAddress();
+        List<ParagraphVO> paragraphList = (List<ParagraphVO>) workflowManage.getReferenceField(fields.get(0),fields.subList(1, fields.size()));
         if(CollectionUtils.isEmpty(paragraphList)){
             paragraphList=new ArrayList<>();
         }
         BaseChatModel chatModel = modelService.getModelById(nodeParams.getModelId(), nodeParams.getModelParamsSetting());
         List<ChatMessage> historyMessage = workflowManage.getHistoryMessage(flowParams.getHistoryChatRecord(), nodeParams.getDialogueNumber(), nodeParams.getDialogueType(), super.runtimeNodeId);
-        UserMessage question = workflowManage.generatePromptQuestion(nodeParams.getPrompt());
+        List<String> questionFields=nodeParams.getQuestionReferenceAddress();
+        String question= (String)workflowManage.getReferenceField(questionFields.get(0),questionFields.subList(1, questionFields.size()));
         String systemPrompt = workflowManage.generatePrompt(nodeParams.getSystem());
         String system= StringUtil.isBlank(systemPrompt)?"You're an intelligent assistant.":systemPrompt;
         MyChatMemory chatMemory = new MyChatMemory( flowParams.getHistoryChatRecord(),nodeParams.getDialogueNumber());
@@ -102,7 +103,7 @@ public class BaseChatNode extends IChatNode {
                 .chatMemory(chatMemory)
                 .contentRetriever(new MyContentRetriever(paragraphList))
                 .build();
-        TokenStream tokenStream = assistant.chatStream(question.singleText());
+        TokenStream tokenStream = assistant.chatStream(question);
 
         Map<String, Object> nodeVariable = Map.of(
                 "result", tokenStream,
@@ -110,7 +111,7 @@ public class BaseChatNode extends IChatNode {
                 "chat_model", chatModel,
                 "message_list", chatMemory.messages(),
                 "history_message", historyMessage,
-                "question", question.singleText()
+                "question", question
         );
         return new NodeResult(nodeVariable, Map.of(), this::writeContextStream);
 
