@@ -60,16 +60,19 @@ import java.util.*;
 public class ApplicationService extends ServiceImpl<ApplicationMapper, ApplicationEntity> {
 
     private final ModelService modelService;
-    private final ApplicationAccessTokenService accessTokenService;
     private final DatasetService datasetService;
-    private final ApplicationWorkFlowVersionService workFlowVersionService;
-    private final ApplicationDatasetMappingService datasetMappingService;
     private final ImageService imageService;
-    private final TeamMemberPermissionService memberPermissionService;
     private final UserService userService;
     private final RetrieveService retrieveService;
-    private final ApplicationChatRecordService applicationChatRecordService;
     private final ParagraphService paragraphService;
+    private final TeamMemberPermissionService memberPermissionService;
+    private final ApplicationAccessTokenService accessTokenService;
+    private final ApplicationApiKeyService  applicationApiKeyService;
+    private final ApplicationPublicAccessClientService accessClientService;
+    private final ApplicationWorkFlowVersionService workFlowVersionService;
+    private final ApplicationDatasetMappingService datasetMappingService;
+    private final ApplicationChatRecordService applicationChatRecordService;
+    private final ApplicationChatService applicationChatService;
 
     public IPage<ApplicationEntity> selectAppPage(int page, int size, QueryDTO query) {
         String loginId = StpUtil.getLoginIdAsString();
@@ -133,8 +136,15 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     @Transactional
     public boolean deleteByAppId(String appId) {
         accessTokenService.remove(Wrappers.<ApplicationAccessTokenEntity>lambdaQuery().eq(ApplicationAccessTokenEntity::getApplicationId, appId));
+        applicationApiKeyService.remove(Wrappers.<ApplicationApiKeyEntity>lambdaQuery().eq(ApplicationApiKeyEntity::getApplicationId, appId));
+        accessClientService.remove(Wrappers.<ApplicationPublicAccessClientEntity>lambdaQuery().eq(ApplicationPublicAccessClientEntity::getApplicationId, appId));
         workFlowVersionService.remove(Wrappers.<ApplicationWorkFlowVersionEntity>lambdaQuery().eq(ApplicationWorkFlowVersionEntity::getApplicationId, appId));
         datasetMappingService.remove(Wrappers.<ApplicationDatasetMappingEntity>lambdaQuery().eq(ApplicationDatasetMappingEntity::getApplicationId, appId));
+        List<String> chatIds = applicationChatService.list(Wrappers.<ApplicationChatEntity>lambdaQuery().eq(ApplicationChatEntity::getApplicationId, appId)).stream().map(ApplicationChatEntity::getId).toList();
+        if(CollectionUtils.isEmpty(chatIds)){
+            applicationChatService.remove(Wrappers.<ApplicationChatEntity>lambdaQuery().eq(ApplicationChatEntity::getApplicationId, appId));
+            applicationChatRecordService.remove(Wrappers.<ApplicationChatRecordEntity>lambdaQuery().in(ApplicationChatRecordEntity::getChatId, chatIds));
+        }
         return this.removeById(appId);
     }
 

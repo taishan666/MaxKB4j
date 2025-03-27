@@ -27,6 +27,7 @@ import com.tarzan.maxkb4j.module.application.entity.*;
 import com.tarzan.maxkb4j.module.application.enums.AppType;
 import com.tarzan.maxkb4j.module.application.enums.AuthType;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatMapper;
+import com.tarzan.maxkb4j.module.application.mapper.ApplicationMapper;
 import com.tarzan.maxkb4j.module.application.vo.ApplicationChatRecordVO;
 import com.tarzan.maxkb4j.module.application.vo.ChatMessageVO;
 import com.tarzan.maxkb4j.module.application.vo.ChatRecordDetailVO;
@@ -58,7 +59,7 @@ import java.util.Objects;
 @AllArgsConstructor
 public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, ApplicationChatEntity>{
 
-    private final ApplicationService applicationService;
+    private final ApplicationMapper applicationMapper;
     private final ApplicationDatasetMappingService datasetMappingService;
     private final ApplicationWorkFlowVersionService workFlowVersionService;
     private final ApplicationPublicAccessClientService publicAccessClientService;
@@ -112,7 +113,7 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
     }
 
     public String chatOpen(String appId) {
-        ApplicationEntity application = applicationService.getById(appId);
+        ApplicationEntity application = applicationMapper.selectById(appId);
         if (AppType.SIMPLE.name().equals(application.getType())) {
             return chatOpenSimple(application);
         } else {
@@ -150,7 +151,7 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
         }
         ChatInfo chatInfo = new ChatInfo();
         chatInfo.setChatId(chatId);
-        ApplicationEntity application = applicationService.getById(chatEntity.getApplicationId());
+        ApplicationEntity application = applicationMapper.selectById(chatEntity.getApplicationId());
         List<ApplicationDatasetMappingEntity> list = datasetMappingService.lambdaQuery().eq(ApplicationDatasetMappingEntity::getApplicationId, application.getId()).list();
         application.setDatasetIdList(list.stream().map(ApplicationDatasetMappingEntity::getDatasetId).toList());
         chatInfo.setApplication(application);
