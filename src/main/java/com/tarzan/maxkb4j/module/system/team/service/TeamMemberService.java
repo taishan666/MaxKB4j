@@ -48,7 +48,12 @@ public class TeamMemberService extends ServiceImpl<TeamMemberMapper, TeamMemberE
         return result;
     }
 
+    @Transactional
     public boolean deleteByUserId(String userId) {
+        TeamMemberEntity teamMember= this.lambdaQuery().eq(TeamMemberEntity::getUserId, userId).one();
+        if (teamMember!=null){
+            teamMemberPermissionService.remove(Wrappers.<TeamMemberPermissionEntity>lambdaUpdate().eq(TeamMemberPermissionEntity::getMemberId,teamMember.getId()));
+        }
         return this.lambdaUpdate().eq(TeamMemberEntity::getUserId, userId).remove();
     }
 

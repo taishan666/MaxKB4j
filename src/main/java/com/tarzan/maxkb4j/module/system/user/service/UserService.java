@@ -73,9 +73,8 @@ public class UserService extends ServiceImpl<UserMapper, UserEntity> {
 
     @Transactional
     public boolean deleteUserById(String userId) {
-        boolean f1 = teamService.deleteUserById(userId);
-        boolean f2 = removeById(userId);
-        return f1&&f2;
+        teamService.deleteUserById(userId);
+        return removeById(userId);
     }
 
     public List<UserDTO> listByType(String type) {
