@@ -197,14 +197,17 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         File currentClassFile = new File(Objects.requireNonNull(this.getClass().getResource("")).getFile());
         // 获取当前类所在的上级目录
         File parentDir = currentClassFile.getParentFile();
+        // 获取当前类所在的上级目录
+        File coreParentDir = parentDir.getParentFile().getParentFile();
         String fileName = String.format("default_workflow_%s.json", toLocale(language));
-        File workflow = new File(parentDir, "workflow");
+        File coreDir = new File(coreParentDir, "core");
+        File workflow = new File(coreDir, "workflow");
         File json = new File(workflow, "json");
         // 构造目标文件路径
         File targetFile = new File(json, fileName);
         // 确认文件存在
         if (!targetFile.exists()) {
-            targetFile = new File(parentDir, "workflow/json/default_workflow_zh.json");
+            targetFile = new File(coreDir, "/workflow/json/default_workflow_zh.json");
         }
         return targetFile.toPath();
     }

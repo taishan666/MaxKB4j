@@ -256,19 +256,19 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
 
     public void isValidIntraDayAccessNum(String appId, String clientId, String clientType) throws Exception {
         if (AuthType.ACCESS_TOKEN.name().equals(clientType)) {
-            ApplicationPublicAccessClientEntity accessClient = publicAccessClientService.getById(clientId);
-            if (Objects.isNull(accessClient)) {
-                accessClient = new ApplicationPublicAccessClientEntity();
-                accessClient.setId(clientId);
-                accessClient.setApplicationId(appId);
-                accessClient.setAccessNum(0);
-                accessClient.setIntraDayAccessNum(0);
-                publicAccessClientService.save(accessClient);
-            }
             if(Objects.nonNull(appId)){
+                ApplicationPublicAccessClientEntity accessClient = publicAccessClientService.getById(clientId);
+                if (Objects.isNull(accessClient)) {
+                    accessClient = new ApplicationPublicAccessClientEntity();
+                    accessClient.setId(clientId);
+                    accessClient.setApplicationId(appId);
+                    accessClient.setAccessNum(0);
+                    accessClient.setIntraDayAccessNum(0);
+                    publicAccessClientService.save(accessClient);
+                }
                 ApplicationAccessTokenEntity appAccessToken = accessTokenService.lambdaQuery().eq(ApplicationAccessTokenEntity::getApplicationId, appId).one();
                 if (appAccessToken.getAccessNum() < accessClient.getIntraDayAccessNum()) {
-                    throw new Exception("访问次数超过今日访问量");
+                    throw new ApiException("访问次数超过今日访问量");
                 }
             }
         }

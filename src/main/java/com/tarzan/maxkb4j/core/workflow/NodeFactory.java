@@ -11,6 +11,7 @@ import com.tarzan.maxkb4j.core.workflow.node.formcollect.impl.FormNode;
 import com.tarzan.maxkb4j.core.workflow.node.function.impl.BaseFunctionNode;
 import com.tarzan.maxkb4j.core.workflow.node.imagegenerate.impl.BaseImageGenerateNode;
 import com.tarzan.maxkb4j.core.workflow.node.imageunderstand.impl.BaseImageUnderstandNode;
+import com.tarzan.maxkb4j.core.workflow.node.mcp.impl.BaseMcpNode;
 import com.tarzan.maxkb4j.core.workflow.node.question.impl.BaseQuestionNode;
 import com.tarzan.maxkb4j.core.workflow.node.reranker.impl.RerankerNode;
 import com.tarzan.maxkb4j.core.workflow.node.searchdataset.impl.BaseSearchDatasetNode;
@@ -48,6 +49,7 @@ public class NodeFactory {
         nodeList.add(new BaseImageUnderstandNode());
         nodeList.add(new RerankerNode());
         nodeList.add(new FormNode());
+        nodeList.add(new BaseMcpNode());
     }
 
     private static INode getNode(String nodeType) {
