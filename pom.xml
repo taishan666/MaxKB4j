@@ -185,16 +185,7 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-mongodb</artifactId>
         </dependency>
-        <dependency>
-            <groupId>dev.langchain4j</groupId>
-            <artifactId>langchain4j-reactor</artifactId>
-            <version>1.0.0-beta2</version>
-        </dependency>
-        <dependency>
-            <groupId>dev.langchain4j</groupId>
-            <artifactId>langchain4j-azure-ai-search</artifactId>
-            <version>1.0.0-beta1</version>
-        </dependency>
+
 
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
@@ -231,14 +222,28 @@
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-spring-boot-starter</artifactId>
+            <version>1.0.0-beta2</version>
+        </dependency>
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-reactor</artifactId>
+            <version>1.0.0-beta2</version>
+        </dependency>
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-azure-ai-search</artifactId>
             <version>1.0.0-beta1</version>
+        </dependency>
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-mcp</artifactId>
+            <version>1.0.0-beta2</version>
         </dependency>
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-document-parser-apache-tika</artifactId>
             <version>1.0.0-beta1</version>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/dev.langchain4j/langchain4j-embeddings -->
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-embeddings</artifactId>
@@ -253,52 +258,52 @@
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-pgvector</artifactId>
-            <version>1.0.0-beta1</version>
+            <version>1.0.0-beta2</version>
         </dependency>
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-open-ai</artifactId>
-            <version>1.0.0-beta1</version>
+            <version>1.0.0-beta2</version>
         </dependency>
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-azure-open-ai</artifactId>
-            <version>1.0.0-beta1</version>
+            <version>1.0.0-beta2</version>
         </dependency>
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-anthropic</artifactId>
-            <version>1.0.0-beta1</version>
+            <version>1.0.0-beta2</version>
         </dependency>
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-bedrock</artifactId>
-            <version>1.0.0-beta1</version>
+            <version>1.0.0-beta2</version>
         </dependency>
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-ollama</artifactId>
-            <version>1.0.0-beta1</version>
+            <version>1.0.0-beta2</version>
         </dependency>
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-community-dashscope</artifactId>
-            <version>1.0.0-beta1</version>
+            <version>1.0.0-beta2</version>
         </dependency>
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-community-zhipu-ai</artifactId>
-            <version>1.0.0-beta1</version>
+            <version>1.0.0-beta2</version>
         </dependency>
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-community-qianfan</artifactId>
-            <version>1.0.0-beta1</version>
+            <version>1.0.0-beta2</version>
         </dependency>
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-community-xinference</artifactId>
-            <version>1.0.0-beta1</version>
+            <version>1.0.0-beta2</version>
         </dependency>
         <dependency>
             <groupId>org.python</groupId>
