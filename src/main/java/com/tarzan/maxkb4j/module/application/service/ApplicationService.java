@@ -19,6 +19,7 @@ import com.tarzan.maxkb4j.module.application.entity.*;
 import com.tarzan.maxkb4j.module.application.enums.AuthType;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationMapper;
 import com.tarzan.maxkb4j.module.application.vo.ApplicationVO;
+import com.tarzan.maxkb4j.module.application.vo.McpToolVO;
 import com.tarzan.maxkb4j.module.dataset.dto.HitTestDTO;
 import com.tarzan.maxkb4j.module.dataset.entity.DatasetEntity;
 import com.tarzan.maxkb4j.module.dataset.entity.ParagraphEntity;
@@ -26,14 +27,20 @@ import com.tarzan.maxkb4j.module.dataset.service.DatasetService;
 import com.tarzan.maxkb4j.module.dataset.service.ParagraphService;
 import com.tarzan.maxkb4j.module.dataset.service.RetrieveService;
 import com.tarzan.maxkb4j.module.dataset.vo.ParagraphVO;
-import com.tarzan.maxkb4j.module.resource.service.ImageService;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelEntity;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseTextToSpeech;
+import com.tarzan.maxkb4j.module.resource.service.ImageService;
 import com.tarzan.maxkb4j.module.system.team.service.TeamMemberPermissionService;
 import com.tarzan.maxkb4j.module.system.user.entity.UserEntity;
 import com.tarzan.maxkb4j.module.system.user.service.UserService;
 import com.tarzan.maxkb4j.util.*;
+import dev.langchain4j.agent.tool.ToolSpecification;
+import dev.langchain4j.mcp.client.DefaultMcpClient;
+import dev.langchain4j.mcp.client.McpClient;
+import dev.langchain4j.mcp.client.transport.McpTransport;
+import dev.langchain4j.mcp.client.transport.http.HttpMcpTransport;
+import dev.langchain4j.model.chat.request.json.*;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
@@ -50,6 +57,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author tarzan
@@ -67,7 +75,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     private final ParagraphService paragraphService;
     private final TeamMemberPermissionService memberPermissionService;
     private final ApplicationAccessTokenService accessTokenService;
-    private final ApplicationApiKeyService  applicationApiKeyService;
+    private final ApplicationApiKeyService applicationApiKeyService;
     private final ApplicationPublicAccessClientService accessClientService;
     private final ApplicationWorkFlowVersionService workFlowVersionService;
     private final ApplicationDatasetMappingService datasetMappingService;
@@ -141,7 +149,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         workFlowVersionService.remove(Wrappers.<ApplicationWorkFlowVersionEntity>lambdaQuery().eq(ApplicationWorkFlowVersionEntity::getApplicationId, appId));
         datasetMappingService.remove(Wrappers.<ApplicationDatasetMappingEntity>lambdaQuery().eq(ApplicationDatasetMappingEntity::getApplicationId, appId));
         List<String> chatIds = applicationChatService.list(Wrappers.<ApplicationChatEntity>lambdaQuery().eq(ApplicationChatEntity::getApplicationId, appId)).stream().map(ApplicationChatEntity::getId).toList();
-        if(!CollectionUtils.isEmpty(chatIds)){
+        if (!CollectionUtils.isEmpty(chatIds)) {
             applicationChatService.remove(Wrappers.<ApplicationChatEntity>lambdaQuery().eq(ApplicationChatEntity::getApplicationId, appId));
             applicationChatRecordService.remove(Wrappers.<ApplicationChatRecordEntity>lambdaQuery().in(ApplicationChatRecordEntity::getChatId, chatIds));
         }
@@ -236,8 +244,8 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     }
 
     public boolean improveChatLogs(String appId, ChatImproveDTO dto) {
-        List<ApplicationChatRecordEntity> chatRecords =applicationChatRecordService.lambdaQuery().in(ApplicationChatRecordEntity::getId, dto.getChatIds()).list();
-        List<ParagraphEntity> paragraphs =chatRecords.stream().map(e->{
+        List<ApplicationChatRecordEntity> chatRecords = applicationChatRecordService.lambdaQuery().in(ApplicationChatRecordEntity::getId, dto.getChatIds()).list();
+        List<ParagraphEntity> paragraphs = chatRecords.stream().map(e -> {
             ParagraphEntity paragraphEntity = new ParagraphEntity();
             paragraphEntity.setDatasetId(dto.getDatasetId());
             paragraphEntity.setDocumentId(dto.getDocumentId());
@@ -278,8 +286,8 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         String accessToken = params.getString("access_token");
         ApplicationAccessTokenEntity appAccessToken = accessTokenService.lambdaQuery().eq(ApplicationAccessTokenEntity::getAccessToken, accessToken).one();
         SaLoginModel loginModel = new SaLoginModel();
-        if(StpUtil.isLogin()){
-            UserEntity userEntity =userService.getById(StpUtil.getLoginIdAsString());
+        if (StpUtil.isLogin()) {
+            UserEntity userEntity = userService.getById(StpUtil.getLoginIdAsString());
             loginModel.setExtra("username", userEntity.getUsername());
             loginModel.setExtra("email", userEntity.getEmail());
             loginModel.setExtra("language", userEntity.getLanguage());
@@ -287,8 +295,8 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
             loginModel.setExtra("client_type", AuthType.ACCESS_TOKEN.name());
             loginModel.setExtra("application_id", appAccessToken.getApplicationId());
             loginModel.setExtra(AuthType.ACCESS_TOKEN.name(), accessToken);
-            StpUtil.login(userEntity.getId(),loginModel);
-        }else {
+            StpUtil.login(userEntity.getId(), loginModel);
+        } else {
             if (appAccessToken != null && appAccessToken.getIsActive()) {
                 loginModel.setExtra("application_id", appAccessToken.getApplicationId());
                 loginModel.setExtra("client_id", IdWorker.get32UUID());
@@ -323,7 +331,6 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         }
         return StpUtil.getTokenValue();
     }
-
 
 
     public String authentication1(HttpServletRequest request, JSONObject params) throws Exception {
@@ -517,7 +524,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
 
     public List<ApplicationEntity> listByUserId(String appId) {
         ApplicationEntity application = this.getById(appId);
-        if(Objects.isNull(application)){
+        if (Objects.isNull(application)) {
             return Collections.emptyList();
         }
         String userId = StpUtil.getLoginIdAsString();
@@ -553,13 +560,63 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     public boolean appImport(MultipartFile file) throws IOException {
         String text = IoUtil.readToString(file.getInputStream());
         MaxKb4J maxKb4J = JSONObject.parseObject(text, MaxKb4J.class);
-        ApplicationEntity application=maxKb4J.getApplication();
+        ApplicationEntity application = maxKb4J.getApplication();
         application.setId(null);
-        boolean flag= this.save(application);
+        boolean flag = this.save(application);
         ApplicationAccessTokenEntity accessToken = ApplicationAccessTokenEntity.createDefault();
         accessToken.setApplicationId(application.getId());
         accessToken.setLanguage((String) StpUtil.getExtra("language"));
         accessTokenService.save(accessToken);
         return flag;
+    }
+
+    public List<McpToolVO> mcpServers(String url, String type) {
+        McpTransport transport = new HttpMcpTransport.Builder()
+                .sseUrl(url)
+                .logRequests(true) // if you want to see the traffic in the log
+                .logResponses(true)
+                .build();
+        McpClient mcpClient = new DefaultMcpClient.Builder()
+                .transport(transport)
+                .build();
+        List<ToolSpecification> tools = mcpClient.listTools();
+        return tools.stream().map(e->{
+            McpToolVO vo = new McpToolVO();
+            vo.setServer("math");
+            vo.setName(e.name());
+            vo.setDescription(e.description());
+            System.out.println(e.parameters().toString());
+            JSONObject json= new JSONObject();
+            JSONObject properties= new JSONObject();
+            e.parameters().properties().forEach((k,v)->{
+                JSONObject property= new JSONObject();
+                if(v instanceof JsonStringSchema schema){
+                    property.put("type", "string");
+                    property.put("description", schema.description());
+                }else if(v instanceof JsonNumberSchema schema){
+                    property.put("type", "number");
+                    property.put("description", schema.description());
+                }else if(v instanceof JsonArraySchema schema){
+                    property.put("type", "array");
+                    property.put("description", schema.description());
+                }else if(v instanceof JsonBooleanSchema schema){
+                    property.put("type", "array");
+                    property.put("description", schema.description());
+                }else if(v instanceof JsonObjectSchema schema){
+                    property.put("type", "object");
+                    property.put("description", schema.description());
+                }else {
+                    JsonAnyOfSchema schema= (JsonAnyOfSchema) v;
+                    property.put("type", "any");
+                    property.put("description", schema.description());
+                }
+                properties.put(k, property);
+            });
+            json.put("type", "object");
+            json.put("properties", properties);
+            json.put("required", e.parameters().required());
+            vo.setArgs_schema(json);
+            return vo;
+        }).collect(Collectors.toList());
     }
 }

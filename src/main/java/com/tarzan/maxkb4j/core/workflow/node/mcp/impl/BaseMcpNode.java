@@ -6,7 +6,6 @@ import com.tarzan.maxkb4j.core.workflow.WorkflowManage;
 import com.tarzan.maxkb4j.core.workflow.node.mcp.IMcpNode;
 import com.tarzan.maxkb4j.core.workflow.node.mcp.input.McpParams;
 import com.tarzan.maxkb4j.core.workflow.node.start.input.FlowParams;
-import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.mcp.McpToolProvider;
 import dev.langchain4j.mcp.client.DefaultMcpClient;
 import dev.langchain4j.mcp.client.McpClient;
@@ -15,6 +14,7 @@ import dev.langchain4j.mcp.client.transport.http.HttpMcpTransport;
 import dev.langchain4j.service.tool.ToolProvider;
 
 import java.util.List;
+import java.util.Map;
 
 public class BaseMcpNode extends IMcpNode {
     @Override
@@ -30,19 +30,15 @@ public class BaseMcpNode extends IMcpNode {
         ToolProvider toolProvider = McpToolProvider.builder()
                 .mcpClients(List.of(mcpClient))
                 .build();
-        return null;
+        return new NodeResult(Map.of("result",context.get("result")), Map.of());
     }
 
     @Override
     public JSONObject getDetail() {
         JSONObject detail = new JSONObject();
-        detail.put("system", context.get("system"));
-        detail.put("question", context.get("question"));
-        List<ChatMessage> historyMessage = (List<ChatMessage>) context.get("history_message");
-        detail.put("history_message", resetMessageList(historyMessage));
-        detail.put("answer", context.get("answer"));
-        detail.put("messageTokens", context.get("messageTokens"));
-        detail.put("answerTokens", context.get("answerTokens"));
+        detail.put("mcp_tool", context.get("mcp_tool"));
+        detail.put("tool_params", context.get("tool_params"));
+        detail.put("result", context.get("result"));
         return detail;
     }
 

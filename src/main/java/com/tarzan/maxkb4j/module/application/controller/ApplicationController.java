@@ -3,6 +3,7 @@ package com.tarzan.maxkb4j.module.application.controller;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.tarzan.maxkb4j.core.api.R;
 import com.tarzan.maxkb4j.core.common.dto.QueryDTO;
 import com.tarzan.maxkb4j.module.application.dto.ApplicationAccessTokenDTO;
 import com.tarzan.maxkb4j.module.application.dto.ChatImproveDTO;
@@ -11,11 +12,11 @@ import com.tarzan.maxkb4j.module.application.entity.ApplicationEntity;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationWorkFlowVersionEntity;
 import com.tarzan.maxkb4j.module.application.service.ApplicationService;
 import com.tarzan.maxkb4j.module.application.vo.ApplicationVO;
+import com.tarzan.maxkb4j.module.application.vo.McpToolVO;
 import com.tarzan.maxkb4j.module.dataset.dto.HitTestDTO;
 import com.tarzan.maxkb4j.module.dataset.entity.DatasetEntity;
 import com.tarzan.maxkb4j.module.dataset.vo.ParagraphVO;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelEntity;
-import com.tarzan.maxkb4j.core.api.R;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
@@ -163,6 +164,11 @@ public class ApplicationController {
     @GetMapping("api/application/{appId}/model_params_form/{modelId}")
     public R<JSONArray> modelParams(@PathVariable("appId") String appId, @PathVariable("modelId") String modelId) {
         return R.success(applicationService.modelParams(appId, modelId));
+    }
+
+    @GetMapping("api/application/mcp_servers")
+    public R<List<McpToolVO>> mcpServers(String url, String type) {
+        return R.success(applicationService.mcpServers(url,type));
     }
 
 
