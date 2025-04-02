@@ -1,17 +1,21 @@
 package com.tarzan.maxkb4j.core.workflow.node.variableassign.impl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.NodeResult;
 import com.tarzan.maxkb4j.core.workflow.WorkflowManage;
-import com.tarzan.maxkb4j.core.workflow.node.start.input.FlowParams;
-import com.tarzan.maxkb4j.core.workflow.node.variableassign.IVariableAssignNode;
 import com.tarzan.maxkb4j.core.workflow.node.variableassign.input.VariableAssignParams;
 
 import java.util.*;
 
-public class BaseVariableAssignNode extends IVariableAssignNode {
+public class BaseVariableAssignNode extends INode {
     @Override
-    public NodeResult execute(VariableAssignParams nodeParams, FlowParams workflowParams) {
+    public String getType() {
+        return "variable-assign-node";
+    }
+    @Override
+    public NodeResult execute() {
+        VariableAssignParams nodeParams=super.nodeParams.toJavaObject(VariableAssignParams.class);
         List<Map<String, Object>> resultList = new ArrayList<>();
 
         for (Map<String, Object> variable : nodeParams.getVariableList()) {

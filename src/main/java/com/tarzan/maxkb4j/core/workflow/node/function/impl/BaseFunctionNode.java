@@ -1,9 +1,9 @@
 package com.tarzan.maxkb4j.core.workflow.node.function.impl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.NodeResult;
 import com.tarzan.maxkb4j.core.workflow.WorkflowManage;
-import com.tarzan.maxkb4j.core.workflow.node.function.IFunctionNode;
 import com.tarzan.maxkb4j.core.workflow.node.function.input.FunctionParams;
 import org.python.core.*;
 import org.python.util.PythonInterpreter;
@@ -11,11 +11,17 @@ import org.python.util.PythonInterpreter;
 import java.util.List;
 import java.util.Map;
 
-public class BaseFunctionNode extends IFunctionNode {
+public class BaseFunctionNode extends INode {
+
+    @Override
+    public String getType() {
+        return "function-node";
+    }
 
     PythonInterpreter pyInterpreter = new PythonInterpreter();
     @Override
-    public NodeResult execute(FunctionParams nodeParams) {
+    public NodeResult execute() {
+        FunctionParams nodeParams=super.nodeParams.toJavaObject(FunctionParams.class);
         String code=nodeParams.getCode();
         String mainPy=code.substring(0,code.indexOf(":")).replace("def","result=");
         List<Map<String,Object>>  inputFieldList=nodeParams.getInputFieldList();

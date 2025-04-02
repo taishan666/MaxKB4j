@@ -2,21 +2,26 @@ package com.tarzan.maxkb4j.core.workflow.node.start.impl;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.tarzan.maxkb4j.module.application.entity.ApplicationChatRecordEntity;
-import com.tarzan.maxkb4j.core.workflow.info.Node;
+import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.NodeResult;
 import com.tarzan.maxkb4j.core.workflow.WorkflowManage;
 import com.tarzan.maxkb4j.core.workflow.dto.ChatRecordSimple;
+import com.tarzan.maxkb4j.core.workflow.info.Node;
 import com.tarzan.maxkb4j.core.workflow.node.start.input.FlowParams;
-import com.tarzan.maxkb4j.core.workflow.node.start.IStarNode;
+import com.tarzan.maxkb4j.module.application.entity.ApplicationChatRecordEntity;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
-public class BaseStartNode extends IStarNode {
+public class BaseStartNode extends INode {
+
     @Override
-    public NodeResult execute(FlowParams workflowParams, WorkflowManage workflowManage) {
+    public String getType() {
+        return "start-node";
+    }
+    @Override
+    public NodeResult execute() {
         // 获取基础节点
         Node baseNode = workflowManage.getBaseNode();
         // 获取默认全局变量

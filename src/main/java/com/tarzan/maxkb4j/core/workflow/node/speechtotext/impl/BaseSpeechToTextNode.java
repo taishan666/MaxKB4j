@@ -1,20 +1,19 @@
 package com.tarzan.maxkb4j.core.workflow.node.speechtotext.impl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.NodeResult;
 import com.tarzan.maxkb4j.core.workflow.WorkflowManage;
-import com.tarzan.maxkb4j.core.workflow.node.start.input.FlowParams;
-import com.tarzan.maxkb4j.core.workflow.node.speechtotext.ISpeechToTextNode;
 import com.tarzan.maxkb4j.core.workflow.node.speechtotext.input.SpeechToTextParams;
-import com.tarzan.maxkb4j.module.resource.service.FileService;
-import com.tarzan.maxkb4j.module.model.provider.impl.BaseSpeechToText;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
+import com.tarzan.maxkb4j.module.model.provider.impl.BaseSpeechToText;
+import com.tarzan.maxkb4j.module.resource.service.FileService;
 import com.tarzan.maxkb4j.util.SpringUtil;
 
 import java.util.List;
 import java.util.Map;
 
-public class BaseSpeechToTextNode extends ISpeechToTextNode {
+public class BaseSpeechToTextNode extends INode {
 
     private final ModelService modelService;
     private final FileService fileService;
@@ -25,7 +24,14 @@ public class BaseSpeechToTextNode extends ISpeechToTextNode {
     }
 
     @Override
-    public NodeResult execute(SpeechToTextParams nodeParams, FlowParams workflowParams) {
+    public String getType() {
+        return "speech-to-text-node";
+    }
+
+
+    @Override
+    public NodeResult execute() {
+        SpeechToTextParams nodeParams=super.nodeParams.toJavaObject(SpeechToTextParams.class);
         List<String> audioList = nodeParams.getAudioList();
         Object res = super.getWorkflowManage().getReferenceField(audioList.get(0), audioList.subList(1, audioList.size()));
         BaseSpeechToText sttModel = modelService.getModelById(nodeParams.getSttModelId());

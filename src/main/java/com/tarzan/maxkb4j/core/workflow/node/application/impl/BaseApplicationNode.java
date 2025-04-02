@@ -1,16 +1,22 @@
 package com.tarzan.maxkb4j.core.workflow.node.application.impl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.NodeResult;
 import com.tarzan.maxkb4j.core.workflow.WorkflowManage;
-import com.tarzan.maxkb4j.core.workflow.node.start.input.FlowParams;
-import com.tarzan.maxkb4j.core.workflow.node.application.IApplicationNode;
 import com.tarzan.maxkb4j.core.workflow.node.application.input.ApplicationNodeParams;
 
-public class BaseApplicationNode extends IApplicationNode {
+public class BaseApplicationNode extends INode {
 
     @Override
-    public NodeResult execute(ApplicationNodeParams nodeParams, FlowParams workflowParams) {
+    public String getType() {
+        return "application-node";
+    }
+
+
+    @Override
+    public NodeResult execute() {
+        ApplicationNodeParams nodeParams= super.nodeParams.toJavaObject(ApplicationNodeParams.class);
         //todo
         return null;
     }

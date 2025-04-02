@@ -1,12 +1,11 @@
 package com.tarzan.maxkb4j.core.workflow.node.searchdataset.impl;
 
 import com.alibaba.fastjson.JSONObject;
-import com.tarzan.maxkb4j.module.application.entity.DatasetSetting;
+import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.NodeResult;
 import com.tarzan.maxkb4j.core.workflow.WorkflowManage;
-import com.tarzan.maxkb4j.core.workflow.node.start.input.FlowParams;
-import com.tarzan.maxkb4j.core.workflow.node.searchdataset.ISearchDatasetStepNode;
 import com.tarzan.maxkb4j.core.workflow.node.searchdataset.input.SearchDatasetStepNodeParams;
+import com.tarzan.maxkb4j.module.application.entity.DatasetSetting;
 import com.tarzan.maxkb4j.module.dataset.service.RetrieveService;
 import com.tarzan.maxkb4j.module.dataset.vo.ParagraphVO;
 import com.tarzan.maxkb4j.util.SpringUtil;
@@ -17,7 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class BaseSearchDatasetNode extends ISearchDatasetStepNode {
+public class BaseSearchDatasetNode extends INode {
 
 
     private final RetrieveService retrieveService;
@@ -25,8 +24,15 @@ public class BaseSearchDatasetNode extends ISearchDatasetStepNode {
     public BaseSearchDatasetNode() {
         this.retrieveService = SpringUtil.getBean(RetrieveService.class);
     }
+
     @Override
-    public NodeResult execute(SearchDatasetStepNodeParams nodeParams, FlowParams workflowParams) {
+    public String getType() {
+        return "search-dataset-node";
+    }
+
+    @Override
+    public NodeResult execute() {
+        SearchDatasetStepNodeParams nodeParams=super.nodeParams.toJavaObject(SearchDatasetStepNodeParams.class);
         DatasetSetting datasetSetting=nodeParams.getDatasetSetting();
         List<String> fields=nodeParams.getQuestionReferenceAddress();
         String question= (String)workflowManage.getReferenceField(fields.get(0),fields.subList(1, fields.size()));
@@ -91,7 +97,8 @@ public class BaseSearchDatasetNode extends ISearchDatasetStepNode {
     @Override
     public void saveContext(JSONObject detail, WorkflowManage workflowManage) {
         List<ParagraphVO> result = (List<ParagraphVO>) detail.get("paragraph_list");
-        DatasetSetting datasetSetting = super.getNodeParamsClass(nodeParams).getDatasetSetting();
+        SearchDatasetStepNodeParams nodeParams=super.nodeParams.toJavaObject(SearchDatasetStepNodeParams.class);
+        DatasetSetting datasetSetting = nodeParams.getDatasetSetting();
 
         String directlyReturn = result.stream()
                 .filter(paragraph -> "directly_return".equals(paragraph.getHitHandlingMethod()))

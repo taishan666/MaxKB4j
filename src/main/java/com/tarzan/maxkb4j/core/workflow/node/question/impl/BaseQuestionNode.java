@@ -1,12 +1,11 @@
 package com.tarzan.maxkb4j.core.workflow.node.question.impl;
 
 import com.alibaba.fastjson.JSONObject;
-import com.tarzan.maxkb4j.module.application.entity.ApplicationChatRecordEntity;
+import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.NodeResult;
 import com.tarzan.maxkb4j.core.workflow.WorkflowManage;
-import com.tarzan.maxkb4j.core.workflow.node.question.IQuestionNode;
 import com.tarzan.maxkb4j.core.workflow.node.question.input.QuestionParams;
-import com.tarzan.maxkb4j.core.workflow.node.start.input.FlowParams;
+import com.tarzan.maxkb4j.module.application.entity.ApplicationChatRecordEntity;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
 import com.tarzan.maxkb4j.util.SpringUtil;
@@ -22,7 +21,7 @@ import dev.langchain4j.rag.query.transformer.QueryTransformer;
 import java.util.*;
 import java.util.regex.Pattern;
 
-public class BaseQuestionNode extends IQuestionNode {
+public class BaseQuestionNode extends INode {
 
     private final ModelService modelService;
 
@@ -31,18 +30,24 @@ public class BaseQuestionNode extends IQuestionNode {
     }
 
     @Override
-    public NodeResult execute(QuestionParams nodeParams, FlowParams flowParams) {
+    public String getType() {
+        return "question-node";
+    }
+
+    @Override
+    public NodeResult execute() {
+        QuestionParams nodeParams=super.nodeParams.toJavaObject(QuestionParams.class);
         if (Objects.isNull(nodeParams.getModelParamsSetting())) {
             nodeParams.setModelParamsSetting(getDefaultModelParamsSetting(nodeParams.getModelId()));
         }
         BaseChatModel chatModel = modelService.getModelById(nodeParams.getModelId(), nodeParams.getModelParamsSetting());
-        List<ChatMessage> historyMessage = getHistoryMessage(flowParams.getHistoryChatRecord(), nodeParams.getDialogueNumber());
+        List<ChatMessage> historyMessage = getHistoryMessage(super.workflowParams.getHistoryChatRecord(), nodeParams.getDialogueNumber());
         UserMessage question = super.workflowManage.generatePromptQuestion(nodeParams.getPrompt());
         String system = workflowManage.generatePrompt(nodeParams.getSystem());
         List<ChatMessage> messageList =  super.workflowManage.generateMessageList(system, question, historyMessage);
         QueryTransformer queryTransformer=new CompressingQueryTransformer(chatModel.getChatModel());
-        Metadata metadata=new Metadata(question, flowParams.getChatId(), historyMessage);
-        Query query=new Query(flowParams.getQuestion(),metadata);
+        Metadata metadata=new Metadata(question, super.workflowParams.getChatId(), historyMessage);
+        Query query=new Query(super.workflowParams.getQuestion(),metadata);
         Collection<Query> list= queryTransformer.transform(query);
         StringBuilder answerSb=new StringBuilder();
         for (Query queryResult : list) {

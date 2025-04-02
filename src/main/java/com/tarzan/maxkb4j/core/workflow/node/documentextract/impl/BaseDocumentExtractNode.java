@@ -1,9 +1,9 @@
 package com.tarzan.maxkb4j.core.workflow.node.documentextract.impl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.NodeResult;
 import com.tarzan.maxkb4j.core.workflow.WorkflowManage;
-import com.tarzan.maxkb4j.core.workflow.node.documentextract.IDocumentExtractNode;
 import com.tarzan.maxkb4j.core.workflow.node.documentextract.input.DocumentExtractParams;
 import com.tarzan.maxkb4j.module.resource.service.FileService;
 import com.tarzan.maxkb4j.util.SpringUtil;
@@ -26,7 +26,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-public class BaseDocumentExtractNode extends IDocumentExtractNode {
+public class BaseDocumentExtractNode extends INode {
 
     private final FileService fileService;
 
@@ -87,9 +87,15 @@ public class BaseDocumentExtractNode extends IDocumentExtractNode {
         }
         return new NodeResult(Map.of("content",sb.toString()),Map.of());
     }*/
+
     @Override
-    public NodeResult execute(DocumentExtractParams nodeParams) {
+    public String getType() {
+        return "document-extract-node";
+    }
+    @Override
+    public NodeResult execute() {
         // 假设我们有一个 Supplier<ContentHandler>
+        DocumentExtractParams nodeParams=super.nodeParams.toJavaObject(DocumentExtractParams.class);
         List<String> documentList=nodeParams.getDocumentList();
         Object res=super.getWorkflowManage().getReferenceField(documentList.get(0),documentList.subList(1,documentList.size()));
         List<Map<String,Object>> documents= (List<Map<String,Object>>) res;

@@ -1,17 +1,24 @@
 package com.tarzan.maxkb4j.core.workflow.node.directreply.impl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.NodeResult;
 import com.tarzan.maxkb4j.core.workflow.WorkflowManage;
-import com.tarzan.maxkb4j.core.workflow.node.directreply.IReplyNode;
 import com.tarzan.maxkb4j.core.workflow.node.directreply.input.ReplyNodeParams;
 
 import java.util.List;
 import java.util.Map;
 
-public class BaseReplyNode extends IReplyNode {
+public class BaseReplyNode extends INode {
+
+
+    public String getType() {
+        return "reply-node";
+    }
+
     @Override
-    public NodeResult execute(ReplyNodeParams nodeParams) {
+    public NodeResult execute() {
+        ReplyNodeParams nodeParams= super.nodeParams.toJavaObject(ReplyNodeParams.class);
         String result;
         if ("referencing".equals(nodeParams.getReplyType())){
             result=getReferenceContent(nodeParams.getFields());

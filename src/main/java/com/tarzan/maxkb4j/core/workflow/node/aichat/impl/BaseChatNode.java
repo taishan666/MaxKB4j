@@ -4,9 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.NodeResult;
 import com.tarzan.maxkb4j.core.workflow.WorkflowManage;
-import com.tarzan.maxkb4j.core.workflow.node.aichat.IChatNode;
 import com.tarzan.maxkb4j.core.workflow.node.aichat.input.ChatNodeParams;
-import com.tarzan.maxkb4j.core.workflow.node.start.input.FlowParams;
 import com.tarzan.maxkb4j.module.assistant.Assistant;
 import com.tarzan.maxkb4j.module.dataset.vo.ParagraphVO;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
@@ -30,13 +28,19 @@ import java.util.Objects;
 import java.util.stream.Stream;
 
 @Slf4j
-public class BaseChatNode extends IChatNode {
+public class BaseChatNode extends INode {
 
     private final ModelService modelService;
 
     public BaseChatNode() {
         this.modelService = SpringUtil.getBean(ModelService.class);
     }
+
+    @Override
+    public String getType() {
+        return "ai-chat-node";
+    }
+
 
     @Override
     public JSONObject getDetail() {
@@ -77,7 +81,8 @@ public class BaseChatNode extends IChatNode {
     }
 
     @Override
-    public NodeResult execute(ChatNodeParams nodeParams, FlowParams flowParams) {
+    public NodeResult execute() {
+        ChatNodeParams nodeParams= super.nodeParams.toJavaObject(ChatNodeParams.class);
         if (Objects.isNull(nodeParams.getDialogueType())) {
             nodeParams.setDialogueType("WORKFLOW");
         }
@@ -90,12 +95,12 @@ public class BaseChatNode extends IChatNode {
             paragraphList=new ArrayList<>();
         }
         BaseChatModel chatModel = modelService.getModelById(nodeParams.getModelId(), nodeParams.getModelParamsSetting());
-        List<ChatMessage> historyMessage = workflowManage.getHistoryMessage(flowParams.getHistoryChatRecord(), nodeParams.getDialogueNumber(), nodeParams.getDialogueType(), super.runtimeNodeId);
+        List<ChatMessage> historyMessage = workflowManage.getHistoryMessage(super.workflowParams.getHistoryChatRecord(), nodeParams.getDialogueNumber(), nodeParams.getDialogueType(), super.runtimeNodeId);
         List<String> questionFields=nodeParams.getQuestionReferenceAddress();
         String question= (String)workflowManage.getReferenceField(questionFields.get(0),questionFields.subList(1, questionFields.size()));
         String systemPrompt = workflowManage.generatePrompt(nodeParams.getSystem());
         String system= StringUtil.isBlank(systemPrompt)?"You're an intelligent assistant.":systemPrompt;
-        MyChatMemory chatMemory = new MyChatMemory( flowParams.getHistoryChatRecord(),nodeParams.getDialogueNumber());
+        MyChatMemory chatMemory = new MyChatMemory(super.workflowParams.getHistoryChatRecord(),nodeParams.getDialogueNumber());
         Assistant assistant = AiServices.builder(Assistant.class)
                 .systemMessageProvider(chatMemoryId ->system)
                 //    .chatLanguageModel(chatModel.getChatModel())

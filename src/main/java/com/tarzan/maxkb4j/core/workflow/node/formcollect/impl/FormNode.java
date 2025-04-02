@@ -1,10 +1,10 @@
 package com.tarzan.maxkb4j.core.workflow.node.formcollect.impl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.NodeResult;
 import com.tarzan.maxkb4j.core.workflow.WorkflowManage;
 import com.tarzan.maxkb4j.core.workflow.dto.Answer;
-import com.tarzan.maxkb4j.core.workflow.node.formcollect.IFormNode;
 import com.tarzan.maxkb4j.core.workflow.node.formcollect.input.FormNodeParams;
 import dev.langchain4j.model.input.PromptTemplate;
 
@@ -13,9 +13,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class FormNode extends IFormNode {
+public class FormNode extends INode {
+
     @Override
-    public NodeResult execute(FormNodeParams nodeParams) {
+    public String getType() {
+        return "form-node";
+    }
+    @Override
+    public NodeResult execute() {
+        FormNodeParams nodeParams=super.nodeParams.toJavaObject(FormNodeParams.class);
         List<JSONObject> formFieldList = nodeParams.getFormFieldList();
         JSONObject formData = nodeParams.getFormData();
         String formContentFormat = nodeParams.getFormContentFormat();

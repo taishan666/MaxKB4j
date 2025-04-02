@@ -1,9 +1,9 @@
 package com.tarzan.maxkb4j.core.workflow.node.condition.impl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.NodeResult;
 import com.tarzan.maxkb4j.core.workflow.WorkflowManage;
-import com.tarzan.maxkb4j.core.workflow.node.condition.IConditionNode;
 import com.tarzan.maxkb4j.core.workflow.node.condition.compare.Compare;
 import com.tarzan.maxkb4j.core.workflow.node.condition.compare.impl.*;
 import com.tarzan.maxkb4j.core.workflow.node.condition.input.Condition;
@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class BaseConditionNode extends IConditionNode {
+public class BaseConditionNode extends INode {
 
     static List<Compare> compareHandleList = new ArrayList<>();
 
@@ -35,8 +35,16 @@ public class BaseConditionNode extends IConditionNode {
         compareHandleList.add(new NotContainCompare());
     }
 
+
     @Override
-    public NodeResult execute(ConditionNodeParams nodeParams) {
+    public String getType() {
+        return "condition-node";
+    }
+
+
+    @Override
+    public NodeResult execute() {
+        ConditionNodeParams nodeParams= super.nodeParams.toJavaObject(ConditionNodeParams.class);;
         ConditionBranch branch = _execute(nodeParams.getBranch());
         assert branch != null;
         return new NodeResult(Map.of("branch_id", branch.getId(), "branch_name", branch.getType()), Map.of());

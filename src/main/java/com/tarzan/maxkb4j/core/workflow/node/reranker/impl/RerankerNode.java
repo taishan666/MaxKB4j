@@ -1,14 +1,13 @@
 package com.tarzan.maxkb4j.core.workflow.node.reranker.impl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.NodeResult;
 import com.tarzan.maxkb4j.core.workflow.WorkflowManage;
-import com.tarzan.maxkb4j.core.workflow.node.start.input.FlowParams;
-import com.tarzan.maxkb4j.core.workflow.node.reranker.IRerankerNode;
 import com.tarzan.maxkb4j.core.workflow.node.reranker.input.RerankerParams;
 import com.tarzan.maxkb4j.module.dataset.vo.ParagraphVO;
-import com.tarzan.maxkb4j.module.model.provider.impl.BaseReranker;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
+import com.tarzan.maxkb4j.module.model.provider.impl.BaseReranker;
 import com.tarzan.maxkb4j.util.SpringUtil;
 
 import java.util.ArrayList;
@@ -16,15 +15,22 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class RerankerNode extends IRerankerNode {
+public class RerankerNode extends INode {
 
     private final ModelService modelService;
 
     public RerankerNode() {
         this.modelService = SpringUtil.getBean(ModelService.class);
     }
+
     @Override
-    public NodeResult execute(RerankerParams nodeParams, FlowParams workflowParams) {
+    public String getType() {
+        return "reranker-node";
+    }
+
+    @Override
+    public NodeResult execute() {
+        RerankerParams nodeParams= super.nodeParams.toJavaObject(RerankerParams.class);
         List<String> questionReferenceAddress=nodeParams.getQuestionReferenceAddress();
         Object question = super.getWorkflowManage().getReferenceField(questionReferenceAddress.get(0), questionReferenceAddress.subList(1, questionReferenceAddress.size()));
         List<List<String>> rerankerReferenceList=nodeParams.getRerankerReferenceList();

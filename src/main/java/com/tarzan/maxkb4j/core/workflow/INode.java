@@ -3,7 +3,6 @@ package com.tarzan.maxkb4j.core.workflow;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.workflow.dto.Answer;
-import com.tarzan.maxkb4j.core.workflow.dto.BaseParams;
 import com.tarzan.maxkb4j.core.workflow.info.Node;
 import com.tarzan.maxkb4j.core.workflow.node.start.input.FlowParams;
 import dev.langchain4j.data.message.AiMessage;
@@ -64,9 +63,7 @@ public abstract class INode {
 
     public abstract String getType();
 
-    public abstract BaseParams getNodeParamsClass(JSONObject nodeParams);
-
-    public abstract NodeResult _run();
+    public abstract NodeResult execute();
 
     public abstract JSONObject getDetail();
 
@@ -90,39 +87,6 @@ public abstract class INode {
         }
     }
 
-    public void validArgs(JSONObject nodeParams, FlowParams flowParams) throws Exception {
-        //  BaseParams flowParamsClass = getFlowParamsClass(flowParams);
-        BaseParams nodeParamsClass = getNodeParamsClass(nodeParams);
-        if (flowParams != null) {
-            if (!flowParams.isValid()) {
-                throw new Exception("Invalid flow params");
-            }
-        }
-        if (nodeParamsClass != null) {
-            if (!nodeParamsClass.isValid()) {
-                throw new Exception("Invalid node params");
-            }
-        }
-        // Ensure proper type casting before comparison
-        Object statusObj = node.getProperties().get("status");
-        if (statusObj instanceof Integer && (Integer) statusObj != 200) {
-            throw new Exception("Node is not available");
-        } else if (statusObj instanceof String) {
-            try {
-                int status = Integer.parseInt((String) statusObj);
-                if (status != 200) {
-                    throw new Exception("Node is not available");
-                }
-            } catch (NumberFormatException e) {
-                throw new Exception("Invalid status format: " + statusObj);
-            }
-        } else if (!(statusObj instanceof Integer)) {
-            throw new Exception("Status not found or invalid type");
-        }
-    }
-
-
-
 
     public void getWriteErrorContext(Exception e) {
         this.status = 500;
@@ -134,7 +98,7 @@ public abstract class INode {
     public NodeResult run() {
         long startTime = System.currentTimeMillis();
         this.context.put("start_time", startTime);
-        NodeResult result = _run();
+        NodeResult result = execute();
         this.context.put("runTime", (System.currentTimeMillis() - startTime)/1000F);
         return result;
     }
