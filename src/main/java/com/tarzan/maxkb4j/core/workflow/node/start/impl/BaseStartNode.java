@@ -85,30 +85,4 @@ public class BaseStartNode extends INode {
         detail.put("global_fields",globalFields);
         return detail;
     }
-
-    @Override
-    public void saveContext(JSONObject detail, WorkflowManage workflowManage) {
-        // 获取基础节点
-        Node baseNode = workflowManage.getBaseNode();
-        // 获取默认全局变量
-        List<JSONObject> inputFieldList = (List<JSONObject>) baseNode.getProperties()
-                .getOrDefault("inputFieldList", Collections.emptyList());
-        JSONObject defaultGlobalVariable = getDefaultGlobalVariable(inputFieldList);
-        // 合并全局变量
-        Map<String, Object> workflowVariable = new HashMap<>(defaultGlobalVariable);
-        workflowVariable.putAll(getGlobalVariable(workflowParams, workflowManage));
-        // 设置上下文
-        this.context.put("question", detail.get("question"));
-        this.context.put("runTime", detail.get("runTime"));
-        this.context.put("document", detail.get("document_list"));
-        this.context.put("image", detail.get("image_list"));
-        this.context.put("audio", detail.get("audio_list"));
-        // 设置状态和错误信息
-        this.status = detail.getIntValue("status");
-        this.errMessage = detail.getString("err_message");
-        // 将工作流变量添加到上下文中
-        for (Map.Entry<String, Object> entry : workflowVariable.entrySet()) {
-            workflowManage.getContext().put(entry.getKey(), entry.getValue());
-        }
-    }
 }

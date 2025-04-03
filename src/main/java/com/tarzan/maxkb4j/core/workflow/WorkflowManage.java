@@ -143,8 +143,6 @@ public class WorkflowManage {
                 );
                 // 合并验证参数
                 assert startNode != null;
-  /*              JSONObject validationParams = startNode.getNodeParams();
-                validationParams.put("form_data", startNodeData);*/
                 if ("application-node".equals(startNode.getType())) {
                     startNode.getContext().put("application_node_dict", nodeDetail.get("application_node_dict"));
                 }
@@ -153,7 +151,7 @@ public class WorkflowManage {
             }
             // 处理普通节点
             INode node = getNodeClsById(nodeId, (List<String>) nodeDetail.get("up_node_id_list"));
-            node.saveContext(nodeDetail, this);
+           // node.saveContext(nodeDetail, this);
             nodeContext.add(node);
         }
     }

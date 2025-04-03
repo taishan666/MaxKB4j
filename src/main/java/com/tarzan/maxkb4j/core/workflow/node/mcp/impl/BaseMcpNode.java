@@ -3,7 +3,6 @@ package com.tarzan.maxkb4j.core.workflow.node.mcp.impl;
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.NodeResult;
-import com.tarzan.maxkb4j.core.workflow.WorkflowManage;
 import dev.langchain4j.mcp.McpToolProvider;
 import dev.langchain4j.mcp.client.DefaultMcpClient;
 import dev.langchain4j.mcp.client.McpClient;
@@ -44,8 +43,4 @@ public class BaseMcpNode extends INode {
         return detail;
     }
 
-    @Override
-    public void saveContext(JSONObject nodeDetail, WorkflowManage workflowManage) {
-
-    }
 }

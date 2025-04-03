@@ -1,13 +1,11 @@
 package com.tarzan.maxkb4j.core.workflow.node.imagegenerate.input;
 
 import com.alibaba.fastjson.JSONObject;
-import com.tarzan.maxkb4j.core.workflow.dto.BaseParams;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-@EqualsAndHashCode(callSuper = true)
 @Data
-public class ImageGenerateParams extends BaseParams {
+public class ImageGenerateParams {
 
     private String modelId;
     private String prompt;
@@ -17,8 +15,4 @@ public class ImageGenerateParams extends BaseParams {
     private Boolean isResult;
     private JSONObject modelParamsSetting;
 
-    @Override
-    public boolean isValid() {
-        return false;
-    }
 }

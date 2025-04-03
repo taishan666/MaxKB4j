@@ -1,17 +1,14 @@
 package com.tarzan.maxkb4j.core.workflow.node.application.input;
 
-import com.tarzan.maxkb4j.core.workflow.dto.BaseParams;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Map;
 
-@EqualsAndHashCode(callSuper = true)
 @Data
-public class ApplicationNodeParams extends BaseParams {
+public class ApplicationNodeParams {
     @NotBlank(message = "应用id不能为空")
     private String applicationId;
 
@@ -32,8 +29,4 @@ public class ApplicationNodeParams extends BaseParams {
 
     private Map<String, Object> nodeData; // Optional, allowing null
 
-    @Override
-    public boolean isValid() {
-        return false;
-    }
 }

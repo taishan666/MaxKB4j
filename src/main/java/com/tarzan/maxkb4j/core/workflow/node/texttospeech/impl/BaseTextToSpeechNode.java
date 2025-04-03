@@ -3,7 +3,6 @@ package com.tarzan.maxkb4j.core.workflow.node.texttospeech.impl;
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.NodeResult;
-import com.tarzan.maxkb4j.core.workflow.WorkflowManage;
 import com.tarzan.maxkb4j.core.workflow.node.texttospeech.input.TextToSpeechParams;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseTextToSpeech;
@@ -49,8 +48,4 @@ public class BaseTextToSpeechNode extends INode {
         return detail;
     }
 
-    @Override
-    public void saveContext(JSONObject nodeDetail, WorkflowManage workflowManage) {
-
-    }
 }

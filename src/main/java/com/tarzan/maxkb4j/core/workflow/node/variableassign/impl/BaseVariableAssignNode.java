@@ -3,7 +3,6 @@ package com.tarzan.maxkb4j.core.workflow.node.variableassign.impl;
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.NodeResult;
-import com.tarzan.maxkb4j.core.workflow.WorkflowManage;
 import com.tarzan.maxkb4j.core.workflow.node.variableassign.input.VariableAssignParams;
 
 import java.util.*;
@@ -75,8 +74,4 @@ public class BaseVariableAssignNode extends INode {
         return detail;
     }
 
-    @Override
-    public void saveContext(JSONObject nodeDetail, WorkflowManage workflowManage) {
-
-    }
 }

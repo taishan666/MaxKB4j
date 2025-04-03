@@ -3,7 +3,6 @@ package com.tarzan.maxkb4j.core.workflow.node.application.impl;
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.NodeResult;
-import com.tarzan.maxkb4j.core.workflow.WorkflowManage;
 import com.tarzan.maxkb4j.core.workflow.node.application.input.ApplicationNodeParams;
 
 public class BaseApplicationNode extends INode {
@@ -37,13 +36,5 @@ public class BaseApplicationNode extends INode {
         return  detail;
     }
 
-    @Override
-    public void saveContext(JSONObject nodeDetail, WorkflowManage workflowManage) {
-        this.context.put("question", nodeDetail.get("question"));
-        this.context.put("runTime", nodeDetail.get("runTime"));
-        this.context.put("document", nodeDetail.get("document_list"));
-        this.context.put("image", nodeDetail.get("image_list"));
-        this.context.put("audio", nodeDetail.get("audio_list"));
-    }
 
 }

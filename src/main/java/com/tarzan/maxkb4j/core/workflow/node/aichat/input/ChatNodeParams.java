@@ -1,15 +1,12 @@
 package com.tarzan.maxkb4j.core.workflow.node.aichat.input;
 
 import com.alibaba.fastjson.JSONObject;
-import com.tarzan.maxkb4j.core.workflow.dto.BaseParams;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 
 import java.util.List;
 
-@EqualsAndHashCode(callSuper = true)
 @Data
-public class ChatNodeParams extends BaseParams {
+public class ChatNodeParams{
 
     private String modelId;
     private String system;
@@ -21,8 +18,4 @@ public class ChatNodeParams extends BaseParams {
     private JSONObject modelParamsSetting;
     private String dialogueType;
 
-    @Override
-    public boolean isValid() {
-        return false;
-    }
 }

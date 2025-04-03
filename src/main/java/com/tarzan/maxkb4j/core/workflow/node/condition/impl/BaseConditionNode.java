@@ -3,7 +3,6 @@ package com.tarzan.maxkb4j.core.workflow.node.condition.impl;
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.NodeResult;
-import com.tarzan.maxkb4j.core.workflow.WorkflowManage;
 import com.tarzan.maxkb4j.core.workflow.node.condition.compare.Compare;
 import com.tarzan.maxkb4j.core.workflow.node.condition.compare.impl.*;
 import com.tarzan.maxkb4j.core.workflow.node.condition.input.Condition;
@@ -98,9 +97,4 @@ public class BaseConditionNode extends INode {
         return detail;
     }
 
-    @Override
-    public void saveContext(JSONObject nodeDetail, WorkflowManage workflowManage) {
-        super.context.put("branch_id",nodeDetail.get("branch_id"));
-        super.context.put("'branch_name'",nodeDetail.get("branch_name"));
-    }
 }

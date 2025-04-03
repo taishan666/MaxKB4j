@@ -67,8 +67,6 @@ public abstract class INode {
 
     public abstract JSONObject getDetail();
 
-    public abstract void saveContext(JSONObject nodeDetail, WorkflowManage workflowManage);
-
     private String generateRuntimeNodeId() {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-1");

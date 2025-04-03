@@ -60,9 +60,4 @@ public class BaseFunctionNode extends INode {
         return detail;
     }
 
-
-    @Override
-    public void saveContext(JSONObject nodeDetail, WorkflowManage workflowManage) {
-
-    }
 }

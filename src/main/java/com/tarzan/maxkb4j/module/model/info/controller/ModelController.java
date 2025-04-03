@@ -40,7 +40,7 @@ public class ModelController{
 	private final ModelService modelService;
 
     @GetMapping("api/provider")
-	public R<Set<ModelProvideInfo>> provider(){
+	public R<Set<ModelProvideInfo>> provider(String modelType){
 		Set<ModelProvideInfo> set= new HashSet<>();
 		set.add(new AliYunBaiLianModelProvider().getModelProvideInfo());
 		//set.add(new AwsBedrockModelProvider().getModelProvideInfo());

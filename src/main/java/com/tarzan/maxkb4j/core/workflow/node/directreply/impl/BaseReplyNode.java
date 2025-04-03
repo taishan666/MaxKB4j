@@ -3,7 +3,6 @@ package com.tarzan.maxkb4j.core.workflow.node.directreply.impl;
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.NodeResult;
-import com.tarzan.maxkb4j.core.workflow.WorkflowManage;
 import com.tarzan.maxkb4j.core.workflow.node.directreply.input.ReplyNodeParams;
 
 import java.util.List;
@@ -44,9 +43,4 @@ public class BaseReplyNode extends INode {
         return detail;
     }
 
-    @Override
-    public void saveContext(JSONObject nodeDetail, WorkflowManage workflowManage) {
-        this.context.put("answer",nodeDetail.get("answer"));
-        this.answerText=nodeDetail.getString("answer");
-    }
 }

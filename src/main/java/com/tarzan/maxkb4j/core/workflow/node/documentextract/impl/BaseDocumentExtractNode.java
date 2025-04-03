@@ -3,7 +3,6 @@ package com.tarzan.maxkb4j.core.workflow.node.documentextract.impl;
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.NodeResult;
-import com.tarzan.maxkb4j.core.workflow.WorkflowManage;
 import com.tarzan.maxkb4j.core.workflow.node.documentextract.input.DocumentExtractParams;
 import com.tarzan.maxkb4j.module.resource.service.FileService;
 import com.tarzan.maxkb4j.util.SpringUtil;
@@ -194,8 +193,4 @@ public class BaseDocumentExtractNode extends INode {
         return detail;
     }
 
-    @Override
-    public void saveContext(JSONObject nodeDetail, WorkflowManage workflowManage) {
-
-    }
 }

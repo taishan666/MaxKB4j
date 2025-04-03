@@ -61,15 +61,15 @@ public class FullTextIndexService {
         if (CollectionUtils.isEmpty(result)) {
             return Collections.emptyList();
         }
+        //得分归一化处理
         float maxScore = Math.max(result.get(0).getScore(),2);
         for (EmbeddingEntity entity : result) {
-         //   System.out.println(entity.getScore()+" "+maxScore);
             float score = entity.getScore()/ maxScore;
             entity.setScore(score);
         }
         int endIndex = Math.min(maxResults, result.size());
         result = result.subList(0, endIndex);
-        return result.stream().map(entity -> new HitTestVO(entity.getParagraphId(), entity.getScore())).toList();
+        return result.stream().map(entity -> new HitTestVO(entity.getParagraphId(), entity.getScore())).filter(vo -> vo.getScore() >= minScore).toList();
     }
 
     public String segmentContent(String text) {

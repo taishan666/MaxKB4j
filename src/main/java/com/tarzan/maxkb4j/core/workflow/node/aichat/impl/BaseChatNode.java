@@ -122,11 +122,4 @@ public class BaseChatNode extends INode {
 
     }
 
-
-    @Override
-    public void saveContext(JSONObject detail, WorkflowManage workflowManage) {
-        this.context.put("question", detail.get("question"));
-        this.context.put("answer", detail.get("answer"));
-        this.answerText = detail.getString("answer");
-    }
 }
