@@ -285,19 +285,20 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     public String authentication(JSONObject params) {
         String accessToken = params.getString("access_token");
         ApplicationAccessTokenEntity appAccessToken = accessTokenService.lambdaQuery().eq(ApplicationAccessTokenEntity::getAccessToken, accessToken).one();
-        SaLoginModel loginModel = new SaLoginModel();
-        if (StpUtil.isLogin()) {
-            UserEntity userEntity = userService.getById(StpUtil.getLoginIdAsString());
-            loginModel.setExtra("username", userEntity.getUsername());
-            loginModel.setExtra("email", userEntity.getEmail());
-            loginModel.setExtra("language", userEntity.getLanguage());
-            loginModel.setExtra("client_id", userEntity.getId());
-            loginModel.setExtra("client_type", AuthType.ACCESS_TOKEN.name());
-            loginModel.setExtra("application_id", appAccessToken.getApplicationId());
-            loginModel.setExtra(AuthType.ACCESS_TOKEN.name(), accessToken);
-            StpUtil.login(userEntity.getId(), loginModel);
-        } else {
-            if (appAccessToken != null && appAccessToken.getIsActive()) {
+        if (appAccessToken != null && appAccessToken.getIsActive()) {
+            SaLoginModel loginModel = new SaLoginModel();
+            if (StpUtil.isLogin()) {
+                UserEntity userEntity = userService.getById(StpUtil.getLoginIdAsString());
+                loginModel.setExtra("username", userEntity.getUsername());
+                loginModel.setExtra("email", userEntity.getEmail());
+                loginModel.setExtra("language", userEntity.getLanguage());
+                loginModel.setExtra("client_id", userEntity.getId());
+                loginModel.setExtra("client_type", AuthType.ACCESS_TOKEN.name());
+                loginModel.setExtra("application_id", appAccessToken.getApplicationId());
+                loginModel.setExtra(AuthType.ACCESS_TOKEN.name(), accessToken);
+                loginModel.setDevice(AuthType.ACCESS_TOKEN.name());
+                StpUtil.login(StpUtil.getLoginId(), loginModel);
+            } else {
                 loginModel.setExtra("application_id", appAccessToken.getApplicationId());
                 loginModel.setExtra("client_id", IdWorker.get32UUID());
                 loginModel.setExtra("client_type", AuthType.ACCESS_TOKEN.name());
@@ -306,30 +307,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
                 StpUtil.login(IdWorker.get32UUID(), loginModel);
             }
         }
-        return StpUtil.getTokenValue();
-    }
-
-    public String authentication(HttpServletRequest request, JSONObject params) {
-        // todo
-        String clientType = "";
-        try {
-            clientType = (String) StpUtil.getExtra("client_type");
-        } catch (Exception e) {
-            log.error("获取客户端类型失败", e);
-        }
-        if (!"APPLICATION_ACCESS_TOKEN".equals(clientType)) {
-            String accessToken = params.getString("access_token");
-            ApplicationAccessTokenEntity appAccessToken = accessTokenService.lambdaQuery().eq(ApplicationAccessTokenEntity::getAccessToken, accessToken).one();
-            if (appAccessToken != null && appAccessToken.getIsActive()) {
-                //ApplicationEntity application = this.lambdaQuery().select(ApplicationEntity::getUserId).eq(ApplicationEntity::getId, applicationAccessToken.getApplicationId()).one();
-                SaLoginModel loginModel = new SaLoginModel();
-                loginModel.setExtra("application_id", appAccessToken.getApplicationId());
-                loginModel.setExtra("client_id", IdWorker.get32UUID());
-                loginModel.setExtra("client_type", clientType);
-                StpUtil.login(IdWorker.get32UUID(), loginModel);
-            }
-        }
-        return StpUtil.getTokenValue();
+        return null;
     }
 
 

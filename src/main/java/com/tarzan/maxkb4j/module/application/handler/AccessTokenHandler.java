@@ -21,14 +21,14 @@ public class AccessTokenHandler implements AuthHandler {
 
     @Override
     public boolean handle(HttpServletResponse response) {
-        String tokenValue = StpUtil.getStpLogic().getTokenValue(false);
-        String accessToken = (String) StpUtil.getStpLogic().getExtra(tokenValue, AuthType.ACCESS_TOKEN.name());
+        String accessToken = (String) StpUtil.getStpLogic().getExtra(AuthType.ACCESS_TOKEN.name());
         ApplicationAccessTokenEntity token = accessTokenService.getByToken(accessToken);
         if (token == null || !token.getIsActive()) {
             throw new ApiException("accessToken不合法或被禁用");
         }
         if (token.getWhiteActive() && CollUtil.isNotEmpty(token.getWhiteList())) {
             String clientIP = WebUtil.getIP();
+            System.out.println("clientIP:"+clientIP);
             if (!token.getWhiteList().contains(clientIP)) {
                 throw new ApiException("非法访问");
             }
@@ -39,6 +39,7 @@ public class AccessTokenHandler implements AuthHandler {
     @Override
     public boolean support(HttpServletRequest request) {
         String clientType = (String) StpUtil.getExtra("client_type");
-        return AuthType.ACCESS_TOKEN.name().equals(clientType);
+        String clientIP = WebUtil.getIP();
+        return AuthType.ACCESS_TOKEN.name().equals(clientType)&&!"127.0.0.1".equals(clientIP);
     }
 }

@@ -12,5 +12,6 @@ public class SaTokenConfigure {
     public StpLogic getStpLogicJwt() {
         return new StpLogicJwtForStateless();
     }
+
 }
 

@@ -35,7 +35,6 @@ import com.tarzan.maxkb4j.module.dataset.vo.ParagraphVO;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelEntity;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
 import com.tarzan.maxkb4j.module.resource.service.FileService;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -173,7 +172,7 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
     }
 
 
-    public Flux<ChatMessageVO> chatMessage(String chatId, ChatMessageDTO dto, HttpServletRequest request) {
+    public Flux<ChatMessageVO> chatMessage(String chatId, ChatMessageDTO dto) {
         String clientId = (String) StpUtil.getExtra("client_id");
         String clientType = (String) StpUtil.getExtra("client_type");
         ChatInfo chatInfo = getChatInfo(chatId);

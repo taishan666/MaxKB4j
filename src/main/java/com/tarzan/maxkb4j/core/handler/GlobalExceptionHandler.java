@@ -66,6 +66,7 @@ public class GlobalExceptionHandler{
     @ExceptionHandler(ApiException.class)
     @ResponseBody
     public R<String>  handleException(ApiException e) {
+        log.error("Api异常: {}", e.getMessage(), e);
         return R.fail(400, e.getMessage());
     }
 
