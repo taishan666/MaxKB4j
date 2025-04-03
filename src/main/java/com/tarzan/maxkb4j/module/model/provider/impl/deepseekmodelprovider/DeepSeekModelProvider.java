@@ -1,8 +1,12 @@
 package com.tarzan.maxkb4j.module.model.provider.impl.deepseekmodelprovider;
 
-import com.tarzan.maxkb4j.module.model.provider.*;
+import com.tarzan.maxkb4j.module.model.provider.IModelProvider;
+import com.tarzan.maxkb4j.module.model.provider.ModelInfo;
+import com.tarzan.maxkb4j.module.model.provider.ModelProvideInfo;
 import com.tarzan.maxkb4j.module.model.provider.enums.ModelProviderEnum;
+import com.tarzan.maxkb4j.module.model.provider.enums.ModelTypeEnum;
 import com.tarzan.maxkb4j.module.model.provider.impl.aliyunModelProvider.AliYunBaiLianModelProvider;
+import com.tarzan.maxkb4j.module.model.provider.impl.deepseekmodelprovider.model.DeepSeekChatModel;
 import com.tarzan.maxkb4j.util.IoUtil;
 import org.springframework.stereotype.Component;
 
@@ -25,15 +29,10 @@ public class DeepSeekModelProvider extends IModelProvider {
     }
 
     @Override
-    public ModelInfoManage getModelInfoManage() {
-        return null;
-    }
-
-    @Override
     public List<ModelInfo> getModelList() {
         List<ModelInfo> modelInfos = new ArrayList<>();
-        modelInfos.add(new ModelInfo("deepseek-chat","","LLM",null));
-        modelInfos.add(new ModelInfo("deepseek-coder","","LLM",null));
+        modelInfos.add(new ModelInfo("deepseek-chat","", ModelTypeEnum.LLM.name(), new DeepSeekChatModel()));
+        modelInfos.add(new ModelInfo("deepseek-reasoner","",ModelTypeEnum.LLM.name(), new DeepSeekChatModel()));
         return modelInfos;
     }
 

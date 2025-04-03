@@ -1,6 +1,7 @@
 package com.tarzan.maxkb4j.module.model.info.controller;
 
 import com.alibaba.fastjson.JSONArray;
+import com.tarzan.maxkb4j.core.api.R;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelEntity;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
 import com.tarzan.maxkb4j.module.model.info.vo.KeyAndValueVO;
@@ -12,13 +13,13 @@ import com.tarzan.maxkb4j.module.model.provider.enums.ModelProviderEnum;
 import com.tarzan.maxkb4j.module.model.provider.enums.ModelTypeEnum;
 import com.tarzan.maxkb4j.module.model.provider.impl.aliyunModelProvider.AliYunBaiLianModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.impl.azuremodelprovider.AzureModelProvider;
+import com.tarzan.maxkb4j.module.model.provider.impl.deepseekmodelprovider.DeepSeekModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.impl.ollamamodelprovider.OLlamaModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.impl.openaimodelprovider.OpenaiModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.impl.wenxinmodelprovider.WenXinModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.impl.xinferencemodelprovider.XInferenceModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.impl.zhipumodelprovider.ZhiPuModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.vo.ModelInputVO;
-import com.tarzan.maxkb4j.core.api.R;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -44,7 +45,7 @@ public class ModelController{
 		set.add(new AliYunBaiLianModelProvider().getModelProvideInfo());
 		//set.add(new AwsBedrockModelProvider().getModelProvideInfo());
 		set.add(new AzureModelProvider().getModelProvideInfo());
-		//set.add(new DeepSeekModelProvider().getModelProvideInfo());
+		set.add(new DeepSeekModelProvider().getModelProvideInfo());
 		//set.add(new KimiModelProvider().getModelProvideInfo());
 		set.add(new OLlamaModelProvider().getModelProvideInfo());
 		set.add(new OpenaiModelProvider().getModelProvideInfo());
