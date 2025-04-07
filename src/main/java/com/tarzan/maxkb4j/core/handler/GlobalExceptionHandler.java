@@ -2,8 +2,9 @@
 package com.tarzan.maxkb4j.core.handler;
 
 import cn.dev33.satoken.exception.NotLoginException;
-import com.tarzan.maxkb4j.core.exception.ApiException;
 import com.tarzan.maxkb4j.core.api.R;
+import com.tarzan.maxkb4j.core.exception.ApiException;
+import io.swagger.v3.oas.annotations.Hidden;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -20,7 +21,7 @@ import javax.crypto.BadPaddingException;
  * @date 2025年3月11日
  * @since JDK17
  */
-
+@Hidden
 @Slf4j
 @ControllerAdvice
 public class GlobalExceptionHandler{

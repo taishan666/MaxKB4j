@@ -34,7 +34,7 @@ import java.util.List;
  * @author tarzan
  * @date 2024-12-25 13:09:54
  */
-@Tag(name = "传感器点位管理", description = "传感器点位管理")
+@Tag(name = "APP应用管理", description = "APP应用管理")
 @RestController
 @AllArgsConstructor
 public class ApplicationController {

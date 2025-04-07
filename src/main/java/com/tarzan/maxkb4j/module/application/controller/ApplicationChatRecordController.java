@@ -34,10 +34,6 @@ public class ApplicationChatRecordController {
 
     @GetMapping("api/application/{appId}/statistics/chat_record_aggregate_trend")
     public R<List<ApplicationStatisticsVO>> statistics(@PathVariable("appId") String appId, ChatQueryDTO query) {
-   /*     ChatQueryDTO query = new ChatQueryDTO();
-        query.setKeyword(request.getParameter("abstract"));
-        query.setStartTime(request.getParameter("start_time"));
-        query.setEndTime(request.getParameter("end_time"));*/
         return R.success(chatRecordService.statistics(appId, query));
     }
 

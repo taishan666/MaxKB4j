@@ -4,20 +4,17 @@ import cn.dev33.satoken.stp.StpUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.tarzan.maxkb4j.core.api.R;
-import com.tarzan.maxkb4j.module.application.dto.ChatMessageDTO;
 import com.tarzan.maxkb4j.module.application.dto.ChatQueryDTO;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationChatEntity;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationChatRecordEntity;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationEntity;
 import com.tarzan.maxkb4j.module.application.service.ApplicationChatService;
 import com.tarzan.maxkb4j.module.application.vo.ApplicationChatRecordVO;
-import com.tarzan.maxkb4j.module.application.vo.ChatMessageVO;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
-import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import reactor.core.publisher.Flux;
 
 import java.io.IOException;
 import java.util.List;
@@ -26,6 +23,7 @@ import java.util.List;
  * @author tarzan
  * @date 2024-12-25 13:09:54
  */
+@Tag(name = "APP会话管理", description = "APP会话管理")
 @RestController
 @AllArgsConstructor
 public class ApplicationChatController {
@@ -59,15 +57,17 @@ public class ApplicationChatController {
         return R.success(chatService.chatWorkflowOpenTest(application));
     }
 
+/*    @Operation(summary = "新建应用会话", description = "")
     @GetMapping("api/application/{appId}/chat/open")
     public R<String> chatOpen(@PathVariable("appId") String appId) {
         return R.success(chatService.chatOpen(appId));
     }
 
+    @Operation(summary = "聊天", description = "")
     @PostMapping(path = "api/application/chat_message/{chatId}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<ChatMessageVO> chatMessage(@PathVariable String chatId, @RequestBody ChatMessageDTO params) {
         return chatService.chatMessage(chatId, params);
-    }
+    }*/
 
     @PutMapping("api/application/{id}/chat/{chatId}/chat_record/{chatRecordId}/vote")
     public R<Boolean> vote(@PathVariable String id, @PathVariable String chatId, @PathVariable String chatRecordId, @RequestBody ApplicationChatRecordEntity chatRecord) {
@@ -86,10 +86,6 @@ public class ApplicationChatController {
 
     @GetMapping("api/application/{appId}/chat/{page}/{size}")
     public R<IPage<ApplicationChatEntity>> chatLogs(@PathVariable("appId") String appId, @PathVariable("page") int page, @PathVariable("size") int size, ChatQueryDTO query) {
-   /*     ChatQueryDTO query = new ChatQueryDTO();
-        query.setKeyword(request.getParameter("abstract"));
-        query.setStartTime(request.getParameter("start_time"));
-        query.setEndTime(request.getParameter("end_time"));*/
         return R.success(chatService.chatLogs(appId, page, size, query));
     }
 
