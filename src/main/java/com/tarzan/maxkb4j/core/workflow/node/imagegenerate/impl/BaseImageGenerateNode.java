@@ -10,6 +10,8 @@ import dev.langchain4j.data.image.Image;
 import dev.langchain4j.model.image.ImageModel;
 import dev.langchain4j.model.output.Response;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 public class BaseImageGenerateNode extends INode {
@@ -33,12 +35,18 @@ public class BaseImageGenerateNode extends INode {
         JSONObject modelParamsSetting=nodeParams.getModelParamsSetting();
         modelParamsSetting.put("negative_prompt",negativePrompt);
         ImageModel ttiModel = modelService.getModelById(nodeParams.getModelId(), modelParamsSetting);
-/*        List<JSONObject> imageList=super.workflowManage.getImageList();
-        System.out.println(imageList);*/
-        Response<Image> res = ttiModel.generate(prompt);
-        Image image = res.content();
-        String answer ="!["+prompt+"](" + image.url() + ")";
-        return new NodeResult(Map.of("answer",answer,"image",image.url()),Map.of());
+        int n=modelParamsSetting.getInteger("n");
+        Response<List<Image>> res = ttiModel.generate(prompt,n);
+        StringBuilder answerSb=new StringBuilder();
+        List<Image> images = res.content();
+        List<String> imageUrls = new ArrayList<>();
+        for (Image image : images) {
+            String imageMd ="!["+prompt+"](" + image.url() + ")";
+            answerSb.append(" ").append(imageMd);
+            imageUrls.add(image.url().getPath());
+        }
+
+        return new NodeResult(Map.of("answer",answerSb.toString(),"image",imageUrls),Map.of());
     }
 
     @Override
