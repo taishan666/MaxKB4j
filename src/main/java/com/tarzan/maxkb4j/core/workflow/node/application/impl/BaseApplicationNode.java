@@ -4,8 +4,16 @@ import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.NodeResult;
 import com.tarzan.maxkb4j.core.workflow.node.application.input.ApplicationNodeParams;
+import com.tarzan.maxkb4j.module.application.service.ApplicationChatService;
+import com.tarzan.maxkb4j.util.SpringUtil;
 
 public class BaseApplicationNode extends INode {
+    private final ApplicationChatService chatService;
+
+    public BaseApplicationNode() {
+        this.chatService = SpringUtil.getBean(ApplicationChatService.class);
+    }
+
 
     @Override
     public String getType() {
@@ -16,7 +24,7 @@ public class BaseApplicationNode extends INode {
     @Override
     public NodeResult execute() {
         ApplicationNodeParams nodeParams= super.nodeParams.toJavaObject(ApplicationNodeParams.class);
-        //todo
+        //chatService.chatMessage(super.workflowManage.get)
         return null;
     }
 

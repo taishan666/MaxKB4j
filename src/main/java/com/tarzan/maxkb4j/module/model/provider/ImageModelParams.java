@@ -5,6 +5,7 @@ import com.tarzan.maxkb4j.core.form.BaseFiled;
 import com.tarzan.maxkb4j.core.form.SingleSelectFiled;
 import com.tarzan.maxkb4j.core.form.SliderFiled;
 import com.tarzan.maxkb4j.core.form.SwitchField;
+import dev.langchain4j.rag.query.router.LanguageModelQueryRouter;
 import lombok.Data;
 
 import java.util.ArrayList;
@@ -25,3 +26,4 @@ public  class ImageModelParams implements BaseModelParams{
         return List.of(sizeSelectFiled,sliderFiled,switchField);
     }
 }
+
