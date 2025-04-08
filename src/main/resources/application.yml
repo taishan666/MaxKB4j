@@ -15,7 +15,11 @@ spring:
     time-zone: GMT+8
   cache:
     type: caffeine
-  #thymeleaf:
+  flyway:
+    enabled: true
+    locations: classpath:/db/migration
+
+    #thymeleaf:
     #prefix: classpath:/template/
     #suffix: .html
 
@@ -48,3 +52,4 @@ sa-token:
   # token-style: random-128
   # 是否输出操作日志
   is-log: true
+
