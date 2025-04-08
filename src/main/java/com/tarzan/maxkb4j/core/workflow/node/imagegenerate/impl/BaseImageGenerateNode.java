@@ -30,8 +30,12 @@ public class BaseImageGenerateNode extends INode {
         ImageGenerateParams nodeParams=super.nodeParams.toJavaObject(ImageGenerateParams.class);
         String prompt=super.workflowManage.generatePrompt(nodeParams.getPrompt());
         String negativePrompt=nodeParams.getNegativePrompt();
-        ImageModel ttiModel = modelService.getModelById(nodeParams.getModelId(), nodeParams.getModelParamsSetting());
-        Response<Image> res = ttiModel.generate(prompt+negativePrompt);
+        JSONObject modelParamsSetting=nodeParams.getModelParamsSetting();
+        modelParamsSetting.put("negative_prompt",negativePrompt);
+        ImageModel ttiModel = modelService.getModelById(nodeParams.getModelId(), modelParamsSetting);
+/*        List<JSONObject> imageList=super.workflowManage.getImageList();
+        System.out.println(imageList);*/
+        Response<Image> res = ttiModel.generate(prompt);
         Image image = res.content();
         String answer ="!["+prompt+"](" + image.url() + ")";
         return new NodeResult(Map.of("answer",answer,"image",image.url()),Map.of());

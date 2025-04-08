@@ -49,9 +49,14 @@ public class EmbedTextService {
         if (CollectionUtils.isEmpty(dto.getDocumentIdList())) {
             return false;
         }
-      //  paragraphService.updateStatusByDocIds(dto.getDocument_id_list(), 2, 0);
-      //  documentService.updateStatusMetaByIds(dto.getDocument_id_list());
-     //   documentService.updateStatusByIds(dto.getDocument_id_list(), 2, 0);
+        for (String docId : dto.getDocumentIdList()) {
+            paragraphService.updateStatusByDocId(docId, 2, 0);
+            documentService.updateStatusById(docId, 2, 0);
+            documentService.updateStatusMetaById(docId);
+        }
+    /*    paragraphService.updateStatusByDocIds(dto.getDocumentIdList(), 2, 0);
+        documentService.updateStatusMetaByIds(dto.getDocumentIdList());
+        documentService.updateStatusByIds(dto.getDocumentIdList(), 2, 0);*/
         DatasetEntity dataset = datasetService.getById(datasetId);
         BaseChatModel chatModel = modelService.getModelById(dto.getModelId());
         EmbeddingModel embeddingModel = modelService.getModelById(dataset.getEmbeddingModelId());

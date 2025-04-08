@@ -20,9 +20,9 @@ public class DataIndexJob {
 
     @Scheduled(cron = "0/1 * * * * *")
     public void execute() {
-        List<DocumentEntity> docs=documentService.lambdaQuery().select(DocumentEntity::getId, DocumentEntity::getDatasetId).likeLeft(DocumentEntity::getStatus, "0").last("limit 5").list();
-        docs.parallelStream().forEach(doc -> {
-            documentService.createIndexByDocId(datasetService.getDatasetEmbeddingModel(doc.getDatasetId()),doc.getId());
-        });
+        List<DocumentEntity> indexDocs=documentService.lambdaQuery().select(DocumentEntity::getId, DocumentEntity::getDatasetId).eq(DocumentEntity::getType, 1).likeLeft(DocumentEntity::getStatus, "0").last("limit 5").list();
+        indexDocs.parallelStream().forEach(doc -> documentService.createIndexByDocId(datasetService.getDatasetEmbeddingModel(doc.getDatasetId()),doc.getId()));
+     /*   List<DocumentEntity> docs=documentService.lambdaQuery().select(DocumentEntity::getId, DocumentEntity::getDatasetId).eq(DocumentEntity::getType, 0).likeRight(DocumentEntity::getStatus, "n0").last("limit 5").list();
+        docs.parallelStream().forEach(doc -> documentService.createIndexByDocId(datasetService.getDatasetEmbeddingModel(doc.getDatasetId()),doc.getId()));*/
     }
 }

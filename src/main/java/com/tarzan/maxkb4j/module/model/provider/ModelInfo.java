@@ -1,7 +1,6 @@
 package com.tarzan.maxkb4j.module.model.provider;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 @Data
@@ -13,6 +12,8 @@ public class ModelInfo {
     @JsonIgnore
     private BaseModelCredential modelCredential;
     @JsonIgnore
+    private BaseModelParams modelParams;
+    @JsonIgnore
     private BaseModel modelClass;
 
     public ModelInfo(String name, String desc, String modelType, BaseModel modelClass) {
@@ -21,6 +22,7 @@ public class ModelInfo {
         this.modelType = modelType;
         this.modelClass = modelClass;
         this.modelCredential = new BaseModelCredential(false,true);
+        this.modelParams = new LlmModelParams();
     }
 
     public ModelInfo(String name, String desc, String modelType, BaseModel modelClass, boolean needUrl,boolean needApiKey) {
@@ -32,12 +34,13 @@ public class ModelInfo {
 
     }
 
-    public ModelInfo(String name, String desc, String modelType, BaseModel modelClass,BaseModelCredential modelCredential) {
+    public ModelInfo(String name, String desc, String modelType, BaseModel modelClass, BaseModelParams modelParams) {
         this.name = name;
         this.desc = desc;
         this.modelType = modelType;
         this.modelClass = modelClass;
-        this.modelCredential = modelCredential;
+        this.modelCredential = new BaseModelCredential(false,true);
+        this.modelParams = modelParams;
     }
 
 }

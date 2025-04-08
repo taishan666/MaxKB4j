@@ -1,8 +1,7 @@
 package com.tarzan.maxkb4j.module.dataset.controller;
 
-import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.tarzan.maxkb4j.module.dataset.dto.DeleteDTO;
+import com.tarzan.maxkb4j.core.api.R;
 import com.tarzan.maxkb4j.core.common.dto.QueryDTO;
 import com.tarzan.maxkb4j.module.dataset.dto.*;
 import com.tarzan.maxkb4j.module.dataset.entity.DocumentEntity;
@@ -14,7 +13,6 @@ import com.tarzan.maxkb4j.module.dataset.service.ProblemParagraphService;
 import com.tarzan.maxkb4j.module.dataset.vo.DocumentVO;
 import com.tarzan.maxkb4j.module.dataset.vo.TextSegmentVO;
 import com.tarzan.maxkb4j.module.model.info.vo.KeyAndValueVO;
-import com.tarzan.maxkb4j.core.api.R;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -137,8 +135,8 @@ public class DocumentController {
     }
 
     @PutMapping("api/dataset/{id}/document/{docId}/cancel_task")
-    public R<Boolean> cancelTask(@PathVariable String id, @PathVariable("docId") String docId, @RequestBody JSONObject json) {
-        return R.success(documentService.cancelTask(docId, 1));
+    public R<Boolean> cancelTask(@PathVariable String id, @PathVariable("docId") String docId, @RequestBody DocumentEntity documentEntity) {
+        return R.success(documentService.cancelTask(docId, documentEntity));
     }
 
     @PutMapping("api/dataset/{id}/document/{docId}")

@@ -15,11 +15,18 @@ public abstract class IModelProvider {
 
     public abstract List<ModelInfo> getModelList();
 
-    public BaseModelCredential getModelCredential( String modelType,String modelName){
+    public BaseModelCredential getModelCredential(String modelType, String modelName){
         ModelInfoManage modelInfoManage=getModelInfoManage();
         ModelInfo modelInfo = modelInfoManage.getModelInfo(modelType,modelName);
         assert modelInfo != null;
         return modelInfo.getModelCredential();
+    };
+
+    public BaseModelParams getModelParams(String modelType, String modelName){
+        ModelInfoManage modelInfoManage=getModelInfoManage();
+        ModelInfo modelInfo = modelInfoManage.getModelInfo(modelType,modelName);
+        assert modelInfo != null;
+        return modelInfo.getModelParams();
     };
 
     <T> T build(String modelName, String modelType, ModelCredential modelCredential) {

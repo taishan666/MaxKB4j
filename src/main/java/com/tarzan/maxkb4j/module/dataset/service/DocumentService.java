@@ -88,9 +88,17 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         baseMapper.updateStatusMetaById(id);
     }
 
+    public void updateStatusMetaByIds(List<String> ids){
+        baseMapper.updateStatusMetaByIds(ids);
+    }
+
     //type 1向量化 2 生成问题 3同步
     public void updateStatusById(String id, int type,int status) {
         baseMapper.updateStatusById(id,type,status,type-1,type+1);
+    }
+
+    public void updateStatusByIds(List<String> ids, int type,int status) {
+        baseMapper.updateStatusByIds(ids,type,status,type-1,type+1);
     }
 
 
@@ -591,6 +599,18 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         }
     }
 
+/*    public void createRelatedProblemByDocId(EmbeddingModel embeddingModel,String docId) {
+        log.info("开始--->文档索引:{}", docId);
+        List<ParagraphEntity> paragraphs = paragraphService.lambdaQuery().eq(ParagraphEntity::getDocumentId, docId).list();
+        this.updateStatusById(docId,1,1);
+        paragraphs.forEach(paragraph -> {
+            paragraphService.paragraphIndex(paragraph,embeddingModel);
+            this.updateStatusMetaById(docId);
+        });
+        this.updateStatusById(docId,1,2);
+        log.info("结束--->文档索引:{}", docId);
+    }*/
+
 
     public void createIndexByDocId(EmbeddingModel embeddingModel,String docId) {
         log.info("开始--->文档索引:{}", docId);
@@ -604,13 +624,13 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         log.info("结束--->文档索引:{}", docId);
     }
 
-    public boolean cancelTask(String docId, int type) {
-        DocumentEntity entity = new DocumentEntity();
+    public boolean cancelTask(String docId, DocumentEntity doc) {
+        DocumentEntity entity=baseMapper.selectById(docId);
         entity.setId(docId);
         String status=entity.getStatus();
-        if(type==1){
+        if(doc.getType()==1){
             entity.setStatus(status.replace(status.substring(2), "3"));
-        }else if(type==2){
+        }else if(doc.getType()==2){
             entity.setStatus(status.replace(status.substring(1,2), "3"));
         }
         return this.updateById(entity);

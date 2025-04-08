@@ -2,6 +2,7 @@ package com.tarzan.maxkb4j.module.model.info.controller;
 
 import com.alibaba.fastjson.JSONArray;
 import com.tarzan.maxkb4j.core.api.R;
+import com.tarzan.maxkb4j.core.form.BaseFiled;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelEntity;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
 import com.tarzan.maxkb4j.module.model.info.vo.KeyAndValueVO;
@@ -83,15 +84,15 @@ public class ModelController{
 	}
 
 	@GetMapping("api/provider/model_form")
-	public R<List<ModelInputVO>> modelForm(String provider, String modelType, String modelName){
+	public R<List<BaseFiled>> modelForm(String provider, String modelType, String modelName){
 		IModelProvider modelProvider=ModelProviderEnum.get(provider);
 		return R.success(modelProvider.getModelCredential(modelType, modelName).toForm());
 	}
 
 	@GetMapping("api/provider/model_params_form")
-	public R<List<ModelInputVO>> modelParamsForm(String provider, String modelType,String modelName){
+	public R<List<BaseFiled>> modelParamsForm(String provider, String modelType, String modelName){
 		IModelProvider modelProvider=ModelProviderEnum.get(provider);
-		return R.success(modelProvider.getModelCredential(modelType, modelName).getModelParamsSettingForm());
+		return R.success(modelProvider.getModelParams(modelType, modelName).toForm());
 	}
 
 	@PostMapping("api/model")

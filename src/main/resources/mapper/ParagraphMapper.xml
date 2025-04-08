@@ -49,7 +49,26 @@
                             ARRAY[#{status}::TEXT],
                             CONCAT ( '"', now( ), '"' ) :: JSONB
                     )
-                          ) WHERE "paragraph"."document_id" =   #{documentId}
+                          ) WHERE "paragraph"."document_id" =   #{docId}
+    </update>
+
+    <update id="updateStatusByDocIds">
+        UPDATE "paragraph"
+        SET status = reverse (
+                SUBSTRING ( reverse ( LPAD( status, 3, 'n' ) ) :: TEXT FROM 1 FOR #{up} ) || #{status} || SUBSTRING ( reverse ( LPAD( status, 3, 'n' ) ) :: TEXT FROM #{next} )
+                     ),
+            status_meta = jsonb_set (
+                    "paragraph".status_meta,
+                    ARRAY['state_time', #{type}::TEXT],
+                    jsonb_set (
+                            COALESCE ( "paragraph".status_meta #> ARRAY['state_time', #{type}::TEXT], jsonb_build_object(#{status}, now())),
+                            ARRAY[#{status}::TEXT],
+                            CONCAT ( '"', now( ), '"' ) :: JSONB
+                    )
+                          ) WHERE "paragraph"."document_id" IN
+        <foreach item="docId" collection="docId" open="(" separator="," close=")">
+            #{docId}
+        </foreach>
     </update>
 
     <select id="retrievalParagraph" resultType="com.tarzan.maxkb4j.module.dataset.vo.ParagraphVO">

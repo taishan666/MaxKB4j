@@ -39,10 +39,14 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
         baseMapper.updateStatusByDocId(docId,type,status,type-1,type+1);
     }
 
+    public void updateStatusByDocIds(List<String> docIds, int type,int status)  {
+        baseMapper.updateStatusByDocIds(docIds,type,status,type-1,type+1);
+    }
 
-/*    public void updateStatusByIds(List<String> paragraphIds, int type,int status)  {
+
+    public void updateStatusByIds(List<String> paragraphIds, int type,int status)  {
         baseMapper.updateStatusByIds(paragraphIds,type,status,type-1,type+1);
-    }*/
+    }
 
     @Transactional
     public void migrateDoc(String sourceId, String targetId, List<String> docIds) {

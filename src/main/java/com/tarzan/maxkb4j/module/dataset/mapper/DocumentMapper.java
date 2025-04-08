@@ -9,6 +9,8 @@ import com.tarzan.maxkb4j.module.dataset.vo.DocumentVO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import java.util.List;
+
 /**
  * @author tarzan
  * @date 2024-12-25 17:00:26
@@ -23,4 +25,8 @@ public interface DocumentMapper extends BaseMapper<DocumentEntity>{
     void updateStatusById(String id, int type, int status, int up, int next);
 
     boolean updateCharLengthById(String id);
+
+    void updateStatusMetaByIds(List<String> ids);
+
+    void updateStatusByIds(List<String> ids, int type, int status, int up, int next);
 }
