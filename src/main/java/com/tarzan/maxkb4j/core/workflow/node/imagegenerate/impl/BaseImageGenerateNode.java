@@ -34,10 +34,10 @@ public class BaseImageGenerateNode extends INode {
         String negativePrompt=nodeParams.getNegativePrompt();
         JSONObject modelParamsSetting=nodeParams.getModelParamsSetting();
         modelParamsSetting.put("negative_prompt",negativePrompt);
-        ImageModel ttiModel = modelService.getModelById(nodeParams.getModelId(), modelParamsSetting);
+        ImageModel imageModel = modelService.getModelById(nodeParams.getModelId(), modelParamsSetting);
         int n=modelParamsSetting.getIntValue("n");
         n=n==0 ? 1 : n;
-        Response<List<Image>> res = ttiModel.generate(prompt,n);
+        Response<List<Image>> res = imageModel.generate(prompt,n);
         StringBuilder answerSb=new StringBuilder();
         List<Image> images = res.content();
         List<String> imageUrls = new ArrayList<>();
@@ -46,7 +46,6 @@ public class BaseImageGenerateNode extends INode {
             answerSb.append(" ").append(imageMd);
             imageUrls.add(image.url().getPath());
         }
-
         return new NodeResult(Map.of("answer",answerSb.toString(),"image",imageUrls),Map.of());
     }
 

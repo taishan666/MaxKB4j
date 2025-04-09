@@ -107,10 +107,19 @@ public class UserService extends ServiceImpl<UserMapper, UserEntity> {
 
     @Transactional
     public boolean createUser(UserEntity user) {
+        long usernameNum=this.lambdaQuery().eq(UserEntity::getUsername, user.getUsername()).count();
+        if (usernameNum>0){
+            throw new ApiException("用户名已存在");
+        }
+        long emailNum=this.lambdaQuery().eq(UserEntity::getEmail, user.getEmail()).count();
+        if (emailNum>0){
+            throw new ApiException("邮箱已存在");
+        }
         user.setRole(RoleType.USER);
         user.setIsActive(true);
         user.setSource(UserSource.LOCAL);
         user.setLanguage((String) StpUtil.getExtra("language"));
+        user.setPassword(SaSecureUtil.md5(user.getPassword()));
         save(user);
         TeamEntity team = new TeamEntity();
         team.setUserId(user.getId());
@@ -129,7 +138,7 @@ public class UserService extends ServiceImpl<UserMapper, UserEntity> {
         user.setSource(UserSource.LOCAL);
         user.setLanguage("zh-CN");
         user.setPhone("");
-        user.setEmail("");
+        user.setEmail("1334512682@qq.com");
         save(user);
         TeamEntity team = new TeamEntity();
         team.setUserId(user.getId());

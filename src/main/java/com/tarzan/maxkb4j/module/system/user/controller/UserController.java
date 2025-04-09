@@ -4,19 +4,19 @@ import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.stp.StpUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.tarzan.maxkb4j.core.api.R;
 import com.tarzan.maxkb4j.module.system.user.dto.PasswordDTO;
 import com.tarzan.maxkb4j.module.system.user.dto.UserDTO;
 import com.tarzan.maxkb4j.module.system.user.dto.UserLoginDTO;
 import com.tarzan.maxkb4j.module.system.user.entity.UserEntity;
 import com.tarzan.maxkb4j.module.system.user.service.UserService;
 import com.tarzan.maxkb4j.module.system.user.vo.UserVO;
-import com.tarzan.maxkb4j.core.api.R;
+import com.tarzan.maxkb4j.util.StringUtil;
 import jakarta.mail.MessagingException;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Objects;
 
 /**
  * @author tarzan
@@ -97,7 +97,10 @@ public class UserController{
 
 	@PutMapping("api/user_manage/{id}/re_password")
 	public R<Boolean> updatePassword(@PathVariable("id")String id,@RequestBody PasswordDTO dto){
-		if(!Objects.equals(dto.getPassword(), dto.getRePassword())){
+		if (StringUtil.isBlank(dto.getPassword())){
+			return R.fail("密码不能为空");
+		}
+		if(!dto.getPassword().equals(dto.getRePassword())){
 			return R.fail("密码输入不一致");
 		}
 		return R.status(userService.updatePassword(id,dto));

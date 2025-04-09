@@ -1,5 +1,6 @@
 package com.tarzan.maxkb4j.module.functionlib.service;
 
+import cn.dev33.satoken.stp.StpUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -22,6 +23,7 @@ public class FunctionLibService extends ServiceImpl<FunctionLibMapper, FunctionL
         if(StringUtils.isNotBlank(name)){
             wrapper.like(FunctionLibEntity::getName,name);
         }
+        wrapper.eq(FunctionLibEntity::getPermissionType, "PUBLIC").or().eq(FunctionLibEntity::getUserId, StpUtil.getLoginIdAsString());
         wrapper.orderByDesc(FunctionLibEntity::getCreateTime);
         return this.page(page,wrapper);
     }
