@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 @AllArgsConstructor
 @Component
@@ -39,7 +40,7 @@ public class PostHandler extends PostResponseHandler {
         chatRecord.setVoteStatus("-1");
         chatRecord.setCost(0);
         chatRecord.setDetails(manage.getDetails());
-        chatRecord.setImproveParagraphIdList(new String[0]);
+        chatRecord.setImproveParagraphIdList(Set.of());
         chatInfo.getChatRecordList().add(chatRecord);
         ChatCache.put(chatInfo.getChatId(), chatInfo);
         if (Objects.nonNull(chatInfo.getApplication().getId())) {

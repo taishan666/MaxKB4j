@@ -1,3 +1,4 @@
+/*
 package com.tarzan.maxkb4j.core.handler.type;
 
 import org.apache.ibatis.type.BaseTypeHandler;
@@ -47,4 +48,4 @@ public class UUIDTypeHandler extends BaseTypeHandler<UUID> {
     private boolean notNull(String value){
         return (null != value && !value.isEmpty());
     }
-}
+}*/

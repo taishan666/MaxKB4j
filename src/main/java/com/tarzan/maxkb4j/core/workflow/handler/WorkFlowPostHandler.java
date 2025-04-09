@@ -15,6 +15,7 @@ import com.tarzan.maxkb4j.util.SpringUtil;
 import lombok.Data;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 
@@ -78,7 +79,7 @@ public class WorkFlowPostHandler {
             chatRecord.setVoteStatus("-1");
             chatRecord.setCost(messageTokens+answerTokens);
             chatRecord.setDetails(details);
-            chatRecord.setImproveParagraphIdList(new String[0]);
+            chatRecord.setImproveParagraphIdList(new HashSet<>());
         }
         chatInfo.addChatRecord(chatRecord);
         // 重新设置缓存
