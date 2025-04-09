@@ -40,7 +40,6 @@ public class BaseImageGenerateNode extends INode {
         JSONObject modelParamsSetting=nodeParams.getModelParamsSetting();
         modelParamsSetting.put("negative_prompt",negativePrompt);
         List<ChatFile> imageList=super.workflowManage.getImageList();
-        System.out.println(imageList);
         StringBuilder answerSb=new StringBuilder();
         List<String> imageUrls = new ArrayList<>();
         ImageModel imageModel = modelService.getModelById(nodeParams.getModelId(), modelParamsSetting);
@@ -62,7 +61,7 @@ public class BaseImageGenerateNode extends INode {
             for (Image image : images) {
                 String imageMd ="!["+prompt+"](" + image.url() + ")";
                 answerSb.append(" ").append(imageMd);
-                imageUrls.add(image.url().getPath());
+                imageUrls.add(image.url().toString());
             }
         }
         return new NodeResult(Map.of("answer",answerSb.toString(),"image",imageUrls),Map.of());
