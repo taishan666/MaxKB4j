@@ -2,9 +2,9 @@ package com.tarzan.maxkb4j.module.resource.service;
 
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.tarzan.maxkb4j.core.workflow.dto.ChatFile;
 import com.tarzan.maxkb4j.module.resource.entity.FileEntity;
 import com.tarzan.maxkb4j.module.resource.mapper.FileMapper;
-import com.tarzan.maxkb4j.module.resource.vo.FileVO;
 import lombok.AllArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -19,23 +19,8 @@ public class FileService extends ServiceImpl<FileMapper, FileEntity>{
 
     private final JdbcTemplate jdbcTemplate;
 
-    public JSONObject uploadFile(String fileName, byte[] fileBytes) {
-        JSONObject vo=new JSONObject();
-        String sql = "SELECT lo_from_bytea(?, ?::bytea) AS loid";
-        int loid;
-        loid = jdbcTemplate.queryForObject(sql, (rs, rowNum) -> rs.getInt("loid"), 0, fileBytes);
-        FileEntity fileEntity=new FileEntity();
-        fileEntity.setFileName(fileName);
-        fileEntity.setLoid(loid);
-        fileEntity.setMeta(new JSONObject());
-        save(fileEntity);
-        vo.put("file_id",fileEntity.getId());
-        vo.put("name",fileName);
-        vo.put("url","/api/file/"+fileEntity.getId());
-        return vo;
-    }
-    public FileVO uploadFile1(String fileName, byte[] fileBytes) {
-        FileVO vo=new FileVO();
+    public ChatFile uploadFile(String fileName, byte[] fileBytes) {
+        ChatFile vo=new ChatFile();
         String sql = "SELECT lo_from_bytea(?, ?::bytea) AS loid";
         int loid;
         loid = jdbcTemplate.queryForObject(sql, (rs, rowNum) -> rs.getInt("loid"), 0, fileBytes);
@@ -47,6 +32,7 @@ public class FileService extends ServiceImpl<FileMapper, FileEntity>{
         vo.setFileId(fileEntity.getId());
         vo.setName(fileName);
         vo.setUrl("/api/file/"+fileEntity.getId());
+        vo.setSize(fileBytes.length);
         return vo;
     }
 

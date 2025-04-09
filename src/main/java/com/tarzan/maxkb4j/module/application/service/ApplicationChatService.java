@@ -2,7 +2,6 @@ package com.tarzan.maxkb4j.module.application.service;
 
 import cn.dev33.satoken.stp.StpUtil;
 import com.alibaba.excel.EasyExcel;
-import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
@@ -11,6 +10,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tarzan.maxkb4j.core.exception.ApiException;
 import com.tarzan.maxkb4j.core.workflow.WorkflowManage;
+import com.tarzan.maxkb4j.core.workflow.dto.ChatFile;
 import com.tarzan.maxkb4j.core.workflow.handler.WorkFlowPostHandler;
 import com.tarzan.maxkb4j.core.workflow.info.Flow;
 import com.tarzan.maxkb4j.core.workflow.node.start.input.FlowParams;
@@ -290,8 +290,8 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
     }
 
 
-    public List<JSONObject> uploadFile(String id, String chatId, MultipartFile[] files) {
-        List<JSONObject> fileList = new ArrayList<>();
+    public List<ChatFile> uploadFile(String id, String chatId, MultipartFile[] files) {
+        List<ChatFile> fileList = new ArrayList<>();
         for (MultipartFile file : files) {
             try {
                 fileList.add(fileService.uploadFile(file.getOriginalFilename(),file.getBytes()));

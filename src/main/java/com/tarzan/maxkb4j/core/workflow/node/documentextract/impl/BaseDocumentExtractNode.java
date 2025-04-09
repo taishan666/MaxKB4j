@@ -3,6 +3,7 @@ package com.tarzan.maxkb4j.core.workflow.node.documentextract.impl;
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.NodeResult;
+import com.tarzan.maxkb4j.core.workflow.dto.ChatFile;
 import com.tarzan.maxkb4j.core.workflow.node.documentextract.input.DocumentExtractParams;
 import com.tarzan.maxkb4j.module.resource.service.FileService;
 import com.tarzan.maxkb4j.util.SpringUtil;
@@ -136,9 +137,9 @@ public class BaseDocumentExtractNode extends INode {
                         String src = attrs.getValue("src");
                         if (src != null && src.startsWith("embedded:")) {
                             String imageName = src.split(":")[1];
-                            JSONObject image=fileService.uploadFile(imageName, new byte[0]);
-                            imageMap.put(imageName, image.getString("file_id"));
-                            markdown.append("![").append(imageName).append("](").append(image.getString("url")).append(")\n");
+                            ChatFile image=fileService.uploadFile(imageName, new byte[0]);
+                            imageMap.put(imageName, image.getFileId());
+                            markdown.append("![").append(imageName).append("](").append(image.getUrl()).append(")\n");
                         }
                     }
                 }

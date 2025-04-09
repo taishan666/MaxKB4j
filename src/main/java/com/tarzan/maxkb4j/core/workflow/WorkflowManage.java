@@ -3,6 +3,7 @@ package com.tarzan.maxkb4j.core.workflow;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.workflow.dto.Answer;
+import com.tarzan.maxkb4j.core.workflow.dto.ChatFile;
 import com.tarzan.maxkb4j.core.workflow.handler.WorkFlowPostHandler;
 import com.tarzan.maxkb4j.core.workflow.info.Edge;
 import com.tarzan.maxkb4j.core.workflow.info.Flow;
@@ -38,9 +39,9 @@ public class WorkflowManage {
     private String startNodeId;
     private INode startNode;
     private Map<String, Object> formData;
-    private List<JSONObject> imageList;
-    private List<JSONObject> documentList;
-    private List<JSONObject> audioList;
+    private List<ChatFile> imageList;
+    private List<ChatFile> documentList;
+    private List<ChatFile> audioList;
     private FlowParams params;
     private Flow flow;
     private JSONObject context = new JSONObject();
@@ -58,8 +59,8 @@ public class WorkflowManage {
     private ExecutorService executorService = Executors.newFixedThreadPool(5);
 
     public WorkflowManage(Flow flow, FlowParams params, WorkFlowPostHandler workFlowPostHandler,
-                          Map<String, Object> formData, List<JSONObject> imageList,
-                          List<JSONObject> documentList, List<JSONObject> audioList, String startNodeId,
+                          Map<String, Object> formData, List<ChatFile> imageList,
+                          List<ChatFile> documentList, List<ChatFile> audioList, String startNodeId,
                           Map<String, Object> startNodeData, ApplicationChatRecordVO chatRecord, JSONObject childNode) {
         this.formData = formData;
         this.imageList = imageList;

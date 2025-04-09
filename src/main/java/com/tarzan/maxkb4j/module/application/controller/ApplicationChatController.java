@@ -1,9 +1,9 @@
 package com.tarzan.maxkb4j.module.application.controller;
 
 import cn.dev33.satoken.stp.StpUtil;
-import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.tarzan.maxkb4j.core.api.R;
+import com.tarzan.maxkb4j.core.workflow.dto.ChatFile;
 import com.tarzan.maxkb4j.module.application.dto.ChatQueryDTO;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationChatEntity;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationChatRecordEntity;
@@ -75,7 +75,7 @@ public class ApplicationChatController {
     }
 
     @PostMapping("api/application/{id}/chat/{chatId}/upload_file")
-    public R<List<JSONObject>> uploadFile(@PathVariable String id, @PathVariable String chatId, MultipartFile[] file) {
+    public R<List<ChatFile>> uploadFile(@PathVariable String id, @PathVariable String chatId, MultipartFile[] file) {
         return R.success(chatService.uploadFile(id,chatId,file));
     }
 

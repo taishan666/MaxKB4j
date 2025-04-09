@@ -1,6 +1,7 @@
 package com.tarzan.maxkb4j.module.application.dto;
 
 import com.alibaba.fastjson.JSONObject;
+import com.tarzan.maxkb4j.core.workflow.dto.ChatFile;
 import lombok.Data;
 
 import java.util.List;
@@ -14,9 +15,9 @@ public class ChatMessageDTO {
     private JSONObject formData;
     private JSONObject nodeData;
     private String runtimeNodeId;
-    private List<JSONObject> audioList;
-    private List<JSONObject> documentList;
-    private List<JSONObject> imageList;
-    private List<JSONObject> videoList;
+    private List<ChatFile> audioList;
+    private List<ChatFile> documentList;
+    private List<ChatFile> imageList;
+   // private List<JSONObject> videoList;
 
 }

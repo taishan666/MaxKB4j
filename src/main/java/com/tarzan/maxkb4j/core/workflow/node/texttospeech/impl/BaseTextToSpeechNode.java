@@ -3,6 +3,7 @@ package com.tarzan.maxkb4j.core.workflow.node.texttospeech.impl;
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.NodeResult;
+import com.tarzan.maxkb4j.core.workflow.dto.ChatFile;
 import com.tarzan.maxkb4j.core.workflow.node.texttospeech.input.TextToSpeechParams;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseTextToSpeech;
@@ -33,9 +34,9 @@ public class BaseTextToSpeechNode extends INode {
         Object content=super.getWorkflowManage().getReferenceField(contentList.get(0),contentList.subList(1, contentList.size()));
         BaseTextToSpeech ttsModel = modelService.getModelById(nodeParams.getModelId(), nodeParams.getModelParamsSetting());
         byte[]  audioData = ttsModel.textToSpeech(content.toString());
-        JSONObject fileVO = fileService.uploadFile("generated_audio.mp3",audioData);
+        ChatFile fileVO = fileService.uploadFile("generated_audio.mp3",audioData);
         // 使用字符串拼接生成 HTML 音频标签
-        String audioLabel = "<audio src=\"" + fileVO.getString("url") + "\" controls style=\"width: 300px; height: 43px\"></audio>";
+        String audioLabel = "<audio src=\"" + fileVO.getUrl() + "\" controls style=\"width: 300px; height: 43px\"></audio>";
         // 输出生成的 HTML 标签
         return new NodeResult(Map.of("answer",audioLabel,"content",content,"result",List.of(fileVO)),Map.of());
     }
