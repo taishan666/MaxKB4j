@@ -2,7 +2,7 @@
 -- ----------------------------
 -- 创建vector 扩展
 -- ----------------------------
-CREATE EXTENSION "vector";
+CREATE EXTENSION IF NOT EXISTS "vector";
 -- ----------------------------
 -- Table structure for system_setting
 -- ----------------------------

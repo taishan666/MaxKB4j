@@ -15,12 +15,14 @@ public  class BaseModelCredential {
 
     public List<BaseFiled> toForm() {
         List<BaseFiled> list=new ArrayList<>(2);
-        if(needBaseUrl){
+       /* if(needBaseUrl){
             list.add(new TextInputField("API 域名","api_base"));
         }
         if(needApiKey){
             list.add(new TextInputField("API KEY" ,"api_key"));
-        }
+        }*/
+        list.add(new TextInputField("API 域名","api_base",false));
+        list.add(new TextInputField("API KEY" ,"api_key",true));
         return list;
     }
 }
