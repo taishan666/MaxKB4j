@@ -27,6 +27,9 @@ public class SingleSelectFiled extends BaseFiled{
             option.put("value",entry.getValue());
             optionList.add(option);
         }
+        super.setProps_info(new JSONObject());
+        super.setRelation_show_field_dict(new JSONObject());
+        super.setRelation_trigger_field_dict(new JSONObject());
         super.setOption_list(optionList);
         super.setLabel(label);
         super.setField(field);
@@ -35,5 +38,6 @@ public class SingleSelectFiled extends BaseFiled{
         super.setTrigger_type("OPTION_LIST");
         super.setRequired(true);
         super.setDefault_value(defaultValue);
+        super.setShow_default_value(true);
     }
 }

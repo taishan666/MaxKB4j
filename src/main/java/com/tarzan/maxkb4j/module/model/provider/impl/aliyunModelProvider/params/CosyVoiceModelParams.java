@@ -25,7 +25,7 @@ public class CosyVoiceModelParams implements BaseModelParams {
                 "龙书","longshu",
                 "龙硕","longshuo"
         );
-        BaseFiled voiceSelectFiled=new SingleSelectFiled("音色","voice","指定音色名称",options,"1024*1024");
+        BaseFiled voiceSelectFiled=new SingleSelectFiled("音色","voice","指定音色名称",options,"longxiaochun");
         BaseFiled volumeFiled=new SliderFiled(1,100,1,0,"音量","volume","指定音量，取值范围：0~100。",50);
         BaseFiled speechRateField=new SliderFiled(0.5F,2F,0.1F,1,"语速","speechRate","取值范围：0.5~2倍速。",1);
         return List.of(voiceSelectFiled,volumeFiled,speechRateField);
