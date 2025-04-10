@@ -2,12 +2,14 @@ package com.tarzan.maxkb4j.core.form;
 
 import com.alibaba.fastjson.JSONObject;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class SingleSelectFiled extends BaseFiled{
 
 
-    public SingleSelectFiled(String labelName, String field, String tooltip,List<JSONObject> optionList, Object defaultValue) {
+    public SingleSelectFiled(String labelName, String field, String tooltip, Map<String,Object> options, Object defaultValue) {
         super.setInput_type("SingleSelect");
         JSONObject attrs =new JSONObject();
         super.setAttrs(attrs);
@@ -18,6 +20,13 @@ public class SingleSelectFiled extends BaseFiled{
         label.put("input_type","TooltipLabel");
         label.put("label",labelName);
         label.put("props_info",new JSONObject());
+        List<JSONObject> optionList=new ArrayList<>();
+        for (Map.Entry<String, Object> entry : options.entrySet()) {
+            JSONObject option=new JSONObject();
+            option.put("label",entry.getKey());
+            option.put("value",entry.getValue());
+            optionList.add(option);
+        }
         super.setOption_list(optionList);
         super.setLabel(label);
         super.setField(field);

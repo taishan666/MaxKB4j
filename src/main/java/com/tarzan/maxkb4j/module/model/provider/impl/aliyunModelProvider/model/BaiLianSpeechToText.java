@@ -21,38 +21,34 @@ import java.nio.file.Path;
 @NoArgsConstructor
 public class BaiLianSpeechToText extends BaseSpeechToText implements BaseModel {
 
-    private String apiBase;
-    private String apiKey;
+    private RecognitionParam param;
 
-
-    public BaiLianSpeechToText(String apiBase, String apiKey) {
+    public BaiLianSpeechToText(RecognitionParam param) {
         super();
-        this.apiBase = apiBase;
-        this.apiKey = apiKey;
+        this.param = param;
     }
 
     @Override
     public <T> T build(String modelName, ModelCredential credential, JSONObject params) {
-        return (T) new BaiLianSpeechToText(credential.getBaseUrl(), credential.getApiKey());
+        RecognitionParam param =
+                RecognitionParam.builder()
+                        .apiKey(credential.getApiKey())
+                        .model(modelName)
+                        .format("mp3")
+                        .sampleRate(22050)
+                        .parameter("language_hints", new String[]{"zh", "en"})
+                        .build();
+        return (T) new BaiLianSpeechToText(param);
     }
 
     @Override
     public String speechToText(byte[] audioBytes) {
         // 创建Recognition实例
         Recognition recognizer = new Recognition();
-        // 创建RecognitionParam
-        RecognitionParam param =
-                RecognitionParam.builder()
-                        .apiKey(apiKey)
-                        .model("paraformer-realtime-v2")
-                        .format("mp3")
-                        .sampleRate(22050)
-                        .parameter("language_hints", new String[]{"zh", "en"})
-                        .build();
         // 创建临时文件
         Path tempFile;
         try {
-            tempFile = Files.createTempFile("temp_audio",".mp3");
+            tempFile = Files.createTempFile("temp_audio_"+System.currentTimeMillis(),".mp3");
             // 将 byte[] 写入临时文件
             Files.write(tempFile, audioBytes);
         } catch (IOException e) {

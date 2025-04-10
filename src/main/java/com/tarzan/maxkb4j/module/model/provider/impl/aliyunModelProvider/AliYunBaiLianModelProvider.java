@@ -7,6 +7,7 @@ import com.tarzan.maxkb4j.module.model.provider.ModelProvideInfo;
 import com.tarzan.maxkb4j.module.model.provider.enums.ModelProviderEnum;
 import com.tarzan.maxkb4j.module.model.provider.enums.ModelTypeEnum;
 import com.tarzan.maxkb4j.module.model.provider.impl.aliyunModelProvider.model.*;
+import com.tarzan.maxkb4j.module.model.provider.impl.aliyunModelProvider.params.CosyVoiceModelParams;
 import com.tarzan.maxkb4j.util.IoUtil;
 import dev.langchain4j.community.model.dashscope.QwenModelName;
 import dev.langchain4j.community.model.dashscope.WanxModelName;
@@ -40,11 +41,12 @@ public class AliYunBaiLianModelProvider extends IModelProvider {
         modelInfos.add(new ModelInfo(QwenModelName.TEXT_EMBEDDING_V2,"文本向量模型", ModelTypeEnum.EMBEDDING.name(),new BaiLianEmbedding()));
         modelInfos.add(new ModelInfo(QwenModelName.TEXT_EMBEDDING_V3,"文本向量模型", ModelTypeEnum.EMBEDDING.name(),new BaiLianEmbedding()));
         modelInfos.add(new ModelInfo("paraformer-realtime-v2","语音识别模型", ModelTypeEnum.STT.name(), new BaiLianSpeechToText()));
-        modelInfos.add(new ModelInfo("cosyvoice-v1","语言生成模型",ModelTypeEnum.TTS.name(),new BaiLianTextToSpeech()));
+        modelInfos.add(new ModelInfo("cosyvoice-v1","语言生成模型",ModelTypeEnum.TTS.name(),new BaiLianTextToSpeech(),new CosyVoiceModelParams()));
         modelInfos.add(new ModelInfo(QwenModelName.QWEN_VL_PLUS,"AI视觉模型",ModelTypeEnum.IMAGE.name(), new BaiLianChatModel()));
         modelInfos.add(new ModelInfo(QwenModelName.QWEN_VL_MAX,"AI视觉模型",ModelTypeEnum.IMAGE.name(), new BaiLianChatModel()));
         modelInfos.add(new ModelInfo(WanxModelName.WANX2_1_T2I_TURBO,"文生图模型",ModelTypeEnum.TTI.name(),new QWenImageModel(),new ImageModelParams()));
         modelInfos.add(new ModelInfo(WanxModelName.WANX2_1_T2I_PLUS,"文生图模型",ModelTypeEnum.TTI.name(),new QWenImageModel(),new ImageModelParams()));
+        modelInfos.add(new ModelInfo("stable-diffusion-3.5-large-turbo","文生图模型",ModelTypeEnum.TTI.name(),new QWenImageModel(),new ImageModelParams()));
         modelInfos.add(new ModelInfo("gte-rerank","",ModelTypeEnum.RERANKER.name(),new BaiLianReranker()));
         return modelInfos;
     }

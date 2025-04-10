@@ -1,6 +1,5 @@
 package com.tarzan.maxkb4j.module.model.provider;
 
-import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.form.BaseFiled;
 import com.tarzan.maxkb4j.core.form.SingleSelectFiled;
 import com.tarzan.maxkb4j.core.form.SliderFiled;
@@ -8,19 +7,20 @@ import com.tarzan.maxkb4j.core.form.SwitchField;
 import dev.langchain4j.community.model.dashscope.WanxImageSize;
 import lombok.Data;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Data
 public  class ImageModelParams implements BaseModelParams{
 
     @Override
     public List<BaseFiled> toForm() {
-        List<JSONObject> sizeOptionList=new ArrayList<>();
-        sizeOptionList.add(new JSONObject().fluentPut("label", WanxImageSize.SIZE_1024_1024).fluentPut("value", WanxImageSize.SIZE_1024_1024));
-        sizeOptionList.add(new JSONObject().fluentPut("label",WanxImageSize.SIZE_720_1280).fluentPut("value",WanxImageSize.SIZE_720_1280));
-        sizeOptionList.add(new JSONObject().fluentPut("label",WanxImageSize.SIZE_1280_720).fluentPut("value",WanxImageSize.SIZE_1280_720));
-        BaseFiled sizeSelectFiled=new SingleSelectFiled("图片尺寸","size","生成图片的尺寸",sizeOptionList,WanxImageSize.SIZE_1024_1024);
+        Map<String,Object> options=Map.of(
+                "1024*1024","1024*1024",
+                "720*1280","720*1280",
+                "1280*720","1280*720"
+        );
+        BaseFiled sizeSelectFiled=new SingleSelectFiled("图片尺寸","size","生成图片的尺寸",options,WanxImageSize.SIZE_1024_1024);
         BaseFiled sliderFiled=new SliderFiled(1,4,1,0,"生成图片的数量","n","生成图片的数量。取值范围为1~4张",1);
         BaseFiled switchField=new SwitchField("提示词扩展","prompt_extend","提示词自动优化",false);
         return List.of(sizeSelectFiled,sliderFiled,switchField);

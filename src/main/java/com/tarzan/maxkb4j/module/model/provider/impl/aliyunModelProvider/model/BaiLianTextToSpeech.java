@@ -17,34 +17,29 @@ import java.nio.ByteBuffer;
 @NoArgsConstructor
 public class BaiLianTextToSpeech extends BaseTextToSpeech implements BaseModel {
 
-    private String apiBase;
-    private String apiKey;
-    private String modelName;
+    private SpeechSynthesisParam param;
+    private static String defaultVoice = "longxiaochun";
 
 
-
-    private static String model = "cosyvoice-v1";
-    private static String voice = "longxiaochun";
-
-    public BaiLianTextToSpeech(String apiBase, String apiKey,String modelName) {
+    public BaiLianTextToSpeech(SpeechSynthesisParam param) {
         super();
-        this.apiBase = apiBase;
-        this.apiKey = apiKey;
-        this.modelName = modelName;
+        this.param = param;
     }
     @Override
     public <T> T build(String modelName, ModelCredential credential, JSONObject params) {
-        return (T) new BaiLianTextToSpeech(credential.getBaseUrl(),credential.getApiKey(),modelName);
+        SpeechSynthesisParam param =
+                SpeechSynthesisParam.builder()
+                        .apiKey(credential.getApiKey())
+                        .model(modelName)
+                        .voice(params==null?defaultVoice:params.getString("voice"))
+                        .speechRate(params==null?1.0f:params.getFloat("speechRate"))
+                        .volume(params==null?50:params.getInteger("volume"))
+                        .build();
+        return (T) new BaiLianTextToSpeech(param);
     }
 
     @Override
     public byte[] textToSpeech(String text) {
-        SpeechSynthesisParam param =
-                SpeechSynthesisParam.builder()
-                        .apiKey(this.apiKey)
-                        .model(this.modelName)
-                        .voice(voice)
-                        .build();
         SpeechSynthesizer synthesizer = new SpeechSynthesizer(param, null);
         ByteBuffer audio = synthesizer.call(text);
         return audio.array();

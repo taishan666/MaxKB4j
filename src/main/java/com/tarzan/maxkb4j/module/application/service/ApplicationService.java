@@ -426,6 +426,12 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         return retrieveService.paragraphSearch(datasetIds, dto);
     }
 
+    public byte[] playDemoText(String appId, JSONObject data) {
+        String ttsModelId = data.getString("ttsModelId");
+        BaseTextToSpeech ttsModel = modelService.getModelById(ttsModelId,data);
+        return ttsModel.textToSpeech("你好，这里是语音播放测试");
+    }
+
     public byte[] textToSpeech(String id, JSONObject data) {
         String text = data.getString("text");
         ApplicationEntity app = this.getById(id);
@@ -597,4 +603,6 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
             return vo;
         }).collect(Collectors.toList());
     }
+
+
 }

@@ -117,6 +117,15 @@ public class ApplicationController {
         return R.success(applicationService.deleteByAppId(appId));
     }
 
+    @PostMapping("api/application/{appId}/play_demo_text")
+    public ResponseEntity<byte[]> playDemoText(@PathVariable("appId") String appId, @RequestBody JSONObject data) {
+        // 设置 HTTP 响应头
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.parseMediaType("audio/mp3"));
+        headers.setContentDispositionFormData("attachment", "abc.mp3");
+        return new ResponseEntity<>(applicationService.playDemoText(appId, data), headers, HttpStatus.OK);
+    }
+
     @PostMapping("api/application/{appId}/text_to_speech")
     public ResponseEntity<byte[]> textToSpeech(@PathVariable("appId") String appId, @RequestBody JSONObject data) {
         // 设置 HTTP 响应头
