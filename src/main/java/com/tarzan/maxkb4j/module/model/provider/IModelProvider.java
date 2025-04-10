@@ -20,14 +20,19 @@ public abstract class IModelProvider {
         ModelInfo modelInfo = modelInfoManage.getModelInfo(modelType,modelName);
         assert modelInfo != null;
         return modelInfo.getModelCredential();
-    };
+    }
 
     public BaseModelParams getModelParams(String modelType, String modelName){
         ModelInfoManage modelInfoManage=getModelInfoManage();
         ModelInfo modelInfo = modelInfoManage.getModelInfo(modelType,modelName);
         assert modelInfo != null;
         return modelInfo.getModelParams();
-    };
+    }
+
+    public boolean isSupport(String modelType) {
+        List<ModelInfo> modelInfos =getModelList();
+        return modelInfos.stream().anyMatch(e -> e.getModelType().equals(modelType));
+    }
 
     <T> T build(String modelName, String modelType, ModelCredential modelCredential) {
         List<ModelInfo> modelList = getModelList();

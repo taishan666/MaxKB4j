@@ -20,7 +20,7 @@ import com.tarzan.maxkb4j.module.model.provider.impl.openaimodelprovider.OpenaiM
 import com.tarzan.maxkb4j.module.model.provider.impl.wenxinmodelprovider.WenXinModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.impl.xinferencemodelprovider.XInferenceModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.impl.zhipumodelprovider.ZhiPuModelProvider;
-import com.tarzan.maxkb4j.module.model.provider.vo.ModelInputVO;
+import com.tarzan.maxkb4j.util.StringUtil;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -42,25 +42,28 @@ public class ModelController{
 
     @GetMapping("api/provider")
 	public R<Set<ModelProvideInfo>> provider(String modelType){
-		Set<ModelProvideInfo> set= new HashSet<>();
-		set.add(new AliYunBaiLianModelProvider().getModelProvideInfo());
-		//set.add(new AwsBedrockModelProvider().getModelProvideInfo());
-		set.add(new AzureModelProvider().getModelProvideInfo());
-		set.add(new DeepSeekModelProvider().getModelProvideInfo());
-		//set.add(new KimiModelProvider().getModelProvideInfo());
-		set.add(new OLlamaModelProvider().getModelProvideInfo());
-		set.add(new OpenaiModelProvider().getModelProvideInfo());
-		//set.add(new GeminiModelProvider().getModelProvideInfo());
-	//	set.add(new QwenModelProvider().getModelProvideInfo());
-		//set.add(new TencentModelProvider().getModelProvideInfo());
-		set.add(new WenXinModelProvider().getModelProvideInfo());
-		//set.add(new XfModelProvider().getModelProvideInfo());
-		set.add(new ZhiPuModelProvider().getModelProvideInfo());
-	//	set.add(new VLlmModelProvider().getModelProvideInfo());
-		set.add(new XInferenceModelProvider().getModelProvideInfo());
-	//	set.add(new VolcanicEngineModelProvider().getModelProvideInfo());
-	//	set.add(new LocalModelProvider().getModelProvideInfo());
-		return R.success(set);
+		Set<IModelProvider> set= new HashSet<>();
+		set.add(new AliYunBaiLianModelProvider());
+		//set.add(new AwsBedrockModelProvider());
+		set.add(new AzureModelProvider());
+		set.add(new DeepSeekModelProvider());
+		//set.add(new KimiModelProvider());
+		set.add(new OLlamaModelProvider());
+		set.add(new OpenaiModelProvider());
+		//set.add(new GeminiModelProvider());
+	//	set.add(new QwenModelProvider());
+		//set.add(new TencentModelProvider());
+		set.add(new WenXinModelProvider());
+		//set.add(new XfModelProvider());
+		set.add(new ZhiPuModelProvider());
+	//	set.add(new VLlmModelProvider());
+		set.add(new XInferenceModelProvider());
+	//	set.add(new VolcanicEngineModelProvider());
+	//	set.add(new LocalModelProvider());
+		if (StringUtil.isBlank(modelType)){
+			return R.success(set.stream().map(IModelProvider::getModelProvideInfo).collect(Collectors.toSet()));
+		}
+		return R.success(set.stream().filter(e->e.isSupport(modelType)).map(IModelProvider::getModelProvideInfo).collect(Collectors.toSet()));
 	}
 
 

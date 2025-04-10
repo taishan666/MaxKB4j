@@ -192,7 +192,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         try (InputStream fis = new ByteArrayInputStream(fileBytes)) {
             Workbook workbook = WorkbookFactory.create(fis);
             int numberOfSheets = workbook.getNumberOfSheets();
-            List<ProblemEntity> dbProblemEntities = problemService.lambdaQuery().eq(ProblemEntity::getDatasetId, datasetId).list();
+            List<ProblemEntity> allProblems = problemService.lambdaQuery().eq(ProblemEntity::getDatasetId, datasetId).list();
             List<ProblemEntity> problemEntities = new ArrayList<>();
             List<ProblemParagraphEntity> problemParagraphs = new ArrayList<>();
             List<ParagraphEntity> paragraphs = new ArrayList<>();
@@ -214,13 +214,14 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
                                     String[] problems = data.getProblems().split("\n");
                                     for (String problem : problems) {
                                         String problemId = IdWorker.get32UUID();
-                                        ProblemEntity existingProblem = problemService.findProblem(problem, problemEntities, dbProblemEntities);
+                                        ProblemEntity existingProblem = problemService.findProblem(problem, allProblems);
                                         if (existingProblem == null) {
                                             ProblemEntity problemEntity = ProblemEntity.createDefault();
                                             problemEntity.setId(problemId);
                                             problemEntity.setDatasetId(datasetId);
                                             problemEntity.setContent(problem);
                                             problemEntities.add(problemEntity);
+                                            allProblems.add(problemEntity);
                                         } else {
                                             problemId = existingProblem.getId();
                                         }

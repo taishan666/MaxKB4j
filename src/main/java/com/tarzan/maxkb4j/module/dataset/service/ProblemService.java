@@ -47,52 +47,59 @@ public class ProblemService extends ServiceImpl<ProblemMapper, ProblemEntity> {
 
 
     @Async
-    public void generateRelated(BaseChatModel chatModel, EmbeddingModel embeddingModel, String datasetId, String docId, ParagraphEntity paragraph, List<ProblemEntity> dbProblemEntities, List<ProblemEntity> docProblems, GenerateProblemDTO dto) {
+    public void generateRelated(BaseChatModel chatModel, EmbeddingModel embeddingModel, String datasetId, String docId, ParagraphEntity paragraph, List<ProblemEntity> allProblems,GenerateProblemDTO dto) {
         log.info("开始---->生成问题:{}", paragraph.getId());
         UserMessage userMessage = UserMessage.from(dto.getPrompt().replace("{data}", paragraph.getContent()));
         ChatResponse res = chatModel.generate(userMessage);
         String output = res.aiMessage().text();
-        List<String> problems = extractProblems(output);
-        List<ProblemEntity> paragraphProblems = new ArrayList<>();
-        if (!CollectionUtils.isEmpty(problems)) {
-            for (String problem : problems) {
+        List<String> paragraphProblems = extractProblems(output);
+        List<ProblemEntity> insertProblems = new ArrayList<>();
+        if (!CollectionUtils.isEmpty(paragraphProblems)) {
+            for (String problem : paragraphProblems) {
                 String problemId = IdWorker.get32UUID();
-                ProblemEntity existingProblem = findProblem(problem, docProblems, dbProblemEntities);
+                ProblemEntity existingProblem = findProblem(problem, allProblems);
                 if (existingProblem == null) {
                     ProblemEntity entity = ProblemEntity.createDefault();
                     entity.setId(problemId);
                     entity.setDatasetId(datasetId);
                     entity.setContent(problem);
-                    paragraphProblems.add(entity);
-                    baseMapper.insert(entity);
-                    docProblems.add(entity);
+                    insertProblems.add(entity);
+                    allProblems.add(entity);
                 } else {
                     problemId = existingProblem.getId();
                 }
-                ProblemParagraphEntity problemParagraph = new ProblemParagraphEntity();
-                problemParagraph.setProblemId(problemId);
-                problemParagraph.setParagraphId(paragraph.getId());
-                problemParagraph.setDatasetId(datasetId);
-                problemParagraph.setDocumentId(docId);
+                long count=problemParagraphService.lambdaQuery().eq(ProblemParagraphEntity::getProblemId, problemId).eq(ProblemParagraphEntity::getParagraphId, paragraph.getId()).count();
+                if(count==0){
+                    ProblemParagraphEntity problemParagraph = new ProblemParagraphEntity();
+                    problemParagraph.setProblemId(problemId);
+                    problemParagraph.setParagraphId(paragraph.getId());
+                    problemParagraph.setDatasetId(datasetId);
+                    problemParagraph.setDocumentId(docId);
+                    problemParagraphService.save(problemParagraph);
+                }
             }
         }
-        embeddingService.createProblems(embeddingModel, paragraphProblems, docId, paragraph.getId());
+        if (!CollectionUtils.isEmpty(insertProblems)) {
+            baseMapper.insert(insertProblems);
+        }
+        embeddingService.createProblems(embeddingModel, insertProblems, docId, paragraph.getId());
         log.info("结束---->生成问题:{}", paragraph.getId());
     }
 
     @Transactional
     public boolean createProblemsByDatasetId(String id, List<String> problems) {
         if (!CollectionUtils.isEmpty(problems)) {
-            List<ProblemEntity> dbProblemEntities = this.lambdaQuery().eq(ProblemEntity::getDatasetId, id).list();
+            List<ProblemEntity> allProblems = this.lambdaQuery().eq(ProblemEntity::getDatasetId, id).list();
             List<ProblemEntity> problemEntities = new ArrayList<>();
             for (String problem : problems) {
-                ProblemEntity existingProblem = findProblem(problem, problemEntities, dbProblemEntities);
+                ProblemEntity existingProblem = findProblem(problem, allProblems);
                 if (existingProblem == null) {
                     ProblemEntity entity = new ProblemEntity();
                     entity.setDatasetId(id);
                     entity.setContent(problem);
                     entity.setHitNum(0);
                     problemEntities.add(entity);
+                    allProblems.add(entity);
                 }
             }
             return this.saveBatch(problemEntities);
@@ -100,16 +107,10 @@ public class ProblemService extends ServiceImpl<ProblemMapper, ProblemEntity> {
         return false;
     }
 
-    public ProblemEntity findProblem(String problem, List<ProblemEntity> problemEntities, List<ProblemEntity> dbProblemEntities) {
+    public ProblemEntity findProblem(String problem, List<ProblemEntity> allProblems) {
         ProblemEntity existingProblem = null;
-        if (!CollectionUtils.isEmpty(dbProblemEntities)) {
-            existingProblem = dbProblemEntities.stream()
-                    .filter(e -> e.getContent().equals(problem))
-                    .findFirst()
-                    .orElse(null);
-        }
-        if (!CollectionUtils.isEmpty(problemEntities) && existingProblem == null) {
-            existingProblem = problemEntities.stream()
+        if (!CollectionUtils.isEmpty(allProblems)) {
+            existingProblem = allProblems.stream()
                     .filter(e -> e.getContent().equals(problem))
                     .findFirst()
                     .orElse(null);
@@ -130,11 +131,9 @@ public class ProblemService extends ServiceImpl<ProblemMapper, ProblemEntity> {
         // 移除开头的数字和句点
         if (problem != null && !problem.isEmpty()) {
             problem = problem.replaceAll("^\\d+\\.\\s*", "");
-
             // 定义匹配<question>标签内容的模式
             Pattern pattern = Pattern.compile("<question>(.*?)</question>", Pattern.DOTALL);
             Matcher matcher = pattern.matcher(problem);
-
             // 查找匹配并提取内容
             if (matcher.find()) {
                 problem = matcher.group(1);
@@ -150,7 +149,6 @@ public class ProblemService extends ServiceImpl<ProblemMapper, ProblemEntity> {
             // 如果输入字符串为空或null，则返回null
             return null;
         }
-
         return problem;
     }
 

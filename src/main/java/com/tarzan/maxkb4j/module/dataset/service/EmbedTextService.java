@@ -15,7 +15,6 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -49,24 +48,20 @@ public class EmbedTextService {
         if (CollectionUtils.isEmpty(dto.getDocumentIdList())) {
             return false;
         }
-        for (String docId : dto.getDocumentIdList()) {
-            paragraphService.updateStatusByDocId(docId, 2, 0);
-            documentService.updateStatusById(docId, 2, 0);
-            documentService.updateStatusMetaById(docId);
-        }
-    /*    paragraphService.updateStatusByDocIds(dto.getDocumentIdList(), 2, 0);
+        paragraphService.updateStatusByDocIds(dto.getDocumentIdList(), 2, 0);
+        documentService.updateStatusByIds(dto.getDocumentIdList(), 2, 0);
         documentService.updateStatusMetaByIds(dto.getDocumentIdList());
-        documentService.updateStatusByIds(dto.getDocumentIdList(), 2, 0);*/
         DatasetEntity dataset = datasetService.getById(datasetId);
         BaseChatModel chatModel = modelService.getModelById(dto.getModelId());
         EmbeddingModel embeddingModel = modelService.getModelById(dataset.getEmbeddingModelId());
         dto.getDocumentIdList().parallelStream().forEach(docId -> {
             List<ParagraphEntity> paragraphs = paragraphService.lambdaQuery().eq(ParagraphEntity::getDocumentId, docId).list();
-            List<ProblemEntity> docProblems = new ArrayList<>();
-            List<ProblemEntity> dbProblemEntities = problemService.lambdaQuery().eq(ProblemEntity::getDatasetId, datasetId).list();
+        //    List<ProblemEntity> allProblems = new ArrayList<>();
+            List<ProblemEntity> allProblems = problemService.lambdaQuery().eq(ProblemEntity::getDatasetId, datasetId).list();
+      //      allProblems.addAll(dbProblemEntities);
             documentService.updateStatusById(docId, 2, 1);
-            paragraphs.parallelStream().forEach(paragraph -> {
-                problemService.generateRelated(chatModel, embeddingModel, datasetId, docId, paragraph, dbProblemEntities, docProblems, dto);
+            paragraphs.forEach(paragraph -> {
+                problemService.generateRelated(chatModel, embeddingModel, datasetId, docId, paragraph, allProblems, dto);
                 paragraphService.updateStatusById(paragraph.getId(), 2, 2);
                 documentService.updateStatusMetaById(paragraph.getDocumentId());
             });
@@ -77,18 +72,17 @@ public class EmbedTextService {
 
 
     public boolean paragraphBatchGenerateRelated(String datasetId, String docId, GenerateProblemDTO dto) {
-       // paragraphService.updateStatusByDocIds(List.of(docId), 2, 0);
-      //  documentService.updateStatusMetaByIds(List.of(docId));
-      //  documentService.updateStatusByIds(List.of(docId), 2, 0);
+        paragraphService.updateStatusByDocIds(List.of(docId), 2, 0);
+        documentService.updateStatusMetaByIds(List.of(docId));
+        documentService.updateStatusByIds(List.of(docId), 2, 0);
         DatasetEntity dataset = datasetService.getById(datasetId);
         BaseChatModel chatModel = modelService.getModelById(dto.getModelId());
         EmbeddingModel embeddingModel = modelService.getModelById(dataset.getEmbeddingModelId());
         List<ParagraphEntity> paragraphs = paragraphService.lambdaQuery().eq(ParagraphEntity::getDocumentId, docId).list();
-        List<ProblemEntity> docProblems = new ArrayList<>();
-        List<ProblemEntity> dbProblemEntities = problemService.lambdaQuery().eq(ProblemEntity::getDatasetId, datasetId).list();
+        List<ProblemEntity> allProblems = problemService.lambdaQuery().eq(ProblemEntity::getDatasetId, datasetId).list();
         documentService.updateStatusById(docId, 2, 1);
         paragraphs.parallelStream().forEach(paragraph -> {
-            problemService.generateRelated(chatModel, embeddingModel, datasetId, docId, paragraph, dbProblemEntities, docProblems, dto);
+            problemService.generateRelated(chatModel, embeddingModel, datasetId, docId, paragraph, allProblems, dto);
             documentService.updateStatusMetaById(paragraph.getDocumentId());
         });
         documentService.updateStatusById(docId, 2, 2);
