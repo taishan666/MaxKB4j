@@ -3,8 +3,9 @@ package com.tarzan.maxkb4j.core.workflow.node.documentextract.impl;
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.NodeResult;
+import com.tarzan.maxkb4j.core.workflow.dto.ChatFile;
 import com.tarzan.maxkb4j.core.workflow.node.documentextract.input.DocumentExtractParams;
-import com.tarzan.maxkb4j.module.resource.service.FileService;
+import com.tarzan.maxkb4j.module.resource.service.MongoFileService;
 import com.tarzan.maxkb4j.util.SpringUtil;
 import org.apache.tika.exception.TikaException;
 import org.apache.tika.extractor.EmbeddedDocumentExtractor;
@@ -27,103 +28,13 @@ import java.util.Map;
 
 public class BaseDocumentExtractNode extends INode {
 
-    private final FileService fileService;
+    private final MongoFileService fileService;
 
     public BaseDocumentExtractNode() {
-        this.fileService = SpringUtil.getBean(FileService.class);
+        this.fileService = SpringUtil.getBean(MongoFileService.class);
     }
-
-    // 自定义ContentHandler用于插入占位符
-    static class MarkdownImageHandler extends ContentHandlerDecorator {
-        private final StringBuilder markdown = new StringBuilder();
-
-        private String localName=null;
-
-        @Override
-        public void characters(char[] ch, int start, int length) {
-            String text= new String(ch, start, length);
-            if(this.localName.equals("h1")){
-                markdown.append("# ").append(text);
-            }else if(this.localName.equals("p")){
-                markdown.append("\n").append(text);
-            }else {
-                markdown.append(text);
-            }
-        }
-
-        @Override
-        public void startElement(String uri, String localName, String qName, Attributes attrs) {
-            this.localName=localName;
-            //  System.out.println("localName="+localName+"  qName="+qName+"  text="+text);
-            if ("img".equals(localName)) { // 捕获图片节点
-                String src = attrs.getValue("src");
-                if (src != null && src.startsWith("embedded:")) {
-                    String imageName = src.split(":")[1];
-                    String tempUrl=imageName+"_replacement_image_url";
-                    markdown.append("![").append(imageName).append("](").append(tempUrl).append(")\n");
-                }
-            }
-        }
-
-        public String getMarkdown() {
-            return markdown.toString();
-        }
-
-    }
-
 
     String splitter = "\n-----------------------------------\n";
-
-/*    public NodeResult execute1(DocumentExtractParams nodeParams)  {
-        // 假设我们有一个 Supplier<ContentHandler>
-        List<String> documentList=nodeParams.getDocumentList();
-        Object res=super.getWorkflowManage().getReferenceField(documentList.get(0),documentList.subList(1,documentList.size()));
-        List<Map<String,Object>> documents= (List<Map<String,Object>>) res;
-        StringBuilder sb=new StringBuilder();
-        for (Map<String,Object> fileMap : documents) {
-            byte[] data= fileService.getBytes((String) fileMap.get("file_id"));
-            XWPFDocument document = null;
-            try {
-                document = new XWPFDocument(new ByteArrayInputStream(data));
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-            StringBuilder markdownContent = new StringBuilder();
-            // 遍历段落
-            for (XWPFParagraph paragraph : document.getParagraphs()) {
-                List<XWPFRun> runs = paragraph.getRuns();
-                if (runs != null) {
-                    for (XWPFRun run : runs) {
-                        String text = run.getText(0);
-                        if (text != null && !text.isEmpty()) {
-                            markdownContent.append(text).append(" ");
-                        }
-
-                        // 检查是否有图片
-                        List<XWPFPicture> pictures = run.getEmbeddedPictures();
-                        if (pictures != null && !pictures.isEmpty()) {
-                            for (XWPFPicture picture : pictures) {
-                                    byte[] imageBytes = picture.getPictureData().getData();
-                                    String base64Image = java.util.Base64.getEncoder().encodeToString(imageBytes);
-                                    String imageType = picture.getPictureData().suggestFileExtension();
-
-                                    // 创建 Markdown 图片链接
-                                    String markdownImage = String.format("![image](1111)", imageType, base64Image);
-                                    markdownContent.append(markdownImage).append("\n");
-                            }
-                        }
-                    }
-                }
-            }
-
-            // 输出 Markdown 内容
-            System.out.println(markdownContent);
-
-            String text = "### "+fileMap.get("name")+"\n"+markdownContent+splitter;
-            sb.append(text);
-        }
-        return new NodeResult(Map.of("content",sb.toString()),Map.of());
-    }*/
 
     @Override
     public String getType() {
@@ -135,10 +46,10 @@ public class BaseDocumentExtractNode extends INode {
         DocumentExtractParams nodeParams=super.nodeParams.toJavaObject(DocumentExtractParams.class);
         List<String> documentList=nodeParams.getDocumentList();
         Object res=super.getWorkflowManage().getReferenceField(documentList.get(0),documentList.subList(1,documentList.size()));
-        List<Map<String,Object>> documents= (List<Map<String,Object>>) res;
+        List<ChatFile> documents= (List<ChatFile>) res;
         StringBuilder sb=new StringBuilder();
-        for (Map<String,Object> fileMap : documents) {
-            byte[] data= fileService.getBytes((String) fileMap.get("file_id"));
+        for (ChatFile chatFile : documents) {
+            byte[] data= fileService.getBytes(chatFile.getFileId());
             // 初始化解析器、元数据和上下文
             Parser parser = new AutoDetectParser();
             Metadata metadata = new Metadata();
@@ -148,6 +59,44 @@ public class BaseDocumentExtractNode extends INode {
             officeParserConfig.setIncludeHeadersAndFooters(false);
             parseContext.set(OfficeParserConfig.class, officeParserConfig);
             Map<String,String> imageMap=new LinkedHashMap<>();
+            // 自定义ContentHandler用于插入占位符
+            class MarkdownImageHandler extends ContentHandlerDecorator {
+                private final StringBuilder markdown = new StringBuilder();
+
+                private String localName=null;
+
+                @Override
+                public void characters(char[] ch, int start, int length) {
+                    String text= new String(ch, start, length);
+                    if(this.localName.equals("h1")){
+                       // markdown.append("# ").append(text);
+                    }else if(this.localName.equals("p")){
+                        markdown.append("\n").append(text);
+                    }else {
+                        markdown.append(text);
+                    }
+                }
+
+                @Override
+                public void startElement(String uri, String localName, String qName, Attributes attrs) {
+                    this.localName=localName;
+                    //  System.out.println("localName="+localName+"  qName="+qName+"  text="+text);
+                    if ("img".equals(localName)) { // 捕获图片节点
+                        String src = attrs.getValue("src");
+                        if (src != null && src.startsWith("embedded:")) {
+                            String imageName = src.split(":")[1];
+                            ChatFile image=fileService.uploadFile(imageName, new byte[0]);
+                            imageMap.put(imageName, image.getFileId());
+                            markdown.append("\n").append("![").append(imageName).append("](").append(image.getUrl()).append(")\n");
+                        }
+                    }
+                }
+
+                public String getMarkdown() {
+                    return markdown.toString();
+                }
+
+            }
             MarkdownImageHandler contentHandler = new MarkdownImageHandler();
             EmbeddedDocumentExtractor extractor=new EmbeddedDocumentExtractor() {
                 @Override
@@ -161,7 +110,7 @@ public class BaseDocumentExtractNode extends INode {
                 public void parseEmbedded(InputStream inputStream, ContentHandler embeddedHandler, Metadata metadata, boolean b) throws IOException, SAXException {
                     String fileName = metadata.get("resourceName");
                     String fileId=imageMap.get(fileName);
-                    fileService.updateFile(fileId,inputStream.readAllBytes());
+                    fileService.updateFile(fileId,inputStream);
                 }
             };
             parseContext.set(EmbeddedDocumentExtractor.class, extractor);
@@ -171,7 +120,8 @@ public class BaseDocumentExtractNode extends INode {
             } catch (IOException | SAXException | TikaException e) {
                 throw new RuntimeException(e);
             }
-            String text = "### "+fileMap.get("name")+"\n"+contentHandler.getMarkdown()+splitter;
+            String text = "### "+chatFile.getName()+"\n"+contentHandler.getMarkdown()+splitter;
+            System.out.println(text);
             sb.append(text);
         }
         return new NodeResult(Map.of("content",sb.toString()),Map.of());

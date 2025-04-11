@@ -13,7 +13,10 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.gridfs.GridFsResource;
 import org.springframework.data.mongodb.gridfs.GridFsTemplate;
+import org.springframework.data.mongodb.gridfs.GridFsUpload;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayInputStream;
@@ -60,11 +63,24 @@ public class MongoFileService {
         String contentType = new MimetypesFileTypeMap().getContentType(fileName);
         // 获得文件类型
         fileVO.setType(contentType);
-        // 将文件存储到mongodb中,mongodb将会返回这个文件的具体信息
-        // 上传文件中我们也可以使用DBObject附加一些属性
-        // 获得文件输入流
         DBObject metadata = new BasicDBObject();
-        ObjectId objectId = gridFsTemplate.store(ins, fileName, null, metadata);
+        ObjectId objectId = gridFsTemplate.store(ins, fileName, contentType, metadata);
+        fileVO.setFileId(objectId.toString());
+        fileVO.setUploadTime(new Date());
+        fileVO.setUrl("/api/file/" + objectId);
+        return fileVO;
+    }
+
+    public ChatFile uploadFileStream(String fileName, InputStream inputStream) throws IOException {
+        ChatFile fileVO = new ChatFile();
+        // 新文件名
+        fileVO.setName(fileName);
+        fileVO.setSize((long) inputStream.read());
+        String contentType = new MimetypesFileTypeMap().getContentType(fileName);
+        // 获得文件类型
+        fileVO.setType(contentType);
+        DBObject metadata = new BasicDBObject();
+        ObjectId objectId = gridFsTemplate.store(inputStream, fileName, contentType, metadata);
         fileVO.setFileId(objectId.toString());
         fileVO.setUploadTime(new Date());
         fileVO.setUrl("/api/file/" + objectId);
@@ -96,6 +112,24 @@ public class MongoFileService {
     public InputStream getStream(GridFSFile file) throws IOException {
         GridFsResource resource = gridFsTemplate.getResource(file);
         return resource.getInputStream();
+    }
+
+    public void updateFile(String fileId, InputStream content) {
+        GridFSFile file= getById(fileId);
+        removeById(fileId);
+        GridFsUpload.GridFsUploadBuilder<ObjectId> uploadBuilder = GridFsUpload.fromStream(content);
+        //这里要用file.getId()因为是BsonValue类型不要用fileId，不然查询时，会找不到
+        uploadBuilder.id(file.getId());
+        if (StringUtils.hasText(file.getFilename())) {
+            uploadBuilder.filename(file.getFilename());
+        }
+        if (!ObjectUtils.isEmpty(file.getMetadata())) {
+            uploadBuilder.metadata(file.getMetadata());
+        }
+        if (StringUtils.hasText(file.getMetadata().getString("_contentType"))) {
+            uploadBuilder.contentType(file.getMetadata().getString("_contentType"));
+        }
+         gridFsTemplate.store(uploadBuilder.build());
     }
 }
 
