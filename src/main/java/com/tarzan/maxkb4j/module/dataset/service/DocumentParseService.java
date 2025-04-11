@@ -1,7 +1,7 @@
 package com.tarzan.maxkb4j.module.dataset.service;
 
 import com.tarzan.maxkb4j.core.workflow.dto.ChatFile;
-import com.tarzan.maxkb4j.module.resource.service.FileService;
+import com.tarzan.maxkb4j.module.resource.service.MongoFileService;
 import lombok.AllArgsConstructor;
 import org.apache.tika.exception.TikaException;
 import org.apache.tika.extractor.EmbeddedDocumentExtractor;
@@ -25,7 +25,7 @@ import java.util.Map;
 @AllArgsConstructor
 public class DocumentParseService {
 
-    private final FileService fileService;
+    private final MongoFileService fileService;
 
     public String extractText(InputStream inputStream) {
         // 初始化解析器、元数据和上下文
@@ -88,7 +88,7 @@ public class DocumentParseService {
             public void parseEmbedded(InputStream inputStream, ContentHandler embeddedHandler, Metadata metadata, boolean b) throws IOException, SAXException {
                 String fileName = metadata.get("resourceName");
                 String fileId = imageMap.get(fileName);
-                fileService.updateFile(fileId, inputStream.readAllBytes());
+                fileService.updateFile(fileId, inputStream);
             }
         };
         parseContext.set(EmbeddedDocumentExtractor.class, extractor);

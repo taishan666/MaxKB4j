@@ -71,21 +71,6 @@ public class MongoFileService {
         return fileVO;
     }
 
-    public ChatFile uploadFileStream(String fileName, InputStream inputStream) throws IOException {
-        ChatFile fileVO = new ChatFile();
-        // 新文件名
-        fileVO.setName(fileName);
-        fileVO.setSize((long) inputStream.read());
-        String contentType = new MimetypesFileTypeMap().getContentType(fileName);
-        // 获得文件类型
-        fileVO.setType(contentType);
-        DBObject metadata = new BasicDBObject();
-        ObjectId objectId = gridFsTemplate.store(inputStream, fileName, contentType, metadata);
-        fileVO.setFileId(objectId.toString());
-        fileVO.setUploadTime(new Date());
-        fileVO.setUrl("/api/file/" + objectId);
-        return fileVO;
-    }
 
     public List<GridFSFile> list() {
         return  gridFsTemplate.find(new Query()).into(new ArrayList<>());
