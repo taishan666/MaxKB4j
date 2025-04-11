@@ -34,7 +34,7 @@ import com.tarzan.maxkb4j.module.application.vo.ChatRecordDetailVO;
 import com.tarzan.maxkb4j.module.dataset.vo.ParagraphVO;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelEntity;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
-import com.tarzan.maxkb4j.module.resource.service.FileService;
+import com.tarzan.maxkb4j.module.resource.service.MongoFileService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -65,7 +65,8 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
     private final ApplicationAccessTokenService accessTokenService;
     private final ApplicationChatRecordService chatRecordService;
     private final ModelService modelService;
-    private final FileService fileService;
+   // private final FileService fileService;
+    private final MongoFileService fileService;
     private final BaseChatStep baseChatStep;
     private final SearchDatasetStep searchDatasetStep;
     private final BaseResetProblemStep baseResetProblemStep;
@@ -294,7 +295,7 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
         List<ChatFile> fileList = new ArrayList<>();
         for (MultipartFile file : files) {
             try {
-                fileList.add(fileService.uploadFile(file.getOriginalFilename(),file.getBytes()));
+                fileList.add(fileService.uploadFile(file));
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }

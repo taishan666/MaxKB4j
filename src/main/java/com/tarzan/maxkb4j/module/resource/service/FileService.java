@@ -32,7 +32,7 @@ public class FileService extends ServiceImpl<FileMapper, FileEntity>{
         vo.setFileId(fileEntity.getId());
         vo.setName(fileName);
         vo.setUrl("/api/file/"+fileEntity.getId());
-        vo.setSize(fileBytes.length);
+        vo.setSize((long) fileBytes.length);
         return vo;
     }
 

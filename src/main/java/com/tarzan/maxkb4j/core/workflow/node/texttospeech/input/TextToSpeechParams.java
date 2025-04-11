@@ -8,7 +8,7 @@ import java.util.List;
 @Data
 public class TextToSpeechParams {
 
-    private String modelId;
+    private String ttsModelId;
     private Boolean isResult;
     private List<String> contentList;
     private JSONObject modelParamsSetting;

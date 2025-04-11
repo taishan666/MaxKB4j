@@ -3,10 +3,11 @@ package com.tarzan.maxkb4j.core.workflow.node.speechtotext.impl;
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.NodeResult;
+import com.tarzan.maxkb4j.core.workflow.dto.ChatFile;
 import com.tarzan.maxkb4j.core.workflow.node.speechtotext.input.SpeechToTextParams;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseSpeechToText;
-import com.tarzan.maxkb4j.module.resource.service.FileService;
+import com.tarzan.maxkb4j.module.resource.service.MongoFileService;
 import com.tarzan.maxkb4j.util.SpringUtil;
 
 import java.util.List;
@@ -15,11 +16,11 @@ import java.util.Map;
 public class BaseSpeechToTextNode extends INode {
 
     private final ModelService modelService;
-    private final FileService fileService;
+    private final MongoFileService fileService;
 
     public BaseSpeechToTextNode() {
         this.modelService = SpringUtil.getBean(ModelService.class);
-        this.fileService = SpringUtil.getBean(FileService.class);
+        this.fileService = SpringUtil.getBean(MongoFileService.class);
     }
 
     @Override
@@ -34,10 +35,10 @@ public class BaseSpeechToTextNode extends INode {
         List<String> audioList = nodeParams.getAudioList();
         Object res = super.getWorkflowManage().getReferenceField(audioList.get(0), audioList.subList(1, audioList.size()));
         BaseSpeechToText sttModel = modelService.getModelById(nodeParams.getSttModelId());
-        List<JSONObject> audioFiles = (List<JSONObject>) res;
+        List<ChatFile> audioFiles = (List<ChatFile>) res;
         StringBuilder sb = new StringBuilder();
-        for (JSONObject file: audioFiles) {
-            byte[] data = fileService.getBytes(file.getString("file_id"));
+        for (ChatFile file: audioFiles) {
+            byte[] data = fileService.getBytes(file.getFileId());
             String result = sttModel.speechToText(data);
             sb.append(result);
         }

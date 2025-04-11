@@ -3,7 +3,6 @@ package com.tarzan.maxkb4j.core.workflow.node.documentextract.impl;
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.NodeResult;
-import com.tarzan.maxkb4j.core.workflow.dto.ChatFile;
 import com.tarzan.maxkb4j.core.workflow.node.documentextract.input.DocumentExtractParams;
 import com.tarzan.maxkb4j.module.resource.service.FileService;
 import com.tarzan.maxkb4j.util.SpringUtil;
@@ -32,6 +31,44 @@ public class BaseDocumentExtractNode extends INode {
 
     public BaseDocumentExtractNode() {
         this.fileService = SpringUtil.getBean(FileService.class);
+    }
+
+    // 自定义ContentHandler用于插入占位符
+    static class MarkdownImageHandler extends ContentHandlerDecorator {
+        private final StringBuilder markdown = new StringBuilder();
+
+        private String localName=null;
+
+        @Override
+        public void characters(char[] ch, int start, int length) {
+            String text= new String(ch, start, length);
+            if(this.localName.equals("h1")){
+                markdown.append("# ").append(text);
+            }else if(this.localName.equals("p")){
+                markdown.append("\n").append(text);
+            }else {
+                markdown.append(text);
+            }
+        }
+
+        @Override
+        public void startElement(String uri, String localName, String qName, Attributes attrs) {
+            this.localName=localName;
+            //  System.out.println("localName="+localName+"  qName="+qName+"  text="+text);
+            if ("img".equals(localName)) { // 捕获图片节点
+                String src = attrs.getValue("src");
+                if (src != null && src.startsWith("embedded:")) {
+                    String imageName = src.split(":")[1];
+                    String tempUrl=imageName+"_replacement_image_url";
+                    markdown.append("![").append(imageName).append("](").append(tempUrl).append(")\n");
+                }
+            }
+        }
+
+        public String getMarkdown() {
+            return markdown.toString();
+        }
+
     }
 
 
@@ -111,44 +148,6 @@ public class BaseDocumentExtractNode extends INode {
             officeParserConfig.setIncludeHeadersAndFooters(false);
             parseContext.set(OfficeParserConfig.class, officeParserConfig);
             Map<String,String> imageMap=new LinkedHashMap<>();
-            // 自定义ContentHandler用于插入占位符
-            class MarkdownImageHandler extends ContentHandlerDecorator {
-                private final StringBuilder markdown = new StringBuilder();
-
-                private String localName=null;
-
-                @Override
-                public void characters(char[] ch, int start, int length) {
-                    String text= new String(ch, start, length);
-                    if(this.localName.equals("h1")){
-                        markdown.append("# ").append(text);
-                    }else if(this.localName.equals("p")){
-                        markdown.append("\n").append(text);
-                    }else {
-                        markdown.append(text);
-                    }
-                }
-
-                @Override
-                public void startElement(String uri, String localName, String qName, Attributes attrs) {
-                    this.localName=localName;
-                  //  System.out.println("localName="+localName+"  qName="+qName+"  text="+text);
-                    if ("img".equals(localName)) { // 捕获图片节点
-                        String src = attrs.getValue("src");
-                        if (src != null && src.startsWith("embedded:")) {
-                            String imageName = src.split(":")[1];
-                            ChatFile image=fileService.uploadFile(imageName, new byte[0]);
-                            imageMap.put(imageName, image.getFileId());
-                            markdown.append("![").append(imageName).append("](").append(image.getUrl()).append(")\n");
-                        }
-                    }
-                }
-
-                public String getMarkdown() {
-                    return markdown.toString();
-                }
-
-            }
             MarkdownImageHandler contentHandler = new MarkdownImageHandler();
             EmbeddedDocumentExtractor extractor=new EmbeddedDocumentExtractor() {
                 @Override
@@ -166,7 +165,6 @@ public class BaseDocumentExtractNode extends INode {
                 }
             };
             parseContext.set(EmbeddedDocumentExtractor.class, extractor);
-
             // 开始解析文档
             try {
                 parser.parse(new ByteArrayInputStream(data), contentHandler, metadata, parseContext);

@@ -3,10 +3,11 @@ package com.tarzan.maxkb4j.core.workflow.node.imageunderstand.impl;
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.NodeResult;
+import com.tarzan.maxkb4j.core.workflow.dto.ChatFile;
 import com.tarzan.maxkb4j.core.workflow.node.imageunderstand.input.ImageUnderstandParams;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
-import com.tarzan.maxkb4j.module.resource.service.FileService;
+import com.tarzan.maxkb4j.module.resource.service.MongoFileService;
 import com.tarzan.maxkb4j.util.SpringUtil;
 import dev.langchain4j.data.message.*;
 import dev.langchain4j.model.chat.response.ChatResponse;
@@ -17,11 +18,11 @@ import java.util.*;
 public class BaseImageUnderstandNode extends INode {
 
     private final ModelService modelService;
-    private final FileService fileService;
+    private final MongoFileService fileService;
 
     public BaseImageUnderstandNode() {
         this.modelService = SpringUtil.getBean(ModelService.class);
-        this.fileService = SpringUtil.getBean(FileService.class);
+        this.fileService = SpringUtil.getBean(MongoFileService.class);
     }
 
     private static final Map<String, String> mimeTypeMap = new HashMap<>();
@@ -42,17 +43,17 @@ public class BaseImageUnderstandNode extends INode {
         ImageUnderstandParams nodeParams=super.nodeParams.toJavaObject(ImageUnderstandParams.class);
         List<String> imageList = nodeParams.getImageList();
         Object object = super.getWorkflowManage().getReferenceField(imageList.get(0), imageList.subList(1, imageList.size()));
-        List<JSONObject> ImageFiles = (List<JSONObject>) object;
+        List<ChatFile> ImageFiles = (List<ChatFile>) object;
         BaseChatModel chatModel = modelService.getModelById(nodeParams.getModelId(), nodeParams.getModelParamsSetting());
         String question =  workflowManage.generatePrompt(nodeParams.getPrompt());
         String system =workflowManage.generatePrompt(nodeParams.getSystem());
         List<ChatMessage> historyMessage = workflowManage.getHistoryMessage(super.workflowParams.getHistoryChatRecord(), nodeParams.getDialogueNumber(), nodeParams.getDialogueType(), super.runtimeNodeId);
         List<Content> contents=new ArrayList<>();
         contents.add(TextContent.from(question));
-        for (JSONObject file : ImageFiles) {
-            byte[] bytes = fileService.getBytes(file.getString("file_id"));
+        for (ChatFile file : ImageFiles) {
+            byte[] bytes = fileService.getBytes(file.getFileId());
             String base64Data = Base64.getEncoder().encodeToString(bytes);
-            String fileName=file.getString("name");
+            String fileName=file.getName();
             String extension = fileName.substring(fileName.lastIndexOf('.') + 1).toLowerCase();
             ImageContent imageContent=ImageContent.from(base64Data,mimeTypeMap.getOrDefault(extension, "image/jpeg"));
             contents.add(imageContent);

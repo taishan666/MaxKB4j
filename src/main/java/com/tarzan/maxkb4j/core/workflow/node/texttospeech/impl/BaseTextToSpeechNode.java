@@ -7,7 +7,7 @@ import com.tarzan.maxkb4j.core.workflow.dto.ChatFile;
 import com.tarzan.maxkb4j.core.workflow.node.texttospeech.input.TextToSpeechParams;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseTextToSpeech;
-import com.tarzan.maxkb4j.module.resource.service.FileService;
+import com.tarzan.maxkb4j.module.resource.service.MongoFileService;
 import com.tarzan.maxkb4j.util.SpringUtil;
 
 import java.util.List;
@@ -15,11 +15,11 @@ import java.util.Map;
 
 public class BaseTextToSpeechNode extends INode {
 
-    private final FileService fileService;
+    private final MongoFileService fileService;
     private final ModelService modelService;
 
     public BaseTextToSpeechNode() {
-        this.fileService = SpringUtil.getBean(FileService.class);
+        this.fileService = SpringUtil.getBean(MongoFileService.class);
         this.modelService = SpringUtil.getBean(ModelService.class);
     }
 
@@ -32,9 +32,9 @@ public class BaseTextToSpeechNode extends INode {
         TextToSpeechParams nodeParams=super.nodeParams.toJavaObject(TextToSpeechParams.class);
         List<String> contentList=nodeParams.getContentList();
         Object content=super.getWorkflowManage().getReferenceField(contentList.get(0),contentList.subList(1, contentList.size()));
-        BaseTextToSpeech ttsModel = modelService.getModelById(nodeParams.getModelId(), nodeParams.getModelParamsSetting());
+        BaseTextToSpeech ttsModel = modelService.getModelById(nodeParams.getTtsModelId(), nodeParams.getModelParamsSetting());
         byte[]  audioData = ttsModel.textToSpeech(content.toString());
-        ChatFile fileVO = fileService.uploadFile("generated_audio.mp3",audioData);
+        ChatFile fileVO = fileService.uploadFile("generated_audio_"+System.currentTimeMillis()+".mp3",audioData);
         // 使用字符串拼接生成 HTML 音频标签
         String audioLabel = "<audio src=\"" + fileVO.getUrl() + "\" controls style=\"width: 300px; height: 43px\"></audio>";
         // 输出生成的 HTML 标签

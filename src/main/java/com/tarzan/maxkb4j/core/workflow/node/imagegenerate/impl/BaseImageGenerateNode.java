@@ -6,7 +6,7 @@ import com.tarzan.maxkb4j.core.workflow.NodeResult;
 import com.tarzan.maxkb4j.core.workflow.dto.ChatFile;
 import com.tarzan.maxkb4j.core.workflow.node.imagegenerate.input.ImageGenerateParams;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
-import com.tarzan.maxkb4j.module.resource.service.FileService;
+import com.tarzan.maxkb4j.module.resource.service.MongoFileService;
 import com.tarzan.maxkb4j.util.SpringUtil;
 import dev.langchain4j.data.image.Image;
 import dev.langchain4j.model.image.ImageModel;
@@ -20,11 +20,11 @@ import java.util.Map;
 public class BaseImageGenerateNode extends INode {
 
     private final ModelService modelService;
-    private final FileService fileService;
+    private final MongoFileService fileService;
 
     public BaseImageGenerateNode() {
         this.modelService = SpringUtil.getBean(ModelService.class);
-        this.fileService = SpringUtil.getBean(FileService.class);
+        this.fileService = SpringUtil.getBean(MongoFileService.class);
     }
 
     @Override
