@@ -20,6 +20,8 @@ import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.model.output.TokenUsage;
+import dev.langchain4j.rag.DefaultRetrievalAugmentor;
+import dev.langchain4j.rag.RetrievalAugmentor;
 import dev.langchain4j.service.AiServices;
 import dev.langchain4j.service.TokenStream;
 import lombok.AllArgsConstructor;
@@ -98,10 +100,18 @@ public class BaseChatStep extends IChatStep {
                 String clientType = manage.context.getString("client_type");
                 MyChatMemory chatMemory=new MyChatMemory(chatRecordList,dialogueNumber);
                 String system= StringUtil.isBlank(systemText)?"You're an intelligent assistant":systemText;
+                RetrievalAugmentor retrievalAugmentor = DefaultRetrievalAugmentor.builder()
+                       // .queryTransformer(CompressingQueryTransformer.builder().chatLanguageModel(chatModel.getChatModel()).build())
+                        //.queryTransformer(ExpandingQueryTransformer.builder().chatLanguageModel(chatModel.getChatModel()).build())
+                        .contentRetriever(new MyContentRetriever(paragraphList))
+                       // .contentAggregator(new DefaultContentAggregator())
+                        //.contentInjector(DefaultContentInjector.builder().promptTemplate(PromptTemplate.from("{{userMessage}}\n{{contents}}")).build())
+                        .build();
                 Assistant assistant =  AiServices.builder(Assistant.class)
                         .systemMessageProvider(chatMemoryId ->system)
                     //    .chatLanguageModel(chatModel.getChatModel())
                         .streamingChatLanguageModel(chatModel.getStreamingChatModel())
+                      //  .retrievalAugmentor(retrievalAugmentor)
                         .chatMemory(chatMemory)
                         .contentRetriever(new MyContentRetriever(paragraphList))
                         .build();

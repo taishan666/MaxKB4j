@@ -66,6 +66,7 @@ public class RetrieveService {
                 }
             }
             map.forEach((key, value) -> results.add(new HitTestVO(key, value)));
+            results.sort(Comparator.comparing(HitTestVO::getScore).reversed());
             int endIndex = Math.min(dto.getTopNumber(), results.size());
             return results.subList(0, endIndex);
         }

@@ -12,8 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 @Slf4j
@@ -39,10 +38,27 @@ public class SearchDatasetStep extends ISearchDatasetStep {
             futureList.add(CompletableFuture.supplyAsync(()->retrieveService.paragraphSearch(paddingProblemText,application.getDatasetIdList(), List.of(),datasetSetting)));
         }
         List<ParagraphVO> paragraphList= futureList.stream().flatMap(future-> future.join().stream()).toList();
-        log.info("dataset search 耗时 {} ms", System.currentTimeMillis() - startTime);
-        super.context.put("messageTokens",0);
-        super.context.put("answerTokens",0);
-        return paragraphList;
+        if(paragraphList.size()>datasetSetting.getTopN()){
+            Map<String, ParagraphVO> map = new LinkedHashMap<>();
+            //融合排序
+            for (ParagraphVO paragraph : paragraphList) {
+                if (map.containsKey(paragraph.getId())) {
+                    if (map.get(paragraph.getId()).getComprehensiveScore() < paragraph.getComprehensiveScore()) {
+                        map.put(paragraph.getId(), paragraph);
+                    }
+                } else {
+                    map.put(paragraph.getId(), paragraph);
+                }
+            }
+            List<ParagraphVO> results=new ArrayList<>(map.values());
+            results.sort(Comparator.comparing(ParagraphVO::getComprehensiveScore).reversed());
+            int endIndex = Math.min(datasetSetting.getTopN(), results.size());
+            log.info("dataset search 耗时 {} ms", System.currentTimeMillis() - startTime);
+            return results.subList(0, endIndex);
+        }else {
+            return paragraphList;
+        }
+
     }
 
     @Override
