@@ -41,6 +41,7 @@ public class AliYunBaiLianModelProvider extends IModelProvider {
         modelInfos.add(new ModelInfo(QwenModelName.TEXT_EMBEDDING_V2,"文本向量模型", ModelTypeEnum.EMBEDDING.name(),new BaiLianEmbedding()));
         modelInfos.add(new ModelInfo(QwenModelName.TEXT_EMBEDDING_V3,"文本向量模型", ModelTypeEnum.EMBEDDING.name(),new BaiLianEmbedding()));
         modelInfos.add(new ModelInfo("paraformer-realtime-v2","语音识别模型", ModelTypeEnum.STT.name(), new BaiLianSpeechToText()));
+        modelInfos.add(new ModelInfo("paraformer-realtime-v2","语音识别模型", ModelTypeEnum.STT.name(), new BaiLianSpeechToText()));
         modelInfos.add(new ModelInfo("cosyvoice-v1","语言生成模型",ModelTypeEnum.TTS.name(),new BaiLianTextToSpeech(),new CosyVoiceModelParams()));
         modelInfos.add(new ModelInfo(QwenModelName.QWEN_VL_PLUS,"AI视觉模型",ModelTypeEnum.IMAGE.name(), new BaiLianChatModel()));
         modelInfos.add(new ModelInfo(QwenModelName.QWEN_VL_MAX,"AI视觉模型",ModelTypeEnum.IMAGE.name(), new BaiLianChatModel()));

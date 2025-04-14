@@ -1,5 +1,6 @@
 package com.tarzan.maxkb4j.module.dataset.service;
 
+import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -12,9 +13,11 @@ import com.tarzan.maxkb4j.module.dataset.mapper.ProblemMapper;
 import com.tarzan.maxkb4j.module.dataset.vo.ProblemVO;
 import com.tarzan.maxkb4j.module.dataset.entity.EmbeddingEntity;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
+import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.model.chat.response.ChatResponse;
 import dev.langchain4j.model.embedding.EmbeddingModel;
+import dev.langchain4j.model.output.Response;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
@@ -37,8 +40,8 @@ import java.util.regex.Pattern;
 public class ProblemService extends ServiceImpl<ProblemMapper, ProblemEntity> {
 
 
-    private final EmbeddingService embeddingService;
     private final ProblemParagraphService problemParagraphService;
+    private final DataIndexService dataIndexService;
 
 
     public IPage<ProblemVO> getProblemsByDatasetId(Page<ProblemEntity> problemPage, String id, String content) {
@@ -80,9 +83,24 @@ public class ProblemService extends ServiceImpl<ProblemMapper, ProblemEntity> {
             }
         }
         if (!CollectionUtils.isEmpty(insertProblems)) {
-            baseMapper.insert(insertProblems);
+                 baseMapper.insert(insertProblems);
+                List<EmbeddingEntity> embeddingEntities = new ArrayList<>();
+                for (ProblemEntity problem : insertProblems) {
+                    EmbeddingEntity embeddingEntity = new EmbeddingEntity();
+                    embeddingEntity.setDatasetId(problem.getDatasetId());
+                    embeddingEntity.setDocumentId(docId);
+                    embeddingEntity.setParagraphId(paragraph.getId());
+                    embeddingEntity.setMeta(new JSONObject());
+                    embeddingEntity.setSourceId(problem.getId());
+                    embeddingEntity.setSourceType("0");
+                    embeddingEntity.setIsActive(true);
+                    //  embeddingEntity.setSearchVector(toTsVector(problem.getContent()));
+                    Response<Embedding> response = embeddingModel.embed(problem.getContent());
+                    embeddingEntity.setEmbedding(response.content().vectorAsList());
+                    embeddingEntities.add(embeddingEntity);
+                dataIndexService.insertAll(embeddingEntities);
+            }
         }
-        embeddingService.createProblems(embeddingModel, insertProblems, docId, paragraph.getId());
         log.info("结束---->生成问题:{}", paragraph.getId());
     }
 
@@ -158,7 +176,7 @@ public class ProblemService extends ServiceImpl<ProblemMapper, ProblemEntity> {
             return false;
         }
         problemParagraphService.lambdaUpdate().in(ProblemParagraphEntity::getProblemId, problemIds).remove();
-        embeddingService.lambdaUpdate().in(EmbeddingEntity::getSourceId, problemIds.stream().map(String::toString).toList()).remove();
+        dataIndexService.removeBySourceIds(problemIds.stream().map(String::toString).toList());
         return this.removeByIds(problemIds);
     }
 }

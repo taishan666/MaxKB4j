@@ -56,9 +56,7 @@ public class EmbedTextService {
         EmbeddingModel embeddingModel = modelService.getModelById(dataset.getEmbeddingModelId());
         dto.getDocumentIdList().parallelStream().forEach(docId -> {
             List<ParagraphEntity> paragraphs = paragraphService.lambdaQuery().eq(ParagraphEntity::getDocumentId, docId).list();
-        //    List<ProblemEntity> allProblems = new ArrayList<>();
             List<ProblemEntity> allProblems = problemService.lambdaQuery().eq(ProblemEntity::getDatasetId, datasetId).list();
-      //      allProblems.addAll(dbProblemEntities);
             documentService.updateStatusById(docId, 2, 1);
             paragraphs.forEach(paragraph -> {
                 problemService.generateRelated(chatModel, embeddingModel, datasetId, docId, paragraph, allProblems, dto);

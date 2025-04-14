@@ -65,6 +65,12 @@ public class DataIndexService {
         mongoTemplate.remove(query,EmbeddingEntity.class);
     }
 
+    public void removeBySourceIds(List<String> sourceIds) {
+        embeddingMapper.delete(Wrappers.<EmbeddingEntity>lambdaQuery().in(EmbeddingEntity::getSourceId, sourceIds));
+        Query query = new Query(Criteria.where("sourceId").in(sourceIds));
+        mongoTemplate.remove(query,EmbeddingEntity.class);
+    }
+
     public void removeByDatasetId(String datasetId) {
         embeddingMapper.delete(Wrappers.<EmbeddingEntity>lambdaQuery().eq(EmbeddingEntity::getDatasetId, datasetId));
         Query query = new Query(Criteria.where("datasetId").is(datasetId));
