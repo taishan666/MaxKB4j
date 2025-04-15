@@ -50,7 +50,7 @@ public class ProblemService extends ServiceImpl<ProblemMapper, ProblemEntity> {
 
 
     @Async
-    public void generateRelated(BaseChatModel chatModel, EmbeddingModel embeddingModel, String datasetId, String docId, ParagraphEntity paragraph, List<ProblemEntity> allProblems,GenerateProblemDTO dto) {
+    public void generateRelated(BaseChatModel chatModel, EmbeddingModel embeddingModel, String datasetId, String docId, ParagraphEntity paragraph, List<ProblemEntity> allProblems, GenerateProblemDTO dto) {
         log.info("开始---->生成问题:{}", paragraph.getId());
         UserMessage userMessage = UserMessage.from(dto.getPrompt().replace("{data}", paragraph.getContent()));
         ChatResponse res = chatModel.generate(userMessage);
@@ -71,8 +71,8 @@ public class ProblemService extends ServiceImpl<ProblemMapper, ProblemEntity> {
                 } else {
                     problemId = existingProblem.getId();
                 }
-                long count=problemParagraphService.lambdaQuery().eq(ProblemParagraphEntity::getProblemId, problemId).eq(ProblemParagraphEntity::getParagraphId, paragraph.getId()).count();
-                if(count==0){
+                long count = problemParagraphService.lambdaQuery().eq(ProblemParagraphEntity::getProblemId, problemId).eq(ProblemParagraphEntity::getParagraphId, paragraph.getId()).count();
+                if (count == 0) {
                     ProblemParagraphEntity problemParagraph = new ProblemParagraphEntity();
                     problemParagraph.setProblemId(problemId);
                     problemParagraph.setParagraphId(paragraph.getId());
@@ -83,23 +83,24 @@ public class ProblemService extends ServiceImpl<ProblemMapper, ProblemEntity> {
             }
         }
         if (!CollectionUtils.isEmpty(insertProblems)) {
-                 baseMapper.insert(insertProblems);
-                List<EmbeddingEntity> embeddingEntities = new ArrayList<>();
-                for (ProblemEntity problem : insertProblems) {
-                    EmbeddingEntity embeddingEntity = new EmbeddingEntity();
-                    embeddingEntity.setDatasetId(problem.getDatasetId());
-                    embeddingEntity.setDocumentId(docId);
-                    embeddingEntity.setParagraphId(paragraph.getId());
-                    embeddingEntity.setMeta(new JSONObject());
-                    embeddingEntity.setSourceId(problem.getId());
-                    embeddingEntity.setSourceType("0");
-                    embeddingEntity.setIsActive(true);
-                    //  embeddingEntity.setSearchVector(toTsVector(problem.getContent()));
-                    Response<Embedding> response = embeddingModel.embed(problem.getContent());
-                    embeddingEntity.setEmbedding(response.content().vectorAsList());
-                    embeddingEntities.add(embeddingEntity);
-                dataIndexService.insertAll(embeddingEntities);
+            baseMapper.insert(insertProblems);
+            List<EmbeddingEntity> embeddingEntities = new ArrayList<>();
+            for (ProblemEntity problem : insertProblems) {
+                EmbeddingEntity embeddingEntity = new EmbeddingEntity();
+                embeddingEntity.setDatasetId(problem.getDatasetId());
+                embeddingEntity.setDocumentId(docId);
+                embeddingEntity.setParagraphId(paragraph.getId());
+                embeddingEntity.setMeta(new JSONObject());
+                embeddingEntity.setSourceId(problem.getId());
+                embeddingEntity.setSourceType("0");
+                embeddingEntity.setIsActive(true);
+                //  embeddingEntity.setSearchVector(toTsVector(problem.getContent()));
+                Response<Embedding> response = embeddingModel.embed(problem.getContent());
+                embeddingEntity.setEmbedding(response.content().vectorAsList());
+                embeddingEntity.setContent(problem.getContent());
+                embeddingEntities.add(embeddingEntity);
             }
+            dataIndexService.insertAll(embeddingEntities);
         }
         log.info("结束---->生成问题:{}", paragraph.getId());
     }

@@ -5,6 +5,7 @@ import com.huaban.analysis.jieba.JiebaSegmenter;
 import com.tarzan.maxkb4j.module.dataset.entity.EmbeddingEntity;
 import com.tarzan.maxkb4j.module.dataset.entity.ParagraphEntity;
 import com.tarzan.maxkb4j.module.dataset.mapper.EmbeddingMapper;
+import com.tarzan.maxkb4j.util.StringUtil;
 import lombok.AllArgsConstructor;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -78,6 +79,9 @@ public class DataIndexService {
     }
 
     public String segmentContent(String text) {
+        if (StringUtil.isBlank(text)){
+            return StringUtil.EMPTY;
+        }
         JiebaSegmenter jiebaSegmenter = new JiebaSegmenter();
         List<String> tokens = jiebaSegmenter.sentenceProcess(text);
         return String.join(" ", tokens);
