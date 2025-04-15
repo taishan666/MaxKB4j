@@ -19,9 +19,11 @@ import com.tarzan.maxkb4j.module.rag.MyContentRetriever;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.data.message.UserMessage;
+import dev.langchain4j.model.input.PromptTemplate;
 import dev.langchain4j.model.output.TokenUsage;
 import dev.langchain4j.rag.DefaultRetrievalAugmentor;
 import dev.langchain4j.rag.RetrievalAugmentor;
+import dev.langchain4j.rag.content.injector.DefaultContentInjector;
 import dev.langchain4j.service.AiServices;
 import dev.langchain4j.service.TokenStream;
 import lombok.AllArgsConstructor;
@@ -40,11 +42,27 @@ public class BaseChatStep extends IChatStep {
 
     private final ModelService modelService;
     private final ApplicationPublicAccessClientService publicAccessClientService;
+
+    public static final PromptTemplate DEFAULT_PROMPT_TEMPLATE = PromptTemplate.from(
+            """
+                    {{userMessage}}
+
+                    Use the contents of the <Data></Data> tag as your knowledge:
+                    <Data>
+                     {{contents}}
+                    </Data>
+                    Answer the request:
+                    
+                    - If you don't know, just say you don't know. If you don't know when in doubt, seek clarification.
+                    
+                    - Avoid mentioning information that you get from context.
+                    
+                    - Answer in the same language as the question.
+                    """);
     @Override
     protected Flux<ChatMessageVO> execute(PipelineManage manage) {
         JSONObject context = manage.context;
         ApplicationEntity application = (ApplicationEntity) context.get("application");
-       // List<ChatMessage> messageList = (List<ChatMessage>) context.get("message_list");
         int dialogueNumber = application.getDialogueNumber();
         List<ApplicationChatRecordEntity> chatRecordList = (List<ApplicationChatRecordEntity>) context.get("chatRecordList");
         List<ParagraphVO> paragraphList = (List<ParagraphVO>) context.get("paragraph_list");
@@ -105,15 +123,15 @@ public class BaseChatStep extends IChatStep {
                         //.queryTransformer(ExpandingQueryTransformer.builder().chatLanguageModel(chatModel.getChatModel()).build())
                         .contentRetriever(new MyContentRetriever(paragraphList))
                        // .contentAggregator(new DefaultContentAggregator())
-                        //.contentInjector(DefaultContentInjector.builder().promptTemplate(PromptTemplate.from("{{userMessage}}\n{{contents}}")).build())
+                        .contentInjector(DefaultContentInjector.builder().promptTemplate(DEFAULT_PROMPT_TEMPLATE).build())
                         .build();
                 Assistant assistant =  AiServices.builder(Assistant.class)
                         .systemMessageProvider(chatMemoryId ->system)
                     //    .chatLanguageModel(chatModel.getChatModel())
                         .streamingChatLanguageModel(chatModel.getStreamingChatModel())
-                      //  .retrievalAugmentor(retrievalAugmentor)
+                        .retrievalAugmentor(retrievalAugmentor)
                         .chatMemory(chatMemory)
-                        .contentRetriever(new MyContentRetriever(paragraphList))
+                       // .contentRetriever(new MyContentRetriever(paragraphList))
                         .build();
                 if (stream) {
                     TokenStream tokenStream = assistant.chatStream(problemText);
