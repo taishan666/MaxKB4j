@@ -14,18 +14,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.RERANKER;
+
 public class RerankerNode extends INode {
 
     private final ModelService modelService;
 
     public RerankerNode() {
+        this.type = RERANKER.getKey();
         this.modelService = SpringUtil.getBean(ModelService.class);
     }
 
-    @Override
-    public String getType() {
-        return "reranker-node";
-    }
 
     @Override
     public NodeResult execute() {

@@ -27,20 +27,17 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Stream;
 
+import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.AI_CHAT;
+
 @Slf4j
 public class BaseChatNode extends INode {
 
     private final ModelService modelService;
 
     public BaseChatNode() {
+        this.type=AI_CHAT.getKey();
         this.modelService = SpringUtil.getBean(ModelService.class);
     }
-
-    @Override
-    public String getType() {
-        return "ai-chat-node";
-    }
-
 
     @Override
     public JSONObject getDetail() {

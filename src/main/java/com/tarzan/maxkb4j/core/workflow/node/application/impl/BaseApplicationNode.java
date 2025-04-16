@@ -7,17 +7,14 @@ import com.tarzan.maxkb4j.core.workflow.node.application.input.ApplicationNodePa
 import com.tarzan.maxkb4j.module.application.service.ApplicationChatService;
 import com.tarzan.maxkb4j.util.SpringUtil;
 
+import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.APPLICATION;
+
 public class BaseApplicationNode extends INode {
     private final ApplicationChatService chatService;
 
     public BaseApplicationNode() {
+        this.type = APPLICATION.getKey();
         this.chatService = SpringUtil.getBean(ApplicationChatService.class);
-    }
-
-
-    @Override
-    public String getType() {
-        return "application-node";
     }
 
 

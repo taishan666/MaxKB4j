@@ -17,19 +17,18 @@ import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 
+import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.IMAGE_GENERATE;
+
 public class BaseImageGenerateNode extends INode {
 
     private final ModelService modelService;
     private final MongoFileService fileService;
 
     public BaseImageGenerateNode() {
+        super();
+        this.type=IMAGE_GENERATE.getKey();
         this.modelService = SpringUtil.getBean(ModelService.class);
         this.fileService = SpringUtil.getBean(MongoFileService.class);
-    }
-
-    @Override
-    public String getType() {
-        return "image-generate-node";
     }
 
     @Override
@@ -38,7 +37,9 @@ public class BaseImageGenerateNode extends INode {
         String prompt=super.workflowManage.generatePrompt(nodeParams.getPrompt());
         String negativePrompt=nodeParams.getNegativePrompt();
         JSONObject modelParamsSetting=nodeParams.getModelParamsSetting();
-        modelParamsSetting.put("negative_prompt",negativePrompt);
+        if (modelParamsSetting!=null){
+            modelParamsSetting.put("negative_prompt",negativePrompt);
+        }
         List<ChatFile> imageList=super.workflowManage.getImageList();
         StringBuilder answerSb=new StringBuilder();
         List<String> imageUrls = new ArrayList<>();
@@ -54,7 +55,7 @@ public class BaseImageGenerateNode extends INode {
             answerSb.append(" ").append(imageMd);
             imageUrls.add(outImage.url().toString());
         }else {
-            int n=modelParamsSetting.getIntValue("n");
+            int n=modelParamsSetting==null?1:modelParamsSetting.getIntValue("n");
             n=n==0 ? 1 : n;
             Response<List<Image>> res = imageModel.generate(prompt,n);
             List<Image> images = res.content();

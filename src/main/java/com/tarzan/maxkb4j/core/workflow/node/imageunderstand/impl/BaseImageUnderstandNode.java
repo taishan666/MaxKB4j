@@ -15,12 +15,16 @@ import dev.langchain4j.model.output.TokenUsage;
 
 import java.util.*;
 
+import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.IMAGE_UNDERSTAND;
+
 public class BaseImageUnderstandNode extends INode {
 
     private final ModelService modelService;
     private final MongoFileService fileService;
 
     public BaseImageUnderstandNode() {
+        super();
+        this.type = IMAGE_UNDERSTAND.getKey();
         this.modelService = SpringUtil.getBean(ModelService.class);
         this.fileService = SpringUtil.getBean(MongoFileService.class);
     }
@@ -31,11 +35,6 @@ public class BaseImageUnderstandNode extends INode {
         mimeTypeMap.put("jpeg", "image/jpeg");
         mimeTypeMap.put("png", "image/png");
         mimeTypeMap.put("gif", "image/gif");
-    }
-
-    @Override
-    public String getType() {
-        return "image-understand-node";
     }
 
     @Override

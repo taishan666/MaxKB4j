@@ -13,20 +13,20 @@ import com.tarzan.maxkb4j.util.SpringUtil;
 import java.util.List;
 import java.util.Map;
 
+import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.TEXT_TO_SPEECH;
+
 public class BaseTextToSpeechNode extends INode {
 
     private final MongoFileService fileService;
     private final ModelService modelService;
 
     public BaseTextToSpeechNode() {
+        super();
+        this.type = TEXT_TO_SPEECH.getKey();
         this.fileService = SpringUtil.getBean(MongoFileService.class);
         this.modelService = SpringUtil.getBean(ModelService.class);
     }
 
-    @Override
-    public String getType() {
-        return "text-to-speech-node";
-    }
     @Override
     public NodeResult execute() {
         TextToSpeechParams nodeParams=super.nodeParams.toJavaObject(TextToSpeechParams.class);

@@ -14,12 +14,16 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
+import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.START;
+
 public class BaseStartNode extends INode {
 
-    @Override
-    public String getType() {
-        return "start-node";
+
+    public BaseStartNode() {
+        super();
+        this.type=START.getKey();
     }
+
     @Override
     public NodeResult execute() {
         // 获取基础节点

@@ -14,19 +14,18 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.SEARCH_KNOWLEDGE;
+
 public class BaseSearchDatasetNode extends INode {
 
 
     private final RetrieveService retrieveService;
 
     public BaseSearchDatasetNode() {
+        this.type = SEARCH_KNOWLEDGE.getKey();
         this.retrieveService = SpringUtil.getBean(RetrieveService.class);
     }
 
-    @Override
-    public String getType() {
-        return "search-dataset-node";
-    }
 
     @Override
     public NodeResult execute() {

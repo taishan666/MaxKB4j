@@ -7,11 +7,14 @@ import com.tarzan.maxkb4j.core.workflow.node.variableassign.input.VariableAssign
 
 import java.util.*;
 
+import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.VARIABLE_ASSIGN;
+
 public class BaseVariableAssignNode extends INode {
-    @Override
-    public String getType() {
-        return "variable-assign-node";
+    public BaseVariableAssignNode() {
+        super();
+        this.type = VARIABLE_ASSIGN.getKey();
     }
+
     @Override
     public NodeResult execute() {
         VariableAssignParams nodeParams=super.nodeParams.toJavaObject(VariableAssignParams.class);

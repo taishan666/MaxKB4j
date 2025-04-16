@@ -8,12 +8,15 @@ import com.tarzan.maxkb4j.core.workflow.node.directreply.input.ReplyNodeParams;
 import java.util.List;
 import java.util.Map;
 
+import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.REPLY;
+
 public class BaseReplyNode extends INode {
 
-
-    public String getType() {
-        return "reply-node";
+    public BaseReplyNode() {
+        super();
+        this.type = REPLY.getKey();
     }
+
 
     @Override
     public NodeResult execute() {

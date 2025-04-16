@@ -12,12 +12,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.FORM;
+
 public class FormNode extends INode {
 
-    @Override
-    public String getType() {
-        return "form-node";
+    public FormNode() {
+        super();
+        this.type = FORM.getKey();
     }
+
     @Override
     public NodeResult execute() {
         FormNodeParams nodeParams=super.nodeParams.toJavaObject(FormNodeParams.class);

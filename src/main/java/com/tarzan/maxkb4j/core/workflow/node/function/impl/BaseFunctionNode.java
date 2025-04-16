@@ -3,19 +3,18 @@ package com.tarzan.maxkb4j.core.workflow.node.function.impl;
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.NodeResult;
-import com.tarzan.maxkb4j.core.workflow.WorkflowManage;
 import com.tarzan.maxkb4j.core.workflow.node.function.input.FunctionParams;
 import org.python.core.*;
 import org.python.util.PythonInterpreter;
 
 import java.util.List;
 import java.util.Map;
+import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.FUNCTION;
 
 public class BaseFunctionNode extends INode {
-
-    @Override
-    public String getType() {
-        return "function-node";
+    public BaseFunctionNode() {
+        super();
+        this.type = FUNCTION.getKey();
     }
 
     PythonInterpreter pyInterpreter = new PythonInterpreter();

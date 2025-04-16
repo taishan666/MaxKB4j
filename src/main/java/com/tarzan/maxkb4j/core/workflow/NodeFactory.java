@@ -1,6 +1,7 @@
 package com.tarzan.maxkb4j.core.workflow;
 
 import com.alibaba.fastjson.JSONObject;
+import com.tarzan.maxkb4j.core.workflow.enums.NodeType;
 import com.tarzan.maxkb4j.core.workflow.info.Node;
 import com.tarzan.maxkb4j.core.workflow.node.aichat.impl.BaseChatNode;
 import com.tarzan.maxkb4j.core.workflow.node.application.impl.BaseApplicationNode;
@@ -28,40 +29,32 @@ import java.util.function.Function;
 
 public class NodeFactory {
 
-    private static final List<INode> nodeList = new ArrayList<>();;
-
-
-    public static void InitNodes(){
-        // 初始化 node_list
-        nodeList.add(new BaseStartNode());
-        nodeList.add(new BaseChatNode());
-        nodeList.add(new BaseSearchDatasetNode());
-        nodeList.add(new BaseConditionNode());
-        nodeList.add(new BaseReplyNode());
-        nodeList.add(new BaseApplicationNode());
-        nodeList.add(new BaseQuestionNode());
-        nodeList.add(new BaseImageGenerateNode());
-        nodeList.add(new BaseTextToSpeechNode());
-        nodeList.add(new BaseDocumentExtractNode());
-        nodeList.add(new BaseSpeechToTextNode());
-        nodeList.add(new BaseVariableAssignNode());
-        nodeList.add(new BaseFunctionNode());
-        nodeList.add(new BaseImageUnderstandNode());
-        nodeList.add(new RerankerNode());
-        nodeList.add(new FormNode());
-        nodeList.add(new BaseMcpNode());
-    }
-
-    private static INode getNode(String nodeType) {
-        for (INode node : nodeList) {
-            if (node.getType().equals(nodeType)) {
-                node.setStatus(200);
-                node.setErrMessage("");
-                node.setNodeChunk(new NodeChunk());
-                return node;
-            }
+    private static INode getNode(String type) {
+        NodeType nodeType = NodeType.getByKey(type);
+        if (nodeType == null) {
+            throw new IllegalStateException("不支持的节点类型: " + type);
         }
-        return null;
+        return switch (nodeType) {
+            case START -> new BaseStartNode();
+            case AI_CHAT -> new BaseChatNode();
+            case SEARCH_KNOWLEDGE -> new BaseSearchDatasetNode();
+            case CONDITION -> new BaseConditionNode();
+            case REPLY-> new BaseReplyNode();
+            case APPLICATION -> new BaseApplicationNode();
+            case QUESTION -> new BaseQuestionNode();
+            case IMAGE_GENERATE -> new BaseImageGenerateNode();
+            case TEXT_TO_SPEECH -> new BaseTextToSpeechNode();
+            case DOCUMENT_EXTRACT -> new BaseDocumentExtractNode();
+            case SPEECH_TO_TEXT -> new BaseSpeechToTextNode();
+            case VARIABLE_ASSIGN -> new BaseVariableAssignNode();
+            case FUNCTION -> new BaseFunctionNode();
+            case IMAGE_UNDERSTAND -> new BaseImageUnderstandNode();
+            case RERANKER -> new RerankerNode();
+            case FORM -> new FormNode();
+            case MCP -> new BaseMcpNode();
+            default -> null;
+        };
+
     }
 
     public static INode getNode(String nodeType, Node node, FlowParams workflowParams, WorkflowManage workflowManage) {

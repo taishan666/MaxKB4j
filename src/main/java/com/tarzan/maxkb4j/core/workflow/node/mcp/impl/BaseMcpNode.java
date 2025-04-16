@@ -13,11 +13,15 @@ import dev.langchain4j.service.tool.ToolProvider;
 import java.util.List;
 import java.util.Map;
 
+import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.MCP;
+
 public class BaseMcpNode extends INode {
-    @Override
-    public String getType() {
-        return "mcp-node";
+
+    public BaseMcpNode() {
+        super();
+        this.type=MCP.getKey();
     }
+
     @Override
     public NodeResult execute() {
         McpTransport transport = new HttpMcpTransport.Builder()

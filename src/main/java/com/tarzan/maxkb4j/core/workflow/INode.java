@@ -61,7 +61,7 @@ public abstract class INode {
 
 
 
-    public abstract String getType();
+   // public abstract String getType();
 
     public abstract NodeResult execute();
 

@@ -13,6 +13,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.CONDITION;
+
 public class BaseConditionNode extends INode {
 
     static List<Compare> compareHandleList = new ArrayList<>();
@@ -34,10 +36,8 @@ public class BaseConditionNode extends INode {
         compareHandleList.add(new NotContainCompare());
     }
 
-
-    @Override
-    public String getType() {
-        return "condition-node";
+    public BaseConditionNode() {
+        this.type = CONDITION.getKey();
     }
 
 

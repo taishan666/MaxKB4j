@@ -20,18 +20,17 @@ import dev.langchain4j.rag.query.transformer.QueryTransformer;
 import java.util.*;
 import java.util.regex.Pattern;
 
+import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.QUESTION;
+
 public class BaseQuestionNode extends INode {
 
     private final ModelService modelService;
 
     public BaseQuestionNode() {
+        this.type = QUESTION.getKey();
         this.modelService = SpringUtil.getBean(ModelService.class);
     }
 
-    @Override
-    public String getType() {
-        return "question-node";
-    }
 
     @Override
     public NodeResult execute() {

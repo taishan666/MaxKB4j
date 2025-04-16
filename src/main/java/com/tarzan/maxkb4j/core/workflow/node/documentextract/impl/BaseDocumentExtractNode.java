@@ -26,20 +26,20 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.DOCUMENT_EXTRACT;
+
 public class BaseDocumentExtractNode extends INode {
 
     private final MongoFileService fileService;
 
     public BaseDocumentExtractNode() {
+        super();
+        this.type = DOCUMENT_EXTRACT.getKey();
         this.fileService = SpringUtil.getBean(MongoFileService.class);
     }
 
     String splitter = "\n-----------------------------------\n";
 
-    @Override
-    public String getType() {
-        return "document-extract-node";
-    }
     @Override
     public NodeResult execute() {
         // 假设我们有一个 Supplier<ContentHandler>
