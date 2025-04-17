@@ -172,7 +172,9 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
 
     public ApplicationEntity createWorkflow(ApplicationEntity application) {
         if (Objects.isNull(application.getWorkFlow())) {
-            Path path = getWorkflowFilePath((String) StpUtil.getExtra("language"));
+            String language=(String) StpUtil.getExtra("language");
+            System.out.println("language:"+language);
+            Path path = getWorkflowFilePath(language);
             String defaultWorkflowJson = FileUtil.readToString(path.toFile());
             JSONObject workFlow = JSONObject.parseObject(defaultWorkflowJson);
             assert workFlow != null;

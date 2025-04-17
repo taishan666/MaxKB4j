@@ -1,8 +1,10 @@
 package com.tarzan.maxkb4j.module.system.user.service;
 
+import cn.dev33.satoken.jwt.StpLogicJwtForStateless;
 import cn.dev33.satoken.secure.SaSecureUtil;
 import cn.dev33.satoken.stp.SaLoginModel;
 import cn.dev33.satoken.stp.StpInterface;
+import cn.dev33.satoken.stp.StpLogic;
 import cn.dev33.satoken.stp.StpUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -32,10 +34,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.thymeleaf.context.Context;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -194,7 +193,11 @@ public class UserService extends ServiceImpl<UserMapper, UserEntity> {
     }
 
     public Boolean updateLanguage(UserEntity user) {
-        user.setId(StpUtil.getLoginIdAsString());
+        String userId = StpUtil.getLoginIdAsString();
+        user.setId(userId);
+        StpLogic stpLogic =new StpLogicJwtForStateless();
+        String token= stpLogic.createTokenValue(userId, "default-device",StpUtil.getTokenTimeout(), Map.of("language",user.getLanguage()));
+        StpUtil.setTokenValue(token);
         return updateById(user);
     }
 
