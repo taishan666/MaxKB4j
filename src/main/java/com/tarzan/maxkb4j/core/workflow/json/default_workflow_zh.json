@@ -9,10 +9,10 @@
                 "api_input_field_list": [],
                 "showNode": true,
                 "nodeData": {
-                    "name": "工作流",
+                    "name": "MaxKB4J 应用",
                     "ttsType": "BROWSER",
                     "prologue": "您好，我是 XXX 小助手，您可以向我提出 XXX 使用问题。\n- XXX 主要功能有什么？\n- XXX 如何收费？\n- 需要转人工服务",
-                    "desc": "工作流"
+                    "desc": ""
                 },
                 "stepName": "基本信息",
                 "user_input_config": {

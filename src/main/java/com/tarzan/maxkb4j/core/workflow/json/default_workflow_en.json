@@ -1,291 +1,265 @@
 {
     "nodes": [
         {
+            "x": 360,
+            "y": 2760,
             "id": "base-node",
             "type": "base-node",
-            "x": 360,
-            "y": 2810,
             "properties": {
-                "config": {
-
-                },
-                "height": 825.6,
-                "stepName": "Base",
+                "api_input_field_list": [],
+                "showNode": true,
                 "nodeData": {
-                    "desc": "",
                     "name": "MaxKB4J application",
-                    "prologue": "Hello, I am the MaxKB4J assistant. You can ask me about MaxKB usage issues.\n-What are the main functions of MaxKB?\n-What major language models does MaxKB support?\n-What document types does MaxKB support?"
+                    "ttsType": "BROWSER",
+                    "prologue": "Hello, I am the MaxKB4J assistant. You can ask me about MaxKB usage issues.\n-What are the main functions of MaxKB?\n-What major language models does MaxKB support?\n-What document types does MaxKB support?",
+                    "desc": "Basic information"
                 },
-                "inputFieldList": [
-
-                ]
+                "stepName": "Base",
+                "user_input_config": {
+                    "title": "User input"
+                },
+                "user_input_field_list": [],
+                "config": {},
+                "height": 727.095,
+                "inputFieldList": []
             }
         },
         {
+            "x": 270,
+            "y": 3390,
             "id": "start-node",
             "type": "start-node",
-            "x": 430,
-            "y": 3660,
             "properties": {
-                "config": {
-                    "fields": [
-                        {
-                            "label": "用户问题",
-                            "value": "question"
-                        }
-                    ],
-                    "globalFields": [
-                        {
-                            "label": "当前时间",
-                            "value": "time"
-                        }
-                    ]
-                },
+                "globalFields": [
+                    {
+                        "label": "Current time",
+                        "value": "time"
+                    }
+                ],
+                "showNode": true,
+                "stepName": "Start",
                 "fields": [
                     {
-                        "label": "用户问题",
+                        "label": "User problem",
                         "value": "question"
                     }
                 ],
-                "height": 276,
-                "stepName": "Start",
-                "globalFields": [
-                    {
-                        "label": "当前时间",
-                        "value": "time"
-                    }
-                ]
-            }
-        },
-        {
-            "id": "b931efe5-5b66-46e0-ae3b-0160cb18eeb5",
-            "type": "search-dataset-node",
-            "x": 840,
-            "y": 3210,
-            "properties": {
                 "config": {
+                    "globalFields": [
+                        {
+                            "label": "Current time",
+                            "value": "time"
+                        },
+                        {
+                            "label": "History chat history",
+                            "value": "history_context"
+                        },
+                        {
+                            "label": "Dialogue ID",
+                            "value": "chatId"
+                        }
+                    ],
                     "fields": [
                         {
-                            "label": "检索结果的分段列表",
-                            "value": "paragraph_list"
-                        },
-                        {
-                            "label": "满足直接回答的分段列表",
-                            "value": "is_hit_handling_method_list"
-                        },
-                        {
-                            "label": "检索结果",
-                            "value": "data"
-                        },
-                        {
-                            "label": "满足直接回答的分段内容",
-                            "value": "directly_return"
+                            "label": "User problem",
+                            "value": "question"
                         }
                     ]
                 },
-                "height": 794,
-                "stepName": "Knowledge Search",
+                "height": 359.514
+            }
+        },
+        {
+            "x": 840,
+            "y": 3210,
+            "id": "b931efe5-5b66-46e0-ae3b-0160cb18eeb5",
+            "type": "search-dataset-node",
+            "properties": {
+                "condition": "AND",
+                "showNode": true,
                 "nodeData": {
                     "datasetIdList": [
-
+                        "4bbccb33e830f6036d609779e70559df"
                     ],
                     "datasetSetting": {
-                        "top_n": 3,
                         "similarity": 0.6,
-                        "search_mode": "embedding",
-                        "max_paragraph_char_number": 5000
+                        "maxParagraphCharNumber": 5000,
+                        "searchMode": "embedding",
+                        "topN": 3
                     },
                     "questionReferenceAddress": [
                         "start-node",
                         "question"
                     ],
-                    "sourceDatasetIdList": [
-
-                    ]
-                }
-            }
-        },
-        {
-            "id": "fc60863a-dec2-4854-9e5a-7a44b7187a2b",
-            "type": "condition-node",
-            "x": 1490,
-            "y": 3210,
-            "properties": {
-                "width": 600,
+                    "sourceDatasetIdList": []
+                },
+                "stepName": "Knowledge Search",
                 "config": {
                     "fields": [
                         {
-                            "label": "分支名称",
-                            "value": "branch_name"
+                            "label": "The segmented list of the retrieval results",
+                            "value": "paragraph_list"
+                        },
+                        {
+                            "label": "A list of segments that satisfy direct responses",
+                            "value": "is_hit_handling_method_list"
+                        },
+                        {
+                            "label": "Search result",
+                            "value": "data"
+                        },
+                        {
+                            "label": "The segmented content that meets the requirements for direct responses",
+                            "value": "directly_return"
                         }
                     ]
                 },
-                "height": 543.675,
-                "stepName": "Conditional Branch",
+                "height": 794.699
+            }
+        },
+        {
+            "x": 1490,
+            "y": 3140,
+            "id": "fc60863a-dec2-4854-9e5a-7a44b7187a2b",
+            "type": "condition-node",
+            "properties": {
+                "condition": "AND",
+                "showNode": true,
                 "nodeData": {
                     "branch": [
                         {
+                            "condition": "and",
                             "id": "1009",
                             "type": "IF",
-                            "condition": "and",
                             "conditions": [
                                 {
+                                    "compare": "len_ge",
                                     "field": [
                                         "b931efe5-5b66-46e0-ae3b-0160cb18eeb5",
                                         "is_hit_handling_method_list"
                                     ],
-                                    "value": "1",
-                                    "compare": "len_ge"
+                                    "value": "1"
                                 }
                             ]
                         },
                         {
-                            "id": "4908",
-                            "type": "ELSE IF 1",
                             "condition": "and",
-                            "conditions": [
-                                {
-                                    "field": [
-                                        "b931efe5-5b66-46e0-ae3b-0160cb18eeb5",
-                                        "paragraph_list"
-                                    ],
-                                    "value": "1",
-                                    "compare": "len_ge"
-                                }
-                            ]
-                        },
-                        {
                             "id": "161",
                             "type": "ELSE",
-                            "condition": "and",
-                            "conditions": [
-
-                            ]
+                            "conditions": []
+                        }
+                    ]
+                },
+                "stepName": "Conditional Branch",
+                "width": 600,
+                "config": {
+                    "fields": [
+                        {
+                            "label": "Branch name",
+                            "value": "branch_name"
                         }
                     ]
                 },
                 "branchConditionList": [
                     {
                         "index": 0,
-                        "height": 121.225,
-                        "id": "1009"
+                        "id": "1009",
+                        "height": 120
                     },
                     {
                         "index": 1,
-                        "height": 121.225,
-                        "id": "4908"
-                    },
-                    {
-                        "index": 2,
-                        "height": 44,
-                        "id": "161"
+                        "id": "161",
+                        "height": 43.2407
                     }
-                ]
+                ],
+                "height": 410.509
             }
         },
         {
-            "id": "4ffe1086-25df-4c85-b168-979b5bbf0a26",
-            "type": "reply-node",
             "x": 2170,
             "y": 2480,
+            "id": "4ffe1086-25df-4c85-b168-979b5bbf0a26",
+            "type": "reply-node",
             "properties": {
-                "config": {
-                    "fields": [
-                        {
-                            "label": "内容",
-                            "value": "answer"
-                        }
-                    ]
-                },
-                "height": 378,
-                "stepName": "Specified Reply",
+                "condition": "AND",
+                "showNode": true,
                 "nodeData": {
+                    "replyType": "referencing",
                     "fields": [
                         "b931efe5-5b66-46e0-ae3b-0160cb18eeb5",
                         "directly_return"
                     ],
-                    "content": "",
-                    "replyType": "referencing",
-                    "isResult": true
-                }
+                    "isResult": true,
+                    "content": ""
+                },
+                "stepName": "Specified reply",
+                "config": {
+                    "fields": [
+                        {
+                            "label": "content",
+                            "value": "answer"
+                        }
+                    ]
+                },
+                "height": 376.435
             }
         },
         {
+            "x": 2160,
+            "y": 3270,
             "id": "f1f1ee18-5a02-46f6-b4e6-226253cdffbb",
             "type": "ai-chat-node",
-            "x": 2160,
-            "y": 3200,
             "properties": {
-                "config": {
-                    "fields": [
-                        {
-                            "label": "AI 回答内容",
-                            "value": "answer"
-                        }
-                    ]
+                "condition": "AND",
+                "showNode": true,
+                "nodeData": {
+                    "system": "",
+                    "modelSetting": {
+                        "reasoning_content_end": "</think>",
+                        "reasoning_content_start": "<think>",
+                        "reasoning_content_enable": false
+                    },
+                    "modelId": "fc978a4b-bf8e-11ef-849f-bad5470d815f",
+                    "dialogue_type": "WORKFLOW",
+                    "dialogueNumber": 0,
+                    "questionReferenceAddress": [
+                        "start-node",
+                        "question"
+                    ],
+                    "datasetReferenceAddress": [
+                        "b931efe5-5b66-46e0-ae3b-0160cb18eeb5",
+                        "paragraph_list"
+                    ],
+                    "prompt": "Known information:\n{{Knowledge Search.data}}\n问题：\n{{Start.question}}",
+                    "isResult": true
                 },
-                "height": 763,
                 "stepName": "AI Chat",
-                "nodeData": {
-                    "prompt": "Known information:\n{{Knowledge Search.data}}\nQuestion:\n{{Start.question}}",
-                    "system": "",
-                    "modelId": "",
-                    "dialogueNumber": 0,
-                    "isResult": true
-                }
-            }
-        },
-        {
-            "id": "309d0eef-c597-46b5-8d51-b9a28aaef4c7",
-            "type": "ai-chat-node",
-            "x": 2160,
-            "y": 3970,
-            "properties": {
                 "config": {
                     "fields": [
                         {
-                            "label": "AI 回答内容",
+                            "label": "AI response content",
                             "value": "answer"
+                        },
+                        {
+                            "label": "Thinking process",
+                            "value": "reasoning_content"
                         }
                     ]
                 },
-                "height": 763,
-                "stepName": "AI Chat1",
-                "nodeData": {
-                    "prompt": "{{Start.question}}",
-                    "system": "",
-                    "modelId": "",
-                    "dialogueNumber": 0,
-                    "isResult": true
-                }
+                "height": 897.824
             }
         }
     ],
     "edges": [
         {
-            "id": "7d0f166f-c472-41b2-b9a2-c294f4c83d73",
-            "type": "app-edge",
-            "sourceNodeId": "start-node",
-            "targetNodeId": "b931efe5-5b66-46e0-ae3b-0160cb18eeb5",
-            "startPoint": {
-                "x": 590,
-                "y": 3660
-            },
-            "endPoint": {
-                "x": 680,
-                "y": 3210
-            },
-            "properties": {
-
-            },
             "pointsList": [
                 {
-                    "x": 590,
-                    "y": 3660
+                    "x": 430,
+                    "y": 3390
                 },
                 {
-                    "x": 700,
-                    "y": 3660
+                    "x": 540,
+                    "y": 3390
                 },
                 {
                     "x": 570,
@@ -296,25 +270,23 @@
                     "y": 3210
                 }
             ],
+            "endPoint": {
+                "x": 680,
+                "y": 3210
+            },
+            "targetAnchorId": "b931efe5-5b66-46e0-ae3b-0160cb18eeb5_left",
+            "sourceNodeId": "start-node",
+            "startPoint": {
+                "x": 430,
+                "y": 3390
+            },
+            "id": "7d0f166f-c472-41b2-b9a2-c294f4c83d73",
+            "type": "app-edge",
+            "targetNodeId": "b931efe5-5b66-46e0-ae3b-0160cb18eeb5",
             "sourceAnchorId": "start-node_right",
-            "targetAnchorId": "b931efe5-5b66-46e0-ae3b-0160cb18eeb5_left"
+            "properties": {}
         },
         {
-            "id": "35cb86dd-f328-429e-a973-12fd7218b696",
-            "type": "app-edge",
-            "sourceNodeId": "b931efe5-5b66-46e0-ae3b-0160cb18eeb5",
-            "targetNodeId": "fc60863a-dec2-4854-9e5a-7a44b7187a2b",
-            "startPoint": {
-                "x": 1000,
-                "y": 3210
-            },
-            "endPoint": {
-                "x": 1200,
-                "y": 3210
-            },
-            "properties": {
-
-            },
             "pointsList": [
                 {
                     "x": 1000,
@@ -326,40 +298,38 @@
                 },
                 {
                     "x": 1090,
-                    "y": 3210
+                    "y": 3140
                 },
                 {
                     "x": 1200,
-                    "y": 3210
+                    "y": 3140
                 }
             ],
+            "endPoint": {
+                "x": 1200,
+                "y": 3140
+            },
+            "targetAnchorId": "fc60863a-dec2-4854-9e5a-7a44b7187a2b_left",
+            "sourceNodeId": "b931efe5-5b66-46e0-ae3b-0160cb18eeb5",
+            "startPoint": {
+                "x": 1000,
+                "y": 3210
+            },
+            "id": "35cb86dd-f328-429e-a973-12fd7218b696",
+            "type": "app-edge",
+            "targetNodeId": "fc60863a-dec2-4854-9e5a-7a44b7187a2b",
             "sourceAnchorId": "b931efe5-5b66-46e0-ae3b-0160cb18eeb5_right",
-            "targetAnchorId": "fc60863a-dec2-4854-9e5a-7a44b7187a2b_left"
+            "properties": {}
         },
         {
-            "id": "e8f6cfe6-7e48-41cd-abd3-abfb5304d0d8",
-            "type": "app-edge",
-            "sourceNodeId": "fc60863a-dec2-4854-9e5a-7a44b7187a2b",
-            "targetNodeId": "4ffe1086-25df-4c85-b168-979b5bbf0a26",
-            "startPoint": {
-                "x": 1780,
-                "y": 3073.775
-            },
-            "endPoint": {
-                "x": 2010,
-                "y": 2480
-            },
-            "properties": {
-
-            },
             "pointsList": [
                 {
                     "x": 1780,
-                    "y": 3073.775
+                    "y": 3069.7455
                 },
                 {
                     "x": 1890,
-                    "y": 3073.775
+                    "y": 3069.7455
                 },
                 {
                     "x": 1900,
@@ -370,82 +340,56 @@
                     "y": 2480
                 }
             ],
+            "endPoint": {
+                "x": 2010,
+                "y": 2480
+            },
+            "targetAnchorId": "4ffe1086-25df-4c85-b168-979b5bbf0a26_left",
+            "sourceNodeId": "fc60863a-dec2-4854-9e5a-7a44b7187a2b",
+            "startPoint": {
+                "x": 1780,
+                "y": 3069.7455
+            },
+            "id": "e8f6cfe6-7e48-41cd-abd3-abfb5304d0d8",
+            "type": "app-edge",
+            "targetNodeId": "4ffe1086-25df-4c85-b168-979b5bbf0a26",
             "sourceAnchorId": "fc60863a-dec2-4854-9e5a-7a44b7187a2b_1009_right",
-            "targetAnchorId": "4ffe1086-25df-4c85-b168-979b5bbf0a26_left"
+            "properties": {}
         },
         {
-            "id": "994ff325-6f7a-4ebc-b61b-10e15519d6d2",
-            "type": "app-edge",
+            "pointsList": [
+                {
+                    "x": 1780,
+                    "y": 3159.36585
+                },
+                {
+                    "x": 1890,
+                    "y": 3159.36585
+                },
+                {
+                    "x": 1890,
+                    "y": 3270
+                },
+                {
+                    "x": 2000,
+                    "y": 3270
+                }
+            ],
+            "endPoint": {
+                "x": 2000,
+                "y": 3270
+            },
+            "targetAnchorId": "f1f1ee18-5a02-46f6-b4e6-226253cdffbb_left",
             "sourceNodeId": "fc60863a-dec2-4854-9e5a-7a44b7187a2b",
+            "startPoint": {
+                "x": 1780,
+                "y": 3159.36585
+            },
+            "id": "92059642-a98c-43da-91ab-962ca9e87460",
+            "type": "app-edge",
             "targetNodeId": "f1f1ee18-5a02-46f6-b4e6-226253cdffbb",
-            "startPoint": {
-                "x": 1780,
-                "y": 3203
-            },
-            "endPoint": {
-                "x": 2000,
-                "y": 3200
-            },
-            "properties": {
-
-            },
-            "pointsList": [
-                {
-                    "x": 1780,
-                    "y": 3203
-                },
-                {
-                    "x": 1890,
-                    "y": 3203
-                },
-                {
-                    "x": 1890,
-                    "y": 3200
-                },
-                {
-                    "x": 2000,
-                    "y": 3200
-                }
-            ],
-            "sourceAnchorId": "fc60863a-dec2-4854-9e5a-7a44b7187a2b_4908_right",
-            "targetAnchorId": "f1f1ee18-5a02-46f6-b4e6-226253cdffbb_left"
-        },
-        {
-            "id": "19270caf-bb9f-4ba7-9bf8-200aa70fecd5",
-            "type": "app-edge",
-            "sourceNodeId": "fc60863a-dec2-4854-9e5a-7a44b7187a2b",
-            "targetNodeId": "309d0eef-c597-46b5-8d51-b9a28aaef4c7",
-            "startPoint": {
-                "x": 1780,
-                "y": 3293.6124999999997
-            },
-            "endPoint": {
-                "x": 2000,
-                "y": 3970
-            },
-            "properties": {
-
-            },
-            "pointsList": [
-                {
-                    "x": 1780,
-                    "y": 3293.6124999999997
-                },
-                {
-                    "x": 1890,
-                    "y": 3293.6124999999997
-                },
-                {
-                    "x": 1890,
-                    "y": 3970
-                },
-                {
-                    "x": 2000,
-                    "y": 3970
-                }
-            ],
             "sourceAnchorId": "fc60863a-dec2-4854-9e5a-7a44b7187a2b_161_right",
-            "targetAnchorId": "309d0eef-c597-46b5-8d51-b9a28aaef4c7_left"
+            "properties": {}
         }
     ]
 }
