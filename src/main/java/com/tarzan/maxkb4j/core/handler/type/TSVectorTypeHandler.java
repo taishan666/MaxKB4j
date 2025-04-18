@@ -1,3 +1,4 @@
+/*
 package com.tarzan.maxkb4j.core.handler.type;
 
 import com.tarzan.maxkb4j.core.common.dto.SearchIndex;
@@ -74,3 +75,4 @@ public class TSVectorTypeHandler extends BaseTypeHandler<TSVector> {
         return sb.toString();
     }
 }
+*/

@@ -32,7 +32,6 @@ mybatis-plus:
       column-format:  "\"%s\""
   mapper-locations: classpath:mapper/**/*.xml,mapper/*.xml
   type-aliases-package: com.tarzan.**.entity
-  #type-handlers-package: com.tarzan.maxkb4j.handler
 
 ############## Sa-Token 配置 (文档: https://sa-token.cc) ##############
 sa-token:

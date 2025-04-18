@@ -1,8 +1,7 @@
-/*
 package com.tarzan.maxkb4j.core.handler.type;
 
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson2.JSON;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.type.BaseTypeHandler;
 import org.apache.ibatis.type.JdbcType;
@@ -13,11 +12,14 @@ import java.sql.CallableStatement;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 @Component
-public class JOSNBArrayTypeHandler extends BaseTypeHandler<JSONArray> {
+public class JOSNBListTypeHandler extends BaseTypeHandler<List<Object>> {
     @Override
-    public void setNonNullParameter(PreparedStatement ps, int i, JSONArray parameter, JdbcType jdbcType) throws SQLException {
+    public void setNonNullParameter(PreparedStatement ps, int i, List<Object> parameter, JdbcType jdbcType) throws SQLException {
         PGobject pGobject = new PGobject();
         pGobject.setType("jsonb[]");
         pGobject.setValue(toDBValue(parameter));
@@ -25,37 +27,44 @@ public class JOSNBArrayTypeHandler extends BaseTypeHandler<JSONArray> {
     }
 
     @Override
-    public JSONArray getNullableResult(ResultSet rs, String columnName) throws SQLException {
+    public List<Object> getNullableResult(ResultSet rs, String columnName) throws SQLException {
         String value = rs.getString(columnName);
         return convert(value);
     }
 
     @Override
-    public JSONArray getNullableResult(ResultSet rs, int columnIndex) throws SQLException {
+    public List<Object> getNullableResult(ResultSet rs, int columnIndex) throws SQLException {
         String value = rs.getString(columnIndex);
         return convert(value);
     }
 
     @Override
-    public JSONArray getNullableResult(CallableStatement cs, int columnIndex) throws SQLException {
+    public List<Object> getNullableResult(CallableStatement cs, int columnIndex) throws SQLException {
         String value = cs.getString(columnIndex);
         return convert(value);
     }
 
-    private JSONArray convert(String value){
+    private List<Object> convert(String value){
         if(notNull(value)){
             // 1. 去掉最外层大括号
             String noBraces =  value.substring(1, value.length() - 1);
-            noBraces="["+noBraces+"]";
             noBraces=noBraces.replace("\\","");
             noBraces=noBraces.replace("\"\"","");
             noBraces=noBraces.replace("\"{","{");
             noBraces=noBraces.replace("}\"","}");
             if(StringUtils.isNotBlank(noBraces)){
-                return JSONArray.parseArray(noBraces);
+                if (noBraces.startsWith("{")&& noBraces.endsWith("}")){
+                    noBraces="["+noBraces+"]";
+                    return JSON.parseArray(noBraces, Object.class);
+                }else {
+                    // 2. 分割字符串并去除空格
+                    return Arrays.stream(noBraces.split(","))
+                            .map(e->(Object) e.trim()) // 去除每个元素的前后空格
+                            .toList();
+                }
             }
         }
-        return new JSONArray();
+        return new ArrayList<>();
     }
 
     private boolean notNull(String value){
@@ -63,19 +72,18 @@ public class JOSNBArrayTypeHandler extends BaseTypeHandler<JSONArray> {
     }
 
 
-    public String toDBValue(JSONArray value) {
+    public String toDBValue(List<Object> value) {
         if(null == value || value.isEmpty()){
             return "{}";
         }
         StringBuilder sb = new StringBuilder();
         sb.append("{");
         for (Object obj : value) {
-            if (obj instanceof JSONObject json){
-                sb.append(escapeJsonText(json.toJSONString())).append(",");
+            if (obj instanceof JSONObject jsonObject){
+                sb.append(escapeJsonText(jsonObject.toJSONString())).append(",");
             }else {
                 sb.append(escapeText(obj.toString())).append(",");
             }
-
         }
         sb.deleteCharAt(sb.length()-1);
         sb.append("}");
@@ -135,4 +143,3 @@ public class JOSNBArrayTypeHandler extends BaseTypeHandler<JSONArray> {
     }
 
 }
-*/

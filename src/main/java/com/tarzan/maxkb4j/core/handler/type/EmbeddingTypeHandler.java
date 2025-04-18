@@ -63,9 +63,6 @@ public class EmbeddingTypeHandler extends BaseTypeHandler<List<Float>> {
         return (null != value && !value.isEmpty());
     }
 
-    public String toValueString(List<Float> parameter) {
-        return parameter.toString();
-    }
 
 
 }

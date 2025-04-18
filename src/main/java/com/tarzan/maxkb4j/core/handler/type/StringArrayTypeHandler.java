@@ -1,3 +1,4 @@
+/*
 package com.tarzan.maxkb4j.core.handler.type;
 
 import org.apache.commons.lang3.StringUtils;
@@ -102,3 +103,4 @@ public class StringArrayTypeHandler extends BaseTypeHandler<List<String>> {
     }
 
 }
+*/

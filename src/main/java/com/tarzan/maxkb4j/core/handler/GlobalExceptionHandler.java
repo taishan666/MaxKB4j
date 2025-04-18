@@ -3,6 +3,7 @@ package com.tarzan.maxkb4j.core.handler;
 
 import cn.dev33.satoken.exception.NotLoginException;
 import com.tarzan.maxkb4j.core.api.R;
+import com.tarzan.maxkb4j.core.exception.AccessException;
 import com.tarzan.maxkb4j.core.exception.ApiException;
 import io.swagger.v3.oas.annotations.Hidden;
 import jakarta.servlet.http.HttpServletResponse;
@@ -69,6 +70,13 @@ public class GlobalExceptionHandler{
     public R<String>  handleException(ApiException e) {
         log.error("Api异常: {}", e.getMessage(), e);
         return R.fail(400, e.getMessage());
+    }
+
+    @ExceptionHandler(AccessException.class)
+    @ResponseBody
+    public R<String>  handleException(AccessException e) {
+       // log.error("禁止访问异常: {}", e.getMessage(), e);
+        return R.fail(403, e.getMessage());
     }
 
 

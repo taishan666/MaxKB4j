@@ -12,6 +12,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tarzan.maxkb4j.core.common.dto.QueryDTO;
+import com.tarzan.maxkb4j.core.exception.AccessException;
 import com.tarzan.maxkb4j.module.application.dto.ApplicationAccessTokenDTO;
 import com.tarzan.maxkb4j.module.application.dto.ChatImproveDTO;
 import com.tarzan.maxkb4j.module.application.dto.MaxKb4J;
@@ -283,11 +284,12 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     }
 
 
-    //todo 优化逻辑
     public String authentication(JSONObject params) {
         String accessToken = params.getString("access_token");
         ApplicationAccessTokenEntity appAccessToken = accessTokenService.lambdaQuery().eq(ApplicationAccessTokenEntity::getAccessToken, accessToken).one();
-        if (appAccessToken != null && appAccessToken.getIsActive()) {
+        if (appAccessToken == null|| !appAccessToken.getIsActive()){
+            throw new AccessException("无效的访问令牌");
+        }else {
             SaLoginModel loginModel = new SaLoginModel();
             if (StpUtil.isLogin()) {
                 UserEntity userEntity = userService.getById(StpUtil.getLoginIdAsString());
@@ -308,8 +310,8 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
                 loginModel.setExtra(AuthType.ACCESS_TOKEN.name(), accessToken);
                 StpUtil.login(IdWorker.get32UUID(), loginModel);
             }
+            return StpUtil.getTokenValue();
         }
-        return null;
     }
 
 
