@@ -5,8 +5,8 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.tarzan.maxkb4j.core.common.entity.BaseEntity;
+import com.tarzan.maxkb4j.core.handler.type.JOSNBListTypeHandler;
 import com.tarzan.maxkb4j.core.handler.type.JOSNBTypeHandler;
-import com.tarzan.maxkb4j.core.handler.type.StringArrayTypeHandler;
 import com.tarzan.maxkb4j.core.handler.type.StringSetTypeHandler;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -36,7 +36,7 @@ public class ApplicationChatRecordEntity extends BaseEntity {
 	private Float runTime;
 	private Integer index;
 	private String chatId;
-	@TableField(typeHandler = StringArrayTypeHandler.class)
+	@TableField(typeHandler = JOSNBListTypeHandler.class)
 	private List<String> answerTextList;
 
     public JSONObject getNodeDetailsByRuntimeNodeId(String runtimeNodeId) {

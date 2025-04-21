@@ -78,9 +78,7 @@
                 "condition": "AND",
                 "showNode": true,
                 "nodeData": {
-                    "datasetIdList": [
-                        "4bbccb33e830f6036d609779e70559df"
-                    ],
+                    "datasetIdList": [],
                     "datasetSetting": {
                         "similarity": 0.6,
                         "maxParagraphCharNumber": 5000,
@@ -219,7 +217,7 @@
                         "reasoning_content_start": "<think>",
                         "reasoning_content_enable": false
                     },
-                    "modelId": "fc978a4b-bf8e-11ef-849f-bad5470d815f",
+                    "modelId": "",
                     "dialogue_type": "WORKFLOW",
                     "dialogueNumber": 0,
                     "questionReferenceAddress": [
