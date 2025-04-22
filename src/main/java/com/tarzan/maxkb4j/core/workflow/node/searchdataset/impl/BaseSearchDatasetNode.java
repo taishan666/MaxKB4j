@@ -29,6 +29,7 @@ public class BaseSearchDatasetNode extends INode {
 
     @Override
     public NodeResult execute() {
+        System.out.println(SEARCH_KNOWLEDGE);
         SearchDatasetStepNodeParams nodeParams=super.nodeParams.toJavaObject(SearchDatasetStepNodeParams.class);
         DatasetSetting datasetSetting=nodeParams.getDatasetSetting();
         List<String> fields=nodeParams.getQuestionReferenceAddress();

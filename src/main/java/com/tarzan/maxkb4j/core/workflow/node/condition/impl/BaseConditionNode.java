@@ -43,6 +43,7 @@ public class BaseConditionNode extends INode {
 
     @Override
     public NodeResult execute() {
+        System.out.println(CONDITION);
         ConditionNodeParams nodeParams= super.nodeParams.toJavaObject(ConditionNodeParams.class);;
         ConditionBranch branch = _execute(nodeParams.getBranch());
         assert branch != null;

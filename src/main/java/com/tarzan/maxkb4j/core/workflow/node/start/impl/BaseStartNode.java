@@ -26,6 +26,7 @@ public class BaseStartNode extends INode {
 
     @Override
     public NodeResult execute() {
+        System.out.println(START);
         // 获取基础节点
         Node baseNode = workflowManage.getBaseNode();
         // 获取默认全局变量

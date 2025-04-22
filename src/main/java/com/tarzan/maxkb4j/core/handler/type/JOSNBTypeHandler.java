@@ -1,6 +1,6 @@
 package com.tarzan.maxkb4j.core.handler.type;
 
-import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import org.apache.ibatis.type.BaseTypeHandler;
 import org.apache.ibatis.type.JdbcType;
@@ -13,10 +13,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 @Component
-public class JOSNBTypeHandler extends BaseTypeHandler<JSONObject> {
+public class JOSNBTypeHandler extends BaseTypeHandler<JSON> {
 
     @Override
-    public void setNonNullParameter(PreparedStatement ps, int i, JSONObject parameter, JdbcType jdbcType) throws SQLException {
+    public void setNonNullParameter(PreparedStatement ps, int i, JSON parameter, JdbcType jdbcType) throws SQLException {
         if(null != parameter){
             PGobject pGobject = new PGobject();
             pGobject.setType("jsonb");
@@ -26,26 +26,26 @@ public class JOSNBTypeHandler extends BaseTypeHandler<JSONObject> {
     }
 
     @Override
-    public JSONObject getNullableResult(ResultSet rs, String columnName) throws SQLException {
+    public JSON getNullableResult(ResultSet rs, String columnName) throws SQLException {
         String value = rs.getString(columnName);
         return convert(value);
     }
 
     @Override
-    public JSONObject getNullableResult(ResultSet rs, int columnIndex) throws SQLException {
+    public JSON getNullableResult(ResultSet rs, int columnIndex) throws SQLException {
         String value = rs.getString(columnIndex);
         return convert(value);
     }
 
     @Override
-    public JSONObject getNullableResult(CallableStatement cs, int columnIndex) throws SQLException {
+    public JSON getNullableResult(CallableStatement cs, int columnIndex) throws SQLException {
         String value = cs.getString(columnIndex);
         return convert(value);
     }
 
-    private JSONObject convert(String value){
+    private JSON convert(String value){
         if(notNull(value)){
-            return  JSONObject.parseObject(value);
+            return (JSON) JSON.parse(value);
         }
         return null;
     }
@@ -55,7 +55,7 @@ public class JOSNBTypeHandler extends BaseTypeHandler<JSONObject> {
     }
 
     public String toJson(Object obj) {
-        return JSONObject.toJSONString(obj, SerializerFeature.WriteMapNullValue,
+        return JSON.toJSONString(obj, SerializerFeature.WriteMapNullValue,
                 SerializerFeature.WriteNullListAsEmpty, SerializerFeature.WriteNullStringAsEmpty);
     }
 }

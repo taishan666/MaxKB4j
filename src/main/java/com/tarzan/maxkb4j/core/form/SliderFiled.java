@@ -29,5 +29,6 @@ public class SliderFiled extends BaseFiled{
         super.setLabel(label);
         super.setField(field);
         super.setDefault_value(defaultValue);
+        super.setShow_default_value(true);
     }
 }

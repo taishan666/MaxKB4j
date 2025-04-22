@@ -79,6 +79,7 @@ public class BaseChatNode extends INode {
 
     @Override
     public NodeResult execute() {
+        System.out.println(AI_CHAT);
         ChatNodeParams nodeParams= super.nodeParams.toJavaObject(ChatNodeParams.class);
         if (Objects.isNull(nodeParams.getDialogueType())) {
             nodeParams.setDialogueType("WORKFLOW");
