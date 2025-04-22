@@ -1,10 +1,13 @@
 package com.tarzan.maxkb4j.module.dataset;
 
+import com.openai.models.ChatModel;
 import dev.langchain4j.community.model.dashscope.QwenChatModel;
 import dev.langchain4j.community.model.dashscope.QwenEmbeddingModel;
 import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.model.chat.ChatLanguageModel;
 import dev.langchain4j.model.embedding.EmbeddingModel;
+import dev.langchain4j.model.openai.OpenAiChatModel;
+import dev.langchain4j.model.openaiofficial.OpenAiOfficialChatModel;
 import dev.langchain4j.rag.content.Content;
 import dev.langchain4j.rag.content.retriever.ContentRetriever;
 import dev.langchain4j.rag.content.retriever.EmbeddingStoreContentRetriever;
@@ -19,7 +22,15 @@ import java.util.List;
 public class Retriever {
 
     public static void main(String[] args) {
-
+        ChatLanguageModel model = OpenAiChatModel.builder()
+                .apiKey(System.getenv("OPENAI_API_KEY"))
+                .modelName("gpt-4o-mini")
+                .build();
+        ChatLanguageModel model1 = OpenAiOfficialChatModel.builder()
+                .baseUrl(System.getenv("OPENAI_BASE_URL"))
+                .apiKey(System.getenv("OPENAI_API_KEY"))
+                .modelName(ChatModel.GPT_4O_MINI)
+                .build();
         String apiKey = "";
         EmbeddingModel embeddingModel = QwenEmbeddingModel.builder()
                 .apiKey(apiKey)
