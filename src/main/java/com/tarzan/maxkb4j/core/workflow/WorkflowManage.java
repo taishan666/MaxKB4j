@@ -680,7 +680,8 @@ public class WorkflowManage {
         if ("global".equals(nodeId)) {
             return INode.getField(this.context, fields.get(0));
         } else {
-            return this.getNodeById(nodeId).getReferenceField(fields.get(0));
+            INode node = this.getNodeById(nodeId);
+            return node==null?null:node.getReferenceField(fields.get(0));
         }
     }
 

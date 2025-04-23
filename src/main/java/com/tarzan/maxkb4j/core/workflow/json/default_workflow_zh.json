@@ -89,7 +89,10 @@
                         "start-node",
                         "question"
                     ],
-                    "sourceDatasetIdList": []
+                    "sourceDatasetIdList": [
+                        "search-dataset-node",
+                        "paragraph_list"
+                    ]
                 },
                 "stepName": "知识库检索",
                 "config": {
