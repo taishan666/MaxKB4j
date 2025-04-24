@@ -8,17 +8,20 @@ import java.util.stream.Collectors;
 
 @Getter
 public enum PermissionEnum {
+    USER_CREATE("USER","CREATE", List.of("ADMIN","USER")),
     USER_READ("USER","READ", List.of("ADMIN","USER")),
     USER_EDIT("USER","EDIT", List.of("ADMIN","USER")),
     USER_DELETE("USER","DELETE", List.of("ADMIN","USER")),
     DATASET_CREATE("DATASET","CREATE", List.of("ADMIN","USER")),
     DATASET_READ("DATASET","READ", List.of("ADMIN","USER")),
     DATASET_EDIT("DATASET","EDIT", List.of("ADMIN","USER")),
+    DATASET_DELETE("DATASET","DELETE", List.of("ADMIN","USER")),
     APPLICATION_READ("APPLICATION","READ", List.of("ADMIN","USER")),
     APPLICATION_CREATE("APPLICATION","CREATE", List.of("ADMIN","USER")),
     APPLICATION_DELETE("APPLICATION","DELETE", List.of("ADMIN","USER")),
     APPLICATION_EDIT("APPLICATION","EDIT", List.of("ADMIN","USER")),
     SETTING_READ("SETTING","READ", List.of("ADMIN","USER")),
+    SETTING_EDIT("SETTING","EDIT", List.of("ADMIN","USER")),
     MODEL_READ("MODEL","READ", List.of("ADMIN","USER")),
     MODEL_EDIT("MODEL","EDIT", List.of("ADMIN","USER")),
     MODEL_DELETE("MODEL","DELETE", List.of("ADMIN","USER")),

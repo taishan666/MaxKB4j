@@ -1,6 +1,7 @@
 package com.tarzan.maxkb4j.module.system.user.controller;
 
 import cn.dev33.satoken.annotation.SaCheckLogin;
+import cn.dev33.satoken.annotation.SaCheckPermission;
 import cn.dev33.satoken.stp.StpUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -49,6 +50,7 @@ public class UserController{
 		return R.data(userService.login(dto));
 	}
 
+	@SaCheckLogin
 	@PostMapping("api/user/logout")
 	public R<Boolean> logout(){
 		if(StpUtil.isLogin()){
@@ -57,44 +59,49 @@ public class UserController{
 		return R.status(true);
 	}
 
-
+	@SaCheckPermission("USER:READ")
 	@GetMapping("api/user/list")
 	public R<List<UserEntity>> userList(String email_or_username){
 		return R.data(userService.lambdaQuery().like(UserEntity::getUsername,email_or_username).or().like(UserEntity::getEmail,email_or_username).list());
 	}
 
+	@SaCheckPermission("USER:READ")
 	@GetMapping("api/user/list/{type}")
 	public R<List<UserDTO>> userDatasets(@PathVariable("type")String type){
 		return R.data(userService.listByType(type));
 	}
 
-
+	@SaCheckPermission("USER:READ")
 	@GetMapping("api/user_manage/{page}/{size}")
 	public R<IPage<UserEntity>> userManage(@PathVariable("page")int page, @PathVariable("size")int size, String email_or_username){
 		return R.data(userService.selectUserPage(page,size,email_or_username));
 	}
-
+	@SaCheckPermission("USER:EDIT")
 	@PostMapping("api/user/language")
 	public R<Boolean> language(@RequestBody UserEntity user){
 		return R.status(userService.updateLanguage(user));
 	}
 
+	@SaCheckPermission("USER:CREATE")
 	@PostMapping("api/user_manage")
 	public R<Boolean> createUser(@RequestBody UserEntity user){
 		return R.status(userService.createUser(user));
 	}
 
+	@SaCheckPermission("USER:EDIT")
 	@PutMapping("api/user_manage/{id}")
 	public R<Boolean> updateUserById(@PathVariable("id")String id,@RequestBody UserEntity user){
 		user.setId(id);
 		return R.status(userService.updateById(user));
 	}
 
+	@SaCheckPermission("USER:DELETE")
 	@DeleteMapping("api/user_manage/{id}")
 	public R<Boolean> deleteUserById(@PathVariable("id")String id){
 		return R.status(userService.deleteUserById(id));
 	}
 
+	@SaCheckPermission("USER:EDIT")
 	@PutMapping("api/user_manage/{id}/re_password")
 	public R<Boolean> updatePassword(@PathVariable("id")String id,@RequestBody PasswordDTO dto){
 		if (StringUtil.isBlank(dto.getPassword())){
@@ -111,6 +118,7 @@ public class UserController{
 		return R.status(userService.sendEmailCode());
 	}
 
+	@SaCheckPermission("USER:EDIT")
 	@PostMapping("/api/user/current/reset_password")
 	public R<Boolean> resetPassword(@RequestBody PasswordDTO dto) {
 		return R.status(userService.resetPassword(dto));

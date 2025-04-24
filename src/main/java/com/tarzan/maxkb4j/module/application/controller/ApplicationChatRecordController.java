@@ -1,5 +1,6 @@
 package com.tarzan.maxkb4j.module.application.controller;
 
+import cn.dev33.satoken.annotation.SaCheckPermission;
 import com.tarzan.maxkb4j.core.api.R;
 import com.tarzan.maxkb4j.module.application.cache.ChatCache;
 import com.tarzan.maxkb4j.module.application.dto.ChatQueryDTO;
@@ -24,14 +25,13 @@ public class ApplicationChatRecordController {
     private final ApplicationChatRecordService chatRecordService;
 
 
-
     @GetMapping("api/application/{id}/chat/{chatId}/chat_record/{chatRecordId}")
     public R<ApplicationChatRecordVO> chatRecord(@PathVariable String id, @PathVariable String chatId, @PathVariable String chatRecordId) {
         return R.success(chatRecordService.getChatRecordInfo(ChatCache.get(chatId), chatRecordId));
     }
 
 
-
+    @SaCheckPermission("APPLICATION:READ")
     @GetMapping("api/application/{appId}/statistics/chat_record_aggregate_trend")
     public R<List<ApplicationStatisticsVO>> statistics(@PathVariable("appId") String appId, ChatQueryDTO query) {
         return R.success(chatRecordService.statistics(appId, query));

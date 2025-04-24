@@ -1,6 +1,8 @@
 package com.tarzan.maxkb4j.module.system.user.service;
 
 import cn.dev33.satoken.stp.StpInterface;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import com.tarzan.maxkb4j.module.system.user.entity.UserEntity;
 import com.tarzan.maxkb4j.module.system.user.enums.PermissionEnum;
 import com.tarzan.maxkb4j.module.system.user.mapper.UserMapper;
@@ -12,9 +14,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
 
 /**
  * 自定义权限加载接口实现类
@@ -55,6 +54,7 @@ public class StpInterfaceImpl implements StpInterface {
             }
             PermissionEnum.getAllPermissions().forEach(e->{
                 String operate = e.getGroup() + ":" + e.getOperate();
+               // System.out.println(operate);
                 permissions.add(operate);
             });
             return permissions;

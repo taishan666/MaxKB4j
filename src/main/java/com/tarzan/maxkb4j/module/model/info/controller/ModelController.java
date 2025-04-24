@@ -1,5 +1,6 @@
 package com.tarzan.maxkb4j.module.model.info.controller;
 
+import cn.dev33.satoken.annotation.SaCheckPermission;
 import com.alibaba.fastjson.JSONArray;
 import com.tarzan.maxkb4j.core.api.R;
 import com.tarzan.maxkb4j.core.form.BaseFiled;
@@ -40,6 +41,7 @@ public class ModelController{
 
 	private final ModelService modelService;
 
+	@SaCheckPermission("MODEL:READ")
     @GetMapping("api/provider")
 	public R<Set<ModelProvideInfo>> provider(String modelType){
 		Set<IModelProvider> set= new HashSet<>();
@@ -67,6 +69,7 @@ public class ModelController{
 	}
 
 
+	@SaCheckPermission("MODEL:READ")
 	@GetMapping("api/provider/model_type_list")
 	public R<List<KeyAndValueVO>> modelTypeList(String provider){
 		IModelProvider modelProvider=ModelProviderEnum.get(provider);
@@ -78,6 +81,7 @@ public class ModelController{
 		return R.success(list);
 	}
 
+	@SaCheckPermission("MODEL:READ")
 	@GetMapping("api/provider/model_list")
 	public R<List<ModelInfo>> modelList(String provider, String modelType){
 		IModelProvider modelProvider=ModelProviderEnum.get(provider);
@@ -86,49 +90,58 @@ public class ModelController{
 		return R.success(modelList);
 	}
 
+	@SaCheckPermission("MODEL:READ")
 	@GetMapping("api/provider/model_form")
 	public R<List<BaseFiled>> modelForm(String provider, String modelType, String modelName){
 		IModelProvider modelProvider=ModelProviderEnum.get(provider);
 		return R.success(modelProvider.getModelCredential(modelType, modelName).toForm());
 	}
 
+	@SaCheckPermission("MODEL:READ")
 	@GetMapping("api/provider/model_params_form")
 	public R<List<BaseFiled>> modelParamsForm(String provider, String modelType, String modelName){
 		IModelProvider modelProvider=ModelProviderEnum.get(provider);
 		return R.success(modelProvider.getModelParams(modelType, modelName).toForm());
 	}
 
+	@SaCheckPermission("MODEL:CREATE")
 	@PostMapping("api/model")
 	public R<Boolean> createModel(@RequestBody ModelEntity model){
 		return R.success(modelService.createModel(model));
 	}
 
+	@SaCheckPermission("MODEL:READ")
 	@GetMapping("api/model")
 	public R<List<ModelVO>> models(String name, String createUser, String permissionType, String modelType,String provider){
 		return R.success(modelService.models(name,createUser,permissionType,modelType,provider));
 	}
 
+	@SaCheckPermission("MODEL:READ")
 	@GetMapping("api/model/{id}")
 	public R<ModelEntity> get(@PathVariable String id){
 		return R.success(modelService.getById(id));
 	}
 
+	@SaCheckPermission("MODEL:DELETE")
 	@DeleteMapping("api/model/{id}")
 	public R<Boolean> delete(@PathVariable String id){
 		return R.success(modelService.removeById(id));
 	}
 
+	@SaCheckPermission("MODEL:EDIT")
 	@PutMapping("api/model/{id}")
 	public R<ModelEntity> update(@PathVariable String id,@RequestBody ModelEntity model){
 		return R.success(modelService.updateModel(id,model));
 	}
 
+	@SaCheckPermission("MODEL:READ")
 	@GetMapping("api/model/{id}/model_params_form")
 	public R<JSONArray> modelParamsForm(@PathVariable String id){
 		ModelEntity modelEntity= modelService.getById(id);
 		return R.success(modelEntity.getModelParamsForm());
 	}
 
+	@SaCheckPermission("MODEL:EDIT")
 	@PutMapping("api/model/{id}/model_params_form")
 	public R<JSONArray> updateModelParamsForm(@PathVariable String id,@RequestBody JSONArray array){
 		ModelEntity modelEntity= new ModelEntity();
