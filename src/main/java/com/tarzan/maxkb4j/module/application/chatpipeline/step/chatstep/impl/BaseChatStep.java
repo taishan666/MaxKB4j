@@ -130,16 +130,11 @@ public class BaseChatStep extends IChatStep {
                        // .contentAggregator(new DefaultContentAggregator())
                         .contentInjector(DefaultContentInjector.builder().promptTemplate(DEFAULT_PROMPT_TEMPLATE).build())
                         .build();
-         /*       McpTransport transport = new HttpMcpTransport.Builder()
-                        .sseUrl("https://mcp.api-inference.modelscope.cn/sse/d08b5b22651144")
-                      //  .logRequests(true) // if you want to see the traffic in the log
-                      //  .logResponses(true)
-                        .build();*/
                 McpClient mcpClient = new DefaultMcpClient.Builder()
-                        .transport(new HttpMcpTransport.Builder().sseUrl("https://mcp.api-inference.modelscope.cn/sse/8842e01f1cef40").build())
+                        .transport(new HttpMcpTransport.Builder().sseUrl("").build())
                         .build();
                 McpClient mcpClient1 = new DefaultMcpClient.Builder()
-                        .transport(new HttpMcpTransport.Builder().sseUrl("https://mcp.api-inference.modelscope.cn/sse/d08b5b22651144").build())
+                        .transport(new HttpMcpTransport.Builder().sseUrl("").build())
                         .build();
                 ToolProvider toolProvider = McpToolProvider.builder()
                         .mcpClients(List.of(mcpClient,mcpClient1))
