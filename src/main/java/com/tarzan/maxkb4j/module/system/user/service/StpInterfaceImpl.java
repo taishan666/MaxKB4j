@@ -37,6 +37,7 @@ public class StpInterfaceImpl implements StpInterface {
      */
     @Override
     public List<String> getPermissionList(Object loginId, String loginType) {
+        UserEntity user = userMapper.selectById((String) loginId);
         return permissionCache.get(loginId.toString(), id -> {
             List<PermissionVO> permissionVOS=userMapper.getUserPermissionById((String) loginId);
             List<String> permissions=new ArrayList<>();
@@ -52,9 +53,8 @@ public class StpInterfaceImpl implements StpInterface {
                     permissions.add(operate);
                 });
             }
-            PermissionEnum.getAllPermissions().forEach(e->{
+            PermissionEnum.getAllPermissions().stream().filter(e-> e.getRoles().contains(user.getRole())).forEach(e->{
                 String operate = e.getGroup() + ":" + e.getOperate();
-               // System.out.println(operate);
                 permissions.add(operate);
             });
             return permissions;
