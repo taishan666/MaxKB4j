@@ -5,7 +5,10 @@ import com.tarzan.maxkb4j.core.interceptor.AuthInterceptor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
+import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+import javax.validation.constraints.NotNull;
 
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
@@ -16,6 +19,8 @@ public class WebConfig implements WebMvcConfigurer {
        // registry.addResourceHandler("/favicon.ico").addResourceLocations("classpath:/META-INF/resources/");
         registry.addResourceHandler("doc.html").addResourceLocations("classpath:/META-INF/resources/");
         registry.addResourceHandler("/webjars/**").addResourceLocations("classpath:/META-INF/resources/webjars/");
+        //放行所有的静态资源，为了保证vue项目可以正常使用
+        //registry.addResourceHandler("/**").addResourceLocations("classpath:/static/");
     }
 
     /**
@@ -28,22 +33,21 @@ public class WebConfig implements WebMvcConfigurer {
     }
 
 
-
-
-/*    @Override
-    public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        //放行所有的静态资源，为了保证vue项目可以正常使用
-        registry.addResourceHandler("/**")
-                .addResourceLocations("classpath:/static/");
+    @Override
+    public void addViewControllers(@NotNull ViewControllerRegistry registry) {
+        System.out.println(registry);
+        registry.addViewController("/ui/{path:[^.]*}").setViewName("forward:/ui/index.html");
+        registry.addViewController("/ui/{path:[^.]*}/{path1:[^.]*}").setViewName("forward:/ui/index.html");
+        registry.addViewController("/ui/{path:[^.]*}/{path1:[^.]*}/{path2:[^.]*}").setViewName("forward:/ui/index.html");
+        registry.addViewController("/ui/{path:[^.]*}/{path1:[^.]*}/{path2:[^.]*}/{path3:[^.]*}").setViewName("forward:/ui/index.html");
+        registry.addViewController("/ui/{path:[^.]*}/{path1:[^.]*}/{path2:[^.]*}/{path3:[^.]*}/{path4:[^.]*}").setViewName("forward:/ui/index.html");
     }
 
 
-
-    *//**
+   /*  *//**
      * 解决全局跨域，
      *
-     * @param registry
-     *//*
+      *//*
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         // 添加映射路径

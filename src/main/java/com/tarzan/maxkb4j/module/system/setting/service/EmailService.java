@@ -11,8 +11,8 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
-import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
+import org.thymeleaf.spring6.SpringTemplateEngine;
 
 import java.util.Objects;
 
@@ -22,7 +22,7 @@ import java.util.Objects;
 public class EmailService {
 
     private final MailConfigService mailConfigService;
-    private final TemplateEngine templateEngine;
+    private final SpringTemplateEngine emailTemplateEngine;
 
 
     public void sendMessage(String to, String subject, String text) {
@@ -37,7 +37,7 @@ public class EmailService {
         JavaMailSenderImpl mailSender=mailConfigService.getJavaMailSender();
         MimeMessage mimeMessage = mailConfigService.getJavaMailSender().createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true);
-        String content = templateEngine.process(templateName, context);
+        String content = emailTemplateEngine.process(templateName, context);
         helper.setFrom(new InternetAddress(Objects.requireNonNull(mailSender.getUsername()).substring(0, mailSender.getUsername().indexOf("@"))+"<"+mailSender.getUsername()+">").toString());
         helper.setTo(to);
         helper.setSubject(subject);

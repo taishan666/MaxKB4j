@@ -2,7 +2,9 @@ server:
   port: 8080
   #tomcat:
     #relaxed-query-chars: "[,]"
-
+  error:
+    whitelabel:
+      enabled: true
 spring:
   application:
       name: MaxKB4j
@@ -18,10 +20,6 @@ spring:
   flyway:
     enabled: true
     locations: classpath:/db/migration
-
-    #thymeleaf:
-    #prefix: classpath:/template/
-    #suffix: .html
 
 
 mybatis-plus:

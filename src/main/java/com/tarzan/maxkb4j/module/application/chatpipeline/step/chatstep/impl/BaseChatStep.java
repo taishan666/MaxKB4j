@@ -19,6 +19,10 @@ import com.tarzan.maxkb4j.module.rag.MyContentRetriever;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.data.message.UserMessage;
+import dev.langchain4j.mcp.McpToolProvider;
+import dev.langchain4j.mcp.client.DefaultMcpClient;
+import dev.langchain4j.mcp.client.McpClient;
+import dev.langchain4j.mcp.client.transport.http.HttpMcpTransport;
 import dev.langchain4j.model.input.PromptTemplate;
 import dev.langchain4j.model.output.TokenUsage;
 import dev.langchain4j.rag.DefaultRetrievalAugmentor;
@@ -26,6 +30,7 @@ import dev.langchain4j.rag.RetrievalAugmentor;
 import dev.langchain4j.rag.content.injector.DefaultContentInjector;
 import dev.langchain4j.service.AiServices;
 import dev.langchain4j.service.TokenStream;
+import dev.langchain4j.service.tool.ToolProvider;
 import lombok.AllArgsConstructor;
 import org.jsoup.internal.StringUtil;
 import org.springframework.stereotype.Component;
@@ -125,12 +130,27 @@ public class BaseChatStep extends IChatStep {
                        // .contentAggregator(new DefaultContentAggregator())
                         .contentInjector(DefaultContentInjector.builder().promptTemplate(DEFAULT_PROMPT_TEMPLATE).build())
                         .build();
+         /*       McpTransport transport = new HttpMcpTransport.Builder()
+                        .sseUrl("https://mcp.api-inference.modelscope.cn/sse/d08b5b22651144")
+                      //  .logRequests(true) // if you want to see the traffic in the log
+                      //  .logResponses(true)
+                        .build();*/
+                McpClient mcpClient = new DefaultMcpClient.Builder()
+                        .transport(new HttpMcpTransport.Builder().sseUrl("https://mcp.api-inference.modelscope.cn/sse/8842e01f1cef40").build())
+                        .build();
+                McpClient mcpClient1 = new DefaultMcpClient.Builder()
+                        .transport(new HttpMcpTransport.Builder().sseUrl("https://mcp.api-inference.modelscope.cn/sse/d08b5b22651144").build())
+                        .build();
+                ToolProvider toolProvider = McpToolProvider.builder()
+                        .mcpClients(List.of(mcpClient,mcpClient1))
+                        .build();
                 Assistant assistant =  AiServices.builder(Assistant.class)
                         .systemMessageProvider(chatMemoryId ->system)
                     //    .chatLanguageModel(chatModel.getChatModel())
                         .streamingChatLanguageModel(chatModel.getStreamingChatModel())
                         .retrievalAugmentor(retrievalAugmentor)
                         .chatMemory(chatMemory)
+                        .toolProvider(toolProvider)
                        // .contentRetriever(new MyContentRetriever(paragraphList))
                         .build();
                 if (stream) {
