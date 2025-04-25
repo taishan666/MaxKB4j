@@ -12,7 +12,7 @@ import com.tarzan.maxkb4j.core.exception.ApiException;
 import com.tarzan.maxkb4j.core.workflow.WorkflowManage;
 import com.tarzan.maxkb4j.core.workflow.dto.ChatFile;
 import com.tarzan.maxkb4j.core.workflow.handler.WorkFlowPostHandler;
-import com.tarzan.maxkb4j.core.workflow.info.Flow;
+import com.tarzan.maxkb4j.core.workflow.logic.LogicFlow;
 import com.tarzan.maxkb4j.core.workflow.node.start.input.FlowParams;
 import com.tarzan.maxkb4j.module.application.cache.ChatCache;
 import com.tarzan.maxkb4j.module.application.chatpipeline.PipelineManage;
@@ -240,7 +240,7 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
         flowParams.setClientType(clientType);
         flowParams.setStream(dto.getStream() == null || dto.getStream());
         flowParams.setHistoryChatRecord(chatInfo.getChatRecordList());
-        WorkflowManage workflowManage = new WorkflowManage(Flow.newInstance(chatInfo.getWorkFlowVersion().getWorkFlow()),
+        WorkflowManage workflowManage = new WorkflowManage(LogicFlow.newInstance(chatInfo.getWorkFlowVersion().getWorkFlow()),
                 flowParams,
                 new WorkFlowPostHandler(chatInfo, clientId, clientType),
                 dto.getFormData(),

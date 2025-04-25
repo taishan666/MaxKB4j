@@ -6,7 +6,7 @@ import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.NodeResult;
 import com.tarzan.maxkb4j.core.workflow.WorkflowManage;
 import com.tarzan.maxkb4j.core.workflow.dto.ChatRecordSimple;
-import com.tarzan.maxkb4j.core.workflow.info.Node;
+import com.tarzan.maxkb4j.core.workflow.logic.LfNode;
 import com.tarzan.maxkb4j.core.workflow.node.start.input.FlowParams;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationChatRecordEntity;
 
@@ -28,7 +28,7 @@ public class BaseStartNode extends INode {
     public NodeResult execute() {
         System.out.println(START);
         // 获取基础节点
-        Node baseNode = workflowManage.getBaseNode();
+        LfNode baseNode = workflowManage.getBaseNode();
         // 获取默认全局变量
         List<JSONObject> inputFieldList = (List<JSONObject>) baseNode.getProperties()
                 .getOrDefault("inputFieldList", Collections.emptyList());

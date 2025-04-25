@@ -2,7 +2,7 @@ package com.tarzan.maxkb4j.core.workflow;
 
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.workflow.enums.NodeType;
-import com.tarzan.maxkb4j.core.workflow.info.Node;
+import com.tarzan.maxkb4j.core.workflow.logic.LfNode;
 import com.tarzan.maxkb4j.core.workflow.node.aichat.impl.BaseChatNode;
 import com.tarzan.maxkb4j.core.workflow.node.application.impl.BaseApplicationNode;
 import com.tarzan.maxkb4j.core.workflow.node.condition.impl.BaseConditionNode;
@@ -57,11 +57,11 @@ public class NodeFactory {
 
     }
 
-    public static INode getNode(String nodeType, Node node, FlowParams workflowParams, WorkflowManage workflowManage) {
+    public static INode getNode(String nodeType, LfNode node, FlowParams workflowParams, WorkflowManage workflowManage) {
         return getNode(nodeType,node,workflowParams,workflowManage,new ArrayList<>(),null);
     }
 
-    public static INode getNode(String nodeType, Node node, FlowParams workflowParams, WorkflowManage workflowManage, List<String> lastNodeIds, Function<Node, JSONObject> getNodeParams) {
+    public static INode getNode(String nodeType, LfNode node, FlowParams workflowParams, WorkflowManage workflowManage, List<String> lastNodeIds, Function<LfNode, JSONObject> getNodeParams) {
         INode inode=getNode(nodeType);
         if(Objects.nonNull(inode)){
             inode.setId(node.getId());

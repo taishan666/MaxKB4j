@@ -1,10 +1,10 @@
-package com.tarzan.maxkb4j.core.workflow.info;
+package com.tarzan.maxkb4j.core.workflow.logic;
 
 import com.alibaba.fastjson.JSONObject;
 import lombok.Data;
 
 @Data
-public class Node {
+public class LfNode {
     private String id;
     private String type;
     private Integer x;
