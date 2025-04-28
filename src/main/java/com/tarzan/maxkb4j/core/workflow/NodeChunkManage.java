@@ -10,11 +10,9 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class NodeChunkManage {
 
     private List<NodeChunk> nodeChunkList;
-    private WorkflowManage workflow;
 
-    public NodeChunkManage(WorkflowManage workflow) {
+    public NodeChunkManage() {
         this.nodeChunkList = new CopyOnWriteArrayList<>();
-        this.workflow = workflow;
     }
 
     public void addNodeChunk(NodeChunk nodeChunk) {
@@ -31,14 +29,6 @@ public class NodeChunkManage {
                 return currentNodeChunk.getChunkList().remove(0);
             } else {
                 if (currentNodeChunk.isEnd()) {
-                  /*  if (workflow.answerIsNotEmpty()) {
-                        String chatId = workflow.getParams().getChatId();
-                        String chatRecordId = workflow.getParams().getChatRecordId();
-                        ChatMessageVO chunk=new ChatMessageVO(chatId,chatRecordId,"","","","",true,false);
-                      //  ChatMessageVO chunk = workflow.getBaseToResponse().toStreamChunkResponse(chatId, chatRecordId, null, null, "\n\n", false, 0, 0);
-                        workflow.appendAnswer("\n\n");
-                        return chunk;
-                    }*/
                     nodeChunkList.remove(0);
                 }
             }

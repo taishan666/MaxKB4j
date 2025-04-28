@@ -20,11 +20,11 @@ import dev.langchain4j.model.input.PromptTemplate;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.util.CollectionUtils;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Sinks;
 
 import java.util.*;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -71,7 +71,7 @@ public class WorkflowManage {
         this.workFlowPostHandler = workFlowPostHandler;
         this.chatRecord = chatRecord;
         this.childNode = childNode;
-        this.nodeChunkManage = new NodeChunkManage(this);
+        this.nodeChunkManage = new NodeChunkManage();
         if (startNodeId != null) {
             this.startNodeId = startNodeId;
             this.loadNode(chatRecord, startNodeId, startNodeData);
@@ -192,8 +192,7 @@ public class WorkflowManage {
                 }
                 ChatMessageVO endInfo=new ChatMessageVO(getParams().getChatId(),getParams().getChatRecordId(),"",true);
                 sink.tryEmitNext(endInfo);
-                workFlowPostHandler.handler(this.params.getChatId(), this.params.getChatRecordId(),
-                        answer, workflow);
+                workFlowPostHandler.handler(this.params.getChatId(), this.params.getChatRecordId(), answer, workflow);
                 sink.tryEmitComplete();
             } catch (Exception e) {
                 sink.tryEmitError(e);
@@ -205,14 +204,13 @@ public class WorkflowManage {
 
 
     public void runChainAsync(INode currentNode, NodeResultFuture nodeResultFuture, String language) {
+        if (currentNode == null) {
+            LfNode startNode = getStartNode();
+            currentNode = NodeFactory.getNode(startNode.getType(), startNode, params, this);
+        }
         // 提交任务给线程池执行，并获取对应的Future对象
-        Future<?> future = executorService.submit(() -> {
-            try {
-                runChainManage(currentNode, nodeResultFuture, language);
-            } catch (InterruptedException | ExecutionException e) {
-                throw new RuntimeException(e);
-            }
-        });
+        INode finalCurrentNode = currentNode;
+        Future<?> future = executorService.submit(() -> runChainManage(List.of(finalCurrentNode), nodeResultFuture, language));
         // 将Future对象添加到futureList列表中
         futureList.add(future);
     }
@@ -226,44 +224,21 @@ public class WorkflowManage {
         return this.flow.getNodes().parallelStream().filter(node -> node.getType().equals("base-node")).findFirst().orElse(null);
     }
 
-    public void runChainManage(INode currentNode, NodeResultFuture nodeResultFuture, String language) throws InterruptedException, ExecutionException {
-        // 激活翻译（假设有一个类似功能的类）
-        // Translation.activate(language);
-        if (currentNode == null) {
-            LfNode startNode = getStartNode();
-            currentNode = NodeFactory.getNode(startNode.getType(), startNode, params, this);
-        }
-        assert currentNode != null;
-        // 添加节点块
-        nodeChunkManage.addNodeChunk(currentNode.getNodeChunk());
-        // 添加节点
-        appendNode(currentNode);
-        // 执行链式任务
-        NodeResult result = runChain(currentNode, nodeResultFuture);
-        if (result == null) {
+    public void runChainManage(List<INode> curNodes, NodeResultFuture nodeResultFuture, String language) {
+        if (CollectionUtils.isEmpty(curNodes)){
             return;
         }
-        // 获取下一个节点列表
-        List<INode> nodeList = getNextNodeList(currentNode, result);
-        if (nodeList.size() == 1) {
-            runChainManage(nodeList.get(0), null, language);
-        } else if (nodeList.size() > 1) {
-            // 对节点进行排序
-            List<INode> sortedNodeRunList = nodeList.stream()
-                    .sorted(Comparator.comparingInt(n -> n.getNode().getY()))
-                    .toList();
-            // 提交子任务并获取Future对象
-            for (INode node : sortedNodeRunList) {
-                Future<?> future = executorService.submit(() -> {
-                    try {
-                        runChainManage(node, null, language);
-                    } catch (InterruptedException | ExecutionException e) {
-                        throw new RuntimeException(e);
-                    }
-                });
-                futureList.add(future);
+        Map<String, INode> uniqueNodes = new HashMap<>();
+        for (INode curNode : curNodes) {
+            // 执行链式任务
+            NodeResult result = runChain(curNode, nodeResultFuture);
+            // 获取下一个节点列表
+            List<INode> nodeList = getNextNodeList(curNode, result);
+            for (INode iNode : nodeList) {
+                uniqueNodes.put(iNode.getNode().getId(), iNode);
             }
         }
+        runChainManage(new ArrayList<>(uniqueNodes.values()), null, language);
     }
 
 
@@ -347,6 +322,17 @@ public class WorkflowManage {
 
 
     public NodeResult runChain(INode currentNode, NodeResultFuture nodeResultFuture) {
+     /*   // 激活翻译（假设有一个类似功能的类）
+        // Translation.activate(language);
+        if (currentNode == null) {
+            LfNode startNode = getStartNode();
+            currentNode = NodeFactory.getNode(startNode.getType(), startNode, params, this);
+        }*/
+        assert currentNode != null;
+        // 添加节点块
+        nodeChunkManage.addNodeChunk(currentNode.getNodeChunk());
+        // 添加节点
+        appendNode(currentNode);
         // 处理默认的nodeResultFuture
         if (nodeResultFuture == null) {
             nodeResultFuture = runNodeFuture(currentNode);
@@ -370,7 +356,6 @@ public class WorkflowManage {
 
     public NodeResult handEventNodeResult(INode currentNode, NodeResultFuture nodeResultFuture) {
         String runtimeNodeId = currentNode.getRuntimeNodeId();
-        Map<String, Object> child_node = new HashMap<>();
         String view_type = currentNode.getViewType();
         NodeResult currentResult = nodeResultFuture.getResult();
         try {
@@ -409,6 +394,7 @@ public class WorkflowManage {
     }
 
     public NodeResult handleNodeResult(INode currentNode, NodeResultFuture nodeResultFuture) {
+        //todo
         return null;
     }
 
