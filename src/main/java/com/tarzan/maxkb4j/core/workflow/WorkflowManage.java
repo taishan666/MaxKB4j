@@ -20,7 +20,6 @@ import dev.langchain4j.model.input.PromptTemplate;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.util.CollectionUtils;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Sinks;
 
@@ -204,13 +203,7 @@ public class WorkflowManage {
 
 
     public void runChainAsync(INode currentNode, NodeResultFuture nodeResultFuture, String language) {
-        if (currentNode == null) {
-            LfNode startNode = getStartNode();
-            currentNode = NodeFactory.getNode(startNode.getType(), startNode, params, this);
-        }
-        // 提交任务给线程池执行，并获取对应的Future对象
-        INode finalCurrentNode = currentNode;
-        Future<?> future = executorService.submit(() -> runChainManage(List.of(finalCurrentNode), nodeResultFuture, language));
+        Future<?> future = executorService.submit(() -> runChainManage(currentNode, nodeResultFuture, language));
         // 将Future对象添加到futureList列表中
         futureList.add(future);
     }
@@ -224,21 +217,22 @@ public class WorkflowManage {
         return this.flow.getNodes().parallelStream().filter(node -> node.getType().equals("base-node")).findFirst().orElse(null);
     }
 
-    public void runChainManage(List<INode> curNodes, NodeResultFuture nodeResultFuture, String language) {
-        if (CollectionUtils.isEmpty(curNodes)){
-            return;
+    public void runChainManage(INode currentNode, NodeResultFuture nodeResultFuture, String language) {
+        if (currentNode == null) {
+            LfNode startNode = getStartNode();
+            currentNode = NodeFactory.getNode(startNode.getType(), startNode, params, this);
         }
-        Map<String, INode> uniqueNodes = new HashMap<>();
-        for (INode curNode : curNodes) {
-            // 执行链式任务
-            NodeResult result = runChain(curNode, nodeResultFuture);
-            // 获取下一个节点列表
-            List<INode> nodeList = getNextNodeList(curNode, result);
-            for (INode iNode : nodeList) {
-                uniqueNodes.put(iNode.getNode().getId(), iNode);
+        NodeResult result = runChain(currentNode, nodeResultFuture);
+        // 获取下一个节点列表
+        List<INode> nodeList = getNextNodeList(currentNode, result);
+        if (nodeList.size() == 1) {
+            runChainManage(nodeList.get(0), null, language);
+        } else if (nodeList.size() > 1) {
+            // 提交子任务并获取Future对象
+            for (INode node : nodeList) {
+                runChainManage(node, null, language);
             }
         }
-        runChainManage(new ArrayList<>(uniqueNodes.values()), null, language);
     }
 
 
@@ -647,19 +641,9 @@ public class WorkflowManage {
             }
         }
         // 检查每个上游节点是否都已执行
-        for (String upNodeId : upNodeIdList) {
-            boolean anyMatch = false;
-            for (INode node : this.nodeContext) {
-                if (dependentNode(upNodeId, node)) {
-                    anyMatch = true;
-                    break;
-                }
-            }
-            if (!anyMatch) {
-                return false;
-            }
-        }
-        return true;
+        return upNodeIdList.stream().allMatch(upNodeId ->
+                this.nodeContext.stream().anyMatch(node -> dependentNode(upNodeId, node))
+        );
     }
 
     public Object getReferenceField(String nodeId, List<String> fields) {
