@@ -19,10 +19,6 @@ import com.tarzan.maxkb4j.module.rag.MyContentRetriever;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.data.message.UserMessage;
-import dev.langchain4j.mcp.McpToolProvider;
-import dev.langchain4j.mcp.client.DefaultMcpClient;
-import dev.langchain4j.mcp.client.McpClient;
-import dev.langchain4j.mcp.client.transport.http.HttpMcpTransport;
 import dev.langchain4j.model.input.PromptTemplate;
 import dev.langchain4j.model.output.TokenUsage;
 import dev.langchain4j.rag.DefaultRetrievalAugmentor;
@@ -30,7 +26,6 @@ import dev.langchain4j.rag.RetrievalAugmentor;
 import dev.langchain4j.rag.content.injector.DefaultContentInjector;
 import dev.langchain4j.service.AiServices;
 import dev.langchain4j.service.TokenStream;
-import dev.langchain4j.service.tool.ToolProvider;
 import lombok.AllArgsConstructor;
 import org.jsoup.internal.StringUtil;
 import org.springframework.stereotype.Component;
@@ -130,7 +125,7 @@ public class BaseChatStep extends IChatStep {
                        // .contentAggregator(new DefaultContentAggregator())
                         .contentInjector(DefaultContentInjector.builder().promptTemplate(DEFAULT_PROMPT_TEMPLATE).build())
                         .build();
-                McpClient mcpClient = new DefaultMcpClient.Builder()
+        /*        McpClient mcpClient = new DefaultMcpClient.Builder()
                         .transport(new HttpMcpTransport.Builder().sseUrl("").build())
                         .build();
                 McpClient mcpClient1 = new DefaultMcpClient.Builder()
@@ -138,36 +133,42 @@ public class BaseChatStep extends IChatStep {
                         .build();
                 ToolProvider toolProvider = McpToolProvider.builder()
                         .mcpClients(List.of(mcpClient,mcpClient1))
-                        .build();
+                        .build();*/
                 Assistant assistant =  AiServices.builder(Assistant.class)
                         .systemMessageProvider(chatMemoryId ->system)
                     //    .chatLanguageModel(chatModel.getChatModel())
                         .streamingChatLanguageModel(chatModel.getStreamingChatModel())
                         .retrievalAugmentor(retrievalAugmentor)
                         .chatMemory(chatMemory)
-                        .toolProvider(toolProvider)
+                    //    .toolProvider(toolProvider)
                        // .contentRetriever(new MyContentRetriever(paragraphList))
                         .build();
                 if (stream) {
-                    TokenStream tokenStream = assistant.chatStream(problemText);
-                    tokenStream.onPartialResponse(text -> sink.tryEmitNext(new ChatMessageVO(chatId,chatRecordId,text,false)))
-                            .onCompleteResponse(response->{
-                                String  answerText=response.aiMessage().text();
-                                TokenUsage tokenUsage=response.tokenUsage();
-                                int thisMessageTokens = tokenUsage.inputTokenCount();
-                                int thisAnswerTokens = tokenUsage.outputTokenCount();
-                                manage.context.put("messageTokens", messageTokens + thisMessageTokens);
-                                manage.context.put("answerTokens", answerTokens + thisAnswerTokens);
-                                addAccessNum(clientId, clientType);
-                                postResponseHandler.handler(ChatCache.get(chatId), chatId, chatRecordId, problemText, answerText, manage, clientId);
-                                sink.tryEmitNext(new ChatMessageVO(chatId,chatRecordId,"",true));
-                                sink.tryEmitComplete();
-                            })
-                            .onError(error->{
-                                sink.tryEmitNext(new ChatMessageVO(chatId,chatRecordId,"",true));
-                                sink.tryEmitComplete();
-                            })
-                            .start();
+                    if (StringUtil.isBlank(problemText)){
+                        sink.tryEmitNext(new ChatMessageVO(chatId,chatRecordId,"用户消息不能为空",true));
+                        sink.tryEmitComplete();
+                    }else {
+                        TokenStream tokenStream = assistant.chatStream(problemText);
+                        tokenStream.onPartialResponse(text -> sink.tryEmitNext(new ChatMessageVO(chatId,chatRecordId,text,false)))
+                                .onCompleteResponse(response->{
+                                    String  answerText=response.aiMessage().text();
+                                    TokenUsage tokenUsage=response.tokenUsage();
+                                    int thisMessageTokens = tokenUsage.inputTokenCount();
+                                    int thisAnswerTokens = tokenUsage.outputTokenCount();
+                                    manage.context.put("messageTokens", messageTokens + thisMessageTokens);
+                                    manage.context.put("answerTokens", answerTokens + thisAnswerTokens);
+                                    addAccessNum(clientId, clientType);
+                                    postResponseHandler.handler(ChatCache.get(chatId), chatId, chatRecordId, problemText, answerText, manage, clientId);
+                                    sink.tryEmitNext(new ChatMessageVO(chatId,chatRecordId,"",true));
+                                    sink.tryEmitComplete();
+                                })
+                                .onError(error->{
+                                    sink.tryEmitNext(new ChatMessageVO(chatId,chatRecordId,"",true));
+                                    sink.tryEmitComplete();
+                                })
+                                .start();
+                    }
+
                 } else {
               /*      String response = assistant.chat(problemText);
                     System.out.println(response);

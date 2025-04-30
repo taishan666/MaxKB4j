@@ -153,6 +153,12 @@ public class ApplicationController {
         return new ResponseEntity<>(applicationService.textToSpeech(appId, data), headers, HttpStatus.OK);
     }
 
+    @SaCheckPermission("APPLICATION:READ")
+    @PostMapping("api/application/{appId}/speech_to_text")
+    public  R<String> speechToText(@PathVariable("appId") String appId, MultipartFile file) throws IOException {
+        return  R.data(applicationService.speechToText(appId,file));
+    }
+
     @SaCheckPermission("APPLICATION:EDIT")
     @PutMapping("api/application/{appId}")
     public R<Boolean> updateByAppId(@PathVariable("appId") String appId, @RequestBody ApplicationVO appVO) {

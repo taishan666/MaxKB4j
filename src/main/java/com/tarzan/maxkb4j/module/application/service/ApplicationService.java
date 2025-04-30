@@ -30,6 +30,7 @@ import com.tarzan.maxkb4j.module.dataset.service.RetrieveService;
 import com.tarzan.maxkb4j.module.dataset.vo.ParagraphVO;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelEntity;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
+import com.tarzan.maxkb4j.module.model.provider.impl.BaseSpeechToText;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseTextToSpeech;
 import com.tarzan.maxkb4j.module.resource.service.ImageService;
 import com.tarzan.maxkb4j.module.system.team.service.TeamMemberPermissionService;
@@ -609,4 +610,9 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     }
 
 
+    public String speechToText(String appId, MultipartFile file) throws IOException {
+        ApplicationEntity app = this.getById(appId);
+        BaseSpeechToText sttModel = modelService.getModelById(app.getSttModelId());
+        return sttModel.speechToText(file.getBytes());
+    }
 }

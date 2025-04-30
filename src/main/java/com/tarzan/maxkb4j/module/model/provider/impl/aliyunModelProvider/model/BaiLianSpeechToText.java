@@ -57,6 +57,9 @@ public class BaiLianSpeechToText extends BaseSpeechToText implements BaseModel {
         String result= recognizer.call(param, tempFile.toFile());
         JSONObject json = JSON.parseObject(result);
         JSONArray sentences= json.getJSONArray("sentences");
+        if (sentences==null||sentences.isEmpty()){
+            return "";
+        }
         return sentences.getJSONObject(0).getString("text");
     }
 
