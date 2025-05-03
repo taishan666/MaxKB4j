@@ -22,7 +22,6 @@ public class LLMConfiguration {
             @Override
             public void onRequest(ChatModelRequestContext requestContext) {
                 ChatRequest chatRequest = requestContext.chatRequest();
-
                 List<ChatMessage> messages = chatRequest.messages();
                 System.out.println(messages);
                 log.info("onRequest(): {}", requestContext.chatRequest());

@@ -1,3 +1,4 @@
+/*
 package com.tarzan.maxkb4j.listener;
 
 import dev.langchain4j.data.message.AiMessage;
@@ -21,7 +22,8 @@ public class LlmListener implements ChatModelListener {
         List<ChatMessage> messages = chatRequest.messages();
         System.out.println(messages);
 
-         /*     ChatRequestParameters parameters = chatRequest.parameters();
+         */
+/*     ChatRequestParameters parameters = chatRequest.parameters();
             System.out.println(parameters.modelName());
             System.out.println(parameters.temperature());
             System.out.println(parameters.topP());
@@ -47,7 +49,8 @@ public class LlmListener implements ChatModelListener {
             }
 
            Map<Object, Object> attributes = requestContext.attributes();
-            attributes.forEach((key, value) -> System.out.println(key + ": " + value));*/
+            attributes.forEach((key, value) -> System.out.println(key + ": " + value));*//*
+
     }
 
     @Override
@@ -56,7 +59,8 @@ public class LlmListener implements ChatModelListener {
 
         AiMessage aiMessage = chatResponse.aiMessage();
         System.out.println(aiMessage);
- /*
+ */
+/*
             ChatResponseMetadata metadata = chatResponse.metadata();
            System.out.println(metadata.id());
             System.out.println(metadata.modelName());
@@ -78,7 +82,8 @@ public class LlmListener implements ChatModelListener {
             }
 
             Map<Object, Object> attributes = responseContext.attributes();
-            System.out.println(attributes.get("my-attribute"));*/
+            System.out.println(attributes.get("my-attribute"));*//*
+
     }
 
     @Override
@@ -93,3 +98,4 @@ public class LlmListener implements ChatModelListener {
         System.out.println(attributes.get("my-attribute"));
     }
 }
+*/

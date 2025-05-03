@@ -19,14 +19,20 @@ import com.tarzan.maxkb4j.module.rag.MyContentRetriever;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.data.message.UserMessage;
+import dev.langchain4j.mcp.McpToolProvider;
 import dev.langchain4j.model.input.PromptTemplate;
 import dev.langchain4j.model.output.TokenUsage;
 import dev.langchain4j.rag.DefaultRetrievalAugmentor;
 import dev.langchain4j.rag.RetrievalAugmentor;
+import dev.langchain4j.rag.content.aggregator.DefaultContentAggregator;
+import dev.langchain4j.rag.content.injector.ContentInjector;
 import dev.langchain4j.rag.content.injector.DefaultContentInjector;
+import dev.langchain4j.rag.query.router.DefaultQueryRouter;
 import dev.langchain4j.service.AiServices;
 import dev.langchain4j.service.TokenStream;
+import dev.langchain4j.service.tool.ToolProvider;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.jsoup.internal.StringUtil;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
@@ -36,6 +42,7 @@ import reactor.core.publisher.Sinks;
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 @Component
 @AllArgsConstructor
 public class BaseChatStep extends IChatStep {
@@ -86,6 +93,7 @@ public class BaseChatStep extends IChatStep {
                                            List<ParagraphVO> paragraphList,
                                            NoReferencesSetting noReferencesSetting,
                                            String systemText,String problemText, PipelineManage manage, PostResponseHandler postResponseHandler, boolean stream) {
+        long startTime = System.currentTimeMillis();
         String chatRecordId = IdWorker.get32UUID();
         Sinks.Many<ChatMessageVO> sink = Sinks.many().multicast().onBackpressureBuffer();
         if (CollectionUtils.isEmpty(paragraphList)) {
@@ -118,31 +126,37 @@ public class BaseChatStep extends IChatStep {
                 String clientType = manage.context.getString("client_type");
                 MyChatMemory chatMemory=new MyChatMemory(chatRecordList,dialogueNumber);
                 String system= StringUtil.isBlank(systemText)?"You're an intelligent assistant":systemText;
+                ContentInjector contentInjector = DefaultContentInjector.builder()
+                        .promptTemplate(DEFAULT_PROMPT_TEMPLATE)
+                        .metadataKeysToInclude(List.of("file_name", "index"))
+                        .build();
                 RetrievalAugmentor retrievalAugmentor = DefaultRetrievalAugmentor.builder()
-                       // .queryTransformer(CompressingQueryTransformer.builder().chatLanguageModel(chatModel.getChatModel()).build())
                         //.queryTransformer(ExpandingQueryTransformer.builder().chatLanguageModel(chatModel.getChatModel()).build())
-                        .contentRetriever(new MyContentRetriever(paragraphList))
-                       // .contentAggregator(new DefaultContentAggregator())
-                        .contentInjector(DefaultContentInjector.builder().promptTemplate(DEFAULT_PROMPT_TEMPLATE).build())
+                      //  .contentRetriever(new MyContentRetriever(paragraphList))
+                        .queryRouter(new DefaultQueryRouter(new MyContentRetriever(paragraphList)))
+                        .contentAggregator(new DefaultContentAggregator())
+                        .contentInjector(contentInjector)
                         .build();
         /*        McpClient mcpClient = new DefaultMcpClient.Builder()
                         .transport(new HttpMcpTransport.Builder().sseUrl("").build())
                         .build();
                 McpClient mcpClient1 = new DefaultMcpClient.Builder()
                         .transport(new HttpMcpTransport.Builder().sseUrl("").build())
-                        .build();
-                ToolProvider toolProvider = McpToolProvider.builder()
-                        .mcpClients(List.of(mcpClient,mcpClient1))
                         .build();*/
+                ToolProvider toolProvider = McpToolProvider.builder()
+                        .mcpClients(List.of())
+                        .build();
                 Assistant assistant =  AiServices.builder(Assistant.class)
                         .systemMessageProvider(chatMemoryId ->system)
                         .streamingChatLanguageModel(chatModel.getStreamingChatModel())
                         .retrievalAugmentor(retrievalAugmentor)
                         .chatMemory(chatMemory)
-                    //    .toolProvider(toolProvider)
+                        .toolProvider(toolProvider)
                         .build();
                 if (stream) {
                     if (StringUtil.isBlank(problemText)){
+                        manage.context.put("messageTokens", messageTokens );
+                        manage.context.put("answerTokens", answerTokens );
                         sink.tryEmitNext(new ChatMessageVO(chatId,chatRecordId,"用户消息不能为空",true));
                         sink.tryEmitComplete();
                     }else {
@@ -165,8 +179,8 @@ public class BaseChatStep extends IChatStep {
                                     sink.tryEmitComplete();
                                 })
                                 .start();
+                        log.info("AI回答 耗时：{} ms", System.currentTimeMillis() - startTime);
                     }
-
                 } else {
               /*      String response = assistant.chat(problemText);
                     System.out.println(response);

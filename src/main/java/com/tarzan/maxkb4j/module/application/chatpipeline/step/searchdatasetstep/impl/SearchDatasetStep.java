@@ -53,12 +53,10 @@ public class SearchDatasetStep extends ISearchDatasetStep {
             List<ParagraphVO> results=new ArrayList<>(map.values());
             results.sort(Comparator.comparing(ParagraphVO::getComprehensiveScore).reversed());
             int endIndex = Math.min(datasetSetting.getTopN(), results.size());
-            log.info("dataset search 耗时 {} ms", System.currentTimeMillis() - startTime);
-            return results.subList(0, endIndex);
-        }else {
-            return paragraphList;
+            paragraphList= results.subList(0, endIndex);
         }
-
+        log.info("dataset search 耗时 {} ms", System.currentTimeMillis() - startTime);
+        return paragraphList;
     }
 
     @Override
