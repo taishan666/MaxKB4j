@@ -136,12 +136,10 @@ public class BaseChatStep extends IChatStep {
                         .build();*/
                 Assistant assistant =  AiServices.builder(Assistant.class)
                         .systemMessageProvider(chatMemoryId ->system)
-                    //    .chatLanguageModel(chatModel.getChatModel())
                         .streamingChatLanguageModel(chatModel.getStreamingChatModel())
                         .retrievalAugmentor(retrievalAugmentor)
                         .chatMemory(chatMemory)
                     //    .toolProvider(toolProvider)
-                       // .contentRetriever(new MyContentRetriever(paragraphList))
                         .build();
                 if (stream) {
                     if (StringUtil.isBlank(problemText)){

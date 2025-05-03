@@ -35,7 +35,7 @@ public class BaiLianSpeechToText extends BaseSpeechToText implements BaseModel {
                         .apiKey(credential.getApiKey())
                         .model(modelName)
                         .format("mp3")
-                        .sampleRate(22050)
+                        .sampleRate(16000)
                         .parameter("language_hints", new String[]{"zh", "en"})
                         .build();
         return (T) new BaiLianSpeechToText(param);
