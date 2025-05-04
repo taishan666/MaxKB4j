@@ -84,6 +84,7 @@ todo
 - LangChain4j：[LangChain4j](https://docs.langchain4j.dev/)
 - 向量数据库：[PostgreSQL / pgvector](https://www.postgresql.org/)
 - 全文检索数据库：[MongoDB](https://www.mongodb.com/)
+- 用户鉴权：[sa-token](https://sa-token.dev33.cn/)
 
 ## 我的技术专栏
 
