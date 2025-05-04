@@ -1,7 +1,7 @@
-package com.tarzan.maxkb4j.module.application.chatpipeline.step.chatstep;
+package com.tarzan.maxkb4j.module.application.ragpipeline.step.chatstep;
 
-import com.tarzan.maxkb4j.module.application.chatpipeline.IBaseChatPipelineStep;
-import com.tarzan.maxkb4j.module.application.chatpipeline.PipelineManage;
+import com.tarzan.maxkb4j.module.application.ragpipeline.IBaseChatPipelineStep;
+import com.tarzan.maxkb4j.module.application.ragpipeline.PipelineManage;
 import com.tarzan.maxkb4j.module.application.vo.ChatMessageVO;
 import reactor.core.publisher.Flux;
 

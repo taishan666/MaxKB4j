@@ -12,8 +12,6 @@ import dev.langchain4j.rag.content.Content;
 import dev.langchain4j.rag.content.retriever.ContentRetriever;
 import dev.langchain4j.rag.content.retriever.EmbeddingStoreContentRetriever;
 import dev.langchain4j.rag.query.Query;
-import dev.langchain4j.store.embedding.EmbeddingSearchRequest;
-import dev.langchain4j.store.embedding.EmbeddingSearchResult;
 import dev.langchain4j.store.embedding.EmbeddingStore;
 import dev.langchain4j.store.embedding.pgvector.PgVectorEmbeddingStore;
 
@@ -54,13 +52,13 @@ public class Retriever {
                 .maxResults(3)
                 .minScore(0.15)
                 .build();
-        EmbeddingSearchRequest request= EmbeddingSearchRequest.builder()
+     /*   EmbeddingSearchRequest request= EmbeddingSearchRequest.builder()
                 .queryEmbedding(embeddingModel.embed(TextSegment.from(queryText)).content())
                 .maxResults(3)
                 .minScore(0.15)
-                .build();
-        EmbeddingSearchResult<TextSegment> result= embeddingStore.search(request);
-        System.out.println(result.matches());
+                .build();*/
+      //  EmbeddingSearchResult<TextSegment> result= embeddingStore.search(request);
+       // System.out.println(result.matches());
         List<Content> contents = contentRetriever.retrieve(new Query(queryText));
         System.out.println(contents);
         ChatLanguageModel chatModel = QwenChatModel.builder()

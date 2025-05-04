@@ -1,4 +1,4 @@
-package com.tarzan.maxkb4j.module.application.chatpipeline;
+package com.tarzan.maxkb4j.module.application.ragpipeline;
 
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.module.application.vo.ChatMessageVO;

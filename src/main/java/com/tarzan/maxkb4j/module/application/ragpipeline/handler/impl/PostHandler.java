@@ -1,9 +1,9 @@
-package com.tarzan.maxkb4j.module.application.chatpipeline.handler.impl;
+package com.tarzan.maxkb4j.module.application.ragpipeline.handler.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.module.application.cache.ChatCache;
-import com.tarzan.maxkb4j.module.application.chatpipeline.PipelineManage;
-import com.tarzan.maxkb4j.module.application.chatpipeline.handler.PostResponseHandler;
+import com.tarzan.maxkb4j.module.application.ragpipeline.PipelineManage;
+import com.tarzan.maxkb4j.module.application.ragpipeline.handler.PostResponseHandler;
 import com.tarzan.maxkb4j.module.application.dto.ChatInfo;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationChatEntity;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationChatRecordEntity;

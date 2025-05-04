@@ -1,7 +1,7 @@
-package com.tarzan.maxkb4j.module.application.chatpipeline.handler;
+package com.tarzan.maxkb4j.module.application.ragpipeline.handler;
 
 import com.tarzan.maxkb4j.module.application.dto.ChatInfo;
-import com.tarzan.maxkb4j.module.application.chatpipeline.PipelineManage;
+import com.tarzan.maxkb4j.module.application.ragpipeline.PipelineManage;
 
 public abstract class PostResponseHandler {
 
