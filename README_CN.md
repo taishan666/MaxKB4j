@@ -16,6 +16,9 @@ MaxKB4j = Max Knowledge Base for Java，是一款基于Java语言开发的LLM工
 
 我的技术博客：https://tarzan.blog.csdn.net/
 
+## 功能导图
+![输入图片说明](imageMaxKB4J.png)
+
 ## 快速开始
 
 ```
