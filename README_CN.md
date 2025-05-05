@@ -26,8 +26,7 @@ java -jar maxkb4j-1.0.0.jar
 ```
 
 ## 技术交流
-
-[《看看这个！👉 点击技术交流社区！🔥》](https://blog.csdn.net/weixin_40986713/category_12606825.html)
+![AI交流知识星球](image/zsxq.png)
 
 ## 问题反馈
      有问题提交issues,或者通过我的博客留言！ 
@@ -88,7 +87,7 @@ todo
 
 ## 我的技术专栏
 
-- **《AI大模型应用开发》**：[https://blog.csdn.net/weixin_40986713/category_12606825.html](https://blog.csdn.net/weixin_40986713/category_12606825.html)
+- [《看看这个！👉 点击AI大模型应用开发！🔥》](https://blog.csdn.net/weixin_40986713/category_12606825.html)
 
 - **《AI语音合成与识别》**》：[https://blog.csdn.net/weixin_40986713/category_12735457.html](https://blog.csdn.net/weixin_40986713/category_12735457.html)
 
@@ -99,8 +98,8 @@ todo
 
 Copyright (c) 2025-2035 洛阳泰山 TARZAN, All rights reserved.
 
-Licensed under The GNU General Public License version 3 (GPLv3)  (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
+Licensed under The Apache License Version 2.0  (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
 
-<https://www.gnu.org/licenses/gpl-3.0.html>
+<http://www.apache.org/licenses>
 
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
