@@ -6,8 +6,8 @@ spring:
     driver-class-name: org.postgresql.Driver
   data:
     mongodb:
-      database: ${MONGO_DATABASE:MaxKB4j}
-      uri: mongodb://${MONGO_USERNAME:myusername}:${MONGO_PASSWORD:mypassword}@${MONGO_HOST:localhost}:27017
+      database: MaxKB4j
+      uri: mongodb://myusername:mypassword@localhost:27017
 
 decorator:
   datasource:
