@@ -1,6 +1,7 @@
 package com.tarzan.maxkb4j.module.application.controller;
 
 import cn.dev33.satoken.annotation.SaCheckPermission;
+import cn.dev33.satoken.annotation.SaIgnore;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -8,6 +9,7 @@ import com.tarzan.maxkb4j.core.api.R;
 import com.tarzan.maxkb4j.core.common.dto.QueryDTO;
 import com.tarzan.maxkb4j.module.application.dto.ApplicationAccessTokenDTO;
 import com.tarzan.maxkb4j.module.application.dto.ChatImproveDTO;
+import com.tarzan.maxkb4j.module.application.dto.EmbedDTO;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationAccessTokenEntity;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationEntity;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationWorkFlowVersionEntity;
@@ -212,6 +214,19 @@ public class ApplicationController {
     public R<List<McpToolVO>> mcpServers(String url, String type) {
         return R.success(applicationService.mcpServers(url,type));
     }
+
+    /**
+     * 嵌入第三方
+     *
+     * @param dto      dto
+     * @param response response
+     */
+    @GetMapping("/embed")
+    @SaIgnore
+    public void embed(EmbedDTO dto, HttpServletResponse response) {
+        applicationService.embed(dto,response);
+    }
+
 
 
 

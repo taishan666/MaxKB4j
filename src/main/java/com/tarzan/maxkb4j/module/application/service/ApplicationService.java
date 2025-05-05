@@ -13,8 +13,10 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tarzan.maxkb4j.core.common.dto.QueryDTO;
 import com.tarzan.maxkb4j.core.exception.AccessException;
+import com.tarzan.maxkb4j.core.exception.ApiException;
 import com.tarzan.maxkb4j.module.application.dto.ApplicationAccessTokenDTO;
 import com.tarzan.maxkb4j.module.application.dto.ChatImproveDTO;
+import com.tarzan.maxkb4j.module.application.dto.EmbedDTO;
 import com.tarzan.maxkb4j.module.application.dto.MaxKb4J;
 import com.tarzan.maxkb4j.module.application.entity.*;
 import com.tarzan.maxkb4j.module.application.enums.AuthType;
@@ -54,6 +56,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -614,5 +617,57 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         ApplicationEntity app = this.getById(appId);
         BaseSpeechToText sttModel = modelService.getModelById(app.getSttModelId());
         return sttModel.speechToText(file.getBytes());
+    }
+
+    public void embed(EmbedDTO dto, HttpServletResponse response) throws IOException {
+        ClassLoader classLoader = getClass().getClassLoader();
+        InputStream inputStream =classLoader.getResourceAsStream("templates/embed.js");
+        ApplicationAccessTokenEntity token = accessTokenService.getByToken(dto.getToken());
+        if (token == null || !token.getIsActive()) {
+            throw new ApiException("token无效或未被启用");
+        }
+        Set<String> whiteList = token.getWhiteList();
+        if (token.getWhiteActive() && !whiteList.contains(WebUtil.getIP())) {
+            throw new ApiException("非法访问，请联系管理员添加白名单");
+        }
+
+
+        String content = IoUtil.readToString(inputStream, StandardCharsets.UTF_8);
+
+        String template = render(content,getParamsMap(token, dto));
+
+        response.setContentType("text/javascript;charset=UTF-8");
+        response.getWriter().write(template);
+    }
+
+    private Map<String, String> getParamsMap(ApplicationAccessTokenEntity token, EmbedDTO dto) {
+        //todo
+        String floatIcon = dto.getProtocol() + "://" + dto.getHost() + "/ui/favicon.ico";
+        Set<String> whiteList = token.getWhiteList();
+        Map<String, String> map = new HashMap<>();
+        map.put("is_auth", "true");
+        map.put("protocol", dto.getProtocol());
+        map.put("query", Optional.ofNullable(dto.getQuery()).orElse(""));
+        map.put("host", dto.getHost());
+        map.put("token", dto.getToken());
+        map.put("white_list_str", whiteList == null ? "" : whiteList.stream().collect(Collectors.joining(System.lineSeparator())));
+        map.put("white_active", token.getWhiteActive().toString());
+     /*   map.put("float_icon", Optional.ofNullable(token.getFloatIconUrl()).orElse(floatIcon));
+        map.put("is_draggable", token.getDraggable().toString());
+        map.put("show_history", token.getShowHistory().toString());
+        map.put("show_guide", token.getShowGuide().toString());
+        ApplicationAccessToken.FloatLocation floatLocation = token.getFloatLocation();
+        map.put("x_type", floatLocation.getX().getType());
+        map.put("y_type", floatLocation.getY().getType());
+        map.put("x_value", floatLocation.getX().getValue().toString());
+        map.put("y_value", floatLocation.getY().getValue().toString());*/
+        return map;
+    }
+
+    private String render(String content, Map<String, String> variables) {
+        for (Map.Entry<String, String> entry : variables.entrySet()) {
+            content = content.replace("{{" + entry.getKey() + "}}", entry.getValue());
+        }
+        return content;
     }
 }
