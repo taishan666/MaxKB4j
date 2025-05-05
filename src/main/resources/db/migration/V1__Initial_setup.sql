@@ -20,7 +20,6 @@ CREATE TABLE "public"."system_setting" (
 -- ----------------------------
 ALTER TABLE "public"."system_setting" ADD CONSTRAINT "system_setting_pkey" PRIMARY KEY ("type");
 
-
 -- ----------------------------
 -- Table structure for file
 -- ----------------------------
