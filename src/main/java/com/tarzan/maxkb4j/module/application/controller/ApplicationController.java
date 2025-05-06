@@ -223,7 +223,7 @@ public class ApplicationController {
      */
     @GetMapping("/embed")
     @SaIgnore
-    public void embed(EmbedDTO dto, HttpServletResponse response) {
+    public void embed(EmbedDTO dto, HttpServletResponse response) throws IOException {
         applicationService.embed(dto,response);
     }
 
