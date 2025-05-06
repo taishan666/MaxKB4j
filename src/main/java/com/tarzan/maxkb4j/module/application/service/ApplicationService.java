@@ -582,15 +582,27 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
                     property.put("type", "array");
                     property.put("description", schema.description());
                 } else if (v instanceof JsonBooleanSchema schema) {
-                    property.put("type", "array");
+                    property.put("type", "boolean");
                     property.put("description", schema.description());
                 } else if (v instanceof JsonObjectSchema schema) {
                     property.put("type", "object");
                     property.put("description", schema.description());
-                } else {
-                    JsonAnyOfSchema schema = (JsonAnyOfSchema) v;
+                } else if (v instanceof JsonEnumSchema schema) {
+                    property.put("type", "enum");
+                    property.put("description", schema.description());
+                }else if (v instanceof JsonIntegerSchema schema) {
+                    property.put("type", "int");
+                    property.put("description", schema.description());
+                }else if (v instanceof JsonAnyOfSchema schema) {
                     property.put("type", "any");
                     property.put("description", schema.description());
+                }else if (v instanceof JsonReferenceSchema schema) {
+                    property.put("type", "reference");
+                    property.put("description", schema.reference());
+                } else {
+                    JsonNullSchema schema = (JsonNullSchema) v;
+                    property.put("type", "null");
+                    property.put("description", "");
                 }
                 properties.put(k, property);
             });
@@ -602,7 +614,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         }).collect(Collectors.toList());
     }
 
-    public List<McpToolVO> mcpServers(JSONObject mcpServer) {
+    public List<McpToolVO> listTools(JSONObject mcpServer) {
         List<McpToolVO> tools = new ArrayList<>();
         for (String key : mcpServer.keySet()) {
             McpTransport transport = new HttpMcpTransport.Builder()

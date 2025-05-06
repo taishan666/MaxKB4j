@@ -81,8 +81,10 @@ public class JOSNBListTypeHandler extends BaseTypeHandler<List<Object>> {
         for (Object obj : value) {
             if (obj instanceof JSONObject jsonObject){
                 sb.append(escapeJsonText(jsonObject.toJSONString())).append(",");
-            }else {
+            }else if(obj instanceof String){
                 sb.append(escapeText(obj.toString())).append(",");
+            }else {
+                sb.append(escapeJsonText(JSON.toJSONString(obj))).append(",");
             }
         }
         sb.deleteCharAt(sb.length()-1);

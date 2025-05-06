@@ -213,7 +213,7 @@ public class ApplicationController {
     @SaCheckPermission("APPLICATION:READ")
     @GetMapping("api/application/mcp_servers")
     public R<List<McpToolVO>> mcpServers(String mcp_servers) {
-        return R.success(applicationService.mcpServers(JSON.parseObject(mcp_servers)));
+        return R.success(applicationService.listTools(JSON.parseObject(mcp_servers)));
     }
 
     /**
