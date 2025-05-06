@@ -2,6 +2,7 @@ package com.tarzan.maxkb4j.module.application.controller;
 
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import cn.dev33.satoken.annotation.SaIgnore;
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -211,8 +212,8 @@ public class ApplicationController {
 
     @SaCheckPermission("APPLICATION:READ")
     @GetMapping("api/application/mcp_servers")
-    public R<List<McpToolVO>> mcpServers(String url, String type) {
-        return R.success(applicationService.mcpServers(url,type));
+    public R<List<McpToolVO>> mcpServers(String mcp_servers) {
+        return R.success(applicationService.mcpServers(JSON.parseObject(mcp_servers)));
     }
 
     /**

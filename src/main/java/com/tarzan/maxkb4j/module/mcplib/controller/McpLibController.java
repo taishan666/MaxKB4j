@@ -16,30 +16,30 @@ import org.springframework.web.bind.annotation.*;
 @AllArgsConstructor
 public class McpLibController {
 
-	private	final McpLibService functionLibService;
+	private	final McpLibService mcpLibService;
 
 	@GetMapping("api/mcp_lib/{current}/{size}")
 	public R<IPage<McpLibEntity>> page(@PathVariable int current, @PathVariable int size, String name) {
-		return R.success(functionLibService.pageList(current,size,name));
+		return R.success(mcpLibService.pageList(current,size,name));
 	}
 
 	@PostMapping("api/mcp_lib")
 	public R<McpLibEntity> functionLib(@RequestBody McpLibEntity dto) {
 		dto.setIsActive(true);
 		dto.setUserId(StpUtil.getLoginIdAsString());
-		functionLibService.save(dto);
+		mcpLibService.save(dto);
 		return R.data(dto);
 	}
 
 	@PutMapping("api/mcp_lib/{id}")
 	public R<Boolean> functionLib(@PathVariable String id,@RequestBody McpLibEntity dto) {
 		dto.setId(id);
-		return R.status(functionLibService.updateById(dto));
+		return R.status(mcpLibService.updateById(dto));
 	}
 
 	@DeleteMapping("api/mcp_lib/{id}")
 	public R<Boolean> functionLib(@PathVariable String id) {
-		return R.status(functionLibService.removeById(id));
+		return R.status(mcpLibService.removeById(id));
 	}
 
 }

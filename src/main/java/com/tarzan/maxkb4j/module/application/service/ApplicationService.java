@@ -177,8 +177,8 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
 
     public ApplicationEntity createWorkflow(ApplicationEntity application) {
         if (Objects.isNull(application.getWorkFlow())) {
-            String language=(String) StpUtil.getExtra("language");
-            System.out.println("language:"+language);
+            String language = (String) StpUtil.getExtra("language");
+            System.out.println("language:" + language);
             Path path = getWorkflowFilePath(language);
             String defaultWorkflowJson = FileUtil.readToString(path.toFile());
             JSONObject workFlow = JSONObject.parseObject(defaultWorkflowJson);
@@ -291,9 +291,9 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     public String authentication(JSONObject params) {
         String accessToken = params.getString("access_token");
         ApplicationAccessTokenEntity appAccessToken = accessTokenService.lambdaQuery().eq(ApplicationAccessTokenEntity::getAccessToken, accessToken).one();
-        if (appAccessToken == null|| !appAccessToken.getIsActive()){
+        if (appAccessToken == null || !appAccessToken.getIsActive()) {
             throw new AccessException("无效的访问令牌");
-        }else {
+        } else {
             SaLoginModel loginModel = new SaLoginModel();
             if (StpUtil.isLogin()) {
                 UserEntity userEntity = userService.getById(StpUtil.getLoginIdAsString());
@@ -436,7 +436,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
 
     public byte[] playDemoText(String appId, JSONObject data) {
         String ttsModelId = data.getString("ttsModelId");
-        BaseTextToSpeech ttsModel = modelService.getModelById(ttsModelId,data);
+        BaseTextToSpeech ttsModel = modelService.getModelById(ttsModelId, data);
         return ttsModel.textToSpeech("你好，这里是语音播放测试");
     }
 
@@ -562,43 +562,33 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         return flag;
     }
 
-    public List<McpToolVO> mcpServers(String url, String type) {
-        McpTransport transport = new HttpMcpTransport.Builder()
-                .sseUrl(url)
-                .logRequests(true) // if you want to see the traffic in the log
-                .logResponses(true)
-                .build();
-        McpClient mcpClient = new DefaultMcpClient.Builder()
-                .transport(transport)
-                .build();
-        List<ToolSpecification> tools = mcpClient.listTools();
-        return tools.stream().map(e->{
+    public List<McpToolVO> convert(String serverName,List<ToolSpecification> tools) {
+        return tools.stream().map(e -> {
             McpToolVO vo = new McpToolVO();
-            vo.setServer("math");
+            vo.setServer(serverName);
             vo.setName(e.name());
             vo.setDescription(e.description());
-            System.out.println(e.parameters().toString());
-            JSONObject json= new JSONObject();
-            JSONObject properties= new JSONObject();
-            e.parameters().properties().forEach((k,v)->{
-                JSONObject property= new JSONObject();
-                if(v instanceof JsonStringSchema schema){
+            JSONObject json = new JSONObject();
+            JSONObject properties = new JSONObject();
+            e.parameters().properties().forEach((k, v) -> {
+                JSONObject property = new JSONObject();
+                if (v instanceof JsonStringSchema schema) {
                     property.put("type", "string");
                     property.put("description", schema.description());
-                }else if(v instanceof JsonNumberSchema schema){
+                } else if (v instanceof JsonNumberSchema schema) {
                     property.put("type", "number");
                     property.put("description", schema.description());
-                }else if(v instanceof JsonArraySchema schema){
+                } else if (v instanceof JsonArraySchema schema) {
                     property.put("type", "array");
                     property.put("description", schema.description());
-                }else if(v instanceof JsonBooleanSchema schema){
+                } else if (v instanceof JsonBooleanSchema schema) {
                     property.put("type", "array");
                     property.put("description", schema.description());
-                }else if(v instanceof JsonObjectSchema schema){
+                } else if (v instanceof JsonObjectSchema schema) {
                     property.put("type", "object");
                     property.put("description", schema.description());
-                }else {
-                    JsonAnyOfSchema schema= (JsonAnyOfSchema) v;
+                } else {
+                    JsonAnyOfSchema schema = (JsonAnyOfSchema) v;
                     property.put("type", "any");
                     property.put("description", schema.description());
                 }
@@ -612,6 +602,22 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         }).collect(Collectors.toList());
     }
 
+    public List<McpToolVO> mcpServers(JSONObject mcpServer) {
+        List<McpToolVO> tools = new ArrayList<>();
+        for (String key : mcpServer.keySet()) {
+            McpTransport transport = new HttpMcpTransport.Builder()
+                    .sseUrl(mcpServer.getJSONObject(key).getString("url"))
+                    .logRequests(true) // if you want to see the traffic in the log
+                    .logResponses(true)
+                    .build();
+            McpClient mcpClient = new DefaultMcpClient.Builder()
+                    .transport(transport)
+                    .build();
+            tools.addAll(convert(key, mcpClient.listTools()));
+        }
+        return tools;
+    }
+
 
     public String speechToText(String appId, MultipartFile file) throws IOException {
         ApplicationEntity app = this.getById(appId);
@@ -621,7 +627,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
 
     public void embed(EmbedDTO dto, HttpServletResponse response) throws IOException {
         ClassLoader classLoader = getClass().getClassLoader();
-        InputStream inputStream =classLoader.getResourceAsStream("templates/embed.js");
+        InputStream inputStream = classLoader.getResourceAsStream("templates/embed.js");
         ApplicationAccessTokenEntity token = accessTokenService.getByToken(dto.getToken());
         if (token == null || !token.getIsActive()) {
             throw new ApiException("token无效或未被启用");
@@ -634,7 +640,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
 
         String content = IoUtil.readToString(inputStream, StandardCharsets.UTF_8);
 
-        String template = render(content,getParamsMap(token, dto));
+        String template = render(content, getParamsMap(token, dto));
 
         response.setContentType("text/javascript;charset=UTF-8");
         response.getWriter().write(template);
