@@ -156,18 +156,13 @@ public class BaseChatStep extends IChatStep {
                         .contentAggregator(new DefaultContentAggregator())
                         .contentInjector(contentInjector)
                         .build();
-        /*        McpClient mcpClient = new DefaultMcpClient.Builder()
-                        .transport(new HttpMcpTransport.Builder().sseUrl("").build())
-                        .build();
-                McpClient mcpClient1 = new DefaultMcpClient.Builder()
-                        .transport(new HttpMcpTransport.Builder().sseUrl("").build())
-                        .build();*/
                 List<String> mcpIds = application.getMcpIdList();
                 List<McpClient> mcpClients = new ArrayList<>();
                 if (!CollectionUtils.isEmpty(mcpIds)){
                    List<McpLibEntity> mcpLib= mcpLibService.listByIds(mcpIds);
                     for (McpLibEntity mcpLibEntity : mcpLib) {
                         McpClient mcpClient = new DefaultMcpClient.Builder()
+                                .clientName(mcpLibEntity.getName())
                                 .transport(new HttpMcpTransport.Builder().sseUrl(mcpLibEntity.getSseUrl()).build())
                                 .build();
                         mcpClients.add(mcpClient);
