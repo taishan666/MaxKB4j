@@ -11,7 +11,7 @@
 </p>
 <hr/>
 
-MaxKB = Max Knowledge Base, it is a chatbot based on Large Language Models (LLM) and Retrieval-Augmented Generation (RAG). MaxKB is widely applied in scenarios such as intelligent customer service, corporate internal knowledge bases, academic research, and education.
+MaxKB4J = Max Knowledge Base for Java, it is a chatbot based on Large Language Models (LLM) and Retrieval-Augmented Generation (RAG). MaxKB is widely applied in scenarios such as intelligent customer service, corporate internal knowledge bases, academic research, and education.
 
 - **Ready-to-Use**: Supports direct uploading of documents / automatic crawling of online documents, with features for automatic text splitting, vectorization, and RAG (Retrieval-Augmented Generation). This effectively reduces hallucinations in large models, providing a superior smart Q&A interaction experience.
 - **Flexible Orchestration**: Equipped with a powerful workflow engine and function library, enabling the orchestration of AI processes to meet the needs of complex business scenarios.
@@ -20,38 +20,65 @@ MaxKB = Max Knowledge Base, it is a chatbot based on Large Language Models (LLM)
 
 ## Quick start
 
-Execute the script below to start a MaxKB container using Docker:
+Execute the script below to start a MaxKB4J container using Docker:
 
 ```bash
-docker run -d --name=maxkb --restart=always -p 8080:8080 -v ~/.maxkb:/var/lib/postgresql/data -v ~/.python-packages:/opt/maxkb/app/sandbox/python-packages 1panel/maxkb
+docker run -d --name=maxkb4j --restart=always -p 8080:8080 -v ~/.maxkb:/var/lib/postgresql/data -v ~/.python-packages:/opt/maxkb/app/sandbox/python-packages tarzan/maxkb
 ```
 
 Access MaxKB web interface at `http://your_server_ip:8080` with default admin credentials:
 
 - username: admin
-- password: MaxKB@123..
+- password: MaxKB4j@123..
 
 中国用户如遇到 Docker 镜像 Pull 失败问题，请参照该 [离线安装文档](https://maxkb.cn/docs/installation/offline_installtion/) 进行安装。
 
 ## Screenshots
 
+
 <table style="border-collapse: collapse; border: 1px solid black;">
   <tr>
-    <td style="padding: 5px;background-color:#fff;"><img src= "https://maxkb.hk/images/overview.png" alt="MaxKB Demo1"   /></td>
-    <td style="padding: 5px;background-color:#fff;"><img src= "https://maxkb.hk/images/screenshot-models.png" alt="MaxKB Demo2"   /></td>
+    <td style="padding: 5px;background-color:#fff;"><img src= "image/app.png" alt="MaxKB4j app"   /></td>
+    <td style="padding: 5px;background-color:#fff;"><img src= "image/dataset.png" alt="MaxKB4j dataset"   /></td>
   </tr>
   <tr>
-    <td style="padding: 5px;background-color:#fff;"><img src= "https://maxkb.hk/images/screenshot-knowledge.png" alt="MaxKB Demo3"   /></td>
-    <td style="padding: 5px;background-color:#fff;"><img src= "https://maxkb.hk/images/screenshot-function.png" alt="MaxKB Demo4"   /></td>
+    <td style="padding: 5px;background-color:#fff;"><img src= "image/function.png" alt="MaxKB4j function"   /></td>
+    <td style="padding: 5px;background-color:#fff;"><img src= "image/dataset_setting.png" alt="MaxKB4j dataset_setting"   /></td>
+  </tr>
+ <tr>
+    <td style="padding: 5px;background-color:#fff;"><img src= "image/app_overview.png" alt="MaxKB4j app_overview"   /></td>
+    <td style="padding: 5px;background-color:#fff;"><img src= "image/app_logs.png" alt="MaxKB4j app_logs"   /></td>
+  </tr>
+ <tr>
+    <td style="padding: 5px;background-color:#fff;"><img src= "image/app_flow.png" alt="MaxKB4j app_flow"   /></td>
+    <td style="padding: 5px;background-color:#fff;"><img src= "image/app_simple.png" alt="MaxKB4j app_simple"   /></td>
+  </tr>
+ <tr>
+    <td style="padding: 5px;background-color:#fff;"><img src= "image/doc.png" alt="MaxKB4j doc"   /></td>
+    <td style="padding: 5px;background-color:#fff;"><img src= "image/doc_upload.png" alt="MaxKB4j doc_upload"   /></td>
+  </tr>
+ <tr>
+    <td style="padding: 5px;background-color:#fff;"><img src= "image/hitTest.png" alt="MaxKB4j hitTest"   /></td>
+    <td style="padding: 5px;background-color:#fff;"><img src= "image/problem.png" alt="MaxKB4j problem"   /></td>
+  </tr>
+ <tr>
+    <td style="padding: 5px;background-color:#fff;"><img src= "image/team.png" alt="MaxKB4j team"   /></td>
+    <td style="padding: 5px;background-color:#fff;"><img src= "image/model.png" alt="MaxKB4j model"   /></td>
+  </tr>
+ <tr>
+    <td style="padding: 5px;background-color:#fff;"><img src= "image/user.png" alt="MaxKB4j user"   /></td>
+    <td style="padding: 5px;background-color:#fff;"><img src= "image/email.png" alt="MaxKB4j email"   /></td>
   </tr>
 </table>
 
 ## Technical stack
 
 - Frontend：[Vue.js](https://vuejs.org/)
-- Backend：[Python / Django](https://www.djangoproject.com/)
-- LLM Framework：[LangChain](https://www.langchain.com/)
+- Backend：[Java17 / Springboot3](https://www.djangoproject.com/)
+- LLM Framework：[LangChain4j](https://docs.langchain4j.dev/)
 - Database：[PostgreSQL + pgvector](https://www.postgresql.org/)
+- Full-text retrieval database：[MongoDB](https://www.mongodb.com/)
+- User authentication：[sa-token](https://sa-token.dev33.cn/)
 
 ## Star History
 
