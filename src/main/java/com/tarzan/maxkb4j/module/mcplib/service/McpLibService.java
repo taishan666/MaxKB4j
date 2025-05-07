@@ -10,6 +10,9 @@ import com.tarzan.maxkb4j.module.mcplib.entity.McpLibEntity;
 import com.tarzan.maxkb4j.module.mcplib.mapper.McpLibMapper;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+
 /**
  * @author tarzan
  * @date 2025-01-25 22:00:45
@@ -26,5 +29,9 @@ public class McpLibService extends ServiceImpl<McpLibMapper, McpLibEntity>{
         wrapper.eq(McpLibEntity::getPermissionType, "PUBLIC").or().eq(McpLibEntity::getUserId, StpUtil.getLoginIdAsString());
         wrapper.orderByDesc(McpLibEntity::getCreateTime);
         return this.page(page,wrapper);
+    }
+
+    public List<McpLibEntity> getUserId(String userId) {
+        return this.list(Wrappers.<McpLibEntity>lambdaQuery().eq(McpLibEntity::getUserId, userId));
     }
 }

@@ -2,7 +2,6 @@ package com.tarzan.maxkb4j.module.application.controller;
 
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import cn.dev33.satoken.annotation.SaIgnore;
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -20,6 +19,7 @@ import com.tarzan.maxkb4j.module.application.vo.McpToolVO;
 import com.tarzan.maxkb4j.module.dataset.dto.HitTestDTO;
 import com.tarzan.maxkb4j.module.dataset.entity.DatasetEntity;
 import com.tarzan.maxkb4j.module.dataset.vo.ParagraphVO;
+import com.tarzan.maxkb4j.module.mcplib.entity.McpLibEntity;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelEntity;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
@@ -125,15 +125,22 @@ public class ApplicationController {
     }
 
     @SaCheckPermission("APPLICATION:READ")
-    @GetMapping("api/application/{appId}")
-    public R<ApplicationVO> getByAppId(@PathVariable("appId") String appId) {
-        return R.success(applicationService.getAppById(appId));
+    @GetMapping("api/application/{id}")
+    public R<ApplicationVO> getByAppId(@PathVariable("id") String id) {
+        return R.success(applicationService.getAppById(id));
+    }
+
+
+    @SaCheckPermission("APPLICATION:EDIT")
+    @PutMapping("api/application/{id}")
+    public R<Boolean> updateByAppId(@PathVariable("id") String id, @RequestBody ApplicationVO appVO) {
+        return R.success(applicationService.updateAppById(id, appVO));
     }
 
     @SaCheckPermission("APPLICATION:DELETE")
-    @DeleteMapping("api/application/{appId}")
-    public R<Boolean> deleteByAppId(@PathVariable("appId") String appId) {
-        return R.success(applicationService.deleteByAppId(appId));
+    @DeleteMapping("api/application/{id}")
+    public R<Boolean> deleteByAppId(@PathVariable("id") String id) {
+        return R.success(applicationService.deleteByAppId(id));
     }
 
     @SaCheckPermission("APPLICATION:READ")
@@ -162,11 +169,6 @@ public class ApplicationController {
         return  R.data(applicationService.speechToText(appId,file));
     }
 
-    @SaCheckPermission("APPLICATION:EDIT")
-    @PutMapping("api/application/{appId}")
-    public R<Boolean> updateByAppId(@PathVariable("appId") String appId, @RequestBody ApplicationVO appVO) {
-        return R.success(applicationService.updateAppById(appId, appVO));
-    }
 
     @SaCheckPermission("APPLICATION:READ")
     @GetMapping("api/application/{appId}/application")
@@ -194,8 +196,14 @@ public class ApplicationController {
 
     @SaCheckPermission("APPLICATION:READ")
     @GetMapping("api/application/{appId}/list_dataset")
-    public R<List<DatasetEntity>> datasets(@PathVariable("appId") String appId) {
-        return R.success(applicationService.getDatasets(appId));
+    public R<List<DatasetEntity>> listDataset(@PathVariable("appId") String appId) {
+        return R.success(applicationService.getDataset(appId));
+    }
+
+    @SaCheckPermission("APPLICATION:READ")
+    @GetMapping("api/application/{appId}/list_mcp")
+    public R<List<McpLibEntity>> listMcp(@PathVariable("appId") String appId) {
+        return R.success(applicationService.getMcp(appId));
     }
 
     @SaCheckPermission("APPLICATION:CREATE")
@@ -212,8 +220,8 @@ public class ApplicationController {
 
     @SaCheckPermission("APPLICATION:READ")
     @GetMapping("api/application/mcp_servers")
-    public R<List<McpToolVO>> mcpServers(String mcp_servers) {
-        return R.success(applicationService.listTools(JSON.parseObject(mcp_servers)));
+    public R<List<McpToolVO>> mcpServers(String sseUrl) {
+        return R.success(applicationService.listTools(sseUrl));
     }
 
     /**

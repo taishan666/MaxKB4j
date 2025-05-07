@@ -23,7 +23,7 @@ public class McpLibEntity extends BaseEntity {
 
     private String desc;
 
-    private String config;
+    private String sseUrl;
 
     @TableField(typeHandler = JOSNBListTypeHandler.class)
     private List<McpToolParams> mcpTools;

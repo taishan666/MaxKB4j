@@ -30,6 +30,8 @@ import com.tarzan.maxkb4j.module.dataset.service.DatasetService;
 import com.tarzan.maxkb4j.module.dataset.service.ParagraphService;
 import com.tarzan.maxkb4j.module.dataset.service.RetrieveService;
 import com.tarzan.maxkb4j.module.dataset.vo.ParagraphVO;
+import com.tarzan.maxkb4j.module.mcplib.entity.McpLibEntity;
+import com.tarzan.maxkb4j.module.mcplib.service.McpLibService;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelEntity;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseSpeechToText;
@@ -74,6 +76,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
 
     private final ModelService modelService;
     private final DatasetService datasetService;
+    private final McpLibService  mcpLibService;
     private final ImageService imageService;
     private final UserService userService;
     private final RetrieveService retrieveService;
@@ -84,6 +87,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     private final ApplicationPublicAccessClientService accessClientService;
     private final ApplicationWorkFlowVersionService workFlowVersionService;
     private final ApplicationDatasetMappingService datasetMappingService;
+    private final ApplicationMcpMappingService mcpMappingService;
     private final ApplicationChatRecordService applicationChatRecordService;
     private final ApplicationChatService applicationChatService;
 
@@ -129,12 +133,20 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         return accessTokenService.getById(appId);
     }
 
-    public List<DatasetEntity> getDatasets(String appId) {
+    public List<DatasetEntity> getDataset(String appId) {
         ApplicationEntity app = getById(appId);
         if (app == null) {
             return Collections.emptyList();
         }
         return datasetService.getUserId(app.getUserId());
+    }
+
+    public List<McpLibEntity> getMcp(String appId) {
+        ApplicationEntity app = getById(appId);
+        if (app == null) {
+            return Collections.emptyList();
+        }
+        return mcpLibService.getUserId(app.getUserId());
     }
 
 
@@ -281,6 +293,14 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
             datasetIds = mappingEntities.stream().map(ApplicationDatasetMappingEntity::getDatasetId).toList();
         }
         vo.setDatasetIdList(datasetIds);
+        List<String> mcpIds = new ArrayList<>();
+        List<ApplicationMcpMappingEntity> mcpMappingEntities = mcpMappingService.lambdaQuery()
+                .select(ApplicationMcpMappingEntity::getMcpId)
+                .eq(ApplicationMcpMappingEntity::getApplicationId, appId).list();
+        if (!CollectionUtils.isEmpty(mcpMappingEntities)) {
+            mcpIds = mcpMappingEntities.stream().map(ApplicationMcpMappingEntity::getMcpId).toList();
+        }
+        vo.setMcpIdList(mcpIds);
         vo.setModel(entity.getModelId());
         vo.setSttModel(entity.getSttModelId());
         vo.setTtsModel(entity.getTtsModelId());
@@ -495,6 +515,17 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
             }
             datasetMappingService.saveBatch(mappingList);
         }
+        mcpMappingService.lambdaUpdate().eq(ApplicationMcpMappingEntity::getApplicationId, appId).remove();
+        if (!CollectionUtils.isEmpty(appVO.getMcpIdList())) {
+            List<ApplicationMcpMappingEntity> mappingList = new ArrayList<>();
+            for (String mcpId : appVO.getMcpIdList()) {
+                ApplicationMcpMappingEntity mapping = new ApplicationMcpMappingEntity();
+                mapping.setApplicationId(appId);
+                mapping.setMcpId(mcpId);
+                mappingList.add(mapping);
+            }
+            mcpMappingService.saveBatch(mappingList);
+        }
         return this.updateById(application);
     }
 
@@ -612,6 +643,18 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
             vo.setArgs_schema(json);
             return vo;
         }).collect(Collectors.toList());
+    }
+
+    public List<McpToolVO> listTools(String sseUrl) {
+        McpTransport transport = new HttpMcpTransport.Builder()
+                .sseUrl(sseUrl)
+                .logRequests(true) // if you want to see the traffic in the log
+                .logResponses(true)
+                .build();
+        McpClient mcpClient = new DefaultMcpClient.Builder()
+                .transport(transport)
+                .build();
+        return new ArrayList<>(convert("", mcpClient.listTools()));
     }
 
     public List<McpToolVO> listTools(JSONObject mcpServer) {

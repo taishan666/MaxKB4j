@@ -10,6 +10,7 @@ import java.util.List;
 @Data
 public class ApplicationVO extends ApplicationEntity {
     private List<String> datasetIdList;
+    private List<String> mcpIdList;
     private String model;
     private String sttModel;
     private String ttsModel;
