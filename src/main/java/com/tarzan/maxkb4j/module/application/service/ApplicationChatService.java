@@ -212,10 +212,13 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
         ApplicationEntity application = chatInfo.getApplication();
         PipelineManage.Builder pipelineManageBuilder = new PipelineManage.Builder();
         Boolean problemOptimization = application.getProblemOptimization();
-        if (Objects.nonNull(problemOptimization) && problemOptimization&& !CollectionUtils.isEmpty(application.getDatasetIdList())) {
-            pipelineManageBuilder.addStep(baseResetProblemStep);
+        if (!CollectionUtils.isEmpty(application.getDatasetIdList())) {
+            if (Objects.nonNull(problemOptimization) && problemOptimization) {
+                pipelineManageBuilder.addStep(baseResetProblemStep);
+            }
+            pipelineManageBuilder.addStep(searchDatasetStep);
         }
-        pipelineManageBuilder.addStep(searchDatasetStep);
+        //pipelineManageBuilder.addStep(searchDatasetStep);
         pipelineManageBuilder.addStep(baseChatStep);
         PipelineManage pipelineManage = pipelineManageBuilder.build();
 
