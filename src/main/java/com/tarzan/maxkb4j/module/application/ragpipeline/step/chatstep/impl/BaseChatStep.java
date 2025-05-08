@@ -11,6 +11,7 @@ import com.tarzan.maxkb4j.module.application.ragpipeline.step.chatstep.IChatStep
 import com.tarzan.maxkb4j.module.application.service.ApplicationPublicAccessClientService;
 import com.tarzan.maxkb4j.module.application.vo.ChatMessageVO;
 import com.tarzan.maxkb4j.module.assistant.Assistant;
+import com.tarzan.maxkb4j.module.assistant.SystemTools;
 import com.tarzan.maxkb4j.module.dataset.vo.ParagraphVO;
 import com.tarzan.maxkb4j.module.mcplib.entity.McpLibEntity;
 import com.tarzan.maxkb4j.module.mcplib.service.McpLibService;
@@ -176,6 +177,7 @@ public class BaseChatStep extends IChatStep {
                         .streamingChatLanguageModel(chatModel.getStreamingChatModel())
                         .retrievalAugmentor(retrievalAugmentor)
                         .chatMemory(chatMemory)
+                        .tools(new SystemTools())
                         .toolProvider(toolProvider)
                         .build();
                 if (stream) {
