@@ -26,7 +26,7 @@ java -jar maxkb4j-1.0.0.jar
 ```
 
 ## 问题咨询
-![AI交流知识星球](image/zsxq.png)
+![AI交流知识星球](image/gitee_zsxq.png)
 
 👉领取优惠券：https://t.zsxq.com/YdmRl
 
