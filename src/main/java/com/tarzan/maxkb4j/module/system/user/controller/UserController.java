@@ -31,6 +31,7 @@ public class UserController{
 
 	@GetMapping("api/profile")
 	public R<JSONObject> getProfile(){
+		//todo
 		JSONObject json=new JSONObject();
 		json.put("version",null);
 		json.put("IS_XPACK",false);

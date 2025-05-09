@@ -9,14 +9,15 @@ import com.tarzan.maxkb4j.module.assistant.Assistant;
 import com.tarzan.maxkb4j.module.dataset.vo.ParagraphVO;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
-import com.tarzan.maxkb4j.module.rag.MyChatMemory;
 import com.tarzan.maxkb4j.module.rag.MyContentRetriever;
 import com.tarzan.maxkb4j.util.SpringUtil;
 import com.tarzan.maxkb4j.util.StringUtil;
 import dev.langchain4j.data.message.ChatMessage;
+import dev.langchain4j.memory.chat.MessageWindowChatMemory;
 import dev.langchain4j.model.output.TokenUsage;
 import dev.langchain4j.service.AiServices;
 import dev.langchain4j.service.TokenStream;
+import dev.langchain4j.store.memory.chat.ChatMemoryStore;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.CollectionUtils;
 import reactor.core.publisher.Sinks;
@@ -33,10 +34,12 @@ import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.AI_CHAT;
 public class BaseChatNode extends INode {
 
     private final ModelService modelService;
+    private final ChatMemoryStore chatMemoryStore;
 
     public BaseChatNode() {
         this.type=AI_CHAT.getKey();
         this.modelService = SpringUtil.getBean(ModelService.class);
+        this.chatMemoryStore = SpringUtil.getBean(ChatMemoryStore.class);
     }
 
     @Override
@@ -108,12 +111,15 @@ public class BaseChatNode extends INode {
         System.out.println("route:"+route);*/
         String systemPrompt = workflowManage.generatePrompt(nodeParams.getSystem());
         String system= StringUtil.isBlank(systemPrompt)?"You're an intelligent assistant.":systemPrompt;
-        MyChatMemory chatMemory = new MyChatMemory(super.workflowParams.getHistoryChatRecord(),nodeParams.getDialogueNumber());
+       // MyChatMemory chatMemory = new MyChatMemory(super.workflowParams.getHistoryChatRecord(),nodeParams.getDialogueNumber());
         Assistant assistant = AiServices.builder(Assistant.class)
                 .systemMessageProvider(chatMemoryId ->system)
-                //    .chatLanguageModel(chatModel.getChatModel())
                 .streamingChatLanguageModel(chatModel.getStreamingChatModel())
-                .chatMemory(chatMemory)
+                .chatMemory(MessageWindowChatMemory.builder()
+                        .id(super.workflowParams.getChatId())
+                        .maxMessages(nodeParams.getDialogueNumber())
+                        .chatMemoryStore(chatMemoryStore)
+                        .build())
                 .contentRetriever(new MyContentRetriever(paragraphList))
                 .build();
         TokenStream tokenStream = assistant.chatStream(question);
@@ -122,7 +128,7 @@ public class BaseChatNode extends INode {
                 "result", tokenStream,
                 "system", system,
                 "chat_model", chatModel,
-                "message_list", chatMemory.messages(),
+            //    "message_list", chatMemory.messages(),
                 "history_message", historyMessage,
                 "question", question
         );
