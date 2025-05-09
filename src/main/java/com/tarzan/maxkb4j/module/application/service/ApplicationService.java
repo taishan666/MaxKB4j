@@ -83,6 +83,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     private final ParagraphService paragraphService;
     private final TeamMemberPermissionService memberPermissionService;
     private final ApplicationAccessTokenService accessTokenService;
+    private final ApplicationPlatformService platformService;
     private final ApplicationApiKeyService applicationApiKeyService;
     private final ApplicationPublicAccessClientService accessClientService;
     private final ApplicationWorkFlowVersionService workFlowVersionService;
@@ -161,10 +162,12 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     @Transactional
     public boolean deleteByAppId(String appId) {
         accessTokenService.remove(Wrappers.<ApplicationAccessTokenEntity>lambdaQuery().eq(ApplicationAccessTokenEntity::getApplicationId, appId));
+        platformService.remove(Wrappers.<ApplicationPlatformEntity>lambdaQuery().eq(ApplicationPlatformEntity::getApplicationId, appId));
         applicationApiKeyService.remove(Wrappers.<ApplicationApiKeyEntity>lambdaQuery().eq(ApplicationApiKeyEntity::getApplicationId, appId));
         accessClientService.remove(Wrappers.<ApplicationPublicAccessClientEntity>lambdaQuery().eq(ApplicationPublicAccessClientEntity::getApplicationId, appId));
         workFlowVersionService.remove(Wrappers.<ApplicationWorkFlowVersionEntity>lambdaQuery().eq(ApplicationWorkFlowVersionEntity::getApplicationId, appId));
         datasetMappingService.remove(Wrappers.<ApplicationDatasetMappingEntity>lambdaQuery().eq(ApplicationDatasetMappingEntity::getApplicationId, appId));
+        mcpMappingService.remove(Wrappers.<ApplicationMcpMappingEntity>lambdaQuery().eq(ApplicationMcpMappingEntity::getApplicationId, appId));
         List<String> chatIds = applicationChatService.list(Wrappers.<ApplicationChatEntity>lambdaQuery().eq(ApplicationChatEntity::getApplicationId, appId)).stream().map(ApplicationChatEntity::getId).toList();
         if (!CollectionUtils.isEmpty(chatIds)) {
             applicationChatService.remove(Wrappers.<ApplicationChatEntity>lambdaQuery().eq(ApplicationChatEntity::getApplicationId, appId));
