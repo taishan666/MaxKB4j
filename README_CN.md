@@ -12,9 +12,9 @@ MaxKB4j = Max Knowledge Base for Java，是一款基于Java语言开发的LLM工
 - **支持接入MCP Server**：MCP（Model Context Protocol，模型上下文协议）是一个用于 AI 与开发环境交互的标准协议，让 AI 具备代码上下文的感知能力，而不只是单纯地做代码补全或聊天问答。
 
 
-目前已经完成所有核心的功能的开发，正在完善优化项目
+目前已经完成所有核心的功能的开发，正在完善优化项目，预计月底完成，之后会完善文档和示例，欢迎大家参与完善。
 
-我的技术博客：https://tarzan.blog.csdn.net/
+- 我的技术博客：https://tarzan.blog.csdn.net/
 
 ## 功能导图
 ![输入图片说明](image/MaxKB4J.png)
@@ -25,13 +25,11 @@ MaxKB4j = Max Knowledge Base for Java，是一款基于Java语言开发的LLM工
 java -jar maxkb4j-1.0.0.jar
 ```
 
-## 问题咨询
+## 问题咨询和反馈
+- **提供MaxKB相关问题的咨询解答，协助部署等。**
+
 ![AI交流知识星球](image/gitee_zsxq.png)
 
-👉领取优惠券：https://t.zsxq.com/YdmRl
-
-## 问题反馈
-     有问题提交issues,或者通过我的博客留言！ 
 
 ## 案例展示
 
