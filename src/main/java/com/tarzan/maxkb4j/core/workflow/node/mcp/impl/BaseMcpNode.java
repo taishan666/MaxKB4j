@@ -10,6 +10,7 @@ import dev.langchain4j.mcp.client.DefaultMcpClient;
 import dev.langchain4j.mcp.client.McpClient;
 import dev.langchain4j.mcp.client.transport.McpTransport;
 import dev.langchain4j.mcp.client.transport.http.HttpMcpTransport;
+import dev.langchain4j.model.chat.request.json.JsonObjectSchema;
 
 import java.util.Map;
 
@@ -33,6 +34,12 @@ public class BaseMcpNode extends INode {
                 .transport(transport)
                 .build();
         ToolSpecification toolSpecification=mcpClient.listTools().get(0);
+        JsonObjectSchema jsonObjectSchema =toolSpecification.parameters();
+        jsonObjectSchema.properties().forEach((k,v)->{
+            if(v instanceof JsonObjectSchema schema){
+                params.put(k,schema.properties().get("value").toString());
+            }
+        });
         ToolExecutionRequest toolExecutionRequest=ToolExecutionRequest.builder()
                 .id("1")
                 .name(toolSpecification.name())
