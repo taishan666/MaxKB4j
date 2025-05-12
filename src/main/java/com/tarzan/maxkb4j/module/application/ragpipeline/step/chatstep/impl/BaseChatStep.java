@@ -4,7 +4,10 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.tarzan.maxkb4j.module.application.cache.ChatCache;
-import com.tarzan.maxkb4j.module.application.entity.*;
+import com.tarzan.maxkb4j.module.application.entity.ApplicationEntity;
+import com.tarzan.maxkb4j.module.application.entity.ApplicationPublicAccessClientEntity;
+import com.tarzan.maxkb4j.module.application.entity.DatasetSetting;
+import com.tarzan.maxkb4j.module.application.entity.NoReferencesSetting;
 import com.tarzan.maxkb4j.module.application.ragpipeline.PipelineManage;
 import com.tarzan.maxkb4j.module.application.ragpipeline.handler.PostResponseHandler;
 import com.tarzan.maxkb4j.module.application.ragpipeline.step.chatstep.IChatStep;
@@ -167,6 +170,16 @@ public class BaseChatStep extends IChatStep {
                 ToolProvider toolProvider = McpToolProvider.builder()
                         .mcpClients(mcpClients)
                         .build();
+            /*    Map<String, Object> optionalParameters = new HashMap<>();
+                optionalParameters.put("gl", "us");
+                optionalParameters.put("hl", "en");
+                optionalParameters.put("google_domain", "google.com");
+                SearchApiWebSearchEngine  searchEngine = SearchApiWebSearchEngine.builder()
+                        .apiKey("")
+                        .engine("google")
+                        .optionalParameters(optionalParameters)
+                        .build();
+                WebSearchTool webTool = WebSearchTool.from(searchEngine);*/
                 Assistant assistant = AiServices.builder(Assistant.class)
                         .systemMessageProvider(chatMemoryId -> system)
                         .chatMemory(chatMemory)
