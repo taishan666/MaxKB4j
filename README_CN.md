@@ -14,7 +14,6 @@ MaxKB4j = Max Knowledge Base for Java，是一款基于Java语言开发的LLM工
 
 目前已经完成所有核心的功能的开发，正在完善优化项目，预计月底完成，之后会完善文档和示例，欢迎大家参与完善。
 
-- 我的技术博客：https://tarzan.blog.csdn.net/
 
 ## 功能导图
 ![输入图片说明](image/MaxKB4J.png)
@@ -25,10 +24,6 @@ MaxKB4j = Max Knowledge Base for Java，是一款基于Java语言开发的LLM工
 java -jar maxkb4j-1.0.0.jar
 ```
 
-## 问题咨询和反馈
-- **提供MaxKB相关问题的咨询解答，协助部署等。**
-
-![AI交流知识星球](image/gitee_zsxq.png)
 
 
 ## 案例展示
@@ -93,6 +88,11 @@ todo
 
 - **《AI绘画 | Stable diffusion》**：[https://blog.csdn.net/weixin_40986713/category_12481790.html](https://blog.csdn.net/weixin_40986713/category_12481790.html)
 
+## 问题咨询和反馈
+- **提供MaxKB相关问题的咨询解答，协助部署等。**
+- **本项目全靠我一个人投入了近半年的时间，中间也尝试找个合伙人一起搞，但是一直没找到愿意免费和我一起写找个开源项目。也许是因为项目还没有名气，也许是别人觉得不能长期没在没有回报的情况下，来做找个项目，都婉拒参与。我之前也做过好几个开源项目，都是因为因为stars数据不能增长，也没有经济收益而放弃了！如果你觉得找个项目不错，希望这个项目能不断完善，请你给一个star,或者加入知识星球一起研究学习！如果这个项目后续还不能得到star数或者经济上的一点收入，我觉得这个项目应该是对别人可能没有什么帮助和价值，后续可能不在维护！**
+
+![AI交流知识星球](image/gitee_zsxq.png)
 
 ## License
 
