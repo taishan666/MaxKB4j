@@ -6,18 +6,18 @@ import com.tarzan.maxkb4j.module.model.provider.BaseModel;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
 import dev.langchain4j.community.model.xinference.XinferenceChatModel;
 import dev.langchain4j.community.model.xinference.XinferenceStreamingChatModel;
-import dev.langchain4j.model.chat.ChatLanguageModel;
-import dev.langchain4j.model.chat.StreamingChatLanguageModel;
+import dev.langchain4j.model.chat.ChatModel;
+import dev.langchain4j.model.chat.StreamingChatModel;
 
 public class XinferenceChat extends BaseChatModel implements BaseModel {
     @Override
     public <T> T build(String modelName, ModelCredential credential, JSONObject params) {
-        StreamingChatLanguageModel streamingChatModel = XinferenceStreamingChatModel.builder()
+        StreamingChatModel streamingChatModel = XinferenceStreamingChatModel.builder()
                 .baseUrl(credential.getBaseUrl())
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
                 .build();
-        ChatLanguageModel chatModel = XinferenceChatModel.builder()
+        ChatModel chatModel = XinferenceChatModel.builder()
                 .baseUrl(credential.getBaseUrl())
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)

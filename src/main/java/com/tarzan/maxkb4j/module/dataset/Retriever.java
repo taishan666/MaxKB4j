@@ -1,12 +1,12 @@
+/*
 package com.tarzan.maxkb4j.module.dataset;
 
 import com.openai.models.ChatModel;
 import dev.langchain4j.community.model.dashscope.QwenChatModel;
 import dev.langchain4j.community.model.dashscope.QwenEmbeddingModel;
 import dev.langchain4j.data.segment.TextSegment;
-import dev.langchain4j.model.chat.ChatLanguageModel;
+import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.embedding.EmbeddingModel;
-import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.model.openaiofficial.OpenAiOfficialChatModel;
 import dev.langchain4j.rag.content.Content;
 import dev.langchain4j.rag.content.retriever.ContentRetriever;
@@ -20,11 +20,11 @@ import java.util.List;
 public class Retriever {
 
     public static void main(String[] args) {
-        ChatLanguageModel model = OpenAiChatModel.builder()
+        ChatModel model = OpenAiChatModel.builder()
                 .apiKey(System.getenv("OPENAI_API_KEY"))
                 .modelName("gpt-4o-mini")
                 .build();
-        ChatLanguageModel model1 = OpenAiOfficialChatModel.builder()
+        ChatModel model1 = OpenAiOfficialChatModel.builder()
                 .baseUrl(System.getenv("OPENAI_BASE_URL"))
                 .apiKey(System.getenv("OPENAI_API_KEY"))
                 .modelName(ChatModel.GPT_4O_MINI)
@@ -52,31 +52,38 @@ public class Retriever {
                 .maxResults(3)
                 .minScore(0.15)
                 .build();
-     /*   EmbeddingSearchRequest request= EmbeddingSearchRequest.builder()
+     */
+/*   EmbeddingSearchRequest request= EmbeddingSearchRequest.builder()
                 .queryEmbedding(embeddingModel.embed(TextSegment.from(queryText)).content())
                 .maxResults(3)
                 .minScore(0.15)
-                .build();*/
+                .build();*//*
+
       //  EmbeddingSearchResult<TextSegment> result= embeddingStore.search(request);
        // System.out.println(result.matches());
         List<Content> contents = contentRetriever.retrieve(new Query(queryText));
         System.out.println(contents);
-        ChatLanguageModel chatModel = QwenChatModel.builder()
+        ChatModel chatModel = QwenChatModel.builder()
                 //   .baseUrl(credential.getBaseUrl())
                 .apiKey(apiKey)
                 .modelName("qwen-plus")
                 .build();
        // CompressingQueryTransformer queryTransformer=new CompressingQueryTransformer(chatModel);
+*/
 /*        RetrievalAugmentor retrievalAugmentor = DefaultRetrievalAugmentor.builder()
                 .queryTransformer(queryTransformer)
                 .contentRetriever(contentRetriever)
               //  .queryRouter(queryRouter)
                 .build();
-        retrievalAugmentor.*/
+        retrievalAugmentor.*//*
 
-    /*    WebSearchEngine googleSearchEngine = GoogleCustomWebSearchEngine.builder()
+
+    */
+/*    WebSearchEngine googleSearchEngine = GoogleCustomWebSearchEngine.builder()
                 .apiKey(System.getenv("GOOGLE_API_KEY"))
                 .csi(System.getenv("GOOGLE_SEARCH_ENGINE_ID"))
-                .build();*/
+                .build();*//*
+
     }
 }
+*/

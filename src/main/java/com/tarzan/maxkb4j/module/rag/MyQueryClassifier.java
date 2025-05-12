@@ -2,7 +2,7 @@ package com.tarzan.maxkb4j.module.rag;
 
 import dev.langchain4j.internal.Utils;
 import dev.langchain4j.internal.ValidationUtils;
-import dev.langchain4j.model.chat.ChatLanguageModel;
+import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.input.Prompt;
 import dev.langchain4j.model.input.PromptTemplate;
 import dev.langchain4j.rag.query.Query;
@@ -17,7 +17,7 @@ public class MyQueryClassifier {
     protected final String options;
     protected final Map<Integer, String> idToClassification;
     protected final PromptTemplate promptTemplate;
-    protected final ChatLanguageModel chatLanguageModel;
+    protected final ChatModel chatLanguageModel;
     public static final String DEFAULT_PROMPT_TEMPLATE = """
             Based on the user query, \
             determine the most suitable data source(s) to retrieve relevant information from the following options:
@@ -26,11 +26,11 @@ public class MyQueryClassifier {
             User query: {{query}}""";
 
 
-    public MyQueryClassifier(ChatLanguageModel chatLanguageModel, Map<String, String> classificationDescription) {
+    public MyQueryClassifier(ChatModel chatLanguageModel, Map<String, String> classificationDescription) {
         this(chatLanguageModel, classificationDescription, PromptTemplate.from(DEFAULT_PROMPT_TEMPLATE));
     }
 
-    public MyQueryClassifier(ChatLanguageModel chatLanguageModel, Map<String, String> classificationDescription, PromptTemplate promptTemplate) {
+    public MyQueryClassifier(ChatModel chatLanguageModel, Map<String, String> classificationDescription, PromptTemplate promptTemplate) {
         this.chatLanguageModel = ValidationUtils.ensureNotNull(chatLanguageModel, "chatLanguageModel");
         ValidationUtils.ensureNotEmpty(classificationDescription, "retrieverToDescription");
         this.promptTemplate = Utils.getOrDefault(promptTemplate, PromptTemplate.from(DEFAULT_PROMPT_TEMPLATE));

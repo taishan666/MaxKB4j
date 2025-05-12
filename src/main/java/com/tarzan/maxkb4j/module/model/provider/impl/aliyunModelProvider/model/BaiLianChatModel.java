@@ -7,8 +7,8 @@ import com.tarzan.maxkb4j.module.model.provider.BaseModel;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
 import dev.langchain4j.community.model.dashscope.QwenChatModel;
 import dev.langchain4j.community.model.dashscope.QwenStreamingChatModel;
-import dev.langchain4j.model.chat.ChatLanguageModel;
-import dev.langchain4j.model.chat.StreamingChatLanguageModel;
+import dev.langchain4j.model.chat.ChatModel;
+import dev.langchain4j.model.chat.StreamingChatModel;
 
 import java.util.List;
 
@@ -16,14 +16,14 @@ public class BaiLianChatModel extends BaseChatModel implements BaseModel {
 
     @Override
     public <T> T build(String modelName, ModelCredential credential, JSONObject params) {
-        StreamingChatLanguageModel streamingChatModel = QwenStreamingChatModel.builder()
+        StreamingChatModel streamingChatModel = QwenStreamingChatModel.builder()
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
                 .temperature(params==null?null:params.getFloat("temperature"))
                 .maxTokens(params==null?null:params.getInteger("max_tokens"))
                 .listeners(List.of(new LlmListener()))
                 .build();
-        ChatLanguageModel chatModel = QwenChatModel.builder()
+        ChatModel chatModel = QwenChatModel.builder()
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
                 .temperature(params==null?null:params.getFloat("temperature"))

@@ -6,19 +6,19 @@ import com.tarzan.maxkb4j.module.model.provider.BaseModel;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
 import dev.langchain4j.community.model.zhipu.ZhipuAiChatModel;
 import dev.langchain4j.community.model.zhipu.ZhipuAiStreamingChatModel;
-import dev.langchain4j.model.chat.ChatLanguageModel;
-import dev.langchain4j.model.chat.StreamingChatLanguageModel;
+import dev.langchain4j.model.chat.ChatModel;
+import dev.langchain4j.model.chat.StreamingChatModel;
 
 public class ZhiPuChatModel extends BaseChatModel implements BaseModel {
 
     @Override
     public <T> T build(String modelName, ModelCredential credential, JSONObject params) {
-        StreamingChatLanguageModel streamingChatModel = ZhipuAiStreamingChatModel.builder()
+        StreamingChatModel streamingChatModel = ZhipuAiStreamingChatModel.builder()
                // .baseUrl(credential.getBaseUrl())
                 .apiKey(credential.getApiKey())
                 .model(modelName)
                 .build();
-        ChatLanguageModel chatModel = ZhipuAiChatModel.builder()
+        ChatModel chatModel = ZhipuAiChatModel.builder()
              //   .baseUrl(credential.getBaseUrl())
                 .apiKey(credential.getApiKey())
                 .model(modelName)

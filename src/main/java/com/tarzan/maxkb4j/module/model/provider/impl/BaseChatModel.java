@@ -1,10 +1,10 @@
 package com.tarzan.maxkb4j.module.model.provider.impl;
 
 import dev.langchain4j.data.message.ChatMessage;
-import dev.langchain4j.model.chat.ChatLanguageModel;
-import dev.langchain4j.model.chat.DisabledChatLanguageModel;
-import dev.langchain4j.model.chat.DisabledStreamingChatLanguageModel;
-import dev.langchain4j.model.chat.StreamingChatLanguageModel;
+import dev.langchain4j.model.chat.ChatModel;
+import dev.langchain4j.model.chat.DisabledChatModel;
+import dev.langchain4j.model.chat.DisabledStreamingChatModel;
+import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.model.chat.response.ChatResponse;
 import lombok.Getter;
 
@@ -13,15 +13,15 @@ import java.util.List;
 @Getter
 public class BaseChatModel {
 
-    private final ChatLanguageModel chatModel;
-    private final StreamingChatLanguageModel streamingChatModel;
+    private final ChatModel chatModel;
+    private final StreamingChatModel streamingChatModel;
 
     public BaseChatModel() {
-        this.streamingChatModel = new DisabledStreamingChatLanguageModel();
-        this.chatModel = new DisabledChatLanguageModel();
+        this.streamingChatModel = new DisabledStreamingChatModel();
+        this.chatModel = new DisabledChatModel();
     }
 
-    public BaseChatModel(StreamingChatLanguageModel streamingChatModel, ChatLanguageModel chatModel) {
+    public BaseChatModel(StreamingChatModel streamingChatModel, ChatModel chatModel) {
         this.streamingChatModel = streamingChatModel;
         this.chatModel = chatModel;
     }

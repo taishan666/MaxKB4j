@@ -114,7 +114,8 @@ public class BaseChatNode extends INode {
        // MyChatMemory chatMemory = new MyChatMemory(super.workflowParams.getHistoryChatRecord(),nodeParams.getDialogueNumber());
         Assistant assistant = AiServices.builder(Assistant.class)
                 .systemMessageProvider(chatMemoryId ->system)
-                .streamingChatLanguageModel(chatModel.getStreamingChatModel())
+               // .chatModel(chatModel.getChatModel())
+                .streamingChatModel(chatModel.getStreamingChatModel())
                 .chatMemory(MessageWindowChatMemory.builder()
                         .id(super.workflowParams.getChatId())
                         .maxMessages(nodeParams.getDialogueNumber())

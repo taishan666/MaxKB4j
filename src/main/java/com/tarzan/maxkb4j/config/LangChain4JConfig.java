@@ -1,7 +1,7 @@
 package com.tarzan.maxkb4j.config;
 
+import com.tarzan.maxkb4j.module.rag.MyChatMemoryStore;
 import dev.langchain4j.store.memory.chat.ChatMemoryStore;
-import dev.langchain4j.store.memory.chat.InMemoryChatMemoryStore;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,7 +17,6 @@ public class LangChain4JConfig {
 
     @Bean
     ChatMemoryStore chatMemoryStore() {
-        //todo  自定义
-        return new InMemoryChatMemoryStore();
+        return new MyChatMemoryStore();
     }
 }

@@ -20,6 +20,7 @@ import com.tarzan.maxkb4j.module.mcplib.entity.McpLibEntity;
 import com.tarzan.maxkb4j.module.mcplib.service.McpLibService;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
+import com.tarzan.maxkb4j.module.rag.MyChatMemory;
 import com.tarzan.maxkb4j.module.rag.MyContentRetriever;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.SystemMessage;
@@ -29,7 +30,6 @@ import dev.langchain4j.mcp.client.DefaultMcpClient;
 import dev.langchain4j.mcp.client.McpClient;
 import dev.langchain4j.mcp.client.transport.http.HttpMcpTransport;
 import dev.langchain4j.memory.ChatMemory;
-import dev.langchain4j.memory.chat.MessageWindowChatMemory;
 import dev.langchain4j.model.input.PromptTemplate;
 import dev.langchain4j.model.output.TokenUsage;
 import dev.langchain4j.rag.DefaultRetrievalAugmentor;
@@ -138,7 +138,7 @@ public class BaseChatStep extends IChatStep {
                 int answerTokens = manage.context.getInteger("answerTokens");
                 String clientId = manage.context.getString("client_id");
                 String clientType = manage.context.getString("client_type");
-                ChatMemory chatMemory = MessageWindowChatMemory.builder()
+                ChatMemory chatMemory = MyChatMemory.builder()
                         .id(chatId)
                         .maxMessages(dialogueNumber)
                         .chatMemoryStore(chatMemoryStore)
@@ -183,7 +183,7 @@ public class BaseChatStep extends IChatStep {
                 Assistant assistant = AiServices.builder(Assistant.class)
                         .systemMessageProvider(chatMemoryId -> system)
                         .chatMemory(chatMemory)
-                        .streamingChatLanguageModel(chatModel.getStreamingChatModel())
+                        .streamingChatModel(chatModel.getStreamingChatModel())
                         .retrievalAugmentor(retrievalAugmentor)
                         .tools(new SystemTools())
                         .toolProvider(toolProvider)

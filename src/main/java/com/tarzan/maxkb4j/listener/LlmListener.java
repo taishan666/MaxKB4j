@@ -32,6 +32,6 @@ public class LlmListener implements ChatModelListener {
         Throwable error = errorContext.error();
         error.printStackTrace();
         ChatRequest chatRequest = errorContext.chatRequest();
-        System.out.println(chatRequest);
+        System.err.println(chatRequest);
     }
 }
