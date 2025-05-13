@@ -7,9 +7,14 @@ import com.tarzan.maxkb4j.core.workflow.node.classification.input.Classification
 import com.tarzan.maxkb4j.core.workflow.node.classification.input.ClassificationNodeParams;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
+import com.tarzan.maxkb4j.module.rag.MyChatMemory;
 import com.tarzan.maxkb4j.module.rag.MyQueryClassifier;
 import com.tarzan.maxkb4j.util.SpringUtil;
+import dev.langchain4j.data.message.UserMessage;
+import dev.langchain4j.memory.ChatMemory;
+import dev.langchain4j.rag.query.Metadata;
 import dev.langchain4j.rag.query.Query;
+import dev.langchain4j.store.memory.chat.ChatMemoryStore;
 
 import java.util.*;
 
@@ -19,10 +24,12 @@ import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.CONDITION;
 public class BaseClassificationNode extends INode {
 
     private final ModelService modelService;
+    private final ChatMemoryStore chatMemoryStore;
 
     public BaseClassificationNode() {
         this.type = AI_CHAT.getKey();
         this.modelService = SpringUtil.getBean(ModelService.class);
+        this.chatMemoryStore = SpringUtil.getBean(ChatMemoryStore.class);
     }
 
     @Override
@@ -33,7 +40,6 @@ public class BaseClassificationNode extends INode {
             nodeParams.setDialogueType("WORKFLOW");
         }
         BaseChatModel chatModel = modelService.getModelById(nodeParams.getModelId(), nodeParams.getModelParamsSetting());
-      //  List<ChatMessage> historyMessage = workflowManage.getHistoryMessage(super.workflowParams.getHistoryChatRecord(), nodeParams.getDialogueNumber(), nodeParams.getDialogueType(), super.runtimeNodeId);
         List<String> questionFields=nodeParams.getQuestionReferenceAddress();
         String question= (String)workflowManage.getReferenceField(questionFields.get(0),questionFields.subList(1, questionFields.size()));
         Map<String, String> questionMap = new HashMap<>();
@@ -41,8 +47,18 @@ public class BaseClassificationNode extends INode {
             questionMap.put(branch.getId(), branch.getCondition());
         }
         MyQueryClassifier queryClassifier = new MyQueryClassifier(chatModel.getChatModel(),questionMap);
-        Collection<String> route = queryClassifier.route(new Query(question));
-        String branchId=route.stream().findFirst().get();
+        ChatMemory chatMemory = MyChatMemory.builder()
+                .id("")
+                .maxMessages(nodeParams.getDialogueNumber())
+                .chatMemoryStore(chatMemoryStore)
+                .build();
+        Metadata metadata=new Metadata(UserMessage.from(question), chatMemory.id(), chatMemory.messages());
+        Query query=new Query(question,metadata);
+        Collection<String> route = queryClassifier.route(query);
+        String branchId=nodeParams.getBranch().get(0).getId();
+        if (!route.isEmpty()){
+            branchId=route.stream().findFirst().get();
+        }
         return new NodeResult(Map.of("branch_id", branchId, "branch_name", questionMap.get(branchId)), Map.of());
     }
 
