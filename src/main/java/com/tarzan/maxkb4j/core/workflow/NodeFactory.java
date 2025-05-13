@@ -5,6 +5,7 @@ import com.tarzan.maxkb4j.core.workflow.enums.NodeType;
 import com.tarzan.maxkb4j.core.workflow.logic.LfNode;
 import com.tarzan.maxkb4j.core.workflow.node.aichat.impl.BaseChatNode;
 import com.tarzan.maxkb4j.core.workflow.node.application.impl.BaseApplicationNode;
+import com.tarzan.maxkb4j.core.workflow.node.classification.impl.BaseClassificationNode;
 import com.tarzan.maxkb4j.core.workflow.node.condition.impl.BaseConditionNode;
 import com.tarzan.maxkb4j.core.workflow.node.directreply.impl.BaseReplyNode;
 import com.tarzan.maxkb4j.core.workflow.node.documentextract.impl.BaseDocumentExtractNode;
@@ -39,6 +40,7 @@ public class NodeFactory {
             case AI_CHAT -> new BaseChatNode();
             case SEARCH_KNOWLEDGE -> new BaseSearchDatasetNode();
             case CONDITION -> new BaseConditionNode();
+            case CLASSIFICATION -> new BaseClassificationNode();
             case REPLY-> new BaseReplyNode();
             case APPLICATION -> new BaseApplicationNode();
             case QUESTION -> new BaseQuestionNode();

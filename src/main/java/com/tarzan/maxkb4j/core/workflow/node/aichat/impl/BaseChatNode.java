@@ -97,18 +97,10 @@ public class BaseChatNode extends INode {
             paragraphList=new ArrayList<>();
         }
         BaseChatModel chatModel = modelService.getModelById(nodeParams.getModelId(), nodeParams.getModelParamsSetting());
-
         List<ChatMessage> historyMessage = workflowManage.getHistoryMessage(super.workflowParams.getHistoryChatRecord(), nodeParams.getDialogueNumber(), nodeParams.getDialogueType(), super.runtimeNodeId);
         List<String> questionFields=nodeParams.getQuestionReferenceAddress();
         String question= (String)workflowManage.getReferenceField(questionFields.get(0),questionFields.subList(1, questionFields.size()));
-    /*    MyQueryClassifier queryClassifier = new MyQueryClassifier(chatModel.getChatModel(),
-                Map.of("分类1", "水果",
-                        "分类2", "家电",
-                        "分类3", "饮料",
-                        "分类4", "书籍"
-                ));
-        Collection<String> route = queryClassifier.route(new Query(question));
-        System.out.println("route:"+route);*/
+
         String systemPrompt = workflowManage.generatePrompt(nodeParams.getSystem());
         String system= StringUtil.isBlank(systemPrompt)?"You're an intelligent assistant.":systemPrompt;
        // MyChatMemory chatMemory = new MyChatMemory(super.workflowParams.getHistoryChatRecord(),nodeParams.getDialogueNumber());

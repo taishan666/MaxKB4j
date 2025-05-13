@@ -13,6 +13,8 @@ public enum NodeType {
 
     CONDITION("condition-node", "条件节点"),
 
+    CLASSIFICATION("classification-node", "分类节点"),
+
     QUESTION("question-node", "问题节点"),
 
     REPLY("reply-node", "回复节点"),
