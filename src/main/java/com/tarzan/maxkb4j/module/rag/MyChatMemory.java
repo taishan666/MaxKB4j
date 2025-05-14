@@ -1,6 +1,7 @@
 package com.tarzan.maxkb4j.module.rag;
 
 import dev.langchain4j.data.message.*;
+import dev.langchain4j.internal.Exceptions;
 import dev.langchain4j.memory.ChatMemory;
 import dev.langchain4j.service.memory.ChatMemoryService;
 import dev.langchain4j.store.memory.chat.ChatMemoryStore;
@@ -9,7 +10,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 
-import static dev.langchain4j.internal.ValidationUtils.ensureGreaterThanZero;
 import static dev.langchain4j.internal.ValidationUtils.ensureNotNull;
 
 public class MyChatMemory implements ChatMemory {
@@ -20,7 +20,7 @@ public class MyChatMemory implements ChatMemory {
 
     private MyChatMemory(MyChatMemory.Builder builder) {
         this.id = ensureNotNull(builder.id, "id");
-        this.maxMessages = ensureGreaterThanZero(builder.maxMessages+1, "maxMessages");
+        this.maxMessages = ensureGreaterThanOrEqualZero(builder.maxMessages, "maxMessages");
         this.store = ensureNotNull(builder.store(), "store");
     }
 
@@ -93,6 +93,14 @@ public class MyChatMemory implements ChatMemory {
     @Override
     public void clear() {
         store.deleteMessages(id);
+    }
+
+    public static int ensureGreaterThanOrEqualZero(Integer i, String name) {
+        if (i != null && i >= 0) {
+            return i;
+        } else {
+            throw Exceptions.illegalArgument("%s must be greater than or equal to zero, but is: %s", new Object[]{name, i});
+        }
     }
 
     public static MyChatMemory.Builder builder() {

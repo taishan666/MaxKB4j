@@ -23,6 +23,7 @@ import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
 import com.tarzan.maxkb4j.module.rag.MyChatMemory;
 import com.tarzan.maxkb4j.module.rag.MyContentRetriever;
 import dev.langchain4j.data.message.AiMessage;
+import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.mcp.McpToolProvider;
@@ -32,11 +33,14 @@ import dev.langchain4j.mcp.client.transport.http.HttpMcpTransport;
 import dev.langchain4j.memory.ChatMemory;
 import dev.langchain4j.model.input.PromptTemplate;
 import dev.langchain4j.model.output.TokenUsage;
+import dev.langchain4j.rag.AugmentationRequest;
+import dev.langchain4j.rag.AugmentationResult;
 import dev.langchain4j.rag.DefaultRetrievalAugmentor;
 import dev.langchain4j.rag.RetrievalAugmentor;
 import dev.langchain4j.rag.content.aggregator.DefaultContentAggregator;
 import dev.langchain4j.rag.content.injector.ContentInjector;
 import dev.langchain4j.rag.content.injector.DefaultContentInjector;
+import dev.langchain4j.rag.query.Metadata;
 import dev.langchain4j.rag.query.router.DefaultQueryRouter;
 import dev.langchain4j.service.AiServices;
 import dev.langchain4j.service.TokenStream;
@@ -143,6 +147,7 @@ public class BaseChatStep extends IChatStep {
                         .maxMessages(dialogueNumber)
                         .chatMemoryStore(chatMemoryStore)
                         .build();
+
                 String system = StringUtil.isBlank(systemText) ? "You're an intelligent assistant" : systemText;
                 ContentInjector contentInjector = DefaultContentInjector.builder()
                         .promptTemplate(DEFAULT_PROMPT_TEMPLATE)
@@ -180,11 +185,14 @@ public class BaseChatStep extends IChatStep {
                         .optionalParameters(optionalParameters)
                         .build();
                 WebSearchTool webTool = WebSearchTool.from(searchEngine);*/
+                AugmentationResult augmentationResult=retrievalAugmentor.augment(new AugmentationRequest(UserMessage.from(problemText), new Metadata(UserMessage.from(problemText),chatId, chatMemory.messages())));
+                //System.out.println("augmentationResult chatMessage="+augmentationResult.chatMessage());
+               // System.out.println("augmentationResult contents="+augmentationResult.contents());
                 Assistant assistant = AiServices.builder(Assistant.class)
                         .systemMessageProvider(chatMemoryId -> system)
-                        .chatMemory(chatMemory)
+                     //   .chatMemory(chatMemory)
                         .streamingChatModel(chatModel.getStreamingChatModel())
-                        .retrievalAugmentor(retrievalAugmentor)
+                     //   .retrievalAugmentor(retrievalAugmentor)
                         .tools(new SystemTools())
                         .toolProvider(toolProvider)
                         .build();
@@ -195,9 +203,13 @@ public class BaseChatStep extends IChatStep {
                         sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, "用户消息不能为空", true));
                         sink.tryEmitComplete();
                     } else {
-                        TokenStream tokenStream = assistant.chatStream(problemText);
+                        List<ChatMessage> messages=chatMemory.messages();
+                        messages.add(augmentationResult.chatMessage());
+                        TokenStream tokenStream = assistant.chatStream(messages);
                         tokenStream.onPartialResponse(text -> sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, text, false)))
                                 .onCompleteResponse(response -> {
+                                    chatMemory.add(UserMessage.from(problemText));
+                                    chatMemory.add(response.aiMessage());
                                     String answerText = response.aiMessage().text();
                                     TokenUsage tokenUsage = response.tokenUsage();
                                     int thisMessageTokens = tokenUsage.inputTokenCount();

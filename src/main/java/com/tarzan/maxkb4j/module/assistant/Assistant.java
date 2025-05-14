@@ -1,8 +1,11 @@
 package com.tarzan.maxkb4j.module.assistant;
 
+import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.rag.query.Query;
-import dev.langchain4j.service.*;
+import dev.langchain4j.service.TokenStream;
 import reactor.core.publisher.Flux;
+
+import java.util.List;
 
 
 public interface Assistant {
@@ -13,5 +16,9 @@ public interface Assistant {
     TokenStream chatStream(Query  query);
 
     TokenStream chatStream(String message);
+
+    TokenStream chatStream(ChatMessage chatMessage);
+
+    TokenStream chatStream(List<ChatMessage> messages);
 
 }
