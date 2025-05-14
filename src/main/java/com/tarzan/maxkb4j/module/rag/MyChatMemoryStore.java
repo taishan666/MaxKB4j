@@ -20,6 +20,7 @@ public class MyChatMemoryStore implements ChatMemoryStore {
     }
 
     public void updateMessages(Object memoryId, List<ChatMessage> messages) {
+        System.err.println(messages);
         this.messagesByMemoryId.put(memoryId, messages);
     }
 

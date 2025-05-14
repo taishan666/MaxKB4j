@@ -206,7 +206,7 @@ public class BaseChatStep extends IChatStep {
                                     manage.context.put("answerTokens", answerTokens + thisAnswerTokens);
                                     addAccessNum(clientId, clientType);
                                     postResponseHandler.handler(ChatCache.get(chatId), chatId, chatRecordId, problemText, answerText, manage, clientId);
-                                    sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, "", true));
+                                    sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, "", true,(messageTokens + thisMessageTokens),answerTokens + answerTokens));
                                     sink.tryEmitComplete();
                                 })
                                 .onError(error -> {
