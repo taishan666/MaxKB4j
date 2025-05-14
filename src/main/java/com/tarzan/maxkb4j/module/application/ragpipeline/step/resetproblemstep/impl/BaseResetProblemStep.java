@@ -9,6 +9,8 @@ import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
 import com.tarzan.maxkb4j.module.rag.MyChatMemory;
 import com.tarzan.maxkb4j.module.rag.MyCompressingQueryTransformer;
 import com.tarzan.maxkb4j.util.TokenUtil;
+import dev.langchain4j.data.message.ChatMessage;
+import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.memory.ChatMemory;
 import dev.langchain4j.rag.query.Metadata;
@@ -20,6 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
+import java.util.List;
 
 @Slf4j
 @Component
@@ -39,12 +42,15 @@ public class BaseResetProblemStep extends IResetProblemStep {
         QueryTransformer queryTransformer=new MyCompressingQueryTransformer(chatModel.getChatModel());
         String question = context.getString("problem_text");
         String chatId = context.getString("chatId");
+        String systemText = application.getModelSetting().getSystem();
         ChatMemory chatMemory = MyChatMemory.builder()
                 .id(chatId)
                 .maxMessages(application.getDialogueNumber())
                 .chatMemoryStore(chatMemoryStore)
                 .build();
-        Metadata metadata=new Metadata(UserMessage.from(question), chatMemory.id(), chatMemory.messages());
+        List<ChatMessage> chatMessages=chatMemory.messages();
+        chatMessages.add(0, SystemMessage.from(systemText));
+        Metadata metadata=new Metadata(UserMessage.from(question), chatMemory.id(), chatMessages);
         Query query=new Query(question,metadata);
         Collection<Query> list= queryTransformer.transform(query);
         StringBuilder answerSb=new StringBuilder();
