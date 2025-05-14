@@ -147,7 +147,6 @@ public class BaseChatStep extends IChatStep {
                         .maxMessages(dialogueNumber)
                         .chatMemoryStore(chatMemoryStore)
                         .build();
-
                 String system = StringUtil.isBlank(systemText) ? "You're an intelligent assistant" : systemText;
                 ContentInjector contentInjector = DefaultContentInjector.builder()
                         .promptTemplate(DEFAULT_PROMPT_TEMPLATE)
