@@ -4,7 +4,7 @@ public enum AuthType {
 
     /* 普通用户 */
     USER,
-    /* 普通用户 */
+    /* 应用 */
     APPLICATION,
     /*API KEY*/
     API_KEY,

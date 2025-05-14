@@ -31,8 +31,8 @@ public class ChatInfo implements Serializable {
         params.put("problem_text", problemText);
         params.put("postResponseHandler", postResponseHandler);
         params.put("exclude_paragraph_ids", excludeParagraphIds);
-        String client_id=clientId==null?"":clientId;
-        params.put("client_id", client_id);
+        clientId=clientId==null?"":clientId;
+        params.put("client_id", clientId);
         params.put("client_type", clientType);
         params.put("stream", stream);
         return params;

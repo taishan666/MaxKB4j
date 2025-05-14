@@ -4,12 +4,11 @@ import com.tarzan.maxkb4j.module.application.service.ApplicationChatRecordServic
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.store.memory.chat.ChatMemoryStore;
 import lombok.AllArgsConstructor;
-import org.springframework.stereotype.Component;
 
 import java.util.List;
 
 @AllArgsConstructor
-@Component
+//@Component
 public class PersistentChatMemoryStore implements ChatMemoryStore {
 
     private final ApplicationChatRecordService chatRecordService;

@@ -113,27 +113,34 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
     }
 
     public String chatOpen(String appId) {
+       return chatOpen(appId,null);
+    }
+
+    public String chatOpen(String appId,String chatId) {
         ApplicationEntity application = applicationMapper.selectById(appId);
+        if (StringUtils.isBlank(chatId)){
+            chatId=IdWorker.get32UUID();
+        }
         if (AppType.SIMPLE.name().equals(application.getType())) {
-            return chatOpenSimple(application);
+            return chatOpenSimple(application,chatId);
         } else {
-            return chatOpenWorkflow(application);
+            return chatOpenWorkflow(application,chatId);
         }
     }
 
-    public String chatOpenSimple(ApplicationEntity application) {
+    public String chatOpenSimple(ApplicationEntity application,String chatId) {
         ChatInfo chatInfo = new ChatInfo();
-        chatInfo.setChatId(IdWorker.get32UUID());
+        chatInfo.setChatId(chatId);
         List<ApplicationDatasetMappingEntity> list = datasetMappingService.lambdaQuery().eq(ApplicationDatasetMappingEntity::getApplicationId, application.getId()).list();
         application.setDatasetIdList(list.stream().map(ApplicationDatasetMappingEntity::getDatasetId).toList());
         chatInfo.setApplication(application);
         ChatCache.put(chatInfo.getChatId(), chatInfo);
-        return chatInfo.getChatId();
+        return chatId;
     }
 
-    public String chatOpenWorkflow(ApplicationEntity application) {
+    public String chatOpenWorkflow(ApplicationEntity application,String chatId) {
         ChatInfo chatInfo = new ChatInfo();
-        chatInfo.setChatId(IdWorker.get32UUID());
+        chatInfo.setChatId(chatId);
         ApplicationWorkFlowVersionEntity workFlowVersion = workFlowVersionService.lambdaQuery()
                 .eq(ApplicationWorkFlowVersionEntity::getApplicationId, application.getId())
                 .orderByDesc(ApplicationWorkFlowVersionEntity::getCreateTime)
@@ -141,7 +148,7 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
         chatInfo.setApplication(application);
         chatInfo.setWorkFlowVersion(workFlowVersion);
         ChatCache.put(chatInfo.getChatId(), chatInfo);
-        return chatInfo.getChatId();
+        return chatId;
     }
 
     public ChatInfo reChatOpen(String chatId) {

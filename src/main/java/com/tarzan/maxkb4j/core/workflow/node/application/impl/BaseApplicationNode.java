@@ -3,6 +3,7 @@ package com.tarzan.maxkb4j.core.workflow.node.application.impl;
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.NodeResult;
+import com.tarzan.maxkb4j.core.workflow.WorkflowManage;
 import com.tarzan.maxkb4j.core.workflow.node.application.input.ApplicationNodeParams;
 import com.tarzan.maxkb4j.module.application.dto.ChatMessageDTO;
 import com.tarzan.maxkb4j.module.application.service.ApplicationChatService;
@@ -12,6 +13,7 @@ import reactor.core.publisher.Flux;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.APPLICATION;
 
@@ -27,7 +29,8 @@ public class BaseApplicationNode extends INode {
     @Override
     public NodeResult execute() {
         ApplicationNodeParams nodeParams= super.nodeParams.toJavaObject(ApplicationNodeParams.class);
-        String chatId=chatService.chatOpen(nodeParams.getApplicationId());
+        WorkflowManage workflowManage=super.getWorkflowManage();
+        String chatId=chatService.chatOpen(nodeParams.getApplicationId(),workflowManage.getContext().getString("chat_id"));
         List<String> questionFields=nodeParams.getQuestionReferenceAddress();
         String question= (String)workflowManage.getReferenceField(questionFields.get(0),questionFields.subList(1, questionFields.size()));
         ChatMessageDTO messageDto = ChatMessageDTO.builder()
@@ -36,13 +39,18 @@ public class BaseApplicationNode extends INode {
                 .clientType("application")
                 .reChat(false).build();
         Flux<ChatMessageVO> chatMessageVo = chatService.chatMessage(chatId,messageDto);
-        StringBuilder answerSB=new StringBuilder();
-        chatMessageVo.subscribe(vo-> answerSB.append(vo.getContent()));
+     /*   StringBuilder answerSB=new StringBuilder();
+        chatMessageVo.subscribe(vo-> answerSB.append(vo.getContent()));*/
         return new NodeResult(Map.of(
-                "result", answerSB.toString(),
-                "answer", answerSB.toString(),
+                "result", chatMessageVo,
+              //  "answer", answerSB.toString(),
                 "question", question
-        ), Map.of());
+        ), Map.of(), this::writeContextStream);
+    }
+
+    private Stream<String> writeContextStream(Map<String, Object> nodeVariable, Map<String, Object> workflowVariable, INode currentNode, WorkflowManage workflow) {
+        Flux<ChatMessageVO> chatMessageVo= (Flux<ChatMessageVO>) nodeVariable.get("result");
+        return chatMessageVo.map(ChatMessageVO::getContent).toStream();
     }
 
     @Override
