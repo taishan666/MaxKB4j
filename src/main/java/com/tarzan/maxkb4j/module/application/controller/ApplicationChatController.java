@@ -71,6 +71,10 @@ public class ApplicationChatController {
     @Operation(summary = "聊天", description = "")
     @PostMapping(path = "api/application/chat_message/{chatId}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<ChatMessageVO> chatMessage(@PathVariable String chatId, @RequestBody ChatMessageDTO params) {
+        String clientId = (String) StpUtil.getExtra("client_id");
+        String clientType = (String) StpUtil.getExtra("client_type");
+        params.setClientId(clientId);
+        params.setClientType(clientType);
         return chatService.chatMessage(chatId, params);
     }
 

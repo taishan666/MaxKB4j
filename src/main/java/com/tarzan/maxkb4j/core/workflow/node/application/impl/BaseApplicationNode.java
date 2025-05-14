@@ -32,6 +32,8 @@ public class BaseApplicationNode extends INode {
         String question= (String)workflowManage.getReferenceField(questionFields.get(0),questionFields.subList(1, questionFields.size()));
         ChatMessageDTO messageDto = ChatMessageDTO.builder()
                 .message(question)
+                .clientId(nodeParams.getApplicationId())
+                .clientType("application")
                 .reChat(false).build();
         Flux<ChatMessageVO> chatMessageVo = chatService.chatMessage(chatId,messageDto);
         StringBuilder answerSB=new StringBuilder();

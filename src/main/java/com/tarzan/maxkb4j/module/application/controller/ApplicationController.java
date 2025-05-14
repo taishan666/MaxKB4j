@@ -130,6 +130,12 @@ public class ApplicationController {
         return R.success(applicationService.getAppById(id));
     }
 
+    @SaCheckPermission("APPLICATION:READ")
+    @GetMapping("api/application/{id}/application/{appId}")
+    public R<ApplicationVO> application(@PathVariable("id") String id,@PathVariable("appId") String appId) {
+        return R.success(applicationService.getAppById(appId));
+    }
+
 
     @SaCheckPermission("APPLICATION:EDIT")
     @PutMapping("api/application/{id}")
@@ -223,6 +229,8 @@ public class ApplicationController {
     public R<List<McpToolVO>> mcpServers(String sseUrl) {
         return R.success(applicationService.listTools(sseUrl));
     }
+
+
 
     /**
      * 嵌入第三方

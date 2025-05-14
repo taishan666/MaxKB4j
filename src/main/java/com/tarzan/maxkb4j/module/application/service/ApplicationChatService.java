@@ -174,22 +174,23 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
 
 
     public Flux<ChatMessageVO> chatMessage(String chatId, ChatMessageDTO dto) {
-        String clientId = (String) StpUtil.getExtra("client_id");
-        String clientType = (String) StpUtil.getExtra("client_type");
+        //todo 验证(当作节点时，clientId获取问题)
+        /*String clientId = (String) StpUtil.getExtra("client_id");
+        String clientType = (String) StpUtil.getExtra("client_type");*/
         ChatInfo chatInfo = getChatInfo(chatId);
         try {
-            isValidApplication(chatInfo, clientId, clientType);
+            isValidApplication(chatInfo, dto.getClientId(), dto.getClientType());
         } catch (Exception e) {
             return Flux.just(new ChatMessageVO(chatId,  e.getMessage(), true));
         }
         if (chatInfo.getApplication().getType().equals("SIMPLE")) {
-            return chatSimple(chatInfo, dto,clientId,clientType);
+            return chatSimple(chatInfo, dto);
         } else {
-            return chatWorkflow(chatInfo, dto,clientId,clientType);
+            return chatWorkflow(chatInfo, dto);
         }
     }
 
-    public Flux<ChatMessageVO> chatSimple(ChatInfo chatInfo, ChatMessageDTO dto, String clientId, String clientType) {
+    public Flux<ChatMessageVO> chatSimple(ChatInfo chatInfo, ChatMessageDTO dto) {
         String modelId = chatInfo.getApplication().getModelId();
         ModelEntity model = modelService.getById(modelId);
         if (Objects.isNull(model) || !"SUCCESS".equals(model.getStatus())) {
@@ -222,12 +223,12 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
         pipelineManageBuilder.addStep(baseChatStep);
         PipelineManage pipelineManage = pipelineManageBuilder.build();
 
-        Map<String, Object> params = chatInfo.toPipelineManageParams(problemText, postResponseHandler, excludeParagraphIds, clientId, clientType, stream);
+        Map<String, Object> params = chatInfo.toPipelineManageParams(problemText, postResponseHandler, excludeParagraphIds, dto.getClientId(), dto.getClientType(), stream);
         pipelineManage.run(params);
         return pipelineManage.response;
     }
 
-    public Flux<ChatMessageVO> chatWorkflow(ChatInfo chatInfo, ChatMessageDTO dto,String clientId,String clientType) {
+    public Flux<ChatMessageVO> chatWorkflow(ChatInfo chatInfo, ChatMessageDTO dto) {
         ApplicationChatRecordVO chatRecord = null;
         String chatRecordId = dto.getChatRecordId();
         if(StringUtils.isNotBlank(chatRecordId)){
@@ -239,13 +240,13 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
         flowParams.setQuestion(dto.getMessage());
         flowParams.setReChat(dto.getReChat());
         flowParams.setUserId(StpUtil.getLoginIdAsString());
-        flowParams.setClientId(clientId);
-        flowParams.setClientType(clientType);
+        flowParams.setClientId(dto.getClientId());
+        flowParams.setClientType(dto.getClientType());
         flowParams.setStream(dto.getStream() == null || dto.getStream());
         flowParams.setHistoryChatRecord(chatInfo.getChatRecordList());
         WorkflowManage workflowManage = new WorkflowManage(LogicFlow.newInstance(chatInfo.getWorkFlowVersion().getWorkFlow()),
                 flowParams,
-                new WorkFlowPostHandler(chatInfo, clientId, clientType),
+                new WorkFlowPostHandler(chatInfo, dto.getClientId(), dto.getClientType()),
                 dto.getFormData(),
                 dto.getImageList(),
                 dto.getDocumentList(),

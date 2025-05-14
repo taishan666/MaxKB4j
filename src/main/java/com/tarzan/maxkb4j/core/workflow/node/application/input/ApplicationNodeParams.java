@@ -5,17 +5,21 @@ import lombok.Data;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.util.List;
-import java.util.Map;
 
 @Data
 public class ApplicationNodeParams {
+    @NotBlank(message = "应用图标")
+    private String icon;
+    @NotBlank(message = "应用名称")
+    private String name;
     @NotBlank(message = "应用id不能为空")
     private String applicationId;
-
     @NotNull(message = "用户问题不能为空")
     private List<String> questionReferenceAddress;
+    @NotNull(message = "是否返回")
+    private Boolean isResult;
 
-    private List<String> apiInputFieldList; // Optional
+   /* private List<String> apiInputFieldList; // Optional
 
     private List<String> userInputFieldList; // Optional,
 
@@ -27,6 +31,6 @@ public class ApplicationNodeParams {
 
     private Map<String, Object> childNode; // Optional, allowing null
 
-    private Map<String, Object> nodeData; // Optional, allowing null
+    private Map<String, Object> nodeData; // Optional, allowing null*/
 
 }

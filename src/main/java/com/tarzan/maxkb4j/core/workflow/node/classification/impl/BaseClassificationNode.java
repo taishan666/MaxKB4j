@@ -8,6 +8,7 @@ import com.tarzan.maxkb4j.core.workflow.node.classification.input.Classification
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
 import com.tarzan.maxkb4j.module.rag.MyChatMemory;
+import com.tarzan.maxkb4j.module.rag.MyChatMemoryStore;
 import com.tarzan.maxkb4j.module.rag.MyQueryClassifier;
 import com.tarzan.maxkb4j.util.SpringUtil;
 import dev.langchain4j.data.message.UserMessage;
@@ -24,12 +25,12 @@ import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.CONDITION;
 public class BaseClassificationNode extends INode {
 
     private final ModelService modelService;
-    private final ChatMemoryStore chatMemoryStore;
+    private final ChatMemoryStore chatMemoryStore=new MyChatMemoryStore();
 
     public BaseClassificationNode() {
         this.type = AI_CHAT.getKey();
         this.modelService = SpringUtil.getBean(ModelService.class);
-        this.chatMemoryStore = SpringUtil.getBean(ChatMemoryStore.class);
+        //this.chatMemoryStore = SpringUtil.getBean(ChatMemoryStore.class);
     }
 
     @Override
