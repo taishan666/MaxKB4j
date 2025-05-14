@@ -2,10 +2,12 @@ package com.tarzan.maxkb4j.module.application.dto;
 
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.workflow.dto.ChatFile;
+import lombok.Builder;
 import lombok.Data;
 
 import java.util.List;
 
+@Builder
 @Data
 public class ChatMessageDTO {
     private String message;
