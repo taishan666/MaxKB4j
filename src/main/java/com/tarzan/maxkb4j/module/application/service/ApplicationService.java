@@ -657,10 +657,12 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         McpClient mcpClient = new DefaultMcpClient.Builder()
                 .transport(transport)
                 .build();
-        return new ArrayList<>(convert("", mcpClient.listTools()));
+        List<ToolSpecification> tools=mcpClient.listTools();
+        System.out.println(tools);
+        return new ArrayList<>(convert("", tools));
     }
 
-    public List<McpToolVO> listTools(JSONObject mcpServer) {
+/*    public List<McpToolVO> listTools(JSONObject mcpServer) {
         List<McpToolVO> tools = new ArrayList<>();
         for (String key : mcpServer.keySet()) {
             McpTransport transport = new HttpMcpTransport.Builder()
@@ -674,7 +676,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
             tools.addAll(convert(key, mcpClient.listTools()));
         }
         return tools;
-    }
+    }*/
 
 
     public String speechToText(String appId, MultipartFile file) throws IOException {

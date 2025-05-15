@@ -1,14 +1,12 @@
 package com.tarzan.maxkb4j.module.mcplib.entity;
 
+import com.alibaba.fastjson.JSONArray;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.tarzan.maxkb4j.core.common.entity.BaseEntity;
-import com.tarzan.maxkb4j.core.handler.type.JOSNBListTypeHandler;
-import com.tarzan.maxkb4j.module.functionlib.dto.McpToolParams;
+import com.tarzan.maxkb4j.core.handler.type.JOSNBTypeHandler;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-
-import java.util.List;
 
 /**
  * @author tarzan
@@ -25,8 +23,8 @@ public class McpLibEntity extends BaseEntity {
 
     private String sseUrl;
 
-    @TableField(typeHandler = JOSNBListTypeHandler.class)
-    private List<McpToolParams> mcpTools;
+    @TableField(typeHandler = JOSNBTypeHandler.class)
+    private JSONArray mcpTools;
 
     private String userId;
     private Boolean isActive;

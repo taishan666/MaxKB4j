@@ -2,17 +2,16 @@ package com.tarzan.maxkb4j.module.application.ragpipeline.handler.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.module.application.cache.ChatCache;
-import com.tarzan.maxkb4j.module.application.ragpipeline.PipelineManage;
-import com.tarzan.maxkb4j.module.application.ragpipeline.handler.PostResponseHandler;
 import com.tarzan.maxkb4j.module.application.dto.ChatInfo;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationChatEntity;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationChatRecordEntity;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatMapper;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatRecordMapper;
+import com.tarzan.maxkb4j.module.application.ragpipeline.PipelineManage;
+import com.tarzan.maxkb4j.module.application.ragpipeline.handler.PostResponseHandler;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
@@ -35,7 +34,7 @@ public class PostHandler extends PostResponseHandler {
         chatRecord.setIndex(chatInfo.getChatRecordList().size() + 1);
         chatRecord.setMessageTokens(context.getInteger("messageTokens"));
         chatRecord.setAnswerTokens(context.getInteger("answerTokens"));
-        chatRecord.setAnswerTextList(List.of(answerText));
+        chatRecord.setAnswerTextList(Set.of(answerText));
         chatRecord.setRunTime((System.currentTimeMillis() - startTime) / 1000F);
         chatRecord.setVoteStatus("-1");
         chatRecord.setCost(0);

@@ -16,8 +16,8 @@ import lombok.Data;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 @Data
 public class WorkFlowPostHandler {
@@ -61,7 +61,7 @@ public class WorkFlowPostHandler {
             chatRecord.setMessageTokens(messageTokens);
             chatRecord.setAnswerTokens(answerTokens);
             chatRecord.setCost(messageTokens+answerTokens);
-            chatRecord.setAnswerTextList(List.of(answer));
+            chatRecord.setAnswerTextList(Set.of(answer));
             long startTime = workflow.getContext().getLong("start_time");
             chatRecord.setRunTime((System.currentTimeMillis() - startTime) / 1000F);
         } else {
@@ -71,7 +71,7 @@ public class WorkFlowPostHandler {
             chatRecord.setChatId(chatId);
             chatRecord.setProblemText(question);
             chatRecord.setAnswerText(answer);
-            chatRecord.setAnswerTextList(List.of(answer));
+            chatRecord.setAnswerTextList(Set.of(answer));
             chatRecord.setIndex(chatInfo.getChatRecordList().size() + 1);
             chatRecord.setMessageTokens(messageTokens);
             chatRecord.setAnswerTokens(answerTokens);

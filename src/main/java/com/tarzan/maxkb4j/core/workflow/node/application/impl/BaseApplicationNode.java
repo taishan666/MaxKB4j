@@ -6,6 +6,7 @@ import com.tarzan.maxkb4j.core.workflow.NodeResult;
 import com.tarzan.maxkb4j.core.workflow.WorkflowManage;
 import com.tarzan.maxkb4j.core.workflow.node.application.input.ApplicationNodeParams;
 import com.tarzan.maxkb4j.module.application.dto.ChatMessageDTO;
+import com.tarzan.maxkb4j.module.application.enums.AuthType;
 import com.tarzan.maxkb4j.module.application.service.ApplicationChatService;
 import com.tarzan.maxkb4j.module.application.vo.ChatMessageVO;
 import com.tarzan.maxkb4j.util.SpringUtil;
@@ -36,21 +37,25 @@ public class BaseApplicationNode extends INode {
         ChatMessageDTO messageDto = ChatMessageDTO.builder()
                 .message(question)
                 .clientId(nodeParams.getApplicationId())
-                .clientType("application")
+                .clientType(AuthType.APPLICATION.name())
                 .reChat(false).build();
         Flux<ChatMessageVO> chatMessageVo = chatService.chatMessage(chatId,messageDto);
-     /*   StringBuilder answerSB=new StringBuilder();
-        chatMessageVo.subscribe(vo-> answerSB.append(vo.getContent()));*/
         return new NodeResult(Map.of(
                 "result", chatMessageVo,
-              //  "answer", answerSB.toString(),
                 "question", question
         ), Map.of(), this::writeContextStream);
     }
 
     private Stream<String> writeContextStream(Map<String, Object> nodeVariable, Map<String, Object> workflowVariable, INode currentNode, WorkflowManage workflow) {
         Flux<ChatMessageVO> chatMessageVo= (Flux<ChatMessageVO>) nodeVariable.get("result");
-        return chatMessageVo.map(ChatMessageVO::getContent).toStream();
+        StringBuilder answerSB=new StringBuilder();
+        return chatMessageVo.map(vo->{
+            context.put("messageTokens", vo.getMessageTokens());
+            context.put("answerTokens", vo.getAnswerTokens());
+            context.put("question", nodeVariable.get("question"));
+            context.put("answer", answerSB.append(vo.getContent()).toString());
+            return vo.getContent();
+        }).toStream();
     }
 
     @Override

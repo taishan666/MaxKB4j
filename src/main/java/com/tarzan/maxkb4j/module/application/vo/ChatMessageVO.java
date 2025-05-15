@@ -9,8 +9,8 @@ public class ChatMessageVO {
     private String chatId;
     private String chatRecordId;
     private String content;
-    private Boolean operate;
-   // private String nodeId;
+   // private Boolean operate;
+    private String nodeId;
     private String nodeType;
     private String viewType;
     private Boolean nodeIsEnd;

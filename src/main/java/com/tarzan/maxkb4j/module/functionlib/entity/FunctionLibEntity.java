@@ -3,7 +3,7 @@ package com.tarzan.maxkb4j.module.functionlib.entity;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.tarzan.maxkb4j.core.common.entity.BaseEntity;
-import com.tarzan.maxkb4j.core.handler.type.JOSNBListTypeHandler;
+import com.tarzan.maxkb4j.core.handler.type.FunctionInputParamsTypeHandler;
 import com.tarzan.maxkb4j.module.functionlib.dto.FunctionInputParams;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -25,7 +25,7 @@ public class FunctionLibEntity extends BaseEntity {
 
     private String code;
 
-    @TableField(typeHandler = JOSNBListTypeHandler.class)
+    @TableField(typeHandler = FunctionInputParamsTypeHandler.class)
     private List<FunctionInputParams> inputFieldList;
 
     private String userId;
