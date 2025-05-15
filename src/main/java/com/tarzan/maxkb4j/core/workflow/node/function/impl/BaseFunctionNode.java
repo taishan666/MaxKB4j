@@ -1,9 +1,11 @@
 package com.tarzan.maxkb4j.core.workflow.node.function.impl;
 
+import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.NodeResult;
 import com.tarzan.maxkb4j.core.workflow.node.function.input.FunctionParams;
+import com.tarzan.maxkb4j.util.StringUtil;
 import org.python.core.*;
 import org.python.util.PythonInterpreter;
 
@@ -22,19 +24,29 @@ public class BaseFunctionNode extends INode {
     public NodeResult execute() {
         FunctionParams nodeParams=super.nodeParams.toJavaObject(FunctionParams.class);
         String code=nodeParams.getCode();
-        String mainPy=code.substring(0,code.indexOf(":")).replace("def","result=");
-        List<Map<String,Object>>  inputFieldList=nodeParams.getInputFieldList();
-        for (Map<String,Object> map:inputFieldList){
-            pyInterpreter.set(map.get("name").toString(),TypeConversion(map.get("value"),map.get("type").toString()));
+        String result="";
+        if(StringUtil.isNotBlank(code)&&code.contains(":")){
+            List<Map<String,Object>>  inputFieldList=nodeParams.getInputFieldList();
+            for (Map<String,Object> map:inputFieldList){
+                Object value = map.get("value");
+               // System.out.println(value.getClass());
+                if (value instanceof JSONArray){
+                    List<String> fields=(List<String>)value;
+                    value=workflowManage.getReferenceField(fields.get(0),fields.subList(1, fields.size()));
+                }
+                pyInterpreter.set(map.get("name").toString(),TypeConversion(value,map.get("type").toString()));
+            }
+            String mainPy=code.substring(0,code.indexOf(":")).replace("def","result=");
+            // 设置参数值
+            code=code  +"\n"+ mainPy;
+            // 执行合并后的代码
+            pyInterpreter.exec(code);
+            // 获取 Python 代码中计算的结果
+            PyObject pyObject = pyInterpreter.get("result");
+            result=pyObject.toString();
         }
-        // 设置参数值
-        code=code  +"\n"+ mainPy;
-        // 执行合并后的代码
-        pyInterpreter.exec(code);
-        // 获取 Python 代码中计算的结果
-        PyObject result = pyInterpreter.get("result");
         // 输出结果到 Java 控制台
-        return new NodeResult(Map.of("answer",result.toString(),"result",result.toString()),Map.of());
+        return new NodeResult(Map.of("answer",result,"result",result),Map.of());
     }
 
     private PyObject TypeConversion(Object value, String type) {
