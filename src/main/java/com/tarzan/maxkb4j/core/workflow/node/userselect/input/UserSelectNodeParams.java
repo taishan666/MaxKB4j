@@ -7,8 +7,8 @@ import java.util.List;
 
 @Data
 public class UserSelectNodeParams {
-    private Boolean isResult;
     private List<UserSelectBranch> branch;
     private JSONObject formData;
+    private String labelName;
 }
 

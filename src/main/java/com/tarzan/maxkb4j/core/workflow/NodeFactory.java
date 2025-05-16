@@ -21,6 +21,7 @@ import com.tarzan.maxkb4j.core.workflow.node.speechtotext.impl.BaseSpeechToTextN
 import com.tarzan.maxkb4j.core.workflow.node.start.impl.BaseStartNode;
 import com.tarzan.maxkb4j.core.workflow.node.start.input.FlowParams;
 import com.tarzan.maxkb4j.core.workflow.node.texttospeech.impl.BaseTextToSpeechNode;
+import com.tarzan.maxkb4j.core.workflow.node.userselect.impl.UserSelectNode;
 import com.tarzan.maxkb4j.core.workflow.node.variableassign.impl.BaseVariableAssignNode;
 
 import java.util.ArrayList;
@@ -39,6 +40,7 @@ public class NodeFactory {
             case START -> new BaseStartNode();
             case AI_CHAT -> new BaseChatNode();
             case SEARCH_KNOWLEDGE -> new BaseSearchDatasetNode();
+            case USER_SELECT -> new UserSelectNode();
             case CONDITION -> new BaseConditionNode();
             case CLASSIFICATION -> new BaseClassificationNode();
             case REPLY-> new BaseReplyNode();

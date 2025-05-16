@@ -32,7 +32,6 @@ public class UserSelectNode extends INode {
         for (UserSelectBranch branch : nodeParams.getBranch()) {
             options.put(branch.getOption(), branch.getId());
         }
-
         if (formData != null) {
             context.put("is_submit", true);
             context.put("form_data", formData);
@@ -42,7 +41,7 @@ public class UserSelectNode extends INode {
             return new NodeResult(Map.of("branch_id", branchId, "branch_name", choice), Map.of());
         } else {
             context.put("is_submit", false);
-            RadioCardFiled radioCardFiled = new RadioCardFiled("请选择", selectFiled, options);
+            RadioCardFiled radioCardFiled = new RadioCardFiled(nodeParams.getLabelName(), selectFiled, options);
             List<RadioCardFiled> formFieldList = List.of(radioCardFiled);
             JSONObject formSetting = new JSONObject();
             formSetting.put("form_field_list", JSON.toJSONString(formFieldList));
@@ -53,6 +52,8 @@ public class UserSelectNode extends INode {
             String formContentFormat = "{{form}} \n 填写后请点击【提交】按钮进行提交。";
             PromptTemplate promptTemplate = PromptTemplate.from(formContentFormat);
             String formRender = promptTemplate.apply(Map.of("form", form)).text();
+            System.out.println(formRender);
+            //todo  bug 优化
             return new NodeResult(Map.of("result", formRender, "answer", formRender,
                     "form_field_list", formFieldList,
                     "form_content_format", formContentFormat), Map.of());
