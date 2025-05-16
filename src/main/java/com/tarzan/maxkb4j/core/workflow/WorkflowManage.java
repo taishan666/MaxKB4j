@@ -356,15 +356,6 @@ public class WorkflowManage {
             Object result = currentResult.writeContext(currentNode, this);
             if (result != null) {
                 if (isResult(currentNode, currentResult)) {
-                    String content;
-                    if (result instanceof Iterator) {
-                        Iterator<String> iterator = (Iterator<String>) result;
-                        while (iterator.hasNext()) {
-                            content = iterator.next();
-                            ChatMessageVO chunk=new ChatMessageVO(getParams().getChatId(),getParams().getChatRecordId(),content,runtimeNodeId,currentNode.getType(),view_type,false,false);
-                            currentNode.getNodeChunk().addChunk(chunk);
-                        }
-                    }
                     if (result instanceof Stream<?> chatStream) {
                         chatStream.forEach(text -> {
                             ChatMessageVO chunk=new ChatMessageVO(getParams().getChatId(),getParams().getChatRecordId(),text.toString(),runtimeNodeId,currentNode.getType(),view_type,false,false);

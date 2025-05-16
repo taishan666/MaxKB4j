@@ -13,6 +13,8 @@ public enum NodeType {
 
     CONDITION("condition-node", "条件节点"),
 
+    USER_SELECT("user-select-node", "用户选择节点"),
+
     CLASSIFICATION("classification-node", "分类节点"),
 
     QUESTION("question-node", "问题节点"),
