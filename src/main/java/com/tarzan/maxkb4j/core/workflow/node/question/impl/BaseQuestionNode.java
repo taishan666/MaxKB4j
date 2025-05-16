@@ -70,7 +70,7 @@ public class BaseQuestionNode extends INode {
     public List<ChatMessage> getHistoryMessage(List<ApplicationChatRecordEntity> historyChatRecord, int dialogueNumber ) {
         List<ChatMessage> historyMessage = new ArrayList<>();
         int startIndex = Math.max(historyChatRecord.size() - dialogueNumber, 0);
-        Pattern pattern = Pattern.compile("<form_rander>[\\s\\S]*?</form_rander>");
+        Pattern pattern = Pattern.compile("<form_render>[\\s\\S]*?</form_render>");
         // 遍历指定范围内的聊天记录
         for (int index = startIndex; index < historyChatRecord.size(); index++) {
             String content = historyChatRecord.get(index).getProblemText();

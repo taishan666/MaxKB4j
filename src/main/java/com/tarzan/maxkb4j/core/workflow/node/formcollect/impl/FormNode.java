@@ -26,7 +26,6 @@ public class FormNode extends INode {
         FormNodeParams nodeParams=super.nodeParams.toJavaObject(FormNodeParams.class);
         List<JSONObject> formFieldList = nodeParams.getFormFieldList();
         JSONObject formData = nodeParams.getFormData();
-        JSONObject formSetting = new JSONObject();
         if (formData != null) {
             context.put("is_submit", true);
             context.put("form_data", formData);
@@ -36,23 +35,21 @@ public class FormNode extends INode {
             return new NodeResult(Map.of(), Map.of());
         } else {
             context.put("is_submit", false);
-            // Create form_setting map
+            JSONObject formSetting = new JSONObject();
             formSetting.put("form_field_list", formFieldList);
             formSetting.put("runtimeNodeId", super.getRuntimeNodeId());
             formSetting.put("chatRecordId", super.getWorkflowParams().getChatRecordId());
             formSetting.put("is_submit", context.getOrDefault("is_submit", false));
-            String form = "<form_rander>" + formSetting + "</form_rander>";
+            String form = "<form_render>" + formSetting + "</form_render>";
             // Get workflow content and reset prompt todo (如果表单里有变量)
          //   String updatedFormContentFormat = workflowManage.resetPrompt(formContentFormat);
             String formContentFormat = nodeParams.getFormContentFormat();
             PromptTemplate promptTemplate = PromptTemplate.from(formContentFormat);
-            String value = promptTemplate.apply(Map.of("form", form)).text();
-            return new NodeResult(Map.of("result", value, "answer", value,
+            String formRender = promptTemplate.apply(Map.of("form", form)).text();
+            return new NodeResult(Map.of("result", formRender, "answer", formRender,
                     "form_field_list", formFieldList,
                     "form_content_format", formContentFormat), Map.of());
         }
-        // Format the prompt template
-
     }
 
     @Override
@@ -63,7 +60,7 @@ public class FormNode extends INode {
         formSetting.put("runtimeNodeId", super.getRuntimeNodeId());
         formSetting.put("chatRecordId", super.getWorkflowParams().getChatRecordId());
         formSetting.put("is_submit", context.getOrDefault("is_submit", false));
-        String form = "<form_rander>" + formSetting + "</form_rander>";
+        String form = "<form_render>" + formSetting + "</form_render>";
         String updatedFormContentFormat = workflowManage.resetPrompt(formContentFormat);
         PromptTemplate promptTemplate = PromptTemplate.from(updatedFormContentFormat);
         String value = promptTemplate.apply(Map.of("form", form)).text();

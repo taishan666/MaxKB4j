@@ -6,5 +6,5 @@ import lombok.Data;
 public class UserSelectBranch {
     private String id;
     private String type;
-    private String condition;
+    private String option;
 }
