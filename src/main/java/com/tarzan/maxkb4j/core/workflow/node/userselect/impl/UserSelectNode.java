@@ -17,6 +17,11 @@ import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.USER_SELECT;
 
 public class UserSelectNode extends INode {
 
+    private final String selectFiled;
+
+    public UserSelectNode() {
+        this.selectFiled = "select-card";
+    }
 
     @Override
     public NodeResult execute() {
@@ -25,18 +30,19 @@ public class UserSelectNode extends INode {
         JSONObject formData = nodeParams.getFormData();
         Map<String, Object> options = new HashMap<>();
         for (UserSelectBranch branch : nodeParams.getBranch()) {
-            options.put(branch.getOption(),branch.getId());
+            options.put(branch.getOption(), branch.getId());
         }
+
         if (formData != null) {
             context.put("is_submit", true);
             context.put("form_data", formData);
-            String choice =formData.getString("choice");
-            context.put("choice", choice);
-            String branchId= (String) options.get(choice);
+            String choice = formData.getString(selectFiled);
+            context.put(selectFiled, choice);
+            String branchId = (String) options.get(choice);
             return new NodeResult(Map.of("branch_id", branchId, "branch_name", choice), Map.of());
         } else {
             context.put("is_submit", false);
-            RadioCardFiled radioCardFiled = new RadioCardFiled("请选择", "choice", options);
+            RadioCardFiled radioCardFiled = new RadioCardFiled("请选择", selectFiled, options);
             List<RadioCardFiled> formFieldList = List.of(radioCardFiled);
             JSONObject formSetting = new JSONObject();
             formSetting.put("form_field_list", JSON.toJSONString(formFieldList));
@@ -44,7 +50,7 @@ public class UserSelectNode extends INode {
             formSetting.put("chatRecordId", super.getWorkflowParams().getChatRecordId());
             formSetting.put("is_submit", context.getOrDefault("is_submit", false));
             String form = "<form_render>" + formSetting + "</form_render>";
-            String formContentFormat ="{{form}} \n 填写后请点击【提交】按钮进行提交。";
+            String formContentFormat = "{{form}} \n 填写后请点击【提交】按钮进行提交。";
             PromptTemplate promptTemplate = PromptTemplate.from(formContentFormat);
             String formRender = promptTemplate.apply(Map.of("form", form)).text();
             return new NodeResult(Map.of("result", formRender, "answer", formRender,
@@ -58,9 +64,9 @@ public class UserSelectNode extends INode {
     @Override
     public JSONObject getDetail() {
         JSONObject detail = new JSONObject();
-        detail.put("answer",context.get("answer"));
-        detail.put("branch_id",context.get("branch_id"));
-        detail.put("branch_name",context.get("branch_name"));
+        detail.put("answer", context.get("answer"));
+        detail.put("branch_id", context.get("branch_id"));
+        detail.put("branch_name", context.get("branch_name"));
         return detail;
     }
 }
