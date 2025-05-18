@@ -48,7 +48,7 @@ public class BaseClassificationNode extends INode {
         }
         MyQueryClassifier queryClassifier = new MyQueryClassifier(chatModel.getChatModel(),questionMap);
         ChatMemory chatMemory = MyChatMemory.builder()
-                .id("")
+                //.id("")
                 .maxMessages(nodeParams.getDialogueNumber())
                 .chatMemoryStore(chatMemoryStore)
                 .build();

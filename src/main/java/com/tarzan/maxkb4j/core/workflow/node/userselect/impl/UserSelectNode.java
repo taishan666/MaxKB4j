@@ -1,7 +1,6 @@
 package com.tarzan.maxkb4j.core.workflow.node.userselect.impl;
 
 import com.alibaba.fastjson.JSONObject;
-import com.alibaba.fastjson2.JSON;
 import com.tarzan.maxkb4j.core.form.RadioCardFiled;
 import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.NodeResult;
@@ -29,16 +28,17 @@ public class UserSelectNode extends INode {
         UserSelectNodeParams nodeParams = super.nodeParams.toJavaObject(UserSelectNodeParams.class);
         JSONObject formData = nodeParams.getFormData();
         Map<String, Object> options = new HashMap<>();
-        for (UserSelectBranch branch : nodeParams.getBranch()) {
+        List<UserSelectBranch> branches=nodeParams.getBranch();
+        for (UserSelectBranch branch : branches) {
             options.put(branch.getOption(), branch.getId());
         }
         if (formData != null) {
             context.put("is_submit", true);
             context.put("form_data", formData);
-            String choice = formData.getString(selectFiled);
-            context.put(selectFiled, choice);
-            String branchId = (String) options.get(choice);
-            return new NodeResult(Map.of("branch_id", branchId, "branch_name", choice), Map.of());
+            String branchId = formData.getString(selectFiled);
+            context.put(selectFiled, branchId);
+            UserSelectBranch selectBranch = branches.stream().filter(branch -> branch.getId().equals(branchId)).findFirst().get();
+            return new NodeResult(Map.of("branch_id", branchId, "branch_name", selectBranch.getOption()), Map.of());
         } else {
             context.put("is_submit", false);
             RadioCardFiled radioCardFiled = new RadioCardFiled(nodeParams.getLabelName(), selectFiled, options);
