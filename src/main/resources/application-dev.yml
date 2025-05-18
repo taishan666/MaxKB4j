@@ -9,9 +9,3 @@ spring:
       database: MaxKB4j
       uri: mongodb://myusername:mypassword@localhost:27017
 
-decorator:
-  datasource:
-    p6spy:
-      # 日志格式
-      log-format: "\ntime:%(executionTime) || sql:%(sql)\n"
-      enable-logging: false

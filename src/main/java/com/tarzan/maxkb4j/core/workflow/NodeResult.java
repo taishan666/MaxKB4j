@@ -36,7 +36,7 @@ public class NodeResult {
     }
 
     public boolean defaultIsInterrupt(INode node) {
-        return node.getType().equals("form-node") && !(boolean)node.getContext().get("is_submit");
+        return ("user-select-node".equals(node.getType())||"form-node".equals(node.getType())) && !(boolean)node.getContext().get("is_submit");
     }
 
     public Stream<String> defaultWriteContextFunc(Map<String, Object> stepVariable, Map<String, Object> globalVariable, INode node, WorkflowManage workflow) {

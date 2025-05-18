@@ -10,5 +10,6 @@ public class UserSelectNodeParams {
     private List<UserSelectBranch> branch;
     private JSONObject formData;
     private String labelName;
+    private Boolean isResult;
 }
 

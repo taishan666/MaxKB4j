@@ -44,7 +44,7 @@ public class UserSelectNode extends INode {
             RadioCardFiled radioCardFiled = new RadioCardFiled(nodeParams.getLabelName(), selectFiled, options);
             List<RadioCardFiled> formFieldList = List.of(radioCardFiled);
             JSONObject formSetting = new JSONObject();
-            formSetting.put("form_field_list", JSON.toJSONString(formFieldList));
+            formSetting.put("form_field_list", formFieldList);
             formSetting.put("runtimeNodeId", super.getRuntimeNodeId());
             formSetting.put("chatRecordId", super.getWorkflowParams().getChatRecordId());
             formSetting.put("is_submit", context.getOrDefault("is_submit", false));
@@ -52,8 +52,6 @@ public class UserSelectNode extends INode {
             String formContentFormat = "{{form}} \n 填写后请点击【提交】按钮进行提交。";
             PromptTemplate promptTemplate = PromptTemplate.from(formContentFormat);
             String formRender = promptTemplate.apply(Map.of("form", form)).text();
-            System.out.println(formRender);
-            //todo  bug 优化
             return new NodeResult(Map.of("result", formRender, "answer", formRender,
                     "form_field_list", formFieldList,
                     "form_content_format", formContentFormat), Map.of());
