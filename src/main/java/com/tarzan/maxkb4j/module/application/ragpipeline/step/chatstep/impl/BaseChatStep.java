@@ -326,7 +326,7 @@ public class BaseChatStep extends IChatStep {
     private Map<ToolSpecification, ToolExecutor> getTools(){
         Map<ToolSpecification, ToolExecutor> tools=new HashMap<>();
         SystemTools objectWithTool=new SystemTools();
-        List<FunctionLibEntity> functionLib=functionLibService.list();
+        List<FunctionLibEntity> functionLib=functionLibService.lambdaQuery().eq(FunctionLibEntity::getIsActive,true).eq(FunctionLibEntity::getType,0).list();
         for (FunctionLibEntity function : functionLib) {
             ToolSpecification toolSpecification = ToolSpecification.builder()
                     .name(function.getName())

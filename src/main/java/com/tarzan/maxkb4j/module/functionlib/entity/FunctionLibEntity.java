@@ -31,4 +31,5 @@ public class FunctionLibEntity extends BaseEntity {
     private String userId;
     private Boolean isActive;
     private String permissionType;
+    private Integer type;
 } 
