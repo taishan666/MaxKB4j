@@ -9,6 +9,7 @@ import com.tarzan.maxkb4j.core.workflow.node.classification.impl.BaseClassificat
 import com.tarzan.maxkb4j.core.workflow.node.condition.impl.BaseConditionNode;
 import com.tarzan.maxkb4j.core.workflow.node.directreply.impl.BaseReplyNode;
 import com.tarzan.maxkb4j.core.workflow.node.documentextract.impl.BaseDocumentExtractNode;
+import com.tarzan.maxkb4j.core.workflow.node.echarts.impl.BaseEchartsNode;
 import com.tarzan.maxkb4j.core.workflow.node.formcollect.impl.FormNode;
 import com.tarzan.maxkb4j.core.workflow.node.function.impl.BaseFunctionNode;
 import com.tarzan.maxkb4j.core.workflow.node.imagegenerate.impl.BaseImageGenerateNode;
@@ -56,6 +57,7 @@ public class NodeFactory {
             case RERANKER -> new RerankerNode();
             case FORM -> new FormNode();
             case MCP -> new BaseMcpNode();
+            case ECHARTS -> new BaseEchartsNode();
             default -> null;
         };
 
