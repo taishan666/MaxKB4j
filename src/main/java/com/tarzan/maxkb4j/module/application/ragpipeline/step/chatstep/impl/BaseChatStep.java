@@ -16,12 +16,16 @@ import com.tarzan.maxkb4j.module.application.vo.ChatMessageVO;
 import com.tarzan.maxkb4j.module.assistant.Assistant;
 import com.tarzan.maxkb4j.module.assistant.SystemTools;
 import com.tarzan.maxkb4j.module.dataset.vo.ParagraphVO;
+import com.tarzan.maxkb4j.module.functionlib.entity.FunctionLibEntity;
+import com.tarzan.maxkb4j.module.functionlib.service.FunctionLibService;
 import com.tarzan.maxkb4j.module.mcplib.entity.McpLibEntity;
 import com.tarzan.maxkb4j.module.mcplib.service.McpLibService;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
 import com.tarzan.maxkb4j.module.rag.MyChatMemory;
 import com.tarzan.maxkb4j.module.rag.MyContentRetriever;
+import dev.langchain4j.agent.tool.ToolExecutionRequest;
+import dev.langchain4j.agent.tool.ToolSpecification;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.SystemMessage;
@@ -31,6 +35,7 @@ import dev.langchain4j.mcp.client.DefaultMcpClient;
 import dev.langchain4j.mcp.client.McpClient;
 import dev.langchain4j.mcp.client.transport.http.HttpMcpTransport;
 import dev.langchain4j.memory.ChatMemory;
+import dev.langchain4j.model.chat.request.json.JsonObjectSchema;
 import dev.langchain4j.model.input.PromptTemplate;
 import dev.langchain4j.model.output.TokenUsage;
 import dev.langchain4j.rag.AugmentationRequest;
@@ -44,6 +49,9 @@ import dev.langchain4j.rag.query.Metadata;
 import dev.langchain4j.rag.query.router.DefaultQueryRouter;
 import dev.langchain4j.service.AiServices;
 import dev.langchain4j.service.TokenStream;
+import dev.langchain4j.service.tool.DefaultToolExecutor;
+import dev.langchain4j.service.tool.ToolExecution;
+import dev.langchain4j.service.tool.ToolExecutor;
 import dev.langchain4j.service.tool.ToolProvider;
 import dev.langchain4j.store.memory.chat.ChatMemoryStore;
 import lombok.AllArgsConstructor;
@@ -55,7 +63,9 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Sinks;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Component
@@ -66,6 +76,7 @@ public class BaseChatStep extends IChatStep {
     private final McpLibService mcpLibService;
     private final ApplicationPublicAccessClientService publicAccessClientService;
     private final ChatMemoryStore chatMemoryStore;
+    private final FunctionLibService functionLibService;
 
     public static final PromptTemplate DEFAULT_PROMPT_TEMPLATE = PromptTemplate.from(
             """
@@ -187,12 +198,22 @@ public class BaseChatStep extends IChatStep {
                 AugmentationResult augmentationResult=retrievalAugmentor.augment(new AugmentationRequest(UserMessage.from(problemText), new Metadata(UserMessage.from(problemText),chatId, chatMemory.messages())));
                 //System.out.println("augmentationResult chatMessage="+augmentationResult.chatMessage());
                // System.out.println("augmentationResult contents="+augmentationResult.contents());
+              //  List<ToolSpecification> toolSpecifications = ToolSpecifications.toolSpecificationsFrom(SystemTools.class);
+          /*      SystemTools objectWithTool=new SystemTools();
+                Map<ToolSpecification, ToolExecutor> tools=new HashMap<>();
+                for (Method method : objectWithTool.getClass().getDeclaredMethods()) {
+                    if (method.isAnnotationPresent(Tool.class)) {
+                        ToolSpecification toolSpecification = toolSpecificationFrom(method);
+                        System.out.println("tool  "+toolSpecification);
+                        tools.put(toolSpecification, new DefaultToolExecutor(objectWithTool, method));
+                    }
+                }*/
                 Assistant assistant = AiServices.builder(Assistant.class)
                         .systemMessageProvider(chatMemoryId -> system)
                      //   .chatMemory(chatMemory)
                         .streamingChatModel(chatModel.getStreamingChatModel())
                      //   .retrievalAugmentor(retrievalAugmentor)
-                        .tools(new SystemTools())
+                        .tools(getTools())
                         .toolProvider(toolProvider)
                         .build();
                 if (stream) {
@@ -205,7 +226,8 @@ public class BaseChatStep extends IChatStep {
                         List<ChatMessage> messages=chatMemory.messages();
                         messages.add(augmentationResult.chatMessage());
                         TokenStream tokenStream = assistant.chatStream(messages);
-                        tokenStream.onPartialResponse(text -> sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, text, false)))
+                        tokenStream.onToolExecuted((ToolExecution toolExecution) -> System.out.println("toolExecution="+toolExecution))
+                                .onPartialResponse(text -> sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, text, false)))
                                 .onCompleteResponse(response -> {
                                     chatMemory.add(UserMessage.from(problemText));
                                     chatMemory.add(response.aiMessage());
@@ -299,6 +321,44 @@ public class BaseChatStep extends IChatStep {
                 publicAccessClientService.updateById(publicAccessClient);
             }
         }
+    }
+
+    private Map<ToolSpecification, ToolExecutor> getTools(){
+        Map<ToolSpecification, ToolExecutor> tools=new HashMap<>();
+        SystemTools objectWithTool=new SystemTools();
+        List<FunctionLibEntity> functionLib=functionLibService.list();
+        for (FunctionLibEntity function : functionLib) {
+            ToolSpecification toolSpecification = ToolSpecification.builder()
+                    .name(function.getName())
+                    .description(function.getDesc())
+                    .parameters(JsonObjectSchema.builder().build())
+                    .build();
+            ToolExecutionRequest toolExecutionRequest=ToolExecutionRequest.builder()
+                    .name(function.getName()).build();
+            tools.put(toolSpecification, new DefaultToolExecutor(objectWithTool, toolExecutionRequest));
+        }
+        return tools;
+    }
+
+    private Map<ToolSpecification, ToolExecutor> getTools(List<String> functionIds){
+        Map<ToolSpecification, ToolExecutor> tools=new HashMap<>();
+        if (CollectionUtils.isEmpty(functionIds)){
+            return tools;
+        }
+        SystemTools objectWithTool=new SystemTools();
+        List<FunctionLibEntity> functionLib=functionLibService.listByIds(functionIds);
+        for (FunctionLibEntity function : functionLib) {
+            ToolSpecification toolSpecification = ToolSpecification.builder()
+                    .name(function.getName())
+                    .description(function.getDesc())
+                    .parameters(JsonObjectSchema.builder().build())
+                    .build();
+            ToolExecutionRequest toolExecutionRequest=ToolExecutionRequest.builder()
+                    .name(function.getName()).build();
+            tools.put(toolSpecification, new DefaultToolExecutor(objectWithTool, toolExecutionRequest));
+        }
+
+        return tools;
     }
 
 }
