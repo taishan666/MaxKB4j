@@ -19,6 +19,7 @@ import com.tarzan.maxkb4j.module.application.vo.McpToolVO;
 import com.tarzan.maxkb4j.module.dataset.dto.HitTestDTO;
 import com.tarzan.maxkb4j.module.dataset.entity.DatasetEntity;
 import com.tarzan.maxkb4j.module.dataset.vo.ParagraphVO;
+import com.tarzan.maxkb4j.module.functionlib.entity.FunctionLibEntity;
 import com.tarzan.maxkb4j.module.mcplib.entity.McpLibEntity;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelEntity;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -71,9 +72,8 @@ public class ApplicationController {
 
     @SaCheckPermission("APPLICATION:READ")
     @GetMapping("api/application/{id}/function_lib")
-    public R<List<String>> functionLib(@PathVariable("id") String id) {
-        //todo
-        return R.success(List.of());
+    public R<List<FunctionLibEntity>> functionLib(@PathVariable("id") String id) {
+        return R.success(applicationService.functionLib(id));
     }
 
     @SaCheckPermission("APPLICATION:READ")

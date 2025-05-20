@@ -53,8 +53,8 @@ public class UserSelectNode extends INode {
             PromptTemplate promptTemplate = PromptTemplate.from(formContentFormat);
             String formRender = promptTemplate.apply(Map.of("form", form)).text();
             return new NodeResult(Map.of("result", formRender, "answer", formRender,
-                    "form_field_list", formFieldList,
-                    "form_content_format", formContentFormat), Map.of());
+                    "form_field_list", "",
+                    "form_content_format", ""), Map.of());
         }
 
 

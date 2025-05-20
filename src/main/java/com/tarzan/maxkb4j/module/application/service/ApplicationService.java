@@ -30,6 +30,8 @@ import com.tarzan.maxkb4j.module.dataset.service.DatasetService;
 import com.tarzan.maxkb4j.module.dataset.service.ParagraphService;
 import com.tarzan.maxkb4j.module.dataset.service.RetrieveService;
 import com.tarzan.maxkb4j.module.dataset.vo.ParagraphVO;
+import com.tarzan.maxkb4j.module.functionlib.entity.FunctionLibEntity;
+import com.tarzan.maxkb4j.module.functionlib.service.FunctionLibService;
 import com.tarzan.maxkb4j.module.mcplib.entity.McpLibEntity;
 import com.tarzan.maxkb4j.module.mcplib.service.McpLibService;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelEntity;
@@ -91,6 +93,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     private final ApplicationMcpMappingService mcpMappingService;
     private final ApplicationChatRecordService applicationChatRecordService;
     private final ApplicationChatService applicationChatService;
+    private final FunctionLibService functionLibService;
 
     public IPage<ApplicationEntity> selectAppPage(int page, int size, QueryDTO query) {
         String loginId = StpUtil.getLoginIdAsString();
@@ -735,5 +738,9 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
             content = content.replace("{{" + entry.getKey() + "}}", entry.getValue());
         }
         return content;
+    }
+
+    public List<FunctionLibEntity> functionLib(String appId) {
+        return functionLibService.list();
     }
 }
