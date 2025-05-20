@@ -212,6 +212,12 @@ public class ApplicationController {
         return R.success(applicationService.getMcp(appId));
     }
 
+    @SaCheckPermission("APPLICATION:READ")
+    @GetMapping("api/application/{appId}/list_function")
+    public R<List<FunctionLibEntity>> listFunction(@PathVariable("appId") String appId) {
+        return R.success(applicationService.getFunction(appId));
+    }
+
     @SaCheckPermission("APPLICATION:CREATE")
     @PostMapping("api/application/{appId}/dataset/{datasetId}/improve")
     public R<Boolean> improveChatLogs(@PathVariable("appId") String appId, @PathVariable("appId") String datasetId, ChatImproveDTO dto) {

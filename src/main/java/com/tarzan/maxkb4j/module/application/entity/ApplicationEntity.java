@@ -83,4 +83,7 @@ public class ApplicationEntity extends BaseEntity {
 
     @TableField(exist = false)
     private List<String> mcpIdList;
+
+    @TableField(exist = false)
+    private List<String> functionIdList;
 } 

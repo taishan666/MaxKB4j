@@ -307,6 +307,13 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
             mcpIds = mcpMappingEntities.stream().map(ApplicationMcpMappingEntity::getMcpId).toList();
         }
         vo.setMcpIdList(mcpIds);
+      /*  List<ApplicationMcpMappingEntity> funtionMappingEntities = f.lambdaQuery()
+                .select(ApplicationMcpMappingEntity::getMcpId)
+                .eq(ApplicationMcpMappingEntity::getApplicationId, appId).list();
+        if (!CollectionUtils.isEmpty(mcpMappingEntities)) {
+            mcpIds = mcpMappingEntities.stream().map(ApplicationMcpMappingEntity::getMcpId).toList();
+        }*/
+        vo.setFunctionIdList(List.of());
         vo.setModel(entity.getModelId());
         vo.setSttModel(entity.getSttModelId());
         vo.setTtsModel(entity.getTtsModelId());
@@ -741,6 +748,11 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     }
 
     public List<FunctionLibEntity> functionLib(String appId) {
+        return functionLibService.list();
+    }
+
+    public List<FunctionLibEntity> getFunction(String appId) {
+        //todo 根据绑定functionIds查询
         return functionLibService.list();
     }
 }
