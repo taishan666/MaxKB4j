@@ -1,16 +1,18 @@
 package com.tarzan.maxkb4j.core.workflow.node.function.impl;
 
-import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson2.JSONArray;
 import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.NodeResult;
 import com.tarzan.maxkb4j.core.workflow.node.function.input.FunctionParams;
 import com.tarzan.maxkb4j.util.StringUtil;
+import groovy.lang.Binding;
+import groovy.lang.GroovyShell;
 import org.python.core.*;
-import org.python.util.PythonInterpreter;
 
 import java.util.List;
 import java.util.Map;
+
 import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.FUNCTION;
 
 public class BaseFunctionNode extends INode {
@@ -19,33 +21,77 @@ public class BaseFunctionNode extends INode {
         this.type = FUNCTION.getKey();
     }
 
-    PythonInterpreter pyInterpreter = new PythonInterpreter();
+   // PythonInterpreter pyInterpreter = new PythonInterpreter();
     @Override
     public NodeResult execute() {
         FunctionParams nodeParams=super.nodeParams.toJavaObject(FunctionParams.class);
         String code=nodeParams.getCode();
-        String result="";
-        if(StringUtil.isNotBlank(code)&&code.contains(":")){
+        Object result="";
+        if(StringUtil.isNotBlank(code)){
             List<Map<String,Object>>  inputFieldList=nodeParams.getInputFieldList();
+            Binding binding = new Binding();
+            StringBuilder sb=new StringBuilder(code);
+            sb.append("\n").append("main(");
             for (Map<String,Object> map:inputFieldList){
                 Object value = map.get("value");
-               // System.out.println(value.getClass());
                 if (value instanceof JSONArray){
                     List<String> fields=(List<String>)value;
                     value=workflowManage.getReferenceField(fields.get(0),fields.subList(1, fields.size()));
                 }
-                pyInterpreter.set(map.get("name").toString(),TypeConversion(value,map.get("type").toString()));
+                String name=map.get("name").toString();
+                binding.setVariable(name, value);
+                sb.append(name).append(",");
             }
-            String mainPy=code.substring(0,code.indexOf(":")).replace("def","result=");
+            sb.deleteCharAt(sb.length()-1).append(")");
+            // 创建 GroovyShell 并运行脚本
+            GroovyShell shell = new GroovyShell(binding);
+            result = shell.evaluate(sb.toString());
+            System.err.println(result.toString());
+            // 返回结果
+            result= result.toString();
+        }
+        // 输出结果到 Java 控制台
+        return new NodeResult(Map.of("answer",result,"result",result),Map.of());
+    }
+
+    public NodeResult execute1() {
+        FunctionParams nodeParams=super.nodeParams.toJavaObject(FunctionParams.class);
+        String code=nodeParams.getCode();
+        Object result=null;
+        if(StringUtil.isNotBlank(code)&&code.contains(":")){
+            List<Map<String,Object>>  inputFieldList=nodeParams.getInputFieldList();
+            Binding binding = new Binding();
+            for (Map<String,Object> map:inputFieldList){
+                Object value = map.get("value");
+                if (value instanceof JSONArray){
+                    List<String> fields=(List<String>)value;
+                    value=workflowManage.getReferenceField(fields.get(0),fields.subList(1, fields.size()));
+                }
+                String name=map.get("name").toString();
+                binding.setVariable(name, value);
+                //   pyInterpreter.set(map.get("name").toString(),TypeConversion(value,map.get("type").toString()));
+            }
+           /* String mainPy=code.substring(0,code.indexOf(":")).replace("def","result=");
             // 设置参数值
             code=code  +"\n"+ mainPy;
             // 执行合并后的代码
             pyInterpreter.exec(code);
             // 获取 Python 代码中计算的结果
             PyObject pyObject = pyInterpreter.get("result");
-            result=pyObject.toString();
+            result=pyObject.toString();*/
+            // 创建 Binding 并传入参数
+
+
+
+            // 创建 GroovyShell 并运行脚本
+            GroovyShell shell = new GroovyShell(binding);
+            result = shell.evaluate(code);
+
+            // 返回结果
+            // result != null ? result.toString() : "No result";
         }
         // 输出结果到 Java 控制台
+        assert result != null;
         return new NodeResult(Map.of("answer",result,"result",result),Map.of());
     }
 

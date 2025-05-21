@@ -315,6 +315,12 @@
             <version>2.7.3</version> <!-- 请根据需要选择版本 -->
         </dependency>
         <dependency>
+            <groupId>org.apache.groovy</groupId>
+            <artifactId>groovy-all</artifactId>
+            <version>4.0.9</version>
+            <type>pom</type>
+        </dependency>
+        <dependency>
             <groupId>org.reflections</groupId>
             <artifactId>reflections</artifactId>
             <version>0.10.2</version>

@@ -53,6 +53,7 @@ public class BaseApplicationNode extends INode {
             context.put("messageTokens", vo.getMessageTokens());
             context.put("answerTokens", vo.getAnswerTokens());
             context.put("question", nodeVariable.get("question"));
+            context.put("result", answerSB.append(vo.getContent()).toString());
             context.put("answer", answerSB.append(vo.getContent()).toString());
             return vo.getContent();
         }).toStream();
