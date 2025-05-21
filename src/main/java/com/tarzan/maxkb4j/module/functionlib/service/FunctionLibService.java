@@ -10,6 +10,9 @@ import com.tarzan.maxkb4j.module.functionlib.entity.FunctionLibEntity;
 import com.tarzan.maxkb4j.module.functionlib.mapper.FunctionLibMapper;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+
 /**
  * @author tarzan
  * @date 2025-01-25 22:00:45
@@ -26,5 +29,9 @@ public class FunctionLibService extends ServiceImpl<FunctionLibMapper, FunctionL
         wrapper.eq(FunctionLibEntity::getPermissionType, "PUBLIC").or().eq(FunctionLibEntity::getUserId, StpUtil.getLoginIdAsString());
         wrapper.orderByDesc(FunctionLibEntity::getCreateTime);
         return this.page(page,wrapper);
+    }
+
+    public List<FunctionLibEntity> getUserId(String userId) {
+        return this.list(Wrappers.<FunctionLibEntity>lambdaQuery().eq(FunctionLibEntity::getUserId, userId));
     }
 }

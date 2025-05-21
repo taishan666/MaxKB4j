@@ -2,7 +2,9 @@ package com.tarzan.maxkb4j.module.application.ragpipeline.step.chatstep.impl;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.tarzan.maxkb4j.module.application.cache.ChatCache;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationEntity;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationPublicAccessClientEntity;
@@ -213,7 +215,7 @@ public class BaseChatStep extends IChatStep {
                      //   .chatMemory(chatMemory)
                         .streamingChatModel(chatModel.getStreamingChatModel())
                      //   .retrievalAugmentor(retrievalAugmentor)
-                        .tools(getTools())
+                        .tools(getTools(application.getFunctionIdList()))
                         .toolProvider(toolProvider)
                         .build();
                 if (stream) {
@@ -323,30 +325,16 @@ public class BaseChatStep extends IChatStep {
         }
     }
 
-    private Map<ToolSpecification, ToolExecutor> getTools(){
-        Map<ToolSpecification, ToolExecutor> tools=new HashMap<>();
-        SystemTools objectWithTool=new SystemTools();
-        List<FunctionLibEntity> functionLib=functionLibService.lambdaQuery().eq(FunctionLibEntity::getIsActive,true).eq(FunctionLibEntity::getType,0).list();
-        for (FunctionLibEntity function : functionLib) {
-            ToolSpecification toolSpecification = ToolSpecification.builder()
-                    .name(function.getName())
-                    .description(function.getDesc())
-                    .parameters(JsonObjectSchema.builder().build())
-                    .build();
-            ToolExecutionRequest toolExecutionRequest=ToolExecutionRequest.builder()
-                    .name(function.getName()).build();
-            tools.put(toolSpecification, new DefaultToolExecutor(objectWithTool, toolExecutionRequest));
-        }
-        return tools;
-    }
-
     private Map<ToolSpecification, ToolExecutor> getTools(List<String> functionIds){
         Map<ToolSpecification, ToolExecutor> tools=new HashMap<>();
         if (CollectionUtils.isEmpty(functionIds)){
             return tools;
         }
         SystemTools objectWithTool=new SystemTools();
-        List<FunctionLibEntity> functionLib=functionLibService.listByIds(functionIds);
+        LambdaQueryWrapper<FunctionLibEntity> wrapper= Wrappers.lambdaQuery();
+        wrapper.in(FunctionLibEntity::getId,functionIds);
+        wrapper.eq(FunctionLibEntity::getIsActive,true).eq(FunctionLibEntity::getType,0);
+        List<FunctionLibEntity> functionLib=functionLibService.list(wrapper);
         for (FunctionLibEntity function : functionLib) {
             ToolSpecification toolSpecification = ToolSpecification.builder()
                     .name(function.getName())

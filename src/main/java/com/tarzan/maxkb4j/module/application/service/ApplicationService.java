@@ -91,6 +91,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     private final ApplicationWorkFlowVersionService workFlowVersionService;
     private final ApplicationDatasetMappingService datasetMappingService;
     private final ApplicationMcpMappingService mcpMappingService;
+    private final ApplicationFunctionMappingService functionMappingService;
     private final ApplicationChatRecordService applicationChatRecordService;
     private final ApplicationChatService applicationChatService;
     private final FunctionLibService functionLibService;
@@ -171,6 +172,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         workFlowVersionService.remove(Wrappers.<ApplicationWorkFlowVersionEntity>lambdaQuery().eq(ApplicationWorkFlowVersionEntity::getApplicationId, appId));
         datasetMappingService.remove(Wrappers.<ApplicationDatasetMappingEntity>lambdaQuery().eq(ApplicationDatasetMappingEntity::getApplicationId, appId));
         mcpMappingService.remove(Wrappers.<ApplicationMcpMappingEntity>lambdaQuery().eq(ApplicationMcpMappingEntity::getApplicationId, appId));
+        functionMappingService.remove(Wrappers.<ApplicationFunctionMappingEntity>lambdaQuery().eq(ApplicationFunctionMappingEntity::getApplicationId, appId));
         List<String> chatIds = applicationChatService.list(Wrappers.<ApplicationChatEntity>lambdaQuery().eq(ApplicationChatEntity::getApplicationId, appId)).stream().map(ApplicationChatEntity::getId).toList();
         if (!CollectionUtils.isEmpty(chatIds)) {
             applicationChatService.remove(Wrappers.<ApplicationChatEntity>lambdaQuery().eq(ApplicationChatEntity::getApplicationId, appId));
@@ -291,29 +293,12 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
             return null;
         }
         ApplicationVO vo = BeanUtil.copy(entity, ApplicationVO.class);
-        List<String> datasetIds = new ArrayList<>();
-        List<ApplicationDatasetMappingEntity> mappingEntities = datasetMappingService.lambdaQuery()
-                .select(ApplicationDatasetMappingEntity::getDatasetId)
-                .eq(ApplicationDatasetMappingEntity::getApplicationId, appId).list();
-        if (!CollectionUtils.isEmpty(mappingEntities)) {
-            datasetIds = mappingEntities.stream().map(ApplicationDatasetMappingEntity::getDatasetId).toList();
-        }
+        List<String> datasetIds = datasetMappingService.getDatasetIdsByAppId(appId);
         vo.setDatasetIdList(datasetIds);
-        List<String> mcpIds = new ArrayList<>();
-        List<ApplicationMcpMappingEntity> mcpMappingEntities = mcpMappingService.lambdaQuery()
-                .select(ApplicationMcpMappingEntity::getMcpId)
-                .eq(ApplicationMcpMappingEntity::getApplicationId, appId).list();
-        if (!CollectionUtils.isEmpty(mcpMappingEntities)) {
-            mcpIds = mcpMappingEntities.stream().map(ApplicationMcpMappingEntity::getMcpId).toList();
-        }
+        List<String> mcpIds =mcpMappingService.getMcpIdsByAppId(appId);
         vo.setMcpIdList(mcpIds);
-      /*  List<ApplicationMcpMappingEntity> funtionMappingEntities = f.lambdaQuery()
-                .select(ApplicationMcpMappingEntity::getMcpId)
-                .eq(ApplicationMcpMappingEntity::getApplicationId, appId).list();
-        if (!CollectionUtils.isEmpty(mcpMappingEntities)) {
-            mcpIds = mcpMappingEntities.stream().map(ApplicationMcpMappingEntity::getMcpId).toList();
-        }*/
-        vo.setFunctionIdList(List.of());
+        List<String> functionIds =functionMappingService.getFunctionIdsByAppId(appId);
+        vo.setFunctionIdList(functionIds);
         vo.setModel(entity.getModelId());
         vo.setSttModel(entity.getSttModelId());
         vo.setTtsModel(entity.getTtsModelId());
@@ -457,13 +442,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     }
 
     public List<ParagraphVO> hitTest(String id, HitTestDTO dto) {
-        List<ApplicationDatasetMappingEntity> mapping = datasetMappingService.lambdaQuery()
-                .select(ApplicationDatasetMappingEntity::getDatasetId)
-                .eq(ApplicationDatasetMappingEntity::getApplicationId, id).list();
-        if (CollectionUtils.isEmpty(mapping)) {
-            return Collections.emptyList();
-        }
-        List<String> datasetIds = mapping.stream().map(ApplicationDatasetMappingEntity::getDatasetId).toList();
+        List<String> datasetIds = datasetMappingService.getDatasetIdsByAppId(id);
         return retrieveService.paragraphSearch(datasetIds, dto);
     }
 
@@ -517,28 +496,9 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
                 }
             }
         }
-        datasetMappingService.lambdaUpdate().eq(ApplicationDatasetMappingEntity::getApplicationId, appId).remove();
-        if (!CollectionUtils.isEmpty(appVO.getDatasetIdList())) {
-            List<ApplicationDatasetMappingEntity> mappingList = new ArrayList<>();
-            for (String datasetId : appVO.getDatasetIdList()) {
-                ApplicationDatasetMappingEntity mapping = new ApplicationDatasetMappingEntity();
-                mapping.setApplicationId(appId);
-                mapping.setDatasetId(datasetId);
-                mappingList.add(mapping);
-            }
-            datasetMappingService.saveBatch(mappingList);
-        }
-        mcpMappingService.lambdaUpdate().eq(ApplicationMcpMappingEntity::getApplicationId, appId).remove();
-        if (!CollectionUtils.isEmpty(appVO.getMcpIdList())) {
-            List<ApplicationMcpMappingEntity> mappingList = new ArrayList<>();
-            for (String mcpId : appVO.getMcpIdList()) {
-                ApplicationMcpMappingEntity mapping = new ApplicationMcpMappingEntity();
-                mapping.setApplicationId(appId);
-                mapping.setMcpId(mcpId);
-                mappingList.add(mapping);
-            }
-            mcpMappingService.saveBatch(mappingList);
-        }
+        datasetMappingService.updateByAppId(appId,appVO.getDatasetIdList());
+        mcpMappingService.updateByAppId(appId,appVO.getMcpIdList());
+        functionMappingService.updateByAppId(appId,appVO.getFunctionIdList());
         return this.updateById(application);
     }
 
@@ -752,7 +712,10 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     }
 
     public List<FunctionLibEntity> getFunction(String appId) {
-        //todo 根据绑定functionIds查询
-        return functionLibService.list();
+        ApplicationEntity app = getById(appId);
+        if (app == null) {
+            return Collections.emptyList();
+        }
+        return functionLibService.getUserId(app.getUserId());
     }
 }
