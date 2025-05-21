@@ -26,7 +26,7 @@ public class BaseFunctionNode extends INode {
     public NodeResult execute() {
         FunctionParams nodeParams=super.nodeParams.toJavaObject(FunctionParams.class);
         String code=nodeParams.getCode();
-        Object result="";
+        Object result=null;
         if(StringUtil.isNotBlank(code)){
             List<Map<String,Object>>  inputFieldList=nodeParams.getInputFieldList();
             Binding binding = new Binding();
@@ -46,11 +46,11 @@ public class BaseFunctionNode extends INode {
             // 创建 GroovyShell 并运行脚本
             GroovyShell shell = new GroovyShell(binding);
             result = shell.evaluate(sb.toString());
-            System.err.println(result.toString());
             // 返回结果
             result= result.toString();
         }
         // 输出结果到 Java 控制台
+        assert result != null;
         return new NodeResult(Map.of("answer",result,"result",result),Map.of());
     }
 
