@@ -77,6 +77,12 @@ public class ApplicationController {
     }
 
     @SaCheckPermission("APPLICATION:READ")
+    @GetMapping("api/application/{id}/function_lib/{functionId}")
+    public R<FunctionLibEntity> functionLib(@PathVariable("id") String id,@PathVariable("functionId") String functionId) {
+        return R.success(applicationService.functionLib(id,functionId));
+    }
+
+    @SaCheckPermission("APPLICATION:READ")
     @GetMapping("api/application/{id}/work_flow_version")
     public R<List<ApplicationWorkFlowVersionEntity>> workFlowVersionList(@PathVariable("id") String id) {
         return R.success(applicationService.workFlowVersionList(id));

@@ -710,6 +710,10 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     public List<FunctionLibEntity> functionLib(String appId) {
         return functionLibService.list();
     }
+    public FunctionLibEntity functionLib(String appId,  String functionId) {
+        return functionLibService.getById(functionId);
+    }
+
 
     public List<FunctionLibEntity> getFunction(String appId) {
         ApplicationEntity app = getById(appId);
