@@ -24,6 +24,7 @@ public class BaseFunctionNode extends INode {
    // PythonInterpreter pyInterpreter = new PythonInterpreter();
     @Override
     public NodeResult execute() {
+        System.out.println(FUNCTION);
         FunctionParams nodeParams=super.nodeParams.toJavaObject(FunctionParams.class);
         String code=nodeParams.getCode();
         Object result=null;
@@ -33,14 +34,19 @@ public class BaseFunctionNode extends INode {
             StringBuilder sb=new StringBuilder(code);
             sb.append("\n").append("main(");
             for (Map<String,Object> map:inputFieldList){
+                String name=map.get("name").toString();
                 Object value = map.get("value");
                 if (value instanceof JSONArray){
                     List<String> fields=(List<String>)value;
                     value=workflowManage.getReferenceField(fields.get(0),fields.subList(1, fields.size()));
+                    if (value!=null&&this.getLastNodeIdList().contains(fields.get(0))){
+                        binding.setVariable(name, value);
+                        sb.append(name).append(",");
+                    }
+                }else {
+                    binding.setVariable(name, value);
+                    sb.append(name).append(",");
                 }
-                String name=map.get("name").toString();
-                binding.setVariable(name, value);
-                sb.append(name).append(",");
             }
             sb.deleteCharAt(sb.length()-1).append(")");
             // 创建 GroovyShell 并运行脚本
