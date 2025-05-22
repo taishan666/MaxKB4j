@@ -60,9 +60,6 @@ public abstract class INode {
     }
 
 
-
-   // public abstract String getType();
-
     public abstract NodeResult execute();
 
     public abstract JSONObject getDetail();
@@ -177,7 +174,7 @@ public abstract class INode {
 
 
 
-    @Override
+   /* @Override
     public String toString() {
         return "INode{" +
                 "viewType='" + viewType + '\'' +
@@ -194,7 +191,7 @@ public abstract class INode {
                 ", nodeChunk=" + nodeChunk +
                 ", runtimeNodeId='" + runtimeNodeId + '\'' +
                 '}';
-    }
+    }*/
 }
 
 
