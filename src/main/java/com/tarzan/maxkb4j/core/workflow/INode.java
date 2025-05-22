@@ -174,7 +174,7 @@ public abstract class INode {
 
 
 
-   /* @Override
+    @Override
     public String toString() {
         return "INode{" +
                 "viewType='" + viewType + '\'' +
@@ -191,7 +191,7 @@ public abstract class INode {
                 ", nodeChunk=" + nodeChunk +
                 ", runtimeNodeId='" + runtimeNodeId + '\'' +
                 '}';
-    }*/
+    }
 }
 
 

@@ -18,8 +18,7 @@ import dev.langchain4j.store.memory.chat.ChatMemoryStore;
 
 import java.util.*;
 
-import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.AI_CHAT;
-import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.CONDITION;
+import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.*;
 
 public class BaseClassificationNode extends INode {
 
@@ -34,7 +33,7 @@ public class BaseClassificationNode extends INode {
 
     @Override
     public NodeResult execute() {
-        System.out.println(CONDITION);
+        System.out.println(CLASSIFICATION);
         ClassificationNodeParams nodeParams = super.nodeParams.toJavaObject(ClassificationNodeParams.class);
         if (Objects.isNull(nodeParams.getDialogueType())) {
             nodeParams.setDialogueType("WORKFLOW");

@@ -2,7 +2,6 @@ package com.tarzan.maxkb4j.core.workflow;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.tarzan.maxkb4j.core.workflow.dto.Answer;
 import com.tarzan.maxkb4j.core.workflow.dto.ChatFile;
 import com.tarzan.maxkb4j.core.workflow.handler.WorkFlowPostHandler;
 import com.tarzan.maxkb4j.core.workflow.logic.LfEdge;
@@ -83,7 +82,7 @@ public class WorkflowManage {
     }
 
 
-    public List<String> getAnswerTextList() {
+/*    public List<String> getAnswerTextList() {
         List<Answer> answerList = nodeContext.stream()
                 .map(INode::getAnswerList)
                 .filter(Objects::nonNull)
@@ -114,7 +113,7 @@ public class WorkflowManage {
             return Collections.singletonList("");
         }
         return result;
-    }
+    }*/
 
     public void loadNode(ApplicationChatRecordEntity chatRecord, String startNodeId, Map<String, Object> startNodeData) {
         nodeContext.clear();
@@ -319,12 +318,6 @@ public class WorkflowManage {
 
 
     public NodeResult runChain(INode currentNode, NodeResultFuture nodeResultFuture) {
-     /*   // 激活翻译（假设有一个类似功能的类）
-        // Translation.activate(language);
-        if (currentNode == null) {
-            LfNode startNode = getStartNode();
-            currentNode = NodeFactory.getNode(startNode.getType(), startNode, params, this);
-        }*/
         assert currentNode != null;
         // 添加节点块
         nodeChunkManage.addNodeChunk(currentNode.getNodeChunk());
@@ -453,11 +446,9 @@ public class WorkflowManage {
         Pattern VARIABLE_PATTERN = Pattern.compile("\\{\\{(.+?)\\}\\}");
         Set<String> variables = new HashSet<>();
         Matcher matcher = VARIABLE_PATTERN.matcher(template);
-
         while (matcher.find()) {
             variables.add(matcher.group(1));
         }
-
         return variables;
     }
 
@@ -697,7 +688,6 @@ public class WorkflowManage {
         List<ChatMessage> messages = new ArrayList<>();
         messages.add(new UserMessage(nodeDetails.getString("question")));
         messages.add(new AiMessage(nodeDetails.getString("answer")));
-
         return messages;
     }
 
