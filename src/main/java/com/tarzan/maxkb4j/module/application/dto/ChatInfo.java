@@ -1,6 +1,6 @@
 package com.tarzan.maxkb4j.module.application.dto;
 
-import com.tarzan.maxkb4j.module.application.ragpipeline.handler.PostResponseHandler;
+import com.tarzan.maxkb4j.module.application.handler.PostResponseHandler;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationChatRecordEntity;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationEntity;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationWorkFlowVersionEntity;

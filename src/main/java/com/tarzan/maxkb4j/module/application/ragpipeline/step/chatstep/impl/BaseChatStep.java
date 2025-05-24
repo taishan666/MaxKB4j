@@ -11,7 +11,7 @@ import com.tarzan.maxkb4j.module.application.entity.ApplicationPublicAccessClien
 import com.tarzan.maxkb4j.module.application.entity.DatasetSetting;
 import com.tarzan.maxkb4j.module.application.entity.NoReferencesSetting;
 import com.tarzan.maxkb4j.module.application.ragpipeline.PipelineManage;
-import com.tarzan.maxkb4j.module.application.ragpipeline.handler.PostResponseHandler;
+import com.tarzan.maxkb4j.module.application.handler.PostResponseHandler;
 import com.tarzan.maxkb4j.module.application.ragpipeline.step.chatstep.IChatStep;
 import com.tarzan.maxkb4j.module.application.service.ApplicationPublicAccessClientService;
 import com.tarzan.maxkb4j.module.application.vo.ChatMessageVO;

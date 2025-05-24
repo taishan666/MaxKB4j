@@ -1,4 +1,4 @@
-package com.tarzan.maxkb4j.module.application.ragpipeline.handler.impl;
+package com.tarzan.maxkb4j.module.application.handler.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.module.application.cache.ChatCache;
@@ -8,7 +8,7 @@ import com.tarzan.maxkb4j.module.application.entity.ApplicationChatRecordEntity;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatMapper;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatRecordMapper;
 import com.tarzan.maxkb4j.module.application.ragpipeline.PipelineManage;
-import com.tarzan.maxkb4j.module.application.ragpipeline.handler.PostResponseHandler;
+import com.tarzan.maxkb4j.module.application.handler.PostResponseHandler;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 

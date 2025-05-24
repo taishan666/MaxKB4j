@@ -1,4 +1,4 @@
-package com.tarzan.maxkb4j.module.application.ragpipeline.handler;
+package com.tarzan.maxkb4j.module.application.handler;
 
 import com.tarzan.maxkb4j.module.application.dto.ChatInfo;
 import com.tarzan.maxkb4j.module.application.ragpipeline.PipelineManage;

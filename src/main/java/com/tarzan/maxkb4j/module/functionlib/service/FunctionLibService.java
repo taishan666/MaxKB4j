@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.tarzan.maxkb4j.core.enums.PermissionType;
 import com.tarzan.maxkb4j.module.functionlib.entity.FunctionLibEntity;
 import com.tarzan.maxkb4j.module.functionlib.mapper.FunctionLibMapper;
 import org.apache.commons.lang3.StringUtils;
@@ -26,7 +27,7 @@ public class FunctionLibService extends ServiceImpl<FunctionLibMapper, FunctionL
         if(StringUtils.isNotBlank(name)){
             wrapper.like(FunctionLibEntity::getName,name);
         }
-        wrapper.eq(FunctionLibEntity::getPermissionType, "PUBLIC").or().eq(FunctionLibEntity::getUserId, StpUtil.getLoginIdAsString());
+        wrapper.eq(FunctionLibEntity::getPermissionType, PermissionType.PUBLIC.name()).or().eq(FunctionLibEntity::getUserId, StpUtil.getLoginIdAsString());
         wrapper.orderByDesc(FunctionLibEntity::getCreateTime);
         return this.page(page,wrapper);
     }

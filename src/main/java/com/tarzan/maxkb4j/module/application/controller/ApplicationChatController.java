@@ -62,13 +62,11 @@ public class ApplicationChatController {
         return R.success(chatService.chatWorkflowOpenTest(application));
     }
 
-    @Operation(summary = "新建应用会话", description = "")
     @GetMapping("api/application/{appId}/chat/open")
     public R<String> chatOpen(@PathVariable("appId") String appId) {
         return R.success(chatService.chatOpen(appId));
     }
 
-    @Operation(summary = "聊天", description = "")
     @PostMapping(path = "api/application/chat_message/{chatId}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<ChatMessageVO> chatMessage(@PathVariable String chatId, @RequestBody ChatMessageDTO params) {
         String clientId = (String) StpUtil.getExtra("client_id");

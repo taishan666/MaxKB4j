@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.tarzan.maxkb4j.core.enums.PermissionType;
 import com.tarzan.maxkb4j.module.mcplib.entity.McpLibEntity;
 import com.tarzan.maxkb4j.module.mcplib.mapper.McpLibMapper;
 import org.apache.commons.lang3.StringUtils;
@@ -26,7 +27,7 @@ public class McpLibService extends ServiceImpl<McpLibMapper, McpLibEntity>{
         if(StringUtils.isNotBlank(name)){
             wrapper.like(McpLibEntity::getName,name);
         }
-        wrapper.eq(McpLibEntity::getPermissionType, "PUBLIC").or().eq(McpLibEntity::getUserId, StpUtil.getLoginIdAsString());
+        wrapper.eq(McpLibEntity::getPermissionType, PermissionType.PUBLIC.name()).or().eq(McpLibEntity::getUserId, StpUtil.getLoginIdAsString());
         wrapper.orderByDesc(McpLibEntity::getCreateTime);
         return this.page(page,wrapper);
     }

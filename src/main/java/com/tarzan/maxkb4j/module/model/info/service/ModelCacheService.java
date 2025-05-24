@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.tarzan.maxkb4j.core.enums.PermissionType;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelEntity;
 import com.tarzan.maxkb4j.module.model.info.mapper.ModelMapper;
 import com.tarzan.maxkb4j.module.model.info.vo.ModelVO;
@@ -64,7 +65,7 @@ public class ModelCacheService extends ServiceImpl<ModelMapper, ModelEntity> {
             wrapper.eq(ModelEntity::getProvider, provider);
         }
         wrapper.eq(ModelEntity::getUserId, StpUtil.getLoginIdAsString());
-        wrapper.or().eq(ModelEntity::getPermissionType, "PUBLIC");
+        wrapper.or().eq(ModelEntity::getPermissionType, PermissionType.PUBLIC.name());
         wrapper.orderByDesc(ModelEntity::getCreateTime);
         List<ModelEntity> modelEntities = baseMapper.selectList(wrapper);
         if (CollectionUtils.isNotEmpty(modelEntities)) {
