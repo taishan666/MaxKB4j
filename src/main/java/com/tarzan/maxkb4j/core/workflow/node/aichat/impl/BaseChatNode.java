@@ -9,6 +9,7 @@ import com.tarzan.maxkb4j.module.assistant.Assistant;
 import com.tarzan.maxkb4j.module.dataset.vo.ParagraphVO;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
+import com.tarzan.maxkb4j.module.rag.MyAiServices;
 import com.tarzan.maxkb4j.module.rag.MyChatMemory;
 import com.tarzan.maxkb4j.module.rag.MyContentRetriever;
 import com.tarzan.maxkb4j.util.SpringUtil;
@@ -16,7 +17,12 @@ import com.tarzan.maxkb4j.util.StringUtil;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.memory.ChatMemory;
 import dev.langchain4j.model.output.TokenUsage;
-import dev.langchain4j.service.AiServices;
+import dev.langchain4j.rag.DefaultRetrievalAugmentor;
+import dev.langchain4j.rag.RetrievalAugmentor;
+import dev.langchain4j.rag.content.aggregator.DefaultContentAggregator;
+import dev.langchain4j.rag.content.injector.ContentInjector;
+import dev.langchain4j.rag.content.injector.DefaultContentInjector;
+import dev.langchain4j.rag.query.router.DefaultQueryRouter;
 import dev.langchain4j.service.TokenStream;
 import dev.langchain4j.store.memory.chat.ChatMemoryStore;
 import lombok.extern.slf4j.Slf4j;
@@ -29,6 +35,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Stream;
 
+import static com.tarzan.maxkb4j.core.constant.PromptTemplates.RAG_PROMPT_TEMPLATE;
 import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.AI_CHAT;
 
 @Slf4j
@@ -100,29 +107,38 @@ public class BaseChatNode extends INode {
         BaseChatModel chatModel = modelService.getModelById(nodeParams.getModelId(), nodeParams.getModelParamsSetting());
         List<ChatMessage> historyMessage = workflowManage.getHistoryMessage(super.workflowParams.getHistoryChatRecord(), nodeParams.getDialogueNumber(), nodeParams.getDialogueType(), super.runtimeNodeId);
         List<String> questionFields=nodeParams.getQuestionReferenceAddress();
-        String question= (String)workflowManage.getReferenceField(questionFields.get(0),questionFields.subList(1, questionFields.size()));
+        String problemText= (String)workflowManage.getReferenceField(questionFields.get(0),questionFields.subList(1, questionFields.size()));
         String systemPrompt = workflowManage.generatePrompt(nodeParams.getSystem());
         String system= StringUtil.isBlank(systemPrompt)?"You're an intelligent assistant.":systemPrompt;
+        ContentInjector contentInjector = DefaultContentInjector.builder()
+                .promptTemplate(RAG_PROMPT_TEMPLATE)
+                .build();
+        RetrievalAugmentor retrievalAugmentor = DefaultRetrievalAugmentor.builder()
+                .queryRouter(new DefaultQueryRouter(new MyContentRetriever(paragraphList)))
+                .contentAggregator(new DefaultContentAggregator())
+                .contentInjector(contentInjector)
+                .build();
+        String chatId = super.workflowParams.getChatId();
         ChatMemory chatMemory = MyChatMemory.builder()
-                .id(super.workflowParams.getChatId())
+                .id(chatId)
                 .maxMessages(nodeParams.getDialogueNumber())
                 .chatMemoryStore(chatMemoryStore)
                 .build();
-        Assistant assistant = AiServices.builder(Assistant.class)
+        //AugmentationResult augmentationResult=retrievalAugmentor.augment(new AugmentationRequest(UserMessage.from(problemText), new Metadata(UserMessage.from(problemText),chatId,new ArrayList<>())));
+        Assistant assistant = MyAiServices.builder(Assistant.class)
                 .systemMessageProvider(chatMemoryId ->system)
-                .streamingChatModel(chatModel.getStreamingChatModel())
                 .chatMemory(chatMemory)
-                .contentRetriever(new MyContentRetriever(paragraphList))
+                .retrievalAugmentor(retrievalAugmentor)
+                .streamingChatModel(chatModel.getStreamingChatModel())
                 .build();
-        TokenStream tokenStream = assistant.chatStream(question);
-
+        TokenStream tokenStream = assistant.chatStream(problemText);
         Map<String, Object> nodeVariable = Map.of(
                 "result", tokenStream,
                 "system", system,
                 "chat_model", chatModel,
             //    "message_list", chatMemory.messages(),
                 "history_message", historyMessage,
-                "question", question
+                "question", problemText
         );
         return new NodeResult(nodeVariable, Map.of(), this::writeContextStream);
 

@@ -19,6 +19,5 @@ public interface Assistant {
 
     TokenStream chatStream(ChatMessage chatMessage);
 
-    TokenStream chatStream(List<ChatMessage> messages);
 
 }

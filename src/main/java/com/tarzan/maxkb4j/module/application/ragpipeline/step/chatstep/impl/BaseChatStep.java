@@ -10,8 +10,8 @@ import com.tarzan.maxkb4j.module.application.entity.ApplicationEntity;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationPublicAccessClientEntity;
 import com.tarzan.maxkb4j.module.application.entity.DatasetSetting;
 import com.tarzan.maxkb4j.module.application.entity.NoReferencesSetting;
-import com.tarzan.maxkb4j.module.application.ragpipeline.PipelineManage;
 import com.tarzan.maxkb4j.module.application.handler.PostResponseHandler;
+import com.tarzan.maxkb4j.module.application.ragpipeline.PipelineManage;
 import com.tarzan.maxkb4j.module.application.ragpipeline.step.chatstep.IChatStep;
 import com.tarzan.maxkb4j.module.application.service.ApplicationPublicAccessClientService;
 import com.tarzan.maxkb4j.module.application.vo.ChatMessageVO;
@@ -24,12 +24,12 @@ import com.tarzan.maxkb4j.module.mcplib.entity.McpLibEntity;
 import com.tarzan.maxkb4j.module.mcplib.service.McpLibService;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
+import com.tarzan.maxkb4j.module.rag.MyAiServices;
 import com.tarzan.maxkb4j.module.rag.MyChatMemory;
 import com.tarzan.maxkb4j.module.rag.MyContentRetriever;
 import dev.langchain4j.agent.tool.ToolExecutionRequest;
 import dev.langchain4j.agent.tool.ToolSpecification;
 import dev.langchain4j.data.message.AiMessage;
-import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.mcp.McpToolProvider;
@@ -38,18 +38,13 @@ import dev.langchain4j.mcp.client.McpClient;
 import dev.langchain4j.mcp.client.transport.http.HttpMcpTransport;
 import dev.langchain4j.memory.ChatMemory;
 import dev.langchain4j.model.chat.request.json.JsonObjectSchema;
-import dev.langchain4j.model.input.PromptTemplate;
 import dev.langchain4j.model.output.TokenUsage;
-import dev.langchain4j.rag.AugmentationRequest;
-import dev.langchain4j.rag.AugmentationResult;
 import dev.langchain4j.rag.DefaultRetrievalAugmentor;
 import dev.langchain4j.rag.RetrievalAugmentor;
 import dev.langchain4j.rag.content.aggregator.DefaultContentAggregator;
 import dev.langchain4j.rag.content.injector.ContentInjector;
 import dev.langchain4j.rag.content.injector.DefaultContentInjector;
-import dev.langchain4j.rag.query.Metadata;
 import dev.langchain4j.rag.query.router.DefaultQueryRouter;
-import dev.langchain4j.service.AiServices;
 import dev.langchain4j.service.TokenStream;
 import dev.langchain4j.service.tool.DefaultToolExecutor;
 import dev.langchain4j.service.tool.ToolExecution;
@@ -69,6 +64,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.tarzan.maxkb4j.core.constant.PromptTemplates.RAG_PROMPT_TEMPLATE;
+
 @Slf4j
 @Component
 @AllArgsConstructor
@@ -79,23 +76,6 @@ public class BaseChatStep extends IChatStep {
     private final ApplicationPublicAccessClientService publicAccessClientService;
     private final ChatMemoryStore chatMemoryStore;
     private final FunctionLibService functionLibService;
-
-    public static final PromptTemplate DEFAULT_PROMPT_TEMPLATE = PromptTemplate.from(
-            """
-                    {{userMessage}}
-                    
-                    Use the contents of the <Data></Data> tag as your knowledge:
-                    <Data>
-                     {{contents}}
-                    </Data>
-                    Answer the request:
-                    
-                    - If you don't know, just say you don't know. If you don't know when in doubt, seek clarification.
-                    
-                    - Avoid mentioning information that you get from context.
-                    
-                    - Answer in the same language as the question.
-                    """);
 
     @Override
     protected Flux<ChatMessageVO> execute(PipelineManage manage) {
@@ -162,7 +142,7 @@ public class BaseChatStep extends IChatStep {
                         .build();
                 String system = StringUtil.isBlank(systemText) ? "You're an intelligent assistant" : systemText;
                 ContentInjector contentInjector = DefaultContentInjector.builder()
-                        .promptTemplate(DEFAULT_PROMPT_TEMPLATE)
+                        .promptTemplate(RAG_PROMPT_TEMPLATE)
                        // .metadataKeysToInclude(List.of("file_name", "index"))
                         .build();
                 RetrievalAugmentor retrievalAugmentor = DefaultRetrievalAugmentor.builder()
@@ -187,12 +167,12 @@ public class BaseChatStep extends IChatStep {
                 ToolProvider toolProvider = McpToolProvider.builder()
                         .mcpClients(mcpClients)
                         .build();
-                AugmentationResult augmentationResult=retrievalAugmentor.augment(new AugmentationRequest(UserMessage.from(problemText), new Metadata(UserMessage.from(problemText),chatId, chatMemory.messages())));
-                Assistant assistant = AiServices.builder(Assistant.class)
+             //   AugmentationResult augmentationResult=retrievalAugmentor.augment(new AugmentationRequest(UserMessage.from(problemText), new Metadata(UserMessage.from(problemText),chatId, chatMemory.messages())));
+                Assistant assistant = MyAiServices.builder(Assistant.class)
                         .systemMessageProvider(chatMemoryId -> system)
-                     //   .chatMemory(chatMemory)
+                        .chatMemory(chatMemory)
                         .streamingChatModel(chatModel.getStreamingChatModel())
-                     //   .retrievalAugmentor(retrievalAugmentor)
+                        .retrievalAugmentor(retrievalAugmentor)
                         .tools(getTools(application.getFunctionIdList()))
                         .toolProvider(toolProvider)
                         .build();
@@ -203,9 +183,9 @@ public class BaseChatStep extends IChatStep {
                         sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, "用户消息不能为空", true));
                         sink.tryEmitComplete();
                     } else {
-                        List<ChatMessage> messages=chatMemory.messages();
-                        messages.add(augmentationResult.chatMessage());
-                        TokenStream tokenStream = assistant.chatStream(messages);
+                       // List<ChatMessage> messages=chatMemory.messages();
+                       // messages.add(augmentationResult.chatMessage());
+                        TokenStream tokenStream = assistant.chatStream(problemText);
                         tokenStream.onToolExecuted((ToolExecution toolExecution) -> System.out.println("toolExecution="+toolExecution))
                                 .onPartialResponse(text -> sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, text, false)))
                                 .onCompleteResponse(response -> {
