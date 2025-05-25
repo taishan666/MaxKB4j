@@ -9,11 +9,12 @@ import com.tarzan.maxkb4j.module.assistant.Assistant;
 import com.tarzan.maxkb4j.module.dataset.vo.ParagraphVO;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
+import com.tarzan.maxkb4j.module.rag.MyChatMemory;
 import com.tarzan.maxkb4j.module.rag.MyContentRetriever;
 import com.tarzan.maxkb4j.util.SpringUtil;
 import com.tarzan.maxkb4j.util.StringUtil;
 import dev.langchain4j.data.message.ChatMessage;
-import dev.langchain4j.memory.chat.MessageWindowChatMemory;
+import dev.langchain4j.memory.ChatMemory;
 import dev.langchain4j.model.output.TokenUsage;
 import dev.langchain4j.service.AiServices;
 import dev.langchain4j.service.TokenStream;
@@ -100,19 +101,17 @@ public class BaseChatNode extends INode {
         List<ChatMessage> historyMessage = workflowManage.getHistoryMessage(super.workflowParams.getHistoryChatRecord(), nodeParams.getDialogueNumber(), nodeParams.getDialogueType(), super.runtimeNodeId);
         List<String> questionFields=nodeParams.getQuestionReferenceAddress();
         String question= (String)workflowManage.getReferenceField(questionFields.get(0),questionFields.subList(1, questionFields.size()));
-
         String systemPrompt = workflowManage.generatePrompt(nodeParams.getSystem());
         String system= StringUtil.isBlank(systemPrompt)?"You're an intelligent assistant.":systemPrompt;
-       // MyChatMemory chatMemory = new MyChatMemory(super.workflowParams.getHistoryChatRecord(),nodeParams.getDialogueNumber());
+        ChatMemory chatMemory = MyChatMemory.builder()
+                .id(super.workflowParams.getChatId())
+                .maxMessages(nodeParams.getDialogueNumber())
+                .chatMemoryStore(chatMemoryStore)
+                .build();
         Assistant assistant = AiServices.builder(Assistant.class)
                 .systemMessageProvider(chatMemoryId ->system)
-               // .chatModel(chatModel.getChatModel())
                 .streamingChatModel(chatModel.getStreamingChatModel())
-                .chatMemory(MessageWindowChatMemory.builder()
-                        .id(super.workflowParams.getChatId())
-                        .maxMessages(nodeParams.getDialogueNumber())
-                        .chatMemoryStore(chatMemoryStore)
-                        .build())
+                .chatMemory(chatMemory)
                 .contentRetriever(new MyContentRetriever(paragraphList))
                 .build();
         TokenStream tokenStream = assistant.chatStream(question);

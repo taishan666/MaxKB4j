@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import javax.crypto.BadPaddingException;
 
@@ -58,12 +59,12 @@ public class GlobalExceptionHandler{
         return R.fail(500, e.getMessage());
     }
 
- /*   @ExceptionHandler(NoResourceFoundException.class)
+    @ExceptionHandler(NoResourceFoundException.class)
     @ResponseBody
     public R<String>  handleException(NoResourceFoundException e) {
         log.error("未发现资源异常: {}", e.getMessage(), e);
         return R.fail(404, e.getMessage());
-    }*/
+    }
 
     @ExceptionHandler(ApiException.class)
     @ResponseBody

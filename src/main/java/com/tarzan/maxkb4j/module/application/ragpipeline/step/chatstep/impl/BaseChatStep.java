@@ -187,29 +187,7 @@ public class BaseChatStep extends IChatStep {
                 ToolProvider toolProvider = McpToolProvider.builder()
                         .mcpClients(mcpClients)
                         .build();
-            /*    Map<String, Object> optionalParameters = new HashMap<>();
-                optionalParameters.put("gl", "us");
-                optionalParameters.put("hl", "en");
-                optionalParameters.put("google_domain", "google.com");
-                SearchApiWebSearchEngine  searchEngine = SearchApiWebSearchEngine.builder()
-                        .apiKey("")
-                        .engine("google")
-                        .optionalParameters(optionalParameters)
-                        .build();
-                WebSearchTool webTool = WebSearchTool.from(searchEngine);*/
                 AugmentationResult augmentationResult=retrievalAugmentor.augment(new AugmentationRequest(UserMessage.from(problemText), new Metadata(UserMessage.from(problemText),chatId, chatMemory.messages())));
-                //System.out.println("augmentationResult chatMessage="+augmentationResult.chatMessage());
-               // System.out.println("augmentationResult contents="+augmentationResult.contents());
-              //  List<ToolSpecification> toolSpecifications = ToolSpecifications.toolSpecificationsFrom(SystemTools.class);
-          /*      SystemTools objectWithTool=new SystemTools();
-                Map<ToolSpecification, ToolExecutor> tools=new HashMap<>();
-                for (Method method : objectWithTool.getClass().getDeclaredMethods()) {
-                    if (method.isAnnotationPresent(Tool.class)) {
-                        ToolSpecification toolSpecification = toolSpecificationFrom(method);
-                        System.out.println("tool  "+toolSpecification);
-                        tools.put(toolSpecification, new DefaultToolExecutor(objectWithTool, method));
-                    }
-                }*/
                 Assistant assistant = AiServices.builder(Assistant.class)
                         .systemMessageProvider(chatMemoryId -> system)
                      //   .chatMemory(chatMemory)
@@ -251,19 +229,6 @@ public class BaseChatStep extends IChatStep {
                                 .start();
                         log.info("AI回答 耗时：{} ms", System.currentTimeMillis() - startTime);
                     }
-                } else {
-              /*      String response = assistant.chat(problemText);
-                    System.out.println(response);
-                    String  answerText=response;
-                    TokenUsage tokenUsage=new TokenUsage();
-                    sink.tryEmitNext(toResponse(chatId, chatRecordId, answerText, true, 0, 0));
-                    sink.tryEmitComplete();
-                    int thisMessageTokens = tokenUsage.inputTokenCount();
-                    int thisAnswerTokens = tokenUsage.outputTokenCount();
-                    manage.context.put("messageTokens", messageTokens + thisMessageTokens);
-                    manage.context.put("answerTokens", answerTokens + thisAnswerTokens);
-                    addAccessNum(clientId, clientType);
-                    postResponseHandler.handler(ChatCache.get(chatId), chatId, chatRecordId, problemText, answerText, manage, clientId);*/
                 }
             }
         }

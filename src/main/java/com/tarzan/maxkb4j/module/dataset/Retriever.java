@@ -84,6 +84,17 @@ public class Retriever {
                 .csi(System.getenv("GOOGLE_SEARCH_ENGINE_ID"))
                 .build();*//*
 
+                    /*    Map<String, Object> optionalParameters = new HashMap<>();
+                optionalParameters.put("gl", "us");
+                optionalParameters.put("hl", "en");
+                optionalParameters.put("google_domain", "google.com");
+                SearchApiWebSearchEngine  searchEngine = SearchApiWebSearchEngine.builder()
+                        .apiKey("")
+                        .engine("google")
+                        .optionalParameters(optionalParameters)
+                        .build();
+                WebSearchTool webTool = WebSearchTool.from(searchEngine);
+
     }
 }
 */

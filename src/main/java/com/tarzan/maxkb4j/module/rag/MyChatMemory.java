@@ -65,7 +65,7 @@ public class MyChatMemory implements ChatMemory {
         long userMessagesCount = messages.stream()
                 .filter(message -> message instanceof UserMessage)
                 .count();
-        while (userMessagesCount > maxMessages) {
+        while (userMessagesCount > maxMessages+1) {
             int messageToEvictIndex = 0;
             if (messages.get(0) instanceof SystemMessage) {
                 messageToEvictIndex = 1;
