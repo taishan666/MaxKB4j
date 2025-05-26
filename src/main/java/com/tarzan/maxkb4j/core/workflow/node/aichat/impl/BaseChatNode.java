@@ -95,14 +95,11 @@ public class BaseChatNode extends INode {
         if (Objects.isNull(nodeParams.getDialogueType())) {
             nodeParams.setDialogueType("WORKFLOW");
         }
-     /*   if (Objects.isNull(nodeParams.getModelParamsSetting())) {
-            nodeParams.setModelParamsSetting(getDefaultModelParamsSetting(nodeParams.getModelId()));
-        }*/
         List<String> fields=nodeParams.getDatasetReferenceAddress();
-        Object res=workflowManage.getReferenceField(fields.get(0),fields.subList(1, fields.size()));
-        List<ParagraphVO> paragraphList = (List<ParagraphVO>) res;
-        if(CollectionUtils.isEmpty(paragraphList)){
-            paragraphList=new ArrayList<>();
+        List<ParagraphVO> paragraphList =new ArrayList<>();
+        if(!CollectionUtils.isEmpty(fields)&&fields.size()>1){
+            Object res=workflowManage.getReferenceField(fields.get(0),fields.subList(1, fields.size()));
+            paragraphList = (List<ParagraphVO>) res;
         }
         BaseChatModel chatModel = modelService.getModelById(nodeParams.getModelId(), nodeParams.getModelParamsSetting());
         List<ChatMessage> historyMessage = workflowManage.getHistoryMessage(super.workflowParams.getHistoryChatRecord(), nodeParams.getDialogueNumber(), nodeParams.getDialogueType(), super.runtimeNodeId);
