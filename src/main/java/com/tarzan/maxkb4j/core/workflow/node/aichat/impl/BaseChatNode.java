@@ -75,6 +75,7 @@ public class BaseChatNode extends INode {
                     context.put("messageTokens", tokenUsage.inputTokenCount());
                     context.put("answerTokens", tokenUsage.outputTokenCount());
                     context.put("answer", answer);
+                    context.put("system", nodeVariable.get("system"));
                     context.put("question", nodeVariable.get("question"));
                     context.put("history_message", nodeVariable.get("history_message"));
                     long runTime = System.currentTimeMillis() - (long) context.get("start_time");
@@ -89,7 +90,7 @@ public class BaseChatNode extends INode {
     }
 
     @Override
-    public NodeResult execute() {
+    public NodeResult execute() throws Exception {
         System.out.println(AI_CHAT);
         ChatNodeParams nodeParams= super.nodeParams.toJavaObject(ChatNodeParams.class);
         if (Objects.isNull(nodeParams.getDialogueType())) {
@@ -133,7 +134,7 @@ public class BaseChatNode extends INode {
                 "result", tokenStream,
                 "system", system,
                 "chat_model", chatModel,
-            //    "message_list", chatMemory.messages(),
+                "message_list", chatMemory.messages(),
                 "history_message", historyMessage,
                 "question", problemText
         );
