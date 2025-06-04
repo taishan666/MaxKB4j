@@ -68,7 +68,6 @@ public class BaseChatNode extends INode {
         Sinks.Many<String> sink = Sinks.many().multicast().onBackpressureBuffer();
         tokenStream.onPartialResponse(sink::tryEmitNext)
                 .onCompleteResponse(response -> {
-                    sink.tryEmitComplete();
                     String answer = response.aiMessage().text();
                     workflow.setAnswer(answer);
                     TokenUsage tokenUsage = response.tokenUsage();
@@ -80,11 +79,9 @@ public class BaseChatNode extends INode {
                     context.put("history_message", nodeVariable.get("history_message"));
                     long runTime = System.currentTimeMillis() - (long) context.get("start_time");
                     context.put("runTime", runTime / 1000F);
-                })
-                .onError(error -> {
-                    sink.tryEmitNext(error.getMessage());
                     sink.tryEmitComplete();
                 })
+                .onError(error -> sink.tryEmitNext(error.getMessage()))
                 .start();
         return sink.asFlux().toStream();
     }
@@ -139,7 +136,6 @@ public class BaseChatNode extends INode {
                 "question", problemText
         );
         return new NodeResult(nodeVariable, Map.of(), this::writeContextStream);
-
     }
 
 }
