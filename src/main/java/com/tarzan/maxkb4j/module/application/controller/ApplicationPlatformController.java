@@ -44,7 +44,6 @@ public class ApplicationPlatformController {
                     .fluentPut("encoding_aes_key", "")
                     .fluentPut("is_certification", false)
                     .fluentPut("callback_url", "");
-
             JSONObject dingtalk = new JSONObject()
                     .fluentPut("client_id", "")
                     .fluentPut("client_secret", "")

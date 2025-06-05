@@ -16,7 +16,6 @@ import com.tarzan.maxkb4j.module.system.user.service.UserService;
 import com.tarzan.maxkb4j.util.BeanUtil;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
@@ -33,6 +32,7 @@ import java.util.stream.Collectors;
 public class ModelService extends ServiceImpl<ModelMapper, ModelEntity> {
 
     private final UserService userService;
+    private final ModelBaseService modelBaseService;
 
     public List<ModelEntity> getUserIdAndType(String userId, String modelType) {
         modelType = StringUtils.isBlank(modelType) ? "LLM" : modelType;
@@ -40,8 +40,7 @@ public class ModelService extends ServiceImpl<ModelMapper, ModelEntity> {
     }
 
     public List<ModelEntity> models(String modelType) {
-        modelType = StringUtils.isBlank(modelType) ? "LLM" : modelType;
-        return baseMapper.selectList(Wrappers.<ModelEntity>lambdaQuery().eq(ModelEntity::getModelType, modelType));
+        return modelBaseService.models(modelType);
     }
 
     public List<ModelVO> models(String name, String createUser, String permissionType, String modelType, String provider) {
@@ -76,39 +75,22 @@ public class ModelService extends ServiceImpl<ModelMapper, ModelEntity> {
         return Collections.emptyList();
     }
 
-    @Cacheable(cacheNames = "model_info", key = "#modelId")
-    public ModelEntity getCacheModelById(String modelId) {
-        return this.getById(modelId);
-    }
 
-
-    //todo 缓存处理
-    @Cacheable(cacheNames = "model", key = "#modelId")
     public <T> T getModelById(String modelId) {
-        ModelEntity model = getCacheModelById(modelId);
-        return ModelManage.build(model);
+        return modelBaseService.getModelById(modelId);
     }
 
     public <T> T getModelById(String modelId,JSONObject modelParams) {
-        ModelEntity model = getCacheModelById(modelId);
+        ModelEntity model = getModelById(modelId);
         return ModelManage.build(model,modelParams);
     }
 
+
     public Boolean createModel(ModelEntity model) {
-        String userId = StpUtil.getLoginIdAsString();
-        long count=this.lambdaQuery().eq(ModelEntity::getName, model.getName()).eq(ModelEntity::getUserId, userId).count();
-        if(count>0){
-            return false;
-        }
-        model.setUserId(userId);
-        model.setMeta(new JSONObject());
-        model.setStatus("SUCCESS");
-        return save(model);
+        return modelBaseService.createModel(model);
     }
 
     public ModelEntity updateModel(String id, ModelEntity model) {
-        model.setId(id);
-        this.updateById(model);
-        return model;
+        return modelBaseService.updateModel(id, model);
     }
 }

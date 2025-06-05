@@ -18,6 +18,7 @@ import com.tarzan.maxkb4j.module.application.vo.ChatMessageVO;
 import com.tarzan.maxkb4j.module.assistant.Assistant;
 import com.tarzan.maxkb4j.module.assistant.SystemTools;
 import com.tarzan.maxkb4j.module.dataset.vo.ParagraphVO;
+import com.tarzan.maxkb4j.module.functionlib.dto.FunctionInputParams;
 import com.tarzan.maxkb4j.module.functionlib.entity.FunctionLibEntity;
 import com.tarzan.maxkb4j.module.functionlib.service.FunctionLibService;
 import com.tarzan.maxkb4j.module.mcplib.entity.McpLibEntity;
@@ -27,6 +28,7 @@ import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
 import com.tarzan.maxkb4j.module.rag.MyAiServices;
 import com.tarzan.maxkb4j.module.rag.MyChatMemory;
 import com.tarzan.maxkb4j.module.rag.MyContentRetriever;
+import com.tarzan.maxkb4j.util.GroovyScriptExecutor;
 import dev.langchain4j.agent.tool.ToolExecutionRequest;
 import dev.langchain4j.agent.tool.ToolSpecification;
 import dev.langchain4j.data.message.AiMessage;
@@ -37,7 +39,7 @@ import dev.langchain4j.mcp.client.DefaultMcpClient;
 import dev.langchain4j.mcp.client.McpClient;
 import dev.langchain4j.mcp.client.transport.http.HttpMcpTransport;
 import dev.langchain4j.memory.ChatMemory;
-import dev.langchain4j.model.chat.request.json.JsonObjectSchema;
+import dev.langchain4j.model.chat.request.json.*;
 import dev.langchain4j.model.output.TokenUsage;
 import dev.langchain4j.rag.DefaultRetrievalAugmentor;
 import dev.langchain4j.rag.RetrievalAugmentor;
@@ -183,8 +185,6 @@ public class BaseChatStep extends IChatStep {
                         sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, "用户消息不能为空", true));
                         sink.tryEmitComplete();
                     } else {
-                       // List<ChatMessage> messages=chatMemory.messages();
-                       // messages.add(augmentationResult.chatMessage());
                         TokenStream tokenStream = assistant.chatStream(problemText);
                         tokenStream.onToolExecuted((ToolExecution toolExecution) -> System.out.println("toolExecution="+toolExecution))
                                 .onPartialResponse(text -> sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, text, false)))
@@ -278,17 +278,47 @@ public class BaseChatStep extends IChatStep {
         SystemTools objectWithTool=new SystemTools();
         LambdaQueryWrapper<FunctionLibEntity> wrapper= Wrappers.lambdaQuery();
         wrapper.in(FunctionLibEntity::getId,functionIds);
-        wrapper.eq(FunctionLibEntity::getIsActive,true).eq(FunctionLibEntity::getType,0);
+        wrapper.eq(FunctionLibEntity::getIsActive,true);
         List<FunctionLibEntity> functionLib=functionLibService.list(wrapper);
         for (FunctionLibEntity function : functionLib) {
-            ToolSpecification toolSpecification = ToolSpecification.builder()
-                    .name(function.getName())
-                    .description(function.getDesc())
-                    .parameters(JsonObjectSchema.builder().build())
-                    .build();
-            ToolExecutionRequest toolExecutionRequest=ToolExecutionRequest.builder()
-                    .name(function.getName()).build();
-            tools.put(toolSpecification, new DefaultToolExecutor(objectWithTool, toolExecutionRequest));
+            if (function.getType()==0){
+                ToolSpecification toolSpecification = ToolSpecification.builder()
+                        .name(function.getName())
+                        .description(function.getDesc())
+                        .parameters(JsonObjectSchema.builder().build())
+                        .build();
+                tools.put(toolSpecification, new DefaultToolExecutor(objectWithTool, ToolExecutionRequest.builder().name(function.getName()).build()));
+            }else if (function.getType()==1){
+                List<FunctionInputParams> params=function.getInputFieldList();
+                JsonObjectSchema.Builder parametersBuilder=JsonObjectSchema.builder();
+                for (FunctionInputParams param : params) {
+                    JsonSchemaElement jsonSchemaElement=new JsonNullSchema();
+                    if ("string".equals(param.getType())){
+                        jsonSchemaElement= JsonStringSchema.builder().build();
+                    }else if ("int".equals(param.getType())){
+                        jsonSchemaElement= JsonIntegerSchema.builder().build();
+                    }else if ("number".equals(param.getType())){
+                        jsonSchemaElement= JsonNumberSchema.builder().build();
+                    }else if ("boolean".equals(param.getType())){
+                        jsonSchemaElement=  JsonBooleanSchema.builder().build();
+                    }else if ("array".equals(param.getType())){
+                        jsonSchemaElement= JsonArraySchema.builder().build();
+                    }else if ("object".equals(param.getType())){
+                        jsonSchemaElement= JsonObjectSchema.builder().build();
+                    }
+                    parametersBuilder.addProperty(param.getName(),jsonSchemaElement);
+                }
+                ToolSpecification toolSpecification = ToolSpecification.builder()
+                        .name(function.getName())
+                        .description(function.getDesc())
+                        .parameters(parametersBuilder.build())
+                        .build();
+               /* ToolExecutor toolExecutor = (toolExecutionRequest, memoryId) -> {
+                    return "2025-06-04";
+                };*/
+                tools.put(toolSpecification, new GroovyScriptExecutor(function.getCode()));
+            }
+
         }
 
         return tools;

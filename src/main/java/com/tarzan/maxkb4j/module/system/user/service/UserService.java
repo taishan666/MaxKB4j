@@ -152,6 +152,7 @@ public class UserService extends ServiceImpl<UserMapper, UserEntity> {
         }
         UserVO user = BeanUtil.copy(userEntity, UserVO.class);
         user.setPermissions(stpInterface.getPermissionList(userId, null));
+        //todo 临时处理
         user.setIsEditPassword("d880e722c47a34d8e9fce789fc62389d".equals(user.getPassword())&&"ADMIN".equals(user.getRole()));
         return user;
     }

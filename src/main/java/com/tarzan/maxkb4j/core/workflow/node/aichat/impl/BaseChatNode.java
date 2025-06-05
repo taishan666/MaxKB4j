@@ -68,41 +68,36 @@ public class BaseChatNode extends INode {
         Sinks.Many<String> sink = Sinks.many().multicast().onBackpressureBuffer();
         tokenStream.onPartialResponse(sink::tryEmitNext)
                 .onCompleteResponse(response -> {
-                    sink.tryEmitComplete();
                     String answer = response.aiMessage().text();
                     workflow.setAnswer(answer);
                     TokenUsage tokenUsage = response.tokenUsage();
                     context.put("messageTokens", tokenUsage.inputTokenCount());
                     context.put("answerTokens", tokenUsage.outputTokenCount());
                     context.put("answer", answer);
+                    context.put("system", nodeVariable.get("system"));
                     context.put("question", nodeVariable.get("question"));
                     context.put("history_message", nodeVariable.get("history_message"));
                     long runTime = System.currentTimeMillis() - (long) context.get("start_time");
                     context.put("runTime", runTime / 1000F);
-                })
-                .onError(error -> {
-                    sink.tryEmitNext(error.getMessage());
                     sink.tryEmitComplete();
                 })
+                .onError(error -> sink.tryEmitNext(error.getMessage()))
                 .start();
         return sink.asFlux().toStream();
     }
 
     @Override
-    public NodeResult execute() {
+    public NodeResult execute() throws Exception {
         System.out.println(AI_CHAT);
         ChatNodeParams nodeParams= super.nodeParams.toJavaObject(ChatNodeParams.class);
         if (Objects.isNull(nodeParams.getDialogueType())) {
             nodeParams.setDialogueType("WORKFLOW");
         }
-     /*   if (Objects.isNull(nodeParams.getModelParamsSetting())) {
-            nodeParams.setModelParamsSetting(getDefaultModelParamsSetting(nodeParams.getModelId()));
-        }*/
         List<String> fields=nodeParams.getDatasetReferenceAddress();
-        Object res=workflowManage.getReferenceField(fields.get(0),fields.subList(1, fields.size()));
-        List<ParagraphVO> paragraphList = (List<ParagraphVO>) res;
-        if(CollectionUtils.isEmpty(paragraphList)){
-            paragraphList=new ArrayList<>();
+        List<ParagraphVO> paragraphList =new ArrayList<>();
+        if(!CollectionUtils.isEmpty(fields)&&fields.size()>1){
+            Object res=workflowManage.getReferenceField(fields.get(0),fields.subList(1, fields.size()));
+            paragraphList = (List<ParagraphVO>) res;
         }
         BaseChatModel chatModel = modelService.getModelById(nodeParams.getModelId(), nodeParams.getModelParamsSetting());
         List<ChatMessage> historyMessage = workflowManage.getHistoryMessage(super.workflowParams.getHistoryChatRecord(), nodeParams.getDialogueNumber(), nodeParams.getDialogueType(), super.runtimeNodeId);
@@ -136,12 +131,11 @@ public class BaseChatNode extends INode {
                 "result", tokenStream,
                 "system", system,
                 "chat_model", chatModel,
-            //    "message_list", chatMemory.messages(),
+                "message_list", chatMemory.messages(),
                 "history_message", historyMessage,
                 "question", problemText
         );
         return new NodeResult(nodeVariable, Map.of(), this::writeContextStream);
-
     }
 
 }

@@ -159,7 +159,7 @@ public class JsoupUtil {
     }
 
     static HostnameVerifier hv = (urlHostName, session) -> {
-        log.info("Warning: URL Host: " + urlHostName + " vs. " + session.getPeerHost());
+        log.info("Warning: URL Host: {} vs. {}", urlHostName, session.getPeerHost());
         return true;
     };
 

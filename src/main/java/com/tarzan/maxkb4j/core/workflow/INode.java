@@ -60,7 +60,7 @@ public abstract class INode {
     }
 
 
-    public abstract NodeResult execute();
+    public abstract NodeResult execute() throws Exception;
 
     public abstract JSONObject getDetail();
 
@@ -90,7 +90,7 @@ public abstract class INode {
         this.context.put("runTime", (System.currentTimeMillis() - startTime)/1000F);
     }
 
-    public NodeResult run() {
+    public NodeResult run() throws Exception {
         long startTime = System.currentTimeMillis();
         this.context.put("start_time", startTime);
         NodeResult result = execute();

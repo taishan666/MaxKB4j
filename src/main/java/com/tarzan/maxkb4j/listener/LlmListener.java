@@ -8,30 +8,32 @@ import dev.langchain4j.model.chat.listener.ChatModelRequestContext;
 import dev.langchain4j.model.chat.listener.ChatModelResponseContext;
 import dev.langchain4j.model.chat.request.ChatRequest;
 import dev.langchain4j.model.chat.response.ChatResponse;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 
+@Slf4j
 public class LlmListener implements ChatModelListener {
 
     @Override
     public void onRequest(ChatModelRequestContext requestContext) {
         ChatRequest chatRequest = requestContext.chatRequest();
         List<ChatMessage> messages = chatRequest.messages();
-        System.out.println(messages);
+        log.info(messages.toString());
     }
 
     @Override
     public void onResponse(ChatModelResponseContext responseContext) {
         ChatResponse chatResponse = responseContext.chatResponse();
         AiMessage aiMessage = chatResponse.aiMessage();
-        System.out.println(aiMessage);
+        log.info(String.valueOf(aiMessage));
     }
 
     @Override
     public void onError(ChatModelErrorContext errorContext) {
         Throwable error = errorContext.error();
-        error.printStackTrace();
+        log.error(error.getMessage());
         ChatRequest chatRequest = errorContext.chatRequest();
-        System.err.println(chatRequest);
+        log.error(String.valueOf(chatRequest));
     }
 }
