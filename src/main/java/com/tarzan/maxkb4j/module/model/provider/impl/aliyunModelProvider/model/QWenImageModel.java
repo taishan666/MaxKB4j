@@ -14,7 +14,7 @@ public class QWenImageModel implements BaseModel {
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
                 .size(params==null?WanxImageSize.SIZE_1024_1024:WanxImageSize.of(params.getString("size")))
-                .promptExtend(params==null?false:params.getBoolean("prompt_extend"))
+                .promptExtend(params==null&&params.getBoolean("prompt_extend"))
                 .negativePrompt(params==null?null:params.getString("negative_prompt"))
                 .build();
     }

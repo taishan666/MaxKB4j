@@ -69,7 +69,7 @@ public class BaseDocumentExtractNode extends INode {
                 public void characters(char[] ch, int start, int length) {
                     String text= new String(ch, start, length);
                     if(this.localName.equals("h1")){
-                       // markdown.append("# ").append(text);
+                         markdown.append("# ").append(text);
                     }else if(this.localName.equals("p")){
                         markdown.append("\n").append(text);
                     }else {

@@ -10,5 +10,4 @@ import com.tarzan.maxkb4j.module.application.entity.ApplicationWorkFlowVersionEn
  */
 @Service
 public class ApplicationWorkFlowVersionService extends ServiceImpl<ApplicationWorkFlowVersionMapper, ApplicationWorkFlowVersionEntity>{
-
 }

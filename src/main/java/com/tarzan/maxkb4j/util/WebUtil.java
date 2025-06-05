@@ -66,7 +66,7 @@ public class WebUtil extends WebUtils {
 
     public static HttpServletRequest getRequest() {
         RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
-        return requestAttributes == null ? null : ((ServletRequestAttributes)requestAttributes).getRequest();
+        return requestAttributes == null ? null : ((ServletRequestAttributes) requestAttributes).getRequest();
     }
 
     public static void renderJson(HttpServletResponse response, Object result) {
@@ -77,28 +77,8 @@ public class WebUtil extends WebUtils {
         response.setCharacterEncoding("UTF-8");
         response.setContentType(contentType);
 
-        try {
-            PrintWriter out = response.getWriter();
-            Throwable var4 = null;
-
-            try {
-                out.append(JsonUtil.toJson(result));
-            } catch (Throwable var14) {
-                throw var14;
-            } finally {
-                if (out != null) {
-                    if (var4 != null) {
-                        try {
-                            out.close();
-                        } catch (Throwable var13) {
-                            var4.addSuppressed(var13);
-                        }
-                    } else {
-                        out.close();
-                    }
-                }
-
-            }
+        try (PrintWriter out = response.getWriter()) {
+            out.append(JsonUtil.toJson(result));
         } catch (IOException var16) {
             log.error(var16.getMessage(), var16);
         }
@@ -128,10 +108,11 @@ public class WebUtil extends WebUtils {
                 ip = request.getRemoteAddr();
             }
 
-            return StringUtils.isBlank(ip) ? null :splitTrim(ip, ",")[0];
+            return StringUtils.isBlank(ip) ? null : splitTrim(ip, ",")[0];
         }
     }
-    public static String[] splitTrim(String splitStr,String regex) {
+
+    public static String[] splitTrim(String splitStr, String regex) {
         return splitStr.trim().split(regex);
     }
 
@@ -164,7 +145,7 @@ public class WebUtil extends WebUtils {
             reader = new BufferedReader(new InputStreamReader(servletInputStream, StandardCharsets.UTF_8));
 
             String line;
-            while((line = reader.readLine()) != null) {
+            while ((line = reader.readLine()) != null) {
                 sb.append(line);
             }
         } catch (IOException var16) {
@@ -208,8 +189,8 @@ public class WebUtil extends WebUtils {
                     StringBuilder sb = new StringBuilder();
                     Enumeration<?> parameterNames = request.getParameterNames();
 
-                    while(parameterNames.hasMoreElements()) {
-                        String key = (String)parameterNames.nextElement();
+                    while (parameterNames.hasMoreElements()) {
+                        String key = (String) parameterNames.nextElement();
                         String value = request.getParameter(key);
                         StringUtil.appendBuilder(sb, key, "=", value, "&");
                     }
