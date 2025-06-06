@@ -23,7 +23,7 @@ public abstract class INode {
     protected int status = 200;
     protected String errMessage = "";
     protected String type;
-    protected LfNode node;
+    protected LfNode lfNode;
     protected JSONObject nodeParams;
     protected FlowParams workflowParams;
     protected WorkflowManage workflowManage;
@@ -40,10 +40,10 @@ public abstract class INode {
         this.lastNodeIdList=new ArrayList<>();
     }
 
-    public void setNode(LfNode node) {
-        this.id = node.getId();
-        this.node = node;
-        this.nodeParams = getNodeParams(node);
+    public void setLfNode(LfNode lfNode) {
+        this.id = lfNode.getId();
+        this.lfNode = lfNode;
+        this.nodeParams = getNodeParams(lfNode);
         this.nodeChunk = new NodeChunk(this.id);
     }
 
@@ -102,9 +102,9 @@ public abstract class INode {
 
     public JSONObject getDetail(int index){
         JSONObject detail=new JSONObject();
-        detail.put("name",node.getProperties().getString("stepName"));
+        detail.put("name",lfNode.getProperties().getString("stepName"));
         detail.put("index",index);
-        detail.put("type",node.getType());
+        detail.put("type",lfNode.getType());
         detail.put("runTime",context.get("runTime"));
         detail.put("status",status);
         detail.put("err_message",errMessage);
@@ -181,7 +181,7 @@ public abstract class INode {
                 ", status=" + status +
                 ", errMessage='" + errMessage + '\'' +
                 ", type='" + type + '\'' +
-                ", node=" + node +
+                ", lfNode=" + lfNode +
                 ", nodeParams=" + nodeParams +
                 ", workflowParams=" + workflowParams +
                 ", context=" + context +

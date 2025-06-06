@@ -241,9 +241,9 @@ public class WorkflowManage {
     public List<INode> getNextNodeList(INode currentNode, NodeResult currentNodeResult) {
         List<INode> nodeList = new ArrayList<>();
         // 判断是否中断执行
-        /*if (currentNodeResult != null && currentNodeResult.isInterruptExec(currentNode)) {
+        if (currentNodeResult != null && currentNodeResult.isInterruptExec(currentNode)) {
             return nodeList;
-        }*/
+        }
         if (currentNodeResult != null && currentNodeResult.isAssertionResult()) {
             // 处理断言结果分支
             for (LfEdge edge : flow.getEdges()) {
@@ -295,7 +295,7 @@ public class WorkflowManage {
         if (currentNode.getLastNodeIdList() != null) {
             newUpNodeIds.addAll(currentNode.getLastNodeIdList());
         }
-        newUpNodeIds.add(currentNode.getNode().getId());
+        newUpNodeIds.add(currentNode.getLfNode().getId());
         // 获取节点实例并添加到列表
         INode nextNode = getNodeClsById(targetNodeId, newUpNodeIds);
         if (nextNode != null) {
@@ -329,17 +329,11 @@ public class WorkflowManage {
         }
         try {
             // 获取stream参数并处理默认值
-            boolean isStream = params.getStream();
+            //boolean isStream = params.getStream();
             // 根据流模式选择处理方法
-            NodeResult result;
-            if (isStream) {
-                result = handEventNodeResult(currentNode, nodeResultFuture);
-            } else {
-                result = handleNodeResult(currentNode, nodeResultFuture);
-            }
-            return result;
+            return handEventNodeResult(currentNode, nodeResultFuture);
         } catch (Exception e) {
-            log.error(e.getMessage());
+            log.error("runChain error: {}",e.getMessage());
         }
         return null;
     }
@@ -363,7 +357,7 @@ public class WorkflowManage {
                 }
             }
         } catch (Exception e) {
-            log.error("异常={}", e.getMessage());
+            log.error("node error ={}", e.getMessage());
             ChatMessageVO errorChunk=new ChatMessageVO(getParams().getChatId(),getParams().getChatRecordId(),e.getMessage(),currentNode.runtimeNodeId,currentNode.getType(),view_type,true,false);
             currentNode.getNodeChunk().addChunk(errorChunk);
             currentNode.getWriteErrorContext(e);
@@ -372,11 +366,6 @@ public class WorkflowManage {
             currentNode.getNodeChunk().end(null);
         }
         return currentResult;
-    }
-
-    public NodeResult handleNodeResult(INode currentNode, NodeResultFuture nodeResultFuture) {
-        //todo
-        return null;
     }
 
 
