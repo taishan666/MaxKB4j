@@ -81,7 +81,7 @@ public class ModelService extends ServiceImpl<ModelMapper, ModelEntity> {
     }
 
     public <T> T getModelById(String modelId,JSONObject modelParams) {
-        ModelEntity model = getModelById(modelId);
+        ModelEntity model = modelBaseService.getModelInfoById(modelId);
         return ModelManage.build(model,modelParams);
     }
 

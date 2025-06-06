@@ -62,7 +62,7 @@ public class BaseApplicationNode extends INode {
     @Override
     public JSONObject getDetail() {
         JSONObject detail = new JSONObject();
-        detail.put("info", node.getProperties().getString("nodeData"));
+        detail.put("info", lfNode.getProperties().getString("nodeData"));
         detail.put("question", context.get("question"));
         detail.put("answer", context.get("answer"));
         detail.put("messageTokens", context.get("messageTokens"));
@@ -70,7 +70,7 @@ public class BaseApplicationNode extends INode {
         detail.put("image_list", context.get("image"));
         detail.put("document_list", context.get("document"));
         detail.put("audio_list", context.get("audio"));
-        detail.put("global_fields", node.getProperties().get("globalFields"));
+        detail.put("global_fields", lfNode.getProperties().get("globalFields"));
         detail.put("application_node_dict", context.get("application_node_dict"));
         return  detail;
     }

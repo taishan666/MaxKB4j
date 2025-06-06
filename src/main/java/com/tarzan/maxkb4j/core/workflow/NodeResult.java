@@ -5,6 +5,9 @@ import lombok.Data;
 import java.util.Map;
 import java.util.stream.Stream;
 
+import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.FORM;
+import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.USER_SELECT;
+
 @Data
 public class NodeResult {
     private Map<String, Object> nodeVariable;
@@ -36,7 +39,7 @@ public class NodeResult {
     }
 
     public boolean defaultIsInterrupt(INode node) {
-        return ("user-select-node".equals(node.getType())||"form-node".equals(node.getType())) && !(boolean)node.getContext().get("is_submit");
+        return (USER_SELECT.getKey().equals(node.getType())|| FORM.getKey().equals(node.getType())) && !(boolean)node.getContext().get("is_submit");
     }
 
     public Stream<String> defaultWriteContextFunc(Map<String, Object> stepVariable, Map<String, Object> globalVariable, INode node, WorkflowManage workflow) {

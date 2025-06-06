@@ -146,7 +146,7 @@ public class EmbeddingService extends ServiceImpl<EmbeddingMapper, EmbeddingEnti
         return embedProblemParagraphs(paragraphEntities, problemParagraphVOS,embeddingModel);
     }
 
-    @Transactional
+   /* @Transactional
     public void createProblems(EmbeddingModel embeddingModel,List<ProblemEntity> problems,String docId,String paragraphId) {
         if (!CollectionUtils.isEmpty(problems)) {
             List<EmbeddingEntity> embeddingEntities = new ArrayList<>();
@@ -167,7 +167,7 @@ public class EmbeddingService extends ServiceImpl<EmbeddingMapper, EmbeddingEnti
             this.saveBatch(embeddingEntities);
         }
     }
-
+*/
     private static List<String> filterPunctuation(List<String> words) {
         var filteredWords = new String[]{"", ",", ".", "。", "=", "，", "、", "：", "；", "（", "）"};
         List<String> result = new ArrayList<>();
@@ -185,7 +185,7 @@ public class EmbeddingService extends ServiceImpl<EmbeddingMapper, EmbeddingEnti
         return result;
     }
 
-    public List<HitTestVO> embeddingSearch(List<String> datasetIds,int maxResults, double minScore,float[]  referenceEmbedding ){
+    public List<HitTestVO> embeddingSearch(List<String> datasetIds,int maxResults, double minScore,float[]  referenceEmbedding){
         return baseMapper.embeddingSearch(datasetIds,maxResults,minScore,referenceEmbedding);
     }
 }

@@ -42,6 +42,7 @@ public class ModelBaseService extends ServiceImpl<ModelMapper, ModelEntity> {
     }
 
 
+
     public Boolean createModel(ModelEntity model) {
         String userId = StpUtil.getLoginIdAsString();
         long count=this.lambdaQuery().eq(ModelEntity::getName, model.getName()).eq(ModelEntity::getUserId, userId).count();

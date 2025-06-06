@@ -79,7 +79,7 @@ public class BaseStartNode extends INode {
         detail.put("image_list",context.get("image"));
         detail.put("document_list",context.get("document"));
         detail.put("audio_list",context.get("audio"));
-        JSONObject config=node.getProperties().getJSONObject("config");
+        JSONObject config=lfNode.getProperties().getJSONObject("config");
         JSONArray globalFields=config.getJSONArray("globalFields");
         for (int i = 0; i < globalFields.size(); i++) {
             JSONObject globalField=globalFields.getJSONObject(i);
