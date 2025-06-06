@@ -23,7 +23,8 @@ MaxKB4j = Max Knowledge Base for Java，是一款基于Java语言开发的LLM工
 java -jar maxkb4j-1.0.0.jar
 ```
 
-
+- 访问地址 http://localhost:8080/ui/login
+- 用户/密码 admin/maxkb4j.
 
 ## 案例展示
 
