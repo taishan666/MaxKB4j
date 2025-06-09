@@ -87,7 +87,7 @@ public class UserService extends ServiceImpl<UserMapper, UserEntity> {
     public String login(UserLoginDTO dto, HttpServletRequest request) {
         HttpSession session = request.getSession();
         String sessionCaptcha = (String) session.getAttribute("captcha");
-        if (!sessionCaptcha.equals(dto.getCaptcha())){
+        if (Objects.nonNull(dto.getCaptcha())&&!sessionCaptcha.equals(dto.getCaptcha())){
             throw new ApiException("验证码错误");
         }
         String password = SaSecureUtil.md5(dto.getPassword());
