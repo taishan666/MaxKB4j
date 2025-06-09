@@ -9,4 +9,5 @@ public class UserLoginDTO {
     private String username;
     @NonNull
     private String password;
+    private String captcha;
 }

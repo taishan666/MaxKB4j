@@ -28,6 +28,8 @@ import com.tarzan.maxkb4j.module.system.user.mapper.UserMapper;
 import com.tarzan.maxkb4j.module.system.user.vo.UserVO;
 import com.tarzan.maxkb4j.util.BeanUtil;
 import jakarta.mail.MessagingException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -48,7 +50,6 @@ public class UserService extends ServiceImpl<UserMapper, UserEntity> {
     private final TeamService teamService;
     private final EmailService emailService;
     private final StpInterface stpInterface;
-
     // 创建缓存并配置
     private static final Cache<String, String> AUTH_CODE_CACHE = Caffeine.newBuilder()
             .initialCapacity(5)
@@ -83,7 +84,12 @@ public class UserService extends ServiceImpl<UserMapper, UserEntity> {
         return list;
     }
 
-    public String login(UserLoginDTO dto) {
+    public String login(UserLoginDTO dto, HttpServletRequest request) {
+        HttpSession session = request.getSession();
+        String sessionCaptcha = (String) session.getAttribute("captcha");
+        if (!sessionCaptcha.equals(dto.getCaptcha())){
+            throw new ApiException("验证码错误");
+        }
         String password = SaSecureUtil.md5(dto.getPassword());
         UserEntity userEntity = this.lambdaQuery()
                 .eq(UserEntity::getUsername, dto.getUsername())

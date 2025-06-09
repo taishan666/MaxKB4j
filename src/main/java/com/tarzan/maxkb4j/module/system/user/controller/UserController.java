@@ -15,11 +15,12 @@ import com.tarzan.maxkb4j.module.system.user.vo.UserVO;
 import com.tarzan.maxkb4j.util.StringUtil;
 import com.wf.captcha.SpecCaptcha;
 import jakarta.mail.MessagingException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.UUID;
 
 /**
  * @author tarzan
@@ -48,17 +49,20 @@ public class UserController{
 	}
 
 	@PostMapping("api/user/login")
-	public R<String> login(@RequestBody UserLoginDTO dto){
-		return R.data(userService.login(dto));
+	public R<String> login(@RequestBody UserLoginDTO dto,HttpServletRequest request){
+		return R.data(userService.login(dto,request));
 	}
 
 	@GetMapping("api/user/captcha")
-	public R<String> captcha(){
+	public R<String> captcha(HttpServletRequest request){
 		SpecCaptcha specCaptcha = new SpecCaptcha(130, 48, 4);
 		String verCode = specCaptcha.text().toLowerCase();
-		String key = UUID.randomUUID().toString();
+		//String key = UUID.randomUUID().toString();
 		// 存入redis并设置过期时间为1分钟
 		//bladeRedis.setEx(CacheNames.CAPTCHA_KEY + key, verCode, Duration.ofMinutes(3));
+		// 5. 将验证码存入 session
+		HttpSession session = request.getSession();
+		session.setAttribute("captcha", verCode);
 		// 将key和base64返回给前端
 		return R.data(specCaptcha.toBase64());
 	}
