@@ -281,41 +281,33 @@ public class BaseChatStep extends IChatStep {
         wrapper.eq(FunctionLibEntity::getIsActive,true);
         List<FunctionLibEntity> functionLib=functionLibService.list(wrapper);
         for (FunctionLibEntity function : functionLib) {
+            List<FunctionInputParams> params=function.getInputFieldList();
+            JsonObjectSchema.Builder parametersBuilder=JsonObjectSchema.builder();
+            for (FunctionInputParams param : params) {
+                JsonSchemaElement jsonSchemaElement=new JsonNullSchema();
+                if ("string".equals(param.getType())){
+                    jsonSchemaElement= JsonStringSchema.builder().build();
+                }else if ("int".equals(param.getType())){
+                    jsonSchemaElement= JsonIntegerSchema.builder().build();
+                }else if ("number".equals(param.getType())){
+                    jsonSchemaElement= JsonNumberSchema.builder().build();
+                }else if ("boolean".equals(param.getType())){
+                    jsonSchemaElement=  JsonBooleanSchema.builder().build();
+                }else if ("array".equals(param.getType())){
+                    jsonSchemaElement= JsonArraySchema.builder().build();
+                }else if ("object".equals(param.getType())){
+                    jsonSchemaElement= JsonObjectSchema.builder().build();
+                }
+                parametersBuilder.addProperty(param.getName(),jsonSchemaElement);
+            }
+            ToolSpecification toolSpecification = ToolSpecification.builder()
+                    .name(function.getName())
+                    .description(function.getDesc())
+                    .parameters(parametersBuilder.build())
+                    .build();
             if (function.getType()==0){
-                ToolSpecification toolSpecification = ToolSpecification.builder()
-                        .name(function.getName())
-                        .description(function.getDesc())
-                        .parameters(JsonObjectSchema.builder().build())
-                        .build();
                 tools.put(toolSpecification, new DefaultToolExecutor(objectWithTool, ToolExecutionRequest.builder().name(function.getName()).build()));
             }else if (function.getType()==1){
-                List<FunctionInputParams> params=function.getInputFieldList();
-                JsonObjectSchema.Builder parametersBuilder=JsonObjectSchema.builder();
-                for (FunctionInputParams param : params) {
-                    JsonSchemaElement jsonSchemaElement=new JsonNullSchema();
-                    if ("string".equals(param.getType())){
-                        jsonSchemaElement= JsonStringSchema.builder().build();
-                    }else if ("int".equals(param.getType())){
-                        jsonSchemaElement= JsonIntegerSchema.builder().build();
-                    }else if ("number".equals(param.getType())){
-                        jsonSchemaElement= JsonNumberSchema.builder().build();
-                    }else if ("boolean".equals(param.getType())){
-                        jsonSchemaElement=  JsonBooleanSchema.builder().build();
-                    }else if ("array".equals(param.getType())){
-                        jsonSchemaElement= JsonArraySchema.builder().build();
-                    }else if ("object".equals(param.getType())){
-                        jsonSchemaElement= JsonObjectSchema.builder().build();
-                    }
-                    parametersBuilder.addProperty(param.getName(),jsonSchemaElement);
-                }
-                ToolSpecification toolSpecification = ToolSpecification.builder()
-                        .name(function.getName())
-                        .description(function.getDesc())
-                        .parameters(parametersBuilder.build())
-                        .build();
-               /* ToolExecutor toolExecutor = (toolExecutionRequest, memoryId) -> {
-                    return "2025-06-04";
-                };*/
                 tools.put(toolSpecification, new GroovyScriptExecutor(function.getCode()));
             }
 

@@ -1,3 +1,4 @@
+/*
 package com.tarzan.maxkb4j.core.handler.type;
 
 import com.alibaba.fastjson.JSONObject;
@@ -145,3 +146,4 @@ public class JOSNBListTypeHandler extends BaseTypeHandler<List<Object>> {
     }
 
 }
+*/
