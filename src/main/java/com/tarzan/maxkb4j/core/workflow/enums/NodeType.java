@@ -15,7 +15,7 @@ public enum NodeType {
 
     USER_SELECT("user-select-node", "用户选择节点"),
 
-    ECHARTS("base-echarts-node", "基础图表节点"),
+    ECHARTS("echarts-node", "基础图表节点"),
 
     CLASSIFICATION("classification-node", "分类节点"),
 

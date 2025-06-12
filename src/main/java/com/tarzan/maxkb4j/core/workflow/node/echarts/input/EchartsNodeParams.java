@@ -6,10 +6,18 @@ import java.util.List;
 
 @Data
 public class EchartsNodeParams {
-    private String title;
-    private String subTitle;
-    private List<String> xAxis;
-    private List<Object> yAxis;
-    private String chartType;
+    private String titleType;
+    private String titleContent;
+    private List<String> titleReference;
+    private String xAxisType;
+    private String xAxisContent;
+    private List<String> xAxisReference;
+    private String yAxisType;
+    private String yAxisContent;
+    private List<String> yAxisReference;
+    private String chartTypeType;
+    private String chartTypeContent;
+    private List<String> chartTypeReference;
+    private Boolean isResult;
 
 }
