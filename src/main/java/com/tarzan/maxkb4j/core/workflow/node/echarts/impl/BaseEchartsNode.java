@@ -6,6 +6,7 @@ import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.NodeResult;
 import com.tarzan.maxkb4j.core.workflow.node.echarts.input.EchartsNodeParams;
 
+import java.util.List;
 import java.util.Map;
 
 import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.ECHARTS;
@@ -17,12 +18,14 @@ public class BaseEchartsNode extends INode {
     public NodeResult execute() {
         System.out.println(ECHARTS);
         EchartsNodeParams nodeParams = super.nodeParams.toJavaObject(EchartsNodeParams.class);
-        System.out.println(nodeParams);
-        // 构建 style 对象
-        String[] xAxisData = new String[]{"一月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "十一月", "十二月"};
-        Object[] yAxisData = new Object[]{120, 132, 101, 134, 90, 230, 210, 182, 191, 234, 290, 330};
+        Object title = getFieldValue(nodeParams.getTitleType(), nodeParams.getTitle(), nodeParams.getTitleReference());
+        String xAxisStr = (String) getFieldValue(nodeParams.getXAxisType(), nodeParams.getXAxis(), nodeParams.getXAxisReference());
+        String yAxisStr = (String) getFieldValue(nodeParams.getYAxisType(), nodeParams.getYAxis(), nodeParams.getYAxisReference());
         //line-bar-pie
-        JSONObject formSetting=getEcharts("line",  "年度销售额趋势", xAxisData, yAxisData);
+        String chartType = (String) getFieldValue(nodeParams.getChartTypeType(), nodeParams.getChartType(), nodeParams.getChartTypeReference());
+        JSONArray xAxis = JSONArray.parseArray(xAxisStr);
+        JSONArray yAxis = JSONArray.parseArray(yAxisStr);
+        JSONObject formSetting = getEcharts(chartType, title, xAxis, yAxis);
         String formRender = "<echarts_render>" + formSetting.toJSONString() + "</echarts_render>";
         return new NodeResult(Map.of("result", formRender, "answer", formRender,
                 "form_field_list", "",
@@ -30,7 +33,16 @@ public class BaseEchartsNode extends INode {
 
     }
 
-    private JSONObject getEcharts(String chartType, String chartTitle, String[] xAxisData,  Object[] yAxisData){
+    private Object getFieldValue(String fieldType, Object value, List<String> reference) {
+        if ("referencing".equals(fieldType)) {
+            return this.workflowManage.getReferenceField(reference.get(0), reference.subList(1, reference.size()));
+        } else {
+            return value;
+        }
+
+    }
+
+    private JSONObject getEcharts(String chartType, Object chartTitle, JSONArray xAxisData, JSONArray yAxisData) {
         JSONObject style = new JSONObject();
         style.put("height", "400px");
         style.put("width", "100%");
@@ -73,18 +85,18 @@ public class BaseEchartsNode extends INode {
         option.put("title", title);
 
         // option.put("legend", legend);
-        if (!"pie".equals(chartType)){
+        if (!"pie".equals(chartType)) {
             option.put("xAxis", xAxis);
             option.put("yAxis", yAxis);
             tooltip.put("trigger", "axis");
             series.put("data", yAxisData);
             series.put("markPoint", onlineMarkPoint);
-        }else {
-            JSONArray  seriesData = new JSONArray();
-            for (int i = 0; i < xAxisData.length; i++) {
-                String xAxisDatum = xAxisData[i];
+        } else {
+            JSONArray seriesData = new JSONArray();
+            for (int i = 0; i < xAxisData.size(); i++) {
+                String xAxisDatum = xAxisData.getString(i);
                 JSONObject data = new JSONObject();
-                data.put("value", yAxisData[i]);
+                data.put("value", yAxisData.get(i));
                 data.put("name", xAxisDatum);
                 seriesData.add(data);
             }
@@ -101,7 +113,6 @@ public class BaseEchartsNode extends INode {
         formSetting.put("option", option);
         return formSetting;
     }
-
 
 
     @Override
