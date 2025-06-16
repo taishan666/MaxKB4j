@@ -18,7 +18,7 @@ import com.tarzan.maxkb4j.module.application.vo.ChatMessageVO;
 import com.tarzan.maxkb4j.module.assistant.Assistant;
 import com.tarzan.maxkb4j.module.assistant.SystemTools;
 import com.tarzan.maxkb4j.module.dataset.vo.ParagraphVO;
-import com.tarzan.maxkb4j.module.functionlib.dto.FunctionInputParams;
+import com.tarzan.maxkb4j.module.functionlib.dto.FunctionInputField;
 import com.tarzan.maxkb4j.module.functionlib.entity.FunctionLibEntity;
 import com.tarzan.maxkb4j.module.functionlib.service.FunctionLibService;
 import com.tarzan.maxkb4j.module.mcplib.entity.McpLibEntity;
@@ -281,9 +281,9 @@ public class BaseChatStep extends IChatStep {
         wrapper.eq(FunctionLibEntity::getIsActive,true);
         List<FunctionLibEntity> functionLib=functionLibService.list(wrapper);
         for (FunctionLibEntity function : functionLib) {
-            List<FunctionInputParams> params=function.getInputFieldList();
+            List<FunctionInputField> params=function.getInputFieldList();
             JsonObjectSchema.Builder parametersBuilder=JsonObjectSchema.builder();
-            for (FunctionInputParams param : params) {
+            for (FunctionInputField param : params) {
                 JsonSchemaElement jsonSchemaElement=new JsonNullSchema();
                 if ("string".equals(param.getType())){
                     jsonSchemaElement= JsonStringSchema.builder().build();

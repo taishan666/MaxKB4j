@@ -27,9 +27,7 @@ public class BaseEchartsNode extends INode {
         JSONArray yAxis = JSONArray.parseArray(yAxisStr);
         JSONObject formSetting = getEcharts(chartType, title, xAxis, yAxis);
         String formRender = "<echarts_render>" + formSetting.toJSONString() + "</echarts_render>";
-        return new NodeResult(Map.of("result", formRender, "answer", formRender,
-                "form_field_list", "",
-                "form_content_format", ""), Map.of());
+        return new NodeResult(Map.of("result", formRender, "answer", formRender), Map.of());
 
     }
 
@@ -119,8 +117,6 @@ public class BaseEchartsNode extends INode {
     public JSONObject getDetail() {
         JSONObject detail = new JSONObject();
         detail.put("answer", context.get("answer"));
-        detail.put("branch_id", context.get("branch_id"));
-        detail.put("branch_name", context.get("branch_name"));
         return detail;
     }
 }

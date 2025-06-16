@@ -3,7 +3,7 @@ package com.tarzan.maxkb4j.core.handler.type;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.serializer.SerializerFeature;
-import com.tarzan.maxkb4j.module.functionlib.dto.FunctionInputParams;
+import com.tarzan.maxkb4j.module.functionlib.dto.FunctionInputField;
 import org.apache.ibatis.type.BaseTypeHandler;
 import org.apache.ibatis.type.JdbcType;
 import org.postgresql.util.PGobject;
@@ -16,10 +16,10 @@ import java.sql.SQLException;
 import java.util.List;
 
 @Component
-public class FunctionInputParamsTypeHandler extends BaseTypeHandler<List<FunctionInputParams>> {
+public class FunctionInputParamsTypeHandler extends BaseTypeHandler<List<FunctionInputField>> {
 
     @Override
-    public void setNonNullParameter(PreparedStatement ps, int i, List<FunctionInputParams> parameter, JdbcType jdbcType) throws SQLException {
+    public void setNonNullParameter(PreparedStatement ps, int i, List<FunctionInputField> parameter, JdbcType jdbcType) throws SQLException {
         if(null != parameter){
             PGobject pGobject = new PGobject();
             pGobject.setType("jsonb");
@@ -29,26 +29,26 @@ public class FunctionInputParamsTypeHandler extends BaseTypeHandler<List<Functio
     }
 
     @Override
-    public List<FunctionInputParams> getNullableResult(ResultSet rs, String columnName) throws SQLException {
+    public List<FunctionInputField> getNullableResult(ResultSet rs, String columnName) throws SQLException {
         String value = rs.getString(columnName);
         return convert(value);
     }
 
     @Override
-    public List<FunctionInputParams> getNullableResult(ResultSet rs, int columnIndex) throws SQLException {
+    public List<FunctionInputField> getNullableResult(ResultSet rs, int columnIndex) throws SQLException {
         String value = rs.getString(columnIndex);
         return convert(value);
     }
 
     @Override
-    public List<FunctionInputParams> getNullableResult(CallableStatement cs, int columnIndex) throws SQLException {
+    public List<FunctionInputField> getNullableResult(CallableStatement cs, int columnIndex) throws SQLException {
         String value = cs.getString(columnIndex);
         return convert(value);
     }
 
-    private List<FunctionInputParams> convert(String value){
+    private List<FunctionInputField> convert(String value){
         if(notNull(value)){
-            return  JSONArray.parseArray(value, FunctionInputParams.class);
+            return  JSONArray.parseArray(value, FunctionInputField.class);
         }
         return null;
     }
@@ -57,7 +57,7 @@ public class FunctionInputParamsTypeHandler extends BaseTypeHandler<List<Functio
         return (null != value && !value.isEmpty());
     }
 
-    public String toJson(List<FunctionInputParams> obj) {
+    public String toJson(List<FunctionInputField> obj) {
         return JSON.toJSONString(obj, SerializerFeature.WriteMapNullValue,
                 SerializerFeature.WriteNullListAsEmpty, SerializerFeature.WriteNullStringAsEmpty);
     }
