@@ -43,7 +43,7 @@ todo
   </tr>
   <tr>
     <td style="padding: 5px;background-color:#fff;"><img src= "image/function.png" alt="MaxKB4j function"   /></td>
-    <td style="padding: 5px;background-color:#fff;"><img src= "image/dataset_setting.png" alt="MaxKB4j dataset_setting"   /></td>
+    <td style="padding: 5px;background-color:#fff;"><img src= "image/mcp.png" alt="MaxKB4j dataset_setting"   /></td>
   </tr>
  <tr>
     <td style="padding: 5px;background-color:#fff;"><img src= "image/app_overview.png" alt="MaxKB4j app_overview"   /></td>
