@@ -61,9 +61,9 @@ public class BaseStartNode extends INode {
         // 构建返回的map
         Map<String, Object> resultMap = new HashMap<>();
         resultMap.put("time", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
-        resultMap.put("start_time", System.currentTimeMillis());
+        //resultMap.put("start_time", System.currentTimeMillis());
         resultMap.put("history_context", historyContext);
-        resultMap.put("chat_id", chatId);
+        resultMap.put("chatId", chatId);
         // 合并node.workflow_manage.form_data
         if (workflowManage != null && workflowManage.getFormData() != null) {
             resultMap.putAll(workflowManage.getFormData());
