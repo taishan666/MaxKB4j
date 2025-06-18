@@ -6,7 +6,6 @@ import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.NodeResult;
 import com.tarzan.maxkb4j.core.workflow.node.userselect.input.UserSelectBranch;
 import com.tarzan.maxkb4j.core.workflow.node.userselect.input.UserSelectNodeParams;
-import dev.langchain4j.model.input.PromptTemplate;
 
 import java.util.HashMap;
 import java.util.List;
@@ -48,10 +47,7 @@ public class UserSelectNode extends INode {
             formSetting.put("runtimeNodeId", super.getRuntimeNodeId());
             formSetting.put("chatRecordId", super.getWorkflowParams().getChatRecordId());
             formSetting.put("is_submit", context.getOrDefault("is_submit", false));
-            String form = "<form_render>" + formSetting + "</form_render>";
-            String formContentFormat = "{{form}} \n 填写后请点击【提交】按钮进行提交。";
-            PromptTemplate promptTemplate = PromptTemplate.from(formContentFormat);
-            String formRender = promptTemplate.apply(Map.of("form", form)).text();
+            String formRender = "<card_selection_render>" + formSetting + "</card_selection_render>";
             return new NodeResult(Map.of("result", formRender, "answer", formRender,
                     "form_field_list", "",
                     "form_content_format", ""), Map.of());

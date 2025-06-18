@@ -31,7 +31,7 @@ services:
       - ./mongo/configdb:/data/configdb
   maxKB4j:
     container_name: MaxKB4j
-    image: tarzan/MaxKB4j:v1.0
+    image: tarzan/maxkb4j:v1.0
     ports:
       - "12000:12000"
     networks:
