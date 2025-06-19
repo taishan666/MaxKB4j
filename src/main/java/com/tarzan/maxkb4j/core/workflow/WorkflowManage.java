@@ -620,6 +620,14 @@ public class WorkflowManage {
         );
     }
 
+    public Object getFieldValue(String fieldType, Object value, List<String> reference) {
+        if ("referencing".equals(fieldType)) {
+            return getReferenceField(reference.get(0), reference.subList(1, reference.size()));
+        } else {
+            return value;
+        }
+    }
+
     public Object getReferenceField(String nodeId, List<String> fields) {
         if ("global".equals(nodeId)) {
             return INode.getField(this.context, fields.get(0));

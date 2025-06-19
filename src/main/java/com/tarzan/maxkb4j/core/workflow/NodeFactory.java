@@ -7,6 +7,7 @@ import com.tarzan.maxkb4j.core.workflow.node.aichat.impl.BaseChatNode;
 import com.tarzan.maxkb4j.core.workflow.node.application.impl.BaseApplicationNode;
 import com.tarzan.maxkb4j.core.workflow.node.classification.impl.BaseClassificationNode;
 import com.tarzan.maxkb4j.core.workflow.node.condition.impl.BaseConditionNode;
+import com.tarzan.maxkb4j.core.workflow.node.database.impl.DatabaseNode;
 import com.tarzan.maxkb4j.core.workflow.node.directreply.impl.BaseReplyNode;
 import com.tarzan.maxkb4j.core.workflow.node.documentextract.impl.BaseDocumentExtractNode;
 import com.tarzan.maxkb4j.core.workflow.node.echarts.impl.BaseEchartsNode;
@@ -58,6 +59,7 @@ public class NodeFactory {
             case FORM -> new FormNode();
             case MCP -> new BaseMcpNode();
             case ECHARTS -> new BaseEchartsNode();
+            case DATABASE -> new DatabaseNode();
             default -> null;
         };
 

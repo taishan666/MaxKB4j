@@ -6,7 +6,6 @@ import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.NodeResult;
 import com.tarzan.maxkb4j.core.workflow.node.echarts.input.EchartsNodeParams;
 
-import java.util.List;
 import java.util.Map;
 
 import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.ECHARTS;
@@ -18,11 +17,11 @@ public class BaseEchartsNode extends INode {
     public NodeResult execute() {
         System.out.println(ECHARTS);
         EchartsNodeParams nodeParams = super.nodeParams.toJavaObject(EchartsNodeParams.class);
-        Object title = getFieldValue(nodeParams.getTitleType(), nodeParams.getTitle(), nodeParams.getTitleReference());
-        String xAxisStr = (String) getFieldValue(nodeParams.getXAxisType(), nodeParams.getXAxis(), nodeParams.getXAxisReference());
-        String yAxisStr = (String) getFieldValue(nodeParams.getYAxisType(), nodeParams.getYAxis(), nodeParams.getYAxisReference());
+        Object title = this.workflowManage.getFieldValue(nodeParams.getTitleType(), nodeParams.getTitle(), nodeParams.getTitleReference());
+        String xAxisStr = (String) this.workflowManage.getFieldValue(nodeParams.getXAxisType(), nodeParams.getXAxis(), nodeParams.getXAxisReference());
+        String yAxisStr = (String) this.workflowManage.getFieldValue(nodeParams.getYAxisType(), nodeParams.getYAxis(), nodeParams.getYAxisReference());
         //line-bar-pie
-        String chartType = (String) getFieldValue(nodeParams.getChartTypeType(), nodeParams.getChartType(), nodeParams.getChartTypeReference());
+        String chartType = (String) this.workflowManage.getFieldValue(nodeParams.getChartTypeType(), nodeParams.getChartType(), nodeParams.getChartTypeReference());
         JSONArray xAxis = JSONArray.parseArray(xAxisStr);
         JSONArray yAxis = JSONArray.parseArray(yAxisStr);
         JSONObject formSetting = getEcharts(chartType, title, xAxis, yAxis);
@@ -31,14 +30,6 @@ public class BaseEchartsNode extends INode {
 
     }
 
-    private Object getFieldValue(String fieldType, Object value, List<String> reference) {
-        if ("referencing".equals(fieldType)) {
-            return this.workflowManage.getReferenceField(reference.get(0), reference.subList(1, reference.size()));
-        } else {
-            return value;
-        }
-
-    }
 
     private JSONObject getEcharts(String chartType, Object chartTitle, JSONArray xAxisData, JSONArray yAxisData) {
         JSONObject style = new JSONObject();

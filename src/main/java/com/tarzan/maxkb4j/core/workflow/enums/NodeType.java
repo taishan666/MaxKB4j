@@ -17,6 +17,8 @@ public enum NodeType {
 
     ECHARTS("echarts-node", "基础图表节点"),
 
+    DATABASE("database-node", "数据库节点"),
+
     CLASSIFICATION("classification-node", "分类节点"),
 
     QUESTION("question-node", "问题节点"),

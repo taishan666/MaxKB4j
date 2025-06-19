@@ -208,6 +208,7 @@
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
+            <version>42.7.7</version>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
@@ -221,7 +222,11 @@
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-web-search-engine-searchapi</artifactId>
-<!--            <version>1.0.0-beta4</version>-->
+            <version>${langchain4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-experimental-sql</artifactId>
             <version>${langchain4j.version}</version>
         </dependency>
         <dependency>
