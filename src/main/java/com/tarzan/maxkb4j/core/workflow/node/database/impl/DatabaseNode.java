@@ -71,7 +71,7 @@ public class DatabaseNode extends INode {
     @Override
     public JSONObject getDetail() {
         JSONObject detail = new JSONObject();
-        detail.put("answer",context.get("answer"));
+        detail.put("result",context.get("answer"));
         return detail;
     }
 }
