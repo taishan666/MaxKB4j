@@ -46,7 +46,7 @@ public class BaseImageUnderstandNode extends INode {
         BaseChatModel chatModel = modelService.getModelById(nodeParams.getModelId(), nodeParams.getModelParamsSetting());
         String question =  workflowManage.generatePrompt(nodeParams.getPrompt());
         String system =workflowManage.generatePrompt(nodeParams.getSystem());
-        List<ChatMessage> historyMessage = workflowManage.getHistoryMessage(super.workflowParams.getHistoryChatRecord(), nodeParams.getDialogueNumber(), nodeParams.getDialogueType(), super.runtimeNodeId);
+        List<ChatMessage> historyMessage = workflowManage.getHistoryMessage(super.flowParams.getHistoryChatRecord(), nodeParams.getDialogueNumber(), nodeParams.getDialogueType(), super.runtimeNodeId);
         List<Content> contents=new ArrayList<>();
         contents.add(TextContent.from(question));
         for (ChatFile file : ImageFiles) {

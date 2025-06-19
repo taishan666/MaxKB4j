@@ -11,9 +11,8 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tarzan.maxkb4j.core.exception.ApiException;
 import com.tarzan.maxkb4j.core.workflow.WorkflowManage;
 import com.tarzan.maxkb4j.core.workflow.dto.ChatFile;
-import com.tarzan.maxkb4j.core.workflow.handler.WorkFlowPostHandler;
 import com.tarzan.maxkb4j.core.workflow.logic.LogicFlow;
-import com.tarzan.maxkb4j.core.workflow.node.start.input.FlowParams;
+import com.tarzan.maxkb4j.core.workflow.dto.FlowParams;
 import com.tarzan.maxkb4j.module.application.cache.ChatCache;
 import com.tarzan.maxkb4j.module.application.ragpipeline.PipelineManage;
 import com.tarzan.maxkb4j.module.application.handler.PostResponseHandler;
@@ -226,7 +225,6 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
             }
             pipelineManageBuilder.addStep(searchDatasetStep);
         }
-        //pipelineManageBuilder.addStep(searchDatasetStep);
         pipelineManageBuilder.addStep(baseChatStep);
         PipelineManage pipelineManage = pipelineManageBuilder.build();
 
@@ -253,7 +251,7 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
         flowParams.setHistoryChatRecord(chatInfo.getChatRecordList());
         WorkflowManage workflowManage = new WorkflowManage(LogicFlow.newInstance(chatInfo.getWorkFlowVersion().getWorkFlow()),
                 flowParams,
-                new WorkFlowPostHandler(chatInfo, dto.getClientId(), dto.getClientType()),
+                postResponseHandler,
                 dto.getFormData(),
                 dto.getImageList(),
                 dto.getDocumentList(),
@@ -265,7 +263,7 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
         return workflowManage.run();
     }
 
-    public void isValidIntraDayAccessNum(String appId, String clientId, String clientType) throws Exception {
+    public void isValidIntraDayAccessNum(String appId, String clientId, String clientType) {
         if (AuthType.ACCESS_TOKEN.name().equals(clientType)) {
             if(Objects.nonNull(appId)){
                 ApplicationPublicAccessClientEntity accessClient = publicAccessClientService.getById(clientId);
@@ -285,7 +283,7 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
         }
     }
 
-    public void isValidApplication(ChatInfo chatInfo, String clientId, String clientType) throws Exception {
+    public void isValidApplication(ChatInfo chatInfo, String clientId, String clientType) {
         if (chatInfo == null) {
             throw new ApiException("会话不存在");
         }

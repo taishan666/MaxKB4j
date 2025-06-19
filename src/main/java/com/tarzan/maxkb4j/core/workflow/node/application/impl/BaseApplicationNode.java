@@ -29,6 +29,7 @@ public class BaseApplicationNode extends INode {
 
     @Override
     public NodeResult execute() {
+        System.out.println(APPLICATION);
         ApplicationNodeParams nodeParams= super.nodeParams.toJavaObject(ApplicationNodeParams.class);
         WorkflowManage workflowManage=super.getWorkflowManage();
         String chatId=chatService.chatOpen(nodeParams.getApplicationId(),workflowManage.getContext().getString("chat_id"));

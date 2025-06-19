@@ -5,7 +5,6 @@ import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.tarzan.maxkb4j.module.application.cache.ChatCache;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationEntity;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationPublicAccessClientEntity;
 import com.tarzan.maxkb4j.module.application.entity.DatasetSetting;
@@ -98,7 +97,6 @@ public class BaseChatStep extends IChatStep {
                                                PipelineManage manage,
                                                PostResponseHandler postResponseHandler,
                                                boolean stream) {
-        long startTime = System.currentTimeMillis();
         String chatRecordId = IdWorker.get32UUID();
         Sinks.Many<ChatMessageVO> sink = Sinks.many().multicast().onBackpressureBuffer();
         if (CollectionUtils.isEmpty(paragraphList)) {
@@ -180,8 +178,8 @@ public class BaseChatStep extends IChatStep {
                         .build();
                 if (stream) {
                     if (StringUtil.isBlank(problemText)) {
-                        manage.context.put("messageTokens", messageTokens);
-                        manage.context.put("answerTokens", answerTokens);
+                        context.put("messageTokens", messageTokens);
+                        context.put("answerTokens", answerTokens);
                         sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, "用户消息不能为空", true));
                         sink.tryEmitComplete();
                     } else {
@@ -195,19 +193,19 @@ public class BaseChatStep extends IChatStep {
                                     TokenUsage tokenUsage = response.tokenUsage();
                                     int thisMessageTokens = tokenUsage.inputTokenCount();
                                     int thisAnswerTokens = tokenUsage.outputTokenCount();
-                                    manage.context.put("messageTokens", messageTokens + thisMessageTokens);
-                                    manage.context.put("answerTokens", answerTokens + thisAnswerTokens);
+                                    context.put("messageTokens", messageTokens + thisMessageTokens);
+                                    context.put("answerTokens", answerTokens + thisAnswerTokens);
                                     addAccessNum(clientId, clientType);
-                                    postResponseHandler.handler(ChatCache.get(chatId), chatId, chatRecordId, problemText, answerText, manage, clientId);
                                     sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, "", true,(messageTokens + thisMessageTokens),(answerTokens + thisAnswerTokens)));
                                     sink.tryEmitComplete();
+                                    long startTime = manage.context.getLong("start_time");
+                                    postResponseHandler.handler(chatId, chatRecordId, problemText, answerText, null,manage.getDetails(),startTime, clientId,clientType);
                                 })
                                 .onError(error -> {
                                     sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, "", true));
                                     sink.tryEmitComplete();
                                 })
                                 .start();
-                        log.info("AI回答 耗时：{} ms", System.currentTimeMillis() - startTime);
                     }
                 }
             }
@@ -246,14 +244,14 @@ public class BaseChatStep extends IChatStep {
 
     @Override
     public JSONObject getDetails() {
-        long startTime = super.context.getLong("start_time");
+        long startTime = context.getLong("start_time");
         JSONObject details = new JSONObject();
         details.put("step_type", "chat_step");
         details.put("runTime", (System.currentTimeMillis() - startTime) / 1000F);
-        details.put("modelId", super.context.get("modelId"));
-        details.put("message_list", resetMessageList(super.context.getJSONArray("message_list"), super.context.getString("answer_text")));
-        details.put("messageTokens", super.context.get("messageTokens"));
-        details.put("answerTokens", super.context.get("answerTokens"));
+        details.put("modelId", context.get("modelId"));
+        details.put("message_list", resetMessageList(context.getJSONArray("message_list"), context.getString("answer_text")));
+        details.put("messageTokens", context.get("messageTokens"));
+        details.put("answerTokens", context.get("answerTokens"));
         details.put("cost", 0);
         return details;
     }

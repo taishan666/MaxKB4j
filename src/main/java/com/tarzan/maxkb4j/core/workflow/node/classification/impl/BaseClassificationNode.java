@@ -46,11 +46,13 @@ public class BaseClassificationNode extends INode {
             questionMap.put(branch.getId(), branch.getCondition());
         }
         MyQueryClassifier queryClassifier = new MyQueryClassifier(chatModel.getChatModel(),questionMap);
+        String chatId = workflowManage.getContext().getString("chatId");
         ChatMemory chatMemory = MyChatMemory.builder()
-                .id(workflowManage.getContext().getString("chat_id"))
+                .id(chatId)
                 .maxMessages(nodeParams.getDialogueNumber())
                 .chatMemoryStore(chatMemoryStore)
                 .build();
+        System.out.println(chatMemory.id()+"  "+chatMemory.messages().size());
         Metadata metadata=new Metadata(UserMessage.from(question), chatMemory.id(), chatMemory.messages());
         Query query=new Query(question,metadata);
         Collection<String> route = queryClassifier.route(query);

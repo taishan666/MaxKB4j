@@ -21,7 +21,7 @@ import com.tarzan.maxkb4j.core.workflow.node.reranker.impl.RerankerNode;
 import com.tarzan.maxkb4j.core.workflow.node.searchdataset.impl.BaseSearchDatasetNode;
 import com.tarzan.maxkb4j.core.workflow.node.speechtotext.impl.BaseSpeechToTextNode;
 import com.tarzan.maxkb4j.core.workflow.node.start.impl.BaseStartNode;
-import com.tarzan.maxkb4j.core.workflow.node.start.input.FlowParams;
+import com.tarzan.maxkb4j.core.workflow.dto.FlowParams;
 import com.tarzan.maxkb4j.core.workflow.node.texttospeech.impl.BaseTextToSpeechNode;
 import com.tarzan.maxkb4j.core.workflow.node.userselect.impl.UserSelectNode;
 import com.tarzan.maxkb4j.core.workflow.node.variableassign.impl.BaseVariableAssignNode;
@@ -65,13 +65,13 @@ public class NodeFactory {
 
     }
 
-    public static INode getNode(String nodeType, LfNode lfNode, FlowParams workflowParams, WorkflowManage workflowManage, List<String> lastNodeIds, Function<LfNode, JSONObject> getNodeParams) {
+    public static INode getNode(String nodeType, LfNode lfNode, FlowParams flowParams, WorkflowManage workflowManage, List<String> lastNodeIds, Function<LfNode, JSONObject> getNodeParams) {
         INode node=getNode(nodeType);
         if(Objects.nonNull(node)){
             node.setId(lfNode.getId());
             node.setType(nodeType);
             node.setLfNode(lfNode);
-            node.setWorkflowParams(workflowParams);
+            node.setFlowParams(flowParams);
             node.setWorkflowManage(workflowManage);
             node.setLastNodeIdList(lastNodeIds);
             if(Objects.nonNull(getNodeParams)){

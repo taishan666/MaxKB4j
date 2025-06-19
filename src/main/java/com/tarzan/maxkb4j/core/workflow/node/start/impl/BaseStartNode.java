@@ -7,7 +7,7 @@ import com.tarzan.maxkb4j.core.workflow.NodeResult;
 import com.tarzan.maxkb4j.core.workflow.WorkflowManage;
 import com.tarzan.maxkb4j.core.workflow.dto.ChatRecordSimple;
 import com.tarzan.maxkb4j.core.workflow.logic.LfNode;
-import com.tarzan.maxkb4j.core.workflow.node.start.input.FlowParams;
+import com.tarzan.maxkb4j.core.workflow.dto.FlowParams;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationChatRecordEntity;
 
 import java.time.LocalDateTime;
@@ -35,10 +35,10 @@ public class BaseStartNode extends INode {
         JSONObject defaultGlobalVariable = getDefaultGlobalVariable(inputFieldList);
         // 合并全局变量
         Map<String, Object> workflowVariable = new HashMap<>(defaultGlobalVariable);
-        workflowVariable.putAll(getGlobalVariable(workflowParams, workflowManage));
+        workflowVariable.putAll(getGlobalVariable(flowParams, workflowManage));
         // 构建节点变量
         Map<String, Object> nodeVariable = Map.of(
-                "question", workflowParams.getQuestion(),
+                "question", flowParams.getQuestion(),
                 "image", workflowManage.getImageList(),
                 "document", workflowManage.getDocumentList(),
                 "audio", workflowManage.getAudioList()

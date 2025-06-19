@@ -567,14 +567,14 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     }
 
     public List<McpToolVO> convert(String serverName,List<ToolSpecification> tools) {
-        return tools.stream().map(e -> {
+        return tools.stream().map(tool -> {
             McpToolVO vo = new McpToolVO();
             vo.setServer(serverName);
-            vo.setName(e.name());
-            vo.setDescription(e.description());
+            vo.setName(tool.name());
+            vo.setDescription(tool.description());
             JSONObject json = new JSONObject();
             JSONObject properties = new JSONObject();
-            e.parameters().properties().forEach((k, v) -> {
+            tool.parameters().properties().forEach((k, v) -> {
                 JSONObject property = new JSONObject();
                 if (v instanceof JsonStringSchema schema) {
                     property.put("type", "string");
@@ -612,7 +612,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
             });
             json.put("type", "object");
             json.put("properties", properties);
-            json.put("required", e.parameters().required());
+            json.put("required", tool.parameters().required());
             vo.setArgs_schema(json);
             return vo;
         }).collect(Collectors.toList());

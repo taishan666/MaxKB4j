@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.workflow.dto.Answer;
 import com.tarzan.maxkb4j.core.workflow.logic.LfNode;
-import com.tarzan.maxkb4j.core.workflow.node.start.input.FlowParams;
+import com.tarzan.maxkb4j.core.workflow.dto.FlowParams;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.SystemMessage;
@@ -25,13 +25,13 @@ public abstract class INode {
     protected String type;
     protected LfNode lfNode;
     protected JSONObject nodeParams;
-    protected FlowParams workflowParams;
+    protected FlowParams flowParams;
     protected WorkflowManage workflowManage;
     protected Map<String, Object> context;
     protected String answerText;
     protected String id;
     protected List<String> lastNodeIdList;
-    private NodeChunk nodeChunk;
+    protected NodeChunk nodeChunk;
     protected String runtimeNodeId;
 
 
@@ -119,7 +119,7 @@ public abstract class INode {
             return null;
         }
         Answer answer = new Answer(this.answerText, "MANY_VIEW", this.runtimeNodeId,
-                this.workflowParams.getChatRecordId(), new HashMap<>());
+                this.flowParams.getChatRecordId(), new HashMap<>());
         return Collections.singletonList(answer);
     }
 
@@ -183,7 +183,7 @@ public abstract class INode {
                 ", type='" + type + '\'' +
                 ", lfNode=" + lfNode +
                 ", nodeParams=" + nodeParams +
-                ", workflowParams=" + workflowParams +
+                ", flowParams=" + flowParams +
                 ", context=" + context +
                 ", answerText='" + answerText + '\'' +
                 ", id='" + id + '\'' +

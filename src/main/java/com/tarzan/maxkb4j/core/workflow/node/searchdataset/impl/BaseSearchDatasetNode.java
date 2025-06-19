@@ -41,7 +41,7 @@ public class BaseSearchDatasetNode extends INode {
                 "is_hit_handling_method_list", isHitHandlingMethodList,
                 "data", processParagraphs(paragraphList, datasetSetting.getMaxParagraphCharNumber()),
                 "directly_return", directlyReturns(isHitHandlingMethodList),
-                "question", workflowParams.getQuestion()
+                "question", flowParams.getQuestion()
         );
         return new NodeResult(nodeVariable, Map.of());
     }

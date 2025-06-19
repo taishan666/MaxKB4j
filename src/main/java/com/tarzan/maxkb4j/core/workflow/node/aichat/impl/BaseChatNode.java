@@ -50,18 +50,7 @@ public class BaseChatNode extends INode {
         this.chatMemoryStore = SpringUtil.getBean(ChatMemoryStore.class);
     }
 
-    @Override
-    public JSONObject getDetail() {
-        JSONObject detail = new JSONObject();
-        detail.put("system", context.get("system"));
-        List<ChatMessage> historyMessage = (List<ChatMessage>) context.get("history_message");
-        detail.put("history_message", resetMessageList(historyMessage));
-        detail.put("question", context.get("question"));
-        detail.put("answer", context.get("answer"));
-        detail.put("messageTokens", context.get("messageTokens"));
-        detail.put("answerTokens", context.get("answerTokens"));
-        return detail;
-    }
+
 
     private Stream<String> writeContextStream(Map<String, Object> nodeVariable, Map<String, Object> workflowVariable, INode currentNode, WorkflowManage workflow) {
         TokenStream tokenStream = (TokenStream) nodeVariable.get("result");
@@ -100,7 +89,7 @@ public class BaseChatNode extends INode {
             paragraphList = (List<ParagraphVO>) res;
         }
         BaseChatModel chatModel = modelService.getModelById(nodeParams.getModelId(), nodeParams.getModelParamsSetting());
-        List<ChatMessage> historyMessage = workflowManage.getHistoryMessage(super.workflowParams.getHistoryChatRecord(), nodeParams.getDialogueNumber(), nodeParams.getDialogueType(), super.runtimeNodeId);
+        List<ChatMessage> historyMessage = workflowManage.getHistoryMessage(super.flowParams.getHistoryChatRecord(), nodeParams.getDialogueNumber(), nodeParams.getDialogueType(), super.runtimeNodeId);
         List<String> questionFields=nodeParams.getQuestionReferenceAddress();
         String problemText= (String)workflowManage.getReferenceField(questionFields.get(0),questionFields.subList(1, questionFields.size()));
         String systemPrompt = workflowManage.generatePrompt(nodeParams.getSystem());
@@ -113,7 +102,7 @@ public class BaseChatNode extends INode {
                 .contentAggregator(new DefaultContentAggregator())
                 .contentInjector(contentInjector)
                 .build();
-        String chatId = super.workflowParams.getChatId();
+        String chatId = super.flowParams.getChatId();
         ChatMemory chatMemory = MyChatMemory.builder()
                 .id(chatId)
                 .maxMessages(nodeParams.getDialogueNumber())
@@ -138,4 +127,17 @@ public class BaseChatNode extends INode {
         return new NodeResult(nodeVariable, Map.of(), this::writeContextStream);
     }
 
+
+    @Override
+    public JSONObject getDetail() {
+        JSONObject detail = new JSONObject();
+        detail.put("system", context.get("system"));
+        List<ChatMessage> historyMessage = (List<ChatMessage>) context.get("history_message");
+        detail.put("history_message", resetMessageList(historyMessage));
+        detail.put("question", context.get("question"));
+        detail.put("answer", context.get("answer"));
+        detail.put("messageTokens", context.get("messageTokens"));
+        detail.put("answerTokens", context.get("answerTokens"));
+        return detail;
+    }
 }

@@ -3,12 +3,12 @@ package com.tarzan.maxkb4j.core.workflow;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.workflow.dto.ChatFile;
-import com.tarzan.maxkb4j.core.workflow.handler.WorkFlowPostHandler;
+import com.tarzan.maxkb4j.core.workflow.dto.FlowParams;
 import com.tarzan.maxkb4j.core.workflow.logic.LfEdge;
 import com.tarzan.maxkb4j.core.workflow.logic.LfNode;
 import com.tarzan.maxkb4j.core.workflow.logic.LogicFlow;
-import com.tarzan.maxkb4j.core.workflow.node.start.input.FlowParams;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationChatRecordEntity;
+import com.tarzan.maxkb4j.module.application.handler.PostResponseHandler;
 import com.tarzan.maxkb4j.module.application.vo.ApplicationChatRecordVO;
 import com.tarzan.maxkb4j.module.application.vo.ChatMessageVO;
 import dev.langchain4j.data.message.AiMessage;
@@ -43,11 +43,11 @@ public class WorkflowManage {
     private List<ChatFile> imageList;
     private List<ChatFile> documentList;
     private List<ChatFile> audioList;
-    private FlowParams params;
+    private FlowParams flowParams;
     private LogicFlow flow;
     private JSONObject context = new JSONObject();
     private NodeChunkManage nodeChunkManage;
-    private WorkFlowPostHandler workFlowPostHandler;
+    private PostResponseHandler postResponseHandler;
     private INode currentNode;
     private NodeResult currentResult;
     private String answer = "";
@@ -59,7 +59,7 @@ public class WorkflowManage {
     private List<INode> nodeContext = new ArrayList<>();
     private ExecutorService executorService = Executors.newFixedThreadPool(5);
 
-    public WorkflowManage(LogicFlow flow, FlowParams params, WorkFlowPostHandler workFlowPostHandler,
+    public WorkflowManage(LogicFlow flow, FlowParams flowParams, PostResponseHandler postResponseHandler,
                           Map<String, Object> formData, List<ChatFile> imageList,
                           List<ChatFile> documentList, List<ChatFile> audioList, String startNodeId,
                           Map<String, Object> startNodeData, ApplicationChatRecordVO chatRecord, JSONObject childNode) {
@@ -67,9 +67,9 @@ public class WorkflowManage {
         this.imageList = imageList;
         this.documentList = documentList;
         this.audioList = audioList;
-        this.params = params;
+        this.flowParams = flowParams;
         this.flow = flow;
-        this.workFlowPostHandler = workFlowPostHandler;
+        this.postResponseHandler = postResponseHandler;
         this.chatRecord = chatRecord;
         this.childNode = childNode;
         this.nodeChunkManage = new NodeChunkManage();
@@ -163,7 +163,7 @@ public class WorkflowManage {
         //  String language = getLanguage();
         context.put("start_time", System.currentTimeMillis());
         String language = "zh";
-        if (params.getStream()) {
+        if (flowParams.getStream()) {
             return runStream(startNode, null, language);
         } else {
             return runBlock(language);
@@ -178,7 +178,7 @@ public class WorkflowManage {
 
     public Flux<ChatMessageVO> awaitResult() {
         NodeChunkManage nodeChunkManage = this.nodeChunkManage;
-        WorkflowManage workflow = this;
+       // WorkflowManage workflow = this;
         // 使用 Sinks.Many 来创建一个事件驱动的异步流
         Sinks.Many<ChatMessageVO> sink = Sinks.many().multicast().onBackpressureBuffer();
         // 启动一个异步任务来监听 nodeChunkManage 的变化
@@ -191,10 +191,11 @@ public class WorkflowManage {
                         sink.tryEmitNext(chunk);
                     }
                 }
-                ChatMessageVO endInfo=new ChatMessageVO(getParams().getChatId(),getParams().getChatRecordId(),"",true);
+                ChatMessageVO endInfo=new ChatMessageVO(flowParams.getChatId(),flowParams.getChatRecordId(),"",true);
                 sink.tryEmitNext(endInfo);
-                workFlowPostHandler.handler(this.params.getChatId(), this.params.getChatRecordId(), answer, workflow);
                 sink.tryEmitComplete();
+                long startTime= context.getLongValue("start_time");
+                postResponseHandler.handler(flowParams.getChatId(), flowParams.getChatRecordId(), flowParams.getQuestion(),answer,chatRecord,getRuntimeDetails(),startTime,flowParams.getClientId(),flowParams.getClientType());
             } catch (Exception e) {
                 sink.tryEmitError(e);
             }
@@ -222,7 +223,7 @@ public class WorkflowManage {
     public void runChainManage(INode currentNode, NodeResultFuture nodeResultFuture, String language) {
         if (currentNode == null) {
             LfNode startNode = getStartNode();
-            currentNode = NodeFactory.getNode(startNode.getType(), startNode, params, this);
+            currentNode = NodeFactory.getNode(startNode.getType(), startNode, flowParams, this);
         }
         NodeResult result = runChain(currentNode, nodeResultFuture);
         // 获取下一个节点列表
@@ -310,7 +311,7 @@ public class WorkflowManage {
     private INode getNodeClsById(String nodeId, List<String> lastNodeIds, Function<LfNode, JSONObject> getNodeParams) {
         for (LfNode node : this.flow.getNodes()) {
             if (nodeId.equals(node.getId())) {
-                return NodeFactory.getNode(node.getType(), node, params, this, lastNodeIds, getNodeParams);
+                return NodeFactory.getNode(node.getType(), node, flowParams, this, lastNodeIds, getNodeParams);
             }
         }
         return null;
@@ -348,17 +349,17 @@ public class WorkflowManage {
                 if (isResult(currentNode, currentResult)) {
                     if (result instanceof Stream<?> chatStream) {
                         chatStream.forEach(text -> {
-                            ChatMessageVO chunk=new ChatMessageVO(getParams().getChatId(),getParams().getChatRecordId(),text.toString(),runtimeNodeId,currentNode.getType(),view_type,false,false);
+                            ChatMessageVO chunk=new ChatMessageVO(flowParams.getChatId(),flowParams.getChatRecordId(),text.toString(),runtimeNodeId,currentNode.getType(),view_type,false,false);
                             currentNode.getNodeChunk().addChunk(chunk);
                         });
                     }
-                    ChatMessageVO endChunk=new ChatMessageVO(getParams().getChatId(),getParams().getChatRecordId(),"",currentNode.runtimeNodeId,currentNode.getType(),view_type,true,false);
+                    ChatMessageVO endChunk=new ChatMessageVO(flowParams.getChatId(),flowParams.getChatRecordId(),"",currentNode.runtimeNodeId,currentNode.getType(),view_type,true,false);
                     currentNode.getNodeChunk().addChunk(endChunk);
                 }
             }
         } catch (Exception e) {
             log.error("node error ={}", e.getMessage());
-            ChatMessageVO errorChunk=new ChatMessageVO(getParams().getChatId(),getParams().getChatRecordId(),e.getMessage(),currentNode.runtimeNodeId,currentNode.getType(),view_type,true,false);
+            ChatMessageVO errorChunk=new ChatMessageVO(flowParams.getChatId(),flowParams.getChatRecordId(),e.getMessage(),currentNode.runtimeNodeId,currentNode.getType(),view_type,true,false);
             currentNode.getNodeChunk().addChunk(errorChunk);
             currentNode.getWriteErrorContext(e);
             this.status = 500;

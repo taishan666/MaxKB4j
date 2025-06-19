@@ -37,7 +37,7 @@ public class FormNode extends INode {
             JSONObject formSetting = new JSONObject();
             formSetting.put("form_field_list", formFieldList);
             formSetting.put("runtimeNodeId", super.getRuntimeNodeId());
-            formSetting.put("chatRecordId", super.getWorkflowParams().getChatRecordId());
+            formSetting.put("chatRecordId", super.getFlowParams().getChatRecordId());
             formSetting.put("is_submit", context.getOrDefault("is_submit", false));
             String form = "<form_render>" + formSetting + "</form_render>";
             // Get workflow content and reset prompt todo (如果表单里有变量)
@@ -57,14 +57,14 @@ public class FormNode extends INode {
         JSONObject formSetting = new JSONObject();
         formSetting.put("form_field_list", context.get("form_field_list"));
         formSetting.put("runtimeNodeId", super.getRuntimeNodeId());
-        formSetting.put("chatRecordId", super.getWorkflowParams().getChatRecordId());
+        formSetting.put("chatRecordId", super.getFlowParams().getChatRecordId());
         formSetting.put("is_submit", context.getOrDefault("is_submit", false));
         String form = "<form_render>" + formSetting + "</form_render>";
         String updatedFormContentFormat = workflowManage.resetPrompt(formContentFormat);
         PromptTemplate promptTemplate = PromptTemplate.from(updatedFormContentFormat);
         String value = promptTemplate.apply(Map.of("form", form)).text();
         Answer answer = new Answer(value, this.getViewType(), this.runtimeNodeId,
-                this.workflowParams.getChatRecordId(), new HashMap<>());
+                this.getFlowParams().getChatRecordId(), new HashMap<>());
         return Collections.singletonList(answer);
     }
 
