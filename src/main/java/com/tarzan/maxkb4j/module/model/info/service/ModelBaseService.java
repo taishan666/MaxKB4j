@@ -6,7 +6,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelEntity;
 import com.tarzan.maxkb4j.module.model.info.mapper.ModelMapper;
-import com.tarzan.maxkb4j.module.model.provider.ModelManage;
+import com.tarzan.maxkb4j.module.model.provider.ModelFactory;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.cache.annotation.Cacheable;
@@ -38,7 +38,7 @@ public class ModelBaseService extends ServiceImpl<ModelMapper, ModelEntity> {
     @Cacheable(cacheNames = "model", key = "#modelId")
     public <T> T getModelById(String modelId) {
         ModelEntity model = getModelInfoById(modelId);
-        return ModelManage.build(model);
+        return ModelFactory.build(model);
     }
 
 

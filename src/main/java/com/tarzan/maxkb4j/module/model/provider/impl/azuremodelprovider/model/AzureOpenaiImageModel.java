@@ -4,12 +4,13 @@ import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelCredential;
 import com.tarzan.maxkb4j.module.model.provider.BaseModel;
 import dev.langchain4j.model.azure.AzureOpenAiImageModel;
+import dev.langchain4j.model.image.ImageModel;
 
-public class AzureOpenaiImageModel implements BaseModel {
+public class AzureOpenaiImageModel implements BaseModel<ImageModel> {
 
     @Override
-    public <T> T build(String modelName, ModelCredential credential, JSONObject params) {
-        return (T) AzureOpenAiImageModel.builder()
+    public AzureOpenAiImageModel build(String modelName, ModelCredential credential, JSONObject params) {
+        return  AzureOpenAiImageModel.builder()
                 .apiKey(credential.getApiKey())
                 .deploymentName(modelName).build();
     }

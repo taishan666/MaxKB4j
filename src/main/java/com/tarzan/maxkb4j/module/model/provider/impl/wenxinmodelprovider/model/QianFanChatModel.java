@@ -9,10 +9,10 @@ import dev.langchain4j.community.model.qianfan.QianfanStreamingChatModel;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.StreamingChatModel;
 
-public class QianFanChatModel extends BaseChatModel implements BaseModel {
+public class QianFanChatModel extends BaseChatModel implements BaseModel<BaseChatModel> {
 
     @Override
-    public <T> T build(String modelName, ModelCredential credential, JSONObject params) {
+    public BaseChatModel build(String modelName, ModelCredential credential, JSONObject params) {
         StreamingChatModel streamingChatModel = QianfanStreamingChatModel.builder()
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
@@ -22,6 +22,6 @@ public class QianFanChatModel extends BaseChatModel implements BaseModel {
                 .modelName(modelName)
                 .build();
         // 使用构造函数实例化对象
-        return (T) new BaseChatModel(streamingChatModel,chatModel);
+        return new BaseChatModel(streamingChatModel,chatModel);
     }
 }

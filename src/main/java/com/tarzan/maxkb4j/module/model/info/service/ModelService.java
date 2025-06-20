@@ -10,7 +10,7 @@ import com.tarzan.maxkb4j.core.enums.PermissionType;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelEntity;
 import com.tarzan.maxkb4j.module.model.info.mapper.ModelMapper;
 import com.tarzan.maxkb4j.module.model.info.vo.ModelVO;
-import com.tarzan.maxkb4j.module.model.provider.ModelManage;
+import com.tarzan.maxkb4j.module.model.provider.ModelFactory;
 import com.tarzan.maxkb4j.module.system.user.entity.UserEntity;
 import com.tarzan.maxkb4j.module.system.user.service.UserService;
 import com.tarzan.maxkb4j.util.BeanUtil;
@@ -82,7 +82,7 @@ public class ModelService extends ServiceImpl<ModelMapper, ModelEntity> {
 
     public <T> T getModelById(String modelId,JSONObject modelParams) {
         ModelEntity model = modelBaseService.getModelInfoById(modelId);
-        return ModelManage.build(model,modelParams);
+        return ModelFactory.build(model,modelParams);
     }
 
 

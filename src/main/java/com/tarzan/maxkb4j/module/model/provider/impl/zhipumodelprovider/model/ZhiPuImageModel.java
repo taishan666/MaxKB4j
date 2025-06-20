@@ -4,12 +4,13 @@ import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelCredential;
 import com.tarzan.maxkb4j.module.model.provider.BaseModel;
 import dev.langchain4j.community.model.zhipu.ZhipuAiImageModel;
+import dev.langchain4j.model.image.ImageModel;
 
-public class ZhiPuImageModel implements BaseModel {
+public class ZhiPuImageModel implements BaseModel<ImageModel> {
 
     @Override
-    public <T> T build(String modelName, ModelCredential credential, JSONObject params) {
-        return (T) ZhipuAiImageModel.builder()
+    public ImageModel build(String modelName, ModelCredential credential, JSONObject params) {
+        return  ZhipuAiImageModel.builder()
                 .apiKey(credential.getApiKey())
                 .model(modelName).build();
     }

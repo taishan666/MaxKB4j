@@ -4,11 +4,12 @@ import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelCredential;
 import com.tarzan.maxkb4j.module.model.provider.BaseModel;
 import dev.langchain4j.community.model.xinference.XinferenceImageModel;
+import dev.langchain4j.model.image.ImageModel;
 
-public class XinferenceImage implements BaseModel {
+public class XinferenceImage implements BaseModel<ImageModel> {
     @Override
-    public <T> T build(String modelName, ModelCredential credential, JSONObject params) {
-        return (T) XinferenceImageModel.builder()
+    public ImageModel build(String modelName, ModelCredential credential, JSONObject params) {
+        return  XinferenceImageModel.builder()
                 .baseUrl(credential.getBaseUrl())
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)

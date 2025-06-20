@@ -15,7 +15,7 @@ import java.nio.ByteBuffer;
 @EqualsAndHashCode(callSuper = true)
 @Data
 @NoArgsConstructor
-public class BaiLianTextToSpeech extends BaseTextToSpeech implements BaseModel {
+public class BaiLianTextToSpeech extends BaseTextToSpeech implements BaseModel<BaseTextToSpeech> {
 
     private SpeechSynthesisParam param;
     private static String defaultVoice = "longxiaochun";
@@ -26,7 +26,7 @@ public class BaiLianTextToSpeech extends BaseTextToSpeech implements BaseModel {
         this.param = param;
     }
     @Override
-    public <T> T build(String modelName, ModelCredential credential, JSONObject params) {
+    public BaiLianTextToSpeech build(String modelName, ModelCredential credential, JSONObject params) {
         SpeechSynthesisParam param =
                 SpeechSynthesisParam.builder()
                         .apiKey(credential.getApiKey())
@@ -35,7 +35,7 @@ public class BaiLianTextToSpeech extends BaseTextToSpeech implements BaseModel {
                         .speechRate(params==null?1.0f:params.getFloat("speechRate"))
                         .volume(params==null?50:params.getInteger("volume"))
                         .build();
-        return (T) new BaiLianTextToSpeech(param);
+        return  new BaiLianTextToSpeech(param);
     }
 
     @Override

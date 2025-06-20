@@ -9,10 +9,10 @@ import dev.langchain4j.community.model.zhipu.ZhipuAiStreamingChatModel;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.StreamingChatModel;
 
-public class ZhiPuChatModel extends BaseChatModel implements BaseModel {
+public class ZhiPuChatModel extends BaseChatModel implements BaseModel<BaseChatModel> {
 
     @Override
-    public <T> T build(String modelName, ModelCredential credential, JSONObject params) {
+    public BaseChatModel build(String modelName, ModelCredential credential, JSONObject params) {
         StreamingChatModel streamingChatModel = ZhipuAiStreamingChatModel.builder()
                // .baseUrl(credential.getBaseUrl())
                 .apiKey(credential.getApiKey())
@@ -24,6 +24,6 @@ public class ZhiPuChatModel extends BaseChatModel implements BaseModel {
                 .model(modelName)
                 .build();
         // 使用构造函数实例化对象
-        return (T) new BaseChatModel(streamingChatModel,chatModel);
+        return new BaseChatModel(streamingChatModel,chatModel);
     }
 }

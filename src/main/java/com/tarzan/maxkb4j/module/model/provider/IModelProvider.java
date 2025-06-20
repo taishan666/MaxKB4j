@@ -38,14 +38,14 @@ public abstract class IModelProvider {
         List<ModelInfo> modelList = getModelList();
         ModelInfo modelInfo = modelList.stream().filter(model -> model.getModelType().equals(modelType) && model.getName().equals(modelName)).findFirst().orElse(null);
         assert modelInfo != null;
-        return modelInfo.getModelClass().build(modelName, modelCredential,null);
+        return (T) modelInfo.getModelClass().build(modelName, modelCredential,null);
     }
 
     <T> T build(String modelName, String modelType, ModelCredential modelCredential, JSONObject params) {
         List<ModelInfo> modelList = getModelList();
         ModelInfo modelInfo = modelList.stream().filter(model -> model.getModelType().equals(modelType) && model.getName().equals(modelName)).findFirst().orElse(null);
         assert modelInfo != null;
-        return modelInfo.getModelClass().build(modelName, modelCredential,params);
+        return (T) modelInfo.getModelClass().build(modelName, modelCredential,params);
     }
 
 }

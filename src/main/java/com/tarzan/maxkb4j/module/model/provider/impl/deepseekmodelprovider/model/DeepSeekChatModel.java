@@ -9,10 +9,10 @@ import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.model.openai.OpenAiStreamingChatModel;
 
-public class DeepSeekChatModel extends BaseChatModel implements BaseModel {
+public class DeepSeekChatModel extends BaseChatModel implements BaseModel<BaseChatModel> {
 
     @Override
-    public <T> T build(String modelName, ModelCredential credential, JSONObject params) {
+    public BaseChatModel build(String modelName, ModelCredential credential, JSONObject params) {
         String baseUrl = "https://api.deepseek.com/v1";
         StreamingChatModel streamingChatModel = OpenAiStreamingChatModel.builder()
                 .baseUrl(baseUrl)
@@ -27,6 +27,6 @@ public class DeepSeekChatModel extends BaseChatModel implements BaseModel {
                // .listeners(List.of(new LlmListener()))
                 .build();
         // 使用构造函数实例化对象
-        return (T) new BaseChatModel(streamingChatModel,chatModel);
+        return new BaseChatModel(streamingChatModel,chatModel);
     }
 }

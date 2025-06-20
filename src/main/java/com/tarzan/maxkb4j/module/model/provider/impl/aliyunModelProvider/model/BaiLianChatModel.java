@@ -12,10 +12,10 @@ import dev.langchain4j.model.chat.StreamingChatModel;
 
 import java.util.List;
 
-public class BaiLianChatModel extends BaseChatModel implements BaseModel {
+public class BaiLianChatModel extends BaseChatModel implements BaseModel<BaseChatModel> {
 
     @Override
-    public <T> T build(String modelName, ModelCredential credential, JSONObject params) {
+    public BaseChatModel build(String modelName, ModelCredential credential, JSONObject params) {
         StreamingChatModel streamingChatModel = QwenStreamingChatModel.builder()
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
@@ -31,7 +31,7 @@ public class BaiLianChatModel extends BaseChatModel implements BaseModel {
                 .listeners(List.of(new LlmListener()))
                 .build();
         // 使用构造函数实例化对象
-        return (T) new BaseChatModel(streamingChatModel,chatModel);
+        return  new BaseChatModel(streamingChatModel,chatModel);
     }
 
 }

@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Map;
 
 @NoArgsConstructor
-public class BaiLianReranker extends BaseReranker implements BaseModel {
+public class BaiLianReranker extends BaseReranker implements BaseModel<BaseReranker> {
 
     String url = "https://dashscope.aliyuncs.com/api/v1/services/rerank/text-rerank/text-rerank";
     private static final JSONObject params = new JSONObject();
@@ -28,13 +28,13 @@ public class BaiLianReranker extends BaseReranker implements BaseModel {
     }
 
     @Override
-    public <T> T build(String modelName, ModelCredential credential, JSONObject params) {
+    public BaiLianReranker build(String modelName, ModelCredential credential, JSONObject params) {
         params.put("model", modelName);
         JSONObject parameters = new JSONObject();
         parameters.put("return_documents", true);
         parameters.put("top_n", 5);
         params.put("parameters", parameters);
-        return (T) new BaiLianReranker(credential.getApiKey());
+        return  new BaiLianReranker(credential.getApiKey());
     }
 
     @Override

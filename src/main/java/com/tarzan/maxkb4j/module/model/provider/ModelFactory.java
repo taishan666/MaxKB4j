@@ -6,7 +6,7 @@ import com.tarzan.maxkb4j.module.model.provider.enums.ModelProviderEnum;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class ModelManage {
+public class ModelFactory {
 
     public static <T> T build(ModelEntity model) {
         return ModelProviderEnum.get(model.getProvider()).build(model.getModelName(), model.getModelType(), model.getCredential());

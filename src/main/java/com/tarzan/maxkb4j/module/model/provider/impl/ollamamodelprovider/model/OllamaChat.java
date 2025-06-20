@@ -9,9 +9,9 @@ import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.model.ollama.OllamaChatModel;
 import dev.langchain4j.model.ollama.OllamaStreamingChatModel;
 
-public class OllamaChat extends BaseChatModel implements BaseModel {
+public class OllamaChat extends BaseChatModel implements BaseModel<BaseChatModel> {
     @Override
-    public <T> T build(String modelName, ModelCredential credential, JSONObject params) {
+    public BaseChatModel build(String modelName, ModelCredential credential, JSONObject params) {
         StreamingChatModel streamingChatModel = OllamaStreamingChatModel.builder()
                 .baseUrl(credential.getBaseUrl())
                 .modelName(modelName)
@@ -21,6 +21,6 @@ public class OllamaChat extends BaseChatModel implements BaseModel {
                 .modelName(modelName)
                 .build();
         // 使用构造函数实例化对象
-        return (T) new BaseChatModel(streamingChatModel, chatModel);
+        return  new BaseChatModel(streamingChatModel, chatModel);
     }
 }

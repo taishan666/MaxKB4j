@@ -4,11 +4,12 @@ import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelCredential;
 import com.tarzan.maxkb4j.module.model.provider.BaseModel;
 import dev.langchain4j.community.model.qianfan.QianfanEmbeddingModel;
+import dev.langchain4j.model.embedding.EmbeddingModel;
 
-public class QianfanEmbedding implements BaseModel {
+public class QianfanEmbedding implements BaseModel<EmbeddingModel> {
     @Override
-    public <T> T build(String modelName, ModelCredential credential, JSONObject params) {
-        return (T) QianfanEmbeddingModel.builder()
+    public QianfanEmbeddingModel build(String modelName, ModelCredential credential, JSONObject params) {
+        return  QianfanEmbeddingModel.builder()
                 //.baseUrl(credential.getBaseUrl())
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
