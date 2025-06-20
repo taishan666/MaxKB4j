@@ -32,7 +32,7 @@ public class BaseApplicationNode extends INode {
         System.out.println(APPLICATION);
         ApplicationNodeParams nodeParams= super.nodeParams.toJavaObject(ApplicationNodeParams.class);
         WorkflowManage workflowManage=super.getWorkflowManage();
-        String chatId=chatService.chatOpen(nodeParams.getApplicationId(),workflowManage.getContext().getString("chat_id"));
+        String chatId=chatService.chatOpen(nodeParams.getApplicationId(),flowParams.getChatId());
         List<String> questionFields=nodeParams.getQuestionReferenceAddress();
         String question= (String)workflowManage.getReferenceField(questionFields.get(0),questionFields.subList(1, questionFields.size()));
         ChatMessageDTO messageDto = ChatMessageDTO.builder()
