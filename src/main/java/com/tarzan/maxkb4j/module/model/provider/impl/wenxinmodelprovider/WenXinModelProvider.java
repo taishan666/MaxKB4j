@@ -26,11 +26,6 @@ public class WenXinModelProvider extends IModelProvider {
     }
 
     @Override
-    public ModelInfoManage getModelInfoManage() {
-        return null;
-    }
-
-    @Override
     public List<ModelInfo> getModelList() {
         List<ModelInfo> modelInfos = new ArrayList<>();
         modelInfos.add(new ModelInfo("ERNIE-Bot-4","","LLM",null));

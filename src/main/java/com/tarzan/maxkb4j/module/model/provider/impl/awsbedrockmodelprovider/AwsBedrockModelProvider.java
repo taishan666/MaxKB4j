@@ -24,10 +24,6 @@ public class AwsBedrockModelProvider  extends IModelProvider {
         return info;
     }
 
-    @Override
-    public ModelInfoManage getModelInfoManage() {
-        return null;
-    }
 
     @Override
     public List<ModelInfo> getModelList() {
