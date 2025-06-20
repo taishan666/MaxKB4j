@@ -5,6 +5,5 @@ import com.tarzan.maxkb4j.module.application.entity.ApplicationChatRecordEntity;
 
 public abstract class PostResponseHandler {
 
-    //public abstract void handler(String chatId, String chatRecordId,String problemText, String answerText, PipelineManage manage, String clientId);
     public abstract void handler(String chatId, String chatRecordId, String problemText, String answerText, ApplicationChatRecordEntity chatRecord, JSONObject details, long startTime, String clientId, String clientType);
 }

@@ -180,9 +180,6 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
 
 
     public Flux<ChatMessageVO> chatMessage(String chatId, ChatMessageDTO dto) {
-        //todo 验证(当作节点时，clientId获取问题)
-        /*String clientId = (String) StpUtil.getExtra("client_id");
-        String clientType = (String) StpUtil.getExtra("client_type");*/
         ChatInfo chatInfo = getChatInfo(chatId);
         try {
             isValidApplication(chatInfo, dto.getClientId(), dto.getClientType());

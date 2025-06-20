@@ -52,7 +52,6 @@ public class BaseClassificationNode extends INode {
                 .maxMessages(nodeParams.getDialogueNumber())
                 .chatMemoryStore(chatMemoryStore)
                 .build();
-        System.out.println(chatMemory.id()+"  "+chatMemory.messages().size());
         Metadata metadata=new Metadata(UserMessage.from(question), chatMemory.id(), chatMemory.messages());
         Query query=new Query(question,metadata);
         Collection<String> route = queryClassifier.route(query);
