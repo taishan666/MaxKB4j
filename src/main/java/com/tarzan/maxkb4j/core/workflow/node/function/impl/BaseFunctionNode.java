@@ -26,6 +26,7 @@ public class BaseFunctionNode extends INode {
         FunctionParams nodeParams=super.nodeParams.toJavaObject(FunctionParams.class);
         String code=nodeParams.getCode();
         Object result=null;
+        JSONObject params=new JSONObject();
         if(StringUtil.isNotBlank(code)){
             List<Map<String,Object>>  inputFieldList=nodeParams.getInputFieldList();
             Binding binding = new Binding();
@@ -39,10 +40,12 @@ public class BaseFunctionNode extends INode {
                     value=workflowManage.getReferenceField(fields.get(0),fields.subList(1, fields.size()));
                     if (value!=null&&this.getLastNodeIdList().contains(fields.get(0))){
                         binding.setVariable(name, value);
+                        params.put(name,value);
                         sb.append(name).append(",");
                     }
                 }else {
                     binding.setVariable(name, value);
+                    params.put(name,value);
                     sb.append(name).append(",");
                 }
             }
@@ -55,13 +58,14 @@ public class BaseFunctionNode extends INode {
         }
         // 输出结果到 Java 控制台
         assert result != null;
-        return new NodeResult(Map.of("answer",result,"result",result),Map.of());
+        return new NodeResult(Map.of("answer",result,"params",params.toJSONString(),"result",result),Map.of());
     }
 
     @Override
     public JSONObject getDetail() {
         JSONObject detail = new JSONObject();
         detail.put("result",context.get("result"));
+        detail.put("params",context.get("params"));
         return detail;
     }
 

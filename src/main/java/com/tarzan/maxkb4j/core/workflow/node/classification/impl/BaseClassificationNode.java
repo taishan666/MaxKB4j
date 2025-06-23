@@ -10,6 +10,7 @@ import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
 import com.tarzan.maxkb4j.module.rag.MyChatMemory;
 import com.tarzan.maxkb4j.module.rag.MyQueryClassifier;
 import com.tarzan.maxkb4j.util.SpringUtil;
+import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.memory.ChatMemory;
 import dev.langchain4j.rag.query.Metadata;
@@ -18,7 +19,8 @@ import dev.langchain4j.store.memory.chat.ChatMemoryStore;
 
 import java.util.*;
 
-import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.*;
+import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.AI_CHAT;
+import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.CLASSIFICATION;
 
 public class BaseClassificationNode extends INode {
 
@@ -48,10 +50,11 @@ public class BaseClassificationNode extends INode {
         MyQueryClassifier queryClassifier = new MyQueryClassifier(chatModel.getChatModel(),questionMap);
         String chatId = workflowManage.getContext().getString("chatId");
         ChatMemory chatMemory = MyChatMemory.builder()
-                .id(chatId)
+                .id(chatId+"_"+runtimeNodeId)
                 .maxMessages(nodeParams.getDialogueNumber())
                 .chatMemoryStore(chatMemoryStore)
                 .build();
+        System.out.println("111chatMemory:" + chatMemory.id()+"  messages size"+ chatMemory.messages().size());
         Metadata metadata=new Metadata(UserMessage.from(question), chatMemory.id(), chatMemory.messages());
         Query query=new Query(question,metadata);
         Collection<String> route = queryClassifier.route(query);
@@ -59,6 +62,8 @@ public class BaseClassificationNode extends INode {
         if (!route.isEmpty()){
             branchId=route.stream().findFirst().get();
         }
+        chatMemory.add(UserMessage.from(question));
+        chatMemory.add(AiMessage.from(questionMap.get(branchId)));
         return new NodeResult(Map.of("branch_id", branchId, "branch_name", questionMap.get(branchId)), Map.of());
     }
 
