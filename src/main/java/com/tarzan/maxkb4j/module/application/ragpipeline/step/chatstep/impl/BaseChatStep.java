@@ -140,6 +140,7 @@ public class BaseChatStep extends IChatStep {
                         .maxMessages(dialogueNumber)
                         .chatMemoryStore(chatMemoryStore)
                         .build();
+                System.out.println("chatMemory:" + chatMemory.id()+"  messages size"+ chatMemory.messages().size());
                 String system = StringUtil.isBlank(systemText) ? "You're an intelligent assistant" : systemText;
                 ContentInjector contentInjector = DefaultContentInjector.builder()
                         .promptTemplate(RAG_PROMPT_TEMPLATE)
@@ -187,8 +188,6 @@ public class BaseChatStep extends IChatStep {
                         tokenStream.onToolExecuted((ToolExecution toolExecution) -> System.out.println("toolExecution="+toolExecution))
                                 .onPartialResponse(text -> sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, text, false)))
                                 .onCompleteResponse(response -> {
-                                    chatMemory.add(UserMessage.from(problemText));
-                                    chatMemory.add(response.aiMessage());
                                     String answerText = response.aiMessage().text();
                                     TokenUsage tokenUsage = response.tokenUsage();
                                     int thisMessageTokens = tokenUsage.inputTokenCount();

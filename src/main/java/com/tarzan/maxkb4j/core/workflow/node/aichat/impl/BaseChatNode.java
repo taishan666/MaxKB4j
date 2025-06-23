@@ -108,7 +108,6 @@ public class BaseChatNode extends INode {
                 .maxMessages(nodeParams.getDialogueNumber())
                 .chatMemoryStore(chatMemoryStore)
                 .build();
-        //AugmentationResult augmentationResult=retrievalAugmentor.augment(new AugmentationRequest(UserMessage.from(problemText), new Metadata(UserMessage.from(problemText),chatId,new ArrayList<>())));
         Assistant assistant = MyAiServices.builder(Assistant.class)
                 .systemMessageProvider(chatMemoryId ->system)
                 .chatMemory(chatMemory)

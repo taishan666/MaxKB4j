@@ -25,6 +25,7 @@ public class ChatPostHandler extends PostResponseHandler {
     private final ApplicationPublicAccessClientService publicAccessClientService;
     private final ApplicationChatMapper chatMapper;
     private final ApplicationChatRecordMapper chatRecordMapper;
+ //   private final ChatMemoryStore chatMemoryStore;
 
 
     @Override
@@ -65,9 +66,15 @@ public class ChatPostHandler extends PostResponseHandler {
             chatRecord.setImproveParagraphIdList(new HashSet<>());
         }
         chatInfo.addChatRecord(chatRecord);
+   /*     List<ChatMessage> messages=new ArrayList<>();
+        chatInfo.getChatRecordList().forEach(record -> {
+            messages.add(UserMessage.from(problemText));
+            messages.add(AiMessage.from(answerText));
+        });*/
+       // System.err.println("chatMemory:" + chatId+"  messages size"+ messages.size());
         // 重新设置缓存
         ChatCache.put(chatId, chatInfo);
-
+       // chatMemoryStore.updateMessages(chatId, messages);
         if (clientType!=null&&clientType.equals(AuthType.ACCESS_TOKEN.name())) {
             ApplicationPublicAccessClientEntity applicationPublicAccessClient = publicAccessClientService.getById(clientId);
             if (applicationPublicAccessClient != null) {

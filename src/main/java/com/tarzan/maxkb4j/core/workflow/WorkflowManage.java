@@ -239,11 +239,14 @@ public class WorkflowManage {
 
     public List<INode> getNextNodeList(INode currentNode, NodeResult currentNodeResult) {
         List<INode> nodeList = new ArrayList<>();
-        // 判断是否中断执行
-        if (currentNodeResult != null && currentNodeResult.isInterruptExec(currentNode)) {
+        if (currentNodeResult == null) {
             return nodeList;
         }
-        if (currentNodeResult != null && currentNodeResult.isAssertionResult()) {
+        // 判断是否中断执行
+        if (currentNodeResult.isInterruptExec(currentNode)) {
+            return nodeList;
+        }
+        if (currentNodeResult.isAssertionResult()) {
             // 处理断言结果分支
             for (LfEdge edge : flow.getEdges()) {
                 if (edge.getSourceNodeId().equals(currentNode.getId())) {
