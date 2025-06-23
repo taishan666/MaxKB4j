@@ -26,7 +26,7 @@ public class NodeResult {
         this.nodeVariable = nodeVariable;
         this.workflowVariable = workflowVariable;
         this.writeContextFunc = writeContextFunc;
-        this.isInterrupt = null;
+        this.isInterrupt = this::defaultIsInterrupt;
     }
 
 

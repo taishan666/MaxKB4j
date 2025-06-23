@@ -159,8 +159,6 @@ public class WorkflowManage {
     }
 
     public Flux<ChatMessageVO> run() {
-        //   closeOldConnections();
-        //  String language = getLanguage();
         context.put("start_time", System.currentTimeMillis());
         String language = "zh";
         if (flowParams.getStream()) {
@@ -329,8 +327,6 @@ public class WorkflowManage {
             nodeResultFuture = runNodeFuture(currentNode);
         }
         try {
-            // 获取stream参数并处理默认值
-            //boolean isStream = params.getStream();
             // 根据流模式选择处理方法
             return handEventNodeResult(currentNode, nodeResultFuture);
         } catch (Exception e) {
