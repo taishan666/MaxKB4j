@@ -36,10 +36,4 @@ public class NodeChunkManage {
         return null;
     }
 
-/*    @Override
-    public String toString() {
-        return "NodeChunkManage{" +
-                "nodeChunkList=" + nodeChunkList +
-                '}';
-    }*/
 }

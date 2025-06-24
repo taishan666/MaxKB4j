@@ -11,27 +11,27 @@ import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.USER_SELECT;
 @Data
 public class NodeResult {
     private Map<String, Object> nodeVariable;
-    private Map<String, Object> workflowVariable;
+    private Map<String, Object> globalVariable;
     private WriteContextFunction writeContextFunc;
     private IsInterruptFunction isInterrupt;
 
-    public NodeResult(Map<String, Object> nodeVariable, Map<String, Object> workflowVariable) {
+    public NodeResult(Map<String, Object> nodeVariable, Map<String, Object> globalVariable) {
         this.nodeVariable = nodeVariable;
-        this.workflowVariable = workflowVariable;
+        this.globalVariable = globalVariable;
         this.writeContextFunc = this::defaultWriteContextFunc;
         this.isInterrupt = this::defaultIsInterrupt;
     }
 
-    public NodeResult(Map<String, Object> nodeVariable, Map<String, Object> workflowVariable, WriteContextFunction writeContextFunc) {
+    public NodeResult(Map<String, Object> nodeVariable, Map<String, Object> globalVariable, WriteContextFunction writeContextFunc) {
         this.nodeVariable = nodeVariable;
-        this.workflowVariable = workflowVariable;
+        this.globalVariable = globalVariable;
         this.writeContextFunc = writeContextFunc;
         this.isInterrupt = this::defaultIsInterrupt;
     }
 
 
     public Object writeContext(INode currentNode, WorkflowManage workflowManage) {
-        return this.writeContextFunc.apply(nodeVariable, workflowVariable, currentNode, workflowManage);
+        return this.writeContextFunc.apply(nodeVariable, globalVariable, currentNode, workflowManage);
     }
 
     public boolean isInterruptExec(INode currentNode) {
