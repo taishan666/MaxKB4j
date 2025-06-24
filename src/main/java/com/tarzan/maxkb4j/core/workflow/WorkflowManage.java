@@ -161,11 +161,7 @@ public class WorkflowManage {
     public Flux<ChatMessageVO> run() {
         context.put("start_time", System.currentTimeMillis());
         String language = "zh";
-        if (flowParams.getStream()) {
-            return runStream(startNode, null, language);
-        } else {
-            return runBlock(language);
-        }
+        return runStream(startNode, null, language);
     }
 
 
@@ -369,15 +365,6 @@ public class WorkflowManage {
     }
 
 
-    public Flux<ChatMessageVO> runBlock(String language) {
-        if (language == null || language.isEmpty()) {
-            language = "zh";
-        }
-        runChainAsync(null, null, language);
-        return Flux.just(new ChatMessageVO());
-    }
-
-
     public boolean isRun() {
         List<Boolean> list = new ArrayList<>();
         for (Future<?> future : futureList) {
@@ -526,7 +513,6 @@ public class WorkflowManage {
             JSONObject details;
             if (chatRecord != null && chatRecord.getDetails() != null) {
                 details = chatRecord.getDetails().getJSONObject(node.getRuntimeNodeId());
-                //todo  startNode 判断非空
                 if (details != null &&startNode != null && !startNode.getRuntimeNodeId().equals(node.getRuntimeNodeId())) {
                     detailsResult.put(node.getRuntimeNodeId(), details);
                     continue;
