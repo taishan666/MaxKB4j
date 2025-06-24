@@ -45,6 +45,8 @@ public enum NodeType {
 
     VARIABLE_ASSIGN("variable-assign-node", "变量赋值"),
 
+    VARIABLE_AGGREGATE("variable-aggregate-node", "变量聚合"),
+
     FUNCTION("function-node", "自定义函数节点"),
 
     FUNCTION_LIB("function-lib-node", "函数库节点"),

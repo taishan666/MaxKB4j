@@ -1,6 +1,7 @@
 package com.tarzan.maxkb4j.core.workflow;
 
 import com.alibaba.fastjson.JSONObject;
+import com.tarzan.maxkb4j.core.workflow.dto.FlowParams;
 import com.tarzan.maxkb4j.core.workflow.enums.NodeType;
 import com.tarzan.maxkb4j.core.workflow.logic.LfNode;
 import com.tarzan.maxkb4j.core.workflow.node.aichat.impl.BaseChatNode;
@@ -21,9 +22,9 @@ import com.tarzan.maxkb4j.core.workflow.node.reranker.impl.RerankerNode;
 import com.tarzan.maxkb4j.core.workflow.node.searchdataset.impl.BaseSearchDatasetNode;
 import com.tarzan.maxkb4j.core.workflow.node.speechtotext.impl.BaseSpeechToTextNode;
 import com.tarzan.maxkb4j.core.workflow.node.start.impl.BaseStartNode;
-import com.tarzan.maxkb4j.core.workflow.dto.FlowParams;
 import com.tarzan.maxkb4j.core.workflow.node.texttospeech.impl.BaseTextToSpeechNode;
 import com.tarzan.maxkb4j.core.workflow.node.userselect.impl.UserSelectNode;
+import com.tarzan.maxkb4j.core.workflow.node.variableaggregate.impl.BaseVariableAggregateNode;
 import com.tarzan.maxkb4j.core.workflow.node.variableassign.impl.BaseVariableAssignNode;
 
 import java.util.ArrayList;
@@ -53,6 +54,7 @@ public class NodeFactory {
             case DOCUMENT_EXTRACT -> new BaseDocumentExtractNode();
             case SPEECH_TO_TEXT -> new BaseSpeechToTextNode();
             case VARIABLE_ASSIGN -> new BaseVariableAssignNode();
+            case VARIABLE_AGGREGATE -> new BaseVariableAggregateNode();
             case FUNCTION -> new BaseFunctionNode();
             case IMAGE_UNDERSTAND -> new BaseImageUnderstandNode();
             case RERANKER -> new RerankerNode();
