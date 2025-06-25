@@ -25,20 +25,21 @@ public class BaseHttpNode extends INode {
         Map<String, String> headers=nodeParams.getHeaders();
         headers.forEach(request::header);
         if (StringUtil.isNotBlank(nodeParams.getBody())){
-            request.body(nodeParams.getBody(), nodeParams.getContentType());
+            request.body(nodeParams.getBody());
         }
         if (CollectionUtil.isNotEmpty(nodeParams.getParams())){
             request.form(nodeParams.getParams());
         }
         request.timeout(nodeParams.getTimeout());
         HttpResponse response=request.execute();
-        return new NodeResult(Map.of("result",response.body()),Map.of());
+        return new NodeResult(Map.of("status",response.getStatus(),"body",response.body()),Map.of());
     }
 
     @Override
     public JSONObject getDetail() {
         JSONObject detail = new JSONObject();
-        detail.put("result",context.get("result"));
+        detail.put("status",context.get("status"));
+        detail.put("body",context.get("body"));
         return detail;
     }
 }

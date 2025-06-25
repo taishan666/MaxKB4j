@@ -9,7 +9,7 @@ import java.util.Map;
 public class HttpNodeParams {
     private String url;
     private Method method;
-    private String contentType;
+   // private String contentType;
     private String body;
     private Map<String, String> headers;
     private Map<String, Object> params;
