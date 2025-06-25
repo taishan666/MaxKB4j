@@ -25,7 +25,7 @@ public class BaseHttpNode extends INode {
         Map<String, String> headers=nodeParams.getHeaders();
         headers.forEach(request::header);
         if (StringUtil.isNotBlank(nodeParams.getBody())){
-            request.body(nodeParams.getBody());
+            request.body(nodeParams.getBody(), nodeParams.getContentType());
         }
         if (CollectionUtil.isNotEmpty(nodeParams.getParams())){
             request.form(nodeParams.getParams());
