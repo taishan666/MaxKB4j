@@ -48,6 +48,7 @@ public enum NodeType {
     VARIABLE_AGGREGATE("variable-aggregate-node", "变量聚合"),
 
     FUNCTION("function-node", "自定义函数节点"),
+    HTTP_CLIENT("http-node", "自定义函数节点"),
 
     FUNCTION_LIB("function-lib-node", "函数库节点"),
 

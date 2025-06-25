@@ -14,6 +14,7 @@ import com.tarzan.maxkb4j.core.workflow.node.documentextract.impl.BaseDocumentEx
 import com.tarzan.maxkb4j.core.workflow.node.echarts.impl.BaseEchartsNode;
 import com.tarzan.maxkb4j.core.workflow.node.formcollect.impl.FormNode;
 import com.tarzan.maxkb4j.core.workflow.node.function.impl.BaseFunctionNode;
+import com.tarzan.maxkb4j.core.workflow.node.http.impl.BaseHttpNode;
 import com.tarzan.maxkb4j.core.workflow.node.imagegenerate.impl.BaseImageGenerateNode;
 import com.tarzan.maxkb4j.core.workflow.node.imageunderstand.impl.BaseImageUnderstandNode;
 import com.tarzan.maxkb4j.core.workflow.node.mcp.impl.BaseMcpNode;
@@ -56,6 +57,7 @@ public class NodeFactory {
             case VARIABLE_ASSIGN -> new BaseVariableAssignNode();
             case VARIABLE_AGGREGATE -> new BaseVariableAggregateNode();
             case FUNCTION -> new BaseFunctionNode();
+            case HTTP_CLIENT -> new BaseHttpNode();
             case IMAGE_UNDERSTAND -> new BaseImageUnderstandNode();
             case RERANKER -> new RerankerNode();
             case FORM -> new FormNode();
