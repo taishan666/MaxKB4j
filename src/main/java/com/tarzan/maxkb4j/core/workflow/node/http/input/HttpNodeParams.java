@@ -1,17 +1,19 @@
 package com.tarzan.maxkb4j.core.workflow.node.http.input;
 
 import cn.hutool.http.Method;
+import com.alibaba.fastjson.JSONArray;
 import lombok.Data;
-
-import java.util.Map;
 
 @Data
 public class HttpNodeParams {
     private String url;
     private Method method;
-   // private String contentType;
     private String body;
-    private Map<String, String> headers;
-    private Map<String, Object> params;
+    private JSONArray headers;
+    private JSONArray params;
     private Integer timeout;
+    private String authType;
+    private String username;
+    private String password;
+    private String token;
 }
