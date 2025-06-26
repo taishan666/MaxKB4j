@@ -7,6 +7,7 @@ import com.tarzan.maxkb4j.module.model.provider.enums.ModelProviderEnum;
 import com.tarzan.maxkb4j.module.model.provider.enums.ModelTypeEnum;
 import com.tarzan.maxkb4j.module.model.provider.impl.aliyunModelProvider.model.*;
 import com.tarzan.maxkb4j.module.model.provider.impl.aliyunModelProvider.params.CosyVoiceModelParams;
+import com.tarzan.maxkb4j.module.model.provider.impl.aliyunModelProvider.params.WanXImageEditModelParams;
 import com.tarzan.maxkb4j.module.model.provider.impl.aliyunModelProvider.params.WanXImageModelParams;
 import com.tarzan.maxkb4j.util.IoUtil;
 import dev.langchain4j.community.model.dashscope.QwenModelName;
@@ -48,6 +49,7 @@ public class AliYunBaiLianModelProvider extends IModelProvider {
         modelInfos.add(new ModelInfo(WanxModelName.WANX2_1_T2I_TURBO,"文生图模型",ModelTypeEnum.TTI.name(),new QWenImageModel(),new WanXImageModelParams()));
         modelInfos.add(new ModelInfo(WanxModelName.WANX2_1_T2I_PLUS,"文生图模型",ModelTypeEnum.TTI.name(),new QWenImageModel(),new WanXImageModelParams()));
        // modelInfos.add(new ModelInfo("stable-diffusion-3.5-large-turbo","文生图模型",ModelTypeEnum.TTI.name(),new QWenImageModel(),new ImageModelParams()));
+        modelInfos.add(new ModelInfo("wanx2.1-imageedit","图生图模型",ModelTypeEnum.TTI.name(),new QWenImageModel(),new WanXImageEditModelParams()));
         modelInfos.add(new ModelInfo("gte-rerank","",ModelTypeEnum.RERANKER.name(),new BaiLianReranker()));
         return modelInfos;
     }

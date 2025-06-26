@@ -1,0 +1,42 @@
+package com.tarzan.maxkb4j.module.model.provider.impl.aliyunModelProvider.params;
+
+import com.tarzan.maxkb4j.core.form.BaseFiled;
+import com.tarzan.maxkb4j.core.form.SingleSelectFiled;
+import com.tarzan.maxkb4j.core.form.SliderFiled;
+import com.tarzan.maxkb4j.core.form.SwitchField;
+import com.tarzan.maxkb4j.module.model.provider.BaseModelParams;
+import lombok.Data;
+
+import java.util.List;
+import java.util.Map;
+
+import static com.alibaba.dashscope.aigc.imagesynthesis.ImageSynthesis.ImageEditFunction.*;
+
+@Data
+public  class WanXImageEditModelParams implements BaseModelParams {
+
+    @Override
+    public List<BaseFiled> toForm() {
+        Map<String,Object> functionOptions=Map.of(
+                STYLIZATION_ALL, STYLIZATION_ALL,
+                STYLIZATION_LOCAL, STYLIZATION_LOCAL,
+                DESCRIPTION_EDIT, DESCRIPTION_EDIT,
+                DESCRIPTION_EDIT_WITH_MASK, DESCRIPTION_EDIT_WITH_MASK,
+                "remove_watermark", "remove_watermark",
+                EXPAND, EXPAND,
+                SUPER_RESOLUTION, SUPER_RESOLUTION,
+                COLORIZATION, COLORIZATION
+        );
+        BaseFiled functionSelectFiled=new SingleSelectFiled("功能","function","图像编辑功能",functionOptions,STYLIZATION_ALL);
+                Map<String,Object> sizeOptions=Map.of(
+                "1024*1024","1024*1024",
+                "720*1280","720*1280",
+                "1280*720","1280*720"
+        );
+        BaseFiled sizeSelectFiled=new SingleSelectFiled("图片尺寸","size","生成图片的尺寸",sizeOptions,"1024*1024");
+        BaseFiled sliderFiled=new SliderFiled(1,4,1,0,"生成图片的数量","n","生成图片的数量。取值范围为1~4张",1);
+        BaseFiled switchField=new SwitchField("提示词扩展","prompt_extend","提示词自动优化",false);
+        return List.of(functionSelectFiled,sizeSelectFiled,sliderFiled,switchField);
+    }
+}
+
