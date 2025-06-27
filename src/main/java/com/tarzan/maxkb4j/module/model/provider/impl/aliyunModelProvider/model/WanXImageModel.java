@@ -58,9 +58,6 @@ public class WanXImageModel implements ImageModel {
             headers.put("X-DashScope-OssResourceResolve", "enable");
             param.setHeaders(headers);
         }
-        System.out.println("function:"+param.getFunction());
-        System.out.println("imageUrl:"+imageUrl);
-        System.out.println("prompt:"+prompt);
         param.setBaseImageUrl(imageUrl);
         ImageSynthesis imageSynthesis = new ImageSynthesis("image2image");
         try {
@@ -93,7 +90,6 @@ public class WanXImageModel implements ImageModel {
     }
 
     static List<Image> imagesFrom(ImageSynthesisResult result) {
-        System.out.println( result);
         return result.getOutput().getResults().stream().map(resultMap -> Image.builder().url(resultMap.get("url")).revisedPrompt(resultMap.get("actual_prompt")).build()).toList();
     }
     static String imageUrl(Image image, String model, String apiKey) {

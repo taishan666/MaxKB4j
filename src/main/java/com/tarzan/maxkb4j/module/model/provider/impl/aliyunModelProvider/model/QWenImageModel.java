@@ -19,14 +19,6 @@ public class QWenImageModel implements BaseModel<ImageModel> {
                // .promptExtend(params == null || params.getBoolean("prompt_extend"))
                 .negativePrompt(params.getString("negative_prompt"));
            return new WanXImageModel(paramBuilder);
-       // WanxImageModel
-/*        return  WanxImageModel.builder()
-                .apiKey(credential.getApiKey())
-                .modelName(modelName)
-                .size(params==null?WanxImageSize.SIZE_1024_1024:WanxImageSize.of(params.getString("size")))
-                .promptExtend(params==null&&params.getBoolean("prompt_extend"))
-                .negativePrompt(params.getString("negative_prompt"))
-                .build();*/
     }
 
 

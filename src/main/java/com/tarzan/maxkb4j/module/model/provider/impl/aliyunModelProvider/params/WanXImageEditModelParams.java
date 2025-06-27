@@ -18,14 +18,16 @@ public  class WanXImageEditModelParams implements BaseModelParams {
     @Override
     public List<BaseFiled> toForm() {
         Map<String,Object> functionOptions=Map.of(
-                STYLIZATION_ALL, STYLIZATION_ALL,
-                STYLIZATION_LOCAL, STYLIZATION_LOCAL,
-                DESCRIPTION_EDIT, DESCRIPTION_EDIT,
-                DESCRIPTION_EDIT_WITH_MASK, DESCRIPTION_EDIT_WITH_MASK,
-                "remove_watermark", "remove_watermark",
-                EXPAND, EXPAND,
-                SUPER_RESOLUTION, SUPER_RESOLUTION,
-                COLORIZATION, COLORIZATION
+                "全局风格化", STYLIZATION_ALL,
+                "局部风格化", STYLIZATION_LOCAL,
+                "指令编辑", DESCRIPTION_EDIT,
+                "局部重绘", DESCRIPTION_EDIT_WITH_MASK,
+                "去文字水印", "remove_watermark",
+                "扩图", EXPAND,
+                "图像超分", SUPER_RESOLUTION,
+                "图像上色", COLORIZATION,
+                "线稿生图", DOODLE,
+                "参考卡通形象生图", "control_cartoon_feature"
         );
         BaseFiled functionSelectFiled=new SingleSelectFiled("功能","function","图像编辑功能",functionOptions,STYLIZATION_ALL);
                 Map<String,Object> sizeOptions=Map.of(
