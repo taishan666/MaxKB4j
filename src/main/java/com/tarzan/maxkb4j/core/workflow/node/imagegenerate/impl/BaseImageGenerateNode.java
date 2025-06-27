@@ -48,7 +48,7 @@ public class BaseImageGenerateNode extends INode {
             ChatFile chatFile = imageList.get(0);
             byte[] bytes = fileService.getBytes(chatFile.getFileId());
             String base64Encoded = Base64.getEncoder().encodeToString(bytes);
-            Image inputImage=Image.builder().base64Data(base64Encoded).build();
+            Image inputImage=Image.builder().base64Data(base64Encoded).mimeType(chatFile.getType()).build();
             Response<Image> res=imageModel.edit(inputImage,prompt);
             Image outImage=res.content();
             String imageMd ="!["+prompt+"](" + outImage.url() + ")";

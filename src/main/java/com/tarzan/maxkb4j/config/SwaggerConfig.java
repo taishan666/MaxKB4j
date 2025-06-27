@@ -30,14 +30,6 @@ public class SwaggerConfig {
 
     }
 
-    // 默认分组（必须存在）
-/*    @Bean
-    public GroupedOpenApi defaultApi() {
-        return GroupedOpenApi.builder()
-                .group("default")
-                .pathsToMatch("/**")
-                .build();
-    }*/
 
     // 配置 GroupedOpenApi，只显示指定路径的接口
     @Bean

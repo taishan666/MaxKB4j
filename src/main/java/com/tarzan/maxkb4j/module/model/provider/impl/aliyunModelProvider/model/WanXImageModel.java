@@ -12,7 +12,10 @@ import dev.langchain4j.model.output.Response;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.nio.file.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.*;
 
 public class WanXImageModel implements ImageModel {
@@ -50,15 +53,14 @@ public class WanXImageModel implements ImageModel {
     public Response<Image> edit(Image image, String prompt) {
         ImageSynthesisParam param = paramBuilder.prompt(prompt).build();
         String imageUrl = imageUrl(image, param.getModel(), param.getApiKey());
-        Map<String, Object> headers=new HashMap<>();
         if (imageUrl.startsWith("oss://")) {
+            Map<String, Object> headers=new HashMap<>();
             headers.put("X-DashScope-OssResourceResolve", "enable");
-          //  imageUrl=imageUrl.replace("oss://", "http://dashscope-file-mgr.oss-cn-beijing.aliyuncs.com/");
+            param.setHeaders(headers);
         }
         System.out.println("function:"+param.getFunction());
         System.out.println("imageUrl:"+imageUrl);
         System.out.println("prompt:"+prompt);
-        param.setHeaders(headers);
         param.setBaseImageUrl(imageUrl);
         ImageSynthesis imageSynthesis = new ImageSynthesis("image2image");
         try {
@@ -104,7 +106,7 @@ public class WanXImageModel implements ImageModel {
             }
 
             String filePath = saveDataAsTemporaryFile(image.base64Data(), image.mimeType());
-
+            //imageUrl="file://"+filePath.replace("\\", "/");;
             try {
                 imageUrl = OSSUtils.upload(model, filePath, apiKey);
             } catch (NoApiKeyException e) {
