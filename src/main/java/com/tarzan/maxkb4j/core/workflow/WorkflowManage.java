@@ -344,11 +344,17 @@ public class WorkflowManage {
                 if (isResult(currentNode, currentResult)) {
                     if (result instanceof Stream<?> chatStream) {
                         chatStream.forEach(text -> {
-                            ChatMessageVO chunk=new ChatMessageVO(flowParams.getChatId(),flowParams.getChatRecordId(),text.toString(),runtimeNodeId,currentNode.getType(),view_type,false,false);
+                            String content=text.toString();
+                            String reasoningContent="";
+                            if (content.startsWith("<think>")&&content.endsWith("</think>")){
+                                reasoningContent=content.replace("<think>","").replace("</think>","");
+                                content="";
+                            }
+                            ChatMessageVO chunk=new ChatMessageVO(flowParams.getChatId(),flowParams.getChatRecordId(),content,reasoningContent,runtimeNodeId,currentNode.getType(),view_type,false,false);
                             currentNode.getNodeChunk().addChunk(chunk);
                         });
                     }
-                    ChatMessageVO endChunk=new ChatMessageVO(flowParams.getChatId(),flowParams.getChatRecordId(),"",currentNode.runtimeNodeId,currentNode.getType(),view_type,true,false);
+                    ChatMessageVO endChunk=new ChatMessageVO(flowParams.getChatId(),flowParams.getChatRecordId(),"","",currentNode.runtimeNodeId,currentNode.getType(),view_type,true,false);
                     currentNode.getNodeChunk().addChunk(endChunk);
                 }
             }
