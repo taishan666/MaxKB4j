@@ -23,11 +23,11 @@ public class SystemSettingService extends ServiceImpl<SystemSettingMapper, Syste
     }
 
     @Transactional
-    public boolean save(JSONObject meta,int type) {
+    public boolean saveOrUpdate(JSONObject meta,int type) {
         this.lambdaUpdate().eq(SystemSettingEntity::getType,1).remove();
         SystemSettingEntity systemSetting=new SystemSettingEntity();
         systemSetting.setMeta(meta);
-        systemSetting.setType(1);
-        return this.save(systemSetting);
+        systemSetting.setType(type);
+        return this.saveOrUpdate(systemSetting);
     }
 }
