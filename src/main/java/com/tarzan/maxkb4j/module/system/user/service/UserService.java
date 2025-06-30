@@ -87,6 +87,9 @@ public class UserService extends ServiceImpl<UserMapper, UserEntity> {
     public String login(UserLoginDTO dto, HttpServletRequest request) {
         HttpSession session = request.getSession();
         String sessionCaptcha = (String) session.getAttribute("captcha");
+        if (StringUtils.isBlank(sessionCaptcha)) {
+            throw new ApiException("验证码已过期");
+        }
         if (Objects.nonNull(dto.getCaptcha())&&!sessionCaptcha.equals(dto.getCaptcha().toLowerCase())){
             throw new ApiException("验证码错误");
         }
