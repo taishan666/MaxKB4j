@@ -51,10 +51,10 @@ public class StreamEmitter {
         return emitter;
     }
 
-    public void over(Object obj) {
+ /*   public void over(Object obj) {
         this.send(obj);
         this.complete();
-    }
+    }*/
 
     public void send(Object obj) {
         try {
@@ -62,6 +62,7 @@ public class StreamEmitter {
         } catch (IOException e) {
             throw new RuntimeException(e.getMessage());
         }
+        this.complete();
     }
 
     public void complete() {

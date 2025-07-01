@@ -22,8 +22,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.function.Function;
 import java.util.regex.Matcher;
@@ -44,35 +42,31 @@ public class WorkflowManage {
     private FlowParams flowParams;
     private LogicFlow flow;
     private JSONObject context = new JSONObject();
-   // private NodeChunkManage nodeChunkManage;
     private PostResponseHandler postResponseHandler;
     private INode currentNode;
     private NodeResult currentResult;
     private String answer = "";
     private StreamEmitter emitter;
-   // private List<String> answerList = new ArrayList<>(Collections.singletonList(""));x
     private int status = 200;
     private ApplicationChatRecordVO chatRecord;
     private JSONObject childNode; // 根据实际需要定义类型
     private final List<Future<?>> futureList = new ArrayList<>();
     private List<INode> nodeContext = new ArrayList<>();
-    private ExecutorService executorService = Executors.newFixedThreadPool(5);
 
     public WorkflowManage(LogicFlow flow, FlowParams flowParams,StreamEmitter emitter, PostResponseHandler postResponseHandler,
                           Map<String, Object> formData, List<ChatFile> imageList,
                           List<ChatFile> documentList, List<ChatFile> audioList, String startNodeId,
                           Map<String, Object> startNodeData, ApplicationChatRecordVO chatRecord, JSONObject childNode) {
         this.formData = formData;
-        this.imageList = imageList;
-        this.documentList = documentList;
-        this.audioList = audioList;
+        this.imageList = Objects.requireNonNullElseGet(imageList, ArrayList::new);
+        this.documentList = Objects.requireNonNullElseGet(documentList, ArrayList::new);;
+        this.audioList = Objects.requireNonNullElseGet(audioList, ArrayList::new);;
         this.flowParams = flowParams;
         this.emitter = emitter;
         this.flow = flow;
         this.postResponseHandler = postResponseHandler;
         this.chatRecord = chatRecord;
         this.childNode = childNode;
-       // this.nodeChunkManage = new NodeChunkManage();
         if (startNodeId != null) {
             this.startNodeId = startNodeId;
             this.loadNode(chatRecord, startNodeId, startNodeData);
@@ -81,39 +75,6 @@ public class WorkflowManage {
         }
     }
 
-
-/*    public List<String> getAnswerTextList() {
-        List<Answer> answerList = nodeContext.stream()
-                .map(INode::getAnswerList)
-                .filter(Objects::nonNull)
-                .flatMap(Collection::stream)
-                .toList();
-
-        List<String> result = new ArrayList<>();
-        Answer upNode = null;
-        for (Answer currentAnswer : answerList) {
-            if (!currentAnswer.getContent().isEmpty()) {
-                if (upNode == null || "single_view".equals(currentAnswer.getViewType()) ||
-                        ("many_view".equals(currentAnswer.getViewType()) && "single_view".equals(upNode.getViewType()))) {
-                    result.add(currentAnswer.getContent());
-                } else {
-                    if (!result.isEmpty()) {
-                        int execIndex = result.size() - 1;
-                        String content = result.get(execIndex);
-                        result.set(execIndex, (content.isEmpty() ? currentAnswer.getContent() : content + "\n\n" + currentAnswer.getContent()));
-                    } else {
-                        result.add(0, currentAnswer.getContent());
-                    }
-                }
-                upNode = currentAnswer;
-            }
-        }
-        if (result.isEmpty()) {
-            // 如果没有响应 就响应一个空数据
-            return Collections.singletonList("");
-        }
-        return result;
-    }*/
 
     public void loadNode(ApplicationChatRecordEntity chatRecord, String startNodeId, Map<String, Object> startNodeData) {
         nodeContext.clear();
@@ -153,7 +114,6 @@ public class WorkflowManage {
             }
             // 处理普通节点
             INode node = getNodeClsById(nodeId, (List<String>) nodeDetail.get("up_node_id_list"));
-           // node.saveContext(nodeDetail, this);
             nodeContext.add(node);
         }
     }
@@ -161,55 +121,13 @@ public class WorkflowManage {
     public void run() {
         context.put("start_time", System.currentTimeMillis());
         String language = "zh";
-        runChainManage(currentNode, null, language);
+        runChainManage(startNode, null, language);
         ChatMessageVO vo=new ChatMessageVO(flowParams.getChatId(),flowParams.getChatRecordId(),"",
                 true,true);
         emitter.send(vo);
         long startTime= context.getLongValue("start_time");
         postResponseHandler.handler(flowParams.getChatId(), flowParams.getChatRecordId(), flowParams.getQuestion(),answer,chatRecord,getRuntimeDetails(),startTime,flowParams.getClientId(),flowParams.getClientType());
-        System.out.println("结束");
     }
-
-
-    public void runStream(INode currentNode, NodeResultFuture nodeResultFuture, String language) {
-        runChainAsync(currentNode, nodeResultFuture, language);
-    }
-
-/*    public Flux<ChatMessageVO> awaitResult() {
-        NodeChunkManage nodeChunkManage = this.nodeChunkManage;
-       // WorkflowManage workflow = this;
-        // 使用 Sinks.Many 来创建一个事件驱动的异步流
-        Sinks.Many<ChatMessageVO> sink = Sinks.many().multicast().onBackpressureBuffer();
-        // 启动一个异步任务来监听 nodeChunkManage 的变化
-        executorService.submit(() -> {
-            try {
-                while (isRun()) {
-                    ChatMessageVO chunk = nodeChunkManage.pop();
-                    if (chunk != null) {
-                        // 将数据发送到 Sinks
-                        sink.tryEmitNext(chunk);
-                    }
-                }
-                ChatMessageVO endInfo=new ChatMessageVO(flowParams.getChatId(),flowParams.getChatRecordId(),"",true);
-                sink.tryEmitNext(endInfo);
-                sink.tryEmitComplete();
-                long startTime= context.getLongValue("start_time");
-                postResponseHandler.handler(flowParams.getChatId(), flowParams.getChatRecordId(), flowParams.getQuestion(),answer,chatRecord,getRuntimeDetails(),startTime,flowParams.getClientId(),flowParams.getClientType());
-            } catch (Exception e) {
-                sink.tryEmitError(e);
-            }
-        });
-        // 返回由 Sinks 转换为 Flux 的流
-        return sink.asFlux();
-    }*/
-
-
-    public void runChainAsync(INode currentNode, NodeResultFuture nodeResultFuture, String language) {
-        Future<?> future = executorService.submit(() -> runChainManage(currentNode, nodeResultFuture, language));
-        // 将Future对象添加到futureList列表中
-        futureList.add(future);
-    }
-
 
     public LfNode getStartNode() {
         return this.flow.getNodes().parallelStream().filter(node -> node.getType().equals("start-node")).findFirst().orElse(null);
@@ -224,7 +142,7 @@ public class WorkflowManage {
             LfNode startNode = getStartNode();
             currentNode = NodeFactory.getNode(startNode.getType(), startNode, flowParams, this);
         }
-        NodeResult result = runChain(currentNode, nodeResultFuture);
+        NodeResult result = runChainNode(currentNode, nodeResultFuture);
         // 获取下一个节点列表
         List<INode> nodeList = getNextNodeList(currentNode, result);
         if (nodeList.size() == 1) {
@@ -320,10 +238,8 @@ public class WorkflowManage {
     }
 
 
-    public NodeResult runChain(INode currentNode, NodeResultFuture nodeResultFuture) {
+    public NodeResult runChainNode(INode currentNode, NodeResultFuture nodeResultFuture) {
         assert currentNode != null;
-        // 添加节点块
-       // nodeChunkManage.addNodeChunk(currentNode.getNodeChunk());
         // 添加节点
         appendNode(currentNode);
         // 处理默认的nodeResultFuture
@@ -338,55 +254,6 @@ public class WorkflowManage {
             log.error("runChain error: {}",e.getMessage());
         }
         return null;
-    }
-
-    public NodeResult handEventNodeResult(INode currentNode, NodeResultFuture nodeResultFuture) {
-        String runtimeNodeId = currentNode.getRuntimeNodeId();
-        String view_type = currentNode.getViewType();
-        NodeResult currentResult = nodeResultFuture.getResult();
-/*        try {
-            Object result = currentResult.writeContext(currentNode, this);
-            if (result != null) {
-                if (isResult(currentNode, currentResult)) {
-                    if (result instanceof Stream<?> chatStream) {
-                        chatStream.forEach(text -> {
-                            String content=text.toString();
-                            String reasoningContent="";
-                            if (content.startsWith("<think>")&&content.endsWith("</think>")){
-                                reasoningContent=content.replace("<think>","").replace("</think>","");
-                                content="";
-                            }
-                            ChatMessageVO chunk=new ChatMessageVO(flowParams.getChatId(),flowParams.getChatRecordId(),content,reasoningContent,runtimeNodeId,currentNode.getType(),view_type,false,false);
-                            emitter.send(chunk);
-                        });
-                    }
-                    ChatMessageVO endChunk=new ChatMessageVO(flowParams.getChatId(),flowParams.getChatRecordId(),"","",currentNode.runtimeNodeId,currentNode.getType(),view_type,true,false);
-                    emitter.send(endChunk);
-                }
-            }
-        } catch (Exception e) {
-            log.error("node error ={}", e.getMessage());
-            ChatMessageVO errorChunk=new ChatMessageVO(flowParams.getChatId(),flowParams.getChatRecordId(),e.getMessage(),currentNode.runtimeNodeId,currentNode.getType(),view_type,true,false);
-            currentNode.getNodeChunk().addChunk(errorChunk);
-            currentNode.getWriteErrorContext(e);
-            this.status = 500;
-        } finally {
-            currentNode.getNodeChunk().end(null);
-        }*/
-        return currentResult;
-    }
-
-
-    public boolean isRun() {
-        List<Boolean> list = new ArrayList<>();
-        for (Future<?> future : futureList) {
-            list.add(future.isDone());
-        }
-        boolean flag = true;
-        for (Boolean b : list) {
-            flag = flag && b;
-        }
-        return !flag;
     }
 
 

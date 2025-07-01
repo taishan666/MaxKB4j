@@ -23,12 +23,15 @@ import com.tarzan.maxkb4j.module.application.enums.AuthType;
 import com.tarzan.maxkb4j.module.application.handler.PostResponseHandler;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatMapper;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationMapper;
+import com.tarzan.maxkb4j.module.application.ragpipeline.PipelineManage;
 import com.tarzan.maxkb4j.module.application.ragpipeline.step.chatstep.impl.BaseChatStep;
 import com.tarzan.maxkb4j.module.application.ragpipeline.step.resetproblemstep.impl.BaseResetProblemStep;
 import com.tarzan.maxkb4j.module.application.ragpipeline.step.searchdatasetstep.impl.SearchDatasetStep;
 import com.tarzan.maxkb4j.module.application.vo.ApplicationChatRecordVO;
 import com.tarzan.maxkb4j.module.application.vo.ChatMessageVO;
 import com.tarzan.maxkb4j.module.application.vo.ChatRecordDetailVO;
+import com.tarzan.maxkb4j.module.dataset.vo.ParagraphVO;
+import com.tarzan.maxkb4j.module.model.info.entity.ModelEntity;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
 import com.tarzan.maxkb4j.module.resource.service.MongoFileService;
 import com.tarzan.maxkb4j.util.StreamEmitter;
@@ -37,11 +40,13 @@ import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -182,14 +187,14 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
             emitter.send(new ChatMessageVO(chatId,  e.getMessage(), true));
         }
         if (chatInfo.getApplication().getType().equals("SIMPLE")) {
-           //  chatSimple(chatInfo, dto,emitter);
+             chatSimple(chatInfo, dto,emitter);
         } else {
              chatWorkflow(chatInfo, dto,emitter);
         }
         emitter.complete();
     }
 
-  /*  public ChatMessageVO chatSimple(ChatInfo chatInfo, ChatMessageDTO dto, StreamEmitter emitter) {
+    public void chatSimple(ChatInfo chatInfo, ChatMessageDTO dto, StreamEmitter emitter) {
         String modelId = chatInfo.getApplication().getModelId();
         ModelEntity model = modelService.getById(modelId);
         if (Objects.isNull(model) || !"SUCCESS".equals(model.getStatus())) {
@@ -220,10 +225,9 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
         }
         pipelineManageBuilder.addStep(baseChatStep);
         PipelineManage pipelineManage = pipelineManageBuilder.build();
-
         Map<String, Object> params = chatInfo.toPipelineManageParams(problemText, postResponseHandler, excludeParagraphIds, dto.getClientId(), dto.getClientType(), stream);
         pipelineManage.run(params,emitter);
-    }*/
+    }
 
     public void chatWorkflow(ChatInfo chatInfo, ChatMessageDTO dto,StreamEmitter emitter) {
         ApplicationChatRecordVO chatRecord = null;
