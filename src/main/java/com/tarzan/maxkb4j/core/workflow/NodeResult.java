@@ -3,7 +3,6 @@ package com.tarzan.maxkb4j.core.workflow;
 import lombok.Data;
 
 import java.util.Map;
-import java.util.stream.Stream;
 
 import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.FORM;
 import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.USER_SELECT;
@@ -42,14 +41,9 @@ public class NodeResult {
         return (USER_SELECT.getKey().equals(node.getType())|| FORM.getKey().equals(node.getType())) && !(boolean)node.getContext().get("is_submit");
     }
 
-    public Stream<String> defaultWriteContextFunc(Map<String, Object> stepVariable, Map<String, Object> globalVariable, INode node, WorkflowManage workflow) {
-        Stream.Builder<String> steambuilder = Stream.builder();
+    public void defaultWriteContextFunc(Map<String, Object> stepVariable, Map<String, Object> globalVariable, INode node, WorkflowManage workflow) {
         if (stepVariable != null) {
             node.context.putAll(stepVariable);
-            if (workflow.isResult(node, new NodeResult(stepVariable, globalVariable)) && stepVariable.containsKey("answer")) {
-                node.answerText = (String) stepVariable.get("answer");
-                steambuilder.add(node.answerText);
-            }
         }
         if (globalVariable != null) {
             workflow.getContext().putAll(globalVariable);
@@ -58,13 +52,12 @@ public class NodeResult {
             long runTime = System.currentTimeMillis() - (long)node.context.get("start_time");
             node.context.put("runTime", runTime / 1000F);
         }
-        return steambuilder.build();
     }
 
 
     @FunctionalInterface
     public interface WriteContextFunction {
-        Object apply(Map<String, Object> nodeVariable, Map<String, Object> workflowVariable, INode node, WorkflowManage workflow);
+        void apply(Map<String, Object> nodeVariable, Map<String, Object> workflowVariable, INode node, WorkflowManage workflow);
     }
 
     @FunctionalInterface

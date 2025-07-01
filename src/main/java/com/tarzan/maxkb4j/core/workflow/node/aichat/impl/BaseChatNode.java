@@ -92,12 +92,18 @@ public class BaseChatNode extends INode {
         TokenStream tokenStream = assistant.chatStream(problemText);
         CountDownLatch latch = new CountDownLatch(1); // 创建一个计数为1的Latch
         boolean isResult = nodeParams.getIsResult();
-        tokenStream.onPartialResponse(text -> {
+        tokenStream.onPartialResponse(content -> {
                     if (isResult) {
+                        String reasoningContent="";
+                        if (content.startsWith("<think>")&&content.endsWith("</think>")){
+                            reasoningContent=content.replace("<think>","").replace("</think>","");
+                            content="";
+                        }
                         ChatMessageVO vo = new ChatMessageVO(
                                 flowParams.getChatId(),
                                 flowParams.getChatRecordId(),
-                                text,
+                                content,
+                                reasoningContent,
                                 runtimeNodeId,
                                 type,
                                 "many_view",
@@ -114,8 +120,6 @@ public class BaseChatNode extends INode {
                     context.put("answerTokens", tokenUsage.outputTokenCount());
                     context.put("answer", answer);
                     context.put("reasoning_content", "");
-                    long runTime = System.currentTimeMillis() - (long) context.get("start_time");
-                    context.put("runTime", runTime / 1000F);
                     ChatMessageVO vo = new ChatMessageVO(
                             flowParams.getChatId(),
                             flowParams.getChatRecordId(),
