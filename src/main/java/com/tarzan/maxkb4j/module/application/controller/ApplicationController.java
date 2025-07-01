@@ -160,8 +160,7 @@ public class ApplicationController {
     public ResponseEntity<byte[]> playDemoText(@PathVariable("appId") String appId, @RequestBody JSONObject data) {
         // 设置 HTTP 响应头
         HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.parseMediaType("audio/mp3"));
-        headers.setContentDispositionFormData("attachment", "abc.mp3");
+        headers.setContentType(MediaType.parseMediaType("audio/wav"));
         return new ResponseEntity<>(applicationService.playDemoText(appId, data), headers, HttpStatus.OK);
     }
 
@@ -171,7 +170,6 @@ public class ApplicationController {
         // 设置 HTTP 响应头
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.parseMediaType("audio/mp3"));
-        headers.setContentDispositionFormData("attachment", "abc.mp3");
         return new ResponseEntity<>(applicationService.textToSpeech(appId, data), headers, HttpStatus.OK);
     }
 
