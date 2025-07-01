@@ -186,6 +186,7 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
         } else {
              chatWorkflow(chatInfo, dto,emitter);
         }
+        emitter.complete();
     }
 
   /*  public ChatMessageVO chatSimple(ChatInfo chatInfo, ChatMessageDTO dto, StreamEmitter emitter) {

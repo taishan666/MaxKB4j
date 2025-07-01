@@ -44,33 +44,31 @@ public class BaseChatNode extends INode {
     private final ChatMemoryStore chatMemoryStore;
 
     public BaseChatNode() {
-        this.type=AI_CHAT.getKey();
+        this.type = AI_CHAT.getKey();
         this.modelService = SpringUtil.getBean(ModelService.class);
         this.chatMemoryStore = SpringUtil.getBean(ChatMemoryStore.class);
     }
 
 
-
-
     @Override
     public NodeResult execute() throws Exception {
         System.out.println(AI_CHAT);
-        ChatNodeParams nodeParams= super.nodeParams.toJavaObject(ChatNodeParams.class);
+        ChatNodeParams nodeParams = super.nodeParams.toJavaObject(ChatNodeParams.class);
         if (Objects.isNull(nodeParams.getDialogueType())) {
             nodeParams.setDialogueType("WORKFLOW");
         }
-        List<String> fields=nodeParams.getDatasetReferenceAddress();
-        List<ParagraphVO> paragraphList =new ArrayList<>();
-        if(!CollectionUtils.isEmpty(fields)&&fields.size()>1){
-            Object res=workflowManage.getReferenceField(fields.get(0),fields.subList(1, fields.size()));
+        List<String> fields = nodeParams.getDatasetReferenceAddress();
+        List<ParagraphVO> paragraphList = new ArrayList<>();
+        if (!CollectionUtils.isEmpty(fields) && fields.size() > 1) {
+            Object res = workflowManage.getReferenceField(fields.get(0), fields.subList(1, fields.size()));
             paragraphList = (List<ParagraphVO>) res;
         }
         BaseChatModel chatModel = modelService.getModelById(nodeParams.getModelId(), nodeParams.getModelParamsSetting());
         List<ChatMessage> historyMessage = workflowManage.getHistoryMessage(flowParams.getHistoryChatRecord(), nodeParams.getDialogueNumber(), nodeParams.getDialogueType(), runtimeNodeId);
-        List<String> questionFields=nodeParams.getQuestionReferenceAddress();
-        String problemText= (String)workflowManage.getReferenceField(questionFields.get(0),questionFields.subList(1, questionFields.size()));
+        List<String> questionFields = nodeParams.getQuestionReferenceAddress();
+        String problemText = (String) workflowManage.getReferenceField(questionFields.get(0), questionFields.subList(1, questionFields.size()));
         String systemPrompt = workflowManage.generatePrompt(nodeParams.getSystem());
-        String system= StringUtil.isBlank(systemPrompt)?"You're an intelligent assistant.":systemPrompt;
+        String system = StringUtil.isBlank(systemPrompt) ? "You're an intelligent assistant." : systemPrompt;
         ContentInjector contentInjector = DefaultContentInjector.builder()
                 .promptTemplate(RAG_PROMPT_TEMPLATE)
                 .build();
@@ -86,24 +84,27 @@ public class BaseChatNode extends INode {
                 .chatMemoryStore(chatMemoryStore)
                 .build();
         Assistant assistant = MyAiServices.builder(Assistant.class)
-                .systemMessageProvider(chatMemoryId ->system)
+                .systemMessageProvider(chatMemoryId -> system)
                 .chatMemory(chatMemory)
                 .retrievalAugmentor(retrievalAugmentor)
                 .streamingChatModel(chatModel.getStreamingChatModel())
                 .build();
         TokenStream tokenStream = assistant.chatStream(problemText);
         CountDownLatch latch = new CountDownLatch(1); // 创建一个计数为1的Latch
+        boolean isResult = nodeParams.getIsResult();
         tokenStream.onPartialResponse(text -> {
-                    ChatMessageVO vo=new ChatMessageVO(
-                            flowParams.getChatId(),
-                            flowParams.getChatRecordId(),
-                            text,
-                            runtimeNodeId,
-                            type,
-                            "many_view",
-                            false,
-                            false);
-                    emitter.send(vo);
+                    if (isResult) {
+                        ChatMessageVO vo = new ChatMessageVO(
+                                flowParams.getChatId(),
+                                flowParams.getChatRecordId(),
+                                text,
+                                runtimeNodeId,
+                                type,
+                                "many_view",
+                                false,
+                                false);
+                        emitter.send(vo);
+                    }
                 })
                 .onCompleteResponse(response -> {
                     String answer = response.aiMessage().text();
@@ -112,9 +113,10 @@ public class BaseChatNode extends INode {
                     context.put("messageTokens", tokenUsage.inputTokenCount());
                     context.put("answerTokens", tokenUsage.outputTokenCount());
                     context.put("answer", answer);
+                    context.put("reasoning_content", "");
                     long runTime = System.currentTimeMillis() - (long) context.get("start_time");
                     context.put("runTime", runTime / 1000F);
-                    ChatMessageVO vo=new ChatMessageVO(
+                    ChatMessageVO vo = new ChatMessageVO(
                             flowParams.getChatId(),
                             flowParams.getChatRecordId(),
                             "",
@@ -131,7 +133,6 @@ public class BaseChatNode extends INode {
         // 阻塞当前线程直到 countDown 被调用
         latch.await();
         Map<String, Object> nodeVariable = Map.of(
-                "result", tokenStream,
                 "system", system,
                 "chat_model", chatModel,
                 "message_list", chatMemory.messages(),

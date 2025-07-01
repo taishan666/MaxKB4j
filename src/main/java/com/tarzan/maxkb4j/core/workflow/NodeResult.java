@@ -30,8 +30,8 @@ public class NodeResult {
     }
 
 
-    public Object writeContext(INode currentNode, WorkflowManage workflowManage) {
-        return this.writeContextFunc.apply(nodeVariable, globalVariable, currentNode, workflowManage);
+    public void writeContext(INode currentNode, WorkflowManage workflowManage) {
+        this.writeContextFunc.apply(nodeVariable, globalVariable, currentNode, workflowManage);
     }
 
     public boolean isInterruptExec(INode currentNode) {

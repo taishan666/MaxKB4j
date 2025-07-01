@@ -44,7 +44,7 @@ public class WorkflowManage {
     private FlowParams flowParams;
     private LogicFlow flow;
     private JSONObject context = new JSONObject();
-    private NodeChunkManage nodeChunkManage;
+   // private NodeChunkManage nodeChunkManage;
     private PostResponseHandler postResponseHandler;
     private INode currentNode;
     private NodeResult currentResult;
@@ -161,9 +161,7 @@ public class WorkflowManage {
     public void run() {
         context.put("start_time", System.currentTimeMillis());
         String language = "zh";
-      //  runStream(startNode, null, language);
         runChainManage(currentNode, null, language);
-        System.out.println("流程结束");
         ChatMessageVO vo=new ChatMessageVO(flowParams.getChatId(),flowParams.getChatRecordId(),"",
                 true,true);
         emitter.send(vo);
