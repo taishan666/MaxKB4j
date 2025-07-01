@@ -10,7 +10,7 @@ public class ChatMessageVO {
     private String chatRecordId;
     private String content;
     private String reasoning_content;
-   // private Boolean operate;
+    private Boolean operate=false;
     private String nodeId;
     private String nodeType;
     private String viewType;

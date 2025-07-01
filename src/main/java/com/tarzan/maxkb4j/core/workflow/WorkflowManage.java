@@ -175,10 +175,6 @@ public class WorkflowManage {
 
     public void runStream(INode currentNode, NodeResultFuture nodeResultFuture, String language) {
         runChainAsync(currentNode, nodeResultFuture, language);
-        ChatMessageVO endInfo=new ChatMessageVO(flowParams.getChatId(),flowParams.getChatRecordId(),"",true);
-        emitter.over(endInfo);
-        long startTime= context.getLongValue("start_time");
-        postResponseHandler.handler(flowParams.getChatId(), flowParams.getChatRecordId(), flowParams.getQuestion(),answer,chatRecord,getRuntimeDetails(),startTime,flowParams.getClientId(),flowParams.getClientType());
     }
 
 /*    public Flux<ChatMessageVO> awaitResult() {

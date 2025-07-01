@@ -94,8 +94,15 @@ public class BaseChatNode extends INode {
         TokenStream tokenStream = assistant.chatStream(problemText);
         CountDownLatch latch = new CountDownLatch(1); // 创建一个计数为1的Latch
         tokenStream.onPartialResponse(text -> {
-                    ChatMessageVO vo=new ChatMessageVO(flowParams.getChatId(),flowParams.getChatRecordId(),text,
-                            false,false);
+                    ChatMessageVO vo=new ChatMessageVO(
+                            flowParams.getChatId(),
+                            flowParams.getChatRecordId(),
+                            text,
+                            runtimeNodeId,
+                            type,
+                            "many_view",
+                            false,
+                            false);
                     emitter.send(vo);
                 })
                 .onCompleteResponse(response -> {
@@ -107,19 +114,22 @@ public class BaseChatNode extends INode {
                     context.put("answer", answer);
                     long runTime = System.currentTimeMillis() - (long) context.get("start_time");
                     context.put("runTime", runTime / 1000F);
-                    System.out.println("ai节点回答结束");
-                    ChatMessageVO vo=new ChatMessageVO(flowParams.getChatId(),flowParams.getChatRecordId(),"",
-                            true,false);
+                    ChatMessageVO vo=new ChatMessageVO(
+                            flowParams.getChatId(),
+                            flowParams.getChatRecordId(),
+                            "",
+                            runtimeNodeId,
+                            type,
+                            "many_view",
+                            true,
+                            false);
                     emitter.send(vo);
                     latch.countDown(); // 完成后释放线程
                 })
                 .onError(error -> emitter.error(error.getMessage()))
                 .start();
-        try {
-            latch.await(); // 阻塞当前线程直到 countDown 被调用
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
+        // 阻塞当前线程直到 countDown 被调用
+        latch.await();
         Map<String, Object> nodeVariable = Map.of(
                 "result", tokenStream,
                 "system", system,
@@ -128,7 +138,6 @@ public class BaseChatNode extends INode {
                 "history_message", historyMessage,
                 "question", problemText
         );
-        System.out.println("ai节点结束");
         return new NodeResult(nodeVariable, Map.of());
     }
 
