@@ -3,8 +3,8 @@ package com.tarzan.maxkb4j.core.workflow.node.aichat.impl;
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.NodeResult;
-import com.tarzan.maxkb4j.core.workflow.WorkflowManage;
 import com.tarzan.maxkb4j.core.workflow.node.aichat.input.ChatNodeParams;
+import com.tarzan.maxkb4j.module.application.vo.ChatMessageVO;
 import com.tarzan.maxkb4j.module.assistant.Assistant;
 import com.tarzan.maxkb4j.module.dataset.vo.ParagraphVO;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
@@ -27,13 +27,12 @@ import dev.langchain4j.service.TokenStream;
 import dev.langchain4j.store.memory.chat.ChatMemoryStore;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.CollectionUtils;
-import reactor.core.publisher.Sinks;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.stream.Stream;
+import java.util.concurrent.CountDownLatch;
 
 import static com.tarzan.maxkb4j.core.constant.PromptTemplates.RAG_PROMPT_TEMPLATE;
 import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.AI_CHAT;
@@ -52,28 +51,6 @@ public class BaseChatNode extends INode {
 
 
 
-    private Stream<String> writeContextStream(Map<String, Object> nodeVariable, Map<String, Object> workflowVariable, INode currentNode, WorkflowManage workflow) {
-        TokenStream tokenStream = (TokenStream) nodeVariable.get("result");
-        Sinks.Many<String> sink = Sinks.many().multicast().onBackpressureBuffer();
-        tokenStream.onPartialResponse(sink::tryEmitNext)
-                .onCompleteResponse(response -> {
-                    String answer = response.aiMessage().text();
-                    workflow.setAnswer(answer);
-                    TokenUsage tokenUsage = response.tokenUsage();
-                    context.put("messageTokens", tokenUsage.inputTokenCount());
-                    context.put("answerTokens", tokenUsage.outputTokenCount());
-                    context.put("answer", answer);
-                    context.put("system", nodeVariable.get("system"));
-                    context.put("question", nodeVariable.get("question"));
-                    context.put("history_message", nodeVariable.get("history_message"));
-                    long runTime = System.currentTimeMillis() - (long) context.get("start_time");
-                    context.put("runTime", runTime / 1000F);
-                    sink.tryEmitComplete();
-                })
-                .onError(error -> sink.tryEmitNext(error.getMessage()))
-                .start();
-        return sink.asFlux().toStream();
-    }
 
     @Override
     public NodeResult execute() throws Exception {
@@ -115,6 +92,34 @@ public class BaseChatNode extends INode {
                 .streamingChatModel(chatModel.getStreamingChatModel())
                 .build();
         TokenStream tokenStream = assistant.chatStream(problemText);
+        CountDownLatch latch = new CountDownLatch(1); // 创建一个计数为1的Latch
+        tokenStream.onPartialResponse(text -> {
+                    ChatMessageVO vo=new ChatMessageVO(flowParams.getChatId(),flowParams.getChatRecordId(),text,
+                            false,false);
+                    emitter.send(vo);
+                })
+                .onCompleteResponse(response -> {
+                    String answer = response.aiMessage().text();
+                    //workflow.setAnswer(answer);
+                    TokenUsage tokenUsage = response.tokenUsage();
+                    context.put("messageTokens", tokenUsage.inputTokenCount());
+                    context.put("answerTokens", tokenUsage.outputTokenCount());
+                    context.put("answer", answer);
+                    long runTime = System.currentTimeMillis() - (long) context.get("start_time");
+                    context.put("runTime", runTime / 1000F);
+                    System.out.println("ai节点回答结束");
+                    ChatMessageVO vo=new ChatMessageVO(flowParams.getChatId(),flowParams.getChatRecordId(),"",
+                            true,false);
+                    emitter.send(vo);
+                    latch.countDown(); // 完成后释放线程
+                })
+                .onError(error -> emitter.error(error.getMessage()))
+                .start();
+        try {
+            latch.await(); // 阻塞当前线程直到 countDown 被调用
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
         Map<String, Object> nodeVariable = Map.of(
                 "result", tokenStream,
                 "system", system,
@@ -123,7 +128,8 @@ public class BaseChatNode extends INode {
                 "history_message", historyMessage,
                 "question", problemText
         );
-        return new NodeResult(nodeVariable, Map.of(), this::writeContextStream);
+        System.out.println("ai节点结束");
+        return new NodeResult(nodeVariable, Map.of());
     }
 
 

@@ -28,6 +28,7 @@ import com.tarzan.maxkb4j.module.rag.MyAiServices;
 import com.tarzan.maxkb4j.module.rag.MyChatMemory;
 import com.tarzan.maxkb4j.module.rag.MyContentRetriever;
 import com.tarzan.maxkb4j.util.GroovyScriptExecutor;
+import com.tarzan.maxkb4j.util.StreamEmitter;
 import dev.langchain4j.agent.tool.ToolExecutionRequest;
 import dev.langchain4j.agent.tool.ToolSpecification;
 import dev.langchain4j.data.message.AiMessage;
@@ -39,6 +40,7 @@ import dev.langchain4j.mcp.client.McpClient;
 import dev.langchain4j.mcp.client.transport.http.HttpMcpTransport;
 import dev.langchain4j.memory.ChatMemory;
 import dev.langchain4j.model.chat.request.json.*;
+import dev.langchain4j.model.chat.response.ChatResponse;
 import dev.langchain4j.model.output.TokenUsage;
 import dev.langchain4j.rag.DefaultRetrievalAugmentor;
 import dev.langchain4j.rag.RetrievalAugmentor;
@@ -57,13 +59,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.jsoup.internal.StringUtil;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Sinks;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static com.tarzan.maxkb4j.core.constant.PromptTemplates.RAG_PROMPT_TEMPLATE;
 
@@ -79,7 +80,7 @@ public class BaseChatStep extends IChatStep {
     private final FunctionLibService functionLibService;
 
     @Override
-    protected Flux<ChatMessageVO> execute(PipelineManage manage) {
+    protected ChatMessageVO execute(PipelineManage manage) {
         JSONObject context = manage.context;
         String chatId = context.getString("chatId");
         List<ParagraphVO> paragraphList = (List<ParagraphVO>) context.get("paragraph_list");
@@ -90,15 +91,16 @@ public class BaseChatStep extends IChatStep {
         return getFluxResult(chatId, paragraphList, problemText, application, manage, postResponseHandler, stream);
     }
 
-    private Flux<ChatMessageVO> getFluxResult(String chatId,
+    private ChatMessageVO getFluxResult(String chatId,
                                                List<ParagraphVO> paragraphList,
                                                String problemText,
                                                ApplicationEntity application,
                                                PipelineManage manage,
                                                PostResponseHandler postResponseHandler,
                                                boolean stream) {
+        ChatMessageVO result = new ChatMessageVO(chatId, null, true);
         String chatRecordId = IdWorker.get32UUID();
-        Sinks.Many<ChatMessageVO> sink = Sinks.many().multicast().onBackpressureBuffer();
+        StreamEmitter emitter= manage.emitter;
         if (CollectionUtils.isEmpty(paragraphList)) {
             paragraphList = new ArrayList<>();
         }
@@ -116,23 +118,19 @@ public class BaseChatStep extends IChatStep {
         BaseChatModel chatModel = modelService.getModelById(modelId, params);
         if (chatModel == null) {
             String text = "抱歉，没有配置 AI 模型，无法优化引用分段，请先去应用中设置 AI 模型。";
-            sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, text, true));
+            emitter.over(new ChatMessageVO(chatId, chatRecordId, text, true));
         } else {
             String status = noReferencesSetting.getStatus();
             if (!CollectionUtils.isEmpty(directlyReturnChunkList)) {
                 String text = directlyReturnChunkList.get(0).text();
-                sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, text, true));
-                sink.tryEmitComplete();
+                emitter.over(new ChatMessageVO(chatId, chatRecordId, text, true));
             } else if (paragraphList.isEmpty() && "designated_answer".equals(status)) {
                 String value = noReferencesSetting.getValue();
                 String text = value.replace("{question}", problemText);
-                sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, text, true));
-                sink.tryEmitComplete();
+                emitter.over(new ChatMessageVO(chatId, chatRecordId, text, true));
             } else {
                 int dialogueNumber = application.getDialogueNumber();
                 String systemText = application.getModelSetting().getSystem();
-                int messageTokens = manage.context.getInteger("messageTokens");
-                int answerTokens = manage.context.getInteger("answerTokens");
                 String clientId = manage.context.getString("client_id");
                 String clientType = manage.context.getString("client_type");
                 ChatMemory chatMemory = MyChatMemory.builder()
@@ -176,40 +174,41 @@ public class BaseChatStep extends IChatStep {
                         .tools(getTools(application.getFunctionIdList()))
                         .toolProvider(toolProvider)
                         .build();
-                if (stream) {
                     if (StringUtil.isBlank(problemText)) {
-                        context.put("messageTokens", messageTokens);
-                        context.put("answerTokens", answerTokens);
-                        sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, "用户消息不能为空", true));
-                        sink.tryEmitComplete();
+                        emitter.send(new ChatMessageVO(chatId, chatRecordId, "用户消息不能为空", true));
                     } else {
-                        TokenStream tokenStream = assistant.chatStream(problemText);
-                        tokenStream.onToolExecuted((ToolExecution toolExecution) -> System.out.println("toolExecution="+toolExecution))
-                                .onPartialResponse(text -> sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, text, false)))
-                                .onCompleteResponse(response -> {
-                                    String answerText = response.aiMessage().text();
-                                    TokenUsage tokenUsage = response.tokenUsage();
-                                    int thisMessageTokens = tokenUsage.inputTokenCount();
-                                    int thisAnswerTokens = tokenUsage.outputTokenCount();
-                                    context.put("messageTokens", messageTokens + thisMessageTokens);
-                                    context.put("answerTokens", answerTokens + thisAnswerTokens);
-                                    addAccessNum(clientId, clientType);
-                                    sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, "", true,(messageTokens + thisMessageTokens),(answerTokens + thisAnswerTokens)));
-                                    sink.tryEmitComplete();
-                                    long startTime = manage.context.getLong("start_time");
-                                    postResponseHandler.handler(chatId, chatRecordId, problemText, answerText, null,manage.getDetails(),startTime, clientId,clientType);
-                                })
-                                .onError(error -> {
-                                    sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, "", true));
-                                    sink.tryEmitComplete();
-                                })
-                                .start();
+                        AtomicReference<String> answerText = new AtomicReference<>("");
+                        if (stream) {
+                            TokenStream tokenStream = assistant.chatStream(problemText);
+                            tokenStream.onToolExecuted((ToolExecution toolExecution) -> System.out.println("toolExecution="+toolExecution))
+                                    .onPartialResponse(text -> emitter.send(new ChatMessageVO(chatId, chatRecordId, text, false)))
+                                    .onCompleteResponse(response -> {
+                                        answerText.set(response.aiMessage().text());
+                                        TokenUsage tokenUsage = response.tokenUsage();
+                                        context.put("messageTokens", tokenUsage.inputTokenCount());
+                                        context.put("answerTokens",tokenUsage.outputTokenCount());
+                                        addAccessNum(clientId, clientType);
+                                        emitter.over(new ChatMessageVO(chatId, chatRecordId, "", true,tokenUsage.inputTokenCount(),tokenUsage.outputTokenCount()));
+                                    })
+                                    .onError(error -> {
+                                        emitter.error(new ChatMessageVO(chatId, chatRecordId, "", true));
+                                    })
+                                    .start();
+                        }else {
+                            ChatResponse response = assistant.chat(problemText);
+                            TokenUsage tokenUsage = response.tokenUsage();
+                            answerText.set(response.aiMessage().text());
+                            emitter.over(new ChatMessageVO(chatId, chatRecordId, "", true,tokenUsage.inputTokenCount(),tokenUsage.outputTokenCount()));
+                        }
+                        long startTime = manage.context.getLong("start_time");
+                        postResponseHandler.handler(chatId, chatRecordId, problemText, answerText.get(), null,manage.getDetails(),startTime, clientId,clientType);
                     }
-                }
             }
         }
-        return sink.asFlux();
+        return null;
+
     }
+
 
     public JSONArray resetMessageList(JSONArray messageList, String answerText) {
         if (CollectionUtils.isEmpty(messageList)) {
@@ -248,8 +247,8 @@ public class BaseChatStep extends IChatStep {
         details.put("runTime", (System.currentTimeMillis() - startTime) / 1000F);
         details.put("modelId", context.get("modelId"));
         details.put("message_list", resetMessageList(context.getJSONArray("message_list"), context.getString("answer_text")));
-        details.put("messageTokens", context.get("messageTokens"));
-        details.put("answerTokens", context.get("answerTokens"));
+        details.put("messageTokens", context.getOrDefault("messageTokens",0));
+        details.put("answerTokens", context.getOrDefault("answerTokens",0));
         details.put("cost", 0);
         return details;
     }

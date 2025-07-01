@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.workflow.dto.Answer;
 import com.tarzan.maxkb4j.core.workflow.logic.LfNode;
 import com.tarzan.maxkb4j.core.workflow.dto.FlowParams;
+import com.tarzan.maxkb4j.util.StreamEmitter;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.SystemMessage;
@@ -31,8 +32,9 @@ public abstract class INode {
     protected String answerText;
     protected String id;
     protected List<String> lastNodeIdList;
-    protected NodeChunk nodeChunk;
+  //  protected NodeChunk nodeChunk;
     protected String runtimeNodeId;
+    protected StreamEmitter emitter;
 
 
     public INode() {
@@ -44,7 +46,7 @@ public abstract class INode {
         this.id = lfNode.getId();
         this.lfNode = lfNode;
         this.nodeParams = getNodeParams(lfNode);
-        this.nodeChunk = new NodeChunk(this.id);
+      //  this.nodeChunk = new NodeChunk(this.id);
     }
 
     public void setLastNodeIdList(List<String> lastNodeIdList) {
@@ -188,7 +190,6 @@ public abstract class INode {
                 ", answerText='" + answerText + '\'' +
                 ", id='" + id + '\'' +
                 ", lastNodeIdList=" + lastNodeIdList +
-                ", nodeChunk=" + nodeChunk +
                 ", runtimeNodeId='" + runtimeNodeId + '\'' +
                 '}';
     }

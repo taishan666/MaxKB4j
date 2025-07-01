@@ -11,14 +11,14 @@ import com.tarzan.maxkb4j.module.application.entity.ApplicationChatRecordEntity;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationEntity;
 import com.tarzan.maxkb4j.module.application.service.ApplicationChatService;
 import com.tarzan.maxkb4j.module.application.vo.ApplicationChatRecordVO;
-import com.tarzan.maxkb4j.module.application.vo.ChatMessageVO;
+import com.tarzan.maxkb4j.util.StreamEmitter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import reactor.core.publisher.Flux;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
 import java.util.List;
@@ -66,13 +66,25 @@ public class ApplicationChatController {
         return R.success(chatService.chatOpen(appId));
     }
 
-    @PostMapping(path = "api/application/chat_message/{chatId}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+/*    @PostMapping(path = "api/application/chat_message/{chatId}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<ChatMessageVO> chatMessage(@PathVariable String chatId, @RequestBody ChatMessageDTO params) {
         String clientId = (String) StpUtil.getExtra("client_id");
         String clientType = (String) StpUtil.getExtra("client_type");
         params.setClientId(clientId);
         params.setClientType(clientType);
         return chatService.chatMessage(chatId, params);
+    }*/
+
+    @PostMapping(path = "api/application/chat_message/{chatId}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public SseEmitter chatMessage(@PathVariable String chatId, @RequestBody ChatMessageDTO params) {
+        StreamEmitter emitter = new StreamEmitter();
+        String clientId = (String) StpUtil.getExtra("client_id");
+        String clientType = (String) StpUtil.getExtra("client_type");
+        params.setClientId(clientId);
+        params.setClientType(clientType);
+        params.setEmitter(emitter);
+        chatService.chatMessage(chatId, params,emitter);
+        return emitter.get();
     }
 
     @PutMapping("api/application/{id}/chat/{chatId}/chat_record/{chatRecordId}/vote")

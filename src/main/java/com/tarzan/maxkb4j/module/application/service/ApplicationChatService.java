@@ -11,42 +11,37 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tarzan.maxkb4j.core.exception.ApiException;
 import com.tarzan.maxkb4j.core.workflow.WorkflowManage;
 import com.tarzan.maxkb4j.core.workflow.dto.ChatFile;
-import com.tarzan.maxkb4j.core.workflow.logic.LogicFlow;
 import com.tarzan.maxkb4j.core.workflow.dto.FlowParams;
+import com.tarzan.maxkb4j.core.workflow.logic.LogicFlow;
 import com.tarzan.maxkb4j.module.application.cache.ChatCache;
-import com.tarzan.maxkb4j.module.application.ragpipeline.PipelineManage;
-import com.tarzan.maxkb4j.module.application.handler.PostResponseHandler;
-import com.tarzan.maxkb4j.module.application.ragpipeline.step.chatstep.impl.BaseChatStep;
-import com.tarzan.maxkb4j.module.application.ragpipeline.step.resetproblemstep.impl.BaseResetProblemStep;
-import com.tarzan.maxkb4j.module.application.ragpipeline.step.searchdatasetstep.impl.SearchDatasetStep;
 import com.tarzan.maxkb4j.module.application.dto.ChatInfo;
 import com.tarzan.maxkb4j.module.application.dto.ChatMessageDTO;
 import com.tarzan.maxkb4j.module.application.dto.ChatQueryDTO;
 import com.tarzan.maxkb4j.module.application.entity.*;
 import com.tarzan.maxkb4j.module.application.enums.AppType;
 import com.tarzan.maxkb4j.module.application.enums.AuthType;
+import com.tarzan.maxkb4j.module.application.handler.PostResponseHandler;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatMapper;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationMapper;
+import com.tarzan.maxkb4j.module.application.ragpipeline.step.chatstep.impl.BaseChatStep;
+import com.tarzan.maxkb4j.module.application.ragpipeline.step.resetproblemstep.impl.BaseResetProblemStep;
+import com.tarzan.maxkb4j.module.application.ragpipeline.step.searchdatasetstep.impl.SearchDatasetStep;
 import com.tarzan.maxkb4j.module.application.vo.ApplicationChatRecordVO;
 import com.tarzan.maxkb4j.module.application.vo.ChatMessageVO;
 import com.tarzan.maxkb4j.module.application.vo.ChatRecordDetailVO;
-import com.tarzan.maxkb4j.module.dataset.vo.ParagraphVO;
-import com.tarzan.maxkb4j.module.model.info.entity.ModelEntity;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
 import com.tarzan.maxkb4j.module.resource.service.MongoFileService;
+import com.tarzan.maxkb4j.util.StreamEmitter;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.CollectionUtils;
 import org.springframework.web.multipart.MultipartFile;
-import reactor.core.publisher.Flux;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -179,21 +174,21 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
     }
 
 
-    public Flux<ChatMessageVO> chatMessage(String chatId, ChatMessageDTO dto) {
+    public void chatMessage(String chatId, ChatMessageDTO dto, StreamEmitter emitter) {
         ChatInfo chatInfo = getChatInfo(chatId);
         try {
             isValidApplication(chatInfo, dto.getClientId(), dto.getClientType());
         } catch (Exception e) {
-            return Flux.just(new ChatMessageVO(chatId,  e.getMessage(), true));
+            emitter.send(new ChatMessageVO(chatId,  e.getMessage(), true));
         }
         if (chatInfo.getApplication().getType().equals("SIMPLE")) {
-            return chatSimple(chatInfo, dto);
+           //  chatSimple(chatInfo, dto,emitter);
         } else {
-            return chatWorkflow(chatInfo, dto);
+             chatWorkflow(chatInfo, dto,emitter);
         }
     }
 
-    public Flux<ChatMessageVO> chatSimple(ChatInfo chatInfo, ChatMessageDTO dto) {
+  /*  public ChatMessageVO chatSimple(ChatInfo chatInfo, ChatMessageDTO dto, StreamEmitter emitter) {
         String modelId = chatInfo.getApplication().getModelId();
         ModelEntity model = modelService.getById(modelId);
         if (Objects.isNull(model) || !"SUCCESS".equals(model.getStatus())) {
@@ -226,11 +221,10 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
         PipelineManage pipelineManage = pipelineManageBuilder.build();
 
         Map<String, Object> params = chatInfo.toPipelineManageParams(problemText, postResponseHandler, excludeParagraphIds, dto.getClientId(), dto.getClientType(), stream);
-        pipelineManage.run(params);
-        return pipelineManage.response;
-    }
+        pipelineManage.run(params,emitter);
+    }*/
 
-    public Flux<ChatMessageVO> chatWorkflow(ChatInfo chatInfo, ChatMessageDTO dto) {
+    public void chatWorkflow(ChatInfo chatInfo, ChatMessageDTO dto,StreamEmitter emitter) {
         ApplicationChatRecordVO chatRecord = null;
         String chatRecordId = dto.getChatRecordId();
         if(StringUtils.isNotBlank(chatRecordId)){
@@ -248,6 +242,7 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
         flowParams.setHistoryChatRecord(chatInfo.getChatRecordList());
         WorkflowManage workflowManage = new WorkflowManage(LogicFlow.newInstance(chatInfo.getWorkFlowVersion().getWorkFlow()),
                 flowParams,
+                emitter,
                 postResponseHandler,
                 dto.getFormData(),
                 dto.getImageList(),
@@ -257,7 +252,7 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
                 dto.getNodeData(),
                 chatRecord,
                 null);
-        return workflowManage.run();
+        workflowManage.run();
     }
 
     public void isValidIntraDayAccessNum(String appId, String clientId, String clientType) {

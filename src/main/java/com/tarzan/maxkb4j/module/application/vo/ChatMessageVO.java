@@ -40,6 +40,16 @@ public class ChatMessageVO {
         this.answerTokens = 0;
     }
 
+    public ChatMessageVO(String chatId, String chatRecordId,String content,Boolean nodeIsEnd, Boolean isEnd) {
+        this.chatId = chatId;
+        this.chatRecordId = chatRecordId;
+        this.content = content;
+        this.nodeIsEnd = nodeIsEnd;
+        this.isEnd = isEnd;
+        this.messageTokens = 0;
+        this.answerTokens = 0;
+    }
+
     public ChatMessageVO(String chatId, String chatRecordId,String content, Boolean isEnd,Integer messageTokens, Integer answerTokens) {
         this.chatId = chatId;
         this.chatRecordId = chatRecordId;

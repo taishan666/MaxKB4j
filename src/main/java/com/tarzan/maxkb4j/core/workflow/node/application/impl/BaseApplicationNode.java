@@ -41,9 +41,10 @@ public class BaseApplicationNode extends INode {
                 .clientId(nodeParams.getApplicationId())
                 .clientType(AuthType.APPLICATION.name())
                 .reChat(false).build();
-        Flux<ChatMessageVO> chatMessageVo = chatService.chatMessage(chatId,messageDto);
+        chatService.chatMessage(chatId,messageDto,emitter);
+        //todo
         return new NodeResult(Map.of(
-                "result", chatMessageVo,
+                "result", "",
                 "question", question
         ), Map.of(), this::writeContextStream);
     }
