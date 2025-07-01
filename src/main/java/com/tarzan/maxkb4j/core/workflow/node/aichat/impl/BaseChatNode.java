@@ -3,6 +3,7 @@ package com.tarzan.maxkb4j.core.workflow.node.aichat.impl;
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.NodeResult;
+import com.tarzan.maxkb4j.core.workflow.WorkflowManage;
 import com.tarzan.maxkb4j.core.workflow.node.aichat.input.ChatNodeParams;
 import com.tarzan.maxkb4j.module.application.vo.ChatMessageVO;
 import com.tarzan.maxkb4j.module.assistant.Assistant;
@@ -90,8 +91,24 @@ public class BaseChatNode extends INode {
                 .streamingChatModel(chatModel.getStreamingChatModel())
                 .build();
         TokenStream tokenStream = assistant.chatStream(problemText);
+        Map<String, Object> nodeVariable = Map.of(
+                "result", tokenStream,
+                "system", system,
+                "chat_model", chatModel,
+                "message_list", chatMemory.messages(),
+                "history_message", historyMessage,
+                "question", problemText
+        );
+        return new NodeResult(nodeVariable, Map.of(), this::writeContextStream);
+    }
+
+    private void writeContextStream(Map<String, Object> nodeVariable, Map<String, Object> globalVariable, INode node, WorkflowManage workflow) {
+        if (nodeVariable != null) {
+            context.putAll(nodeVariable);
+        }
+        TokenStream tokenStream = (TokenStream) nodeVariable.get("result");
         CountDownLatch latch = new CountDownLatch(1); // 创建一个计数为1的Latch
-        boolean isResult = nodeParams.getIsResult();
+        boolean isResult = workflow.isResult(node, new NodeResult(nodeVariable, globalVariable));
         tokenStream.onPartialResponse(content -> {
                     if (isResult) {
                         String reasoningContent="";
@@ -114,7 +131,6 @@ public class BaseChatNode extends INode {
                 })
                 .onCompleteResponse(response -> {
                     String answer = response.aiMessage().text();
-                    //workflow.setAnswer(answer);
                     TokenUsage tokenUsage = response.tokenUsage();
                     context.put("messageTokens", tokenUsage.inputTokenCount());
                     context.put("answerTokens", tokenUsage.outputTokenCount());
@@ -134,16 +150,17 @@ public class BaseChatNode extends INode {
                 })
                 .onError(error -> emitter.error(error.getMessage()))
                 .start();
-        // 阻塞当前线程直到 countDown 被调用
-        latch.await();
-        Map<String, Object> nodeVariable = Map.of(
-                "system", system,
-                "chat_model", chatModel,
-                "message_list", chatMemory.messages(),
-                "history_message", historyMessage,
-                "question", problemText
-        );
-        return new NodeResult(nodeVariable, Map.of());
+
+        try {
+            // 阻塞当前线程直到 countDown 被调用
+            latch.await();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        if (context.containsKey("start_time")) {
+            long runTime = System.currentTimeMillis() - (long)context.get("start_time");
+            context.put("runTime", runTime / 1000F);
+        }
     }
 
 

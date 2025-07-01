@@ -52,7 +52,6 @@ public class QWenTTS extends BaseTextToSpeech implements BaseModel<BaseTextToSpe
         try {
             result = conv.call(param);
             String audioUrl = result.getOutput().getAudio().getUrl();
-            System.out.print(audioUrl);
             return  downloadAudio(audioUrl);
         } catch (NoApiKeyException | UploadFileException | IOException e) {
             throw new RuntimeException(e);

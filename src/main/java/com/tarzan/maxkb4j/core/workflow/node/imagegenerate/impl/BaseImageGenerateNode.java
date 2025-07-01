@@ -65,13 +65,16 @@ public class BaseImageGenerateNode extends INode {
                 imageUrls.add(image.url().toString());
             }
         }
-        return new NodeResult(Map.of("answer",answerSb.toString(),"image",imageUrls),Map.of());
+        return new NodeResult(Map.of("question",prompt,"answer",answerSb.toString(),"image",imageUrls),Map.of());
     }
 
     @Override
     public JSONObject getDetail() {
         JSONObject detail = new JSONObject();
+        detail.put("question",context.get("question"));
         detail.put("answer",context.get("answer"));
+        detail.put("messageTokens",0);
+        detail.put("answerTokens",0);
         return detail;
     }
 

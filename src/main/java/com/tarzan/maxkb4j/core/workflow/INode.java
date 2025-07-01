@@ -32,7 +32,6 @@ public abstract class INode {
     protected String answerText;
     protected String id;
     protected List<String> lastNodeIdList;
-  //  protected NodeChunk nodeChunk;
     protected String runtimeNodeId;
     protected StreamEmitter emitter;
 

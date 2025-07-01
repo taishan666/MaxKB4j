@@ -1,5 +1,6 @@
 package com.tarzan.maxkb4j.core.workflow;
 
+import com.tarzan.maxkb4j.module.application.vo.ChatMessageVO;
 import lombok.Data;
 
 import java.util.Map;
@@ -41,9 +42,21 @@ public class NodeResult {
         return (USER_SELECT.getKey().equals(node.getType())|| FORM.getKey().equals(node.getType())) && !(boolean)node.getContext().get("is_submit");
     }
 
-    public void defaultWriteContextFunc(Map<String, Object> stepVariable, Map<String, Object> globalVariable, INode node, WorkflowManage workflow) {
-        if (stepVariable != null) {
-            node.context.putAll(stepVariable);
+    public void defaultWriteContextFunc(Map<String, Object> nodeVariable, Map<String, Object> globalVariable, INode node, WorkflowManage workflow) {
+        if (nodeVariable != null) {
+            node.context.putAll(nodeVariable);
+            if (workflow.isResult(node, new NodeResult(nodeVariable, globalVariable)) && nodeVariable.containsKey("answer")) {
+                ChatMessageVO vo = new ChatMessageVO(
+                        workflow.getFlowParams().getChatId(),
+                        workflow.getFlowParams().getChatRecordId(),
+                        (String) nodeVariable.get("answer"),
+                        node.runtimeNodeId,
+                        node.type,
+                        "many_view",
+                        true,
+                        false);
+                node.emitter.send(vo);
+            }
         }
         if (globalVariable != null) {
             workflow.getContext().putAll(globalVariable);

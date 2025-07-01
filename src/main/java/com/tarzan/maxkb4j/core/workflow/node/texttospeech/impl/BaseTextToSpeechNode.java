@@ -38,7 +38,7 @@ public class BaseTextToSpeechNode extends INode {
         // 使用字符串拼接生成 HTML 音频标签
         String audioLabel = "<audio src=\"" + fileVO.getUrl() + "\" controls style=\"width: 300px; height: 43px\"></audio>";
         // 输出生成的 HTML 标签
-        return new NodeResult(Map.of("answer",audioLabel,"content",content,"result",List.of(fileVO)),Map.of());
+        return new NodeResult(Map.of("content",content,"answer",audioLabel,"audioList",List.of(fileVO)),Map.of());
     }
 
     @Override

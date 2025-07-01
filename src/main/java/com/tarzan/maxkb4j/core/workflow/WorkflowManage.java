@@ -167,7 +167,7 @@ public class WorkflowManage {
         emitter.send(vo);
         long startTime= context.getLongValue("start_time");
         postResponseHandler.handler(flowParams.getChatId(), flowParams.getChatRecordId(), flowParams.getQuestion(),answer,chatRecord,getRuntimeDetails(),startTime,flowParams.getClientId(),flowParams.getClientType());
-
+        System.out.println("结束");
     }
 
 
