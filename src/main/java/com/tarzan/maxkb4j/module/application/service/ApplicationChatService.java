@@ -179,7 +179,7 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
     }
 
 
-    public void chatMessage(String chatId, ChatMessageDTO dto, StreamEmitter emitter) {
+    public String chatMessage(String chatId, ChatMessageDTO dto, StreamEmitter emitter) {
         ChatInfo chatInfo = getChatInfo(chatId);
         try {
             isValidApplication(chatInfo, dto.getClientId(), dto.getClientType());
@@ -187,14 +187,14 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
             emitter.send(new ChatMessageVO(chatId,  e.getMessage(), true));
         }
         if (chatInfo.getApplication().getType().equals("SIMPLE")) {
-             chatSimple(chatInfo, dto,emitter);
+            return  chatSimple(chatInfo, dto,emitter);
         } else {
-             chatWorkflow(chatInfo, dto,emitter);
+           return  chatWorkflow(chatInfo, dto,emitter);
         }
-        emitter.complete();
+
     }
 
-    public void chatSimple(ChatInfo chatInfo, ChatMessageDTO dto, StreamEmitter emitter) {
+    public String chatSimple(ChatInfo chatInfo, ChatMessageDTO dto, StreamEmitter emitter) {
         String modelId = chatInfo.getApplication().getModelId();
         ModelEntity model = modelService.getById(modelId);
         if (Objects.isNull(model) || !"SUCCESS".equals(model.getStatus())) {
@@ -226,10 +226,10 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
         pipelineManageBuilder.addStep(baseChatStep);
         PipelineManage pipelineManage = pipelineManageBuilder.build();
         Map<String, Object> params = chatInfo.toPipelineManageParams(problemText, postResponseHandler, excludeParagraphIds, dto.getClientId(), dto.getClientType(), stream);
-        pipelineManage.run(params,emitter);
+        return pipelineManage.run(params,emitter);
     }
 
-    public void chatWorkflow(ChatInfo chatInfo, ChatMessageDTO dto,StreamEmitter emitter) {
+    public String chatWorkflow(ChatInfo chatInfo, ChatMessageDTO dto,StreamEmitter emitter) {
         ApplicationChatRecordVO chatRecord = null;
         String chatRecordId = dto.getChatRecordId();
         if(StringUtils.isNotBlank(chatRecordId)){
@@ -257,7 +257,7 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
                 dto.getNodeData(),
                 chatRecord,
                 null);
-        workflowManage.run();
+       return workflowManage.run();
     }
 
     public void isValidIntraDayAccessNum(String appId, String clientId, String clientType) {

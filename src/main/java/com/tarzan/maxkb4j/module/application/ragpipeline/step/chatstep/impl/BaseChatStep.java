@@ -64,6 +64,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static com.tarzan.maxkb4j.core.constant.PromptTemplates.RAG_PROMPT_TEMPLATE;
@@ -80,7 +81,7 @@ public class BaseChatStep extends IChatStep {
     private final FunctionLibService functionLibService;
 
     @Override
-    protected ChatMessageVO execute(PipelineManage manage) {
+    protected String execute(PipelineManage manage) {
         JSONObject context = manage.context;
         String chatId = context.getString("chatId");
         List<ParagraphVO> paragraphList = (List<ParagraphVO>) context.get("paragraph_list");
@@ -91,16 +92,16 @@ public class BaseChatStep extends IChatStep {
         return getFluxResult(chatId, paragraphList, problemText, application, manage, postResponseHandler, stream);
     }
 
-    private ChatMessageVO getFluxResult(String chatId,
-                                               List<ParagraphVO> paragraphList,
-                                               String problemText,
-                                               ApplicationEntity application,
-                                               PipelineManage manage,
-                                               PostResponseHandler postResponseHandler,
-                                               boolean stream) {
-        ChatMessageVO result = new ChatMessageVO(chatId, null, true);
+    private String getFluxResult(String chatId,
+                                 List<ParagraphVO> paragraphList,
+                                 String problemText,
+                                 ApplicationEntity application,
+                                 PipelineManage manage,
+                                 PostResponseHandler postResponseHandler,
+                                 boolean stream) {
+        AtomicReference<String> answerText = new AtomicReference<>("");
         String chatRecordId = IdWorker.get32UUID();
-        StreamEmitter emitter= manage.emitter;
+        StreamEmitter emitter = manage.emitter;
         if (CollectionUtils.isEmpty(paragraphList)) {
             paragraphList = new ArrayList<>();
         }
@@ -117,17 +118,17 @@ public class BaseChatStep extends IChatStep {
         NoReferencesSetting noReferencesSetting = datasetSetting.getNoReferencesSetting();
         BaseChatModel chatModel = modelService.getModelById(modelId, params);
         if (chatModel == null) {
-            String text = "抱歉，没有配置 AI 模型，无法优化引用分段，请先去应用中设置 AI 模型。";
-            emitter.send(new ChatMessageVO(chatId, chatRecordId, text, true));
+            answerText.set("抱歉，没有配置 AI 模型，无法优化引用分段，请先去应用中设置 AI 模型。");
+            emitter.send(new ChatMessageVO(chatId, chatRecordId, answerText.get(), true));
         } else {
             String status = noReferencesSetting.getStatus();
             if (!CollectionUtils.isEmpty(directlyReturnChunkList)) {
-                String text = directlyReturnChunkList.get(0).text();
-                emitter.send(new ChatMessageVO(chatId, chatRecordId, text, true));
+                answerText.set(directlyReturnChunkList.get(0).text());
+                emitter.send(new ChatMessageVO(chatId, chatRecordId, answerText.get(), true));
             } else if (paragraphList.isEmpty() && "designated_answer".equals(status)) {
                 String value = noReferencesSetting.getValue();
-                String text = value.replace("{question}", problemText);
-                emitter.send(new ChatMessageVO(chatId, chatRecordId, text, true));
+                answerText.set(value.replace("{question}", problemText));
+                emitter.send(new ChatMessageVO(chatId, chatRecordId, answerText.get(), true));
             } else {
                 int dialogueNumber = application.getDialogueNumber();
                 String systemText = application.getModelSetting().getSystem();
@@ -141,7 +142,7 @@ public class BaseChatStep extends IChatStep {
                 String system = StringUtil.isBlank(systemText) ? "You're an intelligent assistant" : systemText;
                 ContentInjector contentInjector = DefaultContentInjector.builder()
                         .promptTemplate(RAG_PROMPT_TEMPLATE)
-                       // .metadataKeysToInclude(List.of("file_name", "index"))
+                        // .metadataKeysToInclude(List.of("file_name", "index"))
                         .build();
                 RetrievalAugmentor retrievalAugmentor = DefaultRetrievalAugmentor.builder()
                         //.queryTransformer(ExpandingQueryTransformer.builder().chatLanguageModel(chatModel.getChatModel()).build())
@@ -152,8 +153,8 @@ public class BaseChatStep extends IChatStep {
                         .build();
                 List<String> mcpIds = application.getMcpIdList();
                 List<McpClient> mcpClients = new ArrayList<>();
-                if (!CollectionUtils.isEmpty(mcpIds)){
-                   List<McpLibEntity> mcpLib= mcpLibService.listByIds(mcpIds);
+                if (!CollectionUtils.isEmpty(mcpIds)) {
+                    List<McpLibEntity> mcpLib = mcpLibService.listByIds(mcpIds);
                     for (McpLibEntity mcpLibEntity : mcpLib) {
                         McpClient mcpClient = new DefaultMcpClient.Builder()
                                 .clientName(mcpLibEntity.getName())
@@ -165,7 +166,7 @@ public class BaseChatStep extends IChatStep {
                 ToolProvider toolProvider = McpToolProvider.builder()
                         .mcpClients(mcpClients)
                         .build();
-             //   AugmentationResult augmentationResult=retrievalAugmentor.augment(new AugmentationRequest(UserMessage.from(problemText), new Metadata(UserMessage.from(problemText),chatId, chatMemory.messages())));
+                //   AugmentationResult augmentationResult=retrievalAugmentor.augment(new AugmentationRequest(UserMessage.from(problemText), new Metadata(UserMessage.from(problemText),chatId, chatMemory.messages())));
                 Assistant assistant = MyAiServices.builder(Assistant.class)
                         .systemMessageProvider(chatMemoryId -> system)
                         .chatMemory(chatMemory)
@@ -174,39 +175,47 @@ public class BaseChatStep extends IChatStep {
                         .tools(getTools(application.getFunctionIdList()))
                         .toolProvider(toolProvider)
                         .build();
-                    if (StringUtil.isBlank(problemText)) {
-                        emitter.send(new ChatMessageVO(chatId, chatRecordId, "用户消息不能为空", true));
-                    } else {
-                        AtomicReference<String> answerText = new AtomicReference<>("");
-                        if (stream) {
-                            TokenStream tokenStream = assistant.chatStream(problemText);
-                            tokenStream.onToolExecuted((ToolExecution toolExecution) -> System.out.println("toolExecution="+toolExecution))
-                                    .onPartialResponse(text -> emitter.send(new ChatMessageVO(chatId, chatRecordId, text, false)))
-                                    .onCompleteResponse(response -> {
-                                        answerText.set(response.aiMessage().text());
-                                        TokenUsage tokenUsage = response.tokenUsage();
-                                        context.put("messageTokens", tokenUsage.inputTokenCount());
-                                        context.put("answerTokens",tokenUsage.outputTokenCount());
-                                        addAccessNum(clientId, clientType);
-                                        emitter.send(new ChatMessageVO(chatId, chatRecordId, "", true,tokenUsage.inputTokenCount(),tokenUsage.outputTokenCount()));
-                                    })
-                                    .onError(error -> {
-                                        emitter.error(new ChatMessageVO(chatId, chatRecordId, "", true));
-                                    })
-                                    .start();
-                        }else {
-                            ChatResponse response = assistant.chat(problemText);
-                            TokenUsage tokenUsage = response.tokenUsage();
-                            answerText.set(response.aiMessage().text());
-                            emitter.send(new ChatMessageVO(chatId, chatRecordId, "", true,tokenUsage.inputTokenCount(),tokenUsage.outputTokenCount()));
+                if (StringUtil.isBlank(problemText)) {
+                    answerText.set("用户消息不能为空");
+                    emitter.send(new ChatMessageVO(chatId, chatRecordId, answerText.get(), true));
+                } else {
+                    if (stream) {
+                        TokenStream tokenStream = assistant.chatStream(problemText);
+                        CountDownLatch latch = new CountDownLatch(1); // 创建一个计数为1的Latch
+                        tokenStream.onToolExecuted((ToolExecution toolExecution) -> System.out.println("toolExecution=" + toolExecution))
+                                .onPartialResponse(text -> emitter.send(new ChatMessageVO(chatId, chatRecordId, text, false)))
+                                .onCompleteResponse(response -> {
+                                    answerText.set(response.aiMessage().text());
+                                    TokenUsage tokenUsage = response.tokenUsage();
+                                    context.put("messageTokens", tokenUsage.inputTokenCount());
+                                    context.put("answerTokens", tokenUsage.outputTokenCount());
+                                    addAccessNum(clientId, clientType);
+                                    emitter.send(new ChatMessageVO(chatId, chatRecordId, "", true, tokenUsage.inputTokenCount(), tokenUsage.outputTokenCount()));
+                                    latch.countDown(); // 完成后释放线程
+                                })
+                                .onError(error -> {
+                                    latch.countDown(); // 完成后释放线程
+                                    emitter.error(new ChatMessageVO(chatId, chatRecordId, "", true));
+                                })
+                                .start();
+                        try {
+                            // 阻塞当前线程直到 countDown 被调用
+                            latch.await();
+                        } catch (InterruptedException e) {
+                            throw new RuntimeException(e);
                         }
-                        long startTime = manage.context.getLong("start_time");
-                        postResponseHandler.handler(chatId, chatRecordId, problemText, answerText.get(), null,manage.getDetails(),startTime, clientId,clientType);
+                    } else {
+                        ChatResponse response = assistant.chat(problemText);
+                        TokenUsage tokenUsage = response.tokenUsage();
+                        answerText.set(response.aiMessage().text());
+                        emitter.send(new ChatMessageVO(chatId, chatRecordId, "", true, tokenUsage.inputTokenCount(), tokenUsage.outputTokenCount()));
                     }
+                    long startTime = manage.context.getLong("start_time");
+                    postResponseHandler.handler(chatId, chatRecordId, problemText, answerText.get(), null, manage.getDetails(), startTime, clientId, clientType);
+                }
             }
         }
-        return null;
-
+        return answerText.get();
     }
 
 
@@ -247,8 +256,8 @@ public class BaseChatStep extends IChatStep {
         details.put("runTime", (System.currentTimeMillis() - startTime) / 1000F);
         details.put("modelId", context.get("modelId"));
         details.put("message_list", resetMessageList(context.getJSONArray("message_list"), context.getString("answer_text")));
-        details.put("messageTokens", context.getOrDefault("messageTokens",0));
-        details.put("answerTokens", context.getOrDefault("answerTokens",0));
+        details.put("messageTokens", context.getOrDefault("messageTokens", 0));
+        details.put("answerTokens", context.getOrDefault("answerTokens", 0));
         details.put("cost", 0);
         return details;
     }
@@ -265,44 +274,44 @@ public class BaseChatStep extends IChatStep {
         }
     }
 
-    private Map<ToolSpecification, ToolExecutor> getTools(List<String> functionIds){
-        Map<ToolSpecification, ToolExecutor> tools=new HashMap<>();
-        if (CollectionUtils.isEmpty(functionIds)){
+    private Map<ToolSpecification, ToolExecutor> getTools(List<String> functionIds) {
+        Map<ToolSpecification, ToolExecutor> tools = new HashMap<>();
+        if (CollectionUtils.isEmpty(functionIds)) {
             return tools;
         }
-        SystemTools objectWithTool=new SystemTools();
-        LambdaQueryWrapper<FunctionLibEntity> wrapper= Wrappers.lambdaQuery();
-        wrapper.in(FunctionLibEntity::getId,functionIds);
-        wrapper.eq(FunctionLibEntity::getIsActive,true);
-        List<FunctionLibEntity> functionLib=functionLibService.list(wrapper);
+        SystemTools objectWithTool = new SystemTools();
+        LambdaQueryWrapper<FunctionLibEntity> wrapper = Wrappers.lambdaQuery();
+        wrapper.in(FunctionLibEntity::getId, functionIds);
+        wrapper.eq(FunctionLibEntity::getIsActive, true);
+        List<FunctionLibEntity> functionLib = functionLibService.list(wrapper);
         for (FunctionLibEntity function : functionLib) {
-            List<FunctionInputField> params=function.getInputFieldList();
-            JsonObjectSchema.Builder parametersBuilder=JsonObjectSchema.builder();
+            List<FunctionInputField> params = function.getInputFieldList();
+            JsonObjectSchema.Builder parametersBuilder = JsonObjectSchema.builder();
             for (FunctionInputField param : params) {
-                JsonSchemaElement jsonSchemaElement=new JsonNullSchema();
-                if ("string".equals(param.getType())){
-                    jsonSchemaElement= JsonStringSchema.builder().build();
-                }else if ("int".equals(param.getType())){
-                    jsonSchemaElement= JsonIntegerSchema.builder().build();
-                }else if ("number".equals(param.getType())){
-                    jsonSchemaElement= JsonNumberSchema.builder().build();
-                }else if ("boolean".equals(param.getType())){
-                    jsonSchemaElement=  JsonBooleanSchema.builder().build();
-                }else if ("array".equals(param.getType())){
-                    jsonSchemaElement= JsonArraySchema.builder().build();
-                }else if ("object".equals(param.getType())){
-                    jsonSchemaElement= JsonObjectSchema.builder().build();
+                JsonSchemaElement jsonSchemaElement = new JsonNullSchema();
+                if ("string".equals(param.getType())) {
+                    jsonSchemaElement = JsonStringSchema.builder().build();
+                } else if ("int".equals(param.getType())) {
+                    jsonSchemaElement = JsonIntegerSchema.builder().build();
+                } else if ("number".equals(param.getType())) {
+                    jsonSchemaElement = JsonNumberSchema.builder().build();
+                } else if ("boolean".equals(param.getType())) {
+                    jsonSchemaElement = JsonBooleanSchema.builder().build();
+                } else if ("array".equals(param.getType())) {
+                    jsonSchemaElement = JsonArraySchema.builder().build();
+                } else if ("object".equals(param.getType())) {
+                    jsonSchemaElement = JsonObjectSchema.builder().build();
                 }
-                parametersBuilder.addProperty(param.getName(),jsonSchemaElement);
+                parametersBuilder.addProperty(param.getName(), jsonSchemaElement);
             }
             ToolSpecification toolSpecification = ToolSpecification.builder()
                     .name(function.getName())
                     .description(function.getDesc())
                     .parameters(parametersBuilder.build())
                     .build();
-            if (function.getType()==0){
+            if (function.getType() == 0) {
                 tools.put(toolSpecification, new DefaultToolExecutor(objectWithTool, ToolExecutionRequest.builder().name(function.getName()).build()));
-            }else if (function.getType()==1){
+            } else if (function.getType() == 1) {
                 tools.put(toolSpecification, new GroovyScriptExecutor(function.getCode()));
             }
 

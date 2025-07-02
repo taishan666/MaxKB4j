@@ -4,7 +4,6 @@ package com.tarzan.maxkb4j.util;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
-import java.util.concurrent.ExecutorService;
 
 
 public class StreamEmitter {
@@ -19,7 +18,7 @@ public class StreamEmitter {
         return emitter;
     }
 
-    public SseEmitter streaming(final ExecutorService executor, Runnable func) {
+/*    public SseEmitter streaming(final ExecutorService executor, Runnable func) {
 //        ExecutorService executor = Executors.newSingleThreadExecutor();
         emitter.onCompletion(() -> {
             System.out.println("SseEmitter 完成");
@@ -49,7 +48,7 @@ public class StreamEmitter {
             }
         });
         return emitter;
-    }
+    }*/
 
  /*   public void over(Object obj) {
         this.send(obj);

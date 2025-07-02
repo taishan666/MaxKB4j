@@ -22,7 +22,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
-import java.util.concurrent.Future;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -47,10 +46,8 @@ public class WorkflowManage {
     private NodeResult currentResult;
     private String answer = "";
     private StreamEmitter emitter;
-    private int status = 200;
     private ApplicationChatRecordVO chatRecord;
     private JSONObject childNode; // 根据实际需要定义类型
-    private final List<Future<?>> futureList = new ArrayList<>();
     private List<INode> nodeContext = new ArrayList<>();
 
     public WorkflowManage(LogicFlow flow, FlowParams flowParams,StreamEmitter emitter, PostResponseHandler postResponseHandler,
@@ -118,15 +115,17 @@ public class WorkflowManage {
         }
     }
 
-    public void run() {
+    public String run() {
         context.put("start_time", System.currentTimeMillis());
         String language = "zh";
         runChainManage(startNode, null, language);
         ChatMessageVO vo=new ChatMessageVO(flowParams.getChatId(),flowParams.getChatRecordId(),"",
                 true,true);
         emitter.send(vo);
+        emitter.complete();
         long startTime= context.getLongValue("start_time");
         postResponseHandler.handler(flowParams.getChatId(), flowParams.getChatRecordId(), flowParams.getQuestion(),answer,chatRecord,getRuntimeDetails(),startTime,flowParams.getClientId(),flowParams.getClientType());
+        return answer;
     }
 
     public LfNode getStartNode() {

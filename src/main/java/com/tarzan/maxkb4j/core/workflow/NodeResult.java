@@ -46,16 +46,18 @@ public class NodeResult {
         if (nodeVariable != null) {
             node.context.putAll(nodeVariable);
             if (workflow.isResult(node, new NodeResult(nodeVariable, globalVariable)) && nodeVariable.containsKey("answer")) {
+                String answer = (String) nodeVariable.get("answer");
                 ChatMessageVO vo = new ChatMessageVO(
                         workflow.getFlowParams().getChatId(),
                         workflow.getFlowParams().getChatRecordId(),
-                        (String) nodeVariable.get("answer"),
+                        answer,
                         node.runtimeNodeId,
                         node.type,
                         "many_view",
                         true,
                         false);
                 node.emitter.send(vo);
+                workflow.setAnswer(answer);
             }
         }
         if (globalVariable != null) {

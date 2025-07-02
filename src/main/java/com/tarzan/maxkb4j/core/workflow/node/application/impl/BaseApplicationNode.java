@@ -8,14 +8,10 @@ import com.tarzan.maxkb4j.core.workflow.node.application.input.ApplicationNodePa
 import com.tarzan.maxkb4j.module.application.dto.ChatMessageDTO;
 import com.tarzan.maxkb4j.module.application.enums.AuthType;
 import com.tarzan.maxkb4j.module.application.service.ApplicationChatService;
-import com.tarzan.maxkb4j.module.application.vo.ChatMessageVO;
 import com.tarzan.maxkb4j.util.SpringUtil;
-import reactor.core.publisher.Flux;
 
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Stream;
 
 import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.APPLICATION;
 
@@ -41,32 +37,13 @@ public class BaseApplicationNode extends INode {
                 .clientId(nodeParams.getApplicationId())
                 .clientType(AuthType.APPLICATION.name())
                 .reChat(false).build();
-        chatService.chatMessage(chatId,messageDto,emitter);
-        //todo
+        String answer=chatService.chatMessage(chatId,messageDto,emitter);
         return new NodeResult(Map.of(
-                "result", "",
+                "result", answer,
                 "question", question
-        ), Map.of(), this::writeContextStream);
+        ), Map.of());
     }
 
-    private Stream<String> writeContextStream(Map<String, Object> nodeVariable, Map<String, Object> workflowVariable, INode currentNode, WorkflowManage workflow) {
-        Flux<ChatMessageVO> chatMessageVo= (Flux<ChatMessageVO>) nodeVariable.get("result");
-        StringBuilder answerSB=new StringBuilder();
-        AtomicInteger messageTokens= new AtomicInteger();
-        AtomicInteger answerTokens= new AtomicInteger();
-        return chatMessageVo.map(vo->{
-            answerSB.append(vo.getContent());
-            messageTokens.addAndGet(vo.getMessageTokens());
-            answerTokens.addAndGet(vo.getAnswerTokens());
-            return vo.getContent();
-        }).doOnComplete(()->{
-            context.put("messageTokens", messageTokens.get());
-            context.put("answerTokens", answerTokens.get());
-            context.put("question", nodeVariable.get("question"));
-            context.put("result", answerSB.toString());
-            context.put("answer", answerSB.toString());
-        }).toStream();
-    }
 
     @Override
     public JSONObject getDetail() {

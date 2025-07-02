@@ -105,57 +105,60 @@ public class BaseChatNode extends INode {
     private void writeContextStream(Map<String, Object> nodeVariable, Map<String, Object> globalVariable, INode node, WorkflowManage workflow) {
         if (nodeVariable != null) {
             context.putAll(nodeVariable);
-        }
-        TokenStream tokenStream = (TokenStream) nodeVariable.get("result");
-        CountDownLatch latch = new CountDownLatch(1); // 创建一个计数为1的Latch
-        boolean isResult = workflow.isResult(node, new NodeResult(nodeVariable, globalVariable));
-        tokenStream.onPartialResponse(content -> {
-                    if (isResult) {
-                        String reasoningContent="";
-                        if (content.startsWith("<think>")&&content.endsWith("</think>")){
-                            reasoningContent=content.replace("<think>","").replace("</think>","");
-                            content="";
+            TokenStream tokenStream = (TokenStream) nodeVariable.get("result");
+            CountDownLatch latch = new CountDownLatch(1); // 创建一个计数为1的Latch
+            boolean isResult = workflow.isResult(node, new NodeResult(nodeVariable, globalVariable));
+            tokenStream.onPartialResponse(content -> {
+                        if (isResult) {
+                            String reasoningContent="";
+                            if (content.startsWith("<think>")&&content.endsWith("</think>")){
+                                reasoningContent=content.replace("<think>","").replace("</think>","");
+                                content="";
+                            }
+                            ChatMessageVO vo = new ChatMessageVO(
+                                    flowParams.getChatId(),
+                                    flowParams.getChatRecordId(),
+                                    content,
+                                    reasoningContent,
+                                    runtimeNodeId,
+                                    type,
+                                    "many_view",
+                                    false,
+                                    false);
+                            emitter.send(vo);
                         }
+                    })
+                    .onCompleteResponse(response -> {
+                        String answer = response.aiMessage().text();
+                        TokenUsage tokenUsage = response.tokenUsage();
+                        context.put("messageTokens", tokenUsage.inputTokenCount());
+                        context.put("answerTokens", tokenUsage.outputTokenCount());
+                        context.put("answer", answer);
+                        context.put("reasoning_content", "");
                         ChatMessageVO vo = new ChatMessageVO(
                                 flowParams.getChatId(),
                                 flowParams.getChatRecordId(),
-                                content,
-                                reasoningContent,
+                                "",
                                 runtimeNodeId,
                                 type,
                                 "many_view",
-                                false,
+                                true,
                                 false);
                         emitter.send(vo);
-                    }
-                })
-                .onCompleteResponse(response -> {
-                    String answer = response.aiMessage().text();
-                    TokenUsage tokenUsage = response.tokenUsage();
-                    context.put("messageTokens", tokenUsage.inputTokenCount());
-                    context.put("answerTokens", tokenUsage.outputTokenCount());
-                    context.put("answer", answer);
-                    context.put("reasoning_content", "");
-                    ChatMessageVO vo = new ChatMessageVO(
-                            flowParams.getChatId(),
-                            flowParams.getChatRecordId(),
-                            "",
-                            runtimeNodeId,
-                            type,
-                            "many_view",
-                            true,
-                            false);
-                    emitter.send(vo);
-                    latch.countDown(); // 完成后释放线程
-                })
-                .onError(error -> emitter.error(error.getMessage()))
-                .start();
+                        latch.countDown(); // 完成后释放线程
+                    })
+                    .onError(error -> {
+                        latch.countDown(); // 完成后释放线程
+                        emitter.error(error.getMessage());
+                    })
+                    .start();
 
-        try {
-            // 阻塞当前线程直到 countDown 被调用
-            latch.await();
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+            try {
+                // 阻塞当前线程直到 countDown 被调用
+                latch.await();
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
         }
         if (context.containsKey("start_time")) {
             long runTime = System.currentTimeMillis() - (long)context.get("start_time");
