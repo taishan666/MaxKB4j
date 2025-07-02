@@ -1,6 +1,7 @@
 package com.tarzan.maxkb4j.util;
 
 
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
@@ -61,7 +62,6 @@ public class StreamEmitter {
         } catch (IOException e) {
             throw new RuntimeException(e.getMessage());
         }
-        this.complete();
     }
 
     public void complete() {

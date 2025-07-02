@@ -227,7 +227,7 @@ public class BaseChatStep extends IChatStep {
         for (Object o : messageList) {
             JSONObject message = new JSONObject();
             if (o instanceof SystemMessage systemMessage) {
-                message.put("role", "ai");
+                message.put("role", "system");
                 message.put("content", systemMessage.text());
             }
             if (o instanceof UserMessage userMessage) {

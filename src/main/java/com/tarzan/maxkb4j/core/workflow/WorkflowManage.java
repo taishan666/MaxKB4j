@@ -47,13 +47,12 @@ public class WorkflowManage {
     private String answer = "";
     private StreamEmitter emitter;
     private ApplicationChatRecordVO chatRecord;
-    private JSONObject childNode; // 根据实际需要定义类型
     private List<INode> nodeContext = new ArrayList<>();
 
     public WorkflowManage(LogicFlow flow, FlowParams flowParams,StreamEmitter emitter, PostResponseHandler postResponseHandler,
                           Map<String, Object> formData, List<ChatFile> imageList,
                           List<ChatFile> documentList, List<ChatFile> audioList, String startNodeId,
-                          Map<String, Object> startNodeData, ApplicationChatRecordVO chatRecord, JSONObject childNode) {
+                          Map<String, Object> startNodeData, ApplicationChatRecordVO chatRecord) {
         this.formData = formData;
         this.imageList = Objects.requireNonNullElseGet(imageList, ArrayList::new);
         this.documentList = Objects.requireNonNullElseGet(documentList, ArrayList::new);;
@@ -63,7 +62,6 @@ public class WorkflowManage {
         this.flow = flow;
         this.postResponseHandler = postResponseHandler;
         this.chatRecord = chatRecord;
-        this.childNode = childNode;
         if (startNodeId != null) {
             this.startNodeId = startNodeId;
             this.loadNode(chatRecord, startNodeId, startNodeData);
@@ -96,7 +94,7 @@ public class WorkflowManage {
                             }
                             params.put("form_data", startNodeData);
                             params.put("nodeData", startNodeData);
-                            params.put("child_node", childNode); // 假设childNode方法存在
+                          //  params.put("child_node", childNode);
                             params.put("isResult", isResult);
                             return params;
                         }
@@ -122,7 +120,6 @@ public class WorkflowManage {
         ChatMessageVO vo=new ChatMessageVO(flowParams.getChatId(),flowParams.getChatRecordId(),"",
                 true,true);
         emitter.send(vo);
-        emitter.complete();
         long startTime= context.getLongValue("start_time");
         postResponseHandler.handler(flowParams.getChatId(), flowParams.getChatRecordId(), flowParams.getQuestion(),answer,chatRecord,getRuntimeDetails(),startTime,flowParams.getClientId(),flowParams.getClientType());
         return answer;

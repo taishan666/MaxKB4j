@@ -99,7 +99,7 @@ public class BaseChatNode extends INode {
                 "history_message", historyMessage,
                 "question", problemText
         );
-        return new NodeResult(nodeVariable, Map.of(), this::writeContextStream);
+        return new NodeResult(nodeVariable, Map.of(),this::writeContextStream);
     }
 
     private void writeContextStream(Map<String, Object> nodeVariable, Map<String, Object> globalVariable, INode node, WorkflowManage workflow) {

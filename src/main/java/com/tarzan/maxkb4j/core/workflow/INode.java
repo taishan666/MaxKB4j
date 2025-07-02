@@ -157,7 +157,7 @@ public abstract class INode {
         for (ChatMessage chatMessage : historyMessage) {
             JSONObject message = new JSONObject();
             if (chatMessage instanceof SystemMessage systemMessage) {
-                message.put("role", "ai");
+                message.put("role", "system");
                 message.put("content", systemMessage.text());
             }
             if (chatMessage instanceof UserMessage userMessage) {

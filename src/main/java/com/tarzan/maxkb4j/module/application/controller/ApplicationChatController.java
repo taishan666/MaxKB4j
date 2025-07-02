@@ -41,7 +41,7 @@ public class ApplicationChatController {
     }
 
     @PutMapping("api/application/{appId}/chat/client/{chatId}")
-    public R<Boolean> updateChat(@PathVariable("appId") String appId, @PathVariable("chatId") String chatId,@RequestBody ApplicationChatEntity chatEntity) {
+    public R<Boolean> updateChat(@PathVariable("appId") String appId, @PathVariable("chatId") String chatId, @RequestBody ApplicationChatEntity chatEntity) {
         chatEntity.setId(chatId);
         return R.success(chatService.updateById(chatEntity));
     }
@@ -83,7 +83,7 @@ public class ApplicationChatController {
         params.setClientId(clientId);
         params.setClientType(clientType);
         params.setEmitter(emitter);
-        chatService.chatMessage(chatId, params,emitter);
+        new Thread(() -> chatService.chatMessage(chatId, params, emitter)).start();
         return emitter.get();
     }
 
@@ -94,7 +94,7 @@ public class ApplicationChatController {
 
     @PostMapping("api/application/{id}/chat/{chatId}/upload_file")
     public R<List<ChatFile>> uploadFile(@PathVariable String id, @PathVariable String chatId, MultipartFile[] file) {
-        return R.success(chatService.uploadFile(id,chatId,file));
+        return R.success(chatService.uploadFile(id, chatId, file));
     }
 
     @GetMapping("api/application/{id}/chat/{chatId}/chat_record/{page}/{size}")
@@ -108,8 +108,8 @@ public class ApplicationChatController {
     }
 
     @PostMapping("api/application/{id}/chat/export")
-    public void export(@PathVariable String id,@RequestBody List<String> selectIds,HttpServletResponse response) throws IOException {
-         chatService.chatExport(selectIds,response);
+    public void export(@PathVariable String id, @RequestBody List<String> selectIds, HttpServletResponse response) throws IOException {
+        chatService.chatExport(selectIds, response);
     }
 
 }

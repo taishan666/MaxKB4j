@@ -186,12 +186,14 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
         } catch (Exception e) {
             emitter.send(new ChatMessageVO(chatId,  e.getMessage(), true));
         }
+        String answer = "";
         if (chatInfo.getApplication().getType().equals("SIMPLE")) {
-            return  chatSimple(chatInfo, dto,emitter);
+            answer =   chatSimple(chatInfo, dto,emitter);
         } else {
-           return  chatWorkflow(chatInfo, dto,emitter);
+            answer =   chatWorkflow(chatInfo, dto,emitter);
         }
-
+        emitter.complete();
+        return answer ;
     }
 
     public String chatSimple(ChatInfo chatInfo, ChatMessageDTO dto, StreamEmitter emitter) {
@@ -240,7 +242,7 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
         flowParams.setChatRecordId(dto.getChatRecordId() == null ? IdWorker.get32UUID() : dto.getChatRecordId());
         flowParams.setQuestion(dto.getMessage());
         flowParams.setReChat(dto.getReChat());
-        flowParams.setUserId(StpUtil.getLoginIdAsString());
+       // flowParams.setUserId(StpUtil.getLoginIdAsString());
         flowParams.setClientId(dto.getClientId());
         flowParams.setClientType(dto.getClientType());
         flowParams.setStream(dto.getStream() == null || dto.getStream());
@@ -255,8 +257,7 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
                 dto.getAudioList(),
                 dto.getRuntimeNodeId(),
                 dto.getNodeData(),
-                chatRecord,
-                null);
+                chatRecord);
        return workflowManage.run();
     }
 
