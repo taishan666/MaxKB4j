@@ -37,13 +37,13 @@ public class ParaFormerSTT extends BaseSpeechToText implements BaseModel<BaseSpe
     }
 
     @Override
-    public String speechToText(byte[] audioBytes) {
+    public String speechToText(byte[] audioBytes, String suffix) {
         // 创建Recognition实例
         Recognition recognizer = new Recognition();
         // 创建临时文件
         Path tempFile;
         try {
-            tempFile = Files.createTempFile("temp_audio_"+System.currentTimeMillis(),".mp3");
+            tempFile = Files.createTempFile("temp_audio_"+System.currentTimeMillis(),"."+suffix);
             // 将 byte[] 写入临时文件
             Files.write(tempFile, audioBytes);
         } catch (IOException e) {

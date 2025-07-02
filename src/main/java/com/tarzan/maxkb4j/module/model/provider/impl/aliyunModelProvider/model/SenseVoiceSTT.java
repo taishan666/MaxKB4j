@@ -14,6 +14,8 @@ import lombok.NoArgsConstructor;
 
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 
 @EqualsAndHashCode(callSuper = true)
@@ -28,15 +30,22 @@ public class SenseVoiceSTT extends BaseSpeechToText implements BaseModel<BaseSpe
         this.param = TranscriptionParam.builder()
                         .apiKey(modelCredential.getApiKey())
                         .model(modelName)
+                        .fileUrls(List.of("https://dashscope.oss-cn-beijing.aliyuncs.com/samples/audio/sensevoice/rich_text_example_1.wav"))
                         .parameter("language_hints", new String[] {"en","zh"})
                         .build();
         return this;
     }
 
     @Override
-    public String speechToText(byte[] audioFile) {
+    public String speechToText(byte[] audioBytes, String suffix) {
         try {
             Transcription transcription = new Transcription();
+            // 创建临时文件
+            Path tempFile= Files.createTempFile("temp_audio_"+System.currentTimeMillis(),("."+suffix));
+            // 将 byte[] 写入临时文件
+            Files.write(tempFile, audioBytes);
+            //  String fileUrl = OSSUtils.upload(param.getModel(), tempFile.toFile().getPath(), param.getApiKey());
+            param.setFileUrls(List.of("file://"+tempFile.toFile().getPath()));
             // 提交语音识别任务
             TranscriptionResult result = transcription.asyncCall(param);
             System.out.println("RequestId: " + result.getRequestId());
@@ -46,7 +55,7 @@ public class SenseVoiceSTT extends BaseSpeechToText implements BaseModel<BaseSpe
                 if (result.getTaskStatus() == TaskStatus.SUCCEEDED || result.getTaskStatus() == TaskStatus.FAILED) {
                     break;
                 }
-                Thread.currentThread().wait(500);
+                Thread.sleep(500L);
             }
             // 获取语音识别结果
             List<TranscriptionTaskResult> taskResultList = result.getResults();
@@ -68,4 +77,5 @@ public class SenseVoiceSTT extends BaseSpeechToText implements BaseModel<BaseSpe
         }
         return "";
     }
+
 }

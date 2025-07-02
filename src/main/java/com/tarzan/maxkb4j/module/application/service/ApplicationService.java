@@ -652,7 +652,8 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     public String speechToText(String appId, MultipartFile file) throws IOException {
         ApplicationEntity app = this.getById(appId);
         BaseSpeechToText sttModel = modelService.getModelById(app.getSttModelId());
-        return sttModel.speechToText(file.getBytes());
+        String suffix= Objects.requireNonNull(file.getContentType()).split("/")[1];
+        return sttModel.speechToText(file.getBytes(),suffix);
     }
 
     public void embed(EmbedDTO dto, HttpServletResponse response) throws IOException {

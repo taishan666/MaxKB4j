@@ -100,7 +100,6 @@ public class WanXImageModel implements ImageModel {
             if (!Utils.isNotNullOrBlank(image.base64Data())) {
                 throw new IllegalArgumentException("Failed to get image url from " + image);
             }
-
             String filePath = saveDataAsTemporaryFile(image.base64Data(), image.mimeType());
             //imageUrl="file://"+filePath.replace("\\", "/");;
             try {
@@ -133,7 +132,6 @@ public class WanXImageModel implements ImageModel {
         } catch (IOException e) {
             throw new IllegalStateException(e);
         }
-
         return tmpFilePath.toAbsolutePath().toString();
     }
 

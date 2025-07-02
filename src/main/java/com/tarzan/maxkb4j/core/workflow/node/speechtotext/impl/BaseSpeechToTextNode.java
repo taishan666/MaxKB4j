@@ -39,7 +39,8 @@ public class BaseSpeechToTextNode extends INode {
         StringBuilder sb = new StringBuilder();
         for (ChatFile file: audioFiles) {
             byte[] data = fileService.getBytes(file.getFileId());
-            String result = sttModel.speechToText(data);
+            String suffix=file.getType().split("/")[1];
+            String result = sttModel.speechToText(data,suffix);
             sb.append(result);
         }
         return new NodeResult(Map.of("answer", sb.toString(), "result", sb.toString(), "audio_list", audioList), Map.of());

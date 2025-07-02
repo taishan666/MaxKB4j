@@ -40,8 +40,9 @@ public class AliYunBaiLianModelProvider extends IModelProvider {
       //  modelInfos.add(new ModelInfo(QwenModelName.TEXT_EMBEDDING_V2,"文本向量模型", ModelTypeEnum.EMBEDDING.name(),new BaiLianEmbedding()));
         modelInfos.add(new ModelInfo(QwenModelName.TEXT_EMBEDDING_V3,"文本向量模型", ModelTypeEnum.EMBEDDING.name(),new BaiLianEmbedding()));
         modelInfos.add(new ModelInfo("paraformer-realtime-v2","语音识别模型", ModelTypeEnum.STT.name(), new ParaFormerSTT()));
-        modelInfos.add(new ModelInfo("paraformer-realtime-v2","语音识别模型", ModelTypeEnum.STT.name(), new ParaFormerSTT()));
-        modelInfos.add(new ModelInfo("paraformer-v2","语音识别模型", ModelTypeEnum.STT.name(), new ParaFormerSTT()));
+       // modelInfos.add(new ModelInfo("paraformer-v2","语音识别模型", ModelTypeEnum.STT.name(), new ParaFormerSTT()));
+        modelInfos.add(new ModelInfo("gummy-realtime-v1","语音识别模型", ModelTypeEnum.STT.name(), new GummySTT(),new GummySTTParams()));
+        modelInfos.add(new ModelInfo("sensevoice-v1","语音识别模型", ModelTypeEnum.STT.name(), new SenseVoiceSTT()));
         modelInfos.add(new ModelInfo("cosyvoice-v1","语音生成模型",ModelTypeEnum.TTS.name(),new CosyVoiceTTS(),new CosyVoiceTTSParams()));
         modelInfos.add(new ModelInfo("sambert-v1","语音生成模型",ModelTypeEnum.TTS.name(),new SamBertTTS(),new SamBertTTSParams()));
         modelInfos.add(new ModelInfo("qwen-tts","语音生成模型",ModelTypeEnum.TTS.name(),new QWenTTS(),new QWenTTSParams()));
