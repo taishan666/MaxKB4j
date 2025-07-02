@@ -19,18 +19,13 @@ import java.nio.file.Path;
 @EqualsAndHashCode(callSuper = true)
 @Data
 @NoArgsConstructor
-public class BaiLianSpeechToText extends BaseSpeechToText implements BaseModel<BaseSpeechToText> {
+public class ParaFormerSTT extends BaseSpeechToText implements BaseModel<BaseSpeechToText> {
 
     private RecognitionParam param;
 
-    public BaiLianSpeechToText(RecognitionParam param) {
-        super();
-        this.param = param;
-    }
-
     @Override
     public BaseSpeechToText build(String modelName, ModelCredential credential, JSONObject params) {
-        RecognitionParam param =
+        this.param =
                 RecognitionParam.builder()
                         .apiKey(credential.getApiKey())
                         .model(modelName)
@@ -38,7 +33,7 @@ public class BaiLianSpeechToText extends BaseSpeechToText implements BaseModel<B
                         .sampleRate(16000)
                         .parameter("language_hints", new String[]{"zh", "en"})
                         .build();
-        return  new BaiLianSpeechToText(param);
+        return  this;
     }
 
     @Override

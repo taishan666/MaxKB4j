@@ -19,14 +19,10 @@ public class CosyVoiceTTS extends BaseTextToSpeech implements BaseModel<BaseText
 
     private SpeechSynthesisParam param;
 
-    public CosyVoiceTTS(SpeechSynthesisParam param) {
-        super();
-        this.param = param;
-    }
     @Override
     public CosyVoiceTTS build(String modelName, ModelCredential credential, JSONObject params) {
         String voice= (String) params.getOrDefault("voice","longxiaochun");
-        SpeechSynthesisParam param =
+        this.param =
                 SpeechSynthesisParam.builder()
                         .apiKey(credential.getApiKey())
                         .model(modelName)
@@ -34,7 +30,7 @@ public class CosyVoiceTTS extends BaseTextToSpeech implements BaseModel<BaseText
                         .speechRate(params.getFloat("speechRate"))
                         .volume(params.getInteger("volume")==null?50:params.getInteger("volume"))
                         .build();
-        return  new CosyVoiceTTS(param);
+        return  this;
     }
 
     @Override

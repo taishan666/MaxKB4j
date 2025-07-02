@@ -35,7 +35,7 @@ public class ZhiPuModelProvider extends IModelProvider {
         modelInfos.add(new ModelInfo("glm-4v","", ModelTypeEnum.LLM.name(), new BaiLianChatModel()));
         modelInfos.add(new ModelInfo("glm-3-turbo","", ModelTypeEnum.LLM.name(), new BaiLianChatModel()));
         modelInfos.add(new ModelInfo("text-embedding-v3","", ModelTypeEnum.EMBEDDING.name(),new BaiLianEmbedding()));
-        modelInfos.add(new ModelInfo("paraformer-realtime-v2","", ModelTypeEnum.STT.name(), new BaiLianSpeechToText()));
+        modelInfos.add(new ModelInfo("paraformer-realtime-v2","", ModelTypeEnum.STT.name(), new ParaFormerSTT()));
         modelInfos.add(new ModelInfo("cosyvoice-v1","",ModelTypeEnum.TTS.name(), new CosyVoiceTTS()));
         modelInfos.add(new ModelInfo("glm-4v-plus","",ModelTypeEnum.IMAGE.name(),new BaiLianChatModel()));
         modelInfos.add(new ModelInfo("glm-4v","",ModelTypeEnum.IMAGE.name(), new BaiLianChatModel()));

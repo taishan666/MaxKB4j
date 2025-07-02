@@ -29,20 +29,15 @@ import java.util.Base64;
 public class QWenTTS extends BaseTextToSpeech implements BaseModel<BaseTextToSpeech> {
     private MultiModalConversationParam param;
 
-    public QWenTTS(MultiModalConversationParam param) {
-        super();
-        this.param = param;
-    }
-
     @Override
     public BaseTextToSpeech build(String modelName, ModelCredential modelCredential, JSONObject params) {
         String voice= (String) params.getOrDefault("voice","Cherry");
-        MultiModalConversationParam param = MultiModalConversationParam.builder()
+        this.param= MultiModalConversationParam.builder()
                 .model(modelName)
                 .apiKey(modelCredential.getApiKey())
                 .voice(AudioParameters.Voice.valueOf(voice))
                 .build();
-        return new QWenTTS(param);
+        return this;
     }
 
     @Override

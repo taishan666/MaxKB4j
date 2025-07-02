@@ -19,22 +19,17 @@ public class SamBertTTS extends BaseTextToSpeech implements BaseModel<BaseTextTo
 
     private SpeechSynthesisParam param;
 
-
-    public SamBertTTS(SpeechSynthesisParam param) {
-        super();
-        this.param = param;
-    }
     @Override
     public BaseTextToSpeech build(String modelName, ModelCredential modelCredential, JSONObject params) {
         String voice= (String) params.getOrDefault("voice","zhinan");
         modelName = modelName.replace("sambert", ("sambert-" + voice));
-        SpeechSynthesisParam param = SpeechSynthesisParam.builder()
+        this.param = SpeechSynthesisParam.builder()
                 .model(modelName)
                 .apiKey(modelCredential.getApiKey())
                 .text("")
                 .volume(params.getInteger("volume")==null?50:params.getInteger("volume"))
                 .build();
-        return new SamBertTTS(param);
+        return this;
     }
 
     @Override
