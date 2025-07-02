@@ -36,8 +36,9 @@ public class BaseApplicationNode extends INode {
                 .message(question)
                 .clientId(nodeParams.getApplicationId())
                 .clientType(AuthType.APPLICATION.name())
+                .sink(sink)
                 .reChat(false).build();
-        String answer=chatService.chatMessage(chatId,messageDto,emitter);
+        String answer=chatService.chatMessage(chatId,messageDto);
         return new NodeResult(Map.of(
                 "result", answer,
                 "question", question

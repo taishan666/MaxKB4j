@@ -81,7 +81,7 @@ public class NodeFactory {
             if(Objects.nonNull(getNodeParams)){
                 node.setNodeParams(getNodeParams.apply(lfNode));
             }
-            node.setEmitter(workflowManage.getEmitter());
+            node.setSink(workflowManage.getSink());
             return node;
         }
         return null;

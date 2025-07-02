@@ -125,7 +125,7 @@ public class BaseChatNode extends INode {
                                     "many_view",
                                     false,
                                     false);
-                            emitter.send(vo);
+                            sink.tryEmitNext(vo);
                         }
                     })
                     .onCompleteResponse(response -> {
@@ -144,12 +144,12 @@ public class BaseChatNode extends INode {
                                 "many_view",
                                 true,
                                 false);
-                        emitter.send(vo);
+                        sink.tryEmitNext(vo);
                         latch.countDown(); // 完成后释放线程
                     })
                     .onError(error -> {
                         latch.countDown(); // 完成后释放线程
-                        emitter.error(error.getMessage());
+                        sink.tryEmitError(error);
                     })
                     .start();
 

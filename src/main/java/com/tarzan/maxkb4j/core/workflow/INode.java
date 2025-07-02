@@ -3,15 +3,16 @@ package com.tarzan.maxkb4j.core.workflow;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.workflow.dto.Answer;
-import com.tarzan.maxkb4j.core.workflow.logic.LfNode;
 import com.tarzan.maxkb4j.core.workflow.dto.FlowParams;
-import com.tarzan.maxkb4j.util.StreamEmitter;
+import com.tarzan.maxkb4j.core.workflow.logic.LfNode;
+import com.tarzan.maxkb4j.module.application.vo.ChatMessageVO;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.data.message.UserMessage;
 import lombok.Data;
 import org.springframework.util.CollectionUtils;
+import reactor.core.publisher.Sinks;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -33,7 +34,7 @@ public abstract class INode {
     protected String id;
     protected List<String> lastNodeIdList;
     protected String runtimeNodeId;
-    protected StreamEmitter emitter;
+    protected Sinks.Many<ChatMessageVO> sink;
 
 
     public INode() {

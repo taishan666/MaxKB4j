@@ -11,7 +11,6 @@ import com.tarzan.maxkb4j.module.application.entity.ApplicationChatRecordEntity;
 import com.tarzan.maxkb4j.module.application.handler.PostResponseHandler;
 import com.tarzan.maxkb4j.module.application.vo.ApplicationChatRecordVO;
 import com.tarzan.maxkb4j.module.application.vo.ChatMessageVO;
-import com.tarzan.maxkb4j.util.StreamEmitter;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.SystemMessage;
@@ -20,6 +19,7 @@ import dev.langchain4j.model.input.PromptTemplate;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import reactor.core.publisher.Sinks;
 
 import java.util.*;
 import java.util.function.Function;
@@ -45,11 +45,11 @@ public class WorkflowManage {
     private INode currentNode;
     private NodeResult currentResult;
     private String answer = "";
-    private StreamEmitter emitter;
+    private Sinks.Many<ChatMessageVO> sink;
     private ApplicationChatRecordVO chatRecord;
     private List<INode> nodeContext = new ArrayList<>();
 
-    public WorkflowManage(LogicFlow flow, FlowParams flowParams,StreamEmitter emitter, PostResponseHandler postResponseHandler,
+    public WorkflowManage(LogicFlow flow, FlowParams flowParams,Sinks.Many<ChatMessageVO> sink, PostResponseHandler postResponseHandler,
                           Map<String, Object> formData, List<ChatFile> imageList,
                           List<ChatFile> documentList, List<ChatFile> audioList, String startNodeId,
                           Map<String, Object> startNodeData, ApplicationChatRecordVO chatRecord) {
@@ -58,7 +58,7 @@ public class WorkflowManage {
         this.documentList = Objects.requireNonNullElseGet(documentList, ArrayList::new);;
         this.audioList = Objects.requireNonNullElseGet(audioList, ArrayList::new);;
         this.flowParams = flowParams;
-        this.emitter = emitter;
+        this.sink = sink;
         this.flow = flow;
         this.postResponseHandler = postResponseHandler;
         this.chatRecord = chatRecord;
@@ -119,7 +119,7 @@ public class WorkflowManage {
         runChainManage(startNode, null, language);
         ChatMessageVO vo=new ChatMessageVO(flowParams.getChatId(),flowParams.getChatRecordId(),"",
                 true,true);
-        emitter.send(vo);
+        sink.tryEmitNext(vo);
         long startTime= context.getLongValue("start_time");
         postResponseHandler.handler(flowParams.getChatId(), flowParams.getChatRecordId(), flowParams.getQuestion(),answer,chatRecord,getRuntimeDetails(),startTime,flowParams.getClientId(),flowParams.getClientType());
         return answer;

@@ -2,9 +2,10 @@ package com.tarzan.maxkb4j.module.application.dto;
 
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.workflow.dto.ChatFile;
-import com.tarzan.maxkb4j.util.StreamEmitter;
+import com.tarzan.maxkb4j.module.application.vo.ChatMessageVO;
 import lombok.Builder;
 import lombok.Data;
+import reactor.core.publisher.Sinks;
 
 import java.util.List;
 
@@ -24,5 +25,5 @@ public class ChatMessageDTO {
     private List<ChatFile> documentList;
     private List<ChatFile> imageList;
     // private List<JSONObject> videoList;
-    private StreamEmitter emitter;
+    private Sinks.Many<ChatMessageVO> sink;
 }

@@ -1,0 +1,47 @@
+package com.tarzan.maxkb4j.module.model.provider.impl.aliyunModelProvider.model;
+
+import com.alibaba.dashscope.audio.tts.SpeechSynthesisParam;
+import com.alibaba.dashscope.audio.tts.SpeechSynthesizer;
+import com.alibaba.fastjson.JSONObject;
+import com.tarzan.maxkb4j.module.model.info.entity.ModelCredential;
+import com.tarzan.maxkb4j.module.model.provider.BaseModel;
+import com.tarzan.maxkb4j.module.model.provider.impl.BaseTextToSpeech;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+
+import java.nio.ByteBuffer;
+
+@EqualsAndHashCode(callSuper = true)
+@Data
+@NoArgsConstructor
+public class SamBertTTS extends BaseTextToSpeech implements BaseModel<BaseTextToSpeech> {
+
+    private SpeechSynthesisParam param;
+
+
+    public SamBertTTS(SpeechSynthesisParam param) {
+        super();
+        this.param = param;
+    }
+    @Override
+    public BaseTextToSpeech build(String modelName, ModelCredential modelCredential, JSONObject params) {
+        String voice= (String) params.getOrDefault("voice","zhinan");
+        modelName = modelName.replace("sambert", ("sambert-" + voice));
+        SpeechSynthesisParam param = SpeechSynthesisParam.builder()
+                .model(modelName)
+                .apiKey(modelCredential.getApiKey())
+                .text("")
+                .volume(params.getInteger("volume")==null?50:params.getInteger("volume"))
+                .build();
+        return new SamBertTTS(param);
+    }
+
+    @Override
+    public byte[] textToSpeech(String text) {
+        SpeechSynthesizer synthesizer = new SpeechSynthesizer();
+        param.setText(text);
+        ByteBuffer audio = synthesizer.call(param);
+        return audio.array();
+    }
+}

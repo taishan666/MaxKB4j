@@ -56,7 +56,7 @@ public class NodeResult {
                         "many_view",
                         true,
                         false);
-                node.emitter.send(vo);
+                node.sink.tryEmitNext(vo);
                 workflow.setAnswer(answer);
             }
         }

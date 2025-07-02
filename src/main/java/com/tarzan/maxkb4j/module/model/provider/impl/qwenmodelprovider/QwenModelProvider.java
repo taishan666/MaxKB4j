@@ -43,7 +43,7 @@ public class QwenModelProvider extends IModelProvider {
         modelInfos.add(new ModelInfo("text-embedding-v2","", ModelTypeEnum.EMBEDDING.name(),new BaiLianEmbedding()));
         modelInfos.add(new ModelInfo("text-embedding-v3","", ModelTypeEnum.EMBEDDING.name(),new BaiLianEmbedding()));
         modelInfos.add(new ModelInfo("paraformer-realtime-v2","", ModelTypeEnum.STT.name(),new BaiLianSpeechToText()));
-        modelInfos.add(new ModelInfo("cosyvoice-v1","",ModelTypeEnum.TTS.name(),new BaiLianTextToSpeech()));
+        modelInfos.add(new ModelInfo("cosyvoice-v1","",ModelTypeEnum.TTS.name(),new CosyVoiceTTS()));
         modelInfos.add(new ModelInfo("qwen-vl-plus","",ModelTypeEnum.IMAGE.name(),new BaiLianChatModel()));
         modelInfos.add(new ModelInfo("qwen-vl-max","",ModelTypeEnum.IMAGE.name(),new BaiLianChatModel()));
         modelInfos.add(new ModelInfo("wanx2.1-t2i-turbo","",ModelTypeEnum.TTI.name(),new QWenImageModel()));

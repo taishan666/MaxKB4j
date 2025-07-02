@@ -1,8 +1,9 @@
 package com.tarzan.maxkb4j.module.application.ragpipeline;
 
 import com.alibaba.fastjson.JSONObject;
-import com.tarzan.maxkb4j.util.StreamEmitter;
+import com.tarzan.maxkb4j.module.application.vo.ChatMessageVO;
 import lombok.extern.slf4j.Slf4j;
+import reactor.core.publisher.Sinks;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,7 +13,7 @@ import java.util.Map;
 public class PipelineManage {
     public List<IBaseChatPipelineStep> stepList;
     public JSONObject context;
-    public StreamEmitter emitter;
+    public Sinks.Many<ChatMessageVO> sink;
     public String answer;
 
     public PipelineManage(List<IBaseChatPipelineStep> stepList) {
@@ -32,13 +33,13 @@ public class PipelineManage {
         return null;
     }
 
-    public String run(Map<String, Object> context, StreamEmitter emitter) {
+    public String run(Map<String, Object> context, Sinks.Many<ChatMessageVO> sink) {
         this.context.put("start_time", System.currentTimeMillis());
         if (context != null) {
             this.context.putAll(context);
         }
-        if (emitter != null){
-            this.emitter = emitter;
+        if (sink != null){
+            this.sink = sink;
         }
         for (IBaseChatPipelineStep step : stepList) {
             step.run(this);

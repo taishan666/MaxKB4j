@@ -34,7 +34,6 @@ import com.tarzan.maxkb4j.module.dataset.vo.ParagraphVO;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelEntity;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
 import com.tarzan.maxkb4j.module.resource.service.MongoFileService;
-import com.tarzan.maxkb4j.util.StreamEmitter;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -179,24 +178,24 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
     }
 
 
-    public String chatMessage(String chatId, ChatMessageDTO dto, StreamEmitter emitter) {
+    public String chatMessage(String chatId, ChatMessageDTO dto) {
         ChatInfo chatInfo = getChatInfo(chatId);
         try {
             isValidApplication(chatInfo, dto.getClientId(), dto.getClientType());
         } catch (Exception e) {
-            emitter.send(new ChatMessageVO(chatId,  e.getMessage(), true));
+            dto.getSink().tryEmitNext(new ChatMessageVO(chatId,  e.getMessage(), true));
         }
         String answer = "";
         if (chatInfo.getApplication().getType().equals("SIMPLE")) {
-            answer =   chatSimple(chatInfo, dto,emitter);
+            answer =   chatSimple(chatInfo, dto);
         } else {
-            answer =   chatWorkflow(chatInfo, dto,emitter);
+            answer =   chatWorkflow(chatInfo, dto);
         }
-        emitter.complete();
+        dto.getSink().tryEmitComplete();
         return answer ;
     }
 
-    public String chatSimple(ChatInfo chatInfo, ChatMessageDTO dto, StreamEmitter emitter) {
+    public String chatSimple(ChatInfo chatInfo, ChatMessageDTO dto) {
         String modelId = chatInfo.getApplication().getModelId();
         ModelEntity model = modelService.getById(modelId);
         if (Objects.isNull(model) || !"SUCCESS".equals(model.getStatus())) {
@@ -228,10 +227,10 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
         pipelineManageBuilder.addStep(baseChatStep);
         PipelineManage pipelineManage = pipelineManageBuilder.build();
         Map<String, Object> params = chatInfo.toPipelineManageParams(problemText, postResponseHandler, excludeParagraphIds, dto.getClientId(), dto.getClientType(), stream);
-        return pipelineManage.run(params,emitter);
+        return pipelineManage.run(params,dto.getSink());
     }
 
-    public String chatWorkflow(ChatInfo chatInfo, ChatMessageDTO dto,StreamEmitter emitter) {
+    public String chatWorkflow(ChatInfo chatInfo, ChatMessageDTO dto) {
         ApplicationChatRecordVO chatRecord = null;
         String chatRecordId = dto.getChatRecordId();
         if(StringUtils.isNotBlank(chatRecordId)){
@@ -249,7 +248,7 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
         flowParams.setHistoryChatRecord(chatInfo.getChatRecordList());
         WorkflowManage workflowManage = new WorkflowManage(LogicFlow.newInstance(chatInfo.getWorkFlowVersion().getWorkFlow()),
                 flowParams,
-                emitter,
+                dto.getSink(),
                 postResponseHandler,
                 dto.getFormData(),
                 dto.getImageList(),

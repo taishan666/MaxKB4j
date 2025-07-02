@@ -28,7 +28,6 @@ import com.tarzan.maxkb4j.module.rag.MyAiServices;
 import com.tarzan.maxkb4j.module.rag.MyChatMemory;
 import com.tarzan.maxkb4j.module.rag.MyContentRetriever;
 import com.tarzan.maxkb4j.util.GroovyScriptExecutor;
-import com.tarzan.maxkb4j.util.StreamEmitter;
 import dev.langchain4j.agent.tool.ToolExecutionRequest;
 import dev.langchain4j.agent.tool.ToolSpecification;
 import dev.langchain4j.data.message.AiMessage;
@@ -59,6 +58,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.jsoup.internal.StringUtil;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
+import reactor.core.publisher.Sinks;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -101,7 +101,7 @@ public class BaseChatStep extends IChatStep {
                                  boolean stream) {
         AtomicReference<String> answerText = new AtomicReference<>("");
         String chatRecordId = IdWorker.get32UUID();
-        StreamEmitter emitter = manage.emitter;
+        Sinks.Many<ChatMessageVO> sink = manage.sink;
         if (CollectionUtils.isEmpty(paragraphList)) {
             paragraphList = new ArrayList<>();
         }
@@ -119,16 +119,16 @@ public class BaseChatStep extends IChatStep {
         BaseChatModel chatModel = modelService.getModelById(modelId, params);
         if (chatModel == null) {
             answerText.set("抱歉，没有配置 AI 模型，无法优化引用分段，请先去应用中设置 AI 模型。");
-            emitter.send(new ChatMessageVO(chatId, chatRecordId, answerText.get(), true));
+            sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, answerText.get(), true));
         } else {
             String status = noReferencesSetting.getStatus();
             if (!CollectionUtils.isEmpty(directlyReturnChunkList)) {
                 answerText.set(directlyReturnChunkList.get(0).text());
-                emitter.send(new ChatMessageVO(chatId, chatRecordId, answerText.get(), true));
+                sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, answerText.get(), true));
             } else if (paragraphList.isEmpty() && "designated_answer".equals(status)) {
                 String value = noReferencesSetting.getValue();
                 answerText.set(value.replace("{question}", problemText));
-                emitter.send(new ChatMessageVO(chatId, chatRecordId, answerText.get(), true));
+                sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, answerText.get(), true));
             } else {
                 int dialogueNumber = application.getDialogueNumber();
                 String systemText = application.getModelSetting().getSystem();
@@ -177,25 +177,25 @@ public class BaseChatStep extends IChatStep {
                         .build();
                 if (StringUtil.isBlank(problemText)) {
                     answerText.set("用户消息不能为空");
-                    emitter.send(new ChatMessageVO(chatId, chatRecordId, answerText.get(), true));
+                    sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, answerText.get(), true));
                 } else {
                     if (stream) {
                         TokenStream tokenStream = assistant.chatStream(problemText);
                         CountDownLatch latch = new CountDownLatch(1); // 创建一个计数为1的Latch
                         tokenStream.onToolExecuted((ToolExecution toolExecution) -> System.out.println("toolExecution=" + toolExecution))
-                                .onPartialResponse(text -> emitter.send(new ChatMessageVO(chatId, chatRecordId, text, false)))
+                                .onPartialResponse(text -> sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, text, false)))
                                 .onCompleteResponse(response -> {
                                     answerText.set(response.aiMessage().text());
                                     TokenUsage tokenUsage = response.tokenUsage();
                                     context.put("messageTokens", tokenUsage.inputTokenCount());
                                     context.put("answerTokens", tokenUsage.outputTokenCount());
                                     addAccessNum(clientId, clientType);
-                                    emitter.send(new ChatMessageVO(chatId, chatRecordId, "", true, tokenUsage.inputTokenCount(), tokenUsage.outputTokenCount()));
+                                    sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, "", true, tokenUsage.inputTokenCount(), tokenUsage.outputTokenCount()));
                                     latch.countDown(); // 完成后释放线程
                                 })
                                 .onError(error -> {
                                     latch.countDown(); // 完成后释放线程
-                                    emitter.error(new ChatMessageVO(chatId, chatRecordId, "", true));
+                                    sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, "", true));
                                 })
                                 .start();
                         try {
@@ -208,7 +208,7 @@ public class BaseChatStep extends IChatStep {
                         ChatResponse response = assistant.chat(problemText);
                         TokenUsage tokenUsage = response.tokenUsage();
                         answerText.set(response.aiMessage().text());
-                        emitter.send(new ChatMessageVO(chatId, chatRecordId, "", true, tokenUsage.inputTokenCount(), tokenUsage.outputTokenCount()));
+                        sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, "", true, tokenUsage.inputTokenCount(), tokenUsage.outputTokenCount()));
                     }
                     long startTime = manage.context.getLong("start_time");
                     postResponseHandler.handler(chatId, chatRecordId, problemText, answerText.get(), null, manage.getDetails(), startTime, clientId, clientType);

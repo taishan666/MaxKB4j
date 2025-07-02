@@ -7,7 +7,7 @@ import com.tarzan.maxkb4j.module.model.provider.enums.ModelProviderEnum;
 import com.tarzan.maxkb4j.module.model.provider.enums.ModelTypeEnum;
 import com.tarzan.maxkb4j.module.model.provider.impl.aliyunModelProvider.AliYunBaiLianModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.impl.aliyunModelProvider.model.BaiLianSpeechToText;
-import com.tarzan.maxkb4j.module.model.provider.impl.aliyunModelProvider.model.BaiLianTextToSpeech;
+import com.tarzan.maxkb4j.module.model.provider.impl.aliyunModelProvider.model.CosyVoiceTTS;
 import com.tarzan.maxkb4j.module.model.provider.impl.azuremodelprovider.model.AzureOpenaiChatModel;
 import com.tarzan.maxkb4j.module.model.provider.impl.azuremodelprovider.model.AzureOpenaiEmbedding;
 import com.tarzan.maxkb4j.util.IoUtil;
@@ -44,7 +44,7 @@ public class AzureModelProvider  extends IModelProvider {
         modelInfos.add(new ModelInfo("gpt-4o","",ModelTypeEnum.IMAGE.name(), new AzureOpenaiChatModel()));
         modelInfos.add(new ModelInfo("gpt-4o-mini","",ModelTypeEnum.IMAGE.name(), new AzureOpenaiChatModel()));
         modelInfos.add(new ModelInfo("dall-e-3","",ModelTypeEnum.TTI.name(),new AzureOpenaiEmbedding()));
-        modelInfos.add(new ModelInfo("tts","",ModelTypeEnum.TTS.name(), new BaiLianTextToSpeech()));
+        modelInfos.add(new ModelInfo("tts","",ModelTypeEnum.TTS.name(), new CosyVoiceTTS()));
         modelInfos.add(new ModelInfo("whisper","", ModelTypeEnum.STT.name(), new BaiLianSpeechToText()));
         return modelInfos;
     }

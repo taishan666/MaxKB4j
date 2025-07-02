@@ -36,10 +36,11 @@ public class QWenTTS extends BaseTextToSpeech implements BaseModel<BaseTextToSpe
 
     @Override
     public BaseTextToSpeech build(String modelName, ModelCredential modelCredential, JSONObject params) {
+        String voice= (String) params.getOrDefault("voice","Cherry");
         MultiModalConversationParam param = MultiModalConversationParam.builder()
                 .model(modelName)
                 .apiKey(modelCredential.getApiKey())
-                .voice(AudioParameters.Voice.CHERRY)
+                .voice(AudioParameters.Voice.valueOf(voice))
                 .build();
         return new QWenTTS(param);
     }

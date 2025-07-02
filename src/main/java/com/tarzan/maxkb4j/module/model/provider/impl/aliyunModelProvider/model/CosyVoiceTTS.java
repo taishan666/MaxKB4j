@@ -15,27 +15,26 @@ import java.nio.ByteBuffer;
 @EqualsAndHashCode(callSuper = true)
 @Data
 @NoArgsConstructor
-public class BaiLianTextToSpeech extends BaseTextToSpeech implements BaseModel<BaseTextToSpeech> {
+public class CosyVoiceTTS extends BaseTextToSpeech implements BaseModel<BaseTextToSpeech> {
 
     private SpeechSynthesisParam param;
-    private static String defaultVoice = "longxiaochun";
 
-
-    public BaiLianTextToSpeech(SpeechSynthesisParam param) {
+    public CosyVoiceTTS(SpeechSynthesisParam param) {
         super();
         this.param = param;
     }
     @Override
-    public BaiLianTextToSpeech build(String modelName, ModelCredential credential, JSONObject params) {
+    public CosyVoiceTTS build(String modelName, ModelCredential credential, JSONObject params) {
+        String voice= (String) params.getOrDefault("voice","longxiaochun");
         SpeechSynthesisParam param =
                 SpeechSynthesisParam.builder()
                         .apiKey(credential.getApiKey())
                         .model(modelName)
-                        .voice(params==null?defaultVoice:params.getString("voice"))
-                        .speechRate(params==null?1.0f:params.getFloat("speechRate"))
-                        .volume(params==null?50:params.getInteger("volume"))
+                        .voice(voice)
+                        .speechRate(params.getFloat("speechRate"))
+                        .volume(params.getInteger("volume")==null?50:params.getInteger("volume"))
                         .build();
-        return  new BaiLianTextToSpeech(param);
+        return  new CosyVoiceTTS(param);
     }
 
     @Override
