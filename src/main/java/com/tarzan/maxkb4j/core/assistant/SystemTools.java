@@ -1,4 +1,4 @@
-package com.tarzan.maxkb4j.module.assistant;
+package com.tarzan.maxkb4j.core.assistant;
 
 import cn.hutool.core.date.DateUtil;
 import dev.langchain4j.agent.tool.P;

@@ -7,6 +7,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.tarzan.maxkb4j.core.api.R;
 import com.tarzan.maxkb4j.module.system.user.dto.PasswordDTO;
+import com.tarzan.maxkb4j.module.system.user.dto.ResetPasswordDTO;
 import com.tarzan.maxkb4j.module.system.user.dto.UserDTO;
 import com.tarzan.maxkb4j.module.system.user.dto.UserLoginDTO;
 import com.tarzan.maxkb4j.module.system.user.entity.UserEntity;
@@ -65,6 +66,27 @@ public class UserController{
 		session.setAttribute("captcha", verCode);
 		// 将key和base64返回给前端
 		return R.data(specCaptcha.toBase64());
+	}
+
+	@PostMapping("api/user/send_email")
+	public R<Boolean> sendEmail(@RequestBody ResetPasswordDTO dto){
+		//todo
+		System.out.println(dto);
+		return R.status(true);
+	}
+
+	@PostMapping("api/user/check_code")
+	public R<Boolean> checkCode(@RequestBody ResetPasswordDTO dto){
+		//todo
+		System.out.println(dto);
+		return R.status(true);
+	}
+
+	@PostMapping("api/user/re_password")
+	public R<Boolean> rePassword(@RequestBody ResetPasswordDTO dto){
+		//todo
+		System.out.println(dto);
+		return R.status(true);
 	}
 
 	@SaCheckLogin
