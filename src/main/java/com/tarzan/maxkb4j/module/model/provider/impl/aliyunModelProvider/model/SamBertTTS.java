@@ -21,13 +21,14 @@ public class SamBertTTS extends BaseTextToSpeech implements BaseModel<BaseTextTo
 
     @Override
     public BaseTextToSpeech build(String modelName, ModelCredential modelCredential, JSONObject params) {
-        String voice= (String) params.getOrDefault("voice","zhinan");
+        String voice= params==null?"zhinan":(String) params.getOrDefault("voice","zhinan");
+        int volume= params==null?50:(int) params.getOrDefault("volume",50);
         modelName = modelName.replace("sambert", ("sambert-" + voice));
         this.param = SpeechSynthesisParam.builder()
                 .model(modelName)
                 .apiKey(modelCredential.getApiKey())
                 .text("")
-                .volume(params.getInteger("volume")==null?50:params.getInteger("volume"))
+                .volume(volume)
                 .build();
         return this;
     }
