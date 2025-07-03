@@ -28,8 +28,7 @@ public class CosyVoiceTTS extends BaseTextToSpeech implements BaseModel<BaseText
         String voice= params==null?"longxiaochun":(String) params.getOrDefault("voice","longxiaochun");
         int volume= params==null?50:(int) params.getOrDefault("volume",50);
         float speechRate=params==null?1F:(int) params.getFloatValue("speechRate");
-        this.param =
-                SpeechSynthesisParam.builder()
+        this.param = SpeechSynthesisParam.builder()
                         .apiKey(credential.getApiKey())
                         .model(modelName)
                         .voice(voice)
