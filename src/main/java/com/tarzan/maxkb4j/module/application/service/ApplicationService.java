@@ -452,13 +452,16 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         return ttsModel.textToSpeech("你好，这里是语音播放测试");
     }
 
-    public byte[] textToSpeech(String id, JSONObject data) {
+    public byte[] textToSpeech(String appId, JSONObject data) {
         String text = data.getString("text");
-        ApplicationEntity app = this.getById(id);
+        ApplicationEntity app = this.getById(appId);
         if ("BROWSER".equals(app.getTtsType())) {
             return new byte[0];
         }
-        BaseTextToSpeech ttsModel = modelService.getModelById(app.getTtsModelId());
+        if (app.getTtsModelId() == null) {
+            return new byte[0];
+        }
+        BaseTextToSpeech ttsModel = modelService.getModelById(app.getTtsModelId(),app.getTtsModelParamsSetting());
         return ttsModel.textToSpeech(text);
     }
 

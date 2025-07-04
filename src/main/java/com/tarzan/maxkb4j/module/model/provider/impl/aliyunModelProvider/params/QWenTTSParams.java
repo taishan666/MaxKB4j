@@ -13,12 +13,12 @@ public class QWenTTSParams implements BaseModelParams {
     @Override
     public List<BaseFiled> toForm() {
         Map<String,Object> options=Map.of(
-                "Cherry","Cherry",
-                "Serena","Serena",
-                "Ethan","Ethan",
-                "Chelsie","Chelsie"
+                "Cherry","CHERRY",
+                "Serena","SERENA",
+                "Ethan","ETHAN",
+                "Chelsie","CHELSIE"
         );
-        BaseFiled voiceSelectFiled=new SingleSelectFiled("音色","voice","指定音色名称",options,"Cherry");
+        BaseFiled voiceSelectFiled=new SingleSelectFiled("音色","voice","指定音色名称",options,"CHERRY");
         return List.of(voiceSelectFiled);
     }
 }

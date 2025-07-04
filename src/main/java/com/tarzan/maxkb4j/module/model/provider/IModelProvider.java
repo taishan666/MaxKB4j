@@ -41,7 +41,7 @@ public abstract class IModelProvider {
         if (modelInfo == null){
             throw new ApiException("model not found");
         }
-        return (T) modelInfo.getModelClass().build(modelName, modelCredential,null);
+        return (T) modelInfo.getModelClass().build(modelName, modelCredential,new JSONObject());
     }
 
     <T> T build(String modelName, String modelType, ModelCredential modelCredential, JSONObject params) {
