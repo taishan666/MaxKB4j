@@ -81,7 +81,6 @@ public class ApplicationPlatformController {
 
     @PostMapping("api/platform/{id}/status")
     public R<Boolean> platformStatus(@PathVariable("id") String id, @RequestBody PlatformStatusDTO params) {
-        System.out.println(params);
         ApplicationPlatformEntity entity=applicationPlatformService.getById(id);
         JSONObject status = entity.getStatus();
         status.put(params.getType(), params.getStatus());
