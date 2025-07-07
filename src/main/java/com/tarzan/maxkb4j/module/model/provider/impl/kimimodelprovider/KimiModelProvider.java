@@ -1,8 +1,12 @@
 package com.tarzan.maxkb4j.module.model.provider.impl.kimimodelprovider;
 
-import com.tarzan.maxkb4j.module.model.provider.*;
+import com.tarzan.maxkb4j.module.model.provider.IModelProvider;
+import com.tarzan.maxkb4j.module.model.provider.ModelInfoManage;
 import com.tarzan.maxkb4j.module.model.provider.enums.ModelProviderEnum;
 import com.tarzan.maxkb4j.module.model.provider.impl.aliyunModelProvider.AliYunBaiLianModelProvider;
+import com.tarzan.maxkb4j.module.model.provider.impl.kimimodelprovider.model.KimiChatModel;
+import com.tarzan.maxkb4j.module.model.provider.vo.ModelInfo;
+import com.tarzan.maxkb4j.module.model.provider.vo.ModelProvideInfo;
 import com.tarzan.maxkb4j.util.IoUtil;
 import org.springframework.stereotype.Component;
 
@@ -32,8 +36,9 @@ public class KimiModelProvider extends IModelProvider {
     @Override
     public List<ModelInfo> getModelList() {
         List<ModelInfo> modelInfos = new ArrayList<>();
-        modelInfos.add(new ModelInfo("moonshot-v1-8k","","LLM",null));
-        modelInfos.add(new ModelInfo("moonshot-v1-32k","","LLM",null));
+        modelInfos.add(new ModelInfo("moonshot-v1-8k","","LLM",new KimiChatModel()));
+        modelInfos.add(new ModelInfo("moonshot-v1-32k","","LLM",new KimiChatModel()));
+        modelInfos.add(new ModelInfo("moonshot-v1-128k","","LLM",new KimiChatModel()));
         return modelInfos;
     }
 

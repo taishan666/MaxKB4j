@@ -1,4 +1,4 @@
-package com.tarzan.maxkb4j.module.model.provider;
+package com.tarzan.maxkb4j.module.model.provider.vo;
 
 import lombok.Data;
 

@@ -1,5 +1,6 @@
 package com.tarzan.maxkb4j.module.model.provider;
 
+import com.tarzan.maxkb4j.module.model.provider.vo.ModelInfo;
 import lombok.Data;
 
 import java.util.List;

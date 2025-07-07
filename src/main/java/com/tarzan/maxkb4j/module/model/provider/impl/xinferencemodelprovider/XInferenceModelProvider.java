@@ -1,8 +1,8 @@
 package com.tarzan.maxkb4j.module.model.provider.impl.xinferencemodelprovider;
 
 import com.tarzan.maxkb4j.module.model.provider.IModelProvider;
-import com.tarzan.maxkb4j.module.model.provider.ModelInfo;
-import com.tarzan.maxkb4j.module.model.provider.ModelProvideInfo;
+import com.tarzan.maxkb4j.module.model.provider.vo.ModelInfo;
+import com.tarzan.maxkb4j.module.model.provider.vo.ModelProvideInfo;
 import com.tarzan.maxkb4j.module.model.provider.enums.ModelProviderEnum;
 import com.tarzan.maxkb4j.module.model.provider.enums.ModelTypeEnum;
 import com.tarzan.maxkb4j.module.model.provider.impl.aliyunModelProvider.AliYunBaiLianModelProvider;

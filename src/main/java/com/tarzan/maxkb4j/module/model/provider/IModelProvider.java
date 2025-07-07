@@ -3,6 +3,8 @@ package com.tarzan.maxkb4j.module.model.provider;
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.exception.ApiException;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelCredential;
+import com.tarzan.maxkb4j.module.model.provider.vo.ModelInfo;
+import com.tarzan.maxkb4j.module.model.provider.vo.ModelProvideInfo;
 
 import java.util.List;
 
