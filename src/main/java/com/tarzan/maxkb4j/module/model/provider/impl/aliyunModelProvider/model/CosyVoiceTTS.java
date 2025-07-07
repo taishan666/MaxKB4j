@@ -22,10 +22,11 @@ import java.nio.ByteBuffer;
 public class CosyVoiceTTS extends BaseTextToSpeech implements BaseModel<BaseTextToSpeech> {
 
     private SpeechSynthesisParam param;
+    private final String defaultVoice="longxiaochun";
 
     @Override
     public CosyVoiceTTS build(String modelName, ModelCredential credential, JSONObject params) {
-        String voice= params==null?"longxiaochun":(String) params.getOrDefault("voice","longxiaochun");
+        String voice= params==null?defaultVoice:(String) params.getOrDefault("voice",defaultVoice);
         int volume= params==null?50:(int) params.getOrDefault("volume",50);
         float speechRate=params==null?1F:(int) params.getFloatValue("speechRate");
         this.param = SpeechSynthesisParam.builder()
@@ -49,12 +50,12 @@ public class CosyVoiceTTS extends BaseTextToSpeech implements BaseModel<BaseText
         VoiceEnrollmentService service = new VoiceEnrollmentService(param.getApiKey());
         Voice myVoice;
         try {
-            myVoice = service.createVoice(param.getModel(), "my_voice", fileUrl);
+            myVoice = service.createVoice(param.getModel(), "clone_voice", fileUrl);
         } catch (NoApiKeyException | InputRequiredException e) {
             throw new RuntimeException(e);
         }
-        System.out.println("RequestId: " + service.getLastRequestId());
         System.out.println("your voice id is " + myVoice.getVoiceId());
+        System.out.println("voice status is " + myVoice.getStatus());
         return myVoice.getVoiceId();
     }
 }
