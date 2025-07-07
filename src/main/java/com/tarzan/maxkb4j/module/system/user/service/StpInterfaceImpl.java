@@ -57,7 +57,7 @@ public class StpInterfaceImpl implements StpInterface {
                 String operate = e.getGroup() + ":" + e.getOperate();
                 permissions.add(operate);
             });
-            permissions.add("x-pack");
+           // permissions.add("x-pack");
             return permissions;
         });
     }
