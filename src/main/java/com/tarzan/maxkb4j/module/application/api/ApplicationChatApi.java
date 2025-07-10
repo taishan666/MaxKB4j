@@ -13,20 +13,20 @@ import org.springframework.web.bind.annotation.RestController;
  * @author tarzan
  * @date 2024-12-25 13:09:54
  */
-@Tag(name = "APP会话管理", description = "APP会话管理")
+@Tag(name = "应用接口管理", description = "应用接口管理")
 @RestController
 @AllArgsConstructor
 public class ApplicationChatApi {
 
     private final ApplicationChatService chatService;
 
-    @Operation(summary = "新建应用会话", description = "")
-    @GetMapping("api/application/{appId}/v1/open")
+    @Operation(summary = "新建应用会话", description = "新建应用会话")
+    @GetMapping("api/app/{appId}/v1/open")
     public R<String> chatOpen(@PathVariable("appId") String appId) {
         return R.success(chatService.chatOpen(appId));
     }
 
-/*    @Operation(summary = "聊天", description = "")
+  /*  @Operation(summary = "聊天", description = "")
     @PostMapping(path = "api/application/{chatId}/v1/chat", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<ChatMessageVO> chatMessage(@PathVariable String chatId, @RequestBody ChatMessageDTO params) {
         return chatService.chatMessage(chatId, params);
