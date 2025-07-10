@@ -56,7 +56,6 @@ public class FunctionLibController{
 		}
 		// 创建 GroovyShell 并运行脚本
 		GroovyShell shell = new GroovyShell(binding);
-		System.out.println(codeText);
 		Object result = shell.evaluate(codeText.toString());
 		String finalResult=result != null ? result.toString() : "";
 		return R.data(finalResult);
