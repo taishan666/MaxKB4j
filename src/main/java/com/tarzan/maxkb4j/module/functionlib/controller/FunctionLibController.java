@@ -43,20 +43,21 @@ public class FunctionLibController{
 	@PostMapping("api/function_lib/debug")
 	public R<String> debug(@RequestBody FunctionLibDTO dto) {
 		Binding binding = new Binding();
-		StringBuilder sb=new StringBuilder(dto.getCode());
-		sb.append("\n").append("main(");
+		StringBuilder codeText=new StringBuilder(dto.getCode());
+		codeText.append("\n").append("main(");
 		if (CollectionUtils.isEmpty(dto.getDebugFieldList())){
-			sb.append(")");
+			codeText.append(")");
 		}else {
 			for (FunctionDebugField inputField : dto.getDebugFieldList()) {
 				binding.setVariable(inputField.getName(), inputField.getValue());
-				sb.append(inputField.getName()).append(",");
+				codeText.append(inputField.getName()).append(",");
 			}
-			sb.deleteCharAt(sb.length()-1).append(")");
+			codeText.deleteCharAt(codeText.length()-1).append(")");
 		}
 		// 创建 GroovyShell 并运行脚本
 		GroovyShell shell = new GroovyShell(binding);
-		Object result = shell.evaluate(sb.toString());
+		System.out.println(codeText);
+		Object result = shell.evaluate(codeText.toString());
 		String finalResult=result != null ? result.toString() : "";
 		return R.data(finalResult);
 	}
