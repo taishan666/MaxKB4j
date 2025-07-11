@@ -3,6 +3,7 @@ package com.tarzan.maxkb4j.module.functionlib.controller;
 import cn.dev33.satoken.stp.StpUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.tarzan.maxkb4j.constant.AppConst;
 import com.tarzan.maxkb4j.core.api.R;
 import com.tarzan.maxkb4j.module.functionlib.dto.FunctionDebugField;
 import com.tarzan.maxkb4j.module.functionlib.dto.FunctionLibDTO;
@@ -22,17 +23,18 @@ import java.util.List;
  * @date 2025-01-25 22:00:45
  */
 @RestController
+@RequestMapping(AppConst.BASE_PATH)
 @AllArgsConstructor
 public class FunctionLibController{
 
 	private	final FunctionLibService functionLibService;
 
-	@GetMapping("api/function_lib/{current}/{size}")
+	@GetMapping("/function_lib/{current}/{size}")
 	public R<IPage<FunctionLibEntity>> page(@PathVariable int current, @PathVariable int size,String name) {
 		return R.success(functionLibService.pageList(current,size,name));
 	}
 
-	@PostMapping("api/function_lib")
+	@PostMapping("/function_lib")
 	public R<FunctionLibEntity> functionLib(@RequestBody FunctionLibEntity dto) {
 		dto.setIsActive(true);
 		dto.setUserId(StpUtil.getLoginIdAsString());
@@ -40,7 +42,7 @@ public class FunctionLibController{
 		return R.data(dto);
 	}
 
-	@PostMapping("api/function_lib/debug")
+	@PostMapping("/function_lib/debug")
 	public R<String> debug(@RequestBody FunctionLibDTO dto) {
 		Binding binding = new Binding();
 		StringBuilder codeText=new StringBuilder(dto.getCode());
@@ -62,18 +64,18 @@ public class FunctionLibController{
 	}
 
 
-	@PutMapping("api/function_lib/{id}")
+	@PutMapping("/function_lib/{id}")
 	public R<Boolean> functionLib(@PathVariable String id,@RequestBody FunctionLibEntity dto) {
 		dto.setId(id);
 		return R.status(functionLibService.updateById(dto));
 	}
 
-	@DeleteMapping("api/function_lib/{id}")
+	@DeleteMapping("/function_lib/{id}")
 	public R<Boolean> functionLib(@PathVariable String id) {
 		return R.status(functionLibService.removeById(id));
 	}
 
-	@PostMapping("api/function_lib/pylint")
+	@PostMapping("/function_lib/pylint")
 	public R<List<FunctionLibEntity>> pylint(@RequestBody JSONObject json) {
 		return R.success(Collections.emptyList());
 	}

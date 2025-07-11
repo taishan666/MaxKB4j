@@ -2,6 +2,7 @@ package com.tarzan.maxkb4j.module.application.controller;
 
 import cn.dev33.satoken.stp.StpUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.tarzan.maxkb4j.constant.AppConst;
 import com.tarzan.maxkb4j.core.api.R;
 import com.tarzan.maxkb4j.core.workflow.dto.ChatFile;
 import com.tarzan.maxkb4j.module.application.dto.ChatMessageDTO;
@@ -30,44 +31,45 @@ import java.util.List;
  */
 @Tag(name = "APP会话管理", description = "APP会话管理")
 @RestController
+@RequestMapping(AppConst.BASE_PATH +"/application")
 @AllArgsConstructor
 public class ApplicationChatController {
 
     private final ApplicationChatService chatService;
 
-    @GetMapping("api/application/{appId}/chat/client/{page}/{size}")
+    @GetMapping("/{appId}/chat/client/{page}/{size}")
     public R<IPage<ApplicationChatEntity>> clientChatPage(@PathVariable("appId") String appId, @PathVariable("page") int page, @PathVariable("size") int size) {
         String clientId = (String) StpUtil.getExtra("client_id");
         return R.success(chatService.clientChatPage(appId, clientId, page, size));
     }
 
-    @PutMapping("api/application/{appId}/chat/client/{chatId}")
+    @PutMapping("/{appId}/chat/client/{chatId}")
     public R<Boolean> updateChat(@PathVariable("appId") String appId, @PathVariable("chatId") String chatId, @RequestBody ApplicationChatEntity chatEntity) {
         chatEntity.setId(chatId);
         return R.success(chatService.updateById(chatEntity));
     }
 
-    @DeleteMapping("api/application/{appId}/chat/client/{chatId}")
+    @DeleteMapping("/{appId}/chat/client/{chatId}")
     public R<Boolean> deleteChat(@PathVariable("appId") String appId, @PathVariable("chatId") String chatId) {
         return R.success(chatService.deleteById(chatId));
     }
 
-    @PostMapping("api/application/chat/open")
+    @PostMapping("/chat/open")
     public R<String> chatOpenTest(@RequestBody ApplicationEntity application) {
         return R.success(chatService.chatOpenTest(application));
     }
 
-    @PostMapping("api/application/chat_workflow/open")
+    @PostMapping("/chat_workflow/open")
     public R<String> chatWorkflowOpenTest(@RequestBody ApplicationEntity application) {
         return R.success(chatService.chatWorkflowOpenTest(application));
     }
 
-    @GetMapping("api/application/{appId}/chat/open")
+    @GetMapping("/{appId}/chat/open")
     public R<String> chatOpen(@PathVariable("appId") String appId) {
         return R.success(chatService.chatOpen(appId));
     }
 
-/*    @PostMapping(path = "api/application/chat_message/{chatId}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+/*    @PostMapping(path = "/chat_message/{chatId}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<ChatMessageVO> chatMessage(@PathVariable String chatId, @RequestBody ChatMessageDTO params) {
         String clientId = (String) StpUtil.getExtra("client_id");
         String clientType = (String) StpUtil.getExtra("client_type");
@@ -76,7 +78,7 @@ public class ApplicationChatController {
         return chatService.chatMessage(chatId, params);
     }*/
 
-    @PostMapping(path = "api/application/chat_message/{chatId}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    @PostMapping(path = "/chat_message/{chatId}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<ChatMessageVO> chatMessage(@PathVariable String chatId, @RequestBody ChatMessageDTO params) {
         Sinks.Many<ChatMessageVO> sink = Sinks.many().multicast().onBackpressureBuffer();
         String clientId = (String) StpUtil.getExtra("client_id");
@@ -89,27 +91,27 @@ public class ApplicationChatController {
         return sink.asFlux();
     }
 
-    @PutMapping("api/application/{id}/chat/{chatId}/chat_record/{chatRecordId}/vote")
+    @PutMapping("/{id}/chat/{chatId}/chat_record/{chatRecordId}/vote")
     public R<Boolean> vote(@PathVariable String id, @PathVariable String chatId, @PathVariable String chatRecordId, @RequestBody ApplicationChatRecordEntity chatRecord) {
         return R.success(chatService.getChatRecordVote(chatRecordId, chatRecord));
     }
 
-    @PostMapping("api/application/{id}/chat/{chatId}/upload_file")
+    @PostMapping("/{id}/chat/{chatId}/upload_file")
     public R<List<ChatFile>> uploadFile(@PathVariable String id, @PathVariable String chatId, MultipartFile[] file) {
         return R.success(chatService.uploadFile(id, chatId, file));
     }
 
-    @GetMapping("api/application/{id}/chat/{chatId}/chat_record/{page}/{size}")
+    @GetMapping("/{id}/chat/{chatId}/chat_record/{page}/{size}")
     public R<IPage<ApplicationChatRecordVO>> chatRecordPage(@PathVariable String id, @PathVariable String chatId, @PathVariable int page, @PathVariable int size) {
         return R.success(chatService.chatRecordPage(chatId, page, size));
     }
 
-    @GetMapping("api/application/{appId}/chat/{page}/{size}")
+    @GetMapping("/{appId}/chat/{page}/{size}")
     public R<IPage<ApplicationChatEntity>> chatLogs(@PathVariable("appId") String appId, @PathVariable("page") int page, @PathVariable("size") int size, ChatQueryDTO query) {
         return R.success(chatService.chatLogs(appId, page, size, query));
     }
 
-    @PostMapping("api/application/{id}/chat/export")
+    @PostMapping("/{id}/chat/export")
     public void export(@PathVariable String id, @RequestBody List<String> selectIds, HttpServletResponse response) throws IOException {
         chatService.chatExport(selectIds, response);
     }

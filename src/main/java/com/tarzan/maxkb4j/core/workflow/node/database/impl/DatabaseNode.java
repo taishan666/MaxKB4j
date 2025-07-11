@@ -41,7 +41,6 @@ public class DatabaseNode extends INode {
             if (sql.trim().toLowerCase().startsWith("select")) {
                 try (ResultSet rs = ps.executeQuery()) {
                     int columnCount = rs.getMetaData().getColumnCount();
-
                     while (rs.next()) {
                         Map<String, Object> row = new HashMap<>();
                         for (int i = 1; i <= columnCount; i++) {

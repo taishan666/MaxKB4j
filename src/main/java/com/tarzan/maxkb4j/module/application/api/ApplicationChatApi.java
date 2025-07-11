@@ -1,5 +1,6 @@
 package com.tarzan.maxkb4j.module.application.api;
 
+import com.tarzan.maxkb4j.constant.AppConst;
 import com.tarzan.maxkb4j.core.api.R;
 import com.tarzan.maxkb4j.module.application.service.ApplicationChatService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -7,6 +8,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -16,12 +18,13 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "应用接口管理", description = "应用接口管理")
 @RestController
 @AllArgsConstructor
+@RequestMapping(AppConst.BASE_PATH)
 public class ApplicationChatApi {
 
     private final ApplicationChatService chatService;
 
     @Operation(summary = "新建应用会话", description = "新建应用会话")
-    @GetMapping("api/app/{appId}/v1/open")
+    @GetMapping("/app/{appId}/v1/open")
     public R<String> chatOpen(@PathVariable("appId") String appId) {
         return R.success(chatService.chatOpen(appId));
     }

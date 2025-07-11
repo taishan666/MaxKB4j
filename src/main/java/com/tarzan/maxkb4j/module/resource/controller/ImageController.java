@@ -1,5 +1,6 @@
 package com.tarzan.maxkb4j.module.resource.controller;
 
+import com.tarzan.maxkb4j.constant.AppConst;
 import com.tarzan.maxkb4j.module.resource.entity.ImageEntity;
 import com.tarzan.maxkb4j.module.resource.service.ImageService;
 import lombok.AllArgsConstructor;
@@ -9,6 +10,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -16,12 +18,13 @@ import org.springframework.web.bind.annotation.RestController;
  * @date 2025-01-21 09:35:03
  */
 @RestController
+@RequestMapping(AppConst.BASE_PATH)
 @AllArgsConstructor
 public class ImageController{
 
 	private	final ImageService imageService;
 
-	@GetMapping(value = "api/image/{id}", produces = MediaType.IMAGE_JPEG_VALUE)
+	@GetMapping(value = "/image/{id}", produces = MediaType.IMAGE_JPEG_VALUE)
 	public ResponseEntity<byte[]> editIcon(@PathVariable("id") String id){
 		final HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(MediaType.IMAGE_JPEG); // 根据实际情况调整MediaType

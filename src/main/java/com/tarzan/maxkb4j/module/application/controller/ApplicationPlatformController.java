@@ -1,6 +1,7 @@
 package com.tarzan.maxkb4j.module.application.controller;
 
 import com.alibaba.fastjson.JSONObject;
+import com.tarzan.maxkb4j.constant.AppConst;
 import com.tarzan.maxkb4j.core.api.R;
 import com.tarzan.maxkb4j.module.application.dto.PlatformStatusDTO;
 import com.tarzan.maxkb4j.module.application.entity.ApplicationPlatformEntity;
@@ -12,18 +13,19 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestController
+@RequestMapping(AppConst.BASE_PATH)
 @AllArgsConstructor
 public class ApplicationPlatformController {
 
     private final ApplicationPlatformService applicationPlatformService;
 
-    @GetMapping("api/platform/source")
+    @GetMapping("/platform/source")
     public R<JSONObject> source() {
         return R.success(new JSONObject());
     }
 
     //@SaCheckPermission("APPLICATION:READ")
-    @GetMapping("api/platform/{id}/status")
+    @GetMapping("/platform/{id}/status")
     public R<JSONObject> platformStatus(@PathVariable("id") String id) {
         ApplicationPlatformEntity entity=applicationPlatformService.getById(id);
         if (entity == null){
@@ -79,7 +81,7 @@ public class ApplicationPlatformController {
         return R.success(entity.getStatus());
     }
 
-    @PostMapping("api/platform/{id}/status")
+    @PostMapping("/platform/{id}/status")
     public R<Boolean> platformStatus(@PathVariable("id") String id, @RequestBody PlatformStatusDTO params) {
         ApplicationPlatformEntity entity=applicationPlatformService.getById(id);
         JSONObject status = entity.getStatus();
@@ -88,14 +90,14 @@ public class ApplicationPlatformController {
         return R.status(applicationPlatformService.updateById(entity));
     }
 
-    @GetMapping("api/platform/{id}/{platform}")
+    @GetMapping("/platform/{id}/{platform}")
     public R<JSONObject> platformConfig(@PathVariable("id") String id, @PathVariable("platform") String platform) {
         ApplicationPlatformEntity entity=applicationPlatformService.getById(id);
         JSONObject config = entity.getConfig();
         return R.success(config.getJSONObject(platform));
     }
 
-    @PostMapping("api/platform/{id}/{platform}")
+    @PostMapping("/platform/{id}/{platform}")
     public R<Boolean> platformConfig(@PathVariable("id") String id, @PathVariable("platform") String platform, @RequestBody JSONObject platformConfig) {
         ApplicationPlatformEntity entity=applicationPlatformService.getById(id);
         JSONObject config = entity.getConfig();
