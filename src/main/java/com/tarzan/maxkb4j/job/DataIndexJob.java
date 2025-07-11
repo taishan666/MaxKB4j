@@ -1,6 +1,6 @@
 package com.tarzan.maxkb4j.job;
 
-import com.tarzan.maxkb4j.module.dataset.entity.DocumentEntity;
+import com.tarzan.maxkb4j.module.dataset.domain.entity.DocumentEntity;
 import com.tarzan.maxkb4j.module.dataset.service.DatasetBaseService;
 import com.tarzan.maxkb4j.module.dataset.service.DocumentService;
 import lombok.AllArgsConstructor;

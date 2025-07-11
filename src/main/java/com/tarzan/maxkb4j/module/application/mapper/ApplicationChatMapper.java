@@ -3,10 +3,10 @@ package com.tarzan.maxkb4j.module.application.mapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.tarzan.maxkb4j.module.application.dto.ChatQueryDTO;
-import com.tarzan.maxkb4j.module.application.entity.ApplicationChatEntity;
-import com.tarzan.maxkb4j.module.application.vo.ApplicationStatisticsVO;
-import com.tarzan.maxkb4j.module.application.vo.ChatRecordDetailVO;
+import com.tarzan.maxkb4j.module.application.domian.dto.ChatQueryDTO;
+import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatEntity;
+import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationStatisticsVO;
+import com.tarzan.maxkb4j.module.application.domian.vo.ChatRecordDetailVO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 

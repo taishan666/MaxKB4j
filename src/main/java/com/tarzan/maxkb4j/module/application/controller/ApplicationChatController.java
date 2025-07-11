@@ -4,15 +4,15 @@ import cn.dev33.satoken.stp.StpUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.tarzan.maxkb4j.constant.AppConst;
 import com.tarzan.maxkb4j.core.api.R;
-import com.tarzan.maxkb4j.core.workflow.dto.ChatFile;
-import com.tarzan.maxkb4j.module.application.dto.ChatMessageDTO;
-import com.tarzan.maxkb4j.module.application.dto.ChatQueryDTO;
-import com.tarzan.maxkb4j.module.application.entity.ApplicationChatEntity;
-import com.tarzan.maxkb4j.module.application.entity.ApplicationChatRecordEntity;
-import com.tarzan.maxkb4j.module.application.entity.ApplicationEntity;
+import com.tarzan.maxkb4j.core.workflow.domain.ChatFile;
+import com.tarzan.maxkb4j.module.application.domian.dto.ChatMessageDTO;
+import com.tarzan.maxkb4j.module.application.domian.dto.ChatQueryDTO;
+import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatEntity;
+import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatRecordEntity;
+import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationEntity;
 import com.tarzan.maxkb4j.module.application.service.ApplicationChatService;
-import com.tarzan.maxkb4j.module.application.vo.ApplicationChatRecordVO;
-import com.tarzan.maxkb4j.module.application.vo.ChatMessageVO;
+import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationChatRecordVO;
+import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
@@ -69,15 +69,6 @@ public class ApplicationChatController {
         return R.success(chatService.chatOpen(appId));
     }
 
-/*    @PostMapping(path = "/chat_message/{chatId}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<ChatMessageVO> chatMessage(@PathVariable String chatId, @RequestBody ChatMessageDTO params) {
-        String clientId = (String) StpUtil.getExtra("client_id");
-        String clientType = (String) StpUtil.getExtra("client_type");
-        params.setClientId(clientId);
-        params.setClientType(clientType);
-        return chatService.chatMessage(chatId, params);
-    }*/
-
     @PostMapping(path = "/chat_message/{chatId}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<ChatMessageVO> chatMessage(@PathVariable String chatId, @RequestBody ChatMessageDTO params) {
         Sinks.Many<ChatMessageVO> sink = Sinks.many().multicast().onBackpressureBuffer();
@@ -86,7 +77,6 @@ public class ApplicationChatController {
         params.setClientId(clientId);
         params.setClientType(clientType);
         params.setSink(sink);
-       // params.setEmitter(emitter);
         new Thread(() -> chatService.chatMessage(chatId, params)).start();
         return sink.asFlux();
     }

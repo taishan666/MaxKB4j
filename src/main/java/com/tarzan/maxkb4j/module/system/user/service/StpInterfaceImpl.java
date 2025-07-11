@@ -3,10 +3,10 @@ package com.tarzan.maxkb4j.module.system.user.service;
 import cn.dev33.satoken.stp.StpInterface;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
-import com.tarzan.maxkb4j.module.system.user.entity.UserEntity;
+import com.tarzan.maxkb4j.module.system.user.domain.entity.UserEntity;
 import com.tarzan.maxkb4j.module.system.user.enums.PermissionEnum;
 import com.tarzan.maxkb4j.module.system.user.mapper.UserMapper;
-import com.tarzan.maxkb4j.module.system.user.vo.PermissionVO;
+import com.tarzan.maxkb4j.module.system.user.domain.vo.PermissionVO;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 

@@ -1,8 +1,8 @@
 package com.tarzan.maxkb4j.module.system.user.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.tarzan.maxkb4j.module.system.user.entity.UserEntity;
-import com.tarzan.maxkb4j.module.system.user.vo.PermissionVO;
+import com.tarzan.maxkb4j.module.system.user.domain.entity.UserEntity;
+import com.tarzan.maxkb4j.module.system.user.domain.vo.PermissionVO;
 import org.apache.ibatis.annotations.Mapper;
 
 import java.util.List;

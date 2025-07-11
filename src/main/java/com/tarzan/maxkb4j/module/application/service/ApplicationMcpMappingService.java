@@ -1,7 +1,7 @@
 package com.tarzan.maxkb4j.module.application.service;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.tarzan.maxkb4j.module.application.entity.ApplicationMcpMappingEntity;
+import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationMcpMappingEntity;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationMcpMappingMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

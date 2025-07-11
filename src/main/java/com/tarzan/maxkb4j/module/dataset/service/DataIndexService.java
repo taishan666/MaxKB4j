@@ -2,8 +2,8 @@ package com.tarzan.maxkb4j.module.dataset.service;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.huaban.analysis.jieba.JiebaSegmenter;
-import com.tarzan.maxkb4j.module.dataset.entity.EmbeddingEntity;
-import com.tarzan.maxkb4j.module.dataset.entity.ParagraphEntity;
+import com.tarzan.maxkb4j.module.dataset.domain.entity.EmbeddingEntity;
+import com.tarzan.maxkb4j.module.dataset.domain.entity.ParagraphEntity;
 import com.tarzan.maxkb4j.module.dataset.mapper.EmbeddingMapper;
 import com.tarzan.maxkb4j.util.StringUtil;
 import lombok.AllArgsConstructor;

@@ -1,7 +1,7 @@
 package com.tarzan.maxkb4j.module.system.team.service;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.tarzan.maxkb4j.module.system.team.entity.TeamEntity;
+import com.tarzan.maxkb4j.module.system.team.domain.entity.TeamEntity;
 import com.tarzan.maxkb4j.module.system.team.mapper.TeamMapper;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;

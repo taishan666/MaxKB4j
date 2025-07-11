@@ -9,21 +9,21 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.tarzan.maxkb4j.core.common.dto.QueryDTO;
-import com.tarzan.maxkb4j.module.application.entity.ApplicationDatasetMappingEntity;
-import com.tarzan.maxkb4j.module.application.entity.ApplicationEntity;
+import com.tarzan.maxkb4j.core.common.dto.Query;
+import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationDatasetMappingEntity;
+import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationEntity;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationDatasetMappingMapper;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationMapper;
-import com.tarzan.maxkb4j.module.dataset.dto.DatasetDTO;
-import com.tarzan.maxkb4j.module.dataset.entity.*;
+import com.tarzan.maxkb4j.module.dataset.domain.dto.DatasetDTO;
+import com.tarzan.maxkb4j.module.dataset.domain.entity.*;
 import com.tarzan.maxkb4j.module.dataset.excel.DatasetExcel;
 import com.tarzan.maxkb4j.module.dataset.mapper.DatasetMapper;
 import com.tarzan.maxkb4j.module.dataset.mapper.DocumentMapper;
 import com.tarzan.maxkb4j.module.dataset.mapper.ProblemParagraphMapper;
-import com.tarzan.maxkb4j.module.dataset.vo.DatasetVO;
-import com.tarzan.maxkb4j.module.dataset.vo.ParagraphSimpleVO;
-import com.tarzan.maxkb4j.module.dataset.vo.ProblemVO;
-import com.tarzan.maxkb4j.module.dataset.vo.TextSegmentVO;
+import com.tarzan.maxkb4j.module.dataset.domain.vo.DatasetVO;
+import com.tarzan.maxkb4j.module.dataset.domain.vo.ParagraphSimpleVO;
+import com.tarzan.maxkb4j.module.dataset.domain.vo.ProblemVO;
+import com.tarzan.maxkb4j.module.dataset.domain.vo.TextSegmentVO;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelEntity;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
 import com.tarzan.maxkb4j.util.BeanUtil;
@@ -78,7 +78,7 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
     private final DocumentService documentService;
 
 
-    public IPage<DatasetVO> selectDatasetPage(Page<DatasetVO> datasetPage, QueryDTO query) {
+    public IPage<DatasetVO> selectDatasetPage(Page<DatasetVO> datasetPage, Query query) {
         if (Objects.isNull(query.getSelectUserId())) {
             query.setSelectUserId(StpUtil.getLoginIdAsString());
         }

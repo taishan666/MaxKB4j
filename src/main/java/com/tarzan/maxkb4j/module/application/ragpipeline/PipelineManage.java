@@ -1,7 +1,7 @@
 package com.tarzan.maxkb4j.module.application.ragpipeline;
 
 import com.alibaba.fastjson.JSONObject;
-import com.tarzan.maxkb4j.module.application.vo.ChatMessageVO;
+import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Sinks;
 

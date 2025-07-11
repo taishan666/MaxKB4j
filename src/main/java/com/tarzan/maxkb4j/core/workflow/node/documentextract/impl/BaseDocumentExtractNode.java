@@ -3,7 +3,7 @@ package com.tarzan.maxkb4j.core.workflow.node.documentextract.impl;
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.NodeResult;
-import com.tarzan.maxkb4j.core.workflow.dto.ChatFile;
+import com.tarzan.maxkb4j.core.workflow.domain.ChatFile;
 import com.tarzan.maxkb4j.core.workflow.node.documentextract.input.DocumentExtractParams;
 import com.tarzan.maxkb4j.module.resource.service.MongoFileService;
 import com.tarzan.maxkb4j.util.SpringUtil;

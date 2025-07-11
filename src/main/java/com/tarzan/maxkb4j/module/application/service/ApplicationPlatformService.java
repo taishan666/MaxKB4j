@@ -1,7 +1,7 @@
 package com.tarzan.maxkb4j.module.application.service;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.tarzan.maxkb4j.module.application.entity.ApplicationPlatformEntity;
+import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationPlatformEntity;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationPlatformMapper;
 import org.springframework.stereotype.Service;
 

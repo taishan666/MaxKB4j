@@ -2,7 +2,7 @@ package com.tarzan.maxkb4j.module.system.setting.service;
 
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.tarzan.maxkb4j.module.system.setting.entity.SystemSettingEntity;
+import com.tarzan.maxkb4j.module.system.setting.domain.entity.SystemSettingEntity;
 import com.tarzan.maxkb4j.module.system.setting.mapper.SystemSettingMapper;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;

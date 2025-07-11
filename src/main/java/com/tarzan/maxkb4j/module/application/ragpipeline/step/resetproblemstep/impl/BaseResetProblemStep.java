@@ -1,7 +1,7 @@
 package com.tarzan.maxkb4j.module.application.ragpipeline.step.resetproblemstep.impl;
 
 import com.alibaba.fastjson.JSONObject;
-import com.tarzan.maxkb4j.module.application.entity.ApplicationEntity;
+import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationEntity;
 import com.tarzan.maxkb4j.module.application.ragpipeline.PipelineManage;
 import com.tarzan.maxkb4j.module.application.ragpipeline.step.resetproblemstep.IResetProblemStep;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;

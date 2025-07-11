@@ -1,9 +1,9 @@
 package com.tarzan.maxkb4j.module.dataset.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.tarzan.maxkb4j.module.dataset.entity.ProblemEntity;
-import com.tarzan.maxkb4j.module.dataset.entity.ProblemParagraphEntity;
-import com.tarzan.maxkb4j.module.dataset.vo.ProblemParagraphVO;
+import com.tarzan.maxkb4j.module.dataset.domain.entity.ProblemEntity;
+import com.tarzan.maxkb4j.module.dataset.domain.entity.ProblemParagraphEntity;
+import com.tarzan.maxkb4j.module.dataset.domain.vo.ProblemParagraphVO;
 
 import java.util.List;
 

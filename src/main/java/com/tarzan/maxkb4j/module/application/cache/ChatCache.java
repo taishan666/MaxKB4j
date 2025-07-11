@@ -2,7 +2,7 @@ package com.tarzan.maxkb4j.module.application.cache;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
-import com.tarzan.maxkb4j.module.application.dto.ChatInfo;
+import com.tarzan.maxkb4j.module.application.domian.dto.ChatInfo;
 
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;

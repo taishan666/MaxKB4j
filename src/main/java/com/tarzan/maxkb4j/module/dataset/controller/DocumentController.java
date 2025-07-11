@@ -4,16 +4,16 @@ import cn.dev33.satoken.annotation.SaCheckPermission;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.tarzan.maxkb4j.constant.AppConst;
 import com.tarzan.maxkb4j.core.api.R;
-import com.tarzan.maxkb4j.core.common.dto.QueryDTO;
-import com.tarzan.maxkb4j.module.dataset.dto.*;
-import com.tarzan.maxkb4j.module.dataset.entity.DocumentEntity;
-import com.tarzan.maxkb4j.module.dataset.entity.ParagraphEntity;
-import com.tarzan.maxkb4j.module.dataset.entity.ProblemEntity;
+import com.tarzan.maxkb4j.core.common.dto.Query;
+import com.tarzan.maxkb4j.module.dataset.domain.dto.*;
+import com.tarzan.maxkb4j.module.dataset.domain.entity.DocumentEntity;
+import com.tarzan.maxkb4j.module.dataset.domain.entity.ParagraphEntity;
+import com.tarzan.maxkb4j.module.dataset.domain.entity.ProblemEntity;
 import com.tarzan.maxkb4j.module.dataset.service.DocumentService;
 import com.tarzan.maxkb4j.module.dataset.service.EmbedTextService;
 import com.tarzan.maxkb4j.module.dataset.service.ProblemParagraphService;
-import com.tarzan.maxkb4j.module.dataset.vo.DocumentVO;
-import com.tarzan.maxkb4j.module.dataset.vo.TextSegmentVO;
+import com.tarzan.maxkb4j.module.dataset.domain.vo.DocumentVO;
+import com.tarzan.maxkb4j.module.dataset.domain.vo.TextSegmentVO;
 import com.tarzan.maxkb4j.module.model.info.vo.KeyAndValueVO;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
@@ -171,7 +171,7 @@ public class DocumentController {
 
     @SaCheckPermission("DATASET:READ")
     @GetMapping("/dataset/{id}/document/{page}/{size}")
-    public R<IPage<DocumentVO>> pageDocByDatasetId(@PathVariable String id, @PathVariable("page") int page, @PathVariable("size") int size, QueryDTO query) {
+    public R<IPage<DocumentVO>> pageDocByDatasetId(@PathVariable String id, @PathVariable("page") int page, @PathVariable("size") int size, Query query) {
         return R.success(documentService.getDocByDatasetId(id, page, size, query));
     }
 

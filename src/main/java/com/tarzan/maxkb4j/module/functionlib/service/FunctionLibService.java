@@ -7,7 +7,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tarzan.maxkb4j.core.enums.PermissionType;
-import com.tarzan.maxkb4j.module.functionlib.entity.FunctionLibEntity;
+import com.tarzan.maxkb4j.module.functionlib.domain.entity.FunctionLibEntity;
 import com.tarzan.maxkb4j.module.functionlib.mapper.FunctionLibMapper;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;

@@ -2,7 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.tarzan.maxkb4j.module.dataset.mapper.DatasetMapper">
     <!-- 多个字段中某个字段的类型处理器配置 -->
-    <resultMap id="datasetResultMap" type="com.tarzan.maxkb4j.module.dataset.vo.DatasetVO">
+    <resultMap id="datasetResultMap" type="com.tarzan.maxkb4j.module.dataset.domain.vo.DatasetVO">
         <result property="meta" column="meta"
                 typeHandler="com.baomidou.mybatisplus.extension.handlers.FastjsonTypeHandler"/>
     </resultMap>

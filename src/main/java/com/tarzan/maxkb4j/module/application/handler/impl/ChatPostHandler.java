@@ -2,10 +2,10 @@ package com.tarzan.maxkb4j.module.application.handler.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.module.application.cache.ChatCache;
-import com.tarzan.maxkb4j.module.application.dto.ChatInfo;
-import com.tarzan.maxkb4j.module.application.entity.ApplicationChatEntity;
-import com.tarzan.maxkb4j.module.application.entity.ApplicationChatRecordEntity;
-import com.tarzan.maxkb4j.module.application.entity.ApplicationPublicAccessClientEntity;
+import com.tarzan.maxkb4j.module.application.domian.dto.ChatInfo;
+import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatEntity;
+import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatRecordEntity;
+import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationPublicAccessClientEntity;
 import com.tarzan.maxkb4j.module.application.enums.AuthType;
 import com.tarzan.maxkb4j.module.application.handler.PostResponseHandler;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatMapper;

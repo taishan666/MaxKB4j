@@ -2,7 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.tarzan.maxkb4j.module.application.mapper.ApplicationPublicAccessClientMapper">
 
-    <select id="statistics" resultType="com.tarzan.maxkb4j.module.application.vo.ApplicationPublicAccessClientStatisticsVO">
+    <select id="statistics" resultType="com.tarzan.maxkb4j.module.application.domian.vo.ApplicationPublicAccessClientStatisticsVO">
         SELECT
         COUNT ( "application_public_access_client"."id" ) AS "customer_added_count",
         create_time :: DATE as "day"

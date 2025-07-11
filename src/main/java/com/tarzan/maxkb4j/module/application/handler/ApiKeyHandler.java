@@ -5,7 +5,7 @@ import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
 import com.tarzan.maxkb4j.core.exception.ApiException;
 import com.tarzan.maxkb4j.core.handler.AuthHandler;
-import com.tarzan.maxkb4j.module.application.entity.ApplicationApiKeyEntity;
+import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationApiKeyEntity;
 import com.tarzan.maxkb4j.module.application.enums.AuthType;
 import com.tarzan.maxkb4j.module.application.service.ApplicationApiKeyService;
 import jakarta.servlet.http.HttpServletRequest;

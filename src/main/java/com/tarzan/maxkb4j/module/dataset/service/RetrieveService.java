@@ -1,11 +1,11 @@
 package com.tarzan.maxkb4j.module.dataset.service;
 
-import com.tarzan.maxkb4j.module.application.entity.DatasetSetting;
-import com.tarzan.maxkb4j.module.dataset.dto.HitTestDTO;
+import com.tarzan.maxkb4j.module.application.domian.entity.DatasetSetting;
+import com.tarzan.maxkb4j.module.dataset.domain.dto.HitTestDTO;
 import com.tarzan.maxkb4j.module.dataset.enums.SearchType;
 import com.tarzan.maxkb4j.module.dataset.mapper.ParagraphMapper;
-import com.tarzan.maxkb4j.module.dataset.vo.HitTestVO;
-import com.tarzan.maxkb4j.module.dataset.vo.ParagraphVO;
+import com.tarzan.maxkb4j.module.dataset.domain.vo.HitTestVO;
+import com.tarzan.maxkb4j.module.dataset.domain.vo.ParagraphVO;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;

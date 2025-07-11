@@ -1,6 +1,6 @@
 package com.tarzan.maxkb4j.module.dataset.service;
 
-import com.tarzan.maxkb4j.module.dataset.entity.DatasetEntity;
+import com.tarzan.maxkb4j.module.dataset.domain.entity.DatasetEntity;
 import com.tarzan.maxkb4j.module.dataset.mapper.DatasetMapper;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
 import dev.langchain4j.model.embedding.EmbeddingModel;

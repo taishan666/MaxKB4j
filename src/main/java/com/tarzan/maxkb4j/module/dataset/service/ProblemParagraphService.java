@@ -1,10 +1,10 @@
 package com.tarzan.maxkb4j.module.dataset.service;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.tarzan.maxkb4j.module.dataset.entity.ProblemEntity;
-import com.tarzan.maxkb4j.module.dataset.entity.ProblemParagraphEntity;
+import com.tarzan.maxkb4j.module.dataset.domain.entity.ProblemEntity;
+import com.tarzan.maxkb4j.module.dataset.domain.entity.ProblemParagraphEntity;
 import com.tarzan.maxkb4j.module.dataset.mapper.ProblemParagraphMapper;
-import com.tarzan.maxkb4j.module.dataset.entity.EmbeddingEntity;
+import com.tarzan.maxkb4j.module.dataset.domain.entity.EmbeddingEntity;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;

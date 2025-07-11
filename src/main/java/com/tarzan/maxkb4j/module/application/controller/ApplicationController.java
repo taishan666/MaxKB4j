@@ -7,20 +7,20 @@ import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.tarzan.maxkb4j.constant.AppConst;
 import com.tarzan.maxkb4j.core.api.R;
-import com.tarzan.maxkb4j.core.common.dto.QueryDTO;
-import com.tarzan.maxkb4j.module.application.dto.ApplicationAccessTokenDTO;
-import com.tarzan.maxkb4j.module.application.dto.ChatImproveDTO;
-import com.tarzan.maxkb4j.module.application.dto.EmbedDTO;
-import com.tarzan.maxkb4j.module.application.entity.ApplicationAccessTokenEntity;
-import com.tarzan.maxkb4j.module.application.entity.ApplicationEntity;
-import com.tarzan.maxkb4j.module.application.entity.ApplicationWorkFlowVersionEntity;
+import com.tarzan.maxkb4j.core.common.dto.Query;
+import com.tarzan.maxkb4j.module.application.domian.dto.ApplicationAccessTokenDTO;
+import com.tarzan.maxkb4j.module.application.domian.dto.ChatImproveDTO;
+import com.tarzan.maxkb4j.module.application.domian.dto.EmbedDTO;
+import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationAccessTokenEntity;
+import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationEntity;
+import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationWorkFlowVersionEntity;
 import com.tarzan.maxkb4j.module.application.service.ApplicationService;
-import com.tarzan.maxkb4j.module.application.vo.ApplicationVO;
-import com.tarzan.maxkb4j.module.application.vo.McpToolVO;
-import com.tarzan.maxkb4j.module.dataset.dto.HitTestDTO;
-import com.tarzan.maxkb4j.module.dataset.entity.DatasetEntity;
-import com.tarzan.maxkb4j.module.dataset.vo.ParagraphVO;
-import com.tarzan.maxkb4j.module.functionlib.entity.FunctionLibEntity;
+import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationVO;
+import com.tarzan.maxkb4j.module.application.domian.vo.McpToolVO;
+import com.tarzan.maxkb4j.module.dataset.domain.dto.HitTestDTO;
+import com.tarzan.maxkb4j.module.dataset.domain.entity.DatasetEntity;
+import com.tarzan.maxkb4j.module.dataset.domain.vo.ParagraphVO;
+import com.tarzan.maxkb4j.module.functionlib.domain.entity.FunctionLibEntity;
 import com.tarzan.maxkb4j.module.mcplib.entity.McpLibEntity;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelEntity;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -128,7 +128,7 @@ public class ApplicationController {
 
     @SaCheckPermission("APPLICATION:READ")
     @GetMapping("/application/{page}/{size}")
-    public R<IPage<ApplicationEntity>> userApplications(@PathVariable("page") int page, @PathVariable("size") int size, QueryDTO query) {
+    public R<IPage<ApplicationEntity>> userApplications(@PathVariable("page") int page, @PathVariable("size") int size, Query query) {
         return R.success(applicationService.selectAppPage(page, size, query));
     }
 

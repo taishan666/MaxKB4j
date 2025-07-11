@@ -2,10 +2,10 @@ package com.tarzan.maxkb4j.module.dataset.service;
 
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.tarzan.maxkb4j.module.dataset.entity.EmbeddingEntity;
-import com.tarzan.maxkb4j.module.dataset.entity.ParagraphEntity;
-import com.tarzan.maxkb4j.module.dataset.entity.ProblemEntity;
-import com.tarzan.maxkb4j.module.dataset.entity.ProblemParagraphEntity;
+import com.tarzan.maxkb4j.module.dataset.domain.entity.EmbeddingEntity;
+import com.tarzan.maxkb4j.module.dataset.domain.entity.ParagraphEntity;
+import com.tarzan.maxkb4j.module.dataset.domain.entity.ProblemEntity;
+import com.tarzan.maxkb4j.module.dataset.domain.entity.ProblemParagraphEntity;
 import com.tarzan.maxkb4j.module.dataset.mapper.ParagraphMapper;
 import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.model.embedding.EmbeddingModel;

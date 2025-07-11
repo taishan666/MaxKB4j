@@ -5,16 +5,16 @@ import cn.dev33.satoken.stp.StpUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.tarzan.maxkb4j.constant.AppConst;
-import com.tarzan.maxkb4j.core.common.dto.QueryDTO;
-import com.tarzan.maxkb4j.module.application.entity.ApplicationEntity;
-import com.tarzan.maxkb4j.module.dataset.dto.DatasetDTO;
-import com.tarzan.maxkb4j.module.dataset.dto.HitTestDTO;
-import com.tarzan.maxkb4j.module.dataset.entity.DatasetEntity;
+import com.tarzan.maxkb4j.core.common.dto.Query;
+import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationEntity;
+import com.tarzan.maxkb4j.module.dataset.domain.dto.DatasetDTO;
+import com.tarzan.maxkb4j.module.dataset.domain.dto.HitTestDTO;
+import com.tarzan.maxkb4j.module.dataset.domain.entity.DatasetEntity;
 import com.tarzan.maxkb4j.module.dataset.service.DatasetService;
 import com.tarzan.maxkb4j.module.dataset.service.EmbedTextService;
 import com.tarzan.maxkb4j.module.dataset.service.RetrieveService;
-import com.tarzan.maxkb4j.module.dataset.vo.DatasetVO;
-import com.tarzan.maxkb4j.module.dataset.vo.ParagraphVO;
+import com.tarzan.maxkb4j.module.dataset.domain.vo.DatasetVO;
+import com.tarzan.maxkb4j.module.dataset.domain.vo.ParagraphVO;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelEntity;
 import com.tarzan.maxkb4j.core.api.R;
 import jakarta.servlet.http.HttpServletResponse;
@@ -89,7 +89,7 @@ public class DatasetController {
 
     @SaCheckPermission("DATASET:READ")
     @GetMapping("/dataset/{page}/{size}")
-    public R<IPage<DatasetVO>> userDatasets(@PathVariable("page") int page, @PathVariable("size") int size, QueryDTO query) {
+    public R<IPage<DatasetVO>> userDatasets(@PathVariable("page") int page, @PathVariable("size") int size, Query query) {
         Page<DatasetVO> datasetPage = new Page<>(page, size);
         return R.success(datasetService.selectDatasetPage(datasetPage, query));
     }

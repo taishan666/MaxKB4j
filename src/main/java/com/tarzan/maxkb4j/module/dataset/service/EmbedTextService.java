@@ -1,11 +1,11 @@
 package com.tarzan.maxkb4j.module.dataset.service;
 
-import com.tarzan.maxkb4j.module.dataset.dto.DatasetBatchHitHandlingDTO;
-import com.tarzan.maxkb4j.module.dataset.dto.GenerateProblemDTO;
-import com.tarzan.maxkb4j.module.dataset.entity.DatasetEntity;
-import com.tarzan.maxkb4j.module.dataset.entity.ParagraphEntity;
-import com.tarzan.maxkb4j.module.dataset.entity.ProblemEntity;
-import com.tarzan.maxkb4j.module.dataset.vo.HitTestVO;
+import com.tarzan.maxkb4j.module.dataset.domain.dto.DatasetBatchHitHandlingDTO;
+import com.tarzan.maxkb4j.module.dataset.domain.dto.GenerateProblemDTO;
+import com.tarzan.maxkb4j.module.dataset.domain.entity.DatasetEntity;
+import com.tarzan.maxkb4j.module.dataset.domain.entity.ParagraphEntity;
+import com.tarzan.maxkb4j.module.dataset.domain.entity.ProblemEntity;
+import com.tarzan.maxkb4j.module.dataset.domain.vo.HitTestVO;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
 import dev.langchain4j.data.embedding.Embedding;

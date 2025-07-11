@@ -1,7 +1,7 @@
 package com.tarzan.maxkb4j.core.workflow;
 
 import com.alibaba.fastjson.JSONObject;
-import com.tarzan.maxkb4j.core.workflow.dto.FlowParams;
+import com.tarzan.maxkb4j.core.workflow.domain.FlowParams;
 import com.tarzan.maxkb4j.core.workflow.enums.NodeType;
 import com.tarzan.maxkb4j.core.workflow.logic.LfNode;
 import com.tarzan.maxkb4j.core.workflow.node.aichat.impl.BaseChatNode;

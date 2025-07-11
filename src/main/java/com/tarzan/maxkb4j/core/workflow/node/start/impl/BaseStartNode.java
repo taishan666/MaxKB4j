@@ -5,10 +5,10 @@ import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.NodeResult;
 import com.tarzan.maxkb4j.core.workflow.WorkflowManage;
-import com.tarzan.maxkb4j.core.workflow.dto.ChatRecordSimple;
+import com.tarzan.maxkb4j.core.workflow.domain.ChatRecordSimple;
 import com.tarzan.maxkb4j.core.workflow.logic.LfNode;
-import com.tarzan.maxkb4j.core.workflow.dto.FlowParams;
-import com.tarzan.maxkb4j.module.application.entity.ApplicationChatRecordEntity;
+import com.tarzan.maxkb4j.core.workflow.domain.FlowParams;
+import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatRecordEntity;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;

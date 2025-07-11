@@ -1,6 +1,6 @@
 package com.tarzan.maxkb4j.core.workflow;
 
-import com.tarzan.maxkb4j.module.application.vo.ChatMessageVO;
+import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
 import lombok.Data;
 
 import java.util.Map;

@@ -1,8 +1,8 @@
 package com.tarzan.maxkb4j.module.system.team.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.tarzan.maxkb4j.module.system.team.entity.TeamMemberPermissionEntity;
-import com.tarzan.maxkb4j.module.system.team.vo.MemberPermissionVO;
+import com.tarzan.maxkb4j.module.system.team.domain.entity.TeamMemberPermissionEntity;
+import com.tarzan.maxkb4j.module.system.team.domain.vo.MemberPermissionVO;
 
 import java.util.List;
 

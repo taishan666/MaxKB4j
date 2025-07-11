@@ -3,7 +3,7 @@
 <mapper namespace="com.tarzan.maxkb4j.module.dataset.mapper.DocumentMapper">
 
     <!-- 多个字段中某个字段的类型处理器配置 -->
-    <resultMap id="docResultMap" type="com.tarzan.maxkb4j.module.dataset.vo.DocumentVO">
+    <resultMap id="docResultMap" type="com.tarzan.maxkb4j.module.dataset.domain.vo.DocumentVO">
         <result property="meta" column="meta" typeHandler="com.baomidou.mybatisplus.extension.handlers.FastjsonTypeHandler" />
         <result property="statusMeta" column="status_meta" typeHandler="com.baomidou.mybatisplus.extension.handlers.FastjsonTypeHandler" />
     </resultMap>

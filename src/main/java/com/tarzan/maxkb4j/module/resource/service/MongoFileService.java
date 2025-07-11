@@ -4,7 +4,7 @@ package com.tarzan.maxkb4j.module.resource.service;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
 import com.mongodb.client.gridfs.model.GridFSFile;
-import com.tarzan.maxkb4j.core.workflow.dto.ChatFile;
+import com.tarzan.maxkb4j.core.workflow.domain.ChatFile;
 import jakarta.activation.MimetypesFileTypeMap;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

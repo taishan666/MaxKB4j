@@ -1,8 +1,8 @@
 package com.tarzan.maxkb4j.module.system.team.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.tarzan.maxkb4j.module.system.team.entity.TeamMemberEntity;
-import com.tarzan.maxkb4j.module.system.team.vo.MemberVO;
+import com.tarzan.maxkb4j.module.system.team.domain.entity.TeamMemberEntity;
+import com.tarzan.maxkb4j.module.system.team.domain.vo.MemberVO;
 import org.apache.ibatis.annotations.Mapper;
 
 import java.util.List;

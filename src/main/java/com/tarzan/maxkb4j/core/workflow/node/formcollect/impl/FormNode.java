@@ -3,7 +3,7 @@ package com.tarzan.maxkb4j.core.workflow.node.formcollect.impl;
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.NodeResult;
-import com.tarzan.maxkb4j.core.workflow.dto.Answer;
+import com.tarzan.maxkb4j.core.workflow.domain.Answer;
 import com.tarzan.maxkb4j.core.workflow.node.formcollect.input.FormNodeParams;
 import dev.langchain4j.model.input.PromptTemplate;
 

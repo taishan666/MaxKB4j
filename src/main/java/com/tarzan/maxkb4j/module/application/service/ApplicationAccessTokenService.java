@@ -1,7 +1,7 @@
 package com.tarzan.maxkb4j.module.application.service;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.tarzan.maxkb4j.module.application.entity.ApplicationAccessTokenEntity;
+import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationAccessTokenEntity;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationAccessTokenMapper;
 import org.springframework.stereotype.Service;
 

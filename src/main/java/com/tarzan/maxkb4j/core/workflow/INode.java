@@ -2,10 +2,10 @@ package com.tarzan.maxkb4j.core.workflow;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.tarzan.maxkb4j.core.workflow.dto.Answer;
-import com.tarzan.maxkb4j.core.workflow.dto.FlowParams;
+import com.tarzan.maxkb4j.core.workflow.domain.Answer;
+import com.tarzan.maxkb4j.core.workflow.domain.FlowParams;
 import com.tarzan.maxkb4j.core.workflow.logic.LfNode;
-import com.tarzan.maxkb4j.module.application.vo.ChatMessageVO;
+import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.SystemMessage;

@@ -3,9 +3,9 @@ package com.tarzan.maxkb4j.module.dataset.mapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.tarzan.maxkb4j.core.common.dto.QueryDTO;
-import com.tarzan.maxkb4j.module.dataset.entity.DatasetEntity;
-import com.tarzan.maxkb4j.module.dataset.vo.DatasetVO;
+import com.tarzan.maxkb4j.core.common.dto.Query;
+import com.tarzan.maxkb4j.module.dataset.domain.entity.DatasetEntity;
+import com.tarzan.maxkb4j.module.dataset.domain.vo.DatasetVO;
 import org.apache.ibatis.annotations.Param;
 
 /**
@@ -14,6 +14,6 @@ import org.apache.ibatis.annotations.Param;
  */
 public interface DatasetMapper extends BaseMapper<DatasetEntity>{
 
-    IPage<DatasetVO> selectDatasetPage(Page<DatasetVO> page,  @Param("query") QueryDTO query,String operate);
+    IPage<DatasetVO> selectDatasetPage(Page<DatasetVO> page, @Param("query") Query query, String operate);
 
 }

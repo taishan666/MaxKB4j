@@ -1,6 +1,6 @@
 package com.tarzan.maxkb4j.config;
 
-import com.tarzan.maxkb4j.module.dataset.entity.EmbeddingEntity;
+import com.tarzan.maxkb4j.module.dataset.domain.entity.EmbeddingEntity;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.mongodb.MongoDatabaseFactory;

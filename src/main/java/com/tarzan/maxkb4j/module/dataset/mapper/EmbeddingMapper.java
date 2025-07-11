@@ -1,9 +1,9 @@
 package com.tarzan.maxkb4j.module.dataset.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.tarzan.maxkb4j.module.dataset.dto.HitTestDTO;
-import com.tarzan.maxkb4j.module.dataset.vo.HitTestVO;
-import com.tarzan.maxkb4j.module.dataset.entity.EmbeddingEntity;
+import com.tarzan.maxkb4j.module.dataset.domain.dto.HitTestDTO;
+import com.tarzan.maxkb4j.module.dataset.domain.vo.HitTestVO;
+import com.tarzan.maxkb4j.module.dataset.domain.entity.EmbeddingEntity;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;

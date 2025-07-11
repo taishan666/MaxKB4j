@@ -16,18 +16,18 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.opencsv.CSVReader;
 import com.opencsv.exceptions.CsvValidationException;
-import com.tarzan.maxkb4j.core.common.dto.QueryDTO;
-import com.tarzan.maxkb4j.module.dataset.dto.*;
-import com.tarzan.maxkb4j.module.dataset.entity.DocumentEntity;
-import com.tarzan.maxkb4j.module.dataset.entity.ParagraphEntity;
-import com.tarzan.maxkb4j.module.dataset.entity.ProblemEntity;
-import com.tarzan.maxkb4j.module.dataset.entity.ProblemParagraphEntity;
+import com.tarzan.maxkb4j.core.common.dto.Query;
+import com.tarzan.maxkb4j.module.dataset.domain.dto.*;
+import com.tarzan.maxkb4j.module.dataset.domain.entity.DocumentEntity;
+import com.tarzan.maxkb4j.module.dataset.domain.entity.ParagraphEntity;
+import com.tarzan.maxkb4j.module.dataset.domain.entity.ProblemEntity;
+import com.tarzan.maxkb4j.module.dataset.domain.entity.ProblemParagraphEntity;
 import com.tarzan.maxkb4j.module.dataset.enums.DocType;
 import com.tarzan.maxkb4j.module.dataset.excel.DatasetExcel;
 import com.tarzan.maxkb4j.module.dataset.mapper.DocumentMapper;
-import com.tarzan.maxkb4j.module.dataset.vo.DocumentVO;
-import com.tarzan.maxkb4j.module.dataset.vo.ParagraphSimpleVO;
-import com.tarzan.maxkb4j.module.dataset.vo.TextSegmentVO;
+import com.tarzan.maxkb4j.module.dataset.domain.vo.DocumentVO;
+import com.tarzan.maxkb4j.module.dataset.domain.vo.ParagraphSimpleVO;
+import com.tarzan.maxkb4j.module.dataset.domain.vo.TextSegmentVO;
 import com.tarzan.maxkb4j.module.model.info.vo.KeyAndValueVO;
 import com.tarzan.maxkb4j.util.ExcelUtil;
 import com.tarzan.maxkb4j.util.JsoupUtil;
@@ -654,7 +654,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         return this.removeById(docId);
     }
 
-    public IPage<DocumentVO> getDocByDatasetId(String datasetId, int page, int size, QueryDTO query) {
+    public IPage<DocumentVO> getDocByDatasetId(String datasetId, int page, int size, Query query) {
         Page<DocumentVO> docPage = new Page<>(page, size);
         return baseMapper.selectDocPage(docPage, datasetId,query);
     }

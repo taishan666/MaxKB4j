@@ -1,7 +1,7 @@
 package com.tarzan.maxkb4j.module.application.handler;
 
 import com.alibaba.fastjson.JSONObject;
-import com.tarzan.maxkb4j.module.application.entity.ApplicationChatRecordEntity;
+import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatRecordEntity;
 
 public abstract class PostResponseHandler {
 

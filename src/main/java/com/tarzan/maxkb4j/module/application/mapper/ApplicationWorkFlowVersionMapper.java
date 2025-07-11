@@ -1,7 +1,7 @@
 package com.tarzan.maxkb4j.module.application.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.tarzan.maxkb4j.module.application.entity.ApplicationWorkFlowVersionEntity;
+import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationWorkFlowVersionEntity;
 import org.apache.ibatis.annotations.Mapper;
 
 /**

@@ -2,7 +2,7 @@ package com.tarzan.maxkb4j.module.application.service;
 
 import cn.dev33.satoken.stp.StpUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.tarzan.maxkb4j.module.application.entity.ApplicationApiKeyEntity;
+import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationApiKeyEntity;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationApiKeyMapper;
 import org.springframework.stereotype.Service;
 

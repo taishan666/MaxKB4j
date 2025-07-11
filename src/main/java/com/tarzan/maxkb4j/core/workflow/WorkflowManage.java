@@ -2,15 +2,15 @@ package com.tarzan.maxkb4j.core.workflow;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.tarzan.maxkb4j.core.workflow.dto.ChatFile;
-import com.tarzan.maxkb4j.core.workflow.dto.FlowParams;
+import com.tarzan.maxkb4j.core.workflow.domain.ChatFile;
+import com.tarzan.maxkb4j.core.workflow.domain.FlowParams;
 import com.tarzan.maxkb4j.core.workflow.logic.LfEdge;
 import com.tarzan.maxkb4j.core.workflow.logic.LfNode;
 import com.tarzan.maxkb4j.core.workflow.logic.LogicFlow;
-import com.tarzan.maxkb4j.module.application.entity.ApplicationChatRecordEntity;
+import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatRecordEntity;
 import com.tarzan.maxkb4j.module.application.handler.PostResponseHandler;
-import com.tarzan.maxkb4j.module.application.vo.ApplicationChatRecordVO;
-import com.tarzan.maxkb4j.module.application.vo.ChatMessageVO;
+import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationChatRecordVO;
+import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.SystemMessage;
@@ -55,8 +55,8 @@ public class WorkflowManage {
                           Map<String, Object> startNodeData, ApplicationChatRecordVO chatRecord) {
         this.formData = formData;
         this.imageList = Objects.requireNonNullElseGet(imageList, ArrayList::new);
-        this.documentList = Objects.requireNonNullElseGet(documentList, ArrayList::new);;
-        this.audioList = Objects.requireNonNullElseGet(audioList, ArrayList::new);;
+        this.documentList = Objects.requireNonNullElseGet(documentList, ArrayList::new);
+        this.audioList = Objects.requireNonNullElseGet(audioList, ArrayList::new);
         this.flowParams = flowParams;
         this.sink = sink;
         this.flow = flow;
@@ -115,8 +115,7 @@ public class WorkflowManage {
 
     public String run() {
         context.put("start_time", System.currentTimeMillis());
-        String language = "zh";
-        runChainManage(startNode, null, language);
+        runChainManage(startNode, null);
         ChatMessageVO vo=new ChatMessageVO(flowParams.getChatId(),flowParams.getChatRecordId(),"",
                 true,true);
         sink.tryEmitNext(vo);
@@ -133,7 +132,7 @@ public class WorkflowManage {
         return this.flow.getNodes().parallelStream().filter(node -> node.getType().equals("base-node")).findFirst().orElse(null);
     }
 
-    public void runChainManage(INode currentNode, NodeResultFuture nodeResultFuture, String language) {
+    public void runChainManage(INode currentNode, NodeResultFuture nodeResultFuture) {
         if (currentNode == null) {
             LfNode startNode = getStartNode();
             currentNode = NodeFactory.getNode(startNode.getType(), startNode, flowParams, this);
@@ -142,11 +141,11 @@ public class WorkflowManage {
         // 获取下一个节点列表
         List<INode> nodeList = getNextNodeList(currentNode, result);
         if (nodeList.size() == 1) {
-            runChainManage(nodeList.get(0), null, language);
+            runChainManage(nodeList.get(0), null);
         } else if (nodeList.size() > 1) {
             // 提交子任务并获取Future对象
             for (INode node : nodeList) {
-                runChainManage(node, null, language);
+                runChainManage(node, null);
             }
         }
     }
@@ -242,14 +241,11 @@ public class WorkflowManage {
         if (nodeResultFuture == null) {
             nodeResultFuture = runNodeFuture(currentNode);
         }
-        try {
-            NodeResult currentResult = nodeResultFuture.getResult();
+        NodeResult currentResult = nodeResultFuture.getResult();
+        if (currentResult!= null){
             currentResult.writeContext(currentNode, this);
-            return currentResult;
-        } catch (Exception e) {
-            log.error("runChain error: {}",e.getMessage());
         }
-        return null;
+        return currentResult;
     }
 
 
@@ -415,7 +411,6 @@ public class WorkflowManage {
 
     public NodeResultFuture runNodeFuture(INode node) {
         try {
-            //  node.validArgs(node.nodeParams, node.workflowParams);
             node.setWorkflowManage(this);
             NodeResult result = node.run();
             return new NodeResultFuture(result, null, 200);

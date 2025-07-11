@@ -3,7 +3,7 @@ package com.tarzan.maxkb4j.core.handler.type;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.serializer.SerializerFeature;
-import com.tarzan.maxkb4j.module.functionlib.dto.FunctionInputField;
+import com.tarzan.maxkb4j.module.functionlib.domain.dto.FunctionInputField;
 import org.apache.ibatis.type.BaseTypeHandler;
 import org.apache.ibatis.type.JdbcType;
 import org.postgresql.util.PGobject;

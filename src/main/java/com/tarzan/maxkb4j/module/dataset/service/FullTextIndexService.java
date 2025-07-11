@@ -1,8 +1,8 @@
 package com.tarzan.maxkb4j.module.dataset.service;
 
 import com.huaban.analysis.jieba.JiebaSegmenter;
-import com.tarzan.maxkb4j.module.dataset.entity.EmbeddingEntity;
-import com.tarzan.maxkb4j.module.dataset.vo.HitTestVO;
+import com.tarzan.maxkb4j.module.dataset.domain.entity.EmbeddingEntity;
+import com.tarzan.maxkb4j.module.dataset.domain.vo.HitTestVO;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.MongoExpression;

@@ -11,7 +11,7 @@ import com.tarzan.maxkb4j.module.model.info.entity.ModelEntity;
 import com.tarzan.maxkb4j.module.model.info.mapper.ModelMapper;
 import com.tarzan.maxkb4j.module.model.info.vo.ModelVO;
 import com.tarzan.maxkb4j.module.model.provider.ModelFactory;
-import com.tarzan.maxkb4j.module.system.user.entity.UserEntity;
+import com.tarzan.maxkb4j.module.system.user.domain.entity.UserEntity;
 import com.tarzan.maxkb4j.module.system.user.service.UserService;
 import com.tarzan.maxkb4j.util.BeanUtil;
 import lombok.AllArgsConstructor;

@@ -2,7 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.tarzan.maxkb4j.module.dataset.mapper.ProblemParagraphMapper">
 
-    <select id="getProblems" resultType="com.tarzan.maxkb4j.module.dataset.vo.ProblemParagraphVO">
+    <select id="getProblems" resultType="com.tarzan.maxkb4j.module.dataset.domain.vo.ProblemParagraphVO">
         SELECT
         ppm.ID,
         P."content",
@@ -25,7 +25,7 @@
             </if>
         </where>
     </select>
-    <select id="getProblemsByParagraphId" resultType="com.tarzan.maxkb4j.module.dataset.entity.ProblemEntity">
+    <select id="getProblemsByParagraphId" resultType="com.tarzan.maxkb4j.module.dataset.domain.entity.ProblemEntity">
         SELECT
             P.ID,
             P."content"
