@@ -1,7 +1,6 @@
 package com.tarzan.maxkb4j.module.model.provider;
 
 import com.alibaba.fastjson.JSONObject;
-import com.tarzan.maxkb4j.core.exception.ApiException;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelCredential;
 import com.tarzan.maxkb4j.module.model.provider.vo.ModelInfo;
 import com.tarzan.maxkb4j.module.model.provider.vo.ModelProvideInfo;
@@ -35,15 +34,6 @@ public abstract class IModelProvider {
     public boolean isSupport(String modelType) {
         List<ModelInfo> modelInfos =getModelList();
         return modelInfos.stream().anyMatch(e -> e.getModelType().equals(modelType));
-    }
-
-    <T> T build(String modelName, String modelType, ModelCredential modelCredential) {
-        List<ModelInfo> modelList = getModelList();
-        ModelInfo modelInfo = modelList.stream().filter(model -> model.getModelType().equals(modelType) && model.getName().equals(modelName)).findFirst().orElse(null);
-        if (modelInfo == null){
-            throw new ApiException("model not found");
-        }
-        return (T) modelInfo.getModelClass().build(modelName, modelCredential,new JSONObject());
     }
 
     <T> T build(String modelName, String modelType, ModelCredential modelCredential, JSONObject params) {

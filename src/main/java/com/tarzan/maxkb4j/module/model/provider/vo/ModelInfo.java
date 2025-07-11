@@ -6,6 +6,7 @@ import com.tarzan.maxkb4j.module.model.provider.BaseModelCredential;
 import com.tarzan.maxkb4j.module.model.provider.BaseModelParams;
 import com.tarzan.maxkb4j.module.model.provider.LlmModelParams;
 import lombok.Data;
+import org.apache.poi.ss.formula.functions.T;
 
 @Data
 public class ModelInfo {
@@ -18,9 +19,9 @@ public class ModelInfo {
     @JsonIgnore
     private BaseModelParams modelParams;
     @JsonIgnore
-    private BaseModel modelClass;
+    private BaseModel<T> modelClass;
 
-    public ModelInfo(String name, String desc, String modelType, BaseModel modelClass) {
+    public ModelInfo(String name, String desc, String modelType, BaseModel<T> modelClass) {
         this.name = name;
         this.desc = desc;
         this.modelType = modelType;
@@ -29,7 +30,7 @@ public class ModelInfo {
         this.modelParams = new LlmModelParams();
     }
 
-    public ModelInfo(String name, String desc, String modelType, BaseModel modelClass, boolean needUrl,boolean needApiKey) {
+    public ModelInfo(String name, String desc, String modelType, BaseModel<T> modelClass, boolean needUrl,boolean needApiKey) {
         this.name = name;
         this.desc = desc;
         this.modelType = modelType;
@@ -38,7 +39,7 @@ public class ModelInfo {
 
     }
 
-    public ModelInfo(String name, String desc, String modelType, BaseModel modelClass, BaseModelParams modelParams) {
+    public ModelInfo(String name, String desc, String modelType, BaseModel<T> modelClass, BaseModelParams modelParams) {
         this.name = name;
         this.desc = desc;
         this.modelType = modelType;

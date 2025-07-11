@@ -9,7 +9,8 @@ import lombok.extern.slf4j.Slf4j;
 public class ModelFactory {
 
     public static <T> T build(ModelEntity model) {
-        return ModelProviderEnum.get(model.getProvider()).build(model.getModelName(), model.getModelType(), model.getCredential());
+        JSONObject params=new JSONObject();
+        return build(model, params);
     }
 
     public static <T> T build(ModelEntity model, JSONObject params) {
