@@ -1,12 +1,12 @@
 package com.tarzan.maxkb4j.core.workflow.node.aichat.impl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.tarzan.maxkb4j.core.assistant.Assistant;
 import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.NodeResult;
 import com.tarzan.maxkb4j.core.workflow.WorkflowManage;
 import com.tarzan.maxkb4j.core.workflow.node.aichat.input.ChatNodeParams;
 import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
-import com.tarzan.maxkb4j.core.assistant.Assistant;
 import com.tarzan.maxkb4j.module.dataset.domain.vo.ParagraphVO;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
@@ -17,6 +17,7 @@ import com.tarzan.maxkb4j.util.SpringUtil;
 import com.tarzan.maxkb4j.util.StringUtil;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.memory.ChatMemory;
+import dev.langchain4j.model.chat.response.ChatResponse;
 import dev.langchain4j.model.output.TokenUsage;
 import dev.langchain4j.rag.DefaultRetrievalAugmentor;
 import dev.langchain4j.rag.RetrievalAugmentor;
@@ -33,7 +34,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.CompletableFuture;
 
 import static com.tarzan.maxkb4j.core.constant.PromptTemplates.RAG_PROMPT_TEMPLATE;
 import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.AI_CHAT;
@@ -106,7 +107,7 @@ public class BaseChatNode extends INode {
         if (nodeVariable != null) {
             context.putAll(nodeVariable);
             TokenStream tokenStream = (TokenStream) nodeVariable.get("result");
-            CountDownLatch latch = new CountDownLatch(1); // 创建一个计数为1的Latch
+            CompletableFuture<ChatResponse> futureChatResponse = new CompletableFuture<>();
             boolean isResult = workflow.isResult(node, new NodeResult(nodeVariable, globalVariable));
             tokenStream.onPartialResponse(content -> {
                         if (isResult) {
@@ -145,20 +146,14 @@ public class BaseChatNode extends INode {
                                 true,
                                 false);
                         sink.tryEmitNext(vo);
-                        latch.countDown(); // 完成后释放线程
+                        futureChatResponse.complete(response);// 完成后释放线程
                     })
                     .onError(error -> {
-                        latch.countDown(); // 完成后释放线程
                         sink.tryEmitError(error);
+                        futureChatResponse.completeExceptionally(error); // 完成后释放线程
                     })
                     .start();
-
-            try {
-                // 阻塞当前线程直到 countDown 被调用
-                latch.await();
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
+            futureChatResponse.join(); // 阻塞当前线程直到 futureChatResponse 完成
         }
         if (context.containsKey("start_time")) {
             long runTime = System.currentTimeMillis() - (long)context.get("start_time");

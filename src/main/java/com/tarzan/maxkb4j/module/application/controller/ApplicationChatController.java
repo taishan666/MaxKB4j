@@ -10,12 +10,13 @@ import com.tarzan.maxkb4j.module.application.domian.dto.ChatQueryDTO;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatEntity;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatRecordEntity;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationEntity;
-import com.tarzan.maxkb4j.module.application.service.ApplicationChatService;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationChatRecordVO;
 import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
+import com.tarzan.maxkb4j.module.application.service.ApplicationChatService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.AllArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -32,10 +33,14 @@ import java.util.List;
 @Tag(name = "APP会话管理", description = "APP会话管理")
 @RestController
 @RequestMapping(AppConst.BASE_PATH +"/application")
-@AllArgsConstructor
 public class ApplicationChatController {
 
     private final ApplicationChatService chatService;
+    private final TaskExecutor chatTaskExecutor;
+    public ApplicationChatController(ApplicationChatService chatService, @Qualifier("chatTaskExecutor") TaskExecutor chatTaskExecutor) {
+        this.chatService = chatService;
+        this.chatTaskExecutor = chatTaskExecutor;
+    }
 
     @GetMapping("/{appId}/chat/client/{page}/{size}")
     public R<IPage<ApplicationChatEntity>> clientChatPage(@PathVariable("appId") String appId, @PathVariable("page") int page, @PathVariable("size") int size) {
@@ -77,7 +82,8 @@ public class ApplicationChatController {
         params.setClientId(clientId);
         params.setClientType(clientType);
         params.setSink(sink);
-        new Thread(() -> chatService.chatMessage(chatId, params)).start();
+        // 异步执行业务逻辑
+        chatTaskExecutor.execute(() -> chatService.chatMessage(chatId, params));
         return sink.asFlux();
     }
 
