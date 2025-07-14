@@ -180,12 +180,16 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
 
     public String chatMessage(String chatId, ChatMessageDTO dto) {
         ChatInfo chatInfo = getChatInfo(chatId);
+        if (chatInfo == null) {
+            dto.getSink().tryEmitNext(new ChatMessageVO());
+         }
         try {
             isValidApplication(chatInfo, dto.getClientId(), dto.getClientType());
         } catch (Exception e) {
             dto.getSink().tryEmitNext(new ChatMessageVO(chatId,  e.getMessage(), true));
         }
         String answer = "";
+        assert chatInfo != null;
         if (chatInfo.getApplication().getType().equals("SIMPLE")) {
             answer =   chatSimple(chatInfo, dto);
         } else {
@@ -241,16 +245,15 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
         flowParams.setChatRecordId(dto.getChatRecordId() == null ? IdWorker.get32UUID() : dto.getChatRecordId());
         flowParams.setQuestion(dto.getMessage());
         flowParams.setReChat(dto.getReChat());
-       // flowParams.setUserId(StpUtil.getLoginIdAsString());
         flowParams.setClientId(dto.getClientId());
         flowParams.setClientType(dto.getClientType());
         flowParams.setStream(dto.getStream() == null || dto.getStream());
-        flowParams.setHistoryChatRecord(chatInfo.getChatRecordList());
+        flowParams.setHistoryChatRecord(chatInfo.getChatRecordList());//添加历史记录
         WorkflowManage workflowManage = new WorkflowManage(LogicFlow.newInstance(chatInfo.getWorkFlowVersion().getWorkFlow()),
                 flowParams,
                 dto.getSink(),
                 postResponseHandler,
-                dto.getFormData(),
+                dto.getGlobalData(),
                 dto.getImageList(),
                 dto.getDocumentList(),
                 dto.getAudioList(),

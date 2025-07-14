@@ -34,7 +34,7 @@ import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.USER_SELECT;
 public class WorkflowManage {
     private String startNodeId;
     private INode startNode;
-    private Map<String, Object> formData;
+    private Map<String, Object> globalData;
     private List<ChatFile> imageList;
     private List<ChatFile> documentList;
     private List<ChatFile> audioList;
@@ -50,10 +50,10 @@ public class WorkflowManage {
     private List<INode> nodeContext = new ArrayList<>();
 
     public WorkflowManage(LogicFlow flow, FlowParams flowParams,Sinks.Many<ChatMessageVO> sink, PostResponseHandler postResponseHandler,
-                          Map<String, Object> formData, List<ChatFile> imageList,
+                          Map<String, Object> globalData, List<ChatFile> imageList,
                           List<ChatFile> documentList, List<ChatFile> audioList, String startNodeId,
                           Map<String, Object> startNodeData, ApplicationChatRecordVO chatRecord) {
-        this.formData = formData;
+        this.globalData = globalData;
         this.imageList = Objects.requireNonNullElseGet(imageList, ArrayList::new);
         this.documentList = Objects.requireNonNullElseGet(documentList, ArrayList::new);
         this.audioList = Objects.requireNonNullElseGet(audioList, ArrayList::new);

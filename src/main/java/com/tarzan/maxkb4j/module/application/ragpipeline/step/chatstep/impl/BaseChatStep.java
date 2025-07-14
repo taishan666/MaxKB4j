@@ -11,11 +11,11 @@ import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationEntity;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationPublicAccessClientEntity;
 import com.tarzan.maxkb4j.module.application.domian.entity.DatasetSetting;
 import com.tarzan.maxkb4j.module.application.domian.entity.NoReferencesSetting;
+import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
 import com.tarzan.maxkb4j.module.application.handler.PostResponseHandler;
 import com.tarzan.maxkb4j.module.application.ragpipeline.PipelineManage;
 import com.tarzan.maxkb4j.module.application.ragpipeline.step.chatstep.IChatStep;
 import com.tarzan.maxkb4j.module.application.service.ApplicationPublicAccessClientService;
-import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
 import com.tarzan.maxkb4j.module.dataset.domain.vo.ParagraphVO;
 import com.tarzan.maxkb4j.module.functionlib.domain.dto.FunctionInputField;
 import com.tarzan.maxkb4j.module.functionlib.domain.entity.FunctionLibEntity;
@@ -24,7 +24,6 @@ import com.tarzan.maxkb4j.module.mcplib.entity.McpLibEntity;
 import com.tarzan.maxkb4j.module.mcplib.service.McpLibService;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
-import com.tarzan.maxkb4j.module.rag.MyAiServices;
 import com.tarzan.maxkb4j.module.rag.MyChatMemory;
 import com.tarzan.maxkb4j.module.rag.MyContentRetriever;
 import com.tarzan.maxkb4j.util.GroovyScriptExecutor;
@@ -47,6 +46,7 @@ import dev.langchain4j.rag.content.aggregator.DefaultContentAggregator;
 import dev.langchain4j.rag.content.injector.ContentInjector;
 import dev.langchain4j.rag.content.injector.DefaultContentInjector;
 import dev.langchain4j.rag.query.router.DefaultQueryRouter;
+import dev.langchain4j.service.AiServices;
 import dev.langchain4j.service.TokenStream;
 import dev.langchain4j.service.tool.DefaultToolExecutor;
 import dev.langchain4j.service.tool.ToolExecution;
@@ -167,7 +167,7 @@ public class BaseChatStep extends IChatStep {
                         .mcpClients(mcpClients)
                         .build();
                 //   AugmentationResult augmentationResult=retrievalAugmentor.augment(new AugmentationRequest(UserMessage.from(problemText), new Metadata(UserMessage.from(problemText),chatId, chatMemory.messages())));
-                Assistant assistant = MyAiServices.builder(Assistant.class)
+                Assistant assistant = AiServices.builder(Assistant.class)
                         .systemMessageProvider(chatMemoryId -> system)
                         .chatMemory(chatMemory)
                         .streamingChatModel(chatModel.getStreamingChatModel())
