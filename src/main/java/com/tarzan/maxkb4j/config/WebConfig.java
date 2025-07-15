@@ -2,13 +2,13 @@
 package com.tarzan.maxkb4j.config;
 
 import com.tarzan.maxkb4j.core.interceptor.AuthInterceptor;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.servlet.config.annotation.*;
 
-import javax.validation.constraints.NotNull;
 
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
