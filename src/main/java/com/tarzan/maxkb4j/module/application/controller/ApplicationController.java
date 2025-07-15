@@ -17,7 +17,7 @@ import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationWorkFlowVe
 import com.tarzan.maxkb4j.module.application.service.ApplicationService;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationVO;
 import com.tarzan.maxkb4j.module.application.domian.vo.McpToolVO;
-import com.tarzan.maxkb4j.module.dataset.domain.dto.HitTestDTO;
+import com.tarzan.maxkb4j.module.dataset.domain.dto.DataSearchDTO;
 import com.tarzan.maxkb4j.module.dataset.domain.entity.DatasetEntity;
 import com.tarzan.maxkb4j.module.dataset.domain.vo.ParagraphVO;
 import com.tarzan.maxkb4j.module.functionlib.domain.entity.FunctionLibEntity;
@@ -98,7 +98,7 @@ public class ApplicationController {
 
     @SaCheckPermission("APPLICATION:READ")
     @GetMapping("/application/{id}/hit_test")
-    public R<List<ParagraphVO>> hitTest(@PathVariable("id") String id, HitTestDTO dto) {
+    public R<List<ParagraphVO>> hitTest(@PathVariable("id") String id, DataSearchDTO dto) {
         return R.success(applicationService.hitTest(id, dto));
     }
 

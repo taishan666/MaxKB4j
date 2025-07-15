@@ -2,8 +2,10 @@ package com.tarzan.maxkb4j.module.dataset.domain.dto;
 
 import lombok.Data;
 
+import java.util.List;
+
 @Data
-public class HitTestDTO {
+public class DataSearchDTO {
     private String  queryText;
     private String  searchMode;
     private Float  similarity;
@@ -11,4 +13,5 @@ public class HitTestDTO {
     private Boolean  problemOptimization;
     private String rerankerModelId;
     private String  problemOptimizationPrompt;
+    private List<String> excludeParagraphIds;
 }

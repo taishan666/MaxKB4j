@@ -2,7 +2,7 @@ package com.tarzan.maxkb4j.module.dataset.service;
 
 import com.huaban.analysis.jieba.JiebaSegmenter;
 import com.tarzan.maxkb4j.module.dataset.domain.entity.EmbeddingEntity;
-import com.tarzan.maxkb4j.module.dataset.domain.vo.HitTestVO;
+import com.tarzan.maxkb4j.module.dataset.domain.vo.TextChunkVO;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.MongoExpression;
@@ -22,7 +22,7 @@ public class FullTextIndexService {
 
     private final MongoTemplate mongoTemplate;
 
-    public List<HitTestVO> search(List<String> datasetIds, String keyword, int maxResults,float minScore) {
+    public List<TextChunkVO> search(List<String> datasetIds, List<String> excludeParagraphIds, String keyword, int maxResults, float minScore) {
         // 假设 textCriteria 和 keyword 已经定义好
         TextCriteria textCriteria = TextCriteria.forDefaultLanguage().matching(segmentContent(keyword));
         // 构建聚合管道
@@ -65,11 +65,12 @@ public class FullTextIndexService {
         float maxScore = Math.max(result.get(0).getScore(),2);
         for (EmbeddingEntity entity : result) {
             float score = entity.getScore()/ maxScore;
+            System.out.println(entity.getParagraphId()+"  归一化得分：" + score);
             entity.setScore(score);
         }
         int endIndex = Math.min(maxResults, result.size());
         result = result.subList(0, endIndex);
-        return result.stream().map(entity -> new HitTestVO(entity.getParagraphId(), entity.getScore())).filter(vo -> vo.getScore() >= minScore).toList();
+        return result.stream().map(entity -> new TextChunkVO(entity.getParagraphId(), entity.getScore())).filter(vo -> vo.getScore() >= minScore).toList();
     }
 
     public String segmentContent(String text) {

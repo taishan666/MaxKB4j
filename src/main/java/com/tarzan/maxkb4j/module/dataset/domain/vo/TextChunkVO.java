@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class HitTestVO {
+public class TextChunkVO {
     private String paragraphId;
     private Float score;
 }

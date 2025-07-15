@@ -23,7 +23,7 @@ import com.tarzan.maxkb4j.module.application.enums.AuthType;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationMapper;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationVO;
 import com.tarzan.maxkb4j.module.application.domian.vo.McpToolVO;
-import com.tarzan.maxkb4j.module.dataset.domain.dto.HitTestDTO;
+import com.tarzan.maxkb4j.module.dataset.domain.dto.DataSearchDTO;
 import com.tarzan.maxkb4j.module.dataset.domain.entity.DatasetEntity;
 import com.tarzan.maxkb4j.module.dataset.domain.entity.ParagraphEntity;
 import com.tarzan.maxkb4j.module.dataset.service.DatasetService;
@@ -441,8 +441,9 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         return result;
     }
 
-    public List<ParagraphVO> hitTest(String id, HitTestDTO dto) {
+    public List<ParagraphVO> hitTest(String id, DataSearchDTO dto) {
         List<String> datasetIds = datasetMappingService.getDatasetIdsByAppId(id);
+        dto.setExcludeParagraphIds(new ArrayList<>());
         return retrieveService.paragraphSearch(datasetIds, dto);
     }
 

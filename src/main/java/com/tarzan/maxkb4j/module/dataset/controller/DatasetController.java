@@ -8,7 +8,7 @@ import com.tarzan.maxkb4j.constant.AppConst;
 import com.tarzan.maxkb4j.core.common.dto.Query;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationEntity;
 import com.tarzan.maxkb4j.module.dataset.domain.dto.DatasetDTO;
-import com.tarzan.maxkb4j.module.dataset.domain.dto.HitTestDTO;
+import com.tarzan.maxkb4j.module.dataset.domain.dto.DataSearchDTO;
 import com.tarzan.maxkb4j.module.dataset.domain.entity.DatasetEntity;
 import com.tarzan.maxkb4j.module.dataset.service.DatasetService;
 import com.tarzan.maxkb4j.module.dataset.service.EmbedTextService;
@@ -64,7 +64,7 @@ public class DatasetController {
 
     @SaCheckPermission("DATASET:READ")
     @GetMapping("/dataset/{id}/hit_test")
-    public R<List<ParagraphVO>> hitTest(@PathVariable("id") String id, HitTestDTO dto) {
+    public R<List<ParagraphVO>> hitTest(@PathVariable("id") String id, DataSearchDTO dto) {
         return R.success(retrieveService.paragraphSearch(List.of(id), dto));
     }
 

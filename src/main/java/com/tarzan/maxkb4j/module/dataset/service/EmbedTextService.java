@@ -5,7 +5,7 @@ import com.tarzan.maxkb4j.module.dataset.domain.dto.GenerateProblemDTO;
 import com.tarzan.maxkb4j.module.dataset.domain.entity.DatasetEntity;
 import com.tarzan.maxkb4j.module.dataset.domain.entity.ParagraphEntity;
 import com.tarzan.maxkb4j.module.dataset.domain.entity.ProblemEntity;
-import com.tarzan.maxkb4j.module.dataset.domain.vo.HitTestVO;
+import com.tarzan.maxkb4j.module.dataset.domain.vo.TextChunkVO;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
 import dev.langchain4j.data.embedding.Embedding;
@@ -88,17 +88,11 @@ public class EmbedTextService {
     }
 
 
-    public List<HitTestVO> search(List<String> datasetIds, String keyword,int maxResults,float minScore) {
+    public List<TextChunkVO> search(List<String> datasetIds,List<String> excludeParagraphIds, String keyword, int maxResults, float minScore) {
         EmbeddingModel embeddingModel=datasetService.getDatasetEmbeddingModel(datasetIds.get(0));
         Response<Embedding> res = embeddingModel.embed(keyword);
-        return embeddingService.embeddingSearch(datasetIds, maxResults,minScore, res.content().vector());
+        return embeddingService.embeddingSearch(datasetIds,excludeParagraphIds, maxResults,minScore, res.content().vector());
     }
-
-    public List<HitTestVO> search(EmbeddingModel embeddingModel,List<String> datasetIds, String keyword,int maxResults,float minScore) {
-        Response<Embedding> res = embeddingModel.embed(keyword);
-        return embeddingService.embeddingSearch(datasetIds, maxResults,minScore, res.content().vector());
-    }
-
 
 
 }
