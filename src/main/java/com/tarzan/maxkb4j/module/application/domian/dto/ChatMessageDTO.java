@@ -6,6 +6,7 @@ import com.tarzan.maxkb4j.core.workflow.domain.ChatFile;
 import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NonNull;
 import reactor.core.publisher.Sinks;
 
 import java.util.List;
@@ -14,6 +15,8 @@ import java.util.List;
 @Data
 public class ChatMessageDTO {
     private String message;
+    @NonNull
+    private String chatId;
     private String chatRecordId;
     private String clientId;
     private String clientType;

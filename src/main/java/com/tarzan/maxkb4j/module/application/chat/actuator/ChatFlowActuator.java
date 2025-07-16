@@ -1,0 +1,97 @@
+package com.tarzan.maxkb4j.module.application.chat.actuator;
+
+import com.baomidou.mybatisplus.core.toolkit.IdWorker;
+import com.tarzan.maxkb4j.core.workflow.WorkflowManage;
+import com.tarzan.maxkb4j.core.workflow.domain.FlowParams;
+import com.tarzan.maxkb4j.core.workflow.logic.LogicFlow;
+import com.tarzan.maxkb4j.module.application.cache.ChatCache;
+import com.tarzan.maxkb4j.module.application.chat.base.ChatBaseActuator;
+import com.tarzan.maxkb4j.module.application.domian.dto.ChatInfo;
+import com.tarzan.maxkb4j.module.application.domian.dto.ChatMessageDTO;
+import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatEntity;
+import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationEntity;
+import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationWorkFlowVersionEntity;
+import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationChatRecordVO;
+import com.tarzan.maxkb4j.module.application.handler.PostResponseHandler;
+import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatMapper;
+import com.tarzan.maxkb4j.module.application.service.ApplicationChatRecordService;
+import com.tarzan.maxkb4j.module.application.service.ApplicationService;
+import com.tarzan.maxkb4j.module.application.service.ApplicationWorkFlowVersionService;
+import lombok.AllArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.stereotype.Component;
+
+@AllArgsConstructor
+@Component
+public class ChatFlowActuator extends ChatBaseActuator {
+
+    private final ApplicationWorkFlowVersionService workFlowVersionService;
+    private final ApplicationChatMapper chatMapper;
+    private final ApplicationService applicationService;
+    private final ApplicationChatRecordService chatRecordService;
+    private final PostResponseHandler postResponseHandler;
+
+    @Override
+    public String chatOpen(ApplicationEntity application, String chatId) {
+        ChatInfo chatInfo = new ChatInfo();
+        chatInfo.setChatId(chatId);
+        ApplicationWorkFlowVersionEntity workFlowVersion = workFlowVersionService.lambdaQuery()
+                .eq(ApplicationWorkFlowVersionEntity::getApplicationId, application.getId())
+                .orderByDesc(ApplicationWorkFlowVersionEntity::getCreateTime)
+                .last("limit 1").one();
+        chatInfo.setApplication(application);
+        chatInfo.setWorkFlowVersion(workFlowVersion);
+        ChatCache.put(chatInfo.getChatId(), chatInfo);
+        return chatId;
+    }
+
+    @Override
+    public String chatMessage(ChatMessageDTO dto) {
+        ApplicationChatRecordVO chatRecord = null;
+        ChatInfo chatInfo = getChatInfo(dto.getChatId());
+        String chatRecordId = dto.getChatRecordId();
+        if(StringUtils.isNotBlank(chatRecordId)){
+            chatRecord = chatRecordService.getChatRecordInfo(chatInfo, chatRecordId);
+        }
+        FlowParams flowParams = new FlowParams();
+        flowParams.setChatId(chatInfo.getChatId());
+        flowParams.setChatRecordId(dto.getChatRecordId() == null ? IdWorker.get32UUID() : dto.getChatRecordId());
+        flowParams.setQuestion(dto.getMessage());
+        flowParams.setReChat(dto.getReChat());
+        flowParams.setClientId(dto.getClientId());
+        flowParams.setClientType(dto.getClientType());
+        flowParams.setStream(dto.getStream() == null || dto.getStream());
+        flowParams.setHistoryChatRecord(chatInfo.getChatRecordList());//添加历史记录
+        WorkflowManage workflowManage = new WorkflowManage(LogicFlow.newInstance(chatInfo.getWorkFlowVersion().getWorkFlow()),
+                flowParams,
+                dto.getSink(),
+                postResponseHandler,
+                dto.getGlobalData(),
+                dto.getImageList(),
+                dto.getDocumentList(),
+                dto.getAudioList(),
+                dto.getRuntimeNodeId(),
+                dto.getNodeData(),
+                chatRecord);
+        return workflowManage.run();
+    }
+
+    @Override
+    public ChatInfo reChatOpen(String chatId) {
+        ApplicationChatEntity chatEntity = chatMapper.selectById(chatId);
+        if (chatEntity == null){
+            return null;
+        }
+        ChatInfo chatInfo = new ChatInfo();
+        chatInfo.setChatId(chatId);
+        ApplicationEntity application = applicationService.getById(chatEntity.getApplicationId());
+        chatInfo.setApplication(application);
+        ApplicationWorkFlowVersionEntity workFlowVersion = workFlowVersionService.lambdaQuery()
+                .eq(ApplicationWorkFlowVersionEntity::getApplicationId, application.getId())
+                .orderByDesc(ApplicationWorkFlowVersionEntity::getCreateTime)
+                .last("limit 1").one();
+        chatInfo.setWorkFlowVersion(workFlowVersion);
+        ChatCache.put(chatInfo.getChatId(), chatInfo);
+        return chatInfo;
+    }
+}
