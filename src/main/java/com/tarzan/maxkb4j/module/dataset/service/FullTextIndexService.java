@@ -65,7 +65,6 @@ public class FullTextIndexService {
         float maxScore = Math.max(result.get(0).getScore(),2);
         for (EmbeddingEntity entity : result) {
             float score = entity.getScore()/ maxScore;
-            System.out.println(entity.getParagraphId()+"  归一化得分：" + score);
             entity.setScore(score);
         }
         int endIndex = Math.min(maxResults, result.size());
