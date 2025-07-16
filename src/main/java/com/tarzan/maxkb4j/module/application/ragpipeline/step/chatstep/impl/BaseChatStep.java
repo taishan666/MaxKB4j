@@ -47,7 +47,6 @@ import dev.langchain4j.rag.content.injector.ContentInjector;
 import dev.langchain4j.rag.content.injector.DefaultContentInjector;
 import dev.langchain4j.rag.query.router.DefaultQueryRouter;
 import dev.langchain4j.service.AiServices;
-import dev.langchain4j.service.Result;
 import dev.langchain4j.service.TokenStream;
 import dev.langchain4j.service.tool.DefaultToolExecutor;
 import dev.langchain4j.service.tool.ToolExecution;
@@ -136,7 +135,7 @@ public class BaseChatStep extends IChatStep {
             } else {
                 String clientId = manage.context.getString("client_id");
                 String clientType = manage.context.getString("client_type");
-                Assistant assistant2 = AiServices.create(Assistant.class, chatModel.getChatModel());
+               /* Assistant assistant2 = AiServices.create(Assistant.class, chatModel.getChatModel());
                 if (assistant2.isGreeting(problemText)) {
                     Result<String> result = assistant2.chat(problemText);
                     TokenUsage tokenUsage = result.tokenUsage();
@@ -144,7 +143,7 @@ public class BaseChatStep extends IChatStep {
                     context.put("messageTokens", tokenUsage.inputTokenCount());
                     context.put("answerTokens", tokenUsage.outputTokenCount());
                     sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, answerText.get(), true));
-                } else {
+                } else {*/
                     int dialogueNumber = application.getDialogueNumber();
                     String systemText = application.getModelSetting().getSystem();
                     ChatMemory chatMemory = MyChatMemory.builder()
@@ -208,7 +207,7 @@ public class BaseChatStep extends IChatStep {
                                 .start();
                         futureChatResponse.join(); // 阻塞当前线程直到 futureChatResponse 完成
                     }
-                }
+    /*            }*/
                 long startTime = manage.context.getLong("start_time");
                 postResponseHandler.handler(chatId, chatRecordId, problemText, answerText.get(), null, manage.getDetails(), startTime, clientId, clientType);
             }

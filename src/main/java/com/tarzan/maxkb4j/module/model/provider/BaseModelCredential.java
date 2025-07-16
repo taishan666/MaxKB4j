@@ -21,8 +21,8 @@ public  class BaseModelCredential {
         if(needApiKey){
             list.add(new TextInputField("API KEY" ,"api_key"));
         }*/
-        list.add(new TextInputField("API 域名","api_base",false));
-        list.add(new TextInputField("API KEY" ,"api_key",true));
+        list.add(new TextInputField("API 域名","baseUrl",false));
+        list.add(new TextInputField("API KEY" ,"apiKey",true));
         return list;
     }
 }

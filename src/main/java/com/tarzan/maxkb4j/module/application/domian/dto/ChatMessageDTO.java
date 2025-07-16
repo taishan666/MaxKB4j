@@ -15,7 +15,6 @@ import java.util.List;
 @Data
 public class ChatMessageDTO {
     private String message;
-    @NonNull
     private String chatId;
     private String chatRecordId;
     private String clientId;
@@ -28,7 +27,7 @@ public class ChatMessageDTO {
     private List<ChatFile> audioList;
     private List<ChatFile> documentList;
     private List<ChatFile> imageList;
-    // private List<JSONObject> videoList;
+   // private List<JSONObject> videoList;
     @JsonIgnore
     private Sinks.Many<ChatMessageVO> sink;
 }

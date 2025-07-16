@@ -32,6 +32,22 @@ public class ChatFlowActuator extends ChatBaseActuator {
     private final PostResponseHandler postResponseHandler;
 
     @Override
+    public String chatOpenTest(ApplicationEntity application) {
+        ChatInfo chatInfo = new ChatInfo();
+        chatInfo.setChatId(IdWorker.get32UUID());
+        application.setId(null);
+        ApplicationWorkFlowVersionEntity workflowVersion = new ApplicationWorkFlowVersionEntity();
+        workflowVersion.setWorkFlow(application.getWorkFlow());
+/*        application.setDialogueNumber(3);
+        application.setType(application.getType());
+        application.setUserId(StpUtil.getLoginIdAsString());*/
+        chatInfo.setApplication(application);
+        chatInfo.setWorkFlowVersion(workflowVersion);
+        ChatCache.put(chatInfo.getChatId(), chatInfo);
+        return chatInfo.getChatId();
+    }
+
+    @Override
     public String chatOpen(ApplicationEntity application, String chatId) {
         ChatInfo chatInfo = new ChatInfo();
         chatInfo.setChatId(chatId);
@@ -46,9 +62,9 @@ public class ChatFlowActuator extends ChatBaseActuator {
     }
 
     @Override
-    public String chatMessage(ChatMessageDTO dto) {
+    public String chatMessage(ChatInfo chatInfo,ChatMessageDTO dto) {
+        chatCheck(dto);
         ApplicationChatRecordVO chatRecord = null;
-        ChatInfo chatInfo = getChatInfo(dto.getChatId());
         String chatRecordId = dto.getChatRecordId();
         if(StringUtils.isNotBlank(chatRecordId)){
             chatRecord = chatRecordService.getChatRecordInfo(chatInfo, chatRecordId);

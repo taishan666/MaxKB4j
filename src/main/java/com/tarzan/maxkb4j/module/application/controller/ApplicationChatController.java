@@ -79,11 +79,12 @@ public class ApplicationChatController {
         Sinks.Many<ChatMessageVO> sink = Sinks.many().multicast().onBackpressureBuffer();
         String clientId = (String) StpUtil.getExtra("client_id");
         String clientType = (String) StpUtil.getExtra("client_type");
+        params.setChatId(chatId);
         params.setClientId(clientId);
         params.setClientType(clientType);
         params.setSink(sink);
         // 异步执行业务逻辑
-        chatTaskExecutor.execute(() -> chatService.chatMessage(chatId, params));
+        chatTaskExecutor.execute(() -> chatService.chatMessage(params));
         return sink.asFlux();
     }
 

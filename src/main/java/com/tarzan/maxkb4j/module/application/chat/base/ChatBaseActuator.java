@@ -24,7 +24,7 @@ public abstract class ChatBaseActuator implements IChatActuator {
 
     public abstract ChatInfo reChatOpen(String chatId);
 
-    public  void check(ChatMessageDTO dto) {
+    public void chatCheck(ChatMessageDTO dto) {
         ChatInfo chatInfo = getChatInfo(dto.getChatId());
         if (chatInfo == null) {
             dto.getSink().tryEmitNext(new ChatMessageVO());

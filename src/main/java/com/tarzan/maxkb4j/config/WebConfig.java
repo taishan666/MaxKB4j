@@ -33,7 +33,6 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-       // registry.addResourceHandler("/favicon.ico").addResourceLocations("classpath:/META-INF/resources/");
         registry.addResourceHandler("doc.html").addResourceLocations("classpath:/META-INF/resources/");
         registry.addResourceHandler("/webjars/**").addResourceLocations("classpath:/META-INF/resources/webjars/");
         //放行所有的静态资源，为了保证vue项目可以正常使用
@@ -52,12 +51,11 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addViewControllers(@NotNull ViewControllerRegistry registry) {
-        System.out.println(registry);
-        registry.addViewController("/ui/{path:[^.]*}").setViewName("forward:/ui/index.html");
-        registry.addViewController("/ui/{path:[^.]*}/{path1:[^.]*}").setViewName("forward:/ui/index.html");
-        registry.addViewController("/ui/{path:[^.]*}/{path1:[^.]*}/{path2:[^.]*}").setViewName("forward:/ui/index.html");
-        registry.addViewController("/ui/{path:[^.]*}/{path1:[^.]*}/{path2:[^.]*}/{path3:[^.]*}").setViewName("forward:/ui/index.html");
-        registry.addViewController("/ui/{path:[^.]*}/{path1:[^.]*}/{path2:[^.]*}/{path3:[^.]*}/{path4:[^.]*}").setViewName("forward:/ui/index.html");
+        registry.addViewController("/{path:[^.]*}").setViewName("forward:/ui/index.html");
+        registry.addViewController("/{path:[^.]*}/{path1:[^.]*}").setViewName("forward:/index.html");
+        registry.addViewController("/{path:[^.]*}/{path1:[^.]*}/{path2:[^.]*}").setViewName("forward:/index.html");
+        registry.addViewController("/{path:[^.]*}/{path1:[^.]*}/{path2:[^.]*}/{path3:[^.]*}").setViewName("forward:/index.html");
+        registry.addViewController("/{path:[^.]*}/{path1:[^.]*}/{path2:[^.]*}/{path3:[^.]*}/{path4:[^.]*}").setViewName("forward:/index.html");
     }
 
 

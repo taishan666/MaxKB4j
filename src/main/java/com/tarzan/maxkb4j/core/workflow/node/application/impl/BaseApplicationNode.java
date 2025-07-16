@@ -34,11 +34,12 @@ public class BaseApplicationNode extends INode {
         String question= (String)workflowManage.getReferenceField(questionFields.get(0),questionFields.subList(1, questionFields.size()));
         ChatMessageDTO messageDto = ChatMessageDTO.builder()
                 .message(question)
+                .chatId(chatId)
                 .clientId(nodeParams.getApplicationId())
                 .clientType(AuthType.APPLICATION.name())
                 .sink(sink)
                 .reChat(false).build();
-        String answer=chatService.chatMessage(chatId,messageDto);
+        String answer=chatService.chatMessage(messageDto);
         return new NodeResult(Map.of(
                 "result", answer,
                 "question", question

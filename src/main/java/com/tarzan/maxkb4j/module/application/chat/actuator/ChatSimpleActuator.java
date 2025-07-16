@@ -1,5 +1,6 @@
 package com.tarzan.maxkb4j.module.application.chat.actuator;
 
+import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.tarzan.maxkb4j.core.exception.ApiException;
 import com.tarzan.maxkb4j.module.application.cache.ChatCache;
 import com.tarzan.maxkb4j.module.application.chat.base.ChatBaseActuator;
@@ -9,7 +10,6 @@ import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatEntity
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationDatasetMappingEntity;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationEntity;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationChatRecordVO;
-import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
 import com.tarzan.maxkb4j.module.application.handler.PostResponseHandler;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatMapper;
 import com.tarzan.maxkb4j.module.application.ragpipeline.PipelineManage;
@@ -47,6 +47,16 @@ public class ChatSimpleActuator extends ChatBaseActuator {
     private final PostResponseHandler postResponseHandler;
 
     @Override
+    public String chatOpenTest(ApplicationEntity application) {
+        ChatInfo chatInfo = new ChatInfo();
+        chatInfo.setChatId(IdWorker.get32UUID());
+        application.setId(null); // 清空id,为了区分是否是测试对话
+        chatInfo.setApplication(application);
+        ChatCache.put(chatInfo.getChatId(), chatInfo);
+        return chatInfo.getChatId();
+    }
+
+    @Override
     public String chatOpen(ApplicationEntity application, String chatId) {
         ChatInfo chatInfo = new ChatInfo();
         chatInfo.setChatId(chatId);
@@ -58,12 +68,8 @@ public class ChatSimpleActuator extends ChatBaseActuator {
     }
 
     @Override
-    public String chatMessage(ChatMessageDTO dto) {
-        ChatInfo chatInfo = getChatInfo(dto.getChatId());
-        if (chatInfo == null) {
-            dto.getSink().tryEmitNext(new ChatMessageVO());
-            return  "";
-        }
+    public String chatMessage(ChatInfo chatInfo,ChatMessageDTO dto) {
+        chatCheck(dto);
         String modelId = chatInfo.getApplication().getModelId();
         ModelEntity model = modelService.getById(modelId);
         if (Objects.isNull(model) || !"SUCCESS".equals(model.getStatus())) {
