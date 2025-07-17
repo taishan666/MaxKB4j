@@ -10,19 +10,17 @@ import java.util.List;
 @AllArgsConstructor
 public  class BaseModelCredential {
 
-    private boolean needBaseUrl;
-    private boolean needApiKey;
+    private boolean showBaseUrl;
+    private boolean showApiKey;
 
     public List<BaseFiled> toForm() {
         List<BaseFiled> list=new ArrayList<>(2);
-       /* if(needBaseUrl){
-            list.add(new TextInputField("API 域名","api_base"));
+        if(showBaseUrl){
+            list.add(new TextInputField("API 域名","baseUrl",true));
         }
-        if(needApiKey){
-            list.add(new TextInputField("API KEY" ,"api_key"));
-        }*/
-        list.add(new TextInputField("API 域名","baseUrl",false));
-        list.add(new TextInputField("API KEY" ,"apiKey",true));
+        if(showApiKey){
+            list.add(new TextInputField("API KEY" ,"apiKey",true));
+        }
         return list;
     }
 }

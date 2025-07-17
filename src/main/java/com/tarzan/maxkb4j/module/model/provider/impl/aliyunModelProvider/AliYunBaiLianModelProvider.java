@@ -37,12 +37,12 @@ public class AliYunBaiLianModelProvider extends IModelProvider {
         modelInfos.add(new ModelInfo(QwenModelName.QWEN_TURBO,"大语言模型", ModelTypeEnum.LLM.name(), new BaiLianChatModel()));
         modelInfos.add(new ModelInfo(QwenModelName.QWEN_PLUS,"大语言模型", ModelTypeEnum.LLM.name(), new BaiLianChatModel()));
         modelInfos.add(new ModelInfo(QwenModelName.QWEN_MAX,"大语言模型", ModelTypeEnum.LLM.name(),new BaiLianChatModel()));
-      //  modelInfos.add(new ModelInfo(QwenModelName.TEXT_EMBEDDING_V2,"文本向量模型", ModelTypeEnum.EMBEDDING.name(),new BaiLianEmbedding()));
+        modelInfos.add(new ModelInfo(QwenModelName.TEXT_EMBEDDING_V2,"文本向量模型", ModelTypeEnum.EMBEDDING.name(),new BaiLianEmbedding()));
         modelInfos.add(new ModelInfo(QwenModelName.TEXT_EMBEDDING_V3,"文本向量模型", ModelTypeEnum.EMBEDDING.name(),new BaiLianEmbedding()));
-        modelInfos.add(new ModelInfo("paraformer-realtime-v2","语音识别模型", ModelTypeEnum.STT.name(), new ParaFormerSTT()));
-       // modelInfos.add(new ModelInfo("paraformer-v2","语音识别模型", ModelTypeEnum.STT.name(), new ParaFormerSTT()));
+        modelInfos.add(new ModelInfo("paraformer-realtime-v2","语音识别模型", ModelTypeEnum.STT.name(), new ParaFormerRealtimeSTT()));
+        modelInfos.add(new ModelInfo("paraformer-v2","语音识别模型", ModelTypeEnum.STT.name(), new ParaFormerSTT()));
         modelInfos.add(new ModelInfo("gummy-realtime-v1","语音识别模型", ModelTypeEnum.STT.name(), new GummySTT(),new GummySTTParams()));
-       // modelInfos.add(new ModelInfo("sensevoice-v1","语音识别模型", ModelTypeEnum.STT.name(), new SenseVoiceSTT()));
+        modelInfos.add(new ModelInfo("sensevoice-v1","语音识别模型", ModelTypeEnum.STT.name(), new SenseVoiceSTT()));
         modelInfos.add(new ModelInfo("cosyvoice-v1","语音生成模型",ModelTypeEnum.TTS.name(),new CosyVoiceTTS(),new CosyVoiceV1TTSParams()));
         modelInfos.add(new ModelInfo("cosyvoice-v2","语音生成模型",ModelTypeEnum.TTS.name(),new CosyVoiceTTS(),new CosyVoiceV2TTSParams()));
         modelInfos.add(new ModelInfo("sambert-v1","语音生成模型",ModelTypeEnum.TTS.name(),new SamBertTTS(),new SamBertTTSParams()));
@@ -51,7 +51,6 @@ public class AliYunBaiLianModelProvider extends IModelProvider {
         modelInfos.add(new ModelInfo(QwenModelName.QWEN_VL_MAX,"AI视觉模型",ModelTypeEnum.IMAGE.name(), new BaiLianChatModel()));
         modelInfos.add(new ModelInfo(WanxModelName.WANX2_1_T2I_TURBO,"文生图模型",ModelTypeEnum.TTI.name(),new QWenImageModel(),new WanXImageModelParams()));
         modelInfos.add(new ModelInfo(WanxModelName.WANX2_1_T2I_PLUS,"文生图模型",ModelTypeEnum.TTI.name(),new QWenImageModel(),new WanXImageModelParams()));
-       // modelInfos.add(new ModelInfo("stable-diffusion-3.5-large-turbo","文生图模型",ModelTypeEnum.TTI.name(),new QWenImageModel(),new ImageModelParams()));
         modelInfos.add(new ModelInfo("wanx2.1-imageedit","图生图模型",ModelTypeEnum.TTI.name(),new QWenImageModel(),new WanXImageEditModelParams()));
         modelInfos.add(new ModelInfo("gte-rerank","",ModelTypeEnum.RERANKER.name(),new BaiLianReranker()));
         return modelInfos;

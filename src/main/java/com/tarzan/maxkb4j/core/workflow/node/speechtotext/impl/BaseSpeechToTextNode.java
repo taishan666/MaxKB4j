@@ -39,7 +39,7 @@ public class BaseSpeechToTextNode extends INode {
         StringBuilder sb = new StringBuilder();
         for (ChatFile file: audioFiles) {
             byte[] data = fileService.getBytes(file.getFileId());
-            String suffix=file.getType().split("/")[1];
+            String suffix=file.getName().substring(file.getName().lastIndexOf(".") + 1);
             String result = sttModel.speechToText(data,suffix);
             sb.append(result);
         }

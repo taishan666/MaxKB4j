@@ -101,7 +101,6 @@ public class WanXImageModel implements ImageModel {
                 throw new IllegalArgumentException("Failed to get image url from " + image);
             }
             String filePath = saveDataAsTemporaryFile(image.base64Data(), image.mimeType());
-            //imageUrl="file://"+filePath.replace("\\", "/");;
             try {
                 imageUrl = OSSUtils.upload(model, filePath, apiKey);
             } catch (NoApiKeyException e) {
