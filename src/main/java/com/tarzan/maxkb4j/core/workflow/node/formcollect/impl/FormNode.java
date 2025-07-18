@@ -3,12 +3,9 @@ package com.tarzan.maxkb4j.core.workflow.node.formcollect.impl;
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.NodeResult;
-import com.tarzan.maxkb4j.core.workflow.domain.Answer;
 import com.tarzan.maxkb4j.core.workflow.node.formcollect.input.FormNodeParams;
 import dev.langchain4j.model.input.PromptTemplate;
 
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -51,7 +48,7 @@ public class FormNode extends INode {
         }
     }
 
-    @Override
+/*    @Override
     public List<Answer> getAnswerList() {
         String formContentFormat = (String) context.get("form_content_format");
         JSONObject formSetting = new JSONObject();
@@ -66,7 +63,7 @@ public class FormNode extends INode {
         Answer answer = new Answer(value, this.getViewType(), this.runtimeNodeId,
                 this.getFlowParams().getChatRecordId(), new HashMap<>());
         return Collections.singletonList(answer);
-    }
+    }*/
 
     @Override
     public JSONObject getDetail() {

@@ -205,7 +205,7 @@ https://github.com/jquery/jquery/blob/master/src/event.js
           `).concat(i.map(function(u){return"if(vAtlasId == ".concat(u,") outColor = texture(uTexture").concat(u,", vTexCoord);")}).join(`
 	else `),`
         } else if(vVertType == `).concat(oi,`) {
-          // blend arrow color with background (using premultiplied alpha)
+          // hybrid arrow color with background (using premultiplied alpha)
           outColor.rgb = vEdgeColor.rgb + (uBGColor.rgb * (1.0 - vEdgeColor.a)); 
           outColor.a = 1.0; // make opaque, masks out line under arrow
         } else {

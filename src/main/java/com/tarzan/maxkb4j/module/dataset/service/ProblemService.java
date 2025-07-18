@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tarzan.maxkb4j.module.dataset.domain.dto.GenerateProblemDTO;
+import com.tarzan.maxkb4j.module.dataset.domain.dto.ProblemDTO;
 import com.tarzan.maxkb4j.module.dataset.domain.entity.ParagraphEntity;
 import com.tarzan.maxkb4j.module.dataset.domain.entity.ProblemEntity;
 import com.tarzan.maxkb4j.module.dataset.domain.entity.ProblemParagraphEntity;
@@ -179,5 +180,14 @@ public class ProblemService extends ServiceImpl<ProblemMapper, ProblemEntity> {
         problemParagraphService.lambdaUpdate().in(ProblemParagraphEntity::getProblemId, problemIds).remove();
         dataIndexService.removeBySourceIds(problemIds.stream().map(String::toString).toList());
         return this.removeByIds(problemIds);
+    }
+
+    @Transactional
+    public boolean createProblemsByParagraphId(String datasetId,String docId,String paragraphId, ProblemDTO dto) {
+        ProblemEntity problem = new ProblemEntity();
+        problem.setContent(dto.getContent());
+        problem.setDatasetId(datasetId);
+        problem.setHitNum(0);
+        return this.save(problem) && problemParagraphService.association(datasetId, docId, paragraphId, problem.getId());
     }
 }

@@ -1,16 +1,12 @@
 package com.tarzan.maxkb4j.module.dataset.service;
 
-import com.tarzan.maxkb4j.module.dataset.domain.dto.DatasetBatchHitHandlingDTO;
 import com.tarzan.maxkb4j.module.dataset.domain.dto.GenerateProblemDTO;
 import com.tarzan.maxkb4j.module.dataset.domain.entity.DatasetEntity;
 import com.tarzan.maxkb4j.module.dataset.domain.entity.ParagraphEntity;
 import com.tarzan.maxkb4j.module.dataset.domain.entity.ProblemEntity;
-import com.tarzan.maxkb4j.module.dataset.domain.vo.TextChunkVO;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
-import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.model.embedding.EmbeddingModel;
-import dev.langchain4j.model.output.Response;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -27,21 +23,6 @@ public class EmbedTextService {
     private final ParagraphService paragraphService;
     private final ProblemService problemService;
     private final ModelService modelService;
-    private final EmbeddingService embeddingService;
-
-    public boolean refresh(String datasetId, String docId) {
-        documentService.embedByDocIds(datasetService.getDatasetEmbeddingModel(datasetId), List.of(docId));
-        return true;
-    }
-
-    public boolean batchRefresh(String datasetId, DatasetBatchHitHandlingDTO dto) {
-        documentService.embedByDocIds(datasetService.getDatasetEmbeddingModel(datasetId), dto.getIdList());
-        return true;
-    }
-
-    public boolean reEmbedding(String datasetId) {
-        return embeddingService.embedByDatasetId(datasetId, datasetService.getDatasetEmbeddingModel(datasetId));
-    }
 
 
     public boolean batchGenerateRelated(String datasetId, GenerateProblemDTO dto) {
@@ -86,13 +67,5 @@ public class EmbedTextService {
         documentService.updateStatusById(docId, 2, 2);
         return true;
     }
-
-
-    public List<TextChunkVO> search(List<String> datasetIds,List<String> excludeParagraphIds, String keyword, int maxResults, float minScore) {
-        EmbeddingModel embeddingModel=datasetService.getDatasetEmbeddingModel(datasetIds.get(0));
-        Response<Embedding> res = embeddingModel.embed(keyword);
-        return embeddingService.embeddingSearch(datasetIds,excludeParagraphIds, maxResults,minScore, res.content().vector());
-    }
-
 
 }

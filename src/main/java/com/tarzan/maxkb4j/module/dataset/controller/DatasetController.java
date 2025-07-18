@@ -71,7 +71,7 @@ public class DatasetController {
     @SaCheckPermission("DATASET:EDIT")
     @PutMapping("/dataset/{id}/re_embedding")
     public R<Boolean> reEmbedding(@PathVariable("id") String id) {
-        return R.success(embedTextService.reEmbedding(id));
+        return R.success(datasetService.reEmbedding(id));
     }
 
     @SaCheckPermission("DATASET:EDIT")

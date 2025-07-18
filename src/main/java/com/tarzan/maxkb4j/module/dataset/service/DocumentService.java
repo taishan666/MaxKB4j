@@ -8,33 +8,31 @@ import com.alibaba.excel.read.listener.PageReadListener;
 import com.alibaba.excel.write.metadata.WriteSheet;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
-import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.opencsv.CSVReader;
 import com.opencsv.exceptions.CsvValidationException;
 import com.tarzan.maxkb4j.core.common.dto.Query;
-import com.tarzan.maxkb4j.module.dataset.domain.dto.*;
+import com.tarzan.maxkb4j.module.dataset.domain.dto.DatasetBatchHitHandlingDTO;
+import com.tarzan.maxkb4j.module.dataset.domain.dto.DocumentNameDTO;
+import com.tarzan.maxkb4j.module.dataset.domain.dto.WebUrlDTO;
 import com.tarzan.maxkb4j.module.dataset.domain.entity.DocumentEntity;
 import com.tarzan.maxkb4j.module.dataset.domain.entity.ParagraphEntity;
 import com.tarzan.maxkb4j.module.dataset.domain.entity.ProblemEntity;
 import com.tarzan.maxkb4j.module.dataset.domain.entity.ProblemParagraphEntity;
-import com.tarzan.maxkb4j.module.dataset.enums.DocType;
-import com.tarzan.maxkb4j.module.dataset.excel.DatasetExcel;
-import com.tarzan.maxkb4j.module.dataset.mapper.DocumentMapper;
 import com.tarzan.maxkb4j.module.dataset.domain.vo.DocumentVO;
 import com.tarzan.maxkb4j.module.dataset.domain.vo.ParagraphSimpleVO;
 import com.tarzan.maxkb4j.module.dataset.domain.vo.TextSegmentVO;
+import com.tarzan.maxkb4j.module.dataset.enums.DocType;
+import com.tarzan.maxkb4j.module.dataset.excel.DatasetExcel;
+import com.tarzan.maxkb4j.module.dataset.mapper.DocumentMapper;
 import com.tarzan.maxkb4j.module.model.info.vo.KeyAndValueVO;
 import com.tarzan.maxkb4j.util.ExcelUtil;
 import com.tarzan.maxkb4j.util.JsoupUtil;
 import dev.langchain4j.data.document.Document;
-import dev.langchain4j.data.document.DocumentParser;
 import dev.langchain4j.data.document.DocumentSplitter;
-import dev.langchain4j.data.document.parser.apache.tika.ApacheTikaDocumentParser;
 import dev.langchain4j.data.document.splitter.DocumentByCharacterSplitter;
 import dev.langchain4j.data.document.splitter.DocumentByRegexSplitter;
 import dev.langchain4j.data.document.splitter.DocumentBySentenceSplitter;
@@ -100,7 +98,6 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
     public void updateStatusByIds(List<String> ids, int type,int status) {
         baseMapper.updateStatusByIds(ids,type,status,type-1,type+1);
     }
-
 
     public boolean updateCharLengthById(String id) {
        return baseMapper.updateCharLengthById(id);
@@ -173,7 +170,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
                 if (values.length > 1) {
                     String title = values[0];
                     String content = values[1];
-                    ParagraphEntity paragraph = getParagraphEntity(datasetId, doc.getId(), title, content);
+                    ParagraphEntity paragraph = paragraphService.getParagraphEntity(datasetId, doc.getId(), title, content);
                     paragraphs.add(paragraph);
                     doc.setCharLength(doc.getCharLength() + paragraph.getContent().length());
                 }
@@ -207,7 +204,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
                         .registerReadListener(new PageReadListener<DatasetExcel>(dataList -> {
                             for (DatasetExcel data : dataList) {
                                 log.info("在Sheet {} 中读取到一条数据{}", sheetName, JSON.toJSONString(data));
-                                ParagraphEntity paragraph = getParagraphEntity(datasetId, doc.getId(), data.getTitle(), data.getContent());
+                                ParagraphEntity paragraph = paragraphService.getParagraphEntity(datasetId, doc.getId(), data.getTitle(), data.getContent());
                                 paragraphs.add(paragraph);
                                 doc.setCharLength(doc.getCharLength() + paragraph.getContent().length());
                                 if (StringUtils.isNotBlank(data.getProblems())) {
@@ -254,7 +251,6 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
             List<String> list = new ArrayList<>();
             EasyExcel.read(uploadFile.getInputStream(), new AnalysisEventListener<Map<Integer, String>>() {
                 Map<Integer, String> headMap = new LinkedHashMap<>();
-
                 // 表头信息会在此方法中获取
                 @Override
                 public void invokeHeadMap(Map<Integer, String> headMap, AnalysisContext context) {
@@ -283,7 +279,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
             if (!CollectionUtils.isEmpty(list)) {
                 for (String text : list) {
                     doc.setCharLength(doc.getCharLength() + text.length());
-                    ParagraphEntity paragraph = getParagraphEntity(datasetId, doc.getId(), "", text);
+                    ParagraphEntity paragraph = paragraphService.getParagraphEntity(datasetId, doc.getId(), "", text);
                     paragraphs.add(paragraph);
                 }
                 this.save(doc);
@@ -358,7 +354,6 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
     }
 
 
-    private final DocumentParser parser = new ApacheTikaDocumentParser();
     private final DocumentSplitter defaultSplitter = new DocumentBySentenceSplitter(512, 20);
 
     public List<TextSegmentVO> split(MultipartFile[] files, String[] patterns, Integer limit, Boolean withFilter) {
@@ -385,31 +380,6 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         }
         return list;
     }
-
-/*    public List<TextSegmentVO> split1(MultipartFile[] files, String[] patterns, Integer limit, Boolean withFilter) {
-        List<TextSegmentVO> list = new ArrayList<>();
-        for (MultipartFile file : files) {
-            if (file == null || file.isEmpty()) {
-                continue; // 或抛出异常根据业务需求
-            }
-            TextSegmentVO textSegmentVO = new TextSegmentVO();
-            textSegmentVO.setName(file.getOriginalFilename());
-            try (InputStream inputStream = file.getInputStream()) {
-                Document document = parser.parse(inputStream);
-                List<TextSegment> textSegments = getTextSegments(document, patterns, limit, withFilter);
-                List<ParagraphSimpleVO> content = textSegments.stream()
-                        .map(segment -> new ParagraphSimpleVO(segment.text()))
-                        .collect(Collectors.toList());
-
-                textSegmentVO.setContent(content);
-            } catch (IOException e) {
-                // 添加日志记录
-                throw new RuntimeException("File processing failed: " + file.getOriginalFilename(), e);
-            }
-            list.add(textSegmentVO);
-        }
-        return list;
-    }*/
 
     private List<TextSegment> getTextSegments(Document document, String[] patterns, Integer limit, Boolean withFilter) {
         if (patterns != null) {
@@ -531,7 +501,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
                 AtomicInteger docCharLength = new AtomicInteger();
                 if (!CollectionUtils.isEmpty(e.getParagraphs())) {
                     e.getParagraphs().forEach(p ->{
-                        paragraphEntities.add(createParagraph(datasetId, doc.getId(), p));
+                        paragraphEntities.add(paragraphService.createParagraph(datasetId, doc.getId(), p));
                         docCharLength.addAndGet(p.getContent().length());
                     });
                 }
@@ -561,23 +531,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         documentEntity.setDirectlyReturnSimilarity(0.9);
         return documentEntity;
     }
-    public ParagraphEntity createParagraph(String datasetId, String docId, ParagraphSimpleDTO paragraph) {
-        return getParagraphEntity(datasetId, docId, paragraph.getTitle(), paragraph.getContent());
-    }
 
-    private ParagraphEntity getParagraphEntity(String datasetId, String docId, String title, String content) {
-        ParagraphEntity paragraph = new ParagraphEntity();
-        paragraph.setId(IdWorker.get32UUID());
-        paragraph.setTitle(title == null ? "" : title);
-        paragraph.setContent(content == null ? "" : content);
-        paragraph.setDatasetId(datasetId);
-        paragraph.setStatus("nn0");
-        paragraph.setHitNum(0);
-        paragraph.setIsActive(true);
-        // paragraph.setStatusMeta(paragraph.defaultStatusMeta());
-        paragraph.setDocumentId(docId);
-        return paragraph;
-    }
 
     @Transactional
     public boolean deleteBatchDocByDocIds(List<String> docIds) {
@@ -588,29 +542,18 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         return this.lambdaUpdate().in(DocumentEntity::getId, docIds).remove();
     }
 
-    @Async
-    public void embedByDocIds(EmbeddingModel embeddingModel,List<String> docIds) {
+    @Transactional
+    public boolean embedByDocIds(List<String> docIds) {
         if (!CollectionUtils.isEmpty(docIds)) {
-            docIds.forEach(docId -> {
+            docIds.parallelStream().forEach(docId -> {
                 paragraphService.updateStatusByDocId(docId, 1, 0);
                 this.updateStatusById(docId,1,0);
                 //目的是为了显示进度计数
                 this.updateStatusMetaById(docId);
             });
         }
+        return true;
     }
-
-/*    public void createRelatedProblemByDocId(EmbeddingModel embeddingModel,String docId) {
-        log.info("开始--->文档索引:{}", docId);
-        List<ParagraphEntity> paragraphs = paragraphService.lambdaQuery().eq(ParagraphEntity::getDocumentId, docId).list();
-        this.updateStatusById(docId,1,1);
-        paragraphs.forEach(paragraph -> {
-            paragraphService.paragraphIndex(paragraph,embeddingModel);
-            this.updateStatusMetaById(docId);
-        });
-        this.updateStatusById(docId,1,2);
-        log.info("结束--->文档索引:{}", docId);
-    }*/
 
 
     public void createIndexByDocId(EmbeddingModel embeddingModel,String docId) {
@@ -659,76 +602,6 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         return baseMapper.selectDocPage(docPage, datasetId,query);
     }
 
-    @Transactional
-    public boolean createParagraph(String datasetId, String docId, ParagraphDTO paragraph) {
-        paragraph.setDatasetId(datasetId);
-        paragraph.setDocumentId(docId);
-        boolean flag;
-        paragraph.setStatus("nn2");
-        paragraph.setHitNum(0);
-        paragraph.setIsActive(true);
-        flag = paragraphService.save(paragraph);
-        this.updateCharLengthById(docId);
-        List<ProblemEntity> problems = paragraph.getProblemList();
-        if (!CollectionUtils.isEmpty(problems)) {
-            List<String> problemContents = problems.stream().map(ProblemEntity::getContent).toList();
-            problems = problemService.lambdaQuery().in(ProblemEntity::getContent, problemContents).list();
-            List<String> problemIds = problems.stream().map(ProblemEntity::getId).toList();
-            List<ProblemParagraphEntity> problemParagraphMappingEntities = new ArrayList<>();
-            problemIds.forEach(problemId -> {
-                ProblemParagraphEntity entity = new ProblemParagraphEntity();
-                entity.setDatasetId(paragraph.getDatasetId());
-                entity.setProblemId(problemId);
-                entity.setParagraphId(paragraph.getId());
-                entity.setDocumentId(paragraph.getDocumentId());
-                problemParagraphMappingEntities.add(entity);
-            });
-            flag = problemParagraphService.saveBatch(problemParagraphMappingEntities);
-        }
-        return flag;
-    }
-
-    public IPage<ParagraphEntity> pageParagraphByDocId(String docId, int page, int size, String title, String content) {
-        Page<ParagraphEntity> paragraphPage = new Page<>(page, size);
-        LambdaQueryWrapper<ParagraphEntity> wrapper = Wrappers.lambdaQuery();
-        wrapper.eq(ParagraphEntity::getDocumentId, docId);
-        if (StringUtils.isNotBlank(title)) {
-            wrapper.like(ParagraphEntity::getTitle, title);
-        }
-        if (StringUtils.isNotBlank(content)) {
-            wrapper.like(ParagraphEntity::getContent, content);
-        }
-        return paragraphService.page(paragraphPage, wrapper);
-    }
-
-    @Transactional
-    public boolean updateParagraphByParagraphId(String docId,String paragraphId, ParagraphEntity paragraph) {
-        paragraph.setId(paragraphId);
-        paragraphService.updateParagraphById(paragraph);
-        return this.updateCharLengthById(docId);
-    }
-
-    @Transactional
-    public boolean deleteParagraphByParagraphId(String docId, String paragraphId) {
-        return deleteBatchParagraphByParagraphIds(docId,List.of(paragraphId));
-    }
-
-    @Transactional
-    public boolean deleteBatchParagraphByParagraphIds(String docId,List<String> paragraphIds) {
-        boolean flag=paragraphService.deleteBatchParagraphByIds(paragraphIds);
-        this.updateCharLengthById(docId);
-        return flag;
-    }
-
-    public List<ProblemEntity> getProblemsByParagraphId(String paragraphId) {
-        List<ProblemParagraphEntity> list = problemParagraphService.lambdaQuery()
-                .select(ProblemParagraphEntity::getProblemId).eq(ProblemParagraphEntity::getParagraphId, paragraphId).list();
-        if (!CollectionUtils.isEmpty(list)) {
-            List<String> problemIds = list.stream().map(ProblemParagraphEntity::getProblemId).toList();
-            return problemService.lambdaQuery().in(ProblemEntity::getId, problemIds).list();
-        }
-        return Collections.emptyList();
-    }
 
 
     @Transactional
@@ -829,7 +702,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
             doc.setMeta(meta);
             List<TextSegment> textSegments= defaultSplitter.split(document);
             for (TextSegment textSegment : textSegments) {
-                ParagraphEntity paragraph = getParagraphEntity(datasetId, doc.getId(), "", textSegment.text());
+                ParagraphEntity paragraph = paragraphService.getParagraphEntity(datasetId, doc.getId(), "", textSegment.text());
                 paragraphs.add(paragraph);
                 doc.setCharLength(doc.getCharLength()+paragraph.getContent().length());
             }

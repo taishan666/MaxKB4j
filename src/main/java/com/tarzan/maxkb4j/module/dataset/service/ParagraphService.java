@@ -1,22 +1,33 @@
 package com.tarzan.maxkb4j.module.dataset.service;
 
 import com.alibaba.fastjson.JSONObject;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.core.toolkit.IdWorker;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.tarzan.maxkb4j.module.dataset.domain.dto.ParagraphDTO;
+import com.tarzan.maxkb4j.module.dataset.domain.dto.ParagraphSimpleDTO;
 import com.tarzan.maxkb4j.module.dataset.domain.entity.EmbeddingEntity;
 import com.tarzan.maxkb4j.module.dataset.domain.entity.ParagraphEntity;
 import com.tarzan.maxkb4j.module.dataset.domain.entity.ProblemEntity;
 import com.tarzan.maxkb4j.module.dataset.domain.entity.ProblemParagraphEntity;
+import com.tarzan.maxkb4j.module.dataset.mapper.DocumentMapper;
 import com.tarzan.maxkb4j.module.dataset.mapper.ParagraphMapper;
 import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.model.output.Response;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.util.StringUtil;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -31,6 +42,7 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
     private final ProblemService problemService;
     private final ProblemParagraphService problemParagraphService;
     private final DataIndexService dataIndexService;
+    private final DocumentMapper documentMapper;
 
     public void updateStatusById(String id, int type, int status) {
         baseMapper.updateStatusById(id,type,status,type-1,type+1);
@@ -41,11 +53,6 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
 
     public void updateStatusByDocIds(List<String> docIds, int type,int status)  {
         baseMapper.updateStatusByDocIds(docIds,type,status,type-1,type+1);
-    }
-
-
-    public void updateStatusByIds(List<String> paragraphIds, int type,int status)  {
-        baseMapper.updateStatusByIds(paragraphIds,type,status,type-1,type+1);
     }
 
     @Transactional
@@ -87,7 +94,6 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
             paragraphEmbed.setSourceType("1");
             paragraphEmbed.setIsActive(paragraph.getIsActive());
             paragraphEmbed.setContent(paragraph.getTitle() + paragraph.getContent());
-          //  paragraphEmbed.setSearchVector(new TSVector());
             Response<Embedding> res;
             if(StringUtil.isNotBlank(paragraph.getTitle())){
                 res = embeddingModel.embed(paragraph.getTitle() + paragraph.getContent());
@@ -107,7 +113,6 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
                 paragraphEmbed.setSourceId(problem.getId());
                 problemEmbed.setSourceType("0");
                 problemEmbed.setIsActive(paragraph.getIsActive());
-              //  paragraphEmbed.setSearchVector(new TSVector());
                 problemEmbed.setContent(problem.getContent());
                 Response<Embedding> res1 = embeddingModel.embed(problem.getContent());
                 problemEmbed.setEmbedding(res1.content().vectorAsList());
@@ -120,14 +125,87 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
     }
 
     @Transactional
-    public void updateParagraphById(ParagraphEntity paragraph) {
+    public boolean updateParagraphById(String docId,ParagraphEntity paragraph) {
         dataIndexService.updateActiveByParagraph(paragraph);
         this.updateById(paragraph);
+        return documentMapper.updateCharLengthById(docId);
     }
 
+
     @Transactional
-    public boolean deleteBatchParagraphByIds(List<String> paragraphIds) {
+    public Boolean deleteBatchByIds(String docId, List<String> paragraphIds) {
         dataIndexService.removeByParagraphIds(paragraphIds);
-        return this.removeByIds(paragraphIds);
+        this.removeByIds(paragraphIds);
+        return documentMapper.updateCharLengthById(docId);
     }
+
+
+    @Transactional
+    public boolean createParagraph(String datasetId, String docId, ParagraphDTO paragraph) {
+        paragraph.setDatasetId(datasetId);
+        paragraph.setDocumentId(docId);
+        paragraph.setStatus("nn2");
+        paragraph.setHitNum(0);
+        paragraph.setIsActive(true);
+        this.save(paragraph);
+        List<ProblemEntity> problems = paragraph.getProblemList();
+        if (!CollectionUtils.isEmpty(problems)) {
+            List<String> problemContents = problems.stream().map(ProblemEntity::getContent).toList();
+            problems = problemService.lambdaQuery().in(ProblemEntity::getContent, problemContents).list();
+            List<String> problemIds = problems.stream().map(ProblemEntity::getId).toList();
+            List<ProblemParagraphEntity> problemParagraphMappingEntities = new ArrayList<>();
+            problemIds.forEach(problemId -> {
+                ProblemParagraphEntity entity = new ProblemParagraphEntity();
+                entity.setDatasetId(paragraph.getDatasetId());
+                entity.setProblemId(problemId);
+                entity.setParagraphId(paragraph.getId());
+                entity.setDocumentId(paragraph.getDocumentId());
+                problemParagraphMappingEntities.add(entity);
+            });
+            problemParagraphService.saveBatch(problemParagraphMappingEntities);
+        }
+        return documentMapper.updateCharLengthById(docId);
+    }
+
+    public ParagraphEntity createParagraph(String datasetId, String docId, ParagraphSimpleDTO paragraph) {
+        return getParagraphEntity(datasetId, docId, paragraph.getTitle(), paragraph.getContent());
+    }
+
+    public ParagraphEntity getParagraphEntity(String datasetId, String docId, String title, String content) {
+        ParagraphEntity paragraph = new ParagraphEntity();
+        paragraph.setId(IdWorker.get32UUID());
+        paragraph.setTitle(title == null ? "" : title);
+        paragraph.setContent(content == null ? "" : content);
+        paragraph.setDatasetId(datasetId);
+        paragraph.setStatus("nn0");
+        paragraph.setHitNum(0);
+        paragraph.setIsActive(true);
+        // paragraph.setStatusMeta(paragraph.defaultStatusMeta());
+        paragraph.setDocumentId(docId);
+        return paragraph;
+    }
+
+    public IPage<ParagraphEntity> pageParagraphByDocId(String docId, int page, int size, String title, String content) {
+        Page<ParagraphEntity> paragraphPage = new Page<>(page, size);
+        LambdaQueryWrapper<ParagraphEntity> wrapper = Wrappers.lambdaQuery();
+        wrapper.eq(ParagraphEntity::getDocumentId, docId);
+        if (StringUtils.isNotBlank(title)) {
+            wrapper.like(ParagraphEntity::getTitle, title);
+        }
+        if (StringUtils.isNotBlank(content)) {
+            wrapper.like(ParagraphEntity::getContent, content);
+        }
+        return this.page(paragraphPage, wrapper);
+    }
+
+    public List<ProblemEntity> getProblemsByParagraphId(String paragraphId) {
+        List<ProblemParagraphEntity> list = problemParagraphService.lambdaQuery()
+                .select(ProblemParagraphEntity::getProblemId).eq(ProblemParagraphEntity::getParagraphId, paragraphId).list();
+        if (!CollectionUtils.isEmpty(list)) {
+            List<String> problemIds = list.stream().map(ProblemParagraphEntity::getProblemId).toList();
+            return problemService.lambdaQuery().in(ProblemEntity::getId, problemIds).list();
+        }
+        return Collections.emptyList();
+    }
+
 }

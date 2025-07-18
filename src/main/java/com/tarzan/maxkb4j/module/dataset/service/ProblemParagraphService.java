@@ -34,7 +34,7 @@ public class ProblemParagraphService extends ServiceImpl<ProblemParagraphMapper,
         entity.setParagraphId(paragraphId);
         entity.setDocumentId(docId);
         EmbeddingModel embeddingModel=datasetService.getDatasetEmbeddingModel(datasetId);
-        return this.save(entity) && embeddingService.createProblem(datasetId, docId, paragraphId, problemId,embeddingModel);
+        return this.save(entity) && embeddingService.createProblemIndex(datasetId, docId, paragraphId, problemId,embeddingModel);
     }
 
     @Transactional

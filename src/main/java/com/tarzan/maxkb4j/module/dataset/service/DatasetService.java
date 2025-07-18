@@ -344,4 +344,10 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
         documentService.webDataset(dataset.getId(),dataset.getSourceUrl(),dataset.getSelector());
         return dataset;
     }
+
+    public boolean reEmbedding(String datasetId) {
+        List<DocumentEntity> documents=documentService.lambdaQuery().select(DocumentEntity::getId).eq(DocumentEntity::getDatasetId, datasetId).list();
+        documentService.embedByDocIds(documents.stream().map(DocumentEntity::getId).toList());
+        return true;
+    }
 }
