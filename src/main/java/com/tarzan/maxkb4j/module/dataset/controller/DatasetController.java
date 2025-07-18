@@ -35,7 +35,6 @@ public class DatasetController {
 
     private final DatasetService datasetService;
     private final RetrieveService retrieveService;
-    private final EmbedTextService embedTextService;
 
 
     @SaCheckPermission("DATASET:READ")
