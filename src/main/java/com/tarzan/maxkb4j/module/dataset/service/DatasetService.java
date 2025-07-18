@@ -16,14 +16,13 @@ import com.tarzan.maxkb4j.module.application.mapper.ApplicationDatasetMappingMap
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationMapper;
 import com.tarzan.maxkb4j.module.dataset.domain.dto.DatasetDTO;
 import com.tarzan.maxkb4j.module.dataset.domain.entity.*;
+import com.tarzan.maxkb4j.module.dataset.domain.vo.DatasetVO;
+import com.tarzan.maxkb4j.module.dataset.domain.vo.ParagraphSimpleVO;
+import com.tarzan.maxkb4j.module.dataset.domain.vo.TextSegmentVO;
 import com.tarzan.maxkb4j.module.dataset.excel.DatasetExcel;
 import com.tarzan.maxkb4j.module.dataset.mapper.DatasetMapper;
 import com.tarzan.maxkb4j.module.dataset.mapper.DocumentMapper;
 import com.tarzan.maxkb4j.module.dataset.mapper.ProblemParagraphMapper;
-import com.tarzan.maxkb4j.module.dataset.domain.vo.DatasetVO;
-import com.tarzan.maxkb4j.module.dataset.domain.vo.ParagraphSimpleVO;
-import com.tarzan.maxkb4j.module.dataset.domain.vo.ProblemVO;
-import com.tarzan.maxkb4j.module.dataset.domain.vo.TextSegmentVO;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelEntity;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
 import com.tarzan.maxkb4j.util.BeanUtil;
@@ -85,13 +84,8 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
         return baseMapper.selectDatasetPage(datasetPage, query, "USE");
     }
 
-    public List<DatasetEntity> getUserId(String userId) {
+    public List<DatasetEntity> getByUserId(String userId) {
         return this.list(Wrappers.<DatasetEntity>lambdaQuery().eq(DatasetEntity::getUserId, userId));
-    }
-
-    public IPage<ProblemVO> getProblemsByDatasetId(String id, int page, int size, String content) {
-        Page<ProblemEntity> problemPage = new Page<>(page, size);
-        return problemService.getProblemsByDatasetId(problemPage, id, content);
     }
 
     public List<ApplicationEntity> getApplicationByDatasetId(String id) {
@@ -112,26 +106,6 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
         vo.setApplicationIdList(appIds);
         return vo;
     }
-
-    public boolean createProblemsByDatasetId(String id, List<String> problems) {
-        return problemService.createProblemsByDatasetId(id, problems);
-    }
-
-    public boolean updateProblemById(ProblemEntity problem) {
-        return problemService.updateById(problem);
-    }
-
-    @Transactional
-    public boolean deleteProblemById(String problemId) {
-        return problemService.deleteProblemByIds(List.of(problemId));
-    }
-
-    @Transactional
-    public boolean deleteProblemByIds(List<String> problemIds) {
-        return  problemService.deleteProblemByIds(problemIds);
-
-    }
-
 
 
     public List<ParagraphEntity> getParagraphByProblemId(String problemId) {

@@ -19,17 +19,17 @@ import com.tarzan.maxkb4j.module.application.domian.dto.ChatImproveDTO;
 import com.tarzan.maxkb4j.module.application.domian.dto.EmbedDTO;
 import com.tarzan.maxkb4j.module.application.domian.dto.MaxKb4J;
 import com.tarzan.maxkb4j.module.application.domian.entity.*;
-import com.tarzan.maxkb4j.module.application.enums.AuthType;
-import com.tarzan.maxkb4j.module.application.mapper.ApplicationMapper;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationVO;
 import com.tarzan.maxkb4j.module.application.domian.vo.McpToolVO;
+import com.tarzan.maxkb4j.module.application.enums.AuthType;
+import com.tarzan.maxkb4j.module.application.mapper.ApplicationMapper;
 import com.tarzan.maxkb4j.module.dataset.domain.dto.DataSearchDTO;
 import com.tarzan.maxkb4j.module.dataset.domain.entity.DatasetEntity;
 import com.tarzan.maxkb4j.module.dataset.domain.entity.ParagraphEntity;
+import com.tarzan.maxkb4j.module.dataset.domain.vo.ParagraphVO;
 import com.tarzan.maxkb4j.module.dataset.service.DatasetService;
 import com.tarzan.maxkb4j.module.dataset.service.ParagraphService;
 import com.tarzan.maxkb4j.module.dataset.service.RetrieveService;
-import com.tarzan.maxkb4j.module.dataset.domain.vo.ParagraphVO;
 import com.tarzan.maxkb4j.module.functionlib.domain.entity.FunctionLibEntity;
 import com.tarzan.maxkb4j.module.functionlib.service.FunctionLibService;
 import com.tarzan.maxkb4j.module.mcplib.entity.McpLibEntity;
@@ -49,7 +49,6 @@ import dev.langchain4j.mcp.client.McpClient;
 import dev.langchain4j.mcp.client.transport.McpTransport;
 import dev.langchain4j.mcp.client.transport.http.HttpMcpTransport;
 import dev.langchain4j.model.chat.request.json.*;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -143,7 +142,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         if (app == null) {
             return Collections.emptyList();
         }
-        return datasetService.getUserId(app.getUserId());
+        return datasetService.getByUserId(app.getUserId());
     }
 
     public List<McpLibEntity> getMcp(String appId) {
@@ -334,83 +333,6 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
             }
             return StpUtil.getTokenValue();
         }
-    }
-
-
-    public String authentication1(HttpServletRequest request, JSONObject params) throws Exception {
-        String token = request.getHeader("Authorization");
-        Map<String, Object> tokenDetails = null;
-
-        try {
-            // 校验token
-            if (token != null && !token.isEmpty()) {
-                tokenDetails = JwtUtil.parseToken(token); // 假设parseToken方法用于解析token
-            }
-        } catch (Exception e) {
-            log.error("token校验失败", e);
-        }
-
-    /*    if (withValid) {
-            this.isValid(); // 假设有此方法来校验有效性
-        }*/
-
-        String accessToken = params.getString("access_token"); // 假设getData()返回一个Map
-        ApplicationAccessTokenEntity applicationAccessToken = accessTokenService.lambdaQuery().eq(ApplicationAccessTokenEntity::getAccessToken, accessToken).one();
-        if (applicationAccessToken != null && applicationAccessToken.getIsActive()) {
-            ApplicationEntity application = this.lambdaQuery().select(ApplicationEntity::getUserId).eq(ApplicationEntity::getId, applicationAccessToken.getApplicationId()).one();
-            Map<String, Object> authentication = new HashMap<>();
-            JSONObject authenticationValue = params.getJSONObject("authentication_value");
-            String clientId;
-            if (tokenDetails != null && tokenDetails.containsKey("client_id")) {
-                clientId = (String) tokenDetails.get("client_id");
-                authentication = (Map<String, Object>) tokenDetails.get("authentication");
-            } else {
-                clientId = IdWorker.get32UUID();
-            }
-
-            if (authenticationValue != null) {
-                // 认证用户token
-                // authAuthenticationValue(authenticationValue, applicationAccessToken.getApplicationId());
-                authentication.put("type", authenticationValue.get("type"));
-                authentication.put("value", passwordEncrypt(authenticationValue.getString("value"))); // 假设passwordEncrypt方法存在
-            }
-
-            Map<String, Object> data = new HashMap<>();
-            data.put("application_id", applicationAccessToken.getApplicationId());
-            data.put("user_id", application.getUserId());
-            data.put("access_token", applicationAccessToken.getAccessToken());
-            data.put("type", "APPLICATION_ACCESS_TOKEN");
-            data.put("client_id", clientId);
-            data.put("authentication", authentication);
-
-            return JwtUtil.createToken(data);
-        } else {
-            log.error("404");
-            throw new Exception("404");
-        }
-    }
-
-/*    public void authAuthenticationValue(String authenticationValue, String applicationId) throws Exception {
-        ApplicationSettingModel applicationSettingModel = DBModelManage.getModel("application_setting");
-        XpackCache xpackCache = DBModelManage.getModel("xpack_cache");
-        boolean X_PACK_LICENSE_IS_VALID = (xpackCache != null) && Boolean.TRUE.equals(xpackCache.get("XPACK_LICENSE_IS_VALID"));
-
-        if (applicationSettingModel != null && X_PACK_LICENSE_IS_VALID) {
-            ApplicationSetting applicationSetting = findApplicationSetting(applicationSettingModel, applicationId);
-            if (applicationSetting != null && applicationSetting.getAuthentication() != null && authenticationValue != null) {
-                Map<String, Object> authValueMap = parseAuthenticationValue(authenticationValue); // 假设存在解析authenticationValue的方法
-
-                if ("password".equals(authValueMap.get("type"))) {
-                    if (!authPassword(authValueMap, applicationSetting.getAuthenticationValue())) {
-                        throw new AppApiException(1005, "密码错误");
-                    }
-                }
-            }
-        }
-    }*/
-
-    private String passwordEncrypt(String text) {
-        return text;
     }
 
     public JSONObject appProfile() {
@@ -635,22 +557,6 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         System.out.println(tools);
         return new ArrayList<>(convert("", tools));
     }
-
-/*    public List<McpToolVO> listTools(JSONObject mcpServer) {
-        List<McpToolVO> tools = new ArrayList<>();
-        for (String key : mcpServer.keySet()) {
-            McpTransport transport = new HttpMcpTransport.Builder()
-                    .sseUrl(mcpServer.getJSONObject(key).getString("url"))
-                    .logRequests(true) // if you want to see the traffic in the log
-                    .logResponses(true)
-                    .build();
-            McpClient mcpClient = new DefaultMcpClient.Builder()
-                    .transport(transport)
-                    .build();
-            tools.addAll(convert(key, mcpClient.listTools()));
-        }
-        return tools;
-    }*/
 
 
     public String speechToText(String appId, MultipartFile file) throws IOException {

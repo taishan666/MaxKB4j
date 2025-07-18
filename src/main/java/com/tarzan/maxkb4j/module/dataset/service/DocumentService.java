@@ -17,18 +17,19 @@ import com.opencsv.exceptions.CsvValidationException;
 import com.tarzan.maxkb4j.core.common.dto.Query;
 import com.tarzan.maxkb4j.module.dataset.domain.dto.DatasetBatchHitHandlingDTO;
 import com.tarzan.maxkb4j.module.dataset.domain.dto.DocumentNameDTO;
+import com.tarzan.maxkb4j.module.dataset.domain.dto.GenerateProblemDTO;
 import com.tarzan.maxkb4j.module.dataset.domain.dto.WebUrlDTO;
-import com.tarzan.maxkb4j.module.dataset.domain.entity.DocumentEntity;
-import com.tarzan.maxkb4j.module.dataset.domain.entity.ParagraphEntity;
-import com.tarzan.maxkb4j.module.dataset.domain.entity.ProblemEntity;
-import com.tarzan.maxkb4j.module.dataset.domain.entity.ProblemParagraphEntity;
+import com.tarzan.maxkb4j.module.dataset.domain.entity.*;
 import com.tarzan.maxkb4j.module.dataset.domain.vo.DocumentVO;
 import com.tarzan.maxkb4j.module.dataset.domain.vo.ParagraphSimpleVO;
 import com.tarzan.maxkb4j.module.dataset.domain.vo.TextSegmentVO;
 import com.tarzan.maxkb4j.module.dataset.enums.DocType;
 import com.tarzan.maxkb4j.module.dataset.excel.DatasetExcel;
+import com.tarzan.maxkb4j.module.dataset.mapper.DatasetMapper;
 import com.tarzan.maxkb4j.module.dataset.mapper.DocumentMapper;
+import com.tarzan.maxkb4j.module.model.info.service.ModelService;
 import com.tarzan.maxkb4j.module.model.info.vo.KeyAndValueVO;
+import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
 import com.tarzan.maxkb4j.util.ExcelUtil;
 import com.tarzan.maxkb4j.util.JsoupUtil;
 import dev.langchain4j.data.document.Document;
@@ -80,10 +81,12 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
     private final ProblemService problemService;
     private final ProblemParagraphService problemParagraphService;
     private final DocumentParseService documentParseService;
+    private final DatasetMapper datasetMapper;
+    private final ModelService modelService;
 
 
     public void updateStatusMetaById(String id){
-        baseMapper.updateStatusMetaById(id);
+        baseMapper.updateStatusMetaByIds(List.of(id));
     }
 
     public void updateStatusMetaByIds(List<String> ids){
@@ -92,11 +95,11 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
 
     //type 1向量化 2 生成问题 3同步
     public void updateStatusById(String id, int type,int status) {
-        baseMapper.updateStatusById(id,type,status,type-1,type+1);
+        baseMapper.updateStatusByIds(List.of(id),type,status);
     }
 
     public void updateStatusByIds(List<String> ids, int type,int status) {
-        baseMapper.updateStatusByIds(ids,type,status,type-1,type+1);
+        baseMapper.updateStatusByIds(ids,type,status);
     }
 
     public boolean updateCharLengthById(String id) {
@@ -717,5 +720,29 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         DocumentEntity doc = this.getById(docId);
         deleteBatchDocByDocIds(List.of(docId));
         webDoc(datasetId, List.of(doc.getMeta().getString("source_url")),doc.getMeta().getString("selector"));
+    }
+
+    public boolean batchGenerateRelated(String datasetId, GenerateProblemDTO dto) {
+        if (CollectionUtils.isEmpty(dto.getDocumentIdList())) {
+            return false;
+        }
+        paragraphService.updateStatusByDocIds(dto.getDocumentIdList(), 2, 0);
+        baseMapper.updateStatusByIds(dto.getDocumentIdList(), 2, 0);
+        baseMapper.updateStatusMetaByIds(dto.getDocumentIdList());
+        DatasetEntity dataset = datasetMapper.selectById(datasetId);
+        BaseChatModel chatModel = modelService.getModelById(dto.getModelId());
+        EmbeddingModel embeddingModel = modelService.getModelById(dataset.getEmbeddingModelId());
+        dto.getDocumentIdList().parallelStream().forEach(docId -> {
+            List<ParagraphEntity> paragraphs = paragraphService.lambdaQuery().eq(ParagraphEntity::getDocumentId, docId).list();
+            List<ProblemEntity> allProblems = problemService.lambdaQuery().eq(ProblemEntity::getDatasetId, datasetId).list();
+            baseMapper.updateStatusByIds(List.of(docId), 2, 1);
+            paragraphs.forEach(paragraph -> {
+                problemService.generateRelated(chatModel, embeddingModel, datasetId, docId, paragraph, allProblems, dto);
+                paragraphService.updateStatusById(paragraph.getId(), 2, 2);
+                baseMapper.updateStatusMetaByIds(List.of(paragraph.getDocumentId()));
+            });
+            baseMapper.updateStatusByIds(List.of(docId), 2, 2);
+        });
+        return true;
     }
 }

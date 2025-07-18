@@ -10,7 +10,6 @@ import com.tarzan.maxkb4j.module.dataset.domain.entity.DocumentEntity;
 import com.tarzan.maxkb4j.module.dataset.domain.vo.DocumentVO;
 import com.tarzan.maxkb4j.module.dataset.domain.vo.TextSegmentVO;
 import com.tarzan.maxkb4j.module.dataset.service.DocumentService;
-import com.tarzan.maxkb4j.module.dataset.service.EmbedTextService;
 import com.tarzan.maxkb4j.module.model.info.vo.KeyAndValueVO;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
@@ -30,7 +29,6 @@ import java.util.List;
 public class DocumentController {
 
     private final DocumentService documentService;
-    private final EmbedTextService embedTextService;
 
     @SaCheckPermission("DATASET:EDIT")
     @PostMapping("/dataset/{id}/document/web")
@@ -98,14 +96,10 @@ public class DocumentController {
     @SaCheckPermission("DATASET:EDIT")
     @PutMapping("/dataset/{id}/document/batch_generate_related")
     public R<Boolean> batchGenerateRelated(@PathVariable String id, @RequestBody GenerateProblemDTO dto) {
-        return R.success(embedTextService.batchGenerateRelated(id, dto));
+        return R.success(documentService.batchGenerateRelated(id, dto));
     }
 
-    @SaCheckPermission("DATASET:EDIT")
-    @PutMapping("/dataset/{id}/document/{docId}/paragraph/batch_generate_related")
-    public R<Boolean> paragraphBatchGenerateRelated(@PathVariable String id, @PathVariable String docId, @RequestBody GenerateProblemDTO dto) {
-        return R.success(embedTextService.paragraphBatchGenerateRelated(id, docId, dto));
-    }
+
     @SaCheckPermission("DATASET:EDIT")
     @PutMapping("/dataset/{sourceId}/document/migrate/{targetId}")
     public R<Boolean> migrateDoc(@PathVariable("sourceId") String sourceId, @PathVariable("targetId") String targetId, @RequestBody List<String> docIds) {

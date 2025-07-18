@@ -45,8 +45,9 @@ public class ProblemService extends ServiceImpl<ProblemMapper, ProblemEntity> {
     private final DataIndexService dataIndexService;
 
 
-    public IPage<ProblemVO> getProblemsByDatasetId(Page<ProblemEntity> problemPage, String id, String content) {
-        return baseMapper.getProblemsByDatasetId(problemPage, id, content);
+    public IPage<ProblemVO> pageByDatasetId(String id, int page, int size, String content) {
+        Page<ProblemEntity> problemPage = new Page<>(page, size);
+        return baseMapper.pageByDatasetId(problemPage, id, content);
     }
 
 
@@ -190,4 +191,5 @@ public class ProblemService extends ServiceImpl<ProblemMapper, ProblemEntity> {
         problem.setHitNum(0);
         return this.save(problem) && problemParagraphService.association(datasetId, docId, paragraphId, problem.getId());
     }
+
 }

@@ -7,33 +7,6 @@
         <result property="meta" column="meta" typeHandler="com.baomidou.mybatisplus.extension.handlers.FastjsonTypeHandler" />
         <result property="statusMeta" column="status_meta" typeHandler="com.baomidou.mybatisplus.extension.handlers.FastjsonTypeHandler" />
     </resultMap>
-    <update id="updateStatusMetaById">
-        UPDATE "document"
-        SET status_meta = jsonb_set ( "document".status_meta, '{aggs}', tmp.status_meta )
-            FROM
-        (
-        SELECT COALESCE
-                ( jsonb_agg ( jsonb_delete ( ( row_to_json ( record ) :: JSONB ), 'document_id' ) ), '[]' :: JSONB ) AS status_meta,
-                document_id AS document_id
-        FROM
-                (
-                SELECT
-                        "paragraph".status,
-                        "count" ( "paragraph"."id" ),
-                        "document"."id" AS document_id
-                FROM
-                        "document"
-                        LEFT JOIN "paragraph" ON "document"."id" = paragraph.document_id
-                WHERE "document"."id" =  #{id}
-            GROUP BY
-            "paragraph".status,
-            "document"."id"
-            ) record
-            GROUP BY
-            document_id
-            ) tmp
-        WHERE "document".id="tmp".document_id;
-    </update>
     <update id="updateStatusMetaByIds">
         UPDATE "document"
         SET status_meta = jsonb_set ( "document".status_meta, '{aggs}', tmp.status_meta )
@@ -64,26 +37,11 @@
             ) tmp
         WHERE "document".id="tmp".document_id;
     </update>
-    <update id="updateStatusById">
-        UPDATE "document"
-        SET status = reverse (
-                SUBSTRING ( reverse ( LPAD( status, 3, 'n' ) ) :: TEXT FROM 1 FOR #{up} ) || #{status} || SUBSTRING ( reverse ( LPAD( status, 3, 'n' ) ) :: TEXT FROM #{next} )
-                     ),
-            status_meta = jsonb_set (
-                    "document".status_meta,
-                    ARRAY['state_time', #{type}::TEXT],
-                    jsonb_set (
-                            COALESCE ("document".status_meta #> ARRAY['state_time', #{type}::TEXT], jsonb_build_object ( #{status}, now() ) ),
-                            ARRAY[#{status}::TEXT],
-                            CONCAT ( '"', now( ), '"' ) :: JSONB
-                    )
-              ) WHERE "id" =#{id}
-    </update>
     <update id="updateStatusByIds">
         UPDATE "document"
         SET status = reverse (
-        SUBSTRING ( reverse ( LPAD( status, 3, 'n' ) ) :: TEXT FROM 1 FOR #{up} ) || #{status} || SUBSTRING ( reverse (
-        LPAD( status, 3, 'n' ) ) :: TEXT FROM #{next} )
+        SUBSTRING ( reverse ( LPAD( status, 3, 'n' ) ) :: TEXT FROM 1 FOR (#{type}-1) ) || #{status} || SUBSTRING ( reverse (
+        LPAD( status, 3, 'n' ) ) :: TEXT FROM (#{type}+1) )
         ),
         status_meta = jsonb_set (
         "document".status_meta,
@@ -108,7 +66,6 @@
                                    ), 0)
         WHERE doc.id =#{id};
     </update>
-
     <select id="selectDocPage"  resultMap="docResultMap">
         SELECT
         d.*,
@@ -128,6 +85,4 @@
         GROUP BY d.ID
         ORDER BY d.create_time DESC
     </select>
-
-
 </mapper>

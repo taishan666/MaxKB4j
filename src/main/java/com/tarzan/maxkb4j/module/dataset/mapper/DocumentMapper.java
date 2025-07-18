@@ -20,13 +20,10 @@ public interface DocumentMapper extends BaseMapper<DocumentEntity>{
 
     IPage<DocumentVO> selectDocPage(Page<DocumentVO> docPage, String datasetId,@Param("query") Query query);
 
-    void updateStatusMetaById(String id);
-
-    void updateStatusById(String id, int type, int status, int up, int next);
-
-    boolean updateCharLengthById(String id);
+    void updateStatusByIds(List<String> ids, int type, int status);
 
     void updateStatusMetaByIds(List<String> ids);
 
-    void updateStatusByIds(List<String> ids, int type, int status, int up, int next);
+    boolean updateCharLengthById(String id);
+
 }

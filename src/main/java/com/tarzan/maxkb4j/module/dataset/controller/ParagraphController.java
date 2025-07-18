@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.tarzan.maxkb4j.constant.AppConst;
 import com.tarzan.maxkb4j.core.api.R;
 import com.tarzan.maxkb4j.module.dataset.domain.dto.DeleteDTO;
+import com.tarzan.maxkb4j.module.dataset.domain.dto.GenerateProblemDTO;
 import com.tarzan.maxkb4j.module.dataset.domain.dto.ParagraphDTO;
 import com.tarzan.maxkb4j.module.dataset.domain.entity.ParagraphEntity;
 import com.tarzan.maxkb4j.module.dataset.domain.entity.ProblemEntity;
@@ -39,9 +40,10 @@ public class ParagraphController {
 
     @SaCheckPermission("DATASET:EDIT")
     @PutMapping("/dataset/{id}/document/{docId}/paragraph/{paragraphId}")
-    public R<Boolean> updateParagraphByParagraphId(@PathVariable String id, @PathVariable("docId") String docId, @PathVariable("paragraphId") String paragraphId, @RequestBody ParagraphEntity paragraph) {
+    public R<ParagraphEntity> updateParagraphByParagraphId(@PathVariable String id, @PathVariable("docId") String docId, @PathVariable("paragraphId") String paragraphId, @RequestBody ParagraphEntity paragraph) {
         paragraph.setId(paragraphId);
-        return R.success(paragraphService.updateParagraphById(docId,paragraph));
+        paragraphService.updateParagraphById(docId,paragraph);
+        return R.success(paragraphService.getById(paragraphId));
     }
 
     @SaCheckPermission("DATASET:DELETE")
@@ -54,6 +56,12 @@ public class ParagraphController {
     @DeleteMapping("/dataset/{id}/document/{docId}/paragraph/_batch")
     public R<Boolean> deleteBatchParagraphByParagraphId(@PathVariable String id, @PathVariable("docId") String docId, @RequestBody DeleteDTO dto) {
         return R.success(paragraphService.deleteBatchByIds(docId,dto.getIdList()));
+    }
+
+    @SaCheckPermission("DATASET:EDIT")
+    @PutMapping("/dataset/{id}/document/{docId}/paragraph/batch_generate_related")
+    public R<Boolean> paragraphBatchGenerateRelated(@PathVariable String id, @PathVariable String docId, @RequestBody GenerateProblemDTO dto) {
+        return R.success(paragraphService.batchGenerateRelated(id, docId, dto));
     }
 
     @SaCheckPermission("DATASET:READ")

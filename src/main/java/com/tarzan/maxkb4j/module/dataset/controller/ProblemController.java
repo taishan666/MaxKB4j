@@ -30,7 +30,7 @@ public class ProblemController {
     @SaCheckPermission("DATASET:EDIT")
     @PostMapping("/dataset/{id}/problem")
     public R<Boolean> createProblemsByDatasetId(@PathVariable String id, @RequestBody List<String> problems) {
-        return R.status(datasetService.createProblemsByDatasetId(id, problems));
+        return R.status(problemService.createProblemsByDatasetId(id, problems));
     }
 
     @SaCheckPermission("DATASET:EDIT")
@@ -43,25 +43,25 @@ public class ProblemController {
     @PutMapping("/dataset/{id}/problem/{problemId}")
     public R<Boolean> updateProblemByDatasetId(@PathVariable String id, @PathVariable String problemId, @RequestBody ProblemEntity problem) {
         problem.setId(problemId);
-        return R.status(datasetService.updateProblemById(problem));
+        return R.status(problemService.updateById(problem));
     }
 
     @SaCheckPermission("DATASET:DELETE")
     @DeleteMapping("/dataset/{id}/problem/{problemId}")
     public R<Boolean> deleteProblemByDatasetId(@PathVariable("id") String id, @PathVariable("problemId") String problemId) {
-        return R.status(datasetService.deleteProblemById(problemId));
+        return R.status(problemService.deleteProblemByIds(List.of(problemId)));
     }
 
     @SaCheckPermission("DATASET:DELETE")
     @DeleteMapping("/dataset/{id}/problem/_batch")
     public R<Boolean> deleteBatchProblemByDatasetId(@PathVariable("id") String id, @RequestBody List<String> problemIds) {
-        return R.status(datasetService.deleteProblemByIds(problemIds));
+        return R.status(problemService.deleteProblemByIds(problemIds));
     }
 
     @SaCheckPermission("DATASET:READ")
     @GetMapping("/dataset/{id}/problem/{page}/{size}")
     public R<IPage<ProblemVO>> getProblemsByDatasetId(@PathVariable String id, @PathVariable("page") int page, @PathVariable("size") int size, String content) {
-        return R.data(datasetService.getProblemsByDatasetId(id, page, size, content));
+        return R.data(problemService.pageByDatasetId(id, page, size, content));
     }
 
     @SaCheckPermission("DATASET:READ")

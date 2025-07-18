@@ -7,14 +7,15 @@ import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.tarzan.maxkb4j.module.dataset.domain.dto.GenerateProblemDTO;
 import com.tarzan.maxkb4j.module.dataset.domain.dto.ParagraphDTO;
 import com.tarzan.maxkb4j.module.dataset.domain.dto.ParagraphSimpleDTO;
-import com.tarzan.maxkb4j.module.dataset.domain.entity.EmbeddingEntity;
-import com.tarzan.maxkb4j.module.dataset.domain.entity.ParagraphEntity;
-import com.tarzan.maxkb4j.module.dataset.domain.entity.ProblemEntity;
-import com.tarzan.maxkb4j.module.dataset.domain.entity.ProblemParagraphEntity;
+import com.tarzan.maxkb4j.module.dataset.domain.entity.*;
+import com.tarzan.maxkb4j.module.dataset.mapper.DatasetMapper;
 import com.tarzan.maxkb4j.module.dataset.mapper.DocumentMapper;
 import com.tarzan.maxkb4j.module.dataset.mapper.ParagraphMapper;
+import com.tarzan.maxkb4j.module.model.info.service.ModelService;
+import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
 import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.model.output.Response;
@@ -43,6 +44,8 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
     private final ProblemParagraphService problemParagraphService;
     private final DataIndexService dataIndexService;
     private final DocumentMapper documentMapper;
+    private final ModelService modelService;
+    private final DatasetMapper datasetMapper;
 
     public void updateStatusById(String id, int type, int status) {
         baseMapper.updateStatusById(id,type,status,type-1,type+1);
@@ -151,17 +154,23 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
         List<ProblemEntity> problems = paragraph.getProblemList();
         if (!CollectionUtils.isEmpty(problems)) {
             List<String> problemContents = problems.stream().map(ProblemEntity::getContent).toList();
-            problems = problemService.lambdaQuery().in(ProblemEntity::getContent, problemContents).list();
-            List<String> problemIds = problems.stream().map(ProblemEntity::getId).toList();
             List<ProblemParagraphEntity> problemParagraphMappingEntities = new ArrayList<>();
-            problemIds.forEach(problemId -> {
+            for (String problemContent : problemContents) {
+                ProblemEntity problem = problemService.lambdaQuery().eq(ProblemEntity::getContent, problemContent).one();
+                if (problem == null) {
+                    problem = ProblemEntity.createDefault();
+                    problem.setHitNum(0);
+                    problem.setContent(problemContent);
+                    problem.setDatasetId(datasetId);
+                    problemService.save(problem);
+                }
                 ProblemParagraphEntity entity = new ProblemParagraphEntity();
                 entity.setDatasetId(paragraph.getDatasetId());
-                entity.setProblemId(problemId);
+                entity.setProblemId(problem.getId());
                 entity.setParagraphId(paragraph.getId());
                 entity.setDocumentId(paragraph.getDocumentId());
                 problemParagraphMappingEntities.add(entity);
-            });
+            }
             problemParagraphService.saveBatch(problemParagraphMappingEntities);
         }
         return documentMapper.updateCharLengthById(docId);
@@ -208,4 +217,21 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
         return Collections.emptyList();
     }
 
+    public Boolean batchGenerateRelated(String datasetId, String docId, GenerateProblemDTO dto) {
+        this.updateStatusByDocIds(List.of(docId), 2, 0);
+        documentMapper.updateStatusMetaByIds(List.of(docId));
+        documentMapper.updateStatusByIds(List.of(docId), 2, 0);
+        DatasetEntity dataset = datasetMapper.selectById(datasetId);
+        BaseChatModel chatModel = modelService.getModelById(dto.getModelId());
+        EmbeddingModel embeddingModel = modelService.getModelById(dataset.getEmbeddingModelId());
+        List<ParagraphEntity> paragraphs = this.lambdaQuery().eq(ParagraphEntity::getDocumentId, docId).list();
+        List<ProblemEntity> allProblems = problemService.lambdaQuery().eq(ProblemEntity::getDatasetId, datasetId).list();
+        documentMapper.updateStatusByIds(List.of(docId), 2, 1);
+        paragraphs.parallelStream().forEach(paragraph -> {
+            problemService.generateRelated(chatModel, embeddingModel, datasetId, docId, paragraph, allProblems, dto);
+            documentMapper.updateStatusMetaByIds(List.of(paragraph.getDocumentId()));
+        });
+        documentMapper.updateStatusByIds(List.of(docId), 2, 2);
+        return true;
+    }
 }

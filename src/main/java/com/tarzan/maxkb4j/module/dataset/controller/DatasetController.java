@@ -11,7 +11,6 @@ import com.tarzan.maxkb4j.module.dataset.domain.dto.DatasetDTO;
 import com.tarzan.maxkb4j.module.dataset.domain.dto.DataSearchDTO;
 import com.tarzan.maxkb4j.module.dataset.domain.entity.DatasetEntity;
 import com.tarzan.maxkb4j.module.dataset.service.DatasetService;
-import com.tarzan.maxkb4j.module.dataset.service.EmbedTextService;
 import com.tarzan.maxkb4j.module.dataset.service.RetrieveService;
 import com.tarzan.maxkb4j.module.dataset.domain.vo.DatasetVO;
 import com.tarzan.maxkb4j.module.dataset.domain.vo.ParagraphVO;

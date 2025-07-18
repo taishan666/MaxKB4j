@@ -12,7 +12,7 @@ import com.tarzan.maxkb4j.module.dataset.domain.vo.ProblemVO;
  */
 public interface ProblemMapper extends BaseMapper<ProblemEntity>{
 
-    IPage<ProblemVO> getProblemsByDatasetId(Page<ProblemEntity> problemPage, String datasetId,String content);
+    IPage<ProblemVO> pageByDatasetId(Page<ProblemEntity> problemPage, String datasetId,String content);
 
 
 }
