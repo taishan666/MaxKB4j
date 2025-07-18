@@ -2,7 +2,6 @@ package com.tarzan.maxkb4j.core.workflow;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.tarzan.maxkb4j.core.workflow.domain.Answer;
 import com.tarzan.maxkb4j.core.workflow.domain.FlowParams;
 import com.tarzan.maxkb4j.core.workflow.logic.LfNode;
 import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
@@ -46,7 +45,6 @@ public abstract class INode {
         this.id = lfNode.getId();
         this.lfNode = lfNode;
         this.nodeParams = getNodeParams(lfNode);
-      //  this.nodeChunk = new NodeChunk(this.id);
     }
 
     public void setLastNodeIdList(List<String> lastNodeIdList) {
@@ -85,12 +83,12 @@ public abstract class INode {
     }
 
 
-    public void getWriteErrorContext(Exception e) {
+/*    public void getWriteErrorContext(Exception e) {
         this.status = 500;
         this.errMessage = e.getMessage();
         long startTime = (long) this.context.get("start_time");
         this.context.put("runTime", (System.currentTimeMillis() - startTime)/1000F);
-    }
+    }*/
 
     public NodeResult run() throws Exception {
         long startTime = System.currentTimeMillis();
@@ -116,14 +114,14 @@ public abstract class INode {
 
 
 
-    public List<Answer> getAnswerList() {
+/*    public List<Answer> getAnswerList() {
         if (this.answerText == null) {
             return null;
         }
         Answer answer = new Answer(this.answerText, "MANY_VIEW", this.runtimeNodeId,
                 this.flowParams.getChatRecordId(), new HashMap<>());
         return Collections.singletonList(answer);
-    }
+    }*/
 
     protected Object getReferenceField(String fields) {
         return getField(context, fields);

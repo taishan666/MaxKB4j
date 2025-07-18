@@ -32,7 +32,6 @@ import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.USER_SELECT;
 @Slf4j
 @Data
 public class WorkflowManage {
-    private String startNodeId;
     private INode startNode;
     private Map<String, Object> globalData;
     private List<ChatFile> imageList;
@@ -42,8 +41,6 @@ public class WorkflowManage {
     private LogicFlow flow;
     private JSONObject context = new JSONObject();
     private PostResponseHandler postResponseHandler;
-    private INode currentNode;
-    private NodeResult currentResult;
     private String answer = "";
     private Sinks.Many<ChatMessageVO> sink;
     private ApplicationChatRecordVO chatRecord;
@@ -63,7 +60,6 @@ public class WorkflowManage {
         this.postResponseHandler = postResponseHandler;
         this.chatRecord = chatRecord;
         if (startNodeId != null) {
-            this.startNodeId = startNodeId;
             this.loadNode(chatRecord, startNodeId, startNodeData);
         } else {
             this.nodeContext = new ArrayList<>();
