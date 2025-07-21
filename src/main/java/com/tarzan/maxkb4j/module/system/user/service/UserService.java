@@ -167,12 +167,15 @@ public class UserService extends ServiceImpl<UserMapper, UserEntity> {
     }
 
     public Boolean sendEmailCode() throws MessagingException {
-       // UserEntity user= this.getById(StpUtil.getLoginIdAsString());
+        return sendEmailCode((String) StpUtil.getExtra("email"), "【智能知识库问答系统-修改密码】");
+    }
+
+    public Boolean sendEmailCode(String email,String subject) throws MessagingException {
         Context context = new Context();
         String code = generateCode();
         context.setVariable("code", code);
-        AUTH_CODE_CACHE.put((String) StpUtil.getExtra("username"), code);
-        emailService.sendMessage((String) StpUtil.getExtra("email"), "【智能知识库问答系统-修改密码】", "email_template", context);
+        AUTH_CODE_CACHE.put(email, code);
+        emailService.sendMessage(email, subject, "email_template", context);
         return true;
     }
 
@@ -182,8 +185,7 @@ public class UserService extends ServiceImpl<UserMapper, UserEntity> {
     }
 
     public Boolean resetPassword(PasswordDTO dto) {
-        //UserEntity user= this.getById(StpUtil.getLoginIdAsString());
-        String code=AUTH_CODE_CACHE.getIfPresent(StpUtil.getExtra("username"));
+        String code=AUTH_CODE_CACHE.getIfPresent(StpUtil.getExtra("email"));
         if(dto.getCode().equals(code)){
             if(dto.getPassword().equals(dto.getRePassword())){
                 UserEntity userEntity = new UserEntity();

@@ -5,6 +5,8 @@ import cn.dev33.satoken.annotation.SaCheckPermission;
 import cn.dev33.satoken.stp.StpUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import com.tarzan.maxkb4j.constant.AppConst;
 import com.tarzan.maxkb4j.core.api.R;
 import com.tarzan.maxkb4j.module.system.user.domain.dto.PasswordDTO;
@@ -12,8 +14,8 @@ import com.tarzan.maxkb4j.module.system.user.domain.dto.ResetPasswordDTO;
 import com.tarzan.maxkb4j.module.system.user.domain.dto.UserDTO;
 import com.tarzan.maxkb4j.module.system.user.domain.dto.UserLoginDTO;
 import com.tarzan.maxkb4j.module.system.user.domain.entity.UserEntity;
-import com.tarzan.maxkb4j.module.system.user.service.UserService;
 import com.tarzan.maxkb4j.module.system.user.domain.vo.UserVO;
+import com.tarzan.maxkb4j.module.system.user.service.UserService;
 import com.tarzan.maxkb4j.util.StringUtil;
 import com.wf.captcha.SpecCaptcha;
 import jakarta.mail.MessagingException;
@@ -23,6 +25,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author tarzan
@@ -71,17 +74,24 @@ public class UserController{
 	}
 
 	@PostMapping("/user/send_email")
-	public R<Boolean> sendEmail(@RequestBody ResetPasswordDTO dto){
-		//todo
-		System.out.println(dto);
-		return R.status(true);
+	public R<Boolean> sendEmail(@RequestBody ResetPasswordDTO dto) throws MessagingException {
+		return R.status(userService.sendEmailCode(dto.getEmail(),"【智能知识库问答系统-忘记密码】"));
 	}
+
+	// 创建缓存并配置
+	private static final Cache<String, String> AUTH_CODE_CACHE = Caffeine.newBuilder()
+			.initialCapacity(5)
+			// 超出最大容量时淘汰
+			.maximumSize(100000)
+			//设置写缓存后n秒钟过期
+			.expireAfterWrite(10, TimeUnit.MINUTES)
+			.expireAfterAccess(3, TimeUnit.MINUTES) // 最近访问后5分钟过期
+			.build();
 
 	@PostMapping("/user/check_code")
 	public R<Boolean> checkCode(@RequestBody ResetPasswordDTO dto){
-		//todo
-		System.out.println(dto);
-		return R.status(true);
+		String code=AUTH_CODE_CACHE.getIfPresent(dto.getEmail());
+		return R.status(dto.getCode().equals(code));
 	}
 
 	@PostMapping("/user/re_password")
