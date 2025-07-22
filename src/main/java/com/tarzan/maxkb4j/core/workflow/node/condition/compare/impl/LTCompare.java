@@ -15,6 +15,15 @@ public class LTCompare implements Compare {
         if (sourceValue instanceof Collection){
             return ((Collection<?>) sourceValue).size()< Integer.parseInt(targetValue);
         }
-        return (float) sourceValue < Float.parseFloat(targetValue);
+        if (sourceValue instanceof Float){
+            return (float) sourceValue<  Float.parseFloat(targetValue);
+        }
+        if (sourceValue instanceof Double){
+            return (double) sourceValue< Double.parseDouble(targetValue);
+        }
+        if (sourceValue instanceof Integer){
+            return (int) sourceValue< Integer.parseInt(targetValue);
+        }
+        return false;
     }
 }

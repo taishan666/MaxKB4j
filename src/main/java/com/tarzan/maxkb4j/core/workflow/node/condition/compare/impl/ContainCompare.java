@@ -15,6 +15,9 @@ public class ContainCompare implements Compare {
         if(sourceValue instanceof List<?>){
             return ((List<?>) sourceValue).contains(targetValue);
         }
+        if(sourceValue instanceof String){
+            return ((String) sourceValue).contains(targetValue);
+        }
         return false;
     }
 }
