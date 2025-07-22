@@ -1,4 +1,4 @@
-package com.tarzan.maxkb4j.module.rag;
+package com.tarzan.maxkb4j.core.langchain4j;
 
 import com.tarzan.maxkb4j.module.dataset.domain.vo.ParagraphVO;
 import dev.langchain4j.rag.content.Content;

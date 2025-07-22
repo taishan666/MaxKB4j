@@ -1,4 +1,4 @@
-package com.tarzan.maxkb4j.module.rag;
+package com.tarzan.maxkb4j.core.langchain4j;
 
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.memory.ChatMemory;

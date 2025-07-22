@@ -54,7 +54,7 @@ public class StartedListener implements ApplicationListener<ApplicationStartedEv
                 String encryptPrivateKeyPem = RSAUtil.encryptPrivateKeyPem(privateKey);
                 JSONObject meta=new JSONObject(Map.of("key",publicKeyPem,"value",encryptPrivateKeyPem));
                 systemSettingService.saveOrUpdate(meta, SettingType.KEY.getType());
-                SystemCache.put( SettingType.KEY.getType(),meta);
+                SystemCache.put(SettingType.KEY.getType(),meta);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
@@ -62,7 +62,6 @@ public class StartedListener implements ApplicationListener<ApplicationStartedEv
         for (SystemSettingEntity systemSetting : systemSettings) {
             SystemCache.put(systemSetting.getType(),systemSetting.getMeta());
         }
-        //NodeFactory.InitNodes();
         printStartInfo(event);
     }
 

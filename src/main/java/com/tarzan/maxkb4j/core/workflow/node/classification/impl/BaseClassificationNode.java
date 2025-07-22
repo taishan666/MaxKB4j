@@ -7,8 +7,8 @@ import com.tarzan.maxkb4j.core.workflow.node.classification.input.Classification
 import com.tarzan.maxkb4j.core.workflow.node.classification.input.ClassificationNodeParams;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
-import com.tarzan.maxkb4j.module.rag.MyChatMemory;
-import com.tarzan.maxkb4j.module.rag.MyQueryClassifier;
+import com.tarzan.maxkb4j.core.langchain4j.MyChatMemory;
+import com.tarzan.maxkb4j.core.langchain4j.MyQueryClassifier;
 import com.tarzan.maxkb4j.util.SpringUtil;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.UserMessage;
