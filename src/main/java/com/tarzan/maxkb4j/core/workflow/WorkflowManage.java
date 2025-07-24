@@ -353,7 +353,7 @@ public class WorkflowManage {
                 if (fields != null) {
                     for (int i = 0; i < fields.size(); i++) {
                         JSONObject field = fields.getJSONObject(i);
-                        String globeLabel = properties.getString("stepName") + "." + field.getString("value");
+                        String globeLabel = properties.getString("nodeName") + "." + field.getString("value");
                         String globeValue = node.getId() + "." + field.getString("value");
                         prompt = prompt.replace(globeLabel, globeValue);
                     }

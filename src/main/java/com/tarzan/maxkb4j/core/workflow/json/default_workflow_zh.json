@@ -14,7 +14,7 @@
                     "prologue": "您好，我是 XXX 小助手，您可以向我提出 XXX 使用问题。\n- XXX 主要功能有什么？\n- XXX 如何收费？\n- 需要转人工服务",
                     "desc": ""
                 },
-                "stepName": "基本信息",
+                "nodeName": "基本信息",
                 "user_input_config": {
                     "title": "用户输入"
                 },
@@ -37,7 +37,7 @@
                     }
                 ],
                 "showNode": true,
-                "stepName": "开始",
+                "nodeName": "开始",
                 "fields": [
                     {
                         "label": "用户问题",
@@ -94,7 +94,7 @@
                         "paragraph_list"
                     ]
                 },
-                "stepName": "知识库检索",
+                "nodeName": "知识库检索",
                 "config": {
                     "fields": [
                         {
@@ -151,7 +151,7 @@
                         }
                     ]
                 },
-                "stepName": "判断器",
+                "nodeName": "判断器",
                 "width": 600,
                 "config": {
                     "fields": [
@@ -193,7 +193,7 @@
                     "isResult": true,
                     "content": ""
                 },
-                "stepName": "指定回复",
+                "nodeName": "指定回复",
                 "config": {
                     "fields": [
                         {
@@ -234,7 +234,7 @@
                     "prompt": "已知信息：\n{{知识库检索.data}}\n问题：\n{{开始.question}}",
                     "isResult": true
                 },
-                "stepName": "AI 对话",
+                "nodeName": "AI 对话",
                 "config": {
                     "fields": [
                         {

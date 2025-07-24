@@ -102,7 +102,7 @@ public abstract class INode {
 
     public JSONObject getDetail(int index){
         JSONObject detail=new JSONObject();
-        detail.put("name",lfNode.getProperties().getString("stepName"));
+        detail.put("name",lfNode.getProperties().getString("nodeName"));
         detail.put("index",index);
         detail.put("type",lfNode.getType());
         detail.put("runTime",context.get("runTime"));

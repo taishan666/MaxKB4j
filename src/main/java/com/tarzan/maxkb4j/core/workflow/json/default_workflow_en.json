@@ -14,7 +14,7 @@
                     "prologue": "Hello, I am the MaxKB4J assistant. You can ask me about MaxKB usage issues.\n-What are the main functions of MaxKB?\n-What major language models does MaxKB support?\n-What document types does MaxKB support?",
                     "desc": "Basic information"
                 },
-                "stepName": "Base",
+                "nodeName": "Base",
                 "user_input_config": {
                     "title": "User input"
                 },
@@ -37,7 +37,7 @@
                     }
                 ],
                 "showNode": true,
-                "stepName": "Start",
+                "nodeName": "Start",
                 "fields": [
                     {
                         "label": "User problem",
@@ -94,7 +94,7 @@
                         "paragraph_list"
                     ]
                 },
-                "stepName": "Knowledge Search",
+                "nodeName": "Knowledge Search",
                 "config": {
                     "fields": [
                         {
@@ -151,7 +151,7 @@
                         }
                     ]
                 },
-                "stepName": "Conditional Branch",
+                "nodeName": "Conditional Branch",
                 "width": 600,
                 "config": {
                     "fields": [
@@ -193,7 +193,7 @@
                     "isResult": true,
                     "content": ""
                 },
-                "stepName": "Specified reply",
+                "nodeName": "Specified reply",
                 "config": {
                     "fields": [
                         {
@@ -234,7 +234,7 @@
                     "prompt": "Known information:\n{{Knowledge Search.data}}\n问题：\n{{Start.question}}",
                     "isResult": true
                 },
-                "stepName": "AI Chat",
+                "nodeName": "AI Chat",
                 "config": {
                     "fields": [
                         {

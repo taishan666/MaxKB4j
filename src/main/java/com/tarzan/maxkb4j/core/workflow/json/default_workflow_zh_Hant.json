@@ -14,7 +14,7 @@
                     "prologue": "您好，我是maxKb4j小助手，您可以向我提出MaxKB使用問題。\n- MaxKB主要功能有什麼？\n- MaxKB支持哪些大語言模型？\n- MaxKB支持哪些文檔類型？",
                     "desc": ""
                 },
-                "stepName": "基本資訊",
+                "nodeName": "基本資訊",
                 "user_input_config": {
                     "title": "用戶輸入"
                 },
@@ -37,7 +37,7 @@
                     }
                 ],
                 "showNode": true,
-                "stepName": "開始",
+                "nodeName": "開始",
                 "fields": [
                     {
                         "label": "用戶問題",
@@ -94,7 +94,7 @@
                         "paragraph_list"
                     ]
                 },
-                "stepName": "知識庫檢索",
+                "nodeName": "知識庫檢索",
                 "config": {
                     "fields": [
                         {
@@ -151,7 +151,7 @@
                         }
                     ]
                 },
-                "stepName": "判斷器",
+                "nodeName": "判斷器",
                 "width": 600,
                 "config": {
                     "fields": [
@@ -193,7 +193,7 @@
                     "isResult": true,
                     "content": ""
                 },
-                "stepName": "指定回复",
+                "nodeName": "指定回复",
                 "config": {
                     "fields": [
                         {
@@ -234,7 +234,7 @@
                     "prompt": "已知信息：\n{{知識庫檢索.data}}\n問題：\n{{開始.question}}",
                     "isResult": true
                 },
-                "stepName": "AI 對話",
+                "nodeName": "AI 對話",
                 "config": {
                     "fields": [
                         {
