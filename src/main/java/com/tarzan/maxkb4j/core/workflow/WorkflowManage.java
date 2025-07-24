@@ -103,8 +103,10 @@ public class WorkflowManage {
                 nodeContext.add(startNode);
                 continue;
             }
+            //todo 放入 up_node_id_list
+            List<String> lastNodeIdList = (List<String>) nodeDetail.get("up_node_id_list");
             // 处理普通节点
-            INode node = getNodeClsById(nodeId, (List<String>) nodeDetail.get("up_node_id_list"));
+            INode node = getNodeClsById(nodeId, lastNodeIdList,null);
             nodeContext.add(node);
         }
     }
@@ -209,15 +211,15 @@ public class WorkflowManage {
         }
         newUpNodeIds.add(currentNode.getLfNode().getId());
         // 获取节点实例并添加到列表
-        INode nextNode = getNodeClsById(targetNodeId, newUpNodeIds);
+        INode nextNode = getNodeClsById(targetNodeId, newUpNodeIds,null);
         if (nextNode != null) {
             nodeList.add(nextNode);
         }
     }
 
-    private INode getNodeClsById(String targetNodeId, List<String> newUpNodeIds) {
+/*    private INode getNodeClsById(String targetNodeId, List<String> newUpNodeIds) {
         return getNodeClsById(targetNodeId, newUpNodeIds, null);
-    }
+    }*/
 
     private INode getNodeClsById(String nodeId, List<String> lastNodeIds, Function<LfNode, JSONObject> getNodeParams) {
         for (LfNode node : this.flow.getNodes()) {
