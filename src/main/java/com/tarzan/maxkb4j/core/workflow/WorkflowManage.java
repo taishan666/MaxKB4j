@@ -76,11 +76,13 @@ public class WorkflowManage {
                 .toList();
         for (JSONObject nodeDetail : sortedDetails) {
             String nodeId = nodeDetail.getString("node_id");
+            //todo 放入 up_node_id_list
+            List<String> lastNodeIdList = (List<String>) nodeDetail.get("up_node_id_list");
             if (nodeDetail.getString("runtimeNodeId").equals(startNodeId)) {
                 // 处理起始节点
                 this.startNode = getNodeClsById(
                         nodeId,
-                        (List<String>) nodeDetail.get("up_node_id_list"),
+                        lastNodeIdList,
                         n -> {
                             JSONObject params = new JSONObject();
                             boolean isResult = "application-node".equals(n.getType());
@@ -103,8 +105,6 @@ public class WorkflowManage {
                 nodeContext.add(startNode);
                 continue;
             }
-            //todo 放入 up_node_id_list
-            List<String> lastNodeIdList = (List<String>) nodeDetail.get("up_node_id_list");
             // 处理普通节点
             INode node = getNodeClsById(nodeId, lastNodeIdList,null);
             nodeContext.add(node);
