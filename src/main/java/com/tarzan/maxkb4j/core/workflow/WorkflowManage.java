@@ -226,6 +226,7 @@ public class WorkflowManage {
     private INode getNodeClsById(String nodeId, List<String> lastNodeIds, Function<INode, JSONObject> getNodeParams) {
         for (INode node : nodes) {
             if (nodeId.equals(node.getId())) {
+                node.setLastNodeIdList(lastNodeIds);
                 if (getNodeParams != null){
                     node.setNodeParams(getNodeParams.apply(node));
                 }

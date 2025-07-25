@@ -31,25 +31,30 @@ public class BaseFunctionNode extends INode {
             List<Map<String,Object>>  inputFieldList=nodeParams.getInputFieldList();
             Binding binding = new Binding();
             StringBuilder sb=new StringBuilder(code);
-            sb.append("\n").append("main(");
+            StringBuilder main=new StringBuilder();
+            main.append("main(");
             for (Map<String,Object> map:inputFieldList){
                 String name=map.get("name").toString();
                 Object value = map.get("value");
                 if (value instanceof JSONArray){
                     List<String> fields=(List<String>)value;
                     value=workflowManage.getReferenceField(fields.get(0),fields.subList(1, fields.size()));
-                    if (value!=null&&this.getLastNodeIdList().contains(fields.get(0))){
-                        binding.setVariable(name, value);
-                        params.put(name,value);
-                        sb.append(name).append(",");
+                    if (value!=null){
+                        if("global".equals(fields.get(0))||lastNodeIdList.contains(fields.get(0))){
+                            binding.setVariable(name, value);
+                            params.put(name,value);
+                            sb.append("\n").append("def").append(" ").append(name).append("=").append(value);
+                            main.append(name).append(",");
+                        }
                     }
                 }else {
                     binding.setVariable(name, value);
                     params.put(name,value);
-                    sb.append(name).append(",");
+                    main.append(name).append(",");
                 }
             }
-            sb.deleteCharAt(sb.length()-1).append(")");
+            main.deleteCharAt(main.length()-1).append(")");
+            sb.append("\n").append(main);
             // 创建 GroovyShell 并运行脚本
             GroovyShell shell = new GroovyShell(binding);
             result = shell.evaluate(sb.toString());
