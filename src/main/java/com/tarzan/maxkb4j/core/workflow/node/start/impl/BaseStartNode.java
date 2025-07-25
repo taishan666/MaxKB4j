@@ -6,7 +6,6 @@ import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.NodeResult;
 import com.tarzan.maxkb4j.core.workflow.WorkflowManage;
 import com.tarzan.maxkb4j.core.workflow.domain.ChatRecordSimple;
-import com.tarzan.maxkb4j.core.workflow.logic.LfNode;
 import com.tarzan.maxkb4j.core.workflow.domain.FlowParams;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatRecordEntity;
 
@@ -27,10 +26,8 @@ public class BaseStartNode extends INode {
     @Override
     public NodeResult execute() {
         System.out.println(START);
-        // 获取基础节点
-        LfNode baseNode = workflowManage.getBaseNode();
         // 获取默认全局变量
-        List<JSONObject> inputFieldList = (List<JSONObject>) baseNode.getProperties()
+        List<JSONObject> inputFieldList = (List<JSONObject>) properties
                 .getOrDefault("inputFieldList", Collections.emptyList());
         JSONObject defaultGlobalVariable = getDefaultGlobalVariable(inputFieldList);
         // 合并全局变量
@@ -78,7 +75,7 @@ public class BaseStartNode extends INode {
         detail.put("image_list",context.get("image"));
         detail.put("document_list",context.get("document"));
         detail.put("audio_list",context.get("audio"));
-        JSONObject config=lfNode.getProperties().getJSONObject("config");
+        JSONObject config=properties.getJSONObject("config");
         JSONArray globalFields=config.getJSONArray("globalFields");
         for (int i = 0; i < globalFields.size(); i++) {
             JSONObject globalField=globalFields.getJSONObject(i);

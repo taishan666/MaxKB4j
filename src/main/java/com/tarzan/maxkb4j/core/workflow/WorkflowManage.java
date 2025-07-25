@@ -5,12 +5,10 @@ import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.workflow.domain.ChatFile;
 import com.tarzan.maxkb4j.core.workflow.domain.FlowParams;
 import com.tarzan.maxkb4j.core.workflow.logic.LfEdge;
-import com.tarzan.maxkb4j.core.workflow.logic.LfNode;
-import com.tarzan.maxkb4j.core.workflow.logic.LogicFlow;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatRecordEntity;
-import com.tarzan.maxkb4j.module.application.handler.PostResponseHandler;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationChatRecordVO;
 import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
+import com.tarzan.maxkb4j.module.application.handler.PostResponseHandler;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.SystemMessage;
@@ -38,7 +36,8 @@ public class WorkflowManage {
     private List<ChatFile> documentList;
     private List<ChatFile> audioList;
     private FlowParams flowParams;
-    private LogicFlow flow;
+    private List<INode> nodes;
+    private List<LfEdge> edges;
     private JSONObject context = new JSONObject();
     private PostResponseHandler postResponseHandler;
     private String answer = "";
@@ -46,17 +45,19 @@ public class WorkflowManage {
     private ApplicationChatRecordVO chatRecord;
     private List<INode> nodeContext = new ArrayList<>();
 
-    public WorkflowManage(LogicFlow flow, FlowParams flowParams,Sinks.Many<ChatMessageVO> sink, PostResponseHandler postResponseHandler,
+    public WorkflowManage(List<INode> nodes, List<LfEdge> edges,FlowParams flowParams,Sinks.Many<ChatMessageVO> sink, PostResponseHandler postResponseHandler,
                           Map<String, Object> globalData, List<ChatFile> imageList,
                           List<ChatFile> documentList, List<ChatFile> audioList, String startNodeId,
                           Map<String, Object> startNodeData, ApplicationChatRecordVO chatRecord) {
+        this.nodes = nodes;
+        this.edges = edges;
         this.globalData = globalData;
         this.imageList = Objects.requireNonNullElseGet(imageList, ArrayList::new);
         this.documentList = Objects.requireNonNullElseGet(documentList, ArrayList::new);
         this.audioList = Objects.requireNonNullElseGet(audioList, ArrayList::new);
         this.flowParams = flowParams;
         this.sink = sink;
-        this.flow = flow;
+       // this.flow = flow;
         this.postResponseHandler = postResponseHandler;
         this.chatRecord = chatRecord;
         if (startNodeId != null) {
@@ -84,6 +85,7 @@ public class WorkflowManage {
                         nodeId,
                         lastNodeIdList,
                         n -> {
+                            System.out.println(n);
                             JSONObject params = new JSONObject();
                             boolean isResult = "application-node".equals(n.getType());
                             // 合并节点数据
@@ -122,18 +124,18 @@ public class WorkflowManage {
         return answer;
     }
 
-    public LfNode getStartNode() {
-        return this.flow.getNodes().parallelStream().filter(node -> node.getType().equals("start-node")).findFirst().orElse(null);
+
+    public INode getStartNode() {
+        return this.nodes.parallelStream().filter(node -> node.getType().equals("start-node")).findFirst().orElse(null);
     }
 
-    public LfNode getBaseNode() {
-        return this.flow.getNodes().parallelStream().filter(node -> node.getType().equals("base-node")).findFirst().orElse(null);
+    public INode getBaseNode() {
+        return this.nodes.parallelStream().filter(node -> node.getType().equals("base-node")).findFirst().orElse(null);
     }
 
     public void runChainManage(INode currentNode, NodeResultFuture nodeResultFuture) {
         if (currentNode == null) {
-            LfNode startNode = getStartNode();
-            currentNode = NodeFactory.getNode(startNode.getType(), startNode, flowParams, this);
+            currentNode = getStartNode();
         }
         NodeResult result = runChainNode(currentNode, nodeResultFuture);
         // 获取下一个节点列表
@@ -160,7 +162,7 @@ public class WorkflowManage {
         }
         if (currentNodeResult.isAssertionResult()) {
             // 处理断言结果分支
-            for (LfEdge edge : flow.getEdges()) {
+            for (LfEdge edge : edges) {
                 if (edge.getSourceNodeId().equals(currentNode.getId())) {
                     // 构造预期的sourceAnchorId
                     Map<String, Object> nodeVariables = currentNodeResult.getNodeVariable();
@@ -173,7 +175,7 @@ public class WorkflowManage {
             }
         } else {
             // 处理非断言结果分支
-            for (LfEdge edge : flow.getEdges()) {
+            for (LfEdge edge : edges) {
                 if (edge.getSourceNodeId().equals(currentNode.getId())) {
                     processEdge(edge, currentNode, nodeList);
                 }
@@ -185,13 +187,13 @@ public class WorkflowManage {
 
     private void processEdge(LfEdge edge, INode currentNode, List<INode> nodeList) {
         // 查找目标节点
-        Optional<LfNode> targetNodeOpt = flow.getNodes().stream()
+        Optional<INode> targetNodeOpt = nodes.stream()
                 .filter(node -> node.getId().equals(edge.getTargetNodeId()))
                 .findFirst();
         if (targetNodeOpt.isEmpty()) {
             return;
         }
-        LfNode targetNode = targetNodeOpt.get();
+        INode targetNode = targetNodeOpt.get();
         String condition = (String) targetNode.getProperties().getOrDefault("condition", "AND");
         // 处理节点依赖
         if ("AND".equals(condition)) {
@@ -209,7 +211,7 @@ public class WorkflowManage {
         if (currentNode.getLastNodeIdList() != null) {
             newUpNodeIds.addAll(currentNode.getLastNodeIdList());
         }
-        newUpNodeIds.add(currentNode.getLfNode().getId());
+        newUpNodeIds.add(currentNode.getId());
         // 获取节点实例并添加到列表
         INode nextNode = getNodeClsById(targetNodeId, newUpNodeIds,null);
         if (nextNode != null) {
@@ -221,10 +223,13 @@ public class WorkflowManage {
         return getNodeClsById(targetNodeId, newUpNodeIds, null);
     }*/
 
-    private INode getNodeClsById(String nodeId, List<String> lastNodeIds, Function<LfNode, JSONObject> getNodeParams) {
-        for (LfNode node : this.flow.getNodes()) {
+    private INode getNodeClsById(String nodeId, List<String> lastNodeIds, Function<INode, JSONObject> getNodeParams) {
+        for (INode node : nodes) {
             if (nodeId.equals(node.getId())) {
-                return NodeFactory.getNode(node.getType(), node, flowParams, this, lastNodeIds, getNodeParams);
+                if (getNodeParams != null){
+                    node.setNodeParams(getNodeParams.apply(node));
+                }
+                return node;
             }
         }
         return null;
@@ -345,7 +350,7 @@ public class WorkflowManage {
 
     // 重置提示词的方法
     public String resetPrompt(String prompt) {
-        for (LfNode node : flow.getNodes()) { // 假设getNodes()返回节点列表
+        for (INode node : nodes) { // 假设getNodes()返回节点列表
             JSONObject properties = node.getProperties();
             JSONObject nodeConfig = properties.getJSONObject("config");
             if (nodeConfig != null) {
@@ -421,7 +426,7 @@ public class WorkflowManage {
 
     private boolean hasNextNode(INode currentNode, NodeResult nodeResult) {
         if (nodeResult != null && nodeResult.isAssertionResult()) {
-            for (LfEdge edge : flow.getEdges()) {
+            for (LfEdge edge : edges) {
                 if (edge.getSourceNodeId().equals(currentNode.getId())) {
                     String branchId = (String) nodeResult.getNodeVariable().get("branch_id");
                     String expectedSourceAnchorId = String.format("%s_%s_right", edge.getSourceNodeId(), branchId);
@@ -431,7 +436,7 @@ public class WorkflowManage {
                 }
             }
         } else {
-            for (LfEdge edge : flow.getEdges()) {
+            for (LfEdge edge : edges) {
                 if (edge.getSourceNodeId().equals(currentNode.getId())) {
                     return true;
                 }
@@ -463,7 +468,7 @@ public class WorkflowManage {
     public boolean dependentNodeBeenExecuted(String nodeId) {
         // 获取所有目标节点ID等于给定nodeId的边的源节点ID列表
         List<String> upNodeIdList = new ArrayList<>();
-        for (LfEdge edge : this.flow.getEdges()) {
+        for (LfEdge edge : edges) {
             if (edge.getTargetNodeId().equals(nodeId)) {
                 upNodeIdList.add(edge.getSourceNodeId());
             }

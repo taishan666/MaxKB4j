@@ -1,6 +1,5 @@
 package com.tarzan.maxkb4j.module.application.service;
 
-import cn.dev33.satoken.stp.StpUtil;
 import com.alibaba.excel.EasyExcel;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -9,7 +8,11 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tarzan.maxkb4j.core.exception.ApiException;
+import com.tarzan.maxkb4j.core.workflow.INode;
+import com.tarzan.maxkb4j.core.workflow.NodeFactory;
 import com.tarzan.maxkb4j.core.workflow.domain.ChatFile;
+import com.tarzan.maxkb4j.core.workflow.logic.LfNode;
+import com.tarzan.maxkb4j.core.workflow.logic.LogicFlow;
 import com.tarzan.maxkb4j.module.application.cache.ChatCache;
 import com.tarzan.maxkb4j.module.application.chat.provider.ChatActuatorBuilder;
 import com.tarzan.maxkb4j.module.application.chat.provider.IChatActuator;
@@ -19,7 +22,6 @@ import com.tarzan.maxkb4j.module.application.domian.dto.ChatQueryDTO;
 import com.tarzan.maxkb4j.module.application.domian.entity.*;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationChatRecordVO;
 import com.tarzan.maxkb4j.module.application.domian.vo.ChatRecordDetailVO;
-import com.tarzan.maxkb4j.module.application.enums.AppType;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatMapper;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationMapper;
 import com.tarzan.maxkb4j.module.resource.service.MongoFileService;
@@ -68,7 +70,7 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
         return chatActuator.chatOpenTest(application);
     }
 
-    public String chatWorkflowOpenTest(ApplicationEntity application) {
+/*    public String chatWorkflowOpenTest(ApplicationEntity application) {
         ChatInfo chatInfo = new ChatInfo();
         chatInfo.setChatId(IdWorker.get32UUID());
         application.setId(null);
@@ -81,7 +83,7 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
         chatInfo.setWorkFlowVersion(workflowVersion);
         ChatCache.put(chatInfo.getChatId(), chatInfo);
         return chatInfo.getChatId();
-    }
+    }*/
 
     public String chatOpen(String appId) {
        return chatOpen(appId,null);
@@ -111,7 +113,11 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
                 .eq(ApplicationWorkFlowVersionEntity::getApplicationId, application.getId())
                 .orderByDesc(ApplicationWorkFlowVersionEntity::getCreateTime)
                 .last("limit 1").one();
-        chatInfo.setWorkFlowVersion(workFlowVersion);
+        LogicFlow logicFlow=LogicFlow.newInstance(workFlowVersion.getWorkFlow());
+        List<LfNode> lfNodes=logicFlow.getNodes();
+        List<INode> nodes=lfNodes.stream().filter(lfNode -> lfNode.getType().equals("base-node")).map(NodeFactory::getNode).toList();
+        chatInfo.setNodes(nodes);
+        chatInfo.setEdges(logicFlow.getEdges());
         ChatCache.put(chatInfo.getChatId(), chatInfo);
         return chatInfo;
     }

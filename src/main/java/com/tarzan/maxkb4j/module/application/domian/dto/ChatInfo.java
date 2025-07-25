@@ -1,5 +1,7 @@
 package com.tarzan.maxkb4j.module.application.domian.dto;
 
+import com.tarzan.maxkb4j.core.workflow.INode;
+import com.tarzan.maxkb4j.core.workflow.logic.LfEdge;
 import com.tarzan.maxkb4j.module.application.handler.PostResponseHandler;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatRecordEntity;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationEntity;
@@ -20,7 +22,8 @@ public class ChatInfo implements Serializable {
     private List<String> datasetIds;
     private List<String> excludeDocumentIds;
     private List<ApplicationChatRecordEntity> chatRecordList= new ArrayList<>();
-    private ApplicationWorkFlowVersionEntity workFlowVersion;
+    private List<INode> nodes;
+    private List<LfEdge> edges;
 
     public Map<String, Object> toBasePipelineManageParams(){
         return BeanUtil.toMap(this);

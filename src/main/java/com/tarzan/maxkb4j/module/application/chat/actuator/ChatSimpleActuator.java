@@ -69,7 +69,7 @@ public class ChatSimpleActuator extends ChatBaseActuator {
 
     @Override
     public String chatMessage(ChatInfo chatInfo,ChatMessageDTO dto) {
-        chatCheck(dto);
+        chatCheck(chatInfo,dto);
         String modelId = chatInfo.getApplication().getModelId();
         ModelEntity model = modelService.getById(modelId);
         if (Objects.isNull(model) || !"SUCCESS".equals(model.getStatus())) {

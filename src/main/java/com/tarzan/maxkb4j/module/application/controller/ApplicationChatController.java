@@ -12,6 +12,7 @@ import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatRecord
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationEntity;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationChatRecordVO;
 import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
+import com.tarzan.maxkb4j.module.application.enums.AppType;
 import com.tarzan.maxkb4j.module.application.service.ApplicationChatService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
@@ -66,7 +67,8 @@ public class ApplicationChatController {
 
     @PostMapping("/chat_workflow/open")
     public R<String> chatWorkflowOpenTest(@RequestBody ApplicationEntity application) {
-        return R.success(chatService.chatWorkflowOpenTest(application));
+        application.setType(AppType.WORKFLOW.name());
+        return R.success(chatService.chatOpenTest(application));
     }
 
     @GetMapping("/{appId}/chat/open")

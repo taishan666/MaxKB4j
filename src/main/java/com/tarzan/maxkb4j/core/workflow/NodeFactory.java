@@ -1,7 +1,5 @@
 package com.tarzan.maxkb4j.core.workflow;
 
-import com.alibaba.fastjson.JSONObject;
-import com.tarzan.maxkb4j.core.workflow.domain.FlowParams;
 import com.tarzan.maxkb4j.core.workflow.enums.NodeType;
 import com.tarzan.maxkb4j.core.workflow.logic.LfNode;
 import com.tarzan.maxkb4j.core.workflow.node.aichat.impl.BaseChatNode;
@@ -28,10 +26,7 @@ import com.tarzan.maxkb4j.core.workflow.node.userselect.impl.UserSelectNode;
 import com.tarzan.maxkb4j.core.workflow.node.variableaggregate.impl.BaseVariableAggregateNode;
 import com.tarzan.maxkb4j.core.workflow.node.variableassign.impl.BaseVariableAssignNode;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
-import java.util.function.Function;
 
 public class NodeFactory {
 
@@ -69,6 +64,25 @@ public class NodeFactory {
 
     }
 
+    public static INode getNode(LfNode lfNode) {
+        INode node=getNode(lfNode.getType());
+        if(Objects.nonNull(node)){
+            node.setId(lfNode.getId());
+            node.setType(lfNode.getType());
+            node.setProperties(lfNode.getProperties());
+/*            node.setFlowParams(flowParams);
+            node.setWorkflowManage(workflowManage);
+            node.setLastNodeIdList(lastNodeIds);
+            if(Objects.nonNull(getNodeParams)){
+                node.setNodeParams(getNodeParams.apply(lfNode));
+            }
+            node.setSink(workflowManage.getSink());*/
+            return node;
+        }
+        return null;
+    }
+
+/*
     public static INode getNode(String nodeType, LfNode lfNode, FlowParams flowParams, WorkflowManage workflowManage, List<String> lastNodeIds, Function<LfNode, JSONObject> getNodeParams) {
         INode node=getNode(nodeType);
         if(Objects.nonNull(node)){
@@ -87,9 +101,12 @@ public class NodeFactory {
         return null;
     }
 
+
+
     public static INode getNode(String nodeType, LfNode node, FlowParams workflowParams, WorkflowManage workflowManage) {
         return getNode(nodeType,node,workflowParams,workflowManage,new ArrayList<>(),null);
     }
+*/
 
 
 

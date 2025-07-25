@@ -10,6 +10,7 @@ import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.data.message.UserMessage;
 import lombok.Data;
+import lombok.Setter;
 import org.springframework.util.CollectionUtils;
 import reactor.core.publisher.Sinks;
 
@@ -21,16 +22,17 @@ import java.util.*;
 @Data
 public abstract class INode {
     String viewType = "many_view";
+    @Setter
+    protected String id;
     protected int status = 200;
     protected String errMessage = "";
     protected String type;
-    protected LfNode lfNode;
+    protected JSONObject properties;
     protected JSONObject nodeParams;
     protected FlowParams flowParams;
     protected WorkflowManage workflowManage;
     protected Map<String, Object> context;
     protected String answerText;
-    protected String id;
     protected List<String> lastNodeIdList;
     protected String runtimeNodeId;
     protected Sinks.Many<ChatMessageVO> sink;
@@ -41,15 +43,34 @@ public abstract class INode {
         this.lastNodeIdList=new ArrayList<>();
     }
 
-    public void setLfNode(LfNode lfNode) {
-        this.id = lfNode.getId();
-        this.lfNode = lfNode;
-        this.nodeParams = getNodeParams(lfNode);
+    public void setProperties(JSONObject properties) {
+        this.properties = properties;
+        this.nodeParams = getNodeParams(properties);
+        this.runtimeNodeId= generateRuntimeNodeId();
     }
+
+    public void setWorkflowManage(WorkflowManage workflowManage) {
+        this.workflowManage = workflowManage;
+        this.flowParams = workflowManage.getFlowParams();
+        this.sink = workflowManage.getSink();
+    }
+
+    /*    public void setLfNode(LfNode lfNode) {
+        this.id = lfNode.getId();
+      //  this.lfNode = lfNode;
+        this.nodeParams = getNodeParams(lfNode);
+    }*/
 
     public void setLastNodeIdList(List<String> lastNodeIdList) {
         this.lastNodeIdList = lastNodeIdList;
         this.runtimeNodeId= generateRuntimeNodeId();
+    }
+
+    private JSONObject getNodeParams(JSONObject properties) {
+        if (Objects.nonNull(properties) && properties.containsKey("nodeData")) {
+            return properties.getJSONObject("nodeData");
+        }
+        return new JSONObject();
     }
 
     private JSONObject getNodeParams(LfNode node) {
@@ -102,9 +123,9 @@ public abstract class INode {
 
     public JSONObject getDetail(int index){
         JSONObject detail=new JSONObject();
-        detail.put("name",lfNode.getProperties().getString("nodeName"));
+        detail.put("name",properties.getString("nodeName"));
         detail.put("index",index);
-        detail.put("type",lfNode.getType());
+        detail.put("type",type);
         detail.put("runTime",context.get("runTime"));
         detail.put("status",status);
         detail.put("err_message",errMessage);
@@ -172,25 +193,24 @@ public abstract class INode {
         return newMessageList;
     }
 
-
-/*
     @Override
     public String toString() {
         return "INode{" +
-                "viewType='" + viewType + '\'' +
+                "runtimeNodeId='" + runtimeNodeId + '\'' +
+                ", viewType='" + viewType + '\'' +
+                ", id='" + id + '\'' +
                 ", status=" + status +
                 ", errMessage='" + errMessage + '\'' +
                 ", type='" + type + '\'' +
-                ", lfNode=" + lfNode +
+                ", properties=" + properties +
                 ", nodeParams=" + nodeParams +
                 ", flowParams=" + flowParams +
                 ", context=" + context +
                 ", answerText='" + answerText + '\'' +
-                ", id='" + id + '\'' +
                 ", lastNodeIdList=" + lastNodeIdList +
-                ", runtimeNodeId='" + runtimeNodeId + '\'' +
+                ", sink=" + sink +
                 '}';
-    }*/
+    }
 }
 
 

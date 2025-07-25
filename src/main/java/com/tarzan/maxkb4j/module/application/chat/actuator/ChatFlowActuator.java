@@ -1,8 +1,11 @@
 package com.tarzan.maxkb4j.module.application.chat.actuator;
 
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
+import com.tarzan.maxkb4j.core.workflow.INode;
+import com.tarzan.maxkb4j.core.workflow.NodeFactory;
 import com.tarzan.maxkb4j.core.workflow.WorkflowManage;
 import com.tarzan.maxkb4j.core.workflow.domain.FlowParams;
+import com.tarzan.maxkb4j.core.workflow.logic.LfNode;
 import com.tarzan.maxkb4j.core.workflow.logic.LogicFlow;
 import com.tarzan.maxkb4j.module.application.cache.ChatCache;
 import com.tarzan.maxkb4j.module.application.chat.base.ChatBaseActuator;
@@ -20,6 +23,8 @@ import com.tarzan.maxkb4j.module.application.service.ApplicationWorkFlowVersionS
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 @AllArgsConstructor
 @Component
@@ -42,7 +47,12 @@ public class ChatFlowActuator extends ChatBaseActuator {
         application.setType(application.getType());
         application.setUserId(StpUtil.getLoginIdAsString());*/
         chatInfo.setApplication(application);
-        chatInfo.setWorkFlowVersion(workflowVersion);
+    //    chatInfo.setWorkFlowVersion(workflowVersion);
+        LogicFlow logicFlow=LogicFlow.newInstance(application.getWorkFlow());
+        List<LfNode> lfNodes=logicFlow.getNodes();
+        List<INode> nodes=lfNodes.stream().filter(lfNode -> !lfNode.getType().equals("base-node")).map(NodeFactory::getNode).toList();
+        chatInfo.setNodes(nodes);
+        chatInfo.setEdges(logicFlow.getEdges());
         ChatCache.put(chatInfo.getChatId(), chatInfo);
         return chatInfo.getChatId();
     }
@@ -56,14 +66,18 @@ public class ChatFlowActuator extends ChatBaseActuator {
                 .orderByDesc(ApplicationWorkFlowVersionEntity::getCreateTime)
                 .last("limit 1").one();
         chatInfo.setApplication(application);
-        chatInfo.setWorkFlowVersion(workFlowVersion);
+        LogicFlow logicFlow=LogicFlow.newInstance(workFlowVersion.getWorkFlow());
+        List<LfNode> lfNodes=logicFlow.getNodes();
+        List<INode> nodes=lfNodes.stream().filter(lfNode -> lfNode.getType().equals("base-node")).map(NodeFactory::getNode).toList();
+        chatInfo.setNodes(nodes);
+        chatInfo.setEdges(logicFlow.getEdges());
         ChatCache.put(chatInfo.getChatId(), chatInfo);
         return chatId;
     }
 
     @Override
     public String chatMessage(ChatInfo chatInfo,ChatMessageDTO dto) {
-        chatCheck(dto);
+        chatCheck(chatInfo,dto);
         ApplicationChatRecordVO chatRecord = null;
         String chatRecordId = dto.getChatRecordId();
         if(StringUtils.isNotBlank(chatRecordId)){
@@ -78,7 +92,9 @@ public class ChatFlowActuator extends ChatBaseActuator {
         flowParams.setClientType(dto.getClientType());
         flowParams.setStream(dto.getStream() == null || dto.getStream());
         flowParams.setHistoryChatRecord(chatInfo.getChatRecordList());//添加历史记录
-        WorkflowManage workflowManage = new WorkflowManage(LogicFlow.newInstance(chatInfo.getWorkFlowVersion().getWorkFlow()),
+        WorkflowManage workflowManage = new WorkflowManage(
+                chatInfo.getNodes(),
+                chatInfo.getEdges(),
                 flowParams,
                 dto.getSink(),
                 postResponseHandler,
@@ -106,7 +122,11 @@ public class ChatFlowActuator extends ChatBaseActuator {
                 .eq(ApplicationWorkFlowVersionEntity::getApplicationId, application.getId())
                 .orderByDesc(ApplicationWorkFlowVersionEntity::getCreateTime)
                 .last("limit 1").one();
-        chatInfo.setWorkFlowVersion(workFlowVersion);
+        LogicFlow logicFlow=LogicFlow.newInstance(workFlowVersion.getWorkFlow());
+        List<LfNode> lfNodes=logicFlow.getNodes();
+        List<INode> nodes=lfNodes.stream().filter(lfNode -> lfNode.getType().equals("base-node")).map(NodeFactory::getNode).toList();
+        chatInfo.setNodes(nodes);
+        chatInfo.setEdges(logicFlow.getEdges());
         ChatCache.put(chatInfo.getChatId(), chatInfo);
         return chatInfo;
     }
