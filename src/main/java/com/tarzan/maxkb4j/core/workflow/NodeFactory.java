@@ -70,44 +70,9 @@ public class NodeFactory {
             node.setId(lfNode.getId());
             node.setType(lfNode.getType());
             node.setProperties(lfNode.getProperties());
-/*            node.setFlowParams(flowParams);
-            node.setWorkflowManage(workflowManage);
-            node.setLastNodeIdList(lastNodeIds);
-            if(Objects.nonNull(getNodeParams)){
-                node.setNodeParams(getNodeParams.apply(lfNode));
-            }
-            node.setSink(workflowManage.getSink());*/
             return node;
         }
         return null;
     }
-
-/*
-    public static INode getNode(String nodeType, LfNode lfNode, FlowParams flowParams, WorkflowManage workflowManage, List<String> lastNodeIds, Function<LfNode, JSONObject> getNodeParams) {
-        INode node=getNode(nodeType);
-        if(Objects.nonNull(node)){
-            node.setId(lfNode.getId());
-            node.setType(nodeType);
-            node.setLfNode(lfNode);
-            node.setFlowParams(flowParams);
-            node.setWorkflowManage(workflowManage);
-            node.setLastNodeIdList(lastNodeIds);
-            if(Objects.nonNull(getNodeParams)){
-                node.setNodeParams(getNodeParams.apply(lfNode));
-            }
-            node.setSink(workflowManage.getSink());
-            return node;
-        }
-        return null;
-    }
-
-
-
-    public static INode getNode(String nodeType, LfNode node, FlowParams workflowParams, WorkflowManage workflowManage) {
-        return getNode(nodeType,node,workflowParams,workflowManage,new ArrayList<>(),null);
-    }
-*/
-
-
 
 }

@@ -21,7 +21,6 @@ import java.util.*;
 
 @Data
 public abstract class INode {
-    String viewType = "many_view";
     @Setter
     protected String id;
     protected int status = 200;
@@ -197,7 +196,6 @@ public abstract class INode {
     public String toString() {
         return "INode{" +
                 "runtimeNodeId='" + runtimeNodeId + '\'' +
-                ", viewType='" + viewType + '\'' +
                 ", id='" + id + '\'' +
                 ", status=" + status +
                 ", errMessage='" + errMessage + '\'' +
