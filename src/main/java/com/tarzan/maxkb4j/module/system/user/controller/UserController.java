@@ -41,11 +41,18 @@ public class UserController{
 	@GetMapping("/profile")
 	public R<JSONObject> getProfile(){
 		JSONObject json=new JSONObject();
+		//json.put("edition","CE");
+		//json.put("VERSION","v2.0.1 (build at 2025-07-18T15:28, commit: 6e16c74)");
+	//	json.put("license_is_valid",false);
 		json.put("VERSION",null);
 		json.put("IS_XPACK",false);
 		json.put("XPACK_LICENSE_IS_VALID",false);
-        return R.data(json);
+		return R.data(json);
+	}
 
+	@GetMapping("user/profile")
+	public R<UserVO> getUserProfile(){
+		return R.data(userService.getUserById(StpUtil.getLoginIdAsString()));
 	}
 
 	@SaCheckLogin

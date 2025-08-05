@@ -35,7 +35,7 @@ public class ModelInfo {
         this.modelType = modelType;
         this.modelClass = modelClass;
         this.modelCredential = new BaseModelCredential(needUrl,needApiKey);
-
+        this.modelParams = new LlmModelParams();
     }
 
     public ModelInfo(String name, String desc, String modelType, BaseModel modelClass, BaseModelParams modelParams) {

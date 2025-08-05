@@ -110,6 +110,7 @@ public class UserService extends ServiceImpl<UserMapper, UserEntity> {
         loginModel.setExtra("client_id", userEntity.getId());
         loginModel.setExtra("client_type", AuthType.USER.name());
         StpUtil.login(userEntity.getId(),loginModel);
+        //return Map.of("token",StpUtil.getTokenValue());
         return StpUtil.getTokenValue();
     }
 
@@ -160,6 +161,10 @@ public class UserService extends ServiceImpl<UserMapper, UserEntity> {
             return null;
         }
         UserVO user = BeanUtil.copy(userEntity, UserVO.class);
+        //List<String> permissions = new ArrayList<>();
+        //permissions.add("APPLICATION:READ+DEBUG:/WORKSPACE/default/APPLICATION/019845dc-1f97-7553-b930-458cbe08c5c4");
+        //permissions.add("APPLICATION:READ+EDIT:/WORKSPACE/default/APPLICATION/019845dc-1f97-7553-b930-458cbe08c5c4");
+        //user.setPermissions(permissions);
         user.setPermissions(stpInterface.getPermissionList(userId, null));
         //todo 临时处理
         user.setIsEditPassword("d880e722c47a34d8e9fce789fc62389d".equals(user.getPassword())&&"ADMIN".equals(user.getRole()));
