@@ -1,12 +1,15 @@
 package com.tarzan.maxkb4j.module.model.provider.impl.zhipumodelprovider;
 
 import com.tarzan.maxkb4j.module.model.provider.IModelProvider;
-import com.tarzan.maxkb4j.module.model.provider.vo.ModelInfo;
-import com.tarzan.maxkb4j.module.model.provider.vo.ModelProvideInfo;
+import com.tarzan.maxkb4j.module.model.provider.LlmModelParams;
 import com.tarzan.maxkb4j.module.model.provider.enums.ModelProviderEnum;
 import com.tarzan.maxkb4j.module.model.provider.enums.ModelTypeEnum;
 import com.tarzan.maxkb4j.module.model.provider.impl.aliyunModelProvider.AliYunBaiLianModelProvider;
-import com.tarzan.maxkb4j.module.model.provider.impl.aliyunModelProvider.model.*;
+import com.tarzan.maxkb4j.module.model.provider.impl.zhipumodelprovider.model.ZhiPuChatModel;
+import com.tarzan.maxkb4j.module.model.provider.impl.zhipumodelprovider.model.ZhiPuEmbedding;
+import com.tarzan.maxkb4j.module.model.provider.impl.zhipumodelprovider.model.ZhiPuImageModel;
+import com.tarzan.maxkb4j.module.model.provider.vo.ModelInfo;
+import com.tarzan.maxkb4j.module.model.provider.vo.ModelProvideInfo;
 import com.tarzan.maxkb4j.util.IoUtil;
 import org.springframework.stereotype.Component;
 
@@ -31,19 +34,16 @@ public class ZhiPuModelProvider extends IModelProvider {
     @Override
     public List<ModelInfo> getModelList() {
         List<ModelInfo> modelInfos = new ArrayList<>();
-        modelInfos.add(new ModelInfo("glm-4","", ModelTypeEnum.LLM.name(),new BaiLianChatModel()));
-        modelInfos.add(new ModelInfo("glm-4v","", ModelTypeEnum.LLM.name(), new BaiLianChatModel()));
-        modelInfos.add(new ModelInfo("glm-3-turbo","", ModelTypeEnum.LLM.name(), new BaiLianChatModel()));
-        modelInfos.add(new ModelInfo("text-embedding-v3","", ModelTypeEnum.EMBEDDING.name(),new BaiLianEmbedding()));
-        modelInfos.add(new ModelInfo("paraformer-realtime-v2","", ModelTypeEnum.STT.name(), new ParaFormerSTT()));
-        modelInfos.add(new ModelInfo("cosyvoice-v1","",ModelTypeEnum.TTS.name(), new CosyVoiceTTS()));
-        modelInfos.add(new ModelInfo("glm-4v-plus","",ModelTypeEnum.IMAGE.name(),new BaiLianChatModel()));
-        modelInfos.add(new ModelInfo("glm-4v","",ModelTypeEnum.IMAGE.name(), new BaiLianChatModel()));
-        modelInfos.add(new ModelInfo("glm-4v-flash","",ModelTypeEnum.IMAGE.name(),new BaiLianChatModel()));
-        modelInfos.add(new ModelInfo("cogview-3","",ModelTypeEnum.TTI.name(),new QWenImageModel()));
-        modelInfos.add(new ModelInfo("cogview-3-plus","",ModelTypeEnum.TTI.name(),new QWenImageModel()));
-        modelInfos.add(new ModelInfo("cogview-3-flash","",ModelTypeEnum.TTI.name(),new QWenImageModel()));
-        modelInfos.add(new ModelInfo("gte-rerank","",ModelTypeEnum.RERANKER.name(),new BaiLianReranker()));
+        modelInfos.add(new ModelInfo("glm-4","", ModelTypeEnum.LLM.name(),ZhiPuChatModel.class, new LlmModelParams()));
+        modelInfos.add(new ModelInfo("glm-4v","", ModelTypeEnum.LLM.name(), ZhiPuChatModel.class, new LlmModelParams()));
+        modelInfos.add(new ModelInfo("glm-3-turbo","", ModelTypeEnum.LLM.name(), ZhiPuChatModel.class, new LlmModelParams()));
+        modelInfos.add(new ModelInfo("text-embedding-v3","", ModelTypeEnum.EMBEDDING.name(), ZhiPuEmbedding.class));
+        modelInfos.add(new ModelInfo("glm-4v-plus","",ModelTypeEnum.IMAGE.name(), ZhiPuImageModel.class));
+        modelInfos.add(new ModelInfo("glm-4v","",ModelTypeEnum.IMAGE.name(), ZhiPuChatModel.class, new LlmModelParams()));
+        modelInfos.add(new ModelInfo("glm-4v-flash","",ModelTypeEnum.IMAGE.name(),ZhiPuChatModel.class, new LlmModelParams()));
+        modelInfos.add(new ModelInfo("cogview-3","",ModelTypeEnum.TTI.name(),ZhiPuImageModel.class));
+        modelInfos.add(new ModelInfo("cogview-3-plus","",ModelTypeEnum.TTI.name(),ZhiPuImageModel.class));
+        modelInfos.add(new ModelInfo("cogview-3-flash","",ModelTypeEnum.TTI.name(),ZhiPuImageModel.class));
         return modelInfos;
     }
 

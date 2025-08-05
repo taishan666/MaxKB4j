@@ -1,6 +1,7 @@
 package com.tarzan.maxkb4j.module.model.provider.impl.qwenmodelprovider;
 
 import com.tarzan.maxkb4j.module.model.provider.IModelProvider;
+import com.tarzan.maxkb4j.module.model.provider.LlmModelParams;
 import com.tarzan.maxkb4j.module.model.provider.vo.ModelInfo;
 import com.tarzan.maxkb4j.module.model.provider.ModelInfoManage;
 import com.tarzan.maxkb4j.module.model.provider.vo.ModelProvideInfo;
@@ -37,17 +38,17 @@ public class QwenModelProvider extends IModelProvider {
     @Override
     public List<ModelInfo> getModelList() {
         List<ModelInfo> modelInfos = new ArrayList<>();
-        modelInfos.add(new ModelInfo("qwen-turbo","", ModelTypeEnum.LLM.name(), new BaiLianChatModel()));
-        modelInfos.add(new ModelInfo("qwen-plus","", ModelTypeEnum.LLM.name(), new BaiLianChatModel()));
-        modelInfos.add(new ModelInfo("qwen-max","", ModelTypeEnum.LLM.name(), new BaiLianChatModel()));
-        modelInfos.add(new ModelInfo("text-embedding-v2","", ModelTypeEnum.EMBEDDING.name(),new BaiLianEmbedding()));
-        modelInfos.add(new ModelInfo("text-embedding-v3","", ModelTypeEnum.EMBEDDING.name(),new BaiLianEmbedding()));
-        modelInfos.add(new ModelInfo("paraformer-realtime-v2","", ModelTypeEnum.STT.name(),new ParaFormerSTT()));
-        modelInfos.add(new ModelInfo("cosyvoice-v1","",ModelTypeEnum.TTS.name(),new CosyVoiceTTS()));
-        modelInfos.add(new ModelInfo("qwen-vl-plus","",ModelTypeEnum.IMAGE.name(),new BaiLianChatModel()));
-        modelInfos.add(new ModelInfo("qwen-vl-max","",ModelTypeEnum.IMAGE.name(),new BaiLianChatModel()));
-        modelInfos.add(new ModelInfo("wanx2.1-t2i-turbo","",ModelTypeEnum.TTI.name(),new QWenImageModel()));
-        modelInfos.add(new ModelInfo("gte-rerank","",ModelTypeEnum.RERANKER.name(),new BaiLianReranker()));
+        modelInfos.add(new ModelInfo("qwen-turbo","", ModelTypeEnum.LLM.name(), BaiLianChatModel.class,new LlmModelParams()));
+        modelInfos.add(new ModelInfo("qwen-plus","", ModelTypeEnum.LLM.name(),  BaiLianChatModel.class,new LlmModelParams()));
+        modelInfos.add(new ModelInfo("qwen-max","", ModelTypeEnum.LLM.name(),  BaiLianChatModel.class,new LlmModelParams()));
+        modelInfos.add(new ModelInfo("text-embedding-v2","", ModelTypeEnum.EMBEDDING.name(), BaiLianEmbedding.class));
+        modelInfos.add(new ModelInfo("text-embedding-v3","", ModelTypeEnum.EMBEDDING.name(),BaiLianEmbedding.class));
+        modelInfos.add(new ModelInfo("paraformer-realtime-v2","", ModelTypeEnum.STT.name(),ParaFormerSTT.class));
+        modelInfos.add(new ModelInfo("cosyvoice-v1","",ModelTypeEnum.TTS.name(),CosyVoiceTTS.class));
+        modelInfos.add(new ModelInfo("qwen-vl-plus","",ModelTypeEnum.IMAGE.name(), BaiLianChatModel.class,new LlmModelParams()));
+        modelInfos.add(new ModelInfo("qwen-vl-max","",ModelTypeEnum.IMAGE.name(), BaiLianChatModel.class,new LlmModelParams()));
+        modelInfos.add(new ModelInfo("wanx2.1-t2i-turbo","",ModelTypeEnum.TTI.name(),QWenImageModel.class));
+        modelInfos.add(new ModelInfo("gte-rerank","",ModelTypeEnum.RERANKER.name(),BaiLianReranker.class));
         return modelInfos;
     }
 

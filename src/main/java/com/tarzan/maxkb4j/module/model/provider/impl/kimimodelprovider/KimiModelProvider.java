@@ -1,6 +1,7 @@
 package com.tarzan.maxkb4j.module.model.provider.impl.kimimodelprovider;
 
 import com.tarzan.maxkb4j.module.model.provider.IModelProvider;
+import com.tarzan.maxkb4j.module.model.provider.LlmModelParams;
 import com.tarzan.maxkb4j.module.model.provider.ModelInfoManage;
 import com.tarzan.maxkb4j.module.model.provider.enums.ModelProviderEnum;
 import com.tarzan.maxkb4j.module.model.provider.impl.aliyunModelProvider.AliYunBaiLianModelProvider;
@@ -36,9 +37,9 @@ public class KimiModelProvider extends IModelProvider {
     @Override
     public List<ModelInfo> getModelList() {
         List<ModelInfo> modelInfos = new ArrayList<>();
-        modelInfos.add(new ModelInfo("moonshot-v1-8k","","LLM",new KimiChatModel()));
-        modelInfos.add(new ModelInfo("moonshot-v1-32k","","LLM",new KimiChatModel()));
-        modelInfos.add(new ModelInfo("moonshot-v1-128k","","LLM",new KimiChatModel()));
+        modelInfos.add(new ModelInfo("moonshot-v1-8k","","LLM",KimiChatModel.class,new LlmModelParams()));
+        modelInfos.add(new ModelInfo("moonshot-v1-32k","","LLM",KimiChatModel.class,new LlmModelParams()));
+        modelInfos.add(new ModelInfo("moonshot-v1-128k","","LLM",KimiChatModel.class,new LlmModelParams()));
         return modelInfos;
     }
 

@@ -1,6 +1,7 @@
 package com.tarzan.maxkb4j.module.model.provider.impl.deepseekmodelprovider;
 
 import com.tarzan.maxkb4j.module.model.provider.IModelProvider;
+import com.tarzan.maxkb4j.module.model.provider.LlmModelParams;
 import com.tarzan.maxkb4j.module.model.provider.vo.ModelInfo;
 import com.tarzan.maxkb4j.module.model.provider.vo.ModelProvideInfo;
 import com.tarzan.maxkb4j.module.model.provider.enums.ModelProviderEnum;
@@ -31,8 +32,8 @@ public class DeepSeekModelProvider extends IModelProvider {
     @Override
     public List<ModelInfo> getModelList() {
         List<ModelInfo> modelInfos = new ArrayList<>();
-        modelInfos.add(new ModelInfo("deepseek-chat","", ModelTypeEnum.LLM.name(), new DeepSeekChatModel()));
-        modelInfos.add(new ModelInfo("deepseek-reasoner","",ModelTypeEnum.LLM.name(), new DeepSeekChatModel()));
+        modelInfos.add(new ModelInfo("deepseek-chat","", ModelTypeEnum.LLM.name(), DeepSeekChatModel.class,new LlmModelParams()));
+        modelInfos.add(new ModelInfo("deepseek-reasoner","",ModelTypeEnum.LLM.name(), DeepSeekChatModel.class,new LlmModelParams()));
         return modelInfos;
     }
 

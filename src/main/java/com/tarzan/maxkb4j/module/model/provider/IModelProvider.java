@@ -36,11 +36,18 @@ public abstract class IModelProvider {
         return modelInfos.stream().anyMatch(e -> e.getModelType().equals(modelType));
     }
 
+    @SuppressWarnings("unchecked")
     <T> T build(String modelName, String modelType, ModelCredential modelCredential, JSONObject params) {
         List<ModelInfo> modelList = getModelList();
         ModelInfo modelInfo = modelList.stream().filter(model -> model.getModelType().equals(modelType) && model.getName().equals(modelName)).findFirst().orElse(null);
         assert modelInfo != null;
-        return (T) modelInfo.getModelClass().build(modelName, modelCredential,params);
+        try {
+            // 创建 BaseModel 实现类的实例
+            BaseModel<T> instance = (BaseModel<T>) modelInfo.getModelClass().getDeclaredConstructor().newInstance();
+            return instance.build(modelName, modelCredential,params);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to build model: " + modelName, e);
+        }
     }
 
 }
