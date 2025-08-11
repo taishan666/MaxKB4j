@@ -97,7 +97,7 @@ public class ModelController{
 	@GetMapping("/provider/model_form")
 	public R<List<BaseFiled>> modelForm(String provider, String modelType, String modelName){
 		IModelProvider modelProvider=ModelProviderEnum.get(provider);
-		return R.success(modelProvider.getModelCredential(modelType, modelName).toForm());
+		return R.success(modelProvider.getModelCredential().toForm());
 	}
 
 	@SaCheckPermission("MODEL:READ")

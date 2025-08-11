@@ -1,5 +1,6 @@
 package com.tarzan.maxkb4j.module.model.provider.impl.openaimodelprovider;
 
+import com.tarzan.maxkb4j.module.model.provider.BaseModelCredential;
 import com.tarzan.maxkb4j.module.model.provider.IModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.LlmModelParams;
 import com.tarzan.maxkb4j.module.model.provider.vo.ModelInfo;
@@ -45,6 +46,11 @@ public class OpenaiModelProvider extends IModelProvider {
         modelInfos.add(new ModelInfo("gpt-4o","","IMAGE",OpenaiChatModel.class,new LlmModelParams()));
         modelInfos.add(new ModelInfo("dall-e-2","","TTI",OpenaiImageModel.class));
         return modelInfos;
+    }
+
+    @Override
+    public BaseModelCredential getModelCredential() {
+       return new BaseModelCredential(true,true);
     }
 
 }

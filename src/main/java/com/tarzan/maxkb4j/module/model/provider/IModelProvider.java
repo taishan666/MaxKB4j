@@ -17,17 +17,24 @@ public abstract class IModelProvider {
 
     public abstract List<ModelInfo> getModelList();
 
-    public BaseModelCredential getModelCredential(String modelType, String modelName){
-        ModelInfoManage modelInfoManage=getModelInfoManage();
-        ModelInfo modelInfo = modelInfoManage.getModelInfo(modelType,modelName);
-        assert modelInfo != null;
-        return modelInfo.getModelCredential();
+    public BaseModelCredential getModelCredential() {
+        return new BaseModelCredential(false,true);
+    }
+
+
+    public BaseModelParams getModelParams(String modelType) {
+        return switch (modelType) {
+            case "LLM", "EMBEDDING" -> new LlmModelParams();
+            default -> new NoModelParams();
+        };
     }
 
     public BaseModelParams getModelParams(String modelType, String modelName){
         ModelInfoManage modelInfoManage=getModelInfoManage();
         ModelInfo modelInfo = modelInfoManage.getModelInfo(modelType,modelName);
-        assert modelInfo != null;
+        if (modelInfo == null){
+            return getModelParams(modelType);
+        }
         return modelInfo.getModelParams();
     }
 
