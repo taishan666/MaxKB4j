@@ -69,8 +69,8 @@ public class StpInterfaceImpl implements StpInterface {
     public List<String> getRoleList(Object loginId, String loginType) {
         return roleCache.get(loginId.toString(), id -> {
             UserEntity user = userMapper.selectById((String) loginId);
-            String role = user.getRole()==null?"USER":user.getRole();
-            return List.of(role);
+          //  String role = user.getRole()==null?"USER":user.getRole();
+            return new ArrayList<>(user.getRole());
         });
     }
 

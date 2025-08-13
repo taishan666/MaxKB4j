@@ -25,6 +25,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -32,7 +33,7 @@ import java.util.concurrent.TimeUnit;
  * @date 2024-12-25 11:17:00
  */
 @RestController
-@RequestMapping(AppConst.BASE_PATH)
+@RequestMapping(AppConst.ADMIN_PATH)
 @AllArgsConstructor
 public class UserController{
 
@@ -41,12 +42,9 @@ public class UserController{
 	@GetMapping("/profile")
 	public R<JSONObject> getProfile(){
 		JSONObject json=new JSONObject();
-		//json.put("edition","CE");
-		//json.put("VERSION","v2.0.1 (build at 2025-07-18T15:28, commit: 6e16c74)");
-	//	json.put("license_is_valid",false);
-		json.put("VERSION",null);
-		json.put("IS_XPACK",false);
-		json.put("XPACK_LICENSE_IS_VALID",false);
+		json.put("edition","CE");
+		json.put("VERSION","v2.0.1 (build at 2025-07-18T15:28, commit: 6e16c74)");
+	    json.put("license_is_valid",false);
 		return R.data(json);
 	}
 
@@ -67,7 +65,7 @@ public class UserController{
 	}
 
 	@GetMapping("/user/captcha")
-	public R<String> captcha(HttpServletRequest request){
+	public R<Map<String, String>> captcha(HttpServletRequest request){
 		SpecCaptcha specCaptcha = new SpecCaptcha(130, 48, 4);
 		String verCode = specCaptcha.text().toLowerCase();
 		//String key = UUID.randomUUID().toString();
@@ -77,7 +75,7 @@ public class UserController{
 		HttpSession session = request.getSession();
 		session.setAttribute("captcha", verCode);
 		// 将key和base64返回给前端
-		return R.data(specCaptcha.toBase64());
+		return R.data(Map.of("captcha",specCaptcha.toBase64()));
 	}
 
 	@PostMapping("/user/send_email")
@@ -129,10 +127,10 @@ public class UserController{
 		return R.data(userService.listByType(type));
 	}
 
-	@SaCheckPermission("USER:READ")
+	//@SaCheckPermission("USER:READ")
 	@GetMapping("/user_manage/{page}/{size}")
-	public R<IPage<UserEntity>> userManage(@PathVariable("page")int page, @PathVariable("size")int size, String email_or_username){
-		return R.data(userService.selectUserPage(page,size,email_or_username));
+	public R<IPage<UserEntity>> userManage(@PathVariable("page")int page, @PathVariable("size")int size, UserDTO dto){
+		return R.data(userService.selectUserPage(page,size,""));
 	}
 	@SaCheckPermission("USER:EDIT")
 	@PostMapping("/user/language")
@@ -171,13 +169,13 @@ public class UserController{
 		return R.status(userService.updatePassword(id,dto));
 	}
 
-	@PostMapping("/api/user/current/send_email")
+	@PostMapping("/user/current/send_email")
 	public R<Boolean> sendEmail() throws MessagingException {
 		return R.status(userService.sendEmailCode());
 	}
 
-	@SaCheckPermission("USER:EDIT")
-	@PostMapping("/api/user/current/reset_password")
+	//@SaCheckPermission("USER:EDIT")
+	@PostMapping("/user/current/reset_password")
 	public R<Boolean> resetPassword(@RequestBody PasswordDTO dto) {
 		return R.status(userService.resetPassword(dto));
 	}

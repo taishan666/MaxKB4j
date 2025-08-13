@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
  * @date 2024-12-31 17:33:32
  */
 @RestController
-@RequestMapping(AppConst.BASE_PATH)
+@RequestMapping(AppConst.ADMIN_PATH)
 @AllArgsConstructor
 public class SystemSettingController{
 

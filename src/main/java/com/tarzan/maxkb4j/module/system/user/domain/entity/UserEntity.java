@@ -1,9 +1,13 @@
 package com.tarzan.maxkb4j.module.system.user.domain.entity;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.tarzan.maxkb4j.core.common.entity.BaseEntity;
+import com.tarzan.maxkb4j.core.handler.type.StringSetTypeHandler;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+
+import java.util.Set;
 
 /**
  * @author tarzan
@@ -18,13 +22,13 @@ public class UserEntity extends BaseEntity {
 
     private String phone;
 
-    private String nickName;
+    private String nickname;
 
     private String username;
 
     private String password;
-
-    private String role;
+    @TableField(typeHandler = StringSetTypeHandler.class)
+    private Set<String> role;
 
     private Boolean isActive;
 
