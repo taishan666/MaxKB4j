@@ -1,6 +1,5 @@
 package com.tarzan.maxkb4j.module.system.setting.controller;
 
-import cn.dev33.satoken.annotation.SaCheckPermission;
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.constant.AppConst;
 import com.tarzan.maxkb4j.core.api.R;
@@ -23,7 +22,7 @@ public class SystemSettingController{
 
 	private	final SystemSettingService systemSettingService;
 
-	@SaCheckPermission("SETTING:CREATE")
+	//@SaCheckPermission("SETTING:CREATE")
 	@GetMapping("/email_setting")
 	public R<JSONObject> getEmailSetting(){
 		SystemSettingEntity systemSetting=systemSettingService.lambdaQuery().eq(SystemSettingEntity::getType, SettingType.Email.getType()).one();
@@ -31,7 +30,7 @@ public class SystemSettingController{
 		return R.success(json);
 	}
 
-	@SaCheckPermission("SETTING:EDIT")
+	//@SaCheckPermission("SETTING:EDIT")
 	@PostMapping("/email_setting")
 	public R<Boolean> testEmail(@RequestBody JSONObject meta){
 		if(systemSettingService.testConnect(meta)){
@@ -41,7 +40,7 @@ public class SystemSettingController{
 		}
 	}
 
-	@SaCheckPermission("SETTING:EDIT")
+	//@SaCheckPermission("SETTING:EDIT")
 	@PutMapping("/email_setting")
 	public R<Boolean> saveEmailSetting(@RequestBody JSONObject meta){
 		return R.status(systemSettingService.saveOrUpdate(meta, SettingType.Email.getType()));
