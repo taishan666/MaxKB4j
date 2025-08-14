@@ -23,13 +23,13 @@ import java.util.List;
  * @date 2025-01-25 22:00:45
  */
 @RestController
-@RequestMapping(AppConst.BASE_PATH)
+@RequestMapping(AppConst.ADMIN_PATH)
 @AllArgsConstructor
 public class FunctionLibController{
 
 	private	final FunctionLibService functionLibService;
 
-	@GetMapping("/function_lib/{current}/{size}")
+	@GetMapping("workspace/default/tool/{current}/{size}")
 	public R<IPage<FunctionLibEntity>> page(@PathVariable int current, @PathVariable int size,String name) {
 		return R.success(functionLibService.pageList(current,size,name));
 	}

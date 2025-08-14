@@ -38,13 +38,13 @@ import java.util.stream.Collectors;
  * @date 2024-12-25 12:22:22
  */
 @RestController
-@RequestMapping(AppConst.BASE_PATH)
+@RequestMapping(AppConst.ADMIN_PATH)
 @AllArgsConstructor
 public class ModelController{
 
 	private final ModelService modelService;
 
-	@SaCheckPermission("MODEL:READ")
+	//@SaCheckPermission("MODEL:READ")
     @GetMapping("/provider")
 	public R<Set<ModelProvideInfo>> provider(String modelType){
 		Set<IModelProvider> set= new HashSet<>();
@@ -93,6 +93,7 @@ public class ModelController{
 		return R.success(modelList);
 	}
 
+
 	@SaCheckPermission("MODEL:READ")
 	@GetMapping("/provider/model_form")
 	public R<List<BaseFiled>> modelForm(String provider, String modelType, String modelName){
@@ -115,6 +116,12 @@ public class ModelController{
 
 	@SaCheckPermission("MODEL:READ")
 	@GetMapping("/model")
+	public R<List<ModelVO>> models1(String name, String createUser, String permissionType, String modelType,String provider){
+		return R.success(modelService.models(name,createUser,permissionType,modelType,provider));
+	}
+
+
+	@GetMapping("/workspace/default/model")
 	public R<List<ModelVO>> models(String name, String createUser, String permissionType, String modelType,String provider){
 		return R.success(modelService.models(name,createUser,permissionType,modelType,provider));
 	}

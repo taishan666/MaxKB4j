@@ -42,7 +42,7 @@ import java.util.List;
  */
 @Tag(name = "APP应用管理", description = "APP应用管理")
 @RestController
-@RequestMapping(AppConst.BASE_PATH)
+@RequestMapping(AppConst.ADMIN_PATH)
 @AllArgsConstructor
 public class ApplicationController {
 
@@ -126,8 +126,8 @@ public class ApplicationController {
         applicationService.appExport(id,response);
     }
 
-    @SaCheckPermission("APPLICATION:READ")
-    @GetMapping("/application/{page}/{size}")
+    //@SaCheckPermission("APPLICATION:READ")
+    @GetMapping("/workspace/default/application/{page}/{size}")
     public R<IPage<ApplicationEntity>> userApplications(@PathVariable("page") int page, @PathVariable("size") int size, Query query) {
         return R.success(applicationService.selectAppPage(page, size, query));
     }

@@ -28,7 +28,7 @@ import java.util.List;
  * @date 2024-12-25 16:00:15
  */
 @RestController
-@RequestMapping(AppConst.BASE_PATH)
+@RequestMapping(AppConst.ADMIN_PATH)
 @AllArgsConstructor
 public class DatasetController {
 
@@ -85,8 +85,8 @@ public class DatasetController {
         return R.success(datasetService.deleteDatasetById(id));
     }
 
-    @SaCheckPermission("DATASET:READ")
-    @GetMapping("/dataset/{page}/{size}")
+   // @SaCheckPermission("DATASET:READ")
+    @GetMapping("/workspace/default/knowledge/{page}/{size}")
     public R<IPage<DatasetVO>> userDatasets(@PathVariable("page") int page, @PathVariable("size") int size, Query query) {
         Page<DatasetVO> datasetPage = new Page<>(page, size);
         return R.success(datasetService.selectDatasetPage(datasetPage, query));
