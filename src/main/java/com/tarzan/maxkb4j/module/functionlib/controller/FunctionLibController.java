@@ -29,12 +29,17 @@ public class FunctionLibController{
 
 	private	final FunctionLibService functionLibService;
 
-	@GetMapping("workspace/default/tool/{current}/{size}")
+	@GetMapping("/workspace/default/tool/{current}/{size}")
 	public R<IPage<FunctionLibEntity>> page(@PathVariable int current, @PathVariable int size,String name) {
 		return R.success(functionLibService.pageList(current,size,name));
 	}
 
-	@PostMapping("/function_lib")
+	@GetMapping("/workspace/{type}/tool")
+	public R<List<FunctionLibEntity>> list(@PathVariable String type,String name) {
+		return R.success(functionLibService.list());
+	}
+
+	@PostMapping("/workspace/default/tool")
 	public R<FunctionLibEntity> functionLib(@RequestBody FunctionLibEntity dto) {
 		dto.setIsActive(true);
 		dto.setUserId(StpUtil.getLoginIdAsString());
@@ -42,7 +47,7 @@ public class FunctionLibController{
 		return R.data(dto);
 	}
 
-	@PostMapping("/function_lib/debug")
+	@PostMapping("/workspace/default/tool/debug")
 	public R<String> debug(@RequestBody FunctionLibDTO dto) {
 		Binding binding = new Binding();
 		StringBuilder codeText=new StringBuilder(dto.getCode());
@@ -63,19 +68,23 @@ public class FunctionLibController{
 		return R.data(finalResult);
 	}
 
+	@GetMapping("/workspace/default/tool/{id}")
+	public R<FunctionLibEntity> get(@PathVariable String id) {
+		return R.data(functionLibService.getById(id));
+	}
 
-	@PutMapping("/function_lib/{id}")
+	@PutMapping("/workspace/default/tool/{id}")
 	public R<Boolean> functionLib(@PathVariable String id,@RequestBody FunctionLibEntity dto) {
 		dto.setId(id);
 		return R.status(functionLibService.updateById(dto));
 	}
 
-	@DeleteMapping("/function_lib/{id}")
+	@DeleteMapping("/workspace/default/tool/{id}")
 	public R<Boolean> functionLib(@PathVariable String id) {
 		return R.status(functionLibService.removeById(id));
 	}
 
-	@PostMapping("/function_lib/pylint")
+	@PostMapping("/workspace/default/tool/pylint")
 	public R<List<FunctionLibEntity>> pylint(@RequestBody JSONObject json) {
 		return R.success(Collections.emptyList());
 	}

@@ -1,6 +1,5 @@
 package com.tarzan.maxkb4j.module.dataset.controller;
 
-import cn.dev33.satoken.annotation.SaCheckPermission;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.tarzan.maxkb4j.constant.AppConst;
 import com.tarzan.maxkb4j.core.api.R;
@@ -24,143 +23,143 @@ import java.util.List;
  * @date 2024-12-25 16:00:15
  */
 @RestController
-@RequestMapping(AppConst.BASE_PATH)
+@RequestMapping(AppConst.ADMIN_PATH+"/workspace/default")
 @AllArgsConstructor
 public class DocumentController {
 
     private final DocumentService documentService;
 
-    @SaCheckPermission("DATASET:EDIT")
-    @PostMapping("/dataset/{id}/document/web")
+ //   @SaCheckPermission("DATASET:EDIT")
+    @PostMapping("/knowledge/{id}/document/web")
     public void web(@PathVariable("id") String id, @RequestBody WebUrlDTO params) throws IOException {
         documentService.web(id,params);
     }
-    @SaCheckPermission("DATASET:EDIT")
-    @PutMapping("/dataset/{id}/document/{docId}/sync")
+ //   @SaCheckPermission("DATASET:EDIT")
+    @PutMapping("/knowledge/{id}/document/{docId}/sync")
     public void sync(@PathVariable("id") String id,@PathVariable("docId") String docId) throws IOException {
         documentService.sync(id,docId);
     }
-    @SaCheckPermission("DATASET:READ")
-    @GetMapping("/dataset/{id}/document/{docId}/export")
+  //  @SaCheckPermission("DATASET:READ")
+    @GetMapping("/knowledge/{id}/document/{docId}/export")
     public void export(@PathVariable("id") String id, @PathVariable("docId") String docId, HttpServletResponse response) throws IOException {
         documentService.exportExcelByDocId(docId, response);
     }
 
-    @SaCheckPermission("DATASET:READ")
-    @GetMapping("/dataset/{id}/document/{docId}/export_zip")
+  //  @SaCheckPermission("DATASET:READ")
+    @GetMapping("/knowledge/{id}/document/{docId}/export_zip")
     public void exportZip(@PathVariable("id") String id, @PathVariable("docId") String docId, HttpServletResponse response) {
         documentService.exportExcelZipByDocId(docId, response);
     }
 
-    @SaCheckPermission("DATASET:EDIT")
-    @PostMapping("/dataset/{id}/document/qa")
+  //  @SaCheckPermission("DATASET:EDIT")
+    @PostMapping("/knowledge/{id}/document/qa")
     public void importQa(@PathVariable("id") String id, MultipartFile[] file) throws IOException {
         documentService.importQa(id, file);
     }
 
-    @SaCheckPermission("DATASET:EDIT")
-    @PostMapping("/dataset/{id}/document/table")
+   // @SaCheckPermission("DATASET:EDIT")
+    @PostMapping("/knowledge/{id}/document/table")
     public void importTable(@PathVariable("id") String id, MultipartFile[] file) throws IOException {
         documentService.importTable(id, file);
     }
 
-    @SaCheckPermission("DATASET:READ")
-    @GetMapping("/dataset/document/table_template/export")
+ //   @SaCheckPermission("DATASET:READ")
+    @GetMapping("/knowledge/document/table_template/export")
     public void tableTemplateExport(String type, HttpServletResponse response) throws Exception {
         documentService.tableTemplateExport(type, response);
     }
 
-    @SaCheckPermission("DATASET:READ")
-    @GetMapping("/dataset/document/template/export")
+ //   @SaCheckPermission("DATASET:READ")
+    @GetMapping("/knowledge/document/template/export")
     public void templateExport(String type, HttpServletResponse response) throws Exception {
         documentService.templateExport(type, response);
     }
 
-    @SaCheckPermission("DATASET:EDIT")
-    @PostMapping("/dataset/document/split")
+  //  @SaCheckPermission("DATASET:EDIT")
+    @PostMapping("/knowledge/document/split")
     public R<List<TextSegmentVO>> split(MultipartFile[] file, String[] patterns, Integer limit, Boolean with_filter) throws IOException {
         return R.success(documentService.split(file, patterns, limit, with_filter));
     }
-    @SaCheckPermission("DATASET:READ")
-    @GetMapping("/dataset/document/split_pattern")
+  //  @SaCheckPermission("DATASET:READ")
+    @GetMapping("/knowledge/document/split_pattern")
     public R<List<KeyAndValueVO>> splitPattern() {
         return R.success(documentService.splitPattern());
     }
 
-    @SaCheckPermission("DATASET:READ")
-    @GetMapping("/dataset/{id}/document")
+  //  @SaCheckPermission("DATASET:READ")
+    @GetMapping("/knowledge/{id}/document")
     public R<List<DocumentEntity>> listDocByDatasetId(@PathVariable String id) {
         return R.success(documentService.listDocByDatasetId(id));
     }
 
-    @SaCheckPermission("DATASET:EDIT")
-    @PutMapping("/dataset/{id}/document/batch_generate_related")
+ //   @SaCheckPermission("DATASET:EDIT")
+    @PutMapping("/knowledge/{id}/document/batch_generate_related")
     public R<Boolean> batchGenerateRelated(@PathVariable String id, @RequestBody GenerateProblemDTO dto) {
         return R.success(documentService.batchGenerateRelated(id, dto));
     }
 
 
-    @SaCheckPermission("DATASET:EDIT")
-    @PutMapping("/dataset/{sourceId}/document/migrate/{targetId}")
+ //   @SaCheckPermission("DATASET:EDIT")
+    @PutMapping("/knowledge/{sourceId}/document/migrate/{targetId}")
     public R<Boolean> migrateDoc(@PathVariable("sourceId") String sourceId, @PathVariable("targetId") String targetId, @RequestBody List<String> docIds) {
         return R.success(documentService.migrateDoc(sourceId, targetId, docIds));
     }
-    @SaCheckPermission("DATASET:EDIT")
-    @PutMapping("/dataset/{id}/document/batch_hit_handling")
+//    @SaCheckPermission("DATASET:EDIT")
+    @PutMapping("/knowledge/{id}/document/batch_hit_handling")
     public R<Boolean> batchHitHandling(@PathVariable String id, @RequestBody DatasetBatchHitHandlingDTO dto) {
         return R.success(documentService.batchHitHandling(id, dto));
     }
 
-    @SaCheckPermission("DATASET:EDIT")
-    @PostMapping("/dataset/{id}/document/_bach")
+ //   @SaCheckPermission("DATASET:EDIT")
+    @PostMapping("/knowledge/{id}/document/_bach")
     public R<Boolean> createBatchDoc(@PathVariable("id") String id, @RequestBody List<DocumentNameDTO> docs) {
         return R.success(documentService.createBatchDoc(id, docs));
     }
 
-    @SaCheckPermission("DATASET:DELETE")
-    @DeleteMapping("/dataset/{id}/document/_bach")
+  //  @SaCheckPermission("DATASET:DELETE")
+    @DeleteMapping("/knowledge/{id}/document/_bach")
     public R<Boolean> deleteBatchDocByDocIds(@PathVariable("id") String id, @RequestBody DeleteDTO dto) {
         return R.success(documentService.deleteBatchDocByDocIds(dto.getIdList()));
     }
 
-    @SaCheckPermission("DATASET:READ")
-    @GetMapping("/dataset/{id}/document/{docId}")
+   // @SaCheckPermission("DATASET:READ")
+    @GetMapping("/knowledge/{id}/document/{docId}")
     public R<DocumentEntity> getDocByDocId(@PathVariable String id, @PathVariable("docId") String docId) {
         return R.success(documentService.getById(docId));
     }
 
-    @SaCheckPermission("DATASET:EDIT")
-    @PutMapping("/dataset/{id}/document/{docId}/refresh")
+   // @SaCheckPermission("DATASET:EDIT")
+    @PutMapping("/knowledge/{id}/document/{docId}/refresh")
     public R<Boolean> refresh(@PathVariable String id, @PathVariable("docId") String docId) {
         return R.success(documentService.embedByDocIds(List.of(docId)));
     }
 
-    @SaCheckPermission("DATASET:EDIT")
-    @PutMapping("/dataset/{id}/document/batch_refresh")
+   // @SaCheckPermission("DATASET:EDIT")
+    @PutMapping("/knowledge/{id}/document/batch_refresh")
     public R<Boolean> batchRefresh(@PathVariable String id, @RequestBody DatasetBatchHitHandlingDTO dto) {
         return R.success(documentService.embedByDocIds(dto.getIdList()));
     }
 
-    @SaCheckPermission("DATASET:EDIT")
-    @PutMapping("/dataset/{id}/document/{docId}/cancel_task")
+  //  @SaCheckPermission("DATASET:EDIT")
+    @PutMapping("/knowledge/{id}/document/{docId}/cancel_task")
     public R<Boolean> cancelTask(@PathVariable String id, @PathVariable("docId") String docId, @RequestBody DocumentEntity documentEntity) {
         return R.success(documentService.cancelTask(docId, documentEntity));
     }
 
-    @SaCheckPermission("DATASET:EDIT")
-    @PutMapping("/dataset/{id}/document/{docId}")
+  //  @SaCheckPermission("DATASET:EDIT")
+    @PutMapping("/knowledge/{id}/document/{docId}")
     public R<DocumentEntity> updateDocByDocId(@PathVariable String id, @PathVariable("docId") String docId, @RequestBody DocumentEntity documentEntity) {
         return R.success(documentService.updateDocByDocId(docId, documentEntity));
     }
 
-    @SaCheckPermission("DATASET:DELETE")
-    @DeleteMapping("/dataset/{id}/document/{docId}")
+  //  @SaCheckPermission("DATASET:DELETE")
+    @DeleteMapping("/knowledge/{id}/document/{docId}")
     public R<Boolean> deleteDoc(@PathVariable("id") String id, @PathVariable("docId") String docId) {
         return R.success(documentService.deleteDoc(docId));
     }
 
-    @SaCheckPermission("DATASET:READ")
-    @GetMapping("/dataset/{id}/document/{page}/{size}")
+  //  @SaCheckPermission("DATASET:READ")
+    @GetMapping("/knowledge/{id}/document/{page}/{size}")
     public R<IPage<DocumentVO>> pageDocByDatasetId(@PathVariable String id, @PathVariable("page") int page, @PathVariable("size") int size, Query query) {
         return R.success(documentService.getDocByDatasetId(id, page, size, query));
     }
