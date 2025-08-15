@@ -6,19 +6,13 @@ import com.tarzan.maxkb4j.core.api.R;
 import com.tarzan.maxkb4j.core.form.BaseFiled;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelEntity;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
-import com.tarzan.maxkb4j.module.model.info.vo.KeyAndValueVO;
 import com.tarzan.maxkb4j.module.model.info.vo.ModelVO;
 import com.tarzan.maxkb4j.module.model.provider.IModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.enums.ModelProviderEnum;
-import com.tarzan.maxkb4j.module.model.provider.enums.ModelTypeEnum;
-import com.tarzan.maxkb4j.module.model.provider.vo.ModelInfo;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * @author tarzan
@@ -30,36 +24,6 @@ import java.util.stream.Collectors;
 public class ModelController{
 
 	private final ModelService modelService;
-
-
-	//@SaCheckPermission("MODEL:READ")
-	@GetMapping("/provider/model_type_list")
-	public R<List<KeyAndValueVO>> modelTypeList(String provider){
-		IModelProvider modelProvider=ModelProviderEnum.get(provider);
-		List<ModelInfo> modelInfos=modelProvider.getModelList();
-		List<KeyAndValueVO> list= ModelTypeEnum.getModelTypeList();
-		Map<String,List<ModelInfo>> map=modelInfos.stream().collect(Collectors.groupingBy(ModelInfo::getModelType));
-		Set<String> keys=map.keySet();
-        list.removeIf(e -> !keys.contains(e.getValue()));
-		return R.success(list);
-	}
-
-	//@SaCheckPermission("MODEL:READ")
-	@GetMapping("/provider/model_list")
-	public R<List<ModelInfo>> modelList(String provider, String modelType){
-		IModelProvider modelProvider=ModelProviderEnum.get(provider);
-		List<ModelInfo> modelInfos=modelProvider.getModelList();
-		List<ModelInfo>  modelList=modelInfos.stream().filter(e->e.getModelType().equals(modelType)).toList();
-		return R.success(modelList);
-	}
-
-
-	//@SaCheckPermission("MODEL:READ")
-	@GetMapping("/provider/model_form")
-	public R<List<BaseFiled>> modelForm(String provider, String modelType, String modelName){
-		IModelProvider modelProvider=ModelProviderEnum.get(provider);
-		return R.success(modelProvider.getModelCredential().toForm());
-	}
 
 	//@SaCheckPermission("MODEL:READ")
 	@GetMapping("/provider/model_params_form")

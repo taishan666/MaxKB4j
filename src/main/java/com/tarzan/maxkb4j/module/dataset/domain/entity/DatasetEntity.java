@@ -22,7 +22,7 @@ public class DatasetEntity extends BaseEntity {
     
     private String desc;
     
-    private String type;
+    private Integer type;
     @TableField(typeHandler = JOSNBTypeHandler.class)
     private JSONObject meta;
     
