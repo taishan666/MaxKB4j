@@ -1,6 +1,7 @@
 package com.tarzan.maxkb4j.module.model.info.controller;
 
 import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.constant.AppConst;
 import com.tarzan.maxkb4j.core.api.R;
 import com.tarzan.maxkb4j.core.form.BaseFiled;
@@ -46,8 +47,12 @@ public class ModelController{
 	}
 
 	@GetMapping("/model_list")
-	public R<List<ModelVO>> modelList(String name, String createUser, String permissionType, String modelType,String provider){
-		return R.success(modelService.models(name,createUser,permissionType,modelType,provider));
+	public R<JSONObject> modelList(String name, String createUser, String permissionType, String modelType, String provider){
+		List<ModelVO> models=modelService.models(name,createUser,permissionType,modelType,provider);
+		JSONObject result=new JSONObject();
+		result.put("model",models);
+		result.put("shared_model",models);
+		return R.success(result);
 	}
 
 	//@SaCheckPermission("MODEL:READ")
