@@ -55,9 +55,9 @@ public class BaseApplicationNode extends INode {
         detail.put("answer", context.get("answer"));
         detail.put("messageTokens", context.get("messageTokens"));
         detail.put("answerTokens", context.get("answerTokens"));
-        detail.put("image_list", context.get("image"));
-        detail.put("document_list", context.get("document"));
-        detail.put("audio_list", context.get("audio"));
+        detail.put("imageList", context.get("image"));
+        detail.put("documentList", context.get("document"));
+        detail.put("audioList", context.get("audio"));
         detail.put("global_fields", properties.get("globalFields"));
         detail.put("application_node_dict", context.get("application_node_dict"));
         return  detail;

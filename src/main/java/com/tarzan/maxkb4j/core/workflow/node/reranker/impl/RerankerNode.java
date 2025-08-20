@@ -73,7 +73,7 @@ public class RerankerNode extends INode {
         }
         return new NodeResult(Map.of("result_list", resultList,
                 "result",sb.toString(),
-                "document_list", documents,
+                "documentList", documents,
                 "question",question), Map.of());
     }
 
@@ -117,11 +117,11 @@ public class RerankerNode extends INode {
     @Override
     public JSONObject getDetail() {
         JSONObject detail = new JSONObject();
-        detail.put("document_list", context.get("document_list"));
+        detail.put("documentList", context.get("documentList"));
         detail.put("question", context.get("question"));
         detail.put("reranker_setting", context.get("content"));
         detail.put("result", context.get("answer"));
-        detail.put("result_list", context.get("audio_list"));
+        detail.put("result_list", context.get("audioList"));
         return detail;
     }
 

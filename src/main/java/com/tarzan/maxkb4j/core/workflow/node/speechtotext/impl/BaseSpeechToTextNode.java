@@ -43,7 +43,7 @@ public class BaseSpeechToTextNode extends INode {
             String result = sttModel.speechToText(data,suffix);
             sb.append(result);
         }
-        return new NodeResult(Map.of("answer", sb.toString(), "result", sb.toString(), "audio_list", audioList), Map.of());
+        return new NodeResult(Map.of("answer", sb.toString(), "result", sb.toString(), "audioList", audioList), Map.of());
     }
 
     @Override
@@ -51,7 +51,7 @@ public class BaseSpeechToTextNode extends INode {
         JSONObject detail = new JSONObject();
         detail.put("content", context.get("content"));
         detail.put("answer", context.get("answer"));
-        detail.put("audio_list", context.get("audio_list"));
+        detail.put("audioList", context.get("audioList"));
         return detail;
     }
 

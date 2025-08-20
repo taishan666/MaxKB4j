@@ -71,6 +71,11 @@ public class ApplicationChatController {
         return R.success(chatService.chatOpenTest(application));
     }
 
+    @GetMapping("/{appId}/open")
+    public R<String> open(@PathVariable("appId") String appId) {
+        return R.success(chatService.chatOpen(appId));
+    }
+
     @GetMapping("/{appId}/chat/open")
     public R<String> chatOpen(@PathVariable("appId") String appId) {
         return R.success(chatService.chatOpen(appId));
