@@ -9,10 +9,8 @@ import com.tarzan.maxkb4j.module.application.domian.dto.ChatMessageDTO;
 import com.tarzan.maxkb4j.module.application.domian.dto.ChatQueryDTO;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatEntity;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatRecordEntity;
-import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationEntity;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationChatRecordVO;
 import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
-import com.tarzan.maxkb4j.module.application.enums.AppType;
 import com.tarzan.maxkb4j.module.application.service.ApplicationChatService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
@@ -60,20 +58,20 @@ public class ApplicationChatController {
         return R.success(chatService.deleteById(chatId));
     }
 
-    @PostMapping("/chat/open")
+/*    @PostMapping("/chat/open")
     public R<String> chatOpenTest(@RequestBody ApplicationEntity application) {
         return R.success(chatService.chatOpenTest(application));
     }
 
     @PostMapping("/chat_workflow/open")
     public R<String> chatWorkflowOpenTest(@RequestBody ApplicationEntity application) {
-        application.setType(AppType.WORKFLOW.name());
+        application.setType(AppType.WORK_FLOW.name());
         return R.success(chatService.chatOpenTest(application));
-    }
+    }*/
 
     @GetMapping("/{appId}/open")
     public R<String> open(@PathVariable("appId") String appId) {
-        return R.success(chatService.chatOpen(appId));
+        return R.success(chatService.chatOpenTest(appId));
     }
 
     @GetMapping("/{appId}/chat/open")

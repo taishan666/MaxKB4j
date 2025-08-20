@@ -1,5 +1,6 @@
 package com.tarzan.maxkb4j.module.application.chat.actuator;
 
+import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.NodeFactory;
@@ -43,11 +44,7 @@ public class ChatFlowActuator extends ChatBaseActuator {
         application.setId(null);
         ApplicationWorkFlowVersionEntity workflowVersion = new ApplicationWorkFlowVersionEntity();
         workflowVersion.setWorkFlow(application.getWorkFlow());
-/*        application.setDialogueNumber(3);
-        application.setType(application.getType());
-        application.setUserId(StpUtil.getLoginIdAsString());*/
         chatInfo.setApplication(application);
-    //    chatInfo.setWorkFlowVersion(workflowVersion);
         LogicFlow logicFlow=LogicFlow.newInstance(application.getWorkFlow());
         List<LfNode> lfNodes=logicFlow.getNodes();
         List<INode> nodes=lfNodes.stream().filter(lfNode -> !lfNode.getType().equals("base-node")).map(NodeFactory::getNode).toList();
@@ -61,14 +58,19 @@ public class ChatFlowActuator extends ChatBaseActuator {
     public String chatOpen(ApplicationEntity application, String chatId) {
         ChatInfo chatInfo = new ChatInfo();
         chatInfo.setChatId(chatId);
-        ApplicationWorkFlowVersionEntity workFlowVersion = workFlowVersionService.lambdaQuery()
-                .eq(ApplicationWorkFlowVersionEntity::getApplicationId, application.getId())
-                .orderByDesc(ApplicationWorkFlowVersionEntity::getCreateTime)
-                .last("limit 1").one();
+        JSONObject workFlow=application.getWorkFlow();
+        if (workFlow == null){
+            ApplicationWorkFlowVersionEntity workFlowVersion = workFlowVersionService.lambdaQuery()
+                    .eq(ApplicationWorkFlowVersionEntity::getApplicationId, application.getId())
+                    .orderByDesc(ApplicationWorkFlowVersionEntity::getCreateTime)
+                    .last("limit 1").one();
+            workFlow=workFlowVersion.getWorkFlow();
+        }
+        //todo workFlow为null时，处理
         chatInfo.setApplication(application);
-        LogicFlow logicFlow=LogicFlow.newInstance(workFlowVersion.getWorkFlow());
+        LogicFlow logicFlow=LogicFlow.newInstance(workFlow);
         List<LfNode> lfNodes=logicFlow.getNodes();
-        List<INode> nodes=lfNodes.stream().filter(lfNode -> lfNode.getType().equals("base-node")).map(NodeFactory::getNode).toList();
+        List<INode> nodes=lfNodes.stream().filter(lfNode -> !lfNode.getType().equals("base-node")).map(NodeFactory::getNode).toList();
         chatInfo.setNodes(nodes);
         chatInfo.setEdges(logicFlow.getEdges());
         ChatCache.put(chatInfo.getChatId(), chatInfo);

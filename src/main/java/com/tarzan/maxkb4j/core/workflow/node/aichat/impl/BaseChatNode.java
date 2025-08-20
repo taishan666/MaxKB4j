@@ -57,7 +57,7 @@ public class BaseChatNode extends INode {
         System.out.println(AI_CHAT);
         ChatNodeParams nodeParams = super.nodeParams.toJavaObject(ChatNodeParams.class);
         if (Objects.isNull(nodeParams.getDialogueType())) {
-            nodeParams.setDialogueType("WORKFLOW");
+            nodeParams.setDialogueType("WORK_FLOW");
         }
         List<String> fields = nodeParams.getDatasetReferenceAddress();
         List<ParagraphVO> paragraphList = new ArrayList<>();

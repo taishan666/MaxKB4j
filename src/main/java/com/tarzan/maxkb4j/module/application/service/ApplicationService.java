@@ -411,14 +411,13 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
                     application.setName(nodeData.getString("name"));
                     application.setDesc(nodeData.getString("desc"));
                     application.setPrologue(nodeData.getString("prologue"));
-                    application.setFileUploadEnable(nodeData.getBoolean("file_upload_enable"));
-                    application.setFileUploadSetting(nodeData.getJSONObject("file_upload_setting"));
-                    application.setTtsModelEnable(nodeData.getBoolean("stt_model_enable"));
-                    application.setSttModelId(nodeData.getString("stt_model_id"));
-                    application.setTtsModelEnable(nodeData.getBoolean("tts_model_enable"));
-                    application.setTtsType(nodeData.getString("tts_type"));
-                    application.setTtsModelId(nodeData.getString("tts_model_id"));
-                    application.setTtsType(nodeData.getString("tts_type"));
+                    application.setFileUploadEnable(nodeData.getBoolean("fileUploadEnable"));
+                    application.setFileUploadSetting(nodeData.getJSONObject("fileUploadSetting"));
+                    application.setTtsModelEnable(nodeData.getBoolean("sttModelEnable"));
+                    application.setSttModelId(nodeData.getString("sttModelId"));
+                    application.setTtsModelEnable(nodeData.getBoolean("ttsModelEnable"));
+                    application.setTtsType(nodeData.getString("ttsType"));
+                    application.setTtsModelId(nodeData.getString("ttsModelId"));
                 }
             }
         }

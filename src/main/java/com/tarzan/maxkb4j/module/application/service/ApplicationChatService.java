@@ -65,25 +65,12 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
         return this.page(chatPage, wrapper);
     }
 
-    public String chatOpenTest(ApplicationEntity application) {
+    public String chatOpenTest(String appId) {
+        ApplicationEntity application = applicationMapper.selectById(appId);
         IChatActuator chatActuator= ChatActuatorBuilder.getActuator(application.getType());
         return chatActuator.chatOpenTest(application);
     }
 
-/*    public String chatWorkflowOpenTest(ApplicationEntity application) {
-        ChatInfo chatInfo = new ChatInfo();
-        chatInfo.setChatId(IdWorker.get32UUID());
-        application.setId(null);
-        ApplicationWorkFlowVersionEntity workflowVersion = new ApplicationWorkFlowVersionEntity();
-        workflowVersion.setWorkFlow(application.getWorkFlow());
-        application.setDialogueNumber(3);
-        application.setType(AppType.WORKFLOW.name());
-        application.setUserId(StpUtil.getLoginIdAsString());
-        chatInfo.setApplication(application);
-        chatInfo.setWorkFlowVersion(workflowVersion);
-        ChatCache.put(chatInfo.getChatId(), chatInfo);
-        return chatInfo.getChatId();
-    }*/
 
     public String chatOpen(String appId) {
        return chatOpen(appId,null);

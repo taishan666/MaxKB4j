@@ -38,7 +38,7 @@ public class BaseClassificationNode extends INode {
         System.out.println(CLASSIFICATION);
         ClassificationNodeParams nodeParams = super.nodeParams.toJavaObject(ClassificationNodeParams.class);
         if (Objects.isNull(nodeParams.getDialogueType())) {
-            nodeParams.setDialogueType("WORKFLOW");
+            nodeParams.setDialogueType("WORK_FLOW");
         }
         BaseChatModel chatModel = modelService.getModelById(nodeParams.getModelId(), nodeParams.getModelParamsSetting());
         List<String> questionFields=nodeParams.getQuestionReferenceAddress();
