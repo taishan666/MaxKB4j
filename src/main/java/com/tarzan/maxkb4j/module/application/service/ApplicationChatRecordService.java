@@ -69,9 +69,7 @@ public class ApplicationChatRecordService extends ServiceImpl<ApplicationChatRec
                 chatRecordVO.setPaddingProblemText(problemPadding.getString("padding_problem_text"));
             }
             List<JSONObject> executionDetails= new ArrayList<>();
-            details.keySet().forEach(key->{
-                executionDetails.add(details.getJSONObject(key));
-            });
+            details.keySet().forEach(key-> executionDetails.add(details.getJSONObject(key)));
             Collections.reverse(executionDetails);
             chatRecordVO.setExecutionDetails(executionDetails);
         }
@@ -91,7 +89,10 @@ public class ApplicationChatRecordService extends ServiceImpl<ApplicationChatRec
     public List<ApplicationStatisticsVO> statistics(String appId, ChatQueryDTO query) {
         List<ApplicationStatisticsVO> result = new ArrayList<>();
         List<ApplicationStatisticsVO> list = baseMapper.statistics(appId, query);
-        List<ApplicationPublicAccessClientStatisticsVO> AccessClientList = publicAccessClientService.statistics(appId, query);
+        List<ApplicationPublicAccessClientStatisticsVO> accessClientList = publicAccessClientService.statistics(appId, query);
+        if (Objects.isNull(query.getStartTime())||Objects.isNull(query.getEndTime())){
+            return result;
+        }
         // 将字符串解析为LocalDate对象
         LocalDate startDate = LocalDate.parse(query.getStartTime(), formatter);
         LocalDate endDate = LocalDate.parse(query.getEndTime(), formatter);
@@ -99,10 +100,7 @@ public class ApplicationChatRecordService extends ServiceImpl<ApplicationChatRec
         for (LocalDate date = startDate; !date.isAfter(endDate); date = date.plusDays(1)) {
             String day = date.format(formatter);
             ApplicationStatisticsVO vo = getApplicationStatisticsVO(list, day);
-            ApplicationPublicAccessClientStatisticsVO accessClientStatisticsVO = getApplicationPublicAccessClientStatisticsVO(AccessClientList, day);
-            if (accessClientStatisticsVO != null) {
-                vo.setCustomerAddedCount(accessClientStatisticsVO.getCustomerAddedCount());
-            }
+            vo.setCustomerAddedCount(getCustomerAddedCount(accessClientList,day));
             result.add(vo);
         }
         return result;
@@ -125,13 +123,13 @@ public class ApplicationChatRecordService extends ServiceImpl<ApplicationChatRec
         return vo;
     }
 
-    public ApplicationPublicAccessClientStatisticsVO getApplicationPublicAccessClientStatisticsVO(List<ApplicationPublicAccessClientStatisticsVO> list, String day) {
+    public int getCustomerAddedCount(List<ApplicationPublicAccessClientStatisticsVO> list, String day) {
         if (!CollectionUtils.isEmpty(list)) {
             Optional<ApplicationPublicAccessClientStatisticsVO> optional = list.stream().filter(e -> e.getDay().equals(day)).findFirst();
             if (optional.isPresent()) {
-                return optional.get();
+                return optional.get().getCustomerAddedCount();
             }
         }
-        return null;
+        return 0;
     }
 }

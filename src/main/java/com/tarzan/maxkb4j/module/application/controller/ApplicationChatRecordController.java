@@ -40,6 +40,11 @@ public class ApplicationChatRecordController {
         return R.success(chatRecordService.statistics(appId, query));
     }
 
+    @GetMapping("/application/{appId}/application_stats")
+    public R<List<ApplicationStatisticsVO>> applicationStats(@PathVariable("appId") String appId, ChatQueryDTO query) {
+        return R.success(chatRecordService.statistics(appId, query));
+    }
+
 
 
 }

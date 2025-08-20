@@ -5,5 +5,6 @@ import lombok.Data;
 @Data
 public class ApplicationPublicAccessClientStatisticsVO {
     private String day;
+    //计数器
     private Integer customerAddedCount;
 }
