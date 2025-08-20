@@ -1,5 +1,6 @@
 package com.tarzan.maxkb4j.module.functionlib.domain.entity;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
@@ -30,8 +31,8 @@ public class FunctionLibEntity extends BaseEntity {
     @TableField(typeHandler = FunctionInputParamsTypeHandler.class)
     private List<FunctionInputField> inputFieldList;
 
-    @TableField(typeHandler = FunctionInputParamsTypeHandler.class)
-    private List<FunctionInputField> initFieldList;
+    @TableField(typeHandler = JOSNBTypeHandler.class)
+    private JSONArray initFieldList;
 
     @TableField(typeHandler = JOSNBTypeHandler.class)
     private JSONObject initParams;
