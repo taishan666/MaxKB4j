@@ -77,7 +77,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
 
     private final ModelService modelService;
     private final DatasetService datasetService;
-    private final McpLibService  mcpLibService;
+    private final McpLibService mcpLibService;
     private final ImageService imageService;
     private final UserService userService;
     private final RetrieveService retrieveService;
@@ -294,9 +294,9 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         ApplicationVO vo = BeanUtil.copy(entity, ApplicationVO.class);
         List<String> datasetIds = datasetMappingService.getDatasetIdsByAppId(appId);
         vo.setDatasetIdList(datasetIds);
-        List<String> mcpIds =mcpMappingService.getMcpIdsByAppId(appId);
+        List<String> mcpIds = mcpMappingService.getMcpIdsByAppId(appId);
         vo.setMcpIdList(mcpIds);
-        List<String> functionIds =functionMappingService.getFunctionIdsByAppId(appId);
+        List<String> functionIds = functionMappingService.getFunctionIdsByAppId(appId);
         vo.setFunctionIdList(functionIds);
         vo.setModel(entity.getModelId());
         vo.setSttModel(entity.getSttModelId());
@@ -384,7 +384,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         if (app.getTtsModelId() == null) {
             return new byte[0];
         }
-        BaseTextToSpeech ttsModel = modelService.getModelById(app.getTtsModelId(),app.getTtsModelParamsSetting());
+        BaseTextToSpeech ttsModel = modelService.getModelById(app.getTtsModelId(), app.getTtsModelParamsSetting());
         return ttsModel.textToSpeech(text);
     }
 
@@ -421,14 +421,18 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
                 }
             }
         }
-        datasetMappingService.updateByAppId(appId,appVO.getDatasetIdList());
-        mcpMappingService.updateByAppId(appId,appVO.getMcpIdList());
-        functionMappingService.updateByAppId(appId,appVO.getFunctionIdList());
+        datasetMappingService.updateByAppId(appId, appVO.getDatasetIdList());
+        mcpMappingService.updateByAppId(appId, appVO.getMcpIdList());
+        functionMappingService.updateByAppId(appId, appVO.getFunctionIdList());
         return this.updateById(application);
     }
 
-    public Boolean publish(String id, JSONObject workflow) {
-        if (Objects.nonNull(workflow) && workflow.containsKey("workFlow")) {
+    public Boolean publish(String id, JSONObject params) {
+        ApplicationEntity application = new ApplicationEntity();
+        application.setId(id);
+        application.setIsPublish(true);
+        application.setPublishTime(new Date());
+       /* if (Objects.nonNull(workflow) && workflow.containsKey("workFlow")) {
             ApplicationEntity application = this.getById(id);
             long count = workFlowVersionService.count(Wrappers.<ApplicationWorkFlowVersionEntity>lambdaQuery().eq(ApplicationWorkFlowVersionEntity::getApplicationId, id));
             ApplicationWorkFlowVersionEntity entity = new ApplicationWorkFlowVersionEntity();
@@ -438,8 +442,8 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
             entity.setPublishUserId(StpUtil.getLoginIdAsString());
             entity.setPublishUserName((String) StpUtil.getExtra("username"));
             return workFlowVersionService.save(entity);
-        }
-        return false;
+        }*/
+        return this.updateById(application);
 
     }
 
@@ -491,7 +495,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         return flag;
     }
 
-    public List<McpToolVO> convert(String serverName,List<ToolSpecification> tools) {
+    public List<McpToolVO> convert(String serverName, List<ToolSpecification> tools) {
         return tools.stream().map(tool -> {
             McpToolVO vo = new McpToolVO();
             vo.setServer(serverName);
@@ -519,13 +523,13 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
                 } else if (v instanceof JsonEnumSchema schema) {
                     property.put("type", "enum");
                     property.put("description", schema.description());
-                }else if (v instanceof JsonIntegerSchema schema) {
+                } else if (v instanceof JsonIntegerSchema schema) {
                     property.put("type", "int");
                     property.put("description", schema.description());
-                }else if (v instanceof JsonAnyOfSchema schema) {
+                } else if (v instanceof JsonAnyOfSchema schema) {
                     property.put("type", "any");
                     property.put("description", schema.description());
-                }else if (v instanceof JsonReferenceSchema schema) {
+                } else if (v instanceof JsonReferenceSchema schema) {
                     property.put("type", "reference");
                     property.put("description", schema.reference());
                 } else {
@@ -552,7 +556,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         McpClient mcpClient = new DefaultMcpClient.Builder()
                 .transport(transport)
                 .build();
-        List<ToolSpecification> tools=mcpClient.listTools();
+        List<ToolSpecification> tools = mcpClient.listTools();
         System.out.println(tools);
         return new ArrayList<>(convert("", tools));
     }
@@ -561,8 +565,8 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     public String speechToText(String appId, MultipartFile file) throws IOException {
         ApplicationEntity app = this.getById(appId);
         BaseSpeechToText sttModel = modelService.getModelById(app.getSttModelId());
-        String suffix= Objects.requireNonNull(file.getContentType()).split("/")[1];
-        return sttModel.speechToText(file.getBytes(),suffix);
+        String suffix = Objects.requireNonNull(file.getContentType()).split("/")[1];
+        return sttModel.speechToText(file.getBytes(), suffix);
     }
 
     public void embed(EmbedDTO dto, HttpServletResponse response) throws IOException {
@@ -620,7 +624,8 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     public List<FunctionLibEntity> functionLib(String appId) {
         return functionLibService.list();
     }
-    public FunctionLibEntity functionLib(String appId,  String functionId) {
+
+    public FunctionLibEntity functionLib(String appId, String functionId) {
         return functionLibService.getById(functionId);
     }
 

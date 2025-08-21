@@ -110,8 +110,8 @@ public class ApplicationController {
 
    // @SaCheckPermission("APPLICATION:EDIT")
     @PutMapping("/application/{id}/publish")
-    public R<Boolean> publish(@PathVariable("id") String id, @RequestBody JSONObject workflow) {
-        return R.success(applicationService.publish(id, workflow));
+    public R<Boolean> publish(@PathVariable("id") String id, @RequestBody JSONObject params) {
+        return R.success(applicationService.publish(id, params));
     }
 
    // @SaCheckPermission("APPLICATION:READ")

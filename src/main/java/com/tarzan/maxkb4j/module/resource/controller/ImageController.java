@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @date 2025-01-21 09:35:03
  */
 @RestController
-@RequestMapping(AppConst.BASE_PATH)
+@RequestMapping(AppConst.ADMIN_PATH)
 @AllArgsConstructor
 public class ImageController{
 

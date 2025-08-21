@@ -10,6 +10,7 @@ import com.tarzan.maxkb4j.core.handler.type.LlmModelSettingTypeHandler;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -64,6 +65,10 @@ public class ApplicationEntity extends BaseEntity {
     private Boolean ttsAutoplay;
 
     private String ttsType;
+
+    private Boolean isPublish;
+
+    private Date publishTime;
 
     private String problemOptimizationPrompt;
 
