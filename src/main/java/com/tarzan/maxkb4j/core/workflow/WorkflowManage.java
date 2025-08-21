@@ -254,22 +254,24 @@ public class WorkflowManage {
 
 
     public String generatePrompt(String prompt) {
-        prompt = prompt == null ? "" : prompt;
-        if (StringUtils.isNotBlank(prompt)) {
-            prompt = this.resetPrompt(prompt);
-            Set<String> promptVariables = extractVariables(prompt);
+        if (StringUtils.isBlank(prompt)) {
+            return "";
+        }
+        prompt = this.resetPrompt(prompt);
+        Set<String> promptVariables = extractVariables(prompt);
+        if (!promptVariables.isEmpty()) {
             Map<String, Object> context = this.getWorkflowContent();
-            Map<String, Object> variables = flattenMap(context);
+            Map<String, Object> contextVariables = flattenMap(context);
+            Map<String, Object> variables = new HashMap<>();
             for (String promptVariable : promptVariables) {
-                if (!variables.containsKey(promptVariable)) {
-                    variables.put(promptVariable, "");
-                }
+                variables.put(promptVariable, contextVariables.getOrDefault(promptVariable, "*"));
             }
             PromptTemplate promptTemplate = PromptTemplate.from(prompt);
             return promptTemplate.apply(variables).text();
         }
         return prompt;
     }
+
 
     public Map<String, Object> flattenMap(Map<String, Object> inputMap) {
         Map<String, Object> result = new HashMap<>();
@@ -351,7 +353,7 @@ public class WorkflowManage {
 
     // 重置提示词的方法
     public String resetPrompt(String prompt) {
-        for (INode node : nodes) { // 假设getNodes()返回节点列表
+        for (INode node : nodes) {
             JSONObject properties = node.getProperties();
             JSONObject nodeConfig = properties.getJSONObject("config");
             if (nodeConfig != null) {
