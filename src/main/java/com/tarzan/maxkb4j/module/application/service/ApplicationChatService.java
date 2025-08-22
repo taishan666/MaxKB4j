@@ -21,9 +21,9 @@ import com.tarzan.maxkb4j.module.application.domian.dto.ChatMessageDTO;
 import com.tarzan.maxkb4j.module.application.domian.dto.ChatQueryDTO;
 import com.tarzan.maxkb4j.module.application.domian.entity.*;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationChatRecordVO;
+import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationVO;
 import com.tarzan.maxkb4j.module.application.domian.vo.ChatRecordDetailVO;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatMapper;
-import com.tarzan.maxkb4j.module.application.mapper.ApplicationMapper;
 import com.tarzan.maxkb4j.module.resource.service.MongoFileService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
@@ -44,10 +44,10 @@ import java.util.List;
 @AllArgsConstructor
 public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, ApplicationChatEntity>{
 
-    private final ApplicationMapper applicationMapper;
     private final ApplicationDatasetMappingService datasetMappingService;
     private final ApplicationVersionService applicationVersionService;
     private final ApplicationChatRecordService chatRecordService;
+    private final ApplicationService applicationService;
     private final MongoFileService fileService;
 
 
@@ -66,7 +66,7 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
     }
 
     public String chatOpenTest(String appId) {
-        ApplicationEntity application = applicationMapper.selectById(appId);
+        ApplicationVO application = applicationService.getDetail(appId);
         IChatActuator chatActuator= ChatActuatorBuilder.getActuator(application.getType());
         return chatActuator.chatOpenTest(application);
     }
@@ -77,7 +77,7 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
     }
 
     public String chatOpen(String appId,String chatId) {
-        ApplicationEntity application = applicationMapper.selectById(appId);
+        ApplicationVO application = applicationService.getDetail(appId);
         if (StringUtils.isBlank(chatId)){
             chatId=IdWorker.get32UUID();
         }
@@ -92,7 +92,7 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
         }
         ChatInfo chatInfo = new ChatInfo();
         chatInfo.setChatId(chatId);
-        ApplicationEntity application = applicationMapper.selectById(chatEntity.getApplicationId());
+        ApplicationEntity application = applicationService.getDetail(chatEntity.getApplicationId());
         List<ApplicationDatasetMappingEntity> list = datasetMappingService.lambdaQuery().eq(ApplicationDatasetMappingEntity::getApplicationId, application.getId()).list();
         application.setKnowledgeIdList(list.stream().map(ApplicationDatasetMappingEntity::getDatasetId).toList());
         chatInfo.setApplication(application);

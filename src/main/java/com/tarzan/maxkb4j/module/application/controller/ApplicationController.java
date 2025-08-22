@@ -122,13 +122,13 @@ public class ApplicationController {
     //@SaCheckPermission("APPLICATION:READ")
     @GetMapping("/application/{id}")
     public R<ApplicationVO> getByAppId(@PathVariable("id") String id) {
-        return R.success(applicationService.getAppById(id));
+        return R.success(applicationService.getDetail(id));
     }
 
    // @SaCheckPermission("APPLICATION:READ")
     @GetMapping("/application/{id}/application/{appId}")
     public R<ApplicationVO> application(@PathVariable("id") String id,@PathVariable("appId") String appId) {
-        return R.success(applicationService.getAppById(appId));
+        return R.success(applicationService.getDetail(appId));
     }
 
 

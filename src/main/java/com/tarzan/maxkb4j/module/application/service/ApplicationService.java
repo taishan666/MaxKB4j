@@ -22,6 +22,7 @@ import com.tarzan.maxkb4j.module.application.domian.entity.*;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationVO;
 import com.tarzan.maxkb4j.module.application.domian.vo.McpToolVO;
 import com.tarzan.maxkb4j.module.application.enums.AuthType;
+import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatMapper;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationMapper;
 import com.tarzan.maxkb4j.module.dataset.domain.dto.DataSearchDTO;
 import com.tarzan.maxkb4j.module.dataset.domain.entity.DatasetEntity;
@@ -92,7 +93,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     private final ApplicationMcpMappingService mcpMappingService;
     private final ApplicationFunctionMappingService functionMappingService;
     private final ApplicationChatRecordService applicationChatRecordService;
-    private final ApplicationChatService applicationChatService;
+    private final ApplicationChatMapper applicationChatMapper;
     private final FunctionLibService functionLibService;
 
     public IPage<ApplicationVO> selectAppPage(int page, int size, Query query) {
@@ -178,9 +179,9 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         datasetMappingService.remove(Wrappers.<ApplicationDatasetMappingEntity>lambdaQuery().eq(ApplicationDatasetMappingEntity::getApplicationId, appId));
         mcpMappingService.remove(Wrappers.<ApplicationMcpMappingEntity>lambdaQuery().eq(ApplicationMcpMappingEntity::getApplicationId, appId));
         functionMappingService.remove(Wrappers.<ApplicationFunctionMappingEntity>lambdaQuery().eq(ApplicationFunctionMappingEntity::getApplicationId, appId));
-        List<String> chatIds = applicationChatService.list(Wrappers.<ApplicationChatEntity>lambdaQuery().eq(ApplicationChatEntity::getApplicationId, appId)).stream().map(ApplicationChatEntity::getId).toList();
+        List<String> chatIds = applicationChatMapper.selectList(Wrappers.<ApplicationChatEntity>lambdaQuery().eq(ApplicationChatEntity::getApplicationId, appId)).stream().map(ApplicationChatEntity::getId).toList();
         if (!CollectionUtils.isEmpty(chatIds)) {
-            applicationChatService.remove(Wrappers.<ApplicationChatEntity>lambdaQuery().eq(ApplicationChatEntity::getApplicationId, appId));
+            applicationChatMapper.delete(Wrappers.<ApplicationChatEntity>lambdaQuery().eq(ApplicationChatEntity::getApplicationId, appId));
             applicationChatRecordService.remove(Wrappers.<ApplicationChatRecordEntity>lambdaQuery().in(ApplicationChatRecordEntity::getChatId, chatIds));
         }
         return this.removeById(appId);
@@ -292,17 +293,17 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         return paragraphService.saveBatch(paragraphs);
     }
 
-    public ApplicationVO getAppById(String appId) {
-        ApplicationEntity entity = this.getById(appId);
+    public ApplicationVO getDetail(String id) {
+        ApplicationEntity entity = this.getById(id);
         if (entity == null) {
             return null;
         }
         ApplicationVO vo = BeanUtil.copy(entity, ApplicationVO.class);
-        List<String> datasetIds = datasetMappingService.getDatasetIdsByAppId(appId);
+        List<String> datasetIds = datasetMappingService.getDatasetIdsByAppId(id);
         vo.setKnowledgeIdList(datasetIds);
-        List<String> mcpIds = mcpMappingService.getMcpIdsByAppId(appId);
+        List<String> mcpIds = mcpMappingService.getMcpIdsByAppId(id);
         vo.setMcpIdList(mcpIds);
-        List<String> functionIds = functionMappingService.getFunctionIdsByAppId(appId);
+        List<String> functionIds = functionMappingService.getFunctionIdsByAppId(id);
         vo.setFunctionIdList(functionIds);
         vo.setKnowledgeList(datasetService.listByIds(datasetIds));
         return vo;

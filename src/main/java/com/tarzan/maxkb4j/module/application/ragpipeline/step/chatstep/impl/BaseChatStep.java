@@ -252,6 +252,7 @@ public class BaseChatStep extends IChatStep {
         details.put("step_type", "chat_step");
         details.put("runTime", (System.currentTimeMillis() - startTime) / 1000F);
         details.put("modelId", context.get("modelId"));
+        //todo message_list
         details.put("message_list", resetMessageList(context.getJSONArray("message_list"), context.getString("answer_text")));
         details.put("messageTokens", context.getOrDefault("messageTokens", 0));
         details.put("answerTokens", context.getOrDefault("answerTokens", 0));
