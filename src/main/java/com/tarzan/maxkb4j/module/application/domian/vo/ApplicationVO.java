@@ -11,4 +11,5 @@ import java.util.List;
 @Data
 public class ApplicationVO extends ApplicationEntity {
     private List<DatasetEntity> knowledgeList;
+    private String nickname;
 }

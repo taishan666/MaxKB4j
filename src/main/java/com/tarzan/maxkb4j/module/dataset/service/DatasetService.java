@@ -25,6 +25,7 @@ import com.tarzan.maxkb4j.module.dataset.mapper.DocumentMapper;
 import com.tarzan.maxkb4j.module.dataset.mapper.ProblemParagraphMapper;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelEntity;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
+import com.tarzan.maxkb4j.module.system.user.service.UserService;
 import com.tarzan.maxkb4j.util.BeanUtil;
 import dev.langchain4j.data.document.Document;
 import dev.langchain4j.data.document.DocumentParser;
@@ -75,13 +76,17 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
     private final DataIndexService dataIndexService;
     private final ModelService modelService;
     private final DocumentService documentService;
+    private final UserService userService;
 
 
     public IPage<DatasetVO> selectDatasetPage(Page<DatasetVO> datasetPage, Query query) {
         if (Objects.isNull(query.getSelectUserId())) {
             query.setSelectUserId(StpUtil.getLoginIdAsString());
         }
-        return baseMapper.selectDatasetPage(datasetPage, query, "USE");
+        IPage<DatasetVO>  page= baseMapper.selectDatasetPage(datasetPage, query, "USE");
+        Map<String, String> nicknameMap=userService.getNicknameMap();
+        page.getRecords().forEach(vo->vo.setNickname(nicknameMap.get(vo.getUserId())));
+        return page;
     }
 
     public List<DatasetEntity> getByUserId(String userId) {

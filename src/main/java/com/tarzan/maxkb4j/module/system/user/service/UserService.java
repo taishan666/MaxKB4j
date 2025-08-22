@@ -24,8 +24,8 @@ import com.tarzan.maxkb4j.module.system.user.domain.dto.PasswordDTO;
 import com.tarzan.maxkb4j.module.system.user.domain.dto.UserDTO;
 import com.tarzan.maxkb4j.module.system.user.domain.dto.UserLoginDTO;
 import com.tarzan.maxkb4j.module.system.user.domain.entity.UserEntity;
-import com.tarzan.maxkb4j.module.system.user.mapper.UserMapper;
 import com.tarzan.maxkb4j.module.system.user.domain.vo.UserVO;
+import com.tarzan.maxkb4j.module.system.user.mapper.UserMapper;
 import com.tarzan.maxkb4j.util.BeanUtil;
 import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -38,6 +38,7 @@ import org.thymeleaf.context.Context;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * @author tarzan
@@ -322,5 +323,9 @@ public class UserService extends ServiceImpl<UserMapper, UserEntity> {
     public UserEntity validUserById(String id) {
         //todo
         return this.getById(id);
+    }
+
+    public Map<String, String> getNicknameMap() {
+        return this.lambdaQuery().select(UserEntity::getId, UserEntity::getNickname).list().stream().collect(Collectors.toMap(UserEntity::getId, UserEntity::getNickname));
     }
 }

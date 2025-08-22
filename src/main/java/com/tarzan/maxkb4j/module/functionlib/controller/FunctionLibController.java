@@ -8,6 +8,7 @@ import com.tarzan.maxkb4j.core.api.R;
 import com.tarzan.maxkb4j.module.functionlib.domain.dto.FunctionDebugField;
 import com.tarzan.maxkb4j.module.functionlib.domain.dto.FunctionLibDTO;
 import com.tarzan.maxkb4j.module.functionlib.domain.entity.FunctionLibEntity;
+import com.tarzan.maxkb4j.module.functionlib.domain.vo.FunctionLibVO;
 import com.tarzan.maxkb4j.module.functionlib.service.FunctionLibService;
 import groovy.lang.Binding;
 import groovy.lang.GroovyShell;
@@ -30,7 +31,7 @@ public class FunctionLibController{
 	private	final FunctionLibService functionLibService;
 
 	@GetMapping("/workspace/default/tool/{current}/{size}")
-	public R<IPage<FunctionLibEntity>> page(@PathVariable int current, @PathVariable int size,String name) {
+	public R<IPage<FunctionLibVO>> page(@PathVariable int current, @PathVariable int size, String name) {
 		return R.success(functionLibService.pageList(current,size,name));
 	}
 

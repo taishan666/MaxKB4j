@@ -11,7 +11,6 @@ import com.tarzan.maxkb4j.module.model.info.entity.ModelEntity;
 import com.tarzan.maxkb4j.module.model.info.mapper.ModelMapper;
 import com.tarzan.maxkb4j.module.model.info.vo.ModelVO;
 import com.tarzan.maxkb4j.module.model.provider.ModelFactory;
-import com.tarzan.maxkb4j.module.system.user.domain.entity.UserEntity;
 import com.tarzan.maxkb4j.module.system.user.service.UserService;
 import com.tarzan.maxkb4j.util.BeanUtil;
 import lombok.AllArgsConstructor;
@@ -21,7 +20,6 @@ import org.springframework.stereotype.Service;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * @author tarzan
@@ -44,8 +42,7 @@ public class ModelService extends ServiceImpl<ModelMapper, ModelEntity> {
     }
 
     public List<ModelVO> models(String name, String createUser, String permissionType, String modelType, String provider) {
-        List<UserEntity> users = userService.lambdaQuery().select(UserEntity::getId, UserEntity::getUsername).list();
-        Map<String, String> userMap = users.stream().collect(Collectors.toMap(UserEntity::getId, UserEntity::getUsername));
+        Map<String, String> userMap = userService.getNicknameMap();
         LambdaQueryWrapper<ModelEntity> wrapper = Wrappers.lambdaQuery();
         wrapper.select(ModelEntity::getId,
                 ModelEntity::getName,
@@ -79,7 +76,7 @@ public class ModelService extends ServiceImpl<ModelMapper, ModelEntity> {
         List<ModelEntity> modelEntities = baseMapper.selectList(wrapper);
         if (CollectionUtils.isNotEmpty(modelEntities)) {
             List<ModelVO> models = BeanUtil.copyList(modelEntities, ModelVO.class);
-            models.forEach(model -> model.setUsername(userMap.get(model.getUserId())));
+            models.forEach(model -> model.setNickname(userMap.get(model.getUserId())));
             return models;
         }
         return Collections.emptyList();

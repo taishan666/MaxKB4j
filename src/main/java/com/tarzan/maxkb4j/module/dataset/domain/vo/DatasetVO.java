@@ -13,4 +13,5 @@ public class DatasetVO extends DatasetEntity {
     private int applicationMappingCount;
     private int documentCount;
     private List<String> applicationIdList;
+    private String nickname;
 }

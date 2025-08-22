@@ -95,7 +95,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     private final ApplicationChatService applicationChatService;
     private final FunctionLibService functionLibService;
 
-    public IPage<ApplicationEntity> selectAppPage(int page, int size, Query query) {
+    public IPage<ApplicationVO> selectAppPage(int page, int size, Query query) {
         String loginId = StpUtil.getLoginIdAsString();
         Page<ApplicationEntity> appPage = new Page<>(page, size);
         LambdaQueryWrapper<ApplicationEntity> wrapper = Wrappers.lambdaQuery();
@@ -111,7 +111,13 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
             wrapper.or().in(ApplicationEntity::getId, useTargetIds);
         }
         wrapper.orderByDesc(ApplicationEntity::getCreateTime);
-        return this.page(appPage, wrapper);
+        this.page(appPage, wrapper);
+        Map<String, String> nicknameMap=userService.getNicknameMap();
+        return PageUtil.copy(appPage,app->{
+            ApplicationVO vo = BeanUtil.copy(app, ApplicationVO.class);
+            vo.setNickname(nicknameMap.get(app.getUserId()));
+            return vo;
+        });
     }
 
     public List<ModelEntity> getAppModels(String appId, String modelType) {

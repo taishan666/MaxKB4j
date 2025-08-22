@@ -128,7 +128,7 @@ public class ApplicationController {
 
     //@SaCheckPermission("APPLICATION:READ")
     @GetMapping("/application/{page}/{size}")
-    public R<IPage<ApplicationEntity>> userApplications(@PathVariable("page") int page, @PathVariable("size") int size, Query query) {
+    public R<IPage<ApplicationVO>> userApplications(@PathVariable("page") int page, @PathVariable("size") int size, Query query) {
         return R.success(applicationService.selectAppPage(page, size, query));
     }
 
