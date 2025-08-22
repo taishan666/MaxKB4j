@@ -293,14 +293,12 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         }
         ApplicationVO vo = BeanUtil.copy(entity, ApplicationVO.class);
         List<String> datasetIds = datasetMappingService.getDatasetIdsByAppId(appId);
-        vo.setDatasetIdList(datasetIds);
+        vo.setKnowledgeIdList(datasetIds);
         List<String> mcpIds = mcpMappingService.getMcpIdsByAppId(appId);
         vo.setMcpIdList(mcpIds);
         List<String> functionIds = functionMappingService.getFunctionIdsByAppId(appId);
         vo.setFunctionIdList(functionIds);
-        vo.setModel(entity.getModelId());
-        vo.setSttModel(entity.getSttModelId());
-        vo.setTtsModel(entity.getTtsModelId());
+        vo.setKnowledgeList(datasetService.listByIds(datasetIds));
         return vo;
     }
 
@@ -421,7 +419,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
                 }
             }
         }
-        datasetMappingService.updateByAppId(appId, appVO.getDatasetIdList());
+        datasetMappingService.updateByAppId(appId, appVO.getKnowledgeIdList());
         mcpMappingService.updateByAppId(appId, appVO.getMcpIdList());
         functionMappingService.updateByAppId(appId, appVO.getFunctionIdList());
         return this.updateById(application);

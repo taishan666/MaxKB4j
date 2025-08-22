@@ -114,7 +114,7 @@ public class BaseChatStep extends IChatStep {
         String modelId = application.getModelId();
         super.context.put("modelId", modelId);
         JSONObject params = application.getModelParamsSetting();
-        DatasetSetting datasetSetting = application.getDatasetSetting();
+        DatasetSetting datasetSetting = application.getKnowledgeSetting();
         NoReferencesSetting noReferencesSetting = datasetSetting.getNoReferencesSetting();
         BaseChatModel chatModel = modelService.getModelById(modelId, params);
         if (chatModel == null) {

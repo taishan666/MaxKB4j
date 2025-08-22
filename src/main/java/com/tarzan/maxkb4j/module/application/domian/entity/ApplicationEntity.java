@@ -30,8 +30,8 @@ public class ApplicationEntity extends BaseEntity {
 
     private Integer dialogueNumber;
 
-    @TableField(typeHandler = DatasetSettingTypeHandler.class)
-    private DatasetSetting datasetSetting;
+    @TableField(typeHandler = DatasetSettingTypeHandler.class,value = "dataset_setting")
+    private DatasetSetting knowledgeSetting;
 
     @TableField(typeHandler = LlmModelSettingTypeHandler.class)
     private LlmModelSetting modelSetting;
@@ -84,7 +84,7 @@ public class ApplicationEntity extends BaseEntity {
     private JSONObject fileUploadSetting;
 
     @TableField(exist = false)
-    private List<String> datasetIdList;
+    private List<String> knowledgeIdList;
 
     @TableField(exist = false)
     private List<String> mcpIdList;

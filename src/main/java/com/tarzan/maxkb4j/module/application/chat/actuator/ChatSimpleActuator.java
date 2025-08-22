@@ -61,7 +61,7 @@ public class ChatSimpleActuator extends ChatBaseActuator {
         ChatInfo chatInfo = new ChatInfo();
         chatInfo.setChatId(chatId);
         List<ApplicationDatasetMappingEntity> list = datasetMappingService.lambdaQuery().eq(ApplicationDatasetMappingEntity::getApplicationId, application.getId()).list();
-        application.setDatasetIdList(list.stream().map(ApplicationDatasetMappingEntity::getDatasetId).toList());
+        application.setKnowledgeIdList(list.stream().map(ApplicationDatasetMappingEntity::getDatasetId).toList());
         chatInfo.setApplication(application);
         ChatCache.put(chatInfo.getChatId(), chatInfo);
         return chatId;
@@ -92,7 +92,7 @@ public class ChatSimpleActuator extends ChatBaseActuator {
         ApplicationEntity application = chatInfo.getApplication();
         PipelineManage.Builder pipelineManageBuilder = new PipelineManage.Builder();
         Boolean problemOptimization = application.getProblemOptimization();
-        if (!CollectionUtils.isEmpty(application.getDatasetIdList())) {
+        if (!CollectionUtils.isEmpty(application.getKnowledgeIdList())) {
             if (Objects.nonNull(problemOptimization) && problemOptimization) {
                 pipelineManageBuilder.addStep(baseResetProblemStep);
             }
@@ -114,7 +114,7 @@ public class ChatSimpleActuator extends ChatBaseActuator {
         chatInfo.setChatId(chatId);
         ApplicationEntity application = applicationService.getById(chatEntity.getApplicationId());
         List<ApplicationDatasetMappingEntity> list = datasetMappingService.lambdaQuery().eq(ApplicationDatasetMappingEntity::getApplicationId, application.getId()).list();
-        application.setDatasetIdList(list.stream().map(ApplicationDatasetMappingEntity::getDatasetId).toList());
+        application.setKnowledgeIdList(list.stream().map(ApplicationDatasetMappingEntity::getDatasetId).toList());
         chatInfo.setApplication(application);
         ChatCache.put(chatInfo.getChatId(), chatInfo);
         return chatInfo;

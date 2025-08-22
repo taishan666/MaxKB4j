@@ -94,7 +94,7 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
         chatInfo.setChatId(chatId);
         ApplicationEntity application = applicationMapper.selectById(chatEntity.getApplicationId());
         List<ApplicationDatasetMappingEntity> list = datasetMappingService.lambdaQuery().eq(ApplicationDatasetMappingEntity::getApplicationId, application.getId()).list();
-        application.setDatasetIdList(list.stream().map(ApplicationDatasetMappingEntity::getDatasetId).toList());
+        application.setKnowledgeIdList(list.stream().map(ApplicationDatasetMappingEntity::getDatasetId).toList());
         chatInfo.setApplication(application);
         ApplicationWorkFlowVersionEntity workFlowVersion = workFlowVersionService.lambdaQuery()
                 .eq(ApplicationWorkFlowVersionEntity::getApplicationId, application.getId())
