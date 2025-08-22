@@ -46,7 +46,7 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
 
     private final ApplicationMapper applicationMapper;
     private final ApplicationDatasetMappingService datasetMappingService;
-    private final ApplicationWorkFlowVersionService workFlowVersionService;
+    private final ApplicationVersionService applicationVersionService;
     private final ApplicationChatRecordService chatRecordService;
     private final MongoFileService fileService;
 
@@ -96,9 +96,9 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
         List<ApplicationDatasetMappingEntity> list = datasetMappingService.lambdaQuery().eq(ApplicationDatasetMappingEntity::getApplicationId, application.getId()).list();
         application.setKnowledgeIdList(list.stream().map(ApplicationDatasetMappingEntity::getDatasetId).toList());
         chatInfo.setApplication(application);
-        ApplicationWorkFlowVersionEntity workFlowVersion = workFlowVersionService.lambdaQuery()
-                .eq(ApplicationWorkFlowVersionEntity::getApplicationId, application.getId())
-                .orderByDesc(ApplicationWorkFlowVersionEntity::getCreateTime)
+        ApplicationVersionEntity workFlowVersion = applicationVersionService.lambdaQuery()
+                .eq(ApplicationVersionEntity::getApplicationId, application.getId())
+                .orderByDesc(ApplicationVersionEntity::getCreateTime)
                 .last("limit 1").one();
         LogicFlow logicFlow=LogicFlow.newInstance(workFlowVersion.getWorkFlow());
         List<LfNode> lfNodes=logicFlow.getNodes();

@@ -87,7 +87,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     private final ApplicationPlatformService platformService;
     private final ApplicationApiKeyService applicationApiKeyService;
     private final ApplicationPublicAccessClientService accessClientService;
-    private final ApplicationWorkFlowVersionService workFlowVersionService;
+    private final ApplicationVersionService workFlowVersionService;
     private final ApplicationDatasetMappingService datasetMappingService;
     private final ApplicationMcpMappingService mcpMappingService;
     private final ApplicationFunctionMappingService functionMappingService;
@@ -174,7 +174,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         platformService.remove(Wrappers.<ApplicationPlatformEntity>lambdaQuery().eq(ApplicationPlatformEntity::getApplicationId, appId));
         applicationApiKeyService.remove(Wrappers.<ApplicationApiKeyEntity>lambdaQuery().eq(ApplicationApiKeyEntity::getApplicationId, appId));
         accessClientService.remove(Wrappers.<ApplicationPublicAccessClientEntity>lambdaQuery().eq(ApplicationPublicAccessClientEntity::getApplicationId, appId));
-        workFlowVersionService.remove(Wrappers.<ApplicationWorkFlowVersionEntity>lambdaQuery().eq(ApplicationWorkFlowVersionEntity::getApplicationId, appId));
+        workFlowVersionService.remove(Wrappers.<ApplicationVersionEntity>lambdaQuery().eq(ApplicationVersionEntity::getApplicationId, appId));
         datasetMappingService.remove(Wrappers.<ApplicationDatasetMappingEntity>lambdaQuery().eq(ApplicationDatasetMappingEntity::getApplicationId, appId));
         mcpMappingService.remove(Wrappers.<ApplicationMcpMappingEntity>lambdaQuery().eq(ApplicationMcpMappingEntity::getApplicationId, appId));
         functionMappingService.remove(Wrappers.<ApplicationFunctionMappingEntity>lambdaQuery().eq(ApplicationFunctionMappingEntity::getApplicationId, appId));
@@ -436,6 +436,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         application.setId(id);
         application.setIsPublish(true);
         application.setPublishTime(new Date());
+        //todo
        /* if (Objects.nonNull(workflow) && workflow.containsKey("workFlow")) {
             ApplicationEntity application = this.getById(id);
             long count = workFlowVersionService.count(Wrappers.<ApplicationWorkFlowVersionEntity>lambdaQuery().eq(ApplicationWorkFlowVersionEntity::getApplicationId, id));
@@ -464,14 +465,6 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         return this.lambdaQuery().eq(ApplicationEntity::getUserId, appUserId).list();
     }
 
-    public List<ApplicationWorkFlowVersionEntity> workFlowVersionList(String id) {
-        return workFlowVersionService.lambdaQuery().eq(ApplicationWorkFlowVersionEntity::getApplicationId, id).orderByDesc(ApplicationWorkFlowVersionEntity::getCreateTime).list();
-    }
-
-    public Boolean updateWorkFlowVersion(String versionId, ApplicationWorkFlowVersionEntity versionEntity) {
-        versionEntity.setId(versionId);
-        return workFlowVersionService.updateById(versionEntity);
-    }
 
     public void appExport(String id, HttpServletResponse response) throws IOException {
         ApplicationEntity app = this.getById(id);

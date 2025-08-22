@@ -14,13 +14,13 @@ import com.tarzan.maxkb4j.module.application.domian.dto.ChatInfo;
 import com.tarzan.maxkb4j.module.application.domian.dto.ChatMessageDTO;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatEntity;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationEntity;
-import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationWorkFlowVersionEntity;
+import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationVersionEntity;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationChatRecordVO;
 import com.tarzan.maxkb4j.module.application.handler.PostResponseHandler;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatMapper;
 import com.tarzan.maxkb4j.module.application.service.ApplicationChatRecordService;
 import com.tarzan.maxkb4j.module.application.service.ApplicationService;
-import com.tarzan.maxkb4j.module.application.service.ApplicationWorkFlowVersionService;
+import com.tarzan.maxkb4j.module.application.service.ApplicationVersionService;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
@@ -31,7 +31,7 @@ import java.util.List;
 @Component
 public class ChatFlowActuator extends ChatBaseActuator {
 
-    private final ApplicationWorkFlowVersionService workFlowVersionService;
+    private final ApplicationVersionService applicationVersionService;
     private final ApplicationChatMapper chatMapper;
     private final ApplicationService applicationService;
     private final ApplicationChatRecordService chatRecordService;
@@ -42,7 +42,7 @@ public class ChatFlowActuator extends ChatBaseActuator {
         ChatInfo chatInfo = new ChatInfo();
         chatInfo.setChatId(IdWorker.get32UUID());
         application.setId(null);
-        ApplicationWorkFlowVersionEntity workflowVersion = new ApplicationWorkFlowVersionEntity();
+        ApplicationVersionEntity workflowVersion = new ApplicationVersionEntity();
         workflowVersion.setWorkFlow(application.getWorkFlow());
         chatInfo.setApplication(application);
         LogicFlow logicFlow=LogicFlow.newInstance(application.getWorkFlow());
@@ -60,9 +60,9 @@ public class ChatFlowActuator extends ChatBaseActuator {
         chatInfo.setChatId(chatId);
         JSONObject workFlow=application.getWorkFlow();
         if (workFlow == null){
-            ApplicationWorkFlowVersionEntity workFlowVersion = workFlowVersionService.lambdaQuery()
-                    .eq(ApplicationWorkFlowVersionEntity::getApplicationId, application.getId())
-                    .orderByDesc(ApplicationWorkFlowVersionEntity::getCreateTime)
+            ApplicationVersionEntity workFlowVersion = applicationVersionService.lambdaQuery()
+                    .eq(ApplicationVersionEntity::getApplicationId, application.getId())
+                    .orderByDesc(ApplicationVersionEntity::getCreateTime)
                     .last("limit 1").one();
             workFlow=workFlowVersion.getWorkFlow();
         }
@@ -120,9 +120,9 @@ public class ChatFlowActuator extends ChatBaseActuator {
         chatInfo.setChatId(chatId);
         ApplicationEntity application = applicationService.getById(chatEntity.getApplicationId());
         chatInfo.setApplication(application);
-        ApplicationWorkFlowVersionEntity workFlowVersion = workFlowVersionService.lambdaQuery()
-                .eq(ApplicationWorkFlowVersionEntity::getApplicationId, application.getId())
-                .orderByDesc(ApplicationWorkFlowVersionEntity::getCreateTime)
+        ApplicationVersionEntity workFlowVersion = applicationVersionService.lambdaQuery()
+                .eq(ApplicationVersionEntity::getApplicationId, application.getId())
+                .orderByDesc(ApplicationVersionEntity::getCreateTime)
                 .last("limit 1").one();
         LogicFlow logicFlow=LogicFlow.newInstance(workFlowVersion.getWorkFlow());
         List<LfNode> lfNodes=logicFlow.getNodes();

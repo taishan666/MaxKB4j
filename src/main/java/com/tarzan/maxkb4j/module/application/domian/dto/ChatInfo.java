@@ -5,7 +5,6 @@ import com.tarzan.maxkb4j.core.workflow.logic.LfEdge;
 import com.tarzan.maxkb4j.module.application.handler.PostResponseHandler;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatRecordEntity;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationEntity;
-import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationWorkFlowVersionEntity;
 import com.tarzan.maxkb4j.util.BeanUtil;
 import lombok.Data;
 

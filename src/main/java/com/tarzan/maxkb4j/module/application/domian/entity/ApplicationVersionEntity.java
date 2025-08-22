@@ -14,8 +14,8 @@ import lombok.EqualsAndHashCode;
   */
 @EqualsAndHashCode(callSuper = true)
 @Data
-@TableName("application_work_flow_version")
-public class ApplicationWorkFlowVersionEntity extends BaseEntity {
+@TableName("application_version")
+public class ApplicationVersionEntity extends BaseEntity {
 	@TableField(typeHandler = JOSNBTypeHandler.class)
 	private JSONObject workFlow;
 	private String applicationId;

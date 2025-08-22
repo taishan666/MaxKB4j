@@ -13,10 +13,9 @@ import com.tarzan.maxkb4j.module.application.domian.dto.ChatImproveDTO;
 import com.tarzan.maxkb4j.module.application.domian.dto.EmbedDTO;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationAccessTokenEntity;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationEntity;
-import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationWorkFlowVersionEntity;
-import com.tarzan.maxkb4j.module.application.service.ApplicationService;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationVO;
 import com.tarzan.maxkb4j.module.application.domian.vo.McpToolVO;
+import com.tarzan.maxkb4j.module.application.service.ApplicationService;
 import com.tarzan.maxkb4j.module.dataset.domain.dto.DataSearchDTO;
 import com.tarzan.maxkb4j.module.dataset.domain.entity.DatasetEntity;
 import com.tarzan.maxkb4j.module.dataset.domain.vo.ParagraphVO;
@@ -82,18 +81,6 @@ public class ApplicationController {
     @GetMapping("/application/{id}/function_lib/{functionId}")
     public R<FunctionLibEntity> functionLib(@PathVariable("id") String id,@PathVariable("functionId") String functionId) {
         return R.success(applicationService.functionLib(id,functionId));
-    }
-
-   // @SaCheckPermission("APPLICATION:READ")
-    @GetMapping("/application/{id}/work_flow_version")
-    public R<List<ApplicationWorkFlowVersionEntity>> workFlowVersionList(@PathVariable("id") String id) {
-        return R.success(applicationService.workFlowVersionList(id));
-    }
-
-   // @SaCheckPermission("APPLICATION:EDIT")
-    @PutMapping("/application/{id}/work_flow_version/{versionId}")
-    public R<Boolean> updateWorkFlowVersion(@PathVariable("id") String id,@PathVariable("versionId") String versionId,@RequestBody ApplicationWorkFlowVersionEntity versionEntity) {
-        return R.success(applicationService.updateWorkFlowVersion(versionId,versionEntity));
     }
 
    // @SaCheckPermission("APPLICATION:READ")
