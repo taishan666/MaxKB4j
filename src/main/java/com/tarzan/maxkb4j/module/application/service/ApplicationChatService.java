@@ -92,7 +92,7 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
         }
         ChatInfo chatInfo = new ChatInfo();
         chatInfo.setChatId(chatId);
-        ApplicationEntity application = applicationService.getDetail(chatEntity.getApplicationId());
+        ApplicationVO application = applicationService.getDetail(chatEntity.getApplicationId());
         List<ApplicationDatasetMappingEntity> list = datasetMappingService.lambdaQuery().eq(ApplicationDatasetMappingEntity::getApplicationId, application.getId()).list();
         application.setKnowledgeIdList(list.stream().map(ApplicationDatasetMappingEntity::getDatasetId).toList());
         chatInfo.setApplication(application);

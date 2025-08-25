@@ -1,12 +1,12 @@
 package com.tarzan.maxkb4j.module.application.ragpipeline.step.searchdatasetstep.impl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.tarzan.maxkb4j.module.application.domian.entity.DatasetSetting;
+import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationVO;
 import com.tarzan.maxkb4j.module.application.ragpipeline.PipelineManage;
 import com.tarzan.maxkb4j.module.application.ragpipeline.step.searchdatasetstep.ISearchDatasetStep;
-import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationEntity;
-import com.tarzan.maxkb4j.module.application.domian.entity.DatasetSetting;
-import com.tarzan.maxkb4j.module.dataset.service.RetrieveService;
 import com.tarzan.maxkb4j.module.dataset.domain.vo.ParagraphVO;
+import com.tarzan.maxkb4j.module.dataset.service.RetrieveService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -26,7 +26,7 @@ public class SearchDatasetStep extends ISearchDatasetStep {
     protected List<ParagraphVO> execute(PipelineManage manage) {
         long startTime = System.currentTimeMillis();
         JSONObject context=manage.context;
-        ApplicationEntity application=(ApplicationEntity)context.get("application");
+        ApplicationVO application=(ApplicationVO)context.get("application");
         String problemText=manage.context.getString("problem_text");
         super.context.put("problem_text",problemText);
         String paddingProblemText=context.getString("padding_problem_text");

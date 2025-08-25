@@ -7,10 +7,12 @@ import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.tarzan.maxkb4j.core.assistant.Assistant;
 import com.tarzan.maxkb4j.core.assistant.SystemTools;
-import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationEntity;
+import com.tarzan.maxkb4j.core.langchain4j.MyChatMemory;
+import com.tarzan.maxkb4j.core.langchain4j.MyContentRetriever;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationPublicAccessClientEntity;
 import com.tarzan.maxkb4j.module.application.domian.entity.DatasetSetting;
 import com.tarzan.maxkb4j.module.application.domian.entity.NoReferencesSetting;
+import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationVO;
 import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
 import com.tarzan.maxkb4j.module.application.handler.PostResponseHandler;
 import com.tarzan.maxkb4j.module.application.ragpipeline.PipelineManage;
@@ -24,8 +26,6 @@ import com.tarzan.maxkb4j.module.mcplib.entity.McpLibEntity;
 import com.tarzan.maxkb4j.module.mcplib.service.McpLibService;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
-import com.tarzan.maxkb4j.core.langchain4j.MyChatMemory;
-import com.tarzan.maxkb4j.core.langchain4j.MyContentRetriever;
 import com.tarzan.maxkb4j.util.GroovyScriptExecutor;
 import dev.langchain4j.agent.tool.ToolExecutionRequest;
 import dev.langchain4j.agent.tool.ToolSpecification;
@@ -85,7 +85,7 @@ public class BaseChatStep extends IChatStep {
         JSONObject context = manage.context;
         String chatId = context.getString("chatId");
         List<ParagraphVO> paragraphList = (List<ParagraphVO>) context.get("paragraph_list");
-        ApplicationEntity application = (ApplicationEntity) context.get("application");
+        ApplicationVO application = (ApplicationVO) context.get("application");
         String problemText = context.getString("problem_text");
         PostResponseHandler postResponseHandler = (PostResponseHandler) context.get("postResponseHandler");
         boolean stream = true;
@@ -95,7 +95,7 @@ public class BaseChatStep extends IChatStep {
     private String getFluxResult(String chatId,
                                  List<ParagraphVO> paragraphList,
                                  String problemText,
-                                 ApplicationEntity application,
+                                 ApplicationVO application,
                                  PipelineManage manage,
                                  PostResponseHandler postResponseHandler,
                                  boolean stream) {

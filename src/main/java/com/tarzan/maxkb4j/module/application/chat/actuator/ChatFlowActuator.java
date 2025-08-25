@@ -13,9 +13,9 @@ import com.tarzan.maxkb4j.module.application.chat.base.ChatBaseActuator;
 import com.tarzan.maxkb4j.module.application.domian.dto.ChatInfo;
 import com.tarzan.maxkb4j.module.application.domian.dto.ChatMessageDTO;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatEntity;
-import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationEntity;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationVersionEntity;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationChatRecordVO;
+import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationVO;
 import com.tarzan.maxkb4j.module.application.handler.PostResponseHandler;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatMapper;
 import com.tarzan.maxkb4j.module.application.service.ApplicationChatRecordService;
@@ -38,7 +38,7 @@ public class ChatFlowActuator extends ChatBaseActuator {
     private final PostResponseHandler postResponseHandler;
 
     @Override
-    public String chatOpenTest(ApplicationEntity application) {
+    public String chatOpenTest(ApplicationVO application) {
         ChatInfo chatInfo = new ChatInfo();
         chatInfo.setChatId(IdWorker.get32UUID());
         application.setId(null);
@@ -55,7 +55,7 @@ public class ChatFlowActuator extends ChatBaseActuator {
     }
 
     @Override
-    public String chatOpen(ApplicationEntity application, String chatId) {
+    public String chatOpen(ApplicationVO application, String chatId) {
         ChatInfo chatInfo = new ChatInfo();
         chatInfo.setChatId(chatId);
         JSONObject workFlow=application.getWorkFlow();
@@ -118,7 +118,7 @@ public class ChatFlowActuator extends ChatBaseActuator {
         }
         ChatInfo chatInfo = new ChatInfo();
         chatInfo.setChatId(chatId);
-        ApplicationEntity application = applicationService.getById(chatEntity.getApplicationId());
+        ApplicationVO application = applicationService.getDetail(chatEntity.getApplicationId());
         chatInfo.setApplication(application);
         ApplicationVersionEntity workFlowVersion = applicationVersionService.lambdaQuery()
                 .eq(ApplicationVersionEntity::getApplicationId, application.getId())

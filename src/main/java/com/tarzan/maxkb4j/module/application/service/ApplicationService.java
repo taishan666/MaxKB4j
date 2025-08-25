@@ -88,7 +88,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     private final ApplicationPlatformService platformService;
     private final ApplicationApiKeyService applicationApiKeyService;
     private final ApplicationPublicAccessClientService accessClientService;
-    private final ApplicationVersionService workFlowVersionService;
+    private final ApplicationVersionService applicationVersionService;
     private final ApplicationDatasetMappingService datasetMappingService;
     private final ApplicationMcpMappingService mcpMappingService;
     private final ApplicationFunctionMappingService functionMappingService;
@@ -175,7 +175,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         platformService.remove(Wrappers.<ApplicationPlatformEntity>lambdaQuery().eq(ApplicationPlatformEntity::getApplicationId, appId));
         applicationApiKeyService.remove(Wrappers.<ApplicationApiKeyEntity>lambdaQuery().eq(ApplicationApiKeyEntity::getApplicationId, appId));
         accessClientService.remove(Wrappers.<ApplicationPublicAccessClientEntity>lambdaQuery().eq(ApplicationPublicAccessClientEntity::getApplicationId, appId));
-        workFlowVersionService.remove(Wrappers.<ApplicationVersionEntity>lambdaQuery().eq(ApplicationVersionEntity::getApplicationId, appId));
+        applicationVersionService.remove(Wrappers.<ApplicationVersionEntity>lambdaQuery().eq(ApplicationVersionEntity::getApplicationId, appId));
         datasetMappingService.remove(Wrappers.<ApplicationDatasetMappingEntity>lambdaQuery().eq(ApplicationDatasetMappingEntity::getApplicationId, appId));
         mcpMappingService.remove(Wrappers.<ApplicationMcpMappingEntity>lambdaQuery().eq(ApplicationMcpMappingEntity::getApplicationId, appId));
         functionMappingService.remove(Wrappers.<ApplicationFunctionMappingEntity>lambdaQuery().eq(ApplicationFunctionMappingEntity::getApplicationId, appId));
@@ -301,11 +301,13 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         ApplicationVO vo = BeanUtil.copy(entity, ApplicationVO.class);
         List<String> datasetIds = datasetMappingService.getDatasetIdsByAppId(id);
         vo.setKnowledgeIdList(datasetIds);
+        if (!CollectionUtils.isEmpty(vo.getKnowledgeIdList())) {
+            vo.setKnowledgeList(datasetService.listByIds(datasetIds));
+         }
         List<String> mcpIds = mcpMappingService.getMcpIdsByAppId(id);
         vo.setMcpIdList(mcpIds);
         List<String> functionIds = functionMappingService.getFunctionIdsByAppId(id);
         vo.setFunctionIdList(functionIds);
-        vo.setKnowledgeList(datasetService.listByIds(datasetIds));
         return vo;
     }
 
@@ -432,25 +434,23 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         return this.updateById(application);
     }
 
+    @Transactional
     public Boolean publish(String id, JSONObject params) {
         ApplicationEntity application = new ApplicationEntity();
         application.setId(id);
         application.setIsPublish(true);
         application.setPublishTime(new Date());
-        //todo
-       /* if (Objects.nonNull(workflow) && workflow.containsKey("workFlow")) {
-            ApplicationEntity application = this.getById(id);
-            long count = workFlowVersionService.count(Wrappers.<ApplicationWorkFlowVersionEntity>lambdaQuery().eq(ApplicationWorkFlowVersionEntity::getApplicationId, id));
-            ApplicationWorkFlowVersionEntity entity = new ApplicationWorkFlowVersionEntity();
-            entity.setWorkFlow(workflow.getJSONObject("workFlow"));
-            entity.setApplicationId(id);
-            entity.setName(application.getName() + "-V" + (count + 1));
-            entity.setPublishUserId(StpUtil.getLoginIdAsString());
-            entity.setPublishUserName((String) StpUtil.getExtra("username"));
-            return workFlowVersionService.save(entity);
-        }*/
-        return this.updateById(application);
-
+        this.updateById(application);
+        application = this.getById(id);
+        long count = applicationVersionService.count(Wrappers.<ApplicationVersionEntity>lambdaQuery().eq(ApplicationVersionEntity::getApplicationId, id));
+        ApplicationVersionEntity entity = BeanUtil.copy(application, ApplicationVersionEntity.class);
+        entity.setId(null);
+        entity.setApplicationId(id);
+        entity.setApplicationName(application.getName());
+        entity.setName(application.getName() + "-V" + (count + 1));
+        entity.setPublishUserId(StpUtil.getLoginIdAsString());
+        entity.setPublishUserName((String) StpUtil.getExtra("username"));
+        return applicationVersionService.save(entity);
     }
 
     public List<ApplicationEntity> listByUserId(String appId) {

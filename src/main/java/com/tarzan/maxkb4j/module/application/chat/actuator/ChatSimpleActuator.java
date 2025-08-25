@@ -8,8 +8,8 @@ import com.tarzan.maxkb4j.module.application.domian.dto.ChatInfo;
 import com.tarzan.maxkb4j.module.application.domian.dto.ChatMessageDTO;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatEntity;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationDatasetMappingEntity;
-import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationEntity;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationChatRecordVO;
+import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationVO;
 import com.tarzan.maxkb4j.module.application.handler.PostResponseHandler;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatMapper;
 import com.tarzan.maxkb4j.module.application.ragpipeline.PipelineManage;
@@ -47,7 +47,7 @@ public class ChatSimpleActuator extends ChatBaseActuator {
     private final PostResponseHandler postResponseHandler;
 
     @Override
-    public String chatOpenTest(ApplicationEntity application) {
+    public String chatOpenTest(ApplicationVO application) {
         ChatInfo chatInfo = new ChatInfo();
         chatInfo.setChatId(IdWorker.get32UUID());
         application.setId(null); // 清空id,为了区分是否是测试对话
@@ -57,7 +57,7 @@ public class ChatSimpleActuator extends ChatBaseActuator {
     }
 
     @Override
-    public String chatOpen(ApplicationEntity application, String chatId) {
+    public String chatOpen(ApplicationVO application, String chatId) {
         ChatInfo chatInfo = new ChatInfo();
         chatInfo.setChatId(chatId);
         List<ApplicationDatasetMappingEntity> list = datasetMappingService.lambdaQuery().eq(ApplicationDatasetMappingEntity::getApplicationId, application.getId()).list();
@@ -89,7 +89,7 @@ public class ChatSimpleActuator extends ChatBaseActuator {
                 }
             }
         }
-        ApplicationEntity application = chatInfo.getApplication();
+        ApplicationVO application = chatInfo.getApplication();
         PipelineManage.Builder pipelineManageBuilder = new PipelineManage.Builder();
         Boolean problemOptimization = application.getProblemOptimization();
         if (!CollectionUtils.isEmpty(application.getKnowledgeIdList())) {
@@ -112,7 +112,7 @@ public class ChatSimpleActuator extends ChatBaseActuator {
         }
         ChatInfo chatInfo = new ChatInfo();
         chatInfo.setChatId(chatId);
-        ApplicationEntity application = applicationService.getById(chatEntity.getApplicationId());
+        ApplicationVO application = applicationService.getDetail(chatEntity.getApplicationId());
         List<ApplicationDatasetMappingEntity> list = datasetMappingService.lambdaQuery().eq(ApplicationDatasetMappingEntity::getApplicationId, application.getId()).list();
         application.setKnowledgeIdList(list.stream().map(ApplicationDatasetMappingEntity::getDatasetId).toList());
         chatInfo.setApplication(application);

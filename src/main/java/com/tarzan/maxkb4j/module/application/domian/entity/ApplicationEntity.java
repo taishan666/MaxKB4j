@@ -11,7 +11,6 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import java.util.Date;
-import java.util.List;
 
 /**
  * @author tarzan
@@ -83,12 +82,12 @@ public class ApplicationEntity extends BaseEntity {
     @TableField(typeHandler = JOSNBTypeHandler.class)
     private JSONObject fileUploadSetting;
 
-    @TableField(exist = false)
+/*    @TableField(exist = false)
     private List<String> knowledgeIdList;
 
     @TableField(exist = false)
     private List<String> mcpIdList;
 
     @TableField(exist = false)
-    private List<String> functionIdList;
+    private List<String> functionIdList;*/
 } 

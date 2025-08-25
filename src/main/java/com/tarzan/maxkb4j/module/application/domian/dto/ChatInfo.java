@@ -2,9 +2,9 @@ package com.tarzan.maxkb4j.module.application.domian.dto;
 
 import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.logic.LfEdge;
-import com.tarzan.maxkb4j.module.application.handler.PostResponseHandler;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatRecordEntity;
-import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationEntity;
+import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationVO;
+import com.tarzan.maxkb4j.module.application.handler.PostResponseHandler;
 import com.tarzan.maxkb4j.util.BeanUtil;
 import lombok.Data;
 
@@ -17,7 +17,7 @@ import java.util.Map;
 public class ChatInfo implements Serializable {
 
     private String chatId;
-    private ApplicationEntity application;
+    private ApplicationVO application;
     private List<String> datasetIds;
     private List<String> excludeDocumentIds;
     private List<ApplicationChatRecordEntity> chatRecordList= new ArrayList<>();
