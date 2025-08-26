@@ -40,6 +40,7 @@ import com.tarzan.maxkb4j.module.model.info.service.ModelService;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseSpeechToText;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseTextToSpeech;
 import com.tarzan.maxkb4j.module.resource.service.ImageService;
+import com.tarzan.maxkb4j.module.system.resourcepermission.service.UserResourcePermissionService;
 import com.tarzan.maxkb4j.module.system.team.service.TeamMemberPermissionService;
 import com.tarzan.maxkb4j.module.system.user.domain.entity.UserEntity;
 import com.tarzan.maxkb4j.module.system.user.service.UserService;
@@ -95,6 +96,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     private final ApplicationChatRecordService applicationChatRecordService;
     private final ApplicationChatMapper applicationChatMapper;
     private final FunctionLibService functionLibService;
+    private final UserResourcePermissionService userResourcePermissionService;
 
     public IPage<ApplicationVO> selectAppPage(int page, int size, Query query) {
         String loginId = StpUtil.getLoginIdAsString();
@@ -189,6 +191,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
 
     @Transactional
     public ApplicationEntity createApp(ApplicationEntity application) {
+        application.setKnowledgeSetting(new DatasetSetting());
         if ("WORK_FLOW".equals(application.getType())) {
             application = createWorkflow(application);
         } else {
@@ -198,6 +201,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         accessToken.setApplicationId(application.getId());
         accessToken.setLanguage((String) StpUtil.getExtra("language"));
         accessTokenService.save(accessToken);
+        userResourcePermissionService.save("APPLICATION", application.getId(), StpUtil.getLoginIdAsString(), "default");
         return application;
     }
 

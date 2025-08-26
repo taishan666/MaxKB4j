@@ -21,9 +21,9 @@ public class ApplicationFolderController {
         JSONObject result = new JSONObject();
         result.put("id", "default");
         result.put("name", "根目录");
-        result.put("parent_id", null);
-        result.put("user_id", StpUtil.getLoginId());
-        result.put("workspace_id", "default");
+        result.put("parentId", null);
+        result.put("userId", StpUtil.getLoginId());
+        result.put("workspaceId", "default");
         result.put("children", List.of());
         return R.data(List.of(result));
     }

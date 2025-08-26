@@ -14,6 +14,7 @@ import java.util.Set;
 @Service
 public class UserResourcePermissionService extends ServiceImpl<UserResourcePermissionMapper, UserResourcePermissionEntity> {
     public List<UserResourcePermissionVO> getUseTargets(String type, String userId) {
+        System.out.println("userId:"+userId);
         return switch (type) {
             case "APPLICATION" -> getUseApplicationTargets(userId);
             case "KNOWLEDGE" -> List.of();

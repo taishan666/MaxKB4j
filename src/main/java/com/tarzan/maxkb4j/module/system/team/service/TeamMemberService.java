@@ -17,6 +17,7 @@ import org.springframework.util.CollectionUtils;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -31,7 +32,11 @@ public class TeamMemberService extends ServiceImpl<TeamMemberMapper, TeamMemberE
     private final TeamMemberPermissionService teamMemberPermissionService;
 
     public List<MemberVO> getByUserId(String userId) {
-        return  baseMapper.getByUserId(userId);
+        List<MemberVO>  members= baseMapper.getByUserId(userId);
+        members.forEach(e->{
+            e.setRoles(Set.of("USER"));
+        });
+        return members;
     }
 
     @Transactional

@@ -13,7 +13,7 @@ import java.util.Set;
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
-@TableName("team_member_permission")
+@TableName("workspace_user_resource_permission")
 public class UserResourcePermissionEntity extends BaseEntity {
     private String workspaceId;
     private String authTargetType;
