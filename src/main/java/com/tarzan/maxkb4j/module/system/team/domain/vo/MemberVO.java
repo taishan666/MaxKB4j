@@ -8,7 +8,7 @@ import lombok.EqualsAndHashCode;
 @Data
 public class MemberVO extends TeamMemberEntity {
 
-    private String type;
-    private String username;
+    //private String type;
+    private String nickname;
     private String email;
 }

@@ -5,7 +5,7 @@
     <select id="getByUserId" resultType="com.tarzan.maxkb4j.module.system.team.domain.vo.MemberVO">
         SELECT
             tm.*,
-            u.username,
+            u.nickname,
             u.email,
             'member' type
         FROM

@@ -6,17 +6,15 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tarzan.maxkb4j.module.system.team.domain.dto.TeamMemberPermissionDTO;
 import com.tarzan.maxkb4j.module.system.team.domain.entity.TeamMemberEntity;
 import com.tarzan.maxkb4j.module.system.team.domain.entity.TeamMemberPermissionEntity;
-import com.tarzan.maxkb4j.module.system.team.mapper.TeamMemberMapper;
 import com.tarzan.maxkb4j.module.system.team.domain.vo.MemberPermissionVO;
 import com.tarzan.maxkb4j.module.system.team.domain.vo.MemberVO;
-import com.tarzan.maxkb4j.module.system.user.domain.entity.UserEntity;
+import com.tarzan.maxkb4j.module.system.team.mapper.TeamMemberMapper;
 import com.tarzan.maxkb4j.module.system.user.mapper.UserMapper;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -33,19 +31,7 @@ public class TeamMemberService extends ServiceImpl<TeamMemberMapper, TeamMemberE
     private final TeamMemberPermissionService teamMemberPermissionService;
 
     public List<MemberVO> getByUserId(String userId) {
-        List<MemberVO> result= new ArrayList<>();
-        MemberVO manageMember = new MemberVO();
-        UserEntity user= userMapper.selectById(userId);
-        manageMember.setId(null);
-        manageMember.setUserId(userId);
-        manageMember.setTeamId(userId);
-        manageMember.setUsername(user.getUsername());
-        manageMember.setEmail(user.getEmail());
-        manageMember.setType("manage");
-        result.add(manageMember);
-        List<MemberVO> members= baseMapper.getByUserId(userId);
-        result.addAll(members);
-        return result;
+        return  baseMapper.getByUserId(userId);
     }
 
     @Transactional
