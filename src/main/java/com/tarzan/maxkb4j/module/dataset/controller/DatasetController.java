@@ -61,7 +61,7 @@ public class DatasetController {
 
    // @SaCheckPermission("DATASET:READ")
     @PutMapping("/knowledge/{id}/hit_test")
-    public R<List<ParagraphVO>> hitTest(@PathVariable("id") String id, DataSearchDTO dto) {
+    public R<List<ParagraphVO>> hitTest(@PathVariable("id") String id, @RequestBody DataSearchDTO dto) {
         return R.success(retrieveService.paragraphSearch(List.of(id), dto));
     }
 
