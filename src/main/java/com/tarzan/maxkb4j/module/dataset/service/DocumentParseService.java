@@ -10,6 +10,7 @@ import org.apache.tika.parser.AutoDetectParser;
 import org.apache.tika.parser.ParseContext;
 import org.apache.tika.parser.Parser;
 import org.apache.tika.parser.microsoft.OfficeParserConfig;
+import org.apache.tika.parser.pdf.PDFParserConfig;
 import org.apache.tika.sax.ContentHandlerDecorator;
 import org.springframework.stereotype.Component;
 import org.xml.sax.Attributes;
@@ -32,10 +33,14 @@ public class DocumentParseService {
         Parser parser = new AutoDetectParser();
         Metadata metadata = new Metadata();
         ParseContext parseContext = new ParseContext();
+        // ✅ 忽略 Office 文档中的页眉和页脚
         OfficeParserConfig officeParserConfig = new OfficeParserConfig();
-        //忽略页眉页脚
         officeParserConfig.setIncludeHeadersAndFooters(false);
         parseContext.set(OfficeParserConfig.class, officeParserConfig);
+        // ✅ PDF 配置，禁用 OCR(OCR 依赖 Tesseract 原生引擎,需要额外依赖 tesseract 和 tess4j,性能开销大)
+        PDFParserConfig pdfParserConfig = new PDFParserConfig();
+        pdfParserConfig.setOcrStrategy(PDFParserConfig.OCR_STRATEGY.NO_OCR);
+        parseContext.set(PDFParserConfig.class, pdfParserConfig);
         Map<String, String> imageMap = new LinkedHashMap<>();
         // 自定义ContentHandler用于插入占位符
         class MarkdownImageHandler extends ContentHandlerDecorator {
