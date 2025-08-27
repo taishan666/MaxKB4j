@@ -73,13 +73,13 @@
             "x": 840,
             "y": 3210,
             "id": "b931efe5-5b66-46e0-ae3b-0160cb18eeb5",
-            "type": "search-dataset-node",
+            "type": "search-knowledge-node",
             "properties": {
                 "condition": "AND",
                 "showNode": true,
                 "nodeData": {
                     "datasetIdList": [],
-                    "datasetSetting": {
+                    "knowledgeSetting": {
                         "similarity": 0.6,
                         "maxParagraphCharNumber": 5000,
                         "searchMode": "embedding",
@@ -90,7 +90,7 @@
                         "question"
                     ],
                     "sourceDatasetIdList": [
-                        "search-dataset-node",
+                        "search-knowledge-node",
                         "paragraph_list"
                     ]
                 },

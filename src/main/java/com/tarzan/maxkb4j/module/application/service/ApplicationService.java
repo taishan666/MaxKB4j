@@ -413,22 +413,24 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         JSONObject workFlow = appVO.getWorkFlow();
         if (Objects.nonNull(workFlow) && !workFlow.isEmpty()) {
             JSONArray nodes = workFlow.getJSONArray("nodes");
-            JSONObject baseNode = nodes.getJSONObject(0);
-            if (Objects.nonNull(baseNode)) {
-                String type = baseNode.getString("type");
-                if (type.equals("base-node")) {
-                    JSONObject properties = baseNode.getJSONObject("properties");
-                    JSONObject nodeData = properties.getJSONObject("nodeData");
-                    application.setName(nodeData.getString("name"));
-                    application.setDesc(nodeData.getString("desc"));
-                    application.setPrologue(nodeData.getString("prologue"));
-                    application.setFileUploadEnable(nodeData.getBoolean("fileUploadEnable"));
-                    application.setFileUploadSetting(nodeData.getJSONObject("fileUploadSetting"));
-                    application.setTtsModelEnable(nodeData.getBoolean("sttModelEnable"));
-                    application.setSttModelId(nodeData.getString("sttModelId"));
-                    application.setTtsModelEnable(nodeData.getBoolean("ttsModelEnable"));
-                    application.setTtsType(nodeData.getString("ttsType"));
-                    application.setTtsModelId(nodeData.getString("ttsModelId"));
+            if (Objects.nonNull(nodes) && !nodes.isEmpty()){
+                JSONObject baseNode = nodes.getJSONObject(0);
+                if (Objects.nonNull(baseNode)) {
+                    String type = baseNode.getString("type");
+                    if (type.equals("base-node")) {
+                        JSONObject properties = baseNode.getJSONObject("properties");
+                        JSONObject nodeData = properties.getJSONObject("nodeData");
+                        application.setName(nodeData.getString("name"));
+                        application.setDesc(nodeData.getString("desc"));
+                        application.setPrologue(nodeData.getString("prologue"));
+                        application.setFileUploadEnable(nodeData.getBoolean("fileUploadEnable"));
+                        application.setFileUploadSetting(nodeData.getJSONObject("fileUploadSetting"));
+                        application.setTtsModelEnable(nodeData.getBoolean("sttModelEnable"));
+                        application.setSttModelId(nodeData.getString("sttModelId"));
+                        application.setTtsModelEnable(nodeData.getBoolean("ttsModelEnable"));
+                        application.setTtsType(nodeData.getString("ttsType"));
+                        application.setTtsModelId(nodeData.getString("ttsModelId"));
+                    }
                 }
             }
         }

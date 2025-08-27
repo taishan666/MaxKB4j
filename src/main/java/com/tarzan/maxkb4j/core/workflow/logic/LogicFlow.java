@@ -33,7 +33,7 @@ public class LogicFlow {
     }
 
     public LfNode getSearchNode(){
-        return this.nodes.stream().filter(node -> node.getId().equals("search-dataset-node")).findFirst().orElse(null);
+        return this.nodes.stream().filter(node -> node.getId().equals("search-knowledge-node")).findFirst().orElse(null);
     }
     public void isValidNode(LfNode node){
          //todo

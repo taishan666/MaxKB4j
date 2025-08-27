@@ -25,7 +25,7 @@ public enum NodeType {
 
     REPLY("reply-node", "回复节点"),
 
-    SEARCH_KNOWLEDGE("search-dataset-node", "知识库搜索节点"),
+    SEARCH_KNOWLEDGE("search-knowledge-node", "知识库搜索节点"),
 
     FORM("form-node", "表单收集"),
 
