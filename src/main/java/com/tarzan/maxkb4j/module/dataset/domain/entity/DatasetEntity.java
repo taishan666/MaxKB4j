@@ -29,4 +29,8 @@ public class DatasetEntity extends BaseEntity {
     private String userId;
     
     private String embeddingModelId;
+
+    private Integer fileSizeLimit;
+
+    private Integer fileCountLimit;
 } 

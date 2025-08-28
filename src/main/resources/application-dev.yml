@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/maxkb4j_v1
+    url: jdbc:postgresql://localhost:5432/Maxkb4j
     username: username
     password: password
     driver-class-name: org.postgresql.Driver

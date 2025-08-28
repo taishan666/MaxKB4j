@@ -80,8 +80,13 @@ public class DocumentController {
     public R<List<TextSegmentVO>> split(MultipartFile[] file, String[] patterns, Integer limit, Boolean with_filter) throws IOException {
         return R.success(documentService.split(file, patterns, limit, with_filter));
     }
+
+    @PostMapping("/knowledge/{knowledgeId}/document/split")
+    public R<List<TextSegmentVO>> split(@PathVariable String knowledgeId, MultipartFile[] file, String[] patterns, Integer limit, Boolean with_filter) throws IOException {
+        return R.success(documentService.split(file, patterns, limit, with_filter));
+    }
   //  @SaCheckPermission("DATASET:READ")
-    @GetMapping("/knowledge/document/split_pattern")
+    @GetMapping("/knowledge/{knowledgeId}/document/split_pattern")
     public R<List<KeyAndValueVO>> splitPattern() {
         return R.success(documentService.splitPattern());
     }
