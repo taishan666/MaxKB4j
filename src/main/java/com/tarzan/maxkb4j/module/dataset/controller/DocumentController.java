@@ -75,11 +75,6 @@ public class DocumentController {
         documentService.templateExport(type, response);
     }
 
-  //  @SaCheckPermission("DATASET:EDIT")
-    @PostMapping("/knowledge/document/split")
-    public R<List<TextSegmentVO>> split(MultipartFile[] file, String[] patterns, Integer limit, Boolean with_filter) throws IOException {
-        return R.success(documentService.split(file, patterns, limit, with_filter));
-    }
 
     @PostMapping("/knowledge/{knowledgeId}/document/split")
     public R<List<TextSegmentVO>> split(@PathVariable String knowledgeId, MultipartFile[] file, String[] patterns, Integer limit, Boolean with_filter) throws IOException {
@@ -116,7 +111,7 @@ public class DocumentController {
     }
 
  //   @SaCheckPermission("DATASET:EDIT")
-    @PostMapping("/knowledge/{id}/document/_bach")
+    @PutMapping("/knowledge/{id}/document/batch_create")
     public R<Boolean> createBatchDoc(@PathVariable("id") String id, @RequestBody List<DocumentNameDTO> docs) {
         return R.success(documentService.createBatchDoc(id, docs));
     }
@@ -168,6 +163,12 @@ public class DocumentController {
     public R<IPage<DocumentVO>> pageDocByDatasetId(@PathVariable String id, @PathVariable("page") int page, @PathVariable("size") int size, Query query) {
         return R.success(documentService.getDocByDatasetId(id, page, size, query));
     }
+
+    @GetMapping("/knowledge/{id}/document/{docId}/download_source_file")
+    public void downloadSourceFile(@PathVariable String id, @PathVariable String docId) {
+         documentService.downloadSourceFile(id, docId);
+    }
+
 
 
 

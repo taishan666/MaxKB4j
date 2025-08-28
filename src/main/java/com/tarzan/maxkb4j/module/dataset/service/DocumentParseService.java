@@ -45,9 +45,7 @@ public class DocumentParseService {
         // 自定义ContentHandler用于插入占位符
         class MarkdownImageHandler extends ContentHandlerDecorator {
             private final StringBuilder markdown = new StringBuilder();
-
             private String localName = null;
-
             @Override
             public void characters(char[] ch, int start, int length) {
                 String text = new String(ch, start, length);
@@ -63,7 +61,6 @@ public class DocumentParseService {
             @Override
             public void startElement(String uri, String localName, String qName, Attributes attrs) {
                 this.localName = localName;
-                //  System.out.println("localName="+localName+"  qName="+qName+"  text="+text);
                 if ("img".equals(localName)) { // 捕获图片节点
                     String src = attrs.getValue("src");
                     if (src != null && src.startsWith("embedded:")) {
@@ -74,11 +71,9 @@ public class DocumentParseService {
                     }
                 }
             }
-
             public String getMarkdown() {
                 return markdown.toString();
             }
-
         }
         MarkdownImageHandler contentHandler = new MarkdownImageHandler();
         EmbeddedDocumentExtractor extractor = new EmbeddedDocumentExtractor() {
@@ -90,7 +85,7 @@ public class DocumentParseService {
             }
 
             @Override
-            public void parseEmbedded(InputStream inputStream, ContentHandler embeddedHandler, Metadata metadata, boolean b) throws IOException, SAXException {
+            public void parseEmbedded(InputStream inputStream, ContentHandler embeddedHandler, Metadata metadata, boolean b) {
                 String fileName = metadata.get("resourceName");
                 String fileId = imageMap.get(fileName);
                 fileService.updateFile(fileId, inputStream);
@@ -103,7 +98,6 @@ public class DocumentParseService {
         } catch (IOException | SAXException | TikaException e) {
             throw new RuntimeException(e);
         }
-        //System.out.println("文件内容:" + contentHandler.getMarkdown());
         return contentHandler.getMarkdown();
     }
 }

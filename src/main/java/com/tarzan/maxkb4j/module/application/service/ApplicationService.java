@@ -307,7 +307,9 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         vo.setKnowledgeIdList(datasetIds);
         if (!CollectionUtils.isEmpty(vo.getKnowledgeIdList())) {
             vo.setKnowledgeList(datasetService.listByIds(datasetIds));
-         }
+         }else {
+            vo.setKnowledgeList(new ArrayList<>());
+        }
         List<String> mcpIds = mcpMappingService.getMcpIdsByAppId(id);
         vo.setMcpIdList(mcpIds);
         List<String> functionIds = functionMappingService.getFunctionIdsByAppId(id);
@@ -410,30 +412,6 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     public Boolean updateAppById(String appId, ApplicationVO appVO) {
         ApplicationEntity application = BeanUtil.copy(appVO, ApplicationEntity.class);
         application.setId(appId);
-        JSONObject workFlow = appVO.getWorkFlow();
-        if (Objects.nonNull(workFlow) && !workFlow.isEmpty()) {
-            JSONArray nodes = workFlow.getJSONArray("nodes");
-            if (Objects.nonNull(nodes) && !nodes.isEmpty()){
-                JSONObject baseNode = nodes.getJSONObject(0);
-                if (Objects.nonNull(baseNode)) {
-                    String type = baseNode.getString("type");
-                    if (type.equals("base-node")) {
-                        JSONObject properties = baseNode.getJSONObject("properties");
-                        JSONObject nodeData = properties.getJSONObject("nodeData");
-                        application.setName(nodeData.getString("name"));
-                        application.setDesc(nodeData.getString("desc"));
-                        application.setPrologue(nodeData.getString("prologue"));
-                        application.setFileUploadEnable(nodeData.getBoolean("fileUploadEnable"));
-                        application.setFileUploadSetting(nodeData.getJSONObject("fileUploadSetting"));
-                        application.setTtsModelEnable(nodeData.getBoolean("sttModelEnable"));
-                        application.setSttModelId(nodeData.getString("sttModelId"));
-                        application.setTtsModelEnable(nodeData.getBoolean("ttsModelEnable"));
-                        application.setTtsType(nodeData.getString("ttsType"));
-                        application.setTtsModelId(nodeData.getString("ttsModelId"));
-                    }
-                }
-            }
-        }
         datasetMappingService.updateByAppId(appId, appVO.getKnowledgeIdList());
         mcpMappingService.updateByAppId(appId, appVO.getMcpIdList());
         functionMappingService.updateByAppId(appId, appVO.getFunctionIdList());

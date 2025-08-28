@@ -38,7 +38,7 @@ public class BaseSearchDatasetNode extends INode {
         List<ParagraphVO> isHitHandlingMethodList=paragraphList.stream().filter(ParagraphVO::isHitHandlingMethod).toList();
         Map<String, Object> nodeVariable = Map.of(
                 "paragraph_list", paragraphList,
-                "is_hit_handling_method_list", isHitHandlingMethodList,
+                "isHitHandlingMethodList", isHitHandlingMethodList,
                 "data", processParagraphs(paragraphList, datasetSetting.getMaxParagraphCharNumber()),
                 "directly_return", directlyReturns(isHitHandlingMethodList),
                 "question", flowParams.getQuestion()

@@ -103,7 +103,7 @@
                         },
                         {
                             "label": "满足直接回答的分段列表",
-                            "value": "is_hit_handling_method_list"
+                            "value": "isHitHandlingMethodList"
                         },
                         {
                             "label": "检索结果",
@@ -137,7 +137,7 @@
                                     "compare": "len_ge",
                                     "field": [
                                         "b931efe5-5b66-46e0-ae3b-0160cb18eeb5",
-                                        "is_hit_handling_method_list"
+                                        "isHitHandlingMethodList"
                                     ],
                                     "value": "1"
                                 }

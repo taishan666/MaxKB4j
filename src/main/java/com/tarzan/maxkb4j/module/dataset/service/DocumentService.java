@@ -368,12 +368,13 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
             TextSegmentVO textSegmentVO = new TextSegmentVO();
             textSegmentVO.setName(file.getOriginalFilename());
             try (InputStream inputStream = file.getInputStream()) {
+                long start = System.currentTimeMillis();
                 String docText = documentParseService.extractText(inputStream);
+                System.out.println("耗时：" + (System.currentTimeMillis() - start));
                 List<TextSegment> textSegments = getTextSegments(Document.document(docText), patterns, limit, withFilter);
                 List<ParagraphSimpleVO> content = textSegments.stream()
                         .map(segment -> new ParagraphSimpleVO(segment.text()))
                         .collect(Collectors.toList());
-
                 textSegmentVO.setContent(content);
             } catch (IOException e) {
                 // 添加日志记录
@@ -744,5 +745,9 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
             baseMapper.updateStatusByIds(List.of(docId), 2, 2);
         });
         return true;
+    }
+
+    public Object downloadSourceFile(String id, String docId) {
+        return null;
     }
 }

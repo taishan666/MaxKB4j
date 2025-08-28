@@ -103,7 +103,7 @@
                         },
                         {
                             "label": "A list of segments that satisfy direct responses",
-                            "value": "is_hit_handling_method_list"
+                            "value": "isHitHandlingMethodList"
                         },
                         {
                             "label": "Search result",
@@ -137,7 +137,7 @@
                                     "compare": "len_ge",
                                     "field": [
                                         "b931efe5-5b66-46e0-ae3b-0160cb18eeb5",
-                                        "is_hit_handling_method_list"
+                                        "isHitHandlingMethodList"
                                     ],
                                     "value": "1"
                                 }
