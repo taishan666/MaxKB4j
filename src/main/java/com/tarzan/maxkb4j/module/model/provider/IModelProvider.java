@@ -18,7 +18,7 @@ public abstract class IModelProvider {
     public abstract List<ModelInfo> getModelList();
 
     public BaseModelCredential getModelCredential() {
-        return new BaseModelCredential(false,true);
+        return new BaseModelCredential(false, true);
     }
 
 
@@ -29,17 +29,17 @@ public abstract class IModelProvider {
         };
     }
 
-    public BaseModelParams getModelParams(String modelType, String modelName){
-        ModelInfoManage modelInfoManage=getModelInfoManage();
-        ModelInfo modelInfo = modelInfoManage.getModelInfo(modelType,modelName);
-        if (modelInfo == null){
+    public BaseModelParams getModelParams(String modelType, String modelName) {
+        ModelInfoManage modelInfoManage = getModelInfoManage();
+        ModelInfo modelInfo = modelInfoManage.getModelInfo(modelType, modelName);
+        if (modelInfo == null) {
             return getModelParams(modelType);
         }
         return modelInfo.getModelParams();
     }
 
     public boolean isSupport(String modelType) {
-        List<ModelInfo> modelInfos =getModelList();
+        List<ModelInfo> modelInfos = getModelList();
         return modelInfos.stream().anyMatch(e -> e.getModelType().equals(modelType));
     }
 
@@ -47,11 +47,15 @@ public abstract class IModelProvider {
     <T> T build(String modelName, String modelType, ModelCredential modelCredential, JSONObject params) {
         List<ModelInfo> modelList = getModelList();
         ModelInfo modelInfo = modelList.stream().filter(model -> model.getModelType().equals(modelType) && model.getName().equals(modelName)).findFirst().orElse(null);
-        assert modelInfo != null;
+        if (modelInfo == null) {
+            //没有的话，取第一个model的构造器
+            modelInfo = modelList.stream().filter(model -> model.getModelType().equals(modelType)).findFirst().orElse(null);
+        }
         try {
             // 创建 BaseModel 实现类的实例
+            assert modelInfo != null;
             BaseModel<T> instance = (BaseModel<T>) modelInfo.getModelClass().getDeclaredConstructor().newInstance();
-            return instance.build(modelName, modelCredential,params);
+            return instance.build(modelName, modelCredential, params);
         } catch (Exception e) {
             throw new RuntimeException("Failed to build model: " + modelName, e);
         }
