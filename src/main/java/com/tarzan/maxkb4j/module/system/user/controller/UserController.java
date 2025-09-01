@@ -137,32 +137,32 @@ public class UserController{
 	public R<IPage<UserEntity>> userManage(@PathVariable("page")int page, @PathVariable("size")int size, UserDTO dto){
 		return R.data(userService.selectUserPage(page,size,""));
 	}
-	@SaCheckPermission("USER:EDIT")
+	//@SaCheckPermission("USER:EDIT")
 	@PostMapping("/user/language")
 	public R<Boolean> language(@RequestBody UserEntity user){
 		return R.status(userService.updateLanguage(user));
 	}
 
-	@SaCheckPermission("USER:CREATE")
+//	@SaCheckPermission("USER:CREATE")
 	@PostMapping("/user_manage")
 	public R<Boolean> createUser(@RequestBody UserEntity user){
 		return R.status(userService.createUser(user));
 	}
 
-	@SaCheckPermission("USER:EDIT")
+	//@SaCheckPermission("USER:EDIT")
 	@PutMapping("/user_manage/{id}")
 	public R<Boolean> updateUserById(@PathVariable("id")String id,@RequestBody UserEntity user){
 		user.setId(id);
 		return R.status(userService.updateById(user));
 	}
 
-	@SaCheckPermission("USER:DELETE")
+//	@SaCheckPermission("USER:DELETE")
 	@DeleteMapping("/user_manage/{id}")
 	public R<Boolean> deleteUserById(@PathVariable("id")String id){
 		return R.status(userService.deleteUserById(id));
 	}
 
-	@SaCheckPermission("USER:EDIT")
+//	@SaCheckPermission("USER:EDIT")
 	@PutMapping("/user_manage/{id}/re_password")
 	public R<Boolean> updatePassword(@PathVariable("id")String id,@RequestBody PasswordDTO dto){
 		if (StringUtil.isBlank(dto.getPassword())){
