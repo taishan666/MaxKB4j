@@ -100,7 +100,7 @@ todo
 - **提供MaxKB相关问题的咨询解答，协助部署等。**
 
 <p>
-  <img src=".image/gitee_zsxq.png" alt="知识星球" width="30%">
+  <img src="image/gitee_zsxq.png" alt="知识星球" width="30%">
 </p>
 
 ## License
