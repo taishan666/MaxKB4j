@@ -101,7 +101,7 @@ todo
 
 
 <div>
-  <img src="image/gitee_zsxq.png" alt="联系方式" width="30%" style="margin-right: 10px">
+  <img src="image/gitee_zsxq.png" alt="联系方式" width="30%" style="margin-right: 50px">
   <img src="image/wx_zsm.jpg" alt="联系方式" width="30%" style="margin-right: 10px">
 </div>
 
