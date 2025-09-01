@@ -61,12 +61,20 @@ public class UserService extends ServiceImpl<UserMapper, UserEntity> {
             .expireAfterAccess(3, TimeUnit.MINUTES) // 最近访问后5分钟过期
             .build();
 
-    public IPage<UserEntity> selectUserPage(int page, int size, String emailOrUsername) {
+    public IPage<UserEntity> selectUserPage(int page, int size, UserDTO dto) {
         Page<UserEntity> userPage = new Page<>(page, size);
         LambdaQueryWrapper<UserEntity> wrapper = Wrappers.lambdaQuery();
-        if (StringUtils.isNotBlank(emailOrUsername)) {
-            wrapper.like(UserEntity::getEmail, emailOrUsername)
-                    .or().like(UserEntity::getUsername, emailOrUsername);
+        if (StringUtils.isNotBlank(dto.getNickname())) {
+            wrapper.like(UserEntity::getNickname, dto.getNickname());
+        }
+        if (StringUtils.isNotBlank(dto.getUsername())) {
+            wrapper.like(UserEntity::getUsername, dto.getUsername());
+        }
+        if (StringUtils.isNotBlank(dto.getEmail())) {
+            wrapper.like(UserEntity::getEmail, dto.getEmail());
+        }
+        if (Objects.nonNull(dto.getIsActive())) {
+            wrapper.like(UserEntity::getIsActive, dto.getIsActive());
         }
         wrapper.orderByDesc(UserEntity::getCreateTime);
         return this.page(userPage, wrapper);

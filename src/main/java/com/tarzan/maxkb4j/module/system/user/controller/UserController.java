@@ -135,7 +135,7 @@ public class UserController{
 	//@SaCheckPermission("USER:READ")
 	@GetMapping("/user_manage/{page}/{size}")
 	public R<IPage<UserEntity>> userManage(@PathVariable("page")int page, @PathVariable("size")int size, UserDTO dto){
-		return R.data(userService.selectUserPage(page,size,""));
+		return R.data(userService.selectUserPage(page,size,dto));
 	}
 	//@SaCheckPermission("USER:EDIT")
 	@PostMapping("/user/language")
