@@ -14,7 +14,8 @@ public class ModelFactory {
     }
 
     public static <T> T build(ModelEntity model, JSONObject params) {
-        return ModelProviderEnum.get(model.getProvider()).build(model.getModelName(), model.getModelType(), model.getCredential(),params);
+        IModelProvider modelProvider=ModelProviderEnum.get(model.getProvider());
+        return modelProvider.build(model.getModelName(), model.getModelType(), model.getCredential(),params);
     }
 
 }

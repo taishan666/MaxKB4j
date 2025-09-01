@@ -22,7 +22,7 @@ public abstract class IModelProvider {
     }
 
 
-    public BaseModelParams getModelParams(String modelType) {
+    private BaseModelParams getDefaultModelParams(String modelType) {
         return switch (modelType) {
             case "LLM", "EMBEDDING" -> new LlmModelParams();
             default -> new NoModelParams();
@@ -33,7 +33,7 @@ public abstract class IModelProvider {
         ModelInfoManage modelInfoManage=getModelInfoManage();
         ModelInfo modelInfo = modelInfoManage.getModelInfo(modelType,modelName);
         if (modelInfo == null){
-            return getModelParams(modelType);
+            return getDefaultModelParams(modelType);
         }
         return modelInfo.getModelParams();
     }
@@ -43,11 +43,13 @@ public abstract class IModelProvider {
         return modelInfos.stream().anyMatch(e -> e.getModelType().equals(modelType));
     }
 
-    @SuppressWarnings("unchecked")
     <T> T build(String modelName, String modelType, ModelCredential modelCredential, JSONObject params) {
         List<ModelInfo> modelList = getModelList();
         ModelInfo modelInfo = modelList.stream().filter(model -> model.getModelType().equals(modelType) && model.getName().equals(modelName)).findFirst().orElse(null);
-        assert modelInfo != null;
+        if (modelInfo == null){
+            //没有的话，取第一个model的构造器
+            modelInfo = modelList.stream().filter(model -> model.getModelType().equals(modelType)).findFirst().orElse(null);
+        }
         try {
             // 创建 BaseModel 实现类的实例
             BaseModel<T> instance = (BaseModel<T>) modelInfo.getModelClass().getDeclaredConstructor().newInstance();
