@@ -7,8 +7,8 @@ import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.tarzan.maxkb4j.constant.AppConst;
 import com.tarzan.maxkb4j.core.api.R;
-import com.tarzan.maxkb4j.core.common.dto.Query;
 import com.tarzan.maxkb4j.module.application.domian.dto.ApplicationAccessTokenDTO;
+import com.tarzan.maxkb4j.module.application.domian.dto.ApplicationQuery;
 import com.tarzan.maxkb4j.module.application.domian.dto.ChatImproveDTO;
 import com.tarzan.maxkb4j.module.application.domian.dto.EmbedDTO;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationAccessTokenEntity;
@@ -115,7 +115,7 @@ public class ApplicationController {
 
     //@SaCheckPermission("APPLICATION:READ")
     @GetMapping("/application/{page}/{size}")
-    public R<IPage<ApplicationVO>> userApplications(@PathVariable("page") int page, @PathVariable("size") int size, Query query) {
+    public R<IPage<ApplicationVO>> userApplications(@PathVariable("page") int page, @PathVariable("size") int size, ApplicationQuery query) {
         return R.success(applicationService.selectAppPage(page, size, query));
     }
 

@@ -121,9 +121,14 @@ public class UserController{
 		return R.data(userService.lambdaQuery().like(UserEntity::getUsername,email_or_username).or().like(UserEntity::getEmail,email_or_username).list());
 	}
 
-	@GetMapping("/workspace/default/user_list")
+/*	@GetMapping("/workspace/default/user_list")
 	public R<List<UserEntity>> userList(String email_or_username){
 		return R.data(userService.lambdaQuery().like(UserEntity::getUsername,email_or_username).or().like(UserEntity::getEmail,email_or_username).list());
+	}*/
+
+	@GetMapping("/workspace/default/user_list")
+	public R<List<UserEntity>> userList(){
+		return R.data(userService.lambdaQuery().eq(UserEntity::getIsActive, true).list());
 	}
 
 	@SaCheckPermission("USER:READ")

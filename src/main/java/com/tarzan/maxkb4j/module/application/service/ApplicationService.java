@@ -11,13 +11,9 @@ import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.tarzan.maxkb4j.core.common.dto.Query;
 import com.tarzan.maxkb4j.core.exception.AccessException;
 import com.tarzan.maxkb4j.core.exception.ApiException;
-import com.tarzan.maxkb4j.module.application.domian.dto.ApplicationAccessTokenDTO;
-import com.tarzan.maxkb4j.module.application.domian.dto.ChatImproveDTO;
-import com.tarzan.maxkb4j.module.application.domian.dto.EmbedDTO;
-import com.tarzan.maxkb4j.module.application.domian.dto.MaxKb4J;
+import com.tarzan.maxkb4j.module.application.domian.dto.*;
 import com.tarzan.maxkb4j.module.application.domian.entity.*;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationVO;
 import com.tarzan.maxkb4j.module.application.domian.vo.McpToolVO;
@@ -98,15 +94,18 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     private final FunctionLibService functionLibService;
     private final UserResourcePermissionService userResourcePermissionService;
 
-    public IPage<ApplicationVO> selectAppPage(int page, int size, Query query) {
+    public IPage<ApplicationVO> selectAppPage(int page, int size, ApplicationQuery query) {
         String loginId = StpUtil.getLoginIdAsString();
         Page<ApplicationEntity> appPage = new Page<>(page, size);
         LambdaQueryWrapper<ApplicationEntity> wrapper = Wrappers.lambdaQuery();
         if (StringUtils.isNotBlank(query.getName())) {
             wrapper.like(ApplicationEntity::getName, query.getName());
         }
-        if (Objects.nonNull(query.getSelectUserId())) {
-            wrapper.eq(ApplicationEntity::getUserId, query.getSelectUserId());
+        if (Objects.nonNull(query.getPublishStatus())) {
+            wrapper.eq(ApplicationEntity::getIsPublish, query.getPublishStatus());
+        }
+        if (Objects.nonNull(query.getCreateUser())) {
+            wrapper.eq(ApplicationEntity::getUserId, query.getCreateUser());
         }
         wrapper.eq(ApplicationEntity::getUserId, loginId);
         List<String> useTargetIds = memberPermissionService.getUseTargets("APPLICATION", loginId);
