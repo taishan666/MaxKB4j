@@ -1,12 +1,11 @@
 package com.tarzan.maxkb4j.module.functionlib.service;
 
-import cn.dev33.satoken.stp.StpUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.tarzan.maxkb4j.core.enums.PermissionType;
+import com.tarzan.maxkb4j.core.common.dto.Query;
 import com.tarzan.maxkb4j.module.functionlib.domain.entity.FunctionLibEntity;
 import com.tarzan.maxkb4j.module.functionlib.domain.vo.FunctionLibVO;
 import com.tarzan.maxkb4j.module.functionlib.mapper.FunctionLibMapper;
@@ -30,13 +29,16 @@ public class FunctionLibService extends ServiceImpl<FunctionLibMapper, FunctionL
 
     private final UserService userService;
 
-    public IPage<FunctionLibVO> pageList(int current, int size, String name) {
+    public IPage<FunctionLibVO> pageList(int current, int size, Query query) {
         IPage<FunctionLibEntity> page = new Page<>(current, size);
         LambdaQueryWrapper<FunctionLibEntity> wrapper= Wrappers.lambdaQuery();
-        if(StringUtils.isNotBlank(name)){
-            wrapper.like(FunctionLibEntity::getName,name);
+        if(StringUtils.isNotBlank(query.getName())){
+            wrapper.like(FunctionLibEntity::getName,query.getName());
         }
-        wrapper.eq(FunctionLibEntity::getPermissionType, PermissionType.PUBLIC.name()).or().eq(FunctionLibEntity::getUserId, StpUtil.getLoginIdAsString());
+        if(StringUtils.isNotBlank(query.getCreateUser())){
+            wrapper.eq(FunctionLibEntity::getUserId,query.getCreateUser());
+        }
+      //  wrapper.eq(FunctionLibEntity::getPermissionType, PermissionType.PUBLIC.name());
         wrapper.orderByDesc(FunctionLibEntity::getCreateTime);
         this.page(page,wrapper);
         Map<String, String> nicknameMap=userService.getNicknameMap();

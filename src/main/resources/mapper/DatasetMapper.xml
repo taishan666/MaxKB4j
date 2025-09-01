@@ -20,8 +20,8 @@
         LEFT JOIN team_member_permission tmp ON d.ID = tmp.target_id
         <where>
             (
-            <if test="query.selectUserId != null and query.selectUserId != ''">
-                 d.user_id= #{query.selectUserId}
+            <if test="query.createUser != null and query.createUser != ''">
+                 d.user_id= #{query.createUser}
             </if>
             <if test="query.name != null and query.name != ''">
                 AND d.name like CONCAT('%',#{query.name},'%')
@@ -32,7 +32,7 @@
                     SELECT target_id
                     FROM team_member_permission tmp
                     LEFT JOIN "team_member" tm ON tm.ID = tmp.member_id
-                    WHERE tm.user_id = #{query.selectUserId}
+                    WHERE tm.user_id = #{query.createUser}
                     AND tmp.auth_target_type ='DATASET'
                     AND tmp.operate @> ARRAY[#{operate}]::varchar[]
                 )

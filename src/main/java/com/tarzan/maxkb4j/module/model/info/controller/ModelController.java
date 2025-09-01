@@ -36,8 +36,8 @@ public class ModelController{
 
 
 	@GetMapping("/model")
-	public R<List<ModelVO>> models(String name, String createUser, String permissionType, String modelType,String provider){
-		return R.success(modelService.models(name,createUser,permissionType,modelType,provider));
+	public R<List<ModelVO>> models(String name, String createUser, String modelType,String provider){
+		return R.success(modelService.models(name,createUser,modelType,provider));
 	}
 
 	@GetMapping("/model_list")

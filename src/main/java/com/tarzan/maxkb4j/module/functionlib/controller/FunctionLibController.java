@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.tarzan.maxkb4j.constant.AppConst;
 import com.tarzan.maxkb4j.core.api.R;
+import com.tarzan.maxkb4j.core.common.dto.Query;
 import com.tarzan.maxkb4j.module.functionlib.domain.dto.FunctionDebugField;
 import com.tarzan.maxkb4j.module.functionlib.domain.dto.FunctionLibDTO;
 import com.tarzan.maxkb4j.module.functionlib.domain.entity.FunctionLibEntity;
@@ -31,8 +32,8 @@ public class FunctionLibController{
 	private	final FunctionLibService functionLibService;
 
 	@GetMapping("/workspace/default/tool/{current}/{size}")
-	public R<IPage<FunctionLibVO>> page(@PathVariable int current, @PathVariable int size, String name) {
-		return R.success(functionLibService.pageList(current,size,name));
+	public R<IPage<FunctionLibVO>> page(@PathVariable int current, @PathVariable int size, Query query) {
+		return R.success(functionLibService.pageList(current,size,query));
 	}
 
 	@GetMapping("/workspace/{type}/tool")

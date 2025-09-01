@@ -41,7 +41,7 @@ public class ModelService extends ServiceImpl<ModelMapper, ModelEntity> {
         return modelBaseService.models(modelType);
     }
 
-    public List<ModelVO> models(String name, String createUser, String permissionType, String modelType, String provider) {
+    public List<ModelVO> models(String name, String createUser, String modelType, String provider) {
         Map<String, String> userMap = userService.getNicknameMap();
         LambdaQueryWrapper<ModelEntity> wrapper = Wrappers.lambdaQuery();
         wrapper.select(ModelEntity::getId,
@@ -60,9 +60,6 @@ public class ModelService extends ServiceImpl<ModelMapper, ModelEntity> {
         }
         if (StringUtils.isNotBlank(createUser)) {
             wrapper.eq(ModelEntity::getUserId, createUser);
-        }
-        if (StringUtils.isNotBlank(permissionType)) {
-            wrapper.eq(ModelEntity::getPermissionType, permissionType);
         }
         if (StringUtils.isNotBlank(modelType)) {
             wrapper.eq(ModelEntity::getModelType, modelType);

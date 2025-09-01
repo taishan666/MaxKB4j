@@ -6,5 +6,5 @@ import lombok.Data;
 @Data
 public class Query {
     private String name;
-    private String selectUserId;
+    private String createUser;
 }

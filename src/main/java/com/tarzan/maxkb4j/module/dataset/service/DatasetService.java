@@ -80,8 +80,8 @@ public class DatasetService extends ServiceImpl<DatasetMapper, DatasetEntity> {
 
 
     public IPage<DatasetVO> selectDatasetPage(Page<DatasetVO> datasetPage, Query query) {
-        if (Objects.isNull(query.getSelectUserId())) {
-            query.setSelectUserId(StpUtil.getLoginIdAsString());
+        if (Objects.isNull(query.getCreateUser())) {
+            query.setCreateUser(StpUtil.getLoginIdAsString());
         }
         IPage<DatasetVO>  page= baseMapper.selectDatasetPage(datasetPage, query, "USE");
         Map<String, String> nicknameMap=userService.getNicknameMap();
