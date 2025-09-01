@@ -99,11 +99,18 @@ todo
 你的支持，不只是鼓励，更是它能否持续发展的关键。<br>若长期无人支持，可能只能无奈停更。<br>一个 Star，一次加入，都能让它走得更远。**
 - **提供MaxKB相关问题的咨询解答，协助部署等。**
 
+<table style="border-collapse: collapse; border: 1px solid black;">
+  <tr>
+    <th>知识星球</th>
+    <th>微信赞赏码</th>
+  </tr>
+  <tr>
+    <td style="padding: 5px;background-color:#fff;"><img src="image/gitee_zsxq.png" alt="知识星球"   /></td>
+    <td style="padding: 5px;background-color:#fff;"><img src= "image/wx_zsm.jpg" alt="微信赞赏码"   /></td>
+  </tr>
+</table>
 
-<div>
-  <img src="image/gitee_zsxq.png" alt="联系方式" width="30%" style="margin-right: 50px">
-  <img src="image/wx_zsm.jpg" alt="联系方式" width="30%" style="margin-right: 10px">
-</div>
+
 
 ## License
 
