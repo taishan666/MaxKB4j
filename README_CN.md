@@ -101,8 +101,8 @@ todo
 
 <table style="border-collapse: collapse; border: 1px solid black;">
   <tr>
-    <th style="padding: 10px; text-align: center; ">知识星球</th>
-    <th style="padding: 10px; text-align: center; ">微信赞赏码</th>
+    <th style="padding: 10px;"> <div align="center">知识星球</div></th>
+    <th style="padding: 10px;"> <div align="center">微信赞赏码</div></th>
   </tr>
   <tr>
     <td style="padding: 5px;background-color:#fff;"><img src="image/gitee_zsxq.png" alt="知识星球"   /></td>
