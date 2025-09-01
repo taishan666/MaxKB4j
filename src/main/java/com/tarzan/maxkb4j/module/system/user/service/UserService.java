@@ -74,7 +74,7 @@ public class UserService extends ServiceImpl<UserMapper, UserEntity> {
             wrapper.like(UserEntity::getEmail, dto.getEmail());
         }
         if (Objects.nonNull(dto.getIsActive())) {
-            wrapper.like(UserEntity::getIsActive, dto.getIsActive());
+            wrapper.eq(UserEntity::getIsActive, dto.getIsActive());
         }
         wrapper.orderByDesc(UserEntity::getCreateTime);
         return this.page(userPage, wrapper);
