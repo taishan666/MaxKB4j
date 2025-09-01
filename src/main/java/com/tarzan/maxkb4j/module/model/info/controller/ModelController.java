@@ -4,12 +4,9 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.constant.AppConst;
 import com.tarzan.maxkb4j.core.api.R;
-import com.tarzan.maxkb4j.core.form.BaseFiled;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelEntity;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
 import com.tarzan.maxkb4j.module.model.info.vo.ModelVO;
-import com.tarzan.maxkb4j.module.model.provider.IModelProvider;
-import com.tarzan.maxkb4j.module.model.provider.enums.ModelProviderEnum;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -41,8 +38,8 @@ public class ModelController{
 	}
 
 	@GetMapping("/model_list")
-	public R<JSONObject> modelList(String name, String createUser, String permissionType, String modelType, String provider){
-		List<ModelVO> models=modelService.models(name,createUser,permissionType,modelType,provider);
+	public R<JSONObject> modelList(String name, String createUser, String modelType, String provider){
+		List<ModelVO> models=modelService.models(name,createUser,modelType,provider);
 		JSONObject result=new JSONObject();
 		result.put("model",models);
 		result.put("shared_model",models);
