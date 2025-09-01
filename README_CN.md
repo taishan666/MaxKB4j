@@ -99,9 +99,11 @@ todo
 你的支持，不只是鼓励，更是它能否持续发展的关键。<br>若长期无人支持，可能只能无奈停更。<br>一个 Star，一次加入，都能让它走得更远。**
 - **提供MaxKB相关问题的咨询解答，协助部署等。**
 
-<p>
-  <img src="image/gitee_zsxq.png" alt="知识星球" width="30%">
-</p>
+
+<div>
+  <img src="image/gitee_zsxq.png" alt="联系方式" width="30%" style="margin-right: 10px">
+  <img src="image/wx_zsm.jpg" alt="联系方式" width="30%" style="margin-right: 10px">
+</div>
 
 ## License
 
