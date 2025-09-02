@@ -41,6 +41,9 @@ public class FunctionLibService extends ServiceImpl<FunctionLibMapper, FunctionL
         if(StringUtils.isNotBlank(query.getScope())){
             wrapper.eq(FunctionLibEntity::getScope,query.getScope());
         }
+        if(StringUtils.isNotBlank(query.getToolType())){
+            wrapper.eq(FunctionLibEntity::getToolType,query.getToolType());
+        }
         wrapper.orderByDesc(FunctionLibEntity::getCreateTime);
         this.page(page,wrapper);
         Map<String, String> nicknameMap=userService.getNicknameMap();

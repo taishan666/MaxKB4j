@@ -8,4 +8,5 @@ import lombok.EqualsAndHashCode;
 @Data
 public class ToolQuery extends Query {
     private String scope;
+    private String toolType;
 }
