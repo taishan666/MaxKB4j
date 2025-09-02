@@ -5,7 +5,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.tarzan.maxkb4j.core.common.dto.Query;
+import com.tarzan.maxkb4j.module.functionlib.domain.dto.ToolQuery;
 import com.tarzan.maxkb4j.module.functionlib.domain.entity.FunctionLibEntity;
 import com.tarzan.maxkb4j.module.functionlib.domain.vo.FunctionLibVO;
 import com.tarzan.maxkb4j.module.functionlib.mapper.FunctionLibMapper;
@@ -29,7 +29,7 @@ public class FunctionLibService extends ServiceImpl<FunctionLibMapper, FunctionL
 
     private final UserService userService;
 
-    public IPage<FunctionLibVO> pageList(int current, int size, Query query) {
+    public IPage<FunctionLibVO> pageList(int current, int size, ToolQuery query) {
         IPage<FunctionLibEntity> page = new Page<>(current, size);
         LambdaQueryWrapper<FunctionLibEntity> wrapper= Wrappers.lambdaQuery();
         if(StringUtils.isNotBlank(query.getName())){
@@ -38,7 +38,9 @@ public class FunctionLibService extends ServiceImpl<FunctionLibMapper, FunctionL
         if(StringUtils.isNotBlank(query.getCreateUser())){
             wrapper.eq(FunctionLibEntity::getUserId,query.getCreateUser());
         }
-      //  wrapper.eq(FunctionLibEntity::getPermissionType, PermissionType.PUBLIC.name());
+        if(StringUtils.isNotBlank(query.getScope())){
+            wrapper.eq(FunctionLibEntity::getScope,query.getScope());
+        }
         wrapper.orderByDesc(FunctionLibEntity::getCreateTime);
         this.page(page,wrapper);
         Map<String, String> nicknameMap=userService.getNicknameMap();

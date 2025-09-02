@@ -26,8 +26,6 @@ import com.tarzan.maxkb4j.module.mcplib.entity.McpLibEntity;
 import com.tarzan.maxkb4j.module.mcplib.service.McpLibService;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
-import com.tarzan.maxkb4j.util.GroovyScriptExecutor;
-import dev.langchain4j.agent.tool.ToolExecutionRequest;
 import dev.langchain4j.agent.tool.ToolSpecification;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.SystemMessage;
@@ -48,7 +46,6 @@ import dev.langchain4j.rag.content.injector.DefaultContentInjector;
 import dev.langchain4j.rag.query.router.DefaultQueryRouter;
 import dev.langchain4j.service.AiServices;
 import dev.langchain4j.service.TokenStream;
-import dev.langchain4j.service.tool.DefaultToolExecutor;
 import dev.langchain4j.service.tool.ToolExecution;
 import dev.langchain4j.service.tool.ToolExecutor;
 import dev.langchain4j.service.tool.ToolProvider;
@@ -307,11 +304,11 @@ public class BaseChatStep extends IChatStep {
                     .description(function.getDesc())
                     .parameters(parametersBuilder.build())
                     .build();
-            if (function.getType() == 0) {
+       /*     if (function.getType() == 0) {
                 tools.put(toolSpecification, new DefaultToolExecutor(objectWithTool, ToolExecutionRequest.builder().name(function.getName()).build()));
             } else if (function.getType() == 1) {
                 tools.put(toolSpecification, new GroovyScriptExecutor(function.getCode()));
-            }
+            }*/
 
         }
 
