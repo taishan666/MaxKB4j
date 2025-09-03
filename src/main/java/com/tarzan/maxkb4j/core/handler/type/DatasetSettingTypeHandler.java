@@ -6,14 +6,12 @@ import com.tarzan.maxkb4j.module.application.domian.entity.DatasetSetting;
 import org.apache.ibatis.type.BaseTypeHandler;
 import org.apache.ibatis.type.JdbcType;
 import org.postgresql.util.PGobject;
-import org.springframework.stereotype.Component;
 
 import java.sql.CallableStatement;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-@Component
 public class DatasetSettingTypeHandler extends BaseTypeHandler<DatasetSetting> {
 
     @Override

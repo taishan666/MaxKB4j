@@ -1,6 +1,9 @@
 package com.tarzan.maxkb4j.module.system.resourcepermission.service;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationEntity;
@@ -14,11 +17,15 @@ import com.tarzan.maxkb4j.module.system.resourcepermission.mapper.UserResourcePe
 import com.tarzan.maxkb4j.module.system.resourcepermission.vo.UserResourcePermissionVO;
 import com.tarzan.maxkb4j.module.tool.domain.entity.ToolEntity;
 import com.tarzan.maxkb4j.module.tool.mapper.ToolMapper;
+import com.tarzan.maxkb4j.util.BeanUtil;
 import com.tarzan.maxkb4j.util.PageUtil;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Set;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @AllArgsConstructor
 @Service
@@ -34,29 +41,34 @@ public class UserResourcePermissionService extends ServiceImpl<UserResourcePermi
         entity.setAuthTargetType(type);
         entity.setTargetId(targetId);
         entity.setUserId(userId);
-        entity.setPermissionList(Set.of("VIEW", "MANAGE"));
+        entity.setPermissionList(List.of("VIEW", "MANAGE"));
         entity.setAuthType("RESOURCE_PERMISSION_GROUP");
         entity.setWorkspaceId(workspaceId);
         return this.save(entity);
     }
 
 
-    // ... existing code ...
     public IPage<UserResourcePermissionVO> userResourcePermissionPage(String userId, String type, int current, int size) {
         final String DEFAULT_WORKSPACE_ID = "default";
-        final String NOT_AUTH_PERMISSION = "NOT_AUTH";
+        LambdaQueryWrapper<UserResourcePermissionEntity> wrapper = Wrappers.<UserResourcePermissionEntity>lambdaQuery()
+                .eq(UserResourcePermissionEntity::getUserId, userId)
+                .eq(UserResourcePermissionEntity::getAuthTargetType, type)
+                .eq(UserResourcePermissionEntity::getWorkspaceId, DEFAULT_WORKSPACE_ID);
+        List<UserResourcePermissionEntity> userResourcePermissions = baseMapper.selectList(wrapper);
+        Map<String, List<String>> map = userResourcePermissions.stream().collect(Collectors.toMap(UserResourcePermissionEntity::getTargetId, UserResourcePermissionEntity::getPermissionList));
         switch (type) {
             case "APPLICATION":
                 Page<ApplicationEntity> appPage = new Page<>(current, size);
                 applicationMapper.selectPage(appPage, null);
                 return PageUtil.copy(appPage, app -> {
                     UserResourcePermissionVO vo = new UserResourcePermissionVO();
+                    vo.setId(app.getId());
                     vo.setName(app.getName());
                     vo.setIcon(app.getIcon());
                     vo.setFolderId(app.getId());
                     vo.setWorkspaceId(DEFAULT_WORKSPACE_ID);
                     vo.setAuthTargetType(type);
-                    vo.setPermission(NOT_AUTH_PERMISSION);
+                    vo.setPermission(getPermissionFromList(map.get(app.getId())));
                     return vo;
                 });
             case "KNOWLEDGE":
@@ -64,12 +76,13 @@ public class UserResourcePermissionService extends ServiceImpl<UserResourcePermi
                 datasetMapper.selectPage(datasetPage, null);
                 return PageUtil.copy(datasetPage, dataset -> {
                     UserResourcePermissionVO vo = new UserResourcePermissionVO();
+                    vo.setId(dataset.getId());
                     vo.setName(dataset.getName());
                     vo.setIcon("");
                     vo.setFolderId(dataset.getId());
                     vo.setWorkspaceId(DEFAULT_WORKSPACE_ID);
                     vo.setAuthTargetType(type);
-                    vo.setPermission(NOT_AUTH_PERMISSION);
+                    vo.setPermission(getPermissionFromList(map.get(dataset.getId())));
                     return vo;
                 });
             case "TOOL":
@@ -77,12 +90,13 @@ public class UserResourcePermissionService extends ServiceImpl<UserResourcePermi
                 toolMapper.selectPage(toolPage, null);
                 return PageUtil.copy(toolPage, tool -> {
                     UserResourcePermissionVO vo = new UserResourcePermissionVO();
+                    vo.setId(tool.getId());
                     vo.setName(tool.getName());
                     vo.setIcon(tool.getIcon());
                     vo.setFolderId(tool.getId());
                     vo.setWorkspaceId(DEFAULT_WORKSPACE_ID);
                     vo.setAuthTargetType(type);
-                    vo.setPermission(NOT_AUTH_PERMISSION);
+                    vo.setPermission(getPermissionFromList(map.get(tool.getId())));
                     return vo;
                 });
             case "MODEL":
@@ -90,12 +104,13 @@ public class UserResourcePermissionService extends ServiceImpl<UserResourcePermi
                 modelMapper.selectPage(modelPage, null);
                 return PageUtil.copy(modelPage, model -> {
                     UserResourcePermissionVO vo = new UserResourcePermissionVO();
+                    vo.setId(model.getId());
                     vo.setName(model.getName());
                     vo.setIcon(model.getProvider());
                     vo.setFolderId(model.getId());
                     vo.setWorkspaceId(DEFAULT_WORKSPACE_ID);
                     vo.setAuthTargetType(type);
-                    vo.setPermission(NOT_AUTH_PERMISSION);
+                    vo.setPermission(getPermissionFromList(map.get(model.getId())));
                     return vo;
                 });
             default:
@@ -103,16 +118,41 @@ public class UserResourcePermissionService extends ServiceImpl<UserResourcePermi
         }
     }
 
-    public boolean update(String userId, String type, UserResourcePermissionVO vo) {
-        if ("NOT_AUTH".equals(vo.getPermission())) {
-            vo.setPermissionList(Set.of());
-        } else if ("MANAGE".equals(vo.getPermission())) {
-            vo.setPermissionList(Set.of("MANAGE", "VIEW"));
-        } else if ("VIEW".equals(vo.getPermission())) {
-            vo.setPermissionList(Set.of("VIEW"));
+    private String getPermissionFromList(List<String> permissionList) {
+        if (CollectionUtils.isNotEmpty(permissionList)) {
+            if (permissionList.contains("MANAGE")) {
+                return "MANAGE";
+            } else if (permissionList.contains("VIEW")) {
+                return "VIEW";
+            } else {
+                return "NOT_AUTH";
+            }
         } else {
-            vo.setPermissionList(Set.of());
+            return "NOT_AUTH";
         }
-        return this.lambdaUpdate().set(UserResourcePermissionEntity::getPermissionList, vo.getPermissionList()).eq(UserResourcePermissionEntity::getUserId, userId).eq(UserResourcePermissionEntity::getTargetId, vo.getTargetId()).update();
+    }
+
+
+    @Transactional
+    public boolean update(String userId, String type, List<UserResourcePermissionVO> list) {
+        List<String> targetIds = list.stream().map(UserResourcePermissionVO::getTargetId).toList();
+        this.remove(Wrappers.<UserResourcePermissionEntity>lambdaUpdate().eq(UserResourcePermissionEntity::getUserId, userId).eq(UserResourcePermissionEntity::getAuthTargetType, type).in(UserResourcePermissionEntity::getTargetId, targetIds));
+        List<UserResourcePermissionEntity> saveList = list.stream().map(vo -> {
+            if ("NOT_AUTH".equals(vo.getPermission())) {
+                vo.setPermissionList(List.of());
+            } else if ("MANAGE".equals(vo.getPermission())) {
+                vo.setPermissionList(List.of("MANAGE", "VIEW"));
+            } else if ("VIEW".equals(vo.getPermission())) {
+                vo.setPermissionList(List.of("VIEW"));
+            } else {
+                vo.setPermissionList(List.of());
+            }
+            vo.setUserId(userId);
+            vo.setAuthType("RESOURCE_PERMISSION_GROUP");
+            vo.setWorkspaceId("default");
+            vo.setAuthTargetType(type);
+            return BeanUtil.copy(vo, UserResourcePermissionEntity.class);
+        }).toList();
+        return this.saveBatch(saveList);
     }
 }

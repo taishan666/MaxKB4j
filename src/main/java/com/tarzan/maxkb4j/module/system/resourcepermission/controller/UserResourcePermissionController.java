@@ -8,6 +8,8 @@ import com.tarzan.maxkb4j.module.system.resourcepermission.vo.UserResourcePermis
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 /**
  * @author tarzan
  * @date 2025-8-25 12:42:39
@@ -27,7 +29,7 @@ public class UserResourcePermissionController {
     }
 
     @PutMapping("/user_resource_permission/user/{userId}/resource/{type}")
-    public R<Boolean> update(@PathVariable String userId, @PathVariable String type, @RequestBody UserResourcePermissionVO vo){
-        return R.status(userResourcePermissionService.update(userId,type,vo));
+    public R<Boolean> update(@PathVariable String userId, @PathVariable String type, @RequestBody List<UserResourcePermissionVO>  list){
+        return R.status(userResourcePermissionService.update(userId,type,list));
     }
 }

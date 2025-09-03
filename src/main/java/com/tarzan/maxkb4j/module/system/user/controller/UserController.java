@@ -154,6 +154,11 @@ public class UserController{
 		return R.status(userService.createUser(user));
 	}
 
+	@GetMapping("/user_manage/password")
+	public R<Map<String, String>> password(){
+		return R.data(Map.of("password","123456"));
+	}
+
 	//@SaCheckPermission("USER:EDIT")
 	@PutMapping("/user_manage/{id}")
 	public R<Boolean> updateUserById(@PathVariable("id")String id,@RequestBody UserEntity user){

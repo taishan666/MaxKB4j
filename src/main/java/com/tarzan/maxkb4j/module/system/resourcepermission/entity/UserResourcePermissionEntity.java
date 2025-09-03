@@ -1,11 +1,13 @@
 package com.tarzan.maxkb4j.module.system.resourcepermission.entity;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.tarzan.maxkb4j.core.common.entity.BaseEntity;
+import com.tarzan.maxkb4j.core.handler.type.StringListTypeHandler;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-import java.util.Set;
+import java.util.List;
 
 /**
  * @author tarzan
@@ -13,12 +15,13 @@ import java.util.Set;
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
-@TableName("workspace_user_resource_permission")
+@TableName(value = "workspace_user_resource_permission",autoResultMap = true)
 public class UserResourcePermissionEntity extends BaseEntity {
     private String workspaceId;
     private String authTargetType;
     private String targetId;
     private String authType;
-    private Set<String> permissionList;
+    @TableField(typeHandler = StringListTypeHandler.class)
+    private List<String> permissionList;
     private String userId;
 }

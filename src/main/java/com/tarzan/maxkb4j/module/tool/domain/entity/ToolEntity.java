@@ -5,7 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.tarzan.maxkb4j.core.common.entity.BaseEntity;
-import com.tarzan.maxkb4j.core.handler.type.FunctionInputParamsTypeHandler;
+import com.tarzan.maxkb4j.core.handler.type.ToolInputParamsTypeHandler;
 import com.tarzan.maxkb4j.core.handler.type.JOSNBTypeHandler;
 import com.tarzan.maxkb4j.module.tool.domain.dto.ToolInputField;
 import lombok.Data;
@@ -19,7 +19,7 @@ import java.util.List;
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
-@TableName("tool")
+@TableName(value = "tool",autoResultMap = true)
 public class ToolEntity extends BaseEntity {
 
     private String name;
@@ -28,7 +28,7 @@ public class ToolEntity extends BaseEntity {
 
     private String code;
 
-    @TableField(typeHandler = FunctionInputParamsTypeHandler.class)
+    @TableField(typeHandler = ToolInputParamsTypeHandler.class)
     private List<ToolInputField> inputFieldList;
 
     @TableField(typeHandler = JOSNBTypeHandler.class)

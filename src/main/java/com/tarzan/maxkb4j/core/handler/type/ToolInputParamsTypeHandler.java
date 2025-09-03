@@ -7,7 +7,6 @@ import com.tarzan.maxkb4j.module.tool.domain.dto.ToolInputField;
 import org.apache.ibatis.type.BaseTypeHandler;
 import org.apache.ibatis.type.JdbcType;
 import org.postgresql.util.PGobject;
-import org.springframework.stereotype.Component;
 
 import java.sql.CallableStatement;
 import java.sql.PreparedStatement;
@@ -15,8 +14,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 
-@Component
-public class FunctionInputParamsTypeHandler extends BaseTypeHandler<List<ToolInputField>> {
+public class ToolInputParamsTypeHandler extends BaseTypeHandler<List<ToolInputField>> {
 
     @Override
     public void setNonNullParameter(PreparedStatement ps, int i, List<ToolInputField> parameter, JdbcType jdbcType) throws SQLException {

@@ -3,7 +3,6 @@ package com.tarzan.maxkb4j.core.handler.type;
 import com.pgvector.PGvector;
 import org.apache.ibatis.type.BaseTypeHandler;
 import org.apache.ibatis.type.JdbcType;
-import org.springframework.stereotype.Component;
 
 import java.sql.CallableStatement;
 import java.sql.PreparedStatement;
@@ -14,7 +13,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Component
 public class EmbeddingTypeHandler extends BaseTypeHandler<List<Float>> {
     @Override
     public void setNonNullParameter(PreparedStatement ps, int i, List<Float> parameter, JdbcType jdbcType) throws SQLException {

@@ -20,7 +20,7 @@ import java.util.List;
  * @date 2024-12-30 18:08:16
  */
 @Data
-@TableName("embedding")
+@TableName(value = "embedding",autoResultMap = true)
 @Document(collection = "embedding")
 public class EmbeddingEntity {
 

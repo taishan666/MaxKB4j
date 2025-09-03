@@ -6,7 +6,6 @@ import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationApiKeyEnti
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationApiKeyMapper;
 import org.springframework.stereotype.Service;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.UUID;
 
@@ -29,7 +28,7 @@ public class ApplicationApiKeyService extends ServiceImpl<ApplicationApiKeyMappe
         String uuid = UUID.randomUUID().toString();
         entity.setSecretKey("maxKb4j-" + uuid.replaceAll("-", ""));
         entity.setUserId(StpUtil.getLoginIdAsString());
-        entity.setCrossDomainList(new HashSet<>());
+        entity.setCrossDomainList(List.of());
         return this.save(entity);
     }
 

@@ -14,9 +14,8 @@ import com.tarzan.maxkb4j.module.application.service.ApplicationPublicAccessClie
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 
 @AllArgsConstructor
 @Component
@@ -47,7 +46,7 @@ public class ChatPostHandler extends PostResponseHandler {
             chatRecord.setMessageTokens(messageTokens);
             chatRecord.setAnswerTokens(answerTokens);
             chatRecord.setCost(messageTokens+answerTokens);
-            chatRecord.setAnswerTextList(Set.of(answerText));
+            chatRecord.setAnswerTextList(List.of(answerText));
             chatRecord.setRunTime((System.currentTimeMillis() - startTime) / 1000F);
         } else {
             chatRecord = new ApplicationChatRecordEntity();
@@ -55,7 +54,7 @@ public class ChatPostHandler extends PostResponseHandler {
             chatRecord.setChatId(chatId);
             chatRecord.setProblemText(problemText);
             chatRecord.setAnswerText(answerText);
-            chatRecord.setAnswerTextList(Set.of(answerText));
+            chatRecord.setAnswerTextList(List.of(answerText));
             chatRecord.setIndex(chatInfo.getChatRecordList().size() + 1);
             chatRecord.setMessageTokens(messageTokens);
             chatRecord.setAnswerTokens(answerTokens);
@@ -63,7 +62,7 @@ public class ChatPostHandler extends PostResponseHandler {
             chatRecord.setVoteStatus("-1");
             chatRecord.setCost(messageTokens+answerTokens);
             chatRecord.setDetails(details);
-            chatRecord.setImproveParagraphIdList(new HashSet<>());
+            chatRecord.setImproveParagraphIdList(List.of());
         }
         chatInfo.addChatRecord(chatRecord);
    /*     List<ChatMessage> messages=new ArrayList<>();

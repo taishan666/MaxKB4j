@@ -8,14 +8,12 @@ import com.tarzan.maxkb4j.util.RSAUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.type.BaseTypeHandler;
 import org.apache.ibatis.type.JdbcType;
-import org.springframework.stereotype.Component;
 
 import java.sql.CallableStatement;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-@Component
 @Slf4j
 public class ModelCredentialTypeHandler extends BaseTypeHandler<ModelCredential> {
     @Override

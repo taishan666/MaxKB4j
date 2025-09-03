@@ -15,12 +15,11 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-@Component
 public class StringSetTypeHandler extends BaseTypeHandler<Set<String>> {
     @Override
     public void setNonNullParameter(PreparedStatement ps, int i, Set<String> parameter, JdbcType jdbcType) throws SQLException {
         PGobject pGobject = new PGobject();
-        pGobject.setType("varchar[]");
+        pGobject.setType("varchar");
         pGobject.setValue(toDBValue(parameter));
         ps.setObject(i, pGobject);
     }
@@ -45,11 +44,9 @@ public class StringSetTypeHandler extends BaseTypeHandler<Set<String>> {
 
     private Set<String> convert(String value){
         if(notNull(value)){
-            // 1. 去掉大括号
-            String noBraces = value.replace("{", "").replace("}", "");
-            if(StringUtils.isNotBlank(noBraces)){
-                // 2. 分割字符串并去除空格
-                return Arrays.stream(noBraces.split(","))
+            if(StringUtils.isNotBlank(value)){
+                //分割字符串并去除空格
+                return Arrays.stream(value.split(","))
                         .map(String::trim) // 去除每个元素的前后空格
                         .collect(Collectors.toSet());
             }
@@ -63,16 +60,6 @@ public class StringSetTypeHandler extends BaseTypeHandler<Set<String>> {
 
 
     public String toDBValue(Set<String> value) {
-        if(null == value || value.isEmpty()){
-            return "{}";
-        }
-        StringBuilder sb = new StringBuilder();
-        sb.append("{");
-        for (String s : value) {
-            sb.append(s).append(",");
-        }
-        sb.deleteCharAt(sb.length()-1);
-        sb.append("}");
-        return sb.toString();
+        return String.join(",", value);
     }
 }
