@@ -19,9 +19,9 @@ import com.tarzan.maxkb4j.module.application.ragpipeline.PipelineManage;
 import com.tarzan.maxkb4j.module.application.ragpipeline.step.chatstep.IChatStep;
 import com.tarzan.maxkb4j.module.application.service.ApplicationPublicAccessClientService;
 import com.tarzan.maxkb4j.module.dataset.domain.vo.ParagraphVO;
-import com.tarzan.maxkb4j.module.functionlib.domain.dto.FunctionInputField;
-import com.tarzan.maxkb4j.module.functionlib.domain.entity.FunctionLibEntity;
-import com.tarzan.maxkb4j.module.functionlib.service.FunctionLibService;
+import com.tarzan.maxkb4j.module.tool.domain.dto.ToolInputField;
+import com.tarzan.maxkb4j.module.tool.domain.entity.ToolEntity;
+import com.tarzan.maxkb4j.module.tool.service.ToolService;
 import com.tarzan.maxkb4j.module.mcplib.entity.McpLibEntity;
 import com.tarzan.maxkb4j.module.mcplib.service.McpLibService;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
@@ -75,7 +75,7 @@ public class BaseChatStep extends IChatStep {
     private final McpLibService mcpLibService;
     private final ApplicationPublicAccessClientService publicAccessClientService;
     private final ChatMemoryStore chatMemoryStore;
-    private final FunctionLibService functionLibService;
+    private final ToolService functionLibService;
 
     @Override
     protected String execute(PipelineManage manage) {
@@ -275,14 +275,14 @@ public class BaseChatStep extends IChatStep {
             return tools;
         }
         SystemTools objectWithTool = new SystemTools();
-        LambdaQueryWrapper<FunctionLibEntity> wrapper = Wrappers.lambdaQuery();
-        wrapper.in(FunctionLibEntity::getId, functionIds);
-        wrapper.eq(FunctionLibEntity::getIsActive, true);
-        List<FunctionLibEntity> functionLib = functionLibService.list(wrapper);
-        for (FunctionLibEntity function : functionLib) {
-            List<FunctionInputField> params = function.getInputFieldList();
+        LambdaQueryWrapper<ToolEntity> wrapper = Wrappers.lambdaQuery();
+        wrapper.in(ToolEntity::getId, functionIds);
+        wrapper.eq(ToolEntity::getIsActive, true);
+        List<ToolEntity> functionLib = functionLibService.list(wrapper);
+        for (ToolEntity function : functionLib) {
+            List<ToolInputField> params = function.getInputFieldList();
             JsonObjectSchema.Builder parametersBuilder = JsonObjectSchema.builder();
-            for (FunctionInputField param : params) {
+            for (ToolInputField param : params) {
                 JsonSchemaElement jsonSchemaElement = new JsonNullSchema();
                 if ("string".equals(param.getType())) {
                     jsonSchemaElement = JsonStringSchema.builder().build();

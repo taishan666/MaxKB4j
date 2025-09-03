@@ -27,8 +27,8 @@ import com.tarzan.maxkb4j.module.dataset.domain.vo.ParagraphVO;
 import com.tarzan.maxkb4j.module.dataset.service.DatasetService;
 import com.tarzan.maxkb4j.module.dataset.service.ParagraphService;
 import com.tarzan.maxkb4j.module.dataset.service.RetrieveService;
-import com.tarzan.maxkb4j.module.functionlib.domain.entity.FunctionLibEntity;
-import com.tarzan.maxkb4j.module.functionlib.service.FunctionLibService;
+import com.tarzan.maxkb4j.module.tool.domain.entity.ToolEntity;
+import com.tarzan.maxkb4j.module.tool.service.ToolService;
 import com.tarzan.maxkb4j.module.mcplib.entity.McpLibEntity;
 import com.tarzan.maxkb4j.module.mcplib.service.McpLibService;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelEntity;
@@ -91,7 +91,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     private final ApplicationFunctionMappingService functionMappingService;
     private final ApplicationChatRecordService applicationChatRecordService;
     private final ApplicationChatMapper applicationChatMapper;
-    private final FunctionLibService functionLibService;
+    private final ToolService functionLibService;
     private final UserResourcePermissionService userResourcePermissionService;
 
     public IPage<ApplicationVO> selectAppPage(int page, int size, ApplicationQuery query) {
@@ -602,16 +602,16 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         return content;
     }
 
-    public List<FunctionLibEntity> functionLib(String appId) {
+    public List<ToolEntity> functionLib(String appId) {
         return functionLibService.list();
     }
 
-    public FunctionLibEntity functionLib(String appId, String functionId) {
+    public ToolEntity functionLib(String appId, String functionId) {
         return functionLibService.getById(functionId);
     }
 
 
-    public List<FunctionLibEntity> getFunction(String appId) {
+    public List<ToolEntity> getFunction(String appId) {
         ApplicationEntity app = getById(appId);
         if (app == null) {
             return Collections.emptyList();

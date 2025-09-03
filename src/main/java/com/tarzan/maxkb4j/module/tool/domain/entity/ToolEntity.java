@@ -1,4 +1,4 @@
-package com.tarzan.maxkb4j.module.functionlib.domain.entity;
+package com.tarzan.maxkb4j.module.tool.domain.entity;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -7,7 +7,7 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.tarzan.maxkb4j.core.common.entity.BaseEntity;
 import com.tarzan.maxkb4j.core.handler.type.FunctionInputParamsTypeHandler;
 import com.tarzan.maxkb4j.core.handler.type.JOSNBTypeHandler;
-import com.tarzan.maxkb4j.module.functionlib.domain.dto.FunctionInputField;
+import com.tarzan.maxkb4j.module.tool.domain.dto.ToolInputField;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -19,8 +19,8 @@ import java.util.List;
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
-@TableName("function_lib")
-public class FunctionLibEntity extends BaseEntity {
+@TableName("tool")
+public class ToolEntity extends BaseEntity {
 
     private String name;
 
@@ -29,7 +29,7 @@ public class FunctionLibEntity extends BaseEntity {
     private String code;
 
     @TableField(typeHandler = FunctionInputParamsTypeHandler.class)
-    private List<FunctionInputField> inputFieldList;
+    private List<ToolInputField> inputFieldList;
 
     @TableField(typeHandler = JOSNBTypeHandler.class)
     private JSONArray initFieldList;

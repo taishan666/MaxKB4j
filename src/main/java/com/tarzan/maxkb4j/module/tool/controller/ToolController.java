@@ -1,4 +1,4 @@
-package com.tarzan.maxkb4j.module.functionlib.controller;
+package com.tarzan.maxkb4j.module.tool.controller;
 
 import cn.dev33.satoken.stp.StpUtil;
 import com.alibaba.fastjson.JSONObject;
@@ -7,12 +7,12 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.tarzan.maxkb4j.constant.AppConst;
 import com.tarzan.maxkb4j.core.api.R;
-import com.tarzan.maxkb4j.module.functionlib.domain.dto.FunctionDebugField;
-import com.tarzan.maxkb4j.module.functionlib.domain.dto.FunctionLibDTO;
-import com.tarzan.maxkb4j.module.functionlib.domain.dto.ToolQuery;
-import com.tarzan.maxkb4j.module.functionlib.domain.entity.FunctionLibEntity;
-import com.tarzan.maxkb4j.module.functionlib.domain.vo.FunctionLibVO;
-import com.tarzan.maxkb4j.module.functionlib.service.FunctionLibService;
+import com.tarzan.maxkb4j.module.tool.domain.dto.ToolDebugField;
+import com.tarzan.maxkb4j.module.tool.domain.dto.ToolDTO;
+import com.tarzan.maxkb4j.module.tool.domain.dto.ToolQuery;
+import com.tarzan.maxkb4j.module.tool.domain.entity.ToolEntity;
+import com.tarzan.maxkb4j.module.tool.domain.vo.ToolVO;
+import com.tarzan.maxkb4j.module.tool.service.ToolService;
 import com.tarzan.maxkb4j.util.StringUtil;
 import groovy.lang.Binding;
 import groovy.lang.GroovyShell;
@@ -31,28 +31,28 @@ import java.util.List;
 @RestController
 @RequestMapping(AppConst.ADMIN_PATH)
 @AllArgsConstructor
-public class FunctionLibController{
+public class ToolController {
 
-	private	final FunctionLibService functionLibService;
+	private	final ToolService functionLibService;
 
 	@GetMapping("/workspace/default/tool/{current}/{size}")
-	public R<IPage<FunctionLibVO>> page(@PathVariable int current, @PathVariable int size,ToolQuery query) {
+	public R<IPage<ToolVO>> page(@PathVariable int current, @PathVariable int size, ToolQuery query) {
 		return R.success(functionLibService.pageList(current,size,query));
 	}
 
 	@GetMapping("/workspace/{type}/tool")
-	public R<List<FunctionLibEntity>> list(@PathVariable String type,String name) {
-		LambdaQueryWrapper<FunctionLibEntity> wrapper= Wrappers.lambdaQuery();
-		wrapper.eq(FunctionLibEntity::getToolType, type.toUpperCase());
+	public R<List<ToolEntity>> list(@PathVariable String type, String name) {
+		LambdaQueryWrapper<ToolEntity> wrapper= Wrappers.lambdaQuery();
+		wrapper.eq(ToolEntity::getToolType, type.toUpperCase());
 		if (StringUtil.isNotBlank( name)){
-			wrapper.like(FunctionLibEntity::getName, name);
+			wrapper.like(ToolEntity::getName, name);
 		}
 		return R.success(functionLibService.list(wrapper));
 	}
 
 	@PostMapping("/workspace/default/tool/{templateId}/add_internal_tool")
-	public R<FunctionLibEntity> addInternalTool(@PathVariable String templateId) {
-		FunctionLibEntity entity=functionLibService.getById(templateId);
+	public R<ToolEntity> addInternalTool(@PathVariable String templateId) {
+		ToolEntity entity=functionLibService.getById(templateId);
 		entity.setId( null);
 		entity.setUserId(StpUtil.getLoginIdAsString());
 		Date now = new Date();
@@ -65,7 +65,7 @@ public class FunctionLibController{
 	}
 
 	@PostMapping("/workspace/default/tool")
-	public R<FunctionLibEntity> functionLib(@RequestBody FunctionLibEntity dto) {
+	public R<ToolEntity> functionLib(@RequestBody ToolEntity dto) {
 		dto.setIsActive(true);
 		dto.setUserId(StpUtil.getLoginIdAsString());
 		dto.setScope("WORKSPACE");
@@ -74,14 +74,14 @@ public class FunctionLibController{
 	}
 
 	@PostMapping("/workspace/default/tool/debug")
-	public R<String> debug(@RequestBody FunctionLibDTO dto) {
+	public R<String> debug(@RequestBody ToolDTO dto) {
 		Binding binding = new Binding();
 		StringBuilder codeText=new StringBuilder(dto.getCode());
 		codeText.append("\n").append("main(");
 		if (CollectionUtils.isEmpty(dto.getDebugFieldList())){
 			codeText.append(")");
 		}else {
-			for (FunctionDebugField inputField : dto.getDebugFieldList()) {
+			for (ToolDebugField inputField : dto.getDebugFieldList()) {
 				binding.setVariable(inputField.getName(), inputField.getValue());
 				codeText.append(inputField.getName()).append(",");
 			}
@@ -95,12 +95,12 @@ public class FunctionLibController{
 	}
 
 	@GetMapping("/workspace/default/tool/{id}")
-	public R<FunctionLibEntity> get(@PathVariable String id) {
+	public R<ToolEntity> get(@PathVariable String id) {
 		return R.data(functionLibService.getById(id));
 	}
 
 	@PutMapping("/workspace/default/tool/{id}")
-	public R<Boolean> functionLib(@PathVariable String id,@RequestBody FunctionLibEntity dto) {
+	public R<Boolean> functionLib(@PathVariable String id,@RequestBody ToolEntity dto) {
 		dto.setId(id);
 		return R.status(functionLibService.updateById(dto));
 	}
@@ -111,7 +111,7 @@ public class FunctionLibController{
 	}
 
 	@PostMapping("/workspace/default/tool/pylint")
-	public R<List<FunctionLibEntity>> pylint(@RequestBody JSONObject json) {
+	public R<List<ToolEntity>> pylint(@RequestBody JSONObject json) {
 		return R.success(Collections.emptyList());
 	}
 }

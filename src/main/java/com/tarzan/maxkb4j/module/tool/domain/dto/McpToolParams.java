@@ -1,4 +1,4 @@
-package com.tarzan.maxkb4j.module.functionlib.domain.dto;
+package com.tarzan.maxkb4j.module.tool.domain.dto;
 
 import com.alibaba.fastjson.JSONObject;
 import lombok.Data;

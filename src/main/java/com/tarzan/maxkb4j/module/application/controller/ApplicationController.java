@@ -19,7 +19,7 @@ import com.tarzan.maxkb4j.module.application.service.ApplicationService;
 import com.tarzan.maxkb4j.module.dataset.domain.dto.DataSearchDTO;
 import com.tarzan.maxkb4j.module.dataset.domain.entity.DatasetEntity;
 import com.tarzan.maxkb4j.module.dataset.domain.vo.ParagraphVO;
-import com.tarzan.maxkb4j.module.functionlib.domain.entity.FunctionLibEntity;
+import com.tarzan.maxkb4j.module.tool.domain.entity.ToolEntity;
 import com.tarzan.maxkb4j.module.mcplib.entity.McpLibEntity;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelEntity;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -73,13 +73,13 @@ public class ApplicationController {
 
    // @SaCheckPermission("APPLICATION:READ")
     @GetMapping("/application/{id}/function_lib")
-    public R<List<FunctionLibEntity>> functionLib(@PathVariable("id") String id) {
+    public R<List<ToolEntity>> functionLib(@PathVariable("id") String id) {
         return R.success(applicationService.functionLib(id));
     }
 
   //  @SaCheckPermission("APPLICATION:READ")
     @GetMapping("/application/{id}/function_lib/{functionId}")
-    public R<FunctionLibEntity> functionLib(@PathVariable("id") String id,@PathVariable("functionId") String functionId) {
+    public R<ToolEntity> functionLib(@PathVariable("id") String id, @PathVariable("functionId") String functionId) {
         return R.success(applicationService.functionLib(id,functionId));
     }
 
@@ -207,7 +207,7 @@ public class ApplicationController {
 
    // @SaCheckPermission("APPLICATION:READ")
     @GetMapping("/application/{appId}/list_function")
-    public R<List<FunctionLibEntity>> listFunction(@PathVariable("appId") String appId) {
+    public R<List<ToolEntity>> listFunction(@PathVariable("appId") String appId) {
         return R.success(applicationService.getFunction(appId));
     }
 
