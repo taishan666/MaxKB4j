@@ -1,10 +1,9 @@
-version: '3.8'
 services:
   postgres:
-    image: pgvector/pgvector:0.8.0 # docker hub
+    image: pgvector/pgvector:0.8.0-pg17  # 使用带有pgvector扩展的PostgreSQL镜像
     container_name: postgres
     restart: always
-    ports: # 生产环境建议不要暴露
+    ports:
       - "5432:5432"
     networks:
       - MaxKB4j
@@ -14,6 +13,7 @@ services:
       POSTGRES_DB: MaxKB4j
     volumes:
       - ./postgres/data:/var/lib/postgresql/data
+
   mongo:
     image: mongo:8.0
     container_name: mongo
@@ -29,11 +29,12 @@ services:
     volumes:
       - ./mongo/data:/data/db
       - ./mongo/configdb:/data/configdb
+
   maxKB4j:
     container_name: MaxKB4j
     image: tarzan/maxkb4j:v1.0
     ports:
-      - "12000:12000"
+      - "8080:8080"
     networks:
       - MaxKB4j
     depends_on:
@@ -59,5 +60,7 @@ services:
       sleep 10;
       exec java -jar MaxKB4j.jar 
       "
+
 networks:
-  maxKB4j:
+  MaxKB4j:
+    driver: bridge
