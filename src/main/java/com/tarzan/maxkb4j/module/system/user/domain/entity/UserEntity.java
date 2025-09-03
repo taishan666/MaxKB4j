@@ -15,7 +15,7 @@ import java.util.Set;
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
-@TableName("user")
+@TableName(value = "user",autoResultMap = true)
 public class UserEntity extends BaseEntity {
 
     private String email;

@@ -78,8 +78,8 @@
             <if test="query.name != null and query.name != ''">
                 and d.name like CONCAT('%',#{query.name},'%')
             </if>
-            <if test="query.selectUserId != null and query.selectUserId != ''">
-                and d.user_id = #{query.selectUserId}
+            <if test="query.createUser != null and query.createUser != ''">
+                and d.user_id = #{createUser}
             </if>
         </where>
         GROUP BY d.ID

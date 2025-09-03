@@ -20,7 +20,7 @@ import java.util.UUID;
  */
 @NoArgsConstructor
 @Data
-@TableName("application_access_token")
+@TableName(value = "application_access_token",autoResultMap = true)
 public class ApplicationAccessTokenEntity {
 
     @TableId
