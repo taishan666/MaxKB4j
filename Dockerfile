@@ -1,7 +1,5 @@
-#VERSION 1.0.0
 #基础镜像为java17
-
-FROM eclipse-temurin:17-jdk
+FROM amazoncorretto:17
 
 #作者签名
 LABEL maintainer="tarzan <1334512682@qq.com>"
