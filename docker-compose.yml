@@ -3,8 +3,8 @@ services:
     image: pgvector/pgvector:0.8.0-pg17  # 使用带有pgvector扩展的PostgreSQL镜像
     container_name: postgres
     restart: always
-    ports:
-      - "5432:5432"
+      #ports:
+    #- "5432:5432"
     networks:
       - MaxKB4j
     environment:
@@ -18,8 +18,8 @@ services:
     image: mongo:8.0
     container_name: mongo
     restart: always
-    ports:
-      - "27017:27017"
+      #ports:
+    # - "27017:27017"
     networks:
       - MaxKB4j
     environment:
@@ -32,7 +32,7 @@ services:
 
   maxKB4j:
     container_name: MaxKB4j
-    image: tarzan/maxkb4j:v1.0
+    image: registry.cn-hangzhou.aliyuncs.com/tarzanx/maxkb4j:v1.0.0
     ports:
       - "8080:8080"
     networks:
