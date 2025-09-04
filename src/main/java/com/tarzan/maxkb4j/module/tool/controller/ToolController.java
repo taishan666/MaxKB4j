@@ -7,8 +7,8 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.tarzan.maxkb4j.constant.AppConst;
 import com.tarzan.maxkb4j.core.api.R;
-import com.tarzan.maxkb4j.module.tool.domain.dto.ToolDebugField;
 import com.tarzan.maxkb4j.module.tool.domain.dto.ToolDTO;
+import com.tarzan.maxkb4j.module.tool.domain.dto.ToolDebugField;
 import com.tarzan.maxkb4j.module.tool.domain.dto.ToolQuery;
 import com.tarzan.maxkb4j.module.tool.domain.entity.ToolEntity;
 import com.tarzan.maxkb4j.module.tool.domain.vo.ToolVO;
@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author tarzan
@@ -33,11 +34,20 @@ import java.util.List;
 @AllArgsConstructor
 public class ToolController {
 
-	private	final ToolService functionLibService;
+	private	final ToolService toolService;
 
 	@GetMapping("/workspace/default/tool/{current}/{size}")
 	public R<IPage<ToolVO>> page(@PathVariable int current, @PathVariable int size, ToolQuery query) {
-		return R.success(functionLibService.pageList(current,size,query));
+		return R.success(toolService.pageList(current,size,query));
+	}
+
+	@GetMapping("/workspace/default/tool")
+	public R<Map<String,List<ToolEntity>>> list1(String folderId, String toolType) {
+		LambdaQueryWrapper<ToolEntity> wrapper= Wrappers.lambdaQuery();
+		wrapper.eq(ToolEntity::getToolType, toolType);
+		wrapper.eq(ToolEntity::getIsActive, true);
+		List<ToolEntity> tools=toolService.list(wrapper);
+		return R.success(Map.of("folders", List.of(), "tools", tools));
 	}
 
 	@GetMapping("/workspace/{type}/tool")
@@ -47,12 +57,21 @@ public class ToolController {
 		if (StringUtil.isNotBlank( name)){
 			wrapper.like(ToolEntity::getName, name);
 		}
-		return R.success(functionLibService.list(wrapper));
+		return R.success(toolService.list(wrapper));
+	}
+
+	@GetMapping("/workspace/default/tool/tool_list")
+	public R<Map<String,List<ToolEntity>>> toolList(String scope, String toolType) {
+		LambdaQueryWrapper<ToolEntity> wrapper= Wrappers.lambdaQuery();
+		wrapper.eq(ToolEntity::getToolType, toolType);
+		wrapper.eq(ToolEntity::getScope, scope);
+		List<ToolEntity> tools=toolService.list(wrapper);
+		return R.success(Map.of("tools", tools, "shared_tools", List.of()));
 	}
 
 	@PostMapping("/workspace/default/tool/{templateId}/add_internal_tool")
 	public R<ToolEntity> addInternalTool(@PathVariable String templateId) {
-		ToolEntity entity=functionLibService.getById(templateId);
+		ToolEntity entity=toolService.getById(templateId);
 		entity.setId( null);
 		entity.setUserId(StpUtil.getLoginIdAsString());
 		Date now = new Date();
@@ -60,7 +79,7 @@ public class ToolController {
 		entity.setScope("WORKSPACE");
 		entity.setToolType("CUSTOM");
 		entity.setUpdateTime(now);
-		functionLibService.save(entity);
+		toolService.save(entity);
 		return R.data(entity);
 	}
 
@@ -69,7 +88,7 @@ public class ToolController {
 		dto.setIsActive(true);
 		dto.setUserId(StpUtil.getLoginIdAsString());
 		dto.setScope("WORKSPACE");
-		functionLibService.save(dto);
+		toolService.save(dto);
 		return R.data(dto);
 	}
 
@@ -96,18 +115,18 @@ public class ToolController {
 
 	@GetMapping("/workspace/default/tool/{id}")
 	public R<ToolEntity> get(@PathVariable String id) {
-		return R.data(functionLibService.getById(id));
+		return R.data(toolService.getById(id));
 	}
 
 	@PutMapping("/workspace/default/tool/{id}")
 	public R<Boolean> functionLib(@PathVariable String id,@RequestBody ToolEntity dto) {
 		dto.setId(id);
-		return R.status(functionLibService.updateById(dto));
+		return R.status(toolService.updateById(dto));
 	}
 
 	@DeleteMapping("/workspace/default/tool/{id}")
 	public R<Boolean> functionLib(@PathVariable String id) {
-		return R.status(functionLibService.removeById(id));
+		return R.status(toolService.removeById(id));
 	}
 
 	@PostMapping("/workspace/default/tool/pylint")

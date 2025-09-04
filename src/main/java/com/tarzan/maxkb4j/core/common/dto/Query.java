@@ -7,4 +7,5 @@ import lombok.Data;
 public class Query {
     private String name;
     private String createUser;
+    private String folderId;
 }

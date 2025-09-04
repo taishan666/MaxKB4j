@@ -75,7 +75,7 @@ public class BaseChatStep extends IChatStep {
     private final McpLibService mcpLibService;
     private final ApplicationPublicAccessClientService publicAccessClientService;
     private final ChatMemoryStore chatMemoryStore;
-    private final ToolService functionLibService;
+    private final ToolService toolService;
 
     @Override
     protected String execute(PipelineManage manage) {
@@ -269,17 +269,17 @@ public class BaseChatStep extends IChatStep {
         }
     }
 
-    private Map<ToolSpecification, ToolExecutor> getTools(List<String> functionIds) {
+    private Map<ToolSpecification, ToolExecutor> getTools(List<String> toolIds) {
         Map<ToolSpecification, ToolExecutor> tools = new HashMap<>();
-        if (CollectionUtils.isEmpty(functionIds)) {
+        if (CollectionUtils.isEmpty(toolIds)) {
             return tools;
         }
         SystemTools objectWithTool = new SystemTools();
         LambdaQueryWrapper<ToolEntity> wrapper = Wrappers.lambdaQuery();
-        wrapper.in(ToolEntity::getId, functionIds);
+        wrapper.in(ToolEntity::getId, toolIds);
         wrapper.eq(ToolEntity::getIsActive, true);
-        List<ToolEntity> functionLib = functionLibService.list(wrapper);
-        for (ToolEntity function : functionLib) {
+        List<ToolEntity> toolEntities = toolService.list(wrapper);
+        for (ToolEntity function : toolEntities) {
             List<ToolInputField> params = function.getInputFieldList();
             JsonObjectSchema.Builder parametersBuilder = JsonObjectSchema.builder();
             for (ToolInputField param : params) {

@@ -91,7 +91,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     private final ApplicationFunctionMappingService functionMappingService;
     private final ApplicationChatRecordService applicationChatRecordService;
     private final ApplicationChatMapper applicationChatMapper;
-    private final ToolService functionLibService;
+    private final ToolService toolService;
     private final UserResourcePermissionService userResourcePermissionService;
 
     public IPage<ApplicationVO> selectAppPage(int page, int size, ApplicationQuery query) {
@@ -603,11 +603,11 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     }
 
     public List<ToolEntity> functionLib(String appId) {
-        return functionLibService.list();
+        return toolService.list();
     }
 
     public ToolEntity functionLib(String appId, String functionId) {
-        return functionLibService.getById(functionId);
+        return toolService.getById(functionId);
     }
 
 
@@ -616,6 +616,6 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         if (app == null) {
             return Collections.emptyList();
         }
-        return functionLibService.getUserId(app.getUserId());
+        return toolService.getUserId(app.getUserId());
     }
 }
