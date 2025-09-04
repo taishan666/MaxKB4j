@@ -38,6 +38,7 @@ public class FunctionLibController{
 	public R<FunctionLibEntity> functionLib(@RequestBody FunctionLibEntity dto) {
 		dto.setIsActive(true);
 		dto.setUserId(StpUtil.getLoginIdAsString());
+		dto.setType(1);
 		functionLibService.save(dto);
 		return R.data(dto);
 	}
