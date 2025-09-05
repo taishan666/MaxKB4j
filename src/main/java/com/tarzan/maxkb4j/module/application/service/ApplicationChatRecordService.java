@@ -15,7 +15,7 @@ import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatRecordMapper;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationChatRecordVO;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationPublicAccessClientStatisticsVO;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationStatisticsVO;
-import com.tarzan.maxkb4j.module.dataset.domain.vo.ParagraphVO;
+import com.tarzan.maxkb4j.module.knowledge.domain.vo.ParagraphVO;
 import com.tarzan.maxkb4j.util.BeanUtil;
 import com.tarzan.maxkb4j.util.PageUtil;
 import lombok.AllArgsConstructor;

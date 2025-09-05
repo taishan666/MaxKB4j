@@ -8,8 +8,8 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationEntity;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationMapper;
-import com.tarzan.maxkb4j.module.dataset.domain.entity.DatasetEntity;
-import com.tarzan.maxkb4j.module.dataset.mapper.DatasetMapper;
+import com.tarzan.maxkb4j.module.knowledge.domain.entity.KnowledgeEntity;
+import com.tarzan.maxkb4j.module.knowledge.mapper.KnowledgeMapper;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelEntity;
 import com.tarzan.maxkb4j.module.model.info.mapper.ModelMapper;
 import com.tarzan.maxkb4j.module.system.resourcepermission.entity.UserResourcePermissionEntity;
@@ -32,7 +32,7 @@ import java.util.stream.Collectors;
 public class UserResourcePermissionService extends ServiceImpl<UserResourcePermissionMapper, UserResourcePermissionEntity> {
 
     private final ApplicationMapper applicationMapper;
-    private final DatasetMapper datasetMapper;
+    private final KnowledgeMapper datasetMapper;
     private final ToolMapper toolMapper;
     private final ModelMapper modelMapper;
 
@@ -72,7 +72,7 @@ public class UserResourcePermissionService extends ServiceImpl<UserResourcePermi
                     return vo;
                 });
             case "KNOWLEDGE":
-                Page<DatasetEntity> datasetPage = new Page<>(current, size);
+                Page<KnowledgeEntity> datasetPage = new Page<>(current, size);
                 datasetMapper.selectPage(datasetPage, null);
                 return PageUtil.copy(datasetPage, dataset -> {
                     UserResourcePermissionVO vo = new UserResourcePermissionVO();

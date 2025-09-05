@@ -71,7 +71,7 @@
         </foreach>
     </update>
 
-    <select id="retrievalParagraph" resultType="com.tarzan.maxkb4j.module.dataset.domain.vo.ParagraphVO">
+    <select id="retrievalParagraph" resultType="com.tarzan.maxkb4j.module.knowledge.domain.vo.ParagraphVO">
         SELECT
             ph.*,
             doc."name" AS document_name,

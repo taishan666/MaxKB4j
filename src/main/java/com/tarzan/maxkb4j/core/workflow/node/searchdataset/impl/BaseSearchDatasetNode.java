@@ -5,8 +5,8 @@ import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.NodeResult;
 import com.tarzan.maxkb4j.core.workflow.node.searchdataset.input.SearchDatasetStepNodeParams;
 import com.tarzan.maxkb4j.module.application.domian.entity.DatasetSetting;
-import com.tarzan.maxkb4j.module.dataset.service.RetrieveService;
-import com.tarzan.maxkb4j.module.dataset.domain.vo.ParagraphVO;
+import com.tarzan.maxkb4j.module.knowledge.service.RetrieveService;
+import com.tarzan.maxkb4j.module.knowledge.domain.vo.ParagraphVO;
 import com.tarzan.maxkb4j.util.SpringUtil;
 import org.apache.commons.lang3.StringUtils;
 

@@ -20,17 +20,13 @@ import com.tarzan.maxkb4j.module.application.domian.vo.McpToolVO;
 import com.tarzan.maxkb4j.module.application.enums.AuthType;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatMapper;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationMapper;
-import com.tarzan.maxkb4j.module.dataset.domain.dto.DataSearchDTO;
-import com.tarzan.maxkb4j.module.dataset.domain.entity.DatasetEntity;
-import com.tarzan.maxkb4j.module.dataset.domain.entity.ParagraphEntity;
-import com.tarzan.maxkb4j.module.dataset.domain.vo.ParagraphVO;
-import com.tarzan.maxkb4j.module.dataset.service.DatasetService;
-import com.tarzan.maxkb4j.module.dataset.service.ParagraphService;
-import com.tarzan.maxkb4j.module.dataset.service.RetrieveService;
-import com.tarzan.maxkb4j.module.tool.domain.entity.ToolEntity;
-import com.tarzan.maxkb4j.module.tool.service.ToolService;
-import com.tarzan.maxkb4j.module.mcplib.entity.McpLibEntity;
-import com.tarzan.maxkb4j.module.mcplib.service.McpLibService;
+import com.tarzan.maxkb4j.module.knowledge.domain.dto.DataSearchDTO;
+import com.tarzan.maxkb4j.module.knowledge.domain.entity.KnowledgeEntity;
+import com.tarzan.maxkb4j.module.knowledge.domain.entity.ParagraphEntity;
+import com.tarzan.maxkb4j.module.knowledge.domain.vo.ParagraphVO;
+import com.tarzan.maxkb4j.module.knowledge.service.KnowledgeService;
+import com.tarzan.maxkb4j.module.knowledge.service.ParagraphService;
+import com.tarzan.maxkb4j.module.knowledge.service.RetrieveService;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelEntity;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseSpeechToText;
@@ -40,12 +36,10 @@ import com.tarzan.maxkb4j.module.system.resourcepermission.service.UserResourceP
 import com.tarzan.maxkb4j.module.system.team.service.TeamMemberPermissionService;
 import com.tarzan.maxkb4j.module.system.user.domain.entity.UserEntity;
 import com.tarzan.maxkb4j.module.system.user.service.UserService;
+import com.tarzan.maxkb4j.module.tool.domain.entity.ToolEntity;
+import com.tarzan.maxkb4j.module.tool.service.ToolService;
 import com.tarzan.maxkb4j.util.*;
 import dev.langchain4j.agent.tool.ToolSpecification;
-import dev.langchain4j.mcp.client.DefaultMcpClient;
-import dev.langchain4j.mcp.client.McpClient;
-import dev.langchain4j.mcp.client.transport.McpTransport;
-import dev.langchain4j.mcp.client.transport.http.HttpMcpTransport;
 import dev.langchain4j.model.chat.request.json.*;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
@@ -74,8 +68,7 @@ import java.util.stream.Collectors;
 public class ApplicationService extends ServiceImpl<ApplicationMapper, ApplicationEntity> {
 
     private final ModelService modelService;
-    private final DatasetService datasetService;
-    private final McpLibService mcpLibService;
+    private final KnowledgeService datasetService;
     private final ImageService imageService;
     private final UserService userService;
     private final RetrieveService retrieveService;
@@ -86,9 +79,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     private final ApplicationApiKeyService applicationApiKeyService;
     private final ApplicationPublicAccessClientService accessClientService;
     private final ApplicationVersionService applicationVersionService;
-    private final ApplicationDatasetMappingService datasetMappingService;
-    private final ApplicationMcpMappingService mcpMappingService;
-    private final ApplicationFunctionMappingService functionMappingService;
+    private final ApplicationKnowledgeMappingService datasetMappingService;
     private final ApplicationChatRecordService applicationChatRecordService;
     private final ApplicationChatMapper applicationChatMapper;
     private final ToolService toolService;
@@ -145,20 +136,12 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         return accessTokenService.getById(appId);
     }
 
-    public List<DatasetEntity> getDataset(String appId) {
+    public List<KnowledgeEntity> getDataset(String appId) {
         ApplicationEntity app = getById(appId);
         if (app == null) {
             return Collections.emptyList();
         }
         return datasetService.getByUserId(app.getUserId());
-    }
-
-    public List<McpLibEntity> getMcp(String appId) {
-        ApplicationEntity app = getById(appId);
-        if (app == null) {
-            return Collections.emptyList();
-        }
-        return mcpLibService.getUserId(app.getUserId());
     }
 
 
@@ -177,9 +160,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         applicationApiKeyService.remove(Wrappers.<ApplicationApiKeyEntity>lambdaQuery().eq(ApplicationApiKeyEntity::getApplicationId, appId));
         accessClientService.remove(Wrappers.<ApplicationPublicAccessClientEntity>lambdaQuery().eq(ApplicationPublicAccessClientEntity::getApplicationId, appId));
         applicationVersionService.remove(Wrappers.<ApplicationVersionEntity>lambdaQuery().eq(ApplicationVersionEntity::getApplicationId, appId));
-        datasetMappingService.remove(Wrappers.<ApplicationDatasetMappingEntity>lambdaQuery().eq(ApplicationDatasetMappingEntity::getApplicationId, appId));
-        mcpMappingService.remove(Wrappers.<ApplicationMcpMappingEntity>lambdaQuery().eq(ApplicationMcpMappingEntity::getApplicationId, appId));
-        functionMappingService.remove(Wrappers.<ApplicationFunctionMappingEntity>lambdaQuery().eq(ApplicationFunctionMappingEntity::getApplicationId, appId));
+        datasetMappingService.remove(Wrappers.<ApplicationKnowledgeMappingEntity>lambdaQuery().eq(ApplicationKnowledgeMappingEntity::getApplicationId, appId));
         List<String> chatIds = applicationChatMapper.selectList(Wrappers.<ApplicationChatEntity>lambdaQuery().eq(ApplicationChatEntity::getApplicationId, appId)).stream().map(ApplicationChatEntity::getId).toList();
         if (!CollectionUtils.isEmpty(chatIds)) {
             applicationChatMapper.delete(Wrappers.<ApplicationChatEntity>lambdaQuery().eq(ApplicationChatEntity::getApplicationId, appId));
@@ -309,10 +290,6 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
          }else {
             vo.setKnowledgeList(new ArrayList<>());
         }
-        List<String> mcpIds = mcpMappingService.getMcpIdsByAppId(id);
-        vo.setMcpIdList(mcpIds);
-        List<String> functionIds = functionMappingService.getFunctionIdsByAppId(id);
-        vo.setFunctionIdList(functionIds);
         return vo;
     }
 
@@ -412,8 +389,6 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         ApplicationEntity application = BeanUtil.copy(appVO, ApplicationEntity.class);
         application.setId(appId);
         datasetMappingService.updateByAppId(appId, appVO.getKnowledgeIdList());
-        mcpMappingService.updateByAppId(appId, appVO.getMcpIdList());
-        functionMappingService.updateByAppId(appId, appVO.getFunctionIdList());
         return this.updateById(application);
     }
 
@@ -526,20 +501,6 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
             vo.setArgs_schema(json);
             return vo;
         }).collect(Collectors.toList());
-    }
-
-    public List<McpToolVO> listTools(String sseUrl) {
-        McpTransport transport = new HttpMcpTransport.Builder()
-                .sseUrl(sseUrl)
-                .logRequests(true) // if you want to see the traffic in the log
-                .logResponses(true)
-                .build();
-        McpClient mcpClient = new DefaultMcpClient.Builder()
-                .transport(transport)
-                .build();
-        List<ToolSpecification> tools = mcpClient.listTools();
-        System.out.println(tools);
-        return new ArrayList<>(convert("", tools));
     }
 
 

@@ -7,7 +7,7 @@ import com.tarzan.maxkb4j.core.workflow.NodeResult;
 import com.tarzan.maxkb4j.core.workflow.WorkflowManage;
 import com.tarzan.maxkb4j.core.workflow.node.aichat.input.ChatNodeParams;
 import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
-import com.tarzan.maxkb4j.module.dataset.domain.vo.ParagraphVO;
+import com.tarzan.maxkb4j.module.knowledge.domain.vo.ParagraphVO;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
 import com.tarzan.maxkb4j.core.langchain4j.MyAiServices;

@@ -18,22 +18,16 @@ import com.tarzan.maxkb4j.module.application.handler.PostResponseHandler;
 import com.tarzan.maxkb4j.module.application.ragpipeline.PipelineManage;
 import com.tarzan.maxkb4j.module.application.ragpipeline.step.chatstep.IChatStep;
 import com.tarzan.maxkb4j.module.application.service.ApplicationPublicAccessClientService;
-import com.tarzan.maxkb4j.module.dataset.domain.vo.ParagraphVO;
+import com.tarzan.maxkb4j.module.knowledge.domain.vo.ParagraphVO;
+import com.tarzan.maxkb4j.module.model.info.service.ModelService;
+import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
 import com.tarzan.maxkb4j.module.tool.domain.dto.ToolInputField;
 import com.tarzan.maxkb4j.module.tool.domain.entity.ToolEntity;
 import com.tarzan.maxkb4j.module.tool.service.ToolService;
-import com.tarzan.maxkb4j.module.mcplib.entity.McpLibEntity;
-import com.tarzan.maxkb4j.module.mcplib.service.McpLibService;
-import com.tarzan.maxkb4j.module.model.info.service.ModelService;
-import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
 import dev.langchain4j.agent.tool.ToolSpecification;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.data.message.UserMessage;
-import dev.langchain4j.mcp.McpToolProvider;
-import dev.langchain4j.mcp.client.DefaultMcpClient;
-import dev.langchain4j.mcp.client.McpClient;
-import dev.langchain4j.mcp.client.transport.http.HttpMcpTransport;
 import dev.langchain4j.memory.ChatMemory;
 import dev.langchain4j.model.chat.request.json.*;
 import dev.langchain4j.model.chat.response.ChatResponse;
@@ -48,7 +42,6 @@ import dev.langchain4j.service.AiServices;
 import dev.langchain4j.service.TokenStream;
 import dev.langchain4j.service.tool.ToolExecution;
 import dev.langchain4j.service.tool.ToolExecutor;
-import dev.langchain4j.service.tool.ToolProvider;
 import dev.langchain4j.store.memory.chat.ChatMemoryStore;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -72,7 +65,6 @@ import static com.tarzan.maxkb4j.core.constant.PromptTemplates.RAG_PROMPT_TEMPLA
 public class BaseChatStep extends IChatStep {
 
     private final ModelService modelService;
-    private final McpLibService mcpLibService;
     private final ApplicationPublicAccessClientService publicAccessClientService;
     private final ChatMemoryStore chatMemoryStore;
     private final ToolService toolService;
@@ -151,28 +143,11 @@ public class BaseChatStep extends IChatStep {
                             .contentAggregator(new DefaultContentAggregator())
                             .contentInjector(contentInjector)
                             .build();
-                    List<String> mcpIds = application.getMcpIdList();
-                    List<McpClient> mcpClients = new ArrayList<>();
-                    if (!CollectionUtils.isEmpty(mcpIds)) {
-                        List<McpLibEntity> mcpLib = mcpLibService.listByIds(mcpIds);
-                        for (McpLibEntity mcpLibEntity : mcpLib) {
-                            McpClient mcpClient = new DefaultMcpClient.Builder()
-                                    .clientName(mcpLibEntity.getName())
-                                    .transport(new HttpMcpTransport.Builder().sseUrl(mcpLibEntity.getSseUrl()).build())
-                                    .build();
-                            mcpClients.add(mcpClient);
-                        }
-                    }
-                    ToolProvider toolProvider = McpToolProvider.builder()
-                            .mcpClients(mcpClients)
-                            .build();
                     Assistant assistant = AiServices.builder(Assistant.class)
                             .systemMessageProvider(chatMemoryId -> system)
                             .chatMemory(chatMemory)
                             .streamingChatModel(chatModel.getStreamingChatModel())
                             .retrievalAugmentor(retrievalAugmentor)
-                            .tools(getTools(application.getFunctionIdList()))
-                            .toolProvider(toolProvider)
                             .build();
                     if (stream) {
                         TokenStream tokenStream = assistant.chatStream(problemText);

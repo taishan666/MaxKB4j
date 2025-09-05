@@ -16,11 +16,10 @@ import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationEntity;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationVO;
 import com.tarzan.maxkb4j.module.application.domian.vo.McpToolVO;
 import com.tarzan.maxkb4j.module.application.service.ApplicationService;
-import com.tarzan.maxkb4j.module.dataset.domain.dto.DataSearchDTO;
-import com.tarzan.maxkb4j.module.dataset.domain.entity.DatasetEntity;
-import com.tarzan.maxkb4j.module.dataset.domain.vo.ParagraphVO;
+import com.tarzan.maxkb4j.module.knowledge.domain.dto.DataSearchDTO;
+import com.tarzan.maxkb4j.module.knowledge.domain.entity.KnowledgeEntity;
+import com.tarzan.maxkb4j.module.knowledge.domain.vo.ParagraphVO;
 import com.tarzan.maxkb4j.module.tool.domain.entity.ToolEntity;
-import com.tarzan.maxkb4j.module.mcplib.entity.McpLibEntity;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelEntity;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
@@ -195,14 +194,8 @@ public class ApplicationController {
 
    // @SaCheckPermission("APPLICATION:READ")
     @GetMapping("/application/{appId}/list_dataset")
-    public R<List<DatasetEntity>> listDataset(@PathVariable("appId") String appId) {
+    public R<List<KnowledgeEntity>> listDataset(@PathVariable("appId") String appId) {
         return R.success(applicationService.getDataset(appId));
-    }
-
-    //@SaCheckPermission("APPLICATION:READ")
-    @GetMapping("/application/{appId}/list_mcp")
-    public R<List<McpLibEntity>> listMcp(@PathVariable("appId") String appId) {
-        return R.success(applicationService.getMcp(appId));
     }
 
    // @SaCheckPermission("APPLICATION:READ")
@@ -222,13 +215,6 @@ public class ApplicationController {
     public R<JSONArray> modelParams(@PathVariable("appId") String appId, @PathVariable("modelId") String modelId) {
         return R.success(applicationService.modelParams(appId, modelId));
     }
-
-    //@SaCheckPermission("APPLICATION:READ")
-    @GetMapping("/application/mcp_servers")
-    public R<List<McpToolVO>> mcpServers(String sseUrl) {
-        return R.success(applicationService.listTools(sseUrl));
-    }
-
 
 
     /**

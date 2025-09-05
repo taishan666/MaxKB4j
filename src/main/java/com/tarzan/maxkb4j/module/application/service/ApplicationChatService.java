@@ -44,7 +44,7 @@ import java.util.List;
 @AllArgsConstructor
 public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, ApplicationChatEntity>{
 
-    private final ApplicationDatasetMappingService datasetMappingService;
+    private final ApplicationKnowledgeMappingService datasetMappingService;
     private final ApplicationVersionService applicationVersionService;
     private final ApplicationChatRecordService chatRecordService;
     private final ApplicationService applicationService;
@@ -93,8 +93,8 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
         ChatInfo chatInfo = new ChatInfo();
         chatInfo.setChatId(chatId);
         ApplicationVO application = applicationService.getDetail(chatEntity.getApplicationId());
-        List<ApplicationDatasetMappingEntity> list = datasetMappingService.lambdaQuery().eq(ApplicationDatasetMappingEntity::getApplicationId, application.getId()).list();
-        application.setKnowledgeIdList(list.stream().map(ApplicationDatasetMappingEntity::getDatasetId).toList());
+        List<ApplicationKnowledgeMappingEntity> list = datasetMappingService.lambdaQuery().eq(ApplicationKnowledgeMappingEntity::getApplicationId, application.getId()).list();
+        application.setKnowledgeIdList(list.stream().map(ApplicationKnowledgeMappingEntity::getKnowledgeId).toList());
         chatInfo.setApplication(application);
         ApplicationVersionEntity workFlowVersion = applicationVersionService.lambdaQuery()
                 .eq(ApplicationVersionEntity::getApplicationId, application.getId())

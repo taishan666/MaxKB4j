@@ -2,7 +2,7 @@ package com.tarzan.maxkb4j.module.application.domian.vo;
 
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatRecordEntity;
-import com.tarzan.maxkb4j.module.dataset.domain.vo.ParagraphVO;
+import com.tarzan.maxkb4j.module.knowledge.domain.vo.ParagraphVO;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 

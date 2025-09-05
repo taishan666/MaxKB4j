@@ -7,7 +7,7 @@ import com.tarzan.maxkb4j.module.application.chat.base.ChatBaseActuator;
 import com.tarzan.maxkb4j.module.application.domian.dto.ChatInfo;
 import com.tarzan.maxkb4j.module.application.domian.dto.ChatMessageDTO;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatEntity;
-import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationDatasetMappingEntity;
+import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationKnowledgeMappingEntity;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationChatRecordVO;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationVO;
 import com.tarzan.maxkb4j.module.application.handler.PostResponseHandler;
@@ -17,9 +17,9 @@ import com.tarzan.maxkb4j.module.application.ragpipeline.step.chatstep.impl.Base
 import com.tarzan.maxkb4j.module.application.ragpipeline.step.resetproblemstep.impl.BaseResetProblemStep;
 import com.tarzan.maxkb4j.module.application.ragpipeline.step.searchdatasetstep.impl.SearchDatasetStep;
 import com.tarzan.maxkb4j.module.application.service.ApplicationChatRecordService;
-import com.tarzan.maxkb4j.module.application.service.ApplicationDatasetMappingService;
+import com.tarzan.maxkb4j.module.application.service.ApplicationKnowledgeMappingService;
 import com.tarzan.maxkb4j.module.application.service.ApplicationService;
-import com.tarzan.maxkb4j.module.dataset.domain.vo.ParagraphVO;
+import com.tarzan.maxkb4j.module.knowledge.domain.vo.ParagraphVO;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelEntity;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
 import lombok.AllArgsConstructor;
@@ -41,7 +41,7 @@ public class ChatSimpleActuator extends ChatBaseActuator {
     private final BaseChatStep baseChatStep;
     private final BaseResetProblemStep baseResetProblemStep;
     private final ApplicationChatRecordService chatRecordService;
-    private final ApplicationDatasetMappingService datasetMappingService;
+    private final ApplicationKnowledgeMappingService datasetMappingService;
     private final ApplicationChatMapper chatMapper;
     private final ApplicationService applicationService;
     private final PostResponseHandler postResponseHandler;
@@ -60,8 +60,8 @@ public class ChatSimpleActuator extends ChatBaseActuator {
     public String chatOpen(ApplicationVO application, String chatId) {
         ChatInfo chatInfo = new ChatInfo();
         chatInfo.setChatId(chatId);
-        List<ApplicationDatasetMappingEntity> list = datasetMappingService.lambdaQuery().eq(ApplicationDatasetMappingEntity::getApplicationId, application.getId()).list();
-        application.setKnowledgeIdList(list.stream().map(ApplicationDatasetMappingEntity::getDatasetId).toList());
+        List<ApplicationKnowledgeMappingEntity> list = datasetMappingService.lambdaQuery().eq(ApplicationKnowledgeMappingEntity::getApplicationId, application.getId()).list();
+        application.setKnowledgeIdList(list.stream().map(ApplicationKnowledgeMappingEntity::getKnowledgeId).toList());
         chatInfo.setApplication(application);
         ChatCache.put(chatInfo.getChatId(), chatInfo);
         return chatId;
@@ -113,8 +113,8 @@ public class ChatSimpleActuator extends ChatBaseActuator {
         ChatInfo chatInfo = new ChatInfo();
         chatInfo.setChatId(chatId);
         ApplicationVO application = applicationService.getDetail(chatEntity.getApplicationId());
-        List<ApplicationDatasetMappingEntity> list = datasetMappingService.lambdaQuery().eq(ApplicationDatasetMappingEntity::getApplicationId, application.getId()).list();
-        application.setKnowledgeIdList(list.stream().map(ApplicationDatasetMappingEntity::getDatasetId).toList());
+        List<ApplicationKnowledgeMappingEntity> list = datasetMappingService.lambdaQuery().eq(ApplicationKnowledgeMappingEntity::getApplicationId, application.getId()).list();
+        application.setKnowledgeIdList(list.stream().map(ApplicationKnowledgeMappingEntity::getKnowledgeId).toList());
         chatInfo.setApplication(application);
         ChatCache.put(chatInfo.getChatId(), chatInfo);
         return chatInfo;

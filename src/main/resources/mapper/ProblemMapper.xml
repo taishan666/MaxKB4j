@@ -2,7 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.tarzan.maxkb4j.module.dataset.mapper.ProblemMapper">
 
-    <select id="pageByDatasetId" resultType="com.tarzan.maxkb4j.module.dataset.domain.vo.ProblemVO">
+    <select id="pageByDatasetId" resultType="com.tarzan.maxkb4j.module.knowledge.domain.vo.ProblemVO">
         SELECT
             p.*,
             COUNT(ppm.paragraph_id) AS paragraph_count
