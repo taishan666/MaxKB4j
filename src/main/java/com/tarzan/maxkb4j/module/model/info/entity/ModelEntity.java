@@ -37,8 +37,6 @@ public class ModelEntity extends BaseEntity {
     
     private String status;
     
-    private String permissionType;
-    
     @TableField(typeHandler = JOSNBTypeHandler.class)
     private JSONArray modelParamsForm;
 } 

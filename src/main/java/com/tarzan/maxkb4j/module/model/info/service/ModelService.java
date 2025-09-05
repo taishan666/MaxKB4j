@@ -51,7 +51,6 @@ public class ModelService extends ServiceImpl<ModelMapper, ModelEntity> {
                 ModelEntity::getProvider,
                 ModelEntity::getUserId,
                 ModelEntity::getStatus,
-                ModelEntity::getPermissionType,
                 ModelEntity::getCreateTime,
                 ModelEntity::getUpdateTime
         );
@@ -68,7 +67,6 @@ public class ModelService extends ServiceImpl<ModelMapper, ModelEntity> {
             wrapper.eq(ModelEntity::getProvider, provider);
         }
         wrapper.eq(ModelEntity::getUserId, StpUtil.getLoginIdAsString());
-        wrapper.or().eq(ModelEntity::getPermissionType, PermissionType.PUBLIC.name());
         wrapper.orderByDesc(ModelEntity::getCreateTime);
         List<ModelEntity> modelEntities = baseMapper.selectList(wrapper);
         if (CollectionUtils.isNotEmpty(modelEntities)) {
