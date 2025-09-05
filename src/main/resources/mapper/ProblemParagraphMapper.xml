@@ -31,7 +31,7 @@
             P."content"
         FROM
             problem_paragraph_mapping ppm
-                LEFT JOIN problem P ON P.ID = ppm.problem_id
+                INNER  JOIN problem P ON P.ID = ppm.problem_id
         WHERE ppm.paragraph_id =   #{paragraphId}
     </select>
 
