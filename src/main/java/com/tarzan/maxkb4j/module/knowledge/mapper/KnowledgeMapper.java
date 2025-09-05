@@ -14,6 +14,6 @@ import org.apache.ibatis.annotations.Param;
  */
 public interface KnowledgeMapper extends BaseMapper<KnowledgeEntity>{
 
-    IPage<KnowledgeVO> selectDatasetPage(Page<KnowledgeVO> page, @Param("query") Query query, String operate);
+    IPage<KnowledgeVO> selectKnowledgePage(Page<KnowledgeVO> page, @Param("query") Query query, String operate);
 
 }

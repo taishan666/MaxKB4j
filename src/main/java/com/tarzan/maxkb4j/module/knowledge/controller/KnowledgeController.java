@@ -88,7 +88,7 @@ public class KnowledgeController {
     @GetMapping("/knowledge/{page}/{size}")
     public R<IPage<KnowledgeVO>> userDatasets(@PathVariable("page") int page, @PathVariable("size") int size, Query query) {
         Page<KnowledgeVO> datasetPage = new Page<>(page, size);
-        return R.success(datasetService.selectDatasetPage(datasetPage, query));
+        return R.success(datasetService.selectKnowledgePage(datasetPage, query));
     }
 
    // @SaCheckPermission("DATASET:READ")

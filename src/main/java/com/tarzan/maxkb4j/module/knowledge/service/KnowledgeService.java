@@ -79,11 +79,11 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
     private final UserService userService;
 
 
-    public IPage<KnowledgeVO> selectDatasetPage(Page<KnowledgeVO> datasetPage, Query query) {
+    public IPage<KnowledgeVO> selectKnowledgePage(Page<KnowledgeVO> datasetPage, Query query) {
         if (Objects.isNull(query.getCreateUser())) {
             query.setCreateUser(StpUtil.getLoginIdAsString());
         }
-        IPage<KnowledgeVO>  page= baseMapper.selectDatasetPage(datasetPage, query, "USE");
+        IPage<KnowledgeVO>  page= baseMapper.selectKnowledgePage(datasetPage, query, "USE");
         Map<String, String> nicknameMap=userService.getNicknameMap();
         page.getRecords().forEach(vo->vo.setNickname(nicknameMap.get(vo.getUserId())));
         return page;
