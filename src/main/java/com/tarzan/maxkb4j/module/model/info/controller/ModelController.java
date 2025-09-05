@@ -42,7 +42,7 @@ public class ModelController{
 		List<ModelVO> models=modelService.models(name,createUser,modelType,provider);
 		JSONObject result=new JSONObject();
 		result.put("model",models);
-		result.put("shared_model",models);
+		result.put("shared_model",List.of());
 		return R.success(result);
 	}
 
