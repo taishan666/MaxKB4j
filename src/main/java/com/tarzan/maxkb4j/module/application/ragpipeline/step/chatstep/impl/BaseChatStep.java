@@ -132,15 +132,6 @@ public class BaseChatStep extends IChatStep {
             } else {
                 String clientId = manage.context.getString("client_id");
                 String clientType = manage.context.getString("client_type");
-               /* Assistant assistant2 = AiServices.create(Assistant.class, chatModel.getChatModel());
-                if (assistant2.isGreeting(problemText)) {
-                    Result<String> result = assistant2.chat(problemText);
-                    TokenUsage tokenUsage = result.tokenUsage();
-                    System.out.println("tokenUsage=" + tokenUsage);
-                    context.put("messageTokens", tokenUsage.inputTokenCount());
-                    context.put("answerTokens", tokenUsage.outputTokenCount());
-                    sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, answerText.get(), true));
-                } else {*/
                     int dialogueNumber = application.getDialogueNumber();
                     String systemText = application.getModelSetting().getSystem();
                     ChatMemory chatMemory = MyChatMemory.builder()
@@ -186,8 +177,9 @@ public class BaseChatStep extends IChatStep {
                     if (stream) {
                         TokenStream tokenStream = assistant.chatStream(problemText);
                         CompletableFuture<ChatResponse> futureChatResponse = new CompletableFuture<>();
-                        tokenStream.onToolExecuted((ToolExecution toolExecution) -> System.out.println("toolExecution=" + toolExecution))
-                                .onPartialResponse(text -> sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, text, false)))
+                        tokenStream.onToolExecuted((ToolExecution toolExecution) -> log.info("toolExecution={}", toolExecution))
+                                .onPartialThinking(thinking-> sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, "",thinking.text(), false)))
+                                .onPartialResponse(text -> sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, text,"", false)))
                                 .onCompleteResponse(response -> {
                                     answerText.set(response.aiMessage().text());
                                     TokenUsage tokenUsage = response.tokenUsage();
@@ -204,7 +196,6 @@ public class BaseChatStep extends IChatStep {
                                 .start();
                         futureChatResponse.join(); // 阻塞当前线程直到 futureChatResponse 完成
                     }
-    /*            }*/
                 long startTime = manage.context.getLong("start_time");
                 postResponseHandler.handler(chatId, chatRecordId, problemText, answerText.get(), null, manage.getDetails(), startTime, clientId, clientType);
             }

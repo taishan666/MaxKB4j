@@ -1,45 +1,18 @@
 package com.tarzan.maxkb4j.core.langchain4j;
 
-import dev.langchain4j.data.message.ChatMessage;
-import dev.langchain4j.memory.ChatMemory;
-import dev.langchain4j.model.chat.request.ChatRequest;
-import dev.langchain4j.model.chat.request.ChatRequestParameters;
-import dev.langchain4j.model.chat.request.ResponseFormat;
-import dev.langchain4j.model.chat.request.json.JsonSchema;
-import dev.langchain4j.model.chat.response.ChatResponse;
-import dev.langchain4j.model.input.Prompt;
-import dev.langchain4j.model.input.PromptTemplate;
-import dev.langchain4j.model.input.structured.StructuredPrompt;
-import dev.langchain4j.model.input.structured.StructuredPromptProcessor;
-import dev.langchain4j.model.moderation.Moderation;
-import dev.langchain4j.rag.AugmentationRequest;
-import dev.langchain4j.rag.AugmentationResult;
-import dev.langchain4j.rag.query.Metadata;
-import dev.langchain4j.service.*;
-import dev.langchain4j.service.memory.ChatMemoryAccess;
-import dev.langchain4j.service.memory.ChatMemoryService;
-import dev.langchain4j.service.output.ServiceOutputParser;
-import dev.langchain4j.service.tool.ToolServiceContext;
-import dev.langchain4j.service.tool.ToolServiceResult;
-import dev.langchain4j.spi.services.TokenStreamAdapter;
-
-import java.io.InputStream;
-import java.lang.reflect.*;
-import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-
-import static dev.langchain4j.internal.Exceptions.illegalArgument;
-import static dev.langchain4j.internal.Utils.isNotNullOrBlank;
-import static dev.langchain4j.model.chat.Capability.RESPONSE_FORMAT_JSON_SCHEMA;
-import static dev.langchain4j.model.chat.request.ResponseFormatType.JSON;
-import static dev.langchain4j.service.IllegalConfigurationException.illegalConfiguration;
-import static dev.langchain4j.service.TypeUtils.typeHasRawClass;
-import static dev.langchain4j.spi.ServiceHelper.loadFactories;
+import dev.langchain4j.service.AiServiceContext;
+import dev.langchain4j.service.AiServices;
 
 public class MyAiServices<T> extends AiServices<T>  {
+    protected MyAiServices(AiServiceContext context) {
+        super(context);
+    }
 
+    @Override
+    public T build() {
+        return null;
+    }
+/*
     private final ServiceOutputParser serviceOutputParser = new ServiceOutputParser();
     private final Collection<TokenStreamAdapter> tokenStreamAdapters = loadFactories(TokenStreamAdapter.class);
 
@@ -506,5 +479,5 @@ public class MyAiServices<T> extends AiServices<T>  {
     public static <T> AiServices<T> builder(Class<T> aiService) {
         AiServiceContext context = new AiServiceContext(aiService);
         return new MyAiServices<>(context);
-    }
+    }*/
 }

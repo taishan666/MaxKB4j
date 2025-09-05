@@ -109,18 +109,28 @@ public class BaseChatNode extends INode {
             TokenStream tokenStream = (TokenStream) nodeVariable.get("result");
             CompletableFuture<ChatResponse> futureChatResponse = new CompletableFuture<>();
             boolean isResult = workflow.isResult(node, new NodeResult(nodeVariable, globalVariable));
-            tokenStream.onPartialResponse(content -> {
+            tokenStream.onPartialThinking(thinking->{
                         if (isResult) {
-                            String reasoningContent="";
-                            if (content.startsWith("<think>")&&content.endsWith("</think>")){
-                                reasoningContent=content.replace("<think>","").replace("</think>","");
-                                content="";
-                            }
+                            ChatMessageVO vo = new ChatMessageVO(
+                                    flowParams.getChatId(),
+                                    flowParams.getChatRecordId(),
+                                    "",
+                                    thinking.text(),
+                                    runtimeNodeId,
+                                    type,
+                                    "many_view",
+                                    false,
+                                    false);
+                            sink.tryEmitNext(vo);
+                        }
+                    })
+                    .onPartialResponse(content -> {
+                        if (isResult) {
                             ChatMessageVO vo = new ChatMessageVO(
                                     flowParams.getChatId(),
                                     flowParams.getChatRecordId(),
                                     content,
-                                    reasoningContent,
+                                    "",
                                     runtimeNodeId,
                                     type,
                                     "many_view",
@@ -135,7 +145,7 @@ public class BaseChatNode extends INode {
                         context.put("messageTokens", tokenUsage.inputTokenCount());
                         context.put("answerTokens", tokenUsage.outputTokenCount());
                         context.put("answer", answer);
-                        context.put("reasoning_content", "");
+                        context.put("reasoningContent", "");
                         ChatMessageVO vo = new ChatMessageVO(
                                 flowParams.getChatId(),
                                 flowParams.getChatRecordId(),

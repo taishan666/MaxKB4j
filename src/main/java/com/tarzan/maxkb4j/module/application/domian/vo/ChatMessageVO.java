@@ -9,7 +9,7 @@ public class ChatMessageVO {
     private String chatId;
     private String chatRecordId;
     private String content;
-    private String reasoning_content;
+    private String reasoningContent;
    // private Boolean operate=false;
     private String nodeId;
     private String nodeType;
@@ -35,6 +35,16 @@ public class ChatMessageVO {
         this.chatId = chatId;
         this.chatRecordId = chatRecordId;
         this.content = content;
+        this.isEnd = isEnd;
+        this.messageTokens = 0;
+        this.answerTokens = 0;
+    }
+
+    public ChatMessageVO(String chatId, String chatRecordId,String content,String reasoningContent, Boolean isEnd) {
+        this.chatId = chatId;
+        this.chatRecordId = chatRecordId;
+        this.content = content;
+        this.reasoningContent = reasoningContent;
         this.isEnd = isEnd;
         this.messageTokens = 0;
         this.answerTokens = 0;
@@ -72,11 +82,11 @@ public class ChatMessageVO {
         this.answerTokens = 0;
     }
 
-    public ChatMessageVO(String chatId, String chatRecordId,String content,String reasoning_content,String runtimeNodeId,String nodeType,String viewType, Boolean nodeIsEnd, Boolean isEnd) {
+    public ChatMessageVO(String chatId, String chatRecordId,String content,String reasoningContent,String runtimeNodeId,String nodeType,String viewType, Boolean nodeIsEnd, Boolean isEnd) {
         this.chatId = chatId;
         this.chatRecordId = chatRecordId;
         this.content = content;
-        this.reasoning_content = reasoning_content;
+        this.reasoningContent = reasoningContent;
         this.runtimeNodeId = runtimeNodeId;
         this.nodeType = nodeType;
         this.viewType = viewType;

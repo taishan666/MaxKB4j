@@ -74,7 +74,7 @@ public class DeepSeekStreamChatModel implements StreamingChatModel {
                     }
                     JSONObject delta= choices.getJSONObject(0).getJSONObject("delta");
                     String content = delta.getString("content");
-                    String reasoningContent = delta.getString("reasoning_content");
+                    String reasoningContent = delta.getString("reasoningContent");
                     if (Objects.nonNull(reasoningContent)){
                         handler.onPartialResponse("<think>"+reasoningContent+"</think>");
                     }
