@@ -19,20 +19,28 @@ MaxKB4j = Max Knowledge Base for Java，是一款基于Java语言开发的LLM工
 ## 功能导图
 ![输入图片说明](image/MaxKB4J.png)
 
-## 快速开始
+## 部署启动
 
+### 普通部署
+
+- 安装postgers和mongodb
+- 配置数据库连接后打包，执行启动命令
 ```
 java -jar maxkb4j-1.0.0.jar
 ```
+### docker 部署
+
+- 安装docker和docker-compose
+- 下载代码种的docker-compose.yml文件，到自定义目录下
+- 在目录下，执行命令
+
+```
+docker-compose up -d
+```
+
 - 访问地址 - 访问地址 http://localhost:8080/login
 - 默认用户/密码 admin/maxkb4j.
 
-
-## 案例展示
-
-MaxKB4j 自发布以来，日均安装下载超过 1000 次，被广泛应用于智能客服、企业内部知识库、学术教育研究等场景。
-
-todo
 
 ## UI 展示
 
