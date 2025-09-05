@@ -196,4 +196,9 @@ public class UserController{
 	}
 
 
+	@GetMapping("/workspace/default/user_member")
+	public R<List<UserEntity>> userMembers(){
+		return R.success(userService.lambdaQuery().eq(UserEntity::getRole,"USER").list());
+	}
+
 }

@@ -1,4 +1,4 @@
-package com.tarzan.maxkb4j.module.system.resourcepermission.entity;
+package com.tarzan.maxkb4j.module.system.permission.entity;
 
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
@@ -15,7 +15,7 @@ import java.util.List;
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
-@TableName(value = "workspace_user_resource_permission",autoResultMap = true)
+@TableName(value = "user_resource_permission",autoResultMap = true)
 public class UserResourcePermissionEntity extends BaseEntity {
     private String workspaceId;
     private String authTargetType;

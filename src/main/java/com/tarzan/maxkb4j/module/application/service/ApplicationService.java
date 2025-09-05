@@ -32,8 +32,7 @@ import com.tarzan.maxkb4j.module.model.info.service.ModelService;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseSpeechToText;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseTextToSpeech;
 import com.tarzan.maxkb4j.module.resource.service.ImageService;
-import com.tarzan.maxkb4j.module.system.resourcepermission.service.UserResourcePermissionService;
-import com.tarzan.maxkb4j.module.system.team.service.TeamMemberPermissionService;
+import com.tarzan.maxkb4j.module.system.permission.service.UserResourcePermissionService;
 import com.tarzan.maxkb4j.module.system.user.domain.entity.UserEntity;
 import com.tarzan.maxkb4j.module.system.user.service.UserService;
 import com.tarzan.maxkb4j.module.tool.domain.entity.ToolEntity;
@@ -73,7 +72,6 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     private final UserService userService;
     private final RetrieveService retrieveService;
     private final ParagraphService paragraphService;
-    private final TeamMemberPermissionService memberPermissionService;
     private final ApplicationAccessTokenService accessTokenService;
     private final ApplicationPlatformService platformService;
     private final ApplicationApiKeyService applicationApiKeyService;
@@ -99,10 +97,6 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
             wrapper.eq(ApplicationEntity::getUserId, query.getCreateUser());
         }
         wrapper.eq(ApplicationEntity::getUserId, loginId);
-        List<String> useTargetIds = memberPermissionService.getUseTargets("APPLICATION", loginId);
-        if (!CollectionUtils.isEmpty(useTargetIds)) {
-            wrapper.or().in(ApplicationEntity::getId, useTargetIds);
-        }
         wrapper.orderByDesc(ApplicationEntity::getCreateTime);
         this.page(appPage, wrapper);
         Map<String, String> nicknameMap=userService.getNicknameMap();

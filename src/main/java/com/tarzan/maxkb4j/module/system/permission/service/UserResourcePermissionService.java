@@ -1,4 +1,4 @@
-package com.tarzan.maxkb4j.module.system.resourcepermission.service;
+package com.tarzan.maxkb4j.module.system.permission.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -12,9 +12,9 @@ import com.tarzan.maxkb4j.module.knowledge.domain.entity.KnowledgeEntity;
 import com.tarzan.maxkb4j.module.knowledge.mapper.KnowledgeMapper;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelEntity;
 import com.tarzan.maxkb4j.module.model.info.mapper.ModelMapper;
-import com.tarzan.maxkb4j.module.system.resourcepermission.entity.UserResourcePermissionEntity;
-import com.tarzan.maxkb4j.module.system.resourcepermission.mapper.UserResourcePermissionMapper;
-import com.tarzan.maxkb4j.module.system.resourcepermission.vo.UserResourcePermissionVO;
+import com.tarzan.maxkb4j.module.system.permission.entity.UserResourcePermissionEntity;
+import com.tarzan.maxkb4j.module.system.permission.mapper.UserResourcePermissionMapper;
+import com.tarzan.maxkb4j.module.system.permission.vo.UserResourcePermissionVO;
 import com.tarzan.maxkb4j.module.tool.domain.entity.ToolEntity;
 import com.tarzan.maxkb4j.module.tool.mapper.ToolMapper;
 import com.tarzan.maxkb4j.util.BeanUtil;

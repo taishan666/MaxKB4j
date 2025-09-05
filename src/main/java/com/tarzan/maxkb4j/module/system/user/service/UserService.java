@@ -16,8 +16,6 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import com.tarzan.maxkb4j.core.exception.ApiException;
 import com.tarzan.maxkb4j.module.application.enums.AuthType;
 import com.tarzan.maxkb4j.module.system.setting.service.EmailService;
-import com.tarzan.maxkb4j.module.system.team.domain.entity.TeamEntity;
-import com.tarzan.maxkb4j.module.system.team.service.TeamService;
 import com.tarzan.maxkb4j.module.system.user.constants.RoleType;
 import com.tarzan.maxkb4j.module.system.user.constants.UserSource;
 import com.tarzan.maxkb4j.module.system.user.domain.dto.PasswordDTO;
@@ -48,7 +46,6 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 public class UserService extends ServiceImpl<UserMapper, UserEntity> {
 
-    private final TeamService teamService;
     private final EmailService emailService;
     private final StpInterface stpInterface;
     // 创建缓存并配置
@@ -82,7 +79,6 @@ public class UserService extends ServiceImpl<UserMapper, UserEntity> {
 
     @Transactional
     public boolean deleteUserById(String userId) {
-        teamService.deleteUserById(userId);
         return removeById(userId);
     }
 
@@ -138,11 +134,7 @@ public class UserService extends ServiceImpl<UserMapper, UserEntity> {
         user.setSource(UserSource.LOCAL);
         user.setLanguage((String) StpUtil.getExtra("language"));
         user.setPassword(SaSecureUtil.md5(user.getPassword()));
-        save(user);
-        TeamEntity team = new TeamEntity();
-        team.setUserId(user.getId());
-        team.setName(user.getUsername() + "的团队");
-        return teamService.save(team);
+        return save(user);
     }
 
     @Transactional
@@ -158,10 +150,6 @@ public class UserService extends ServiceImpl<UserMapper, UserEntity> {
         user.setPhone("");
         user.setEmail("1334512682@qq.com");
         save(user);
-        TeamEntity team = new TeamEntity();
-        team.setUserId(user.getId());
-        team.setName(user.getUsername() + "的团队");
-        teamService.save(team);
     }
 
     public UserVO getUserById(String userId) {
