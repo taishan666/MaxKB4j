@@ -15,7 +15,7 @@ public class ChatActuatorBuilder {
 
     static {
         ACTUATOR_POOL.put(AppType.SIMPLE.name(), SpringUtil.getBean(ChatSimpleActuator.class));
-        ACTUATOR_POOL.put(AppType.WORKFLOW.name(), SpringUtil.getBean(ChatFlowActuator.class));
+        ACTUATOR_POOL.put(AppType.WORK_FLOW.name(), SpringUtil.getBean(ChatFlowActuator.class));
     }
 
     /**

@@ -135,6 +135,8 @@ public class BaseChatNode extends INode {
                         context.put("messageTokens", tokenUsage.inputTokenCount());
                         context.put("answerTokens", tokenUsage.outputTokenCount());
                         context.put("answer", answer);
+                        // this.answerText=answer;
+                        workflow.setAnswer(answer);
                         context.put("reasoning_content", "");
                         ChatMessageVO vo = new ChatMessageVO(
                                 flowParams.getChatId(),

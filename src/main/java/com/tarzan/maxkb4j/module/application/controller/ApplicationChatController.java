@@ -67,7 +67,7 @@ public class ApplicationChatController {
 
     @PostMapping("/chat_workflow/open")
     public R<String> chatWorkflowOpenTest(@RequestBody ApplicationEntity application) {
-        application.setType(AppType.WORKFLOW.name());
+        application.setType(AppType.WORK_FLOW.name());
         return R.success(chatService.chatOpenTest(application));
     }
 
