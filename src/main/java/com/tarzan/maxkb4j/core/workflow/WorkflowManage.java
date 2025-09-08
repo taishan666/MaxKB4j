@@ -57,7 +57,7 @@ public class WorkflowManage {
         this.audioList = Objects.requireNonNullElseGet(audioList, ArrayList::new);
         this.flowParams = flowParams;
         this.sink = sink;
-       // this.flow = flow;
+        // this.flow = flow;
         this.postResponseHandler = postResponseHandler;
         this.chatRecord = chatRecord;
         if (startNodeId != null) {
@@ -70,14 +70,13 @@ public class WorkflowManage {
 
     public void loadNode(ApplicationChatRecordEntity chatRecord, String startNodeId, Map<String, Object> startNodeData) {
         nodeContext.clear();
-        this.answer = chatRecord.getAnswerText();
+        // this.answer = chatRecord.getAnswerText();
         List<JSONObject> sortedDetails = chatRecord.getDetails().values().stream()
                 .map(row -> (JSONObject) row)
                 .sorted(Comparator.comparingInt(e -> e.getIntValue("index")))
                 .toList();
         for (JSONObject nodeDetail : sortedDetails) {
             String nodeId = nodeDetail.getString("node_id");
-            //todo 放入 up_node_id_list
             List<String> lastNodeIdList = (List<String>) nodeDetail.get("up_node_id_list");
             if (nodeDetail.getString("runtimeNodeId").equals(startNodeId)) {
                 // 处理起始节点
@@ -94,7 +93,7 @@ public class WorkflowManage {
                             }
                             params.put("form_data", startNodeData);
                             params.put("nodeData", startNodeData);
-                          //  params.put("child_node", childNode);
+                            //  params.put("child_node", childNode);
                             params.put("isResult", isResult);
                             return params;
                         }
@@ -116,12 +115,19 @@ public class WorkflowManage {
     public String run() {
         context.put("start_time", System.currentTimeMillis());
         runChainManage(startNode, null);
-        ChatMessageVO vo=new ChatMessageVO(flowParams.getChatId(),flowParams.getChatRecordId(),"",
-                true,true);
+        System.out.println("运行节点结束！");
+        ChatMessageVO vo=new ChatMessageVO(flowParams.getChatId(),flowParams.getChatRecordId(),"", true,true);
         sink.tryEmitNext(vo);
         long startTime= context.getLongValue("start_time");
         postResponseHandler.handler(flowParams.getChatId(), flowParams.getChatRecordId(), flowParams.getQuestion(),answer,chatRecord,getRuntimeDetails(),startTime,flowParams.getClientId(),flowParams.getClientType());
         return answer;
+    }
+
+    public List<String> getAnswerTextList() {
+        return nodeContext.stream()
+                .map(INode::getAnswerText)
+                .filter(Objects::nonNull)
+                .toList();
     }
 
 
@@ -129,6 +135,7 @@ public class WorkflowManage {
         return this.nodes.parallelStream().filter(node -> node.getType().equals("start-node")).findFirst().orElse(null);
     }
 
+    //todo
     public INode getBaseNode() {
         return this.nodes.parallelStream().filter(node -> node.getType().equals("base-node")).findFirst().orElse(null);
     }

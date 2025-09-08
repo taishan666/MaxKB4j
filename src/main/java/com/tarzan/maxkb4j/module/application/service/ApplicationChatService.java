@@ -11,6 +11,7 @@ import com.tarzan.maxkb4j.core.exception.ApiException;
 import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.NodeFactory;
 import com.tarzan.maxkb4j.core.workflow.domain.ChatFile;
+import com.tarzan.maxkb4j.core.workflow.enums.NodeType;
 import com.tarzan.maxkb4j.core.workflow.logic.LfNode;
 import com.tarzan.maxkb4j.core.workflow.logic.LogicFlow;
 import com.tarzan.maxkb4j.module.application.cache.ChatCache;
@@ -86,7 +87,7 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
     }*/
 
     public String chatOpen(String appId) {
-       return chatOpen(appId,null);
+        return chatOpen(appId,null);
     }
 
     public String chatOpen(String appId,String chatId) {
@@ -115,7 +116,7 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
                 .last("limit 1").one();
         LogicFlow logicFlow=LogicFlow.newInstance(workFlowVersion.getWorkFlow());
         List<LfNode> lfNodes=logicFlow.getNodes();
-        List<INode> nodes=lfNodes.stream().filter(lfNode -> lfNode.getType().equals("base-node")).map(NodeFactory::getNode).toList();
+        List<INode> nodes=lfNodes.stream().filter(lfNode -> !NodeType.BASE.getKey().equals(lfNode.getType())).map(NodeFactory::getNode).toList();
         chatInfo.setNodes(nodes);
         chatInfo.setEdges(logicFlow.getEdges());
         ChatCache.put(chatInfo.getChatId(), chatInfo);

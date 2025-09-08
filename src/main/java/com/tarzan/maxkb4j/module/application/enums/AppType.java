@@ -5,5 +5,5 @@ public enum AppType {
     /* 简单应用*/
     SIMPLE,
     /*工作流*/
-    WORKFLOW;
+    WORK_FLOW;
 }

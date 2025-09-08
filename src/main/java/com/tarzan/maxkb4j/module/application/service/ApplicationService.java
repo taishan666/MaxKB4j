@@ -21,6 +21,7 @@ import com.tarzan.maxkb4j.module.application.domian.dto.MaxKb4J;
 import com.tarzan.maxkb4j.module.application.domian.entity.*;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationVO;
 import com.tarzan.maxkb4j.module.application.domian.vo.McpToolVO;
+import com.tarzan.maxkb4j.module.application.enums.AppType;
 import com.tarzan.maxkb4j.module.application.enums.AuthType;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationMapper;
 import com.tarzan.maxkb4j.module.dataset.domain.dto.DataSearchDTO;
@@ -182,7 +183,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
 
     @Transactional
     public ApplicationEntity createApp(ApplicationEntity application) {
-        if ("WORK_FLOW".equals(application.getType())) {
+        if (AppType.WORK_FLOW.name().equals(application.getType())) {
             application = createWorkflow(application);
         } else {
             application = createSimple(application);

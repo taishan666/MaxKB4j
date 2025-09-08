@@ -6,7 +6,6 @@ import com.tarzan.maxkb4j.module.application.cache.ChatCache;
 import com.tarzan.maxkb4j.module.application.chat.base.ChatBaseActuator;
 import com.tarzan.maxkb4j.module.application.domian.dto.ChatInfo;
 import com.tarzan.maxkb4j.module.application.domian.dto.ChatMessageDTO;
-import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatEntity;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationDatasetMappingEntity;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationEntity;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationChatRecordVO;
@@ -104,19 +103,4 @@ public class ChatSimpleActuator extends ChatBaseActuator {
         return pipelineManage.run(params,dto.getSink());
     }
 
-    @Override
-    public ChatInfo reChatOpen(String chatId) {
-        ApplicationChatEntity chatEntity = chatMapper.selectById(chatId);
-        if (chatEntity == null){
-            return null;
-        }
-        ChatInfo chatInfo = new ChatInfo();
-        chatInfo.setChatId(chatId);
-        ApplicationEntity application = applicationService.getById(chatEntity.getApplicationId());
-        List<ApplicationDatasetMappingEntity> list = datasetMappingService.lambdaQuery().eq(ApplicationDatasetMappingEntity::getApplicationId, application.getId()).list();
-        application.setDatasetIdList(list.stream().map(ApplicationDatasetMappingEntity::getDatasetId).toList());
-        chatInfo.setApplication(application);
-        ChatCache.put(chatInfo.getChatId(), chatInfo);
-        return chatInfo;
-    }
 }

@@ -1,7 +1,6 @@
 package com.tarzan.maxkb4j.module.application.chat.base;
 
 import com.tarzan.maxkb4j.core.exception.ApiException;
-import com.tarzan.maxkb4j.module.application.cache.ChatCache;
 import com.tarzan.maxkb4j.module.application.chat.provider.IChatActuator;
 import com.tarzan.maxkb4j.module.application.domian.dto.ChatInfo;
 import com.tarzan.maxkb4j.module.application.domian.dto.ChatMessageDTO;
@@ -21,8 +20,6 @@ public abstract class ChatBaseActuator implements IChatActuator {
     private ApplicationPublicAccessClientService publicAccessClientService;
     @Autowired
     private ApplicationAccessTokenService accessTokenService;
-
-    public abstract ChatInfo reChatOpen(String chatId);
 
     public void chatCheck(ChatInfo chatInfo,ChatMessageDTO dto) {
         if (chatInfo == null) {
@@ -49,12 +46,4 @@ public abstract class ChatBaseActuator implements IChatActuator {
         }
     }
 
-
-    public ChatInfo getChatInfo(String chatId) {
-        ChatInfo chatInfo = ChatCache.get(chatId);
-        if (chatInfo == null) {
-            return reChatOpen(chatId);
-        }
-        return chatInfo;
-    }
 }
