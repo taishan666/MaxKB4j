@@ -76,6 +76,7 @@ public class DocumentController {
     }
 
 
+    //todo 保持文件
     @PostMapping("/knowledge/{knowledgeId}/document/split")
     public R<List<TextSegmentVO>> split(@PathVariable String knowledgeId, MultipartFile[] file, String[] patterns, Integer limit, Boolean with_filter) throws IOException {
         return R.success(documentService.split(file, patterns, limit, with_filter));
