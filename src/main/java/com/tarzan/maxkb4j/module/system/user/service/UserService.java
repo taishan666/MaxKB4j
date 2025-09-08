@@ -160,7 +160,7 @@ public class UserService extends ServiceImpl<UserMapper, UserEntity> {
         }
         UserVO user = BeanUtil.copy(userEntity, UserVO.class);
         List<String> permissions = new ArrayList<>();
-        permissions.add("APPLICATION_OVERVIEW:READ+EMBED:/WORKSPACE/default/APPLICATION/019845dc-1f97-7553-b930-458cbe08c5c4");
+/*        permissions.add("APPLICATION_OVERVIEW:READ+EMBED:/WORKSPACE/default/APPLICATION/019845dc-1f97-7553-b930-458cbe08c5c4");
         permissions.add("APPLICATION_CHAT_LOG:READ+ANNOTATION:/WORKSPACE/default/APPLICATION/019845dc-1f97-7553-b930-458cbe08c5c4");
         permissions.add("TOOL:READ+EXPORT:/WORKSPACE/default/TOOL/01989be7-49fc-7da1-8df9-e2294a1a4756");
         permissions.add("APPLICATION_ACCESS:READ+EDIT:/WORKSPACE/default/APPLICATION/019845cc-dd3e-7761-a2dc-cb918b6ca924");
@@ -261,7 +261,7 @@ public class UserService extends ServiceImpl<UserMapper, UserEntity> {
         permissions.add("APPLICATION_CHAT_LOG:READ+EXPORT:/WORKSPACE/default/APPLICATION/019845cc-dd3e-7761-a2dc-cb918b6ca924");
         permissions.add("APPLICATION_OVERVIEW:READ+API_KEY:/WORKSPACE/default/APPLICATION/019845cc-dd3e-7761-a2dc-cb918b6ca924");
         permissions.add("TOOL:READ:/WORKSPACE/default/TOOL/01989be7-49fc-7da1-8df9-e2294a1a4756");
-        permissions.add("TOOL:READ+IMPORT:/WORKSPACE/default/TOOL/0198a16e-397a-7ce2-86ca-bad99547be86");
+        permissions.add("TOOL:READ+IMPORT:/WORKSPACE/default/TOOL/0198a16e-397a-7ce2-86ca-bad99547be86");*/
         user.setPermissions(permissions);
         // user.setPermissions(stpInterface.getPermissionList(userId, null));
         user.setRole(Set.of("ADMIN", "WORKSPACE_MANAGE:/WORKSPACE/default"));
