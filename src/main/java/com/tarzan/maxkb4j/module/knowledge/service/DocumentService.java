@@ -601,9 +601,9 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         return this.removeById(docId);
     }
 
-    public IPage<DocumentVO> getDocByDatasetId(String datasetId, int page, int size, Query query) {
+    public IPage<DocumentVO> getDocByDatasetId(String knowledgeId, int page, int size, Query query) {
         Page<DocumentVO> docPage = new Page<>(page, size);
-        return baseMapper.selectDocPage(docPage, datasetId,query);
+        return baseMapper.selectDocPage(docPage, knowledgeId,query);
     }
 
 
@@ -747,7 +747,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         return true;
     }
 
-    public Object downloadSourceFile(String id, String docId) {
-        return null;
+    public void downloadSourceFile(String id, String docId,HttpServletResponse response) {
+        //todo 待完善
     }
 }

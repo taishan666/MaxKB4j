@@ -18,7 +18,7 @@ import java.util.List;
 @Mapper
 public interface DocumentMapper extends BaseMapper<DocumentEntity>{
 
-    IPage<DocumentVO> selectDocPage(Page<DocumentVO> docPage, String datasetId,@Param("query") Query query);
+    IPage<DocumentVO> selectDocPage(Page<DocumentVO> docPage, String knowledgeId,@Param("query") Query query);
 
     void updateStatusByIds(List<String> ids, int type, int status);
 

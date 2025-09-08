@@ -40,8 +40,8 @@ public class DocumentController {
         documentService.sync(id,docId);
     }
   //  @SaCheckPermission("DATASET:READ")
-    @GetMapping("/knowledge/{id}/document/{docId}/export")
-    public void export(@PathVariable("id") String id, @PathVariable("docId") String docId, HttpServletResponse response) throws IOException {
+    @GetMapping("/knowledge/{knowledgeId}/document/{docId}/export")
+    public void export(@PathVariable("knowledgeId") String knowledgeId, @PathVariable("docId") String docId, HttpServletResponse response) throws IOException {
         documentService.exportExcelByDocId(docId, response);
     }
 
@@ -117,7 +117,7 @@ public class DocumentController {
     }
 
   //  @SaCheckPermission("DATASET:DELETE")
-    @DeleteMapping("/knowledge/{id}/document/_bach")
+    @PutMapping("/knowledge/{id}/document/batch_delete")
     public R<Boolean> deleteBatchDocByDocIds(@PathVariable("id") String id, @RequestBody DeleteDTO dto) {
         return R.success(documentService.deleteBatchDocByDocIds(dto.getIdList()));
     }
@@ -159,14 +159,14 @@ public class DocumentController {
     }
 
   //  @SaCheckPermission("DATASET:READ")
-    @GetMapping("/knowledge/{id}/document/{page}/{size}")
-    public R<IPage<DocumentVO>> pageDocByDatasetId(@PathVariable String id, @PathVariable("page") int page, @PathVariable("size") int size, Query query) {
-        return R.success(documentService.getDocByDatasetId(id, page, size, query));
+    @GetMapping("/knowledge/{knowledgeId}/document/{page}/{size}")
+    public R<IPage<DocumentVO>> pageDocByDatasetId(@PathVariable String knowledgeId, @PathVariable("page") int page, @PathVariable("size") int size, Query query) {
+        return R.success(documentService.getDocByDatasetId(knowledgeId, page, size, query));
     }
 
-    @GetMapping("/knowledge/{id}/document/{docId}/download_source_file")
-    public void downloadSourceFile(@PathVariable String id, @PathVariable String docId) {
-         documentService.downloadSourceFile(id, docId);
+    @GetMapping("/knowledge/{knowledgeId}/document/{docId}/download_source_file")
+    public void downloadSourceFile(@PathVariable String knowledgeId, @PathVariable String docId, HttpServletResponse response) {
+         documentService.downloadSourceFile(knowledgeId, docId,response);
     }
 
 
