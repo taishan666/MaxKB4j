@@ -1,5 +1,6 @@
 package com.tarzan.maxkb4j.module.system.user.service;
 
+import cn.dev33.satoken.exception.NotLoginException;
 import cn.dev33.satoken.jwt.StpLogicJwtForStateless;
 import cn.dev33.satoken.secure.SaSecureUtil;
 import cn.dev33.satoken.stp.SaLoginModel;
@@ -155,7 +156,7 @@ public class UserService extends ServiceImpl<UserMapper, UserEntity> {
     public UserVO getUserById(String userId) {
         UserEntity userEntity = this.getById(userId);
         if (Objects.isNull(userEntity)) {
-            return null;
+            throw new NotLoginException("用户不存在", "", "");
         }
         UserVO user = BeanUtil.copy(userEntity, UserVO.class);
         List<String> permissions = new ArrayList<>();
