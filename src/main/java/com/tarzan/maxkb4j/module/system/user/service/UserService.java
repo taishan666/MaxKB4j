@@ -83,12 +83,6 @@ public class UserService extends ServiceImpl<UserMapper, UserEntity> {
         return removeById(userId);
     }
 
-    public List<UserDTO> listByType(String type) {
-        List<UserDTO> list = new ArrayList<>(2);
-        list.add(new UserDTO("all", "全部"));
-        list.add(new UserDTO(StpUtil.getLoginIdAsString(), "我的"));
-        return list;
-    }
 
     public String login(UserLoginDTO dto, HttpServletRequest request) {
         HttpSession session = request.getSession();

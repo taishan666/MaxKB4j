@@ -1,3 +1,4 @@
+/*
 package com.tarzan.maxkb4j.module.auth;
 
 import com.alibaba.fastjson.JSONObject;
@@ -20,3 +21,4 @@ public class AuthController {
         return R.success(result);
     }
 }
+*/

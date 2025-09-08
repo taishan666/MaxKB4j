@@ -14,13 +14,12 @@ import com.tarzan.maxkb4j.module.application.domian.dto.EmbedDTO;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationAccessTokenEntity;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationEntity;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationVO;
-import com.tarzan.maxkb4j.module.application.domian.vo.McpToolVO;
 import com.tarzan.maxkb4j.module.application.service.ApplicationService;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.DataSearchDTO;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.KnowledgeEntity;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.ParagraphVO;
-import com.tarzan.maxkb4j.module.tool.domain.entity.ToolEntity;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelEntity;
+import com.tarzan.maxkb4j.module.tool.domain.entity.ToolEntity;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
@@ -70,7 +69,7 @@ public class ApplicationController {
         return R.success(applicationService.authentication(params));
     }
 
-   // @SaCheckPermission("APPLICATION:READ")
+/*   // @SaCheckPermission("APPLICATION:READ")
     @GetMapping("/application/{id}/function_lib")
     public R<List<ToolEntity>> functionLib(@PathVariable("id") String id) {
         return R.success(applicationService.functionLib(id));
@@ -80,7 +79,7 @@ public class ApplicationController {
     @GetMapping("/application/{id}/function_lib/{functionId}")
     public R<ToolEntity> functionLib(@PathVariable("id") String id, @PathVariable("functionId") String functionId) {
         return R.success(applicationService.functionLib(id,functionId));
-    }
+    }*/
 
    // @SaCheckPermission("APPLICATION:READ")
     @GetMapping("/application/{id}/hit_test")
@@ -113,9 +112,9 @@ public class ApplicationController {
     }
 
     //@SaCheckPermission("APPLICATION:READ")
-    @GetMapping("/application/{page}/{size}")
-    public R<IPage<ApplicationVO>> userApplications(@PathVariable("page") int page, @PathVariable("size") int size, ApplicationQuery query) {
-        return R.success(applicationService.selectAppPage(page, size, query));
+    @GetMapping("/application/{current}/{size}")
+    public R<IPage<ApplicationVO>> userApplications(@PathVariable("current") int current, @PathVariable("size") int size, ApplicationQuery query) {
+        return R.success(applicationService.selectAppPage(current, size, query));
     }
 
     //@SaCheckPermission("APPLICATION:READ")
