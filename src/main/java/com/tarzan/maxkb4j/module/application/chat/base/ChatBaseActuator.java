@@ -6,11 +6,11 @@ import com.tarzan.maxkb4j.module.application.chat.provider.IChatActuator;
 import com.tarzan.maxkb4j.module.application.domian.dto.ChatInfo;
 import com.tarzan.maxkb4j.module.application.domian.dto.ChatMessageDTO;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationAccessTokenEntity;
-import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationPublicAccessClientEntity;
+import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatUserStatsEntity;
 import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
 import com.tarzan.maxkb4j.module.application.enums.AuthType;
 import com.tarzan.maxkb4j.module.application.service.ApplicationAccessTokenService;
-import com.tarzan.maxkb4j.module.application.service.ApplicationPublicAccessClientService;
+import com.tarzan.maxkb4j.module.application.service.ApplicationChatUserStatsService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Objects;
@@ -18,7 +18,7 @@ import java.util.Objects;
 public abstract class ChatBaseActuator implements IChatActuator {
 
     @Autowired
-    private ApplicationPublicAccessClientService publicAccessClientService;
+    private ApplicationChatUserStatsService publicAccessClientService;
     @Autowired
     private ApplicationAccessTokenService accessTokenService;
 
@@ -32,9 +32,9 @@ public abstract class ChatBaseActuator implements IChatActuator {
         String appId = chatInfo.getApplication().getId();
         if (AuthType.ACCESS_TOKEN.name().equals(dto.getClientType())) {
             if (Objects.nonNull(appId)) {
-                ApplicationPublicAccessClientEntity accessClient = publicAccessClientService.getById(dto.getClientId());
+                ApplicationChatUserStatsEntity accessClient = publicAccessClientService.getById(dto.getClientId());
                 if (Objects.isNull(accessClient)) {
-                    accessClient = new ApplicationPublicAccessClientEntity();
+                    accessClient = new ApplicationChatUserStatsEntity();
                     accessClient.setId(dto.getClientId());
                     accessClient.setApplicationId(appId);
                     accessClient.setAccessNum(0);

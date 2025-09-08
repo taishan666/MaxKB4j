@@ -13,7 +13,7 @@ import com.tarzan.maxkb4j.module.application.domian.dto.ChatQueryDTO;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatRecordEntity;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatRecordMapper;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationChatRecordVO;
-import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationPublicAccessClientStatisticsVO;
+import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationChatUserStatsVO;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationStatisticsVO;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.ParagraphVO;
 import com.tarzan.maxkb4j.util.BeanUtil;
@@ -34,7 +34,7 @@ import java.util.*;
 @Service
 public class ApplicationChatRecordService extends ServiceImpl<ApplicationChatRecordMapper, ApplicationChatRecordEntity>{
 
-    private final ApplicationPublicAccessClientService publicAccessClientService;
+    private final ApplicationChatUserStatsService publicAccessClientService;
     public ApplicationChatRecordVO getChatRecordInfo(ChatInfo chatInfo,String chatRecordId) {
         ApplicationChatRecordEntity  chatRecord=null;
         if(Objects.nonNull(chatInfo)&&!CollectionUtils.isEmpty(chatInfo.getChatRecordList())) {
@@ -89,7 +89,7 @@ public class ApplicationChatRecordService extends ServiceImpl<ApplicationChatRec
     public List<ApplicationStatisticsVO> statistics(String appId, ChatQueryDTO query) {
         List<ApplicationStatisticsVO> result = new ArrayList<>();
         List<ApplicationStatisticsVO> list = baseMapper.statistics(appId, query);
-        List<ApplicationPublicAccessClientStatisticsVO> accessClientList = publicAccessClientService.statistics(appId, query);
+        List<ApplicationChatUserStatsVO> accessClientList = publicAccessClientService.statistics(appId, query);
         if (Objects.isNull(query.getStartTime())||Objects.isNull(query.getEndTime())){
             return result;
         }
@@ -123,9 +123,9 @@ public class ApplicationChatRecordService extends ServiceImpl<ApplicationChatRec
         return vo;
     }
 
-    public int getCustomerAddedCount(List<ApplicationPublicAccessClientStatisticsVO> list, String day) {
+    public int getCustomerAddedCount(List<ApplicationChatUserStatsVO> list, String day) {
         if (!CollectionUtils.isEmpty(list)) {
-            Optional<ApplicationPublicAccessClientStatisticsVO> optional = list.stream().filter(e -> e.getDay().equals(day)).findFirst();
+            Optional<ApplicationChatUserStatsVO> optional = list.stream().filter(e -> e.getDay().equals(day)).findFirst();
             if (optional.isPresent()) {
                 return optional.get().getCustomerAddedCount();
             }

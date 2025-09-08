@@ -11,10 +11,12 @@ import lombok.EqualsAndHashCode;
   */
 @EqualsAndHashCode(callSuper = true)
 @Data
-@TableName("application_public_access_client")
-public class ApplicationPublicAccessClientEntity extends BaseEntity {
+@TableName("application_chat_user_stats")
+public class ApplicationChatUserStatsEntity extends BaseEntity {
 	
 	private Integer accessNum;
 	private Integer intraDayAccessNum;
 	private String applicationId;
+	private String chatUserId;
+	private String chatUserType;
 } 

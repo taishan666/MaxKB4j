@@ -5,12 +5,12 @@ import com.tarzan.maxkb4j.module.application.cache.ChatCache;
 import com.tarzan.maxkb4j.module.application.domian.dto.ChatInfo;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatEntity;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatRecordEntity;
-import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationPublicAccessClientEntity;
+import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatUserStatsEntity;
 import com.tarzan.maxkb4j.module.application.enums.AuthType;
 import com.tarzan.maxkb4j.module.application.handler.PostResponseHandler;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatMapper;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatRecordMapper;
-import com.tarzan.maxkb4j.module.application.service.ApplicationPublicAccessClientService;
+import com.tarzan.maxkb4j.module.application.service.ApplicationChatUserStatsService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -21,7 +21,7 @@ import java.util.Objects;
 @Component
 public class ChatPostHandler extends PostResponseHandler {
 
-    private final ApplicationPublicAccessClientService publicAccessClientService;
+    private final ApplicationChatUserStatsService publicAccessClientService;
     private final ApplicationChatMapper chatMapper;
     private final ApplicationChatRecordMapper chatRecordMapper;
  //   private final ChatMemoryStore chatMemoryStore;
@@ -75,7 +75,7 @@ public class ChatPostHandler extends PostResponseHandler {
         ChatCache.put(chatId, chatInfo);
        // chatMemoryStore.updateMessages(chatId, messages);
         if (clientType!=null&&clientType.equals(AuthType.ACCESS_TOKEN.name())) {
-            ApplicationPublicAccessClientEntity applicationPublicAccessClient = publicAccessClientService.getById(clientId);
+            ApplicationChatUserStatsEntity applicationPublicAccessClient = publicAccessClientService.getById(clientId);
             if (applicationPublicAccessClient != null) {
                 applicationPublicAccessClient.setAccessNum(applicationPublicAccessClient.getAccessNum() + 1);
                 applicationPublicAccessClient.setIntraDayAccessNum(applicationPublicAccessClient.getIntraDayAccessNum() + 1);

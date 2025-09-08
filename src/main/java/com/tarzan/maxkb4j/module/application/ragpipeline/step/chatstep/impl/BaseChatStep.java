@@ -9,7 +9,7 @@ import com.tarzan.maxkb4j.core.assistant.Assistant;
 import com.tarzan.maxkb4j.core.assistant.SystemTools;
 import com.tarzan.maxkb4j.core.langchain4j.MyChatMemory;
 import com.tarzan.maxkb4j.core.langchain4j.MyContentRetriever;
-import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationPublicAccessClientEntity;
+import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatUserStatsEntity;
 import com.tarzan.maxkb4j.module.application.domian.entity.DatasetSetting;
 import com.tarzan.maxkb4j.module.application.domian.entity.NoReferencesSetting;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationVO;
@@ -17,7 +17,7 @@ import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
 import com.tarzan.maxkb4j.module.application.handler.PostResponseHandler;
 import com.tarzan.maxkb4j.module.application.ragpipeline.PipelineManage;
 import com.tarzan.maxkb4j.module.application.ragpipeline.step.chatstep.IChatStep;
-import com.tarzan.maxkb4j.module.application.service.ApplicationPublicAccessClientService;
+import com.tarzan.maxkb4j.module.application.service.ApplicationChatUserStatsService;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.ParagraphVO;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
@@ -65,7 +65,7 @@ import static com.tarzan.maxkb4j.core.constant.PromptTemplates.RAG_PROMPT_TEMPLA
 public class BaseChatStep extends IChatStep {
 
     private final ModelService modelService;
-    private final ApplicationPublicAccessClientService publicAccessClientService;
+    private final ApplicationChatUserStatsService publicAccessClientService;
     private final ChatMemoryStore chatMemoryStore;
     private final ToolService toolService;
 
@@ -226,7 +226,7 @@ public class BaseChatStep extends IChatStep {
 
     private void addAccessNum(String clientId, String clientType) {
         if ("APPLICATION_ACCESS_TOKEN".equals(clientType)) {
-            ApplicationPublicAccessClientEntity publicAccessClient = publicAccessClientService.getById(clientId);
+            ApplicationChatUserStatsEntity publicAccessClient = publicAccessClientService.getById(clientId);
             if (publicAccessClient != null) {
                 publicAccessClient.setAccessNum(publicAccessClient.getAccessNum() + 1);
                 publicAccessClient.setIntraDayAccessNum(publicAccessClient.getIntraDayAccessNum() + 1);
