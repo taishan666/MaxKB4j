@@ -25,6 +25,7 @@ import com.tarzan.maxkb4j.module.knowledge.mapper.DocumentMapper;
 import com.tarzan.maxkb4j.module.knowledge.mapper.ProblemParagraphMapper;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelEntity;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
+import com.tarzan.maxkb4j.module.system.permission.service.UserResourcePermissionService;
 import com.tarzan.maxkb4j.module.system.user.service.UserService;
 import com.tarzan.maxkb4j.util.BeanUtil;
 import dev.langchain4j.data.document.Document;
@@ -77,14 +78,14 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
     private final ModelService modelService;
     private final DocumentService documentService;
     private final UserService userService;
+    private final UserResourcePermissionService userResourcePermissionService;
 
 
     public IPage<KnowledgeVO> selectKnowledgePage(Page<KnowledgeVO> datasetPage, Query query) {
-        if (Objects.isNull(query.getCreateUser())) {
-            query.setCreateUser(StpUtil.getLoginIdAsString());
-        }
-        IPage<KnowledgeVO>  page= baseMapper.selectKnowledgePage(datasetPage, query, "USE");
+        String loginId = StpUtil.getLoginIdAsString();
+        IPage<KnowledgeVO>  page= baseMapper.selectKnowledgePage(datasetPage, query);
         Map<String, String> nicknameMap=userService.getNicknameMap();
+        List<String> targetIds =userResourcePermissionService.getTargetIds("APPLICATION",loginId);
         page.getRecords().forEach(vo->vo.setNickname(nicknameMap.get(vo.getUserId())));
         return page;
     }

@@ -32,7 +32,6 @@ import com.tarzan.maxkb4j.module.model.info.service.ModelService;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseSpeechToText;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseTextToSpeech;
 import com.tarzan.maxkb4j.module.resource.service.ImageService;
-import com.tarzan.maxkb4j.module.system.permission.entity.UserResourcePermissionEntity;
 import com.tarzan.maxkb4j.module.system.permission.service.UserResourcePermissionService;
 import com.tarzan.maxkb4j.module.system.user.domain.entity.UserEntity;
 import com.tarzan.maxkb4j.module.system.user.service.UserService;
@@ -86,14 +85,8 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
 
     public IPage<ApplicationVO> selectAppPage(int page, int size, ApplicationQuery query) {
         String loginId = StpUtil.getLoginIdAsString();
-        List<UserResourcePermissionEntity> userResourcePermissions =userResourcePermissionService.lambdaQuery()
-                .select(UserResourcePermissionEntity::getTargetId,UserResourcePermissionEntity::getPermissionList)
-                .eq(UserResourcePermissionEntity::getUserId, loginId)
-                .eq(UserResourcePermissionEntity::getAuthTargetType, "APPLICATION").list();
         Page<ApplicationEntity> appPage = new Page<>(page, size);
-        List<String> targetIds = userResourcePermissions.stream()
-                .filter(permission -> permission.getPermissionList().contains("VIEW"))
-                .map(UserResourcePermissionEntity::getTargetId).toList();
+        List<String> targetIds =userResourcePermissionService.getTargetIds("APPLICATION",loginId);
         LambdaQueryWrapper<ApplicationEntity> wrapper = Wrappers.lambdaQuery();
         if (StringUtils.isNotBlank(query.getName())) {
             wrapper.like(ApplicationEntity::getName, query.getName());

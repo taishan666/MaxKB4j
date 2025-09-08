@@ -1,20 +1,23 @@
 package com.tarzan.maxkb4j.module.tool.service;
 
+import cn.dev33.satoken.stp.StpUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.tarzan.maxkb4j.module.system.permission.service.UserResourcePermissionService;
+import com.tarzan.maxkb4j.module.system.user.service.UserService;
 import com.tarzan.maxkb4j.module.tool.domain.dto.ToolQuery;
 import com.tarzan.maxkb4j.module.tool.domain.entity.ToolEntity;
 import com.tarzan.maxkb4j.module.tool.domain.vo.ToolVO;
 import com.tarzan.maxkb4j.module.tool.mapper.ToolMapper;
-import com.tarzan.maxkb4j.module.system.user.service.UserService;
 import com.tarzan.maxkb4j.util.BeanUtil;
 import com.tarzan.maxkb4j.util.PageUtil;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.util.List;
 import java.util.Map;
@@ -28,8 +31,10 @@ import java.util.Map;
 public class ToolService extends ServiceImpl<ToolMapper, ToolEntity>{
 
     private final UserService userService;
+    private final UserResourcePermissionService userResourcePermissionService;
 
     public IPage<ToolVO> pageList(int current, int size, ToolQuery query) {
+        String loginId = StpUtil.getLoginIdAsString();
         IPage<ToolEntity> page = new Page<>(current, size);
         LambdaQueryWrapper<ToolEntity> wrapper= Wrappers.lambdaQuery();
         if(StringUtils.isNotBlank(query.getName())){
@@ -43,6 +48,15 @@ public class ToolService extends ServiceImpl<ToolMapper, ToolEntity>{
         }
         if(StringUtils.isNotBlank(query.getToolType())){
             wrapper.eq(ToolEntity::getToolType,query.getToolType());
+        }
+        List<String> targetIds =userResourcePermissionService.getTargetIds("TOOL",loginId);
+        if (CollectionUtils.isEmpty(targetIds)){
+            wrapper.eq(ToolEntity::getUserId, loginId);
+        }else {
+            wrapper.and(
+                    w -> w.eq(ToolEntity::getUserId, loginId)
+                            .or()
+                            .in(ToolEntity::getId, targetIds));
         }
         wrapper.orderByDesc(ToolEntity::getCreateTime);
         this.page(page,wrapper);

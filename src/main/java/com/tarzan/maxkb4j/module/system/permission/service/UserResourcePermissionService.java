@@ -155,4 +155,14 @@ public class UserResourcePermissionService extends ServiceImpl<UserResourcePermi
         }).toList();
         return this.saveBatch(saveList);
     }
+
+    public List<String> getTargetIds(String authTargetType, String userId) {
+        List<UserResourcePermissionEntity> userResourcePermissions =this.lambdaQuery()
+                .select(UserResourcePermissionEntity::getTargetId,UserResourcePermissionEntity::getPermissionList)
+                .eq(UserResourcePermissionEntity::getUserId, userId)
+                .eq(UserResourcePermissionEntity::getAuthTargetType, authTargetType).list();
+        return userResourcePermissions.stream()
+                .filter(permission -> permission.getPermissionList().contains("VIEW"))
+                .map(UserResourcePermissionEntity::getTargetId).toList();
+    }
 }
