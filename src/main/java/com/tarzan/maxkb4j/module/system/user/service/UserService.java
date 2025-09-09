@@ -109,6 +109,7 @@ public class UserService extends ServiceImpl<UserMapper, UserEntity> {
         loginModel.setExtra("language", userEntity.getLanguage());
         loginModel.setExtra("client_id", userEntity.getId());
         loginModel.setExtra("client_type", AuthType.USER.name());
+        loginModel.setExtra("roles", userEntity.getRole());
         StpUtil.login(userEntity.getId(), loginModel);
         //return Map.of("token",StpUtil.getTokenValue());
         return StpUtil.getTokenValue();
@@ -258,7 +259,8 @@ public class UserService extends ServiceImpl<UserMapper, UserEntity> {
         permissions.add("TOOL:READ+IMPORT:/WORKSPACE/default/TOOL/0198a16e-397a-7ce2-86ca-bad99547be86");*/
         user.setPermissions(permissions);
         // user.setPermissions(stpInterface.getPermissionList(userId, null));
-        user.setRole(Set.of("ADMIN", "WORKSPACE_MANAGE:/WORKSPACE/default"));
+        userEntity.getRole().add("WORKSPACE_MANAGE:/WORKSPACE/default");
+      //  user.setRole(Set.of(, "WORKSPACE_MANAGE:/WORKSPACE/default"));
         List<Map<String, String>> workspaceList = new ArrayList<>();
         workspaceList.add(Map.of("id", "default", "name", "default"));
         user.setWorkspaceList(workspaceList);

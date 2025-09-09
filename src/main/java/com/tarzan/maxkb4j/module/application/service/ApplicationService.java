@@ -84,9 +84,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     private final UserResourcePermissionService userResourcePermissionService;
 
     public IPage<ApplicationVO> selectAppPage(int page, int size, ApplicationQuery query) {
-        String loginId = StpUtil.getLoginIdAsString();
         Page<ApplicationEntity> appPage = new Page<>(page, size);
-        List<String> targetIds =userResourcePermissionService.getTargetIds("APPLICATION",loginId);
         LambdaQueryWrapper<ApplicationEntity> wrapper = Wrappers.lambdaQuery();
         if (StringUtils.isNotBlank(query.getName())) {
             wrapper.like(ApplicationEntity::getName, query.getName());
@@ -97,13 +95,23 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         if (Objects.nonNull(query.getCreateUser())) {
             wrapper.eq(ApplicationEntity::getUserId, query.getCreateUser());
         }
-        if (CollectionUtils.isEmpty(targetIds)){
-            wrapper.eq(ApplicationEntity::getUserId, loginId);
-        }else {
-            wrapper.and(
-                    w -> w.eq(ApplicationEntity::getUserId, loginId)
-                            .or()
-                            .in(ApplicationEntity::getId, targetIds));
+        String loginId = StpUtil.getLoginIdAsString();
+        UserEntity user = userService.validUserById(loginId);
+        if (Objects.nonNull(user)){
+            if (!CollectionUtils.isEmpty(user.getRole())){
+                if (user.getRole().contains("USER")){
+                    List<String> targetIds =userResourcePermissionService.getTargetIds("APPLICATION",loginId);
+                    if (!CollectionUtils.isEmpty(targetIds)){
+                        wrapper.in(ApplicationEntity::getId, targetIds);
+                    }else {
+                        wrapper.last(" limit 0");
+                    }
+                }
+            }else {
+                wrapper.last(" limit 0");
+            }
+        }else{
+            wrapper.last(" limit 0");
         }
         wrapper.orderByDesc(ApplicationEntity::getCreateTime);
         this.page(appPage, wrapper);

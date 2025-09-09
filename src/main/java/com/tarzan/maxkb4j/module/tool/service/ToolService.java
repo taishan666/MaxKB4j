@@ -50,14 +50,10 @@ public class ToolService extends ServiceImpl<ToolMapper, ToolEntity>{
             wrapper.eq(ToolEntity::getToolType,query.getToolType());
         }
         List<String> targetIds =userResourcePermissionService.getTargetIds("TOOL",loginId);
-        if (CollectionUtils.isEmpty(targetIds)){
-            wrapper.eq(ToolEntity::getUserId, loginId);
-        }else {
-            wrapper.and(
-                    w -> w.eq(ToolEntity::getUserId, loginId)
-                            .or()
-                            .in(ToolEntity::getId, targetIds));
-        }
+        wrapper.and(
+                w -> w.eq(ToolEntity::getUserId, loginId)
+                        .or()
+                        .in(!CollectionUtils.isEmpty(targetIds),ToolEntity::getId, targetIds));
         wrapper.orderByDesc(ToolEntity::getCreateTime);
         this.page(page,wrapper);
         Map<String, String> nicknameMap=userService.getNicknameMap();

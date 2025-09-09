@@ -69,14 +69,10 @@ public class ModelService extends ServiceImpl<ModelMapper, ModelEntity> {
         }
         String loginId = StpUtil.getLoginIdAsString();
         List<String> targetIds =userResourcePermissionService.getTargetIds("MODEL",loginId);
-        if (org.springframework.util.CollectionUtils.isEmpty(targetIds)){
-            wrapper.eq(ModelEntity::getUserId, loginId);
-        }else {
-            wrapper.and(
-                    w -> w.eq(ModelEntity::getUserId, loginId)
-                            .or()
-                            .in(ModelEntity::getId, targetIds));
-        }
+        wrapper.and(
+                w -> w.eq(ModelEntity::getUserId, loginId)
+                        .or()
+                        .in(!CollectionUtils.isEmpty(targetIds),ModelEntity::getId, targetIds));
         wrapper.orderByDesc(ModelEntity::getCreateTime);
         List<ModelEntity> modelEntities = baseMapper.selectList(wrapper);
         if (CollectionUtils.isNotEmpty(modelEntities)) {

@@ -84,6 +84,7 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
     public IPage<KnowledgeVO> selectKnowledgePage(Page<KnowledgeVO> datasetPage, KnowledgeQuery query) {
         String loginId = StpUtil.getLoginIdAsString();
         List<String> targetIds =userResourcePermissionService.getTargetIds("KNOWLEDGE",loginId);
+        query.setUserId(loginId);
         query.setTargetIds(targetIds);
         IPage<KnowledgeVO>  page= baseMapper.selectKnowledgePage(datasetPage, query);
         Map<String, String> nicknameMap=userService.getNicknameMap();
