@@ -11,15 +11,18 @@ import com.tarzan.maxkb4j.module.model.info.mapper.ModelMapper;
 import com.tarzan.maxkb4j.module.model.info.vo.ModelVO;
 import com.tarzan.maxkb4j.module.model.provider.ModelFactory;
 import com.tarzan.maxkb4j.module.system.permission.service.UserResourcePermissionService;
+import com.tarzan.maxkb4j.module.system.user.domain.entity.UserEntity;
 import com.tarzan.maxkb4j.module.system.user.service.UserService;
 import com.tarzan.maxkb4j.util.BeanUtil;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * @author tarzan
@@ -68,11 +71,23 @@ public class ModelService extends ServiceImpl<ModelMapper, ModelEntity> {
             wrapper.eq(ModelEntity::getProvider, provider);
         }
         String loginId = StpUtil.getLoginIdAsString();
-        List<String> targetIds =userResourcePermissionService.getTargetIds("MODEL",loginId);
-        wrapper.and(
-                w -> w.eq(ModelEntity::getUserId, loginId)
-                        .or()
-                        .in(!CollectionUtils.isEmpty(targetIds),ModelEntity::getId, targetIds));
+        UserEntity user = userService.validUserById(loginId);
+        if (Objects.nonNull(user)){
+            if (!org.springframework.util.CollectionUtils.isEmpty(user.getRole())){
+                if (user.getRole().contains("USER")){
+                    List<String> targetIds =userResourcePermissionService.getTargetIds("MODEL",loginId);
+                    if (!org.springframework.util.CollectionUtils.isEmpty(targetIds)){
+                        wrapper.in(ModelEntity::getId, targetIds);
+                    }else {
+                        wrapper.last(" limit 0");
+                    }
+                }
+            }else {
+                wrapper.last(" limit 0");
+            }
+        }else{
+            wrapper.last(" limit 0");
+        }
         wrapper.orderByDesc(ModelEntity::getCreateTime);
         List<ModelEntity> modelEntities = baseMapper.selectList(wrapper);
         if (CollectionUtils.isNotEmpty(modelEntities)) {
@@ -94,8 +109,10 @@ public class ModelService extends ServiceImpl<ModelMapper, ModelEntity> {
     }
 
 
+    @Transactional
     public Boolean createModel(ModelEntity model) {
-        return modelBaseService.createModel(model);
+         modelBaseService.createModel(model);
+        return userResourcePermissionService.save("MODEL", model.getId(), StpUtil.getLoginIdAsString(), "default");
     }
 
     public ModelEntity updateModel(String id, ModelEntity model) {

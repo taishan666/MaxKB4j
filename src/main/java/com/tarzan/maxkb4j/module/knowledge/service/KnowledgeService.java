@@ -81,6 +81,7 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
     private final UserResourcePermissionService userResourcePermissionService;
 
 
+    //todo
     public IPage<KnowledgeVO> selectKnowledgePage(Page<KnowledgeVO> datasetPage, KnowledgeQuery query) {
         String loginId = StpUtil.getLoginIdAsString();
         List<String> targetIds =userResourcePermissionService.getTargetIds("KNOWLEDGE",loginId);
@@ -309,22 +310,26 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
         return this.lambdaQuery().eq(KnowledgeEntity::getUserId, userId).list();
     }
 
-    public KnowledgeEntity createDataset(KnowledgeEntity dataset) {
-        dataset.setMeta(new JSONObject());
-        dataset.setUserId(StpUtil.getLoginIdAsString());
-        this.save(dataset);
-        return dataset;
+    @Transactional
+    public KnowledgeEntity createDataset(KnowledgeEntity knowledge) {
+        knowledge.setMeta(new JSONObject());
+        knowledge.setUserId(StpUtil.getLoginIdAsString());
+        this.save(knowledge);
+        userResourcePermissionService.save("KNOWLEDGE", knowledge.getId(), StpUtil.getLoginIdAsString(), "default");
+        return knowledge;
     }
 
-    public KnowledgeEntity createWebDataset(KnowledgeDTO dataset) {
-        dataset.setUserId(StpUtil.getLoginIdAsString());
+    @Transactional
+    public KnowledgeEntity createWebDataset(KnowledgeDTO knowledge) {
+        knowledge.setUserId(StpUtil.getLoginIdAsString());
         JSONObject meta = new JSONObject();
-        meta.put("source_url",dataset.getSourceUrl());
-        meta.put("selector",dataset.getSelector());
-        dataset.setMeta(meta);
-        this.save(dataset);
-        documentService.webDataset(dataset.getId(),dataset.getSourceUrl(),dataset.getSelector());
-        return dataset;
+        meta.put("source_url",knowledge.getSourceUrl());
+        meta.put("selector",knowledge.getSelector());
+        knowledge.setMeta(meta);
+        this.save(knowledge);
+        documentService.webDataset(knowledge.getId(),knowledge.getSourceUrl(),knowledge.getSelector());
+        userResourcePermissionService.save("KNOWLEDGE", knowledge.getId(), StpUtil.getLoginIdAsString(), "default");
+        return knowledge;
     }
 
     public boolean reEmbedding(String datasetId) {

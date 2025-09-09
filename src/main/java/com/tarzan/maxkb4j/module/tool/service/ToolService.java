@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tarzan.maxkb4j.module.system.permission.service.UserResourcePermissionService;
+import com.tarzan.maxkb4j.module.system.user.domain.entity.UserEntity;
 import com.tarzan.maxkb4j.module.system.user.service.UserService;
 import com.tarzan.maxkb4j.module.tool.domain.dto.ToolQuery;
 import com.tarzan.maxkb4j.module.tool.domain.entity.ToolEntity;
@@ -17,10 +18,12 @@ import com.tarzan.maxkb4j.util.PageUtil;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * @author tarzan
@@ -34,7 +37,6 @@ public class ToolService extends ServiceImpl<ToolMapper, ToolEntity>{
     private final UserResourcePermissionService userResourcePermissionService;
 
     public IPage<ToolVO> pageList(int current, int size, ToolQuery query) {
-        String loginId = StpUtil.getLoginIdAsString();
         IPage<ToolEntity> page = new Page<>(current, size);
         LambdaQueryWrapper<ToolEntity> wrapper= Wrappers.lambdaQuery();
         if(StringUtils.isNotBlank(query.getName())){
@@ -49,11 +51,29 @@ public class ToolService extends ServiceImpl<ToolMapper, ToolEntity>{
         if(StringUtils.isNotBlank(query.getToolType())){
             wrapper.eq(ToolEntity::getToolType,query.getToolType());
         }
-        List<String> targetIds =userResourcePermissionService.getTargetIds("TOOL",loginId);
+/*        List<String> targetIds =userResourcePermissionService.getTargetIds("TOOL",loginId);
         wrapper.and(
                 w -> w.eq(ToolEntity::getUserId, loginId)
                         .or()
-                        .in(!CollectionUtils.isEmpty(targetIds),ToolEntity::getId, targetIds));
+                        .in(!CollectionUtils.isEmpty(targetIds),ToolEntity::getId, targetIds));*/
+        String loginId = StpUtil.getLoginIdAsString();
+        UserEntity user = userService.validUserById(loginId);
+        if (Objects.nonNull(user)){
+            if (!CollectionUtils.isEmpty(user.getRole())){
+                if (user.getRole().contains("USER")){
+                    List<String> targetIds =userResourcePermissionService.getTargetIds("TOOL",loginId);
+                    if (!CollectionUtils.isEmpty(targetIds)){
+                        wrapper.in(ToolEntity::getId, targetIds);
+                    }else {
+                        wrapper.last(" limit 0");
+                    }
+                }
+            }else {
+                wrapper.last(" limit 0");
+            }
+        }else{
+            wrapper.last(" limit 0");
+        }
         wrapper.orderByDesc(ToolEntity::getCreateTime);
         this.page(page,wrapper);
         Map<String, String> nicknameMap=userService.getNicknameMap();
@@ -66,5 +86,11 @@ public class ToolService extends ServiceImpl<ToolMapper, ToolEntity>{
 
     public List<ToolEntity> getUserId(String userId) {
         return this.list(Wrappers.<ToolEntity>lambdaQuery().eq(ToolEntity::getUserId, userId));
+    }
+
+    @Transactional
+    public void saveInfo(ToolEntity entity) {
+        this.save(entity);
+        userResourcePermissionService.save("TOOL", entity.getId(), StpUtil.getLoginIdAsString(), "default");
     }
 }

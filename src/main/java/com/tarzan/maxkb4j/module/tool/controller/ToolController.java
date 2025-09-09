@@ -79,7 +79,7 @@ public class ToolController {
 		entity.setScope("WORKSPACE");
 		entity.setToolType("CUSTOM");
 		entity.setUpdateTime(now);
-		toolService.save(entity);
+		toolService.saveInfo(entity);
 		return R.data(entity);
 	}
 
@@ -88,7 +88,7 @@ public class ToolController {
 		dto.setIsActive(true);
 		dto.setUserId(StpUtil.getLoginIdAsString());
 		dto.setScope("WORKSPACE");
-		toolService.save(dto);
+		toolService.saveInfo(dto);
 		return R.data(dto);
 	}
 
@@ -119,13 +119,13 @@ public class ToolController {
 	}
 
 	@PutMapping("/workspace/default/tool/{id}")
-	public R<Boolean> functionLib(@PathVariable String id,@RequestBody ToolEntity dto) {
+	public R<Boolean> tool(@PathVariable String id,@RequestBody ToolEntity dto) {
 		dto.setId(id);
 		return R.status(toolService.updateById(dto));
 	}
 
 	@DeleteMapping("/workspace/default/tool/{id}")
-	public R<Boolean> functionLib(@PathVariable String id) {
+	public R<Boolean> tool(@PathVariable String id) {
 		return R.status(toolService.removeById(id));
 	}
 
