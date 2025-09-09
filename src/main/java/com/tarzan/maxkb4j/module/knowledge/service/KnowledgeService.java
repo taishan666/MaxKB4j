@@ -9,19 +9,19 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.tarzan.maxkb4j.core.common.dto.Query;
-import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationKnowledgeMappingEntity;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationEntity;
+import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationKnowledgeMappingEntity;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationKnowledgeMappingMapper;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationMapper;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.KnowledgeDTO;
+import com.tarzan.maxkb4j.module.knowledge.domain.dto.KnowledgeQuery;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.*;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.KnowledgeVO;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.ParagraphSimpleVO;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.TextSegmentVO;
 import com.tarzan.maxkb4j.module.knowledge.excel.DatasetExcel;
-import com.tarzan.maxkb4j.module.knowledge.mapper.KnowledgeMapper;
 import com.tarzan.maxkb4j.module.knowledge.mapper.DocumentMapper;
+import com.tarzan.maxkb4j.module.knowledge.mapper.KnowledgeMapper;
 import com.tarzan.maxkb4j.module.knowledge.mapper.ProblemParagraphMapper;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelEntity;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
@@ -81,11 +81,12 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
     private final UserResourcePermissionService userResourcePermissionService;
 
 
-    public IPage<KnowledgeVO> selectKnowledgePage(Page<KnowledgeVO> datasetPage, Query query) {
+    public IPage<KnowledgeVO> selectKnowledgePage(Page<KnowledgeVO> datasetPage, KnowledgeQuery query) {
         String loginId = StpUtil.getLoginIdAsString();
+        List<String> targetIds =userResourcePermissionService.getTargetIds("KNOWLEDGE",loginId);
+        query.setTargetIds(targetIds);
         IPage<KnowledgeVO>  page= baseMapper.selectKnowledgePage(datasetPage, query);
         Map<String, String> nicknameMap=userService.getNicknameMap();
-        List<String> targetIds =userResourcePermissionService.getTargetIds("APPLICATION",loginId);
         page.getRecords().forEach(vo->vo.setNickname(nicknameMap.get(vo.getUserId())));
         return page;
     }

@@ -6,11 +6,11 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.tarzan.maxkb4j.core.enums.PermissionType;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelEntity;
 import com.tarzan.maxkb4j.module.model.info.mapper.ModelMapper;
 import com.tarzan.maxkb4j.module.model.info.vo.ModelVO;
 import com.tarzan.maxkb4j.module.model.provider.ModelFactory;
+import com.tarzan.maxkb4j.module.system.permission.service.UserResourcePermissionService;
 import com.tarzan.maxkb4j.module.system.user.service.UserService;
 import com.tarzan.maxkb4j.util.BeanUtil;
 import lombok.AllArgsConstructor;
@@ -31,6 +31,7 @@ public class ModelService extends ServiceImpl<ModelMapper, ModelEntity> {
 
     private final UserService userService;
     private final ModelBaseService modelBaseService;
+    private final UserResourcePermissionService userResourcePermissionService;
 
     public List<ModelEntity> getUserIdAndType(String userId, String modelType) {
         modelType = StringUtils.isBlank(modelType) ? "LLM" : modelType;
@@ -66,7 +67,16 @@ public class ModelService extends ServiceImpl<ModelMapper, ModelEntity> {
         if (StringUtils.isNotBlank(provider)) {
             wrapper.eq(ModelEntity::getProvider, provider);
         }
-        wrapper.eq(ModelEntity::getUserId, StpUtil.getLoginIdAsString());
+        String loginId = StpUtil.getLoginIdAsString();
+        List<String> targetIds =userResourcePermissionService.getTargetIds("MODEL",loginId);
+        if (org.springframework.util.CollectionUtils.isEmpty(targetIds)){
+            wrapper.eq(ModelEntity::getUserId, loginId);
+        }else {
+            wrapper.and(
+                    w -> w.eq(ModelEntity::getUserId, loginId)
+                            .or()
+                            .in(ModelEntity::getId, targetIds));
+        }
         wrapper.orderByDesc(ModelEntity::getCreateTime);
         List<ModelEntity> modelEntities = baseMapper.selectList(wrapper);
         if (CollectionUtils.isNotEmpty(modelEntities)) {

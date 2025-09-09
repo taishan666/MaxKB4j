@@ -1,5 +1,6 @@
 package com.tarzan.maxkb4j.module.system.permission.service;
 
+import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
@@ -87,7 +88,8 @@ public class UserResourcePermissionService extends ServiceImpl<UserResourcePermi
                 });
             case "TOOL":
                 Page<ToolEntity> toolPage = new Page<>(current, size);
-                toolMapper.selectPage(toolPage, null);
+                Wrapper<ToolEntity> toolWrapper = Wrappers.<ToolEntity>lambdaQuery().eq(ToolEntity::getScope, "WORKSPACE");
+                toolMapper.selectPage(toolPage, toolWrapper);
                 return PageUtil.copy(toolPage, tool -> {
                     UserResourcePermissionVO vo = new UserResourcePermissionVO();
                     vo.setId(tool.getId());

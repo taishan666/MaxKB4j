@@ -5,10 +5,10 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.tarzan.maxkb4j.constant.AppConst;
 import com.tarzan.maxkb4j.core.api.R;
-import com.tarzan.maxkb4j.core.common.dto.Query;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationEntity;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.DataSearchDTO;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.KnowledgeDTO;
+import com.tarzan.maxkb4j.module.knowledge.domain.dto.KnowledgeQuery;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.KnowledgeEntity;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.KnowledgeVO;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.ParagraphVO;
@@ -86,7 +86,7 @@ public class KnowledgeController {
 
     // @SaCheckPermission("DATASET:READ")
     @GetMapping("/knowledge/{current}/{size}")
-    public R<IPage<KnowledgeVO>> knowledgePage(@PathVariable("current") int current, @PathVariable("size") int size, Query query) {
+    public R<IPage<KnowledgeVO>> knowledgePage(@PathVariable("current") int current, @PathVariable("size") int size, KnowledgeQuery query) {
         Page<KnowledgeVO> knowledgePage = new Page<>(current, size);
         return R.success(datasetService.selectKnowledgePage(knowledgePage, query));
     }

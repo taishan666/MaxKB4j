@@ -7,7 +7,7 @@
                 typeHandler="com.baomidou.mybatisplus.extension.handlers.FastjsonTypeHandler"/>
     </resultMap>
 
-    <select id="selectKnowledgePage" resultMap="knowledgeResultMap">
+    <select id="selectKnowledgePage12121" resultMap="knowledgeResultMap">
         SELECT
         k.*,
         COUNT ( doc.dataset_id ) AS document_count,
@@ -18,19 +18,73 @@
         LEFT JOIN "document" doc ON k.ID = doc.dataset_id
         LEFT JOIN application_knowledge_mapping adm ON k.ID = adm.knowledge_id
         <where>
-            (
             <if test="query.createUser != null and query.createUser != ''">
-                 k.user_id= #{query.createUser}
+                AND  k.user_id= #{query.createUser}
             </if>
             <if test="query.name != null and query.name != ''">
                 AND k.name like CONCAT('%',#{query.name},'%')
             </if>
-            )
+            <if test="query.targetIds != null and query.targetIds != ''">
+                AND k.ID IN
+                <foreach collection="targetIds" item="targetId" open="(" separator="," close=")">
+                    #{targetId}
+                </foreach>
+            </if>
         </where>
         GROUP BY
            k.ID
         ORDER BY
            k.create_time DESC
+    </select>
+
+    <select id="selectKnowledgePage" resultMap="knowledgeResultMap">
+        SELECT
+        k.*,
+        COALESCE(doc_stats.document_count, 0) AS document_count,
+        COALESCE(doc_stats.char_length, 0) AS char_length,
+        COALESCE(map_stats.application_mapping_count, 0) AS application_mapping_count
+        FROM
+        knowledge k
+        LEFT JOIN (
+        SELECT
+        d.dataset_id,
+        COUNT(*) AS document_count,
+        SUM(d.char_length) AS char_length
+        FROM
+        "document" d
+        GROUP BY
+        d.dataset_id
+        ) doc_stats ON k.ID = doc_stats.dataset_id
+        LEFT JOIN (
+        SELECT
+        adm.knowledge_id,
+        COUNT(DISTINCT adm.application_id) AS application_mapping_count
+        FROM
+        application_knowledge_mapping adm
+        GROUP BY
+        adm.knowledge_id
+        ) map_stats ON k.ID = map_stats.knowledge_id
+        <where>
+            <if test="query.createUser != null and query.createUser != ''">
+                AND k.user_id = #{query.createUser}
+            </if>
+            <if test="query.name != null and query.name != ''">
+                AND k.name LIKE '%' || #{query.name} || '%'
+            </if>
+             AND (
+            <if test="query.query.userId != null and query.query.userId != ''">
+                AND k.user_id = #{query.userId}
+            </if>
+            OR
+            <if test="query.targetIds != null and @org.apache.commons.collections.CollectionUtils@isNotEmpty(query.targetIds)">
+                AND k.ID IN
+                <foreach collection="query.targetIds" item="targetId" open="(" separator="," close=")">
+                    #{targetId}
+                </foreach>
+            </if>
+            )
+        </where>
+        ORDER BY k.create_time DESC
     </select>
 
 </mapper>
