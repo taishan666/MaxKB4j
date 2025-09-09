@@ -68,21 +68,24 @@
             <if test="query.createUser != null and query.createUser != ''">
                 AND k.user_id = #{query.createUser}
             </if>
-            <if test="query.name != null and query.name != ''">
+            <if test="query.name != null and !query.name!= ''">
                 AND k.name LIKE '%' || #{query.name} || '%'
             </if>
-            <!-- 条件：用户可访问的 knowledge（自己创建的，或在指定 ID 列表中的） -->
-            <if test="query.userId != null and query.userId != ''">
-                AND (
-                k.user_id = #{query.userId}
-                <if test="query.targetIds != null and @org.apache.commons.collections.CollectionUtils@isNotEmpty(query.targetIds)">
-                    OR k.ID IN
-                    <foreach collection="query.targetIds" item="targetId" open="(" separator="," close=")">
-                        #{targetId}
-                    </foreach>
-                </if>
-                )
-            </if>
+            <choose>
+                <when test="query.isAdmin != null and !query.isAdmin">
+                  <choose>
+                      <when test="query.targetIds != null and @org.apache.commons.collections.CollectionUtils@isNotEmpty(query.targetIds)">
+                          AND k.ID IN
+                          <foreach collection="query.targetIds" item="targetId" open="(" separator="," close=")">
+                              #{targetId}
+                          </foreach>
+                      </when>
+                      <otherwise>
+                          AND k.ID=''
+                      </otherwise>
+                  </choose>
+                </when>
+            </choose>
         </where>
         ORDER BY k.create_time DESC
     </select>

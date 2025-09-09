@@ -42,15 +42,15 @@ public class KnowledgeController {
     }
 
     //  @SaCheckPermission("DATASET:CREATE")
-    @PostMapping("/knowledge")
-    public R<KnowledgeEntity> createDataset(@RequestBody KnowledgeEntity dataset) {
-        return R.success(datasetService.createDataset(dataset));
+    @PostMapping("/knowledge/base")
+    public R<KnowledgeEntity> createDatasetBase(@RequestBody KnowledgeEntity dataset) {
+        return R.success(datasetService.createDatasetBase(dataset));
     }
 
     // @SaCheckPermission("DATASET:CREATE")
     @PostMapping("/knowledge/web")
     public R<KnowledgeEntity> createDatasetWeb(@RequestBody KnowledgeDTO dataset) {
-        return R.success(datasetService.createWebDataset(dataset));
+        return R.success(datasetService.createDatasetWeb(dataset));
     }
 
     //  @SaCheckPermission("DATASET:READ")

@@ -26,6 +26,7 @@ import com.tarzan.maxkb4j.module.knowledge.mapper.ProblemParagraphMapper;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelEntity;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
 import com.tarzan.maxkb4j.module.system.permission.service.UserResourcePermissionService;
+import com.tarzan.maxkb4j.module.system.user.domain.entity.UserEntity;
 import com.tarzan.maxkb4j.module.system.user.service.UserService;
 import com.tarzan.maxkb4j.util.BeanUtil;
 import dev.langchain4j.data.document.Document;
@@ -81,11 +82,11 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
     private final UserResourcePermissionService userResourcePermissionService;
 
 
-    //todo
     public IPage<KnowledgeVO> selectKnowledgePage(Page<KnowledgeVO> datasetPage, KnowledgeQuery query) {
         String loginId = StpUtil.getLoginIdAsString();
         List<String> targetIds =userResourcePermissionService.getTargetIds("KNOWLEDGE",loginId);
-        query.setUserId(loginId);
+        UserEntity user =userService.getById(loginId);
+        query.setIsAdmin(user.getRole().contains("ADMIN"));
         query.setTargetIds(targetIds);
         IPage<KnowledgeVO>  page= baseMapper.selectKnowledgePage(datasetPage, query);
         Map<String, String> nicknameMap=userService.getNicknameMap();
@@ -311,21 +312,23 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
     }
 
     @Transactional
-    public KnowledgeEntity createDataset(KnowledgeEntity knowledge) {
+    public KnowledgeEntity createDatasetBase(KnowledgeEntity knowledge) {
         knowledge.setMeta(new JSONObject());
         knowledge.setUserId(StpUtil.getLoginIdAsString());
+        knowledge.setType(0);
         this.save(knowledge);
         userResourcePermissionService.save("KNOWLEDGE", knowledge.getId(), StpUtil.getLoginIdAsString(), "default");
         return knowledge;
     }
 
     @Transactional
-    public KnowledgeEntity createWebDataset(KnowledgeDTO knowledge) {
+    public KnowledgeEntity createDatasetWeb(KnowledgeDTO knowledge) {
         knowledge.setUserId(StpUtil.getLoginIdAsString());
         JSONObject meta = new JSONObject();
         meta.put("source_url",knowledge.getSourceUrl());
         meta.put("selector",knowledge.getSelector());
         knowledge.setMeta(meta);
+        knowledge.setType(1);
         this.save(knowledge);
         documentService.webDataset(knowledge.getId(),knowledge.getSourceUrl(),knowledge.getSelector());
         userResourcePermissionService.save("KNOWLEDGE", knowledge.getId(), StpUtil.getLoginIdAsString(), "default");

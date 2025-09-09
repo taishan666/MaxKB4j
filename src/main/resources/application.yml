@@ -32,7 +32,8 @@ mybatis-plus:
   mapper-locations: classpath:mapper/**/*.xml,mapper/*.xml
   type-aliases-package: com.tarzan.**.entity
   type-handlers-package: com.tarzan.maxkb4j.core.handler.type
-
+  #configuration:
+    #log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
 ############## Sa-Token 配置 (文档: https://sa-token.cc) ##############
 sa-token:
   # jwt秘钥

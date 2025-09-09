@@ -11,5 +11,5 @@ import java.util.List;
 public class KnowledgeQuery extends Query {
 
     private List<String> targetIds;
-    private String userId;
+    private Boolean isAdmin=false;
 }
