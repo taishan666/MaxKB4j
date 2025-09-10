@@ -21,17 +21,19 @@ import com.tarzan.maxkb4j.module.knowledge.domain.dto.GenerateProblemDTO;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.WebUrlDTO;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.*;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.DocumentVO;
+import com.tarzan.maxkb4j.module.knowledge.domain.vo.FileStreamVO;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.ParagraphSimpleVO;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.TextSegmentVO;
 import com.tarzan.maxkb4j.module.knowledge.enums.DocType;
 import com.tarzan.maxkb4j.module.knowledge.excel.DatasetExcel;
-import com.tarzan.maxkb4j.module.knowledge.mapper.KnowledgeMapper;
 import com.tarzan.maxkb4j.module.knowledge.mapper.DocumentMapper;
+import com.tarzan.maxkb4j.module.knowledge.mapper.KnowledgeMapper;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
 import com.tarzan.maxkb4j.module.model.info.vo.KeyAndValueVO;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
 import com.tarzan.maxkb4j.util.ExcelUtil;
 import com.tarzan.maxkb4j.util.JsoupUtil;
+import com.tarzan.maxkb4j.util.StringUtil;
 import dev.langchain4j.data.document.Document;
 import dev.langchain4j.data.document.DocumentSplitter;
 import dev.langchain4j.data.document.splitter.DocumentByCharacterSplitter;
@@ -43,6 +45,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.compress.archivers.ArchiveEntry;
+import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -359,31 +362,60 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
 
     private final DocumentSplitter defaultSplitter = new DocumentBySentenceSplitter(512, 20);
 
-    public List<TextSegmentVO> split(MultipartFile[] files, String[] patterns, Integer limit, Boolean withFilter) {
+    public List<TextSegmentVO> split(MultipartFile[] files, String[] patterns, Integer limit, Boolean withFilter) throws IOException {
         List<TextSegmentVO> list = new ArrayList<>();
+        List<FileStreamVO> fileStreams = new ArrayList<>();
         for (MultipartFile file : files) {
             if (file == null || file.isEmpty()) {
                 continue; // 或抛出异常根据业务需求
             }
-            TextSegmentVO textSegmentVO = new TextSegmentVO();
-            textSegmentVO.setName(file.getOriginalFilename());
-            try (InputStream inputStream = file.getInputStream()) {
-                long start = System.currentTimeMillis();
-                String docText = documentParseService.extractText(inputStream);
-                System.out.println("耗时：" + (System.currentTimeMillis() - start));
-                List<TextSegment> textSegments = getTextSegments(Document.document(docText), patterns, limit, withFilter);
-                List<ParagraphSimpleVO> content = textSegments.stream()
-                        .map(segment -> new ParagraphSimpleVO(segment.text()))
-                        .collect(Collectors.toList());
-                textSegmentVO.setContent(content);
-            } catch (IOException e) {
-                // 添加日志记录
-                throw new RuntimeException("File processing failed: " + file.getOriginalFilename(), e);
+            // 判断是否是zip文件
+            if (isZipFile(file)){
+                System.out.println("zip");
+                //todo 未处理zip下的zip文件
+                try (ZipArchiveInputStream  zis = new ZipArchiveInputStream(file.getInputStream())) {
+                    ZipArchiveEntry entry;
+                    while ((entry = zis.getNextEntry()) != null) {
+                        if (!entry.isDirectory()) {
+                            String entryName = entry.getName();
+                            byte[] bytes = zis.readAllBytes();
+                            InputStream inputStream = new ByteArrayInputStream(bytes);
+                            fileStreams.add(new FileStreamVO(entryName, inputStream));
+                        }
+                    }
+                } catch (IOException e) {
+                    throw new RuntimeException("解压ZIP文件失败", e);
+                }
+            }else {
+                fileStreams.add(new FileStreamVO(file.getOriginalFilename(), file.getInputStream()));
             }
+        }
+        for (FileStreamVO fileStream : fileStreams) {
+            TextSegmentVO textSegmentVO = new TextSegmentVO();
+            textSegmentVO.setName(fileStream.getName());
+            String docText = documentParseService.extractText(fileStream.getInputStream());
+            List<TextSegment> textSegments =Collections.emptyList();
+            if (StringUtil.isNotBlank(docText)){
+                textSegments = getTextSegments(Document.document(docText), patterns, limit, withFilter);
+            }
+            List<ParagraphSimpleVO> content = textSegments.stream()
+                    .map(segment -> new ParagraphSimpleVO(segment.text()))
+                    .collect(Collectors.toList());
+            textSegmentVO.setContent(content);
             list.add(textSegmentVO);
         }
         return list;
     }
+
+
+    /**
+     * 判断是否为 ZIP 文件（通过文件头 MAGIC NUMBER）
+     */
+    private boolean isZipFile(MultipartFile file) throws IOException {
+        return Objects.requireNonNull(file.getOriginalFilename()).endsWith(".zip");
+    }
+
+
 
     private List<TextSegment> getTextSegments(Document document, String[] patterns, Integer limit, Boolean withFilter) {
         if (patterns != null) {

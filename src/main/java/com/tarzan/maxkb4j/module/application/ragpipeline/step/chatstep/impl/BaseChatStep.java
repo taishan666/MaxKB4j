@@ -2,11 +2,8 @@ package com.tarzan.maxkb4j.module.application.ragpipeline.step.chatstep.impl;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
-import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.tarzan.maxkb4j.core.assistant.Assistant;
-import com.tarzan.maxkb4j.core.assistant.SystemTools;
 import com.tarzan.maxkb4j.core.langchain4j.MyChatMemory;
 import com.tarzan.maxkb4j.core.langchain4j.MyContentRetriever;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatUserStatsEntity;
@@ -21,15 +18,10 @@ import com.tarzan.maxkb4j.module.application.service.ApplicationChatUserStatsSer
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.ParagraphVO;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
-import com.tarzan.maxkb4j.module.tool.domain.dto.ToolInputField;
-import com.tarzan.maxkb4j.module.tool.domain.entity.ToolEntity;
-import com.tarzan.maxkb4j.module.tool.service.ToolService;
-import dev.langchain4j.agent.tool.ToolSpecification;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.memory.ChatMemory;
-import dev.langchain4j.model.chat.request.json.*;
 import dev.langchain4j.model.chat.response.ChatResponse;
 import dev.langchain4j.model.output.TokenUsage;
 import dev.langchain4j.rag.DefaultRetrievalAugmentor;
@@ -41,7 +33,6 @@ import dev.langchain4j.rag.query.router.DefaultQueryRouter;
 import dev.langchain4j.service.AiServices;
 import dev.langchain4j.service.TokenStream;
 import dev.langchain4j.service.tool.ToolExecution;
-import dev.langchain4j.service.tool.ToolExecutor;
 import dev.langchain4j.store.memory.chat.ChatMemoryStore;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -51,9 +42,7 @@ import org.springframework.util.CollectionUtils;
 import reactor.core.publisher.Sinks;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -67,7 +56,6 @@ public class BaseChatStep extends IChatStep {
     private final ModelService modelService;
     private final ApplicationChatUserStatsService publicAccessClientService;
     private final ChatMemoryStore chatMemoryStore;
-    private final ToolService toolService;
 
     @Override
     protected String execute(PipelineManage manage) {
@@ -233,52 +221,6 @@ public class BaseChatStep extends IChatStep {
                 publicAccessClientService.updateById(publicAccessClient);
             }
         }
-    }
-
-    private Map<ToolSpecification, ToolExecutor> getTools(List<String> toolIds) {
-        Map<ToolSpecification, ToolExecutor> tools = new HashMap<>();
-        if (CollectionUtils.isEmpty(toolIds)) {
-            return tools;
-        }
-        SystemTools objectWithTool = new SystemTools();
-        LambdaQueryWrapper<ToolEntity> wrapper = Wrappers.lambdaQuery();
-        wrapper.in(ToolEntity::getId, toolIds);
-        wrapper.eq(ToolEntity::getIsActive, true);
-        List<ToolEntity> toolEntities = toolService.list(wrapper);
-        for (ToolEntity function : toolEntities) {
-            List<ToolInputField> params = function.getInputFieldList();
-            JsonObjectSchema.Builder parametersBuilder = JsonObjectSchema.builder();
-            for (ToolInputField param : params) {
-                JsonSchemaElement jsonSchemaElement = new JsonNullSchema();
-                if ("string".equals(param.getType())) {
-                    jsonSchemaElement = JsonStringSchema.builder().build();
-                } else if ("int".equals(param.getType())) {
-                    jsonSchemaElement = JsonIntegerSchema.builder().build();
-                } else if ("number".equals(param.getType())) {
-                    jsonSchemaElement = JsonNumberSchema.builder().build();
-                } else if ("boolean".equals(param.getType())) {
-                    jsonSchemaElement = JsonBooleanSchema.builder().build();
-                } else if ("array".equals(param.getType())) {
-                    jsonSchemaElement = JsonArraySchema.builder().build();
-                } else if ("object".equals(param.getType())) {
-                    jsonSchemaElement = JsonObjectSchema.builder().build();
-                }
-                parametersBuilder.addProperty(param.getName(), jsonSchemaElement);
-            }
-            ToolSpecification toolSpecification = ToolSpecification.builder()
-                    .name(function.getName())
-                    .description(function.getDesc())
-                    .parameters(parametersBuilder.build())
-                    .build();
-       /*     if (function.getType() == 0) {
-                tools.put(toolSpecification, new DefaultToolExecutor(objectWithTool, ToolExecutionRequest.builder().name(function.getName()).build()));
-            } else if (function.getType() == 1) {
-                tools.put(toolSpecification, new GroovyScriptExecutor(function.getCode()));
-            }*/
-
-        }
-
-        return tools;
     }
 
 }

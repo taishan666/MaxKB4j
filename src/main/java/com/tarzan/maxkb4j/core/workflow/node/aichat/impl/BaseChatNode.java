@@ -2,17 +2,16 @@ package com.tarzan.maxkb4j.core.workflow.node.aichat.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.assistant.Assistant;
+import com.tarzan.maxkb4j.core.langchain4j.MyAiServices;
+import com.tarzan.maxkb4j.core.langchain4j.MyChatMemory;
+import com.tarzan.maxkb4j.core.langchain4j.MyContentRetriever;
 import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.NodeResult;
 import com.tarzan.maxkb4j.core.workflow.WorkflowManage;
 import com.tarzan.maxkb4j.core.workflow.node.aichat.input.ChatNodeParams;
 import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
-import com.tarzan.maxkb4j.module.knowledge.domain.vo.ParagraphVO;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
-import com.tarzan.maxkb4j.core.langchain4j.MyAiServices;
-import com.tarzan.maxkb4j.core.langchain4j.MyChatMemory;
-import com.tarzan.maxkb4j.core.langchain4j.MyContentRetriever;
 import com.tarzan.maxkb4j.util.SpringUtil;
 import com.tarzan.maxkb4j.util.StringUtil;
 import dev.langchain4j.data.message.ChatMessage;
@@ -28,12 +27,10 @@ import dev.langchain4j.rag.query.router.DefaultQueryRouter;
 import dev.langchain4j.service.TokenStream;
 import dev.langchain4j.store.memory.chat.ChatMemoryStore;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
 import static com.tarzan.maxkb4j.core.constant.PromptTemplates.RAG_PROMPT_TEMPLATE;
@@ -56,26 +53,25 @@ public class BaseChatNode extends INode {
     public NodeResult execute() throws Exception {
         System.out.println(AI_CHAT);
         ChatNodeParams nodeParams = super.nodeParams.toJavaObject(ChatNodeParams.class);
-        if (Objects.isNull(nodeParams.getDialogueType())) {
+        /*if (Objects.isNull(nodeParams.getDialogueType())) {
             nodeParams.setDialogueType("WORK_FLOW");
-        }
-        List<String> fields = nodeParams.getDatasetReferenceAddress();
+        }*/
+     /*   List<String> fields = nodeParams.getDatasetReferenceAddress();
         List<ParagraphVO> paragraphList = new ArrayList<>();
         if (!CollectionUtils.isEmpty(fields) && fields.size() > 1) {
             Object res = workflowManage.getReferenceField(fields.get(0), fields.subList(1, fields.size()));
             paragraphList = (List<ParagraphVO>) res;
-        }
+        }*/
         BaseChatModel chatModel = modelService.getModelById(nodeParams.getModelId(), nodeParams.getModelParamsSetting());
         List<ChatMessage> historyMessage = workflowManage.getHistoryMessage(flowParams.getHistoryChatRecord(), nodeParams.getDialogueNumber(), nodeParams.getDialogueType(), runtimeNodeId);
-        List<String> questionFields = nodeParams.getQuestionReferenceAddress();
-        String problemText = (String) workflowManage.getReferenceField(questionFields.get(0), questionFields.subList(1, questionFields.size()));
+        String problemText = workflowManage.generatePrompt(nodeParams.getPrompt());
         String systemPrompt = workflowManage.generatePrompt(nodeParams.getSystem());
         String system = StringUtil.isBlank(systemPrompt) ? "You're an intelligent assistant." : systemPrompt;
         ContentInjector contentInjector = DefaultContentInjector.builder()
                 .promptTemplate(RAG_PROMPT_TEMPLATE)
                 .build();
         RetrievalAugmentor retrievalAugmentor = DefaultRetrievalAugmentor.builder()
-                .queryRouter(new DefaultQueryRouter(new MyContentRetriever(paragraphList)))
+                .queryRouter(new DefaultQueryRouter(new MyContentRetriever(new ArrayList<>())))
                 .contentAggregator(new DefaultContentAggregator())
                 .contentInjector(contentInjector)
                 .build();

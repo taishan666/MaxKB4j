@@ -3,7 +3,6 @@ package com.tarzan.maxkb4j.core.workflow;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.workflow.domain.FlowParams;
-import com.tarzan.maxkb4j.core.workflow.logic.LfNode;
 import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
@@ -54,11 +53,6 @@ public abstract class INode {
         this.sink = workflowManage.getSink();
     }
 
-    /*    public void setLfNode(LfNode lfNode) {
-        this.id = lfNode.getId();
-      //  this.lfNode = lfNode;
-        this.nodeParams = getNodeParams(lfNode);
-    }*/
 
     public void setLastNodeIdList(List<String> lastNodeIdList) {
         this.lastNodeIdList = lastNodeIdList;
@@ -71,14 +65,6 @@ public abstract class INode {
         }
         return new JSONObject();
     }
-
-    private JSONObject getNodeParams(LfNode node) {
-        if (Objects.nonNull(node.getProperties()) && node.getProperties().containsKey("nodeData")) {
-            return node.getProperties().getJSONObject("nodeData");
-        }
-        return new JSONObject();
-    }
-
 
     public abstract NodeResult execute() throws Exception;
 

@@ -66,13 +66,13 @@ public class ToolController {
 		wrapper.eq(ToolEntity::getToolType, toolType);
 		wrapper.eq(ToolEntity::getScope, scope);
 		List<ToolEntity> tools=toolService.list(wrapper);
-		return R.success(Map.of("tools", tools, "shared_tools", List.of()));
+		return R.success(Map.of("tools", tools, "shared_tools", tools));
 	}
 
 	@PostMapping("/workspace/default/tool/{templateId}/add_internal_tool")
 	public R<ToolEntity> addInternalTool(@PathVariable String templateId) {
 		ToolEntity entity=toolService.getById(templateId);
-		entity.setId( null);
+		entity.setId(null);
 		entity.setUserId(StpUtil.getLoginIdAsString());
 		Date now = new Date();
 		entity.setCreateTime(now);
