@@ -44,16 +44,18 @@ public class ToolUtil {
                 JSONObject jsonObject = JSONObject.parseObject(tool.getCode());
                 jsonObject.keySet().forEach(key -> {
                     JSONObject serverConfig = (JSONObject) jsonObject.get(key);
+                    String url = serverConfig.getString("url");
+                    String type = serverConfig.getString("type");
                     McpTransport transport;
-                    if ("sse".equals(serverConfig.getString("type"))) {
+                    if ("sse".equals(type)) {
                         transport = new HttpMcpTransport.Builder()
-                                .sseUrl("https://mcp.api-inference.modelscope.net/d08b5b22651144/sse")
+                                .sseUrl(url)
                                 .logRequests(true) // if you want to see the traffic in the log
                                 .logResponses(true)
                                 .build();
                     } else {
                         transport = new StreamableHttpMcpTransport.Builder()
-                                .url("https://mcp.api-inference.modelscope.net/d08b5b22651144/sse")
+                                .url(url)
                                 .logRequests(true) // if you want to see the traffic in the log
                                 .logResponses(true)
                                 .build();
