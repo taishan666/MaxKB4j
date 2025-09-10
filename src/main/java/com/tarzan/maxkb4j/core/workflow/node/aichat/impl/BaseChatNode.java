@@ -53,15 +53,6 @@ public class BaseChatNode extends INode {
     public NodeResult execute() throws Exception {
         System.out.println(AI_CHAT);
         ChatNodeParams nodeParams = super.nodeParams.toJavaObject(ChatNodeParams.class);
-        /*if (Objects.isNull(nodeParams.getDialogueType())) {
-            nodeParams.setDialogueType("WORK_FLOW");
-        }*/
-     /*   List<String> fields = nodeParams.getDatasetReferenceAddress();
-        List<ParagraphVO> paragraphList = new ArrayList<>();
-        if (!CollectionUtils.isEmpty(fields) && fields.size() > 1) {
-            Object res = workflowManage.getReferenceField(fields.get(0), fields.subList(1, fields.size()));
-            paragraphList = (List<ParagraphVO>) res;
-        }*/
         BaseChatModel chatModel = modelService.getModelById(nodeParams.getModelId(), nodeParams.getModelParamsSetting());
         List<ChatMessage> historyMessage = workflowManage.getHistoryMessage(flowParams.getHistoryChatRecord(), nodeParams.getDialogueNumber(), nodeParams.getDialogueType(), runtimeNodeId);
         String problemText = workflowManage.generatePrompt(nodeParams.getPrompt());
