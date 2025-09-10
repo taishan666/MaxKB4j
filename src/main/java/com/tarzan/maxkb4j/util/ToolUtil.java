@@ -30,7 +30,6 @@ public class ToolUtil {
 
     private final ToolService toolService;
 
-
     public Map<ToolSpecification, ToolExecutor> getTools(List<String> toolIds) {
         Map<ToolSpecification, ToolExecutor> tools = new HashMap<>();
         if (CollectionUtils.isEmpty(toolIds)) {
