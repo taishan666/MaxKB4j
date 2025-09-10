@@ -14,6 +14,7 @@ import com.tarzan.maxkb4j.module.model.info.service.ModelService;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
 import com.tarzan.maxkb4j.util.SpringUtil;
 import com.tarzan.maxkb4j.util.StringUtil;
+import com.tarzan.maxkb4j.util.ToolUtil;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.memory.ChatMemory;
 import dev.langchain4j.model.chat.response.ChatResponse;
@@ -41,11 +42,14 @@ public class BaseChatNode extends INode {
 
     private final ModelService modelService;
     private final ChatMemoryStore chatMemoryStore;
+    private final ToolUtil toolUtil;
+
 
     public BaseChatNode() {
         this.type = AI_CHAT.getKey();
         this.modelService = SpringUtil.getBean(ModelService.class);
         this.chatMemoryStore = SpringUtil.getBean(ChatMemoryStore.class);
+        this.toolUtil = SpringUtil.getBean(ToolUtil.class);
     }
 
 
@@ -72,10 +76,15 @@ public class BaseChatNode extends INode {
                 .maxMessages(nodeParams.getDialogueNumber())
                 .chatMemoryStore(chatMemoryStore)
                 .build();
+        List<String> toolIds = nodeParams.getToolIds();
+        if (StringUtil.isNotBlank(nodeParams.getMcpToolId())){
+            toolIds.add(nodeParams.getMcpToolId());
+        }
         Assistant assistant = MyAiServices.builder(Assistant.class)
                 .systemMessageProvider(chatMemoryId -> system)
                 .chatMemory(chatMemory)
                 .retrievalAugmentor(retrievalAugmentor)
+                .tools(toolUtil.getTools(toolIds))
                 .streamingChatModel(chatModel.getStreamingChatModel())
                 .build();
         TokenStream tokenStream = assistant.chatStream(problemText);

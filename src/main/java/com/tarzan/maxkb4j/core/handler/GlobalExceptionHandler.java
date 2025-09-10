@@ -47,13 +47,6 @@ public class GlobalExceptionHandler{
     }
 
 
-    /*@ExceptionHandler(Exception.class)
-    @ResponseBody
-    public R<String>  handleException(Exception e) {
-        log.error("异常: {}", e.getMessage(), e);
-        return R.fail(500, e.getMessage());
-    }*/
-
     @ExceptionHandler(BadPaddingException.class)
     @ResponseBody
     public R<String>  handleException(BadPaddingException e) {
