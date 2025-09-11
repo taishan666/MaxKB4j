@@ -4,7 +4,6 @@ import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.assistant.Assistant;
 import com.tarzan.maxkb4j.core.langchain4j.MyAiServices;
 import com.tarzan.maxkb4j.core.langchain4j.MyChatMemory;
-import com.tarzan.maxkb4j.core.langchain4j.MyContentRetriever;
 import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.NodeResult;
 import com.tarzan.maxkb4j.core.workflow.WorkflowManage;
@@ -19,22 +18,14 @@ import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.memory.ChatMemory;
 import dev.langchain4j.model.chat.response.ChatResponse;
 import dev.langchain4j.model.output.TokenUsage;
-import dev.langchain4j.rag.DefaultRetrievalAugmentor;
-import dev.langchain4j.rag.RetrievalAugmentor;
-import dev.langchain4j.rag.content.aggregator.DefaultContentAggregator;
-import dev.langchain4j.rag.content.injector.ContentInjector;
-import dev.langchain4j.rag.content.injector.DefaultContentInjector;
-import dev.langchain4j.rag.query.router.DefaultQueryRouter;
 import dev.langchain4j.service.TokenStream;
 import dev.langchain4j.store.memory.chat.ChatMemoryStore;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
-import static com.tarzan.maxkb4j.core.constant.PromptTemplates.RAG_PROMPT_TEMPLATE;
 import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.AI_CHAT;
 
 @Slf4j
@@ -62,14 +53,6 @@ public class BaseChatNode extends INode {
         String problemText = workflowManage.generatePrompt(nodeParams.getPrompt());
         String systemPrompt = workflowManage.generatePrompt(nodeParams.getSystem());
         String system = StringUtil.isBlank(systemPrompt) ? "You're an intelligent assistant." : systemPrompt;
-        ContentInjector contentInjector = DefaultContentInjector.builder()
-                .promptTemplate(RAG_PROMPT_TEMPLATE)
-                .build();
-        RetrievalAugmentor retrievalAugmentor = DefaultRetrievalAugmentor.builder()
-                .queryRouter(new DefaultQueryRouter(new MyContentRetriever(new ArrayList<>())))
-                .contentAggregator(new DefaultContentAggregator())
-                .contentInjector(contentInjector)
-                .build();
         String chatId = super.flowParams.getChatId();
         ChatMemory chatMemory = MyChatMemory.builder()
                 .id(chatId)
@@ -83,7 +66,6 @@ public class BaseChatNode extends INode {
         Assistant assistant = MyAiServices.builder(Assistant.class)
                 .systemMessageProvider(chatMemoryId -> system)
                 .chatMemory(chatMemory)
-                .retrievalAugmentor(retrievalAugmentor)
                 .tools(toolUtil.getTools(toolIds))
                 .streamingChatModel(chatModel.getStreamingChatModel())
                 .build();

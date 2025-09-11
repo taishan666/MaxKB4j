@@ -31,16 +31,16 @@ public class BaseSearchDatasetNode extends INode {
     public NodeResult execute() {
         System.out.println(SEARCH_KNOWLEDGE);
         SearchDatasetStepNodeParams nodeParams=super.nodeParams.toJavaObject(SearchDatasetStepNodeParams.class);
-        DatasetSetting datasetSetting=nodeParams.getDatasetSetting();
+        DatasetSetting knowledgeSetting=nodeParams.getKnowledgeSetting();
         List<String> fields=nodeParams.getQuestionReferenceAddress();
         String question= (String)workflowManage.getReferenceField(fields.get(0),fields.subList(1, fields.size()));
-        List<ParagraphVO> paragraphList= retrieveService.paragraphSearch(question,nodeParams.getDatasetIdList(), Collections.emptyList(),datasetSetting);
+        List<ParagraphVO> paragraphList= retrieveService.paragraphSearch(question,nodeParams.getKnowledgeIdList(), Collections.emptyList(),knowledgeSetting);
         List<ParagraphVO> isHitHandlingMethodList=paragraphList.stream().filter(ParagraphVO::isHitHandlingMethod).toList();
         Map<String, Object> nodeVariable = Map.of(
-                "paragraph_list", paragraphList,
+                "paragraphList", paragraphList,
                 "isHitHandlingMethodList", isHitHandlingMethodList,
-                "data", processParagraphs(paragraphList, datasetSetting.getMaxParagraphCharNumber()),
-                "directly_return", directlyReturns(isHitHandlingMethodList),
+                "data", processParagraphs(paragraphList, knowledgeSetting.getMaxParagraphCharNumber()),
+                "directlyReturn", directlyReturns(isHitHandlingMethodList),
                 "question", flowParams.getQuestion()
         );
         return new NodeResult(nodeVariable, Map.of());

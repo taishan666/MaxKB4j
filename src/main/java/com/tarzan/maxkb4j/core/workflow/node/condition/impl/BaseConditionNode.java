@@ -63,7 +63,6 @@ public class BaseConditionNode extends INode {
     private boolean branchAssertion(ConditionBranch branch) {
         List<Condition> conditions = branch.getConditions();
         String conditionType = branch.getCondition();
-
         boolean result = conditionType.equals("and");
         for (Condition row : conditions) {
             boolean conditionResult = assertion(row.getField(),

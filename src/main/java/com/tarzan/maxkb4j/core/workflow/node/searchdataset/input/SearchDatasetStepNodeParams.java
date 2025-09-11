@@ -7,8 +7,8 @@ import java.util.List;
 
 @Data
 public class SearchDatasetStepNodeParams {
-    private List<String> datasetIdList;
-    private DatasetSetting datasetSetting;
+    private List<String> knowledgeIdList;
+    private DatasetSetting knowledgeSetting;
     private List<String> questionReferenceAddress;
 
 }

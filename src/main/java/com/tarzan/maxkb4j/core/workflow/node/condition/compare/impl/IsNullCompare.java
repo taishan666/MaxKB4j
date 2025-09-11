@@ -1,7 +1,9 @@
 package com.tarzan.maxkb4j.core.workflow.node.condition.compare.impl;
 
 import com.tarzan.maxkb4j.core.workflow.node.condition.compare.Compare;
+import org.springframework.util.CollectionUtils;
 
+import java.util.Collection;
 import java.util.Objects;
 
 public class IsNullCompare implements Compare {
@@ -12,6 +14,10 @@ public class IsNullCompare implements Compare {
 
     @Override
     public boolean compare(Object sourceValue, String targetValue) {
-        return Objects.isNull(sourceValue)||sourceValue.equals("");
+        if (sourceValue instanceof Collection){
+            return CollectionUtils.isEmpty((Collection<?>) sourceValue);
+        }else {
+            return Objects.isNull(sourceValue)||sourceValue.equals("");
+        }
     }
 }
