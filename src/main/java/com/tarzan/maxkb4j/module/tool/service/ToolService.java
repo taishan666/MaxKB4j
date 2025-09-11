@@ -51,11 +51,6 @@ public class ToolService extends ServiceImpl<ToolMapper, ToolEntity>{
         if(StringUtils.isNotBlank(query.getToolType())){
             wrapper.eq(ToolEntity::getToolType,query.getToolType());
         }
-/*        List<String> targetIds =userResourcePermissionService.getTargetIds("TOOL",loginId);
-        wrapper.and(
-                w -> w.eq(ToolEntity::getUserId, loginId)
-                        .or()
-                        .in(!CollectionUtils.isEmpty(targetIds),ToolEntity::getId, targetIds));*/
         String loginId = StpUtil.getLoginIdAsString();
         UserEntity user = userService.validUserById(loginId);
         if (Objects.nonNull(user)){

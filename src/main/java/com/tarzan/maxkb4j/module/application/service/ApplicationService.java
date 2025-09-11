@@ -368,9 +368,9 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         return retrieveService.paragraphSearch(datasetIds, dto);
     }
 
-    public byte[] playDemoText(String appId, JSONObject data) {
-        String ttsModelId = data.getString("ttsModelId");
-        BaseTextToSpeech ttsModel = modelService.getModelById(ttsModelId, data);
+    public byte[] playDemoText(String appId, JSONObject modelParams) {
+        String ttsModelId = modelParams.getString("ttsModelId");
+        BaseTextToSpeech ttsModel = modelService.getModelById(ttsModelId, modelParams);
         return ttsModel.textToSpeech("你好，这里是语音播放测试");
     }
 

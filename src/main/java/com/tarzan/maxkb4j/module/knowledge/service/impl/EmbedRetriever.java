@@ -23,6 +23,7 @@ public class EmbedRetriever implements IDataRetriever {
     @Override
     public List<TextChunkVO> search(List<String> datasetIds, List<String> excludeParagraphIds, String keyword, int maxResults, float minScore) {
         EmbeddingModel embeddingModel=datasetService.getDatasetEmbeddingModel(datasetIds.get(0));
+        //todo keyword cannot be null or blank
         Response<Embedding> res = embeddingModel.embed(keyword);
         return embeddingMapper.embeddingSearch(datasetIds,excludeParagraphIds, maxResults,minScore, res.content().vector());
     }

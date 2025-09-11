@@ -15,7 +15,7 @@ import java.util.List;
   */
 @EqualsAndHashCode(callSuper = true)
 @Data
-@TableName("application_api_key")
+@TableName(value = "application_api_key", autoResultMap = true)
 public class ApplicationApiKeyEntity extends BaseEntity {
 	private String secretKey;
 	private Boolean isActive;
