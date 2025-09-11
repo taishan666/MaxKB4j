@@ -12,7 +12,7 @@ import java.util.List;
 public class FolderVO {
     private String id;
     private String name;
+    private String desc;
     private String parentId;
-    private String workspaceId;
     private List<FolderVO> children;
 }

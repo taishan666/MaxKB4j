@@ -10,9 +10,9 @@ import lombok.EqualsAndHashCode;
 @TableName("folder")
 public class FolderEntity extends BaseEntity {
     private String name;
+    private String desc;
     private String source;
     private String parentId;
     private String userId;
-    private String workspaceId;
 
 }
