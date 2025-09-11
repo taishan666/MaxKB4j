@@ -8,4 +8,5 @@ public class LlmModelSetting {
     private String system;
     private String prompt;
     private String noReferencesPrompt;
+    private Boolean reasoningContentEnable;
 }

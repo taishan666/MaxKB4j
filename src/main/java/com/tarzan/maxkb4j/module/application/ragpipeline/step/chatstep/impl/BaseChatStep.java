@@ -126,7 +126,6 @@ public class BaseChatStep extends IChatStep {
                             .build();
                     RetrievalAugmentor retrievalAugmentor = DefaultRetrievalAugmentor.builder()
                             //.queryTransformer(ExpandingQueryTransformer.builder().chatLanguageModel(chatModel.getChatModel()).build())
-                            //  .contentRetriever(new MyContentRetriever(paragraphList))
                             .queryRouter(new DefaultQueryRouter(new MyContentRetriever(paragraphList)))
                             .contentAggregator(new DefaultContentAggregator())
                             .contentInjector(contentInjector)
@@ -146,6 +145,7 @@ public class BaseChatStep extends IChatStep {
                                 .onCompleteResponse(response -> {
                                     answerText.set(response.aiMessage().text());
                                     TokenUsage tokenUsage = response.tokenUsage();
+                                    context.put("message_list", chatMemory.messages());
                                     context.put("messageTokens", tokenUsage.inputTokenCount());
                                     context.put("answerTokens", tokenUsage.outputTokenCount());
                                     addAccessNum(clientId, clientType);
