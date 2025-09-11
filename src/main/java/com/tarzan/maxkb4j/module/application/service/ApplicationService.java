@@ -89,8 +89,8 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         if (StringUtils.isNotBlank(query.getName())) {
             wrapper.like(ApplicationEntity::getName, query.getName());
         }
-        if (Objects.nonNull(query.getPublishStatus())) {
-            wrapper.eq(ApplicationEntity::getIsPublish, query.getPublishStatus());
+        if (StringUtils.isNotBlank(query.getPublishStatus())) {
+            wrapper.eq(ApplicationEntity::getIsPublish, "published".equals(query.getPublishStatus()));
         }
         if (Objects.nonNull(query.getCreateUser())) {
             wrapper.eq(ApplicationEntity::getUserId, query.getCreateUser());
