@@ -38,9 +38,6 @@ public class FolderController {
 
     @DeleteMapping("/{source}/folder/{id}")
     public R<Boolean> deleteFolder(@PathVariable String source, @PathVariable String id) {
-        if ("default".equals(id)) {
-            return R.fail("默认文件夹不能删除");
-        }
         return R.data(folderService.deleteFolder(source, id));
     }
 
