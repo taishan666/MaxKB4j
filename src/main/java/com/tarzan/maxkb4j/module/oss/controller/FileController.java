@@ -1,10 +1,10 @@
-package com.tarzan.maxkb4j.module.resource.controller;
+package com.tarzan.maxkb4j.module.oss.controller;
 
 import com.mongodb.client.gridfs.model.GridFSFile;
 import com.tarzan.maxkb4j.constant.AppConst;
 import com.tarzan.maxkb4j.core.api.R;
 import com.tarzan.maxkb4j.core.workflow.domain.ChatFile;
-import com.tarzan.maxkb4j.module.resource.service.MongoFileService;
+import com.tarzan.maxkb4j.module.oss.service.MongoFileService;
 import com.tarzan.maxkb4j.util.IoUtil;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;

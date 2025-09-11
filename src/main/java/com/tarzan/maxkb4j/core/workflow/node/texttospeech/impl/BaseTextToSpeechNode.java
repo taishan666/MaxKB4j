@@ -7,7 +7,7 @@ import com.tarzan.maxkb4j.core.workflow.domain.ChatFile;
 import com.tarzan.maxkb4j.core.workflow.node.texttospeech.input.TextToSpeechParams;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseTextToSpeech;
-import com.tarzan.maxkb4j.module.resource.service.MongoFileService;
+import com.tarzan.maxkb4j.module.oss.service.MongoFileService;
 import com.tarzan.maxkb4j.util.SpringUtil;
 
 import java.util.List;

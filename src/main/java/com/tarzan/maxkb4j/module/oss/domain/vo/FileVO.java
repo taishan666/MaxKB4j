@@ -1,4 +1,4 @@
-package com.tarzan.maxkb4j.module.resource.domain.vo;
+package com.tarzan.maxkb4j.module.oss.domain.vo;
 
 import lombok.Data;
 

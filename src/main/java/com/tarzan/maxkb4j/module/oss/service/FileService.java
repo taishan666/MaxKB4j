@@ -1,10 +1,10 @@
-package com.tarzan.maxkb4j.module.resource.service;
+package com.tarzan.maxkb4j.module.oss.service;
 
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tarzan.maxkb4j.core.workflow.domain.ChatFile;
-import com.tarzan.maxkb4j.module.resource.domain.entity.FileEntity;
-import com.tarzan.maxkb4j.module.resource.mapper.FileMapper;
+import com.tarzan.maxkb4j.module.oss.domain.entity.FileEntity;
+import com.tarzan.maxkb4j.module.oss.mapper.FileMapper;
 import lombok.AllArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;

@@ -31,7 +31,6 @@ import com.tarzan.maxkb4j.module.model.info.entity.ModelEntity;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseSpeechToText;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseTextToSpeech;
-import com.tarzan.maxkb4j.module.resource.service.ImageService;
 import com.tarzan.maxkb4j.module.system.permission.service.UserResourcePermissionService;
 import com.tarzan.maxkb4j.module.system.user.domain.entity.UserEntity;
 import com.tarzan.maxkb4j.module.system.user.service.UserService;
@@ -68,7 +67,6 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
 
     private final ModelService modelService;
     private final KnowledgeService datasetService;
-    private final ImageService imageService;
     private final UserService userService;
     private final RetrieveService retrieveService;
     private final ParagraphService paragraphService;
@@ -383,13 +381,6 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         }
         BaseTextToSpeech ttsModel = modelService.getModelById(app.getTtsModelId(), app.getTtsModelParamsSetting());
         return ttsModel.textToSpeech(text);
-    }
-
-    public boolean editIcon(String id, MultipartFile file) {
-        ApplicationEntity application = new ApplicationEntity();
-        application.setId(id);
-        application.setIcon(imageService.upload(file));
-        return this.updateById(application);
     }
 
     @Transactional

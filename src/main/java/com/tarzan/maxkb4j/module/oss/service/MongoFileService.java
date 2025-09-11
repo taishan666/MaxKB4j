@@ -1,4 +1,4 @@
-package com.tarzan.maxkb4j.module.resource.service;
+package com.tarzan.maxkb4j.module.oss.service;
 
 
 import com.mongodb.BasicDBObject;

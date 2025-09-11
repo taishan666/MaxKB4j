@@ -63,34 +63,14 @@ public class ApplicationController {
         return R.status(applicationService.appImport(file));
     }
 
-    //@SaCheckPermission("APPLICATION:CREATE")
     @PostMapping("/application/authentication")
     public R<String> authentication(@RequestBody JSONObject params) throws Exception {
         return R.success(applicationService.authentication(params));
     }
 
-/*   // @SaCheckPermission("APPLICATION:READ")
-    @GetMapping("/application/{id}/function_lib")
-    public R<List<ToolEntity>> functionLib(@PathVariable("id") String id) {
-        return R.success(applicationService.functionLib(id));
-    }
-
-  //  @SaCheckPermission("APPLICATION:READ")
-    @GetMapping("/application/{id}/function_lib/{functionId}")
-    public R<ToolEntity> functionLib(@PathVariable("id") String id, @PathVariable("functionId") String functionId) {
-        return R.success(applicationService.functionLib(id,functionId));
-    }*/
-
-   // @SaCheckPermission("APPLICATION:READ")
     @GetMapping("/application/{id}/hit_test")
     public R<List<ParagraphVO>> hitTest(@PathVariable("id") String id, DataSearchDTO dto) {
         return R.success(applicationService.hitTest(id, dto));
-    }
-
-   // @SaCheckPermission("APPLICATION:EDIT")
-    @PutMapping("/application/{id}/edit_icon")
-    public R<Boolean> editIcon(@PathVariable("id") String id, MultipartFile file) {
-        return R.success(applicationService.editIcon(id, file));
     }
 
    // @SaCheckPermission("APPLICATION:EDIT")

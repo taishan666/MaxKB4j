@@ -1,7 +1,7 @@
 package com.tarzan.maxkb4j.module.knowledge.service;
 
 import com.tarzan.maxkb4j.core.workflow.domain.ChatFile;
-import com.tarzan.maxkb4j.module.resource.service.MongoFileService;
+import com.tarzan.maxkb4j.module.oss.service.MongoFileService;
 import lombok.AllArgsConstructor;
 import org.apache.tika.exception.TikaException;
 import org.apache.tika.extractor.EmbeddedDocumentExtractor;
