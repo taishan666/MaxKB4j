@@ -1,19 +1,18 @@
 package com.tarzan.maxkb4j.module.folder.entity;
 
-import lombok.AllArgsConstructor;
+import com.baomidou.mybatisplus.annotation.TableName;
+import com.tarzan.maxkb4j.core.common.entity.BaseEntity;
 import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.EqualsAndHashCode;
 
-import java.util.List;
-
-@AllArgsConstructor
-@NoArgsConstructor
+@EqualsAndHashCode(callSuper = true)
 @Data
-public class FolderEntity {
-    private String id;
+@TableName("folder")
+public class FolderEntity extends BaseEntity {
     private String name;
+    private String source;
     private String parentId;
     private String userId;
     private String workspaceId;
-    private List<FolderEntity> children;
+
 }
