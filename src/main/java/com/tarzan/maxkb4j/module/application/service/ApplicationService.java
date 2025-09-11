@@ -73,7 +73,6 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     private final RetrieveService retrieveService;
     private final ParagraphService paragraphService;
     private final ApplicationAccessTokenService accessTokenService;
-    private final ApplicationPlatformService platformService;
     private final ApplicationApiKeyService applicationApiKeyService;
     private final ApplicationChatUserStatsService accessClientService;
     private final ApplicationVersionService applicationVersionService;
@@ -166,7 +165,6 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     @Transactional
     public boolean deleteByAppId(String appId) {
         accessTokenService.remove(Wrappers.<ApplicationAccessTokenEntity>lambdaQuery().eq(ApplicationAccessTokenEntity::getApplicationId, appId));
-        platformService.remove(Wrappers.<ApplicationPlatformEntity>lambdaQuery().eq(ApplicationPlatformEntity::getApplicationId, appId));
         applicationApiKeyService.remove(Wrappers.<ApplicationApiKeyEntity>lambdaQuery().eq(ApplicationApiKeyEntity::getApplicationId, appId));
         accessClientService.remove(Wrappers.<ApplicationChatUserStatsEntity>lambdaQuery().eq(ApplicationChatUserStatsEntity::getApplicationId, appId));
         applicationVersionService.remove(Wrappers.<ApplicationVersionEntity>lambdaQuery().eq(ApplicationVersionEntity::getApplicationId, appId));
