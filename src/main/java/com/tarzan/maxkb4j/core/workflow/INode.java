@@ -36,12 +36,9 @@ public abstract class INode {
     protected Sinks.Many<ChatMessageVO> sink;
 
 
-    public INode() {
+    public INode(JSONObject properties) {
         this.context = new LinkedHashMap<>();
         this.lastNodeIdList=new ArrayList<>();
-    }
-
-    public void setProperties(JSONObject properties) {
         this.properties = properties;
         this.nodeParams = getNodeParams(properties);
         this.runtimeNodeId= generateRuntimeNodeId();

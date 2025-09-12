@@ -13,8 +13,8 @@ import java.util.Objects;
 import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.VARIABLE_AGGREGATE;
 
 public class BaseVariableAggregateNode extends INode {
-    public BaseVariableAggregateNode() {
-        super();
+    public BaseVariableAggregateNode(JSONObject properties) {
+        super(properties);
         this.type = VARIABLE_AGGREGATE.getKey();
     }
 

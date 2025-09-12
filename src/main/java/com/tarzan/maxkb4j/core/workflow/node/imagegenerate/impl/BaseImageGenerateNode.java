@@ -24,8 +24,8 @@ public class BaseImageGenerateNode extends INode {
     private final ModelService modelService;
     private final MongoFileService fileService;
 
-    public BaseImageGenerateNode() {
-        super();
+    public BaseImageGenerateNode(JSONObject properties) {
+        super(properties);
         this.type=IMAGE_GENERATE.getKey();
         this.modelService = SpringUtil.getBean(ModelService.class);
         this.fileService = SpringUtil.getBean(MongoFileService.class);

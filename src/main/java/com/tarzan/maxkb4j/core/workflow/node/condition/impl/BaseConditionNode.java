@@ -36,7 +36,8 @@ public class BaseConditionNode extends INode {
         compareHandleList.add(new NotContainCompare());
     }
 
-    public BaseConditionNode() {
+    public BaseConditionNode(JSONObject properties) {
+        super(properties);
         this.type = CONDITION.getKey();
     }
 

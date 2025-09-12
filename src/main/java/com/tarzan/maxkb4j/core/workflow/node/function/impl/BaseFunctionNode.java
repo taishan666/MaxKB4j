@@ -15,8 +15,8 @@ import java.util.Map;
 import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.FUNCTION;
 
 public class BaseFunctionNode extends INode {
-    public BaseFunctionNode() {
-        super();
+    public BaseFunctionNode(JSONObject properties) {
+        super(properties);
         this.type = FUNCTION.getKey();
     }
 

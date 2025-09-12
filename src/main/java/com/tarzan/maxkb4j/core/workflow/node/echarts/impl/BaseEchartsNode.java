@@ -13,6 +13,10 @@ import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.ECHARTS;
 public class BaseEchartsNode extends INode {
 
 
+    public BaseEchartsNode(JSONObject properties) {
+        super(properties);
+    }
+
     @Override
     public NodeResult execute() {
         System.out.println(ECHARTS);

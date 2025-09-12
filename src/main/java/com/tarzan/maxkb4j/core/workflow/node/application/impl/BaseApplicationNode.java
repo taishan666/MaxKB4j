@@ -18,7 +18,8 @@ import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.APPLICATION;
 public class BaseApplicationNode extends INode {
     private final ApplicationChatService chatService;
 
-    public BaseApplicationNode() {
+    public BaseApplicationNode(JSONObject properties) {
+        super(properties);
         this.type = APPLICATION.getKey();
         this.chatService = SpringUtil.getBean(ApplicationChatService.class);
     }

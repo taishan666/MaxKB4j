@@ -26,7 +26,8 @@ public class BaseQuestionNode extends INode {
 
     private final ModelService modelService;
 
-    public BaseQuestionNode() {
+    public BaseQuestionNode(JSONObject properties) {
+        super(properties);
         this.type = QUESTION.getKey();
         this.modelService = SpringUtil.getBean(ModelService.class);
     }

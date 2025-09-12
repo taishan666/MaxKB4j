@@ -22,8 +22,8 @@ public class BaseImageUnderstandNode extends INode {
     private final ModelService modelService;
     private final MongoFileService fileService;
 
-    public BaseImageUnderstandNode() {
-        super();
+    public BaseImageUnderstandNode(JSONObject properties) {
+        super(properties);
         this.type = IMAGE_UNDERSTAND.getKey();
         this.modelService = SpringUtil.getBean(ModelService.class);
         this.fileService = SpringUtil.getBean(MongoFileService.class);

@@ -27,7 +27,8 @@ public class BaseClassificationNode extends INode {
     private final ModelService modelService;
     private final ChatMemoryStore chatMemoryStore;
 
-    public BaseClassificationNode() {
+    public BaseClassificationNode(JSONObject properties) {
+        super(properties);
         this.type = AI_CHAT.getKey();
         this.modelService = SpringUtil.getBean(ModelService.class);
         this.chatMemoryStore = SpringUtil.getBean(ChatMemoryStore.class);
@@ -41,25 +42,25 @@ public class BaseClassificationNode extends INode {
             nodeParams.setDialogueType("WORK_FLOW");
         }
         BaseChatModel chatModel = modelService.getModelById(nodeParams.getModelId(), nodeParams.getModelParamsSetting());
-        List<String> questionFields=nodeParams.getQuestionReferenceAddress();
-        String question= (String)workflowManage.getReferenceField(questionFields.get(0),questionFields.subList(1, questionFields.size()));
+        List<String> questionFields = nodeParams.getQuestionReferenceAddress();
+        String question = (String) workflowManage.getReferenceField(questionFields.get(0), questionFields.subList(1, questionFields.size()));
         Map<String, String> questionMap = new HashMap<>();
         for (ClassificationBranch branch : nodeParams.getBranch()) {
             questionMap.put(branch.getId(), branch.getCondition());
         }
-        MyQueryClassifier queryClassifier = new MyQueryClassifier(chatModel.getChatModel(),questionMap);
+        MyQueryClassifier queryClassifier = new MyQueryClassifier(chatModel.getChatModel(), questionMap);
         String chatId = workflowManage.getContext().getString("chatId");
         ChatMemory chatMemory = MyChatMemory.builder()
-                .id(chatId+"_"+runtimeNodeId)
+                .id(chatId + "_" + runtimeNodeId)
                 .maxMessages(nodeParams.getDialogueNumber())
                 .chatMemoryStore(chatMemoryStore)
                 .build();
-        Metadata metadata=new Metadata(UserMessage.from(question), chatMemory.id(), chatMemory.messages());
-        Query query=new Query(question,metadata);
+        Metadata metadata = new Metadata(UserMessage.from(question), chatMemory.id(), chatMemory.messages());
+        Query query = new Query(question, metadata);
         Collection<String> route = queryClassifier.route(query);
-        String branchId=nodeParams.getBranch().get(0).getId();
-        if (!route.isEmpty()){
-            branchId=route.stream().findFirst().get();
+        String branchId = nodeParams.getBranch().get(0).getId();
+        if (!route.isEmpty()) {
+            branchId = route.stream().findFirst().get();
         }
         chatMemory.add(UserMessage.from(question));
         chatMemory.add(AiMessage.from(questionMap.get(branchId)));
@@ -69,9 +70,9 @@ public class BaseClassificationNode extends INode {
     @Override
     public JSONObject getDetail() {
         JSONObject detail = new JSONObject();
-        detail.put("answer",context.get("answer"));
-        detail.put("branch_id",context.get("branch_id"));
-        detail.put("branch_name",context.get("branch_name"));
+        detail.put("answer", context.get("answer"));
+        detail.put("branch_id", context.get("branch_id"));
+        detail.put("branch_name", context.get("branch_name"));
         return detail;
     }
 }

@@ -1,18 +1,15 @@
 package com.tarzan.maxkb4j.core.workflow;
 
+import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.workflow.enums.NodeType;
 import com.tarzan.maxkb4j.core.workflow.logic.LfNode;
 import com.tarzan.maxkb4j.core.workflow.node.aichat.impl.BaseChatNode;
 import com.tarzan.maxkb4j.core.workflow.node.application.impl.BaseApplicationNode;
-import com.tarzan.maxkb4j.core.workflow.node.classification.impl.BaseClassificationNode;
 import com.tarzan.maxkb4j.core.workflow.node.condition.impl.BaseConditionNode;
-import com.tarzan.maxkb4j.core.workflow.node.database.impl.DatabaseNode;
 import com.tarzan.maxkb4j.core.workflow.node.directreply.impl.BaseReplyNode;
 import com.tarzan.maxkb4j.core.workflow.node.documentextract.impl.BaseDocumentExtractNode;
-import com.tarzan.maxkb4j.core.workflow.node.echarts.impl.BaseEchartsNode;
 import com.tarzan.maxkb4j.core.workflow.node.formcollect.impl.FormNode;
 import com.tarzan.maxkb4j.core.workflow.node.function.impl.BaseFunctionNode;
-import com.tarzan.maxkb4j.core.workflow.node.http.impl.BaseHttpNode;
 import com.tarzan.maxkb4j.core.workflow.node.imagegenerate.impl.BaseImageGenerateNode;
 import com.tarzan.maxkb4j.core.workflow.node.imageunderstand.impl.BaseImageUnderstandNode;
 import com.tarzan.maxkb4j.core.workflow.node.mcp.impl.BaseMcpNode;
@@ -30,46 +27,40 @@ import java.util.Objects;
 
 public class NodeFactory {
 
-    private static INode getNode(String type) {
+    private static INode getNode(String type,JSONObject properties) {
         NodeType nodeType = NodeType.getByKey(type);
         if (nodeType == null) {
             throw new IllegalStateException("不支持的节点类型: " + type);
         }
         return switch (nodeType) {
-            case START -> new BaseStartNode();
-            case AI_CHAT -> new BaseChatNode();
-            case SEARCH_KNOWLEDGE -> new BaseSearchDatasetNode();
-            case USER_SELECT -> new UserSelectNode();
-            case CONDITION -> new BaseConditionNode();
-            case CLASSIFICATION -> new BaseClassificationNode();
-            case REPLY-> new BaseReplyNode();
-            case APPLICATION -> new BaseApplicationNode();
-            case QUESTION -> new BaseQuestionNode();
-            case IMAGE_GENERATE -> new BaseImageGenerateNode();
-            case TEXT_TO_SPEECH -> new BaseTextToSpeechNode();
-            case DOCUMENT_EXTRACT -> new BaseDocumentExtractNode();
-            case SPEECH_TO_TEXT -> new BaseSpeechToTextNode();
-            case VARIABLE_ASSIGN -> new BaseVariableAssignNode();
-            case VARIABLE_AGGREGATE -> new BaseVariableAggregateNode();
-            case FUNCTION -> new BaseFunctionNode();
-            case HTTP_CLIENT -> new BaseHttpNode();
-            case IMAGE_UNDERSTAND -> new BaseImageUnderstandNode();
-            case RERANKER -> new RerankerNode();
-            case FORM -> new FormNode();
-            case MCP -> new BaseMcpNode();
-            case ECHARTS -> new BaseEchartsNode();
-            case DATABASE -> new DatabaseNode();
+            case START -> new BaseStartNode(properties);
+            case AI_CHAT -> new BaseChatNode(properties);
+            case SEARCH_KNOWLEDGE -> new BaseSearchDatasetNode(properties);
+            case USER_SELECT -> new UserSelectNode(properties);
+            case CONDITION -> new BaseConditionNode(properties);
+            case REPLY-> new BaseReplyNode(properties);
+            case APPLICATION -> new BaseApplicationNode(properties);
+            case QUESTION -> new BaseQuestionNode(properties);
+            case IMAGE_GENERATE -> new BaseImageGenerateNode(properties);
+            case TEXT_TO_SPEECH -> new BaseTextToSpeechNode(properties);
+            case DOCUMENT_EXTRACT -> new BaseDocumentExtractNode(properties);
+            case SPEECH_TO_TEXT -> new BaseSpeechToTextNode(properties);
+            case VARIABLE_ASSIGN -> new BaseVariableAssignNode(properties);
+            case VARIABLE_AGGREGATE -> new BaseVariableAggregateNode(properties);
+            case FUNCTION -> new BaseFunctionNode(properties);
+            case IMAGE_UNDERSTAND -> new BaseImageUnderstandNode(properties);
+            case RERANKER -> new RerankerNode(properties);
+            case FORM -> new FormNode(properties);
+            case MCP -> new BaseMcpNode(properties);
             default -> null;
         };
 
     }
 
     public static INode getNode(LfNode lfNode) {
-        INode node=getNode(lfNode.getType());
+        INode node=getNode(lfNode.getType(), lfNode.getProperties());
         if(Objects.nonNull(node)){
             node.setId(lfNode.getId());
-            node.setType(lfNode.getType());
-            node.setProperties(lfNode.getProperties());
             return node;
         }
         return null;

@@ -20,8 +20,8 @@ public class BaseTextToSpeechNode extends INode {
     private final MongoFileService fileService;
     private final ModelService modelService;
 
-    public BaseTextToSpeechNode() {
-        super();
+    public BaseTextToSpeechNode(JSONObject properties) {
+        super(properties);
         this.type = TEXT_TO_SPEECH.getKey();
         this.fileService = SpringUtil.getBean(MongoFileService.class);
         this.modelService = SpringUtil.getBean(ModelService.class);

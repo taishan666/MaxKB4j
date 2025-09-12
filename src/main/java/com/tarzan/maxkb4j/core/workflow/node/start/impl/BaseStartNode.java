@@ -18,8 +18,8 @@ import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.START;
 public class BaseStartNode extends INode {
 
 
-    public BaseStartNode() {
-        super();
+    public BaseStartNode(JSONObject properties) {
+        super(properties);
         this.type=START.getKey();
     }
 

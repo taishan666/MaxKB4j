@@ -10,8 +10,8 @@ import java.util.*;
 import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.VARIABLE_ASSIGN;
 
 public class BaseVariableAssignNode extends INode {
-    public BaseVariableAssignNode() {
-        super();
+    public BaseVariableAssignNode(JSONObject properties) {
+        super(properties);
         this.type = VARIABLE_ASSIGN.getKey();
     }
 

@@ -36,7 +36,8 @@ public class BaseChatNode extends INode {
     private final ToolUtil toolUtil;
 
 
-    public BaseChatNode() {
+    public BaseChatNode(JSONObject  properties) {
+        super(properties);
         this.type = AI_CHAT.getKey();
         this.modelService = SpringUtil.getBean(ModelService.class);
         this.chatMemoryStore = SpringUtil.getBean(ChatMemoryStore.class);

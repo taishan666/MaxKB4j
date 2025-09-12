@@ -13,7 +13,8 @@ import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.FORM;
 
 public class FormNode extends INode {
 
-    public FormNode() {
+    public FormNode(JSONObject properties) {
+        super(properties);
         this.type = FORM.getKey();
     }
 

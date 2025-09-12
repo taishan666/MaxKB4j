@@ -21,7 +21,8 @@ public class BaseSearchDatasetNode extends INode {
 
     private final RetrieveService retrieveService;
 
-    public BaseSearchDatasetNode() {
+    public BaseSearchDatasetNode(JSONObject properties) {
+        super(properties);
         this.type = SEARCH_KNOWLEDGE.getKey();
         this.retrieveService = SpringUtil.getBean(RetrieveService.class);
     }

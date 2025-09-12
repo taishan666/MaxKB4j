@@ -12,8 +12,8 @@ import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.REPLY;
 
 public class BaseReplyNode extends INode {
 
-    public BaseReplyNode() {
-        super();
+    public BaseReplyNode(JSONObject properties) {
+        super(properties);
         this.type = REPLY.getKey();
     }
 

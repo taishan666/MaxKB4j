@@ -17,7 +17,8 @@ public class UserSelectNode extends INode {
 
     private final String selectFiled;
 
-    public UserSelectNode() {
+    public UserSelectNode(JSONObject properties) {
+        super(properties);
         this.selectFiled = "select-card";
     }
 

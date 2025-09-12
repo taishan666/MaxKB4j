@@ -32,8 +32,8 @@ public class BaseDocumentExtractNode extends INode {
 
     private final MongoFileService fileService;
 
-    public BaseDocumentExtractNode() {
-        super();
+    public BaseDocumentExtractNode(JSONObject properties) {
+        super(properties);
         this.type = DOCUMENT_EXTRACT.getKey();
         this.fileService = SpringUtil.getBean(MongoFileService.class);
     }

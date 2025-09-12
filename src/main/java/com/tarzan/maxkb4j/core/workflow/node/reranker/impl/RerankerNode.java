@@ -20,7 +20,8 @@ public class RerankerNode extends INode {
 
     private final ModelService modelService;
 
-    public RerankerNode() {
+    public RerankerNode(JSONObject properties) {
+        super(properties);
         this.type = RERANKER.getKey();
         this.modelService = SpringUtil.getBean(ModelService.class);
     }
