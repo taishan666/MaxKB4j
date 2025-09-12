@@ -1,6 +1,7 @@
 package com.tarzan.maxkb4j.core.workflow.node.aichat.impl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.tarzan.maxkb4j.core.assistant.Assistant;
 import com.tarzan.maxkb4j.core.langchain4j.MyAiServices;
 import com.tarzan.maxkb4j.core.langchain4j.MyChatMemory;
@@ -22,6 +23,7 @@ import dev.langchain4j.service.TokenStream;
 import dev.langchain4j.store.memory.chat.ChatMemoryStore;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -50,7 +52,7 @@ public class BaseChatNode extends INode {
         System.out.println(AI_CHAT);
         ChatNodeParams nodeParams = super.nodeParams.toJavaObject(ChatNodeParams.class);
         BaseChatModel chatModel = modelService.getModelById(nodeParams.getModelId(), nodeParams.getModelParamsSetting());
-        List<ChatMessage> historyMessage = workflowManage.getHistoryMessage(flowParams.getHistoryChatRecord(), nodeParams.getDialogueNumber(), nodeParams.getDialogueType(), runtimeNodeId);
+        List<ChatMessage> historyContext = workflowManage.getHistoryMessage(flowParams.getHistoryChatRecord(), nodeParams.getDialogueNumber(), nodeParams.getDialogueType(), runtimeNodeId);
         String problemText = workflowManage.generatePrompt(nodeParams.getPrompt());
         String systemPrompt = workflowManage.generatePrompt(nodeParams.getSystem());
         String system = StringUtil.isBlank(systemPrompt) ? "You're an intelligent assistant." : systemPrompt;
@@ -60,8 +62,11 @@ public class BaseChatNode extends INode {
                 .maxMessages(nodeParams.getDialogueNumber())
                 .chatMemoryStore(chatMemoryStore)
                 .build();
-        List<String> toolIds = nodeParams.getToolIds();
-        if (StringUtil.isNotBlank(nodeParams.getMcpToolId())){
+        List<String> toolIds = new ArrayList<>();
+        if (CollectionUtils.isNotEmpty(nodeParams.getToolIds())&&nodeParams.getToolEnable()){
+            toolIds.addAll(nodeParams.getToolIds());
+        }
+        if (StringUtil.isNotBlank(nodeParams.getMcpToolId())&&nodeParams.getMcpEnable()){
             toolIds.add(nodeParams.getMcpToolId());
         }
         Assistant assistant = MyAiServices.builder(Assistant.class)
@@ -76,8 +81,8 @@ public class BaseChatNode extends INode {
                 "system", system,
                 "chat_model", chatModel,
                 "message_list", chatMemory.messages(),
-                "history_message", historyMessage,
-                "question", problemText
+                "history_message", historyContext,
+                "question", flowParams.getQuestion()
         );
         return new NodeResult(nodeVariable, Map.of(),this::writeContextStream);
     }
@@ -120,11 +125,12 @@ public class BaseChatNode extends INode {
                     })
                     .onCompleteResponse(response -> {
                         String answer = response.aiMessage().text();
+                        String thinking = response.aiMessage().thinking();
                         TokenUsage tokenUsage = response.tokenUsage();
                         context.put("messageTokens", tokenUsage.inputTokenCount());
                         context.put("answerTokens", tokenUsage.outputTokenCount());
                         context.put("answer", answer);
-                        context.put("reasoningContent", "");
+                        context.put("reasoningContent", thinking);
                         ChatMessageVO vo = new ChatMessageVO(
                                 flowParams.getChatId(),
                                 flowParams.getChatRecordId(),
@@ -159,6 +165,7 @@ public class BaseChatNode extends INode {
         detail.put("history_message", resetMessageList(historyMessage));
         detail.put("question", context.get("question"));
         detail.put("answer", context.get("answer"));
+        detail.put("reasoningContent", context.get("reasoningContent"));
         detail.put("messageTokens", context.get("messageTokens"));
         detail.put("answerTokens", context.get("answerTokens"));
         return detail;
