@@ -160,9 +160,9 @@ public class DocumentController {
     }
 
   //  @SaCheckPermission("DATASET:READ")
-    @GetMapping("/knowledge/{knowledgeId}/document/{page}/{size}")
-    public R<IPage<DocumentVO>> pageDocByDatasetId(@PathVariable String knowledgeId, @PathVariable("page") int page, @PathVariable("size") int size, Query query) {
-        return R.success(documentService.getDocByDatasetId(knowledgeId, page, size, query));
+    @GetMapping("/knowledge/{knowledgeId}/document/{current}/{size}")
+    public R<IPage<DocumentVO>> pageDocByDatasetId(@PathVariable String knowledgeId, @PathVariable("current") int current, @PathVariable("size") int size, Query query) {
+        return R.success(documentService.getDocByKnowledgeId(knowledgeId, current, size, query));
     }
 
     @GetMapping("/knowledge/{knowledgeId}/document/{docId}/download_source_file")

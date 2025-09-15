@@ -90,7 +90,7 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
         query.setTargetIds(targetIds);
         IPage<KnowledgeVO>  page= baseMapper.selectKnowledgePage(knowledgePage, query);
         Map<String, String> nicknameMap=userService.getNicknameMap();
-        page.getRecords().forEach(vo->vo.setNickname(nicknameMap.get(vo.getUserId())));
+        page.getRecords().forEach(vo-> vo.setNickname(nicknameMap.get(vo.getUserId())));
         return page;
     }
 

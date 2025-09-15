@@ -78,7 +78,7 @@ import java.util.zip.ZipOutputStream;
 @Slf4j
 @Service
 @AllArgsConstructor
-public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>{
+public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity> {
 
     private final ParagraphService paragraphService;
     private final ProblemService problemService;
@@ -88,25 +88,25 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
     private final ModelService modelService;
 
 
-    public void updateStatusMetaById(String id){
+    public void updateStatusMetaById(String id) {
         baseMapper.updateStatusMetaByIds(List.of(id));
     }
 
-    public void updateStatusMetaByIds(List<String> ids){
+    public void updateStatusMetaByIds(List<String> ids) {
         baseMapper.updateStatusMetaByIds(ids);
     }
 
     //type 1向量化 2 生成问题 3同步
-    public void updateStatusById(String id, int type,int status) {
-        baseMapper.updateStatusByIds(List.of(id),type,status);
+    public void updateStatusById(String id, int type, int status) {
+        baseMapper.updateStatusByIds(List.of(id), type, status);
     }
 
-    public void updateStatusByIds(List<String> ids, int type,int status) {
-        baseMapper.updateStatusByIds(ids,type,status);
+    public void updateStatusByIds(List<String> ids, int type, int status) {
+        baseMapper.updateStatusByIds(ids, type, status);
     }
 
     public boolean updateCharLengthById(String id) {
-       return baseMapper.updateCharLengthById(id);
+        return baseMapper.updateCharLengthById(id);
     }
 
     public List<DocumentEntity> listDocByDatasetId(String id) {
@@ -116,7 +116,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
     @Transactional
     public boolean migrateDoc(String sourceId, String targetId, List<String> docIds) {
         if (!CollectionUtils.isEmpty(docIds)) {
-            paragraphService.migrateDoc(sourceId,targetId,docIds);
+            paragraphService.migrateDoc(sourceId, targetId, docIds);
             return this.lambdaUpdate().set(DocumentEntity::getDatasetId, targetId).eq(DocumentEntity::getDatasetId, sourceId).update();
         }
         return false;
@@ -202,7 +202,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
             List<DocumentEntity> docs = new ArrayList<>();
             for (int i = 0; i < numberOfSheets; i++) {
                 String sheetName = workbook.getSheetName(i);
-                DocumentEntity doc = createDocument(datasetId, sheetName,DocType.BASE.getType());
+                DocumentEntity doc = createDocument(datasetId, sheetName, DocType.BASE.getType());
                 // 对于每一个Sheet进行数据读取
                 EasyExcel.read(new ByteArrayInputStream(fileBytes))
                         .sheet(sheetName) // 使用Sheet编号读取
@@ -257,6 +257,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
             List<String> list = new ArrayList<>();
             EasyExcel.read(uploadFile.getInputStream(), new AnalysisEventListener<Map<Integer, String>>() {
                 Map<Integer, String> headMap = new LinkedHashMap<>();
+
                 // 表头信息会在此方法中获取
                 @Override
                 public void invokeHeadMap(Map<Integer, String> headMap, AnalysisContext context) {
@@ -281,7 +282,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
                 }
             }).sheet().doRead();
             List<ParagraphEntity> paragraphs = new ArrayList<>();
-            DocumentEntity doc = createDocument(datasetId, uploadFile.getOriginalFilename(),DocType.BASE.getType());
+            DocumentEntity doc = createDocument(datasetId, uploadFile.getOriginalFilename(), DocType.BASE.getType());
             if (!CollectionUtils.isEmpty(list)) {
                 for (String text : list) {
                     doc.setCharLength(doc.getCharLength() + text.length());
@@ -313,6 +314,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         List<DatasetExcel> list = getDatasetExcelByDoc(doc);
         ExcelUtil.export(response, doc.getName(), doc.getName(), list, DatasetExcel.class);
     }
+
     public void exportTemplate(String type, HttpServletResponse response, String csvPath, String excelPath, String csvFileName, String excelFileName) throws Exception {
         // 设置字符编码
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());
@@ -370,10 +372,10 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
                 continue; // 或抛出异常根据业务需求
             }
             // 判断是否是zip文件
-            if (isZipFile(file)){
+            if (isZipFile(file)) {
                 System.out.println("zip");
                 //todo 未处理zip下的zip文件
-                try (ZipArchiveInputStream  zis = new ZipArchiveInputStream(file.getInputStream())) {
+                try (ZipArchiveInputStream zis = new ZipArchiveInputStream(file.getInputStream())) {
                     ZipArchiveEntry entry;
                     while ((entry = zis.getNextEntry()) != null) {
                         if (!entry.isDirectory()) {
@@ -386,7 +388,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
                 } catch (IOException e) {
                     throw new RuntimeException("解压ZIP文件失败", e);
                 }
-            }else {
+            } else {
                 fileStreams.add(new FileStreamVO(file.getOriginalFilename(), file.getInputStream()));
             }
         }
@@ -394,8 +396,8 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
             TextSegmentVO textSegmentVO = new TextSegmentVO();
             textSegmentVO.setName(fileStream.getName());
             String docText = documentParseService.extractText(fileStream.getInputStream());
-            List<TextSegment> textSegments =Collections.emptyList();
-            if (StringUtil.isNotBlank(docText)){
+            List<TextSegment> textSegments = Collections.emptyList();
+            if (StringUtil.isNotBlank(docText)) {
                 textSegments = getTextSegments(Document.document(docText), patterns, limit, withFilter);
             }
             List<ParagraphSimpleVO> content = textSegments.stream()
@@ -416,7 +418,6 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
     }
 
 
-
     private List<TextSegment> getTextSegments(Document document, String[] patterns, Integer limit, Boolean withFilter) {
         if (patterns != null) {
             List<TextSegment> textSegments = recursive(document, patterns, limit);
@@ -431,6 +432,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
             return defaultSplitter.split(document);
         }
     }
+
     public static <T> Predicate<T> distinctByKey(Function<? super T, ?> keyExtractor) {
         Set<Object> seen = ConcurrentHashMap.newKeySet();
         return t -> seen.add(keyExtractor.apply(t));
@@ -465,7 +467,6 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         }
         return textSegments;
     }
-
 
 
     private List<DatasetExcel> getDatasetExcelByDoc(DocumentEntity doc) {
@@ -533,10 +534,10 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
             List<DocumentEntity> documentEntities = new ArrayList<>();
             List<ParagraphEntity> paragraphEntities = new ArrayList<>();
             docs.parallelStream().forEach(e -> {
-                DocumentEntity doc = createDocument(datasetId, e.getName(),DocType.BASE.getType());
+                DocumentEntity doc = createDocument(datasetId, e.getName(), DocType.BASE.getType());
                 AtomicInteger docCharLength = new AtomicInteger();
                 if (!CollectionUtils.isEmpty(e.getParagraphs())) {
-                    e.getParagraphs().forEach(p ->{
+                    e.getParagraphs().forEach(p -> {
                         paragraphEntities.add(paragraphService.createParagraph(datasetId, doc.getId(), p));
                         docCharLength.addAndGet(p.getContent().length());
                     });
@@ -552,7 +553,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         return false;
     }
 
-    public DocumentEntity createDocument(String datasetId, String name,Integer type) {
+    public DocumentEntity createDocument(String datasetId, String name, Integer type) {
         DocumentEntity documentEntity = new DocumentEntity();
         documentEntity.setId(IdWorker.get32UUID());
         documentEntity.setDatasetId(datasetId);
@@ -583,7 +584,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         if (!CollectionUtils.isEmpty(docIds)) {
             docIds.parallelStream().forEach(docId -> {
                 paragraphService.updateStatusByDocId(docId, 1, 0);
-                this.updateStatusById(docId,1,0);
+                this.updateStatusById(docId, 1, 0);
                 //目的是为了显示进度计数
                 this.updateStatusMetaById(docId);
             });
@@ -592,26 +593,26 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
     }
 
 
-    public void createIndexByDocId(EmbeddingModel embeddingModel,String docId) {
+    public void createIndexByDocId(EmbeddingModel embeddingModel, String docId) {
         log.info("开始--->文档索引:{}", docId);
         List<ParagraphEntity> paragraphs = paragraphService.lambdaQuery().eq(ParagraphEntity::getDocumentId, docId).list();
-        this.updateStatusById(docId,1,1);
+        this.updateStatusById(docId, 1, 1);
         paragraphs.forEach(paragraph -> {
-            paragraphService.paragraphIndex(paragraph,embeddingModel);
+            paragraphService.paragraphIndex(paragraph, embeddingModel);
             this.updateStatusMetaById(docId);
         });
-        this.updateStatusById(docId,1,2);
+        this.updateStatusById(docId, 1, 2);
         log.info("结束--->文档索引:{}", docId);
     }
 
     public boolean cancelTask(String docId, DocumentEntity doc) {
-        DocumentEntity entity=baseMapper.selectById(docId);
+        DocumentEntity entity = baseMapper.selectById(docId);
         entity.setId(docId);
-        String status=entity.getStatus();
-        if(doc.getType()==1){
+        String status = entity.getStatus();
+        if (doc.getType() == 1) {
             entity.setStatus(status.replace(status.substring(2), "3"));
-        }else if(doc.getType()==2){
-            entity.setStatus(status.replace(status.substring(1,2), "3"));
+        } else if (doc.getType() == 2) {
+            entity.setStatus(status.replace(status.substring(1, 2), "3"));
         }
         return this.updateById(entity);
     }
@@ -633,11 +634,18 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         return this.removeById(docId);
     }
 
-    public IPage<DocumentVO> getDocByDatasetId(String knowledgeId, int page, int size, Query query) {
-        Page<DocumentVO> docPage = new Page<>(page, size);
-        return baseMapper.selectDocPage(docPage, knowledgeId,query);
+    public IPage<DocumentVO> getDocByKnowledgeId(String knowledgeId, int current, int size, Query query) {
+        Page<DocumentVO> docPage = new Page<>(current, size);
+        baseMapper.selectDocPage(docPage, knowledgeId, query);
+        //todo 临时处理
+        JSONObject meta = new JSONObject();
+        meta.put("allow_download", true);
+        meta.put("source_file_id", "1994b3e-a525-7972-a4e8-1cc99d332c76");
+        docPage.getRecords().forEach(doc -> {
+            doc.setMeta(meta);
+        });
+        return docPage;
     }
-
 
 
     @Transactional
@@ -666,8 +674,6 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
     }
 
 
-
-
     public List<KeyAndValueVO> splitPattern() {
         List<KeyAndValueVO> resultList = new ArrayList<>();
         resultList.add(new KeyAndValueVO("#", "(?<=^)# .*|(?<=\\n)# .*"));
@@ -694,53 +700,53 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
 
     @Async
     @Transactional
-    public void webDataset(String datasetId,String baseUrl,String selector) {
-        if(StringUtils.isBlank(selector)){
-            selector="body";
+    public void webDataset(String datasetId, String baseUrl, String selector) {
+        if (StringUtils.isBlank(selector)) {
+            selector = "body";
         }
         String finalSelector = selector;
-        baseUrl=baseUrl.endsWith("/")?baseUrl.substring(0,baseUrl.length()-1):baseUrl;
-        org.jsoup.nodes.Document  html=JsoupUtil.getDocument(baseUrl);
-        Elements elements=html.select(finalSelector);
-        List<String> sourceUrlList=new ArrayList<>();
+        baseUrl = baseUrl.endsWith("/") ? baseUrl.substring(0, baseUrl.length() - 1) : baseUrl;
+        org.jsoup.nodes.Document html = JsoupUtil.getDocument(baseUrl);
+        Elements elements = html.select(finalSelector);
+        List<String> sourceUrlList = new ArrayList<>();
         sourceUrlList.add(baseUrl);
-        Elements links= elements.select("a");
+        Elements links = elements.select("a");
         for (Element link : links) {
-            String href=link.attr("href");
-            String url=baseUrl+href;
-            String[]  catalogs=href.split("/");
-            if (!sourceUrlList.contains(url)&&href.startsWith("/")&&catalogs.length==2){
-                if(!href.contains("?")&&!href.contains("#")){
-                    sourceUrlList.add(baseUrl+href);
+            String href = link.attr("href");
+            String url = baseUrl + href;
+            String[] catalogs = href.split("/");
+            if (!sourceUrlList.contains(url) && href.startsWith("/") && catalogs.length == 2) {
+                if (!href.contains("?") && !href.contains("#")) {
+                    sourceUrlList.add(baseUrl + href);
                 }
             }
         }
-        webDoc(datasetId, sourceUrlList,finalSelector);
+        webDoc(datasetId, sourceUrlList, finalSelector);
     }
 
 
     @Transactional
-    public void webDoc(String datasetId,List<String> sourceUrlList,String selector) {
-        if(StringUtils.isBlank(selector)){
-            selector="body";
+    public void webDoc(String datasetId, List<String> sourceUrlList, String selector) {
+        if (StringUtils.isBlank(selector)) {
+            selector = "body";
         }
-        List<DocumentEntity> docs=new ArrayList<>();
-        List<ParagraphEntity> paragraphs=new ArrayList<>();
+        List<DocumentEntity> docs = new ArrayList<>();
+        List<ParagraphEntity> paragraphs = new ArrayList<>();
         String finalSelector = selector;
         sourceUrlList.forEach(url -> {
-            org.jsoup.nodes.Document  html=JsoupUtil.getDocument(url);
-            Elements elements=html.select(finalSelector);
-            Document document=Document.document(elements.text());
-            DocumentEntity doc = createDocument(datasetId, JsoupUtil.getTitle(html),DocType.WEB.getType());
-            JSONObject meta=new JSONObject();
-            meta.put("source_url",url);
+            org.jsoup.nodes.Document html = JsoupUtil.getDocument(url);
+            Elements elements = html.select(finalSelector);
+            Document document = Document.document(elements.text());
+            DocumentEntity doc = createDocument(datasetId, JsoupUtil.getTitle(html), DocType.WEB.getType());
+            JSONObject meta = new JSONObject();
+            meta.put("source_url", url);
             meta.put("selector", finalSelector);
             doc.setMeta(meta);
-            List<TextSegment> textSegments= defaultSplitter.split(document);
+            List<TextSegment> textSegments = defaultSplitter.split(document);
             for (TextSegment textSegment : textSegments) {
                 ParagraphEntity paragraph = paragraphService.getParagraphEntity(datasetId, doc.getId(), "", textSegment.text());
                 paragraphs.add(paragraph);
-                doc.setCharLength(doc.getCharLength()+paragraph.getContent().length());
+                doc.setCharLength(doc.getCharLength() + paragraph.getContent().length());
             }
             docs.add(doc);
         });
@@ -752,7 +758,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
     public void sync(String datasetId, String docId) {
         DocumentEntity doc = this.getById(docId);
         deleteBatchDocByDocIds(List.of(docId));
-        webDoc(datasetId, List.of(doc.getMeta().getString("source_url")),doc.getMeta().getString("selector"));
+        webDoc(datasetId, List.of(doc.getMeta().getString("source_url")), doc.getMeta().getString("selector"));
     }
 
     public boolean batchGenerateRelated(String datasetId, GenerateProblemDTO dto) {
@@ -779,7 +785,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         return true;
     }
 
-    public void downloadSourceFile(String id, String docId,HttpServletResponse response) {
+    public void downloadSourceFile(String id, String docId, HttpServletResponse response) {
         //todo 待完善
     }
 }
