@@ -85,7 +85,6 @@ public class WorkflowManage {
                         nodeId,
                         lastNodeIdList,
                         n -> {
-                            System.out.println(n);
                             JSONObject params = new JSONObject();
                             boolean isResult = "application-node".equals(n.getType());
                             // 合并节点数据

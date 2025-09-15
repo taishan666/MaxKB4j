@@ -31,9 +31,4 @@ public enum ModelTypeEnum {
         return list;
     }
 
-    public static void main(String[] args) {
-        for (KeyAndValueVO modelType : ModelTypeEnum.getModelTypeList()) {
-            System.out.println(modelType);
-        }
-    }
 }

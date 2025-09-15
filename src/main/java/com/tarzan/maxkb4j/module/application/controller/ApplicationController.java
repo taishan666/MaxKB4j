@@ -196,6 +196,12 @@ public class ApplicationController {
         return R.success(applicationService.modelParams(appId, modelId));
     }
 
+    @PostMapping("/application/{appId}/mcp_tools")
+    public R<JSONArray> mcpTools(@PathVariable("appId") String appId,@RequestBody JSONObject dto) {
+        System.out.println(dto);
+        return R.data(null);
+    }
+
 
     /**
      * 嵌入第三方
