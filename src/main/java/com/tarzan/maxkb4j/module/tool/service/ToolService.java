@@ -45,6 +45,11 @@ public class ToolService extends ServiceImpl<ToolMapper, ToolEntity>{
         if(StringUtils.isNotBlank(query.getCreateUser())){
             wrapper.eq(ToolEntity::getUserId,query.getCreateUser());
         }
+        if(StringUtils.isNotBlank(query.getFolderId())){
+            wrapper.eq(ToolEntity::getFolderId,query.getFolderId());
+        }else {
+            wrapper.eq(ToolEntity::getFolderId, "default");
+        }
         if(StringUtils.isNotBlank(query.getScope())){
             wrapper.eq(ToolEntity::getScope,query.getScope());
         }

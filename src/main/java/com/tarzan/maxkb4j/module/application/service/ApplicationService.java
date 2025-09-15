@@ -92,6 +92,11 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         if (Objects.nonNull(query.getCreateUser())) {
             wrapper.eq(ApplicationEntity::getUserId, query.getCreateUser());
         }
+        if (StringUtils.isNotBlank(query.getFolderId())) {
+            wrapper.eq(ApplicationEntity::getFolderId, query.getFolderId());
+        }else {
+            wrapper.eq(ApplicationEntity::getFolderId, "default");
+        }
         String loginId = StpUtil.getLoginIdAsString();
         UserEntity user = userService.validUserById(loginId);
         if (Objects.nonNull(user)){

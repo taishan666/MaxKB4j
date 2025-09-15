@@ -33,9 +33,9 @@ public class ProblemController {
     }
 
   //  @SaCheckPermission("DATASET:EDIT")
-    @PostMapping("/knowledge/{datasetId}/document/{documentId}/paragraph/{paragraphId}/problem")
-    public R<Boolean> createProblemsByParagraphId(@PathVariable String datasetId,@PathVariable String documentId, @PathVariable String paragraphId,  @RequestBody ProblemDTO dto) {
-        return R.status(problemService.createProblemsByParagraphId(datasetId,documentId,paragraphId, dto));
+    @PostMapping("/knowledge/{knowledgeId}/document/{documentId}/paragraph/{paragraphId}/problem")
+    public R<Boolean> createProblemsByParagraphId(@PathVariable String knowledgeId,@PathVariable String documentId, @PathVariable String paragraphId,  @RequestBody ProblemDTO dto) {
+        return R.status(problemService.createProblemsByParagraphId(knowledgeId,documentId,paragraphId, dto));
     }
 
    // @SaCheckPermission("DATASET:EDIT")

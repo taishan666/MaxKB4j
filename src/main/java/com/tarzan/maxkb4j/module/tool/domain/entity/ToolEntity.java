@@ -43,4 +43,6 @@ public class ToolEntity extends BaseEntity {
     private String label;
     private String scope;
     private String icon;
+
+    private String folderId;
 } 

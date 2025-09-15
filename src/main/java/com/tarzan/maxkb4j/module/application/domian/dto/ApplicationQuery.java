@@ -7,4 +7,5 @@ public class ApplicationQuery {
     private String name;
     private String publishStatus;
     private String createUser;
+    private String folderId;
 }

@@ -82,13 +82,13 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
     private final UserResourcePermissionService userResourcePermissionService;
 
 
-    public IPage<KnowledgeVO> selectKnowledgePage(Page<KnowledgeVO> datasetPage, KnowledgeQuery query) {
+    public IPage<KnowledgeVO> selectKnowledgePage(Page<KnowledgeVO> knowledgePage, KnowledgeQuery query) {
         String loginId = StpUtil.getLoginIdAsString();
         List<String> targetIds =userResourcePermissionService.getTargetIds("KNOWLEDGE",loginId);
         UserEntity user =userService.getById(loginId);
         query.setIsAdmin(user.getRole().contains("ADMIN"));
         query.setTargetIds(targetIds);
-        IPage<KnowledgeVO>  page= baseMapper.selectKnowledgePage(datasetPage, query);
+        IPage<KnowledgeVO>  page= baseMapper.selectKnowledgePage(knowledgePage, query);
         Map<String, String> nicknameMap=userService.getNicknameMap();
         page.getRecords().forEach(vo->vo.setNickname(nicknameMap.get(vo.getUserId())));
         return page;

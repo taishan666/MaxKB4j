@@ -71,6 +71,9 @@
             <if test="query.name != null and !query.name!= ''">
                 AND k.name LIKE '%' || #{query.name} || '%'
             </if>
+            <if test="query.folderId != null and !query.folderId!= ''">
+                AND k.folder_id = #{query.folderId}
+            </if>
             <choose>
                 <when test="query.isAdmin != null and !query.isAdmin">
                   <choose>

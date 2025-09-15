@@ -82,6 +82,8 @@ public class ApplicationEntity extends BaseEntity {
     @TableField(typeHandler = JOSNBTypeHandler.class)
     private JSONObject fileUploadSetting;
 
+    private String folderId;
+
 /*    @TableField(exist = false)
     private List<String> knowledgeIdList;
 

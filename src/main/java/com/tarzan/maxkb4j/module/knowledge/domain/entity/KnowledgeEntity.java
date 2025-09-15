@@ -33,4 +33,6 @@ public class KnowledgeEntity extends BaseEntity {
     private Integer fileSizeLimit;
 
     private Integer fileCountLimit;
+
+    private String folderId;
 } 
