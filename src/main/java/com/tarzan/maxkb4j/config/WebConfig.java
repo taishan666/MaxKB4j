@@ -1,7 +1,6 @@
 
 package com.tarzan.maxkb4j.config;
 
-import com.tarzan.maxkb4j.core.interceptor.AuthInterceptor;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -45,7 +44,7 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         // 拦截聊天所有请求
-        registry.addInterceptor(new AuthInterceptor()).addPathPatterns("/api/application/chat/**");
+       // registry.addInterceptor(new AuthInterceptor()).addPathPatterns("/api/application/chat/**");
     }
 
 

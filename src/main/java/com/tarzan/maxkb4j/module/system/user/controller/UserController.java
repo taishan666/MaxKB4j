@@ -20,7 +20,7 @@ import java.util.Map;
  * @date 2024-12-25 11:17:00
  */
 @RestController
-@RequestMapping(AppConst.ADMIN_PATH)
+@RequestMapping(AppConst.ADMIN_API)
 @AllArgsConstructor
 public class UserController{
 

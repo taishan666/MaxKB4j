@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping(AppConst.ADMIN_PATH+"/workspace/default")
+@RequestMapping(AppConst.ADMIN_API+"/workspace/default")
 @AllArgsConstructor
 public class ParagraphController {
 

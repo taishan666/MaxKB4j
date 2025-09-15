@@ -39,7 +39,7 @@ import java.util.List;
  */
 @Tag(name = "APP应用管理", description = "APP应用管理")
 @RestController
-@RequestMapping(AppConst.ADMIN_PATH+"/workspace/default")
+@RequestMapping(AppConst.ADMIN_API+"/workspace/default")
 @AllArgsConstructor
 public class ApplicationController {
 

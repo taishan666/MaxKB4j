@@ -548,7 +548,13 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
             if (!CollectionUtils.isEmpty(paragraphEntities)) {
                 paragraphService.saveBatch(paragraphEntities);
             }
-            return this.saveBatch(documentEntities);
+            this.saveBatch(documentEntities);
+            documentEntities.forEach(doc -> {
+               // paragraphService.updateStatusByDocId(doc.getId(), 1, 0);
+                this.updateStatusById(doc.getId(), 1, 0);
+                //目的是为了显示进度计数
+                this.updateStatusMetaById(doc.getId());
+            });
         }
         return false;
     }

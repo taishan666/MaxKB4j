@@ -35,7 +35,7 @@ import java.util.stream.Collectors;
  * @date 2024-12-25 12:22:22
  */
 @RestController
-@RequestMapping(AppConst.ADMIN_PATH)
+@RequestMapping(AppConst.ADMIN_API)
 @AllArgsConstructor
 public class ProviderController {
 

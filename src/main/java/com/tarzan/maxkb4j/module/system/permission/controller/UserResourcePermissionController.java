@@ -15,7 +15,7 @@ import java.util.List;
  * @date 2025-8-25 12:42:39
  */
 @RestController
-@RequestMapping(AppConst.ADMIN_PATH+"/workspace/default")
+@RequestMapping(AppConst.ADMIN_API+"/workspace/default")
 @AllArgsConstructor
 public class UserResourcePermissionController {
 

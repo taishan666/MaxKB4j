@@ -24,7 +24,7 @@ import java.nio.charset.StandardCharsets;
  */
 @Slf4j
 @RestController
-@RequestMapping(AppConst.ADMIN_PATH)
+@RequestMapping(AppConst.ADMIN_API)
 @AllArgsConstructor
 public class FileController{
 

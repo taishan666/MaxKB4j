@@ -31,7 +31,7 @@ import java.util.List;
  */
 @Tag(name = "APP会话管理", description = "APP会话管理")
 @RestController
-@RequestMapping(AppConst.ADMIN_PATH+"/workspace/default/application")
+@RequestMapping(AppConst.ADMIN_API+"/workspace/default/application")
 public class ApplicationChatController {
 
     private final ApplicationChatService chatService;

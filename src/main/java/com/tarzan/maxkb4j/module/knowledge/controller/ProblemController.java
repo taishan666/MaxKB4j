@@ -19,7 +19,7 @@ import java.util.List;
  * @date 2025-03-18 16:00:15
  */
 @RestController
-@RequestMapping(AppConst.ADMIN_PATH+"/workspace/default")
+@RequestMapping(AppConst.ADMIN_API+"/workspace/default")
 @AllArgsConstructor
 public class ProblemController {
 

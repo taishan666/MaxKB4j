@@ -30,7 +30,7 @@ import java.util.Map;
  * @date 2025-01-25 22:00:45
  */
 @RestController
-@RequestMapping(AppConst.ADMIN_PATH)
+@RequestMapping(AppConst.ADMIN_API)
 @AllArgsConstructor
 public class ToolController {
 
