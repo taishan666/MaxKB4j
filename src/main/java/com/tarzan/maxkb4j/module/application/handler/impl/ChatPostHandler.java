@@ -1,12 +1,12 @@
 package com.tarzan.maxkb4j.module.application.handler.impl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.tarzan.maxkb4j.module.application.cache.ChatCache;
 import com.tarzan.maxkb4j.module.application.domian.dto.ChatInfo;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatEntity;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatRecordEntity;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatUserStatsEntity;
-import com.tarzan.maxkb4j.module.application.enums.AuthType;
 import com.tarzan.maxkb4j.module.application.handler.PostResponseHandler;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatMapper;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatRecordMapper;
@@ -15,7 +15,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.Objects;
+import java.util.Map;
 
 @AllArgsConstructor
 @Component
@@ -26,8 +26,9 @@ public class ChatPostHandler extends PostResponseHandler {
     private final ApplicationChatRecordMapper chatRecordMapper;
 
 
+     //todo 优化
     @Override
-    public void handler(String chatId, String chatRecordId, String problemText, String answerText, ApplicationChatRecordEntity chatRecord, JSONObject details,long startTime, String chatUserId, String chatUserType) {
+    public void handler(String chatId, String chatRecordId, String problemText, String answerText, ApplicationChatRecordEntity chatRecord, JSONObject details,long startTime, String chatUserId, String chatUserType,boolean debug) {
         ChatInfo chatInfo = ChatCache.get(chatId);
         int messageTokens = details.values().stream()
                 .map(row -> (JSONObject) row)
@@ -67,27 +68,31 @@ public class ChatPostHandler extends PostResponseHandler {
         // 重新设置缓存
         ChatCache.put(chatId, chatInfo);
        // chatMemoryStore.updateMessages(chatId, messages);
-        if (AuthType.ACCESS_TOKEN.name().equals(chatUserType)) {
+        if (!debug) {
             ApplicationChatUserStatsEntity applicationPublicAccessClient = chatUserStatsService.getById(chatUserId);
             if (applicationPublicAccessClient != null) {
                 applicationPublicAccessClient.setAccessNum(applicationPublicAccessClient.getAccessNum() + 1);
                 applicationPublicAccessClient.setIntraDayAccessNum(applicationPublicAccessClient.getIntraDayAccessNum() + 1);
                 chatUserStatsService.updateById(applicationPublicAccessClient);
             }
-            String appId = chatInfo.getApplication().getId();
-            if (Objects.nonNull(appId)) {
-                if(chatInfo.getChatRecordList().size()==1){
-                    ApplicationChatEntity chatEntity = new ApplicationChatEntity();
-                    chatEntity.setId(chatId);
-                    chatEntity.setApplicationId(appId);
-                    String problemOverview=problemText.length()>50?problemText.substring(0,50):problemText;
-                    chatEntity.setSummary(problemOverview);
-                    chatEntity.setChatUserId(chatUserId);
-                    chatEntity.setChatUserType(chatUserType);
-                    chatEntity.setIsDeleted(false);
-                    chatMapper.insertOrUpdate(chatEntity);
-                }
-                chatRecordMapper.insertOrUpdate(chatRecord);
+            long chatRecordCount=chatRecordMapper.selectCount(Wrappers.<ApplicationChatRecordEntity>lambdaQuery().eq(ApplicationChatRecordEntity::getId, chatId));
+            chatRecordMapper.insertOrUpdate(chatRecord);
+            if(chatRecordCount==0){
+                ApplicationChatEntity chatEntity = new ApplicationChatEntity();
+                chatEntity.setId(chatId);
+                chatEntity.setApplicationId(chatInfo.getApplication().getId());
+                String problemOverview=problemText.length()>50?problemText.substring(0,50):problemText;
+                chatEntity.setSummary(problemOverview);
+                chatEntity.setChatUserId(chatUserId);
+                chatEntity.setChatUserType(chatUserType);
+                chatEntity.setIsDeleted(false);
+                chatEntity.setAsker(new JSONObject(Map.of("username","游客")));
+                chatEntity.setMeta(new JSONObject());
+                chatEntity.setStarNum(0);
+                chatEntity.setTrampleNum(0);
+                chatEntity.setChatRecordCount(chatInfo.getChatRecordList().size());
+                chatEntity.setMarkSum(0);
+                chatMapper.insertOrUpdate(chatEntity);
             }
         }
     }

@@ -1,24 +1,17 @@
 package com.tarzan.maxkb4j.module.application.controller;
 
-import cn.dev33.satoken.stp.StpUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.tarzan.maxkb4j.constant.AppConst;
 import com.tarzan.maxkb4j.core.api.R;
 import com.tarzan.maxkb4j.core.workflow.domain.ChatFile;
-import com.tarzan.maxkb4j.module.application.domian.dto.ChatMessageDTO;
 import com.tarzan.maxkb4j.module.application.domian.dto.ChatQueryDTO;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatEntity;
-import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
 import com.tarzan.maxkb4j.module.application.service.ApplicationChatService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.core.task.TaskExecutor;
-import org.springframework.http.MediaType;
+import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Sinks;
 
 import java.io.IOException;
 import java.util.List;
@@ -29,15 +22,12 @@ import java.util.List;
  */
 @Tag(name = "APP会话管理", description = "APP会话管理")
 @RestController
+@AllArgsConstructor
 @RequestMapping(AppConst.ADMIN_API+"/workspace/default/application")
 public class ApplicationChatController {
 
     private final ApplicationChatService chatService;
-    private final TaskExecutor chatTaskExecutor;
-    public ApplicationChatController(ApplicationChatService chatService, @Qualifier("chatTaskExecutor") TaskExecutor chatTaskExecutor) {
-        this.chatService = chatService;
-        this.chatTaskExecutor = chatTaskExecutor;
-    }
+
 
 /*    @GetMapping("/{appId}/chat/client/{page}/{size}")
     public R<IPage<ApplicationChatEntity>> clientChatPage(@PathVariable("appId") String appId, @PathVariable("page") int page, @PathVariable("size") int size) {
@@ -77,11 +67,11 @@ public class ApplicationChatController {
         return R.success(chatService.chatOpen(appId));
     }
 
-    @PostMapping(path = "/chat_message/{chatId}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+/*    @PostMapping(path = "/chat_message/{chatId}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<ChatMessageVO> chatMessage(@PathVariable String chatId, @RequestBody ChatMessageDTO params) {
         Sinks.Many<ChatMessageVO> sink = Sinks.many().multicast().onBackpressureBuffer();
-        String clientId = (String) StpUtil.getExtra("client_id");
-        String clientType = (String) StpUtil.getExtra("client_type");
+        String clientId = (String) StpUtil.getExtra("chat_user_id");
+        String clientType = (String) StpUtil.getExtra("chat_user_type");
         params.setChatId(chatId);
         params.setClientId(clientId);
         params.setClientType(clientType);
@@ -89,7 +79,7 @@ public class ApplicationChatController {
         // 异步执行业务逻辑
         chatTaskExecutor.execute(() -> chatService.chatMessage(params));
         return sink.asFlux();
-    }
+    }*/
 
 
 

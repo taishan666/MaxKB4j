@@ -18,7 +18,7 @@ import java.util.List;
   */
 @EqualsAndHashCode(callSuper = true)
 @Data
-@TableName("application_chat_record")
+@TableName(value = "application_chat_record",autoResultMap = true)
 public class ApplicationChatRecordEntity extends BaseEntity {
 	private String voteStatus;
 	private String problemText;

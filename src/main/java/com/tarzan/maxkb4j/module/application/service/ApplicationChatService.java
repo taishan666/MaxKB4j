@@ -100,11 +100,13 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
                 .eq(ApplicationVersionEntity::getApplicationId, application.getId())
                 .orderByDesc(ApplicationVersionEntity::getCreateTime)
                 .last("limit 1").one();
-        LogicFlow logicFlow=LogicFlow.newInstance(workFlowVersion.getWorkFlow());
-        List<LfNode> lfNodes=logicFlow.getNodes();
-        List<INode> nodes=lfNodes.stream().filter(lfNode -> lfNode.getType().equals("base-node")).map(NodeFactory::getNode).toList();
-        chatInfo.setNodes(nodes);
-        chatInfo.setEdges(logicFlow.getEdges());
+        if (workFlowVersion != null&&!workFlowVersion.getWorkFlow().isEmpty()){
+            LogicFlow logicFlow=LogicFlow.newInstance(workFlowVersion.getWorkFlow());
+            List<LfNode> lfNodes=logicFlow.getNodes();
+            List<INode> nodes=lfNodes.stream().filter(lfNode -> lfNode.getType().equals("base-node")).map(NodeFactory::getNode).toList();
+            chatInfo.setNodes(nodes);
+            chatInfo.setEdges(logicFlow.getEdges());
+        }
         ChatCache.put(chatInfo.getChatId(), chatInfo);
         return chatInfo;
     }

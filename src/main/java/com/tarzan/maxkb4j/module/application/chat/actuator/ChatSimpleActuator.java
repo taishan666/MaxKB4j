@@ -1,5 +1,6 @@
 package com.tarzan.maxkb4j.module.application.chat.actuator;
 
+import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.tarzan.maxkb4j.core.exception.ApiException;
 import com.tarzan.maxkb4j.module.application.cache.ChatCache;
@@ -69,6 +70,7 @@ public class ChatSimpleActuator extends ChatBaseActuator {
 
     @Override
     public String chatMessage(ChatInfo chatInfo,ChatMessageDTO dto) {
+        long startTime = System.currentTimeMillis();
         chatCheck(chatInfo,dto);
         String modelId = chatInfo.getApplication().getModelId();
         ModelEntity model = modelService.getById(modelId);
@@ -100,8 +102,11 @@ public class ChatSimpleActuator extends ChatBaseActuator {
         }
         pipelineManageBuilder.addStep(baseChatStep);
         PipelineManage pipelineManage = pipelineManageBuilder.build();
-        Map<String, Object> params = chatInfo.toPipelineManageParams(problemText, postResponseHandler, excludeParagraphIds, dto.getClientId(), dto.getClientType(), stream);
-        return pipelineManage.run(params,dto.getSink());
+        Map<String, Object> params = chatInfo.toPipelineManageParams(problemText, excludeParagraphIds, dto.getClientId(), dto.getClientType(), stream);
+        String answer =  pipelineManage.run(params,dto.getSink());
+        JSONObject details=pipelineManage.getDetails();
+        postResponseHandler.handler(dto.getChatId(), dto.getChatRecordId(), problemText, answer, null,details, startTime, dto.getClientId(), dto.getClientType(),true);
+        return answer;
     }
 
     @Override

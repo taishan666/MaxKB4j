@@ -6,7 +6,6 @@ import com.tarzan.maxkb4j.core.workflow.domain.ChatFile;
 import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NonNull;
 import reactor.core.publisher.Sinks;
 
 import java.util.List;
@@ -27,7 +26,9 @@ public class ChatMessageDTO {
     private List<ChatFile> audioList;
     private List<ChatFile> documentList;
     private List<ChatFile> imageList;
-   // private List<JSONObject> videoList;
+    private List<JSONObject> videoList;
     @JsonIgnore
     private Sinks.Many<ChatMessageVO> sink;
+    @JsonIgnore
+    private Boolean debug;
 }

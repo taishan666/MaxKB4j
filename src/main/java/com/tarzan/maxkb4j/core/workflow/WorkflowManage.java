@@ -39,13 +39,12 @@ public class WorkflowManage {
     private List<INode> nodes;
     private List<LfEdge> edges;
     private JSONObject context = new JSONObject();
-    private PostResponseHandler postResponseHandler;
     private String answer = "";
     private Sinks.Many<ChatMessageVO> sink;
     private ApplicationChatRecordVO chatRecord;
     private List<INode> nodeContext = new ArrayList<>();
 
-    public WorkflowManage(List<INode> nodes, List<LfEdge> edges,FlowParams flowParams,Sinks.Many<ChatMessageVO> sink, PostResponseHandler postResponseHandler,
+    public WorkflowManage(List<INode> nodes, List<LfEdge> edges, FlowParams flowParams, Sinks.Many<ChatMessageVO> sink,
                           Map<String, Object> globalData, List<ChatFile> imageList,
                           List<ChatFile> documentList, List<ChatFile> audioList, String startNodeId,
                           Map<String, Object> startNodeData, ApplicationChatRecordVO chatRecord) {
@@ -58,7 +57,7 @@ public class WorkflowManage {
         this.flowParams = flowParams;
         this.sink = sink;
        // this.flow = flow;
-        this.postResponseHandler = postResponseHandler;
+     //   this.postResponseHandler = postResponseHandler;
         this.chatRecord = chatRecord;
         if (startNodeId != null) {
             this.loadNode(chatRecord, startNodeId, startNodeData);
@@ -119,7 +118,8 @@ public class WorkflowManage {
                 true,true);
         sink.tryEmitNext(vo);
         long startTime= context.getLongValue("start_time");
-        postResponseHandler.handler(flowParams.getChatId(), flowParams.getChatRecordId(), flowParams.getQuestion(),answer,chatRecord,getRuntimeDetails(),startTime,flowParams.getClientId(),flowParams.getClientType());
+        boolean debug= context.getBooleanValue("debug");
+       // postResponseHandler.handler(flowParams.getChatId(), flowParams.getChatRecordId(), flowParams.getQuestion(),answer,chatRecord,getRuntimeDetails(),startTime,flowParams.getClientId(),flowParams.getClientType(),debug);
         return answer;
     }
 

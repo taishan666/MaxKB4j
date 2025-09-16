@@ -64,9 +64,8 @@ public class BaseChatStep extends IChatStep {
         List<ParagraphVO> paragraphList = (List<ParagraphVO>) context.get("paragraph_list");
         ApplicationVO application = (ApplicationVO) context.get("application");
         String problemText = context.getString("problem_text");
-        PostResponseHandler postResponseHandler = (PostResponseHandler) context.get("postResponseHandler");
         boolean stream = true;
-        return getFluxResult(chatId, paragraphList, problemText, application, manage, postResponseHandler, stream);
+        return getFluxResult(chatId, paragraphList, problemText, application, manage, stream);
     }
 
     private String getFluxResult(String chatId,
@@ -74,7 +73,6 @@ public class BaseChatStep extends IChatStep {
                                  String problemText,
                                  ApplicationVO application,
                                  PipelineManage manage,
-                                 PostResponseHandler postResponseHandler,
                                  boolean stream) {
         AtomicReference<String> answerText = new AtomicReference<>("");
         String chatRecordId = IdWorker.get32UUID();
@@ -110,8 +108,8 @@ public class BaseChatStep extends IChatStep {
                 answerText.set(value.replace("{question}", problemText));
                 sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, answerText.get(), true));
             } else {
-                String clientId = manage.context.getString("client_id");
-                String clientType = manage.context.getString("client_type");
+                String chatUserId = manage.context.getString("chat_user_id");
+                String chatUserType = manage.context.getString("chat_user_type");
                     int dialogueNumber = application.getDialogueNumber();
                     String systemText = application.getModelSetting().getSystem();
                     ChatMemory chatMemory = MyChatMemory.builder()
@@ -148,7 +146,7 @@ public class BaseChatStep extends IChatStep {
                                     context.put("message_list", chatMemory.messages());
                                     context.put("messageTokens", tokenUsage.inputTokenCount());
                                     context.put("answerTokens", tokenUsage.outputTokenCount());
-                                    addAccessNum(clientId, clientType);
+                                    addAccessNum(chatUserId, chatUserType);
                                     sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, "", true, tokenUsage.inputTokenCount(), tokenUsage.outputTokenCount()));
                                     futureChatResponse.complete(response);// 完成后释放线程
                                 })
@@ -160,7 +158,6 @@ public class BaseChatStep extends IChatStep {
                         futureChatResponse.join(); // 阻塞当前线程直到 futureChatResponse 完成
                     }
                 long startTime = manage.context.getLong("start_time");
-                postResponseHandler.handler(chatId, chatRecordId, problemText, answerText.get(), null, manage.getDetails(), startTime, clientId, clientType);
             }
         }
         return answerText.get();
