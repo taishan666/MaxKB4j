@@ -1,10 +1,8 @@
 package com.tarzan.maxkb4j.module.application.service;
 
 import com.alibaba.excel.EasyExcel;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
-import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tarzan.maxkb4j.core.exception.ApiException;
@@ -19,8 +17,10 @@ import com.tarzan.maxkb4j.module.application.chat.provider.IChatActuator;
 import com.tarzan.maxkb4j.module.application.domian.dto.ChatInfo;
 import com.tarzan.maxkb4j.module.application.domian.dto.ChatMessageDTO;
 import com.tarzan.maxkb4j.module.application.domian.dto.ChatQueryDTO;
-import com.tarzan.maxkb4j.module.application.domian.entity.*;
-import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationChatRecordVO;
+import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatEntity;
+import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatRecordEntity;
+import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationKnowledgeMappingEntity;
+import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationVersionEntity;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationVO;
 import com.tarzan.maxkb4j.module.application.domian.vo.ChatRecordDetailVO;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatMapper;
@@ -56,14 +56,14 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
         return baseMapper.chatLogs(chatPage,appId,query);
     }
 
-    public IPage<ApplicationChatEntity> clientChatPage(String appId,String clientId, int page, int size) {
+/*    public IPage<ApplicationChatEntity> clientChatPage(String appId,String clientId, int page, int size) {
         Page<ApplicationChatEntity> chatPage = new Page<>(page, size);
         LambdaQueryWrapper<ApplicationChatEntity> wrapper = Wrappers.lambdaQuery();
         wrapper.eq(ApplicationChatEntity::getApplicationId,appId);
         wrapper.eq(ApplicationChatEntity::getClientId, clientId);
         wrapper.orderByDesc(ApplicationChatEntity::getCreateTime);
         return this.page(chatPage, wrapper);
-    }
+    }*/
 
     public String chatOpenTest(String appId) {
         ApplicationVO application = applicationService.getDetail(appId);
@@ -130,16 +130,6 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
         dto.getSink().tryEmitComplete();
         return answer;
     }
-
-    public IPage<ApplicationChatRecordVO> chatRecordPage(String chatId, int page, int size) {
-        return chatRecordService.chatRecordPage(chatId, page, size);
-    }
-
-    public Boolean getChatRecordVote(String chatRecordId, ApplicationChatRecordEntity chatRecord) {
-        chatRecord.setId(chatRecordId);
-        return chatRecordService.updateById(chatRecord);
-    }
-
 
     public List<ChatFile> uploadFile(String id, String chatId, MultipartFile[] files) {
         List<ChatFile> fileList = new ArrayList<>();

@@ -18,7 +18,7 @@ import java.util.Date;
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
-@TableName(value = "application")
+@TableName(value = "application",autoResultMap = true)
 public class ApplicationEntity extends BaseEntity {
 
     private String name;

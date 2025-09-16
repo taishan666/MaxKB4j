@@ -1,1 +1,0 @@
-import{cp as c,d1 as t,cx as o,cy as p,cz as a,cH as e,dR as n,cB as _,dS as r,cV as i}from"./index-938a5085.js";const d={class:"app-layout"},x=c({__name:"AppLayout",setup(u){const{user:s}=t();return(l,m)=>(o(),p("div",d,[a(e(n)),_("div",{class:i(["app-main",e(s).isExpire()?"isExpire":""])},[a(e(r))],2)]))}});export{x as default};

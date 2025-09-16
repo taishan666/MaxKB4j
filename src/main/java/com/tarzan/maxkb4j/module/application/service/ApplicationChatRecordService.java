@@ -34,7 +34,7 @@ import java.util.*;
 @Service
 public class ApplicationChatRecordService extends ServiceImpl<ApplicationChatRecordMapper, ApplicationChatRecordEntity>{
 
-    private final ApplicationChatUserStatsService publicAccessClientService;
+    private final ApplicationChatUserStatsService chatUserStatsService;
     public ApplicationChatRecordVO getChatRecordInfo(ChatInfo chatInfo,String chatRecordId) {
         ApplicationChatRecordEntity  chatRecord=null;
         if(Objects.nonNull(chatInfo)&&!CollectionUtils.isEmpty(chatInfo.getChatRecordList())) {
@@ -78,8 +78,8 @@ public class ApplicationChatRecordService extends ServiceImpl<ApplicationChatRec
 
     // 定义日期格式
     static DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-    public IPage<ApplicationChatRecordVO> chatRecordPage(String chatId, int page, int size) {
-        Page<ApplicationChatRecordEntity> chatRecordpage = new Page<>(page, size);
+    public IPage<ApplicationChatRecordVO> chatRecordPage(String chatId, int current, int size) {
+        Page<ApplicationChatRecordEntity> chatRecordpage = new Page<>(current, size);
         LambdaQueryWrapper<ApplicationChatRecordEntity> wrapper = Wrappers.lambdaQuery();
         wrapper.eq(ApplicationChatRecordEntity::getChatId,chatId);
         IPage<ApplicationChatRecordEntity> chatRecordIpage=this.page(chatRecordpage, wrapper);
@@ -89,7 +89,7 @@ public class ApplicationChatRecordService extends ServiceImpl<ApplicationChatRec
     public List<ApplicationStatisticsVO> statistics(String appId, ChatQueryDTO query) {
         List<ApplicationStatisticsVO> result = new ArrayList<>();
         List<ApplicationStatisticsVO> list = baseMapper.statistics(appId, query);
-        List<ApplicationChatUserStatsVO> accessClientList = publicAccessClientService.statistics(appId, query);
+        List<ApplicationChatUserStatsVO> accessClientList = chatUserStatsService.statistics(appId, query);
         if (Objects.isNull(query.getStartTime())||Objects.isNull(query.getEndTime())){
             return result;
         }

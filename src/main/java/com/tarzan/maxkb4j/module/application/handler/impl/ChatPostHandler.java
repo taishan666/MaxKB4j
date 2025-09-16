@@ -21,14 +21,13 @@ import java.util.Objects;
 @Component
 public class ChatPostHandler extends PostResponseHandler {
 
-    private final ApplicationChatUserStatsService publicAccessClientService;
+    private final ApplicationChatUserStatsService chatUserStatsService;
     private final ApplicationChatMapper chatMapper;
     private final ApplicationChatRecordMapper chatRecordMapper;
- //   private final ChatMemoryStore chatMemoryStore;
 
 
     @Override
-    public void handler(String chatId, String chatRecordId, String problemText, String answerText, ApplicationChatRecordEntity chatRecord, JSONObject details,long startTime, String clientId, String clientType) {
+    public void handler(String chatId, String chatRecordId, String problemText, String answerText, ApplicationChatRecordEntity chatRecord, JSONObject details,long startTime, String chatUserId, String chatUserType) {
         ChatInfo chatInfo = ChatCache.get(chatId);
         int messageTokens = details.values().stream()
                 .map(row -> (JSONObject) row)
@@ -65,21 +64,15 @@ public class ChatPostHandler extends PostResponseHandler {
             chatRecord.setImproveParagraphIdList(List.of());
         }
         chatInfo.addChatRecord(chatRecord);
-   /*     List<ChatMessage> messages=new ArrayList<>();
-        chatInfo.getChatRecordList().forEach(record -> {
-            messages.add(UserMessage.from(problemText));
-            messages.add(AiMessage.from(answerText));
-        });*/
-       // System.err.println("chatMemory:" + chatId+"  messages size"+ messages.size());
         // 重新设置缓存
         ChatCache.put(chatId, chatInfo);
        // chatMemoryStore.updateMessages(chatId, messages);
-        if (clientType!=null&&clientType.equals(AuthType.ACCESS_TOKEN.name())) {
-            ApplicationChatUserStatsEntity applicationPublicAccessClient = publicAccessClientService.getById(clientId);
+        if (AuthType.ACCESS_TOKEN.name().equals(chatUserType)) {
+            ApplicationChatUserStatsEntity applicationPublicAccessClient = chatUserStatsService.getById(chatUserId);
             if (applicationPublicAccessClient != null) {
                 applicationPublicAccessClient.setAccessNum(applicationPublicAccessClient.getAccessNum() + 1);
                 applicationPublicAccessClient.setIntraDayAccessNum(applicationPublicAccessClient.getIntraDayAccessNum() + 1);
-                publicAccessClientService.updateById(applicationPublicAccessClient);
+                chatUserStatsService.updateById(applicationPublicAccessClient);
             }
             String appId = chatInfo.getApplication().getId();
             if (Objects.nonNull(appId)) {
@@ -88,8 +81,9 @@ public class ChatPostHandler extends PostResponseHandler {
                     chatEntity.setId(chatId);
                     chatEntity.setApplicationId(appId);
                     String problemOverview=problemText.length()>50?problemText.substring(0,50):problemText;
-                    chatEntity.setOverview(problemOverview);
-                    chatEntity.setClientId(clientId);
+                    chatEntity.setSummary(problemOverview);
+                    chatEntity.setChatUserId(chatUserId);
+                    chatEntity.setChatUserType(chatUserType);
                     chatEntity.setIsDeleted(false);
                     chatMapper.insertOrUpdate(chatEntity);
                 }

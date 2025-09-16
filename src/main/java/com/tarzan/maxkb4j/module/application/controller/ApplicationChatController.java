@@ -8,8 +8,6 @@ import com.tarzan.maxkb4j.core.workflow.domain.ChatFile;
 import com.tarzan.maxkb4j.module.application.domian.dto.ChatMessageDTO;
 import com.tarzan.maxkb4j.module.application.domian.dto.ChatQueryDTO;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatEntity;
-import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatRecordEntity;
-import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationChatRecordVO;
 import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
 import com.tarzan.maxkb4j.module.application.service.ApplicationChatService;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -41,11 +39,11 @@ public class ApplicationChatController {
         this.chatTaskExecutor = chatTaskExecutor;
     }
 
-    @GetMapping("/{appId}/chat/client/{page}/{size}")
+/*    @GetMapping("/{appId}/chat/client/{page}/{size}")
     public R<IPage<ApplicationChatEntity>> clientChatPage(@PathVariable("appId") String appId, @PathVariable("page") int page, @PathVariable("size") int size) {
         String clientId = (String) StpUtil.getExtra("client_id");
         return R.success(chatService.clientChatPage(appId, clientId, page, size));
-    }
+    }*/
 
     @PutMapping("/{appId}/chat/client/{chatId}")
     public R<Boolean> updateChat(@PathVariable("appId") String appId, @PathVariable("chatId") String chatId, @RequestBody ApplicationChatEntity chatEntity) {
@@ -93,20 +91,13 @@ public class ApplicationChatController {
         return sink.asFlux();
     }
 
-    @PutMapping("/{id}/chat/{chatId}/chat_record/{chatRecordId}/vote")
-    public R<Boolean> vote(@PathVariable String id, @PathVariable String chatId, @PathVariable String chatRecordId, @RequestBody ApplicationChatRecordEntity chatRecord) {
-        return R.success(chatService.getChatRecordVote(chatRecordId, chatRecord));
-    }
+
 
     @PostMapping("/{id}/chat/{chatId}/upload_file")
     public R<List<ChatFile>> uploadFile(@PathVariable String id, @PathVariable String chatId, MultipartFile[] file) {
         return R.success(chatService.uploadFile(id, chatId, file));
     }
 
-    @GetMapping("/{id}/chat/{chatId}/chat_record/{page}/{size}")
-    public R<IPage<ApplicationChatRecordVO>> chatRecordPage(@PathVariable String id, @PathVariable String chatId, @PathVariable int page, @PathVariable int size) {
-        return R.success(chatService.chatRecordPage(chatId, page, size));
-    }
 
     @GetMapping("/{appId}/chat/{page}/{size}")
     public R<IPage<ApplicationChatEntity>> chatLogs(@PathVariable("appId") String appId, @PathVariable("page") int page, @PathVariable("size") int size, ChatQueryDTO query) {
