@@ -14,7 +14,6 @@ import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatEntity
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatRecordEntity;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationEntity;
 import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
-import com.tarzan.maxkb4j.module.application.enums.AuthType;
 import com.tarzan.maxkb4j.module.application.service.ApplicationAccessTokenService;
 import com.tarzan.maxkb4j.module.application.service.ApplicationChatRecordService;
 import com.tarzan.maxkb4j.module.application.service.ApplicationChatService;
@@ -67,8 +66,8 @@ public class ChatApiController {
         loginModel.setExtra("chat_user_id", "123456789");
         loginModel.setExtra("chat_user_type", "ANONYMOUS_USER");
         loginModel.setExtra("application_id", accessToken.getApplicationId());
-        loginModel.setExtra(AuthType.ACCESS_TOKEN.name(), accessToken);
-        loginModel.setDevice(AuthType.ACCESS_TOKEN.name());
+       // loginModel.setExtra(AuthType.ACCESS_TOKEN.name(), accessToken);
+      //  loginModel.setDevice(AuthType.ACCESS_TOKEN.name());
         StpUtil.login("123456789", loginModel);
         return R.success(StpUtil.getTokenValue());
     }

@@ -63,10 +63,10 @@ public class ApplicationController {
         return R.status(applicationService.appImport(file));
     }
 
-    @PostMapping("/application/authentication")
+/*    @PostMapping("/application/authentication")
     public R<String> authentication(@RequestBody JSONObject params) throws Exception {
         return R.success(applicationService.authentication(params));
-    }
+    }*/
 
     @GetMapping("/application/{id}/hit_test")
     public R<List<ParagraphVO>> hitTest(@PathVariable("id") String id, DataSearchDTO dto) {
@@ -82,6 +82,7 @@ public class ApplicationController {
    // @SaCheckPermission("APPLICATION:READ")
     @GetMapping("/application/profile")
     public R<JSONObject> appProfile() {
+        System.out.println("appProfile......");
         return R.success(applicationService.appProfile());
     }
 
