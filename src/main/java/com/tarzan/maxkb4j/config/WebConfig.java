@@ -42,20 +42,20 @@ public class WebConfig implements WebMvcConfigurer {
      * 注册sa-token的拦截器
      */
     @Override
-    public void addInterceptors(InterceptorRegistry registry) {
+    public void addInterceptors(@NotNull InterceptorRegistry registry) {
         // 拦截聊天所有请求
        // registry.addInterceptor(new AuthInterceptor()).addPathPatterns("/api/application/chat/**");
     }
 
 
-    @Override
+/*    @Override
     public void addViewControllers(@NotNull ViewControllerRegistry registry) {
         registry.addViewController("/{path:[^.]*}").setViewName("forward:/index.html");
         registry.addViewController("/{path:[^.]*}/{path1:[^.]*}").setViewName("forward:/index.html");
         registry.addViewController("/{path:[^.]*}/{path1:[^.]*}/{path2:[^.]*}").setViewName("forward:/index.html");
         registry.addViewController("/{path:[^.]*}/{path1:[^.]*}/{path2:[^.]*}/{path3:[^.]*}").setViewName("forward:/index.html");
         registry.addViewController("/{path:[^.]*}/{path1:[^.]*}/{path2:[^.]*}/{path3:[^.]*}/{path4:[^.]*}").setViewName("forward:/index.html");
-    }
+    }*/
 
 
    /*  *//**
