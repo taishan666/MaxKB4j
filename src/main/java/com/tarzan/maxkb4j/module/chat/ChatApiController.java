@@ -77,11 +77,11 @@ public class ChatApiController {
     @PostMapping(path = "/chat_message/{chatId}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<ChatMessageVO> chatMessage(@PathVariable String chatId, @RequestBody ChatMessageDTO params) {
         Sinks.Many<ChatMessageVO> sink = Sinks.many().multicast().onBackpressureBuffer();
-        String clientId = (String) StpUtil.getExtra("chat_user_id");
-        String clientType = (String) StpUtil.getExtra("chat_user_type");
+        String chatUserId = StpUtil.getLoginIdAsString();
+        String chatUserType = (String) StpUtil.getExtra("chat_user_type");
         params.setChatId(chatId);
-        params.setClientId(clientId);
-        params.setClientType(clientType);
+        params.setClientId(chatUserId);
+        params.setClientType(chatUserType);
         params.setSink(sink);
         // 异步执行业务逻辑
         chatTaskExecutor.execute(() -> chatService.chatMessage(params));
