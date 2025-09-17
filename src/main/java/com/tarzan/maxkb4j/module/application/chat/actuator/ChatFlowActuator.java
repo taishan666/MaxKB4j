@@ -95,13 +95,13 @@ public class ChatFlowActuator extends ChatBaseActuator {
         flowParams.setClientId(dto.getClientId());
         flowParams.setClientType(dto.getClientType());
         flowParams.setStream(dto.getStream() == null || dto.getStream());
-        flowParams.setHistoryChatRecord(chatInfo.getChatRecordList());//添加历史记录
+       // flowParams.setHistoryChatRecord(chatInfo.getChatRecordList());//添加历史记录
         WorkflowManage workflowManage = new WorkflowManage(
                 chatInfo.getNodes(),
                 chatInfo.getEdges(),
                 flowParams,
                 dto.getSink(),
-                dto.getGlobalData(),
+              //  dto.getGlobalData(),
                 dto.getImageList(),
                 dto.getDocumentList(),
                 dto.getAudioList(),

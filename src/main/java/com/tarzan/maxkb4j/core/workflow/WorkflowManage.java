@@ -29,10 +29,11 @@ import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.USER_SELECT;
 @Data
 public class WorkflowManage {
     private INode startNode;
-    private Map<String, Object> globalData;
+   // private Map<String, Object> globalData;
     private List<ChatFile> imageList;
     private List<ChatFile> documentList;
     private List<ChatFile> audioList;
+    private List<ChatFile> otherList;
     private FlowParams flowParams;
     private List<INode> nodes;
     private List<LfEdge> edges;
@@ -42,13 +43,12 @@ public class WorkflowManage {
     private ApplicationChatRecordEntity chatRecord;
     private List<INode> nodeContext = new ArrayList<>();
 
-    public WorkflowManage(List<INode> nodes, List<LfEdge> edges, FlowParams flowParams, Sinks.Many<ChatMessageVO> sink,
-                          Map<String, Object> globalData, List<ChatFile> imageList,
+    public WorkflowManage(List<INode> nodes, List<LfEdge> edges, FlowParams flowParams, Sinks.Many<ChatMessageVO> sink, List<ChatFile> imageList,
                           List<ChatFile> documentList, List<ChatFile> audioList, String startNodeId,
                           Map<String, Object> startNodeData, ApplicationChatRecordEntity chatRecord) {
         this.nodes = nodes;
         this.edges = edges;
-        this.globalData = globalData;
+      //  this.globalData = globalData;
         this.imageList = Objects.requireNonNullElseGet(imageList, ArrayList::new);
         this.documentList = Objects.requireNonNullElseGet(documentList, ArrayList::new);
         this.audioList = Objects.requireNonNullElseGet(audioList, ArrayList::new);
@@ -64,8 +64,6 @@ public class WorkflowManage {
 
 
     public void loadNode(ApplicationChatRecordEntity chatRecord, String startNodeId, Map<String, Object> startNodeData) {
-        nodeContext.clear();
-       // this.answer = chatRecord.getAnswerText();
         List<JSONObject> sortedDetails = chatRecord.getDetails().values().stream()
                 .map(row -> (JSONObject) row)
                 .sorted(Comparator.comparingInt(e -> e.getIntValue("index")))

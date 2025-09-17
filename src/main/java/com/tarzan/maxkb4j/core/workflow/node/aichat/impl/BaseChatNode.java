@@ -38,7 +38,7 @@ public class BaseChatNode extends INode {
     private final ToolUtil toolUtil;
 
 
-    public BaseChatNode(JSONObject  properties) {
+    public BaseChatNode(JSONObject properties) {
         super(properties);
         this.type = AI_CHAT.getKey();
         this.modelService = SpringUtil.getBean(ModelService.class);
@@ -52,7 +52,8 @@ public class BaseChatNode extends INode {
         System.out.println(AI_CHAT);
         ChatNodeParams nodeParams = super.nodeParams.toJavaObject(ChatNodeParams.class);
         BaseChatModel chatModel = modelService.getModelById(nodeParams.getModelId(), nodeParams.getModelParamsSetting());
-        List<ChatMessage> historyContext = workflowManage.getHistoryMessage(flowParams.getHistoryChatRecord(), nodeParams.getDialogueNumber(), nodeParams.getDialogueType(), runtimeNodeId);
+        //   List<ChatMessage> historyContext = workflowManage.getHistoryMessage(flowParams.getHistoryChatRecord(), nodeParams.getDialogueNumber(), nodeParams.getDialogueType(), runtimeNodeId);
+        List<ChatMessage> historyContext = new ArrayList<>();
         String problemText = workflowManage.generatePrompt(nodeParams.getPrompt());
         String systemPrompt = workflowManage.generatePrompt(nodeParams.getSystem());
         String system = StringUtil.isBlank(systemPrompt) ? "You're an intelligent assistant." : systemPrompt;
@@ -63,10 +64,10 @@ public class BaseChatNode extends INode {
                 .chatMemoryStore(chatMemoryStore)
                 .build();
         List<String> toolIds = new ArrayList<>();
-        if (CollectionUtils.isNotEmpty(nodeParams.getToolIds())&&nodeParams.getToolEnable()){
+        if (CollectionUtils.isNotEmpty(nodeParams.getToolIds()) && nodeParams.getToolEnable()) {
             toolIds.addAll(nodeParams.getToolIds());
         }
-        if (StringUtil.isNotBlank(nodeParams.getMcpToolId())&&nodeParams.getMcpEnable()){
+        if (StringUtil.isNotBlank(nodeParams.getMcpToolId()) && nodeParams.getMcpEnable()) {
             toolIds.add(nodeParams.getMcpToolId());
         }
         Assistant assistant = MyAiServices.builder(Assistant.class)
@@ -84,7 +85,7 @@ public class BaseChatNode extends INode {
                 "history_message", historyContext,
                 "question", flowParams.getQuestion()
         );
-        return new NodeResult(nodeVariable, Map.of(),this::writeContextStream);
+        return new NodeResult(nodeVariable, Map.of(), this::writeContextStream);
     }
 
     private void writeContextStream(Map<String, Object> nodeVariable, Map<String, Object> globalVariable, INode node, WorkflowManage workflow) {
@@ -93,7 +94,7 @@ public class BaseChatNode extends INode {
             TokenStream tokenStream = (TokenStream) nodeVariable.get("result");
             CompletableFuture<ChatResponse> futureChatResponse = new CompletableFuture<>();
             boolean isResult = workflow.isResult(node, new NodeResult(nodeVariable, globalVariable));
-            tokenStream.onPartialThinking(thinking->{
+            tokenStream.onPartialThinking(thinking -> {
                         if (isResult) {
                             ChatMessageVO vo = new ChatMessageVO(
                                     flowParams.getChatId(),
@@ -151,7 +152,7 @@ public class BaseChatNode extends INode {
             futureChatResponse.join(); // 阻塞当前线程直到 futureChatResponse 完成
         }
         if (context.containsKey("start_time")) {
-            long runTime = System.currentTimeMillis() - (long)context.get("start_time");
+            long runTime = System.currentTimeMillis() - (long) context.get("start_time");
             context.put("runTime", runTime / 1000F);
         }
     }

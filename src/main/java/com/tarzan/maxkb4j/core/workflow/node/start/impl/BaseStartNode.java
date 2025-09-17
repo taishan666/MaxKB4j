@@ -2,6 +2,7 @@ package com.tarzan.maxkb4j.core.workflow.node.start.impl;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.NodeResult;
 import com.tarzan.maxkb4j.core.workflow.WorkflowManage;
@@ -38,14 +39,15 @@ public class BaseStartNode extends INode {
                 "question", flowParams.getQuestion(),
                 "image", workflowManage.getImageList(),
                 "document", workflowManage.getDocumentList(),
-                "audio", workflowManage.getAudioList()
+                "audio", workflowManage.getAudioList(),
+                "other", workflowManage.getOtherList()
         );
         return new NodeResult(nodeVariable, workflowVariable);
     }
 
     public Map<String, Object> getGlobalVariable(FlowParams workflowParams, WorkflowManage workflowManage) {
         // 获取历史聊天记录
-        List<ApplicationChatRecordEntity> historyChatRecord = workflowParams.getHistoryChatRecord();
+        List<ApplicationChatRecordEntity> historyChatRecord = new ArrayList<>();
         List<ChatRecordSimple> historyContext = new ArrayList<>();
         for (ApplicationChatRecordEntity chatRecord : historyChatRecord) {
             ChatRecordSimple record = new ChatRecordSimple();
@@ -60,10 +62,8 @@ public class BaseStartNode extends INode {
         resultMap.put("time", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
         resultMap.put("history_context", JSONArray.parseArray(JSONObject.toJSONString(historyContext)));
         resultMap.put("chatId", chatId);
-        // 合并node.workflow_manage.globalData
-        if (workflowManage != null && workflowManage.getGlobalData() != null) {
-            resultMap.putAll(workflowManage.getGlobalData());
-        }
+        resultMap.put("chat_user_id", IdWorker.get32UUID());
+        resultMap.put("chat_user_type", "ANONYMOUS_USER");
         return resultMap;
     }
 

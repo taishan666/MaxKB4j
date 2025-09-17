@@ -1,19 +1,15 @@
 package com.tarzan.maxkb4j.core.workflow.domain;
 
-import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatRecordEntity;
 import lombok.Data;
 
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
-import java.util.ArrayList;
-import java.util.List;
 
 @Data
 public class FlowParams {
 
-    @NotEmpty(message = "历史对答不能为空")
-    private List<ApplicationChatRecordEntity> historyChatRecord=new ArrayList<>();
+/*    @NotEmpty(message = "历史对答不能为空")
+    private List<ApplicationChatRecordEntity> historyChatRecord=new ArrayList<>();*/
 
     @NotBlank(message = "用户问题不能为空")
     private String question;

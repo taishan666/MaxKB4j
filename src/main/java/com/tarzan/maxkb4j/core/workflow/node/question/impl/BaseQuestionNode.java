@@ -40,7 +40,8 @@ public class BaseQuestionNode extends INode {
             nodeParams.setModelParamsSetting(getDefaultModelParamsSetting(nodeParams.getModelId()));
         }
         BaseChatModel chatModel = modelService.getModelById(nodeParams.getModelId(), nodeParams.getModelParamsSetting());
-        List<ChatMessage> historyMessage = getHistoryMessage(super.flowParams.getHistoryChatRecord(), nodeParams.getDialogueNumber());
+       // List<ChatMessage> historyMessage = getHistoryMessage(super.flowParams.getHistoryChatRecord(), nodeParams.getDialogueNumber());
+        List<ChatMessage> historyMessage = new ArrayList<>();
         UserMessage question = super.workflowManage.generatePromptQuestion(nodeParams.getPrompt());
         String system = workflowManage.generatePrompt(nodeParams.getSystem());
         List<ChatMessage> messageList =  super.workflowManage.generateMessageList(system, question, historyMessage);
