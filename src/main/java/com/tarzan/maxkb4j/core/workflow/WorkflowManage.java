@@ -8,7 +8,6 @@ import com.tarzan.maxkb4j.core.workflow.logic.LfEdge;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatRecordEntity;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationChatRecordVO;
 import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
-import com.tarzan.maxkb4j.module.application.handler.PostResponseHandler;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.SystemMessage;
@@ -56,7 +55,6 @@ public class WorkflowManage {
         this.audioList = Objects.requireNonNullElseGet(audioList, ArrayList::new);
         this.flowParams = flowParams;
         this.sink = sink;
-       // this.flow = flow;
      //   this.postResponseHandler = postResponseHandler;
         this.chatRecord = chatRecord;
         if (startNodeId != null) {
@@ -69,7 +67,7 @@ public class WorkflowManage {
 
     public void loadNode(ApplicationChatRecordEntity chatRecord, String startNodeId, Map<String, Object> startNodeData) {
         nodeContext.clear();
-        this.answer = chatRecord.getAnswerText();
+       // this.answer = chatRecord.getAnswerText();
         List<JSONObject> sortedDetails = chatRecord.getDetails().values().stream()
                 .map(row -> (JSONObject) row)
                 .sorted(Comparator.comparingInt(e -> e.getIntValue("index")))

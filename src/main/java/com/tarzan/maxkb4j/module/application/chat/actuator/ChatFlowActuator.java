@@ -109,7 +109,7 @@ public class ChatFlowActuator extends ChatBaseActuator {
                 chatRecord);
         String answer=workflowManage.run();
         JSONObject details= workflowManage.getRuntimeDetails();
-        postResponseHandler.handler(dto.getChatId(), dto.getChatRecordId(), dto.getMessage(),answer,chatRecord,details,startTime,flowParams.getClientId(),flowParams.getClientType(),false);
+        postResponseHandler.handler(flowParams.getChatId(), flowParams.getChatRecordId(), flowParams.getQuestion(),answer,chatRecord,details,startTime,flowParams.getClientId(),flowParams.getClientType(),true);
         return answer;
     }
 

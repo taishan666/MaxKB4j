@@ -7,10 +7,12 @@ import com.tarzan.maxkb4j.module.application.domian.dto.ChatInfo;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatEntity;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatRecordEntity;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatUserStatsEntity;
+import com.tarzan.maxkb4j.module.application.enums.ChatUserType;
 import com.tarzan.maxkb4j.module.application.handler.PostResponseHandler;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatMapper;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatRecordMapper;
 import com.tarzan.maxkb4j.module.application.service.ApplicationChatUserStatsService;
+import com.tarzan.maxkb4j.util.StringUtil;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -40,6 +42,7 @@ public class ChatPostHandler extends PostResponseHandler {
                 .filter(row -> row.containsKey("answerTokens") && row.get("answerTokens") != null)
                 .mapToInt(row -> row.getIntValue("answerTokens"))
                 .sum();
+        float runTime = (System.currentTimeMillis() - startTime) / 1000F;
         if (chatRecord != null) {
             chatRecord.setAnswerText(answerText);
             chatRecord.setDetails(new JSONObject(details));
@@ -47,7 +50,7 @@ public class ChatPostHandler extends PostResponseHandler {
             chatRecord.setAnswerTokens(answerTokens);
             chatRecord.setCost(messageTokens+answerTokens);
             chatRecord.setAnswerTextList(List.of(answerText));
-            chatRecord.setRunTime((System.currentTimeMillis() - startTime) / 1000F);
+            chatRecord.setRunTime(runTime+chatRecord.getRunTime());
         } else {
             chatRecord = new ApplicationChatRecordEntity();
             chatRecord.setId(chatRecordId);
@@ -58,7 +61,7 @@ public class ChatPostHandler extends PostResponseHandler {
             chatRecord.setIndex(chatInfo.getChatRecordList().size() + 1);
             chatRecord.setMessageTokens(messageTokens);
             chatRecord.setAnswerTokens(answerTokens);
-            chatRecord.setRunTime((System.currentTimeMillis() - startTime) / 1000F);
+            chatRecord.setRunTime(runTime);
             chatRecord.setVoteStatus("-1");
             chatRecord.setCost(messageTokens+answerTokens);
             chatRecord.setDetails(details);
@@ -84,7 +87,7 @@ public class ChatPostHandler extends PostResponseHandler {
                 String problemOverview=problemText.length()>50?problemText.substring(0,50):problemText;
                 chatEntity.setSummary(problemOverview);
                 chatEntity.setChatUserId(chatUserId);
-                chatEntity.setChatUserType(chatUserType);
+                chatEntity.setChatUserType(StringUtil.isBlank(chatUserType)? ChatUserType.CHAT_USER.name() :chatUserType);
                 chatEntity.setIsDeleted(false);
                 chatEntity.setAsker(new JSONObject(Map.of("username","游客")));
                 chatEntity.setMeta(new JSONObject());

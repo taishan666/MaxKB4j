@@ -51,7 +51,7 @@ public class ChatSimpleActuator extends ChatBaseActuator {
     public String chatOpenTest(ApplicationVO application) {
         ChatInfo chatInfo = new ChatInfo();
         chatInfo.setChatId(IdWorker.get32UUID());
-        application.setId(null); // 清空id,为了区分是否是测试对话
+        //application.setId(null); // 清空id,为了区分是否是测试对话
         chatInfo.setApplication(application);
         ChatCache.put(chatInfo.getChatId(), chatInfo);
         return chatInfo.getChatId();
@@ -70,6 +70,7 @@ public class ChatSimpleActuator extends ChatBaseActuator {
 
     @Override
     public String chatMessage(ChatInfo chatInfo,ChatMessageDTO dto) {
+        dto.setChatRecordId(dto.getChatRecordId() == null ? IdWorker.get32UUID() : dto.getChatRecordId());
         long startTime = System.currentTimeMillis();
         chatCheck(chatInfo,dto);
         String modelId = chatInfo.getApplication().getModelId();
