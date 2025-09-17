@@ -10,5 +10,5 @@ public interface IChatActuator {
 
     String chatOpen(ApplicationVO application, String chatId);
 
-    String chatMessage(ChatInfo chatInfo,ChatMessageDTO dto);
+    String chatMessage(ChatMessageDTO dto);
 }

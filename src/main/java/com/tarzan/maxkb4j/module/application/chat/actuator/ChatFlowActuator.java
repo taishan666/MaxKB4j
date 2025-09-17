@@ -78,8 +78,9 @@ public class ChatFlowActuator extends ChatBaseActuator {
     }
 
     @Override
-    public String chatMessage(ChatInfo chatInfo,ChatMessageDTO dto) {
+    public String chatMessage(ChatMessageDTO dto) {
         long startTime = System.currentTimeMillis();
+        ChatInfo chatInfo = getChatInfo(dto.getChatId());
         chatCheck(chatInfo,dto);
         ApplicationChatRecordVO chatRecord = null;
         String chatRecordId = dto.getChatRecordId();
@@ -109,7 +110,7 @@ public class ChatFlowActuator extends ChatBaseActuator {
                 chatRecord);
         String answer=workflowManage.run();
         JSONObject details= workflowManage.getRuntimeDetails();
-        postResponseHandler.handler(flowParams.getChatId(), flowParams.getChatRecordId(), flowParams.getQuestion(),answer,chatRecord,details,startTime,flowParams.getClientId(),flowParams.getClientType(),true);
+        postResponseHandler.handler(flowParams.getChatId(), flowParams.getChatRecordId(), flowParams.getQuestion(),answer,chatRecord,details,startTime,flowParams.getClientId(),flowParams.getClientType(),dto.isDebug());
         return answer;
     }
 

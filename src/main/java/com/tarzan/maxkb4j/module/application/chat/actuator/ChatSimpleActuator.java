@@ -69,9 +69,10 @@ public class ChatSimpleActuator extends ChatBaseActuator {
     }
 
     @Override
-    public String chatMessage(ChatInfo chatInfo,ChatMessageDTO dto) {
-        dto.setChatRecordId(dto.getChatRecordId() == null ? IdWorker.get32UUID() : dto.getChatRecordId());
+    public String chatMessage(ChatMessageDTO dto) {
         long startTime = System.currentTimeMillis();
+        dto.setChatRecordId(dto.getChatRecordId() == null ? IdWorker.get32UUID() : dto.getChatRecordId());
+        ChatInfo chatInfo = getChatInfo(dto.getChatId());
         chatCheck(chatInfo,dto);
         String modelId = chatInfo.getApplication().getModelId();
         ModelEntity model = modelService.getById(modelId);
@@ -106,7 +107,7 @@ public class ChatSimpleActuator extends ChatBaseActuator {
         Map<String, Object> params = chatInfo.toPipelineManageParams(problemText, excludeParagraphIds, dto.getClientId(), dto.getClientType(), stream);
         String answer =  pipelineManage.run(params,dto.getSink());
         JSONObject details=pipelineManage.getDetails();
-        postResponseHandler.handler(dto.getChatId(), dto.getChatRecordId(), problemText, answer, null,details, startTime, dto.getClientId(), dto.getClientType(),true);
+        postResponseHandler.handler(dto.getChatId(), dto.getChatRecordId(), problemText, answer, null,details, startTime, dto.getClientId(), dto.getClientType(),dto.isDebug());
         return answer;
     }
 

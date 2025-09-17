@@ -38,6 +38,7 @@ public class ChatMessageController {
         params.setClientId(chatUserId);
         params.setClientType(chatUserType);
         params.setSink(sink);
+        params.setDebug(true);
         // 异步执行业务逻辑
         chatTaskExecutor.execute(() -> chatService.chatMessage(params));
         return sink.asFlux();

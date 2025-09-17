@@ -128,7 +128,7 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
         }
         String appType=chatInfo.getApplication().getType();
         IChatActuator chatActuator= ChatActuatorBuilder.getActuator(appType);
-        String answer = chatActuator.chatMessage(chatInfo,dto);
+        String answer = chatActuator.chatMessage(dto);
         dto.getSink().tryEmitComplete();
         return answer;
     }

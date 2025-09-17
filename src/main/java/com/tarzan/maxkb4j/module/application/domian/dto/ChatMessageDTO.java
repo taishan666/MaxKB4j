@@ -16,8 +16,6 @@ public class ChatMessageDTO {
     private String message;
     private String chatId;
     private String chatRecordId;
-    private String clientId;
-    private String clientType;
     private Boolean stream;
     private Boolean reChat;
     private JSONObject globalData;
@@ -27,8 +25,10 @@ public class ChatMessageDTO {
     private List<ChatFile> documentList;
     private List<ChatFile> imageList;
     private List<JSONObject> videoList;
+    private String clientId;
+    private String clientType;
     @JsonIgnore
     private Sinks.Many<ChatMessageVO> sink;
     @JsonIgnore
-    private Boolean debug;
+    private boolean debug;
 }
