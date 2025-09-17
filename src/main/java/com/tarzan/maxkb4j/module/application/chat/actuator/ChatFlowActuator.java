@@ -13,8 +13,8 @@ import com.tarzan.maxkb4j.module.application.chat.base.ChatBaseActuator;
 import com.tarzan.maxkb4j.module.application.domian.dto.ChatInfo;
 import com.tarzan.maxkb4j.module.application.domian.dto.ChatMessageDTO;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatEntity;
+import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatRecordEntity;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationVersionEntity;
-import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationChatRecordVO;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationVO;
 import com.tarzan.maxkb4j.module.application.handler.PostResponseHandler;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatMapper;
@@ -82,10 +82,10 @@ public class ChatFlowActuator extends ChatBaseActuator {
         long startTime = System.currentTimeMillis();
         ChatInfo chatInfo = getChatInfo(dto.getChatId());
         chatCheck(chatInfo,dto);
-        ApplicationChatRecordVO chatRecord = null;
+        ApplicationChatRecordEntity chatRecord = null;
         String chatRecordId = dto.getChatRecordId();
         if(StringUtils.isNotBlank(chatRecordId)){
-            chatRecord = chatRecordService.getChatRecordInfo(chatInfo, chatRecordId);
+            chatRecord = chatRecordService.getChatRecordEntity(chatInfo, chatRecordId);
         }
         FlowParams flowParams = new FlowParams();
         flowParams.setChatId(chatInfo.getChatId());

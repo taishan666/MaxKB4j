@@ -35,7 +35,9 @@ import java.util.*;
 public class ApplicationChatRecordService extends ServiceImpl<ApplicationChatRecordMapper, ApplicationChatRecordEntity>{
 
     private final ApplicationChatUserStatsService chatUserStatsService;
-    public ApplicationChatRecordVO getChatRecordInfo(ChatInfo chatInfo,String chatRecordId) {
+
+
+    public ApplicationChatRecordEntity getChatRecordEntity(ChatInfo chatInfo,String chatRecordId) {
         ApplicationChatRecordEntity  chatRecord=null;
         if(Objects.nonNull(chatInfo)&&!CollectionUtils.isEmpty(chatInfo.getChatRecordList())) {
             chatRecord = chatInfo.getChatRecordList().stream()
@@ -46,6 +48,11 @@ public class ApplicationChatRecordService extends ServiceImpl<ApplicationChatRec
         if(Objects.isNull(chatRecord)){
             chatRecord=this.getById(chatRecordId);
         }
+        return chatRecord;
+    }
+
+    public ApplicationChatRecordVO getChatRecordInfo(ChatInfo chatInfo,String chatRecordId) {
+        ApplicationChatRecordEntity  chatRecord=getChatRecordEntity(chatInfo,chatRecordId);
         return convert(chatRecord);
     }
 

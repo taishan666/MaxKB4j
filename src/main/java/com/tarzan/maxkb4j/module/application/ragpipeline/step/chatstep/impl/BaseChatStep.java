@@ -2,7 +2,6 @@ package com.tarzan.maxkb4j.module.application.ragpipeline.step.chatstep.impl;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.tarzan.maxkb4j.core.assistant.Assistant;
 import com.tarzan.maxkb4j.core.langchain4j.MyChatMemory;
 import com.tarzan.maxkb4j.core.langchain4j.MyContentRetriever;
@@ -11,7 +10,6 @@ import com.tarzan.maxkb4j.module.application.domian.entity.DatasetSetting;
 import com.tarzan.maxkb4j.module.application.domian.entity.NoReferencesSetting;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationVO;
 import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
-import com.tarzan.maxkb4j.module.application.handler.PostResponseHandler;
 import com.tarzan.maxkb4j.module.application.ragpipeline.PipelineManage;
 import com.tarzan.maxkb4j.module.application.ragpipeline.step.chatstep.IChatStep;
 import com.tarzan.maxkb4j.module.application.service.ApplicationChatUserStatsService;
@@ -75,7 +73,7 @@ public class BaseChatStep extends IChatStep {
                                  PipelineManage manage,
                                  boolean stream) {
         AtomicReference<String> answerText = new AtomicReference<>("");
-        String chatRecordId = IdWorker.get32UUID();
+        String chatRecordId =manage.context.getString("chatRecordId");
         Sinks.Many<ChatMessageVO> sink = manage.sink;
         if (CollectionUtils.isEmpty(paragraphList)) {
             paragraphList = new ArrayList<>();
