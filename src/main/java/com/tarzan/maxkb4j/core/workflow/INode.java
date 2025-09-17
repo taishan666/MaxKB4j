@@ -2,7 +2,6 @@ package com.tarzan.maxkb4j.core.workflow;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.tarzan.maxkb4j.core.workflow.domain.FlowParams;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.SystemMessage;
@@ -25,7 +24,7 @@ public abstract class INode {
     protected String type;
     protected JSONObject properties;
     protected JSONObject nodeParams;
-    protected FlowParams flowParams;
+   // protected FlowParams flowParams;
     protected WorkflowManage workflowManage;
     protected Map<String, Object> context;
     protected String answerText;
@@ -42,11 +41,11 @@ public abstract class INode {
         this.runtimeNodeId= generateRuntimeNodeId();
     }
 
-    public void setWorkflowManage(WorkflowManage workflowManage) {
+  /*  public void setWorkflowManage(WorkflowManage workflowManage) {
         this.workflowManage = workflowManage;
-        this.flowParams = workflowManage.getFlowParams();
+      //  this.flowParams = workflowManage.getFlowParams();
         //this.sink = workflowManage.getSink();
-    }
+    }*/
 
 
     public void setLastNodeIdList(List<String> lastNodeIdList) {
@@ -183,7 +182,7 @@ public abstract class INode {
                 ", type='" + type + '\'' +
                 ", properties=" + properties +
                 ", nodeParams=" + nodeParams +
-                ", flowParams=" + flowParams +
+            //    ", flowParams=" + flowParams +
                 ", context=" + context +
                 ", answerText='" + answerText + '\'' +
                 ", lastNodeIdList=" + lastNodeIdList +

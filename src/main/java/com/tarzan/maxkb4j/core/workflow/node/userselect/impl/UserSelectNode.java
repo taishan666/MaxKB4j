@@ -46,7 +46,7 @@ public class UserSelectNode extends INode {
             JSONObject formSetting = new JSONObject();
             formSetting.put("form_field_list", formFieldList);
             formSetting.put("runtimeNodeId", super.getRuntimeNodeId());
-            formSetting.put("chatRecordId", super.flowParams.getChatRecordId());
+            formSetting.put("chatRecordId", workflowManage.getFlowParams().getChatRecordId());
             formSetting.put("is_submit", context.getOrDefault("is_submit", false));
             String formRender = "<card_selection_render>" + formSetting + "</card_selection_render>";
             return new NodeResult(Map.of("result", formRender, "answer", formRender,

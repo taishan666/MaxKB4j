@@ -46,8 +46,8 @@ public class BaseQuestionNode extends INode {
         String system = workflowManage.generatePrompt(nodeParams.getSystem());
         List<ChatMessage> messageList =  super.workflowManage.generateMessageList(system, question, historyMessage);
         QueryTransformer queryTransformer=new CompressingQueryTransformer(chatModel.getChatModel());
-        Metadata metadata=new Metadata(question, super.flowParams.getChatId(), historyMessage);
-        Query query=new Query(super.flowParams.getQuestion(),metadata);
+        Metadata metadata=new Metadata(question, workflowManage.getFlowParams().getChatId(), historyMessage);
+        Query query=new Query(workflowManage.getFlowParams().getQuestion(),metadata);
         Collection<Query> list= queryTransformer.transform(query);
         StringBuilder answerSb=new StringBuilder();
         for (Query queryResult : list) {

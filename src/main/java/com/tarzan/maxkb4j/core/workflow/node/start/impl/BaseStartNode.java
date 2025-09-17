@@ -33,10 +33,10 @@ public class BaseStartNode extends INode {
         JSONObject defaultGlobalVariable = getDefaultGlobalVariable(inputFieldList);
         // 合并全局变量
         Map<String, Object> workflowVariable = new HashMap<>(defaultGlobalVariable);
-        workflowVariable.putAll(getGlobalVariable(flowParams, workflowManage));
+        workflowVariable.putAll(getGlobalVariable(workflowManage.getFlowParams(), workflowManage));
         // 构建节点变量
         Map<String, Object> nodeVariable = Map.of(
-                "question", flowParams.getQuestion(),
+                "question", workflowManage.getFlowParams().getQuestion(),
                 "image", workflowManage.getImageList(),
                 "document", workflowManage.getDocumentList(),
                 "audio", workflowManage.getAudioList(),
