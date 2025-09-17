@@ -80,11 +80,11 @@ public class ApplicationController {
     }
 
    // @SaCheckPermission("APPLICATION:READ")
-    @GetMapping("/application/profile")
+/*    @GetMapping("/application/profile")
     public R<JSONObject> appProfile() {
         System.out.println("appProfile......");
         return R.success(applicationService.appProfile());
-    }
+    }*/
 
    // @SaCheckPermission("APPLICATION:READ")
     @GetMapping("/application/{id}/export")

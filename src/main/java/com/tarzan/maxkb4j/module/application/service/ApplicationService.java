@@ -331,7 +331,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         }
     }*/
 
-    public JSONObject appProfile() {
+/*    public JSONObject appProfile() {
         String appId = (String) StpUtil.getExtra("application_id");
         ApplicationEntity application = this.getById(appId);
         ApplicationAccessTokenEntity appAccessToken = accessTokenService.getById(appId);
@@ -357,7 +357,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         result.put("showSource", appAccessToken.getShowSource());
         result.put("language", appAccessToken.getLanguage());
         return result;
-    }
+    }*/
 
     public List<ParagraphVO> hitTest(String id, DataSearchDTO dto) {
         List<String> datasetIds = datasetMappingService.getDatasetIdsByAppId(id);

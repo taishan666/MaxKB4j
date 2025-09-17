@@ -43,7 +43,6 @@ public class ChatPostHandler extends PostResponseHandler {
                 .mapToInt(row -> row.getIntValue("answerTokens"))
                 .sum();
         float runTime = (System.currentTimeMillis() - startTime) / 1000F;
-        System.out.println("ChatPostHandler chatRecordId: "+chatRecordId);
         if (chatRecord != null) {
             chatRecord.setAnswerText(answerText);
             chatRecord.setDetails(new JSONObject(details));

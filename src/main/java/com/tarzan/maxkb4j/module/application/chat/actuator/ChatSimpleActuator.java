@@ -84,6 +84,7 @@ public class ChatSimpleActuator extends ChatBaseActuator {
         boolean reChat = dto.getReChat();
         List<String> excludeParagraphIds = new ArrayList<>();
         if (reChat) {
+            //todo 获取聊天记录
             String chatRecordId = dto.getChatRecordId();
             if (Objects.nonNull(chatRecordId)) {
                 ApplicationChatRecordVO chatRecord = chatRecordService.getChatRecordInfo(chatInfo, chatRecordId);

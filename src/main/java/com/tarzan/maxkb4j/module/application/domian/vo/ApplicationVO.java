@@ -13,4 +13,7 @@ public class ApplicationVO extends ApplicationEntity {
     private List<String> knowledgeIdList;
     private List<KnowledgeEntity> knowledgeList;
     private String nickname;
+    private Boolean showSource;
+    private Boolean showExec;
+    private String language;
 }

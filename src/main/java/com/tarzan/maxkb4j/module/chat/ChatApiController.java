@@ -13,6 +13,7 @@ import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationAccessToke
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatEntity;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatRecordEntity;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationEntity;
+import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationVO;
 import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
 import com.tarzan.maxkb4j.module.application.service.ApplicationAccessTokenService;
 import com.tarzan.maxkb4j.module.application.service.ApplicationChatRecordService;
@@ -39,15 +40,23 @@ public class ChatApiController {
 
     @GetMapping("/profile")
     public R<JSONObject> profile(String accessToken) {
+        ApplicationAccessTokenEntity appAccessToken = accessTokenService.getByToken(accessToken);
         JSONObject result = new JSONObject();
-        result.put("authentication", false);
+        result.put("authentication", appAccessToken.getAuthentication());
         return R.success(result);
     }
 
     @GetMapping("/application/profile")
     public R<ApplicationEntity> appProfile() {
         String appId = (String) StpUtil.getExtra("application_id");
-        return R.success(applicationService.getById(appId));
+        ApplicationAccessTokenEntity appAccessToken = accessTokenService.getById(appId);
+        ApplicationVO application=applicationService.getDetail(appId);
+        if (appAccessToken != null){
+            application.setLanguage(appAccessToken.getLanguage());
+            application.setShowSource(appAccessToken.getShowSource());
+            application.setShowExec(appAccessToken.getShowExec());
+        }
+        return R.success(application);
     }
 
     @GetMapping("/open")

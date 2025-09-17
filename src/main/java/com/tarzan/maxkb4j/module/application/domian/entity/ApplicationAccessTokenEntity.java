@@ -39,6 +39,10 @@ public class ApplicationAccessTokenEntity {
     
     private Boolean showSource;
 
+    private Boolean showExec;
+
+    private Boolean authentication;
+
     private String language;
 
 
