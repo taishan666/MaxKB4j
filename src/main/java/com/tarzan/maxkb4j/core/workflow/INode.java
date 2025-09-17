@@ -3,7 +3,6 @@ package com.tarzan.maxkb4j.core.workflow;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.workflow.domain.FlowParams;
-import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.SystemMessage;
@@ -11,7 +10,6 @@ import dev.langchain4j.data.message.UserMessage;
 import lombok.Data;
 import lombok.Setter;
 import org.springframework.util.CollectionUtils;
-import reactor.core.publisher.Sinks;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -33,7 +31,7 @@ public abstract class INode {
     protected String answerText;
     protected List<String> lastNodeIdList;
     protected String runtimeNodeId;
-    protected Sinks.Many<ChatMessageVO> sink;
+   // protected Sinks.Many<ChatMessageVO> sink;
 
 
     public INode(JSONObject properties) {
@@ -47,7 +45,7 @@ public abstract class INode {
     public void setWorkflowManage(WorkflowManage workflowManage) {
         this.workflowManage = workflowManage;
         this.flowParams = workflowManage.getFlowParams();
-        this.sink = workflowManage.getSink();
+        //this.sink = workflowManage.getSink();
     }
 
 
@@ -189,7 +187,6 @@ public abstract class INode {
                 ", context=" + context +
                 ", answerText='" + answerText + '\'' +
                 ", lastNodeIdList=" + lastNodeIdList +
-                ", sink=" + sink +
                 '}';
     }
 }

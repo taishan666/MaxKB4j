@@ -106,7 +106,7 @@ public class BaseChatNode extends INode {
                                     "many_view",
                                     false,
                                     false);
-                            sink.tryEmitNext(vo);
+                            workflowManage.getSink().tryEmitNext(vo);
                         }
                     })
                     .onPartialResponse(content -> {
@@ -121,7 +121,7 @@ public class BaseChatNode extends INode {
                                     "many_view",
                                     false,
                                     false);
-                            sink.tryEmitNext(vo);
+                            workflowManage.getSink().tryEmitNext(vo);
                         }
                     })
                     .onCompleteResponse(response -> {
@@ -141,11 +141,11 @@ public class BaseChatNode extends INode {
                                 "many_view",
                                 true,
                                 false);
-                        sink.tryEmitNext(vo);
+                        workflowManage.getSink().tryEmitNext(vo);
                         futureChatResponse.complete(response);// 完成后释放线程
                     })
                     .onError(error -> {
-                        sink.tryEmitError(error);
+                        workflowManage.getSink().tryEmitError(error);
                         futureChatResponse.completeExceptionally(error); // 完成后释放线程
                     })
                     .start();

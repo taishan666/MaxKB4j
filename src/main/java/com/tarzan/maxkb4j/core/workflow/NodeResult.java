@@ -56,7 +56,7 @@ public class NodeResult {
                         "many_view",
                         true,
                         false);
-                node.sink.tryEmitNext(vo);
+                node.workflowManage.getSink().tryEmitNext(vo);
                 workflow.setAnswer(answer);
             }
         }
