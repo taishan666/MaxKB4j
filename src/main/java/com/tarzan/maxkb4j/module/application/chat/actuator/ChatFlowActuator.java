@@ -5,17 +5,17 @@ import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.NodeFactory;
 import com.tarzan.maxkb4j.core.workflow.WorkflowManage;
-import com.tarzan.maxkb4j.core.workflow.domain.FlowParams;
+import com.tarzan.maxkb4j.module.chat.ChatParams;
 import com.tarzan.maxkb4j.core.workflow.logic.LfNode;
 import com.tarzan.maxkb4j.core.workflow.logic.LogicFlow;
 import com.tarzan.maxkb4j.module.application.cache.ChatCache;
 import com.tarzan.maxkb4j.module.application.chat.base.ChatBaseActuator;
 import com.tarzan.maxkb4j.module.application.domian.dto.ChatInfo;
-import com.tarzan.maxkb4j.module.application.domian.dto.ChatMessageDTO;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatEntity;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatRecordEntity;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationVersionEntity;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationVO;
+import com.tarzan.maxkb4j.module.application.enums.ChatUserType;
 import com.tarzan.maxkb4j.module.application.handler.PostResponseHandler;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatMapper;
 import com.tarzan.maxkb4j.module.application.service.ApplicationChatRecordService;
@@ -78,40 +78,23 @@ public class ChatFlowActuator extends ChatBaseActuator {
     }
 
     @Override
-    public String chatMessage(ChatMessageDTO dto) {
+    public String chatMessage(ChatParams chatParams) {
         long startTime = System.currentTimeMillis();
-        ChatInfo chatInfo = getChatInfo(dto.getChatId());
-        chatCheck(chatInfo,dto);
+        ChatInfo chatInfo = getChatInfo(chatParams.getChatId());
+        chatCheck(chatInfo,chatParams);
         ApplicationChatRecordEntity chatRecord = null;
-        String chatRecordId = dto.getChatRecordId();
+        String chatRecordId = chatParams.getChatRecordId();
         if(StringUtils.isNotBlank(chatRecordId)){
             chatRecord = chatRecordService.getChatRecordEntity(chatInfo, chatRecordId);
         }
-        FlowParams flowParams = new FlowParams();
-        flowParams.setChatId(chatInfo.getChatId());
-        flowParams.setChatRecordId(dto.getChatRecordId() == null ? IdWorker.get32UUID() : dto.getChatRecordId());
-        flowParams.setQuestion(dto.getMessage());
-        flowParams.setReChat(dto.getReChat());
-        flowParams.setClientId(dto.getClientId());
-        flowParams.setClientType(dto.getClientType());
-        flowParams.setStream(dto.getStream() == null || dto.getStream());
-        flowParams.setFormData(dto.getFormData()==null?new JSONObject():dto.getFormData());
-       // flowParams.setHistoryChatRecord(chatInfo.getChatRecordList());//添加历史记录
         WorkflowManage workflowManage = new WorkflowManage(
                 chatInfo.getNodes(),
                 chatInfo.getEdges(),
-                flowParams,
-                dto.getSink(),
-                dto.getImageList(),
-                dto.getDocumentList(),
-                dto.getAudioList(),
-                dto.getAudioList(),
-                dto.getRuntimeNodeId(),
-                dto.getNodeData(),
+                chatParams,
                 chatRecord);
-        String answer=workflowManage.run();
+        String answer=workflowManage.run(chatParams);
         JSONObject details= workflowManage.getRuntimeDetails();
-        postResponseHandler.handler(flowParams.getChatId(), flowParams.getChatRecordId(), flowParams.getQuestion(),answer,chatRecord,details,startTime,flowParams.getClientId(),flowParams.getClientType(),dto.isDebug());
+        postResponseHandler.handler(chatParams.getChatId(), chatParams.getChatRecordId(), chatParams.getMessage(),answer,chatRecord,details,startTime,"", ChatUserType.ANONYMOUS_USER.name(),chatParams.isDebug());
         return answer;
     }
 

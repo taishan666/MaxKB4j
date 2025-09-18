@@ -1,16 +1,17 @@
 package com.tarzan.maxkb4j.module.application.chat.base;
 
+import cn.dev33.satoken.stp.StpUtil;
 import com.tarzan.maxkb4j.core.exception.ApiException;
 import com.tarzan.maxkb4j.module.application.cache.ChatCache;
 import com.tarzan.maxkb4j.module.application.chat.provider.IChatActuator;
 import com.tarzan.maxkb4j.module.application.domian.dto.ChatInfo;
-import com.tarzan.maxkb4j.module.application.domian.dto.ChatMessageDTO;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationAccessTokenEntity;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatUserStatsEntity;
 import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
 import com.tarzan.maxkb4j.module.application.enums.AuthType;
 import com.tarzan.maxkb4j.module.application.service.ApplicationAccessTokenService;
 import com.tarzan.maxkb4j.module.application.service.ApplicationChatUserStatsService;
+import com.tarzan.maxkb4j.module.chat.ChatParams;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Objects;
@@ -24,18 +25,19 @@ public abstract class ChatBaseActuator implements IChatActuator {
 
     public abstract ChatInfo reChatOpen(String chatId);
 
-    public void chatCheck(ChatInfo chatInfo,ChatMessageDTO dto) {
+    public void chatCheck(ChatInfo chatInfo, ChatParams chatParams) {
         if (chatInfo == null) {
-            dto.getSink().tryEmitNext(new ChatMessageVO());
+            chatParams.getSink().tryEmitNext(new ChatMessageVO());
             throw new ApiException("会话不存在");
         }
         String appId = chatInfo.getApplication().getId();
-        if (AuthType.ACCESS_TOKEN.name().equals(dto.getClientType())) {
+        if (AuthType.ACCESS_TOKEN.name().equals("1212")) {
             if (Objects.nonNull(appId)) {
-                ApplicationChatUserStatsEntity accessClient = publicAccessClientService.getById(dto.getClientId());
+                String chatUserId = StpUtil.getLoginIdAsString();
+                ApplicationChatUserStatsEntity accessClient = publicAccessClientService.getById(chatUserId);
                 if (Objects.isNull(accessClient)) {
                     accessClient = new ApplicationChatUserStatsEntity();
-                    accessClient.setId(dto.getClientId());
+                    accessClient.setId(chatUserId);
                     accessClient.setApplicationId(appId);
                     accessClient.setAccessNum(0);
                     accessClient.setIntraDayAccessNum(0);

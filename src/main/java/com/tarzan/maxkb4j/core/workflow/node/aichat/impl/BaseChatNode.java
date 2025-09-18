@@ -57,7 +57,7 @@ public class BaseChatNode extends INode {
         String problemText = workflowManage.generatePrompt(nodeParams.getPrompt());
         String systemPrompt = workflowManage.generatePrompt(nodeParams.getSystem());
         String system = StringUtil.isBlank(systemPrompt) ? "You're an intelligent assistant." : systemPrompt;
-        String chatId = workflowManage.getFlowParams().getChatId();
+        String chatId = workflowManage.getChatParams().getChatId();
         ChatMemory chatMemory = MyChatMemory.builder()
                 .id(chatId)
                 .maxMessages(nodeParams.getDialogueNumber())
@@ -83,7 +83,7 @@ public class BaseChatNode extends INode {
                 "chat_model", chatModel,
                 "message_list", chatMemory.messages(),
                 "history_message", historyContext,
-                "question", workflowManage.getFlowParams().getQuestion()
+                "question", workflowManage.getChatParams().getMessage()
         );
         return new NodeResult(nodeVariable, Map.of(), this::writeContextStream);
     }
@@ -97,8 +97,8 @@ public class BaseChatNode extends INode {
             tokenStream.onPartialThinking(thinking -> {
                         if (isResult) {
                             ChatMessageVO vo = new ChatMessageVO(
-                                    workflowManage.getFlowParams().getChatId(),
-                                    workflowManage.getFlowParams().getChatRecordId(),
+                                    workflowManage.getChatParams().getChatId(),
+                                    workflowManage.getChatParams().getChatRecordId(),
                                     "",
                                     thinking.text(),
                                     runtimeNodeId,
@@ -111,8 +111,8 @@ public class BaseChatNode extends INode {
                     .onPartialResponse(content -> {
                         if (isResult) {
                             ChatMessageVO vo = new ChatMessageVO(
-                                    workflowManage.getFlowParams().getChatId(),
-                                    workflowManage.getFlowParams().getChatRecordId(),
+                                    workflowManage.getChatParams().getChatId(),
+                                    workflowManage.getChatParams().getChatRecordId(),
                                     content,
                                     "",
                                     runtimeNodeId,
@@ -131,8 +131,8 @@ public class BaseChatNode extends INode {
                         context.put("answer", answer);
                         context.put("reasoningContent", thinking);
                         ChatMessageVO vo = new ChatMessageVO(
-                                workflowManage.getFlowParams().getChatId(),
-                                workflowManage.getFlowParams().getChatRecordId(),
+                                workflowManage.getChatParams().getChatId(),
+                                workflowManage.getChatParams().getChatRecordId(),
                                 "",
                                 "",
                                 runtimeNodeId,

@@ -1,8 +1,7 @@
 package com.tarzan.maxkb4j.module.application.chat.provider;
 
-import com.tarzan.maxkb4j.module.application.domian.dto.ChatInfo;
-import com.tarzan.maxkb4j.module.application.domian.dto.ChatMessageDTO;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationVO;
+import com.tarzan.maxkb4j.module.chat.ChatParams;
 
 public interface IChatActuator {
 
@@ -10,5 +9,5 @@ public interface IChatActuator {
 
     String chatOpen(ApplicationVO application, String chatId);
 
-    String chatMessage(ChatMessageDTO dto);
+    String chatMessage(ChatParams chatParams);
 }

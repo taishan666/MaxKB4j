@@ -40,7 +40,7 @@ public class BaseImageGenerateNode extends INode {
         if (modelParamsSetting!=null){
             modelParamsSetting.put("negative_prompt",negativePrompt);
         }
-        List<ChatFile> imageList=super.workflowManage.getImageList();
+        List<ChatFile> imageList=super.workflowManage.getChatParams().getImageList();
         StringBuilder answerSb=new StringBuilder();
         List<String> imageUrls = new ArrayList<>();
         ImageModel imageModel = modelService.getModelById(nodeParams.getModelId(), modelParamsSetting);

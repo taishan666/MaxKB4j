@@ -8,7 +8,6 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.tarzan.maxkb4j.constant.AppConst;
 import com.tarzan.maxkb4j.core.api.R;
-import com.tarzan.maxkb4j.module.application.domian.dto.ChatMessageDTO;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationAccessTokenEntity;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatEntity;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatRecordEntity;
@@ -83,13 +82,13 @@ public class ChatApiController {
 
     //todo
     @PostMapping(path = "/chat_message/{chatId}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<ChatMessageVO> chatMessage(@PathVariable String chatId, @RequestBody ChatMessageDTO params) {
+    public Flux<ChatMessageVO> chatMessage(@PathVariable String chatId, @RequestBody ChatParams params) {
         Sinks.Many<ChatMessageVO> sink = Sinks.many().multicast().onBackpressureBuffer();
-        String chatUserId = StpUtil.getLoginIdAsString();
-        String chatUserType = (String) StpUtil.getExtra("chat_user_type");
+    //    String chatUserId = StpUtil.getLoginIdAsString();
+    //    String chatUserType = (String) StpUtil.getExtra("chat_user_type");
         params.setChatId(chatId);
-        params.setClientId(chatUserId);
-        params.setClientType(chatUserType);
+      // params.setClientId(chatUserId);
+      //  params.setClientType(chatUserType);
         params.setSink(sink);
         // 异步执行业务逻辑
         chatTaskExecutor.execute(() -> chatService.chatMessage(params));

@@ -48,8 +48,8 @@ public class NodeResult {
             if (workflow.isResult(node, new NodeResult(nodeVariable, globalVariable)) && nodeVariable.containsKey("answer")) {
                 String answer = (String) nodeVariable.get("answer");
                 ChatMessageVO vo = new ChatMessageVO(
-                        workflow.getFlowParams().getChatId(),
-                        workflow.getFlowParams().getChatRecordId(),
+                        workflow.getChatParams().getChatId(),
+                        workflow.getChatParams().getChatRecordId(),
                         answer,
                         "",
                         node.runtimeNodeId,

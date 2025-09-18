@@ -7,7 +7,7 @@ import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.NodeResult;
 import com.tarzan.maxkb4j.core.workflow.WorkflowManage;
 import com.tarzan.maxkb4j.core.workflow.domain.ChatRecordSimple;
-import com.tarzan.maxkb4j.core.workflow.domain.FlowParams;
+import com.tarzan.maxkb4j.module.chat.ChatParams;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -28,31 +28,30 @@ public class BaseStartNode extends INode {
     @Override
     public NodeResult execute() {
         System.out.println(START);
+        ChatParams chatParams=workflowManage.getChatParams();
         // 获取默认全局变量
-        Map<String, Object> globalVariable = getGlobalVariable(workflowManage.getFlowParams(), workflowManage);
+        Map<String, Object> globalVariable = getGlobalVariable(chatParams, workflowManage);
         // 合并全局变量
-        globalVariable.putAll(workflowManage.getFlowParams().getFormData());
+        globalVariable.putAll(chatParams.getFormData());
         // 构建节点变量
         Map<String, Object> nodeVariable = Map.of(
-                "question", workflowManage.getFlowParams().getQuestion(),
-                "image", workflowManage.getImageList(),
-                "document", workflowManage.getDocumentList(),
-                "audio", workflowManage.getAudioList(),
-                "other", workflowManage.getOtherList()
+                "question", chatParams.getMessage(),
+                "image", chatParams.getImageList(),
+                "document", chatParams.getDocumentList(),
+                "audio", chatParams.getAudioList(),
+                "other", chatParams.getOtherList()
         );
         return new NodeResult(nodeVariable, globalVariable);
     }
 
-    public Map<String, Object> getGlobalVariable(FlowParams workflowParams, WorkflowManage workflowManage) {
+    public Map<String, Object> getGlobalVariable(ChatParams workflowParams, WorkflowManage workflowManage) {
         // 获取历史聊天记录
         List<ChatRecordSimple> historyContext =workflowManage.getHistoryMessages();
-        // 获取chat_id并确保其为字符串形式
-        String chatId = workflowParams.getChatId();
         // 构建返回的map
         Map<String, Object> resultMap = new HashMap<>();
         resultMap.put("time", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
         resultMap.put("history_context", JSONArray.toJSONString(historyContext));
-        resultMap.put("chatId", chatId);
+        resultMap.put("chatId", workflowParams.getChatId());
         resultMap.put("chat_user_id", IdWorker.get32UUID());
         resultMap.put("chat_user_type", "ANONYMOUS_USER");
         return resultMap;

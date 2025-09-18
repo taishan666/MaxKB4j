@@ -6,7 +6,6 @@ import com.tarzan.maxkb4j.core.exception.ApiException;
 import com.tarzan.maxkb4j.module.application.cache.ChatCache;
 import com.tarzan.maxkb4j.module.application.chat.base.ChatBaseActuator;
 import com.tarzan.maxkb4j.module.application.domian.dto.ChatInfo;
-import com.tarzan.maxkb4j.module.application.domian.dto.ChatMessageDTO;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatEntity;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationKnowledgeMappingEntity;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationChatRecordVO;
@@ -20,6 +19,7 @@ import com.tarzan.maxkb4j.module.application.ragpipeline.step.searchdatasetstep.
 import com.tarzan.maxkb4j.module.application.service.ApplicationChatRecordService;
 import com.tarzan.maxkb4j.module.application.service.ApplicationKnowledgeMappingService;
 import com.tarzan.maxkb4j.module.application.service.ApplicationService;
+import com.tarzan.maxkb4j.module.chat.ChatParams;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.ParagraphVO;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelEntity;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
@@ -69,23 +69,23 @@ public class ChatSimpleActuator extends ChatBaseActuator {
     }
 
     @Override
-    public String chatMessage(ChatMessageDTO dto) {
+    public String chatMessage(ChatParams chatParams) {
         long startTime = System.currentTimeMillis();
-        dto.setChatRecordId(dto.getChatRecordId() == null ? IdWorker.get32UUID() : dto.getChatRecordId());
-        ChatInfo chatInfo = getChatInfo(dto.getChatId());
-        chatCheck(chatInfo,dto);
+        chatParams.setChatRecordId(chatParams.getChatRecordId() == null ? IdWorker.get32UUID() : chatParams.getChatRecordId());
+        ChatInfo chatInfo = getChatInfo(chatParams.getChatId());
+        chatCheck(chatInfo,chatParams);
         String modelId = chatInfo.getApplication().getModelId();
         ModelEntity model = modelService.getById(modelId);
         if (Objects.isNull(model) || !"SUCCESS".equals(model.getStatus())) {
             throw new ApiException("当前模型不可用");
         }
-        boolean stream = dto.getStream() == null || dto.getStream();
-        String problemText = dto.getMessage();
-        boolean reChat = dto.getReChat();
+        boolean stream = chatParams.getStream() == null || chatParams.getStream();
+        String problemText = chatParams.getMessage();
+        boolean reChat = chatParams.getReChat();
         List<String> excludeParagraphIds = new ArrayList<>();
         if (reChat) {
             //todo 获取聊天记录
-            String chatRecordId = dto.getChatRecordId();
+            String chatRecordId = chatParams.getChatRecordId();
             if (Objects.nonNull(chatRecordId)) {
                 ApplicationChatRecordVO chatRecord = chatRecordService.getChatRecordInfo(chatInfo, chatRecordId);
                 List<ParagraphVO> paragraphs = chatRecord.getParagraphList();
@@ -105,10 +105,10 @@ public class ChatSimpleActuator extends ChatBaseActuator {
         }
         pipelineManageBuilder.addStep(baseChatStep);
         PipelineManage pipelineManage = pipelineManageBuilder.build();
-        Map<String, Object> params = chatInfo.toPipelineManageParams(dto.getChatRecordId(),problemText, excludeParagraphIds, dto.getClientId(), dto.getClientType(), stream);
-        String answer =  pipelineManage.run(params,dto.getSink());
+        Map<String, Object> params = chatInfo.toPipelineManageParams(chatParams.getChatRecordId(),problemText, excludeParagraphIds, "", "", stream);
+        String answer =  pipelineManage.run(params,chatParams.getSink());
         JSONObject details=pipelineManage.getDetails();
-        postResponseHandler.handler(dto.getChatId(), dto.getChatRecordId(), problemText, answer, null,details, startTime, dto.getClientId(), dto.getClientType(),dto.isDebug());
+        postResponseHandler.handler(chatParams.getChatId(), chatParams.getChatRecordId(), problemText, answer, null,details, startTime, "", "",chatParams.isDebug());
         return answer;
     }
 

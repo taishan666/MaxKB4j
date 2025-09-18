@@ -1,10 +1,9 @@
 package com.tarzan.maxkb4j.module.application.controller;
 
-import cn.dev33.satoken.stp.StpUtil;
 import com.tarzan.maxkb4j.constant.AppConst;
-import com.tarzan.maxkb4j.module.application.domian.dto.ChatMessageDTO;
 import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
 import com.tarzan.maxkb4j.module.application.service.ApplicationChatService;
+import com.tarzan.maxkb4j.module.chat.ChatParams;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.http.MediaType;
@@ -30,13 +29,13 @@ public class ChatMessageController {
     }
 
     @PostMapping(path = "/chat_message/{chatId}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<ChatMessageVO> chatMessage(@PathVariable String chatId, @RequestBody ChatMessageDTO params) {
+    public Flux<ChatMessageVO> chatMessage(@PathVariable String chatId, @RequestBody ChatParams params) {
         Sinks.Many<ChatMessageVO> sink = Sinks.many().multicast().onBackpressureBuffer();
-        String chatUserId = StpUtil.getLoginIdAsString();
-        String chatUserType = (String) StpUtil.getExtra("chat_user_type");
+      //  String chatUserId = StpUtil.getLoginIdAsString();
+      //  String chatUserType = (String) StpUtil.getExtra("chat_user_type");
         params.setChatId(chatId);
-        params.setClientId(chatUserId);
-        params.setClientType(chatUserType);
+     //   params.setClientId(chatUserId);
+    //    params.setClientType(chatUserType);
         params.setSink(sink);
         params.setDebug(true);
         // 异步执行业务逻辑

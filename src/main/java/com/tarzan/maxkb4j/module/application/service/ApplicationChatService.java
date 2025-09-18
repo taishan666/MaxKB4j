@@ -15,7 +15,6 @@ import com.tarzan.maxkb4j.module.application.cache.ChatCache;
 import com.tarzan.maxkb4j.module.application.chat.provider.ChatActuatorBuilder;
 import com.tarzan.maxkb4j.module.application.chat.provider.IChatActuator;
 import com.tarzan.maxkb4j.module.application.domian.dto.ChatInfo;
-import com.tarzan.maxkb4j.module.application.domian.dto.ChatMessageDTO;
 import com.tarzan.maxkb4j.module.application.domian.dto.ChatQueryDTO;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatEntity;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatRecordEntity;
@@ -24,6 +23,7 @@ import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationVersionEnt
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationVO;
 import com.tarzan.maxkb4j.module.application.domian.vo.ChatRecordDetailVO;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatMapper;
+import com.tarzan.maxkb4j.module.chat.ChatParams;
 import com.tarzan.maxkb4j.module.oss.service.MongoFileService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
@@ -113,16 +113,16 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
     }
 
 
-    public String chatMessage(ChatMessageDTO dto) {
-        ChatInfo chatInfo = getChatInfo(dto.getChatId());
+    public String chatMessage(ChatParams chatParams) {
+        ChatInfo chatInfo = getChatInfo(chatParams.getChatId());
         if (chatInfo == null){
-            dto.getSink().tryEmitError(new ApiException("会话不存在"));
+            chatParams.getSink().tryEmitError(new ApiException("会话不存在"));
             return "";
         }
         String appType=chatInfo.getApplication().getType();
         IChatActuator chatActuator= ChatActuatorBuilder.getActuator(appType);
-        String answer = chatActuator.chatMessage(dto);
-        dto.getSink().tryEmitComplete();
+        String answer = chatActuator.chatMessage(chatParams);
+        chatParams.getSink().tryEmitComplete();
         return answer;
     }
 

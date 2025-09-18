@@ -36,7 +36,7 @@ public class FormNode extends INode {
             JSONObject formSetting = new JSONObject();
             formSetting.put("form_field_list", formFieldList);
             formSetting.put("runtimeNodeId", super.getRuntimeNodeId());
-            formSetting.put("chatRecordId", workflowManage.getFlowParams().getChatRecordId());
+            formSetting.put("chatRecordId", workflowManage.getChatParams().getChatRecordId());
             formSetting.put("is_submit", context.getOrDefault("is_submit", false));
             String form = "<form_render>" + formSetting + "</form_render>";
             // Get workflow content and reset prompt todo (如果表单里有变量)
