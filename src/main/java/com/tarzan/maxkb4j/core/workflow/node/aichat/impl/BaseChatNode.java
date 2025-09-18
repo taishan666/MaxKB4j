@@ -104,7 +104,6 @@ public class BaseChatNode extends INode {
                                     runtimeNodeId,
                                     type,
                                     "many_view",
-                                    false,
                                     false);
                             workflowManage.getSink().tryEmitNext(vo);
                         }
@@ -119,7 +118,6 @@ public class BaseChatNode extends INode {
                                     runtimeNodeId,
                                     type,
                                     "many_view",
-                                    false,
                                     false);
                             workflowManage.getSink().tryEmitNext(vo);
                         }
@@ -136,10 +134,10 @@ public class BaseChatNode extends INode {
                                 workflowManage.getFlowParams().getChatId(),
                                 workflowManage.getFlowParams().getChatRecordId(),
                                 "",
+                                "",
                                 runtimeNodeId,
                                 type,
                                 "many_view",
-                                true,
                                 false);
                         workflowManage.getSink().tryEmitNext(vo);
                         futureChatResponse.complete(response);// 完成后释放线程

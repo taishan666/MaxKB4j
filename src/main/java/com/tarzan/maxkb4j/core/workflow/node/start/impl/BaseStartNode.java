@@ -8,11 +8,12 @@ import com.tarzan.maxkb4j.core.workflow.NodeResult;
 import com.tarzan.maxkb4j.core.workflow.WorkflowManage;
 import com.tarzan.maxkb4j.core.workflow.domain.ChatRecordSimple;
 import com.tarzan.maxkb4j.core.workflow.domain.FlowParams;
-import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatRecordEntity;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.START;
 
@@ -28,12 +29,9 @@ public class BaseStartNode extends INode {
     public NodeResult execute() {
         System.out.println(START);
         // 获取默认全局变量
-        List<JSONObject> inputFieldList = (List<JSONObject>) properties
-                .getOrDefault("inputFieldList", Collections.emptyList());
-        JSONObject defaultGlobalVariable = getDefaultGlobalVariable(inputFieldList);
+        Map<String, Object> globalVariable = getGlobalVariable(workflowManage.getFlowParams(), workflowManage);
         // 合并全局变量
-        Map<String, Object> workflowVariable = new HashMap<>(defaultGlobalVariable);
-        workflowVariable.putAll(getGlobalVariable(workflowManage.getFlowParams(), workflowManage));
+        globalVariable.putAll(workflowManage.getFlowParams().getFormData());
         // 构建节点变量
         Map<String, Object> nodeVariable = Map.of(
                 "question", workflowManage.getFlowParams().getQuestion(),
@@ -42,25 +40,18 @@ public class BaseStartNode extends INode {
                 "audio", workflowManage.getAudioList(),
                 "other", workflowManage.getOtherList()
         );
-        return new NodeResult(nodeVariable, workflowVariable);
+        return new NodeResult(nodeVariable, globalVariable);
     }
 
     public Map<String, Object> getGlobalVariable(FlowParams workflowParams, WorkflowManage workflowManage) {
         // 获取历史聊天记录
-        List<ApplicationChatRecordEntity> historyChatRecord = new ArrayList<>();
-        List<ChatRecordSimple> historyContext = new ArrayList<>();
-        for (ApplicationChatRecordEntity chatRecord : historyChatRecord) {
-            ChatRecordSimple record = new ChatRecordSimple();
-            record.setQuestion(chatRecord.getProblemText());
-            record.setAnswer(chatRecord.getAnswerText());
-            historyContext.add(record);
-        }
+        List<ChatRecordSimple> historyContext =workflowManage.getHistoryMessages();
         // 获取chat_id并确保其为字符串形式
         String chatId = workflowParams.getChatId();
         // 构建返回的map
         Map<String, Object> resultMap = new HashMap<>();
         resultMap.put("time", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
-        resultMap.put("history_context", JSONArray.parseArray(JSONObject.toJSONString(historyContext)));
+        resultMap.put("history_context", JSONArray.toJSONString(historyContext));
         resultMap.put("chatId", chatId);
         resultMap.put("chat_user_id", IdWorker.get32UUID());
         resultMap.put("chat_user_type", "ANONYMOUS_USER");

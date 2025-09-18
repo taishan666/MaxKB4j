@@ -1,5 +1,6 @@
 package com.tarzan.maxkb4j.core.workflow.domain;
 
+import com.alibaba.fastjson.JSONObject;
 import lombok.Data;
 
 import javax.validation.constraints.NotBlank;
@@ -23,12 +24,11 @@ public class FlowParams {
     @NotNull(message = "流式输出不能为空")
     private Boolean stream;
 
+    private JSONObject formData;
+
     private String clientId;
 
     private String clientType;
-
-    @NotBlank(message = "用户id不能为空")
-    private String userId;
 
     @NotNull(message = "换个答案不能为空")
     private Boolean reChat;

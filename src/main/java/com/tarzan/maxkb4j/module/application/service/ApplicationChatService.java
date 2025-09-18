@@ -56,14 +56,7 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
         return baseMapper.chatLogs(chatPage,appId,query);
     }
 
-/*    public IPage<ApplicationChatEntity> clientChatPage(String appId,String clientId, int page, int size) {
-        Page<ApplicationChatEntity> chatPage = new Page<>(page, size);
-        LambdaQueryWrapper<ApplicationChatEntity> wrapper = Wrappers.lambdaQuery();
-        wrapper.eq(ApplicationChatEntity::getApplicationId,appId);
-        wrapper.eq(ApplicationChatEntity::getClientId, clientId);
-        wrapper.orderByDesc(ApplicationChatEntity::getCreateTime);
-        return this.page(chatPage, wrapper);
-    }*/
+
 
     public String chatOpenTest(String appId) {
         ApplicationVO application = applicationService.getDetail(appId);

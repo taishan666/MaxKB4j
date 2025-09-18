@@ -17,59 +17,30 @@ public class ChatMessageVO {
     private Boolean nodeIsEnd;
     private String runtimeNodeId;
     private Boolean isEnd;
-    private Integer messageTokens;
-    private Integer answerTokens;
 
 
 
-
-    public ChatMessageVO(String chatId, String content, Boolean isEnd) {
-        this.chatId = chatId;
-        this.content = content;
-        this.isEnd = isEnd;
-        this.messageTokens = 0;
-        this.answerTokens = 0;
-    }
-
-    public ChatMessageVO(String chatId, String chatRecordId,String content, Boolean isEnd) {
+    public ChatMessageVO(String chatId, String chatRecordId,Boolean isEnd) {
         this.chatId = chatId;
         this.chatRecordId = chatRecordId;
-        this.content = content;
+        this.content = "";
+        this.reasoningContent = "";
+        this.nodeIsEnd = false;
         this.isEnd = isEnd;
-        this.messageTokens = 0;
-        this.answerTokens = 0;
     }
 
-    public ChatMessageVO(String chatId, String chatRecordId,String content,String reasoningContent, Boolean isEnd) {
+    public ChatMessageVO(String chatId, String chatRecordId,String content,String reasoningContent, Boolean nodeIsEnd) {
         this.chatId = chatId;
         this.chatRecordId = chatRecordId;
         this.content = content;
         this.reasoningContent = reasoningContent;
-        this.isEnd = isEnd;
-        this.messageTokens = 0;
-        this.answerTokens = 0;
-    }
-
-    public ChatMessageVO(String chatId, String chatRecordId,String content,Boolean nodeIsEnd, Boolean isEnd) {
-        this.chatId = chatId;
-        this.chatRecordId = chatRecordId;
-        this.content = content;
         this.nodeIsEnd = nodeIsEnd;
-        this.isEnd = isEnd;
-        this.messageTokens = 0;
-        this.answerTokens = 0;
+        this.isEnd = false;
     }
 
-    public ChatMessageVO(String chatId, String chatRecordId,String content, Boolean isEnd,Integer messageTokens, Integer answerTokens) {
-        this.chatId = chatId;
-        this.chatRecordId = chatRecordId;
-        this.content = content;
-        this.isEnd = isEnd;
-        this.messageTokens = messageTokens;
-        this.answerTokens = answerTokens;
-    }
 
-    public ChatMessageVO(String chatId, String chatRecordId,String content,String runtimeNodeId,String nodeType,String viewType, Boolean nodeIsEnd, Boolean isEnd) {
+
+  /*  public ChatMessageVO(String chatId, String chatRecordId,String content,String runtimeNodeId,String nodeType,String viewType, Boolean nodeIsEnd) {
         this.chatId = chatId;
         this.chatRecordId = chatRecordId;
         this.content = content;
@@ -77,12 +48,10 @@ public class ChatMessageVO {
         this.nodeType = nodeType;
         this.viewType = viewType;
         this.nodeIsEnd = nodeIsEnd;
-        this.isEnd = isEnd;
-        this.messageTokens = 0;
-        this.answerTokens = 0;
-    }
+        this.isEnd = false;
+    }*/
 
-    public ChatMessageVO(String chatId, String chatRecordId,String content,String reasoningContent,String runtimeNodeId,String nodeType,String viewType, Boolean nodeIsEnd, Boolean isEnd) {
+    public ChatMessageVO(String chatId, String chatRecordId,String content,String reasoningContent,String runtimeNodeId,String nodeType,String viewType, Boolean nodeIsEnd) {
         this.chatId = chatId;
         this.chatRecordId = chatRecordId;
         this.content = content;
@@ -91,9 +60,7 @@ public class ChatMessageVO {
         this.nodeType = nodeType;
         this.viewType = viewType;
         this.nodeIsEnd = nodeIsEnd;
-        this.isEnd = isEnd;
-        this.messageTokens = 0;
-        this.answerTokens = 0;
+        this.isEnd = false;
     }
 
 

@@ -3,6 +3,7 @@ package com.tarzan.maxkb4j.core.workflow;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.workflow.domain.ChatFile;
+import com.tarzan.maxkb4j.core.workflow.domain.ChatRecordSimple;
 import com.tarzan.maxkb4j.core.workflow.domain.FlowParams;
 import com.tarzan.maxkb4j.core.workflow.logic.LfEdge;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatRecordEntity;
@@ -29,7 +30,6 @@ import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.USER_SELECT;
 @Data
 public class WorkflowManage {
     private INode startNode;
-   // private Map<String, Object> globalData;
     private List<ChatFile> imageList;
     private List<ChatFile> documentList;
     private List<ChatFile> audioList;
@@ -41,20 +41,22 @@ public class WorkflowManage {
     private String answer = "";
     private Sinks.Many<ChatMessageVO> sink;
     private ApplicationChatRecordEntity chatRecord;
+    private List<ChatRecordSimple> historyMessages;
     private List<INode> nodeContext = new ArrayList<>();
 
     public WorkflowManage(List<INode> nodes, List<LfEdge> edges, FlowParams flowParams, Sinks.Many<ChatMessageVO> sink, List<ChatFile> imageList,
-                          List<ChatFile> documentList, List<ChatFile> audioList, String startNodeId,
+                          List<ChatFile> documentList, List<ChatFile> audioList,  List<ChatFile> otherList,String startNodeId,
                           Map<String, Object> startNodeData, ApplicationChatRecordEntity chatRecord) {
         this.nodes = nodes;
         this.edges = edges;
-      //  this.globalData = globalData;
         this.imageList = Objects.requireNonNullElseGet(imageList, ArrayList::new);
         this.documentList = Objects.requireNonNullElseGet(documentList, ArrayList::new);
         this.audioList = Objects.requireNonNullElseGet(audioList, ArrayList::new);
+        this.otherList = Objects.requireNonNullElseGet(otherList, ArrayList::new);
         this.flowParams = flowParams;
         this.sink = sink;
         this.chatRecord = chatRecord;
+        this.historyMessages = new ArrayList<>();
         if (startNodeId != null) {
             this.loadNode(chatRecord, startNodeId, startNodeData);
         } else {
@@ -108,9 +110,9 @@ public class WorkflowManage {
     public String run() {
         context.put("start_time", System.currentTimeMillis());
         runChainManage(startNode, null);
-        ChatMessageVO vo=new ChatMessageVO(flowParams.getChatId(),flowParams.getChatRecordId(),"",
-                true,true);
+        ChatMessageVO vo=new ChatMessageVO(flowParams.getChatId(),flowParams.getChatRecordId(),true);
         sink.tryEmitNext(vo);
+        historyMessages.add(new ChatRecordSimple(flowParams.getQuestion(),answer));
         return answer;
     }
 

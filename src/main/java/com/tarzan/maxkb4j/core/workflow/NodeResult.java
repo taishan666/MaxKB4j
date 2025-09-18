@@ -51,11 +51,11 @@ public class NodeResult {
                         workflow.getFlowParams().getChatId(),
                         workflow.getFlowParams().getChatRecordId(),
                         answer,
+                        "",
                         node.runtimeNodeId,
                         node.type,
-                        "many_view",
-                        true,
-                        false);
+                        "single_view",
+                        true);
                 node.workflowManage.getSink().tryEmitNext(vo);
                 workflow.setAnswer(answer);
             }

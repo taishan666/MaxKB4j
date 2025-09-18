@@ -18,7 +18,7 @@ public class ChatMessageDTO {
     private String chatRecordId;
     private Boolean stream;
     private Boolean reChat;
-    private JSONObject globalData;
+    private JSONObject formData;
     private JSONObject nodeData;
     private String runtimeNodeId;
     private List<ChatFile> audioList;
