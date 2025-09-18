@@ -7,10 +7,12 @@ import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.NodeResult;
 import com.tarzan.maxkb4j.core.workflow.WorkflowManage;
 import com.tarzan.maxkb4j.core.workflow.domain.ChatRecordSimple;
+import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatRecordEntity;
 import com.tarzan.maxkb4j.module.chat.ChatParams;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -46,7 +48,13 @@ public class BaseStartNode extends INode {
 
     public Map<String, Object> getGlobalVariable(ChatParams workflowParams, WorkflowManage workflowManage) {
         // 获取历史聊天记录
-        List<ChatRecordSimple> historyContext =workflowManage.getHistoryMessages();
+        List<ChatRecordSimple> historyContext =new ArrayList<>();
+        for (ApplicationChatRecordEntity chatRecord : workflowManage.getHistoryMessages()) {
+            ChatRecordSimple record = new ChatRecordSimple();
+            record.setQuestion(chatRecord.getProblemText());
+            record.setAnswer(chatRecord.getAnswerText());
+            historyContext.add(record);
+        }
         // 构建返回的map
         Map<String, Object> resultMap = new HashMap<>();
         resultMap.put("time", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));

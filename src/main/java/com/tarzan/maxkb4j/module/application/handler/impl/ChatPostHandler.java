@@ -30,7 +30,7 @@ public class ChatPostHandler extends PostResponseHandler {
 
      //todo 优化
     @Override
-    public void handler(String chatId, String chatRecordId, String problemText, String answerText, ApplicationChatRecordEntity chatRecord, JSONObject details,long startTime, String chatUserId, String chatUserType,boolean debug) {
+    public void handler(String chatId, String chatRecordId, String problemText, String answerText,  JSONObject details,long startTime, String chatUserId, String chatUserType,boolean debug) {
         ChatInfo chatInfo = ChatCache.get(chatId);
         int messageTokens = details.values().stream()
                 .map(row -> (JSONObject) row)
@@ -43,30 +43,20 @@ public class ChatPostHandler extends PostResponseHandler {
                 .mapToInt(row -> row.getIntValue("answerTokens"))
                 .sum();
         float runTime = (System.currentTimeMillis() - startTime) / 1000F;
-        if (chatRecord != null) {
-            chatRecord.setAnswerText(answerText);
-            chatRecord.setDetails(new JSONObject(details));
-            chatRecord.setMessageTokens(messageTokens);
-            chatRecord.setAnswerTokens(answerTokens);
-            chatRecord.setCost(messageTokens+answerTokens);
-            chatRecord.setAnswerTextList(List.of(answerText));
-            chatRecord.setRunTime(runTime+chatRecord.getRunTime());
-        } else {
-            chatRecord = new ApplicationChatRecordEntity();
-            chatRecord.setId(chatRecordId);
-            chatRecord.setChatId(chatId);
-            chatRecord.setProblemText(problemText);
-            chatRecord.setAnswerText(answerText);
-            chatRecord.setAnswerTextList(List.of(answerText));
-            chatRecord.setIndex(chatInfo.getChatRecordList().size() + 1);
-            chatRecord.setMessageTokens(messageTokens);
-            chatRecord.setAnswerTokens(answerTokens);
-            chatRecord.setRunTime(runTime);
-            chatRecord.setVoteStatus("-1");
-            chatRecord.setCost(messageTokens+answerTokens);
-            chatRecord.setDetails(details);
-            chatRecord.setImproveParagraphIdList(List.of());
-        }
+        ApplicationChatRecordEntity chatRecord = new ApplicationChatRecordEntity();
+        chatRecord.setId(chatRecordId);
+        chatRecord.setChatId(chatId);
+        chatRecord.setProblemText(problemText);
+        chatRecord.setAnswerText(answerText);
+        chatRecord.setAnswerTextList(List.of(answerText));
+        chatRecord.setIndex(chatInfo.getChatRecordList().size() + 1);
+        chatRecord.setMessageTokens(messageTokens);
+        chatRecord.setAnswerTokens(answerTokens);
+        chatRecord.setRunTime(runTime);
+        chatRecord.setVoteStatus("-1");
+        chatRecord.setCost(messageTokens+answerTokens);
+        chatRecord.setDetails(details);
+        chatRecord.setImproveParagraphIdList(List.of());
         chatInfo.addChatRecord(chatRecord);
         // 重新设置缓存
         ChatCache.put(chatId, chatInfo);

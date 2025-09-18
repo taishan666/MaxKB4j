@@ -162,7 +162,7 @@ public class BaseChatStep extends IChatStep {
     }
 
 
-    public JSONArray resetMessageList(JSONArray messageList, String answerText) {
+    public JSONArray resetMessageList(JSONArray messageList) {
         if (CollectionUtils.isEmpty(messageList)) {
             return new JSONArray();
         }
@@ -183,10 +183,6 @@ public class BaseChatStep extends IChatStep {
             }
             newMessageList.add(message);
         }
-        JSONObject aiMessage = new JSONObject();
-        aiMessage.put("role", "ai");
-        aiMessage.put("content", answerText);
-        newMessageList.add(aiMessage);
         return newMessageList;
     }
 
@@ -199,7 +195,7 @@ public class BaseChatStep extends IChatStep {
         details.put("runTime", (System.currentTimeMillis() - startTime) / 1000F);
         details.put("modelId", context.get("modelId"));
         //todo message_list
-        details.put("message_list", resetMessageList(context.getJSONArray("message_list"), context.getString("answer_text")));
+        details.put("message_list", resetMessageList(context.getJSONArray("message_list")));
         details.put("messageTokens", context.getOrDefault("messageTokens", 0));
         details.put("answerTokens", context.getOrDefault("answerTokens", 0));
         details.put("cost", 0);

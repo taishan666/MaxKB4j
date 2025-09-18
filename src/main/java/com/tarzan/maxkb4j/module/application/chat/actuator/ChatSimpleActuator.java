@@ -108,7 +108,7 @@ public class ChatSimpleActuator extends ChatBaseActuator {
         Map<String, Object> params = chatInfo.toPipelineManageParams(chatParams.getChatRecordId(),problemText, excludeParagraphIds, "", "", stream);
         String answer =  pipelineManage.run(params,chatParams.getSink());
         JSONObject details=pipelineManage.getDetails();
-        postResponseHandler.handler(chatParams.getChatId(), chatParams.getChatRecordId(), problemText, answer, null,details, startTime, "", "",chatParams.isDebug());
+        postResponseHandler.handler(chatParams.getChatId(), chatParams.getChatRecordId(), problemText, answer,details, startTime, "", "",chatParams.isDebug());
         return answer;
     }
 

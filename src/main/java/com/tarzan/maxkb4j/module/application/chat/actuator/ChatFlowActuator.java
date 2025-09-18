@@ -5,7 +5,6 @@ import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.NodeFactory;
 import com.tarzan.maxkb4j.core.workflow.WorkflowManage;
-import com.tarzan.maxkb4j.module.chat.ChatParams;
 import com.tarzan.maxkb4j.core.workflow.logic.LfNode;
 import com.tarzan.maxkb4j.core.workflow.logic.LogicFlow;
 import com.tarzan.maxkb4j.module.application.cache.ChatCache;
@@ -21,8 +20,8 @@ import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatMapper;
 import com.tarzan.maxkb4j.module.application.service.ApplicationChatRecordService;
 import com.tarzan.maxkb4j.module.application.service.ApplicationService;
 import com.tarzan.maxkb4j.module.application.service.ApplicationVersionService;
+import com.tarzan.maxkb4j.module.chat.ChatParams;
 import lombok.AllArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -82,19 +81,15 @@ public class ChatFlowActuator extends ChatBaseActuator {
         long startTime = System.currentTimeMillis();
         ChatInfo chatInfo = getChatInfo(chatParams.getChatId());
         chatCheck(chatInfo,chatParams);
-        ApplicationChatRecordEntity chatRecord = null;
-        String chatRecordId = chatParams.getChatRecordId();
-        if(StringUtils.isNotBlank(chatRecordId)){
-            chatRecord = chatRecordService.getChatRecordEntity(chatInfo, chatRecordId);
-        }
+        List<ApplicationChatRecordEntity> historyChatRecordList = chatRecordService.getChatRecords(chatInfo, chatParams.getChatId());
         WorkflowManage workflowManage = new WorkflowManage(
                 chatInfo.getNodes(),
                 chatInfo.getEdges(),
                 chatParams,
-                chatRecord);
-        String answer=workflowManage.run(chatParams);
+                historyChatRecordList);
+        String answer=workflowManage.run();
         JSONObject details= workflowManage.getRuntimeDetails();
-        postResponseHandler.handler(chatParams.getChatId(), chatParams.getChatRecordId(), chatParams.getMessage(),answer,chatRecord,details,startTime,"", ChatUserType.ANONYMOUS_USER.name(),chatParams.isDebug());
+        postResponseHandler.handler(chatParams.getChatId(), chatParams.getChatRecordId(), chatParams.getMessage(),answer,details,startTime,"", ChatUserType.ANONYMOUS_USER.name(),chatParams.isDebug());
         return answer;
     }
 

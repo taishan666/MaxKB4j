@@ -51,6 +51,17 @@ public class ApplicationChatRecordService extends ServiceImpl<ApplicationChatRec
         return chatRecord;
     }
 
+    public List<ApplicationChatRecordEntity> getChatRecords(ChatInfo chatInfo,String chatId) {
+        List<ApplicationChatRecordEntity>  chatRecords=new ArrayList<>();
+        if(Objects.nonNull(chatInfo)) {
+            chatRecords = chatInfo.getChatRecordList();
+        }
+        if(CollectionUtils.isEmpty(chatRecords)){
+            chatRecords=this.lambdaQuery().eq(ApplicationChatRecordEntity::getChatId,chatId).list();
+        }
+        return chatRecords;
+    }
+
     public ApplicationChatRecordVO getChatRecordInfo(ChatInfo chatInfo,String chatRecordId) {
         ApplicationChatRecordEntity  chatRecord=getChatRecordEntity(chatInfo,chatRecordId);
         return convert(chatRecord);

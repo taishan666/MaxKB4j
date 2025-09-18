@@ -2,7 +2,7 @@ package com.tarzan.maxkb4j.core.workflow;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.tarzan.maxkb4j.core.workflow.domain.ChatRecordSimple;
+import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.tarzan.maxkb4j.core.workflow.logic.LfEdge;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatRecordEntity;
 import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
@@ -36,18 +36,19 @@ public class WorkflowManage {
     private JSONObject context = new JSONObject();
     private String answer = "";
     private Sinks.Many<ChatMessageVO> sink;
-    private ApplicationChatRecordEntity chatRecord;
-    private List<ChatRecordSimple> historyMessages;
+ //   private ApplicationChatRecordEntity chatRecord;
+    private List<ApplicationChatRecordEntity> historyMessages;
     private List<INode> nodeContext = new ArrayList<>();
 
-    public WorkflowManage(List<INode> nodes, List<LfEdge> edges, ChatParams chatParams, ApplicationChatRecordEntity chatRecord) {
+    public WorkflowManage(List<INode> nodes, List<LfEdge> edges, ChatParams chatParams, List<ApplicationChatRecordEntity> historyMessages) {
         this.nodes = nodes;
         this.edges = edges;
         this.chatParams = chatParams;
         this.sink = chatParams.getSink();
-        this.chatRecord = chatRecord;
-        this.historyMessages = new ArrayList<>();
-        if (StringUtil.isNotBlank(chatParams.getRuntimeNodeId())) {
+        this.historyMessages = CollectionUtils.isEmpty(historyMessages)?List.of():historyMessages;
+        if (StringUtil.isNotBlank(chatParams.getRuntimeNodeId())&& CollectionUtils.isNotEmpty(historyMessages)) {
+            ApplicationChatRecordEntity chatRecord=historyMessages.stream().filter(e -> e.getId().equals(chatParams.getChatRecordId())).findFirst().orElse( null);
+            assert chatRecord != null;
             this.loadNode(chatRecord, chatParams.getRuntimeNodeId(), chatParams.getNodeData());
         } else {
             this.nodeContext = new ArrayList<>();
@@ -97,12 +98,11 @@ public class WorkflowManage {
         }
     }
 
-    public String run(ChatParams flowParams) {
+    public String run() {
         context.put("start_time", System.currentTimeMillis());
         runChainManage(startNode, null);
-        ChatMessageVO vo=new ChatMessageVO(flowParams.getChatId(),flowParams.getChatRecordId(),true);
+        ChatMessageVO vo=new ChatMessageVO(chatParams.getChatId(),chatParams.getChatRecordId(),true);
         sink.tryEmitNext(vo);
-        historyMessages.add(new ChatRecordSimple(flowParams.getMessage(),answer));
         return answer;
     }
 
@@ -370,13 +370,13 @@ public class WorkflowManage {
         for (int index = 0; index < nodeContext.size(); index++) {
             INode node = nodeContext.get(index);
             JSONObject details;
-            if (chatRecord != null && chatRecord.getDetails() != null) {
+           /* if (chatRecord != null && chatRecord.getDetails() != null) {
                 details = chatRecord.getDetails().getJSONObject(node.getRuntimeNodeId());
                 if (details != null &&startNode != null && !startNode.getRuntimeNodeId().equals(node.getRuntimeNodeId())) {
                     detailsResult.put(node.getRuntimeNodeId(), details);
                     continue;
                 }
-            }
+            }*/
             details = node.getDetail(index);
             details.put("node_id", node.getId());
             details.put("up_node_id_list", node.getLastNodeIdList());
