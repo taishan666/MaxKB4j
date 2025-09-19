@@ -133,10 +133,15 @@ public class BaseChatStep extends IChatStep {
                             .retrievalAugmentor(retrievalAugmentor)
                             .build();
                     if (stream) {
+                        boolean reasoningEnable=application.getModelSetting().getReasoningContentEnable();
                         TokenStream tokenStream = assistant.chatStream(problemText);
                         CompletableFuture<ChatResponse> futureChatResponse = new CompletableFuture<>();
                         tokenStream.onToolExecuted((ToolExecution toolExecution) -> log.info("toolExecution={}", toolExecution))
-                                .onPartialThinking(thinking-> sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, "",thinking.text(), "ai-chat-node","many_view", false)))
+                                .onPartialThinking(thinking-> {
+                                    if(reasoningEnable){
+                                        sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, "",thinking.text(), "ai-chat-node","many_view", false));
+                                    }
+                                })
                                 .onPartialResponse(text -> sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, text,"", "ai-chat-node","many_view", false)))
                                 .onCompleteResponse(response -> {
                                     answerText.set(response.aiMessage().text());
