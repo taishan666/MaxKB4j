@@ -6,7 +6,7 @@ import com.tarzan.maxkb4j.core.assistant.Assistant;
 import com.tarzan.maxkb4j.core.langchain4j.MyChatMemory;
 import com.tarzan.maxkb4j.core.langchain4j.MyContentRetriever;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatUserStatsEntity;
-import com.tarzan.maxkb4j.module.application.domian.entity.DatasetSetting;
+import com.tarzan.maxkb4j.module.application.domian.entity.KnowledgeSetting;
 import com.tarzan.maxkb4j.module.application.domian.entity.NoReferencesSetting;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationVO;
 import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
@@ -87,24 +87,24 @@ public class BaseChatStep extends IChatStep {
         String modelId = application.getModelId();
         super.context.put("modelId", modelId);
         JSONObject params = application.getModelParamsSetting();
-        DatasetSetting datasetSetting = application.getKnowledgeSetting();
-        NoReferencesSetting noReferencesSetting = datasetSetting.getNoReferencesSetting();
+        KnowledgeSetting knowledgeSetting = application.getKnowledgeSetting();
+        NoReferencesSetting noReferencesSetting = knowledgeSetting.getNoReferencesSetting();
         BaseChatModel chatModel = modelService.getModelById(modelId, params);
         if (chatModel == null) {
             answerText.set("抱歉，没有配置 AI 模型，无法优化引用分段，请先去应用中设置 AI 模型。");
-            sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, answerText.get(),"", true));
+            sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, answerText.get(),"","ai-chat-node","many_view",  true));
         } else if (StringUtil.isBlank(problemText)) {
             answerText.set("用户消息不能为空");
-            sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, answerText.get(),"", true));
+            sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, answerText.get(),"","ai-chat-node","many_view", true));
         } else {
             String status = noReferencesSetting.getStatus();
             if (!CollectionUtils.isEmpty(directlyReturnChunkList)) {
                 answerText.set(directlyReturnChunkList.get(0).text());
-                sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, answerText.get(),"", true));
+                sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, answerText.get(),"", "ai-chat-node","many_view", true));
             } else if (paragraphList.isEmpty() && "designated_answer".equals(status)) {
                 String value = noReferencesSetting.getValue();
                 answerText.set(value.replace("{question}", problemText));
-                sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, answerText.get(),"", true));
+                sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, answerText.get(),"", "ai-chat-node","many_view", true));
             } else {
                 String chatUserId = manage.context.getString("chat_user_id");
                 String chatUserType = manage.context.getString("chat_user_type");
@@ -136,8 +136,8 @@ public class BaseChatStep extends IChatStep {
                         TokenStream tokenStream = assistant.chatStream(problemText);
                         CompletableFuture<ChatResponse> futureChatResponse = new CompletableFuture<>();
                         tokenStream.onToolExecuted((ToolExecution toolExecution) -> log.info("toolExecution={}", toolExecution))
-                                .onPartialThinking(thinking-> sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, "",thinking.text(), false)))
-                                .onPartialResponse(text -> sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, text,"", false)))
+                                .onPartialThinking(thinking-> sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, "",thinking.text(), "ai-chat-node","many_view", false)))
+                                .onPartialResponse(text -> sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, text,"", "ai-chat-node","many_view", false)))
                                 .onCompleteResponse(response -> {
                                     answerText.set(response.aiMessage().text());
                                     TokenUsage tokenUsage = response.tokenUsage();
@@ -145,11 +145,11 @@ public class BaseChatStep extends IChatStep {
                                     context.put("messageTokens", tokenUsage.inputTokenCount());
                                     context.put("answerTokens", tokenUsage.outputTokenCount());
                                     addAccessNum(chatUserId, chatUserType);
-                                    sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, "","", true));
+                                    sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, "","", "ai-chat-node","many_view", true));
                                     futureChatResponse.complete(response);// 完成后释放线程
                                 })
                                 .onError(error -> {
-                                    sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, "","", true));
+                                    sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, "","","ai-chat-node","many_view",  true));
                                     futureChatResponse.completeExceptionally(error); // 完成后释放线程
                                 })
                                 .start();

@@ -1,7 +1,7 @@
 package com.tarzan.maxkb4j.module.application.ragpipeline.step.searchdatasetstep.impl;
 
 import com.alibaba.fastjson.JSONObject;
-import com.tarzan.maxkb4j.module.application.domian.entity.DatasetSetting;
+import com.tarzan.maxkb4j.module.application.domian.entity.KnowledgeSetting;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationVO;
 import com.tarzan.maxkb4j.module.application.ragpipeline.PipelineManage;
 import com.tarzan.maxkb4j.module.application.ragpipeline.step.searchdatasetstep.ISearchDatasetStep;
@@ -31,7 +31,7 @@ public class SearchDatasetStep extends ISearchDatasetStep {
         super.context.put("problem_text",problemText);
         String paddingProblemText=context.getString("padding_problem_text");
    //     String execProblemText = StringUtils.isNotBlank(paddingProblemText)?paddingProblemText:problemText;
-        DatasetSetting datasetSetting=application.getKnowledgeSetting();
+        KnowledgeSetting datasetSetting=application.getKnowledgeSetting();
         List<CompletableFuture<List<ParagraphVO>>> futureList = new ArrayList<>();
         futureList.add(CompletableFuture.supplyAsync(()->retrieveService.paragraphSearch(problemText,application.getKnowledgeIdList(), List.of(),datasetSetting)));
         if(StringUtils.isNotBlank(paddingProblemText)&&!problemText.equals(paddingProblemText)){

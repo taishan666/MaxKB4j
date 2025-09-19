@@ -14,6 +14,7 @@ import com.tarzan.maxkb4j.module.system.permission.service.UserResourcePermissio
 import com.tarzan.maxkb4j.module.system.user.domain.entity.UserEntity;
 import com.tarzan.maxkb4j.module.system.user.service.UserService;
 import com.tarzan.maxkb4j.util.BeanUtil;
+import com.tarzan.maxkb4j.util.StringUtil;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -100,11 +101,17 @@ public class ModelService extends ServiceImpl<ModelMapper, ModelEntity> {
 
 
     public <T> T getModelById(String modelId) {
-        return modelBaseService.getModelById(modelId);
+        return getModelById(modelId,new JSONObject());
     }
 
     public <T> T getModelById(String modelId,JSONObject modelParams) {
+        if (StringUtil.isBlank(modelId)){
+            return null;
+        }
         ModelEntity model = modelBaseService.getModelInfoById(modelId);
+        if (model == null){
+            return null;
+        }
         return ModelFactory.build(model,modelParams);
     }
 

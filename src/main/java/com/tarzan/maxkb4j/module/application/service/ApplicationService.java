@@ -14,8 +14,10 @@ import com.tarzan.maxkb4j.module.application.domian.dto.*;
 import com.tarzan.maxkb4j.module.application.domian.entity.*;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationVO;
 import com.tarzan.maxkb4j.module.application.domian.vo.McpToolVO;
+import com.tarzan.maxkb4j.module.application.enums.AppType;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatMapper;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationMapper;
+import com.tarzan.maxkb4j.module.knowledge.consts.SearchType;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.DataSearchDTO;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.KnowledgeEntity;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.ParagraphEntity;
@@ -178,8 +180,8 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
 
     @Transactional
     public ApplicationEntity createApp(ApplicationEntity application) {
-        application.setKnowledgeSetting(new DatasetSetting());
-        if ("WORK_FLOW".equals(application.getType())) {
+        application.setKnowledgeSetting(new KnowledgeSetting());
+        if (AppType.WORK_FLOW.name().equals(application.getType())) {
             application = createWorkflow(application);
         } else {
             application = createSimple(application);
@@ -219,6 +221,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         application.setCleanTime(365);
         application.setFileUploadEnable(false);
         application.setFileUploadSetting(new JSONObject());
+        application.setKnowledgeSetting(getDefaultKnowledgeSetting());
         this.save(application);
         return application;
     }
@@ -263,8 +266,19 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         application.setCleanTime(365);
         application.setFileUploadEnable(false);
         application.setFileUploadSetting(new JSONObject());
+        application.setKnowledgeSetting(getDefaultKnowledgeSetting());
         this.save(application);
         return application;
+    }
+
+    private KnowledgeSetting getDefaultKnowledgeSetting() {
+        KnowledgeSetting knowledgeSetting = new KnowledgeSetting();
+        knowledgeSetting.setTopN(5);
+        knowledgeSetting.setMaxParagraphCharNumber(5120);
+        knowledgeSetting.setSearchMode(SearchType.EMBEDDING);
+        knowledgeSetting.setSimilarity(0.6F);
+        knowledgeSetting.setNoReferencesSetting(new NoReferencesSetting("ai_questioning","{question}"));
+        return knowledgeSetting;
     }
 
     public boolean improveChatLogs(String appId, ChatImproveDTO dto) {

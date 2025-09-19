@@ -30,7 +30,7 @@ public class ApplicationEntity extends BaseEntity {
     private Integer dialogueNumber;
 
     @TableField(typeHandler = DatasetSettingTypeHandler.class)
-    private DatasetSetting knowledgeSetting;
+    private KnowledgeSetting knowledgeSetting;
 
     @TableField(typeHandler = LlmModelSettingTypeHandler.class)
     private LlmModelSetting modelSetting;

@@ -2,7 +2,6 @@ package com.tarzan.maxkb4j.module.application.chat.actuator;
 
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
-import com.tarzan.maxkb4j.core.exception.ApiException;
 import com.tarzan.maxkb4j.module.application.cache.ChatCache;
 import com.tarzan.maxkb4j.module.application.chat.base.ChatBaseActuator;
 import com.tarzan.maxkb4j.module.application.domian.dto.ChatInfo;
@@ -21,7 +20,6 @@ import com.tarzan.maxkb4j.module.application.service.ApplicationKnowledgeMapping
 import com.tarzan.maxkb4j.module.application.service.ApplicationService;
 import com.tarzan.maxkb4j.module.chat.ChatParams;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.ParagraphVO;
-import com.tarzan.maxkb4j.module.model.info.entity.ModelEntity;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -74,11 +72,6 @@ public class ChatSimpleActuator extends ChatBaseActuator {
         chatParams.setChatRecordId(chatParams.getChatRecordId() == null ? IdWorker.get32UUID() : chatParams.getChatRecordId());
         ChatInfo chatInfo = getChatInfo(chatParams.getChatId());
         chatCheck(chatInfo,chatParams);
-        String modelId = chatInfo.getApplication().getModelId();
-        ModelEntity model = modelService.getById(modelId);
-        if (Objects.isNull(model) || !"SUCCESS".equals(model.getStatus())) {
-            throw new ApiException("当前模型不可用");
-        }
         boolean stream = chatParams.getStream() == null || chatParams.getStream();
         String problemText = chatParams.getMessage();
         boolean reChat = chatParams.getReChat();

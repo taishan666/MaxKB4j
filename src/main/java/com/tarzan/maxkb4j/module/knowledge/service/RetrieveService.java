@@ -1,6 +1,6 @@
 package com.tarzan.maxkb4j.module.knowledge.service;
 
-import com.tarzan.maxkb4j.module.application.domian.entity.DatasetSetting;
+import com.tarzan.maxkb4j.module.application.domian.entity.KnowledgeSetting;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.DataSearchDTO;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.ParagraphVO;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.TextChunkVO;
@@ -23,7 +23,7 @@ public class RetrieveService {
     private final Map<String, IDataRetriever> dataRetrieverMap;
 
 
-    public List<ParagraphVO> paragraphSearch(String question, List<String> datasetIds, List<String> excludeParagraphIds, DatasetSetting datasetSetting) {
+    public List<ParagraphVO> paragraphSearch(String question, List<String> datasetIds, List<String> excludeParagraphIds, KnowledgeSetting datasetSetting) {
         DataSearchDTO dto = new DataSearchDTO();
         dto.setQueryText(question);
         dto.setSearchMode(datasetSetting.getSearchMode());
