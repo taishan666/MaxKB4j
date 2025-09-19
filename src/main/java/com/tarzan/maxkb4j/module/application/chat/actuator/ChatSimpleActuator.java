@@ -5,10 +5,9 @@ import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.tarzan.maxkb4j.module.application.cache.ChatCache;
 import com.tarzan.maxkb4j.module.application.chat.base.ChatBaseActuator;
 import com.tarzan.maxkb4j.module.application.domian.dto.ChatInfo;
-import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatEntity;
-import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationKnowledgeMappingEntity;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationChatRecordVO;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationVO;
+import com.tarzan.maxkb4j.module.application.enums.AppType;
 import com.tarzan.maxkb4j.module.application.handler.PostResponseHandler;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatMapper;
 import com.tarzan.maxkb4j.module.application.ragpipeline.PipelineManage;
@@ -18,9 +17,9 @@ import com.tarzan.maxkb4j.module.application.ragpipeline.step.searchdatasetstep.
 import com.tarzan.maxkb4j.module.application.service.ApplicationChatRecordService;
 import com.tarzan.maxkb4j.module.application.service.ApplicationKnowledgeMappingService;
 import com.tarzan.maxkb4j.module.application.service.ApplicationService;
+import com.tarzan.maxkb4j.module.application.service.ApplicationVersionService;
 import com.tarzan.maxkb4j.module.chat.ChatParams;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.ParagraphVO;
-import com.tarzan.maxkb4j.module.model.info.service.ModelService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
@@ -35,7 +34,6 @@ import java.util.Objects;
 public class ChatSimpleActuator extends ChatBaseActuator {
 
 
-    private final ModelService modelService;
     private final SearchDatasetStep searchDatasetStep;
     private final BaseChatStep baseChatStep;
     private final BaseResetProblemStep baseResetProblemStep;
@@ -43,14 +41,16 @@ public class ChatSimpleActuator extends ChatBaseActuator {
     private final ApplicationKnowledgeMappingService datasetMappingService;
     private final ApplicationChatMapper chatMapper;
     private final ApplicationService applicationService;
+    private final ApplicationVersionService applicationVersionService;
     private final PostResponseHandler postResponseHandler;
 
     @Override
     public String chatOpenTest(ApplicationVO application) {
         ChatInfo chatInfo = new ChatInfo();
         chatInfo.setChatId(IdWorker.get32UUID());
-        //application.setId(null); // 清空id,为了区分是否是测试对话
-        chatInfo.setApplication(application);
+        chatInfo.setAppId(application.getId());
+        chatInfo.setAppType(AppType.SIMPLE.name());
+        chatInfo.setDebug(true);
         ChatCache.put(chatInfo.getChatId(), chatInfo);
         return chatInfo.getChatId();
     }
@@ -59,19 +59,16 @@ public class ChatSimpleActuator extends ChatBaseActuator {
     public String chatOpen(ApplicationVO application, String chatId) {
         ChatInfo chatInfo = new ChatInfo();
         chatInfo.setChatId(chatId);
-        List<ApplicationKnowledgeMappingEntity> list = datasetMappingService.lambdaQuery().eq(ApplicationKnowledgeMappingEntity::getApplicationId, application.getId()).list();
-        application.setKnowledgeIdList(list.stream().map(ApplicationKnowledgeMappingEntity::getKnowledgeId).toList());
-        chatInfo.setApplication(application);
+        chatInfo.setAppId(application.getId());
+        chatInfo.setAppType(AppType.SIMPLE.name());
         ChatCache.put(chatInfo.getChatId(), chatInfo);
         return chatId;
     }
 
     @Override
-    public String chatMessage(ChatParams chatParams) {
+    public String chatMessage(ChatParams chatParams,boolean debug) {
         long startTime = System.currentTimeMillis();
-        chatParams.setChatRecordId(chatParams.getChatRecordId() == null ? IdWorker.get32UUID() : chatParams.getChatRecordId());
-        ChatInfo chatInfo = getChatInfo(chatParams.getChatId());
-        chatCheck(chatInfo,chatParams);
+        ChatInfo chatInfo = ChatCache.get(chatParams.getChatId());
         boolean stream = chatParams.getStream() == null || chatParams.getStream();
         String problemText = chatParams.getMessage();
         boolean reChat = chatParams.getReChat();
@@ -87,7 +84,13 @@ public class ChatSimpleActuator extends ChatBaseActuator {
                 }
             }
         }
-        ApplicationVO application = chatInfo.getApplication();
+        ApplicationVO application;
+        if (debug){
+             application = applicationService.getDetail(chatInfo.getAppId());
+        }else {
+             application = applicationVersionService.getDetail(chatInfo.getAppId());
+        }
+
         PipelineManage.Builder pipelineManageBuilder = new PipelineManage.Builder();
         Boolean problemOptimization = application.getProblemOptimization();
         if (!CollectionUtils.isEmpty(application.getKnowledgeIdList())) {
@@ -98,26 +101,11 @@ public class ChatSimpleActuator extends ChatBaseActuator {
         }
         pipelineManageBuilder.addStep(baseChatStep);
         PipelineManage pipelineManage = pipelineManageBuilder.build();
-        Map<String, Object> params = chatInfo.toPipelineManageParams(chatParams.getChatRecordId(),problemText, excludeParagraphIds, "", "", stream);
+        Map<String, Object> params = chatInfo.toPipelineManageParams(application, chatParams.getChatRecordId(),problemText, excludeParagraphIds,"", "", stream);
         String answer =  pipelineManage.run(params,chatParams.getSink());
         JSONObject details=pipelineManage.getDetails();
-        postResponseHandler.handler(chatParams.getChatId(), chatParams.getChatRecordId(), problemText, answer,details, startTime, "", "",chatParams.isDebug());
+        postResponseHandler.handler(chatParams.getChatId(), chatParams.getChatRecordId(), problemText, answer,details, startTime, "", "",debug);
         return answer;
     }
 
-    @Override
-    public ChatInfo reChatOpen(String chatId) {
-        ApplicationChatEntity chatEntity = chatMapper.selectById(chatId);
-        if (chatEntity == null){
-            return null;
-        }
-        ChatInfo chatInfo = new ChatInfo();
-        chatInfo.setChatId(chatId);
-        ApplicationVO application = applicationService.getDetail(chatEntity.getApplicationId());
-        List<ApplicationKnowledgeMappingEntity> list = datasetMappingService.lambdaQuery().eq(ApplicationKnowledgeMappingEntity::getApplicationId, application.getId()).list();
-        application.setKnowledgeIdList(list.stream().map(ApplicationKnowledgeMappingEntity::getKnowledgeId).toList());
-        chatInfo.setApplication(application);
-        ChatCache.put(chatInfo.getChatId(), chatInfo);
-        return chatInfo;
-    }
 }

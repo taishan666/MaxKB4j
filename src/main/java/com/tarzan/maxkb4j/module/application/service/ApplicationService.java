@@ -64,7 +64,7 @@ import java.util.stream.Collectors;
 public class ApplicationService extends ServiceImpl<ApplicationMapper, ApplicationEntity> {
 
     private final ModelService modelService;
-    private final KnowledgeService datasetService;
+    private final KnowledgeService knowledgeService;
     private final UserService userService;
     private final RetrieveService retrieveService;
     private final ParagraphService paragraphService;
@@ -72,7 +72,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     private final ApplicationApiKeyService applicationApiKeyService;
     private final ApplicationChatUserStatsService accessClientService;
     private final ApplicationVersionService applicationVersionService;
-    private final ApplicationKnowledgeMappingService datasetMappingService;
+    private final ApplicationKnowledgeMappingService knowledgeMappingService;
     private final ApplicationChatRecordService applicationChatRecordService;
     private final ApplicationChatMapper applicationChatMapper;
     private final ToolService toolService;
@@ -151,7 +151,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         if (app == null) {
             return Collections.emptyList();
         }
-        return datasetService.getByUserId(app.getUserId());
+        return knowledgeService.getByUserId(app.getUserId());
     }
 
 
@@ -169,7 +169,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         applicationApiKeyService.remove(Wrappers.<ApplicationApiKeyEntity>lambdaQuery().eq(ApplicationApiKeyEntity::getApplicationId, appId));
         accessClientService.remove(Wrappers.<ApplicationChatUserStatsEntity>lambdaQuery().eq(ApplicationChatUserStatsEntity::getApplicationId, appId));
         applicationVersionService.remove(Wrappers.<ApplicationVersionEntity>lambdaQuery().eq(ApplicationVersionEntity::getApplicationId, appId));
-        datasetMappingService.remove(Wrappers.<ApplicationKnowledgeMappingEntity>lambdaQuery().eq(ApplicationKnowledgeMappingEntity::getApplicationId, appId));
+        knowledgeMappingService.remove(Wrappers.<ApplicationKnowledgeMappingEntity>lambdaQuery().eq(ApplicationKnowledgeMappingEntity::getApplicationId, appId));
         List<String> chatIds = applicationChatMapper.selectList(Wrappers.<ApplicationChatEntity>lambdaQuery().eq(ApplicationChatEntity::getApplicationId, appId)).stream().map(ApplicationChatEntity::getId).toList();
         if (!CollectionUtils.isEmpty(chatIds)) {
             applicationChatMapper.delete(Wrappers.<ApplicationChatEntity>lambdaQuery().eq(ApplicationChatEntity::getApplicationId, appId));
@@ -304,10 +304,10 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
             return null;
         }
         ApplicationVO vo = BeanUtil.copy(entity, ApplicationVO.class);
-        List<String> datasetIds = datasetMappingService.getDatasetIdsByAppId(id);
+        List<String> datasetIds = knowledgeMappingService.getDatasetIdsByAppId(id);
         vo.setKnowledgeIdList(datasetIds);
         if (!CollectionUtils.isEmpty(vo.getKnowledgeIdList())) {
-            vo.setKnowledgeList(datasetService.listByIds(datasetIds));
+            vo.setKnowledgeList(knowledgeService.listByIds(datasetIds));
          }else {
             vo.setKnowledgeList(new ArrayList<>());
         }
@@ -374,7 +374,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     }*/
 
     public List<ParagraphVO> hitTest(String id, DataSearchDTO dto) {
-        List<String> datasetIds = datasetMappingService.getDatasetIdsByAppId(id);
+        List<String> datasetIds = knowledgeMappingService.getDatasetIdsByAppId(id);
         dto.setExcludeParagraphIds(new ArrayList<>());
         return retrieveService.paragraphSearch(datasetIds, dto);
     }
@@ -402,7 +402,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     public Boolean updateAppById(String appId, ApplicationVO appVO) {
         ApplicationEntity application = BeanUtil.copy(appVO, ApplicationEntity.class);
         application.setId(appId);
-        datasetMappingService.updateByAppId(appId, appVO.getKnowledgeIdList());
+        knowledgeMappingService.updateByAppId(appId, appVO.getKnowledgeIdList());
         return this.updateById(application);
     }
 

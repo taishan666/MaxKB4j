@@ -5,7 +5,6 @@ import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.NodeResult;
 import com.tarzan.maxkb4j.core.workflow.WorkflowManage;
 import com.tarzan.maxkb4j.core.workflow.node.application.input.ApplicationNodeParams;
-import com.tarzan.maxkb4j.module.application.enums.AuthType;
 import com.tarzan.maxkb4j.module.application.service.ApplicationChatService;
 import com.tarzan.maxkb4j.module.chat.ChatParams;
 import com.tarzan.maxkb4j.util.SpringUtil;
@@ -36,9 +35,10 @@ public class BaseApplicationNode extends INode {
         ChatParams chatParams = ChatParams.builder()
                 .message(question)
                 .chatId(chatId)
+                .userId("")
                 .sink(workflowManage.getSink())
                 .reChat(false).build();
-        String answer=chatService.chatMessage(chatParams);
+        String answer=chatService.chatMessage(chatParams,true);
         return new NodeResult(Map.of(
                 "result", answer,
                 "question", question

@@ -90,12 +90,14 @@ public class BaseChatNode extends INode {
 
     private void writeContextStream(Map<String, Object> nodeVariable, Map<String, Object> globalVariable, INode node, WorkflowManage workflow) {
         if (nodeVariable != null) {
+            ChatNodeParams nodeParams = super.nodeParams.toJavaObject(ChatNodeParams.class);
             context.putAll(nodeVariable);
             TokenStream tokenStream = (TokenStream) nodeVariable.get("result");
             CompletableFuture<ChatResponse> futureChatResponse = new CompletableFuture<>();
             boolean isResult = workflow.isResult(node, new NodeResult(nodeVariable, globalVariable));
+            boolean reasoningContentEnable = nodeParams.getModelSetting().getBooleanValue("reasoningContentEnable");
             tokenStream.onPartialThinking(thinking -> {
-                        if (isResult) {
+                        if (isResult&&reasoningContentEnable) {
                             ChatMessageVO vo = new ChatMessageVO(
                                     workflowManage.getChatParams().getChatId(),
                                     workflowManage.getChatParams().getChatRecordId(),

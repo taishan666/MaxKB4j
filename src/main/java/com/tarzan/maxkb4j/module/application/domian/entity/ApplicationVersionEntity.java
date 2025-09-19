@@ -16,7 +16,7 @@ import lombok.EqualsAndHashCode;
   */
 @EqualsAndHashCode(callSuper = true)
 @Data
-@TableName("application_version")
+@TableName(value = "application_version",autoResultMap = true)
 public class ApplicationVersionEntity extends BaseEntity {
 
 	private String applicationId;

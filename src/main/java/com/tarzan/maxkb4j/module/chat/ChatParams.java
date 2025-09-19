@@ -38,12 +38,14 @@ public class ChatParams {
     private List<ChatFile> imageList;
     private List<ChatFile> otherList;
 
-    @NotNull(message = "答案不能为空")
+    @NotNull(message = "是否重新回答")
     private Boolean reChat;
 
     @JsonIgnore
-    private Sinks.Many<ChatMessageVO> sink;
+    private String userId;
+
     @JsonIgnore
-    private boolean debug;
+    private Sinks.Many<ChatMessageVO> sink;
+
 
 }

@@ -60,7 +60,7 @@ public class BaseChatStep extends IChatStep {
         JSONObject context = manage.context;
         String chatId = context.getString("chatId");
         List<ParagraphVO> paragraphList = (List<ParagraphVO>) context.get("paragraph_list");
-        ApplicationVO application = (ApplicationVO) context.get("application");
+        ApplicationVO application=  context.getObject("application",ApplicationVO.class);
         String problemText = context.getString("problem_text");
         boolean stream = true;
         return getFluxResult(chatId, paragraphList, problemText, application, manage, stream);

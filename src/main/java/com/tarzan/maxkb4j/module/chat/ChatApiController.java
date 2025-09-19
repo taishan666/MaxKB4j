@@ -4,6 +4,7 @@ import cn.dev33.satoken.stp.SaLoginModel;
 import cn.dev33.satoken.stp.StpUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.tarzan.maxkb4j.constant.AppConst;
@@ -74,8 +75,6 @@ public class ChatApiController {
         loginModel.setExtra("chat_user_id", "123456789");
         loginModel.setExtra("chat_user_type", "ANONYMOUS_USER");
         loginModel.setExtra("application_id", accessToken.getApplicationId());
-       // loginModel.setExtra(AuthType.ACCESS_TOKEN.name(), accessToken);
-      //  loginModel.setDevice(AuthType.ACCESS_TOKEN.name());
         StpUtil.login("123456789", loginModel);
         return R.success(StpUtil.getTokenValue());
     }
@@ -84,16 +83,15 @@ public class ChatApiController {
     @PostMapping(path = "/chat_message/{chatId}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<ChatMessageVO> chatMessage(@PathVariable String chatId, @RequestBody ChatParams params) {
         Sinks.Many<ChatMessageVO> sink = Sinks.many().multicast().onBackpressureBuffer();
-    //    String chatUserId = StpUtil.getLoginIdAsString();
-    //    String chatUserType = (String) StpUtil.getExtra("chat_user_type");
         params.setChatId(chatId);
-      // params.setClientId(chatUserId);
-      //  params.setClientType(chatUserType);
+        params.setChatRecordId(params.getChatRecordId()==null? IdWorker.get32UUID() :params.getChatRecordId());
         params.setSink(sink);
+        params.setUserId(StpUtil.getLoginIdAsString());
         // 异步执行业务逻辑
-        chatTaskExecutor.execute(() -> chatService.chatMessage(params));
+        chatTaskExecutor.execute(() -> chatService.chatMessage(params,false));
         return sink.asFlux();
     }
+
 
     @GetMapping("/historical_conversation/{current}/{size}")
     public R<Page<ApplicationChatEntity>> historicalConversation(@PathVariable int current, @PathVariable int size) {

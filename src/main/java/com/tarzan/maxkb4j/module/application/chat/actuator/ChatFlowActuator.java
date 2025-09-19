@@ -10,13 +10,12 @@ import com.tarzan.maxkb4j.core.workflow.logic.LogicFlow;
 import com.tarzan.maxkb4j.module.application.cache.ChatCache;
 import com.tarzan.maxkb4j.module.application.chat.base.ChatBaseActuator;
 import com.tarzan.maxkb4j.module.application.domian.dto.ChatInfo;
-import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatEntity;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatRecordEntity;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationVersionEntity;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationVO;
+import com.tarzan.maxkb4j.module.application.enums.AppType;
 import com.tarzan.maxkb4j.module.application.enums.ChatUserType;
 import com.tarzan.maxkb4j.module.application.handler.PostResponseHandler;
-import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatMapper;
 import com.tarzan.maxkb4j.module.application.service.ApplicationChatRecordService;
 import com.tarzan.maxkb4j.module.application.service.ApplicationService;
 import com.tarzan.maxkb4j.module.application.service.ApplicationVersionService;
@@ -31,7 +30,6 @@ import java.util.List;
 public class ChatFlowActuator extends ChatBaseActuator {
 
     private final ApplicationVersionService applicationVersionService;
-    private final ApplicationChatMapper chatMapper;
     private final ApplicationService applicationService;
     private final ApplicationChatRecordService chatRecordService;
     private final PostResponseHandler postResponseHandler;
@@ -40,15 +38,9 @@ public class ChatFlowActuator extends ChatBaseActuator {
     public String chatOpenTest(ApplicationVO application) {
         ChatInfo chatInfo = new ChatInfo();
         chatInfo.setChatId(IdWorker.get32UUID());
-        application.setId(null);
-        ApplicationVersionEntity workflowVersion = new ApplicationVersionEntity();
-        workflowVersion.setWorkFlow(application.getWorkFlow());
-        chatInfo.setApplication(application);
-        LogicFlow logicFlow=LogicFlow.newInstance(application.getWorkFlow());
-        List<LfNode> lfNodes=logicFlow.getNodes();
-        List<INode> nodes=lfNodes.stream().filter(lfNode -> !lfNode.getType().equals("base-node")).map(NodeFactory::getNode).toList();
-        chatInfo.setNodes(nodes);
-        chatInfo.setEdges(logicFlow.getEdges());
+        chatInfo.setAppId(application.getId());
+        chatInfo.setAppType(AppType.WORK_FLOW.name());
+        chatInfo.setDebug(true);
         ChatCache.put(chatInfo.getChatId(), chatInfo);
         return chatInfo.getChatId();
     }
@@ -56,63 +48,40 @@ public class ChatFlowActuator extends ChatBaseActuator {
     @Override
     public String chatOpen(ApplicationVO application, String chatId) {
         ChatInfo chatInfo = new ChatInfo();
-        chatInfo.setChatId(chatId);
-        JSONObject workFlow=application.getWorkFlow();
-        if (workFlow == null){
-            ApplicationVersionEntity workFlowVersion = applicationVersionService.lambdaQuery()
-                    .eq(ApplicationVersionEntity::getApplicationId, application.getId())
-                    .orderByDesc(ApplicationVersionEntity::getCreateTime)
-                    .last("limit 1").one();
-            workFlow=workFlowVersion.getWorkFlow();
-        }
-        //todo workFlow为null时，处理
-        chatInfo.setApplication(application);
-        LogicFlow logicFlow=LogicFlow.newInstance(workFlow);
-        List<LfNode> lfNodes=logicFlow.getNodes();
-        List<INode> nodes=lfNodes.stream().filter(lfNode -> !lfNode.getType().equals("base-node")).map(NodeFactory::getNode).toList();
-        chatInfo.setNodes(nodes);
-        chatInfo.setEdges(logicFlow.getEdges());
+        chatInfo.setChatId(IdWorker.get32UUID());
+        chatInfo.setAppId(application.getId());
+        chatInfo.setAppType(AppType.WORK_FLOW.name());
         ChatCache.put(chatInfo.getChatId(), chatInfo);
-        return chatId;
+        return chatInfo.getChatId();
     }
 
     @Override
-    public String chatMessage(ChatParams chatParams) {
+    public String chatMessage(ChatParams chatParams,boolean debug) {
         long startTime = System.currentTimeMillis();
-        ChatInfo chatInfo = getChatInfo(chatParams.getChatId());
-        chatCheck(chatInfo,chatParams);
+        ChatInfo chatInfo = ChatCache.get(chatParams.getChatId());
+        ApplicationVO application;
+        if (debug){
+            application = applicationService.getDetail(chatInfo.getAppId());
+        }else {
+            application = applicationVersionService.getDetail(chatInfo.getAppId());
+        }
+        ApplicationVersionEntity workflowVersion = new ApplicationVersionEntity();
+        workflowVersion.setWorkFlow(application.getWorkFlow());
+        chatInfo.setAppId(application.getId());
+        chatInfo.setAppType(application.getType());
+        LogicFlow logicFlow=LogicFlow.newInstance(application.getWorkFlow());
+        List<LfNode> lfNodes=logicFlow.getNodes();
+        List<INode> nodes=lfNodes.stream().filter(lfNode -> !lfNode.getType().equals("base-node")).map(NodeFactory::getNode).toList();
         List<ApplicationChatRecordEntity> historyChatRecordList = chatRecordService.getChatRecords(chatInfo, chatParams.getChatId());
         WorkflowManage workflowManage = new WorkflowManage(
-                chatInfo.getNodes(),
-                chatInfo.getEdges(),
+                nodes,
+                logicFlow.getEdges(),
                 chatParams,
                 historyChatRecordList);
         String answer=workflowManage.run();
         JSONObject details= workflowManage.getRuntimeDetails();
-        postResponseHandler.handler(chatParams.getChatId(), chatParams.getChatRecordId(), chatParams.getMessage(),answer,details,startTime,"", ChatUserType.ANONYMOUS_USER.name(),chatParams.isDebug());
+        postResponseHandler.handler(chatParams.getChatId(), chatParams.getChatRecordId(), chatParams.getMessage(),answer,details,startTime,"", ChatUserType.ANONYMOUS_USER.name(),debug);
         return answer;
     }
 
-    @Override
-    public ChatInfo reChatOpen(String chatId) {
-        ApplicationChatEntity chatEntity = chatMapper.selectById(chatId);
-        if (chatEntity == null){
-            return null;
-        }
-        ChatInfo chatInfo = new ChatInfo();
-        chatInfo.setChatId(chatId);
-        ApplicationVO application = applicationService.getDetail(chatEntity.getApplicationId());
-        chatInfo.setApplication(application);
-        ApplicationVersionEntity workFlowVersion = applicationVersionService.lambdaQuery()
-                .eq(ApplicationVersionEntity::getApplicationId, application.getId())
-                .orderByDesc(ApplicationVersionEntity::getCreateTime)
-                .last("limit 1").one();
-        LogicFlow logicFlow=LogicFlow.newInstance(workFlowVersion.getWorkFlow());
-        List<LfNode> lfNodes=logicFlow.getNodes();
-        List<INode> nodes=lfNodes.stream().filter(lfNode -> lfNode.getType().equals("base-node")).map(NodeFactory::getNode).toList();
-        chatInfo.setNodes(nodes);
-        chatInfo.setEdges(logicFlow.getEdges());
-        ChatCache.put(chatInfo.getChatId(), chatInfo);
-        return chatInfo;
-    }
 }

@@ -14,6 +14,7 @@ public class ChatNodeParams{
     private int dialogueNumber;
     private Boolean isResult;
     private JSONObject modelParamsSetting;
+    private JSONObject modelSetting;
     private String dialogueType;
     private Boolean mcpEnable;
     private String mcpSource;

@@ -9,5 +9,5 @@ public interface IChatActuator {
 
     String chatOpen(ApplicationVO application, String chatId);
 
-    String chatMessage(ChatParams chatParams);
+    String chatMessage(ChatParams chatParams,boolean debug);
 }

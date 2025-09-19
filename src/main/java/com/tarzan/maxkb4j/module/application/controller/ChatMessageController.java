@@ -1,5 +1,7 @@
 package com.tarzan.maxkb4j.module.application.controller;
 
+import cn.dev33.satoken.stp.StpUtil;
+import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.tarzan.maxkb4j.constant.AppConst;
 import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
 import com.tarzan.maxkb4j.module.application.service.ApplicationChatService;
@@ -31,15 +33,12 @@ public class ChatMessageController {
     @PostMapping(path = "/chat_message/{chatId}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<ChatMessageVO> chatMessage(@PathVariable String chatId, @RequestBody ChatParams params) {
         Sinks.Many<ChatMessageVO> sink = Sinks.many().multicast().onBackpressureBuffer();
-      //  String chatUserId = StpUtil.getLoginIdAsString();
-      //  String chatUserType = (String) StpUtil.getExtra("chat_user_type");
         params.setChatId(chatId);
-     //   params.setClientId(chatUserId);
-    //    params.setClientType(chatUserType);
+        params.setChatRecordId(params.getChatRecordId()==null? IdWorker.get32UUID() :params.getChatRecordId());
         params.setSink(sink);
-        params.setDebug(true);
+        params.setUserId(StpUtil.getLoginIdAsString());
         // 异步执行业务逻辑
-        chatTaskExecutor.execute(() -> chatService.chatMessage(params));
+        chatTaskExecutor.execute(() -> chatService.chatMessage(params,true));
         return sink.asFlux();
     }
 }

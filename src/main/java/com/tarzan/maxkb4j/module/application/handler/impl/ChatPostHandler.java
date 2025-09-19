@@ -73,7 +73,7 @@ public class ChatPostHandler extends PostResponseHandler {
             if(chatRecordCount==0){
                 ApplicationChatEntity chatEntity = new ApplicationChatEntity();
                 chatEntity.setId(chatId);
-                chatEntity.setApplicationId(chatInfo.getApplication().getId());
+                chatEntity.setApplicationId(chatInfo.getAppId());
                 String problemOverview=problemText.length()>50?problemText.substring(0,50):problemText;
                 chatEntity.setSummary(problemOverview);
                 chatEntity.setChatUserId(chatUserId);
