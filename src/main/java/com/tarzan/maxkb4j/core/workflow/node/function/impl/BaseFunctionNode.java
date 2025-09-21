@@ -40,7 +40,7 @@ public class BaseFunctionNode extends INode {
                     List<String> fields=(List<String>)value;
                     value=workflowManage.getReferenceField(fields.get(0),fields.subList(1, fields.size()));
                     if (value!=null){
-                        if("global".equals(fields.get(0))||lastNodeIdList.contains(fields.get(0))){
+                        if("global".equals(fields.get(0))||upNodeIdList.contains(fields.get(0))){
                             binding.setVariable(name, value);
                             params.put(name,value);
                             sb.append("\n").append("def").append(" ").append(name).append("=").append(value);

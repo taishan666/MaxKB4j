@@ -43,6 +43,7 @@ public class BaseStartNode extends INode {
                 "audio", chatParams.getAudioList(),
                 "other", chatParams.getOtherList()
         );
+        context.put("question", chatParams.getMessage());
         return new NodeResult(nodeVariable, globalVariable);
     }
 

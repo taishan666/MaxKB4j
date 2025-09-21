@@ -46,8 +46,8 @@ public abstract class INode {
     }*/
 
 
-    public void setLastNodeIdList(List<String> lastNodeIdList) {
-        this.upNodeIdList = lastNodeIdList;
+    public void setUpNodeIdList(List<String> upNodeIdList) {
+        this.upNodeIdList = upNodeIdList;
         this.runtimeNodeId= generateRuntimeNodeId();
     }
 

@@ -23,8 +23,7 @@ import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.FORM;
-import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.USER_SELECT;
+import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.*;
 
 @Slf4j
 @Data
@@ -33,19 +32,21 @@ public class WorkflowManage {
     private ChatParams chatParams;
     private List<INode> nodes;
     private List<LfEdge> edges;
-    private JSONObject context = new JSONObject();
-    private String answer = "";
+    private JSONObject context;
+    private String answer;
     private Sinks.Many<ChatMessageVO> sink;
  //   private ApplicationChatRecordEntity chatRecord;
     private List<ApplicationChatRecordEntity> historyMessages;
-    private List<INode> nodeContext = new ArrayList<>();
+    private List<INode> nodeContext;
 
     public WorkflowManage(List<INode> nodes, List<LfEdge> edges, ChatParams chatParams, List<ApplicationChatRecordEntity> historyMessages) {
         this.nodes = nodes;
         this.edges = edges;
         this.chatParams = chatParams;
+        this.context=new JSONObject();
         this.nodeContext = new ArrayList<>();
         this.sink = chatParams.getSink();
+        this.answer = "";
         this.historyMessages = CollectionUtils.isEmpty(historyMessages)?List.of():historyMessages;
         //todo runtimeNodeId 的作用
         if (StringUtil.isNotBlank(chatParams.getRuntimeNodeId())&& CollectionUtils.isNotEmpty(historyMessages)) {
@@ -72,7 +73,7 @@ public class WorkflowManage {
                         lastNodeIdList,
                         n -> {
                             JSONObject params = new JSONObject();
-                            boolean isResult = "application-node".equals(n.getType());
+                            boolean isResult = APPLICATION.name().equals(n.getType());
                             // 合并节点数据
                             if (n.getProperties().containsKey("nodeData")) {
                                 params.putAll(n.getProperties().getJSONObject("nodeData"));
@@ -90,11 +91,11 @@ public class WorkflowManage {
                     startNode.getContext().put("application_node_dict", nodeDetail.get("application_node_dict"));
                 }
                 nodeContext.add(startNode);
-                continue;
+            }else {
+                // 处理普通节点
+                INode node = getNodeClsById(nodeId, lastNodeIdList,null);
+                nodeContext.add(node);
             }
-            // 处理普通节点
-            INode node = getNodeClsById(nodeId, lastNodeIdList,null);
-            nodeContext.add(node);
         }
     }
 
@@ -190,8 +191,8 @@ public class WorkflowManage {
     private void addNodeToList(String targetNodeId, INode currentNode, List<INode> nodeList) {
         // 构建上游节点ID列表
         List<String> newUpNodeIds = new ArrayList<>();
-        if (currentNode.getLastNodeIdList() != null) {
-            newUpNodeIds.addAll(currentNode.getLastNodeIdList());
+        if (currentNode.getUpNodeIdList() != null) {
+            newUpNodeIds.addAll(currentNode.getUpNodeIdList());
         }
         newUpNodeIds.add(currentNode.getId());
         // 获取节点实例并添加到列表
@@ -201,14 +202,12 @@ public class WorkflowManage {
         }
     }
 
-/*    private INode getNodeClsById(String targetNodeId, List<String> newUpNodeIds) {
-        return getNodeClsById(targetNodeId, newUpNodeIds, null);
-    }*/
 
-    private INode getNodeClsById(String nodeId, List<String> lastNodeIds, Function<INode, JSONObject> getNodeParams) {
+    private INode getNodeClsById(String nodeId, List<String> upNodeIds, Function<INode, JSONObject> getNodeParams) {
         for (INode node : nodes) {
             if (nodeId.equals(node.getId())) {
-                node.setLastNodeIdList(lastNodeIds);
+                node.setWorkflowManage(this);
+                node.setUpNodeIdList(upNodeIds);
                 if (getNodeParams != null){
                     node.setNodeParams(getNodeParams.apply(node));
                 }
@@ -379,7 +378,7 @@ public class WorkflowManage {
             }*/
             details = node.getDetail(index);
             details.put("node_id", node.getId());
-            details.put("up_node_id_list", node.getLastNodeIdList());
+            details.put("up_node_id_list", node.getUpNodeIdList());
             details.put("runtimeNodeId", node.getRuntimeNodeId());
             detailsResult.put(node.getRuntimeNodeId(), details);
         }
