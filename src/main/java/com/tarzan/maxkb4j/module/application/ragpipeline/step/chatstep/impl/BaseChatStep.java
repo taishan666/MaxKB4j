@@ -160,7 +160,6 @@ public class BaseChatStep extends IChatStep {
                                 .start();
                         futureChatResponse.join(); // 阻塞当前线程直到 futureChatResponse 完成
                     }
-                long startTime = manage.context.getLong("start_time");
             }
         }
         return answerText.get();

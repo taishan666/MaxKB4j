@@ -44,15 +44,16 @@ public class WorkflowManage {
         this.nodes = nodes;
         this.edges = edges;
         this.chatParams = chatParams;
+        this.nodeContext = new ArrayList<>();
         this.sink = chatParams.getSink();
         this.historyMessages = CollectionUtils.isEmpty(historyMessages)?List.of():historyMessages;
+        //todo runtimeNodeId 的作用
         if (StringUtil.isNotBlank(chatParams.getRuntimeNodeId())&& CollectionUtils.isNotEmpty(historyMessages)) {
             ApplicationChatRecordEntity chatRecord=historyMessages.stream().filter(e -> e.getId().equals(chatParams.getChatRecordId())).findFirst().orElse( null);
             assert chatRecord != null;
             this.loadNode(chatRecord, chatParams.getRuntimeNodeId(), chatParams.getNodeData());
-        } else {
-            this.nodeContext = new ArrayList<>();
         }
+
     }
 
 
@@ -63,7 +64,6 @@ public class WorkflowManage {
                 .toList();
         for (JSONObject nodeDetail : sortedDetails) {
             String nodeId = nodeDetail.getString("node_id");
-            //todo 放入 up_node_id_list
             List<String> lastNodeIdList = (List<String>) nodeDetail.get("up_node_id_list");
             if (nodeDetail.getString("runtimeNodeId").equals(startNodeId)) {
                 // 处理起始节点

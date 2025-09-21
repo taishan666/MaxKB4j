@@ -52,8 +52,6 @@ public class BaseChatNode extends INode {
         System.out.println(AI_CHAT);
         ChatNodeParams nodeParams = super.nodeParams.toJavaObject(ChatNodeParams.class);
         BaseChatModel chatModel = modelService.getModelById(nodeParams.getModelId(), nodeParams.getModelParamsSetting());
-        //   List<ChatMessage> historyContext = workflowManage.getHistoryMessage(flowParams.getHistoryChatRecord(), nodeParams.getDialogueNumber(), nodeParams.getDialogueType(), runtimeNodeId);
-        List<ChatMessage> historyContext = new ArrayList<>();
         String problemText = workflowManage.generatePrompt(nodeParams.getPrompt());
         String systemPrompt = workflowManage.generatePrompt(nodeParams.getSystem());
         String system = StringUtil.isBlank(systemPrompt) ? "You're an intelligent assistant." : systemPrompt;
@@ -81,8 +79,7 @@ public class BaseChatNode extends INode {
                 "result", tokenStream,
                 "system", system,
                 "chat_model", chatModel,
-                "message_list", chatMemory.messages(),
-                "history_message", historyContext,
+                "history_message", chatMemory.messages(),
                 "question", workflowManage.getChatParams().getMessage()
         );
         return new NodeResult(nodeVariable, Map.of(), this::writeContextStream);

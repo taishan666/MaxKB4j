@@ -4,7 +4,6 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
-import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.data.message.UserMessage;
 import lombok.Data;
 import lombok.Setter;
@@ -24,18 +23,17 @@ public abstract class INode {
     protected String type;
     protected JSONObject properties;
     protected JSONObject nodeParams;
-   // protected FlowParams flowParams;
     protected WorkflowManage workflowManage;
     protected Map<String, Object> context;
     protected String answerText;
-    protected List<String> lastNodeIdList;
+    protected List<String> upNodeIdList;
     protected String runtimeNodeId;
    // protected Sinks.Many<ChatMessageVO> sink;
 
 
     public INode(JSONObject properties) {
         this.context = new LinkedHashMap<>();
-        this.lastNodeIdList=new ArrayList<>();
+        this.upNodeIdList=new ArrayList<>();
         this.properties = properties;
         this.nodeParams = getNodeParams(properties);
         this.runtimeNodeId= generateRuntimeNodeId();
@@ -49,7 +47,7 @@ public abstract class INode {
 
 
     public void setLastNodeIdList(List<String> lastNodeIdList) {
-        this.lastNodeIdList = lastNodeIdList;
+        this.upNodeIdList = lastNodeIdList;
         this.runtimeNodeId= generateRuntimeNodeId();
     }
 
@@ -67,8 +65,8 @@ public abstract class INode {
     private String generateRuntimeNodeId() {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-1");
-            assert lastNodeIdList != null;
-            String input = Arrays.toString(lastNodeIdList.stream().sorted().toArray()) + id;
+            assert upNodeIdList != null;
+            String input = Arrays.toString(upNodeIdList.stream().sorted().toArray()) + id;
             byte[] hashBytes = digest.digest(input.getBytes(StandardCharsets.UTF_8));
             StringBuilder hexString = new StringBuilder();
             for (byte b : hashBytes) {
@@ -131,23 +129,6 @@ public abstract class INode {
         return context.get(field);
     }
 
-    public JSONObject getDefaultGlobalVariable(List<JSONObject> inputFieldList) {
-        JSONObject resultMap = new JSONObject();
-        if (inputFieldList == null) {
-            return resultMap;
-        }
-        for (Map<String, Object> item : inputFieldList) {
-            if (item.containsKey("default_value")) {
-                Object defaultValue = item.get("default_value");
-                if (defaultValue != null) {
-                    String variableName = (String) item.get("variable");
-                    resultMap.put(variableName, defaultValue);
-                }
-            }
-        }
-        return resultMap;
-    }
-
     public JSONArray resetMessageList(List<ChatMessage> historyMessage) {
         if (CollectionUtils.isEmpty(historyMessage)) {
             return new JSONArray();
@@ -155,10 +136,6 @@ public abstract class INode {
         JSONArray newMessageList = new JSONArray();
         for (ChatMessage chatMessage : historyMessage) {
             JSONObject message = new JSONObject();
-            if (chatMessage instanceof SystemMessage systemMessage) {
-                message.put("role", "system");
-                message.put("content", systemMessage.text());
-            }
             if (chatMessage instanceof UserMessage userMessage) {
                 message.put("role", "user");
                 message.put("content", userMessage.singleText());
@@ -185,7 +162,7 @@ public abstract class INode {
             //    ", flowParams=" + flowParams +
                 ", context=" + context +
                 ", answerText='" + answerText + '\'' +
-                ", lastNodeIdList=" + lastNodeIdList +
+                ", upNodeIdList=" + upNodeIdList +
                 '}';
     }
 }
