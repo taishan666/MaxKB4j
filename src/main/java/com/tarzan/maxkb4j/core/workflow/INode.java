@@ -25,7 +25,6 @@ public abstract class INode {
     protected JSONObject properties;
     protected WorkflowManage workflowManage;
     protected JSONObject context;
-    protected String answerText;
     protected List<String> upNodeIdList;
     protected String runtimeNodeId;
    // protected Sinks.Many<ChatMessageVO> sink;
@@ -35,7 +34,6 @@ public abstract class INode {
         this.context = new JSONObject();
         this.upNodeIdList=new ArrayList<>();
         this.properties = properties;
-      //  this.nodeParams = getNodeParams(properties);
         this.runtimeNodeId= generateRuntimeNodeId();
         this.viewType = "many_view";
     }
@@ -147,7 +145,6 @@ public abstract class INode {
                 ", type='" + type + '\'' +
                 ", properties=" + properties +
                 ", context=" + context +
-                ", answerText='" + answerText + '\'' +
                 ", upNodeIdList=" + upNodeIdList +
                 '}';
     }
