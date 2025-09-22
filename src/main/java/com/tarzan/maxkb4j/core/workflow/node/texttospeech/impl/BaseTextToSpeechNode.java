@@ -31,7 +31,7 @@ public class BaseTextToSpeechNode extends INode {
     @Override
     public NodeResult execute() {
         System.out.println(TEXT_TO_SPEECH);
-        TextToSpeechParams nodeParams=super.nodeParams.toJavaObject(TextToSpeechParams.class);
+        TextToSpeechParams nodeParams=super.getNodeData().toJavaObject(TextToSpeechParams.class);
         List<String> contentList=nodeParams.getContentList();
         Object content=super.getWorkflowManage().getReferenceField(contentList.get(0),contentList.subList(1, contentList.size()));
         BaseTextToSpeech ttsModel = modelService.getModelById(nodeParams.getTtsModelId(), nodeParams.getModelParamsSetting());

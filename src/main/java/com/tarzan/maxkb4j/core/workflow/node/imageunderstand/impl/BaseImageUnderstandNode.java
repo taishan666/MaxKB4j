@@ -39,7 +39,7 @@ public class BaseImageUnderstandNode extends INode {
 
     @Override
     public NodeResult execute() {
-        ImageUnderstandParams nodeParams=super.nodeParams.toJavaObject(ImageUnderstandParams.class);
+        ImageUnderstandParams nodeParams=super.getNodeData().toJavaObject(ImageUnderstandParams.class);
         List<String> imageList = nodeParams.getImageList();
         Object object = super.getWorkflowManage().getReferenceField(imageList.get(0), imageList.subList(1, imageList.size()));
         List<ChatFile> ImageFiles = (List<ChatFile>) object;

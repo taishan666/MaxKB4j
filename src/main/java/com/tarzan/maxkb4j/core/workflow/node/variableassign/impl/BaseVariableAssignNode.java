@@ -17,7 +17,7 @@ public class BaseVariableAssignNode extends INode {
 
     @Override
     public NodeResult execute() {
-        VariableAssignParams nodeParams=super.nodeParams.toJavaObject(VariableAssignParams.class);
+        VariableAssignParams nodeParams=super.getNodeData().toJavaObject(VariableAssignParams.class);
         List<Map<String, Object>> resultList = new ArrayList<>();
 
         for (Map<String, Object> variable : nodeParams.getVariableList()) {

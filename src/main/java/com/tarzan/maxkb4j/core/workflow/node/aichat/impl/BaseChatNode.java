@@ -50,7 +50,7 @@ public class BaseChatNode extends INode {
     @Override
     public NodeResult execute() throws Exception {
         System.out.println(AI_CHAT);
-        ChatNodeParams nodeParams = super.nodeParams.toJavaObject(ChatNodeParams.class);
+        ChatNodeParams nodeParams = super.getNodeData().toJavaObject(ChatNodeParams.class);
         BaseChatModel chatModel = modelService.getModelById(nodeParams.getModelId(), nodeParams.getModelParamsSetting());
         String problemText = workflowManage.generatePrompt(nodeParams.getPrompt());
         String systemPrompt = workflowManage.generatePrompt(nodeParams.getSystem());
@@ -88,7 +88,7 @@ public class BaseChatNode extends INode {
 
     private void writeContextStream(Map<String, Object> nodeVariable, Map<String, Object> globalVariable, INode node, WorkflowManage workflow) {
         if (nodeVariable != null) {
-            ChatNodeParams nodeParams = super.nodeParams.toJavaObject(ChatNodeParams.class);
+            ChatNodeParams nodeParams = super.getNodeData().toJavaObject(ChatNodeParams.class);
             context.putAll(nodeVariable);
             TokenStream tokenStream = (TokenStream) nodeVariable.get("result");
             CompletableFuture<ChatResponse> futureChatResponse = new CompletableFuture<>();

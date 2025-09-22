@@ -29,7 +29,7 @@ public class RerankerNode extends INode {
 
     @Override
     public NodeResult execute() {
-        RerankerParams nodeParams= super.nodeParams.toJavaObject(RerankerParams.class);
+        RerankerParams nodeParams= super.getNodeData().toJavaObject(RerankerParams.class);
         List<String> questionReferenceAddress=nodeParams.getQuestionReferenceAddress();
         Object question = super.getWorkflowManage().getReferenceField(questionReferenceAddress.get(0), questionReferenceAddress.subList(1, questionReferenceAddress.size()));
         List<List<String>> rerankerReferenceList=nodeParams.getRerankerReferenceList();

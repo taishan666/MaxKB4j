@@ -25,7 +25,7 @@ public class UserSelectNode extends INode {
     @Override
     public NodeResult execute() {
         System.out.println(USER_SELECT);
-        UserSelectNodeParams nodeParams = super.nodeParams.toJavaObject(UserSelectNodeParams.class);
+        UserSelectNodeParams nodeParams = super.getNodeData().toJavaObject(UserSelectNodeParams.class);
         JSONObject formData = nodeParams.getFormData();
         Map<String, Object> options = new HashMap<>();
         List<UserSelectBranch> branches=nodeParams.getBranch();

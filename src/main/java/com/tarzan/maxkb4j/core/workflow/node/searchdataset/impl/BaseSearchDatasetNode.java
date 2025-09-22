@@ -31,7 +31,7 @@ public class BaseSearchDatasetNode extends INode {
     @Override
     public NodeResult execute() {
         System.out.println(SEARCH_KNOWLEDGE);
-        SearchDatasetStepNodeParams nodeParams=super.nodeParams.toJavaObject(SearchDatasetStepNodeParams.class);
+        SearchDatasetStepNodeParams nodeParams=super.getNodeData().toJavaObject(SearchDatasetStepNodeParams.class);
         KnowledgeSetting knowledgeSetting=nodeParams.getKnowledgeSetting();
         List<String> fields=nodeParams.getQuestionReferenceAddress();
         String question= (String)workflowManage.getReferenceField(fields.get(0),fields.subList(1, fields.size()));

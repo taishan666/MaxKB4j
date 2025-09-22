@@ -21,7 +21,7 @@ public class BaseReplyNode extends INode {
     @Override
     public NodeResult execute() {
         System.out.println(REPLY);
-        ReplyNodeParams nodeParams= super.nodeParams.toJavaObject(ReplyNodeParams.class);
+        ReplyNodeParams nodeParams= super.getNodeData().toJavaObject(ReplyNodeParams.class);
         String result;
         if ("referencing".equals(nodeParams.getReplyType())){
             result=getReferenceContent(nodeParams.getFields());

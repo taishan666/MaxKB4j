@@ -43,7 +43,7 @@ public class BaseDocumentExtractNode extends INode {
     @Override
     public NodeResult execute() {
         // 假设我们有一个 Supplier<ContentHandler>
-        DocumentExtractParams nodeParams=super.nodeParams.toJavaObject(DocumentExtractParams.class);
+        DocumentExtractParams nodeParams=super.getNodeData().toJavaObject(DocumentExtractParams.class);
         List<String> documentList=nodeParams.getDocumentList();
         Object res=super.getWorkflowManage().getReferenceField(documentList.get(0),documentList.subList(1,documentList.size()));
         List<ChatFile> documents= (List<ChatFile>) res;

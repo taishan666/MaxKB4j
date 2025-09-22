@@ -35,7 +35,7 @@ public class BaseQuestionNode extends INode {
 
     @Override
     public NodeResult execute() {
-        QuestionParams nodeParams=super.nodeParams.toJavaObject(QuestionParams.class);
+        QuestionParams nodeParams=super.getNodeData().toJavaObject(QuestionParams.class);
         if (Objects.isNull(nodeParams.getModelParamsSetting())) {
             nodeParams.setModelParamsSetting(getDefaultModelParamsSetting(nodeParams.getModelId()));
         }

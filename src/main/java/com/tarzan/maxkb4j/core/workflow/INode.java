@@ -23,7 +23,6 @@ public abstract class INode {
     protected String type;
     protected String viewType;
     protected JSONObject properties;
-    protected JSONObject nodeParams;
     protected WorkflowManage workflowManage;
     protected JSONObject context;
     protected String answerText;
@@ -36,29 +35,23 @@ public abstract class INode {
         this.context = new JSONObject();
         this.upNodeIdList=new ArrayList<>();
         this.properties = properties;
-        this.nodeParams = getNodeParams(properties);
+      //  this.nodeParams = getNodeParams(properties);
         this.runtimeNodeId= generateRuntimeNodeId();
         this.viewType = "many_view";
     }
 
-  /*  public void setWorkflowManage(WorkflowManage workflowManage) {
-        this.workflowManage = workflowManage;
-      //  this.flowParams = workflowManage.getFlowParams();
-        //this.sink = workflowManage.getSink();
-    }*/
-
+    public JSONObject getNodeData() {
+        if (Objects.nonNull(properties) && properties.containsKey("nodeData")) {
+            return properties.getJSONObject("nodeData");
+        }
+        return new JSONObject();
+    }
 
     public void setUpNodeIdList(List<String> upNodeIdList) {
         this.upNodeIdList = upNodeIdList;
         this.runtimeNodeId= generateRuntimeNodeId();
     }
 
-    private JSONObject getNodeParams(JSONObject properties) {
-        if (Objects.nonNull(properties) && properties.containsKey("nodeData")) {
-            return properties.getJSONObject("nodeData");
-        }
-        return new JSONObject();
-    }
 
     public abstract NodeResult execute() throws Exception;
 
@@ -112,17 +105,6 @@ public abstract class INode {
         return detail;
     }
 
-
-
-/*    public List<Answer> getAnswerList() {
-        if (this.answerText == null) {
-            return null;
-        }
-        Answer answer = new Answer(this.answerText, "MANY_VIEW", this.runtimeNodeId,
-                this.flowParams.getChatRecordId(), new HashMap<>());
-        return Collections.singletonList(answer);
-    }*/
-
     protected Object getReferenceField(String fields) {
         return getField(context, fields);
     }
@@ -164,7 +146,6 @@ public abstract class INode {
                 ", errMessage='" + errMessage + '\'' +
                 ", type='" + type + '\'' +
                 ", properties=" + properties +
-                ", nodeParams=" + nodeParams +
                 ", context=" + context +
                 ", answerText='" + answerText + '\'' +
                 ", upNodeIdList=" + upNodeIdList +

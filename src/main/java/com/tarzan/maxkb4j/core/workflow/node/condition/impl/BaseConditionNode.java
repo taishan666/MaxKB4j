@@ -45,7 +45,7 @@ public class BaseConditionNode extends INode {
     @Override
     public NodeResult execute() {
         System.out.println(CONDITION);
-        ConditionNodeParams nodeParams= super.nodeParams.toJavaObject(ConditionNodeParams.class);
+        ConditionNodeParams nodeParams= super.getNodeData().toJavaObject(ConditionNodeParams.class);
         ConditionBranch branch = _execute(nodeParams.getBranch());
         assert branch != null;
         return new NodeResult(Map.of("branch_id", branch.getId(), "branch_name", branch.getType()), Map.of());
