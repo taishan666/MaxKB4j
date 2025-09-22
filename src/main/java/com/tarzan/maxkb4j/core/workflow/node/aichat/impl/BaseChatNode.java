@@ -98,11 +98,12 @@ public class BaseChatNode extends INode {
                             ChatMessageVO vo = new ChatMessageVO(
                                     workflowManage.getChatParams().getChatId(),
                                     workflowManage.getChatParams().getChatRecordId(),
+                                    node.getId(),
                                     "",
                                     thinking.text(),
                                     runtimeNodeId,
                                     type,
-                                    "many_view",
+                                    viewType,
                                     false);
                             workflowManage.getSink().tryEmitNext(vo);
                         }
@@ -112,11 +113,12 @@ public class BaseChatNode extends INode {
                             ChatMessageVO vo = new ChatMessageVO(
                                     workflowManage.getChatParams().getChatId(),
                                     workflowManage.getChatParams().getChatRecordId(),
+                                    "ai-chat-node",
                                     content,
                                     "",
                                     runtimeNodeId,
                                     type,
-                                    "many_view",
+                                    viewType,
                                     false);
                             workflowManage.getSink().tryEmitNext(vo);
                         }
@@ -132,11 +134,12 @@ public class BaseChatNode extends INode {
                         ChatMessageVO vo = new ChatMessageVO(
                                 workflowManage.getChatParams().getChatId(),
                                 workflowManage.getChatParams().getChatRecordId(),
+                                "ai-chat-node",
                                 "",
                                 "",
                                 runtimeNodeId,
                                 type,
-                                "many_view",
+                                viewType,
                                 false);
                         workflowManage.getSink().tryEmitNext(vo);
                         futureChatResponse.complete(response);// 完成后释放线程

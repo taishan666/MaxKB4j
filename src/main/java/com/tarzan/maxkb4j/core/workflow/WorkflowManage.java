@@ -35,23 +35,22 @@ public class WorkflowManage {
     private JSONObject context;
     private String answer;
     private Sinks.Many<ChatMessageVO> sink;
- //   private ApplicationChatRecordEntity chatRecord;
+    private ApplicationChatRecordEntity chatRecord;
     private List<ApplicationChatRecordEntity> historyMessages;
     private List<INode> nodeContext;
 
-    public WorkflowManage(List<INode> nodes, List<LfEdge> edges, ChatParams chatParams, List<ApplicationChatRecordEntity> historyMessages) {
+    public WorkflowManage(List<INode> nodes, List<LfEdge> edges, ChatParams chatParams, ApplicationChatRecordEntity chatRecord,List<ApplicationChatRecordEntity> historyMessages) {
         this.nodes = nodes;
         this.edges = edges;
         this.chatParams = chatParams;
         this.context=new JSONObject();
         this.nodeContext = new ArrayList<>();
         this.sink = chatParams.getSink();
+        this.chatRecord = chatRecord;
         this.answer = "";
         this.historyMessages = CollectionUtils.isEmpty(historyMessages)?List.of():historyMessages;
         //todo runtimeNodeId 的作用
-        if (StringUtil.isNotBlank(chatParams.getRuntimeNodeId())&& CollectionUtils.isNotEmpty(historyMessages)) {
-            ApplicationChatRecordEntity chatRecord=historyMessages.stream().filter(e -> e.getId().equals(chatParams.getChatRecordId())).findFirst().orElse( null);
-            assert chatRecord != null;
+        if (StringUtil.isNotBlank(chatParams.getRuntimeNodeId())&& Objects.nonNull(chatRecord)) {
             this.loadNode(chatRecord, chatParams.getRuntimeNodeId(), chatParams.getNodeData());
         }
 
@@ -67,6 +66,7 @@ public class WorkflowManage {
             String nodeId = nodeDetail.getString("node_id");
             List<String> lastNodeIdList = (List<String>) nodeDetail.get("up_node_id_list");
             if (nodeDetail.getString("runtimeNodeId").equals(startNodeId)) {
+                nodeDetail.put("form_data", startNodeData);
                 // 处理起始节点
                 this.startNode = getNodeClsById(
                         nodeId,
@@ -80,7 +80,7 @@ public class WorkflowManage {
                             }
                             params.put("form_data", startNodeData);
                             params.put("nodeData", startNodeData);
-                          //  params.put("child_node", childNode);
+                            //  params.put("child_node", childNode);
                             params.put("isResult", isResult);
                             return params;
                         }
@@ -112,9 +112,9 @@ public class WorkflowManage {
         return this.nodes.parallelStream().filter(node -> node.getType().equals("start-node")).findFirst().orElse(null);
     }
 
-    public INode getBaseNode() {
+/*    public INode getBaseNode() {
         return this.nodes.parallelStream().filter(node -> node.getType().equals("base-node")).findFirst().orElse(null);
-    }
+    }*/
 
     public void runChainManage(INode currentNode, NodeResultFuture nodeResultFuture) {
         if (currentNode == null) {
@@ -369,7 +369,8 @@ public class WorkflowManage {
         for (int index = 0; index < nodeContext.size(); index++) {
             INode node = nodeContext.get(index);
             JSONObject details;
-           /* if (chatRecord != null && chatRecord.getDetails() != null) {
+        /*    //todo  startNode 判断非空
+            if (chatRecord != null && chatRecord.getDetails() != null) {
                 details = chatRecord.getDetails().getJSONObject(node.getRuntimeNodeId());
                 if (details != null &&startNode != null && !startNode.getRuntimeNodeId().equals(node.getRuntimeNodeId())) {
                     detailsResult.put(node.getRuntimeNodeId(), details);

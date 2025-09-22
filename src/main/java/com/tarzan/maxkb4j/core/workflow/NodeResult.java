@@ -50,12 +50,13 @@ public class NodeResult {
                 ChatMessageVO vo = new ChatMessageVO(
                         workflow.getChatParams().getChatId(),
                         workflow.getChatParams().getChatRecordId(),
+                        node.getId(),
                         answer,
                         "",
                         node.runtimeNodeId,
                         node.type,
-                        "single_view",
-                        true);
+                        node.getViewType(),
+                        false);
                 node.workflowManage.getSink().tryEmitNext(vo);
                 workflow.setAnswer(answer);
             }

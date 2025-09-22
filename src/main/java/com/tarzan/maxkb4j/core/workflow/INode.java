@@ -21,10 +21,11 @@ public abstract class INode {
     protected int status = 200;
     protected String errMessage = "";
     protected String type;
+    protected String viewType;
     protected JSONObject properties;
     protected JSONObject nodeParams;
     protected WorkflowManage workflowManage;
-    protected Map<String, Object> context;
+    protected JSONObject context;
     protected String answerText;
     protected List<String> upNodeIdList;
     protected String runtimeNodeId;
@@ -32,11 +33,12 @@ public abstract class INode {
 
 
     public INode(JSONObject properties) {
-        this.context = new LinkedHashMap<>();
+        this.context = new JSONObject();
         this.upNodeIdList=new ArrayList<>();
         this.properties = properties;
         this.nodeParams = getNodeParams(properties);
         this.runtimeNodeId= generateRuntimeNodeId();
+        this.viewType = "many_view";
     }
 
   /*  public void setWorkflowManage(WorkflowManage workflowManage) {

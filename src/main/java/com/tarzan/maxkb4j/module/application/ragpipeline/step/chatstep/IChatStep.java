@@ -4,6 +4,7 @@ import com.tarzan.maxkb4j.module.application.ragpipeline.IBaseChatPipelineStep;
 import com.tarzan.maxkb4j.module.application.ragpipeline.PipelineManage;
 
 public abstract class IChatStep extends IBaseChatPipelineStep {
+    public final String viewType="many_view";
 
     @Override
     protected void _run(PipelineManage manage) {

@@ -92,19 +92,19 @@ public class BaseChatStep extends IChatStep {
         BaseChatModel chatModel = modelService.getModelById(modelId, params);
         if (chatModel == null) {
             answerText.set("抱歉，没有配置 AI 模型，无法优化引用分段，请先去应用中设置 AI 模型。");
-            sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, answerText.get(),"","ai-chat-node","many_view",  true));
+            sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, answerText.get(),"","ai-chat-node",viewType,  true));
         } else if (StringUtil.isBlank(problemText)) {
             answerText.set("用户消息不能为空");
-            sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, answerText.get(),"","ai-chat-node","many_view", true));
+            sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, answerText.get(),"","ai-chat-node",viewType, true));
         } else {
             String status = noReferencesSetting.getStatus();
             if (!CollectionUtils.isEmpty(directlyReturnChunkList)) {
                 answerText.set(directlyReturnChunkList.get(0).text());
-                sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, answerText.get(),"", "ai-chat-node","many_view", true));
+                sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, answerText.get(),"", "ai-chat-node",viewType, true));
             } else if (paragraphList.isEmpty() && "designated_answer".equals(status)) {
                 String value = noReferencesSetting.getValue();
                 answerText.set(value.replace("{question}", problemText));
-                sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, answerText.get(),"", "ai-chat-node","many_view", true));
+                sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, answerText.get(),"", "ai-chat-node",viewType, true));
             } else {
                 String chatUserId = manage.context.getString("chat_user_id");
                 String chatUserType = manage.context.getString("chat_user_type");
@@ -139,10 +139,10 @@ public class BaseChatStep extends IChatStep {
                         tokenStream.onToolExecuted((ToolExecution toolExecution) -> log.info("toolExecution={}", toolExecution))
                                 .onPartialThinking(thinking-> {
                                     if(reasoningEnable){
-                                        sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, "",thinking.text(), "ai-chat-node","many_view", false));
+                                        sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, "",thinking.text(), "ai-chat-node",viewType, false));
                                     }
                                 })
-                                .onPartialResponse(text -> sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, text,"", "ai-chat-node","many_view", false)))
+                                .onPartialResponse(text -> sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, text,"", "ai-chat-node",viewType, false)))
                                 .onCompleteResponse(response -> {
                                     answerText.set(response.aiMessage().text());
                                     TokenUsage tokenUsage = response.tokenUsage();
@@ -150,11 +150,11 @@ public class BaseChatStep extends IChatStep {
                                     context.put("messageTokens", tokenUsage.inputTokenCount());
                                     context.put("answerTokens", tokenUsage.outputTokenCount());
                                     addAccessNum(chatUserId, chatUserType);
-                                    sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, "","", "ai-chat-node","many_view", true));
+                                    sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, "","", "ai-chat-node",viewType, true));
                                     futureChatResponse.complete(response);// 完成后释放线程
                                 })
                                 .onError(error -> {
-                                    sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, "","","ai-chat-node","many_view",  true));
+                                    sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, "","","ai-chat-node",viewType,  true));
                                     futureChatResponse.completeExceptionally(error); // 完成后释放线程
                                 })
                                 .start();

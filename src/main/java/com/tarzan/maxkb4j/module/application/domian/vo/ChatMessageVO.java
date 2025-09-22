@@ -24,7 +24,6 @@ public class ChatMessageVO {
         this.chatId = chatId;
         this.chatRecordId = chatRecordId;
         this.content = "";
-        this.reasoningContent = "";
         this.nodeIsEnd = false;
         this.isEnd = isEnd;
     }
@@ -41,9 +40,10 @@ public class ChatMessageVO {
     }
 
 
-    public ChatMessageVO(String chatId, String chatRecordId,String content,String reasoningContent,String runtimeNodeId,String nodeType,String viewType, Boolean nodeIsEnd) {
+    public ChatMessageVO(String chatId, String chatRecordId,String nodeId,String content,String reasoningContent,String runtimeNodeId,String nodeType,String viewType, Boolean nodeIsEnd) {
         this.chatId = chatId;
         this.chatRecordId = chatRecordId;
+        this.nodeId = nodeId;
         this.content = content;
         this.reasoningContent = reasoningContent;
         this.runtimeNodeId = runtimeNodeId;

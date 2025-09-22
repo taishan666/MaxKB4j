@@ -64,6 +64,8 @@ public class ApplicationChatRecordService extends ServiceImpl<ApplicationChatRec
 
     public ApplicationChatRecordVO getChatRecordInfo(ChatInfo chatInfo,String chatRecordId) {
         ApplicationChatRecordEntity  chatRecord=getChatRecordEntity(chatInfo,chatRecordId);
+        chatRecord.setAnswerText("");
+        chatRecord.setAnswerTextList(List.of());
         return convert(chatRecord);
     }
 

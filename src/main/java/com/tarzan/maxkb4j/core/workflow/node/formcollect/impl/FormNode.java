@@ -16,6 +16,7 @@ public class FormNode extends INode {
     public FormNode(JSONObject properties) {
         super(properties);
         this.type = FORM.getKey();
+        super.viewType="single_view";
     }
 
     @Override

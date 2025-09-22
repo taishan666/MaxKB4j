@@ -20,6 +20,7 @@ import com.tarzan.maxkb4j.module.application.service.ApplicationChatRecordServic
 import com.tarzan.maxkb4j.module.application.service.ApplicationService;
 import com.tarzan.maxkb4j.module.application.service.ApplicationVersionService;
 import com.tarzan.maxkb4j.module.chat.ChatParams;
+import com.tarzan.maxkb4j.util.StringUtil;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -59,6 +60,10 @@ public class ChatFlowActuator extends ChatBaseActuator {
     public String chatMessage(ChatParams chatParams,boolean debug) {
         long startTime = System.currentTimeMillis();
         ChatInfo chatInfo = ChatCache.get(chatParams.getChatId());
+        ApplicationChatRecordEntity chatRecord=null;
+        if (StringUtil.isNotBlank(chatParams.getChatRecordId())){
+            chatRecord=chatInfo.getChatRecordList().stream().filter(e -> e.getId().equals(chatParams.getChatRecordId())).findFirst().orElse(null);
+        }
         ApplicationVO application;
         if (debug){
             application = applicationService.getDetail(chatInfo.getAppId());
@@ -77,10 +82,11 @@ public class ChatFlowActuator extends ChatBaseActuator {
                 nodes,
                 logicFlow.getEdges(),
                 chatParams,
+                chatRecord,
                 historyChatRecordList);
         String answer=workflowManage.run();
         JSONObject details= workflowManage.getRuntimeDetails();
-        postResponseHandler.handler(chatParams.getChatId(), chatParams.getChatRecordId(), chatParams.getMessage(),answer,details,startTime,"", ChatUserType.ANONYMOUS_USER.name(),debug);
+        postResponseHandler.handler(chatParams.getChatId(), chatParams.getChatRecordId(), chatParams.getMessage(),answer,chatRecord,details,startTime,"", ChatUserType.ANONYMOUS_USER.name(),debug);
         return answer;
     }
 
