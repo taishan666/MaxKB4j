@@ -1,5 +1,6 @@
 package com.tarzan.maxkb4j.core.workflow.node.aichat.impl;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.tarzan.maxkb4j.core.assistant.Assistant;
@@ -15,7 +16,6 @@ import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
 import com.tarzan.maxkb4j.util.SpringUtil;
 import com.tarzan.maxkb4j.util.StringUtil;
 import com.tarzan.maxkb4j.util.ToolUtil;
-import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.memory.ChatMemory;
 import dev.langchain4j.model.chat.response.ChatResponse;
 import dev.langchain4j.model.output.TokenUsage;
@@ -75,11 +75,12 @@ public class BaseChatNode extends INode {
                 .streamingChatModel(chatModel.getStreamingChatModel())
                 .build();
         TokenStream tokenStream = assistant.chatStream(problemText);
+        JSONArray historyMessage=resetMessageList(chatMemory.messages());
         Map<String, Object> nodeVariable = Map.of(
                 "result", tokenStream,
                 "system", system,
                 "chat_model", chatModel,
-                "history_message", chatMemory.messages(),
+                "history_message", historyMessage,
                 "question", workflowManage.getChatParams().getMessage()
         );
         return new NodeResult(nodeVariable, Map.of(), this::writeContextStream);
@@ -162,8 +163,7 @@ public class BaseChatNode extends INode {
     public JSONObject getDetail() {
         JSONObject detail = new JSONObject();
         detail.put("system", context.get("system"));
-        List<ChatMessage> historyMessage = (List<ChatMessage>) context.get("history_message");
-        detail.put("history_message", resetMessageList(historyMessage));
+        detail.put("history_message",  context.get("history_message"));
         detail.put("question", context.get("question"));
         detail.put("answer", context.get("answer"));
         detail.put("reasoningContent", context.get("reasoningContent"));

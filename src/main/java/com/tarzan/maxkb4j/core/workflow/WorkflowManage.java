@@ -110,6 +110,18 @@ public class WorkflowManage {
 
 
     public Map<String, Object> getGlobalVariable(ChatParams chatParams) {
+
+        // 构建返回的map
+        Map<String, Object> resultMap = new HashMap<>();
+        resultMap.put("time", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        resultMap.put("history_context", getHistoryContext());
+        resultMap.put("chatId", chatParams.getChatId());
+        resultMap.put("chat_user_id", IdWorker.get32UUID());
+        resultMap.put("chat_user_type", "ANONYMOUS_USER");
+        return resultMap;
+    }
+
+    public String getHistoryContext(){
         // 获取历史聊天记录
         List<ChatRecordSimple> historyContext =new ArrayList<>();
         for (ApplicationChatRecordEntity chatRecord : historyMessages) {
@@ -118,14 +130,7 @@ public class WorkflowManage {
             record.setAnswer(chatRecord.getAnswerText());
             historyContext.add(record);
         }
-        // 构建返回的map
-        Map<String, Object> resultMap = new HashMap<>();
-        resultMap.put("time", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
-        resultMap.put("history_context", JSONArray.toJSONString(historyContext));
-        resultMap.put("chatId", chatParams.getChatId());
-        resultMap.put("chat_user_id", IdWorker.get32UUID());
-        resultMap.put("chat_user_type", "ANONYMOUS_USER");
-        return resultMap;
+        return JSONArray.toJSONString(historyContext);
     }
 
     public String run() {

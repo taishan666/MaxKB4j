@@ -141,12 +141,16 @@ public abstract class INode {
             if (chatMessage instanceof UserMessage userMessage) {
                 message.put("role", "user");
                 message.put("content", userMessage.singleText());
+                newMessageList.add(message);
             }
             if (chatMessage instanceof AiMessage aiMessage) {
                 message.put("role", "ai");
                 message.put("content", aiMessage.text());
+                newMessageList.add(message);
             }
-            newMessageList.add(message);
+        }
+        if (newMessageList.size()%2!=0){
+            newMessageList.remove(newMessageList.size()-1);
         }
         return newMessageList;
     }
@@ -161,7 +165,6 @@ public abstract class INode {
                 ", type='" + type + '\'' +
                 ", properties=" + properties +
                 ", nodeParams=" + nodeParams +
-            //    ", flowParams=" + flowParams +
                 ", context=" + context +
                 ", answerText='" + answerText + '\'' +
                 ", upNodeIdList=" + upNodeIdList +
