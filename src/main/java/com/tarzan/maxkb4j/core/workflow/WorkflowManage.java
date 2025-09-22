@@ -3,6 +3,8 @@ package com.tarzan.maxkb4j.core.workflow;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
+import com.baomidou.mybatisplus.core.toolkit.IdWorker;
+import com.tarzan.maxkb4j.core.workflow.domain.ChatRecordSimple;
 import com.tarzan.maxkb4j.core.workflow.logic.LfEdge;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatRecordEntity;
 import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
@@ -18,6 +20,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import reactor.core.publisher.Sinks;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.function.Function;
 import java.util.regex.Matcher;
@@ -90,13 +94,38 @@ public class WorkflowManage {
                 if ("application-node".equals(startNode.getType())) {
                     startNode.getContext().put("application_node_dict", nodeDetail.get("application_node_dict"));
                 }
+                startNode.setContext(nodeDetail);
                 nodeContext.add(startNode);
             }else {
                 // 处理普通节点
                 INode node = getNodeClsById(nodeId, lastNodeIdList,null);
+                assert node != null;
+                node.setContext(nodeDetail);
                 nodeContext.add(node);
             }
         }
+        Map<String, Object> globalVariable = getGlobalVariable(chatParams);
+        context.putAll(globalVariable);
+    }
+
+
+    public Map<String, Object> getGlobalVariable(ChatParams chatParams) {
+        // 获取历史聊天记录
+        List<ChatRecordSimple> historyContext =new ArrayList<>();
+        for (ApplicationChatRecordEntity chatRecord : historyMessages) {
+            ChatRecordSimple record = new ChatRecordSimple();
+            record.setQuestion(chatRecord.getProblemText());
+            record.setAnswer(chatRecord.getAnswerText());
+            historyContext.add(record);
+        }
+        // 构建返回的map
+        Map<String, Object> resultMap = new HashMap<>();
+        resultMap.put("time", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        resultMap.put("history_context", JSONArray.toJSONString(historyContext));
+        resultMap.put("chatId", chatParams.getChatId());
+        resultMap.put("chat_user_id", IdWorker.get32UUID());
+        resultMap.put("chat_user_type", "ANONYMOUS_USER");
+        return resultMap;
     }
 
     public String run() {
