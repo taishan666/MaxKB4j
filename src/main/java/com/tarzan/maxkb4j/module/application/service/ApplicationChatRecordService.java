@@ -101,7 +101,9 @@ public class ApplicationChatRecordService extends ServiceImpl<ApplicationChatRec
                      if (showKnowledge){
                          Object paragraphListObj = detail.get("paragraphList"); // 假设每个节点都有 id 字段
                          if (paragraphListObj != null) {
-                             paragraphList.addAll((List<ParagraphVO>)paragraphListObj);
+                             @SuppressWarnings("unchecked")
+                             List<ParagraphVO> list = (List<ParagraphVO>) paragraphListObj;
+                             paragraphList.addAll(list);
                          }
                      }
                 }
