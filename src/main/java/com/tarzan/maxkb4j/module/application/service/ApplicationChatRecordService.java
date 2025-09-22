@@ -11,10 +11,10 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tarzan.maxkb4j.module.application.domian.dto.ChatInfo;
 import com.tarzan.maxkb4j.module.application.domian.dto.ChatQueryDTO;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatRecordEntity;
-import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatRecordMapper;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationChatRecordVO;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationChatUserStatsVO;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationStatisticsVO;
+import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatRecordMapper;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.ParagraphVO;
 import com.tarzan.maxkb4j.util.BeanUtil;
 import com.tarzan.maxkb4j.util.PageUtil;
@@ -25,6 +25,8 @@ import org.springframework.util.CollectionUtils;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+
+import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.SEARCH_KNOWLEDGE;
 
 /**
  * @author tarzan
@@ -64,8 +66,8 @@ public class ApplicationChatRecordService extends ServiceImpl<ApplicationChatRec
 
     public ApplicationChatRecordVO getChatRecordInfo(ChatInfo chatInfo,String chatRecordId) {
         ApplicationChatRecordEntity  chatRecord=getChatRecordEntity(chatInfo,chatRecordId);
-        chatRecord.setAnswerText("");
-        chatRecord.setAnswerTextList(List.of());
+        //chatRecord.setAnswerText("");
+       // chatRecord.setAnswerTextList(List.of());
         return convert(chatRecord);
     }
 
@@ -92,6 +94,19 @@ public class ApplicationChatRecordService extends ServiceImpl<ApplicationChatRec
             details.keySet().forEach(key-> executionDetails.add(details.getJSONObject(key)));
             Collections.reverse(executionDetails);
             chatRecordVO.setExecutionDetails(executionDetails);
+            List<ParagraphVO> paragraphList=new ArrayList<>();
+            for (JSONObject detail : executionDetails) {
+                if (SEARCH_KNOWLEDGE.getKey().equals(detail.getString("type"))) {
+                     boolean showKnowledge = detail.getBooleanValue("showKnowledge");
+                     if (showKnowledge){
+                         Object paragraphListObj = detail.get("paragraphList"); // 假设每个节点都有 id 字段
+                         if (paragraphListObj != null) {
+                             paragraphList.addAll((List<ParagraphVO>)paragraphListObj);
+                         }
+                     }
+                }
+            }
+            chatRecordVO.setParagraphList(paragraphList);
         }
         return chatRecordVO;
     }

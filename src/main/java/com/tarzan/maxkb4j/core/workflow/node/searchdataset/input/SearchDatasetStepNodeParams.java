@@ -10,5 +10,6 @@ public class SearchDatasetStepNodeParams {
     private List<String> knowledgeIdList;
     private KnowledgeSetting knowledgeSetting;
     private List<String> questionReferenceAddress;
+    private Boolean showKnowledge;
 
 }
