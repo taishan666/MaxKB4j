@@ -14,7 +14,7 @@
               FROM embedding
               WHERE
                   knowledge_id IN
-                    <foreach item="id" collection="datasetIds" open="(" separator="," close=")">
+                    <foreach item="id" collection="knowledgeIds" open="(" separator="," close=")">
                         #{id}
                     </foreach>
               AND is_active) TEMP

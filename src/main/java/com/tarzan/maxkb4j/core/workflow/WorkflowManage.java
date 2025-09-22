@@ -119,7 +119,7 @@ public class WorkflowManage {
         resultMap.put("chatId", chatParams.getChatId());
         resultMap.put("chat_user_id", IdWorker.get32UUID());
         resultMap.put("chat_user_type", "ANONYMOUS_USER");
-        resultMap.put("chat_user", Map.of("username", "游客"));
+        resultMap.put("chat_user", new JSONObject(Map.of("username", "游客")));
         return resultMap;
     }
 

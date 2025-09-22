@@ -53,8 +53,8 @@ public class BaseChatNode extends INode {
         ChatNodeParams nodeParams = super.getNodeData().toJavaObject(ChatNodeParams.class);
         BaseChatModel chatModel = modelService.getModelById(nodeParams.getModelId(), nodeParams.getModelParamsSetting());
         String problemText = workflowManage.generatePrompt(nodeParams.getPrompt());
-        String systemPrompt = workflowManage.generatePrompt(nodeParams.getSystem());
-        String system = StringUtil.isBlank(systemPrompt) ? "You're an intelligent assistant." : systemPrompt;
+        String systemPrompt= workflowManage.generatePrompt(nodeParams.getSystem());
+        String systemText = StringUtil.isBlank(systemPrompt) ? "You're an intelligent assistant." : systemPrompt;
         String chatId = workflowManage.getChatParams().getChatId();
         ChatMemory chatMemory = MyChatMemory.builder()
                 .id(chatId)
@@ -69,7 +69,7 @@ public class BaseChatNode extends INode {
             toolIds.add(nodeParams.getMcpToolId());
         }
         Assistant assistant = MyAiServices.builder(Assistant.class)
-                .systemMessageProvider(chatMemoryId -> system)
+                .systemMessageProvider(chatMemoryId -> systemText)
                 .chatMemory(chatMemory)
                 .tools(toolUtil.getTools(toolIds))
                 .streamingChatModel(chatModel.getStreamingChatModel())
@@ -78,7 +78,7 @@ public class BaseChatNode extends INode {
         JSONArray historyMessage=resetMessageList(chatMemory.messages());
         Map<String, Object> nodeVariable = Map.of(
                 "result", tokenStream,
-                "system", system,
+                "system", systemText,
                 "chat_model", chatModel,
                 "history_message", historyMessage,
                 "question", workflowManage.getChatParams().getMessage()
