@@ -13,6 +13,6 @@ import java.util.List;
  */
 public interface EmbeddingMapper extends BaseMapper<EmbeddingEntity>{
 
-    List<TextChunkVO> embeddingSearch(List<String> datasetIds, List<String> excludeParagraphIds,@Param("maxResults") int maxResults, @Param("minScore") double minScore, @Param("referenceEmbedding") float[]  referenceEmbedding );
+    List<TextChunkVO> embeddingSearch(List<String> knowledgeIds, List<String> excludeParagraphIds,@Param("maxResults") int maxResults, @Param("minScore") double minScore, @Param("referenceEmbedding") float[]  referenceEmbedding );
  
 }

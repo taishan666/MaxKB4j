@@ -17,12 +17,12 @@ public class HybridRetriever implements IDataRetriever {
     private final FullTextRetriever fullTextRetriever;
 
     @Override
-    public List<TextChunkVO> search(List<String> datasetIds, List<String> excludeParagraphIds, String keyword, int maxResults, float minScore) {
+    public List<TextChunkVO> search(List<String> knowledgeIds, List<String> excludeParagraphIds, String keyword, int maxResults, float minScore) {
         Map<String, Float> map = new LinkedHashMap<>();
         List<TextChunkVO> results = new ArrayList<>();
         List<CompletableFuture<List<TextChunkVO>>> futureList = new ArrayList<>();
-        futureList.add(CompletableFuture.supplyAsync(()->embedRetriever.search(datasetIds, excludeParagraphIds,keyword, maxResults, minScore)));
-        futureList.add(CompletableFuture.supplyAsync(()->fullTextRetriever.search(datasetIds,excludeParagraphIds, keyword, maxResults, minScore)));
+        futureList.add(CompletableFuture.supplyAsync(()->embedRetriever.search(knowledgeIds, excludeParagraphIds,keyword, maxResults, minScore)));
+        futureList.add(CompletableFuture.supplyAsync(()->fullTextRetriever.search(knowledgeIds,excludeParagraphIds, keyword, maxResults, minScore)));
         List<TextChunkVO> retrieveResults = futureList.stream().flatMap(future-> future.join().stream()).toList();
         //融合排序
         for (TextChunkVO result : retrieveResults) {

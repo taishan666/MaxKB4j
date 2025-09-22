@@ -40,6 +40,7 @@ import org.springframework.util.CollectionUtils;
 import reactor.core.publisher.Sinks;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
@@ -59,7 +60,7 @@ public class BaseChatStep extends IChatStep {
     protected String execute(PipelineManage manage) {
         JSONObject context = manage.context;
         String chatId = context.getString("chatId");
-        List<ParagraphVO> paragraphList = (List<ParagraphVO>) context.get("paragraphList");
+        List<ParagraphVO> paragraphList = Collections.singletonList(context.getJSONArray("paragraphList").toJavaObject(ParagraphVO.class));
         ApplicationVO application=  context.getObject("application",ApplicationVO.class);
         String problemText = context.getString("problem_text");
         boolean stream = true;

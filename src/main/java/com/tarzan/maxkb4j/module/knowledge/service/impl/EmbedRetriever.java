@@ -21,10 +21,10 @@ public class EmbedRetriever implements IDataRetriever {
     private final EmbeddingMapper embeddingMapper;
 
     @Override
-    public List<TextChunkVO> search(List<String> datasetIds, List<String> excludeParagraphIds, String keyword, int maxResults, float minScore) {
-        EmbeddingModel embeddingModel=datasetService.getDatasetEmbeddingModel(datasetIds.get(0));
+    public List<TextChunkVO> search(List<String> knowledgeIds, List<String> excludeParagraphIds, String keyword, int maxResults, float minScore) {
+        EmbeddingModel embeddingModel=datasetService.getDatasetEmbeddingModel(knowledgeIds.get(0));
         //todo keyword cannot be null or blank
         Response<Embedding> res = embeddingModel.embed(keyword);
-        return embeddingMapper.embeddingSearch(datasetIds,excludeParagraphIds, maxResults,minScore, res.content().vector());
+        return embeddingMapper.embeddingSearch(knowledgeIds,excludeParagraphIds, maxResults,minScore, res.content().vector());
     }
 }

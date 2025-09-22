@@ -5,7 +5,7 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.tarzan.maxkb4j.core.handler.type.EmbeddingTypeHandler;
-import com.tarzan.maxkb4j.core.handler.type.JOSNBTypeHandler;
+import com.tarzan.maxkb4j.core.handler.type.JSONBTypeHandler;
 import lombok.Data;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Transient;
@@ -36,7 +36,7 @@ public class EmbeddingEntity {
 	@TableField(typeHandler = EmbeddingTypeHandler.class)
 	@Transient
 	private List<Float> embedding;
-	@TableField(typeHandler = JOSNBTypeHandler.class)
+	@TableField(typeHandler = JSONBTypeHandler.class)
 	private JSONObject meta;
 	private String knowledgeId;
 	private String documentId;

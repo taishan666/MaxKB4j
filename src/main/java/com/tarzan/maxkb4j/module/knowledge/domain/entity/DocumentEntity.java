@@ -5,7 +5,7 @@ import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.tarzan.maxkb4j.core.common.entity.BaseEntity;
-import com.tarzan.maxkb4j.core.handler.type.JOSNBTypeHandler;
+import com.tarzan.maxkb4j.core.handler.type.JSONBTypeHandler;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -29,7 +29,7 @@ public class DocumentEntity extends BaseEntity {
 	
 	private Integer type;
 	
-	@TableField(typeHandler = JOSNBTypeHandler.class)
+	@TableField(typeHandler = JSONBTypeHandler.class)
 	private JSONObject meta;
 	
 	private String knowledgeId;
@@ -38,7 +38,7 @@ public class DocumentEntity extends BaseEntity {
 	
 	private Double directlyReturnSimilarity;
 	
-	@TableField(typeHandler = JOSNBTypeHandler.class,fill = FieldFill.INSERT)
+	@TableField(typeHandler = JSONBTypeHandler.class,fill = FieldFill.INSERT)
 	private JSONObject statusMeta;
 
 } 

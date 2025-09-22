@@ -1,7 +1,7 @@
 package com.tarzan.maxkb4j.core.workflow.node.function.impl;
 
 import com.alibaba.fastjson.JSONObject;
-import com.alibaba.fastjson2.JSONArray;
+import com.alibaba.fastjson.JSONArray;
 import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.NodeResult;
 import com.tarzan.maxkb4j.core.workflow.node.function.input.FunctionParams;

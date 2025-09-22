@@ -6,5 +6,5 @@ import java.util.List;
 
 public interface IDataRetriever {
 
-    List<TextChunkVO> search(List<String> datasetIds, List<String> excludeParagraphIds, String keyword, int maxResults, float minScore);
+    List<TextChunkVO> search(List<String> knowledgeIds, List<String> excludeParagraphIds, String keyword, int maxResults, float minScore);
 }

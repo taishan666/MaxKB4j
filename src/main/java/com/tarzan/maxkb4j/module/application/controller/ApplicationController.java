@@ -104,11 +104,11 @@ public class ApplicationController {
         return R.success(applicationService.getDetail(id));
     }
 
-   // @SaCheckPermission("APPLICATION:READ")
+/*   // @SaCheckPermission("APPLICATION:READ")
     @GetMapping("/application/{id}/application/{appId}")
     public R<ApplicationVO> application(@PathVariable("id") String id,@PathVariable("appId") String appId) {
         return R.success(applicationService.getDetail(appId));
-    }
+    }*/
 
 
     //@SaCheckPermission("APPLICATION:EDIT")

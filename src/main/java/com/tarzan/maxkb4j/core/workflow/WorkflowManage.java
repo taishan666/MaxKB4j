@@ -1,5 +1,6 @@
 package com.tarzan.maxkb4j.core.workflow;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
@@ -131,7 +132,7 @@ public class WorkflowManage {
             record.setAnswer(chatRecord.getAnswerText());
             historyContext.add(record);
         }
-        return JSONArray.toJSONString(historyContext);
+        return JSON.toJSONString(historyContext);
     }
 
     public String run() {

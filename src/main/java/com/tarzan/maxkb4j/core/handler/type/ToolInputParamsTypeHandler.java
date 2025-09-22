@@ -1,7 +1,6 @@
 package com.tarzan.maxkb4j.core.handler.type;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.tarzan.maxkb4j.module.tool.domain.dto.ToolInputField;
 import org.apache.ibatis.type.BaseTypeHandler;
@@ -46,7 +45,7 @@ public class ToolInputParamsTypeHandler extends BaseTypeHandler<List<ToolInputFi
 
     private List<ToolInputField> convert(String value){
         if(notNull(value)){
-            return  JSONArray.parseArray(value, ToolInputField.class);
+            return  JSON.parseArray(value, ToolInputField.class);
         }
         return null;
     }

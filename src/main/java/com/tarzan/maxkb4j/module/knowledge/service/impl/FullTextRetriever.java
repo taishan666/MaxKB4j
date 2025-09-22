@@ -25,14 +25,14 @@ public class FullTextRetriever implements IDataRetriever {
     private final MongoTemplate mongoTemplate;
 
     @Override
-    public List<TextChunkVO> search(List<String> datasetIds, List<String> excludeParagraphIds, String keyword, int maxResults, float minScore) {
+    public List<TextChunkVO> search(List<String> knowledgeIds, List<String> excludeParagraphIds, String keyword, int maxResults, float minScore) {
         // 假设 textCriteria 和 keyword 已经定义好
         TextCriteria textCriteria = TextCriteria.forDefaultLanguage().matching(segmentContent(keyword));
         // 构建聚合管道
         Aggregation aggregation = Aggregation.newAggregation(
                 // 步骤1: 应用查询条件（文本搜索 + datasetId过滤）
                 Aggregation.match(textCriteria),
-                Aggregation.match(Criteria.where("knowledgeId").in(datasetIds)),
+                Aggregation.match(Criteria.where("knowledgeId").in(knowledgeIds)),
                 // 步骤2: 添加文本搜索得分字段
                 Aggregation.addFields()
                         .addField("score")

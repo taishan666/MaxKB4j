@@ -23,29 +23,29 @@ public class RetrieveService {
     private final Map<String, IDataRetriever> dataRetrieverMap;
 
 
-    public List<ParagraphVO> paragraphSearch(String question, List<String> datasetIds, List<String> excludeParagraphIds, KnowledgeSetting datasetSetting) {
+    public List<ParagraphVO> paragraphSearch(String question, List<String> knowledgeIds, List<String> excludeParagraphIds, KnowledgeSetting datasetSetting) {
         DataSearchDTO dto = new DataSearchDTO();
         dto.setQueryText(question);
         dto.setSearchMode(datasetSetting.getSearchMode());
         dto.setSimilarity(datasetSetting.getSimilarity());
         dto.setTopNumber(datasetSetting.getTopN());
         dto.setExcludeParagraphIds(excludeParagraphIds);
-        return paragraphSearch(datasetIds, dto);
+        return paragraphSearch(knowledgeIds, dto);
     }
 
-    private List<TextChunkVO> dataSearch(List<String> datasetIds,DataSearchDTO dto) {
-        if (CollectionUtils.isEmpty(datasetIds)) {
+    private List<TextChunkVO> dataSearch(List<String> knowledgeIds,DataSearchDTO dto) {
+        if (CollectionUtils.isEmpty(knowledgeIds)) {
             return Collections.emptyList();
         }
         IDataRetriever dataRetriever=dataRetrieverMap.get(dto.getSearchMode());
         if (dataRetriever == null){
             return Collections.emptyList();
         }
-        return dataRetriever.search(datasetIds,dto.getExcludeParagraphIds(), dto.getQueryText(), dto.getTopNumber(), dto.getSimilarity());
+        return dataRetriever.search(knowledgeIds,dto.getExcludeParagraphIds(), dto.getQueryText(), dto.getTopNumber(), dto.getSimilarity());
     }
 
-    public List<ParagraphVO> paragraphSearch(List<String> datasetIds, DataSearchDTO dto) {
-        List<TextChunkVO> list = dataSearch(datasetIds, dto);
+    public List<ParagraphVO> paragraphSearch(List<String> knowledgeIds, DataSearchDTO dto) {
+        List<TextChunkVO> list = dataSearch(knowledgeIds, dto);
         List<String> paragraphIds = list.stream().map(TextChunkVO::getParagraphId).toList();
         if (CollectionUtils.isEmpty(paragraphIds)) {
             return Collections.emptyList();

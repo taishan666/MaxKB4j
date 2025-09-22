@@ -17,15 +17,15 @@ import java.util.List;
 @Service
 public class ApplicationKnowledgeMappingService extends ServiceImpl<ApplicationKnowledgeMappingMapper, ApplicationKnowledgeMappingEntity>{
 
-    public List<String> getDatasetIdsByAppId(String appId) {
-        List<String> datasetIds = new ArrayList<>();
+    public List<String> getKnowledgeIdsByAppId(String appId) {
+        List<String> knowledgeIds = new ArrayList<>();
         List<ApplicationKnowledgeMappingEntity> mappingEntities = this.lambdaQuery()
                 .select(ApplicationKnowledgeMappingEntity::getKnowledgeId)
                 .eq(ApplicationKnowledgeMappingEntity::getApplicationId, appId).list();
         if (!CollectionUtils.isEmpty(mappingEntities)) {
-            datasetIds = mappingEntities.stream().map(ApplicationKnowledgeMappingEntity::getKnowledgeId).toList();
+            knowledgeIds = mappingEntities.stream().map(ApplicationKnowledgeMappingEntity::getKnowledgeId).toList();
         }
-        return datasetIds;
+        return knowledgeIds;
     }
 
     @Transactional

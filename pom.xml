@@ -106,7 +106,7 @@
         <dependency>
             <groupId>com.alibaba</groupId>
             <artifactId>fastjson</artifactId>
-            <version>2.0.9</version> <!-- 请根据实际情况选择最新版本 -->
+            <version>2.0.47</version> <!-- 请根据实际情况选择最新版本 -->
         </dependency>
         <dependency>
             <groupId>com.alibaba</groupId>

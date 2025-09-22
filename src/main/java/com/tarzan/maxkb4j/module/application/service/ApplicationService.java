@@ -55,6 +55,8 @@ import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.SEARCH_KNOWLEDGE;
+
 /**
  * @author tarzan
  * @date 2024-12-25 13:09:54
@@ -304,10 +306,29 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
             return null;
         }
         ApplicationVO vo = BeanUtil.copy(entity, ApplicationVO.class);
-        List<String> datasetIds = knowledgeMappingService.getDatasetIdsByAppId(id);
-        vo.setKnowledgeIdList(datasetIds);
+        List<String> knowledgeIds = knowledgeMappingService.getKnowledgeIdsByAppId(id);
+        vo.setKnowledgeIdList(knowledgeIds);
         if (!CollectionUtils.isEmpty(vo.getKnowledgeIdList())) {
-            vo.setKnowledgeList(knowledgeService.listByIds(datasetIds));
+            vo.setKnowledgeList(knowledgeService.listByIds(knowledgeIds));
+            if(AppType.WORK_FLOW.name().equals(entity.getType())){
+                JSONObject workFlow=entity.getWorkFlow();
+                JSONArray nodes=workFlow.getJSONArray("nodes");
+                if (nodes != null) {
+                    for (int i = 0; i < nodes.size(); i++) {
+                        JSONObject node = nodes.getJSONObject(i);
+                        if (SEARCH_KNOWLEDGE.getKey().equals(node.getString("type"))) {
+                            JSONObject properties = node.getJSONObject("properties"); // 假设每个节点都有 id 字段
+                            if (properties != null) {
+                                JSONObject nodeData = properties.getJSONObject("nodeData");
+                                JSONArray knowledgeIdListJson=nodeData.getJSONArray("knowledgeIdList");
+                                List<String> knowledgeIdList=knowledgeIdListJson.toJavaList(String.class);
+                                List<KnowledgeEntity> knowledgeList=vo.getKnowledgeList().stream().filter(k -> knowledgeIdList.contains(k.getId())).toList();
+                                nodeData.put("knowledgeList", knowledgeList);
+                            }
+                        }
+                    }
+                }
+            }
          }else {
             vo.setKnowledgeList(new ArrayList<>());
         }
@@ -315,68 +336,10 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     }
 
 
-/*    public String authentication(JSONObject params) {
-        String accessToken = params.getString("access_token");
-        ApplicationAccessTokenEntity appAccessToken = accessTokenService.lambdaQuery().eq(ApplicationAccessTokenEntity::getAccessToken, accessToken).one();
-        if (appAccessToken == null || !appAccessToken.getIsActive()) {
-            throw new AccessException("无效的访问令牌");
-        } else {
-            SaLoginModel loginModel = new SaLoginModel();
-            if (StpUtil.isLogin()) {
-                UserEntity userEntity = userService.getById(StpUtil.getLoginIdAsString());
-                loginModel.setExtra("username", userEntity.getUsername());
-                loginModel.setExtra("email", userEntity.getEmail());
-                loginModel.setExtra("language", userEntity.getLanguage());
-                loginModel.setExtra("client_id", userEntity.getId());
-                loginModel.setExtra("client_type", AuthType.ACCESS_TOKEN.name());
-                loginModel.setExtra("application_id", appAccessToken.getApplicationId());
-                loginModel.setExtra(AuthType.ACCESS_TOKEN.name(), accessToken);
-                loginModel.setDevice(AuthType.ACCESS_TOKEN.name());
-                StpUtil.login(StpUtil.getLoginId(), loginModel);
-            } else {
-                loginModel.setExtra("application_id", appAccessToken.getApplicationId());
-                loginModel.setExtra("client_id", IdWorker.get32UUID());
-                loginModel.setExtra("client_type", AuthType.ACCESS_TOKEN.name());
-                loginModel.setDevice(AuthType.ACCESS_TOKEN.name());
-                loginModel.setExtra(AuthType.ACCESS_TOKEN.name(), accessToken);
-                StpUtil.login(IdWorker.get32UUID(), loginModel);
-            }
-            return StpUtil.getTokenValue();
-        }
-    }*/
-
-/*    public JSONObject appProfile() {
-        String appId = (String) StpUtil.getExtra("application_id");
-        ApplicationEntity application = this.getById(appId);
-        ApplicationAccessTokenEntity appAccessToken = accessTokenService.getById(appId);
-        JSONObject result = new JSONObject();
-        result.put("id", appId);
-        result.put("type", application.getType());
-        result.put("name", application.getName());
-        result.put("desc", application.getDesc());
-        result.put("icon", application.getIcon());
-        result.put("prologue", application.getPrologue());
-        result.put("dialogueNumber", application.getDialogueNumber());
-        result.put("multipleRoundsDialogue", application.getDialogueNumber() > 0);
-        result.put("fileUploadEnable", application.getFileUploadEnable());
-        result.put("fileUploadSetting", application.getFileUploadSetting());
-        result.put("sttModelEnable", application.getSttModelEnable());
-        result.put("sttAutoSend", application.getSttAutoSend());
-        result.put("sttModelId", application.getSttModelId());
-        result.put("ttsModelEnable", application.getSttModelEnable());
-        result.put("ttsAutoplay", application.getTtsAutoplay());
-        result.put("ttsType", application.getTtsType());
-        result.put("ttsModelId", application.getTtsModelId());
-        result.put("workFlow", application.getWorkFlow());
-        result.put("showSource", appAccessToken.getShowSource());
-        result.put("language", appAccessToken.getLanguage());
-        return result;
-    }*/
-
     public List<ParagraphVO> hitTest(String id, DataSearchDTO dto) {
-        List<String> datasetIds = knowledgeMappingService.getDatasetIdsByAppId(id);
+        List<String> knowledgeIds = knowledgeMappingService.getKnowledgeIdsByAppId(id);
         dto.setExcludeParagraphIds(new ArrayList<>());
-        return retrieveService.paragraphSearch(datasetIds, dto);
+        return retrieveService.paragraphSearch(knowledgeIds, dto);
     }
 
     public byte[] playDemoText(String appId, JSONObject modelParams) {
@@ -402,8 +365,39 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     public Boolean updateAppById(String appId, ApplicationVO appVO) {
         ApplicationEntity application = BeanUtil.copy(appVO, ApplicationEntity.class);
         application.setId(appId);
-        knowledgeMappingService.updateByAppId(appId, appVO.getKnowledgeIdList());
+        List<String> knowledgeIds=getKnowledgeIdList(application);
+        if(!CollectionUtils.isEmpty(appVO.getKnowledgeIdList())){
+            knowledgeIds.addAll(appVO.getKnowledgeIdList());
+        }
+        knowledgeMappingService.updateByAppId(appId, knowledgeIds);
         return this.updateById(application);
+    }
+    private List<String> getKnowledgeIdList(ApplicationEntity entity) {
+        List<String> knowledgeIds = new ArrayList<>();
+        if (entity == null || entity.getWorkFlow() == null) {
+            return knowledgeIds;
+        }
+        JSONObject workFlow=entity.getWorkFlow();
+        JSONArray nodes=workFlow.getJSONArray("nodes");
+        if (nodes == null) {
+            return knowledgeIds;
+        }
+        for (int i = 0; i < nodes.size(); i++) {
+            JSONObject node = nodes.getJSONObject(i);
+            if (SEARCH_KNOWLEDGE.getKey().equals(node.getString("type"))) {
+                JSONObject properties = node.getJSONObject("properties"); // 假设每个节点都有 id 字段
+                if (properties == null) {
+                    return knowledgeIds;
+                }
+                JSONObject nodeData = properties.getJSONObject("nodeData");
+                if (nodeData == null) {
+                    return knowledgeIds;
+                }
+                JSONArray knowledgeIdList=nodeData.getJSONArray("knowledgeIdList");
+                knowledgeIds.addAll(knowledgeIdList.toJavaList(String.class));
+            }
+        }
+        return knowledgeIds;
     }
 
     @Transactional

@@ -6,7 +6,7 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.tarzan.maxkb4j.core.common.entity.BaseEntity;
 import com.tarzan.maxkb4j.core.handler.type.ToolInputParamsTypeHandler;
-import com.tarzan.maxkb4j.core.handler.type.JOSNBTypeHandler;
+import com.tarzan.maxkb4j.core.handler.type.JSONBTypeHandler;
 import com.tarzan.maxkb4j.module.tool.domain.dto.ToolInputField;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -31,10 +31,10 @@ public class ToolEntity extends BaseEntity {
     @TableField(typeHandler = ToolInputParamsTypeHandler.class)
     private List<ToolInputField> inputFieldList;
 
-    @TableField(typeHandler = JOSNBTypeHandler.class)
+    @TableField(typeHandler = JSONBTypeHandler.class)
     private JSONArray initFieldList;
 
-    @TableField(typeHandler = JOSNBTypeHandler.class)
+    @TableField(typeHandler = JSONBTypeHandler.class)
     private JSONObject initParams;
 
     private String userId;
