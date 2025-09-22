@@ -76,10 +76,13 @@
             ph.*,
             doc."name" AS document_name,
             doc."hit_handling_method",
-            doc."directly_return_similarity"
+            doc."directly_return_similarity",
+            knowledge."name" AS knowledge_name,
+            knowledge."type" AS knowledge_type
         FROM
             paragraph ph
                 LEFT JOIN "document" doc ON ph.document_id = doc.ID
+                LEFT JOIN "knowledge" knowledge ON ph.knowledge_id = knowledge.ID
         WHERE ph.id IN
         <foreach item="id" collection="paragraphIds" open="(" separator="," close=")">
             #{id}

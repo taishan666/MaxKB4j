@@ -78,7 +78,7 @@ public class ApplicationChatRecordService extends ServiceImpl<ApplicationChatRec
         if(!details.isEmpty()){
             JSONObject searchStep=details.getJSONObject("search_step");
             if(searchStep!=null&&!searchStep.isEmpty()){
-                JSONArray paragraphList=searchStep.getJSONArray("paragraph_list");
+                JSONArray paragraphList=searchStep.getJSONArray("paragraphList");
                 if(!CollectionUtils.isEmpty(paragraphList)){
                     String json=JSONObject.toJSONString(paragraphList);
                     chatRecordVO.setParagraphList(JSON.parseArray(json, ParagraphVO.class));

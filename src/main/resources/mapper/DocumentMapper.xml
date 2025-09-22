@@ -74,7 +74,7 @@
         document d
         LEFT JOIN "paragraph" p ON d.ID = p.document_id
         <where>
-            d.dataset_id = #{knowledgeId}
+            d.knowledge_id = #{knowledgeId}
             <if test="query.name != null and query.name != ''">
                 and d.name like CONCAT('%',#{query.name},'%')
             </if>

@@ -10,8 +10,8 @@ public abstract class ISearchDatasetStep extends IBaseChatPipelineStep {
     @Override
     protected void _run(PipelineManage manage) {
         List<ParagraphVO> paragraphList = execute(manage);
-        manage.context.put("paragraph_list", paragraphList);
-        super.context.put("paragraph_list", paragraphList);
+        manage.context.put("paragraphList", paragraphList);
+        super.context.put("paragraphList", paragraphList);
     }
 
     protected abstract List<ParagraphVO> execute(PipelineManage manage);

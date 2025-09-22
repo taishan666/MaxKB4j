@@ -13,7 +13,7 @@ import java.util.List;
  */
 public interface ProblemParagraphMapper extends BaseMapper<ProblemParagraphEntity>{
 
-    List<ProblemParagraphVO> getProblems(String datasetId,List<String>  docIds);
+    List<ProblemParagraphVO> getProblems(String knowledgeId,List<String>  docIds);
 
 
     List<ProblemEntity> getProblemsByParagraphId(String paragraphId);

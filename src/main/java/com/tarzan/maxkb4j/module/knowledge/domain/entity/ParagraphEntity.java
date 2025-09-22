@@ -18,7 +18,7 @@ public class ParagraphEntity extends BaseEntity {
 	private String status;
 	private Integer hitNum;
 	private Boolean isActive;
-	private String datasetId;
+	private String knowledgeId;
 	private String documentId;
 /*	@TableField(typeHandler = JOSNBTypeHandler.class,fill = FieldFill.INSERT)
 	private JSONObject statusMeta;*/

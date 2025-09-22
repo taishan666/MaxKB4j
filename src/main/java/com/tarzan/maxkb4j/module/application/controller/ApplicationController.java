@@ -186,8 +186,8 @@ public class ApplicationController {
     }
 
     //@SaCheckPermission("APPLICATION:CREATE")
-    @PostMapping("/application/{appId}/dataset/{datasetId}/improve")
-    public R<Boolean> improveChatLogs(@PathVariable("appId") String appId, @PathVariable("appId") String datasetId, ChatImproveDTO dto) {
+    @PostMapping("/application/{appId}/dataset/{knowledgeId}/improve")
+    public R<Boolean> improveChatLogs(@PathVariable("appId") String appId, @PathVariable("appId") String knowledgeId, ChatImproveDTO dto) {
         return R.success(applicationService.improveChatLogs(appId, dto));
     }
 

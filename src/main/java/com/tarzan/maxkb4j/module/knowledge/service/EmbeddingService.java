@@ -29,11 +29,11 @@ public class EmbeddingService extends ServiceImpl<EmbeddingMapper, EmbeddingEnti
     private final DataIndexService dataIndexService;
 
 
-    public boolean createProblemIndex(String datasetId, String docId, String paragraphId, String problemId, EmbeddingModel embeddingModel) {
+    public boolean createProblemIndex(String knowledgeId, String docId, String paragraphId, String problemId, EmbeddingModel embeddingModel) {
         ProblemEntity problem = problemMapper.selectById(problemId);
         if (Objects.nonNull(problem)) {
             EmbeddingEntity embeddingEntity = new EmbeddingEntity();
-            embeddingEntity.setDatasetId(datasetId);
+            embeddingEntity.setKnowledgeId(knowledgeId);
             embeddingEntity.setDocumentId(docId);
             embeddingEntity.setParagraphId(paragraphId);
             embeddingEntity.setMeta(new JSONObject());

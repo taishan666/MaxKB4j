@@ -109,28 +109,28 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         return baseMapper.updateCharLengthById(id);
     }
 
-    public List<DocumentEntity> listDocByDatasetId(String id) {
-        return this.lambdaQuery().eq(DocumentEntity::getDatasetId, id).list();
+    public List<DocumentEntity> listDocByKnowledgeId(String id) {
+        return this.lambdaQuery().eq(DocumentEntity::getKnowledgeId, id).list();
     }
 
     @Transactional
     public boolean migrateDoc(String sourceId, String targetId, List<String> docIds) {
         if (!CollectionUtils.isEmpty(docIds)) {
             paragraphService.migrateDoc(sourceId, targetId, docIds);
-            return this.lambdaUpdate().set(DocumentEntity::getDatasetId, targetId).eq(DocumentEntity::getDatasetId, sourceId).update();
+            return this.lambdaUpdate().set(DocumentEntity::getKnowledgeId, targetId).eq(DocumentEntity::getKnowledgeId, sourceId).update();
         }
         return false;
     }
 
     @Transactional
-    public boolean batchHitHandling(String datasetId, DatasetBatchHitHandlingDTO dto) {
+    public boolean batchHitHandling(String knowledgeId, DatasetBatchHitHandlingDTO dto) {
         List<String> ids = dto.getIdList();
         if (!CollectionUtils.isEmpty(ids)) {
             List<DocumentEntity> documentEntities = new ArrayList<>();
             ids.forEach(id -> {
                 DocumentEntity entity = new DocumentEntity();
                 entity.setId(id);
-                entity.setDatasetId(datasetId);
+                entity.setKnowledgeId(knowledgeId);
                 entity.setHitHandlingMethod(dto.getHitHandlingMethod());
                 entity.setDirectlyReturnSimilarity(dto.getDirectlyReturnSimilarity());
                 documentEntities.add(entity);
@@ -141,7 +141,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
     }
 
     @Transactional
-    public void importQa(String datasetId, MultipartFile[] file) throws IOException {
+    public void importQa(String knowledgeId, MultipartFile[] file) throws IOException {
         for (MultipartFile uploadFile : file) {
             String fileName = uploadFile.getOriginalFilename();
             if (fileName != null && fileName.toLowerCase().endsWith(".zip")) {
@@ -151,24 +151,24 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
                     while ((entry = zipIn.getNextEntry()) != null) {
                         // 假设ZIP包内只有一个文件或主要处理第一个找到的Excel文件
                         if (!entry.isDirectory() && (entry.getName().toLowerCase().endsWith(".xls") || entry.getName().endsWith(".xlsx") || entry.getName().endsWith(".csv"))) {
-                            processExcelFile(datasetId, IOUtils.toByteArray(zipIn));
+                            processExcelFile(knowledgeId, IOUtils.toByteArray(zipIn));
                             break; // 如果只处理一个文件，则在此处跳出循环
                         }
                     }
                 }
             }
             if (fileName != null && fileName.toLowerCase().endsWith(".csv")) {
-                processCsvFile(datasetId, uploadFile);
+                processCsvFile(knowledgeId, uploadFile);
             } else {
-                processExcelFile(datasetId, uploadFile.getBytes());
+                processExcelFile(knowledgeId, uploadFile.getBytes());
             }
         }
     }
 
     @Transactional
-    protected void processCsvFile(String datasetId, MultipartFile file) throws IOException {
+    protected void processCsvFile(String knowledgeId, MultipartFile file) throws IOException {
         List<ParagraphEntity> paragraphs = new ArrayList<>();
-        DocumentEntity doc = createDocument(datasetId, file.getOriginalFilename(), DocType.BASE.getType());
+        DocumentEntity doc = createDocument(knowledgeId, file.getOriginalFilename(), DocType.BASE.getType());
         try (BufferedReader br = new BufferedReader(new InputStreamReader(file.getInputStream(), StandardCharsets.UTF_8));
              CSVReader csvReader = new CSVReader(br)) {
             String[] values;
@@ -176,7 +176,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
                 if (values.length > 1) {
                     String title = values[0];
                     String content = values[1];
-                    ParagraphEntity paragraph = paragraphService.getParagraphEntity(datasetId, doc.getId(), title, content);
+                    ParagraphEntity paragraph = paragraphService.getParagraphEntity(knowledgeId, doc.getId(), title, content);
                     paragraphs.add(paragraph);
                     doc.setCharLength(doc.getCharLength() + paragraph.getContent().length());
                 }
@@ -191,18 +191,18 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
     }
 
     @Transactional
-    protected void processExcelFile(String datasetId, byte[] fileBytes) throws IOException {
+    protected void processExcelFile(String knowledgeId, byte[] fileBytes) throws IOException {
         try (InputStream fis = new ByteArrayInputStream(fileBytes)) {
             Workbook workbook = WorkbookFactory.create(fis);
             int numberOfSheets = workbook.getNumberOfSheets();
-            List<ProblemEntity> allProblems = problemService.lambdaQuery().eq(ProblemEntity::getDatasetId, datasetId).list();
+            List<ProblemEntity> allProblems = problemService.lambdaQuery().eq(ProblemEntity::getKnowledgeId, knowledgeId).list();
             List<ProblemEntity> problemEntities = new ArrayList<>();
             List<ProblemParagraphEntity> problemParagraphs = new ArrayList<>();
             List<ParagraphEntity> paragraphs = new ArrayList<>();
             List<DocumentEntity> docs = new ArrayList<>();
             for (int i = 0; i < numberOfSheets; i++) {
                 String sheetName = workbook.getSheetName(i);
-                DocumentEntity doc = createDocument(datasetId, sheetName, DocType.BASE.getType());
+                DocumentEntity doc = createDocument(knowledgeId, sheetName, DocType.BASE.getType());
                 // 对于每一个Sheet进行数据读取
                 EasyExcel.read(new ByteArrayInputStream(fileBytes))
                         .sheet(sheetName) // 使用Sheet编号读取
@@ -210,7 +210,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
                         .registerReadListener(new PageReadListener<DatasetExcel>(dataList -> {
                             for (DatasetExcel data : dataList) {
                                 log.info("在Sheet {} 中读取到一条数据{}", sheetName, JSON.toJSONString(data));
-                                ParagraphEntity paragraph = paragraphService.getParagraphEntity(datasetId, doc.getId(), data.getTitle(), data.getContent());
+                                ParagraphEntity paragraph = paragraphService.getParagraphEntity(knowledgeId, doc.getId(), data.getTitle(), data.getContent());
                                 paragraphs.add(paragraph);
                                 doc.setCharLength(doc.getCharLength() + paragraph.getContent().length());
                                 if (StringUtils.isNotBlank(data.getProblems())) {
@@ -221,7 +221,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
                                         if (existingProblem == null) {
                                             ProblemEntity problemEntity = ProblemEntity.createDefault();
                                             problemEntity.setId(problemId);
-                                            problemEntity.setDatasetId(datasetId);
+                                            problemEntity.setKnowledgeId(knowledgeId);
                                             problemEntity.setContent(problem);
                                             problemEntities.add(problemEntity);
                                             allProblems.add(problemEntity);
@@ -230,7 +230,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
                                         }
                                         if (!isExistProblemParagraph(paragraph.getId(), problemId, problemParagraphs)) {
                                             ProblemParagraphEntity problemParagraph = new ProblemParagraphEntity();
-                                            problemParagraph.setDatasetId(datasetId);
+                                            problemParagraph.setKnowledgeId(knowledgeId);
                                             problemParagraph.setParagraphId(paragraph.getId());
                                             problemParagraph.setDocumentId(doc.getId());
                                             problemParagraph.setProblemId(problemId);
@@ -251,7 +251,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
 
 
     @Transactional
-    public void importTable(String datasetId, MultipartFile[] file) throws IOException {
+    public void importTable(String knowledgeId, MultipartFile[] file) throws IOException {
         for (MultipartFile uploadFile : file) {
             System.out.println(uploadFile.getOriginalFilename());
             List<String> list = new ArrayList<>();
@@ -282,11 +282,11 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
                 }
             }).sheet().doRead();
             List<ParagraphEntity> paragraphs = new ArrayList<>();
-            DocumentEntity doc = createDocument(datasetId, uploadFile.getOriginalFilename(), DocType.BASE.getType());
+            DocumentEntity doc = createDocument(knowledgeId, uploadFile.getOriginalFilename(), DocType.BASE.getType());
             if (!CollectionUtils.isEmpty(list)) {
                 for (String text : list) {
                     doc.setCharLength(doc.getCharLength() + text.length());
-                    ParagraphEntity paragraph = paragraphService.getParagraphEntity(datasetId, doc.getId(), "", text);
+                    ParagraphEntity paragraph = paragraphService.getParagraphEntity(knowledgeId, doc.getId(), "", text);
                     paragraphs.add(paragraph);
                 }
                 this.save(doc);
@@ -529,16 +529,16 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
     }
 
     @Transactional
-    public boolean createBatchDoc(String datasetId, List<DocumentNameDTO> docs) {
+    public boolean createBatchDoc(String knowledgeId, List<DocumentNameDTO> docs) {
         if (!CollectionUtils.isEmpty(docs)) {
             List<DocumentEntity> documentEntities = new ArrayList<>();
             List<ParagraphEntity> paragraphEntities = new ArrayList<>();
             docs.parallelStream().forEach(e -> {
-                DocumentEntity doc = createDocument(datasetId, e.getName(), DocType.BASE.getType());
+                DocumentEntity doc = createDocument(knowledgeId, e.getName(), DocType.BASE.getType());
                 AtomicInteger docCharLength = new AtomicInteger();
                 if (!CollectionUtils.isEmpty(e.getParagraphs())) {
                     e.getParagraphs().forEach(p -> {
-                        paragraphEntities.add(paragraphService.createParagraph(datasetId, doc.getId(), p));
+                        paragraphEntities.add(paragraphService.createParagraph(knowledgeId, doc.getId(), p));
                         docCharLength.addAndGet(p.getContent().length());
                     });
                 }
@@ -559,10 +559,10 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         return false;
     }
 
-    public DocumentEntity createDocument(String datasetId, String name, Integer type) {
+    public DocumentEntity createDocument(String knowledgeId, String name, Integer type) {
         DocumentEntity documentEntity = new DocumentEntity();
         documentEntity.setId(IdWorker.get32UUID());
-        documentEntity.setDatasetId(datasetId);
+        documentEntity.setKnowledgeId(knowledgeId);
         documentEntity.setName(name);
         documentEntity.setMeta(new JSONObject());
         documentEntity.setCharLength(0);
@@ -663,16 +663,16 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         if (!CollectionUtils.isEmpty(list)) {
             problemService.lambdaUpdate()
                     .in(ProblemEntity::getId, list.stream().map(ProblemParagraphEntity::getProblemId).toList())
-                    .set(ProblemEntity::getDatasetId, targetDatasetId).update();
+                    .set(ProblemEntity::getKnowledgeId, targetDatasetId).update();
         }
         problemParagraphService.lambdaUpdate()
                 .in(ProblemParagraphEntity::getParagraphId, paragraphIds)
-                .set(ProblemParagraphEntity::getDatasetId, targetDatasetId)
+                .set(ProblemParagraphEntity::getKnowledgeId, targetDatasetId)
                 .set(ProblemParagraphEntity::getDocumentId, targetDocId)
                 .update();
         paragraphService.lambdaUpdate()
                 .in(ParagraphEntity::getId, paragraphIds)
-                .set(ParagraphEntity::getDatasetId, targetDatasetId)
+                .set(ParagraphEntity::getKnowledgeId, targetDatasetId)
                 .set(ParagraphEntity::getDocumentId, targetDocId)
                 .update();
         this.updateCharLengthById(sourceDocId);
@@ -700,13 +700,13 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
     }
 
     @Transactional
-    public void web(String datasetId, WebUrlDTO params) {
-        webDoc(datasetId, params.getSourceUrlList(), params.getSelector());
+    public void web(String knowledgeId, WebUrlDTO params) {
+        webDoc(knowledgeId, params.getSourceUrlList(), params.getSelector());
     }
 
     @Async
     @Transactional
-    public void webDataset(String datasetId, String baseUrl, String selector) {
+    public void webDataset(String knowledgeId, String baseUrl, String selector) {
         if (StringUtils.isBlank(selector)) {
             selector = "body";
         }
@@ -727,12 +727,12 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
                 }
             }
         }
-        webDoc(datasetId, sourceUrlList, finalSelector);
+        webDoc(knowledgeId, sourceUrlList, finalSelector);
     }
 
 
     @Transactional
-    public void webDoc(String datasetId, List<String> sourceUrlList, String selector) {
+    public void webDoc(String knowledgeId, List<String> sourceUrlList, String selector) {
         if (StringUtils.isBlank(selector)) {
             selector = "body";
         }
@@ -743,14 +743,14 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
             org.jsoup.nodes.Document html = JsoupUtil.getDocument(url);
             Elements elements = html.select(finalSelector);
             Document document = Document.document(elements.text());
-            DocumentEntity doc = createDocument(datasetId, JsoupUtil.getTitle(html), DocType.WEB.getType());
+            DocumentEntity doc = createDocument(knowledgeId, JsoupUtil.getTitle(html), DocType.WEB.getType());
             JSONObject meta = new JSONObject();
             meta.put("source_url", url);
             meta.put("selector", finalSelector);
             doc.setMeta(meta);
             List<TextSegment> textSegments = defaultSplitter.split(document);
             for (TextSegment textSegment : textSegments) {
-                ParagraphEntity paragraph = paragraphService.getParagraphEntity(datasetId, doc.getId(), "", textSegment.text());
+                ParagraphEntity paragraph = paragraphService.getParagraphEntity(knowledgeId, doc.getId(), "", textSegment.text());
                 paragraphs.add(paragraph);
                 doc.setCharLength(doc.getCharLength() + paragraph.getContent().length());
             }
@@ -761,28 +761,28 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
     }
 
     @Transactional
-    public void sync(String datasetId, String docId) {
+    public void sync(String knowledgeId, String docId) {
         DocumentEntity doc = this.getById(docId);
         deleteBatchDocByDocIds(List.of(docId));
-        webDoc(datasetId, List.of(doc.getMeta().getString("source_url")), doc.getMeta().getString("selector"));
+        webDoc(knowledgeId, List.of(doc.getMeta().getString("source_url")), doc.getMeta().getString("selector"));
     }
 
-    public boolean batchGenerateRelated(String datasetId, GenerateProblemDTO dto) {
+    public boolean batchGenerateRelated(String knowledgeId, GenerateProblemDTO dto) {
         if (CollectionUtils.isEmpty(dto.getDocumentIdList())) {
             return false;
         }
         paragraphService.updateStatusByDocIds(dto.getDocumentIdList(), 2, 0);
         baseMapper.updateStatusByIds(dto.getDocumentIdList(), 2, 0);
         baseMapper.updateStatusMetaByIds(dto.getDocumentIdList());
-        KnowledgeEntity dataset = datasetMapper.selectById(datasetId);
+        KnowledgeEntity dataset = datasetMapper.selectById(knowledgeId);
         BaseChatModel chatModel = modelService.getModelById(dto.getModelId());
         EmbeddingModel embeddingModel = modelService.getModelById(dataset.getEmbeddingModelId());
         dto.getDocumentIdList().parallelStream().forEach(docId -> {
             List<ParagraphEntity> paragraphs = paragraphService.lambdaQuery().eq(ParagraphEntity::getDocumentId, docId).list();
-            List<ProblemEntity> allProblems = problemService.lambdaQuery().eq(ProblemEntity::getDatasetId, datasetId).list();
+            List<ProblemEntity> allProblems = problemService.lambdaQuery().eq(ProblemEntity::getKnowledgeId, knowledgeId).list();
             baseMapper.updateStatusByIds(List.of(docId), 2, 1);
             paragraphs.forEach(paragraph -> {
-                problemService.generateRelated(chatModel, embeddingModel, datasetId, docId, paragraph, allProblems, dto);
+                problemService.generateRelated(chatModel, embeddingModel, knowledgeId, docId, paragraph, allProblems, dto);
                 paragraphService.updateStatusById(paragraph.getId(), 2, 2);
                 baseMapper.updateStatusMetaByIds(List.of(paragraph.getDocumentId()));
             });

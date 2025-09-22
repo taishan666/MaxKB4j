@@ -13,7 +13,7 @@
                   ( SELECT paragraph_id, (2 - (<![CDATA[embedding <=> CAST (#{referenceEmbedding  } AS vector)]]>))/2 AS score
               FROM embedding
               WHERE
-                  dataset_id IN
+                  knowledge_id IN
                     <foreach item="id" collection="datasetIds" open="(" separator="," close=")">
                         #{id}
                     </foreach>

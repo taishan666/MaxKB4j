@@ -89,7 +89,7 @@ public class BaseSearchDatasetNode extends INode {
     public JSONObject getDetail() {
         JSONObject detail = new JSONObject();
         detail.put("question", context.get("question"));
-        detail.put("paragraph_list", context.get("paragraph_list"));
+        detail.put("paragraphList", context.get("paragraphList"));
         return detail;
     }
 

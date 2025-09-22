@@ -10,12 +10,12 @@
     <select id="selectKnowledgePage12121" resultMap="knowledgeResultMap">
         SELECT
         k.*,
-        COUNT ( doc.dataset_id ) AS document_count,
+        COUNT ( doc.knowledge_id ) AS document_count,
         SUM ( doc."char_length" ) AS char_length,
         COUNT (DISTINCT adm.application_id ) AS application_mapping_count
         FROM
         knowledge k
-        LEFT JOIN "document" doc ON k.ID = doc.dataset_id
+        LEFT JOIN "document" doc ON k.ID = doc.knowledge_id
         LEFT JOIN application_knowledge_mapping adm ON k.ID = adm.knowledge_id
         <where>
             <if test="query.createUser != null and query.createUser != ''">
@@ -47,14 +47,14 @@
         knowledge k
         LEFT JOIN (
         SELECT
-        d.dataset_id,
+        d.knowledge_id,
         COUNT(*) AS document_count,
         SUM(d.char_length) AS char_length
         FROM
         "document" d
         GROUP BY
-        d.dataset_id
-        ) doc_stats ON k.ID = doc_stats.dataset_id
+        d.knowledge_id
+        ) doc_stats ON k.ID = doc_stats.knowledge_id
         LEFT JOIN (
         SELECT
         adm.knowledge_id,

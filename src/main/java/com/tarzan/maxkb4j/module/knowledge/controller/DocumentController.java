@@ -90,7 +90,7 @@ public class DocumentController {
   //  @SaCheckPermission("DATASET:READ")
     @GetMapping("/knowledge/{id}/document")
     public R<List<DocumentEntity>> listDocByDatasetId(@PathVariable String id) {
-        return R.success(documentService.listDocByDatasetId(id));
+        return R.success(documentService.listDocByKnowledgeId(id));
     }
 
  //   @SaCheckPermission("DATASET:EDIT")

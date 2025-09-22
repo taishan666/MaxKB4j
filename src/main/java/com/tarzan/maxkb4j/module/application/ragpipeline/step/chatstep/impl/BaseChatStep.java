@@ -59,7 +59,7 @@ public class BaseChatStep extends IChatStep {
     protected String execute(PipelineManage manage) {
         JSONObject context = manage.context;
         String chatId = context.getString("chatId");
-        List<ParagraphVO> paragraphList = (List<ParagraphVO>) context.get("paragraph_list");
+        List<ParagraphVO> paragraphList = (List<ParagraphVO>) context.get("paragraphList");
         ApplicationVO application=  context.getObject("application",ApplicationVO.class);
         String problemText = context.getString("problem_text");
         boolean stream = true;

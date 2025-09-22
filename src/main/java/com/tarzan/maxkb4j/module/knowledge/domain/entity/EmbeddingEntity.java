@@ -38,7 +38,7 @@ public class EmbeddingEntity {
 	private List<Float> embedding;
 	@TableField(typeHandler = JOSNBTypeHandler.class)
 	private JSONObject meta;
-	private String datasetId;
+	private String knowledgeId;
 	private String documentId;
 	private String paragraphId;
 	@TableField(exist = false)

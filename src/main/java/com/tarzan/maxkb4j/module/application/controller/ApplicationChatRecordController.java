@@ -46,12 +46,6 @@ public class ApplicationChatRecordController {
         return R.success(chatRecordService.statistics(appId, query));
     }
 
-/*    @PutMapping("/{id}/chat/{chatId}/chat_record/{chatRecordId}/vote")
-    public R<Boolean> vote(@PathVariable String id, @PathVariable String chatId, @PathVariable String chatRecordId, @RequestBody ApplicationChatRecordEntity chatRecord) {
-        chatRecord.setId(chatRecordId);
-        return R.success(chatRecordService.updateById(chatRecord));
-    }*/
-
     @GetMapping("/application/{id}/chat/{chatId}/chat_record/{current}/{size}")
     public R<IPage<ApplicationChatRecordVO>> chatRecordPage(@PathVariable String id, @PathVariable String chatId, @PathVariable int current, @PathVariable int size) {
         return R.success(chatRecordService.chatRecordPage(chatId, current, size));

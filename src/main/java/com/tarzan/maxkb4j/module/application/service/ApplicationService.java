@@ -285,7 +285,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         List<ApplicationChatRecordEntity> chatRecords = applicationChatRecordService.lambdaQuery().in(ApplicationChatRecordEntity::getId, dto.getChatIds()).list();
         List<ParagraphEntity> paragraphs = chatRecords.stream().map(e -> {
             ParagraphEntity paragraphEntity = new ParagraphEntity();
-            paragraphEntity.setDatasetId(dto.getDatasetId());
+            paragraphEntity.setKnowledgeId(dto.getKnowledgeId());
             paragraphEntity.setDocumentId(dto.getDocumentId());
             paragraphEntity.setTitle(e.getProblemText());
             paragraphEntity.setContent(e.getAnswerText());

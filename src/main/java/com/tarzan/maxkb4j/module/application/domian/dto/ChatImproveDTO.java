@@ -7,7 +7,7 @@ import java.util.List;
 @Data
 public class ChatImproveDTO {
     private List<String> chatIds;
-    private String datasetId;
+    private String knowledgeId;
     private String documentId;
 
 }

@@ -135,11 +135,11 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
     }
 
     @Transactional
-    public Boolean deleteDatasetById(String id) {
-        problemParagraphMapper.delete(Wrappers.<ProblemParagraphEntity>lambdaQuery().eq(ProblemParagraphEntity::getDatasetId, id));
-        problemService.lambdaUpdate().eq(ProblemEntity::getDatasetId, id).remove();
-        paragraphService.lambdaUpdate().eq(ParagraphEntity::getDatasetId, id).remove();
-        documentMapper.delete(Wrappers.<DocumentEntity>lambdaQuery().eq(DocumentEntity::getDatasetId, id));
+    public Boolean deleteKnowledgeId(String id) {
+        problemParagraphMapper.delete(Wrappers.<ProblemParagraphEntity>lambdaQuery().eq(ProblemParagraphEntity::getKnowledgeId, id));
+        problemService.lambdaUpdate().eq(ProblemEntity::getKnowledgeId, id).remove();
+        paragraphService.lambdaUpdate().eq(ParagraphEntity::getKnowledgeId, id).remove();
+        documentMapper.delete(Wrappers.<DocumentEntity>lambdaQuery().eq(DocumentEntity::getKnowledgeId, id));
         applicationDatasetMappingMapper.delete(Wrappers.<ApplicationKnowledgeMappingEntity>lambdaQuery().eq(ApplicationKnowledgeMappingEntity::getKnowledgeId, id));
         dataIndexService.removeByDatasetId(id);
         return this.removeById(id);
@@ -184,13 +184,13 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
 
     public void exportExcelZipByDatasetId(String id, HttpServletResponse response) throws IOException {
         KnowledgeEntity dataset = this.getById(id);
-        List<DocumentEntity> docs = documentMapper.selectList(Wrappers.<DocumentEntity>lambdaQuery().eq(DocumentEntity::getDatasetId, id));
+        List<DocumentEntity> docs = documentMapper.selectList(Wrappers.<DocumentEntity>lambdaQuery().eq(DocumentEntity::getKnowledgeId, id));
         exportExcelZipByDocs(docs, dataset.getName(), response);
     }
 
     public void exportExcelByDatasetId(String id, HttpServletResponse response) throws IOException {
         KnowledgeEntity dataset = this.getById(id);
-        List<DocumentEntity> docs = documentMapper.selectList(Wrappers.<DocumentEntity>lambdaQuery().eq(DocumentEntity::getDatasetId, id));
+        List<DocumentEntity> docs = documentMapper.selectList(Wrappers.<DocumentEntity>lambdaQuery().eq(DocumentEntity::getKnowledgeId, id));
         response.setContentType("application/vnd.ms-excel");
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());
         String fileName = URLEncoder.encode(dataset.getName(), StandardCharsets.UTF_8);
@@ -335,8 +335,8 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
         return knowledge;
     }
 
-    public boolean reEmbedding(String datasetId) {
-        List<DocumentEntity> documents=documentService.lambdaQuery().select(DocumentEntity::getId).eq(DocumentEntity::getDatasetId, datasetId).list();
+    public boolean reEmbedding(String knowledgeId) {
+        List<DocumentEntity> documents=documentService.lambdaQuery().select(DocumentEntity::getId).eq(DocumentEntity::getKnowledgeId, knowledgeId).list();
         documentService.embedByDocIds(documents.stream().map(DocumentEntity::getId).toList());
         return true;
     }

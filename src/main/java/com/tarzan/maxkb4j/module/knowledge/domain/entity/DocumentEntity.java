@@ -32,7 +32,7 @@ public class DocumentEntity extends BaseEntity {
 	@TableField(typeHandler = JOSNBTypeHandler.class)
 	private JSONObject meta;
 	
-	private String datasetId;
+	private String knowledgeId;
 	
 	private String hitHandlingMethod;
 	

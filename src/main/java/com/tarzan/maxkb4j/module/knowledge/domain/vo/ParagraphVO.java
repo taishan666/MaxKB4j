@@ -7,7 +7,8 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class ParagraphVO extends ParagraphEntity {
-    private String datasetName;
+    private String knowledgeName;
+    private Integer knowledgeType;
     private String documentName;
     private String hitHandlingMethod;
     private Float similarity;

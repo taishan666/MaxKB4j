@@ -32,7 +32,7 @@ public class FullTextRetriever implements IDataRetriever {
         Aggregation aggregation = Aggregation.newAggregation(
                 // 步骤1: 应用查询条件（文本搜索 + datasetId过滤）
                 Aggregation.match(textCriteria),
-                Aggregation.match(Criteria.where("datasetId").in(datasetIds)),
+                Aggregation.match(Criteria.where("knowledgeId").in(datasetIds)),
                 // 步骤2: 添加文本搜索得分字段
                 Aggregation.addFields()
                         .addField("score")

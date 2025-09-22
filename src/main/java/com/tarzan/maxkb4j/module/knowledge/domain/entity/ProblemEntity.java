@@ -18,7 +18,7 @@ public class ProblemEntity extends BaseEntity {
     
     private String content;
     private Integer hitNum;
-    private String datasetId;
+    private String knowledgeId;
 
     public static ProblemEntity createDefault() {
         ProblemEntity entity= new ProblemEntity();

@@ -27,23 +27,23 @@ public class ProblemParagraphService extends ServiceImpl<ProblemParagraphMapper,
         return baseMapper.getProblemsByParagraphId(paragraphId);
     }
     @Transactional
-    public boolean association(String datasetId, String docId, String paragraphId, String problemId) {
+    public boolean association(String knowledgeId, String docId, String paragraphId, String problemId) {
         ProblemParagraphEntity entity = new ProblemParagraphEntity();
-        entity.setDatasetId(datasetId);
+        entity.setKnowledgeId(knowledgeId);
         entity.setProblemId(problemId);
         entity.setParagraphId(paragraphId);
         entity.setDocumentId(docId);
-        EmbeddingModel embeddingModel=datasetService.getDatasetEmbeddingModel(datasetId);
-        return this.save(entity) && embeddingService.createProblemIndex(datasetId, docId, paragraphId, problemId,embeddingModel);
+        EmbeddingModel embeddingModel=datasetService.getDatasetEmbeddingModel(knowledgeId);
+        return this.save(entity) && embeddingService.createProblemIndex(knowledgeId, docId, paragraphId, problemId,embeddingModel);
     }
 
     @Transactional
-    public boolean unAssociation(String datasetId, String docId, String paragraphId, String problemId) {
+    public boolean unAssociation(String knowledgeId, String docId, String paragraphId, String problemId) {
         return this.lambdaUpdate()
                 .eq(ProblemParagraphEntity::getParagraphId, paragraphId)
                 .eq(ProblemParagraphEntity::getDocumentId, docId)
                 .eq(ProblemParagraphEntity::getProblemId, problemId)
-                .eq(ProblemParagraphEntity::getDatasetId, datasetId)
+                .eq(ProblemParagraphEntity::getKnowledgeId, knowledgeId)
                 .remove() && embeddingService.lambdaUpdate().eq(EmbeddingEntity::getSourceId, problemId).eq(EmbeddingEntity::getParagraphId, paragraphId).remove();
     }
 }

@@ -63,7 +63,7 @@ public class SearchDatasetStep extends ISearchDatasetStep {
     public JSONObject getDetails() {
         JSONObject details=new JSONObject();
         details.put("step_type","search_step");
-        details.put("paragraph_list",super.context.get("paragraph_list"));
+        details.put("paragraphList",super.context.get("paragraphList"));
         details.put("runTime",super.context.get("runTime"));
         details.put("problem_text",super.context.get("problem_text"));
         details.put("model_name",super.context.get("model_name"));

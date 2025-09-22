@@ -52,7 +52,7 @@ public class ProblemService extends ServiceImpl<ProblemMapper, ProblemEntity> {
 
 
     @Async
-    public void generateRelated(BaseChatModel chatModel, EmbeddingModel embeddingModel, String datasetId, String docId, ParagraphEntity paragraph, List<ProblemEntity> allProblems, GenerateProblemDTO dto) {
+    public void generateRelated(BaseChatModel chatModel, EmbeddingModel embeddingModel, String knowledgeId, String docId, ParagraphEntity paragraph, List<ProblemEntity> allProblems, GenerateProblemDTO dto) {
         log.info("开始---->生成问题:{}", paragraph.getId());
         UserMessage userMessage = UserMessage.from(dto.getPrompt().replace("{data}", paragraph.getContent()));
         ChatResponse res = chatModel.generate(userMessage);
@@ -66,7 +66,7 @@ public class ProblemService extends ServiceImpl<ProblemMapper, ProblemEntity> {
                 if (existingProblem == null) {
                     ProblemEntity entity = ProblemEntity.createDefault();
                     entity.setId(problemId);
-                    entity.setDatasetId(datasetId);
+                    entity.setKnowledgeId(knowledgeId);
                     entity.setContent(problem);
                     insertProblems.add(entity);
                     allProblems.add(entity);
@@ -78,7 +78,7 @@ public class ProblemService extends ServiceImpl<ProblemMapper, ProblemEntity> {
                     ProblemParagraphEntity problemParagraph = new ProblemParagraphEntity();
                     problemParagraph.setProblemId(problemId);
                     problemParagraph.setParagraphId(paragraph.getId());
-                    problemParagraph.setDatasetId(datasetId);
+                    problemParagraph.setKnowledgeId(knowledgeId);
                     problemParagraph.setDocumentId(docId);
                     problemParagraphService.save(problemParagraph);
                 }
@@ -89,7 +89,7 @@ public class ProblemService extends ServiceImpl<ProblemMapper, ProblemEntity> {
             List<EmbeddingEntity> embeddingEntities = new ArrayList<>();
             for (ProblemEntity problem : insertProblems) {
                 EmbeddingEntity embeddingEntity = new EmbeddingEntity();
-                embeddingEntity.setDatasetId(problem.getDatasetId());
+                embeddingEntity.setKnowledgeId(problem.getKnowledgeId());
                 embeddingEntity.setDocumentId(docId);
                 embeddingEntity.setParagraphId(paragraph.getId());
                 embeddingEntity.setMeta(new JSONObject());
@@ -110,13 +110,13 @@ public class ProblemService extends ServiceImpl<ProblemMapper, ProblemEntity> {
     @Transactional
     public boolean createProblemsByDatasetId(String id, List<String> problems) {
         if (!CollectionUtils.isEmpty(problems)) {
-            List<ProblemEntity> allProblems = this.lambdaQuery().eq(ProblemEntity::getDatasetId, id).list();
+            List<ProblemEntity> allProblems = this.lambdaQuery().eq(ProblemEntity::getKnowledgeId, id).list();
             List<ProblemEntity> problemEntities = new ArrayList<>();
             for (String problem : problems) {
                 ProblemEntity existingProblem = findProblem(problem, allProblems);
                 if (existingProblem == null) {
                     ProblemEntity entity = new ProblemEntity();
-                    entity.setDatasetId(id);
+                    entity.setKnowledgeId(id);
                     entity.setContent(problem);
                     entity.setHitNum(0);
                     problemEntities.add(entity);
@@ -184,12 +184,12 @@ public class ProblemService extends ServiceImpl<ProblemMapper, ProblemEntity> {
     }
 
     @Transactional
-    public boolean createProblemsByParagraphId(String datasetId,String docId,String paragraphId, ProblemDTO dto) {
+    public boolean createProblemsByParagraphId(String knowledgeId,String docId,String paragraphId, ProblemDTO dto) {
         ProblemEntity problem = new ProblemEntity();
         problem.setContent(dto.getContent());
-        problem.setDatasetId(datasetId);
+        problem.setKnowledgeId(knowledgeId);
         problem.setHitNum(0);
-        return this.save(problem) && problemParagraphService.association(datasetId, docId, paragraphId, problem.getId());
+        return this.save(problem) && problemParagraphService.association(knowledgeId, docId, paragraphId, problem.getId());
     }
 
 }

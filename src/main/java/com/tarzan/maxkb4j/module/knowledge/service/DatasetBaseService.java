@@ -14,13 +14,13 @@ public class DatasetBaseService {
     private final KnowledgeMapper datasetMapper;
     private final ModelService modelService;
 
-    @Cacheable(cacheNames = "dataset_embedding_model", key = "#datasetId")
-    public EmbeddingModel getDatasetEmbeddingModel(String datasetId){
-        KnowledgeEntity dataset=datasetMapper.selectById(datasetId);
+    @Cacheable(cacheNames = "dataset_embedding_model", key = "#knowledgeId")
+    public EmbeddingModel getDatasetEmbeddingModel(String knowledgeId){
+        KnowledgeEntity dataset=datasetMapper.selectById(knowledgeId);
         return modelService.getModelById(dataset.getEmbeddingModelId());
     }
 
-    public KnowledgeEntity getById(String datasetId) {
-        return datasetMapper.selectById(datasetId);
+    public KnowledgeEntity getById(String knowledgeId) {
+        return datasetMapper.selectById(knowledgeId);
     }
 }

@@ -62,9 +62,9 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
     public void migrateDoc(String sourceId, String targetId, List<String> docIds) {
         //todo 优化考虑 问题同时关联了需要迁移的文档和没有迁移的文档段落时该如何处理
         dataIndexService.migrateDoc(targetId,docIds);
-        this.lambdaUpdate().set(ParagraphEntity::getDatasetId, targetId).in(ParagraphEntity::getDocumentId, docIds).update();
-        problemService.lambdaUpdate().set(ProblemEntity::getDatasetId, targetId).eq(ProblemEntity::getDatasetId, sourceId).update();
-        problemParagraphService.lambdaUpdate().set(ProblemParagraphEntity::getDatasetId, targetId).eq(ProblemParagraphEntity::getDatasetId, sourceId).update();
+        this.lambdaUpdate().set(ParagraphEntity::getKnowledgeId, targetId).in(ParagraphEntity::getDocumentId, docIds).update();
+        problemService.lambdaUpdate().set(ProblemEntity::getKnowledgeId, targetId).eq(ProblemEntity::getKnowledgeId, sourceId).update();
+        problemParagraphService.lambdaUpdate().set(ProblemParagraphEntity::getKnowledgeId, targetId).eq(ProblemParagraphEntity::getKnowledgeId, sourceId).update();
     }
 
     @Transactional
@@ -89,7 +89,7 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
             List<EmbeddingEntity> embeddingEntities = new ArrayList<>();
             log.info("开始---->向量化段落:{}", paragraph.getId());
             EmbeddingEntity paragraphEmbed = new EmbeddingEntity();
-            paragraphEmbed.setDatasetId(paragraph.getDatasetId());
+            paragraphEmbed.setKnowledgeId(paragraph.getKnowledgeId());
             paragraphEmbed.setDocumentId(paragraph.getDocumentId());
             paragraphEmbed.setParagraphId(paragraph.getId());
             paragraphEmbed.setMeta(new JSONObject());
@@ -108,7 +108,7 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
             List<ProblemEntity> problems=problemParagraphService.getProblemsByParagraphId(paragraph.getId());
             for (ProblemEntity problem : problems) {
                 EmbeddingEntity problemEmbed = new EmbeddingEntity();
-                problemEmbed.setDatasetId(paragraph.getDatasetId());
+                problemEmbed.setKnowledgeId(paragraph.getKnowledgeId());
                 problemEmbed.setDocumentId(paragraph.getDocumentId());
                 problemEmbed.setParagraphId(paragraph.getId());
                 problemEmbed.setMeta(new JSONObject());
@@ -144,8 +144,8 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
 
 
     @Transactional
-    public boolean createParagraph(String datasetId, String docId, ParagraphDTO paragraph) {
-        paragraph.setDatasetId(datasetId);
+    public boolean createParagraph(String knowledgeId, String docId, ParagraphDTO paragraph) {
+        paragraph.setKnowledgeId(knowledgeId);
         paragraph.setDocumentId(docId);
         paragraph.setStatus("nn2");
         paragraph.setHitNum(0);
@@ -161,11 +161,11 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
                     problem = ProblemEntity.createDefault();
                     problem.setHitNum(0);
                     problem.setContent(problemContent);
-                    problem.setDatasetId(datasetId);
+                    problem.setKnowledgeId(knowledgeId);
                     problemService.save(problem);
                 }
                 ProblemParagraphEntity entity = new ProblemParagraphEntity();
-                entity.setDatasetId(paragraph.getDatasetId());
+                entity.setKnowledgeId(paragraph.getKnowledgeId());
                 entity.setProblemId(problem.getId());
                 entity.setParagraphId(paragraph.getId());
                 entity.setDocumentId(paragraph.getDocumentId());
@@ -176,16 +176,16 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
         return documentMapper.updateCharLengthById(docId);
     }
 
-    public ParagraphEntity createParagraph(String datasetId, String docId, ParagraphSimpleDTO paragraph) {
-        return getParagraphEntity(datasetId, docId, paragraph.getTitle(), paragraph.getContent());
+    public ParagraphEntity createParagraph(String knowledgeId, String docId, ParagraphSimpleDTO paragraph) {
+        return getParagraphEntity(knowledgeId, docId, paragraph.getTitle(), paragraph.getContent());
     }
 
-    public ParagraphEntity getParagraphEntity(String datasetId, String docId, String title, String content) {
+    public ParagraphEntity getParagraphEntity(String knowledgeId, String docId, String title, String content) {
         ParagraphEntity paragraph = new ParagraphEntity();
         paragraph.setId(IdWorker.get32UUID());
         paragraph.setTitle(title == null ? "" : title);
         paragraph.setContent(content == null ? "" : content);
-        paragraph.setDatasetId(datasetId);
+        paragraph.setKnowledgeId(knowledgeId);
         paragraph.setStatus("nn0");
         paragraph.setHitNum(0);
         paragraph.setIsActive(true);
@@ -217,18 +217,18 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
         return Collections.emptyList();
     }
 
-    public Boolean batchGenerateRelated(String datasetId, String docId, GenerateProblemDTO dto) {
+    public Boolean batchGenerateRelated(String knowledgeId, String docId, GenerateProblemDTO dto) {
         this.updateStatusByDocIds(List.of(docId), 2, 0);
         documentMapper.updateStatusMetaByIds(List.of(docId));
         documentMapper.updateStatusByIds(List.of(docId), 2, 0);
-        KnowledgeEntity dataset = datasetMapper.selectById(datasetId);
+        KnowledgeEntity dataset = datasetMapper.selectById(knowledgeId);
         BaseChatModel chatModel = modelService.getModelById(dto.getModelId());
         EmbeddingModel embeddingModel = modelService.getModelById(dataset.getEmbeddingModelId());
         List<ParagraphEntity> paragraphs = this.lambdaQuery().eq(ParagraphEntity::getDocumentId, docId).list();
-        List<ProblemEntity> allProblems = problemService.lambdaQuery().eq(ProblemEntity::getDatasetId, datasetId).list();
+        List<ProblemEntity> allProblems = problemService.lambdaQuery().eq(ProblemEntity::getKnowledgeId, knowledgeId).list();
         documentMapper.updateStatusByIds(List.of(docId), 2, 1);
         paragraphs.parallelStream().forEach(paragraph -> {
-            problemService.generateRelated(chatModel, embeddingModel, datasetId, docId, paragraph, allProblems, dto);
+            problemService.generateRelated(chatModel, embeddingModel, knowledgeId, docId, paragraph, allProblems, dto);
             documentMapper.updateStatusMetaByIds(List.of(paragraph.getDocumentId()));
         });
         documentMapper.updateStatusByIds(List.of(docId), 2, 2);

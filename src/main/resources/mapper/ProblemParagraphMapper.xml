@@ -6,7 +6,7 @@
         SELECT
         ppm.ID,
         P."content",
-        ppm.dataset_id,
+        ppm.knowledge_id,
         ppm.document_id,
         ppm.paragraph_id,
         ppm.problem_id
@@ -14,8 +14,8 @@
         problem_paragraph_mapping ppm
         LEFT JOIN problem P ON P.ID = ppm.problem_id
         <where>
-            <if test="datasetId != null and datasetId != ''">
-                AND ppm.dataset_id =   #{datasetId}
+            <if test="knowledgeId != null and knowledgeId != ''">
+                AND ppm.knowledge_id =   #{knowledgeId}
             </if>
             <if test="docIds != null and docIds.size() > 0">
                 AND ppm.document_id IN

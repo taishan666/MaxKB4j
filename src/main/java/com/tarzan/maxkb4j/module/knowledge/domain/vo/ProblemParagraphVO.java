@@ -8,7 +8,7 @@ import lombok.EqualsAndHashCode;
 @Data
 public class ProblemParagraphVO extends ProblemParagraphEntity {
     private String content;
-    private String datasetId;
+    private String knowledgeId;
     private String documentId;
     private String paragraphId;
     private String problemId;

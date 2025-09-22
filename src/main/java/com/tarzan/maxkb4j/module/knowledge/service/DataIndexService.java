@@ -72,9 +72,9 @@ public class DataIndexService {
         mongoTemplate.remove(query,EmbeddingEntity.class);
     }
 
-    public void removeByDatasetId(String datasetId) {
-        embeddingMapper.delete(Wrappers.<EmbeddingEntity>lambdaQuery().eq(EmbeddingEntity::getDatasetId, datasetId));
-        Query query = new Query(Criteria.where("datasetId").is(datasetId));
+    public void removeByDatasetId(String knowledgeId) {
+        embeddingMapper.delete(Wrappers.<EmbeddingEntity>lambdaQuery().eq(EmbeddingEntity::getKnowledgeId, knowledgeId));
+        Query query = new Query(Criteria.where("knowledgeId").is(knowledgeId));
         mongoTemplate.remove(query,EmbeddingEntity.class);
     }
 
@@ -88,11 +88,11 @@ public class DataIndexService {
     }
 
     public void migrateDoc(String targetId, List<String> docIds) {
-        embeddingMapper.update(Wrappers.<EmbeddingEntity>lambdaUpdate().set(EmbeddingEntity::getDatasetId, targetId).in(EmbeddingEntity::getDocumentId,docIds));
+        embeddingMapper.update(Wrappers.<EmbeddingEntity>lambdaUpdate().set(EmbeddingEntity::getKnowledgeId, targetId).in(EmbeddingEntity::getDocumentId,docIds));
         // 创建查询条件，匹配 paragraphId
         Query query = new Query(Criteria.where("documentId").is(docIds));
         // 创建更新对象，设置 IsActive 字段的新值
-        Update update = new Update().set("datasetId", targetId);
+        Update update = new Update().set("knowledgeId", targetId);
         // 使用 MongoTemplate 执行更新操作
         mongoTemplate.updateMulti(query, update, EmbeddingEntity.class);
     }

@@ -14,7 +14,7 @@ import lombok.EqualsAndHashCode;
 @TableName("problem_paragraph_mapping")
 public class ProblemParagraphEntity extends BaseEntity {
 
-	private String datasetId;
+	private String knowledgeId;
 	private String documentId;
 	private String paragraphId;
 	private String problemId;

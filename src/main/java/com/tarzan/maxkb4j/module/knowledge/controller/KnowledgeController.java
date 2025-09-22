@@ -73,15 +73,15 @@ public class KnowledgeController {
 
     // @SaCheckPermission("DATASET:EDIT")
     @PutMapping("/knowledge/{id}")
-    public R<Boolean> updateDatasetById(@PathVariable("id") String id, @RequestBody KnowledgeEntity datasetEntity) {
+    public R<Boolean> updatedKnowledgeId(@PathVariable("id") String id, @RequestBody KnowledgeEntity datasetEntity) {
         datasetEntity.setId(id);
         return R.success(datasetService.updateById(datasetEntity));
     }
 
     //  @SaCheckPermission("DATASET:DELETE")
     @DeleteMapping("/knowledge/{id}")
-    public R<Boolean> deleteDatasetById(@PathVariable("id") String id) {
-        return R.success(datasetService.deleteDatasetById(id));
+    public R<Boolean> deleteKnowledgeId(@PathVariable("id") String id) {
+        return R.success(datasetService.deleteKnowledgeId(id));
     }
 
     // @SaCheckPermission("DATASET:READ")
