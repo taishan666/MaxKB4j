@@ -51,7 +51,7 @@ public class BaseSearchDatasetNode extends INode {
 
     public static String resetTitle(String title) {
         if(StringUtils.isNotBlank(title)){
-            return "### "+title+"\n";
+            return "-"+title+"\n\t";
         }
         return "";
     }

@@ -8,7 +8,6 @@ import com.tarzan.maxkb4j.core.langchain4j.MyAiServices;
 import com.tarzan.maxkb4j.core.langchain4j.MyChatMemory;
 import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.NodeResult;
-import com.tarzan.maxkb4j.core.workflow.WorkflowManage;
 import com.tarzan.maxkb4j.core.workflow.node.aichat.input.ChatNodeParams;
 import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
@@ -75,6 +74,66 @@ public class BaseChatNode extends INode {
                 .streamingChatModel(chatModel.getStreamingChatModel())
                 .build();
         TokenStream tokenStream = assistant.chatStream(problemText);
+        CompletableFuture<ChatResponse> futureChatResponse = new CompletableFuture<>();
+        boolean isResult = nodeParams.getIsResult();
+        boolean reasoningContentEnable = nodeParams.getModelSetting().getBooleanValue("reasoningContentEnable");
+        tokenStream.onPartialThinking(thinking -> {
+                    if (isResult&&reasoningContentEnable) {
+                        ChatMessageVO vo = new ChatMessageVO(
+                                workflowManage.getChatParams().getChatId(),
+                                workflowManage.getChatParams().getChatRecordId(),
+                                this.getId(),
+                                "",
+                                thinking.text(),
+                                runtimeNodeId,
+                                type,
+                                viewType,
+                                false);
+                        workflowManage.getSink().tryEmitNext(vo);
+                    }
+                })
+                .onPartialResponse(content -> {
+                    if (isResult) {
+                        ChatMessageVO vo = new ChatMessageVO(
+                                workflowManage.getChatParams().getChatId(),
+                                workflowManage.getChatParams().getChatRecordId(),
+                                "ai-chat-node",
+                                content,
+                                "",
+                                runtimeNodeId,
+                                type,
+                                viewType,
+                                false);
+                        workflowManage.getSink().tryEmitNext(vo);
+                    }
+                })
+                .onCompleteResponse(response -> {
+                    String answer = response.aiMessage().text();
+                    String thinking = response.aiMessage().thinking();
+                    TokenUsage tokenUsage = response.tokenUsage();
+                    context.put("messageTokens", tokenUsage.inputTokenCount());
+                    context.put("answerTokens", tokenUsage.outputTokenCount());
+                    context.put("answer", answer);
+                    context.put("reasoningContent", thinking);
+                    ChatMessageVO vo = new ChatMessageVO(
+                            workflowManage.getChatParams().getChatId(),
+                            workflowManage.getChatParams().getChatRecordId(),
+                            "ai-chat-node",
+                            "",
+                            "",
+                            runtimeNodeId,
+                            type,
+                            viewType,
+                            false);
+                    workflowManage.getSink().tryEmitNext(vo);
+                    futureChatResponse.complete(response);// 完成后释放线程
+                })
+                .onError(error -> {
+                    workflowManage.getSink().tryEmitError(error);
+                    futureChatResponse.completeExceptionally(error); // 完成后释放线程
+                })
+                .start();
+        futureChatResponse.join(); // 阻塞当前线程直到 futureChatResponse 完成
         JSONArray historyMessage=resetMessageList(chatMemory.messages());
         Map<String, Object> nodeVariable = Map.of(
                 "result", tokenStream,
@@ -83,79 +142,7 @@ public class BaseChatNode extends INode {
                 "history_message", historyMessage,
                 "question", workflowManage.getChatParams().getMessage()
         );
-        return new NodeResult(nodeVariable, Map.of(), this::writeContextStream);
-    }
-
-    private void writeContextStream(Map<String, Object> nodeVariable, Map<String, Object> globalVariable, INode node, WorkflowManage workflow) {
-        if (nodeVariable != null) {
-            ChatNodeParams nodeParams = super.getNodeData().toJavaObject(ChatNodeParams.class);
-            context.putAll(nodeVariable);
-            TokenStream tokenStream = (TokenStream) nodeVariable.get("result");
-            CompletableFuture<ChatResponse> futureChatResponse = new CompletableFuture<>();
-            boolean isResult = workflow.isResult(node, new NodeResult(nodeVariable, globalVariable));
-            boolean reasoningContentEnable = nodeParams.getModelSetting().getBooleanValue("reasoningContentEnable");
-            tokenStream.onPartialThinking(thinking -> {
-                        if (isResult&&reasoningContentEnable) {
-                            ChatMessageVO vo = new ChatMessageVO(
-                                    workflowManage.getChatParams().getChatId(),
-                                    workflowManage.getChatParams().getChatRecordId(),
-                                    node.getId(),
-                                    "",
-                                    thinking.text(),
-                                    runtimeNodeId,
-                                    type,
-                                    viewType,
-                                    false);
-                            workflowManage.getSink().tryEmitNext(vo);
-                        }
-                    })
-                    .onPartialResponse(content -> {
-                        if (isResult) {
-                            ChatMessageVO vo = new ChatMessageVO(
-                                    workflowManage.getChatParams().getChatId(),
-                                    workflowManage.getChatParams().getChatRecordId(),
-                                    "ai-chat-node",
-                                    content,
-                                    "",
-                                    runtimeNodeId,
-                                    type,
-                                    viewType,
-                                    false);
-                            workflowManage.getSink().tryEmitNext(vo);
-                        }
-                    })
-                    .onCompleteResponse(response -> {
-                        String answer = response.aiMessage().text();
-                        String thinking = response.aiMessage().thinking();
-                        TokenUsage tokenUsage = response.tokenUsage();
-                        context.put("messageTokens", tokenUsage.inputTokenCount());
-                        context.put("answerTokens", tokenUsage.outputTokenCount());
-                        context.put("answer", answer);
-                        context.put("reasoningContent", thinking);
-                        ChatMessageVO vo = new ChatMessageVO(
-                                workflowManage.getChatParams().getChatId(),
-                                workflowManage.getChatParams().getChatRecordId(),
-                                "ai-chat-node",
-                                "",
-                                "",
-                                runtimeNodeId,
-                                type,
-                                viewType,
-                                false);
-                        workflowManage.getSink().tryEmitNext(vo);
-                        futureChatResponse.complete(response);// 完成后释放线程
-                    })
-                    .onError(error -> {
-                        workflowManage.getSink().tryEmitError(error);
-                        futureChatResponse.completeExceptionally(error); // 完成后释放线程
-                    })
-                    .start();
-            futureChatResponse.join(); // 阻塞当前线程直到 futureChatResponse 完成
-        }
-        if (context.containsKey("start_time")) {
-            long runTime = System.currentTimeMillis() - (long) context.get("start_time");
-            context.put("runTime", runTime / 1000F);
-        }
+        return new NodeResult(nodeVariable, Map.of());
     }
 
 

@@ -69,7 +69,7 @@ public class WorkflowManage {
                 .toList();
         for (JSONObject nodeDetail : sortedDetails) {
             String nodeId = nodeDetail.getString("node_id");
-            List<String> lastNodeIdList = (List<String>) nodeDetail.get("up_node_id_list");
+            List<String> lastNodeIdList = nodeDetail.getJSONArray("up_node_id_list").toJavaList(String.class);
             if (nodeDetail.getString("runtimeNodeId").equals(startNodeId)) {
                 nodeDetail.put("form_data", startNodeData);
                 // 处理起始节点
@@ -111,8 +111,6 @@ public class WorkflowManage {
 
 
     public Map<String, Object> getGlobalVariable(ChatParams chatParams) {
-
-        // 构建返回的map
         Map<String, Object> resultMap = new HashMap<>();
         resultMap.put("time", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
         resultMap.put("history_context", getHistoryContext());
@@ -136,7 +134,6 @@ public class WorkflowManage {
     }
 
     public String run() {
-        context.put("start_time", System.currentTimeMillis());
         runChainManage(startNode, null);
         ChatMessageVO vo = new ChatMessageVO(chatParams.getChatId(), chatParams.getChatRecordId(), true);
         sink.tryEmitNext(vo);
@@ -278,37 +275,14 @@ public class WorkflowManage {
         Set<String> promptVariables = extractVariables(prompt);
         if (!promptVariables.isEmpty()) {
             Map<String, Object> context = this.getWorkflowContent();
-            Map<String, Object> contextVariables = flattenMap(context);
             Map<String, Object> variables = new HashMap<>();
             for (String promptVariable : promptVariables) {
-                variables.put(promptVariable, contextVariables.getOrDefault(promptVariable, "*"));
+                variables.put(promptVariable, context.getOrDefault(promptVariable, "*"));
             }
             PromptTemplate promptTemplate = PromptTemplate.from(prompt);
             return promptTemplate.apply(variables).text();
         }
         return prompt;
-    }
-
-
-    public Map<String, Object> flattenMap(Map<String, Object> inputMap) {
-        Map<String, Object> result = new HashMap<>();
-        flattenMapHelper("", inputMap, result);
-        return result;
-    }
-
-    private void flattenMapHelper(String parentKey, Map<String, Object> inputMap, Map<String, Object> result) {
-        for (Map.Entry<String, Object> entry : inputMap.entrySet()) {
-            String key = entry.getKey();
-            Object value = entry.getValue();
-            String newKey = parentKey.isEmpty() ? key : parentKey + "." + key;
-            if (value instanceof Map) {
-                @SuppressWarnings("unchecked")
-                Map<String, Object> valueMap = (Map<String, Object>) value;
-                flattenMapHelper(newKey, valueMap, result);
-            } else {
-                result.put(newKey, value);
-            }
-        }
     }
 
 
@@ -404,16 +378,7 @@ public class WorkflowManage {
         }
         for (int index = 0; index < nodeContext.size(); index++) {
             INode node = nodeContext.get(index);
-            JSONObject details;
-        /*    //todo  startNode 判断非空
-            if (chatRecord != null && chatRecord.getDetails() != null) {
-                details = chatRecord.getDetails().getJSONObject(node.getRuntimeNodeId());
-                if (details != null &&startNode != null && !startNode.getRuntimeNodeId().equals(node.getRuntimeNodeId())) {
-                    detailsResult.put(node.getRuntimeNodeId(), details);
-                    continue;
-                }
-            }*/
-            details = node.getDetail(index);
+            JSONObject details= node.getDetail(index);
             details.put("node_id", node.getId());
             details.put("up_node_id_list", node.getUpNodeIdList());
             details.put("runtimeNodeId", node.getRuntimeNodeId());
@@ -426,7 +391,7 @@ public class WorkflowManage {
         for (int i = 0; i < this.nodeContext.size(); i++) {
             INode node = this.nodeContext.get(i);
             if (currentNode.id.equals(node.id) && currentNode.runtimeNodeId.equals(node.runtimeNodeId)) {
-                this.nodeContext.set(i, node);
+                this.nodeContext.set(i, currentNode);
                 return;
             }
         }
@@ -500,6 +465,7 @@ public class WorkflowManage {
         );
     }
 
+    //根据fieldType,判断直接返回值还是返回引用值
     public Object getFieldValue(String fieldType, Object value, List<String> reference) {
         if ("referencing".equals(fieldType)) {
             return getReferenceField(reference.get(0), reference.subList(1, reference.size()));

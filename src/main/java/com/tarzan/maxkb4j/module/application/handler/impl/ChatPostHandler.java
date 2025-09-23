@@ -31,6 +31,7 @@ public class ChatPostHandler extends PostResponseHandler {
      //todo 优化
     @Override
     public void handler(String chatId, String chatRecordId, String problemText, String answerText,ApplicationChatRecordEntity chatRecord,   JSONObject details,long startTime, String chatUserId, String chatUserType,boolean debug) {
+        float runTime = (System.currentTimeMillis() - startTime) / 1000F;
         ChatInfo chatInfo = ChatCache.get(chatId);
         int messageTokens = details.values().stream()
                 .map(row -> (JSONObject) row)
@@ -42,10 +43,9 @@ public class ChatPostHandler extends PostResponseHandler {
                 .filter(row -> row.containsKey("answerTokens") && row.get("answerTokens") != null)
                 .mapToInt(row -> row.getIntValue("answerTokens"))
                 .sum();
-        float runTime = (System.currentTimeMillis() - startTime) / 1000F;
         if (chatRecord != null) {
-            chatRecord.setAnswerTextList(List.of(chatRecord.getAnswerText(),answerText));
-            chatRecord.setAnswerText(chatRecord.getAnswerText()+"\n\n"+answerText);
+            chatRecord.setAnswerTextList(List.of(answerText));
+            chatRecord.setAnswerText(answerText);
             chatRecord.setDetails(new JSONObject(details));
             chatRecord.setMessageTokens(messageTokens);
             chatRecord.setAnswerTokens(answerTokens);
