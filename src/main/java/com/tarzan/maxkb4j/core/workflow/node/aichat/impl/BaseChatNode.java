@@ -1,12 +1,12 @@
 package com.tarzan.maxkb4j.core.workflow.node.aichat.impl;
 
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.tarzan.maxkb4j.core.assistant.Assistant;
-import com.tarzan.maxkb4j.core.langchain4j.MyChatMemory;
+import com.tarzan.maxkb4j.core.langchain4j.AppChatMemory;
 import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.NodeResult;
+import com.tarzan.maxkb4j.core.workflow.WorkflowManage;
 import com.tarzan.maxkb4j.core.workflow.node.aichat.input.ChatNodeParams;
 import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
@@ -14,7 +14,7 @@ import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
 import com.tarzan.maxkb4j.util.SpringUtil;
 import com.tarzan.maxkb4j.util.StringUtil;
 import com.tarzan.maxkb4j.util.ToolUtil;
-import dev.langchain4j.memory.ChatMemory;
+import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.model.chat.response.ChatResponse;
 import dev.langchain4j.model.output.TokenUsage;
 import dev.langchain4j.service.AiServices;
@@ -23,6 +23,7 @@ import dev.langchain4j.store.memory.chat.ChatMemoryStore;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -33,16 +34,18 @@ import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.AI_CHAT;
 public class BaseChatNode extends INode {
 
     private final ModelService modelService;
-    private final ChatMemoryStore chatMemoryStore;
     private final ToolUtil toolUtil;
+    private final AiServices<Assistant> aiServicesBuilder;
+    private final ChatMemoryStore chatMemoryStore;
 
 
     public BaseChatNode(JSONObject properties) {
         super(properties);
         this.type = AI_CHAT.getKey();
         this.modelService = SpringUtil.getBean(ModelService.class);
-        this.chatMemoryStore = SpringUtil.getBean(ChatMemoryStore.class);
         this.toolUtil = SpringUtil.getBean(ToolUtil.class);
+        this.aiServicesBuilder = AiServices.builder(Assistant.class);
+        this.chatMemoryStore = SpringUtil.getBean(ChatMemoryStore.class);
     }
 
 
@@ -53,13 +56,6 @@ public class BaseChatNode extends INode {
         BaseChatModel chatModel = modelService.getModelById(nodeParams.getModelId(), nodeParams.getModelParamsSetting());
         String problemText = workflowManage.generatePrompt(nodeParams.getPrompt());
         String systemPrompt= workflowManage.generatePrompt(nodeParams.getSystem());
-        String systemText = StringUtil.isBlank(systemPrompt) ? "You're an intelligent assistant." : systemPrompt;
-        String chatId = workflowManage.getChatParams().getChatId();
-        ChatMemory chatMemory = MyChatMemory.builder()
-                .id(chatId)
-                .maxMessages(nodeParams.getDialogueNumber())
-                .chatMemoryStore(chatMemoryStore)
-                .build();
         List<String> toolIds = new ArrayList<>();
         if (CollectionUtils.isNotEmpty(nodeParams.getToolIds()) && nodeParams.getToolEnable()) {
             toolIds.addAll(nodeParams.getToolIds());
@@ -67,11 +63,24 @@ public class BaseChatNode extends INode {
         if (StringUtil.isNotBlank(nodeParams.getMcpToolId()) && nodeParams.getMcpEnable()) {
             toolIds.add(nodeParams.getMcpToolId());
         }
-        JSONArray historyMessage=resetMessageList(chatMemory.messages());
-        Assistant assistant = AiServices.builder(Assistant.class)
-                .systemMessageProvider(chatMemoryId -> systemText)
-                .chatMemory(chatMemory)
-                .tools(toolUtil.getTools(toolIds))
+        List<ChatMessage> historyMessage=workflowManage.getHistoryMessage(nodeParams.getDialogueNumber(), nodeParams.getDialogueType(), runtimeNodeId);
+        if (StringUtil.isNotBlank(systemPrompt)){
+            aiServicesBuilder.systemMessageProvider(chatMemoryId -> systemPrompt);
+        }
+        if (CollectionUtils.isNotEmpty(historyMessage)){
+            aiServicesBuilder.chatMemory(AppChatMemory.withMessages(historyMessage));
+        }
+        if (CollectionUtils.isNotEmpty(toolIds)){
+            aiServicesBuilder.tools(toolUtil.getTools(toolIds));
+        }
+        Map<String, Object> nodeVariable = new HashMap<>(Map.of(
+                "system", systemPrompt,
+                "chat_model", chatModel,
+                "history_message", resetMessageList(historyMessage),
+                "question", problemText,
+                "answer", ""
+        ));
+        Assistant assistant = aiServicesBuilder
                 .streamingChatModel(chatModel.getStreamingChatModel())
                 .build();
         TokenStream tokenStream = assistant.chatStream(problemText);
@@ -112,10 +121,10 @@ public class BaseChatNode extends INode {
                     String answer = response.aiMessage().text();
                     String thinking = response.aiMessage().thinking();
                     TokenUsage tokenUsage = response.tokenUsage();
-                    context.put("messageTokens", tokenUsage.inputTokenCount());
-                    context.put("answerTokens", tokenUsage.outputTokenCount());
-                    context.put("answer", answer);
-                    context.put("reasoningContent", thinking);
+                    nodeVariable.put("messageTokens", tokenUsage.inputTokenCount());
+                    nodeVariable.put("answerTokens", tokenUsage.outputTokenCount());
+                    nodeVariable.put("answer", answer);
+                    nodeVariable.put("reasoningContent", thinking);
                     ChatMessageVO vo = new ChatMessageVO(
                             workflowManage.getChatParams().getChatId(),
                             workflowManage.getChatParams().getChatRecordId(),
@@ -135,14 +144,17 @@ public class BaseChatNode extends INode {
                 })
                 .start();
         futureChatResponse.join(); // 阻塞当前线程直到 futureChatResponse 完成
-        Map<String, Object> nodeVariable = Map.of(
-                "system", systemText,
-                "chat_model", chatModel,
-                "history_message", historyMessage,
-                "question", nodeParams.getPrompt()
-        );
-        return new NodeResult(nodeVariable, Map.of());
+        return new NodeResult(nodeVariable, Map.of(),this::writeContext);
     }
+
+    private void writeContext(Map<String, Object> nodeVariable, Map<String, Object> globalVariable, INode node, WorkflowManage workflow) {
+        if (nodeVariable != null) {
+            node.getContext().putAll(nodeVariable);
+            String answer = (String) nodeVariable.get("answer");
+            workflow.setAnswer(answer);
+        }
+    }
+
 
 
     @Override

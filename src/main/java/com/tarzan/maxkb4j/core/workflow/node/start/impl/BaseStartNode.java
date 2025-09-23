@@ -38,8 +38,6 @@ public class BaseStartNode extends INode {
     }
 
 
-
-
     @Override
     public JSONObject getDetail() {
         JSONObject detail = new JSONObject();

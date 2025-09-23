@@ -5,8 +5,8 @@ import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.NodeResult;
 import com.tarzan.maxkb4j.core.workflow.node.searchdataset.input.SearchDatasetStepNodeParams;
 import com.tarzan.maxkb4j.module.application.domian.entity.KnowledgeSetting;
-import com.tarzan.maxkb4j.module.knowledge.service.RetrieveService;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.ParagraphVO;
+import com.tarzan.maxkb4j.module.knowledge.service.RetrieveService;
 import com.tarzan.maxkb4j.util.SpringUtil;
 import org.apache.commons.lang3.StringUtils;
 
@@ -51,7 +51,7 @@ public class BaseSearchDatasetNode extends INode {
 
     public static String resetTitle(String title) {
         if(StringUtils.isNotBlank(title)){
-            return "-"+title+"\n\t";
+            return title;
         }
         return "";
     }
@@ -68,6 +68,7 @@ public class BaseSearchDatasetNode extends INode {
         return result.toString();
     }
 
+
     public  String processParagraphs(List<ParagraphVO> paragraphList, int maxParagraphCharNumber) {
         StringBuilder result = new StringBuilder();
         for (ParagraphVO paragraph : paragraphList) {
@@ -75,12 +76,15 @@ public class BaseSearchDatasetNode extends INode {
             String content =paragraph.getContent();
             // 拼接标题和内容
             if (!title.isEmpty() || !content.isEmpty()) {
-                result.append("\n").append(title).append(content);
+                result.append(title).append(content).append("\n");
                 // 如果超出最大字符数限制，截断并返回
                 if (result.length() > maxParagraphCharNumber) {
                     return result.substring(0, maxParagraphCharNumber);
                 }
             }
+        }
+        if (!result.isEmpty()){
+            result.deleteCharAt(result.length() - 1);
         }
         // 如果未超出限制，直接返回结果
         return result.toString();

@@ -64,10 +64,6 @@ public class NodeResult {
         if (globalVariable != null) {
             workflow.getContext().putAll(globalVariable);
         }
-    /*    if (node.context.containsKey("start_time")) {
-            long runTime = System.currentTimeMillis() - node.context.getLongValue("start_time");
-            node.context.put("runTime", runTime / 1000F);
-        }*/
     }
 
 

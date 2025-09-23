@@ -120,6 +120,7 @@ public class WorkflowManage {
         return resultMap;
     }
 
+    //todo 优化
     public String getHistoryContext() {
         // 获取历史聊天记录
         List<ChatRecordSimple> historyContext = new ArrayList<>();
@@ -466,44 +467,42 @@ public class WorkflowManage {
     }
 
 
-    public List<ChatMessage> getHistoryMessage(List<ApplicationChatRecordEntity> historyChatRecord, int dialogueNumber, String dialogueType, String runtimeNodeId) {
-        List<ChatMessage> historyMessage = new ArrayList<>();
-        int startIndex = Math.max(historyChatRecord.size() - dialogueNumber, 0);
-        // 遍历指定范围内的聊天记录
-        for (int index = startIndex; index < historyChatRecord.size(); index++) {
-            // 获取每条消息并添加到历史消息列表中
-            historyMessage.addAll(getMessage(historyChatRecord.get(index), dialogueType, runtimeNodeId));
+    public List<ChatMessage> getHistoryMessage(int dialogueNumber, String dialogueType, String runtimeNodeId) {
+        List<ChatMessage> historyMessage;
+        if("NODE".equals(dialogueType)){
+            historyMessage=getNodeMessages(runtimeNodeId);
+        }else {
+            historyMessage=getWorkFlowMessages();
         }
-        // 使用Stream API和flatMap来代替Python中的reduce操作
-        return historyMessage;
+        int total=historyMessage.size();
+        if (total==0){
+            return historyMessage;
+        }
+        int startIndex = Math.max(total - dialogueNumber*2, 0);
+        return historyMessage.subList(startIndex, total);
     }
 
-    private List<ChatMessage> getMessage(ApplicationChatRecordEntity chatRecord, String dialogueType, String runtimeNodeId) {
-        if ("NODE".equals(dialogueType)) {
-            return getNodeMessage(chatRecord, runtimeNodeId);
-        } else {
-            return getWorkFlowMessage(chatRecord);
-        }
-    }
 
-    public List<ChatMessage> getWorkFlowMessage(ApplicationChatRecordEntity chatRecord) {
+    public List<ChatMessage> getWorkFlowMessages() {
         List<ChatMessage> messages = new ArrayList<>();
-        messages.add(new UserMessage(chatRecord.getProblemText()));
-        messages.add(new AiMessage(chatRecord.getAnswerText()));
+        for (ApplicationChatRecordEntity message : historyMessages) {
+            messages.add(new UserMessage(message.getProblemText()));
+            messages.add(new AiMessage(message.getAnswerText()));
+        }
         return messages;
     }
 
-    public List<ChatMessage> getNodeMessage(ApplicationChatRecordEntity chatRecord, String runtimeNodeId) {
-        // 获取节点详情
-        JSONObject nodeDetails = chatRecord.getNodeDetailsByRuntimeNodeId(runtimeNodeId);
-        // 如果节点详情为空，返回空列表
-        if (nodeDetails == null) {
-            return new ArrayList<>();
-        }
-        // 创建消息列表
+    public List<ChatMessage> getNodeMessages(String runtimeNodeId) {
         List<ChatMessage> messages = new ArrayList<>();
-        messages.add(new UserMessage(nodeDetails.getString("question")));
-        messages.add(new AiMessage(nodeDetails.getString("answer")));
+        for (ApplicationChatRecordEntity message : historyMessages) {
+            // 获取节点详情
+            JSONObject nodeDetails = message.getNodeDetailsByRuntimeNodeId(runtimeNodeId);
+            // 如果节点详情为空，返回空列表
+            if (nodeDetails != null) {
+                messages.add(new UserMessage(nodeDetails.getString("question")));
+                messages.add(new AiMessage(nodeDetails.getString("answer")));
+            }
+        }
         return messages;
     }
 
