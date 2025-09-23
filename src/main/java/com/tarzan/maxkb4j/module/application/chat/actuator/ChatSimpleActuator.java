@@ -90,7 +90,6 @@ public class ChatSimpleActuator extends ChatBaseActuator {
         }else {
              application = applicationVersionService.getDetail(chatInfo.getAppId());
         }
-
         PipelineManage.Builder pipelineManageBuilder = new PipelineManage.Builder();
         Boolean problemOptimization = application.getProblemOptimization();
         if (!CollectionUtils.isEmpty(application.getKnowledgeIdList())) {
