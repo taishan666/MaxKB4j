@@ -1,7 +1,6 @@
 package com.tarzan.maxkb4j.core.workflow;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
@@ -271,13 +270,12 @@ public class WorkflowManage {
         if (StringUtils.isBlank(prompt)) {
             return "";
         }
-        prompt = this.resetPrompt(prompt);
         Set<String> promptVariables = extractVariables(prompt);
         if (!promptVariables.isEmpty()) {
-            Map<String, Object> context = this.getWorkflowContent();
+            Map<String, Object> allVariables = this.allVariables();
             Map<String, Object> variables = new HashMap<>();
             for (String promptVariable : promptVariables) {
-                variables.put(promptVariable, context.getOrDefault(promptVariable, "*"));
+                variables.put(promptVariable, allVariables.getOrDefault(promptVariable, "*"));
             }
             PromptTemplate promptTemplate = PromptTemplate.from(prompt);
             return promptTemplate.apply(variables).text();
@@ -333,42 +331,14 @@ public class WorkflowManage {
         }
     }
 
-    public Map<String, Object> getWorkflowContent() {
+    public Map<String, Object> allVariables() {
         JSONObject workflowContext = new JSONObject();
         workflowContext.put("global", context);
         for (INode node : nodeContext) {
-            workflowContext.put(node.getId(), node.getContext());
+            String nodeName=node.getProperties().getString("nodeName");
+            workflowContext.put(nodeName, node.getContext());
         }
         return jsonToMap(workflowContext);
-    }
-
-    // 重置提示词的方法
-    public String resetPrompt(String prompt) {
-        for (INode node : nodes) {
-            JSONObject properties = node.getProperties();
-            JSONObject nodeConfig = properties.getJSONObject("config");
-            if (nodeConfig != null) {
-                JSONArray fields = nodeConfig.getJSONArray("fields");
-                if (fields != null) {
-                    for (int i = 0; i < fields.size(); i++) {
-                        JSONObject field = fields.getJSONObject(i);
-                        String globeLabel = properties.getString("nodeName") + "." + field.getString("value");
-                        String globeValue = node.getId() + "." + field.getString("value");
-                        prompt = prompt.replace(globeLabel, globeValue);
-                    }
-                }
-                JSONArray globalFields = nodeConfig.getJSONArray("globalFields");
-                if (globalFields != null) {
-                    for (int i = 0; i < globalFields.size(); i++) {
-                        JSONObject globalField = globalFields.getJSONObject(i);
-                        String globeLabel = "全局变量." + globalField.getString("value");
-                        String globeValue = "global." + globalField.getString("value");
-                        prompt = prompt.replace(globeLabel, globeValue);
-                    }
-                }
-            }
-        }
-        return prompt;
     }
 
     public JSONObject getRuntimeDetails() {
@@ -470,6 +440,9 @@ public class WorkflowManage {
         if ("referencing".equals(fieldType)) {
             return getReferenceField(reference.get(0), reference.subList(1, reference.size()));
         } else {
+            if(value instanceof String){
+                return generatePrompt((String) value);
+            }
             return value;
         }
     }

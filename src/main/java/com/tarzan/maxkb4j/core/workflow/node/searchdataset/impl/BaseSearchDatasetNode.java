@@ -42,7 +42,7 @@ public class BaseSearchDatasetNode extends INode {
                 "isHitHandlingMethodList", isHitHandlingMethodList,
                 "data", processParagraphs(paragraphList, knowledgeSetting.getMaxParagraphCharNumber()),
                 "directlyReturn", directlyReturns(isHitHandlingMethodList),
-                "question", workflowManage.getChatParams().getMessage(),
+                "question", question,
                 "showKnowledge", nodeParams.getShowKnowledge()
         );
         return new NodeResult(nodeVariable, Map.of());

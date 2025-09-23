@@ -26,13 +26,9 @@ public class BaseReplyNode extends INode {
         if ("referencing".equals(nodeParams.getReplyType())){
             result=getReferenceContent(nodeParams.getFields());
         }else {
-            result=generateReplyContent(nodeParams.getContent());
+            result=this.workflowManage.generatePrompt(nodeParams.getContent());
         }
         return new NodeResult(Map.of("answer",result),Map.of());
-    }
-
-    private String generateReplyContent(String prompt){
-        return this.workflowManage.generatePrompt(prompt);
     }
 
     private String getReferenceContent(List<String> fields){

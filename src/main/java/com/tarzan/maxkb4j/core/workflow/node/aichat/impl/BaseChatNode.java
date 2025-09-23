@@ -139,7 +139,7 @@ public class BaseChatNode extends INode {
                 "system", systemText,
                 "chat_model", chatModel,
                 "history_message", historyMessage,
-                "question", workflowManage.getChatParams().getMessage()
+                "question", nodeParams.getPrompt()
         );
         return new NodeResult(nodeVariable, Map.of());
     }
