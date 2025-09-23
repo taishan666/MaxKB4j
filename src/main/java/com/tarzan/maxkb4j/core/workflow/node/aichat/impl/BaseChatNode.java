@@ -4,7 +4,6 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.tarzan.maxkb4j.core.assistant.Assistant;
-import com.tarzan.maxkb4j.core.langchain4j.MyAiServices;
 import com.tarzan.maxkb4j.core.langchain4j.MyChatMemory;
 import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.NodeResult;
@@ -18,6 +17,7 @@ import com.tarzan.maxkb4j.util.ToolUtil;
 import dev.langchain4j.memory.ChatMemory;
 import dev.langchain4j.model.chat.response.ChatResponse;
 import dev.langchain4j.model.output.TokenUsage;
+import dev.langchain4j.service.AiServices;
 import dev.langchain4j.service.TokenStream;
 import dev.langchain4j.store.memory.chat.ChatMemoryStore;
 import lombok.extern.slf4j.Slf4j;
@@ -67,7 +67,8 @@ public class BaseChatNode extends INode {
         if (StringUtil.isNotBlank(nodeParams.getMcpToolId()) && nodeParams.getMcpEnable()) {
             toolIds.add(nodeParams.getMcpToolId());
         }
-        Assistant assistant = MyAiServices.builder(Assistant.class)
+        JSONArray historyMessage=resetMessageList(chatMemory.messages());
+        Assistant assistant = AiServices.builder(Assistant.class)
                 .systemMessageProvider(chatMemoryId -> systemText)
                 .chatMemory(chatMemory)
                 .tools(toolUtil.getTools(toolIds))
@@ -134,9 +135,7 @@ public class BaseChatNode extends INode {
                 })
                 .start();
         futureChatResponse.join(); // 阻塞当前线程直到 futureChatResponse 完成
-        JSONArray historyMessage=resetMessageList(chatMemory.messages());
         Map<String, Object> nodeVariable = Map.of(
-                "result", tokenStream,
                 "system", systemText,
                 "chat_model", chatModel,
                 "history_message", historyMessage,

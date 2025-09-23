@@ -509,11 +509,11 @@ public class WorkflowManage {
         if ("NODE".equals(dialogueType)) {
             return getNodeMessage(chatRecord, runtimeNodeId);
         } else {
-            return getNodeMessage(chatRecord);
+            return getWorkFlowMessage(chatRecord);
         }
     }
 
-    public List<ChatMessage> getNodeMessage(ApplicationChatRecordEntity chatRecord) {
+    public List<ChatMessage> getWorkFlowMessage(ApplicationChatRecordEntity chatRecord) {
         List<ChatMessage> messages = new ArrayList<>();
         messages.add(new UserMessage(chatRecord.getProblemText()));
         messages.add(new AiMessage(chatRecord.getAnswerText()));
