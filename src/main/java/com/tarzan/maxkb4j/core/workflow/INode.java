@@ -111,12 +111,12 @@ public abstract class INode {
         return context.get(field);
     }
 
-    public JSONArray resetMessageList(List<ChatMessage> historyMessage) {
-        if (CollectionUtils.isEmpty(historyMessage)) {
+    public JSONArray resetMessageList(List<ChatMessage> historyMessages) {
+        if (CollectionUtils.isEmpty(historyMessages)) {
             return new JSONArray();
         }
         JSONArray newMessageList = new JSONArray();
-        for (ChatMessage chatMessage : historyMessage) {
+        for (ChatMessage chatMessage : historyMessages) {
             JSONObject message = new JSONObject();
             if (chatMessage instanceof UserMessage userMessage) {
                 message.put("role", "user");

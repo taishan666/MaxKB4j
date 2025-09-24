@@ -4,12 +4,13 @@ import com.alibaba.excel.util.StringUtils;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.assistant.Assistant;
-import com.tarzan.maxkb4j.core.langchain4j.MyChatMemory;
+import com.tarzan.maxkb4j.core.langchain4j.AppChatMemory;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatUserStatsEntity;
 import com.tarzan.maxkb4j.module.application.domian.entity.KnowledgeSetting;
 import com.tarzan.maxkb4j.module.application.domian.entity.NoReferencesSetting;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationVO;
 import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
+import com.tarzan.maxkb4j.module.application.enums.AIAnswerType;
 import com.tarzan.maxkb4j.module.application.ragpipeline.PipelineManage;
 import com.tarzan.maxkb4j.module.application.ragpipeline.step.chatstep.IChatStep;
 import com.tarzan.maxkb4j.module.application.service.ApplicationChatUserStatsService;
@@ -17,14 +18,13 @@ import com.tarzan.maxkb4j.module.knowledge.domain.vo.ParagraphVO;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
 import dev.langchain4j.data.message.AiMessage;
+import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.data.message.UserMessage;
-import dev.langchain4j.memory.ChatMemory;
 import dev.langchain4j.model.chat.response.ChatResponse;
 import dev.langchain4j.model.output.TokenUsage;
 import dev.langchain4j.service.AiServices;
 import dev.langchain4j.service.TokenStream;
-import dev.langchain4j.service.tool.ToolExecution;
 import dev.langchain4j.store.memory.chat.ChatMemoryStore;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.internal.StringUtil;
@@ -43,7 +43,6 @@ public class ChatStep extends IChatStep {
 
     private final ModelService modelService;
     private final ApplicationChatUserStatsService publicAccessClientService;
-    private final ChatMemoryStore chatMemoryStore;
     private final AiServices<Assistant> aiServicesBuilder;
 
     public ChatStep(ModelService modelService,
@@ -51,7 +50,6 @@ public class ChatStep extends IChatStep {
                     ChatMemoryStore chatMemoryStore) {
         this.modelService = modelService;
         this.publicAccessClientService = publicAccessClientService;
-        this.chatMemoryStore = chatMemoryStore;
         this.aiServicesBuilder = AiServices.builder(Assistant.class);
     }
 
@@ -102,31 +100,25 @@ public class ChatStep extends IChatStep {
             if (!CollectionUtils.isEmpty(directlyReturnChunkList)) {
                 answerText.set(directlyReturnChunkList.get(0).text());
                 sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, answerText.get(), "", "ai-chat-node", viewType, true));
-            } else if (paragraphList.isEmpty() && "designated_answer".equals(status)) {
+            } else if (paragraphList.isEmpty() && AIAnswerType.designated_answer.name().equals(status)) {
                 String value = noReferencesSetting.getValue();
                 answerText.set(value.replace("{question}", problemText));
                 sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, answerText.get(), "", "ai-chat-node", viewType, true));
             } else {
                 String chatUserId = manage.context.getString("chat_user_id");
                 String chatUserType = manage.context.getString("chat_user_type");
-                int dialogueNumber = application.getDialogueNumber();
                 String systemText = application.getModelSetting().getSystem();
-                //todo: 临时处理
-                ChatMemory chatMemory = MyChatMemory.builder()
-                        .id(chatId)
-                        .maxMessages(dialogueNumber)
-                        .chatMemoryStore(chatMemoryStore)
-                        .build();
                 if (StringUtils.isNotBlank(systemText)){
                     aiServicesBuilder.systemMessageProvider(chatMemoryId -> systemText);
                 }
-                Assistant assistant =  aiServicesBuilder.chatMemory(chatMemory).streamingChatModel(chatModel.getStreamingChatModel()).build();
+                int dialogueNumber = application.getDialogueNumber();
+                List<ChatMessage> historyMessages=manage.getHistoryMessages(dialogueNumber);
+                Assistant assistant =  aiServicesBuilder.chatMemory(AppChatMemory.withMessages(historyMessages)).streamingChatModel(chatModel.getStreamingChatModel()).build();
                 if (stream) {
                     boolean reasoningEnable = application.getModelSetting().getReasoningContentEnable();
                     TokenStream tokenStream = assistant.chatStream(userPrompt);
                     CompletableFuture<ChatResponse> futureChatResponse = new CompletableFuture<>();
-                    tokenStream.onToolExecuted((ToolExecution toolExecution) -> log.info("toolExecution={}", toolExecution))
-                            .onPartialThinking(thinking -> {
+                    tokenStream.onPartialThinking(thinking -> {
                                 if (reasoningEnable) {
                                     sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, "", thinking.text(), "ai-chat-node", viewType, false));
                                 }
@@ -135,7 +127,7 @@ public class ChatStep extends IChatStep {
                             .onCompleteResponse(response -> {
                                 answerText.set(response.aiMessage().text());
                                 TokenUsage tokenUsage = response.tokenUsage();
-                                context.put("message_list", chatMemory.messages());
+                                context.put("message_list", resetMessageList(historyMessages));
                                 context.put("messageTokens", tokenUsage.inputTokenCount());
                                 context.put("answerTokens", tokenUsage.outputTokenCount());
                                 addAccessNum(chatUserId, chatUserType);
@@ -155,22 +147,22 @@ public class ChatStep extends IChatStep {
     }
 
 
-    public JSONArray resetMessageList(JSONArray messageList) {
-        if (CollectionUtils.isEmpty(messageList)) {
+    public JSONArray resetMessageList(List<ChatMessage> historyMessages) {
+        if (CollectionUtils.isEmpty(historyMessages)) {
             return new JSONArray();
         }
         JSONArray newMessageList = new JSONArray();
-        for (Object o : messageList) {
+        for (ChatMessage chatMessage : historyMessages) {
             JSONObject message = new JSONObject();
-            if (o instanceof SystemMessage systemMessage) {
+            if (chatMessage instanceof SystemMessage systemMessage) {
                 message.put("role", "system");
                 message.put("content", systemMessage.text());
             }
-            if (o instanceof UserMessage userMessage) {
+            if (chatMessage instanceof UserMessage userMessage) {
                 message.put("role", "user");
                 message.put("content", userMessage.singleText());
             }
-            if (o instanceof AiMessage aiMessage) {
+            if (chatMessage instanceof AiMessage aiMessage) {
                 message.put("role", "ai");
                 message.put("content", aiMessage.text());
             }
@@ -188,7 +180,7 @@ public class ChatStep extends IChatStep {
         details.put("runTime", (System.currentTimeMillis() - startTime) / 1000F);
         //details.put("modelId", context.get("modelId"));
         //todo message_list
-        details.put("message_list", resetMessageList(context.getJSONArray("message_list")));
+        details.put("message_list", context.get("message_list"));
         details.put("messageTokens", context.getOrDefault("messageTokens", 0));
         details.put("answerTokens", context.getOrDefault("answerTokens", 0));
         details.put("cost", 0);

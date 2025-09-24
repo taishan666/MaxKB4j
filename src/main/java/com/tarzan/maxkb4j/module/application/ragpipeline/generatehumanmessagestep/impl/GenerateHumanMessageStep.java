@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.tarzan.maxkb4j.module.application.domian.entity.KnowledgeSetting;
 import com.tarzan.maxkb4j.module.application.domian.entity.LlmModelSetting;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationVO;
+import com.tarzan.maxkb4j.module.application.enums.AIAnswerType;
 import com.tarzan.maxkb4j.module.application.ragpipeline.PipelineManage;
 import com.tarzan.maxkb4j.module.application.ragpipeline.generatehumanmessagestep.IGenerateHumanMessageStep;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.ParagraphVO;
@@ -28,12 +29,11 @@ public class GenerateHumanMessageStep extends IGenerateHumanMessageStep {
                 data.append("<data>").append(paragraphVO.getTitle()).append(":").append(paragraphVO.getContent()).append("</data>");
             }
             prompt=prompt.replace("{question}", problemText).replace("{data}", data);
-            System.out.println( prompt);
             return prompt;
         }else {
             KnowledgeSetting knowledgeSetting = application.getKnowledgeSetting();
             String status=knowledgeSetting.getNoReferencesSetting().getStatus();
-            if ("ai_questioning".equals(status)){
+            if (AIAnswerType.ai_questioning.name().equals(status)){
                 String noReferencesPrompt = llmModelSetting.getNoReferencesPrompt();
                 return noReferencesPrompt.replace("{question}", problemText);
             }

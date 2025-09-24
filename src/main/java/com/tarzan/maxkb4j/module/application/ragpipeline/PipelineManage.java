@@ -1,7 +1,11 @@
 package com.tarzan.maxkb4j.module.application.ragpipeline;
 
 import com.alibaba.fastjson.JSONObject;
+import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatRecordEntity;
 import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
+import dev.langchain4j.data.message.AiMessage;
+import dev.langchain4j.data.message.ChatMessage;
+import dev.langchain4j.data.message.UserMessage;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Sinks;
 
@@ -46,6 +50,19 @@ public class PipelineManage {
         }
         this.context.put("runTime", System.currentTimeMillis());
         return answer;
+    }
+
+    public List<ChatMessage> getHistoryMessages(int dialogueNumber) {
+        List<ChatMessage> historyMessages=new ArrayList<>();
+        @SuppressWarnings("unchecked")
+        List<ApplicationChatRecordEntity> historyChatRecords= (List<ApplicationChatRecordEntity>) context.get("history_chat_records");
+        int total=historyChatRecords.size();
+        int startIndex = Math.max(total - dialogueNumber, 0);
+        for (int i = startIndex; i < total; i++) {
+            historyMessages.add(new UserMessage(historyChatRecords.get(i).getProblemText()));
+            historyMessages.add(new AiMessage(historyChatRecords.get(i).getAnswerText()));
+        }
+        return historyMessages;
     }
 
 

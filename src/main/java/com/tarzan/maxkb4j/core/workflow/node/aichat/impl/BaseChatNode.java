@@ -60,12 +60,12 @@ public class BaseChatNode extends INode {
         if (StringUtil.isNotBlank(nodeParams.getMcpToolId()) && nodeParams.getMcpEnable()) {
             toolIds.add(nodeParams.getMcpToolId());
         }
-        List<ChatMessage> historyMessage=workflowManage.getHistoryMessage(nodeParams.getDialogueNumber(), nodeParams.getDialogueType(), runtimeNodeId);
+        List<ChatMessage> historyMessages=workflowManage.getHistoryMessages(nodeParams.getDialogueNumber(), nodeParams.getDialogueType(), runtimeNodeId);
         if (StringUtil.isNotBlank(systemPrompt)){
             aiServicesBuilder.systemMessageProvider(chatMemoryId -> systemPrompt);
         }
-        if (CollectionUtils.isNotEmpty(historyMessage)){
-            aiServicesBuilder.chatMemory(AppChatMemory.withMessages(historyMessage));
+        if (CollectionUtils.isNotEmpty(historyMessages)){
+            aiServicesBuilder.chatMemory(AppChatMemory.withMessages(historyMessages));
         }
         if (CollectionUtils.isNotEmpty(toolIds)){
             aiServicesBuilder.tools(toolUtil.getTools(toolIds));
@@ -73,7 +73,7 @@ public class BaseChatNode extends INode {
         Map<String, Object> nodeVariable = new HashMap<>(Map.of(
                 "system", systemPrompt,
                 "chat_model", chatModel,
-                "history_message", resetMessageList(historyMessage),
+                "history_message", resetMessageList(historyMessages),
                 "question", problemText,
                 "answer", ""
         ));

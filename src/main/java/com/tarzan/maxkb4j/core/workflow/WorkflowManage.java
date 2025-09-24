@@ -40,10 +40,10 @@ public class WorkflowManage {
     private String answer;
     private Sinks.Many<ChatMessageVO> sink;
     private ApplicationChatRecordEntity chatRecord;
-    private List<ApplicationChatRecordEntity> historyMessages;
+    private List<ApplicationChatRecordEntity> historyChatRecords;
     private List<INode> nodeContext;
 
-    public WorkflowManage(List<INode> nodes, List<LfEdge> edges, ChatParams chatParams, ApplicationChatRecordEntity chatRecord, List<ApplicationChatRecordEntity> historyMessages) {
+    public WorkflowManage(List<INode> nodes, List<LfEdge> edges, ChatParams chatParams, ApplicationChatRecordEntity chatRecord, List<ApplicationChatRecordEntity> historyChatRecords) {
         this.nodes = nodes;
         this.edges = edges;
         this.chatParams = chatParams;
@@ -52,7 +52,7 @@ public class WorkflowManage {
         this.sink = chatParams.getSink();
         this.chatRecord = chatRecord;
         this.answer = "";
-        this.historyMessages = CollectionUtils.isEmpty(historyMessages) ? List.of() : historyMessages;
+        this.historyChatRecords = CollectionUtils.isEmpty(historyChatRecords) ? List.of() : historyChatRecords;
         //todo runtimeNodeId 的作用
         if (StringUtil.isNotBlank(chatParams.getRuntimeNodeId()) && Objects.nonNull(chatRecord)) {
             this.loadNode(chatRecord, chatParams.getRuntimeNodeId(), chatParams.getNodeData());
@@ -124,7 +124,7 @@ public class WorkflowManage {
     public String getHistoryContext() {
         // 获取历史聊天记录
         List<ChatRecordSimple> historyContext = new ArrayList<>();
-        for (ApplicationChatRecordEntity chatRecord : historyMessages) {
+        for (ApplicationChatRecordEntity chatRecord : historyChatRecords) {
             ChatRecordSimple record = new ChatRecordSimple();
             record.setQuestion(chatRecord.getProblemText());
             record.setAnswer(chatRecord.getAnswerText());
@@ -467,25 +467,25 @@ public class WorkflowManage {
     }
 
 
-    public List<ChatMessage> getHistoryMessage(int dialogueNumber, String dialogueType, String runtimeNodeId) {
-        List<ChatMessage> historyMessage;
+    public List<ChatMessage> getHistoryMessages(int dialogueNumber, String dialogueType, String runtimeNodeId) {
+        List<ChatMessage> historyMessages;
         if("NODE".equals(dialogueType)){
-            historyMessage=getNodeMessages(runtimeNodeId);
+            historyMessages=getNodeMessages(runtimeNodeId);
         }else {
-            historyMessage=getWorkFlowMessages();
+            historyMessages=getWorkFlowMessages();
         }
-        int total=historyMessage.size();
+        int total=historyMessages.size();
         if (total==0){
-            return historyMessage;
+            return historyMessages;
         }
         int startIndex = Math.max(total - dialogueNumber*2, 0);
-        return historyMessage.subList(startIndex, total);
+        return historyMessages.subList(startIndex, total);
     }
 
 
     public List<ChatMessage> getWorkFlowMessages() {
         List<ChatMessage> messages = new ArrayList<>();
-        for (ApplicationChatRecordEntity message : historyMessages) {
+        for (ApplicationChatRecordEntity message : historyChatRecords) {
             messages.add(new UserMessage(message.getProblemText()));
             messages.add(new AiMessage(message.getAnswerText()));
         }
@@ -494,9 +494,9 @@ public class WorkflowManage {
 
     public List<ChatMessage> getNodeMessages(String runtimeNodeId) {
         List<ChatMessage> messages = new ArrayList<>();
-        for (ApplicationChatRecordEntity message : historyMessages) {
+        for (ApplicationChatRecordEntity record : historyChatRecords) {
             // 获取节点详情
-            JSONObject nodeDetails = message.getNodeDetailsByRuntimeNodeId(runtimeNodeId);
+            JSONObject nodeDetails = record.getNodeDetailsByRuntimeNodeId(runtimeNodeId);
             // 如果节点详情为空，返回空列表
             if (nodeDetails != null) {
                 messages.add(new UserMessage(nodeDetails.getString("question")));

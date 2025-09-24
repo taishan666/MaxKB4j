@@ -92,7 +92,7 @@ public class ApplicationChatRecordService extends ServiceImpl<ApplicationChatRec
             details.keySet().forEach(key-> executionDetails.add(details.getJSONObject(key)));
             Collections.reverse(executionDetails);
             chatRecordVO.setExecutionDetails(executionDetails);
-            List<ParagraphVO> paragraphList=new ArrayList<>();
+           // List<ParagraphVO> paragraphList=new ArrayList<>();
             for (JSONObject detail : executionDetails) {
                 if (SEARCH_KNOWLEDGE.getKey().equals(detail.getString("type"))) {
                      boolean showKnowledge = detail.getBooleanValue("showKnowledge");
@@ -101,12 +101,13 @@ public class ApplicationChatRecordService extends ServiceImpl<ApplicationChatRec
                          if (paragraphListObj != null) {
                              @SuppressWarnings("unchecked")
                              List<ParagraphVO> list = (List<ParagraphVO>) paragraphListObj;
-                             paragraphList.addAll(list);
+                             chatRecordVO.getParagraphList().addAll(list);
+                            // paragraphList.addAll(list);
                          }
                      }
                 }
             }
-            chatRecordVO.setParagraphList(paragraphList);
+           // chatRecordVO.setParagraphList(paragraphList);
         }
         return chatRecordVO;
     }

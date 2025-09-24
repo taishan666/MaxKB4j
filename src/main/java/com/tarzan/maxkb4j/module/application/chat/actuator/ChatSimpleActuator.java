@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.tarzan.maxkb4j.module.application.cache.ChatCache;
 import com.tarzan.maxkb4j.module.application.chat.base.ChatBaseActuator;
 import com.tarzan.maxkb4j.module.application.domian.dto.ChatInfo;
+import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatRecordEntity;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationChatRecordVO;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationVO;
 import com.tarzan.maxkb4j.module.application.enums.AppType;
@@ -99,7 +100,8 @@ public class ChatSimpleActuator extends ChatBaseActuator {
         pipelineManageBuilder.addStep(generateHumanMessageStep);
         pipelineManageBuilder.addStep(chatStep);
         PipelineManage pipelineManage = pipelineManageBuilder.build();
-        Map<String, Object> params = chatInfo.toPipelineManageParams(application, chatParams.getChatRecordId(),problemText, excludeParagraphIds,"", "", stream);
+        List<ApplicationChatRecordEntity> historyChatRecords = chatRecordService.getChatRecords(chatInfo, chatParams.getChatId());
+        Map<String, Object> params = chatInfo.toPipelineManageParams(application, chatParams.getChatRecordId(),problemText,historyChatRecords, excludeParagraphIds,"", "", stream);
         String answer =  pipelineManage.run(params,chatParams.getSink());
         JSONObject details=pipelineManage.getDetails();
         postResponseHandler.handler(chatParams.getChatId(), chatParams.getChatRecordId(), problemText, answer,null,details, startTime, "", "",debug);

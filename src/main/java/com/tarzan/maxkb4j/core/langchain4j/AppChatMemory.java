@@ -2,7 +2,6 @@ package com.tarzan.maxkb4j.core.langchain4j;
 
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.SystemMessage;
-import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.memory.ChatMemory;
 import dev.langchain4j.service.memory.ChatMemoryService;
 
@@ -28,8 +27,7 @@ public class AppChatMemory implements ChatMemory {
     public void add(ChatMessage message) {
         if (message instanceof SystemMessage){
             messages.add(0,message);
-        }
-        if (message instanceof UserMessage){
+        }else {
             messages.add(message);
         }
     }

@@ -28,7 +28,6 @@ public class SearchDatasetStep extends ISearchDatasetStep {
         JSONObject context=manage.context;
         ApplicationVO application=(ApplicationVO)context.get("application");
         String problemText=manage.context.getString("problem_text");
-        super.context.put("problem_text",problemText);
         String paddingProblemText=context.getString("padding_problem_text");
    //     String execProblemText = StringUtils.isNotBlank(paddingProblemText)?paddingProblemText:problemText;
         KnowledgeSetting datasetSetting=application.getKnowledgeSetting();
@@ -63,12 +62,11 @@ public class SearchDatasetStep extends ISearchDatasetStep {
     public JSONObject getDetails() {
         JSONObject details=new JSONObject();
         details.put("step_type","search_step");
-        details.put("paragraphList",super.context.get("paragraphList"));
-        details.put("runTime",super.context.get("runTime"));
-        details.put("problem_text",super.context.get("problem_text"));
-        details.put("model_name",super.context.get("model_name"));
-        details.put("messageTokens",super.context.get("messageTokens"));
-        details.put("answerTokens",super.context.get("answerTokens"));
+        details.put("paragraphList",context.get("paragraphList"));
+        details.put("runTime",context.get("runTime"));
+        details.put("problem_text",context.get("problem_text"));
+        details.put("messageTokens",context.get("messageTokens"));
+        details.put("answerTokens",context.get("answerTokens"));
         details.put("cost",0);
         return details;
     }

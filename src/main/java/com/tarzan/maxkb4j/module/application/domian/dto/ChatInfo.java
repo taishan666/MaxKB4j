@@ -26,12 +26,13 @@ public class ChatInfo implements Serializable {
         return BeanUtil.toMap(this);
     }
 
-    public Map<String, Object> toPipelineManageParams(ApplicationVO application,String chatRecordId, String problemText, List<String> excludeParagraphIds, String chatUserId, String chatUserType, boolean stream){
+    public Map<String, Object> toPipelineManageParams(ApplicationVO application,String chatRecordId, String problemText, List<ApplicationChatRecordEntity> historyChatRecords,List<String> excludeParagraphIds, String chatUserId, String chatUserType, boolean stream){
         Map<String, Object> params = toBasePipelineManageParams();
         params.put("application", application);
         params.put("chatRecordId", chatRecordId);
         params.put("problem_text", problemText);
         params.put("exclude_paragraph_ids", excludeParagraphIds);
+        params.put("history_chat_records", historyChatRecords);
         chatUserId=chatUserId==null?"":chatUserId;
         params.put("chat_user_id", chatUserId);
         params.put("chat_user_type", chatUserType);
