@@ -1,5 +1,6 @@
 package com.tarzan.maxkb4j.module.application.ragpipeline.step.chatstep.impl;
 
+import com.alibaba.excel.util.StringUtils;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.assistant.Assistant;
@@ -25,7 +26,6 @@ import dev.langchain4j.service.AiServices;
 import dev.langchain4j.service.TokenStream;
 import dev.langchain4j.service.tool.ToolExecution;
 import dev.langchain4j.store.memory.chat.ChatMemoryStore;
-import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.internal.StringUtil;
 import org.springframework.stereotype.Component;
@@ -39,12 +39,21 @@ import java.util.concurrent.atomic.AtomicReference;
 
 @Slf4j
 @Component
-@AllArgsConstructor
 public class ChatStep extends IChatStep {
 
     private final ModelService modelService;
     private final ApplicationChatUserStatsService publicAccessClientService;
     private final ChatMemoryStore chatMemoryStore;
+    private final AiServices<Assistant> aiServicesBuilder;
+
+    public ChatStep(ModelService modelService,
+                    ApplicationChatUserStatsService publicAccessClientService,
+                    ChatMemoryStore chatMemoryStore) {
+        this.modelService = modelService;
+        this.publicAccessClientService = publicAccessClientService;
+        this.chatMemoryStore = chatMemoryStore;
+        this.aiServicesBuilder = AiServices.builder(Assistant.class);
+    }
 
     @Override
     protected String execute(PipelineManage manage) {
@@ -95,24 +104,23 @@ public class ChatStep extends IChatStep {
                 sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, answerText.get(), "", "ai-chat-node", viewType, true));
             } else if (paragraphList.isEmpty() && "designated_answer".equals(status)) {
                 String value = noReferencesSetting.getValue();
-                answerText.set(value);
+                answerText.set(value.replace("{question}", problemText));
                 sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, answerText.get(), "", "ai-chat-node", viewType, true));
             } else {
                 String chatUserId = manage.context.getString("chat_user_id");
                 String chatUserType = manage.context.getString("chat_user_type");
                 int dialogueNumber = application.getDialogueNumber();
                 String systemText = application.getModelSetting().getSystem();
+                //todo: 临时处理
                 ChatMemory chatMemory = MyChatMemory.builder()
                         .id(chatId)
                         .maxMessages(dialogueNumber)
                         .chatMemoryStore(chatMemoryStore)
                         .build();
-                String system = StringUtil.isBlank(systemText) ? "You're an intelligent assistant" : systemText;
-                Assistant assistant = AiServices.builder(Assistant.class)
-                        .systemMessageProvider(chatMemoryId -> system)
-                        .chatMemory(chatMemory)
-                        .streamingChatModel(chatModel.getStreamingChatModel())
-                        .build();
+                if (StringUtils.isNotBlank(systemText)){
+                    aiServicesBuilder.systemMessageProvider(chatMemoryId -> systemText);
+                }
+                Assistant assistant =  aiServicesBuilder.chatMemory(chatMemory).streamingChatModel(chatModel.getStreamingChatModel()).build();
                 if (stream) {
                     boolean reasoningEnable = application.getModelSetting().getReasoningContentEnable();
                     TokenStream tokenStream = assistant.chatStream(userPrompt);
