@@ -15,9 +15,7 @@ import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationAccessToke
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationEntity;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationVO;
 import com.tarzan.maxkb4j.module.application.service.ApplicationService;
-import com.tarzan.maxkb4j.module.knowledge.domain.dto.DataSearchDTO;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.KnowledgeEntity;
-import com.tarzan.maxkb4j.module.knowledge.domain.vo.ParagraphVO;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelEntity;
 import com.tarzan.maxkb4j.module.tool.domain.entity.ToolEntity;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -68,10 +66,10 @@ public class ApplicationController {
         return R.success(applicationService.authentication(params));
     }*/
 
-    @GetMapping("/application/{id}/hit_test")
+  /*  @GetMapping("/application/{id}/hit_test")
     public R<List<ParagraphVO>> hitTest(@PathVariable("id") String id, DataSearchDTO dto) {
         return R.success(applicationService.hitTest(id, dto));
-    }
+    }*/
 
    // @SaCheckPermission("APPLICATION:EDIT")
     @PutMapping("/application/{id}/publish")

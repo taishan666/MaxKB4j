@@ -18,10 +18,8 @@ import com.tarzan.maxkb4j.module.application.enums.AppType;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatMapper;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationMapper;
 import com.tarzan.maxkb4j.module.knowledge.consts.SearchType;
-import com.tarzan.maxkb4j.module.knowledge.domain.dto.DataSearchDTO;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.KnowledgeEntity;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.ParagraphEntity;
-import com.tarzan.maxkb4j.module.knowledge.domain.vo.ParagraphVO;
 import com.tarzan.maxkb4j.module.knowledge.service.KnowledgeService;
 import com.tarzan.maxkb4j.module.knowledge.service.ParagraphService;
 import com.tarzan.maxkb4j.module.knowledge.service.RetrieveService;
@@ -336,11 +334,11 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     }
 
 
-    public List<ParagraphVO> hitTest(String id, DataSearchDTO dto) {
+ /*   public List<ParagraphVO> hitTest(String id, DataSearchDTO dto) {
         List<String> knowledgeIds = knowledgeMappingService.getKnowledgeIdsByAppId(id);
         dto.setExcludeParagraphIds(new ArrayList<>());
         return retrieveService.paragraphSearch(knowledgeIds, dto);
-    }
+    }*/
 
     public byte[] playDemoText(String appId, JSONObject modelParams) {
         String ttsModelId = modelParams.getString("ttsModelId");
