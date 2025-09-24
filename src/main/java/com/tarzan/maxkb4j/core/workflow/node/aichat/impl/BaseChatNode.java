@@ -19,7 +19,6 @@ import dev.langchain4j.model.chat.response.ChatResponse;
 import dev.langchain4j.model.output.TokenUsage;
 import dev.langchain4j.service.AiServices;
 import dev.langchain4j.service.TokenStream;
-import dev.langchain4j.store.memory.chat.ChatMemoryStore;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
@@ -36,7 +35,6 @@ public class BaseChatNode extends INode {
     private final ModelService modelService;
     private final ToolUtil toolUtil;
     private final AiServices<Assistant> aiServicesBuilder;
-    private final ChatMemoryStore chatMemoryStore;
 
 
     public BaseChatNode(JSONObject properties) {
@@ -45,7 +43,6 @@ public class BaseChatNode extends INode {
         this.modelService = SpringUtil.getBean(ModelService.class);
         this.toolUtil = SpringUtil.getBean(ToolUtil.class);
         this.aiServicesBuilder = AiServices.builder(Assistant.class);
-        this.chatMemoryStore = SpringUtil.getBean(ChatMemoryStore.class);
     }
 
 

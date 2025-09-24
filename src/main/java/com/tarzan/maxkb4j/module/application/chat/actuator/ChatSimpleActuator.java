@@ -9,13 +9,12 @@ import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationChatRecordVO;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationVO;
 import com.tarzan.maxkb4j.module.application.enums.AppType;
 import com.tarzan.maxkb4j.module.application.handler.PostResponseHandler;
-import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatMapper;
 import com.tarzan.maxkb4j.module.application.ragpipeline.PipelineManage;
-import com.tarzan.maxkb4j.module.application.ragpipeline.step.chatstep.impl.BaseChatStep;
-import com.tarzan.maxkb4j.module.application.ragpipeline.step.resetproblemstep.impl.BaseResetProblemStep;
-import com.tarzan.maxkb4j.module.application.ragpipeline.step.searchdatasetstep.impl.SearchDatasetStep;
+import com.tarzan.maxkb4j.module.application.ragpipeline.generatehumanmessagestep.IGenerateHumanMessageStep;
+import com.tarzan.maxkb4j.module.application.ragpipeline.step.chatstep.IChatStep;
+import com.tarzan.maxkb4j.module.application.ragpipeline.step.resetproblemstep.IResetProblemStep;
+import com.tarzan.maxkb4j.module.application.ragpipeline.step.searchdatasetstep.ISearchDatasetStep;
 import com.tarzan.maxkb4j.module.application.service.ApplicationChatRecordService;
-import com.tarzan.maxkb4j.module.application.service.ApplicationKnowledgeMappingService;
 import com.tarzan.maxkb4j.module.application.service.ApplicationService;
 import com.tarzan.maxkb4j.module.application.service.ApplicationVersionService;
 import com.tarzan.maxkb4j.module.chat.ChatParams;
@@ -33,13 +32,12 @@ import java.util.Objects;
 @Component
 public class ChatSimpleActuator extends ChatBaseActuator {
 
+    private final IResetProblemStep resetProblemStep;
+    private final ISearchDatasetStep searchDatasetStep;
+    private final IGenerateHumanMessageStep generateHumanMessageStep;
+    private final IChatStep chatStep;
 
-    private final SearchDatasetStep searchDatasetStep;
-    private final BaseChatStep baseChatStep;
-    private final BaseResetProblemStep baseResetProblemStep;
     private final ApplicationChatRecordService chatRecordService;
-    private final ApplicationKnowledgeMappingService datasetMappingService;
-    private final ApplicationChatMapper chatMapper;
     private final ApplicationService applicationService;
     private final ApplicationVersionService applicationVersionService;
     private final PostResponseHandler postResponseHandler;
@@ -94,11 +92,12 @@ public class ChatSimpleActuator extends ChatBaseActuator {
         Boolean problemOptimization = application.getProblemOptimization();
         if (!CollectionUtils.isEmpty(application.getKnowledgeIdList())) {
             if (Objects.nonNull(problemOptimization) && problemOptimization) {
-                pipelineManageBuilder.addStep(baseResetProblemStep);
+                pipelineManageBuilder.addStep(resetProblemStep);
             }
             pipelineManageBuilder.addStep(searchDatasetStep);
         }
-        pipelineManageBuilder.addStep(baseChatStep);
+        pipelineManageBuilder.addStep(generateHumanMessageStep);
+        pipelineManageBuilder.addStep(chatStep);
         PipelineManage pipelineManage = pipelineManageBuilder.build();
         Map<String, Object> params = chatInfo.toPipelineManageParams(application, chatParams.getChatRecordId(),problemText, excludeParagraphIds,"", "", stream);
         String answer =  pipelineManage.run(params,chatParams.getSink());

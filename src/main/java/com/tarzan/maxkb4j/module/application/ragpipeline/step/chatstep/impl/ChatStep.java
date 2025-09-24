@@ -4,7 +4,6 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.assistant.Assistant;
 import com.tarzan.maxkb4j.core.langchain4j.MyChatMemory;
-import com.tarzan.maxkb4j.core.langchain4j.MyContentRetriever;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatUserStatsEntity;
 import com.tarzan.maxkb4j.module.application.domian.entity.KnowledgeSetting;
 import com.tarzan.maxkb4j.module.application.domian.entity.NoReferencesSetting;
@@ -22,12 +21,6 @@ import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.memory.ChatMemory;
 import dev.langchain4j.model.chat.response.ChatResponse;
 import dev.langchain4j.model.output.TokenUsage;
-import dev.langchain4j.rag.DefaultRetrievalAugmentor;
-import dev.langchain4j.rag.RetrievalAugmentor;
-import dev.langchain4j.rag.content.aggregator.DefaultContentAggregator;
-import dev.langchain4j.rag.content.injector.ContentInjector;
-import dev.langchain4j.rag.content.injector.DefaultContentInjector;
-import dev.langchain4j.rag.query.router.DefaultQueryRouter;
 import dev.langchain4j.service.AiServices;
 import dev.langchain4j.service.TokenStream;
 import dev.langchain4j.service.tool.ToolExecution;
@@ -40,17 +33,14 @@ import org.springframework.util.CollectionUtils;
 import reactor.core.publisher.Sinks;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static com.tarzan.maxkb4j.core.constant.PromptTemplates.RAG_PROMPT_TEMPLATE;
-
 @Slf4j
 @Component
 @AllArgsConstructor
-public class BaseChatStep extends IChatStep {
+public class ChatStep extends IChatStep {
 
     private final ModelService modelService;
     private final ApplicationChatUserStatsService publicAccessClientService;
@@ -58,109 +48,99 @@ public class BaseChatStep extends IChatStep {
 
     @Override
     protected String execute(PipelineManage manage) {
-        JSONObject context = manage.context;
-        String chatId = context.getString("chatId");
-        List<ParagraphVO> paragraphList = Collections.singletonList(context.getJSONArray("paragraphList").toJavaObject(ParagraphVO.class));
-        ApplicationVO application=  context.getObject("application",ApplicationVO.class);
-        String problemText = context.getString("problem_text");
+        String chatId = manage.context.getString("chatId");
+        @SuppressWarnings("unchecked")
+        List<ParagraphVO> paragraphList = (List<ParagraphVO>) manage.context.get("paragraphList");
+        ApplicationVO application = manage.context.getObject("application", ApplicationVO.class);
+        String userPrompt = manage.context.getString("user_prompt");
         boolean stream = true;
-        return getFluxResult(chatId, paragraphList, problemText, application, manage, stream);
+        return getFluxResult(chatId, paragraphList, userPrompt, application, manage, stream);
     }
 
     private String getFluxResult(String chatId,
                                  List<ParagraphVO> paragraphList,
-                                 String problemText,
+                                 String userPrompt,
                                  ApplicationVO application,
                                  PipelineManage manage,
                                  boolean stream) {
         AtomicReference<String> answerText = new AtomicReference<>("");
-        String chatRecordId =manage.context.getString("chatRecordId");
+        String chatRecordId = manage.context.getString("chatRecordId");
         Sinks.Many<ChatMessageVO> sink = manage.sink;
         if (CollectionUtils.isEmpty(paragraphList)) {
             paragraphList = new ArrayList<>();
         }
         List<AiMessage> directlyReturnChunkList = new ArrayList<>();
         for (ParagraphVO paragraph : paragraphList) {
-            if ("directly_return".equals(paragraph.getHitHandlingMethod()) && paragraph.getSimilarity() >= paragraph.getDirectlyReturnSimilarity()) {
+            if ("directlyReturn".equals(paragraph.getHitHandlingMethod()) && paragraph.getSimilarity() >= paragraph.getDirectlyReturnSimilarity()) {
                 directlyReturnChunkList.add(AiMessage.from(paragraph.getContent()));
             }
         }
         String modelId = application.getModelId();
-        super.context.put("modelId", modelId);
+        //super.context.put("modelId", modelId);
         JSONObject params = application.getModelParamsSetting();
         KnowledgeSetting knowledgeSetting = application.getKnowledgeSetting();
         NoReferencesSetting noReferencesSetting = knowledgeSetting.getNoReferencesSetting();
         BaseChatModel chatModel = modelService.getModelById(modelId, params);
+        String problemText = manage.context.getString("problem_text");
         if (chatModel == null) {
             answerText.set("抱歉，没有配置 AI 模型，无法优化引用分段，请先去应用中设置 AI 模型。");
-            sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, answerText.get(),"","ai-chat-node",viewType,  true));
+            sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, answerText.get(), "", "ai-chat-node", viewType, true));
         } else if (StringUtil.isBlank(problemText)) {
             answerText.set("用户消息不能为空");
-            sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, answerText.get(),"","ai-chat-node",viewType, true));
+            sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, answerText.get(), "", "ai-chat-node", viewType, true));
         } else {
             String status = noReferencesSetting.getStatus();
             if (!CollectionUtils.isEmpty(directlyReturnChunkList)) {
                 answerText.set(directlyReturnChunkList.get(0).text());
-                sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, answerText.get(),"", "ai-chat-node",viewType, true));
+                sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, answerText.get(), "", "ai-chat-node", viewType, true));
             } else if (paragraphList.isEmpty() && "designated_answer".equals(status)) {
                 String value = noReferencesSetting.getValue();
-                answerText.set(value.replace("{question}", problemText));
-                sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, answerText.get(),"", "ai-chat-node",viewType, true));
+                answerText.set(value);
+                sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, answerText.get(), "", "ai-chat-node", viewType, true));
             } else {
                 String chatUserId = manage.context.getString("chat_user_id");
                 String chatUserType = manage.context.getString("chat_user_type");
-                    int dialogueNumber = application.getDialogueNumber();
-                    String systemText = application.getModelSetting().getSystem();
-                    ChatMemory chatMemory = MyChatMemory.builder()
-                            .id(chatId)
-                            .maxMessages(dialogueNumber)
-                            .chatMemoryStore(chatMemoryStore)
-                            .build();
-                    String system = StringUtil.isBlank(systemText) ? "You're an intelligent assistant" : systemText;
-                    ContentInjector contentInjector = DefaultContentInjector.builder()
-                            .promptTemplate(RAG_PROMPT_TEMPLATE)
-                            // .metadataKeysToInclude(List.of("file_name", "index"))
-                            .build();
-                    RetrievalAugmentor retrievalAugmentor = DefaultRetrievalAugmentor.builder()
-                            //.queryTransformer(ExpandingQueryTransformer.builder().chatLanguageModel(chatModel.getChatModel()).build())
-                            .queryRouter(new DefaultQueryRouter(new MyContentRetriever(paragraphList)))
-                            .contentAggregator(new DefaultContentAggregator())
-                            .contentInjector(contentInjector)
-                            .build();
-                    Assistant assistant = AiServices.builder(Assistant.class)
-                            .systemMessageProvider(chatMemoryId -> system)
-                            .chatMemory(chatMemory)
-                            .streamingChatModel(chatModel.getStreamingChatModel())
-                            .retrievalAugmentor(retrievalAugmentor)
-                            .build();
-                    if (stream) {
-                        boolean reasoningEnable=application.getModelSetting().getReasoningContentEnable();
-                        TokenStream tokenStream = assistant.chatStream(problemText);
-                        CompletableFuture<ChatResponse> futureChatResponse = new CompletableFuture<>();
-                        tokenStream.onToolExecuted((ToolExecution toolExecution) -> log.info("toolExecution={}", toolExecution))
-                                .onPartialThinking(thinking-> {
-                                    if(reasoningEnable){
-                                        sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, "",thinking.text(), "ai-chat-node",viewType, false));
-                                    }
-                                })
-                                .onPartialResponse(text -> sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, text,"", "ai-chat-node",viewType, false)))
-                                .onCompleteResponse(response -> {
-                                    answerText.set(response.aiMessage().text());
-                                    TokenUsage tokenUsage = response.tokenUsage();
-                                    context.put("message_list", chatMemory.messages());
-                                    context.put("messageTokens", tokenUsage.inputTokenCount());
-                                    context.put("answerTokens", tokenUsage.outputTokenCount());
-                                    addAccessNum(chatUserId, chatUserType);
-                                    sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, "","", "ai-chat-node",viewType, true));
-                                    futureChatResponse.complete(response);// 完成后释放线程
-                                })
-                                .onError(error -> {
-                                    sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, "","","ai-chat-node",viewType,  true));
-                                    futureChatResponse.completeExceptionally(error); // 完成后释放线程
-                                })
-                                .start();
-                        futureChatResponse.join(); // 阻塞当前线程直到 futureChatResponse 完成
-                    }
+                int dialogueNumber = application.getDialogueNumber();
+                String systemText = application.getModelSetting().getSystem();
+                ChatMemory chatMemory = MyChatMemory.builder()
+                        .id(chatId)
+                        .maxMessages(dialogueNumber)
+                        .chatMemoryStore(chatMemoryStore)
+                        .build();
+                String system = StringUtil.isBlank(systemText) ? "You're an intelligent assistant" : systemText;
+                Assistant assistant = AiServices.builder(Assistant.class)
+                        .systemMessageProvider(chatMemoryId -> system)
+                        .chatMemory(chatMemory)
+                        .streamingChatModel(chatModel.getStreamingChatModel())
+                        .build();
+                if (stream) {
+                    boolean reasoningEnable = application.getModelSetting().getReasoningContentEnable();
+                    TokenStream tokenStream = assistant.chatStream(userPrompt);
+                    CompletableFuture<ChatResponse> futureChatResponse = new CompletableFuture<>();
+                    tokenStream.onToolExecuted((ToolExecution toolExecution) -> log.info("toolExecution={}", toolExecution))
+                            .onPartialThinking(thinking -> {
+                                if (reasoningEnable) {
+                                    sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, "", thinking.text(), "ai-chat-node", viewType, false));
+                                }
+                            })
+                            .onPartialResponse(text -> sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, text, "", "ai-chat-node", viewType, false)))
+                            .onCompleteResponse(response -> {
+                                answerText.set(response.aiMessage().text());
+                                TokenUsage tokenUsage = response.tokenUsage();
+                                context.put("message_list", chatMemory.messages());
+                                context.put("messageTokens", tokenUsage.inputTokenCount());
+                                context.put("answerTokens", tokenUsage.outputTokenCount());
+                                addAccessNum(chatUserId, chatUserType);
+                                sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, "", "", "ai-chat-node", viewType, true));
+                                futureChatResponse.complete(response);// 完成后释放线程
+                            })
+                            .onError(error -> {
+                                sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, "", "", "ai-chat-node", viewType, true));
+                                futureChatResponse.completeExceptionally(error); // 完成后释放线程
+                            })
+                            .start();
+                    futureChatResponse.join(); // 阻塞当前线程直到 futureChatResponse 完成
+                }
             }
         }
         return answerText.get();
@@ -198,7 +178,7 @@ public class BaseChatStep extends IChatStep {
         JSONObject details = new JSONObject();
         details.put("step_type", "chat_step");
         details.put("runTime", (System.currentTimeMillis() - startTime) / 1000F);
-        details.put("modelId", context.get("modelId"));
+        //details.put("modelId", context.get("modelId"));
         //todo message_list
         details.put("message_list", resetMessageList(context.getJSONArray("message_list")));
         details.put("messageTokens", context.getOrDefault("messageTokens", 0));

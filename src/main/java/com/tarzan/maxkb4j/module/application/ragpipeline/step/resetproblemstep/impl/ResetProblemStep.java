@@ -27,7 +27,7 @@ import java.util.List;
 @Slf4j
 @Component
 @AllArgsConstructor
-public class BaseResetProblemStep extends IResetProblemStep {
+public class ResetProblemStep extends IResetProblemStep {
 
     private final ModelService modelService;
     private final ChatMemoryStore chatMemoryStore;
