@@ -9,6 +9,7 @@ import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatRecord
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationChatRecordVO;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationVO;
 import com.tarzan.maxkb4j.module.application.enums.AppType;
+import com.tarzan.maxkb4j.module.application.enums.ChatUserType;
 import com.tarzan.maxkb4j.module.application.handler.PostResponseHandler;
 import com.tarzan.maxkb4j.module.application.ragpipeline.PipelineManage;
 import com.tarzan.maxkb4j.module.application.ragpipeline.generatehumanmessagestep.IGenerateHumanMessageStep;
@@ -83,12 +84,7 @@ public class ChatSimpleActuator extends ChatBaseActuator {
                 }
             }
         }
-        ApplicationVO application;
-        if (debug){
-             application = applicationService.getDetail(chatInfo.getAppId());
-        }else {
-             application = applicationVersionService.getDetail(chatInfo.getAppId());
-        }
+        ApplicationVO application=super.getAppDetail(chatInfo.getAppId(),debug);
         PipelineManage.Builder pipelineManageBuilder = new PipelineManage.Builder();
         Boolean problemOptimization = application.getProblemOptimization();
         if (!CollectionUtils.isEmpty(application.getKnowledgeIdList())) {
@@ -101,10 +97,11 @@ public class ChatSimpleActuator extends ChatBaseActuator {
         pipelineManageBuilder.addStep(chatStep);
         PipelineManage pipelineManage = pipelineManageBuilder.build();
         List<ApplicationChatRecordEntity> historyChatRecords = chatRecordService.getChatRecords(chatInfo, chatParams.getChatId());
+        chatParams.setChatRecordId(chatParams.getChatRecordId()==null? IdWorker.get32UUID() :chatParams.getChatRecordId());
         Map<String, Object> params = chatInfo.toPipelineManageParams(application, chatParams.getChatRecordId(),problemText,historyChatRecords, excludeParagraphIds,"", "", stream);
         String answer =  pipelineManage.run(params,chatParams.getSink());
         JSONObject details=pipelineManage.getDetails();
-        postResponseHandler.handler(chatParams.getChatId(), chatParams.getChatRecordId(), problemText, answer,null,details, startTime, "", "",debug);
+        postResponseHandler.handler(chatParams.getChatId(), chatParams.getChatRecordId(), problemText, answer,null,details, startTime, chatParams.getUserId(), ChatUserType.ANONYMOUS_USER.name(),debug);
         return answer;
     }
 

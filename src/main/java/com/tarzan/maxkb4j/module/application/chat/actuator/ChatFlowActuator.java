@@ -60,16 +60,13 @@ public class ChatFlowActuator extends ChatBaseActuator {
     public String chatMessage(ChatParams chatParams,boolean debug) {
         long startTime = System.currentTimeMillis();
         ChatInfo chatInfo = ChatCache.get(chatParams.getChatId());
+        List<ApplicationChatRecordEntity> historyChatRecordList = chatRecordService.getChatRecords(chatInfo, chatParams.getChatId());
         ApplicationChatRecordEntity chatRecord=null;
         if (StringUtil.isNotBlank(chatParams.getChatRecordId())){
-            chatRecord=chatInfo.getChatRecordList().stream().filter(e -> e.getId().equals(chatParams.getChatRecordId())).findFirst().orElse(null);
+            chatRecord=historyChatRecordList.stream().filter(e -> e.getId().equals(chatParams.getChatRecordId())).findFirst().orElse(null);
         }
-        ApplicationVO application;
-        if (debug){
-            application = applicationService.getDetail(chatInfo.getAppId());
-        }else {
-            application = applicationVersionService.getDetail(chatInfo.getAppId());
-        }
+        chatParams.setChatRecordId(chatParams.getChatRecordId()==null? IdWorker.get32UUID() :chatParams.getChatRecordId());
+        ApplicationVO application=super.getAppDetail(chatInfo.getAppId(),debug);
         ApplicationVersionEntity workflowVersion = new ApplicationVersionEntity();
         workflowVersion.setWorkFlow(application.getWorkFlow());
         chatInfo.setAppId(application.getId());
@@ -77,7 +74,6 @@ public class ChatFlowActuator extends ChatBaseActuator {
         LogicFlow logicFlow=LogicFlow.newInstance(application.getWorkFlow());
         List<LfNode> lfNodes=logicFlow.getNodes();
         List<INode> nodes=lfNodes.stream().filter(lfNode -> !lfNode.getType().equals("base-node")).map(NodeFactory::getNode).toList();
-        List<ApplicationChatRecordEntity> historyChatRecordList = chatRecordService.getChatRecords(chatInfo, chatParams.getChatId());
         WorkflowManage workflowManage = new WorkflowManage(
                 nodes,
                 logicFlow.getEdges(),
@@ -86,7 +82,7 @@ public class ChatFlowActuator extends ChatBaseActuator {
                 historyChatRecordList);
         String answer=workflowManage.run();
         JSONObject details= workflowManage.getRuntimeDetails();
-        postResponseHandler.handler(chatParams.getChatId(), chatParams.getChatRecordId(), chatParams.getMessage(),answer,chatRecord,details,startTime,"", ChatUserType.ANONYMOUS_USER.name(),debug);
+        postResponseHandler.handler(chatParams.getChatId(), chatParams.getChatRecordId(), chatParams.getMessage(),answer,chatRecord,details,startTime,chatParams.getUserId(), ChatUserType.ANONYMOUS_USER.name(),debug);
         return answer;
     }
 

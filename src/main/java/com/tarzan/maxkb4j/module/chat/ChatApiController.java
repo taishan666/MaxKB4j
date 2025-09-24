@@ -4,15 +4,16 @@ import cn.dev33.satoken.stp.SaLoginModel;
 import cn.dev33.satoken.stp.StpUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.tarzan.maxkb4j.constant.AppConst;
 import com.tarzan.maxkb4j.core.api.R;
+import com.tarzan.maxkb4j.module.application.cache.ChatCache;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationAccessTokenEntity;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatEntity;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatRecordEntity;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationEntity;
+import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationChatRecordVO;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationVO;
 import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
 import com.tarzan.maxkb4j.module.application.service.ApplicationAccessTokenService;
@@ -50,8 +51,8 @@ public class ChatApiController {
     public R<ApplicationEntity> appProfile() {
         String appId = (String) StpUtil.getExtra("application_id");
         ApplicationAccessTokenEntity appAccessToken = accessTokenService.getById(appId);
-        ApplicationVO application=applicationService.getDetail(appId);
-        if (appAccessToken != null){
+        ApplicationVO application = applicationService.getDetail(appId);
+        if (appAccessToken != null) {
             application.setLanguage(appAccessToken.getLanguage());
             application.setShowSource(appAccessToken.getShowSource());
             application.setShowExec(appAccessToken.getShowExec());
@@ -69,13 +70,17 @@ public class ChatApiController {
     @PostMapping("/auth/anonymous")
     public R<String> auth(@RequestBody JSONObject params) {
         ApplicationAccessTokenEntity accessToken = accessTokenService.getByToken(params.getString("accessToken"));
+        String chatUserId = "123456789";
+        if (StpUtil.isLogin()) {
+            chatUserId= StpUtil.getLoginIdAsString();
+        }
         SaLoginModel loginModel = new SaLoginModel();
         loginModel.setExtra("username", "游客");
-        loginModel.setExtra("language", "");
-        loginModel.setExtra("chat_user_id", "123456789");
+        loginModel.setExtra("language", accessToken.getLanguage());
+        loginModel.setExtra("chat_user_id", chatUserId);
         loginModel.setExtra("chat_user_type", "ANONYMOUS_USER");
         loginModel.setExtra("application_id", accessToken.getApplicationId());
-        StpUtil.login("123456789", loginModel);
+        StpUtil.login(chatUserId, loginModel);
         return R.success(StpUtil.getTokenValue());
     }
 
@@ -84,11 +89,10 @@ public class ChatApiController {
     public Flux<ChatMessageVO> chatMessage(@PathVariable String chatId, @RequestBody ChatParams params) {
         Sinks.Many<ChatMessageVO> sink = Sinks.many().multicast().onBackpressureBuffer();
         params.setChatId(chatId);
-        params.setChatRecordId(params.getChatRecordId()==null? IdWorker.get32UUID() :params.getChatRecordId());
         params.setSink(sink);
         params.setUserId(StpUtil.getLoginIdAsString());
         // 异步执行业务逻辑
-        chatTaskExecutor.execute(() -> chatService.chatMessage(params,false));
+        chatTaskExecutor.execute(() -> chatService.chatMessage(params, false));
         return sink.asFlux();
     }
 
@@ -103,6 +107,12 @@ public class ChatApiController {
         wrapper.orderByDesc(ApplicationChatEntity::getCreateTime);
         return R.success(chatService.page(page, wrapper));
     }
+
+    @GetMapping("/historical_conversation/{chatId}/record/{chatRecordId}")
+    public R<ApplicationChatRecordVO> historicalConversation(@PathVariable String chatId, @PathVariable String chatRecordId) {
+        return R.success(chatRecordService.getChatRecordInfo(ChatCache.get(chatId), chatRecordId));
+    }
+
 
     @PutMapping("/historical_conversation/{chatId}")
     public R<Boolean> updateConversation(@PathVariable String chatId, @RequestBody ApplicationChatEntity chatEntity) {

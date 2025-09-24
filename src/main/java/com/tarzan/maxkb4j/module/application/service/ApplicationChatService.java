@@ -40,6 +40,7 @@ import java.util.Objects;
 public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, ApplicationChatEntity> {
 
     private final ApplicationMapper applicationMapper;
+    private final ApplicationVersionService applicationVersionService;
     private final ApplicationChatRecordService chatRecordService;
     private final ApplicationService applicationService;
     private final MongoFileService fileService;
@@ -65,7 +66,10 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
     }
 
     public String chatOpen(String appId, String chatId) {
-        ApplicationVO application = applicationService.getDetail(appId);
+        ApplicationVO application = applicationVersionService.getDetail(appId);
+        if (application==null){
+            throw  new ApiException("应用未发布，请发布后使用。");
+        }
         if (StringUtils.isBlank(chatId)) {
             chatId = IdWorker.get32UUID();
         }
@@ -125,9 +129,12 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
                 userStatsService.save(accessClient);
             }
             ApplicationAccessTokenEntity appAccessToken = accessTokenService.lambdaQuery().eq(ApplicationAccessTokenEntity::getApplicationId, appId).one();
-            if (appAccessToken.getAccessNum() < accessClient.getIntraDayAccessNum()) {
-                throw new ApiException("访问次数超过今日访问量");
+            if (Objects.nonNull(appAccessToken)){
+                if (appAccessToken.getAccessNum() < accessClient.getIntraDayAccessNum()) {
+                    throw new ApiException("访问次数超过今日访问量");
+                }
             }
+
         }
     }
 

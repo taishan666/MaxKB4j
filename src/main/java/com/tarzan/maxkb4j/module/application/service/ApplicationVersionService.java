@@ -34,6 +34,7 @@ public class ApplicationVersionService extends ServiceImpl<ApplicationVersionMap
             return null;
         }
         ApplicationVO vo = BeanUtil.copy(entity, ApplicationVO.class);
+        vo.setId(entity.getApplicationId());
         List<String> knowledgeIds = knowledgeMappingService.getKnowledgeIdsByAppId(appId);
         vo.setKnowledgeIdList(knowledgeIds);
         if (!CollectionUtils.isEmpty(vo.getKnowledgeIdList())) {
