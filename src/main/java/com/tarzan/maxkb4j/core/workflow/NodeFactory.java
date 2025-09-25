@@ -19,6 +19,7 @@ import com.tarzan.maxkb4j.core.workflow.node.searchdataset.impl.BaseSearchDatase
 import com.tarzan.maxkb4j.core.workflow.node.speechtotext.impl.BaseSpeechToTextNode;
 import com.tarzan.maxkb4j.core.workflow.node.start.impl.BaseStartNode;
 import com.tarzan.maxkb4j.core.workflow.node.texttospeech.impl.BaseTextToSpeechNode;
+import com.tarzan.maxkb4j.core.workflow.node.toollib.impl.ToolLibNode;
 import com.tarzan.maxkb4j.core.workflow.node.variableaggregate.impl.BaseVariableAggregateNode;
 import com.tarzan.maxkb4j.core.workflow.node.variableassign.impl.BaseVariableAssignNode;
 
@@ -46,6 +47,7 @@ public class NodeFactory {
             case VARIABLE_ASSIGN -> new BaseVariableAssignNode(properties);
             case VARIABLE_AGGREGATE -> new BaseVariableAggregateNode(properties);
             case FUNCTION -> new BaseFunctionNode(properties);
+            case TOOL_LIB -> new ToolLibNode(properties);
             case IMAGE_UNDERSTAND -> new BaseImageUnderstandNode(properties);
             case RERANKER -> new RerankerNode(properties);
             case FORM -> new FormNode(properties);

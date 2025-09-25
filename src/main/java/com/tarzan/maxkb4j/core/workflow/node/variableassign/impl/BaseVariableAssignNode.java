@@ -60,7 +60,7 @@ public class BaseVariableAssignNode extends INode {
 
         // 提取 fields[0] 和 fields[1:]
         String firstField = fields.get(0);
-        List<String> remainingFields = fields.subList(1, fields.size());
+        String remainingFields = fields.get(1);
 
         // 调用 workflowManage 的 getReferenceField 方法
         Object result = workflowManage.getReferenceField(firstField, remainingFields);

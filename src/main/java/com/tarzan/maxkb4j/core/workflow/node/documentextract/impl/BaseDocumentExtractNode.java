@@ -45,7 +45,8 @@ public class BaseDocumentExtractNode extends INode {
         // 假设我们有一个 Supplier<ContentHandler>
         DocumentExtractParams nodeParams=super.getNodeData().toJavaObject(DocumentExtractParams.class);
         List<String> documentList=nodeParams.getDocumentList();
-        Object res=super.getWorkflowManage().getReferenceField(documentList.get(0),documentList.subList(1,documentList.size()));
+        Object res=super.getWorkflowManage().getReferenceField(documentList.get(0),documentList.get(1));
+        @SuppressWarnings("unchecked")
         List<ChatFile> documents= (List<ChatFile>) res;
         StringBuilder sb=new StringBuilder();
         for (ChatFile chatFile : documents) {

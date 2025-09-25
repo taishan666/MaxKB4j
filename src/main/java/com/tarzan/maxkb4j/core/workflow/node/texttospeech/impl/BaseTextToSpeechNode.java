@@ -33,7 +33,7 @@ public class BaseTextToSpeechNode extends INode {
         System.out.println(TEXT_TO_SPEECH);
         TextToSpeechParams nodeParams=super.getNodeData().toJavaObject(TextToSpeechParams.class);
         List<String> contentList=nodeParams.getContentList();
-        Object content=super.getWorkflowManage().getReferenceField(contentList.get(0),contentList.subList(1, contentList.size()));
+        Object content=super.getWorkflowManage().getReferenceField(contentList.get(0),contentList.get(1));
         BaseTextToSpeech ttsModel = modelService.getModelById(nodeParams.getTtsModelId(), nodeParams.getModelParamsSetting());
         byte[]  audioData = ttsModel.textToSpeech(content.toString());
         ChatFile fileVO = fileService.uploadFile("generated_audio_"+ UUID.randomUUID() +".mp3",audioData);

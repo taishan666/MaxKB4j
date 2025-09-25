@@ -40,7 +40,7 @@ public class BaseVariableAggregateNode extends INode {
         }
         // 提取 fields[0] 和 fields[1:]
         String firstField = fields.get(0);
-        List<String> remainingFields = fields.subList(1, fields.size());
+        String remainingFields = fields.get(1);
         // 将结果转换为字符串
         return workflowManage.getReferenceField(firstField, remainingFields);
     }

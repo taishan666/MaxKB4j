@@ -32,7 +32,7 @@ public class BaseReplyNode extends INode {
     }
 
     private String getReferenceContent(List<String> fields){
-        Object res=this.workflowManage.getReferenceField(fields.get(0),fields.subList(1, fields.size()));
+        Object res=this.workflowManage.getReferenceField(fields.get(0),fields.get(1));
         return res==null?"":res.toString();
     }
 

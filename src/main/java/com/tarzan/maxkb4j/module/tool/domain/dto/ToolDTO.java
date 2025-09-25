@@ -9,5 +9,5 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class ToolDTO extends ToolEntity {
-    private List<ToolDebugField> debugFieldList;
+    private List<ToolInputField> debugFieldList;
 }

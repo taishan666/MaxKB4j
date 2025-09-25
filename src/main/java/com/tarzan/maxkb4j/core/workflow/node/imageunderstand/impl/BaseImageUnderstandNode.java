@@ -41,7 +41,8 @@ public class BaseImageUnderstandNode extends INode {
     public NodeResult execute() {
         ImageUnderstandParams nodeParams=super.getNodeData().toJavaObject(ImageUnderstandParams.class);
         List<String> imageList = nodeParams.getImageList();
-        Object object = super.getWorkflowManage().getReferenceField(imageList.get(0), imageList.subList(1, imageList.size()));
+        Object object = super.getWorkflowManage().getReferenceField(imageList.get(0), imageList.get(1));
+        @SuppressWarnings("unchecked")
         List<ChatFile> ImageFiles = (List<ChatFile>) object;
         BaseChatModel chatModel = modelService.getModelById(nodeParams.getModelId(), nodeParams.getModelParamsSetting());
         String question =  workflowManage.generatePrompt(nodeParams.getPrompt());

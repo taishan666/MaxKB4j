@@ -128,10 +128,10 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
     }
 
     @Transactional
-    public boolean updateParagraphById(String docId,ParagraphEntity paragraph) {
+    public void updateParagraphById(String docId,ParagraphEntity paragraph) {
         dataIndexService.updateActiveByParagraph(paragraph);
         this.updateById(paragraph);
-        return documentMapper.updateCharLengthById(docId);
+        documentMapper.updateCharLengthById(docId);
     }
 
 

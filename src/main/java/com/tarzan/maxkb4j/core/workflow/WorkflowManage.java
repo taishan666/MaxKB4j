@@ -436,24 +436,13 @@ public class WorkflowManage {
         );
     }
 
-    //根据fieldType,判断直接返回值还是返回引用值
-    public Object getFieldValue(String fieldType, Object value, List<String> reference) {
-        if ("referencing".equals(fieldType)) {
-            return getReferenceField(reference.get(0), reference.subList(1, reference.size()));
-        } else {
-            if(value instanceof String){
-                return generatePrompt((String) value);
-            }
-            return value;
-        }
-    }
 
-    public Object getReferenceField(String nodeId, List<String> fields) {
+    public Object getReferenceField(String nodeId, String key) {
         if ("global".equals(nodeId)) {
-            return INode.getField(this.context, fields.get(0));
+            return context.get(key);
         } else {
             INode node = this.getNodeById(nodeId);
-            return node == null ? null : node.getReferenceField(fields.get(0));
+            return node == null ? null : node.getReferenceField(key);
         }
     }
 

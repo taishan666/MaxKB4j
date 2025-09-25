@@ -31,7 +31,7 @@ public class RerankerNode extends INode {
     public NodeResult execute() {
         RerankerParams nodeParams= super.getNodeData().toJavaObject(RerankerParams.class);
         List<String> questionReferenceAddress=nodeParams.getQuestionReferenceAddress();
-        Object question = super.getWorkflowManage().getReferenceField(questionReferenceAddress.get(0), questionReferenceAddress.subList(1, questionReferenceAddress.size()));
+        Object question = super.getWorkflowManage().getReferenceField(questionReferenceAddress.get(0), questionReferenceAddress.get(1));
         List<List<String>> rerankerReferenceList=nodeParams.getRerankerReferenceList();
         List<Object>  rerankerList = getRerankerList(rerankerReferenceList);
        // 合并重排序器列表
@@ -87,7 +87,7 @@ public class RerankerNode extends INode {
                     // 剩余部分
                     return workflowManage.getReferenceField(
                             reference.get(0), // 第一个元素
-                            reference.subList(1, reference.size()) // 剩余部分
+                            reference.get(1)// 剩余部分
                     );
                 })
                 .collect(Collectors.toList());

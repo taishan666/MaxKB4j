@@ -103,13 +103,13 @@ public abstract class INode {
         return detail;
     }
 
-    protected Object getReferenceField(String fields) {
-        return getField(context, fields);
+    protected Object getReferenceField(String key) {
+        return context.get(key);
     }
 
-    protected static Object getField(Map<String, Object> context, String field) {
-        return context.get(field);
-    }
+    /*protected static Object getField(Map<String, Object> context, String key) {
+        return context.get(key);
+    }*/
 
     public JSONArray resetMessageList(List<ChatMessage> historyMessages) {
         if (CollectionUtils.isEmpty(historyMessages)) {

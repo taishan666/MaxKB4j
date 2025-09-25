@@ -9,4 +9,5 @@ public class ToolInputField {
     private String type;
     private String source;
     private Boolean isRequired;
+    private Object value;
 }

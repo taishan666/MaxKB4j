@@ -41,8 +41,9 @@ public class BaseMcpNode extends INode {
         jsonObjectSchema.properties().forEach((k,v)->{
             Object value =toolParams.get(k);
             if (value instanceof List){
+                @SuppressWarnings("unchecked")
                 List<String> fields=(List<String>)value;
-                value=workflowManage.getReferenceField(fields.get(0),fields.subList(1, fields.size()));
+                value=workflowManage.getReferenceField(fields.get(0),fields.get(1));
             }
             params.put(k,value);
         });

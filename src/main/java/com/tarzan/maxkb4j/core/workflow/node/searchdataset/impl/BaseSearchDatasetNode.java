@@ -34,7 +34,7 @@ public class BaseSearchDatasetNode extends INode {
         SearchDatasetStepNodeParams nodeParams=super.getNodeData().toJavaObject(SearchDatasetStepNodeParams.class);
         KnowledgeSetting knowledgeSetting=nodeParams.getKnowledgeSetting();
         List<String> fields=nodeParams.getQuestionReferenceAddress();
-        String question= (String)workflowManage.getReferenceField(fields.get(0),fields.subList(1, fields.size()));
+        String question= (String)workflowManage.getReferenceField(fields.get(0),fields.get(1));
         List<ParagraphVO> paragraphList= retrieveService.paragraphSearch(question,nodeParams.getKnowledgeIdList(), Collections.emptyList(),knowledgeSetting);
         List<ParagraphVO> isHitHandlingMethodList=paragraphList.stream().filter(ParagraphVO::isHitHandlingMethod).toList();
         Map<String, Object> nodeVariable = Map.of(

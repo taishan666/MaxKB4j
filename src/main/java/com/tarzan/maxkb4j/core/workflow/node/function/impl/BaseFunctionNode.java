@@ -37,8 +37,9 @@ public class BaseFunctionNode extends INode {
                 String name=map.get("name").toString();
                 Object value = map.get("value");
                 if (value instanceof JSONArray){
+                    @SuppressWarnings("unchecked")
                     List<String> fields=(List<String>)value;
-                    value=workflowManage.getReferenceField(fields.get(0),fields.subList(1, fields.size()));
+                    value=workflowManage.getReferenceField(fields.get(0),fields.get(1));
                     if (value!=null){
                         if("global".equals(fields.get(0))||upNodeIdList.contains(fields.get(0))){
                             binding.setVariable(name, value);

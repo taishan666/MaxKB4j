@@ -8,7 +8,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.tarzan.maxkb4j.constant.AppConst;
 import com.tarzan.maxkb4j.core.api.R;
 import com.tarzan.maxkb4j.module.tool.domain.dto.ToolDTO;
-import com.tarzan.maxkb4j.module.tool.domain.dto.ToolDebugField;
+import com.tarzan.maxkb4j.module.tool.domain.dto.ToolInputField;
 import com.tarzan.maxkb4j.module.tool.domain.dto.ToolQuery;
 import com.tarzan.maxkb4j.module.tool.domain.entity.ToolEntity;
 import com.tarzan.maxkb4j.module.tool.domain.vo.ToolVO;
@@ -17,13 +17,11 @@ import com.tarzan.maxkb4j.util.StringUtil;
 import groovy.lang.Binding;
 import groovy.lang.GroovyShell;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author tarzan
@@ -32,6 +30,7 @@ import java.util.Map;
 @RestController
 @RequestMapping(AppConst.ADMIN_API)
 @AllArgsConstructor
+@Slf4j
 public class ToolController {
 
 	private	final ToolService toolService;
@@ -93,25 +92,22 @@ public class ToolController {
 	}
 
 	@PostMapping("/workspace/default/tool/debug")
-	public R<String> debug(@RequestBody ToolDTO dto) {
-		Binding binding = new Binding();
-		StringBuilder codeText=new StringBuilder(dto.getCode());
-		codeText.append("\n").append("main(");
-		if (CollectionUtils.isEmpty(dto.getDebugFieldList())){
-			codeText.append(")");
-		}else {
-			for (ToolDebugField inputField : dto.getDebugFieldList()) {
-				binding.setVariable(inputField.getName(), inputField.getValue());
-				codeText.append(inputField.getName()).append(",");
+	public R<Object> debug(@RequestBody ToolDTO dto) {
+		Map<String, Object> params=new HashMap<>(5);
+		params.putAll(dto.getInitParams());
+		if (!CollectionUtils.isEmpty(dto.getDebugFieldList())){
+			for (ToolInputField inputField : dto.getDebugFieldList()) {
+				params.put(inputField.getName(), inputField.getValue());
 			}
-			codeText.deleteCharAt(codeText.length()-1).append(")");
 		}
-		// 创建 GroovyShell 并运行脚本
+		log.info("Groovy binding params: {}", params);
+		Binding binding = new Binding(params);
+		// 创建 GroovyShell 并执行脚本
 		GroovyShell shell = new GroovyShell(binding);
-		Object result = shell.evaluate(codeText.toString());
-		String finalResult=result != null ? result.toString() : "";
-		return R.data(finalResult);
+		// 执行脚本并返回结果
+		return R.data(shell.evaluate(dto.getCode()));
 	}
+
 
 	@GetMapping("/workspace/default/tool/{id}")
 	public R<ToolEntity> get(@PathVariable String id) {

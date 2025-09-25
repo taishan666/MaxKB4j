@@ -33,8 +33,9 @@ public class BaseSpeechToTextNode extends INode {
     public NodeResult execute() {
         SpeechToTextParams nodeParams=super.getNodeData().toJavaObject(SpeechToTextParams.class);
         List<String> audioList = nodeParams.getAudioList();
-        Object res = super.getWorkflowManage().getReferenceField(audioList.get(0), audioList.subList(1, audioList.size()));
+        Object res = super.getWorkflowManage().getReferenceField(audioList.get(0), audioList.get(1));
         BaseSpeechToText sttModel = modelService.getModelById(nodeParams.getSttModelId());
+        @SuppressWarnings("unchecked")
         List<ChatFile> audioFiles = (List<ChatFile>) res;
         StringBuilder sb = new StringBuilder();
         for (ChatFile file: audioFiles) {

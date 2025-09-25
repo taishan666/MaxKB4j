@@ -80,7 +80,7 @@ public class BaseConditionNode extends INode {
 
     // Method to perform assertions on fields.
     private boolean assertion(List<String> fieldList, String compare, String valueToCompare) {
-        Object fieldValue = super.workflowManage.getReferenceField(fieldList.get(0),fieldList.subList(1, fieldList.size()));
+        Object fieldValue = super.workflowManage.getReferenceField(fieldList.get(0),fieldList.get(1));
         for (Compare compareHandler : compareHandleList) {
             if(compareHandler.support(compare)){
                 return compareHandler.compare(fieldValue, valueToCompare);

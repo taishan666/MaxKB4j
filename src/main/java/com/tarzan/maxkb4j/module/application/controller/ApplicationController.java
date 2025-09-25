@@ -214,6 +214,14 @@ public class ApplicationController {
         applicationService.embed(dto,response);
     }
 
+    //todo
+    @GetMapping("/tool/{toolName}/icon.png")
+    public void serveIcon(@PathVariable String toolName, @PathVariable String workspaceId, HttpServletResponse response) throws IOException {
+        // 直接读取 /admin/tool/{toolName}/icon.png 对应的文件返回
+        // 或重定向/转发到简化路径
+        System.out.println(workspaceId+"   "+toolName);
+    }
+
 
 
 
