@@ -173,6 +173,10 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
             }
             problemParagraphService.saveBatch(problemParagraphMappingEntities);
         }
+        this.updateStatusByDocId(docId, 1, 0);
+        documentMapper.updateStatusByIds(List.of(docId), 1, 0);
+        //目的是为了显示进度计数
+        documentMapper.updateStatusMetaByIds(List.of(docId));
         return documentMapper.updateCharLengthById(docId);
     }
 
