@@ -1,8 +1,8 @@
 package com.tarzan.maxkb4j.module.system.setting.controller;
 
 import com.alibaba.fastjson.JSONObject;
-import com.tarzan.maxkb4j.constant.AppConst;
-import com.tarzan.maxkb4j.core.api.R;
+import com.tarzan.maxkb4j.common.constant.AppConst;
+import com.tarzan.maxkb4j.common.api.R;
 import com.tarzan.maxkb4j.module.system.setting.domain.dto.DisplayInfo;
 import com.tarzan.maxkb4j.module.system.setting.domain.entity.SystemSettingEntity;
 import com.tarzan.maxkb4j.module.system.setting.enums.SettingType;

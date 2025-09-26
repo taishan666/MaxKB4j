@@ -8,7 +8,7 @@ import com.tarzan.maxkb4j.module.model.provider.enums.ModelProviderEnum;
 import com.tarzan.maxkb4j.module.model.provider.enums.ModelTypeEnum;
 import com.tarzan.maxkb4j.module.model.provider.impl.aliyunModelProvider.AliYunBaiLianModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.impl.deepseekmodelprovider.model.DeepSeekChatModel;
-import com.tarzan.maxkb4j.util.IoUtil;
+import com.tarzan.maxkb4j.common.util.IoUtil;
 import org.springframework.stereotype.Component;
 
 import java.io.InputStream;

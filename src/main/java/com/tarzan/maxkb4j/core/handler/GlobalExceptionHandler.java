@@ -3,9 +3,9 @@ package com.tarzan.maxkb4j.core.handler;
 
 import cn.dev33.satoken.exception.NotLoginException;
 import cn.dev33.satoken.jwt.exception.SaJwtException;
-import com.tarzan.maxkb4j.core.api.R;
-import com.tarzan.maxkb4j.core.exception.AccessException;
-import com.tarzan.maxkb4j.core.exception.ApiException;
+import com.tarzan.maxkb4j.common.api.R;
+import com.tarzan.maxkb4j.common.exception.AccessException;
+import com.tarzan.maxkb4j.common.exception.ApiException;
 import io.swagger.v3.oas.annotations.Hidden;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;

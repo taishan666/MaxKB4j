@@ -1,8 +1,8 @@
 package com.tarzan.maxkb4j.module.model.provider.controller;
 
-import com.tarzan.maxkb4j.constant.AppConst;
-import com.tarzan.maxkb4j.core.api.R;
-import com.tarzan.maxkb4j.core.form.BaseFiled;
+import com.tarzan.maxkb4j.common.constant.AppConst;
+import com.tarzan.maxkb4j.common.api.R;
+import com.tarzan.maxkb4j.common.form.BaseFiled;
 import com.tarzan.maxkb4j.module.model.info.vo.KeyAndValueVO;
 import com.tarzan.maxkb4j.module.model.provider.IModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.enums.ModelProviderEnum;
@@ -18,7 +18,7 @@ import com.tarzan.maxkb4j.module.model.provider.impl.xinferencemodelprovider.XIn
 import com.tarzan.maxkb4j.module.model.provider.impl.zhipumodelprovider.ZhiPuModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.vo.ModelInfo;
 import com.tarzan.maxkb4j.module.model.provider.vo.ModelProvideInfo;
-import com.tarzan.maxkb4j.util.StringUtil;
+import com.tarzan.maxkb4j.common.util.StringUtil;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;

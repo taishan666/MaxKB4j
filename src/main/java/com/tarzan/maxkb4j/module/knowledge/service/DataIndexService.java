@@ -5,7 +5,7 @@ import com.huaban.analysis.jieba.JiebaSegmenter;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.EmbeddingEntity;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.ParagraphEntity;
 import com.tarzan.maxkb4j.module.knowledge.mapper.EmbeddingMapper;
-import com.tarzan.maxkb4j.util.StringUtil;
+import com.tarzan.maxkb4j.common.util.StringUtil;
 import lombok.AllArgsConstructor;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;

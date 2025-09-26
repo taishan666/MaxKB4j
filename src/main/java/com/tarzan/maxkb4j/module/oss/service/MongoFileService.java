@@ -5,7 +5,7 @@ import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
 import com.mongodb.client.gridfs.model.GridFSFile;
 import com.tarzan.maxkb4j.core.workflow.domain.ChatFile;
-import com.tarzan.maxkb4j.util.IoUtil;
+import com.tarzan.maxkb4j.common.util.IoUtil;
 import jakarta.activation.MimetypesFileTypeMap;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;

@@ -12,7 +12,7 @@ import com.tarzan.maxkb4j.module.application.handler.PostResponseHandler;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatMapper;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatRecordMapper;
 import com.tarzan.maxkb4j.module.application.service.ApplicationChatUserStatsService;
-import com.tarzan.maxkb4j.util.StringUtil;
+import com.tarzan.maxkb4j.common.util.StringUtil;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 

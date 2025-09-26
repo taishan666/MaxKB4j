@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.tarzan.maxkb4j.core.common.entity.BaseEntity;
+import com.tarzan.maxkb4j.common.base.entity.BaseEntity;
 import com.tarzan.maxkb4j.core.handler.type.JSONBTypeHandler;
 import com.tarzan.maxkb4j.core.handler.type.StringListTypeHandler;
 import lombok.Data;

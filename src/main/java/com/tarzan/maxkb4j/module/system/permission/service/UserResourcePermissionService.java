@@ -18,8 +18,8 @@ import com.tarzan.maxkb4j.module.system.permission.mapper.UserResourcePermission
 import com.tarzan.maxkb4j.module.system.permission.vo.UserResourcePermissionVO;
 import com.tarzan.maxkb4j.module.tool.domain.entity.ToolEntity;
 import com.tarzan.maxkb4j.module.tool.mapper.ToolMapper;
-import com.tarzan.maxkb4j.util.BeanUtil;
-import com.tarzan.maxkb4j.util.PageUtil;
+import com.tarzan.maxkb4j.common.util.BeanUtil;
+import com.tarzan.maxkb4j.common.util.PageUtil;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

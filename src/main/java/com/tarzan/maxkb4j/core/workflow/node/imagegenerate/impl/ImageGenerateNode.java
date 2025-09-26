@@ -7,7 +7,7 @@ import com.tarzan.maxkb4j.core.workflow.domain.ChatFile;
 import com.tarzan.maxkb4j.core.workflow.node.imagegenerate.input.ImageGenerateParams;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
 import com.tarzan.maxkb4j.module.oss.service.MongoFileService;
-import com.tarzan.maxkb4j.util.SpringUtil;
+import com.tarzan.maxkb4j.common.util.SpringUtil;
 import dev.langchain4j.data.image.Image;
 import dev.langchain4j.model.image.ImageModel;
 import dev.langchain4j.model.output.Response;

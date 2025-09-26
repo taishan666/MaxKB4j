@@ -1,7 +1,7 @@
 package com.tarzan.maxkb4j.module.model.provider.impl.aliyunModelProvider.params;
 
-import com.tarzan.maxkb4j.core.form.BaseFiled;
-import com.tarzan.maxkb4j.core.form.SingleSelectFiled;
+import com.tarzan.maxkb4j.common.form.BaseFiled;
+import com.tarzan.maxkb4j.common.form.SingleSelectFiled;
 import com.tarzan.maxkb4j.module.model.provider.BaseModelParams;
 import lombok.Data;
 

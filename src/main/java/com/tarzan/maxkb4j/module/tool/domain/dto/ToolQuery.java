@@ -1,6 +1,6 @@
 package com.tarzan.maxkb4j.module.tool.domain.dto;
 
-import com.tarzan.maxkb4j.core.common.dto.Query;
+import com.tarzan.maxkb4j.common.base.dto.Query;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 

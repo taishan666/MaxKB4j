@@ -8,7 +8,7 @@ import com.tarzan.maxkb4j.module.model.provider.impl.aliyunModelProvider.model.*
 import com.tarzan.maxkb4j.module.model.provider.impl.aliyunModelProvider.params.*;
 import com.tarzan.maxkb4j.module.model.provider.vo.ModelInfo;
 import com.tarzan.maxkb4j.module.model.provider.vo.ModelProvideInfo;
-import com.tarzan.maxkb4j.util.IoUtil;
+import com.tarzan.maxkb4j.common.util.IoUtil;
 import dev.langchain4j.community.model.dashscope.QwenModelName;
 import dev.langchain4j.community.model.dashscope.WanxModelName;
 

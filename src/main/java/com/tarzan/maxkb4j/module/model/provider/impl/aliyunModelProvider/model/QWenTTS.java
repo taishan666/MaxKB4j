@@ -11,7 +11,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelCredential;
 import com.tarzan.maxkb4j.module.model.provider.BaseModel;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseTextToSpeech;
-import com.tarzan.maxkb4j.util.StringUtil;
+import com.tarzan.maxkb4j.common.util.StringUtil;
 import io.reactivex.Flowable;
 import lombok.Data;
 import lombok.EqualsAndHashCode;

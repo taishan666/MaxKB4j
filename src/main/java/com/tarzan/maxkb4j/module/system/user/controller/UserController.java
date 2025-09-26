@@ -1,13 +1,13 @@
 package com.tarzan.maxkb4j.module.system.user.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.tarzan.maxkb4j.constant.AppConst;
-import com.tarzan.maxkb4j.core.api.R;
+import com.tarzan.maxkb4j.common.constant.AppConst;
+import com.tarzan.maxkb4j.common.api.R;
 import com.tarzan.maxkb4j.module.system.user.domain.dto.PasswordDTO;
 import com.tarzan.maxkb4j.module.system.user.domain.dto.UserDTO;
 import com.tarzan.maxkb4j.module.system.user.domain.entity.UserEntity;
 import com.tarzan.maxkb4j.module.system.user.service.UserService;
-import com.tarzan.maxkb4j.util.StringUtil;
+import com.tarzan.maxkb4j.common.util.StringUtil;
 import jakarta.mail.MessagingException;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;

@@ -1,6 +1,6 @@
 package com.tarzan.maxkb4j.module.model.provider;
 
-import com.tarzan.maxkb4j.core.form.BaseFiled;
+import com.tarzan.maxkb4j.common.form.BaseFiled;
 
 import java.util.List;
 

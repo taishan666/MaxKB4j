@@ -2,7 +2,7 @@ package com.tarzan.maxkb4j.module.system.permission.entity;
 
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.tarzan.maxkb4j.core.common.entity.BaseEntity;
+import com.tarzan.maxkb4j.common.base.entity.BaseEntity;
 import com.tarzan.maxkb4j.core.handler.type.StringListTypeHandler;
 import lombok.Data;
 import lombok.EqualsAndHashCode;

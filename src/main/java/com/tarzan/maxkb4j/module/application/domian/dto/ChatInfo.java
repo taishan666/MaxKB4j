@@ -2,7 +2,7 @@ package com.tarzan.maxkb4j.module.application.domian.dto;
 
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatRecordEntity;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationVO;
-import com.tarzan.maxkb4j.util.BeanUtil;
+import com.tarzan.maxkb4j.common.util.BeanUtil;
 import lombok.Data;
 
 import java.io.Serializable;

@@ -8,7 +8,7 @@ import com.tarzan.maxkb4j.core.workflow.node.speechtotext.input.SpeechToTextPara
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseSpeechToText;
 import com.tarzan.maxkb4j.module.oss.service.MongoFileService;
-import com.tarzan.maxkb4j.util.SpringUtil;
+import com.tarzan.maxkb4j.common.util.SpringUtil;
 
 import java.util.List;
 import java.util.Map;

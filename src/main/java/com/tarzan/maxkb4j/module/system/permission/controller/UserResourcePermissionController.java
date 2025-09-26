@@ -1,8 +1,8 @@
 package com.tarzan.maxkb4j.module.system.permission.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.tarzan.maxkb4j.constant.AppConst;
-import com.tarzan.maxkb4j.core.api.R;
+import com.tarzan.maxkb4j.common.constant.AppConst;
+import com.tarzan.maxkb4j.common.api.R;
 import com.tarzan.maxkb4j.module.system.permission.service.UserResourcePermissionService;
 import com.tarzan.maxkb4j.module.system.permission.vo.UserResourcePermissionVO;
 import lombok.AllArgsConstructor;

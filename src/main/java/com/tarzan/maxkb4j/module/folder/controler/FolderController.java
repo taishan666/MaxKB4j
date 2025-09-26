@@ -1,8 +1,8 @@
 package com.tarzan.maxkb4j.module.folder.controler;
 
 import cn.dev33.satoken.stp.StpUtil;
-import com.tarzan.maxkb4j.constant.AppConst;
-import com.tarzan.maxkb4j.core.api.R;
+import com.tarzan.maxkb4j.common.constant.AppConst;
+import com.tarzan.maxkb4j.common.api.R;
 import com.tarzan.maxkb4j.module.folder.service.FolderService;
 import com.tarzan.maxkb4j.module.folder.vo.FolderVO;
 import com.tarzan.maxkb4j.module.system.user.domain.entity.UserEntity;

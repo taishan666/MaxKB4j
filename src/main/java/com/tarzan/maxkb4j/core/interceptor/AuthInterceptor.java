@@ -3,12 +3,11 @@ package com.tarzan.maxkb4j.core.interceptor;
 import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.util.StrUtil;
 import com.tarzan.maxkb4j.core.handler.AuthHandler;
-import com.tarzan.maxkb4j.util.SpringUtil;
+import com.tarzan.maxkb4j.common.util.SpringUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
 import java.util.Collection;

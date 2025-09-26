@@ -9,7 +9,7 @@ import com.tarzan.maxkb4j.module.model.provider.impl.aliyunModelProvider.AliYunB
 import com.tarzan.maxkb4j.module.model.provider.impl.xinferencemodelprovider.model.XinferenceChat;
 import com.tarzan.maxkb4j.module.model.provider.vo.ModelInfo;
 import com.tarzan.maxkb4j.module.model.provider.vo.ModelProvideInfo;
-import com.tarzan.maxkb4j.util.IoUtil;
+import com.tarzan.maxkb4j.common.util.IoUtil;
 import org.springframework.stereotype.Component;
 
 import java.io.InputStream;

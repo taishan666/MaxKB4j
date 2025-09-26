@@ -1,7 +1,7 @@
 package com.tarzan.maxkb4j.module.application.controller;
 
-import com.tarzan.maxkb4j.constant.AppConst;
-import com.tarzan.maxkb4j.core.api.R;
+import com.tarzan.maxkb4j.common.constant.AppConst;
+import com.tarzan.maxkb4j.common.api.R;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationApiKeyEntity;
 import com.tarzan.maxkb4j.module.application.service.ApplicationApiKeyService;
 import lombok.AllArgsConstructor;

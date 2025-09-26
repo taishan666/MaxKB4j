@@ -8,11 +8,9 @@ import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.NodeResult;
 import com.tarzan.maxkb4j.core.workflow.node.http.input.HttpNodeParams;
-import com.tarzan.maxkb4j.util.StringUtil;
+import com.tarzan.maxkb4j.common.util.StringUtil;
 
 import java.util.Map;
-
-import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.HTTP_CLIENT;
 
 public class BaseHttpNode extends INode {
 

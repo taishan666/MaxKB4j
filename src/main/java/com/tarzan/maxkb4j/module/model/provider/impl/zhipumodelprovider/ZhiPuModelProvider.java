@@ -10,7 +10,7 @@ import com.tarzan.maxkb4j.module.model.provider.impl.zhipumodelprovider.model.Zh
 import com.tarzan.maxkb4j.module.model.provider.impl.zhipumodelprovider.model.ZhiPuImageModel;
 import com.tarzan.maxkb4j.module.model.provider.vo.ModelInfo;
 import com.tarzan.maxkb4j.module.model.provider.vo.ModelProvideInfo;
-import com.tarzan.maxkb4j.util.IoUtil;
+import com.tarzan.maxkb4j.common.util.IoUtil;
 import org.springframework.stereotype.Component;
 
 import java.io.InputStream;
