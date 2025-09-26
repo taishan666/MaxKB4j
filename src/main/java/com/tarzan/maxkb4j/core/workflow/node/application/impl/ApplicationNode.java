@@ -33,7 +33,7 @@ public class ApplicationNode extends INode {
                 .message(question)
                 .chatId(chatId)
                 .userId("")
-                .sink(sink)
+                .sink(super.getChatParams().getSink())
                 .reChat(false).build();
         String answer=chatService.chatMessage(chatParams,true);
         return new NodeResult(Map.of(

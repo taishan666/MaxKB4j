@@ -32,7 +32,6 @@ public class WorkflowManage {
     private List<LfEdge> edges;
     private JSONObject globalVariable;
     private String answer;
-    private Sinks.Many<ChatMessageVO> sink;
     private ApplicationChatRecordEntity chatRecord;
     private List<ApplicationChatRecordEntity> historyChatRecords;
     private List<INode> nodeContext;
@@ -43,7 +42,6 @@ public class WorkflowManage {
         this.chatParams = chatParams;
         this.globalVariable = new JSONObject();
         this.nodeContext = new ArrayList<>();
-        this.sink = chatParams.getSink();
         this.chatRecord = chatRecord;
         this.answer = "";
         this.historyChatRecords = CollectionUtils.isEmpty(historyChatRecords) ? List.of() : historyChatRecords;
@@ -124,7 +122,7 @@ public class WorkflowManage {
     public String run() {
         runChainManage(startNode, null);
         ChatMessageVO vo = new ChatMessageVO(chatParams.getChatId(), chatParams.getChatRecordId(), true);
-        sink.tryEmitNext(vo);
+        chatParams.getSink().tryEmitNext(vo);
         return answer;
     }
 
@@ -232,7 +230,6 @@ public class WorkflowManage {
                 node.setUpNodeIdList(upNodeIds);
                 node.setChatParams(chatParams);
                 node.setHistoryChatRecords(historyChatRecords);
-                node.setSink(sink);
                 if (getNodeParams != null) {
                     JSONObject properties= node.getProperties();
                     if (properties.containsKey("nodeData")) {

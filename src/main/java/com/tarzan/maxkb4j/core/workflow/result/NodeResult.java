@@ -59,7 +59,7 @@ public class NodeResult {
                         node.getType(),
                         node.getViewType(),
                         true);
-                node.getSink().tryEmitNext(vo);
+                node.getChatParams().getSink().tryEmitNext(vo);
                 workflow.setAnswer(answer);
             }
         }

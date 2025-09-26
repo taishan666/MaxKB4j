@@ -41,7 +41,6 @@ public abstract class INode {
     public JSONObject context;
     public List<String> upNodeIdList;
     public String runtimeNodeId;
-    protected Sinks.Many<ChatMessageVO> sink;
     private List<ApplicationChatRecordEntity> historyChatRecords;
 
 

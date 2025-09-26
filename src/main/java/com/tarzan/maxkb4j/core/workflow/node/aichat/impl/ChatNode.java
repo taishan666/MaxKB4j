@@ -94,7 +94,7 @@ public class ChatNode extends INode {
                                 type,
                                 viewType,
                                 false);
-                        sink.tryEmitNext(vo);
+                        super.getChatParams().getSink().tryEmitNext(vo);
                     }
                 })
                 .onPartialResponse(content -> {
@@ -109,7 +109,7 @@ public class ChatNode extends INode {
                                 type,
                                 viewType,
                                 false);
-                        sink.tryEmitNext(vo);
+                        super.getChatParams().getSink().tryEmitNext(vo);
                     }
                 })
                 .onCompleteResponse(response -> {
@@ -130,11 +130,11 @@ public class ChatNode extends INode {
                             type,
                             viewType,
                             false);
-                    sink.tryEmitNext(vo);
+                    super.getChatParams().getSink().tryEmitNext(vo);
                     futureChatResponse.complete(response);// 完成后释放线程
                 })
                 .onError(error -> {
-                    sink.tryEmitError(error);
+                    super.getChatParams().getSink().tryEmitError(error);
                     futureChatResponse.completeExceptionally(error); // 完成后释放线程
                 })
                 .start();
