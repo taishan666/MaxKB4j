@@ -5,15 +5,19 @@ import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
 import com.mongodb.client.gridfs.model.GridFSFile;
 import com.tarzan.maxkb4j.core.workflow.domain.ChatFile;
+import com.tarzan.maxkb4j.util.IoUtil;
 import jakarta.activation.MimetypesFileTypeMap;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.gridfs.GridFsResource;
 import org.springframework.data.mongodb.gridfs.GridFsTemplate;
 import org.springframework.data.mongodb.gridfs.GridFsUpload;
+import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
@@ -22,6 +26,8 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -50,7 +56,7 @@ public class MongoFileService {
         ObjectId objectId = gridFsTemplate.store(ins, originalFilename, contentType, metadata);
         fileVO.setFileId(objectId.toString());
         fileVO.setUploadTime(new Date());
-        fileVO.setUrl("/oss/file/" + objectId);
+        fileVO.setUrl("./oss/file/" + objectId);
         return fileVO;
     }
 
@@ -67,8 +73,25 @@ public class MongoFileService {
         ObjectId objectId = gridFsTemplate.store(ins, fileName, contentType, metadata);
         fileVO.setFileId(objectId.toString());
         fileVO.setUploadTime(new Date());
-        fileVO.setUrl("/oss/file/" + objectId);
+        fileVO.setUrl("./oss/file/" + objectId);
         return fileVO;
+    }
+
+    public void getFile(String id, HttpServletResponse response){
+        try {
+            GridFSFile file = this.getById(id);
+            Document doc=file.getMetadata();
+            // 获取文件的MIME类型
+            assert doc != null;
+            String mimeType = doc.getString("_contentType");
+            response.setContentType(mimeType);
+            String encodedFileName = URLEncoder.encode(file.getFilename(), StandardCharsets.UTF_8).replace("+", "%20");
+            response.setHeader(HttpHeaders.CONTENT_DISPOSITION,
+                    "inline; filename*=UTF-8''" + encodedFileName);
+            IoUtil.copy(this.getStream(file), response.getOutputStream());
+        } catch (Exception e) {
+            log.error(e.getMessage());
+        }
     }
 
 

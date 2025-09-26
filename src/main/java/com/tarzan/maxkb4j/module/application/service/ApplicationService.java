@@ -53,6 +53,7 @@ import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.BASE;
 import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.SEARCH_KNOWLEDGE;
 
 /**
@@ -92,31 +93,31 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         }
         if (StringUtils.isNotBlank(query.getFolderId())) {
             wrapper.eq(ApplicationEntity::getFolderId, query.getFolderId());
-        }else {
+        } else {
             wrapper.eq(ApplicationEntity::getFolderId, "default");
         }
         String loginId = StpUtil.getLoginIdAsString();
         UserEntity user = userService.validUserById(loginId);
-        if (Objects.nonNull(user)){
-            if (!CollectionUtils.isEmpty(user.getRole())){
-                if (user.getRole().contains("USER")){
-                    List<String> targetIds =userResourcePermissionService.getTargetIds("APPLICATION",loginId);
-                    if (!CollectionUtils.isEmpty(targetIds)){
+        if (Objects.nonNull(user)) {
+            if (!CollectionUtils.isEmpty(user.getRole())) {
+                if (user.getRole().contains("USER")) {
+                    List<String> targetIds = userResourcePermissionService.getTargetIds("APPLICATION", loginId);
+                    if (!CollectionUtils.isEmpty(targetIds)) {
                         wrapper.in(ApplicationEntity::getId, targetIds);
-                    }else {
+                    } else {
                         wrapper.last(" limit 0");
                     }
                 }
-            }else {
+            } else {
                 wrapper.last(" limit 0");
             }
-        }else{
+        } else {
             wrapper.last(" limit 0");
         }
         wrapper.orderByDesc(ApplicationEntity::getCreateTime);
         this.page(appPage, wrapper);
-        Map<String, String> nicknameMap=userService.getNicknameMap();
-        return PageUtil.copy(appPage,app->{
+        Map<String, String> nicknameMap = userService.getNicknameMap();
+        return PageUtil.copy(appPage, app -> {
             ApplicationVO vo = BeanUtil.copy(app, ApplicationVO.class);
             vo.setNickname(nicknameMap.get(app.getUserId()));
             return vo;
@@ -277,7 +278,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         knowledgeSetting.setMaxParagraphCharNumber(5120);
         knowledgeSetting.setSearchMode(SearchType.EMBEDDING);
         knowledgeSetting.setSimilarity(0.6F);
-        knowledgeSetting.setNoReferencesSetting(new NoReferencesSetting("ai_questioning","{question}"));
+        knowledgeSetting.setNoReferencesSetting(new NoReferencesSetting("ai_questioning", "{question}"));
         return knowledgeSetting;
     }
 
@@ -304,31 +305,60 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
             return null;
         }
         ApplicationVO vo = BeanUtil.copy(entity, ApplicationVO.class);
-        List<String> knowledgeIds = knowledgeMappingService.getKnowledgeIdsByAppId(id);
+        return wrapVo(vo);
+    }
+
+    public ApplicationVO getPublishedDetail(String id) {
+        ApplicationVO vo = applicationVersionService.getAppLatestOne(id);
+        return wrapVo(vo);
+    }
+
+
+    public ApplicationVO wrapVo(ApplicationVO vo) {
+        List<String> knowledgeIds = knowledgeMappingService.getKnowledgeIdsByAppId(vo.getId());
         vo.setKnowledgeIdList(knowledgeIds);
         if (!CollectionUtils.isEmpty(vo.getKnowledgeIdList())) {
             vo.setKnowledgeList(knowledgeService.listByIds(knowledgeIds));
-            if(AppType.WORK_FLOW.name().equals(entity.getType())){
-                JSONObject workFlow=entity.getWorkFlow();
-                JSONArray nodes=workFlow.getJSONArray("nodes");
-                if (nodes != null) {
-                    for (int i = 0; i < nodes.size(); i++) {
-                        JSONObject node = nodes.getJSONObject(i);
-                        if (SEARCH_KNOWLEDGE.getKey().equals(node.getString("type"))) {
-                            JSONObject properties = node.getJSONObject("properties"); // 假设每个节点都有 id 字段
-                            if (properties != null) {
-                                JSONObject nodeData = properties.getJSONObject("nodeData");
-                                JSONArray knowledgeIdListJson=nodeData.getJSONArray("knowledgeIdList");
-                                List<String> knowledgeIdList=knowledgeIdListJson.toJavaList(String.class);
-                                List<KnowledgeEntity> knowledgeList=vo.getKnowledgeList().stream().filter(k -> knowledgeIdList.contains(k.getId())).toList();
-                                nodeData.put("knowledgeList", knowledgeList);
-                            }
+        } else {
+            vo.setKnowledgeList(new ArrayList<>());
+        }
+        if (AppType.WORK_FLOW.name().equals(vo.getType())) {
+            JSONObject workFlow = vo.getWorkFlow();
+            JSONArray nodes = workFlow.getJSONArray("nodes");
+            if (nodes != null) {
+                for (int i = 0; i < nodes.size(); i++) {
+                    JSONObject node = nodes.getJSONObject(i);
+                    if (BASE.getKey().equals(node.getString("type"))) {
+                        JSONObject baseNodeProperties = node.getJSONObject("properties"); // 假设每个节点都有 id 字段
+                        if (baseNodeProperties != null) {
+                            JSONObject nodeData = baseNodeProperties.getJSONObject("nodeData");
+                            boolean fileUploadEnable = nodeData.getBooleanValue("fileUploadEnable");
+                            vo.setFileUploadEnable(fileUploadEnable);
+                            JSONObject fileUploadSetting = nodeData.getJSONObject("fileUploadSetting");
+                            vo.setFileUploadSetting(fileUploadSetting);
+                            boolean ttsModelEnable = nodeData.getBooleanValue("ttsModelEnable");
+                            vo.setTtsModelEnable(ttsModelEnable);
+                            boolean ttsAutoplay = nodeData.getBooleanValue("ttsAutoplay");
+                            vo.setTtsAutoplay(ttsAutoplay);
+                            boolean sttModelEnable = nodeData.getBooleanValue("sttModelEnable");
+                            vo.setSttModelEnable(sttModelEnable);
+                            boolean sttAutoSend = nodeData.getBooleanValue("sttAutoSend");
+                            vo.setSttAutoSend(sttAutoSend);
+                            vo.setFileUploadSetting(fileUploadSetting);
+                        }
+                    }
+                    if (SEARCH_KNOWLEDGE.getKey().equals(node.getString("type"))) {
+                        JSONObject properties = node.getJSONObject("properties"); // 假设每个节点都有 id 字段
+                        if (properties != null) {
+                            JSONObject nodeData = properties.getJSONObject("nodeData");
+                            JSONArray knowledgeIdListJson = nodeData.getJSONArray("knowledgeIdList");
+                            List<String> knowledgeIdList = knowledgeIdListJson.toJavaList(String.class);
+                            List<KnowledgeEntity> knowledgeList = vo.getKnowledgeList().stream().filter(k -> knowledgeIdList.contains(k.getId())).toList();
+                            nodeData.put("knowledgeList", knowledgeList);
                         }
                     }
                 }
             }
-         }else {
-            vo.setKnowledgeList(new ArrayList<>());
         }
         return vo;
     }
@@ -363,20 +393,21 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     public Boolean updateAppById(String appId, ApplicationVO appVO) {
         ApplicationEntity application = BeanUtil.copy(appVO, ApplicationEntity.class);
         application.setId(appId);
-        List<String> knowledgeIds=getKnowledgeIdList(application);
-        if(!CollectionUtils.isEmpty(appVO.getKnowledgeIdList())){
+        List<String> knowledgeIds = getKnowledgeIdList(application);
+        if (!CollectionUtils.isEmpty(appVO.getKnowledgeIdList())) {
             knowledgeIds.addAll(appVO.getKnowledgeIdList());
         }
         knowledgeMappingService.updateByAppId(appId, knowledgeIds);
         return this.updateById(application);
     }
+
     private List<String> getKnowledgeIdList(ApplicationEntity entity) {
         List<String> knowledgeIds = new ArrayList<>();
         if (entity == null || entity.getWorkFlow() == null) {
             return knowledgeIds;
         }
-        JSONObject workFlow=entity.getWorkFlow();
-        JSONArray nodes=workFlow.getJSONArray("nodes");
+        JSONObject workFlow = entity.getWorkFlow();
+        JSONArray nodes = workFlow.getJSONArray("nodes");
         if (nodes == null) {
             return knowledgeIds;
         }
@@ -391,7 +422,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
                 if (nodeData == null) {
                     return knowledgeIds;
                 }
-                JSONArray knowledgeIdList=nodeData.getJSONArray("knowledgeIdList");
+                JSONArray knowledgeIdList = nodeData.getJSONArray("knowledgeIdList");
                 knowledgeIds.addAll(knowledgeIdList.toJavaList(String.class));
             }
         }

@@ -5,14 +5,9 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationVersionEntity;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationVO;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationVersionMapper;
-import com.tarzan.maxkb4j.module.knowledge.service.KnowledgeService;
 import com.tarzan.maxkb4j.util.BeanUtil;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author tarzan
@@ -22,9 +17,7 @@ import java.util.List;
 @Service
 public class ApplicationVersionService extends ServiceImpl<ApplicationVersionMapper, ApplicationVersionEntity>{
 
-    private final ApplicationKnowledgeMappingService knowledgeMappingService;
-    private final KnowledgeService datasetService;
-    public ApplicationVO getDetail(String appId) {
+    public ApplicationVO getAppLatestOne(String appId) {
         LambdaQueryWrapper<ApplicationVersionEntity> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(ApplicationVersionEntity::getApplicationId, appId);
         wrapper.last("limit 1");
@@ -35,13 +28,6 @@ public class ApplicationVersionService extends ServiceImpl<ApplicationVersionMap
         }
         ApplicationVO vo = BeanUtil.copy(entity, ApplicationVO.class);
         vo.setId(entity.getApplicationId());
-        List<String> knowledgeIds = knowledgeMappingService.getKnowledgeIdsByAppId(appId);
-        vo.setKnowledgeIdList(knowledgeIds);
-        if (!CollectionUtils.isEmpty(vo.getKnowledgeIdList())) {
-            vo.setKnowledgeList(datasetService.listByIds(knowledgeIds));
-        }else {
-            vo.setKnowledgeList(new ArrayList<>());
-        }
         return vo;
     }
 }

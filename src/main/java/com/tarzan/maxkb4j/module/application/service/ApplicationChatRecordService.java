@@ -167,4 +167,5 @@ public class ApplicationChatRecordService extends ServiceImpl<ApplicationChatRec
         }
         return 0;
     }
+
 }

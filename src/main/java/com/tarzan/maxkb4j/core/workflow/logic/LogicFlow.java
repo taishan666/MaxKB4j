@@ -10,6 +10,8 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.List;
 import java.util.Objects;
 
+import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.START;
+
 @Slf4j
 @Data
 public class LogicFlow {
@@ -29,12 +31,9 @@ public class LogicFlow {
     }
 
     public LfNode getStartNode(){
-        return this.nodes.stream().filter(node -> node.getId().equals("start-node")).findFirst().orElse(null);
+        return this.nodes.stream().filter(node -> node.getId().equals(START.getKey())).findFirst().orElse(null);
     }
 
-    public LfNode getSearchNode(){
-        return this.nodes.stream().filter(node -> node.getId().equals("search-knowledge-node")).findFirst().orElse(null);
-    }
     public void isValidNode(LfNode node){
          //todo
     }

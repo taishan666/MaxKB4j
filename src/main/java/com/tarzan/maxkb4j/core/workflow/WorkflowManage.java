@@ -68,7 +68,7 @@ public class WorkflowManage {
                 .toList();
         for (JSONObject nodeDetail : sortedDetails) {
             String nodeId = nodeDetail.getString("node_id");
-            List<String> lastNodeIdList = nodeDetail.getJSONArray("up_node_id_list").toJavaList(String.class);
+            List<String> lastNodeIdList = nodeDetail.getJSONArray("upNodeIdList").toJavaList(String.class);
             if (nodeDetail.getString("runtimeNodeId").equals(startNodeId)) {
                 nodeDetail.put("form_data", startNodeData);
                 // 处理起始节点
@@ -142,7 +142,7 @@ public class WorkflowManage {
 
 
     public INode getStartNode() {
-        return this.nodes.parallelStream().filter(node -> node.getType().equals("start-node")).findFirst().orElse(null);
+        return getNodeClsById(START.getKey(), List.of(), null);
     }
 
 /*    public INode getBaseNode() {
@@ -351,7 +351,7 @@ public class WorkflowManage {
             INode node = nodeContext.get(index);
             JSONObject details= node.getDetail(index);
             details.put("node_id", node.getId());
-            details.put("up_node_id_list", node.getUpNodeIdList());
+            details.put("upNodeIdList", node.getUpNodeIdList());
             details.put("runtimeNodeId", node.getRuntimeNodeId());
             detailsResult.put(node.getRuntimeNodeId(), details);
         }
@@ -371,12 +371,10 @@ public class WorkflowManage {
 
     public NodeResultFuture runNodeFuture(INode node) {
         try {
-            //node.setWorkflowManage(this);
             NodeResult result = node.run();
             return new NodeResultFuture(result, null, 200);
         } catch (Exception ex) {
-            log.error(node.getType());
-            log.error(ex.getMessage());
+            log.error("{} ERROR :{}",node.getType(),ex.getMessage());
             return new NodeResultFuture(null, ex, 500);
         }
     }

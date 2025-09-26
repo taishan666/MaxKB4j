@@ -4,6 +4,7 @@ import cn.dev33.satoken.stp.SaLoginModel;
 import cn.dev33.satoken.stp.StpUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.tarzan.maxkb4j.constant.AppConst;
@@ -51,7 +52,7 @@ public class ChatApiController {
     public R<ApplicationEntity> appProfile() {
         String appId = (String) StpUtil.getExtra("application_id");
         ApplicationAccessTokenEntity appAccessToken = accessTokenService.getById(appId);
-        ApplicationVO application = applicationService.getDetail(appId);
+        ApplicationVO application = applicationService.getPublishedDetail(appId);
         if (appAccessToken != null) {
             application.setLanguage(appAccessToken.getLanguage());
             application.setShowSource(appAccessToken.getShowSource());
@@ -137,13 +138,13 @@ public class ChatApiController {
 
 
     @GetMapping("/historical_conversation_record/{chatId}/{current}/{size}")
-    public R<Page<ApplicationChatRecordEntity>> historicalConversationRecord(@PathVariable String chatId, @PathVariable int current, @PathVariable int size) {
-        Page<ApplicationChatRecordEntity> page = new Page<>(current, size);
-        return R.success(chatRecordService.page(page, Wrappers.<ApplicationChatRecordEntity>lambdaQuery().eq(ApplicationChatRecordEntity::getChatId, chatId)));
+    public R<IPage<ApplicationChatRecordVO>> historicalConversationRecord(@PathVariable String chatId, @PathVariable int current, @PathVariable int size) {
+        return R.success(chatRecordService.chatRecordPage(chatId, current,size));
     }
 
     @PutMapping("/vote/chat/{chatId}/chat_record/{chatRecordId}")
     public R<Boolean> updateConversation(@PathVariable String chatId, @PathVariable String chatRecordId, @RequestBody ApplicationChatRecordEntity chatRecord) {
+        chatRecord.setChatId(chatId);
         chatRecord.setId(chatRecordId);
         return R.success(chatRecordService.updateById(chatRecord));
     }

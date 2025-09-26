@@ -66,7 +66,7 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
     }
 
     public String chatOpen(String appId, String chatId) {
-        ApplicationVO application = applicationVersionService.getDetail(appId);
+        ApplicationVO application = applicationService.getPublishedDetail(appId);
         if (application==null){
             throw  new ApiException("应用未发布，请发布后使用。");
         }

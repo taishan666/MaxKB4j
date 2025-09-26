@@ -1,15 +1,10 @@
 package com.tarzan.maxkb4j.module.oss.controller;
 
-import com.mongodb.client.gridfs.model.GridFSFile;
 import com.tarzan.maxkb4j.core.api.R;
 import com.tarzan.maxkb4j.core.workflow.domain.ChatFile;
 import com.tarzan.maxkb4j.module.oss.service.MongoFileService;
-import com.tarzan.maxkb4j.util.IoUtil;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.bson.Document;
-import org.springframework.http.HttpHeaders;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -17,14 +12,11 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 
 /**
  * @author tarzan
  * @date 2025-01-21 09:34:51
  */
-@Slf4j
 @RestController
 @AllArgsConstructor
 public class FileController{
@@ -41,28 +33,22 @@ public class FileController{
 	}*/
 
 
-	@PostMapping(value = "/admin/api/oss/file")
-	public R<String> uploadFile(MultipartFile file) throws IOException {
+	@PostMapping(value = "/{prefix}/api/oss/file")
+	public R<String> uploadFile(@PathVariable("prefix") String prefix, MultipartFile file) throws IOException {
 		ChatFile chatFile=mongoFileService.uploadFile(file);
 		return R.success(chatFile.getUrl());
 	}
 
-	@GetMapping(value = "/oss/file/{id}")
-	public void getFile(@PathVariable("id") String id, HttpServletResponse response){
-		System.out.println("getFile");
-		try {
-			GridFSFile file = mongoFileService.getById(id);
-			Document doc=file.getMetadata();
-			// 获取文件的MIME类型
-			assert doc != null;
-			String mimeType = doc.getString("_contentType");
-			response.setContentType(mimeType);
-			String encodedFileName = URLEncoder.encode(file.getFilename(), StandardCharsets.UTF_8).replace("+", "%20");
-			response.setHeader(HttpHeaders.CONTENT_DISPOSITION,
-					"inline; filename*=UTF-8''" + encodedFileName);
-			IoUtil.copy(mongoFileService.getStream(file), response.getOutputStream());
-		} catch (Exception e) {
-			log.error(e.getMessage());
-		}
+
+	@GetMapping(value = "admin/application/workspace/{appId}/oss/file/{id}")
+	public void getAppFile(@PathVariable("appId") String appId, @PathVariable("id") String id, HttpServletResponse response){
+		mongoFileService.getFile(id, response);
 	}
+
+	@GetMapping(value = "/{prefix}/oss/file/{id}")
+	public void getFile(@PathVariable String prefix,@PathVariable("id") String id, HttpServletResponse response){
+		mongoFileService.getFile(id, response);
+	}
+
+
 }

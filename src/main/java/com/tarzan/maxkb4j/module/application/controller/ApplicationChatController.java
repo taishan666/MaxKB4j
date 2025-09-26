@@ -10,6 +10,7 @@ import com.tarzan.maxkb4j.module.application.service.ApplicationChatService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -24,6 +25,7 @@ import java.util.List;
 @RestController
 @AllArgsConstructor
 @RequestMapping(AppConst.ADMIN_API+"/workspace/default/application")
+@Slf4j
 public class ApplicationChatController {
 
     private final ApplicationChatService chatService;
