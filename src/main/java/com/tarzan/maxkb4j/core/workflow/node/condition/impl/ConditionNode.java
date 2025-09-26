@@ -2,7 +2,7 @@ package com.tarzan.maxkb4j.core.workflow.node.condition.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.workflow.INode;
-import com.tarzan.maxkb4j.core.workflow.NodeResult;
+import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
 import com.tarzan.maxkb4j.core.workflow.node.condition.compare.Compare;
 import com.tarzan.maxkb4j.core.workflow.node.condition.compare.impl.*;
 import com.tarzan.maxkb4j.core.workflow.node.condition.input.Condition;
@@ -79,7 +79,7 @@ public class ConditionNode extends INode {
 
     // Method to perform assertions on fields.
     private boolean assertion(List<String> fieldList, String compare, String valueToCompare) {
-        Object fieldValue = super.workflowManage.getReferenceField(fieldList.get(0),fieldList.get(1));
+        Object fieldValue = super.getReferenceField(fieldList.get(0),fieldList.get(1));
         for (Compare compareHandler : compareHandleList) {
             if(compareHandler.support(compare)){
                 return compareHandler.compare(fieldValue, valueToCompare);

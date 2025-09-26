@@ -2,7 +2,7 @@ package com.tarzan.maxkb4j.core.workflow.node.directreply.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.workflow.INode;
-import com.tarzan.maxkb4j.core.workflow.NodeResult;
+import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
 import com.tarzan.maxkb4j.core.workflow.node.directreply.input.ReplyNodeParams;
 
 import java.util.List;
@@ -20,25 +20,23 @@ public class DirectReplyNode extends INode {
 
     @Override
     public NodeResult execute() {
-        ReplyNodeParams nodeParams= super.getNodeData().toJavaObject(ReplyNodeParams.class);
+        ReplyNodeParams nodeParams = super.getNodeData().toJavaObject(ReplyNodeParams.class);
         String result;
-        if ("referencing".equals(nodeParams.getReplyType())){
-            result=getReferenceContent(nodeParams.getFields());
-        }else {
-            result=this.workflowManage.generatePrompt(nodeParams.getContent());
+        if ("referencing".equals(nodeParams.getReplyType())) {
+            List<String> fields = nodeParams.getFields();
+            Object res = super.getReferenceField(fields.get(0), fields.get(1));
+            result = res == null ? "" : res.toString();
+        } else {
+            result = super.generatePrompt(nodeParams.getContent());
         }
-        return new NodeResult(Map.of("answer",result),Map.of());
+        return new NodeResult(Map.of("answer", result), Map.of());
     }
 
-    private String getReferenceContent(List<String> fields){
-        Object res=this.workflowManage.getReferenceField(fields.get(0),fields.get(1));
-        return res==null?"":res.toString();
-    }
 
     @Override
     public JSONObject getDetail() {
         JSONObject detail = new JSONObject();
-        detail.put("answer",context.get("answer"));
+        detail.put("answer", context.get("answer"));
         return detail;
     }
 

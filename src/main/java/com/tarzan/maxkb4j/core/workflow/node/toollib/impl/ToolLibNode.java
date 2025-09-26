@@ -2,7 +2,7 @@ package com.tarzan.maxkb4j.core.workflow.node.toollib.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.workflow.INode;
-import com.tarzan.maxkb4j.core.workflow.NodeResult;
+import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
 import com.tarzan.maxkb4j.core.workflow.node.toollib.input.ToolLibNodeParams;
 import com.tarzan.maxkb4j.module.tool.domain.dto.ToolInputField;
 import groovy.lang.Binding;
@@ -35,7 +35,7 @@ public class ToolLibNode extends INode {
                     if (value instanceof List) {
                         @SuppressWarnings("unchecked")
                         List<String> fields = ( List<String>)value;
-                        value = workflowManage.getReferenceField(fields.get(0), fields.get(1));
+                        value = super.getReferenceField(fields.get(0), fields.get(1));
                     }
                 }
                 params.put(inputField.getName(), value);

@@ -3,7 +3,7 @@ package com.tarzan.maxkb4j.core.workflow.node.documentextract.impl;
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.common.util.SpringUtil;
 import com.tarzan.maxkb4j.core.workflow.INode;
-import com.tarzan.maxkb4j.core.workflow.NodeResult;
+import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
 import com.tarzan.maxkb4j.core.workflow.model.ChatFile;
 import com.tarzan.maxkb4j.core.workflow.node.documentextract.input.DocumentExtractParams;
 import com.tarzan.maxkb4j.module.oss.service.MongoFileService;
@@ -45,7 +45,7 @@ public class DocumentExtractNode extends INode {
         // 假设我们有一个 Supplier<ContentHandler>
         DocumentExtractParams nodeParams=super.getNodeData().toJavaObject(DocumentExtractParams.class);
         List<String> documentList=nodeParams.getDocumentList();
-        Object res=super.getWorkflowManage().getReferenceField(documentList.get(0),documentList.get(1));
+        Object res=super.getReferenceField(documentList.get(0),documentList.get(1));
         @SuppressWarnings("unchecked")
         List<ChatFile> documents= (List<ChatFile>) res;
         StringBuilder sb=new StringBuilder();

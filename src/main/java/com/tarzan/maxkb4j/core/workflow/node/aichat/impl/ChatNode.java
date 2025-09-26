@@ -5,7 +5,7 @@ import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.tarzan.maxkb4j.core.assistant.Assistant;
 import com.tarzan.maxkb4j.core.langchain4j.AppChatMemory;
 import com.tarzan.maxkb4j.core.workflow.INode;
-import com.tarzan.maxkb4j.core.workflow.NodeResult;
+import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
 import com.tarzan.maxkb4j.core.workflow.WorkflowManage;
 import com.tarzan.maxkb4j.core.workflow.node.aichat.input.ChatNodeParams;
 import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
@@ -39,7 +39,7 @@ public class ChatNode extends INode {
 
     public ChatNode(JSONObject properties) {
         super(properties);
-        this.type = AI_CHAT.getKey();
+        super.type = AI_CHAT.getKey();
         this.modelService = SpringUtil.getBean(ModelService.class);
         this.toolUtil = SpringUtil.getBean(ToolUtil.class);
         this.aiServicesBuilder = AiServices.builder(Assistant.class);
@@ -50,8 +50,8 @@ public class ChatNode extends INode {
     public NodeResult execute() throws Exception {
         ChatNodeParams nodeParams = super.getNodeData().toJavaObject(ChatNodeParams.class);
         BaseChatModel chatModel = modelService.getModelById(nodeParams.getModelId(), nodeParams.getModelParamsSetting());
-        String problemText = workflowManage.generatePrompt(nodeParams.getPrompt());
-        String systemPrompt= workflowManage.generatePrompt(nodeParams.getSystem());
+        String problemText = super.generatePrompt(nodeParams.getPrompt());
+        String systemPrompt= super.generatePrompt(nodeParams.getSystem());
         List<String> toolIds = new ArrayList<>();
         if (CollectionUtils.isNotEmpty(nodeParams.getToolIds()) && nodeParams.getToolEnable()) {
             toolIds.addAll(nodeParams.getToolIds());
@@ -59,7 +59,7 @@ public class ChatNode extends INode {
         if (StringUtil.isNotBlank(nodeParams.getMcpToolId()) && nodeParams.getMcpEnable()) {
             toolIds.add(nodeParams.getMcpToolId());
         }
-        List<ChatMessage> historyMessages=workflowManage.getHistoryMessages(nodeParams.getDialogueNumber(), nodeParams.getDialogueType(), runtimeNodeId);
+        List<ChatMessage> historyMessages=super.getHistoryMessages(nodeParams.getDialogueNumber(), nodeParams.getDialogueType(), runtimeNodeId);
         if (StringUtil.isNotBlank(systemPrompt)){
             aiServicesBuilder.systemMessageProvider(chatMemoryId -> systemPrompt);
         }
@@ -85,8 +85,8 @@ public class ChatNode extends INode {
         tokenStream.onPartialThinking(thinking -> {
                     if (isResult&&reasoningContentEnable) {
                         ChatMessageVO vo = new ChatMessageVO(
-                                workflowManage.getChatParams().getChatId(),
-                                workflowManage.getChatParams().getChatRecordId(),
+                                getChatParams().getChatId(),
+                                getChatParams().getChatRecordId(),
                                 this.getId(),
                                 "",
                                 thinking.text(),
@@ -94,14 +94,14 @@ public class ChatNode extends INode {
                                 type,
                                 viewType,
                                 false);
-                        workflowManage.getSink().tryEmitNext(vo);
+                        sink.tryEmitNext(vo);
                     }
                 })
                 .onPartialResponse(content -> {
                     if (isResult) {
                         ChatMessageVO vo = new ChatMessageVO(
-                                workflowManage.getChatParams().getChatId(),
-                                workflowManage.getChatParams().getChatRecordId(),
+                                getChatParams().getChatId(),
+                                getChatParams().getChatRecordId(),
                                 id,
                                 content,
                                 "",
@@ -109,7 +109,7 @@ public class ChatNode extends INode {
                                 type,
                                 viewType,
                                 false);
-                        workflowManage.getSink().tryEmitNext(vo);
+                        sink.tryEmitNext(vo);
                     }
                 })
                 .onCompleteResponse(response -> {
@@ -121,20 +121,20 @@ public class ChatNode extends INode {
                     nodeVariable.put("answer", answer);
                     nodeVariable.put("reasoningContent", thinking);
                     ChatMessageVO vo = new ChatMessageVO(
-                            workflowManage.getChatParams().getChatId(),
-                            workflowManage.getChatParams().getChatRecordId(),
-                            "ai-chat-node",
+                            getChatParams().getChatId(),
+                            getChatParams().getChatRecordId(),
+                            type,
                             "",
                             "",
                             runtimeNodeId,
                             type,
                             viewType,
                             false);
-                    workflowManage.getSink().tryEmitNext(vo);
+                    sink.tryEmitNext(vo);
                     futureChatResponse.complete(response);// 完成后释放线程
                 })
                 .onError(error -> {
-                    workflowManage.getSink().tryEmitError(error);
+                    sink.tryEmitError(error);
                     futureChatResponse.completeExceptionally(error); // 完成后释放线程
                 })
                 .start();

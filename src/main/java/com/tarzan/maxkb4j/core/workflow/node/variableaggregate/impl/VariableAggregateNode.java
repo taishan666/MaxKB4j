@@ -2,7 +2,7 @@ package com.tarzan.maxkb4j.core.workflow.node.variableaggregate.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.workflow.INode;
-import com.tarzan.maxkb4j.core.workflow.NodeResult;
+import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
 import com.tarzan.maxkb4j.core.workflow.node.variableaggregate.input.VariableAggregateParams;
 
 import java.util.ArrayList;
@@ -41,7 +41,7 @@ public class VariableAggregateNode extends INode {
         String firstField = fields.get(0);
         String remainingFields = fields.get(1);
         // 将结果转换为字符串
-        return workflowManage.getReferenceField(firstField, remainingFields);
+        return super.getReferenceField(firstField, remainingFields);
     }
 
     @Override

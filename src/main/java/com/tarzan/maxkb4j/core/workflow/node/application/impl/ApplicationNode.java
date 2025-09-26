@@ -1,13 +1,12 @@
 package com.tarzan.maxkb4j.core.workflow.node.application.impl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.tarzan.maxkb4j.common.util.SpringUtil;
 import com.tarzan.maxkb4j.core.workflow.INode;
-import com.tarzan.maxkb4j.core.workflow.NodeResult;
-import com.tarzan.maxkb4j.core.workflow.WorkflowManage;
 import com.tarzan.maxkb4j.core.workflow.node.application.input.ApplicationNodeParams;
+import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
 import com.tarzan.maxkb4j.module.application.service.ApplicationChatService;
 import com.tarzan.maxkb4j.module.chat.ChatParams;
-import com.tarzan.maxkb4j.common.util.SpringUtil;
 
 import java.util.List;
 import java.util.Map;
@@ -27,15 +26,14 @@ public class ApplicationNode extends INode {
     @Override
     public NodeResult execute() {
         ApplicationNodeParams nodeParams= super.getNodeData().toJavaObject(ApplicationNodeParams.class);
-        WorkflowManage workflowManage=super.getWorkflowManage();
         String chatId=chatService.chatOpen(nodeParams.getApplicationId(),runtimeNodeId);
         List<String> questionFields=nodeParams.getQuestionReferenceAddress();
-        String question= (String)workflowManage.getReferenceField(questionFields.get(0),questionFields.get(1));
+        String question= (String)super.getReferenceField(questionFields.get(0),questionFields.get(1));
         ChatParams chatParams = ChatParams.builder()
                 .message(question)
                 .chatId(chatId)
                 .userId("")
-                .sink(workflowManage.getSink())
+                .sink(sink)
                 .reChat(false).build();
         String answer=chatService.chatMessage(chatParams,true);
         return new NodeResult(Map.of(

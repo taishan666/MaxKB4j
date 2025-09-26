@@ -2,7 +2,7 @@ package com.tarzan.maxkb4j.core.workflow.node.formcollect.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.workflow.INode;
-import com.tarzan.maxkb4j.core.workflow.NodeResult;
+import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
 import com.tarzan.maxkb4j.core.workflow.node.formcollect.input.FormNodeParams;
 import dev.langchain4j.model.input.PromptTemplate;
 
@@ -36,7 +36,7 @@ public class FormNode extends INode {
             JSONObject formSetting = new JSONObject();
             formSetting.put("form_field_list", formFieldList);
             formSetting.put("runtimeNodeId", super.getRuntimeNodeId());
-            formSetting.put("chatRecordId", workflowManage.getChatParams().getChatRecordId());
+            formSetting.put("chatRecordId", super.getChatParams().getChatRecordId());
             formSetting.put("is_submit", context.getOrDefault("is_submit", false));
             String form = "<form_render>" + formSetting + "</form_render>";
             // Get workflow content and reset prompt todo (如果表单里有变量)
@@ -49,23 +49,6 @@ public class FormNode extends INode {
                     "form_content_format", formContentFormat), Map.of());
         }
     }
-
-/*    @Override
-    public List<Answer> getAnswerList() {
-        String formContentFormat = (String) context.get("form_content_format");
-        JSONObject formSetting = new JSONObject();
-        formSetting.put("form_field_list", context.get("form_field_list"));
-        formSetting.put("runtimeNodeId", super.getRuntimeNodeId());
-        formSetting.put("chatRecordId", super.getFlowParams().getChatRecordId());
-        formSetting.put("is_submit", context.getOrDefault("is_submit", false));
-        String form = "<form_render>" + formSetting + "</form_render>";
-        String updatedFormContentFormat = workflowManage.resetPrompt(formContentFormat);
-        PromptTemplate promptTemplate = PromptTemplate.from(updatedFormContentFormat);
-        String value = promptTemplate.apply(Map.of("form", form)).text();
-        Answer answer = new Answer(value, this.getViewType(), this.runtimeNodeId,
-                this.getFlowParams().getChatRecordId(), new HashMap<>());
-        return Collections.singletonList(answer);
-    }*/
 
     @Override
     public JSONObject getDetail() {

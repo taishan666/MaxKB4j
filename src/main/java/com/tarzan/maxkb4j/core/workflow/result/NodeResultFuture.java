@@ -1,4 +1,4 @@
-package com.tarzan.maxkb4j.core.workflow;
+package com.tarzan.maxkb4j.core.workflow.result;
 
 import lombok.Data;
 

@@ -2,7 +2,7 @@ package com.tarzan.maxkb4j.core.workflow.node.variableassign.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.workflow.INode;
-import com.tarzan.maxkb4j.core.workflow.NodeResult;
+import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
 import com.tarzan.maxkb4j.core.workflow.node.variableassign.input.VariableAssignParams;
 
 import java.util.*;
@@ -24,27 +24,27 @@ public class VariableAssignNode extends INode {
             if (!variable.containsKey("fields")) {
                 continue;
             }
-
+            @SuppressWarnings("unchecked")
             List<String> fields = (List<String>) variable.get("fields");
             if ("global".equals(fields.get(0))) {
                 Map<String, Object> result = new HashMap<>();
                 result.put("name", variable.get("name"));
-                result.put("input_value", getReferenceContent((List<String>) variable.get("fields")));
+                result.put("input_value", getReferenceContent(fields));
 
                 String source = (String) variable.get("source");
                 if ("custom".equals(source)) {
                     String type = (String) variable.get("type");
                     if (Arrays.asList("dict", "array").contains(type)) {
                         Object value = variable.get("value");
-                        workflowManage.getContext().put(fields.get(1), value);
+                        super.getGlobalVariable().put(fields.get(1), value);
                         result.put("output_value", variable.put("value", value));
                     } else {
-                        workflowManage.getContext().put(fields.get(1), variable.get("value"));
+                        super.getGlobalVariable().put(fields.get(1), variable.get("value"));
                         result.put("output_value", variable.get("value"));
                     }
                 } else {
                     Object reference = getReferenceContent((List<String>) variable.get("reference"));
-                    workflowManage.getContext().put(fields.get(1), reference);
+                    super.getGlobalVariable().put(fields.get(1), reference);
                     result.put("output_value", reference);
                 }
                 resultList.add(result);
@@ -63,7 +63,7 @@ public class VariableAssignNode extends INode {
         String remainingFields = fields.get(1);
 
         // 调用 workflowManage 的 getReferenceField 方法
-        Object result = workflowManage.getReferenceField(firstField, remainingFields);
+        Object result = super.getReferenceField(firstField, remainingFields);
 
         // 将结果转换为字符串
         return String.valueOf(result);

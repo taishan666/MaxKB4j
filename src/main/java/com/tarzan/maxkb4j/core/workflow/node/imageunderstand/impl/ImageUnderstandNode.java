@@ -7,7 +7,7 @@ import com.tarzan.maxkb4j.common.util.StringUtil;
 import com.tarzan.maxkb4j.core.assistant.Assistant;
 import com.tarzan.maxkb4j.core.langchain4j.AppChatMemory;
 import com.tarzan.maxkb4j.core.workflow.INode;
-import com.tarzan.maxkb4j.core.workflow.NodeResult;
+import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
 import com.tarzan.maxkb4j.core.workflow.WorkflowManage;
 import com.tarzan.maxkb4j.core.workflow.model.ChatFile;
 import com.tarzan.maxkb4j.core.workflow.node.imageunderstand.input.ImageUnderstandParams;
@@ -55,13 +55,13 @@ public class ImageUnderstandNode extends INode {
     public NodeResult execute() {
         ImageUnderstandParams nodeParams=super.getNodeData().toJavaObject(ImageUnderstandParams.class);
         List<String> imageList = nodeParams.getImageList();
-        Object object = workflowManage.getReferenceField(imageList.get(0), imageList.get(1));
+        Object object = super.getReferenceField(imageList.get(0), imageList.get(1));
         @SuppressWarnings("unchecked")
         List<ChatFile> ImageFiles = (List<ChatFile>) object;
         BaseChatModel chatModel = modelService.getModelById(nodeParams.getModelId(), nodeParams.getModelParamsSetting());
-        String question =  workflowManage.generatePrompt(nodeParams.getPrompt());
-        String systemPrompt =workflowManage.generatePrompt(nodeParams.getSystem());
-        List<ChatMessage> historyMessages=workflowManage.getHistoryMessages(nodeParams.getDialogueNumber(), nodeParams.getDialogueType(), runtimeNodeId);
+        String question =  super.generatePrompt(nodeParams.getPrompt());
+        String systemPrompt =super.generatePrompt(nodeParams.getSystem());
+        List<ChatMessage> historyMessages=super.getHistoryMessages(nodeParams.getDialogueNumber(), nodeParams.getDialogueType(), runtimeNodeId);
         List<Content> contents=new ArrayList<>();
         contents.add(TextContent.from(question));
         for (ChatFile file : ImageFiles) {
@@ -91,8 +91,8 @@ public class ImageUnderstandNode extends INode {
         tokenStream.onPartialResponse(content -> {
                     if (isResult) {
                         ChatMessageVO vo = new ChatMessageVO(
-                                workflowManage.getChatParams().getChatId(),
-                                workflowManage.getChatParams().getChatRecordId(),
+                                getChatParams().getChatId(),
+                                getChatParams().getChatRecordId(),
                                 id,
                                 content,
                                 "",
@@ -100,7 +100,7 @@ public class ImageUnderstandNode extends INode {
                                 type,
                                 viewType,
                                 false);
-                        workflowManage.getSink().tryEmitNext(vo);
+                        sink.tryEmitNext(vo);
                     }
                 })
                 .onCompleteResponse(response -> {
@@ -110,8 +110,8 @@ public class ImageUnderstandNode extends INode {
                     nodeVariable.put("answerTokens", tokenUsage.outputTokenCount());
                     nodeVariable.put("answer", answer);
                     ChatMessageVO vo = new ChatMessageVO(
-                            workflowManage.getChatParams().getChatId(),
-                            workflowManage.getChatParams().getChatRecordId(),
+                            getChatParams().getChatId(),
+                            getChatParams().getChatRecordId(),
                             id,
                             "",
                             "",
@@ -119,11 +119,11 @@ public class ImageUnderstandNode extends INode {
                             type,
                             viewType,
                             false);
-                    workflowManage.getSink().tryEmitNext(vo);
+                    sink.tryEmitNext(vo);
                     futureChatResponse.complete(response);// 完成后释放线程
                 })
                 .onError(error -> {
-                    workflowManage.getSink().tryEmitError(error);
+                    sink.tryEmitError(error);
                     futureChatResponse.completeExceptionally(error); // 完成后释放线程
                 })
                 .start();

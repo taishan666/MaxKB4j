@@ -2,7 +2,7 @@ package com.tarzan.maxkb4j.core.workflow.node.reranker.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.workflow.INode;
-import com.tarzan.maxkb4j.core.workflow.NodeResult;
+import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
 import com.tarzan.maxkb4j.core.workflow.node.reranker.input.RerankerParams;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.ParagraphVO;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
@@ -31,7 +31,7 @@ public class RerankerNode extends INode {
     public NodeResult execute() {
         RerankerParams nodeParams= super.getNodeData().toJavaObject(RerankerParams.class);
         List<String> questionReferenceAddress=nodeParams.getQuestionReferenceAddress();
-        Object question = super.getWorkflowManage().getReferenceField(questionReferenceAddress.get(0), questionReferenceAddress.get(1));
+        Object question = super.getReferenceField(questionReferenceAddress.get(0), questionReferenceAddress.get(1));
         List<List<String>> rerankerReferenceList=nodeParams.getRerankerReferenceList();
         List<Object>  rerankerList = getRerankerList(rerankerReferenceList);
        // 合并重排序器列表
@@ -85,7 +85,7 @@ public class RerankerNode extends INode {
                     // 调用 workflowManage 的方法获取 reference_field
                     // 第一个元素
                     // 剩余部分
-                    return workflowManage.getReferenceField(
+                    return super.getReferenceField(
                             reference.get(0), // 第一个元素
                             reference.get(1)// 剩余部分
                     );

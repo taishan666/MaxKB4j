@@ -1,6 +1,7 @@
-package com.tarzan.maxkb4j.core.workflow;
+package com.tarzan.maxkb4j.core.workflow.factory;
 
 import com.alibaba.fastjson.JSONObject;
+import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.enums.NodeType;
 import com.tarzan.maxkb4j.core.workflow.logic.LfNode;
 import com.tarzan.maxkb4j.core.workflow.node.aichat.impl.ChatNode;
@@ -27,7 +28,7 @@ import java.util.Objects;
 
 public class NodeFactory {
 
-    private static INode getNode(String type,JSONObject properties) {
+    private static INode getNode(String type, JSONObject properties) {
         NodeType nodeType = NodeType.getByKey(type);
         if (nodeType == null) {
             throw new IllegalStateException("不支持的节点类型: " + type);

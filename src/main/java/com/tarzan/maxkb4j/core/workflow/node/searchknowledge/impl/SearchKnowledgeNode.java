@@ -2,7 +2,7 @@ package com.tarzan.maxkb4j.core.workflow.node.searchknowledge.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.workflow.INode;
-import com.tarzan.maxkb4j.core.workflow.NodeResult;
+import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
 import com.tarzan.maxkb4j.core.workflow.node.searchknowledge.input.SearchKnowledgeNodeParams;
 import com.tarzan.maxkb4j.module.application.domian.entity.KnowledgeSetting;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.ParagraphVO;
@@ -33,7 +33,7 @@ public class SearchKnowledgeNode extends INode {
         SearchKnowledgeNodeParams nodeParams=super.getNodeData().toJavaObject(SearchKnowledgeNodeParams.class);
         KnowledgeSetting knowledgeSetting=nodeParams.getKnowledgeSetting();
         List<String> fields=nodeParams.getQuestionReferenceAddress();
-        String question= (String)workflowManage.getReferenceField(fields.get(0),fields.get(1));
+        String question= (String)super.getReferenceField(fields.get(0),fields.get(1));
         List<ParagraphVO> paragraphList= retrieveService.paragraphSearch(question,nodeParams.getKnowledgeIdList(), Collections.emptyList(),knowledgeSetting);
         List<ParagraphVO> isHitHandlingMethodList=paragraphList.stream().filter(ParagraphVO::isHitHandlingMethod).toList();
         Map<String, Object> nodeVariable = Map.of(

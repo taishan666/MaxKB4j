@@ -2,7 +2,7 @@ package com.tarzan.maxkb4j.core.workflow.node.mcp.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.workflow.INode;
-import com.tarzan.maxkb4j.core.workflow.NodeResult;
+import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
 import com.tarzan.maxkb4j.core.workflow.node.mcp.input.McpParams;
 import dev.langchain4j.agent.tool.ToolExecutionRequest;
 import dev.langchain4j.agent.tool.ToolSpecification;
@@ -42,7 +42,7 @@ public class McpNode extends INode {
             if (value instanceof List){
                 @SuppressWarnings("unchecked")
                 List<String> fields=(List<String>)value;
-                value=workflowManage.getReferenceField(fields.get(0),fields.get(1));
+                value=super.getReferenceField(fields.get(0),fields.get(1));
             }
             params.put(k,value);
         });

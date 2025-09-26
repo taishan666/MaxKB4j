@@ -2,7 +2,7 @@ package com.tarzan.maxkb4j.core.workflow.node.texttospeech.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.workflow.INode;
-import com.tarzan.maxkb4j.core.workflow.NodeResult;
+import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
 import com.tarzan.maxkb4j.core.workflow.model.ChatFile;
 import com.tarzan.maxkb4j.core.workflow.node.texttospeech.input.TextToSpeechParams;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
@@ -32,7 +32,7 @@ public class TextToSpeechNode extends INode {
     public NodeResult execute() {
         TextToSpeechParams nodeParams=super.getNodeData().toJavaObject(TextToSpeechParams.class);
         List<String> contentList=nodeParams.getContentList();
-        Object content=super.getWorkflowManage().getReferenceField(contentList.get(0),contentList.get(1));
+        Object content=super.getReferenceField(contentList.get(0),contentList.get(1));
         BaseTextToSpeech ttsModel = modelService.getModelById(nodeParams.getTtsModelId(), nodeParams.getModelParamsSetting());
         byte[]  audioData = ttsModel.textToSpeech(content.toString());
         ChatFile fileVO = fileService.uploadFile("generated_audio_"+ UUID.randomUUID() +".mp3",audioData);

@@ -1,5 +1,7 @@
-package com.tarzan.maxkb4j.core.workflow;
+package com.tarzan.maxkb4j.core.workflow.result;
 
+import com.tarzan.maxkb4j.core.workflow.INode;
+import com.tarzan.maxkb4j.core.workflow.WorkflowManage;
 import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
 import lombok.Data;
 
@@ -44,7 +46,7 @@ public class NodeResult {
 
     public void defaultWriteContextFunc(Map<String, Object> nodeVariable, Map<String, Object> globalVariable, INode node, WorkflowManage workflow) {
         if (nodeVariable != null) {
-            node.context.putAll(nodeVariable);
+            node.getContext().putAll(nodeVariable);
             if (workflow.isResult(node, new NodeResult(nodeVariable, globalVariable)) && nodeVariable.containsKey("answer")) {
                 String answer = (String) nodeVariable.get("answer");
                 ChatMessageVO vo = new ChatMessageVO(
@@ -53,16 +55,16 @@ public class NodeResult {
                         node.getId(),
                         answer,
                         "",
-                        node.runtimeNodeId,
-                        node.type,
+                        node.getRuntimeNodeId(),
+                        node.getType(),
                         node.getViewType(),
                         true);
-                node.workflowManage.getSink().tryEmitNext(vo);
+                node.getSink().tryEmitNext(vo);
                 workflow.setAnswer(answer);
             }
         }
         if (globalVariable != null) {
-            workflow.getContext().putAll(globalVariable);
+            workflow.getGlobalVariable().putAll(globalVariable);
         }
     }
 

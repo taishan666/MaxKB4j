@@ -4,28 +4,22 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
-import com.tarzan.maxkb4j.core.workflow.model.ChatRecordSimple;
+import com.tarzan.maxkb4j.common.util.StringUtil;
 import com.tarzan.maxkb4j.core.workflow.logic.LfEdge;
+import com.tarzan.maxkb4j.core.workflow.model.ChatRecordSimple;
+import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
+import com.tarzan.maxkb4j.core.workflow.result.NodeResultFuture;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatRecordEntity;
 import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
 import com.tarzan.maxkb4j.module.chat.ChatParams;
-import com.tarzan.maxkb4j.common.util.StringUtil;
-import dev.langchain4j.data.message.AiMessage;
-import dev.langchain4j.data.message.ChatMessage;
-import dev.langchain4j.data.message.SystemMessage;
-import dev.langchain4j.data.message.UserMessage;
-import dev.langchain4j.model.input.PromptTemplate;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import reactor.core.publisher.Sinks;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.function.Function;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.*;
 
@@ -36,7 +30,7 @@ public class WorkflowManage {
     private ChatParams chatParams;
     private List<INode> nodes;
     private List<LfEdge> edges;
-    private JSONObject context;
+    private JSONObject globalVariable;
     private String answer;
     private Sinks.Many<ChatMessageVO> sink;
     private ApplicationChatRecordEntity chatRecord;
@@ -47,7 +41,7 @@ public class WorkflowManage {
         this.nodes = nodes;
         this.edges = edges;
         this.chatParams = chatParams;
-        this.context = new JSONObject();
+        this.globalVariable = new JSONObject();
         this.nodeContext = new ArrayList<>();
         this.sink = chatParams.getSink();
         this.chatRecord = chatRecord;
@@ -76,17 +70,12 @@ public class WorkflowManage {
                         nodeId,
                         lastNodeIdList,
                         n -> {
-                            JSONObject properties = n.getProperties();
+                            JSONObject nodeParams = n.getProperties();
                             boolean isResult = APPLICATION.name().equals(n.getType());
-                            // 合并节点数据
-                            if (properties.containsKey("nodeData")) {
-                                JSONObject nodeData = properties.getJSONObject("nodeData");
-                                nodeData.put("form_data", startNodeData);
-                                //  nodeData.put("child_node", childNode);
-                                nodeData.put("isResult", isResult);
-                                properties.put("nodeData", nodeData);
-                            }
-                            return properties;
+                            nodeParams.put("form_data", startNodeData);
+                            //  nodeData.put("child_node", childNode);
+                            nodeParams.put("isResult", isResult);
+                            return nodeParams;
                         }
                 );
                 // 合并验证参数
@@ -104,12 +93,11 @@ public class WorkflowManage {
                 nodeContext.add(node);
             }
         }
-        Map<String, Object> globalVariable = getGlobalVariable(chatParams);
-        context.putAll(globalVariable);
+        globalVariable.putAll(getDefaultGlobalVariable(chatParams));
     }
 
 
-    public Map<String, Object> getGlobalVariable(ChatParams chatParams) {
+    public Map<String, Object> getDefaultGlobalVariable(ChatParams chatParams) {
         Map<String, Object> resultMap = new HashMap<>();
         resultMap.put("time", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
         resultMap.put("history_context", getHistoryContext());
@@ -236,13 +224,22 @@ public class WorkflowManage {
     }
 
 
-    private INode getNodeClsById(String nodeId, List<String> upNodeIds, Function<INode, JSONObject> getNodeProperties) {
+    private INode getNodeClsById(String nodeId, List<String> upNodeIds, Function<INode, JSONObject> getNodeParams) {
         for (INode node : nodes) {
             if (nodeId.equals(node.getId())) {
-                node.setWorkflowManage(this);
+                node.setUpNodes(nodeContext);
+                node.setGlobalVariable(globalVariable);
                 node.setUpNodeIdList(upNodeIds);
-                if (getNodeProperties != null) {
-                    node.setProperties(getNodeProperties.apply(node));
+                node.setChatParams(chatParams);
+                node.setHistoryChatRecords(historyChatRecords);
+                node.setSink(sink);
+                if (getNodeParams != null) {
+                    JSONObject properties= node.getProperties();
+                    if (properties.containsKey("nodeData")) {
+                        JSONObject nodeParams = getNodeParams.apply(node);
+                        properties.put("nodeData", nodeParams);
+                    }
+                    node.setProperties(properties);
                 }
                 return node;
             }
@@ -267,81 +264,6 @@ public class WorkflowManage {
     }
 
 
-    public String generatePrompt(String prompt) {
-        if (StringUtils.isBlank(prompt)) {
-            return "";
-        }
-        Set<String> promptVariables = extractVariables(prompt);
-        if (!promptVariables.isEmpty()) {
-            Map<String, Object> allVariables = this.allVariables();
-            Map<String, Object> variables = new HashMap<>();
-            for (String promptVariable : promptVariables) {
-                variables.put(promptVariable, allVariables.getOrDefault(promptVariable, "*"));
-            }
-            PromptTemplate promptTemplate = PromptTemplate.from(prompt);
-            return promptTemplate.apply(variables).text();
-        }
-        return prompt;
-    }
-
-
-    private static Set<String> extractVariables(String template) {
-        Pattern VARIABLE_PATTERN = Pattern.compile("\\{\\{(.+?)\\}\\}");
-        Set<String> variables = new HashSet<>();
-        Matcher matcher = VARIABLE_PATTERN.matcher(template);
-        while (matcher.find()) {
-            variables.add(matcher.group(1));
-        }
-        return variables;
-    }
-
-    public UserMessage generatePromptQuestion(String prompt) {
-        return UserMessage.from(this.generatePrompt(prompt));
-    }
-
-    public List<ChatMessage> generateMessageList(String system, UserMessage question, List<ChatMessage> historyMessages) {
-        List<ChatMessage> messageList = new ArrayList<>();
-        if (StringUtils.isNotBlank(system)) {
-            messageList.add(SystemMessage.from(system));
-        }
-        messageList.addAll(historyMessages);
-        messageList.add(question);
-        return messageList;
-    }
-
-
-    public Map<String, Object> jsonToMap(JSONObject jsonObject) {
-        Map<String, Object> resultMap = new HashMap<>();
-        iteratorJson("", jsonObject, resultMap);
-        return resultMap;
-    }
-
-    private void iteratorJson(String parentKey, JSONObject json, Map<String, Object> resultMap) {
-        Set<String> keys = json.keySet();
-        for (String key : keys) {
-            Object value = json.get(key);
-            // 生成新的key，如果parentKey不为空，则使用parentKey.key格式
-            String newKey = (!parentKey.isEmpty()) ? (parentKey + "." + key) : key;
-            if (value instanceof JSONObject) {
-                // 如果是JSONObject，递归处理
-                iteratorJson(newKey, (JSONObject) value, resultMap);
-            } else {
-                // 否则，直接放入结果map中
-                resultMap.put(newKey, Objects.requireNonNullElse(value, ""));
-            }
-        }
-    }
-
-    public Map<String, Object> allVariables() {
-        JSONObject workflowContext = new JSONObject();
-        workflowContext.put("global", context);
-        for (INode node : nodeContext) {
-            String nodeName=node.getProperties().getString("nodeName");
-            workflowContext.put(nodeName, node.getContext());
-        }
-        return jsonToMap(workflowContext);
-    }
-
     public JSONObject getRuntimeDetails() {
         JSONObject detailsResult = new JSONObject();
         if (nodeContext == null || nodeContext.isEmpty()) {
@@ -361,7 +283,7 @@ public class WorkflowManage {
     public void appendNode(INode currentNode) {
         for (int i = 0; i < this.nodeContext.size(); i++) {
             INode node = this.nodeContext.get(i);
-            if (currentNode.id.equals(node.id) && currentNode.runtimeNodeId.equals(node.runtimeNodeId)) {
+            if (currentNode.getId().equals(node.getId()) && currentNode.getRuntimeNodeId().equals(node.getRuntimeNodeId())) {
                 this.nodeContext.set(i, currentNode);
                 return;
             }
@@ -410,8 +332,8 @@ public class WorkflowManage {
     }
 
     public boolean dependentNode(String lastNodeId, INode node) {
-        if (Objects.equals(lastNodeId, node.id)) {
-            if (FORM.getKey().equals(node.type) || USER_SELECT.getKey().equals(node.type)) {
+        if (Objects.equals(lastNodeId, node.getId())) {
+            if (FORM.getKey().equals(node.getId())) {
                 Object formData = node.getContext().get("form_data");
                 return formData != null;
             }
@@ -437,7 +359,7 @@ public class WorkflowManage {
 
     public Object getReferenceField(String nodeId, String key) {
         if ("global".equals(nodeId)) {
-            return context.get(key);
+            return globalVariable.get(key);
         } else {
             INode node = this.getNodeById(nodeId);
             return node == null ? null : node.getReferenceField(key);
@@ -452,46 +374,5 @@ public class WorkflowManage {
         }
         return null;
     }
-
-
-    public List<ChatMessage> getHistoryMessages(int dialogueNumber, String dialogueType, String runtimeNodeId) {
-        List<ChatMessage> historyMessages;
-        if("NODE".equals(dialogueType)){
-            historyMessages=getNodeMessages(runtimeNodeId);
-        }else {
-            historyMessages=getWorkFlowMessages();
-        }
-        int total=historyMessages.size();
-        if (total==0){
-            return historyMessages;
-        }
-        int startIndex = Math.max(total - dialogueNumber*2, 0);
-        return historyMessages.subList(startIndex, total);
-    }
-
-
-    public List<ChatMessage> getWorkFlowMessages() {
-        List<ChatMessage> messages = new ArrayList<>();
-        for (ApplicationChatRecordEntity message : historyChatRecords) {
-            messages.add(new UserMessage(message.getProblemText()));
-            messages.add(new AiMessage(message.getAnswerText()));
-        }
-        return messages;
-    }
-
-    public List<ChatMessage> getNodeMessages(String runtimeNodeId) {
-        List<ChatMessage> messages = new ArrayList<>();
-        for (ApplicationChatRecordEntity record : historyChatRecords) {
-            // 获取节点详情
-            JSONObject nodeDetails = record.getNodeDetailsByRuntimeNodeId(runtimeNodeId);
-            // 如果节点详情为空，返回空列表
-            if (nodeDetails != null) {
-                messages.add(new UserMessage(nodeDetails.getString("question")));
-                messages.add(new AiMessage(nodeDetails.getString("answer")));
-            }
-        }
-        return messages;
-    }
-
 
 }

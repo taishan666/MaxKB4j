@@ -2,7 +2,7 @@ package com.tarzan.maxkb4j.core.workflow.node.question.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.workflow.INode;
-import com.tarzan.maxkb4j.core.workflow.NodeResult;
+import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
 import com.tarzan.maxkb4j.core.workflow.node.question.input.QuestionParams;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatRecordEntity;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
@@ -35,27 +35,27 @@ public class QuestionNode extends INode {
 
     @Override
     public NodeResult execute() {
-        QuestionParams nodeParams=super.getNodeData().toJavaObject(QuestionParams.class);
+        QuestionParams nodeParams = super.getNodeData().toJavaObject(QuestionParams.class);
         if (Objects.isNull(nodeParams.getModelParamsSetting())) {
             nodeParams.setModelParamsSetting(getDefaultModelParamsSetting(nodeParams.getModelId()));
         }
         BaseChatModel chatModel = modelService.getModelById(nodeParams.getModelId(), nodeParams.getModelParamsSetting());
         List<ChatMessage> historyMessage = new ArrayList<>();
-        UserMessage question = super.workflowManage.generatePromptQuestion(nodeParams.getPrompt());
-        String system = workflowManage.generatePrompt(nodeParams.getSystem());
-        List<ChatMessage> messageList =  super.workflowManage.generateMessageList(system, question, historyMessage);
-        QueryTransformer queryTransformer=new CompressingQueryTransformer(chatModel.getChatModel());
-        Metadata metadata=new Metadata(question, workflowManage.getChatParams().getChatId(), historyMessage);
-        Query query=new Query(workflowManage.getChatParams().getMessage(),metadata);
-        Collection<Query> list= queryTransformer.transform(query);
-        StringBuilder answerSb=new StringBuilder();
+        UserMessage question = super.generatePromptQuestion(nodeParams.getPrompt());
+        String system = super.generatePrompt(nodeParams.getSystem());
+        List<ChatMessage> messageList = super.generateMessageList(system, question, historyMessage);
+        QueryTransformer queryTransformer = new CompressingQueryTransformer(chatModel.getChatModel());
+        Metadata metadata = new Metadata(question, getChatParams().getChatId(), historyMessage);
+        Query query = new Query(getChatParams().getMessage(), metadata);
+        Collection<Query> list = queryTransformer.transform(query);
+        StringBuilder answerSb = new StringBuilder();
         for (Query queryResult : list) {
             System.out.println(queryResult.metadata());
             answerSb.append(queryResult.text());
         }
         Map<String, Object> nodeVariable = Map.of(
                 "answer", answerSb.toString(),
-                "system",system,
+                "system", system,
                 "message_list", messageList,
                 "history_message", historyMessage,
                 "question", question.singleText()
@@ -66,8 +66,7 @@ public class QuestionNode extends INode {
     }
 
 
-
-    public List<ChatMessage> getHistoryMessage(List<ApplicationChatRecordEntity> historyChatRecord, int dialogueNumber ) {
+    public List<ChatMessage> getHistoryMessage(List<ApplicationChatRecordEntity> historyChatRecord, int dialogueNumber) {
         List<ChatMessage> historyMessage = new ArrayList<>();
         int startIndex = Math.max(historyChatRecord.size() - dialogueNumber, 0);
         Pattern pattern = Pattern.compile("<form_render>[\\s\\S]*?</form_render>");
