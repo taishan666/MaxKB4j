@@ -1,19 +1,31 @@
 package com.tarzan.maxkb4j.core.workflow.node.imageunderstand.impl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
+import com.tarzan.maxkb4j.core.assistant.Assistant;
+import com.tarzan.maxkb4j.core.langchain4j.AppChatMemory;
 import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.NodeResult;
+import com.tarzan.maxkb4j.core.workflow.WorkflowManage;
 import com.tarzan.maxkb4j.core.workflow.domain.ChatFile;
 import com.tarzan.maxkb4j.core.workflow.node.imageunderstand.input.ImageUnderstandParams;
+import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
 import com.tarzan.maxkb4j.module.oss.service.MongoFileService;
 import com.tarzan.maxkb4j.util.SpringUtil;
-import dev.langchain4j.data.message.*;
+import com.tarzan.maxkb4j.util.StringUtil;
+import dev.langchain4j.data.message.ChatMessage;
+import dev.langchain4j.data.message.Content;
+import dev.langchain4j.data.message.ImageContent;
+import dev.langchain4j.data.message.TextContent;
 import dev.langchain4j.model.chat.response.ChatResponse;
 import dev.langchain4j.model.output.TokenUsage;
+import dev.langchain4j.service.AiServices;
+import dev.langchain4j.service.TokenStream;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 
 import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.IMAGE_UNDERSTAND;
 
@@ -21,12 +33,14 @@ public class ImageUnderstandNode extends INode {
 
     private final ModelService modelService;
     private final MongoFileService fileService;
+    private final AiServices<Assistant> aiServicesBuilder;
 
     public ImageUnderstandNode(JSONObject properties) {
         super(properties);
         this.type = IMAGE_UNDERSTAND.getKey();
         this.modelService = SpringUtil.getBean(ModelService.class);
         this.fileService = SpringUtil.getBean(MongoFileService.class);
+        this.aiServicesBuilder = AiServices.builder(Assistant.class);
     }
 
     private static final Map<String, String> mimeTypeMap = new HashMap<>();
@@ -41,14 +55,13 @@ public class ImageUnderstandNode extends INode {
     public NodeResult execute() {
         ImageUnderstandParams nodeParams=super.getNodeData().toJavaObject(ImageUnderstandParams.class);
         List<String> imageList = nodeParams.getImageList();
-        Object object = super.getWorkflowManage().getReferenceField(imageList.get(0), imageList.get(1));
+        Object object = workflowManage.getReferenceField(imageList.get(0), imageList.get(1));
         @SuppressWarnings("unchecked")
         List<ChatFile> ImageFiles = (List<ChatFile>) object;
         BaseChatModel chatModel = modelService.getModelById(nodeParams.getModelId(), nodeParams.getModelParamsSetting());
         String question =  workflowManage.generatePrompt(nodeParams.getPrompt());
-        String system =workflowManage.generatePrompt(nodeParams.getSystem());
-        //List<ChatMessage> historyMessage = workflowManage.getHistoryMessage(super.flowParams.getHistoryChatRecord(), nodeParams.getDialogueNumber(), nodeParams.getDialogueType(), super.runtimeNodeId);
-        List<ChatMessage> historyMessage =new ArrayList<>();
+        String systemPrompt =workflowManage.generatePrompt(nodeParams.getSystem());
+        List<ChatMessage> historyMessages=workflowManage.getHistoryMessages(nodeParams.getDialogueNumber(), nodeParams.getDialogueType(), runtimeNodeId);
         List<Content> contents=new ArrayList<>();
         contents.add(TextContent.from(question));
         for (ChatFile file : ImageFiles) {
@@ -59,22 +72,71 @@ public class ImageUnderstandNode extends INode {
             ImageContent imageContent=ImageContent.from(base64Data,mimeTypeMap.getOrDefault(extension, "image/jpeg"));
             contents.add(imageContent);
         }
-        UserMessage userMessage = new UserMessage(contents);
-        List<ChatMessage> messageList =  super.workflowManage.generateMessageList(system, userMessage, historyMessage);
-        ChatResponse res=chatModel.generate(messageList);
-        AiMessage aiMessage=res.aiMessage();
-        TokenUsage tokenUsage=res.tokenUsage();
-        Map<String, Object> nodeVariable = Map.of(
-                "system", system,
-                "chat_model", chatModel,
-                "message_list", messageList,
-                "history_message", historyMessage,
+        if (StringUtil.isNotBlank(systemPrompt)){
+            aiServicesBuilder.systemMessageProvider(chatMemoryId -> systemPrompt);
+        }
+        if (CollectionUtils.isNotEmpty(historyMessages)){
+            aiServicesBuilder.chatMemory(AppChatMemory.withMessages(historyMessages));
+        }
+        Assistant assistant = aiServicesBuilder.streamingChatModel(chatModel.getStreamingChatModel()).build();
+        Map<String, Object> nodeVariable = new HashMap<>(Map.of(
+                "system", systemPrompt,
+                "history_message", resetMessageList(historyMessages),
                 "question", question,
-                "answer", aiMessage.text(),
-                "messageTokens", tokenUsage.inputTokenCount(),
-                "answerTokens", tokenUsage.outputTokenCount()
-        );
-        return new NodeResult(nodeVariable, Map.of());
+                "answer", ""
+        ));
+        TokenStream tokenStream = assistant.chatStream(question,contents);
+        CompletableFuture<ChatResponse> futureChatResponse = new CompletableFuture<>();
+        boolean isResult = nodeParams.getIsResult();
+        tokenStream.onPartialResponse(content -> {
+                    if (isResult) {
+                        ChatMessageVO vo = new ChatMessageVO(
+                                workflowManage.getChatParams().getChatId(),
+                                workflowManage.getChatParams().getChatRecordId(),
+                                id,
+                                content,
+                                "",
+                                runtimeNodeId,
+                                type,
+                                viewType,
+                                false);
+                        workflowManage.getSink().tryEmitNext(vo);
+                    }
+                })
+                .onCompleteResponse(response -> {
+                    String answer = response.aiMessage().text();
+                    TokenUsage tokenUsage = response.tokenUsage();
+                    nodeVariable.put("messageTokens", tokenUsage.inputTokenCount());
+                    nodeVariable.put("answerTokens", tokenUsage.outputTokenCount());
+                    nodeVariable.put("answer", answer);
+                    ChatMessageVO vo = new ChatMessageVO(
+                            workflowManage.getChatParams().getChatId(),
+                            workflowManage.getChatParams().getChatRecordId(),
+                            id,
+                            "",
+                            "",
+                            runtimeNodeId,
+                            type,
+                            viewType,
+                            false);
+                    workflowManage.getSink().tryEmitNext(vo);
+                    futureChatResponse.complete(response);// 完成后释放线程
+                })
+                .onError(error -> {
+                    workflowManage.getSink().tryEmitError(error);
+                    futureChatResponse.completeExceptionally(error); // 完成后释放线程
+                })
+                .start();
+        futureChatResponse.join(); // 阻塞当前线程直到 futureChatResponse 完成
+        return new NodeResult(nodeVariable, Map.of(),this::writeContext);
+    }
+
+    private void writeContext(Map<String, Object> nodeVariable, Map<String, Object> globalVariable, INode node, WorkflowManage workflow) {
+        if (nodeVariable != null) {
+            node.getContext().putAll(nodeVariable);
+            String answer = (String) nodeVariable.get("answer");
+            workflow.setAnswer(answer);
+        }
     }
 
     @Override

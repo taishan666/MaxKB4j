@@ -1,7 +1,6 @@
 package com.tarzan.maxkb4j.module.oss.controller;
 
 import com.mongodb.client.gridfs.model.GridFSFile;
-import com.tarzan.maxkb4j.constant.AppConst;
 import com.tarzan.maxkb4j.core.api.R;
 import com.tarzan.maxkb4j.core.workflow.domain.ChatFile;
 import com.tarzan.maxkb4j.module.oss.service.MongoFileService;
@@ -11,7 +10,10 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.Document;
 import org.springframework.http.HttpHeaders;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -24,7 +26,6 @@ import java.nio.charset.StandardCharsets;
  */
 @Slf4j
 @RestController
-@RequestMapping(AppConst.ADMIN_API)
 @AllArgsConstructor
 public class FileController{
 
@@ -40,14 +41,15 @@ public class FileController{
 	}*/
 
 
-	@PostMapping(value = "oss/file")
+	@PostMapping(value = "/admin/api/oss/file")
 	public R<String> uploadFile(MultipartFile file) throws IOException {
 		ChatFile chatFile=mongoFileService.uploadFile(file);
 		return R.success(chatFile.getUrl());
 	}
 
-	@GetMapping(value = "/file/{id}")
+	@GetMapping(value = "/oss/file/{id}")
 	public void getFile(@PathVariable("id") String id, HttpServletResponse response){
+		System.out.println("getFile");
 		try {
 			GridFSFile file = mongoFileService.getById(id);
 			Document doc=file.getMetadata();

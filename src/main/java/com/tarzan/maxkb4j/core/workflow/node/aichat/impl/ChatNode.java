@@ -71,7 +71,6 @@ public class ChatNode extends INode {
         }
         Map<String, Object> nodeVariable = new HashMap<>(Map.of(
                 "system", systemPrompt,
-                "chat_model", chatModel,
                 "history_message", resetMessageList(historyMessages),
                 "question", problemText,
                 "answer", ""
@@ -103,7 +102,7 @@ public class ChatNode extends INode {
                         ChatMessageVO vo = new ChatMessageVO(
                                 workflowManage.getChatParams().getChatId(),
                                 workflowManage.getChatParams().getChatRecordId(),
-                                "ai-chat-node",
+                                id,
                                 content,
                                 "",
                                 runtimeNodeId,

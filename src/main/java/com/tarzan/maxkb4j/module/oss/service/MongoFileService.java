@@ -50,7 +50,7 @@ public class MongoFileService {
         ObjectId objectId = gridFsTemplate.store(ins, originalFilename, contentType, metadata);
         fileVO.setFileId(objectId.toString());
         fileVO.setUploadTime(new Date());
-        fileVO.setUrl("/api/file/" + objectId);
+        fileVO.setUrl("/oss/file/" + objectId);
         return fileVO;
     }
 
@@ -67,7 +67,7 @@ public class MongoFileService {
         ObjectId objectId = gridFsTemplate.store(ins, fileName, contentType, metadata);
         fileVO.setFileId(objectId.toString());
         fileVO.setUploadTime(new Date());
-        fileVO.setUrl("/api/file/" + objectId);
+        fileVO.setUrl("/oss/file/" + objectId);
         return fileVO;
     }
 

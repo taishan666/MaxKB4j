@@ -371,7 +371,7 @@ public class WorkflowManage {
 
     public NodeResultFuture runNodeFuture(INode node) {
         try {
-            node.setWorkflowManage(this);
+            //node.setWorkflowManage(this);
             NodeResult result = node.run();
             return new NodeResultFuture(result, null, 200);
         } catch (Exception ex) {
