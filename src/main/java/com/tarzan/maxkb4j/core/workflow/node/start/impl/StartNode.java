@@ -10,10 +10,10 @@ import java.util.Map;
 
 import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.START;
 
-public class BaseStartNode extends INode {
+public class StartNode extends INode {
 
 
-    public BaseStartNode(JSONObject properties) {
+    public StartNode(JSONObject properties) {
         super(properties);
         this.type=START.getKey();
     }

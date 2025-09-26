@@ -22,11 +22,11 @@ import java.util.regex.Pattern;
 
 import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.QUESTION;
 
-public class BaseQuestionNode extends INode {
+public class QuestionNode extends INode {
 
     private final ModelService modelService;
 
-    public BaseQuestionNode(JSONObject properties) {
+    public QuestionNode(JSONObject properties) {
         super(properties);
         this.type = QUESTION.getKey();
         this.modelService = SpringUtil.getBean(ModelService.class);

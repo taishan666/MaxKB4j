@@ -19,12 +19,12 @@ import java.util.Map;
 
 import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.IMAGE_GENERATE;
 
-public class BaseImageGenerateNode extends INode {
+public class ImageGenerateNode extends INode {
 
     private final ModelService modelService;
     private final MongoFileService fileService;
 
-    public BaseImageGenerateNode(JSONObject properties) {
+    public ImageGenerateNode(JSONObject properties) {
         super(properties);
         this.type=IMAGE_GENERATE.getKey();
         this.modelService = SpringUtil.getBean(ModelService.class);

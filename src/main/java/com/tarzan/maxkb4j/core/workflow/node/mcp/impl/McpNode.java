@@ -17,9 +17,9 @@ import java.util.Map;
 
 import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.MCP;
 
-public class BaseMcpNode extends INode {
+public class McpNode extends INode {
 
-    public BaseMcpNode(JSONObject properties) {
+    public McpNode(JSONObject properties) {
         super(properties);
         this.type=MCP.getKey();
     }

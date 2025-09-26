@@ -17,12 +17,12 @@ import java.util.*;
 
 import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.IMAGE_UNDERSTAND;
 
-public class BaseImageUnderstandNode extends INode {
+public class ImageUnderstandNode extends INode {
 
     private final ModelService modelService;
     private final MongoFileService fileService;
 
-    public BaseImageUnderstandNode(JSONObject properties) {
+    public ImageUnderstandNode(JSONObject properties) {
         super(properties);
         this.type = IMAGE_UNDERSTAND.getKey();
         this.modelService = SpringUtil.getBean(ModelService.class);

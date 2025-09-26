@@ -30,14 +30,14 @@ import java.util.concurrent.CompletableFuture;
 import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.AI_CHAT;
 
 @Slf4j
-public class BaseChatNode extends INode {
+public class ChatNode extends INode {
 
     private final ModelService modelService;
     private final ToolUtil toolUtil;
     private final AiServices<Assistant> aiServicesBuilder;
 
 
-    public BaseChatNode(JSONObject properties) {
+    public ChatNode(JSONObject properties) {
         super(properties);
         this.type = AI_CHAT.getKey();
         this.modelService = SpringUtil.getBean(ModelService.class);

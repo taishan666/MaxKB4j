@@ -14,10 +14,10 @@ import java.util.Map;
 
 import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.APPLICATION;
 
-public class BaseApplicationNode extends INode {
+public class ApplicationNode extends INode {
     private final ApplicationChatService chatService;
 
-    public BaseApplicationNode(JSONObject properties) {
+    public ApplicationNode(JSONObject properties) {
         super(properties);
         this.type = APPLICATION.getKey();
         this.chatService = SpringUtil.getBean(ApplicationChatService.class);

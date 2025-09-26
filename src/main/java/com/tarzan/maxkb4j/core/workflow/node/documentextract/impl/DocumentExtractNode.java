@@ -28,11 +28,11 @@ import java.util.Map;
 
 import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.DOCUMENT_EXTRACT;
 
-public class BaseDocumentExtractNode extends INode {
+public class DocumentExtractNode extends INode {
 
     private final MongoFileService fileService;
 
-    public BaseDocumentExtractNode(JSONObject properties) {
+    public DocumentExtractNode(JSONObject properties) {
         super(properties);
         this.type = DOCUMENT_EXTRACT.getKey();
         this.fileService = SpringUtil.getBean(MongoFileService.class);

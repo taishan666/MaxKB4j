@@ -15,12 +15,12 @@ import java.util.Map;
 
 import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.SPEECH_TO_TEXT;
 
-public class BaseSpeechToTextNode extends INode {
+public class SpeechToTextNode extends INode {
 
     private final ModelService modelService;
     private final MongoFileService fileService;
 
-    public BaseSpeechToTextNode(JSONObject properties) {
+    public SpeechToTextNode(JSONObject properties) {
         super(properties);
         this.type = SPEECH_TO_TEXT.getKey();
         this.modelService = SpringUtil.getBean(ModelService.class);

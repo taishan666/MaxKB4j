@@ -10,9 +10,9 @@ import java.util.Map;
 
 import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.REPLY;
 
-public class BaseReplyNode extends INode {
+public class DirectReplyNode extends INode {
 
-    public BaseReplyNode(JSONObject properties) {
+    public DirectReplyNode(JSONObject properties) {
         super(properties);
         this.type = REPLY.getKey();
     }
