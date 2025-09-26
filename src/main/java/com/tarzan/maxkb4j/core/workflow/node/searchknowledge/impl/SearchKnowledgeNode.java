@@ -1,9 +1,9 @@
-package com.tarzan.maxkb4j.core.workflow.node.searchdataset.impl;
+package com.tarzan.maxkb4j.core.workflow.node.searchknowledge.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.NodeResult;
-import com.tarzan.maxkb4j.core.workflow.node.searchdataset.input.SearchDatasetStepNodeParams;
+import com.tarzan.maxkb4j.core.workflow.node.searchknowledge.input.SearchKnowledgeNodeParams;
 import com.tarzan.maxkb4j.module.application.domian.entity.KnowledgeSetting;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.ParagraphVO;
 import com.tarzan.maxkb4j.module.knowledge.service.RetrieveService;
@@ -16,12 +16,12 @@ import java.util.Map;
 
 import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.SEARCH_KNOWLEDGE;
 
-public class BaseSearchDatasetNode extends INode {
+public class SearchKnowledgeNode extends INode {
 
 
     private final RetrieveService retrieveService;
 
-    public BaseSearchDatasetNode(JSONObject properties) {
+    public SearchKnowledgeNode(JSONObject properties) {
         super(properties);
         this.type = SEARCH_KNOWLEDGE.getKey();
         this.retrieveService = SpringUtil.getBean(RetrieveService.class);
@@ -30,7 +30,7 @@ public class BaseSearchDatasetNode extends INode {
 
     @Override
     public NodeResult execute() {
-        SearchDatasetStepNodeParams nodeParams=super.getNodeData().toJavaObject(SearchDatasetStepNodeParams.class);
+        SearchKnowledgeNodeParams nodeParams=super.getNodeData().toJavaObject(SearchKnowledgeNodeParams.class);
         KnowledgeSetting knowledgeSetting=nodeParams.getKnowledgeSetting();
         List<String> fields=nodeParams.getQuestionReferenceAddress();
         String question= (String)workflowManage.getReferenceField(fields.get(0),fields.get(1));

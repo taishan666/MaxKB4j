@@ -1,4 +1,4 @@
-package com.tarzan.maxkb4j.core.workflow.node.searchdataset.input;
+package com.tarzan.maxkb4j.core.workflow.node.searchknowledge.input;
 
 import com.tarzan.maxkb4j.module.application.domian.entity.KnowledgeSetting;
 import lombok.Data;
@@ -6,7 +6,7 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-public class SearchDatasetStepNodeParams {
+public class SearchKnowledgeNodeParams {
     private List<String> knowledgeIdList;
     private KnowledgeSetting knowledgeSetting;
     private List<String> questionReferenceAddress;

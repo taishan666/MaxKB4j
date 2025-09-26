@@ -47,7 +47,7 @@ public enum NodeType {
 
     VARIABLE_AGGREGATE("variable-aggregate-node", "变量聚合"),
 
-    FUNCTION("function-node", "自定义函数节点"),
+    TOOL("tool-node", "自定义函数节点"),
 
     TOOL_LIB("tool-lib-node", "工具库节点"),
 

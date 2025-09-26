@@ -9,13 +9,13 @@ import com.tarzan.maxkb4j.core.workflow.node.condition.impl.BaseConditionNode;
 import com.tarzan.maxkb4j.core.workflow.node.directreply.impl.BaseReplyNode;
 import com.tarzan.maxkb4j.core.workflow.node.documentextract.impl.BaseDocumentExtractNode;
 import com.tarzan.maxkb4j.core.workflow.node.formcollect.impl.FormNode;
-import com.tarzan.maxkb4j.core.workflow.node.function.impl.BaseFunctionNode;
+import com.tarzan.maxkb4j.core.workflow.node.tool.impl.ToolNode;
 import com.tarzan.maxkb4j.core.workflow.node.imagegenerate.impl.BaseImageGenerateNode;
 import com.tarzan.maxkb4j.core.workflow.node.imageunderstand.impl.BaseImageUnderstandNode;
 import com.tarzan.maxkb4j.core.workflow.node.mcp.impl.BaseMcpNode;
 import com.tarzan.maxkb4j.core.workflow.node.question.impl.BaseQuestionNode;
 import com.tarzan.maxkb4j.core.workflow.node.reranker.impl.RerankerNode;
-import com.tarzan.maxkb4j.core.workflow.node.searchdataset.impl.BaseSearchDatasetNode;
+import com.tarzan.maxkb4j.core.workflow.node.searchknowledge.impl.SearchKnowledgeNode;
 import com.tarzan.maxkb4j.core.workflow.node.speechtotext.impl.BaseSpeechToTextNode;
 import com.tarzan.maxkb4j.core.workflow.node.start.impl.BaseStartNode;
 import com.tarzan.maxkb4j.core.workflow.node.texttospeech.impl.BaseTextToSpeechNode;
@@ -35,7 +35,7 @@ public class NodeFactory {
         return switch (nodeType) {
             case START -> new BaseStartNode(properties);
             case AI_CHAT -> new BaseChatNode(properties);
-            case SEARCH_KNOWLEDGE -> new BaseSearchDatasetNode(properties);
+            case SEARCH_KNOWLEDGE -> new SearchKnowledgeNode(properties);
             case CONDITION -> new BaseConditionNode(properties);
             case REPLY-> new BaseReplyNode(properties);
             case APPLICATION -> new BaseApplicationNode(properties);
@@ -46,7 +46,7 @@ public class NodeFactory {
             case SPEECH_TO_TEXT -> new BaseSpeechToTextNode(properties);
             case VARIABLE_ASSIGN -> new BaseVariableAssignNode(properties);
             case VARIABLE_AGGREGATE -> new BaseVariableAggregateNode(properties);
-            case FUNCTION -> new BaseFunctionNode(properties);
+            case TOOL -> new ToolNode(properties);
             case TOOL_LIB -> new ToolLibNode(properties);
             case IMAGE_UNDERSTAND -> new BaseImageUnderstandNode(properties);
             case RERANKER -> new RerankerNode(properties);
