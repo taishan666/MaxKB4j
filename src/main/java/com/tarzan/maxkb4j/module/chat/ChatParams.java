@@ -2,7 +2,7 @@ package com.tarzan.maxkb4j.module.chat;
 
 import com.alibaba.fastjson.JSONObject;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.tarzan.maxkb4j.core.workflow.domain.ChatFile;
+import com.tarzan.maxkb4j.core.workflow.model.ChatFile;
 import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
 import lombok.Builder;
 import lombok.Data;
