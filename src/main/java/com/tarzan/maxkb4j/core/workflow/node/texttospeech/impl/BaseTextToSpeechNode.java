@@ -30,7 +30,6 @@ public class BaseTextToSpeechNode extends INode {
 
     @Override
     public NodeResult execute() {
-        System.out.println(TEXT_TO_SPEECH);
         TextToSpeechParams nodeParams=super.getNodeData().toJavaObject(TextToSpeechParams.class);
         List<String> contentList=nodeParams.getContentList();
         Object content=super.getWorkflowManage().getReferenceField(contentList.get(0),contentList.get(1));

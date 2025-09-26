@@ -20,7 +20,6 @@ public class BaseStartNode extends INode {
 
     @Override
     public NodeResult execute() {
-        System.out.println(START);
         ChatParams chatParams=workflowManage.getChatParams();
         // 获取默认全局变量
         Map<String, Object> globalVariable = workflowManage.getGlobalVariable(chatParams);

@@ -48,7 +48,6 @@ public class BaseChatNode extends INode {
 
     @Override
     public NodeResult execute() throws Exception {
-        System.out.println(AI_CHAT);
         ChatNodeParams nodeParams = super.getNodeData().toJavaObject(ChatNodeParams.class);
         BaseChatModel chatModel = modelService.getModelById(nodeParams.getModelId(), nodeParams.getModelParamsSetting());
         String problemText = workflowManage.generatePrompt(nodeParams.getPrompt());

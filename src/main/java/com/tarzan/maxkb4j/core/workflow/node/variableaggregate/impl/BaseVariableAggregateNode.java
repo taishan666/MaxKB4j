@@ -20,7 +20,6 @@ public class BaseVariableAggregateNode extends INode {
 
     @Override
     public NodeResult execute() {
-        System.out.println(VARIABLE_AGGREGATE);
         VariableAggregateParams nodeParams=super.getNodeData().toJavaObject(VariableAggregateParams.class);
         List<Object> results=new ArrayList<>();
         for (Map<String, Object> variable : nodeParams.getVariableList()) {

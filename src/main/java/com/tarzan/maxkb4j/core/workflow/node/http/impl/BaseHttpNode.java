@@ -23,7 +23,6 @@ public class BaseHttpNode extends INode {
 
     @Override
     public NodeResult execute() throws Exception {
-        System.out.println(HTTP_CLIENT);
         HttpNodeParams nodeParams=super.getNodeData().toJavaObject(HttpNodeParams.class);
         HttpRequest request=HttpUtil.createRequest(nodeParams.getMethod(), nodeParams.getUrl());
         JSONArray headers=nodeParams.getHeaders();

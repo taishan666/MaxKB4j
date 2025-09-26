@@ -26,7 +26,6 @@ public class BaseMcpNode extends INode {
 
     @Override
     public NodeResult execute() {
-        System.out.println(MCP);
         McpParams nodeParams=super.getNodeData().toJavaObject(McpParams.class);
         JSONObject toolParams=nodeParams.getToolParams();
         JSONObject params=new JSONObject();

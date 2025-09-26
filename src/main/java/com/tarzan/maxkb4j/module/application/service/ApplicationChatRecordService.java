@@ -74,6 +74,7 @@ public class ApplicationChatRecordService extends ServiceImpl<ApplicationChatRec
             return null;
         }
         ApplicationChatRecordVO chatRecordVO = BeanUtil.copy(chatRecord, ApplicationChatRecordVO.class);
+        chatRecordVO.setParagraphList(new ArrayList<>());
         JSONObject details=chatRecord.getDetails();
         if(!details.isEmpty()){
             JSONObject searchStep=details.getJSONObject("search_step");
@@ -92,7 +93,6 @@ public class ApplicationChatRecordService extends ServiceImpl<ApplicationChatRec
             details.keySet().forEach(key-> executionDetails.add(details.getJSONObject(key)));
             Collections.reverse(executionDetails);
             chatRecordVO.setExecutionDetails(executionDetails);
-           // List<ParagraphVO> paragraphList=new ArrayList<>();
             for (JSONObject detail : executionDetails) {
                 if (SEARCH_KNOWLEDGE.getKey().equals(detail.getString("type"))) {
                      boolean showKnowledge = detail.getBooleanValue("showKnowledge");
@@ -102,7 +102,6 @@ public class ApplicationChatRecordService extends ServiceImpl<ApplicationChatRec
                              @SuppressWarnings("unchecked")
                              List<ParagraphVO> list = (List<ParagraphVO>) paragraphListObj;
                              chatRecordVO.getParagraphList().addAll(list);
-                            // paragraphList.addAll(list);
                          }
                      }
                 }

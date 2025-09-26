@@ -7,6 +7,7 @@ import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.UserMessage;
 import lombok.Data;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.CollectionUtils;
 
 import java.nio.charset.StandardCharsets;
@@ -14,6 +15,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
+@Slf4j
 @Data
 public abstract class INode {
     @Setter
@@ -85,7 +87,9 @@ public abstract class INode {
         long startTime = System.currentTimeMillis();
         this.context.put("start_time", startTime);
         NodeResult result = execute();
-        this.context.put("runTime", (System.currentTimeMillis() - startTime)/1000F);
+        float runTime = (System.currentTimeMillis() - startTime)/1000F;
+        this.context.put("runTime", runTime);
+        log.info("node:{}, runTime:{} s",type,runTime);
         return result;
     }
 

@@ -22,7 +22,6 @@ public class BaseFunctionNode extends INode {
 
     @Override
     public NodeResult execute() {
-        System.out.println(FUNCTION);
         FunctionParams nodeParams=super.getNodeData().toJavaObject(FunctionParams.class);
         String code=nodeParams.getCode();
         Object result=null;

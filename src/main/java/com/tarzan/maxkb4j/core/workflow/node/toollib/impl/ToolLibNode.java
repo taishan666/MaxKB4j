@@ -23,7 +23,6 @@ public class ToolLibNode extends INode {
 
     @Override
     public NodeResult execute() {
-        System.out.println(TOOL_LIB);
         ToolLibNodeParams nodeParams = super.getNodeData().toJavaObject(ToolLibNodeParams.class);
         Map<String, Object> params = new HashMap<>(5);
         if(nodeParams.getInitParams()!=null){

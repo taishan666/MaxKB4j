@@ -21,7 +21,6 @@ public class FormNode extends INode {
 
     @Override
     public NodeResult execute() {
-        System.out.println(FORM);
         FormNodeParams nodeParams=super.getNodeData().toJavaObject(FormNodeParams.class);
         List<JSONObject> formFieldList = nodeParams.getFormFieldList();
         JSONObject formData = nodeParams.getFormData();
