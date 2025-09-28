@@ -53,6 +53,11 @@ public class VariableAssignNode extends INode {
         return new NodeResult(Map.of("variable_list",nodeParams.getVariableList(),"result_list",resultList),Map.of());
     }
 
+    @Override
+    public void saveContext(JSONObject detail) {
+        context.put("result", detail.get("result"));
+    }
+
     public String getReferenceContent(List<String> fields) {
         if (fields == null || fields.size() < 2) {
             throw new IllegalArgumentException("Fields list must contain at least two elements.");

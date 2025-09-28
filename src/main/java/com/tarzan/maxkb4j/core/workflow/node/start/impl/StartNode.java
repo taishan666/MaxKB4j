@@ -41,14 +41,29 @@ public class StartNode extends INode {
         return new NodeResult(nodeVariable, globalVariable);
     }
 
+    @Override
+    public void saveContext(JSONObject detail) {
+        context.put("image", detail.get("image"));
+        context.put("document", detail.get("document"));
+        context.put("audio", detail.get("audio"));
+        context.put("other", detail.get("other"));
+        JSONArray globalFields=detail.getJSONArray("globalFields");
+        for (int i = 0; i < globalFields.size(); i++) {
+            JSONObject globalField=globalFields.getJSONObject(i);
+            String key=globalField.getString("key");
+            Object value=globalField.get("value");
+            globalVariable.put(key, value);
+        }
+    }
+
     public Map<String, Object> getDefaultGlobalVariable(ChatParams chatParams) {
         Map<String, Object> resultMap = new HashMap<>();
         resultMap.put("time", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
         resultMap.put("history_context", getHistoryContext());
         resultMap.put("chatId", chatParams.getChatId());
-        resultMap.put("chat_user_id", IdWorker.get32UUID());
-        resultMap.put("chat_user_type", "ANONYMOUS_USER");
-        resultMap.put("chat_user", new JSONObject(Map.of("username", "游客")));
+        resultMap.put("chatUserId", IdWorker.get32UUID());
+        resultMap.put("chatUserType", "ANONYMOUS_USER");
+        resultMap.put("chatUser", new JSONObject(Map.of("username", "游客")));
         return resultMap;
     }
 
@@ -68,7 +83,7 @@ public class StartNode extends INode {
             globalField.put("key",value);
             globalField.put("value",super.getGlobalVariable().get(value));
         }
-        detail.put("global_fields",globalFields);
+        detail.put("globalFields",globalFields);
         return detail;
     }
 }

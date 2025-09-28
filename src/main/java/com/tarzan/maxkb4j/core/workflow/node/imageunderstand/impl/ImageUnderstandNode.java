@@ -131,6 +131,11 @@ public class ImageUnderstandNode extends INode {
         return new NodeResult(nodeVariable, Map.of(),this::writeContext);
     }
 
+    @Override
+    public void saveContext(JSONObject detail) {
+        context.put("answer", detail.get("answer"));
+    }
+
     private void writeContext(Map<String, Object> nodeVariable, Map<String, Object> globalVariable, INode node, WorkflowManage workflow) {
         if (nodeVariable != null) {
             node.getContext().putAll(nodeVariable);

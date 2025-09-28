@@ -28,9 +28,9 @@ public class ChatPostHandler extends PostResponseHandler {
     private final ApplicationChatRecordMapper chatRecordMapper;
 
 
-     //todo 优化
+    //todo 优化
     @Override
-    public void handler(String chatId, String chatRecordId, String problemText, String answerText,ApplicationChatRecordEntity chatRecord,   JSONObject details,long startTime, String chatUserId, String chatUserType,boolean debug) {
+    public void handler(String chatId, String chatRecordId, String problemText, String answerText, ApplicationChatRecordEntity chatRecord, JSONObject details, long startTime, String chatUserId, String chatUserType, boolean debug) {
         float runTime = (System.currentTimeMillis() - startTime) / 1000F;
         ChatInfo chatInfo = ChatCache.get(chatId);
         int messageTokens = details.values().stream()
@@ -45,12 +45,13 @@ public class ChatPostHandler extends PostResponseHandler {
                 .sum();
         if (chatRecord != null) {
             chatRecord.setAnswerTextList(List.of(answerText));
+            //todo 优化
             chatRecord.setAnswerText(answerText);
             chatRecord.setDetails(new JSONObject(details));
             chatRecord.setMessageTokens(messageTokens);
             chatRecord.setAnswerTokens(answerTokens);
-            chatRecord.setCost(messageTokens+answerTokens);
-            chatRecord.setRunTime(runTime+chatRecord.getRunTime());
+            chatRecord.setCost(messageTokens + answerTokens);
+            chatRecord.setRunTime(runTime + chatRecord.getRunTime());
         } else {
             chatRecord = new ApplicationChatRecordEntity();
             chatRecord.setId(chatRecordId);
@@ -63,14 +64,14 @@ public class ChatPostHandler extends PostResponseHandler {
             chatRecord.setAnswerTokens(answerTokens);
             chatRecord.setRunTime(runTime);
             chatRecord.setVoteStatus("-1");
-            chatRecord.setCost(messageTokens+answerTokens);
+            chatRecord.setCost(messageTokens + answerTokens);
             chatRecord.setDetails(details);
             chatRecord.setImproveParagraphIdList(List.of());
         }
         chatInfo.addChatRecord(chatRecord);
         // 重新设置缓存
         ChatCache.put(chatId, chatInfo);
-       // chatMemoryStore.updateMessages(chatId, messages);
+        // chatMemoryStore.updateMessages(chatId, messages);
         if (!debug) {
             ApplicationChatUserStatsEntity applicationPublicAccessClient = chatUserStatsService.getById(chatUserId);
             if (applicationPublicAccessClient != null) {
@@ -78,18 +79,18 @@ public class ChatPostHandler extends PostResponseHandler {
                 applicationPublicAccessClient.setIntraDayAccessNum(applicationPublicAccessClient.getIntraDayAccessNum() + 1);
                 chatUserStatsService.updateById(applicationPublicAccessClient);
             }
-            long chatRecordCount=chatRecordMapper.selectCount(Wrappers.<ApplicationChatRecordEntity>lambdaQuery().eq(ApplicationChatRecordEntity::getId, chatId));
+            long chatRecordCount = chatRecordMapper.selectCount(Wrappers.<ApplicationChatRecordEntity>lambdaQuery().eq(ApplicationChatRecordEntity::getId, chatId));
             chatRecordMapper.insertOrUpdate(chatRecord);
-            if(chatRecordCount==0){
+            if (chatRecordCount == 0) {
                 ApplicationChatEntity chatEntity = new ApplicationChatEntity();
                 chatEntity.setId(chatId);
                 chatEntity.setApplicationId(chatInfo.getAppId());
-                String problemOverview=problemText.length()>50?problemText.substring(0,50):problemText;
+                String problemOverview = problemText.length() > 50 ? problemText.substring(0, 50) : problemText;
                 chatEntity.setSummary(problemOverview);
                 chatEntity.setChatUserId(chatUserId);
-                chatEntity.setChatUserType(StringUtil.isBlank(chatUserType)? ChatUserType.CHAT_USER.name() :chatUserType);
+                chatEntity.setChatUserType(StringUtil.isBlank(chatUserType) ? ChatUserType.CHAT_USER.name() : chatUserType);
                 chatEntity.setIsDeleted(false);
-                chatEntity.setAsker(new JSONObject(Map.of("username","游客")));
+                chatEntity.setAsker(new JSONObject(Map.of("username", "游客")));
                 chatEntity.setMeta(new JSONObject());
                 chatEntity.setStarNum(0);
                 chatEntity.setTrampleNum(0);

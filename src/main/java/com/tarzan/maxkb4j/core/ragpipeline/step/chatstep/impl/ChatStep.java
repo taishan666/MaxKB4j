@@ -105,8 +105,8 @@ public class ChatStep extends IChatStep {
                 answerText.set(value.replace("{question}", problemText));
                 sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, answerText.get(), "", "ai-chat-node", viewType, true));
             } else {
-                String chatUserId = manage.context.getString("chat_user_id");
-                String chatUserType = manage.context.getString("chat_user_type");
+                String chatUserId = manage.context.getString("chatUserId");
+                String chatUserType = manage.context.getString("chatUserType");
                 String systemText = application.getModelSetting().getSystem();
                 if (StringUtils.isNotBlank(systemText)){
                     aiServicesBuilder.systemMessageProvider(chatMemoryId -> systemText);

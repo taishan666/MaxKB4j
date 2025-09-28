@@ -34,6 +34,11 @@ public class ApplicationNode extends INode {
         ), Map.of());
     }
 
+    @Override
+    public void saveContext(JSONObject detail) {
+        context.put("result", detail.get("result"));
+    }
+
 
     @Override
     public JSONObject getDetail() {
@@ -46,7 +51,7 @@ public class ApplicationNode extends INode {
         detail.put("imageList", context.get("image"));
         detail.put("documentList", context.get("document"));
         detail.put("audioList", context.get("audio"));
-        detail.put("global_fields", properties.get("globalFields"));
+        detail.put("globalFields", properties.get("globalFields"));
         detail.put("application_node_dict", context.get("application_node_dict"));
         return  detail;
     }

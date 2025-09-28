@@ -65,6 +65,8 @@ public abstract class INode {
 
     public abstract NodeResult execute() throws Exception;
 
+    public abstract void saveContext(JSONObject detail);
+
     public abstract JSONObject getDetail();
 
     private String generateRuntimeNodeId() {
@@ -113,6 +115,8 @@ public abstract class INode {
         detail.put("runTime",context.get("runTime"));
         detail.put("status",status);
         detail.put("err_message",errMessage);
+        detail.put("messageTokens",0);
+        detail.put("answerTokens",0);
         detail.putAll(getDetail());
         return detail;
     }
@@ -169,39 +173,25 @@ public abstract class INode {
         return prompt;
     }
 
+
     public Map<String, Object> allVariables() {
-        JSONObject workflowContext = new JSONObject();
-        workflowContext.put("global", globalVariable);
+        Map<String, Object> result = new JSONObject();
+        for (String key : globalVariable.keySet()) {
+            result.put("global."+key, globalVariable.get(key));
+        }
         for (INode node : upNodes) {
             String nodeName=node.getProperties().getString("nodeName");
-            workflowContext.put(nodeName, node.getContext());
-        }
-        return jsonToMap(workflowContext);
-    }
-
-    private void iteratorJson(String parentKey, JSONObject json, Map<String, Object> resultMap) {
-        Set<String> keys = json.keySet();
-        for (String key : keys) {
-            Object value = json.get(key);
-            // 生成新的key，如果parentKey不为空，则使用parentKey.key格式
-            String newKey = (!parentKey.isEmpty()) ? (parentKey + "." + key) : key;
-            if (value instanceof JSONObject) {
-                // 如果是JSONObject，递归处理
-                iteratorJson(newKey, (JSONObject) value, resultMap);
-            } else {
-                // 否则，直接放入结果map中
-                resultMap.put(newKey, Objects.requireNonNullElse(value, ""));
+            Map<String, Object> context=node.getContext();
+            for (String key : context.keySet()) {
+                result.put(nodeName+"."+key, context.get(key));
             }
         }
+        return result;
     }
 
-    public Map<String, Object> jsonToMap(JSONObject jsonObject) {
-        Map<String, Object> resultMap = new HashMap<>();
-        iteratorJson("", jsonObject, resultMap);
-        return resultMap;
-    }
 
-    private static Set<String> extractVariables(String template) {
+
+    public  Set<String> extractVariables(String template) {
         Pattern VARIABLE_PATTERN = Pattern.compile("\\{\\{(.+?)\\}\\}");
         Set<String> variables = new HashSet<>();
         Matcher matcher = VARIABLE_PATTERN.matcher(template);
@@ -236,7 +226,7 @@ public abstract class INode {
         return historyMessages.subList(startIndex, total);
     }
 
-    public List<ChatMessage> getWorkFlowMessages() {
+    private List<ChatMessage> getWorkFlowMessages() {
         List<ChatMessage> messages = new ArrayList<>();
         for (ApplicationChatRecordEntity message : historyChatRecords) {
             messages.add(new UserMessage(message.getProblemText()));
@@ -245,7 +235,7 @@ public abstract class INode {
         return messages;
     }
 
-    public List<ChatMessage> getNodeMessages(String runtimeNodeId) {
+    private List<ChatMessage> getNodeMessages(String runtimeNodeId) {
         List<ChatMessage> messages = new ArrayList<>();
         for (ApplicationChatRecordEntity record : historyChatRecords) {
             // 获取节点详情

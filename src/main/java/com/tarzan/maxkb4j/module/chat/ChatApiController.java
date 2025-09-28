@@ -78,8 +78,8 @@ public class ChatApiController {
         SaLoginModel loginModel = new SaLoginModel();
         loginModel.setExtra("username", "游客");
         loginModel.setExtra("language", accessToken.getLanguage());
-        loginModel.setExtra("chat_user_id", chatUserId);
-        loginModel.setExtra("chat_user_type", "ANONYMOUS_USER");
+        loginModel.setExtra("chatUserId", chatUserId);
+        loginModel.setExtra("chatUserType", "ANONYMOUS_USER");
         loginModel.setExtra("application_id", accessToken.getApplicationId());
         StpUtil.login(chatUserId, loginModel);
         return R.success(StpUtil.getTokenValue());

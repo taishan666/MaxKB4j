@@ -34,8 +34,8 @@ public class ChatInfo implements Serializable {
         params.put("exclude_paragraph_ids", excludeParagraphIds);
         params.put("history_chat_records", historyChatRecords);
         chatUserId=chatUserId==null?"":chatUserId;
-        params.put("chat_user_id", chatUserId);
-        params.put("chat_user_type", chatUserType);
+        params.put("chatUserId", chatUserId);
+        params.put("chatUserType", chatUserType);
         params.put("stream", stream);
         return params;
     }

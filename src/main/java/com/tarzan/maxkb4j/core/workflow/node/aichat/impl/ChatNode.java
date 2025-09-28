@@ -142,6 +142,8 @@ public class ChatNode extends INode {
         return new NodeResult(nodeVariable, Map.of(),this::writeContext);
     }
 
+
+
     private void writeContext(Map<String, Object> nodeVariable, Map<String, Object> globalVariable, INode node, WorkflowManage workflow) {
         if (nodeVariable != null) {
             node.getContext().putAll(nodeVariable);
@@ -151,6 +153,11 @@ public class ChatNode extends INode {
     }
 
 
+    @Override
+    public void saveContext(JSONObject detail) {
+        context.put("answer", detail.get("answer"));
+        context.put("reasoningContent", detail.get("reasoningContent"));
+    }
 
     @Override
     public JSONObject getDetail() {

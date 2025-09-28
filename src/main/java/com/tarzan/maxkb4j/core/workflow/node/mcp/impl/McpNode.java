@@ -55,6 +55,11 @@ public class McpNode extends INode {
     }
 
     @Override
+    public void saveContext(JSONObject detail) {
+        context.put("result", detail.get("result"));
+    }
+
+    @Override
     public JSONObject getDetail() {
         JSONObject detail = new JSONObject();
         detail.put("mcpTool", context.get("mcpTool"));

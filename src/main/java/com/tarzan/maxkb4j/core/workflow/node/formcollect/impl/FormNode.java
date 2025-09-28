@@ -6,8 +6,10 @@ import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
 import com.tarzan.maxkb4j.core.workflow.node.formcollect.input.FormNodeParams;
 import dev.langchain4j.model.input.PromptTemplate;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.FORM;
 
@@ -39,23 +41,35 @@ public class FormNode extends INode {
             formSetting.put("chatRecordId", super.getChatParams().getChatRecordId());
             formSetting.put("is_submit", context.getOrDefault("is_submit", false));
             String form = "<form_render>" + formSetting + "</form_render>";
-            // Get workflow content and reset prompt todo (如果表单里有变量)
-         //   String updatedFormContentFormat = workflowManage.resetPrompt(formContentFormat);
             String formContentFormat = nodeParams.getFormContentFormat();
+            Set<String> promptVariables = super.extractVariables(formContentFormat);
+            Map<String, Object> variables = new HashMap<>();
+            if (!promptVariables.isEmpty()) {
+                Map<String, Object> allVariables = super.allVariables();
+                for (String promptVariable : promptVariables) {
+                    variables.put(promptVariable, allVariables.getOrDefault(promptVariable, "*"));
+                }
+                variables.put("form",form);
+            }
             PromptTemplate promptTemplate = PromptTemplate.from(formContentFormat);
-            String formRender = promptTemplate.apply(Map.of("form", form)).text();
-            return new NodeResult(Map.of("result", formRender, "answer", formRender,
-                    "form_field_list", formFieldList,
-                    "form_content_format", formContentFormat), Map.of());
+            String formRender = promptTemplate.apply(variables).text();
+            return new NodeResult(Map.of("answer", formRender,
+                    "form_field_list", formFieldList), Map.of());
         }
+    }
+
+    @Override
+    public void saveContext(JSONObject detail) {
+        context.put("answer", detail.get("answer"));
+        context.put("form_field_list", detail.get("form_field_list"));
+        context.put("form_data", detail.get("form_data"));
+        context.put("is_submit", detail.get("is_submit"));
     }
 
     @Override
     public JSONObject getDetail() {
         JSONObject detail = new JSONObject();
-        detail.put("result", context.get("result"));
         detail.put("form_field_list", context.get("form_field_list"));
-        detail.put("form_content_format", context.get("form_content_format"));
         detail.put("form_data", context.get("form_data"));
         detail.put("is_submit", context.get("is_submit"));
         return detail;

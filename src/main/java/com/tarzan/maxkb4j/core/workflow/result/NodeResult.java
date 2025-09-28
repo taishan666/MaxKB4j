@@ -80,7 +80,7 @@ public class NodeResult {
     }
 
     public boolean isAssertionResult() {
-        return this.nodeVariable.containsKey("branch_id");
+        return this.nodeVariable.containsKey("branchId");
     }
 
 

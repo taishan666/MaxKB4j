@@ -21,7 +21,6 @@ import com.tarzan.maxkb4j.core.workflow.node.speechtotext.impl.SpeechToTextNode;
 import com.tarzan.maxkb4j.core.workflow.node.start.impl.StartNode;
 import com.tarzan.maxkb4j.core.workflow.node.texttospeech.impl.TextToSpeechNode;
 import com.tarzan.maxkb4j.core.workflow.node.toollib.impl.ToolLibNode;
-import com.tarzan.maxkb4j.core.workflow.node.variableaggregate.impl.VariableAggregateNode;
 import com.tarzan.maxkb4j.core.workflow.node.variableassign.impl.VariableAssignNode;
 
 import java.util.Objects;
@@ -46,7 +45,6 @@ public class NodeFactory {
             case DOCUMENT_EXTRACT -> new DocumentExtractNode(properties);
             case SPEECH_TO_TEXT -> new SpeechToTextNode(properties);
             case VARIABLE_ASSIGN -> new VariableAssignNode(properties);
-            case VARIABLE_AGGREGATE -> new VariableAggregateNode(properties);
             case TOOL -> new ToolNode(properties);
             case TOOL_LIB -> new ToolLibNode(properties);
             case IMAGE_UNDERSTAND -> new ImageUnderstandNode(properties);

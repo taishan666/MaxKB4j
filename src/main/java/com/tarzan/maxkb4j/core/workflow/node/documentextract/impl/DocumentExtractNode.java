@@ -128,6 +128,11 @@ public class DocumentExtractNode extends INode {
         return new NodeResult(Map.of("content",sb.toString()),Map.of());
     }
 
+    @Override
+    public void saveContext(JSONObject detail) {
+        context.put("content", detail.get("content"));
+    }
+
 
     @Override
     public JSONObject getDetail() {

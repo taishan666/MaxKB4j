@@ -32,6 +32,11 @@ public class DirectReplyNode extends INode {
         return new NodeResult(Map.of("answer", result), Map.of());
     }
 
+    @Override
+    public void saveContext(JSONObject detail) {
+        context.put("answer", detail.get("answer"));
+    }
+
 
     @Override
     public JSONObject getDetail() {

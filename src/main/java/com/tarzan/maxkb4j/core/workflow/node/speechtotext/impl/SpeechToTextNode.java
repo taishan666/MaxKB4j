@@ -48,6 +48,11 @@ public class SpeechToTextNode extends INode {
     }
 
     @Override
+    public void saveContext(JSONObject detail) {
+        context.put("result", detail.get("result"));
+    }
+
+    @Override
     public JSONObject getDetail() {
         JSONObject detail = new JSONObject();
         detail.put("content", context.get("content"));

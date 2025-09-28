@@ -47,8 +47,10 @@ public class ConditionNode extends INode {
         ConditionNodeParams nodeParams= super.getNodeData().toJavaObject(ConditionNodeParams.class);
         ConditionBranch branch = _execute(nodeParams.getBranch());
         assert branch != null;
-        return new NodeResult(Map.of("branch_id", branch.getId(), "branch_name", branch.getType()), Map.of());
+        return new NodeResult(Map.of("branchId", branch.getId(), "branchName", branch.getType()), Map.of());
     }
+
+
 
     private ConditionBranch _execute(List<ConditionBranch> branchList) {
         for (ConditionBranch branch : branchList) {
@@ -89,10 +91,15 @@ public class ConditionNode extends INode {
     }
 
     @Override
+    public void saveContext(JSONObject detail) {
+        context.put("branchName", detail.get("branchName"));
+    }
+
+    @Override
     public JSONObject getDetail() {
         JSONObject detail = new JSONObject();
-        detail.put("branch_id",context.get("branch_id"));
-        detail.put("branch_name",context.get("branch_name"));
+        detail.put("branchId",context.get("branchId"));
+        detail.put("branchName",context.get("branchName"));
         return detail;
     }
 

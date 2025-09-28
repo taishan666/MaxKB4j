@@ -37,13 +37,13 @@ public class QuestionNode extends INode {
             nodeParams.setModelParamsSetting(new JSONObject());
         }
         BaseChatModel chatModel = modelService.getModelById(nodeParams.getModelId(), nodeParams.getModelParamsSetting());
-        List<ChatMessage> historyMessage = new ArrayList<>();
+        List<ChatMessage> historyMessages=super.getHistoryMessages(nodeParams.getDialogueNumber(), "WORKFLOW", runtimeNodeId);
         String question = super.generatePrompt(nodeParams.getPrompt());
         UserMessage userMessage = UserMessage.from(question);
         String system = super.generatePrompt(nodeParams.getSystem());
-        List<ChatMessage> messageList = super.generateMessageList(system, userMessage, historyMessage);
+        List<ChatMessage> messageList = super.generateMessageList(system, userMessage, historyMessages);
         QueryTransformer queryTransformer = new CompressingQueryTransformer(chatModel.getChatModel());
-        Metadata metadata = new Metadata(userMessage, getChatParams().getChatId(), historyMessage);
+        Metadata metadata = new Metadata(userMessage, getChatParams().getChatId(), historyMessages);
         Query query = new Query(getChatParams().getMessage(), metadata);
         Collection<Query> list = queryTransformer.transform(query);
         StringBuilder answerSb = new StringBuilder();
@@ -55,12 +55,17 @@ public class QuestionNode extends INode {
                 "answer", answerSb.toString(),
                 "system", system,
                 "message_list", messageList,
-                "history_message", historyMessage,
+                "history_message", historyMessages,
                 "question", question
         );
         context.put("messageTokens", TokenUtil.countTokens(messageList));
         context.put("answerTokens", TokenUtil.countTokens(answerSb.toString()));
         return new NodeResult(nodeVariable, Map.of());
+    }
+
+    @Override
+    public void saveContext(JSONObject detail) {
+        context.put("result", detail.get("result"));
     }
 
 

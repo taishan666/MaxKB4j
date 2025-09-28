@@ -50,6 +50,11 @@ public class ToolLibNode extends INode {
     }
 
     @Override
+    public void saveContext(JSONObject detail) {
+        context.put("result", detail.get("result"));
+    }
+
+    @Override
     public JSONObject getDetail() {
         JSONObject detail = new JSONObject();
         detail.put("result", context.get("result"));

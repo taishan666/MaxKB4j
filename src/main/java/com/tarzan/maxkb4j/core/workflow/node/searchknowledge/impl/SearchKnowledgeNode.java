@@ -47,6 +47,14 @@ public class SearchKnowledgeNode extends INode {
         return new NodeResult(nodeVariable, Map.of());
     }
 
+    @Override
+    public void saveContext(JSONObject detail) {
+        context.put("paragraphList", detail.get("paragraphList"));
+        context.put("isHitHandlingMethodList", detail.get("isHitHandlingMethodList"));
+        context.put("data", detail.get("data"));
+        context.put("directlyReturn", detail.get("directlyReturn"));
+    }
+
 
     public static String resetTitle(String title) {
         if(StringUtils.isNotBlank(title)){

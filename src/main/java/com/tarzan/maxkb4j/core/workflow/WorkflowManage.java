@@ -1,12 +1,9 @@
 package com.tarzan.maxkb4j.core.workflow;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
-import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.tarzan.maxkb4j.common.util.StringUtil;
 import com.tarzan.maxkb4j.core.workflow.logic.LfEdge;
-import com.tarzan.maxkb4j.core.workflow.model.ChatRecordSimple;
 import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
 import com.tarzan.maxkb4j.core.workflow.result.NodeResultFuture;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatRecordEntity;
@@ -15,8 +12,6 @@ import com.tarzan.maxkb4j.module.chat.ChatParams;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.function.Function;
 
@@ -80,43 +75,18 @@ public class WorkflowManage {
                 if (APPLICATION.getKey().equals(startNode.getType())) {
                     startNode.getContext().put("application_node_dict", nodeDetail.get("application_node_dict"));
                 }
-                startNode.setContext(nodeDetail);
+                startNode.saveContext(nodeDetail);
                 nodeContext.add(startNode);
             } else {
                 // 处理普通节点
                 INode node = getNodeClsById(nodeId, lastNodeIdList, null);
                 assert node != null;
-                node.setContext(nodeDetail);
+                node.saveContext(nodeDetail);
                 nodeContext.add(node);
             }
         }
-        globalVariable.putAll(getDefaultGlobalVariable(chatParams));
     }
 
-
-    public Map<String, Object> getDefaultGlobalVariable(ChatParams chatParams) {
-        Map<String, Object> resultMap = new HashMap<>();
-        resultMap.put("time", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
-        resultMap.put("history_context", getHistoryContext());
-        resultMap.put("chatId", chatParams.getChatId());
-        resultMap.put("chat_user_id", IdWorker.get32UUID());
-        resultMap.put("chat_user_type", "ANONYMOUS_USER");
-        resultMap.put("chat_user", new JSONObject(Map.of("username", "游客")));
-        return resultMap;
-    }
-
-    //todo 优化
-    public String getHistoryContext() {
-        // 获取历史聊天记录
-        List<ChatRecordSimple> historyContext = new ArrayList<>();
-        for (ApplicationChatRecordEntity chatRecord : historyChatRecords) {
-            ChatRecordSimple record = new ChatRecordSimple();
-            record.setQuestion(chatRecord.getProblemText());
-            record.setAnswer(chatRecord.getAnswerText());
-            historyContext.add(record);
-        }
-        return JSON.toJSONString(historyContext);
-    }
 
     public String run() {
         runChainManage(startNode, null);
@@ -163,7 +133,7 @@ public class WorkflowManage {
                 if (edge.getSourceNodeId().equals(currentNode.getId())) {
                     // 构造预期的sourceAnchorId
                     Map<String, Object> nodeVariables = currentNodeResult.getNodeVariable();
-                    String branchId = nodeVariables != null ? (String) nodeVariables.getOrDefault("branch_id", "") : "";
+                    String branchId = nodeVariables != null ? (String) nodeVariables.getOrDefault("branchId", "") : "";
                     String expectedAnchorId = String.format("%s_%s_right", currentNode.getId(), branchId);
                     if (expectedAnchorId.equals(edge.getSourceAnchorId())) {
                         processEdge(edge, currentNode, nodeList);
@@ -226,7 +196,7 @@ public class WorkflowManage {
                 node.setChatParams(chatParams);
                 node.setHistoryChatRecords(historyChatRecords);
                 if (getNodeParams != null) {
-                    JSONObject properties= node.getProperties();
+                    JSONObject properties = node.getProperties();
                     if (properties.containsKey("nodeData")) {
                         JSONObject nodeParams = getNodeParams.apply(node);
                         properties.put("nodeData", nodeParams);
@@ -263,7 +233,7 @@ public class WorkflowManage {
         }
         for (int index = 0; index < nodeContext.size(); index++) {
             INode node = nodeContext.get(index);
-            JSONObject details= node.getDetail(index);
+            JSONObject details = node.getDetail(index);
             details.put("node_id", node.getId());
             details.put("upNodeIdList", node.getUpNodeIdList());
             details.put("runtimeNodeId", node.getRuntimeNodeId());
@@ -288,7 +258,7 @@ public class WorkflowManage {
             NodeResult result = node.run();
             return new NodeResultFuture(result, null, 200);
         } catch (Exception ex) {
-            log.error("{} ERROR :{}",node.getType(),ex.getMessage());
+            log.error("{} ERROR :{}", node.getType(), ex.getMessage());
             return new NodeResultFuture(null, ex, 500);
         }
     }
@@ -297,7 +267,7 @@ public class WorkflowManage {
         if (nodeResult != null && nodeResult.isAssertionResult()) {
             for (LfEdge edge : edges) {
                 if (edge.getSourceNodeId().equals(currentNode.getId())) {
-                    String branchId = (String) nodeResult.getNodeVariable().get("branch_id");
+                    String branchId = (String) nodeResult.getNodeVariable().get("branchId");
                     String expectedSourceAnchorId = String.format("%s_%s_right", edge.getSourceNodeId(), branchId);
                     if (expectedSourceAnchorId.equals(edge.getSourceAnchorId())) {
                         return true;
