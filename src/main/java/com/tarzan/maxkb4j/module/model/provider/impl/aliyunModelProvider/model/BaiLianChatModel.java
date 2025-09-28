@@ -20,14 +20,14 @@ public class BaiLianChatModel extends BaseChatModel implements BaseModel<BaseCha
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
                 .temperature(params==null?null:params.getFloat("temperature"))
-                .maxTokens(params==null?null:params.getInteger("maxTokens"))
+                .maxTokens(params==null?null:params.getInteger("maxOutputTokens"))
                 .listeners(List.of(new LlmListener()))
                 .build();
         ChatModel chatModel = QwenChatModel.builder()
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
                 .temperature(params==null?null:params.getFloat("temperature"))
-                .maxTokens(params==null?null:params.getInteger("maxTokens"))
+                .maxTokens(params==null?null:params.getInteger("maxOutputTokens"))
                 .listeners(List.of(new LlmListener()))
                 .build();
         // 使用构造函数实例化对象

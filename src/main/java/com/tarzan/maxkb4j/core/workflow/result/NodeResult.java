@@ -4,12 +4,14 @@ import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.WorkflowManage;
 import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Map;
 
 import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.FORM;
 import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.USER_SELECT;
 
+@Slf4j
 @Data
 public class NodeResult {
     private Map<String, Object> nodeVariable;
@@ -66,6 +68,7 @@ public class NodeResult {
         if (globalVariable != null) {
             workflow.getGlobalVariable().putAll(globalVariable);
         }
+        log.info("WriteContext node: {} ",node.getType());
     }
 
 
