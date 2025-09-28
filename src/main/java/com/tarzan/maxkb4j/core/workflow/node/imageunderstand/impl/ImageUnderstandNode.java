@@ -151,8 +151,10 @@ public class ImageUnderstandNode extends INode {
     private void writeContext(Map<String, Object> nodeVariable, Map<String, Object> globalVariable, INode node, WorkflowManage workflow) {
         if (nodeVariable != null) {
             node.getContext().putAll(nodeVariable);
-            String answer = (String) nodeVariable.get("answer");
-            workflow.setAnswer(answer);
+            if (workflow.isResult(node, new NodeResult(nodeVariable, globalVariable)) && nodeVariable.containsKey("answer")) {
+                String answer = (String) nodeVariable.get("answer");
+                workflow.setAnswer(answer);
+            }
         }
     }
 
