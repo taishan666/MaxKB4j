@@ -86,8 +86,7 @@ public class ImageUnderstandNode extends INode {
         Map<String, Object> nodeVariable = new HashMap<>(Map.of(
                 "system", systemPrompt,
                 "history_message", resetMessageList(historyMessages),
-                "question", question,
-                "answer", ""
+                "question", question
         ));
         return writeContextStream(nodeVariable, Map.of(),nodeParams,tokenStream);
     }
