@@ -73,18 +73,19 @@ public class StartNode extends INode {
     }
 
 
-    //todo 获取历史聊天记录
-    public String getHistoryContext() {
+    public JSONArray getHistoryContext() {
         // 获取历史聊天记录
-        List<ChatRecordSimple> historyContext = new ArrayList<>();
+        List<ChatRecordSimple> list = new ArrayList<>();
         for (ApplicationChatRecordEntity chatRecord : this.getHistoryChatRecords()) {
             ChatRecordSimple record = new ChatRecordSimple();
             record.setQuestion(chatRecord.getProblemText());
             record.setAnswer(chatRecord.getAnswerText());
-            historyContext.add(record);
+            list.add(record);
         }
-        return JSON.toJSONString(historyContext);
+        return (JSONArray) JSON.toJSON(list);
     }
+
+
 
 
     @Override
