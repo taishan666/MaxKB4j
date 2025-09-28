@@ -8,7 +8,6 @@ import java.util.List;
 public class SpeechToTextParams {
 
     private String sttModelId;
-    private Boolean isResult;
     private List<String> audioList;
 
 }

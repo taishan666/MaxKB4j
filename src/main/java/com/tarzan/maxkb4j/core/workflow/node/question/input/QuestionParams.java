@@ -10,6 +10,5 @@ public class QuestionParams {
     private String system;
     private String prompt;
     private Integer dialogueNumber;
-    private Boolean isResult;
     private JSONObject modelParamsSetting;
 }

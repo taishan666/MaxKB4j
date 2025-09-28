@@ -155,8 +155,13 @@ public class ChatNode extends INode {
 
     @Override
     public void saveContext(JSONObject detail) {
+        context.put("system", detail.get("system"));
+        context.put("history_message", detail.get("history_message"));
+        context.put("question", detail.get("question"));
         context.put("answer", detail.get("answer"));
         context.put("reasoningContent", detail.get("reasoningContent"));
+        context.put("messageTokens", detail.get("messageTokens"));
+        context.put("answerTokens", detail.get("answerTokens"));
     }
 
     @Override

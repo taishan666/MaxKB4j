@@ -115,8 +115,6 @@ public abstract class INode {
         detail.put("runTime",context.get("runTime"));
         detail.put("status",status);
         detail.put("err_message",errMessage);
-        detail.put("messageTokens",0);
-        detail.put("answerTokens",0);
         detail.putAll(getDetail());
         return detail;
     }

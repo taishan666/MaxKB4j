@@ -40,6 +40,7 @@ public class ApplicationNode extends INode {
     }
 
 
+    //todo 获取节点详情
     @Override
     public JSONObject getDetail() {
         JSONObject detail = new JSONObject();

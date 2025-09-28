@@ -42,18 +42,11 @@ public class SearchKnowledgeNode extends INode {
                 "data", processParagraphs(paragraphList, knowledgeSetting.getMaxParagraphCharNumber()),
                 "directlyReturn", directlyReturns(isHitHandlingMethodList),
                 "question", question,
-                "showKnowledge", nodeParams.getShowKnowledge()
+                "showKnowledge", nodeParams.getShowKnowledge() //todo 获取对话记录时会用
         );
         return new NodeResult(nodeVariable, Map.of());
     }
 
-    @Override
-    public void saveContext(JSONObject detail) {
-        context.put("paragraphList", detail.get("paragraphList"));
-        context.put("isHitHandlingMethodList", detail.get("isHitHandlingMethodList"));
-        context.put("data", detail.get("data"));
-        context.put("directlyReturn", detail.get("directlyReturn"));
-    }
 
 
     public static String resetTitle(String title) {
@@ -95,6 +88,17 @@ public class SearchKnowledgeNode extends INode {
         }
         // 如果未超出限制，直接返回结果
         return result.toString();
+    }
+
+
+    @Override
+    public void saveContext(JSONObject detail) {
+        context.put("question", detail.get("question"));
+        context.put("paragraphList", detail.get("paragraphList"));
+        context.put("isHitHandlingMethodList", detail.get("isHitHandlingMethodList"));
+        context.put("data", detail.get("data"));
+        context.put("directlyReturn", detail.get("directlyReturn"));
+        context.put("showKnowledge", detail.get("showKnowledge"));
     }
 
     @Override

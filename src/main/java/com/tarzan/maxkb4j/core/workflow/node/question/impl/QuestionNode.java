@@ -51,11 +51,12 @@ public class QuestionNode extends INode {
             System.out.println(queryResult.metadata());
             answerSb.append(queryResult.text());
         }
+        @SuppressWarnings("unchecked")
         Map<String, Object> nodeVariable = Map.of(
                 "answer", answerSb.toString(),
                 "system", system,
                 "message_list", messageList,
-                "history_message", historyMessages,
+                "history_message", resetMessageList(historyMessages),
                 "question", question
         );
         context.put("messageTokens", TokenUtil.countTokens(messageList));
@@ -65,7 +66,12 @@ public class QuestionNode extends INode {
 
     @Override
     public void saveContext(JSONObject detail) {
-        context.put("result", detail.get("result"));
+        context.put("system", detail.get("system"));
+        context.put("question", detail.get("question"));
+        context.put("answer", detail.get("answer"));
+        context.put("history_message", detail.get("history_message"));
+        context.put("messageTokens", detail.get("messageTokens"));
+        context.put("answerTokens", detail.get("answerTokens"));
     }
 
 
@@ -74,9 +80,7 @@ public class QuestionNode extends INode {
         JSONObject detail = new JSONObject();
         detail.put("system", context.get("system"));
         detail.put("question", context.get("question"));
-        @SuppressWarnings("unchecked")
-        List<ChatMessage> historyMessage = (List<ChatMessage>) context.get("history_message");
-        detail.put("history_message", resetMessageList(historyMessage));
+        detail.put("history_message", context.get("history_message"));
         detail.put("answer", context.get("answer"));
         detail.put("messageTokens", context.get("messageTokens"));
         detail.put("answerTokens", context.get("answerTokens"));

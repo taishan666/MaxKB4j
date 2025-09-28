@@ -12,7 +12,6 @@ public class ImageGenerateParams {
     private String negativePrompt;
     private Integer dialogueNumber;
     private String dialogueType;
-    private Boolean isResult;
     private JSONObject modelParamsSetting;
 
 }

@@ -9,5 +9,4 @@ import java.util.List;
 public class ToolNodeParams {
     private List<ToolInputField> inputFieldList;
     private String code;
-    private Boolean isResult;
 }

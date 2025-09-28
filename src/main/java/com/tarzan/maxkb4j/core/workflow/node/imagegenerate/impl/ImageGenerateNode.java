@@ -53,6 +53,7 @@ public class ImageGenerateNode extends INode {
 
     @Override
     public void saveContext(JSONObject detail) {
+        context.put("question", detail.get("question"));
         context.put("answer", detail.get("answer"));
         context.put("image", detail.get("image"));
     }

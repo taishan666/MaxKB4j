@@ -24,22 +24,20 @@ public class FormNode extends INode {
     @Override
     public NodeResult execute() {
         FormNodeParams nodeParams=super.getNodeData().toJavaObject(FormNodeParams.class);
-        List<JSONObject> formFieldList = nodeParams.getFormFieldList();
-        JSONObject formData = nodeParams.getFormData();
+
+        Map<String,Object> formData = nodeParams.getFormData();
         if (formData != null) {
             context.put("is_submit", true);
             context.put("form_data", formData);
-            for (String key : formData.keySet()) {
-                context.put(key, formData.get(key));
-            }
+            context.putAll(formData);
             return new NodeResult(Map.of(), Map.of());
         } else {
+            List<JSONObject> formFieldList = nodeParams.getFormFieldList();
             context.put("is_submit", false);
             JSONObject formSetting = new JSONObject();
             formSetting.put("form_field_list", formFieldList);
             formSetting.put("runtimeNodeId", super.getRuntimeNodeId());
             formSetting.put("chatRecordId", super.getChatParams().getChatRecordId());
-            formSetting.put("is_submit", context.getOrDefault("is_submit", false));
             String form = "<form_render>" + formSetting + "</form_render>";
             String formContentFormat = nodeParams.getFormContentFormat();
             Set<String> promptVariables = super.extractVariables(formContentFormat);
@@ -60,8 +58,10 @@ public class FormNode extends INode {
 
     @Override
     public void saveContext(JSONObject detail) {
-        context.put("answer", detail.get("answer"));
         context.put("form_field_list", detail.get("form_field_list"));
+        @SuppressWarnings("unchecked")
+        Map<String,Object> formData = (Map<String, Object>) detail.get("form_data");
+        context.putAll(formData);
         context.put("form_data", detail.get("form_data"));
         context.put("is_submit", detail.get("is_submit"));
     }

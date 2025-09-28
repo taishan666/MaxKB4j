@@ -16,8 +16,7 @@ public class ApplicationNodeParams {
     private String applicationId;
     @NotNull(message = "用户问题不能为空")
     private List<String> questionReferenceAddress;
-    @NotNull(message = "是否返回")
-    private Boolean isResult;
+
 
    /* private List<String> apiInputFieldList; // Optional
 

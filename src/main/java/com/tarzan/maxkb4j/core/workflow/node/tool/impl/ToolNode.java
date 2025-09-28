@@ -43,11 +43,13 @@ public class ToolNode extends INode {
         GroovyShell shell = new GroovyShell(binding);
         // 执行脚本并返回结果
         Object result = shell.evaluate(nodeParams.getCode());
-        return new NodeResult(Map.of("answer", "", "params", params, "result", result), Map.of());
+        return new NodeResult(Map.of("answer", result, "params", params, "result", result), Map.of());
     }
 
     @Override
     public void saveContext(JSONObject detail) {
+        context.put("answer", detail.get("answer"));
+        context.put("params", detail.get("params"));
         context.put("result", detail.get("result"));
     }
 

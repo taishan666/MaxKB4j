@@ -10,5 +10,4 @@ public class ReplyNodeParams {
     private String replyType;
     private List<String> fields;
     private String content;
-    private Boolean isResult;
 }

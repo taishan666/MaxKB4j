@@ -4,10 +4,11 @@ import com.alibaba.fastjson.JSONObject;
 import lombok.Data;
 
 import java.util.List;
+import java.util.Map;
 
 @Data
 public class FormNodeParams {
     private List<JSONObject> formFieldList;
     private String formContentFormat;
-    private JSONObject formData;
+    private Map<String,Object> formData;
 }

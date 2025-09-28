@@ -131,11 +131,6 @@ public class ImageUnderstandNode extends INode {
         return new NodeResult(nodeVariable, Map.of(),this::writeContext);
     }
 
-    @Override
-    public void saveContext(JSONObject detail) {
-        context.put("answer", detail.get("answer"));
-    }
-
     private void writeContext(Map<String, Object> nodeVariable, Map<String, Object> globalVariable, INode node, WorkflowManage workflow) {
         if (nodeVariable != null) {
             node.getContext().putAll(nodeVariable);
@@ -144,10 +139,27 @@ public class ImageUnderstandNode extends INode {
         }
     }
 
+
+    @Override
+    public void saveContext(JSONObject detail) {
+        context.put("system", detail.get("system"));
+        context.put("question", detail.get("question"));
+        context.put("answer", detail.get("answer"));
+        context.put("history_message",detail.get("history_message"));
+        context.put("imageLst",detail.get("imageLst"));
+        context.put("messageTokens", detail.get("messageTokens"));
+        context.put("answerTokens", detail.get("answerTokens"));
+    }
+
+
     @Override
     public JSONObject getDetail() {
         JSONObject detail = new JSONObject();
+        detail.put("system",context.get("system"));
+        detail.put("question",context.get("question"));
         detail.put("answer",context.get("answer"));
+        detail.put("history_message",context.get("history_message"));
+        detail.put("imageLst",context.get("imageLst"));
         detail.put("messageTokens", context.get("messageTokens"));
         detail.put("answerTokens", context.get("answerTokens"));
         return detail;

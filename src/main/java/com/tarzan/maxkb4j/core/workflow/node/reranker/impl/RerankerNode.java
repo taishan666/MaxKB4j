@@ -78,11 +78,7 @@ public class RerankerNode extends INode {
                 "question",question), Map.of());
     }
 
-    @Override
-    public void saveContext(JSONObject detail) {
-        context.put("result", detail.get("result"));
-        context.put("result_list", detail.get("result_list"));
-    }
+
 
     public List<Object> getRerankerList(List<List<String>> rerankerReferenceList) {
         // 使用流式操作实现类似 Python 的列表推导式
@@ -120,6 +116,12 @@ public class RerankerNode extends INode {
         return result;
     }
 */
+
+    @Override
+    public void saveContext(JSONObject detail) {
+        context.put("result", detail.get("result"));
+        context.put("result_list", detail.get("result_list"));
+    }
 
     @Override
     public JSONObject getDetail() {

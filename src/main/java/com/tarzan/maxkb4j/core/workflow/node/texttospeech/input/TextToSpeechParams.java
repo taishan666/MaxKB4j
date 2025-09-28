@@ -9,7 +9,6 @@ import java.util.List;
 public class TextToSpeechParams {
 
     private String ttsModelId;
-    private Boolean isResult;
     private List<String> contentList;
     private JSONObject modelParamsSetting;
 }

@@ -2,7 +2,6 @@ package com.tarzan.maxkb4j.core.workflow.node.imageunderstand.input;
 
 import com.alibaba.fastjson.JSONObject;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 
 import java.util.List;
 
@@ -13,7 +12,7 @@ public class ImageUnderstandParams  {
     private String prompt;
     private Integer dialogueNumber;
     private String dialogueType;
-    private Boolean isResult;
+    private Boolean isResult;//流式输出
     private List<String> imageList;
     private JSONObject modelParamsSetting;
 

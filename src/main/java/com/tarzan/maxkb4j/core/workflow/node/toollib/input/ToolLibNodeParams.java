@@ -11,5 +11,4 @@ public class ToolLibNodeParams {
     private List<ToolInputField> inputFieldList;
     private String code;
     private Map<String,Object> initParams;
-    private Boolean isResult;
 }

@@ -39,11 +39,13 @@ public class TextToSpeechNode extends INode {
         // 使用字符串拼接生成 HTML 音频标签
         String audioLabel = "<audio src=\"" + fileVO.getUrl() + "\" controls style=\"width: 300px; height: 43px\"></audio>";
         // 输出生成的 HTML 标签
-        return new NodeResult(Map.of("content",content,"answer",audioLabel,"audioList",List.of(fileVO)),Map.of());
+        return new NodeResult(Map.of("content",content,"answer",audioLabel,"result",List.of(fileVO)),Map.of());
     }
 
     @Override
     public void saveContext(JSONObject detail) {
+        context.put("content", detail.get("content"));
+        context.put("answer", detail.get("answer"));
         context.put("result", detail.get("result"));
     }
 

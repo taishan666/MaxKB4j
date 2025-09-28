@@ -98,7 +98,6 @@ public class ConditionNode extends INode {
     @Override
     public JSONObject getDetail() {
         JSONObject detail = new JSONObject();
-        detail.put("branchId",context.get("branchId"));
         detail.put("branchName",context.get("branchName"));
         return detail;
     }
