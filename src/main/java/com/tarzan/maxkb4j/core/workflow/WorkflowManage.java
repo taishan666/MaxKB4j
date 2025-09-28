@@ -77,7 +77,7 @@ public class WorkflowManage {
                 );
                 // 合并验证参数
                 assert startNode != null;
-                if ("application-node".equals(startNode.getType())) {
+                if (APPLICATION.getKey().equals(startNode.getType())) {
                     startNode.getContext().put("application_node_dict", nodeDetail.get("application_node_dict"));
                 }
                 startNode.setContext(nodeDetail);
@@ -129,10 +129,6 @@ public class WorkflowManage {
     public INode getStartNode() {
         return getNodeClsById(START.getKey(), List.of(), null);
     }
-
-/*    public INode getBaseNode() {
-        return this.nodes.parallelStream().filter(node -> node.getType().equals("base-node")).findFirst().orElse(null);
-    }*/
 
     public void runChainManage(INode currentNode, NodeResultFuture nodeResultFuture) {
         if (currentNode == null) {
@@ -352,23 +348,5 @@ public class WorkflowManage {
         );
     }
 
-
-    public Object getReferenceField(String nodeId, String key) {
-        if ("global".equals(nodeId)) {
-            return globalVariable.get(key);
-        } else {
-            INode node = this.getNodeById(nodeId);
-            return node == null ? null : node.getReferenceField(key);
-        }
-    }
-
-    public INode getNodeById(String nodeId) {
-        for (INode node : this.nodeContext) {
-            if (node.getId().equals(nodeId)) {
-                return node;
-            }
-        }
-        return null;
-    }
 
 }

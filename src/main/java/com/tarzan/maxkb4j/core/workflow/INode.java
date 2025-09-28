@@ -123,13 +123,10 @@ public abstract class INode {
             return globalVariable.get(key);
         } else {
             INode node = upNodes.stream().filter(e -> e.getId().equals(nodeId)).findAny().orElse(null);
-            return node == null ? null : node.getReferenceField(key);
+            return node == null ? null : node.context.get(key);
         }
     }
 
-    protected Object getReferenceField(String key) {
-        return context.get(key);
-    }
 
     public JSONArray resetMessageList(List<ChatMessage> historyMessages) {
         if (CollectionUtils.isEmpty(historyMessages)) {
@@ -153,10 +150,6 @@ public abstract class INode {
             newMessageList.remove(newMessageList.size()-1);
         }
         return newMessageList;
-    }
-
-    public UserMessage generatePromptQuestion(String prompt) {
-        return UserMessage.from(this.generatePrompt(prompt));
     }
 
     public String generatePrompt(String prompt) {
