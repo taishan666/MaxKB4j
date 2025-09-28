@@ -6,7 +6,6 @@ import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.node.application.input.ApplicationNodeParams;
 import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
 import com.tarzan.maxkb4j.module.application.service.ApplicationChatService;
-import com.tarzan.maxkb4j.module.chat.ChatParams;
 
 import java.util.List;
 import java.util.Map;
@@ -26,16 +25,9 @@ public class ApplicationNode extends INode {
     @Override
     public NodeResult execute() {
         ApplicationNodeParams nodeParams= super.getNodeData().toJavaObject(ApplicationNodeParams.class);
-        String chatId=chatService.chatOpen(nodeParams.getApplicationId(),runtimeNodeId);
         List<String> questionFields=nodeParams.getQuestionReferenceAddress();
         String question= (String)super.getReferenceField(questionFields.get(0),questionFields.get(1));
-        ChatParams chatParams = ChatParams.builder()
-                .message(question)
-                .chatId(chatId)
-                .userId("")
-                .sink(super.getChatParams().getSink())
-                .reChat(false).build();
-        String answer=chatService.chatMessage(chatParams,true);
+        String answer=chatService.chatMessage(super.getChatParams(),true);
         return new NodeResult(Map.of(
                 "result", answer,
                 "question", question

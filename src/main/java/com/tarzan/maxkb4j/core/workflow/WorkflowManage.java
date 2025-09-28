@@ -14,7 +14,6 @@ import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
 import com.tarzan.maxkb4j.module.chat.ChatParams;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import reactor.core.publisher.Sinks;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -30,7 +29,7 @@ public class WorkflowManage {
     private ChatParams chatParams;
     private List<INode> nodes;
     private List<LfEdge> edges;
-    private JSONObject globalVariable;
+    private Map<String, Object> globalVariable;
     private String answer;
     private ApplicationChatRecordEntity chatRecord;
     private List<ApplicationChatRecordEntity> historyChatRecords;
@@ -40,7 +39,7 @@ public class WorkflowManage {
         this.nodes = nodes;
         this.edges = edges;
         this.chatParams = chatParams;
-        this.globalVariable = new JSONObject();
+        this.globalVariable = new HashMap<>();
         this.nodeContext = new ArrayList<>();
         this.chatRecord = chatRecord;
         this.answer = "";

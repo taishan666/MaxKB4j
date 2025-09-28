@@ -6,7 +6,6 @@ import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.workflow.model.ChatRecordSimple;
 import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatRecordEntity;
-import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
 import com.tarzan.maxkb4j.module.chat.ChatParams;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
@@ -17,7 +16,6 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.CollectionUtils;
-import reactor.core.publisher.Sinks;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -36,9 +34,9 @@ public abstract class INode {
     public String viewType;
     public JSONObject properties;
     private ChatParams chatParams;
-    public JSONObject globalVariable;
+    public Map<String, Object> globalVariable;
     public List<INode> upNodes;
-    public JSONObject context;
+    public Map<String, Object> context;
     public List<String> upNodeIdList;
     public String runtimeNodeId;
     private List<ApplicationChatRecordEntity> historyChatRecords;

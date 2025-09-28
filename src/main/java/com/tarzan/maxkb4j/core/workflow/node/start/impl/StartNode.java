@@ -66,7 +66,7 @@ public class StartNode extends INode {
             JSONObject globalField=globalFields.getJSONObject(i);
             String value=globalField.getString("value");
             globalField.put("key",value);
-            globalField.put("value",super.getGlobalVariable().getString(value));
+            globalField.put("value",super.getGlobalVariable().get(value));
         }
         detail.put("global_fields",globalFields);
         return detail;
