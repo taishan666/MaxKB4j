@@ -1,15 +1,20 @@
 package com.tarzan.maxkb4j.core.workflow.node.start.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.tarzan.maxkb4j.core.workflow.INode;
+import com.tarzan.maxkb4j.core.workflow.model.ChatRecordSimple;
 import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
+import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatRecordEntity;
 import com.tarzan.maxkb4j.module.chat.ChatParams;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.START;
@@ -65,6 +70,20 @@ public class StartNode extends INode {
         resultMap.put("chatUserType", "ANONYMOUS_USER");
         resultMap.put("chatUser", new JSONObject(Map.of("username", "游客")));
         return resultMap;
+    }
+
+
+    //todo 获取历史聊天记录
+    public String getHistoryContext() {
+        // 获取历史聊天记录
+        List<ChatRecordSimple> historyContext = new ArrayList<>();
+        for (ApplicationChatRecordEntity chatRecord : this.getHistoryChatRecords()) {
+            ChatRecordSimple record = new ChatRecordSimple();
+            record.setQuestion(chatRecord.getProblemText());
+            record.setAnswer(chatRecord.getAnswerText());
+            historyContext.add(record);
+        }
+        return JSON.toJSONString(historyContext);
     }
 
 

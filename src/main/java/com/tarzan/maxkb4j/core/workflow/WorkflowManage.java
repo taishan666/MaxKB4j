@@ -63,10 +63,7 @@ public class WorkflowManage {
                         lastNodeIdList,
                         n -> {
                             JSONObject nodeParams = n.getProperties();
-                            boolean isResult = APPLICATION.name().equals(n.getType());
                             nodeParams.put("form_data", startNodeData);
-                            //  nodeData.put("child_node", childNode);
-                            nodeParams.put("isResult", isResult);
                             return nodeParams;
                         }
                 );

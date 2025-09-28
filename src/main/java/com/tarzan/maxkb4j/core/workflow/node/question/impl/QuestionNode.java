@@ -9,11 +9,13 @@ import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
 import dev.langchain4j.data.message.ChatMessage;
+import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.rag.query.Metadata;
 import dev.langchain4j.rag.query.Query;
 import dev.langchain4j.rag.query.transformer.CompressingQueryTransformer;
 import dev.langchain4j.rag.query.transformer.QueryTransformer;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
 
@@ -41,7 +43,7 @@ public class QuestionNode extends INode {
         String question = super.generatePrompt(nodeParams.getPrompt());
         UserMessage userMessage = UserMessage.from(question);
         String system = super.generatePrompt(nodeParams.getSystem());
-        List<ChatMessage> messageList = super.generateMessageList(system, userMessage, historyMessages);
+        List<ChatMessage> messageList = this.generateMessageList(system, userMessage, historyMessages);
         QueryTransformer queryTransformer = new CompressingQueryTransformer(chatModel.getChatModel());
         Metadata metadata = new Metadata(userMessage, getChatParams().getChatId(), historyMessages);
         Query query = new Query(getChatParams().getMessage(), metadata);
@@ -51,17 +53,24 @@ public class QuestionNode extends INode {
             System.out.println(queryResult.metadata());
             answerSb.append(queryResult.text());
         }
-        @SuppressWarnings("unchecked")
-        Map<String, Object> nodeVariable = Map.of(
-                "answer", answerSb.toString(),
+        return new NodeResult(Map.of(
                 "system", system,
-                "message_list", messageList,
+                "question", question,
+                "answer", answerSb.toString(),
                 "history_message", resetMessageList(historyMessages),
-                "question", question
-        );
-        context.put("messageTokens", TokenUtil.countTokens(messageList));
-        context.put("answerTokens", TokenUtil.countTokens(answerSb.toString()));
-        return new NodeResult(nodeVariable, Map.of());
+                "messageTokens", TokenUtil.countTokens(messageList),
+                "answerTokens",TokenUtil.countTokens(answerSb.toString())
+        ), Map.of());
+    }
+
+    private List<ChatMessage> generateMessageList(String system, UserMessage question, List<ChatMessage> historyMessages) {
+        List<ChatMessage> messageList = new ArrayList<>();
+        if (StringUtils.isNotBlank(system)) {
+            messageList.add(SystemMessage.from(system));
+        }
+        messageList.addAll(historyMessages);
+        messageList.add(question);
+        return messageList;
     }
 
     @Override

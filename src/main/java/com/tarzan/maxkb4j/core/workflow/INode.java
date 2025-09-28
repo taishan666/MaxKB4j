@@ -1,15 +1,12 @@
 package com.tarzan.maxkb4j.core.workflow;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.tarzan.maxkb4j.core.workflow.model.ChatRecordSimple;
 import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatRecordEntity;
 import com.tarzan.maxkb4j.module.chat.ChatParams;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
-import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.model.input.PromptTemplate;
 import lombok.Data;
@@ -199,15 +196,7 @@ public abstract class INode {
         return variables;
     }
 
-    public List<ChatMessage> generateMessageList(String system, UserMessage question, List<ChatMessage> historyMessages) {
-        List<ChatMessage> messageList = new ArrayList<>();
-        if (StringUtils.isNotBlank(system)) {
-            messageList.add(SystemMessage.from(system));
-        }
-        messageList.addAll(historyMessages);
-        messageList.add(question);
-        return messageList;
-    }
+
 
     public List<ChatMessage> getHistoryMessages(int dialogueNumber, String dialogueType, String runtimeNodeId) {
         List<ChatMessage> historyMessages;
@@ -247,18 +236,7 @@ public abstract class INode {
         return messages;
     }
 
-    //todo 获取历史聊天记录
-    public String getHistoryContext() {
-        // 获取历史聊天记录
-        List<ChatRecordSimple> historyContext = new ArrayList<>();
-        for (ApplicationChatRecordEntity chatRecord : historyChatRecords) {
-            ChatRecordSimple record = new ChatRecordSimple();
-            record.setQuestion(chatRecord.getProblemText());
-            record.setAnswer(chatRecord.getAnswerText());
-            historyContext.add(record);
-        }
-        return JSON.toJSONString(historyContext);
-    }
+
 
 }
 
