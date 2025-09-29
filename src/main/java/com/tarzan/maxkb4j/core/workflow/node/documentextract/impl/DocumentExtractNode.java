@@ -3,9 +3,9 @@ package com.tarzan.maxkb4j.core.workflow.node.documentextract.impl;
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.common.util.SpringUtil;
 import com.tarzan.maxkb4j.core.workflow.INode;
-import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
 import com.tarzan.maxkb4j.core.workflow.model.ChatFile;
 import com.tarzan.maxkb4j.core.workflow.node.documentextract.input.DocumentExtractParams;
+import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
 import com.tarzan.maxkb4j.module.oss.service.MongoFileService;
 import org.apache.tika.exception.TikaException;
 import org.apache.tika.extractor.EmbeddedDocumentExtractor;
@@ -23,6 +23,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -48,7 +49,8 @@ public class DocumentExtractNode extends INode {
         Object res=super.getReferenceField(documentList.get(0),documentList.get(1));
         @SuppressWarnings("unchecked")
         List<ChatFile> documents= (List<ChatFile>) res;
-        StringBuilder sb=new StringBuilder();
+        List<String> content=new LinkedList<>();
+       // StringBuilder sb=new StringBuilder();
         for (ChatFile chatFile : documents) {
             byte[] data= fileService.getBytes(chatFile.getFileId());
             // 初始化解析器、元数据和上下文
@@ -69,10 +71,9 @@ public class DocumentExtractNode extends INode {
                 @Override
                 public void characters(char[] ch, int start, int length) {
                     String text= new String(ch, start, length);
+                    System.err.println("localName="+localName+"  text="+text);
                     if(this.localName.equals("h1")){
-                         markdown.append("# ").append(text);
-                    }else if(this.localName.equals("p")){
-                        markdown.append("\n").append(text);
+                         markdown.append("# ").append(text).append("\n");
                     }else {
                         markdown.append(text);
                     }
@@ -123,28 +124,26 @@ public class DocumentExtractNode extends INode {
             }
             String text = "### "+chatFile.getName()+"\n"+contentHandler.getMarkdown()+splitter;
             System.out.println(text);
-            sb.append(text);
+            content.add(text);
         }
-        return new NodeResult(Map.of("content",sb.toString()),Map.of());
+        return new NodeResult(Map.of("content",String.join(splitter, content),"documentList",documents),Map.of());
     }
 
     @Override
     public void saveContext(JSONObject detail) {
-        context.put("content", detail.get("content"));
+        @SuppressWarnings("unchecked")
+        List<String> content= (List<String>) detail.get("content");
+        context.put("content", String.join(splitter, content));
+        context.put("documentList", detail.get("documentList"));
     }
 
 
     @Override
     public JSONObject getDetail() {
+        String content = (String) context.get("content");
         JSONObject detail = new JSONObject();
-        String content= (String) context.get("content");
-        String[] fileContent= content.split(splitter);
-        for (int i = 0; i < fileContent.length; i++) {
-            String text = fileContent[i];
-            int endIndex=Math.min(500,text.length());
-            fileContent[i]= text.substring(0, endIndex);
-        }
-        detail.put("content",fileContent);
+        detail.put("documentList", context.get("documentList"));
+        detail.put("content", content.split(splitter));
         return detail;
     }
 
