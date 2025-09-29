@@ -10,7 +10,7 @@ public class ChatMessageVO {
     private String chatRecordId;
     private String content;
     private String reasoningContent;
-    private Boolean operate=true;
+    private Boolean operate = true;
     private String nodeId;
     private String nodeType;
     private String viewType;
@@ -19,16 +19,14 @@ public class ChatMessageVO {
     private Boolean isEnd;
 
 
-
-    public ChatMessageVO(String chatId, String chatRecordId,Boolean isEnd) {
+    public ChatMessageVO(String chatId, String chatRecordId, Boolean isEnd) {
         this.chatId = chatId;
         this.chatRecordId = chatRecordId;
         this.content = "";
-        this.nodeIsEnd = false;
         this.isEnd = isEnd;
     }
 
-    public ChatMessageVO(String chatId, String chatRecordId,String content,String reasoningContent,String nodeType,String viewType,  Boolean nodeIsEnd) {
+    public ChatMessageVO(String chatId, String chatRecordId, String content, String reasoningContent, String nodeType, String viewType, Boolean nodeIsEnd) {
         this.chatId = chatId;
         this.chatRecordId = chatRecordId;
         this.content = content;
@@ -40,7 +38,7 @@ public class ChatMessageVO {
     }
 
 
-    public ChatMessageVO(String chatId, String chatRecordId,String nodeId,String content,String reasoningContent,String runtimeNodeId,String nodeType,String viewType, Boolean nodeIsEnd) {
+    public ChatMessageVO(String chatId, String chatRecordId, String nodeId, String content, String reasoningContent, String runtimeNodeId, String nodeType, String viewType, Boolean nodeIsEnd) {
         this.chatId = chatId;
         this.chatRecordId = chatRecordId;
         this.nodeId = nodeId;
@@ -52,7 +50,6 @@ public class ChatMessageVO {
         this.nodeIsEnd = nodeIsEnd;
         this.isEnd = false;
     }
-
 
 
 }

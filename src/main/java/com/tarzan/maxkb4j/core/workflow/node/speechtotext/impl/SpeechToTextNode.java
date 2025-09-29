@@ -10,6 +10,7 @@ import com.tarzan.maxkb4j.module.model.provider.impl.BaseSpeechToText;
 import com.tarzan.maxkb4j.module.oss.service.MongoFileService;
 import com.tarzan.maxkb4j.common.util.SpringUtil;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -37,24 +38,30 @@ public class SpeechToTextNode extends INode {
         BaseSpeechToText sttModel = modelService.getModelById(nodeParams.getSttModelId());
         @SuppressWarnings("unchecked")
         List<ChatFile> audioFiles = (List<ChatFile>) res;
+        List<String> content = new ArrayList<>();
         StringBuilder sb = new StringBuilder();
         for (ChatFile file: audioFiles) {
             byte[] data = fileService.getBytes(file.getFileId());
             String suffix=file.getName().substring(file.getName().lastIndexOf(".") + 1);
             String result = sttModel.speechToText(data,suffix);
             sb.append(result);
+            content.add("### combined_audio.mp3\n"+result);
         }
-        return new NodeResult(Map.of("answer", sb.toString(), "result", sb.toString(), "audioList", audioList), Map.of());
+        String answer=sb.toString();
+        return new NodeResult(Map.of("answer", answer, "content", content,"result", answer, "audioList", audioFiles), Map.of());
     }
 
     @Override
     public void saveContext(JSONObject detail) {
+        context.put("content", detail.get("content"));
         context.put("result", detail.get("result"));
+        context.put("audioList", detail.get("audioList"));
     }
 
     @Override
     public JSONObject getDetail() {
         JSONObject detail = new JSONObject();
+        detail.put("result", context.get("result"));
         detail.put("content", context.get("content"));
         detail.put("answer", context.get("answer"));
         detail.put("audioList", context.get("audioList"));

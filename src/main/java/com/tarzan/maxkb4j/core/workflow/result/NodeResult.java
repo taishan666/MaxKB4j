@@ -60,7 +60,7 @@ public class NodeResult {
                         node.getRuntimeNodeId(),
                         node.getType(),
                         node.getViewType(),
-                        true);
+                        false);
                 node.getChatParams().getSink().tryEmitNext(vo);
                 workflow.setAnswer(answer);
             }
@@ -68,6 +68,17 @@ public class NodeResult {
         if (globalVariable != null) {
             workflow.getGlobalVariable().putAll(globalVariable);
         }
+        ChatMessageVO vo = new ChatMessageVO(
+                workflow.getChatParams().getChatId(),
+                workflow.getChatParams().getChatRecordId(),
+                node.getId(),
+                "\n",
+                "",
+                node.getRuntimeNodeId(),
+                node.getType(),
+                node.getViewType(),
+                true);
+        node.getChatParams().getSink().tryEmitNext(vo);
         log.info("WriteContext node: {} ",node.getType());
     }
 
