@@ -57,8 +57,8 @@ public class ImageUnderstandNode extends INode {
     @Override
     public NodeResult execute() {
         ImageUnderstandParams nodeParams=super.getNodeData().toJavaObject(ImageUnderstandParams.class);
-        List<String> imageList = nodeParams.getImageList();
-        Object object = super.getReferenceField(imageList.get(0), imageList.get(1));
+        List<String> imageFieldList = nodeParams.getImageList();
+        Object object = super.getReferenceField(imageFieldList.get(0), imageFieldList.get(1));
         @SuppressWarnings("unchecked")
         List<ChatFile> ImageFiles = (List<ChatFile>) object;
         BaseChatModel chatModel = modelService.getModelById(nodeParams.getModelId(), nodeParams.getModelParamsSetting());
@@ -86,7 +86,8 @@ public class ImageUnderstandNode extends INode {
         Map<String, Object> nodeVariable = new HashMap<>(Map.of(
                 "system", systemPrompt,
                 "history_message", resetMessageList(historyMessages),
-                "question", question
+                "question", question,
+                "imageList", ImageFiles
         ));
         return writeContextStream(nodeVariable, Map.of(),nodeParams,tokenStream);
     }
@@ -165,7 +166,7 @@ public class ImageUnderstandNode extends INode {
         context.put("question", detail.get("question"));
         context.put("answer", detail.get("answer"));
         context.put("history_message",detail.get("history_message"));
-        context.put("imageLst",detail.get("imageLst"));
+        context.put("imageList",detail.get("imageList"));
         context.put("messageTokens", detail.get("messageTokens"));
         context.put("answerTokens", detail.get("answerTokens"));
     }
@@ -178,7 +179,7 @@ public class ImageUnderstandNode extends INode {
         detail.put("question",context.get("question"));
         detail.put("answer",context.get("answer"));
         detail.put("history_message",context.get("history_message"));
-        detail.put("imageLst",context.get("imageLst"));
+        detail.put("imageList",context.get("imageList"));
         detail.put("messageTokens", context.get("messageTokens"));
         detail.put("answerTokens", context.get("answerTokens"));
         return detail;
