@@ -35,14 +35,19 @@ public abstract class INode {
     public Map<String, Object> chatVariable;
     public List<INode> upNodes;
     public Map<String, Object> context;
-    public List<String> upNodeIdList;
+    //public List<String> upNodeIdList;
     public String runtimeNodeId;
     private List<ApplicationChatRecordEntity> historyChatRecords;
 
 
+    public List<String> getUpNodeIdList(){
+        return upNodes.stream().map(INode::getId).toList();
+    }
+
     public INode(JSONObject properties) {
         this.context = new JSONObject();
-        this.upNodeIdList = new ArrayList<>();
+        this.upNodes = new ArrayList<>();
+        //this.upNodeIdList = new ArrayList<>();
         this.properties = properties;
         this.runtimeNodeId = generateRuntimeNodeId();
         this.viewType = "many_view";
@@ -55,8 +60,8 @@ public abstract class INode {
         return new JSONObject();
     }
 
-    public void setUpNodeIdList(List<String> upNodeIdList) {
-        this.upNodeIdList = upNodeIdList;
+    public void setUpNodes(List<INode> upNodes) {
+        this.upNodes = upNodes;
         this.runtimeNodeId = generateRuntimeNodeId();
     }
 
@@ -76,8 +81,7 @@ public abstract class INode {
     private String generateRuntimeNodeId() {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-1");
-            assert upNodeIdList != null;
-            String input = Arrays.toString(upNodeIdList.stream().sorted().toArray()) + id;
+            String input = Arrays.toString(getUpNodeIdList().stream().sorted().toArray()) + id;
             byte[] hashBytes = digest.digest(input.getBytes(StandardCharsets.UTF_8));
             StringBuilder hexString = new StringBuilder();
             for (byte b : hashBytes) {
@@ -91,13 +95,6 @@ public abstract class INode {
         }
     }
 
-
-/*    public void getWriteErrorContext(Exception e) {
-        this.status = 500;
-        this.errMessage = e.getMessage();
-        long startTime = (long) this.context.get("start_time");
-        this.context.put("runTime", (System.currentTimeMillis() - startTime)/1000F);
-    }*/
 
     public NodeResult run() throws Exception {
         long startTime = System.currentTimeMillis();

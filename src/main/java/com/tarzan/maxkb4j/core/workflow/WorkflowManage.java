@@ -192,7 +192,7 @@ public class WorkflowManage {
                 node.setUpNodes(nodeContext);
                 node.setGlobalVariable(context);
                 node.setChatVariable(chatContext);
-                node.setUpNodeIdList(upNodeIds);
+              //  node.setUpNodeIdList(upNodeIds);
                 node.setChatParams(chatParams);
                 node.setHistoryChatRecords(historyChatRecords);
                 if (getNodeParams != null) {
