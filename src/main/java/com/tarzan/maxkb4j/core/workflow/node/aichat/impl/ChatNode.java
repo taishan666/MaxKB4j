@@ -89,6 +89,7 @@ public class ChatNode extends INode {
         boolean isResult = nodeParams.getIsResult();
         boolean reasoningContentEnable = nodeParams.getModelSetting().getBooleanValue("reasoningContentEnable");
         CompletableFuture<ChatResponse> chatResponseFuture  = new CompletableFuture<>();
+        // 完成后释放线程
         tokenStream.onPartialThinking(thinking -> {
                     if (isResult && reasoningContentEnable) {
                         ChatMessageVO vo = new ChatMessageVO(
@@ -119,20 +120,7 @@ public class ChatNode extends INode {
                         super.getChatParams().getSink().tryEmitNext(vo);
                     }
                 })
-                .onCompleteResponse(response -> {
-                    ChatMessageVO vo = new ChatMessageVO(
-                            getChatParams().getChatId(),
-                            getChatParams().getChatRecordId(),
-                            type,
-                            "",
-                            "",
-                            runtimeNodeId,
-                            type,
-                            viewType,
-                            true);
-                    super.getChatParams().getSink().tryEmitNext(vo);
-                    chatResponseFuture.complete(response);// 完成后释放线程
-                })
+                .onCompleteResponse(chatResponseFuture::complete)
                 .onError(error -> {
                     super.getChatParams().getSink().tryEmitError(error);
                     chatResponseFuture.completeExceptionally(error); // 完成后释放线程
@@ -163,6 +151,17 @@ public class ChatNode extends INode {
             if (workflow.isResult(node, new NodeResult(nodeVariable, globalVariable)) && nodeVariable.containsKey("answer")) {
                 String answer = (String) nodeVariable.get("answer");
                 workflow.setAnswer(answer);
+                ChatMessageVO endVo = new ChatMessageVO(
+                        workflow.getChatParams().getChatId(),
+                        workflow.getChatParams().getChatRecordId(),
+                        node.getId(),
+                        "\n",
+                        "",
+                        node.getRuntimeNodeId(),
+                        node.getType(),
+                        node.getViewType(),
+                        true);
+                node.getChatParams().getSink().tryEmitNext(endVo);
             }
         }
     }

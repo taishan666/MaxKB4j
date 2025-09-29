@@ -95,6 +95,7 @@ public class ImageUnderstandNode extends INode {
     private NodeResult writeContextStream(Map<String, Object> nodeVariable, Map<String, Object> globalVariable, ImageUnderstandParams nodeParams, TokenStream tokenStream) {
         boolean isResult = nodeParams.getIsResult();
         CompletableFuture<ChatResponse> chatResponseFuture  = new CompletableFuture<>();
+        // 完成后释放线程
         tokenStream.onPartialResponse(content -> {
                     if (isResult) {
                         ChatMessageVO vo = new ChatMessageVO(
@@ -110,20 +111,7 @@ public class ImageUnderstandNode extends INode {
                         super.getChatParams().getSink().tryEmitNext(vo);
                     }
                 })
-                .onCompleteResponse(response -> {
-                    ChatMessageVO vo = new ChatMessageVO(
-                            getChatParams().getChatId(),
-                            getChatParams().getChatRecordId(),
-                            type,
-                            "",
-                            "",
-                            runtimeNodeId,
-                            type,
-                            viewType,
-                            true);
-                    super.getChatParams().getSink().tryEmitNext(vo);
-                    chatResponseFuture.complete(response);// 完成后释放线程
-                })
+                .onCompleteResponse(chatResponseFuture::complete)
                 .onError(error -> {
                     super.getChatParams().getSink().tryEmitError(error);
                     chatResponseFuture.completeExceptionally(error); // 完成后释放线程
@@ -155,6 +143,17 @@ public class ImageUnderstandNode extends INode {
             if (workflow.isResult(node, new NodeResult(nodeVariable, globalVariable)) && nodeVariable.containsKey("answer")) {
                 String answer = (String) nodeVariable.get("answer");
                 workflow.setAnswer(answer);
+                ChatMessageVO vo = new ChatMessageVO(
+                        workflow.getChatParams().getChatId(),
+                        workflow.getChatParams().getChatRecordId(),
+                        node.getId(),
+                        "\n",
+                        "",
+                        node.getRuntimeNodeId(),
+                        node.getType(),
+                        node.getViewType(),
+                        true);
+                node.getChatParams().getSink().tryEmitNext(vo);
             }
         }
     }

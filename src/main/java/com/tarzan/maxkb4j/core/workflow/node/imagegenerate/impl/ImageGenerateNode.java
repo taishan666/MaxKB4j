@@ -45,7 +45,6 @@ public class ImageGenerateNode extends INode {
         for (Image image : images) {
             String imageMd ="!["+prompt+"](" + image.url() + ")";
             answerSb.append(" ").append(imageMd);
-            //todo url 是临时的url，需要保存到数据库中，并返回给前端
             imageUrls.add(image.url().toString());
         }
         return new NodeResult(Map.of("question",prompt,"answer",answerSb.toString(),"image",imageUrls),Map.of());
