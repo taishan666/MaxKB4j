@@ -7,12 +7,6 @@ import com.tarzan.maxkb4j.module.tool.domain.dto.ToolInputField;
 import com.tarzan.maxkb4j.module.tool.domain.entity.ToolEntity;
 import com.tarzan.maxkb4j.module.tool.service.ToolService;
 import dev.langchain4j.agent.tool.ToolSpecification;
-import dev.langchain4j.mcp.McpToolExecutor;
-import dev.langchain4j.mcp.client.DefaultMcpClient;
-import dev.langchain4j.mcp.client.McpClient;
-import dev.langchain4j.mcp.client.transport.McpTransport;
-import dev.langchain4j.mcp.client.transport.http.HttpMcpTransport;
-import dev.langchain4j.mcp.client.transport.http.StreamableHttpMcpTransport;
 import dev.langchain4j.model.chat.request.json.*;
 import dev.langchain4j.service.tool.ToolExecutor;
 import lombok.AllArgsConstructor;
@@ -22,7 +16,6 @@ import org.springframework.util.CollectionUtils;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @AllArgsConstructor
 @Service
@@ -30,7 +23,7 @@ public class ToolUtil {
 
     private final ToolService toolService;
 
-    public Map<ToolSpecification, ToolExecutor> getTools(List<String> toolIds) {
+    public Map<ToolSpecification, ToolExecutor> getToolMap(List<String> toolIds) {
         Map<ToolSpecification, ToolExecutor> tools = new HashMap<>();
         if (CollectionUtils.isEmpty(toolIds)) {
             return tools;
@@ -41,35 +34,8 @@ public class ToolUtil {
         List<ToolEntity> toolEntities = toolService.list(wrapper);
         for (ToolEntity tool : toolEntities) {
             if ("MCP".equals(tool.getToolType())) {
-                JSONObject jsonObject = JSONObject.parseObject(tool.getCode());
-                jsonObject.keySet().forEach(key -> {
-                    JSONObject serverConfig = (JSONObject) jsonObject.get(key);
-                    String url = serverConfig.getString("url");
-                    String type = serverConfig.getString("type");
-                    McpTransport transport;
-                    if ("sse".equals(type)) {
-                        transport = new HttpMcpTransport.Builder()
-                                .sseUrl(url)
-                                .logRequests(true) // if you want to see the traffic in the log
-                                .logResponses(true)
-                                .build();
-                    } else {
-                        transport = new StreamableHttpMcpTransport.Builder()
-                                .url(url)
-                                .logRequests(true) // if you want to see the traffic in the log
-                                .logResponses(true)
-                                .build();
-                    }
-                    McpClient mcpClient = new DefaultMcpClient.Builder()
-                            .key("MaxKB4JMCPClient")
-                            .transport(transport)
-                            .build();
-                    Map<ToolSpecification, ToolExecutor> mcpTools = mcpClient.listTools().stream().collect(Collectors.toMap(
-                            mcpTool -> mcpTool,
-                            mcpTool -> new McpToolExecutor(mcpClient)
-                    ));
-                    tools.putAll(mcpTools);
-                });
+                JSONObject mcpServers = JSONObject.parseObject(tool.getCode());
+                tools.putAll(McpToolUtil.getToolMap(mcpServers));
             } else {
                 List<ToolInputField> params = tool.getInputFieldList();
                 JsonObjectSchema.Builder parametersBuilder = JsonObjectSchema.builder();

@@ -68,7 +68,7 @@ public class ChatNode extends INode {
             aiServicesBuilder.chatMemory(AppChatMemory.withMessages(historyMessages));
         }
         if (CollectionUtils.isNotEmpty(toolIds)) {
-            aiServicesBuilder.tools(toolUtil.getTools(toolIds));
+            aiServicesBuilder.tools(toolUtil.getToolMap(toolIds));
         }
         Assistant assistant = aiServicesBuilder
                 .streamingChatModel(chatModel.getStreamingChatModel())

@@ -38,7 +38,7 @@ public class JiebaExample {
             sb.deleteCharAt(sb.length()-1);
             result.append(sb).append(" ");
         });
-        System.out.println(result);
+        //System.out.println(result);
     }
 
     private static List<String> filterPunctuation(List<String> words) {

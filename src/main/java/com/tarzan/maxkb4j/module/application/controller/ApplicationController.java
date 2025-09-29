@@ -5,8 +5,9 @@ import cn.dev33.satoken.annotation.SaIgnore;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.tarzan.maxkb4j.common.constant.AppConst;
 import com.tarzan.maxkb4j.common.api.R;
+import com.tarzan.maxkb4j.common.constant.AppConst;
+import com.tarzan.maxkb4j.common.util.McpToolUtil;
 import com.tarzan.maxkb4j.module.application.domian.dto.ApplicationAccessTokenDTO;
 import com.tarzan.maxkb4j.module.application.domian.dto.ApplicationQuery;
 import com.tarzan.maxkb4j.module.application.domian.dto.ChatImproveDTO;
@@ -14,6 +15,7 @@ import com.tarzan.maxkb4j.module.application.domian.dto.EmbedDTO;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationAccessTokenEntity;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationEntity;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationVO;
+import com.tarzan.maxkb4j.module.application.domian.vo.McpToolVO;
 import com.tarzan.maxkb4j.module.application.service.ApplicationService;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.KnowledgeEntity;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelEntity;
@@ -196,9 +198,10 @@ public class ApplicationController {
     }
 
     @PostMapping("/application/{appId}/mcp_tools")
-    public R<JSONArray> mcpTools(@PathVariable("appId") String appId,@RequestBody JSONObject dto) {
-        System.out.println(dto);
-        return R.data(null);
+    public R<List<McpToolVO>> mcpTools(@PathVariable("appId") String appId, @RequestBody JSONObject mcpServers) {
+        System.out.println("mcpTools "+mcpServers);
+        JSONObject mcpServersJson=JSONObject.parseObject(mcpServers.getString("mcpServers"));
+        return R.data(McpToolUtil.getToolVos(mcpServersJson));
     }
 
 
@@ -213,16 +216,6 @@ public class ApplicationController {
     public void embed(EmbedDTO dto, HttpServletResponse response) throws IOException {
         applicationService.embed(dto,response);
     }
-
-    //todo
-    @GetMapping("/tool/{toolName}/icon.png")
-    public void serveIcon(@PathVariable String toolName, @PathVariable String workspaceId, HttpServletResponse response) throws IOException {
-        // 直接读取 /admin/tool/{toolName}/icon.png 对应的文件返回
-        // 或重定向/转发到简化路径
-        System.out.println(workspaceId+"   "+toolName);
-    }
-
-
 
 
 }

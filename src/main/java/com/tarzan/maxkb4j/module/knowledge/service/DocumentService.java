@@ -373,7 +373,6 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
             }
             // 判断是否是zip文件
             if (isZipFile(file)) {
-                System.out.println("zip");
                 //todo 未处理zip下的zip文件
                 try (ZipArchiveInputStream zis = new ZipArchiveInputStream(file.getInputStream())) {
                     ZipArchiveEntry entry;

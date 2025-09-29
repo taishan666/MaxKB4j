@@ -82,7 +82,6 @@ public class DocumentExtractNode extends INode {
                 @Override
                 public void startElement(String uri, String localName, String qName, Attributes attrs) {
                     this.localName=localName;
-                    //  System.out.println("localName="+localName+"  qName="+qName+"  text="+text);
                     if ("img".equals(localName)) { // 捕获图片节点
                         String src = attrs.getValue("src");
                         if (src != null && src.startsWith("embedded:")) {

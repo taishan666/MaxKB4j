@@ -50,7 +50,6 @@ public class QuestionNode extends INode {
         Collection<Query> list = queryTransformer.transform(query);
         StringBuilder answerSb = new StringBuilder();
         for (Query queryResult : list) {
-            System.out.println(queryResult.metadata());
             answerSb.append(queryResult.text());
         }
         return new NodeResult(Map.of(

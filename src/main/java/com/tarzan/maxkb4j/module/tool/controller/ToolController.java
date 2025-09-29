@@ -64,6 +64,7 @@ public class ToolController {
 		LambdaQueryWrapper<ToolEntity> wrapper= Wrappers.lambdaQuery();
 		wrapper.eq(ToolEntity::getToolType, toolType);
 		wrapper.eq(ToolEntity::getScope, scope);
+		wrapper.eq(ToolEntity::getIsActive, true);
 		List<ToolEntity> tools=toolService.list(wrapper);
 		return R.success(Map.of("tools", tools, "shared_tools", tools));
 	}
@@ -83,7 +84,7 @@ public class ToolController {
 	}
 
 	@PostMapping("/workspace/default/tool")
-	public R<ToolEntity> functionLib(@RequestBody ToolEntity dto) {
+	public R<ToolEntity> toolLib(@RequestBody ToolEntity dto) {
 		dto.setIsActive(true);
 		dto.setUserId(StpUtil.getLoginIdAsString());
 		dto.setScope("WORKSPACE");

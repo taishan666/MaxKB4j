@@ -10,10 +10,10 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tarzan.maxkb4j.common.exception.ApiException;
+import com.tarzan.maxkb4j.common.util.*;
 import com.tarzan.maxkb4j.module.application.domian.dto.*;
 import com.tarzan.maxkb4j.module.application.domian.entity.*;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationVO;
-import com.tarzan.maxkb4j.module.application.domian.vo.McpToolVO;
 import com.tarzan.maxkb4j.module.application.enums.AppType;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatMapper;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationMapper;
@@ -32,9 +32,6 @@ import com.tarzan.maxkb4j.module.system.user.domain.entity.UserEntity;
 import com.tarzan.maxkb4j.module.system.user.service.UserService;
 import com.tarzan.maxkb4j.module.tool.domain.entity.ToolEntity;
 import com.tarzan.maxkb4j.module.tool.service.ToolService;
-import com.tarzan.maxkb4j.common.util.*;
-import dev.langchain4j.agent.tool.ToolSpecification;
-import dev.langchain4j.model.chat.request.json.*;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -488,57 +485,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         return flag;
     }
 
-    public List<McpToolVO> convert(String serverName, List<ToolSpecification> tools) {
-        return tools.stream().map(tool -> {
-            McpToolVO vo = new McpToolVO();
-            vo.setServer(serverName);
-            vo.setName(tool.name());
-            vo.setDescription(tool.description());
-            JSONObject json = new JSONObject();
-            JSONObject properties = new JSONObject();
-            tool.parameters().properties().forEach((k, v) -> {
-                JSONObject property = new JSONObject();
-                if (v instanceof JsonStringSchema schema) {
-                    property.put("type", "string");
-                    property.put("description", schema.description());
-                } else if (v instanceof JsonNumberSchema schema) {
-                    property.put("type", "number");
-                    property.put("description", schema.description());
-                } else if (v instanceof JsonArraySchema schema) {
-                    property.put("type", "array");
-                    property.put("description", schema.description());
-                } else if (v instanceof JsonBooleanSchema schema) {
-                    property.put("type", "boolean");
-                    property.put("description", schema.description());
-                } else if (v instanceof JsonObjectSchema schema) {
-                    property.put("type", "object");
-                    property.put("description", schema.description());
-                } else if (v instanceof JsonEnumSchema schema) {
-                    property.put("type", "enum");
-                    property.put("description", schema.description());
-                } else if (v instanceof JsonIntegerSchema schema) {
-                    property.put("type", "int");
-                    property.put("description", schema.description());
-                } else if (v instanceof JsonAnyOfSchema schema) {
-                    property.put("type", "any");
-                    property.put("description", schema.description());
-                } else if (v instanceof JsonReferenceSchema schema) {
-                    property.put("type", "reference");
-                    property.put("description", schema.reference());
-                } else {
-                    JsonNullSchema schema = (JsonNullSchema) v;
-                    property.put("type", "null");
-                    property.put("description", "");
-                }
-                properties.put(k, property);
-            });
-            json.put("type", "object");
-            json.put("properties", properties);
-            json.put("required", tool.parameters().required());
-            vo.setArgs_schema(json);
-            return vo;
-        }).collect(Collectors.toList());
-    }
+
 
 
     public String speechToText(String appId, MultipartFile file) throws IOException {
@@ -600,11 +547,11 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         return content;
     }
 
-    public List<ToolEntity> functionLib(String appId) {
+    public List<ToolEntity> toolLib(String appId) {
         return toolService.list();
     }
 
-    public ToolEntity functionLib(String appId, String functionId) {
+    public ToolEntity toolLib(String appId, String functionId) {
         return toolService.getById(functionId);
     }
 

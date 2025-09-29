@@ -54,7 +54,6 @@ public class SystemSettingController{
 
 	@PostMapping(value = "/display/update", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public R<DisplayInfo> display(DisplayInfo formData){
-		System.out.println(formData);
 		JSONObject jsonObject = JSONObject.parseObject(JSONObject.toJSONString(formData));
 		systemSettingService.saveOrUpdate(jsonObject, SettingType.DISPLAY.getType());
 		return R.data(formData);

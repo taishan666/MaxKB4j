@@ -38,7 +38,7 @@ public class MyBatisPlusTool {
     /**
      * 数据库别名,可以与数据库表名相同,用于生成实体类
      */
-    private static String aliasName = "functionLib";
+    private static String aliasName = "toolLib";
     /**
      * mapper.xml命名空间路径
      */

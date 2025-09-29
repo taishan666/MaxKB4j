@@ -1,17 +1,14 @@
 package com.tarzan.maxkb4j.core.workflow.node.mcp.impl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.tarzan.maxkb4j.common.util.McpToolUtil;
 import com.tarzan.maxkb4j.core.workflow.INode;
-import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
 import com.tarzan.maxkb4j.core.workflow.node.mcp.input.McpParams;
+import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
 import dev.langchain4j.agent.tool.ToolExecutionRequest;
-import dev.langchain4j.agent.tool.ToolSpecification;
-import dev.langchain4j.mcp.client.DefaultMcpClient;
 import dev.langchain4j.mcp.client.McpClient;
-import dev.langchain4j.mcp.client.transport.McpTransport;
-import dev.langchain4j.mcp.client.transport.http.HttpMcpTransport;
-import dev.langchain4j.model.chat.request.json.JsonObjectSchema;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -29,33 +26,33 @@ public class McpNode extends INode {
         McpParams nodeParams=super.getNodeData().toJavaObject(McpParams.class);
         JSONObject toolParams=nodeParams.getToolParams();
         JSONObject params=new JSONObject();
-        McpTransport transport = new HttpMcpTransport.Builder()
-                .sseUrl(nodeParams.getSseUrl())
-                .build();
-        McpClient mcpClient = new DefaultMcpClient.Builder()
-                .transport(transport)
-                .build();
-        ToolSpecification toolSpecification=mcpClient.listTools().stream().filter(e->e.name().equals(nodeParams.getMcpTool())).findFirst().get();
-        JsonObjectSchema jsonObjectSchema =toolSpecification.parameters();
-        jsonObjectSchema.properties().forEach((k,v)->{
-            Object value =toolParams.get(k);
+        for (String key : toolParams.keySet()) {
+            Object value =toolParams.get(key);
             if (value instanceof List){
                 @SuppressWarnings("unchecked")
                 List<String> fields=(List<String>)value;
                 value=super.getReferenceField(fields.get(0),fields.get(1));
             }
-            params.put(k,value);
-        });
-        ToolExecutionRequest toolExecutionRequest=ToolExecutionRequest.builder()
-                .name(toolSpecification.name())
-                .arguments(params.toJSONString())
-                .build();
-        String result=mcpClient.executeTool(toolExecutionRequest);
+            params.put(key,value);
+        }
+
+        JSONObject mcpServers=JSONObject.parseObject(nodeParams.getMcpServers());
+        List<McpClient> mcpClients = McpToolUtil.getMcpClients(mcpServers);
+        List<String> result=new ArrayList<>();
+        for (McpClient mcpClient : mcpClients) {
+            ToolExecutionRequest toolExecutionRequest=ToolExecutionRequest.builder()
+                    .name(nodeParams.getMcpTool())
+                    .arguments(params.toJSONString())
+                    .build();
+            result.add(mcpClient.executeTool(toolExecutionRequest));
+        }
         return new NodeResult(Map.of("result",result,"toolParams",toolParams,"mcpTool",nodeParams.getMcpTool()), Map.of());
     }
 
     @Override
     public void saveContext(JSONObject detail) {
+        context.put("mcpTool", detail.get("mcpTool"));
+        context.put("toolParams", detail.get("toolParams"));
         context.put("result", detail.get("result"));
     }
 
