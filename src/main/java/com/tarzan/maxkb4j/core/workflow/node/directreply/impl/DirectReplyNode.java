@@ -1,9 +1,10 @@
 package com.tarzan.maxkb4j.core.workflow.node.directreply.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.workflow.INode;
-import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
 import com.tarzan.maxkb4j.core.workflow.node.directreply.input.ReplyNodeParams;
+import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
 
 import java.util.List;
 import java.util.Map;
@@ -25,6 +26,9 @@ public class DirectReplyNode extends INode {
         if ("referencing".equals(nodeParams.getReplyType())) {
             List<String> fields = nodeParams.getFields();
             Object res = super.getReferenceField(fields.get(0), fields.get(1));
+            if (res != null){
+                res = JSON.toJSONString(res);
+            }
             result = res == null ? "" : res.toString();
         } else {
             result = super.generatePrompt(nodeParams.getContent());

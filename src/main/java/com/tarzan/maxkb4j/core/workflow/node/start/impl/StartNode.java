@@ -1,6 +1,5 @@
 package com.tarzan.maxkb4j.core.workflow.node.start.impl;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
@@ -73,7 +72,7 @@ public class StartNode extends INode {
     }
 
 
-    public JSONArray getHistoryContext() {
+    public List<ChatRecordSimple> getHistoryContext() {
         // 获取历史聊天记录
         List<ChatRecordSimple> list = new ArrayList<>();
         for (ApplicationChatRecordEntity chatRecord : this.getHistoryChatRecords()) {
@@ -82,7 +81,7 @@ public class StartNode extends INode {
             record.setAnswer(chatRecord.getAnswerText());
             list.add(record);
         }
-        return (JSONArray) JSON.toJSON(list);
+        return list;
     }
 
 
