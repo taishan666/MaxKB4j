@@ -32,6 +32,7 @@ public abstract class INode {
     public JSONObject properties;
     private ChatParams chatParams;
     public Map<String, Object> globalVariable;
+    public Map<String, Object> chatVariable;
     public List<INode> upNodes;
     public Map<String, Object> context;
     public List<String> upNodeIdList;
@@ -124,6 +125,8 @@ public abstract class INode {
     public Object getReferenceField(String nodeId, String key) {
         if ("global".equals(nodeId)) {
             return globalVariable.get(key);
+        }else if ("chat".equals(nodeId)) {
+            return chatVariable.get(key);
         } else {
             INode node = upNodes.stream().filter(e -> e.getId().equals(nodeId)).findAny().orElse(null);
             return node == null ? null : node.context.get(key);
@@ -177,6 +180,9 @@ public abstract class INode {
         Map<String, Object> result = new JSONObject();
         for (String key : globalVariable.keySet()) {
             result.put("global." + key, globalVariable.get(key));
+        }
+        for (String key : chatVariable.keySet()) {
+            result.put("chat." + key, chatVariable.get(key));
         }
         for (INode node : upNodes) {
             String nodeName = node.getProperties().getString("nodeName");

@@ -24,7 +24,8 @@ public class WorkflowManage {
     private ChatParams chatParams;
     private List<INode> nodes;
     private List<LfEdge> edges;
-    private Map<String, Object> globalVariable;
+    private Map<String, Object> context;
+    private Map<String, Object> chatContext;
     private String answer;
     private ApplicationChatRecordEntity chatRecord;
     private List<ApplicationChatRecordEntity> historyChatRecords;
@@ -34,7 +35,8 @@ public class WorkflowManage {
         this.nodes = nodes;
         this.edges = edges;
         this.chatParams = chatParams;
-        this.globalVariable = new HashMap<>();
+        this.context = new HashMap<>();
+        this.chatContext = new HashMap<>();
         this.nodeContext = new ArrayList<>();
         this.chatRecord = chatRecord;
         this.answer = "";
@@ -188,7 +190,8 @@ public class WorkflowManage {
         for (INode node : nodes) {
             if (nodeId.equals(node.getId())) {
                 node.setUpNodes(nodeContext);
-                node.setGlobalVariable(globalVariable);
+                node.setGlobalVariable(context);
+                node.setChatVariable(chatContext);
                 node.setUpNodeIdList(upNodeIds);
                 node.setChatParams(chatParams);
                 node.setHistoryChatRecords(historyChatRecords);

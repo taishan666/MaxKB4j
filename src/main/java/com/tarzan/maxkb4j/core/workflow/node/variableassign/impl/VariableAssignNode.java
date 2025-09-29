@@ -19,7 +19,6 @@ public class VariableAssignNode extends INode {
     public NodeResult execute() {
         VariableAssignParams nodeParams=super.getNodeData().toJavaObject(VariableAssignParams.class);
         List<Map<String, Object>> resultList = new ArrayList<>();
-
         for (Map<String, Object> variable : nodeParams.getVariableList()) {
             if (!variable.containsKey("fields")) {
                 continue;
@@ -30,48 +29,55 @@ public class VariableAssignNode extends INode {
                 Map<String, Object> result = new HashMap<>();
                 result.put("name", variable.get("name"));
                 result.put("input_value", getReferenceContent(fields));
-
                 String source = (String) variable.get("source");
-                if ("custom".equals(source)) {
-                    String type = (String) variable.get("type");
-                    if (Arrays.asList("dict", "array").contains(type)) {
-                        Object value = variable.get("value");
-                        super.getGlobalVariable().put(fields.get(1), value);
-                        result.put("output_value", variable.put("value", value));
-                    } else {
-                        super.getGlobalVariable().put(fields.get(1), variable.get("value"));
-                        result.put("output_value", variable.get("value"));
-                    }
-                } else {
-                    Object reference = getReferenceContent((List<String>) variable.get("reference"));
-                    super.getGlobalVariable().put(fields.get(1), reference);
-                    result.put("output_value", reference);
+                Object value = variable.get("value");
+                if ("referencing".equals(source)) {
+                    @SuppressWarnings("unchecked")
+                    List<String> reference = (List<String>) variable.get("reference");
+                    value = super.getReferenceField(reference.get(0), reference.get(1));
                 }
+                super.getGlobalVariable().put(fields.get(1), value);
+                result.put("output_value", variable.put("value", value));
+                resultList.add(result);
+            }
+            if ("chat".equals(fields.get(0))) {
+                Map<String, Object> result = new HashMap<>();
+                result.put("name", variable.get("name"));
+                result.put("input_value", getReferenceContent(fields));
+                String source = (String) variable.get("source");
+                Object value = variable.get("value");
+                if ("referencing".equals(source)) {
+                    @SuppressWarnings("unchecked")
+                    List<String> reference = (List<String>) variable.get("reference");
+                    value = super.getReferenceField(reference.get(0), reference.get(1));
+                }
+                super.getChatVariable().put(fields.get(1), value);
+                result.put("output_value", variable.put("value", value));
                 resultList.add(result);
             }
         }
         return new NodeResult(Map.of("variable_list",nodeParams.getVariableList(),"result_list",resultList),Map.of());
     }
 
-    @Override
-    public void saveContext(JSONObject detail) {
-        context.put("result", detail.get("result"));
-    }
+
 
     public String getReferenceContent(List<String> fields) {
         if (fields == null || fields.size() < 2) {
             throw new IllegalArgumentException("Fields list must contain at least two elements.");
         }
-
         // 提取 fields[0] 和 fields[1:]
         String firstField = fields.get(0);
         String remainingFields = fields.get(1);
-
         // 调用 workflowManage 的 getReferenceField 方法
         Object result = super.getReferenceField(firstField, remainingFields);
-
         // 将结果转换为字符串
         return String.valueOf(result);
+    }
+
+    @Override
+    public void saveContext(JSONObject detail) {
+        context.put("variable_list", detail.get("variable_list"));
+        context.put("result_list", detail.get("result_list"));
     }
 
     @Override

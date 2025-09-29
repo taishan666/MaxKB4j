@@ -77,7 +77,7 @@ public class NodeResult {
             }
         }
         if (globalVariable != null) {
-            workflow.getGlobalVariable().putAll(globalVariable);
+            workflow.getContext().putAll(globalVariable);
         }
         log.info("WriteContext node: {} ",node.getType());
     }
