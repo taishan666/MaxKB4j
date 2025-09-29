@@ -41,9 +41,9 @@ public abstract class INode {
 
     public INode(JSONObject properties) {
         this.context = new JSONObject();
-        this.upNodeIdList=new ArrayList<>();
+        this.upNodeIdList = new ArrayList<>();
         this.properties = properties;
-        this.runtimeNodeId= generateRuntimeNodeId();
+        this.runtimeNodeId = generateRuntimeNodeId();
         this.viewType = "many_view";
     }
 
@@ -56,7 +56,7 @@ public abstract class INode {
 
     public void setUpNodeIdList(List<String> upNodeIdList) {
         this.upNodeIdList = upNodeIdList;
-        this.runtimeNodeId= generateRuntimeNodeId();
+        this.runtimeNodeId = generateRuntimeNodeId();
     }
 
 
@@ -64,7 +64,13 @@ public abstract class INode {
 
     public abstract void saveContext(JSONObject detail);
 
+    public void saveContextWithRuntime(JSONObject detail) {
+        context.put("runTime", detail.get("runTime"));
+        saveContext(detail);
+    }
+
     public abstract JSONObject getDetail();
+
 
     private String generateRuntimeNodeId() {
         try {
@@ -94,24 +100,22 @@ public abstract class INode {
 
     public NodeResult run() throws Exception {
         long startTime = System.currentTimeMillis();
-        this.context.put("start_time", startTime);
         NodeResult result = execute();
-        float runTime = (System.currentTimeMillis() - startTime)/1000F;
+        float runTime = (System.currentTimeMillis() - startTime) / 1000F;
         this.context.put("runTime", runTime);
-        log.info("node:{}, runTime:{} s",type,runTime);
+        log.info("node:{}, runTime:{} s", type, runTime);
         return result;
     }
 
 
-
-    public JSONObject getDetail(int index){
-        JSONObject detail=new JSONObject();
-        detail.put("name",properties.getString("nodeName"));
-        detail.put("index",index);
-        detail.put("type",type);
-        detail.put("runTime",context.get("runTime"));
-        detail.put("status",status);
-        detail.put("err_message",errMessage);
+    public JSONObject getDetail(int index) {
+        JSONObject detail = new JSONObject();
+        detail.put("name", properties.getString("nodeName"));
+        detail.put("index", index);
+        detail.put("type", type);
+        detail.put("runTime", context.get("runTime"));
+        detail.put("status", status);
+        detail.put("err_message", errMessage);
         detail.putAll(getDetail());
         return detail;
     }
@@ -145,8 +149,8 @@ public abstract class INode {
                 newMessageList.add(message);
             }
         }
-        if (newMessageList.size()%2!=0){
-            newMessageList.remove(newMessageList.size()-1);
+        if (newMessageList.size() % 2 != 0) {
+            newMessageList.remove(newMessageList.size() - 1);
         }
         return newMessageList;
     }
@@ -172,21 +176,20 @@ public abstract class INode {
     public Map<String, Object> allVariables() {
         Map<String, Object> result = new JSONObject();
         for (String key : globalVariable.keySet()) {
-            result.put("global."+key, globalVariable.get(key));
+            result.put("global." + key, globalVariable.get(key));
         }
         for (INode node : upNodes) {
-            String nodeName=node.getProperties().getString("nodeName");
-            Map<String, Object> context=node.getContext();
+            String nodeName = node.getProperties().getString("nodeName");
+            Map<String, Object> context = node.getContext();
             for (String key : context.keySet()) {
-                result.put(nodeName+"."+key, context.get(key));
+                result.put(nodeName + "." + key, context.get(key));
             }
         }
         return result;
     }
 
 
-
-    public  Set<String> extractVariables(String template) {
+    public Set<String> extractVariables(String template) {
         Pattern VARIABLE_PATTERN = Pattern.compile("\\{\\{(.+?)\\}\\}");
         Set<String> variables = new HashSet<>();
         Matcher matcher = VARIABLE_PATTERN.matcher(template);
@@ -197,19 +200,18 @@ public abstract class INode {
     }
 
 
-
     public List<ChatMessage> getHistoryMessages(int dialogueNumber, String dialogueType, String runtimeNodeId) {
         List<ChatMessage> historyMessages;
-        if("NODE".equals(dialogueType)){
-            historyMessages=getNodeMessages(runtimeNodeId);
-        }else {
-            historyMessages=getWorkFlowMessages();
+        if ("NODE".equals(dialogueType)) {
+            historyMessages = getNodeMessages(runtimeNodeId);
+        } else {
+            historyMessages = getWorkFlowMessages();
         }
-        int total=historyMessages.size();
-        if (total==0){
+        int total = historyMessages.size();
+        if (total == 0) {
             return historyMessages;
         }
-        int startIndex = Math.max(total - dialogueNumber*2, 0);
+        int startIndex = Math.max(total - dialogueNumber * 2, 0);
         return historyMessages.subList(startIndex, total);
     }
 
@@ -235,7 +237,6 @@ public abstract class INode {
         }
         return messages;
     }
-
 
 
 }

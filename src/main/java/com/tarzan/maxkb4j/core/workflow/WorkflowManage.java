@@ -72,13 +72,13 @@ public class WorkflowManage {
                 if (APPLICATION.getKey().equals(startNode.getType())) {
                     startNode.getContext().put("application_node_dict", nodeDetail.get("application_node_dict"));
                 }
-                startNode.saveContext(nodeDetail);
+                startNode.saveContextWithRuntime(nodeDetail);
                 nodeContext.add(startNode);
             } else {
                 // 处理普通节点
                 INode node = getNodeClsById(nodeId, lastNodeIdList, null);
                 assert node != null;
-                node.saveContext(nodeDetail);
+                node.saveContextWithRuntime(nodeDetail);
                 nodeContext.add(node);
             }
         }

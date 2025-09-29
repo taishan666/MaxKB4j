@@ -18,14 +18,13 @@ public class FormNode extends INode {
     public FormNode(JSONObject properties) {
         super(properties);
         this.type = FORM.getKey();
-        super.viewType="single_view";
+        super.viewType = "single_view";
     }
 
     @Override
     public NodeResult execute() {
-        FormNodeParams nodeParams=super.getNodeData().toJavaObject(FormNodeParams.class);
-
-        Map<String,Object> formData = nodeParams.getFormData();
+        FormNodeParams nodeParams = super.getNodeData().toJavaObject(FormNodeParams.class);
+        Map<String, Object> formData = nodeParams.getFormData();
         if (formData != null) {
             context.put("is_submit", true);
             context.put("form_data", formData);
@@ -47,7 +46,7 @@ public class FormNode extends INode {
                 for (String promptVariable : promptVariables) {
                     variables.put(promptVariable, allVariables.getOrDefault(promptVariable, "*"));
                 }
-                variables.put("form",form);
+                variables.put("form", form);
             }
             PromptTemplate promptTemplate = PromptTemplate.from(formContentFormat);
             String formRender = promptTemplate.apply(variables).text();
@@ -60,7 +59,7 @@ public class FormNode extends INode {
     public void saveContext(JSONObject detail) {
         context.put("form_field_list", detail.get("form_field_list"));
         @SuppressWarnings("unchecked")
-        Map<String,Object> formData = (Map<String, Object>) detail.get("form_data");
+        Map<String, Object> formData = (Map<String, Object>) detail.get("form_data");
         context.putAll(formData);
         context.put("form_data", detail.get("form_data"));
         context.put("is_submit", detail.get("is_submit"));
