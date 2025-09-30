@@ -1,12 +1,12 @@
 package com.tarzan.maxkb4j.core.ragpipeline.step.searchdatasetstep;
 
-import com.tarzan.maxkb4j.core.ragpipeline.IBaseChatPipelineStep;
+import com.tarzan.maxkb4j.core.ragpipeline.IChatPipelineStep;
 import com.tarzan.maxkb4j.core.ragpipeline.PipelineManage;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.ParagraphVO;
 
 import java.util.List;
 
-public abstract class ISearchDatasetStep extends IBaseChatPipelineStep {
+public abstract class ISearchDatasetStep extends IChatPipelineStep {
     @Override
     protected void _run(PipelineManage manage) {
         List<ParagraphVO> paragraphList = execute(manage);

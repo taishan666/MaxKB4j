@@ -22,7 +22,6 @@ import com.tarzan.maxkb4j.module.knowledge.domain.entity.KnowledgeEntity;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.ParagraphEntity;
 import com.tarzan.maxkb4j.module.knowledge.service.KnowledgeService;
 import com.tarzan.maxkb4j.module.knowledge.service.ParagraphService;
-import com.tarzan.maxkb4j.module.knowledge.service.RetrieveService;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelEntity;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseSpeechToText;
@@ -64,7 +63,6 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     private final ModelService modelService;
     private final KnowledgeService knowledgeService;
     private final UserService userService;
-    private final RetrieveService retrieveService;
     private final ParagraphService paragraphService;
     private final ApplicationAccessTokenService accessTokenService;
     private final ApplicationApiKeyService applicationApiKeyService;

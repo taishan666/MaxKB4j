@@ -15,12 +15,12 @@ import java.util.Map;
 
 @Slf4j
 public class PipelineManage {
-    public List<IBaseChatPipelineStep> stepList;
+    public List<IChatPipelineStep> stepList;
     public JSONObject context;
     public Sinks.Many<ChatMessageVO> sink;
     public String answer;
 
-    public PipelineManage(List<IBaseChatPipelineStep> stepList) {
+    public PipelineManage(List<IChatPipelineStep> stepList) {
         this.stepList = stepList;
         this.context = new JSONObject();
         this.context.put("messageTokens", 0);
@@ -28,7 +28,7 @@ public class PipelineManage {
     }
 
 
-    private static IBaseChatPipelineStep instantiateStep(Class<? extends IBaseChatPipelineStep> stepClass) {
+    private static IChatPipelineStep instantiateStep(Class<? extends IChatPipelineStep> stepClass) {
         try {
            return stepClass.getDeclaredConstructor().newInstance();
         } catch (Exception e) {
@@ -45,7 +45,7 @@ public class PipelineManage {
         if (sink != null){
             this.sink = sink;
         }
-        for (IBaseChatPipelineStep step : stepList) {
+        for (IChatPipelineStep step : stepList) {
             step.run(this);
         }
         this.context.put("runTime", System.currentTimeMillis());
@@ -68,7 +68,7 @@ public class PipelineManage {
 
     public JSONObject getDetails() {
         JSONObject details = new JSONObject();
-        for (IBaseChatPipelineStep row : stepList) {
+        for (IChatPipelineStep row : stepList) {
             JSONObject item = row.getDetails();
             if (item != null) {
                 String stepType = item.getString("step_type");
@@ -79,13 +79,13 @@ public class PipelineManage {
     }
 
     public static class Builder {
-        private final List<IBaseChatPipelineStep> stepList = new ArrayList<>();
+        private final List<IChatPipelineStep> stepList = new ArrayList<>();
 
-        public void addStep(Class<? extends IBaseChatPipelineStep> step) {
+        public void addStep(Class<? extends IChatPipelineStep> step) {
             stepList.add(instantiateStep(step));
         }
 
-        public void addStep(IBaseChatPipelineStep step) {
+        public void addStep(IChatPipelineStep step) {
             stepList.add(step);
         }
 

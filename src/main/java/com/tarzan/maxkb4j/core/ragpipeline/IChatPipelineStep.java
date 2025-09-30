@@ -2,7 +2,7 @@ package com.tarzan.maxkb4j.core.ragpipeline;
 
 import com.alibaba.fastjson.JSONObject;
 
-public abstract class IBaseChatPipelineStep {
+public abstract class IChatPipelineStep {
     protected JSONObject context = new JSONObject();
 
     public void run(PipelineManage manage) {
