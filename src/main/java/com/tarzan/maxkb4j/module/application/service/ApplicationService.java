@@ -203,7 +203,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
             JSONArray nodes = workFlow.getJSONArray("nodes");
             for (int i = 0; i < nodes.size(); i++) {
                 JSONObject node = nodes.getJSONObject(i);
-                if ("base-node".equals(node.getString("id"))) {
+                if (BASE.getKey().equals(node.getString("id"))) {
                     JSONObject properties = node.getJSONObject("properties");
                     JSONObject nodeData = properties.getJSONObject("nodeData");
                     nodeData.put("name", application.getName());
@@ -296,6 +296,14 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         return paragraphService.saveBatch(paragraphs);
     }
 
+    public ApplicationVO getAppDetail(String appId, boolean debug) {
+        if (debug) {
+            return this.getDetail(appId);
+        } else {
+            return this.getPublishedDetail(appId);
+        }
+    }
+
     public ApplicationVO getDetail(String id) {
         ApplicationEntity entity = this.getById(id);
         if (entity == null) {
@@ -307,6 +315,9 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
 
     public ApplicationVO getPublishedDetail(String id) {
         ApplicationVO vo = applicationVersionService.getAppLatestOne(id);
+        if (vo == null) {
+            return null;
+        }
         return wrapVo(vo);
     }
 
@@ -484,8 +495,6 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         accessTokenService.save(accessToken);
         return flag;
     }
-
-
 
 
     public String speechToText(String appId, MultipartFile file) throws IOException {

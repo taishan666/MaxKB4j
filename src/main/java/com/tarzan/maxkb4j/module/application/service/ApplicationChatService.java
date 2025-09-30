@@ -6,22 +6,20 @@ import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tarzan.maxkb4j.common.exception.ApiException;
-import com.tarzan.maxkb4j.core.workflow.model.ChatFile;
-import com.tarzan.maxkb4j.module.application.cache.ChatCache;
 import com.tarzan.maxkb4j.core.chat.provider.ChatActuatorBuilder;
 import com.tarzan.maxkb4j.core.chat.provider.IChatActuator;
+import com.tarzan.maxkb4j.core.workflow.model.ChatFile;
+import com.tarzan.maxkb4j.module.application.cache.ChatCache;
 import com.tarzan.maxkb4j.module.application.domian.dto.ChatInfo;
 import com.tarzan.maxkb4j.module.application.domian.dto.ChatQueryDTO;
 import com.tarzan.maxkb4j.module.application.domian.entity.*;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationVO;
 import com.tarzan.maxkb4j.module.application.domian.vo.ChatRecordDetailVO;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatMapper;
-import com.tarzan.maxkb4j.module.application.mapper.ApplicationMapper;
 import com.tarzan.maxkb4j.module.chat.ChatParams;
 import com.tarzan.maxkb4j.module.oss.service.MongoFileService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -39,13 +37,12 @@ import java.util.Objects;
 @AllArgsConstructor
 public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, ApplicationChatEntity> {
 
-    private final ApplicationMapper applicationMapper;
-    private final ApplicationVersionService applicationVersionService;
     private final ApplicationChatRecordService chatRecordService;
     private final ApplicationService applicationService;
     private final MongoFileService fileService;
     private final ApplicationChatUserStatsService userStatsService;
     private final ApplicationAccessTokenService accessTokenService;
+    private final ApplicationVersionService applicationVersionService;
 
 
     public IPage<ApplicationChatEntity> chatLogs(String appId, int page, int size, ChatQueryDTO query) {
@@ -55,26 +52,26 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
 
 
     public String chatOpenTest(String appId) {
-        ApplicationVO application = applicationService.getDetail(appId);
-        IChatActuator chatActuator = ChatActuatorBuilder.getActuator(application.getType());
-        return chatActuator.chatOpenTest(application);
+        return chatOpen(appId, true);
     }
-
 
     public String chatOpen(String appId) {
-        return chatOpen(appId, null);
+        return chatOpen(appId, false);
     }
 
-    public String chatOpen(String appId, String chatId) {
-        ApplicationVO application = applicationService.getPublishedDetail(appId);
-        if (application==null){
-            throw  new ApiException("应用未发布，请发布后使用。");
+
+    public String chatOpen(String appId, boolean debug) {
+        if (!debug) {
+            long count = applicationVersionService.lambdaQuery().eq(ApplicationVersionEntity::getApplicationId, appId).count();
+            if (count == 0) {
+                throw new ApiException("应用未发布，请发布后使用。");
+            }
         }
-        if (StringUtils.isBlank(chatId)) {
-            chatId = IdWorker.get32UUID();
-        }
-        IChatActuator chatActuator = ChatActuatorBuilder.getActuator(application.getType());
-        return chatActuator.chatOpen(application, chatId);
+        ChatInfo chatInfo = new ChatInfo();
+        chatInfo.setChatId(IdWorker.get32UUID());
+        chatInfo.setAppId(appId);
+        ChatCache.put(chatInfo.getChatId(), chatInfo);
+        return chatInfo.getChatId();
     }
 
     // 当前会话不存在时，重新打开会话（测试模式下不生效）
@@ -83,17 +80,13 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
         if (chatEntity == null) {
             return null;
         }
-        ApplicationEntity application = applicationMapper.selectById(chatEntity.getApplicationId());
         ChatInfo chatInfo = new ChatInfo();
         chatInfo.setChatId(chatId);
-        chatInfo.setAppId(application.getId());
-        chatInfo.setAppType(application.getType());
-        chatInfo.setDebug(true);
         ChatCache.put(chatInfo.getChatId(), chatInfo);
         return chatInfo;
     }
 
-    private ChatInfo getChatInfo(String chatId) {
+    public ChatInfo getChatInfo(String chatId) {
         ChatInfo chatInfo = ChatCache.get(chatId);
         if (chatInfo == null) {
             return reChatOpen(chatId);
@@ -101,18 +94,11 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
         return chatInfo;
     }
 
-    //todo 优化
-    public String chatMessage(ChatParams chatParams, boolean debug) {
-        ChatInfo chatInfo = getChatInfo(chatParams.getChatId());
-        if (chatInfo == null) {
-            chatParams.getSink().tryEmitError(new ApiException("会话不存在"));
-            return "";
-        }
-        String appId = chatInfo.getAppId();
-        visitCountCheck(appId, chatParams.getUserId(), debug);
-        String appType = chatInfo.getAppType();
-        IChatActuator chatActuator = ChatActuatorBuilder.getActuator(appType);
-        String answer = chatActuator.chatMessage(chatParams, debug);
+    public String chatMessage(ChatParams chatParams) {
+        visitCountCheck(chatParams.getAppId(), chatParams.getChatUserId(), chatParams.getDebug());
+        ApplicationVO application = applicationService.getDetail(chatParams.getAppId());
+        IChatActuator chatActuator = ChatActuatorBuilder.getActuator(application.getType());
+        String answer = chatActuator.chatMessage(application, chatParams);
         chatParams.getSink().tryEmitComplete();
         return answer;
     }
@@ -129,7 +115,7 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
                 userStatsService.save(accessClient);
             }
             ApplicationAccessTokenEntity appAccessToken = accessTokenService.lambdaQuery().eq(ApplicationAccessTokenEntity::getApplicationId, appId).one();
-            if (Objects.nonNull(appAccessToken)){
+            if (Objects.nonNull(appAccessToken)) {
                 if (appAccessToken.getAccessNum() < accessClient.getIntraDayAccessNum()) {
                     throw new ApiException("访问次数超过今日访问量");
                 }

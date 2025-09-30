@@ -42,8 +42,13 @@ public class ChatParams {
     private Boolean reChat;
 
     @JsonIgnore
-    private String userId;
-
+    private String appId;
+    @JsonIgnore
+    private Boolean debug;
+    @JsonIgnore
+    private String chatUserId;
+    @JsonIgnore
+    private String chatUserType;
     @JsonIgnore
     private Sinks.Many<ChatMessageVO> sink;
 

@@ -9,7 +9,9 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.tarzan.maxkb4j.common.constant.AppConst;
 import com.tarzan.maxkb4j.common.api.R;
+import com.tarzan.maxkb4j.common.exception.ApiException;
 import com.tarzan.maxkb4j.module.application.cache.ChatCache;
+import com.tarzan.maxkb4j.module.application.domian.dto.ChatInfo;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationAccessTokenEntity;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatEntity;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatRecordEntity;
@@ -89,11 +91,18 @@ public class ChatApiController {
     @PostMapping(path = "/chat_message/{chatId}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<ChatMessageVO> chatMessage(@PathVariable String chatId, @RequestBody ChatParams params) {
         Sinks.Many<ChatMessageVO> sink = Sinks.many().multicast().onBackpressureBuffer();
-        params.setChatId(chatId);
-        params.setSink(sink);
-        params.setUserId(StpUtil.getLoginIdAsString());
-        // 异步执行业务逻辑
-        chatTaskExecutor.execute(() -> chatService.chatMessage(params, false));
+        ChatInfo chatInfo = chatService.getChatInfo(chatId);
+        if (chatInfo == null) {
+            sink.tryEmitError(new ApiException("会话不存在"));
+        }else {
+            params.setChatId(chatId);
+            params.setSink(sink);
+            params.setChatUserId(StpUtil.getLoginIdAsString());
+            params.setDebug(false);
+            params.setAppId(chatInfo.getAppId());
+            // 异步执行业务逻辑
+            chatTaskExecutor.execute(() -> chatService.chatMessage(params));
+        }
         return sink.asFlux();
     }
 

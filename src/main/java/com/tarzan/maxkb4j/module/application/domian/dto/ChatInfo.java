@@ -14,13 +14,8 @@ import java.util.Map;
 public class ChatInfo implements Serializable {
 
     private String chatId;
-   // private ApplicationVO application;
     private String appId;
-    private String appType;
     private List<ApplicationChatRecordEntity> chatRecordList= new ArrayList<>();
-    private boolean debug;
-   // private List<INode> nodes;
-    //private List<LfEdge> edges;
 
     public Map<String, Object> toBasePipelineManageParams(){
         return BeanUtil.toMap(this);

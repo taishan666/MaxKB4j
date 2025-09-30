@@ -6,6 +6,7 @@ import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.node.application.input.ApplicationNodeParams;
 import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
 import com.tarzan.maxkb4j.module.application.service.ApplicationChatService;
+import com.tarzan.maxkb4j.module.chat.ChatParams;
 
 import java.util.List;
 import java.util.Map;
@@ -27,7 +28,23 @@ public class ApplicationNode extends INode {
         ApplicationNodeParams nodeParams= super.getNodeData().toJavaObject(ApplicationNodeParams.class);
         List<String> questionFields=nodeParams.getQuestionReferenceAddress();
         String question= (String)super.getReferenceField(questionFields.get(0),questionFields.get(1));
-        String answer=chatService.chatMessage(super.getChatParams(),true);
+        ChatParams chatParams=super.getChatParams();
+        ChatParams nodeChatParams=ChatParams.builder()
+                .message(question)
+                .chatId(nodeParams.getApplicationId())
+                .runtimeNodeId(super.runtimeNodeId)
+                .stream(chatParams.getStream())
+                .reChat(chatParams.getReChat())
+                .chatUserId(chatParams.getChatUserId())
+                .chatUserType(chatParams.getChatUserType())
+                .sink(chatParams.getSink())
+                .chatRecordId(chatParams.getChatRecordId())
+                .appId(nodeParams.getApplicationId())
+                .formData(chatParams.getFormData())
+                .nodeData(chatParams.getNodeData())
+                .debug(chatParams.getDebug())
+                .build();
+        String answer=chatService.chatMessage(nodeChatParams);
         return new NodeResult(Map.of(
                 "result", answer,
                 "question", question
