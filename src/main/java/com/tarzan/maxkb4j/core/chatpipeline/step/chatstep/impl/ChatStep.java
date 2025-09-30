@@ -1,12 +1,12 @@
-package com.tarzan.maxkb4j.core.ragpipeline.step.chatstep.impl;
+package com.tarzan.maxkb4j.core.chatpipeline.step.chatstep.impl;
 
 import com.alibaba.excel.util.StringUtils;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.assistant.Assistant;
 import com.tarzan.maxkb4j.core.langchain4j.AppChatMemory;
-import com.tarzan.maxkb4j.core.ragpipeline.PipelineManage;
-import com.tarzan.maxkb4j.core.ragpipeline.step.chatstep.IChatStep;
+import com.tarzan.maxkb4j.core.chatpipeline.PipelineManage;
+import com.tarzan.maxkb4j.core.chatpipeline.step.chatstep.IChatStep;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatUserStatsEntity;
 import com.tarzan.maxkb4j.module.application.domian.entity.KnowledgeSetting;
 import com.tarzan.maxkb4j.module.application.domian.entity.NoReferencesSetting;
@@ -86,7 +86,7 @@ public class ChatStep extends IChatStep {
         KnowledgeSetting knowledgeSetting = application.getKnowledgeSetting();
         NoReferencesSetting noReferencesSetting = knowledgeSetting.getNoReferencesSetting();
         BaseChatModel chatModel = modelService.getModelById(modelId, params);
-        String problemText = manage.context.getString("problem_text");
+        String problemText = manage.context.getString("problemText");
         if (chatModel == null) {
             answerText.set("抱歉，没有配置 AI 模型，无法优化引用分段，请先去应用中设置 AI 模型。");
             sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, answerText.get(), "", "ai-chat-node", viewType, true));

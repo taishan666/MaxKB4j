@@ -1,10 +1,10 @@
-package com.tarzan.maxkb4j.core.ragpipeline.step.searchdatasetstep.impl;
+package com.tarzan.maxkb4j.core.chatpipeline.step.searchdatasetstep.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.module.application.domian.entity.KnowledgeSetting;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationVO;
-import com.tarzan.maxkb4j.core.ragpipeline.PipelineManage;
-import com.tarzan.maxkb4j.core.ragpipeline.step.searchdatasetstep.ISearchDatasetStep;
+import com.tarzan.maxkb4j.core.chatpipeline.PipelineManage;
+import com.tarzan.maxkb4j.core.chatpipeline.step.searchdatasetstep.ISearchDatasetStep;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.ParagraphVO;
 import com.tarzan.maxkb4j.module.knowledge.service.RetrieveService;
 import lombok.AllArgsConstructor;
@@ -27,14 +27,16 @@ public class SearchDatasetStep extends ISearchDatasetStep {
         long startTime = System.currentTimeMillis();
         JSONObject context=manage.context;
         ApplicationVO application=(ApplicationVO)context.get("application");
-        String problemText=manage.context.getString("problem_text");
+        String problemText=manage.context.getString("problemText");
         String paddingProblemText=context.getString("padding_problem_text");
+        @SuppressWarnings("unchecked")
+        List<String> excludeParagraphIds=(List<String>)context.get("excludeParagraphIds");
    //     String execProblemText = StringUtils.isNotBlank(paddingProblemText)?paddingProblemText:problemText;
         KnowledgeSetting datasetSetting=application.getKnowledgeSetting();
         List<CompletableFuture<List<ParagraphVO>>> futureList = new ArrayList<>();
-        futureList.add(CompletableFuture.supplyAsync(()->retrieveService.paragraphSearch(problemText,application.getKnowledgeIdList(), List.of(),datasetSetting)));
+        futureList.add(CompletableFuture.supplyAsync(()->retrieveService.paragraphSearch(problemText,application.getKnowledgeIdList(), excludeParagraphIds,datasetSetting)));
         if(StringUtils.isNotBlank(paddingProblemText)&&!problemText.equals(paddingProblemText)){
-            futureList.add(CompletableFuture.supplyAsync(()->retrieveService.paragraphSearch(paddingProblemText,application.getKnowledgeIdList(), List.of(),datasetSetting)));
+            futureList.add(CompletableFuture.supplyAsync(()->retrieveService.paragraphSearch(paddingProblemText,application.getKnowledgeIdList(), excludeParagraphIds,datasetSetting)));
         }
         List<ParagraphVO> paragraphList= futureList.stream().flatMap(future-> future.join().stream()).toList();
         if(paragraphList.size()>datasetSetting.getTopN()){
@@ -64,7 +66,7 @@ public class SearchDatasetStep extends ISearchDatasetStep {
         details.put("step_type","search_step");
         details.put("paragraphList",context.get("paragraphList"));
         details.put("runTime",context.get("runTime"));
-        details.put("problem_text",context.get("problem_text"));
+        details.put("problemText",context.get("problemText"));
         details.put("messageTokens",context.get("messageTokens"));
         details.put("answerTokens",context.get("answerTokens"));
         details.put("cost",0);

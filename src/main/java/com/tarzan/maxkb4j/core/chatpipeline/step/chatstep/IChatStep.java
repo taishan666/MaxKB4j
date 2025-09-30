@@ -1,7 +1,7 @@
-package com.tarzan.maxkb4j.core.ragpipeline.step.chatstep;
+package com.tarzan.maxkb4j.core.chatpipeline.step.chatstep;
 
-import com.tarzan.maxkb4j.core.ragpipeline.IChatPipelineStep;
-import com.tarzan.maxkb4j.core.ragpipeline.PipelineManage;
+import com.tarzan.maxkb4j.core.chatpipeline.IChatPipelineStep;
+import com.tarzan.maxkb4j.core.chatpipeline.PipelineManage;
 
 public abstract class IChatStep extends IChatPipelineStep {
     public final String viewType="many_view";

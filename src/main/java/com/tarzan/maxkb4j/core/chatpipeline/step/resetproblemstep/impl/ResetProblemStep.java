@@ -1,9 +1,9 @@
-package com.tarzan.maxkb4j.core.ragpipeline.step.resetproblemstep.impl;
+package com.tarzan.maxkb4j.core.chatpipeline.step.resetproblemstep.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationEntity;
-import com.tarzan.maxkb4j.core.ragpipeline.PipelineManage;
-import com.tarzan.maxkb4j.core.ragpipeline.step.resetproblemstep.IResetProblemStep;
+import com.tarzan.maxkb4j.core.chatpipeline.PipelineManage;
+import com.tarzan.maxkb4j.core.chatpipeline.step.resetproblemstep.IResetProblemStep;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
 import com.tarzan.maxkb4j.core.langchain4j.MyChatMemory;
@@ -40,7 +40,7 @@ public class ResetProblemStep extends IResetProblemStep {
         String modelId = application.getModelId();
         BaseChatModel chatModel = modelService.getModelById(modelId);
         QueryTransformer queryTransformer=new MyCompressingQueryTransformer(chatModel.getChatModel());
-        String question = context.getString("problem_text");
+        String question = context.getString("problemText");
         String chatId = context.getString("chatId");
         String systemText = application.getModelSetting().getSystem();
         ChatMemory chatMemory = MyChatMemory.builder()
@@ -59,7 +59,7 @@ public class ResetProblemStep extends IResetProblemStep {
         }
         String paddingProblem=answerSb.toString();
         super.context.put("modelId", modelId);
-        super.context.put("problem_text", question);
+        super.context.put("problemText", question);
         super.context.put("messageTokens", TokenUtil.countTokens(chatMemory.messages()));
         super.context.put("answerTokens", TokenUtil.countTokens(paddingProblem));
         super.context.put("padding_problem_text", paddingProblem);
@@ -88,7 +88,7 @@ public class ResetProblemStep extends IResetProblemStep {
         String modelId = application.getModelId();
         BaseChatModel chatModel = modelService.getModelById(modelId);
         QueryTransformer queryTransformer=new MyCompressingQueryTransformer(chatModel.getChatModel());
-        String question = context.getString("problem_text");
+        String question = context.getString("problemText");
         String chatId = context.getString("chatId");
         Metadata metadata=new Metadata(UserMessage.from(question), chatId, historyMessages);
         Query query=new Query(question,metadata);
@@ -99,7 +99,7 @@ public class ResetProblemStep extends IResetProblemStep {
         }
         String paddingProblem=answerSb.toString();
         super.context.put("modelId", modelId);
-        super.context.put("problem_text", question);
+        super.context.put("problemText", question);
         super.context.put("messageTokens", TokenUtil.countTokens(historyMessages));
         super.context.put("answerTokens", TokenUtil.countTokens(paddingProblem));
         super.context.put("padding_problem_text", paddingProblem);
@@ -114,7 +114,7 @@ public class ResetProblemStep extends IResetProblemStep {
         details.put("step_type","problem_padding");
         details.put("modelId",super.context.get("modelId"));
         details.put("runTime",super.context.get("runTime"));
-        details.put("problem_text",super.context.get("problem_text"));
+        details.put("problemText",super.context.get("problemText"));
         details.put("padding_problem_text",super.context.get("padding_problem_text"));
         details.put("messageTokens", super.context.get("messageTokens"));
         details.put("answerTokens", super.context.get("answerTokens"));

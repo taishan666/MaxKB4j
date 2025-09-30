@@ -1,4 +1,4 @@
-package com.tarzan.maxkb4j.core.ragpipeline;
+package com.tarzan.maxkb4j.core.chatpipeline;
 
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatRecordEntity;

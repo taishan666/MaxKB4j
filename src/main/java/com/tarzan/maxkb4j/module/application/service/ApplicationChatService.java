@@ -74,22 +74,21 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
         return chatInfo.getChatId();
     }
 
-    // 当前会话不存在时，重新打开会话（测试模式下不生效）
-    public ChatInfo reChatOpen(String chatId) {
-        ApplicationChatEntity chatEntity = this.getById(chatId);
-        if (chatEntity == null) {
-            return null;
-        }
-        ChatInfo chatInfo = new ChatInfo();
-        chatInfo.setChatId(chatId);
-        ChatCache.put(chatInfo.getChatId(), chatInfo);
-        return chatInfo;
-    }
 
     public ChatInfo getChatInfo(String chatId) {
         ChatInfo chatInfo = ChatCache.get(chatId);
         if (chatInfo == null) {
-            return reChatOpen(chatId);
+            ApplicationChatEntity chatEntity = this.getById(chatId);
+            if (chatEntity == null) {
+                return null;
+            }
+            chatInfo = new ChatInfo();
+            chatInfo.setChatId(chatId);
+            chatInfo.setAppId(chatEntity.getApplicationId());
+            List<ApplicationChatRecordEntity> chatRecordList= chatRecordService.lambdaQuery().eq(ApplicationChatRecordEntity::getChatId, chatId).list();
+            chatInfo.setChatRecordList(chatRecordList);
+            ChatCache.put(chatInfo.getChatId(), chatInfo);
+            return chatInfo;
         }
         return chatInfo;
     }

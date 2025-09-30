@@ -1,16 +1,18 @@
 package com.tarzan.maxkb4j.core.workflow.node.searchknowledge.impl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.tarzan.maxkb4j.common.util.SpringUtil;
 import com.tarzan.maxkb4j.core.workflow.INode;
-import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
 import com.tarzan.maxkb4j.core.workflow.node.searchknowledge.input.SearchKnowledgeNodeParams;
+import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
+import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatRecordEntity;
 import com.tarzan.maxkb4j.module.application.domian.entity.KnowledgeSetting;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.ParagraphVO;
 import com.tarzan.maxkb4j.module.knowledge.service.RetrieveService;
-import com.tarzan.maxkb4j.common.util.SpringUtil;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.util.CollectionUtils;
 
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -34,7 +36,11 @@ public class SearchKnowledgeNode extends INode {
         KnowledgeSetting knowledgeSetting=nodeParams.getKnowledgeSetting();
         List<String> fields=nodeParams.getQuestionReferenceAddress();
         String question= (String)super.getReferenceField(fields.get(0),fields.get(1));
-        List<ParagraphVO> paragraphList= retrieveService.paragraphSearch(question,nodeParams.getKnowledgeIdList(), Collections.emptyList(),knowledgeSetting);
+        List<String> excludeParagraphIds=new ArrayList<>();
+        if (super.getChatParams().getReChat()){
+            excludeParagraphIds=getExcludeParagraphIds(question);
+        }
+        List<ParagraphVO> paragraphList= retrieveService.paragraphSearch(question,nodeParams.getKnowledgeIdList(),excludeParagraphIds,knowledgeSetting);
         List<ParagraphVO> isHitHandlingMethodList=paragraphList.stream().filter(ParagraphVO::isHitHandlingMethod).toList();
         Map<String, Object> nodeVariable = Map.of(
                 "paragraphList", paragraphList,
@@ -45,6 +51,27 @@ public class SearchKnowledgeNode extends INode {
                 "showKnowledge", nodeParams.getShowKnowledge() //todo 获取对话记录时会用
         );
         return new NodeResult(nodeVariable, Map.of());
+    }
+
+    private List<String> getExcludeParagraphIds(String question){
+        List<String> excludeParagraphIds=new ArrayList<>();
+        for (ApplicationChatRecordEntity chatRecord : super.getHistoryChatRecords()) {
+            JSONObject details=chatRecord.getDetails();
+            if (!details.isEmpty()){
+                for (String key : details.keySet()) {
+                    JSONObject detail= details.getJSONObject(key);
+                    if (question.equals(chatRecord.getProblemText())&&type.equals(detail.getString("type"))){
+                        @SuppressWarnings("unchecked")
+                        List<ParagraphVO> paragraphList= (List<ParagraphVO>) detail.get("paragraphList");
+                        if (!CollectionUtils.isEmpty(paragraphList)){
+                            excludeParagraphIds.addAll(paragraphList.stream().map(ParagraphVO::getId).toList());
+                        }
+                    }
+                }
+
+            }
+        }
+        return excludeParagraphIds;
     }
 
 

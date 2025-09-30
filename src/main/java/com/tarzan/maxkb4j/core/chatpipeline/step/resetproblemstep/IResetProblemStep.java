@@ -1,7 +1,7 @@
-package com.tarzan.maxkb4j.core.ragpipeline.step.resetproblemstep;
+package com.tarzan.maxkb4j.core.chatpipeline.step.resetproblemstep;
 
-import com.tarzan.maxkb4j.core.ragpipeline.IChatPipelineStep;
-import com.tarzan.maxkb4j.core.ragpipeline.PipelineManage;
+import com.tarzan.maxkb4j.core.chatpipeline.IChatPipelineStep;
+import com.tarzan.maxkb4j.core.chatpipeline.PipelineManage;
 
 public abstract class IResetProblemStep extends IChatPipelineStep {
 

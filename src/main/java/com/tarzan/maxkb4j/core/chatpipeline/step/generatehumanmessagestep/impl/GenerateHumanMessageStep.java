@@ -1,4 +1,4 @@
-package com.tarzan.maxkb4j.core.ragpipeline.step.generatehumanmessagestep.impl;
+package com.tarzan.maxkb4j.core.chatpipeline.step.generatehumanmessagestep.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
@@ -6,8 +6,8 @@ import com.tarzan.maxkb4j.module.application.domian.entity.KnowledgeSetting;
 import com.tarzan.maxkb4j.module.application.domian.entity.LlmModelSetting;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationVO;
 import com.tarzan.maxkb4j.module.application.enums.AIAnswerType;
-import com.tarzan.maxkb4j.core.ragpipeline.PipelineManage;
-import com.tarzan.maxkb4j.core.ragpipeline.step.generatehumanmessagestep.IGenerateHumanMessageStep;
+import com.tarzan.maxkb4j.core.chatpipeline.PipelineManage;
+import com.tarzan.maxkb4j.core.chatpipeline.step.generatehumanmessagestep.IGenerateHumanMessageStep;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.ParagraphVO;
 import org.springframework.stereotype.Component;
 
@@ -17,7 +17,7 @@ import java.util.List;
 public class GenerateHumanMessageStep extends IGenerateHumanMessageStep {
     @Override
     protected String execute(PipelineManage manage) {
-        String problemText = manage.context.getString("problem_text");
+        String problemText = manage.context.getString("problemText");
         @SuppressWarnings("unchecked")
         List<ParagraphVO> paragraphList = (List<ParagraphVO>) manage.context.get("paragraphList");
         ApplicationVO application = manage.context.getObject("application", ApplicationVO.class);

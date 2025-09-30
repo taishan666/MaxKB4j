@@ -1,7 +1,7 @@
-package com.tarzan.maxkb4j.core.ragpipeline.step.searchdatasetstep;
+package com.tarzan.maxkb4j.core.chatpipeline.step.searchdatasetstep;
 
-import com.tarzan.maxkb4j.core.ragpipeline.IChatPipelineStep;
-import com.tarzan.maxkb4j.core.ragpipeline.PipelineManage;
+import com.tarzan.maxkb4j.core.chatpipeline.IChatPipelineStep;
+import com.tarzan.maxkb4j.core.chatpipeline.PipelineManage;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.ParagraphVO;
 
 import java.util.List;
