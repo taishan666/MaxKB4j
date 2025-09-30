@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.List;
 import java.util.Objects;
 
+import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.BASE;
 import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.START;
 
 @Slf4j
@@ -72,7 +73,7 @@ public class LogicFlow {
     public void isValidBaseNode(){
         // 使用stream过滤出所有id为'base-node'的节点
         List<LfNode> baseNodeList = nodes.stream()
-                .filter(node -> "base-node".equals(node.getId()))
+                .filter(node -> BASE.getKey().equals(node.getId()))
                 .toList();
 
         if (baseNodeList.isEmpty()) {
