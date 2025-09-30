@@ -1,4 +1,4 @@
-package com.tarzan.maxkb4j.core.ragpipeline.generatehumanmessagestep;
+package com.tarzan.maxkb4j.core.ragpipeline.step.generatehumanmessagestep;
 
 import com.tarzan.maxkb4j.core.ragpipeline.IBaseChatPipelineStep;
 import com.tarzan.maxkb4j.core.ragpipeline.PipelineManage;

@@ -31,27 +31,27 @@ public class ChatFlowActuator implements IChatActuator {
     private final PostResponseHandler postResponseHandler;
 
     @Override
-    public String chatMessage(ApplicationVO application,ChatParams chatParams) {
+    public String chatMessage(ApplicationVO application, ChatParams chatParams) {
         long startTime = System.currentTimeMillis();
         ChatInfo chatInfo = ChatCache.get(chatParams.getChatId());
         List<ApplicationChatRecordEntity> historyChatRecordList = chatRecordService.getChatRecords(chatInfo, chatParams.getChatId());
-        ApplicationChatRecordEntity chatRecord=null;
-        if (StringUtil.isNotBlank(chatParams.getChatRecordId())){
-            chatRecord=historyChatRecordList.stream().filter(e -> e.getId().equals(chatParams.getChatRecordId())).findFirst().orElse(null);
+        ApplicationChatRecordEntity chatRecord = null;
+        if (StringUtil.isNotBlank(chatParams.getChatRecordId())) {
+            chatRecord = historyChatRecordList.stream().filter(e -> e.getId().equals(chatParams.getChatRecordId())).findFirst().orElse(null);
         }
-        chatParams.setChatRecordId(chatParams.getChatRecordId()==null? IdWorker.get32UUID() :chatParams.getChatRecordId());
-        LogicFlow logicFlow=LogicFlow.newInstance(application.getWorkFlow());
-        List<LfNode> lfNodes=logicFlow.getNodes();
-        List<INode> nodes=lfNodes.stream().filter(lfNode -> !BASE.getKey().equals(lfNode.getType())).map(NodeFactory::getNode).toList();
+        chatParams.setChatRecordId(chatParams.getChatRecordId() == null ? IdWorker.get32UUID() : chatParams.getChatRecordId());
+        LogicFlow logicFlow = LogicFlow.newInstance(application.getWorkFlow());
+        List<LfNode> lfNodes = logicFlow.getNodes();
+        List<INode> nodes = lfNodes.stream().filter(lfNode -> !BASE.getKey().equals(lfNode.getType())).map(NodeFactory::getNode).toList();
         WorkflowManage workflowManage = new WorkflowManage(
                 nodes,
                 logicFlow.getEdges(),
                 chatParams,
                 chatRecord,
                 historyChatRecordList);
-        String answer=workflowManage.run();
-        JSONObject details= workflowManage.getRuntimeDetails();
-        postResponseHandler.handler(chatParams.getChatId(), chatParams.getChatRecordId(), chatParams.getMessage(),answer,chatRecord,details,startTime,chatParams.getChatUserId(), chatParams.getChatUserType(),chatParams.getDebug());
+        String answer = workflowManage.run();
+        JSONObject details = workflowManage.getRuntimeDetails();
+        postResponseHandler.handler(chatParams.getChatId(), chatParams.getChatRecordId(), chatParams.getMessage(), answer, chatRecord, details, startTime, chatParams.getChatUserId(), chatParams.getChatUserType(), chatParams.getDebug());
         return answer;
     }
 

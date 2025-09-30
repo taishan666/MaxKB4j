@@ -5,5 +5,5 @@ import com.tarzan.maxkb4j.module.chat.ChatParams;
 
 public interface IChatActuator {
 
-    String chatMessage(ApplicationVO application,ChatParams chatParams);
+    String chatMessage(ApplicationVO application, ChatParams chatParams);
 }

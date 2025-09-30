@@ -1,4 +1,4 @@
-package com.tarzan.maxkb4j.core.ragpipeline.generatehumanmessagestep.impl;
+package com.tarzan.maxkb4j.core.ragpipeline.step.generatehumanmessagestep.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
@@ -7,7 +7,7 @@ import com.tarzan.maxkb4j.module.application.domian.entity.LlmModelSetting;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationVO;
 import com.tarzan.maxkb4j.module.application.enums.AIAnswerType;
 import com.tarzan.maxkb4j.core.ragpipeline.PipelineManage;
-import com.tarzan.maxkb4j.core.ragpipeline.generatehumanmessagestep.IGenerateHumanMessageStep;
+import com.tarzan.maxkb4j.core.ragpipeline.step.generatehumanmessagestep.IGenerateHumanMessageStep;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.ParagraphVO;
 import org.springframework.stereotype.Component;
 

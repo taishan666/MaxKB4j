@@ -5,14 +5,14 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.assistant.Assistant;
 import com.tarzan.maxkb4j.core.langchain4j.AppChatMemory;
+import com.tarzan.maxkb4j.core.ragpipeline.PipelineManage;
+import com.tarzan.maxkb4j.core.ragpipeline.step.chatstep.IChatStep;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatUserStatsEntity;
 import com.tarzan.maxkb4j.module.application.domian.entity.KnowledgeSetting;
 import com.tarzan.maxkb4j.module.application.domian.entity.NoReferencesSetting;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationVO;
 import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
 import com.tarzan.maxkb4j.module.application.enums.AIAnswerType;
-import com.tarzan.maxkb4j.core.ragpipeline.PipelineManage;
-import com.tarzan.maxkb4j.core.ragpipeline.step.chatstep.IChatStep;
 import com.tarzan.maxkb4j.module.application.service.ApplicationChatUserStatsService;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.ParagraphVO;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
@@ -25,7 +25,6 @@ import dev.langchain4j.model.chat.response.ChatResponse;
 import dev.langchain4j.model.output.TokenUsage;
 import dev.langchain4j.service.AiServices;
 import dev.langchain4j.service.TokenStream;
-import dev.langchain4j.store.memory.chat.ChatMemoryStore;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.internal.StringUtil;
 import org.springframework.stereotype.Component;
@@ -46,8 +45,7 @@ public class ChatStep extends IChatStep {
     private final AiServices<Assistant> aiServicesBuilder;
 
     public ChatStep(ModelService modelService,
-                    ApplicationChatUserStatsService publicAccessClientService,
-                    ChatMemoryStore chatMemoryStore) {
+                    ApplicationChatUserStatsService publicAccessClientService) {
         this.modelService = modelService;
         this.publicAccessClientService = publicAccessClientService;
         this.aiServicesBuilder = AiServices.builder(Assistant.class);

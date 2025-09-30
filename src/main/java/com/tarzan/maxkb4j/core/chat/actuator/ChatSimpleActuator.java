@@ -4,8 +4,8 @@ import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.tarzan.maxkb4j.core.chat.provider.IChatActuator;
 import com.tarzan.maxkb4j.core.ragpipeline.PipelineManage;
-import com.tarzan.maxkb4j.core.ragpipeline.generatehumanmessagestep.IGenerateHumanMessageStep;
 import com.tarzan.maxkb4j.core.ragpipeline.step.chatstep.IChatStep;
+import com.tarzan.maxkb4j.core.ragpipeline.step.generatehumanmessagestep.IGenerateHumanMessageStep;
 import com.tarzan.maxkb4j.core.ragpipeline.step.resetproblemstep.IResetProblemStep;
 import com.tarzan.maxkb4j.core.ragpipeline.step.searchdatasetstep.ISearchDatasetStep;
 import com.tarzan.maxkb4j.module.application.cache.ChatCache;
@@ -28,7 +28,7 @@ import java.util.Objects;
 
 @AllArgsConstructor
 @Component
-public class ChatSimpleActuator implements IChatActuator{
+public class ChatSimpleActuator implements IChatActuator {
 
     private final IResetProblemStep resetProblemStep;
     private final ISearchDatasetStep searchDatasetStep;
@@ -39,7 +39,7 @@ public class ChatSimpleActuator implements IChatActuator{
 
 
     @Override
-    public String chatMessage(ApplicationVO application,ChatParams chatParams) {
+    public String chatMessage(ApplicationVO application, ChatParams chatParams) {
         long startTime = System.currentTimeMillis();
         ChatInfo chatInfo = ChatCache.get(chatParams.getChatId());
         boolean stream = chatParams.getStream() == null || chatParams.getStream();
@@ -69,11 +69,11 @@ public class ChatSimpleActuator implements IChatActuator{
         pipelineManageBuilder.addStep(chatStep);
         PipelineManage pipelineManage = pipelineManageBuilder.build();
         List<ApplicationChatRecordEntity> historyChatRecords = chatRecordService.getChatRecords(chatInfo, chatParams.getChatId());
-        chatParams.setChatRecordId(chatParams.getChatRecordId()==null? IdWorker.get32UUID() :chatParams.getChatRecordId());
-        Map<String, Object> params = chatInfo.toPipelineManageParams(application, chatParams.getChatRecordId(),problemText,historyChatRecords, excludeParagraphIds,"", "", stream);
-        String answer =  pipelineManage.run(params,chatParams.getSink());
-        JSONObject details=pipelineManage.getDetails();
-        postResponseHandler.handler(chatParams.getChatId(), chatParams.getChatRecordId(), problemText, answer,null,details, startTime, chatParams.getChatUserId(), chatParams.getChatUserType(),chatParams.getDebug());
+        chatParams.setChatRecordId(chatParams.getChatRecordId() == null ? IdWorker.get32UUID() : chatParams.getChatRecordId());
+        Map<String, Object> params = chatInfo.toPipelineManageParams(application, chatParams.getChatRecordId(), problemText, historyChatRecords, excludeParagraphIds, "", "", stream);
+        String answer = pipelineManage.run(params, chatParams.getSink());
+        JSONObject details = pipelineManage.getDetails();
+        postResponseHandler.handler(chatParams.getChatId(), chatParams.getChatRecordId(), problemText, answer, null, details, startTime, chatParams.getChatUserId(), chatParams.getChatUserType(), chatParams.getDebug());
         return answer;
     }
 

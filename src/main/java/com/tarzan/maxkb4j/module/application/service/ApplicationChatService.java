@@ -96,7 +96,7 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
 
     public String chatMessage(ChatParams chatParams) {
         visitCountCheck(chatParams.getAppId(), chatParams.getChatUserId(), chatParams.getDebug());
-        ApplicationVO application = applicationService.getDetail(chatParams.getAppId());
+        ApplicationVO application = applicationService.getAppDetail(chatParams.getAppId(),chatParams.getDebug());
         IChatActuator chatActuator = ChatActuatorBuilder.getActuator(application.getType());
         String answer = chatActuator.chatMessage(application, chatParams);
         chatParams.getSink().tryEmitComplete();
