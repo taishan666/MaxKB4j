@@ -56,7 +56,7 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
         return chatOpen(appId, null, debug);
     }
 
-    public String chatOpen(String appId,String chatId, boolean debug) {
+    public String chatOpen(String appId, String chatId, boolean debug) {
         if (!debug) {
             long count = applicationVersionService.lambdaQuery().eq(ApplicationVersionEntity::getApplicationId, appId).count();
             if (count == 0) {
@@ -64,7 +64,7 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
             }
         }
         ChatInfo chatInfo = new ChatInfo();
-        chatInfo.setChatId(StringUtil.isNotBlank(chatId)?chatId:IdWorker.get32UUID());
+        chatInfo.setChatId(StringUtil.isNotBlank(chatId) ? chatId : IdWorker.get32UUID());
         chatInfo.setAppId(appId);
         ChatCache.put(chatInfo.getChatId(), chatInfo);
         return chatInfo.getChatId();
@@ -74,14 +74,14 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
     public ChatInfo getChatInfo(String chatId) {
         ChatInfo chatInfo = ChatCache.get(chatId);
         if (chatInfo == null) {
-            ApplicationChatEntity chatEntity = this.getById(chatId);
+            ApplicationChatEntity chatEntity = this.lambdaQuery().select(ApplicationChatEntity::getApplicationId).eq(ApplicationChatEntity::getId, chatId).one();
             if (chatEntity == null) {
                 return null;
             }
             chatInfo = new ChatInfo();
             chatInfo.setChatId(chatId);
             chatInfo.setAppId(chatEntity.getApplicationId());
-            List<ApplicationChatRecordEntity> chatRecordList= chatRecordService.lambdaQuery().eq(ApplicationChatRecordEntity::getChatId, chatId).list();
+            List<ApplicationChatRecordEntity> chatRecordList = chatRecordService.lambdaQuery().eq(ApplicationChatRecordEntity::getChatId, chatId).list();
             chatInfo.setChatRecordList(chatRecordList);
             ChatCache.put(chatInfo.getChatId(), chatInfo);
             return chatInfo;
@@ -93,13 +93,13 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
         ChatInfo chatInfo = this.getChatInfo(chatParams.getChatId());
         if (chatInfo == null) {
             chatParams.getSink().tryEmitError(new ApiException("会话不存在"));
-        }else {
-            if(StringUtil.isBlank(chatParams.getAppId())){
+        } else {
+            if (StringUtil.isBlank(chatParams.getAppId())) {
                 chatParams.setAppId(chatInfo.getAppId());
             }
         }
         visitCountCheck(chatParams.getAppId(), chatParams.getChatUserId(), chatParams.getDebug());
-        ApplicationVO application = applicationService.getAppDetail(chatParams.getAppId(),chatParams.getDebug());
+        ApplicationVO application = applicationService.getAppDetail(chatParams.getAppId(), chatParams.getDebug());
         IChatActuator chatActuator = ChatActuatorBuilder.getActuator(application.getType());
         String answer = chatActuator.chatMessage(application, chatParams);
         chatParams.getSink().tryEmitComplete();

@@ -2,6 +2,7 @@ package com.tarzan.maxkb4j.module.application.handler.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.tarzan.maxkb4j.common.util.StringUtil;
 import com.tarzan.maxkb4j.module.application.cache.ChatCache;
 import com.tarzan.maxkb4j.module.application.domian.dto.ChatInfo;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatEntity;
@@ -12,7 +13,6 @@ import com.tarzan.maxkb4j.module.application.handler.PostResponseHandler;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatMapper;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatRecordMapper;
 import com.tarzan.maxkb4j.module.application.service.ApplicationChatUserStatsService;
-import com.tarzan.maxkb4j.common.util.StringUtil;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -66,6 +66,7 @@ public class ChatPostHandler extends PostResponseHandler {
             chatRecord.setVoteStatus("-1");
             chatRecord.setCost(messageTokens + answerTokens);
             chatRecord.setDetails(details);
+            //人工标注优化
             chatRecord.setImproveParagraphIdList(List.of());
         }
         chatInfo.addChatRecord(chatRecord);
@@ -99,5 +100,6 @@ public class ChatPostHandler extends PostResponseHandler {
             chatRecordMapper.insertOrUpdate(chatRecord);
         }
     }
+
 }
 

@@ -60,7 +60,7 @@ public class SearchKnowledgeNode extends INode {
             if (!details.isEmpty()){
                 for (String key : details.keySet()) {
                     JSONObject detail= details.getJSONObject(key);
-                    if (question.equals(chatRecord.getProblemText())&&type.equals(detail.getString("type"))){
+                    if (question.equals(detail.getString("question"))&&type.equals(detail.getString("type"))){
                         @SuppressWarnings("unchecked")
                         List<ParagraphVO> paragraphList= (List<ParagraphVO>) detail.get("paragraphList");
                         if (!CollectionUtils.isEmpty(paragraphList)){
@@ -68,7 +68,6 @@ public class SearchKnowledgeNode extends INode {
                         }
                     }
                 }
-
             }
         }
         return excludeParagraphIds;
