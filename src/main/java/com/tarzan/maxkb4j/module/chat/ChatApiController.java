@@ -88,7 +88,7 @@ public class ChatApiController {
     //todo
     @PostMapping(path = "/chat_message/{chatId}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<ChatMessageVO> chatMessage(@PathVariable String chatId, @RequestBody ChatParams params) {
-        Sinks.Many<ChatMessageVO> sink = Sinks.many().multicast().onBackpressureBuffer();
+        Sinks.Many<ChatMessageVO> sink = Sinks.many().unicast().onBackpressureBuffer();
         params.setChatId(chatId);
         params.setSink(sink);
         params.setChatUserId(StpUtil.getLoginIdAsString());

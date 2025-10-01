@@ -7,8 +7,10 @@ import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.model.ChatFile;
 import com.tarzan.maxkb4j.core.workflow.node.application.input.ApplicationNodeParams;
 import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
+import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
 import com.tarzan.maxkb4j.module.application.service.ApplicationChatService;
 import com.tarzan.maxkb4j.module.chat.ChatParams;
+import reactor.core.publisher.Sinks;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -54,6 +56,11 @@ public class ApplicationNode extends INode {
         if (CollectionUtils.isNotEmpty(audioFields)) {
             otherList = (List<ChatFile>) super.getReferenceField(otherFields.get(0), otherFields.get(1));
         }
+        Sinks.Many<ChatMessageVO> sink = Sinks.many().unicast().onBackpressureBuffer();
+        if (nodeParams.getIsResult()){
+            sink=chatParams.getSink();
+        }
+
         ChatParams nodeChatParams = ChatParams.builder()
                 .message(question)
                 .appId(nodeParams.getApplicationId())
@@ -64,7 +71,7 @@ public class ApplicationNode extends INode {
                 .reChat(chatParams.getReChat())
                 .chatUserId(chatParams.getChatUserId())
                 .chatUserType(chatParams.getChatUserType())
-                .sink(chatParams.getSink())
+                .sink(sink)
                 .imageList(imageList)
                 .audioList(audioList)
                 .documentList(docList)
@@ -75,6 +82,7 @@ public class ApplicationNode extends INode {
                 .build();
         String answer = chatService.chatMessage(nodeChatParams);
         return new NodeResult(Map.of(
+                "answer", answer,
                 "result", answer,
                 "question", question
         ), Map.of());
@@ -83,6 +91,8 @@ public class ApplicationNode extends INode {
 
     @Override
     public void saveContext(JSONObject detail) {
+        context.put("question", detail.get("question"));
+        context.put("answer", detail.get("answer"));
         context.put("result", detail.get("result"));
     }
 
@@ -91,7 +101,7 @@ public class ApplicationNode extends INode {
     @Override
     public JSONObject getDetail() {
         JSONObject detail = new JSONObject();
-        detail.put("info", properties.getString("nodeData"));
+       // detail.put("info", properties.getString("nodeData"));
         detail.put("question", context.get("question"));
         detail.put("answer", context.get("answer"));
         detail.put("messageTokens", context.get("messageTokens"));
@@ -100,7 +110,7 @@ public class ApplicationNode extends INode {
         detail.put("documentList", context.get("document"));
         detail.put("audioList", context.get("audio"));
         detail.put("globalFields", properties.get("globalFields"));
-        detail.put("application_node_dict", context.get("application_node_dict"));
+      //  detail.put("application_node_dict", context.get("application_node_dict"));
         return detail;
     }
 
