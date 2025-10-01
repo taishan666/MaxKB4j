@@ -58,7 +58,6 @@ public class ApplicationNode extends INode {
                 .message(question)
                 .appId(nodeParams.getApplicationId())
                 .chatId(chatId)
-                .chatRecordId(chatParams.getChatRecordId())
                 //todo
                 .runtimeNodeId(super.runtimeNodeId)
                 .stream(chatParams.getStream())

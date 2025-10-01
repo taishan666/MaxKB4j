@@ -29,5 +29,7 @@ public class ApplicationNodeParams {
 
     private List<String> otherList;
 
+    private Boolean isResult;
+
 
 }
