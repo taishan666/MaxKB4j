@@ -16,7 +16,7 @@ import java.util.List;
 @Service
 public class ApplicationChatUserStatsService extends ServiceImpl<ApplicationChatUserStatsMapper, ApplicationChatUserStatsEntity>{
 
-    public List<ApplicationChatUserStatsVO> statistics(String appId, ChatQueryDTO query) {
-        return baseMapper.statistics(appId,query);
+    public List<ApplicationChatUserStatsVO> getCustomerCountTrend(String appId, ChatQueryDTO query) {
+        return baseMapper.getCustomerCountTrend(appId,query);
     }
 }

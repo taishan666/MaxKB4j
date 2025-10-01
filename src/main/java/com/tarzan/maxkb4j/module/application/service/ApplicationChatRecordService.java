@@ -9,6 +9,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tarzan.maxkb4j.module.application.cache.ChatCache;
+import com.tarzan.maxkb4j.module.application.domian.dto.ChatImproveDTO;
 import com.tarzan.maxkb4j.module.application.domian.dto.ChatInfo;
 import com.tarzan.maxkb4j.module.application.domian.dto.ChatQueryDTO;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatRecordEntity;
@@ -16,9 +17,11 @@ import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationChatRecordVO;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationChatUserStatsVO;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationStatisticsVO;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatRecordMapper;
+import com.tarzan.maxkb4j.module.knowledge.domain.entity.ParagraphEntity;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.ParagraphVO;
 import com.tarzan.maxkb4j.common.util.BeanUtil;
 import com.tarzan.maxkb4j.common.util.PageUtil;
+import com.tarzan.maxkb4j.module.knowledge.service.ParagraphService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -38,6 +41,7 @@ import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.SEARCH_KNOWLEDGE;
 public class ApplicationChatRecordService extends ServiceImpl<ApplicationChatRecordMapper, ApplicationChatRecordEntity> {
 
     private final ApplicationChatUserStatsService chatUserStatsService;
+    private final ParagraphService paragraphService;
 
 
     private ApplicationChatRecordEntity getChatRecordEntity(ChatInfo chatInfo, String chatRecordId) {
@@ -109,7 +113,6 @@ public class ApplicationChatRecordService extends ServiceImpl<ApplicationChatRec
                     }
                 }
             }
-            // chatRecordVO.setParagraphList(paragraphList);
         }
         return chatRecordVO;
     }
@@ -125,10 +128,10 @@ public class ApplicationChatRecordService extends ServiceImpl<ApplicationChatRec
         return PageUtil.copy(chatRecordIpage, this::convert);
     }
 
-    public List<ApplicationStatisticsVO> statistics(String appId, ChatQueryDTO query) {
+    public List<ApplicationStatisticsVO> applicationStats(String appId, ChatQueryDTO query) {
         List<ApplicationStatisticsVO> result = new ArrayList<>();
-        List<ApplicationStatisticsVO> list = baseMapper.statistics(appId, query);
-        List<ApplicationChatUserStatsVO> accessClientList = chatUserStatsService.statistics(appId, query);
+        List<ApplicationStatisticsVO> list = baseMapper.chatRecordCountTrend(appId, query);
+        List<ApplicationChatUserStatsVO> accessClientList = chatUserStatsService.getCustomerCountTrend(appId, query);
         if (Objects.isNull(query.getStartTime()) || Objects.isNull(query.getEndTime())) {
             return result;
         }
@@ -170,6 +173,23 @@ public class ApplicationChatRecordService extends ServiceImpl<ApplicationChatRec
             }
         }
         return 0;
+    }
+
+    public boolean improveChatLogs(String appId, ChatImproveDTO dto) {
+        List<ApplicationChatRecordEntity> chatRecords = this.lambdaQuery().in(ApplicationChatRecordEntity::getId, dto.getChatIds()).list();
+        List<ParagraphEntity> paragraphs = chatRecords.stream().map(e -> {
+            ParagraphEntity paragraphEntity = new ParagraphEntity();
+            paragraphEntity.setKnowledgeId(dto.getKnowledgeId());
+            paragraphEntity.setDocumentId(dto.getDocumentId());
+            paragraphEntity.setTitle(e.getProblemText());
+            paragraphEntity.setContent(e.getAnswerText());
+            paragraphEntity.setHitNum(0);
+            paragraphEntity.setIsActive(true);
+            paragraphEntity.setStatus("nn0");
+            return paragraphEntity;
+        }).toList();
+        //todo 嵌入到问题数据库里和文本关联
+        return paragraphService.saveBatch(paragraphs);
     }
 
 }

@@ -11,7 +11,10 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tarzan.maxkb4j.common.exception.ApiException;
 import com.tarzan.maxkb4j.common.util.*;
-import com.tarzan.maxkb4j.module.application.domian.dto.*;
+import com.tarzan.maxkb4j.module.application.domian.dto.ApplicationAccessTokenDTO;
+import com.tarzan.maxkb4j.module.application.domian.dto.ApplicationQuery;
+import com.tarzan.maxkb4j.module.application.domian.dto.EmbedDTO;
+import com.tarzan.maxkb4j.module.application.domian.dto.MaxKb4J;
 import com.tarzan.maxkb4j.module.application.domian.entity.*;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationVO;
 import com.tarzan.maxkb4j.module.application.enums.AppType;
@@ -19,9 +22,7 @@ import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatMapper;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationMapper;
 import com.tarzan.maxkb4j.module.knowledge.consts.SearchType;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.KnowledgeEntity;
-import com.tarzan.maxkb4j.module.knowledge.domain.entity.ParagraphEntity;
 import com.tarzan.maxkb4j.module.knowledge.service.KnowledgeService;
-import com.tarzan.maxkb4j.module.knowledge.service.ParagraphService;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelEntity;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseSpeechToText;
@@ -63,7 +64,6 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     private final ModelService modelService;
     private final KnowledgeService knowledgeService;
     private final UserService userService;
-    private final ParagraphService paragraphService;
     private final ApplicationAccessTokenService accessTokenService;
     private final ApplicationApiKeyService applicationApiKeyService;
     private final ApplicationChatUserStatsService accessClientService;
@@ -277,22 +277,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         return knowledgeSetting;
     }
 
-    public boolean improveChatLogs(String appId, ChatImproveDTO dto) {
-        List<ApplicationChatRecordEntity> chatRecords = applicationChatRecordService.lambdaQuery().in(ApplicationChatRecordEntity::getId, dto.getChatIds()).list();
-        List<ParagraphEntity> paragraphs = chatRecords.stream().map(e -> {
-            ParagraphEntity paragraphEntity = new ParagraphEntity();
-            paragraphEntity.setKnowledgeId(dto.getKnowledgeId());
-            paragraphEntity.setDocumentId(dto.getDocumentId());
-            paragraphEntity.setTitle(e.getProblemText());
-            paragraphEntity.setContent(e.getAnswerText());
-            paragraphEntity.setHitNum(0);
-            paragraphEntity.setIsActive(true);
-            paragraphEntity.setStatus("nn0");
-            return paragraphEntity;
-        }).toList();
-        //todo 嵌入到问题数据库里和文本关联
-        return paragraphService.saveBatch(paragraphs);
-    }
+
 
     public ApplicationVO getAppDetail(String appId, boolean debug) {
         if (debug) {
@@ -569,5 +554,10 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
             return Collections.emptyList();
         }
         return toolService.getUserId(app.getUserId());
+    }
+
+    //todo 权限
+    public List<ApplicationEntity> listApps(String folderId) {
+        return this.lambdaQuery().eq(ApplicationEntity::getFolderId, folderId).eq(ApplicationEntity::getIsPublish, true).list();
     }
 }

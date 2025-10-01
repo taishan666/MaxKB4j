@@ -17,9 +17,6 @@ import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationEntity;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationVO;
 import com.tarzan.maxkb4j.module.application.domian.vo.McpToolVO;
 import com.tarzan.maxkb4j.module.application.service.ApplicationService;
-import com.tarzan.maxkb4j.module.knowledge.domain.entity.KnowledgeEntity;
-import com.tarzan.maxkb4j.module.model.info.entity.ModelEntity;
-import com.tarzan.maxkb4j.module.tool.domain.entity.ToolEntity;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
@@ -45,13 +42,11 @@ public class ApplicationController {
 
     private final ApplicationService applicationService;
 
-   // @SaCheckPermission("APPLICATION:READ")
     @GetMapping("/application")
-    public R<List<ApplicationEntity>> listApps() {
-        return R.success(applicationService.list());
+    public R<List<ApplicationEntity>> listApps(String folderId) {
+        return R.success(applicationService.listApps(folderId));
     }
 
-   // @SaCheckPermission("APPLICATION:CREATE")
     @PostMapping("/application")
     public R<ApplicationEntity> createApp(@RequestBody ApplicationEntity application) {
         return R.success(applicationService.createApp(application));
@@ -63,67 +58,38 @@ public class ApplicationController {
         return R.status(applicationService.appImport(file));
     }
 
-/*    @PostMapping("/application/authentication")
-    public R<String> authentication(@RequestBody JSONObject params) throws Exception {
-        return R.success(applicationService.authentication(params));
-    }*/
 
-  /*  @GetMapping("/application/{id}/hit_test")
-    public R<List<ParagraphVO>> hitTest(@PathVariable("id") String id, DataSearchDTO dto) {
-        return R.success(applicationService.hitTest(id, dto));
-    }*/
-
-   // @SaCheckPermission("APPLICATION:EDIT")
     @PutMapping("/application/{id}/publish")
     public R<Boolean> publish(@PathVariable("id") String id, @RequestBody JSONObject params) {
         return R.success(applicationService.publish(id, params));
     }
 
-   // @SaCheckPermission("APPLICATION:READ")
-/*    @GetMapping("/application/profile")
-    public R<JSONObject> appProfile() {
-        System.out.println("appProfile......");
-        return R.success(applicationService.appProfile());
-    }*/
-
-   // @SaCheckPermission("APPLICATION:READ")
     @GetMapping("/application/{id}/export")
     public void appExport(@PathVariable("id") String id,HttpServletResponse response) throws IOException {
         applicationService.appExport(id,response);
     }
 
-    //@SaCheckPermission("APPLICATION:READ")
     @GetMapping("/application/{current}/{size}")
     public R<IPage<ApplicationVO>> userApplications(@PathVariable("current") int current, @PathVariable("size") int size, ApplicationQuery query) {
         return R.success(applicationService.selectAppPage(current, size, query));
     }
 
-    //@SaCheckPermission("APPLICATION:READ")
     @GetMapping("/application/{id}")
     public R<ApplicationVO> getByAppId(@PathVariable("id") String id) {
         return R.success(applicationService.getDetail(id));
     }
 
-/*   // @SaCheckPermission("APPLICATION:READ")
-    @GetMapping("/application/{id}/application/{appId}")
-    public R<ApplicationVO> application(@PathVariable("id") String id,@PathVariable("appId") String appId) {
-        return R.success(applicationService.getDetail(appId));
-    }*/
 
-
-    //@SaCheckPermission("APPLICATION:EDIT")
     @PutMapping("/application/{id}")
     public R<Boolean> updateByAppId(@PathVariable("id") String id, @RequestBody ApplicationVO appVO) {
         return R.success(applicationService.updateAppById(id, appVO));
     }
 
-   // @SaCheckPermission("APPLICATION:DELETE")
     @DeleteMapping("/application/{id}")
     public R<Boolean> deleteByAppId(@PathVariable("id") String id) {
         return R.success(applicationService.deleteByAppId(id));
     }
 
-   // @SaCheckPermission("APPLICATION:READ")
     @PostMapping("/application/{appId}/play_demo_text")
     public ResponseEntity<byte[]> playDemoText(@PathVariable("appId") String appId, @RequestBody JSONObject data) {
         // 设置 HTTP 响应头
@@ -132,7 +98,6 @@ public class ApplicationController {
         return new ResponseEntity<>(applicationService.playDemoText(appId, data), headers, HttpStatus.OK);
     }
 
-    //@SaCheckPermission("APPLICATION:READ")
     @PostMapping("/application/{appId}/text_to_speech")
     public ResponseEntity<byte[]> textToSpeech(@PathVariable("appId") String appId, @RequestBody JSONObject data) {
         // todo 前端传入modelId和model params 不匹配
@@ -142,56 +107,44 @@ public class ApplicationController {
         return new ResponseEntity<>(applicationService.textToSpeech(appId, data), headers, HttpStatus.OK);
     }
 
-   // @SaCheckPermission("APPLICATION:READ")
     @PostMapping("/application/{appId}/speech_to_text")
     public  R<String> speechToText(@PathVariable("appId") String appId, MultipartFile file) throws IOException {
         return  R.data(applicationService.speechToText(appId,file));
     }
 
 
-    //@SaCheckPermission("APPLICATION:READ")
-    @GetMapping("/application/{appId}/application")
+/*    @GetMapping("/application/{appId}/application")
     public R<List<ApplicationEntity>> listByUserId(@PathVariable("appId") String appId) {
         return R.success(applicationService.listByUserId(appId));
-    }
+    }*/
 
-   // @SaCheckPermission("APPLICATION:READ")
     @GetMapping("/application/{appId}/access_token")
     public R<ApplicationAccessTokenEntity> getAccessToken(@PathVariable("appId") String appId) {
         return R.success(applicationService.getAccessToken(appId));
     }
 
-    //@SaCheckPermission("APPLICATION:EDIT")
     @PutMapping("/application/{appId}/access_token")
     public R<ApplicationAccessTokenEntity> updateAccessToken(@PathVariable("appId") String appId, @RequestBody ApplicationAccessTokenDTO dto) {
         return R.success(applicationService.updateAccessToken(appId, dto));
     }
 
-    //@SaCheckPermission("APPLICATION:READ")
-    @GetMapping("/application/{appId}/model")
+/*    @GetMapping("/application/{appId}/model")
     public R<List<ModelEntity>> model(@PathVariable("appId") String appId, String modelType) {
         return R.success(applicationService.getAppModels(appId, modelType));
     }
 
-   // @SaCheckPermission("APPLICATION:READ")
     @GetMapping("/application/{appId}/list_dataset")
     public R<List<KnowledgeEntity>> listDataset(@PathVariable("appId") String appId) {
         return R.success(applicationService.getDataset(appId));
     }
 
-   // @SaCheckPermission("APPLICATION:READ")
     @GetMapping("/application/{appId}/list_function")
     public R<List<ToolEntity>> listFunction(@PathVariable("appId") String appId) {
         return R.success(applicationService.getFunction(appId));
-    }
+    }*/
 
-    //@SaCheckPermission("APPLICATION:CREATE")
-    @PostMapping("/application/{appId}/dataset/{knowledgeId}/improve")
-    public R<Boolean> improveChatLogs(@PathVariable("appId") String appId, @PathVariable("appId") String knowledgeId, ChatImproveDTO dto) {
-        return R.success(applicationService.improveChatLogs(appId, dto));
-    }
 
-   // @SaCheckPermission("APPLICATION:READ")
+
     @GetMapping("/application/{appId}/model_params_form/{modelId}")
     public R<JSONArray> modelParams(@PathVariable("appId") String appId, @PathVariable("modelId") String modelId) {
         return R.success(applicationService.modelParams(appId, modelId));

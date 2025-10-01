@@ -2,7 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.tarzan.maxkb4j.module.application.mapper.ApplicationChatRecordMapper">
 
-    <select id="statistics" resultType="com.tarzan.maxkb4j.module.application.domian.vo.ApplicationStatisticsVO">
+    <select id="chatRecordCountTrend" resultType="com.tarzan.maxkb4j.module.application.domian.vo.ApplicationStatisticsVO">
         SELECT SUM
         ( CASE WHEN application_chat_record.vote_status = '0' THEN 1 ELSE 0 END ) AS "star_num",
         SUM ( CASE WHEN application_chat_record.vote_status = '1' THEN 1 ELSE 0 END ) AS "trample_num",
