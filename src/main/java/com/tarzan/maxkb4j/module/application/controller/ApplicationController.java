@@ -1,8 +1,6 @@
 package com.tarzan.maxkb4j.module.application.controller;
 
-import cn.dev33.satoken.annotation.SaCheckPermission;
 import cn.dev33.satoken.annotation.SaIgnore;
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.tarzan.maxkb4j.common.api.R;
@@ -10,7 +8,6 @@ import com.tarzan.maxkb4j.common.constant.AppConst;
 import com.tarzan.maxkb4j.common.util.McpToolUtil;
 import com.tarzan.maxkb4j.module.application.domian.dto.ApplicationAccessTokenDTO;
 import com.tarzan.maxkb4j.module.application.domian.dto.ApplicationQuery;
-import com.tarzan.maxkb4j.module.application.domian.dto.ChatImproveDTO;
 import com.tarzan.maxkb4j.module.application.domian.dto.EmbedDTO;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationAccessTokenEntity;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationEntity;
@@ -52,7 +49,6 @@ public class ApplicationController {
         return R.success(applicationService.createApp(application));
     }
 
-    @SaCheckPermission("APPLICATION:CREATE")
     @PostMapping("/application/import")
     public R<Boolean> appImport(MultipartFile file) throws Exception {
         return R.status(applicationService.appImport(file));
@@ -145,10 +141,10 @@ public class ApplicationController {
 
 
 
-    @GetMapping("/application/{appId}/model_params_form/{modelId}")
+  /*  @GetMapping("/application/{appId}/model_params_form/{modelId}")
     public R<JSONArray> modelParams(@PathVariable("appId") String appId, @PathVariable("modelId") String modelId) {
         return R.success(applicationService.modelParams(appId, modelId));
-    }
+    }*/
 
     @PostMapping("/application/{appId}/mcp_tools")
     public R<List<McpToolVO>> mcpTools(@PathVariable("appId") String appId, @RequestBody JSONObject mcpServers) {

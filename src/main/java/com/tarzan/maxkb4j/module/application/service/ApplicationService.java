@@ -177,6 +177,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     @Transactional
     public ApplicationEntity createApp(ApplicationEntity application) {
         application.setKnowledgeSetting(new KnowledgeSetting());
+        application.setIcon("./favicon.ico");
         if (AppType.WORK_FLOW.name().equals(application.getType())) {
             application = createWorkflow(application);
         } else {

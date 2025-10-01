@@ -45,6 +45,7 @@ public class FileController{
 		mongoFileService.getFile(id, response);
 	}
 
+
 	@GetMapping(value = "/{prefix}/oss/file/{id}")
 	public void getFile(@PathVariable String prefix,@PathVariable("id") String id, HttpServletResponse response){
 		mongoFileService.getFile(id, response);

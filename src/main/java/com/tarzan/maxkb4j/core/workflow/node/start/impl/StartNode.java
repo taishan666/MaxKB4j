@@ -45,20 +45,6 @@ public class StartNode extends INode {
         return new NodeResult(nodeVariable, globalVariable);
     }
 
-    @Override
-    public void saveContext(JSONObject detail) {
-        context.put("image", detail.get("image"));
-        context.put("document", detail.get("document"));
-        context.put("audio", detail.get("audio"));
-        context.put("other", detail.get("other"));
-        JSONArray globalFields=detail.getJSONArray("globalFields");
-        for (int i = 0; i < globalFields.size(); i++) {
-            JSONObject globalField=globalFields.getJSONObject(i);
-            String key=globalField.getString("key");
-            Object value=globalField.get("value");
-            globalVariable.put(key, value);
-        }
-    }
 
     public Map<String, Object> getDefaultGlobalVariable(ChatParams chatParams) {
         Map<String, Object> resultMap = new HashMap<>();
@@ -84,6 +70,21 @@ public class StartNode extends INode {
         return list;
     }
 
+    @Override
+    public void saveContext(JSONObject detail) {
+        context.put("image", detail.get("image"));
+        context.put("document", detail.get("document"));
+        context.put("audio", detail.get("audio"));
+        context.put("other", detail.get("other"));
+        JSONArray globalFields=detail.getJSONArray("globalFields");
+        for (int i = 0; i < globalFields.size(); i++) {
+            JSONObject globalField=globalFields.getJSONObject(i);
+            String key=globalField.getString("key");
+            Object value=globalField.get("value");
+            globalVariable.put(key, value);
+        }
+    }
+
 
 
 
@@ -91,9 +92,9 @@ public class StartNode extends INode {
     public JSONObject getDetail() {
         JSONObject detail = new JSONObject();
         detail.put("question",context.get("question"));
-        detail.put("imageList",context.get("image"));
-        detail.put("documentList",context.get("document"));
-        detail.put("audioList",context.get("audio"));
+        detail.put("image",context.get("image"));
+        detail.put("document",context.get("document"));
+        detail.put("audio",context.get("audio"));
         JSONObject config=properties.getJSONObject("config");
         JSONArray globalFields=config.getJSONArray("globalFields");
         for (int i = 0; i < globalFields.size(); i++) {
