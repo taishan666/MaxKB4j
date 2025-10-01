@@ -7,11 +7,8 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.tarzan.maxkb4j.common.constant.AppConst;
 import com.tarzan.maxkb4j.common.api.R;
-import com.tarzan.maxkb4j.common.exception.ApiException;
-import com.tarzan.maxkb4j.module.application.cache.ChatCache;
-import com.tarzan.maxkb4j.module.application.domian.dto.ChatInfo;
+import com.tarzan.maxkb4j.common.constant.AppConst;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationAccessTokenEntity;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatEntity;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatRecordEntity;
@@ -66,7 +63,7 @@ public class ChatApiController {
     @GetMapping("/open")
     public R<String> chatOpen() {
         String appId = (String) StpUtil.getExtra("application_id");
-        return R.success(chatService.chatOpen(appId));
+        return R.success(chatService.chatOpen(appId,false));
     }
 
     //todo
@@ -91,18 +88,12 @@ public class ChatApiController {
     @PostMapping(path = "/chat_message/{chatId}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<ChatMessageVO> chatMessage(@PathVariable String chatId, @RequestBody ChatParams params) {
         Sinks.Many<ChatMessageVO> sink = Sinks.many().multicast().onBackpressureBuffer();
-        ChatInfo chatInfo = chatService.getChatInfo(chatId);
-        if (chatInfo == null) {
-            sink.tryEmitError(new ApiException("会话不存在"));
-        }else {
-            params.setChatId(chatId);
-            params.setSink(sink);
-            params.setChatUserId(StpUtil.getLoginIdAsString());
-            params.setDebug(false);
-            params.setAppId(chatInfo.getAppId());
-            // 异步执行业务逻辑
-            chatTaskExecutor.execute(() -> chatService.chatMessage(params));
-        }
+        params.setChatId(chatId);
+        params.setSink(sink);
+        params.setChatUserId(StpUtil.getLoginIdAsString());
+        params.setDebug(false);
+        // 异步执行业务逻辑
+        chatTaskExecutor.execute(() -> chatService.chatMessage(params));
         return sink.asFlux();
     }
 
@@ -120,7 +111,7 @@ public class ChatApiController {
 
     @GetMapping("/historical_conversation/{chatId}/record/{chatRecordId}")
     public R<ApplicationChatRecordVO> historicalConversation(@PathVariable String chatId, @PathVariable String chatRecordId) {
-        return R.success(chatRecordService.getChatRecordInfo(ChatCache.get(chatId), chatRecordId));
+        return R.success(chatRecordService.getChatRecordInfo(chatId, chatRecordId));
     }
 
 

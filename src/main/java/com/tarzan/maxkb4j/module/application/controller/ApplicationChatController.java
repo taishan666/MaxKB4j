@@ -41,18 +41,6 @@ public class ApplicationChatController {
     }
 
 
-    @GetMapping("/{appId}/open")
-    public R<String> open(@PathVariable("appId") String appId) {
-        return R.success(chatService.chatOpenTest(appId));
-    }
-
-
-/*    @PostMapping("/{id}/chat/{chatId}/upload_file")
-    public R<List<ChatFile>> uploadFile(@PathVariable String id, @PathVariable String chatId, MultipartFile[] file) {
-        return R.success(chatService.uploadFile(id, chatId, file));
-    }*/
-
-
     @GetMapping("/{appId}/chat/{page}/{size}")
     public R<IPage<ApplicationChatEntity>> chatLogs(@PathVariable("appId") String appId, @PathVariable("page") int page, @PathVariable("size") int size, ChatQueryDTO query) {
         return R.success(chatService.chatLogs(appId, page, size, query));

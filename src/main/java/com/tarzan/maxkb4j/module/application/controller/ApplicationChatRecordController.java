@@ -30,7 +30,7 @@ public class ApplicationChatRecordController {
 
     @GetMapping("/application/{appId}/chat/{chatId}/chat_record/{chatRecordId}")
     public R<ApplicationChatRecordVO> chatRecord(@PathVariable String appId, @PathVariable String chatId, @PathVariable String chatRecordId) {
-        return R.success(chatRecordService.getChatRecordInfo(ChatCache.get(chatId), chatRecordId));
+        return R.success(chatRecordService.getChatRecordInfo(chatId, chatRecordId));
     }
 
     @GetMapping("/application/{appId}/application_stats")

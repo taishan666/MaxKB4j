@@ -71,7 +71,6 @@ public class ChatPostHandler extends PostResponseHandler {
         chatInfo.addChatRecord(chatRecord);
         // 重新设置缓存
         ChatCache.put(chatId, chatInfo);
-        // chatMemoryStore.updateMessages(chatId, messages);
         if (!debug) {
             ApplicationChatUserStatsEntity applicationPublicAccessClient = chatUserStatsService.getById(chatUserId);
             if (applicationPublicAccessClient != null) {
@@ -79,9 +78,8 @@ public class ChatPostHandler extends PostResponseHandler {
                 applicationPublicAccessClient.setIntraDayAccessNum(applicationPublicAccessClient.getIntraDayAccessNum() + 1);
                 chatUserStatsService.updateById(applicationPublicAccessClient);
             }
-            long chatRecordCount = chatRecordMapper.selectCount(Wrappers.<ApplicationChatRecordEntity>lambdaQuery().eq(ApplicationChatRecordEntity::getId, chatId));
-            chatRecordMapper.insertOrUpdate(chatRecord);
-            if (chatRecordCount == 0) {
+            long chatCount = chatMapper.selectCount(Wrappers.<ApplicationChatEntity>lambdaQuery().eq(ApplicationChatEntity::getId, chatId));
+            if (chatCount == 0) {
                 ApplicationChatEntity chatEntity = new ApplicationChatEntity();
                 chatEntity.setId(chatId);
                 chatEntity.setApplicationId(chatInfo.getAppId());
@@ -98,6 +96,7 @@ public class ChatPostHandler extends PostResponseHandler {
                 chatEntity.setMarkSum(0);
                 chatMapper.insertOrUpdate(chatEntity);
             }
+            chatRecordMapper.insertOrUpdate(chatRecord);
         }
     }
 }

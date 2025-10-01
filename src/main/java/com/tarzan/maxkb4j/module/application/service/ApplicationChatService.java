@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tarzan.maxkb4j.common.exception.ApiException;
+import com.tarzan.maxkb4j.common.util.StringUtil;
 import com.tarzan.maxkb4j.core.chat.provider.ChatActuatorBuilder;
 import com.tarzan.maxkb4j.core.chat.provider.IChatActuator;
 import com.tarzan.maxkb4j.core.workflow.model.ChatFile;
@@ -51,16 +52,11 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
     }
 
 
-    public String chatOpenTest(String appId) {
-        return chatOpen(appId, true);
-    }
-
-    public String chatOpen(String appId) {
-        return chatOpen(appId, false);
-    }
-
-
     public String chatOpen(String appId, boolean debug) {
+        return chatOpen(appId, null, debug);
+    }
+
+    public String chatOpen(String appId,String chatId, boolean debug) {
         if (!debug) {
             long count = applicationVersionService.lambdaQuery().eq(ApplicationVersionEntity::getApplicationId, appId).count();
             if (count == 0) {
@@ -68,7 +64,7 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
             }
         }
         ChatInfo chatInfo = new ChatInfo();
-        chatInfo.setChatId(IdWorker.get32UUID());
+        chatInfo.setChatId(StringUtil.isNotBlank(chatId)?chatId:IdWorker.get32UUID());
         chatInfo.setAppId(appId);
         ChatCache.put(chatInfo.getChatId(), chatInfo);
         return chatInfo.getChatId();
@@ -94,6 +90,14 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
     }
 
     public String chatMessage(ChatParams chatParams) {
+        ChatInfo chatInfo = this.getChatInfo(chatParams.getChatId());
+        if (chatInfo == null) {
+            chatParams.getSink().tryEmitError(new ApiException("会话不存在"));
+        }else {
+            if(StringUtil.isBlank(chatParams.getAppId())){
+                chatParams.setAppId(chatInfo.getAppId());
+            }
+        }
         visitCountCheck(chatParams.getAppId(), chatParams.getChatUserId(), chatParams.getDebug());
         ApplicationVO application = applicationService.getAppDetail(chatParams.getAppId(),chatParams.getDebug());
         IChatActuator chatActuator = ChatActuatorBuilder.getActuator(application.getType());

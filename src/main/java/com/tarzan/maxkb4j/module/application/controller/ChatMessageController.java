@@ -1,9 +1,8 @@
 package com.tarzan.maxkb4j.module.application.controller;
 
 import cn.dev33.satoken.stp.StpUtil;
+import com.tarzan.maxkb4j.common.api.R;
 import com.tarzan.maxkb4j.common.constant.AppConst;
-import com.tarzan.maxkb4j.common.exception.ApiException;
-import com.tarzan.maxkb4j.module.application.domian.dto.ChatInfo;
 import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
 import com.tarzan.maxkb4j.module.application.service.ApplicationChatService;
 import com.tarzan.maxkb4j.module.chat.ChatParams;
@@ -31,21 +30,21 @@ public class ChatMessageController {
         this.chatTaskExecutor = chatTaskExecutor;
     }
 
+
+    @GetMapping("/workspace/default/application/{appId}/open")
+    public R<String> open(@PathVariable("appId") String appId) {
+        return R.success(chatService.chatOpen(appId,true));
+    }
+
     @PostMapping(path = "/chat_message/{chatId}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<ChatMessageVO> chatMessage(@PathVariable String chatId, @RequestBody ChatParams params) {
         Sinks.Many<ChatMessageVO> sink = Sinks.many().multicast().onBackpressureBuffer();
-        ChatInfo chatInfo = chatService.getChatInfo(chatId);
-        if (chatInfo == null) {
-            sink.tryEmitError(new ApiException("会话不存在"));
-        }else {
-            params.setChatId(chatId);
-            params.setSink(sink);
-            params.setChatUserId(StpUtil.getLoginIdAsString());
-            params.setDebug(false);
-            params.setAppId(chatInfo.getAppId());
-            // 异步执行业务逻辑
-            chatTaskExecutor.execute(() -> chatService.chatMessage(params));
-        }
+        params.setChatId(chatId);
+        params.setSink(sink);
+        params.setChatUserId(StpUtil.getLoginIdAsString());
+        params.setDebug(true);
+        // 异步执行业务逻辑
+        chatTaskExecutor.execute(() -> chatService.chatMessage(params));
         return sink.asFlux();
     }
 }

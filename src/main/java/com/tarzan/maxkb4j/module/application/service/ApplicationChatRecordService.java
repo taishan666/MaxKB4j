@@ -8,6 +8,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.tarzan.maxkb4j.module.application.cache.ChatCache;
 import com.tarzan.maxkb4j.module.application.domian.dto.ChatInfo;
 import com.tarzan.maxkb4j.module.application.domian.dto.ChatQueryDTO;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatRecordEntity;
@@ -34,90 +35,93 @@ import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.SEARCH_KNOWLEDGE;
  */
 @AllArgsConstructor
 @Service
-public class ApplicationChatRecordService extends ServiceImpl<ApplicationChatRecordMapper, ApplicationChatRecordEntity>{
+public class ApplicationChatRecordService extends ServiceImpl<ApplicationChatRecordMapper, ApplicationChatRecordEntity> {
 
     private final ApplicationChatUserStatsService chatUserStatsService;
 
 
-    public ApplicationChatRecordEntity getChatRecordEntity(ChatInfo chatInfo,String chatRecordId) {
-        ApplicationChatRecordEntity  chatRecord=null;
-        if(Objects.nonNull(chatInfo)&&!CollectionUtils.isEmpty(chatInfo.getChatRecordList())) {
+    private ApplicationChatRecordEntity getChatRecordEntity(ChatInfo chatInfo, String chatRecordId) {
+        ApplicationChatRecordEntity chatRecord = null;
+        if (Objects.nonNull(chatInfo) && !CollectionUtils.isEmpty(chatInfo.getChatRecordList())) {
             chatRecord = chatInfo.getChatRecordList().stream()
                     .filter(e -> e.getId().equals(chatRecordId))
                     .reduce((first, second) -> second) // 保留最后一个匹配的元素
                     .orElse(null);
         }
-        if(Objects.isNull(chatRecord)){
-            chatRecord=this.getById(chatRecordId);
+        if (Objects.isNull(chatRecord)) {
+            chatRecord = this.getById(chatRecordId);
         }
         return chatRecord;
     }
 
-    public List<ApplicationChatRecordEntity> getChatRecords(ChatInfo chatInfo,String chatId) {
-        List<ApplicationChatRecordEntity>  chatRecords=new ArrayList<>();
-        if(Objects.nonNull(chatInfo)) {
+    public List<ApplicationChatRecordEntity> getChatRecords(String chatId) {
+        ChatInfo chatInfo = ChatCache.get(chatId);
+        List<ApplicationChatRecordEntity> chatRecords = new ArrayList<>();
+        if (Objects.nonNull(chatInfo)) {
             chatRecords = chatInfo.getChatRecordList();
         }
-        if(CollectionUtils.isEmpty(chatRecords)){
-            chatRecords=this.lambdaQuery().eq(ApplicationChatRecordEntity::getChatId,chatId).list();
+        if (CollectionUtils.isEmpty(chatRecords)) {
+            chatRecords = this.lambdaQuery().eq(ApplicationChatRecordEntity::getChatId, chatId).list();
         }
         return chatRecords;
     }
 
-    public ApplicationChatRecordVO getChatRecordInfo(ChatInfo chatInfo,String chatRecordId) {
-        ApplicationChatRecordEntity  chatRecord=getChatRecordEntity(chatInfo,chatRecordId);
+    public ApplicationChatRecordVO getChatRecordInfo(String chatId, String chatRecordId) {
+        ChatInfo chatInfo = ChatCache.get(chatId);
+        ApplicationChatRecordEntity chatRecord = getChatRecordEntity(chatInfo, chatRecordId);
         return convert(chatRecord);
     }
 
-    private ApplicationChatRecordVO convert(ApplicationChatRecordEntity  chatRecord){
-        if(Objects.isNull(chatRecord)) {
+    private ApplicationChatRecordVO convert(ApplicationChatRecordEntity chatRecord) {
+        if (Objects.isNull(chatRecord)) {
             return null;
         }
         ApplicationChatRecordVO chatRecordVO = BeanUtil.copy(chatRecord, ApplicationChatRecordVO.class);
         chatRecordVO.setParagraphList(new ArrayList<>());
-        JSONObject details=chatRecord.getDetails();
-        if(!details.isEmpty()){
-            JSONObject searchStep=details.getJSONObject("search_step");
-            if(searchStep!=null&&!searchStep.isEmpty()){
-                JSONArray paragraphList=searchStep.getJSONArray("paragraphList");
-                if(!CollectionUtils.isEmpty(paragraphList)){
-                    String json=JSONObject.toJSONString(paragraphList);
+        JSONObject details = chatRecord.getDetails();
+        if (!details.isEmpty()) {
+            JSONObject searchStep = details.getJSONObject("search_step");
+            if (searchStep != null && !searchStep.isEmpty()) {
+                JSONArray paragraphList = searchStep.getJSONArray("paragraphList");
+                if (!CollectionUtils.isEmpty(paragraphList)) {
+                    String json = JSONObject.toJSONString(paragraphList);
                     chatRecordVO.setParagraphList(JSON.parseArray(json, ParagraphVO.class));
                 }
             }
-            JSONObject problemPadding=details.getJSONObject("problem_padding");
-            if(problemPadding!=null&&!problemPadding.isEmpty()){
+            JSONObject problemPadding = details.getJSONObject("problem_padding");
+            if (problemPadding != null && !problemPadding.isEmpty()) {
                 chatRecordVO.setPaddingProblemText(problemPadding.getString("padding_problem_text"));
             }
-            List<JSONObject> executionDetails= new ArrayList<>();
-            details.keySet().forEach(key-> executionDetails.add(details.getJSONObject(key)));
+            List<JSONObject> executionDetails = new ArrayList<>();
+            details.keySet().forEach(key -> executionDetails.add(details.getJSONObject(key)));
             Collections.reverse(executionDetails);
             chatRecordVO.setExecutionDetails(executionDetails);
             for (JSONObject detail : executionDetails) {
                 if (SEARCH_KNOWLEDGE.getKey().equals(detail.getString("type"))) {
-                     boolean showKnowledge = detail.getBooleanValue("showKnowledge");
-                     if (showKnowledge){
-                         Object paragraphListObj = detail.get("paragraphList"); // 假设每个节点都有 id 字段
-                         if (paragraphListObj != null) {
-                             @SuppressWarnings("unchecked")
-                             List<ParagraphVO> list = (List<ParagraphVO>) paragraphListObj;
-                             chatRecordVO.getParagraphList().addAll(list);
-                         }
-                     }
+                    boolean showKnowledge = detail.getBooleanValue("showKnowledge");
+                    if (showKnowledge) {
+                        Object paragraphListObj = detail.get("paragraphList"); // 假设每个节点都有 id 字段
+                        if (paragraphListObj != null) {
+                            @SuppressWarnings("unchecked")
+                            List<ParagraphVO> list = (List<ParagraphVO>) paragraphListObj;
+                            chatRecordVO.getParagraphList().addAll(list);
+                        }
+                    }
                 }
             }
-           // chatRecordVO.setParagraphList(paragraphList);
+            // chatRecordVO.setParagraphList(paragraphList);
         }
         return chatRecordVO;
     }
 
     // 定义日期格式
     static DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
     public IPage<ApplicationChatRecordVO> chatRecordPage(String chatId, int current, int size) {
         Page<ApplicationChatRecordEntity> chatRecordpage = new Page<>(current, size);
         LambdaQueryWrapper<ApplicationChatRecordEntity> wrapper = Wrappers.lambdaQuery();
-        wrapper.eq(ApplicationChatRecordEntity::getChatId,chatId);
-        IPage<ApplicationChatRecordEntity> chatRecordIpage=this.page(chatRecordpage, wrapper);
+        wrapper.eq(ApplicationChatRecordEntity::getChatId, chatId);
+        IPage<ApplicationChatRecordEntity> chatRecordIpage = this.page(chatRecordpage, wrapper);
         return PageUtil.copy(chatRecordIpage, this::convert);
     }
 
@@ -125,7 +129,7 @@ public class ApplicationChatRecordService extends ServiceImpl<ApplicationChatRec
         List<ApplicationStatisticsVO> result = new ArrayList<>();
         List<ApplicationStatisticsVO> list = baseMapper.statistics(appId, query);
         List<ApplicationChatUserStatsVO> accessClientList = chatUserStatsService.statistics(appId, query);
-        if (Objects.isNull(query.getStartTime())||Objects.isNull(query.getEndTime())){
+        if (Objects.isNull(query.getStartTime()) || Objects.isNull(query.getEndTime())) {
             return result;
         }
         // 将字符串解析为LocalDate对象
@@ -135,7 +139,7 @@ public class ApplicationChatRecordService extends ServiceImpl<ApplicationChatRec
         for (LocalDate date = startDate; !date.isAfter(endDate); date = date.plusDays(1)) {
             String day = date.format(formatter);
             ApplicationStatisticsVO vo = getApplicationStatisticsVO(list, day);
-            vo.setCustomerAddedCount(getCustomerAddedCount(accessClientList,day));
+            vo.setCustomerAddedCount(getCustomerAddedCount(accessClientList, day));
             result.add(vo);
         }
         return result;
