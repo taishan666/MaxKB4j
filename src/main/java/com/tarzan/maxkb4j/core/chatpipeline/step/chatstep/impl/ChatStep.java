@@ -171,10 +171,9 @@ public class ChatStep extends IChatStep {
 
     @Override
     public JSONObject getDetails() {
-        long startTime = context.getLong("start_time");
         JSONObject details = new JSONObject();
         details.put("step_type", "chat_step");
-        details.put("runTime", (System.currentTimeMillis() - startTime) / 1000F);
+        details.put("runTime", context.get("runTime"));
         details.put("message_list", context.get("message_list"));
         details.put("messageTokens", context.getOrDefault("messageTokens", 0));
         details.put("answerTokens", context.getOrDefault("answerTokens", 0));

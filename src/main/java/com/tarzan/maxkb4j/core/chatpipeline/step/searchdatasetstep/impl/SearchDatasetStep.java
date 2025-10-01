@@ -25,12 +25,11 @@ public class SearchDatasetStep extends ISearchDatasetStep {
     @Override
     protected List<ParagraphVO> execute(PipelineManage manage) {
         long startTime = System.currentTimeMillis();
-        JSONObject context=manage.context;
-        ApplicationVO application=(ApplicationVO)context.get("application");
+        ApplicationVO application=(ApplicationVO)manage.context.get("application");
         String problemText=manage.context.getString("problemText");
-        String paddingProblemText=context.getString("paddingProblemText");
+        String paddingProblemText=manage.context.getString("paddingProblemText");
         @SuppressWarnings("unchecked")
-        List<String> excludeParagraphIds=(List<String>)context.get("excludeParagraphIds");
+        List<String> excludeParagraphIds=(List<String>)manage.context.get("excludeParagraphIds");
         KnowledgeSetting datasetSetting=application.getKnowledgeSetting();
         List<CompletableFuture<List<ParagraphVO>>> futureList = new ArrayList<>();
         futureList.add(CompletableFuture.supplyAsync(()->retrieveService.paragraphSearch(problemText,application.getKnowledgeIdList(), excludeParagraphIds,datasetSetting)));
@@ -56,6 +55,8 @@ public class SearchDatasetStep extends ISearchDatasetStep {
             paragraphList= results.subList(0, endIndex);
         }
         log.info("dataset search 耗时 {} ms", System.currentTimeMillis() - startTime);
+        context.put("paragraphList",paragraphList);
+        context.put("problemText",problemText);
         return paragraphList;
     }
 
@@ -66,8 +67,8 @@ public class SearchDatasetStep extends ISearchDatasetStep {
         details.put("paragraphList",context.get("paragraphList"));
         details.put("runTime",context.get("runTime"));
         details.put("problemText",context.get("problemText"));
-        details.put("messageTokens",context.get("messageTokens"));
-        details.put("answerTokens",context.get("answerTokens"));
+        details.put("messageTokens",context.getOrDefault("messageTokens",0));
+        details.put("answerTokens",context.getOrDefault("answerTokens",0));
         return details;
     }
 }
