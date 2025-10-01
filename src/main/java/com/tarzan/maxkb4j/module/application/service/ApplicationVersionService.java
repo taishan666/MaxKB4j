@@ -28,6 +28,7 @@ public class ApplicationVersionService extends ServiceImpl<ApplicationVersionMap
         }
         ApplicationVO vo = BeanUtil.copy(entity, ApplicationVO.class);
         vo.setId(entity.getApplicationId());
+        vo.setName(entity.getApplicationName());
         return vo;
     }
 }

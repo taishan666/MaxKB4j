@@ -66,7 +66,7 @@ public class StartNode extends INode {
         resultMap.put("history_context", getHistoryContext());
         resultMap.put("chatId", chatParams.getChatId());
         resultMap.put("chatUserId", IdWorker.get32UUID());
-        resultMap.put("chatUserType", "ANONYMOUS_USER");
+        resultMap.put("chatUserType", chatParams.getChatUserType());
         resultMap.put("chatUser", new JSONObject(Map.of("username", "游客")));
         return resultMap;
     }
