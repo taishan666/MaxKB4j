@@ -55,7 +55,7 @@ public class PipelineManage {
     public List<ChatMessage> getHistoryMessages(int dialogueNumber) {
         List<ChatMessage> historyMessages=new ArrayList<>();
         @SuppressWarnings("unchecked")
-        List<ApplicationChatRecordEntity> historyChatRecords= (List<ApplicationChatRecordEntity>) context.get("history_chat_records");
+        List<ApplicationChatRecordEntity> historyChatRecords= (List<ApplicationChatRecordEntity>) context.get("chatRecordList");
         int total=historyChatRecords.size();
         int startIndex = Math.max(total - dialogueNumber, 0);
         for (int i = startIndex; i < total; i++) {
