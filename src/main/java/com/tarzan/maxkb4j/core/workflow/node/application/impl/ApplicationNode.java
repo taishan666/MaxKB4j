@@ -1,13 +1,16 @@
 package com.tarzan.maxkb4j.core.workflow.node.application.impl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.tarzan.maxkb4j.common.util.SpringUtil;
 import com.tarzan.maxkb4j.core.workflow.INode;
+import com.tarzan.maxkb4j.core.workflow.model.ChatFile;
 import com.tarzan.maxkb4j.core.workflow.node.application.input.ApplicationNodeParams;
 import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
 import com.tarzan.maxkb4j.module.application.service.ApplicationChatService;
 import com.tarzan.maxkb4j.module.chat.ChatParams;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -25,31 +28,59 @@ public class ApplicationNode extends INode {
 
     @Override
     public NodeResult execute() {
-        ApplicationNodeParams nodeParams= super.getNodeData().toJavaObject(ApplicationNodeParams.class);
-        List<String> questionFields=nodeParams.getQuestionReferenceAddress();
-        String question= (String)super.getReferenceField(questionFields.get(0),questionFields.get(1));
-        ChatParams chatParams=super.getChatParams();
-        ChatParams nodeChatParams=ChatParams.builder()
+        ApplicationNodeParams nodeParams = super.getNodeData().toJavaObject(ApplicationNodeParams.class);
+        List<String> questionFields = nodeParams.getQuestionReferenceAddress();
+        String question = (String) super.getReferenceField(questionFields.get(0), questionFields.get(1));
+        ChatParams chatParams = super.getChatParams();
+        String chatId = chatParams.getChatId() + nodeParams.getApplicationId();
+        chatService.chatOpen(nodeParams.getApplicationId(), chatId, chatParams.getDebug());
+        List<ChatFile> docList = new ArrayList<>();
+        List<String> docFields = nodeParams.getDocumentList();
+        if (CollectionUtils.isNotEmpty(docFields)) {
+            docList = (List<ChatFile>) super.getReferenceField(docFields.get(0), docFields.get(1));
+        }
+        List<ChatFile> imageList = new ArrayList<>();
+        List<String> imageFields = nodeParams.getImageList();
+        if (CollectionUtils.isNotEmpty(imageFields)) {
+            imageList = (List<ChatFile>) super.getReferenceField(imageFields.get(0), imageFields.get(1));
+        }
+        List<ChatFile> audioList = new ArrayList<>();
+        List<String> audioFields = nodeParams.getAudioList();
+        if (CollectionUtils.isNotEmpty(audioFields)) {
+            audioList = (List<ChatFile>) super.getReferenceField(audioFields.get(0), audioFields.get(1));
+        }
+        List<ChatFile> otherList = new ArrayList<>();
+        List<String> otherFields = nodeParams.getOtherList();
+        if (CollectionUtils.isNotEmpty(audioFields)) {
+            otherList = (List<ChatFile>) super.getReferenceField(otherFields.get(0), otherFields.get(1));
+        }
+        ChatParams nodeChatParams = ChatParams.builder()
                 .message(question)
-                .chatId(nodeParams.getApplicationId())
+                .appId(nodeParams.getApplicationId())
+                .chatId(chatId)
+                .chatRecordId(chatParams.getChatRecordId())
+                //todo
                 .runtimeNodeId(super.runtimeNodeId)
                 .stream(chatParams.getStream())
                 .reChat(chatParams.getReChat())
                 .chatUserId(chatParams.getChatUserId())
                 .chatUserType(chatParams.getChatUserType())
                 .sink(chatParams.getSink())
-                .chatRecordId(chatParams.getChatRecordId())
-                .appId(nodeParams.getApplicationId())
+                .imageList(imageList)
+                .audioList(audioList)
+                .documentList(docList)
+                .otherList(otherList)
                 .formData(chatParams.getFormData())
                 .nodeData(chatParams.getNodeData())
                 .debug(chatParams.getDebug())
                 .build();
-        String answer=chatService.chatMessage(nodeChatParams);
+        String answer = chatService.chatMessage(nodeChatParams);
         return new NodeResult(Map.of(
                 "result", answer,
                 "question", question
         ), Map.of());
     }
+
 
     @Override
     public void saveContext(JSONObject detail) {
@@ -71,7 +102,7 @@ public class ApplicationNode extends INode {
         detail.put("audioList", context.get("audio"));
         detail.put("globalFields", properties.get("globalFields"));
         detail.put("application_node_dict", context.get("application_node_dict"));
-        return  detail;
+        return detail;
     }
 
 

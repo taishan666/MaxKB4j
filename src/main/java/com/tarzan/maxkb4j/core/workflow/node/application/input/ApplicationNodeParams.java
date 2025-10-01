@@ -17,8 +17,7 @@ public class ApplicationNodeParams {
     @NotNull(message = "用户问题不能为空")
     private List<String> questionReferenceAddress;
 
-
-   /* private List<String> apiInputFieldList; // Optional
+    private List<String> apiInputFieldList; // Optional
 
     private List<String> userInputFieldList; // Optional,
 
@@ -28,8 +27,7 @@ public class ApplicationNodeParams {
 
     private List<String> audioList; // Optional
 
-    private Map<String, Object> childNode; // Optional, allowing null
+    private List<String> otherList;
 
-    private Map<String, Object> nodeData; // Optional, allowing null*/
 
 }

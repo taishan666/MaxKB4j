@@ -258,7 +258,8 @@ public class WorkflowManage {
             NodeResult result = node.run();
             return new NodeResultFuture(result, null, 200);
         } catch (Exception ex) {
-            log.error("NODE: {} ERROR :{}", node.getType(), ex.getMessage());
+            ex.printStackTrace();
+            log.error("NODE: {} ERROR :{}", node.getType(), ex.getCause().getMessage());
             return new NodeResultFuture(null, ex, 500);
         }
     }

@@ -27,7 +27,7 @@ public class StartNode extends INode {
     }
 
     @Override
-    public NodeResult execute() {
+    public NodeResult execute() throws  Exception{
         //todo 获取全局变量
         ChatParams chatParams=super.getChatParams();
         // 获取默认全局变量
@@ -35,13 +35,12 @@ public class StartNode extends INode {
         // 合并全局变量
         globalVariable.putAll(chatParams.getFormData());
         // 构建节点变量
-        Map<String, Object> nodeVariable = Map.of(
-                "question", chatParams.getMessage(),
-                "image", chatParams.getImageList(),
-                "document", chatParams.getDocumentList(),
-                "audio", chatParams.getAudioList(),
-                "other", chatParams.getOtherList()
-        );
+        Map<String, Object> nodeVariable =new HashMap<>();
+        nodeVariable.put("question", chatParams.getMessage());
+        nodeVariable.put("image", chatParams.getImageList());
+        nodeVariable.put("document", chatParams.getDocumentList());
+        nodeVariable.put("audio", chatParams.getAudioList());
+        nodeVariable.put("other", chatParams.getOtherList());
         return new NodeResult(nodeVariable, globalVariable);
     }
 
