@@ -28,10 +28,9 @@ public class SearchDatasetStep extends ISearchDatasetStep {
         JSONObject context=manage.context;
         ApplicationVO application=(ApplicationVO)context.get("application");
         String problemText=manage.context.getString("problemText");
-        String paddingProblemText=context.getString("padding_problem_text");
+        String paddingProblemText=context.getString("paddingProblemText");
         @SuppressWarnings("unchecked")
         List<String> excludeParagraphIds=(List<String>)context.get("excludeParagraphIds");
-   //     String execProblemText = StringUtils.isNotBlank(paddingProblemText)?paddingProblemText:problemText;
         KnowledgeSetting datasetSetting=application.getKnowledgeSetting();
         List<CompletableFuture<List<ParagraphVO>>> futureList = new ArrayList<>();
         futureList.add(CompletableFuture.supplyAsync(()->retrieveService.paragraphSearch(problemText,application.getKnowledgeIdList(), excludeParagraphIds,datasetSetting)));
@@ -69,7 +68,6 @@ public class SearchDatasetStep extends ISearchDatasetStep {
         details.put("problemText",context.get("problemText"));
         details.put("messageTokens",context.get("messageTokens"));
         details.put("answerTokens",context.get("answerTokens"));
-        details.put("cost",0);
         return details;
     }
 }

@@ -62,63 +62,21 @@ public class ResetProblemStep extends IResetProblemStep {
         super.context.put("problemText", question);
         super.context.put("messageTokens", TokenUtil.countTokens(chatMemory.messages()));
         super.context.put("answerTokens", TokenUtil.countTokens(paddingProblem));
-        super.context.put("padding_problem_text", paddingProblem);
+        super.context.put("paddingProblemText", paddingProblem);
         log.info("BaseResetProblemStep 耗时 {} ms", System.currentTimeMillis() - startTime);
         return paddingProblem;
     }
-
-
-/*    protected String execute1(PipelineManage manage) {
-        long startTime = System.currentTimeMillis();
-        JSONObject context = manage.context;
-        ApplicationEntity application = (ApplicationEntity) context.get("application");
-        List<ApplicationChatRecordEntity> chatRecordList = (List<ApplicationChatRecordEntity>) context.get("chatRecordList");
-        //TODO 按照设定聊天记录更好，还是取近3条的更好，需要验证,数量越小接口返回越快
-        int messageNum=chatRecordList.size();
-        chatRecordList=messageNum>3?chatRecordList.subList(messageNum-3,messageNum):chatRecordList;
-        List<ChatMessage> historyMessages=new ArrayList<>();
-        LlmModelSetting modelSetting = application.getModelSetting();
-        String system = modelSetting.getSystem();
-        // String prompt = modelSetting.getPrompt();
-        historyMessages.add(SystemMessage.from(system));
-        for (ApplicationChatRecordEntity chatRecord : chatRecordList) {
-            historyMessages.add(UserMessage.from(chatRecord.getProblemText()));
-            //  historyMessages.add(AiMessage.from(chatRecord.getAnswerText()));
-        }
-        String modelId = application.getModelId();
-        BaseChatModel chatModel = modelService.getModelById(modelId);
-        QueryTransformer queryTransformer=new MyCompressingQueryTransformer(chatModel.getChatModel());
-        String question = context.getString("problemText");
-        String chatId = context.getString("chatId");
-        Metadata metadata=new Metadata(UserMessage.from(question), chatId, historyMessages);
-        Query query=new Query(question,metadata);
-        Collection<Query> list= queryTransformer.transform(query);
-        StringBuilder answerSb=new StringBuilder();
-        for (Query queryResult : list) {
-            answerSb.append(queryResult.text());
-        }
-        String paddingProblem=answerSb.toString();
-        super.context.put("modelId", modelId);
-        super.context.put("problemText", question);
-        super.context.put("messageTokens", TokenUtil.countTokens(historyMessages));
-        super.context.put("answerTokens", TokenUtil.countTokens(paddingProblem));
-        super.context.put("padding_problem_text", paddingProblem);
-        log.info("BaseResetProblemStep 耗时 {} ms", System.currentTimeMillis() - startTime);
-        return paddingProblem;
-    }*/
 
 
     @Override
     public JSONObject getDetails() {
         JSONObject details=new JSONObject();
         details.put("step_type","problem_padding");
-        details.put("modelId",super.context.get("modelId"));
-        details.put("runTime",super.context.get("runTime"));
-        details.put("problemText",super.context.get("problemText"));
-        details.put("padding_problem_text",super.context.get("padding_problem_text"));
-        details.put("messageTokens", super.context.get("messageTokens"));
-        details.put("answerTokens", super.context.get("answerTokens"));
-        details.put("cost",0);
+        details.put("runTime",context.get("runTime"));
+        details.put("problemText",context.get("problemText"));
+        details.put("paddingProblemText",context.get("paddingProblemText"));
+        details.put("messageTokens", context.get("messageTokens"));
+        details.put("answerTokens", context.get("answerTokens"));
         return details;
     }
 }

@@ -7,7 +7,6 @@ public abstract class IChatPipelineStep {
 
     public void run(PipelineManage manage) {
         long startTime = System.currentTimeMillis();
-        context.put("start_time", startTime);
         _run(manage);
         context.put("runTime", (System.currentTimeMillis()-startTime)/1000F);
     }

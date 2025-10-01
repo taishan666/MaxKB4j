@@ -11,7 +11,6 @@ public abstract class ISearchDatasetStep extends IChatPipelineStep {
     protected void _run(PipelineManage manage) {
         List<ParagraphVO> paragraphList = execute(manage);
         manage.context.put("paragraphList", paragraphList);
-        super.context.put("paragraphList", paragraphList);
     }
 
     protected abstract List<ParagraphVO> execute(PipelineManage manage);

@@ -38,7 +38,6 @@ public class PipelineManage {
     }
 
     public String run(Map<String, Object> context, Sinks.Many<ChatMessageVO> sink) {
-        this.context.put("start_time", System.currentTimeMillis());
         if (context != null) {
             this.context.putAll(context);
         }
@@ -48,7 +47,6 @@ public class PipelineManage {
         for (IChatPipelineStep step : stepList) {
             step.run(this);
         }
-        this.context.put("runTime", System.currentTimeMillis());
         return answer;
     }
 

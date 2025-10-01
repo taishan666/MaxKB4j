@@ -81,7 +81,6 @@ public class ChatStep extends IChatStep {
             }
         }
         String modelId = application.getModelId();
-        //super.context.put("modelId", modelId);
         JSONObject params = application.getModelParamsSetting();
         KnowledgeSetting knowledgeSetting = application.getKnowledgeSetting();
         NoReferencesSetting noReferencesSetting = knowledgeSetting.getNoReferencesSetting();
@@ -176,12 +175,9 @@ public class ChatStep extends IChatStep {
         JSONObject details = new JSONObject();
         details.put("step_type", "chat_step");
         details.put("runTime", (System.currentTimeMillis() - startTime) / 1000F);
-        //details.put("modelId", context.get("modelId"));
-        //todo message_list
         details.put("message_list", context.get("message_list"));
         details.put("messageTokens", context.getOrDefault("messageTokens", 0));
         details.put("answerTokens", context.getOrDefault("answerTokens", 0));
-        details.put("cost", 0);
         return details;
     }
 

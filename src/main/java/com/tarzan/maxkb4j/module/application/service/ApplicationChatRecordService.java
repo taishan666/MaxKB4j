@@ -90,7 +90,7 @@ public class ApplicationChatRecordService extends ServiceImpl<ApplicationChatRec
             }
             JSONObject problemPadding = details.getJSONObject("problem_padding");
             if (problemPadding != null && !problemPadding.isEmpty()) {
-                chatRecordVO.setPaddingProblemText(problemPadding.getString("padding_problem_text"));
+                chatRecordVO.setPaddingProblemText(problemPadding.getString("paddingProblemText"));
             }
             List<JSONObject> executionDetails = new ArrayList<>();
             details.keySet().forEach(key -> executionDetails.add(details.getJSONObject(key)));
