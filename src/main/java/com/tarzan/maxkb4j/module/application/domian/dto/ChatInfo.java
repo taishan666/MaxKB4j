@@ -7,6 +7,7 @@ import lombok.Data;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -15,6 +16,7 @@ public class ChatInfo implements Serializable {
 
     private String chatId;
     private String appId;
+    private Map<String, Object>  chatVariables=new HashMap<>(10);
     private List<ApplicationChatRecordEntity> chatRecordList= new ArrayList<>();
 
     public Map<String, Object> toBasePipelineManageParams(){

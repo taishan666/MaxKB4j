@@ -4,6 +4,7 @@ import cn.dev33.satoken.stp.StpUtil;
 import com.tarzan.maxkb4j.common.api.R;
 import com.tarzan.maxkb4j.common.constant.AppConst;
 import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
+import com.tarzan.maxkb4j.module.application.enums.ChatUserType;
 import com.tarzan.maxkb4j.module.application.service.ApplicationChatService;
 import com.tarzan.maxkb4j.module.chat.ChatParams;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -42,6 +43,7 @@ public class ChatMessageController {
         params.setChatId(chatId);
         params.setSink(sink);
         params.setChatUserId(StpUtil.getLoginIdAsString());
+        params.setChatUserType(ChatUserType.ANONYMOUS_USER.name());
         params.setDebug(true);
         // 异步执行业务逻辑
         chatTaskExecutor.execute(() -> chatService.chatMessage(params));

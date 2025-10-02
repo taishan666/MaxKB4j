@@ -92,6 +92,7 @@ public class ChatApiController {
         params.setChatId(chatId);
         params.setSink(sink);
         params.setChatUserId(StpUtil.getLoginIdAsString());
+        params.setChatUserType(ChatUserType.ANONYMOUS_USER.name());
         params.setDebug(false);
         // 异步执行业务逻辑
         chatTaskExecutor.execute(() -> chatService.chatMessage(params));
