@@ -109,7 +109,7 @@ public abstract class INode {
         detail.put("type", type);
         detail.put("runTime", runTime);
         detail.put("status", status);
-        detail.put("err_message", errMessage);
+        detail.put("errMessage", errMessage);
         detail.putAll(getDetail());
         return detail;
     }
