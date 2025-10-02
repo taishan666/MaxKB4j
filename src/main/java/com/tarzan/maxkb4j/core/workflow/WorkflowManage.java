@@ -26,10 +26,10 @@ public class WorkflowManage {
     private List<LfEdge> edges;
     private Map<String, Object> context;
     private Map<String, Object> chatContext;
+    private List<INode> nodeContext;
     private String answer;
     private ApplicationChatRecordEntity chatRecord;
     private List<ApplicationChatRecordEntity> historyChatRecords;
-    private List<INode> nodeContext;
 
     public WorkflowManage(List<INode> nodes, List<LfEdge> edges, ChatParams chatParams, ApplicationChatRecordEntity chatRecord, List<ApplicationChatRecordEntity> historyChatRecords) {
         this.nodes = nodes;
@@ -55,32 +55,35 @@ public class WorkflowManage {
                 .sorted(Comparator.comparingInt(e -> e.getIntValue("index")))
                 .toList();
         for (JSONObject nodeDetail : sortedDetails) {
-            String nodeId = nodeDetail.getString("node_id");
-            List<String> lastNodeIdList = nodeDetail.getJSONArray("upNodeIdList").toJavaList(String.class);
-            if (nodeDetail.getString("runtimeNodeId").equals(startNodeId)) {
-                nodeDetail.put("form_data", startNodeData);
+            String nodeId = nodeDetail.getString("nodeId");
+            List<String> upNodeIdList = nodeDetail.getJSONArray("upNodeIdList").toJavaList(String.class);
+            String runtimeNodeId=nodeDetail.getString("runtimeNodeId");
+            if (runtimeNodeId.equals(startNodeId)) {
                 // 处理起始节点
                 this.startNode = getNodeClsById(
                         nodeId,
-                        lastNodeIdList,
+                        upNodeIdList,
                         n -> {
-                            JSONObject nodeParams = n.getProperties();
-                            nodeParams.put("form_data", startNodeData);
-                            return nodeParams;
+                            JSONObject nodeProperties = n.getProperties();
+                            if (nodeProperties.containsKey("nodeData")) {
+                                JSONObject nodeParams = nodeProperties.getJSONObject("nodeData");
+                                nodeParams.put("form_data", startNodeData);
+                            }
+                            return nodeProperties;
                         }
                 );
-                // 合并验证参数
                 assert startNode != null;
-                if (APPLICATION.getKey().equals(startNode.getType())) {
+                // 合并验证参数
+             /*   if (APPLICATION.getKey().equals(startNode.getType())) {
                     startNode.getContext().put("application_node_dict", nodeDetail.get("application_node_dict"));
-                }
-                startNode.saveContextWithRuntime(nodeDetail);
+                }*/
+                startNode.saveContext(nodeDetail);
                 nodeContext.add(startNode);
             } else {
                 // 处理普通节点
-                INode node = getNodeClsById(nodeId, lastNodeIdList, null);
+                INode node = getNodeClsById(nodeId, upNodeIdList, null);
                 assert node != null;
-                node.saveContextWithRuntime(nodeDetail);
+                node.saveContext(nodeDetail);
                 nodeContext.add(node);
             }
         }
@@ -186,27 +189,49 @@ public class WorkflowManage {
     }
 
 
-    private INode getNodeClsById(String nodeId, List<String> upNodeIds, Function<INode, JSONObject> getNodeParams) {
+    private INode getNodeClsById(String nodeId, List<String> upNodeIds, Function<INode, JSONObject> getNodeProperties) {
         for (INode node : nodes) {
             if (nodeId.equals(node.getId())) {
-                node.setUpNodes(nodeContext);
-                node.setGlobalVariable(context);
-                node.setChatVariable(chatContext);
-              //  node.setUpNodeIdList(upNodeIds);
+                node.setFlowVariable(this.getFlowVariables());
+                node.setPromptVariables(this.getPromptVariables());
+                node.setUpNodeIdList(upNodeIds);
                 node.setChatParams(chatParams);
                 node.setHistoryChatRecords(historyChatRecords);
-                if (getNodeParams != null) {
-                    JSONObject properties = node.getProperties();
-                    if (properties.containsKey("nodeData")) {
-                        JSONObject nodeParams = getNodeParams.apply(node);
-                        properties.put("nodeData", nodeParams);
-                    }
-                    node.setProperties(properties);
+                if (getNodeProperties != null) {
+                    getNodeProperties.apply(node);
                 }
                 return node;
             }
         }
         return null;
+    }
+
+    public Map<String, Object> getPromptVariables() {
+        Map<String, Object> result = new HashMap<>(100);
+        for (String key : context.keySet()) {
+            result.put("global." + key, context.get(key));
+        }
+        for (String key : chatContext.keySet()) {
+            result.put("chat." + key, chatContext.get(key));
+        }
+        for (INode node : nodeContext) {
+            String nodeName = node.getProperties().getString("nodeName");
+            Map<String, Object> context = node.getContext();
+            for (String key : context.keySet()) {
+                result.put(nodeName + "." + key, context.get(key));
+            }
+        }
+        return result;
+    }
+
+    public Map<String, Map<String,Object>> getFlowVariables() {
+        Map<String, Map<String,Object>> result= new HashMap<>(100);
+        result.put("global",context);
+        result.put("chat",chatContext);
+        for (INode node : nodeContext) {
+            result.put(node.getId(),node.getContext());
+        }
+        return result;
     }
 
 
@@ -233,11 +258,8 @@ public class WorkflowManage {
         }
         for (int index = 0; index < nodeContext.size(); index++) {
             INode node = nodeContext.get(index);
-            JSONObject details = node.getDetail(index);
-            details.put("node_id", node.getId());
-            details.put("upNodeIdList", node.getUpNodeIdList());
-            details.put("runtimeNodeId", node.getRuntimeNodeId());
-            detailsResult.put(node.getRuntimeNodeId(), details);
+            JSONObject detail = node.getDetail(index);
+            detailsResult.put(node.getRuntimeNodeId(), detail);
         }
         return detailsResult;
     }

@@ -18,7 +18,7 @@ public class FormNode extends INode {
     public FormNode(JSONObject properties) {
         super(properties);
         this.type = FORM.getKey();
-        super.viewType = "single_view";
+        this.viewType = "single_view";
     }
 
     @Override
@@ -35,16 +35,16 @@ public class FormNode extends INode {
             context.put("is_submit", false);
             JSONObject formSetting = new JSONObject();
             formSetting.put("form_field_list", formFieldList);
-            formSetting.put("runtimeNodeId", super.getRuntimeNodeId());
-            formSetting.put("chatRecordId", super.getChatParams().getChatRecordId());
+            formSetting.put("is_submit", false);
+            formSetting.put("runtimeNodeId", "123456789");
+           // formSetting.put("chatRecordId", "6666666666");
             String form = "<form_render>" + formSetting + "</form_render>";
             String formContentFormat = nodeParams.getFormContentFormat();
-            Set<String> promptVariables = super.extractVariables(formContentFormat);
+            Set<String> extractVariables = super.extractVariables(formContentFormat);
             Map<String, Object> variables = new HashMap<>();
-            if (!promptVariables.isEmpty()) {
-                Map<String, Object> allVariables = super.allVariables();
-                for (String promptVariable : promptVariables) {
-                    variables.put(promptVariable, allVariables.getOrDefault(promptVariable, "*"));
+            if (!extractVariables.isEmpty()) {
+                for (String promptVariable : extractVariables) {
+                    variables.put(promptVariable, promptVariables.getOrDefault(promptVariable, "*"));
                 }
                 variables.put("form", form);
             }
@@ -60,8 +60,10 @@ public class FormNode extends INode {
         context.put("form_field_list", detail.get("form_field_list"));
         @SuppressWarnings("unchecked")
         Map<String, Object> formData = (Map<String, Object>) detail.get("form_data");
-        context.putAll(formData);
-        context.put("form_data", detail.get("form_data"));
+        if (formData != null){
+            context.putAll(formData);
+        }
+        context.put("form_data", formData);
         context.put("is_submit", detail.get("is_submit"));
     }
 

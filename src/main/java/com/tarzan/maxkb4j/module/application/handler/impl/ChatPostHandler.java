@@ -43,7 +43,7 @@ public class ChatPostHandler extends PostResponseHandler {
                 .mapToInt(row -> row.getIntValue("answerTokens"))
                 .sum();
         if (chatRecord != null) {
-            chatRecord.setAnswerTextList(List.of(answerText));
+           // chatRecord.setAnswerTextList(List.of(answerText));
             chatRecord.setAnswerText(answerText);
             chatRecord.setDetails(new JSONObject(details));
             chatRecord.setMessageTokens(messageTokens);
@@ -56,7 +56,7 @@ public class ChatPostHandler extends PostResponseHandler {
             chatRecord.setChatId(chatId);
             chatRecord.setProblemText(problemText);
             chatRecord.setAnswerText(answerText);
-            chatRecord.setAnswerTextList(List.of(answerText));
+            //chatRecord.setAnswerTextList(List.of(answerText));
             chatRecord.setIndex(chatInfo.getChatRecordList().size() + 1);
             chatRecord.setMessageTokens(messageTokens);
             chatRecord.setAnswerTokens(answerTokens);

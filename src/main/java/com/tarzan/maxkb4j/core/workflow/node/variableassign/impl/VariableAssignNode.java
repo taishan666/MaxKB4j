@@ -36,7 +36,7 @@ public class VariableAssignNode extends INode {
                     List<String> reference = (List<String>) variable.get("reference");
                     value = super.getReferenceField(reference.get(0), reference.get(1));
                 }
-                super.getGlobalVariable().put(fields.get(1), value);
+                super.getFlowVariable().get("global").put(fields.get(1), value);
                 result.put("output_value", variable.put("value", value));
                 resultList.add(result);
             }
@@ -51,7 +51,7 @@ public class VariableAssignNode extends INode {
                     List<String> reference = (List<String>) variable.get("reference");
                     value = super.getReferenceField(reference.get(0), reference.get(1));
                 }
-                super.getChatVariable().put(fields.get(1), value);
+                super.getFlowVariable().get("chat").put(fields.get(1), value);
                 result.put("output_value", variable.put("value", value));
                 resultList.add(result);
             }

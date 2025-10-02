@@ -31,27 +31,22 @@ public abstract class INode {
     public String viewType;
     public JSONObject properties;
     private ChatParams chatParams;
-    public Map<String, Object> globalVariable;
-    public Map<String, Object> chatVariable;
-    public List<INode> upNodes;
+    public Map<String, Map<String,Object>> flowVariable;
+    public Map<String, Object> promptVariables;
     public Map<String, Object> context;
-    //public List<String> upNodeIdList;
+    public List<String> upNodeIdList;
     public String runtimeNodeId;
     public String answerText;
     public Float runTime;
     private List<ApplicationChatRecordEntity> historyChatRecords;
 
 
-    public List<String> getUpNodeIdList(){
-        return upNodes.stream().map(INode::getId).toList();
-    }
-
     public INode(JSONObject properties) {
         this.context = new JSONObject();
-        this.upNodes = new ArrayList<>();
-        //this.upNodeIdList = new ArrayList<>();
+   /*     this.flowVariable = new HashMap<>();
+        this.promptVariables = new HashMap<>();*/
+        this.upNodeIdList = new ArrayList<>();
         this.properties = properties;
-        this.runtimeNodeId = generateRuntimeNodeId();
         this.viewType = "many_view";
     }
 
@@ -62,8 +57,8 @@ public abstract class INode {
         return new JSONObject();
     }
 
-    public void setUpNodes(List<INode> upNodes) {
-        this.upNodes = upNodes;
+    public void setUpNodeIdList(List<String> upNodeIdList) {
+        this.upNodeIdList = upNodeIdList;
         this.runtimeNodeId = generateRuntimeNodeId();
     }
 
@@ -78,7 +73,7 @@ public abstract class INode {
     private String generateRuntimeNodeId() {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-1");
-            String input = Arrays.toString(getUpNodeIdList().stream().sorted().toArray()) + id;
+            String input = Arrays.toString(upNodeIdList.toArray()) + id;
             byte[] hashBytes = digest.digest(input.getBytes(StandardCharsets.UTF_8));
             StringBuilder hexString = new StringBuilder();
             for (byte b : hashBytes) {
@@ -104,6 +99,9 @@ public abstract class INode {
 
     public JSONObject getDetail(int index) {
         JSONObject detail = new JSONObject();
+        detail.put("nodeId", id);
+        detail.put("upNodeIdList", upNodeIdList);
+        detail.put("runtimeNodeId", runtimeNodeId);
         detail.put("name", properties.getString("nodeName"));
         detail.put("index", index);
         detail.put("type", type);
@@ -116,14 +114,8 @@ public abstract class INode {
 
 
     public Object getReferenceField(String nodeId, String key) {
-        if ("global".equals(nodeId)) {
-            return globalVariable.get(key);
-        }else if ("chat".equals(nodeId)) {
-            return chatVariable.get(key);
-        } else {
-            INode node = upNodes.stream().filter(e -> e.getId().equals(nodeId)).findAny().orElse(null);
-            return node == null ? null : node.context.get(key);
-        }
+        Map<String, Object> nodeVariable = flowVariable.get(nodeId);
+        return nodeVariable.get(key);
     }
 
 
@@ -155,12 +147,11 @@ public abstract class INode {
         if (StringUtils.isBlank(prompt)) {
             return "";
         }
-        Set<String> promptVariables = extractVariables(prompt);
+        Set<String> extractVariables = extractVariables(prompt);
         if (!promptVariables.isEmpty()) {
-            Map<String, Object> allVariables = this.allVariables();
             Map<String, Object> variables = new HashMap<>();
-            for (String promptVariable : promptVariables) {
-                variables.put(promptVariable, allVariables.getOrDefault(promptVariable, "*"));
+            for (String promptVariable : extractVariables) {
+                variables.put(promptVariable, promptVariables.getOrDefault(promptVariable, "*"));
             }
             PromptTemplate promptTemplate = PromptTemplate.from(prompt);
             return promptTemplate.apply(variables).text();
@@ -168,24 +159,6 @@ public abstract class INode {
         return prompt;
     }
 
-
-    public Map<String, Object> allVariables() {
-        Map<String, Object> result = new JSONObject();
-        for (String key : globalVariable.keySet()) {
-            result.put("global." + key, globalVariable.get(key));
-        }
-        for (String key : chatVariable.keySet()) {
-            result.put("chat." + key, chatVariable.get(key));
-        }
-        for (INode node : upNodes) {
-            String nodeName = node.getProperties().getString("nodeName");
-            Map<String, Object> context = node.getContext();
-            for (String key : context.keySet()) {
-                result.put(nodeName + "." + key, context.get(key));
-            }
-        }
-        return result;
-    }
 
 
     public Set<String> extractVariables(String template) {

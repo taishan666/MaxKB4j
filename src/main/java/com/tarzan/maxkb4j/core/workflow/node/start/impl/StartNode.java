@@ -80,7 +80,7 @@ public class StartNode extends INode {
             JSONObject globalField=globalFields.getJSONObject(i);
             String key=globalField.getString("key");
             Object value=globalField.get("value");
-            globalVariable.put(key, value);
+            //globalVariable.put(key, value);
         }
     }
 
@@ -100,7 +100,7 @@ public class StartNode extends INode {
             JSONObject globalField=globalFields.getJSONObject(i);
             String value=globalField.getString("value");
             globalField.put("key",value);
-            globalField.put("value",super.getGlobalVariable().get(value));
+            globalField.put("value",super.getFlowVariable().get("global").get(value));
         }
         detail.put("globalFields",globalFields);
         return detail;
