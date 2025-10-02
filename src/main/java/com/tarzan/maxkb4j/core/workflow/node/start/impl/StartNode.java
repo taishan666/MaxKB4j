@@ -6,6 +6,8 @@ import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.model.ChatRecordSimple;
 import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
+import com.tarzan.maxkb4j.module.application.cache.ChatCache;
+import com.tarzan.maxkb4j.module.application.domian.dto.ChatInfo;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatRecordEntity;
 import com.tarzan.maxkb4j.module.chat.ChatParams;
 
@@ -28,12 +30,12 @@ public class StartNode extends INode {
 
     @Override
     public NodeResult execute() throws  Exception{
-        //todo 获取全局变量
         ChatParams chatParams=super.getChatParams();
         // 获取默认全局变量
         Map<String, Object> globalVariable = getDefaultGlobalVariable(chatParams);
         // 合并全局变量
         globalVariable.putAll(chatParams.getFormData());
+        super.getFlowVariables().get("chat").putAll(getChatVariable(chatParams.getChatId()));
         // 构建节点变量
         Map<String, Object> nodeVariable =new HashMap<>();
         nodeVariable.put("question", chatParams.getMessage());
@@ -48,11 +50,28 @@ public class StartNode extends INode {
     public Map<String, Object> getDefaultGlobalVariable(ChatParams chatParams) {
         Map<String, Object> resultMap = new HashMap<>();
         resultMap.put("time", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
-        resultMap.put("history_context", getHistoryContext());
+        resultMap.put("historyContext", getHistoryContext());
         resultMap.put("chatId", chatParams.getChatId());
         resultMap.put("chatUserId", IdWorker.get32UUID());
         resultMap.put("chatUserType", chatParams.getChatUserType());
         resultMap.put("chatUser", new JSONObject(Map.of("username", "游客")));
+        return resultMap;
+    }
+
+    public Map<String, Object> getChatVariable(String chatId) {
+        Map<String, Object> resultMap = new HashMap<>();
+        //更新会话变量
+        ChatInfo chatInfo = ChatCache.get(chatId);
+        Map<String, Object> chatVariable=chatInfo.getChatVariables();
+        JSONObject config=properties.getJSONObject("config");
+        if (config != null){
+            JSONArray chatFields=config.getJSONArray("chatFields");
+            for (int i = 0; i < chatFields.size(); i++) {
+                JSONObject chatField=chatFields.getJSONObject(i);
+                String key=chatField.getString("value");
+                resultMap.put(key, chatVariable.getOrDefault(key, "None"));
+            }
+        }
         return resultMap;
     }
 
@@ -71,6 +90,7 @@ public class StartNode extends INode {
 
     @Override
     public void saveContext(JSONObject detail) {
+        context.put("question", detail.get("question"));
         context.put("image", detail.get("image"));
         context.put("document", detail.get("document"));
         context.put("audio", detail.get("audio"));
@@ -80,7 +100,14 @@ public class StartNode extends INode {
             JSONObject globalField=globalFields.getJSONObject(i);
             String key=globalField.getString("key");
             Object value=globalField.get("value");
-            //globalVariable.put(key, value);
+            super.getFlowVariables().get("global").put(key, value);
+        }
+        JSONArray chatFields=detail.getJSONArray("chatFields");
+        for (int i = 0; i < chatFields.size(); i++) {
+            JSONObject chatField=chatFields.getJSONObject(i);
+            String key=chatField.getString("key");
+            Object value=chatField.get("value");
+            super.getFlowVariables().get("chat").put(key, value);
         }
     }
 
@@ -100,9 +127,17 @@ public class StartNode extends INode {
             JSONObject globalField=globalFields.getJSONObject(i);
             String value=globalField.getString("value");
             globalField.put("key",value);
-            globalField.put("value",super.getFlowVariable().get("global").get(value));
+            globalField.put("value",super.getFlowVariables().get("global").get(value));
         }
         detail.put("globalFields",globalFields);
+        JSONArray chatFields=config.getJSONArray("chatFields");
+        for (int i = 0; i < chatFields.size(); i++) {
+            JSONObject chatField=chatFields.getJSONObject(i);
+            String value=chatField.getString("value");
+            chatField.put("key",value);
+            chatField.put("value",super.getFlowVariables().get("chat").get(value));
+        }
+        detail.put("chatFields",globalFields);
         return detail;
     }
 }

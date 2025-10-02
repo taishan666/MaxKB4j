@@ -31,7 +31,7 @@ public abstract class INode {
     public String viewType;
     public JSONObject properties;
     private ChatParams chatParams;
-    public Map<String, Map<String,Object>> flowVariable;
+    public Map<String, Map<String,Object>> flowVariables;
     public Map<String, Object> promptVariables;
     public Map<String, Object> context;
     public List<String> upNodeIdList;
@@ -43,8 +43,6 @@ public abstract class INode {
 
     public INode(JSONObject properties) {
         this.context = new JSONObject();
-   /*     this.flowVariable = new HashMap<>();
-        this.promptVariables = new HashMap<>();*/
         this.upNodeIdList = new ArrayList<>();
         this.properties = properties;
         this.viewType = "many_view";
@@ -114,7 +112,7 @@ public abstract class INode {
 
 
     public Object getReferenceField(String nodeId, String key) {
-        Map<String, Object> nodeVariable = flowVariable.get(nodeId);
+        Map<String, Object> nodeVariable = flowVariables.get(nodeId);
         return nodeVariable.get(key);
     }
 

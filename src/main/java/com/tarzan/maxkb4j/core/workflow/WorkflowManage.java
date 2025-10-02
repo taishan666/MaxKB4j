@@ -41,7 +41,6 @@ public class WorkflowManage {
         this.chatRecord = chatRecord;
         this.answer = "";
         this.historyChatRecords = CollectionUtils.isEmpty(historyChatRecords) ? List.of() : historyChatRecords;
-        //todo runtimeNodeId 的作用
         if (StringUtil.isNotBlank(chatParams.getRuntimeNodeId()) && Objects.nonNull(chatRecord)) {
             this.loadNode(chatRecord, chatParams.getRuntimeNodeId(), chatParams.getNodeData());
         }
@@ -192,7 +191,7 @@ public class WorkflowManage {
     private INode getNodeClsById(String nodeId, List<String> upNodeIds, Function<INode, JSONObject> getNodeProperties) {
         for (INode node : nodes) {
             if (nodeId.equals(node.getId())) {
-                node.setFlowVariable(this.getFlowVariables());
+                node.setFlowVariables(this.getFlowVariables());
                 node.setPromptVariables(this.getPromptVariables());
                 node.setUpNodeIdList(upNodeIds);
                 node.setChatParams(chatParams);
