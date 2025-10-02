@@ -28,7 +28,6 @@ public class ChatPostHandler extends PostResponseHandler {
     private final ApplicationChatRecordMapper chatRecordMapper;
 
 
-    //todo 优化
     @Override
     public void handler(String chatId, String chatRecordId, String problemText, String answerText, ApplicationChatRecordEntity chatRecord, JSONObject details, long startTime, String chatUserId, String chatUserType, boolean debug) {
         float runTime = (System.currentTimeMillis() - startTime) / 1000F;
@@ -45,7 +44,6 @@ public class ChatPostHandler extends PostResponseHandler {
                 .sum();
         if (chatRecord != null) {
             chatRecord.setAnswerTextList(List.of(answerText));
-            //todo 优化
             chatRecord.setAnswerText(answerText);
             chatRecord.setDetails(new JSONObject(details));
             chatRecord.setMessageTokens(messageTokens);

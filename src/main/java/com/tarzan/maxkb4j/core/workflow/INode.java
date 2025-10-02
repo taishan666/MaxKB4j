@@ -37,6 +37,8 @@ public abstract class INode {
     public Map<String, Object> context;
     //public List<String> upNodeIdList;
     public String runtimeNodeId;
+    public String answerText;
+    public Float runTime;
     private List<ApplicationChatRecordEntity> historyChatRecords;
 
 
@@ -70,11 +72,6 @@ public abstract class INode {
 
     public abstract void saveContext(JSONObject detail);
 
-    public void saveContextWithRuntime(JSONObject detail) {
-        context.put("runTime", detail.get("runTime"));
-        saveContext(detail);
-    }
-
     public abstract JSONObject getDetail();
 
 
@@ -99,8 +96,7 @@ public abstract class INode {
     public NodeResult run() throws Exception {
         long startTime = System.currentTimeMillis();
         NodeResult result = execute();
-        float runTime = (System.currentTimeMillis() - startTime) / 1000F;
-        this.context.put("runTime", runTime);
+        runTime = (System.currentTimeMillis() - startTime) / 1000F;
         log.info("node:{}, runTime:{} s", type, runTime);
         return result;
     }
@@ -111,7 +107,7 @@ public abstract class INode {
         detail.put("name", properties.getString("nodeName"));
         detail.put("index", index);
         detail.put("type", type);
-        detail.put("runTime", context.get("runTime"));
+        detail.put("runTime", runTime);
         detail.put("status", status);
         detail.put("err_message", errMessage);
         detail.putAll(getDetail());

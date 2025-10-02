@@ -150,7 +150,7 @@ public class ChatNode extends INode {
             node.getContext().putAll(nodeVariable);
             if (workflow.isResult(node, new NodeResult(nodeVariable, globalVariable)) && nodeVariable.containsKey("answer")) {
                 String answer = (String) nodeVariable.get("answer");
-                workflow.setAnswer(answer);
+                workflow.setAnswer(workflow.getAnswer()+answer);
                 ChatMessageVO endVo = new ChatMessageVO(
                         workflow.getChatParams().getChatId(),
                         workflow.getChatParams().getChatRecordId(),

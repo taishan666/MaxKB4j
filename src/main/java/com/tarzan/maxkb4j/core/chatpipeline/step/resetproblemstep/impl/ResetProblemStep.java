@@ -72,7 +72,6 @@ public class ResetProblemStep extends IResetProblemStep {
     public JSONObject getDetails() {
         JSONObject details=new JSONObject();
         details.put("step_type","problem_padding");
-        details.put("runTime",context.get("runTime"));
         details.put("problemText",context.get("problemText"));
         details.put("paddingProblemText",context.get("paddingProblemText"));
         details.put("messageTokens", context.get("messageTokens"));

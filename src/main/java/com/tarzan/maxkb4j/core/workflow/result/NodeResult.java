@@ -62,7 +62,7 @@ public class NodeResult {
                         node.getViewType(),
                         false);
                 node.getChatParams().getSink().tryEmitNext(vo);
-                workflow.setAnswer(answer);
+                workflow.setAnswer(workflow.getAnswer()+answer);
                 ChatMessageVO endVo = new ChatMessageVO(
                         workflow.getChatParams().getChatId(),
                         workflow.getChatParams().getChatRecordId(),
