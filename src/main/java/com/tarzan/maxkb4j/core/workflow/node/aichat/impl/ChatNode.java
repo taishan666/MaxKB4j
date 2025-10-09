@@ -145,9 +145,8 @@ public class ChatNode extends INode {
     private void writeContext(Map<String, Object> nodeVariable, Map<String, Object> globalVariable, INode node, WorkflowManage workflow) {
         if (nodeVariable != null) {
             node.getContext().putAll(nodeVariable);
-            if (workflow.isResult(node, new NodeResult(nodeVariable, globalVariable)) && nodeVariable.containsKey("answer")) {
-                String answer = (String) nodeVariable.get("answer");
-                workflow.setAnswer(workflow.getAnswer()+answer);
+            if (workflow.isResult(node, new NodeResult(nodeVariable, globalVariable))&& StringUtil.isNotBlank(node.getAnswerText())) {
+                workflow.setAnswer(workflow.getAnswer()+node.getAnswerText());
                 ChatMessageVO endVo = new ChatMessageVO(
                         workflow.getChatParams().getChatId(),
                         workflow.getChatParams().getChatRecordId(),

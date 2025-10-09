@@ -1,5 +1,6 @@
 package com.tarzan.maxkb4j.core.workflow.result;
 
+import com.tarzan.maxkb4j.common.util.StringUtil;
 import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.WorkflowManage;
 import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
@@ -50,7 +51,7 @@ public class NodeResult {
         if (nodeVariable != null) {
             node.getContext().putAll(nodeVariable);
             node.getDetail().putAll(nodeVariable);
-            if (workflow.isResult(node, new NodeResult(nodeVariable, globalVariable))) {
+            if (workflow.isResult(node, new NodeResult(nodeVariable, globalVariable))&& StringUtil.isNotBlank(node.getAnswerText())) {
                // String answer = (String) nodeVariable.get("answer");
                 ChatMessageVO vo = new ChatMessageVO(
                         workflow.getChatParams().getChatId(),

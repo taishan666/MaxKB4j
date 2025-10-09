@@ -57,8 +57,9 @@ public class QuestionNode extends INode {
         detail.put("history_message", resetMessageList(historyMessages));
         detail.put("messageTokens", TokenUtil.countTokens(messageList));
         detail.put("answerTokens", TokenUtil.countTokens(answerSb.toString()));
+        answerText = answerSb.toString();
         return new NodeResult(Map.of(
-                "answer", answerSb.toString()
+                "answer", answerText
         ), Map.of());
     }
 

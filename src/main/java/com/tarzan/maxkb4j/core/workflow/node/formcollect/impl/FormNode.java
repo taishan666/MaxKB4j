@@ -46,9 +46,9 @@ public class FormNode extends INode {
                 variables.put("form", form);
             }
             PromptTemplate promptTemplate = PromptTemplate.from(formContentFormat);
-            String formRender = promptTemplate.apply(variables).text();
+            answerText = promptTemplate.apply(variables).text();
             detail.put("form_field_list", formFieldList);
-            return new NodeResult(Map.of("answer", formRender, "is_submit", false), Map.of());
+            return new NodeResult(Map.of("is_submit", false), Map.of());
         }
     }
 
