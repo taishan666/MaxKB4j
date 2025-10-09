@@ -4,9 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.tarzan.maxkb4j.common.util.StringUtil;
 import com.tarzan.maxkb4j.core.chat.provider.IChatActuator;
-import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.WorkflowManage;
-import com.tarzan.maxkb4j.core.workflow.factory.NodeFactory;
 import com.tarzan.maxkb4j.core.workflow.logic.LfNode;
 import com.tarzan.maxkb4j.core.workflow.logic.LogicFlow;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatRecordEntity;
@@ -18,8 +16,6 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-
-import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.BASE;
 
 @AllArgsConstructor
 @Component
@@ -38,10 +34,8 @@ public class ChatFlowActuator implements IChatActuator {
         }
         chatParams.setChatRecordId(chatParams.getChatRecordId() == null ? IdWorker.get32UUID() : chatParams.getChatRecordId());
         LogicFlow logicFlow = LogicFlow.newInstance(application.getWorkFlow());
-        List<LfNode> lfNodes = logicFlow.getNodes();
-        List<INode> nodes = lfNodes.stream().filter(lfNode -> !BASE.getKey().equals(lfNode.getType())).map(NodeFactory::getNode).toList();
         WorkflowManage workflowManage = new WorkflowManage(
-                nodes,
+                logicFlow.getNodes(),
                 logicFlow.getEdges(),
                 chatParams,
                 chatRecord,

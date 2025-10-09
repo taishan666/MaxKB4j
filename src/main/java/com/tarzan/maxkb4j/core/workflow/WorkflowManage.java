@@ -3,7 +3,9 @@ package com.tarzan.maxkb4j.core.workflow;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.tarzan.maxkb4j.common.util.StringUtil;
+import com.tarzan.maxkb4j.core.workflow.factory.NodeFactory;
 import com.tarzan.maxkb4j.core.workflow.logic.LfEdge;
+import com.tarzan.maxkb4j.core.workflow.logic.LfNode;
 import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
 import com.tarzan.maxkb4j.core.workflow.result.NodeResultFuture;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatRecordEntity;
@@ -22,7 +24,7 @@ import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.*;
 public class WorkflowManage {
     private INode startNode;
     private ChatParams chatParams;
-    private List<INode> nodes;
+    private List<LfNode> lfNodes;
     private List<LfEdge> edges;
     private Map<String, Object> context;
     private Map<String, Object> chatContext;
@@ -31,8 +33,8 @@ public class WorkflowManage {
     private ApplicationChatRecordEntity chatRecord;
     private List<ApplicationChatRecordEntity> historyChatRecords;
 
-    public WorkflowManage(List<INode> nodes, List<LfEdge> edges, ChatParams chatParams, ApplicationChatRecordEntity chatRecord, List<ApplicationChatRecordEntity> historyChatRecords) {
-        this.nodes = nodes;
+    public WorkflowManage(List<LfNode> lfNodes, List<LfEdge> edges, ChatParams chatParams, ApplicationChatRecordEntity chatRecord, List<ApplicationChatRecordEntity> historyChatRecords) {
+        this.lfNodes = lfNodes;
         this.edges = edges;
         this.chatParams = chatParams;
         this.context = new HashMap<>();
@@ -155,13 +157,13 @@ public class WorkflowManage {
 
     private void processEdge(LfEdge edge, INode currentNode, List<INode> nodeList) {
         // 查找目标节点
-        Optional<INode> targetNodeOpt = nodes.stream()
+        Optional<LfNode> targetNodeOpt = lfNodes.stream()
                 .filter(node -> node.getId().equals(edge.getTargetNodeId()))
                 .findFirst();
         if (targetNodeOpt.isEmpty()) {
             return;
         }
-        INode targetNode = targetNodeOpt.get();
+        LfNode targetNode = targetNodeOpt.get();
         String condition = (String) targetNode.getProperties().getOrDefault("condition", "AND");
         // 处理节点依赖
         if ("AND".equals(condition)) {
@@ -189,8 +191,10 @@ public class WorkflowManage {
 
 
     private INode getNodeClsById(String nodeId, List<String> upNodeIds, Function<INode, JSONObject> getNodeProperties) {
-        for (INode node : nodes) {
-            if (nodeId.equals(node.getId())) {
+        for (LfNode lfNode : lfNodes) {
+            if (nodeId.equals(lfNode.getId())) {
+                INode node =NodeFactory.getNode(lfNode);
+                assert node != null;
                 node.setFlowVariables(this.getFlowVariables());
                 node.setPromptVariables(this.getPromptVariables());
                 node.setUpNodeIdList(upNodeIds);
