@@ -138,10 +138,8 @@ public class DocumentExtractNode extends INode {
 
 
     @Override
-    public JSONObject getDetail() {
+    public JSONObject getRunDetail() {
         String content = (String) context.get("content");
-        JSONObject detail = new JSONObject();
-        detail.put("documentList", context.get("documentList"));
         detail.put("content", content.split(splitter));
         return detail;
     }

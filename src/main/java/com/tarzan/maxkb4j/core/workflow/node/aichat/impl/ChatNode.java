@@ -173,25 +173,12 @@ public class ChatNode extends INode {
 
     @Override
     public void saveContext(JSONObject detail) {
-        context.put("system", detail.get("system"));
-        context.put("history_message", detail.get("history_message"));
-        context.put("question", detail.get("question"));
         context.put("answer", detail.get("answer"));
         context.put("reasoningContent", detail.get("reasoningContent"));
-        context.put("messageTokens", detail.get("messageTokens"));
-        context.put("answerTokens", detail.get("answerTokens"));
     }
 
     @Override
-    public JSONObject getDetail() {
-        JSONObject detail = new JSONObject();
-        detail.put("system", context.get("system"));
-        detail.put("history_message", context.get("history_message"));
-        detail.put("question", context.get("question"));
-        detail.put("answer", context.get("answer"));
-        detail.put("reasoningContent", context.get("reasoningContent"));
-        detail.put("messageTokens", context.get("messageTokens"));
-        detail.put("answerTokens", context.get("answerTokens"));
+    public JSONObject getRunDetail() {
         return detail;
     }
 }

@@ -55,10 +55,7 @@ public class ToolLibNode extends INode {
     }
 
     @Override
-    public JSONObject getDetail() {
-        JSONObject detail = new JSONObject();
-        detail.put("result", context.get("result"));
-        detail.put("params", context.get("params"));
+    public JSONObject getRunDetail() {
         return detail;
     }
 

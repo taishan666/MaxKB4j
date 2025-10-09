@@ -103,10 +103,7 @@ public class VariableAssignNode extends INode {
     }
 
     @Override
-    public JSONObject getDetail() {
-        JSONObject detail = new JSONObject();
-        detail.put("variable_list",context.get("variable_list"));
-        detail.put("result_list",context.get("result_list"));
+    public JSONObject getRunDetail() {
         return detail;
     }
 

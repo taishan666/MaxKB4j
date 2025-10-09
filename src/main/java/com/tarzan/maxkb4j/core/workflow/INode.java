@@ -34,15 +34,16 @@ public abstract class INode {
     public Map<String, Map<String,Object>> flowVariables;
     public Map<String, Object> promptVariables;
     public Map<String, Object> context;
+    public JSONObject detail;
     public List<String> upNodeIdList;
     public String runtimeNodeId;
     public String answerText;
-    public Float runTime;
     private List<ApplicationChatRecordEntity> historyChatRecords;
 
 
     public INode(JSONObject properties) {
-        this.context = new JSONObject();
+        this.context = new HashMap<>(10);
+        this.detail = new JSONObject();
         this.upNodeIdList = new ArrayList<>();
         this.properties = properties;
         this.viewType = "many_view";
@@ -63,9 +64,9 @@ public abstract class INode {
 
     public abstract NodeResult execute() throws Exception;
 
-    public abstract void saveContext(JSONObject detail);
+    protected abstract void saveContext(JSONObject detail);
 
-    public abstract JSONObject getDetail();
+    public abstract JSONObject getRunDetail();
 
 
     private String generateRuntimeNodeId() {
@@ -89,26 +90,31 @@ public abstract class INode {
     public NodeResult run() throws Exception {
         long startTime = System.currentTimeMillis();
         NodeResult result = execute();
-        runTime = (System.currentTimeMillis() - startTime) / 1000F;
+        float runTime = (System.currentTimeMillis() - startTime) / 1000F;
+        detail.put("runTime", runTime);
         log.info("node:{}, runTime:{} s", type, runTime);
         return result;
     }
 
+    public void setDetail(JSONObject detail) {
+        this.detail = detail;
+        saveContext(detail);
+    }
+
 
     public JSONObject getDetail(int index) {
-        JSONObject detail = new JSONObject();
         detail.put("nodeId", id);
         detail.put("upNodeIdList", upNodeIdList);
         detail.put("runtimeNodeId", runtimeNodeId);
         detail.put("name", properties.getString("nodeName"));
         detail.put("index", index);
         detail.put("type", type);
-        detail.put("runTime", runTime);
         detail.put("status", status);
         detail.put("errMessage", errMessage);
-        detail.putAll(getDetail());
+        detail.putAll(getRunDetail());
         return detail;
     }
+
 
 
     public Object getReferenceField(String nodeId, String key) {

@@ -65,9 +65,7 @@ public class DirectReplyNode extends INode {
 
 
     @Override
-    public JSONObject getDetail() {
-        JSONObject detail = new JSONObject();
-        detail.put("answer", context.get("answer"));
+    public JSONObject getRunDetail() {
         return detail;
     }
 

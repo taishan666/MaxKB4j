@@ -43,12 +43,13 @@ public class NodeResult {
     }
 
     public boolean defaultIsInterrupt(INode node) {
-        return (USER_SELECT.getKey().equals(node.getType())|| FORM.getKey().equals(node.getType())) && !(boolean)node.getContext().get("is_submit");
+        return (USER_SELECT.getKey().equals(node.getType())|| FORM.getKey().equals(node.getType())) && !(boolean)node.getContext().getOrDefault("is_submit", false);
     }
 
     public void defaultWriteContextFunc(Map<String, Object> nodeVariable, Map<String, Object> globalVariable, INode node, WorkflowManage workflow) {
         if (nodeVariable != null) {
             node.getContext().putAll(nodeVariable);
+            node.getDetail().putAll(nodeVariable);
             if (workflow.isResult(node, new NodeResult(nodeVariable, globalVariable)) && nodeVariable.containsKey("answer")) {
                 String answer = (String) nodeVariable.get("answer");
                 ChatMessageVO vo = new ChatMessageVO(
@@ -80,6 +81,7 @@ public class NodeResult {
         }
         if (globalVariable != null) {
             workflow.getContext().putAll(globalVariable);
+            node.getDetail().putAll(globalVariable);
         }
     }
 

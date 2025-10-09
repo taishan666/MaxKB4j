@@ -119,20 +119,14 @@ public class SearchKnowledgeNode extends INode {
 
     @Override
     public void saveContext(JSONObject detail) {
-        context.put("question", detail.get("question"));
         context.put("paragraphList", detail.get("paragraphList"));
         context.put("isHitHandlingMethodList", detail.get("isHitHandlingMethodList"));
         context.put("data", detail.get("data"));
         context.put("directlyReturn", detail.get("directlyReturn"));
-        context.put("showKnowledge", detail.get("showKnowledge"));
     }
 
     @Override
-    public JSONObject getDetail() {
-        JSONObject detail = new JSONObject();
-        detail.put("question", context.get("question"));
-        detail.put("paragraphList", context.get("paragraphList"));
-        detail.put("showKnowledge", context.get("showKnowledge"));
+    public JSONObject getRunDetail() {
         return detail;
     }
 

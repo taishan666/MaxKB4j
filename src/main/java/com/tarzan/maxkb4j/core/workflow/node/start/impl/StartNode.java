@@ -35,6 +35,7 @@ public class StartNode extends INode {
         Map<String, Object> globalVariable = getDefaultGlobalVariable(chatParams);
         // 合并全局变量
         globalVariable.putAll(chatParams.getFormData());
+        //会话变量
         super.getFlowVariables().get("chat").putAll(getChatVariable(chatParams.getChatId()));
         // 构建节点变量
         Map<String, Object> nodeVariable =new HashMap<>();
@@ -115,12 +116,7 @@ public class StartNode extends INode {
 
 
     @Override
-    public JSONObject getDetail() {
-        JSONObject detail = new JSONObject();
-        detail.put("question",context.get("question"));
-        detail.put("image",context.get("image"));
-        detail.put("document",context.get("document"));
-        detail.put("audio",context.get("audio"));
+    public JSONObject getRunDetail() {
         JSONObject config=properties.getJSONObject("config");
         JSONArray globalFields=config.getJSONArray("globalFields");
         for (int i = 0; i < globalFields.size(); i++) {

@@ -65,7 +65,6 @@ public class ApplicationNode extends INode {
                 .message(question)
                 .appId(nodeParams.getApplicationId())
                 .chatId(chatId)
-                //todo
                 .runtimeNodeId(super.runtimeNodeId)
                 .stream(chatParams.getStream())
                 .reChat(chatParams.getReChat())
@@ -97,9 +96,8 @@ public class ApplicationNode extends INode {
     }
 
 
-    //todo 获取节点详情
     @Override
-    public JSONObject getDetail() {
+    public JSONObject getRunDetail() {
         JSONObject detail = new JSONObject();
        // detail.put("info", properties.getString("nodeData"));
         detail.put("question", context.get("question"));

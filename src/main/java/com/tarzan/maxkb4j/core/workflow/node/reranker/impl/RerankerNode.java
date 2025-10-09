@@ -124,13 +124,7 @@ public class RerankerNode extends INode {
     }
 
     @Override
-    public JSONObject getDetail() {
-        JSONObject detail = new JSONObject();
-        detail.put("documentList", context.get("documentList"));
-        detail.put("question", context.get("question"));
-        detail.put("reranker_setting", context.get("content"));
-        detail.put("result", context.get("answer"));
-        detail.put("result_list", context.get("audioList"));
+    public JSONObject getRunDetail() {
         return detail;
     }
 
