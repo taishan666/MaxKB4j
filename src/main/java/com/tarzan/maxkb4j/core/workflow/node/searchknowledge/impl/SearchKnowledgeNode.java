@@ -42,15 +42,14 @@ public class SearchKnowledgeNode extends INode {
         }
         List<ParagraphVO> paragraphList= retrieveService.paragraphSearch(question,nodeParams.getKnowledgeIdList(),excludeParagraphIds,knowledgeSetting);
         List<ParagraphVO> isHitHandlingMethodList=paragraphList.stream().filter(ParagraphVO::isHitHandlingMethod).toList();
-        Map<String, Object> nodeVariable = Map.of(
+        detail.put("question",question);
+        detail.put("showKnowledge", nodeParams.getShowKnowledge());//todo 获取对话记录时会用
+        return new NodeResult(Map.of(
                 "paragraphList", paragraphList,
                 "isHitHandlingMethodList", isHitHandlingMethodList,
                 "data", processParagraphs(paragraphList, knowledgeSetting.getMaxParagraphCharNumber()),
-                "directlyReturn", directlyReturns(isHitHandlingMethodList),
-                "question", question,
-                "showKnowledge", nodeParams.getShowKnowledge() //todo 获取对话记录时会用
-        );
-        return new NodeResult(nodeVariable, Map.of());
+                "directlyReturn", directlyReturns(isHitHandlingMethodList)
+        ), Map.of());
     }
 
     private List<String> getExcludeParagraphIds(String question){

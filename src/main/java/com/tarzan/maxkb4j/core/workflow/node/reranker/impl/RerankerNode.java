@@ -72,10 +72,10 @@ public class RerankerNode extends INode {
         for (Map<String, Object> map : resultList) {
             sb.append(map.get("text"));
         }
+        detail.put("question", question);
+        detail.put("documentList", documents);
         return new NodeResult(Map.of("result_list", resultList,
-                "result",sb.toString(),
-                "documentList", documents,
-                "question",question), Map.of());
+                "result",sb.toString()), Map.of());
     }
 
 

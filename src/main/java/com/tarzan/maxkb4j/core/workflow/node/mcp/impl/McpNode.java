@@ -46,7 +46,9 @@ public class McpNode extends INode {
                     .build();
             result.add(mcpClient.executeTool(toolExecutionRequest));
         }
-        return new NodeResult(Map.of("result",result,"toolParams",toolParams,"mcpTool",nodeParams.getMcpTool()), Map.of());
+        detail.put("toolParams",toolParams);
+        detail.put("mcpTool",nodeParams.getMcpTool());
+        return new NodeResult(Map.of("result",result), Map.of());
     }
 
     @Override

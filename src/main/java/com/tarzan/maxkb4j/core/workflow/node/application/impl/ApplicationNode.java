@@ -80,35 +80,33 @@ public class ApplicationNode extends INode {
                 .debug(chatParams.getDebug())
                 .build();
         String answer = chatService.chatMessage(nodeChatParams);
+        detail.put("question", context.get("question"));
+        detail.put("answer", context.get("answer"));
         return new NodeResult(Map.of(
-                "answer", answer,
-                "result", answer,
-                "question", question
+                "result", answer
         ), Map.of());
     }
 
 
     @Override
     public void saveContext(JSONObject detail) {
-        context.put("question", detail.get("question"));
-        context.put("answer", detail.get("answer"));
         context.put("result", detail.get("result"));
     }
 
 
     @Override
     public JSONObject getRunDetail() {
-        JSONObject detail = new JSONObject();
+/*        JSONObject detail = new JSONObject();
        // detail.put("info", properties.getString("nodeData"));
         detail.put("question", context.get("question"));
         detail.put("answer", context.get("answer"));
-        detail.put("messageTokens", context.get("messageTokens"));
-        detail.put("answerTokens", context.get("answerTokens"));
+        *//*detail.put("messageTokens", context.get("messageTokens"));
+        detail.put("answerTokens", context.get("answerTokens"));*//*
         detail.put("imageList", context.get("image"));
         detail.put("documentList", context.get("document"));
         detail.put("audioList", context.get("audio"));
         detail.put("globalFields", properties.get("globalFields"));
-      //  detail.put("application_node_dict", context.get("application_node_dict"));
+      //  detail.put("application_node_dict", context.get("application_node_dict"));*/
         return detail;
     }
 

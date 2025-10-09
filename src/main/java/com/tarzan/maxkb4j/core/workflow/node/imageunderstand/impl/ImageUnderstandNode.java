@@ -83,16 +83,14 @@ public class ImageUnderstandNode extends INode {
         }
         Assistant assistant = aiServicesBuilder.streamingChatModel(chatModel.getStreamingChatModel()).build();
         TokenStream tokenStream = assistant.chatStream(question,contents);
-        Map<String, Object> nodeVariable = new HashMap<>(Map.of(
-                "system", systemPrompt,
-                "history_message", resetMessageList(historyMessages),
-                "question", question,
-                "imageList", ImageFiles
-        ));
-        return writeContextStream(nodeVariable, Map.of(),nodeParams,tokenStream);
+        detail.put("system", systemPrompt);
+        detail.put("history_message", resetMessageList(historyMessages));
+        detail.put("question", question);
+        detail.put("imageList", ImageFiles);
+        return writeContextStream(nodeParams,tokenStream);
     }
 
-    private NodeResult writeContextStream(Map<String, Object> nodeVariable, Map<String, Object> globalVariable, ImageUnderstandParams nodeParams, TokenStream tokenStream) {
+    private NodeResult writeContextStream(ImageUnderstandParams nodeParams, TokenStream tokenStream) {
         boolean isResult = nodeParams.getIsResult();
         CompletableFuture<ChatResponse> chatResponseFuture  = new CompletableFuture<>();
         // 完成后释放线程
@@ -124,15 +122,13 @@ public class ImageUnderstandNode extends INode {
             String answer = response.aiMessage().text();
             String thinking = response.aiMessage().thinking();
             TokenUsage tokenUsage = response.tokenUsage();
-            nodeVariable.put("messageTokens", tokenUsage.inputTokenCount());
-            nodeVariable.put("answerTokens", tokenUsage.outputTokenCount());
-            nodeVariable.put("answer", answer);
-            nodeVariable.put("reasoningContent", thinking);
-            return new NodeResult(nodeVariable,globalVariable, this::writeContext);
+            detail.put("messageTokens", tokenUsage.inputTokenCount());
+            detail.put("answerTokens", tokenUsage.outputTokenCount());
+            return new NodeResult(Map.of("answer", answer,"reasoningContent", thinking),Map.of(), this::writeContext);
         } catch (InterruptedException | ExecutionException e) {
             log.error("Error waiting for TokenStream completion", e);
             Thread.currentThread().interrupt(); // 恢复中断状态
-            return new NodeResult(nodeVariable, globalVariable);
+            return new NodeResult(null, null);
         }
 
     }

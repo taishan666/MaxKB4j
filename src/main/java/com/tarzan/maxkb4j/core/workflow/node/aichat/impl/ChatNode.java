@@ -22,7 +22,6 @@ import dev.langchain4j.service.TokenStream;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -74,18 +73,16 @@ public class ChatNode extends INode {
                 .streamingChatModel(chatModel.getStreamingChatModel())
                 .build();
         TokenStream tokenStream = assistant.chatStream(question);
-        Map<String, Object> nodeVariable = new HashMap<>(Map.of(
-                "system", systemPrompt,
-                "history_message", resetMessageList(historyMessages),
-                "question", question
-        ));
-        return writeContextStream(nodeVariable, Map.of(),nodeParams,tokenStream);
+        detail.put("system", systemPrompt);
+        detail.put("history_message", resetMessageList(historyMessages));
+        detail.put("question", question);
+        return writeContextStream(nodeParams,tokenStream);
     }
 
 
 
 
-    private NodeResult writeContextStream(Map<String, Object> nodeVariable, Map<String, Object> globalVariable,ChatNodeParams nodeParams,TokenStream tokenStream) {
+    private NodeResult writeContextStream(ChatNodeParams nodeParams,TokenStream tokenStream) {
         boolean isResult = nodeParams.getIsResult();
         boolean reasoningContentEnable = nodeParams.getModelSetting().getBooleanValue("reasoningContentEnable");
         CompletableFuture<ChatResponse> chatResponseFuture  = new CompletableFuture<>();
@@ -129,20 +126,18 @@ public class ChatNode extends INode {
                 })
                 .start();
         try {
-            // 阻塞等待 answer
-            ChatResponse response = chatResponseFuture.get(); // 可设置超时：get(30, TimeUnit.SECONDS)
+            // 阻塞等待 answer 可设置超时：get(30, TimeUnit.SECONDS)
+            ChatResponse response = chatResponseFuture.get();
             String answer = response.aiMessage().text();
             String thinking = response.aiMessage().thinking();
             TokenUsage tokenUsage = response.tokenUsage();
-            nodeVariable.put("messageTokens", tokenUsage.inputTokenCount());
-            nodeVariable.put("answerTokens", tokenUsage.outputTokenCount());
-            nodeVariable.put("answer", answer);
-            nodeVariable.put("reasoningContent", thinking);
-            return new NodeResult(nodeVariable,globalVariable, this::writeContext);
+            detail.put("messageTokens", tokenUsage.inputTokenCount());
+            detail.put("answerTokens", tokenUsage.outputTokenCount());
+            return new NodeResult(Map.of("answer", answer,"reasoningContent", thinking),Map.of(), this::writeContext);
         } catch (InterruptedException | ExecutionException e) {
             log.error("Error waiting for TokenStream completion", e);
             Thread.currentThread().interrupt(); // 恢复中断状态
-            return new NodeResult(nodeVariable, globalVariable);
+            return new NodeResult(null, null);
         }
 
     }

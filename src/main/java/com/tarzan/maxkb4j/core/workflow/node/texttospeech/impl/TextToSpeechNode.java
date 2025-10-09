@@ -38,8 +38,9 @@ public class TextToSpeechNode extends INode {
         ChatFile fileVO = fileService.uploadFile("generated_audio_"+ UUID.randomUUID() +".mp3",audioData);
         // 使用字符串拼接生成 HTML 音频标签
         String audioLabel = "<audio src=\"" + fileVO.getUrl() + "\" controls style=\"width: 300px; height: 43px\"></audio>";
+        detail.put("content",content);
         // 输出生成的 HTML 标签
-        return new NodeResult(Map.of("content",content,"answer",audioLabel,"result",List.of(fileVO)),Map.of());
+        return new NodeResult(Map.of("answer",audioLabel,"result",List.of(fileVO)),Map.of());
     }
 
     @Override

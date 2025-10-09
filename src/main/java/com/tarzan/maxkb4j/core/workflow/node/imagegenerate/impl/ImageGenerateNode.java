@@ -47,7 +47,8 @@ public class ImageGenerateNode extends INode {
             answerSb.append(" ").append(imageMd);
             imageUrls.add(image.url().toString());
         }
-        return new NodeResult(Map.of("question",prompt,"answer",answerSb.toString(),"image",imageUrls),Map.of());
+        detail.put("question",prompt);
+        return new NodeResult(Map.of("answer",answerSb.toString(),"image",imageUrls),Map.of());
     }
 
     @Override

@@ -48,7 +48,9 @@ public class SpeechToTextNode extends INode {
             content.add("### combined_audio.mp3\n"+result);
         }
         String answer=sb.toString();
-        return new NodeResult(Map.of("answer", answer, "content", content,"result", answer, "audioList", audioFiles), Map.of());
+        detail.put("content", content);
+        detail.put("audioList", audioFiles);
+        return new NodeResult(Map.of("answer", answer,"result", answer), Map.of());
     }
 
     @Override

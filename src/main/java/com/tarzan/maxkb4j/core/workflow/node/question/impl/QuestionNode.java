@@ -52,13 +52,13 @@ public class QuestionNode extends INode {
         for (Query queryResult : list) {
             answerSb.append(queryResult.text());
         }
+        detail.put("system", system);
+        detail.put("question", question);
+        detail.put("history_message", resetMessageList(historyMessages));
+        detail.put("messageTokens", TokenUtil.countTokens(messageList));
+        detail.put("answerTokens", TokenUtil.countTokens(answerSb.toString()));
         return new NodeResult(Map.of(
-                "system", system,
-                "question", question,
-                "answer", answerSb.toString(),
-                "history_message", resetMessageList(historyMessages),
-                "messageTokens", TokenUtil.countTokens(messageList),
-                "answerTokens",TokenUtil.countTokens(answerSb.toString())
+                "answer", answerSb.toString()
         ), Map.of());
     }
 

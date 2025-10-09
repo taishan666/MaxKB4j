@@ -46,7 +46,8 @@ public class ToolLibNode extends INode {
         GroovyShell shell = new GroovyShell(binding);
         // 执行脚本并返回结果
         Object result = shell.evaluate(nodeParams.getCode());
-        return new NodeResult(Map.of("answer", "", "params", params, "result", result), Map.of());
+        detail.put("params", params);
+        return new NodeResult(Map.of("answer", result,"result", result), Map.of());
     }
 
     @Override
