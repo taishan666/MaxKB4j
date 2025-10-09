@@ -261,7 +261,7 @@ public class WorkflowManage {
         }
         for (int index = 0; index < nodeContext.size(); index++) {
             INode node = nodeContext.get(index);
-            JSONObject detail = node.getDetail(index);
+            JSONObject detail = node.getRunDetail(index);
             detailsResult.put(node.getRuntimeNodeId(), detail);
         }
         return detailsResult;

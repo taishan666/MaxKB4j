@@ -103,7 +103,7 @@ public abstract class INode {
     }
 
 
-    public JSONObject getDetail(int index) {
+    public JSONObject getRunDetail(int index) {
         detail.put("nodeId", id);
         detail.put("upNodeIdList", upNodeIdList);
         detail.put("runtimeNodeId", runtimeNodeId);
@@ -193,10 +193,16 @@ public abstract class INode {
     }
 
     private List<ChatMessage> getWorkFlowMessages() {
+        String regex = "<form_render>(.*?)</form_render>";
+        Pattern pattern = Pattern.compile(regex, Pattern.DOTALL);
         List<ChatMessage> messages = new ArrayList<>();
         for (ApplicationChatRecordEntity message : historyChatRecords) {
-            messages.add(new UserMessage(message.getProblemText()));
-            messages.add(new AiMessage(message.getAnswerText()));
+            String answerText = message.getAnswerText();
+            Matcher matcher = pattern.matcher(answerText);
+            if (!matcher.find()){
+                messages.add(new UserMessage(message.getProblemText()));
+                messages.add(new AiMessage(message.getAnswerText()));
+            }
         }
         return messages;
     }
