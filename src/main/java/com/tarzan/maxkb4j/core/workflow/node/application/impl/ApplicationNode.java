@@ -15,6 +15,8 @@ import reactor.core.publisher.Sinks;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.APPLICATION;
 
@@ -28,6 +30,7 @@ public class ApplicationNode extends INode {
     }
 
 
+    @SuppressWarnings("unchecked")
     @Override
     public NodeResult execute() {
         ApplicationNodeParams nodeParams = super.getNodeData().toJavaObject(ApplicationNodeParams.class);
@@ -56,11 +59,7 @@ public class ApplicationNode extends INode {
         if (CollectionUtils.isNotEmpty(audioFields)) {
             otherList = (List<ChatFile>) super.getReferenceField(otherFields.get(0), otherFields.get(1));
         }
-        Sinks.Many<ChatMessageVO> sink = Sinks.many().unicast().onBackpressureBuffer();
-        if (nodeParams.getIsResult()){
-            sink=chatParams.getSink();
-        }
-
+        Sinks.Many<ChatMessageVO> appNodeSink = Sinks.many().unicast().onBackpressureBuffer();
         ChatParams nodeChatParams = ChatParams.builder()
                 .message(question)
                 .appId(nodeParams.getApplicationId())
@@ -70,7 +69,7 @@ public class ApplicationNode extends INode {
                 .reChat(chatParams.getReChat())
                 .chatUserId(chatParams.getChatUserId())
                 .chatUserType(chatParams.getChatUserType())
-                .sink(sink)
+                .sink(appNodeSink)
                 .imageList(imageList)
                 .audioList(audioList)
                 .documentList(docList)
@@ -79,12 +78,40 @@ public class ApplicationNode extends INode {
                 .nodeData(chatParams.getNodeData())
                 .debug(chatParams.getDebug())
                 .build();
-        String answer = chatService.chatMessage(nodeChatParams);
+        CompletableFuture<String> future = chatService.chatMessageAsync(nodeChatParams);
+        // 使用原子变量或收集器来安全地累积 token
+        AtomicInteger messageTokens = new AtomicInteger(0);
+        AtomicInteger answerTokens = new AtomicInteger(0);
+        if (nodeParams.getIsResult()) {
+            // 订阅并累积 token，同时发送消息
+            appNodeSink.asFlux()
+                    .doOnNext(e -> {
+                        ChatMessageVO vo = new ChatMessageVO(
+                                getChatParams().getChatId(),
+                                getChatParams().getChatRecordId(),
+                                id,
+                                e.getContent(),
+                                "",
+                                upNodeIdList,
+                                runtimeNodeId,
+                                type,
+                                viewType,
+                                false
+                        );
+                        super.getChatParams().getSink().tryEmitNext(vo);
+                    })
+                    .subscribe(e -> {
+                        messageTokens.addAndGet(e.getMessageTokens());
+                        answerTokens.addAndGet(e.getAnswerTokens());
+                    });
+        }
+        answerText=future.join();
+        detail.put("messageTokens", messageTokens.get());
+        detail.put("answerTokens", answerTokens.get());
         detail.put("question", question);
-        detail.put("answer", answer);
-        answerText = answer;
+        detail.put("answer", answerText);
         return new NodeResult(Map.of(
-                "result", answer
+                "result", answerText
         ), Map.of());
     }
 

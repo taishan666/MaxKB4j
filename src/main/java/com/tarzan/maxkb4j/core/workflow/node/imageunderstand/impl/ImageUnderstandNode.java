@@ -119,12 +119,11 @@ public class ImageUnderstandNode extends INode {
         try {
             // 阻塞等待 answer
             ChatResponse response = chatResponseFuture.get(); // 可设置超时：get(30, TimeUnit.SECONDS)
-            String answer = response.aiMessage().text();
-            String thinking = response.aiMessage().thinking();
+            answerText = response.aiMessage().text();
             TokenUsage tokenUsage = response.tokenUsage();
             detail.put("messageTokens", tokenUsage.inputTokenCount());
             detail.put("answerTokens", tokenUsage.outputTokenCount());
-            return new NodeResult(Map.of("answer", answer,"reasoningContent", thinking),Map.of(), this::writeContext);
+            return new NodeResult(Map.of("answer", answerText),Map.of(), this::writeContext);
         } catch (InterruptedException | ExecutionException e) {
             log.error("Error waiting for TokenStream completion", e);
             Thread.currentThread().interrupt(); // 恢复中断状态

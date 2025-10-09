@@ -31,5 +31,7 @@ public class ApplicationNodeParams {
 
     private Boolean isResult;
 
-
+    public Boolean getIsResult() {
+        return isResult != null && isResult;
+    }
 }

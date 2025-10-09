@@ -9,7 +9,6 @@ import com.tarzan.maxkb4j.common.exception.ApiException;
 import com.tarzan.maxkb4j.common.util.StringUtil;
 import com.tarzan.maxkb4j.core.chat.provider.ChatActuatorBuilder;
 import com.tarzan.maxkb4j.core.chat.provider.IChatActuator;
-import com.tarzan.maxkb4j.core.workflow.model.ChatFile;
 import com.tarzan.maxkb4j.module.application.cache.ChatCache;
 import com.tarzan.maxkb4j.module.application.domian.dto.ChatInfo;
 import com.tarzan.maxkb4j.module.application.domian.dto.ChatQueryDTO;
@@ -21,14 +20,14 @@ import com.tarzan.maxkb4j.module.chat.ChatParams;
 import com.tarzan.maxkb4j.module.oss.service.MongoFileService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * @author tarzan
@@ -40,7 +39,6 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
 
     private final ApplicationChatRecordService chatRecordService;
     private final ApplicationService applicationService;
-    private final MongoFileService fileService;
     private final ApplicationChatUserStatsService userStatsService;
     private final ApplicationAccessTokenService accessTokenService;
     private final ApplicationVersionService applicationVersionService;
@@ -106,6 +104,11 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
         return answer;
     }
 
+    @Async
+    public CompletableFuture<String> chatMessageAsync(ChatParams chatParams) {
+        return CompletableFuture.completedFuture(chatMessage(chatParams));
+    }
+
     public void visitCountCheck(String appId, String chatUserId, boolean debug) {
         if (!debug && Objects.nonNull(appId)) {
             ApplicationChatUserStatsEntity accessClient = userStatsService.getById(chatUserId);
@@ -128,7 +131,7 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
     }
 
 
-    public List<ChatFile> uploadFile(String id, String chatId, MultipartFile[] files) {
+/*    public List<ChatFile> uploadFile(String id, String chatId, MultipartFile[] files) {
         List<ChatFile> fileList = new ArrayList<>();
         for (MultipartFile file : files) {
             try {
@@ -138,7 +141,7 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
             }
         }
         return fileList;
-    }
+    }*/
 
     public void chatExport(List<String> ids, HttpServletResponse response) throws IOException {
         List<ChatRecordDetailVO> rows = baseMapper.chatRecordDetail(ids);
