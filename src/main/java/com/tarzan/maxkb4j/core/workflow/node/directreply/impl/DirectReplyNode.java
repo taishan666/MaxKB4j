@@ -22,21 +22,20 @@ public class DirectReplyNode extends INode {
     @Override
     public NodeResult execute() {
         ReplyNodeParams nodeParams = super.getNodeData().toJavaObject(ReplyNodeParams.class);
-        String answer;
         if ("referencing".equals(nodeParams.getReplyType())) {
             List<String> fields = nodeParams.getFields();
             Object res = super.getReferenceField(fields.get(0), fields.get(1));
             if (res == null) {
-                answer = "";
+                answerText = "";
             } else if (isSimpleType(res)) {
-                answer = res.toString();
+                answerText = res.toString();
             } else {
-                answer = JSON.toJSONString(res);
+                answerText = JSON.toJSONString(res);
             }
         } else {
-            answer = super.generatePrompt(nodeParams.getContent());
+            answerText = super.generatePrompt(nodeParams.getContent());
         }
-        return new NodeResult(Map.of("answer", answer), Map.of());
+        return new NodeResult(Map.of("answer", answerText), Map.of());
     }
 
     // 判断是否为简单类型（基本类型、包装类、String、Enum 等）

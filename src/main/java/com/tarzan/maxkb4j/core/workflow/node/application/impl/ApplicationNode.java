@@ -80,8 +80,9 @@ public class ApplicationNode extends INode {
                 .debug(chatParams.getDebug())
                 .build();
         String answer = chatService.chatMessage(nodeChatParams);
-        detail.put("question", context.get("question"));
-        detail.put("answer", context.get("answer"));
+        detail.put("question", question);
+        detail.put("answer", answer);
+        answerText = answer;
         return new NodeResult(Map.of(
                 "result", answer
         ), Map.of());

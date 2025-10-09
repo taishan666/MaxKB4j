@@ -47,6 +47,7 @@ public abstract class INode {
         this.upNodeIdList = new ArrayList<>();
         this.properties = properties;
         this.viewType = "many_view";
+        this.answerText = "";
     }
 
     public JSONObject getNodeData() {

@@ -128,12 +128,12 @@ public class ChatNode extends INode {
         try {
             // 阻塞等待 answer 可设置超时：get(30, TimeUnit.SECONDS)
             ChatResponse response = chatResponseFuture.get();
-            String answer = response.aiMessage().text();
+            answerText = response.aiMessage().text();
             String thinking = response.aiMessage().thinking();
             TokenUsage tokenUsage = response.tokenUsage();
             detail.put("messageTokens", tokenUsage.inputTokenCount());
             detail.put("answerTokens", tokenUsage.outputTokenCount());
-            return new NodeResult(Map.of("answer", answer,"reasoningContent", thinking),Map.of(), this::writeContext);
+            return new NodeResult(Map.of("answer", answerText,"reasoningContent", thinking),Map.of(), this::writeContext);
         } catch (InterruptedException | ExecutionException e) {
             log.error("Error waiting for TokenStream completion", e);
             Thread.currentThread().interrupt(); // 恢复中断状态
