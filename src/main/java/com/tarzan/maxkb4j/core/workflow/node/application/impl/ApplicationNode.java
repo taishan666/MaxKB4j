@@ -16,9 +16,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.APPLICATION;
+import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.FORM;
 
 public class ApplicationNode extends INode {
     private final ApplicationChatService chatService;
@@ -60,11 +62,21 @@ public class ApplicationNode extends INode {
             otherList = (List<ChatFile>) super.getReferenceField(otherFields.get(0), otherFields.get(1));
         }
         Sinks.Many<ChatMessageVO> appNodeSink = Sinks.many().unicast().onBackpressureBuffer();
+        String chatRecordId;
+        String runtimeNodeId;
+        if (chatParams.getChildNode()!=null){
+            chatRecordId=chatParams.getChildNode().getChatRecordId();
+            runtimeNodeId=chatParams.getChildNode().getRuntimeNodeId();
+        } else {
+            chatRecordId=null;
+            runtimeNodeId = null;
+        }
         ChatParams nodeChatParams = ChatParams.builder()
                 .message(question)
                 .appId(nodeParams.getApplicationId())
                 .chatId(chatId)
-                .runtimeNodeId(super.runtimeNodeId)
+                .chatRecordId(chatRecordId)
+                .runtimeNodeId(runtimeNodeId)
                 .stream(chatParams.getStream())
                 .reChat(chatParams.getReChat())
                 .chatUserId(chatParams.getChatUserId())
@@ -82,10 +94,14 @@ public class ApplicationNode extends INode {
         // 使用原子变量或收集器来安全地累积 token
         AtomicInteger messageTokens = new AtomicInteger(0);
         AtomicInteger answerTokens = new AtomicInteger(0);
+        AtomicBoolean is_interrupt_exec=new AtomicBoolean( false);
         if (nodeParams.getIsResult()) {
             // 订阅并累积 token，同时发送消息
             appNodeSink.asFlux()
                     .doOnNext(e -> {
+                        if(FORM.getKey().equals(e.getNodeType())){
+                            is_interrupt_exec.set( true);
+                        }
                         ChatMessageVO vo = new ChatMessageVO(
                                 getChatParams().getChatId(),
                                 getChatParams().getChatRecordId(),
@@ -105,14 +121,19 @@ public class ApplicationNode extends INode {
                         answerTokens.addAndGet(e.getAnswerTokens());
                     });
         }
-        answerText=future.join();
+        String answer=future.join();
         detail.put("messageTokens", messageTokens.get());
         detail.put("answerTokens", answerTokens.get());
         detail.put("question", question);
-        detail.put("answer", answerText);
+        detail.put("answer", answer);
+        detail.put("is_interrupt_exec", is_interrupt_exec.get());
         return new NodeResult(Map.of(
-                "result", answerText
-        ), Map.of());
+                "result", answer
+        ), Map.of(),this::isInterrupt);
+    }
+
+    public boolean isInterrupt(INode node) {
+        return node.getDetail().containsKey("is_interrupt_exec")&&(boolean)node.getDetail().get("is_interrupt_exec");
     }
 
 

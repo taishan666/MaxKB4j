@@ -22,7 +22,6 @@ public class ChatParams {
     @NotBlank(message = "对话id不能为空")
     private String chatId;
 
-    @NotBlank(message = "对话记录id不能为空")
     private String chatRecordId;
 
     private String runtimeNodeId;
@@ -32,6 +31,8 @@ public class ChatParams {
 
     private JSONObject formData;
     private JSONObject nodeData;
+
+    private ChildNode childNode;
 
     private List<ChatFile> audioList;
     private List<ChatFile> documentList;

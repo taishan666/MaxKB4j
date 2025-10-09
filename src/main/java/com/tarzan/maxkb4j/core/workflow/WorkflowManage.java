@@ -123,11 +123,8 @@ public class WorkflowManage {
 
     public List<INode> getNextNodeList(INode currentNode, NodeResult currentNodeResult) {
         List<INode> nodeList = new ArrayList<>();
-        if (currentNodeResult == null) {
-            return nodeList;
-        }
         // 判断是否中断执行
-        if (currentNodeResult.isInterruptExec(currentNode)) {
+        if (currentNodeResult == null||currentNodeResult.isInterruptExec(currentNode)) {
             return nodeList;
         }
         if (currentNodeResult.isAssertionResult()) {

@@ -9,8 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.Map;
 
-import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.FORM;
-import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.USER_SELECT;
+import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.*;
 
 @Slf4j
 @Data
@@ -34,6 +33,13 @@ public class NodeResult {
         this.isInterrupt = this::defaultIsInterrupt;
     }
 
+    public NodeResult(Map<String, Object> nodeVariable, Map<String, Object> globalVariable, IsInterruptFunction isInterrupt) {
+        this.nodeVariable = nodeVariable;
+        this.globalVariable = globalVariable;
+        this.writeContextFunc = this::defaultWriteContextFunc;
+        this.isInterrupt = isInterrupt;
+    }
+
 
     public void writeContext(INode currentNode, WorkflowManage workflowManage) {
         this.writeContextFunc.apply(nodeVariable, globalVariable, currentNode, workflowManage);
@@ -44,7 +50,7 @@ public class NodeResult {
     }
 
     public boolean defaultIsInterrupt(INode node) {
-        return (USER_SELECT.getKey().equals(node.getType())|| FORM.getKey().equals(node.getType())) && !(boolean)node.getContext().getOrDefault("is_submit", false);
+        return FORM.getKey().equals(node.getType()) && !(boolean)node.getContext().getOrDefault("is_submit", false);
     }
 
     public void defaultWriteContextFunc(Map<String, Object> nodeVariable, Map<String, Object> globalVariable, INode node, WorkflowManage workflow) {
@@ -52,7 +58,6 @@ public class NodeResult {
             node.getContext().putAll(nodeVariable);
             node.getDetail().putAll(nodeVariable);
             if (workflow.isResult(node, new NodeResult(nodeVariable, globalVariable))&& StringUtil.isNotBlank(node.getAnswerText())) {
-               // String answer = (String) nodeVariable.get("answer");
                 ChatMessageVO vo = new ChatMessageVO(
                         workflow.getChatParams().getChatId(),
                         workflow.getChatParams().getChatRecordId(),
@@ -93,8 +98,8 @@ public class NodeResult {
     }
 
     @FunctionalInterface
-    interface IsInterruptFunction {
-        boolean apply(INode current_node);
+    public interface IsInterruptFunction {
+        boolean apply(INode currentNode);
     }
 
     public boolean isAssertionResult() {
