@@ -49,6 +49,9 @@ public class ChatApiController {
     @GetMapping("/profile")
     public R<JSONObject> profile(String accessToken) {
         ApplicationAccessTokenEntity appAccessToken = accessTokenService.getByToken(accessToken);
+        if (appAccessToken == null){
+            return R.fail("未找到应用");
+        }
         JSONObject result = new JSONObject();
         result.put("authentication", appAccessToken.getAuthentication());
         return R.success(result);
