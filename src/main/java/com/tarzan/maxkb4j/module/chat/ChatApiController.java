@@ -53,8 +53,8 @@ public class ChatApiController {
     public R<ApplicationEntity> appProfile() {
         String appId = (String) StpUtil.getExtra("applicationId");
         ApplicationAccessTokenEntity appAccessToken = accessTokenService.getById(appId);
-        ApplicationVO application = applicationService.getPublishedDetail(appId);
-        if (appAccessToken != null) {
+        ApplicationVO application = applicationService.getDetail(appId);
+        if (appAccessToken != null && application != null) {
             application.setLanguage(appAccessToken.getLanguage());
             application.setShowSource(appAccessToken.getShowSource());
             application.setShowExec(appAccessToken.getShowExec());
@@ -65,7 +65,7 @@ public class ChatApiController {
     @GetMapping("/open")
     public R<String> chatOpen() {
         String appId = (String) StpUtil.getExtra("applicationId");
-        return R.success(chatService.chatOpen(appId,false));
+        return R.success(chatService.chatOpen(appId, false));
     }
 
     @PostMapping("/auth/anonymous")
@@ -73,7 +73,7 @@ public class ChatApiController {
         ApplicationAccessTokenEntity accessToken = accessTokenService.getByToken(params.getString("accessToken"));
         String chatUserId = IdWorker.get32UUID();
         if (StpUtil.isLogin()) {
-            chatUserId= StpUtil.getLoginIdAsString();
+            chatUserId = StpUtil.getLoginIdAsString();
         }
         SaLoginModel loginModel = new SaLoginModel();
         loginModel.setExtra("username", "游客");
@@ -141,7 +141,7 @@ public class ChatApiController {
 
     @GetMapping("/historical_conversation_record/{chatId}/{current}/{size}")
     public R<IPage<ApplicationChatRecordVO>> historicalConversationRecord(@PathVariable String chatId, @PathVariable int current, @PathVariable int size) {
-        return R.success(chatRecordService.chatRecordPage(chatId, current,size));
+        return R.success(chatRecordService.chatRecordPage(chatId, current, size));
     }
 
     @PutMapping("/vote/chat/{chatId}/chat_record/{chatRecordId}")
