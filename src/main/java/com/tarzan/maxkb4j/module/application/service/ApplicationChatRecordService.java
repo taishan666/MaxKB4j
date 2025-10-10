@@ -8,7 +8,10 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.tarzan.maxkb4j.common.util.BeanUtil;
+import com.tarzan.maxkb4j.common.util.PageUtil;
 import com.tarzan.maxkb4j.module.application.cache.ChatCache;
+import com.tarzan.maxkb4j.module.application.domian.dto.AddChatImproveDTO;
 import com.tarzan.maxkb4j.module.application.domian.dto.ChatImproveDTO;
 import com.tarzan.maxkb4j.module.application.domian.dto.ChatInfo;
 import com.tarzan.maxkb4j.module.application.domian.dto.ChatQueryDTO;
@@ -19,11 +22,10 @@ import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationStatisticsVO;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatRecordMapper;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.ParagraphEntity;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.ParagraphVO;
-import com.tarzan.maxkb4j.common.util.BeanUtil;
-import com.tarzan.maxkb4j.common.util.PageUtil;
 import com.tarzan.maxkb4j.module.knowledge.service.ParagraphService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import java.time.LocalDate;
@@ -175,7 +177,8 @@ public class ApplicationChatRecordService extends ServiceImpl<ApplicationChatRec
         return 0;
     }
 
-    public boolean improveChatLogs(String appId, ChatImproveDTO dto) {
+    @Transactional
+    public boolean addChatLogs(String appId, AddChatImproveDTO dto) {
         List<ApplicationChatRecordEntity> chatRecords = this.lambdaQuery().in(ApplicationChatRecordEntity::getId, dto.getChatIds()).list();
         List<ParagraphEntity> paragraphs = chatRecords.stream().map(e -> {
             ParagraphEntity paragraphEntity = new ParagraphEntity();
@@ -192,4 +195,35 @@ public class ApplicationChatRecordService extends ServiceImpl<ApplicationChatRec
         return paragraphService.saveBatch(paragraphs);
     }
 
+    @Transactional
+    public ApplicationChatRecordEntity improveChatLog(String chatRecordId,String knowledgeId, String docId, ChatImproveDTO dto) {
+        ParagraphEntity paragraphEntity = new ParagraphEntity();
+        paragraphEntity.setKnowledgeId(knowledgeId);
+        paragraphEntity.setDocumentId(docId);
+        paragraphEntity.setTitle(dto.getTitle());
+        paragraphEntity.setContent(dto.getContent());
+        paragraphEntity.setHitNum(0);
+        paragraphEntity.setIsActive(true);
+        paragraphEntity.setStatus("nn0");
+        paragraphService.save(paragraphEntity);
+        ApplicationChatRecordEntity chatRecord = new ApplicationChatRecordEntity();
+        chatRecord.setId(chatRecordId);
+        chatRecord.setImproveParagraphIdList(List.of(paragraphEntity.getId()));
+        this.updateById(chatRecord);
+        return this.getById(chatRecordId);
+    }
+
+    @Transactional
+    public boolean improveChatLog(String chatRecordId,String paragraphId) {
+        ApplicationChatRecordEntity chatRecord = new ApplicationChatRecordEntity();
+        chatRecord.setId(chatRecordId);
+        chatRecord.setImproveParagraphIdList(List.of());
+        this.updateById(chatRecord);
+        return paragraphService.removeById(paragraphId);
+    }
+
+    public List<ParagraphEntity> improveChatLog(String chatRecordId) {
+        ApplicationChatRecordEntity chatRecord =this.getById(chatRecordId);
+        return paragraphService.listByIds(chatRecord.getImproveParagraphIdList());
+    }
 }

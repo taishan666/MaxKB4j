@@ -3,11 +3,14 @@ package com.tarzan.maxkb4j.module.application.controller;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.tarzan.maxkb4j.common.api.R;
 import com.tarzan.maxkb4j.common.constant.AppConst;
+import com.tarzan.maxkb4j.module.application.domian.dto.AddChatImproveDTO;
 import com.tarzan.maxkb4j.module.application.domian.dto.ChatImproveDTO;
 import com.tarzan.maxkb4j.module.application.domian.dto.ChatQueryDTO;
+import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatRecordEntity;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationChatRecordVO;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationStatisticsVO;
 import com.tarzan.maxkb4j.module.application.service.ApplicationChatRecordService;
+import com.tarzan.maxkb4j.module.knowledge.domain.entity.ParagraphEntity;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -40,16 +43,27 @@ public class ApplicationChatRecordController {
         return R.success(chatRecordService.chatRecordPage(chatId, current, size));
     }
 
-    @PutMapping("/application/{appId}//chat/{chatId}/chat_record/{chatRecordId}/knowledge/{knowledgeId}/document/{docId}/improve")
-    public R<Boolean> improveChatLogs(@PathVariable("appId") String appId,@PathVariable ("chatId") String chatId,@PathVariable ("chatRecordId") String chatRecordId, @PathVariable("knowledgeId") String knowledgeId,@PathVariable ("docId") String docId, @RequestBody ChatImproveDTO dto) {
-        return R.success(chatRecordService.improveChatLogs(appId, dto));
+    @PostMapping("/application/{appId}/add_knowledge")
+    public R<Boolean> addKnowledge(@PathVariable("appId") String appId, @RequestBody AddChatImproveDTO dto) {
+        System.out.println("improveChatLogs");
+        return R.success(chatRecordService.addChatLogs(appId, dto));
     }
 
-    //TODO
-    @GetMapping("/application/{appId}//chat/{chatId}/chat_record/{chatRecordId}//improve")
-    public R<Boolean> improveChatLogs(@PathVariable("appId") String appId,@PathVariable ("chatId") String chatId,@PathVariable ("chatRecordId") String chatRecordId, @RequestBody ChatImproveDTO dto) {
-        return R.success(chatRecordService.improveChatLogs(appId, dto));
+    @PutMapping("/application/{appId}/chat/{chatId}/chat_record/{chatRecordId}/knowledge/{knowledgeId}/document/{docId}/improve")
+    public R<ApplicationChatRecordEntity> improveChatLog(@PathVariable("appId") String appId, @PathVariable ("chatId") String chatId, @PathVariable ("chatRecordId") String chatRecordId, @PathVariable("knowledgeId") String knowledgeId, @PathVariable ("docId") String docId, @RequestBody ChatImproveDTO dto) {
+        return R.success(chatRecordService.improveChatLog(chatRecordId,knowledgeId,docId, dto));
     }
+
+    @DeleteMapping("/application/{appId}/chat/{chatId}/chat_record/{chatRecordId}/knowledge/{knowledgeId}/document/{docId}/paragraph/{paragraphId}/improve")
+    public R<Boolean> improveChatLog(@PathVariable("appId") String appId, @PathVariable ("chatId") String chatId, @PathVariable ("chatRecordId") String chatRecordId, @PathVariable("knowledgeId") String knowledgeId, @PathVariable ("docId") String docId,@PathVariable("paragraphId") String paragraphId) {
+        return R.success(chatRecordService.improveChatLog(chatRecordId,paragraphId));
+    }
+
+    @GetMapping("/application/{appId}/chat/{chatId}/chat_record/{chatRecordId}/improve")
+    public R<List<ParagraphEntity>> improveChatLog(@PathVariable("appId") String appId, @PathVariable ("chatId") String chatId, @PathVariable ("chatRecordId") String chatRecordId) {
+        return R.success(chatRecordService.improveChatLog(chatRecordId));
+    }
+
 
 
 

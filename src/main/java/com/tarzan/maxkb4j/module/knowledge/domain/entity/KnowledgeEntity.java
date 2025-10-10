@@ -35,4 +35,6 @@ public class KnowledgeEntity extends BaseEntity {
     private Integer fileCountLimit;
 
     private String folderId;
+    @TableField(exist= false)
+    private String resourceType="knowledge";
 } 

@@ -35,7 +35,6 @@ public class KnowledgeController {
     private final RetrieveService retrieveService;
 
 
-    //  @SaCheckPermission("DATASET:READ")
     @GetMapping("/knowledge")
     public R<List<KnowledgeEntity>> listDatasets() {
         return R.success(datasetService.listByUserId(StpUtil.getLoginIdAsString()));
