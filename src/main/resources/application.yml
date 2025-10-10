@@ -52,6 +52,8 @@ sa-token:
   # token-style: random-128
   # 是否输出操作日志
   is-log: true
+  # 是否读取 Cookie
+  is-read-cookie: true
 
 decorator:
   datasource:

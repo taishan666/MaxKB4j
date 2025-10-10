@@ -6,6 +6,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -30,7 +31,6 @@ import com.tarzan.maxkb4j.module.model.provider.impl.BaseTextToSpeech;
 import com.tarzan.maxkb4j.module.system.permission.service.UserResourcePermissionService;
 import com.tarzan.maxkb4j.module.system.user.domain.entity.UserEntity;
 import com.tarzan.maxkb4j.module.system.user.service.UserService;
-import com.tarzan.maxkb4j.module.tool.domain.entity.ToolEntity;
 import com.tarzan.maxkb4j.module.tool.service.ToolService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
@@ -488,9 +488,9 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         return sttModel.speechToText(file.getBytes(), suffix);
     }
 
-    public void embed(EmbedDTO dto, HttpServletResponse response) throws IOException {
+    public String embed(EmbedDTO dto) throws IOException {
         ClassLoader classLoader = getClass().getClassLoader();
-        InputStream inputStream = classLoader.getResourceAsStream("templates/embed.js");
+        InputStream inputStream = classLoader.getResourceAsStream("templates/embed.txt");
         ApplicationAccessTokenEntity token = accessTokenService.getByToken(dto.getToken());
         if (token == null || !token.getIsActive()) {
             throw new ApiException("token无效或未被启用");
@@ -499,37 +499,30 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         if (token.getWhiteActive() && !whiteList.contains(WebUtil.getIP())) {
             throw new ApiException("非法访问，请联系管理员添加白名单");
         }
-
-
         String content = IoUtil.readToString(inputStream, StandardCharsets.UTF_8);
-
-        String template = render(content, getParamsMap(token, dto));
-
-        response.setContentType("text/javascript;charset=UTF-8");
-        response.getWriter().write(template);
+        return render(content, getParamsMap(token, dto));
     }
 
     private Map<String, String> getParamsMap(ApplicationAccessTokenEntity token, EmbedDTO dto) {
-        //todo
-        String floatIcon = dto.getProtocol() + "://" + dto.getHost() + "/ui/favicon.ico";
+        String floatIcon = dto.getProtocol() + "://" + dto.getHost() + "/chat/MaxKB.gif";
         List<String> whiteList = token.getWhiteList();
         Map<String, String> map = new HashMap<>();
         map.put("is_auth", "true");
         map.put("protocol", dto.getProtocol());
-        map.put("query", Optional.ofNullable(dto.getQuery()).orElse(""));
+        map.put("query", "");
         map.put("host", dto.getHost());
         map.put("token", dto.getToken());
         map.put("white_list_str", whiteList == null ? "" : whiteList.stream().collect(Collectors.joining(System.lineSeparator())));
         map.put("white_active", token.getWhiteActive().toString());
-     /*   map.put("float_icon", Optional.ofNullable(token.getFloatIconUrl()).orElse(floatIcon));
-        map.put("is_draggable", token.getDraggable().toString());
-        map.put("show_history", token.getShowHistory().toString());
-        map.put("show_guide", token.getShowGuide().toString());
-        ApplicationAccessToken.FloatLocation floatLocation = token.getFloatLocation();
-        map.put("x_type", floatLocation.getX().getType());
-        map.put("y_type", floatLocation.getY().getType());
-        map.put("x_value", floatLocation.getX().getValue().toString());
-        map.put("y_value", floatLocation.getY().getValue().toString());*/
+        map.put("float_icon", floatIcon);
+        map.put("is_draggable", "false");
+        map.put("show_guide", "false");
+        map.put("x_type", "right");
+        map.put("y_type", "bottom");
+        map.put("x_value", "0");
+        map.put("y_value", "30");
+        map.put("max_kb_id", IdWorker.get32UUID());
+        map.put("header_font_color", "rgb(100, 106, 115");
         return map;
     }
 
@@ -538,23 +531,6 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
             content = content.replace("{{" + entry.getKey() + "}}", entry.getValue());
         }
         return content;
-    }
-
-    public List<ToolEntity> toolLib(String appId) {
-        return toolService.list();
-    }
-
-    public ToolEntity toolLib(String appId, String functionId) {
-        return toolService.getById(functionId);
-    }
-
-
-    public List<ToolEntity> getFunction(String appId) {
-        ApplicationEntity app = getById(appId);
-        if (app == null) {
-            return Collections.emptyList();
-        }
-        return toolService.getUserId(app.getUserId());
     }
 
     //todo 权限

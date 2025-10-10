@@ -1,6 +1,5 @@
 package com.tarzan.maxkb4j.module.application.controller;
 
-import cn.dev33.satoken.annotation.SaIgnore;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.tarzan.maxkb4j.common.api.R;
@@ -8,7 +7,6 @@ import com.tarzan.maxkb4j.common.constant.AppConst;
 import com.tarzan.maxkb4j.common.util.McpToolUtil;
 import com.tarzan.maxkb4j.module.application.domian.dto.ApplicationAccessTokenDTO;
 import com.tarzan.maxkb4j.module.application.domian.dto.ApplicationQuery;
-import com.tarzan.maxkb4j.module.application.domian.dto.EmbedDTO;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationAccessTokenEntity;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationEntity;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationVO;
@@ -109,11 +107,6 @@ public class ApplicationController {
     }
 
 
-/*    @GetMapping("/application/{appId}/application")
-    public R<List<ApplicationEntity>> listByUserId(@PathVariable("appId") String appId) {
-        return R.success(applicationService.listByUserId(appId));
-    }*/
-
     @GetMapping("/application/{appId}/access_token")
     public R<ApplicationAccessTokenEntity> getAccessToken(@PathVariable("appId") String appId) {
         return R.success(applicationService.getAccessToken(appId));
@@ -124,28 +117,6 @@ public class ApplicationController {
         return R.success(applicationService.updateAccessToken(appId, dto));
     }
 
-/*    @GetMapping("/application/{appId}/model")
-    public R<List<ModelEntity>> model(@PathVariable("appId") String appId, String modelType) {
-        return R.success(applicationService.getAppModels(appId, modelType));
-    }
-
-    @GetMapping("/application/{appId}/list_dataset")
-    public R<List<KnowledgeEntity>> listDataset(@PathVariable("appId") String appId) {
-        return R.success(applicationService.getDataset(appId));
-    }
-
-    @GetMapping("/application/{appId}/list_function")
-    public R<List<ToolEntity>> listFunction(@PathVariable("appId") String appId) {
-        return R.success(applicationService.getFunction(appId));
-    }*/
-
-
-
-  /*  @GetMapping("/application/{appId}/model_params_form/{modelId}")
-    public R<JSONArray> modelParams(@PathVariable("appId") String appId, @PathVariable("modelId") String modelId) {
-        return R.success(applicationService.modelParams(appId, modelId));
-    }*/
-
     @PostMapping("/application/{appId}/mcp_tools")
     public R<List<McpToolVO>> mcpTools(@PathVariable("appId") String appId, @RequestBody JSONObject mcpServers) {
         System.out.println("mcpTools "+mcpServers);
@@ -154,17 +125,7 @@ public class ApplicationController {
     }
 
 
-    /**
-     * 嵌入第三方
-     *
-     * @param dto      dto
-     * @param response response
-     */
-    @GetMapping("/embed")
-    @SaIgnore
-    public void embed(EmbedDTO dto, HttpServletResponse response) throws IOException {
-        applicationService.embed(dto,response);
-    }
+
 
 
 }
