@@ -10,6 +10,7 @@ import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
 import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
 import com.tarzan.maxkb4j.module.application.service.ApplicationChatService;
 import com.tarzan.maxkb4j.module.chat.ChatParams;
+import com.tarzan.maxkb4j.module.chat.ChildNode;
 import reactor.core.publisher.Sinks;
 
 import java.util.ArrayList;
@@ -40,7 +41,6 @@ public class ApplicationNode extends INode {
         String question = (String) super.getReferenceField(questionFields.get(0), questionFields.get(1));
         ChatParams chatParams = super.getChatParams();
         String chatId = chatParams.getChatId() + nodeParams.getApplicationId();
-        chatService.chatOpen(nodeParams.getApplicationId(), chatId, chatParams.getDebug());
         List<ChatFile> docList = new ArrayList<>();
         List<String> docFields = nodeParams.getDocumentList();
         if (CollectionUtils.isNotEmpty(docFields)) {
@@ -62,21 +62,18 @@ public class ApplicationNode extends INode {
             otherList = (List<ChatFile>) super.getReferenceField(otherFields.get(0), otherFields.get(1));
         }
         Sinks.Many<ChatMessageVO> appNodeSink = Sinks.many().unicast().onBackpressureBuffer();
-        String chatRecordId;
-        String runtimeNodeId;
+        String nodeChatRecordId=null;
+        String nodeRuntimeNodeId=null;
         if (chatParams.getChildNode()!=null){
-            chatRecordId=chatParams.getChildNode().getChatRecordId();
-            runtimeNodeId=chatParams.getChildNode().getRuntimeNodeId();
-        } else {
-            chatRecordId=null;
-            runtimeNodeId = null;
+            nodeChatRecordId=chatParams.getChildNode().getChatRecordId();
+            nodeRuntimeNodeId=chatParams.getChildNode().getRuntimeNodeId();
         }
         ChatParams nodeChatParams = ChatParams.builder()
                 .message(question)
                 .appId(nodeParams.getApplicationId())
                 .chatId(chatId)
-                .chatRecordId(chatRecordId)
-                .runtimeNodeId(runtimeNodeId)
+                .chatRecordId(nodeChatRecordId)
+                .runtimeNodeId(nodeRuntimeNodeId)
                 .stream(chatParams.getStream())
                 .reChat(chatParams.getReChat())
                 .chatUserId(chatParams.getChatUserId())
@@ -102,17 +99,19 @@ public class ApplicationNode extends INode {
                         if(FORM.getKey().equals(e.getNodeType())){
                             is_interrupt_exec.set( true);
                         }
+                        ChildNode childNode=new ChildNode(e.getChatRecordId(),e.getRuntimeNodeId());
                         ChatMessageVO vo = new ChatMessageVO(
-                                getChatParams().getChatId(),
-                                getChatParams().getChatRecordId(),
-                                id,
+                                chatParams.getChatId(),
+                                chatParams.getChatRecordId(),
+                                e.getNodeId(),
                                 e.getContent(),
-                                "",
-                                upNodeIdList,
+                                e.getReasoningContent(),
+                                e.getUpNodeIdList(),
                                 runtimeNodeId,
                                 type,
-                                viewType,
-                                false
+                                e.getViewType(),
+                                childNode,
+                                e.getNodeIsEnd()
                         );
                         super.getChatParams().getSink().tryEmitNext(vo);
                     })

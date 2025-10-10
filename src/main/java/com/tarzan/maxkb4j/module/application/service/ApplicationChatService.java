@@ -17,7 +17,6 @@ import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationVO;
 import com.tarzan.maxkb4j.module.application.domian.vo.ChatRecordDetailVO;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatMapper;
 import com.tarzan.maxkb4j.module.chat.ChatParams;
-import com.tarzan.maxkb4j.module.oss.service.MongoFileService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import org.springframework.scheduling.annotation.Async;
@@ -106,6 +105,14 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
 
     @Async
     public CompletableFuture<String> chatMessageAsync(ChatParams chatParams) {
+        String chatId=StringUtil.isNotBlank(chatParams.getChatId()) ? chatParams.getChatId() : IdWorker.get32UUID();
+        ChatInfo chatInfo = ChatCache.get(chatId);
+        if (chatInfo == null){
+            chatInfo = new ChatInfo();
+            chatInfo.setChatId(StringUtil.isNotBlank(chatId) ? chatId : IdWorker.get32UUID());
+            chatInfo.setAppId(chatParams.getAppId());
+            ChatCache.put(chatInfo.getChatId(), chatInfo);
+        }
         return CompletableFuture.completedFuture(chatMessage(chatParams));
     }
 

@@ -1,5 +1,6 @@
 package com.tarzan.maxkb4j.module.application.domian.vo;
 
+import com.tarzan.maxkb4j.module.chat.ChildNode;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
@@ -22,6 +23,7 @@ public class ChatMessageVO {
     private Boolean nodeIsEnd;
     private String runtimeNodeId;
     private Boolean isEnd;
+    private ChildNode childNode;
     private Integer messageTokens=0;
     private Integer answerTokens=0;
 
@@ -58,6 +60,22 @@ public class ChatMessageVO {
         this.runtimeNodeId = runtimeNodeId;
         this.nodeType = nodeType;
         this.viewType = viewType;
+        this.nodeIsEnd = nodeIsEnd;
+        this.isEnd = false;
+    }
+
+    public ChatMessageVO(String chatId, String chatRecordId, String nodeId, String content, String reasoningContent, List<String> upNodeIdList,String runtimeNodeId, String nodeType, String viewType,ChildNode childNode, Boolean nodeIsEnd) {
+        this.chatId = chatId;
+        this.chatRecordId = chatRecordId;
+        this.nodeId = nodeId;
+        this.realNodeId = nodeId;
+        this.content = content;
+        this.reasoningContent = reasoningContent;
+        this.upNodeIdList = upNodeIdList;
+        this.runtimeNodeId = runtimeNodeId;
+        this.nodeType = nodeType;
+        this.viewType = viewType;
+        this.childNode = childNode;
         this.nodeIsEnd = nodeIsEnd;
         this.isEnd = false;
     }

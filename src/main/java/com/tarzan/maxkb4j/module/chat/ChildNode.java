@@ -9,4 +9,12 @@ public class ChildNode {
     private String runtimeNodeId;
 
     private ChildNode childNode;
+
+    public ChildNode() {
+    }
+
+    public ChildNode(String chatRecordId, String runtimeNodeId) {
+        this.chatRecordId = chatRecordId;
+        this.runtimeNodeId = runtimeNodeId;
+    }
 }

@@ -35,6 +35,9 @@ public class FormNode extends INode {
             List<JSONObject> formFieldList = nodeParams.getFormFieldList();
             JSONObject formSetting = new JSONObject();
             formSetting.put("form_field_list", formFieldList);
+/*            formSetting.put("runtimeNodeId", runtimeNodeId);
+            formSetting.put("chatRecordId", chatParams.getChatRecordId());
+            formSetting.put("is_submit", false);*/
             String form = "<form_render>" + formSetting + "</form_render>";
             String formContentFormat = nodeParams.getFormContentFormat();
             Set<String> extractVariables = super.extractVariables(formContentFormat);

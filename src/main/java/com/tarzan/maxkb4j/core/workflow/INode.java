@@ -30,7 +30,7 @@ public abstract class INode {
     public String type;
     public String viewType;
     public JSONObject properties;
-    private ChatParams chatParams;
+    public ChatParams chatParams;
     public Map<String, Map<String,Object>> flowVariables;
     public Map<String, Object> promptVariables;
     public Map<String, Object> context;
@@ -38,7 +38,7 @@ public abstract class INode {
     public List<String> upNodeIdList;
     public String runtimeNodeId;
     public String answerText;
-    private List<ApplicationChatRecordEntity> historyChatRecords;
+    public List<ApplicationChatRecordEntity> historyChatRecords;
 
 
     public INode(JSONObject properties) {
