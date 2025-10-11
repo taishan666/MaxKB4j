@@ -47,7 +47,8 @@ public class ToolLibNode extends INode {
         // 执行脚本并返回结果
         Object result = shell.evaluate(nodeParams.getCode());
         detail.put("params", params);
-        return new NodeResult(Map.of("answer", result,"result", result), Map.of());
+        answerText=result.toString();
+        return new NodeResult(Map.of("result", result), Map.of());
     }
 
     @Override
