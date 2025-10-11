@@ -71,11 +71,6 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
     public void deleteByDocIds(List<String> docIds) {
         dataIndexService.removeByDocIds(docIds);
         this.lambdaUpdate().in(ParagraphEntity::getDocumentId, docIds).remove();
-        //  List<ProblemParagraphEntity> list = problemParagraphService.lambdaQuery().select(ProblemParagraphEntity::getProblemId).in(ProblemParagraphEntity::getDocumentId, docIds).list();
-        /*if (!CollectionUtils.isEmpty(list)) {
-              // todo 如果问题关联多个段落，根据段落删除问题不太好
-              problemService.removeByIds(list.stream().map(ProblemParagraphEntity::getProblemId).toList());
-        }*/
         problemParagraphService.lambdaUpdate().in(ProblemParagraphEntity::getDocumentId, docIds).remove();
 
     }
@@ -147,7 +142,7 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
     public boolean createParagraph(String knowledgeId, String docId, ParagraphDTO paragraph) {
         paragraph.setKnowledgeId(knowledgeId);
         paragraph.setDocumentId(docId);
-        paragraph.setStatus("nn2");
+        paragraph.setStatus("nn0");
         paragraph.setHitNum(0);
         paragraph.setIsActive(true);
         this.save(paragraph);
@@ -173,10 +168,10 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
             }
             problemParagraphService.saveBatch(problemParagraphMappingEntities);
         }
-        this.updateStatusByDocId(docId, 1, 0);
-        documentMapper.updateStatusByIds(List.of(docId), 1, 0);
+        //this.updateStatusByDocId(docId, 1, 0);
+       // documentMapper.updateStatusByIds(List.of(docId), 1, 0);
         //目的是为了显示进度计数
-        documentMapper.updateStatusMetaByIds(List.of(docId));
+        //documentMapper.updateStatusMetaByIds(List.of(docId));
         return documentMapper.updateCharLengthById(docId);
     }
 

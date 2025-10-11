@@ -52,7 +52,7 @@ public class ParagraphController {
     }
 
  //   @SaCheckPermission("DATASET:DELETE")
-    @DeleteMapping("/knowledge/{id}/document/{docId}/paragraph/_batch")
+    @PutMapping("/knowledge/{id}/document/{docId}/paragraph/batch_delete")
     public R<Boolean> deleteBatchParagraphByParagraphId(@PathVariable String id, @PathVariable("docId") String docId, @RequestBody DeleteDTO dto) {
         return R.success(paragraphService.deleteBatchByIds(docId,dto.getIdList()));
     }
