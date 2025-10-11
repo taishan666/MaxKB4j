@@ -26,44 +26,44 @@ public class ProblemController {
     private final KnowledgeService datasetService;
     private final ProblemService problemService;
 
-  //  @SaCheckPermission("DATASET:EDIT")
+  
     @PostMapping("/knowledge/{id}/problem")
     public R<Boolean> createProblemsByDatasetId(@PathVariable String id, @RequestBody List<String> problems) {
         return R.status(problemService.createProblemsByDatasetId(id, problems));
     }
 
-  //  @SaCheckPermission("DATASET:EDIT")
+  
     @PostMapping("/knowledge/{knowledgeId}/document/{documentId}/paragraph/{paragraphId}/problem")
     public R<Boolean> createProblemsByParagraphId(@PathVariable String knowledgeId,@PathVariable String documentId, @PathVariable String paragraphId,  @RequestBody ProblemDTO dto) {
         return R.status(problemService.createProblemsByParagraphId(knowledgeId,documentId,paragraphId, dto));
     }
 
-   // @SaCheckPermission("DATASET:EDIT")
+   
     @PutMapping("/knowledge/{id}/problem/{problemId}")
     public R<Boolean> updateProblemByDatasetId(@PathVariable String id, @PathVariable String problemId, @RequestBody ProblemEntity problem) {
         problem.setId(problemId);
         return R.status(problemService.updateById(problem));
     }
 
-  //  @SaCheckPermission("DATASET:DELETE")
+  
     @DeleteMapping("/knowledge/{id}/problem/{problemId}")
     public R<Boolean> deleteProblemByDatasetId(@PathVariable("id") String id, @PathVariable("problemId") String problemId) {
         return R.status(problemService.deleteProblemByIds(List.of(problemId)));
     }
 
-  //  @SaCheckPermission("DATASET:DELETE")
+  
     @DeleteMapping("/knowledge/{id}/problem/_batch")
     public R<Boolean> deleteBatchProblemByDatasetId(@PathVariable("id") String id, @RequestBody List<String> problemIds) {
         return R.status(problemService.deleteProblemByIds(problemIds));
     }
 
-   // @SaCheckPermission("DATASET:READ")
+   
     @GetMapping("/knowledge/{id}/problem/{page}/{size}")
     public R<IPage<ProblemVO>> getProblemsByDatasetId(@PathVariable String id, @PathVariable("page") int page, @PathVariable("size") int size, String content) {
         return R.data(problemService.pageByDatasetId(id, page, size, content));
     }
 
-  //  @SaCheckPermission("DATASET:READ")
+  
     @GetMapping("/knowledge/{id}/problem/{problemId}/paragraph")
     public R<List<ParagraphEntity>> getParagraphByProblemId(@PathVariable String id, @PathVariable("problemId") String problemId) {
         return R.data(datasetService.getParagraphByProblemId(problemId));

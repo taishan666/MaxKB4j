@@ -167,4 +167,8 @@ public class UserResourcePermissionService extends ServiceImpl<UserResourcePermi
                 .filter(permission -> permission.getPermissionList().contains("VIEW"))
                 .map(UserResourcePermissionEntity::getTargetId).toList();
     }
+
+    public List<UserResourcePermissionEntity> getUserId(String userId) {
+        return this.lambdaQuery().eq(UserResourcePermissionEntity::getUserId, userId).list();
+    }
 }
