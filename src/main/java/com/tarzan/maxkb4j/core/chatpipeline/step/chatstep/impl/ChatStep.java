@@ -25,6 +25,7 @@ import dev.langchain4j.model.chat.response.ChatResponse;
 import dev.langchain4j.model.output.TokenUsage;
 import dev.langchain4j.service.AiServices;
 import dev.langchain4j.service.TokenStream;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.internal.StringUtil;
 import org.springframework.stereotype.Component;
@@ -38,18 +39,11 @@ import java.util.concurrent.atomic.AtomicReference;
 
 @Slf4j
 @Component
+@AllArgsConstructor
 public class ChatStep extends IChatStep {
 
     private final ModelService modelService;
     private final ApplicationChatUserStatsService publicAccessClientService;
-    private final AiServices<Assistant> aiServicesBuilder;
-
-    public ChatStep(ModelService modelService,
-                    ApplicationChatUserStatsService publicAccessClientService) {
-        this.modelService = modelService;
-        this.publicAccessClientService = publicAccessClientService;
-        this.aiServicesBuilder = AiServices.builder(Assistant.class);
-    }
 
     @Override
     protected String execute(PipelineManage manage) {
@@ -105,6 +99,7 @@ public class ChatStep extends IChatStep {
                 String chatUserId = manage.context.getString("chatUserId");
                 String chatUserType = manage.context.getString("chatUserType");
                 String systemText = application.getModelSetting().getSystem();
+                AiServices<Assistant> aiServicesBuilder=AiServices.builder(Assistant.class);
                 if (StringUtils.isNotBlank(systemText)){
                     aiServicesBuilder.systemMessageProvider(chatMemoryId -> systemText);
                 }
