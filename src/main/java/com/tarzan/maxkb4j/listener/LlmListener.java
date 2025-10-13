@@ -19,7 +19,7 @@ public class LlmListener implements ChatModelListener {
     public void onRequest(ChatModelRequestContext requestContext) {
         ChatRequest chatRequest = requestContext.chatRequest();
         List<ChatMessage> messages = chatRequest.messages();
-       // log.info(messages.toString());
+        log.info(messages.toString());
     }
 
     @Override

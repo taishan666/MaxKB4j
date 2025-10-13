@@ -31,6 +31,8 @@ public enum NodeType {
 
     MCP("mcp-node", "MCP节点"),
 
+    INTENT_CLASSIFY("intent-node", "意图分类"),
+
     RERANKER("reranker-node", "多路召回"),
 
     IMAGE_UNDERSTAND("image-understand-node", "图片理解"),

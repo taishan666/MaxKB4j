@@ -10,17 +10,13 @@ import java.util.List;
 
 public interface Assistant {
 
-    Result<String> chat(String message);
+    Result<String> chat(@UserMessage String message);
 
-    String chat(@UserMessage String userMessage, @UserMessage List<Content> contents);
+    Result<String> chat(@UserMessage String userMessage, @UserMessage List<Content> contents);
 
     TokenStream chatStream(@UserMessage String userMessage);
 
-
     TokenStream chatStream(@UserMessage String userMessage, @UserMessage List<Content> contents);
-
-    //将文本按照元素分行输出
-    Result<List<String>>  generateOutlineFor(String message);
 
     @UserMessage("Is {{it}} a greeting statement?")
     boolean isGreeting(String text);
