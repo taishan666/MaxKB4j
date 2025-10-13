@@ -116,9 +116,10 @@ public class ToolController {
 	}
 
 	@PutMapping("/workspace/default/tool/{id}")
-	public R<Boolean> tool(@PathVariable String id,@RequestBody ToolEntity dto) {
+	public R<ToolEntity> tool(@PathVariable String id,@RequestBody ToolEntity dto) {
 		dto.setId(id);
-		return R.status(toolService.updateById(dto));
+		toolService.updateById(dto);
+		return R.data(toolService.getById(id));
 	}
 
 	@DeleteMapping("/workspace/default/tool/{id}")

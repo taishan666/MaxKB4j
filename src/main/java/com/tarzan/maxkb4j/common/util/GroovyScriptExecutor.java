@@ -23,24 +23,13 @@ public class GroovyScriptExecutor implements ToolExecutor {
 
     @Override
     public String execute(ToolExecutionRequest toolExecutionRequest,  Object memoryId) {
-        //todo
         Object result="";
         if(StringUtil.isNotBlank(code)){
-            Map<String, Object> argumentsMap = argumentsAsMap(toolExecutionRequest.arguments());
-            Binding binding = new Binding();
-            StringBuilder sb=new StringBuilder(code);
-            sb.append("\n").append("main(");
-            if (!argumentsMap.isEmpty()){
-                argumentsMap.forEach((k, v) -> {
-                    binding.setVariable(k, v);
-                    sb.append(k).append(",");
-                });
-                sb.deleteCharAt(sb.length()-1);
-            }
-            sb.append(")");
-            // 创建 GroovyShell 并运行脚本
+            Map<String, Object> params = argumentsAsMap(toolExecutionRequest.arguments());
+            Binding binding = new Binding(params);
+            // 创建 GroovyShell 并执行脚本
             GroovyShell shell = new GroovyShell(binding);
-            result = shell.evaluate(sb.toString());
+            result = shell.evaluate(code);
         }
         return result.toString();
     }
