@@ -24,14 +24,12 @@ import com.tarzan.maxkb4j.module.application.mapper.ApplicationMapper;
 import com.tarzan.maxkb4j.module.knowledge.consts.SearchType;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.KnowledgeEntity;
 import com.tarzan.maxkb4j.module.knowledge.service.KnowledgeService;
-import com.tarzan.maxkb4j.module.model.info.entity.ModelEntity;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseSpeechToText;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseTextToSpeech;
 import com.tarzan.maxkb4j.module.system.permission.service.UserResourcePermissionService;
 import com.tarzan.maxkb4j.module.system.user.domain.entity.UserEntity;
 import com.tarzan.maxkb4j.module.system.user.service.UserService;
-import com.tarzan.maxkb4j.module.tool.service.ToolService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -71,7 +69,6 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     private final ApplicationKnowledgeMappingService knowledgeMappingService;
     private final ApplicationChatRecordService applicationChatRecordService;
     private final ApplicationChatMapper applicationChatMapper;
-    private final ToolService toolService;
     private final UserResourcePermissionService userResourcePermissionService;
 
     public IPage<ApplicationVO> selectAppPage(int page, int size, ApplicationQuery query) {
@@ -92,7 +89,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
             wrapper.eq(ApplicationEntity::getFolderId, "default");
         }
         String loginId = StpUtil.getLoginIdAsString();
-        UserEntity user = userService.validUserById(loginId);
+        UserEntity user = userService.getById(loginId);
         if (Objects.nonNull(user)) {
             if (!CollectionUtils.isEmpty(user.getRole())) {
                 if (user.getRole().contains("USER")) {
@@ -119,15 +116,6 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         });
     }
 
-    public List<ModelEntity> getAppModels(String appId, String modelType) {
-        modelType = StringUtils.isBlank(modelType) ? "LLM" : modelType;
-        ApplicationEntity app = getById(appId);
-        if (app == null) {
-            return Collections.emptyList();
-        }
-        return modelService.getUserIdAndType(app.getUserId(), modelType);
-    }
-
 
     public ApplicationAccessTokenEntity getAccessToken(String appId) {
         return accessTokenService.accessToken(appId);
@@ -142,22 +130,6 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         return accessTokenService.getById(appId);
     }
 
-    public List<KnowledgeEntity> getDataset(String appId) {
-        ApplicationEntity app = getById(appId);
-        if (app == null) {
-            return Collections.emptyList();
-        }
-        return knowledgeService.getByUserId(app.getUserId());
-    }
-
-
-    public JSONArray modelParams(String appId, String modelId) {
-        ModelEntity model = modelService.getById(modelId);
-        if (model == null) {
-            return new JSONArray();
-        }
-        return model.getModelParamsForm();
-    }
 
     @Transactional
     public boolean deleteByAppId(String appId) {

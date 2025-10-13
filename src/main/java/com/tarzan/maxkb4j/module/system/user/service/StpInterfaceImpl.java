@@ -30,7 +30,7 @@ public class StpInterfaceImpl implements StpInterface {
     @Override
     public List<String> getPermissionList(Object loginId, String loginType) {
         String userId = loginId.toString();
-        List<UserResourcePermissionEntity> userResourcePermissions = userResourcePermissionService.getUserId(userId);
+        List<UserResourcePermissionEntity> userResourcePermissions = userResourcePermissionService.getByUserId(userId);
         List<String> permissions = new ArrayList<>();
         for (UserResourcePermissionEntity permission : userResourcePermissions) {
             List<ResourcePermissionEnum> resourcePermissionEnums = ResourcePermissionEnum.getPermissions(permission.getAuthTargetType()).stream().filter(e -> permission.getPermissionList().contains(e.getPermission())).toList();

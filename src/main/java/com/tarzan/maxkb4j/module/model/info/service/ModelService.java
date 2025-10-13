@@ -37,11 +37,6 @@ public class ModelService extends ServiceImpl<ModelMapper, ModelEntity> {
     private final ModelBaseService modelBaseService;
     private final UserResourcePermissionService userResourcePermissionService;
 
-    public List<ModelEntity> getUserIdAndType(String userId, String modelType) {
-        modelType = StringUtils.isBlank(modelType) ? "LLM" : modelType;
-        return this.list(Wrappers.<ModelEntity>lambdaQuery().eq(ModelEntity::getUserId, userId).eq(ModelEntity::getModelType, modelType));
-    }
-
     public List<ModelEntity> models(String modelType) {
         return modelBaseService.models(modelType);
     }
@@ -72,7 +67,7 @@ public class ModelService extends ServiceImpl<ModelMapper, ModelEntity> {
             wrapper.eq(ModelEntity::getProvider, provider);
         }
         String loginId = StpUtil.getLoginIdAsString();
-        UserEntity user = userService.validUserById(loginId);
+        UserEntity user = userService.getById(loginId);
         if (Objects.nonNull(user)){
             if (!org.springframework.util.CollectionUtils.isEmpty(user.getRole())){
                 if (user.getRole().contains("USER")){

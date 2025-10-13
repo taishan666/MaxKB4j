@@ -219,10 +219,10 @@ public class UserService extends ServiceImpl<UserMapper, UserEntity> {
         return updateById(user);
     }
 
-    public UserEntity validUserById(String id) {
+ /*   public UserEntity validUserById(String id) {
         //todo
         return this.getById(id);
-    }
+    }*/
 
     public Map<String, String> getNicknameMap() {
         return this.lambdaQuery().select(UserEntity::getId, UserEntity::getNickname).list().stream().collect(Collectors.toMap(UserEntity::getId, UserEntity::getNickname));
