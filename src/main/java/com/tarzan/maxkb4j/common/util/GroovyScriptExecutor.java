@@ -23,8 +23,7 @@ public class GroovyScriptExecutor implements ToolExecutor {
 
     @Override
     public String execute(ToolExecutionRequest toolExecutionRequest,  Object memoryId) {
-        System.out.println("执行工具：" + toolExecutionRequest.name());
-        System.out.println("arguments：" + toolExecutionRequest.arguments());
+        //todo
         Object result="";
         if(StringUtil.isNotBlank(code)){
             Map<String, Object> argumentsMap = argumentsAsMap(toolExecutionRequest.arguments());
@@ -39,7 +38,6 @@ public class GroovyScriptExecutor implements ToolExecutor {
                 sb.deleteCharAt(sb.length()-1);
             }
             sb.append(")");
-            System.out.println("执行脚本：" + sb);
             // 创建 GroovyShell 并运行脚本
             GroovyShell shell = new GroovyShell(binding);
             result = shell.evaluate(sb.toString());

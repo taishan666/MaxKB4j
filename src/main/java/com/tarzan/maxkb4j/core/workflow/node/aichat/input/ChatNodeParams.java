@@ -21,6 +21,7 @@ public class ChatNodeParams{
     private String  mcpToolId;
     private String mcpServers;
     private Boolean toolEnable;
+    private Boolean mcpOutputEnable;
     private List<String> toolIds;
 
 }

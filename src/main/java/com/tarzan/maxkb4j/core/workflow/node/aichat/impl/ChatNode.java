@@ -8,6 +8,7 @@ import com.tarzan.maxkb4j.common.util.ToolUtil;
 import com.tarzan.maxkb4j.core.assistant.Assistant;
 import com.tarzan.maxkb4j.core.langchain4j.AppChatMemory;
 import com.tarzan.maxkb4j.core.workflow.INode;
+import com.tarzan.maxkb4j.core.workflow.Tools;
 import com.tarzan.maxkb4j.core.workflow.WorkflowManage;
 import com.tarzan.maxkb4j.core.workflow.node.aichat.input.ChatNodeParams;
 import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
@@ -84,6 +85,7 @@ public class ChatNode extends INode {
 
     private NodeResult writeContextStream(ChatNodeParams nodeParams,TokenStream tokenStream) {
         boolean isResult = nodeParams.getIsResult();
+        boolean mcpOutputEnable = nodeParams.getMcpOutputEnable();
         boolean reasoningContentEnable = nodeParams.getModelSetting().getBooleanValue("reasoningContentEnable");
         CompletableFuture<ChatResponse> chatResponseFuture  = new CompletableFuture<>();
         // 完成后释放线程
@@ -119,6 +121,22 @@ public class ChatNode extends INode {
                         super.getChatParams().getSink().tryEmitNext(vo);
                     }
                 })
+                .onToolExecuted(toolExecute -> {
+                    if (isResult&&mcpOutputEnable) {
+                        ChatMessageVO vo = new ChatMessageVO(
+                                getChatParams().getChatId(),
+                                getChatParams().getChatRecordId(),
+                                id,
+                                Tools.getToolMessage(toolExecute.request().name(), toolExecute.result()),
+                                "",
+                                upNodeIdList,
+                                runtimeNodeId,
+                                type,
+                                viewType,
+                                false);
+                        super.getChatParams().getSink().tryEmitNext(vo);
+                    }
+                })
                 .onCompleteResponse(chatResponseFuture::complete)
                 .onError(error -> {
                     super.getChatParams().getSink().tryEmitError(error);
@@ -130,6 +148,7 @@ public class ChatNode extends INode {
             ChatResponse response = chatResponseFuture.get();
             answerText = response.aiMessage().text();
             String thinking = response.aiMessage().thinking();
+            thinking=thinking==null?"":thinking;
             TokenUsage tokenUsage = response.tokenUsage();
             detail.put("messageTokens", tokenUsage.inputTokenCount());
             detail.put("answerTokens", tokenUsage.outputTokenCount());
