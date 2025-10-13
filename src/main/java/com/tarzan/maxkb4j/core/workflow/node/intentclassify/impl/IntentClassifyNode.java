@@ -2,7 +2,6 @@ package com.tarzan.maxkb4j.core.workflow.node.intentclassify.impl;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.tarzan.maxkb4j.common.util.SpringUtil;
 import com.tarzan.maxkb4j.core.assistant.Assistant;
 import com.tarzan.maxkb4j.core.langchain4j.AppChatMemory;
@@ -86,21 +85,21 @@ public class IntentClassifyNode extends INode {
         String question = promptTemplate.apply(variables).text();
         String systemPrompt = "你是一个专业的意图识别助手，请根据用户输入和意图选项，准确识别用户的真实意图。";
         List<ChatMessage> historyMessages = super.getHistoryMessages(nodeParams.getDialogueNumber(), "WORK_FLOW", runtimeNodeId);
-        aiServicesBuilder.systemMessageProvider(chatMemoryId -> systemPrompt);
-        if (CollectionUtils.isNotEmpty(historyMessages)) {
-            aiServicesBuilder.chatMemory(AppChatMemory.withMessages(historyMessages));
-        }
+        detail.put("history_message", resetMessageList(historyMessages));
+        aiServicesBuilder.chatMemory(AppChatMemory.withMessages(historyMessages));
         Assistant assistant = aiServicesBuilder
+                .systemMessageProvider(chatMemoryId -> systemPrompt)
+                .chatMemory(AppChatMemory.withMessages(historyMessages))
                 .chatModel(chatModel.getChatModel())
                 .build();
         Result<String> result = assistant.chat(question);
         detail.put("system", systemPrompt);
-        detail.put("history_message", resetMessageList(historyMessages));
         detail.put("question", content);
         JSONObject json = JSONObject.parseObject(result.content());
         TokenUsage tokenUsage =  result.tokenUsage();
         detail.put("messageTokens", tokenUsage.inputTokenCount());
         detail.put("answerTokens", tokenUsage.outputTokenCount());
+        detail.put("answer", result.content());
         String classificationId=json.getString("classificationId");
         return new NodeResult(Map.of("branchId",classificationId,"category", branchMap.get(classificationId),"reason", json.getString("reason")),Map.of());
     }
