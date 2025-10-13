@@ -7,12 +7,12 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.GenerateProblemDTO;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.ProblemDTO;
+import com.tarzan.maxkb4j.module.knowledge.domain.entity.EmbeddingEntity;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.ParagraphEntity;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.ProblemEntity;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.ProblemParagraphEntity;
-import com.tarzan.maxkb4j.module.knowledge.mapper.ProblemMapper;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.ProblemVO;
-import com.tarzan.maxkb4j.module.knowledge.domain.entity.EmbeddingEntity;
+import com.tarzan.maxkb4j.module.knowledge.mapper.ProblemMapper;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
 import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.data.message.UserMessage;
@@ -191,5 +191,7 @@ public class ProblemService extends ServiceImpl<ProblemMapper, ProblemEntity> {
         problem.setHitNum(0);
         return this.save(problem) && problemParagraphService.association(knowledgeId, docId, paragraphId, problem.getId());
     }
+
+
 
 }

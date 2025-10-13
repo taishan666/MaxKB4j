@@ -76,7 +76,7 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
     }
 
 
-    public void paragraphIndex(ParagraphEntity paragraph,EmbeddingModel embeddingModel) {
+    public void createIndex(ParagraphEntity paragraph,EmbeddingModel embeddingModel) {
         if (paragraph != null) {
             this.updateStatusById(paragraph.getId(),1,1);
             //清除之前向量

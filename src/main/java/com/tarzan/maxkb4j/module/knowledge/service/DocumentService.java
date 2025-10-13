@@ -598,12 +598,12 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
     }
 
 
-    public void createIndexByDocId(EmbeddingModel embeddingModel, String docId) {
+    public void createIndex(EmbeddingModel embeddingModel, String docId) {
         log.info("开始--->文档索引:{}", docId);
         List<ParagraphEntity> paragraphs = paragraphService.lambdaQuery().eq(ParagraphEntity::getDocumentId, docId).list();
         this.updateStatusById(docId, 1, 1);
         paragraphs.forEach(paragraph -> {
-            paragraphService.paragraphIndex(paragraph, embeddingModel);
+            paragraphService.createIndex(paragraph, embeddingModel);
             this.updateStatusMetaById(docId);
         });
         this.updateStatusById(docId, 1, 2);

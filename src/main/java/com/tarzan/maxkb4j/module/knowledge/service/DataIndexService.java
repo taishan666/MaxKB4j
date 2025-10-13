@@ -44,6 +44,12 @@ public class DataIndexService {
         }
     }
 
+    public void removeByProblemIdAndParagraphId(String problemId,String paragraphId) {
+        embeddingMapper.delete(Wrappers.<EmbeddingEntity>lambdaQuery().eq(EmbeddingEntity::getParagraphId, paragraphId).eq(EmbeddingEntity::getSourceId, problemId));
+        Query query = new Query(Criteria.where("paragraphId").is(paragraphId).and("sourceId").is(problemId));
+        mongoTemplate.remove(query,EmbeddingEntity.class);
+    }
+
     public void removeByParagraphId(String paragraphId) {
         removeByParagraphIds(List.of(paragraphId));
     }
@@ -60,11 +66,6 @@ public class DataIndexService {
         mongoTemplate.remove(query,EmbeddingEntity.class);
     }
 
-    public void removeBySourceId(String sourceId) {
-        embeddingMapper.delete(Wrappers.<EmbeddingEntity>lambdaQuery().eq(EmbeddingEntity::getSourceId, sourceId));
-        Query query = new Query(Criteria.where("sourceId").is(sourceId));
-        mongoTemplate.remove(query,EmbeddingEntity.class);
-    }
 
     public void removeBySourceIds(List<String> sourceIds) {
         embeddingMapper.delete(Wrappers.<EmbeddingEntity>lambdaQuery().in(EmbeddingEntity::getSourceId, sourceIds));
