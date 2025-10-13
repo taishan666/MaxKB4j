@@ -96,7 +96,7 @@ public class IntentClassifyNode extends INode {
         Result<String> result = assistant.chat(question);
         detail.put("system", systemPrompt);
         detail.put("history_message", resetMessageList(historyMessages));
-        detail.put("question", question);
+        detail.put("question", content);
         JSONObject json = JSONObject.parseObject(result.content());
         TokenUsage tokenUsage =  result.tokenUsage();
         detail.put("messageTokens", tokenUsage.inputTokenCount());
