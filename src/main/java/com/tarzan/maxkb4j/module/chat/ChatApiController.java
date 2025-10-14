@@ -106,7 +106,6 @@ public class ChatApiController {
     }
 
 
-    //todo
     @PostMapping(path = "/chat_message/{chatId}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<ChatMessageVO> chatMessage(@PathVariable String chatId, @RequestBody ChatParams params,HttpServletRequest  request) {
         String authorization=request.getHeader("Authorization");

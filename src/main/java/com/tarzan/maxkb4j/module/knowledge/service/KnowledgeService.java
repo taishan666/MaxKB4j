@@ -9,7 +9,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationEntity;
+import com.tarzan.maxkb4j.common.util.BeanUtil;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationKnowledgeMappingEntity;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationKnowledgeMappingMapper;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationMapper;
@@ -28,7 +28,6 @@ import com.tarzan.maxkb4j.module.model.info.service.ModelService;
 import com.tarzan.maxkb4j.module.system.permission.service.UserResourcePermissionService;
 import com.tarzan.maxkb4j.module.system.user.domain.entity.UserEntity;
 import com.tarzan.maxkb4j.module.system.user.service.UserService;
-import com.tarzan.maxkb4j.common.util.BeanUtil;
 import dev.langchain4j.data.document.Document;
 import dev.langchain4j.data.document.DocumentParser;
 import dev.langchain4j.data.document.DocumentSplitter;
@@ -71,7 +70,6 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
 
     private final DocumentMapper documentMapper;
     private final ProblemService problemService;
-    private final ApplicationMapper applicationMapper;
     private final ApplicationKnowledgeMappingMapper applicationDatasetMappingMapper;
     private final ParagraphService paragraphService;
     private final ProblemParagraphMapper problemParagraphMapper;
@@ -94,14 +92,6 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
         return page;
     }
 
-    public List<KnowledgeEntity> getByUserId(String userId) {
-        return this.list(Wrappers.<KnowledgeEntity>lambdaQuery().eq(KnowledgeEntity::getUserId, userId));
-    }
-
-    public List<ApplicationEntity> getApplicationByDatasetId(String id) {
-        //TODO 缓存处理
-        return applicationMapper.selectList(null);
-    }
 
     public KnowledgeVO getByDatasetId(String id) {
         KnowledgeEntity entity = baseMapper.selectById(id);
@@ -182,13 +172,13 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
         byteArrayOutputStream.close(); // 关闭字节输出流
     }
 
-    public void exportExcelZipByDatasetId(String id, HttpServletResponse response) throws IOException {
+    public void exportExcelZip(String id, HttpServletResponse response) throws IOException {
         KnowledgeEntity dataset = this.getById(id);
         List<DocumentEntity> docs = documentMapper.selectList(Wrappers.<DocumentEntity>lambdaQuery().eq(DocumentEntity::getKnowledgeId, id));
         exportExcelZipByDocs(docs, dataset.getName(), response);
     }
 
-    public void exportExcelByDatasetId(String id, HttpServletResponse response) throws IOException {
+    public void exportExcel(String id, HttpServletResponse response) throws IOException {
         KnowledgeEntity dataset = this.getById(id);
         List<DocumentEntity> docs = documentMapper.selectList(Wrappers.<DocumentEntity>lambdaQuery().eq(DocumentEntity::getKnowledgeId, id));
         response.setContentType("application/vnd.ms-excel");

@@ -34,7 +34,6 @@ public class ProblemParagraphService extends ServiceImpl<ProblemParagraphMapper,
     }
     @Transactional
     public boolean association(String knowledgeId, String docId, String paragraphId, String problemId) {
-        //todo: 添加索引
         ProblemParagraphEntity entity = new ProblemParagraphEntity();
         entity.setKnowledgeId(knowledgeId);
         entity.setProblemId(problemId);

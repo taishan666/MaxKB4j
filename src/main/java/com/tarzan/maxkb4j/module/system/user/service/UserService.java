@@ -154,13 +154,6 @@ public class UserService extends ServiceImpl<UserMapper, UserEntity> {
             throw new NotLoginException("用户不存在", "", "");
         }
         UserVO user = BeanUtil.copy(userEntity, UserVO.class);
-/*        List<String> permissions = new ArrayList<>();
-        permissions.add("APPLICATION_OVERVIEW:READ:/WORKSPACE/default/APPLICATION/861fee693543c32dbbefcc4ab99579c0");
-        permissions.add("APPLICATION_CHAT_LOG:READ:/WORKSPACE/default/APPLICATION/861fee693543c32dbbefcc4ab99579c0");
-        permissions.add("KNOWLEDGE_DOCUMENT:READ:/WORKSPACE/default/KNOWLEDGE/4bbccb33e830f6036d609779e70559df");
-        permissions.add("KNOWLEDGE_HIT_TEST:READ:/WORKSPACE/default/KNOWLEDGE/4bbccb33e830f6036d609779e70559df");
-        permissions.add("KNOWLEDGE_PROBLEM:READ:/WORKSPACE/default/KNOWLEDGE/4bbccb33e830f6036d609779e70559df");
-        user.setPermissions(permissions);*/
         user.setPermissions(stpInterface.getPermissionList(userId, null));
         if (user.getRole().contains("ADMIN")){
             userEntity.getRole().add("WORKSPACE_MANAGE:/WORKSPACE/default");
@@ -219,10 +212,6 @@ public class UserService extends ServiceImpl<UserMapper, UserEntity> {
         return updateById(user);
     }
 
- /*   public UserEntity validUserById(String id) {
-        //todo
-        return this.getById(id);
-    }*/
 
     public Map<String, String> getNicknameMap() {
         return this.lambdaQuery().select(UserEntity::getId, UserEntity::getNickname).list().stream().collect(Collectors.toMap(UserEntity::getId, UserEntity::getNickname));

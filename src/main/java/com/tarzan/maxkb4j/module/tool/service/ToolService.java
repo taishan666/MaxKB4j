@@ -120,7 +120,7 @@ public class ToolService extends ServiceImpl<ToolMapper, ToolEntity>{
     }
 
     public boolean testConnection(String code) {
-        //todo
+        //todo mcp 测试连接代码实现
         return true;
     }
 }

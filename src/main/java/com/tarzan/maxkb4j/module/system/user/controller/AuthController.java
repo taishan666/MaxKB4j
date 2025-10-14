@@ -1,14 +1,16 @@
 package com.tarzan.maxkb4j.module.system.user.controller;
 
 import cn.dev33.satoken.annotation.SaCheckLogin;
+import cn.dev33.satoken.secure.SaSecureUtil;
 import cn.dev33.satoken.stp.StpUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
-import com.tarzan.maxkb4j.common.constant.AppConst;
 import com.tarzan.maxkb4j.common.api.R;
+import com.tarzan.maxkb4j.common.constant.AppConst;
 import com.tarzan.maxkb4j.module.system.user.domain.dto.ResetPasswordDTO;
 import com.tarzan.maxkb4j.module.system.user.domain.dto.UserLoginDTO;
+import com.tarzan.maxkb4j.module.system.user.domain.entity.UserEntity;
 import com.tarzan.maxkb4j.module.system.user.domain.vo.UserVO;
 import com.tarzan.maxkb4j.module.system.user.service.UserService;
 import com.wf.captcha.SpecCaptcha;
@@ -94,9 +96,15 @@ public class AuthController {
 
 	@PostMapping("/user/re_password")
 	public R<Boolean> rePassword(@RequestBody ResetPasswordDTO dto){
-		//todo
-		System.out.println(dto);
-		return R.status(true);
+		 String password=dto.getPassword();
+		 String rePassword=dto.getRePassword();
+		if (password.equals(rePassword)){
+			UserEntity user=new UserEntity();
+			user.setId(StpUtil.getLoginIdAsString());
+			user.setPassword(SaSecureUtil.md5(password));
+			return R.status(userService.updateById(user));
+		}
+		return R.status(false);
 	}
 
 	@SaCheckLogin
