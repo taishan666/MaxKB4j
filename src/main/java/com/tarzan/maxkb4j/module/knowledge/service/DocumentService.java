@@ -187,10 +187,17 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         } catch (CsvValidationException e) {
             throw new RuntimeException(e);
         }
-        this.save(doc);
+        this.save(doc,file);
         if (!CollectionUtils.isEmpty(paragraphs)) {
             paragraphService.saveBatch(paragraphs);
         }
+    }
+
+    private void save(DocumentEntity doc,MultipartFile file) throws IOException {
+        String fileId =mongoFileService.storeFile(file);
+        System.out.println(fileId);
+        doc.setMeta(new JSONObject(Map.of("allow_download",true,"source_file_id",fileId)));
+        this.save(doc);
     }
 
     @Transactional
@@ -292,7 +299,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
                     ParagraphEntity paragraph = paragraphService.getParagraphEntity(knowledgeId, doc.getId(), "", text);
                     paragraphs.add(paragraph);
                 }
-                this.save(doc);
+                this.save(doc,uploadFile);
                 paragraphService.saveBatch(paragraphs);
             }
         }
@@ -645,13 +652,6 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
     public IPage<DocumentVO> getDocByKnowledgeId(String knowledgeId, int current, int size, Query query) {
         Page<DocumentVO> docPage = new Page<>(current, size);
         baseMapper.selectDocPage(docPage, knowledgeId, query);
-        //todo 临时处理
-        JSONObject meta = new JSONObject();
-        meta.put("allow_download", true);
-        meta.put("source_file_id", "1994b3e-a525-7972-a4e8-1cc99d332c76");
-        docPage.getRecords().forEach(doc -> {
-            doc.setMeta(meta);
-        });
         return docPage;
     }
 
@@ -793,8 +793,13 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         return true;
     }
 
-    public void downloadSourceFile(String id, String docId, HttpServletResponse response) throws IOException {
-        InputStream inputStream = mongoFileService.getStream(docId);
-        IoUtil.copy(inputStream, response.getOutputStream());
+    public void downloadSourceFile(String docId, HttpServletResponse response) throws IOException {
+        DocumentEntity doc =this.getById(docId);
+        JSONObject meta = doc.getMeta();
+        if (meta.get("source_file_id")!= null) {
+            String fileId = doc.getMeta().getString("source_file_id");
+            InputStream inputStream = mongoFileService.getStream(fileId);
+            IoUtil.copy(inputStream, response.getOutputStream());
+        }
     }
 }

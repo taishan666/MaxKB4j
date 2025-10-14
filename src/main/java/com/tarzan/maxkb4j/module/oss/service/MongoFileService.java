@@ -42,42 +42,26 @@ public class MongoFileService {
     public ChatFile uploadFile(MultipartFile file) throws IOException {
         ChatFile fileVO = new ChatFile();
         // 新文件名
-        String originalFilename = file.getOriginalFilename();
-        fileVO.setName(originalFilename);
+        fileVO.setName(file.getOriginalFilename());
         fileVO.setSize(file.getSize());
         // 获得文件类型
-        String contentType = file.getContentType();
-        fileVO.setType(contentType);
-        // 将文件存储到mongodb中,mongodb将会返回这个文件的具体信息
-        // 上传文件中我们也可以使用DBObject附加一些属性
-        // 获得文件输入流
-        InputStream ins = file.getInputStream();
-       // DBObject metadata = new BasicDBObject();
-        ObjectId objectId = gridFsTemplate.store(ins, originalFilename, contentType);
-        fileVO.setFileId(objectId.toString());
+        fileVO.setType(file.getContentType());
+        String fileId = storeFile(file);
+        fileVO.setFileId(fileId);
         fileVO.setUploadTime(new Date());
-        fileVO.setUrl("./oss/file/" + objectId);
+        fileVO.setUrl("./oss/file/" + fileId);
         return fileVO;
     }
 
-    public void uploadFile(MultipartFile file,String fileId) throws IOException {
+    public String storeFile(MultipartFile file) throws IOException {
         // 新文件名
         String originalFilename = file.getOriginalFilename();
         // 获得文件类型
         String contentType = file.getContentType();
-        // 将文件存储到mongodb中,mongodb将会返回这个文件的具体信息
-        // 上传文件中我们也可以使用DBObject附加一些属性
         // 获得文件输入流
         InputStream ins = file.getInputStream();
-        GridFsUpload.GridFsUploadBuilder<ObjectId> uploadBuilder = GridFsUpload.fromStream(ins);
-        if (StringUtils.hasText(originalFilename)) {
-            uploadBuilder.filename(originalFilename);
-        }
-        if (StringUtils.hasText(contentType)) {
-            uploadBuilder.contentType(contentType);
-        }
-        uploadBuilder.id(fileId);
-        gridFsTemplate.store(ins, originalFilename, contentType);
+        ObjectId objectId =  gridFsTemplate.store(ins, originalFilename, contentType);
+        return objectId.toString();
     }
 
     public ChatFile uploadFile(String fileName, byte[] fileBytes)  {

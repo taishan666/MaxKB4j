@@ -168,7 +168,7 @@ public class DocumentController {
 
     @GetMapping("/knowledge/{knowledgeId}/document/{docId}/download_source_file")
     public void downloadSourceFile(@PathVariable String knowledgeId, @PathVariable String docId, HttpServletResponse response) throws IOException {
-         documentService.downloadSourceFile(knowledgeId, docId,response);
+         documentService.downloadSourceFile(docId,response);
     }
 
 
