@@ -34,7 +34,7 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 @Service
 public class UserResourcePermissionService extends ServiceImpl<UserResourcePermissionMapper, UserResourcePermissionEntity> {
-
+    private final String DEFAULT_WORKSPACE_ID = "default";
     private final ApplicationMapper applicationMapper;
     private final KnowledgeMapper datasetMapper;
     private final ToolMapper toolMapper;
@@ -54,7 +54,6 @@ public class UserResourcePermissionService extends ServiceImpl<UserResourcePermi
 
 
     public IPage<UserResourcePermissionVO> userResourcePermissionPage(String userId, String type, int current, int size) {
-        final String DEFAULT_WORKSPACE_ID = "default";
         LambdaQueryWrapper<UserResourcePermissionEntity> wrapper = Wrappers.<UserResourcePermissionEntity>lambdaQuery()
                 .eq(UserResourcePermissionEntity::getUserId, userId)
                 .eq(UserResourcePermissionEntity::getAuthTargetType, type)
@@ -124,7 +123,6 @@ public class UserResourcePermissionService extends ServiceImpl<UserResourcePermi
         }
     }
     public IPage<ResourceUserPermissionVO> resourceUserPermissionPage(String resourceId, String type, int current, int size) {
-        final String DEFAULT_WORKSPACE_ID = "default";
         LambdaQueryWrapper<UserResourcePermissionEntity> wrapper = Wrappers.<UserResourcePermissionEntity>lambdaQuery()
                 .eq(UserResourcePermissionEntity::getTargetId, resourceId)
                 .eq(UserResourcePermissionEntity::getAuthTargetType, type)
@@ -136,7 +134,7 @@ public class UserResourcePermissionService extends ServiceImpl<UserResourcePermi
                         e -> e,
                         (existing, replacement) -> existing // 保留第一个，也可选 replacement 保留最后一个
                 ));
-        LambdaQueryWrapper<UserEntity>  userWrapper = Wrappers.<UserEntity>lambdaQuery().in(UserEntity::getIsActive,true);
+        LambdaQueryWrapper<UserEntity>  userWrapper = Wrappers.<UserEntity>lambdaQuery().in(UserEntity::getIsActive,true).orderByAsc(UserEntity::getCreateTime);
         Page<UserEntity> userPage = new Page<>(current, size);
         userPage= userMapper.selectPage( userPage,userWrapper);
         return PageUtil.copy(userPage, e -> {
@@ -157,31 +155,6 @@ public class UserResourcePermissionService extends ServiceImpl<UserResourcePermi
     }
 
 
-
-  /*  public IPage<ResourceUserPermissionVO> resourceUserPermissionPage(String resourceId, String type, int current, int size) {
-        final String DEFAULT_WORKSPACE_ID = "default";
-        LambdaQueryWrapper<UserResourcePermissionEntity> wrapper = Wrappers.<UserResourcePermissionEntity>lambdaQuery()
-                .eq(UserResourcePermissionEntity::getTargetId, resourceId)
-                .eq(UserResourcePermissionEntity::getAuthTargetType, type)
-                .eq(UserResourcePermissionEntity::getWorkspaceId, DEFAULT_WORKSPACE_ID);
-        Page<UserResourcePermissionEntity> userPage = new Page<>(current, size);
-        IPage<UserResourcePermissionEntity> resourceUserPermissionPage = baseMapper.selectPage(userPage,wrapper);
-        List<String> userIds = resourceUserPermissionPage.getRecords().stream().map(UserResourcePermissionEntity::getUserId).toList();
-        LambdaQueryWrapper<UserEntity>  userWrapper = Wrappers.<UserEntity>lambdaQuery().in(UserEntity::getId, userIds);
-        List<UserEntity> users= userMapper.selectList( userWrapper);
-        Map<String, UserEntity> map = users.stream().collect(Collectors.toMap(UserEntity::getId, user -> user));
-        return PageUtil.copy(resourceUserPermissionPage, e -> {
-            ResourceUserPermissionVO vo = new ResourceUserPermissionVO();
-            UserEntity user = map.get(e.getUserId());
-            vo.setId(e.getId());
-            vo.setNickname(user.getNickname());
-            vo.setUsername(user.getUsername());
-            vo.setPermission(getPermissionFromList(e.getPermissionList()));
-            vo.setWorkspaceId(DEFAULT_WORKSPACE_ID);
-            vo.setAuthTargetType(type);
-            return vo;
-        });
-    }*/
     private String getPermissionFromList(List<String> permissionList) {
         if (CollectionUtils.isNotEmpty(permissionList)) {
             if (permissionList.contains("MANAGE")) {
