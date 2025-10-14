@@ -14,5 +14,6 @@ public class FolderVO {
     private String name;
     private String desc;
     private String parentId;
+    private String userId;
     private List<FolderVO> children;
 }

@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.tarzan.maxkb4j.common.util.BatchUtil;
 import com.tarzan.maxkb4j.common.util.BeanUtil;
 import com.tarzan.maxkb4j.module.folder.entity.FolderEntity;
 import com.tarzan.maxkb4j.module.folder.mapper.FolderMapper;
@@ -30,7 +31,7 @@ public class FolderService extends ServiceImpl<FolderMapper, FolderEntity> {
     @Transactional
     public List<FolderVO> tree(String source) {
         String userId = StpUtil.getLoginIdAsString();
-    /*    UserEntity loginUser = userService.getById(userId);
+     /*   UserEntity loginUser = userService.getById(userId);
         if (Objects.nonNull(loginUser) && loginUser.getRole().contains("ADMIN")) {
             return getAdminFolder(userId, source);
         }*/
@@ -38,13 +39,14 @@ public class FolderService extends ServiceImpl<FolderMapper, FolderEntity> {
     }
 
     private List<FolderVO> getUserFolder(String userId, String source) {
-        FolderVO userRoot = new FolderVO(userId, "根目录", null, null, List.of());
+        FolderVO userRoot = new FolderVO(userId, "根目录", null, null, userId,List.of());
         LambdaQueryWrapper<FolderEntity> wrapper = Wrappers.lambdaQuery();
         wrapper.eq(FolderEntity::getSource, source);
         wrapper.eq(FolderEntity::getUserId, userId);
         List<FolderEntity> list = this.list(wrapper);
         if (CollectionUtils.isNotEmpty(list)) {
             List<FolderVO> sourceList = BeanUtil.copyList(list, FolderVO.class);
+            userRoot=sourceList.stream().filter(e -> e.getId().equals(userId)).findAny().orElse(userRoot);
             buildTree(sourceList, userRoot);
         }
         return List.of(userRoot);
@@ -56,11 +58,11 @@ public class FolderService extends ServiceImpl<FolderMapper, FolderEntity> {
         List<FolderEntity> list = this.lambdaQuery().eq(FolderEntity::getSource, source).list();
         List<FolderVO> sourceList = BeanUtil.copyList(list, FolderVO.class);
         List<FolderVO> result = new ArrayList<>();
-        FolderVO adminRoot = new FolderVO(userId, "根目录", null, null, List.of());
+        FolderVO adminRoot = new FolderVO(userId, "根目录", null, null, userId,List.of());
         buildTree(sourceList, adminRoot);
         result.add(adminRoot);
         for (UserEntity user : users) {
-            FolderVO userRoot = new FolderVO(user.getId(), user.getNickname(), null, null, List.of());
+            FolderVO userRoot = new FolderVO(user.getId(), user.getNickname(), null, null,userId, List.of());
             buildTree(sourceList, userRoot);
             result.add(userRoot);
         }
@@ -87,8 +89,9 @@ public class FolderService extends ServiceImpl<FolderMapper, FolderEntity> {
     }
 
     public void buildLeafIds(List<String> ids, List<String> parentIds) {
-        //todo 超过1000个数据，会报错
-        List<FolderEntity> children = this.list(Wrappers.<FolderEntity>lambdaQuery().select(FolderEntity::getId).in(FolderEntity::getParentId, parentIds));
+        List<FolderEntity> children= BatchUtil.protectBach(ids, idList-> {
+                    return this.list(Wrappers.<FolderEntity>lambdaQuery().select(FolderEntity::getId).in(FolderEntity::getParentId, parentIds));
+                } );
         if (CollectionUtils.isNotEmpty(children)) {
             List<String> childrenIds = children.stream().map(FolderEntity::getId).toList();
             ids.addAll(childrenIds);
@@ -107,6 +110,6 @@ public class FolderService extends ServiceImpl<FolderMapper, FolderEntity> {
         FolderEntity folderEntity = BeanUtil.copy(folder, FolderEntity.class);
         folderEntity.setId(id);
         folderEntity.setSource(source);
-        return super.updateById(folderEntity);
+        return super.saveOrUpdate(folderEntity);
     }
 }
