@@ -1,9 +1,9 @@
 package com.tarzan.maxkb4j.module.knowledge.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.tarzan.maxkb4j.common.constant.AppConst;
 import com.tarzan.maxkb4j.common.api.R;
 import com.tarzan.maxkb4j.common.base.dto.Query;
+import com.tarzan.maxkb4j.common.constant.AppConst;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.*;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.DocumentEntity;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.DocumentVO;
@@ -28,6 +28,7 @@ import java.util.List;
 public class DocumentController {
 
     private final DocumentService documentService;
+
 
  
     @PostMapping("/knowledge/{id}/document/web")
@@ -166,11 +167,9 @@ public class DocumentController {
     }
 
     @GetMapping("/knowledge/{knowledgeId}/document/{docId}/download_source_file")
-    public void downloadSourceFile(@PathVariable String knowledgeId, @PathVariable String docId, HttpServletResponse response) {
+    public void downloadSourceFile(@PathVariable String knowledgeId, @PathVariable String docId, HttpServletResponse response) throws IOException {
          documentService.downloadSourceFile(knowledgeId, docId,response);
     }
-
-
 
 
 }

@@ -15,6 +15,10 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.opencsv.CSVReader;
 import com.opencsv.exceptions.CsvValidationException;
 import com.tarzan.maxkb4j.common.base.dto.Query;
+import com.tarzan.maxkb4j.common.util.ExcelUtil;
+import com.tarzan.maxkb4j.common.util.IoUtil;
+import com.tarzan.maxkb4j.common.util.JsoupUtil;
+import com.tarzan.maxkb4j.common.util.StringUtil;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.DatasetBatchHitHandlingDTO;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.DocumentNameDTO;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.GenerateProblemDTO;
@@ -31,9 +35,7 @@ import com.tarzan.maxkb4j.module.knowledge.mapper.KnowledgeMapper;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
 import com.tarzan.maxkb4j.module.model.info.vo.KeyAndValueVO;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
-import com.tarzan.maxkb4j.common.util.ExcelUtil;
-import com.tarzan.maxkb4j.common.util.JsoupUtil;
-import com.tarzan.maxkb4j.common.util.StringUtil;
+import com.tarzan.maxkb4j.module.oss.service.MongoFileService;
 import dev.langchain4j.data.document.Document;
 import dev.langchain4j.data.document.DocumentSplitter;
 import dev.langchain4j.data.document.splitter.DocumentByCharacterSplitter;
@@ -86,6 +88,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
     private final DocumentParseService documentParseService;
     private final KnowledgeMapper datasetMapper;
     private final ModelService modelService;
+    private final MongoFileService mongoFileService;
 
 
     public void updateStatusMetaById(String id) {
@@ -790,7 +793,8 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         return true;
     }
 
-    public void downloadSourceFile(String id, String docId, HttpServletResponse response) {
-        //todo 待完善
+    public void downloadSourceFile(String id, String docId, HttpServletResponse response) throws IOException {
+        InputStream inputStream = mongoFileService.getStream(docId);
+        IoUtil.copy(inputStream, response.getOutputStream());
     }
 }

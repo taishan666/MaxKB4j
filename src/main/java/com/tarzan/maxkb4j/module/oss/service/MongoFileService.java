@@ -4,8 +4,8 @@ package com.tarzan.maxkb4j.module.oss.service;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
 import com.mongodb.client.gridfs.model.GridFSFile;
-import com.tarzan.maxkb4j.core.workflow.model.ChatFile;
 import com.tarzan.maxkb4j.common.util.IoUtil;
+import com.tarzan.maxkb4j.core.workflow.model.ChatFile;
 import jakarta.activation.MimetypesFileTypeMap;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
@@ -52,12 +52,32 @@ public class MongoFileService {
         // 上传文件中我们也可以使用DBObject附加一些属性
         // 获得文件输入流
         InputStream ins = file.getInputStream();
-        DBObject metadata = new BasicDBObject();
-        ObjectId objectId = gridFsTemplate.store(ins, originalFilename, contentType, metadata);
+       // DBObject metadata = new BasicDBObject();
+        ObjectId objectId = gridFsTemplate.store(ins, originalFilename, contentType);
         fileVO.setFileId(objectId.toString());
         fileVO.setUploadTime(new Date());
         fileVO.setUrl("./oss/file/" + objectId);
         return fileVO;
+    }
+
+    public void uploadFile(MultipartFile file,String fileId) throws IOException {
+        // 新文件名
+        String originalFilename = file.getOriginalFilename();
+        // 获得文件类型
+        String contentType = file.getContentType();
+        // 将文件存储到mongodb中,mongodb将会返回这个文件的具体信息
+        // 上传文件中我们也可以使用DBObject附加一些属性
+        // 获得文件输入流
+        InputStream ins = file.getInputStream();
+        GridFsUpload.GridFsUploadBuilder<ObjectId> uploadBuilder = GridFsUpload.fromStream(ins);
+        if (StringUtils.hasText(originalFilename)) {
+            uploadBuilder.filename(originalFilename);
+        }
+        if (StringUtils.hasText(contentType)) {
+            uploadBuilder.contentType(contentType);
+        }
+        uploadBuilder.id(fileId);
+        gridFsTemplate.store(ins, originalFilename, contentType);
     }
 
     public ChatFile uploadFile(String fileName, byte[] fileBytes)  {
@@ -115,6 +135,12 @@ public class MongoFileService {
             log.error(e.getMessage());
         }
         return new byte[0];
+    }
+
+    public InputStream getStream(String fileId) throws IOException {
+        GridFSFile file=getById(fileId);
+        GridFsResource resource = gridFsTemplate.getResource(file);
+        return resource.getInputStream();
     }
 
     public InputStream getStream(GridFSFile file) throws IOException {

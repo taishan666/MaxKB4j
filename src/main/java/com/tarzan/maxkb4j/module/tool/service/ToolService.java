@@ -1,11 +1,16 @@
 package com.tarzan.maxkb4j.module.tool.service;
 
 import cn.dev33.satoken.stp.StpUtil;
+import cn.hutool.json.JSONUtil;
+import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.tarzan.maxkb4j.common.util.BeanUtil;
+import com.tarzan.maxkb4j.common.util.IoUtil;
+import com.tarzan.maxkb4j.common.util.PageUtil;
 import com.tarzan.maxkb4j.module.system.permission.service.UserResourcePermissionService;
 import com.tarzan.maxkb4j.module.system.user.domain.entity.UserEntity;
 import com.tarzan.maxkb4j.module.system.user.service.UserService;
@@ -13,14 +18,18 @@ import com.tarzan.maxkb4j.module.tool.domain.dto.ToolQuery;
 import com.tarzan.maxkb4j.module.tool.domain.entity.ToolEntity;
 import com.tarzan.maxkb4j.module.tool.domain.vo.ToolVO;
 import com.tarzan.maxkb4j.module.tool.mapper.ToolMapper;
-import com.tarzan.maxkb4j.common.util.BeanUtil;
-import com.tarzan.maxkb4j.common.util.PageUtil;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.io.OutputStream;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -84,13 +93,34 @@ public class ToolService extends ServiceImpl<ToolMapper, ToolEntity>{
         });
     }
 
-    public List<ToolEntity> getUserId(String userId) {
-        return this.list(Wrappers.<ToolEntity>lambdaQuery().eq(ToolEntity::getUserId, userId));
-    }
-
     @Transactional
     public void saveInfo(ToolEntity entity) {
         this.save(entity);
         userResourcePermissionService.save("TOOL", entity.getId(), StpUtil.getLoginIdAsString(), "default");
+    }
+
+    public void toolExport(String id, HttpServletResponse response) throws IOException {
+        ToolEntity entity =this.getById( id);
+        byte[] bytes = JSONUtil.toJsonStr(entity).getBytes(StandardCharsets.UTF_8);
+        response.setContentType("text/plain");
+        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
+        String fileName = URLEncoder.encode(entity.getName(), StandardCharsets.UTF_8);
+        response.setHeader("Content-disposition", "attachment;filename=" + fileName + ".tool");
+        OutputStream outputStream = response.getOutputStream();
+        outputStream.write(bytes);
+    }
+
+    public boolean toolImport(MultipartFile file, String folderId) throws IOException {
+        String text = IoUtil.readToString(file.getInputStream());
+        ToolEntity tool = JSONObject.parseObject(text, ToolEntity.class);
+        tool.setId(null);
+        tool.setIsActive(false);
+        tool.setFolderId(folderId);
+        return this.save(tool);
+    }
+
+    public boolean testConnection(String code) {
+        //todo
+        return true;
     }
 }
