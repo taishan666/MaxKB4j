@@ -793,13 +793,15 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         return true;
     }
 
-    public void downloadSourceFile(String docId, HttpServletResponse response) throws IOException {
+    public boolean downloadSourceFile(String docId, HttpServletResponse response) throws IOException {
         DocumentEntity doc =this.getById(docId);
         JSONObject meta = doc.getMeta();
         if (meta.get("source_file_id")!= null) {
             String fileId = doc.getMeta().getString("source_file_id");
             InputStream inputStream = mongoFileService.getStream(fileId);
             IoUtil.copy(inputStream, response.getOutputStream());
+            return true;
         }
+        return false;
     }
 }

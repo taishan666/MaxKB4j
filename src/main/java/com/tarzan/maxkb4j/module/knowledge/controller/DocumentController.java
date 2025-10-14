@@ -167,8 +167,9 @@ public class DocumentController {
     }
 
     @GetMapping("/knowledge/{knowledgeId}/document/{docId}/download_source_file")
-    public void downloadSourceFile(@PathVariable String knowledgeId, @PathVariable String docId, HttpServletResponse response) throws IOException {
-         documentService.downloadSourceFile(docId,response);
+    public R<String>  downloadSourceFile(@PathVariable String knowledgeId, @PathVariable String docId, HttpServletResponse response) throws IOException {
+         boolean flag=documentService.downloadSourceFile(docId,response);
+         return flag?R.success():R.fail("文件不存在, 仅支持手动上传的文档");
     }
 
 
