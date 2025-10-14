@@ -11,6 +11,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tarzan.maxkb4j.common.util.BeanUtil;
 import com.tarzan.maxkb4j.common.util.IoUtil;
 import com.tarzan.maxkb4j.common.util.PageUtil;
+import com.tarzan.maxkb4j.module.system.permission.constant.AuthTargetType;
 import com.tarzan.maxkb4j.module.system.permission.service.UserResourcePermissionService;
 import com.tarzan.maxkb4j.module.system.user.domain.entity.UserEntity;
 import com.tarzan.maxkb4j.module.system.user.service.UserService;
@@ -96,7 +97,7 @@ public class ToolService extends ServiceImpl<ToolMapper, ToolEntity>{
     @Transactional
     public void saveInfo(ToolEntity entity) {
         this.save(entity);
-        userResourcePermissionService.save("TOOL", entity.getId(), StpUtil.getLoginIdAsString(), "default");
+        userResourcePermissionService.ownerSave(AuthTargetType.TOOL, entity.getId(), entity.getUserId());
     }
 
     public void toolExport(String id, HttpServletResponse response) throws IOException {
@@ -122,5 +123,11 @@ public class ToolService extends ServiceImpl<ToolMapper, ToolEntity>{
     public boolean testConnection(String code) {
         //todo mcp 测试连接代码实现
         return true;
+    }
+
+    @Transactional
+    public boolean removeToolById(String id) {
+        userResourcePermissionService.remove(AuthTargetType.APPLICATION, id);
+        return this.removeById(id);
     }
 }

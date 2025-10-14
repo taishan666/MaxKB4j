@@ -24,12 +24,10 @@ public class ModelController{
 	private final ModelService modelService;
 
 
-	//@SaCheckPermission("MODEL:CREATE")
 	@PostMapping("/model")
 	public R<Boolean> createModel(@RequestBody ModelEntity model){
 		return R.success(modelService.createModel(model));
 	}
-
 
 
 	@GetMapping("/model")
@@ -46,32 +44,27 @@ public class ModelController{
 		return R.success(result);
 	}
 
-	//@SaCheckPermission("MODEL:READ")
 	@GetMapping("/model/{id}")
 	public R<ModelEntity> get(@PathVariable String id){
 		return R.success(modelService.getById(id));
 	}
 
-	//@SaCheckPermission("MODEL:DELETE")
 	@DeleteMapping("/model/{id}")
 	public R<Boolean> delete(@PathVariable String id){
-		return R.success(modelService.removeById(id));
+		return R.success(modelService.removeModelById(id));
 	}
 
-	//@SaCheckPermission("MODEL:EDIT")
 	@PutMapping("/model/{id}")
 	public R<ModelEntity> update(@PathVariable String id,@RequestBody ModelEntity model){
 		return R.success(modelService.updateModel(id,model));
 	}
 
-	//@SaCheckPermission("MODEL:READ")
 	@GetMapping("/model/{id}/model_params_form")
 	public R<JSONArray> modelParamsForm(@PathVariable String id){
 		ModelEntity modelEntity= modelService.getById(id);
 		return R.success(modelEntity.getModelParamsForm());
 	}
 
-	//@SaCheckPermission("MODEL:EDIT")
 	@PutMapping("/model/{id}/model_params_form")
 	public R<JSONArray> updateModelParamsForm(@PathVariable String id,@RequestBody JSONArray array){
 		ModelEntity modelEntity= new ModelEntity();

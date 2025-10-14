@@ -27,6 +27,7 @@ import com.tarzan.maxkb4j.module.knowledge.service.KnowledgeService;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseSpeechToText;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseTextToSpeech;
+import com.tarzan.maxkb4j.module.system.permission.constant.AuthTargetType;
 import com.tarzan.maxkb4j.module.system.permission.service.UserResourcePermissionService;
 import com.tarzan.maxkb4j.module.system.user.domain.entity.UserEntity;
 import com.tarzan.maxkb4j.module.system.user.service.UserService;
@@ -83,21 +84,22 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         if (Objects.nonNull(query.getCreateUser())) {
             wrapper.eq(ApplicationEntity::getUserId, query.getCreateUser());
         }
-        if (StringUtils.isNotBlank(query.getFolderId())) {
-            wrapper.eq(ApplicationEntity::getFolderId, query.getFolderId());
-        } else {
-            wrapper.eq(ApplicationEntity::getFolderId, "default");
-        }
         String loginId = StpUtil.getLoginIdAsString();
         UserEntity user = userService.getById(loginId);
         if (Objects.nonNull(user)) {
             if (!CollectionUtils.isEmpty(user.getRole())) {
                 if (user.getRole().contains("USER")) {
-                    List<String> targetIds = userResourcePermissionService.getTargetIds("APPLICATION", loginId);
+                    List<String> targetIds = userResourcePermissionService.getTargetIds(AuthTargetType.APPLICATION, loginId,query.getFolderId());
                     if (!CollectionUtils.isEmpty(targetIds)) {
                         wrapper.in(ApplicationEntity::getId, targetIds);
                     } else {
                         wrapper.last(" limit 0");
+                    }
+                }else {
+                    if (StringUtils.isNotBlank(query.getFolderId())) {
+                        wrapper.eq(ApplicationEntity::getFolderId, query.getFolderId());
+                    } else {
+                        wrapper.eq(ApplicationEntity::getFolderId, "default");
                     }
                 }
             } else {
@@ -143,6 +145,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
             applicationChatMapper.delete(Wrappers.<ApplicationChatEntity>lambdaQuery().eq(ApplicationChatEntity::getApplicationId, appId));
             applicationChatRecordService.remove(Wrappers.<ApplicationChatRecordEntity>lambdaQuery().in(ApplicationChatRecordEntity::getChatId, chatIds));
         }
+        userResourcePermissionService.remove(AuthTargetType.APPLICATION, appId);
         return this.removeById(appId);
     }
 
@@ -159,7 +162,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         accessToken.setApplicationId(application.getId());
         accessToken.setLanguage((String) StpUtil.getExtra("language"));
         accessTokenService.save(accessToken);
-        userResourcePermissionService.save("APPLICATION", application.getId(), StpUtil.getLoginIdAsString(), "default");
+        userResourcePermissionService.ownerSave(AuthTargetType.APPLICATION, application.getId(), application.getUserId());
         return application;
     }
 
@@ -328,11 +331,6 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     }
 
 
- /*   public List<ParagraphVO> hitTest(String id, DataSearchDTO dto) {
-        List<String> knowledgeIds = knowledgeMappingService.getKnowledgeIdsByAppId(id);
-        dto.setExcludeParagraphIds(new ArrayList<>());
-        return retrieveService.paragraphSearch(knowledgeIds, dto);
-    }*/
 
     public byte[] playDemoText(String appId, JSONObject modelParams) {
         String ttsModelId = modelParams.getString("ttsModelId");
@@ -412,18 +410,6 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         return applicationVersionService.save(entity);
     }
 
-    public List<ApplicationEntity> listByUserId(String appId) {
-        ApplicationEntity application = this.getById(appId);
-        if (Objects.isNull(application)) {
-            return Collections.emptyList();
-        }
-        String userId = StpUtil.getLoginIdAsString();
-        String appUserId = application.getUserId();
-        if (!userId.equals(appUserId)) {
-            return Collections.emptyList();
-        }
-        return this.lambdaQuery().eq(ApplicationEntity::getUserId, appUserId).list();
-    }
 
 
     public void appExport(String id, HttpServletResponse response) throws IOException {

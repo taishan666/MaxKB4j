@@ -12,7 +12,6 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tarzan.maxkb4j.common.util.BeanUtil;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationKnowledgeMappingEntity;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationKnowledgeMappingMapper;
-import com.tarzan.maxkb4j.module.application.mapper.ApplicationMapper;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.KnowledgeDTO;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.KnowledgeQuery;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.*;
@@ -25,6 +24,7 @@ import com.tarzan.maxkb4j.module.knowledge.mapper.KnowledgeMapper;
 import com.tarzan.maxkb4j.module.knowledge.mapper.ProblemParagraphMapper;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelEntity;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
+import com.tarzan.maxkb4j.module.system.permission.constant.AuthTargetType;
 import com.tarzan.maxkb4j.module.system.permission.service.UserResourcePermissionService;
 import com.tarzan.maxkb4j.module.system.user.domain.entity.UserEntity;
 import com.tarzan.maxkb4j.module.system.user.service.UserService;
@@ -132,6 +132,7 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
         documentMapper.delete(Wrappers.<DocumentEntity>lambdaQuery().eq(DocumentEntity::getKnowledgeId, id));
         applicationDatasetMappingMapper.delete(Wrappers.<ApplicationKnowledgeMappingEntity>lambdaQuery().eq(ApplicationKnowledgeMappingEntity::getKnowledgeId, id));
         dataIndexService.removeByDatasetId(id);
+        userResourcePermissionService.remove(AuthTargetType.APPLICATION, id);
         return this.removeById(id);
     }
 
@@ -307,7 +308,7 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
         knowledge.setUserId(StpUtil.getLoginIdAsString());
         knowledge.setType(0);
         this.save(knowledge);
-        userResourcePermissionService.save("KNOWLEDGE", knowledge.getId(), StpUtil.getLoginIdAsString(), "default");
+        userResourcePermissionService.ownerSave(AuthTargetType.KNOWLEDGE, knowledge.getId(), knowledge.getUserId());
         return knowledge;
     }
 
@@ -321,7 +322,7 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
         knowledge.setType(1);
         this.save(knowledge);
         documentService.webDataset(knowledge.getId(),knowledge.getSourceUrl(),knowledge.getSelector());
-        userResourcePermissionService.save("KNOWLEDGE", knowledge.getId(), StpUtil.getLoginIdAsString(), "default");
+        userResourcePermissionService.ownerSave(AuthTargetType.KNOWLEDGE, knowledge.getId(), knowledge.getUserId());
         return knowledge;
     }
 

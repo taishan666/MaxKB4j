@@ -10,6 +10,7 @@ import com.tarzan.maxkb4j.common.util.BeanUtil;
 import com.tarzan.maxkb4j.module.folder.entity.FolderEntity;
 import com.tarzan.maxkb4j.module.folder.mapper.FolderMapper;
 import com.tarzan.maxkb4j.module.folder.vo.FolderVO;
+import com.tarzan.maxkb4j.module.system.permission.service.UserResourcePermissionService;
 import com.tarzan.maxkb4j.module.system.user.domain.entity.UserEntity;
 import com.tarzan.maxkb4j.module.system.user.service.UserService;
 import lombok.AllArgsConstructor;
@@ -30,39 +31,61 @@ public class FolderService extends ServiceImpl<FolderMapper, FolderEntity> {
 
     @Transactional
     public List<FolderVO> tree(String source) {
-        String userId = StpUtil.getLoginIdAsString();
-     /*   UserEntity loginUser = userService.getById(userId);
+/*        String userId = StpUtil.getLoginIdAsString();
+        UserEntity loginUser = userService.getById(userId);
         if (Objects.nonNull(loginUser) && loginUser.getRole().contains("ADMIN")) {
-            return getAdminFolder(userId, source);
-        }*/
-        return getUserFolder(userId, source);
+            return getAdminFolder(source);
+        }
+        return getUserFolder(userId, source);*/
+        return treeFolder(source);
+    }
+
+    private List<FolderVO> treeFolder(String source) {
+        FolderVO rootFolder = new FolderVO("default", "根目录", null, null,List.of());
+        LambdaQueryWrapper<FolderEntity> wrapper = Wrappers.lambdaQuery();
+        wrapper.eq(FolderEntity::getSource, source);
+        List<FolderEntity> list = this.list(wrapper);
+        if (CollectionUtils.isNotEmpty(list)) {
+            List<FolderVO> sourceList = BeanUtil.copyList(list, FolderVO.class);
+            buildTree(sourceList, rootFolder);
+        }
+        return List.of(rootFolder);
     }
 
     private List<FolderVO> getUserFolder(String userId, String source) {
-        FolderVO userRoot = new FolderVO(userId, "根目录", null, null, userId,List.of());
+        FolderVO rootFolder = new FolderVO("default", "根目录", null, null,List.of());
         LambdaQueryWrapper<FolderEntity> wrapper = Wrappers.lambdaQuery();
         wrapper.eq(FolderEntity::getSource, source);
         wrapper.eq(FolderEntity::getUserId, userId);
         List<FolderEntity> list = this.list(wrapper);
         if (CollectionUtils.isNotEmpty(list)) {
             List<FolderVO> sourceList = BeanUtil.copyList(list, FolderVO.class);
-            userRoot=sourceList.stream().filter(e -> e.getId().equals(userId)).findAny().orElse(userRoot);
-            buildTree(sourceList, userRoot);
+            buildTree(sourceList, rootFolder);
         }
-        return List.of(userRoot);
+        return List.of(rootFolder);
+    }
+
+    private List<FolderVO> getAdminFolder(String source) {
+        List<UserEntity> users = userService.lambdaQuery().select(UserEntity::getId, UserEntity::getNickname, UserEntity::getRole).eq(UserEntity::getIsActive, true).list();
+        List<String> userIds =users.stream().map(UserEntity::getId).toList();
+        List<FolderEntity> list = this.lambdaQuery().eq(FolderEntity::getSource, source).in(CollectionUtils.isNotEmpty(userIds),FolderEntity::getUserId,userIds).list();
+        List<FolderVO> sourceList = BeanUtil.copyList(list, FolderVO.class);
+        FolderVO rootFolder = new FolderVO("default", "根目录", null, null,List.of());
+        buildTree(sourceList, rootFolder);
+        return List.of(rootFolder);
     }
 
 
-    private List<FolderVO> getAdminFolder(String userId, String source) {
+    private List<FolderVO> getAdminFolder1(String userId, String source) {
         List<UserEntity> users = userService.lambdaQuery().select(UserEntity::getId, UserEntity::getNickname, UserEntity::getRole).ne(UserEntity::getId, userId).list();
         List<FolderEntity> list = this.lambdaQuery().eq(FolderEntity::getSource, source).list();
         List<FolderVO> sourceList = BeanUtil.copyList(list, FolderVO.class);
         List<FolderVO> result = new ArrayList<>();
-        FolderVO adminRoot = new FolderVO(userId, "根目录", null, null, userId,List.of());
+        FolderVO adminRoot = new FolderVO(userId, "根目录", null, null,List.of());
         buildTree(sourceList, adminRoot);
         result.add(adminRoot);
         for (UserEntity user : users) {
-            FolderVO userRoot = new FolderVO(user.getId(), user.getNickname(), null, null,userId, List.of());
+            FolderVO userRoot = new FolderVO(user.getId(), user.getNickname(), null, null, List.of());
             buildTree(sourceList, userRoot);
             result.add(userRoot);
         }
@@ -74,17 +97,16 @@ public class FolderService extends ServiceImpl<FolderMapper, FolderEntity> {
             List<FolderVO> resultList = sourceList.stream().filter(e -> (Objects.nonNull(e.getParentId()) && e.getParentId().equals(parent.getId()))).collect(Collectors.toList());
             //  resultList.sort(Comparator.comparing(FolderVO::getId));
             parent.setChildren(resultList);
-            resultList.forEach(e -> {
-                buildTree(sourceList, e);
-            });
+            resultList.forEach(e -> buildTree(sourceList, e));
         }
     }
 
     @Transactional
-    public Boolean deleteFolder(String source, String id) {
+    public Boolean deleteFolder(String id) {
         List<String> ids = new ArrayList<>();
         ids.add(id);
         buildLeafIds(ids, List.of(id));
+
         return super.removeByIds(ids);
     }
 

@@ -126,7 +126,7 @@ public class ToolController {
 
     @DeleteMapping("/workspace/default/tool/{id}")
     public R<Boolean> tool(@PathVariable String id) {
-        return R.status(toolService.removeById(id));
+        return R.status(toolService.removeToolById(id));
     }
 
     @PostMapping("/workspace/default/tool/pylint")

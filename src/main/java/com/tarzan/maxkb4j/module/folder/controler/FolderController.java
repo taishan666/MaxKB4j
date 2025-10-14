@@ -29,7 +29,7 @@ public class FolderController {
 
     @DeleteMapping("/{source}/folder/{id}")
     public R<Boolean> deleteFolder(@PathVariable String source, @PathVariable String id) {
-        return R.data(folderService.deleteFolder(source, id));
+        return R.data(folderService.deleteFolder(id));
     }
 
     @GetMapping("/{source}/folder")
