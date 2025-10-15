@@ -2,22 +2,20 @@ package com.tarzan.maxkb4j.core.workflow.node.question.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.common.util.SpringUtil;
-import com.tarzan.maxkb4j.common.util.TokenUtil;
+import com.tarzan.maxkb4j.core.assistant.Assistant;
+import com.tarzan.maxkb4j.core.langchain4j.AppChatMemory;
 import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.node.question.input.QuestionParams;
 import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
 import dev.langchain4j.data.message.ChatMessage;
-import dev.langchain4j.data.message.SystemMessage;
-import dev.langchain4j.data.message.UserMessage;
-import dev.langchain4j.rag.query.Metadata;
-import dev.langchain4j.rag.query.Query;
-import dev.langchain4j.rag.query.transformer.CompressingQueryTransformer;
-import dev.langchain4j.rag.query.transformer.QueryTransformer;
-import org.apache.commons.lang3.StringUtils;
+import dev.langchain4j.model.output.TokenUsage;
+import dev.langchain4j.service.AiServices;
+import dev.langchain4j.service.Result;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
 
 import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.QUESTION;
 
@@ -31,47 +29,31 @@ public class QuestionNode extends INode {
         this.modelService = SpringUtil.getBean(ModelService.class);
     }
 
-
     @Override
     public NodeResult execute() {
         QuestionParams nodeParams = super.getNodeData().toJavaObject(QuestionParams.class);
-        if (Objects.isNull(nodeParams.getModelParamsSetting())) {
-            nodeParams.setModelParamsSetting(new JSONObject());
-        }
         BaseChatModel chatModel = modelService.getModelById(nodeParams.getModelId(), nodeParams.getModelParamsSetting());
         List<ChatMessage> historyMessages=super.getHistoryMessages(nodeParams.getDialogueNumber(), "WORKFLOW", runtimeNodeId);
-        String question = super.generatePrompt(nodeParams.getPrompt());
-        UserMessage userMessage = UserMessage.from(question);
-        String system = super.generatePrompt(nodeParams.getSystem());
-        List<ChatMessage> messageList = this.generateMessageList(system, userMessage, historyMessages);
-        QueryTransformer queryTransformer = new CompressingQueryTransformer(chatModel.getChatModel());
-        Metadata metadata = new Metadata(userMessage, getChatParams().getChatId(), historyMessages);
-        Query query = new Query(getChatParams().getMessage(), metadata);
-        Collection<Query> list = queryTransformer.transform(query);
-        StringBuilder answerSb = new StringBuilder();
-        for (Query queryResult : list) {
-            answerSb.append(queryResult.text());
-        }
-        detail.put("system", system);
-        detail.put("question", question);
         detail.put("history_message", resetMessageList(historyMessages));
-        detail.put("messageTokens", TokenUtil.countTokens(messageList));
-        detail.put("answerTokens", TokenUtil.countTokens(answerSb.toString()));
-        answerText = answerSb.toString();
+        String question = super.generatePrompt(nodeParams.getPrompt());
+        String systemPrompt = super.generatePrompt(nodeParams.getSystem());
+        Assistant assistant = AiServices.builder(Assistant.class)
+                .systemMessageProvider(chatMemoryId -> systemPrompt)
+                .chatMemory(AppChatMemory.withMessages(historyMessages))
+                .chatModel(chatModel.getChatModel())
+                .build();
+        Result<String> result = assistant.chat( question);
+        detail.put("system", systemPrompt);
+        detail.put("question", question);
+        TokenUsage tokenUsage =  result.tokenUsage();
+        detail.put("messageTokens", tokenUsage.inputTokenCount());
+        detail.put("answerTokens", tokenUsage.outputTokenCount());
+        answerText = result.content();
         return new NodeResult(Map.of(
                 "answer", answerText
         ), Map.of());
     }
 
-    private List<ChatMessage> generateMessageList(String system, UserMessage question, List<ChatMessage> historyMessages) {
-        List<ChatMessage> messageList = new ArrayList<>();
-        if (StringUtils.isNotBlank(system)) {
-            messageList.add(SystemMessage.from(system));
-        }
-        messageList.addAll(historyMessages);
-        messageList.add(question);
-        return messageList;
-    }
 
     @Override
     public void saveContext(JSONObject detail) {

@@ -9,9 +9,7 @@ import com.tarzan.maxkb4j.core.workflow.node.intentclassify.input.IntentClassify
 import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
-import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
-import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.internal.ValidationUtils;
 import dev.langchain4j.model.input.PromptTemplate;
 import dev.langchain4j.model.output.TokenUsage;
@@ -20,7 +18,6 @@ import dev.langchain4j.service.Result;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.INTENT_CLASSIFY;
 
@@ -28,10 +25,7 @@ import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.INTENT_CLASSIFY;
 public class IntentClassifyNode extends INode {
 
     private final ModelService modelService;
-    private final AiServices<Assistant> aiServicesBuilder;
     private final Map<Integer, String> idToClassification;
-
-
     private static final String DEFAULT_PROMPT_TEMPLATE = """
             Based on the user query, \
             determine the most suitable option(s) to retrieve relevant information from the following options:
@@ -44,7 +38,6 @@ public class IntentClassifyNode extends INode {
         super(properties);
         super.type = INTENT_CLASSIFY.getKey();
         this.modelService = SpringUtil.getBean(ModelService.class);
-        this.aiServicesBuilder = AiServices.builder(Assistant.class);
         this.idToClassification = new HashMap<>();
     }
 
@@ -68,7 +61,7 @@ public class IntentClassifyNode extends INode {
         variables.put("chatMemory", format(historyMessages));
         String question = promptTemplate.apply(variables).text();
         String systemPrompt = "You are a professional intent recognition assistant. Please accurately identify the user's true intent based on the user's input and intent options.";
-        Assistant assistant = aiServicesBuilder
+        Assistant assistant = AiServices.builder(Assistant.class)
                 .systemMessageProvider(chatMemoryId -> systemPrompt)
                 .chatModel(chatModel.getChatModel())
                 .build();
@@ -105,19 +98,6 @@ public class IntentClassifyNode extends INode {
         return optionsBuilder.toString();
     }
 
-    protected String format(List<ChatMessage> chatMemory) {
-        return chatMemory.stream().map(this::format).filter(Objects::nonNull).collect(Collectors.joining("\n"));
-    }
-
-    protected String format(ChatMessage message) {
-        if (message instanceof UserMessage userMessage) {
-            return "User: " + userMessage.singleText();
-        } else if (message instanceof AiMessage aiMessage) {
-            return aiMessage.hasToolExecutionRequests() ? null : "AI: " + aiMessage.text();
-        } else {
-            return null;
-        }
-    }
 
 
     @Override
