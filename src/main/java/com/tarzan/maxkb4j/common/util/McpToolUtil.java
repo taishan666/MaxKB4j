@@ -55,7 +55,7 @@ public class McpToolUtil {
         return mcpClients;
     }
 
-    public static McpClient getMcpClient(JSONObject serverConfig) {
+    private static McpClient getMcpClient(JSONObject serverConfig) {
         String url = serverConfig.getString("url");
         String type = serverConfig.getString("type");
         McpTransport transport;
