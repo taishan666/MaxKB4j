@@ -1,6 +1,7 @@
 package com.tarzan.maxkb4j.listener;
 
 import com.alibaba.fastjson.JSONObject;
+import com.tarzan.maxkb4j.common.props.SystemProperties;
 import com.tarzan.maxkb4j.module.system.setting.cache.SystemCache;
 import com.tarzan.maxkb4j.module.system.setting.domain.entity.SystemSettingEntity;
 import com.tarzan.maxkb4j.module.system.setting.enums.SettingType;
@@ -37,12 +38,13 @@ public class StartedListener implements ApplicationListener<ApplicationStartedEv
 
     private final SystemSettingService systemSettingService;
     private final UserService userService;
+    private final SystemProperties systemProperties;
 
     @Override
     public void onApplicationEvent(@NonNull ApplicationStartedEvent event) {
         long userCount=userService.count();
         if (userCount==0){
-            userService.createAdminUser("admin", "maxkb4j.");
+            userService.createAdminUser(systemProperties.getDefaultUsername(), systemProperties.getDefaultPassword());
         }
         List<SystemSettingEntity> systemSettings=systemSettingService.list();
         if(Collections.isEmpty(systemSettings)){

@@ -15,6 +15,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.tarzan.maxkb4j.common.exception.ApiException;
+import com.tarzan.maxkb4j.common.props.SystemProperties;
 import com.tarzan.maxkb4j.module.application.enums.AuthType;
 import com.tarzan.maxkb4j.module.system.setting.service.EmailService;
 import com.tarzan.maxkb4j.module.system.user.constants.RoleType;
@@ -49,6 +50,7 @@ public class UserService extends ServiceImpl<UserMapper, UserEntity> {
 
     private final EmailService emailService;
     private final StpInterface stpInterface;
+    private final SystemProperties systemProperties;
     // 创建缓存并配置
     private static final Cache<String, String> AUTH_CODE_CACHE = Caffeine.newBuilder()
             .initialCapacity(5)
@@ -111,7 +113,6 @@ public class UserService extends ServiceImpl<UserMapper, UserEntity> {
         loginModel.setExtra("client_type", AuthType.USER.name());
         loginModel.setExtra("roles", userEntity.getRole());
         StpUtil.login(userEntity.getId(), loginModel);
-        //return Map.of("token",StpUtil.getTokenValue());
         return StpUtil.getTokenValue();
     }
 
@@ -163,8 +164,8 @@ public class UserService extends ServiceImpl<UserMapper, UserEntity> {
         List<Map<String, String>> workspaceList = new ArrayList<>();
         workspaceList.add(Map.of("id", "default", "name", "default"));
         user.setWorkspaceList(workspaceList);
-        //todo 默认密码的md5值
-        user.setIsEditPassword("d880e722c47a34d8e9fce789fc62389d".equals(user.getPassword()));
+        String defaultPassword = SaSecureUtil.md5(systemProperties.getDefaultPassword());
+        user.setIsEditPassword(defaultPassword.equals(user.getPassword()));
         return user;
     }
 
