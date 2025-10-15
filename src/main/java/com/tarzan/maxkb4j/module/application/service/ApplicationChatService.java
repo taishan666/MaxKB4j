@@ -104,13 +104,13 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
         return chatResponse;
     }
 
-    @Async
+    @Async("chatTaskExecutor")
     public CompletableFuture<ChatResponse> chatMessageAsync(ChatParams chatParams) {
         String chatId=StringUtil.isNotBlank(chatParams.getChatId()) ? chatParams.getChatId() : IdWorker.get32UUID();
         ChatInfo chatInfo = ChatCache.get(chatId);
         if (chatInfo == null){
             chatInfo = new ChatInfo();
-            chatInfo.setChatId(StringUtil.isNotBlank(chatId) ? chatId : IdWorker.get32UUID());
+            chatInfo.setChatId(chatId);
             chatInfo.setAppId(chatParams.getAppId());
             ChatCache.put(chatInfo.getChatId(), chatInfo);
         }

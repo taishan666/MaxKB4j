@@ -24,8 +24,6 @@ public class ChatMessageVO {
     private String runtimeNodeId;
     private Boolean isEnd;
     private ChildNode childNode;
-    private Integer messageTokens=0;
-    private Integer answerTokens=0;
 
 
     public ChatMessageVO(String chatId, String chatRecordId, Boolean isEnd) {

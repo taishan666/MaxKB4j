@@ -3,7 +3,9 @@ package com.tarzan.maxkb4j.core.workflow.node.application.impl;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.tarzan.maxkb4j.common.util.SpringUtil;
+import com.tarzan.maxkb4j.common.util.StringUtil;
 import com.tarzan.maxkb4j.core.workflow.INode;
+import com.tarzan.maxkb4j.core.workflow.WorkflowManage;
 import com.tarzan.maxkb4j.core.workflow.model.ChatFile;
 import com.tarzan.maxkb4j.core.workflow.node.application.input.ApplicationNodeParams;
 import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
@@ -117,11 +119,20 @@ public class ApplicationNode extends INode {
         detail.put("messageTokens", chatResponse.getMessageTokens());
         detail.put("answerTokens", chatResponse.getAnswerTokens());
         detail.put("question", question);
-        detail.put("answer", chatResponse.getAnswer());
+        answerText = chatResponse.getAnswer();
+        detail.put("answer", answerText);
         detail.put("is_interrupt_exec", is_interrupt_exec.get());
         return new NodeResult(Map.of(
-                "result", chatResponse.getAnswer()
-        ), Map.of(),this::isInterrupt);
+                "result", answerText
+        ), Map.of(),this::writeContext,this::isInterrupt);
+    }
+
+    private void writeContext(Map<String, Object> nodeVariable, Map<String, Object> globalVariable, INode node, WorkflowManage workflow) {
+        node.getContext().putAll(nodeVariable);
+        node.getDetail().putAll(nodeVariable);
+        if (workflow.isResult(node, new NodeResult(nodeVariable, globalVariable))&& StringUtil.isNotBlank(node.getAnswerText())) {
+            workflow.setAnswer(workflow.getAnswer()+node.getAnswerText());
+        }
     }
 
     public boolean isInterrupt(INode node) {

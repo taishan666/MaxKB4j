@@ -45,7 +45,6 @@ public class ApplicationChatRecordController {
 
     @PostMapping("/application/{appId}/add_knowledge")
     public R<Boolean> addKnowledge(@PathVariable("appId") String appId, @RequestBody AddChatImproveDTO dto) {
-        System.out.println("improveChatLogs");
         return R.success(chatRecordService.addChatLogs(appId, dto));
     }
 

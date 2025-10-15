@@ -39,6 +39,13 @@ public class NodeResult {
         this.writeContextFunc = this::defaultWriteContextFunc;
         this.isInterrupt = isInterrupt;
     }
+    public NodeResult(Map<String, Object> nodeVariable, Map<String, Object> globalVariable , WriteContextFunction writeContextFunc,IsInterruptFunction isInterrupt) {
+        this.nodeVariable = nodeVariable;
+        this.globalVariable = globalVariable;
+        this.writeContextFunc = writeContextFunc;
+        this.isInterrupt = isInterrupt;
+    }
+
 
 
     public void writeContext(INode currentNode, WorkflowManage workflowManage) {

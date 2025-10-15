@@ -86,7 +86,6 @@ public class IntentClassifyNode extends INode {
         String systemPrompt = "你是一个专业的意图识别助手，请根据用户输入和意图选项，准确识别用户的真实意图。";
         List<ChatMessage> historyMessages = super.getHistoryMessages(nodeParams.getDialogueNumber(), "WORK_FLOW", runtimeNodeId);
         detail.put("history_message", resetMessageList(historyMessages));
-        aiServicesBuilder.chatMemory(AppChatMemory.withMessages(historyMessages));
         Assistant assistant = aiServicesBuilder
                 .systemMessageProvider(chatMemoryId -> systemPrompt)
                 .chatMemory(AppChatMemory.withMessages(historyMessages))

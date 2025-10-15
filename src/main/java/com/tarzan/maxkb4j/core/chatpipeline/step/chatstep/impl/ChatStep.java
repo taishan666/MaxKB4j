@@ -107,7 +107,7 @@ public class ChatStep extends IChatStep {
                 List<ChatMessage> historyMessages=manage.getHistoryMessages(dialogueNumber);
                 Assistant assistant =  aiServicesBuilder.chatMemory(AppChatMemory.withMessages(historyMessages)).streamingChatModel(chatModel.getStreamingChatModel()).build();
                 if (stream) {
-                    boolean reasoningEnable = application.getModelSetting().getReasoningContentEnable();
+                    Boolean reasoningEnable = application.getModelSetting().getReasoningContentEnable();
                     TokenStream tokenStream = assistant.chatStream(userPrompt);
                     CompletableFuture<ChatResponse> futureChatResponse = new CompletableFuture<>();
                     tokenStream.onPartialThinking(thinking -> {

@@ -163,7 +163,7 @@ public class UserService extends ServiceImpl<UserMapper, UserEntity> {
         List<Map<String, String>> workspaceList = new ArrayList<>();
         workspaceList.add(Map.of("id", "default", "name", "default"));
         user.setWorkspaceList(workspaceList);
-        //todo 临时处理
+        //todo 默认密码的md5值
         user.setIsEditPassword("d880e722c47a34d8e9fce789fc62389d".equals(user.getPassword()));
         return user;
     }

@@ -64,20 +64,17 @@ public class DocumentController {
         documentService.importTable(id, file);
     }
 
- //   @SaCheckPermission("DATASET:READ")
     @GetMapping("/knowledge/document/table_template/export")
     public void tableTemplateExport(String type, HttpServletResponse response) throws Exception {
         documentService.tableTemplateExport(type, response);
     }
 
- //   @SaCheckPermission("DATASET:READ")
     @GetMapping("/knowledge/document/template/export")
     public void templateExport(String type, HttpServletResponse response) throws Exception {
         documentService.templateExport(type, response);
     }
 
 
-    //todo 保持文件
     @PostMapping("/knowledge/{knowledgeId}/document/split")
     public R<List<TextSegmentVO>> split(@PathVariable String knowledgeId, MultipartFile[] file, String[] patterns, Integer limit, Boolean with_filter) throws IOException {
         return R.success(documentService.split(file, patterns, limit, with_filter));
@@ -106,7 +103,7 @@ public class DocumentController {
     public R<Boolean> migrateDoc(@PathVariable("sourceId") String sourceId, @PathVariable("targetId") String targetId, @RequestBody List<String> docIds) {
         return R.success(documentService.migrateDoc(sourceId, targetId, docIds));
     }
-//    @SaCheckPermission("DATASET:EDIT")
+
     @PutMapping("/knowledge/{id}/document/batch_hit_handling")
     public R<Boolean> batchHitHandling(@PathVariable String id, @RequestBody DatasetBatchHitHandlingDTO dto) {
         return R.success(documentService.batchHitHandling(id, dto));

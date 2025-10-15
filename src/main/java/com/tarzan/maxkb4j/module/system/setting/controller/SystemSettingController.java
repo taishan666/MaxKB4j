@@ -22,7 +22,6 @@ public class SystemSettingController{
 
 	private	final SystemSettingService systemSettingService;
 
-	//@SaCheckPermission("SETTING:CREATE")
 	@GetMapping("/email_setting")
 	public R<JSONObject> getEmailSetting(){
 		SystemSettingEntity systemSetting=systemSettingService.lambdaQuery().eq(SystemSettingEntity::getType, SettingType.Email.getType()).one();
@@ -30,7 +29,6 @@ public class SystemSettingController{
 		return R.success(json);
 	}
 
-	//@SaCheckPermission("SETTING:EDIT")
 	@PostMapping("/email_setting")
 	public R<Boolean> testEmail(@RequestBody JSONObject meta){
 		if(systemSettingService.testConnect(meta)){
@@ -40,17 +38,15 @@ public class SystemSettingController{
 		}
 	}
 
-	//@SaCheckPermission("SETTING:EDIT")
 	@PutMapping("/email_setting")
 	public R<Boolean> saveEmailSetting(@RequestBody JSONObject meta){
 		return R.status(systemSettingService.saveOrUpdate(meta, SettingType.Email.getType()));
 	}
 
-	@GetMapping("/valid/{type}/{count}")
+/*	@GetMapping("/valid/{type}/{count}")
 	public R<Boolean> valid(@PathVariable("type")String type,@PathVariable("count")int count){
-		//todo
 		return R.status(count>0);
-	}
+	}*/
 
 	@PostMapping(value = "/display/update", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public R<DisplayInfo> display(DisplayInfo formData){

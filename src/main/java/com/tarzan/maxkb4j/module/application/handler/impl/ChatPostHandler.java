@@ -59,7 +59,6 @@ public class ChatPostHandler extends PostResponseHandler {
             chatRecord.setVoteStatus("-1");
             chatRecord.setCost(messageTokens + answerTokens);
             chatRecord.setDetails(details);
-            //人工标注优化
             chatRecord.setImproveParagraphIdList(List.of());
         }
         chatInfo.addChatRecord(chatRecord);

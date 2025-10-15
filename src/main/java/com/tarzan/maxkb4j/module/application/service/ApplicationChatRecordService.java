@@ -191,7 +191,6 @@ public class ApplicationChatRecordService extends ServiceImpl<ApplicationChatRec
             paragraphEntity.setStatus("nn0");
             return paragraphEntity;
         }).toList();
-        //todo 嵌入到问题数据库里和文本关联
         return paragraphService.saveBatch(paragraphs);
     }
 
