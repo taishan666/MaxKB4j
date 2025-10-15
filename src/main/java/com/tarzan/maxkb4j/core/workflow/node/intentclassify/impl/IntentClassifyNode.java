@@ -1,6 +1,7 @@
 package com.tarzan.maxkb4j.core.workflow.node.intentclassify.impl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.tarzan.maxkb4j.common.util.SpringUtil;
 import com.tarzan.maxkb4j.core.assistant.Assistant;
 import com.tarzan.maxkb4j.core.workflow.INode;
@@ -69,15 +70,15 @@ public class IntentClassifyNode extends INode {
         Result<String> result = assistant.chat(question);
         detail.put("system", systemPrompt);
         detail.put("question", query);
-        System.out.println(result.content());
         Collection<Integer> classificationIds = parse(result.content());
+        int classificationId=classificationIds.stream().findFirst().orElse(0);
+        String branchId=idToClassification.get(classificationId);
+        String category=branchMap.get(branchId);
         TokenUsage tokenUsage =  result.tokenUsage();
         detail.put("messageTokens", tokenUsage.inputTokenCount());
         detail.put("answerTokens", tokenUsage.outputTokenCount());
-        detail.put("answer", result.content());
-        int classificationId=classificationIds.stream().findFirst().orElse(0);
-        String branchId=idToClassification.get(classificationId);
-        return new NodeResult(Map.of("branchId",branchId,"category", branchMap.get(branchId),"reason", ""),Map.of());
+        detail.put("answer", category);
+        return new NodeResult(Map.of("branchId",branchId,"category", category,"reason", ""),Map.of());
     }
 
     protected Collection<Integer> parse(String choices) {
@@ -86,15 +87,18 @@ public class IntentClassifyNode extends INode {
 
     protected String optionsFormat(List<IntentClassifyBranch> branches) {
         StringBuilder optionsBuilder = new StringBuilder();
-        for (int i = 0; i < branches.size(); i++) {
-            IntentClassifyBranch branch=branches.get(i);
-            idToClassification.put(i, ValidationUtils.ensureNotNull(branch.getId(), "Classification"));
-            if (i > 0) {
-                optionsBuilder.append("\n");
+        if (CollectionUtils.isNotEmpty( branches)){
+            Collections.reverse(branches);
+            for (int i = 0; i < branches.size(); i++) {
+                IntentClassifyBranch branch=branches.get(i);
+                idToClassification.put(i, ValidationUtils.ensureNotNull(branch.getId(), "Classification"));
+                if (i > 0) {
+                    optionsBuilder.append("\n");
+                }
+                optionsBuilder.append(i);
+                optionsBuilder.append(": ");
+                optionsBuilder.append(ValidationUtils.ensureNotBlank(branch.getContent(), "Classification description"));
             }
-            optionsBuilder.append(i);
-            optionsBuilder.append(": ");
-            optionsBuilder.append(ValidationUtils.ensureNotBlank(branch.getContent(), "Classification description"));
         }
         return optionsBuilder.toString();
     }
