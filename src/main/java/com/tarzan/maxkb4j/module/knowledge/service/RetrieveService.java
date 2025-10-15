@@ -56,6 +56,9 @@ public class RetrieveService {
             float score = map.get(e.getId());
             e.setSimilarity(score);
             e.setComprehensiveScore(score);
+            if (e.getDocumentName()==null){
+                e.setDocumentName("");
+            }
         });
         paragraphs.sort(Comparator.comparing(ParagraphVO::getSimilarity).reversed());
         return paragraphs;
