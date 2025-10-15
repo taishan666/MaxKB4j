@@ -123,9 +123,5 @@ public class RerankerNode extends INode {
         context.put("result_list", detail.get("result_list"));
     }
 
-    @Override
-    public JSONObject getRunDetail() {
-        return detail;
-    }
 
 }

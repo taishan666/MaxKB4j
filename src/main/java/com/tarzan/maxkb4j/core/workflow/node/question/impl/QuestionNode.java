@@ -62,9 +62,5 @@ public class QuestionNode extends INode {
     }
 
 
-    @Override
-    public JSONObject getRunDetail() {
-        return detail;
-    }
 
 }

@@ -162,9 +162,5 @@ public class ImageUnderstandNode extends INode {
     }
 
 
-    @Override
-    public JSONObject getRunDetail() {
-        return detail;
-    }
 
 }

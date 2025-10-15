@@ -63,9 +63,5 @@ public class DirectReplyNode extends INode {
     }
 
 
-    @Override
-    public JSONObject getRunDetail() {
-        return detail;
-    }
 
 }

@@ -124,9 +124,5 @@ public class SearchKnowledgeNode extends INode {
         context.put("directlyReturn", detail.get("directlyReturn"));
     }
 
-    @Override
-    public JSONObject getRunDetail() {
-        return detail;
-    }
 
 }

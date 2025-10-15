@@ -58,9 +58,5 @@ public class SpeechToTextNode extends INode {
         context.put("result", detail.get("result"));
     }
 
-    @Override
-    public JSONObject getRunDetail() {
-        return detail;
-    }
 
 }

@@ -33,7 +33,7 @@ public abstract class INode {
     private String viewType;
     private JSONObject properties;
     private ChatParams chatParams;
-    private Map<String, Map<String,Object>> flowVariables;
+    private Map<String, Map<String, Object>> flowVariables;
     private Map<String, Object> promptVariables;
     protected Map<String, Object> context;
     protected JSONObject detail;
@@ -68,8 +68,6 @@ public abstract class INode {
     public abstract NodeResult execute() throws Exception;
 
     protected abstract void saveContext(JSONObject detail);
-
-    public abstract JSONObject getRunDetail();
 
 
     private String generateRuntimeNodeId() {
@@ -118,6 +116,9 @@ public abstract class INode {
         return detail;
     }
 
+    public JSONObject getRunDetail() {
+        return detail;
+    }
 
 
     public Object getReferenceField(String nodeId, String key) {
@@ -181,7 +182,6 @@ public abstract class INode {
     }
 
 
-
     public Set<String> extractVariables(String template) {
         Pattern VARIABLE_PATTERN = Pattern.compile("\\{\\{(.+?)\\}\\}");
         Set<String> variables = new HashSet<>();
@@ -215,7 +215,7 @@ public abstract class INode {
         for (ApplicationChatRecordEntity message : historyChatRecords) {
             String answerText = message.getAnswerText();
             Matcher matcher = pattern.matcher(answerText);
-            if (!matcher.find()){
+            if (!matcher.find()) {
                 messages.add(new UserMessage(message.getProblemText()));
                 messages.add(new AiMessage(message.getAnswerText()));
             }

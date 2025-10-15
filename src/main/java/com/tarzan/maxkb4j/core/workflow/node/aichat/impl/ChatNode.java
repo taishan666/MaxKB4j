@@ -191,8 +191,4 @@ public class ChatNode extends INode {
         context.put("reasoningContent", detail.get("reasoningContent"));
     }
 
-    @Override
-    public JSONObject getRunDetail() {
-        return detail;
-    }
 }

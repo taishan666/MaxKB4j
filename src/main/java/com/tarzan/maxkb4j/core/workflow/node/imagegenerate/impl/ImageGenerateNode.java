@@ -57,9 +57,5 @@ public class ImageGenerateNode extends INode {
         context.put("image", detail.get("image"));
     }
 
-    @Override
-    public JSONObject getRunDetail() {
-        return detail;
-    }
 
 }

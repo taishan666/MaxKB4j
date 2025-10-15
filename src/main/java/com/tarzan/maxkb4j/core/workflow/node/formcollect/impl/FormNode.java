@@ -63,9 +63,5 @@ public class FormNode extends INode {
         context.put("form_data", formData);
     }
 
-    @Override
-    public JSONObject getRunDetail() {
-        return detail;
-    }
 
 }
