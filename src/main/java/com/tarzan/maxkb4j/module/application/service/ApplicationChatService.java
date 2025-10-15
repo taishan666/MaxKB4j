@@ -17,6 +17,7 @@ import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationVO;
 import com.tarzan.maxkb4j.module.application.domian.vo.ChatRecordDetailVO;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatMapper;
 import com.tarzan.maxkb4j.module.chat.ChatParams;
+import com.tarzan.maxkb4j.module.chat.ChatResponse;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import org.springframework.scheduling.annotation.Async;
@@ -86,7 +87,7 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
         return chatInfo;
     }
 
-    public String chatMessage(ChatParams chatParams) {
+    public ChatResponse chatMessage(ChatParams chatParams) {
         ChatInfo chatInfo = this.getChatInfo(chatParams.getChatId());
         if (chatInfo == null) {
             chatParams.getSink().tryEmitError(new ApiException("会话不存在"));
@@ -98,13 +99,13 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
         visitCountCheck(chatParams.getAppId(), chatParams.getChatUserId(), chatParams.getDebug());
         ApplicationVO application = applicationService.getAppDetail(chatParams.getAppId(), chatParams.getDebug());
         IChatActuator chatActuator = ChatActuatorBuilder.getActuator(application.getType());
-        String answer = chatActuator.chatMessage(application, chatParams);
+        ChatResponse chatResponse = chatActuator.chatMessage(application, chatParams);
         chatParams.getSink().tryEmitComplete();
-        return answer;
+        return chatResponse;
     }
 
     @Async
-    public CompletableFuture<String> chatMessageAsync(ChatParams chatParams) {
+    public CompletableFuture<ChatResponse> chatMessageAsync(ChatParams chatParams) {
         String chatId=StringUtil.isNotBlank(chatParams.getChatId()) ? chatParams.getChatId() : IdWorker.get32UUID();
         ChatInfo chatInfo = ChatCache.get(chatId);
         if (chatInfo == null){

@@ -13,6 +13,7 @@ import com.tarzan.maxkb4j.module.application.handler.PostResponseHandler;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatMapper;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatRecordMapper;
 import com.tarzan.maxkb4j.module.application.service.ApplicationChatUserStatsService;
+import com.tarzan.maxkb4j.module.chat.ChatResponse;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -29,19 +30,13 @@ public class ChatPostHandler extends PostResponseHandler {
 
 
     @Override
-    public void handler(String chatId, String chatRecordId, String problemText, String answerText, ApplicationChatRecordEntity chatRecord, JSONObject details, long startTime, String chatUserId, String chatUserType, boolean debug) {
+    public void handler(String chatId, String chatRecordId, String problemText, ChatResponse chatResponse, ApplicationChatRecordEntity chatRecord, long startTime, String chatUserId, String chatUserType, boolean debug) {
         float runTime = (System.currentTimeMillis() - startTime) / 1000F;
         ChatInfo chatInfo = ChatCache.get(chatId);
-        int messageTokens = details.values().stream()
-                .map(row -> (JSONObject) row)
-                .filter(row -> row.containsKey("messageTokens") && row.get("messageTokens") != null)
-                .mapToInt(row -> row.getIntValue("messageTokens"))
-                .sum();
-        int answerTokens = details.values().stream()
-                .map(row -> (JSONObject) row)
-                .filter(row -> row.containsKey("answerTokens") && row.get("answerTokens") != null)
-                .mapToInt(row -> row.getIntValue("answerTokens"))
-                .sum();
+        String answerText = chatResponse.getAnswer();
+        int messageTokens = chatResponse.getMessageTokens();
+        int answerTokens = chatResponse.getAnswerTokens();
+        JSONObject details = chatResponse.getRunDetails();
         if (chatRecord != null) {
             chatRecord.setAnswerTextList(List.of(answerText));
             chatRecord.setAnswerText(answerText);

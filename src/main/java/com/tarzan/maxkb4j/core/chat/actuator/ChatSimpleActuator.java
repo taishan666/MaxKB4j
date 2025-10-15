@@ -14,6 +14,7 @@ import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatRecord
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationVO;
 import com.tarzan.maxkb4j.module.application.handler.PostResponseHandler;
 import com.tarzan.maxkb4j.module.chat.ChatParams;
+import com.tarzan.maxkb4j.module.chat.ChatResponse;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.ParagraphVO;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -36,7 +37,7 @@ public class ChatSimpleActuator implements IChatActuator {
 
 
     @Override
-    public String chatMessage(ApplicationVO application, ChatParams chatParams) {
+    public ChatResponse chatMessage(ApplicationVO application, ChatParams chatParams) {
         long startTime = System.currentTimeMillis();
         ChatInfo chatInfo = ChatCache.get(chatParams.getChatId());
         boolean stream = chatParams.getStream() == null || chatParams.getStream();
@@ -61,8 +62,9 @@ public class ChatSimpleActuator implements IChatActuator {
         Map<String, Object> params = chatInfo.toPipelineManageParams(application, chatParams.getChatRecordId(), problemText, excludeParagraphIds, chatParams.getChatUserId(), chatParams.getChatUserType(), stream);
         String answer = pipelineManage.run(params, chatParams.getSink());
         JSONObject details = pipelineManage.getDetails();
-        postResponseHandler.handler(chatParams.getChatId(), chatParams.getChatRecordId(), problemText, answer, null, details, startTime, chatParams.getChatUserId(), chatParams.getChatUserType(), chatParams.getDebug());
-        return answer;
+        ChatResponse chatResponse = new ChatResponse(answer, details);
+        postResponseHandler.handler(chatParams.getChatId(), chatParams.getChatRecordId(), problemText, chatResponse, null,  startTime, chatParams.getChatUserId(), chatParams.getChatUserType(), chatParams.getDebug());
+        return chatResponse;
     }
 
     private List<String> getExcludeParagraphIds(ChatInfo chatInfo, ChatParams chatParams){

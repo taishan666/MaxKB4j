@@ -5,13 +5,13 @@ import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.tarzan.maxkb4j.common.util.StringUtil;
 import com.tarzan.maxkb4j.core.chat.provider.IChatActuator;
 import com.tarzan.maxkb4j.core.workflow.WorkflowManage;
-import com.tarzan.maxkb4j.core.workflow.logic.LfNode;
 import com.tarzan.maxkb4j.core.workflow.logic.LogicFlow;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatRecordEntity;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationVO;
 import com.tarzan.maxkb4j.module.application.handler.PostResponseHandler;
 import com.tarzan.maxkb4j.module.application.service.ApplicationChatRecordService;
 import com.tarzan.maxkb4j.module.chat.ChatParams;
+import com.tarzan.maxkb4j.module.chat.ChatResponse;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -25,7 +25,7 @@ public class ChatFlowActuator implements IChatActuator {
     private final PostResponseHandler postResponseHandler;
 
     @Override
-    public String chatMessage(ApplicationVO application, ChatParams chatParams) {
+    public ChatResponse chatMessage(ApplicationVO application, ChatParams chatParams) {
         long startTime = System.currentTimeMillis();
         List<ApplicationChatRecordEntity> historyChatRecordList = chatRecordService.getChatRecords(chatParams.getChatId());
         ApplicationChatRecordEntity chatRecord = null;
@@ -42,8 +42,9 @@ public class ChatFlowActuator implements IChatActuator {
                 historyChatRecordList);
         String answer = workflowManage.run();
         JSONObject details = workflowManage.getRuntimeDetails();
-        postResponseHandler.handler(chatParams.getChatId(), chatParams.getChatRecordId(), chatParams.getMessage(), answer, chatRecord, details, startTime, chatParams.getChatUserId(), chatParams.getChatUserType(), chatParams.getDebug());
-        return answer;
+        ChatResponse chatResponse = new ChatResponse(answer, details);
+        postResponseHandler.handler(chatParams.getChatId(), chatParams.getChatRecordId(), chatParams.getMessage(), chatResponse, chatRecord, startTime, chatParams.getChatUserId(), chatParams.getChatUserType(), chatParams.getDebug());
+        return chatResponse;
     }
 
 }
