@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.common.util.SpringUtil;
 import com.tarzan.maxkb4j.core.assistant.Assistant;
 import com.tarzan.maxkb4j.core.workflow.INode;
+import com.tarzan.maxkb4j.core.workflow.enums.DialogueType;
 import com.tarzan.maxkb4j.core.workflow.node.intentclassify.input.IntentClassifyBranch;
 import com.tarzan.maxkb4j.core.workflow.node.intentclassify.input.IntentClassifyNodeParams;
 import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
@@ -36,7 +37,7 @@ public class IntentClassifyNode extends INode {
 
     public IntentClassifyNode(JSONObject properties) {
         super(properties);
-        super.type = INTENT_CLASSIFY.getKey();
+        super.setType(INTENT_CLASSIFY.getKey());
         this.modelService = SpringUtil.getBean(ModelService.class);
         this.idToClassification = new HashMap<>();
     }
@@ -52,7 +53,7 @@ public class IntentClassifyNode extends INode {
         for (IntentClassifyBranch branch : branches) {
             branchMap.put(branch.getId(), branch.getContent());
         }
-        List<ChatMessage> historyMessages = super.getHistoryMessages(nodeParams.getDialogueNumber(), "WORK_FLOW", runtimeNodeId);
+        List<ChatMessage> historyMessages = super.getHistoryMessages(nodeParams.getDialogueNumber(), DialogueType.WORKFLOW.name(), super.getRuntimeNodeId());
         detail.put("history_message", resetMessageList(historyMessages));
         PromptTemplate promptTemplate = PromptTemplate.from(DEFAULT_PROMPT_TEMPLATE);
         Map<String, Object> variables = new HashMap<>();

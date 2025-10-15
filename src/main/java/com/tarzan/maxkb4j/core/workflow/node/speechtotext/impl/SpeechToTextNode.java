@@ -23,7 +23,7 @@ public class SpeechToTextNode extends INode {
 
     public SpeechToTextNode(JSONObject properties) {
         super(properties);
-        this.type = SPEECH_TO_TEXT.getKey();
+        this.setType(SPEECH_TO_TEXT.getKey());
         this.modelService = SpringUtil.getBean(ModelService.class);
         this.fileService = SpringUtil.getBean(MongoFileService.class);
     }

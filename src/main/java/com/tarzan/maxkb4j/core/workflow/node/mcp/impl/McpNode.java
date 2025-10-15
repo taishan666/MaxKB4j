@@ -18,7 +18,7 @@ public class McpNode extends INode {
 
     public McpNode(JSONObject properties) {
         super(properties);
-        this.type=MCP.getKey();
+        this.setType(MCP.getKey());
     }
 
     @Override

@@ -40,7 +40,7 @@ public class ImageUnderstandNode extends INode {
 
     public ImageUnderstandNode(JSONObject properties) {
         super(properties);
-        this.type = IMAGE_UNDERSTAND.getKey();
+        super.setType(IMAGE_UNDERSTAND.getKey());
         this.modelService = SpringUtil.getBean(ModelService.class);
         this.fileService = SpringUtil.getBean(MongoFileService.class);
         this.aiServicesBuilder = AiServices.builder(Assistant.class);
@@ -64,7 +64,7 @@ public class ImageUnderstandNode extends INode {
         BaseChatModel chatModel = modelService.getModelById(nodeParams.getModelId(), nodeParams.getModelParamsSetting());
         String question =  super.generatePrompt(nodeParams.getPrompt());
         String systemPrompt =super.generatePrompt(nodeParams.getSystem());
-        List<ChatMessage> historyMessages=super.getHistoryMessages(nodeParams.getDialogueNumber(), nodeParams.getDialogueType(), runtimeNodeId);
+        List<ChatMessage> historyMessages=super.getHistoryMessages(nodeParams.getDialogueNumber(), nodeParams.getDialogueType(), super.getRuntimeNodeId());
         List<Content> contents=new ArrayList<>();
         contents.add(TextContent.from(question));
         for (ChatFile file : ImageFiles) {
@@ -97,15 +97,15 @@ public class ImageUnderstandNode extends INode {
         tokenStream.onPartialResponse(content -> {
                     if (isResult) {
                         ChatMessageVO vo = new ChatMessageVO(
-                                getChatParams().getChatId(),
-                                getChatParams().getChatRecordId(),
-                                id,
+                                super.getChatParams().getChatId(),
+                                super.getChatParams().getChatRecordId(),
+                                super.getId(),
                                 content,
                                 "",
-                                upNodeIdList,
-                                runtimeNodeId,
-                                type,
-                                viewType,
+                                super.getUpNodeIdList(),
+                                super.getRuntimeNodeId(),
+                                super.getType(),
+                                super.getViewType(),
                                 false);
                         super.getChatParams().getSink().tryEmitNext(vo);
                     }
@@ -119,11 +119,11 @@ public class ImageUnderstandNode extends INode {
         try {
             // 阻塞等待 answer
             ChatResponse response = chatResponseFuture.get(); // 可设置超时：get(30, TimeUnit.SECONDS)
-            answerText = response.aiMessage().text();
+            super.setAnswerText(response.aiMessage().text());
             TokenUsage tokenUsage = response.tokenUsage();
             detail.put("messageTokens", tokenUsage.inputTokenCount());
             detail.put("answerTokens", tokenUsage.outputTokenCount());
-            return new NodeResult(Map.of("answer", answerText),Map.of(), this::writeContext);
+            return new NodeResult(Map.of("answer", super.getAnswerText()),Map.of(), this::writeContext);
         } catch (InterruptedException | ExecutionException e) {
             log.error("Error waiting for TokenStream completion", e);
             Thread.currentThread().interrupt(); // 恢复中断状态

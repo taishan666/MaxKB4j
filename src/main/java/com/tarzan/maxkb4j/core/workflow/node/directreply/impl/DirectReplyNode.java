@@ -15,7 +15,7 @@ public class DirectReplyNode extends INode {
 
     public DirectReplyNode(JSONObject properties) {
         super(properties);
-        this.type = REPLY.getKey();
+        super.setType(REPLY.getKey());
     }
 
 
@@ -26,16 +26,16 @@ public class DirectReplyNode extends INode {
             List<String> fields = nodeParams.getFields();
             Object res = super.getReferenceField(fields.get(0), fields.get(1));
             if (res == null) {
-                answerText = "";
+                super.setAnswerText("");
             } else if (isSimpleType(res)) {
-                answerText = res.toString();
+                super.setAnswerText(res.toString());
             } else {
-                answerText = JSON.toJSONString(res);
+                super.setAnswerText(JSON.toJSONString(res));
             }
         } else {
-            answerText = super.generatePrompt(nodeParams.getContent());
+            super.setAnswerText(super.generatePrompt(nodeParams.getContent()));
         }
-        return new NodeResult(Map.of("answer", answerText), Map.of());
+        return new NodeResult(Map.of("answer", super.getAnswerText()), Map.of());
     }
 
     // 判断是否为简单类型（基本类型、包装类、String、Enum 等）

@@ -22,7 +22,7 @@ public class RerankerNode extends INode {
 
     public RerankerNode(JSONObject properties) {
         super(properties);
-        this.type = RERANKER.getKey();
+        this.setType(RERANKER.getKey());
         this.modelService = SpringUtil.getBean(ModelService.class);
     }
 

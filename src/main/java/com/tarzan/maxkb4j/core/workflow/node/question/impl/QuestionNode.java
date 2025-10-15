@@ -5,6 +5,7 @@ import com.tarzan.maxkb4j.common.util.SpringUtil;
 import com.tarzan.maxkb4j.core.assistant.Assistant;
 import com.tarzan.maxkb4j.core.langchain4j.AppChatMemory;
 import com.tarzan.maxkb4j.core.workflow.INode;
+import com.tarzan.maxkb4j.core.workflow.enums.DialogueType;
 import com.tarzan.maxkb4j.core.workflow.node.question.input.QuestionParams;
 import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
@@ -25,7 +26,7 @@ public class QuestionNode extends INode {
 
     public QuestionNode(JSONObject properties) {
         super(properties);
-        this.type = QUESTION.getKey();
+        super.setType(QUESTION.getKey());
         this.modelService = SpringUtil.getBean(ModelService.class);
     }
 
@@ -33,7 +34,7 @@ public class QuestionNode extends INode {
     public NodeResult execute() {
         QuestionParams nodeParams = super.getNodeData().toJavaObject(QuestionParams.class);
         BaseChatModel chatModel = modelService.getModelById(nodeParams.getModelId(), nodeParams.getModelParamsSetting());
-        List<ChatMessage> historyMessages=super.getHistoryMessages(nodeParams.getDialogueNumber(), "WORKFLOW", runtimeNodeId);
+        List<ChatMessage> historyMessages=super.getHistoryMessages(nodeParams.getDialogueNumber(), DialogueType.WORKFLOW.name(), super.getRuntimeNodeId());
         detail.put("history_message", resetMessageList(historyMessages));
         String question = super.generatePrompt(nodeParams.getPrompt());
         String systemPrompt = super.generatePrompt(nodeParams.getSystem());
@@ -48,9 +49,9 @@ public class QuestionNode extends INode {
         TokenUsage tokenUsage =  result.tokenUsage();
         detail.put("messageTokens", tokenUsage.inputTokenCount());
         detail.put("answerTokens", tokenUsage.outputTokenCount());
-        answerText = result.content();
+        super.setAnswerText(result.content());
         return new NodeResult(Map.of(
-                "answer", answerText
+                "answer", super.getAnswerText()
         ), Map.of());
     }
 

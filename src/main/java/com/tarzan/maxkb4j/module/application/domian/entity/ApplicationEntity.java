@@ -18,7 +18,7 @@ import java.util.Date;
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
-@TableName(value = "application",autoResultMap = true)
+@TableName(value = "application", autoResultMap = true)
 public class ApplicationEntity extends BaseEntity {
 
     private String name;
@@ -83,5 +83,6 @@ public class ApplicationEntity extends BaseEntity {
     private JSONObject fileUploadSetting;
 
     private String folderId;
+
 
 } 

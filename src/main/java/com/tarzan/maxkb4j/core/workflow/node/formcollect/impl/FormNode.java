@@ -17,8 +17,8 @@ public class FormNode extends INode {
 
     public FormNode(JSONObject properties) {
         super(properties);
-        this.type = FORM.getKey();
-        this.viewType = "single_view";
+        super.setType(FORM.getKey());
+        super.setViewType("single_view");
     }
 
     @Override
@@ -35,21 +35,19 @@ public class FormNode extends INode {
             List<JSONObject> formFieldList = nodeParams.getFormFieldList();
             JSONObject formSetting = new JSONObject();
             formSetting.put("form_field_list", formFieldList);
-/*            formSetting.put("runtimeNodeId", runtimeNodeId);
-            formSetting.put("chatRecordId", chatParams.getChatRecordId());
-            formSetting.put("is_submit", false);*/
             String form = "<form_render>" + formSetting + "</form_render>";
             String formContentFormat = nodeParams.getFormContentFormat();
             Set<String> extractVariables = super.extractVariables(formContentFormat);
             Map<String, Object> variables = new HashMap<>();
             if (!extractVariables.isEmpty()) {
                 for (String promptVariable : extractVariables) {
-                    variables.put(promptVariable, promptVariables.getOrDefault(promptVariable, "*"));
+                    variables.put(promptVariable, super.getPromptVariables().getOrDefault(promptVariable, "*"));
                 }
                 variables.put("form", form);
             }
             PromptTemplate promptTemplate = PromptTemplate.from(formContentFormat);
-            answerText = promptTemplate.apply(variables).text();
+            String answerText = promptTemplate.apply(variables).text();
+            super.setAnswerText(answerText);
             detail.put("form_field_list", formFieldList);
             return new NodeResult(Map.of("is_submit", false), Map.of());
         }

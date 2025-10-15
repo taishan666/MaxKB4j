@@ -25,7 +25,7 @@ public class StartNode extends INode {
 
     public StartNode(JSONObject properties) {
         super(properties);
-        this.type=START.getKey();
+        this.setType(START.getKey());
     }
 
     @Override
@@ -64,7 +64,7 @@ public class StartNode extends INode {
         //更新会话变量
         ChatInfo chatInfo = ChatCache.get(chatId);
         Map<String, Object> chatVariable=chatInfo.getChatVariables();
-        JSONObject config=properties.getJSONObject("config");
+        JSONObject config=super.getProperties().getJSONObject("config");
         if (config != null){
             JSONArray chatFields=config.getJSONArray("chatFields");
             for (int i = 0; i < chatFields.size(); i++) {
@@ -117,7 +117,7 @@ public class StartNode extends INode {
 
     @Override
     public JSONObject getRunDetail() {
-        JSONObject config=properties.getJSONObject("config");
+        JSONObject config=super.getProperties().getJSONObject("config");
         JSONArray globalFields=config.getJSONArray("globalFields");
         for (int i = 0; i < globalFields.size(); i++) {
             JSONObject globalField=globalFields.getJSONObject(i);

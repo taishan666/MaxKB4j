@@ -38,7 +38,7 @@ public class ConditionNode extends INode {
 
     public ConditionNode(JSONObject properties) {
         super(properties);
-        this.type = CONDITION.getKey();
+        this.setType(CONDITION.getKey());
     }
 
 

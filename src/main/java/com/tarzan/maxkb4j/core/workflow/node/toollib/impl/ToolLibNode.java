@@ -18,7 +18,7 @@ import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.TOOL_LIB;
 public class ToolLibNode extends INode {
     public ToolLibNode(JSONObject properties) {
         super(properties);
-        this.type = TOOL_LIB.getKey();
+        this.setType(TOOL_LIB.getKey());
     }
 
     @Override
@@ -47,7 +47,7 @@ public class ToolLibNode extends INode {
         // 执行脚本并返回结果
         Object result = shell.evaluate(nodeParams.getCode());
         detail.put("params", params);
-        answerText=result.toString();
+        super.setAnswerText(result.toString());
         return new NodeResult(Map.of("result", result), Map.of());
     }
 

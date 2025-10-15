@@ -2,6 +2,7 @@ package com.tarzan.maxkb4j.core.workflow;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.tarzan.maxkb4j.core.workflow.enums.DialogueType;
 import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatRecordEntity;
 import com.tarzan.maxkb4j.module.chat.ChatParams;
@@ -25,21 +26,21 @@ import java.util.stream.Collectors;
 @Slf4j
 @Data
 public abstract class INode {
-    public String id;
-    public int status = 200;
-    public String errMessage = "";
-    public String type;
-    public String viewType;
-    public JSONObject properties;
-    public ChatParams chatParams;
-    public Map<String, Map<String,Object>> flowVariables;
-    public Map<String, Object> promptVariables;
-    public Map<String, Object> context;
-    public JSONObject detail;
-    public List<String> upNodeIdList;
-    public String runtimeNodeId;
-    public String answerText;
-    public List<ApplicationChatRecordEntity> historyChatRecords;
+    private String id;
+    private int status = 200;
+    private String errMessage = "";
+    private String type;
+    private String viewType;
+    private JSONObject properties;
+    private ChatParams chatParams;
+    private Map<String, Map<String,Object>> flowVariables;
+    private Map<String, Object> promptVariables;
+    protected Map<String, Object> context;
+    protected JSONObject detail;
+    private List<String> upNodeIdList;
+    private String runtimeNodeId;
+    private String answerText;
+    private List<ApplicationChatRecordEntity> historyChatRecords;
 
 
     public INode(JSONObject properties) {
@@ -194,7 +195,7 @@ public abstract class INode {
 
     public List<ChatMessage> getHistoryMessages(int dialogueNumber, String dialogueType, String runtimeNodeId) {
         List<ChatMessage> historyMessages;
-        if ("NODE".equals(dialogueType)) {
+        if (DialogueType.NODE.name().equals(dialogueType)) {
             historyMessages = getNodeMessages(runtimeNodeId);
         } else {
             historyMessages = getWorkFlowMessages();

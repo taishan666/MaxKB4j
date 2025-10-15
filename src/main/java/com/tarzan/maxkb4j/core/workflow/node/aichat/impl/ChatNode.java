@@ -40,7 +40,7 @@ public class ChatNode extends INode {
 
     public ChatNode(JSONObject properties) {
         super(properties);
-        super.type = AI_CHAT.getKey();
+        super.setType(AI_CHAT.getKey());
         this.modelService = SpringUtil.getBean(ModelService.class);
         this.toolUtil = SpringUtil.getBean(ToolUtil.class);
         this.aiServicesBuilder = AiServices.builder(Assistant.class);
@@ -60,7 +60,7 @@ public class ChatNode extends INode {
         if (StringUtil.isNotBlank(nodeParams.getMcpToolId()) && nodeParams.getMcpEnable()) {
             toolIds.add(nodeParams.getMcpToolId());
         }
-        List<ChatMessage> historyMessages = super.getHistoryMessages(nodeParams.getDialogueNumber(), nodeParams.getDialogueType(), runtimeNodeId);
+        List<ChatMessage> historyMessages = super.getHistoryMessages(nodeParams.getDialogueNumber(), nodeParams.getDialogueType(), getRuntimeNodeId());
         if (StringUtil.isNotBlank(systemPrompt)) {
             aiServicesBuilder.systemMessageProvider(chatMemoryId -> systemPrompt);
         }
@@ -97,10 +97,10 @@ public class ChatNode extends INode {
                                 this.getId(),
                                 "",
                                 thinking.text(),
-                                upNodeIdList,
-                                runtimeNodeId,
-                                type,
-                                viewType,
+                                getUpNodeIdList(),
+                                getRuntimeNodeId(),
+                                getType(),
+                                getViewType(),
                                 false);
                         super.getChatParams().getSink().tryEmitNext(vo);
                     }
@@ -110,13 +110,13 @@ public class ChatNode extends INode {
                         ChatMessageVO vo = new ChatMessageVO(
                                 getChatParams().getChatId(),
                                 getChatParams().getChatRecordId(),
-                                id,
+                                getId(),
                                 content,
                                 "",
-                                upNodeIdList,
-                                runtimeNodeId,
-                                type,
-                                viewType,
+                                getUpNodeIdList(),
+                                getRuntimeNodeId(),
+                                getType(),
+                                getViewType(),
                                 false);
                         super.getChatParams().getSink().tryEmitNext(vo);
                     }
@@ -126,13 +126,13 @@ public class ChatNode extends INode {
                         ChatMessageVO vo = new ChatMessageVO(
                                 getChatParams().getChatId(),
                                 getChatParams().getChatRecordId(),
-                                id,
+                                getId(),
                                 Tools.getToolMessage(toolExecute.request().name(), toolExecute.result()),
                                 "",
-                                upNodeIdList,
-                                runtimeNodeId,
-                                type,
-                                viewType,
+                                getUpNodeIdList(),
+                                getRuntimeNodeId(),
+                                getType(),
+                                getViewType(),
                                 false);
                         super.getChatParams().getSink().tryEmitNext(vo);
                     }
@@ -146,13 +146,13 @@ public class ChatNode extends INode {
         try {
             // 阻塞等待 answer 可设置超时：get(30, TimeUnit.SECONDS)
             ChatResponse response = chatResponseFuture.get();
-            answerText = response.aiMessage().text();
+            super.setAnswerText(response.aiMessage().text());
             String thinking = response.aiMessage().thinking();
             thinking=thinking==null?"":thinking;
             TokenUsage tokenUsage = response.tokenUsage();
             detail.put("messageTokens", tokenUsage.inputTokenCount());
             detail.put("answerTokens", tokenUsage.outputTokenCount());
-            return new NodeResult(Map.of("answer", answerText,"reasoningContent", thinking),Map.of(), this::writeContext);
+            return new NodeResult(Map.of("answer", super.getAnswerText(),"reasoningContent", thinking),Map.of(), this::writeContext);
         } catch (InterruptedException | ExecutionException e) {
             log.error("Error waiting for TokenStream completion", e);
             Thread.currentThread().interrupt(); // 恢复中断状态
@@ -173,8 +173,8 @@ public class ChatNode extends INode {
                         node.getId(),
                         "\n",
                         "",
-                        upNodeIdList,
-                        runtimeNodeId,
+                        node.getUpNodeIdList(),
+                        node.getRuntimeNodeId(),
                         node.getType(),
                         node.getViewType(),
                         true);

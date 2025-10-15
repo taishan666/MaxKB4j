@@ -25,7 +25,7 @@ public class SearchKnowledgeNode extends INode {
 
     public SearchKnowledgeNode(JSONObject properties) {
         super(properties);
-        this.type = SEARCH_KNOWLEDGE.getKey();
+        this.setType(SEARCH_KNOWLEDGE.getKey());
         this.retrieveService = SpringUtil.getBean(RetrieveService.class);
     }
 
@@ -59,7 +59,7 @@ public class SearchKnowledgeNode extends INode {
             if (!details.isEmpty()){
                 for (String key : details.keySet()) {
                     JSONObject detail= details.getJSONObject(key);
-                    if (question.equals(detail.getString("question"))&&type.equals(detail.getString("type"))){
+                    if (question.equals(detail.getString("question"))&&super.getType().equals(detail.getString("type"))){
                         @SuppressWarnings("unchecked")
                         List<ParagraphVO> paragraphList= (List<ParagraphVO>) detail.get("paragraphList");
                         if (!CollectionUtils.isEmpty(paragraphList)){

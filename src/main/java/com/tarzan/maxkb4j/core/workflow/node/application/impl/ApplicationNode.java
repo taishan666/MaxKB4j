@@ -30,7 +30,7 @@ public class ApplicationNode extends INode {
 
     public ApplicationNode(JSONObject properties) {
         super(properties);
-        this.type = APPLICATION.getKey();
+        this.setType(APPLICATION.getKey());
         this.chatService = SpringUtil.getBean(ApplicationChatService.class);
     }
 
@@ -106,8 +106,8 @@ public class ApplicationNode extends INode {
                                 e.getContent(),
                                 e.getReasoningContent(),
                                 e.getUpNodeIdList(),
-                                runtimeNodeId,
-                                type,
+                                super.getRuntimeNodeId(),
+                                super.getType(),
                                 e.getViewType(),
                                 childNode,
                                 e.getNodeIsEnd()
@@ -119,11 +119,11 @@ public class ApplicationNode extends INode {
         detail.put("messageTokens", chatResponse.getMessageTokens());
         detail.put("answerTokens", chatResponse.getAnswerTokens());
         detail.put("question", question);
-        answerText = chatResponse.getAnswer();
-        detail.put("answer", answerText);
+        super.setAnswerText(chatResponse.getAnswer());
+        detail.put("answer", super.getAnswerText());
         detail.put("is_interrupt_exec", is_interrupt_exec.get());
         return new NodeResult(Map.of(
-                "result", answerText
+                "result", super.getAnswerText()
         ), Map.of(),this::writeContext,this::isInterrupt);
     }
 

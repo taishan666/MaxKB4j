@@ -22,7 +22,7 @@ public class ImageGenerateNode extends INode {
 
     public ImageGenerateNode(JSONObject properties) {
         super(properties);
-        this.type=IMAGE_GENERATE.getKey();
+        super.setType(IMAGE_GENERATE.getKey());
         this.modelService = SpringUtil.getBean(ModelService.class);
     }
 

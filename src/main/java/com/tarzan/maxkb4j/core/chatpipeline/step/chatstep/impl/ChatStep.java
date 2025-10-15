@@ -111,7 +111,7 @@ public class ChatStep extends IChatStep {
                     TokenStream tokenStream = assistant.chatStream(userPrompt);
                     CompletableFuture<ChatResponse> futureChatResponse = new CompletableFuture<>();
                     tokenStream.onPartialThinking(thinking -> {
-                                if (reasoningEnable) {
+                                if (Boolean.TRUE.equals(reasoningEnable)) {
                                     sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, "", thinking.text(), "ai-chat-node", viewType, false));
                                 }
                             })
