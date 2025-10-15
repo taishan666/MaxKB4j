@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.tarzan.maxkb4j.module.knowledge.consts.SourceType;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.GenerateProblemDTO;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.ProblemDTO;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.EmbeddingEntity;
@@ -94,7 +95,7 @@ public class ProblemService extends ServiceImpl<ProblemMapper, ProblemEntity> {
                 embeddingEntity.setParagraphId(paragraph.getId());
                 embeddingEntity.setMeta(new JSONObject());
                 embeddingEntity.setSourceId(problem.getId());
-                embeddingEntity.setSourceType("0");
+                embeddingEntity.setSourceType(SourceType.PROBLEM);
                 embeddingEntity.setIsActive(true);
                 //  embeddingEntity.setSearchVector(toTsVector(problem.getContent()));
                 Response<Embedding> response = embeddingModel.embed(problem.getContent());

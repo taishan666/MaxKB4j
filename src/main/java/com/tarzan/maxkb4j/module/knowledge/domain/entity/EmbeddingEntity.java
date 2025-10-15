@@ -30,7 +30,7 @@ public class EmbeddingEntity {
 
 	private String sourceId;
 
-	private String sourceType;
+	private Integer sourceType;
 
 	private Boolean isActive;
 	@TableField(typeHandler = EmbeddingTypeHandler.class)

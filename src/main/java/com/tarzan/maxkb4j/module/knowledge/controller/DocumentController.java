@@ -99,9 +99,9 @@ public class DocumentController {
 
 
  
-    @PutMapping("/knowledge/{sourceId}/document/migrate/{targetId}")
-    public R<Boolean> migrateDoc(@PathVariable("sourceId") String sourceId, @PathVariable("targetId") String targetId, @RequestBody List<String> docIds) {
-        return R.success(documentService.migrateDoc(sourceId, targetId, docIds));
+    @PutMapping("/knowledge/{sourceKnowledgeId}/document/migrate/{targetKnowledgeId}")
+    public R<Boolean> migrateDoc(@PathVariable("sourceKnowledgeId") String sourceKnowledgeId, @PathVariable("targetKnowledgeId") String targetKnowledgeId, @RequestBody List<String> docIds) {
+        return R.success(documentService.migrateDoc(sourceKnowledgeId, targetKnowledgeId, docIds));
     }
 
     @PutMapping("/knowledge/{id}/document/batch_hit_handling")

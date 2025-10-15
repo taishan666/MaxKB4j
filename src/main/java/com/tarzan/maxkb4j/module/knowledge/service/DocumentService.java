@@ -117,10 +117,10 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
     }
 
     @Transactional
-    public boolean migrateDoc(String sourceId, String targetId, List<String> docIds) {
+    public boolean migrateDoc(String sourceKnowledgeId, String targetKnowledgeId, List<String> docIds) {
         if (!CollectionUtils.isEmpty(docIds)) {
-            paragraphService.migrateDoc(sourceId, targetId, docIds);
-            return this.lambdaUpdate().set(DocumentEntity::getKnowledgeId, targetId).eq(DocumentEntity::getKnowledgeId, sourceId).update();
+            paragraphService.migrateDoc(sourceKnowledgeId, targetKnowledgeId, docIds);
+            return this.lambdaUpdate().set(DocumentEntity::getKnowledgeId, targetKnowledgeId).in(DocumentEntity::getId, docIds).update();
         }
         return false;
     }
@@ -652,32 +652,6 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         Page<DocumentVO> docPage = new Page<>(current, size);
         baseMapper.selectDocPage(docPage, knowledgeId, query);
         return docPage;
-    }
-
-
-    @Transactional
-    public Boolean paragraphMigrate(String sourceDatasetId, String sourceDocId, String targetDatasetId, String targetDocId, List<String> paragraphIds) {
-        List<ProblemParagraphEntity> list = problemParagraphService.lambdaQuery()
-                .select(ProblemParagraphEntity::getProblemId)
-                .in(ProblemParagraphEntity::getParagraphId, paragraphIds)
-                .list();
-        if (!CollectionUtils.isEmpty(list)) {
-            problemService.lambdaUpdate()
-                    .in(ProblemEntity::getId, list.stream().map(ProblemParagraphEntity::getProblemId).toList())
-                    .set(ProblemEntity::getKnowledgeId, targetDatasetId).update();
-        }
-        problemParagraphService.lambdaUpdate()
-                .in(ProblemParagraphEntity::getParagraphId, paragraphIds)
-                .set(ProblemParagraphEntity::getKnowledgeId, targetDatasetId)
-                .set(ProblemParagraphEntity::getDocumentId, targetDocId)
-                .update();
-        paragraphService.lambdaUpdate()
-                .in(ParagraphEntity::getId, paragraphIds)
-                .set(ParagraphEntity::getKnowledgeId, targetDatasetId)
-                .set(ParagraphEntity::getDocumentId, targetDocId)
-                .update();
-        this.updateCharLengthById(sourceDocId);
-        return this.updateCharLengthById(targetDocId);
     }
 
 

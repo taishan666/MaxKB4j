@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.tarzan.maxkb4j.module.knowledge.consts.SourceType;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.GenerateProblemDTO;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.ParagraphDTO;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.ParagraphSimpleDTO;
@@ -59,12 +60,10 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
     }
 
     @Transactional
-    public void migrateDoc(String sourceId, String targetId, List<String> docIds) {
-        //todo 优化考虑 问题同时关联了需要迁移的文档和没有迁移的文档段落时该如何处理
-        dataIndexService.migrateDoc(targetId,docIds);
-        this.lambdaUpdate().set(ParagraphEntity::getKnowledgeId, targetId).in(ParagraphEntity::getDocumentId, docIds).update();
-        problemService.lambdaUpdate().set(ProblemEntity::getKnowledgeId, targetId).eq(ProblemEntity::getKnowledgeId, sourceId).update();
-        problemParagraphService.lambdaUpdate().set(ProblemParagraphEntity::getKnowledgeId, targetId).eq(ProblemParagraphEntity::getKnowledgeId, sourceId).update();
+    public void migrateDoc(String sourceKnowledgeId, String targetKnowledgeId, List<String> docIds) {
+        dataIndexService.migrateDoc(targetKnowledgeId,docIds);
+        this.lambdaUpdate().set(ParagraphEntity::getKnowledgeId, targetKnowledgeId).in(ParagraphEntity::getDocumentId, docIds).update();
+        problemParagraphService.lambdaUpdate().eq(ProblemParagraphEntity::getKnowledgeId, sourceKnowledgeId).in(ProblemParagraphEntity::getDocumentId, docIds).remove();
     }
 
     @Transactional
@@ -89,7 +88,7 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
             paragraphEmbed.setParagraphId(paragraph.getId());
             paragraphEmbed.setMeta(new JSONObject());
             paragraphEmbed.setSourceId(paragraph.getId());
-            paragraphEmbed.setSourceType("1");
+            paragraphEmbed.setSourceType(SourceType.PARAGRAPH);
             paragraphEmbed.setIsActive(paragraph.getIsActive());
             paragraphEmbed.setContent(paragraph.getTitle() + paragraph.getContent());
             Response<Embedding> res;
@@ -109,7 +108,7 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
                 problemEmbed.setMeta(new JSONObject());
                 problemEmbed.setSourceId(problem.getId());
                 paragraphEmbed.setSourceId(problem.getId());
-                problemEmbed.setSourceType("0");
+                problemEmbed.setSourceType(SourceType.PROBLEM);
                 problemEmbed.setIsActive(paragraph.getIsActive());
                 problemEmbed.setContent(problem.getContent());
                 Response<Embedding> res1 = embeddingModel.embed(problem.getContent());
@@ -232,5 +231,30 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
         });
         documentMapper.updateStatusByIds(List.of(docId), 2, 2);
         return true;
+    }
+
+    @Transactional
+    public Boolean paragraphMigrate(String sourceKnowledgeId, String sourceDocId, String targetKnowledgeId, String targetDocId, List<String> paragraphIds) {
+        dataIndexService.migrateParagraph(sourceKnowledgeId,targetKnowledgeId,targetDocId,paragraphIds);
+        if (sourceKnowledgeId.equals(targetKnowledgeId)){
+            problemParagraphService.lambdaUpdate()
+                    .in(ProblemParagraphEntity::getParagraphId, paragraphIds)
+                    .set(ProblemParagraphEntity::getKnowledgeId, targetKnowledgeId)
+                    .set(ProblemParagraphEntity::getDocumentId, targetDocId)
+                    .update();
+        }else {
+            problemParagraphService.lambdaUpdate()
+                    .in(ProblemParagraphEntity::getParagraphId, paragraphIds)
+                    .eq(ProblemParagraphEntity::getKnowledgeId, sourceKnowledgeId)
+                    .eq(ProblemParagraphEntity::getDocumentId, sourceDocId)
+                    .remove();
+        }
+        this.lambdaUpdate()
+                .set(ParagraphEntity::getKnowledgeId, targetKnowledgeId)
+                .set(ParagraphEntity::getDocumentId, targetDocId)
+                .in(ParagraphEntity::getId, paragraphIds)
+                .update();
+        documentMapper.updateCharLengthById(sourceDocId);
+        return documentMapper.updateCharLengthById(targetDocId);
     }
 }

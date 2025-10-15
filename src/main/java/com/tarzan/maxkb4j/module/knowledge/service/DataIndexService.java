@@ -2,10 +2,11 @@ package com.tarzan.maxkb4j.module.knowledge.service;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.huaban.analysis.jieba.JiebaSegmenter;
+import com.tarzan.maxkb4j.common.util.StringUtil;
+import com.tarzan.maxkb4j.module.knowledge.consts.SourceType;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.EmbeddingEntity;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.ParagraphEntity;
 import com.tarzan.maxkb4j.module.knowledge.mapper.EmbeddingMapper;
-import com.tarzan.maxkb4j.common.util.StringUtil;
 import lombok.AllArgsConstructor;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -44,10 +45,10 @@ public class DataIndexService {
         }
     }
 
-    public void removeByProblemIdAndParagraphId(String problemId,String paragraphId) {
+    public void removeByProblemIdAndParagraphId(String problemId, String paragraphId) {
         embeddingMapper.delete(Wrappers.<EmbeddingEntity>lambdaQuery().eq(EmbeddingEntity::getParagraphId, paragraphId).eq(EmbeddingEntity::getSourceId, problemId));
         Query query = new Query(Criteria.where("paragraphId").is(paragraphId).and("sourceId").is(problemId));
-        mongoTemplate.remove(query,EmbeddingEntity.class);
+        mongoTemplate.remove(query, EmbeddingEntity.class);
     }
 
     public void removeByParagraphId(String paragraphId) {
@@ -57,30 +58,30 @@ public class DataIndexService {
     public void removeByParagraphIds(List<String> paragraphIds) {
         embeddingMapper.delete(Wrappers.<EmbeddingEntity>lambdaQuery().in(EmbeddingEntity::getParagraphId, paragraphIds));
         Query query = new Query(Criteria.where("paragraphId").in(paragraphIds));
-        mongoTemplate.remove(query,EmbeddingEntity.class);
+        mongoTemplate.remove(query, EmbeddingEntity.class);
     }
 
     public void removeByDocIds(List<String> docIds) {
         embeddingMapper.delete(Wrappers.<EmbeddingEntity>lambdaQuery().in(EmbeddingEntity::getDocumentId, docIds));
         Query query = new Query(Criteria.where("documentId").in(docIds));
-        mongoTemplate.remove(query,EmbeddingEntity.class);
+        mongoTemplate.remove(query, EmbeddingEntity.class);
     }
 
 
     public void removeBySourceIds(List<String> sourceIds) {
         embeddingMapper.delete(Wrappers.<EmbeddingEntity>lambdaQuery().in(EmbeddingEntity::getSourceId, sourceIds));
         Query query = new Query(Criteria.where("sourceId").in(sourceIds));
-        mongoTemplate.remove(query,EmbeddingEntity.class);
+        mongoTemplate.remove(query, EmbeddingEntity.class);
     }
 
     public void removeByDatasetId(String knowledgeId) {
         embeddingMapper.delete(Wrappers.<EmbeddingEntity>lambdaQuery().eq(EmbeddingEntity::getKnowledgeId, knowledgeId));
         Query query = new Query(Criteria.where("knowledgeId").is(knowledgeId));
-        mongoTemplate.remove(query,EmbeddingEntity.class);
+        mongoTemplate.remove(query, EmbeddingEntity.class);
     }
 
     public String segmentContent(String text) {
-        if (StringUtil.isBlank(text)){
+        if (StringUtil.isBlank(text)) {
             return StringUtil.EMPTY;
         }
         JiebaSegmenter jiebaSegmenter = new JiebaSegmenter();
@@ -88,13 +89,37 @@ public class DataIndexService {
         return String.join(" ", tokens);
     }
 
-    public void migrateDoc(String targetId, List<String> docIds) {
-        embeddingMapper.update(Wrappers.<EmbeddingEntity>lambdaUpdate().set(EmbeddingEntity::getKnowledgeId, targetId).in(EmbeddingEntity::getDocumentId,docIds));
-        // 创建查询条件，匹配 paragraphId
-        Query query = new Query(Criteria.where("documentId").is(docIds));
-        // 创建更新对象，设置 IsActive 字段的新值
-        Update update = new Update().set("knowledgeId", targetId);
-        // 使用 MongoTemplate 执行更新操作
+    public void migrateDoc(String targetKnowledgeId, List<String> docIds) {
+        embeddingMapper.update(Wrappers.<EmbeddingEntity>lambdaUpdate().set(EmbeddingEntity::getKnowledgeId, targetKnowledgeId).eq(EmbeddingEntity::getSourceType, SourceType.PARAGRAPH).in(EmbeddingEntity::getDocumentId, docIds));
+        embeddingMapper.delete(Wrappers.<EmbeddingEntity>lambdaUpdate().eq(EmbeddingEntity::getSourceType, SourceType.PROBLEM).in(EmbeddingEntity::getDocumentId, docIds));
+        Query query = new Query(Criteria.where("documentId").in(docIds).and("sourceType").is(SourceType.PARAGRAPH));
+        Update update = new Update().set("knowledgeId", targetKnowledgeId);
         mongoTemplate.updateMulti(query, update, EmbeddingEntity.class);
+        mongoTemplate.remove(new Query(Criteria.where("documentId").in(docIds).and("sourceType").is(SourceType.PROBLEM)), EmbeddingEntity.class);
     }
+
+
+    public void migrateParagraph(String sourceKnowledgeId, String targetKnowledgeId, String targetDocId, List<String> paragraphIds) {
+        if (sourceKnowledgeId.equals(targetKnowledgeId)) {
+            embeddingMapper.update(Wrappers.<EmbeddingEntity>lambdaUpdate()
+                    .set(EmbeddingEntity::getKnowledgeId, targetKnowledgeId)
+                    .set(EmbeddingEntity::getDocumentId, targetDocId)
+                    .in(EmbeddingEntity::getParagraphId, paragraphIds));
+            Query query = new Query(Criteria.where("paragraphId").in(paragraphIds));
+            Update update = new Update().set("knowledgeId", targetKnowledgeId).set("documentId", targetDocId);
+            mongoTemplate.updateMulti(query, update, EmbeddingEntity.class);
+        } else {
+            embeddingMapper.update(Wrappers.<EmbeddingEntity>lambdaUpdate()
+                    .set(EmbeddingEntity::getKnowledgeId, targetKnowledgeId)
+                    .set(EmbeddingEntity::getDocumentId, targetDocId)
+                    .eq(EmbeddingEntity::getSourceType, SourceType.PARAGRAPH)
+                    .in(EmbeddingEntity::getParagraphId, paragraphIds));
+            embeddingMapper.delete(Wrappers.<EmbeddingEntity>lambdaUpdate().eq(EmbeddingEntity::getSourceType, SourceType.PROBLEM).in(EmbeddingEntity::getParagraphId, paragraphIds));
+            Query query = new Query(Criteria.where("paragraphId").in(paragraphIds).and("sourceType").is(SourceType.PARAGRAPH));
+            Update update = new Update().set("knowledgeId", targetKnowledgeId).set("documentId", targetDocId);
+            mongoTemplate.updateMulti(query, update, EmbeddingEntity.class);
+            mongoTemplate.remove(new Query(Criteria.where("paragraphId").in(paragraphIds).and("sourceType").is(SourceType.PROBLEM)), EmbeddingEntity.class);
+        }
+    }
+
 }

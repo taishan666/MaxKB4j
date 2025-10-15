@@ -2,6 +2,7 @@ package com.tarzan.maxkb4j.module.knowledge.service;
 
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.tarzan.maxkb4j.module.knowledge.consts.SourceType;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.ProblemEntity;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.ProblemParagraphEntity;
 import com.tarzan.maxkb4j.module.knowledge.mapper.ProblemMapper;
@@ -63,7 +64,7 @@ public class ProblemParagraphService extends ServiceImpl<ProblemParagraphMapper,
             embeddingEntity.setParagraphId(paragraphId);
             embeddingEntity.setMeta(new JSONObject());
             embeddingEntity.setSourceId(problemId);
-            embeddingEntity.setSourceType("0");
+            embeddingEntity.setSourceType(SourceType.PROBLEM);
             embeddingEntity.setIsActive(true);
             Response<Embedding> res = embeddingModel.embed(problem.getContent());
             embeddingEntity.setEmbedding(res.content().vectorAsList());
