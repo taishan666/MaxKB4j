@@ -36,11 +36,6 @@ import com.tarzan.maxkb4j.module.model.info.service.ModelService;
 import com.tarzan.maxkb4j.module.model.info.vo.KeyAndValueVO;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
 import com.tarzan.maxkb4j.module.oss.service.MongoFileService;
-import dev.langchain4j.data.document.Document;
-import dev.langchain4j.data.document.DocumentSplitter;
-import dev.langchain4j.data.document.splitter.DocumentByCharacterSplitter;
-import dev.langchain4j.data.document.splitter.DocumentByRegexSplitter;
-import dev.langchain4j.data.document.splitter.DocumentBySentenceSplitter;
 import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import jakarta.servlet.http.HttpServletResponse;
@@ -65,10 +60,7 @@ import java.io.*;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -86,6 +78,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
     private final ProblemService problemService;
     private final ProblemParagraphService problemParagraphService;
     private final DocumentParseService documentParseService;
+    private final DocumentSpiltService documentSpiltService;
     private final KnowledgeMapper datasetMapper;
     private final ModelService modelService;
     private final MongoFileService mongoFileService;
@@ -358,110 +351,6 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
     }
 
 
-    private final DocumentSplitter defaultSplitter = new DocumentBySentenceSplitter(512, 20);
-
-    public List<TextSegmentVO> split(MultipartFile[] files, String[] patterns, Integer limit, Boolean withFilter) throws IOException {
-        List<TextSegmentVO> list = new ArrayList<>();
-        List<FileStreamVO> fileStreams = new ArrayList<>();
-        for (MultipartFile file : files) {
-            if (file == null || file.isEmpty()) {
-                continue; // 或抛出异常根据业务需求
-            }
-            // 判断是否是zip文件
-            if (isZipFile(file)) {
-                //todo 未处理zip下的zip文件
-                try (ZipArchiveInputStream zis = new ZipArchiveInputStream(file.getInputStream())) {
-                    ZipArchiveEntry entry;
-                    while ((entry = zis.getNextEntry()) != null) {
-                        if (!entry.isDirectory()) {
-                            String entryName = entry.getName();
-                            byte[] bytes = zis.readAllBytes();
-                            InputStream inputStream = new ByteArrayInputStream(bytes);
-                            fileStreams.add(new FileStreamVO(entryName, inputStream));
-                        }
-                    }
-                } catch (IOException e) {
-                    throw new RuntimeException("解压ZIP文件失败", e);
-                }
-            } else {
-                fileStreams.add(new FileStreamVO(file.getOriginalFilename(), file.getInputStream()));
-            }
-        }
-        for (FileStreamVO fileStream : fileStreams) {
-            TextSegmentVO textSegmentVO = new TextSegmentVO();
-            textSegmentVO.setName(fileStream.getName());
-            String docText = documentParseService.extractText(fileStream.getInputStream());
-            List<TextSegment> textSegments = Collections.emptyList();
-            if (StringUtil.isNotBlank(docText)) {
-                textSegments = getTextSegments(Document.document(docText), patterns, limit, withFilter);
-            }
-            List<ParagraphSimpleVO> content = textSegments.stream()
-                    .map(segment -> new ParagraphSimpleVO(segment.text()))
-                    .collect(Collectors.toList());
-            textSegmentVO.setContent(content);
-            list.add(textSegmentVO);
-        }
-        return list;
-    }
-
-
-    /**
-     * 判断是否为 ZIP 文件（通过文件头 MAGIC NUMBER）
-     */
-    private boolean isZipFile(MultipartFile file) {
-        return Objects.requireNonNull(file.getOriginalFilename()).endsWith(".zip");
-    }
-
-
-    private List<TextSegment> getTextSegments(Document document, String[] patterns, Integer limit, Boolean withFilter) {
-        if (patterns != null) {
-            List<TextSegment> textSegments = recursive(document, patterns, limit);
-            if (withFilter) {
-                textSegments = textSegments.stream()
-                        .filter(e -> StringUtils.isNotBlank(e.text()))
-                        .filter(distinctByKey(TextSegment::text))
-                        .collect(Collectors.toList());
-            }
-            return textSegments;
-        } else {
-            return defaultSplitter.split(document);
-        }
-    }
-
-    public static <T> Predicate<T> distinctByKey(Function<? super T, ?> keyExtractor) {
-        Set<Object> seen = ConcurrentHashMap.newKeySet();
-        return t -> seen.add(keyExtractor.apply(t));
-    }
-
-
-    public List<TextSegment> recursive(List<TextSegment> segments, String pattern) {
-        List<TextSegment> result = new ArrayList<>();
-        for (TextSegment segment : segments) {
-            String text = segment.text();
-            if (StringUtils.isNotBlank(text)) {
-                String[] split = text.split(pattern);
-                for (String s : split) {
-                    result.add(TextSegment.textSegment(s));
-                }
-            }
-        }
-        return result;
-    }
-
-
-    public List<TextSegment> recursive(Document document, String[] patterns, Integer limit) {
-        List<TextSegment> textSegments = new ArrayList<>();
-        for (int i = 0; i < patterns.length; i++) {
-            String pattern = patterns[i];
-            if (i == 0) {
-                DocumentSplitter splitter = new DocumentByRegexSplitter(pattern, "", 1, 0, new DocumentByCharacterSplitter(limit, 0));
-                textSegments = recursive(splitter.split(document), pattern);
-            } else {
-                textSegments = recursive(textSegments, pattern);
-            }
-        }
-        return textSegments;
-    }
 
 
     private List<DatasetExcel> getDatasetExcelByDoc(DocumentEntity doc) {
@@ -661,6 +550,57 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         return resultList;
     }
 
+    public List<TextSegmentVO> split(MultipartFile[] files, String[] patterns, Integer limit, Boolean withFilter) throws IOException {
+        List<TextSegmentVO> list = new ArrayList<>();
+        List<FileStreamVO> fileStreams = new ArrayList<>();
+        for (MultipartFile file : files) {
+            if (file == null || file.isEmpty()) {
+                continue; // 或抛出异常根据业务需求
+            }
+            // 判断是否是zip文件
+            if (isZipFile(file)) {
+                //todo 未处理zip下的zip文件
+                try (ZipArchiveInputStream zis = new ZipArchiveInputStream(file.getInputStream())) {
+                    ZipArchiveEntry entry;
+                    while ((entry = zis.getNextEntry()) != null) {
+                        if (!entry.isDirectory()) {
+                            String entryName = entry.getName();
+                            byte[] bytes = zis.readAllBytes();
+                            InputStream inputStream = new ByteArrayInputStream(bytes);
+                            fileStreams.add(new FileStreamVO(entryName, inputStream));
+                        }
+                    }
+                } catch (IOException e) {
+                    throw new RuntimeException("解压ZIP文件失败", e);
+                }
+            } else {
+                fileStreams.add(new FileStreamVO(file.getOriginalFilename(), file.getInputStream()));
+            }
+        }
+        for (FileStreamVO fileStream : fileStreams) {
+            TextSegmentVO textSegmentVO = new TextSegmentVO();
+            textSegmentVO.setName(fileStream.getName());
+            String docText = documentParseService.extractText(fileStream.getInputStream());
+            List<TextSegment> textSegments = Collections.emptyList();
+            if (StringUtil.isNotBlank(docText)) {
+                textSegments = documentSpiltService.split(docText, patterns, limit, withFilter);
+            }
+            List<ParagraphSimpleVO> content = textSegments.stream()
+                    .map(segment -> new ParagraphSimpleVO(segment.text()))
+                    .collect(Collectors.toList());
+            textSegmentVO.setContent(content);
+            list.add(textSegmentVO);
+        }
+        return list;
+    }
+
+    /**
+     * 判断是否为 ZIP 文件（通过文件头 MAGIC NUMBER）
+     */
+    private boolean isZipFile(MultipartFile file) {
+        return Objects.requireNonNull(file.getOriginalFilename()).endsWith(".zip");
+    }
+
     @Transactional
     public void web(String knowledgeId, WebUrlDTO params) {
         webDoc(knowledgeId, params.getSourceUrlList(), params.getSelector());
@@ -704,13 +644,12 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         sourceUrlList.forEach(url -> {
             org.jsoup.nodes.Document html = JsoupUtil.getDocument(url);
             Elements elements = html.select(finalSelector);
-            Document document = Document.document(elements.text());
             DocumentEntity doc = createDocument(knowledgeId, JsoupUtil.getTitle(html), DocType.WEB.getType());
             JSONObject meta = new JSONObject();
             meta.put("source_url", url);
             meta.put("selector", finalSelector);
             doc.setMeta(meta);
-            List<TextSegment> textSegments = defaultSplitter.split(document);
+            List<TextSegment> textSegments = documentSpiltService.defaultSplit(elements.text());
             for (TextSegment textSegment : textSegments) {
                 ParagraphEntity paragraph = paragraphService.createParagraph(knowledgeId, doc.getId(), "", textSegment.text(),null);
                 paragraphs.add(paragraph);

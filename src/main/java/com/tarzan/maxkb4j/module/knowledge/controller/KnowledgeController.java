@@ -50,8 +50,8 @@ public class KnowledgeController {
 
     
     @GetMapping("/knowledge/{id}")
-    public R<KnowledgeVO> getDatasetById(@PathVariable("id") String id) {
-        return R.success(knowledgeService.getByDatasetId(id));
+    public R<KnowledgeVO> getKnowledgeById(@PathVariable("id") String id) {
+        return R.success(knowledgeService.getKnowledgeById(id));
     }
 
     
