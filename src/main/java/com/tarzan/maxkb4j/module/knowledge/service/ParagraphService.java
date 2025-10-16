@@ -268,11 +268,23 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
                     .eq(ProblemParagraphEntity::getDocumentId, sourceDocId)
                     .remove();
         }
-        this.lambdaUpdate()
-                .set(ParagraphEntity::getKnowledgeId, targetKnowledgeId)
-                .set(ParagraphEntity::getDocumentId, targetDocId)
-                .in(ParagraphEntity::getId, paragraphIds)
-                .update();
+        List<ParagraphEntity> sourceParagraphs=this.lambdaQuery().eq(ParagraphEntity::getKnowledgeId, sourceKnowledgeId).eq(ParagraphEntity::getDocumentId, sourceDocId).orderByAsc(ParagraphEntity::getPosition).list();
+        int position=1;
+        for (ParagraphEntity sourceParagraph : sourceParagraphs) {
+            sourceParagraph.setPosition(position);
+            position++;
+        }
+        this.updateBatchById(sourceParagraphs);
+        long targetCount=this.lambdaQuery().eq(ParagraphEntity::getKnowledgeId, targetKnowledgeId).eq(ParagraphEntity::getDocumentId, targetDocId).count();
+        for (String paragraphId : paragraphIds) {
+            this.lambdaUpdate()
+                    .set(ParagraphEntity::getKnowledgeId, targetKnowledgeId)
+                    .set(ParagraphEntity::getDocumentId, targetDocId)
+                    .set(ParagraphEntity::getPosition, targetCount+1)
+                    .eq(ParagraphEntity::getId, paragraphId)
+                    .update();
+            targetCount++;
+        }
         documentMapper.updateCharLengthById(sourceDocId);
         return documentMapper.updateCharLengthById(targetDocId);
     }
@@ -281,7 +293,6 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
     public boolean adjustPosition(String knowledgeId, String documentId, String paragraphId, Integer newPosition) {
         ParagraphEntity paragraph = this.getById(paragraphId);
         int oldPosition = paragraph.getPosition();
-        System.out.println("oldPosition:"+oldPosition);
         this.lambdaUpdate().set(ParagraphEntity::getPosition, oldPosition).eq(ParagraphEntity::getKnowledgeId, knowledgeId).eq(ParagraphEntity::getDocumentId, documentId).eq(ParagraphEntity::getPosition, newPosition).update();
         paragraph.setPosition(newPosition);
         return this.updateById(paragraph);

@@ -117,7 +117,7 @@ public class DocumentController {
 
   
     @PutMapping("/knowledge/{id}/document/batch_delete")
-    public R<Boolean> deleteBatchDocByDocIds(@PathVariable("id") String id, @RequestBody DeleteDTO dto) {
+    public R<Boolean> deleteBatchDocByDocIds(@PathVariable("id") String id, @RequestBody IdListDTO dto) {
         return R.success(documentService.deleteBatchDocByDocIds(dto.getIdList()));
     }
 

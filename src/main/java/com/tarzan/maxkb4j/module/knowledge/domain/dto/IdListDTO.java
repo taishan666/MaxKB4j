@@ -5,7 +5,7 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-public class DeleteDTO {
+public class IdListDTO {
 
     private List<String> idList;
 }
