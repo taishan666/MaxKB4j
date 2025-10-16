@@ -9,7 +9,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tarzan.maxkb4j.module.knowledge.consts.SourceType;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.GenerateProblemDTO;
-import com.tarzan.maxkb4j.module.knowledge.domain.dto.ParagraphDTO;
+import com.tarzan.maxkb4j.module.knowledge.domain.dto.ParagraphAddDTO;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.*;
 import com.tarzan.maxkb4j.module.knowledge.mapper.DocumentMapper;
 import com.tarzan.maxkb4j.module.knowledge.mapper.KnowledgeMapper;
@@ -27,9 +27,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author tarzan
@@ -137,14 +136,10 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
 
 
     @Transactional
-    public boolean createParagraphAndProblem(String knowledgeId, String docId, ParagraphDTO paragraph) {
-        paragraph.setKnowledgeId(knowledgeId);
-        paragraph.setDocumentId(docId);
-        paragraph.setStatus("nn0");
-        paragraph.setHitNum(0);
-        paragraph.setIsActive(true);
+    public boolean saveParagraphAndProblem(String knowledgeId, String docId, ParagraphAddDTO addDTO) {
+        ParagraphEntity paragraph= createParagraph(knowledgeId, docId, addDTO.getTitle(), addDTO.getContent(),addDTO.getPosition());
         this.save(paragraph);
-        List<ProblemEntity> problems = paragraph.getProblemList();
+        List<ProblemEntity> problems = addDTO.getProblemList();
         //todo 问题的自动向量化
         if (!CollectionUtils.isEmpty(problems)) {
             List<String> problemContents = problems.stream().map(ProblemEntity::getContent).toList();
@@ -170,8 +165,8 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
         return documentMapper.updateCharLengthById(docId);
     }
 
-    public ParagraphEntity createParagraph(String knowledgeId, String docId, String title, String content) {
-        long count = this.lambdaQuery().eq(ParagraphEntity::getKnowledgeId, knowledgeId).eq(ParagraphEntity::getDocumentId, docId).count();
+
+    public ParagraphEntity createParagraph(String knowledgeId, String docId, String title, String content,Integer  position) {
         ParagraphEntity paragraph = new ParagraphEntity();
         paragraph.setId(IdWorker.get32UUID());
         paragraph.setTitle(title == null ? "" : title);
@@ -180,14 +175,43 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
         paragraph.setStatus("nn0");
         paragraph.setHitNum(0);
         paragraph.setIsActive(true);
-        paragraph.setPosition((int) count);
+        paragraph.setPosition(position==null?1:position);
         // paragraph.setStatusMeta(paragraph.defaultStatusMeta());
         paragraph.setDocumentId(docId);
         return paragraph;
     }
 
-    public IPage<ParagraphEntity> pageParagraphByDocId(String docId, int page, int size, String title, String content) {
-        Page<ParagraphEntity> paragraphPage = new Page<>(page, size);
+
+    public boolean save(ParagraphEntity paragraph) {
+        List<ParagraphEntity> list = this.lambdaQuery().eq(ParagraphEntity::getKnowledgeId, paragraph.getKnowledgeId()).eq(ParagraphEntity::getDocumentId, paragraph.getDocumentId()).list();
+        List<ParagraphEntity> updateList=list.stream().filter(e->e.getPosition()>=paragraph.getPosition()).peek(e-> e.setPosition(e.getPosition()+1)).toList();
+        if (!CollectionUtils.isEmpty(updateList)){
+             super.updateBatchById(updateList);
+        }
+        return super.save(paragraph);
+    }
+
+
+    @Transactional
+    public boolean saveBatch(List<ParagraphEntity> paragraphs) {
+        Map<String,List<ParagraphEntity>> knowledgeGroup = paragraphs.stream().collect(Collectors.groupingBy(ParagraphEntity::getKnowledgeId));
+        knowledgeGroup.forEach((knowledgeId,knowledgeParagraphs)->{
+            Map<String,List<ParagraphEntity>> docGroup = knowledgeParagraphs.stream().collect(Collectors.groupingBy(ParagraphEntity::getDocumentId));
+            docGroup.forEach((docId,docParagraphs)->{
+                long count = this.lambdaQuery().eq(ParagraphEntity::getKnowledgeId, knowledgeId).eq(ParagraphEntity::getDocumentId, docId).count();
+                int position= (int) (count+1);
+                for (ParagraphEntity paragraph : docParagraphs) {
+                    paragraph.setPosition(position);
+                    position++;
+                }
+            });
+        });
+        return super.saveBatch(paragraphs);
+    }
+
+
+    public IPage<ParagraphEntity> pageParagraphByDocId(String docId, int current, int size, String title, String content) {
+        Page<ParagraphEntity> paragraphPage = new Page<>(current, size);
         LambdaQueryWrapper<ParagraphEntity> wrapper = Wrappers.lambdaQuery();
         wrapper.eq(ParagraphEntity::getDocumentId, docId);
         if (StringUtils.isNotBlank(title)) {
@@ -196,6 +220,7 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
         if (StringUtils.isNotBlank(content)) {
             wrapper.like(ParagraphEntity::getContent, content);
         }
+        wrapper.orderByAsc(ParagraphEntity::getPosition);
         return this.page(paragraphPage, wrapper);
     }
 
@@ -250,5 +275,15 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
                 .update();
         documentMapper.updateCharLengthById(sourceDocId);
         return documentMapper.updateCharLengthById(targetDocId);
+    }
+
+    @Transactional
+    public boolean adjustPosition(String knowledgeId, String documentId, String paragraphId, Integer newPosition) {
+        ParagraphEntity paragraph = this.getById(paragraphId);
+        int oldPosition = paragraph.getPosition();
+        System.out.println("oldPosition:"+oldPosition);
+        this.lambdaUpdate().set(ParagraphEntity::getPosition, oldPosition).eq(ParagraphEntity::getKnowledgeId, knowledgeId).eq(ParagraphEntity::getDocumentId, documentId).eq(ParagraphEntity::getPosition, newPosition).update();
+        paragraph.setPosition(newPosition);
+        return this.updateById(paragraph);
     }
 }

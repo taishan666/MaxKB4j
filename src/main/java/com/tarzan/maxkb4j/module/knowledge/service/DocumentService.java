@@ -168,7 +168,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
                 if (values.length > 1) {
                     String title = values[0];
                     String content = values[1];
-                    ParagraphEntity paragraph = paragraphService.createParagraph(knowledgeId, doc.getId(), title, content);
+                    ParagraphEntity paragraph = paragraphService.createParagraph(knowledgeId, doc.getId(), title, content,null);
                     paragraphs.add(paragraph);
                     doc.setCharLength(doc.getCharLength() + paragraph.getContent().length());
                 }
@@ -209,7 +209,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
                         .registerReadListener(new PageReadListener<DatasetExcel>(dataList -> {
                             for (DatasetExcel data : dataList) {
                                 log.info("在Sheet {} 中读取到一条数据{}", sheetName, JSON.toJSONString(data));
-                                ParagraphEntity paragraph = paragraphService.createParagraph(knowledgeId, doc.getId(), data.getTitle(), data.getContent());
+                                ParagraphEntity paragraph = paragraphService.createParagraph(knowledgeId, doc.getId(), data.getTitle(), data.getContent(),null);
                                 paragraphs.add(paragraph);
                                 doc.setCharLength(doc.getCharLength() + paragraph.getContent().length());
                                 if (StringUtils.isNotBlank(data.getProblems())) {
@@ -256,13 +256,11 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
             List<String> list = new ArrayList<>();
             EasyExcel.read(uploadFile.getInputStream(), new AnalysisEventListener<Map<Integer, String>>() {
                 Map<Integer, String> headMap = new LinkedHashMap<>();
-
                 // 表头信息会在此方法中获取
                 @Override
                 public void invokeHeadMap(Map<Integer, String> headMap, AnalysisContext context) {
                     this.headMap = headMap;
                 }
-
                 // 每一行数据都会调用此方法
                 @Override
                 public void invoke(Map<Integer, String> data, AnalysisContext context) {
@@ -274,7 +272,6 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
                     sb.deleteCharAt(sb.length() - 1);
                     list.add(sb.toString());
                 }
-
                 @Override
                 public void doAfterAllAnalysed(AnalysisContext analysisContext) {
                     log.info("所有数据解析完成！");
@@ -285,7 +282,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
             if (!CollectionUtils.isEmpty(list)) {
                 for (String text : list) {
                     doc.setCharLength(doc.getCharLength() + text.length());
-                    ParagraphEntity paragraph = paragraphService.createParagraph(knowledgeId, doc.getId(), "", text);
+                    ParagraphEntity paragraph = paragraphService.createParagraph(knowledgeId, doc.getId(), "", text,null);
                     paragraphs.add(paragraph);
                 }
                 this.save(doc, uploadFile);
@@ -536,7 +533,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
                 AtomicInteger docCharLength = new AtomicInteger();
                 if (!CollectionUtils.isEmpty(e.getParagraphs())) {
                     e.getParagraphs().forEach(p -> {
-                        paragraphEntities.add(paragraphService.createParagraph(knowledgeId, doc.getId(), p.getTitle(), p.getContent()));
+                        paragraphEntities.add(paragraphService.createParagraph(knowledgeId, doc.getId(), p.getTitle(), p.getContent(),null));
                         docCharLength.addAndGet(p.getContent().length());
                     });
                 }
@@ -715,7 +712,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
             doc.setMeta(meta);
             List<TextSegment> textSegments = defaultSplitter.split(document);
             for (TextSegment textSegment : textSegments) {
-                ParagraphEntity paragraph = paragraphService.createParagraph(knowledgeId, doc.getId(), "", textSegment.text());
+                ParagraphEntity paragraph = paragraphService.createParagraph(knowledgeId, doc.getId(), "", textSegment.text(),null);
                 paragraphs.add(paragraph);
                 doc.setCharLength(doc.getCharLength() + paragraph.getContent().length());
             }

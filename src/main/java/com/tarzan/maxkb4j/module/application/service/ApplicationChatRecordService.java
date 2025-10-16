@@ -179,37 +179,18 @@ public class ApplicationChatRecordService extends ServiceImpl<ApplicationChatRec
 
     @Transactional
     public boolean addChatLogs(String appId, AddChatImproveDTO dto) {
-        long count = paragraphService.lambdaQuery().eq(ParagraphEntity::getKnowledgeId, dto.getKnowledgeId()).eq(ParagraphEntity::getDocumentId, dto.getDocumentId()).count();
         List<ApplicationChatRecordEntity> chatRecords = this.lambdaQuery().select(ApplicationChatRecordEntity::getProblemText, ApplicationChatRecordEntity::getAnswerText).in(ApplicationChatRecordEntity::getChatId, dto.getChatIds()).list();
         List<ParagraphEntity> paragraphs=new ArrayList<>();
         for (ApplicationChatRecordEntity e : chatRecords) {
-            ParagraphEntity paragraphEntity = new ParagraphEntity();
-            paragraphEntity.setKnowledgeId(dto.getKnowledgeId());
-            paragraphEntity.setDocumentId(dto.getDocumentId());
-            paragraphEntity.setTitle(e.getProblemText());
-            paragraphEntity.setContent(e.getAnswerText());
-            paragraphEntity.setHitNum(0);
-            paragraphEntity.setIsActive(true);
-            paragraphEntity.setStatus("nn0");
-            paragraphEntity.setPosition((int) count);
+            ParagraphEntity paragraphEntity = paragraphService.createParagraph(dto.getKnowledgeId(), dto.getDocumentId(), e.getProblemText(), e.getAnswerText(), null);
             paragraphs.add(paragraphEntity);
-            count++;
         }
         return paragraphService.saveBatch(paragraphs);
     }
 
     @Transactional
     public ApplicationChatRecordEntity improveChatLog(String chatRecordId,String knowledgeId, String docId, ChatImproveDTO dto) {
-        long count = paragraphService.lambdaQuery().eq(ParagraphEntity::getKnowledgeId, knowledgeId).eq(ParagraphEntity::getDocumentId, docId).count();
-        ParagraphEntity paragraphEntity = new ParagraphEntity();
-        paragraphEntity.setKnowledgeId(knowledgeId);
-        paragraphEntity.setDocumentId(docId);
-        paragraphEntity.setTitle(dto.getTitle());
-        paragraphEntity.setContent(dto.getContent());
-        paragraphEntity.setHitNum(0);
-        paragraphEntity.setPosition((int) count);
-        paragraphEntity.setIsActive(true);
-        paragraphEntity.setStatus("nn0");
+        ParagraphEntity paragraphEntity = paragraphService.createParagraph(knowledgeId, docId, dto.getProblemText(), dto.getContent(), null);
         paragraphService.save(paragraphEntity);
         ApplicationChatRecordEntity chatRecord = new ApplicationChatRecordEntity();
         chatRecord.setId(chatRecordId);
