@@ -95,21 +95,10 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         baseMapper.updateStatusMetaByIds(List.of(id));
     }
 
-    public void updateStatusMetaByIds(List<String> ids) {
-        baseMapper.updateStatusMetaByIds(ids);
-    }
 
     //type 1向量化 2 生成问题 3同步
     public void updateStatusById(String id, int type, int status) {
         baseMapper.updateStatusByIds(List.of(id), type, status);
-    }
-
-    public void updateStatusByIds(List<String> ids, int type, int status) {
-        baseMapper.updateStatusByIds(ids, type, status);
-    }
-
-    public boolean updateCharLengthById(String id) {
-        return baseMapper.updateCharLengthById(id);
     }
 
     public List<DocumentEntity> listDocByKnowledgeId(String id) {
@@ -179,7 +168,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
                 if (values.length > 1) {
                     String title = values[0];
                     String content = values[1];
-                    ParagraphEntity paragraph = paragraphService.getParagraphEntity(knowledgeId, doc.getId(), title, content);
+                    ParagraphEntity paragraph = paragraphService.createParagraph(knowledgeId, doc.getId(), title, content);
                     paragraphs.add(paragraph);
                     doc.setCharLength(doc.getCharLength() + paragraph.getContent().length());
                 }
@@ -220,7 +209,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
                         .registerReadListener(new PageReadListener<DatasetExcel>(dataList -> {
                             for (DatasetExcel data : dataList) {
                                 log.info("在Sheet {} 中读取到一条数据{}", sheetName, JSON.toJSONString(data));
-                                ParagraphEntity paragraph = paragraphService.getParagraphEntity(knowledgeId, doc.getId(), data.getTitle(), data.getContent());
+                                ParagraphEntity paragraph = paragraphService.createParagraph(knowledgeId, doc.getId(), data.getTitle(), data.getContent());
                                 paragraphs.add(paragraph);
                                 doc.setCharLength(doc.getCharLength() + paragraph.getContent().length());
                                 if (StringUtils.isNotBlank(data.getProblems())) {
@@ -295,7 +284,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
             if (!CollectionUtils.isEmpty(list)) {
                 for (String text : list) {
                     doc.setCharLength(doc.getCharLength() + text.length());
-                    ParagraphEntity paragraph = paragraphService.getParagraphEntity(knowledgeId, doc.getId(), "", text);
+                    ParagraphEntity paragraph = paragraphService.createParagraph(knowledgeId, doc.getId(), "", text);
                     paragraphs.add(paragraph);
                 }
                 this.save(doc,uploadFile);
@@ -421,7 +410,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
     /**
      * 判断是否为 ZIP 文件（通过文件头 MAGIC NUMBER）
      */
-    private boolean isZipFile(MultipartFile file) throws IOException {
+    private boolean isZipFile(MultipartFile file) {
         return Objects.requireNonNull(file.getOriginalFilename()).endsWith(".zip");
     }
 
@@ -546,7 +535,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
                 AtomicInteger docCharLength = new AtomicInteger();
                 if (!CollectionUtils.isEmpty(e.getParagraphs())) {
                     e.getParagraphs().forEach(p -> {
-                        paragraphEntities.add(paragraphService.createParagraph(knowledgeId, doc.getId(), p));
+                        paragraphEntities.add(paragraphService.createParagraph(knowledgeId, doc.getId(), p.getTitle(), p.getContent()));
                         docCharLength.addAndGet(p.getContent().length());
                     });
                 }
@@ -725,7 +714,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
             doc.setMeta(meta);
             List<TextSegment> textSegments = defaultSplitter.split(document);
             for (TextSegment textSegment : textSegments) {
-                ParagraphEntity paragraph = paragraphService.getParagraphEntity(knowledgeId, doc.getId(), "", textSegment.text());
+                ParagraphEntity paragraph = paragraphService.createParagraph(knowledgeId, doc.getId(), "", textSegment.text());
                 paragraphs.add(paragraph);
                 doc.setCharLength(doc.getCharLength() + paragraph.getContent().length());
             }

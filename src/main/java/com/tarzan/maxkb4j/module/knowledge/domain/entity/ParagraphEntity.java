@@ -20,6 +20,7 @@ public class ParagraphEntity extends BaseEntity {
 	private Boolean isActive;
 	private String knowledgeId;
 	private String documentId;
+	private Integer position;
 /*	@TableField(typeHandler = JOSNBTypeHandler.class,fill = FieldFill.INSERT)
 	private JSONObject statusMeta;*/
 

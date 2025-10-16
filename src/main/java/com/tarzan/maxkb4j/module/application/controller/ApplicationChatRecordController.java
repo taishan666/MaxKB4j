@@ -55,7 +55,7 @@ public class ApplicationChatRecordController {
 
     @DeleteMapping("/application/{appId}/chat/{chatId}/chat_record/{chatRecordId}/knowledge/{knowledgeId}/document/{docId}/paragraph/{paragraphId}/improve")
     public R<Boolean> improveChatLog(@PathVariable("appId") String appId, @PathVariable ("chatId") String chatId, @PathVariable ("chatRecordId") String chatRecordId, @PathVariable("knowledgeId") String knowledgeId, @PathVariable ("docId") String docId,@PathVariable("paragraphId") String paragraphId) {
-        return R.success(chatRecordService.improveChatLog(chatRecordId,paragraphId));
+        return R.success(chatRecordService.removeImproveChatLog(chatRecordId,paragraphId));
     }
 
     @GetMapping("/application/{appId}/chat/{chatId}/chat_record/{chatRecordId}/improve")

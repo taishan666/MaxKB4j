@@ -10,10 +10,9 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tarzan.maxkb4j.module.knowledge.consts.SourceType;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.GenerateProblemDTO;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.ParagraphDTO;
-import com.tarzan.maxkb4j.module.knowledge.domain.dto.ParagraphSimpleDTO;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.*;
-import com.tarzan.maxkb4j.module.knowledge.mapper.KnowledgeMapper;
 import com.tarzan.maxkb4j.module.knowledge.mapper.DocumentMapper;
+import com.tarzan.maxkb4j.module.knowledge.mapper.KnowledgeMapper;
 import com.tarzan.maxkb4j.module.knowledge.mapper.ParagraphMapper;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
@@ -174,11 +173,7 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
         return documentMapper.updateCharLengthById(docId);
     }
 
-    public ParagraphEntity createParagraph(String knowledgeId, String docId, ParagraphSimpleDTO paragraph) {
-        return getParagraphEntity(knowledgeId, docId, paragraph.getTitle(), paragraph.getContent());
-    }
-
-    public ParagraphEntity getParagraphEntity(String knowledgeId, String docId, String title, String content) {
+    public ParagraphEntity createParagraph(String knowledgeId, String docId, String title, String content) {
         ParagraphEntity paragraph = new ParagraphEntity();
         paragraph.setId(IdWorker.get32UUID());
         paragraph.setTitle(title == null ? "" : title);

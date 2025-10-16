@@ -196,12 +196,14 @@ public class ApplicationChatRecordService extends ServiceImpl<ApplicationChatRec
 
     @Transactional
     public ApplicationChatRecordEntity improveChatLog(String chatRecordId,String knowledgeId, String docId, ChatImproveDTO dto) {
+        long count = paragraphService.lambdaQuery().eq(ParagraphEntity::getKnowledgeId, knowledgeId).eq(ParagraphEntity::getDocumentId, docId).count();
         ParagraphEntity paragraphEntity = new ParagraphEntity();
         paragraphEntity.setKnowledgeId(knowledgeId);
         paragraphEntity.setDocumentId(docId);
         paragraphEntity.setTitle(dto.getTitle());
         paragraphEntity.setContent(dto.getContent());
         paragraphEntity.setHitNum(0);
+        paragraphEntity.setPosition((int) count);
         paragraphEntity.setIsActive(true);
         paragraphEntity.setStatus("nn0");
         paragraphService.save(paragraphEntity);
@@ -213,7 +215,7 @@ public class ApplicationChatRecordService extends ServiceImpl<ApplicationChatRec
     }
 
     @Transactional
-    public boolean improveChatLog(String chatRecordId,String paragraphId) {
+    public boolean removeImproveChatLog(String chatRecordId,String paragraphId) {
         ApplicationChatRecordEntity chatRecord = new ApplicationChatRecordEntity();
         chatRecord.setId(chatRecordId);
         chatRecord.setImproveParagraphIdList(List.of());
