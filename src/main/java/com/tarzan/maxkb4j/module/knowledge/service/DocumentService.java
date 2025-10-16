@@ -176,16 +176,16 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         } catch (CsvValidationException e) {
             throw new RuntimeException(e);
         }
-        this.save(doc,file);
+        this.save(doc, file);
         if (!CollectionUtils.isEmpty(paragraphs)) {
             paragraphService.saveBatch(paragraphs);
         }
     }
 
-    private void save(DocumentEntity doc,MultipartFile file) throws IOException {
-        String fileId =mongoFileService.storeFile(file);
+    private void save(DocumentEntity doc, MultipartFile file) throws IOException {
+        String fileId = mongoFileService.storeFile(file);
         System.out.println(fileId);
-        doc.setMeta(new JSONObject(Map.of("allow_download",true,"source_file_id",fileId)));
+        doc.setMeta(new JSONObject(Map.of("allow_download", true, "source_file_id", fileId)));
         this.save(doc);
     }
 
@@ -256,6 +256,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
             List<String> list = new ArrayList<>();
             EasyExcel.read(uploadFile.getInputStream(), new AnalysisEventListener<Map<Integer, String>>() {
                 Map<Integer, String> headMap = new LinkedHashMap<>();
+
                 // 表头信息会在此方法中获取
                 @Override
                 public void invokeHeadMap(Map<Integer, String> headMap, AnalysisContext context) {
@@ -287,7 +288,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
                     ParagraphEntity paragraph = paragraphService.createParagraph(knowledgeId, doc.getId(), "", text);
                     paragraphs.add(paragraph);
                 }
-                this.save(doc,uploadFile);
+                this.save(doc, uploadFile);
                 paragraphService.saveBatch(paragraphs);
             }
         }
@@ -547,7 +548,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
             }
             this.saveBatch(documentEntities);
             documentEntities.forEach(doc -> {
-               // paragraphService.updateStatusByDocId(doc.getId(), 1, 0);
+                // paragraphService.updateStatusByDocId(doc.getId(), 1, 0);
                 this.updateStatusById(doc.getId(), 1, 0);
                 //目的是为了显示进度计数
                 this.updateStatusMetaById(doc.getId());
@@ -756,9 +757,9 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
     }
 
     public boolean downloadSourceFile(String docId, HttpServletResponse response) throws IOException {
-        DocumentEntity doc =this.getById(docId);
+        DocumentEntity doc = this.getById(docId);
         JSONObject meta = doc.getMeta();
-        if (meta.get("source_file_id")!= null) {
+        if (meta.get("source_file_id") != null) {
             String fileId = doc.getMeta().getString("source_file_id");
             InputStream inputStream = mongoFileService.getStream(fileId);
             IoUtil.copy(inputStream, response.getOutputStream());

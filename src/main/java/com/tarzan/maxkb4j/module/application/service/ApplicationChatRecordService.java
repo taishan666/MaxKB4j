@@ -179,8 +179,10 @@ public class ApplicationChatRecordService extends ServiceImpl<ApplicationChatRec
 
     @Transactional
     public boolean addChatLogs(String appId, AddChatImproveDTO dto) {
-        List<ApplicationChatRecordEntity> chatRecords = this.lambdaQuery().in(ApplicationChatRecordEntity::getId, dto.getChatIds()).list();
-        List<ParagraphEntity> paragraphs = chatRecords.stream().map(e -> {
+        long count = paragraphService.lambdaQuery().eq(ParagraphEntity::getKnowledgeId, dto.getKnowledgeId()).eq(ParagraphEntity::getDocumentId, dto.getDocumentId()).count();
+        List<ApplicationChatRecordEntity> chatRecords = this.lambdaQuery().select(ApplicationChatRecordEntity::getProblemText, ApplicationChatRecordEntity::getAnswerText).in(ApplicationChatRecordEntity::getChatId, dto.getChatIds()).list();
+        List<ParagraphEntity> paragraphs=new ArrayList<>();
+        for (ApplicationChatRecordEntity e : chatRecords) {
             ParagraphEntity paragraphEntity = new ParagraphEntity();
             paragraphEntity.setKnowledgeId(dto.getKnowledgeId());
             paragraphEntity.setDocumentId(dto.getDocumentId());
@@ -189,8 +191,10 @@ public class ApplicationChatRecordService extends ServiceImpl<ApplicationChatRec
             paragraphEntity.setHitNum(0);
             paragraphEntity.setIsActive(true);
             paragraphEntity.setStatus("nn0");
-            return paragraphEntity;
-        }).toList();
+            paragraphEntity.setPosition((int) count);
+            paragraphs.add(paragraphEntity);
+            count++;
+        }
         return paragraphService.saveBatch(paragraphs);
     }
 

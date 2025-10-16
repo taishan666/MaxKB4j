@@ -1,14 +1,13 @@
 package com.tarzan.maxkb4j.module.knowledge.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.tarzan.maxkb4j.common.constant.AppConst;
 import com.tarzan.maxkb4j.common.api.R;
+import com.tarzan.maxkb4j.common.constant.AppConst;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.DeleteDTO;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.GenerateProblemDTO;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.ParagraphDTO;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.ParagraphEntity;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.ProblemEntity;
-import com.tarzan.maxkb4j.module.knowledge.service.DocumentService;
 import com.tarzan.maxkb4j.module.knowledge.service.ParagraphService;
 import com.tarzan.maxkb4j.module.knowledge.service.ProblemParagraphService;
 import lombok.AllArgsConstructor;
@@ -21,14 +20,13 @@ import java.util.List;
 @AllArgsConstructor
 public class ParagraphController {
 
-    private final DocumentService documentService;
     private final ParagraphService paragraphService;
     private final ProblemParagraphService problemParagraphService;
 
   
     @PostMapping("/knowledge/{id}/document/{docId}/paragraph")
     public R<Boolean> createParagraph(@PathVariable String id, @PathVariable("docId") String docId, @RequestBody ParagraphDTO paragraph) {
-        return R.success(paragraphService.createParagraph(id, docId, paragraph));
+        return R.success(paragraphService.createParagraphAndProblem(id, docId, paragraph));
     }
 
   

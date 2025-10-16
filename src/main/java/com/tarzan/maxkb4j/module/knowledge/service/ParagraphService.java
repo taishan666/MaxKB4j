@@ -137,7 +137,7 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
 
 
     @Transactional
-    public boolean createParagraph(String knowledgeId, String docId, ParagraphDTO paragraph) {
+    public boolean createParagraphAndProblem(String knowledgeId, String docId, ParagraphDTO paragraph) {
         paragraph.setKnowledgeId(knowledgeId);
         paragraph.setDocumentId(docId);
         paragraph.setStatus("nn0");
@@ -145,6 +145,7 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
         paragraph.setIsActive(true);
         this.save(paragraph);
         List<ProblemEntity> problems = paragraph.getProblemList();
+        //todo 问题的自动向量化
         if (!CollectionUtils.isEmpty(problems)) {
             List<String> problemContents = problems.stream().map(ProblemEntity::getContent).toList();
             List<ProblemParagraphEntity> problemParagraphMappingEntities = new ArrayList<>();
@@ -166,14 +167,11 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
             }
             problemParagraphService.saveBatch(problemParagraphMappingEntities);
         }
-        //this.updateStatusByDocId(docId, 1, 0);
-       // documentMapper.updateStatusByIds(List.of(docId), 1, 0);
-        //目的是为了显示进度计数
-        //documentMapper.updateStatusMetaByIds(List.of(docId));
         return documentMapper.updateCharLengthById(docId);
     }
 
     public ParagraphEntity createParagraph(String knowledgeId, String docId, String title, String content) {
+        long count = this.lambdaQuery().eq(ParagraphEntity::getKnowledgeId, knowledgeId).eq(ParagraphEntity::getDocumentId, docId).count();
         ParagraphEntity paragraph = new ParagraphEntity();
         paragraph.setId(IdWorker.get32UUID());
         paragraph.setTitle(title == null ? "" : title);
@@ -182,6 +180,7 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
         paragraph.setStatus("nn0");
         paragraph.setHitNum(0);
         paragraph.setIsActive(true);
+        paragraph.setPosition((int) count);
         // paragraph.setStatusMeta(paragraph.defaultStatusMeta());
         paragraph.setDocumentId(docId);
         return paragraph;
