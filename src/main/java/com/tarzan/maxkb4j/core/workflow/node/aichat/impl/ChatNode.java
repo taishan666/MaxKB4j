@@ -8,7 +8,7 @@ import com.tarzan.maxkb4j.common.util.ToolUtil;
 import com.tarzan.maxkb4j.core.assistant.Assistant;
 import com.tarzan.maxkb4j.core.langchain4j.AppChatMemory;
 import com.tarzan.maxkb4j.core.workflow.INode;
-import com.tarzan.maxkb4j.core.workflow.Tools;
+import com.tarzan.maxkb4j.core.tool.MessageTools;
 import com.tarzan.maxkb4j.core.workflow.WorkflowManage;
 import com.tarzan.maxkb4j.core.workflow.node.aichat.input.ChatNodeParams;
 import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
@@ -127,7 +127,7 @@ public class ChatNode extends INode {
                                 getChatParams().getChatId(),
                                 getChatParams().getChatRecordId(),
                                 getId(),
-                                Tools.getToolMessage(toolExecute.request().name(), toolExecute.result()),
+                                MessageTools.getToolMessage(toolExecute.request().name(), toolExecute.result()),
                                 "",
                                 getUpNodeIdList(),
                                 getRuntimeNodeId(),

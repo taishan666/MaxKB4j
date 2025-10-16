@@ -43,7 +43,7 @@ public class QuestionNode extends INode {
                 .chatMemory(AppChatMemory.withMessages(historyMessages))
                 .chatModel(chatModel.getChatModel())
                 .build();
-        Result<String> result = assistant.chat( question);
+        Result<String> result = assistant.chat(question);
         detail.put("system", systemPrompt);
         detail.put("question", question);
         TokenUsage tokenUsage =  result.tokenUsage();

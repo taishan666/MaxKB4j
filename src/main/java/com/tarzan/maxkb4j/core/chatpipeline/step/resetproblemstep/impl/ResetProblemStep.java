@@ -1,28 +1,22 @@
 package com.tarzan.maxkb4j.core.chatpipeline.step.resetproblemstep.impl;
 
 import com.alibaba.fastjson.JSONObject;
-import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationEntity;
+import com.tarzan.maxkb4j.core.assistant.CompressingQueryTransformer;
 import com.tarzan.maxkb4j.core.chatpipeline.PipelineManage;
 import com.tarzan.maxkb4j.core.chatpipeline.step.resetproblemstep.IResetProblemStep;
+import com.tarzan.maxkb4j.core.tool.MessageTools;
+import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationEntity;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
-import com.tarzan.maxkb4j.core.langchain4j.MyChatMemory;
-import com.tarzan.maxkb4j.core.langchain4j.MyCompressingQueryTransformer;
-import com.tarzan.maxkb4j.common.util.TokenUtil;
-import dev.langchain4j.data.message.ChatMessage;
-import dev.langchain4j.data.message.SystemMessage;
-import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.memory.ChatMemory;
-import dev.langchain4j.rag.query.Metadata;
-import dev.langchain4j.rag.query.Query;
-import dev.langchain4j.rag.query.transformer.QueryTransformer;
+import dev.langchain4j.memory.chat.MessageWindowChatMemory;
+import dev.langchain4j.model.output.TokenUsage;
+import dev.langchain4j.service.AiServices;
+import dev.langchain4j.service.Result;
 import dev.langchain4j.store.memory.chat.ChatMemoryStore;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-
-import java.util.Collection;
-import java.util.List;
 
 @Slf4j
 @Component
@@ -38,16 +32,43 @@ public class ResetProblemStep extends IResetProblemStep {
         JSONObject context = manage.context;
         ApplicationEntity application = (ApplicationEntity) context.get("application");
         String modelId = application.getModelId();
+        JSONObject modelParams = application.getModelParamsSetting();
+        BaseChatModel chatModel = modelService.getModelById(modelId,modelParams);
+        String question = context.getString("problemText");
+        String chatId = context.getString("chatId");
+       // String systemText = application.getModelSetting().getSystem();
+        ChatMemory chatMemory = MessageWindowChatMemory.builder()
+                .id(chatId)
+                .maxMessages(application.getDialogueNumber())
+                .chatMemoryStore(chatMemoryStore)
+                .build();
+        CompressingQueryTransformer queryTransformer = AiServices.builder(CompressingQueryTransformer.class)
+            //    .systemMessageProvider(chatMemoryId -> systemPrompt)
+                .chatModel(chatModel.getChatModel())
+                .build();
+        Result<String> result= queryTransformer.transform(MessageTools.format(chatMemory.messages()),question);
+        String paddingProblem=result.content();
+        super.context.put("modelId", modelId);
+        super.context.put("problemText", question);
+        TokenUsage tokenUsage=result.tokenUsage();
+        super.context.put("messageTokens", tokenUsage.inputTokenCount());
+        super.context.put("answerTokens", tokenUsage.inputTokenCount());
+        super.context.put("paddingProblemText", paddingProblem);
+        log.info("BaseResetProblemStep 耗时 {} ms", System.currentTimeMillis() - startTime);
+        return paddingProblem;
+    }
+
+/*    protected String execute1(PipelineManage manage) {
+        long startTime = System.currentTimeMillis();
+        JSONObject context = manage.context;
+        ApplicationEntity application = (ApplicationEntity) context.get("application");
+        String modelId = application.getModelId();
         BaseChatModel chatModel = modelService.getModelById(modelId);
         QueryTransformer queryTransformer=new MyCompressingQueryTransformer(chatModel.getChatModel());
         String question = context.getString("problemText");
         String chatId = context.getString("chatId");
         String systemText = application.getModelSetting().getSystem();
-        ChatMemory chatMemory = MyChatMemory.builder()
-                .id(chatId)
-                .maxMessages(application.getDialogueNumber())
-                .chatMemoryStore(chatMemoryStore)
-                .build();
+
         List<ChatMessage> chatMessages=chatMemory.messages();
         chatMessages.add(0, SystemMessage.from(systemText));
         Metadata metadata=new Metadata(UserMessage.from(question), chatMemory.id(), chatMessages);
@@ -65,7 +86,8 @@ public class ResetProblemStep extends IResetProblemStep {
         super.context.put("paddingProblemText", paddingProblem);
         log.info("BaseResetProblemStep 耗时 {} ms", System.currentTimeMillis() - startTime);
         return paddingProblem;
-    }
+    }*/
+
 
 
     @Override

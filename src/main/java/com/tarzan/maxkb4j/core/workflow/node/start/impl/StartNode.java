@@ -80,7 +80,7 @@ public class StartNode extends INode {
     public List<ChatRecordSimple> getHistoryContext() {
         // 获取历史聊天记录
         List<ChatRecordSimple> list = new ArrayList<>();
-        for (ApplicationChatRecordEntity chatRecord : this.getHistoryChatRecords()) {
+        for (ApplicationChatRecordEntity chatRecord : super.getHistoryChatRecords()) {
             ChatRecordSimple record = new ChatRecordSimple();
             record.setQuestion(chatRecord.getProblemText());
             record.setAnswer(chatRecord.getAnswerText());

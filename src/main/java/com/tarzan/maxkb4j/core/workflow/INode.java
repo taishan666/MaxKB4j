@@ -21,7 +21,6 @@ import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Data
@@ -151,19 +150,7 @@ public abstract class INode {
         return newMessageList;
     }
 
-    protected String format(List<ChatMessage> chatMemory) {
-        return chatMemory.stream().map(this::format).filter(Objects::nonNull).collect(Collectors.joining("\n"));
-    }
 
-    protected String format(ChatMessage message) {
-        if (message instanceof UserMessage userMessage) {
-            return "User: " + userMessage.singleText();
-        } else if (message instanceof AiMessage aiMessage) {
-            return aiMessage.hasToolExecutionRequests() ? null : "AI: " + aiMessage.text();
-        } else {
-            return null;
-        }
-    }
 
     public String generatePrompt(String prompt) {
         if (StringUtils.isBlank(prompt)) {
