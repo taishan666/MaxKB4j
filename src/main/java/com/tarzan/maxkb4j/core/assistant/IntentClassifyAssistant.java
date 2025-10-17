@@ -7,7 +7,9 @@ import dev.langchain4j.service.V;
 
 public interface IntentClassifyAssistant {
 
-    @SystemMessage("You are a professional intent recognition assistant. Please accurately identify the user's true intent based on the user's input and intent options.")
+    String SYSTEM_MESSAGE = "You are a professional intent recognition assistant. Please accurately identify the user's true intent based on the user's input and intent options.";
+
+    @SystemMessage(SYSTEM_MESSAGE)
     @UserMessage("""
             Based on the user query, \
             determine the most suitable option(s) to retrieve relevant information from the following options:

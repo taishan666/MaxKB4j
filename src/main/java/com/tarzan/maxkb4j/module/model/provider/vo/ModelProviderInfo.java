@@ -3,7 +3,7 @@ package com.tarzan.maxkb4j.module.model.provider.vo;
 import lombok.Data;
 
 @Data
-public class ModelProvideInfo {
+public class ModelProviderInfo {
 
     private String provider;
     private String name;

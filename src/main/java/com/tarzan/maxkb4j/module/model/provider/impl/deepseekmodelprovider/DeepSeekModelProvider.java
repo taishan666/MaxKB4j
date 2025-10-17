@@ -3,9 +3,9 @@ package com.tarzan.maxkb4j.module.model.provider.impl.deepseekmodelprovider;
 import com.tarzan.maxkb4j.module.model.provider.IModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.LlmModelParams;
 import com.tarzan.maxkb4j.module.model.provider.vo.ModelInfo;
-import com.tarzan.maxkb4j.module.model.provider.vo.ModelProvideInfo;
+import com.tarzan.maxkb4j.module.model.provider.vo.ModelProviderInfo;
 import com.tarzan.maxkb4j.module.model.provider.enums.ModelProviderEnum;
-import com.tarzan.maxkb4j.module.model.provider.enums.ModelTypeEnum;
+import com.tarzan.maxkb4j.module.model.provider.enums.ModelType;
 import com.tarzan.maxkb4j.module.model.provider.impl.aliyunModelProvider.AliYunBaiLianModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.impl.deepseekmodelprovider.model.DeepSeekChatModel;
 import com.tarzan.maxkb4j.common.util.IoUtil;
@@ -18,8 +18,8 @@ import java.util.List;
 @Component("model_deepseek_provider")
 public class DeepSeekModelProvider extends IModelProvider {
     @Override
-    public ModelProvideInfo getModelProvideInfo() {
-        ModelProvideInfo info = new ModelProvideInfo();
+    public ModelProviderInfo getBaseInfo() {
+        ModelProviderInfo info = new ModelProviderInfo();
         info.setProvider(ModelProviderEnum.DeepSeek.getProvider());
         info.setName(ModelProviderEnum.DeepSeek.getName());
         ClassLoader classLoader = AliYunBaiLianModelProvider.class.getClassLoader();
@@ -32,8 +32,8 @@ public class DeepSeekModelProvider extends IModelProvider {
     @Override
     public List<ModelInfo> getModelList() {
         List<ModelInfo> modelInfos = new ArrayList<>();
-        modelInfos.add(new ModelInfo("deepseek-chat","", ModelTypeEnum.LLM.name(), DeepSeekChatModel.class,new LlmModelParams()));
-        modelInfos.add(new ModelInfo("deepseek-reasoner","",ModelTypeEnum.LLM.name(), DeepSeekChatModel.class,new LlmModelParams()));
+        modelInfos.add(new ModelInfo("deepseek-chat","", ModelType.LLM.name(), DeepSeekChatModel.class,new LlmModelParams()));
+        modelInfos.add(new ModelInfo("deepseek-reasoner","", ModelType.LLM.name(), DeepSeekChatModel.class,new LlmModelParams()));
         return modelInfos;
     }
 

@@ -49,15 +49,13 @@ public class IntentClassifyNode extends INode {
         }
         List<ChatMessage> historyMessages = super.getHistoryMessages(nodeParams.getDialogueNumber(), DialogueType.WORKFLOW.name(), super.getRuntimeNodeId());
         detail.put("history_message", resetMessageList(historyMessages));
-   //     String systemPrompt = "You are a professional intent recognition assistant. Please accurately identify the user's true intent based on the user's input and intent options.";
         String options =optionsFormat(nodeParams.getBranch());
         String chatMemory =MessageTools.format(historyMessages);
         IntentClassifyAssistant assistant = AiServices.builder(IntentClassifyAssistant.class)
-              //  .systemMessageProvider(chatMemoryId -> systemPrompt)
                 .chatModel(chatModel.getChatModel())
                 .build();
         Result<String> result = assistant.route(options,chatMemory, query.toString());
-        detail.put("system", "");
+        detail.put("system", IntentClassifyAssistant.SYSTEM_MESSAGE);
         detail.put("question", query);
         Collection<Integer> classificationIds = parse(result.content());
         int classificationId=classificationIds.stream().findFirst().orElse(0);

@@ -2,14 +2,15 @@ package com.tarzan.maxkb4j.module.model.provider;
 
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelCredential;
+import com.tarzan.maxkb4j.module.model.provider.enums.ModelType;
 import com.tarzan.maxkb4j.module.model.provider.vo.ModelInfo;
-import com.tarzan.maxkb4j.module.model.provider.vo.ModelProvideInfo;
+import com.tarzan.maxkb4j.module.model.provider.vo.ModelProviderInfo;
 
 import java.util.List;
 
 public abstract class IModelProvider {
 
-    public abstract ModelProvideInfo getModelProvideInfo();
+    public abstract ModelProviderInfo getBaseInfo();
 
     public ModelInfoManage getModelInfoManage() {
         return new ModelInfoManage(getModelList());
@@ -22,9 +23,11 @@ public abstract class IModelProvider {
     }
 
 
-    private BaseModelParams getDefaultModelParams(String modelType) {
+    private BaseModelParams getDefaultModelParams(String type) {
+        ModelType modelType = ModelType.getByKey(type);
+        assert modelType != null;
         return switch (modelType) {
-            case "LLM", "EMBEDDING" -> new LlmModelParams();
+            case LLM, IMAGE -> new LlmModelParams();
             default -> new NoModelParams();
         };
     }

@@ -4,9 +4,9 @@ import com.tarzan.maxkb4j.module.model.provider.IModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.LlmModelParams;
 import com.tarzan.maxkb4j.module.model.provider.vo.ModelInfo;
 import com.tarzan.maxkb4j.module.model.provider.ModelInfoManage;
-import com.tarzan.maxkb4j.module.model.provider.vo.ModelProvideInfo;
+import com.tarzan.maxkb4j.module.model.provider.vo.ModelProviderInfo;
 import com.tarzan.maxkb4j.module.model.provider.enums.ModelProviderEnum;
-import com.tarzan.maxkb4j.module.model.provider.enums.ModelTypeEnum;
+import com.tarzan.maxkb4j.module.model.provider.enums.ModelType;
 import com.tarzan.maxkb4j.module.model.provider.impl.aliyunModelProvider.AliYunBaiLianModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.impl.aliyunModelProvider.model.*;
 import com.tarzan.maxkb4j.common.util.IoUtil;
@@ -19,8 +19,8 @@ import java.util.List;
 @Component
 public class QwenModelProvider extends IModelProvider {
     @Override
-    public ModelProvideInfo getModelProvideInfo() {
-        ModelProvideInfo info = new ModelProvideInfo();
+    public ModelProviderInfo getBaseInfo() {
+        ModelProviderInfo info = new ModelProviderInfo();
         info.setProvider(ModelProviderEnum.QWen.getProvider());
         info.setName(ModelProviderEnum.QWen.getName());
         ClassLoader classLoader = AliYunBaiLianModelProvider.class.getClassLoader();
@@ -38,17 +38,17 @@ public class QwenModelProvider extends IModelProvider {
     @Override
     public List<ModelInfo> getModelList() {
         List<ModelInfo> modelInfos = new ArrayList<>();
-        modelInfos.add(new ModelInfo("qwen-turbo","", ModelTypeEnum.LLM.name(), BaiLianChatModel.class,new LlmModelParams()));
-        modelInfos.add(new ModelInfo("qwen-plus","", ModelTypeEnum.LLM.name(),  BaiLianChatModel.class,new LlmModelParams()));
-        modelInfos.add(new ModelInfo("qwen-max","", ModelTypeEnum.LLM.name(),  BaiLianChatModel.class,new LlmModelParams()));
-        modelInfos.add(new ModelInfo("text-embedding-v2","", ModelTypeEnum.EMBEDDING.name(), BaiLianEmbedding.class));
-        modelInfos.add(new ModelInfo("text-embedding-v3","", ModelTypeEnum.EMBEDDING.name(),BaiLianEmbedding.class));
-        modelInfos.add(new ModelInfo("paraformer-realtime-v2","", ModelTypeEnum.STT.name(),ParaFormerSTT.class));
-        modelInfos.add(new ModelInfo("cosyvoice-v1","",ModelTypeEnum.TTS.name(),CosyVoiceTTS.class));
-        modelInfos.add(new ModelInfo("qwen-vl-plus","",ModelTypeEnum.IMAGE.name(), BaiLianChatModel.class,new LlmModelParams()));
-        modelInfos.add(new ModelInfo("qwen-vl-max","",ModelTypeEnum.IMAGE.name(), BaiLianChatModel.class,new LlmModelParams()));
-        modelInfos.add(new ModelInfo("wanx2.1-t2i-turbo","",ModelTypeEnum.TTI.name(),QWenImageModel.class));
-        modelInfos.add(new ModelInfo("gte-rerank","",ModelTypeEnum.RERANKER.name(),BaiLianReranker.class));
+        modelInfos.add(new ModelInfo("qwen-turbo","", ModelType.LLM.name(), BaiLianChatModel.class,new LlmModelParams()));
+        modelInfos.add(new ModelInfo("qwen-plus","", ModelType.LLM.name(),  BaiLianChatModel.class,new LlmModelParams()));
+        modelInfos.add(new ModelInfo("qwen-max","", ModelType.LLM.name(),  BaiLianChatModel.class,new LlmModelParams()));
+        modelInfos.add(new ModelInfo("text-embedding-v2","", ModelType.EMBEDDING.name(), BaiLianEmbedding.class));
+        modelInfos.add(new ModelInfo("text-embedding-v3","", ModelType.EMBEDDING.name(),BaiLianEmbedding.class));
+        modelInfos.add(new ModelInfo("paraformer-realtime-v2","", ModelType.STT.name(),ParaFormerSTT.class));
+        modelInfos.add(new ModelInfo("cosyvoice-v1","", ModelType.TTS.name(),CosyVoiceTTS.class));
+        modelInfos.add(new ModelInfo("qwen-vl-plus","", ModelType.IMAGE.name(), BaiLianChatModel.class,new LlmModelParams()));
+        modelInfos.add(new ModelInfo("qwen-vl-max","", ModelType.IMAGE.name(), BaiLianChatModel.class,new LlmModelParams()));
+        modelInfos.add(new ModelInfo("wanx2.1-t2i-turbo","", ModelType.TTI.name(),QWenImageModel.class));
+        modelInfos.add(new ModelInfo("gte-rerank","", ModelType.RERANKER.name(),BaiLianReranker.class));
         return modelInfos;
     }
 

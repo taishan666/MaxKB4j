@@ -1,24 +1,25 @@
 package com.tarzan.maxkb4j.module.model.provider.controller;
 
-import com.tarzan.maxkb4j.common.constant.AppConst;
 import com.tarzan.maxkb4j.common.api.R;
+import com.tarzan.maxkb4j.common.constant.AppConst;
 import com.tarzan.maxkb4j.common.form.BaseFiled;
+import com.tarzan.maxkb4j.common.util.StringUtil;
 import com.tarzan.maxkb4j.module.model.info.vo.KeyAndValueVO;
 import com.tarzan.maxkb4j.module.model.provider.IModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.enums.ModelProviderEnum;
-import com.tarzan.maxkb4j.module.model.provider.enums.ModelTypeEnum;
+import com.tarzan.maxkb4j.module.model.provider.enums.ModelType;
 import com.tarzan.maxkb4j.module.model.provider.impl.aliyunModelProvider.AliYunBaiLianModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.impl.azuremodelprovider.AzureModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.impl.deepseekmodelprovider.DeepSeekModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.impl.kimimodelprovider.KimiModelProvider;
+import com.tarzan.maxkb4j.module.model.provider.impl.localmodelprovider.LocalModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.impl.ollamamodelprovider.OLlamaModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.impl.openaimodelprovider.OpenaiModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.impl.volcanicenginemodelprovider.VolcanicEngineModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.impl.xinferencemodelprovider.XInferenceModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.impl.zhipumodelprovider.ZhiPuModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.vo.ModelInfo;
-import com.tarzan.maxkb4j.module.model.provider.vo.ModelProvideInfo;
-import com.tarzan.maxkb4j.common.util.StringUtil;
+import com.tarzan.maxkb4j.module.model.provider.vo.ModelProviderInfo;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -39,11 +40,11 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 public class ProviderController {
 
-	//@SaCheckPermission("MODEL:READ")
     @GetMapping("/provider")
-	public R<Set<ModelProvideInfo>> provider(String modelType){
+	public R<Set<ModelProviderInfo>> provider(String modelType){
 		Set<IModelProvider> set= new HashSet<>();
 		set.add(new AliYunBaiLianModelProvider());
+		set.add(new LocalModelProvider());
 		//set.add(new AwsBedrockModelProvider());
 		set.add(new AzureModelProvider());
 		set.add(new DeepSeekModelProvider());
@@ -61,25 +62,23 @@ public class ProviderController {
 		set.add(new VolcanicEngineModelProvider());
 	//	set.add(new LocalModelProvider());
 		if (StringUtil.isBlank(modelType)){
-			return R.success(set.stream().map(IModelProvider::getModelProvideInfo).collect(Collectors.toSet()));
+			return R.success(set.stream().map(IModelProvider::getBaseInfo).collect(Collectors.toSet()));
 		}
-		return R.success(set.stream().filter(e->e.isSupport(modelType)).map(IModelProvider::getModelProvideInfo).collect(Collectors.toSet()));
+		return R.success(set.stream().filter(e->e.isSupport(modelType)).map(IModelProvider::getBaseInfo).collect(Collectors.toSet()));
 	}
 
 
-	//@SaCheckPermission("MODEL:READ")
 	@GetMapping("/provider/model_type_list")
 	public R<List<KeyAndValueVO>> modelTypeList(String provider){
 		IModelProvider modelProvider= ModelProviderEnum.get(provider);
 		List<ModelInfo> modelInfos=modelProvider.getModelList();
-		List<KeyAndValueVO> list= ModelTypeEnum.getModelTypeList();
+		List<KeyAndValueVO> list= ModelType.getModelTypeList();
 		Map<String,List<ModelInfo>> map=modelInfos.stream().collect(Collectors.groupingBy(ModelInfo::getModelType));
 		Set<String> keys=map.keySet();
 		list.removeIf(e -> !keys.contains(e.getValue()));
 		return R.success(list);
 	}
 
-	//@SaCheckPermission("MODEL:READ")
 	@GetMapping("/provider/model_form")
 	public R<List<BaseFiled>> modelForm(String provider, String modelType, String modelName){
 		IModelProvider modelProvider=ModelProviderEnum.get(provider);

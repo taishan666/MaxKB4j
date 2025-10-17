@@ -4,7 +4,7 @@ import com.tarzan.maxkb4j.module.model.provider.BaseModelCredential;
 import com.tarzan.maxkb4j.module.model.provider.IModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.LlmModelParams;
 import com.tarzan.maxkb4j.module.model.provider.vo.ModelInfo;
-import com.tarzan.maxkb4j.module.model.provider.vo.ModelProvideInfo;
+import com.tarzan.maxkb4j.module.model.provider.vo.ModelProviderInfo;
 import com.tarzan.maxkb4j.module.model.provider.enums.ModelProviderEnum;
 import com.tarzan.maxkb4j.module.model.provider.impl.aliyunModelProvider.AliYunBaiLianModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.impl.openaimodelprovider.model.OpenaiChatModel;
@@ -20,8 +20,8 @@ import java.util.List;
 @Component("model_openai_provider")
 public class OpenaiModelProvider extends IModelProvider {
     @Override
-    public ModelProvideInfo getModelProvideInfo() {
-        ModelProvideInfo info = new ModelProvideInfo();
+    public ModelProviderInfo getBaseInfo() {
+        ModelProviderInfo info = new ModelProviderInfo();
         info.setProvider(ModelProviderEnum.Openai.getProvider());
         info.setName(ModelProviderEnum.Openai.getName());
         ClassLoader classLoader = AliYunBaiLianModelProvider.class.getClassLoader();

@@ -7,7 +7,7 @@ import com.tarzan.maxkb4j.module.model.provider.enums.ModelProviderEnum;
 import com.tarzan.maxkb4j.module.model.provider.impl.aliyunModelProvider.AliYunBaiLianModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.impl.kimimodelprovider.model.KimiChatModel;
 import com.tarzan.maxkb4j.module.model.provider.vo.ModelInfo;
-import com.tarzan.maxkb4j.module.model.provider.vo.ModelProvideInfo;
+import com.tarzan.maxkb4j.module.model.provider.vo.ModelProviderInfo;
 import com.tarzan.maxkb4j.common.util.IoUtil;
 import org.springframework.stereotype.Component;
 
@@ -18,8 +18,8 @@ import java.util.List;
 @Component("model_kimi_provider")
 public class KimiModelProvider extends IModelProvider {
     @Override
-    public ModelProvideInfo getModelProvideInfo() {
-        ModelProvideInfo info = new ModelProvideInfo();
+    public ModelProviderInfo getBaseInfo() {
+        ModelProviderInfo info = new ModelProviderInfo();
         info.setProvider(ModelProviderEnum.Kimi.getProvider());
         info.setName(ModelProviderEnum.Kimi.getName());
         ClassLoader classLoader = AliYunBaiLianModelProvider.class.getClassLoader();

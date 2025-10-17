@@ -10,6 +10,7 @@ import com.tarzan.maxkb4j.core.workflow.node.condition.impl.ConditionNode;
 import com.tarzan.maxkb4j.core.workflow.node.directreply.impl.DirectReplyNode;
 import com.tarzan.maxkb4j.core.workflow.node.documentextract.impl.DocumentExtractNode;
 import com.tarzan.maxkb4j.core.workflow.node.formcollect.impl.FormNode;
+import com.tarzan.maxkb4j.core.workflow.node.http.impl.HttpNode;
 import com.tarzan.maxkb4j.core.workflow.node.imagegenerate.impl.ImageGenerateNode;
 import com.tarzan.maxkb4j.core.workflow.node.imageunderstand.impl.ImageUnderstandNode;
 import com.tarzan.maxkb4j.core.workflow.node.intentclassify.impl.IntentClassifyNode;
@@ -53,6 +54,7 @@ public class NodeFactory {
             case FORM -> new FormNode(properties);
             case MCP -> new McpNode(properties);
             case INTENT_CLASSIFY -> new IntentClassifyNode(properties);
+            case HTTP_CLIENT -> new HttpNode(properties);
             default -> null;
         };
 

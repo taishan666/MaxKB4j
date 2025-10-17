@@ -7,6 +7,7 @@ import com.tarzan.maxkb4j.core.workflow.node.mcp.input.McpParams;
 import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
 import dev.langchain4j.agent.tool.ToolExecutionRequest;
 import dev.langchain4j.mcp.client.McpClient;
+import dev.langchain4j.service.tool.ToolExecutionResult;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,7 +45,8 @@ public class McpNode extends INode {
                     .name(nodeParams.getMcpTool())
                     .arguments(params.toJSONString())
                     .build();
-            result.add(mcpClient.executeTool(toolExecutionRequest));
+            ToolExecutionResult toolExecutionResult=mcpClient.executeTool(toolExecutionRequest);
+            result.add(toolExecutionResult.resultText());
         }
         detail.put("toolParams",toolParams);
         detail.put("mcpTool",nodeParams.getMcpTool());
