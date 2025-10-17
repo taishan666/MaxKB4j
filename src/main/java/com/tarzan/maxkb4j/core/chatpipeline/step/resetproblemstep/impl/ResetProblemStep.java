@@ -6,7 +6,7 @@ import com.tarzan.maxkb4j.core.chatpipeline.PipelineManage;
 import com.tarzan.maxkb4j.core.chatpipeline.step.resetproblemstep.IResetProblemStep;
 import com.tarzan.maxkb4j.core.tool.MessageTools;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationEntity;
-import com.tarzan.maxkb4j.module.model.info.service.ModelService;
+import com.tarzan.maxkb4j.module.model.info.service.ModelFactory;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
 import dev.langchain4j.memory.ChatMemory;
 import dev.langchain4j.memory.chat.MessageWindowChatMemory;
@@ -23,7 +23,7 @@ import org.springframework.stereotype.Component;
 @AllArgsConstructor
 public class ResetProblemStep extends IResetProblemStep {
 
-    private final ModelService modelService;
+    private final ModelFactory modelFactory;
     private final ChatMemoryStore chatMemoryStore;
 
     @Override
@@ -33,7 +33,7 @@ public class ResetProblemStep extends IResetProblemStep {
         ApplicationEntity application = (ApplicationEntity) context.get("application");
         String modelId = application.getModelId();
         JSONObject modelParams = application.getModelParamsSetting();
-        BaseChatModel chatModel = modelService.getModelById(modelId,modelParams);
+        BaseChatModel chatModel = modelFactory.build(modelId,modelParams);
         String question = context.getString("problemText");
         String chatId = context.getString("chatId");
        // String systemText = application.getModelSetting().getSystem();

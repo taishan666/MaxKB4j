@@ -6,18 +6,17 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.tarzan.maxkb4j.common.util.BeanUtil;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelEntity;
 import com.tarzan.maxkb4j.module.model.info.mapper.ModelMapper;
 import com.tarzan.maxkb4j.module.model.info.vo.ModelVO;
-import com.tarzan.maxkb4j.module.model.provider.ModelFactory;
 import com.tarzan.maxkb4j.module.system.permission.constant.AuthTargetType;
 import com.tarzan.maxkb4j.module.system.permission.service.UserResourcePermissionService;
 import com.tarzan.maxkb4j.module.system.user.domain.entity.UserEntity;
 import com.tarzan.maxkb4j.module.system.user.service.UserService;
-import com.tarzan.maxkb4j.common.util.BeanUtil;
-import com.tarzan.maxkb4j.common.util.StringUtil;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,12 +34,14 @@ import java.util.Objects;
 public class ModelService extends ServiceImpl<ModelMapper, ModelEntity> {
 
     private final UserService userService;
-    private final ModelBaseService modelBaseService;
     private final UserResourcePermissionService userResourcePermissionService;
 
-    public List<ModelEntity> models(String modelType) {
-        return modelBaseService.models(modelType);
+
+    @Cacheable(cacheNames = "model_info", key = "#modelId")
+    public ModelEntity getCacheModelById(String modelId) {
+        return this.getById(modelId);
     }
+
 
     public List<ModelVO> models(String name, String createUser, String modelType, String provider) {
         Map<String, String> userMap = userService.getNicknameMap();
@@ -69,24 +70,24 @@ public class ModelService extends ServiceImpl<ModelMapper, ModelEntity> {
         }
         String loginId = StpUtil.getLoginIdAsString();
         UserEntity user = userService.getById(loginId);
-        if (Objects.nonNull(user)){
-            if (!org.springframework.util.CollectionUtils.isEmpty(user.getRole())){
-                if (user.getRole().contains("USER")){
-                    List<String> targetIds =userResourcePermissionService.getTargetIds("MODEL",loginId);
-                    if (!org.springframework.util.CollectionUtils.isEmpty(targetIds)){
+        if (Objects.nonNull(user)) {
+            if (!org.springframework.util.CollectionUtils.isEmpty(user.getRole())) {
+                if (user.getRole().contains("USER")) {
+                    List<String> targetIds = userResourcePermissionService.getTargetIds("MODEL", loginId);
+                    if (!org.springframework.util.CollectionUtils.isEmpty(targetIds)) {
                         wrapper.in(ModelEntity::getId, targetIds);
-                    }else {
+                    } else {
                         wrapper.last(" limit 0");
                     }
                 }
-            }else {
+            } else {
                 wrapper.last(" limit 0");
             }
-        }else{
+        } else {
             wrapper.last(" limit 0");
         }
         wrapper.orderByDesc(ModelEntity::getCreateTime);
-        List<ModelEntity> modelEntities = baseMapper.selectList(wrapper);
+        List<ModelEntity> modelEntities = this.list(wrapper);
         if (CollectionUtils.isNotEmpty(modelEntities)) {
             List<ModelVO> models = BeanUtil.copyList(modelEntities, ModelVO.class);
             models.forEach(model -> model.setNickname(userMap.get(model.getUserId())));
@@ -95,36 +96,30 @@ public class ModelService extends ServiceImpl<ModelMapper, ModelEntity> {
         return Collections.emptyList();
     }
 
-
-    public <T> T getModelById(String modelId) {
-        return getModelById(modelId,new JSONObject());
-    }
-
-    public <T> T getModelById(String modelId,JSONObject modelParams) {
-        if (StringUtil.isBlank(modelId)){
-            return null;
-        }
-        ModelEntity model = modelBaseService.getModelInfoById(modelId);
-        if (model == null){
-            return null;
-        }
-        return ModelFactory.build(model,modelParams);
-    }
-
-
     @Transactional
-    public Boolean createModel(ModelEntity model) {
-         modelBaseService.createModel(model);
-        return userResourcePermissionService.ownerSave(AuthTargetType.MODEL, model.getId(),model.getUserId());
+    public boolean createModel(ModelEntity model) {
+        String userId = StpUtil.getLoginIdAsString();
+        long count = this.lambdaQuery().eq(ModelEntity::getName, model.getName()).eq(ModelEntity::getUserId, userId).count();
+        if (count > 0) {
+            return false;
+        }
+        model.setUserId(userId);
+        model.setMeta(new JSONObject());
+        model.setStatus("SUCCESS");
+        save(model);
+        return userResourcePermissionService.ownerSave(AuthTargetType.MODEL, model.getId(), model.getUserId());
     }
+
 
     public ModelEntity updateModel(String id, ModelEntity model) {
-        return modelBaseService.updateModel(id, model);
+        model.setId(id);
+        this.updateById(model);
+        return model;
     }
 
     @Transactional
     public Boolean removeModelById(String id) {
         userResourcePermissionService.remove(AuthTargetType.APPLICATION, id);
-        return modelBaseService.removeById(id);
+        return this.removeById(id);
     }
 }

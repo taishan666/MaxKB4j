@@ -10,7 +10,7 @@ import com.tarzan.maxkb4j.core.workflow.enums.DialogueType;
 import com.tarzan.maxkb4j.core.workflow.node.intentclassify.input.IntentClassifyBranch;
 import com.tarzan.maxkb4j.core.workflow.node.intentclassify.input.IntentClassifyNodeParams;
 import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
-import com.tarzan.maxkb4j.module.model.info.service.ModelService;
+import com.tarzan.maxkb4j.module.model.info.service.ModelFactory;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.internal.ValidationUtils;
@@ -26,13 +26,13 @@ import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.INTENT_CLASSIFY;
 @Slf4j
 public class IntentClassifyNode extends INode {
 
-    private final ModelService modelService;
+    private final ModelFactory modelFactory;
     private final Map<Integer, String> idToClassification;
 
     public IntentClassifyNode(JSONObject properties) {
         super(properties);
         super.setType(INTENT_CLASSIFY.getKey());
-        this.modelService = SpringUtil.getBean(ModelService.class);
+        this.modelFactory = SpringUtil.getBean(ModelFactory.class);
         this.idToClassification = new HashMap<>();
     }
 
@@ -40,7 +40,7 @@ public class IntentClassifyNode extends INode {
     @Override
     public NodeResult execute() throws Exception {
         IntentClassifyNodeParams nodeParams = super.getNodeData().toJavaObject(IntentClassifyNodeParams.class);
-        BaseChatModel chatModel = modelService.getModelById(nodeParams.getModelId(), nodeParams.getModelParamsSetting());
+        BaseChatModel chatModel = modelFactory.build(nodeParams.getModelId(), nodeParams.getModelParamsSetting());
         Object query = super.getReferenceField(nodeParams.getContentList().get(0),nodeParams.getContentList().get(1));
         Map<String,String> branchMap = new HashMap<>();
         List<IntentClassifyBranch> branches=nodeParams.getBranch();

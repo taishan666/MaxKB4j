@@ -24,7 +24,7 @@ import com.tarzan.maxkb4j.module.application.mapper.ApplicationMapper;
 import com.tarzan.maxkb4j.module.knowledge.consts.SearchType;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.KnowledgeEntity;
 import com.tarzan.maxkb4j.module.knowledge.service.KnowledgeService;
-import com.tarzan.maxkb4j.module.model.info.service.ModelService;
+import com.tarzan.maxkb4j.module.model.info.service.ModelFactory;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseSpeechToText;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseTextToSpeech;
 import com.tarzan.maxkb4j.module.system.permission.constant.AuthTargetType;
@@ -60,7 +60,7 @@ import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.SEARCH_KNOWLEDGE;
 @AllArgsConstructor
 public class ApplicationService extends ServiceImpl<ApplicationMapper, ApplicationEntity> {
 
-    private final ModelService modelService;
+    private final ModelFactory modelFactory;
     private final KnowledgeService knowledgeService;
     private final UserService userService;
     private final ApplicationAccessTokenService accessTokenService;
@@ -334,7 +334,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
 
     public byte[] playDemoText(String appId, JSONObject modelParams) {
         String ttsModelId = modelParams.getString("ttsModelId");
-        BaseTextToSpeech ttsModel = modelService.getModelById(ttsModelId, modelParams);
+        BaseTextToSpeech ttsModel = modelFactory.build(ttsModelId, modelParams);
         return ttsModel.textToSpeech("你好，这里是语音播放测试");
     }
 
@@ -347,7 +347,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         if (app.getTtsModelId() == null) {
             return new byte[0];
         }
-        BaseTextToSpeech ttsModel = modelService.getModelById(app.getTtsModelId(), app.getTtsModelParamsSetting());
+        BaseTextToSpeech ttsModel = modelFactory.build(app.getTtsModelId(), app.getTtsModelParamsSetting());
         return ttsModel.textToSpeech(text);
     }
 
@@ -441,7 +441,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
 
     public String speechToText(String appId, MultipartFile file) throws IOException {
         ApplicationEntity app = this.getById(appId);
-        BaseSpeechToText sttModel = modelService.getModelById(app.getSttModelId());
+        BaseSpeechToText sttModel = modelFactory.build(app.getSttModelId());
         String suffix = Objects.requireNonNull(file.getContentType()).split("/")[1];
         return sttModel.speechToText(file.getBytes(), suffix);
     }

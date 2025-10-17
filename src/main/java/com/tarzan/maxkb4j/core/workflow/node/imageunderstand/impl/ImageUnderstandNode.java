@@ -12,7 +12,7 @@ import com.tarzan.maxkb4j.core.workflow.model.ChatFile;
 import com.tarzan.maxkb4j.core.workflow.node.imageunderstand.input.ImageUnderstandParams;
 import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
 import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
-import com.tarzan.maxkb4j.module.model.info.service.ModelService;
+import com.tarzan.maxkb4j.module.model.info.service.ModelFactory;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
 import com.tarzan.maxkb4j.module.oss.service.MongoFileService;
 import dev.langchain4j.data.message.ChatMessage;
@@ -34,14 +34,14 @@ import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.IMAGE_UNDERSTAND;
 @Slf4j
 public class ImageUnderstandNode extends INode {
 
-    private final ModelService modelService;
+    private final ModelFactory modelFactory;
     private final MongoFileService fileService;
     private final AiServices<Assistant> aiServicesBuilder;
 
     public ImageUnderstandNode(JSONObject properties) {
         super(properties);
         super.setType(IMAGE_UNDERSTAND.getKey());
-        this.modelService = SpringUtil.getBean(ModelService.class);
+        this.modelFactory = SpringUtil.getBean(ModelFactory.class);
         this.fileService = SpringUtil.getBean(MongoFileService.class);
         this.aiServicesBuilder = AiServices.builder(Assistant.class);
     }
@@ -61,7 +61,7 @@ public class ImageUnderstandNode extends INode {
         Object object = super.getReferenceField(imageFieldList.get(0), imageFieldList.get(1));
         @SuppressWarnings("unchecked")
         List<ChatFile> ImageFiles = (List<ChatFile>) object;
-        BaseChatModel chatModel = modelService.getModelById(nodeParams.getModelId(), nodeParams.getModelParamsSetting());
+        BaseChatModel chatModel = modelFactory.build(nodeParams.getModelId(), nodeParams.getModelParamsSetting());
         String question =  super.generatePrompt(nodeParams.getPrompt());
         String systemPrompt =super.generatePrompt(nodeParams.getSystem());
         List<ChatMessage> historyMessages=super.getHistoryMessages(nodeParams.getDialogueNumber(), nodeParams.getDialogueType(), super.getRuntimeNodeId());

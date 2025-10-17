@@ -13,7 +13,7 @@ import com.tarzan.maxkb4j.core.workflow.WorkflowManage;
 import com.tarzan.maxkb4j.core.workflow.node.aichat.input.ChatNodeParams;
 import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
 import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
-import com.tarzan.maxkb4j.module.model.info.service.ModelService;
+import com.tarzan.maxkb4j.module.model.info.service.ModelFactory;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.model.chat.response.ChatResponse;
@@ -33,7 +33,7 @@ import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.AI_CHAT;
 @Slf4j
 public class ChatNode extends INode {
 
-    private final ModelService modelService;
+    private final ModelFactory modelFactory;
     private final ToolUtil toolUtil;
     private final AiServices<Assistant> aiServicesBuilder;
 
@@ -41,7 +41,7 @@ public class ChatNode extends INode {
     public ChatNode(JSONObject properties) {
         super(properties);
         super.setType(AI_CHAT.getKey());
-        this.modelService = SpringUtil.getBean(ModelService.class);
+        this.modelFactory = SpringUtil.getBean(ModelFactory.class);
         this.toolUtil = SpringUtil.getBean(ToolUtil.class);
         this.aiServicesBuilder = AiServices.builder(Assistant.class);
     }
@@ -50,7 +50,7 @@ public class ChatNode extends INode {
     @Override
     public NodeResult execute() throws Exception {
         ChatNodeParams nodeParams = super.getNodeData().toJavaObject(ChatNodeParams.class);
-        BaseChatModel chatModel = modelService.getModelById(nodeParams.getModelId(), nodeParams.getModelParamsSetting());
+        BaseChatModel chatModel = modelFactory.build(nodeParams.getModelId(), nodeParams.getModelParamsSetting());
         String question = super.generatePrompt(nodeParams.getPrompt());
         String systemPrompt = super.generatePrompt(nodeParams.getSystem());
         List<String> toolIds = new ArrayList<>();

@@ -5,7 +5,7 @@ import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
 import com.tarzan.maxkb4j.core.workflow.model.ChatFile;
 import com.tarzan.maxkb4j.core.workflow.node.speechtotext.input.SpeechToTextParams;
-import com.tarzan.maxkb4j.module.model.info.service.ModelService;
+import com.tarzan.maxkb4j.module.model.info.service.ModelFactory;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseSpeechToText;
 import com.tarzan.maxkb4j.module.oss.service.MongoFileService;
 import com.tarzan.maxkb4j.common.util.SpringUtil;
@@ -18,13 +18,13 @@ import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.SPEECH_TO_TEXT;
 
 public class SpeechToTextNode extends INode {
 
-    private final ModelService modelService;
+    private final ModelFactory modelFactory;
     private final MongoFileService fileService;
 
     public SpeechToTextNode(JSONObject properties) {
         super(properties);
         this.setType(SPEECH_TO_TEXT.getKey());
-        this.modelService = SpringUtil.getBean(ModelService.class);
+        this.modelFactory = SpringUtil.getBean(ModelFactory.class);
         this.fileService = SpringUtil.getBean(MongoFileService.class);
     }
 
@@ -35,7 +35,7 @@ public class SpeechToTextNode extends INode {
         SpeechToTextParams nodeParams=super.getNodeData().toJavaObject(SpeechToTextParams.class);
         List<String> audioList = nodeParams.getAudioList();
         Object res = super.getReferenceField(audioList.get(0), audioList.get(1));
-        BaseSpeechToText sttModel = modelService.getModelById(nodeParams.getSttModelId());
+        BaseSpeechToText sttModel = modelFactory.build(nodeParams.getSttModelId());
         @SuppressWarnings("unchecked")
         List<ChatFile> audioFiles = (List<ChatFile>) res;
         List<String> content = new ArrayList<>();

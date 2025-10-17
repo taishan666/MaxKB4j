@@ -5,7 +5,7 @@ import com.tarzan.maxkb4j.common.util.SpringUtil;
 import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.node.imagegenerate.input.ImageGenerateParams;
 import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
-import com.tarzan.maxkb4j.module.model.info.service.ModelService;
+import com.tarzan.maxkb4j.module.model.info.service.ModelFactory;
 import dev.langchain4j.data.image.Image;
 import dev.langchain4j.model.image.ImageModel;
 import dev.langchain4j.model.output.Response;
@@ -18,12 +18,12 @@ import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.IMAGE_GENERATE;
 
 public class ImageGenerateNode extends INode {
 
-    private final ModelService modelService;
+    private final ModelFactory modelFactory;
 
     public ImageGenerateNode(JSONObject properties) {
         super(properties);
         super.setType(IMAGE_GENERATE.getKey());
-        this.modelService = SpringUtil.getBean(ModelService.class);
+        this.modelFactory = SpringUtil.getBean(ModelFactory.class);
     }
 
     @Override
@@ -37,7 +37,7 @@ public class ImageGenerateNode extends INode {
         }
         StringBuilder answerSb=new StringBuilder();
         List<String> imageUrls = new ArrayList<>();
-        ImageModel imageModel = modelService.getModelById(nodeParams.getModelId(), modelParamsSetting);
+        ImageModel imageModel = modelFactory.build(nodeParams.getModelId(), modelParamsSetting);
         int n = modelParamsSetting == null ? 1 : modelParamsSetting.getIntValue("n");
         n=n==0 ? 1 : n;
         Response<List<Image>> res = imageModel.generate(prompt,n);

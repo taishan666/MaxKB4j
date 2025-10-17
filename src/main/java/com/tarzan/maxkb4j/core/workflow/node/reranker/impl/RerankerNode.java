@@ -5,7 +5,7 @@ import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
 import com.tarzan.maxkb4j.core.workflow.node.reranker.input.RerankerParams;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.ParagraphVO;
-import com.tarzan.maxkb4j.module.model.info.service.ModelService;
+import com.tarzan.maxkb4j.module.model.info.service.ModelFactory;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseReranker;
 import com.tarzan.maxkb4j.common.util.SpringUtil;
 
@@ -18,12 +18,12 @@ import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.RERANKER;
 
 public class RerankerNode extends INode {
 
-    private final ModelService modelService;
+    private final ModelFactory modelFactory;
 
     public RerankerNode(JSONObject properties) {
         super(properties);
         this.setType(RERANKER.getKey());
-        this.modelService = SpringUtil.getBean(ModelService.class);
+        this.modelFactory = SpringUtil.getBean(ModelFactory.class);
     }
 
 
@@ -47,7 +47,7 @@ public class RerankerNode extends INode {
                 .toList();*/
 
         // 获取重排序模型实例
-        BaseReranker rerankerModel = modelService.getModelById(nodeParams.getRerankerModelId());
+        BaseReranker rerankerModel = modelFactory.build(nodeParams.getRerankerModelId());
 
         // 压缩文档
         List<Map<String,Object>> resultList = rerankerModel.textReRank(question.toString(),documents);

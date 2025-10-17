@@ -14,7 +14,7 @@ import com.tarzan.maxkb4j.module.knowledge.domain.entity.*;
 import com.tarzan.maxkb4j.module.knowledge.mapper.DocumentMapper;
 import com.tarzan.maxkb4j.module.knowledge.mapper.KnowledgeMapper;
 import com.tarzan.maxkb4j.module.knowledge.mapper.ParagraphMapper;
-import com.tarzan.maxkb4j.module.model.info.service.ModelService;
+import com.tarzan.maxkb4j.module.model.info.service.ModelFactory;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
 import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.model.embedding.EmbeddingModel;
@@ -43,7 +43,7 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
     private final ProblemParagraphService problemParagraphService;
     private final DataIndexService dataIndexService;
     private final DocumentMapper documentMapper;
-    private final ModelService modelService;
+    private final ModelFactory modelFactory;
     private final KnowledgeMapper datasetMapper;
 
     public void updateStatusById(String id, int type, int status) {
@@ -239,8 +239,8 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
         documentMapper.updateStatusMetaByIds(List.of(docId));
         documentMapper.updateStatusByIds(List.of(docId), 2, 0);
         KnowledgeEntity dataset = datasetMapper.selectById(knowledgeId);
-        BaseChatModel chatModel = modelService.getModelById(dto.getModelId());
-        EmbeddingModel embeddingModel = modelService.getModelById(dataset.getEmbeddingModelId());
+        BaseChatModel chatModel = modelFactory.build(dto.getModelId());
+        EmbeddingModel embeddingModel = modelFactory.build(dataset.getEmbeddingModelId());
         List<ParagraphEntity> paragraphs = this.lambdaQuery().eq(ParagraphEntity::getDocumentId, docId).list();
         List<ProblemEntity> allProblems = problemService.lambdaQuery().eq(ProblemEntity::getKnowledgeId, knowledgeId).list();
         documentMapper.updateStatusByIds(List.of(docId), 2, 1);

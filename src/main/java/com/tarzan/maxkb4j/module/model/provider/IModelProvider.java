@@ -44,7 +44,7 @@ public abstract class IModelProvider {
     }
 
     @SuppressWarnings("unchecked")
-    <T> T build(String modelName, String modelType, ModelCredential modelCredential, JSONObject params) {
+    public <T> T build(String modelName, String modelType, ModelCredential modelCredential, JSONObject params) {
         List<ModelInfo> modelList = getModelList();
         ModelInfo modelInfo = modelList.stream().filter(model -> model.getModelType().equals(modelType) && model.getName().equals(modelName)).findFirst().orElse(null);
         if (modelInfo == null){

@@ -5,7 +5,7 @@ import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
 import com.tarzan.maxkb4j.core.workflow.model.ChatFile;
 import com.tarzan.maxkb4j.core.workflow.node.texttospeech.input.TextToSpeechParams;
-import com.tarzan.maxkb4j.module.model.info.service.ModelService;
+import com.tarzan.maxkb4j.module.model.info.service.ModelFactory;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseTextToSpeech;
 import com.tarzan.maxkb4j.module.oss.service.MongoFileService;
 import com.tarzan.maxkb4j.common.util.SpringUtil;
@@ -19,13 +19,13 @@ import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.TEXT_TO_SPEECH;
 public class TextToSpeechNode extends INode {
 
     private final MongoFileService fileService;
-    private final ModelService modelService;
+    private final ModelFactory modelFactory;
 
     public TextToSpeechNode(JSONObject properties) {
         super(properties);
         this.setType(TEXT_TO_SPEECH.getKey());
         this.fileService = SpringUtil.getBean(MongoFileService.class);
-        this.modelService = SpringUtil.getBean(ModelService.class);
+        this.modelFactory = SpringUtil.getBean(ModelFactory.class);
     }
 
     @Override
@@ -33,7 +33,7 @@ public class TextToSpeechNode extends INode {
         TextToSpeechParams nodeParams=super.getNodeData().toJavaObject(TextToSpeechParams.class);
         List<String> contentList=nodeParams.getContentList();
         Object content=super.getReferenceField(contentList.get(0),contentList.get(1));
-        BaseTextToSpeech ttsModel = modelService.getModelById(nodeParams.getTtsModelId(), nodeParams.getModelParamsSetting());
+        BaseTextToSpeech ttsModel = modelFactory.build(nodeParams.getTtsModelId(), nodeParams.getModelParamsSetting());
         byte[]  audioData = ttsModel.textToSpeech(content.toString());
         ChatFile fileVO = fileService.uploadFile("generated_audio_"+ UUID.randomUUID() +".mp3",audioData);
         // 使用字符串拼接生成 HTML 音频标签

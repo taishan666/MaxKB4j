@@ -15,7 +15,7 @@ import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
 import com.tarzan.maxkb4j.module.application.enums.AIAnswerType;
 import com.tarzan.maxkb4j.module.application.service.ApplicationChatUserStatsService;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.ParagraphVO;
-import com.tarzan.maxkb4j.module.model.info.service.ModelService;
+import com.tarzan.maxkb4j.module.model.info.service.ModelFactory;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
@@ -42,7 +42,7 @@ import java.util.concurrent.atomic.AtomicReference;
 @AllArgsConstructor
 public class ChatStep extends IChatStep {
 
-    private final ModelService modelService;
+    private final ModelFactory modelFactory;
     private final ApplicationChatUserStatsService publicAccessClientService;
 
     @Override
@@ -78,7 +78,7 @@ public class ChatStep extends IChatStep {
         JSONObject params = application.getModelParamsSetting();
         KnowledgeSetting knowledgeSetting = application.getKnowledgeSetting();
         NoReferencesSetting noReferencesSetting = knowledgeSetting.getNoReferencesSetting();
-        BaseChatModel chatModel = modelService.getModelById(modelId, params);
+        BaseChatModel chatModel = modelFactory.build(modelId, params);
         String problemText = manage.context.getString("problemText");
         if (chatModel == null) {
             answerText.set("抱歉，没有配置 AI 模型，无法优化引用分段，请先去应用中设置 AI 模型。");

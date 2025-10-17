@@ -32,7 +32,7 @@ import com.tarzan.maxkb4j.module.knowledge.enums.DocType;
 import com.tarzan.maxkb4j.module.knowledge.excel.DatasetExcel;
 import com.tarzan.maxkb4j.module.knowledge.mapper.DocumentMapper;
 import com.tarzan.maxkb4j.module.knowledge.mapper.KnowledgeMapper;
-import com.tarzan.maxkb4j.module.model.info.service.ModelService;
+import com.tarzan.maxkb4j.module.model.info.service.ModelFactory;
 import com.tarzan.maxkb4j.module.model.info.vo.KeyAndValueVO;
 import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
 import com.tarzan.maxkb4j.module.oss.service.MongoFileService;
@@ -80,7 +80,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
     private final DocumentParseService documentParseService;
     private final DocumentSpiltService documentSpiltService;
     private final KnowledgeMapper datasetMapper;
-    private final ModelService modelService;
+    private final ModelFactory modelFactory;
     private final MongoFileService mongoFileService;
 
 
@@ -676,8 +676,8 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         baseMapper.updateStatusByIds(dto.getDocumentIdList(), 2, 0);
         baseMapper.updateStatusMetaByIds(dto.getDocumentIdList());
         KnowledgeEntity dataset = datasetMapper.selectById(knowledgeId);
-        BaseChatModel chatModel = modelService.getModelById(dto.getModelId());
-        EmbeddingModel embeddingModel = modelService.getModelById(dataset.getEmbeddingModelId());
+        BaseChatModel chatModel = modelFactory.build(dto.getModelId());
+        EmbeddingModel embeddingModel = modelFactory.build(dataset.getEmbeddingModelId());
         dto.getDocumentIdList().parallelStream().forEach(docId -> {
             List<ParagraphEntity> paragraphs = paragraphService.lambdaQuery().eq(ParagraphEntity::getDocumentId, docId).list();
             List<ProblemEntity> allProblems = problemService.lambdaQuery().eq(ProblemEntity::getKnowledgeId, knowledgeId).list();
