@@ -14,7 +14,7 @@ import com.tarzan.maxkb4j.module.knowledge.domain.entity.ProblemEntity;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.ProblemParagraphEntity;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.ProblemVO;
 import com.tarzan.maxkb4j.module.knowledge.mapper.ProblemMapper;
-import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
+import com.tarzan.maxkb4j.module.model.provider.service.impl.BaseChatModel;
 import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.model.chat.response.ChatResponse;

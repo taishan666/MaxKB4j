@@ -227,7 +227,13 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
         return knowledge;
     }
 
-    public boolean reEmbedding(String knowledgeId) {
+/*    public boolean reEmbedding(String knowledgeId) {
+        List<DocumentEntity> documents=documentService.lambdaQuery().select(DocumentEntity::getId).eq(DocumentEntity::getKnowledgeId, knowledgeId).list();
+        documentService.embedByDocIds(documents.stream().map(DocumentEntity::getId).toList());
+        return true;
+    }*/
+
+    public boolean embeddingKnowledge(String knowledgeId) {
         List<DocumentEntity> documents=documentService.lambdaQuery().select(DocumentEntity::getId).eq(DocumentEntity::getKnowledgeId, knowledgeId).list();
         documentService.embedByDocIds(documents.stream().map(DocumentEntity::getId).toList());
         return true;

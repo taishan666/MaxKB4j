@@ -148,7 +148,7 @@ public class DocumentController {
   
     @PutMapping("/knowledge/{id}/document/{docId}")
     public R<DocumentEntity> updateDocByDocId(@PathVariable String id, @PathVariable("docId") String docId, @RequestBody DocumentEntity documentEntity) {
-        return R.success(documentService.updateDocByDocId(docId, documentEntity));
+        return R.success(documentService.updateAndGetById(docId, documentEntity));
     }
 
   

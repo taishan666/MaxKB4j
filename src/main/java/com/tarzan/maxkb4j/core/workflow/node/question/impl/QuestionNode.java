@@ -9,7 +9,7 @@ import com.tarzan.maxkb4j.core.workflow.enums.DialogueType;
 import com.tarzan.maxkb4j.core.workflow.node.question.input.QuestionParams;
 import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
 import com.tarzan.maxkb4j.module.model.info.service.ModelFactory;
-import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
+import com.tarzan.maxkb4j.module.model.provider.service.impl.BaseChatModel;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.model.output.TokenUsage;
 import dev.langchain4j.service.AiServices;

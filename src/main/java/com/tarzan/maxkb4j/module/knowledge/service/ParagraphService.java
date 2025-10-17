@@ -15,7 +15,7 @@ import com.tarzan.maxkb4j.module.knowledge.mapper.DocumentMapper;
 import com.tarzan.maxkb4j.module.knowledge.mapper.KnowledgeMapper;
 import com.tarzan.maxkb4j.module.knowledge.mapper.ParagraphMapper;
 import com.tarzan.maxkb4j.module.model.info.service.ModelFactory;
-import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
+import com.tarzan.maxkb4j.module.model.provider.service.impl.BaseChatModel;
 import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.model.output.Response;
@@ -235,6 +235,7 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
     }
 
     public Boolean batchGenerateRelated(String knowledgeId, String docId, GenerateProblemDTO dto) {
+        //todo 批量生成关联 是否要修改文档状态，修改得话，定时任务会修改文档下所有段落
         this.updateStatusByDocIds(List.of(docId), 2, 0);
         documentMapper.updateStatusMetaByIds(List.of(docId));
         documentMapper.updateStatusByIds(List.of(docId), 2, 0);

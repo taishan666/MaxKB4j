@@ -11,7 +11,7 @@ import com.tarzan.maxkb4j.core.workflow.node.intentclassify.input.IntentClassify
 import com.tarzan.maxkb4j.core.workflow.node.intentclassify.input.IntentClassifyNodeParams;
 import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
 import com.tarzan.maxkb4j.module.model.info.service.ModelFactory;
-import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
+import com.tarzan.maxkb4j.module.model.provider.service.impl.BaseChatModel;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.internal.ValidationUtils;
 import dev.langchain4j.model.output.TokenUsage;

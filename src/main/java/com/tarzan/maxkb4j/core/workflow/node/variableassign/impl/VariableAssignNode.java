@@ -22,7 +22,7 @@ public class VariableAssignNode extends INode {
         VariableAssignParams nodeParams = super.getNodeData().toJavaObject(VariableAssignParams.class);
         List<Map<String, Object>> resultList = new ArrayList<>();
         if (nodeParams.getVariableList() == null) {
-            return new NodeResult(Map.of("variable_list", Collections.emptyList(), "result_list", resultList), Map.of());
+            return new NodeResult(Map.of("variable_list", Collections.emptyList(), "resultList", resultList), Map.of());
         }
         for (Map<String, Object> variable : nodeParams.getVariableList()) {
             if (variable == null || !variable.containsKey("fields")) {
@@ -44,7 +44,7 @@ public class VariableAssignNode extends INode {
                 chatInfo.getChatVariables().putAll(super.getFlowVariables().get(scope));
             }
         }
-        return new NodeResult(Map.of("variable_list",nodeParams.getVariableList(),"result_list",resultList),Map.of());
+        return new NodeResult(Map.of("variable_list",nodeParams.getVariableList(),"resultList",resultList),Map.of());
     }
 
 
@@ -99,7 +99,7 @@ public class VariableAssignNode extends INode {
     @Override
     public void saveContext(JSONObject detail) {
         context.put("variable_list", detail.get("variable_list"));
-        context.put("result_list", detail.get("result_list"));
+        context.put("resultList", detail.get("resultList"));
     }
 
 

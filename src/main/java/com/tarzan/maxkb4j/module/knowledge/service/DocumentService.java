@@ -34,7 +34,7 @@ import com.tarzan.maxkb4j.module.knowledge.mapper.DocumentMapper;
 import com.tarzan.maxkb4j.module.knowledge.mapper.KnowledgeMapper;
 import com.tarzan.maxkb4j.module.model.info.service.ModelFactory;
 import com.tarzan.maxkb4j.module.model.info.vo.KeyAndValueVO;
-import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
+import com.tarzan.maxkb4j.module.model.provider.service.impl.BaseChatModel;
 import com.tarzan.maxkb4j.module.oss.service.MongoFileService;
 import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.model.embedding.EmbeddingModel;
@@ -434,7 +434,6 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
             }
             this.saveBatch(documentEntities);
             documentEntities.forEach(doc -> {
-                // paragraphService.updateStatusByDocId(doc.getId(), 1, 0);
                 this.updateStatusById(doc.getId(), 1, 0);
                 //目的是为了显示进度计数
                 this.updateStatusMetaById(doc.getId());
@@ -507,7 +506,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         return this.updateById(entity);
     }
 
-    public DocumentEntity updateDocByDocId(String docId, DocumentEntity documentEntity) {
+    public DocumentEntity updateAndGetById(String docId, DocumentEntity documentEntity) {
         documentEntity.setId(docId);
         this.updateById(documentEntity);
         return this.getById(docId);

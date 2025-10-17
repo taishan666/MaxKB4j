@@ -61,16 +61,23 @@ public class KnowledgeController {
     }
 
     
+/*
     @PutMapping("/knowledge/{id}/re_embedding")
     public R<Boolean> reEmbedding(@PathVariable("id") String id) {
         return R.success(knowledgeService.reEmbedding(id));
     }
+*/
 
     
     @PutMapping("/knowledge/{id}")
-    public R<Boolean> updatedKnowledgeId(@PathVariable("id") String id, @RequestBody KnowledgeEntity datasetEntity) {
+    public R<Boolean> updatedKnowledge(@PathVariable("id") String id, @RequestBody KnowledgeEntity datasetEntity) {
         datasetEntity.setId(id);
         return R.success(knowledgeService.updateById(datasetEntity));
+    }
+
+    @PutMapping("/knowledge/{id}/embedding")
+    public R<Boolean> embeddingKnowledge(@PathVariable("id") String id) {
+        return R.success(knowledgeService.embeddingKnowledge(id));
     }
 
     

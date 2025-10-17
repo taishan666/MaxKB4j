@@ -13,7 +13,7 @@ import com.tarzan.maxkb4j.core.workflow.node.imageunderstand.input.ImageUndersta
 import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
 import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
 import com.tarzan.maxkb4j.module.model.info.service.ModelFactory;
-import com.tarzan.maxkb4j.module.model.provider.impl.BaseChatModel;
+import com.tarzan.maxkb4j.module.model.provider.service.impl.BaseChatModel;
 import com.tarzan.maxkb4j.module.oss.service.MongoFileService;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.Content;

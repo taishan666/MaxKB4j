@@ -1,9 +1,9 @@
 package com.tarzan.maxkb4j.module.model.provider.vo;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.tarzan.maxkb4j.module.model.provider.BaseModel;
-import com.tarzan.maxkb4j.module.model.provider.BaseModelParams;
-import com.tarzan.maxkb4j.module.model.provider.NoModelParams;
+import com.tarzan.maxkb4j.module.model.provider.service.BaseModel;
+import com.tarzan.maxkb4j.module.model.provider.dto.BaseModelParams;
+import com.tarzan.maxkb4j.module.model.provider.dto.NoModelParams;
 import lombok.Data;
 
 @Data

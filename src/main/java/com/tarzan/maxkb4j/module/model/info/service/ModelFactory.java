@@ -3,7 +3,7 @@ package com.tarzan.maxkb4j.module.model.info.service;
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.common.util.StringUtil;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelEntity;
-import com.tarzan.maxkb4j.module.model.provider.IModelProvider;
+import com.tarzan.maxkb4j.module.model.provider.service.IModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.enums.ModelProviderEnum;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
