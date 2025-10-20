@@ -10,7 +10,6 @@ import com.tarzan.maxkb4j.module.model.provider.service.impl.kimimodelprovider.K
 import com.tarzan.maxkb4j.module.model.provider.service.impl.localmodelprovider.LocalModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.service.impl.ollamamodelprovider.OLlamaModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.service.impl.openaimodelprovider.OpenaiModelProvider;
-import com.tarzan.maxkb4j.module.model.provider.service.impl.qwenmodelprovider.QwenModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.service.impl.tencentmodelprovider.TencentModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.service.impl.vllmmodelprovider.VLlmModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.service.impl.volcanicenginemodelprovider.VolcanicEngineModelProvider;
@@ -32,7 +31,6 @@ public enum ModelProviderEnum {
     Gemini("Google DeepMind","Gemini", new GeminiModelProvider()),
     Kimi("月之暗面","Kimi", new KimiModelProvider()),
     Openai("OpenAI","Openai", new OpenaiModelProvider()),
-    QWen("通义千问","QWen", new QwenModelProvider()),
     Tencent("腾讯混元","Tencent", new TencentModelProvider()),
     VolcanicEngine("火山引擎","VolcanicEngine", new VolcanicEngineModelProvider()),
     WenXin("文心一言","WenXin", new WenXinModelProvider()),
