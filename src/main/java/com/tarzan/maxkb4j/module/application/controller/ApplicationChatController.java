@@ -22,31 +22,31 @@ import java.util.List;
 @Tag(name = "APP会话管理", description = "APP会话管理")
 @RestController
 @AllArgsConstructor
-@RequestMapping(AppConst.ADMIN_API + "/workspace/default/application")
+@RequestMapping(AppConst.ADMIN_API + "/workspace/default")
 @Slf4j
 public class ApplicationChatController {
 
     private final ApplicationChatService chatService;
 
 
-    @PutMapping("/{appId}/chat/client/{chatId}")
+    @PutMapping("/application/{appId}/chat/client/{chatId}")
     public R<Boolean> updateChat(@PathVariable("appId") String appId, @PathVariable("chatId") String chatId, @RequestBody ApplicationChatEntity chatEntity) {
         chatEntity.setId(chatId);
         return R.success(chatService.updateById(chatEntity));
     }
 
-    @DeleteMapping("/{appId}/chat/client/{chatId}")
+    @DeleteMapping("/application/{appId}/chat/client/{chatId}")
     public R<Boolean> deleteChat(@PathVariable("appId") String appId, @PathVariable("chatId") String chatId) {
         return R.success(chatService.deleteById(chatId));
     }
 
 
-    @GetMapping("/{appId}/chat/{page}/{size}")
+    @GetMapping("/application/{appId}/chat/{page}/{size}")
     public R<IPage<ApplicationChatEntity>> chatLogs(@PathVariable("appId") String appId, @PathVariable("page") int page, @PathVariable("size") int size, ChatQueryDTO query) {
         return R.success(chatService.chatLogs(appId, page, size, query));
     }
 
-    @PostMapping("/{id}/chat/export")
+    @PostMapping("/application/{id}/chat/export")
     public void export(@PathVariable String id, @RequestBody List<String> selectIds, HttpServletResponse response) throws IOException {
         chatService.chatExport(selectIds, response);
     }

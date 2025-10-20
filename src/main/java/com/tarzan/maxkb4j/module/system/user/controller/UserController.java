@@ -31,18 +31,21 @@ public class UserController{
 		return R.data(userService.lambdaQuery().eq(UserEntity::getIsActive, true).list());
 	}
 
-	//@SaCheckPermission("USER:READ")
+	//todo 待完善
+	@GetMapping("/workspace/default/user_member")
+	public R<List<UserEntity>> userMembers(){
+		return R.success(userService.lambdaQuery().eq(UserEntity::getRole,"USER").list());
+	}
+
 	@GetMapping("/user_manage/{page}/{size}")
 	public R<IPage<UserEntity>> userManage(@PathVariable("page")int page, @PathVariable("size")int size, UserDTO dto){
 		return R.data(userService.selectUserPage(page,size,dto));
 	}
-	//@SaCheckPermission("USER:EDIT")
 	@PostMapping("/user/language")
 	public R<Boolean> language(@RequestBody UserEntity user){
 		return R.status(userService.updateLanguage(user));
 	}
 
-//	@SaCheckPermission("USER:CREATE")
 	@PostMapping("/user_manage")
 	public R<Boolean> createUser(@RequestBody UserEntity user){
 		return R.status(userService.createUser(user));
@@ -53,20 +56,17 @@ public class UserController{
 		return R.data(Map.of("password","123456"));
 	}
 
-	//@SaCheckPermission("USER:EDIT")
 	@PutMapping("/user_manage/{id}")
 	public R<Boolean> updateUserById(@PathVariable("id")String id,@RequestBody UserEntity user){
 		user.setId(id);
 		return R.status(userService.updateById(user));
 	}
 
-//	@SaCheckPermission("USER:DELETE")
 	@DeleteMapping("/user_manage/{id}")
 	public R<Boolean> deleteUserById(@PathVariable("id")String id){
 		return R.status(userService.deleteUserById(id));
 	}
 
-//	@SaCheckPermission("USER:EDIT")
 	@PutMapping("/user_manage/{id}/re_password")
 	public R<Boolean> updatePassword(@PathVariable("id")String id,@RequestBody PasswordDTO dto){
 		if (StringUtil.isBlank(dto.getPassword())||StringUtil.isBlank(dto.getRePassword())){
@@ -83,17 +83,11 @@ public class UserController{
 		return R.status(userService.sendEmailCode());
 	}
 
-	//@SaCheckPermission("USER:EDIT")
 	@PostMapping("/user/current/reset_password")
 	public R<Boolean> resetPassword(@RequestBody PasswordDTO dto) {
 		return R.status(userService.resetPassword(dto));
 	}
 
-
-	@GetMapping("/workspace/default/user_member")
-	public R<List<UserEntity>> userMembers(){
-		return R.success(userService.lambdaQuery().eq(UserEntity::getRole,"USER").list());
-	}
 
 
 }
