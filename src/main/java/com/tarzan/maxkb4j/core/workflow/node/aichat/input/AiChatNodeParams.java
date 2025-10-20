@@ -6,7 +6,7 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-public class ChatNodeParams{
+public class AiChatNodeParams {
 
     private String modelId;
     private String system;

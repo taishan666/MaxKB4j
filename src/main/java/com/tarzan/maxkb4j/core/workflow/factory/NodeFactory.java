@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.enums.NodeType;
 import com.tarzan.maxkb4j.core.workflow.logic.LfNode;
-import com.tarzan.maxkb4j.core.workflow.node.aichat.impl.ChatNode;
+import com.tarzan.maxkb4j.core.workflow.node.aichat.impl.AiChatNode;
 import com.tarzan.maxkb4j.core.workflow.node.application.impl.ApplicationNode;
 import com.tarzan.maxkb4j.core.workflow.node.condition.impl.ConditionNode;
 import com.tarzan.maxkb4j.core.workflow.node.directreply.impl.DirectReplyNode;
@@ -36,7 +36,7 @@ public class NodeFactory {
         }
         return switch (nodeType) {
             case START -> new StartNode(properties);
-            case AI_CHAT -> new ChatNode(properties);
+            case AI_CHAT -> new AiChatNode(properties);
             case SEARCH_KNOWLEDGE -> new SearchKnowledgeNode(properties);
             case CONDITION -> new ConditionNode(properties);
             case REPLY-> new DirectReplyNode(properties);

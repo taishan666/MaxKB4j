@@ -2,14 +2,9 @@ package com.tarzan.maxkb4j.core.workflow.node.formcollect.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.workflow.INode;
-import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
-import com.tarzan.maxkb4j.core.workflow.node.formcollect.input.FormNodeParams;
-import dev.langchain4j.model.input.PromptTemplate;
+import com.tarzan.maxkb4j.core.workflow.Workflow;
 
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.FORM;
 
@@ -23,7 +18,7 @@ public class FormNode extends INode {
 
 
     @Override
-    public void saveContext(JSONObject detail) {
+    public void saveContext(Workflow workflow, JSONObject detail) {
         @SuppressWarnings("unchecked")
         Map<String, Object> formData = (Map<String, Object>) detail.get("form_data");
         if (formData != null){

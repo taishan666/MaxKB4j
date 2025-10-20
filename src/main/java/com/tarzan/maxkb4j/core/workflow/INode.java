@@ -39,16 +39,6 @@ public abstract class INode {
         this.answerText = "";
     }
 
-/*    public INode(LfNode lfNode) {
-        this.context = new HashMap<>(10);
-        this.detail = new JSONObject();
-        this.upNodeIdList = new ArrayList<>();
-        this.viewType = "many_view";
-        this.id = lfNode.getId();
-        this.type = lfNode.getType();
-        this.properties = lfNode.getProperties();
-        this.answerText = "";
-    }*/
 
     public JSONObject getNodeData() {
         if (Objects.nonNull(properties) && properties.containsKey("nodeData")) {
@@ -62,11 +52,12 @@ public abstract class INode {
         this.runtimeNodeId = generateRuntimeNodeId();
     }
 
-    public JSONObject getRunDetail(){
+
+    protected abstract void saveContext(Workflow workflow,JSONObject detail);
+
+    public JSONObject executeDetail() {
         return detail;
     }
-
-    protected abstract void saveContext(JSONObject detail);
 
 
     private String generateRuntimeNodeId() {
@@ -89,7 +80,7 @@ public abstract class INode {
 
     public void setDetail(JSONObject detail) {
         this.detail = detail;
-        saveContext(detail);
+       // saveContext(detail);
     }
 
 

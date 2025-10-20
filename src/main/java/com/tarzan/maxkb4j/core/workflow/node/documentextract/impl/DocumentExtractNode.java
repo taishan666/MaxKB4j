@@ -2,6 +2,7 @@ package com.tarzan.maxkb4j.core.workflow.node.documentextract.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.workflow.INode;
+import com.tarzan.maxkb4j.core.workflow.Workflow;
 
 import java.util.List;
 
@@ -19,7 +20,7 @@ public class DocumentExtractNode extends INode {
 
 
     @Override
-    public void saveContext(JSONObject detail) {
+    public void saveContext(Workflow workflow, JSONObject detail) {
         @SuppressWarnings("unchecked")
         List<String> content= (List<String>) detail.get("content");
         context.put("content", String.join(splitter, content));
@@ -28,8 +29,8 @@ public class DocumentExtractNode extends INode {
 
 
     @Override
-    public JSONObject getDetail() {
-        String content = (String) context.get("content");
+    public JSONObject executeDetail() {
+        String content = (String) context.getOrDefault("content","");
         detail.put("content", content.split(splitter));
         return detail;
     }

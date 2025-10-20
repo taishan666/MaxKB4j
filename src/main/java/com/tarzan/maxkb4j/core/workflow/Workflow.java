@@ -86,12 +86,14 @@ public class Workflow {
                     startNode.getContext().put("application_node_dict", nodeDetail.get("application_node_dict"));
                 }*/
                 startNode.setDetail(nodeDetail);
+                startNode.saveContext(this,nodeDetail);
                 nodeContext.add(startNode);
             } else {
                 // 处理普通节点
                 INode node = getNodeClsById(nodeId, upNodeIdList, null);
                 assert node != null;
                 node.setDetail(nodeDetail);
+                startNode.saveContext(this,nodeDetail);
                 nodeContext.add(node);
             }
         }
@@ -220,17 +222,17 @@ public class Workflow {
         }
         for (int index = 0; index < nodeContext.size(); index++) {
             INode node = nodeContext.get(index);
-            JSONObject detail=new JSONObject();
-            detail.put("nodeId", node.getId());
-            detail.put("upNodeIdList", node.getUpNodeIdList());
-            detail.put("runtimeNodeId", node.getRuntimeNodeId());
-            detail.put("name", node.getProperties().getString("nodeName"));
-            detail.put("index", index);
-            detail.put("type", node.getType());
-            detail.put("status", node.getStatus());
-            detail.put("errMessage", node.getErrMessage());
-            detail.putAll(node.getRunDetail());
-            detailsResult.put(node.getRuntimeNodeId(), detail);
+            JSONObject runtimeDetail=new JSONObject();
+            runtimeDetail.put("nodeId", node.getId());
+            runtimeDetail.put("upNodeIdList", node.getUpNodeIdList());
+            runtimeDetail.put("runtimeNodeId", node.getRuntimeNodeId());
+            runtimeDetail.put("name", node.getProperties().getString("nodeName"));
+            runtimeDetail.put("index", index);
+            runtimeDetail.put("type", node.getType());
+            runtimeDetail.put("status", node.getStatus());
+            runtimeDetail.put("errMessage", node.getErrMessage());
+            runtimeDetail.putAll(node.executeDetail());
+            detailsResult.put(node.getRuntimeNodeId(), runtimeDetail);
         }
         return detailsResult;
     }
