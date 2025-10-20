@@ -18,30 +18,13 @@ import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.TEXT_TO_SPEECH;
 
 public class TextToSpeechNode extends INode {
 
-    private final MongoFileService fileService;
-    private final ModelFactory modelFactory;
 
     public TextToSpeechNode(JSONObject properties) {
         super(properties);
         this.setType(TEXT_TO_SPEECH.getKey());
-        this.fileService = SpringUtil.getBean(MongoFileService.class);
-        this.modelFactory = SpringUtil.getBean(ModelFactory.class);
     }
 
-    @Override
-    public NodeResult execute() {
-        TextToSpeechParams nodeParams=super.getNodeData().toJavaObject(TextToSpeechParams.class);
-        List<String> contentList=nodeParams.getContentList();
-        Object content=super.getReferenceField(contentList.get(0),contentList.get(1));
-        BaseTextToSpeech ttsModel = modelFactory.build(nodeParams.getTtsModelId(), nodeParams.getModelParamsSetting());
-        byte[]  audioData = ttsModel.textToSpeech(content.toString());
-        ChatFile fileVO = fileService.uploadFile("generated_audio_"+ UUID.randomUUID() +".mp3",audioData);
-        // 使用字符串拼接生成 HTML 音频标签
-        String audioLabel = "<audio src=\"" + fileVO.getUrl() + "\" controls style=\"width: 300px; height: 43px\"></audio>";
-        detail.put("content",content);
-        // 输出生成的 HTML 标签
-        return new NodeResult(Map.of("answer",audioLabel,"result",List.of(fileVO)),Map.of());
-    }
+
 
     @Override
     public void saveContext(JSONObject detail) {

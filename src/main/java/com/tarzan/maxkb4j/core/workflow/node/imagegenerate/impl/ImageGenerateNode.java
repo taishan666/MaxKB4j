@@ -18,38 +18,12 @@ import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.IMAGE_GENERATE;
 
 public class ImageGenerateNode extends INode {
 
-    private final ModelFactory modelFactory;
 
     public ImageGenerateNode(JSONObject properties) {
         super(properties);
         super.setType(IMAGE_GENERATE.getKey());
-        this.modelFactory = SpringUtil.getBean(ModelFactory.class);
     }
 
-    @Override
-    public NodeResult execute() {
-        ImageGenerateParams nodeParams=super.getNodeData().toJavaObject(ImageGenerateParams.class);
-        String prompt=super.generatePrompt(nodeParams.getPrompt());
-        String negativePrompt=nodeParams.getNegativePrompt();
-        JSONObject modelParamsSetting=nodeParams.getModelParamsSetting();
-        if (modelParamsSetting!=null){
-            modelParamsSetting.put("negative_prompt",negativePrompt);
-        }
-        StringBuilder answerSb=new StringBuilder();
-        List<String> imageUrls = new ArrayList<>();
-        ImageModel imageModel = modelFactory.build(nodeParams.getModelId(), modelParamsSetting);
-        int n = modelParamsSetting == null ? 1 : modelParamsSetting.getIntValue("n");
-        n=n==0 ? 1 : n;
-        Response<List<Image>> res = imageModel.generate(prompt,n);
-        List<Image> images = res.content();
-        for (Image image : images) {
-            String imageMd ="!["+prompt+"](" + image.url() + ")";
-            answerSb.append(" ").append(imageMd);
-            imageUrls.add(image.url().toString());
-        }
-        detail.put("question",prompt);
-        return new NodeResult(Map.of("answer",answerSb.toString(),"image",imageUrls),Map.of());
-    }
 
     @Override
     public void saveContext(JSONObject detail) {

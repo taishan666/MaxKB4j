@@ -57,7 +57,6 @@ public class NodeFactory {
             case HTTP_CLIENT -> new HttpNode(properties);
             default -> null;
         };
-
     }
 
     public static INode getNode(LfNode lfNode) {

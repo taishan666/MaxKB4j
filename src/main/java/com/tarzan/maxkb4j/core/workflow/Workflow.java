@@ -3,25 +3,32 @@ package com.tarzan.maxkb4j.core.workflow;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.tarzan.maxkb4j.common.util.StringUtil;
+import com.tarzan.maxkb4j.core.workflow.enums.DialogueType;
 import com.tarzan.maxkb4j.core.workflow.factory.NodeFactory;
 import com.tarzan.maxkb4j.core.workflow.logic.LfEdge;
 import com.tarzan.maxkb4j.core.workflow.logic.LfNode;
 import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
-import com.tarzan.maxkb4j.core.workflow.result.NodeResultFuture;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatRecordEntity;
-import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
 import com.tarzan.maxkb4j.module.chat.ChatParams;
+import dev.langchain4j.data.message.AiMessage;
+import dev.langchain4j.data.message.ChatMessage;
+import dev.langchain4j.data.message.UserMessage;
+import dev.langchain4j.model.input.PromptTemplate;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
 import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.*;
+import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.FORM;
+import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.START;
 
 @Slf4j
 @Data
-public class WorkflowManage {
+public class Workflow {
     private INode startNode;
     private ChatParams chatParams;
     private List<LfNode> lfNodes;
@@ -33,7 +40,7 @@ public class WorkflowManage {
     private ApplicationChatRecordEntity chatRecord;
     private List<ApplicationChatRecordEntity> historyChatRecords;
 
-    public WorkflowManage(List<LfNode> lfNodes, List<LfEdge> edges, ChatParams chatParams, ApplicationChatRecordEntity chatRecord, List<ApplicationChatRecordEntity> historyChatRecords) {
+    public Workflow(List<LfNode> lfNodes, List<LfEdge> edges, ChatParams chatParams, ApplicationChatRecordEntity chatRecord, List<ApplicationChatRecordEntity> historyChatRecords) {
         this.lfNodes = lfNodes;
         this.edges = edges;
         this.chatParams = chatParams;
@@ -58,7 +65,7 @@ public class WorkflowManage {
         for (JSONObject nodeDetail : sortedDetails) {
             String nodeId = nodeDetail.getString("nodeId");
             List<String> upNodeIdList = nodeDetail.getJSONArray("upNodeIdList").toJavaList(String.class);
-            String runtimeNodeId=nodeDetail.getString("runtimeNodeId");
+            String runtimeNodeId = nodeDetail.getString("runtimeNodeId");
             if (runtimeNodeId.equals(startNodeId)) {
                 // 处理起始节点
                 this.startNode = getNodeClsById(
@@ -91,40 +98,15 @@ public class WorkflowManage {
     }
 
 
-    public String run() {
-        runChainManage(startNode, null);
-        ChatMessageVO vo = new ChatMessageVO(chatParams.getChatId(), chatParams.getChatRecordId(), true);
-        chatParams.getSink().tryEmitNext(vo);
-        return answer;
-    }
-
-
     public INode getStartNode() {
         return getNodeClsById(START.getKey(), List.of(), null);
-    }
-
-    public void runChainManage(INode currentNode, NodeResultFuture nodeResultFuture) {
-        if (currentNode == null) {
-            currentNode = getStartNode();
-        }
-        NodeResult result = runChainNode(currentNode, nodeResultFuture);
-        // 获取下一个节点列表
-        List<INode> nodeList = getNextNodeList(currentNode, result);
-        if (nodeList.size() == 1) {
-            runChainManage(nodeList.get(0), null);
-        } else if (nodeList.size() > 1) {
-            // 提交子任务并获取Future对象
-            for (INode node : nodeList) {
-                runChainManage(node, null);
-            }
-        }
     }
 
 
     public List<INode> getNextNodeList(INode currentNode, NodeResult currentNodeResult) {
         List<INode> nodeList = new ArrayList<>();
         // 判断是否中断执行
-        if (currentNodeResult == null||currentNodeResult.isInterruptExec(currentNode)) {
+        if (currentNodeResult == null || currentNodeResult.isInterruptExec(currentNode)) {
             return nodeList;
         }
         if (currentNodeResult.isAssertionResult()) {
@@ -172,7 +154,7 @@ public class WorkflowManage {
         }
     }
 
-    private void addNodeToList(String targetNodeId, INode currentNode, List<INode> nodeList) {
+    public void addNodeToList(String targetNodeId, INode currentNode, List<INode> nodeList) {
         // 构建上游节点ID列表
         List<String> newUpNodeIds = new ArrayList<>();
         if (currentNode.getUpNodeIdList() != null) {
@@ -187,16 +169,12 @@ public class WorkflowManage {
     }
 
 
-    private INode getNodeClsById(String nodeId, List<String> upNodeIds, Function<INode, JSONObject> getNodeProperties) {
+    public INode getNodeClsById(String nodeId, List<String> upNodeIds, Function<INode, JSONObject> getNodeProperties) {
         for (LfNode lfNode : lfNodes) {
             if (nodeId.equals(lfNode.getId())) {
-                INode node =NodeFactory.getNode(lfNode);
+                INode node = NodeFactory.getNode(lfNode);
                 assert node != null;
-                node.setFlowVariables(this.getFlowVariables());
-                node.setPromptVariables(this.getPromptVariables());
                 node.setUpNodeIdList(upNodeIds);
-                node.setChatParams(chatParams);
-                node.setHistoryChatRecords(historyChatRecords);
                 if (getNodeProperties != null) {
                     getNodeProperties.apply(node);
                 }
@@ -224,30 +202,14 @@ public class WorkflowManage {
         return result;
     }
 
-    public Map<String, Map<String,Object>> getFlowVariables() {
-        Map<String, Map<String,Object>> result= new HashMap<>(100);
-        result.put("global",context);
-        result.put("chat",chatContext);
+    public Map<String, Map<String, Object>> getFlowVariables() {
+        Map<String, Map<String, Object>> result = new HashMap<>(100);
+        result.put("global", context);
+        result.put("chat", chatContext);
         for (INode node : nodeContext) {
-            result.put(node.getId(),node.getContext());
+            result.put(node.getId(), node.getContext());
         }
         return result;
-    }
-
-
-    public NodeResult runChainNode(INode currentNode, NodeResultFuture nodeResultFuture) {
-        assert currentNode != null;
-        // 添加节点
-        appendNode(currentNode);
-        // 处理默认的nodeResultFuture
-        if (nodeResultFuture == null) {
-            nodeResultFuture = runNodeFuture(currentNode);
-        }
-        NodeResult currentResult = nodeResultFuture.getResult();
-        if (currentResult != null) {
-            currentResult.writeContext(currentNode, this);
-        }
-        return currentResult;
     }
 
 
@@ -258,7 +220,16 @@ public class WorkflowManage {
         }
         for (int index = 0; index < nodeContext.size(); index++) {
             INode node = nodeContext.get(index);
-            JSONObject detail = node.getRunDetail(index);
+            JSONObject detail=new JSONObject();
+            detail.put("nodeId", node.getId());
+            detail.put("upNodeIdList", node.getUpNodeIdList());
+            detail.put("runtimeNodeId", node.getRuntimeNodeId());
+            detail.put("name", node.getProperties().getString("nodeName"));
+            detail.put("index", index);
+            detail.put("type", node.getType());
+            detail.put("status", node.getStatus());
+            detail.put("errMessage", node.getErrMessage());
+            detail.putAll(node.getRunDetail());
             detailsResult.put(node.getRuntimeNodeId(), detail);
         }
         return detailsResult;
@@ -275,16 +246,6 @@ public class WorkflowManage {
         this.nodeContext.add(currentNode);
     }
 
-    public NodeResultFuture runNodeFuture(INode node) {
-        try {
-            NodeResult result = node.run();
-            return new NodeResultFuture(result, null, 200);
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            log.error("NODE: {} ERROR :{}", node.getType(), ex.getCause().getMessage());
-            return new NodeResultFuture(null, ex, 500);
-        }
-    }
 
     private boolean hasNextNode(INode currentNode, NodeResult nodeResult) {
         if (nodeResult != null && nodeResult.isAssertionResult()) {
@@ -339,6 +300,82 @@ public class WorkflowManage {
         return upNodeIdList.stream().allMatch(upNodeId ->
                 this.nodeContext.stream().anyMatch(node -> dependentNode(upNodeId, node))
         );
+    }
+
+    public Object getReferenceField(String nodeId, String key) {
+        Map<String, Object> nodeVariable = getFlowVariables().get(nodeId);
+        return nodeVariable.get(key);
+    }
+
+    public String generatePrompt(String prompt) {
+        if (StringUtils.isBlank(prompt)) {
+            return "";
+        }
+        Set<String> extractVariables = extractVariables(prompt);
+        if (!getPromptVariables().isEmpty()) {
+            Map<String, Object> variables = new HashMap<>();
+            for (String promptVariable : extractVariables) {
+                variables.put(promptVariable, getPromptVariables().getOrDefault(promptVariable, "*"));
+            }
+            PromptTemplate promptTemplate = PromptTemplate.from(prompt);
+            return promptTemplate.apply(variables).text();
+        }
+        return prompt;
+    }
+
+    public Set<String> extractVariables(String template) {
+        Pattern VARIABLE_PATTERN = Pattern.compile("\\{\\{(.+?)\\}\\}");
+        Set<String> variables = new HashSet<>();
+        Matcher matcher = VARIABLE_PATTERN.matcher(template);
+        while (matcher.find()) {
+            variables.add(matcher.group(1));
+        }
+        return variables;
+    }
+
+    public List<ChatMessage> getHistoryMessages(int dialogueNumber, String dialogueType, String runtimeNodeId) {
+        List<ChatMessage> historyMessages;
+        if (DialogueType.NODE.name().equals(dialogueType)) {
+            historyMessages = getNodeMessages(runtimeNodeId);
+        } else {
+            historyMessages = getWorkFlowMessages();
+        }
+        int total = historyMessages.size();
+        if (total == 0) {
+            return historyMessages;
+        }
+        int startIndex = Math.max(total - dialogueNumber * 2, 0);
+        return historyMessages.subList(startIndex, total);
+    }
+
+    private List<ChatMessage> getWorkFlowMessages() {
+        String regex = "<form_render>(.*?)</form_render>";
+        Pattern pattern = Pattern.compile(regex, Pattern.DOTALL);
+        List<ChatMessage> messages = new ArrayList<>();
+        for (ApplicationChatRecordEntity message : historyChatRecords) {
+            String answerText = message.getAnswerText();
+            Matcher matcher = pattern.matcher(answerText);
+            if (!matcher.find()) {
+                messages.add(new UserMessage(message.getProblemText()));
+                messages.add(new AiMessage(message.getAnswerText()));
+            }
+        }
+        return messages;
+    }
+
+
+    private List<ChatMessage> getNodeMessages(String runtimeNodeId) {
+        List<ChatMessage> messages = new ArrayList<>();
+        for (ApplicationChatRecordEntity record : historyChatRecords) {
+            // 获取节点详情
+            JSONObject nodeDetails = record.getNodeDetailsByRuntimeNodeId(runtimeNodeId);
+            // 如果节点详情为空，返回空列表
+            if (nodeDetails != null) {
+                messages.add(new UserMessage(nodeDetails.getString("question")));
+                messages.add(new AiMessage(nodeDetails.getString("answer")));
+            }
+        }
+        return messages;
     }
 
 

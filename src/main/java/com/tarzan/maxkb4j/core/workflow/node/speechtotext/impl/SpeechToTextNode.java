@@ -18,40 +18,14 @@ import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.SPEECH_TO_TEXT;
 
 public class SpeechToTextNode extends INode {
 
-    private final ModelFactory modelFactory;
-    private final MongoFileService fileService;
 
     public SpeechToTextNode(JSONObject properties) {
         super(properties);
         this.setType(SPEECH_TO_TEXT.getKey());
-        this.modelFactory = SpringUtil.getBean(ModelFactory.class);
-        this.fileService = SpringUtil.getBean(MongoFileService.class);
     }
 
 
 
-    @Override
-    public NodeResult execute() {
-        SpeechToTextParams nodeParams=super.getNodeData().toJavaObject(SpeechToTextParams.class);
-        List<String> audioList = nodeParams.getAudioList();
-        Object res = super.getReferenceField(audioList.get(0), audioList.get(1));
-        BaseSpeechToText sttModel = modelFactory.build(nodeParams.getSttModelId());
-        @SuppressWarnings("unchecked")
-        List<ChatFile> audioFiles = (List<ChatFile>) res;
-        List<String> content = new ArrayList<>();
-        StringBuilder sb = new StringBuilder();
-        for (ChatFile file: audioFiles) {
-            byte[] data = fileService.getBytes(file.getFileId());
-            String suffix=file.getName().substring(file.getName().lastIndexOf(".") + 1);
-            String result = sttModel.speechToText(data,suffix);
-            sb.append(result);
-            content.add("### combined_audio.mp3\n"+result);
-        }
-        String answer=sb.toString();
-        detail.put("content", content);
-        detail.put("audioList", audioFiles);
-        return new NodeResult(Map.of("answer", answer,"result", answer), Map.of());
-    }
 
     @Override
     public void saveContext(JSONObject detail) {

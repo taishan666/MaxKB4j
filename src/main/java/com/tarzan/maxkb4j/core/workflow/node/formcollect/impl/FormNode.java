@@ -21,37 +21,6 @@ public class FormNode extends INode {
         super.setViewType("single_view");
     }
 
-    @Override
-    public NodeResult execute() {
-        FormNodeParams nodeParams = super.getNodeData().toJavaObject(FormNodeParams.class);
-        Map<String, Object> formData = nodeParams.getFormData();
-        if (formData != null) {
-            Map<String, Object> nodeVariable=new HashMap<>();
-            nodeVariable.put("is_submit", true);
-            nodeVariable.put("form_data", formData);
-            nodeVariable.putAll(formData);
-            return new NodeResult(nodeVariable, Map.of());
-        } else {
-            List<JSONObject> formFieldList = nodeParams.getFormFieldList();
-            JSONObject formSetting = new JSONObject();
-            formSetting.put("form_field_list", formFieldList);
-            String form = "<form_render>" + formSetting + "</form_render>";
-            String formContentFormat = nodeParams.getFormContentFormat();
-            Set<String> extractVariables = super.extractVariables(formContentFormat);
-            Map<String, Object> variables = new HashMap<>();
-            if (!extractVariables.isEmpty()) {
-                for (String promptVariable : extractVariables) {
-                    variables.put(promptVariable, super.getPromptVariables().getOrDefault(promptVariable, "*"));
-                }
-                variables.put("form", form);
-            }
-            PromptTemplate promptTemplate = PromptTemplate.from(formContentFormat);
-            String answerText = promptTemplate.apply(variables).text();
-            super.setAnswerText(answerText);
-            detail.put("form_field_list", formFieldList);
-            return new NodeResult(Map.of("is_submit", false), Map.of());
-        }
-    }
 
     @Override
     public void saveContext(JSONObject detail) {

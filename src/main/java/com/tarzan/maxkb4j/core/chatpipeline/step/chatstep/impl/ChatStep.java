@@ -119,7 +119,7 @@ public class ChatStep extends IChatStep {
                             .onCompleteResponse(response -> {
                                 answerText.set(response.aiMessage().text());
                                 TokenUsage tokenUsage = response.tokenUsage();
-                                context.put("message_list", resetMessageList(historyMessages));
+                                context.put("message_list", resetMessageToJSON(historyMessages));
                                 context.put("messageTokens", tokenUsage.inputTokenCount());
                                 context.put("answerTokens", tokenUsage.outputTokenCount());
                                 addAccessNum(chatUserId, chatUserType);
@@ -139,7 +139,7 @@ public class ChatStep extends IChatStep {
     }
 
 
-    public JSONArray resetMessageList(List<ChatMessage> historyMessages) {
+    public JSONArray resetMessageToJSON(List<ChatMessage> historyMessages) {
         if (CollectionUtils.isEmpty(historyMessages)) {
             return new JSONArray();
         }

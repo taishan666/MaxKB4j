@@ -22,38 +22,12 @@ import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.QUESTION;
 
 public class QuestionNode extends INode {
 
-    private final ModelFactory modelFactory;
 
     public QuestionNode(JSONObject properties) {
         super(properties);
         super.setType(QUESTION.getKey());
-        this.modelFactory = SpringUtil.getBean(ModelFactory.class);
     }
 
-    @Override
-    public NodeResult execute() {
-        QuestionParams nodeParams = super.getNodeData().toJavaObject(QuestionParams.class);
-        BaseChatModel chatModel = modelFactory.build(nodeParams.getModelId(), nodeParams.getModelParamsSetting());
-        List<ChatMessage> historyMessages=super.getHistoryMessages(nodeParams.getDialogueNumber(), DialogueType.WORKFLOW.name(), super.getRuntimeNodeId());
-        detail.put("history_message", resetMessageList(historyMessages));
-        String question = super.generatePrompt(nodeParams.getPrompt());
-        String systemPrompt = super.generatePrompt(nodeParams.getSystem());
-        Assistant assistant = AiServices.builder(Assistant.class)
-                .systemMessageProvider(chatMemoryId -> systemPrompt)
-                .chatMemory(AppChatMemory.withMessages(historyMessages))
-                .chatModel(chatModel.getChatModel())
-                .build();
-        Result<String> result = assistant.chat(question);
-        detail.put("system", systemPrompt);
-        detail.put("question", question);
-        TokenUsage tokenUsage =  result.tokenUsage();
-        detail.put("messageTokens", tokenUsage.inputTokenCount());
-        detail.put("answerTokens", tokenUsage.outputTokenCount());
-        super.setAnswerText(result.content());
-        return new NodeResult(Map.of(
-                "answer", super.getAnswerText()
-        ), Map.of());
-    }
 
 
     @Override
