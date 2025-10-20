@@ -93,7 +93,7 @@ public class Workflow {
                 INode node = getNodeClsById(nodeId, upNodeIdList, null);
                 assert node != null;
                 node.setDetail(nodeDetail);
-                startNode.saveContext(this,nodeDetail);
+                node.saveContext(this,nodeDetail);
                 nodeContext.add(node);
             }
         }
