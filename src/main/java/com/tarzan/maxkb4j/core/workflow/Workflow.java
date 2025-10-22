@@ -29,7 +29,7 @@ import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.START;
 @Slf4j
 @Data
 public class Workflow {
-    private INode startNode;
+    private INode currentNode;
     private ChatParams chatParams;
     private List<LfNode> lfNodes;
     private List<LfEdge> edges;
@@ -68,7 +68,7 @@ public class Workflow {
             String runtimeNodeId = nodeDetail.getString("runtimeNodeId");
             if (runtimeNodeId.equals(startNodeId)) {
                 // 处理起始节点
-                this.startNode = getNodeClsById(
+                this.currentNode = getNodeClsById(
                         nodeId,
                         upNodeIdList,
                         n -> {
@@ -80,14 +80,14 @@ public class Workflow {
                             return nodeProperties;
                         }
                 );
-                assert startNode != null;
+                assert currentNode != null;
                 // 合并验证参数
              /*   if (APPLICATION.getKey().equals(startNode.getType())) {
                     startNode.getContext().put("application_node_dict", nodeDetail.get("application_node_dict"));
                 }*/
-                startNode.setDetail(nodeDetail);
-                startNode.saveContext(this,nodeDetail);
-                nodeContext.add(startNode);
+                currentNode.setDetail(nodeDetail);
+                currentNode.saveContext(this,nodeDetail);
+                nodeContext.add(currentNode);
             } else {
                 // 处理普通节点
                 INode node = getNodeClsById(nodeId, upNodeIdList, null);

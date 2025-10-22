@@ -17,7 +17,7 @@ public class WorkflowHandler {
 
 
     public String execute(Workflow workflow) {
-        runChainManage(workflow, workflow.getStartNode());
+        runChainManage(workflow, workflow.getCurrentNode());
         ChatMessageVO vo = new ChatMessageVO(workflow.getChatParams().getChatId(), workflow.getChatParams().getChatRecordId(), true);
         workflow.getChatParams().getSink().tryEmitNext(vo);
         return workflow.getAnswer();
