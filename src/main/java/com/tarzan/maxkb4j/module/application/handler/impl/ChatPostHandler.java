@@ -12,7 +12,7 @@ import com.tarzan.maxkb4j.module.application.enums.ChatUserType;
 import com.tarzan.maxkb4j.module.application.handler.PostResponseHandler;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatMapper;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatRecordMapper;
-import com.tarzan.maxkb4j.module.application.service.ApplicationChatUserStatsService;
+import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatUserStatsMapper;
 import com.tarzan.maxkb4j.module.chat.ChatResponse;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -24,7 +24,7 @@ import java.util.Map;
 @Component
 public class ChatPostHandler extends PostResponseHandler {
 
-    private final ApplicationChatUserStatsService chatUserStatsService;
+    private final ApplicationChatUserStatsMapper chatUserStatsMapper;
     private final ApplicationChatMapper chatMapper;
     private final ApplicationChatRecordMapper chatRecordMapper;
 
@@ -65,11 +65,11 @@ public class ChatPostHandler extends PostResponseHandler {
         // 重新设置缓存
         ChatCache.put(chatId, chatInfo);
         if (!debug) {
-            ApplicationChatUserStatsEntity applicationPublicAccessClient = chatUserStatsService.getById(chatUserId);
+            ApplicationChatUserStatsEntity applicationPublicAccessClient = chatUserStatsMapper.selectById(chatUserId);
             if (applicationPublicAccessClient != null) {
                 applicationPublicAccessClient.setAccessNum(applicationPublicAccessClient.getAccessNum() + 1);
                 applicationPublicAccessClient.setIntraDayAccessNum(applicationPublicAccessClient.getIntraDayAccessNum() + 1);
-                chatUserStatsService.updateById(applicationPublicAccessClient);
+                chatUserStatsMapper.updateById(applicationPublicAccessClient);
             }
             long chatCount = chatMapper.selectCount(Wrappers.<ApplicationChatEntity>lambdaQuery().eq(ApplicationChatEntity::getId, chatId));
             if (chatCount == 0) {
@@ -92,6 +92,7 @@ public class ChatPostHandler extends PostResponseHandler {
             chatRecordMapper.insertOrUpdate(chatRecord);
         }
     }
+
 
 }
 

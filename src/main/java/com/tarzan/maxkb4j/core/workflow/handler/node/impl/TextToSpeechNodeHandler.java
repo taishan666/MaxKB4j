@@ -31,9 +31,10 @@ public class TextToSpeechNodeHandler implements INodeHandler {
         byte[]  audioData = ttsModel.textToSpeech(content.toString());
         ChatFile fileVO = fileService.uploadFile("generated_audio_"+ UUID.randomUUID() +".mp3",audioData);
         // 使用字符串拼接生成 HTML 音频标签
-        String audioLabel = "<audio src=\"" + fileVO.getUrl() + "\" controls style=\"width: 300px; height: 43px\"></audio>";
+        String answer = "<audio src=\"" + fileVO.getUrl() + "\" controls style=\"width: 300px; height: 43px\"></audio>";
         node.getDetail().put("content",content);
+        node.setAnswerText(answer);
         // 输出生成的 HTML 标签
-        return new NodeResult(Map.of("answer",audioLabel,"result",List.of(fileVO)),Map.of());
+        return new NodeResult(Map.of("result",List.of(fileVO)),Map.of());
     }
 }

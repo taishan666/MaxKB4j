@@ -16,6 +16,7 @@ import com.tarzan.maxkb4j.module.application.domian.entity.*;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationVO;
 import com.tarzan.maxkb4j.module.application.domian.vo.ChatRecordDetailVO;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatMapper;
+import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatUserStatsMapper;
 import com.tarzan.maxkb4j.module.chat.ChatParams;
 import com.tarzan.maxkb4j.module.chat.ChatResponse;
 import jakarta.servlet.http.HttpServletResponse;
@@ -39,7 +40,7 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
 
     private final ApplicationChatRecordService chatRecordService;
     private final ApplicationService applicationService;
-    private final ApplicationChatUserStatsService userStatsService;
+    private final ApplicationChatUserStatsMapper chatUserStatsMapper;
     private final ApplicationAccessTokenService accessTokenService;
     private final ApplicationVersionService applicationVersionService;
 
@@ -119,14 +120,14 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
 
     public void visitCountCheck(String appId, String chatUserId, boolean debug) {
         if (!debug && Objects.nonNull(appId)) {
-            ApplicationChatUserStatsEntity accessClient = userStatsService.getById(chatUserId);
+            ApplicationChatUserStatsEntity accessClient = chatUserStatsMapper.selectById(chatUserId);
             if (Objects.isNull(accessClient)) {
                 accessClient = new ApplicationChatUserStatsEntity();
                 accessClient.setId(chatUserId);
                 accessClient.setApplicationId(appId);
                 accessClient.setAccessNum(0);
                 accessClient.setIntraDayAccessNum(0);
-                userStatsService.save(accessClient);
+                chatUserStatsMapper.insert(accessClient);
             }
             ApplicationAccessTokenEntity appAccessToken = accessTokenService.lambdaQuery().eq(ApplicationAccessTokenEntity::getApplicationId, appId).one();
             if (Objects.nonNull(appAccessToken)) {
