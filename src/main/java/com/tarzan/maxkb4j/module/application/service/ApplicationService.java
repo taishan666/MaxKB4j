@@ -39,13 +39,11 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -153,96 +151,19 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     public ApplicationEntity createApp(ApplicationEntity application) {
         application.setKnowledgeSetting(new KnowledgeSetting());
         application.setIcon("./favicon.ico");
-        if (AppType.WORK_FLOW.name().equals(application.getType())) {
-            application = createWorkflow(application);
-        } else {
-            application = createSimple(application);
-        }
+        application.setDialogueNumber(0);
+        application.setUserId(StpUtil.getLoginIdAsString());
+        application.setTtsModelParamsSetting(new JSONObject());
+        application.setCleanTime(365);
+        application.setFileUploadEnable(false);
+        application.setFileUploadSetting(new JSONObject());
+        application.setKnowledgeSetting(getDefaultKnowledgeSetting());
+        this.save(application);
         ApplicationAccessTokenEntity accessToken = ApplicationAccessTokenEntity.createDefault();
         accessToken.setApplicationId(application.getId());
         accessToken.setLanguage((String) StpUtil.getExtra("language"));
         accessTokenService.save(accessToken);
         userResourcePermissionService.ownerSave(AuthTargetType.APPLICATION, application.getId(), application.getUserId());
-        return application;
-    }
-
-    //todo 创建工作流
-    public ApplicationEntity createWorkflow(ApplicationEntity application) {
-        if (Objects.isNull(application.getWorkFlow())) {
-            String language = (String) StpUtil.getExtra("language");
-            System.out.println("language:" + language);
-            Path path = getWorkflowFilePath(language);
-            String defaultWorkflowJson = FileUtil.readToString(path.toFile());
-            JSONObject workFlow = JSONObject.parseObject(defaultWorkflowJson);
-            assert workFlow != null;
-            JSONArray nodes = workFlow.getJSONArray("nodes");
-            for (int i = 0; i < nodes.size(); i++) {
-                JSONObject node = nodes.getJSONObject(i);
-                if (BASE.getKey().equals(node.getString("id"))) {
-                    JSONObject properties = node.getJSONObject("properties");
-                    JSONObject nodeData = properties.getJSONObject("nodeData");
-                    nodeData.put("name", application.getName());
-                    nodeData.put("desc", application.getDesc());
-                    nodeData.put("prologue", application.getPrologue());
-                    break;
-                }
-            }
-            application.setWorkFlow(workFlow);
-        }
-        application.setDialogueNumber(0);
-        application.setUserId(StpUtil.getLoginIdAsString());
-        application.setIcon("");
-        application.setTtsModelParamsSetting(new JSONObject());
-        application.setCleanTime(365);
-        application.setFileUploadEnable(false);
-        application.setFileUploadSetting(new JSONObject());
-        application.setKnowledgeSetting(getDefaultKnowledgeSetting());
-        this.save(application);
-        return application;
-    }
-
-
-    private Path getWorkflowFilePath(String language) {
-        // 获取当前类的绝对路径并转换为文件对象
-        File currentClassFile = new File(Objects.requireNonNull(this.getClass().getResource("")).getFile());
-        // 获取当前类所在的上级目录
-        File parentDir = currentClassFile.getParentFile();
-        // 获取当前类所在的上级目录
-        File coreParentDir = parentDir.getParentFile().getParentFile();
-        String fileName = String.format("default_workflow_%s.json", toLocale(language));
-        File coreDir = new File(coreParentDir, "core");
-        File workflow = new File(coreDir, "workflow");
-        File json = new File(workflow, "json");
-        // 构造目标文件路径
-        File targetFile = new File(json, fileName);
-        // 确认文件存在
-        if (!targetFile.exists()) {
-            targetFile = new File(coreDir, "/workflow/json/default_workflow_zh.json");
-        }
-        return targetFile.toPath();
-    }
-
-    private static String toLocale(String language) {
-        // 实现细节取决于实际的应用逻辑
-        if (StringUtils.isNotBlank(language)) {
-            if (!language.endsWith("Hant")) {
-                language = language.split("-")[0];
-            }
-            language = language.replaceAll("-", "_");
-        }
-        return language; // 这里简化处理，直接返回语言代码
-    }
-
-    public ApplicationEntity createSimple(ApplicationEntity application) {
-        application.setUserId(StpUtil.getLoginIdAsString());
-        application.setIcon("");
-        application.setWorkFlow(new JSONObject());
-        application.setTtsModelParamsSetting(new JSONObject());
-        application.setCleanTime(365);
-        application.setFileUploadEnable(false);
-        application.setFileUploadSetting(new JSONObject());
-        application.setKnowledgeSetting(getDefaultKnowledgeSetting());
-        this.save(application);
         return application;
     }
 
