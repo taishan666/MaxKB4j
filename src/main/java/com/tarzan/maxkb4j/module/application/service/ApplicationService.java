@@ -89,13 +89,13 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         if (Objects.nonNull(user)) {
             if (!CollectionUtils.isEmpty(user.getRole())) {
                 if (user.getRole().contains("USER")) {
-                    List<String> targetIds = userResourcePermissionService.getTargetIds(AuthTargetType.APPLICATION, loginId,query.getFolderId());
+                    List<String> targetIds = userResourcePermissionService.getTargetIds(AuthTargetType.APPLICATION, loginId, query.getFolderId());
                     if (!CollectionUtils.isEmpty(targetIds)) {
                         wrapper.in(ApplicationEntity::getId, targetIds);
                     } else {
                         wrapper.last(" limit 0");
                     }
-                }else {
+                } else {
                     if (StringUtils.isNotBlank(query.getFolderId())) {
                         wrapper.eq(ApplicationEntity::getFolderId, query.getFolderId());
                     } else {
@@ -254,7 +254,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     }
 
 
-
+    //todo 优化
     public ApplicationVO getAppDetail(String appId, boolean debug) {
         if (debug) {
             return this.getDetail(appId);
@@ -281,6 +281,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     }
 
 
+    //todo 封装
     public ApplicationVO wrapVo(ApplicationVO vo) {
         List<String> knowledgeIds = knowledgeMappingService.getKnowledgeIdsByAppId(vo.getId());
         vo.setKnowledgeIdList(knowledgeIds);
@@ -295,7 +296,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
             if (nodes != null) {
                 for (int i = 0; i < nodes.size(); i++) {
                     JSONObject node = nodes.getJSONObject(i);
-                    if (BASE.getKey().equals(node.getString("type"))) {
+           /*         if (BASE.getKey().equals(node.getString("type"))) {
                         JSONObject baseNodeProperties = node.getJSONObject("properties"); // 假设每个节点都有 id 字段
                         if (baseNodeProperties != null) {
                             JSONObject nodeData = baseNodeProperties.getJSONObject("nodeData");
@@ -313,7 +314,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
                             vo.setSttAutoSend(sttAutoSend);
                             vo.setFileUploadSetting(fileUploadSetting);
                         }
-                    }
+                    }*/
                     if (SEARCH_KNOWLEDGE.getKey().equals(node.getString("type"))) {
                         JSONObject properties = node.getJSONObject("properties"); // 假设每个节点都有 id 字段
                         if (properties != null) {
@@ -323,13 +324,13 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
                             List<KnowledgeEntity> knowledgeList = vo.getKnowledgeList().stream().filter(k -> knowledgeIdList.contains(k.getId())).toList();
                             nodeData.put("knowledgeList", knowledgeList);
                         }
+                        break;
                     }
                 }
             }
         }
         return vo;
     }
-
 
 
     public byte[] playDemoText(String appId, JSONObject modelParams) {
@@ -353,14 +354,48 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
 
     @Transactional
     public Boolean updateAppById(String appId, ApplicationVO appVO) {
-        ApplicationEntity application = BeanUtil.copy(appVO, ApplicationEntity.class);
-        application.setId(appId);
-        List<String> knowledgeIds = getKnowledgeIdList(application);
+        ApplicationEntity app = BeanUtil.copy(appVO, ApplicationEntity.class);
+        app.setId(appId);
+        List<String> knowledgeIds = getKnowledgeIdList(app);
         if (!CollectionUtils.isEmpty(appVO.getKnowledgeIdList())) {
             knowledgeIds.addAll(appVO.getKnowledgeIdList());
         }
         knowledgeMappingService.updateByAppId(appId, knowledgeIds);
-        return this.updateById(application);
+        JSONObject workFlow = appVO.getWorkFlow();
+        if (workFlow!=null && workFlow.containsKey("nodes")) {
+            JSONArray nodes = workFlow.getJSONArray("nodes");
+            if (nodes != null) {
+              //  JSONObject baseNode = nodes.stream().map(node -> (JSONObject) node).filter(node -> BASE.getKey().equals(node.getString("type"))).findAny().orElse(null);
+                @SuppressWarnings("unchecked")
+                JSONObject baseNode = nodes.stream()
+                        .filter(node -> node instanceof Map)
+                        .map(node -> (Map<String, Object>) node)
+                        .filter(node -> BASE.getKey().equals(node.get("type")))
+                        .findFirst()
+                        .map(JSONObject::new) // 将 Map 转为 JSONObject
+                        .orElse(null);
+                if (baseNode != null) {
+                    JSONObject baseNodeProperties = baseNode.getJSONObject("properties");
+                    if (baseNodeProperties != null) {
+                        JSONObject nodeData = baseNodeProperties.getJSONObject("nodeData");
+                        app.setName(nodeData.getString("name"));
+                        app.setDesc(nodeData.getString("desc"));
+                        app.setPrologue(nodeData.getString("prologue"));
+                        app.setFileUploadEnable(nodeData.getBooleanValue("fileUploadEnable"));
+                        app.setFileUploadSetting(nodeData.getJSONObject("fileUploadSetting"));
+                        app.setTtsType(nodeData.getString("ttsType"));
+                        app.setTtsModelEnable(nodeData.getBooleanValue("ttsModelEnable"));
+                        app.setTtsModelId(nodeData.getString("ttsModelId"));
+                        app.setTtsModelParamsSetting(nodeData.getJSONObject("ttsModelParamsSetting"));
+                        app.setTtsAutoplay(nodeData.getBooleanValue("ttsAutoplay"));
+                        app.setSttModelEnable(nodeData.getBooleanValue("sttModelEnable"));
+                        app.setSttModelId(nodeData.getString("sttModelId"));
+                        app.setSttAutoSend(nodeData.getBooleanValue("sttAutoSend"));
+                    }
+                }
+            }
+        }
+        return this.updateById(app);
     }
 
     private List<String> getKnowledgeIdList(ApplicationEntity entity) {
@@ -409,7 +444,6 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         entity.setPublishUserName((String) StpUtil.getExtra("username"));
         return applicationVersionService.save(entity);
     }
-
 
 
     public void appExport(String id, HttpServletResponse response) throws IOException {
