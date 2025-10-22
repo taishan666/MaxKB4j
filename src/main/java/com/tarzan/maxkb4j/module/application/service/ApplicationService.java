@@ -166,6 +166,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         return application;
     }
 
+    //todo 创建工作流
     public ApplicationEntity createWorkflow(ApplicationEntity application) {
         if (Objects.isNull(application.getWorkFlow())) {
             String language = (String) StpUtil.getExtra("language");
@@ -183,10 +184,12 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
                     nodeData.put("name", application.getName());
                     nodeData.put("desc", application.getDesc());
                     nodeData.put("prologue", application.getPrologue());
+                    break;
                 }
             }
             application.setWorkFlow(workFlow);
         }
+        application.setDialogueNumber(0);
         application.setUserId(StpUtil.getLoginIdAsString());
         application.setIcon("");
         application.setTtsModelParamsSetting(new JSONObject());
