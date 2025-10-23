@@ -26,7 +26,7 @@ public class WorkflowHandler {
 
     public void runChainManage(Workflow workflow, INode currentNode) {
         if (currentNode == null) {
-            currentNode = workflow.getDefaultStartNode();
+            currentNode = workflow.getStartNode();
         }
         NodeResult result = runChainNode(workflow, currentNode);
         // 获取下一个节点列表

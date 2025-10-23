@@ -100,7 +100,7 @@ public class Workflow {
     }
 
 
-    public INode getDefaultStartNode() {
+    public INode getStartNode() {
         return getNodeClsById(START.getKey(), List.of(), null);
     }
 
