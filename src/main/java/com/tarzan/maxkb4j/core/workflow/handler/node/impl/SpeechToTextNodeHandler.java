@@ -4,7 +4,7 @@ import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.Workflow;
 import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;
 import com.tarzan.maxkb4j.core.workflow.model.ChatFile;
-import com.tarzan.maxkb4j.core.workflow.node.speechtotext.input.SpeechToTextParams;
+import com.tarzan.maxkb4j.core.workflow.node.speechtotext.impl.SpeechToTextNode;
 import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
 import com.tarzan.maxkb4j.module.model.info.service.ModelFactory;
 import com.tarzan.maxkb4j.module.model.provider.service.impl.BaseSpeechToText;
@@ -28,7 +28,7 @@ public class SpeechToTextNodeHandler implements INodeHandler {
 
     @Override
     public NodeResult execute(Workflow workflow, INode node) throws Exception {
-        SpeechToTextParams nodeParams=node.getNodeData().toJavaObject(SpeechToTextParams.class);
+        SpeechToTextNode.NodeParams nodeParams=node.getNodeData().toJavaObject(SpeechToTextNode.NodeParams.class);
         List<String> audioList = nodeParams.getAudioList();
         Object res = workflow.getReferenceField(audioList.get(0), audioList.get(1));
         BaseSpeechToText sttModel = modelFactory.build(nodeParams.getSttModelId());

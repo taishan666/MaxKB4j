@@ -3,7 +3,7 @@ package com.tarzan.maxkb4j.core.workflow.handler.node.impl;
 import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.Workflow;
 import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;
-import com.tarzan.maxkb4j.core.workflow.node.toollib.input.ToolLibNodeParams;
+import com.tarzan.maxkb4j.core.workflow.node.toollib.impl.ToolLibNode;
 import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
 import com.tarzan.maxkb4j.module.tool.domain.dto.ToolInputField;
 import groovy.lang.Binding;
@@ -20,7 +20,7 @@ public class ToolLibNodeHandler implements INodeHandler {
 
     @Override
     public NodeResult execute(Workflow workflow, INode node) throws Exception {
-        ToolLibNodeParams nodeParams = node.getNodeData().toJavaObject(ToolLibNodeParams.class);
+        ToolLibNode.NodeParams nodeParams = node.getNodeData().toJavaObject(ToolLibNode.NodeParams.class);
         Map<String, Object> params = new HashMap<>(5);
         if(nodeParams.getInitParams()!=null){
             params.putAll(nodeParams.getInitParams());

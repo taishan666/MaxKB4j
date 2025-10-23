@@ -3,8 +3,7 @@ package com.tarzan.maxkb4j.core.workflow.handler.node.impl;
 import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.Workflow;
 import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;
-import com.tarzan.maxkb4j.core.workflow.node.reranker.input.RerankerParams;
-import com.tarzan.maxkb4j.core.workflow.node.reranker.out.RerankResult;
+import com.tarzan.maxkb4j.core.workflow.node.reranker.impl.RerankerNode;
 import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.ParagraphVO;
 import com.tarzan.maxkb4j.module.model.info.service.ModelFactory;
@@ -32,7 +31,7 @@ public class RerankerNodeHandler implements INodeHandler {
 
     @Override
     public NodeResult execute(Workflow workflow, INode node) throws Exception {
-        RerankerParams nodeParams = node.getNodeData().toJavaObject(RerankerParams.class);
+        RerankerNode.NodeParams nodeParams = node.getNodeData().toJavaObject(RerankerNode.NodeParams.class);
         List<String> questionReferenceAddress = nodeParams.getQuestionReferenceAddress();
         String question = (String) workflow.getReferenceField(questionReferenceAddress.get(0), questionReferenceAddress.get(1));
         List<List<String>> rerankerReferenceList = nodeParams.getRerankerReferenceList();
@@ -41,17 +40,17 @@ public class RerankerNodeHandler implements INodeHandler {
         ScoringModel rerankerModel = modelFactory.build(nodeParams.getRerankerModelId());
         double similarity = nodeParams.getRerankerSetting().getSimilarity();
         Response<List<Double>> response = rerankerModel.scoreAll(textSegments, question);
-        List<RerankResult> documentList = new ArrayList<>();
+        List<RerankerNode.RerankResult> documentList = new ArrayList<>();
         List<Double> scores = response.content();
         for (int i = 0; i < textSegments.size(); i++) {
             Double score = scores.get(i);
             TextSegment textSegment = textSegments.get(i);
             Map<String, Object> metadata = textSegment.metadata().toMap();
             metadata.put("relevance_score", score);
-            RerankResult textSegmentResult = new RerankResult(textSegment.text(), metadata);
+            RerankerNode.RerankResult textSegmentResult = new RerankerNode.RerankResult(textSegment.text(), metadata);
             documentList.add(textSegmentResult);
         }
-        List<RerankResult> resultList =documentList.stream().filter(rerankResult -> {
+        List<RerankerNode.RerankResult> resultList =documentList.stream().filter(rerankResult -> {
             if (rerankResult.getMetadata().containsKey("relevance_score")){
                 Double score = (Double) rerankResult.getMetadata().get("relevance_score");
                 return score > similarity;
@@ -61,7 +60,7 @@ public class RerankerNodeHandler implements INodeHandler {
         int topN = nodeParams.getRerankerSetting().getTopN();
         int endListIndex = Math.min(topN, resultList.size());
         resultList=resultList.subList(0, endListIndex);
-        String result = String.join("", resultList.stream().map(RerankResult::getPageContent).toList());
+        String result = String.join("", resultList.stream().map(RerankerNode.RerankResult::getPageContent).toList());
         int maxParagraphCharNumber = nodeParams.getRerankerSetting().getMaxParagraphCharNumber();
         int endIndex = Math.min(result.length(), maxParagraphCharNumber);
         result = result.substring(0, endIndex);

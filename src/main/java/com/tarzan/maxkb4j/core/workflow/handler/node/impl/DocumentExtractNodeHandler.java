@@ -4,7 +4,7 @@ import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.Workflow;
 import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;
 import com.tarzan.maxkb4j.core.workflow.model.ChatFile;
-import com.tarzan.maxkb4j.core.workflow.node.documentextract.input.DocumentExtractParams;
+import com.tarzan.maxkb4j.core.workflow.node.documentextract.impl.DocumentExtractNode;
 import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
 import com.tarzan.maxkb4j.module.oss.service.MongoFileService;
 import lombok.AllArgsConstructor;
@@ -39,7 +39,7 @@ public class DocumentExtractNodeHandler implements INodeHandler {
     public NodeResult execute(Workflow workflow, INode node) throws Exception {
         String splitter = "\n-----------------------------------\n";
         // 假设我们有一个 Supplier<ContentHandler>
-        DocumentExtractParams nodeParams=node.getNodeData().toJavaObject(DocumentExtractParams.class);
+        DocumentExtractNode.NodeParams nodeParams=node.getNodeData().toJavaObject(DocumentExtractNode.NodeParams.class);
         List<String> documentList=nodeParams.getDocumentList();
         Object res=workflow.getReferenceField(documentList.get(0),documentList.get(1));
         @SuppressWarnings("unchecked")

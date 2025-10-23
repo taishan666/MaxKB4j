@@ -7,8 +7,7 @@ import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.Workflow;
 import com.tarzan.maxkb4j.core.workflow.enums.DialogueType;
 import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;
-import com.tarzan.maxkb4j.core.workflow.node.intentclassify.input.IntentClassifyBranch;
-import com.tarzan.maxkb4j.core.workflow.node.intentclassify.input.IntentClassifyNodeParams;
+import com.tarzan.maxkb4j.core.workflow.node.intentclassify.impl.IntentClassifyNode;
 import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
 import com.tarzan.maxkb4j.module.model.info.service.ModelFactory;
 import com.tarzan.maxkb4j.module.model.provider.service.impl.BaseChatModel;
@@ -31,12 +30,12 @@ public class IntentClassifyNodeHandler implements INodeHandler {
     private final ModelFactory modelFactory;
     @Override
     public NodeResult execute(Workflow workflow, INode node) throws Exception {
-        IntentClassifyNodeParams nodeParams = node.getNodeData().toJavaObject(IntentClassifyNodeParams.class);
+        IntentClassifyNode.NodeParams nodeParams = node.getNodeData().toJavaObject(IntentClassifyNode.NodeParams.class);
         BaseChatModel chatModel = modelFactory.build(nodeParams.getModelId(), nodeParams.getModelParamsSetting());
         Object query = workflow.getReferenceField(nodeParams.getContentList().get(0),nodeParams.getContentList().get(1));
         Map<String,String> branchMap = new HashMap<>();
-        List<IntentClassifyBranch> branches=nodeParams.getBranch();
-        for (IntentClassifyBranch branch : branches) {
+        List<IntentClassifyNode.Branch> branches=nodeParams.getBranch();
+        for (IntentClassifyNode.Branch branch : branches) {
             branchMap.put(branch.getId(), branch.getContent());
         }
         List<ChatMessage> historyMessages = workflow.getHistoryMessages(nodeParams.getDialogueNumber(), DialogueType.WORKFLOW.name(), node.getRuntimeNodeId());
@@ -61,12 +60,12 @@ public class IntentClassifyNodeHandler implements INodeHandler {
         return new NodeResult(Map.of("branchId",branchId,"category", category,"reason", ""),Map.of());
     }
 
-    protected String optionsFormat(Map<Integer, String> idToClassification,List<IntentClassifyBranch> branches) {
+    protected String optionsFormat(Map<Integer, String> idToClassification,List<IntentClassifyNode.Branch> branches) {
         StringBuilder optionsBuilder = new StringBuilder();
         if (CollectionUtils.isNotEmpty( branches)){
             Collections.reverse(branches);
             for (int i = 0; i < branches.size(); i++) {
-                IntentClassifyBranch branch=branches.get(i);
+                IntentClassifyNode.Branch branch=branches.get(i);
                 idToClassification.put(i, ValidationUtils.ensureNotNull(branch.getId(), "Classification"));
                 if (i > 0) {
                     optionsBuilder.append("\n");

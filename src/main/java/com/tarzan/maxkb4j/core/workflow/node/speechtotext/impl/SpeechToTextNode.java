@@ -3,6 +3,9 @@ package com.tarzan.maxkb4j.core.workflow.node.speechtotext.impl;
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.Workflow;
+import lombok.Data;
+
+import java.util.List;
 
 import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.SPEECH_TO_TEXT;
 
@@ -23,4 +26,10 @@ public class SpeechToTextNode extends INode {
     }
 
 
+    @Data
+    public static class NodeParams {
+        private String sttModelId;
+        private List<String> audioList;
+
+    }
 }

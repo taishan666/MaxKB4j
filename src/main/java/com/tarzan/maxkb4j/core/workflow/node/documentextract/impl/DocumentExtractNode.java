@@ -3,6 +3,7 @@ package com.tarzan.maxkb4j.core.workflow.node.documentextract.impl;
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.Workflow;
+import lombok.Data;
 
 import java.util.List;
 
@@ -34,5 +35,12 @@ public class DocumentExtractNode extends INode {
         detail.put("content", content.split(splitter));
         return detail;
     }
+
+
+    @Data
+    public static class NodeParams  {
+        private List<String> documentList;
+    }
+
 
 }

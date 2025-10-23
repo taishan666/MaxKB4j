@@ -9,7 +9,7 @@ import com.tarzan.maxkb4j.core.tool.MessageTools;
 import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.Workflow;
 import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;
-import com.tarzan.maxkb4j.core.workflow.node.aichat.input.AiChatNodeParams;
+import com.tarzan.maxkb4j.core.workflow.node.aichat.impl.AiChatNode;
 import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
 import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
 import com.tarzan.maxkb4j.module.model.info.service.ModelFactory;
@@ -41,7 +41,7 @@ public class AiChatNodeHandler implements INodeHandler {
 
     @Override
     public NodeResult execute(Workflow workflow, INode node) throws Exception {
-        AiChatNodeParams nodeParams = node.getNodeData().toJavaObject(AiChatNodeParams.class);
+        AiChatNode.NodeParams nodeParams = node.getNodeData().toJavaObject(AiChatNode.NodeParams.class);
         BaseChatModel chatModel = modelFactory.build(nodeParams.getModelId(), nodeParams.getModelParamsSetting());
         String question = workflow.generatePrompt(nodeParams.getPrompt());
         String systemPrompt = workflow.generatePrompt(nodeParams.getSystem());
@@ -73,7 +73,7 @@ public class AiChatNodeHandler implements INodeHandler {
         return writeContextStream(nodeParams, tokenStream,workflow, node);
     }
 
-    private NodeResult writeContextStream(AiChatNodeParams nodeParams, TokenStream tokenStream, Workflow workflow,INode node) {
+    private NodeResult writeContextStream(AiChatNode.NodeParams nodeParams, TokenStream tokenStream, Workflow workflow,INode node) {
         boolean isResult = nodeParams.getIsResult();
         boolean mcpOutputEnable = nodeParams.getMcpOutputEnable();
         boolean reasoningContentEnable = nodeParams.getModelSetting().getBooleanValue("reasoningContentEnable");

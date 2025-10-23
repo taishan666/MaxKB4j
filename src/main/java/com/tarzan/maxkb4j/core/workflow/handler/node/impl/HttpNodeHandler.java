@@ -9,7 +9,7 @@ import com.tarzan.maxkb4j.common.util.StringUtil;
 import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.Workflow;
 import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;
-import com.tarzan.maxkb4j.core.workflow.node.http.input.HttpNodeParams;
+import com.tarzan.maxkb4j.core.workflow.node.http.impl.HttpNode;
 import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
 import org.springframework.stereotype.Component;
 
@@ -20,7 +20,7 @@ public class HttpNodeHandler implements INodeHandler {
 
     @Override
     public NodeResult execute(Workflow workflow, INode node) throws Exception {
-        HttpNodeParams nodeParams=node.getNodeData().toJavaObject(HttpNodeParams.class);
+        HttpNode.NodeParams nodeParams=node.getNodeData().toJavaObject(HttpNode.NodeParams.class);
         HttpRequest request= HttpUtil.createRequest(nodeParams.getMethod(), nodeParams.getUrl());
         JSONArray headers=nodeParams.getHeaders();
         for (int i = 0; i < headers.size(); i++) {

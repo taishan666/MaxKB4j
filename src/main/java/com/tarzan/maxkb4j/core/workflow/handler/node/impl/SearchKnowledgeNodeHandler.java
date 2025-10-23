@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.Workflow;
 import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;
-import com.tarzan.maxkb4j.core.workflow.node.searchknowledge.input.SearchKnowledgeNodeParams;
+import com.tarzan.maxkb4j.core.workflow.node.searchknowledge.impl.SearchKnowledgeNode;
 import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatRecordEntity;
 import com.tarzan.maxkb4j.module.application.domian.entity.KnowledgeSetting;
@@ -29,7 +29,7 @@ public class SearchKnowledgeNodeHandler implements INodeHandler {
     private final RetrieveService retrieveService;
     @Override
     public NodeResult execute(Workflow workflow, INode node) throws Exception {
-        SearchKnowledgeNodeParams nodeParams=node.getNodeData().toJavaObject(SearchKnowledgeNodeParams.class);
+        SearchKnowledgeNode.NodeParams nodeParams=node.getNodeData().toJavaObject(SearchKnowledgeNode.NodeParams .class);
         KnowledgeSetting knowledgeSetting=nodeParams.getKnowledgeSetting();
         List<String> fields=nodeParams.getQuestionReferenceAddress();
         String question= (String)workflow.getReferenceField(fields.get(0),fields.get(1));

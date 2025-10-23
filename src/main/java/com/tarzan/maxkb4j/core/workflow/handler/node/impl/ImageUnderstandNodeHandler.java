@@ -8,7 +8,7 @@ import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.Workflow;
 import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;
 import com.tarzan.maxkb4j.core.workflow.model.ChatFile;
-import com.tarzan.maxkb4j.core.workflow.node.imageunderstand.input.ImageUnderstandParams;
+import com.tarzan.maxkb4j.core.workflow.node.imageunderstand.impl.ImageUnderstandNode;
 import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
 import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
 import com.tarzan.maxkb4j.module.model.info.service.ModelFactory;
@@ -49,7 +49,7 @@ public class ImageUnderstandNodeHandler implements INodeHandler {
 
     @Override
     public NodeResult execute(Workflow workflow, INode node) throws Exception {
-        ImageUnderstandParams nodeParams=node.getNodeData().toJavaObject(ImageUnderstandParams.class);
+        ImageUnderstandNode.NodeParams nodeParams=node.getNodeData().toJavaObject(ImageUnderstandNode.NodeParams.class);
         List<String> imageFieldList = nodeParams.getImageList();
         Object object = workflow.getReferenceField(imageFieldList.get(0), imageFieldList.get(1));
         @SuppressWarnings("unchecked")
@@ -84,7 +84,7 @@ public class ImageUnderstandNodeHandler implements INodeHandler {
         return writeContextStream(nodeParams,tokenStream,node,workflow);
     }
 
-    private NodeResult writeContextStream(ImageUnderstandParams nodeParams, TokenStream tokenStream,INode  node,Workflow workflow) {
+    private NodeResult writeContextStream(ImageUnderstandNode.NodeParams nodeParams, TokenStream tokenStream,INode  node,Workflow workflow) {
         boolean isResult = nodeParams.getIsResult();
         CompletableFuture<ChatResponse> chatResponseFuture  = new CompletableFuture<>();
         // 完成后释放线程

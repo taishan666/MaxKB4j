@@ -4,7 +4,7 @@ import com.alibaba.fastjson2.JSON;
 import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.Workflow;
 import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;
-import com.tarzan.maxkb4j.core.workflow.node.directreply.input.ReplyNodeParams;
+import com.tarzan.maxkb4j.core.workflow.node.directreply.impl.DirectReplyNode;
 import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
 import org.springframework.stereotype.Component;
 
@@ -15,7 +15,7 @@ import java.util.Map;
 public class DirectReplyNodeHandler implements INodeHandler {
     @Override
     public NodeResult execute(Workflow workflow, INode node) throws Exception {
-        ReplyNodeParams nodeParams = node.getNodeData().toJavaObject(ReplyNodeParams.class);
+        DirectReplyNode.NodeParams nodeParams = node.getNodeData().toJavaObject(DirectReplyNode.NodeParams.class);
         if ("referencing".equals(nodeParams.getReplyType())) {
             List<String> fields = nodeParams.getFields();
             Object res = workflow.getReferenceField(fields.get(0), fields.get(1));

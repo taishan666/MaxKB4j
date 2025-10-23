@@ -1,9 +1,12 @@
 package com.tarzan.maxkb4j.core.workflow.node.http.impl;
 
 
+import cn.hutool.http.Method;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.Workflow;
+import lombok.Data;
 
 import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.HTTP_CLIENT;
 
@@ -20,6 +23,20 @@ public class HttpNode extends INode {
     protected void saveContext(Workflow workflow, JSONObject detail) {
         context.put("status",detail.get("status"));
         context.put("body",detail.get("body"));
+    }
+
+    @Data
+    public static class NodeParams {
+        private String url;
+        private Method method;
+        private String body;
+        private JSONArray headers;
+        private JSONArray params;
+        private Integer timeout;
+        private String authType;
+        private String username;
+        private String password;
+        private String token;
     }
 
 

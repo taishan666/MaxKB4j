@@ -3,6 +3,9 @@ package com.tarzan.maxkb4j.core.workflow.node.directreply.impl;
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.Workflow;
+import lombok.Data;
+
+import java.util.List;
 
 import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.REPLY;
 
@@ -19,5 +22,11 @@ public class DirectReplyNode extends INode {
     }
 
 
+    @Data
+    public static class NodeParams {
+        private String replyType;
+        private List<String> fields;
+        private String content;
+    }
 
 }

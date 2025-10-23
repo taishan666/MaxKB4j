@@ -5,7 +5,7 @@ import com.tarzan.maxkb4j.common.util.McpToolUtil;
 import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.Workflow;
 import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;
-import com.tarzan.maxkb4j.core.workflow.node.mcp.input.McpParams;
+import com.tarzan.maxkb4j.core.workflow.node.mcp.impl.McpNode;
 import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
 import dev.langchain4j.agent.tool.ToolExecutionRequest;
 import dev.langchain4j.mcp.client.McpClient;
@@ -25,7 +25,7 @@ public class McpNodeHandler implements INodeHandler {
 
     @Override
     public NodeResult execute(Workflow workflow, INode node) throws Exception {
-        McpParams nodeParams=node.getNodeData().toJavaObject(McpParams.class);
+        McpNode.NodeParams nodeParams=node.getNodeData().toJavaObject(McpNode.NodeParams.class);
         JSONObject toolParams=nodeParams.getToolParams();
         JSONObject params=new JSONObject();
         for (String key : toolParams.keySet()) {

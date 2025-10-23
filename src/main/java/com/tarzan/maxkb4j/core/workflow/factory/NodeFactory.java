@@ -15,6 +15,7 @@ import com.tarzan.maxkb4j.core.workflow.node.imagegenerate.impl.ImageGenerateNod
 import com.tarzan.maxkb4j.core.workflow.node.imageunderstand.impl.ImageUnderstandNode;
 import com.tarzan.maxkb4j.core.workflow.node.intentclassify.impl.IntentClassifyNode;
 import com.tarzan.maxkb4j.core.workflow.node.mcp.impl.McpNode;
+import com.tarzan.maxkb4j.core.workflow.node.parameterextraction.impl.ParameterExtractionNode;
 import com.tarzan.maxkb4j.core.workflow.node.question.impl.QuestionNode;
 import com.tarzan.maxkb4j.core.workflow.node.reranker.impl.RerankerNode;
 import com.tarzan.maxkb4j.core.workflow.node.searchknowledge.impl.SearchKnowledgeNode;
@@ -55,6 +56,7 @@ public class NodeFactory {
             case MCP -> new McpNode(properties);
             case INTENT_CLASSIFY -> new IntentClassifyNode(properties);
             case HTTP_CLIENT -> new HttpNode(properties);
+            case PARAMETER_EXTRACTION -> new ParameterExtractionNode(properties);
             default -> null;
         };
     }

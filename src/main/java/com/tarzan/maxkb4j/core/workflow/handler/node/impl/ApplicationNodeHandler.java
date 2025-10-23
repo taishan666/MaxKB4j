@@ -6,7 +6,7 @@ import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.Workflow;
 import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;
 import com.tarzan.maxkb4j.core.workflow.model.ChatFile;
-import com.tarzan.maxkb4j.core.workflow.node.application.input.ApplicationNodeParams;
+import com.tarzan.maxkb4j.core.workflow.node.application.impl.ApplicationNode;
 import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
 import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
 import com.tarzan.maxkb4j.module.application.service.ApplicationChatService;
@@ -36,7 +36,7 @@ public class ApplicationNodeHandler implements INodeHandler {
     @SuppressWarnings("unchecked")
     @Override
     public NodeResult execute(Workflow workflow,INode node) throws Exception {
-        ApplicationNodeParams nodeParams = node.getNodeData().toJavaObject(ApplicationNodeParams.class);
+        ApplicationNode.NodeParams nodeParams = node.getNodeData().toJavaObject(ApplicationNode.NodeParams.class);
         List<String> questionFields = nodeParams.getQuestionReferenceAddress();
         String question = (String) workflow.getReferenceField(questionFields.get(0), questionFields.get(1));
         ChatParams chatParams = workflow.getChatParams();

@@ -3,7 +3,10 @@ package com.tarzan.maxkb4j.core.workflow.node.intentclassify.impl;
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.Workflow;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.List;
 
 import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.INTENT_CLASSIFY;
 
@@ -22,5 +25,23 @@ public class IntentClassifyNode extends INode {
         context.put("answer", detail.get("answer"));
         context.put("reasoningContent", detail.get("reasoningContent"));
     }
+
+    @Data
+    public static class NodeParams {
+
+        private String modelId;
+        private JSONObject modelParamsSetting;
+        private List<String> contentList;
+        private int dialogueNumber;
+        private List<Branch> branch;
+    }
+
+    @Data
+    public static class Branch {
+        private String id;
+        //private Boolean isOther;
+        private String content;
+    }
+
 
 }

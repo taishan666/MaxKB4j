@@ -3,7 +3,7 @@ package com.tarzan.maxkb4j.core.workflow.handler.node.impl;
 import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.Workflow;
 import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;
-import com.tarzan.maxkb4j.core.workflow.node.variableassign.input.VariableAssignParams;
+import com.tarzan.maxkb4j.core.workflow.node.variableassign.impl.VariableAssignNode;
 import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
 import com.tarzan.maxkb4j.module.application.cache.ChatCache;
 import com.tarzan.maxkb4j.module.application.domian.dto.ChatInfo;
@@ -16,7 +16,7 @@ public class VariableAssignNodeHandler implements INodeHandler {
 
     @Override
     public NodeResult execute(Workflow workflow, INode node) throws Exception {
-        VariableAssignParams nodeParams = node.getNodeData().toJavaObject(VariableAssignParams.class);
+        VariableAssignNode.NodeParams nodeParams = node.getNodeData().toJavaObject(VariableAssignNode.NodeParams.class);
         List<Map<String, Object>> resultList = new ArrayList<>();
         if (nodeParams.getVariableList() == null) {
             return new NodeResult(Map.of("variable_list", Collections.emptyList(), "resultList", resultList), Map.of());

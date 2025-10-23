@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.Workflow;
 import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;
-import com.tarzan.maxkb4j.core.workflow.node.imagegenerate.input.ImageGenerateParams;
+import com.tarzan.maxkb4j.core.workflow.node.imagegenerate.impl.ImageGenerateNode;
 import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
 import com.tarzan.maxkb4j.module.model.info.service.ModelFactory;
 import dev.langchain4j.data.image.Image;
@@ -24,7 +24,7 @@ public class ImageGenerateNodeHandler implements INodeHandler {
     private final ModelFactory modelFactory;
     @Override
     public NodeResult execute(Workflow workflow, INode node) throws Exception {
-        ImageGenerateParams nodeParams=node.getNodeData().toJavaObject(ImageGenerateParams.class);
+        ImageGenerateNode.NodeParams nodeParams=node.getNodeData().toJavaObject(ImageGenerateNode.NodeParams.class);
         String prompt=workflow.generatePrompt(nodeParams.getPrompt());
         String negativePrompt=nodeParams.getNegativePrompt();
         JSONObject modelParamsSetting=nodeParams.getModelParamsSetting();

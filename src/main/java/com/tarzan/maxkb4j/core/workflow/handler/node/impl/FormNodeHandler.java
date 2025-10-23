@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.Workflow;
 import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;
-import com.tarzan.maxkb4j.core.workflow.node.formcollect.input.FormNodeParams;
+import com.tarzan.maxkb4j.core.workflow.node.formcollect.impl.FormNode;
 import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
 import dev.langchain4j.model.input.PromptTemplate;
 import org.springframework.stereotype.Component;
@@ -19,7 +19,7 @@ public class FormNodeHandler implements INodeHandler {
 
     @Override
     public NodeResult execute(Workflow workflow, INode node) throws Exception {
-        FormNodeParams nodeParams = node.getNodeData().toJavaObject(FormNodeParams.class);
+        FormNode.NodeParams nodeParams = node.getNodeData().toJavaObject(FormNode.NodeParams.class);
         Map<String, Object> formData = nodeParams.getFormData();
         if (formData != null) {
             Map<String, Object> nodeVariable=new HashMap<>();

@@ -3,6 +3,11 @@ package com.tarzan.maxkb4j.core.workflow.node.toollib.impl;
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.Workflow;
+import com.tarzan.maxkb4j.module.tool.domain.dto.ToolInputField;
+import lombok.Data;
+
+import java.util.List;
+import java.util.Map;
 
 import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.TOOL_LIB;
 
@@ -18,5 +23,11 @@ public class ToolLibNode extends INode {
         context.put("result", detail.get("result"));
     }
 
+    @Data
+    public class NodeParams {
+        private List<ToolInputField> inputFieldList;
+        private String code;
+        private Map<String,Object> initParams;
+    }
 
 }

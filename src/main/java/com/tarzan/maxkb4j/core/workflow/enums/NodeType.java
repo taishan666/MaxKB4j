@@ -62,6 +62,8 @@ public enum NodeType {
     AI_CHAT("ai-chat-node", "智能聊天节点"),
 
     APPLICATION("application-node", "应用节点"),
+
+    PARAMETER_EXTRACTION("parameter-extraction-node", "参数提取节点"),
     ;
 
     private final String key;

@@ -40,6 +40,7 @@ public class NodeHandlerBuilder {
         HANDLER_POOL.put(NodeType.TOOL_LIB.getKey(), SpringUtil.getBean(ToolLibNodeHandler.class));
         HANDLER_POOL.put(NodeType.TOOL.getKey(), SpringUtil.getBean(ToolNodeHandler.class));
         HANDLER_POOL.put(NodeType.VARIABLE_ASSIGN.getKey(), SpringUtil.getBean(VariableAssignNodeHandler.class));
+        HANDLER_POOL.put(NodeType.PARAMETER_EXTRACTION.getKey(), SpringUtil.getBean(ParameterExtractionNodeHandler.class));
     }
 
     /**
