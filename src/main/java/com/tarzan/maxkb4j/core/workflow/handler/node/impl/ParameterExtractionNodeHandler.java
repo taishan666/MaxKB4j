@@ -34,6 +34,7 @@ public class ParameterExtractionNodeHandler implements INodeHandler {
         String extractInfo=format(nodeParams.getVariableList());
         Result<Map<String, Object>> result = assistant.extract(extractInfo,query.toString());
         TokenUsage tokenUsage =  result.tokenUsage();
+        node.getDetail().put("question", query);
         node.getDetail().put("messageTokens", tokenUsage.inputTokenCount());
         node.getDetail().put("answerTokens", tokenUsage.outputTokenCount());
         Map<String, Object> nodeVariable=new HashMap<>();
