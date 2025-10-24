@@ -22,17 +22,23 @@ public class HttpNodeHandler implements INodeHandler {
     public NodeResult execute(Workflow workflow, INode node) throws Exception {
         HttpNode.NodeParams nodeParams=node.getNodeData().toJavaObject(HttpNode.NodeParams.class);
         HttpRequest request= HttpUtil.createRequest(nodeParams.getMethod(), nodeParams.getUrl());
+        node.getDetail().put("url",nodeParams.getUrl());
+        node.getDetail().put("method",nodeParams.getMethod());
         JSONArray headers=nodeParams.getHeaders();
+        node.getDetail().put("headers",headers);
         for (int i = 0; i < headers.size(); i++) {
             JSONObject header=headers.getJSONObject(i);
             request.header(header.getString("name"),header.getString("value"));
         }
-        if (StringUtil.isNotBlank(nodeParams.getBody())){
-            request.body(nodeParams.getBody());
+        String body=nodeParams.getBody();
+        node.getDetail().put("requestBody",body);
+        if (StringUtil.isNotBlank(body)){
+            request.body(body);
         }
         JSONArray params=nodeParams.getParams();
+        node.getDetail().put("params",params);
         for (int i = 0; i < params.size(); i++) {
-            JSONObject param=headers.getJSONObject(i);
+            JSONObject param=params.getJSONObject(i);
             request.form(param.getString("name"),param.getString("value"));
         }
         if (StringUtil.isNotBlank(nodeParams.getAuthType())){
@@ -46,6 +52,7 @@ public class HttpNodeHandler implements INodeHandler {
             }
         }
         request.timeout(nodeParams.getTimeout()*1000);
+        node.getDetail().put("timeout",nodeParams.getTimeout());
         HttpResponse response=request.execute();
         return new NodeResult(Map.of("status",response.getStatus(),"body",response.body()),Map.of());
     }
