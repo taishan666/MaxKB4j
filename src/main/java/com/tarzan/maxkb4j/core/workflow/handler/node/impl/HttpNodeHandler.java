@@ -25,22 +25,26 @@ public class HttpNodeHandler implements INodeHandler {
         node.getDetail().put("url",nodeParams.getUrl());
         node.getDetail().put("method",nodeParams.getMethod());
         JSONArray headers=nodeParams.getHeaders();
-        node.getDetail().put("headers",headers);
         for (int i = 0; i < headers.size(); i++) {
             JSONObject header=headers.getJSONObject(i);
-            request.header(header.getString("name"),header.getString("value"));
+            if (!header.isEmpty()){
+                request.header(header.getString("name"),header.getString("value"));
+            }
         }
+        node.getDetail().put("headers",request.headers());
         String body=nodeParams.getBody();
         node.getDetail().put("requestBody",body);
         if (StringUtil.isNotBlank(body)){
             request.body(body);
         }
         JSONArray params=nodeParams.getParams();
-        node.getDetail().put("params",params);
         for (int i = 0; i < params.size(); i++) {
             JSONObject param=params.getJSONObject(i);
-            request.form(param.getString("name"),param.getString("value"));
+            if (!param.isEmpty()){
+                request.form(param.getString("name"),param.getString("value"));
+            }
         }
+        node.getDetail().put("params",request.form());
         if (StringUtil.isNotBlank(nodeParams.getAuthType())){
             switch (nodeParams.getAuthType()){
                 case "basic":
