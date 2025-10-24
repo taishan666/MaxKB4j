@@ -34,8 +34,8 @@ public class KnowledgeController {
 
 
     @GetMapping("/knowledge")
-    public R<List<KnowledgeEntity>> listDatasets() {
-        return R.success(knowledgeService.listByUserId(StpUtil.getLoginIdAsString()));
+    public R<List<KnowledgeEntity>> listDatasets(String folderId) {
+        return R.success(knowledgeService.list(StpUtil.getLoginIdAsString(),folderId));
     }
 
     @PostMapping("/knowledge/base")

@@ -1,5 +1,6 @@
 package com.tarzan.maxkb4j.module.system.shared.controller;
 
+import cn.dev33.satoken.stp.StpUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -7,6 +8,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.tarzan.maxkb4j.common.api.R;
 import com.tarzan.maxkb4j.common.constant.AppConst;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.KnowledgeQuery;
+import com.tarzan.maxkb4j.module.knowledge.domain.entity.KnowledgeEntity;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.KnowledgeVO;
 import com.tarzan.maxkb4j.module.knowledge.service.KnowledgeService;
 import com.tarzan.maxkb4j.module.tool.domain.dto.ToolQuery;
@@ -39,6 +41,11 @@ public class SharedController {
     @GetMapping("/tool/{current}/{size}")
     public R<IPage<ToolVO>> toolPage(@PathVariable int current, @PathVariable int size, ToolQuery query) {
         return R.success(toolService.pageList(current, size, query));
+    }
+
+    @GetMapping("/knowledge")
+    public R<List<KnowledgeEntity>> listDatasets() {
+        return R.success(knowledgeService.list(StpUtil.getLoginIdAsString(),"shared"));
     }
 
     @GetMapping("/tool")
