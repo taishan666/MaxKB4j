@@ -56,7 +56,7 @@ public class Workflow {
     }
 
 
-    public void loadNode(ApplicationChatRecordEntity chatRecord, String startNodeId, Map<String, Object> startNodeData) {
+    private void loadNode(ApplicationChatRecordEntity chatRecord, String startNodeId, Map<String, Object> startNodeData) {
         List<JSONObject> sortedDetails = chatRecord.getDetails().values().stream()
                 .map(row -> (JSONObject) row)
                 .sorted(Comparator.comparingInt(e -> e.getIntValue("index")))
@@ -155,7 +155,7 @@ public class Workflow {
         }
     }
 
-    public void addNodeToList(String targetNodeId, INode currentNode, List<INode> nodeList) {
+    private void addNodeToList(String targetNodeId, INode currentNode, List<INode> nodeList) {
         // 构建上游节点ID列表
         List<String> newUpNodeIds = new ArrayList<>();
         if (currentNode.getUpNodeIdList() != null) {
@@ -170,7 +170,7 @@ public class Workflow {
     }
 
 
-    public INode getNodeClsById(String nodeId, List<String> upNodeIds, Function<INode, JSONObject> getNodeProperties) {
+    private INode getNodeClsById(String nodeId, List<String> upNodeIds, Function<INode, JSONObject> getNodeProperties) {
         for (LfNode lfNode : lfNodes) {
             if (nodeId.equals(lfNode.getId())) {
                 INode node = NodeFactory.getNode(lfNode);
@@ -278,7 +278,7 @@ public class Workflow {
         return isResult == null ? defaultVal : isResult;
     }
 
-    public boolean dependentNode(String lastNodeId, INode node) {
+    private boolean dependentNode(String lastNodeId, INode node) {
         if (Objects.equals(lastNodeId, node.getId())) {
             if (FORM.getKey().equals(node.getType())||USER_SELECT.getKey().equals(node.getType())) {
                 Object formData = node.getContext().get("form_data");
@@ -289,7 +289,7 @@ public class Workflow {
         return false;
     }
 
-    public boolean dependentNodeBeenExecuted(String nodeId) {
+    private boolean dependentNodeBeenExecuted(String nodeId) {
         // 获取所有目标节点ID等于给定nodeId的边的源节点ID列表
         List<String> upNodeIdList = new ArrayList<>();
         for (LfEdge edge : edges) {
