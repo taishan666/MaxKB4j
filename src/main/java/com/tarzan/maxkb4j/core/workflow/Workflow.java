@@ -23,8 +23,7 @@ import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.FORM;
-import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.START;
+import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.*;
 
 @Slf4j
 @Data
@@ -281,7 +280,7 @@ public class Workflow {
 
     public boolean dependentNode(String lastNodeId, INode node) {
         if (Objects.equals(lastNodeId, node.getId())) {
-            if (FORM.getKey().equals(node.getId())) {
+            if (FORM.getKey().equals(node.getType())||USER_SELECT.getKey().equals(node.getType())) {
                 Object formData = node.getContext().get("form_data");
                 return formData != null;
             }

@@ -25,6 +25,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.FORM;
+import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.USER_SELECT;
 
 @Slf4j
 @Component
@@ -93,7 +94,7 @@ public class ApplicationNodeHandler implements INodeHandler {
         if (nodeParams.getIsResult()) {
             // 订阅并累积 token，同时发送消息
             appNodeSink.asFlux().subscribe(e -> {
-                if(FORM.getKey().equals(e.getNodeType())){
+                if(FORM.getKey().equals(e.getNodeType())||USER_SELECT.getKey().equals(e.getNodeType())){
                     is_interrupt_exec.set( true);
                 }
                 ChildNode childNode=new ChildNode(e.getChatRecordId(),e.getRuntimeNodeId());

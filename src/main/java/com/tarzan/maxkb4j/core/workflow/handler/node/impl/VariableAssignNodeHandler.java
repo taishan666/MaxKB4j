@@ -19,7 +19,7 @@ public class VariableAssignNodeHandler implements INodeHandler {
         VariableAssignNode.NodeParams nodeParams = node.getNodeData().toJavaObject(VariableAssignNode.NodeParams.class);
         List<Map<String, Object>> resultList = new ArrayList<>();
         if (nodeParams.getVariableList() == null) {
-            return new NodeResult(Map.of("variable_list", Collections.emptyList(), "resultList", resultList), Map.of());
+            return new NodeResult(Map.of("variableList", Collections.emptyList(), "resultList", resultList), Map.of());
         }
         for (Map<String, Object> variable : nodeParams.getVariableList()) {
             if (variable == null || !variable.containsKey("fields")) {
@@ -41,7 +41,7 @@ public class VariableAssignNodeHandler implements INodeHandler {
                 chatInfo.getChatVariables().putAll(workflow.getFlowVariables().get(scope));
             }
         }
-        return new NodeResult(Map.of("variable_list",nodeParams.getVariableList(),"resultList",resultList),Map.of());
+        return new NodeResult(Map.of("variableList",nodeParams.getVariableList(),"resultList",resultList),Map.of());
     }
 
     private Map<String, Object> getHandleResult(Workflow workflow,Map<String, Object> variable,List<String> fields){

@@ -24,6 +24,7 @@ import com.tarzan.maxkb4j.core.workflow.node.start.impl.StartNode;
 import com.tarzan.maxkb4j.core.workflow.node.texttospeech.impl.TextToSpeechNode;
 import com.tarzan.maxkb4j.core.workflow.node.tool.impl.ToolNode;
 import com.tarzan.maxkb4j.core.workflow.node.toollib.impl.ToolLibNode;
+import com.tarzan.maxkb4j.core.workflow.node.userselect.impl.UserSelectNode;
 import com.tarzan.maxkb4j.core.workflow.node.variableassign.impl.VariableAssignNode;
 
 import java.util.Objects;
@@ -57,6 +58,7 @@ public class NodeFactory {
             case INTENT_CLASSIFY -> new IntentClassifyNode(properties);
             case HTTP_CLIENT -> new HttpNode(properties);
             case PARAMETER_EXTRACTION -> new ParameterExtractionNode(properties);
+            case USER_SELECT -> new UserSelectNode(properties);
             default -> null;
         };
     }
