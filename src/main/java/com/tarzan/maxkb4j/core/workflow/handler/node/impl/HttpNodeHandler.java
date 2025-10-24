@@ -33,7 +33,7 @@ public class HttpNodeHandler implements INodeHandler {
         JSONArray params=nodeParams.getParams();
         for (int i = 0; i < params.size(); i++) {
             JSONObject param=headers.getJSONObject(i);
-            request.header(param.getString("name"),param.getString("value"));
+            request.form(param.getString("name"),param.getString("value"));
         }
         if (StringUtil.isNotBlank(nodeParams.getAuthType())){
             switch (nodeParams.getAuthType()){
@@ -47,7 +47,6 @@ public class HttpNodeHandler implements INodeHandler {
         }
         request.timeout(nodeParams.getTimeout()*1000);
         HttpResponse response=request.execute();
-        System.out.println( response.body());
         return new NodeResult(Map.of("status",response.getStatus(),"body",response.body()),Map.of());
     }
 }
