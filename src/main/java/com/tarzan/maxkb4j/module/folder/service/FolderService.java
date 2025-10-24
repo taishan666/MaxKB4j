@@ -10,7 +10,6 @@ import com.tarzan.maxkb4j.common.util.BeanUtil;
 import com.tarzan.maxkb4j.module.folder.entity.FolderEntity;
 import com.tarzan.maxkb4j.module.folder.mapper.FolderMapper;
 import com.tarzan.maxkb4j.module.folder.vo.FolderVO;
-import com.tarzan.maxkb4j.module.system.permission.service.UserResourcePermissionService;
 import com.tarzan.maxkb4j.module.system.user.domain.entity.UserEntity;
 import com.tarzan.maxkb4j.module.system.user.service.UserService;
 import lombok.AllArgsConstructor;
@@ -31,14 +30,21 @@ public class FolderService extends ServiceImpl<FolderMapper, FolderEntity> {
 
     @Transactional
     public List<FolderVO> tree(String source) {
-/*        String userId = StpUtil.getLoginIdAsString();
+        FolderVO defaultFolder = new FolderVO("default", "私有文件夹", null, null,List.of());
+        FolderVO shareFolder = new FolderVO("share", "共享文件夹", null, null,List.of());
+        return List.of(defaultFolder,shareFolder);
+    }
+
+ /*   @Transactional
+    public List<FolderVO> tree(String source) {
+        String userId = StpUtil.getLoginIdAsString();
         UserEntity loginUser = userService.getById(userId);
         if (Objects.nonNull(loginUser) && loginUser.getRole().contains("ADMIN")) {
             return getAdminFolder(source);
         }
-        return getUserFolder(userId, source);*/
+        return getUserFolder(userId, source);
         return treeFolder(source);
-    }
+    }*/
 
     private List<FolderVO> treeFolder(String source) {
         FolderVO rootFolder = new FolderVO("default", "根目录", null, null,List.of());
