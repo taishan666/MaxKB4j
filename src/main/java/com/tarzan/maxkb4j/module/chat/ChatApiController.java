@@ -26,6 +26,8 @@ import com.tarzan.maxkb4j.module.application.service.ApplicationService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
 import org.springframework.core.task.TaskExecutor;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -176,6 +178,16 @@ public class ChatApiController {
         chatRecord.setChatId(chatId);
         chatRecord.setId(chatRecordId);
         return R.success(chatRecordService.updateById(chatRecord));
+    }
+
+
+    @PostMapping("/text_to_speech")
+    public ResponseEntity<byte[]> textToSpeech(@RequestBody JSONObject data) {
+        // 设置 HTTP 响应头
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.parseMediaType("audio/mp3"));
+        String appId = StpUtil.getLoginIdAsString().split("-")[1];
+        return new ResponseEntity<>(applicationService.textToSpeech(appId, data), headers, HttpStatus.OK);
     }
 
     /**

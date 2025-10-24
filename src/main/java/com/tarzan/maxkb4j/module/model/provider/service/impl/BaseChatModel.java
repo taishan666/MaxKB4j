@@ -8,8 +8,6 @@ import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.model.chat.response.ChatResponse;
 import lombok.Getter;
 
-import java.util.List;
-
 @Getter
 public class BaseChatModel {
 
@@ -30,8 +28,5 @@ public class BaseChatModel {
         return chatModel.chat(messages);
     }
 
-    public ChatResponse generate(List<ChatMessage> messages) {
-        return chatModel.chat(messages);
-    }
 
 }

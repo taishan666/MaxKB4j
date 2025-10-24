@@ -1,5 +1,6 @@
 package com.tarzan.maxkb4j.core.workflow.handler.node.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
@@ -40,6 +41,10 @@ public class StartNodeHandler implements INodeHandler {
         nodeVariable.put("document", chatParams.getDocumentList());
         nodeVariable.put("audio", chatParams.getAudioList());
         nodeVariable.put("other", chatParams.getOtherList());
+        node.getDetail().put("imageList", JSON.toJSON(chatParams.getImageList()));
+        node.getDetail().put("documentList", JSON.toJSON(chatParams.getDocumentList()));
+        node.getDetail().put("audioList", JSON.toJSON(chatParams.getAudioList()));
+        node.getDetail().put("otherList", JSON.toJSON(chatParams.getOtherList()));
         return new NodeResult(nodeVariable, globalVariable);
     }
 
