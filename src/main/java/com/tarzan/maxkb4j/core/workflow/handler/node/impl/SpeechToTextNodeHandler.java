@@ -35,17 +35,18 @@ public class SpeechToTextNodeHandler implements INodeHandler {
         @SuppressWarnings("unchecked")
         List<ChatFile> audioFiles = (List<ChatFile>) res;
         List<String> content = new ArrayList<>();
-        StringBuilder sb = new StringBuilder();
+        List<String> answerTextList = new ArrayList<>();
         for (ChatFile file: audioFiles) {
             byte[] data = fileService.getBytes(file.getFileId());
             String suffix=file.getName().substring(file.getName().lastIndexOf(".") + 1);
             String result = sttModel.speechToText(data,suffix);
-            sb.append(result);
-            content.add("### combined_audio.mp3\n"+result);
+            answerTextList.add(result);
+            content.add("### "+file.getName()+"\n"+result);
         }
-        String answer=sb.toString();
+        String answer= String.join("\n", answerTextList);
         node.getDetail().put("content", content);
         node.getDetail().put("audioList", audioFiles);
-        return new NodeResult(Map.of("answer", answer,"result", answer), Map.of());
+        node.setAnswerText(answer);
+        return new NodeResult(Map.of("result", answer), Map.of());
     }
 }
