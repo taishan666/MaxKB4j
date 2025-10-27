@@ -14,7 +14,6 @@ import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
 import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
 import com.tarzan.maxkb4j.module.model.info.service.ModelFactory;
 import com.tarzan.maxkb4j.module.model.provider.service.impl.BaseChatModel;
-import com.tarzan.maxkb4j.module.oss.service.MongoFileService;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.model.chat.response.ChatResponse;
 import dev.langchain4j.model.output.TokenUsage;
@@ -25,7 +24,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -39,15 +37,6 @@ public class AiChatNodeHandler implements INodeHandler {
 
     private final ModelFactory modelFactory;
     private final ToolUtil toolUtil;
-    private final MongoFileService fileService;
-
-    private static final Map<String, String> mimeTypeMap = new HashMap<>();
-    static {
-        mimeTypeMap.put("jpg", "image/jpeg");
-        mimeTypeMap.put("jpeg", "image/jpeg");
-        mimeTypeMap.put("png", "image/png");
-        mimeTypeMap.put("gif", "image/gif");
-    }
 
     @Override
     public NodeResult execute(Workflow workflow, INode node) throws Exception {
@@ -73,15 +62,6 @@ public class AiChatNodeHandler implements INodeHandler {
         if (CollectionUtils.isNotEmpty(toolIds)) {
             aiServicesBuilder.tools(toolUtil.getToolMap(toolIds));
         }
-/*        List<Content> contents=new ArrayList<>();
-        for (ChatFile file : workflow.getChatParams().getImageList()) {
-            byte[] bytes = fileService.getBytes(file.getFileId());
-            String base64Data = Base64.getEncoder().encodeToString(bytes);
-            String fileName=file.getName();
-            String extension = fileName.substring(fileName.lastIndexOf('.') + 1).toLowerCase();
-            ImageContent imageContent=ImageContent.from(base64Data,mimeTypeMap.getOrDefault(extension, "image/jpeg"));
-            contents.add(imageContent);
-        }*/
         Assistant assistant = aiServicesBuilder
                 .streamingChatModel(chatModel.getStreamingChatModel())
                 .build();

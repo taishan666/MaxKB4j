@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.tarzan.maxkb4j.common.util.StringUtil;
 import com.tarzan.maxkb4j.core.assistant.Assistant;
 import com.tarzan.maxkb4j.core.langchain4j.AppChatMemory;
+import com.tarzan.maxkb4j.core.tool.MimeTypeUtils;
 import com.tarzan.maxkb4j.core.workflow.Workflow;
 import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;
 import com.tarzan.maxkb4j.core.workflow.model.ChatFile;
@@ -38,14 +39,6 @@ public class ImageUnderstandNodeHandler implements INodeHandler {
     private final MongoFileService fileService;
 
 
-    private static final Map<String, String> mimeTypeMap = new HashMap<>();
-    static {
-        mimeTypeMap.put("jpg", "image/jpeg");
-        mimeTypeMap.put("jpeg", "image/jpeg");
-        mimeTypeMap.put("png", "image/png");
-        mimeTypeMap.put("gif", "image/gif");
-    }
-
     @Override
     public NodeResult execute(Workflow workflow, INode node) throws Exception {
         ImageUnderstandNode.NodeParams nodeParams=node.getNodeData().toJavaObject(ImageUnderstandNode.NodeParams.class);
@@ -63,7 +56,7 @@ public class ImageUnderstandNodeHandler implements INodeHandler {
             String base64Data = Base64.getEncoder().encodeToString(bytes);
             String fileName=file.getName();
             String extension = fileName.substring(fileName.lastIndexOf('.') + 1).toLowerCase();
-            ImageContent imageContent=ImageContent.from(base64Data,mimeTypeMap.getOrDefault(extension, "image/jpeg"));
+            ImageContent imageContent=ImageContent.from(base64Data, MimeTypeUtils.getMimeType( extension));
             contents.add(imageContent);
         }
         AiServices<Assistant> aiServicesBuilder=AiServices.builder(Assistant.class);
