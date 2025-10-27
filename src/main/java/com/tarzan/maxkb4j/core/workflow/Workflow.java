@@ -59,11 +59,11 @@ public class Workflow {
 
     @SuppressWarnings("unchecked")
     private void loadNode(ApplicationChatRecordEntity chatRecord, String startNodeId, Map<String, Object> startNodeData) {
-        List<Map<String,Object>> sortedDetails = chatRecord.getDetails().values().stream()
-                .map(row -> (Map<String,Object>) row)
+        List<Map<String, Object>> sortedDetails = chatRecord.getDetails().values().stream()
+                .map(row -> (Map<String, Object>) row)
                 .sorted(Comparator.comparingInt(e -> (int) e.get("index")))
                 .toList();
-        for (Map<String,Object> nodeDetail : sortedDetails) {
+        for (Map<String, Object> nodeDetail : sortedDetails) {
             String nodeId = (String) nodeDetail.get("nodeId");
             List<String> upNodeIdList = (List<String>) nodeDetail.get("upNodeIdList");
             String runtimeNodeId = (String) nodeDetail.get("runtimeNodeId");
@@ -87,14 +87,14 @@ public class Workflow {
                     startNode.getContext().put("application_node_dict", nodeDetail.get("application_node_dict"));
                 }*/
                 currentNode.setDetail(nodeDetail);
-                currentNode.saveContext(this,nodeDetail);
+                currentNode.saveContext(this, nodeDetail);
                 nodeContext.add(currentNode);
             } else {
                 // 处理普通节点
                 INode node = getNodeClsById(nodeId, upNodeIdList, null);
                 assert node != null;
                 node.setDetail(nodeDetail);
-                node.saveContext(this,nodeDetail);
+                node.saveContext(this, nodeDetail);
                 nodeContext.add(node);
             }
         }
@@ -223,7 +223,7 @@ public class Workflow {
         }
         for (int index = 0; index < nodeContext.size(); index++) {
             INode node = nodeContext.get(index);
-            JSONObject runtimeDetail=new JSONObject();
+            JSONObject runtimeDetail = new JSONObject();
             runtimeDetail.put("nodeId", node.getId());
             runtimeDetail.put("upNodeIdList", node.getUpNodeIdList());
             runtimeDetail.put("runtimeNodeId", node.getRuntimeNodeId());
@@ -282,7 +282,7 @@ public class Workflow {
 
     private boolean dependentNode(String lastNodeId, INode node) {
         if (Objects.equals(lastNodeId, node.getId())) {
-            if (FORM.getKey().equals(node.getType())||USER_SELECT.getKey().equals(node.getType())) {
+            if (FORM.getKey().equals(node.getType()) || USER_SELECT.getKey().equals(node.getType())) {
                 Object formData = node.getContext().get("form_data");
                 return formData != null;
             }
@@ -303,6 +303,18 @@ public class Workflow {
         return upNodeIdList.stream().allMatch(upNodeId ->
                 this.nodeContext.stream().anyMatch(node -> dependentNode(upNodeId, node))
         );
+    }
+
+
+    public Object getFieldValue(Object value, String source) {
+        if ("reference".equals(source)) {
+            if (value instanceof List) {
+                @SuppressWarnings("unchecked")
+                List<String> fields = (List<String>) value;
+                return getReferenceField(fields.get(0), fields.get(1));
+            }
+        }
+        return value;
     }
 
     public Object getReferenceField(String nodeId, String key) {

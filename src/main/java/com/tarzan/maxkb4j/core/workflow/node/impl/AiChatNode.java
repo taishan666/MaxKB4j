@@ -30,7 +30,6 @@ public class AiChatNode extends INode {
 
     @Data
     public static class NodeParams {
-
         private String modelId;
         private String system;
         private String prompt;
