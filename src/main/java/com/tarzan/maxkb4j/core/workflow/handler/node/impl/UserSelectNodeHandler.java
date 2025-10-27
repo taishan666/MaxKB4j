@@ -2,10 +2,10 @@ package com.tarzan.maxkb4j.core.workflow.handler.node.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.common.form.RadioCardFiled;
-import com.tarzan.maxkb4j.core.workflow.INode;
+import com.tarzan.maxkb4j.core.workflow.node.INode;
 import com.tarzan.maxkb4j.core.workflow.Workflow;
 import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;
-import com.tarzan.maxkb4j.core.workflow.node.userselect.impl.UserSelectNode;
+import com.tarzan.maxkb4j.core.workflow.node.impl.UserSelectNode;
 import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
 import org.springframework.stereotype.Component;
 

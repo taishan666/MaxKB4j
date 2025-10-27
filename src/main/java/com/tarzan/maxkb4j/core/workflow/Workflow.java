@@ -7,6 +7,7 @@ import com.tarzan.maxkb4j.core.workflow.enums.DialogueType;
 import com.tarzan.maxkb4j.core.workflow.factory.NodeFactory;
 import com.tarzan.maxkb4j.core.workflow.logic.LfEdge;
 import com.tarzan.maxkb4j.core.workflow.logic.LfNode;
+import com.tarzan.maxkb4j.core.workflow.node.INode;
 import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatRecordEntity;
 import com.tarzan.maxkb4j.module.chat.ChatParams;
@@ -56,15 +57,16 @@ public class Workflow {
     }
 
 
+    @SuppressWarnings("unchecked")
     private void loadNode(ApplicationChatRecordEntity chatRecord, String startNodeId, Map<String, Object> startNodeData) {
-        List<JSONObject> sortedDetails = chatRecord.getDetails().values().stream()
-                .map(row -> (JSONObject) row)
-                .sorted(Comparator.comparingInt(e -> e.getIntValue("index")))
+        List<Map<String,Object>> sortedDetails = chatRecord.getDetails().values().stream()
+                .map(row -> (Map<String,Object>) row)
+                .sorted(Comparator.comparingInt(e -> (int) e.get("index")))
                 .toList();
-        for (JSONObject nodeDetail : sortedDetails) {
-            String nodeId = nodeDetail.getString("nodeId");
-            List<String> upNodeIdList = nodeDetail.getJSONArray("upNodeIdList").toJavaList(String.class);
-            String runtimeNodeId = nodeDetail.getString("runtimeNodeId");
+        for (Map<String,Object> nodeDetail : sortedDetails) {
+            String nodeId = (String) nodeDetail.get("nodeId");
+            List<String> upNodeIdList = (List<String>) nodeDetail.get("upNodeIdList");
+            String runtimeNodeId = (String) nodeDetail.get("runtimeNodeId");
             if (runtimeNodeId.equals(startNodeId)) {
                 // 处理起始节点
                 this.currentNode = getNodeClsById(

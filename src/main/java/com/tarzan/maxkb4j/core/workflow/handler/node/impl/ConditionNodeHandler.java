@@ -1,13 +1,11 @@
 package com.tarzan.maxkb4j.core.workflow.handler.node.impl;
 
-import com.tarzan.maxkb4j.core.workflow.INode;
+import com.tarzan.maxkb4j.core.workflow.node.INode;
 import com.tarzan.maxkb4j.core.workflow.Workflow;
+import com.tarzan.maxkb4j.core.workflow.compare.Compare;
+import com.tarzan.maxkb4j.core.workflow.compare.impl.*;
 import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;
-import com.tarzan.maxkb4j.core.workflow.node.condition.compare.Compare;
-import com.tarzan.maxkb4j.core.workflow.node.condition.compare.impl.*;
-import com.tarzan.maxkb4j.core.workflow.node.condition.input.Condition;
-import com.tarzan.maxkb4j.core.workflow.node.condition.input.ConditionBranch;
-import com.tarzan.maxkb4j.core.workflow.node.condition.input.ConditionNodeParams;
+import com.tarzan.maxkb4j.core.workflow.node.impl.ConditionNode;
 import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
 import org.springframework.stereotype.Component;
 
@@ -39,14 +37,14 @@ public class ConditionNodeHandler implements INodeHandler {
 
     @Override
     public NodeResult execute(Workflow workflow, INode node) throws Exception {
-        ConditionNodeParams nodeParams= node.getNodeData().toJavaObject(ConditionNodeParams.class);
-        ConditionBranch branch = _execute(workflow,nodeParams.getBranch());
+        ConditionNode.NodeParams nodeParams= node.getNodeData().toJavaObject(ConditionNode.NodeParams.class);
+        ConditionNode.Branch branch = _execute(workflow,nodeParams.getBranch());
         assert branch != null;
         return new NodeResult(Map.of("branchId", branch.getId(), "branchName", branch.getType()), Map.of());
     }
 
-    private ConditionBranch _execute(Workflow workflow,List<ConditionBranch> branchList) {
-        for (ConditionBranch branch : branchList) {
+    private ConditionNode.Branch _execute(Workflow workflow,List<ConditionNode.Branch> branchList) {
+        for (ConditionNode.Branch branch : branchList) {
             if (branchAssertion(workflow,branch)) {
                 return branch;
             }
@@ -54,11 +52,11 @@ public class ConditionNodeHandler implements INodeHandler {
         return null; // In case no branch matches the assertion.
     }
 
-    private boolean branchAssertion(Workflow workflow,ConditionBranch branch) {
-        List<Condition> conditions = branch.getConditions();
+    private boolean branchAssertion(Workflow workflow,ConditionNode.Branch branch) {
+        List<ConditionNode.Condition> conditions = branch.getConditions();
         String conditionType = branch.getCondition();
         boolean result = conditionType.equals("and");
-        for (Condition row : conditions) {
+        for (ConditionNode.Condition row : conditions) {
             boolean conditionResult = assertion(workflow,row.getField(),
                     row.getCompare(),
                     row.getValue());

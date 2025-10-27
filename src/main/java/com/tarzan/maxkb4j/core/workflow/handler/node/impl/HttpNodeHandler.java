@@ -6,10 +6,10 @@ import cn.hutool.http.HttpUtil;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.common.util.StringUtil;
-import com.tarzan.maxkb4j.core.workflow.INode;
+import com.tarzan.maxkb4j.core.workflow.node.INode;
 import com.tarzan.maxkb4j.core.workflow.Workflow;
 import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;
-import com.tarzan.maxkb4j.core.workflow.node.http.impl.HttpNode;
+import com.tarzan.maxkb4j.core.workflow.node.impl.HttpNode;
 import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
 import org.springframework.stereotype.Component;
 

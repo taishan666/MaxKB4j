@@ -1,10 +1,10 @@
 package com.tarzan.maxkb4j.core.workflow.handler.node.impl;
 
 import com.alibaba.fastjson.JSONObject;
-import com.tarzan.maxkb4j.core.workflow.INode;
+import com.tarzan.maxkb4j.core.workflow.node.INode;
 import com.tarzan.maxkb4j.core.workflow.Workflow;
 import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;
-import com.tarzan.maxkb4j.core.workflow.node.formcollect.impl.FormNode;
+import com.tarzan.maxkb4j.core.workflow.node.impl.FormNode;
 import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
 import dev.langchain4j.model.input.PromptTemplate;
 import org.springframework.stereotype.Component;
