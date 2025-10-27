@@ -21,9 +21,6 @@ public class ToolNodeHandler implements INodeHandler {
     public NodeResult execute(Workflow workflow, INode node) throws Exception {
         ToolNode.NodeParams nodeParams = node.getNodeData().toJavaObject(ToolNode.NodeParams.class);
         Map<String, Object> params = new HashMap<>(5);
-        if(nodeParams.getInitParams()!=null){
-            params.putAll(nodeParams.getInitParams());
-        }
         if (!CollectionUtils.isEmpty(nodeParams.getInputFieldList())) {
             for (ToolInputField inputField : nodeParams.getInputFieldList()) {
                 Object value = workflow.getFieldValue(inputField.getValue(), inputField.getSource());

@@ -33,7 +33,6 @@ public class ImageGenerateNode extends INode {
         private Integer dialogueNumber;
         private String dialogueType;
         private JSONObject modelParamsSetting;
-        private List<String> imageList;
     }
 
 
