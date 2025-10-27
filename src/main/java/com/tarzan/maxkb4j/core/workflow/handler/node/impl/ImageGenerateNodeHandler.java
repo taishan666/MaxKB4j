@@ -29,7 +29,7 @@ public class ImageGenerateNodeHandler implements INodeHandler {
         String negativePrompt=nodeParams.getNegativePrompt();
         JSONObject modelParamsSetting=nodeParams.getModelParamsSetting();
         if (modelParamsSetting!=null){
-            modelParamsSetting.put("negative_prompt",negativePrompt);
+            modelParamsSetting.put("negativePrompt",negativePrompt);
         }
         StringBuilder answerSb=new StringBuilder();
         List<String> imageUrls = new ArrayList<>();
