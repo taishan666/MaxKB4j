@@ -17,6 +17,7 @@ import com.tarzan.maxkb4j.module.application.domian.dto.ApplicationQuery;
 import com.tarzan.maxkb4j.module.application.domian.dto.EmbedDTO;
 import com.tarzan.maxkb4j.module.application.domian.dto.MaxKb4J;
 import com.tarzan.maxkb4j.module.application.domian.entity.*;
+import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationListVo;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationVO;
 import com.tarzan.maxkb4j.module.application.enums.AppType;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatMapper;
@@ -205,7 +206,6 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     }
 
 
-    //todo 封装
     public ApplicationVO wrapVo(ApplicationVO vo) {
         List<String> knowledgeIds = knowledgeMappingService.getKnowledgeIdsByAppId(vo.getId());
         vo.setKnowledgeIdList(knowledgeIds);
@@ -220,25 +220,6 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
             if (nodes != null) {
                 for (int i = 0; i < nodes.size(); i++) {
                     JSONObject node = nodes.getJSONObject(i);
-           /*         if (BASE.getKey().equals(node.getString("type"))) {
-                        JSONObject baseNodeProperties = node.getJSONObject("properties"); // 假设每个节点都有 id 字段
-                        if (baseNodeProperties != null) {
-                            JSONObject nodeData = baseNodeProperties.getJSONObject("nodeData");
-                            boolean fileUploadEnable = nodeData.getBooleanValue("fileUploadEnable");
-                            vo.setFileUploadEnable(fileUploadEnable);
-                            JSONObject fileUploadSetting = nodeData.getJSONObject("fileUploadSetting");
-                            vo.setFileUploadSetting(fileUploadSetting);
-                            boolean ttsModelEnable = nodeData.getBooleanValue("ttsModelEnable");
-                            vo.setTtsModelEnable(ttsModelEnable);
-                            boolean ttsAutoplay = nodeData.getBooleanValue("ttsAutoplay");
-                            vo.setTtsAutoplay(ttsAutoplay);
-                            boolean sttModelEnable = nodeData.getBooleanValue("sttModelEnable");
-                            vo.setSttModelEnable(sttModelEnable);
-                            boolean sttAutoSend = nodeData.getBooleanValue("sttAutoSend");
-                            vo.setSttAutoSend(sttAutoSend);
-                            vo.setFileUploadSetting(fileUploadSetting);
-                        }
-                    }*/
                     if (SEARCH_KNOWLEDGE.getKey().equals(node.getString("type"))) {
                         JSONObject properties = node.getJSONObject("properties"); // 假设每个节点都有 id 字段
                         if (properties != null) {
@@ -289,7 +270,6 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         if (workFlow!=null && workFlow.containsKey("nodes")) {
             JSONArray nodes = workFlow.getJSONArray("nodes");
             if (nodes != null) {
-              //  JSONObject baseNode = nodes.stream().map(node -> (JSONObject) node).filter(node -> BASE.getKey().equals(node.getString("type"))).findAny().orElse(null);
                 @SuppressWarnings("unchecked")
                 JSONObject baseNode = nodes.stream()
                         .filter(node -> node instanceof Map)
@@ -449,8 +429,13 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         return content;
     }
 
-    //todo 权限
-    public List<ApplicationEntity> listApps(String folderId) {
-        return this.lambdaQuery().eq(ApplicationEntity::getFolderId, folderId).eq(ApplicationEntity::getIsPublish, true).list();
+    public List<ApplicationListVo> listApps(String folderId) {
+        String userId = StpUtil.getLoginIdAsString();
+        List<String> targetIds = userResourcePermissionService.getTargetIds(AuthTargetType.APPLICATION, userId, folderId);
+        if (targetIds.isEmpty()){
+            return new ArrayList<>();
+        }
+        List<ApplicationEntity> list= this.lambdaQuery().in(ApplicationEntity::getId, targetIds).eq(ApplicationEntity::getIsPublish, true).list();
+        return BeanUtil.copyList(list, ApplicationListVo.class);
     }
 }

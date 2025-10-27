@@ -5,6 +5,8 @@ import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.Workflow;
 import lombok.Data;
 
+import java.util.Map;
+
 import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.IMAGE_GENERATE;
 
 public class ImageGenerateNode extends INode {
@@ -17,7 +19,7 @@ public class ImageGenerateNode extends INode {
 
 
     @Override
-    public void saveContext(Workflow workflow, JSONObject detail) {
+    public void saveContext(Workflow workflow, Map<String, Object> detail) {
         context.put("answer", detail.get("answer"));
         context.put("image", detail.get("image"));
     }

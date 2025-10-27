@@ -24,7 +24,7 @@ public abstract class INode {
     private String viewType;
     private JSONObject properties;
     protected Map<String, Object> context;
-    protected JSONObject detail;
+    protected Map<String, Object> detail;
     private List<String> upNodeIdList;
     private String runtimeNodeId;
     private String answerText;
@@ -32,7 +32,7 @@ public abstract class INode {
 
     public INode(JSONObject properties) {
         this.context = new HashMap<>(10);
-        this.detail = new JSONObject();
+        this.detail = new HashMap<>(10);
         this.upNodeIdList = new ArrayList<>();
         this.properties = properties;
         this.viewType = "many_view";
@@ -53,9 +53,9 @@ public abstract class INode {
     }
 
 
-    protected abstract void saveContext(Workflow workflow,JSONObject detail);
+    protected abstract void saveContext(Workflow workflow,Map<String, Object> detail);
 
-    public JSONObject executeDetail() {
+    public Map<String, Object> executeDetail() {
         return detail;
     }
 

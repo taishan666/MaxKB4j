@@ -7,6 +7,7 @@ import com.tarzan.maxkb4j.module.tool.domain.dto.ToolInputField;
 import lombok.Data;
 
 import java.util.List;
+import java.util.Map;
 
 import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.TOOL;
 
@@ -18,12 +19,12 @@ public class ToolNode extends INode {
 
 
     @Override
-    public void saveContext(Workflow workflow, JSONObject detail) {
+    public void saveContext(Workflow workflow, Map<String, Object> detail) {
         context.put("result", detail.get("result"));
     }
 
     @Data
-    public class NodeParams {
+    public static class NodeParams {
         private List<ToolInputField> inputFieldList;
         private String code;
     }

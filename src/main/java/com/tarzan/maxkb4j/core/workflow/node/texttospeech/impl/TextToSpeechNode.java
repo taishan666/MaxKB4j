@@ -6,6 +6,7 @@ import com.tarzan.maxkb4j.core.workflow.Workflow;
 import lombok.Data;
 
 import java.util.List;
+import java.util.Map;
 
 import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.TEXT_TO_SPEECH;
 
@@ -20,12 +21,12 @@ public class TextToSpeechNode extends INode {
 
 
     @Override
-    public void saveContext(Workflow workflow, JSONObject detail) {
+    public void saveContext(Workflow workflow, Map<String, Object> detail) {
         context.put("result", detail.get("result"));
     }
 
     @Data
-    public class NodeParams {
+    public static class NodeParams {
         private String ttsModelId;
         private List<String> contentList;
         private JSONObject modelParamsSetting;

@@ -6,6 +6,7 @@ import com.tarzan.maxkb4j.core.workflow.Workflow;
 import lombok.Data;
 
 import java.util.List;
+import java.util.Map;
 
 import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.PARAMETER_EXTRACTION;
 
@@ -17,7 +18,7 @@ public class ParameterExtractionNode extends INode {
     }
 
     @Override
-    public void saveContext(Workflow workflow, JSONObject detail) {
+    public void saveContext(Workflow workflow, Map<String, Object> detail) {
         context.put("result", detail.get("result"));
     }
 

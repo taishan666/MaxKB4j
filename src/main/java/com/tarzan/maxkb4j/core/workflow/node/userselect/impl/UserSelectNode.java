@@ -6,6 +6,7 @@ import com.tarzan.maxkb4j.core.workflow.Workflow;
 import lombok.Data;
 
 import java.util.List;
+import java.util.Map;
 
 import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.USER_SELECT;
 
@@ -17,7 +18,7 @@ public class UserSelectNode extends INode {
     }
 
     @Override
-    protected void saveContext(Workflow workflow, JSONObject detail) {
+    protected void saveContext(Workflow workflow, Map<String, Object> detail) {
 
     }
 

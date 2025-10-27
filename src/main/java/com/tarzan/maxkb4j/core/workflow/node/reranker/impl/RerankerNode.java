@@ -22,7 +22,7 @@ public class RerankerNode extends INode {
 
 
     @Override
-    public void saveContext(Workflow workflow, JSONObject detail) {
+    public void saveContext(Workflow workflow, Map<String, Object> detail) {
         context.put("result", detail.get("result"));
         context.put("resultList", detail.get("resultList"));
     }

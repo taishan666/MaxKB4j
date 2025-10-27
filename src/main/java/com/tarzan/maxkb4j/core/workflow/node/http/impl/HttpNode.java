@@ -8,6 +8,8 @@ import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.Workflow;
 import lombok.Data;
 
+import java.util.Map;
+
 import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.HTTP_CLIENT;
 
 public class HttpNode extends INode {
@@ -20,7 +22,7 @@ public class HttpNode extends INode {
 
 
     @Override
-    protected void saveContext(Workflow workflow, JSONObject detail) {
+    protected void saveContext(Workflow workflow, Map<String, Object> detail) {
         context.put("status",detail.get("status"));
         context.put("body",detail.get("body"));
     }

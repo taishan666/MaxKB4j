@@ -9,6 +9,7 @@ import com.tarzan.maxkb4j.module.application.domian.dto.ApplicationAccessTokenDT
 import com.tarzan.maxkb4j.module.application.domian.dto.ApplicationQuery;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationAccessTokenEntity;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationEntity;
+import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationListVo;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationVO;
 import com.tarzan.maxkb4j.module.application.domian.vo.McpToolVO;
 import com.tarzan.maxkb4j.module.application.service.ApplicationService;
@@ -38,7 +39,7 @@ public class ApplicationController {
     private final ApplicationService applicationService;
 
     @GetMapping("/application")
-    public R<List<ApplicationEntity>> listApps(String folderId) {
+    public R<List<ApplicationListVo>> listApps(String folderId) {
         return R.success(applicationService.listApps(folderId));
     }
 

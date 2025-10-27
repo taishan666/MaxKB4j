@@ -19,12 +19,12 @@ public class ToolLibNode extends INode {
 
 
     @Override
-    public void saveContext(Workflow workflow, JSONObject detail) {
+    public void saveContext(Workflow workflow, Map<String, Object> detail) {
         context.put("result", detail.get("result"));
     }
 
     @Data
-    public class NodeParams {
+    public static class NodeParams {
         private List<ToolInputField> inputFieldList;
         private String code;
         private Map<String,Object> initParams;

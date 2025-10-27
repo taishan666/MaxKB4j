@@ -18,7 +18,7 @@ public class VariableAssignNode extends INode {
 
 
     @Override
-    public void saveContext(Workflow workflow, JSONObject detail) {
+    public void saveContext(Workflow workflow, Map<String, Object> detail) {
         context.put("variableList", detail.get("variableList"));
         context.put("resultList", detail.get("resultList"));
     }

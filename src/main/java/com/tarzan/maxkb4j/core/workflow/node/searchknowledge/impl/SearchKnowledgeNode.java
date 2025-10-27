@@ -7,6 +7,7 @@ import com.tarzan.maxkb4j.module.application.domian.entity.KnowledgeSetting;
 import lombok.Data;
 
 import java.util.List;
+import java.util.Map;
 
 import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.SEARCH_KNOWLEDGE;
 
@@ -23,7 +24,7 @@ public class SearchKnowledgeNode extends INode {
 
 
     @Override
-    public void saveContext(Workflow workflow, JSONObject detail) {
+    public void saveContext(Workflow workflow, Map<String, Object> detail) {
         context.put("paragraphList", detail.get("paragraphList"));
         context.put("isHitHandlingMethodList", detail.get("isHitHandlingMethodList"));
         context.put("data", detail.get("data"));

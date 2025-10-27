@@ -6,6 +6,7 @@ import com.tarzan.maxkb4j.core.workflow.Workflow;
 import lombok.Data;
 
 import java.util.List;
+import java.util.Map;
 
 import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.DOCUMENT_EXTRACT;
 
@@ -21,7 +22,7 @@ public class DocumentExtractNode extends INode {
 
 
     @Override
-    public void saveContext(Workflow workflow, JSONObject detail) {
+    public void saveContext(Workflow workflow, Map<String, Object> detail) {
         @SuppressWarnings("unchecked")
         List<String> content= (List<String>) detail.get("content");
         context.put("content", String.join(splitter, content));
@@ -30,7 +31,7 @@ public class DocumentExtractNode extends INode {
 
 
     @Override
-    public JSONObject executeDetail() {
+    public Map<String, Object> executeDetail() {
         String content = (String) context.getOrDefault("content","");
         detail.put("content", content.split(splitter));
         return detail;

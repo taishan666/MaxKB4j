@@ -5,6 +5,8 @@ import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.workflow.INode;
 import com.tarzan.maxkb4j.core.workflow.Workflow;
 
+import java.util.Map;
+
 import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.START;
 
 public class StartNode extends INode {
@@ -17,20 +19,20 @@ public class StartNode extends INode {
 
 
     @Override
-    public void saveContext(Workflow workflow,JSONObject detail) {
+    public void saveContext(Workflow workflow, Map<String, Object> detail) {
         context.put("question", detail.get("question"));
         context.put("image", detail.get("image"));
         context.put("document", detail.get("document"));
         context.put("audio", detail.get("audio"));
         context.put("other", detail.get("other"));
-        JSONArray globalFields=detail.getJSONArray("globalFields");
+        JSONArray globalFields= (JSONArray) detail.get("globalFields");
         for (int i = 0; i < globalFields.size(); i++) {
             JSONObject globalField=globalFields.getJSONObject(i);
             String key=globalField.getString("key");
             Object value=globalField.get("value");
             workflow.getContext().put(key, value);
         }
-        JSONArray chatFields=detail.getJSONArray("chatFields");
+        JSONArray chatFields= (JSONArray) detail.get("chatFields");
         for (int i = 0; i < chatFields.size(); i++) {
             JSONObject chatField=chatFields.getJSONObject(i);
             String key=chatField.getString("key");
@@ -40,7 +42,7 @@ public class StartNode extends INode {
     }
 
     @Override
-    public JSONObject executeDetail() {
+    public Map<String, Object> executeDetail() {
         JSONObject config=super.getProperties().getJSONObject("config");
         JSONArray globalFields=config.getJSONArray("globalFields");
         for (int i = 0; i < globalFields.size(); i++) {
