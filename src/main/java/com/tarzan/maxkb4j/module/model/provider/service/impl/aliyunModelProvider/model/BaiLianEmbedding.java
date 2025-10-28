@@ -12,6 +12,7 @@ public class BaiLianEmbedding implements BaseModel<EmbeddingModel> {
         return  QwenEmbeddingModel.builder()
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
+                .dimension(params.getInteger("dimension"))
                 .build();
     }
 }
