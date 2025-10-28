@@ -229,7 +229,6 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
                             List<KnowledgeEntity> knowledgeList = vo.getKnowledgeList().stream().filter(k -> knowledgeIdList.contains(k.getId())).toList();
                             nodeData.put("knowledgeList", knowledgeList);
                         }
-                        break;
                     }
                 }
             }

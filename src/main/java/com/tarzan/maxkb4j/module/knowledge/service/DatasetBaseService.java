@@ -17,6 +17,9 @@ public class DatasetBaseService {
     @Cacheable(cacheNames = "dataset_embedding_model", key = "#knowledgeId")
     public EmbeddingModel getDatasetEmbeddingModel(String knowledgeId){
         KnowledgeEntity dataset=datasetMapper.selectById(knowledgeId);
+        if (dataset==null){
+            throw new RuntimeException("数据集不存在");
+        }
         return modelFactory.build(dataset.getEmbeddingModelId());
     }
 
