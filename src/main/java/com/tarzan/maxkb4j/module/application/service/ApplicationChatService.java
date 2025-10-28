@@ -140,18 +140,6 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
     }
 
 
-/*    public List<ChatFile> uploadFile(String id, String chatId, MultipartFile[] files) {
-        List<ChatFile> fileList = new ArrayList<>();
-        for (MultipartFile file : files) {
-            try {
-                fileList.add(fileService.uploadFile(file));
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
-        return fileList;
-    }*/
-
     public void chatExport(List<String> ids, HttpServletResponse response) throws IOException {
         List<ChatRecordDetailVO> rows = baseMapper.chatRecordDetail(ids);
         EasyExcel.write(response.getOutputStream(), ChatRecordDetailVO.class).sheet("sheet").doWrite(rows);
