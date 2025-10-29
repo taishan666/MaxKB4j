@@ -4,7 +4,7 @@ import dev.langchain4j.service.Result;
 import dev.langchain4j.service.UserMessage;
 import dev.langchain4j.service.V;
 
-public interface CompressingQueryTransformer {
+public interface CompressingQueryAssistant {
 
     @UserMessage("""
                     Read and understand the conversation between the User and the AI. \
