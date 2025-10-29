@@ -1,13 +1,12 @@
 package com.tarzan.maxkb4j.core.workflow.handler.node.impl;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
-import com.tarzan.maxkb4j.core.workflow.node.INode;
 import com.tarzan.maxkb4j.core.workflow.Workflow;
 import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;
 import com.tarzan.maxkb4j.core.workflow.model.ChatRecordSimple;
+import com.tarzan.maxkb4j.core.workflow.node.INode;
 import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
 import com.tarzan.maxkb4j.module.application.cache.ChatCache;
 import com.tarzan.maxkb4j.module.application.domian.dto.ChatInfo;
@@ -41,10 +40,6 @@ public class StartNodeHandler implements INodeHandler {
         nodeVariable.put("document", chatParams.getDocumentList());
         nodeVariable.put("audio", chatParams.getAudioList());
         nodeVariable.put("other", chatParams.getOtherList());
-        node.getDetail().put("imageList", JSON.toJSON(chatParams.getImageList()));
-        node.getDetail().put("documentList", JSON.toJSON(chatParams.getDocumentList()));
-        node.getDetail().put("audioList", JSON.toJSON(chatParams.getAudioList()));
-        node.getDetail().put("otherList", JSON.toJSON(chatParams.getOtherList()));
         return new NodeResult(nodeVariable, globalVariable);
     }
 
@@ -71,7 +66,6 @@ public class StartNodeHandler implements INodeHandler {
         return list;
     }
 
-    //todo 获取会话变量
     private Map<String, Object> getChatVariable(INode node,String chatId) {
         Map<String, Object> resultMap = new HashMap<>();
         //更新会话变量
@@ -83,11 +77,10 @@ public class StartNodeHandler implements INodeHandler {
             if (chatFields!=null){
                 for (int i = 0; i < chatFields.size(); i++) {
                     JSONObject chatField=chatFields.getJSONObject(i);
-                    String key=chatField.getString("key");
+                    String key=chatField.getString("value");
                     resultMap.put(key, chatVariable.getOrDefault(key, "None"));
                 }
             }
-
         }
         return resultMap;
     }

@@ -187,7 +187,7 @@ public class Workflow {
         return null;
     }
 
-    public Map<String, Object> getPromptVariables() {
+    private Map<String, Object> getPromptVariables() {
         Map<String, Object> result = new HashMap<>(100);
         for (String key : context.keySet()) {
             result.put("global." + key, context.get(key));

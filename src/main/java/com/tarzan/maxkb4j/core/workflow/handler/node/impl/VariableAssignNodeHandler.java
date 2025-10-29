@@ -5,6 +5,8 @@ import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;
 import com.tarzan.maxkb4j.core.workflow.node.INode;
 import com.tarzan.maxkb4j.core.workflow.node.impl.VariableAssignNode;
 import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
+import com.tarzan.maxkb4j.module.application.cache.ChatCache;
+import com.tarzan.maxkb4j.module.application.domian.dto.ChatInfo;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
@@ -31,6 +33,9 @@ public class VariableAssignNodeHandler implements INodeHandler {
             }
             if ("chat".equals(scope) ){
                 resultList.add(getChatHandleResult(workflow,variable,fields));
+                //更新会话变量
+                ChatInfo chatInfo = ChatCache.get(workflow.getChatParams().getChatId());
+                chatInfo.getChatVariables().putAll(workflow.getChatContext());
             }
         }
         node.getDetail().put("resultList",resultList);
