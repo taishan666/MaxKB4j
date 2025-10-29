@@ -11,7 +11,7 @@ public enum ModelType {
 
 
     LLM("LLM", "大语言模型"),
-    EMBEDDING("LLM", "向量模型"),
+    EMBEDDING("EMBEDDING", "向量模型"),
     STT("STT", "语音识别"),
     TTS("TTS", "语音合成"),
     IMAGE("IMAGE", "图片理解"),

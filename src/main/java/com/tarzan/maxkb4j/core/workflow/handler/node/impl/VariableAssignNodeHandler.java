@@ -1,12 +1,10 @@
 package com.tarzan.maxkb4j.core.workflow.handler.node.impl;
 
-import com.tarzan.maxkb4j.core.workflow.node.INode;
 import com.tarzan.maxkb4j.core.workflow.Workflow;
 import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;
+import com.tarzan.maxkb4j.core.workflow.node.INode;
 import com.tarzan.maxkb4j.core.workflow.node.impl.VariableAssignNode;
 import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
-import com.tarzan.maxkb4j.module.application.cache.ChatCache;
-import com.tarzan.maxkb4j.module.application.domian.dto.ChatInfo;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
@@ -18,9 +16,6 @@ public class VariableAssignNodeHandler implements INodeHandler {
     public NodeResult execute(Workflow workflow, INode node) throws Exception {
         VariableAssignNode.NodeParams nodeParams = node.getNodeData().toJavaObject(VariableAssignNode.NodeParams.class);
         List<Map<String, Object>> resultList = new ArrayList<>();
-        if (nodeParams.getVariableList() == null) {
-            return new NodeResult(Map.of("variableList", Collections.emptyList(), "resultList", resultList), Map.of());
-        }
         for (Map<String, Object> variable : nodeParams.getVariableList()) {
             if (variable == null || !variable.containsKey("fields")) {
                 continue;
@@ -32,30 +27,40 @@ public class VariableAssignNodeHandler implements INodeHandler {
             }
             String scope = fields.get(0);
             if ("global".equals(scope) ){
-                resultList.add(getHandleResult(workflow,variable,fields));
+                resultList.add(getGlobalHandleResult(workflow,variable,fields));
             }
             if ("chat".equals(scope) ){
-                resultList.add(getHandleResult(workflow,variable,fields));
-                //更新会话变量
-                ChatInfo chatInfo = ChatCache.get(workflow.getChatParams().getChatId());
-                chatInfo.getChatVariables().putAll(workflow.getFlowVariables().get(scope));
+                resultList.add(getChatHandleResult(workflow,variable,fields));
             }
         }
-        return new NodeResult(Map.of("variableList",nodeParams.getVariableList(),"resultList",resultList),Map.of());
+        node.getDetail().put("resultList",resultList);
+        return new NodeResult(Map.of(),Map.of());
     }
 
-    private Map<String, Object> getHandleResult(Workflow workflow,Map<String, Object> variable,List<String> fields){
-        String scope = fields.get(0);
+    private Map<String, Object> getGlobalHandleResult(Workflow workflow,Map<String, Object> variable,List<String> fields){
         String varName = fields.get(1);
         // 获取 input_value（原始引用内容）
         String inputValue = getReferenceContent(workflow,fields);
         // 解析 value
         Object value = resolveValue(workflow,variable);
-        // 更新 flowVariables
-        Map<String, Object> scopeMap = workflow.getFlowVariables().get(scope);
-        if (scopeMap != null) {
-            scopeMap.put(varName, value);
-        }
+        // 更新 global 变量
+        workflow.getContext().put(varName,value);
+        // 构建 result
+        Map<String, Object> result = new HashMap<>();
+        result.put("name", variable.get("name"));
+        result.put("input_value", inputValue);
+        result.put("output_value", value);
+        return result;
+    }
+
+    private Map<String, Object> getChatHandleResult(Workflow workflow,Map<String, Object> variable,List<String> fields){
+        String varName = fields.get(1);
+        // 获取 input_value（原始引用内容）
+        String inputValue = getReferenceContent(workflow,fields);
+        // 解析 value
+        Object value = resolveValue(workflow,variable);
+        // 更新 chat变量
+        workflow.getChatContext().put(varName,value);
         // 构建 result
         Map<String, Object> result = new HashMap<>();
         result.put("name", variable.get("name"));

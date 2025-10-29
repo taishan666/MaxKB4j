@@ -205,7 +205,7 @@ public class Workflow {
         return result;
     }
 
-    public Map<String, Map<String, Object>> getFlowVariables() {
+    private Map<String, Map<String, Object>> getFlowVariables() {
         Map<String, Map<String, Object>> result = new HashMap<>(100);
         result.put("global", context);
         result.put("chat", chatContext);
@@ -322,31 +322,26 @@ public class Workflow {
         return nodeVariable.get(key);
     }
 
+
     public String generatePrompt(String prompt) {
         if (StringUtils.isBlank(prompt)) {
             return "";
         }
-        Set<String> extractVariables = extractVariables(prompt);
-        if (!getPromptVariables().isEmpty()) {
-            Map<String, Object> variables = new HashMap<>();
-            for (String promptVariable : extractVariables) {
-                variables.put(promptVariable, getPromptVariables().getOrDefault(promptVariable, "*"));
-            }
-            PromptTemplate promptTemplate = PromptTemplate.from(prompt);
-            return promptTemplate.apply(variables).text();
-        }
-        return prompt;
+        Map<String, Object> variables = getPromptVariables();
+        PromptTemplate promptTemplate = PromptTemplate.from(prompt);
+        return promptTemplate.apply(variables).text();
     }
 
-    public Set<String> extractVariables(String template) {
-        Pattern VARIABLE_PATTERN = Pattern.compile("\\{\\{(.+?)\\}\\}");
-        Set<String> variables = new HashSet<>();
-        Matcher matcher = VARIABLE_PATTERN.matcher(template);
-        while (matcher.find()) {
-            variables.add(matcher.group(1));
+    public String generatePrompt(String prompt, Map<String, Object> addVariables) {
+        if (StringUtils.isBlank(prompt)) {
+            return "";
         }
-        return variables;
+        Map<String, Object> variables = new HashMap<>(getPromptVariables());
+        variables.putAll(addVariables);
+        PromptTemplate promptTemplate = PromptTemplate.from(prompt);
+        return promptTemplate.apply(variables).text();
     }
+
 
     public List<ChatMessage> getHistoryMessages(int dialogueNumber, String dialogueType, String runtimeNodeId) {
         List<ChatMessage> historyMessages;

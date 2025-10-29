@@ -33,7 +33,7 @@ public class StartNodeHandler implements INodeHandler {
         // 合并全局变量
         globalVariable.putAll(chatParams.getFormData());
         //会话变量
-        workflow.getFlowVariables().get("chat").putAll(getChatVariable(node,chatParams.getChatId()));
+        workflow.getChatContext().putAll(getChatVariable(node,chatParams.getChatId()));
         // 构建节点变量
         Map<String, Object> nodeVariable =new HashMap<>();
         nodeVariable.put("question", chatParams.getMessage());
@@ -71,6 +71,7 @@ public class StartNodeHandler implements INodeHandler {
         return list;
     }
 
+    //todo 获取会话变量
     private Map<String, Object> getChatVariable(INode node,String chatId) {
         Map<String, Object> resultMap = new HashMap<>();
         //更新会话变量
