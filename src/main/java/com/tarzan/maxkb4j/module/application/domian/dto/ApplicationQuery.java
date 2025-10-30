@@ -8,4 +8,5 @@ public class ApplicationQuery {
     private String publishStatus;
     private String createUser;
     private String folderId;
+    private String type;
 }

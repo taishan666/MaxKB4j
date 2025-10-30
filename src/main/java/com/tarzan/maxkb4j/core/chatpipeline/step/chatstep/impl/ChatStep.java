@@ -4,16 +4,14 @@ import com.alibaba.excel.util.StringUtils;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.assistant.Assistant;
-import com.tarzan.maxkb4j.core.langchain4j.AppChatMemory;
 import com.tarzan.maxkb4j.core.chatpipeline.PipelineManage;
 import com.tarzan.maxkb4j.core.chatpipeline.step.chatstep.IChatStep;
-import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatUserStatsEntity;
+import com.tarzan.maxkb4j.core.langchain4j.AppChatMemory;
 import com.tarzan.maxkb4j.module.application.domian.entity.KnowledgeSetting;
 import com.tarzan.maxkb4j.module.application.domian.entity.NoReferencesSetting;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationVO;
 import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
 import com.tarzan.maxkb4j.module.application.enums.AIAnswerType;
-import com.tarzan.maxkb4j.module.application.service.ApplicationChatUserStatsService;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.ParagraphVO;
 import com.tarzan.maxkb4j.module.model.info.service.ModelFactory;
 import com.tarzan.maxkb4j.module.model.provider.service.impl.BaseChatModel;
@@ -43,7 +41,6 @@ import java.util.concurrent.atomic.AtomicReference;
 public class ChatStep extends IChatStep {
 
     private final ModelFactory modelFactory;
-    private final ApplicationChatUserStatsService publicAccessClientService;
 
     @Override
     protected String execute(PipelineManage manage) {
@@ -119,10 +116,9 @@ public class ChatStep extends IChatStep {
                             .onCompleteResponse(response -> {
                                 answerText.set(response.aiMessage().text());
                                 TokenUsage tokenUsage = response.tokenUsage();
-                                context.put("message_list", resetMessageList(historyMessages));
+                                context.put("message_list", resetMessageToJSON(historyMessages));
                                 context.put("messageTokens", tokenUsage.inputTokenCount());
                                 context.put("answerTokens", tokenUsage.outputTokenCount());
-                                addAccessNum(chatUserId, chatUserType);
                                 sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, "", "", "ai-chat-node", viewType, true));
                                 futureChatResponse.complete(response);// 完成后释放线程
                             })
@@ -139,7 +135,7 @@ public class ChatStep extends IChatStep {
     }
 
 
-    public JSONArray resetMessageList(List<ChatMessage> historyMessages) {
+    public JSONArray resetMessageToJSON(List<ChatMessage> historyMessages) {
         if (CollectionUtils.isEmpty(historyMessages)) {
             return new JSONArray();
         }
@@ -176,15 +172,6 @@ public class ChatStep extends IChatStep {
     }
 
 
-    private void addAccessNum(String clientId, String clientType) {
-        if ("APPLICATION_ACCESS_TOKEN".equals(clientType)) {
-            ApplicationChatUserStatsEntity publicAccessClient = publicAccessClientService.getById(clientId);
-            if (publicAccessClient != null) {
-                publicAccessClient.setAccessNum(publicAccessClient.getAccessNum() + 1);
-                publicAccessClient.setIntraDayAccessNum(publicAccessClient.getIntraDayAccessNum() + 1);
-                publicAccessClientService.updateById(publicAccessClient);
-            }
-        }
-    }
+
 
 }

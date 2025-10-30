@@ -9,6 +9,7 @@ import com.tarzan.maxkb4j.module.application.domian.dto.ApplicationAccessTokenDT
 import com.tarzan.maxkb4j.module.application.domian.dto.ApplicationQuery;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationAccessTokenEntity;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationEntity;
+import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationListVo;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationVO;
 import com.tarzan.maxkb4j.module.application.domian.vo.McpToolVO;
 import com.tarzan.maxkb4j.module.application.service.ApplicationService;
@@ -38,7 +39,7 @@ public class ApplicationController {
     private final ApplicationService applicationService;
 
     @GetMapping("/application")
-    public R<List<ApplicationEntity>> listApps(String folderId) {
+    public R<List<ApplicationListVo>> listApps(String folderId) {
         return R.success(applicationService.listApps(folderId));
     }
 
@@ -94,7 +95,6 @@ public class ApplicationController {
 
     @PostMapping("/application/{appId}/text_to_speech")
     public ResponseEntity<byte[]> textToSpeech(@PathVariable("appId") String appId, @RequestBody JSONObject data) {
-        // todo 前端传入modelId和model params 不匹配
         // 设置 HTTP 响应头
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.parseMediaType("audio/mp3"));

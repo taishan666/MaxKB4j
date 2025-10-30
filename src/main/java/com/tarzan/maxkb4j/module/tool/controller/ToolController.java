@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.tarzan.maxkb4j.common.api.R;
 import com.tarzan.maxkb4j.common.constant.AppConst;
+import com.tarzan.maxkb4j.common.util.BeanUtil;
 import com.tarzan.maxkb4j.common.util.StringUtil;
 import com.tarzan.maxkb4j.module.tool.domain.dto.ToolDTO;
 import com.tarzan.maxkb4j.module.tool.domain.dto.ToolInputField;
@@ -43,12 +44,12 @@ public class ToolController {
     }
 
     @GetMapping("/workspace/default/tool")
-    public R<Map<String, List<ToolEntity>>> list1(String folderId, String toolType) {
+    public R<Map<String, List<ToolVO>>> list1(String folderId, String toolType) {
         LambdaQueryWrapper<ToolEntity> wrapper = Wrappers.lambdaQuery();
         wrapper.eq(ToolEntity::getToolType, toolType);
         wrapper.eq(ToolEntity::getIsActive, true);
         List<ToolEntity> tools = toolService.list(wrapper);
-        return R.success(Map.of("folders", List.of(), "tools", tools));
+        return R.success(Map.of("folders", List.of(), "tools", BeanUtil.copyList( tools,ToolVO.class)));
     }
 
     @GetMapping("/workspace/{type}/tool")

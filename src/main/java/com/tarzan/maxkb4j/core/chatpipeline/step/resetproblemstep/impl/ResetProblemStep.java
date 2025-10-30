@@ -1,7 +1,7 @@
 package com.tarzan.maxkb4j.core.chatpipeline.step.resetproblemstep.impl;
 
 import com.alibaba.fastjson.JSONObject;
-import com.tarzan.maxkb4j.core.assistant.CompressingQueryTransformer;
+import com.tarzan.maxkb4j.core.assistant.CompressingQueryAssistant;
 import com.tarzan.maxkb4j.core.chatpipeline.PipelineManage;
 import com.tarzan.maxkb4j.core.chatpipeline.step.resetproblemstep.IResetProblemStep;
 import com.tarzan.maxkb4j.core.tool.MessageTools;
@@ -42,11 +42,10 @@ public class ResetProblemStep extends IResetProblemStep {
                 .maxMessages(application.getDialogueNumber())
                 .chatMemoryStore(chatMemoryStore)
                 .build();
-        CompressingQueryTransformer queryTransformer = AiServices.builder(CompressingQueryTransformer.class)
-            //    .systemMessageProvider(chatMemoryId -> systemPrompt)
+        CompressingQueryAssistant queryAssistant = AiServices.builder(CompressingQueryAssistant.class)
                 .chatModel(chatModel.getChatModel())
                 .build();
-        Result<String> result= queryTransformer.transform(MessageTools.format(chatMemory.messages()),question);
+        Result<String> result= queryAssistant.transform(MessageTools.format(chatMemory.messages()),question);
         String paddingProblem=result.content();
         super.context.put("modelId", modelId);
         super.context.put("problemText", question);
@@ -57,38 +56,6 @@ public class ResetProblemStep extends IResetProblemStep {
         log.info("BaseResetProblemStep 耗时 {} ms", System.currentTimeMillis() - startTime);
         return paddingProblem;
     }
-
-/*    protected String execute1(PipelineManage manage) {
-        long startTime = System.currentTimeMillis();
-        JSONObject context = manage.context;
-        ApplicationEntity application = (ApplicationEntity) context.get("application");
-        String modelId = application.getModelId();
-        BaseChatModel chatModel = modelService.getModelById(modelId);
-        QueryTransformer queryTransformer=new MyCompressingQueryTransformer(chatModel.getChatModel());
-        String question = context.getString("problemText");
-        String chatId = context.getString("chatId");
-        String systemText = application.getModelSetting().getSystem();
-
-        List<ChatMessage> chatMessages=chatMemory.messages();
-        chatMessages.add(0, SystemMessage.from(systemText));
-        Metadata metadata=new Metadata(UserMessage.from(question), chatMemory.id(), chatMessages);
-        Query query=new Query(question,metadata);
-        Collection<Query> list= queryTransformer.transform(query);
-        StringBuilder answerSb=new StringBuilder();
-        for (Query queryResult : list) {
-            answerSb.append(queryResult.text());
-        }
-        String paddingProblem=answerSb.toString();
-        super.context.put("modelId", modelId);
-        super.context.put("problemText", question);
-        super.context.put("messageTokens", TokenUtil.countTokens(chatMemory.messages()));
-        super.context.put("answerTokens", TokenUtil.countTokens(paddingProblem));
-        super.context.put("paddingProblemText", paddingProblem);
-        log.info("BaseResetProblemStep 耗时 {} ms", System.currentTimeMillis() - startTime);
-        return paddingProblem;
-    }*/
-
-
 
     @Override
     public JSONObject getDetails() {

@@ -13,8 +13,6 @@ import java.util.List;
 public class LogicFlow {
     private List<LfNode> nodes;
     private List<LfEdge> edges;
-    private final static List<String> endNodes=List.of("ai-chat-node", "reply-node", "function-node", "function-lib-node", "application-node",
-            "image-understand-node", "speech-to-text-node", "text-to-speech-node", "image-generate-node");
 
     public LogicFlow(List<LfNode> nodes, List<LfEdge> edges) {
         this.nodes = nodes;
@@ -26,9 +24,6 @@ public class LogicFlow {
         return JSON.parseObject(flowJson.toJSONString(), new TypeReference<LogicFlow>() {});
     }
 
-    public void isValidNode(LfNode node){
-         //todo
-    }
 
 
 

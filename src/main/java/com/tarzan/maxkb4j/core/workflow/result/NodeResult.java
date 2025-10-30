@@ -1,15 +1,15 @@
 package com.tarzan.maxkb4j.core.workflow.result;
 
 import com.tarzan.maxkb4j.common.util.StringUtil;
-import com.tarzan.maxkb4j.core.workflow.INode;
-import com.tarzan.maxkb4j.core.workflow.WorkflowManage;
+import com.tarzan.maxkb4j.core.workflow.node.INode;
+import com.tarzan.maxkb4j.core.workflow.Workflow;
 import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Map;
 
-import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.*;
+import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.FORM;
 
 @Slf4j
 @Data
@@ -48,8 +48,8 @@ public class NodeResult {
 
 
 
-    public void writeContext(INode currentNode, WorkflowManage workflowManage) {
-        this.writeContextFunc.apply(nodeVariable, globalVariable, currentNode, workflowManage);
+    public void writeContext(INode currentNode, Workflow workflow) {
+        this.writeContextFunc.apply(nodeVariable, globalVariable, currentNode, workflow);
     }
 
     public boolean isInterruptExec(INode currentNode) {
@@ -60,7 +60,7 @@ public class NodeResult {
         return FORM.getKey().equals(node.getType()) && !(boolean)node.getContext().getOrDefault("is_submit", false);
     }
 
-    public void defaultWriteContextFunc(Map<String, Object> nodeVariable, Map<String, Object> globalVariable, INode node, WorkflowManage workflow) {
+    public void defaultWriteContextFunc(Map<String, Object> nodeVariable, Map<String, Object> globalVariable, INode node, Workflow workflow) {
         if (nodeVariable != null) {
             node.getContext().putAll(nodeVariable);
             node.getDetail().putAll(nodeVariable);
@@ -76,7 +76,7 @@ public class NodeResult {
                         node.getType(),
                         node.getViewType(),
                         false);
-                node.getChatParams().getSink().tryEmitNext(vo);
+                workflow.getChatParams().getSink().tryEmitNext(vo);
                 workflow.setAnswer(workflow.getAnswer()+node.getAnswerText());
                 ChatMessageVO endVo = new ChatMessageVO(
                         workflow.getChatParams().getChatId(),
@@ -89,7 +89,7 @@ public class NodeResult {
                         node.getType(),
                         node.getViewType(),
                         true);
-                node.getChatParams().getSink().tryEmitNext(endVo);
+                workflow.getChatParams().getSink().tryEmitNext(endVo);
             }
         }
         if (globalVariable != null) {
@@ -101,7 +101,7 @@ public class NodeResult {
 
     @FunctionalInterface
     public interface WriteContextFunction {
-        void apply(Map<String, Object> nodeVariable, Map<String, Object> workflowVariable, INode node, WorkflowManage workflow);
+        void apply(Map<String, Object> nodeVariable, Map<String, Object> workflowVariable, INode node, Workflow workflow);
     }
 
     @FunctionalInterface

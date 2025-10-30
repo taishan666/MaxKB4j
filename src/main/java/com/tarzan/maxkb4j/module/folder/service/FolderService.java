@@ -1,26 +1,15 @@
 package com.tarzan.maxkb4j.module.folder.service;
 
-import cn.dev33.satoken.stp.StpUtil;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
-import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.tarzan.maxkb4j.common.util.BatchUtil;
-import com.tarzan.maxkb4j.common.util.BeanUtil;
 import com.tarzan.maxkb4j.module.folder.entity.FolderEntity;
 import com.tarzan.maxkb4j.module.folder.mapper.FolderMapper;
 import com.tarzan.maxkb4j.module.folder.vo.FolderVO;
-import com.tarzan.maxkb4j.module.system.permission.service.UserResourcePermissionService;
-import com.tarzan.maxkb4j.module.system.user.domain.entity.UserEntity;
+import com.tarzan.maxkb4j.module.system.permission.constant.AuthTargetType;
 import com.tarzan.maxkb4j.module.system.user.service.UserService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 @AllArgsConstructor
 @Service
@@ -29,14 +18,28 @@ public class FolderService extends ServiceImpl<FolderMapper, FolderEntity> {
 
     private final UserService userService;
 
-    @Transactional
     public List<FolderVO> tree(String source) {
-/*        String userId = StpUtil.getLoginIdAsString();
+        FolderVO defaultFolder = new FolderVO("default", "工作空间", null, null,List.of());
+        if (AuthTargetType.APPLICATION.equals( source)){
+            defaultFolder.setName("应用空间");
+        }
+        if (AuthTargetType.KNOWLEDGE.equals( source)){
+            defaultFolder.setName("知识库空间");
+        }
+        if (AuthTargetType.TOOL.equals( source)){
+            defaultFolder.setName("工具空间");
+        }
+        return List.of(defaultFolder);
+    }
+/*
+    @Transactional
+    public List<FolderVO> tree1(String source) {
+     *//*   String userId = StpUtil.getLoginIdAsString();
         UserEntity loginUser = userService.getById(userId);
         if (Objects.nonNull(loginUser) && loginUser.getRole().contains("ADMIN")) {
             return getAdminFolder(source);
         }
-        return getUserFolder(userId, source);*/
+        return getUserFolder(userId, source);*//*
         return treeFolder(source);
     }
 
@@ -133,5 +136,5 @@ public class FolderService extends ServiceImpl<FolderMapper, FolderEntity> {
         folderEntity.setId(id);
         folderEntity.setSource(source);
         return super.saveOrUpdate(folderEntity);
-    }
+    }*/
 }

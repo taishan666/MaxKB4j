@@ -6,6 +6,8 @@ import com.tarzan.maxkb4j.common.constant.AppConst;
 import com.tarzan.maxkb4j.module.system.permission.service.UserResourcePermissionService;
 import com.tarzan.maxkb4j.module.system.permission.vo.ResourceUserPermissionVO;
 import com.tarzan.maxkb4j.module.system.permission.vo.UserResourcePermissionVO;
+import com.tarzan.maxkb4j.module.system.user.domain.entity.UserEntity;
+import com.tarzan.maxkb4j.module.system.user.service.UserService;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,8 +23,18 @@ import java.util.List;
 public class UserResourcePermissionController {
 
     private final UserResourcePermissionService userResourcePermissionService;
+    private final UserService userService;
 
 
+    @GetMapping("/user_list")
+    public R<List<UserEntity>> userList(){
+        return R.data(userService.lambdaQuery().eq(UserEntity::getIsActive, true).list());
+    }
+
+    @GetMapping("/user_member")
+    public R<List<UserEntity>> userMembers(){
+        return R.success(userService.lambdaQuery().eq(UserEntity::getRole,"USER").eq(UserEntity::getIsActive, true).list());
+    }
 
     @GetMapping("/user_resource_permission/user/{userId}/resource/{type}/{current}/{size}")
     public R<IPage<UserResourcePermissionVO>> userResourcePage(@PathVariable String userId, @PathVariable String type, @PathVariable int current, @PathVariable int size){

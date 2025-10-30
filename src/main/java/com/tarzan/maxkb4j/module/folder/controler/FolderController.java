@@ -17,7 +17,7 @@ public class FolderController {
     private final FolderService folderService;
 
 
-    @PostMapping("/{source}/folder")
+/*    @PostMapping("/{source}/folder")
     public R<Boolean> addFolder(@PathVariable String source, @RequestBody FolderVO folder) {
         return R.data(folderService.addFolder(source,folder));
     }
@@ -30,7 +30,7 @@ public class FolderController {
     @DeleteMapping("/{source}/folder/{id}")
     public R<Boolean> deleteFolder(@PathVariable String source, @PathVariable String id) {
         return R.data(folderService.deleteFolder(id));
-    }
+    }*/
 
     @GetMapping("/{source}/folder")
     public R<List<FolderVO>> folderTree(@PathVariable String source) {

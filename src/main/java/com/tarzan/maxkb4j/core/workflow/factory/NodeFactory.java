@@ -1,29 +1,31 @@
 package com.tarzan.maxkb4j.core.workflow.factory;
 
 import com.alibaba.fastjson.JSONObject;
-import com.tarzan.maxkb4j.core.workflow.INode;
+import com.tarzan.maxkb4j.core.workflow.node.INode;
 import com.tarzan.maxkb4j.core.workflow.enums.NodeType;
 import com.tarzan.maxkb4j.core.workflow.logic.LfNode;
-import com.tarzan.maxkb4j.core.workflow.node.aichat.impl.ChatNode;
-import com.tarzan.maxkb4j.core.workflow.node.application.impl.ApplicationNode;
-import com.tarzan.maxkb4j.core.workflow.node.condition.impl.ConditionNode;
-import com.tarzan.maxkb4j.core.workflow.node.directreply.impl.DirectReplyNode;
-import com.tarzan.maxkb4j.core.workflow.node.documentextract.impl.DocumentExtractNode;
-import com.tarzan.maxkb4j.core.workflow.node.formcollect.impl.FormNode;
-import com.tarzan.maxkb4j.core.workflow.node.http.impl.HttpNode;
-import com.tarzan.maxkb4j.core.workflow.node.imagegenerate.impl.ImageGenerateNode;
-import com.tarzan.maxkb4j.core.workflow.node.imageunderstand.impl.ImageUnderstandNode;
-import com.tarzan.maxkb4j.core.workflow.node.intentclassify.impl.IntentClassifyNode;
-import com.tarzan.maxkb4j.core.workflow.node.mcp.impl.McpNode;
-import com.tarzan.maxkb4j.core.workflow.node.question.impl.QuestionNode;
-import com.tarzan.maxkb4j.core.workflow.node.reranker.impl.RerankerNode;
-import com.tarzan.maxkb4j.core.workflow.node.searchknowledge.impl.SearchKnowledgeNode;
-import com.tarzan.maxkb4j.core.workflow.node.speechtotext.impl.SpeechToTextNode;
-import com.tarzan.maxkb4j.core.workflow.node.start.impl.StartNode;
-import com.tarzan.maxkb4j.core.workflow.node.texttospeech.impl.TextToSpeechNode;
-import com.tarzan.maxkb4j.core.workflow.node.tool.impl.ToolNode;
-import com.tarzan.maxkb4j.core.workflow.node.toollib.impl.ToolLibNode;
-import com.tarzan.maxkb4j.core.workflow.node.variableassign.impl.VariableAssignNode;
+import com.tarzan.maxkb4j.core.workflow.node.impl.AiChatNode;
+import com.tarzan.maxkb4j.core.workflow.node.impl.ApplicationNode;
+import com.tarzan.maxkb4j.core.workflow.node.impl.ConditionNode;
+import com.tarzan.maxkb4j.core.workflow.node.impl.DirectReplyNode;
+import com.tarzan.maxkb4j.core.workflow.node.impl.DocumentExtractNode;
+import com.tarzan.maxkb4j.core.workflow.node.impl.FormNode;
+import com.tarzan.maxkb4j.core.workflow.node.impl.HttpNode;
+import com.tarzan.maxkb4j.core.workflow.node.impl.ImageGenerateNode;
+import com.tarzan.maxkb4j.core.workflow.node.impl.ImageUnderstandNode;
+import com.tarzan.maxkb4j.core.workflow.node.impl.IntentClassifyNode;
+import com.tarzan.maxkb4j.core.workflow.node.impl.McpNode;
+import com.tarzan.maxkb4j.core.workflow.node.impl.ParameterExtractionNode;
+import com.tarzan.maxkb4j.core.workflow.node.impl.QuestionNode;
+import com.tarzan.maxkb4j.core.workflow.node.impl.RerankerNode;
+import com.tarzan.maxkb4j.core.workflow.node.impl.SearchKnowledgeNode;
+import com.tarzan.maxkb4j.core.workflow.node.impl.SpeechToTextNode;
+import com.tarzan.maxkb4j.core.workflow.node.impl.StartNode;
+import com.tarzan.maxkb4j.core.workflow.node.impl.TextToSpeechNode;
+import com.tarzan.maxkb4j.core.workflow.node.impl.ToolNode;
+import com.tarzan.maxkb4j.core.workflow.node.impl.ToolLibNode;
+import com.tarzan.maxkb4j.core.workflow.node.impl.UserSelectNode;
+import com.tarzan.maxkb4j.core.workflow.node.impl.VariableAssignNode;
 
 import java.util.Objects;
 
@@ -36,7 +38,7 @@ public class NodeFactory {
         }
         return switch (nodeType) {
             case START -> new StartNode(properties);
-            case AI_CHAT -> new ChatNode(properties);
+            case AI_CHAT -> new AiChatNode(properties);
             case SEARCH_KNOWLEDGE -> new SearchKnowledgeNode(properties);
             case CONDITION -> new ConditionNode(properties);
             case REPLY-> new DirectReplyNode(properties);
@@ -55,9 +57,10 @@ public class NodeFactory {
             case MCP -> new McpNode(properties);
             case INTENT_CLASSIFY -> new IntentClassifyNode(properties);
             case HTTP_CLIENT -> new HttpNode(properties);
+            case PARAMETER_EXTRACTION -> new ParameterExtractionNode(properties);
+            case USER_SELECT -> new UserSelectNode(properties);
             default -> null;
         };
-
     }
 
     public static INode getNode(LfNode lfNode) {

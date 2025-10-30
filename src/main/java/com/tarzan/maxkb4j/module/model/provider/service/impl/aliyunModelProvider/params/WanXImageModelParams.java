@@ -15,15 +15,17 @@ public  class WanXImageModelParams implements BaseModelParams {
 
     @Override
     public List<BaseFiled> toForm() {
-        Map<String,Object> options=Map.of(
+        //支持在 [512, 1440] 像素范围内任意组合宽高，总像素不超过 1440*1440
+        Map<String,Object> sizeOptions=Map.of(
                 "1024*1024","1024*1024",
                 "720*1280","720*1280",
                 "1280*720","1280*720"
         );
-        BaseFiled sizeSelectFiled=new SingleSelectFiled("图片尺寸","size","生成图片的尺寸",options,"1024*1024");
-        BaseFiled sliderFiled=new SliderFiled(1,4,1,0,"生成图片的数量","n","生成图片的数量。取值范围为1~4张",1);
-        BaseFiled switchField=new SwitchField("提示词扩展","prompt_extend","提示词自动优化",false);
-        return List.of(sizeSelectFiled,sliderFiled,switchField);
+        BaseFiled size=new SingleSelectFiled("图片尺寸","size","生成图片的尺寸",sizeOptions,"1024*1024");
+        BaseFiled n=new SliderFiled(1,4,1,0,"生成图片的数量","n","生成图片的数量。取值范围为1~4张",1);
+        BaseFiled prompt_extend=new SwitchField("提示词扩展","prompt_extend","提示词自动优化",false);
+        BaseFiled watermark=new SwitchField("水印","watermark","生成的图片带水印",false);
+        return List.of(size,n,prompt_extend,watermark);
     }
 }
 

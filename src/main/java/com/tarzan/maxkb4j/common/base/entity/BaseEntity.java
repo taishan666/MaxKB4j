@@ -4,8 +4,6 @@ import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.tarzan.maxkb4j.common.serializer.NullRootSerializer;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -14,7 +12,6 @@ import java.util.Date;
 @Data
 public class BaseEntity implements Serializable {
 
-    @JsonSerialize(nullsUsing = NullRootSerializer.class)
     @TableId(type = IdType.ASSIGN_UUID)
     private String id;
 

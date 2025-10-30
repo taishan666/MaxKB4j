@@ -129,7 +129,7 @@ public class DocumentController {
 
    
     @PutMapping("/knowledge/{id}/document/{docId}/refresh")
-    public R<Boolean> refresh(@PathVariable String id, @PathVariable("docId") String docId) {
+    public R<Boolean> refresh(@PathVariable String id, @PathVariable("docId") String docId, @RequestBody DocumentEmbedDTO dto) {
         return R.success(documentService.embedByDocIds(List.of(docId)));
     }
 

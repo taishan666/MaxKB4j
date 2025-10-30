@@ -44,6 +44,9 @@
             <if test="query.folderId != null and !query.folderId!= ''">
                 AND k.folder_id = #{query.folderId}
             </if>
+            <if test="query.type != null">
+                AND k.type = #{query.type}
+            </if>
             <choose>
                 <when test="query.isAdmin != null and !query.isAdmin">
                   <choose>

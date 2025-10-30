@@ -199,8 +199,8 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
 
 
 
-    public List<KnowledgeEntity> listByUserId(String userId) {
-        return this.lambdaQuery().eq(KnowledgeEntity::getUserId, userId).list();
+    public List<KnowledgeEntity> list(String userId,String folderId) {
+        return this.lambdaQuery().eq(KnowledgeEntity::getUserId, userId).eq(KnowledgeEntity::getFolderId, folderId).list();
     }
 
     @Transactional

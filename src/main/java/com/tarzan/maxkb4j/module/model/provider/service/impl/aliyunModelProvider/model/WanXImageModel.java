@@ -5,10 +5,14 @@ import com.alibaba.dashscope.aigc.imagesynthesis.ImageSynthesisParam;
 import com.alibaba.dashscope.aigc.imagesynthesis.ImageSynthesisResult;
 import com.alibaba.dashscope.exception.NoApiKeyException;
 import com.alibaba.dashscope.utils.OSSUtils;
+import com.alibaba.fastjson.JSONObject;
+import com.tarzan.maxkb4j.module.model.info.entity.ModelCredential;
+import com.tarzan.maxkb4j.module.model.provider.service.BaseModel;
 import dev.langchain4j.data.image.Image;
 import dev.langchain4j.internal.Utils;
 import dev.langchain4j.model.image.ImageModel;
 import dev.langchain4j.model.output.Response;
+import lombok.NoArgsConstructor;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -18,19 +22,39 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.*;
 
-public class WanXImageModel implements ImageModel {
-    private final ImageSynthesisParam.ImageSynthesisParamBuilder<?, ?> paramBuilder;
+@NoArgsConstructor(force = true)
+public class WanXImageModel implements ImageModel, BaseModel<ImageModel> {
+
+    private ImageSynthesisParam.ImageSynthesisParamBuilder<?, ?> paramBuilder;
 
     public WanXImageModel(ImageSynthesisParam.ImageSynthesisParamBuilder<?, ?> paramBuilder) {
+        super();
         this.paramBuilder = paramBuilder;
     }
 
+
+    @Override
+    public WanXImageModel build(String modelName, ModelCredential credential, JSONObject params) {
+        ImageSynthesisParam.ImageSynthesisParamBuilder<?, ?> paramBuilder = ImageSynthesisParam.builder();
+        assert params != null;
+        paramBuilder.apiKey(credential.getApiKey())
+                .model(modelName)
+                .size((String) params.getOrDefault("size", "1024*1024"))
+                .function(params.getString("function"))
+                .promptExtend(params.getBoolean("prompt_extend"))
+                .seed(params.getInteger("seed"))
+                .negativePrompt(params.getString("negative_prompt"))
+                .watermark(params.getBoolean("watermark"));
+        return new WanXImageModel(paramBuilder);
+    }
+
+
     @Override
     public Response<Image> generate(String prompt) {
-        ImageSynthesisParam param = paramBuilder.prompt(prompt).build();
         ImageSynthesis imageSynthesis = new ImageSynthesis();
+        paramBuilder.prompt(prompt);
         try {
-            ImageSynthesisResult result = imageSynthesis.call(param);
+            ImageSynthesisResult result = imageSynthesis.call(paramBuilder.build());
             return Response.from(imagesFrom(result).get(0));
         } catch (NoApiKeyException e) {
             throw new IllegalArgumentException(e);
@@ -39,10 +63,11 @@ public class WanXImageModel implements ImageModel {
 
     @Override
     public Response<List<Image>> generate(String prompt, int n) {
-        ImageSynthesisParam param = paramBuilder.prompt(prompt).n(n).build();
+        paramBuilder.prompt(prompt);
+        paramBuilder.n(n);
         ImageSynthesis imageSynthesis = new ImageSynthesis();
         try {
-            ImageSynthesisResult result = imageSynthesis.call(param);
+            ImageSynthesisResult result = imageSynthesis.call(paramBuilder.build());
             return Response.from(imagesFrom(result));
         } catch (NoApiKeyException e) {
             throw new IllegalArgumentException(e);
@@ -51,10 +76,10 @@ public class WanXImageModel implements ImageModel {
 
     @Override
     public Response<Image> edit(Image image, String prompt) {
-        ImageSynthesisParam param = paramBuilder.prompt(prompt).build();
+        ImageSynthesisParam param=paramBuilder.build();
         String imageUrl = imageUrl(image, param.getModel(), param.getApiKey());
         if (imageUrl.startsWith("oss://")) {
-            Map<String, Object> headers=new HashMap<>();
+            Map<String, Object> headers = new HashMap<>();
             headers.put("X-DashScope-OssResourceResolve", "enable");
             param.setHeaders(headers);
         }
@@ -70,15 +95,15 @@ public class WanXImageModel implements ImageModel {
 
     @Override
     public Response<Image> edit(Image image, Image mask, String prompt) {
-        ImageSynthesisParam param = paramBuilder.prompt(prompt).build();
+        ImageSynthesisParam param=paramBuilder.build();
         String imageUrl = imageUrl(image, param.getModel(), param.getApiKey());
         String maskUrl = imageUrl(mask, param.getModel(), param.getApiKey());
-        Map<String, Object> headers=new HashMap<>();
-        if (imageUrl.startsWith("oss://")||maskUrl.startsWith("oss://")) {
+        Map<String, Object> headers = new HashMap<>();
+        if (imageUrl.startsWith("oss://") || maskUrl.startsWith("oss://")) {
             headers.put("X-DashScope-OssResourceResolve", "enable");
         }
         param.setBaseImageUrl(imageUrl);
-       // param.setMaskUrl(maskUrl);
+        param.setMaskImageUrl(maskUrl);
         param.setHeaders(headers);
         ImageSynthesis imageSynthesis = new ImageSynthesis();
         try {
@@ -92,6 +117,7 @@ public class WanXImageModel implements ImageModel {
     static List<Image> imagesFrom(ImageSynthesisResult result) {
         return result.getOutput().getResults().stream().map(resultMap -> Image.builder().url(resultMap.get("url")).revisedPrompt(resultMap.get("actual_prompt")).build()).toList();
     }
+
     static String imageUrl(Image image, String model, String apiKey) {
         String imageUrl;
         if (image.url() != null) {

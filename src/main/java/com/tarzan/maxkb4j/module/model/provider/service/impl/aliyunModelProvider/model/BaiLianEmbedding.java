@@ -10,9 +10,9 @@ public class BaiLianEmbedding implements BaseModel<EmbeddingModel> {
     @Override
     public QwenEmbeddingModel build(String modelName, ModelCredential credential, JSONObject params) {
         return  QwenEmbeddingModel.builder()
-                //.baseUrl(credential.getBaseUrl())
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
+                .dimension(params.getInteger("dimension"))
                 .build();
     }
 }

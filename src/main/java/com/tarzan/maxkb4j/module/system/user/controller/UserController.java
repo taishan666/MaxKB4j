@@ -1,18 +1,17 @@
 package com.tarzan.maxkb4j.module.system.user.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.tarzan.maxkb4j.common.constant.AppConst;
 import com.tarzan.maxkb4j.common.api.R;
+import com.tarzan.maxkb4j.common.constant.AppConst;
+import com.tarzan.maxkb4j.common.util.StringUtil;
 import com.tarzan.maxkb4j.module.system.user.domain.dto.PasswordDTO;
 import com.tarzan.maxkb4j.module.system.user.domain.dto.UserDTO;
 import com.tarzan.maxkb4j.module.system.user.domain.entity.UserEntity;
 import com.tarzan.maxkb4j.module.system.user.service.UserService;
-import com.tarzan.maxkb4j.common.util.StringUtil;
 import jakarta.mail.MessagingException;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -26,21 +25,11 @@ public class UserController{
 
 	private final UserService userService;
 
-	@GetMapping("/workspace/default/user_list")
-	public R<List<UserEntity>> userList(){
-		return R.data(userService.lambdaQuery().eq(UserEntity::getIsActive, true).list());
-	}
-
-	//todo 待完善
-	@GetMapping("/workspace/default/user_member")
-	public R<List<UserEntity>> userMembers(){
-		return R.success(userService.lambdaQuery().eq(UserEntity::getRole,"USER").list());
-	}
-
 	@GetMapping("/user_manage/{page}/{size}")
 	public R<IPage<UserEntity>> userManage(@PathVariable("page")int page, @PathVariable("size")int size, UserDTO dto){
 		return R.data(userService.selectUserPage(page,size,dto));
 	}
+
 	@PostMapping("/user/language")
 	public R<Boolean> language(@RequestBody UserEntity user){
 		return R.status(userService.updateLanguage(user));

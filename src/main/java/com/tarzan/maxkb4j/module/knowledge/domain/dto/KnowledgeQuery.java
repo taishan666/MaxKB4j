@@ -12,4 +12,5 @@ public class KnowledgeQuery extends Query {
 
     private List<String> targetIds;
     private Boolean isAdmin=false;
+    private Integer type;
 }
