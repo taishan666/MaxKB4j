@@ -3,7 +3,7 @@ package com.tarzan.maxkb4j.module.application.handler.impl;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.tarzan.maxkb4j.common.util.StringUtil;
-import com.tarzan.maxkb4j.module.application.cache.ChatCache;
+import com.tarzan.maxkb4j.module.chat.cache.ChatCache;
 import com.tarzan.maxkb4j.module.application.domian.dto.ChatInfo;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatEntity;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatRecordEntity;
@@ -13,7 +13,7 @@ import com.tarzan.maxkb4j.module.application.handler.PostResponseHandler;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatMapper;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatRecordMapper;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatUserStatsMapper;
-import com.tarzan.maxkb4j.module.chat.ChatResponse;
+import com.tarzan.maxkb4j.module.chat.dto.ChatResponse;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 

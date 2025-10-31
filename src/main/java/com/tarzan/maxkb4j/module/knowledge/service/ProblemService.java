@@ -14,11 +14,9 @@ import com.tarzan.maxkb4j.module.knowledge.domain.entity.ProblemParagraphEntity;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.ProblemVO;
 import com.tarzan.maxkb4j.module.knowledge.mapper.ProblemMapper;
 import com.tarzan.maxkb4j.module.model.provider.service.impl.BaseChatModel;
-import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.model.chat.response.ChatResponse;
 import dev.langchain4j.model.embedding.EmbeddingModel;
-import dev.langchain4j.model.output.Response;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
@@ -87,7 +85,6 @@ public class ProblemService extends ServiceImpl<ProblemMapper, ProblemEntity> {
         if (!CollectionUtils.isEmpty(insertProblems)) {
             baseMapper.insert(insertProblems);
             List<EmbeddingEntity> embeddingEntities = new ArrayList<>();
-            //todo 批量插入
             for (ProblemEntity problem : insertProblems) {
                 EmbeddingEntity embeddingEntity = new EmbeddingEntity();
                 embeddingEntity.setKnowledgeId(problem.getKnowledgeId());
@@ -96,12 +93,10 @@ public class ProblemService extends ServiceImpl<ProblemMapper, ProblemEntity> {
                 embeddingEntity.setSourceId(problem.getId());
                 embeddingEntity.setSourceType(SourceType.PROBLEM);
                 embeddingEntity.setIsActive(true);
-                Response<Embedding> response = embeddingModel.embed(problem.getContent());
-               // embeddingEntity.setEmbedding(response.content().vectorAsList());
                 embeddingEntity.setContent(problem.getContent());
                 embeddingEntities.add(embeddingEntity);
             }
-         //   dataIndexService.insertAll(embeddingEntities, embeddingModel,);
+            dataIndexService.insertAll(embeddingEntities, embeddingModel);
         }
         log.info("结束---->生成问题:{}", paragraph.getId());
     }

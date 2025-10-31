@@ -11,8 +11,8 @@ import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatRecord
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationVO;
 import com.tarzan.maxkb4j.module.application.handler.PostResponseHandler;
 import com.tarzan.maxkb4j.module.application.service.ApplicationChatRecordService;
-import com.tarzan.maxkb4j.module.chat.ChatParams;
-import com.tarzan.maxkb4j.module.chat.ChatResponse;
+import com.tarzan.maxkb4j.module.chat.dto.ChatParams;
+import com.tarzan.maxkb4j.module.chat.dto.ChatResponse;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 

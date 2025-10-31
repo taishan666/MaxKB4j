@@ -1,4 +1,4 @@
-package com.tarzan.maxkb4j.module.chat;
+package com.tarzan.maxkb4j.module.chat.controller;
 
 import cn.dev33.satoken.annotation.SaIgnore;
 import cn.dev33.satoken.stp.StpUtil;
@@ -23,6 +23,7 @@ import com.tarzan.maxkb4j.module.application.service.ApplicationAccessTokenServi
 import com.tarzan.maxkb4j.module.application.service.ApplicationChatRecordService;
 import com.tarzan.maxkb4j.module.application.service.ApplicationChatService;
 import com.tarzan.maxkb4j.module.application.service.ApplicationService;
+import com.tarzan.maxkb4j.module.chat.dto.ChatParams;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
 import org.springframework.core.task.TaskExecutor;
@@ -109,7 +110,7 @@ public class ChatApiController {
 
 
     @PostMapping(path = "/chat_message/{chatId}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<ChatMessageVO> chatMessage(@PathVariable String chatId, @RequestBody ChatParams params,HttpServletRequest  request) {
+    public Flux<ChatMessageVO> chatMessage(@PathVariable String chatId, @RequestBody ChatParams params, HttpServletRequest  request) {
         String authorization=request.getHeader("Authorization");
         String tokenValue = authorization.substring(7);
         StpUtil.setTokenValue(tokenValue);

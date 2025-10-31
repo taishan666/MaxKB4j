@@ -3,7 +3,7 @@ package com.tarzan.maxkb4j.module.application.domian.vo;
 import lombok.Data;
 
 @Data
-public class ApplicationListVo {
+public class ApplicationListVO {
 
     private String id;
 

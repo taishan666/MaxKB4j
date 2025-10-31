@@ -10,8 +10,5 @@ public class DataSearchDTO {
     private String  searchMode;
     private Float  similarity;
     private Integer  topNumber;
-    //private Boolean  problemOptimization;
-    //private String rerankerModelId;
-    //private String  problemOptimizationPrompt;
     private List<String> excludeParagraphIds;
 }

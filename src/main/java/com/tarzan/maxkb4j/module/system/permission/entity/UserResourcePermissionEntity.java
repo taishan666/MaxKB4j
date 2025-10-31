@@ -24,6 +24,5 @@ public class UserResourcePermissionEntity extends BaseEntity {
     @TableField(typeHandler = StringListTypeHandler.class)
     private List<String> permissionList;
     private String userId;
-    private String folderId;
 
 }

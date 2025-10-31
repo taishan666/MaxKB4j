@@ -17,19 +17,14 @@
 
     <properties>
         <java.version>17</java.version>
-        <langchain4j.version>1.7.1-beta14</langchain4j.version>
+        <langchain4j.version>1.8.0</langchain4j.version>
+        <langchain4j.beta.version>beta15</langchain4j.beta.version>
     </properties>
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
             <version>3.4.1</version>
-        </dependency>
-
-        <dependency>
-            <groupId>dev.langchain4j</groupId>
-            <artifactId>langchain4j-community-redis</artifactId>
-            <version>${langchain4j.version}</version>
         </dependency>
         <dependency>
             <groupId>com.github.gavlyukovskiy</groupId>
@@ -217,33 +212,39 @@
             <version>42.7.7</version>
         </dependency>
         <dependency>
+            <groupId>com.pgvector</groupId>
+            <artifactId>pgvector</artifactId>
+            <version>0.1.6</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
         </dependency>
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-spring-boot-starter</artifactId>
-            <version>${langchain4j.version}</version>
+            <version>${langchain4j.version}-beta15</version>
         </dependency>
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-web-search-engine-searchapi</artifactId>
-            <version>${langchain4j.version}</version>
+            <version>${langchain4j.version}-beta15</version>
         </dependency>
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-experimental-sql</artifactId>
-            <version>${langchain4j.version}</version>
+            <version>${langchain4j.version}-beta15</version>
         </dependency>
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-reactor</artifactId>
-            <version>${langchain4j.version}</version>
+            <version>${langchain4j.version}-beta15</version>
         </dependency>
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-embeddings</artifactId>
-            <version>${langchain4j.version}</version>
+            <version>${langchain4j.version}-beta15</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.apache.commons</groupId>
@@ -251,81 +252,76 @@
                 </exclusion>
             </exclusions>
         </dependency>
-       <dependency>
-           <groupId>dev.langchain4j</groupId>
-           <artifactId>langchain4j-pgvector</artifactId>
-           <version>${langchain4j.version}</version>
-       </dependency>
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-mcp</artifactId>
-            <version>${langchain4j.version}</version>
+            <version>${langchain4j.version}-beta15</version>
         </dependency>
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-document-parser-apache-tika</artifactId>
-            <version>${langchain4j.version}</version>
+            <version>${langchain4j.version}-beta15</version>
         </dependency>
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-azure-ai-search</artifactId>
-            <version>${langchain4j.version}</version>
+            <version>${langchain4j.version}-beta15</version>
         </dependency>
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-open-ai-official</artifactId>
-            <version>${langchain4j.version}</version>
+            <version>${langchain4j.version}-beta15</version>
         </dependency>
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-open-ai</artifactId>
-            <version>1.4.0</version>
+            <version>${langchain4j.version}</version>
         </dependency>
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-azure-open-ai</artifactId>
-            <version>1.4.0</version>
+            <version>${langchain4j.version}</version>
         </dependency>
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-anthropic</artifactId>
-            <version>1.4.0</version>
+            <version>${langchain4j.version}</version>
         </dependency>
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-bedrock</artifactId>
-            <version>1.4.0</version>
+            <version>${langchain4j.version}</version>
         </dependency>
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-ollama</artifactId>
-            <version>1.4.0</version>
+            <version>${langchain4j.version}</version>
         </dependency>
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-community-dashscope</artifactId>
-            <version>${langchain4j.version}</version>
+            <version>${langchain4j.version}-beta15</version>
         </dependency>
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-community-zhipu-ai</artifactId>
-            <version>${langchain4j.version}</version>
+            <version>${langchain4j.version}-beta15</version>
         </dependency>
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-community-qianfan</artifactId>
-            <version>${langchain4j.version}</version>
+            <version>${langchain4j.version}-beta15</version>
         </dependency>
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-community-xinference</artifactId>
-            <version>${langchain4j.version}</version>
+            <version>${langchain4j.version}-beta15</version>
         </dependency>
-        <dependency>
+<!--        <dependency>
             <groupId>org.python</groupId>
             <artifactId>jython-standalone</artifactId>
-            <version>2.7.3</version> <!-- 请根据需要选择版本 -->
-        </dependency>
+            <version>2.7.3</version> &lt;!&ndash; 请根据需要选择版本 &ndash;&gt;
+        </dependency>-->
         <dependency>
             <groupId>org.apache.groovy</groupId>
             <artifactId>groovy-all</artifactId>
@@ -367,7 +363,7 @@
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-embeddings-all-minilm-l6-v2-q</artifactId>
-            <version>${langchain4j.version}</version>
+            <version>${langchain4j.version}-beta15</version>
         </dependency>
 <!--        <dependency>
             <groupId>dev.langchain4j</groupId>

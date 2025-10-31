@@ -62,9 +62,10 @@ public class KnowledgeController {
 
 
     @PutMapping("/knowledge/{id}")
-    public R<Boolean> updatedKnowledge(@PathVariable("id") String id, @RequestBody KnowledgeEntity datasetEntity) {
+    public R<KnowledgeEntity> updatedKnowledge(@PathVariable("id") String id, @RequestBody KnowledgeEntity datasetEntity) {
         datasetEntity.setId(id);
-        return R.success(knowledgeService.updateById(datasetEntity));
+        knowledgeService.updateById(datasetEntity);
+        return R.success(datasetEntity);
     }
 
     @PutMapping("/knowledge/{id}/embedding")

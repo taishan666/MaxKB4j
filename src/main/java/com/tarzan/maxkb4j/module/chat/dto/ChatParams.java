@@ -1,4 +1,4 @@
-package com.tarzan.maxkb4j.module.chat;
+package com.tarzan.maxkb4j.module.chat.dto;
 
 import com.alibaba.fastjson.JSONObject;
 import com.fasterxml.jackson.annotation.JsonIgnore;

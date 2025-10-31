@@ -1,4 +1,4 @@
-package com.tarzan.maxkb4j.module.application.cache;
+package com.tarzan.maxkb4j.module.chat.cache;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;

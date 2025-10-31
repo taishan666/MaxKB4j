@@ -50,7 +50,6 @@ public class UserResourcePermissionService extends ServiceImpl<UserResourcePermi
         entity.setPermissionList(List.of("VIEW", "MANAGE"));
         entity.setAuthType("RESOURCE_PERMISSION_GROUP");
         entity.setWorkspaceId(DEFAULT_ID);
-        entity.setFolderId(DEFAULT_ID);
         return this.save(entity);
     }
 
@@ -59,9 +58,8 @@ public class UserResourcePermissionService extends ServiceImpl<UserResourcePermi
         return this.lambdaUpdate().eq(UserResourcePermissionEntity::getAuthTargetType, type).eq(UserResourcePermissionEntity::getTargetId, targetId).eq(UserResourcePermissionEntity::getWorkspaceId, DEFAULT_ID).remove();
     }
 
-    public boolean update(String type, String targetId, String userId, String folderId) {
+    public boolean update(String type, String targetId, String userId) {
         return this.lambdaUpdate()
-                .set(UserResourcePermissionEntity::getFolderId, folderId)
                 .eq(UserResourcePermissionEntity::getAuthTargetType, type).eq(UserResourcePermissionEntity::getTargetId, targetId).eq(UserResourcePermissionEntity::getUserId, userId).eq(UserResourcePermissionEntity::getWorkspaceId, DEFAULT_ID).update();
     }
 
@@ -208,7 +206,6 @@ public class UserResourcePermissionService extends ServiceImpl<UserResourcePermi
             vo.setTargetId(resourceId);
             vo.setAuthType("RESOURCE_PERMISSION_GROUP");
             vo.setWorkspaceId(DEFAULT_ID);
-            vo.setFolderId(DEFAULT_ID);
             vo.setAuthTargetType(type);
             return BeanUtil.copy(vo, UserResourcePermissionEntity.class);
         }).toList();
@@ -234,16 +231,6 @@ public class UserResourcePermissionService extends ServiceImpl<UserResourcePermi
                 .map(UserResourcePermissionEntity::getTargetId).toList();
     }
 
-    public List<String> getTargetIds(String authTargetType, String userId,String folderId) {
-        List<UserResourcePermissionEntity> userResourcePermissions =this.lambdaQuery()
-                .select(UserResourcePermissionEntity::getTargetId,UserResourcePermissionEntity::getPermissionList)
-                .eq(UserResourcePermissionEntity::getUserId, userId)
-                .eq(UserResourcePermissionEntity::getFolderId, folderId)
-                .eq(UserResourcePermissionEntity::getAuthTargetType, authTargetType).list();
-        return userResourcePermissions.stream()
-                .filter(permission -> permission.getPermissionList().contains("VIEW"))
-                .map(UserResourcePermissionEntity::getTargetId).toList();
-    }
 
     public List<UserResourcePermissionEntity> getByUserId(String userId) {
         return this.lambdaQuery().eq(UserResourcePermissionEntity::getUserId, userId).list();

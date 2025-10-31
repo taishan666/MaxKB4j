@@ -76,7 +76,7 @@ public class ToolService extends ServiceImpl<ToolMapper, ToolEntity> {
         if (Objects.nonNull(user)) {
             if (!CollectionUtils.isEmpty(user.getRole())) {
                 if (user.getRole().contains("USER")) {
-                    List<String> targetIds = userResourcePermissionService.getTargetIds("TOOL", loginId);
+                    List<String> targetIds = userResourcePermissionService.getTargetIds(AuthTargetType.TOOL, loginId);
                     if (!CollectionUtils.isEmpty(targetIds)) {
                         wrapper.in(ToolEntity::getId, targetIds);
                     } else {

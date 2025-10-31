@@ -1,6 +1,6 @@
 package com.tarzan.maxkb4j.module.application.domian.vo;
 
-import com.tarzan.maxkb4j.module.chat.ChildNode;
+import com.tarzan.maxkb4j.module.chat.dto.ChildNode;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 

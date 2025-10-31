@@ -73,7 +73,7 @@ public class ModelService extends ServiceImpl<ModelMapper, ModelEntity> {
         if (Objects.nonNull(user)) {
             if (!org.springframework.util.CollectionUtils.isEmpty(user.getRole())) {
                 if (user.getRole().contains("USER")) {
-                    List<String> targetIds = userResourcePermissionService.getTargetIds("MODEL", loginId);
+                    List<String> targetIds = userResourcePermissionService.getTargetIds(AuthTargetType.MODEL, loginId);
                     if (!org.springframework.util.CollectionUtils.isEmpty(targetIds)) {
                         wrapper.in(ModelEntity::getId, targetIds);
                     } else {

@@ -62,7 +62,7 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
 
     public IPage<KnowledgeVO> selectKnowledgePage(Page<KnowledgeVO> knowledgePage, KnowledgeQuery query) {
         String loginId = StpUtil.getLoginIdAsString();
-        List<String> targetIds =userResourcePermissionService.getTargetIds("KNOWLEDGE",loginId);
+        List<String> targetIds =userResourcePermissionService.getTargetIds(AuthTargetType.KNOWLEDGE,loginId);
         UserEntity user =userService.getById(loginId);
         query.setIsAdmin(user.getRole().contains("ADMIN"));
         query.setTargetIds(targetIds);
@@ -227,11 +227,6 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
         return knowledge;
     }
 
-/*    public boolean reEmbedding(String knowledgeId) {
-        List<DocumentEntity> documents=documentService.lambdaQuery().select(DocumentEntity::getId).eq(DocumentEntity::getKnowledgeId, knowledgeId).list();
-        documentService.embedByDocIds(documents.stream().map(DocumentEntity::getId).toList());
-        return true;
-    }*/
 
     public boolean embeddingKnowledge(String knowledgeId) {
         List<DocumentEntity> documents=documentService.lambdaQuery().select(DocumentEntity::getId).eq(DocumentEntity::getKnowledgeId, knowledgeId).list();

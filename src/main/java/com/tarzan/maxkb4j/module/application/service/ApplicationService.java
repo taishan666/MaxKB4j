@@ -17,7 +17,7 @@ import com.tarzan.maxkb4j.module.application.domian.dto.ApplicationQuery;
 import com.tarzan.maxkb4j.module.application.domian.dto.EmbedDTO;
 import com.tarzan.maxkb4j.module.application.domian.dto.MaxKb4J;
 import com.tarzan.maxkb4j.module.application.domian.entity.*;
-import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationListVo;
+import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationListVO;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationVO;
 import com.tarzan.maxkb4j.module.application.enums.AppType;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatMapper;
@@ -91,7 +91,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         if (Objects.nonNull(user)) {
             if (!CollectionUtils.isEmpty(user.getRole())) {
                 if (user.getRole().contains("USER")) {
-                    List<String> targetIds = userResourcePermissionService.getTargetIds(AuthTargetType.APPLICATION, loginId, query.getFolderId());
+                    List<String> targetIds = userResourcePermissionService.getTargetIds(AuthTargetType.APPLICATION, loginId);
                     if (!CollectionUtils.isEmpty(targetIds)) {
                         wrapper.in(ApplicationEntity::getId, targetIds);
                     } else {
@@ -431,13 +431,13 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         return content;
     }
 
-    public List<ApplicationListVo> listApps(String folderId) {
+    public List<ApplicationListVO> listApps(String folderId) {
         String userId = StpUtil.getLoginIdAsString();
-        List<String> targetIds = userResourcePermissionService.getTargetIds(AuthTargetType.APPLICATION, userId, folderId);
+        List<String> targetIds = userResourcePermissionService.getTargetIds(AuthTargetType.APPLICATION, userId);
         if (targetIds.isEmpty()){
             return new ArrayList<>();
         }
         List<ApplicationEntity> list= this.lambdaQuery().in(ApplicationEntity::getId, targetIds).eq(ApplicationEntity::getIsPublish, true).list();
-        return BeanUtil.copyList(list, ApplicationListVo.class);
+        return BeanUtil.copyList(list, ApplicationListVO.class);
     }
 }
