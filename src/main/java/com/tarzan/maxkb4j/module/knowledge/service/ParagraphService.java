@@ -15,9 +15,7 @@ import com.tarzan.maxkb4j.module.knowledge.mapper.KnowledgeMapper;
 import com.tarzan.maxkb4j.module.knowledge.mapper.ParagraphMapper;
 import com.tarzan.maxkb4j.module.model.info.service.ModelFactory;
 import com.tarzan.maxkb4j.module.model.provider.service.impl.BaseChatModel;
-import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.model.embedding.EmbeddingModel;
-import dev.langchain4j.store.embedding.EmbeddingStore;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -75,7 +73,7 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
     }
 
 
-    public void createIndex(ParagraphEntity paragraph, EmbeddingModel embeddingModel, EmbeddingStore<TextSegment> embeddingStore) {
+    public void createIndex(ParagraphEntity paragraph, EmbeddingModel embeddingModel) {
         if (paragraph != null) {
             this.updateStatusById(paragraph.getId(),1,1);
             //清除之前向量
@@ -104,7 +102,7 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
                 problemEmbed.setContent(problem.getContent());
                 embeddingEntities.add(problemEmbed);
             }
-            dataIndexService.insertAll(embeddingEntities,embeddingModel,embeddingStore);
+            dataIndexService.insertAll(embeddingEntities,embeddingModel);
             this.updateStatusById(paragraph.getId(),1,2);
             log.info("结束---->向量化段落:{}", paragraph.getId());
         }

@@ -1,7 +1,6 @@
 package com.tarzan.maxkb4j.module.knowledge.service;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.tarzan.maxkb4j.core.langchain4j.EmbeddingStoreFactory;
 import com.tarzan.maxkb4j.module.knowledge.consts.SourceType;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.EmbeddingEntity;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.ProblemEntity;
@@ -27,7 +26,6 @@ public class ProblemParagraphService extends ServiceImpl<ProblemParagraphMapper,
     private final ProblemMapper problemMapper;
     private final KnowledgeBaseService knowledgeBaseService;
     private final DataIndexService dataIndexService;
-    private final EmbeddingStoreFactory embeddingStoreFactory;
 
     public List<ProblemEntity> getProblemsByParagraphId(String paragraphId) {
         return baseMapper.getProblemsByParagraphId(paragraphId);
@@ -65,7 +63,7 @@ public class ProblemParagraphService extends ServiceImpl<ProblemParagraphMapper,
             embeddingEntity.setSourceType(SourceType.PROBLEM);
             embeddingEntity.setIsActive(true);
             embeddingEntity.setContent(problem.getContent());
-            dataIndexService.insertAll(List.of(embeddingEntity),embeddingModel,embeddingStoreFactory.get(knowledgeId));
+            dataIndexService.insertAll(List.of(embeddingEntity),embeddingModel);
             return true;
         }
         return false;
