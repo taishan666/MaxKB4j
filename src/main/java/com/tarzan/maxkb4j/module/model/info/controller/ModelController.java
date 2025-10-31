@@ -45,8 +45,8 @@ public class ModelController{
 	}
 
 	@GetMapping("/model/{id}")
-	public R<ModelEntity> get(@PathVariable String id){
-		return R.success(modelService.getById(id));
+	public R<ModelEntity> getInfo(@PathVariable String id){
+		return R.success(modelService.getInfo(id));
 	}
 
 	@DeleteMapping("/model/{id}")

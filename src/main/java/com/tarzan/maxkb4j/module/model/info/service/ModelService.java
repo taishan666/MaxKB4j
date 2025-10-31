@@ -7,6 +7,8 @@ import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tarzan.maxkb4j.common.util.BeanUtil;
+import com.tarzan.maxkb4j.common.util.DataMaskUtil;
+import com.tarzan.maxkb4j.module.model.info.entity.ModelCredential;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelEntity;
 import com.tarzan.maxkb4j.module.model.info.mapper.ModelMapper;
 import com.tarzan.maxkb4j.module.model.info.vo.ModelVO;
@@ -121,5 +123,18 @@ public class ModelService extends ServiceImpl<ModelMapper, ModelEntity> {
     public Boolean removeModelById(String id) {
         userResourcePermissionService.remove(AuthTargetType.APPLICATION, id);
         return this.removeById(id);
+    }
+
+    public ModelEntity getInfo(String id) {
+        ModelEntity model = this.getById(id);
+        if (model != null){
+            String userId = StpUtil.getLoginIdAsString();
+            if (model.getUserId().equals(userId)){
+                ModelCredential credential=model.getCredential();
+                String apiKey=credential.getApiKey();
+                credential.setApiKey(DataMaskUtil.maskApiKey(apiKey));
+            }
+        }
+        return model;
     }
 }

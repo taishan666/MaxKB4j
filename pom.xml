@@ -146,6 +146,7 @@
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
+            <version>3.18.0</version>
         </dependency>
         <dependency>
             <groupId>com.baomidou</groupId>
@@ -182,11 +183,11 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-mongodb</artifactId>
         </dependency>
-        <dependency>
+<!--        <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt</artifactId>
             <version>0.12.6</version>
-        </dependency>
+        </dependency>-->
         <dependency>
             <groupId>javax.xml.bind</groupId>
             <artifactId>jaxb-api</artifactId>
@@ -215,6 +216,12 @@
             <groupId>com.pgvector</groupId>
             <artifactId>pgvector</artifactId>
             <version>0.1.6</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.postgresql</groupId>
+                    <artifactId>postgresql</artifactId>
+                </exclusion>
+            </exclusions>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -255,11 +262,6 @@
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-mcp</artifactId>
-            <version>${langchain4j.version}-beta15</version>
-        </dependency>
-        <dependency>
-            <groupId>dev.langchain4j</groupId>
-            <artifactId>langchain4j-document-parser-apache-tika</artifactId>
             <version>${langchain4j.version}-beta15</version>
         </dependency>
         <dependency>
@@ -322,6 +324,19 @@
             <artifactId>jython-standalone</artifactId>
             <version>2.7.3</version> &lt;!&ndash; 请根据需要选择版本 &ndash;&gt;
         </dependency>-->
+       <!--   tika文档解析-->
+        <dependency>
+            <groupId>org.apache.tika</groupId>
+            <artifactId>tika-core</artifactId>
+            <version>3.2.3</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.tika</groupId>
+            <artifactId>tika-parsers-standard-package</artifactId>
+            <version>3.2.3</version>
+            <scope>compile</scope>
+        </dependency>
         <dependency>
             <groupId>org.apache.groovy</groupId>
             <artifactId>groovy-all</artifactId>
@@ -370,11 +385,6 @@
             <artifactId>langchain4j-onnx-scoring</artifactId>
             <version>${langchain4j.version}</version>
         </dependency>-->
-        <dependency>
-            <groupId>com.knuddels</groupId>
-            <artifactId>jtokkit</artifactId>
-            <version>1.0.0</version>
-        </dependency>
     </dependencies>
 
     <repositories>
