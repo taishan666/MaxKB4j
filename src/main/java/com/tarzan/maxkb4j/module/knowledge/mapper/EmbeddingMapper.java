@@ -11,8 +11,9 @@ import java.util.List;
  * @author tarzan
  * @date 2024-12-30 18:08:16
  */
-public interface EmbeddingMapper extends BaseMapper<EmbeddingEntity>{
+public interface EmbeddingMapper extends BaseMapper<EmbeddingEntity> {
 
-    List<TextChunkVO> embeddingSearch(List<String> knowledgeIds, List<String> excludeParagraphIds,@Param("maxResults") int maxResults, @Param("minScore") double minScore, @Param("referenceEmbedding") float[]  referenceEmbedding );
- 
+    List<TextChunkVO> embeddingSearch(List<String> knowledgeIds, List<String> excludeParagraphIds,@Param("maxResults") int maxResults, @Param("minScore") double minScore, @Param("referenceEmbedding") float[]  referenceEmbedding);
+
+    void updateActiveByParagraphId(String knowledgeId,String paragraphId,boolean isActive);
 }

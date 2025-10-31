@@ -1,16 +1,14 @@
 package com.tarzan.maxkb4j.module.knowledge.service;
 
-import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.tarzan.maxkb4j.core.langchain4j.EmbeddingStoreFactory;
 import com.tarzan.maxkb4j.module.knowledge.consts.SourceType;
+import com.tarzan.maxkb4j.module.knowledge.domain.entity.EmbeddingEntity;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.ProblemEntity;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.ProblemParagraphEntity;
 import com.tarzan.maxkb4j.module.knowledge.mapper.ProblemMapper;
 import com.tarzan.maxkb4j.module.knowledge.mapper.ProblemParagraphMapper;
-import com.tarzan.maxkb4j.module.knowledge.domain.entity.EmbeddingEntity;
-import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.model.embedding.EmbeddingModel;
-import dev.langchain4j.model.output.Response;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,8 +25,9 @@ import java.util.Objects;
 public class ProblemParagraphService extends ServiceImpl<ProblemParagraphMapper, ProblemParagraphEntity>{
 
     private final ProblemMapper problemMapper;
-    private final DatasetBaseService datasetService;
+    private final KnowledgeBaseService knowledgeBaseService;
     private final DataIndexService dataIndexService;
+    private final EmbeddingStoreFactory embeddingStoreFactory;
 
     public List<ProblemEntity> getProblemsByParagraphId(String paragraphId) {
         return baseMapper.getProblemsByParagraphId(paragraphId);
@@ -40,13 +39,13 @@ public class ProblemParagraphService extends ServiceImpl<ProblemParagraphMapper,
         entity.setProblemId(problemId);
         entity.setParagraphId(paragraphId);
         entity.setDocumentId(docId);
-        EmbeddingModel embeddingModel=datasetService.getDatasetEmbeddingModel(knowledgeId);
+        EmbeddingModel embeddingModel=knowledgeBaseService.getEmbeddingModel(knowledgeId);
         return this.save(entity) && createProblemIndex(knowledgeId, docId, paragraphId, problemId,embeddingModel);
     }
 
     @Transactional
     public boolean unAssociation(String knowledgeId, String docId, String paragraphId, String problemId) {
-        dataIndexService.removeByProblemIdAndParagraphId(problemId,paragraphId);
+        dataIndexService.removeByProblemIdAndParagraphId(knowledgeId,problemId,paragraphId);
         return this.lambdaUpdate()
                 .eq(ProblemParagraphEntity::getParagraphId, paragraphId)
                 .eq(ProblemParagraphEntity::getDocumentId, docId)
@@ -62,14 +61,11 @@ public class ProblemParagraphService extends ServiceImpl<ProblemParagraphMapper,
             embeddingEntity.setKnowledgeId(knowledgeId);
             embeddingEntity.setDocumentId(docId);
             embeddingEntity.setParagraphId(paragraphId);
-            embeddingEntity.setMeta(new JSONObject());
             embeddingEntity.setSourceId(problemId);
             embeddingEntity.setSourceType(SourceType.PROBLEM);
             embeddingEntity.setIsActive(true);
-            Response<Embedding> res = embeddingModel.embed(problem.getContent());
-            embeddingEntity.setEmbedding(res.content().vectorAsList());
             embeddingEntity.setContent(problem.getContent());
-            dataIndexService.insertAll(List.of(embeddingEntity));
+            dataIndexService.insertAll(List.of(embeddingEntity),embeddingModel,embeddingStoreFactory.get(knowledgeId));
             return true;
         }
         return false;

@@ -39,20 +39,20 @@ public class ParagraphController {
     @PutMapping("/knowledge/{id}/document/{docId}/paragraph/{paragraphId}")
     public R<ParagraphEntity> updateParagraphByParagraphId(@PathVariable String id, @PathVariable("docId") String docId, @PathVariable("paragraphId") String paragraphId, @RequestBody ParagraphEntity paragraph) {
         paragraph.setId(paragraphId);
-        paragraphService.updateParagraphById(docId,paragraph);
+        paragraphService.updateParagraphById(id,docId,paragraph);
         return R.success(paragraphService.getById(paragraphId));
     }
 
   
-    @DeleteMapping("/knowledge/{id}/document/{docId}/paragraph/{paragraphId}")
-    public R<Boolean> deleteParagraphByParagraphId(@PathVariable String id, @PathVariable("docId") String docId, @PathVariable("paragraphId") String paragraphId) {
-        return R.success(paragraphService.deleteBatchByIds(docId,List.of(paragraphId)));
+    @DeleteMapping("/knowledge/{knowledgeId}/document/{docId}/paragraph/{paragraphId}")
+    public R<Boolean> deleteParagraphByParagraphId(@PathVariable String knowledgeId, @PathVariable("docId") String docId, @PathVariable("paragraphId") String paragraphId) {
+        return R.success(paragraphService.deleteBatchByIds(knowledgeId, docId,List.of(paragraphId)));
     }
 
  
     @PutMapping("/knowledge/{id}/document/{docId}/paragraph/batch_delete")
     public R<Boolean> deleteBatchParagraphByParagraphId(@PathVariable String id, @PathVariable("docId") String docId, @RequestBody IdListDTO dto) {
-        return R.success(paragraphService.deleteBatchByIds(docId,dto.getIdList()));
+        return R.success(paragraphService.deleteBatchByIds(id,docId,dto.getIdList()));
     }
 
   

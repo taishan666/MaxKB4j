@@ -48,13 +48,13 @@ public class ProblemController {
   
     @DeleteMapping("/knowledge/{id}/problem/{problemId}")
     public R<Boolean> deleteProblemByDatasetId(@PathVariable("id") String id, @PathVariable("problemId") String problemId) {
-        return R.status(problemService.deleteProblemByIds(List.of(problemId)));
+        return R.status(problemService.deleteProblemByIds(id,List.of(problemId)));
     }
 
   
-    @DeleteMapping("/knowledge/{id}/problem/_batch")
+    @PutMapping("/knowledge/{id}/problem/batch_delete")
     public R<Boolean> deleteBatchProblemByDatasetId(@PathVariable("id") String id, @RequestBody List<String> problemIds) {
-        return R.status(problemService.deleteProblemByIds(problemIds));
+        return R.status(problemService.deleteProblemByIds(id,problemIds));
     }
 
    

@@ -2,7 +2,12 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.tarzan.maxkb4j.module.knowledge.mapper.EmbeddingMapper">
-    <select id="embeddingSearch" resultType="com.tarzan.maxkb4j.module.knowledge.domain.vo.TextChunkVO">
+    <update id="updateActiveByParagraphId">
+        UPDATE knowledge_vector_${knowledgeId}
+        SET is_active = #{isActive}
+        WHERE paragraph_id = #{paragraphId}
+    </update>
+    <select id="embeddingSearch1" resultType="com.tarzan.maxkb4j.module.knowledge.domain.vo.TextChunkVO">
         SELECT paragraph_id,
                score
         FROM (SELECT DISTINCT
@@ -17,7 +22,7 @@
                     <foreach item="id" collection="knowledgeIds" open="(" separator="," close=")">
                         #{id}
                     </foreach>
-              AND is_active) TEMP
+              AND is_active=true) TEMP
               ORDER BY
                   paragraph_id,
                  score DESC) DISTINCT_TEMP
@@ -25,5 +30,28 @@
         ORDER BY score DESC
             LIMIT #{maxResults}
     </select>
+
+    <select id="embeddingSearch" resultType="com.tarzan.maxkb4j.module.knowledge.domain.vo.TextChunkVO">
+        SELECT paragraph_id, score
+            FROM (
+            SELECT DISTINCT ON (paragraph_id) paragraph_id, (2 - (<![CDATA[embedding <=> CAST (#{referenceEmbedding  } AS vector)]]>))/2 AS score
+            FROM (
+                SELECT paragraph_id, embedding
+                FROM EMBEDDING
+                WHERE
+                knowledge_id IN
+                <foreach item="id" collection="knowledgeIds" open="(" separator="," close=")">
+                    #{id}
+                </foreach>
+                AND is_active=true
+            ) TEMP
+            ORDER BY paragraph_id, score DESC
+        ) t
+        WHERE score > #{minScore}
+        ORDER BY score DESC
+        LIMIT #{maxResults}
+    </select>
+
+
 
 </mapper>

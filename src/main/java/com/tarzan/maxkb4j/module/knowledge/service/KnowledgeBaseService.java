@@ -10,12 +10,12 @@ import org.springframework.stereotype.Service;
 
 @Service
 @AllArgsConstructor
-public class DatasetBaseService {
+public class KnowledgeBaseService {
     private final KnowledgeMapper datasetMapper;
     private final ModelFactory modelFactory;
 
     @Cacheable(cacheNames = "dataset_embedding_model", key = "#knowledgeId")
-    public EmbeddingModel getDatasetEmbeddingModel(String knowledgeId){
+    public EmbeddingModel getEmbeddingModel(String knowledgeId){
         KnowledgeEntity dataset=datasetMapper.selectById(knowledgeId);
         if (dataset==null){
             throw new RuntimeException("数据集不存在");

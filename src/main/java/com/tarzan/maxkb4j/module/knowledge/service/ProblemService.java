@@ -1,6 +1,5 @@
 package com.tarzan.maxkb4j.module.knowledge.service;
 
-import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -88,22 +87,21 @@ public class ProblemService extends ServiceImpl<ProblemMapper, ProblemEntity> {
         if (!CollectionUtils.isEmpty(insertProblems)) {
             baseMapper.insert(insertProblems);
             List<EmbeddingEntity> embeddingEntities = new ArrayList<>();
+            //todo 批量插入
             for (ProblemEntity problem : insertProblems) {
                 EmbeddingEntity embeddingEntity = new EmbeddingEntity();
                 embeddingEntity.setKnowledgeId(problem.getKnowledgeId());
                 embeddingEntity.setDocumentId(docId);
                 embeddingEntity.setParagraphId(paragraph.getId());
-                embeddingEntity.setMeta(new JSONObject());
                 embeddingEntity.setSourceId(problem.getId());
                 embeddingEntity.setSourceType(SourceType.PROBLEM);
                 embeddingEntity.setIsActive(true);
-                //  embeddingEntity.setSearchVector(toTsVector(problem.getContent()));
                 Response<Embedding> response = embeddingModel.embed(problem.getContent());
-                embeddingEntity.setEmbedding(response.content().vectorAsList());
+               // embeddingEntity.setEmbedding(response.content().vectorAsList());
                 embeddingEntity.setContent(problem.getContent());
                 embeddingEntities.add(embeddingEntity);
             }
-            dataIndexService.insertAll(embeddingEntities);
+         //   dataIndexService.insertAll(embeddingEntities, embeddingModel,);
         }
         log.info("结束---->生成问题:{}", paragraph.getId());
     }
@@ -175,12 +173,12 @@ public class ProblemService extends ServiceImpl<ProblemMapper, ProblemEntity> {
     }
 
     @Transactional
-    public boolean deleteProblemByIds(List<String> problemIds) {
+    public boolean deleteProblemByIds(String knowledgeId,List<String> problemIds) {
         if (CollectionUtils.isEmpty(problemIds)) {
             return false;
         }
         problemParagraphService.lambdaUpdate().in(ProblemParagraphEntity::getProblemId, problemIds).remove();
-        dataIndexService.removeBySourceIds(problemIds.stream().map(String::toString).toList());
+        dataIndexService.removeBySourceIds(knowledgeId,problemIds.stream().map(String::toString).toList());
         return this.removeByIds(problemIds);
     }
 

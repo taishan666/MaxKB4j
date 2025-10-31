@@ -1,6 +1,5 @@
 package com.tarzan.maxkb4j.module.knowledge.service;
 
-import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
@@ -16,18 +15,20 @@ import com.tarzan.maxkb4j.module.knowledge.mapper.KnowledgeMapper;
 import com.tarzan.maxkb4j.module.knowledge.mapper.ParagraphMapper;
 import com.tarzan.maxkb4j.module.model.info.service.ModelFactory;
 import com.tarzan.maxkb4j.module.model.provider.service.impl.BaseChatModel;
-import dev.langchain4j.data.embedding.Embedding;
+import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.model.embedding.EmbeddingModel;
-import dev.langchain4j.model.output.Response;
+import dev.langchain4j.store.embedding.EmbeddingStore;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.poi.util.StringUtil;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -45,6 +46,7 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
     private final DocumentMapper documentMapper;
     private final ModelFactory modelFactory;
     private final KnowledgeMapper datasetMapper;
+
 
     public void updateStatusById(String id, int type, int status) {
         baseMapper.updateStatusById(id,type,status,type-1,type+1);
@@ -65,37 +67,29 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
     }
 
     @Transactional
-    public void deleteByDocIds(List<String> docIds) {
-        dataIndexService.removeByDocIds(docIds);
+    public void deleteByDocIds(String knowledgeId,List<String> docIds) {
+        dataIndexService.removeByDocIds(knowledgeId,docIds);
         this.lambdaUpdate().in(ParagraphEntity::getDocumentId, docIds).remove();
         problemParagraphService.lambdaUpdate().in(ProblemParagraphEntity::getDocumentId, docIds).remove();
 
     }
 
 
-    public void createIndex(ParagraphEntity paragraph,EmbeddingModel embeddingModel) {
+    public void createIndex(ParagraphEntity paragraph, EmbeddingModel embeddingModel, EmbeddingStore<TextSegment> embeddingStore) {
         if (paragraph != null) {
             this.updateStatusById(paragraph.getId(),1,1);
             //清除之前向量
-            dataIndexService.removeByParagraphId(paragraph.getId());
+            dataIndexService.removeByParagraphId(paragraph.getKnowledgeId(),paragraph.getId());
             List<EmbeddingEntity> embeddingEntities = new ArrayList<>();
             log.info("开始---->向量化段落:{}", paragraph.getId());
             EmbeddingEntity paragraphEmbed = new EmbeddingEntity();
             paragraphEmbed.setKnowledgeId(paragraph.getKnowledgeId());
             paragraphEmbed.setDocumentId(paragraph.getDocumentId());
             paragraphEmbed.setParagraphId(paragraph.getId());
-            paragraphEmbed.setMeta(new JSONObject());
             paragraphEmbed.setSourceId(paragraph.getId());
             paragraphEmbed.setSourceType(SourceType.PARAGRAPH);
             paragraphEmbed.setIsActive(paragraph.getIsActive());
             paragraphEmbed.setContent(paragraph.getTitle() + paragraph.getContent());
-            Response<Embedding> res;
-            if(StringUtil.isNotBlank(paragraph.getTitle())){
-                res = embeddingModel.embed(paragraph.getTitle() + paragraph.getContent());
-            }else {
-                res = embeddingModel.embed(paragraph.getContent());
-            }
-            paragraphEmbed.setEmbedding(res.content().vectorAsList());
             embeddingEntities.add(paragraphEmbed);
             List<ProblemEntity> problems=problemParagraphService.getProblemsByParagraphId(paragraph.getId());
             for (ProblemEntity problem : problems) {
@@ -103,33 +97,31 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
                 problemEmbed.setKnowledgeId(paragraph.getKnowledgeId());
                 problemEmbed.setDocumentId(paragraph.getDocumentId());
                 problemEmbed.setParagraphId(paragraph.getId());
-                problemEmbed.setMeta(new JSONObject());
                 problemEmbed.setSourceId(problem.getId());
                 paragraphEmbed.setSourceId(problem.getId());
                 problemEmbed.setSourceType(SourceType.PROBLEM);
                 problemEmbed.setIsActive(paragraph.getIsActive());
                 problemEmbed.setContent(problem.getContent());
-                Response<Embedding> res1 = embeddingModel.embed(problem.getContent());
-                problemEmbed.setEmbedding(res1.content().vectorAsList());
                 embeddingEntities.add(problemEmbed);
             }
-            dataIndexService.insertAll(embeddingEntities);
+            dataIndexService.insertAll(embeddingEntities,embeddingModel,embeddingStore);
             this.updateStatusById(paragraph.getId(),1,2);
             log.info("结束---->向量化段落:{}", paragraph.getId());
         }
     }
 
+
     @Transactional
-    public void updateParagraphById(String docId,ParagraphEntity paragraph) {
-        dataIndexService.updateActiveByParagraph(paragraph);
+    public void updateParagraphById(String knowledgeId,String docId,ParagraphEntity paragraph) {
+        dataIndexService.updateActiveByParagraphId(knowledgeId,paragraph);
         this.updateById(paragraph);
         documentMapper.updateCharLengthById(docId);
     }
 
 
     @Transactional
-    public Boolean deleteBatchByIds(String docId, List<String> paragraphIds) {
-        dataIndexService.removeByParagraphIds(paragraphIds);
+    public Boolean deleteBatchByIds(String knowledgeId,String docId, List<String> paragraphIds) {
+        dataIndexService.removeByParagraphIds(knowledgeId,paragraphIds);
         this.removeByIds(paragraphIds);
         return documentMapper.updateCharLengthById(docId);
     }

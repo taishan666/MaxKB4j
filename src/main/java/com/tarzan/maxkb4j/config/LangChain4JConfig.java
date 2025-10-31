@@ -22,4 +22,5 @@ public class LangChain4JConfig {
     ChatMemoryStore chatMemoryStore() {
         return new InMemoryChatMemoryStore();
     }
+    
 }

@@ -60,15 +60,7 @@ public class KnowledgeController {
         return R.success(retrieveService.paragraphSearch(List.of(id), dto));
     }
 
-    
-/*
-    @PutMapping("/knowledge/{id}/re_embedding")
-    public R<Boolean> reEmbedding(@PathVariable("id") String id) {
-        return R.success(knowledgeService.reEmbedding(id));
-    }
-*/
 
-    
     @PutMapping("/knowledge/{id}")
     public R<Boolean> updatedKnowledge(@PathVariable("id") String id, @RequestBody KnowledgeEntity datasetEntity) {
         datasetEntity.setId(id);

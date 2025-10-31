@@ -460,11 +460,11 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
 
 
     @Transactional
-    public boolean deleteBatchDocByDocIds(List<String> docIds) {
+    public boolean deleteBatchDocByDocIds(String knowledgeId,List<String> docIds) {
         if (CollectionUtils.isEmpty(docIds)) {
             return false;
         }
-        paragraphService.deleteByDocIds(docIds);
+        paragraphService.deleteByDocIds(knowledgeId,docIds);
         return this.lambdaUpdate().in(DocumentEntity::getId, docIds).remove();
     }
 
@@ -482,7 +482,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
     }
 
 
-    public void createIndex(EmbeddingModel embeddingModel, String docId) {
+/*    public void createIndex(EmbeddingModel embeddingModel, String docId) {
         log.info("开始--->文档索引:{}", docId);
         List<ParagraphEntity> paragraphs = paragraphService.lambdaQuery().eq(ParagraphEntity::getDocumentId, docId).list();
         this.updateStatusById(docId, 1, 1);
@@ -492,7 +492,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         });
         this.updateStatusById(docId, 1, 2);
         log.info("结束--->文档索引:{}", docId);
-    }
+    }*/
 
     public boolean cancelTask(String docId, DocumentEntity doc) {
         DocumentEntity entity = baseMapper.selectById(docId);
@@ -663,7 +663,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
     @Transactional
     public void sync(String knowledgeId, String docId) {
         DocumentEntity doc = this.getById(docId);
-        deleteBatchDocByDocIds(List.of(docId));
+        deleteBatchDocByDocIds(knowledgeId,List.of(docId));
         webDoc(knowledgeId, List.of(doc.getMeta().getString("source_url")), doc.getMeta().getString("selector"));
     }
 
