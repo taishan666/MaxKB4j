@@ -470,7 +470,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
     public boolean embedByDocIds(List<String> docIds) {
         if (!CollectionUtils.isEmpty(docIds)) {
             docIds.parallelStream().forEach(docId -> {
-                paragraphService.updateStatusByDocId(docId, 1, 0);
+                paragraphService.updateStatusByDocIds(List.of(docId), 1, 0);
                 this.updateStatusById(docId, 1, 0);
                 //目的是为了显示进度计数
                 this.updateStatusMetaById(docId);
@@ -479,18 +479,6 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         return true;
     }
 
-
-/*    public void createIndex(EmbeddingModel embeddingModel, String docId) {
-        log.info("开始--->文档索引:{}", docId);
-        List<ParagraphEntity> paragraphs = paragraphService.lambdaQuery().eq(ParagraphEntity::getDocumentId, docId).list();
-        this.updateStatusById(docId, 1, 1);
-        paragraphs.forEach(paragraph -> {
-            paragraphService.createIndex(paragraph, embeddingModel);
-            this.updateStatusMetaById(docId);
-        });
-        this.updateStatusById(docId, 1, 2);
-        log.info("结束--->文档索引:{}", docId);
-    }*/
 
     public boolean cancelTask(String docId, DocumentEntity doc) {
         DocumentEntity entity = baseMapper.selectById(docId);

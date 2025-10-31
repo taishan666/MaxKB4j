@@ -20,37 +20,6 @@
         </foreach>
     </update>
 
-    <update id="updateStatusById">
-        UPDATE "paragraph"
-        SET status = reverse (
-        SUBSTRING ( reverse ( LPAD( status, 3, 'n' ) ) :: TEXT FROM 1 FOR #{up} ) || #{status} || SUBSTRING ( reverse ( LPAD( status, 3, 'n' ) ) :: TEXT FROM #{next} )
-        ),
-        status_meta = jsonb_set (
-        "paragraph".status_meta,
-        ARRAY['state_time', #{type}::TEXT],
-        jsonb_set (
-        COALESCE ( "paragraph".status_meta #> ARRAY['state_time', #{type}::TEXT], jsonb_build_object(#{status}, now())),
-        ARRAY[#{status}::TEXT],
-        CONCAT ( '"', now( ), '"' ) :: JSONB
-        )
-        ) WHERE "paragraph"."id" =   #{paragraphId}
-    </update>
-
-    <update id="updateStatusByDocId">
-        UPDATE "paragraph"
-        SET status = reverse (
-                SUBSTRING ( reverse ( LPAD( status, 3, 'n' ) ) :: TEXT FROM 1 FOR #{up} ) || #{status} || SUBSTRING ( reverse ( LPAD( status, 3, 'n' ) ) :: TEXT FROM #{next} )
-                     ),
-            status_meta = jsonb_set (
-                    "paragraph".status_meta,
-                    ARRAY['state_time', #{type}::TEXT],
-                    jsonb_set (
-                            COALESCE ( "paragraph".status_meta #> ARRAY['state_time', #{type}::TEXT], jsonb_build_object(#{status}, now())),
-                            ARRAY[#{status}::TEXT],
-                            CONCAT ( '"', now( ), '"' ) :: JSONB
-                    )
-                          ) WHERE "paragraph"."document_id" =   #{docId}
-    </update>
 
     <update id="updateStatusByDocIds">
         UPDATE "paragraph"

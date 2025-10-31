@@ -47,10 +47,7 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
 
 
     public void updateStatusById(String id, int type, int status) {
-        baseMapper.updateStatusById(id,type,status,type-1,type+1);
-    }
-    public void updateStatusByDocId(String docId, int type,int status)  {
-        baseMapper.updateStatusByDocId(docId,type,status,type-1,type+1);
+        baseMapper.updateStatusByIds(List.of(id),type,status,type-1,type+1);
     }
 
     public void updateStatusByDocIds(List<String> docIds, int type,int status)  {
@@ -166,7 +163,6 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
         paragraph.setHitNum(0);
         paragraph.setIsActive(true);
         paragraph.setPosition(position==null?1:position);
-        // paragraph.setStatusMeta(paragraph.defaultStatusMeta());
         paragraph.setDocumentId(docId);
         return paragraph;
     }
