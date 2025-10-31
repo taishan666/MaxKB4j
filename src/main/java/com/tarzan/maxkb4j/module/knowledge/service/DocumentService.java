@@ -161,7 +161,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
                 if (values.length > 1) {
                     String title = values[0];
                     String content = values[1];
-                    ParagraphEntity paragraph = paragraphService.createParagraph(knowledgeId, doc.getId(), title, content,null);
+                    ParagraphEntity paragraph = paragraphService.createParagraph(knowledgeId, doc.getId(), title, content, null);
                     paragraphs.add(paragraph);
                     doc.setCharLength(doc.getCharLength() + paragraph.getContent().length());
                 }
@@ -173,6 +173,9 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         if (!CollectionUtils.isEmpty(paragraphs)) {
             paragraphService.saveBatch(paragraphs);
         }
+        this.updateStatusById(doc.getId(), 1, 0);
+        //目的是为了显示进度计数
+        this.updateStatusMetaById(doc.getId());
     }
 
     private void save(DocumentEntity doc, MultipartFile file) throws IOException {
@@ -201,7 +204,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
                         .registerReadListener(new PageReadListener<DatasetExcel>(dataList -> {
                             for (DatasetExcel data : dataList) {
                                 log.info("在Sheet {} 中读取到一条数据{}", sheetName, JSON.toJSONString(data));
-                                ParagraphEntity paragraph = paragraphService.createParagraph(knowledgeId, doc.getId(), data.getTitle(), data.getContent(),null);
+                                ParagraphEntity paragraph = paragraphService.createParagraph(knowledgeId, doc.getId(), data.getTitle(), data.getContent(), null);
                                 paragraphs.add(paragraph);
                                 doc.setCharLength(doc.getCharLength() + paragraph.getContent().length());
                                 if (StringUtils.isNotBlank(data.getProblems())) {
@@ -237,6 +240,11 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
             paragraphService.saveBatch(paragraphs);
             problemService.saveBatch(problemEntities);
             problemParagraphService.saveBatch(problemParagraphs);
+            for (DocumentEntity doc : docs) {
+                this.updateStatusById(doc.getId(), 1, 0);
+                //目的是为了显示进度计数
+                this.updateStatusMetaById(doc.getId());
+            }
         }
     }
 
@@ -247,11 +255,13 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
             List<String> list = new ArrayList<>();
             EasyExcel.read(uploadFile.getInputStream(), new AnalysisEventListener<Map<Integer, String>>() {
                 Map<Integer, String> headMap = new LinkedHashMap<>();
+
                 // 表头信息会在此方法中获取
                 @Override
                 public void invokeHeadMap(Map<Integer, String> headMap, AnalysisContext context) {
                     this.headMap = headMap;
                 }
+
                 // 每一行数据都会调用此方法
                 @Override
                 public void invoke(Map<Integer, String> data, AnalysisContext context) {
@@ -263,6 +273,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
                     sb.deleteCharAt(sb.length() - 1);
                     list.add(sb.toString());
                 }
+
                 @Override
                 public void doAfterAllAnalysed(AnalysisContext analysisContext) {
                     log.info("所有数据解析完成！");
@@ -273,11 +284,14 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
             if (!CollectionUtils.isEmpty(list)) {
                 for (String text : list) {
                     doc.setCharLength(doc.getCharLength() + text.length());
-                    ParagraphEntity paragraph = paragraphService.createParagraph(knowledgeId, doc.getId(), "", text,null);
+                    ParagraphEntity paragraph = paragraphService.createParagraph(knowledgeId, doc.getId(), "", text, null);
                     paragraphs.add(paragraph);
                 }
                 this.save(doc, uploadFile);
                 paragraphService.saveBatch(paragraphs);
+                this.updateStatusById(doc.getId(), 1, 0);
+                //目的是为了显示进度计数
+                this.updateStatusMetaById(doc.getId());
             }
         }
     }
@@ -301,55 +315,6 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         List<DatasetExcel> list = getDatasetExcelByDoc(doc);
         ExcelUtil.export(response, doc.getName(), doc.getName(), list, DatasetExcel.class);
     }
-
-    public void exportTemplate(String type, HttpServletResponse response, String csvPath, String excelPath, String csvFileName, String excelFileName) throws Exception {
-        // 设置字符编码
-        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
-        String fileName = "";
-        String contentType = "";
-        InputStream inputStream = null;
-        ClassLoader classLoader = getClass().getClassLoader();
-        if ("csv".equals(type)) {
-            contentType = "text/csv";
-            fileName = URLEncoder.encode(csvFileName, StandardCharsets.UTF_8);
-            inputStream = classLoader.getResourceAsStream(csvPath);
-        } else if ("excel".equals(type)) {
-            contentType = "application/vnd.ms-excel"; // 更准确的Excel MIME类型
-            fileName = URLEncoder.encode(excelFileName, StandardCharsets.UTF_8);
-            inputStream = classLoader.getResourceAsStream(excelPath);
-        }
-
-        if (inputStream != null) {
-            try (OutputStream outputStream = response.getOutputStream()) {
-                // 设置响应内容类型和头部信息
-                response.setContentType(contentType);
-                response.setHeader("Content-disposition", "attachment;filename=" + fileName);
-
-                byte[] buffer = new byte[1024];
-                int bytesRead;
-                while ((bytesRead = inputStream.read(buffer)) != -1) {
-                    outputStream.write(buffer, 0, bytesRead);
-                }
-                outputStream.flush();
-            } finally {
-                // 确保输入流被关闭，即使发生异常
-                inputStream.close();
-            }
-        } else {
-            throw new Exception("无法找到指定类型的模板文件");
-        }
-    }
-
-    public void tableTemplateExport(String type, HttpServletResponse response) throws Exception {
-        exportTemplate(type, response, "templates/MaxKB4J表格模板.csv", "templates/MaxKB4J表格模板.xlsx", "csv_template.csv", "excel_template.xlsx");
-    }
-
-    public void templateExport(String type, HttpServletResponse response) throws Exception {
-        exportTemplate(type, response, "templates/csv_template.csv", "templates/excel_template.xlsx", "csv_template.csv", "excel_template.xlsx");
-    }
-
-
-
 
     private List<DatasetExcel> getDatasetExcelByDoc(DocumentEntity doc) {
         List<DatasetExcel> list = new ArrayList<>();
@@ -420,7 +385,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
                 AtomicInteger docCharLength = new AtomicInteger();
                 if (!CollectionUtils.isEmpty(e.getParagraphs())) {
                     e.getParagraphs().forEach(p -> {
-                        paragraphEntities.add(paragraphService.createParagraph(knowledgeId, doc.getId(), p.getTitle(), p.getContent(),null));
+                        paragraphEntities.add(paragraphService.createParagraph(knowledgeId, doc.getId(), p.getTitle(), p.getContent(), null));
                         docCharLength.addAndGet(p.getContent().length());
                     });
                 }
@@ -448,7 +413,6 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         documentEntity.setMeta(new JSONObject());
         documentEntity.setCharLength(0);
         documentEntity.setStatus("nn0");
-        //documentEntity.setStatusMeta(documentEntity.defaultStatusMeta());
         documentEntity.setIsActive(true);
         documentEntity.setType(type);
         documentEntity.setHitHandlingMethod("optimization");
@@ -458,11 +422,11 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
 
 
     @Transactional
-    public boolean deleteBatchDocByDocIds(String knowledgeId,List<String> docIds) {
+    public boolean deleteBatchDocByDocIds(String knowledgeId, List<String> docIds) {
         if (CollectionUtils.isEmpty(docIds)) {
             return false;
         }
-        paragraphService.deleteByDocIds(knowledgeId,docIds);
+        paragraphService.deleteByDocIds(knowledgeId, docIds);
         return this.lambdaUpdate().in(DocumentEntity::getId, docIds).remove();
     }
 
@@ -636,7 +600,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
             doc.setMeta(meta);
             List<TextSegment> textSegments = documentSpiltService.defaultSplit(elements.text());
             for (TextSegment textSegment : textSegments) {
-                ParagraphEntity paragraph = paragraphService.createParagraph(knowledgeId, doc.getId(), "", textSegment.text(),null);
+                ParagraphEntity paragraph = paragraphService.createParagraph(knowledgeId, doc.getId(), "", textSegment.text(), null);
                 paragraphs.add(paragraph);
                 doc.setCharLength(doc.getCharLength() + paragraph.getContent().length());
             }
@@ -649,7 +613,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
     @Transactional
     public void sync(String knowledgeId, String docId) {
         DocumentEntity doc = this.getById(docId);
-        deleteBatchDocByDocIds(knowledgeId,List.of(docId));
+        deleteBatchDocByDocIds(knowledgeId, List.of(docId));
         webDoc(knowledgeId, List.of(doc.getMeta().getString("source_url")), doc.getMeta().getString("selector"));
     }
 

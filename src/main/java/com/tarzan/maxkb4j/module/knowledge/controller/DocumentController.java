@@ -64,16 +64,6 @@ public class DocumentController {
         documentService.importTable(id, file);
     }
 
-    @GetMapping("/knowledge/document/table_template/export")
-    public void tableTemplateExport(String type, HttpServletResponse response) throws Exception {
-        documentService.tableTemplateExport(type, response);
-    }
-
-    @GetMapping("/knowledge/document/template/export")
-    public void templateExport(String type, HttpServletResponse response) throws Exception {
-        documentService.templateExport(type, response);
-    }
-
 
     @PostMapping("/knowledge/{knowledgeId}/document/split")
     public R<List<TextSegmentVO>> split(@PathVariable String knowledgeId, MultipartFile[] file, String[] patterns, Integer limit, Boolean with_filter) throws IOException {
@@ -81,7 +71,7 @@ public class DocumentController {
     }
   
     @GetMapping("/knowledge/{knowledgeId}/document/split_pattern")
-    public R<List<KeyAndValueVO>> splitPattern() {
+    public R<List<KeyAndValueVO>> splitPattern(@PathVariable String knowledgeId) {
         return R.success(documentService.splitPattern());
     }
 
