@@ -3,12 +3,14 @@ package com.tarzan.maxkb4j.module.knowledge.service;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.huaban.analysis.jieba.JiebaSegmenter;
+import com.tarzan.maxkb4j.common.util.BatchUtil;
 import com.tarzan.maxkb4j.common.util.StringUtil;
 import com.tarzan.maxkb4j.module.knowledge.consts.SourceType;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.EmbeddingEntity;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.ParagraphEntity;
 import com.tarzan.maxkb4j.module.knowledge.mapper.EmbeddingMapper;
 import dev.langchain4j.data.embedding.Embedding;
+import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.model.output.Response;
 import lombok.AllArgsConstructor;
@@ -30,17 +32,27 @@ public class DataIndexService {
 
 
     public void insertAll(List<EmbeddingEntity> embeddingEntities, EmbeddingModel embeddingModel) {
-        for (EmbeddingEntity embeddingEntity : embeddingEntities) {
+    /*    for (EmbeddingEntity embeddingEntity : embeddingEntities) {
             Response<Embedding> res = embeddingModel.embed(embeddingEntity.getContent());
             embeddingEntity.setEmbedding(res.content().vectorAsList());
             embeddingEntity.setContent(segmentContent(embeddingEntity.getContent()));
-        }
+        }*/
+        BatchUtil.protectBach(embeddingEntities, 3,batch->{
+            List<TextSegment> textSegments=batch.stream().map(e -> TextSegment.from(e.getContent())).toList();
+            Response<List<Embedding>> res = embeddingModel.embedAll(textSegments);
+            List<Embedding> embeddings = res.content();
+            for (int i = 0; i < batch.size(); i++) {
+                Embedding  embedding=embeddings.get(i);
+                EmbeddingEntity embeddingEntity = batch.get(i);
+                embeddingEntity.setEmbedding(embedding.vectorAsList());
+                embeddingEntity.setContent(segmentContent(embeddingEntity.getContent()));
+            }
+        });
         embeddingMapper.insert(embeddingEntities);
         mongoTemplate.insertAll(embeddingEntities);
     }
 
 
-    //todo
     public void updateActiveByParagraphId(String knowledgeId,ParagraphEntity paragraph) {
         if (Objects.nonNull(paragraph.getIsActive())) {
             embeddingMapper.updateActiveByParagraphId(knowledgeId,paragraph.getId(),paragraph.getIsActive());

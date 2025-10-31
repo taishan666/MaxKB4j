@@ -117,7 +117,6 @@ public class DocumentExtractNodeHandler implements INodeHandler {
                 throw new RuntimeException(e);
             }
             String text = "### "+chatFile.getName()+"\n"+contentHandler.getMarkdown()+splitter;
-            System.out.println(text);
             content.add(text);
         }
         return new NodeResult(Map.of("content",String.join(splitter, content),"documentList",documents),Map.of());

@@ -177,7 +177,6 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
 
     private void save(DocumentEntity doc, MultipartFile file) throws IOException {
         String fileId = mongoFileService.storeFile(file);
-        System.out.println(fileId);
         doc.setMeta(new JSONObject(Map.of("allow_download", true, "source_file_id", fileId)));
         this.save(doc);
     }
@@ -245,7 +244,6 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
     @Transactional
     public void importTable(String knowledgeId, MultipartFile[] file) throws IOException {
         for (MultipartFile uploadFile : file) {
-            System.out.println(uploadFile.getOriginalFilename());
             List<String> list = new ArrayList<>();
             EasyExcel.read(uploadFile.getInputStream(), new AnalysisEventListener<Map<Integer, String>>() {
                 Map<Integer, String> headMap = new LinkedHashMap<>();

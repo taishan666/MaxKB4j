@@ -42,6 +42,18 @@ public class BatchUtil {
         }
     }
 
+    public static <T> void protectBach(List<T> list,int number, Consumer<List<T>> bach){
+        if (isEmpty(list)){return;}
+        if (list.size() > number) {
+            for (int i = 0; i < list.size(); i += number) {
+                int lastIndex = Math.min(i + number, list.size());
+                bach.accept(list.subList(i, lastIndex));
+            }
+        }else {
+            bach.accept(list);
+        }
+    }
+
     /**
      * 批量中包含有关联查询，可能因为数据过长出现数据查询的的问题
      * 这里进行分批，合并数据处理。
