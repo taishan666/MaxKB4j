@@ -45,7 +45,7 @@ public class ChatFlowActuator implements IChatActuator {
         String answer = workflowHandler.execute(workflow);
         JSONObject details = workflow.getRuntimeDetails();
         ChatResponse chatResponse = new ChatResponse(answer, details);
-        postResponseHandler.handler(chatParams.getChatId(), chatParams.getChatRecordId(), chatParams.getMessage(), chatResponse, chatRecord, startTime, chatParams.getChatUserId(), chatParams.getChatUserType(), chatParams.getDebug());
+        postResponseHandler.handler(chatParams, chatResponse, chatRecord, startTime);
         return chatResponse;
     }
 

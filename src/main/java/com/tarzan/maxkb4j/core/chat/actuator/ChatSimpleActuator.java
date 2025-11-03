@@ -63,7 +63,7 @@ public class ChatSimpleActuator implements IChatActuator {
         String answer = pipelineManage.run(params, chatParams.getSink());
         JSONObject details = pipelineManage.getDetails();
         ChatResponse chatResponse = new ChatResponse(answer, details);
-        postResponseHandler.handler(chatParams.getChatId(), chatParams.getChatRecordId(), problemText, chatResponse, null,  startTime, chatParams.getChatUserId(), chatParams.getChatUserType(), chatParams.getDebug());
+        postResponseHandler.handler(chatParams, chatResponse, null,  startTime);
         return chatResponse;
     }
 

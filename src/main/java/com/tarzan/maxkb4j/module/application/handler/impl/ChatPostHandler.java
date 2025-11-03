@@ -3,7 +3,6 @@ package com.tarzan.maxkb4j.module.application.handler.impl;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.tarzan.maxkb4j.common.util.StringUtil;
-import com.tarzan.maxkb4j.module.chat.cache.ChatCache;
 import com.tarzan.maxkb4j.module.application.domian.dto.ChatInfo;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatEntity;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatRecordEntity;
@@ -13,6 +12,8 @@ import com.tarzan.maxkb4j.module.application.handler.PostResponseHandler;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatMapper;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatRecordMapper;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatUserStatsMapper;
+import com.tarzan.maxkb4j.module.chat.cache.ChatCache;
+import com.tarzan.maxkb4j.module.chat.dto.ChatParams;
 import com.tarzan.maxkb4j.module.chat.dto.ChatResponse;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -28,9 +29,14 @@ public class ChatPostHandler extends PostResponseHandler {
     private final ApplicationChatMapper chatMapper;
     private final ApplicationChatRecordMapper chatRecordMapper;
 
-
     @Override
-    public void handler(String chatId, String chatRecordId, String problemText, ChatResponse chatResponse, ApplicationChatRecordEntity chatRecord, long startTime, String chatUserId, String chatUserType, boolean debug) {
+    public void handler(ChatParams chatParams, ChatResponse chatResponse, ApplicationChatRecordEntity chatRecord, long startTime) {
+        String chatId = chatParams.getChatId();
+        String chatRecordId = chatParams.getChatRecordId();
+        String problemText = chatParams.getMessage();
+        String chatUserId = chatParams.getChatUserId();
+        String chatUserType = chatParams.getChatUserType();
+        boolean debug = chatParams.getDebug();
         float runTime = (System.currentTimeMillis() - startTime) / 1000F;
         ChatInfo chatInfo = ChatCache.get(chatId);
         String answerText = chatResponse.getAnswer();
