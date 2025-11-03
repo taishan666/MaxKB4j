@@ -1,0 +1,1 @@
+import{cE as i,cq as r,cr as s}from"./chat-4wXRqTZ9.js";const n="/auth",c=(t,o)=>s(`${n}/${t}/detail`,void 0,o),u=(t,o)=>i(`${n}/connection`,t,void 0,o),a=(t,o,e)=>r(`${n}/${t}/info`,o,void 0,e),g={getAuthSetting:c,postAuthSetting:u,putAuthSetting:a};export{g as a};
