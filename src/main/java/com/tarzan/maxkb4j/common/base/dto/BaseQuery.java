@@ -4,7 +4,7 @@ import lombok.Data;
 
 
 @Data
-public class Query {
+public class BaseQuery {
     private String name;
     private String createUser;
     private String folderId;

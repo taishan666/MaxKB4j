@@ -2,7 +2,7 @@ package com.tarzan.maxkb4j.module.knowledge.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.tarzan.maxkb4j.common.api.R;
-import com.tarzan.maxkb4j.common.base.dto.Query;
+import com.tarzan.maxkb4j.common.base.dto.BaseQuery;
 import com.tarzan.maxkb4j.common.constant.AppConst;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.*;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.DocumentEntity;
@@ -149,7 +149,7 @@ public class DocumentController {
 
   
     @GetMapping("/knowledge/{knowledgeId}/document/{current}/{size}")
-    public R<IPage<DocumentVO>> pageDocByDatasetId(@PathVariable String knowledgeId, @PathVariable("current") int current, @PathVariable("size") int size, Query query) {
+    public R<IPage<DocumentVO>> pageDocByDatasetId(@PathVariable String knowledgeId, @PathVariable("current") int current, @PathVariable("size") int size, BaseQuery query) {
         return R.success(documentService.getDocByKnowledgeId(knowledgeId, current, size, query));
     }
 
