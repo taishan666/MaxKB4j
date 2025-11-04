@@ -6,6 +6,7 @@ import cn.dev33.satoken.jwt.exception.SaJwtException;
 import cn.dev33.satoken.stp.StpUtil;
 import com.tarzan.maxkb4j.common.api.R;
 import com.tarzan.maxkb4j.common.exception.AccessException;
+import com.tarzan.maxkb4j.common.exception.AccessNumLimitException;
 import com.tarzan.maxkb4j.common.exception.ApiException;
 import io.swagger.v3.oas.annotations.Hidden;
 import jakarta.servlet.http.HttpServletResponse;
@@ -84,6 +85,13 @@ public class GlobalExceptionHandler {
     public R<String> handleException(AccessException e) {
         // log.error("禁止访问异常: {}", e.getMessage(), e);
         return R.fail(403, e.getMessage());
+    }
+
+    @ExceptionHandler(AccessNumLimitException.class)
+    @ResponseBody
+    public R<String> handleException(AccessNumLimitException e, HttpServletResponse response) {
+        response.setStatus(461); // 设置HTTP状态码为461
+        return R.fail(1002, e.getMessage());
     }
 
 

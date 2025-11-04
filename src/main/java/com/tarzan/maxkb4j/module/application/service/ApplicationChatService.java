@@ -5,18 +5,18 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.tarzan.maxkb4j.common.exception.AccessNumLimitException;
 import com.tarzan.maxkb4j.common.exception.ApiException;
 import com.tarzan.maxkb4j.common.util.StringUtil;
 import com.tarzan.maxkb4j.core.chat.provider.ChatActuatorBuilder;
 import com.tarzan.maxkb4j.core.chat.provider.IChatActuator;
-import com.tarzan.maxkb4j.module.chat.cache.ChatCache;
 import com.tarzan.maxkb4j.module.application.domian.dto.ChatInfo;
 import com.tarzan.maxkb4j.module.application.domian.dto.ChatQueryDTO;
 import com.tarzan.maxkb4j.module.application.domian.entity.*;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationVO;
 import com.tarzan.maxkb4j.module.application.domian.vo.ChatRecordDetailVO;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatMapper;
-import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatUserStatsMapper;
+import com.tarzan.maxkb4j.module.chat.cache.ChatCache;
 import com.tarzan.maxkb4j.module.chat.dto.ChatParams;
 import com.tarzan.maxkb4j.module.chat.dto.ChatResponse;
 import jakarta.servlet.http.HttpServletResponse;
@@ -40,7 +40,7 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
 
     private final ApplicationChatRecordService chatRecordService;
     private final ApplicationService applicationService;
-    private final ApplicationChatUserStatsMapper chatUserStatsMapper;
+    private final ApplicationChatUserStatsService chatUserStatsService;
     private final ApplicationAccessTokenService accessTokenService;
     private final ApplicationVersionService applicationVersionService;
 
@@ -97,7 +97,9 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
                 chatParams.setAppId(chatInfo.getAppId());
             }
         }
-        visitCountCheck(chatParams.getAppId(), chatParams.getChatUserId(), chatParams.getDebug());
+        if (!visitCountCheck(chatParams)){
+            return new ChatResponse("",null);
+        }
         ApplicationVO application = applicationService.getAppDetail(chatParams.getAppId(), chatParams.getDebug());
         IChatActuator chatActuator = ChatActuatorBuilder.getActuator(application.getType());
         ChatResponse chatResponse = chatActuator.chatMessage(application, chatParams);
@@ -118,25 +120,32 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
         return CompletableFuture.completedFuture(chatMessage(chatParams));
     }
 
-    public void visitCountCheck(String appId, String chatUserId, boolean debug) {
+    public boolean visitCountCheck(ChatParams chatParams) {
+        String appId=chatParams.getAppId();
+        String chatUserId=chatParams.getChatUserId();
+        String chatUserType=chatParams.getChatUserType();
+        boolean debug=chatParams.getDebug();
         if (!debug && Objects.nonNull(appId)) {
-            ApplicationChatUserStatsEntity accessClient = chatUserStatsMapper.selectById(chatUserId);
-            if (Objects.isNull(accessClient)) {
-                accessClient = new ApplicationChatUserStatsEntity();
-                accessClient.setId(chatUserId);
-                accessClient.setApplicationId(appId);
-                accessClient.setAccessNum(0);
-                accessClient.setIntraDayAccessNum(0);
-                chatUserStatsMapper.insert(accessClient);
+            ApplicationChatUserStatsEntity chatUserStats = chatUserStatsService.getByUserIdAndAppId(chatUserId, appId);
+            if (Objects.isNull(chatUserStats)) {
+                chatUserStats = new ApplicationChatUserStatsEntity();
+                chatUserStats.setChatUserId(chatUserId);
+                chatUserStats.setChatUserType(chatUserType);
+                chatUserStats.setApplicationId(appId);
+                chatUserStats.setAccessNum(0);
+                chatUserStats.setIntraDayAccessNum(0);
+                chatUserStatsService.save(chatUserStats);
             }
-            ApplicationAccessTokenEntity appAccessToken = accessTokenService.lambdaQuery().eq(ApplicationAccessTokenEntity::getApplicationId, appId).one();
+            ApplicationAccessTokenEntity appAccessToken = accessTokenService.lambdaQuery().select(ApplicationAccessTokenEntity::getAccessNum).eq(ApplicationAccessTokenEntity::getApplicationId, appId).one();
             if (Objects.nonNull(appAccessToken)) {
-                if (appAccessToken.getAccessNum() < accessClient.getIntraDayAccessNum()) {
-                    throw new ApiException("访问次数超过今日访问量");
+                if (appAccessToken.getAccessNum() < chatUserStats.getIntraDayAccessNum()) {
+                    chatParams.getSink().tryEmitError(new AccessNumLimitException("今天的访问次数超过限制"));
+                    return false;
                 }
             }
 
         }
+        return true;
     }
 
 

@@ -11,7 +11,7 @@ import com.tarzan.maxkb4j.module.application.enums.ChatUserType;
 import com.tarzan.maxkb4j.module.application.handler.PostResponseHandler;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatMapper;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatRecordMapper;
-import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatUserStatsMapper;
+import com.tarzan.maxkb4j.module.application.service.ApplicationChatUserStatsService;
 import com.tarzan.maxkb4j.module.chat.cache.ChatCache;
 import com.tarzan.maxkb4j.module.chat.dto.ChatParams;
 import com.tarzan.maxkb4j.module.chat.dto.ChatResponse;
@@ -25,7 +25,7 @@ import java.util.Map;
 @Component
 public class ChatPostHandler extends PostResponseHandler {
 
-    private final ApplicationChatUserStatsMapper chatUserStatsMapper;
+    private final ApplicationChatUserStatsService chatUserStatsService;
     private final ApplicationChatMapper chatMapper;
     private final ApplicationChatRecordMapper chatRecordMapper;
 
@@ -71,11 +71,11 @@ public class ChatPostHandler extends PostResponseHandler {
         // 重新设置缓存
         ChatCache.put(chatId, chatInfo);
         if (!debug) {
-            ApplicationChatUserStatsEntity applicationPublicAccessClient = chatUserStatsMapper.selectById(chatUserId);
-            if (applicationPublicAccessClient != null) {
-                applicationPublicAccessClient.setAccessNum(applicationPublicAccessClient.getAccessNum() + 1);
-                applicationPublicAccessClient.setIntraDayAccessNum(applicationPublicAccessClient.getIntraDayAccessNum() + 1);
-                chatUserStatsMapper.updateById(applicationPublicAccessClient);
+            ApplicationChatUserStatsEntity chatUserStats = chatUserStatsService.getByUserIdAndAppId(chatUserId, chatInfo.getAppId());
+            if (chatUserStats != null) {
+                chatUserStats.setAccessNum(chatUserStats.getAccessNum() + 1);
+                chatUserStats.setIntraDayAccessNum(chatUserStats.getIntraDayAccessNum() + 1);
+                chatUserStatsService.updateById(chatUserStats);
             }
             long chatCount = chatMapper.selectCount(Wrappers.<ApplicationChatEntity>lambdaQuery().eq(ApplicationChatEntity::getId, chatId));
             if (chatCount == 0) {

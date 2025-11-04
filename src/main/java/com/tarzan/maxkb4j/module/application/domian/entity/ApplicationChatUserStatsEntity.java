@@ -13,8 +13,9 @@ import lombok.EqualsAndHashCode;
 @Data
 @TableName("application_chat_user_stats")
 public class ApplicationChatUserStatsEntity extends BaseEntity {
-	
+	/*访问次数*/
 	private Integer accessNum;
+	/*1天内访问次数*/
 	private Integer intraDayAccessNum;
 	private String applicationId;
 	private String chatUserId;
