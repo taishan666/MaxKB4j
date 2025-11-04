@@ -162,6 +162,9 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         application.setFileUploadEnable(false);
         application.setFileUploadSetting(new JSONObject());
         application.setKnowledgeSetting(getDefaultKnowledgeSetting());
+        if (application.getWorkFlow()== null){
+            application.setWorkFlow(new JSONObject());
+        }
         this.save(application);
         ApplicationAccessTokenEntity accessToken = ApplicationAccessTokenEntity.createDefault();
         accessToken.setApplicationId(application.getId());

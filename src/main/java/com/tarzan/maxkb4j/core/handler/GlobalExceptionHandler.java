@@ -64,7 +64,6 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(NoResourceFoundException.class)
     public String handleException(NoResourceFoundException e) {
-        log.error("未发现资源异常: {}", e.getMessage(), e);
         // 判断是否已登录
         if (StpUtil.isLogin()) {
             return "redirect:/admin/application";
