@@ -1,12 +1,12 @@
-package com.tarzan.maxkb4j.module.application.handler;
+package com.tarzan.maxkb4j.module.application.handler.impl;
 
-import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
 import com.tarzan.maxkb4j.common.exception.ApiException;
-import com.tarzan.maxkb4j.core.handler.AuthHandler;
+import com.tarzan.maxkb4j.common.util.WebUtil;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationApiKeyEntity;
-import com.tarzan.maxkb4j.module.application.enums.AuthType;
+import com.tarzan.maxkb4j.module.application.enums.ChatUserType;
+import com.tarzan.maxkb4j.module.application.handler.AuthHandler;
 import com.tarzan.maxkb4j.module.application.service.ApplicationApiKeyService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -16,14 +16,14 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class ApiKeyHandler implements AuthHandler {
+public class AppKeyHandler implements AuthHandler {
 
     private final ApplicationApiKeyService apiKeyService;
 
     @Override
     public boolean handle(HttpServletResponse response) {
-        String tokenValue = StpUtil.getStpLogic().getTokenValue(false);
-        String secretKey = tokenValue.replace(AuthType.API_KEY.name() + "-", "");
+        String tokenValue = WebUtil.getTokenValue();
+        String secretKey = tokenValue.replace(ChatUserType.APPLICATION_API_KEY.name() + "-", "");
         if (StrUtil.isBlank(secretKey)){
             throw new ApiException("token不合法");
         }
@@ -40,13 +40,13 @@ public class ApiKeyHandler implements AuthHandler {
             response.setHeader("Access-Control-Allow-Headers", "*");
             response.setHeader("Access-Control-Allow-Credentials", "true");
         }
-        // 设置当前用户和权限
-
-        return false;
+        return true;
     }
 
     @Override
     public boolean support(HttpServletRequest request) {
-        return StpUtil.getStpLogic().getTokenValue(false).startsWith(AuthType.API_KEY.name());
+        String tokenValue = WebUtil.getTokenValue();
+      //  StpUtil.setTokenValue(tokenValue);
+        return tokenValue.startsWith(ChatUserType.APPLICATION_API_KEY.name());
     }
 }

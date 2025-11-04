@@ -2,11 +2,13 @@ package com.tarzan.maxkb4j.common.api;
 
 
 import com.tarzan.maxkb4j.common.util.JsonUtil;
+import lombok.Getter;
 
 /**
  * @author tarzan
  * @date 2024-12-25 10:20:33
  */
+@Getter
 public enum ResultCode implements IResultCode {
     SUCCESS(200, "操作成功"),
     FAILURE(400, "业务异常"),
@@ -29,14 +31,6 @@ public enum ResultCode implements IResultCode {
 
     public String toString() {
         return JsonUtil.toJson(this);
-    }
-
-    public int getCode() {
-        return this.code;
-    }
-
-    public String getMessage() {
-        return this.message;
     }
 
     ResultCode(final int code, final String message) {

@@ -38,14 +38,12 @@ public class DocumentExtractNodeHandler implements INodeHandler {
     @Override
     public NodeResult execute(Workflow workflow, INode node) throws Exception {
         String splitter = "\n-----------------------------------\n";
-        // 假设我们有一个 Supplier<ContentHandler>
         DocumentExtractNode.NodeParams nodeParams=node.getNodeData().toJavaObject(DocumentExtractNode.NodeParams.class);
         List<String> documentList=nodeParams.getDocumentList();
         Object res=workflow.getReferenceField(documentList.get(0),documentList.get(1));
         @SuppressWarnings("unchecked")
         List<ChatFile> documents= (List<ChatFile>) res;
         List<String> content=new LinkedList<>();
-        // StringBuilder sb=new StringBuilder();
         for (ChatFile chatFile : documents) {
             byte[] data= fileService.getBytes(chatFile.getFileId());
             // 初始化解析器、元数据和上下文
@@ -103,7 +101,7 @@ public class DocumentExtractNodeHandler implements INodeHandler {
                 }
 
                 @Override
-                public void parseEmbedded(InputStream inputStream, ContentHandler embeddedHandler, Metadata metadata, boolean b) throws IOException, SAXException {
+                public void parseEmbedded(InputStream inputStream, ContentHandler embeddedHandler, Metadata metadata, boolean b) {
                     String fileName = metadata.get("resourceName");
                     String fileId=imageMap.get(fileName);
                     fileService.updateFile(fileId,inputStream);

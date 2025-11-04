@@ -23,7 +23,6 @@ public class ApplicationVersionEntity extends BaseEntity {
 	private String applicationName;
 	private String publishUserId;
 	private String publishUserName;
-/*	private String workspaceId;*/
 	private String name;
 
 	private String desc;

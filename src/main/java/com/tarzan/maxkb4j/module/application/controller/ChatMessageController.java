@@ -7,7 +7,7 @@ import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
 import com.tarzan.maxkb4j.module.application.enums.ChatUserType;
 import com.tarzan.maxkb4j.module.application.service.ApplicationChatService;
 import com.tarzan.maxkb4j.module.chat.dto.ChatParams;
-import org.springframework.beans.factory.annotation.Qualifier;
+import lombok.AllArgsConstructor;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
@@ -20,16 +20,17 @@ import reactor.core.publisher.Sinks;
  * @date 2024-12-25 13:09:54
  */
 @RestController
+@AllArgsConstructor
 @RequestMapping(AppConst.ADMIN_API)
 public class ChatMessageController {
 
     private final ApplicationChatService chatService;
     private final TaskExecutor chatTaskExecutor;
-
+/*
     public ChatMessageController(ApplicationChatService chatService, @Qualifier("chatTaskExecutor") TaskExecutor chatTaskExecutor) {
         this.chatService = chatService;
         this.chatTaskExecutor = chatTaskExecutor;
-    }
+    }*/
 
 
     @GetMapping("/workspace/default/application/{appId}/open")

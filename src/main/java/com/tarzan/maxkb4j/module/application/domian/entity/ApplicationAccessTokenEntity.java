@@ -4,12 +4,11 @@ import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.tarzan.maxkb4j.core.handler.type.StringListTypeHandler;
 import com.tarzan.maxkb4j.common.util.MD5Util;
+import com.tarzan.maxkb4j.core.handler.type.StringListTypeHandler;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -54,17 +53,18 @@ public class ApplicationAccessTokenEntity {
 
 
 
-    public ApplicationAccessTokenEntity(Boolean isActive, Integer accessNum, Boolean whiteActive, List<String> whiteList, Boolean showSource,String language) {
+    public ApplicationAccessTokenEntity(Boolean isActive, Integer accessNum, Boolean whiteActive, List<String> whiteList, Boolean showSource,Boolean showExec,String language) {
         this.isActive = isActive;
         this.accessNum = accessNum;
         this.whiteActive = whiteActive;
         this.whiteList = whiteList;
         this.showSource = showSource;
+        this.showExec = showExec;
         this.language = language;
         this.accessToken=MD5Util.encrypt(UUID.randomUUID().toString(), 8, 24);
     }
 
     public static ApplicationAccessTokenEntity createDefault() {
-        return new ApplicationAccessTokenEntity(true,100,false,new ArrayList<>(),false,"zh-CH");
+        return new ApplicationAccessTokenEntity(true,100,false,List.of(),false,false,"zh-CH");
     }
 }

@@ -1,6 +1,7 @@
 package com.tarzan.maxkb4j.module.chat.controller;
 
 import cn.dev33.satoken.annotation.SaIgnore;
+import cn.dev33.satoken.stp.SaLoginModel;
 import cn.dev33.satoken.stp.StpUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -10,6 +11,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.tarzan.maxkb4j.common.api.R;
 import com.tarzan.maxkb4j.common.constant.AppConst;
+import com.tarzan.maxkb4j.common.util.WebUtil;
 import com.tarzan.maxkb4j.module.application.domian.dto.EmbedDTO;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationAccessTokenEntity;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatEntity;
@@ -24,7 +26,6 @@ import com.tarzan.maxkb4j.module.application.service.ApplicationChatRecordServic
 import com.tarzan.maxkb4j.module.application.service.ApplicationChatService;
 import com.tarzan.maxkb4j.module.application.service.ApplicationService;
 import com.tarzan.maxkb4j.module.chat.dto.ChatParams;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.http.HttpHeaders;
@@ -63,29 +64,27 @@ public class ChatApiController {
 
     @PostMapping("/auth/anonymous")
     public R<String> auth(@RequestBody JSONObject params) {
-        ApplicationAccessTokenEntity accessToken = accessTokenService.getByToken(params.getString("accessToken"));
+        String accessToken = params.getString("accessToken");
+        ApplicationAccessTokenEntity accessTokenEntity = accessTokenService.getByToken(accessToken);
         String chatUserId = IdWorker.get32UUID();
-        String loginId =chatUserId+"-"+accessToken.getApplicationId();
         if (StpUtil.isLogin()) {
-            loginId = StpUtil.getLoginIdAsString();
-            if (!loginId.contains("-")){
-                loginId =loginId+"-"+accessToken.getApplicationId();
-                StpUtil.login(loginId);
-            }
-        }else {
-            StpUtil.login(loginId);
+            chatUserId=StpUtil.getLoginIdAsString();
         }
+        SaLoginModel loginModel = new SaLoginModel();
+        loginModel.setExtra("applicationId", accessTokenEntity.getApplicationId());
+        loginModel.setExtra("chatUserType", ChatUserType.ANONYMOUS_USER.name());
+        loginModel.setExtra("accessToken", accessToken);
+        StpUtil.login(chatUserId,loginModel);
         return R.success(StpUtil.getTokenValue());
     }
 
 
     @GetMapping("/application/profile")
-    public R<ApplicationEntity> appProfile(HttpServletRequest  request) {
-        String authorization=request.getHeader("Authorization");
-        String tokenValue = authorization.substring(7);
+    public R<ApplicationEntity> appProfile() {
+        String tokenValue = WebUtil.getTokenValue();
         StpUtil.setTokenValue(tokenValue);
         if (StpUtil.isLogin()) {
-            String appId =StpUtil.getLoginIdAsString().split("-")[1];
+            String appId = (String) StpUtil.getExtra("applicationId");
             ApplicationAccessTokenEntity appAccessToken = accessTokenService.getById(appId);
             ApplicationVO application = applicationService.getDetail(appId);
             if (appAccessToken != null && application != null) {
@@ -100,21 +99,20 @@ public class ChatApiController {
 
 
     @GetMapping("/open")
-    public R<String> chatOpen(HttpServletRequest  request) {
-        String authorization=request.getHeader("Authorization");
-        String tokenValue = authorization.substring(7);
+    public R<String> chatOpen() {
+        String tokenValue = WebUtil.getTokenValue();
         StpUtil.setTokenValue(tokenValue);
-        String appId = StpUtil.getLoginIdAsString().split("-")[1];
+        String appId = (String) StpUtil.getExtra("applicationId");
         return R.success(chatService.chatOpen(appId, false));
     }
 
 
     @PostMapping(path = "/chat_message/{chatId}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<ChatMessageVO> chatMessage(@PathVariable String chatId, @RequestBody ChatParams params, HttpServletRequest  request) {
-        String authorization=request.getHeader("Authorization");
-        String tokenValue = authorization.substring(7);
+    public Flux<ChatMessageVO> chatMessage(@PathVariable String chatId, @RequestBody ChatParams params) {
+        String tokenValue = WebUtil.getTokenValue();
         StpUtil.setTokenValue(tokenValue);
-        String userId = StpUtil.getLoginIdAsString().split("-")[0];
+        String appId = (String) StpUtil.getExtra("applicationId");
+        String userId = StpUtil.getLoginIdAsString();
         Sinks.Many<ChatMessageVO> sink = Sinks.many().unicast().onBackpressureBuffer();
         params.setChatId(chatId);
         params.setSink(sink);
@@ -128,12 +126,11 @@ public class ChatApiController {
 
 
     @GetMapping("/historical_conversation/{current}/{size}")
-    public R<Page<ApplicationChatEntity>> historicalConversation(@PathVariable int current, @PathVariable int size,HttpServletRequest  request) {
-        String authorization=request.getHeader("Authorization");
-        String tokenValue = authorization.substring(7);
+    public R<Page<ApplicationChatEntity>> historicalConversation(@PathVariable int current, @PathVariable int size) {
+        String tokenValue = WebUtil.getTokenValue();
         StpUtil.setTokenValue(tokenValue);
-        String userId = StpUtil.getLoginIdAsString().split("-")[0];
-        String appId = StpUtil.getLoginIdAsString().split("-")[1];
+        String appId = (String) StpUtil.getExtra("applicationId");
+        String userId = StpUtil.getLoginIdAsString();
         Page<ApplicationChatEntity> page = new Page<>(current, size);
         LambdaQueryWrapper<ApplicationChatEntity> wrapper = Wrappers.lambdaQuery();
         wrapper.eq(ApplicationChatEntity::getApplicationId, appId).eq(ApplicationChatEntity::getChatUserId, userId);
@@ -161,8 +158,10 @@ public class ChatApiController {
 
     @DeleteMapping("/historical_conversation/clear")
     public R<Boolean> historicalConversationClear() {
-        String userId = StpUtil.getLoginIdAsString().split("-")[0];
-        String appId = StpUtil.getLoginIdAsString().split("-")[1];
+        String tokenValue = WebUtil.getTokenValue();
+        StpUtil.setTokenValue(tokenValue);
+        String appId = (String) StpUtil.getExtra("applicationId");
+        String userId = StpUtil.getLoginIdAsString();
         LambdaQueryWrapper<ApplicationChatEntity> wrapper = Wrappers.lambdaQuery();
         wrapper.eq(ApplicationChatEntity::getApplicationId, appId).eq(ApplicationChatEntity::getChatUserId, userId);
         return R.success(chatService.remove(wrapper));

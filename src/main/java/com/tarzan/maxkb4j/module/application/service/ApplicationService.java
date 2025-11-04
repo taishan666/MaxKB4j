@@ -46,7 +46,6 @@ import java.io.OutputStream;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.BASE;
 import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.SEARCH_KNOWLEDGE;
@@ -408,12 +407,12 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         String floatIcon = dto.getProtocol() + "://" + dto.getHost() + "/chat/MaxKB.gif";
         List<String> whiteList = token.getWhiteList();
         Map<String, String> map = new HashMap<>();
-        map.put("is_auth", "true");
+        map.put("is_auth", String.valueOf(token.getIsActive()));
         map.put("protocol", dto.getProtocol());
         map.put("query", "");
         map.put("host", dto.getHost());
         map.put("token", dto.getToken());
-        map.put("white_list_str", whiteList == null ? "" : whiteList.stream().collect(Collectors.joining(System.lineSeparator())));
+        map.put("white_list_str", whiteList == null ? "" : String.join(",", whiteList));
         map.put("white_active", token.getWhiteActive().toString());
         map.put("float_icon", floatIcon);
         map.put("is_draggable", "false");
@@ -441,6 +440,10 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
             return new ArrayList<>();
         }
         List<ApplicationEntity> list= this.lambdaQuery().in(ApplicationEntity::getId, targetIds).eq(ApplicationEntity::getIsPublish, true).list();
-        return BeanUtil.copyList(list, ApplicationListVO.class);
+        return list.stream().filter(e -> folderId.equals(e.getFolderId())).map(e -> {
+            ApplicationListVO vo=BeanUtil.copy(e, ApplicationListVO.class);
+            vo.setResourceType(AuthTargetType.APPLICATION);
+            return vo;
+        }).toList();
     }
 }

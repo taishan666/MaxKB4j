@@ -122,6 +122,16 @@ public class WebUtil extends WebUtils {
         return Objects.requireNonNull(request).getHeader(name);
     }
 
+    public static String getTokenValue() {
+        String authorization=getHeader("Authorization");
+        return  authorization.substring(7);
+    }
+
+    public static String getTokenValue(HttpServletRequest request) {
+        String authorization=request.getHeader("Authorization");
+        return  authorization.substring(7);
+    }
+
     public static Enumeration<String> getHeaders(String name) {
         HttpServletRequest request = getRequest();
         return Objects.requireNonNull(request).getHeaders(name);

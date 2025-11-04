@@ -20,25 +20,21 @@ public class ApplicationKeyController {
 
     private final ApplicationApiKeyService apiKeyService;
 
-   // @SaCheckPermission("APPLICATION:READ")
     @GetMapping("/application/{appId}/application_key")
     public R<List<ApplicationApiKeyEntity>> listApikey(@PathVariable("appId") String appId) {
         return R.success(apiKeyService.listApikey(appId));
     }
 
-   // @SaCheckPermission("APPLICATION:EDIT")
     @PostMapping("/application/{appId}/application_key")
     public R<Boolean> createApikey(@PathVariable("appId") String appId) {
         return R.success(apiKeyService.createApikey(appId));
     }
 
-   // @SaCheckPermission("APPLICATION:EDIT")
     @PutMapping("/application/{appId}/application_key/{apiKeyId}")
     public R<Boolean> updateApikey(@PathVariable("appId") String appId, @PathVariable("apiKeyId") String apiKeyId, @RequestBody ApplicationApiKeyEntity apiKeyEntity) {
         return R.success(apiKeyService.updateApikey(appId, apiKeyId, apiKeyEntity));
     }
 
-   // @SaCheckPermission("APPLICATION:EDIT")
     @DeleteMapping("/application/{appId}/application_key/{apiKeyId}")
     public R<Boolean> deleteApikey(@PathVariable("appId") String appId, @PathVariable("apiKeyId") String apiKeyId) {
         return R.success(apiKeyService.deleteApikey(appId, apiKeyId));

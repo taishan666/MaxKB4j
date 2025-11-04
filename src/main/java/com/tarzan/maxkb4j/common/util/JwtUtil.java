@@ -86,7 +86,7 @@ public class JwtUtil {
         return parseClaim(token).getHeader();
     }
 
-    public static Claims parseToken(String token) {
+    public static Claims parsePayload(String token) {
         Claims claims= parseClaim(token).getPayload();
         return claims==null?Jwts.claims().build():claims;
     }

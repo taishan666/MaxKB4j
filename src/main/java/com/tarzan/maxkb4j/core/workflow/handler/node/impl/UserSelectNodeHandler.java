@@ -43,7 +43,6 @@ public class UserSelectNodeHandler implements INodeHandler {
             formSetting.put("form_field_list", formFieldList);
             String formRender = "<card_selection_render>" + formSetting + "</card_selection_render>";
             node.setAnswerText(formRender);
-           // node.getDetail().put("form_field_list", formFieldList);
             return new NodeResult(Map.of("is_submit", false), Map.of());
         }
     }

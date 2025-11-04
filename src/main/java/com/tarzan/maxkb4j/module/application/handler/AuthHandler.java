@@ -1,4 +1,4 @@
-package com.tarzan.maxkb4j.core.handler;
+package com.tarzan.maxkb4j.module.application.handler;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

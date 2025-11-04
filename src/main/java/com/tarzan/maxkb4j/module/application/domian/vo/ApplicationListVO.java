@@ -13,7 +13,7 @@ public class ApplicationListVO {
 
     private String icon;
 
-    private String resourceType="application";
+    private String resourceType;
 
     private Boolean isPublish;
 }
