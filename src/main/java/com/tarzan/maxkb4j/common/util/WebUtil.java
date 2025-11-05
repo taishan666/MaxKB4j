@@ -124,6 +124,7 @@ public class WebUtil extends WebUtils {
 
     public static String getTokenValue() {
         String authorization=getHeader("Authorization");
+        if (authorization==null||authorization.length()<9) return null;
         return  authorization.substring(7);
     }
 
