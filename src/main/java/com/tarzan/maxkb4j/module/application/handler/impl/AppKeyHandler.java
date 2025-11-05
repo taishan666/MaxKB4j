@@ -4,7 +4,7 @@ import cn.dev33.satoken.stp.SaLoginModel;
 import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
-import com.baomidou.mybatisplus.core.toolkit.IdWorker;
+import com.tarzan.maxkb4j.common.constant.AppConst;
 import com.tarzan.maxkb4j.common.exception.ApiException;
 import com.tarzan.maxkb4j.common.util.WebUtil;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationApiKeyEntity;
@@ -27,7 +27,7 @@ public class AppKeyHandler implements AuthHandler {
     public boolean handle(HttpServletResponse response) {
         String tokenValue = WebUtil.getTokenValue();
         assert tokenValue != null;
-        String secretKey = tokenValue.replace(ChatUserType.APPLICATION_API_KEY.name() + "-", "");
+        String secretKey = tokenValue.replace(AppConst.APP_KEY_PREFIX, "");
         if (StrUtil.isBlank(secretKey)){
             throw new ApiException("token不合法");
         }
@@ -37,9 +37,8 @@ public class AppKeyHandler implements AuthHandler {
         }
         SaLoginModel loginModel = new SaLoginModel();
         loginModel.setExtra("applicationId", apiKey.getApplicationId());
-        loginModel.setExtra("chatUserType", ChatUserType.ANONYMOUS_USER.name());
-        //todo 用户ID 如何处理
-        StpUtil.login(IdWorker.get32UUID(),loginModel);
+        loginModel.setExtra("chatUserType", ChatUserType.APPLICATION_API_KEY.name());
+        StpUtil.login(secretKey,loginModel);
         if (apiKey.getAllowCrossDomain() && CollUtil.isNotEmpty(apiKey.getCrossDomainList())){
             // 设置跨域
             String domains = String.join(",", apiKey.getCrossDomainList());
