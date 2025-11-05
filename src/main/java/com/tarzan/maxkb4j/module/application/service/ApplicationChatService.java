@@ -52,10 +52,6 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
 
 
     public String chatOpen(String appId, boolean debug) {
-        return chatOpen(appId, null, debug);
-    }
-
-    public String chatOpen(String appId, String chatId, boolean debug) {
         if (!debug) {
             long count = applicationVersionService.lambdaQuery().eq(ApplicationVersionEntity::getApplicationId, appId).count();
             if (count == 0) {
@@ -63,7 +59,7 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
             }
         }
         ChatInfo chatInfo = new ChatInfo();
-        chatInfo.setChatId(StringUtil.isNotBlank(chatId) ? chatId : IdWorker.get32UUID());
+        chatInfo.setChatId(IdWorker.get32UUID());
         chatInfo.setAppId(appId);
         ChatCache.put(chatInfo.getChatId(), chatInfo);
         return chatInfo.getChatId();

@@ -67,6 +67,8 @@ public class ChatApiController {
         String accessToken = params.getString("accessToken");
         ApplicationAccessTokenEntity accessTokenEntity = accessTokenService.getByToken(accessToken);
         String chatUserId = IdWorker.get32UUID();
+        String tokenValue = WebUtil.getTokenValue();
+        StpUtil.setTokenValue(tokenValue);
         if (StpUtil.isLogin()) {
             chatUserId=StpUtil.getLoginIdAsString();
         }
@@ -111,7 +113,6 @@ public class ChatApiController {
     public Flux<ChatMessageVO> chatMessage(@PathVariable String chatId, @RequestBody ChatParams params) {
         String tokenValue = WebUtil.getTokenValue();
         StpUtil.setTokenValue(tokenValue);
-        String appId = (String) StpUtil.getExtra("applicationId");
         String userId = StpUtil.getLoginIdAsString();
         Sinks.Many<ChatMessageVO> sink = Sinks.many().unicast().onBackpressureBuffer();
         params.setChatId(chatId);
