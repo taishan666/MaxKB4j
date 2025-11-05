@@ -89,6 +89,9 @@ public class ToolController {
     @PostMapping("/workspace/default/tool")
     public R<ToolEntity> toolLib(@RequestBody ToolEntity dto) {
         dto.setIsActive(true);
+        if (StringUtil.isBlank(dto.getToolType())){
+            dto.setToolType("CUSTOM");
+        }
         dto.setUserId(StpUtil.getLoginIdAsString());
         dto.setScope("WORKSPACE");
         toolService.saveInfo(dto);
