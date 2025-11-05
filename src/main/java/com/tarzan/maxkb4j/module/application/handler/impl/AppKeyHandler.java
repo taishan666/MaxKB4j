@@ -54,7 +54,7 @@ public class AppKeyHandler implements AuthHandler {
     @Override
     public boolean support(HttpServletRequest request) {
         String tokenValue = WebUtil.getTokenValue();
-      //  StpUtil.setTokenValue(tokenValue);
-        return tokenValue.startsWith(ChatUserType.APPLICATION_API_KEY.name());
+        assert tokenValue != null;
+        return tokenValue.startsWith(AppConst.APP_KEY_PREFIX);
     }
 }

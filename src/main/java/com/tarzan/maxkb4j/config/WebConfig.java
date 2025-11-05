@@ -25,9 +25,9 @@ public class WebConfig implements WebMvcConfigurer {
 
 
     @Override
-    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+    public void addResourceHandlers(@NotNull ResourceHandlerRegistry registry) {
     /*    registry.addResourceHandler("/doc.html").addResourceLocations("classpath:/META-INF/resources/");
-        registry.addResourceHandler("/doc_chat/webjars/**").addResourceLocations("classpath:/META-INF/resources/webjars/");*/
+        registry.addResourceHandler("/webjars/**").addResourceLocations("classpath:/META-INF/resources/webjars/");*/
     }
 
     /**
@@ -51,7 +51,8 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addViewController("/admin/{path1:[^.]*}/{path2:[^.]*}/{path3:[^.]*}/{path4:[^.]*}").setViewName("forward:/admin/index.html");
         registry.addViewController("/admin/{path1:[^.]*}/{path2:[^.]*}/{path3:[^.]*}/{path4:[^.]*}/{path5:[^.]*}").setViewName("forward:/admin/index.html");
         registry.addViewController("/chat/{path:[^.]*}").setViewName("forward:/chat/index.html");
-        registry.addViewController("/doc_chat").setViewName("forward:/doc.html");
+        registry.addViewController("/chat-api-doc").setViewName("forward:/doc.html");
+        registry.addRedirectViewController("/swagger-ui/index.html","/chat-api-doc");
     }
 
 
