@@ -26,6 +26,9 @@ import com.tarzan.maxkb4j.module.application.service.ApplicationChatRecordServic
 import com.tarzan.maxkb4j.module.application.service.ApplicationChatService;
 import com.tarzan.maxkb4j.module.application.service.ApplicationService;
 import com.tarzan.maxkb4j.module.chat.dto.ChatParams;
+import io.swagger.v3.oas.annotations.Hidden;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AllArgsConstructor;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.http.HttpHeaders;
@@ -38,6 +41,7 @@ import reactor.core.publisher.Sinks;
 
 import java.io.IOException;
 
+@Tag(name = "MaxKB4J开放接口")
 @RestController
 @RequestMapping(AppConst.CHAT_API)
 @AllArgsConstructor
@@ -50,6 +54,7 @@ public class ChatApiController {
     private final ApplicationChatRecordService chatRecordService;
 
 
+    @Hidden
     @GetMapping("/profile")
     public R<JSONObject> profile(String accessToken) {
         ApplicationAccessTokenEntity appAccessToken = accessTokenService.getByToken(accessToken);
@@ -62,6 +67,7 @@ public class ChatApiController {
     }
 
 
+    @Hidden
     @PostMapping("/auth/anonymous")
     public R<String> auth(@RequestBody JSONObject params) {
         String accessToken = params.getString("accessToken");
@@ -81,6 +87,7 @@ public class ChatApiController {
     }
 
 
+    @Operation(summary = "获取应用相关信息", description = "获取应用相关信息")
     @GetMapping("/application/profile")
     public R<ApplicationEntity> appProfile() {
         String tokenValue = WebUtil.getTokenValue();
@@ -99,7 +106,7 @@ public class ChatApiController {
         return R.fail("未登录");
     }
 
-
+    @Operation(summary = "根据应用ID获取会话ID", description = "根据应用ID获取会话(首次对话前，需要调用该接口，生成对话ID)")
     @GetMapping("/open")
     public R<String> chatOpen() {
         String tokenValue = WebUtil.getTokenValue();
@@ -108,7 +115,7 @@ public class ChatApiController {
         return R.success(chatService.chatOpen(appId, false));
     }
 
-
+    @Operation(summary = "聊天对话", description = "聊天对话")
     @PostMapping(path = "/chat_message/{chatId}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<ChatMessageVO> chatMessage(@PathVariable String chatId, @RequestBody ChatParams params) {
         String tokenValue = WebUtil.getTokenValue();
@@ -125,7 +132,7 @@ public class ChatApiController {
         return sink.asFlux();
     }
 
-
+    @Hidden
     @GetMapping("/historical_conversation/{current}/{size}")
     public R<Page<ApplicationChatEntity>> historicalConversation(@PathVariable int current, @PathVariable int size) {
         String tokenValue = WebUtil.getTokenValue();
@@ -139,24 +146,26 @@ public class ChatApiController {
         return R.success(chatService.page(page, wrapper));
     }
 
+    @Hidden
     @GetMapping("/historical_conversation/{chatId}/record/{chatRecordId}")
     public R<ApplicationChatRecordVO> historicalConversation(@PathVariable String chatId, @PathVariable String chatRecordId) {
         return R.success(chatRecordService.getChatRecordInfo(chatId, chatRecordId));
     }
 
-
+    @Hidden
     @PutMapping("/historical_conversation/{chatId}")
     public R<Boolean> updateConversation(@PathVariable String chatId, @RequestBody ApplicationChatEntity chatEntity) {
         chatEntity.setId(chatId);
         return R.success(chatService.updateById(chatEntity));
     }
 
-
+    @Hidden
     @DeleteMapping("/historical_conversation/{chatId}")
     public R<Boolean> deleteConversation(@PathVariable String chatId) {
         return R.success(chatService.deleteById(chatId));
     }
 
+    @Hidden
     @DeleteMapping("/historical_conversation/clear")
     public R<Boolean> historicalConversationClear() {
         String tokenValue = WebUtil.getTokenValue();
@@ -168,12 +177,13 @@ public class ChatApiController {
         return R.success(chatService.remove(wrapper));
     }
 
-
+    @Hidden
     @GetMapping("/historical_conversation_record/{chatId}/{current}/{size}")
     public R<IPage<ApplicationChatRecordVO>> historicalConversationRecord(@PathVariable String chatId, @PathVariable int current, @PathVariable int size) {
         return R.success(chatRecordService.chatRecordPage(chatId, current, size));
     }
 
+    @Hidden
     @PutMapping("/vote/chat/{chatId}/chat_record/{chatRecordId}")
     public R<Boolean> updateConversation(@PathVariable String chatId, @PathVariable String chatRecordId, @RequestBody ApplicationChatRecordEntity chatRecord) {
         chatRecord.setChatId(chatId);
@@ -181,7 +191,7 @@ public class ChatApiController {
         return R.success(chatRecordService.updateById(chatRecord));
     }
 
-
+    @Hidden
     @PostMapping("/text_to_speech")
     public ResponseEntity<byte[]> textToSpeech(@RequestBody JSONObject data) {
         // 设置 HTTP 响应头
@@ -196,6 +206,7 @@ public class ChatApiController {
      *
      * @param dto      dto
      */
+    @Hidden
     @GetMapping("/embed")
     @SaIgnore
     public ResponseEntity<String> embed(EmbedDTO dto) throws IOException {
@@ -203,6 +214,8 @@ public class ChatApiController {
                 .header("Content-Type", "text/javascript; charset=utf-8")
                 .body(applicationService.embed(dto));
     }
+
+
 
 
 

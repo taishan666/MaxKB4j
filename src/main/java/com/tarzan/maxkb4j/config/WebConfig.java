@@ -26,8 +26,8 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        registry.addResourceHandler("doc.html").addResourceLocations("classpath:/META-INF/resources/");
-        registry.addResourceHandler("/webjars/**").addResourceLocations("classpath:/META-INF/resources/webjars/");
+    /*    registry.addResourceHandler("/doc.html").addResourceLocations("classpath:/META-INF/resources/");
+        registry.addResourceHandler("/doc_chat/webjars/**").addResourceLocations("classpath:/META-INF/resources/webjars/");*/
     }
 
     /**
@@ -45,13 +45,13 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addViewControllers(@NotNull ViewControllerRegistry registry) {
-        System.out.println(registry);
         registry.addViewController("/admin/{path:[^.]*}").setViewName("forward:/admin/index.html");
         registry.addViewController("/admin/{path1:[^.]*}/{path2:[^.]*}").setViewName("forward:/admin/index.html");
         registry.addViewController("/admin/{path1:[^.]*}/{path2:[^.]*}/{path3:[^.]*}").setViewName("forward:/admin/index.html");
         registry.addViewController("/admin/{path1:[^.]*}/{path2:[^.]*}/{path3:[^.]*}/{path4:[^.]*}").setViewName("forward:/admin/index.html");
         registry.addViewController("/admin/{path1:[^.]*}/{path2:[^.]*}/{path3:[^.]*}/{path4:[^.]*}/{path5:[^.]*}").setViewName("forward:/admin/index.html");
         registry.addViewController("/chat/{path:[^.]*}").setViewName("forward:/chat/index.html");
+        registry.addViewController("/doc_chat").setViewName("forward:/doc.html");
     }
 
 
