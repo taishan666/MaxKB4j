@@ -37,7 +37,7 @@ public class RerankerNodeHandler implements INodeHandler {
         List<List<String>> rerankerReferenceList = nodeParams.getRerankerReferenceList();
         List<TextSegment> textSegments = getRerankerList(workflow,rerankerReferenceList);
         // 获取重排序模型实例
-        ScoringModel rerankerModel = modelFactory.build(nodeParams.getRerankerModelId());
+        ScoringModel rerankerModel = modelFactory.buildScoringModel(nodeParams.getRerankerModelId());
         double similarity = nodeParams.getRerankerSetting().getSimilarity();
         Response<List<Double>> response = rerankerModel.scoreAll(textSegments, question);
         List<RerankerNode.RerankResult> documentList = new ArrayList<>();

@@ -13,8 +13,8 @@ import com.tarzan.maxkb4j.core.workflow.node.impl.AiChatNode;
 import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
 import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
 import com.tarzan.maxkb4j.module.model.info.service.ModelFactory;
-import com.tarzan.maxkb4j.module.model.provider.service.impl.BaseChatModel;
 import dev.langchain4j.data.message.ChatMessage;
+import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.model.chat.response.ChatResponse;
 import dev.langchain4j.model.output.TokenUsage;
 import dev.langchain4j.service.AiServices;
@@ -41,7 +41,7 @@ public class AiChatNodeHandler implements INodeHandler {
     @Override
     public NodeResult execute(Workflow workflow, INode node) throws Exception {
         AiChatNode.NodeParams nodeParams = node.getNodeData().toJavaObject(AiChatNode.NodeParams.class);
-        BaseChatModel chatModel = modelFactory.build(nodeParams.getModelId(), nodeParams.getModelParamsSetting());
+        StreamingChatModel chatModel = modelFactory.buildStreamingChatModel(nodeParams.getModelId(), nodeParams.getModelParamsSetting());
         String question = workflow.generatePrompt(nodeParams.getPrompt());
         String systemPrompt = workflow.generatePrompt(nodeParams.getSystem());
         List<String> toolIds = new ArrayList<>();
@@ -63,7 +63,7 @@ public class AiChatNodeHandler implements INodeHandler {
             aiServicesBuilder.tools(toolUtil.getToolMap(toolIds));
         }
         Assistant assistant = aiServicesBuilder
-                .streamingChatModel(chatModel.getStreamingChatModel())
+                .streamingChatModel(chatModel)
                 .build();
         TokenStream tokenStream = assistant.chatStream(question);
         node.getDetail().put("system", systemPrompt);

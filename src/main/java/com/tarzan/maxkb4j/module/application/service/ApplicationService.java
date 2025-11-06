@@ -26,8 +26,8 @@ import com.tarzan.maxkb4j.module.knowledge.consts.SearchType;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.KnowledgeEntity;
 import com.tarzan.maxkb4j.module.knowledge.service.KnowledgeService;
 import com.tarzan.maxkb4j.module.model.info.service.ModelFactory;
-import com.tarzan.maxkb4j.module.model.provider.service.impl.BaseSpeechToText;
-import com.tarzan.maxkb4j.module.model.provider.service.impl.BaseTextToSpeech;
+import com.tarzan.maxkb4j.module.model.custom.base.STTModel;
+import com.tarzan.maxkb4j.module.model.custom.base.TTSModel;
 import com.tarzan.maxkb4j.module.system.permission.constant.AuthTargetType;
 import com.tarzan.maxkb4j.module.system.permission.service.UserResourcePermissionService;
 import com.tarzan.maxkb4j.module.system.user.domain.entity.UserEntity;
@@ -244,7 +244,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
 
     public byte[] playDemoText(String appId, JSONObject modelParams) {
         String ttsModelId = modelParams.getString("ttsModelId");
-        BaseTextToSpeech ttsModel = modelFactory.build(ttsModelId, modelParams);
+        TTSModel ttsModel = modelFactory.buildTTSModel(ttsModelId, modelParams);
         return ttsModel.textToSpeech("你好，这里是语音播放测试");
     }
 
@@ -257,7 +257,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         if (app.getTtsModelId() == null) {
             return new byte[0];
         }
-        BaseTextToSpeech ttsModel = modelFactory.build(app.getTtsModelId(), app.getTtsModelParamsSetting());
+        TTSModel ttsModel = modelFactory.buildTTSModel(app.getTtsModelId(), app.getTtsModelParamsSetting());
         return ttsModel.textToSpeech(text);
     }
 
@@ -383,7 +383,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
 
     public String speechToText(String appId, MultipartFile file) throws IOException {
         ApplicationEntity app = this.getById(appId);
-        BaseSpeechToText sttModel = modelFactory.build(app.getSttModelId());
+        STTModel sttModel = modelFactory.buildSTTModel(app.getSttModelId());
         String suffix = Objects.requireNonNull(file.getContentType()).split("/")[1];
         return sttModel.speechToText(file.getBytes(), suffix);
     }

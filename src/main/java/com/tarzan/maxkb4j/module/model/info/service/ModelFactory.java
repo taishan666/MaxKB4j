@@ -3,9 +3,17 @@ package com.tarzan.maxkb4j.module.model.info.service;
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.common.util.StringUtil;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelEntity;
-import com.tarzan.maxkb4j.module.model.provider.service.IModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.enums.ModelProviderEnum;
-import lombok.AllArgsConstructor;
+import com.tarzan.maxkb4j.module.model.provider.enums.ModelType;
+import com.tarzan.maxkb4j.module.model.provider.service.IModelProvider;
+import com.tarzan.maxkb4j.module.model.custom.base.STTModel;
+import com.tarzan.maxkb4j.module.model.custom.base.TTSModel;
+import dev.langchain4j.model.chat.ChatModel;
+import dev.langchain4j.model.chat.StreamingChatModel;
+import dev.langchain4j.model.embedding.EmbeddingModel;
+import dev.langchain4j.model.image.ImageModel;
+import dev.langchain4j.model.scoring.ScoringModel;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 /**
@@ -13,28 +21,101 @@ import org.springframework.stereotype.Service;
  * @date 2024-12-25 12:22:22
  */
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class ModelFactory {
-
 
     private final ModelService modelService;
 
 
-    public <T> T build(String modelId) {
-        return build(modelId, new JSONObject());
+    public ChatModel buildChatModel(String modelId) {
+        return buildChatModel(modelId, new JSONObject());
     }
 
-    public <T> T build(String modelId, JSONObject modelParams) {
+    public ChatModel buildChatModel(String modelId, JSONObject modelParams) {
+        ModelEntity model = getModel(modelId);
+        IModelProvider modelProvider = getModelProvider(model);
+        modelParams = modelParams == null ? new JSONObject() : modelParams;
+        return modelProvider.buildWithFallback(
+                ModelType.LLM.name(), model.getModelName(), model.getCredential(), modelParams,
+                p -> modelProvider.buildChatModel(model.getModelName(), model.getCredential(), p));
+    }
+
+    public StreamingChatModel buildStreamingChatModel(String modelId, JSONObject modelParams) {
+        ModelEntity model = getModel(modelId);
+        IModelProvider modelProvider = getModelProvider(model);
+        modelParams = modelParams == null ? new JSONObject() : modelParams;
+        return modelProvider.buildWithFallback(
+                ModelType.LLM.name(), model.getModelName(), model.getCredential(), modelParams,
+                p -> modelProvider.buildStreamingChatModel(model.getModelName(), model.getCredential(), p));
+    }
+
+    public EmbeddingModel buildEmbeddingModel(String modelId) {
+        return buildEmbeddingModel(modelId, new JSONObject());
+    }
+
+    public EmbeddingModel buildEmbeddingModel(String modelId, JSONObject modelParams) {
+        ModelEntity model = getModel(modelId);
+        IModelProvider modelProvider = getModelProvider(model);
+        modelParams = modelParams == null ? new JSONObject() : modelParams;
+        return modelProvider.buildWithFallback(
+                ModelType.EMBEDDING.name(), model.getModelName(), model.getCredential(), modelParams,
+                p -> modelProvider.buildEmbeddingModel(model.getModelName(), model.getCredential(), p));
+    }
+
+    public ImageModel buildImageModel(String modelId, JSONObject modelParams) {
+        ModelEntity model = getModel(modelId);
+        IModelProvider modelProvider = getModelProvider(model);
+        modelParams = modelParams == null ? new JSONObject() : modelParams;
+        return modelProvider.buildWithFallback(
+                ModelType.TTI.name(), model.getModelName(), model.getCredential(), modelParams,
+                p -> modelProvider.buildImageModel(model.getModelName(), model.getCredential(), p));
+    }
+
+    public ScoringModel buildScoringModel(String modelId) {
+        return buildScoringModel(modelId, new JSONObject());
+    }
+
+    public ScoringModel buildScoringModel(String modelId, JSONObject modelParams) {
+        ModelEntity model = getModel(modelId);
+        IModelProvider modelProvider = getModelProvider(model);
+        modelParams = modelParams == null ? new JSONObject() : modelParams;
+        return modelProvider.buildWithFallback(
+                ModelType.RERANKER.name(), model.getModelName(), model.getCredential(), modelParams,
+                p -> modelProvider.buildScoringModel(model.getModelName(), model.getCredential(), p));
+    }
+
+    public TTSModel buildTTSModel(String modelId, JSONObject modelParams) {
+        ModelEntity model = getModel(modelId);
+        IModelProvider modelProvider = getModelProvider(model);
+        modelParams = modelParams == null ? new JSONObject() : modelParams;
+        return modelProvider.buildWithFallback(
+                ModelType.TTS.name(), model.getModelName(), model.getCredential(), modelParams,
+                p -> modelProvider.buildTTSModel(model.getModelName(), model.getCredential(), p));
+    }
+
+    public STTModel buildSTTModel(String modelId) {
+        ModelEntity model = getModel(modelId);
+        IModelProvider modelProvider = getModelProvider(model);
+        return modelProvider.buildWithFallback(
+                ModelType.STT.name(), model.getModelName(), model.getCredential(), new JSONObject(),
+                p -> modelProvider.buildSTTModel(model.getModelName(), model.getCredential(), p));
+    }
+
+
+    public ModelEntity getModel(String modelId) {
         if (StringUtil.isBlank(modelId)) {
             return null;
         }
-        ModelEntity model = modelService.getCacheModelById(modelId);
+        return modelService.getCacheModelById(modelId);
+    }
+
+    public IModelProvider getModelProvider(ModelEntity model) {
         if (model == null) {
             return null;
         }
-        IModelProvider modelProvider = ModelProviderEnum.get(model.getProvider());
-        return modelProvider.build(model.getModelName(), model.getModelType(), model.getCredential(), modelParams);
+        return ModelProviderEnum.get(model.getProvider());
     }
+
 
 
 }

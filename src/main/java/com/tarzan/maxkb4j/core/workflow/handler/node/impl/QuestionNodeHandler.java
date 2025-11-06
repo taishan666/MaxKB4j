@@ -2,15 +2,15 @@ package com.tarzan.maxkb4j.core.workflow.handler.node.impl;
 
 import com.tarzan.maxkb4j.core.assistant.Assistant;
 import com.tarzan.maxkb4j.core.langchain4j.AppChatMemory;
-import com.tarzan.maxkb4j.core.workflow.node.INode;
 import com.tarzan.maxkb4j.core.workflow.Workflow;
 import com.tarzan.maxkb4j.core.workflow.enums.DialogueType;
 import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;
+import com.tarzan.maxkb4j.core.workflow.node.INode;
 import com.tarzan.maxkb4j.core.workflow.node.impl.QuestionNode;
 import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
 import com.tarzan.maxkb4j.module.model.info.service.ModelFactory;
-import com.tarzan.maxkb4j.module.model.provider.service.impl.BaseChatModel;
 import dev.langchain4j.data.message.ChatMessage;
+import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.output.TokenUsage;
 import dev.langchain4j.service.AiServices;
 import dev.langchain4j.service.Result;
@@ -30,7 +30,7 @@ public class QuestionNodeHandler implements INodeHandler {
     @Override
     public NodeResult execute(Workflow workflow, INode node) throws Exception {
         QuestionNode.NodeParams nodeParams = node.getNodeData().toJavaObject(QuestionNode.NodeParams.class);
-        BaseChatModel chatModel = modelFactory.build(nodeParams.getModelId(), nodeParams.getModelParamsSetting());
+        ChatModel chatModel = modelFactory.buildChatModel(nodeParams.getModelId(), nodeParams.getModelParamsSetting());
         List<ChatMessage> historyMessages=workflow.getHistoryMessages(nodeParams.getDialogueNumber(), DialogueType.WORKFLOW.name(), node.getRuntimeNodeId());
         node.getDetail().put("history_message", node.resetMessageList(historyMessages));
         String question = workflow.generatePrompt(nodeParams.getPrompt());
@@ -38,7 +38,7 @@ public class QuestionNodeHandler implements INodeHandler {
         Assistant assistant = AiServices.builder(Assistant.class)
                 .systemMessageProvider(chatMemoryId -> systemPrompt)
                 .chatMemory(AppChatMemory.withMessages(historyMessages))
-                .chatModel(chatModel.getChatModel())
+                .chatModel(chatModel)
                 .build();
         Result<String> result = assistant.chat(question);
         node.getDetail().put("system", systemPrompt);

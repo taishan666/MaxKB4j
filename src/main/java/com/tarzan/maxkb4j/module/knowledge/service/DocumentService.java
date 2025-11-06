@@ -34,9 +34,9 @@ import com.tarzan.maxkb4j.module.knowledge.mapper.DocumentMapper;
 import com.tarzan.maxkb4j.module.knowledge.mapper.KnowledgeMapper;
 import com.tarzan.maxkb4j.module.model.info.service.ModelFactory;
 import com.tarzan.maxkb4j.module.model.info.vo.KeyAndValueVO;
-import com.tarzan.maxkb4j.module.model.provider.service.impl.BaseChatModel;
 import com.tarzan.maxkb4j.module.oss.service.MongoFileService;
 import dev.langchain4j.data.segment.TextSegment;
+import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
@@ -625,8 +625,8 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         baseMapper.updateStatusByIds(dto.getDocumentIdList(), 2, 0);
         baseMapper.updateStatusMetaByIds(dto.getDocumentIdList());
         KnowledgeEntity dataset = datasetMapper.selectById(knowledgeId);
-        BaseChatModel chatModel = modelFactory.build(dto.getModelId());
-        EmbeddingModel embeddingModel = modelFactory.build(dataset.getEmbeddingModelId());
+        ChatModel chatModel = modelFactory.buildChatModel(dto.getModelId());
+        EmbeddingModel embeddingModel = modelFactory.buildEmbeddingModel(dataset.getEmbeddingModelId());
         dto.getDocumentIdList().parallelStream().forEach(docId -> {
             List<ParagraphEntity> paragraphs = paragraphService.lambdaQuery().eq(ParagraphEntity::getDocumentId, docId).list();
             List<ProblemEntity> allProblems = problemService.lambdaQuery().eq(ProblemEntity::getKnowledgeId, knowledgeId).list();

@@ -1,13 +1,13 @@
 package com.tarzan.maxkb4j.core.workflow.handler.node.impl;
 
 import com.tarzan.maxkb4j.core.assistant.ParameterExtractionAssistant;
-import com.tarzan.maxkb4j.core.workflow.node.INode;
 import com.tarzan.maxkb4j.core.workflow.Workflow;
 import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;
+import com.tarzan.maxkb4j.core.workflow.node.INode;
 import com.tarzan.maxkb4j.core.workflow.node.impl.ParameterExtractionNode;
 import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
 import com.tarzan.maxkb4j.module.model.info.service.ModelFactory;
-import com.tarzan.maxkb4j.module.model.provider.service.impl.BaseChatModel;
+import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.output.TokenUsage;
 import dev.langchain4j.service.AiServices;
 import dev.langchain4j.service.Result;
@@ -26,10 +26,10 @@ public class ParameterExtractionNodeHandler implements INodeHandler {
     @Override
     public NodeResult execute(Workflow workflow, INode node) throws Exception {
         ParameterExtractionNode.NodeParams nodeParams = node.getNodeData().toJavaObject(ParameterExtractionNode.NodeParams.class);
-        BaseChatModel chatModel = modelFactory.build(nodeParams.getModelId(), nodeParams.getModelParamsSetting());
+        ChatModel chatModel = modelFactory.buildChatModel(nodeParams.getModelId(), nodeParams.getModelParamsSetting());
         Object query = workflow.getReferenceField(nodeParams.getInputVariable().get(0),nodeParams.getInputVariable().get(1));
         ParameterExtractionAssistant assistant = AiServices.builder(ParameterExtractionAssistant.class)
-                .chatModel(chatModel.getChatModel())
+                .chatModel(chatModel)
                 .build();
         String extractInfo=format(nodeParams.getVariableList());
         Result<Map<String, Object>> result = assistant.extract(extractInfo,query.toString());

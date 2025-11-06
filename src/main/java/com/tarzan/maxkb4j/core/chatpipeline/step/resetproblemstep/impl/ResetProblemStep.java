@@ -7,9 +7,9 @@ import com.tarzan.maxkb4j.core.chatpipeline.step.resetproblemstep.IResetProblemS
 import com.tarzan.maxkb4j.core.tool.MessageTools;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationEntity;
 import com.tarzan.maxkb4j.module.model.info.service.ModelFactory;
-import com.tarzan.maxkb4j.module.model.provider.service.impl.BaseChatModel;
 import dev.langchain4j.memory.ChatMemory;
 import dev.langchain4j.memory.chat.MessageWindowChatMemory;
+import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.output.TokenUsage;
 import dev.langchain4j.service.AiServices;
 import dev.langchain4j.service.Result;
@@ -33,7 +33,7 @@ public class ResetProblemStep extends IResetProblemStep {
         ApplicationEntity application = (ApplicationEntity) context.get("application");
         String modelId = application.getModelId();
         JSONObject modelParams = application.getModelParamsSetting();
-        BaseChatModel chatModel = modelFactory.build(modelId,modelParams);
+        ChatModel chatModel = modelFactory.buildChatModel(modelId,modelParams);
         String question = context.getString("problemText");
         String chatId = context.getString("chatId");
        // String systemText = application.getModelSetting().getSystem();
@@ -43,7 +43,7 @@ public class ResetProblemStep extends IResetProblemStep {
                 .chatMemoryStore(chatMemoryStore)
                 .build();
         CompressingQueryAssistant queryAssistant = AiServices.builder(CompressingQueryAssistant.class)
-                .chatModel(chatModel.getChatModel())
+                .chatModel(chatModel)
                 .build();
         Result<String> result= queryAssistant.transform(MessageTools.format(chatMemory.messages()),question);
         String paddingProblem=result.content();

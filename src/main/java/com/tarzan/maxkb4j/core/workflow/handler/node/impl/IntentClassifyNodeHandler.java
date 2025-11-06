@@ -3,16 +3,16 @@ package com.tarzan.maxkb4j.core.workflow.handler.node.impl;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.tarzan.maxkb4j.core.assistant.IntentClassifyAssistant;
 import com.tarzan.maxkb4j.core.tool.MessageTools;
-import com.tarzan.maxkb4j.core.workflow.node.INode;
 import com.tarzan.maxkb4j.core.workflow.Workflow;
 import com.tarzan.maxkb4j.core.workflow.enums.DialogueType;
 import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;
+import com.tarzan.maxkb4j.core.workflow.node.INode;
 import com.tarzan.maxkb4j.core.workflow.node.impl.IntentClassifyNode;
 import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
 import com.tarzan.maxkb4j.module.model.info.service.ModelFactory;
-import com.tarzan.maxkb4j.module.model.provider.service.impl.BaseChatModel;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.internal.ValidationUtils;
+import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.output.TokenUsage;
 import dev.langchain4j.service.AiServices;
 import dev.langchain4j.service.Result;
@@ -31,7 +31,7 @@ public class IntentClassifyNodeHandler implements INodeHandler {
     @Override
     public NodeResult execute(Workflow workflow, INode node) throws Exception {
         IntentClassifyNode.NodeParams nodeParams = node.getNodeData().toJavaObject(IntentClassifyNode.NodeParams.class);
-        BaseChatModel chatModel = modelFactory.build(nodeParams.getModelId(), nodeParams.getModelParamsSetting());
+        ChatModel chatModel = modelFactory.buildChatModel(nodeParams.getModelId(), nodeParams.getModelParamsSetting());
         Object query = workflow.getReferenceField(nodeParams.getContentList().get(0),nodeParams.getContentList().get(1));
         Map<String,String> branchMap = new HashMap<>();
         List<IntentClassifyNode.Branch> branches=nodeParams.getBranch();
@@ -44,7 +44,7 @@ public class IntentClassifyNodeHandler implements INodeHandler {
         String options =optionsFormat(idToClassification,nodeParams.getBranch());
         String chatMemory = MessageTools.format(historyMessages);
         IntentClassifyAssistant assistant = AiServices.builder(IntentClassifyAssistant.class)
-                .chatModel(chatModel.getChatModel())
+                .chatModel(chatModel)
                 .build();
         Result<String> result = assistant.route(options,chatMemory, query.toString());
         node.getDetail().put("system", IntentClassifyAssistant.SYSTEM_MESSAGE);

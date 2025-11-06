@@ -14,11 +14,11 @@ import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
 import com.tarzan.maxkb4j.module.application.enums.AIAnswerType;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.ParagraphVO;
 import com.tarzan.maxkb4j.module.model.info.service.ModelFactory;
-import com.tarzan.maxkb4j.module.model.provider.service.impl.BaseChatModel;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.data.message.UserMessage;
+import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.model.chat.response.ChatResponse;
 import dev.langchain4j.model.output.TokenUsage;
 import dev.langchain4j.service.AiServices;
@@ -75,7 +75,7 @@ public class ChatStep extends IChatStep {
         JSONObject params = application.getModelParamsSetting();
         KnowledgeSetting knowledgeSetting = application.getKnowledgeSetting();
         NoReferencesSetting noReferencesSetting = knowledgeSetting.getNoReferencesSetting();
-        BaseChatModel chatModel = modelFactory.build(modelId, params);
+        StreamingChatModel chatModel = modelFactory.buildStreamingChatModel(modelId, params);
         String problemText = manage.context.getString("problemText");
         if (chatModel == null) {
             answerText.set("抱歉，没有配置 AI 模型，无法优化引用分段，请先去应用中设置 AI 模型。");
@@ -93,8 +93,6 @@ public class ChatStep extends IChatStep {
                 answerText.set(value.replace("{question}", problemText));
                 sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, answerText.get(), "", "ai-chat-node", viewType, true));
             } else {
-                String chatUserId = manage.context.getString("chatUserId");
-                String chatUserType = manage.context.getString("chatUserType");
                 String systemText = application.getModelSetting().getSystem();
                 AiServices<Assistant> aiServicesBuilder=AiServices.builder(Assistant.class);
                 if (StringUtils.isNotBlank(systemText)){
@@ -102,7 +100,7 @@ public class ChatStep extends IChatStep {
                 }
                 int dialogueNumber = application.getDialogueNumber();
                 List<ChatMessage> historyMessages=manage.getHistoryMessages(dialogueNumber);
-                Assistant assistant =  aiServicesBuilder.chatMemory(AppChatMemory.withMessages(historyMessages)).streamingChatModel(chatModel.getStreamingChatModel()).build();
+                Assistant assistant =  aiServicesBuilder.chatMemory(AppChatMemory.withMessages(historyMessages)).streamingChatModel(chatModel).build();
                 if (stream) {
                     Boolean reasoningEnable = application.getModelSetting().getReasoningContentEnable();
                     TokenStream tokenStream = assistant.chatStream(userPrompt);

@@ -13,11 +13,11 @@ import com.tarzan.maxkb4j.core.workflow.node.impl.ImageUnderstandNode;
 import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
 import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
 import com.tarzan.maxkb4j.module.model.info.service.ModelFactory;
-import com.tarzan.maxkb4j.module.model.provider.service.impl.BaseChatModel;
 import com.tarzan.maxkb4j.module.oss.service.MongoFileService;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.Content;
 import dev.langchain4j.data.message.ImageContent;
+import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.model.chat.response.ChatResponse;
 import dev.langchain4j.model.output.TokenUsage;
 import dev.langchain4j.service.AiServices;
@@ -26,7 +26,10 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
@@ -46,7 +49,7 @@ public class ImageUnderstandNodeHandler implements INodeHandler {
         Object object = workflow.getReferenceField(imageFieldList.get(0), imageFieldList.get(1));
         @SuppressWarnings("unchecked")
         List<ChatFile> ImageFiles = (List<ChatFile>) object;
-        BaseChatModel chatModel = modelFactory.build(nodeParams.getModelId(), nodeParams.getModelParamsSetting());
+        StreamingChatModel chatModel = modelFactory.buildStreamingChatModel(nodeParams.getModelId(), nodeParams.getModelParamsSetting());
         String question =  workflow.generatePrompt(nodeParams.getPrompt());
         String systemPrompt =workflow.generatePrompt(nodeParams.getSystem());
         List<ChatMessage> historyMessages=workflow.getHistoryMessages(nodeParams.getDialogueNumber(), nodeParams.getDialogueType(), node.getRuntimeNodeId());
@@ -66,7 +69,7 @@ public class ImageUnderstandNodeHandler implements INodeHandler {
         if (CollectionUtils.isNotEmpty(historyMessages)){
             aiServicesBuilder.chatMemory(AppChatMemory.withMessages(historyMessages));
         }
-        Assistant assistant = aiServicesBuilder.streamingChatModel(chatModel.getStreamingChatModel()).build();
+        Assistant assistant = aiServicesBuilder.streamingChatModel(chatModel).build();
         TokenStream tokenStream = assistant.chatStream(question,contents);
         node.getDetail().put("system", systemPrompt);
         node.getDetail().put("history_message", node.resetMessageList(historyMessages));

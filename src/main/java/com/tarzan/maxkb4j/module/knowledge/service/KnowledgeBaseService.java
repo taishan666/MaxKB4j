@@ -20,7 +20,7 @@ public class KnowledgeBaseService {
         if (dataset==null){
             throw new RuntimeException("数据集不存在");
         }
-        return modelFactory.build(dataset.getEmbeddingModelId());
+        return modelFactory.buildEmbeddingModel(dataset.getEmbeddingModelId());
     }
 
     public KnowledgeEntity getById(String knowledgeId) {

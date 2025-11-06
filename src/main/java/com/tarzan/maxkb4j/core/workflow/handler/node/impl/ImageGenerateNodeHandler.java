@@ -32,7 +32,7 @@ public class ImageGenerateNodeHandler implements INodeHandler {
         if (modelParamsSetting!=null){
             modelParamsSetting.put("negative_prompt",negativePrompt);
         }
-        ImageModel imageModel = modelFactory.build(nodeParams.getModelId(), modelParamsSetting);
+        ImageModel imageModel = modelFactory.buildImageModel(nodeParams.getModelId(), modelParamsSetting);
         StringBuilder answerSb=new StringBuilder();
         List<String> imageUrls = new ArrayList<>();
         int n = modelParamsSetting == null ? 1 : modelParamsSetting.getIntValue("n");

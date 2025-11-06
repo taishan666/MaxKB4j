@@ -13,8 +13,8 @@ import com.tarzan.maxkb4j.module.knowledge.domain.entity.ProblemEntity;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.ProblemParagraphEntity;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.ProblemVO;
 import com.tarzan.maxkb4j.module.knowledge.mapper.ProblemMapper;
-import com.tarzan.maxkb4j.module.model.provider.service.impl.BaseChatModel;
 import dev.langchain4j.data.message.UserMessage;
+import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.response.ChatResponse;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import lombok.AllArgsConstructor;
@@ -50,10 +50,10 @@ public class ProblemService extends ServiceImpl<ProblemMapper, ProblemEntity> {
 
 
     @Async
-    public void generateRelated(BaseChatModel chatModel, EmbeddingModel embeddingModel, String knowledgeId, String docId, ParagraphEntity paragraph, List<ProblemEntity> allProblems, GenerateProblemDTO dto) {
+    public void generateRelated(ChatModel chatModel, EmbeddingModel embeddingModel, String knowledgeId, String docId, ParagraphEntity paragraph, List<ProblemEntity> allProblems, GenerateProblemDTO dto) {
         log.info("开始---->生成问题:{}", paragraph.getId());
         UserMessage userMessage = UserMessage.from(dto.getPrompt().replace("{data}", paragraph.getContent()));
-        ChatResponse res = chatModel.generate(userMessage);
+        ChatResponse res = chatModel.chat(userMessage);
         String output = res.aiMessage().text();
         List<String> paragraphProblems = extractProblems(output);
         List<ProblemEntity> insertProblems = new ArrayList<>();

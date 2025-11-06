@@ -5,19 +5,9 @@ import com.tarzan.maxkb4j.common.constant.AppConst;
 import com.tarzan.maxkb4j.common.form.BaseFiled;
 import com.tarzan.maxkb4j.common.util.StringUtil;
 import com.tarzan.maxkb4j.module.model.info.vo.KeyAndValueVO;
-import com.tarzan.maxkb4j.module.model.provider.service.IModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.enums.ModelProviderEnum;
 import com.tarzan.maxkb4j.module.model.provider.enums.ModelType;
-import com.tarzan.maxkb4j.module.model.provider.service.impl.aliyunModelProvider.AliYunBaiLianModelProvider;
-import com.tarzan.maxkb4j.module.model.provider.service.impl.azuremodelprovider.AzureModelProvider;
-import com.tarzan.maxkb4j.module.model.provider.service.impl.deepseekmodelprovider.DeepSeekModelProvider;
-import com.tarzan.maxkb4j.module.model.provider.service.impl.kimimodelprovider.KimiModelProvider;
-import com.tarzan.maxkb4j.module.model.provider.service.impl.localmodelprovider.LocalModelProvider;
-import com.tarzan.maxkb4j.module.model.provider.service.impl.ollamamodelprovider.OLlamaModelProvider;
-import com.tarzan.maxkb4j.module.model.provider.service.impl.openaimodelprovider.OpenaiModelProvider;
-import com.tarzan.maxkb4j.module.model.provider.service.impl.volcanicenginemodelprovider.VolcanicEngineModelProvider;
-import com.tarzan.maxkb4j.module.model.provider.service.impl.xinferencemodelprovider.XInferenceModelProvider;
-import com.tarzan.maxkb4j.module.model.provider.service.impl.zhipumodelprovider.ZhiPuModelProvider;
+import com.tarzan.maxkb4j.module.model.provider.service.IModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.vo.ModelInfo;
 import com.tarzan.maxkb4j.module.model.provider.vo.ModelProviderInfo;
 import lombok.AllArgsConstructor;
@@ -25,7 +15,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -41,30 +30,12 @@ import java.util.stream.Collectors;
 public class ProviderController {
 
     @GetMapping("/provider")
-	public R<Set<ModelProviderInfo>> provider(String modelType){
-		Set<IModelProvider> set= new HashSet<>();
-		set.add(new AliYunBaiLianModelProvider());
-		set.add(new LocalModelProvider());
-		//set.add(new AwsBedrockModelProvider());
-		set.add(new AzureModelProvider());
-		set.add(new DeepSeekModelProvider());
-		set.add(new KimiModelProvider());
-		set.add(new OLlamaModelProvider());
-		set.add(new OpenaiModelProvider());
-		//set.add(new GeminiModelProvider());
-	//	set.add(new QwenModelProvider());
-	//	set.add(new TencentModelProvider());
-	//	set.add(new WenXinModelProvider());
-		//set.add(new XfModelProvider());
-		set.add(new ZhiPuModelProvider());
-	//	set.add(new VLlmModelProvider());
-		set.add(new XInferenceModelProvider());
-		set.add(new VolcanicEngineModelProvider());
-	//	set.add(new LocalModelProvider());
+	public R<List<ModelProviderInfo>> provider(String modelType){
+		List<IModelProvider> list= ModelProviderEnum.getAllProvider();
 		if (StringUtil.isBlank(modelType)){
-			return R.success(set.stream().map(IModelProvider::getBaseInfo).collect(Collectors.toSet()));
+			return R.success(list.stream().map(IModelProvider::getBaseInfo).toList());
 		}
-		return R.success(set.stream().filter(e->e.isSupport(modelType)).map(IModelProvider::getBaseInfo).collect(Collectors.toSet()));
+		return R.success(list.stream().filter(e->e.isSupport(modelType)).map(IModelProvider::getBaseInfo).toList());
 	}
 
 

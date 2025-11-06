@@ -14,7 +14,7 @@ public enum ModelType {
     EMBEDDING("EMBEDDING", "向量模型"),
     STT("STT", "语音识别"),
     TTS("TTS", "语音合成"),
-    IMAGE("IMAGE", "图片理解"),
+    IMAGE_UNDERSTANDING("IMAGE", "图片理解"),
     TTI("TTI", "图片生成"),
     RERANKER("RERANKER", "重排模型"),
     ;

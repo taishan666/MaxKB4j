@@ -7,7 +7,7 @@ import com.tarzan.maxkb4j.core.workflow.model.ChatFile;
 import com.tarzan.maxkb4j.core.workflow.node.impl.SpeechToTextNode;
 import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
 import com.tarzan.maxkb4j.module.model.info.service.ModelFactory;
-import com.tarzan.maxkb4j.module.model.provider.service.impl.BaseSpeechToText;
+import com.tarzan.maxkb4j.module.model.custom.base.STTModel;
 import com.tarzan.maxkb4j.module.oss.service.MongoFileService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,7 +31,7 @@ public class SpeechToTextNodeHandler implements INodeHandler {
         SpeechToTextNode.NodeParams nodeParams=node.getNodeData().toJavaObject(SpeechToTextNode.NodeParams.class);
         List<String> audioList = nodeParams.getAudioList();
         Object res = workflow.getReferenceField(audioList.get(0), audioList.get(1));
-        BaseSpeechToText sttModel = modelFactory.build(nodeParams.getSttModelId());
+        STTModel sttModel = modelFactory.buildSTTModel(nodeParams.getSttModelId());
         @SuppressWarnings("unchecked")
         List<ChatFile> audioFiles = (List<ChatFile>) res;
         List<String> content = new ArrayList<>();

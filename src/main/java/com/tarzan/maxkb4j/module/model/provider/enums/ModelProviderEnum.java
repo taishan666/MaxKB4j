@@ -1,25 +1,27 @@
 package com.tarzan.maxkb4j.module.model.provider.enums;
 
 import com.tarzan.maxkb4j.module.model.provider.service.IModelProvider;
-import com.tarzan.maxkb4j.module.model.provider.service.impl.aliyunModelProvider.AliYunBaiLianModelProvider;
-import com.tarzan.maxkb4j.module.model.provider.service.impl.awsbedrockmodelprovider.AwsBedrockModelProvider;
-import com.tarzan.maxkb4j.module.model.provider.service.impl.azuremodelprovider.AzureModelProvider;
-import com.tarzan.maxkb4j.module.model.provider.service.impl.deepseekmodelprovider.DeepSeekModelProvider;
-import com.tarzan.maxkb4j.module.model.provider.service.impl.geminimodelprovider.GeminiModelProvider;
-import com.tarzan.maxkb4j.module.model.provider.service.impl.kimimodelprovider.KimiModelProvider;
-import com.tarzan.maxkb4j.module.model.provider.service.impl.localmodelprovider.LocalModelProvider;
-import com.tarzan.maxkb4j.module.model.provider.service.impl.ollamamodelprovider.OLlamaModelProvider;
-import com.tarzan.maxkb4j.module.model.provider.service.impl.openaimodelprovider.OpenaiModelProvider;
-import com.tarzan.maxkb4j.module.model.provider.service.impl.tencentmodelprovider.TencentModelProvider;
-import com.tarzan.maxkb4j.module.model.provider.service.impl.vllmmodelprovider.VLlmModelProvider;
-import com.tarzan.maxkb4j.module.model.provider.service.impl.volcanicenginemodelprovider.VolcanicEngineModelProvider;
-import com.tarzan.maxkb4j.module.model.provider.service.impl.wenxinmodelprovider.WenXinModelProvider;
-import com.tarzan.maxkb4j.module.model.provider.service.impl.xfmodelprovider.XfModelProvider;
-import com.tarzan.maxkb4j.module.model.provider.service.impl.xinferencemodelprovider.XInferenceModelProvider;
-import com.tarzan.maxkb4j.module.model.provider.service.impl.zhipumodelprovider.ZhiPuModelProvider;
+import com.tarzan.maxkb4j.module.model.provider.service.impl.AliYunBaiLianModelProvider;
+import com.tarzan.maxkb4j.module.model.provider.service.impl.AwsBedrockModelProvider;
+import com.tarzan.maxkb4j.module.model.provider.service.impl.AzureModelProvider;
+import com.tarzan.maxkb4j.module.model.provider.service.impl.DeepSeekModelProvider;
+import com.tarzan.maxkb4j.module.model.provider.service.impl.GeminiModelProvider;
+import com.tarzan.maxkb4j.module.model.provider.service.impl.KimiModelProvider;
+import com.tarzan.maxkb4j.module.model.provider.service.impl.LocalModelProvider;
+import com.tarzan.maxkb4j.module.model.provider.service.impl.OLlamaModelProvider;
+import com.tarzan.maxkb4j.module.model.provider.service.impl.OpenaiModelProvider;
+import com.tarzan.maxkb4j.module.model.provider.service.impl.TencentModelProvider;
+import com.tarzan.maxkb4j.module.model.provider.service.impl.VLlmModelProvider;
+import com.tarzan.maxkb4j.module.model.provider.service.impl.VolcanicEngineModelProvider;
+import com.tarzan.maxkb4j.module.model.provider.service.impl.WenXinModelProvider;
+import com.tarzan.maxkb4j.module.model.provider.service.impl.XfModelProvider;
+import com.tarzan.maxkb4j.module.model.provider.service.impl.XInferenceModelProvider;
+import com.tarzan.maxkb4j.module.model.provider.service.impl.ZhiPuModelProvider;
 import lombok.Getter;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Getter
@@ -51,22 +53,22 @@ public enum ModelProviderEnum {
         this.modelProvider = modelProvider;
     }
 
+    private static final Map<String, IModelProvider> PROVIDER_MAP = new HashMap<>();
+
+    static {
+        for (ModelProviderEnum value : ModelProviderEnum.values()) {
+            PROVIDER_MAP.put(value.provider, value.modelProvider);
+        }
+    }
+
     public static IModelProvider get(String provider) {
         if (provider == null || provider.isEmpty()) {
             throw new IllegalArgumentException("Provider name cannot be null or empty.");
         }
-        return getMap().getOrDefault(provider, null);
+        return PROVIDER_MAP.getOrDefault(provider, null);
     }
-    /**
-     * 获取模型提供者的映射。
-     *
-     * @return 包含所有模型提供者名称和其实例的映射
-     */
-    public static Map<String, IModelProvider> getMap() {
-        Map<String, IModelProvider> map = new HashMap<>();
-        for (ModelProviderEnum providerEnum : values()) {
-            map.put(providerEnum.getProvider(), providerEnum.getModelProvider());
-        }
-        return map;
+
+    public static List<IModelProvider> getAllProvider() {
+        return new ArrayList<>(PROVIDER_MAP.values());
     }
 }
