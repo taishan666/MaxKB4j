@@ -19,6 +19,8 @@ import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
 
+//todo 测试
+
 @Data
 @NoArgsConstructor
 public class ParaFormerRealtimeSTT  implements STTModel {

@@ -2,7 +2,6 @@ package com.tarzan.maxkb4j.module.model.provider.enums;
 
 import com.tarzan.maxkb4j.module.model.provider.service.IModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.service.impl.AliYunBaiLianModelProvider;
-import com.tarzan.maxkb4j.module.model.provider.service.impl.AwsBedrockModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.service.impl.AzureModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.service.impl.DeepSeekModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.service.impl.GeminiModelProvider;
@@ -11,7 +10,6 @@ import com.tarzan.maxkb4j.module.model.provider.service.impl.LocalModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.service.impl.OLlamaModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.service.impl.OpenaiModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.service.impl.TencentModelProvider;
-import com.tarzan.maxkb4j.module.model.provider.service.impl.VLlmModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.service.impl.VolcanicEngineModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.service.impl.WenXinModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.service.impl.XfModelProvider;
@@ -27,7 +25,6 @@ import java.util.Map;
 @Getter
 public enum ModelProviderEnum {
     AliYunBaiLian("阿里百练","AliYunBaiLian", new AliYunBaiLianModelProvider()),
-    AwsBedrock("Amazon Bedrock","AwsBedrock", new AwsBedrockModelProvider()),
     Azure("Azure OpenAI","Azure", new AzureModelProvider()),
     DeepSeek("DeepSeek","DeepSeek", new DeepSeekModelProvider()),
     Gemini("Google DeepMind","Gemini", new GeminiModelProvider()),
@@ -40,7 +37,6 @@ public enum ModelProviderEnum {
     ZhiPu("智谱清言","ZhiPu", new ZhiPuModelProvider()),
     Local("本地模型","model_local_provider", new LocalModelProvider()),
     OLlama("OLlama","model_ollama_provider", new OLlamaModelProvider()),
-    VLlm("VLlm","model_vllm_provider", new VLlmModelProvider()),
     XInference("Xorbits Inference","model_xinference_provider", new XInferenceModelProvider());
 
     private final String name;

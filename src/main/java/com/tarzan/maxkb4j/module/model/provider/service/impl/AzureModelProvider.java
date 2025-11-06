@@ -56,7 +56,6 @@ public class AzureModelProvider  extends IModelProvider {
     @Override
     public ChatModel buildChatModel(String modelName, ModelCredential credential, JSONObject params) {
         return AzureOpenAiChatModel.builder()
-                //   .baseUrl(credential.getBaseUrl())
                 .apiKey(credential.getApiKey())
                 .deploymentName(modelName)
                 .build();
