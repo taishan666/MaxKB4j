@@ -45,7 +45,6 @@ public class OLlamaModelProvider extends IModelProvider {
         modelInfos.add(new ModelInfo("nomic-embed-text","", ModelType.EMBEDDING.name()));
         modelInfos.add(new ModelInfo("llava:7b","", ModelType.IMAGE_UNDERSTANDING.name(), new LlmModelParams()));
         modelInfos.add(new ModelInfo("llava:13b","", ModelType.IMAGE_UNDERSTANDING.name(),new LlmModelParams()));
-       // modelInfos.add(new ModelInfo("linux6200/bge-reranker-v2-m3","",ModelTypeEnum.RERANKER.name(),new BaiLianReranker()));
         return modelInfos;
     }
 

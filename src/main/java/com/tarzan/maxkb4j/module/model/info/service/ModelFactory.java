@@ -80,7 +80,7 @@ public class ModelFactory {
         IModelProvider modelProvider = getModelProvider(model);
         modelParams = modelParams == null ? new JSONObject() : modelParams;
         return modelProvider.buildWithFallback(
-                ModelType.RERANKER.name(), model.getModelName(), model.getCredential(), modelParams,
+                ModelType.RERANK.name(), model.getModelName(), model.getCredential(), modelParams,
                 p -> modelProvider.buildScoringModel(model.getModelName(), model.getCredential(), p));
     }
 

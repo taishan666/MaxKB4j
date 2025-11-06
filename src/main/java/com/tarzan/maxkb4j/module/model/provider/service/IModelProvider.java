@@ -120,12 +120,10 @@ public abstract class IModelProvider {
         return new DisabledSTTModel();
     }
 
-    ;
 
     public TTSModel buildTTSModel(String modelName, ModelCredential credential, JSONObject params) {
         return new DisabledTTSModel();
     }
 
-    ;
 
 }
