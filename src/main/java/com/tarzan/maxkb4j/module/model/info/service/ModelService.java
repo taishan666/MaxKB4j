@@ -115,6 +115,12 @@ public class ModelService extends ServiceImpl<ModelMapper, ModelEntity> {
 
     public ModelEntity updateModel(String id, ModelEntity model) {
         model.setId(id);
+        ModelCredential credential=getModelCredential(id);
+        String maskApiKey= DataMaskUtil.maskApiKey(credential.getApiKey());
+        if (maskApiKey != null&& maskApiKey.equals(model.getCredential().getApiKey())){
+            credential.setBaseUrl(model.getCredential().getBaseUrl());
+            model.setCredential(credential);
+        }
         this.updateById(model);
         return model;
     }
@@ -136,5 +142,16 @@ public class ModelService extends ServiceImpl<ModelMapper, ModelEntity> {
             }
         }
         return model;
+    }
+
+    public ModelCredential getModelCredential(String id) {
+        ModelEntity model = this.getById(id);
+        if (model != null){
+            String userId = StpUtil.getLoginIdAsString();
+            if (model.getUserId().equals(userId)){
+                return model.getCredential();
+            }
+        }
+        return null;
     }
 }
