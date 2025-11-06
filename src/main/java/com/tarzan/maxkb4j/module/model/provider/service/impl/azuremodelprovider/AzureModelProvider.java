@@ -44,8 +44,6 @@ public class AzureModelProvider  extends IModelProvider {
         modelInfos.add(new ModelInfo("gpt-4o","", ModelType.IMAGE.name(), AzureOpenaiChatModel.class,new LlmModelParams()));
         modelInfos.add(new ModelInfo("gpt-4o-mini","", ModelType.IMAGE.name(), AzureOpenaiChatModel.class,new LlmModelParams()));
         modelInfos.add(new ModelInfo("dall-e-3","", ModelType.TTI.name(), AzureOpenaiImageModel.class));
-        //modelInfos.add(new ModelInfo("tts","",ModelTypeEnum.TTS.name(), new CosyVoiceTTS()));
-        //modelInfos.add(new ModelInfo("whisper","", ModelTypeEnum.STT.name(), new ParaFormerSTT()));
         return modelInfos;
     }
 

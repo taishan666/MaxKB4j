@@ -13,11 +13,7 @@ public abstract class IModelProvider {
 
     public abstract ModelProviderInfo getBaseInfo();
 
- /*   public ModelInfoManage getModelInfoManage() {
-        return new ModelInfoManage(getModelList());
-    }*/
-
-    public ModelInfo getModelInfo(String modelType,String modelName){
+    private ModelInfo getModelInfo(String modelType,String modelName){
         return getModelList().stream().filter(modelInfo -> modelInfo.getModelType().equals(modelType) && modelInfo.getName().equals(modelName)).findFirst().orElse(null);
     }
 

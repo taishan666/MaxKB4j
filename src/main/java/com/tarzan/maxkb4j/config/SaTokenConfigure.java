@@ -22,11 +22,6 @@ public class SaTokenConfigure {
         return new StpLogicJwtForStateless(ChatUserType.CHAT_USER.name());
     }
 
-    // 匿名用户
-    @Bean
-    public StpLogic stpLogicAnonymousUser() {
-        return new StpLogicJwtForStateless(ChatUserType.ANONYMOUS_USER.name());
-    }
 
 }
 
