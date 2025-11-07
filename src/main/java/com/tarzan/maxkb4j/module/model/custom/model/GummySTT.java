@@ -2,23 +2,23 @@ package com.tarzan.maxkb4j.module.model.custom.model;
 
 import com.alibaba.dashscope.audio.asr.translation.TranslationRecognizerParam;
 import com.alibaba.dashscope.audio.asr.translation.TranslationRecognizerRealtime;
-import com.alibaba.dashscope.audio.asr.translation.results.TranscriptionResult;
-import com.alibaba.dashscope.audio.asr.translation.results.TranslationRecognizerResultPack;
+import com.alibaba.dashscope.audio.asr.translation.results.TranslationRecognizerResult;
+import com.alibaba.dashscope.common.ResultCallback;
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.module.model.custom.base.STTModel;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelCredential;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.io.InputStream;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
 
-//todo 测试
 
 @Data
-@NoArgsConstructor
 public class GummySTT implements STTModel {
 
     private TranslationRecognizerParam param;
@@ -47,27 +47,59 @@ public class GummySTT implements STTModel {
 
     @Override
     public String speechToText(byte[] audioBytes, String suffix) {
-        StringBuilder sb = new StringBuilder();
         TranslationRecognizerRealtime translator = new TranslationRecognizerRealtime();
-        // 创建临时文件
-        Path tempFile;
+        CountDownLatch latch = new CountDownLatch(1);
+        List<String> texts = new ArrayList<>();
+        ResultCallback<TranslationRecognizerResult> callback = new ResultCallback<>() {
+            @Override
+            public void onEvent(TranslationRecognizerResult result) {
+                if (result.isSentenceEnd()) {
+                    texts.add(result.getTranscriptionResult().getText());
+                }
+            }
+
+            @Override
+            public void onComplete() {
+                latch.countDown();
+            }
+
+            @Override
+            public void onError(Exception e) {
+                System.out.println("RecognitionCallback error: " + e.getMessage());
+            }
+        };
+        // 将录音音频数据发送给流式识别服务
+        translator.call(param, callback);
         try {
-            tempFile = Files.createTempFile("temp_audio_"+System.currentTimeMillis(),"."+suffix);
-            // 将 byte[] 写入临时文件
-            Files.write(tempFile, audioBytes);
-        } catch (IOException e) {
+            InputStream fis = new ByteArrayInputStream(audioBytes);
+            // chunk size set to 1 seconds for 16KHz sample rate
+            byte[] buffer = new byte[3200];
+            int bytesRead;
+            // Loop to read chunks of the file
+            while ((bytesRead = fis.read(buffer)) != -1) {
+                ByteBuffer byteBuffer;
+                // Handle the last chunk which might be smaller than the buffer size
+                if (bytesRead < buffer.length) {
+                    byteBuffer = ByteBuffer.wrap(buffer, 0, bytesRead);
+                } else {
+                    byteBuffer = ByteBuffer.wrap(buffer);
+                }
+                translator.sendAudioFrame(byteBuffer);
+                buffer = new byte[3200];
+                Thread.sleep(50);
+            }
+            translator.stop();
+        } catch (InterruptedException | IOException e) {
+            throw new RuntimeException(e);
+        }finally {
+            // 任务结束关闭 websocket 连接
+            translator.getDuplexApi().close(1000, "bye");
+        }
+        try {
+            latch.await();
+        } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
-        TranslationRecognizerResultPack result = translator.call(param, tempFile.toFile());
-        if (result.getError() != null) {
-            System.out.println("error: " + result.getError());
-            throw new RuntimeException(result.getError());
-        } else {
-            ArrayList<TranscriptionResult> transcriptionResults  = result.getTranscriptionResultList();
-            for (TranscriptionResult transcriptionResult : transcriptionResults) {
-                sb.append(transcriptionResult.getText());
-            }
-        }
-        return sb.toString();
+        return String.join("", texts);
     }
 }

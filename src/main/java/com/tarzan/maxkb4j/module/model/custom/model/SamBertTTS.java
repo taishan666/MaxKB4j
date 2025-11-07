@@ -6,12 +6,10 @@ import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.module.model.custom.base.TTSModel;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelCredential;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.nio.ByteBuffer;
 
 @Data
-@NoArgsConstructor
 public class SamBertTTS  implements TTSModel {
 
     private SpeechSynthesisParam param;

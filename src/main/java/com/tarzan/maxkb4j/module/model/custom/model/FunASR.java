@@ -7,7 +7,6 @@ import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.module.model.custom.base.STTModel;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelCredential;
 import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -19,23 +18,20 @@ import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 
-
-@Slf4j
 @Data
-public class ParaFormerRealtimeSTT  implements STTModel {
+public class FunASR implements STTModel {
 
     private RecognitionParam param;
 
-    public ParaFormerRealtimeSTT(String modelName, ModelCredential credential, JSONObject params) {
+    public FunASR(String modelName, ModelCredential credential, JSONObject params) {
         this.param = RecognitionParam.builder()
-                        .apiKey(credential.getApiKey())
-                        .model(modelName)
-                        .format("wav")
-                        .sampleRate(16000)
-                        .parameter("language_hints", new String[]{"zh", "en"})
-                        .build();
+                .apiKey(credential.getApiKey())
+                .model(modelName)
+                .format("wav")
+                .sampleRate(16000)
+                .parameter("language_hints", new String[]{"zh", "en"})
+                .build();
     }
-
 
     @Override
     public String speechToText(byte[] audioBytes, String suffix) {
@@ -56,5 +52,4 @@ public class ParaFormerRealtimeSTT  implements STTModel {
         }
         return String.join("", texts);
     }
-
 }

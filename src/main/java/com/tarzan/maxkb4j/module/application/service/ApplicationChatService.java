@@ -88,6 +88,7 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
         ChatInfo chatInfo = this.getChatInfo(chatParams.getChatId());
         if (chatInfo == null) {
             chatParams.getSink().tryEmitError(new ApiException("会话不存在"));
+            return new ChatResponse("",null);
         } else {
             if (StringUtil.isBlank(chatParams.getAppId())) {
                 chatParams.setAppId(chatInfo.getAppId());

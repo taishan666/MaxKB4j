@@ -53,7 +53,6 @@ public class Workflow {
         if (StringUtil.isNotBlank(chatParams.getRuntimeNodeId()) && Objects.nonNull(chatRecord)) {
             this.loadNode(chatRecord, chatParams.getRuntimeNodeId(), chatParams.getNodeData());
         }
-
     }
 
 
@@ -82,15 +81,11 @@ public class Workflow {
                         }
                 );
                 assert currentNode != null;
-                // 合并验证参数
-             /*   if (APPLICATION.getKey().equals(startNode.getType())) {
-                    startNode.getContext().put("application_node_dict", nodeDetail.get("application_node_dict"));
-                }*/
                 currentNode.setDetail(nodeDetail);
                 currentNode.saveContext(this, nodeDetail);
                 nodeContext.add(currentNode);
             } else {
-                // 处理普通节点
+                // 处理其他节点
                 INode node = getNodeClsById(nodeId, upNodeIdList, null);
                 assert node != null;
                 node.setDetail(nodeDetail);
@@ -107,10 +102,10 @@ public class Workflow {
 
 
     public List<INode> getNextNodeList(INode currentNode, NodeResult currentNodeResult) {
-        List<INode> nodeList = new ArrayList<>();
+        List<INode> nextNodeList = new ArrayList<>();
         // 判断是否中断执行
         if (currentNodeResult == null || currentNodeResult.isInterruptExec(currentNode)) {
-            return nodeList;
+            return nextNodeList;
         }
         if (currentNodeResult.isAssertionResult()) {
             // 处理断言结果分支
@@ -121,7 +116,7 @@ public class Workflow {
                     String branchId = nodeVariables != null ? (String) nodeVariables.getOrDefault("branchId", "") : "";
                     String expectedAnchorId = String.format("%s_%s_right", currentNode.getId(), branchId);
                     if (expectedAnchorId.equals(edge.getSourceAnchorId())) {
-                        processEdge(edge, currentNode, nodeList);
+                        processEdge(edge, currentNode, nextNodeList);
                     }
                 }
             }
@@ -129,11 +124,11 @@ public class Workflow {
             // 处理非断言结果分支
             for (LfEdge edge : edges) {
                 if (edge.getSourceNodeId().equals(currentNode.getId())) {
-                    processEdge(edge, currentNode, nodeList);
+                    processEdge(edge, currentNode, nextNodeList);
                 }
             }
         }
-        return nodeList;
+        return nextNodeList;
     }
 
 
@@ -305,11 +300,10 @@ public class Workflow {
         );
     }
 
-
+    @SuppressWarnings("unchecked")
     public Object getFieldValue(Object value, String source) {
         if ("reference".equals(source)) {
             if (value instanceof List) {
-                @SuppressWarnings("unchecked")
                 List<String> fields = (List<String>) value;
                 return getReferenceField(fields.get(0), fields.get(1));
             }
@@ -324,12 +318,7 @@ public class Workflow {
 
 
     public String generatePrompt(String prompt) {
-        if (StringUtils.isBlank(prompt)) {
-            return "";
-        }
-        Map<String, Object> variables = getPromptVariables();
-        PromptTemplate promptTemplate = PromptTemplate.from(prompt);
-        return promptTemplate.apply(variables).text();
+        return generatePrompt(prompt,Map.of());
     }
 
     public String generatePrompt(String prompt, Map<String, Object> addVariables) {

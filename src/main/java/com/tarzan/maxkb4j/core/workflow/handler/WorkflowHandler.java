@@ -56,16 +56,18 @@ public class WorkflowHandler {
 
     public NodeResultFuture runNodeFuture(Workflow workflow,INode node) {
         try {
-            INodeHandler nodeHandler = NodeHandlerBuilder.getHandler(node.getType());
             long startTime = System.currentTimeMillis();
+            INodeHandler nodeHandler = NodeHandlerBuilder.getHandler(node.getType());
             NodeResult result = nodeHandler.execute(workflow,node);
             float runTime = (System.currentTimeMillis() - startTime) / 1000F;
             node.getDetail().put("runTime", runTime);
             log.info("node:{}, runTime:{} s", node.getType(), runTime);
             return new NodeResultFuture(result, null, 200);
         } catch (Exception ex) {
+            ex.printStackTrace();
+            node.setStatus(500);
+            node.setErrMessage(ex.getMessage());
             workflow.getChatParams().getSink().tryEmitError(ex);
-          //  ex.printStackTrace();
             log.error("NODE: {} ERROR :{}", node.getType(), ex.getCause().getMessage());
             return new NodeResultFuture(null, ex, 500);
         }

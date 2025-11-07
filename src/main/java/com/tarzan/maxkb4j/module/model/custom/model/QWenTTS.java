@@ -22,7 +22,6 @@ import java.net.URL;
 import java.util.Base64;
 
 @Data
-@NoArgsConstructor
 public class QWenTTS  implements TTSModel{
     private MultiModalConversationParam param;
 

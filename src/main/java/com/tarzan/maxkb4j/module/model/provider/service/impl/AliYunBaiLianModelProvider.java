@@ -45,9 +45,8 @@ public class AliYunBaiLianModelProvider extends IModelProvider {
         modelInfos.add(new ModelInfo("text-embedding-v4","文本向量模型", ModelType.EMBEDDING.name(),new TextEmbeddingV4Params()));
         modelInfos.add(new ModelInfo("text-embedding-v3","文本向量模型", ModelType.EMBEDDING.name(),new TextEmbeddingV3Params()));
         modelInfos.add(new ModelInfo("paraformer-realtime-v2","语音识别模型", ModelType.STT.name(), ParaFormerRealtimeSTT.class));
-        modelInfos.add(new ModelInfo("paraformer-v2","语音识别模型", ModelType.STT.name(), ParaFormerSTT.class));
+        modelInfos.add(new ModelInfo("fun-asr-realtime","语音识别模型", ModelType.STT.name(), ParaFormerRealtimeSTT.class));
         modelInfos.add(new ModelInfo("gummy-realtime-v1","语音识别模型", ModelType.STT.name(), GummySTT.class,new GummySTTParams()));
-        modelInfos.add(new ModelInfo("sensevoice-v1","语音识别模型", ModelType.STT.name(), SenseVoiceSTT.class));
         modelInfos.add(new ModelInfo("cosyvoice-v1","语音生成模型", ModelType.TTS.name(),CosyVoiceTTS.class,new CosyVoiceV1TTSParams()));
         modelInfos.add(new ModelInfo("cosyvoice-v2","语音生成模型", ModelType.TTS.name(),CosyVoiceTTS.class,new CosyVoiceV2TTSParams()));
         modelInfos.add(new ModelInfo("sambert-v1","语音生成模型", ModelType.TTS.name(),SamBertTTS.class,new SamBertTTSParams()));

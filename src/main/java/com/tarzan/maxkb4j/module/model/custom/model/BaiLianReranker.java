@@ -9,11 +9,10 @@ import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.model.output.Response;
 import dev.langchain4j.model.output.TokenUsage;
 import dev.langchain4j.model.scoring.ScoringModel;
-import lombok.NoArgsConstructor;
+import lombok.Data;
 
 import java.util.List;
-
-@NoArgsConstructor
+@Data
 public class BaiLianReranker implements ScoringModel {
 
 
