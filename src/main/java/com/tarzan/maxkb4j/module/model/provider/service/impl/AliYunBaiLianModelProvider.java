@@ -3,6 +3,7 @@ package com.tarzan.maxkb4j.module.model.provider.service.impl;
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.common.util.IoUtil;
 import com.tarzan.maxkb4j.listener.LlmListener;
+import com.tarzan.maxkb4j.module.model.custom.base.STTModel;
 import com.tarzan.maxkb4j.module.model.custom.model.*;
 import com.tarzan.maxkb4j.module.model.custom.params.impl.*;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelCredential;
@@ -44,8 +45,8 @@ public class AliYunBaiLianModelProvider extends IModelProvider {
         modelInfos.add(new ModelInfo(QwenModelName.QWEN_MAX,"大语言模型", ModelType.LLM.name(),new LlmModelParams()));
         modelInfos.add(new ModelInfo("text-embedding-v4","文本向量模型", ModelType.EMBEDDING.name(),new TextEmbeddingV4Params()));
         modelInfos.add(new ModelInfo("text-embedding-v3","文本向量模型", ModelType.EMBEDDING.name(),new TextEmbeddingV3Params()));
-        modelInfos.add(new ModelInfo("paraformer-realtime-v2","语音识别模型", ModelType.STT.name(), ParaFormerRealtimeSTT.class));
-        modelInfos.add(new ModelInfo("fun-asr-realtime","语音识别模型", ModelType.STT.name(), ParaFormerRealtimeSTT.class));
+        modelInfos.add(new ModelInfo("paraformer-realtime-v2","语音识别模型", ModelType.STT.name()));
+        modelInfos.add(new ModelInfo("fun-asr-realtime","语音识别模型", ModelType.STT.name()));
         modelInfos.add(new ModelInfo("gummy-realtime-v1","语音识别模型", ModelType.STT.name(), GummySTT.class,new GummySTTParams()));
         modelInfos.add(new ModelInfo("cosyvoice-v1","语音生成模型", ModelType.TTS.name(),CosyVoiceTTS.class,new CosyVoiceV1TTSParams()));
         modelInfos.add(new ModelInfo("cosyvoice-v2","语音生成模型", ModelType.TTS.name(),CosyVoiceTTS.class,new CosyVoiceV2TTSParams()));
@@ -96,6 +97,11 @@ public class AliYunBaiLianModelProvider extends IModelProvider {
     @Override
     public ImageModel buildImageModel(String modelName, ModelCredential credential, JSONObject params) {
         return new WanXImageModel(modelName,credential,params);
+    }
+
+    @Override
+    public STTModel buildSTTModel(String modelName, ModelCredential credential, JSONObject params) {
+        return new BaiLianASR(modelName,credential,params);
     }
 
 }

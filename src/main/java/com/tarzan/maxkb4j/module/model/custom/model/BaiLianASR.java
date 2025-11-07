@@ -19,11 +19,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Data
-public class FunASR implements STTModel {
+public class BaiLianASR implements STTModel {
+
 
     private RecognitionParam param;
 
-    public FunASR(String modelName, ModelCredential credential, JSONObject params) {
+    public BaiLianASR(String modelName, ModelCredential credential, JSONObject params) {
         this.param = RecognitionParam.builder()
                 .apiKey(credential.getApiKey())
                 .model(modelName)
