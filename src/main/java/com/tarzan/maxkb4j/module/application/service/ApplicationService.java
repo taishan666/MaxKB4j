@@ -184,7 +184,6 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     }
 
 
-    //todo 优化
     public ApplicationVO getAppDetail(String appId, boolean debug) {
         if (debug) {
             return this.getDetail(appId);
