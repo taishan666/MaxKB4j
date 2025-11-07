@@ -1,12 +1,9 @@
 package com.tarzan.maxkb4j.module.tool.controller;
 
 import cn.dev33.satoken.stp.StpUtil;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.tarzan.maxkb4j.common.api.R;
 import com.tarzan.maxkb4j.common.constant.AppConst;
-import com.tarzan.maxkb4j.common.util.BeanUtil;
 import com.tarzan.maxkb4j.common.util.StringUtil;
 import com.tarzan.maxkb4j.module.tool.domain.dto.ToolDTO;
 import com.tarzan.maxkb4j.module.tool.domain.dto.ToolInputField;
@@ -44,32 +41,14 @@ public class ToolController {
     }
 
     @GetMapping("/workspace/default/tool")
-    public R<Map<String, List<ToolVO>>> list1(String folderId, String toolType) {
-        LambdaQueryWrapper<ToolEntity> wrapper = Wrappers.lambdaQuery();
-        wrapper.eq(ToolEntity::getToolType, toolType);
-        wrapper.eq(ToolEntity::getIsActive, true);
-        List<ToolEntity> tools = toolService.list(wrapper);
-        return R.success(Map.of("folders", List.of(), "tools", BeanUtil.copyList( tools,ToolVO.class)));
+    public R<Map<String, List<ToolEntity>>> list(String folderId, String toolType) {
+        return R.success(Map.of("folders", List.of(), "tools", toolService.listTools(toolType)));
     }
 
-    @GetMapping("/workspace/{type}/tool")
-    public R<List<ToolEntity>> list(@PathVariable String type, String name) {
-        LambdaQueryWrapper<ToolEntity> wrapper = Wrappers.lambdaQuery();
-        wrapper.eq(ToolEntity::getToolType, type.toUpperCase());
-        if (StringUtil.isNotBlank(name)) {
-            wrapper.like(ToolEntity::getName, name);
-        }
-        return R.success(toolService.list(wrapper));
-    }
 
     @GetMapping("/workspace/default/tool/tool_list")
     public R<Map<String, List<ToolEntity>>> toolList(String scope, String toolType) {
-        LambdaQueryWrapper<ToolEntity> wrapper = Wrappers.lambdaQuery();
-        wrapper.eq(ToolEntity::getToolType, toolType);
-        wrapper.eq(ToolEntity::getScope, scope);
-        wrapper.eq(ToolEntity::getIsActive, true);
-        List<ToolEntity> tools = toolService.list(wrapper);
-        return R.success(Map.of("tools", tools, "shared_tools", tools));
+        return R.success(Map.of("tools", toolService.listTools(toolType), "shared_tools", List.of()));
     }
 
     @PostMapping("/workspace/default/tool/{templateId}/add_internal_tool")

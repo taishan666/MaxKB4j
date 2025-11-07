@@ -439,10 +439,6 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
             return new ArrayList<>();
         }
         List<ApplicationEntity> list= this.lambdaQuery().in(ApplicationEntity::getId, targetIds).eq(ApplicationEntity::getIsPublish, true).list();
-        return list.stream().filter(e -> folderId.equals(e.getFolderId())).map(e -> {
-            ApplicationListVO vo=BeanUtil.copy(e, ApplicationListVO.class);
-            vo.setResourceType(AuthTargetType.APPLICATION);
-            return vo;
-        }).toList();
+        return list.stream().filter(e -> folderId.equals(e.getFolderId())).map(e -> BeanUtil.copy(e, ApplicationListVO.class)).toList();
     }
 }

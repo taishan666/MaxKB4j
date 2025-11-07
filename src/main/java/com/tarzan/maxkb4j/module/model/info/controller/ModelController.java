@@ -1,7 +1,6 @@
 package com.tarzan.maxkb4j.module.model.info.controller;
 
 import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.common.api.R;
 import com.tarzan.maxkb4j.common.constant.AppConst;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelEntity;
@@ -11,6 +10,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author tarzan
@@ -36,12 +36,9 @@ public class ModelController{
 	}
 
 	@GetMapping("/model_list")
-	public R<JSONObject> modelList(String name, String createUser, String modelType, String provider){
+	public R<Map<String, List<ModelVO>>> modelList(String name, String createUser, String modelType, String provider){
 		List<ModelVO> models=modelService.models(name,createUser,modelType,provider);
-		JSONObject result=new JSONObject();
-		result.put("model",models);
-		result.put("shared_model",List.of());
-		return R.success(result);
+		return R.success(Map.of("model", models, "shared_model",List.of()));
 	}
 
 	@GetMapping("/model/{id}")

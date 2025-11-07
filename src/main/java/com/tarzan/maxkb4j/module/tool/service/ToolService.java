@@ -144,4 +144,14 @@ public class ToolService extends ServiceImpl<ToolMapper, ToolEntity> {
         userResourcePermissionService.remove(AuthTargetType.APPLICATION, id);
         return this.removeById(id);
     }
+
+    public List<ToolEntity> listTools(String toolType) {
+        List<String> targetIds =userResourcePermissionService.getTargetIds(AuthTargetType.TOOL, StpUtil.getLoginIdAsString());
+        LambdaQueryWrapper<ToolEntity> wrapper = Wrappers.lambdaQuery();
+        wrapper.eq(ToolEntity::getToolType, toolType);
+        wrapper.eq(ToolEntity::getIsActive, true);
+        wrapper.eq(ToolEntity::getScope, "WORKSPACE");
+        wrapper.in(ToolEntity::getId, targetIds);
+        return this.list(wrapper);
+    }
 }

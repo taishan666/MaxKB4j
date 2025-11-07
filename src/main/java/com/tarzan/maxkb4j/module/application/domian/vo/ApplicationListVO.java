@@ -13,7 +13,5 @@ public class ApplicationListVO {
 
     private String icon;
 
-    private String resourceType;
-
     private Boolean isPublish;
 }

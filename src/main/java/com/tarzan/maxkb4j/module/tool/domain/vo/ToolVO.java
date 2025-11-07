@@ -8,5 +8,4 @@ import lombok.EqualsAndHashCode;
 @Data
 public class ToolVO extends ToolEntity {
     private String nickname;
-    private String resourceType="tool";
 }

@@ -233,4 +233,9 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
         documentService.embedByDocIds(documents.stream().map(DocumentEntity::getId).toList());
         return true;
     }
+
+    public List<KnowledgeEntity> listKnowledge() {
+        List<String> targetIds =userResourcePermissionService.getTargetIds(AuthTargetType.KNOWLEDGE, StpUtil.getLoginIdAsString());
+        return this.lambdaQuery().in(KnowledgeEntity::getId, targetIds).list();
+    }
 }

@@ -19,22 +19,13 @@ import lombok.EqualsAndHashCode;
 public class KnowledgeEntity extends BaseEntity {
     
     private String name;
-    
     private String desc;
-    
     private Integer type;
     @TableField(typeHandler = JSONBTypeHandler.class)
     private JSONObject meta;
-    
     private String userId;
-    
     private String embeddingModelId;
-
     private Integer fileSizeLimit;
-
     private Integer fileCountLimit;
-
     private String folderId;
-    @TableField(exist= false)
-    private String resourceType="knowledge";
-} 
+}

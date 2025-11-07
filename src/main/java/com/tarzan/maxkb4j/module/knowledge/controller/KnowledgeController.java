@@ -1,6 +1,5 @@
 package com.tarzan.maxkb4j.module.knowledge.controller;
 
-import cn.dev33.satoken.stp.StpUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.tarzan.maxkb4j.common.api.R;
@@ -34,8 +33,8 @@ public class KnowledgeController {
 
 
     @GetMapping("/knowledge")
-    public R<List<KnowledgeEntity>> listDatasets(String folderId) {
-        return R.success(knowledgeService.list(StpUtil.getLoginIdAsString(),folderId));
+    public R<List<KnowledgeEntity>> listKnowledge(String folderId) {
+        return R.success(knowledgeService.listKnowledge());
     }
 
     @PostMapping("/knowledge/base")
