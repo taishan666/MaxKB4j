@@ -22,16 +22,16 @@ import java.util.concurrent.CountDownLatch;
 public class GummySTT implements STTModel {
 
     private TranslationRecognizerParam param;
-    private String[] translationLanguages;
+    private String translationLanguage;
 
     public GummySTT(String modelName, ModelCredential modelCredential, JSONObject params) {
         if (params != null){
-            String targetLanguage =params.getString("targetLanguage");
+            String  targetLanguage=params.getString("targetLanguage");
             if (targetLanguage != null){
-                this.translationLanguages = new String[]{targetLanguage};
+                this.translationLanguage = targetLanguage;
             }
         }else {
-            this.translationLanguages = new String[]{};
+            this.translationLanguage = "en";
         }
         this.param = TranslationRecognizerParam.builder()
                          .apiKey(modelCredential.getApiKey())
@@ -40,8 +40,8 @@ public class GummySTT implements STTModel {
                         .sampleRate(16000)
                         .transcriptionEnabled(true)
                         .sourceLanguage("auto")
-                        .translationEnabled(true)
-                        .translationLanguages(translationLanguages)
+                        .translationEnabled(false)
+                        .translationLanguages(new String[]{this.translationLanguage})
                         .build();
     }
 
