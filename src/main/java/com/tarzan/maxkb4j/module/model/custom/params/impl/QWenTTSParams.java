@@ -16,7 +16,13 @@ public class QWenTTSParams implements ModelParams {
                 "Cherry","CHERRY",
                 "Serena","SERENA",
                 "Ethan","ETHAN",
-                "Chelsie","CHELSIE"
+                "Chelsie","CHELSIE",
+                "Dylan","DYLAN",
+                "Jada","JADA",
+                "Sunny","SUNNY",
+                "Nofish","NOFISH",
+                "Jennifer","JENNIFER",
+                "Li","LI"
         );
         BaseFiled voiceSelectFiled=new SingleSelectFiled("音色","voice","指定音色名称",options,"CHERRY");
         return List.of(voiceSelectFiled);
