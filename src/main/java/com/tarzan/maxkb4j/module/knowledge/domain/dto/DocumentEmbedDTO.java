@@ -6,6 +6,6 @@ import java.util.List;
 
 @Data
 public class DocumentEmbedDTO {
-    
+    private List<String> idList;
     private List<String> stateList;
 }

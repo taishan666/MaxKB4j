@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.tarzan.maxkb4j.core.event.DataIndexEvent;
 import com.tarzan.maxkb4j.module.knowledge.consts.SourceType;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.GenerateProblemDTO;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.ParagraphAddDTO;
@@ -19,6 +20,7 @@ import dev.langchain4j.model.embedding.EmbeddingModel;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -44,10 +46,15 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
     private final DocumentMapper documentMapper;
     private final ModelFactory modelFactory;
     private final KnowledgeMapper datasetMapper;
+    private final ApplicationEventPublisher eventPublisher;
 
 
     public void updateStatusById(String id, int type, int status) {
         baseMapper.updateStatusByIds(List.of(id),type,status,type-1,type+1);
+    }
+
+    public void updateStatusByIds(List<String> paragraphIds, int type, int status) {
+        baseMapper.updateStatusByIds(paragraphIds,type,status,type-1,type+1);
     }
 
     public void updateStatusByDocIds(List<String> docIds, int type,int status)  {
@@ -109,8 +116,10 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
     @Transactional
     public void updateParagraphById(String knowledgeId,String docId,ParagraphEntity paragraph) {
         dataIndexService.updateActiveByParagraphId(knowledgeId,paragraph);
+        this.updateStatusById(paragraph.getId(),1,0);
         this.updateById(paragraph);
         documentMapper.updateCharLengthById(docId);
+        eventPublisher.publishEvent(new DataIndexEvent(this, knowledgeId,List.of(docId),List.of("0")));
     }
 
 
@@ -127,7 +136,6 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
         ParagraphEntity paragraph= createParagraph(knowledgeId, docId, addDTO.getTitle(), addDTO.getContent(),addDTO.getPosition());
         this.save(paragraph);
         List<ProblemEntity> problems = addDTO.getProblemList();
-        //todo 问题的自动向量化
         if (!CollectionUtils.isEmpty(problems)) {
             List<String> problemContents = problems.stream().map(ProblemEntity::getContent).toList();
             List<ProblemParagraphEntity> problemParagraphMappingEntities = new ArrayList<>();
@@ -149,6 +157,7 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
             }
             problemParagraphService.saveBatch(problemParagraphMappingEntities);
         }
+        eventPublisher.publishEvent(new DataIndexEvent(this, knowledgeId,List.of(docId),List.of("0")));
         return documentMapper.updateCharLengthById(docId);
     }
 
@@ -283,5 +292,17 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
         this.lambdaUpdate().set(ParagraphEntity::getPosition, oldPosition).eq(ParagraphEntity::getKnowledgeId, knowledgeId).eq(ParagraphEntity::getDocumentId, documentId).eq(ParagraphEntity::getPosition, newPosition).update();
         paragraph.setPosition(newPosition);
         return this.updateById(paragraph);
+    }
+
+    //type 1 向量化 2 问题生成 3 网络同步
+    public List<ParagraphEntity> listByStateIds(String docId,int type, List<String> stateList) {
+        if (type==1){
+            return baseMapper.listByStateIds(docId, 3,stateList);
+        }else if (type==2){
+            return baseMapper.listByStateIds(docId, 2,stateList);
+        }else {
+            return baseMapper.listByStateIds(docId, 1,stateList);
+        }
+
     }
 }

@@ -45,6 +45,11 @@ public class ToolController {
         return R.success(Map.of("folders", List.of(), "tools", toolService.listTools(toolType)));
     }
 
+    @GetMapping("/workspace/internal/tool")
+    public R<Map<String, List<ToolEntity>>> internalTools(String scope, String name) {
+        return R.success(Map.of("folders", List.of(), "tools", toolService.listTools("internal")));
+    }
+
 
     @GetMapping("/workspace/default/tool/tool_list")
     public R<Map<String, List<ToolEntity>>> toolList(String scope, String toolType) {

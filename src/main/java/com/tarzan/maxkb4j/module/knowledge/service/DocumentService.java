@@ -19,6 +19,7 @@ import com.tarzan.maxkb4j.common.util.ExcelUtil;
 import com.tarzan.maxkb4j.common.util.IoUtil;
 import com.tarzan.maxkb4j.common.util.JsoupUtil;
 import com.tarzan.maxkb4j.common.util.StringUtil;
+import com.tarzan.maxkb4j.core.event.DataIndexEvent;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.DatasetBatchHitHandlingDTO;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.DocumentNameDTO;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.GenerateProblemDTO;
@@ -50,6 +51,7 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -82,6 +84,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
     private final KnowledgeMapper datasetMapper;
     private final ModelFactory modelFactory;
     private final MongoFileService mongoFileService;
+    private final ApplicationEventPublisher eventPublisher;
 
 
     public void updateStatusMetaById(String id) {
@@ -93,6 +96,11 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
     public void updateStatusById(String id, int type, int status) {
         baseMapper.updateStatusByIds(List.of(id), type, status);
     }
+
+    public void updateStatusByIds(List<String> ids, int type, int status) {
+        baseMapper.updateStatusByIds(ids, type, status);
+    }
+
 
     public List<DocumentEntity> listDocByKnowledgeId(String id) {
         return this.lambdaQuery().eq(DocumentEntity::getKnowledgeId, id).list();
@@ -431,15 +439,8 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
     }
 
     @Transactional
-    public boolean embedByDocIds(List<String> docIds) {
-        if (!CollectionUtils.isEmpty(docIds)) {
-            docIds.parallelStream().forEach(docId -> {
-                paragraphService.updateStatusByDocIds(List.of(docId), 1, 0);
-                this.updateStatusById(docId, 1, 0);
-                //目的是为了显示进度计数
-                this.updateStatusMetaById(docId);
-            });
-        }
+    public boolean embedByDocIds(String knowledgeId,List<String> docIds,List<String> stateList) {
+        eventPublisher.publishEvent(new DataIndexEvent(this, knowledgeId,docIds,stateList));
         return true;
     }
 

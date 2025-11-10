@@ -120,13 +120,13 @@ public class DocumentController {
    
     @PutMapping("/knowledge/{id}/document/{docId}/refresh")
     public R<Boolean> refresh(@PathVariable String id, @PathVariable("docId") String docId, @RequestBody DocumentEmbedDTO dto) {
-        return R.success(documentService.embedByDocIds(List.of(docId)));
+        return R.success(documentService.embedByDocIds(id,List.of(docId),dto.getStateList()));
     }
 
    
     @PutMapping("/knowledge/{id}/document/batch_refresh")
-    public R<Boolean> batchRefresh(@PathVariable String id, @RequestBody DatasetBatchHitHandlingDTO dto) {
-        return R.success(documentService.embedByDocIds(dto.getIdList()));
+    public R<Boolean> batchRefresh(@PathVariable String id, @RequestBody DocumentEmbedDTO dto) {
+        return R.success(documentService.embedByDocIds(id,dto.getIdList(),dto.getStateList()));
     }
 
   

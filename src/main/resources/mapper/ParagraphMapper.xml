@@ -57,4 +57,17 @@
             #{id}
         </foreach>
     </select>
+    <select id="listByStateIds"
+            resultType="com.tarzan.maxkb4j.module.knowledge.domain.entity.ParagraphEntity">
+        SELECT
+            *
+        FROM
+            paragraph
+        WHERE
+            document_id=#{docId}
+            AND SUBSTRING(status FROM #{fromIndex} FOR 1) IN
+        <foreach item="state" collection="stateList" open="(" separator="," close=")">
+            #{state}
+        </foreach>
+    </select>
 </mapper>
