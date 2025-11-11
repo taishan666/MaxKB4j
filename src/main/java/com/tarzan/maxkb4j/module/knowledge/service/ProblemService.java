@@ -4,8 +4,8 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.tarzan.maxkb4j.core.assistant.ProblemGenerateAssistant;
 import com.tarzan.maxkb4j.module.knowledge.consts.SourceType;
-import com.tarzan.maxkb4j.module.knowledge.domain.dto.GenerateProblemDTO;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.ProblemDTO;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.EmbeddingEntity;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.ParagraphEntity;
@@ -13,21 +13,17 @@ import com.tarzan.maxkb4j.module.knowledge.domain.entity.ProblemEntity;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.ProblemParagraphEntity;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.ProblemVO;
 import com.tarzan.maxkb4j.module.knowledge.mapper.ProblemMapper;
-import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.model.chat.ChatModel;
-import dev.langchain4j.model.chat.response.ChatResponse;
 import dev.langchain4j.model.embedding.EmbeddingModel;
+import dev.langchain4j.service.AiServices;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * @author tarzan
@@ -49,13 +45,10 @@ public class ProblemService extends ServiceImpl<ProblemMapper, ProblemEntity> {
     }
 
 
-    @Async
-    public void generateRelated(ChatModel chatModel, EmbeddingModel embeddingModel, String knowledgeId, String docId, ParagraphEntity paragraph, List<ProblemEntity> allProblems, GenerateProblemDTO dto) {
-        log.info("开始---->生成问题:{}", paragraph.getId());
-        UserMessage userMessage = UserMessage.from(dto.getPrompt().replace("{data}", paragraph.getContent()));
-        ChatResponse res = chatModel.chat(userMessage);
-        String output = res.aiMessage().text();
-        List<String> paragraphProblems = extractProblems(output);
+    public void generateRelated(ChatModel chatModel, EmbeddingModel embeddingModel, String knowledgeId, String docId, ParagraphEntity paragraph, List<ProblemEntity> allProblems, String prompt) {
+        log.info("开始---->段落生成问题:{}", paragraph.getId());
+        ProblemGenerateAssistant assistant = AiServices.builder(ProblemGenerateAssistant.class).chatModel(chatModel).build();
+        List<String> paragraphProblems = assistant.generate(prompt.replace("{data}", paragraph.getContent()));
         List<ProblemEntity> insertProblems = new ArrayList<>();
         if (!CollectionUtils.isEmpty(paragraphProblems)) {
             for (String problem : paragraphProblems) {
@@ -98,7 +91,7 @@ public class ProblemService extends ServiceImpl<ProblemMapper, ProblemEntity> {
             }
             dataIndexService.insertAll(embeddingEntities, embeddingModel);
         }
-        log.info("结束---->生成问题:{}", paragraph.getId());
+        log.info("结束---->段落生成问题:{}", paragraph.getId());
     }
 
     @Transactional
@@ -133,59 +126,24 @@ public class ProblemService extends ServiceImpl<ProblemMapper, ProblemEntity> {
         return existingProblem;
     }
 
-    public List<String> extractProblems(String output) {
-        String[] problems = output.split("\n");
-        List<String> result = new ArrayList<>(problems.length);
-        for (String problem : problems) {
-            result.add(extractProblem(problem));
-        }
-        return result;
-    }
-
-    public String extractProblem(String problem) {
-        // 移除开头的数字和句点
-        if (problem != null && !problem.isEmpty()) {
-            problem = problem.replaceAll("^\\d+\\.\\s*", "");
-            // 定义匹配<question>标签内容的模式
-            Pattern pattern = Pattern.compile("<question>(.*?)</question>", Pattern.DOTALL);
-            Matcher matcher = pattern.matcher(problem);
-            // 查找匹配并提取内容
-            if (matcher.find()) {
-                problem = matcher.group(1);
-                // 如果提取的内容为空或不存在，则返回null
-                if (problem == null || problem.trim().isEmpty()) {
-                    return null;
-                }
-            } else {
-                // 如果没有找到匹配项，则返回null
-                return null;
-            }
-        } else {
-            // 如果输入字符串为空或null，则返回null
-            return null;
-        }
-        return problem;
-    }
-
     @Transactional
-    public boolean deleteProblemByIds(String knowledgeId,List<String> problemIds) {
+    public boolean deleteProblemByIds(String knowledgeId, List<String> problemIds) {
         if (CollectionUtils.isEmpty(problemIds)) {
             return false;
         }
         problemParagraphService.lambdaUpdate().in(ProblemParagraphEntity::getProblemId, problemIds).remove();
-        dataIndexService.removeBySourceIds(knowledgeId,problemIds.stream().map(String::toString).toList());
+        dataIndexService.removeBySourceIds(knowledgeId, problemIds.stream().map(String::toString).toList());
         return this.removeByIds(problemIds);
     }
 
     @Transactional
-    public boolean createProblemsByParagraphId(String knowledgeId,String docId,String paragraphId, ProblemDTO dto) {
+    public boolean createProblemsByParagraphId(String knowledgeId, String docId, String paragraphId, ProblemDTO dto) {
         ProblemEntity problem = new ProblemEntity();
         problem.setContent(dto.getContent());
         problem.setKnowledgeId(knowledgeId);
         problem.setHitNum(0);
         return this.save(problem) && problemParagraphService.association(knowledgeId, docId, paragraphId, problem.getId());
     }
-
 
 
 }

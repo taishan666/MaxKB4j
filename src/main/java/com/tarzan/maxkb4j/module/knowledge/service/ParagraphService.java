@@ -7,15 +7,16 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tarzan.maxkb4j.core.event.DataIndexEvent;
+import com.tarzan.maxkb4j.core.event.GenerateProblemEvent;
 import com.tarzan.maxkb4j.module.knowledge.consts.SourceType;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.GenerateProblemDTO;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.ParagraphAddDTO;
-import com.tarzan.maxkb4j.module.knowledge.domain.entity.*;
+import com.tarzan.maxkb4j.module.knowledge.domain.entity.EmbeddingEntity;
+import com.tarzan.maxkb4j.module.knowledge.domain.entity.ParagraphEntity;
+import com.tarzan.maxkb4j.module.knowledge.domain.entity.ProblemEntity;
+import com.tarzan.maxkb4j.module.knowledge.domain.entity.ProblemParagraphEntity;
 import com.tarzan.maxkb4j.module.knowledge.mapper.DocumentMapper;
-import com.tarzan.maxkb4j.module.knowledge.mapper.KnowledgeMapper;
 import com.tarzan.maxkb4j.module.knowledge.mapper.ParagraphMapper;
-import com.tarzan.maxkb4j.module.model.info.service.ModelFactory;
-import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -44,8 +45,6 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
     private final ProblemParagraphService problemParagraphService;
     private final DataIndexService dataIndexService;
     private final DocumentMapper documentMapper;
-    private final ModelFactory modelFactory;
-    private final KnowledgeMapper datasetMapper;
     private final ApplicationEventPublisher eventPublisher;
 
 
@@ -79,7 +78,6 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
 
     public void createIndex(ParagraphEntity paragraph, EmbeddingModel embeddingModel) {
         if (paragraph != null) {
-            this.updateStatusById(paragraph.getId(),1,1);
             //清除之前向量
             dataIndexService.removeByParagraphId(paragraph.getKnowledgeId(),paragraph.getId());
             List<EmbeddingEntity> embeddingEntities = new ArrayList<>();
@@ -107,7 +105,6 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
                 embeddingEntities.add(problemEmbed);
             }
             dataIndexService.insertAll(embeddingEntities,embeddingModel);
-            this.updateStatusById(paragraph.getId(),1,2);
             log.info("结束---->向量化段落:{}", paragraph.getId());
         }
     }
@@ -230,21 +227,8 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
     }
 
     public Boolean batchGenerateRelated(String knowledgeId, String docId, GenerateProblemDTO dto) {
-        //todo 批量生成关联 是否要修改文档状态，修改得话，定时任务会修改文档下所有段落
-        this.updateStatusByDocIds(List.of(docId), 2, 0);
-        documentMapper.updateStatusMetaByIds(List.of(docId));
-        documentMapper.updateStatusByIds(List.of(docId), 2, 0);
-        KnowledgeEntity dataset = datasetMapper.selectById(knowledgeId);
-        ChatModel chatModel = modelFactory.buildChatModel(dto.getModelId());
-        EmbeddingModel embeddingModel = modelFactory.buildEmbeddingModel(dataset.getEmbeddingModelId());
-        List<ParagraphEntity> paragraphs = this.lambdaQuery().eq(ParagraphEntity::getDocumentId, docId).list();
-        List<ProblemEntity> allProblems = problemService.lambdaQuery().eq(ProblemEntity::getKnowledgeId, knowledgeId).list();
-        documentMapper.updateStatusByIds(List.of(docId), 2, 1);
-        paragraphs.parallelStream().forEach(paragraph -> {
-            problemService.generateRelated(chatModel, embeddingModel, knowledgeId, docId, paragraph, allProblems, dto);
-            documentMapper.updateStatusMetaByIds(List.of(paragraph.getDocumentId()));
-        });
-        documentMapper.updateStatusByIds(List.of(docId), 2, 2);
+        this.updateStatusByIds(dto.getParagraphIdList(), 2, 0);
+        eventPublisher.publishEvent(new GenerateProblemEvent(this, knowledgeId,List.of(docId),dto.getModelId(),dto.getPrompt(),List.of("0")));
         return true;
     }
 
@@ -304,5 +288,11 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
             return baseMapper.listByStateIds(docId, 1,stateList);
         }
 
+    }
+
+    @Transactional
+    public void deleteByKnowledgeId(String id) {
+        this.lambdaUpdate().eq(ParagraphEntity::getKnowledgeId, id).remove();
+        dataIndexService.removeByDatasetId(id);
     }
 }

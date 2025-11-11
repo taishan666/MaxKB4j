@@ -32,11 +32,6 @@ public class DataIndexService {
 
 
     public void insertAll(List<EmbeddingEntity> embeddingEntities, EmbeddingModel embeddingModel) {
-    /*    for (EmbeddingEntity embeddingEntity : embeddingEntities) {
-            Response<Embedding> res = embeddingModel.embed(embeddingEntity.getContent());
-            embeddingEntity.setEmbedding(res.content().vectorAsList());
-            embeddingEntity.setContent(segmentContent(embeddingEntity.getContent()));
-        }*/
         BatchUtil.protectBach(embeddingEntities, 3,batch->{
             List<TextSegment> textSegments=batch.stream().map(e -> TextSegment.from(e.getContent())).toList();
             Response<List<Embedding>> res = embeddingModel.embedAll(textSegments);

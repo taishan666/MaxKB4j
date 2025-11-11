@@ -54,7 +54,6 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
     private final ApplicationKnowledgeMappingMapper applicationDatasetMappingMapper;
     private final ParagraphService paragraphService;
     private final ProblemParagraphMapper problemParagraphMapper;
-    private final DataIndexService dataIndexService;
     private final DocumentService documentService;
     private final UserService userService;
     private final UserResourcePermissionService userResourcePermissionService;
@@ -104,10 +103,9 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
     public Boolean deleteKnowledgeId(String id) {
         problemParagraphMapper.delete(Wrappers.<ProblemParagraphEntity>lambdaQuery().eq(ProblemParagraphEntity::getKnowledgeId, id));
         problemService.lambdaUpdate().eq(ProblemEntity::getKnowledgeId, id).remove();
-        paragraphService.lambdaUpdate().eq(ParagraphEntity::getKnowledgeId, id).remove();
+        paragraphService.deleteByKnowledgeId(id);
         documentMapper.delete(Wrappers.<DocumentEntity>lambdaQuery().eq(DocumentEntity::getKnowledgeId, id));
         applicationDatasetMappingMapper.delete(Wrappers.<ApplicationKnowledgeMappingEntity>lambdaQuery().eq(ApplicationKnowledgeMappingEntity::getKnowledgeId, id));
-        dataIndexService.removeByDatasetId(id);
         userResourcePermissionService.remove(AuthTargetType.APPLICATION, id);
         return this.removeById(id);
     }
@@ -230,7 +228,7 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
 
     public boolean embeddingKnowledge(String knowledgeId) {
         List<DocumentEntity> documents=documentService.lambdaQuery().select(DocumentEntity::getId).eq(DocumentEntity::getKnowledgeId, knowledgeId).list();
-        documentService.embedByDocIds(knowledgeId,documents.stream().map(DocumentEntity::getId).toList(),List.of("0","1","2","3","4","5","n"));
+        documentService.embedByDocIds(knowledgeId,documents.stream().map(DocumentEntity::getId).toList(),List.of("0","1","2","3","n"));
         return true;
     }
 

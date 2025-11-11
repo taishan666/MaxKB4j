@@ -20,11 +20,15 @@ import com.tarzan.maxkb4j.common.util.IoUtil;
 import com.tarzan.maxkb4j.common.util.JsoupUtil;
 import com.tarzan.maxkb4j.common.util.StringUtil;
 import com.tarzan.maxkb4j.core.event.DataIndexEvent;
+import com.tarzan.maxkb4j.core.event.GenerateProblemEvent;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.DatasetBatchHitHandlingDTO;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.DocumentNameDTO;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.GenerateProblemDTO;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.WebUrlDTO;
-import com.tarzan.maxkb4j.module.knowledge.domain.entity.*;
+import com.tarzan.maxkb4j.module.knowledge.domain.entity.DocumentEntity;
+import com.tarzan.maxkb4j.module.knowledge.domain.entity.ParagraphEntity;
+import com.tarzan.maxkb4j.module.knowledge.domain.entity.ProblemEntity;
+import com.tarzan.maxkb4j.module.knowledge.domain.entity.ProblemParagraphEntity;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.DocumentVO;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.FileStreamVO;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.ParagraphSimpleVO;
@@ -32,13 +36,9 @@ import com.tarzan.maxkb4j.module.knowledge.domain.vo.TextSegmentVO;
 import com.tarzan.maxkb4j.module.knowledge.enums.DocType;
 import com.tarzan.maxkb4j.module.knowledge.excel.DatasetExcel;
 import com.tarzan.maxkb4j.module.knowledge.mapper.DocumentMapper;
-import com.tarzan.maxkb4j.module.knowledge.mapper.KnowledgeMapper;
-import com.tarzan.maxkb4j.module.model.info.service.ModelFactory;
 import com.tarzan.maxkb4j.module.model.info.vo.KeyAndValueVO;
 import com.tarzan.maxkb4j.module.oss.service.MongoFileService;
 import dev.langchain4j.data.segment.TextSegment;
-import dev.langchain4j.model.chat.ChatModel;
-import dev.langchain4j.model.embedding.EmbeddingModel;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -81,8 +81,6 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
     private final ProblemParagraphService problemParagraphService;
     private final DocumentParseService documentParseService;
     private final DocumentSpiltService documentSpiltService;
-    private final KnowledgeMapper datasetMapper;
-    private final ModelFactory modelFactory;
     private final MongoFileService mongoFileService;
     private final ApplicationEventPublisher eventPublisher;
 
@@ -619,7 +617,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
     }
 
     public boolean batchGenerateRelated(String knowledgeId, GenerateProblemDTO dto) {
-        if (CollectionUtils.isEmpty(dto.getDocumentIdList())) {
+   /*     if (CollectionUtils.isEmpty(dto.getDocumentIdList())) {
             return false;
         }
         paragraphService.updateStatusByDocIds(dto.getDocumentIdList(), 2, 0);
@@ -633,12 +631,13 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
             List<ProblemEntity> allProblems = problemService.lambdaQuery().eq(ProblemEntity::getKnowledgeId, knowledgeId).list();
             baseMapper.updateStatusByIds(List.of(docId), 2, 1);
             paragraphs.forEach(paragraph -> {
-                problemService.generateRelated(chatModel, embeddingModel, knowledgeId, docId, paragraph, allProblems, dto);
+                problemService.generateRelated(chatModel, embeddingModel, knowledgeId, docId, paragraph, allProblems, dto.getPrompt());
                 paragraphService.updateStatusById(paragraph.getId(), 2, 2);
                 baseMapper.updateStatusMetaByIds(List.of(paragraph.getDocumentId()));
             });
             baseMapper.updateStatusByIds(List.of(docId), 2, 2);
-        });
+        });*/
+        eventPublisher.publishEvent(new GenerateProblemEvent(this, knowledgeId,dto.getDocumentIdList(),dto.getModelId(),dto.getPrompt(),dto.getStateList()));
         return true;
     }
 

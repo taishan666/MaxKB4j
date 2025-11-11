@@ -10,4 +10,5 @@ public class GenerateProblemDTO {
     private List<String> paragraphIdList;
     private String modelId;
     private String prompt;
+    private List<String> stateList;
 }
