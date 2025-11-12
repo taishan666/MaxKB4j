@@ -25,7 +25,7 @@ public class Divination {
             "坤宫:土", "艮宫:土", "坎宫:水", "巽宫:木", "震宫:木", "离宫:火", "兑宫:金", "乾宫:金"
     };
 
-    // 常量定义，提升可读性
+
     static final int GUA_KUN = 0;
     static final int GUA_QIAN = 7;
     // 八宫名称
@@ -72,6 +72,9 @@ public class Divination {
             {"111111", "011111", "001111", "000111", "000011", "000001", "000101", "111101"},
     };
 
+    static final List<String> LIU_HE_GUA =List.of("111000", "000111", "000100", "100000", "101001", "001101", "010110", "110010");
+
+    static final List<String> LIU_CHONG_GUA = List.of("000000", "001001", "010010", "011011", "100100", "101101", "110110", "111111", "100111", "111100");
 
     static final String[] DI_ZHI_FIVE_ELEMENTS = {
             "寅卯:木", "巳午:火", "申酉:金", "亥子:水", "辰戌丑未:土"
@@ -80,6 +83,7 @@ public class Divination {
     private static final String[] TIAN_GAN = {"甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"};
     // 六神顺序：从初爻开始的默认顺序
     private static final String[] LIU_SHEN = {"青龙", "朱雀", "勾陈", "螣蛇", "白虎", "玄武"};
+    //天干对应的六神的下标
     private static final Map<String, Integer> TIAN_GAN_LIU_SHEN = Map.of(
             "甲", 0,
             "乙", 0,
@@ -104,7 +108,7 @@ public class Divination {
         System.out.println("六爻（四进制 ）："+Arrays.toString(sixthLines));
         int[] currentHexagram = currentHexagram(sixthLines);
         String benGua = convert(currentHexagram);
-        benGua = "101101";
+       // benGua = "111101";
         String guaName = getGuaName(benGua);
         String guaGong = getGuaGong(benGua);
         String guaWx = getGuaFiveElement(guaGong);
@@ -117,24 +121,23 @@ public class Divination {
         int shiYaoIndex = getShiYaoIndex(benGua);
         int yingYaoIndex = getYingYaoIndex(shiYaoIndex);
         System.out.println("本卦：" + benGua
-                + " 卦名：" + guaName
+                + " 卦名：" + guaName +  "(" + (LIU_HE_GUA.contains(benGua)?"六合" : "")  + (LIU_CHONG_GUA.contains(benGua)?"六冲" : "") +")"
                 + " 卦宫：" + guaGong + "(" + guaWx + ")"
                 + " 日干：" + tianGan);
 
-        for (int i = 0; i < benGua.length(); i++) {
+        for (int i = benGua.length()-1; i >= 0; i--) {
             String c = benGua.substring(i, i + 1);
             String yaoName = (c.equals("0") ? "六" : "九") + CHINESE_NUMBERS[i];
             if (i == 0 || i == 5) {
                 yaoName = CHINESE_NUMBERS[i] + (c.equals("0") ? "六" : "九");
             }
-            String shiYao = shiYaoIndex == (i + 1) ? "世" : "";
-            String yingYao = yingYaoIndex == (i + 1) ? "应" : "";
+            String shiYao = (shiYaoIndex-1) == i ? "世" : "";
+            String yingYao = (yingYaoIndex-1) == i ? "应" : "";
             String yaoTG = guaTG.substring(i, i + 1);
             String dz = guaDiZhi.substring(i, i + 1);
             String wx = yaoWxs.substring(i, i + 1);
             String lq = guaLiuQin.substring(i * 2, (i + 1) * 2);
             String ls = guaLiuShen.substring(i * 2, (i + 1) * 2);
-
             System.out.println( ls+" " +yaoName + " "+ lq+yaoTG + dz + wx  + " " + shiYao + yingYao);
         }
 
@@ -148,10 +151,8 @@ public class Divination {
             for (int j = 0; j < gong_gua.length; j++) {
                 if (j == 0) {
                     map.put(gong_gua[j], 6);
-                } else if (j == 6) {
+                } else if (j == 6||j == 7) {
                     map.put(gong_gua[j], 3);
-                } else if (j == 7) {
-                    map.put(gong_gua[j], 4);
                 } else {
                     map.put(gong_gua[j], j);
                 }
@@ -380,7 +381,6 @@ public class Divination {
     }
 
     public static String getGuaName(String gua) {
-
         // 确定内卦和外卦
         int innerGuaIdx = getTrigram(gua.substring(0, 3));
         int outerGuaIdx = getTrigram(gua.substring(3));
