@@ -1,12 +1,16 @@
 package com.tarzan.maxkb4j.module.chat.dto;
 
 import com.alibaba.fastjson.JSONObject;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 
 @Data
 public class ChatResponse {
 
     private String answer;
+    private Integer messageTokens;
+    private Integer answerTokens;
+    @JsonIgnore
     private JSONObject runDetails;
 
     public ChatResponse(String answer,JSONObject runDetails) {

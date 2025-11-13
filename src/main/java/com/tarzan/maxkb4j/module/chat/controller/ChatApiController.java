@@ -26,6 +26,7 @@ import com.tarzan.maxkb4j.module.application.service.ApplicationChatRecordServic
 import com.tarzan.maxkb4j.module.application.service.ApplicationChatService;
 import com.tarzan.maxkb4j.module.application.service.ApplicationService;
 import com.tarzan.maxkb4j.module.chat.dto.ChatParams;
+import com.tarzan.maxkb4j.module.chat.dto.ChatResponse;
 import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -36,10 +37,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Sinks;
 
 import java.io.IOException;
+import java.util.concurrent.CompletableFuture;
 
 @Tag(name = "MaxKB4J开放接口")
 @RestController
@@ -58,7 +61,7 @@ public class ChatApiController {
     @GetMapping("/profile")
     public R<JSONObject> profile(String accessToken) {
         ApplicationAccessTokenEntity appAccessToken = accessTokenService.getByToken(accessToken);
-        if (appAccessToken == null){
+        if (appAccessToken == null) {
             return R.fail("未找到应用");
         }
         JSONObject result = new JSONObject();
@@ -81,7 +84,7 @@ public class ChatApiController {
             loginModel.setExtra("applicationId", accessTokenEntity.getApplicationId());
             loginModel.setExtra("chatUserType", ChatUserType.ANONYMOUS_USER.name());
             loginModel.setExtra("accessToken", accessToken);
-            StpUtil.login(chatUserId,loginModel);
+            StpUtil.login(chatUserId, loginModel);
         }
         return R.success(StpUtil.getTokenValue());
     }
@@ -113,7 +116,40 @@ public class ChatApiController {
 
     @Operation(summary = "聊天对话", description = "聊天对话")
     @PostMapping(path = "/chat_message/{chatId}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<ChatMessageVO> chatMessage(@PathVariable String chatId, @RequestBody ChatParams params) {
+    public Object chatMessage(@PathVariable String chatId, @RequestBody ChatParams params) {
+        // SSE 模式
+        SseEmitter emitter = new SseEmitter(Long.MAX_VALUE); // 可设置超时时间
+        String userId = StpUtil.getLoginIdAsString();
+        Sinks.Many<ChatMessageVO> sink = Sinks.many().unicast().onBackpressureBuffer();
+        params.setChatId(chatId);
+        params.setSink(sink);
+        params.setChatUserId(userId);
+        params.setChatUserType(ChatUserType.ANONYMOUS_USER.name());
+        params.setDebug(false);
+        // CompletableFuture<ChatResponse> future = chatService.chatMessageAsync(params);
+        if (Boolean.TRUE.equals(params.getStream())) {
+            // 异步执行业务逻辑
+            chatTaskExecutor.execute(() -> chatService.chatMessage(params));
+            sink.asFlux().doFinally(signalType -> emitter.complete())
+                    .subscribe(e -> {
+                        try {
+                            emitter.send(e);
+                        } catch (IOException ex) {
+                            throw new RuntimeException(ex);
+                        }
+                    });
+            return emitter;
+        } else {
+            CompletableFuture<ChatResponse> future = chatService.chatMessageAsync(params);
+            ChatResponse chatResponse = future.join();
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .body(R.data(chatResponse));
+        }
+
+    }
+
+    public Flux<ChatMessageVO> chatMessage1(@PathVariable String chatId, @RequestBody ChatParams params) {
         String userId = StpUtil.getLoginIdAsString();
         Sinks.Many<ChatMessageVO> sink = Sinks.many().unicast().onBackpressureBuffer();
         params.setChatId(chatId);
@@ -125,6 +161,7 @@ public class ChatApiController {
         chatTaskExecutor.execute(() -> chatService.chatMessage(params));
         return sink.asFlux();
     }
+
 
     @Hidden
     @GetMapping("/historical_conversation/{current}/{size}")
@@ -198,7 +235,7 @@ public class ChatApiController {
     /**
      * 嵌入第三方
      *
-     * @param dto      dto
+     * @param dto dto
      */
     @Hidden
     @GetMapping("/embed")
@@ -208,12 +245,6 @@ public class ChatApiController {
                 .header("Content-Type", "text/javascript; charset=utf-8")
                 .body(applicationService.embed(dto));
     }
-
-
-
-
-
-
 
 
 }

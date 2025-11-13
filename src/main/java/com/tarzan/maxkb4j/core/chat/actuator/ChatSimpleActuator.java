@@ -40,7 +40,6 @@ public class ChatSimpleActuator implements IChatActuator {
     public ChatResponse chatMessage(ApplicationVO application, ChatParams chatParams) {
         long startTime = System.currentTimeMillis();
         ChatInfo chatInfo = ChatCache.get(chatParams.getChatId());
-        boolean stream = chatParams.getStream() == null || chatParams.getStream();
         String problemText = chatParams.getMessage();
         boolean reChat = chatParams.getReChat() != null && chatParams.getReChat();
         List<String> excludeParagraphIds = new ArrayList<>();
@@ -59,7 +58,7 @@ public class ChatSimpleActuator implements IChatActuator {
         pipelineManageBuilder.addStep(chatStep);
         PipelineManage pipelineManage = pipelineManageBuilder.build();
         chatParams.setChatRecordId(chatParams.getChatRecordId() == null ? IdWorker.get32UUID() : chatParams.getChatRecordId());
-        Map<String, Object> params = chatInfo.toPipelineManageParams(application, chatParams.getChatRecordId(), problemText, excludeParagraphIds, chatParams.getChatUserId(), chatParams.getChatUserType(), stream);
+        Map<String, Object> params = chatInfo.toPipelineManageParams(application, chatParams.getChatRecordId(), problemText, excludeParagraphIds, chatParams.getChatUserId(), chatParams.getChatUserType());
         String answer = pipelineManage.run(params, chatParams.getSink());
         JSONObject details = pipelineManage.getDetails();
         ChatResponse chatResponse = new ChatResponse(answer, details);

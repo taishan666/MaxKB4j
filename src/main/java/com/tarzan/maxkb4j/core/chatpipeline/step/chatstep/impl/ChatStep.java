@@ -49,16 +49,14 @@ public class ChatStep extends IChatStep {
         List<ParagraphVO> paragraphList = (List<ParagraphVO>) manage.context.get("paragraphList");
         ApplicationVO application = manage.context.getObject("application", ApplicationVO.class);
         String userPrompt = manage.context.getString("user_prompt");
-        boolean stream = manage.context.getBooleanValue("stream");;
-        return getFluxResult(chatId, paragraphList, userPrompt, application, manage, stream);
+        return getFluxResult(chatId, paragraphList, userPrompt, application, manage);
     }
 
     private String getFluxResult(String chatId,
                                  List<ParagraphVO> paragraphList,
                                  String userPrompt,
                                  ApplicationVO application,
-                                 PipelineManage manage,
-                                 boolean stream) {
+                                 PipelineManage manage) {
         AtomicReference<String> answerText = new AtomicReference<>("");
         String chatRecordId = manage.context.getString("chatRecordId");
         Sinks.Many<ChatMessageVO> sink = manage.sink;
@@ -101,32 +99,30 @@ public class ChatStep extends IChatStep {
                 int dialogueNumber = application.getDialogueNumber();
                 List<ChatMessage> historyMessages=manage.getHistoryMessages(dialogueNumber);
                 Assistant assistant =  aiServicesBuilder.chatMemory(AppChatMemory.withMessages(historyMessages)).streamingChatModel(chatModel).build();
-                if (stream) {
-                    Boolean reasoningEnable = application.getModelSetting().getReasoningContentEnable();
-                    TokenStream tokenStream = assistant.chatStream(userPrompt);
-                    CompletableFuture<ChatResponse> futureChatResponse = new CompletableFuture<>();
-                    tokenStream.onPartialThinking(thinking -> {
-                                if (Boolean.TRUE.equals(reasoningEnable)) {
-                                    sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, "", thinking.text(), "ai-chat-node", viewType, false));
-                                }
-                            })
-                            .onPartialResponse(text -> sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, text, "", "ai-chat-node", viewType, false)))
-                            .onCompleteResponse(response -> {
-                                answerText.set(response.aiMessage().text());
-                                TokenUsage tokenUsage = response.tokenUsage();
-                                context.put("message_list", resetMessageToJSON(historyMessages));
-                                context.put("messageTokens", tokenUsage.inputTokenCount());
-                                context.put("answerTokens", tokenUsage.outputTokenCount());
-                                sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, "", "", "ai-chat-node", viewType, true));
-                                futureChatResponse.complete(response);// 完成后释放线程
-                            })
-                            .onError(error -> {
-                                sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, "", "", "ai-chat-node", viewType, true));
-                                futureChatResponse.completeExceptionally(error); // 完成后释放线程
-                            })
-                            .start();
-                    futureChatResponse.join(); // 阻塞当前线程直到 futureChatResponse 完成
-                }
+                Boolean reasoningEnable = application.getModelSetting().getReasoningContentEnable();
+                TokenStream tokenStream = assistant.chatStream(userPrompt);
+                CompletableFuture<ChatResponse> futureChatResponse = new CompletableFuture<>();
+                tokenStream.onPartialThinking(thinking -> {
+                            if (Boolean.TRUE.equals(reasoningEnable)) {
+                                sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, "", thinking.text(), "ai-chat-node", viewType, false));
+                            }
+                        })
+                        .onPartialResponse(text -> sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, text, "", "ai-chat-node", viewType, false)))
+                        .onCompleteResponse(response -> {
+                            answerText.set(response.aiMessage().text());
+                            TokenUsage tokenUsage = response.tokenUsage();
+                            context.put("message_list", resetMessageToJSON(historyMessages));
+                            context.put("messageTokens", tokenUsage.inputTokenCount());
+                            context.put("answerTokens", tokenUsage.outputTokenCount());
+                            sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, "", "", "ai-chat-node", viewType, true));
+                            futureChatResponse.complete(response);// 完成后释放线程
+                        })
+                        .onError(error -> {
+                            sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, "", "", "ai-chat-node", viewType, true));
+                            futureChatResponse.completeExceptionally(error); // 完成后释放线程
+                        })
+                        .start();
+                futureChatResponse.join(); // 阻塞当前线程直到 futureChatResponse 完成
             }
         }
         return answerText.get();

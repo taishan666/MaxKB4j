@@ -75,7 +75,6 @@ public class ApplicationNodeHandler implements INodeHandler {
                 .chatId(chatId)
                 .chatRecordId(nodeChatRecordId)
                 .runtimeNodeId(nodeRuntimeNodeId)
-                .stream(chatParams.getStream())
                 .reChat(chatParams.getReChat())
                 .chatUserId(chatParams.getChatUserId())
                 .chatUserType(chatParams.getChatUserType())
