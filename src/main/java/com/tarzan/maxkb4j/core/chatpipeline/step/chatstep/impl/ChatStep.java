@@ -49,7 +49,7 @@ public class ChatStep extends IChatStep {
         List<ParagraphVO> paragraphList = (List<ParagraphVO>) manage.context.get("paragraphList");
         ApplicationVO application = manage.context.getObject("application", ApplicationVO.class);
         String userPrompt = manage.context.getString("user_prompt");
-        boolean stream = true;
+        boolean stream = manage.context.getBooleanValue("stream");;
         return getFluxResult(chatId, paragraphList, userPrompt, application, manage, stream);
     }
 
