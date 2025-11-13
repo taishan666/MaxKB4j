@@ -12,9 +12,11 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.Objects;
+
 @Component
 @RequiredArgsConstructor
-public class AccessTokenHandler implements AuthHandler {
+public class ChatAnonymousTokenHandler implements AuthHandler {
 
     private final ApplicationAccessTokenService accessTokenService;
 
@@ -32,7 +34,10 @@ public class AccessTokenHandler implements AuthHandler {
 
     @Override
     public boolean support(HttpServletRequest request) {
-        String tokenValue = WebUtil.getTokenValue();
+        String tokenValue = WebUtil.getTokenValue(request);
+        if (Objects.isNull(tokenValue)){
+            return false;
+        }
         StpUtil.setTokenValue(tokenValue);
         String chatUserType = (String) StpUtil.getExtra("chatUserType");
         return ChatUserType.ANONYMOUS_USER.name().equals(chatUserType);

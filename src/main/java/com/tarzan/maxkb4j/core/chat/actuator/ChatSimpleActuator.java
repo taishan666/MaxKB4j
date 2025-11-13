@@ -42,7 +42,7 @@ public class ChatSimpleActuator implements IChatActuator {
         ChatInfo chatInfo = ChatCache.get(chatParams.getChatId());
         boolean stream = chatParams.getStream() == null || chatParams.getStream();
         String problemText = chatParams.getMessage();
-        boolean reChat = chatParams.getReChat();
+        boolean reChat = chatParams.getReChat() != null && chatParams.getReChat();
         List<String> excludeParagraphIds = new ArrayList<>();
         if (reChat) {
             excludeParagraphIds=getExcludeParagraphIds(chatInfo, chatParams);

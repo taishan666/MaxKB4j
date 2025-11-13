@@ -18,24 +18,6 @@ public class SolarTermsCalculator {
     // 因此我们按年计算时，需注意起始点
 
     public static void main(String[] args) {
-       /* int year = 2025;
-        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        *//*      for (int i = 0; i < TERMS.length; i++) {
-         *//**//*    LocalDate date1 = calculateSolarTerm(year, i);
-            System.out.println(year + "年" + TERMS[i] + ": " + date1.format(fmt));*//**//*
-            LocalDate date = getSolarTermDay(year, i);
-            System.out.println("$$  "+year + "年" + TERMS[i] + ": " + date.format(fmt));
-        }
-*//*
-        for (int i = 0; i < TERMS.length; i++) {
-        *//*    LocalDate date1 = calculateSolarTerm(year, i);
-            System.out.println(year + "年" + TERMS[i] + ": " + date1.format(fmt));*//*
-            if (i % 2 == 0) {
-                LocalDate date = getSolarTermDay(year, i);
-                System.out.println("$$  " + year + "年" + TERMS[i] + ": " + date.format(fmt));
-            }
-
-        }*/
         System.out.println(getSolarTermMonth(LocalDate.now()));
     }
 

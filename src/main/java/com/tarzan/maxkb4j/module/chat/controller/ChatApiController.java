@@ -72,17 +72,17 @@ public class ChatApiController {
     public R<String> auth(@RequestBody JSONObject params) {
         String accessToken = params.getString("accessToken");
         ApplicationAccessTokenEntity accessTokenEntity = accessTokenService.getByToken(accessToken);
-        String chatUserId = IdWorker.get32UUID();
+        //防止刷新时，会话中的token丢失
         String tokenValue = WebUtil.getTokenValue();
         StpUtil.setTokenValue(tokenValue);
-        if (StpUtil.isLogin()) {
-            chatUserId=StpUtil.getLoginIdAsString();
+        if (!StpUtil.isLogin()) {
+            String chatUserId = IdWorker.get32UUID();
+            SaLoginModel loginModel = new SaLoginModel();
+            loginModel.setExtra("applicationId", accessTokenEntity.getApplicationId());
+            loginModel.setExtra("chatUserType", ChatUserType.ANONYMOUS_USER.name());
+            loginModel.setExtra("accessToken", accessToken);
+            StpUtil.login(chatUserId,loginModel);
         }
-        SaLoginModel loginModel = new SaLoginModel();
-        loginModel.setExtra("applicationId", accessTokenEntity.getApplicationId());
-        loginModel.setExtra("chatUserType", ChatUserType.ANONYMOUS_USER.name());
-        loginModel.setExtra("accessToken", accessToken);
-        StpUtil.login(chatUserId,loginModel);
         return R.success(StpUtil.getTokenValue());
     }
 
@@ -90,8 +90,6 @@ public class ChatApiController {
     @Operation(summary = "获取应用相关信息", description = "获取应用相关信息")
     @GetMapping("/application/profile")
     public R<ApplicationEntity> appProfile() {
-        String tokenValue = WebUtil.getTokenValue();
-        StpUtil.setTokenValue(tokenValue);
         if (StpUtil.isLogin()) {
             String appId = (String) StpUtil.getExtra("applicationId");
             ApplicationAccessTokenEntity appAccessToken = accessTokenService.getById(appId);
@@ -106,11 +104,9 @@ public class ChatApiController {
         return R.fail("未登录");
     }
 
-    @Operation(summary = "根据应用ID获取会话ID", description = "根据应用ID获取会话(首次对话前，需要调用该接口，生成对话ID)")
+    @Operation(summary = "获取应用的会话ID", description = "获取应用的会话ID(首次对话前，需要调用该接口，生成对话ID)")
     @GetMapping("/open")
     public R<String> chatOpen() {
-        String tokenValue = WebUtil.getTokenValue();
-        StpUtil.setTokenValue(tokenValue);
         String appId = (String) StpUtil.getExtra("applicationId");
         return R.success(chatService.chatOpen(appId, false));
     }
@@ -118,8 +114,6 @@ public class ChatApiController {
     @Operation(summary = "聊天对话", description = "聊天对话")
     @PostMapping(path = "/chat_message/{chatId}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<ChatMessageVO> chatMessage(@PathVariable String chatId, @RequestBody ChatParams params) {
-        String tokenValue = WebUtil.getTokenValue();
-        StpUtil.setTokenValue(tokenValue);
         String userId = StpUtil.getLoginIdAsString();
         Sinks.Many<ChatMessageVO> sink = Sinks.many().unicast().onBackpressureBuffer();
         params.setChatId(chatId);

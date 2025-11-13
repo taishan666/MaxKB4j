@@ -16,6 +16,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.Objects;
+
 
 @Component
 @RequiredArgsConstructor
@@ -25,9 +27,7 @@ public class AppKeyHandler implements AuthHandler {
 
     @Override
     public boolean handle(HttpServletResponse response) {
-        String tokenValue = WebUtil.getTokenValue();
-        assert tokenValue != null;
-        String secretKey = tokenValue.replace(AppConst.APP_KEY_PREFIX, "");
+        String secretKey = WebUtil.getTokenValue();
         if (StrUtil.isBlank(secretKey)){
             throw new ApiException("token不合法");
         }
@@ -38,7 +38,8 @@ public class AppKeyHandler implements AuthHandler {
         SaLoginModel loginModel = new SaLoginModel();
         loginModel.setExtra("applicationId", apiKey.getApplicationId());
         loginModel.setExtra("chatUserType", ChatUserType.APPLICATION_API_KEY.name());
-        StpUtil.login(secretKey,loginModel);
+        String secretKeyId = secretKey.replace(AppConst.APP_KEY_PREFIX, "");
+        StpUtil.login(secretKeyId,loginModel);
         if (apiKey.getAllowCrossDomain() && CollUtil.isNotEmpty(apiKey.getCrossDomainList())){
             // 设置跨域
             String domains = String.join(",", apiKey.getCrossDomainList());
@@ -53,8 +54,7 @@ public class AppKeyHandler implements AuthHandler {
 
     @Override
     public boolean support(HttpServletRequest request) {
-        String tokenValue = WebUtil.getTokenValue();
-        assert tokenValue != null;
-        return tokenValue.startsWith(AppConst.APP_KEY_PREFIX);
+        String tokenValue = WebUtil.getTokenValue(request);
+        return Objects.nonNull(tokenValue)&&tokenValue.startsWith(AppConst.APP_KEY_PREFIX);
     }
 }

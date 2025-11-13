@@ -8,5 +8,5 @@ public class AppConst {
 
     public static final String CHAT_API = "chat/api";
 
-    public static final String APP_KEY_PREFIX = "sk-";
+    public static final String APP_KEY_PREFIX = "maxKb4j-";
 }
