@@ -1,6 +1,5 @@
 package com.tarzan.maxkb4j.module.knowledge.service;
 
-import cn.dev33.satoken.stp.StpUtil;
 import com.alibaba.excel.EasyExcel;
 import com.alibaba.excel.ExcelWriter;
 import com.alibaba.excel.write.metadata.WriteSheet;
@@ -10,6 +9,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tarzan.maxkb4j.common.util.BeanUtil;
+import com.tarzan.maxkb4j.common.util.StpKit;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationKnowledgeMappingEntity;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationKnowledgeMappingMapper;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.KnowledgeDTO;
@@ -60,7 +60,7 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
 
 
     public IPage<KnowledgeVO> selectKnowledgePage(Page<KnowledgeVO> knowledgePage, KnowledgeQuery query) {
-        String loginId = StpUtil.getLoginIdAsString();
+        String loginId = StpKit.ADMIN.getLoginIdAsString();
         List<String> targetIds =userResourcePermissionService.getTargetIds(AuthTargetType.KNOWLEDGE,loginId);
         UserEntity user =userService.getById(loginId);
         query.setIsAdmin(user.getRole().contains("ADMIN"));
@@ -204,7 +204,7 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
     @Transactional
     public KnowledgeEntity createDatasetBase(KnowledgeEntity knowledge) {
         knowledge.setMeta(new JSONObject());
-        knowledge.setUserId(StpUtil.getLoginIdAsString());
+        knowledge.setUserId(StpKit.ADMIN.getLoginIdAsString());
         knowledge.setType(0);
         this.save(knowledge);
         userResourcePermissionService.ownerSave(AuthTargetType.KNOWLEDGE, knowledge.getId(), knowledge.getUserId());
@@ -213,7 +213,7 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
 
     @Transactional
     public KnowledgeEntity createDatasetWeb(KnowledgeDTO knowledge) {
-        knowledge.setUserId(StpUtil.getLoginIdAsString());
+        knowledge.setUserId(StpKit.ADMIN.getLoginIdAsString());
         JSONObject meta = new JSONObject();
         meta.put("source_url",knowledge.getSourceUrl());
         meta.put("selector",knowledge.getSelector());
@@ -233,7 +233,7 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
     }
 
     public List<KnowledgeEntity> listKnowledge() {
-        List<String> targetIds =userResourcePermissionService.getTargetIds(AuthTargetType.KNOWLEDGE, StpUtil.getLoginIdAsString());
+        List<String> targetIds =userResourcePermissionService.getTargetIds(AuthTargetType.KNOWLEDGE, StpKit.ADMIN.getLoginIdAsString());
         return this.lambdaQuery().in(KnowledgeEntity::getId, targetIds).list();
     }
 }

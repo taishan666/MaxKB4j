@@ -1,6 +1,5 @@
 package com.tarzan.maxkb4j.module.tool.service;
 
-import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.json.JSONUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -8,10 +7,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.tarzan.maxkb4j.common.util.BeanUtil;
-import com.tarzan.maxkb4j.common.util.IoUtil;
-import com.tarzan.maxkb4j.common.util.McpToolUtil;
-import com.tarzan.maxkb4j.common.util.PageUtil;
+import com.tarzan.maxkb4j.common.util.*;
 import com.tarzan.maxkb4j.module.system.permission.constant.AuthTargetType;
 import com.tarzan.maxkb4j.module.system.permission.service.UserResourcePermissionService;
 import com.tarzan.maxkb4j.module.system.user.domain.entity.UserEntity;
@@ -71,7 +67,7 @@ public class ToolService extends ServiceImpl<ToolMapper, ToolEntity> {
         if (Objects.nonNull(query.getIsActive())) {
             wrapper.eq(ToolEntity::getIsActive, query.getIsActive());
         }
-        String loginId = StpUtil.getLoginIdAsString();
+        String loginId = StpKit.ADMIN.getLoginIdAsString();
         UserEntity user = userService.getUserById(loginId);
         if (Objects.nonNull(user)) {
             if (!CollectionUtils.isEmpty(user.getRole())) {
@@ -146,7 +142,7 @@ public class ToolService extends ServiceImpl<ToolMapper, ToolEntity> {
     }
 
     public List<ToolEntity> listTools(String toolType) {
-        List<String> targetIds =userResourcePermissionService.getTargetIds(AuthTargetType.TOOL, StpUtil.getLoginIdAsString());
+        List<String> targetIds =userResourcePermissionService.getTargetIds(AuthTargetType.TOOL, StpKit.ADMIN.getLoginIdAsString());
         LambdaQueryWrapper<ToolEntity> wrapper = Wrappers.lambdaQuery();
         wrapper.eq(ToolEntity::getToolType, toolType);
         wrapper.eq(ToolEntity::getIsActive, true);

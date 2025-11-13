@@ -2,7 +2,6 @@ package com.tarzan.maxkb4j.module.chat.controller;
 
 import cn.dev33.satoken.annotation.SaIgnore;
 import cn.dev33.satoken.stp.SaLoginModel;
-import cn.dev33.satoken.stp.StpUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -11,6 +10,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.tarzan.maxkb4j.common.api.R;
 import com.tarzan.maxkb4j.common.constant.AppConst;
+import com.tarzan.maxkb4j.common.util.StpKit;
 import com.tarzan.maxkb4j.common.util.WebUtil;
 import com.tarzan.maxkb4j.module.application.domian.dto.EmbedDTO;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationAccessTokenEntity;
@@ -57,7 +57,7 @@ public class ChatApiController {
     @Hidden
     @GetMapping("/profile")
     public R<JSONObject> profile(String accessToken) {
-        ApplicationAccessTokenEntity appAccessToken = accessTokenService.getByToken(accessToken);
+        ApplicationAccessTokenEntity appAccessToken = accessTokenService.getByAccessToken(accessToken);
         if (appAccessToken == null) {
             return R.fail("未找到应用");
         }
@@ -72,27 +72,27 @@ public class ChatApiController {
     public R<String> auth(@RequestBody JSONObject params) {
         //todo 匿名用户和后台用户区分
         String accessToken = params.getString("accessToken");
-        ApplicationAccessTokenEntity accessTokenEntity = accessTokenService.getByToken(accessToken);
+        ApplicationAccessTokenEntity accessTokenEntity = accessTokenService.getByAccessToken(accessToken);
         //防止刷新时，会话中的token丢失
         String tokenValue = WebUtil.getTokenValue();
-        StpUtil.setTokenValue(tokenValue);
-        if (!StpUtil.isLogin()) {
+        StpKit.USER.setTokenValue(tokenValue);
+        if (!StpKit.USER.isLogin()) {
             String chatUserId = IdWorker.get32UUID();
             SaLoginModel loginModel = new SaLoginModel();
             loginModel.setExtra("applicationId", accessTokenEntity.getApplicationId());
             loginModel.setExtra("chatUserType", ChatUserType.ANONYMOUS_USER.name());
             loginModel.setExtra("accessToken", accessToken);
-            StpUtil.login(chatUserId, loginModel);
+            StpKit.USER.login(chatUserId, loginModel);
         }
-        return R.success(StpUtil.getTokenValue());
+        return R.success(StpKit.USER.getTokenValue());
     }
 
 
     @Operation(summary = "获取应用相关信息", description = "获取应用相关信息")
     @GetMapping("/application/profile")
     public R<ApplicationEntity> appProfile() {
-        if (StpUtil.isLogin()) {
-            String appId = (String) StpUtil.getExtra("applicationId");
+        if (StpKit.USER.isLogin()) {
+            String appId = (String) StpKit.USER.getExtra("applicationId");
             ApplicationAccessTokenEntity appAccessToken = accessTokenService.getById(appId);
             ApplicationVO application = applicationService.getDetail(appId);
             if (appAccessToken != null && application != null) {
@@ -108,7 +108,7 @@ public class ChatApiController {
     @Operation(summary = "获取应用的会话ID", description = "获取应用的会话ID(首次对话前，需要调用该接口，生成对话ID)")
     @GetMapping("/open")
     public R<String> chatOpen() {
-        String appId = (String) StpUtil.getExtra("applicationId");
+        String appId = (String) StpKit.USER.getExtra("applicationId");
         return R.success(chatService.chatOpen(appId, false));
     }
 
@@ -116,7 +116,7 @@ public class ChatApiController {
     @PostMapping(path = "/chat_message/{chatId}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     @SuppressWarnings("ReactiveStreamsUnusedPublisher")
     public Object chatMessage(@PathVariable String chatId, @RequestBody ChatParams params) {
-        String userId = StpUtil.getLoginIdAsString();
+        String userId = StpKit.USER.getLoginIdAsString();
         Sinks.Many<ChatMessageVO> sink = Sinks.many().unicast().onBackpressureBuffer();
         params.setChatId(chatId);
         params.setSink(sink);
@@ -140,9 +140,9 @@ public class ChatApiController {
     @GetMapping("/historical_conversation/{current}/{size}")
     public R<Page<ApplicationChatEntity>> historicalConversation(@PathVariable int current, @PathVariable int size) {
         String tokenValue = WebUtil.getTokenValue();
-        StpUtil.setTokenValue(tokenValue);
-        String appId = (String) StpUtil.getExtra("applicationId");
-        String userId = StpUtil.getLoginIdAsString();
+        StpKit.USER.setTokenValue(tokenValue);
+        String appId = (String) StpKit.USER.getExtra("applicationId");
+        String userId = StpKit.USER.getLoginIdAsString();
         Page<ApplicationChatEntity> page = new Page<>(current, size);
         LambdaQueryWrapper<ApplicationChatEntity> wrapper = Wrappers.lambdaQuery();
         wrapper.eq(ApplicationChatEntity::getApplicationId, appId).eq(ApplicationChatEntity::getChatUserId, userId);
@@ -173,9 +173,9 @@ public class ChatApiController {
     @DeleteMapping("/historical_conversation/clear")
     public R<Boolean> historicalConversationClear() {
         String tokenValue = WebUtil.getTokenValue();
-        StpUtil.setTokenValue(tokenValue);
-        String appId = (String) StpUtil.getExtra("applicationId");
-        String userId = StpUtil.getLoginIdAsString();
+        StpKit.USER.setTokenValue(tokenValue);
+        String appId = (String) StpKit.USER.getExtra("applicationId");
+        String userId = StpKit.USER.getLoginIdAsString();
         LambdaQueryWrapper<ApplicationChatEntity> wrapper = Wrappers.lambdaQuery();
         wrapper.eq(ApplicationChatEntity::getApplicationId, appId).eq(ApplicationChatEntity::getChatUserId, userId);
         return R.success(chatService.remove(wrapper));
@@ -201,7 +201,7 @@ public class ChatApiController {
         // 设置 HTTP 响应头
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.parseMediaType("audio/mp3"));
-        String appId = StpUtil.getLoginIdAsString().split("-")[1];
+        String appId = StpKit.USER.getLoginIdAsString().split("-")[1];
         return new ResponseEntity<>(applicationService.textToSpeech(appId, data), headers, HttpStatus.OK);
     }
 

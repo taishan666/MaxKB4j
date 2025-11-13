@@ -8,7 +8,7 @@ import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
 import org.thymeleaf.templateresolver.ITemplateResolver;
 
 @Configuration
-public class ThymeleafEmailConfig {
+public class ThymeleafConfig {
     @Bean
     public SpringTemplateEngine emailTemplateEngine() {
         SpringTemplateEngine templateEngine = new SpringTemplateEngine();

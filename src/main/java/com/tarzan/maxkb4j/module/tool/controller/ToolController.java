@@ -1,9 +1,9 @@
 package com.tarzan.maxkb4j.module.tool.controller;
 
-import cn.dev33.satoken.stp.StpUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.tarzan.maxkb4j.common.api.R;
 import com.tarzan.maxkb4j.common.constant.AppConst;
+import com.tarzan.maxkb4j.common.util.StpKit;
 import com.tarzan.maxkb4j.common.util.StringUtil;
 import com.tarzan.maxkb4j.module.tool.domain.dto.ToolDTO;
 import com.tarzan.maxkb4j.module.tool.domain.dto.ToolInputField;
@@ -60,7 +60,7 @@ public class ToolController {
     public R<ToolEntity> addInternalTool(@PathVariable String templateId) {
         ToolEntity entity = toolService.getById(templateId);
         entity.setId(null);
-        entity.setUserId(StpUtil.getLoginIdAsString());
+        entity.setUserId(StpKit.ADMIN.getLoginIdAsString());
         Date now = new Date();
         entity.setCreateTime(now);
         entity.setScope("WORKSPACE");
@@ -76,7 +76,7 @@ public class ToolController {
         if (StringUtil.isBlank(dto.getToolType())){
             dto.setToolType("CUSTOM");
         }
-        dto.setUserId(StpUtil.getLoginIdAsString());
+        dto.setUserId(StpKit.ADMIN.getLoginIdAsString());
         dto.setScope("WORKSPACE");
         toolService.saveInfo(dto);
         return R.data(dto);

@@ -6,7 +6,6 @@ import cn.dev33.satoken.secure.SaSecureUtil;
 import cn.dev33.satoken.stp.SaLoginModel;
 import cn.dev33.satoken.stp.StpInterface;
 import cn.dev33.satoken.stp.StpLogic;
-import cn.dev33.satoken.stp.StpUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -17,6 +16,7 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import com.tarzan.maxkb4j.common.exception.ApiException;
 import com.tarzan.maxkb4j.common.props.SystemProperties;
 import com.tarzan.maxkb4j.common.util.BeanUtil;
+import com.tarzan.maxkb4j.common.util.StpKit;
 import com.tarzan.maxkb4j.module.application.enums.ChatUserType;
 import com.tarzan.maxkb4j.module.system.setting.service.EmailService;
 import com.tarzan.maxkb4j.module.system.user.constants.RoleType;
@@ -112,8 +112,8 @@ public class UserService extends ServiceImpl<UserMapper, UserEntity> {
         loginModel.setExtra("chatUserId", userEntity.getId());
         loginModel.setExtra("chatUserType", ChatUserType.CHAT_USER.name());
         loginModel.setExtra("roles", userEntity.getRole());
-        StpUtil.login(userEntity.getId(), loginModel);
-        return StpUtil.getTokenValue();
+        StpKit.ADMIN.login(userEntity.getId(), loginModel);
+        return StpKit.ADMIN.getTokenValue();
     }
 
     @Transactional
@@ -129,7 +129,7 @@ public class UserService extends ServiceImpl<UserMapper, UserEntity> {
         user.setRole(Set.of(RoleType.USER));
         user.setIsActive(true);
         user.setSource(UserSource.LOCAL);
-        user.setLanguage((String) StpUtil.getExtra("language"));
+        user.setLanguage((String) StpKit.ADMIN.getExtra("language"));
         user.setPassword(SaSecureUtil.md5(user.getPassword()));
         return save(user);
     }
@@ -170,7 +170,7 @@ public class UserService extends ServiceImpl<UserMapper, UserEntity> {
     }
 
     public Boolean sendEmailCode() throws MessagingException {
-        return sendEmailCode((String) StpUtil.getExtra("email"), "【智能知识库问答系统-修改密码】");
+        return sendEmailCode((String) StpKit.ADMIN.getExtra("email"), "【智能知识库问答系统-修改密码】");
     }
 
     public Boolean sendEmailCode(String email, String subject) throws MessagingException {
@@ -190,7 +190,7 @@ public class UserService extends ServiceImpl<UserMapper, UserEntity> {
     public Boolean resetPassword(PasswordDTO dto) {
         if (dto.getPassword().equals(dto.getRePassword())) {
             UserEntity userEntity = new UserEntity();
-            userEntity.setId(StpUtil.getLoginIdAsString());
+            userEntity.setId(StpKit.ADMIN.getLoginIdAsString());
             userEntity.setPassword(SaSecureUtil.md5(dto.getPassword()));
             return updateById(userEntity);
         }
@@ -205,11 +205,11 @@ public class UserService extends ServiceImpl<UserMapper, UserEntity> {
     }
 
     public Boolean updateLanguage(UserEntity user) {
-        String userId = StpUtil.getLoginIdAsString();
+        String userId = StpKit.ADMIN.getLoginIdAsString();
         user.setId(userId);
         StpLogic stpLogic = new StpLogicJwtForStateless();
-        String token = stpLogic.createTokenValue(userId, "default-device", StpUtil.getTokenTimeout(), Map.of("language", user.getLanguage()));
-        StpUtil.setTokenValue(token);
+        String token = stpLogic.createTokenValue(userId, "default-device", StpKit.ADMIN.getTokenTimeout(), Map.of("language", user.getLanguage()));
+        StpKit.ADMIN.setTokenValue(token);
         return updateById(user);
     }
 

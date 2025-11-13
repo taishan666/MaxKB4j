@@ -1,8 +1,8 @@
 package com.tarzan.maxkb4j.module.application.controller;
 
-import cn.dev33.satoken.stp.StpUtil;
 import com.tarzan.maxkb4j.common.api.R;
 import com.tarzan.maxkb4j.common.constant.AppConst;
+import com.tarzan.maxkb4j.common.util.StpKit;
 import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
 import com.tarzan.maxkb4j.module.application.enums.ChatUserType;
 import com.tarzan.maxkb4j.module.application.service.ApplicationChatService;
@@ -13,8 +13,6 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Sinks;
-
-import java.util.concurrent.CompletableFuture;
 
 
 /**
@@ -39,7 +37,7 @@ public class ChatMessageController {
         Sinks.Many<ChatMessageVO> sink = Sinks.many().unicast().onBackpressureBuffer();
         params.setChatId(chatId);
         params.setSink(sink);
-        params.setChatUserId(StpUtil.getLoginIdAsString());
+        params.setChatUserId(StpKit.ADMIN.getLoginIdAsString());
         params.setChatUserType(ChatUserType.ANONYMOUS_USER.name());
         params.setDebug(true);
         // 异步执行业务逻辑

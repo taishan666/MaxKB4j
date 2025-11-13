@@ -1,7 +1,7 @@
 package com.tarzan.maxkb4j.module.application.handler.impl;
 
-import cn.dev33.satoken.stp.StpUtil;
-import com.tarzan.maxkb4j.common.exception.ApiException;
+import com.tarzan.maxkb4j.common.util.ResponseProvider;
+import com.tarzan.maxkb4j.common.util.StpKit;
 import com.tarzan.maxkb4j.common.util.WebUtil;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationAccessTokenEntity;
 import com.tarzan.maxkb4j.module.application.enums.ChatUserType;
@@ -10,10 +10,12 @@ import com.tarzan.maxkb4j.module.application.service.ApplicationAccessTokenServi
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.Objects;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class ChatAnonymousTokenHandler implements AuthHandler {
@@ -23,11 +25,13 @@ public class ChatAnonymousTokenHandler implements AuthHandler {
     @Override
     public boolean handle(HttpServletResponse response) {
         String tokenValue = WebUtil.getTokenValue();
-        StpUtil.setTokenValue(tokenValue);
-        String accessToken = (String) StpUtil.getExtra("accessToken");
-        ApplicationAccessTokenEntity token = accessTokenService.getByToken(accessToken);
+        StpKit.USER.setTokenValue(tokenValue);
+        String accessToken = (String) StpKit.USER.getExtra("accessToken");
+        ApplicationAccessTokenEntity token = accessTokenService.getByAccessToken(accessToken);
         if (token == null || !token.getIsActive()) {
-            throw new ApiException("accessToken不合法或被禁用");
+            log.warn("accessToken不合法或被禁用");
+            ResponseProvider.write(response);
+            return  false;
         }
         return true;
     }
@@ -38,8 +42,8 @@ public class ChatAnonymousTokenHandler implements AuthHandler {
         if (Objects.isNull(tokenValue)){
             return false;
         }
-        StpUtil.setTokenValue(tokenValue);
-        String chatUserType = (String) StpUtil.getExtra("chatUserType");
+        StpKit.USER.setTokenValue(tokenValue);
+        String chatUserType = (String) StpKit.USER.getExtra("chatUserType");
         return ChatUserType.ANONYMOUS_USER.name().equals(chatUserType);
     }
 }

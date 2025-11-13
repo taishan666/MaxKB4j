@@ -1,6 +1,5 @@
 package com.tarzan.maxkb4j.module.application.service;
 
-import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.json.JSONUtil;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -25,9 +24,9 @@ import com.tarzan.maxkb4j.module.application.mapper.ApplicationMapper;
 import com.tarzan.maxkb4j.module.knowledge.consts.SearchType;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.KnowledgeEntity;
 import com.tarzan.maxkb4j.module.knowledge.service.KnowledgeService;
-import com.tarzan.maxkb4j.module.model.info.service.ModelFactory;
 import com.tarzan.maxkb4j.module.model.custom.base.STTModel;
 import com.tarzan.maxkb4j.module.model.custom.base.TTSModel;
+import com.tarzan.maxkb4j.module.model.info.service.ModelFactory;
 import com.tarzan.maxkb4j.module.system.permission.constant.AuthTargetType;
 import com.tarzan.maxkb4j.module.system.permission.service.UserResourcePermissionService;
 import com.tarzan.maxkb4j.module.system.user.domain.entity.UserEntity;
@@ -85,7 +84,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         if (Objects.nonNull(query.getCreateUser())) {
             wrapper.eq(ApplicationEntity::getUserId, query.getCreateUser());
         }
-        String loginId = StpUtil.getLoginIdAsString();
+        String loginId = StpKit.ADMIN.getLoginIdAsString();
         UserEntity user = userService.getById(loginId);
         if (Objects.nonNull(user)) {
             if (!CollectionUtils.isEmpty(user.getRole())) {
@@ -155,7 +154,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         application.setKnowledgeSetting(new KnowledgeSetting());
         application.setIcon("./favicon.ico");
         application.setDialogueNumber(0);
-        application.setUserId(StpUtil.getLoginIdAsString());
+        application.setUserId(StpKit.ADMIN.getLoginIdAsString());
         application.setTtsModelParamsSetting(new JSONObject());
         application.setCleanTime(365);
         application.setFileUploadEnable(false);
@@ -167,7 +166,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         this.save(application);
         ApplicationAccessTokenEntity accessToken = ApplicationAccessTokenEntity.createDefault();
         accessToken.setApplicationId(application.getId());
-        accessToken.setLanguage((String) StpUtil.getExtra("language"));
+        accessToken.setLanguage((String) StpKit.ADMIN.getExtra("language"));
         accessTokenService.save(accessToken);
         userResourcePermissionService.ownerSave(AuthTargetType.APPLICATION, application.getId(), application.getUserId());
         return application;
@@ -347,8 +346,8 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         entity.setApplicationId(id);
         entity.setApplicationName(application.getName());
         entity.setName(application.getName() + "-V" + (count + 1));
-        entity.setPublishUserId(StpUtil.getLoginIdAsString());
-        entity.setPublishUserName((String) StpUtil.getExtra("username"));
+        entity.setPublishUserId(StpKit.ADMIN.getLoginIdAsString());
+        entity.setPublishUserName((String) StpKit.ADMIN.getExtra("username"));
         return applicationVersionService.save(entity);
     }
 
@@ -374,7 +373,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         boolean flag = this.save(application);
         ApplicationAccessTokenEntity accessToken = ApplicationAccessTokenEntity.createDefault();
         accessToken.setApplicationId(application.getId());
-        accessToken.setLanguage((String) StpUtil.getExtra("language"));
+        accessToken.setLanguage((String) StpKit.ADMIN.getExtra("language"));
         accessTokenService.save(accessToken);
         return flag;
     }
@@ -390,7 +389,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     public String embed(EmbedDTO dto) throws IOException {
         ClassLoader classLoader = getClass().getClassLoader();
         InputStream inputStream = classLoader.getResourceAsStream("templates/embed.txt");
-        ApplicationAccessTokenEntity token = accessTokenService.getByToken(dto.getToken());
+        ApplicationAccessTokenEntity token = accessTokenService.getByAccessToken(dto.getToken());
         if (token == null || !token.getIsActive()) {
             throw new ApiException("token无效或未被启用");
         }
@@ -433,7 +432,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     }
 
     public List<ApplicationListVO> listApps(String folderId) {
-        String userId = StpUtil.getLoginIdAsString();
+        String userId = StpKit.ADMIN.getLoginIdAsString();
         List<String> targetIds = userResourcePermissionService.getTargetIds(AuthTargetType.APPLICATION, userId);
         if (targetIds.isEmpty()){
             return new ArrayList<>();

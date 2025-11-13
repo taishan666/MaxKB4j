@@ -8,6 +8,7 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.tarzan.maxkb4j.common.api.R;
 import com.tarzan.maxkb4j.common.constant.AppConst;
+import com.tarzan.maxkb4j.common.util.StpKit;
 import com.tarzan.maxkb4j.module.system.user.domain.dto.ResetPasswordDTO;
 import com.tarzan.maxkb4j.module.system.user.domain.dto.UserLoginDTO;
 import com.tarzan.maxkb4j.module.system.user.domain.entity.UserEntity;
@@ -45,13 +46,14 @@ public class AuthController {
 
 	@GetMapping("user/profile")
 	public R<UserVO> getUserProfile(){
-		return R.data(userService.getUserById(StpUtil.getLoginIdAsString()));
+		String userId = StpKit.ADMIN.getLoginIdAsString();
+		return R.data(userService.getUserById(userId));
 	}
 
 	@SaCheckLogin
 	@GetMapping("/user")
 	public R<UserVO> getUser(){
-		return R.data(userService.getUserById(StpUtil.getLoginIdAsString()));
+		return R.data(userService.getUserById(StpKit.ADMIN.getLoginIdAsString()));
 	}
 
 	@PostMapping("/user/login")
@@ -100,7 +102,7 @@ public class AuthController {
 		 String rePassword=dto.getRePassword();
 		if (password.equals(rePassword)){
 			UserEntity user=new UserEntity();
-			user.setId(StpUtil.getLoginIdAsString());
+			user.setId(StpKit.ADMIN.getLoginIdAsString());
 			user.setPassword(SaSecureUtil.md5(password));
 			return R.status(userService.updateById(user));
 		}
@@ -110,8 +112,8 @@ public class AuthController {
 	@SaCheckLogin
 	@PostMapping("/user/logout")
 	public R<Boolean> logout(){
-		if(StpUtil.isLogin()){
-			StpUtil.logout();
+		if(StpKit.ADMIN.isLogin()){
+			StpKit.ADMIN.logout();
 		}
 		return R.status(true);
 	}

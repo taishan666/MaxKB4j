@@ -34,7 +34,7 @@ public class FolderService extends ServiceImpl<FolderMapper, FolderEntity> {
 /*
     @Transactional
     public List<FolderVO> tree1(String source) {
-     *//*   String userId = StpUtil.getLoginIdAsString();
+     *//*   String userId = StpKit.ADMIN.getLoginIdAsString();
         UserEntity loginUser = userService.getById(userId);
         if (Objects.nonNull(loginUser) && loginUser.getRole().contains("ADMIN")) {
             return getAdminFolder(source);
@@ -126,7 +126,7 @@ public class FolderService extends ServiceImpl<FolderMapper, FolderEntity> {
 
     public Boolean addFolder(String source, FolderVO folder) {
         FolderEntity folderEntity = BeanUtil.copy(folder, FolderEntity.class);
-        folderEntity.setUserId(StpUtil.getLoginIdAsString());
+        folderEntity.setUserId(StpKit.ADMIN.getLoginIdAsString());
         folderEntity.setSource(source);
         return super.save(folderEntity);
     }

@@ -1,6 +1,5 @@
 package com.tarzan.maxkb4j.module.model.info.service;
 
-import cn.dev33.satoken.stp.StpUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
@@ -8,6 +7,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tarzan.maxkb4j.common.util.BeanUtil;
 import com.tarzan.maxkb4j.common.util.DataMaskUtil;
+import com.tarzan.maxkb4j.common.util.StpKit;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelCredential;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelEntity;
 import com.tarzan.maxkb4j.module.model.info.mapper.ModelMapper;
@@ -70,7 +70,7 @@ public class ModelService extends ServiceImpl<ModelMapper, ModelEntity> {
         if (StringUtils.isNotBlank(provider)) {
             wrapper.eq(ModelEntity::getProvider, provider);
         }
-        String loginId = StpUtil.getLoginIdAsString();
+        String loginId = StpKit.ADMIN.getLoginIdAsString();
         UserEntity user = userService.getById(loginId);
         if (Objects.nonNull(user)) {
             if (!org.springframework.util.CollectionUtils.isEmpty(user.getRole())) {
@@ -100,7 +100,7 @@ public class ModelService extends ServiceImpl<ModelMapper, ModelEntity> {
 
     @Transactional
     public boolean createModel(ModelEntity model) {
-        String userId = StpUtil.getLoginIdAsString();
+        String userId = StpKit.ADMIN.getLoginIdAsString();
         long count = this.lambdaQuery().eq(ModelEntity::getName, model.getName()).eq(ModelEntity::getUserId, userId).count();
         if (count > 0) {
             return false;
@@ -134,7 +134,7 @@ public class ModelService extends ServiceImpl<ModelMapper, ModelEntity> {
     public ModelEntity getInfo(String id) {
         ModelEntity model = this.getById(id);
         if (model != null){
-            String userId = StpUtil.getLoginIdAsString();
+            String userId = StpKit.ADMIN.getLoginIdAsString();
             if (model.getUserId().equals(userId)){
                 ModelCredential credential=model.getCredential();
                 String apiKey=credential.getApiKey();
@@ -147,7 +147,7 @@ public class ModelService extends ServiceImpl<ModelMapper, ModelEntity> {
     public ModelCredential getModelCredential(String id) {
         ModelEntity model = this.getById(id);
         if (model != null){
-            String userId = StpUtil.getLoginIdAsString();
+            String userId = StpKit.ADMIN.getLoginIdAsString();
             if (model.getUserId().equals(userId)){
                 return model.getCredential();
             }

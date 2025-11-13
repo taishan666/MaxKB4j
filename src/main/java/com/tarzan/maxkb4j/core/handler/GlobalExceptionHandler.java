@@ -3,11 +3,11 @@ package com.tarzan.maxkb4j.core.handler;
 
 import cn.dev33.satoken.exception.NotLoginException;
 import cn.dev33.satoken.jwt.exception.SaJwtException;
-import cn.dev33.satoken.stp.StpUtil;
 import com.tarzan.maxkb4j.common.api.R;
 import com.tarzan.maxkb4j.common.exception.AccessException;
 import com.tarzan.maxkb4j.common.exception.AccessNumLimitException;
 import com.tarzan.maxkb4j.common.exception.ApiException;
+import com.tarzan.maxkb4j.common.util.StpKit;
 import io.swagger.v3.oas.annotations.Hidden;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -67,7 +67,7 @@ public class GlobalExceptionHandler {
     public String handleException(NoResourceFoundException e) {
         log.warn(e.getMessage());
         // 判断是否已登录
-        if (StpUtil.isLogin()) {
+        if (StpKit.ADMIN.isLogin()) {
             return "redirect:/admin/application";
         } else {
             return "redirect:/admin/login";
@@ -76,15 +76,16 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(ApiException.class)
     @ResponseBody
-    public R<String> handleException(ApiException e) {
+    public R<String> handleException(ApiException e, HttpServletResponse response) {
         log.error("Api异常: {}", e.getMessage(), e);
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST); // 设置HTTP状态码为400
         return R.fail(400, e.getMessage());
     }
 
     @ExceptionHandler(AccessException.class)
     @ResponseBody
     public R<String> handleException(AccessException e) {
-        // log.error("禁止访问异常: {}", e.getMessage(), e);
+        log.error("禁止访问异常: {}", e.getMessage(), e);
         return R.fail(403, e.getMessage());
     }
 
