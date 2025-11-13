@@ -7,13 +7,11 @@ import org.springframework.boot.autoconfigure.thymeleaf.ThymeleafAutoConfigurati
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
-import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 import javax.sql.DataSource;
 
 
-@EnableAsync
 @EnableScheduling
 @EnableCaching
 @SpringBootApplication(exclude = ThymeleafAutoConfiguration.class)

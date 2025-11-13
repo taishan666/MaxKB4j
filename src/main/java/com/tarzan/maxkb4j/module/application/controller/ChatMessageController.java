@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Sinks;
 
+import java.util.concurrent.CompletableFuture;
+
 
 /**
  * @author tarzan
@@ -26,12 +28,6 @@ public class ChatMessageController {
 
     private final ApplicationChatService chatService;
     private final TaskExecutor chatTaskExecutor;
-/*
-    public ChatMessageController(ApplicationChatService chatService, @Qualifier("chatTaskExecutor") TaskExecutor chatTaskExecutor) {
-        this.chatService = chatService;
-        this.chatTaskExecutor = chatTaskExecutor;
-    }*/
-
 
     @GetMapping("/workspace/default/application/{appId}/open")
     public R<String> open(@PathVariable("appId") String appId) {

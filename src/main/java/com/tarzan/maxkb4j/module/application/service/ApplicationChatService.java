@@ -90,7 +90,7 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
             chatParams.getSink().tryEmitError(new ApiException("会话不存在"));
             return new ChatResponse("",null);
         } else {
-            if (StringUtil.isBlank(chatParams.getAppId())) {
+            if (StringUtil.isEmpty(chatParams.getAppId())) {
                 chatParams.setAppId(chatInfo.getAppId());
             }
         }
