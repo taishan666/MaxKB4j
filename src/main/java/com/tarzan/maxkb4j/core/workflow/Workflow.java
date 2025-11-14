@@ -57,7 +57,7 @@ public class Workflow {
 
 
     @SuppressWarnings("unchecked")
-    private void loadNode(ApplicationChatRecordEntity chatRecord, String startNodeId, Map<String, Object> startNodeData) {
+    private void loadNode(ApplicationChatRecordEntity chatRecord, String currentNodeId, Map<String, Object> currentNodeData) {
         List<Map<String, Object>> sortedDetails = chatRecord.getDetails().values().stream()
                 .map(row -> (Map<String, Object>) row)
                 .sorted(Comparator.comparingInt(e -> (int) e.get("index")))
@@ -66,7 +66,7 @@ public class Workflow {
             String nodeId = (String) nodeDetail.get("nodeId");
             List<String> upNodeIdList = (List<String>) nodeDetail.get("upNodeIdList");
             String runtimeNodeId = (String) nodeDetail.get("runtimeNodeId");
-            if (runtimeNodeId.equals(startNodeId)) {
+            if (runtimeNodeId.equals(currentNodeId)) {
                 // 处理起始节点
                 this.currentNode = getNodeClsById(
                         nodeId,
@@ -75,7 +75,7 @@ public class Workflow {
                             JSONObject nodeProperties = n.getProperties();
                             if (nodeProperties.containsKey("nodeData")) {
                                 JSONObject nodeParams = nodeProperties.getJSONObject("nodeData");
-                                nodeParams.put("form_data", startNodeData);
+                                nodeParams.put("form_data", currentNodeData);
                             }
                             return nodeProperties;
                         }
@@ -102,11 +102,11 @@ public class Workflow {
 
 
     public List<INode> getNextNodeList(INode currentNode, NodeResult currentNodeResult) {
-        List<INode> nextNodeList = new ArrayList<>();
         // 判断是否中断执行
         if (currentNodeResult == null || currentNodeResult.isInterruptExec(currentNode)) {
-            return nextNodeList;
+            return List.of();
         }
+        List<INode> nextNodeList = new ArrayList<>();
         if (currentNodeResult.isAssertionResult()) {
             // 处理断言结果分支
             for (LfEdge edge : edges) {
@@ -133,7 +133,7 @@ public class Workflow {
 
 
     private void processEdge(LfEdge edge, INode currentNode, List<INode> nodeList) {
-        // 查找目标节点
+        // 查找下一个节点
         Optional<LfNode> targetNodeOpt = lfNodes.stream()
                 .filter(node -> node.getId().equals(edge.getTargetNodeId()))
                 .findFirst();
@@ -143,24 +143,51 @@ public class Workflow {
         LfNode targetNode = targetNodeOpt.get();
         String condition = (String) targetNode.getProperties().getOrDefault("condition", "AND");
         // 处理节点依赖
-        if ("AND".equals(condition)) {
-            if (dependentNodeBeenExecuted(edge.getTargetNodeId())) {
-                addNodeToList(edge.getTargetNodeId(), currentNode, nodeList);
-            }
-        } else {
-            addNodeToList(edge.getTargetNodeId(), currentNode, nodeList);
+        if (dependentNodeBeenExecuted(targetNode.getId(), condition)) {
+            addNodeToList(targetNode.getId(), currentNode, nodeList);
         }
     }
 
-    private void addNodeToList(String targetNodeId, INode currentNode, List<INode> nodeList) {
-        // 构建上游节点ID列表
-        List<String> newUpNodeIds = new ArrayList<>();
-        if (currentNode.getUpNodeIdList() != null) {
-            newUpNodeIds.addAll(currentNode.getUpNodeIdList());
+    private boolean dependentNode(String lastNodeId, INode node) {
+        if (Objects.equals(lastNodeId, node.getId())) {
+            if (FORM.getKey().equals(node.getType()) || USER_SELECT.getKey().equals(node.getType())) {
+                Object formData = node.getContext().get("form_data");
+                return formData != null;
+            }
+            return true;
         }
-        newUpNodeIds.add(currentNode.getId());
+        return false;
+    }
+
+    private boolean dependentNodeBeenExecuted(String nodeId, String condition) {
+        // 获取所有目标节点ID等于给定nodeId的边的源节点ID列表
+        List<String> upNodeIdList = new ArrayList<>();
+        for (LfEdge edge : edges) {
+            if (edge.getTargetNodeId().equals(nodeId)) {
+                upNodeIdList.add(edge.getSourceNodeId());
+            }
+        }
+        // 检查每个上游节点是否都已执行
+        if ("AND".equals(condition)) {
+            return upNodeIdList.stream().allMatch(upNodeId ->
+                    this.nodeContext.stream().anyMatch(node -> dependentNode(upNodeId, node))
+            );
+        } else {
+            return upNodeIdList.stream().anyMatch(upNodeId ->
+                    this.nodeContext.stream().anyMatch(node -> dependentNode(upNodeId, node))
+            );
+        }
+    }
+
+    private void addNodeToList(String nextNodeId, INode currentNode, List<INode> nodeList) {
+        // 构建上游节点ID列表
+        List<String> upNodeIds = new ArrayList<>();
+        if (currentNode.getUpNodeIdList() != null) {
+            upNodeIds.addAll(currentNode.getUpNodeIdList());
+        }
+        upNodeIds.add(currentNode.getId());
         // 获取节点实例并添加到列表
-        INode nextNode = getNodeClsById(targetNodeId, newUpNodeIds, null);
+        INode nextNode = getNodeClsById(nextNodeId, upNodeIds, null);
         if (nextNode != null) {
             nodeList.add(nextNode);
         }
@@ -168,16 +195,18 @@ public class Workflow {
 
 
     private INode getNodeClsById(String nodeId, List<String> upNodeIds, Function<INode, JSONObject> getNodeProperties) {
-        for (LfNode lfNode : lfNodes) {
-            if (nodeId.equals(lfNode.getId())) {
-                INode node = NodeFactory.getNode(lfNode);
-                assert node != null;
-                node.setUpNodeIdList(upNodeIds);
-                if (getNodeProperties != null) {
-                    getNodeProperties.apply(node);
-                }
-                return node;
+        Optional<INode> nodeOpt = lfNodes.stream()
+                .filter(lfNode -> nodeId.equals(lfNode.getId()))
+                .map(NodeFactory::getNode)
+                .filter(Objects::nonNull)  // 👈 关键：排除 null
+                .findFirst();
+        if (nodeOpt.isPresent()) {
+            INode node = nodeOpt.get();
+            node.setUpNodeIdList(upNodeIds);
+            if (getNodeProperties != null) {
+                getNodeProperties.apply(node);
             }
+            return node;
         }
         return null;
     }
@@ -270,35 +299,10 @@ public class Workflow {
         if (currentNode.getNodeData() == null) {
             return false;
         }
-        boolean defaultVal = !hasNextNode(currentNode, currentNodeResult);
         Boolean isResult = currentNode.getNodeData().getBoolean("isResult");
-        return isResult == null ? defaultVal : isResult;
+        return isResult != null ? isResult : !hasNextNode(currentNode, currentNodeResult);
     }
 
-    private boolean dependentNode(String lastNodeId, INode node) {
-        if (Objects.equals(lastNodeId, node.getId())) {
-            if (FORM.getKey().equals(node.getType()) || USER_SELECT.getKey().equals(node.getType())) {
-                Object formData = node.getContext().get("form_data");
-                return formData != null;
-            }
-            return true;
-        }
-        return false;
-    }
-
-    private boolean dependentNodeBeenExecuted(String nodeId) {
-        // 获取所有目标节点ID等于给定nodeId的边的源节点ID列表
-        List<String> upNodeIdList = new ArrayList<>();
-        for (LfEdge edge : edges) {
-            if (edge.getTargetNodeId().equals(nodeId)) {
-                upNodeIdList.add(edge.getSourceNodeId());
-            }
-        }
-        // 检查每个上游节点是否都已执行
-        return upNodeIdList.stream().allMatch(upNodeId ->
-                this.nodeContext.stream().anyMatch(node -> dependentNode(upNodeId, node))
-        );
-    }
 
     @SuppressWarnings("unchecked")
     public Object getFieldValue(Object value, String source) {
@@ -318,7 +322,7 @@ public class Workflow {
 
 
     public String generatePrompt(String prompt) {
-        return generatePrompt(prompt,Map.of());
+        return generatePrompt(prompt, Map.of());
     }
 
     public String generatePrompt(String prompt, Map<String, Object> addVariables) {

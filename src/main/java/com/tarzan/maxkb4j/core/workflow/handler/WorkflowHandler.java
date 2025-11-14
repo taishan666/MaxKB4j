@@ -42,7 +42,6 @@ public class WorkflowHandler {
     }
 
     public NodeResult runChainNode(Workflow workflow, INode currentNode) {
-        assert currentNode != null;
         // 添加节点
         workflow.appendNode(currentNode);
         // 处理默认的nodeResultFuture
