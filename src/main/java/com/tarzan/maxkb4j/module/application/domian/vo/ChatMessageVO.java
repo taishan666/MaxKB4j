@@ -4,7 +4,6 @@ import com.tarzan.maxkb4j.module.chat.dto.ChildNode;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -31,9 +30,10 @@ public class ChatMessageVO {
         this.chatRecordId = chatRecordId;
         this.content = "";
         this.reasoningContent = "";
-        this.upNodeIdList = new ArrayList<>();
+        this.upNodeIdList = List.of();
         this.isEnd = isEnd;
     }
+
 
     public ChatMessageVO(String chatId, String chatRecordId, String content, String reasoningContent, String nodeType, String viewType, Boolean nodeIsEnd) {
         this.chatId = chatId;
@@ -43,30 +43,16 @@ public class ChatMessageVO {
         this.nodeType = nodeType;
         this.viewType = viewType;
         this.nodeIsEnd = nodeIsEnd;
+        this.upNodeIdList = List.of();
         this.isEnd = false;
     }
 
-
-    public ChatMessageVO(String chatId, String chatRecordId, String nodeId, String content, String reasoningContent, List<String> upNodeIdList,String runtimeNodeId, String nodeType, String viewType, Boolean nodeIsEnd) {
-        this.chatId = chatId;
-        this.chatRecordId = chatRecordId;
-        this.nodeId = nodeId;
-        this.realNodeId = nodeId;
-        this.content = content;
-        this.reasoningContent = reasoningContent;
-        this.upNodeIdList = upNodeIdList;
-        this.runtimeNodeId = runtimeNodeId;
-        this.nodeType = nodeType;
-        this.viewType = viewType;
-        this.nodeIsEnd = nodeIsEnd;
-        this.isEnd = false;
-    }
 
     public ChatMessageVO(String chatId, String chatRecordId, String nodeId, String content, String reasoningContent, List<String> upNodeIdList,String runtimeNodeId, String nodeType, String viewType,ChildNode childNode, Boolean nodeIsEnd) {
         this.chatId = chatId;
         this.chatRecordId = chatRecordId;
         this.nodeId = nodeId;
-        this.realNodeId = nodeId;
+        this.realNodeId = runtimeNodeId;
         this.content = content;
         this.reasoningContent = reasoningContent;
         this.upNodeIdList = upNodeIdList;

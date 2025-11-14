@@ -34,7 +34,6 @@ public class UserSelectNodeHandler implements INodeHandler {
             nodeVariable.put("branchId", branchId);
             UserSelectNode.Branch selectBranch = branches.stream().filter(branch -> branch.getId().equals(branchId)).findFirst().orElse( null);
             nodeVariable.put("branchName", selectBranch==null?"":selectBranch.getOption());
-            return new NodeResult(nodeVariable, Map.of());
         } else {
             String labelName = workflow.generatePrompt(nodeParams.getLabelName());
             RadioCardFiled radioCardFiled = new RadioCardFiled(labelName, SELECT_FILED, options);
@@ -43,7 +42,13 @@ public class UserSelectNodeHandler implements INodeHandler {
             formSetting.put("form_field_list", formFieldList);
             String formRender = "<card_selection_render>" + formSetting + "</card_selection_render>";
             node.setAnswerText(formRender);
-            return new NodeResult(Map.of("is_submit", false), Map.of());
+            nodeVariable.put("is_submit", false);
+
         }
+        return new NodeResult(nodeVariable, Map.of(),this::isInterrupt);
+    }
+
+    public boolean isInterrupt(INode node) {
+        return !(boolean)node.getContext().getOrDefault("is_submit", false);
     }
 }

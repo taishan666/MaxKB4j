@@ -3,6 +3,8 @@ package com.tarzan.maxkb4j.core.workflow.node;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.workflow.Workflow;
+import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
+import com.tarzan.maxkb4j.module.chat.dto.ChildNode;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.UserMessage;
@@ -79,7 +81,6 @@ public abstract class INode {
     }
 
 
-
     public JSONArray resetMessageList(List<ChatMessage> historyMessages) {
         if (CollectionUtils.isEmpty(historyMessages)) {
             return new JSONArray();
@@ -102,6 +103,36 @@ public abstract class INode {
             newMessageList.remove(newMessageList.size() - 1);
         }
         return newMessageList;
+    }
+
+    public ChatMessageVO toChatMessageVO(String chatId, String chatRecordId, String content, String reasoningContent, boolean nodeIsEnd) {
+        return new ChatMessageVO(
+                chatId,
+                chatRecordId,
+                this.getId(),
+                content,
+                reasoningContent,
+                this.getUpNodeIdList(),
+                this.getRuntimeNodeId(),
+                this.getType(),
+                this.getViewType(),
+                null,
+                nodeIsEnd);
+    }
+
+    public ChatMessageVO toChatMessageVO(String chatId, String chatRecordId, String content, String reasoningContent, ChildNode childNode, boolean nodeIsEnd) {
+        return new ChatMessageVO(
+                chatId,
+                chatRecordId,
+                this.getId(),
+                content,
+                reasoningContent,
+                this.getUpNodeIdList(),
+                this.getRuntimeNodeId(),
+                this.getType(),
+                this.getViewType(),
+                childNode,
+                nodeIsEnd);
     }
 
 

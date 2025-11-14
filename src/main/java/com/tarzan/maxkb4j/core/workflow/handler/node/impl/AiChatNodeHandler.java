@@ -69,10 +69,10 @@ public class AiChatNodeHandler implements INodeHandler {
         node.getDetail().put("system", systemPrompt);
         node.getDetail().put("history_message", node.resetMessageList(historyMessages));
         node.getDetail().put("question", question);
-        return writeContextStream(nodeParams, tokenStream,workflow, node);
+        return writeContextStream(nodeParams, tokenStream, workflow, node);
     }
 
-    private NodeResult writeContextStream(AiChatNode.NodeParams nodeParams, TokenStream tokenStream, Workflow workflow,INode node) {
+    private NodeResult writeContextStream(AiChatNode.NodeParams nodeParams, TokenStream tokenStream, Workflow workflow, INode node) {
         boolean isResult = nodeParams.getIsResult();
         boolean mcpOutputEnable = nodeParams.getMcpOutputEnable();
         boolean reasoningContentEnable = nodeParams.getModelSetting().getBooleanValue("reasoningContentEnable");
@@ -80,48 +80,33 @@ public class AiChatNodeHandler implements INodeHandler {
         // 完成后释放线程
         tokenStream.onPartialThinking(thinking -> {
                     if (isResult && reasoningContentEnable) {
-                        ChatMessageVO vo = new ChatMessageVO(
+                        ChatMessageVO vo = node.toChatMessageVO(
                                 workflow.getChatParams().getChatId(),
                                 workflow.getChatParams().getChatRecordId(),
-                                node.getId(),
                                 "",
                                 thinking.text(),
-                                node.getUpNodeIdList(),
-                                node.getRuntimeNodeId(),
-                                node.getType(),
-                                node.getViewType(),
                                 false);
                         workflow.getChatParams().getSink().tryEmitNext(vo);
                     }
                 })
                 .onPartialResponse(content -> {
                     if (isResult) {
-                        ChatMessageVO vo = new ChatMessageVO(
+                        ChatMessageVO vo = node.toChatMessageVO(
                                 workflow.getChatParams().getChatId(),
                                 workflow.getChatParams().getChatRecordId(),
-                                node.getId(),
                                 content,
                                 "",
-                                node.getUpNodeIdList(),
-                                node.getRuntimeNodeId(),
-                                node.getType(),
-                                node.getViewType(),
                                 false);
                         workflow.getChatParams().getSink().tryEmitNext(vo);
                     }
                 })
                 .onToolExecuted(toolExecute -> {
                     if (isResult && mcpOutputEnable) {
-                        ChatMessageVO vo = new ChatMessageVO(
+                        ChatMessageVO vo = node.toChatMessageVO(
                                 workflow.getChatParams().getChatId(),
                                 workflow.getChatParams().getChatRecordId(),
-                                node.getId(),
                                 MessageTools.getToolMessage(toolExecute.request().name(), toolExecute.result()),
                                 "",
-                                node.getUpNodeIdList(),
-                                node.getRuntimeNodeId(),
-                                node.getType(),
-                                node.getViewType(),
                                 false);
                         workflow.getChatParams().getSink().tryEmitNext(vo);
                     }
@@ -156,16 +141,11 @@ public class AiChatNodeHandler implements INodeHandler {
             node.getDetail().putAll(nodeVariable);
             if (workflow.isResult(node, new NodeResult(nodeVariable, globalVariable)) && StringUtil.isNotBlank(node.getAnswerText())) {
                 workflow.setAnswer(workflow.getAnswer() + node.getAnswerText());
-                ChatMessageVO endVo = new ChatMessageVO(
+                ChatMessageVO endVo = node.toChatMessageVO(
                         workflow.getChatParams().getChatId(),
                         workflow.getChatParams().getChatRecordId(),
-                        node.getId(),
-                        "\n",
                         "",
-                        node.getUpNodeIdList(),
-                        node.getRuntimeNodeId(),
-                        node.getType(),
-                        node.getViewType(),
+                        "",
                         true);
                 workflow.getChatParams().getSink().tryEmitNext(endVo);
             }

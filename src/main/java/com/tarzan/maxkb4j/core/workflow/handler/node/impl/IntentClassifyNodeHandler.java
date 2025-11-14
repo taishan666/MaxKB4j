@@ -41,7 +41,7 @@ public class IntentClassifyNodeHandler implements INodeHandler {
         List<ChatMessage> historyMessages = workflow.getHistoryMessages(nodeParams.getDialogueNumber(), DialogueType.WORKFLOW.name(), node.getRuntimeNodeId());
         node.getDetail().put("history_message", node.resetMessageList(historyMessages));
         Map<Integer, String> idToClassification=new HashMap<>();
-        String options =optionsFormat(idToClassification,nodeParams.getBranch());
+        String options =optionsFormat(idToClassification,branches);
         String chatMemory = MessageTools.format(historyMessages);
         IntentClassifyAssistant assistant = AiServices.builder(IntentClassifyAssistant.class)
                 .chatModel(chatModel)
@@ -63,7 +63,6 @@ public class IntentClassifyNodeHandler implements INodeHandler {
     protected String optionsFormat(Map<Integer, String> idToClassification,List<IntentClassifyNode.Branch> branches) {
         StringBuilder optionsBuilder = new StringBuilder();
         if (CollectionUtils.isNotEmpty( branches)){
-            Collections.reverse(branches);
             for (int i = 0; i < branches.size(); i++) {
                 IntentClassifyNode.Branch branch=branches.get(i);
                 idToClassification.put(i, ValidationUtils.ensureNotNull(branch.getId(), "Classification"));

@@ -94,22 +94,17 @@ public class ApplicationNodeHandler implements INodeHandler {
             // 订阅并累积 token，同时发送消息
             appNodeSink.asFlux().subscribe(e -> {
                 if(FORM.getKey().equals(e.getNodeType())||USER_SELECT.getKey().equals(e.getNodeType())){
-                    is_interrupt_exec.set( true);
+                    is_interrupt_exec.set(true);
                 }
+                System.out.println(e);
                 ChildNode childNode=new ChildNode(e.getChatRecordId(),e.getRuntimeNodeId());
-                ChatMessageVO vo = new ChatMessageVO(
-                        chatParams.getChatId(),
-                        chatParams.getChatRecordId(),
-                        e.getNodeId(),
-                        e.getContent(),
-                        e.getReasoningContent(),
-                        e.getUpNodeIdList(),
-                        node.getRuntimeNodeId(),
-                        node.getType(),
-                        e.getViewType(),
+                ChatMessageVO vo = node.toChatMessageVO(
+                        workflow.getChatParams().getChatId(),
+                        workflow.getChatParams().getChatRecordId(),
+                        node.getAnswerText(),
+                        "",
                         childNode,
-                        e.getNodeIsEnd()
-                );
+                        false);
                 workflow.getChatParams().getSink().tryEmitNext(vo);
             });
         }
@@ -125,6 +120,7 @@ public class ApplicationNodeHandler implements INodeHandler {
         ), Map.of(),this::writeContext,this::isInterrupt);
     }
 
+    //TODO : 节点结果处理
     private void writeContext(Map<String, Object> nodeVariable, Map<String, Object> globalVariable, INode node, Workflow workflow) {
         node.getContext().putAll(nodeVariable);
         node.getDetail().putAll(nodeVariable);

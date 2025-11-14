@@ -33,20 +33,18 @@ public class StartNode extends INode {
             workflow.getContext().put(key, value);
         }
         JSONArray chatFields= (JSONArray) detail.get("chatFields");
-        for (int i = 0; i < chatFields.size(); i++) {
-            JSONObject chatField=chatFields.getJSONObject(i);
-            String key=chatField.getString("key");
-            Object value=chatField.get("value");
-            workflow.getChatContext().put(key, value);
+        if (chatFields!=null){
+            for (int i = 0; i < chatFields.size(); i++) {
+                JSONObject chatField=chatFields.getJSONObject(i);
+                String key=chatField.getString("key");
+                Object value=chatField.get("value");
+                workflow.getChatContext().put(key, value);
+            }
         }
     }
 
     @Override
     public Map<String, Object> executeDetail() {
-       /* detail.put("imageList", JSON.toJSON(detail.get("image")));
-        detail.put("documentList", JSON.toJSON(detail.get("document")));
-        detail.put("audioList", JSON.toJSON(detail.get("audio")));
-        detail.put("otherList", JSON.toJSON(detail.get("other")));*/
         detail.put("imageList", detail.get("image"));
         detail.put("documentList", detail.get("document"));
         detail.put("audioList", detail.get("audio"));

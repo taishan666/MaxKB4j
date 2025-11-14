@@ -1,8 +1,8 @@
 package com.tarzan.maxkb4j.core.workflow.handler;
 
-import com.tarzan.maxkb4j.core.workflow.node.INode;
 import com.tarzan.maxkb4j.core.workflow.Workflow;
 import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;
+import com.tarzan.maxkb4j.core.workflow.node.INode;
 import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
 import com.tarzan.maxkb4j.core.workflow.result.NodeResultFuture;
 import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
@@ -60,10 +60,10 @@ public class WorkflowHandler {
             NodeResult result = nodeHandler.execute(workflow,node);
             float runTime = (System.currentTimeMillis() - startTime) / 1000F;
             node.getDetail().put("runTime", runTime);
-            log.info("node:{}, runTime:{} s", node.getType(), runTime);
+            log.info("node:{}, runTime:{} s", node.getProperties().getString("nodeName"), runTime);
             return new NodeResultFuture(result, null, 200);
         } catch (Exception ex) {
-            ex.printStackTrace();
+            log.error("error:", ex);
             node.setStatus(500);
             node.setErrMessage(ex.getMessage());
             workflow.getChatParams().getSink().tryEmitError(ex);

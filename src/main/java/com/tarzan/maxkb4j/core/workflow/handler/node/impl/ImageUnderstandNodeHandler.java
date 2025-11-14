@@ -84,16 +84,11 @@ public class ImageUnderstandNodeHandler implements INodeHandler {
         // 完成后释放线程
         tokenStream.onPartialResponse(content -> {
                     if (isResult) {
-                        ChatMessageVO vo = new ChatMessageVO(
+                        ChatMessageVO vo = node.toChatMessageVO(
                                 workflow.getChatParams().getChatId(),
                                 workflow.getChatParams().getChatRecordId(),
-                                node.getId(),
                                 content,
                                 "",
-                                node.getUpNodeIdList(),
-                                node.getRuntimeNodeId(),
-                                node.getType(),
-                                node.getViewType(),
                                 false);
                         workflow.getChatParams().getSink().tryEmitNext(vo);
                     }
@@ -127,18 +122,13 @@ public class ImageUnderstandNodeHandler implements INodeHandler {
             node.getDetail().putAll(nodeVariable);
             if (workflow.isResult(node, new NodeResult(nodeVariable, globalVariable))&& StringUtil.isNotBlank(node.getAnswerText())) {
                 workflow.setAnswer(workflow.getAnswer()+node.getAnswerText());
-                ChatMessageVO vo = new ChatMessageVO(
+                ChatMessageVO endVo = node.toChatMessageVO(
                         workflow.getChatParams().getChatId(),
                         workflow.getChatParams().getChatRecordId(),
-                        node.getId(),
-                        "\n",
                         "",
-                        node.getUpNodeIdList(),
-                        node.getRuntimeNodeId(),
-                        node.getType(),
-                        node.getViewType(),
+                        "",
                         true);
-                workflow.getChatParams().getSink().tryEmitNext(vo);
+                workflow.getChatParams().getSink().tryEmitNext(endVo);
             }
         }
     }

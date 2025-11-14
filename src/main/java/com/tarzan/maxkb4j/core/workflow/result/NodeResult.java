@@ -1,15 +1,13 @@
 package com.tarzan.maxkb4j.core.workflow.result;
 
 import com.tarzan.maxkb4j.common.util.StringUtil;
-import com.tarzan.maxkb4j.core.workflow.node.INode;
 import com.tarzan.maxkb4j.core.workflow.Workflow;
+import com.tarzan.maxkb4j.core.workflow.node.INode;
 import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Map;
-
-import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.FORM;
 
 @Slf4j
 @Data
@@ -57,7 +55,7 @@ public class NodeResult {
     }
 
     public boolean defaultIsInterrupt(INode node) {
-        return FORM.getKey().equals(node.getType()) && !(boolean)node.getContext().getOrDefault("is_submit", false);
+        return false;
     }
 
     public void defaultWriteContextFunc(Map<String, Object> nodeVariable, Map<String, Object> globalVariable, INode node, Workflow workflow) {
@@ -65,29 +63,19 @@ public class NodeResult {
             node.getContext().putAll(nodeVariable);
             node.getDetail().putAll(nodeVariable);
             if (workflow.isResult(node, new NodeResult(nodeVariable, globalVariable))&& StringUtil.isNotBlank(node.getAnswerText())) {
-                ChatMessageVO vo = new ChatMessageVO(
+                ChatMessageVO vo = node.toChatMessageVO(
                         workflow.getChatParams().getChatId(),
                         workflow.getChatParams().getChatRecordId(),
-                        node.getId(),
                         node.getAnswerText(),
                         "",
-                        node.getUpNodeIdList(),
-                        node.getRuntimeNodeId(),
-                        node.getType(),
-                        node.getViewType(),
                         false);
                 workflow.getChatParams().getSink().tryEmitNext(vo);
                 workflow.setAnswer(workflow.getAnswer()+node.getAnswerText());
-                ChatMessageVO endVo = new ChatMessageVO(
+                ChatMessageVO endVo = node.toChatMessageVO(
                         workflow.getChatParams().getChatId(),
                         workflow.getChatParams().getChatRecordId(),
-                        node.getId(),
-                        "\n",
                         "",
-                        node.getUpNodeIdList(),
-                        node.getRuntimeNodeId(),
-                        node.getType(),
-                        node.getViewType(),
+                        "",
                         true);
                 workflow.getChatParams().getSink().tryEmitNext(endVo);
             }
