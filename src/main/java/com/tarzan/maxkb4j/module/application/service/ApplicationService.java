@@ -153,7 +153,10 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     public ApplicationEntity createApp(ApplicationEntity application) {
         application.setKnowledgeSetting(new KnowledgeSetting());
         application.setIcon("./favicon.ico");
-        application.setDialogueNumber(0);
+        if (AppType.WORK_FLOW.name().equals(application.getType())){
+            application.setDialogueNumber(0);
+        }
+        application.setDialogueNumber(1);
         application.setUserId(StpKit.ADMIN.getLoginIdAsString());
         application.setTtsModelParamsSetting(new JSONObject());
         application.setCleanTime(365);

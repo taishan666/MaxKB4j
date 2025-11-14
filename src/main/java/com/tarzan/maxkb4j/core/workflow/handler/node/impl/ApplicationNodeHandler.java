@@ -96,13 +96,12 @@ public class ApplicationNodeHandler implements INodeHandler {
                 if(FORM.getKey().equals(e.getNodeType())||USER_SELECT.getKey().equals(e.getNodeType())){
                     is_interrupt_exec.set(true);
                 }
-                System.out.println(e);
                 ChildNode childNode=new ChildNode(e.getChatRecordId(),e.getRuntimeNodeId());
                 ChatMessageVO vo = node.toChatMessageVO(
                         workflow.getChatParams().getChatId(),
                         workflow.getChatParams().getChatRecordId(),
-                        node.getAnswerText(),
-                        "",
+                        e.getContent(),
+                        e.getReasoningContent(),
                         childNode,
                         false);
                 workflow.getChatParams().getSink().tryEmitNext(vo);
