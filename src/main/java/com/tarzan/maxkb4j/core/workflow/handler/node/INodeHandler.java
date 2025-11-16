@@ -7,4 +7,5 @@ import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
 public interface INodeHandler {
 
     NodeResult execute(Workflow workflow, INode node) throws Exception;
+
 }

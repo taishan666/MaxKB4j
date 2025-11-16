@@ -29,6 +29,7 @@ public class NodeFactory {
             case SPEECH_TO_TEXT -> new SpeechToTextNode(properties);
             case VARIABLE_ASSIGN -> new VariableAssignNode(properties);
             case VARIABLE_AGGREGATE -> new VariableAggregationNode(properties);
+            case VARIABLE_SPLITTING -> new VariableSplittingNode(properties);
             case TOOL -> new ToolNode(properties);
             case TOOL_LIB -> new ToolLibNode(properties);
             case IMAGE_UNDERSTAND -> new ImageUnderstandNode(properties);

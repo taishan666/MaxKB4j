@@ -49,6 +49,8 @@ public enum NodeType {
 
     VARIABLE_AGGREGATE("variable-aggregation-node", "变量聚合"),
 
+    VARIABLE_SPLITTING("variable-splitting-node", "变量赋值"),
+
     TOOL("tool-node", "自定义函数节点"),
 
     TOOL_LIB("tool-lib-node", "工具库节点"),
