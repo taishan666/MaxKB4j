@@ -47,7 +47,7 @@ public enum NodeType {
 
     VARIABLE_ASSIGN("variable-assign-node", "变量赋值"),
 
-    VARIABLE_AGGREGATE("variable-aggregate-node", "变量聚合"),
+    VARIABLE_AGGREGATE("variable-aggregation-node", "变量聚合"),
 
     TOOL("tool-node", "自定义函数节点"),
 

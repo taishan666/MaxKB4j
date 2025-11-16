@@ -1,31 +1,10 @@
 package com.tarzan.maxkb4j.core.workflow.factory;
 
 import com.alibaba.fastjson.JSONObject;
-import com.tarzan.maxkb4j.core.workflow.node.INode;
 import com.tarzan.maxkb4j.core.workflow.enums.NodeType;
 import com.tarzan.maxkb4j.core.workflow.logic.LfNode;
-import com.tarzan.maxkb4j.core.workflow.node.impl.AiChatNode;
-import com.tarzan.maxkb4j.core.workflow.node.impl.ApplicationNode;
-import com.tarzan.maxkb4j.core.workflow.node.impl.ConditionNode;
-import com.tarzan.maxkb4j.core.workflow.node.impl.DirectReplyNode;
-import com.tarzan.maxkb4j.core.workflow.node.impl.DocumentExtractNode;
-import com.tarzan.maxkb4j.core.workflow.node.impl.FormNode;
-import com.tarzan.maxkb4j.core.workflow.node.impl.HttpNode;
-import com.tarzan.maxkb4j.core.workflow.node.impl.ImageGenerateNode;
-import com.tarzan.maxkb4j.core.workflow.node.impl.ImageUnderstandNode;
-import com.tarzan.maxkb4j.core.workflow.node.impl.IntentClassifyNode;
-import com.tarzan.maxkb4j.core.workflow.node.impl.McpNode;
-import com.tarzan.maxkb4j.core.workflow.node.impl.ParameterExtractionNode;
-import com.tarzan.maxkb4j.core.workflow.node.impl.QuestionNode;
-import com.tarzan.maxkb4j.core.workflow.node.impl.RerankerNode;
-import com.tarzan.maxkb4j.core.workflow.node.impl.SearchKnowledgeNode;
-import com.tarzan.maxkb4j.core.workflow.node.impl.SpeechToTextNode;
-import com.tarzan.maxkb4j.core.workflow.node.impl.StartNode;
-import com.tarzan.maxkb4j.core.workflow.node.impl.TextToSpeechNode;
-import com.tarzan.maxkb4j.core.workflow.node.impl.ToolNode;
-import com.tarzan.maxkb4j.core.workflow.node.impl.ToolLibNode;
-import com.tarzan.maxkb4j.core.workflow.node.impl.UserSelectNode;
-import com.tarzan.maxkb4j.core.workflow.node.impl.VariableAssignNode;
+import com.tarzan.maxkb4j.core.workflow.node.INode;
+import com.tarzan.maxkb4j.core.workflow.node.impl.*;
 
 import java.util.Objects;
 
@@ -49,6 +28,7 @@ public class NodeFactory {
             case DOCUMENT_EXTRACT -> new DocumentExtractNode(properties);
             case SPEECH_TO_TEXT -> new SpeechToTextNode(properties);
             case VARIABLE_ASSIGN -> new VariableAssignNode(properties);
+            case VARIABLE_AGGREGATE -> new VariableAggregationNode(properties);
             case TOOL -> new ToolNode(properties);
             case TOOL_LIB -> new ToolLibNode(properties);
             case IMAGE_UNDERSTAND -> new ImageUnderstandNode(properties);

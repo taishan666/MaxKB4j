@@ -317,7 +317,11 @@ public class Workflow {
 
     public Object getReferenceField(String nodeId, String key) {
         Map<String, Object> nodeVariable = getFlowVariables().get(nodeId);
-        return nodeVariable.get(key);
+        return nodeVariable == null?null:nodeVariable.get(key);
+    }
+
+    public LfNode getLfNode(String nodeId) {
+        return lfNodes.stream().filter(lfNode -> nodeId.equals(lfNode.getId())).findAny().orElse(null);
     }
 
 
