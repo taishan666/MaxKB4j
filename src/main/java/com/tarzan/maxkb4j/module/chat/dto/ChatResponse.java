@@ -13,7 +13,7 @@ public class ChatResponse {
     @JsonIgnore
     private JSONObject runDetails;
 
-    public ChatResponse(String answer,JSONObject runDetails) {
+    public ChatResponse(String answer, JSONObject runDetails) {
         this.answer = answer;
         this.runDetails = runDetails;
     }

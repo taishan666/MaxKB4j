@@ -35,6 +35,7 @@ public class VariableSplittingNodeHandler implements INodeHandler {
         }
         nodeVariable.put("result",result);
         nodeVariable.putAll(result);
+        node.getDetail().put("result", result);
         return new NodeResult(nodeVariable, Map.of());
     }
 

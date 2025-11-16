@@ -20,8 +20,8 @@ public class FormNode extends INode {
 
 
     @Override
+    @SuppressWarnings("unchecked")
     public void saveContext(Workflow workflow, Map<String, Object> detail) {
-        @SuppressWarnings("unchecked")
         Map<String, Object> formData = (Map<String, Object>) detail.get("form_data");
         if (formData != null){
             context.putAll(formData);

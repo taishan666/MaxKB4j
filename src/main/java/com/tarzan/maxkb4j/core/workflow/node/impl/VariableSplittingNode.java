@@ -18,9 +18,13 @@ public class VariableSplittingNode extends INode {
 
 
     @Override
+    @SuppressWarnings("unchecked")
     public void saveContext(Workflow workflow, Map<String, Object> detail) {
-        context.put("variableList", detail.get("variableList"));
-        context.put("resultList", detail.get("resultList"));
+        Map<String, Object> result = (Map<String, Object>) detail.get("result");
+        if (result != null){
+            context.putAll(result);
+        }
+        context.put("result", result);
     }
 
     @Data
