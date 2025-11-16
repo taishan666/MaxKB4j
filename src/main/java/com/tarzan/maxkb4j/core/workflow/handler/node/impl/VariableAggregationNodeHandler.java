@@ -32,7 +32,8 @@ public class VariableAggregationNodeHandler implements INodeHandler {
             List<VariableAggregationNode.Variable> variableList = group.getVariableList();
             resetVariable(variableList,workflow);
             StrategyFunction strategy = strategy_map.get(strategyName);
-            nodeVariable.put(group.getField(), strategy.apply(variableList));
+            group.setValue(strategy.apply(variableList));
+            nodeVariable.put(group.getField(), group.getValue());
         }
         node.getDetail().put("strategy", strategyName);
         node.getDetail().put("groupList", groupList);

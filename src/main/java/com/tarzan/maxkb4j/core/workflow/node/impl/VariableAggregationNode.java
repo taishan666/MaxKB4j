@@ -17,9 +17,14 @@ public class VariableAggregationNode extends INode {
         this.setType(VARIABLE_AGGREGATE.getKey());
     }
 
-    @Override
-    public void saveContext(Workflow workflow, Map<String, Object> detail) {
 
+    @Override
+    @SuppressWarnings("unchecked")
+    public void saveContext(Workflow workflow, Map<String, Object> detail) {
+        List<VariableAggregationNode.Group> groupList= (List<Group>) detail.get("groupList");
+        for (Group group : groupList) {
+            context.put(group.getField(), group.getValue());
+        }
     }
 
     @Data
@@ -33,6 +38,7 @@ public class VariableAggregationNode extends INode {
         private String id;
         private String label;
         private String field;
+        private Object value;
         private List<Variable> variableList;
     }
 
