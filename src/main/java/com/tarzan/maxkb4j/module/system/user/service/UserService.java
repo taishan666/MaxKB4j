@@ -57,8 +57,8 @@ public class UserService extends ServiceImpl<UserMapper, UserEntity> {
             // 超出最大容量时淘汰
             .maximumSize(100000)
             //设置写缓存后n秒钟过期
-            .expireAfterWrite(10, TimeUnit.MINUTES)
-            .expireAfterAccess(3, TimeUnit.MINUTES) // 最近访问后5分钟过期
+            .expireAfterWrite(1, TimeUnit.MINUTES)
+            .expireAfterAccess(1, TimeUnit.MINUTES)
             .build();
 
     public IPage<UserEntity> selectUserPage(int page, int size, UserDTO dto) {
@@ -182,6 +182,11 @@ public class UserService extends ServiceImpl<UserMapper, UserEntity> {
         return true;
     }
 
+    public boolean checkCode(String email, String code) {
+        String codeCache=AUTH_CODE_CACHE.getIfPresent(email);
+        return code.equals(codeCache);
+    }
+
     private String generateCode() {
         Random random = new Random();
         return String.format("%06d", random.nextInt(1000000));
@@ -217,4 +222,6 @@ public class UserService extends ServiceImpl<UserMapper, UserEntity> {
     public Map<String, String> getNicknameMap() {
         return this.lambdaQuery().select(UserEntity::getId, UserEntity::getNickname).list().stream().collect(Collectors.toMap(UserEntity::getId, UserEntity::getNickname));
     }
+
+
 }

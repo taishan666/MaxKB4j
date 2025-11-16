@@ -119,12 +119,18 @@ public class ApplicationNodeHandler implements INodeHandler {
         ), Map.of(),this::writeContext,this::isInterrupt);
     }
 
-    //TODO : 节点结果处理
     private void writeContext(Map<String, Object> nodeVariable, Map<String, Object> globalVariable, INode node, Workflow workflow) {
         node.getContext().putAll(nodeVariable);
         node.getDetail().putAll(nodeVariable);
         if (workflow.isResult(node, new NodeResult(nodeVariable, globalVariable))&& StringUtil.isNotBlank(node.getAnswerText())) {
             workflow.setAnswer(workflow.getAnswer()+node.getAnswerText());
+            ChatMessageVO endVo = node.toChatMessageVO(
+                    workflow.getChatParams().getChatId(),
+                    workflow.getChatParams().getChatRecordId(),
+                    "",
+                    "",
+                    true);
+            workflow.getChatParams().getSink().tryEmitNext(endVo);
         }
     }
 

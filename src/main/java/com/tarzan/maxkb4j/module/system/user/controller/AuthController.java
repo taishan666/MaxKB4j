@@ -2,10 +2,7 @@ package com.tarzan.maxkb4j.module.system.user.controller;
 
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.secure.SaSecureUtil;
-import cn.dev33.satoken.stp.StpUtil;
 import com.alibaba.fastjson.JSONObject;
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
 import com.tarzan.maxkb4j.common.api.R;
 import com.tarzan.maxkb4j.common.constant.AppConst;
 import com.tarzan.maxkb4j.common.util.StpKit;
@@ -22,7 +19,6 @@ import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author tarzan
@@ -80,23 +76,13 @@ public class AuthController {
 		return R.status(userService.sendEmailCode(dto.getEmail(),"【智能知识库问答系统-忘记密码】"));
 	}
 
-	// 创建缓存并配置
-	private static final Cache<String, String> AUTH_CODE_CACHE = Caffeine.newBuilder()
-			.initialCapacity(5)
-			// 超出最大容量时淘汰
-			.maximumSize(100000)
-			//设置写缓存后n秒钟过期
-			.expireAfterWrite(10, TimeUnit.MINUTES)
-			.expireAfterAccess(3, TimeUnit.MINUTES) // 最近访问后5分钟过期
-			.build();
 
 	@PostMapping("/user/check_code")
 	public R<Boolean> checkCode(@RequestBody ResetPasswordDTO dto){
-		String code=AUTH_CODE_CACHE.getIfPresent(dto.getEmail());
-		return R.status(dto.getCode().equals(code));
+		return R.status(userService.checkCode(dto.getEmail(),dto.getCode()));
 	}
 
-	@PostMapping("/user/re_password")
+	@PostMapping("/user/rePassword")
 	public R<Boolean> rePassword(@RequestBody ResetPasswordDTO dto){
 		 String password=dto.getPassword();
 		 String rePassword=dto.getRePassword();
