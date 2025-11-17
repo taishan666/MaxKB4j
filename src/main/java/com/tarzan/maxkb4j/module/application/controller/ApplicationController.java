@@ -46,7 +46,7 @@ public class ApplicationController {
         return R.success(applicationService.createApp(application));
     }
 
-    @PostMapping("/application/import")
+    @PostMapping("/application/folder/{folderId}/import")
     public R<Boolean> appImport(MultipartFile file) throws Exception {
         return R.status(applicationService.appImport(file));
     }

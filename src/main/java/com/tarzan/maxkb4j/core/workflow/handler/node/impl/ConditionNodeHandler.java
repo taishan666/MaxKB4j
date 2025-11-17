@@ -33,6 +33,8 @@ public class ConditionNodeHandler implements INodeHandler {
         compareHandleList.add(new IsNullCompare());
         compareHandleList.add(new IsNotNullCompare());
         compareHandleList.add(new NotContainCompare());
+        compareHandleList.add(new IsTrueCompare());
+        compareHandleList.add(new IsNotTrueCompare());
     }
 
     @Override
