@@ -14,6 +14,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.tarzan.maxkb4j.common.exception.ApiException;
+import com.tarzan.maxkb4j.common.exception.LoginException;
 import com.tarzan.maxkb4j.common.props.SystemProperties;
 import com.tarzan.maxkb4j.common.util.BeanUtil;
 import com.tarzan.maxkb4j.common.util.StpKit;
@@ -90,20 +91,20 @@ public class UserService extends ServiceImpl<UserMapper, UserEntity> {
         HttpSession session = request.getSession();
         String sessionCaptcha = (String) session.getAttribute("captcha");
         if (StringUtils.isBlank(sessionCaptcha)) {
-            throw new ApiException("验证码已过期");
+            throw new LoginException("验证码已过期");
         }
         if (Objects.nonNull(dto.getCaptcha()) && !sessionCaptcha.equals(dto.getCaptcha().toLowerCase())) {
-            throw new ApiException("验证码错误");
+            throw new LoginException("验证码错误");
         }
         String password = SaSecureUtil.md5(dto.getPassword());
         UserEntity userEntity = this.lambdaQuery()
                 .eq(UserEntity::getUsername, dto.getUsername())
                 .eq(UserEntity::getPassword, password).one();
         if (Objects.isNull(userEntity)) {
-            throw new ApiException("用户名或密码错误");
+            throw new LoginException("用户名或密码错误");
         }
         if (!userEntity.getIsActive()) {
-            throw new ApiException("该用户已被禁用，请联系管理员！");
+            throw new LoginException("该用户已被禁用，请联系管理员！");
         }
         SaLoginModel loginModel = new SaLoginModel();
         loginModel.setExtra("username", userEntity.getUsername());

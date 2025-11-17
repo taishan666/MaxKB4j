@@ -7,6 +7,7 @@ import com.tarzan.maxkb4j.common.api.R;
 import com.tarzan.maxkb4j.common.exception.AccessException;
 import com.tarzan.maxkb4j.common.exception.AccessNumLimitException;
 import com.tarzan.maxkb4j.common.exception.ApiException;
+import com.tarzan.maxkb4j.common.exception.LoginException;
 import com.tarzan.maxkb4j.common.util.StpKit;
 import io.swagger.v3.oas.annotations.Hidden;
 import jakarta.servlet.http.HttpServletResponse;
@@ -77,9 +78,17 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ApiException.class)
     @ResponseBody
     public R<String> handleException(ApiException e, HttpServletResponse response) {
-        log.error("Api异常: {}", e.getMessage(), e);
+        log.error("Api异常: {}", e.getMessage());
         response.setStatus(HttpServletResponse.SC_BAD_REQUEST); // 设置HTTP状态码为400
         return R.fail(400, e.getMessage());
+    }
+
+    @ExceptionHandler(LoginException.class)
+    @ResponseBody
+    public R<String> handleException(LoginException e, HttpServletResponse response) {
+        log.error("登录异常: {}", e.getMessage());
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 设置HTTP状态码为401
+        return R.fail(401, e.getMessage());
     }
 
     @ExceptionHandler(AccessException.class)

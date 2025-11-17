@@ -61,10 +61,7 @@ public class AuthController {
 	public R<Map<String, String>> captcha(HttpServletRequest request){
 		SpecCaptcha specCaptcha = new SpecCaptcha(130, 48, 4);
 		String verCode = specCaptcha.text().toLowerCase();
-		//String key = UUID.randomUUID().toString();
-		// 存入redis并设置过期时间为1分钟
-		//bladeRedis.setEx(CacheNames.CAPTCHA_KEY + key, verCode, Duration.ofMinutes(3));
-		// 5. 将验证码存入 session
+		//  将验证码存入 session
 		HttpSession session = request.getSession();
 		session.setAttribute("captcha", verCode);
 		// 将key和base64返回给前端
