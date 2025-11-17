@@ -27,6 +27,6 @@ public class TemplateController {
 
     @GetMapping("/knowledge/document/template/export")
     public void templateExport(String type, HttpServletResponse response) throws Exception {
-        templateService.templateExport(type, response);
+        templateService.qaTemplateExport(type, response);
     }
 }

@@ -1,10 +1,9 @@
 package com.tarzan.maxkb4j.module.knowledge.service;
 
 import com.alibaba.excel.EasyExcel;
+import com.alibaba.excel.ExcelReader;
 import com.alibaba.excel.ExcelWriter;
-import com.alibaba.excel.context.AnalysisContext;
-import com.alibaba.excel.event.AnalysisEventListener;
-import com.alibaba.excel.read.listener.PageReadListener;
+import com.alibaba.excel.read.metadata.ReadSheet;
 import com.alibaba.excel.write.metadata.WriteSheet;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
@@ -12,15 +11,14 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.opencsv.CSVReader;
-import com.opencsv.exceptions.CsvValidationException;
 import com.tarzan.maxkb4j.common.base.dto.BaseQuery;
 import com.tarzan.maxkb4j.common.util.ExcelUtil;
 import com.tarzan.maxkb4j.common.util.IoUtil;
 import com.tarzan.maxkb4j.common.util.JsoupUtil;
 import com.tarzan.maxkb4j.common.util.StringUtil;
-import com.tarzan.maxkb4j.core.event.DataIndexEvent;
+import com.tarzan.maxkb4j.core.event.DocumentIndexEvent;
 import com.tarzan.maxkb4j.core.event.GenerateProblemEvent;
+import com.tarzan.maxkb4j.listener.DataListener;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.DatasetBatchHitHandlingDTO;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.DocumentNameDTO;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.GenerateProblemDTO;
@@ -45,10 +43,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.springframework.context.ApplicationEventPublisher;
@@ -142,149 +137,21 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
                     while ((entry = zipIn.getNextEntry()) != null) {
                         // 假设ZIP包内只有一个文件或主要处理第一个找到的Excel文件
                         if (!entry.isDirectory() && (entry.getName().toLowerCase().endsWith(".xls") || entry.getName().endsWith(".xlsx") || entry.getName().endsWith(".csv"))) {
-                            processExcelFile(knowledgeId, IOUtils.toByteArray(zipIn));
+                            processQaFile(knowledgeId, zipIn,fileName);
                             break; // 如果只处理一个文件，则在此处跳出循环
                         }
                     }
                 }
             }
-            if (fileName != null && fileName.toLowerCase().endsWith(".csv")) {
-                processCsvFile(knowledgeId, uploadFile);
-            } else {
-                processExcelFile(knowledgeId, uploadFile.getBytes());
-            }
+            processQaFile(knowledgeId, uploadFile.getInputStream(), fileName);
         }
     }
-
-    @Transactional
-    protected void processCsvFile(String knowledgeId, MultipartFile file) throws IOException {
-        List<ParagraphEntity> paragraphs = new ArrayList<>();
-        DocumentEntity doc = createDocument(knowledgeId, file.getOriginalFilename(), DocType.BASE.getType());
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(file.getInputStream(), StandardCharsets.UTF_8));
-             CSVReader csvReader = new CSVReader(br)) {
-            String[] values;
-            while ((values = csvReader.readNext()) != null) {
-                if (values.length > 1) {
-                    String title = values[0];
-                    String content = values[1];
-                    ParagraphEntity paragraph = paragraphService.createParagraph(knowledgeId, doc.getId(), title, content, null);
-                    paragraphs.add(paragraph);
-                    doc.setCharLength(doc.getCharLength() + paragraph.getContent().length());
-                }
-            }
-        } catch (CsvValidationException e) {
-            throw new RuntimeException(e);
-        }
-        this.save(doc, file);
-        if (!CollectionUtils.isEmpty(paragraphs)) {
-            paragraphService.saveBatch(paragraphs);
-        }
-        this.updateStatusById(doc.getId(), 1, 0);
-        //目的是为了显示进度计数
-        this.updateStatusMetaById(doc.getId());
-    }
-
-    private void save(DocumentEntity doc, MultipartFile file) throws IOException {
-        String fileId = mongoFileService.storeFile(file);
-        doc.setMeta(new JSONObject(Map.of("allow_download", true, "source_file_id", fileId)));
-        this.save(doc);
-    }
-
-    @Transactional
-    protected void processExcelFile(String knowledgeId, byte[] fileBytes) throws IOException {
-        try (InputStream fis = new ByteArrayInputStream(fileBytes)) {
-            Workbook workbook = WorkbookFactory.create(fis);
-            int numberOfSheets = workbook.getNumberOfSheets();
-            List<ProblemEntity> allProblems = problemService.lambdaQuery().eq(ProblemEntity::getKnowledgeId, knowledgeId).list();
-            List<ProblemEntity> problemEntities = new ArrayList<>();
-            List<ProblemParagraphEntity> problemParagraphs = new ArrayList<>();
-            List<ParagraphEntity> paragraphs = new ArrayList<>();
-            List<DocumentEntity> docs = new ArrayList<>();
-            for (int i = 0; i < numberOfSheets; i++) {
-                String sheetName = workbook.getSheetName(i);
-                DocumentEntity doc = createDocument(knowledgeId, sheetName, DocType.BASE.getType());
-                // 对于每一个Sheet进行数据读取
-                EasyExcel.read(new ByteArrayInputStream(fileBytes))
-                        .sheet(sheetName) // 使用Sheet编号读取
-                        .head(DatasetExcel.class)
-                        .registerReadListener(new PageReadListener<DatasetExcel>(dataList -> {
-                            for (DatasetExcel data : dataList) {
-                                log.info("在Sheet {} 中读取到一条数据{}", sheetName, JSON.toJSONString(data));
-                                ParagraphEntity paragraph = paragraphService.createParagraph(knowledgeId, doc.getId(), data.getTitle(), data.getContent(), null);
-                                paragraphs.add(paragraph);
-                                doc.setCharLength(doc.getCharLength() + paragraph.getContent().length());
-                                if (StringUtils.isNotBlank(data.getProblems())) {
-                                    String[] problems = data.getProblems().split("\n");
-                                    for (String problem : problems) {
-                                        String problemId = IdWorker.get32UUID();
-                                        ProblemEntity existingProblem = problemService.findProblem(problem, allProblems);
-                                        if (existingProblem == null) {
-                                            ProblemEntity problemEntity = ProblemEntity.createDefault();
-                                            problemEntity.setId(problemId);
-                                            problemEntity.setKnowledgeId(knowledgeId);
-                                            problemEntity.setContent(problem);
-                                            problemEntities.add(problemEntity);
-                                            allProblems.add(problemEntity);
-                                        } else {
-                                            problemId = existingProblem.getId();
-                                        }
-                                        if (!isExistProblemParagraph(paragraph.getId(), problemId, problemParagraphs)) {
-                                            ProblemParagraphEntity problemParagraph = new ProblemParagraphEntity();
-                                            problemParagraph.setKnowledgeId(knowledgeId);
-                                            problemParagraph.setParagraphId(paragraph.getId());
-                                            problemParagraph.setDocumentId(doc.getId());
-                                            problemParagraph.setProblemId(problemId);
-                                            problemParagraphs.add(problemParagraph);
-                                        }
-                                    }
-                                }
-                            }
-                        })).doRead();
-                docs.add(doc);
-            }
-            this.saveBatch(docs);
-            paragraphService.saveBatch(paragraphs);
-            problemService.saveBatch(problemEntities);
-            problemParagraphService.saveBatch(problemParagraphs);
-            for (DocumentEntity doc : docs) {
-                this.updateStatusById(doc.getId(), 1, 0);
-                //目的是为了显示进度计数
-                this.updateStatusMetaById(doc.getId());
-            }
-        }
-    }
-
 
     @Transactional
     public void importTable(String knowledgeId, MultipartFile[] file) throws IOException {
+        List<String> docIds=new ArrayList<>();
         for (MultipartFile uploadFile : file) {
-            List<String> list = new ArrayList<>();
-            EasyExcel.read(uploadFile.getInputStream(), new AnalysisEventListener<Map<Integer, String>>() {
-                Map<Integer, String> headMap = new LinkedHashMap<>();
-
-                // 表头信息会在此方法中获取
-                @Override
-                public void invokeHeadMap(Map<Integer, String> headMap, AnalysisContext context) {
-                    this.headMap = headMap;
-                }
-
-                // 每一行数据都会调用此方法
-                @Override
-                public void invoke(Map<Integer, String> data, AnalysisContext context) {
-                    StringBuilder sb = new StringBuilder();
-                    for (Integer i : data.keySet()) {
-                        String value = data.get(i) == null ? "" : data.get(i);
-                        sb.append(headMap.get(i)).append(":").append(value).append(";");
-                    }
-                    sb.deleteCharAt(sb.length() - 1);
-                    list.add(sb.toString());
-                }
-
-                @Override
-                public void doAfterAllAnalysed(AnalysisContext analysisContext) {
-                    log.info("所有数据解析完成！");
-                }
-            }).sheet().doRead();
+            List<String> list = documentParseService.extractTable(uploadFile.getInputStream());
             List<ParagraphEntity> paragraphs = new ArrayList<>();
             DocumentEntity doc = createDocument(knowledgeId, uploadFile.getOriginalFilename(), DocType.BASE.getType());
             if (!CollectionUtils.isEmpty(list)) {
@@ -295,12 +162,126 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
                 }
                 this.save(doc, uploadFile);
                 paragraphService.saveBatch(paragraphs);
-                this.updateStatusById(doc.getId(), 1, 0);
-                //目的是为了显示进度计数
-                this.updateStatusMetaById(doc.getId());
             }
+            docIds.add(doc.getId());
+        }
+        eventPublisher.publishEvent(new DocumentIndexEvent(this, knowledgeId,docIds,List.of("0")));
+    }
+
+
+    private void save(DocumentEntity doc, MultipartFile file) throws IOException {
+        String fileId = mongoFileService.storeFile(file);
+        doc.setMeta(new JSONObject(Map.of("allow_download", true, "source_file_id", fileId)));
+        this.save(doc);
+    }
+
+
+/*    @Transactional
+    protected void processTableFile(String knowledgeId, InputStream fis,String fileName) {
+        List<String> list = new ArrayList<>();
+        Map<Integer, List<String>> map = new ConcurrentSkipListMap<>();
+        EasyExcel.read(fis, new AnalysisEventListener<Map<Integer, String>>() {
+            Map<Integer, String> headMap = new LinkedHashMap<>();
+
+            // 表头信息会在此方法中获取
+            @Override
+            public void invokeHeadMap(Map<Integer, String> headMap, AnalysisContext context) {
+                this.headMap = headMap;
+            }
+
+            // 每一行数据都会调用此方法
+            @Override
+            public void invoke(Map<Integer, String> data, AnalysisContext context) {
+                String sheetName = context.readSheetHolder().getSheetName();
+                Integer sheetNo = context.readSheetHolder().getSheetNo();
+                if (map.containsKey(sheetNo)){
+                    StringBuilder sb = new StringBuilder();
+                    for (Integer i : data.keySet()) {
+                        String value = data.get(i) == null ? "" : data.get(i);
+                        sb.append(headMap.get(i)).append(":").append(value).append(";");
+                    }
+                    sb.deleteCharAt(sb.length() - 1);
+                    map.get(sheetNo).add(sb.toString());
+                }else {
+                    map.put(sheetNo, new ArrayList<>());
+                }
+            }
+
+            @Override
+            public void doAfterAllAnalysed(AnalysisContext analysisContext) {
+                log.info("所有数据解析完成！");
+            }
+        }).doReadAll();
+        return list;
+    }*/
+    @Transactional
+    protected void processQaFile(String knowledgeId, InputStream fis,String fileName) {
+        List<ProblemEntity> knowledgeProblems = problemService.lambdaQuery().eq(ProblemEntity::getKnowledgeId, knowledgeId).list();
+        List<ProblemEntity> problemEntities = new ArrayList<>();
+        List<ProblemParagraphEntity> problemParagraphs = new ArrayList<>();
+        List<ParagraphEntity> paragraphs = new ArrayList<>();
+        List<DocumentEntity> docs = new ArrayList<>();
+        DataListener<DatasetExcel> dataListener = new DataListener<>();
+        try (ExcelReader excelReader = EasyExcel.read(fis, DatasetExcel.class, dataListener).build()) {
+            List<ReadSheet> sheets = excelReader.excelExecutor().sheetList();
+            for (ReadSheet sheet : sheets) {
+                String sheetName = sheet.getSheetName()==null?fileName:sheet.getSheetName();
+                DocumentEntity doc = createDocument(knowledgeId, sheetName, DocType.BASE.getType());
+                docs.add(doc);
+                System.out.println("正在读取 Sheet: " + sheet.getSheetName());
+                // 使用已构建的 excelReader 读取当前 sheet
+                excelReader.read(sheet);
+                List<DatasetExcel> dataList = dataListener.getDataList();
+                for (DatasetExcel data : dataList) {
+                    log.info("在Sheet {} 中读取到一条数据{}", sheet.getSheetName(), JSON.toJSONString(data));
+                    ParagraphEntity paragraph = paragraphService.createParagraph(knowledgeId, doc.getId(), data.getTitle(), data.getContent(), null);
+                    paragraphs.add(paragraph);
+                    doc.setCharLength(doc.getCharLength() + paragraph.getContent().length());
+                    if (StringUtils.isNotBlank(data.getProblems())) {
+                        String[] problems = data.getProblems().split("\n");
+                        for (String problem : problems) {
+                            String problemId = IdWorker.get32UUID();
+                            ProblemEntity existingProblem = problemService.findProblem(problem, knowledgeProblems);
+                            if (existingProblem == null) {
+                                ProblemEntity problemEntity = ProblemEntity.createDefault();
+                                problemEntity.setId(problemId);
+                                problemEntity.setKnowledgeId(knowledgeId);
+                                problemEntity.setContent(problem);
+                                problemEntities.add(problemEntity);
+                                knowledgeProblems.add(problemEntity);
+                            } else {
+                                problemId = existingProblem.getId();
+                            }
+                            if (!isExistProblemParagraph(paragraph.getId(), problemId, problemParagraphs)) {
+                                ProblemParagraphEntity problemParagraph = new ProblemParagraphEntity();
+                                problemParagraph.setKnowledgeId(knowledgeId);
+                                problemParagraph.setParagraphId(paragraph.getId());
+                                problemParagraph.setDocumentId(doc.getId());
+                                problemParagraph.setProblemId(problemId);
+                                problemParagraphs.add(problemParagraph);
+                            }
+                        }
+                    }
+                }
+                dataListener.clear();
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("读取 Excel 失败", e);
+        }
+        this.saveBatch(docs);
+        paragraphService.saveBatch(paragraphs);
+        problemService.saveBatch(problemEntities);
+        problemParagraphService.saveBatch(problemParagraphs);
+        for (DocumentEntity doc : docs) {
+            this.updateStatusById(doc.getId(), 1, 0);
+            //目的是为了显示进度计数
+            this.updateStatusMetaById(doc.getId());
+            eventPublisher.publishEvent(new DocumentIndexEvent(this, knowledgeId,List.of(doc.getId()),List.of("0")));
         }
     }
+
+
+
 
 
     private boolean isExistProblemParagraph(String paragraphId, String problemId, List<ProblemParagraphEntity> problemParagraphs) {
@@ -366,14 +347,11 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         zipOutputStream.putNextEntry(zipEntry);
         zipOutputStream.write(excelOutputStream.toByteArray()); // 将字节输出流转为字节数组写入
         zipOutputStream.closeEntry();
-
         // 关闭Excel相关的资源
         excelOutputStream.close();
-
         // 完成ZIP文件的写入
         zipOutputStream.finish();
         zipOutputStream.close();
-
         // 将所有数据写入最终输出流
         OutputStream outputStream = response.getOutputStream();
         byteArrayOutputStream.writeTo(outputStream);
@@ -382,7 +360,8 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
     }
 
     @Transactional
-    public boolean createBatchDoc(String knowledgeId, List<DocumentNameDTO> docs) {
+    public boolean batchCreateDoc(String knowledgeId, List<DocumentNameDTO> docs) {
+        List<String> docIds=new ArrayList<>();
         if (!CollectionUtils.isEmpty(docs)) {
             List<DocumentEntity> documentEntities = new ArrayList<>();
             List<ParagraphEntity> paragraphEntities = new ArrayList<>();
@@ -402,13 +381,10 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
                 paragraphService.saveBatch(paragraphEntities);
             }
             this.saveBatch(documentEntities);
-            documentEntities.forEach(doc -> {
-                this.updateStatusById(doc.getId(), 1, 0);
-                //目的是为了显示进度计数
-                this.updateStatusMetaById(doc.getId());
-            });
+            documentEntities.forEach(doc -> docIds.add(doc.getId()));
+            eventPublisher.publishEvent(new DocumentIndexEvent(this, knowledgeId,docIds,List.of("0")));
         }
-        return false;
+        return true;
     }
 
     public DocumentEntity createDocument(String knowledgeId, String name, Integer type) {
@@ -438,7 +414,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
 
     @Transactional
     public boolean embedByDocIds(String knowledgeId,List<String> docIds,List<String> stateList) {
-        eventPublisher.publishEvent(new DataIndexEvent(this, knowledgeId,docIds,stateList));
+        eventPublisher.publishEvent(new DocumentIndexEvent(this, knowledgeId,docIds,stateList));
         return true;
     }
 
@@ -617,26 +593,6 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
     }
 
     public boolean batchGenerateRelated(String knowledgeId, GenerateProblemDTO dto) {
-   /*     if (CollectionUtils.isEmpty(dto.getDocumentIdList())) {
-            return false;
-        }
-        paragraphService.updateStatusByDocIds(dto.getDocumentIdList(), 2, 0);
-        baseMapper.updateStatusByIds(dto.getDocumentIdList(), 2, 0);
-        baseMapper.updateStatusMetaByIds(dto.getDocumentIdList());
-        KnowledgeEntity dataset = datasetMapper.selectById(knowledgeId);
-        ChatModel chatModel = modelFactory.buildChatModel(dto.getModelId());
-        EmbeddingModel embeddingModel = modelFactory.buildEmbeddingModel(dataset.getEmbeddingModelId());
-        dto.getDocumentIdList().parallelStream().forEach(docId -> {
-            List<ParagraphEntity> paragraphs = paragraphService.lambdaQuery().eq(ParagraphEntity::getDocumentId, docId).list();
-            List<ProblemEntity> allProblems = problemService.lambdaQuery().eq(ProblemEntity::getKnowledgeId, knowledgeId).list();
-            baseMapper.updateStatusByIds(List.of(docId), 2, 1);
-            paragraphs.forEach(paragraph -> {
-                problemService.generateRelated(chatModel, embeddingModel, knowledgeId, docId, paragraph, allProblems, dto.getPrompt());
-                paragraphService.updateStatusById(paragraph.getId(), 2, 2);
-                baseMapper.updateStatusMetaByIds(List.of(paragraph.getDocumentId()));
-            });
-            baseMapper.updateStatusByIds(List.of(docId), 2, 2);
-        });*/
         eventPublisher.publishEvent(new GenerateProblemEvent(this, knowledgeId,dto.getDocumentIdList(),dto.getModelId(),dto.getPrompt(),dto.getStateList()));
         return true;
     }

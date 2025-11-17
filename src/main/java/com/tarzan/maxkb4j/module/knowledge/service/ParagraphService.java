@@ -6,8 +6,8 @@ import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.tarzan.maxkb4j.core.event.DataIndexEvent;
 import com.tarzan.maxkb4j.core.event.GenerateProblemEvent;
+import com.tarzan.maxkb4j.core.event.ParagraphIndexEvent;
 import com.tarzan.maxkb4j.module.knowledge.consts.SourceType;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.GenerateProblemDTO;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.ParagraphAddDTO;
@@ -116,7 +116,7 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
         this.updateStatusById(paragraph.getId(),1,0);
         this.updateById(paragraph);
         documentMapper.updateCharLengthById(docId);
-        eventPublisher.publishEvent(new DataIndexEvent(this, knowledgeId,List.of(docId),List.of("0")));
+        eventPublisher.publishEvent(new ParagraphIndexEvent(this, knowledgeId,docId,paragraph.getId()));
     }
 
 
@@ -154,7 +154,7 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
             }
             problemParagraphService.saveBatch(problemParagraphMappingEntities);
         }
-        eventPublisher.publishEvent(new DataIndexEvent(this, knowledgeId,List.of(docId),List.of("0")));
+        eventPublisher.publishEvent(new ParagraphIndexEvent(this, knowledgeId,docId,paragraph.getId()));
         return documentMapper.updateCharLengthById(docId);
     }
 

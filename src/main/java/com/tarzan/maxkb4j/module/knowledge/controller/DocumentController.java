@@ -102,7 +102,7 @@ public class DocumentController {
  
     @PutMapping("/knowledge/{id}/document/batch_create")
     public R<Boolean> createBatchDoc(@PathVariable("id") String id, @RequestBody List<DocumentNameDTO> docs) {
-        return R.success(documentService.createBatchDoc(id, docs));
+        return R.success(documentService.batchCreateDoc(id, docs));
     }
 
   

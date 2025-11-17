@@ -6,13 +6,13 @@ import org.springframework.context.ApplicationEvent;
 import java.util.List;
 
 @Getter
-public class DataIndexEvent extends ApplicationEvent {
+public class DocumentIndexEvent extends ApplicationEvent {
 
     private final String knowledgeId;
     private final List<String> docIds;
     private final List<String> stateList;
 
-    public DataIndexEvent(Object source,String knowledgeId, List<String> docIds, List<String> stateList) {
+    public DocumentIndexEvent(Object source, String knowledgeId, List<String> docIds, List<String> stateList) {
         super(source);
         this.knowledgeId = knowledgeId;
         this.docIds = docIds;

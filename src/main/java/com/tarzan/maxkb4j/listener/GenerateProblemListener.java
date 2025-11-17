@@ -37,7 +37,7 @@ public class GenerateProblemListener {
         ChatModel chatModel=modelFactory.buildChatModel(event.getModelId());
         EmbeddingModel embeddingModel=knowledgeBaseService.getEmbeddingModel(event.getKnowledgeId());
         documentService.updateStatusByIds(event.getDocumentIdList(), 2, 0);
-        List<ProblemEntity> allProblems = problemService.lambdaQuery().eq(ProblemEntity::getKnowledgeId, event.getKnowledgeId()).list();
+        List<ProblemEntity> knowledgeProblems = problemService.lambdaQuery().eq(ProblemEntity::getKnowledgeId, event.getKnowledgeId()).list();
         for (String docId : event.getDocumentIdList()) {
             List<ParagraphEntity> paragraphs = paragraphService.listByStateIds(docId,2, event.getStateList());
             if (CollectionUtils.isNotEmpty(paragraphs)){
@@ -47,7 +47,7 @@ public class GenerateProblemListener {
                 paragraphService.updateStatusByIds(paragraphIds, 2, 1);
                 documentService.updateStatusById(docId, 2, 1);
                 paragraphs.forEach(paragraph -> {
-                    problemService.generateRelated(chatModel, embeddingModel, event.getKnowledgeId(), docId, paragraph, allProblems, event.getPrompt());
+                    problemService.generateRelated(chatModel, embeddingModel, event.getKnowledgeId(), docId, paragraph, knowledgeProblems, event.getPrompt());
                     paragraphService.updateStatusById(paragraph.getId(), 2, 2);
                     documentService.updateStatusMetaById(docId);
                 });

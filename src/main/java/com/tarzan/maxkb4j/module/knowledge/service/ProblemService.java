@@ -45,7 +45,7 @@ public class ProblemService extends ServiceImpl<ProblemMapper, ProblemEntity> {
     }
 
 
-    public void generateRelated(ChatModel chatModel, EmbeddingModel embeddingModel, String knowledgeId, String docId, ParagraphEntity paragraph, List<ProblemEntity> allProblems, String prompt) {
+    public void generateRelated(ChatModel chatModel, EmbeddingModel embeddingModel, String knowledgeId, String docId, ParagraphEntity paragraph, List<ProblemEntity> knowledgeProblems, String prompt) {
         log.info("开始---->段落生成问题:{}", paragraph.getId());
         ProblemGenerateAssistant assistant = AiServices.builder(ProblemGenerateAssistant.class).chatModel(chatModel).build();
         List<String> paragraphProblems = assistant.generate(prompt.replace("{data}", paragraph.getContent()));
@@ -53,14 +53,14 @@ public class ProblemService extends ServiceImpl<ProblemMapper, ProblemEntity> {
         if (!CollectionUtils.isEmpty(paragraphProblems)) {
             for (String problem : paragraphProblems) {
                 String problemId = IdWorker.get32UUID();
-                ProblemEntity existingProblem = findProblem(problem, allProblems);
+                ProblemEntity existingProblem = findProblem(problem, knowledgeProblems);
                 if (existingProblem == null) {
                     ProblemEntity entity = ProblemEntity.createDefault();
                     entity.setId(problemId);
                     entity.setKnowledgeId(knowledgeId);
                     entity.setContent(problem);
                     insertProblems.add(entity);
-                    allProblems.add(entity);
+                    knowledgeProblems.add(entity);
                 } else {
                     problemId = existingProblem.getId();
                 }
