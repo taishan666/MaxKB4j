@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tarzan.maxkb4j.module.knowledge.mapper.KnowledgeMapper">
+    <!-- 多个字段中某个字段的类型处理器配置 -->
+    <resultMap id="knowledgeResultMap" type="com.tarzan.maxkb4j.module.knowledge.domain.vo.KnowledgeVO">
+        <result property="meta" column="meta"
+                typeHandler="com.baomidou.mybatisplus.extension.handlers.FastjsonTypeHandler"/>
+    </resultMap>
+
+    <select id="selectKnowledgePage" resultMap="knowledgeResultMap">
+        SELECT
+        k.*,
+        COALESCE(doc_stats.document_count, 0) AS document_count,
+        COALESCE(doc_stats.char_length, 0) AS char_length,
+        COALESCE(map_stats.application_mapping_count, 0) AS application_mapping_count
+        FROM
+        knowledge k
+        LEFT JOIN (
+        SELECT
+        d.knowledge_id,
+        COUNT(*) AS document_count,
+        SUM(d.char_length) AS char_length
+        FROM
+        "document" d
+        GROUP BY
+        d.knowledge_id
+        ) doc_stats ON k.ID = doc_stats.knowledge_id
+        LEFT JOIN (
+        SELECT
+        adm.knowledge_id,
+        COUNT(DISTINCT adm.application_id) AS application_mapping_count
+        FROM
+        application_knowledge_mapping adm
+        GROUP BY
+        adm.knowledge_id
+        ) map_stats ON k.ID = map_stats.knowledge_id
+        <where>
+            <if test="query.createUser != null and query.createUser != ''">
+                AND k.user_id = #{query.createUser}
+            </if>
+            <if test="query.name != null and !query.name!= ''">
+                AND k.name LIKE '%' || #{query.name} || '%'
+            </if>
+            <if test="query.folderId != null and !query.folderId!= ''">
+                AND k.folder_id = #{query.folderId}
+            </if>
+            <if test="query.type != null">
+                AND k.type = #{query.type}
+            </if>
+            <choose>
+                <when test="query.isAdmin != null and !query.isAdmin">
+                  <choose>
+                      <when test="query.targetIds != null and @org.apache.commons.collections.CollectionUtils@isNotEmpty(query.targetIds)">
+                          AND k.ID IN
+                          <foreach collection="query.targetIds" item="targetId" open="(" separator="," close=")">
+                              #{targetId}
+                          </foreach>
+                      </when>
+                      <otherwise>
+                          AND k.ID=''
+                      </otherwise>
+                  </choose>
+                </when>
+            </choose>
+        </where>
+        ORDER BY k.create_time DESC
+    </select>
+
+</mapper>

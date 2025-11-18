@@ -7,5 +7,5 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class ModelVO extends ModelEntity {
-    private String username;
+    private String nickname;
 }

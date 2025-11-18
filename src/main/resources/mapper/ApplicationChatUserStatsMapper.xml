@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tarzan.maxkb4j.module.application.mapper.ApplicationChatUserStatsMapper">
+
+    <select id="getCustomerCountTrend" resultType="com.tarzan.maxkb4j.module.application.domian.vo.ApplicationChatUserStatsVO">
+        SELECT
+        COUNT ( id ) AS "customer_added_count",
+        create_time :: DATE as "day"
+        FROM
+        application_chat_user_stats
+        <where>
+            APPLICATION_ID = #{appId}
+            <if test="query.startTime != null and query.startTime != ''">
+                and  <![CDATA[TO_CHAR(create_time, 'YYYY-MM-DD') >= #{query.startTime} ]]>
+            </if>
+            <if test="query.endTime != null and query.endTime != ''">
+                and  <![CDATA[TO_CHAR(create_time, 'YYYY-MM-DD') <= #{query.endTime} ]]>
+            </if>
+        </where>
+        GROUP BY "day";
+    </select>
+
+</mapper>

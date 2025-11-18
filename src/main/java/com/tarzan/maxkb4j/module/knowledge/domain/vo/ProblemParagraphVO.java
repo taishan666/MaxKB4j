@@ -1,0 +1,15 @@
+package com.tarzan.maxkb4j.module.knowledge.domain.vo;
+
+import com.tarzan.maxkb4j.module.knowledge.domain.entity.ProblemParagraphEntity;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+
+@EqualsAndHashCode(callSuper = true)
+@Data
+public class ProblemParagraphVO extends ProblemParagraphEntity {
+    private String content;
+    private String knowledgeId;
+    private String documentId;
+    private String paragraphId;
+    private String problemId;
+}

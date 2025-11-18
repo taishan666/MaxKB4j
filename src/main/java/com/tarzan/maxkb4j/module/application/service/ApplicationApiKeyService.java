@@ -1,14 +1,14 @@
 package com.tarzan.maxkb4j.module.application.service;
 
-import cn.dev33.satoken.stp.StpUtil;
+import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.tarzan.maxkb4j.common.constant.AppConst;
+import com.tarzan.maxkb4j.common.util.StpKit;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationApiKeyEntity;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationApiKeyMapper;
 import org.springframework.stereotype.Service;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.UUID;
 
 /**
  * @author tarzan
@@ -26,10 +26,9 @@ public class ApplicationApiKeyService extends ServiceImpl<ApplicationApiKeyMappe
         entity.setApplicationId(appId);
         entity.setIsActive(true);
         entity.setAllowCrossDomain(false);
-        String uuid = UUID.randomUUID().toString();
-        entity.setSecretKey("maxKb4j-" + uuid.replaceAll("-", ""));
-        entity.setUserId(StpUtil.getLoginIdAsString());
-        entity.setCrossDomainList(new HashSet<>());
+        entity.setSecretKey(AppConst.APP_KEY_PREFIX + IdWorker.get32UUID());
+        entity.setUserId(StpKit.ADMIN.getLoginIdAsString());
+        entity.setCrossDomainList(List.of());
         return this.save(entity);
     }
 

@@ -20,7 +20,7 @@ spring:
   flyway:
     enabled: true
     baseline-on-migrate: true
-    locations: classpath:/db/migration
+    locations: classpath:db/migration
 
 
 mybatis-plus:
@@ -31,13 +31,15 @@ mybatis-plus:
       column-format:  "\"%s\""
   mapper-locations: classpath:mapper/**/*.xml,mapper/*.xml
   type-aliases-package: com.tarzan.**.entity
-
+  type-handlers-package: com.tarzan.maxkb4j.common.typehandler
+  #configuration:
+    #log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
 ############## Sa-Token 配置 (文档: https://sa-token.cc) ##############
 sa-token:
   # jwt秘钥
   jwt-secret-key: asdasdasifhueuiwyurfewbfjsdafjk
   # token 名称（同时也是 cookie 名称）
-  token-name: satoken
+  token-name: token
   # token 有效期（单位：秒） 默认30天，-1 代表永久有效
   timeout: 3600
   # token 最低活跃频率（单位：秒），如果 token 超过此时间没有访问系统就会被冻结，默认-1 代表不限制，永不冻结
@@ -50,6 +52,10 @@ sa-token:
   # token-style: random-128
   # 是否输出操作日志
   is-log: true
+  # 是否读取 Cookie
+  is-read-cookie: true
+  is-write-header: true
+
 
 decorator:
   datasource:
@@ -57,3 +63,7 @@ decorator:
       # 日志格式
       log-format: "\ntime:%(executionTime) || sql:%(sql)\n"
       enable-logging: false
+
+system:
+  default-username: admin
+  default-password: tarzan@123456

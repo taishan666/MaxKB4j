@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.tarzan.maxkb4j.module.dataset.mapper.ParagraphMapper">
+<mapper namespace="com.tarzan.maxkb4j.module.knowledge.mapper.ParagraphMapper">
     <update id="updateStatusByIds">
         UPDATE "paragraph"
         SET status = reverse (
@@ -20,37 +20,6 @@
         </foreach>
     </update>
 
-    <update id="updateStatusById">
-        UPDATE "paragraph"
-        SET status = reverse (
-        SUBSTRING ( reverse ( LPAD( status, 3, 'n' ) ) :: TEXT FROM 1 FOR #{up} ) || #{status} || SUBSTRING ( reverse ( LPAD( status, 3, 'n' ) ) :: TEXT FROM #{next} )
-        ),
-        status_meta = jsonb_set (
-        "paragraph".status_meta,
-        ARRAY['state_time', #{type}::TEXT],
-        jsonb_set (
-        COALESCE ( "paragraph".status_meta #> ARRAY['state_time', #{type}::TEXT], jsonb_build_object(#{status}, now())),
-        ARRAY[#{status}::TEXT],
-        CONCAT ( '"', now( ), '"' ) :: JSONB
-        )
-        ) WHERE "paragraph"."id" =   #{paragraphId}
-    </update>
-
-    <update id="updateStatusByDocId">
-        UPDATE "paragraph"
-        SET status = reverse (
-                SUBSTRING ( reverse ( LPAD( status, 3, 'n' ) ) :: TEXT FROM 1 FOR #{up} ) || #{status} || SUBSTRING ( reverse ( LPAD( status, 3, 'n' ) ) :: TEXT FROM #{next} )
-                     ),
-            status_meta = jsonb_set (
-                    "paragraph".status_meta,
-                    ARRAY['state_time', #{type}::TEXT],
-                    jsonb_set (
-                            COALESCE ( "paragraph".status_meta #> ARRAY['state_time', #{type}::TEXT], jsonb_build_object(#{status}, now())),
-                            ARRAY[#{status}::TEXT],
-                            CONCAT ( '"', now( ), '"' ) :: JSONB
-                    )
-                          ) WHERE "paragraph"."document_id" =   #{docId}
-    </update>
 
     <update id="updateStatusByDocIds">
         UPDATE "paragraph"
@@ -71,18 +40,34 @@
         </foreach>
     </update>
 
-    <select id="retrievalParagraph" resultType="com.tarzan.maxkb4j.module.dataset.domain.vo.ParagraphVO">
+    <select id="retrievalParagraph" resultType="com.tarzan.maxkb4j.module.knowledge.domain.vo.ParagraphVO">
         SELECT
             ph.*,
             doc."name" AS document_name,
             doc."hit_handling_method",
-            doc."directly_return_similarity"
+            doc."directly_return_similarity",
+            knowledge."name" AS knowledge_name,
+            knowledge."type" AS knowledge_type
         FROM
             paragraph ph
                 LEFT JOIN "document" doc ON ph.document_id = doc.ID
+                LEFT JOIN "knowledge" knowledge ON ph.knowledge_id = knowledge.ID
         WHERE ph.id IN
         <foreach item="id" collection="paragraphIds" open="(" separator="," close=")">
             #{id}
+        </foreach>
+    </select>
+    <select id="listByStateIds"
+            resultType="com.tarzan.maxkb4j.module.knowledge.domain.entity.ParagraphEntity">
+        SELECT
+            *
+        FROM
+            paragraph
+        WHERE
+            document_id=#{docId}
+            AND SUBSTRING(status FROM #{fromIndex} FOR 1) IN
+        <foreach item="state" collection="stateList" open="(" separator="," close=")">
+            #{state}
         </foreach>
     </select>
 </mapper>

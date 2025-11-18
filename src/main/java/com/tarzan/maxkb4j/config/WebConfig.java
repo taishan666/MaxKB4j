@@ -3,9 +3,7 @@ package com.tarzan.maxkb4j.config;
 
 import com.tarzan.maxkb4j.core.interceptor.AuthInterceptor;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.servlet.config.annotation.*;
 
@@ -15,11 +13,6 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void configureAsyncSupport(AsyncSupportConfigurer configurer) {
-        configurer.setTaskExecutor(asyncExecutor());
-    }
-
-    @Bean(name = "asyncExecutor")
-    public AsyncTaskExecutor asyncExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(4);
         executor.setMaxPoolSize(10);
@@ -27,42 +20,42 @@ public class WebConfig implements WebMvcConfigurer {
         executor.setThreadNamePrefix("Async-Executor-");
         executor.setWaitForTasksToCompleteOnShutdown(true);
         executor.initialize();
-        return executor;
+        configurer.setTaskExecutor(executor);
     }
 
 
     @Override
-    public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        registry.addResourceHandler("doc.html").addResourceLocations("classpath:/META-INF/resources/");
-        registry.addResourceHandler("/webjars/**").addResourceLocations("classpath:/META-INF/resources/webjars/");
-        //放行所有的静态资源，为了保证vue项目可以正常使用
-        //registry.addResourceHandler("/**").addResourceLocations("classpath:/static/");
+    public void addResourceHandlers(@NotNull ResourceHandlerRegistry registry) {
+    /*    registry.addResourceHandler("/doc.html").addResourceLocations("classpath:/META-INF/resources/");
+        registry.addResourceHandler("/webjars/**").addResourceLocations("classpath:/META-INF/resources/webjars/");*/
     }
 
     /**
      * 注册sa-token的拦截器
      */
     @Override
-    public void addInterceptors(InterceptorRegistry registry) {
+    public void addInterceptors(@NotNull InterceptorRegistry registry) {
         // 拦截聊天所有请求
-        registry.addInterceptor(new AuthInterceptor()).addPathPatterns("/api/application/chat/**");
+        registry.addInterceptor(new AuthInterceptor())
+                .addPathPatterns("/chat/api/application/profile")
+                .addPathPatterns("/chat/api/open")
+                .addPathPatterns("/chat/api/chat_message/*");
     }
 
 
     @Override
     public void addViewControllers(@NotNull ViewControllerRegistry registry) {
-        registry.addViewController("/{path:[^.]*}").setViewName("forward:/index.html");
-        registry.addViewController("/{path:[^.]*}/{path1:[^.]*}").setViewName("forward:/index.html");
-        registry.addViewController("/{path:[^.]*}/{path1:[^.]*}/{path2:[^.]*}").setViewName("forward:/index.html");
-        registry.addViewController("/{path:[^.]*}/{path1:[^.]*}/{path2:[^.]*}/{path3:[^.]*}").setViewName("forward:/index.html");
-        registry.addViewController("/{path:[^.]*}/{path1:[^.]*}/{path2:[^.]*}/{path3:[^.]*}/{path4:[^.]*}").setViewName("forward:/index.html");
+        registry.addViewController("/admin/{path:[^.]*}").setViewName("forward:/admin/index.html");
+        registry.addViewController("/admin/{path1:[^.]*}/{path2:[^.]*}").setViewName("forward:/admin/index.html");
+        registry.addViewController("/admin/{path1:[^.]*}/{path2:[^.]*}/{path3:[^.]*}").setViewName("forward:/admin/index.html");
+        registry.addViewController("/admin/{path1:[^.]*}/{path2:[^.]*}/{path3:[^.]*}/{path4:[^.]*}").setViewName("forward:/admin/index.html");
+        registry.addViewController("/admin/{path1:[^.]*}/{path2:[^.]*}/{path3:[^.]*}/{path4:[^.]*}/{path5:[^.]*}").setViewName("forward:/admin/index.html");
+        registry.addViewController("/chat/{path:[^.]*}").setViewName("forward:/chat/index.html");
+        registry.addViewController("/chat-api-doc").setViewName("forward:/doc.html");
     }
 
 
-   /*  *//**
-     * 解决全局跨域，
-     *
-      *//*
+
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         // 添加映射路径
@@ -81,5 +74,5 @@ public class WebConfig implements WebMvcConfigurer {
                         "access-control-allow-origin",
                         "access-control-max-age",
                         "X-Frame-Options");
-    }*/
+    }
 }

@@ -9,7 +9,7 @@ public enum SettingType {
     Email(0),
     /*密匙*/
     KEY(1),
-    /*密匙*/
+    /*主题显示*/
     DISPLAY(2);
 
     private final int type;

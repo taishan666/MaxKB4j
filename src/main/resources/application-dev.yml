@@ -1,11 +1,11 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/Maxkb4j_v1
+    url: jdbc:postgresql://localhost:5432/MaxKB4J_v2_beta
     username: username
     password: password
     driver-class-name: org.postgresql.Driver
   data:
     mongodb:
-      database: MaxKB4j
+      database: MaxKB4J_v2
       uri: mongodb://myusername:mypassword@localhost:27017
 

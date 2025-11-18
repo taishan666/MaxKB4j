@@ -14,33 +14,22 @@ MaxKB4j = Max Knowledge Base for Java，是一款基于Java语言开发的LLM工
 
 目前已经完成所有核心的功能的开发，正在完善优化项目，预计月底完成，之后会完善文档和示例，欢迎大家参与完善。
 
-- v2版本内测中，本月即将上线
-
 
 ## 功能导图
 ![输入图片说明](image/MaxKB4J.png)
 
-## 部署启动
+## 快速开始
 
-### 普通部署
-
-- 安装postgers和mongodb
-- 配置数据库连接后打包，执行启动命令
 ```
 java -jar maxkb4j-1.0.0.jar
 ```
-### docker 部署
-
-- 安装docker和docker-compose
-- 下载代码种的docker-compose.yml文件，到自定义目录下
-- 在目录下，执行命令
-
-```
-docker-compose up -d
-```
-
 - 访问地址 - 访问地址 http://localhost:8080/login
 - 默认用户/密码 admin/maxkb4j.
+
+
+## 案例展示
+
+MaxKB4j 自发布以来，日均安装下载超过 1000 次，被广泛应用于智能客服、企业内部知识库、学术教育研究等场景。
 
 
 ## UI 展示
@@ -104,41 +93,12 @@ docker-compose up -d
 请提交 issues [https://gitee.com/taisan/MaxKB4j/issues](https://gitee.com/taisan/MaxKB4j/issues)
 
 ## 咨询和反馈
-- **这个项目我已独自坚持了半年多，期间尝试找合伙人未果——毕竟没人能长期免费投入。<br>我之前的开源项目，也因缺乏反馈和收益而被迫放弃。<br>如果你觉得这个项目有价值，请给个 Star 支持，或加入知识星球深度参与。<br>
-你的支持，不只是鼓励，更是它能否持续发展的关键。<br>若长期无人支持，可能只能无奈停更。<br>一个 Star，一次加入，都能让它走得更远。**
 - **提供MaxKB相关问题的咨询解答，协助部署等。**
+- **这个项目我已独自坚持了半年多，期间尝试找合伙人未果——毕竟没人能长期免费投入。<br>我之前的开源项目，也因缺乏反馈和收益而被迫放弃。如果你觉得这个项目有价值，请给个 Star 支持，或加入知识星球深度参与。<br>
+  你的支持，不只是鼓励，更是它能否持续发展的关键。<br>若长期无人支持，可能只能无奈停更。<br>一个 Star，一次加入，都能让它走得更远。**
 
-<table style="border-collapse: collapse; border: 1px solid black;">
-  <tr>
-    <th style="padding: 10px;"> <div align="center">知识星球</div></th>
-    <th style="padding: 10px;"> <div align="center">微信赞赏码</div></th>
-  </tr>
-  <tr>
-    <td style="padding: 5px;background-color:#fff;"><img src="image/gitee_zsxq.png" alt="知识星球"   /></td>
-    <td style="padding: 5px;background-color:#fff;"><img src= "image/wx_zsm.jpg" alt="微信赞赏码"   /></td>
-  </tr>
-</table>
+![AI交流知识星球](image/gitee_zsxq.png)
 
-## 🙏 致谢
-
-感谢以下各位对本项目资金捐赠等各种方式的支持！以下排名不分先后：
-<table>
-  <tbody>
-    <tr>
-      <td align="center" valign="top" width="11.11%"><a href="https://gitee.com/36436022" target="_blank"><img src=".image/sponsor/Best%20Yao.jpg" width="80px;" alt="金鸿伟"/><br /><sub><b>金鸿伟</b></sub></a></td>
-      <td align="center" valign="top" width="11.11%"><a href="javascript:void(0)" target="_blank"><img src=".image/sponsor/Best%20Yao.jpg" width="80px;" alt="Best Yao"/><br /><sub><b>Best Yao</b></sub></a></td>
-      <td align="center" valign="top" width="11.11%"><a href="https://gitee.com/weiloser" target="_blank"><img src=".image/sponsor/Best%20Yao.jpg" width="80px;" alt="无为而治"/><br /><sub><b>无为而治</b></sub></a></td>
-      <td align="center" valign="top" width="11.11%"><a href="https://gitee.com/shup092_admin" target="_blank"><img src="https://foruda.gitee.com/avatar/1715249792671224067/1875078_shup092_admin_1715249792.png!avatar200" width="80px;" alt="shup"/><br /><sub><b>shup</b></sub></a></td>
-      <td align="center" valign="top" width="11.11%"><a href="https://gitee.com/gampa" target="_blank"><img src="https://foruda.gitee.com/avatar/1756193534973241962/13981826_gampa_1756193534.png!avatar200" width="80px;" alt="也许"/><br /><sub><b>也许</b></sub></a></td>
-      <td align="center" valign="top" width="11.11%"><a href="https://gitee.com/leishaozhuanshudi" target="_blank"><img src=".image/sponsor/Best%20Yao.jpg" width="80px;" alt="⁰ʚᦔrꫀꪖꪑ⁰ɞ ."/><br /><sub><b>⁰ʚᦔrꫀꪖꪑ⁰ɞ .</b></sub></a></td>
-      <td align="center" valign="top" width="11.11%"><a href="https://gitee.com/fateson" target="_blank"><img src=".image/sponsor/Best%20Yao.jpg" width="80px;" alt="逆"/><br /><sub><b>逆</b></sub></a></td>
-      <td align="center" valign="top" width="11.11%"><a href="https://gitee.com/dongGezzz_admin" target="_blank"><img src=".image/sponsor/Best%20Yao.jpg" width="80px;" alt="廖东旺"/><br /><sub><b>廖东旺</b></sub></a></td>
-      <td align="center" valign="top" width="11.11%"><a href="https://gitee.com/huangzhen1993" target="_blank"><img src="https://foruda.gitee.com/avatar/1755927793103396536/5094937_huangzhen1993_1755927793.png!avatar200" width="80px;" alt="黄振"/><br /><sub><b>黄振</b></sub></a></td>
-    </tr>
-  </tbody>
-</table>
-
-- 赞赏10元以上，可以联系我上捐赠榜单
 ## License
 
 Copyright (c) 2025-2035 洛阳泰山 TARZAN, All rights reserved.

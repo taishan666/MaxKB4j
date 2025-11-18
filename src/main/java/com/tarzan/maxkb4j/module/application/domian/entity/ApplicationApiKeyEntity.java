@@ -2,12 +2,12 @@ package com.tarzan.maxkb4j.module.application.domian.entity;
 
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.tarzan.maxkb4j.core.handler.type.StringSetTypeHandler;
-import com.tarzan.maxkb4j.core.common.entity.BaseEntity;
+import com.tarzan.maxkb4j.common.base.entity.BaseEntity;
+import com.tarzan.maxkb4j.common.typehandler.StringListTypeHandler;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-import java.util.Set;
+import java.util.List;
 
 /**
   * @author tarzan
@@ -15,13 +15,13 @@ import java.util.Set;
   */
 @EqualsAndHashCode(callSuper = true)
 @Data
-@TableName("application_api_key")
+@TableName(value = "application_api_key", autoResultMap = true)
 public class ApplicationApiKeyEntity extends BaseEntity {
 	private String secretKey;
 	private Boolean isActive;
 	private String applicationId;
 	private String userId;
 	private Boolean allowCrossDomain;
-	@TableField(typeHandler = StringSetTypeHandler.class)
-	private Set<String> crossDomainList;
+	@TableField(typeHandler = StringListTypeHandler.class)
+	private List<String> crossDomainList;
 } 

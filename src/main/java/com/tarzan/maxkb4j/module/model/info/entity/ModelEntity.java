@@ -4,9 +4,9 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.tarzan.maxkb4j.core.common.entity.BaseEntity;
-import com.tarzan.maxkb4j.core.handler.type.JOSNBTypeHandler;
-import com.tarzan.maxkb4j.core.handler.type.ModelCredentialTypeHandler;
+import com.tarzan.maxkb4j.common.base.entity.BaseEntity;
+import com.tarzan.maxkb4j.common.typehandler.JSONBTypeHandler;
+import com.tarzan.maxkb4j.common.typehandler.ModelCredentialTypeHandler;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -32,13 +32,11 @@ public class ModelEntity extends BaseEntity {
     
     private String userId;
     
-	@TableField(typeHandler = JOSNBTypeHandler.class)
+	@TableField(typeHandler = JSONBTypeHandler.class)
     private JSONObject meta;
     
     private String status;
     
-    private String permissionType;
-    
-    @TableField(typeHandler = JOSNBTypeHandler.class)
+    @TableField(typeHandler = JSONBTypeHandler.class)
     private JSONArray modelParamsForm;
 } 

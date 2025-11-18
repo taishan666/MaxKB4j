@@ -1,9 +1,10 @@
 package com.tarzan.maxkb4j.module.application.handler;
 
-import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatRecordEntity;
+import com.tarzan.maxkb4j.module.chat.dto.ChatParams;
+import com.tarzan.maxkb4j.module.chat.dto.ChatResponse;
 
 public abstract class PostResponseHandler {
 
-    public abstract void handler(String chatId, String chatRecordId, String problemText, String answerText, ApplicationChatRecordEntity chatRecord, JSONObject details, long startTime, String clientId, String clientType);
+    public abstract void handler(ChatParams chatParams, ChatResponse chatResponse, ApplicationChatRecordEntity chatRecord, long startTime);
 }

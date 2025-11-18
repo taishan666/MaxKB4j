@@ -22,7 +22,7 @@ import java.util.Objects;
 public class EmailService {
 
     private final MailConfigService mailConfigService;
-    private final SpringTemplateEngine emailTemplateEngine;
+    private final SpringTemplateEngine springTemplateEngine;
 
 
     public void sendMessage(String to, String subject, String text) {
@@ -30,14 +30,14 @@ public class EmailService {
         message.setTo(to);
         message.setSubject(subject);
         message.setText(text);
-        mailConfigService.getJavaMailSender().send(message);
+        mailConfigService.createMailSender().send(message);
     }
 
     public void sendMessage(String to, String subject, String templateName, Context context) throws MessagingException {
-        JavaMailSenderImpl mailSender=mailConfigService.getJavaMailSender();
-        MimeMessage mimeMessage = mailConfigService.getJavaMailSender().createMimeMessage();
+        JavaMailSenderImpl mailSender=mailConfigService.createMailSender();
+        MimeMessage mimeMessage = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true);
-        String content = emailTemplateEngine.process(templateName, context);
+        String content = springTemplateEngine.process(templateName, context);
         helper.setFrom(new InternetAddress(Objects.requireNonNull(mailSender.getUsername()).substring(0, mailSender.getUsername().indexOf("@"))+"<"+mailSender.getUsername()+">").toString());
         helper.setTo(to);
         helper.setSubject(subject);

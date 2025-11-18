@@ -1,7 +1,5 @@
 package com.tarzan.maxkb4j.module.application.service;
 
-import cn.dev33.satoken.stp.SaLoginModel;
-import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.json.JSONUtil;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -11,45 +9,28 @@ import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.tarzan.maxkb4j.core.common.dto.Query;
-import com.tarzan.maxkb4j.core.exception.AccessException;
-import com.tarzan.maxkb4j.core.exception.ApiException;
+import com.tarzan.maxkb4j.common.exception.ApiException;
+import com.tarzan.maxkb4j.common.util.*;
 import com.tarzan.maxkb4j.module.application.domian.dto.ApplicationAccessTokenDTO;
-import com.tarzan.maxkb4j.module.application.domian.dto.ChatImproveDTO;
+import com.tarzan.maxkb4j.module.application.domian.dto.ApplicationQuery;
 import com.tarzan.maxkb4j.module.application.domian.dto.EmbedDTO;
 import com.tarzan.maxkb4j.module.application.domian.dto.MaxKb4J;
 import com.tarzan.maxkb4j.module.application.domian.entity.*;
+import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationListVO;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationVO;
-import com.tarzan.maxkb4j.module.application.domian.vo.McpToolVO;
 import com.tarzan.maxkb4j.module.application.enums.AppType;
-import com.tarzan.maxkb4j.module.application.enums.AuthType;
+import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatMapper;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationMapper;
-import com.tarzan.maxkb4j.module.dataset.domain.dto.DataSearchDTO;
-import com.tarzan.maxkb4j.module.dataset.domain.entity.DatasetEntity;
-import com.tarzan.maxkb4j.module.dataset.domain.entity.ParagraphEntity;
-import com.tarzan.maxkb4j.module.dataset.domain.vo.ParagraphVO;
-import com.tarzan.maxkb4j.module.dataset.service.DatasetService;
-import com.tarzan.maxkb4j.module.dataset.service.ParagraphService;
-import com.tarzan.maxkb4j.module.dataset.service.RetrieveService;
-import com.tarzan.maxkb4j.module.functionlib.domain.entity.FunctionLibEntity;
-import com.tarzan.maxkb4j.module.functionlib.service.FunctionLibService;
-import com.tarzan.maxkb4j.module.mcplib.entity.McpLibEntity;
-import com.tarzan.maxkb4j.module.mcplib.service.McpLibService;
-import com.tarzan.maxkb4j.module.model.info.entity.ModelEntity;
-import com.tarzan.maxkb4j.module.model.info.service.ModelService;
-import com.tarzan.maxkb4j.module.model.provider.impl.BaseSpeechToText;
-import com.tarzan.maxkb4j.module.model.provider.impl.BaseTextToSpeech;
-import com.tarzan.maxkb4j.module.resource.service.ImageService;
-import com.tarzan.maxkb4j.module.system.team.service.TeamMemberPermissionService;
+import com.tarzan.maxkb4j.module.knowledge.consts.SearchType;
+import com.tarzan.maxkb4j.module.knowledge.domain.entity.KnowledgeEntity;
+import com.tarzan.maxkb4j.module.knowledge.service.KnowledgeService;
+import com.tarzan.maxkb4j.module.model.custom.base.STTModel;
+import com.tarzan.maxkb4j.module.model.custom.base.TTSModel;
+import com.tarzan.maxkb4j.module.model.info.service.ModelFactory;
+import com.tarzan.maxkb4j.module.system.permission.constant.AuthTargetType;
+import com.tarzan.maxkb4j.module.system.permission.service.UserResourcePermissionService;
 import com.tarzan.maxkb4j.module.system.user.domain.entity.UserEntity;
 import com.tarzan.maxkb4j.module.system.user.service.UserService;
-import com.tarzan.maxkb4j.util.*;
-import dev.langchain4j.agent.tool.ToolSpecification;
-import dev.langchain4j.mcp.client.DefaultMcpClient;
-import dev.langchain4j.mcp.client.McpClient;
-import dev.langchain4j.mcp.client.transport.McpTransport;
-import dev.langchain4j.mcp.client.transport.http.HttpMcpTransport;
-import dev.langchain4j.model.chat.request.json.*;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -58,15 +39,15 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Path;
 import java.util.*;
-import java.util.stream.Collectors;
+
+import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.BASE;
+import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.SEARCH_KNOWLEDGE;
 
 /**
  * @author tarzan
@@ -76,52 +57,65 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 public class ApplicationService extends ServiceImpl<ApplicationMapper, ApplicationEntity> {
 
-    private final ModelService modelService;
-    private final DatasetService datasetService;
-    private final McpLibService  mcpLibService;
-    private final ImageService imageService;
+    private final ModelFactory modelFactory;
+    private final KnowledgeService knowledgeService;
     private final UserService userService;
-    private final RetrieveService retrieveService;
-    private final ParagraphService paragraphService;
-    private final TeamMemberPermissionService memberPermissionService;
     private final ApplicationAccessTokenService accessTokenService;
-    private final ApplicationPlatformService platformService;
     private final ApplicationApiKeyService applicationApiKeyService;
-    private final ApplicationPublicAccessClientService accessClientService;
-    private final ApplicationWorkFlowVersionService workFlowVersionService;
-    private final ApplicationDatasetMappingService datasetMappingService;
-    private final ApplicationMcpMappingService mcpMappingService;
-    private final ApplicationFunctionMappingService functionMappingService;
+    private final ApplicationChatUserStatsService chatUserStatsService;
+    private final ApplicationVersionService applicationVersionService;
+    private final ApplicationKnowledgeMappingService knowledgeMappingService;
     private final ApplicationChatRecordService applicationChatRecordService;
-    private final ApplicationChatService applicationChatService;
-    private final FunctionLibService functionLibService;
+    private final ApplicationChatMapper applicationChatMapper;
+    private final UserResourcePermissionService userResourcePermissionService;
 
-    public IPage<ApplicationEntity> selectAppPage(int page, int size, Query query) {
-        String loginId = StpUtil.getLoginIdAsString();
+    public IPage<ApplicationVO> selectAppPage(int page, int size, ApplicationQuery query) {
         Page<ApplicationEntity> appPage = new Page<>(page, size);
         LambdaQueryWrapper<ApplicationEntity> wrapper = Wrappers.lambdaQuery();
         if (StringUtils.isNotBlank(query.getName())) {
             wrapper.like(ApplicationEntity::getName, query.getName());
         }
-        if (Objects.nonNull(query.getSelectUserId())) {
-            wrapper.eq(ApplicationEntity::getUserId, query.getSelectUserId());
+        if (StringUtils.isNotBlank(query.getPublishStatus())) {
+            wrapper.eq(ApplicationEntity::getIsPublish, "published".equals(query.getPublishStatus()));
         }
-        wrapper.eq(ApplicationEntity::getUserId, loginId);
-        List<String> useTargetIds = memberPermissionService.getUseTargets("APPLICATION", loginId);
-        if (!CollectionUtils.isEmpty(useTargetIds)) {
-            wrapper.or().in(ApplicationEntity::getId, useTargetIds);
+        if (StringUtils.isNotBlank(query.getType())) {
+            wrapper.eq(ApplicationEntity::getType, query.getType());
+        }
+        if (Objects.nonNull(query.getCreateUser())) {
+            wrapper.eq(ApplicationEntity::getUserId, query.getCreateUser());
+        }
+        String loginId = StpKit.ADMIN.getLoginIdAsString();
+        UserEntity user = userService.getById(loginId);
+        if (Objects.nonNull(user)) {
+            if (!CollectionUtils.isEmpty(user.getRole())) {
+                if (user.getRole().contains("USER")) {
+                    List<String> targetIds = userResourcePermissionService.getTargetIds(AuthTargetType.APPLICATION, loginId);
+                    if (!CollectionUtils.isEmpty(targetIds)) {
+                        wrapper.in(ApplicationEntity::getId, targetIds);
+                    } else {
+                        wrapper.last(" limit 0");
+                    }
+                } else {
+                    if (StringUtils.isNotBlank(query.getFolderId())) {
+                        wrapper.eq(ApplicationEntity::getFolderId, query.getFolderId());
+                    } else {
+                        wrapper.eq(ApplicationEntity::getFolderId, "default");
+                    }
+                }
+            } else {
+                wrapper.last(" limit 0");
+            }
+        } else {
+            wrapper.last(" limit 0");
         }
         wrapper.orderByDesc(ApplicationEntity::getCreateTime);
-        return this.page(appPage, wrapper);
-    }
-
-    public List<ModelEntity> getAppModels(String appId, String modelType) {
-        modelType = StringUtils.isBlank(modelType) ? "LLM" : modelType;
-        ApplicationEntity app = getById(appId);
-        if (app == null) {
-            return Collections.emptyList();
-        }
-        return modelService.getUserIdAndType(app.getUserId(), modelType);
+        this.page(appPage, wrapper);
+        Map<String, String> nicknameMap = userService.getNicknameMap();
+        return PageUtil.copy(appPage, app -> {
+            ApplicationVO vo = BeanUtil.copy(app, ApplicationVO.class);
+            vo.setNickname(nicknameMap.get(app.getUserId()));
+            return vo;
+        });
     }
 
 
@@ -138,241 +132,120 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         return accessTokenService.getById(appId);
     }
 
-    public List<DatasetEntity> getDataset(String appId) {
-        ApplicationEntity app = getById(appId);
-        if (app == null) {
-            return Collections.emptyList();
-        }
-        return datasetService.getByUserId(app.getUserId());
-    }
-
-    public List<McpLibEntity> getMcp(String appId) {
-        ApplicationEntity app = getById(appId);
-        if (app == null) {
-            return Collections.emptyList();
-        }
-        return mcpLibService.getUserId(app.getUserId());
-    }
-
-
-    public JSONArray modelParams(String appId, String modelId) {
-        ModelEntity model = modelService.getById(modelId);
-        if (model == null) {
-            return new JSONArray();
-        }
-        return model.getModelParamsForm();
-    }
 
     @Transactional
     public boolean deleteByAppId(String appId) {
         accessTokenService.remove(Wrappers.<ApplicationAccessTokenEntity>lambdaQuery().eq(ApplicationAccessTokenEntity::getApplicationId, appId));
-        platformService.remove(Wrappers.<ApplicationPlatformEntity>lambdaQuery().eq(ApplicationPlatformEntity::getApplicationId, appId));
         applicationApiKeyService.remove(Wrappers.<ApplicationApiKeyEntity>lambdaQuery().eq(ApplicationApiKeyEntity::getApplicationId, appId));
-        accessClientService.remove(Wrappers.<ApplicationPublicAccessClientEntity>lambdaQuery().eq(ApplicationPublicAccessClientEntity::getApplicationId, appId));
-        workFlowVersionService.remove(Wrappers.<ApplicationWorkFlowVersionEntity>lambdaQuery().eq(ApplicationWorkFlowVersionEntity::getApplicationId, appId));
-        datasetMappingService.remove(Wrappers.<ApplicationDatasetMappingEntity>lambdaQuery().eq(ApplicationDatasetMappingEntity::getApplicationId, appId));
-        mcpMappingService.remove(Wrappers.<ApplicationMcpMappingEntity>lambdaQuery().eq(ApplicationMcpMappingEntity::getApplicationId, appId));
-        functionMappingService.remove(Wrappers.<ApplicationFunctionMappingEntity>lambdaQuery().eq(ApplicationFunctionMappingEntity::getApplicationId, appId));
-        List<String> chatIds = applicationChatService.list(Wrappers.<ApplicationChatEntity>lambdaQuery().eq(ApplicationChatEntity::getApplicationId, appId)).stream().map(ApplicationChatEntity::getId).toList();
+        chatUserStatsService.remove(Wrappers.<ApplicationChatUserStatsEntity>lambdaQuery().eq(ApplicationChatUserStatsEntity::getApplicationId, appId));
+        applicationVersionService.remove(Wrappers.<ApplicationVersionEntity>lambdaQuery().eq(ApplicationVersionEntity::getApplicationId, appId));
+        knowledgeMappingService.remove(Wrappers.<ApplicationKnowledgeMappingEntity>lambdaQuery().eq(ApplicationKnowledgeMappingEntity::getApplicationId, appId));
+        List<String> chatIds = applicationChatMapper.selectList(Wrappers.<ApplicationChatEntity>lambdaQuery().eq(ApplicationChatEntity::getApplicationId, appId)).stream().map(ApplicationChatEntity::getId).toList();
         if (!CollectionUtils.isEmpty(chatIds)) {
-            applicationChatService.remove(Wrappers.<ApplicationChatEntity>lambdaQuery().eq(ApplicationChatEntity::getApplicationId, appId));
+            applicationChatMapper.delete(Wrappers.<ApplicationChatEntity>lambdaQuery().eq(ApplicationChatEntity::getApplicationId, appId));
             applicationChatRecordService.remove(Wrappers.<ApplicationChatRecordEntity>lambdaQuery().in(ApplicationChatRecordEntity::getChatId, chatIds));
         }
+        userResourcePermissionService.remove(AuthTargetType.APPLICATION, appId);
         return this.removeById(appId);
     }
 
     @Transactional
     public ApplicationEntity createApp(ApplicationEntity application) {
-        if (AppType.WORK_FLOW.name().equals(application.getType())) {
-            application = createWorkflow(application);
-        } else {
-            application = createSimple(application);
+        application.setKnowledgeSetting(new KnowledgeSetting());
+        application.setIcon("./favicon.ico");
+        if (AppType.WORK_FLOW.name().equals(application.getType())){
+            application.setDialogueNumber(0);
         }
+        application.setDialogueNumber(1);
+        application.setUserId(StpKit.ADMIN.getLoginIdAsString());
+        application.setTtsModelParamsSetting(new JSONObject());
+        application.setCleanTime(365);
+        application.setFileUploadEnable(false);
+        application.setFileUploadSetting(new JSONObject());
+        application.setKnowledgeSetting(getDefaultKnowledgeSetting());
+        if (application.getWorkFlow()== null){
+            application.setWorkFlow(new JSONObject());
+        }
+        this.save(application);
         ApplicationAccessTokenEntity accessToken = ApplicationAccessTokenEntity.createDefault();
         accessToken.setApplicationId(application.getId());
-        accessToken.setLanguage((String) StpUtil.getExtra("language"));
+        accessToken.setLanguage((String) StpKit.ADMIN.getExtra("language"));
         accessTokenService.save(accessToken);
+        userResourcePermissionService.ownerSave(AuthTargetType.APPLICATION, application.getId(), application.getUserId());
         return application;
     }
 
-    public ApplicationEntity createWorkflow(ApplicationEntity application) {
-        if (Objects.isNull(application.getWorkFlow())) {
-            String language = (String) StpUtil.getExtra("language");
-            System.out.println("language:" + language);
-            Path path = getWorkflowFilePath(language);
-            String defaultWorkflowJson = FileUtil.readToString(path.toFile());
-            JSONObject workFlow = JSONObject.parseObject(defaultWorkflowJson);
-            assert workFlow != null;
-            JSONArray nodes = workFlow.getJSONArray("nodes");
-            for (int i = 0; i < nodes.size(); i++) {
-                JSONObject node = nodes.getJSONObject(i);
-                if ("base-node".equals(node.getString("id"))) {
-                    JSONObject properties = node.getJSONObject("properties");
-                    JSONObject nodeData = properties.getJSONObject("nodeData");
-                    nodeData.put("name", application.getName());
-                    nodeData.put("desc", application.getDesc());
-                    nodeData.put("prologue", application.getPrologue());
-                }
-            }
-            application.setWorkFlow(workFlow);
+    private KnowledgeSetting getDefaultKnowledgeSetting() {
+        KnowledgeSetting knowledgeSetting = new KnowledgeSetting();
+        knowledgeSetting.setTopN(5);
+        knowledgeSetting.setMaxParagraphCharNumber(5120);
+        knowledgeSetting.setSearchMode(SearchType.EMBEDDING);
+        knowledgeSetting.setSimilarity(0.6F);
+        knowledgeSetting.setNoReferencesSetting(new NoReferencesSetting("ai_questioning", "{question}"));
+        return knowledgeSetting;
+    }
+
+
+    public ApplicationVO getAppDetail(String appId, boolean debug) {
+        if (debug) {
+            return this.getDetail(appId);
+        } else {
+            return this.getPublishedDetail(appId);
         }
-        application.setUserId(StpUtil.getLoginIdAsString());
-        application.setIcon("");
-        application.setTtsModelParamsSetting(new JSONObject());
-        application.setCleanTime(365);
-        application.setFileUploadEnable(false);
-        application.setFileUploadSetting(new JSONObject());
-        this.save(application);
-        return application;
     }
 
-
-    private Path getWorkflowFilePath(String language) {
-        // 获取当前类的绝对路径并转换为文件对象
-        File currentClassFile = new File(Objects.requireNonNull(this.getClass().getResource("")).getFile());
-        // 获取当前类所在的上级目录
-        File parentDir = currentClassFile.getParentFile();
-        // 获取当前类所在的上级目录
-        File coreParentDir = parentDir.getParentFile().getParentFile();
-        String fileName = String.format("default_workflow_%s.json", toLocale(language));
-        File coreDir = new File(coreParentDir, "core");
-        File workflow = new File(coreDir, "workflow");
-        File json = new File(workflow, "json");
-        // 构造目标文件路径
-        File targetFile = new File(json, fileName);
-        // 确认文件存在
-        if (!targetFile.exists()) {
-            targetFile = new File(coreDir, "/workflow/json/default_workflow_zh.json");
-        }
-        return targetFile.toPath();
-    }
-
-    private static String toLocale(String language) {
-        // 实现细节取决于实际的应用逻辑
-        if (StringUtils.isNotBlank(language)) {
-            if (!language.endsWith("Hant")) {
-                language = language.split("-")[0];
-            }
-            language = language.replaceAll("-", "_");
-        }
-        return language; // 这里简化处理，直接返回语言代码
-    }
-
-    public ApplicationEntity createSimple(ApplicationEntity application) {
-        application.setUserId(StpUtil.getLoginIdAsString());
-        application.setIcon("");
-        application.setWorkFlow(new JSONObject());
-        application.setTtsModelParamsSetting(new JSONObject());
-        application.setCleanTime(365);
-        application.setFileUploadEnable(false);
-        application.setFileUploadSetting(new JSONObject());
-        this.save(application);
-        return application;
-    }
-
-    public boolean improveChatLogs(String appId, ChatImproveDTO dto) {
-        List<ApplicationChatRecordEntity> chatRecords = applicationChatRecordService.lambdaQuery().in(ApplicationChatRecordEntity::getId, dto.getChatIds()).list();
-        List<ParagraphEntity> paragraphs = chatRecords.stream().map(e -> {
-            ParagraphEntity paragraphEntity = new ParagraphEntity();
-            paragraphEntity.setDatasetId(dto.getDatasetId());
-            paragraphEntity.setDocumentId(dto.getDocumentId());
-            paragraphEntity.setTitle(e.getProblemText());
-            paragraphEntity.setContent(e.getAnswerText());
-            paragraphEntity.setHitNum(0);
-            paragraphEntity.setIsActive(true);
-            paragraphEntity.setStatus("nn0");
-            return paragraphEntity;
-        }).toList();
-        //todo 嵌入到问题数据库里和文本关联
-        return paragraphService.saveBatch(paragraphs);
-    }
-
-    public ApplicationVO getAppById(String appId) {
-        ApplicationEntity entity = this.getById(appId);
+    public ApplicationVO getDetail(String id) {
+        ApplicationEntity entity = this.getById(id);
         if (entity == null) {
             return null;
         }
         ApplicationVO vo = BeanUtil.copy(entity, ApplicationVO.class);
-        List<String> datasetIds = datasetMappingService.getDatasetIdsByAppId(appId);
-        vo.setDatasetIdList(datasetIds);
-        List<String> mcpIds =mcpMappingService.getMcpIdsByAppId(appId);
-        vo.setMcpIdList(mcpIds);
-        List<String> functionIds =functionMappingService.getFunctionIdsByAppId(appId);
-        vo.setFunctionIdList(functionIds);
-        vo.setModel(entity.getModelId());
-        vo.setSttModel(entity.getSttModelId());
-        vo.setTtsModel(entity.getTtsModelId());
+        return wrapVo(vo);
+    }
+
+    public ApplicationVO getPublishedDetail(String id) {
+        ApplicationVO vo = applicationVersionService.getAppLatestOne(id);
+        if (vo == null) {
+            return null;
+        }
+        return wrapVo(vo);
+    }
+
+
+    public ApplicationVO wrapVo(ApplicationVO vo) {
+        List<String> knowledgeIds = knowledgeMappingService.getKnowledgeIdsByAppId(vo.getId());
+        vo.setKnowledgeIdList(knowledgeIds);
+        if (!CollectionUtils.isEmpty(vo.getKnowledgeIdList())) {
+            vo.setKnowledgeList(knowledgeService.listByIds(knowledgeIds));
+        } else {
+            vo.setKnowledgeList(new ArrayList<>());
+        }
+        if (AppType.WORK_FLOW.name().equals(vo.getType())) {
+            JSONObject workFlow = vo.getWorkFlow();
+            JSONArray nodes = workFlow.getJSONArray("nodes");
+            if (nodes != null) {
+                for (int i = 0; i < nodes.size(); i++) {
+                    JSONObject node = nodes.getJSONObject(i);
+                    if (SEARCH_KNOWLEDGE.getKey().equals(node.getString("type"))) {
+                        JSONObject properties = node.getJSONObject("properties"); // 假设每个节点都有 id 字段
+                        if (properties != null) {
+                            JSONObject nodeData = properties.getJSONObject("nodeData");
+                            JSONArray knowledgeIdListJson = nodeData.getJSONArray("knowledgeIdList");
+                            List<String> knowledgeIdList = knowledgeIdListJson.toJavaList(String.class);
+                            List<KnowledgeEntity> knowledgeList = vo.getKnowledgeList().stream().filter(k -> knowledgeIdList.contains(k.getId())).toList();
+                            nodeData.put("knowledgeList", knowledgeList);
+                        }
+                    }
+                }
+            }
+        }
         return vo;
     }
 
 
-    public String authentication(JSONObject params) {
-        String accessToken = params.getString("access_token");
-        ApplicationAccessTokenEntity appAccessToken = accessTokenService.lambdaQuery().eq(ApplicationAccessTokenEntity::getAccessToken, accessToken).one();
-        if (appAccessToken == null || !appAccessToken.getIsActive()) {
-            throw new AccessException("无效的访问令牌");
-        } else {
-            SaLoginModel loginModel = new SaLoginModel();
-            if (StpUtil.isLogin()) {
-                UserEntity userEntity = userService.getById(StpUtil.getLoginIdAsString());
-                loginModel.setExtra("username", userEntity.getUsername());
-                loginModel.setExtra("email", userEntity.getEmail());
-                loginModel.setExtra("language", userEntity.getLanguage());
-                loginModel.setExtra("client_id", userEntity.getId());
-                loginModel.setExtra("client_type", AuthType.ACCESS_TOKEN.name());
-                loginModel.setExtra("application_id", appAccessToken.getApplicationId());
-                loginModel.setExtra(AuthType.ACCESS_TOKEN.name(), accessToken);
-                loginModel.setDevice(AuthType.ACCESS_TOKEN.name());
-                StpUtil.login(StpUtil.getLoginId(), loginModel);
-            } else {
-                loginModel.setExtra("application_id", appAccessToken.getApplicationId());
-                loginModel.setExtra("client_id", IdWorker.get32UUID());
-                loginModel.setExtra("client_type", AuthType.ACCESS_TOKEN.name());
-                loginModel.setDevice(AuthType.ACCESS_TOKEN.name());
-                loginModel.setExtra(AuthType.ACCESS_TOKEN.name(), accessToken);
-                StpUtil.login(IdWorker.get32UUID(), loginModel);
-            }
-            return StpUtil.getTokenValue();
-        }
-    }
-
-    public JSONObject appProfile() {
-        String appId = (String) StpUtil.getExtra("application_id");
-        ApplicationEntity application = this.getById(appId);
-        ApplicationAccessTokenEntity appAccessToken = accessTokenService.getById(appId);
-        JSONObject result = new JSONObject();
-        result.put("id", appId);
-        result.put("type", application.getType());
-        result.put("name", application.getName());
-        result.put("desc", application.getDesc());
-        result.put("icon", application.getIcon());
-        result.put("prologue", application.getPrologue());
-        result.put("dialogueNumber", application.getDialogueNumber());
-        result.put("multipleRoundsDialogue", application.getDialogueNumber() > 0);
-        result.put("fileUploadEnable", application.getFileUploadEnable());
-        result.put("fileUploadSetting", application.getFileUploadSetting());
-        result.put("sttModelEnable", application.getSttModelEnable());
-        result.put("sttAutoSend", application.getSttAutoSend());
-        result.put("sttModelId", application.getSttModelId());
-        result.put("ttsModelEnable", application.getSttModelEnable());
-        result.put("ttsAutoplay", application.getTtsAutoplay());
-        result.put("ttsType", application.getTtsType());
-        result.put("ttsModelId", application.getTtsModelId());
-        result.put("workFlow", application.getWorkFlow());
-        result.put("showSource", appAccessToken.getShowSource());
-        result.put("language", appAccessToken.getLanguage());
-        return result;
-    }
-
-    public List<ParagraphVO> hitTest(String id, DataSearchDTO dto) {
-        List<String> datasetIds = datasetMappingService.getDatasetIdsByAppId(id);
-        dto.setExcludeParagraphIds(new ArrayList<>());
-        return retrieveService.paragraphSearch(datasetIds, dto);
-    }
-
-    public byte[] playDemoText(String appId, JSONObject data) {
-        String ttsModelId = data.getString("ttsModelId");
-        BaseTextToSpeech ttsModel = modelService.getModelById(ttsModelId, data);
+    public byte[] playDemoText(String appId, JSONObject modelParams) {
+        String ttsModelId = modelParams.getString("ttsModelId");
+        TTSModel ttsModel = modelFactory.buildTTSModel(ttsModelId, modelParams);
         return ttsModel.textToSpeech("你好，这里是语音播放测试");
     }
 
@@ -385,87 +258,102 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         if (app.getTtsModelId() == null) {
             return new byte[0];
         }
-        BaseTextToSpeech ttsModel = modelService.getModelById(app.getTtsModelId(),app.getTtsModelParamsSetting());
+        TTSModel ttsModel = modelFactory.buildTTSModel(app.getTtsModelId(), app.getTtsModelParamsSetting());
         return ttsModel.textToSpeech(text);
-    }
-
-    public boolean editIcon(String id, MultipartFile file) {
-        ApplicationEntity application = new ApplicationEntity();
-        application.setId(id);
-        application.setIcon(imageService.upload(file));
-        return this.updateById(application);
     }
 
     @Transactional
     public Boolean updateAppById(String appId, ApplicationVO appVO) {
-        ApplicationEntity application = BeanUtil.copy(appVO, ApplicationEntity.class);
-        application.setId(appId);
+        ApplicationEntity app = BeanUtil.copy(appVO, ApplicationEntity.class);
+        app.setId(appId);
+        List<String> knowledgeIds = getKnowledgeIdList(app);
+        if (!CollectionUtils.isEmpty(appVO.getKnowledgeIdList())) {
+            knowledgeIds.addAll(appVO.getKnowledgeIdList());
+        }
+        knowledgeMappingService.updateByAppId(appId, knowledgeIds);
         JSONObject workFlow = appVO.getWorkFlow();
-        if (Objects.nonNull(workFlow) && !workFlow.isEmpty()) {
+        if (workFlow!=null && workFlow.containsKey("nodes")) {
             JSONArray nodes = workFlow.getJSONArray("nodes");
-            JSONObject baseNode = nodes.getJSONObject(0);
-            if (Objects.nonNull(baseNode)) {
-                String type = baseNode.getString("type");
-                if (type.equals("base-node")) {
-                    JSONObject properties = baseNode.getJSONObject("properties");
-                    JSONObject nodeData = properties.getJSONObject("nodeData");
-                    application.setName(nodeData.getString("name"));
-                    application.setDesc(nodeData.getString("desc"));
-                    application.setPrologue(nodeData.getString("prologue"));
-                    application.setFileUploadEnable(nodeData.getBoolean("file_upload_enable"));
-                    application.setFileUploadSetting(nodeData.getJSONObject("file_upload_setting"));
-                    application.setTtsModelEnable(nodeData.getBoolean("stt_model_enable"));
-                    application.setSttModelId(nodeData.getString("stt_model_id"));
-                    application.setTtsModelEnable(nodeData.getBoolean("tts_model_enable"));
-                    application.setTtsType(nodeData.getString("tts_type"));
-                    application.setTtsModelId(nodeData.getString("tts_model_id"));
-                    application.setTtsType(nodeData.getString("tts_type"));
+            if (nodes != null) {
+                @SuppressWarnings("unchecked")
+                JSONObject baseNode = nodes.stream()
+                        .filter(node -> node instanceof Map)
+                        .map(node -> (Map<String, Object>) node)
+                        .filter(node -> BASE.getKey().equals(node.get("type")))
+                        .findFirst()
+                        .map(JSONObject::new) // 将 Map 转为 JSONObject
+                        .orElse(null);
+                if (baseNode != null) {
+                    JSONObject baseNodeProperties = baseNode.getJSONObject("properties");
+                    if (baseNodeProperties != null) {
+                        JSONObject nodeData = baseNodeProperties.getJSONObject("nodeData");
+                        app.setName(nodeData.getString("name"));
+                        app.setDesc(nodeData.getString("desc"));
+                        app.setPrologue(nodeData.getString("prologue"));
+                        app.setFileUploadEnable(nodeData.getBooleanValue("fileUploadEnable"));
+                        app.setFileUploadSetting(nodeData.getJSONObject("fileUploadSetting"));
+                        app.setTtsType(nodeData.getString("ttsType"));
+                        app.setTtsModelEnable(nodeData.getBooleanValue("ttsModelEnable"));
+                        app.setTtsModelId(nodeData.getString("ttsModelId"));
+                        app.setTtsModelParamsSetting(nodeData.getJSONObject("ttsModelParamsSetting"));
+                        app.setTtsAutoplay(nodeData.getBooleanValue("ttsAutoplay"));
+                        app.setSttModelEnable(nodeData.getBooleanValue("sttModelEnable"));
+                        app.setSttModelId(nodeData.getString("sttModelId"));
+                        app.setSttAutoSend(nodeData.getBooleanValue("sttAutoSend"));
+                    }
                 }
             }
         }
-        datasetMappingService.updateByAppId(appId,appVO.getDatasetIdList());
-        mcpMappingService.updateByAppId(appId,appVO.getMcpIdList());
-        functionMappingService.updateByAppId(appId,appVO.getFunctionIdList());
-        return this.updateById(application);
+        return this.updateById(app);
     }
 
-    public Boolean publish(String id, JSONObject workflow) {
-        if (Objects.nonNull(workflow) && workflow.containsKey("workFlow")) {
-            ApplicationEntity application = this.getById(id);
-            long count = workFlowVersionService.count(Wrappers.<ApplicationWorkFlowVersionEntity>lambdaQuery().eq(ApplicationWorkFlowVersionEntity::getApplicationId, id));
-            ApplicationWorkFlowVersionEntity entity = new ApplicationWorkFlowVersionEntity();
-            entity.setWorkFlow(workflow.getJSONObject("workFlow"));
-            entity.setApplicationId(id);
-            entity.setName(application.getName() + "-V" + (count + 1));
-            entity.setPublishUserId(StpUtil.getLoginIdAsString());
-            entity.setPublishUserName((String) StpUtil.getExtra("username"));
-            return workFlowVersionService.save(entity);
+    private List<String> getKnowledgeIdList(ApplicationEntity entity) {
+        List<String> knowledgeIds = new ArrayList<>();
+        if (entity == null || entity.getWorkFlow() == null) {
+            return knowledgeIds;
         }
-        return false;
-
-    }
-
-    public List<ApplicationEntity> listByUserId(String appId) {
-        ApplicationEntity application = this.getById(appId);
-        if (Objects.isNull(application)) {
-            return Collections.emptyList();
+        JSONObject workFlow = entity.getWorkFlow();
+        JSONArray nodes = workFlow.getJSONArray("nodes");
+        if (nodes == null) {
+            return knowledgeIds;
         }
-        String userId = StpUtil.getLoginIdAsString();
-        String appUserId = application.getUserId();
-        if (!userId.equals(appUserId)) {
-            return Collections.emptyList();
+        for (int i = 0; i < nodes.size(); i++) {
+            JSONObject node = nodes.getJSONObject(i);
+            if (SEARCH_KNOWLEDGE.getKey().equals(node.getString("type"))) {
+                JSONObject properties = node.getJSONObject("properties"); // 假设每个节点都有 id 字段
+                if (properties == null) {
+                    return knowledgeIds;
+                }
+                JSONObject nodeData = properties.getJSONObject("nodeData");
+                if (nodeData == null) {
+                    return knowledgeIds;
+                }
+                JSONArray knowledgeIdList = nodeData.getJSONArray("knowledgeIdList");
+                knowledgeIds.addAll(knowledgeIdList.toJavaList(String.class));
+            }
         }
-        return this.lambdaQuery().eq(ApplicationEntity::getUserId, appUserId).list();
+        return knowledgeIds;
     }
 
-    public List<ApplicationWorkFlowVersionEntity> workFlowVersionList(String id) {
-        return workFlowVersionService.lambdaQuery().eq(ApplicationWorkFlowVersionEntity::getApplicationId, id).orderByDesc(ApplicationWorkFlowVersionEntity::getCreateTime).list();
+    @Transactional
+    public Boolean publish(String id, JSONObject params) {
+        ApplicationEntity application = new ApplicationEntity();
+        application.setId(id);
+        application.setIsPublish(true);
+        application.setPublishTime(new Date());
+        this.updateById(application);
+        application = this.getById(id);
+        long count = applicationVersionService.count(Wrappers.<ApplicationVersionEntity>lambdaQuery().eq(ApplicationVersionEntity::getApplicationId, id));
+        ApplicationVersionEntity entity = BeanUtil.copy(application, ApplicationVersionEntity.class);
+        entity.setId(null);
+        entity.setApplicationId(id);
+        entity.setApplicationName(application.getName());
+        entity.setName(application.getName() + "-V" + (count + 1));
+        entity.setPublishUserId(StpKit.ADMIN.getLoginIdAsString());
+        entity.setPublishUserName((String) StpKit.ADMIN.getExtra("username"));
+        return applicationVersionService.save(entity);
     }
 
-    public Boolean updateWorkFlowVersion(String versionId, ApplicationWorkFlowVersionEntity versionEntity) {
-        versionEntity.setId(versionId);
-        return workFlowVersionService.updateById(versionEntity);
-    }
 
     public void appExport(String id, HttpServletResponse response) throws IOException {
         ApplicationEntity app = this.getById(id);
@@ -488,127 +376,54 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         boolean flag = this.save(application);
         ApplicationAccessTokenEntity accessToken = ApplicationAccessTokenEntity.createDefault();
         accessToken.setApplicationId(application.getId());
-        accessToken.setLanguage((String) StpUtil.getExtra("language"));
+        accessToken.setLanguage((String) StpKit.ADMIN.getExtra("language"));
         accessTokenService.save(accessToken);
         return flag;
-    }
-
-    public List<McpToolVO> convert(String serverName,List<ToolSpecification> tools) {
-        return tools.stream().map(tool -> {
-            McpToolVO vo = new McpToolVO();
-            vo.setServer(serverName);
-            vo.setName(tool.name());
-            vo.setDescription(tool.description());
-            JSONObject json = new JSONObject();
-            JSONObject properties = new JSONObject();
-            tool.parameters().properties().forEach((k, v) -> {
-                JSONObject property = new JSONObject();
-                if (v instanceof JsonStringSchema schema) {
-                    property.put("type", "string");
-                    property.put("description", schema.description());
-                } else if (v instanceof JsonNumberSchema schema) {
-                    property.put("type", "number");
-                    property.put("description", schema.description());
-                } else if (v instanceof JsonArraySchema schema) {
-                    property.put("type", "array");
-                    property.put("description", schema.description());
-                } else if (v instanceof JsonBooleanSchema schema) {
-                    property.put("type", "boolean");
-                    property.put("description", schema.description());
-                } else if (v instanceof JsonObjectSchema schema) {
-                    property.put("type", "object");
-                    property.put("description", schema.description());
-                } else if (v instanceof JsonEnumSchema schema) {
-                    property.put("type", "enum");
-                    property.put("description", schema.description());
-                }else if (v instanceof JsonIntegerSchema schema) {
-                    property.put("type", "int");
-                    property.put("description", schema.description());
-                }else if (v instanceof JsonAnyOfSchema schema) {
-                    property.put("type", "any");
-                    property.put("description", schema.description());
-                }else if (v instanceof JsonReferenceSchema schema) {
-                    property.put("type", "reference");
-                    property.put("description", schema.reference());
-                } else {
-                    JsonNullSchema schema = (JsonNullSchema) v;
-                    property.put("type", "null");
-                    property.put("description", "");
-                }
-                properties.put(k, property);
-            });
-            json.put("type", "object");
-            json.put("properties", properties);
-            json.put("required", tool.parameters().required());
-            vo.setArgs_schema(json);
-            return vo;
-        }).collect(Collectors.toList());
-    }
-
-    public List<McpToolVO> listTools(String sseUrl) {
-        McpTransport transport = new HttpMcpTransport.Builder()
-                .sseUrl(sseUrl)
-                .logRequests(true) // if you want to see the traffic in the log
-                .logResponses(true)
-                .build();
-        McpClient mcpClient = new DefaultMcpClient.Builder()
-                .transport(transport)
-                .build();
-        List<ToolSpecification> tools=mcpClient.listTools();
-        System.out.println(tools);
-        return new ArrayList<>(convert("", tools));
     }
 
 
     public String speechToText(String appId, MultipartFile file) throws IOException {
         ApplicationEntity app = this.getById(appId);
-        BaseSpeechToText sttModel = modelService.getModelById(app.getSttModelId());
-        String suffix= Objects.requireNonNull(file.getContentType()).split("/")[1];
-        return sttModel.speechToText(file.getBytes(),suffix);
+        STTModel sttModel = modelFactory.buildSTTModel(app.getSttModelId());
+        String suffix = Objects.requireNonNull(file.getContentType()).split("/")[1];
+        return sttModel.speechToText(file.getBytes(), suffix);
     }
 
-    public void embed(EmbedDTO dto, HttpServletResponse response) throws IOException {
+    public String embed(EmbedDTO dto) throws IOException {
         ClassLoader classLoader = getClass().getClassLoader();
-        InputStream inputStream = classLoader.getResourceAsStream("templates/embed.js");
-        ApplicationAccessTokenEntity token = accessTokenService.getByToken(dto.getToken());
+        InputStream inputStream = classLoader.getResourceAsStream("templates/embed.txt");
+        ApplicationAccessTokenEntity token = accessTokenService.getByAccessToken(dto.getToken());
         if (token == null || !token.getIsActive()) {
             throw new ApiException("token无效或未被启用");
         }
-        Set<String> whiteList = token.getWhiteList();
+        List<String> whiteList = token.getWhiteList();
         if (token.getWhiteActive() && !whiteList.contains(WebUtil.getIP())) {
             throw new ApiException("非法访问，请联系管理员添加白名单");
         }
-
-
         String content = IoUtil.readToString(inputStream, StandardCharsets.UTF_8);
-
-        String template = render(content, getParamsMap(token, dto));
-
-        response.setContentType("text/javascript;charset=UTF-8");
-        response.getWriter().write(template);
+        return render(content, getParamsMap(token, dto));
     }
 
     private Map<String, String> getParamsMap(ApplicationAccessTokenEntity token, EmbedDTO dto) {
-        //todo
-        String floatIcon = dto.getProtocol() + "://" + dto.getHost() + "/ui/favicon.ico";
-        Set<String> whiteList = token.getWhiteList();
+        String floatIcon = dto.getProtocol() + "://" + dto.getHost() + "/chat/MaxKB.gif";
+        List<String> whiteList = token.getWhiteList();
         Map<String, String> map = new HashMap<>();
-        map.put("is_auth", "true");
+        map.put("is_auth", String.valueOf(token.getIsActive()));
         map.put("protocol", dto.getProtocol());
-        map.put("query", Optional.ofNullable(dto.getQuery()).orElse(""));
+        map.put("query", "");
         map.put("host", dto.getHost());
         map.put("token", dto.getToken());
-        map.put("white_list_str", whiteList == null ? "" : whiteList.stream().collect(Collectors.joining(System.lineSeparator())));
+        map.put("white_list_str", whiteList == null ? "" : String.join(",", whiteList));
         map.put("white_active", token.getWhiteActive().toString());
-     /*   map.put("float_icon", Optional.ofNullable(token.getFloatIconUrl()).orElse(floatIcon));
-        map.put("is_draggable", token.getDraggable().toString());
-        map.put("show_history", token.getShowHistory().toString());
-        map.put("show_guide", token.getShowGuide().toString());
-        ApplicationAccessToken.FloatLocation floatLocation = token.getFloatLocation();
-        map.put("x_type", floatLocation.getX().getType());
-        map.put("y_type", floatLocation.getY().getType());
-        map.put("x_value", floatLocation.getX().getValue().toString());
-        map.put("y_value", floatLocation.getY().getValue().toString());*/
+        map.put("float_icon", floatIcon);
+        map.put("is_draggable", "false");
+        map.put("show_guide", "false");
+        map.put("x_type", "right");
+        map.put("y_type", "bottom");
+        map.put("x_value", "0");
+        map.put("y_value", "30");
+        map.put("max_kb_id", IdWorker.get32UUID());
+        map.put("header_font_color", "rgb(100, 106, 115");
         return map;
     }
 
@@ -619,19 +434,13 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         return content;
     }
 
-    public List<FunctionLibEntity> functionLib(String appId) {
-        return functionLibService.list();
-    }
-    public FunctionLibEntity functionLib(String appId,  String functionId) {
-        return functionLibService.getById(functionId);
-    }
-
-
-    public List<FunctionLibEntity> getFunction(String appId) {
-        ApplicationEntity app = getById(appId);
-        if (app == null) {
-            return Collections.emptyList();
+    public List<ApplicationListVO> listApps(String folderId) {
+        String userId = StpKit.ADMIN.getLoginIdAsString();
+        List<String> targetIds = userResourcePermissionService.getTargetIds(AuthTargetType.APPLICATION, userId);
+        if (targetIds.isEmpty()){
+            return new ArrayList<>();
         }
-        return functionLibService.getUserId(app.getUserId());
+        List<ApplicationEntity> list= this.lambdaQuery().in(ApplicationEntity::getId, targetIds).eq(ApplicationEntity::getIsPublish, true).list();
+        return list.stream().filter(e -> folderId.equals(e.getFolderId())).map(e -> BeanUtil.copy(e, ApplicationListVO.class)).toList();
     }
 }

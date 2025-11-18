@@ -4,28 +4,21 @@ import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.tarzan.maxkb4j.module.system.setting.domain.entity.SystemSettingEntity;
 import com.tarzan.maxkb4j.module.system.setting.mapper.SystemSettingMapper;
-import lombok.Getter;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.stereotype.Service;
 
 import java.util.Objects;
 import java.util.Properties;
 
+@RequiredArgsConstructor
 @Service
 public class MailConfigService {
 
     private final SystemSettingMapper systemSettingMapper;
-    @Getter
-    private final JavaMailSenderImpl javaMailSender;
 
-    @Autowired
-    public MailConfigService(SystemSettingMapper systemSettingMapper) {
-        this.systemSettingMapper = systemSettingMapper;
-        this.javaMailSender = createJavaMailSender();
-    }
 
-    private JavaMailSenderImpl createJavaMailSender() {
+    public JavaMailSenderImpl createMailSender() {
         SystemSettingEntity systemSetting = systemSettingMapper.selectOne(Wrappers.<SystemSettingEntity>lambdaQuery().eq(SystemSettingEntity::getType,0));
         if(Objects.nonNull(systemSetting)){
            return createJavaMailSender(systemSetting.getMeta());

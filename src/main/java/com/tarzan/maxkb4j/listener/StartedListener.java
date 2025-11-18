@@ -1,12 +1,13 @@
 package com.tarzan.maxkb4j.listener;
 
 import com.alibaba.fastjson.JSONObject;
+import com.tarzan.maxkb4j.common.props.SystemProperties;
+import com.tarzan.maxkb4j.common.util.RSAUtil;
 import com.tarzan.maxkb4j.module.system.setting.cache.SystemCache;
 import com.tarzan.maxkb4j.module.system.setting.domain.entity.SystemSettingEntity;
 import com.tarzan.maxkb4j.module.system.setting.enums.SettingType;
 import com.tarzan.maxkb4j.module.system.setting.service.SystemSettingService;
 import com.tarzan.maxkb4j.module.system.user.service.UserService;
-import com.tarzan.maxkb4j.util.RSAUtil;
 import io.jsonwebtoken.lang.Collections;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,17 +38,18 @@ public class StartedListener implements ApplicationListener<ApplicationStartedEv
 
     private final SystemSettingService systemSettingService;
     private final UserService userService;
+    private final SystemProperties systemProperties;
 
     @Override
     public void onApplicationEvent(@NonNull ApplicationStartedEvent event) {
         long userCount=userService.count();
         if (userCount==0){
-            userService.createAdminUser("admin", "maxkb4j.");
+            userService.createAdminUser(systemProperties.getDefaultUsername(), systemProperties.getDefaultPassword());
         }
         List<SystemSettingEntity> systemSettings=systemSettingService.list();
         if(Collections.isEmpty(systemSettings)){
             try {
-                KeyPair keyPair=RSAUtil.generateRSAKeyPair();
+                KeyPair keyPair= RSAUtil.generateRSAKeyPair();
                 PublicKey publicKey = keyPair.getPublic();
                 String publicKeyPem = RSAUtil.publicKeyPem(publicKey);
                 PrivateKey privateKey = keyPair.getPrivate();

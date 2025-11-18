@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.tarzan.maxkb4j.module.dataset.mapper.DocumentMapper">
+<mapper namespace="com.tarzan.maxkb4j.module.knowledge.mapper.DocumentMapper">
 
     <!-- 多个字段中某个字段的类型处理器配置 -->
-    <resultMap id="docResultMap" type="com.tarzan.maxkb4j.module.dataset.domain.vo.DocumentVO">
+    <resultMap id="docResultMap" type="com.tarzan.maxkb4j.module.knowledge.domain.vo.DocumentVO">
         <result property="meta" column="meta" typeHandler="com.baomidou.mybatisplus.extension.handlers.FastjsonTypeHandler" />
         <result property="statusMeta" column="status_meta" typeHandler="com.baomidou.mybatisplus.extension.handlers.FastjsonTypeHandler" />
     </resultMap>
@@ -74,12 +74,12 @@
         document d
         LEFT JOIN "paragraph" p ON d.ID = p.document_id
         <where>
-            d.dataset_id = #{datasetId}
+            d.knowledge_id = #{knowledgeId}
             <if test="query.name != null and query.name != ''">
                 and d.name like CONCAT('%',#{query.name},'%')
             </if>
-            <if test="query.selectUserId != null and query.selectUserId != ''">
-                and d.user_id = #{query.selectUserId}
+            <if test="query.createUser != null and query.createUser != ''">
+                and d.user_id = #{query.createUser}
             </if>
         </where>
         GROUP BY d.ID

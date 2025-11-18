@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.tarzan.maxkb4j.module.dataset.mapper.ProblemParagraphMapper">
+<mapper namespace="com.tarzan.maxkb4j.module.knowledge.mapper.ProblemParagraphMapper">
 
-    <select id="getProblems" resultType="com.tarzan.maxkb4j.module.dataset.domain.vo.ProblemParagraphVO">
+    <select id="getProblems" resultType="com.tarzan.maxkb4j.module.knowledge.domain.vo.ProblemParagraphVO">
         SELECT
         ppm.ID,
         P."content",
-        ppm.dataset_id,
+        ppm.knowledge_id,
         ppm.document_id,
         ppm.paragraph_id,
         ppm.problem_id
@@ -14,8 +14,8 @@
         problem_paragraph_mapping ppm
         LEFT JOIN problem P ON P.ID = ppm.problem_id
         <where>
-            <if test="datasetId != null and datasetId != ''">
-                AND ppm.dataset_id =   #{datasetId}
+            <if test="knowledgeId != null and knowledgeId != ''">
+                AND ppm.knowledge_id =   #{knowledgeId}
             </if>
             <if test="docIds != null and docIds.size() > 0">
                 AND ppm.document_id IN
@@ -25,7 +25,7 @@
             </if>
         </where>
     </select>
-    <select id="getProblemsByParagraphId" resultType="com.tarzan.maxkb4j.module.dataset.domain.entity.ProblemEntity">
+    <select id="getProblemsByParagraphId" resultType="com.tarzan.maxkb4j.module.knowledge.domain.entity.ProblemEntity">
         SELECT
             P.ID,
             P."content"

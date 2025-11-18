@@ -1,16 +1,13 @@
 package com.tarzan.maxkb4j.module.application.domian.dto;
 
-import com.tarzan.maxkb4j.core.workflow.INode;
-import com.tarzan.maxkb4j.core.workflow.logic.LfEdge;
-import com.tarzan.maxkb4j.module.application.handler.PostResponseHandler;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatRecordEntity;
-import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationEntity;
-import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationWorkFlowVersionEntity;
-import com.tarzan.maxkb4j.util.BeanUtil;
+import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationVO;
+import com.tarzan.maxkb4j.common.util.BeanUtil;
 import lombok.Data;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -18,26 +15,22 @@ import java.util.Map;
 public class ChatInfo implements Serializable {
 
     private String chatId;
-    private ApplicationEntity application;
-    private List<String> datasetIds;
-    private List<String> excludeDocumentIds;
+    private String appId;
+    private Map<String, Object>  chatVariables=new HashMap<>(10);
     private List<ApplicationChatRecordEntity> chatRecordList= new ArrayList<>();
-    private List<INode> nodes;
-    private List<LfEdge> edges;
 
     public Map<String, Object> toBasePipelineManageParams(){
         return BeanUtil.toMap(this);
     }
 
-    public Map<String, Object> toPipelineManageParams(String problemText,PostResponseHandler postResponseHandler,List<String> excludeParagraphIds, String clientId,String clientType, boolean stream){
+    public Map<String, Object> toPipelineManageParams(ApplicationVO application,String chatRecordId, String problemText,List<String> excludeParagraphIds, String chatUserId, String chatUserType){
         Map<String, Object> params = toBasePipelineManageParams();
-        params.put("problem_text", problemText);
-        params.put("postResponseHandler", postResponseHandler);
-        params.put("exclude_paragraph_ids", excludeParagraphIds);
-        clientId=clientId==null?"":clientId;
-        params.put("client_id", clientId);
-        params.put("client_type", clientType);
-        params.put("stream", stream);
+        params.put("application", application);
+        params.put("chatRecordId", chatRecordId);
+        params.put("problemText", problemText);
+        params.put("excludeParagraphIds", excludeParagraphIds);
+        params.put("chatUserId", chatUserId);
+        params.put("chatUserType", chatUserType);
         return params;
     }
 

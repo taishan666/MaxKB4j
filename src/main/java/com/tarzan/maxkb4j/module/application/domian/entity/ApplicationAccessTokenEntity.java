@@ -4,14 +4,13 @@ import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.tarzan.maxkb4j.core.handler.type.StringSetTypeHandler;
-import com.tarzan.maxkb4j.util.MD5Util;
+import com.tarzan.maxkb4j.common.util.MD5Util;
+import com.tarzan.maxkb4j.common.typehandler.StringListTypeHandler;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -20,7 +19,7 @@ import java.util.UUID;
  */
 @NoArgsConstructor
 @Data
-@TableName("application_access_token")
+@TableName(value = "application_access_token",autoResultMap = true)
 public class ApplicationAccessTokenEntity {
 
     @TableId
@@ -34,10 +33,14 @@ public class ApplicationAccessTokenEntity {
     
     private Boolean whiteActive;
     
-    @TableField(typeHandler = StringSetTypeHandler.class)
-    private Set<String> whiteList;
+    @TableField(typeHandler = StringListTypeHandler.class)
+    private List<String> whiteList;
     
     private Boolean showSource;
+
+    private Boolean showExec;
+
+    private Boolean authentication;
 
     private String language;
 
@@ -50,17 +53,18 @@ public class ApplicationAccessTokenEntity {
 
 
 
-    public ApplicationAccessTokenEntity(Boolean isActive, Integer accessNum, Boolean whiteActive, Set<String> whiteList, Boolean showSource,String language) {
+    public ApplicationAccessTokenEntity(Boolean isActive, Integer accessNum, Boolean whiteActive, List<String> whiteList, Boolean showSource,Boolean showExec,String language) {
         this.isActive = isActive;
         this.accessNum = accessNum;
         this.whiteActive = whiteActive;
         this.whiteList = whiteList;
         this.showSource = showSource;
+        this.showExec = showExec;
         this.language = language;
         this.accessToken=MD5Util.encrypt(UUID.randomUUID().toString(), 8, 24);
     }
 
     public static ApplicationAccessTokenEntity createDefault() {
-        return new ApplicationAccessTokenEntity(true,100,false,new HashSet<>(),false,"zh-CH");
+        return new ApplicationAccessTokenEntity(true,100,false,List.of(),false,false,"zh-CH");
     }
 }

@@ -1,7 +1,7 @@
 package com.tarzan.maxkb4j.module.system.setting.domain.entity;
 
 import com.baomidou.mybatisplus.annotation.*;
-import com.tarzan.maxkb4j.core.handler.type.JOSNBTypeHandler;
+import com.tarzan.maxkb4j.common.typehandler.JSONBTypeHandler;
 import lombok.Data;
 import com.alibaba.fastjson.JSONObject;
 
@@ -22,6 +22,6 @@ public class SystemSettingEntity {
     //0 邮箱 1 密匙
     @TableId(value = "type", type = IdType.INPUT)
     private Integer type;
-    @TableField(typeHandler = JOSNBTypeHandler.class)
+    @TableField(typeHandler = JSONBTypeHandler.class)
     private JSONObject meta;
 } 

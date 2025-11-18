@@ -1,19 +1,18 @@
 package com.tarzan.maxkb4j.module.system.user.service;
 
 import cn.dev33.satoken.stp.StpInterface;
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.tarzan.maxkb4j.module.system.permission.entity.UserResourcePermissionEntity;
+import com.tarzan.maxkb4j.module.system.permission.service.UserResourcePermissionService;
 import com.tarzan.maxkb4j.module.system.user.domain.entity.UserEntity;
-import com.tarzan.maxkb4j.module.system.user.enums.PermissionEnum;
+import com.tarzan.maxkb4j.module.system.user.enums.ResourcePermissionEnum;
 import com.tarzan.maxkb4j.module.system.user.mapper.UserMapper;
-import com.tarzan.maxkb4j.module.system.user.domain.vo.PermissionVO;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 /**
  * 自定义权限加载接口实现类
@@ -23,43 +22,25 @@ import java.util.concurrent.TimeUnit;
 public class StpInterfaceImpl implements StpInterface {
 
     private final UserMapper userMapper;
-
-    private final Cache<String, List<String>> permissionCache = Caffeine.newBuilder()
-            .expireAfterWrite(10, TimeUnit.MINUTES)
-            .build();
-
-    private final Cache<String, List<String>> roleCache = Caffeine.newBuilder()
-            .expireAfterWrite(10, TimeUnit.MINUTES)
-            .build();
+    private final UserResourcePermissionService userResourcePermissionService;
 
     /**
      * 返回一个账号所拥有的权限码集合
      */
     @Override
     public List<String> getPermissionList(Object loginId, String loginType) {
-        UserEntity user = userMapper.selectById((String) loginId);
-        return permissionCache.get(loginId.toString(), id -> {
-            List<PermissionVO> permissionVOS=userMapper.getUserPermissionById((String) loginId);
-            List<String> permissions=new ArrayList<>();
-            for (PermissionVO permission : permissionVOS) {
-                String operateItems = permission.getOperate();
-                String noBraces = operateItems.replace("{", "").replace("}", "");
-                Arrays.stream(noBraces.split(",")).forEach(item->{
-                    String operate = permission.getType() +
-                            ":" +
-                            item +
-                            ":" +
-                            permission.getId();
-                    permissions.add(operate);
-                });
-            }
-            PermissionEnum.getAllPermissions().stream().filter(e-> e.getRoles().contains(user.getRole())).forEach(e->{
-                String operate = e.getGroup() + ":" + e.getOperate();
+        String userId = loginId.toString();
+        List<UserResourcePermissionEntity> userResourcePermissions = userResourcePermissionService.getByUserId(userId);
+        List<String> permissions = new ArrayList<>();
+        for (UserResourcePermissionEntity permission : userResourcePermissions) {
+            List<ResourcePermissionEnum> resourcePermissionEnums = ResourcePermissionEnum.getPermissions(permission.getAuthTargetType()).stream().filter(e -> permission.getPermissionList().contains(e.getPermission())).toList();
+            resourcePermissionEnums.forEach(e -> {
+                String operate = e.getResource() + ":" + e.getOperate() + ":/WORKSPACE/" + permission.getWorkspaceId() + "/" + permission.getAuthTargetType() + "/" + permission.getTargetId();
                 permissions.add(operate);
             });
-           // permissions.add("x-pack");
-            return permissions;
-        });
+        }
+        // permissions.add("x-pack");
+        return permissions;
     }
 
     /**
@@ -67,11 +48,11 @@ public class StpInterfaceImpl implements StpInterface {
      */
     @Override
     public List<String> getRoleList(Object loginId, String loginType) {
-        return roleCache.get(loginId.toString(), id -> {
-            UserEntity user = userMapper.selectById((String) loginId);
-            String role = user.getRole()==null?"USER":user.getRole();
-            return List.of(role);
-        });
+        LambdaQueryWrapper<UserEntity>  wrapper= Wrappers.lambdaQuery();
+        wrapper.eq(UserEntity::getId,loginId);
+        wrapper.select(UserEntity::getRole);
+        UserEntity user = userMapper.selectOne(wrapper);
+        return new ArrayList<>(user.getRole());
     }
 
 }

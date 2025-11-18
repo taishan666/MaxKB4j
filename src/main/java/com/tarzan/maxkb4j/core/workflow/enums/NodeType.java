@@ -25,11 +25,13 @@ public enum NodeType {
 
     REPLY("reply-node", "回复节点"),
 
-    SEARCH_KNOWLEDGE("search-dataset-node", "知识库搜索节点"),
+    SEARCH_KNOWLEDGE("search-knowledge-node", "知识库搜索节点"),
 
     FORM("form-node", "表单收集"),
 
     MCP("mcp-node", "MCP节点"),
+
+    INTENT_CLASSIFY("intent-node", "意图分类"),
 
     RERANKER("reranker-node", "多路召回"),
 
@@ -45,10 +47,15 @@ public enum NodeType {
 
     VARIABLE_ASSIGN("variable-assign-node", "变量赋值"),
 
-    VARIABLE_AGGREGATE("variable-aggregate-node", "变量聚合"),
+    VARIABLE_AGGREGATE("variable-aggregation-node", "变量聚合"),
 
-    FUNCTION("function-node", "自定义函数节点"),
-    HTTP_CLIENT("http-node", "自定义函数节点"),
+    VARIABLE_SPLITTING("variable-splitting-node", "变量赋值"),
+
+    TOOL("tool-node", "自定义函数节点"),
+
+    TOOL_LIB("tool-lib-node", "工具库节点"),
+
+    HTTP_CLIENT("http-node", "HTTP请求节点"),
 
     FUNCTION_LIB("function-lib-node", "函数库节点"),
 
@@ -57,6 +64,8 @@ public enum NodeType {
     AI_CHAT("ai-chat-node", "智能聊天节点"),
 
     APPLICATION("application-node", "应用节点"),
+
+    PARAMETER_EXTRACTION("parameter-extraction-node", "参数提取节点"),
     ;
 
     private final String key;

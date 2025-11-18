@@ -3,14 +3,14 @@ package com.tarzan.maxkb4j.module.application.domian.entity;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.tarzan.maxkb4j.core.common.entity.BaseEntity;
-import com.tarzan.maxkb4j.core.handler.type.DatasetSettingTypeHandler;
-import com.tarzan.maxkb4j.core.handler.type.JOSNBTypeHandler;
-import com.tarzan.maxkb4j.core.handler.type.LlmModelSettingTypeHandler;
+import com.tarzan.maxkb4j.common.base.entity.BaseEntity;
+import com.tarzan.maxkb4j.common.typehandler.DatasetSettingTypeHandler;
+import com.tarzan.maxkb4j.common.typehandler.JSONBTypeHandler;
+import com.tarzan.maxkb4j.common.typehandler.LlmModelSettingTypeHandler;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-import java.util.List;
+import java.util.Date;
 
 /**
  * @author tarzan
@@ -18,7 +18,7 @@ import java.util.List;
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
-@TableName(value = "application")
+@TableName(value = "application", autoResultMap = true)
 public class ApplicationEntity extends BaseEntity {
 
     private String name;
@@ -30,7 +30,7 @@ public class ApplicationEntity extends BaseEntity {
     private Integer dialogueNumber;
 
     @TableField(typeHandler = DatasetSettingTypeHandler.class)
-    private DatasetSetting datasetSetting;
+    private KnowledgeSetting knowledgeSetting;
 
     @TableField(typeHandler = LlmModelSettingTypeHandler.class)
     private LlmModelSetting modelSetting;
@@ -45,10 +45,10 @@ public class ApplicationEntity extends BaseEntity {
 
     private String type;
 
-    @TableField(typeHandler = JOSNBTypeHandler.class)
+    @TableField(typeHandler = JSONBTypeHandler.class)
     private JSONObject workFlow;
 
-    @TableField(typeHandler = JOSNBTypeHandler.class)
+    @TableField(typeHandler = JSONBTypeHandler.class)
     private JSONObject modelParamsSetting;
 
     private String sttModelId;
@@ -65,9 +65,13 @@ public class ApplicationEntity extends BaseEntity {
 
     private String ttsType;
 
+    private Boolean isPublish;
+
+    private Date publishTime;
+
     private String problemOptimizationPrompt;
 
-    @TableField(typeHandler = JOSNBTypeHandler.class)
+    @TableField(typeHandler = JSONBTypeHandler.class)
     private JSONObject ttsModelParamsSetting;
 
     /*单位天*/
@@ -75,15 +79,10 @@ public class ApplicationEntity extends BaseEntity {
 
     private Boolean fileUploadEnable;
 
-    @TableField(typeHandler = JOSNBTypeHandler.class)
+    @TableField(typeHandler = JSONBTypeHandler.class)
     private JSONObject fileUploadSetting;
 
-    @TableField(exist = false)
-    private List<String> datasetIdList;
+    private String folderId;
 
-    @TableField(exist = false)
-    private List<String> mcpIdList;
 
-    @TableField(exist = false)
-    private List<String> functionIdList;
 } 

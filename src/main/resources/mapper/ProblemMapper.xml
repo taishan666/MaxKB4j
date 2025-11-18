@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.tarzan.maxkb4j.module.dataset.mapper.ProblemMapper">
+<mapper namespace="com.tarzan.maxkb4j.module.knowledge.mapper.ProblemMapper">
 
-    <select id="pageByDatasetId" resultType="com.tarzan.maxkb4j.module.dataset.domain.vo.ProblemVO">
+    <select id="pageByDatasetId" resultType="com.tarzan.maxkb4j.module.knowledge.domain.vo.ProblemVO">
         SELECT
             p.*,
             COUNT(ppm.paragraph_id) AS paragraph_count
@@ -10,7 +10,7 @@
             problem p
                 LEFT JOIN
             problem_paragraph_mapping ppm ON p.id = ppm.problem_id
-        WHERE p.DATASET_ID = #{datasetId}
+        WHERE p.KNOWLEDGE_ID = #{knowledgeId}
         <if test="content != null and content != ''">
             and p.content like CONCAT('%',#{content},'%')
         </if>

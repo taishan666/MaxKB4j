@@ -1,7 +1,10 @@
 package com.tarzan.maxkb4j.module.application.domian.vo;
 
+import com.tarzan.maxkb4j.module.chat.dto.ChildNode;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
+
+import java.util.List;
 
 @Data
 @RequiredArgsConstructor
@@ -9,83 +12,57 @@ public class ChatMessageVO {
     private String chatId;
     private String chatRecordId;
     private String content;
-    private String reasoning_content;
-   // private Boolean operate=false;
+    private String reasoningContent;
+    private List<String> upNodeIdList;
+    private Boolean operate = true;
     private String nodeId;
+    private String realNodeId;
     private String nodeType;
     private String viewType;
     private Boolean nodeIsEnd;
     private String runtimeNodeId;
     private Boolean isEnd;
-    private Integer messageTokens;
-    private Integer answerTokens;
+    private ChildNode childNode;
 
 
-
-
-    public ChatMessageVO(String chatId, String content, Boolean isEnd) {
+    public ChatMessageVO(String chatId, String chatRecordId, Boolean isEnd) {
         this.chatId = chatId;
-        this.content = content;
+        this.chatRecordId = chatRecordId;
+        this.content = "";
+        this.reasoningContent = "";
+        this.upNodeIdList = List.of();
         this.isEnd = isEnd;
-        this.messageTokens = 0;
-        this.answerTokens = 0;
     }
 
-    public ChatMessageVO(String chatId, String chatRecordId,String content, Boolean isEnd) {
+
+    public ChatMessageVO(String chatId, String chatRecordId, String content, String reasoningContent, String nodeType, String viewType, Boolean nodeIsEnd) {
         this.chatId = chatId;
         this.chatRecordId = chatRecordId;
         this.content = content;
-        this.isEnd = isEnd;
-        this.messageTokens = 0;
-        this.answerTokens = 0;
-    }
-
-    public ChatMessageVO(String chatId, String chatRecordId,String content,Boolean nodeIsEnd, Boolean isEnd) {
-        this.chatId = chatId;
-        this.chatRecordId = chatRecordId;
-        this.content = content;
-        this.nodeIsEnd = nodeIsEnd;
-        this.isEnd = isEnd;
-        this.messageTokens = 0;
-        this.answerTokens = 0;
-    }
-
-    public ChatMessageVO(String chatId, String chatRecordId,String content, Boolean isEnd,Integer messageTokens, Integer answerTokens) {
-        this.chatId = chatId;
-        this.chatRecordId = chatRecordId;
-        this.content = content;
-        this.isEnd = isEnd;
-        this.messageTokens = messageTokens;
-        this.answerTokens = answerTokens;
-    }
-
-    public ChatMessageVO(String chatId, String chatRecordId,String content,String runtimeNodeId,String nodeType,String viewType, Boolean nodeIsEnd, Boolean isEnd) {
-        this.chatId = chatId;
-        this.chatRecordId = chatRecordId;
-        this.content = content;
-        this.runtimeNodeId = runtimeNodeId;
+        this.reasoningContent = reasoningContent;
         this.nodeType = nodeType;
         this.viewType = viewType;
         this.nodeIsEnd = nodeIsEnd;
-        this.isEnd = isEnd;
-        this.messageTokens = 0;
-        this.answerTokens = 0;
+        this.upNodeIdList = List.of();
+        this.isEnd = false;
     }
 
-    public ChatMessageVO(String chatId, String chatRecordId,String content,String reasoning_content,String runtimeNodeId,String nodeType,String viewType, Boolean nodeIsEnd, Boolean isEnd) {
+
+    public ChatMessageVO(String chatId, String chatRecordId, String nodeId, String content, String reasoningContent, List<String> upNodeIdList,String runtimeNodeId, String nodeType, String viewType,ChildNode childNode, Boolean nodeIsEnd) {
         this.chatId = chatId;
         this.chatRecordId = chatRecordId;
+        this.nodeId = nodeId;
+        this.realNodeId = runtimeNodeId;
         this.content = content;
-        this.reasoning_content = reasoning_content;
+        this.reasoningContent = reasoningContent;
+        this.upNodeIdList = upNodeIdList;
         this.runtimeNodeId = runtimeNodeId;
         this.nodeType = nodeType;
         this.viewType = viewType;
+        this.childNode = childNode;
         this.nodeIsEnd = nodeIsEnd;
-        this.isEnd = isEnd;
-        this.messageTokens = 0;
-        this.answerTokens = 0;
+        this.isEnd = false;
     }
-
 
 
 }

@@ -21,7 +21,6 @@ public interface ApplicationChatMapper extends BaseMapper<ApplicationChatEntity>
 
     IPage<ApplicationChatEntity> chatLogs(Page<ApplicationChatEntity> page, String appId,@Param("query") ChatQueryDTO query);
 
-
     List<ApplicationStatisticsVO> statistics(String appId,@Param("query") ChatQueryDTO query);
 
     List<ChatRecordDetailVO> chatRecordDetail(List<String>  ids);
