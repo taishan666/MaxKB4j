@@ -1,5 +1,5 @@
 
-package com.tarzan.maxkb4j.core.handler;
+package com.tarzan.maxkb4j.common.handler;
 
 import cn.dev33.satoken.exception.NotLoginException;
 import cn.dev33.satoken.jwt.exception.SaJwtException;

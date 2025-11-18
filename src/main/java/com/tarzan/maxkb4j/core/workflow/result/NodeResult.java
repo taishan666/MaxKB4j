@@ -1,7 +1,7 @@
 package com.tarzan.maxkb4j.core.workflow.result;
 
 import com.tarzan.maxkb4j.common.util.StringUtil;
-import com.tarzan.maxkb4j.core.workflow.Workflow;
+import com.tarzan.maxkb4j.core.workflow.model.Workflow;
 import com.tarzan.maxkb4j.core.workflow.node.INode;
 import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
 import lombok.Data;

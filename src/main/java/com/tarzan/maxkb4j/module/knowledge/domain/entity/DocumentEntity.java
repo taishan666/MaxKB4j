@@ -5,7 +5,7 @@ import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.tarzan.maxkb4j.common.base.entity.BaseEntity;
-import com.tarzan.maxkb4j.core.handler.type.JSONBTypeHandler;
+import com.tarzan.maxkb4j.common.typehandler.JSONBTypeHandler;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 

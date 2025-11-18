@@ -1,4 +1,4 @@
-package com.tarzan.maxkb4j.core.workflow;
+package com.tarzan.maxkb4j.core.workflow.model;
 
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;

@@ -3,7 +3,7 @@ package com.tarzan.maxkb4j.module.knowledge.domain.entity;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.tarzan.maxkb4j.core.handler.type.EmbeddingTypeHandler;
+import com.tarzan.maxkb4j.common.typehandler.EmbeddingTypeHandler;
 import lombok.Data;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Transient;

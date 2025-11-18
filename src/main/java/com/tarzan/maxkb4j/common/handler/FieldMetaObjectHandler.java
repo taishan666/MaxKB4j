@@ -1,4 +1,4 @@
-package com.tarzan.maxkb4j.core.handler;
+package com.tarzan.maxkb4j.common.handler;
 
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.handlers.MetaObjectHandler;
