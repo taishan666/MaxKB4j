@@ -22,7 +22,6 @@ import com.tarzan.maxkb4j.listener.DataListener;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.DatasetBatchHitHandlingDTO;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.DocumentNameDTO;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.GenerateProblemDTO;
-import com.tarzan.maxkb4j.module.knowledge.domain.dto.WebUrlDTO;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.DocumentEntity;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.ParagraphEntity;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.ProblemEntity;
@@ -175,45 +174,6 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         this.save(doc);
     }
 
-
-/*    @Transactional
-    protected void processTableFile(String knowledgeId, InputStream fis,String fileName) {
-        List<String> list = new ArrayList<>();
-        Map<Integer, List<String>> map = new ConcurrentSkipListMap<>();
-        EasyExcel.read(fis, new AnalysisEventListener<Map<Integer, String>>() {
-            Map<Integer, String> headMap = new LinkedHashMap<>();
-
-            // 表头信息会在此方法中获取
-            @Override
-            public void invokeHeadMap(Map<Integer, String> headMap, AnalysisContext context) {
-                this.headMap = headMap;
-            }
-
-            // 每一行数据都会调用此方法
-            @Override
-            public void invoke(Map<Integer, String> data, AnalysisContext context) {
-                String sheetName = context.readSheetHolder().getSheetName();
-                Integer sheetNo = context.readSheetHolder().getSheetNo();
-                if (map.containsKey(sheetNo)){
-                    StringBuilder sb = new StringBuilder();
-                    for (Integer i : data.keySet()) {
-                        String value = data.get(i) == null ? "" : data.get(i);
-                        sb.append(headMap.get(i)).append(":").append(value).append(";");
-                    }
-                    sb.deleteCharAt(sb.length() - 1);
-                    map.get(sheetNo).add(sb.toString());
-                }else {
-                    map.put(sheetNo, new ArrayList<>());
-                }
-            }
-
-            @Override
-            public void doAfterAllAnalysed(AnalysisContext analysisContext) {
-                log.info("所有数据解析完成！");
-            }
-        }).doReadAll();
-        return list;
-    }*/
     @Transactional
     protected void processQaFile(String knowledgeId, InputStream fis,String fileName) {
         List<ProblemEntity> knowledgeProblems = problemService.lambdaQuery().eq(ProblemEntity::getKnowledgeId, knowledgeId).list();
@@ -272,15 +232,8 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         paragraphService.saveBatch(paragraphs);
         problemService.saveBatch(problemEntities);
         problemParagraphService.saveBatch(problemParagraphs);
-        for (DocumentEntity doc : docs) {
-            this.updateStatusById(doc.getId(), 1, 0);
-            //目的是为了显示进度计数
-            this.updateStatusMetaById(doc.getId());
-            eventPublisher.publishEvent(new DocumentIndexEvent(this, knowledgeId,List.of(doc.getId()),List.of("0")));
-        }
+        eventPublisher.publishEvent(new DocumentIndexEvent(this, knowledgeId,docs.stream().map(DocumentEntity::getId).toList(),List.of("0")));
     }
-
-
 
 
 
@@ -525,10 +478,6 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         return Objects.requireNonNull(file.getOriginalFilename()).endsWith(".zip");
     }
 
-    @Transactional
-    public void web(String knowledgeId, WebUrlDTO params) {
-        webDoc(knowledgeId, params.getSourceUrlList(), params.getSelector());
-    }
 
     @Async
     @Transactional
@@ -583,6 +532,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         });
         this.saveBatch(docs);
         paragraphService.saveBatch(paragraphs);
+        eventPublisher.publishEvent(new DocumentIndexEvent(this, knowledgeId,docs.stream().map(DocumentEntity::getId).toList(),List.of("0")));
     }
 
     @Transactional

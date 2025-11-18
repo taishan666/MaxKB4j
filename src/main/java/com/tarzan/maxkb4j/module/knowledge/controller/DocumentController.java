@@ -33,7 +33,7 @@ public class DocumentController {
  
     @PostMapping("/knowledge/{id}/document/web")
     public void web(@PathVariable("id") String id, @RequestBody WebUrlDTO params) throws IOException {
-        documentService.web(id,params);
+        documentService.webDoc(id,params.getSourceUrlList(),params.getSelector());
     }
  
     @PutMapping("/knowledge/{id}/document/{docId}/sync")

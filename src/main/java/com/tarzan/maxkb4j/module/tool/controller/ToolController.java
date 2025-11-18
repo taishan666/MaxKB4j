@@ -1,6 +1,8 @@
 package com.tarzan.maxkb4j.module.tool.controller;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.tarzan.maxkb4j.common.api.R;
 import com.tarzan.maxkb4j.common.constant.AppConst;
 import com.tarzan.maxkb4j.common.util.StpKit;
@@ -42,19 +44,26 @@ public class ToolController {
 
     @GetMapping("/workspace/default/tool")
     public R<Map<String, List<ToolEntity>>> list(String folderId, String toolType) {
-        return R.success(Map.of("folders", List.of(), "tools", toolService.listTools(toolType)));
+        return R.success(Map.of("folders", List.of(), "tools", toolService.listTools("WORKSPACE",toolType)));
     }
-
-    @GetMapping("/workspace/internal/tool")
-    public R<Map<String, List<ToolEntity>>> internalTools(String scope, String name) {
-        return R.success(Map.of("folders", List.of(), "tools", toolService.listTools("internal")));
-    }
-
 
     @GetMapping("/workspace/default/tool/tool_list")
     public R<Map<String, List<ToolEntity>>> toolList(String scope, String toolType) {
-        return R.success(Map.of("tools", toolService.listTools(toolType), "shared_tools", List.of()));
+        return R.success(Map.of("shared_tools", List.of(),"tools", toolService.listTools(scope,toolType)));
     }
+
+    @GetMapping("/workspace/internal/tool")
+    public R<List<ToolEntity>> internalTools(String name) {
+        LambdaQueryWrapper<ToolEntity> wrapper = Wrappers.lambdaQuery();
+        wrapper.eq(ToolEntity::getToolType, "INTERNAL");
+        if (StringUtil.isNotBlank(name)) {
+            wrapper.like(ToolEntity::getName, name);
+        }
+        return R.success(toolService.list(wrapper));
+    }
+
+
+
 
     @PostMapping("/workspace/default/tool/{templateId}/add_internal_tool")
     public R<ToolEntity> addInternalTool(@PathVariable String templateId) {
