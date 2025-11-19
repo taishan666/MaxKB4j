@@ -1,5 +1,6 @@
 package com.tarzan.maxkb4j.core.workflow.result;
 
+import com.tarzan.maxkb4j.core.workflow.enums.NodeType;
 import com.tarzan.maxkb4j.core.workflow.model.Workflow;
 import com.tarzan.maxkb4j.core.workflow.node.INode;
 import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
@@ -14,40 +15,46 @@ import java.util.Map;
 public class NodeResult {
     private Map<String, Object> nodeVariable;
     private Map<String, Object> globalVariable;
+    private boolean streamOutput;
     private WriteContextFunction writeContextFunc;
+    private WriteDetailFunction writeDetailFunc;
     private IsInterruptFunction isInterrupt;
 
     public NodeResult(Map<String, Object> nodeVariable, Map<String, Object> globalVariable) {
         this.nodeVariable = nodeVariable;
         this.globalVariable = globalVariable;
+        this.streamOutput = false;
         this.writeContextFunc = this::defaultWriteContextFunc;
+        this.writeDetailFunc = this::defaultWriteDetailFunc;
         this.isInterrupt = this::defaultIsInterrupt;
     }
 
-    public NodeResult(Map<String, Object> nodeVariable, Map<String, Object> globalVariable, WriteContextFunction writeContextFunc) {
+    public NodeResult(Map<String, Object> nodeVariable, Map<String, Object> globalVariable, boolean streamOutput) {
         this.nodeVariable = nodeVariable;
         this.globalVariable = globalVariable;
-        this.writeContextFunc = writeContextFunc;
+        this.streamOutput = streamOutput;
+        this.writeContextFunc = this::defaultWriteContextFunc;
+        this.writeDetailFunc = this::defaultWriteDetailFunc;
         this.isInterrupt = this::defaultIsInterrupt;
     }
 
-    public NodeResult(Map<String, Object> nodeVariable, Map<String, Object> globalVariable, IsInterruptFunction isInterrupt) {
-        this.nodeVariable = nodeVariable;
-        this.globalVariable = globalVariable;
-        this.writeContextFunc = this::defaultWriteContextFunc;
-        this.isInterrupt = isInterrupt;
-    }
-    public NodeResult(Map<String, Object> nodeVariable, Map<String, Object> globalVariable , WriteContextFunction writeContextFunc,IsInterruptFunction isInterrupt) {
-        this.nodeVariable = nodeVariable;
-        this.globalVariable = globalVariable;
-        this.writeContextFunc = writeContextFunc;
-        this.isInterrupt = isInterrupt;
-    }
 
+    public NodeResult(Map<String, Object> nodeVariable, Map<String, Object> globalVariable, boolean streamOutput, IsInterruptFunction isInterrupt) {
+        this.nodeVariable = nodeVariable;
+        this.globalVariable = globalVariable;
+        this.streamOutput = streamOutput;
+        this.writeContextFunc = this::defaultWriteContextFunc;
+        this.writeDetailFunc = this::defaultWriteDetailFunc;
+        this.isInterrupt = isInterrupt;
+    }
 
 
     public void writeContext(INode currentNode, Workflow workflow) {
         this.writeContextFunc.apply(nodeVariable, globalVariable, currentNode, workflow);
+    }
+
+    public void writeDetail(INode currentNode) {
+        this.writeDetailFunc.apply(nodeVariable, globalVariable, currentNode);
     }
 
     public boolean isInterruptExec(INode currentNode) {
@@ -61,16 +68,17 @@ public class NodeResult {
     public void defaultWriteContextFunc(Map<String, Object> nodeVariable, Map<String, Object> globalVariable, INode node, Workflow workflow) {
         if (nodeVariable != null) {
             node.getContext().putAll(nodeVariable);
-            node.getDetail().putAll(nodeVariable);
-            if (workflow.isResult(node, new NodeResult(nodeVariable, globalVariable))&& StringUtils.isNotBlank(node.getAnswerText())) {
-                ChatMessageVO vo = node.toChatMessageVO(
-                        workflow.getChatParams().getChatId(),
-                        workflow.getChatParams().getChatRecordId(),
-                        node.getAnswerText(),
-                        "",
-                        false);
-                workflow.getChatParams().getSink().tryEmitNext(vo);
-                workflow.setAnswer(workflow.getAnswer()+node.getAnswerText());
+            if (workflow.isResult(node, new NodeResult(nodeVariable, globalVariable)) && StringUtils.isNotBlank(node.getAnswerText())) {
+                if (!this.streamOutput) {
+                    ChatMessageVO vo = node.toChatMessageVO(
+                            workflow.getChatParams().getChatId(),
+                            workflow.getChatParams().getChatRecordId(),
+                            node.getAnswerText(),
+                            "",
+                            false);
+                    workflow.getChatParams().getSink().tryEmitNext(vo);
+                }
+                workflow.setAnswer(workflow.getAnswer() + node.getAnswerText());
                 ChatMessageVO endVo = node.toChatMessageVO(
                         workflow.getChatParams().getChatId(),
                         workflow.getChatParams().getChatRecordId(),
@@ -82,6 +90,18 @@ public class NodeResult {
         }
         if (globalVariable != null) {
             workflow.getContext().putAll(globalVariable);
+        }
+    }
+
+    public void defaultWriteDetailFunc(Map<String, Object> nodeVariable, Map<String, Object> globalVariable, INode node) {
+        if (nodeVariable != null) {
+            if (NodeType.FORM.getKey().equals(node.getType())) {
+                node.getDetail().put("form_data", nodeVariable.get("form_data"));
+            } else {
+                node.getDetail().putAll(nodeVariable);
+            }
+        }
+        if (globalVariable != null) {
             node.getDetail().putAll(globalVariable);
         }
     }
@@ -90,6 +110,12 @@ public class NodeResult {
     @FunctionalInterface
     public interface WriteContextFunction {
         void apply(Map<String, Object> nodeVariable, Map<String, Object> workflowVariable, INode node, Workflow workflow);
+    }
+
+
+    @FunctionalInterface
+    public interface WriteDetailFunction {
+        void apply(Map<String, Object> nodeVariable, Map<String, Object> workflowVariable, INode node);
     }
 
     @FunctionalInterface

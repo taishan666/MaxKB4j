@@ -212,17 +212,20 @@ public class Workflow {
 
     private Map<String, Object> getPromptVariables() {
         Map<String, Object> result = new HashMap<>(100);
-        for (String key : context.keySet()) {
-            result.put("global." + key, context.get(key));
+        for (String key : this.context.keySet()) {
+            Object value =  this.context.get(key);
+            result.put("global." + key, value==null?"*": value);
         }
-        for (String key : chatContext.keySet()) {
-            result.put("chat." + key, chatContext.get(key));
+        for (String key : this.chatContext.keySet()) {
+            Object value =  this.chatContext.get(key);
+            result.put("chat." + key, value==null?"*": value);
         }
         for (INode node : nodeContext) {
             String nodeName = node.getProperties().getString("nodeName");
             Map<String, Object> context = node.getContext();
             for (String key : context.keySet()) {
-                result.put(nodeName + "." + key, context.get(key));
+                Object value =  context.get(key);
+                result.put(nodeName + "." + key,value==null?"*": value);
             }
         }
         return result;

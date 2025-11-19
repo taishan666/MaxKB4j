@@ -126,30 +126,13 @@ public class AiChatNodeHandler implements INodeHandler {
             TokenUsage tokenUsage = response.tokenUsage();
             node.getDetail().put("messageTokens", tokenUsage.inputTokenCount());
             node.getDetail().put("answerTokens", tokenUsage.outputTokenCount());
-            return new NodeResult(Map.of("answer", node.getAnswerText(), "reasoningContent", thinking), Map.of(), this::writeContext);
+            return new NodeResult(Map.of("answer", node.getAnswerText(), "reasoningContent", thinking), Map.of(), true);
         } catch (InterruptedException | ExecutionException e) {
             log.error("Error waiting for TokenStream completion", e);
             Thread.currentThread().interrupt(); // 恢复中断状态
             return new NodeResult(null, null);
         }
 
-    }
-
-    private void writeContext(Map<String, Object> nodeVariable, Map<String, Object> globalVariable, INode node, Workflow workflow) {
-        if (nodeVariable != null) {
-            node.getContext().putAll(nodeVariable);
-            node.getDetail().putAll(nodeVariable);
-            if (workflow.isResult(node, new NodeResult(nodeVariable, globalVariable)) && StringUtils.isNotBlank(node.getAnswerText())) {
-                workflow.setAnswer(workflow.getAnswer() + node.getAnswerText());
-                ChatMessageVO endVo = node.toChatMessageVO(
-                        workflow.getChatParams().getChatId(),
-                        workflow.getChatParams().getChatRecordId(),
-                        "",
-                        "",
-                        true);
-                workflow.getChatParams().getSink().tryEmitNext(endVo);
-            }
-        }
     }
 
 

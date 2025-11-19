@@ -14,7 +14,6 @@ import com.tarzan.maxkb4j.module.chat.dto.ChatResponse;
 import com.tarzan.maxkb4j.module.chat.dto.ChildNode;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Sinks;
 
@@ -116,23 +115,9 @@ public class ApplicationNodeHandler implements INodeHandler {
         node.getDetail().put("is_interrupt_exec", is_interrupt_exec.get());
         return new NodeResult(Map.of(
                 "result", node.getAnswerText()
-        ), Map.of(),this::writeContext,this::isInterrupt);
+        ), Map.of(),true,this::isInterrupt);
     }
 
-    private void writeContext(Map<String, Object> nodeVariable, Map<String, Object> globalVariable, INode node, Workflow workflow) {
-        node.getContext().putAll(nodeVariable);
-        node.getDetail().putAll(nodeVariable);
-        if (workflow.isResult(node, new NodeResult(nodeVariable, globalVariable))&& StringUtils.isNotBlank(node.getAnswerText())) {
-            workflow.setAnswer(workflow.getAnswer()+node.getAnswerText());
-            ChatMessageVO endVo = node.toChatMessageVO(
-                    workflow.getChatParams().getChatId(),
-                    workflow.getChatParams().getChatRecordId(),
-                    "",
-                    "",
-                    true);
-            workflow.getChatParams().getSink().tryEmitNext(endVo);
-        }
-    }
 
     public boolean isInterrupt(INode node) {
         return node.getDetail().containsKey("is_interrupt_exec")&&(boolean)node.getDetail().get("is_interrupt_exec");
