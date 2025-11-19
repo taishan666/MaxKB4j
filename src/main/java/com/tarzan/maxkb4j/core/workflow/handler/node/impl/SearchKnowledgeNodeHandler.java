@@ -49,15 +49,15 @@ public class SearchKnowledgeNodeHandler implements INodeHandler {
         ), Map.of());
     }
 
+    @SuppressWarnings("unchecked")
     private List<String> getExcludeParagraphIds(Workflow workflow, INode node,String question){
         List<String> excludeParagraphIds=new ArrayList<>();
         for (ApplicationChatRecordEntity chatRecord : workflow.getHistoryChatRecords()) {
-            JSONObject details=chatRecord.getDetails();
-            if (!details.isEmpty()){
-                for (String key : details.keySet()) {
-                    JSONObject detail= details.getJSONObject(key);
-                    if (question.equals(detail.getString("question"))&&node.getType().equals(detail.getString("type"))){
-                        @SuppressWarnings("unchecked")
+            if (chatRecord.getProblemText().equals(workflow.getChatParams().getMessage())){
+                JSONObject details=chatRecord.getDetails();
+                if (!details.isEmpty()){
+                    JSONObject detail= details.getJSONObject(node.getRuntimeNodeId());
+                    if (question.equals(detail.getString("question"))){
                         List<ParagraphVO> paragraphList= (List<ParagraphVO>) detail.get("paragraphList");
                         if (!CollectionUtils.isEmpty(paragraphList)){
                             excludeParagraphIds.addAll(paragraphList.stream().map(ParagraphVO::getId).toList());

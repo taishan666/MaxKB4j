@@ -11,15 +11,22 @@
     <select id="embeddingSearch" resultType="com.tarzan.maxkb4j.module.knowledge.domain.vo.TextChunkVO">
         SELECT paragraph_id, score
         FROM (
-            SELECT DISTINCT ON (paragraph_id) paragraph_id, (2 - (
-            <![CDATA[embedding <=> CAST (#{referenceEmbedding  } AS vector)]]>))/2 AS score
-            FROM EMBEDDING
-            WHERE
-            knowledge_id IN
+        SELECT DISTINCT ON (paragraph_id) paragraph_id, (2 - (
+        <![CDATA[embedding <=> CAST (#{referenceEmbedding  } AS vector)]]>))/2 AS score
+        FROM EMBEDDING
+        WHERE is_active=true
+        <if test="knowledgeIds != null and !knowledgeIds.isEmpty()">
+            AND knowledge_id IN
             <foreach item="id" collection="knowledgeIds" open="(" separator="," close=")">
                 #{id}
             </foreach>
-            AND is_active=true
+        </if>
+        <if test="excludeParagraphIds != null and !excludeParagraphIds.isEmpty()">
+            AND paragraph_id NOT IN
+            <foreach item="id" collection="excludeParagraphIds" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+        </if>
         ) t
         WHERE score > #{minScore}
         ORDER BY score DESC
