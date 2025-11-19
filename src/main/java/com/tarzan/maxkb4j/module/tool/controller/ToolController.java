@@ -6,7 +6,6 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.tarzan.maxkb4j.common.api.R;
 import com.tarzan.maxkb4j.common.constant.AppConst;
 import com.tarzan.maxkb4j.common.util.StpKit;
-import com.tarzan.maxkb4j.common.util.StringUtil;
 import com.tarzan.maxkb4j.module.tool.domain.dto.ToolDTO;
 import com.tarzan.maxkb4j.module.tool.domain.dto.ToolInputField;
 import com.tarzan.maxkb4j.module.tool.domain.dto.ToolQuery;
@@ -18,6 +17,7 @@ import groovy.lang.GroovyShell;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -56,7 +56,7 @@ public class ToolController {
     public R<List<ToolEntity>> internalTools(String name) {
         LambdaQueryWrapper<ToolEntity> wrapper = Wrappers.lambdaQuery();
         wrapper.eq(ToolEntity::getToolType, "INTERNAL");
-        if (StringUtil.isNotBlank(name)) {
+        if (StringUtils.isNotBlank(name)) {
             wrapper.like(ToolEntity::getName, name);
         }
         return R.success(toolService.list(wrapper));
@@ -82,7 +82,7 @@ public class ToolController {
     @PostMapping("/workspace/default/tool")
     public R<ToolEntity> toolLib(@RequestBody ToolEntity dto) {
         dto.setIsActive(true);
-        if (StringUtil.isBlank(dto.getToolType())){
+        if (StringUtils.isBlank(dto.getToolType())){
             dto.setToolType("CUSTOM");
         }
         dto.setUserId(StpKit.ADMIN.getLoginIdAsString());

@@ -1,13 +1,12 @@
 package com.tarzan.maxkb4j.core.workflow.handler.node.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
-import com.tarzan.maxkb4j.common.util.StringUtil;
 import com.tarzan.maxkb4j.core.assistant.Assistant;
 import com.tarzan.maxkb4j.core.langchain4j.AppChatMemory;
 import com.tarzan.maxkb4j.core.tool.MimeTypeUtils;
-import com.tarzan.maxkb4j.core.workflow.model.Workflow;
 import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;
 import com.tarzan.maxkb4j.core.workflow.model.ChatFile;
+import com.tarzan.maxkb4j.core.workflow.model.Workflow;
 import com.tarzan.maxkb4j.core.workflow.node.INode;
 import com.tarzan.maxkb4j.core.workflow.node.impl.ImageUnderstandNode;
 import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
@@ -24,6 +23,7 @@ import dev.langchain4j.service.AiServices;
 import dev.langchain4j.service.TokenStream;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -63,7 +63,7 @@ public class ImageUnderstandNodeHandler implements INodeHandler {
             contents.add(imageContent);
         }
         AiServices<Assistant> aiServicesBuilder=AiServices.builder(Assistant.class);
-        if (StringUtil.isNotBlank(systemPrompt)){
+        if (StringUtils.isNotBlank(systemPrompt)){
             aiServicesBuilder.systemMessageProvider(chatMemoryId -> systemPrompt);
         }
         if (CollectionUtils.isNotEmpty(historyMessages)){
@@ -120,7 +120,7 @@ public class ImageUnderstandNodeHandler implements INodeHandler {
         if (nodeVariable != null) {
             node.getContext().putAll(nodeVariable);
             node.getDetail().putAll(nodeVariable);
-            if (workflow.isResult(node, new NodeResult(nodeVariable, globalVariable))&& StringUtil.isNotBlank(node.getAnswerText())) {
+            if (workflow.isResult(node, new NodeResult(nodeVariable, globalVariable))&& StringUtils.isNotBlank(node.getAnswerText())) {
                 workflow.setAnswer(workflow.getAnswer()+node.getAnswerText());
                 ChatMessageVO endVo = node.toChatMessageVO(
                         workflow.getChatParams().getChatId(),

@@ -78,7 +78,7 @@ public class ChatStep extends IChatStep {
         if (chatModel == null) {
             answerText.set("抱歉，没有配置 AI 模型，无法优化引用分段，请先去应用中设置 AI 模型。");
             sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, answerText.get(), "", "ai-chat-node", viewType, true));
-        } else if (StringUtil.isBlank(problemText)) {
+        } else if (StringUtils.isBlank(problemText)) {
             answerText.set("用户消息不能为空");
             sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, answerText.get(), "", "ai-chat-node", viewType, true));
         } else {

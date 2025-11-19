@@ -7,7 +7,6 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tarzan.maxkb4j.common.exception.AccessNumLimitException;
 import com.tarzan.maxkb4j.common.exception.ApiException;
-import com.tarzan.maxkb4j.common.util.StringUtil;
 import com.tarzan.maxkb4j.core.chat.provider.ChatActuatorBuilder;
 import com.tarzan.maxkb4j.core.chat.provider.IChatActuator;
 import com.tarzan.maxkb4j.module.application.domian.dto.ChatInfo;
@@ -21,6 +20,8 @@ import com.tarzan.maxkb4j.module.chat.dto.ChatParams;
 import com.tarzan.maxkb4j.module.chat.dto.ChatResponse;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
+import opennlp.tools.util.StringUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -90,7 +91,7 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
             chatParams.getSink().tryEmitError(new ApiException("会话不存在"));
             return new ChatResponse("",null);
         } else {
-            if (StringUtil.isEmpty(chatParams.getAppId())) {
+            if (StringUtils.isEmpty(chatParams.getAppId())) {
                 chatParams.setAppId(chatInfo.getAppId());
             }
         }
@@ -106,7 +107,7 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
 
     @Async("chatTaskExecutor")
     public CompletableFuture<ChatResponse> chatMessageAsync(ChatParams chatParams) {
-        String chatId=StringUtil.isNotBlank(chatParams.getChatId()) ? chatParams.getChatId() : IdWorker.get32UUID();
+        String chatId= StringUtils.isNotBlank(chatParams.getChatId()) ? chatParams.getChatId() : IdWorker.get32UUID();
         ChatInfo chatInfo = ChatCache.get(chatId);
         if (chatInfo == null){
             chatInfo = new ChatInfo();
