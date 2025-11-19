@@ -7,16 +7,16 @@ import com.tarzan.maxkb4j.core.chatpipeline.step.resetproblemstep.IResetProblemS
 import com.tarzan.maxkb4j.core.tool.MessageTools;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationEntity;
 import com.tarzan.maxkb4j.module.model.info.service.ModelFactory;
-import dev.langchain4j.memory.ChatMemory;
-import dev.langchain4j.memory.chat.MessageWindowChatMemory;
+import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.output.TokenUsage;
 import dev.langchain4j.service.AiServices;
 import dev.langchain4j.service.Result;
-import dev.langchain4j.store.memory.chat.ChatMemoryStore;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 @Slf4j
 @Component
@@ -24,7 +24,6 @@ import org.springframework.stereotype.Component;
 public class ResetProblemStep extends IResetProblemStep {
 
     private final ModelFactory modelFactory;
-    private final ChatMemoryStore chatMemoryStore;
 
     @Override
     protected String execute(PipelineManage manage) {
@@ -33,18 +32,13 @@ public class ResetProblemStep extends IResetProblemStep {
         String modelId = application.getModelId();
         JSONObject modelParams = application.getModelParamsSetting();
         ChatModel chatModel = modelFactory.buildChatModel(modelId,modelParams);
-        String question = (String) context.get("problemText");
-        String chatId = (String) context.get("chatId");
+        String question = (String) manage.context.get("problemText");
        // String systemText = application.getModelSetting().getSystem();
-        ChatMemory chatMemory = MessageWindowChatMemory.builder()
-                .id(chatId)
-                .maxMessages(application.getDialogueNumber())
-                .chatMemoryStore(chatMemoryStore)
-                .build();
+        List<ChatMessage> chatMemory= manage.getHistoryMessages(application.getDialogueNumber());
         CompressingQueryAssistant queryAssistant = AiServices.builder(CompressingQueryAssistant.class)
                 .chatModel(chatModel)
                 .build();
-        Result<String> result= queryAssistant.transform(MessageTools.format(chatMemory.messages()),question);
+        Result<String> result= queryAssistant.transform(MessageTools.format(chatMemory),question);
         String paddingProblem=result.content();
         super.context.put("modelId", modelId);
         super.context.put("problemText", question);
@@ -62,8 +56,9 @@ public class ResetProblemStep extends IResetProblemStep {
         details.put("step_type","problem_padding");
         details.put("problemText",context.get("problemText"));
         details.put("paddingProblemText",context.get("paddingProblemText"));
-        details.put("messageTokens", context.get("messageTokens"));
-        details.put("answerTokens", context.get("answerTokens"));
+        details.put("runTime", context.get("runTime"));
+        details.put("messageTokens", context.getOrDefault("messageTokens",0));
+        details.put("answerTokens", context.getOrDefault("answerTokens",0));
         return details;
     }
 }

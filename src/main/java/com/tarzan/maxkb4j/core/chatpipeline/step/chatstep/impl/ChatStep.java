@@ -111,7 +111,7 @@ public class ChatStep extends IChatStep {
                         .onCompleteResponse(response -> {
                             answerText.set(response.aiMessage().text());
                             TokenUsage tokenUsage = response.tokenUsage();
-                            context.put("message_list", resetMessageToJSON(historyMessages));
+                            context.put("messageList", resetMessageToJSON(historyMessages));
                             context.put("messageTokens", tokenUsage.inputTokenCount());
                             context.put("answerTokens", tokenUsage.outputTokenCount());
                             sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, "", "", "ai-chat-node", viewType, true));
@@ -158,8 +158,8 @@ public class ChatStep extends IChatStep {
     public JSONObject getDetails() {
         JSONObject details = new JSONObject();
         details.put("step_type", "chat_step");
+        details.put("messageList", context.get("messageList"));
         details.put("runTime", context.get("runTime"));
-        details.put("message_list", context.get("message_list"));
         details.put("messageTokens", context.getOrDefault("messageTokens", 0));
         details.put("answerTokens", context.getOrDefault("answerTokens", 0));
         return details;
