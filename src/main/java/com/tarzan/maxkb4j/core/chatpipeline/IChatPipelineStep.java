@@ -3,8 +3,10 @@ package com.tarzan.maxkb4j.core.chatpipeline;
 
 import com.alibaba.fastjson.JSONObject;
 
+import java.util.Map;
+
 public abstract class IChatPipelineStep {
-    protected JSONObject context = new JSONObject();
+    protected Map<String, Object> context = new JSONObject();
 
     public void run(PipelineManage manage) {
         long startTime = System.currentTimeMillis();

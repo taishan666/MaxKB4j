@@ -10,36 +10,26 @@ import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Sinks;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 @Slf4j
 public class PipelineManage {
     public List<IChatPipelineStep> stepList;
-    public JSONObject context;
+    public Map<String, Object> context;
     public Sinks.Many<ChatMessageVO> sink;
-    public String answer;
 
     public PipelineManage(List<IChatPipelineStep> stepList) {
         this.stepList = stepList;
-        this.context = new JSONObject();
+        this.context = new HashMap<>();
         this.context.put("messageTokens", 0);
         this.context.put("answerTokens", 0);
     }
 
-
-    private static IChatPipelineStep instantiateStep(Class<? extends IChatPipelineStep> stepClass) {
-        try {
-           return stepClass.getDeclaredConstructor().newInstance();
-        } catch (Exception e) {
-            log.error(e.getMessage());
-        }
-        return null;
-    }
-
-    public String run(Map<String, Object> context, Sinks.Many<ChatMessageVO> sink) {
-        if (context != null) {
-            this.context.putAll(context);
+    public String run(Map<String, Object> params, Sinks.Many<ChatMessageVO> sink) {
+        if (params != null) {
+            this.context.putAll(params);
         }
         if (sink != null){
             this.sink = sink;
@@ -47,7 +37,7 @@ public class PipelineManage {
         for (IChatPipelineStep step : stepList) {
             step.run(this);
         }
-        return answer;
+        return (String) this.context.get("answer");
     }
 
     public List<ChatMessage> getHistoryMessages(int dialogueNumber) {
@@ -78,10 +68,6 @@ public class PipelineManage {
 
     public static class Builder {
         private final List<IChatPipelineStep> stepList = new ArrayList<>();
-
-        public void addStep(Class<? extends IChatPipelineStep> step) {
-            stepList.add(instantiateStep(step));
-        }
 
         public void addStep(IChatPipelineStep step) {
             stepList.add(step);

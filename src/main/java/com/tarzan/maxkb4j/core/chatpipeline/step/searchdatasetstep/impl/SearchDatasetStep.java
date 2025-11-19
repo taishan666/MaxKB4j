@@ -1,16 +1,18 @@
 package com.tarzan.maxkb4j.core.chatpipeline.step.searchdatasetstep.impl;
 
 import com.alibaba.fastjson.JSONObject;
-import com.tarzan.maxkb4j.module.application.domian.entity.KnowledgeSetting;
-import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationVO;
 import com.tarzan.maxkb4j.core.chatpipeline.PipelineManage;
 import com.tarzan.maxkb4j.core.chatpipeline.step.searchdatasetstep.ISearchDatasetStep;
+import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatRecordEntity;
+import com.tarzan.maxkb4j.module.application.domian.entity.KnowledgeSetting;
+import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationVO;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.ParagraphVO;
 import com.tarzan.maxkb4j.module.knowledge.service.RetrieveService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -26,10 +28,17 @@ public class SearchDatasetStep extends ISearchDatasetStep {
     protected List<ParagraphVO> execute(PipelineManage manage) {
         long startTime = System.currentTimeMillis();
         ApplicationVO application=(ApplicationVO)manage.context.get("application");
-        String problemText=manage.context.getString("problemText");
-        String paddingProblemText=manage.context.getString("paddingProblemText");
-        @SuppressWarnings("unchecked")
-        List<String> excludeParagraphIds=(List<String>)manage.context.get("excludeParagraphIds");
+        String problemText= (String) manage.context.get("problemText");
+        String paddingProblemText= (String) manage.context.get("paddingProblemText");
+        Boolean reChat=(Boolean)manage.context.get("reChat");
+        List<String> excludeParagraphIds;
+        if (reChat) {
+            @SuppressWarnings("unchecked")
+            List<ApplicationChatRecordEntity> historyChatRecords= (List<ApplicationChatRecordEntity>) manage.context.get("chatRecordList");
+            excludeParagraphIds=getExcludeParagraphIds(historyChatRecords, problemText);
+        } else {
+            excludeParagraphIds = new ArrayList<>();
+        }
         KnowledgeSetting datasetSetting=application.getKnowledgeSetting();
         List<CompletableFuture<List<ParagraphVO>>> futureList = new ArrayList<>();
         futureList.add(CompletableFuture.supplyAsync(()->retrieveService.paragraphSearch(problemText,application.getKnowledgeIdList(), excludeParagraphIds,datasetSetting)));
@@ -58,6 +67,26 @@ public class SearchDatasetStep extends ISearchDatasetStep {
         context.put("paragraphList",paragraphList);
         context.put("problemText",problemText);
         return paragraphList;
+    }
+
+    private List<String> getExcludeParagraphIds(List<ApplicationChatRecordEntity> chatRecordList, String problemText){
+        List<String> excludeParagraphIds=new ArrayList<>();
+        if (!CollectionUtils.isEmpty(chatRecordList)){
+            for (ApplicationChatRecordEntity chatRecord : chatRecordList) {
+                JSONObject details=chatRecord.getDetails();
+                if (!details.isEmpty()){
+                    if (problemText.equals(chatRecord.getProblemText())&&details.containsKey("search_step")){
+                        JSONObject searchStep=details.getJSONObject("search_step");
+                        @SuppressWarnings("unchecked")
+                        List<ParagraphVO> paragraphList= (List<ParagraphVO>) searchStep.get("paragraphList");
+                        if (!CollectionUtils.isEmpty(paragraphList)){
+                            excludeParagraphIds.addAll(paragraphList.stream().map(ParagraphVO::getId).toList());
+                        }
+                    }
+                }
+            }
+        }
+        return excludeParagraphIds;
     }
 
     @Override

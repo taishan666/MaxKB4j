@@ -29,13 +29,12 @@ public class ResetProblemStep extends IResetProblemStep {
     @Override
     protected String execute(PipelineManage manage) {
         long startTime = System.currentTimeMillis();
-        JSONObject context = manage.context;
-        ApplicationEntity application = (ApplicationEntity) context.get("application");
+        ApplicationEntity application = (ApplicationEntity) manage.context.get("application");
         String modelId = application.getModelId();
         JSONObject modelParams = application.getModelParamsSetting();
         ChatModel chatModel = modelFactory.buildChatModel(modelId,modelParams);
-        String question = context.getString("problemText");
-        String chatId = context.getString("chatId");
+        String question = (String) context.get("problemText");
+        String chatId = (String) context.get("chatId");
        // String systemText = application.getModelSetting().getSystem();
         ChatMemory chatMemory = MessageWindowChatMemory.builder()
                 .id(chatId)

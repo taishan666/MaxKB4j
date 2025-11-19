@@ -23,7 +23,7 @@ import java.util.Map;
 
 @AllArgsConstructor
 @Component
-public class ChatPostHandler extends PostResponseHandler {
+public class ChatPostHandler implements PostResponseHandler {
 
     private final ApplicationChatUserStatsService chatUserStatsService;
     private final ApplicationChatMapper chatMapper;

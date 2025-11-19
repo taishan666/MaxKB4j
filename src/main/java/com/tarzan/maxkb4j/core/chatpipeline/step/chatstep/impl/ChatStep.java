@@ -44,11 +44,11 @@ public class ChatStep extends IChatStep {
 
     @Override
     protected String execute(PipelineManage manage) {
-        String chatId = manage.context.getString("chatId");
+        String chatId = (String) manage.context.get("chatId");
         @SuppressWarnings("unchecked")
         List<ParagraphVO> paragraphList = (List<ParagraphVO>) manage.context.get("paragraphList");
-        ApplicationVO application = manage.context.getObject("application", ApplicationVO.class);
-        String userPrompt = manage.context.getString("user_prompt");
+        ApplicationVO application = (ApplicationVO) manage.context.get("application");
+        String userPrompt = (String) manage.context.get("user_prompt");
         return getFluxResult(chatId, paragraphList, userPrompt, application, manage);
     }
 
@@ -58,7 +58,7 @@ public class ChatStep extends IChatStep {
                                  ApplicationVO application,
                                  PipelineManage manage) {
         AtomicReference<String> answerText = new AtomicReference<>("");
-        String chatRecordId = manage.context.getString("chatRecordId");
+        String chatRecordId = (String) manage.context.get("chatRecordId");
         Sinks.Many<ChatMessageVO> sink = manage.sink;
         if (CollectionUtils.isEmpty(paragraphList)) {
             paragraphList = new ArrayList<>();
@@ -74,7 +74,7 @@ public class ChatStep extends IChatStep {
         KnowledgeSetting knowledgeSetting = application.getKnowledgeSetting();
         NoReferencesSetting noReferencesSetting = knowledgeSetting.getNoReferencesSetting();
         StreamingChatModel chatModel = modelFactory.buildStreamingChatModel(modelId, params);
-        String problemText = manage.context.getString("problemText");
+        String problemText = (String) manage.context.get("problemText");
         if (chatModel == null) {
             answerText.set("抱歉，没有配置 AI 模型，无法优化引用分段，请先去应用中设置 AI 模型。");
             sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, answerText.get(), "", "ai-chat-node", viewType, true));
