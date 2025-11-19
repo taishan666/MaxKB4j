@@ -6,8 +6,6 @@ import com.tarzan.maxkb4j.core.workflow.model.Workflow;
 import com.tarzan.maxkb4j.core.workflow.node.INode;
 import com.tarzan.maxkb4j.core.workflow.node.impl.FormNode;
 import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
-import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
@@ -38,32 +36,9 @@ public class FormNodeHandler implements INodeHandler {
             node.getDetail().put("form_field_list", formFieldList);
             nodeVariable.put("is_submit", false);
         }
-        return new NodeResult(nodeVariable, Map.of(),this::writeContext,this::isInterrupt);
+        return new NodeResult(nodeVariable, Map.of(),false,this::isInterrupt);
     }
 
-
-
-    public void writeContext(Map<String, Object> nodeVariable, Map<String, Object> globalVariable, INode node, Workflow workflow) {
-        node.getContext().putAll(nodeVariable);
-        node.getDetail().put("form_data",nodeVariable.get("form_data"));
-        if (workflow.isResult(node, new NodeResult(nodeVariable, globalVariable))&& StringUtils.isNotBlank(node.getAnswerText())) {
-            ChatMessageVO vo = node.toChatMessageVO(
-                    workflow.getChatParams().getChatId(),
-                    workflow.getChatParams().getChatRecordId(),
-                    node.getAnswerText(),
-                    "",
-                    false);
-            workflow.getChatParams().getSink().tryEmitNext(vo);
-            workflow.setAnswer(workflow.getAnswer()+node.getAnswerText());
-            ChatMessageVO endVo = node.toChatMessageVO(
-                    workflow.getChatParams().getChatId(),
-                    workflow.getChatParams().getChatRecordId(),
-                    "",
-                    "",
-                    true);
-            workflow.getChatParams().getSink().tryEmitNext(endVo);
-        }
-    }
 
 
     public boolean isInterrupt(INode node) {

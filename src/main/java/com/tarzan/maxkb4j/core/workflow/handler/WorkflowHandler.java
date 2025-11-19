@@ -64,6 +64,7 @@ public class WorkflowHandler {
         NodeResult nodeResult = nodeResultFuture.getResult();
         if (nodeResult != null) {
             nodeResult.writeContext(node, workflow);
+            nodeResult.writeDetail(node);
         }
         // 添加已运行节点
         workflow.appendNode(node);

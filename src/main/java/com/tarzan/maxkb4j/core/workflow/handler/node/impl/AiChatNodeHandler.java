@@ -27,7 +27,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 
 
 @Slf4j
@@ -117,21 +116,14 @@ public class AiChatNodeHandler implements INodeHandler {
                     chatResponseFuture.completeExceptionally(error); // 完成后释放线程
                 })
                 .start();
-        try {
-            // 阻塞等待 answer 可设置超时：get(30, TimeUnit.SECONDS)
-            ChatResponse response = chatResponseFuture.get();
-            node.setAnswerText(response.aiMessage().text());
-            String thinking = response.aiMessage().thinking();
-            thinking = thinking == null ? "" : thinking;
-            TokenUsage tokenUsage = response.tokenUsage();
-            node.getDetail().put("messageTokens", tokenUsage.inputTokenCount());
-            node.getDetail().put("answerTokens", tokenUsage.outputTokenCount());
-            return new NodeResult(Map.of("answer", node.getAnswerText(), "reasoningContent", thinking), Map.of(), true);
-        } catch (InterruptedException | ExecutionException e) {
-            log.error("Error waiting for TokenStream completion", e);
-            Thread.currentThread().interrupt(); // 恢复中断状态
-            return new NodeResult(null, null);
-        }
+        ChatResponse response = chatResponseFuture.join();
+        node.setAnswerText(response.aiMessage().text());
+        String thinking = response.aiMessage().thinking();
+        thinking = thinking == null ? "" : thinking;
+        TokenUsage tokenUsage = response.tokenUsage();
+        node.getDetail().put("messageTokens", tokenUsage.inputTokenCount());
+        node.getDetail().put("answerTokens", tokenUsage.outputTokenCount());
+        return new NodeResult(Map.of("answer", node.getAnswerText(), "reasoningContent", thinking), Map.of(), true);
 
     }
 
