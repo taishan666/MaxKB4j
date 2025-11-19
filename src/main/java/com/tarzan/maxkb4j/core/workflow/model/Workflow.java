@@ -20,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -46,7 +47,7 @@ public class Workflow {
         this.chatParams = chatParams;
         this.context = new HashMap<>();
         this.chatContext = new HashMap<>();
-        this.nodeContext = new ArrayList<>();
+        this.nodeContext = new CopyOnWriteArrayList<>();
         this.chatRecord = chatRecord;
         this.answer = "";
         this.historyChatRecords = CollectionUtils.isEmpty(historyChatRecords) ? List.of() : historyChatRecords;
@@ -148,16 +149,6 @@ public class Workflow {
         }
     }
 
-    private boolean dependentNode(String lastNodeId, INode node) {
-        if (Objects.equals(lastNodeId, node.getId())) {
-            if (FORM.getKey().equals(node.getType()) || USER_SELECT.getKey().equals(node.getType())) {
-                Object formData = node.getContext().get("form_data");
-                return formData != null;
-            }
-            return true;
-        }
-        return false;
-    }
 
     private boolean dependentNodeBeenExecuted(String nodeId, String condition) {
         // 获取所有目标节点ID等于给定nodeId的边的源节点ID列表
@@ -169,14 +160,23 @@ public class Workflow {
         }
         // 检查每个上游节点是否都已执行
         if ("AND".equals(condition)) {
-            return upNodeIdList.stream().allMatch(upNodeId ->
-                    this.nodeContext.stream().anyMatch(node -> dependentNode(upNodeId, node))
-            );
+            return upNodeIdList.stream().allMatch(this::nodeBeenExecuted);
         } else {
-            return upNodeIdList.stream().anyMatch(upNodeId ->
-                    this.nodeContext.stream().anyMatch(node -> dependentNode(upNodeId, node))
-            );
+            return upNodeIdList.stream().anyMatch(this::nodeBeenExecuted);
         }
+    }
+
+    private boolean nodeBeenExecuted(String nodeId) {
+        return nodeContext.stream().anyMatch(node -> {
+            if (Objects.equals(nodeId, node.getId())) {
+                if (FORM.getKey().equals(node.getType()) || USER_SELECT.getKey().equals(node.getType())) {
+                    Object formData = node.getContext().get("form_data");
+                    return formData != null;
+                }
+                return true;
+            }
+            return false;
+        });
     }
 
     private void addNodeToList(String nextNodeId, INode currentNode, List<INode> nodeList) {
