@@ -94,7 +94,8 @@ public class ImageUnderstandNodeHandler implements INodeHandler {
                 })
                 .onCompleteResponse(chatResponseFuture::complete)
                 .onError(error -> {
-                    workflow.getChatParams().getSink().tryEmitError(error);
+                    log.error("执行错误", error);
+                    //workflow.getChatParams().getSink().tryEmitError(error);
                     chatResponseFuture.completeExceptionally(error); // 完成后释放线程
                 })
                 .start();

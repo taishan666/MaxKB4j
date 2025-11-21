@@ -97,6 +97,7 @@ public class NodeResult {
         if (nodeVariable != null) {
             if (NodeType.FORM.getKey().equals(node.getType())) {
                 node.getDetail().put("form_data", nodeVariable.get("form_data"));
+                node.getDetail().put("is_submit", nodeVariable.get("is_submit"));
             } else {
                 node.getDetail().putAll(nodeVariable);
             }

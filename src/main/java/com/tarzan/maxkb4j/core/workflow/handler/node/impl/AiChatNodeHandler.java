@@ -112,7 +112,8 @@ public class AiChatNodeHandler implements INodeHandler {
                 })
                 .onCompleteResponse(chatResponseFuture::complete)
                 .onError(error -> {
-                    workflow.getChatParams().getSink().tryEmitError(error);
+                   // workflow.getChatParams().getSink().tryEmitError(error);
+                    log.error("执行错误", error);
                     chatResponseFuture.completeExceptionally(error); // 完成后释放线程
                 })
                 .start();
