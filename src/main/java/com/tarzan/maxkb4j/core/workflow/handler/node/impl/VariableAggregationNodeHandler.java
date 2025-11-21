@@ -1,8 +1,7 @@
 package com.tarzan.maxkb4j.core.workflow.handler.node.impl;
 
-import com.tarzan.maxkb4j.core.workflow.model.Workflow;
 import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;
-import com.tarzan.maxkb4j.core.workflow.logic.LfNode;
+import com.tarzan.maxkb4j.core.workflow.model.Workflow;
 import com.tarzan.maxkb4j.core.workflow.node.INode;
 import com.tarzan.maxkb4j.core.workflow.node.impl.VariableAggregationNode;
 import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
@@ -44,7 +43,7 @@ public class VariableAggregationNodeHandler implements INodeHandler {
         for (VariableAggregationNode.Variable e : variableList) {
             String nodeId = e.getVariable().get(0);
             String field = e.getVariable().get(1);
-            LfNode lfNode = workflow.getLfNode(nodeId);
+            INode lfNode = workflow.getNode(nodeId);
             Object value = workflow.getReferenceField(nodeId, field);
             e.setNodeName(lfNode.getProperties().getString("nodeName"));
             e.setField(field);

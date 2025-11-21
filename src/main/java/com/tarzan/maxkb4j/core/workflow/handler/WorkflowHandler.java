@@ -1,5 +1,6 @@
 package com.tarzan.maxkb4j.core.workflow.handler;
 
+import com.tarzan.maxkb4j.core.workflow.enums.NodeStatus;
 import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;
 import com.tarzan.maxkb4j.core.workflow.model.Workflow;
 import com.tarzan.maxkb4j.core.workflow.node.INode;
@@ -10,11 +11,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
-import java.util.concurrent.CompletableFuture;
+import java.util.Map;
 
 @Slf4j
 @Component
@@ -27,9 +25,7 @@ public class WorkflowHandler {
         if (currentNode == null) {
             currentNode = workflow.getStartNode();
         }
-        // 运行节点并获取下一个节点列表
-        List<INode> nodeList = runChainNode(workflow, currentNode);
-        runChainNodes(workflow, nodeList);
+        runChainNodes(workflow, List.of(currentNode));
         ChatMessageVO vo = new ChatMessageVO(workflow.getChatParams().getChatId(), workflow.getChatParams().getChatRecordId(), true);
         workflow.getChatParams().getSink().tryEmitNext(vo);
         return workflow.getAnswer();
@@ -42,7 +38,7 @@ public class WorkflowHandler {
         }
     }
 
-    public void parallelRunChainNodes(Workflow workflow, List<INode> nodeList) {
+/*    public void parallelRunChainNodes(Workflow workflow, List<INode> nodeList) {
         if (nodeList == null || nodeList.isEmpty()) {
             return;
         }
@@ -56,20 +52,37 @@ public class WorkflowHandler {
                 .filter(e -> seen.add(e.getId()))
                 .toList();
         runChainNodes(workflow, uniqueList);
-    }
+    }*/
+
 
     public List<INode> runChainNode(Workflow workflow, INode node) {
-        // 处理默认的nodeResultFuture
-        NodeResultFuture nodeResultFuture = runNodeFuture(workflow, node);
-        NodeResult nodeResult = nodeResultFuture.getResult();
-        if (nodeResult != null) {
-            nodeResult.writeContext(node, workflow);
-            nodeResult.writeDetail(node);
+        if (NodeStatus.READY.equals(node.getStatus())|| NodeStatus.INTERRUPT.equals(node.getStatus())) {
+            if (workflow.dependentNodeBeenExecuted(node)){
+                NodeResultFuture nodeResultFuture = runNodeFuture(workflow, node);
+                NodeResult nodeResult = nodeResultFuture.getResult();
+                if (nodeResult != null) {
+                    nodeResult.writeContext(node, workflow);
+                    nodeResult.writeDetail(node);
+                    if(nodeResult.isInterruptExec(node)){
+                        node.setStatus(NodeStatus.INTERRUPT);
+                    }
+                }
+                // 添加已运行节点
+                workflow.appendNode(node);
+                // 获取下一个节点列表
+                return workflow.getNextNodeList(node, nodeResult);
+            }
+        }else if (NodeStatus.SKIP.equals(node.getStatus())) {
+            // 获取下一个节点列表
+            List<INode> nextNodeList = workflow.getNextNodeList(node, new NodeResult(Map.of(), Map.of()));
+            nextNodeList.forEach(nextNode -> {
+                if (!workflow.isJoinNode(nextNode)){
+                    nextNode.setStatus(NodeStatus.SKIP);
+                }
+            });
+            return nextNodeList;
         }
-        // 添加已运行节点
-        workflow.appendNode(node);
-        // 获取下一个节点列表
-        return workflow.getNextNodeList(node, nodeResult);
+        return List.of();
     }
 
     public NodeResultFuture runNodeFuture(Workflow workflow, INode node) {
@@ -80,10 +93,11 @@ public class WorkflowHandler {
             float runTime = (System.currentTimeMillis() - startTime) / 1000F;
             node.getDetail().put("runTime", runTime);
             log.info("node:{}, runTime:{} s", node.getProperties().getString("nodeName"), runTime);
+            node.setStatus(NodeStatus.SUCCESS);
             return new NodeResultFuture(result, null, 200);
         } catch (Exception ex) {
             log.error("error:", ex);
-            node.setStatus(500);
+            node.setStatus(NodeStatus.ERROR);
             node.setErrMessage(ex.getMessage());
             workflow.getChatParams().getSink().tryEmitError(ex);
             log.error("NODE: {} ERROR :{}", node.getType(), ex.getCause().getMessage());
