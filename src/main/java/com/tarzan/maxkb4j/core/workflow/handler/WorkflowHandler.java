@@ -99,8 +99,14 @@ public class WorkflowHandler {
         } catch (Exception ex) {
             log.error("error:", ex);
             node.setErrMessage(ex.getMessage());
-          //  workflow.getChatParams().getSink().tryEmitError(ex);
-            log.error("NODE: {} ERROR :{}", node.getType(), ex.getMessage());
+            log.error("NODE: {} Exception :{}", node.getType(), ex.getMessage());
+            ChatMessageVO errMessage = node.toChatMessageVO(
+                    workflow.getChatParams().getChatId(),
+                    workflow.getChatParams().getChatRecordId(),
+                    String.format("Exception: %s", ex.getMessage()),
+                    "",
+                    true);
+            workflow.getChatParams().getSink().tryEmitNext(errMessage);
             node.setRunStatus(NodeRunStatus.ERROR);
             return new NodeResultFuture(null, ex, 500);
         }
