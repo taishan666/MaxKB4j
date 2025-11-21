@@ -210,7 +210,7 @@ public class Workflow {
             runtimeDetail.put("name", node.getProperties().getString("nodeName"));
             runtimeDetail.put("index", index);
             runtimeDetail.put("type", node.getType());
-            runtimeDetail.put("status", node.getStatus());
+            runtimeDetail.put("status", node.getStatus().getCode());
             runtimeDetail.put("errMessage", node.getErrMessage());
             detailsResult.put(node.getRuntimeNodeId(), runtimeDetail);
         }
