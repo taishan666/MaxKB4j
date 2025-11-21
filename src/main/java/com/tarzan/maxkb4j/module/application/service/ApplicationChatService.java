@@ -20,7 +20,6 @@ import com.tarzan.maxkb4j.module.chat.dto.ChatParams;
 import com.tarzan.maxkb4j.module.chat.dto.ChatResponse;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
-import opennlp.tools.util.StringUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -137,7 +136,7 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
             ApplicationAccessTokenEntity appAccessToken = accessTokenService.lambdaQuery().select(ApplicationAccessTokenEntity::getAccessNum).eq(ApplicationAccessTokenEntity::getApplicationId, appId).one();
             if (Objects.nonNull(appAccessToken)) {
                 if (appAccessToken.getAccessNum() < chatUserStats.getIntraDayAccessNum()) {
-                    chatParams.getSink().tryEmitError(new AccessNumLimitException("今天的访问次数超过限制"));
+                    chatParams.getSink().tryEmitError(new AccessNumLimitException());
                     return false;
                 }
             }
