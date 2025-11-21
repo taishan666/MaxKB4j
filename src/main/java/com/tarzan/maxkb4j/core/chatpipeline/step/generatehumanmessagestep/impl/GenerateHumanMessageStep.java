@@ -17,10 +17,10 @@ import java.util.List;
 public class GenerateHumanMessageStep extends IGenerateHumanMessageStep {
     @Override
     protected String execute(PipelineManage manage) {
-        String problemText = manage.context.getString("problemText");
+        String problemText = (String) manage.context.get("problemText");
         @SuppressWarnings("unchecked")
         List<ParagraphVO> paragraphList = (List<ParagraphVO>) manage.context.get("paragraphList");
-        ApplicationVO application = manage.context.getObject("application", ApplicationVO.class);
+        ApplicationVO application = (ApplicationVO) manage.context.get("application");
         LlmModelSetting llmModelSetting = application.getModelSetting();
         if (!CollectionUtils.isEmpty(paragraphList)){
             String prompt = llmModelSetting.getPrompt();

@@ -2,7 +2,6 @@ package com.tarzan.maxkb4j.module.application.handler.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.tarzan.maxkb4j.common.util.StringUtil;
 import com.tarzan.maxkb4j.module.application.domian.dto.ChatInfo;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatEntity;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatRecordEntity;
@@ -16,6 +15,7 @@ import com.tarzan.maxkb4j.module.chat.cache.ChatCache;
 import com.tarzan.maxkb4j.module.chat.dto.ChatParams;
 import com.tarzan.maxkb4j.module.chat.dto.ChatResponse;
 import lombok.AllArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -23,7 +23,7 @@ import java.util.Map;
 
 @AllArgsConstructor
 @Component
-public class ChatPostHandler extends PostResponseHandler {
+public class ChatPostHandler implements PostResponseHandler {
 
     private final ApplicationChatUserStatsService chatUserStatsService;
     private final ApplicationChatMapper chatMapper;
@@ -85,7 +85,7 @@ public class ChatPostHandler extends PostResponseHandler {
                 String problemOverview = problemText.length() > 50 ? problemText.substring(0, 50) : problemText;
                 chatEntity.setSummary(problemOverview);
                 chatEntity.setChatUserId(chatUserId);
-                chatEntity.setChatUserType(StringUtil.isBlank(chatUserType) ? ChatUserType.CHAT_USER.name() : chatUserType);
+                chatEntity.setChatUserType(StringUtils.isBlank(chatUserType) ? ChatUserType.CHAT_USER.name() : chatUserType);
                 chatEntity.setIsDeleted(false);
                 chatEntity.setAsker(new JSONObject(Map.of("username", "游客")));
                 chatEntity.setMeta(new JSONObject());

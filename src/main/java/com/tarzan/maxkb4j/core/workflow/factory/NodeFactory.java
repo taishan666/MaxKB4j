@@ -10,7 +10,7 @@ import java.util.Objects;
 
 public class NodeFactory {
 
-    private static INode getNode(String type, JSONObject properties) {
+    private static INode getNode(String id,String type, JSONObject properties) {
         NodeType nodeType = NodeType.getByKey(type);
         if (nodeType == null) {
             throw new IllegalStateException("不支持的节点类型: " + type);
@@ -45,7 +45,7 @@ public class NodeFactory {
     }
 
     public static INode getNode(LfNode lfNode) {
-        INode node=getNode(lfNode.getType(), lfNode.getProperties());
+        INode node=getNode(lfNode.getId(),lfNode.getType(), lfNode.getProperties());
         if(Objects.nonNull(node)){
             node.setId(lfNode.getId());
             return node;

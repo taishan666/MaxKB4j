@@ -1,6 +1,5 @@
 package com.tarzan.maxkb4j.common.util;
 
-import jakarta.servlet.ServletInputStream;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -16,11 +15,8 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.util.WebUtils;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.nio.charset.StandardCharsets;
 import java.util.Enumeration;
 import java.util.Objects;
 import java.util.function.Predicate;
@@ -95,9 +91,8 @@ public class WebUtil extends WebUtils {
             return "";
         } else {
             String ip = null;
-            String[] var2 = IP_HEADER_NAMES;
 
-            for (String ipHeader : var2) {
+            for (String ipHeader : IP_HEADER_NAMES) {
                 ip = request.getHeader(ipHeader);
                 if (!IP_PREDICATE.test(ip)) {
                     break;
@@ -149,74 +144,6 @@ public class WebUtil extends WebUtils {
         return Objects.requireNonNull(request).getParameter(name);
     }
 
-    public static String getRequestBody(ServletInputStream servletInputStream) {
-        StringBuilder sb = new StringBuilder();
-        BufferedReader reader = null;
-
-        try {
-            reader = new BufferedReader(new InputStreamReader(servletInputStream, StandardCharsets.UTF_8));
-
-            String line;
-            while ((line = reader.readLine()) != null) {
-                sb.append(line);
-            }
-        } catch (IOException var16) {
-            var16.printStackTrace();
-        } finally {
-            if (servletInputStream != null) {
-                try {
-                    servletInputStream.close();
-                } catch (IOException var15) {
-                    var15.printStackTrace();
-                }
-            }
-
-            if (reader != null) {
-                try {
-                    reader.close();
-                } catch (IOException var14) {
-                    var14.printStackTrace();
-                }
-            }
-
-        }
-
-        return sb.toString();
-    }
-
-    public static String getRequestContent(HttpServletRequest request) {
-        try {
-            String queryString = request.getQueryString();
-            if (StringUtils.isNotBlank(queryString)) {
-                return (new String(queryString.getBytes(StandardCharsets.ISO_8859_1), StandardCharsets.UTF_8)).replaceAll("&amp;", "&").replaceAll("%22", "\"");
-            } else {
-                String charEncoding = request.getCharacterEncoding();
-                if (charEncoding == null) {
-                    charEncoding = "UTF-8";
-                }
-
-                byte[] buffer = getRequestBody(request.getInputStream()).getBytes();
-                String str = (new String(buffer, charEncoding)).trim();
-                if (StringUtils.isBlank(str)) {
-                    StringBuilder sb = new StringBuilder();
-                    Enumeration<?> parameterNames = request.getParameterNames();
-
-                    while (parameterNames.hasMoreElements()) {
-                        String key = (String) parameterNames.nextElement();
-                        String value = request.getParameter(key);
-                        StringUtil.appendBuilder(sb, key, "=", value, "&");
-                    }
-
-                    str = StringUtil.removeSuffix(sb.toString(), "&");
-                }
-
-                return str.replaceAll("&amp;", "&");
-            }
-        } catch (Exception var9) {
-            var9.printStackTrace();
-            return "";
-        }
-    }
 
 
 }

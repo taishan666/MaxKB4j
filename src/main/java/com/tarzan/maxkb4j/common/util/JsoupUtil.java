@@ -2,7 +2,7 @@ package com.tarzan.maxkb4j.common.util;
 
 import cn.hutool.http.HttpUtil;
 import lombok.extern.slf4j.Slf4j;
-import opennlp.tools.util.StringUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -22,7 +22,7 @@ public class JsoupUtil {
 
     public static String getTitle(Document doc){
         String title=doc.title();
-        if(StringUtil.isEmpty(title)){
+        if(StringUtils.isEmpty(title)){
             Element titleEle=doc.selectFirst("title");
             if(Objects.nonNull(titleEle)){
                 title= titleEle.text();

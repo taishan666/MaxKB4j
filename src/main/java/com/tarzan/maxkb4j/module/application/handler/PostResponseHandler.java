@@ -4,7 +4,7 @@ import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatRecord
 import com.tarzan.maxkb4j.module.chat.dto.ChatParams;
 import com.tarzan.maxkb4j.module.chat.dto.ChatResponse;
 
-public abstract class PostResponseHandler {
+public interface PostResponseHandler {
 
-    public abstract void handler(ChatParams chatParams, ChatResponse chatResponse, ApplicationChatRecordEntity chatRecord, long startTime);
+    void handler(ChatParams chatParams, ChatResponse chatResponse, ApplicationChatRecordEntity chatRecord, long startTime);
 }

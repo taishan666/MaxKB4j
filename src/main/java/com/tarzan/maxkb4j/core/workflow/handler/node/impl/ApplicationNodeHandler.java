@@ -1,11 +1,10 @@
 package com.tarzan.maxkb4j.core.workflow.handler.node.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
-import com.tarzan.maxkb4j.common.util.StringUtil;
-import com.tarzan.maxkb4j.core.workflow.node.INode;
-import com.tarzan.maxkb4j.core.workflow.model.Workflow;
 import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;
 import com.tarzan.maxkb4j.core.workflow.model.ChatFile;
+import com.tarzan.maxkb4j.core.workflow.model.Workflow;
+import com.tarzan.maxkb4j.core.workflow.node.INode;
 import com.tarzan.maxkb4j.core.workflow.node.impl.ApplicationNode;
 import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
 import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
@@ -116,23 +115,9 @@ public class ApplicationNodeHandler implements INodeHandler {
         node.getDetail().put("is_interrupt_exec", is_interrupt_exec.get());
         return new NodeResult(Map.of(
                 "result", node.getAnswerText()
-        ), Map.of(),this::writeContext,this::isInterrupt);
+        ), Map.of(),true,this::isInterrupt);
     }
 
-    private void writeContext(Map<String, Object> nodeVariable, Map<String, Object> globalVariable, INode node, Workflow workflow) {
-        node.getContext().putAll(nodeVariable);
-        node.getDetail().putAll(nodeVariable);
-        if (workflow.isResult(node, new NodeResult(nodeVariable, globalVariable))&& StringUtil.isNotBlank(node.getAnswerText())) {
-            workflow.setAnswer(workflow.getAnswer()+node.getAnswerText());
-            ChatMessageVO endVo = node.toChatMessageVO(
-                    workflow.getChatParams().getChatId(),
-                    workflow.getChatParams().getChatRecordId(),
-                    "",
-                    "",
-                    true);
-            workflow.getChatParams().getSink().tryEmitNext(endVo);
-        }
-    }
 
     public boolean isInterrupt(INode node) {
         return node.getDetail().containsKey("is_interrupt_exec")&&(boolean)node.getDetail().get("is_interrupt_exec");

@@ -44,11 +44,11 @@ public class ChatStep extends IChatStep {
 
     @Override
     protected String execute(PipelineManage manage) {
-        String chatId = manage.context.getString("chatId");
+        String chatId = (String) manage.context.get("chatId");
         @SuppressWarnings("unchecked")
         List<ParagraphVO> paragraphList = (List<ParagraphVO>) manage.context.get("paragraphList");
-        ApplicationVO application = manage.context.getObject("application", ApplicationVO.class);
-        String userPrompt = manage.context.getString("user_prompt");
+        ApplicationVO application = (ApplicationVO) manage.context.get("application");
+        String userPrompt = (String) manage.context.get("user_prompt");
         return getFluxResult(chatId, paragraphList, userPrompt, application, manage);
     }
 
@@ -58,7 +58,7 @@ public class ChatStep extends IChatStep {
                                  ApplicationVO application,
                                  PipelineManage manage) {
         AtomicReference<String> answerText = new AtomicReference<>("");
-        String chatRecordId = manage.context.getString("chatRecordId");
+        String chatRecordId = (String) manage.context.get("chatRecordId");
         Sinks.Many<ChatMessageVO> sink = manage.sink;
         if (CollectionUtils.isEmpty(paragraphList)) {
             paragraphList = new ArrayList<>();
@@ -74,11 +74,11 @@ public class ChatStep extends IChatStep {
         KnowledgeSetting knowledgeSetting = application.getKnowledgeSetting();
         NoReferencesSetting noReferencesSetting = knowledgeSetting.getNoReferencesSetting();
         StreamingChatModel chatModel = modelFactory.buildStreamingChatModel(modelId, params);
-        String problemText = manage.context.getString("problemText");
+        String problemText = (String) manage.context.get("problemText");
         if (chatModel == null) {
             answerText.set("抱歉，没有配置 AI 模型，无法优化引用分段，请先去应用中设置 AI 模型。");
             sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, answerText.get(), "", "ai-chat-node", viewType, true));
-        } else if (StringUtil.isBlank(problemText)) {
+        } else if (StringUtils.isBlank(problemText)) {
             answerText.set("用户消息不能为空");
             sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, answerText.get(), "", "ai-chat-node", viewType, true));
         } else {
@@ -111,7 +111,7 @@ public class ChatStep extends IChatStep {
                         .onCompleteResponse(response -> {
                             answerText.set(response.aiMessage().text());
                             TokenUsage tokenUsage = response.tokenUsage();
-                            context.put("message_list", resetMessageToJSON(historyMessages));
+                            context.put("messageList", resetMessageToJSON(historyMessages));
                             context.put("messageTokens", tokenUsage.inputTokenCount());
                             context.put("answerTokens", tokenUsage.outputTokenCount());
                             sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, "", "", "ai-chat-node", viewType, true));
@@ -158,8 +158,8 @@ public class ChatStep extends IChatStep {
     public JSONObject getDetails() {
         JSONObject details = new JSONObject();
         details.put("step_type", "chat_step");
+        details.put("messageList", context.get("messageList"));
         details.put("runTime", context.get("runTime"));
-        details.put("message_list", context.get("message_list"));
         details.put("messageTokens", context.getOrDefault("messageTokens", 0));
         details.put("answerTokens", context.getOrDefault("answerTokens", 0));
         return details;

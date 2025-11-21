@@ -2,11 +2,10 @@ package com.tarzan.maxkb4j.core.workflow.model;
 
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
-import com.tarzan.maxkb4j.common.util.StringUtil;
 import com.tarzan.maxkb4j.core.workflow.enums.DialogueType;
-import com.tarzan.maxkb4j.core.workflow.factory.NodeFactory;
+import com.tarzan.maxkb4j.core.workflow.enums.NodeRunStatus;
+import com.tarzan.maxkb4j.core.workflow.enums.NodeType;
 import com.tarzan.maxkb4j.core.workflow.logic.LfEdge;
-import com.tarzan.maxkb4j.core.workflow.logic.LfNode;
 import com.tarzan.maxkb4j.core.workflow.node.INode;
 import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatRecordEntity;
@@ -20,18 +19,19 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
-import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.*;
 
 @Slf4j
 @Data
 public class Workflow {
     private INode currentNode;
     private ChatParams chatParams;
-    private List<LfNode> lfNodes;
+    private List<INode> nodes;
     private List<LfEdge> edges;
     private Map<String, Object> context;
     private Map<String, Object> chatContext;
@@ -40,17 +40,18 @@ public class Workflow {
     private ApplicationChatRecordEntity chatRecord;
     private List<ApplicationChatRecordEntity> historyChatRecords;
 
-    public Workflow(List<LfNode> lfNodes, List<LfEdge> edges, ChatParams chatParams, ApplicationChatRecordEntity chatRecord, List<ApplicationChatRecordEntity> historyChatRecords) {
-        this.lfNodes = lfNodes;
+
+    public Workflow(List<INode> nodes, List<LfEdge> edges, ChatParams chatParams, ApplicationChatRecordEntity chatRecord, List<ApplicationChatRecordEntity> historyChatRecords) {
+        this.nodes = nodes;
         this.edges = edges;
         this.chatParams = chatParams;
         this.context = new HashMap<>();
         this.chatContext = new HashMap<>();
-        this.nodeContext = new ArrayList<>();
+        this.nodeContext = new CopyOnWriteArrayList<>();
         this.chatRecord = chatRecord;
         this.answer = "";
         this.historyChatRecords = CollectionUtils.isEmpty(historyChatRecords) ? List.of() : historyChatRecords;
-        if (StringUtil.isNotBlank(chatParams.getRuntimeNodeId()) && Objects.nonNull(chatRecord)) {
+        if (StringUtils.isNotBlank(chatParams.getRuntimeNodeId()) && Objects.nonNull(chatRecord)) {
             this.loadNode(chatRecord, chatParams.getRuntimeNodeId(), chatParams.getNodeData());
         }
     }
@@ -58,29 +59,24 @@ public class Workflow {
 
     @SuppressWarnings("unchecked")
     private void loadNode(ApplicationChatRecordEntity chatRecord, String currentNodeId, Map<String, Object> currentNodeData) {
-        List<Map<String, Object>> sortedDetails = chatRecord.getDetails().values().stream()
-                .map(row -> (Map<String, Object>) row)
-                .sorted(Comparator.comparingInt(e -> (int) e.get("index")))
-                .toList();
+        List<Map<String, Object>> sortedDetails = chatRecord.getDetails().values().stream().map(row -> (Map<String, Object>) row).sorted(Comparator.comparingInt(e -> (int) e.get("index"))).toList();
         for (Map<String, Object> nodeDetail : sortedDetails) {
             String nodeId = (String) nodeDetail.get("nodeId");
             List<String> upNodeIdList = (List<String>) nodeDetail.get("upNodeIdList");
             String runtimeNodeId = (String) nodeDetail.get("runtimeNodeId");
+            NodeRunStatus runStatus = (NodeRunStatus) nodeDetail.get("runStatus");
             if (runtimeNodeId.equals(currentNodeId)) {
                 // 处理起始节点
-                this.currentNode = getNodeClsById(
-                        nodeId,
-                        upNodeIdList,
-                        n -> {
-                            JSONObject nodeProperties = n.getProperties();
-                            if (nodeProperties.containsKey("nodeData")) {
-                                JSONObject nodeParams = nodeProperties.getJSONObject("nodeData");
-                                nodeParams.put("form_data", currentNodeData);
-                            }
-                            return nodeProperties;
-                        }
-                );
+                this.currentNode = getNodeClsById(nodeId, upNodeIdList, n -> {
+                    JSONObject nodeProperties = n.getProperties();
+                    if (nodeProperties.containsKey("nodeData")) {
+                        JSONObject nodeParams = nodeProperties.getJSONObject("nodeData");
+                        nodeParams.put("form_data", currentNodeData);
+                    }
+                    return nodeProperties;
+                });
                 assert currentNode != null;
+                currentNode.setRunStatus(runStatus);
                 currentNode.setDetail(nodeDetail);
                 currentNode.saveContext(this, nodeDetail);
                 nodeContext.add(currentNode);
@@ -88,6 +84,7 @@ public class Workflow {
                 // 处理其他节点
                 INode node = getNodeClsById(nodeId, upNodeIdList, null);
                 assert node != null;
+                node.setRunStatus(runStatus);
                 node.setDetail(nodeDetail);
                 node.saveContext(this, nodeDetail);
                 nodeContext.add(node);
@@ -97,7 +94,7 @@ public class Workflow {
 
 
     public INode getStartNode() {
-        return getNodeClsById(START.getKey(), List.of(), null);
+        return getNodeClsById(NodeType.START.getKey(), List.of(), null);
     }
 
 
@@ -106,100 +103,56 @@ public class Workflow {
         if (currentNodeResult == null || currentNodeResult.isInterruptExec(currentNode)) {
             return List.of();
         }
-        List<INode> nextNodeList = new ArrayList<>();
-        if (currentNodeResult.isAssertionResult()) {
-            // 处理断言结果分支
-            for (LfEdge edge : edges) {
+        // 处理非断言结果分支
+        List<LfEdge> sourceEdges = edges.stream().filter(edge -> edge.getSourceNodeId().equals(currentNode.getId())).toList();
+        // 获取节点实例并添加到列表
+        return sourceEdges.stream().map(edge -> {
+            List<String> upNodeIdList = new ArrayList<>(currentNode.getUpNodeIdList());
+            upNodeIdList.add(currentNode.getId());
+            INode nextNode = getNodeClsById(edge.getTargetNodeId(), upNodeIdList, null);
+            if (currentNodeResult.isAssertionResult()) {
                 if (edge.getSourceNodeId().equals(currentNode.getId())) {
-                    // 构造预期的sourceAnchorId
                     Map<String, Object> nodeVariables = currentNodeResult.getNodeVariable();
                     String branchId = nodeVariables != null ? (String) nodeVariables.getOrDefault("branchId", "") : "";
                     String expectedAnchorId = String.format("%s_%s_right", currentNode.getId(), branchId);
-                    if (expectedAnchorId.equals(edge.getSourceAnchorId())) {
-                        processEdge(edge, currentNode, nextNodeList);
+                    if (!expectedAnchorId.equals(edge.getSourceAnchorId())) {
+                        assert nextNode != null;
+                        nextNode.setRunStatus(NodeRunStatus.SKIP);
                     }
                 }
             }
-        } else {
-            // 处理非断言结果分支
-            for (LfEdge edge : edges) {
-                if (edge.getSourceNodeId().equals(currentNode.getId())) {
-                    processEdge(edge, currentNode, nextNodeList);
-                }
-            }
-        }
-        return nextNodeList;
+            // 获取节点实例并添加到列表
+            return nextNode;
+        }).collect(Collectors.toList());
     }
 
 
-    private void processEdge(LfEdge edge, INode currentNode, List<INode> nodeList) {
-        // 查找下一个节点
-        Optional<LfNode> targetNodeOpt = lfNodes.stream()
-                .filter(node -> node.getId().equals(edge.getTargetNodeId()))
-                .findFirst();
-        if (targetNodeOpt.isEmpty()) {
-            return;
-        }
-        LfNode targetNode = targetNodeOpt.get();
-        String condition = (String) targetNode.getProperties().getOrDefault("condition", "AND");
-        // 处理节点依赖
-        if (dependentNodeBeenExecuted(targetNode.getId(), condition)) {
-            addNodeToList(targetNode.getId(), currentNode, nodeList);
-        }
-    }
-
-    private boolean dependentNode(String lastNodeId, INode node) {
-        if (Objects.equals(lastNodeId, node.getId())) {
-            if (FORM.getKey().equals(node.getType()) || USER_SELECT.getKey().equals(node.getType())) {
-                Object formData = node.getContext().get("form_data");
-                return formData != null;
-            }
+    public boolean dependentNodeBeenExecuted(INode node) {
+        List<String> upNodeIdList = edges.stream().filter(edge -> edge.getTargetNodeId().equals(node.getId())).map(LfEdge::getSourceNodeId).toList();// 构建上游节点ID列表
+        //针对开始节点放行
+        if (CollectionUtils.isEmpty(upNodeIdList)) {
             return true;
+        }
+        List<INode> upNodes = nodes.stream().filter(e -> upNodeIdList.contains(e.getId())).toList();
+        return upNodes.stream().allMatch(e -> (NodeRunStatus.SUCCESS.equals(e.getRunStatus()) || NodeRunStatus.SKIP.equals(e.getRunStatus())));
+    }
+
+    // 是否是汇聚节点（排除上游节点都是SKIP的汇聚节点）
+    public boolean isReadyJoinNode(INode node) {
+        List<String> upNodeIdList = edges.stream().filter(edge -> edge.getTargetNodeId().equals(node.getId())).map(LfEdge::getSourceNodeId).toList();// 构建上游节点ID列表
+        if (CollectionUtils.isEmpty(upNodeIdList)) {
+            return false;
+        }
+        if (upNodeIdList.size() > 1) {
+            List<INode> upNodes = nodes.stream().filter(e -> upNodeIdList.contains(e.getId())).toList();
+            return !upNodes.stream().allMatch(e -> NodeRunStatus.SKIP.equals(e.getRunStatus()));
         }
         return false;
     }
 
-    private boolean dependentNodeBeenExecuted(String nodeId, String condition) {
-        // 获取所有目标节点ID等于给定nodeId的边的源节点ID列表
-        List<String> upNodeIdList = new ArrayList<>();
-        for (LfEdge edge : edges) {
-            if (edge.getTargetNodeId().equals(nodeId)) {
-                upNodeIdList.add(edge.getSourceNodeId());
-            }
-        }
-        // 检查每个上游节点是否都已执行
-        if ("AND".equals(condition)) {
-            return upNodeIdList.stream().allMatch(upNodeId ->
-                    this.nodeContext.stream().anyMatch(node -> dependentNode(upNodeId, node))
-            );
-        } else {
-            return upNodeIdList.stream().anyMatch(upNodeId ->
-                    this.nodeContext.stream().anyMatch(node -> dependentNode(upNodeId, node))
-            );
-        }
-    }
-
-    private void addNodeToList(String nextNodeId, INode currentNode, List<INode> nodeList) {
-        // 构建上游节点ID列表
-        List<String> upNodeIds = new ArrayList<>();
-        if (currentNode.getUpNodeIdList() != null) {
-            upNodeIds.addAll(currentNode.getUpNodeIdList());
-        }
-        upNodeIds.add(currentNode.getId());
-        // 获取节点实例并添加到列表
-        INode nextNode = getNodeClsById(nextNodeId, upNodeIds, null);
-        if (nextNode != null) {
-            nodeList.add(nextNode);
-        }
-    }
-
 
     private INode getNodeClsById(String nodeId, List<String> upNodeIds, Function<INode, JSONObject> getNodeProperties) {
-        Optional<INode> nodeOpt = lfNodes.stream()
-                .filter(lfNode -> nodeId.equals(lfNode.getId()))
-                .map(NodeFactory::getNode)
-                .filter(Objects::nonNull)  // 👈 关键：排除 null
-                .findFirst();
+        Optional<INode> nodeOpt = nodes.stream().filter(Objects::nonNull).filter(e -> nodeId.equals(e.getId())).findFirst();
         if (nodeOpt.isPresent()) {
             INode node = nodeOpt.get();
             node.setUpNodeIdList(upNodeIds);
@@ -213,17 +166,20 @@ public class Workflow {
 
     private Map<String, Object> getPromptVariables() {
         Map<String, Object> result = new HashMap<>(100);
-        for (String key : context.keySet()) {
-            result.put("global." + key, context.get(key));
+        for (String key : this.context.keySet()) {
+            Object value = this.context.get(key);
+            result.put("global." + key, value == null ? "*" : value);
         }
-        for (String key : chatContext.keySet()) {
-            result.put("chat." + key, chatContext.get(key));
+        for (String key : this.chatContext.keySet()) {
+            Object value = this.chatContext.get(key);
+            result.put("chat." + key, value == null ? "*" : value);
         }
         for (INode node : nodeContext) {
             String nodeName = node.getProperties().getString("nodeName");
             Map<String, Object> context = node.getContext();
             for (String key : context.keySet()) {
-                result.put(nodeName + "." + key, context.get(key));
+                Object value = context.get(key);
+                result.put(nodeName + "." + key, value == null ? "*" : value);
             }
         }
         return result;
@@ -252,6 +208,7 @@ public class Workflow {
             runtimeDetail.put("nodeId", node.getId());
             runtimeDetail.put("upNodeIdList", node.getUpNodeIdList());
             runtimeDetail.put("runtimeNodeId", node.getRuntimeNodeId());
+            runtimeDetail.put("runStatus", node.getRunStatus());
             runtimeDetail.put("name", node.getProperties().getString("nodeName"));
             runtimeDetail.put("index", index);
             runtimeDetail.put("type", node.getType());
@@ -317,13 +274,12 @@ public class Workflow {
 
     public Object getReferenceField(String nodeId, String key) {
         Map<String, Object> nodeVariable = getFlowVariables().get(nodeId);
-        return nodeVariable == null?null:nodeVariable.get(key);
+        return nodeVariable == null ? null : nodeVariable.get(key);
     }
 
-    public LfNode getLfNode(String nodeId) {
-        return lfNodes.stream().filter(lfNode -> nodeId.equals(lfNode.getId())).findAny().orElse(null);
+    public INode getNode(String nodeId) {
+        return nodes.stream().filter(e -> nodeId.equals(e.getId())).findAny().orElse(null);
     }
-
 
     public String generatePrompt(String prompt) {
         return generatePrompt(prompt, Map.of());

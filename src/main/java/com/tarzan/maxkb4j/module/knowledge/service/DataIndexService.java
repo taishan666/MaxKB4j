@@ -4,7 +4,6 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.huaban.analysis.jieba.JiebaSegmenter;
 import com.tarzan.maxkb4j.common.util.BatchUtil;
-import com.tarzan.maxkb4j.common.util.StringUtil;
 import com.tarzan.maxkb4j.module.knowledge.consts.SourceType;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.EmbeddingEntity;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.ParagraphEntity;
@@ -14,6 +13,7 @@ import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.model.output.Response;
 import lombok.AllArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -111,8 +111,8 @@ public class DataIndexService {
     }
 
     public String segmentContent(String text) {
-        if (StringUtil.isBlank(text)) {
-            return StringUtil.EMPTY;
+        if (StringUtils.isBlank(text)) {
+            return StringUtils.EMPTY;
         }
         JiebaSegmenter jiebaSegmenter = new JiebaSegmenter();
         List<String> tokens = jiebaSegmenter.sentenceProcess(text);

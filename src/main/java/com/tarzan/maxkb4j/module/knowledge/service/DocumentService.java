@@ -15,7 +15,6 @@ import com.tarzan.maxkb4j.common.base.dto.BaseQuery;
 import com.tarzan.maxkb4j.common.util.ExcelUtil;
 import com.tarzan.maxkb4j.common.util.IoUtil;
 import com.tarzan.maxkb4j.common.util.JsoupUtil;
-import com.tarzan.maxkb4j.common.util.StringUtil;
 import com.tarzan.maxkb4j.core.event.DocumentIndexEvent;
 import com.tarzan.maxkb4j.core.event.GenerateProblemEvent;
 import com.tarzan.maxkb4j.listener.DataListener;
@@ -43,6 +42,7 @@ import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.util.StringUtil;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.springframework.context.ApplicationEventPublisher;
@@ -459,7 +459,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
             textSegmentVO.setName(fileStream.getName());
             String docText = documentParseService.extractText(fileStream.getInputStream());
             List<TextSegment> textSegments = Collections.emptyList();
-            if (StringUtil.isNotBlank(docText)) {
+            if (StringUtils.isNotBlank(docText)) {
                 textSegments = documentSpiltService.split(docText, patterns, limit, withFilter);
             }
             List<ParagraphSimpleVO> content = textSegments.stream()

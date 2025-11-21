@@ -1,13 +1,12 @@
 package com.tarzan.maxkb4j.core.workflow.handler.node.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
-import com.tarzan.maxkb4j.common.util.StringUtil;
 import com.tarzan.maxkb4j.common.util.ToolUtil;
 import com.tarzan.maxkb4j.core.assistant.Assistant;
 import com.tarzan.maxkb4j.core.langchain4j.AppChatMemory;
 import com.tarzan.maxkb4j.core.tool.MessageTools;
-import com.tarzan.maxkb4j.core.workflow.model.Workflow;
 import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;
+import com.tarzan.maxkb4j.core.workflow.model.Workflow;
 import com.tarzan.maxkb4j.core.workflow.node.INode;
 import com.tarzan.maxkb4j.core.workflow.node.impl.AiChatNode;
 import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
@@ -21,13 +20,13 @@ import dev.langchain4j.service.AiServices;
 import dev.langchain4j.service.TokenStream;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 
 
 @Slf4j
@@ -48,12 +47,12 @@ public class AiChatNodeHandler implements INodeHandler {
         if (CollectionUtils.isNotEmpty(nodeParams.getToolIds()) && nodeParams.getToolEnable()) {
             toolIds.addAll(nodeParams.getToolIds());
         }
-        if (StringUtil.isNotBlank(nodeParams.getMcpToolId()) && nodeParams.getMcpEnable()) {
+        if (StringUtils.isNotBlank(nodeParams.getMcpToolId()) && nodeParams.getMcpEnable()) {
             toolIds.add(nodeParams.getMcpToolId());
         }
         List<ChatMessage> historyMessages = workflow.getHistoryMessages(nodeParams.getDialogueNumber(), nodeParams.getDialogueType(), node.getRuntimeNodeId());
         AiServices<Assistant> aiServicesBuilder = AiServices.builder(Assistant.class);
-        if (StringUtil.isNotBlank(systemPrompt)) {
+        if (StringUtils.isNotBlank(systemPrompt)) {
             aiServicesBuilder.systemMessageProvider(chatMemoryId -> systemPrompt);
         }
         if (CollectionUtils.isNotEmpty(historyMessages)) {
@@ -113,43 +112,19 @@ public class AiChatNodeHandler implements INodeHandler {
                 })
                 .onCompleteResponse(chatResponseFuture::complete)
                 .onError(error -> {
-                    workflow.getChatParams().getSink().tryEmitError(error);
+                    log.error("执行错误", error);
                     chatResponseFuture.completeExceptionally(error); // 完成后释放线程
                 })
                 .start();
-        try {
-            // 阻塞等待 answer 可设置超时：get(30, TimeUnit.SECONDS)
-            ChatResponse response = chatResponseFuture.get();
-            node.setAnswerText(response.aiMessage().text());
-            String thinking = response.aiMessage().thinking();
-            thinking = thinking == null ? "" : thinking;
-            TokenUsage tokenUsage = response.tokenUsage();
-            node.getDetail().put("messageTokens", tokenUsage.inputTokenCount());
-            node.getDetail().put("answerTokens", tokenUsage.outputTokenCount());
-            return new NodeResult(Map.of("answer", node.getAnswerText(), "reasoningContent", thinking), Map.of(), this::writeContext);
-        } catch (InterruptedException | ExecutionException e) {
-            log.error("Error waiting for TokenStream completion", e);
-            Thread.currentThread().interrupt(); // 恢复中断状态
-            return new NodeResult(null, null);
-        }
+        ChatResponse response = chatResponseFuture.join();
+        node.setAnswerText(response.aiMessage().text());
+        String thinking = response.aiMessage().thinking();
+        thinking = thinking == null ? "" : thinking;
+        TokenUsage tokenUsage = response.tokenUsage();
+        node.getDetail().put("messageTokens", tokenUsage.inputTokenCount());
+        node.getDetail().put("answerTokens", tokenUsage.outputTokenCount());
+        return new NodeResult(Map.of("answer", node.getAnswerText(), "reasoningContent", thinking), Map.of(), true);
 
-    }
-
-    private void writeContext(Map<String, Object> nodeVariable, Map<String, Object> globalVariable, INode node, Workflow workflow) {
-        if (nodeVariable != null) {
-            node.getContext().putAll(nodeVariable);
-            node.getDetail().putAll(nodeVariable);
-            if (workflow.isResult(node, new NodeResult(nodeVariable, globalVariable)) && StringUtil.isNotBlank(node.getAnswerText())) {
-                workflow.setAnswer(workflow.getAnswer() + node.getAnswerText());
-                ChatMessageVO endVo = node.toChatMessageVO(
-                        workflow.getChatParams().getChatId(),
-                        workflow.getChatParams().getChatRecordId(),
-                        "",
-                        "",
-                        true);
-                workflow.getChatParams().getSink().tryEmitNext(endVo);
-            }
-        }
     }
 
 

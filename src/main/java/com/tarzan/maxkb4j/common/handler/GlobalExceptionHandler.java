@@ -4,10 +4,7 @@ package com.tarzan.maxkb4j.common.handler;
 import cn.dev33.satoken.exception.NotLoginException;
 import cn.dev33.satoken.jwt.exception.SaJwtException;
 import com.tarzan.maxkb4j.common.api.R;
-import com.tarzan.maxkb4j.common.exception.AccessException;
-import com.tarzan.maxkb4j.common.exception.AccessNumLimitException;
-import com.tarzan.maxkb4j.common.exception.ApiException;
-import com.tarzan.maxkb4j.common.exception.LoginException;
+import com.tarzan.maxkb4j.common.exception.*;
 import com.tarzan.maxkb4j.common.util.StpKit;
 import io.swagger.v3.oas.annotations.Hidden;
 import jakarta.servlet.http.HttpServletResponse;
@@ -80,7 +77,7 @@ public class GlobalExceptionHandler {
     public R<String> handleException(ApiException e, HttpServletResponse response) {
         log.error("Api异常: {}", e.getMessage());
         response.setStatus(HttpServletResponse.SC_BAD_REQUEST); // 设置HTTP状态码为400
-        return R.fail(400, e.getMessage());
+        return R.fail(500, e.getMessage());
     }
 
     @ExceptionHandler(LoginException.class)
@@ -102,6 +99,13 @@ public class GlobalExceptionHandler {
     @ResponseBody
     public R<String> handleException(AccessNumLimitException e, HttpServletResponse response) {
         response.setStatus(461); // 设置HTTP状态码为461
+        return R.fail(1002, e.getMessage());
+    }
+
+    @ExceptionHandler(UserIdentityException.class)
+    @ResponseBody
+    public R<String> handleException(UserIdentityException e, HttpServletResponse response) {
+        response.setStatus(460); // 设置HTTP状态码为461
         return R.fail(1002, e.getMessage());
     }
 

@@ -3,13 +3,13 @@ package com.tarzan.maxkb4j.module.system.user.controller;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.tarzan.maxkb4j.common.api.R;
 import com.tarzan.maxkb4j.common.constant.AppConst;
-import com.tarzan.maxkb4j.common.util.StringUtil;
 import com.tarzan.maxkb4j.module.system.user.domain.dto.PasswordDTO;
 import com.tarzan.maxkb4j.module.system.user.domain.dto.UserDTO;
 import com.tarzan.maxkb4j.module.system.user.domain.entity.UserEntity;
 import com.tarzan.maxkb4j.module.system.user.service.UserService;
 import jakarta.mail.MessagingException;
 import lombok.AllArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -58,7 +58,7 @@ public class UserController{
 
 	@PutMapping("/user_manage/{id}/re_password")
 	public R<Boolean> updatePassword(@PathVariable("id")String id,@RequestBody PasswordDTO dto){
-		if (StringUtil.isBlank(dto.getPassword())||StringUtil.isBlank(dto.getRePassword())){
+		if (StringUtils.isBlank(dto.getPassword())||StringUtils.isBlank(dto.getRePassword())){
 			return R.fail("密码不能为空");
 		}
 		if(!dto.getPassword().equals(dto.getRePassword())){

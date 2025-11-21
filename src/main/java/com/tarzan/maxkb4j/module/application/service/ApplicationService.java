@@ -22,7 +22,6 @@ import com.tarzan.maxkb4j.module.application.enums.AppType;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatMapper;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationMapper;
 import com.tarzan.maxkb4j.module.knowledge.consts.SearchType;
-import com.tarzan.maxkb4j.module.knowledge.domain.entity.KnowledgeEntity;
 import com.tarzan.maxkb4j.module.knowledge.service.KnowledgeService;
 import com.tarzan.maxkb4j.module.model.custom.base.STTModel;
 import com.tarzan.maxkb4j.module.model.custom.base.TTSModel;
@@ -124,12 +123,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     }
 
     public ApplicationAccessTokenEntity updateAccessToken(String appId, ApplicationAccessTokenDTO dto) {
-        dto.setApplicationId(appId);
-        if (dto.getAccessTokenReset() != null && dto.getAccessTokenReset()) {
-            dto.setAccessToken(MD5Util.encrypt(UUID.randomUUID().toString(), 8, 24));
-        }
-        accessTokenService.updateById(BeanUtil.copy(dto, ApplicationAccessTokenEntity.class));
-        return accessTokenService.getById(appId);
+        return accessTokenService.updateAccessToken(appId, dto);
     }
 
 
@@ -153,7 +147,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     public ApplicationEntity createApp(ApplicationEntity application) {
         application.setKnowledgeSetting(new KnowledgeSetting());
         application.setIcon("./favicon.ico");
-        if (AppType.WORK_FLOW.name().equals(application.getType())){
+        if (AppType.WORK_FLOW.name().equals(application.getType())) {
             application.setDialogueNumber(0);
         }
         application.setDialogueNumber(1);
@@ -163,7 +157,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         application.setFileUploadEnable(false);
         application.setFileUploadSetting(new JSONObject());
         application.setKnowledgeSetting(getDefaultKnowledgeSetting());
-        if (application.getWorkFlow()== null){
+        if (application.getWorkFlow() == null) {
             application.setWorkFlow(new JSONObject());
         }
         this.save(application);
@@ -213,12 +207,14 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
 
 
     public ApplicationVO wrapVo(ApplicationVO vo) {
-        List<String> knowledgeIds = knowledgeMappingService.getKnowledgeIdsByAppId(vo.getId());
-        vo.setKnowledgeIdList(knowledgeIds);
-        if (!CollectionUtils.isEmpty(vo.getKnowledgeIdList())) {
-            vo.setKnowledgeList(knowledgeService.listByIds(knowledgeIds));
-        } else {
-            vo.setKnowledgeList(new ArrayList<>());
+        if (AppType.SIMPLE.name().equals(vo.getType())) {
+            List<String> knowledgeIds = knowledgeMappingService.getKnowledgeIdsByAppId(vo.getId());
+            vo.setKnowledgeIdList(knowledgeIds);
+            if (!CollectionUtils.isEmpty(knowledgeIds)) {
+                vo.setKnowledgeList(knowledgeService.listByIds(knowledgeIds));
+            } else {
+                vo.setKnowledgeList(List.of());
+            }
         }
         if (AppType.WORK_FLOW.name().equals(vo.getType())) {
             JSONObject workFlow = vo.getWorkFlow();
@@ -231,9 +227,12 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
                         if (properties != null) {
                             JSONObject nodeData = properties.getJSONObject("nodeData");
                             JSONArray knowledgeIdListJson = nodeData.getJSONArray("knowledgeIdList");
-                            List<String> knowledgeIdList = knowledgeIdListJson.toJavaList(String.class);
-                            List<KnowledgeEntity> knowledgeList = vo.getKnowledgeList().stream().filter(k -> knowledgeIdList.contains(k.getId())).toList();
-                            nodeData.put("knowledgeList", knowledgeList);
+                            List<String> knowledgeIds = knowledgeIdListJson.toJavaList(String.class);
+                            if (!CollectionUtils.isEmpty(knowledgeIds)){
+                                nodeData.put("knowledgeList", knowledgeService.listByIds(knowledgeIds));
+                            }else {
+                                nodeData.put("knowledgeList", List.of());
+                            }
                         }
                     }
                 }
@@ -262,20 +261,17 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         return ttsModel.textToSpeech(text);
     }
 
+    @SuppressWarnings("unchecked")
     @Transactional
     public Boolean updateAppById(String appId, ApplicationVO appVO) {
         ApplicationEntity app = BeanUtil.copy(appVO, ApplicationEntity.class);
         app.setId(appId);
-        List<String> knowledgeIds = getKnowledgeIdList(app);
-        if (!CollectionUtils.isEmpty(appVO.getKnowledgeIdList())) {
-            knowledgeIds.addAll(appVO.getKnowledgeIdList());
-        }
+        List<String> knowledgeIds =appVO.getKnowledgeIdList()==null?List.of():appVO.getKnowledgeIdList();
         knowledgeMappingService.updateByAppId(appId, knowledgeIds);
         JSONObject workFlow = appVO.getWorkFlow();
-        if (workFlow!=null && workFlow.containsKey("nodes")) {
+        if (workFlow != null && workFlow.containsKey("nodes")) {
             JSONArray nodes = workFlow.getJSONArray("nodes");
             if (nodes != null) {
-                @SuppressWarnings("unchecked")
                 JSONObject baseNode = nodes.stream()
                         .filter(node -> node instanceof Map)
                         .map(node -> (Map<String, Object>) node)
@@ -307,33 +303,6 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         return this.updateById(app);
     }
 
-    private List<String> getKnowledgeIdList(ApplicationEntity entity) {
-        List<String> knowledgeIds = new ArrayList<>();
-        if (entity == null || entity.getWorkFlow() == null) {
-            return knowledgeIds;
-        }
-        JSONObject workFlow = entity.getWorkFlow();
-        JSONArray nodes = workFlow.getJSONArray("nodes");
-        if (nodes == null) {
-            return knowledgeIds;
-        }
-        for (int i = 0; i < nodes.size(); i++) {
-            JSONObject node = nodes.getJSONObject(i);
-            if (SEARCH_KNOWLEDGE.getKey().equals(node.getString("type"))) {
-                JSONObject properties = node.getJSONObject("properties"); // 假设每个节点都有 id 字段
-                if (properties == null) {
-                    return knowledgeIds;
-                }
-                JSONObject nodeData = properties.getJSONObject("nodeData");
-                if (nodeData == null) {
-                    return knowledgeIds;
-                }
-                JSONArray knowledgeIdList = nodeData.getJSONArray("knowledgeIdList");
-                knowledgeIds.addAll(knowledgeIdList.toJavaList(String.class));
-            }
-        }
-        return knowledgeIds;
-    }
 
     @Transactional
     public Boolean publish(String id, JSONObject params) {
@@ -373,6 +342,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         MaxKb4J maxKb4J = JSONObject.parseObject(text, MaxKb4J.class);
         ApplicationEntity application = maxKb4J.getApplication();
         application.setId(null);
+        application.setIsPublish(false);
         boolean flag = this.save(application);
         ApplicationAccessTokenEntity accessToken = ApplicationAccessTokenEntity.createDefault();
         accessToken.setApplicationId(application.getId());
@@ -437,10 +407,10 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     public List<ApplicationListVO> listApps(String folderId) {
         String userId = StpKit.ADMIN.getLoginIdAsString();
         List<String> targetIds = userResourcePermissionService.getTargetIds(AuthTargetType.APPLICATION, userId);
-        if (targetIds.isEmpty()){
+        if (targetIds.isEmpty()) {
             return new ArrayList<>();
         }
-        List<ApplicationEntity> list= this.lambdaQuery().in(ApplicationEntity::getId, targetIds).eq(ApplicationEntity::getIsPublish, true).list();
+        List<ApplicationEntity> list = this.lambdaQuery().in(ApplicationEntity::getId, targetIds).eq(ApplicationEntity::getIsPublish, true).list();
         return list.stream().filter(e -> folderId.equals(e.getFolderId())).map(e -> BeanUtil.copy(e, ApplicationListVO.class)).toList();
     }
 }

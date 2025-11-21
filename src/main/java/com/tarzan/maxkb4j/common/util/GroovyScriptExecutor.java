@@ -6,6 +6,7 @@ import dev.langchain4j.internal.Utils;
 import dev.langchain4j.service.tool.ToolExecutor;
 import groovy.lang.Binding;
 import groovy.lang.GroovyShell;
+import org.apache.commons.lang3.StringUtils;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -24,7 +25,7 @@ public class GroovyScriptExecutor implements ToolExecutor {
     @Override
     public String execute(ToolExecutionRequest toolExecutionRequest,  Object memoryId) {
         Object result="";
-        if(StringUtil.isNotBlank(code)){
+        if(StringUtils.isNotBlank(code)){
             Map<String, Object> params = argumentsAsMap(toolExecutionRequest.arguments());
             Binding binding = new Binding(params);
             // 创建 GroovyShell 并执行脚本

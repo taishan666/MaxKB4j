@@ -5,12 +5,12 @@ import cn.hutool.http.HttpResponse;
 import cn.hutool.http.HttpUtil;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.tarzan.maxkb4j.common.util.StringUtil;
-import com.tarzan.maxkb4j.core.workflow.node.INode;
-import com.tarzan.maxkb4j.core.workflow.model.Workflow;
 import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;
+import com.tarzan.maxkb4j.core.workflow.model.Workflow;
+import com.tarzan.maxkb4j.core.workflow.node.INode;
 import com.tarzan.maxkb4j.core.workflow.node.impl.HttpNode;
 import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
@@ -34,7 +34,7 @@ public class HttpNodeHandler implements INodeHandler {
         node.getDetail().put("headers",request.headers());
         String body=nodeParams.getBody();
         node.getDetail().put("requestBody",body);
-        if (StringUtil.isNotBlank(body)){
+        if (StringUtils.isNotBlank(body)){
             request.body(body);
         }
         JSONArray params=nodeParams.getParams();
@@ -45,7 +45,7 @@ public class HttpNodeHandler implements INodeHandler {
             }
         }
         node.getDetail().put("params",request.form());
-        if (StringUtil.isNotBlank(nodeParams.getAuthType())){
+        if (StringUtils.isNotBlank(nodeParams.getAuthType())){
             switch (nodeParams.getAuthType()){
                 case "basic":
                     request.basicAuth(nodeParams.getUsername(),nodeParams.getPassword());

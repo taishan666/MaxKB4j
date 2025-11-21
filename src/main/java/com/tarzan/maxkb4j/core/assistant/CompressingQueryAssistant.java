@@ -11,12 +11,9 @@ public interface CompressingQueryAssistant {
                     Then, analyze the new query from the User. \
                     Identify all relevant details, terms, and context from both the conversation and the new query. \
                     Reformulate this query into a clear, concise, and self-contained format suitable for information retrieval.\
-                    
                     Conversation:
                     {{chatMemory}}
-                    
                     User query: {{query}}
-                    
                     It is very important that you provide only reformulated query and nothing else! \
                     Do not prepend a query with anything!""")
     Result<String> transform(@V("chatMemory") String chatMemory, @V("query")String  query);

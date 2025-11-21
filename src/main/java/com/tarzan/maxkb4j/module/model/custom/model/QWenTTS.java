@@ -8,12 +8,11 @@ import com.alibaba.dashscope.exception.NoApiKeyException;
 import com.alibaba.dashscope.exception.UploadFileException;
 import com.alibaba.dashscope.utils.JsonUtils;
 import com.alibaba.fastjson.JSONObject;
-import com.tarzan.maxkb4j.common.util.StringUtil;
 import com.tarzan.maxkb4j.module.model.custom.base.TTSModel;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelCredential;
 import io.reactivex.Flowable;
 import lombok.Data;
-import lombok.NoArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -75,7 +74,7 @@ public class QWenTTS  implements TTSModel{
         result.blockingForEach(r -> {
             System.out.println("result: " + JsonUtils.toJson(r));
             String dataStr= r.getOutput().getAudio().getData();
-            if (StringUtil.isNotBlank(dataStr)){
+            if (StringUtils.isNotBlank(dataStr)){
                 //Base64 解码为字节流
                 byte[] byteArray = Base64.getDecoder().decode(dataStr);
                 System.out.println("byteArray  length:  " + byteArray.length);
