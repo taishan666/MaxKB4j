@@ -39,12 +39,12 @@ public class OLlamaModelProvider extends IModelProvider {
     @Override
     public List<ModelInfo> getModelList() {
         List<ModelInfo> modelInfos = new ArrayList<>();
-        modelInfos.add(new ModelInfo("qwen:7b","", ModelType.LLM.name(), new LlmModelParams()));
-        modelInfos.add(new ModelInfo("llama3:8b","", ModelType.LLM.name(), new LlmModelParams()));
-        modelInfos.add(new ModelInfo("deepseek-r1:8b","", ModelType.LLM.name(),new LlmModelParams()));
-        modelInfos.add(new ModelInfo("nomic-embed-text","", ModelType.EMBEDDING.name()));
-        modelInfos.add(new ModelInfo("llava:7b","", ModelType.IMAGE_UNDERSTANDING.name(), new LlmModelParams()));
-        modelInfos.add(new ModelInfo("llava:13b","", ModelType.IMAGE_UNDERSTANDING.name(),new LlmModelParams()));
+        modelInfos.add(new ModelInfo("qwen:7b","", ModelType.LLM, new LlmModelParams()));
+        modelInfos.add(new ModelInfo("llama3:8b","", ModelType.LLM, new LlmModelParams()));
+        modelInfos.add(new ModelInfo("deepseek-r1:8b","", ModelType.LLM,new LlmModelParams()));
+        modelInfos.add(new ModelInfo("nomic-embed-text","", ModelType.EMBEDDING));
+        modelInfos.add(new ModelInfo("llava:7b","", ModelType.IMAGE_UNDERSTANDING, new LlmModelParams()));
+        modelInfos.add(new ModelInfo("llava:13b","", ModelType.IMAGE_UNDERSTANDING,new LlmModelParams()));
         return modelInfos;
     }
 

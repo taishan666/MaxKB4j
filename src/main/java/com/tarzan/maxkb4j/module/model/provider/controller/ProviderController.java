@@ -43,10 +43,10 @@ public class ProviderController {
 	public R<List<KeyAndValueVO>> modelTypeList(String provider){
 		IModelProvider modelProvider= ModelProviderEnum.get(provider);
 		List<ModelInfo> modelInfos=modelProvider.getModelList();
-		List<KeyAndValueVO> list= ModelType.getModelTypeList();
-		Map<String,List<ModelInfo>> map=modelInfos.stream().collect(Collectors.groupingBy(ModelInfo::getModelType));
-		Set<String> keys=map.keySet();
-		list.removeIf(e -> !keys.contains(e.getValue()));
+		//List<KeyAndValueVO> list= ModelType.getModelTypeList();
+		Map<ModelType,List<ModelInfo>> map=modelInfos.stream().collect(Collectors.groupingBy(ModelInfo::getModelType));
+		Set<ModelType> keys=map.keySet();
+		List<KeyAndValueVO> list= ModelType.getModelTypeList().stream().filter(keys::contains).map(e -> new KeyAndValueVO(e.getName(), e.getKey())).toList();
 		return R.success(list);
 	}
 
@@ -71,7 +71,7 @@ public class ProviderController {
 		if (StringUtils.isBlank(modelType)){
 			return R.success(modelInfos);
 		}
-		List<ModelInfo>  modelList=modelInfos.stream().filter(e->e.getModelType().equals(modelType)).toList();
+		List<ModelInfo>  modelList=modelInfos.stream().filter(e->e.getModelType().getName().equals(modelType)).toList();
 		return R.success(modelList);
 	}
 

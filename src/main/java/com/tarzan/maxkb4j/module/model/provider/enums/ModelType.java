@@ -1,9 +1,9 @@
 package com.tarzan.maxkb4j.module.model.provider.enums;
 
-import com.tarzan.maxkb4j.module.model.info.vo.KeyAndValueVO;
 import lombok.Getter;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Getter
@@ -30,11 +30,9 @@ public enum ModelType {
         this.name = name;
     }
 
-    public static List<KeyAndValueVO> getModelTypeList() {
-        List<KeyAndValueVO> list = new ArrayList<>();
-        for (ModelType modelType : ModelType.values()) {
-            list.add(new KeyAndValueVO(modelType.getName(), modelType.getKey()));
-        }
+    public static List<ModelType> getModelTypeList() {
+        List<ModelType> list = new ArrayList<>();
+        Collections.addAll(list, ModelType.values());
         return list;
     }
 

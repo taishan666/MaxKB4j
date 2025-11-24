@@ -42,8 +42,8 @@ public class DeepSeekModelProvider extends IModelProvider {
     @Override
     public List<ModelInfo> getModelList() {
         List<ModelInfo> modelInfos = new ArrayList<>();
-        modelInfos.add(new ModelInfo("deepseek-chat", "", ModelType.LLM.name(), new LlmModelParams()));
-        modelInfos.add(new ModelInfo("deepseek-reasoner", "", ModelType.LLM.name(), new LlmModelParams()));
+        modelInfos.add(new ModelInfo("deepseek-chat", "", ModelType.LLM, new LlmModelParams()));
+        modelInfos.add(new ModelInfo("deepseek-reasoner", "", ModelType.LLM, new LlmModelParams()));
         return modelInfos;
     }
 

@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.common.util.IoUtil;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelCredential;
 import com.tarzan.maxkb4j.module.model.provider.enums.ModelProviderEnum;
+import com.tarzan.maxkb4j.module.model.provider.enums.ModelType;
 import com.tarzan.maxkb4j.module.model.provider.service.IModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.vo.ModelInfo;
 import com.tarzan.maxkb4j.module.model.provider.vo.ModelProviderInfo;
@@ -37,10 +38,10 @@ public class WenXinModelProvider extends IModelProvider {
     @Override
     public List<ModelInfo> getModelList() {
         List<ModelInfo> modelInfos = new ArrayList<>();
-        modelInfos.add(new ModelInfo("ERNIE-Bot-4", "", "LLM"));
-        modelInfos.add(new ModelInfo("ERNIE-Bot", "", "LLM"));
-        modelInfos.add(new ModelInfo("ERNIE-Bot-turbo", "", "LLM"));
-        modelInfos.add(new ModelInfo("Embedding-V1", "", "EMBEDDING"));
+        modelInfos.add(new ModelInfo("ERNIE-Bot-4", "", ModelType.LLM));
+        modelInfos.add(new ModelInfo("ERNIE-Bot", "", ModelType.LLM));
+        modelInfos.add(new ModelInfo("ERNIE-Bot-turbo", "", ModelType.LLM));
+        modelInfos.add(new ModelInfo("Embedding-V1", "", ModelType.EMBEDDING));
         return modelInfos;
     }
 
