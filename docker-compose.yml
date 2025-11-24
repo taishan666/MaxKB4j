@@ -42,8 +42,7 @@ services:
         max-size: 10m
         max-file: 1
     environment:
-      - SPRING_DATA_MONGODB_DATABASE=MaxKB4j
-      - SPRING_DATA_MONGODB_URI=mongodb://tarzan_mongo:ycn4NRhjN2@mongo:27017
+      - SPRING_DATA_MONGODB_URI=mongodb://tarzan_mongo:ycn4NRhjN2@mongo:27017/MaxKB4j?authSource=admin
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/MaxKB4j?sslmode=disable
       - SPRING_DATASOURCE_USERNAME=tarzan_postgres
       - SPRING_DATASOURCE_PASSWORD=ycn4NRhjN2
