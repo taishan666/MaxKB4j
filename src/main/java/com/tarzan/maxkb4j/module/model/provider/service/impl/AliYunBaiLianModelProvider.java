@@ -57,7 +57,7 @@ public class AliYunBaiLianModelProvider extends IModelProvider {
         modelInfos.add(new ModelInfo(WanxModelName.WANX2_1_T2I_TURBO,"文生图模型", ModelType.TTI.name(),WanXImageModel.class,new WanXImageModelParams()));
         modelInfos.add(new ModelInfo(WanxModelName.WANX2_1_T2I_PLUS,"文生图模型", ModelType.TTI.name(),WanXImageModel.class,new WanXImageModelParams()));
         modelInfos.add(new ModelInfo("qwen-image-plus","文生图模型", ModelType.TTI.name(),WanXImageModel.class,new QwenImageModelParams()));
-        modelInfos.add(new ModelInfo("gte-rerank","重排模型", ModelType.RERANK.name(),BaiLianReranker.class));
+        modelInfos.add(new ModelInfo("gte-rerank","重排模型", ModelType.RERANKER.name(),BaiLianReranker.class));
         return modelInfos;
     }
 

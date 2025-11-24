@@ -16,7 +16,7 @@ public enum ModelType {
     TTS("TTS", "语音合成"),
     IMAGE_UNDERSTANDING("IMAGE", "图片理解"),
     TTI("TTI", "图片生成"),
-    RERANK("RERANK", "重排模型"),
+    RERANKER("RERANKER", "重排模型"),
     ;
 
 
