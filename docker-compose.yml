@@ -1,6 +1,6 @@
 services:
   postgres:
-    image: registry.cn-hangzhou.aliyuncs.com/tarzanx/pgvector:0.8.0-pg17
+    image: registry.cn-hangzhou.aliyuncs.com/tarzanx/pgvector:0.7.0-pg15
     container_name: pgvector
     restart: always
     networks:

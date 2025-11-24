@@ -21,10 +21,16 @@ MaxKB4j = Max Knowledge Base for Java，是一款基于Java语言开发的LLM工
 ## 快速开始
 
 ```
-java -jar maxkb4j-1.0.0.jar
+java -jar maxkb4j.jar
+```
+
+## Docker Compose 快速部署
+
+```
+docker-compose up -d
 ```
 - 访问地址 - 访问地址 http://localhost:8080/login
-- 默认用户/密码 admin/maxkb4j.
+- 默认用户/密码 admin/tarzan@123456
 
 
 ## 案例展示
