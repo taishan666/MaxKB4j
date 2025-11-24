@@ -1,20 +1,7 @@
 package com.tarzan.maxkb4j.module.model.provider.enums;
 
 import com.tarzan.maxkb4j.module.model.provider.service.IModelProvider;
-import com.tarzan.maxkb4j.module.model.provider.service.impl.AliYunBaiLianModelProvider;
-import com.tarzan.maxkb4j.module.model.provider.service.impl.AzureModelProvider;
-import com.tarzan.maxkb4j.module.model.provider.service.impl.DeepSeekModelProvider;
-import com.tarzan.maxkb4j.module.model.provider.service.impl.GeminiModelProvider;
-import com.tarzan.maxkb4j.module.model.provider.service.impl.KimiModelProvider;
-import com.tarzan.maxkb4j.module.model.provider.service.impl.LocalModelProvider;
-import com.tarzan.maxkb4j.module.model.provider.service.impl.OLlamaModelProvider;
-import com.tarzan.maxkb4j.module.model.provider.service.impl.OpenaiModelProvider;
-import com.tarzan.maxkb4j.module.model.provider.service.impl.TencentModelProvider;
-import com.tarzan.maxkb4j.module.model.provider.service.impl.VolcanicEngineModelProvider;
-import com.tarzan.maxkb4j.module.model.provider.service.impl.WenXinModelProvider;
-import com.tarzan.maxkb4j.module.model.provider.service.impl.XfModelProvider;
-import com.tarzan.maxkb4j.module.model.provider.service.impl.XInferenceModelProvider;
-import com.tarzan.maxkb4j.module.model.provider.service.impl.ZhiPuModelProvider;
+import com.tarzan.maxkb4j.module.model.provider.service.impl.*;
 import lombok.Getter;
 
 import java.util.ArrayList;

@@ -33,7 +33,10 @@ public abstract class IModelProvider {
 
     private ModelInfo getModelInfo(String modelType, String modelName) {
         List<ModelInfo> modelList = getModelList();
-        return modelList.stream().filter(modelInfo -> modelInfo.getModelType().equals(modelType) && modelInfo.getName().equals(modelName)).findFirst().orElse(null);
+        if (modelList==null) {
+            return null;
+        }
+        return modelList.stream().filter(modelInfo -> modelInfo.getModelType().getName().equals(modelType) && modelInfo.getName().equals(modelName)).findFirst().orElse(null);
     }
 
 
@@ -61,7 +64,7 @@ public abstract class IModelProvider {
 
     public boolean isSupport(String modelType) {
         List<ModelInfo> modelList = getModelList();
-        return modelList.stream().anyMatch(e -> e.getModelType().equals(modelType));
+        return modelList.stream().anyMatch(e -> e.getModelType().getName().equals(modelType));
     }
 
 

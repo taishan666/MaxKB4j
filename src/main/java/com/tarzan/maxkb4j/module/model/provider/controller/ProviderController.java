@@ -43,7 +43,6 @@ public class ProviderController {
 	public R<List<KeyAndValueVO>> modelTypeList(String provider){
 		IModelProvider modelProvider= ModelProviderEnum.get(provider);
 		List<ModelInfo> modelInfos=modelProvider.getModelList();
-		//List<KeyAndValueVO> list= ModelType.getModelTypeList();
 		Map<ModelType,List<ModelInfo>> map=modelInfos.stream().collect(Collectors.groupingBy(ModelInfo::getModelType));
 		Set<ModelType> keys=map.keySet();
 		List<KeyAndValueVO> list= ModelType.getModelTypeList().stream().filter(keys::contains).map(e -> new KeyAndValueVO(e.getName(), e.getKey())).toList();
@@ -52,6 +51,7 @@ public class ProviderController {
 
 	@GetMapping("/provider/model_form")
 	public R<List<BaseFiled>> modelForm(String provider, String modelType, String modelName){
+		//todo 目前根据provider获取凭证form,后续遇到需要modelType和modelName的时候再调整
 		IModelProvider modelProvider=ModelProviderEnum.get(provider);
 		return R.success(modelProvider.getModelCredential().toForm());
 	}
