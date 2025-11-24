@@ -1,12 +1,10 @@
 services:
   postgres:
-    image: registry.cn-hangzhou.aliyuncs.com/tarzanx/pgvector:0.8.0
+    image: registry.cn-hangzhou.aliyuncs.com/tarzanx/pgvector:0.7.0-pg15
     container_name: pgvector
     restart: always
-    ports: # 生产环境建议不要暴露
-      - "5432:5432"
     networks:
-      - MaxKB4j
+      - maxkb4j_network
     environment:
       POSTGRES_USER: tarzan_postgres
       POSTGRES_PASSWORD: ycn4NRhjN2
@@ -17,10 +15,8 @@ services:
     image: registry.cn-hangzhou.aliyuncs.com/tarzanx/mongo:8.0
     container_name: mongo
     restart: always
-    ports:
-      - "27017:27017"
     networks:
-      - MaxKB4j
+      - maxkb4j_network
     environment:
       TZ: 'Asia/Shanghai'
       MONGO_INITDB_ROOT_USERNAME: tarzan_mongo
@@ -34,7 +30,7 @@ services:
     ports:
       - "8080:8080"
     networks:
-      - MaxKB4j
+      - maxkb4j_network
     depends_on:
       postgres:
         condition: service_started
@@ -48,7 +44,7 @@ services:
     environment:
       - SPRING_DATA_MONGODB_DATABASE=MaxKB4j
       - SPRING_DATA_MONGODB_URI=mongodb://tarzan_mongo:ycn4NRhjN2@mongo:27017
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/MaxKB4j
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/MaxKB4j?sslmode=disable
       - SPRING_DATASOURCE_USERNAME=tarzan_postgres
       - SPRING_DATASOURCE_PASSWORD=ycn4NRhjN2
     volumes:
@@ -59,5 +55,4 @@ services:
       exec java -jar MaxKB4j.jar 
       "
 networks:
-  MaxKB4j:
-    driver: bridge
+  maxkb4j_network:
