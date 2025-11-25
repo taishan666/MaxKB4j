@@ -6,9 +6,11 @@ import com.tarzan.maxkb4j.common.api.R;
 import com.tarzan.maxkb4j.common.constant.AppConst;
 import com.tarzan.maxkb4j.module.application.domian.dto.ApplicationAccessTokenDTO;
 import com.tarzan.maxkb4j.module.application.domian.dto.ApplicationQuery;
+import com.tarzan.maxkb4j.module.application.domian.dto.ChatQueryDTO;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationAccessTokenEntity;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationEntity;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationListVO;
+import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationStatisticsVO;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationVO;
 import com.tarzan.maxkb4j.module.application.service.ApplicationService;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -115,14 +117,11 @@ public class ApplicationController {
         return R.success(applicationService.updateAccessToken(appId, dto));
     }
 
-/*
-    @PostMapping("/application/{appId}/mcp_tools")
-    public R<List<McpToolVO>> mcpTools(@PathVariable("appId") String appId, @RequestBody JSONObject mcpServers) {
-        System.out.println("mcpTools "+mcpServers);
-        JSONObject mcpServersJson=JSONObject.parseObject(mcpServers.getString("mcpServers"));
-        return R.data(McpToolUtil.getToolVos(mcpServersJson));
+    @GetMapping("/application/{appId}/application_stats")
+    public R<List<ApplicationStatisticsVO>> applicationStats(@PathVariable("appId") String appId, ChatQueryDTO query) {
+        return R.success(applicationService.applicationStats(appId, query));
     }
-*/
+
 
 
 

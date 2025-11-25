@@ -5,10 +5,8 @@ import com.tarzan.maxkb4j.common.api.R;
 import com.tarzan.maxkb4j.common.constant.AppConst;
 import com.tarzan.maxkb4j.module.application.domian.dto.AddChatImproveDTO;
 import com.tarzan.maxkb4j.module.application.domian.dto.ChatImproveDTO;
-import com.tarzan.maxkb4j.module.application.domian.dto.ChatQueryDTO;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatRecordEntity;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationChatRecordVO;
-import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationStatisticsVO;
 import com.tarzan.maxkb4j.module.application.service.ApplicationChatRecordService;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.ParagraphEntity;
 import lombok.AllArgsConstructor;
@@ -33,10 +31,7 @@ public class ApplicationChatRecordController {
         return R.success(chatRecordService.getChatRecordInfo(chatId, chatRecordId));
     }
 
-    @GetMapping("/application/{appId}/application_stats")
-    public R<List<ApplicationStatisticsVO>> applicationStats(@PathVariable("appId") String appId, ChatQueryDTO query) {
-        return R.success(chatRecordService.applicationStats(appId, query));
-    }
+
 
     @GetMapping("/application/{id}/chat/{chatId}/chat_record/{current}/{size}")
     public R<IPage<ApplicationChatRecordVO>> chatRecordPage(@PathVariable String id, @PathVariable String chatId, @PathVariable int current, @PathVariable int size) {

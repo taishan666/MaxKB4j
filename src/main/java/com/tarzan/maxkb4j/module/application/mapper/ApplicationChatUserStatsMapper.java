@@ -3,7 +3,7 @@ package com.tarzan.maxkb4j.module.application.mapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.tarzan.maxkb4j.module.application.domian.dto.ChatQueryDTO;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatUserStatsEntity;
-import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationChatUserStatsVO;
+import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationStatisticsVO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -16,6 +16,6 @@ import java.util.List;
 @Mapper
 public interface ApplicationChatUserStatsMapper extends BaseMapper<ApplicationChatUserStatsEntity>{
 
-    List<ApplicationChatUserStatsVO> getCustomerCountTrend(String appId, @Param("query") ChatQueryDTO query);
+    List<ApplicationStatisticsVO> getCustomerCountTrend(String appId, @Param("query") ChatQueryDTO query);
 
 }

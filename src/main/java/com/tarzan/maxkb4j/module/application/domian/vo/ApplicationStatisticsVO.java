@@ -7,8 +7,8 @@ public class ApplicationStatisticsVO {
     private Integer chatRecordCount;
     private Integer customerAddedCount;
     private Integer customerNum;
-    private String day;
     private Integer starNum;
     private Integer tokensNum;
     private Integer trampleNum;
+    private String day;
 }
