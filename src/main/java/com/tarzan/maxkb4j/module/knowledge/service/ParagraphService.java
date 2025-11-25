@@ -131,31 +131,41 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
     @Transactional
     public boolean saveParagraphAndProblem(String knowledgeId, String docId, ParagraphAddDTO addDTO) {
         ParagraphEntity paragraph= createParagraph(knowledgeId, docId, addDTO.getTitle(), addDTO.getContent(),addDTO.getPosition());
+        List<ProblemEntity> problemList = addDTO.getProblemList();
+        if (!CollectionUtils.isEmpty(problemList)) {
+            List<String> problems =problemList.stream().map(ProblemEntity::getContent).toList();
+            return saveParagraphAndProblem(paragraph, problems);
+        }
+        return saveParagraphAndProblem(paragraph, List.of());
+    }
+
+
+
+    @Transactional
+    public boolean saveParagraphAndProblem(ParagraphEntity paragraph, List<String> problems) {
         this.save(paragraph);
-        List<ProblemEntity> problems = addDTO.getProblemList();
         if (!CollectionUtils.isEmpty(problems)) {
-            List<String> problemContents = problems.stream().map(ProblemEntity::getContent).toList();
             List<ProblemParagraphEntity> problemParagraphMappingEntities = new ArrayList<>();
-            for (String problemContent : problemContents) {
-                ProblemEntity problem = problemService.lambdaQuery().eq(ProblemEntity::getContent, problemContent).one();
-                if (problem == null) {
-                    problem = ProblemEntity.createDefault();
-                    problem.setHitNum(0);
-                    problem.setContent(problemContent);
-                    problem.setKnowledgeId(knowledgeId);
-                    problemService.save(problem);
+            for (String problem : problems) {
+                ProblemEntity problemEntity = problemService.lambdaQuery().eq(ProblemEntity::getContent, problem).one();
+                if (problemEntity == null) {
+                    problemEntity = ProblemEntity.createDefault();
+                    problemEntity.setHitNum(0);
+                    problemEntity.setContent(problem);
+                    problemEntity.setKnowledgeId(paragraph.getKnowledgeId());
+                    problemService.save(problemEntity);
                 }
                 ProblemParagraphEntity entity = new ProblemParagraphEntity();
                 entity.setKnowledgeId(paragraph.getKnowledgeId());
-                entity.setProblemId(problem.getId());
+                entity.setProblemId(problemEntity.getId());
                 entity.setParagraphId(paragraph.getId());
                 entity.setDocumentId(paragraph.getDocumentId());
                 problemParagraphMappingEntities.add(entity);
             }
             problemParagraphService.saveBatch(problemParagraphMappingEntities);
         }
-        eventPublisher.publishEvent(new ParagraphIndexEvent(this, knowledgeId,docId,List.of(paragraph.getId())));
-        return documentMapper.updateCharLengthById(docId);
+        eventPublisher.publishEvent(new ParagraphIndexEvent(this, paragraph.getKnowledgeId(),paragraph.getDocumentId(),List.of(paragraph.getId())));
+        return documentMapper.updateCharLengthById(paragraph.getDocumentId());
     }
 
 

@@ -10,7 +10,6 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tarzan.maxkb4j.common.util.BeanUtil;
 import com.tarzan.maxkb4j.common.util.PageUtil;
-import com.tarzan.maxkb4j.core.event.ParagraphIndexEvent;
 import com.tarzan.maxkb4j.module.application.domian.dto.AddChatImproveDTO;
 import com.tarzan.maxkb4j.module.application.domian.dto.ChatImproveDTO;
 import com.tarzan.maxkb4j.module.application.domian.dto.ChatInfo;
@@ -24,7 +23,6 @@ import com.tarzan.maxkb4j.module.knowledge.domain.entity.ParagraphEntity;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.ParagraphVO;
 import com.tarzan.maxkb4j.module.knowledge.service.ParagraphService;
 import lombok.AllArgsConstructor;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -46,7 +44,6 @@ public class ApplicationChatRecordService extends ServiceImpl<ApplicationChatRec
 
     private final ParagraphService paragraphService;
     private final ApplicationChatMapper chatMapper;
-    private final ApplicationEventPublisher eventPublisher;
 
 
 
@@ -147,12 +144,11 @@ public class ApplicationChatRecordService extends ServiceImpl<ApplicationChatRec
     @Transactional
     public ApplicationChatRecordEntity improveChatLog(String chatId,String chatRecordId,String knowledgeId, String docId, ChatImproveDTO dto) {
         ParagraphEntity paragraphEntity = paragraphService.createParagraph(knowledgeId, docId, dto.getTitle(), dto.getContent(), null);
-        paragraphService.save(paragraphEntity);
+        paragraphService.saveParagraphAndProblem(paragraphEntity,List.of(dto.getProblemText()));
         ApplicationChatRecordEntity chatRecord = new ApplicationChatRecordEntity();
         chatRecord.setId(chatRecordId);
         chatRecord.setImproveParagraphIdList(List.of(paragraphEntity.getId()));
         this.updateById(chatRecord);
-        eventPublisher.publishEvent(new ParagraphIndexEvent(this, knowledgeId,docId,List.of(paragraphEntity.getId())));
         ApplicationChatEntity chatEntity = chatMapper.selectById(chatId);
         ApplicationChatEntity updateChatEntity=new ApplicationChatEntity();
         updateChatEntity.setId(chatId);
