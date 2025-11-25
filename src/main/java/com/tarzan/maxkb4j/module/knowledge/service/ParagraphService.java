@@ -116,7 +116,7 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
         this.updateStatusById(paragraph.getId(),1,0);
         this.updateById(paragraph);
         documentMapper.updateCharLengthById(docId);
-        eventPublisher.publishEvent(new ParagraphIndexEvent(this, knowledgeId,docId,paragraph.getId()));
+        eventPublisher.publishEvent(new ParagraphIndexEvent(this, knowledgeId,docId,List.of(paragraph.getId())));
     }
 
 
@@ -154,7 +154,7 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
             }
             problemParagraphService.saveBatch(problemParagraphMappingEntities);
         }
-        eventPublisher.publishEvent(new ParagraphIndexEvent(this, knowledgeId,docId,paragraph.getId()));
+        eventPublisher.publishEvent(new ParagraphIndexEvent(this, knowledgeId,docId,List.of(paragraph.getId())));
         return documentMapper.updateCharLengthById(docId);
     }
 

@@ -2,13 +2,11 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.tarzan.maxkb4j.module.application.mapper.ApplicationChatMapper">
 
-    <select id="chatLogs"  resultType="com.tarzan.maxkb4j.module.application.domian.vo.ApplicationChatVO">
+    <select id="chatLogs"  resultType="com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatEntity">
         SELECT
-            chat.*,
-            COUNT(chat_record.chat_id) chat_record_count
+            chat.*
         FROM
             application_chat  chat
-                LEFT JOIN application_chat_record chat_record ON chat."id" = chat_record.chat_id
         <where>
             APPLICATION_ID = #{appId}
             <if test="query.keyword != null and query.keyword != ''">

@@ -50,12 +50,12 @@ public class ApplicationChatRecordController {
 
     @PutMapping("/application/{appId}/chat/{chatId}/chat_record/{chatRecordId}/knowledge/{knowledgeId}/document/{docId}/improve")
     public R<ApplicationChatRecordEntity> improveChatLog(@PathVariable("appId") String appId, @PathVariable ("chatId") String chatId, @PathVariable ("chatRecordId") String chatRecordId, @PathVariable("knowledgeId") String knowledgeId, @PathVariable ("docId") String docId, @RequestBody ChatImproveDTO dto) {
-        return R.success(chatRecordService.improveChatLog(chatRecordId,knowledgeId,docId, dto));
+        return R.success(chatRecordService.improveChatLog(chatId,chatRecordId,knowledgeId,docId, dto));
     }
 
     @DeleteMapping("/application/{appId}/chat/{chatId}/chat_record/{chatRecordId}/knowledge/{knowledgeId}/document/{docId}/paragraph/{paragraphId}/improve")
     public R<Boolean> improveChatLog(@PathVariable("appId") String appId, @PathVariable ("chatId") String chatId, @PathVariable ("chatRecordId") String chatRecordId, @PathVariable("knowledgeId") String knowledgeId, @PathVariable ("docId") String docId,@PathVariable("paragraphId") String paragraphId) {
-        return R.success(chatRecordService.removeImproveChatLog(chatRecordId,paragraphId));
+        return R.success(chatRecordService.removeImproveChatLog(chatId,chatRecordId,paragraphId));
     }
 
     @GetMapping("/application/{appId}/chat/{chatId}/chat_record/{chatRecordId}/improve")

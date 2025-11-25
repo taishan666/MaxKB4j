@@ -78,8 +78,8 @@ public class ChatPostHandler implements PostResponseHandler {
                 chatUserStatsService.updateById(chatUserStats);
             }
             long chatCount = chatMapper.selectCount(Wrappers.<ApplicationChatEntity>lambdaQuery().eq(ApplicationChatEntity::getId, chatId));
+            ApplicationChatEntity chatEntity = new ApplicationChatEntity();
             if (chatCount == 0) {
-                ApplicationChatEntity chatEntity = new ApplicationChatEntity();
                 chatEntity.setId(chatId);
                 chatEntity.setApplicationId(chatInfo.getAppId());
                 String problemOverview = problemText.length() > 50 ? problemText.substring(0, 50) : problemText;
@@ -91,9 +91,13 @@ public class ChatPostHandler implements PostResponseHandler {
                 chatEntity.setMeta(new JSONObject());
                 chatEntity.setStarNum(0);
                 chatEntity.setTrampleNum(0);
-                chatEntity.setChatRecordCount(chatInfo.getChatRecordList().size());
+                chatEntity.setChatRecordCount(1);
                 chatEntity.setMarkSum(0);
-                chatMapper.insertOrUpdate(chatEntity);
+                chatMapper.insert(chatEntity);
+            }else {
+                chatEntity.setId(chatId);
+                chatEntity.setChatRecordCount(chatInfo.getChatRecordList().size());
+                chatMapper.updateById(chatEntity);
             }
             chatRecordMapper.insertOrUpdate(chatRecord);
         }

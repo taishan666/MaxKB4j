@@ -10,20 +10,24 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tarzan.maxkb4j.common.util.BeanUtil;
 import com.tarzan.maxkb4j.common.util.PageUtil;
+import com.tarzan.maxkb4j.core.event.ParagraphIndexEvent;
 import com.tarzan.maxkb4j.module.application.domian.dto.AddChatImproveDTO;
 import com.tarzan.maxkb4j.module.application.domian.dto.ChatImproveDTO;
 import com.tarzan.maxkb4j.module.application.domian.dto.ChatInfo;
 import com.tarzan.maxkb4j.module.application.domian.dto.ChatQueryDTO;
+import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatEntity;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatRecordEntity;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationChatRecordVO;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationChatUserStatsVO;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationStatisticsVO;
+import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatMapper;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatRecordMapper;
 import com.tarzan.maxkb4j.module.chat.cache.ChatCache;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.ParagraphEntity;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.ParagraphVO;
 import com.tarzan.maxkb4j.module.knowledge.service.ParagraphService;
 import lombok.AllArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -44,6 +48,9 @@ public class ApplicationChatRecordService extends ServiceImpl<ApplicationChatRec
 
     private final ApplicationChatUserStatsService chatUserStatsService;
     private final ParagraphService paragraphService;
+    private final ApplicationChatMapper chatMapper;
+    private final ApplicationEventPublisher eventPublisher;
+
 
 
     private ApplicationChatRecordEntity getChatRecordEntity(ChatInfo chatInfo, String chatRecordId) {
@@ -189,22 +196,33 @@ public class ApplicationChatRecordService extends ServiceImpl<ApplicationChatRec
     }
 
     @Transactional
-    public ApplicationChatRecordEntity improveChatLog(String chatRecordId,String knowledgeId, String docId, ChatImproveDTO dto) {
-        ParagraphEntity paragraphEntity = paragraphService.createParagraph(knowledgeId, docId, dto.getProblemText(), dto.getContent(), null);
+    public ApplicationChatRecordEntity improveChatLog(String chatId,String chatRecordId,String knowledgeId, String docId, ChatImproveDTO dto) {
+        ParagraphEntity paragraphEntity = paragraphService.createParagraph(knowledgeId, docId, dto.getTitle(), dto.getContent(), null);
         paragraphService.save(paragraphEntity);
         ApplicationChatRecordEntity chatRecord = new ApplicationChatRecordEntity();
         chatRecord.setId(chatRecordId);
         chatRecord.setImproveParagraphIdList(List.of(paragraphEntity.getId()));
         this.updateById(chatRecord);
+        eventPublisher.publishEvent(new ParagraphIndexEvent(this, knowledgeId,docId,List.of(paragraphEntity.getId())));
+        ApplicationChatEntity chatEntity = chatMapper.selectById(chatId);
+        ApplicationChatEntity updateChatEntity=new ApplicationChatEntity();
+        updateChatEntity.setId(chatId);
+        updateChatEntity.setMarkSum(chatEntity.getMarkSum()+1);
+        chatMapper.updateById(updateChatEntity);
         return this.getById(chatRecordId);
     }
 
     @Transactional
-    public boolean removeImproveChatLog(String chatRecordId,String paragraphId) {
+    public boolean removeImproveChatLog(String chatId,String chatRecordId,String paragraphId) {
         ApplicationChatRecordEntity chatRecord = new ApplicationChatRecordEntity();
         chatRecord.setId(chatRecordId);
         chatRecord.setImproveParagraphIdList(List.of());
         this.updateById(chatRecord);
+        ApplicationChatEntity chatEntity = chatMapper.selectById(chatId);
+        ApplicationChatEntity updateChatEntity=new ApplicationChatEntity();
+        updateChatEntity.setId(chatId);
+        updateChatEntity.setMarkSum(chatEntity.getMarkSum()-1);
+        chatMapper.updateById(updateChatEntity);
         return paragraphService.removeById(paragraphId);
     }
 
