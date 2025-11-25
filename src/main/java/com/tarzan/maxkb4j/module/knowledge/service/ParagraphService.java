@@ -79,7 +79,7 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
     public void createIndex(ParagraphEntity paragraph, EmbeddingModel embeddingModel) {
         if (paragraph != null) {
             //清除之前向量
-            dataIndexService.removeByParagraphId(paragraph.getKnowledgeId(),paragraph.getId());
+            dataIndexService.removeByParagraphId(paragraph.getId());
             List<EmbeddingEntity> embeddingEntities = new ArrayList<>();
             log.info("开始---->向量化段落:{}", paragraph.getId());
             EmbeddingEntity paragraphEmbed = new EmbeddingEntity();
@@ -122,7 +122,7 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
 
     @Transactional
     public Boolean deleteBatchByIds(String knowledgeId,String docId, List<String> paragraphIds) {
-        dataIndexService.removeByParagraphIds(knowledgeId,paragraphIds);
+        dataIndexService.removeByParagraphIds(paragraphIds);
         this.removeByIds(paragraphIds);
         return documentMapper.updateCharLengthById(docId);
     }
@@ -294,5 +294,12 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
     public void deleteByKnowledgeId(String id) {
         this.lambdaUpdate().eq(ParagraphEntity::getKnowledgeId, id).remove();
         dataIndexService.removeByDatasetId(id);
+    }
+
+    @Transactional
+    public boolean deleteById(String paragraphId) {
+        dataIndexService.removeByParagraphId(paragraphId);
+        problemParagraphService.lambdaUpdate().eq(ProblemParagraphEntity::getParagraphId, paragraphId).remove();
+        return this.removeById(paragraphId);
     }
 }

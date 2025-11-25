@@ -14,11 +14,9 @@ import com.tarzan.maxkb4j.core.event.ParagraphIndexEvent;
 import com.tarzan.maxkb4j.module.application.domian.dto.AddChatImproveDTO;
 import com.tarzan.maxkb4j.module.application.domian.dto.ChatImproveDTO;
 import com.tarzan.maxkb4j.module.application.domian.dto.ChatInfo;
-import com.tarzan.maxkb4j.module.application.domian.dto.ChatQueryDTO;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatEntity;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatRecordEntity;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationChatRecordVO;
-import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationStatisticsVO;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatMapper;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatRecordMapper;
 import com.tarzan.maxkb4j.module.chat.cache.ChatCache;
@@ -174,7 +172,7 @@ public class ApplicationChatRecordService extends ServiceImpl<ApplicationChatRec
         updateChatEntity.setId(chatId);
         updateChatEntity.setMarkSum(chatEntity.getMarkSum()-1);
         chatMapper.updateById(updateChatEntity);
-        return paragraphService.removeById(paragraphId);
+        return paragraphService.deleteById(paragraphId);
     }
 
     public List<ParagraphEntity> improveChatLog(String chatRecordId) {
@@ -182,7 +180,4 @@ public class ApplicationChatRecordService extends ServiceImpl<ApplicationChatRec
         return paragraphService.listByIds(chatRecord.getImproveParagraphIdList());
     }
 
-    public List<ApplicationStatisticsVO> chatRecordCountTrend(String appId, ChatQueryDTO query) {
-        return baseMapper.chatRecordCountTrend(appId, query);
-    }
 }
