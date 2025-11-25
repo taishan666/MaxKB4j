@@ -71,7 +71,7 @@ public class ProviderController {
 		if (StringUtils.isBlank(modelType)){
 			return R.success(modelInfos);
 		}
-		List<ModelInfo>  modelList=modelInfos.stream().filter(e->e.getModelType().getName().equals(modelType)).toList();
+		List<ModelInfo>  modelList=modelInfos.stream().filter(e->e.getModelType().getKey().equals(modelType)).toList();
 		return R.success(modelList);
 	}
 

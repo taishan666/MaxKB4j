@@ -36,7 +36,7 @@ public abstract class IModelProvider {
         if (modelList==null) {
             return null;
         }
-        return modelList.stream().filter(modelInfo -> modelInfo.getModelType().getName().equals(modelType) && modelInfo.getName().equals(modelName)).findFirst().orElse(null);
+        return modelList.stream().filter(modelInfo -> modelInfo.getModelType().getKey().equals(modelType) && modelInfo.getName().equals(modelName)).findFirst().orElse(null);
     }
 
 
@@ -64,7 +64,7 @@ public abstract class IModelProvider {
 
     public boolean isSupport(String modelType) {
         List<ModelInfo> modelList = getModelList();
-        return modelList.stream().anyMatch(e -> e.getModelType().getName().equals(modelType));
+        return modelList.stream().anyMatch(e -> e.getModelType().getKey().equals(modelType));
     }
 
 
