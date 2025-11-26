@@ -144,7 +144,9 @@ public class ToolService extends ServiceImpl<ToolMapper, ToolEntity> {
     public List<ToolEntity> listTools(String scope,String toolType) {
         List<String> targetIds =userResourcePermissionService.getTargetIds(AuthTargetType.TOOL, StpKit.ADMIN.getLoginIdAsString());
         LambdaQueryWrapper<ToolEntity> wrapper = Wrappers.lambdaQuery();
-        wrapper.eq(ToolEntity::getToolType, toolType);
+        if (StringUtils.isNotBlank(toolType)){
+            wrapper.eq(ToolEntity::getToolType, toolType);
+        }
         wrapper.eq(ToolEntity::getIsActive, true);
         wrapper.eq(ToolEntity::getScope, scope);
         if (!CollectionUtils.isEmpty(targetIds)){

@@ -44,11 +44,8 @@ public class AiChatNodeHandler implements INodeHandler {
         String question = workflow.generatePrompt(nodeParams.getPrompt());
         String systemPrompt = workflow.generatePrompt(nodeParams.getSystem());
         List<String> toolIds = new ArrayList<>();
-        if (CollectionUtils.isNotEmpty(nodeParams.getToolIds()) && nodeParams.getToolEnable()) {
+        if (CollectionUtils.isNotEmpty(nodeParams.getToolIds())) {
             toolIds.addAll(nodeParams.getToolIds());
-        }
-        if (StringUtils.isNotBlank(nodeParams.getMcpToolId()) && nodeParams.getMcpEnable()) {
-            toolIds.add(nodeParams.getMcpToolId());
         }
         List<ChatMessage> historyMessages = workflow.getHistoryMessages(nodeParams.getDialogueNumber(), nodeParams.getDialogueType(), node.getRuntimeNodeId());
         AiServices<Assistant> aiServicesBuilder = AiServices.builder(Assistant.class);
@@ -73,7 +70,7 @@ public class AiChatNodeHandler implements INodeHandler {
 
     private NodeResult writeContextStream(AiChatNode.NodeParams nodeParams, TokenStream tokenStream, Workflow workflow, INode node) {
         boolean isResult = nodeParams.getIsResult();
-        boolean mcpOutputEnable = nodeParams.getMcpOutputEnable();
+        boolean toolOutputEnable = nodeParams.getToolOutputEnable();
         boolean reasoningContentEnable = nodeParams.getModelSetting().getBooleanValue("reasoningContentEnable");
         CompletableFuture<ChatResponse> chatResponseFuture = new CompletableFuture<>();
         // 完成后释放线程
@@ -100,7 +97,7 @@ public class AiChatNodeHandler implements INodeHandler {
                     }
                 })
                 .onToolExecuted(toolExecute -> {
-                    if (isResult && mcpOutputEnable) {
+                    if (isResult && toolOutputEnable) {
                         ChatMessageVO vo = node.toChatMessageVO(
                                 workflow.getChatParams().getChatId(),
                                 workflow.getChatParams().getChatRecordId(),
