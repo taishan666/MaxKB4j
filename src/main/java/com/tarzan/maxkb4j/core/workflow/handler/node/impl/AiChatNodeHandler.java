@@ -104,7 +104,7 @@ public class AiChatNodeHandler implements INodeHandler {
                         ChatMessageVO vo = node.toChatMessageVO(
                                 workflow.getChatParams().getChatId(),
                                 workflow.getChatParams().getChatRecordId(),
-                                MessageTools.getToolMessage(toolExecute.request().name(), toolExecute.result()),
+                                MessageTools.getToolMessage(toolExecute),
                                 "",
                                 false);
                         workflow.getChatParams().getSink().tryEmitNext(vo);

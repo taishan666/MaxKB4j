@@ -3,10 +3,12 @@ package com.tarzan.maxkb4j.core.chatpipeline.step.chatstep.impl;
 import com.alibaba.excel.util.StringUtils;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.tarzan.maxkb4j.common.util.ToolUtil;
 import com.tarzan.maxkb4j.core.assistant.Assistant;
 import com.tarzan.maxkb4j.core.chatpipeline.PipelineManage;
 import com.tarzan.maxkb4j.core.chatpipeline.step.chatstep.IChatStep;
 import com.tarzan.maxkb4j.core.langchain4j.AppChatMemory;
+import com.tarzan.maxkb4j.core.tool.MessageTools;
 import com.tarzan.maxkb4j.module.application.domian.entity.KnowledgeSetting;
 import com.tarzan.maxkb4j.module.application.domian.entity.NoReferencesSetting;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationVO;
@@ -25,7 +27,6 @@ import dev.langchain4j.service.AiServices;
 import dev.langchain4j.service.TokenStream;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.jsoup.internal.StringUtil;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import reactor.core.publisher.Sinks;
@@ -41,6 +42,7 @@ import java.util.concurrent.atomic.AtomicReference;
 public class ChatStep extends IChatStep {
 
     private final ModelFactory modelFactory;
+    private final ToolUtil toolUtil;
 
     @Override
     protected String execute(PipelineManage manage) {
@@ -96,6 +98,9 @@ public class ChatStep extends IChatStep {
                 if (StringUtils.isNotBlank(systemText)){
                     aiServicesBuilder.systemMessageProvider(chatMemoryId -> systemText);
                 }
+                if (!CollectionUtils.isEmpty(application.getToolIds())) {
+                    aiServicesBuilder.tools(toolUtil.getToolMap(application.getToolIds()));
+                }
                 int dialogueNumber = application.getDialogueNumber();
                 List<ChatMessage> historyMessages=manage.getHistoryMessages(dialogueNumber);
                 Assistant assistant =  aiServicesBuilder.chatMemory(AppChatMemory.withMessages(historyMessages)).streamingChatModel(chatModel).build();
@@ -108,6 +113,7 @@ public class ChatStep extends IChatStep {
                             }
                         })
                         .onPartialResponse(text -> sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, text, "", "ai-chat-node", viewType, false)))
+                        .onToolExecuted(toolExecute -> sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId,  MessageTools.getToolMessage(toolExecute), "", "ai-chat-node", viewType, false)))
                         .onCompleteResponse(response -> {
                             answerText.set(response.aiMessage().text());
                             TokenUsage tokenUsage = response.tokenUsage();
@@ -117,6 +123,7 @@ public class ChatStep extends IChatStep {
                             sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, "", "", "ai-chat-node", viewType, true));
                             futureChatResponse.complete(response);// 完成后释放线程
                         })
+
                         .onError(error -> {
                             sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, "", "", "ai-chat-node", viewType, true));
                             futureChatResponse.completeExceptionally(error); // 完成后释放线程
