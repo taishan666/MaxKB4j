@@ -19,7 +19,6 @@ import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationVO;
 import com.tarzan.maxkb4j.module.application.enums.AppType;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatMapper;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationMapper;
-import com.tarzan.maxkb4j.module.knowledge.consts.SearchType;
 import com.tarzan.maxkb4j.module.knowledge.service.KnowledgeService;
 import com.tarzan.maxkb4j.module.model.custom.base.STTModel;
 import com.tarzan.maxkb4j.module.model.custom.base.TTSModel;
@@ -153,21 +152,15 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
 
     @Transactional
     public ApplicationEntity createApp(ApplicationEntity application) {
-        application.setKnowledgeSetting(new KnowledgeSetting());
         application.setIcon("./favicon.ico");
-        if (AppType.WORK_FLOW.name().equals(application.getType())) {
-            application.setDialogueNumber(0);
-        }
-        application.setDialogueNumber(1);
         application.setUserId(StpKit.ADMIN.getLoginIdAsString());
         application.setTtsModelParamsSetting(new JSONObject());
-        application.setCleanTime(365);
-        application.setFileUploadEnable(false);
         application.setFileUploadSetting(new JSONObject());
-        application.setKnowledgeSetting(getDefaultKnowledgeSetting());
+        application.setCleanTime(365);
         if (application.getWorkFlow() == null) {
             application.setWorkFlow(new JSONObject());
         }
+        application.setToolIds(List.of());
         this.save(application);
         ApplicationAccessTokenEntity accessToken = ApplicationAccessTokenEntity.createDefault();
         accessToken.setApplicationId(application.getId());
@@ -175,16 +168,6 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         accessTokenService.save(accessToken);
         userResourcePermissionService.ownerSave(AuthTargetType.APPLICATION, application.getId(), application.getUserId());
         return application;
-    }
-
-    private KnowledgeSetting getDefaultKnowledgeSetting() {
-        KnowledgeSetting knowledgeSetting = new KnowledgeSetting();
-        knowledgeSetting.setTopN(5);
-        knowledgeSetting.setMaxParagraphCharNumber(5120);
-        knowledgeSetting.setSearchMode(SearchType.EMBEDDING);
-        knowledgeSetting.setSimilarity(0.6F);
-        knowledgeSetting.setNoReferencesSetting(new NoReferencesSetting("ai_questioning", "{question}"));
-        return knowledgeSetting;
     }
 
 

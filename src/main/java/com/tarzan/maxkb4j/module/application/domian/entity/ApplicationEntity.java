@@ -89,5 +89,7 @@ public class ApplicationEntity extends BaseEntity {
     @TableField(typeHandler = StringListTypeHandler.class)
     private List<String> toolIds;
 
+    private Boolean toolOutputEnable;
+
 
 } 

@@ -113,7 +113,11 @@ public class ChatStep extends IChatStep {
                             }
                         })
                         .onPartialResponse(text -> sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, text, "", "ai-chat-node", viewType, false)))
-                        .onToolExecuted(toolExecute -> sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId,  MessageTools.getToolMessage(toolExecute), "", "ai-chat-node", viewType, false)))
+                        .onToolExecuted(toolExecute -> {
+                            if (Boolean.TRUE.equals(application.getToolOutputEnable())){
+                                sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId,  MessageTools.getToolMessage(toolExecute), "", "ai-chat-node", viewType, false));
+                            }
+                        })
                         .onCompleteResponse(response -> {
                             answerText.set(response.aiMessage().text());
                             TokenUsage tokenUsage = response.tokenUsage();
