@@ -7,6 +7,7 @@ import com.tarzan.maxkb4j.common.constant.AppConst;
 import com.tarzan.maxkb4j.module.application.domian.dto.ApplicationAccessTokenDTO;
 import com.tarzan.maxkb4j.module.application.domian.dto.ApplicationQuery;
 import com.tarzan.maxkb4j.module.application.domian.dto.ChatQueryDTO;
+import com.tarzan.maxkb4j.module.application.domian.dto.PromptGenerateDTO;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationAccessTokenEntity;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationEntity;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationListVO;
@@ -22,9 +23,11 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import reactor.core.publisher.Flux;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author tarzan
@@ -115,6 +118,12 @@ public class ApplicationController {
     @PutMapping("/application/{appId}/access_token")
     public R<ApplicationAccessTokenEntity> updateAccessToken(@PathVariable("appId") String appId, @RequestBody ApplicationAccessTokenDTO dto) {
         return R.success(applicationService.updateAccessToken(appId, dto));
+    }
+
+
+    @PostMapping(path = "application/{appId}/model/{modelId}/prompt_generate", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public Flux<Map<String,String>> promptGenerate(@PathVariable String appId, @PathVariable String modelId, @RequestBody PromptGenerateDTO dto){
+        return applicationService.promptGenerate(appId,modelId,dto);
     }
 
     @GetMapping("/application/{appId}/application_stats")

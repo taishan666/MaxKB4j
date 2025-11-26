@@ -28,6 +28,12 @@ import com.tarzan.maxkb4j.module.system.permission.constant.AuthTargetType;
 import com.tarzan.maxkb4j.module.system.permission.service.UserResourcePermissionService;
 import com.tarzan.maxkb4j.module.system.user.domain.entity.UserEntity;
 import com.tarzan.maxkb4j.module.system.user.service.UserService;
+import dev.langchain4j.data.message.AiMessage;
+import dev.langchain4j.data.message.ChatMessage;
+import dev.langchain4j.data.message.UserMessage;
+import dev.langchain4j.model.chat.StreamingChatModel;
+import dev.langchain4j.model.chat.response.ChatResponse;
+import dev.langchain4j.model.chat.response.StreamingChatResponseHandler;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -35,6 +41,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.multipart.MultipartFile;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Sinks;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -464,4 +472,42 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         return 0;
     }
 
+    public Flux<Map<String,String>> promptGenerate(String appId,String modelId,PromptGenerateDTO dto) {
+        ApplicationEntity app=this.getById(appId);
+        StreamingChatModel chatModel =modelFactory.buildStreamingChatModel(modelId, null);
+        List<ChatMessage> messages = new ArrayList<>();
+        for (ChatMessageDTO message : dto.getMessages()) {
+            if (message.getRole().equals("user")){
+                messages.add(UserMessage.from(message.getContent()));
+            }
+            if (message.getRole().equals("ai")){
+                messages.add(AiMessage.from(message.getContent()));
+            }
+        }
+        int endIndex = messages.size() - 1;
+        String prompt = dto.getPrompt();
+        String detail=StringUtils.isBlank(app.getDesc())?app.getName():app.getDesc();
+        prompt =prompt.replace("{application_name}", app.getName());
+        prompt =prompt.replace("{detail}", detail);
+        prompt =prompt.replace("{userInput}", dto.getMessages().get(endIndex).getContent());
+        messages.set(endIndex, UserMessage.from(prompt));
+        Sinks.Many<Map<String,String>> sink = Sinks.many().unicast().onBackpressureBuffer();
+        chatModel.chat(messages, new StreamingChatResponseHandler() {
+            @Override
+            public void onPartialResponse(String partialResponse) {
+                sink.tryEmitNext(Map.of("content", partialResponse));
+            }
+
+            @Override
+            public void onCompleteResponse(ChatResponse chatResponse) {
+                sink.tryEmitComplete();
+            }
+
+            @Override
+            public void onError(Throwable throwable) {
+                sink.tryEmitError(throwable);
+            }
+        });
+        return sink.asFlux();
+    }
 }
