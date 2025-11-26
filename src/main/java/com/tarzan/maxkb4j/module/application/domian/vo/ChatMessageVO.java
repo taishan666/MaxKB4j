@@ -31,24 +31,13 @@ public class ChatMessageVO {
         this.content = "";
         this.reasoningContent = "";
         this.upNodeIdList = List.of();
+        this.operate = true;
         this.isEnd = isEnd;
     }
 
 
-    public ChatMessageVO(String chatId, String chatRecordId, String content, String reasoningContent, String nodeType, String viewType, Boolean nodeIsEnd) {
-        this.chatId = chatId;
-        this.chatRecordId = chatRecordId;
-        this.content = content;
-        this.reasoningContent = reasoningContent;
-        this.nodeType = nodeType;
-        this.viewType = viewType;
-        this.nodeIsEnd = nodeIsEnd;
-        this.upNodeIdList = List.of();
-        this.isEnd = false;
-    }
 
-
-    public ChatMessageVO(String chatId, String chatRecordId, String nodeId, String content, String reasoningContent, List<String> upNodeIdList,String runtimeNodeId, String nodeType, String viewType,ChildNode childNode, Boolean nodeIsEnd) {
+    public ChatMessageVO(String chatId, String chatRecordId, String nodeId, String content, String reasoningContent, List<String> upNodeIdList,String runtimeNodeId, String nodeType, String viewType,ChildNode childNode, Boolean nodeIsEnd, Boolean isEnd) {
         this.chatId = chatId;
         this.chatRecordId = chatRecordId;
         this.nodeId = nodeId;
@@ -61,7 +50,7 @@ public class ChatMessageVO {
         this.viewType = viewType;
         this.childNode = childNode;
         this.nodeIsEnd = nodeIsEnd;
-        this.isEnd = false;
+        this.isEnd = isEnd;
     }
 
 

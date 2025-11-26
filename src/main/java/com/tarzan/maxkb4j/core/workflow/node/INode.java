@@ -122,7 +122,9 @@ public abstract class INode {
                 this.getType(),
                 this.getViewType(),
                 null,
-                nodeIsEnd);
+                nodeIsEnd,
+                false
+        );
     }
 
     public ChatMessageVO toChatMessageVO(String chatId, String chatRecordId, String content, String reasoningContent, ChildNode childNode, boolean nodeIsEnd) {
@@ -137,7 +139,7 @@ public abstract class INode {
                 this.getType(),
                 this.getViewType(),
                 childNode,
-                nodeIsEnd);
+                nodeIsEnd,false);
     }
 
 

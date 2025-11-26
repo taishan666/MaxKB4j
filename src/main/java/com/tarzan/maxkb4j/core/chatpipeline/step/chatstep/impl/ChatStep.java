@@ -79,19 +79,15 @@ public class ChatStep extends IChatStep {
         String problemText = (String) manage.context.get("problemText");
         if (chatModel == null) {
             answerText.set("抱歉，没有配置 AI 模型，无法优化引用分段，请先去应用中设置 AI 模型。");
-            sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, answerText.get(), "", "ai-chat-node", viewType, true));
         } else if (StringUtils.isBlank(problemText)) {
             answerText.set("用户消息不能为空");
-            sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, answerText.get(), "", "ai-chat-node", viewType, true));
         } else {
             String status = noReferencesSetting.getStatus();
             if (!CollectionUtils.isEmpty(directlyReturnChunkList)) {
                 answerText.set(directlyReturnChunkList.get(0).text());
-                sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, answerText.get(), "", "ai-chat-node", viewType, true));
             } else if (paragraphList.isEmpty() && AIAnswerType.designated_answer.name().equals(status)) {
                 String value = noReferencesSetting.getValue();
                 answerText.set(value.replace("{question}", problemText));
-                sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, answerText.get(), "", "ai-chat-node", viewType, true));
             } else {
                 String systemText = application.getModelSetting().getSystem();
                 AiServices<Assistant> aiServicesBuilder=AiServices.builder(Assistant.class);
@@ -109,13 +105,13 @@ public class ChatStep extends IChatStep {
                 CompletableFuture<ChatResponse> futureChatResponse = new CompletableFuture<>();
                 tokenStream.onPartialThinking(thinking -> {
                             if (Boolean.TRUE.equals(reasoningEnable)) {
-                                sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, "", thinking.text(), "ai-chat-node", viewType, false));
+                                sink.tryEmitNext(super.toChatMessageVO(chatId, chatRecordId, "", thinking.text(), false));
                             }
                         })
-                        .onPartialResponse(text -> sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, text, "", "ai-chat-node", viewType, false)))
+                        .onPartialResponse(text -> sink.tryEmitNext(super.toChatMessageVO(chatId, chatRecordId, text, "",  false)))
                         .onToolExecuted(toolExecute -> {
                             if (Boolean.TRUE.equals(application.getToolOutputEnable())){
-                                sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId,  MessageTools.getToolMessage(toolExecute), "", "ai-chat-node", viewType, false));
+                                sink.tryEmitNext(super.toChatMessageVO(chatId, chatRecordId,  MessageTools.getToolMessage(toolExecute), "",  false));
                             }
                         })
                         .onCompleteResponse(response -> {
@@ -124,18 +120,19 @@ public class ChatStep extends IChatStep {
                             context.put("messageList", resetMessageToJSON(historyMessages));
                             context.put("messageTokens", tokenUsage.inputTokenCount());
                             context.put("answerTokens", tokenUsage.outputTokenCount());
-                            sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, "", "", "ai-chat-node", viewType, true));
                             futureChatResponse.complete(response);// 完成后释放线程
                         })
-
                         .onError(error -> {
-                            sink.tryEmitNext(new ChatMessageVO(chatId, chatRecordId, "", "", "ai-chat-node", viewType, true));
+                            log.error("执行错误", error);
                             futureChatResponse.completeExceptionally(error); // 完成后释放线程
                         })
                         .start();
                 futureChatResponse.join(); // 阻塞当前线程直到 futureChatResponse 完成
+                sink.tryEmitNext(super.toChatMessageVO(chatId, chatRecordId, "", "", true));
+                return answerText.get();
             }
         }
+        sink.tryEmitNext(super.toChatMessageVO(chatId, chatRecordId, answerText.get(), "",true));
         return answerText.get();
     }
 
