@@ -1,6 +1,6 @@
 package com.tarzan.maxkb4j.core.workflow.enums;
 
 public enum DialogueType {
-    WORKFLOW,
+    WORK_FLOW,
     NODE;
 }

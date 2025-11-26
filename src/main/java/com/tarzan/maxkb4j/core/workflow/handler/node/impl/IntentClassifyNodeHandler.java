@@ -38,7 +38,7 @@ public class IntentClassifyNodeHandler implements INodeHandler {
         for (IntentClassifyNode.Branch branch : branches) {
             branchMap.put(branch.getId(), branch.getContent());
         }
-        List<ChatMessage> historyMessages = workflow.getHistoryMessages(nodeParams.getDialogueNumber(), DialogueType.WORKFLOW.name(), node.getRuntimeNodeId());
+        List<ChatMessage> historyMessages = workflow.getHistoryMessages(nodeParams.getDialogueNumber(), DialogueType.WORK_FLOW.name(), node.getRuntimeNodeId());
         node.getDetail().put("history_message", node.resetMessageList(historyMessages));
         Map<Integer, String> idToClassification=new HashMap<>();
         String options =optionsFormat(idToClassification,branches);

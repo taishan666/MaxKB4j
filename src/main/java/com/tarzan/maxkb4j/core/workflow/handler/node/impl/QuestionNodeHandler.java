@@ -31,7 +31,7 @@ public class QuestionNodeHandler implements INodeHandler {
     public NodeResult execute(Workflow workflow, INode node) throws Exception {
         QuestionNode.NodeParams nodeParams = node.getNodeData().toJavaObject(QuestionNode.NodeParams.class);
         ChatModel chatModel = modelFactory.buildChatModel(nodeParams.getModelId(), nodeParams.getModelParamsSetting());
-        List<ChatMessage> historyMessages=workflow.getHistoryMessages(nodeParams.getDialogueNumber(), DialogueType.WORKFLOW.name(), node.getRuntimeNodeId());
+        List<ChatMessage> historyMessages=workflow.getHistoryMessages(nodeParams.getDialogueNumber(), DialogueType.WORK_FLOW.name(), node.getRuntimeNodeId());
         node.getDetail().put("history_message", node.resetMessageList(historyMessages));
         String question = workflow.generatePrompt(nodeParams.getPrompt());
         String systemPrompt = workflow.generatePrompt(nodeParams.getSystem());
