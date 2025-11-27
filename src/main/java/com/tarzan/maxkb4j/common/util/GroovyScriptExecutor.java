@@ -27,9 +27,13 @@ public class GroovyScriptExecutor implements ToolExecutor {
 
     @Override
     public String execute(ToolExecutionRequest toolExecutionRequest,  Object memoryId) {
+        Map<String, Object> params = argumentsAsMap(toolExecutionRequest.arguments());
+        return execute(params);
+    }
+
+    public String execute(Map<String, Object> params) {
         Object result="";
         if(StringUtils.isNotBlank(code)){
-            Map<String, Object> params = argumentsAsMap(toolExecutionRequest.arguments());
             params.putAll(initParams);
             Binding binding = new Binding(params);
             // 创建 GroovyShell 并执行脚本

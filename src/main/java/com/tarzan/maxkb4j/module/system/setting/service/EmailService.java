@@ -25,12 +25,14 @@ public class EmailService {
     private final SpringTemplateEngine springTemplateEngine;
 
 
-    public void sendMessage(String to, String subject, String text) {
+    public void sendTextMessage(String to, String subject, String text) {
+        JavaMailSenderImpl mailSender=mailConfigService.createMailSender();
         SimpleMailMessage message = new SimpleMailMessage();
+        message.setFrom(mailSender.getUsername());
         message.setTo(to);
         message.setSubject(subject);
         message.setText(text);
-        mailConfigService.createMailSender().send(message);
+        mailSender.send(message);
     }
 
     public void sendMessage(String to, String subject, String templateName, Context context) throws MessagingException {
