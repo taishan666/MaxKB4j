@@ -1,7 +1,16 @@
 package com.tarzan.maxkb4j.core.tool;
 
 import cn.hutool.core.date.DateUtil;
+import com.tarzan.maxkb4j.common.util.DatabaseUtil;
 import dev.langchain4j.agent.tool.Tool;
+import dev.langchain4j.experimental.rag.content.retriever.sql.SqlDatabaseContentRetriever;
+import dev.langchain4j.model.chat.ChatModel;
+import dev.langchain4j.model.openai.OpenAiChatModel;
+import dev.langchain4j.rag.content.Content;
+import dev.langchain4j.rag.query.Query;
+
+import javax.sql.DataSource;
+import java.util.List;
 
 public class SystemTools {
 
@@ -19,5 +28,16 @@ public class SystemTools {
     }*/
 
 
+    public static  void main(String[] args) {
+        ChatModel chatModel = OpenAiChatModel.builder()
+                .apiKey("")
+                .modelName("")
+                .build();
+
+        DataSource dataSource =DatabaseUtil.getDataSource("h2", "localhost", 3306, "root", "123456", "test");
+        SqlDatabaseContentRetriever sqlDatabaseContentRetriever = SqlDatabaseContentRetriever.builder().chatModel(chatModel).dataSource(dataSource).maxRetries(2).build();
+        Query naturalLanguageQuery=Query.from("查询所有用户");
+        List<Content> contents = sqlDatabaseContentRetriever.retrieve(naturalLanguageQuery);
+    }
 
 }

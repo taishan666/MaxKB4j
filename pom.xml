@@ -311,11 +311,6 @@
             <artifactId>langchain4j-community-xinference</artifactId>
             <version>${langchain4j.version}-beta15</version>
         </dependency>
-<!--        <dependency>
-            <groupId>org.python</groupId>
-            <artifactId>jython-standalone</artifactId>
-            <version>2.7.3</version> &lt;!&ndash; 请根据需要选择版本 &ndash;&gt;
-        </dependency>-->
        <!--   tika文档解析-->
         <dependency>
             <groupId>org.apache.tika</groupId>
@@ -379,7 +374,17 @@
             <artifactId>mysql-connector-j</artifactId>
             <version>8.3.0</version>
         </dependency>
+<!--        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-agentic</artifactId>
+            <version>1.9.0-beta16</version>
+        </dependency>-->
 
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-experimental-sql</artifactId>
+            <version>1.9.0-beta16</version>
+        </dependency>
     </dependencies>
 
     <repositories>
