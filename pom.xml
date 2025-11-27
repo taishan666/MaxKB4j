@@ -113,11 +113,6 @@
             <version>2.0.1.Final</version>
         </dependency>
         <dependency>
-            <groupId>com.opencsv</groupId>
-            <artifactId>opencsv</artifactId>
-            <version>5.7.1</version> <!-- 请根据最新版本调整 -->
-        </dependency>
-        <dependency>
             <groupId>com.alibaba</groupId>
             <artifactId>fastjson</artifactId>
             <version>2.0.47</version> <!-- 请根据实际情况选择最新版本 -->
@@ -369,12 +364,6 @@
             <artifactId>easy-captcha</artifactId>
             <version>1.6.2</version>
         </dependency>
- <!--       <dependency>
-            <groupId>net.objecthunter</groupId>
-            <artifactId>exp4j</artifactId>
-            <version>0.4.8</version>
-        </dependency>-->
-
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-embeddings-all-minilm-l6-v2-q</artifactId>
@@ -385,6 +374,12 @@
             <artifactId>langchain4j-onnx-scoring</artifactId>
             <version>${langchain4j.version}</version>
         </dependency>-->
+        <dependency>
+            <groupId>com.mysql</groupId>
+            <artifactId>mysql-connector-j</artifactId>
+            <version>8.3.0</version>
+        </dependency>
+
     </dependencies>
 
     <repositories>
