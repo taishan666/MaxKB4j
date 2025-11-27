@@ -79,7 +79,8 @@ public class ChatStep extends IChatStep {
                     futureChatResponse.completeExceptionally(error); // 完成后释放线程
                 })
                 .start();
-        return futureChatResponse.join().aiMessage().text(); // 阻塞当前线程直到 futureChatResponse 完成
+        ChatResponse response = futureChatResponse.join();
+        return response.aiMessage().text(); // 阻塞当前线程直到 futureChatResponse 完成
     }
 
 
