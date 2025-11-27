@@ -16,10 +16,13 @@ import java.util.regex.Pattern;
 
 public class GroovyScriptExecutor implements ToolExecutor {
 
-    private final String code;
 
-    public GroovyScriptExecutor(String code) {
+    private final String code;
+    private final Map<String, Object> initParams;
+
+    public GroovyScriptExecutor(String code, Map<String, Object> initParams) {
         this.code = code;
+        this.initParams=initParams;
     }
 
     @Override
@@ -27,6 +30,7 @@ public class GroovyScriptExecutor implements ToolExecutor {
         Object result="";
         if(StringUtils.isNotBlank(code)){
             Map<String, Object> params = argumentsAsMap(toolExecutionRequest.arguments());
+            params.putAll(initParams);
             Binding binding = new Binding(params);
             // 创建 GroovyShell 并执行脚本
             GroovyShell shell = new GroovyShell(binding);
@@ -54,10 +58,10 @@ public class GroovyScriptExecutor implements ToolExecutor {
             return Map.of();
         } else {
             try {
-                return (Map) Json.fromJson(arguments, MAP_TYPE);
+                return  Json.fromJson(arguments, MAP_TYPE);
             } catch (Exception var3) {
                 String normalizedArguments = removeTrailingComma(normalizeJsonString(arguments));
-                return (Map)Json.fromJson(normalizedArguments, MAP_TYPE);
+                return Json.fromJson(normalizedArguments, MAP_TYPE);
             }
         }
     }

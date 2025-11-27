@@ -61,7 +61,7 @@ public class ToolUtil {
                         .description(tool.getDesc())
                         .parameters(parametersBuilder.build())
                         .build();
-                tools.put(toolSpecification, new GroovyScriptExecutor(tool.getCode()));
+                tools.put(toolSpecification, new GroovyScriptExecutor(tool.getCode(), tool.getInitParams()));
             }
         }
         return tools;
