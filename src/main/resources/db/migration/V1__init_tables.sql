@@ -73,9 +73,9 @@ CREATE TABLE "public"."user_resource_permission" (
                                                      "target_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
                                                      "auth_type" varchar COLLATE "pg_catalog"."default" NOT NULL DEFAULT 'ROLE'::character varying,
                                                      "permission_list" varchar(256)[] COLLATE "pg_catalog"."default" NOT NULL,
+                                                     "user_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
                                                      "create_time" timestamp(6) NOT NULL,
-                                                     "update_time" timestamp(6) NOT NULL,
-                                                     "user_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL
+                                                     "update_time" timestamp(6) NOT NULL
 )
 ;
 
@@ -92,8 +92,6 @@ ALTER TABLE "public"."user_resource_permission" ADD CONSTRAINT "workspace_user_r
 -- ----------------------------
 DROP TABLE IF EXISTS "public"."application";
 CREATE TABLE "public"."application" (
-                                        "create_time" timestamp(6) NOT NULL,
-                                        "update_time" timestamp(6) NOT NULL,
                                         "id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
                                         "name" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
                                         "desc" varchar(512) COLLATE "pg_catalog"."default" NOT NULL,
@@ -101,7 +99,7 @@ CREATE TABLE "public"."application" (
                                         "dialogue_number" int4 NOT NULL,
                                         "knowledge_setting" jsonb NOT NULL,
                                         "model_setting" jsonb NOT NULL,
-                                        "problem_optimization" bool NOT NULL,
+                                        "problem_optimization" bool NOT NULL DEFAULT false,
                                         "model_id" varchar(50) COLLATE "pg_catalog"."default",
                                         "user_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
                                         "icon" varchar(256) COLLATE "pg_catalog"."default",
@@ -109,20 +107,24 @@ CREATE TABLE "public"."application" (
                                         "work_flow" jsonb NOT NULL,
                                         "model_params_setting" jsonb NOT NULL,
                                         "stt_model_id" varchar(50) COLLATE "pg_catalog"."default",
-                                        "stt_model_enable" bool NOT NULL,
+                                        "stt_model_enable" bool NOT NULL DEFAULT false,
                                         "tts_model_id" varchar(50) COLLATE "pg_catalog"."default",
-                                        "tts_model_enable" bool NOT NULL,
+                                        "tts_model_enable" bool NOT NULL DEFAULT false,
                                         "tts_type" varchar(20) COLLATE "pg_catalog"."default" NOT NULL,
                                         "problem_optimization_prompt" varchar(102400) COLLATE "pg_catalog"."default",
                                         "tts_model_params_setting" jsonb NOT NULL,
                                         "clean_time" int4 NOT NULL,
-                                        "file_upload_enable" bool NOT NULL,
+                                        "file_upload_enable" bool NOT NULL DEFAULT false,
                                         "file_upload_setting" jsonb NOT NULL,
                                         "tts_autoplay" bool NOT NULL DEFAULT false,
                                         "stt_auto_send" bool NOT NULL DEFAULT false,
+                                        "tool_output_enable" bool NOT NULL DEFAULT true,
+                                        "tool_ids" varchar[] NOT NULL,
+                                        "folder_id" varchar(64) COLLATE "pg_catalog"."default",
                                         "is_publish" bool NOT NULL DEFAULT false,
                                         "publish_time" timestamp(6),
-                                        "folder_id" varchar(64) COLLATE "pg_catalog"."default"
+                                        "create_time" timestamp(6) NOT NULL,
+                                        "update_time" timestamp(6) NOT NULL
 )
 ;
 
@@ -160,12 +162,12 @@ CREATE TABLE "public"."application_access_token" (
                                                      "access_token" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
                                                      "is_active" bool NOT NULL,
                                                      "access_num" int4 NOT NULL,
-                                                     "white_active" bool NOT NULL,
+                                                     "white_active" bool NOT NULL DEFAULT false,
                                                      "white_list" varchar(128)[] COLLATE "pg_catalog"."default" NOT NULL,
-                                                     "show_source" bool NOT NULL,
+                                                     "show_source" bool NOT NULL DEFAULT true,
                                                      "language" varchar(10) COLLATE "pg_catalog"."default",
-                                                     "show_exec" bool,
-                                                     "authentication" bool DEFAULT false
+                                                     "show_exec" bool NOT NULL DEFAULT true,
+                                                     "authentication" bool NOT NULL  DEFAULT false
 )
 ;
 
@@ -205,7 +207,7 @@ CREATE TABLE "public"."application_api_key" (
                                                 "is_active" bool NOT NULL,
                                                 "application_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
                                                 "user_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
-                                                "allow_cross_domain" bool NOT NULL,
+                                                "allow_cross_domain" bool NOT NULL DEFAULT false,
                                                 "cross_domain_list" varchar(128)[] COLLATE "pg_catalog"."default" NOT NULL
 )
 ;
@@ -251,7 +253,7 @@ CREATE TABLE "public"."application_chat" (
                                              "summary" varchar(1024) COLLATE "pg_catalog"."default" NOT NULL,
                                              "chat_user_id" varchar COLLATE "pg_catalog"."default",
                                              "chat_user_type" varchar(64) COLLATE "pg_catalog"."default" NOT NULL,
-                                             "is_deleted" bool NOT NULL,
+                                             "is_deleted" bool NOT NULL DEFAULT false,
                                              "asker" jsonb NOT NULL,
                                              "meta" jsonb NOT NULL,
                                              "star_num" int4 NOT NULL,
@@ -356,8 +358,6 @@ ALTER TABLE "public"."application_chat_user_stats" ADD CONSTRAINT "application_c
 -- ----------------------------
 DROP TABLE IF EXISTS "public"."application_version";
 CREATE TABLE "public"."application_version" (
-                                                "create_time" timestamp(6) NOT NULL,
-                                                "update_time" timestamp(6) NOT NULL,
                                                 "id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
                                                 "name" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
                                                 "publish_user_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
@@ -372,23 +372,27 @@ CREATE TABLE "public"."application_version" (
                                                 "model_setting" jsonb NOT NULL,
                                                 "model_params_setting" jsonb NOT NULL,
                                                 "tts_model_params_setting" jsonb NOT NULL,
-                                                "problem_optimization" bool NOT NULL,
+                                                "problem_optimization" bool NOT NULL DEFAULT false,
                                                 "icon" varchar(256) COLLATE "pg_catalog"."default" NOT NULL,
                                                 "work_flow" jsonb NOT NULL,
                                                 "type" varchar(256) COLLATE "pg_catalog"."default" NOT NULL,
                                                 "problem_optimization_prompt" varchar(102400) COLLATE "pg_catalog"."default",
                                                 "tts_model_id" varchar(50) COLLATE "pg_catalog"."default",
                                                 "stt_model_id" varchar(50) COLLATE "pg_catalog"."default",
-                                                "tts_model_enable" bool NOT NULL,
-                                                "stt_model_enable" bool NOT NULL,
+                                                "tts_model_enable" bool NOT NULL DEFAULT false,
+                                                "stt_model_enable" bool NOT NULL DEFAULT false,
                                                 "tts_type" varchar(20) COLLATE "pg_catalog"."default" NOT NULL,
-                                                "tts_autoplay" bool NOT NULL,
-                                                "stt_auto_send" bool NOT NULL,
+                                                "tts_autoplay" bool NOT NULL DEFAULT false,
+                                                "stt_auto_send" bool NOT NULL DEFAULT false,
                                                 "clean_time" int4 NOT NULL,
-                                                "file_upload_enable" bool NOT NULL,
+                                                "file_upload_enable" bool NOT NULL DEFAULT false,
                                                 "file_upload_setting" jsonb NOT NULL,
                                                 "application_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
-                                                "user_id" varchar(50) COLLATE "pg_catalog"."default"
+                                                "user_id" varchar(50) COLLATE "pg_catalog"."default",
+                                                "tool_output_enable" bool NOT NULL DEFAULT true,
+                                                "tool_ids" varchar[] NOT NULL,
+                                                "create_time" timestamp(6) NOT NULL,
+                                                "update_time" timestamp(6) NOT NULL
 )
 ;
 
