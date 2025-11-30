@@ -118,8 +118,8 @@ CREATE TABLE "public"."application" (
                                         "file_upload_setting" jsonb NOT NULL,
                                         "tts_autoplay" bool NOT NULL DEFAULT false,
                                         "stt_auto_send" bool NOT NULL DEFAULT false,
-                                        "tool_output_enable" bool NOT NULL DEFAULT true,
                                         "tool_ids" varchar[] NOT NULL,
+                                        "tool_output_enable" bool NOT NULL DEFAULT true,
                                         "folder_id" varchar(64) COLLATE "pg_catalog"."default",
                                         "is_publish" bool NOT NULL DEFAULT false,
                                         "publish_time" timestamp(6),
@@ -389,8 +389,8 @@ CREATE TABLE "public"."application_version" (
                                                 "file_upload_setting" jsonb NOT NULL,
                                                 "application_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
                                                 "user_id" varchar(50) COLLATE "pg_catalog"."default",
-                                                "tool_output_enable" bool NOT NULL DEFAULT true,
                                                 "tool_ids" varchar[] NOT NULL,
+                                                "tool_output_enable" bool NOT NULL DEFAULT true,
                                                 "create_time" timestamp(6) NOT NULL,
                                                 "update_time" timestamp(6) NOT NULL
 )

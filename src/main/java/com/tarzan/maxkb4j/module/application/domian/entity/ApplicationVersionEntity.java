@@ -7,8 +7,11 @@ import com.tarzan.maxkb4j.common.base.entity.BaseEntity;
 import com.tarzan.maxkb4j.common.typehandler.DatasetSettingTypeHandler;
 import com.tarzan.maxkb4j.common.typehandler.JSONBTypeHandler;
 import com.tarzan.maxkb4j.common.typehandler.LlmModelSettingTypeHandler;
+import com.tarzan.maxkb4j.common.typehandler.StringListTypeHandler;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+
+import java.util.List;
 
 /**
   * @author tarzan
@@ -79,5 +82,10 @@ public class ApplicationVersionEntity extends BaseEntity {
 
 	@TableField(typeHandler = JSONBTypeHandler.class)
 	private JSONObject fileUploadSetting;
+
+	@TableField(typeHandler = StringListTypeHandler.class)
+	private List<String> toolIds;
+
+	private Boolean toolOutputEnable;
 
 }
