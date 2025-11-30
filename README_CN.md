@@ -87,12 +87,22 @@ docker-compose up -d
 
 请提交 issues [https://gitee.com/taisan/MaxKB4j/issues](https://gitee.com/taisan/MaxKB4j/issues)
 
-## 咨询和反馈
-- **提供MaxKB相关问题的咨询解答，协助部署等。**
-- **这个项目我已独自坚持了半年多，期间尝试找合伙人未果——毕竟没人能长期免费投入。<br>我之前的开源项目，也因缺乏反馈和收益而被迫放弃。如果你觉得这个项目有价值，请给个 Star 支持，或加入知识星球深度参与。<br>
-  你的支持，不只是鼓励，更是它能否持续发展的关键。<br>若长期无人支持，可能只能无奈停更。<br>一个 Star，一次加入，都能让它走得更远。**
+## 支持赞助
+<table style="border-collapse: collapse; border: 1px solid black;">
+  <tr>
+    <th style="padding: 10px;"> <div align="center">支付宝赞赏码</div></th>
+    <th style="padding: 10px;"> <div align="center">微信赞赏码</div></th>
+  </tr>
+  <tr>
+    <td style="padding: 5px;background-color:#fff;"><img src="image/zfb_skm.png" alt="支付宝赞赏码"   /></td>
+    <td style="padding: 5px;background-color:#fff;"><img src= "image/wx_zsm.png" alt="微信赞赏码"   /></td>
+  </tr>
+</table>
 
-![AI交流知识星球](image/gitee_zsxq.png)
+- 赞助20元，可获得加作者微信号（vxhqqh）,加入微信交流群,(备注，已赞助，否则不通过)
+- 赞助50元，可获得作者微信（vxhqqh）,加入微信交流群，并免费进入知识星球  https://wx.zsxq.com/group/28882525858841
+- 赞助200元，可获取V1版本最新前端源码
+- 赞助500元，可获取V2版本最新前端源码和后端源码
 
 ## License
 
