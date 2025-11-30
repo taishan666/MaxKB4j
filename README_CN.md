@@ -75,14 +75,6 @@ docker-compose up -d
 - 全文检索数据库：[MongoDB](https://www.mongodb.com/)
 - 用户鉴权：[sa-token](https://sa-token.dev33.cn/)
 
-## 我的技术专栏
-
-- [《看看这个！👉 点击AI大模型应用开发！🔥》](https://blog.csdn.net/weixin_40986713/category_12606825.html)
-
-- **《AI语音合成与识别》**》：[https://blog.csdn.net/weixin_40986713/category_12735457.html](https://blog.csdn.net/weixin_40986713/category_12735457.html)
-
-- **《AI绘画 | Stable diffusion》**：[https://blog.csdn.net/weixin_40986713/category_12481790.html](https://blog.csdn.net/weixin_40986713/category_12481790.html)
-
 ## 问题和建议
 
 请提交 issues [https://gitee.com/taisan/MaxKB4j/issues](https://gitee.com/taisan/MaxKB4j/issues)
@@ -100,7 +92,7 @@ docker-compose up -d
 </table>
 
 - 赞助20元，可获得加作者微信号（vxhqqh）,加入微信交流群,(备注，已赞助，否则不通过)
-- 赞助50元，可获得作者微信（vxhqqh）,加入微信交流群，并免费进入知识星球  https://wx.zsxq.com/group/28882525858841
+- 赞助50元，可获得作者微信（vxhqqh）,加入微信交流群，并免费进入[《👉 知识星球🔥》](https://wx.zsxq.com/group/28882525858841)  
 - 赞助200元，可获取V1版本最新前端源码
 - 赞助500元，可获取V2版本最新前端源码和后端源码
 
@@ -113,3 +105,8 @@ Copyright (c) 2025-2035 洛阳泰山 TARZAN, All rights reserved.
 <https://www.gnu.org/licenses/gpl-3.0.html>
 
 除非适用法律要求或经书面同意，依据本许可分发的软件均按“原样”提供，不附带任何形式的明示或暗示的担保或条件。有关许可下具体权限和限制的条款，请参见本许可协议。
+
+## 了解更多
+
+- [《看看这个！👉 点击AI大模型应用开发！🔥》](https://blog.csdn.net/weixin_40986713/category_12606825.html)
+
