@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.common.util.IoUtil;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelCredential;
 import com.tarzan.maxkb4j.module.model.provider.enums.ModelProviderEnum;
+import com.tarzan.maxkb4j.module.model.provider.enums.ModelType;
 import com.tarzan.maxkb4j.module.model.provider.service.IModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.vo.ModelInfo;
 import com.tarzan.maxkb4j.module.model.provider.vo.ModelProviderInfo;
@@ -37,11 +38,13 @@ public class GeminiModelProvider extends IModelProvider {
     @Override
     public List<ModelInfo> getModelList() {
         List<ModelInfo> modelInfos = new ArrayList<>();
-        modelInfos.add(new ModelInfo("gemini-1.0-pro","","LLM"));
-        modelInfos.add(new ModelInfo("gemini-1.0-pro-visio","","LLM"));
-        modelInfos.add(new ModelInfo("models/embedding-001","","EMBEDDING"));
-        modelInfos.add(new ModelInfo("gemini-1.5-flash","","STT"));
-        modelInfos.add(new ModelInfo("gemini-1.5-flash","","IMAGE"));
+        modelInfos.add(new ModelInfo("gemini-1.0-pro","", ModelType.LLM));
+        modelInfos.add(new ModelInfo("gemini-1.0-pro-visio","",ModelType.LLM));
+        modelInfos.add(new ModelInfo("models/embedding-001","",ModelType.EMBEDDING));
+        modelInfos.add(new ModelInfo("gemini-1.5-flash","",ModelType.STT));
+        modelInfos.add(new ModelInfo("gemini-1.5-pro","",ModelType.STT));
+        modelInfos.add(new ModelInfo("gemini-1.5-flash","",ModelType.IMAGE_UNDERSTANDING));
+        modelInfos.add(new ModelInfo("gemini-1.5-pro","",ModelType.IMAGE_UNDERSTANDING));
         return modelInfos;
     }
 

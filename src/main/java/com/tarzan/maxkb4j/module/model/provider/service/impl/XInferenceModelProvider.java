@@ -39,13 +39,13 @@ public class XInferenceModelProvider extends IModelProvider {
     @Override
     public List<ModelInfo> getModelList() {
         List<ModelInfo> modelInfos = new ArrayList<>();
-        modelInfos.add(new ModelInfo("qwen:7b", "", ModelType.LLM.name(),  new LlmModelParams()));
-        modelInfos.add(new ModelInfo("llama3:8b", "", ModelType.LLM.name(),  new LlmModelParams()));
-        modelInfos.add(new ModelInfo("deepseek-r1:8b", "", ModelType.LLM.name(),  new LlmModelParams()));
-        modelInfos.add(new ModelInfo("bge-base-zh", "", ModelType.EMBEDDING.name(),  new LlmModelParams()));
-        modelInfos.add(new ModelInfo("llava:7b", "", ModelType.IMAGE_UNDERSTANDING.name(),  new LlmModelParams()));
-        modelInfos.add(new ModelInfo("llava:13b", "", ModelType.IMAGE_UNDERSTANDING.name(),  new LlmModelParams()));
-        modelInfos.add(new ModelInfo("sdxl-turbo", "", ModelType.TTI.name(),  new LlmModelParams()));
+        modelInfos.add(new ModelInfo("qwen:7b", "", ModelType.LLM,  new LlmModelParams()));
+        modelInfos.add(new ModelInfo("llama3:8b", "", ModelType.LLM,  new LlmModelParams()));
+        modelInfos.add(new ModelInfo("deepseek-r1:8b", "", ModelType.LLM,  new LlmModelParams()));
+        modelInfos.add(new ModelInfo("bge-base-zh", "", ModelType.EMBEDDING,  new LlmModelParams()));
+        modelInfos.add(new ModelInfo("llava:7b", "", ModelType.IMAGE_UNDERSTANDING,  new LlmModelParams()));
+        modelInfos.add(new ModelInfo("llava:13b", "", ModelType.IMAGE_UNDERSTANDING,  new LlmModelParams()));
+        modelInfos.add(new ModelInfo("sdxl-turbo", "", ModelType.TTI,  new LlmModelParams()));
         // modelInfos.add(new ModelInfo("linux6200/bge-reranker-v2-m3","",ModelTypeEnum.RERANKER.name(),new BaiLianReranker()));
         return modelInfos;
     }

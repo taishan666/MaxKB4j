@@ -82,10 +82,9 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(LoginException.class)
     @ResponseBody
-    public R<String> handleException(LoginException e, HttpServletResponse response) {
+    public R<String> handleException(LoginException e) {
         log.error("登录异常: {}", e.getMessage());
-        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 设置HTTP状态码为401
-        return R.fail(401, e.getMessage());
+        return R.fail(500, e.getMessage());
     }
 
     @ExceptionHandler(AccessException.class)

@@ -6,9 +6,12 @@ import com.tarzan.maxkb4j.common.api.R;
 import com.tarzan.maxkb4j.common.constant.AppConst;
 import com.tarzan.maxkb4j.module.application.domian.dto.ApplicationAccessTokenDTO;
 import com.tarzan.maxkb4j.module.application.domian.dto.ApplicationQuery;
+import com.tarzan.maxkb4j.module.application.domian.dto.ChatQueryDTO;
+import com.tarzan.maxkb4j.module.application.domian.dto.PromptGenerateDTO;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationAccessTokenEntity;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationEntity;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationListVO;
+import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationStatisticsVO;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationVO;
 import com.tarzan.maxkb4j.module.application.service.ApplicationService;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -20,9 +23,11 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import reactor.core.publisher.Flux;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author tarzan
@@ -115,14 +120,17 @@ public class ApplicationController {
         return R.success(applicationService.updateAccessToken(appId, dto));
     }
 
-/*
-    @PostMapping("/application/{appId}/mcp_tools")
-    public R<List<McpToolVO>> mcpTools(@PathVariable("appId") String appId, @RequestBody JSONObject mcpServers) {
-        System.out.println("mcpTools "+mcpServers);
-        JSONObject mcpServersJson=JSONObject.parseObject(mcpServers.getString("mcpServers"));
-        return R.data(McpToolUtil.getToolVos(mcpServersJson));
+
+    @PostMapping(path = "application/{appId}/model/{modelId}/prompt_generate", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public Flux<Map<String,String>> promptGenerate(@PathVariable String appId, @PathVariable String modelId, @RequestBody PromptGenerateDTO dto){
+        return applicationService.promptGenerate(appId,modelId,dto);
     }
-*/
+
+    @GetMapping("/application/{appId}/application_stats")
+    public R<List<ApplicationStatisticsVO>> applicationStats(@PathVariable("appId") String appId, ChatQueryDTO query) {
+        return R.success(applicationService.applicationStats(appId, query));
+    }
+
 
 
 

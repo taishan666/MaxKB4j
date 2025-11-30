@@ -40,16 +40,16 @@ public class ZhiPuModelProvider extends IModelProvider {
     @Override
     public List<ModelInfo> getModelList() {
         List<ModelInfo> modelInfos = new ArrayList<>();
-        modelInfos.add(new ModelInfo("glm-4","", ModelType.LLM.name(), new LlmModelParams()));
-        modelInfos.add(new ModelInfo("glm-4v","", ModelType.LLM.name(),  new LlmModelParams()));
-        modelInfos.add(new ModelInfo("glm-3-turbo","", ModelType.LLM.name(),  new LlmModelParams()));
-        modelInfos.add(new ModelInfo("text-embedding-v3","", ModelType.EMBEDDING.name()));
-        modelInfos.add(new ModelInfo("glm-4v-plus","", ModelType.IMAGE_UNDERSTANDING.name()));
-        modelInfos.add(new ModelInfo("glm-4v","", ModelType.IMAGE_UNDERSTANDING.name(),  new LlmModelParams()));
-        modelInfos.add(new ModelInfo("glm-4v-flash","", ModelType.IMAGE_UNDERSTANDING.name(), new LlmModelParams()));
-        modelInfos.add(new ModelInfo("cogview-3","", ModelType.TTI.name()));
-        modelInfos.add(new ModelInfo("cogview-3-plus","", ModelType.TTI.name()));
-        modelInfos.add(new ModelInfo("cogview-3-flash","", ModelType.TTI.name()));
+        modelInfos.add(new ModelInfo("glm-4","", ModelType.LLM, new LlmModelParams()));
+        modelInfos.add(new ModelInfo("glm-4v","", ModelType.LLM,  new LlmModelParams()));
+        modelInfos.add(new ModelInfo("glm-3-turbo","", ModelType.LLM,  new LlmModelParams()));
+        modelInfos.add(new ModelInfo("text-embedding-v3","", ModelType.EMBEDDING));
+        modelInfos.add(new ModelInfo("glm-4v-plus","", ModelType.IMAGE_UNDERSTANDING));
+        modelInfos.add(new ModelInfo("glm-4v","", ModelType.IMAGE_UNDERSTANDING,  new LlmModelParams()));
+        modelInfos.add(new ModelInfo("glm-4v-flash","", ModelType.IMAGE_UNDERSTANDING, new LlmModelParams()));
+        modelInfos.add(new ModelInfo("cogview-3","", ModelType.TTI));
+        modelInfos.add(new ModelInfo("cogview-3-plus","", ModelType.TTI));
+        modelInfos.add(new ModelInfo("cogview-3-flash","", ModelType.TTI));
         return modelInfos;
     }
 

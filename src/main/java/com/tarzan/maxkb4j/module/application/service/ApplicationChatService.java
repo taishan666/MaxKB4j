@@ -1,17 +1,20 @@
 package com.tarzan.maxkb4j.module.application.service;
 
 import com.alibaba.excel.EasyExcel;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tarzan.maxkb4j.common.exception.AccessNumLimitException;
 import com.tarzan.maxkb4j.common.exception.ApiException;
+import com.tarzan.maxkb4j.common.util.DateTimeUtil;
 import com.tarzan.maxkb4j.core.chat.provider.ChatActuatorBuilder;
 import com.tarzan.maxkb4j.core.chat.provider.IChatActuator;
 import com.tarzan.maxkb4j.module.application.domian.dto.ChatInfo;
 import com.tarzan.maxkb4j.module.application.domian.dto.ChatQueryDTO;
 import com.tarzan.maxkb4j.module.application.domian.entity.*;
+import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationStatisticsVO;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationVO;
 import com.tarzan.maxkb4j.module.application.domian.vo.ChatRecordDetailVO;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatMapper;
@@ -26,6 +29,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
@@ -47,7 +52,21 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
 
     public IPage<ApplicationChatEntity> chatLogs(String appId, int page, int size, ChatQueryDTO query) {
         Page<ApplicationChatEntity> chatPage = new Page<>(page, size);
-        return baseMapper.chatLogs(chatPage, appId, query);
+        LambdaQueryWrapper<ApplicationChatEntity> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(ApplicationChatEntity::getApplicationId, appId);
+        wrapper.like(StringUtils.isNotBlank(query.getSummary()), ApplicationChatEntity::getSummary, query.getSummary());
+        if(StringUtils.isNotBlank(query.getStartTime())){
+            LocalDateTime startOfDay = DateTimeUtil.parseDate(query.getStartTime()).atStartOfDay();
+            wrapper.gt(ApplicationChatEntity::getCreateTime, startOfDay);
+        }
+        if(StringUtils.isNotBlank(query.getEndTime())){
+            LocalDateTime endOfDay  = DateTimeUtil.parseDate(query.getEndTime()).atTime(LocalTime.MAX);
+            wrapper.le(ApplicationChatEntity::getCreateTime,endOfDay);
+        }
+        wrapper.ge(Objects.nonNull(query.getMinStar()), ApplicationChatEntity::getStarNum, query.getMinStar());
+        wrapper.ge(Objects.nonNull(query.getMinTrample()), ApplicationChatEntity::getTrampleNum, query.getMinTrample());
+        wrapper.orderByDesc(ApplicationChatEntity::getCreateTime);
+        return this.page(chatPage, wrapper);
     }
 
 
@@ -155,5 +174,9 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
     public Boolean deleteById(String chatId) {
         chatRecordService.lambdaUpdate().eq(ApplicationChatRecordEntity::getChatId, chatId).remove();
         return this.removeById(chatId);
+    }
+
+    public List<ApplicationStatisticsVO> statistics(String appId, ChatQueryDTO query) {
+        return baseMapper.statistics(appId, query);
     }
 }

@@ -2,6 +2,7 @@ package com.tarzan.maxkb4j.module.model.provider.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.common.util.IoUtil;
+import com.tarzan.maxkb4j.module.model.custom.credential.impl.BaseModelCredential;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelCredential;
 import com.tarzan.maxkb4j.module.model.provider.enums.ModelProviderEnum;
 import com.tarzan.maxkb4j.module.model.provider.enums.ModelType;
@@ -31,9 +32,14 @@ public class LocalModelProvider extends IModelProvider {
     }
 
     @Override
+    public BaseModelCredential getModelCredential() {
+        return new BaseModelCredential(false, false);
+    }
+
+    @Override
     public List<ModelInfo> getModelList() {
         List<ModelInfo> modelInfos = new ArrayList<>();
-        modelInfos.add(new ModelInfo("all-minilm-l6-v2","文本向量模型", ModelType.EMBEDDING.name()));
+        modelInfos.add(new ModelInfo("all-minilm-l6-v2","文本向量模型", ModelType.EMBEDDING));
         return modelInfos;
     }
 

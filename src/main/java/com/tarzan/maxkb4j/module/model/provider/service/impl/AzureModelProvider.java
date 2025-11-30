@@ -40,16 +40,16 @@ public class AzureModelProvider  extends IModelProvider {
     @Override
     public List<ModelInfo> getModelList() {
         List<ModelInfo> modelInfos = new ArrayList<>();
-        modelInfos.add(new ModelInfo("Azure OpenAI","", ModelType.LLM.name(), new LlmModelParams()));
-        modelInfos.add(new ModelInfo("gpt-4","", ModelType.LLM.name(), new LlmModelParams()));
-        modelInfos.add(new ModelInfo("gpt-4o","", ModelType.LLM.name(),new LlmModelParams()));
-        modelInfos.add(new ModelInfo("gpt-4o-mini","", ModelType.LLM.name(), new LlmModelParams()));
-        modelInfos.add(new ModelInfo("text-embedding-3-large","", ModelType.EMBEDDING.name()));
-        modelInfos.add(new ModelInfo("text-embedding-3-small","", ModelType.EMBEDDING.name()));
-        modelInfos.add(new ModelInfo("text-embedding-ada-002","", ModelType.EMBEDDING.name()));
-        modelInfos.add(new ModelInfo("gpt-4o","", ModelType.IMAGE_UNDERSTANDING.name(), new LlmModelParams()));
-        modelInfos.add(new ModelInfo("gpt-4o-mini","", ModelType.IMAGE_UNDERSTANDING.name(), new LlmModelParams()));
-        modelInfos.add(new ModelInfo("dall-e-3","", ModelType.TTI.name()));
+        modelInfos.add(new ModelInfo("Azure OpenAI","", ModelType.LLM, new LlmModelParams()));
+        modelInfos.add(new ModelInfo("gpt-4","", ModelType.LLM, new LlmModelParams()));
+        modelInfos.add(new ModelInfo("gpt-4o","", ModelType.LLM,new LlmModelParams()));
+        modelInfos.add(new ModelInfo("gpt-4o-mini","", ModelType.LLM, new LlmModelParams()));
+        modelInfos.add(new ModelInfo("text-embedding-3-large","", ModelType.EMBEDDING));
+        modelInfos.add(new ModelInfo("text-embedding-3-small","", ModelType.EMBEDDING));
+        modelInfos.add(new ModelInfo("text-embedding-ada-002","", ModelType.EMBEDDING));
+        modelInfos.add(new ModelInfo("gpt-4o","", ModelType.IMAGE_UNDERSTANDING, new LlmModelParams()));
+        modelInfos.add(new ModelInfo("gpt-4o-mini","", ModelType.IMAGE_UNDERSTANDING, new LlmModelParams()));
+        modelInfos.add(new ModelInfo("dall-e-3","", ModelType.TTI));
         return modelInfos;
     }
 

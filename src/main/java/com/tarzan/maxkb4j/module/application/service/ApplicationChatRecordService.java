@@ -13,11 +13,10 @@ import com.tarzan.maxkb4j.common.util.PageUtil;
 import com.tarzan.maxkb4j.module.application.domian.dto.AddChatImproveDTO;
 import com.tarzan.maxkb4j.module.application.domian.dto.ChatImproveDTO;
 import com.tarzan.maxkb4j.module.application.domian.dto.ChatInfo;
-import com.tarzan.maxkb4j.module.application.domian.dto.ChatQueryDTO;
+import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatEntity;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatRecordEntity;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationChatRecordVO;
-import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationChatUserStatsVO;
-import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationStatisticsVO;
+import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatMapper;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatRecordMapper;
 import com.tarzan.maxkb4j.module.chat.cache.ChatCache;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.ParagraphEntity;
@@ -28,9 +27,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
 
 import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.SEARCH_KNOWLEDGE;
 
@@ -42,8 +42,9 @@ import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.SEARCH_KNOWLEDGE;
 @Service
 public class ApplicationChatRecordService extends ServiceImpl<ApplicationChatRecordMapper, ApplicationChatRecordEntity> {
 
-    private final ApplicationChatUserStatsService chatUserStatsService;
     private final ParagraphService paragraphService;
+    private final ApplicationChatMapper chatMapper;
+
 
 
     private ApplicationChatRecordEntity getChatRecordEntity(ChatInfo chatInfo, String chatRecordId) {
@@ -119,8 +120,6 @@ public class ApplicationChatRecordService extends ServiceImpl<ApplicationChatRec
         return chatRecordVO;
     }
 
-    // 定义日期格式
-    static DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     public IPage<ApplicationChatRecordVO> chatRecordPage(String chatId, int current, int size) {
         Page<ApplicationChatRecordEntity> chatRecordpage = new Page<>(current, size);
@@ -130,52 +129,6 @@ public class ApplicationChatRecordService extends ServiceImpl<ApplicationChatRec
         return PageUtil.copy(chatRecordIpage, this::convert);
     }
 
-    public List<ApplicationStatisticsVO> applicationStats(String appId, ChatQueryDTO query) {
-        List<ApplicationStatisticsVO> result = new ArrayList<>();
-        List<ApplicationStatisticsVO> list = baseMapper.chatRecordCountTrend(appId, query);
-        List<ApplicationChatUserStatsVO> accessClientList = chatUserStatsService.getCustomerCountTrend(appId, query);
-        if (Objects.isNull(query.getStartTime()) || Objects.isNull(query.getEndTime())) {
-            return result;
-        }
-        // 将字符串解析为LocalDate对象
-        LocalDate startDate = LocalDate.parse(query.getStartTime(), formatter);
-        LocalDate endDate = LocalDate.parse(query.getEndTime(), formatter);
-        // 遍历从开始日期到结束日期之间的所有日期
-        for (LocalDate date = startDate; !date.isAfter(endDate); date = date.plusDays(1)) {
-            String day = date.format(formatter);
-            ApplicationStatisticsVO vo = getApplicationStatisticsVO(list, day);
-            vo.setCustomerAddedCount(getCustomerAddedCount(accessClientList, day));
-            result.add(vo);
-        }
-        return result;
-    }
-
-    public ApplicationStatisticsVO getApplicationStatisticsVO(List<ApplicationStatisticsVO> list, String day) {
-        if (!CollectionUtils.isEmpty(list)) {
-            Optional<ApplicationStatisticsVO> optional = list.stream().filter(e -> e.getDay().equals(day)).findFirst();
-            if (optional.isPresent()) {
-                return optional.get();
-            }
-        }
-        ApplicationStatisticsVO vo = new ApplicationStatisticsVO();
-        vo.setDay(day);
-        vo.setStarNum(0);
-        vo.setTokensNum(0);
-        vo.setCustomerNum(0);
-        vo.setChatRecordCount(0);
-        vo.setTrampleNum(0);
-        return vo;
-    }
-
-    public int getCustomerAddedCount(List<ApplicationChatUserStatsVO> list, String day) {
-        if (!CollectionUtils.isEmpty(list)) {
-            Optional<ApplicationChatUserStatsVO> optional = list.stream().filter(e -> e.getDay().equals(day)).findFirst();
-            if (optional.isPresent()) {
-                return optional.get().getCustomerAddedCount();
-            }
-        }
-        return 0;
-    }
 
     @Transactional
     public boolean addChatLogs(String appId, AddChatImproveDTO dto) {
@@ -189,27 +142,38 @@ public class ApplicationChatRecordService extends ServiceImpl<ApplicationChatRec
     }
 
     @Transactional
-    public ApplicationChatRecordEntity improveChatLog(String chatRecordId,String knowledgeId, String docId, ChatImproveDTO dto) {
-        ParagraphEntity paragraphEntity = paragraphService.createParagraph(knowledgeId, docId, dto.getProblemText(), dto.getContent(), null);
-        paragraphService.save(paragraphEntity);
+    public ApplicationChatRecordEntity improveChatLog(String chatId,String chatRecordId,String knowledgeId, String docId, ChatImproveDTO dto) {
+        ParagraphEntity paragraphEntity = paragraphService.createParagraph(knowledgeId, docId, dto.getTitle(), dto.getContent(), null);
+        paragraphService.saveParagraphAndProblem(paragraphEntity,List.of(dto.getProblemText()));
         ApplicationChatRecordEntity chatRecord = new ApplicationChatRecordEntity();
         chatRecord.setId(chatRecordId);
         chatRecord.setImproveParagraphIdList(List.of(paragraphEntity.getId()));
         this.updateById(chatRecord);
+        ApplicationChatEntity chatEntity = chatMapper.selectById(chatId);
+        ApplicationChatEntity updateChatEntity=new ApplicationChatEntity();
+        updateChatEntity.setId(chatId);
+        updateChatEntity.setMarkSum(chatEntity.getMarkSum()+1);
+        chatMapper.updateById(updateChatEntity);
         return this.getById(chatRecordId);
     }
 
     @Transactional
-    public boolean removeImproveChatLog(String chatRecordId,String paragraphId) {
+    public boolean removeImproveChatLog(String chatId,String chatRecordId,String paragraphId) {
         ApplicationChatRecordEntity chatRecord = new ApplicationChatRecordEntity();
         chatRecord.setId(chatRecordId);
         chatRecord.setImproveParagraphIdList(List.of());
         this.updateById(chatRecord);
-        return paragraphService.removeById(paragraphId);
+        ApplicationChatEntity chatEntity = chatMapper.selectById(chatId);
+        ApplicationChatEntity updateChatEntity=new ApplicationChatEntity();
+        updateChatEntity.setId(chatId);
+        updateChatEntity.setMarkSum(chatEntity.getMarkSum()-1);
+        chatMapper.updateById(updateChatEntity);
+        return paragraphService.deleteById(paragraphId);
     }
 
     public List<ParagraphEntity> improveChatLog(String chatRecordId) {
         ApplicationChatRecordEntity chatRecord =this.getById(chatRecordId);
         return paragraphService.listByIds(chatRecord.getImproveParagraphIdList());
     }
+
 }

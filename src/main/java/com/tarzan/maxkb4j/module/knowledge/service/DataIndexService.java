@@ -70,14 +70,13 @@ public class DataIndexService {
         mongoTemplate.remove(query, EmbeddingEntity.class);
     }
 
-    public void removeByParagraphId(String knowledgeId,String paragraphId) {
-        removeByParagraphIds(knowledgeId,List.of(paragraphId));
+    public void removeByParagraphId(String paragraphId) {
+        removeByParagraphIds(List.of(paragraphId));
     }
 
-    public void removeByParagraphIds(String knowledgeId,List<String> paragraphIds) {
+    public void removeByParagraphIds(List<String> paragraphIds) {
         LambdaQueryWrapper<EmbeddingEntity>  queryWrapper = Wrappers.lambdaQuery();
         queryWrapper.in(EmbeddingEntity::getParagraphId,paragraphIds);
-        queryWrapper.eq(EmbeddingEntity::getKnowledgeId,knowledgeId);
         embeddingMapper.delete(queryWrapper);
         Query query = new Query(Criteria.where("paragraphId").in(paragraphIds));
         mongoTemplate.remove(query, EmbeddingEntity.class);

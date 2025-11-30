@@ -40,28 +40,28 @@ public class ToolUtil {
                 List<ToolInputField> params = tool.getInputFieldList();
                 JsonObjectSchema.Builder parametersBuilder = JsonObjectSchema.builder();
                 for (ToolInputField param : params) {
-                    JsonSchemaElement jsonSchemaElement = new JsonNullSchema();
                     if ("string".equals(param.getType())) {
-                        jsonSchemaElement = JsonStringSchema.builder().build();
+                        parametersBuilder.addStringProperty(param.getName());
                     } else if ("int".equals(param.getType())) {
-                        jsonSchemaElement = JsonIntegerSchema.builder().build();
+                        parametersBuilder.addIntegerProperty(param.getName());
                     } else if ("number".equals(param.getType())) {
-                        jsonSchemaElement = JsonNumberSchema.builder().build();
+                        parametersBuilder.addNumberProperty(param.getName());
                     } else if ("boolean".equals(param.getType())) {
-                        jsonSchemaElement = JsonBooleanSchema.builder().build();
+                        parametersBuilder.addBooleanProperty(param.getName());
                     } else if ("array".equals(param.getType())) {
-                        jsonSchemaElement = JsonArraySchema.builder().build();
+                        JsonSchemaElement element = JsonArraySchema.builder().build();
+                        parametersBuilder.addProperty(param.getName(), element);
                     } else if ("object".equals(param.getType())) {
-                        jsonSchemaElement = JsonObjectSchema.builder().build();
+                        JsonSchemaElement element = JsonObjectSchema.builder().build();
+                        parametersBuilder.addProperty(param.getName(),element);
                     }
-                    parametersBuilder.addProperty(param.getName(), jsonSchemaElement);
                 }
                 ToolSpecification toolSpecification = ToolSpecification.builder()
                         .name(tool.getName())
                         .description(tool.getDesc())
                         .parameters(parametersBuilder.build())
                         .build();
-                tools.put(toolSpecification, new GroovyScriptExecutor(tool.getCode()));
+                tools.put(toolSpecification, new GroovyScriptExecutor(tool.getCode(), tool.getInitParams()));
             }
         }
         return tools;

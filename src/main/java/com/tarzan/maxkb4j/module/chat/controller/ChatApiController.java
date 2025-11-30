@@ -36,10 +36,12 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Sinks;
 
 import java.io.IOException;
+import java.util.List;
 
 @Tag(name = "MaxKB4J开放接口")
 @RestController
@@ -70,7 +72,6 @@ public class ChatApiController {
     @Hidden
     @PostMapping("/auth/anonymous")
     public R<String> auth(@RequestBody JSONObject params) {
-        //todo 匿名用户和后台用户区分
         String accessToken = params.getString("accessToken");
         ApplicationAccessTokenEntity accessTokenEntity = accessTokenService.getByAccessToken(accessToken);
         //防止刷新时，会话中的token丢失
@@ -189,10 +190,19 @@ public class ChatApiController {
 
     @Hidden
     @PutMapping("/vote/chat/{chatId}/chat_record/{chatRecordId}")
+    @Transactional
     public R<Boolean> updateConversation(@PathVariable String chatId, @PathVariable String chatRecordId, @RequestBody ApplicationChatRecordEntity chatRecord) {
         chatRecord.setChatId(chatId);
         chatRecord.setId(chatRecordId);
-        return R.success(chatRecordService.updateById(chatRecord));
+        chatRecordService.updateById(chatRecord);
+        List<ApplicationChatRecordEntity> chatRecordEntities = chatRecordService.lambdaQuery().select(ApplicationChatRecordEntity::getVoteStatus).eq(ApplicationChatRecordEntity::getChatId, chatId).list();
+        ApplicationChatEntity chatEntity = new ApplicationChatEntity();
+        chatEntity.setId(chatId);
+        int starNum = (int) chatRecordEntities.stream().filter(item -> item.getVoteStatus().equals("0")).count();
+        int trampleNum = (int) chatRecordEntities.stream().filter(item -> item.getVoteStatus().equals("1")).count();
+        chatEntity.setStarNum(starNum);
+        chatEntity.setTrampleNum(trampleNum);
+        return R.success(chatService.updateById(chatEntity));
     }
 
     @Hidden

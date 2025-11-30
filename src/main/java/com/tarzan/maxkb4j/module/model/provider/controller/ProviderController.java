@@ -43,15 +43,15 @@ public class ProviderController {
 	public R<List<KeyAndValueVO>> modelTypeList(String provider){
 		IModelProvider modelProvider= ModelProviderEnum.get(provider);
 		List<ModelInfo> modelInfos=modelProvider.getModelList();
-		List<KeyAndValueVO> list= ModelType.getModelTypeList();
-		Map<String,List<ModelInfo>> map=modelInfos.stream().collect(Collectors.groupingBy(ModelInfo::getModelType));
-		Set<String> keys=map.keySet();
-		list.removeIf(e -> !keys.contains(e.getValue()));
+		Map<ModelType,List<ModelInfo>> map=modelInfos.stream().collect(Collectors.groupingBy(ModelInfo::getModelType));
+		Set<ModelType> keys=map.keySet();
+		List<KeyAndValueVO> list= ModelType.getModelTypeList().stream().filter(keys::contains).map(e -> new KeyAndValueVO(e.getName(), e.getKey())).toList();
 		return R.success(list);
 	}
 
 	@GetMapping("/provider/model_form")
 	public R<List<BaseFiled>> modelForm(String provider, String modelType, String modelName){
+		//todo 目前根据provider获取凭证form,后续遇到需要modelType和modelName的时候再调整
 		IModelProvider modelProvider=ModelProviderEnum.get(provider);
 		return R.success(modelProvider.getModelCredential().toForm());
 	}
@@ -71,7 +71,7 @@ public class ProviderController {
 		if (StringUtils.isBlank(modelType)){
 			return R.success(modelInfos);
 		}
-		List<ModelInfo>  modelList=modelInfos.stream().filter(e->e.getModelType().equals(modelType)).toList();
+		List<ModelInfo>  modelList=modelInfos.stream().filter(e->e.getModelType().getKey().equals(modelType)).toList();
 		return R.success(modelList);
 	}
 

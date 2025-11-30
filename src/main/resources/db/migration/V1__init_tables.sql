@@ -10,8 +10,8 @@ DROP TABLE IF EXISTS "public"."system_setting";
 CREATE TABLE "public"."system_setting" (
                                            "type" int4 NOT NULL,
                                            "meta" jsonb NOT NULL,
-                                           "create_time" timestamptz(6) NOT NULL,
-                                           "update_time" timestamptz(6) NOT NULL
+                                           "create_time" timestamp(6) NOT NULL,
+                                           "update_time" timestamp(6) NOT NULL
 )
 ;
 
@@ -36,8 +36,8 @@ CREATE TABLE "public"."user" (
                                  "is_active" bool NOT NULL,
                                  "source" varchar(10) COLLATE "pg_catalog"."default" NOT NULL,
                                  "language" varchar(10) COLLATE "pg_catalog"."default" NOT NULL,
-                                 "create_time" timestamptz(6),
-                                 "update_time" timestamptz(6)
+                                 "create_time" timestamp(6),
+                                 "update_time" timestamp(6)
 )
 ;
 
@@ -73,9 +73,9 @@ CREATE TABLE "public"."user_resource_permission" (
                                                      "target_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
                                                      "auth_type" varchar COLLATE "pg_catalog"."default" NOT NULL DEFAULT 'ROLE'::character varying,
                                                      "permission_list" varchar(256)[] COLLATE "pg_catalog"."default" NOT NULL,
-                                                     "create_time" timestamptz(6) NOT NULL,
-                                                     "update_time" timestamptz(6) NOT NULL,
-                                                     "user_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL
+                                                     "user_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
+                                                     "create_time" timestamp(6) NOT NULL,
+                                                     "update_time" timestamp(6) NOT NULL
 )
 ;
 
@@ -92,8 +92,6 @@ ALTER TABLE "public"."user_resource_permission" ADD CONSTRAINT "workspace_user_r
 -- ----------------------------
 DROP TABLE IF EXISTS "public"."application";
 CREATE TABLE "public"."application" (
-                                        "create_time" timestamptz(6) NOT NULL,
-                                        "update_time" timestamptz(6) NOT NULL,
                                         "id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
                                         "name" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
                                         "desc" varchar(512) COLLATE "pg_catalog"."default" NOT NULL,
@@ -101,7 +99,7 @@ CREATE TABLE "public"."application" (
                                         "dialogue_number" int4 NOT NULL,
                                         "knowledge_setting" jsonb NOT NULL,
                                         "model_setting" jsonb NOT NULL,
-                                        "problem_optimization" bool NOT NULL,
+                                        "problem_optimization" bool NOT NULL DEFAULT false,
                                         "model_id" varchar(50) COLLATE "pg_catalog"."default",
                                         "user_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
                                         "icon" varchar(256) COLLATE "pg_catalog"."default",
@@ -109,20 +107,24 @@ CREATE TABLE "public"."application" (
                                         "work_flow" jsonb NOT NULL,
                                         "model_params_setting" jsonb NOT NULL,
                                         "stt_model_id" varchar(50) COLLATE "pg_catalog"."default",
-                                        "stt_model_enable" bool NOT NULL,
+                                        "stt_model_enable" bool NOT NULL DEFAULT false,
                                         "tts_model_id" varchar(50) COLLATE "pg_catalog"."default",
-                                        "tts_model_enable" bool NOT NULL,
+                                        "tts_model_enable" bool NOT NULL DEFAULT false,
                                         "tts_type" varchar(20) COLLATE "pg_catalog"."default" NOT NULL,
                                         "problem_optimization_prompt" varchar(102400) COLLATE "pg_catalog"."default",
                                         "tts_model_params_setting" jsonb NOT NULL,
                                         "clean_time" int4 NOT NULL,
-                                        "file_upload_enable" bool NOT NULL,
+                                        "file_upload_enable" bool NOT NULL DEFAULT false,
                                         "file_upload_setting" jsonb NOT NULL,
                                         "tts_autoplay" bool NOT NULL DEFAULT false,
                                         "stt_auto_send" bool NOT NULL DEFAULT false,
+                                        "tool_ids" varchar[] NOT NULL,
+                                        "tool_output_enable" bool NOT NULL DEFAULT true,
+                                        "folder_id" varchar(64) COLLATE "pg_catalog"."default",
                                         "is_publish" bool NOT NULL DEFAULT false,
-                                        "publish_time" timestamptz(6),
-                                        "folder_id" varchar(64) COLLATE "pg_catalog"."default"
+                                        "publish_time" timestamp(6),
+                                        "create_time" timestamp(6) NOT NULL,
+                                        "update_time" timestamp(6) NOT NULL
 )
 ;
 
@@ -154,18 +156,18 @@ ALTER TABLE "public"."application" ADD CONSTRAINT "application_pkey" PRIMARY KEY
 -- ----------------------------
 DROP TABLE IF EXISTS "public"."application_access_token";
 CREATE TABLE "public"."application_access_token" (
-                                                     "create_time" timestamptz(6) NOT NULL,
-                                                     "update_time" timestamptz(6) NOT NULL,
+                                                     "create_time" timestamp(6) NOT NULL,
+                                                     "update_time" timestamp(6) NOT NULL,
                                                      "application_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
                                                      "access_token" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
                                                      "is_active" bool NOT NULL,
                                                      "access_num" int4 NOT NULL,
-                                                     "white_active" bool NOT NULL,
+                                                     "white_active" bool NOT NULL DEFAULT false,
                                                      "white_list" varchar(128)[] COLLATE "pg_catalog"."default" NOT NULL,
-                                                     "show_source" bool NOT NULL,
+                                                     "show_source" bool NOT NULL DEFAULT true,
                                                      "language" varchar(10) COLLATE "pg_catalog"."default",
-                                                     "show_exec" bool,
-                                                     "authentication" bool DEFAULT false
+                                                     "show_exec" bool NOT NULL DEFAULT true,
+                                                     "authentication" bool NOT NULL  DEFAULT false
 )
 ;
 
@@ -198,14 +200,14 @@ ALTER TABLE "public"."application_access_token" ADD CONSTRAINT "application_acce
 -- ----------------------------
 DROP TABLE IF EXISTS "public"."application_api_key";
 CREATE TABLE "public"."application_api_key" (
-                                                "create_time" timestamptz(6) NOT NULL,
-                                                "update_time" timestamptz(6) NOT NULL,
+                                                "create_time" timestamp(6) NOT NULL,
+                                                "update_time" timestamp(6) NOT NULL,
                                                 "id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
                                                 "secret_key" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
                                                 "is_active" bool NOT NULL,
                                                 "application_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
                                                 "user_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
-                                                "allow_cross_domain" bool NOT NULL,
+                                                "allow_cross_domain" bool NOT NULL DEFAULT false,
                                                 "cross_domain_list" varchar(128)[] COLLATE "pg_catalog"."default" NOT NULL
 )
 ;
@@ -245,13 +247,13 @@ ALTER TABLE "public"."application_api_key" ADD CONSTRAINT "application_api_key_u
 -- ----------------------------
 DROP TABLE IF EXISTS "public"."application_chat";
 CREATE TABLE "public"."application_chat" (
-                                             "create_time" timestamptz(6) NOT NULL,
-                                             "update_time" timestamptz(6) NOT NULL,
+                                             "create_time" timestamp(6) NOT NULL,
+                                             "update_time" timestamp(6) NOT NULL,
                                              "id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
                                              "summary" varchar(1024) COLLATE "pg_catalog"."default" NOT NULL,
                                              "chat_user_id" varchar COLLATE "pg_catalog"."default",
                                              "chat_user_type" varchar(64) COLLATE "pg_catalog"."default" NOT NULL,
-                                             "is_deleted" bool NOT NULL,
+                                             "is_deleted" bool NOT NULL DEFAULT false,
                                              "asker" jsonb NOT NULL,
                                              "meta" jsonb NOT NULL,
                                              "star_num" int4 NOT NULL,
@@ -269,10 +271,10 @@ CREATE INDEX "application_chat_application_id" ON "public"."application_chat" US
     "application_id" COLLATE "pg_catalog"."default" "pg_catalog"."text_ops" ASC NULLS LAST
     );
 CREATE INDEX "application_chat_create_time" ON "public"."application_chat" USING btree (
-    "create_time" "pg_catalog"."timestamptz_ops" ASC NULLS LAST
+    "create_time" "pg_catalog"."timestamp_ops" ASC NULLS LAST
     );
 CREATE INDEX "application_chat_update_time" ON "public"."application_chat" USING btree (
-    "update_time" "pg_catalog"."timestamptz_ops" ASC NULLS LAST
+    "update_time" "pg_catalog"."timestamp_ops" ASC NULLS LAST
     );
 
 -- ----------------------------
@@ -285,8 +287,8 @@ ALTER TABLE "public"."application_chat" ADD CONSTRAINT "application_chat_pkey" P
 -- ----------------------------
 DROP TABLE IF EXISTS "public"."application_chat_record";
 CREATE TABLE "public"."application_chat_record" (
-                                                    "create_time" timestamptz(6) NOT NULL,
-                                                    "update_time" timestamptz(6) NOT NULL,
+                                                    "create_time" timestamp(6) NOT NULL,
+                                                    "update_time" timestamp(6) NOT NULL,
                                                     "id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
                                                     "vote_status" varchar(10) COLLATE "pg_catalog"."default" NOT NULL,
                                                     "problem_text" varchar(10240) COLLATE "pg_catalog"."default" NOT NULL,
@@ -321,8 +323,8 @@ ALTER TABLE "public"."application_chat_record" ADD CONSTRAINT "application_chat_
 -- ----------------------------
 DROP TABLE IF EXISTS "public"."application_chat_user_stats";
 CREATE TABLE "public"."application_chat_user_stats" (
-                                                        "create_time" timestamptz(6) NOT NULL,
-                                                        "update_time" timestamptz(6) NOT NULL,
+                                                        "create_time" timestamp(6) NOT NULL,
+                                                        "update_time" timestamp(6) NOT NULL,
                                                         "id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
                                                         "access_num" int4 NOT NULL,
                                                         "intra_day_access_num" int4 NOT NULL,
@@ -356,8 +358,6 @@ ALTER TABLE "public"."application_chat_user_stats" ADD CONSTRAINT "application_c
 -- ----------------------------
 DROP TABLE IF EXISTS "public"."application_version";
 CREATE TABLE "public"."application_version" (
-                                                "create_time" timestamptz(6) NOT NULL,
-                                                "update_time" timestamptz(6) NOT NULL,
                                                 "id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
                                                 "name" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
                                                 "publish_user_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
@@ -372,23 +372,27 @@ CREATE TABLE "public"."application_version" (
                                                 "model_setting" jsonb NOT NULL,
                                                 "model_params_setting" jsonb NOT NULL,
                                                 "tts_model_params_setting" jsonb NOT NULL,
-                                                "problem_optimization" bool NOT NULL,
+                                                "problem_optimization" bool NOT NULL DEFAULT false,
                                                 "icon" varchar(256) COLLATE "pg_catalog"."default" NOT NULL,
                                                 "work_flow" jsonb NOT NULL,
                                                 "type" varchar(256) COLLATE "pg_catalog"."default" NOT NULL,
                                                 "problem_optimization_prompt" varchar(102400) COLLATE "pg_catalog"."default",
                                                 "tts_model_id" varchar(50) COLLATE "pg_catalog"."default",
                                                 "stt_model_id" varchar(50) COLLATE "pg_catalog"."default",
-                                                "tts_model_enable" bool NOT NULL,
-                                                "stt_model_enable" bool NOT NULL,
+                                                "tts_model_enable" bool NOT NULL DEFAULT false,
+                                                "stt_model_enable" bool NOT NULL DEFAULT false,
                                                 "tts_type" varchar(20) COLLATE "pg_catalog"."default" NOT NULL,
-                                                "tts_autoplay" bool NOT NULL,
-                                                "stt_auto_send" bool NOT NULL,
+                                                "tts_autoplay" bool NOT NULL DEFAULT false,
+                                                "stt_auto_send" bool NOT NULL DEFAULT false,
                                                 "clean_time" int4 NOT NULL,
-                                                "file_upload_enable" bool NOT NULL,
+                                                "file_upload_enable" bool NOT NULL DEFAULT false,
                                                 "file_upload_setting" jsonb NOT NULL,
                                                 "application_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
-                                                "user_id" varchar(50) COLLATE "pg_catalog"."default"
+                                                "user_id" varchar(50) COLLATE "pg_catalog"."default",
+                                                "tool_ids" varchar[] NOT NULL,
+                                                "tool_output_enable" bool NOT NULL DEFAULT true,
+                                                "create_time" timestamp(6) NOT NULL,
+                                                "update_time" timestamp(6) NOT NULL
 )
 ;
 
@@ -404,8 +408,8 @@ ALTER TABLE "public"."application_version" ADD CONSTRAINT "application_version_p
 -- ----------------------------
 DROP TABLE IF EXISTS "public"."knowledge";
 CREATE TABLE "public"."knowledge" (
-                                      "create_time" timestamptz(6) NOT NULL,
-                                      "update_time" timestamptz(6) NOT NULL,
+                                      "create_time" timestamp(6) NOT NULL,
+                                      "update_time" timestamp(6) NOT NULL,
                                       "id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
                                       "name" varchar(150) COLLATE "pg_catalog"."default" NOT NULL,
                                       "desc" varchar(256) COLLATE "pg_catalog"."default" NOT NULL,
@@ -446,8 +450,8 @@ ALTER TABLE "public"."knowledge" ADD CONSTRAINT "knowledge_user_id_fk_user_id" F
 -- ----------------------------
 DROP TABLE IF EXISTS "public"."document";
 CREATE TABLE "public"."document" (
-                                     "create_time" timestamptz(6) NOT NULL,
-                                     "update_time" timestamptz(6) NOT NULL,
+                                     "create_time" timestamp(6) NOT NULL,
+                                     "update_time" timestamp(6) NOT NULL,
                                      "id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
                                      "name" varchar(150) COLLATE "pg_catalog"."default" NOT NULL,
                                      "char_length" int4 NOT NULL,
@@ -487,8 +491,8 @@ ALTER TABLE "public"."document" ADD CONSTRAINT "document_knowledge_id_fk_knowled
 -- ----------------------------
 DROP TABLE IF EXISTS "public"."paragraph";
 CREATE TABLE "public"."paragraph" (
-                                      "create_time" timestamptz(6) NOT NULL,
-                                      "update_time" timestamptz(6) NOT NULL,
+                                      "create_time" timestamp(6) NOT NULL,
+                                      "update_time" timestamp(6) NOT NULL,
                                       "id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
                                       "content" varchar(102400) COLLATE "pg_catalog"."default" NOT NULL,
                                       "title" varchar(256) COLLATE "pg_catalog"."default" NOT NULL,
@@ -530,8 +534,8 @@ ALTER TABLE "public"."paragraph" ADD CONSTRAINT "paragraph_knowledge_id_fk_knowl
 -- ----------------------------
 DROP TABLE IF EXISTS "public"."problem";
 CREATE TABLE "public"."problem" (
-                                    "create_time" timestamptz(6) NOT NULL,
-                                    "update_time" timestamptz(6) NOT NULL,
+                                    "create_time" timestamp(6) NOT NULL,
+                                    "update_time" timestamp(6) NOT NULL,
                                     "id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
                                     "content" varchar(256) COLLATE "pg_catalog"."default" NOT NULL,
                                     "hit_num" int4 NOT NULL,
@@ -558,8 +562,8 @@ ALTER TABLE "public"."problem" ADD CONSTRAINT "problem_pkey" PRIMARY KEY ("id");
 -- ----------------------------
 DROP TABLE IF EXISTS "public"."folder";
 CREATE TABLE "public"."folder" (
-                                   "create_time" timestamptz(6) NOT NULL,
-                                   "update_time" timestamptz(6) NOT NULL,
+                                   "create_time" timestamp(6) NOT NULL,
+                                   "update_time" timestamp(6) NOT NULL,
                                    "id" varchar(64) COLLATE "pg_catalog"."default" NOT NULL,
                                    "name" varchar(64) COLLATE "pg_catalog"."default" NOT NULL,
                                    "desc" varchar(200) COLLATE "pg_catalog"."default",
@@ -573,7 +577,7 @@ CREATE TABLE "public"."folder" (
 -- Indexes structure for table folder
 -- ----------------------------
 CREATE INDEX "application_folder_create_time" ON "public"."folder" USING btree (
-    "create_time" "pg_catalog"."timestamptz_ops" ASC NULLS LAST
+    "create_time" "pg_catalog"."timestamp_ops" ASC NULLS LAST
     );
 CREATE INDEX "application_folder_id_like" ON "public"."folder" USING btree (
     "id" COLLATE "pg_catalog"."default" "pg_catalog"."varchar_pattern_ops" ASC NULLS LAST
@@ -591,7 +595,7 @@ CREATE INDEX "application_folder_parent_id_like" ON "public"."folder" USING btre
     "parent_id" COLLATE "pg_catalog"."default" "pg_catalog"."varchar_pattern_ops" ASC NULLS LAST
     );
 CREATE INDEX "application_folder_update_time" ON "public"."folder" USING btree (
-    "update_time" "pg_catalog"."timestamptz_ops" ASC NULLS LAST
+    "update_time" "pg_catalog"."timestamp_ops" ASC NULLS LAST
     );
 CREATE INDEX "application_folder_user_id" ON "public"."folder" USING btree (
     "user_id" COLLATE "pg_catalog"."default" "pg_catalog"."text_ops" ASC NULLS LAST
@@ -610,8 +614,8 @@ ALTER TABLE "public"."folder" ADD CONSTRAINT "application_folder_pkey" PRIMARY K
 -- ----------------------------
 DROP TABLE IF EXISTS "public"."tool";
 CREATE TABLE "public"."tool" (
-                                 "create_time" timestamptz(6) NOT NULL,
-                                 "update_time" timestamptz(6) NOT NULL,
+                                 "create_time" timestamp(6) NOT NULL,
+                                 "update_time" timestamp(6) NOT NULL,
                                  "id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
                                  "name" varchar(64) COLLATE "pg_catalog"."default" NOT NULL,
                                  "desc" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
@@ -654,8 +658,8 @@ ALTER TABLE "public"."tool" ADD CONSTRAINT "tool_user_id_fk_user_id" FOREIGN KEY
 -- ----------------------------
 DROP TABLE IF EXISTS "public"."model";
 CREATE TABLE "public"."model" (
-                                  "create_time" timestamptz(6) NOT NULL,
-                                  "update_time" timestamptz(6) NOT NULL,
+                                  "create_time" timestamp(6) NOT NULL,
+                                  "update_time" timestamp(6) NOT NULL,
                                   "id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
                                   "name" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
                                   "model_type" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
@@ -733,8 +737,8 @@ ALTER TABLE "public"."embedding" ADD CONSTRAINT "embedding_pkey" PRIMARY KEY ("i
 -- ----------------------------
 DROP TABLE IF EXISTS "public"."application_knowledge_mapping";
 CREATE TABLE "public"."application_knowledge_mapping" (
-                                                          "create_time" timestamptz(6) NOT NULL,
-                                                          "update_time" timestamptz(6) NOT NULL,
+                                                          "create_time" timestamp(6) NOT NULL,
+                                                          "update_time" timestamp(6) NOT NULL,
                                                           "id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
                                                           "application_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
                                                           "knowledge_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL
@@ -769,8 +773,8 @@ ALTER TABLE "public"."application_knowledge_mapping" ADD CONSTRAINT "application
 -- ----------------------------
 DROP TABLE IF EXISTS "public"."problem_paragraph_mapping";
 CREATE TABLE "public"."problem_paragraph_mapping" (
-                                                      "create_time" timestamptz(6) NOT NULL,
-                                                      "update_time" timestamptz(6) NOT NULL,
+                                                      "create_time" timestamp(6) NOT NULL,
+                                                      "update_time" timestamp(6) NOT NULL,
                                                       "id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
                                                       "knowledge_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
                                                       "document_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,

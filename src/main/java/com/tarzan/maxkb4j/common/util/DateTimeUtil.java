@@ -88,6 +88,12 @@ public class DateTimeUtil {
         return Date.from(toInstant(dateTime));
     }
 
+    public static LocalDate toLocalDate(Date date) {
+        return date.toInstant()
+                .atZone(ZoneId.systemDefault())
+                .toLocalDate();
+    }
+
     public static Duration between(Temporal startInclusive, Temporal endExclusive) {
         return Duration.between(startInclusive, endExclusive);
     }

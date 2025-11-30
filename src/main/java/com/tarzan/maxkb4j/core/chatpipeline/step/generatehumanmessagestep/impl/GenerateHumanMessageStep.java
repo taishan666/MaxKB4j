@@ -2,12 +2,11 @@ package com.tarzan.maxkb4j.core.chatpipeline.step.generatehumanmessagestep.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
+import com.tarzan.maxkb4j.core.chatpipeline.step.generatehumanmessagestep.IGenerateHumanMessageStep;
 import com.tarzan.maxkb4j.module.application.domian.entity.KnowledgeSetting;
 import com.tarzan.maxkb4j.module.application.domian.entity.LlmModelSetting;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationVO;
 import com.tarzan.maxkb4j.module.application.enums.AIAnswerType;
-import com.tarzan.maxkb4j.core.chatpipeline.PipelineManage;
-import com.tarzan.maxkb4j.core.chatpipeline.step.generatehumanmessagestep.IGenerateHumanMessageStep;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.ParagraphVO;
 import org.springframework.stereotype.Component;
 
@@ -16,11 +15,7 @@ import java.util.List;
 @Component
 public class GenerateHumanMessageStep extends IGenerateHumanMessageStep {
     @Override
-    protected String execute(PipelineManage manage) {
-        String problemText = (String) manage.context.get("problemText");
-        @SuppressWarnings("unchecked")
-        List<ParagraphVO> paragraphList = (List<ParagraphVO>) manage.context.get("paragraphList");
-        ApplicationVO application = (ApplicationVO) manage.context.get("application");
+    protected String execute(ApplicationVO application, String problemText, List<ParagraphVO> paragraphList) {
         LlmModelSetting llmModelSetting = application.getModelSetting();
         if (!CollectionUtils.isEmpty(paragraphList)){
             String prompt = llmModelSetting.getPrompt();
@@ -45,4 +40,6 @@ public class GenerateHumanMessageStep extends IGenerateHumanMessageStep {
     public JSONObject getDetails() {
         return null;
     }
+
+
 }

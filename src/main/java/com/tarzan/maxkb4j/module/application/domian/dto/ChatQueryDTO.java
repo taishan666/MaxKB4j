@@ -6,7 +6,9 @@ import lombok.Data;
 @Data
 public class ChatQueryDTO {
 
-    private String keyword;
+    private String summary;
     private String startTime;
     private String endTime;
+    private Integer minStar;
+    private Integer minTrample;
 }

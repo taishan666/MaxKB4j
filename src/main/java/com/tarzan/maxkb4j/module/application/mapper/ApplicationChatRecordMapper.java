@@ -16,5 +16,4 @@ import java.util.List;
 @Mapper
 public interface ApplicationChatRecordMapper extends BaseMapper<ApplicationChatRecordEntity>{
 
-    List<ApplicationStatisticsVO> chatRecordCountTrend(String appId, @Param("query") ChatQueryDTO query);
 }

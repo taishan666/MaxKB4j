@@ -11,17 +11,14 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tarzan.maxkb4j.common.exception.ApiException;
 import com.tarzan.maxkb4j.common.util.*;
-import com.tarzan.maxkb4j.module.application.domian.dto.ApplicationAccessTokenDTO;
-import com.tarzan.maxkb4j.module.application.domian.dto.ApplicationQuery;
-import com.tarzan.maxkb4j.module.application.domian.dto.EmbedDTO;
-import com.tarzan.maxkb4j.module.application.domian.dto.MaxKb4J;
+import com.tarzan.maxkb4j.module.application.domian.dto.*;
 import com.tarzan.maxkb4j.module.application.domian.entity.*;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationListVO;
+import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationStatisticsVO;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationVO;
 import com.tarzan.maxkb4j.module.application.enums.AppType;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatMapper;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationMapper;
-import com.tarzan.maxkb4j.module.knowledge.consts.SearchType;
 import com.tarzan.maxkb4j.module.knowledge.service.KnowledgeService;
 import com.tarzan.maxkb4j.module.model.custom.base.STTModel;
 import com.tarzan.maxkb4j.module.model.custom.base.TTSModel;
@@ -30,6 +27,12 @@ import com.tarzan.maxkb4j.module.system.permission.constant.AuthTargetType;
 import com.tarzan.maxkb4j.module.system.permission.service.UserResourcePermissionService;
 import com.tarzan.maxkb4j.module.system.user.domain.entity.UserEntity;
 import com.tarzan.maxkb4j.module.system.user.service.UserService;
+import dev.langchain4j.data.message.AiMessage;
+import dev.langchain4j.data.message.ChatMessage;
+import dev.langchain4j.data.message.UserMessage;
+import dev.langchain4j.model.chat.StreamingChatModel;
+import dev.langchain4j.model.chat.response.ChatResponse;
+import dev.langchain4j.model.chat.response.StreamingChatResponseHandler;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -37,12 +40,16 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.multipart.MultipartFile;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Sinks;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.BASE;
@@ -145,21 +152,15 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
 
     @Transactional
     public ApplicationEntity createApp(ApplicationEntity application) {
-        application.setKnowledgeSetting(new KnowledgeSetting());
         application.setIcon("./favicon.ico");
-        if (AppType.WORK_FLOW.name().equals(application.getType())) {
-            application.setDialogueNumber(0);
-        }
-        application.setDialogueNumber(1);
         application.setUserId(StpKit.ADMIN.getLoginIdAsString());
         application.setTtsModelParamsSetting(new JSONObject());
-        application.setCleanTime(365);
-        application.setFileUploadEnable(false);
         application.setFileUploadSetting(new JSONObject());
-        application.setKnowledgeSetting(getDefaultKnowledgeSetting());
+        application.setCleanTime(365);
         if (application.getWorkFlow() == null) {
             application.setWorkFlow(new JSONObject());
         }
+        application.setToolIds(List.of());
         this.save(application);
         ApplicationAccessTokenEntity accessToken = ApplicationAccessTokenEntity.createDefault();
         accessToken.setApplicationId(application.getId());
@@ -167,16 +168,6 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         accessTokenService.save(accessToken);
         userResourcePermissionService.ownerSave(AuthTargetType.APPLICATION, application.getId(), application.getUserId());
         return application;
-    }
-
-    private KnowledgeSetting getDefaultKnowledgeSetting() {
-        KnowledgeSetting knowledgeSetting = new KnowledgeSetting();
-        knowledgeSetting.setTopN(5);
-        knowledgeSetting.setMaxParagraphCharNumber(5120);
-        knowledgeSetting.setSearchMode(SearchType.EMBEDDING);
-        knowledgeSetting.setSimilarity(0.6F);
-        knowledgeSetting.setNoReferencesSetting(new NoReferencesSetting("ai_questioning", "{question}"));
-        return knowledgeSetting;
     }
 
 
@@ -412,5 +403,94 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         }
         List<ApplicationEntity> list = this.lambdaQuery().in(ApplicationEntity::getId, targetIds).eq(ApplicationEntity::getIsPublish, true).list();
         return list.stream().filter(e -> folderId.equals(e.getFolderId())).map(e -> BeanUtil.copy(e, ApplicationListVO.class)).toList();
+    }
+
+
+    // 定义日期格式
+    static DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    public List<ApplicationStatisticsVO> applicationStats(String appId, ChatQueryDTO query) {
+        List<ApplicationStatisticsVO> result = new ArrayList<>();
+        if (Objects.isNull(query.getStartTime()) || Objects.isNull(query.getEndTime())) {
+            return result;
+        }
+        List<ApplicationStatisticsVO> list = applicationChatMapper.statistics(appId, query);
+        List<ApplicationStatisticsVO> accessClientList = chatUserStatsService.getCustomerCountTrend(appId, query);
+        // 将字符串解析为LocalDate对象
+        LocalDate startDate = DateTimeUtil.parseDate(query.getStartTime());
+        LocalDate endDate = DateTimeUtil.parseDate(query.getEndTime());
+        // 遍历从开始日期到结束日期之间的所有日期
+        for (LocalDate date = startDate; !date.isAfter(endDate); date = date.plusDays(1)) {
+            String day = date.format(formatter);
+            ApplicationStatisticsVO vo = getApplicationStatisticsVO(list, day);
+            vo.setCustomerAddedCount(getCustomerAddedCount(accessClientList, day));
+            result.add(vo);
+        }
+        return result;
+    }
+
+    public ApplicationStatisticsVO getApplicationStatisticsVO(List<ApplicationStatisticsVO> list, String day) {
+        if (!CollectionUtils.isEmpty(list)) {
+            Optional<ApplicationStatisticsVO> optional = list.stream().filter(e -> e.getDay().equals(day)).findFirst();
+            if (optional.isPresent()) {
+                return optional.get();
+            }
+        }
+        ApplicationStatisticsVO vo = new ApplicationStatisticsVO();
+        vo.setDay(day);
+        vo.setStarNum(0);
+        vo.setTokensNum(0);
+        vo.setCustomerNum(0);
+        vo.setChatRecordCount(0);
+        vo.setTrampleNum(0);
+        return vo;
+    }
+
+    public int getCustomerAddedCount(List<ApplicationStatisticsVO> list, String day) {
+        if (!CollectionUtils.isEmpty(list)) {
+            Optional<ApplicationStatisticsVO> optional = list.stream().filter(e -> e.getDay().equals(day)).findFirst();
+            if (optional.isPresent()) {
+                return optional.get().getCustomerAddedCount();
+            }
+        }
+        return 0;
+    }
+
+    public Flux<Map<String,String>> promptGenerate(String appId,String modelId,PromptGenerateDTO dto) {
+        ApplicationEntity app=this.getById(appId);
+        StreamingChatModel chatModel =modelFactory.buildStreamingChatModel(modelId, null);
+        List<ChatMessage> messages = new ArrayList<>();
+        for (ChatMessageDTO message : dto.getMessages()) {
+            if (message.getRole().equals("user")){
+                messages.add(UserMessage.from(message.getContent()));
+            }
+            if (message.getRole().equals("ai")){
+                messages.add(AiMessage.from(message.getContent()));
+            }
+        }
+        int endIndex = messages.size() - 1;
+        String prompt = dto.getPrompt();
+        String detail=StringUtils.isBlank(app.getDesc())?app.getName():app.getDesc();
+        prompt =prompt.replace("{application_name}", app.getName());
+        prompt =prompt.replace("{detail}", detail);
+        prompt =prompt.replace("{userInput}", dto.getMessages().get(endIndex).getContent());
+        messages.set(endIndex, UserMessage.from(prompt));
+        Sinks.Many<Map<String,String>> sink = Sinks.many().unicast().onBackpressureBuffer();
+        chatModel.chat(messages, new StreamingChatResponseHandler() {
+            @Override
+            public void onPartialResponse(String partialResponse) {
+                sink.tryEmitNext(Map.of("content", partialResponse));
+            }
+
+            @Override
+            public void onCompleteResponse(ChatResponse chatResponse) {
+                sink.tryEmitComplete();
+            }
+
+            @Override
+            public void onError(Throwable throwable) {
+                sink.tryEmitError(throwable);
+            }
+        });
+        return sink.asFlux();
     }
 }

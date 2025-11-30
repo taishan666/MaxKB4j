@@ -33,17 +33,12 @@ public class AiChatNode extends INode {
         private String modelId;
         private String system;
         private String prompt;
+        private String dialogueType;
         private int dialogueNumber;
         private Boolean isResult;
         private JSONObject modelParamsSetting;
         private JSONObject modelSetting;
-        private String dialogueType;
-        private Boolean mcpEnable;
-        private String mcpSource;
-        private String  mcpToolId;
-        private String mcpServers;
-        private Boolean toolEnable;
-        private Boolean mcpOutputEnable;
+        private Boolean toolOutputEnable;
         private List<String> toolIds;
 
     }

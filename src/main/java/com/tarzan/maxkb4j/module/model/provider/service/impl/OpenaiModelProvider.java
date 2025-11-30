@@ -6,6 +6,7 @@ import com.tarzan.maxkb4j.module.model.custom.credential.impl.BaseModelCredentia
 import com.tarzan.maxkb4j.module.model.custom.params.impl.LlmModelParams;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelCredential;
 import com.tarzan.maxkb4j.module.model.provider.enums.ModelProviderEnum;
+import com.tarzan.maxkb4j.module.model.provider.enums.ModelType;
 import com.tarzan.maxkb4j.module.model.provider.service.IModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.vo.ModelInfo;
 import com.tarzan.maxkb4j.module.model.provider.vo.ModelProviderInfo;
@@ -40,17 +41,17 @@ public class OpenaiModelProvider extends IModelProvider {
     @Override
     public List<ModelInfo> getModelList() {
         List<ModelInfo> modelInfos = new ArrayList<>();
-        modelInfos.add(new ModelInfo("gpt-3.5-turbo","","LLM",new LlmModelParams()));
-        modelInfos.add(new ModelInfo("gpt-4","","LLM",new LlmModelParams()));
-        modelInfos.add(new ModelInfo("gpt-4o","","LLM",new LlmModelParams()));
-        modelInfos.add(new ModelInfo("gpt-4o-mini","","LLM",new LlmModelParams()));
-        modelInfos.add(new ModelInfo("gpt-4-turbo","","LLM",new LlmModelParams()));
-        modelInfos.add(new ModelInfo("gpt-4-turbo-preview","","LLM",new LlmModelParams()));
-        modelInfos.add(new ModelInfo("text-embedding-ada-002","","EMBEDDING"));
-        modelInfos.add(new ModelInfo("whisper-1","","STT"));
-        modelInfos.add(new ModelInfo("tts-1","","TTS"));
-        modelInfos.add(new ModelInfo("gpt-4o","","IMAGE",new LlmModelParams()));
-        modelInfos.add(new ModelInfo("dall-e-2","","TTI"));
+        modelInfos.add(new ModelInfo("gpt-3.5-turbo","", ModelType.LLM,new LlmModelParams()));
+        modelInfos.add(new ModelInfo("gpt-4","",ModelType.LLM,new LlmModelParams()));
+        modelInfos.add(new ModelInfo("gpt-4o","",ModelType.LLM,new LlmModelParams()));
+        modelInfos.add(new ModelInfo("gpt-4o-mini","",ModelType.LLM,new LlmModelParams()));
+        modelInfos.add(new ModelInfo("gpt-4-turbo","",ModelType.LLM,new LlmModelParams()));
+        modelInfos.add(new ModelInfo("gpt-4-turbo-preview","",ModelType.LLM,new LlmModelParams()));
+        modelInfos.add(new ModelInfo("text-embedding-ada-002","",ModelType.EMBEDDING));
+        modelInfos.add(new ModelInfo("whisper-1","",ModelType.STT));
+        modelInfos.add(new ModelInfo("tts-1","",ModelType.TTS));
+        modelInfos.add(new ModelInfo("gpt-4o","",ModelType.IMAGE_UNDERSTANDING,new LlmModelParams()));
+        modelInfos.add(new ModelInfo("dall-e-2","",ModelType.TTI));
         return modelInfos;
     }
 

@@ -15,7 +15,6 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.Objects;
 
 @Slf4j
 @Component
@@ -34,38 +33,33 @@ public class DataIndexListener {
         documentService.updateStatusByIds(event.getDocIds(), 1, 0);
         for (String docId : event.getDocIds()) {
             List<ParagraphEntity> paragraphs = paragraphService.listByStateIds(docId,1, event.getStateList());
-            if (CollectionUtils.isNotEmpty(paragraphs)){
-                log.info("开始--->文档索引:{}", docId);
-                List<String> paragraphIds = paragraphs.stream().map(ParagraphEntity::getId).toList();
-                paragraphService.updateStatusByIds(paragraphIds, 1, 1);
-                documentService.updateStatusById(docId, 1, 1);
-                paragraphs.forEach(paragraph -> {
-                    paragraphService.createIndex(paragraph, embeddingModel);
-                    paragraphService.updateStatusById(paragraph.getId(),1,2);
-                    documentService.updateStatusMetaById(docId);
-                });
-                log.info("结束--->文档索引:{}", docId);
-            }
-            documentService.updateStatusById(docId, 1, 2);
+            embed(embeddingModel, docId, paragraphs);
         }
     }
 
     @Async
     @EventListener
     public void handleEvent(ParagraphIndexEvent event) {
-        System.out.println("收到段落向量化事件消息: " + event.getParagraphId());
+        System.out.println("收到段落向量化事件消息: " + event.getParagraphIds());
+        List<ParagraphEntity> paragraphs= paragraphService.listByIds(event.getParagraphIds());
         EmbeddingModel embeddingModel=knowledgeBaseService.getEmbeddingModel(event.getKnowledgeId());
-        documentService.updateStatusById(event.getDocId(), 1, 0);
-        ParagraphEntity paragraph = paragraphService.getById(event.getParagraphId());
-        if (Objects.nonNull(paragraph)){
-           // log.info("开始--->文档索引:{}", event.getDocId());
-            paragraphService.updateStatusById(event.getParagraphId(), 1, 1);
-            documentService.updateStatusById(event.getDocId(), 1, 1);
-            paragraphService.createIndex(paragraph, embeddingModel);
-            paragraphService.updateStatusById(paragraph.getId(),1,2);
-            documentService.updateStatusMetaById(event.getDocId());
-           // log.info("结束--->文档索引:{}", event.getDocId());
+        embed(embeddingModel, event.getDocId(), paragraphs);
+    }
+
+    private void embed(EmbeddingModel embeddingModel,String docId,List<ParagraphEntity> paragraphs) {
+        documentService.updateStatusById(docId, 1, 0);
+        if (CollectionUtils.isNotEmpty(paragraphs)){
+            log.info("开始--->文档索引:{}", docId);
+            List<String> paragraphIds = paragraphs.stream().map(ParagraphEntity::getId).toList();
+            paragraphService.updateStatusByIds(paragraphIds, 1, 1);
+            documentService.updateStatusById(docId, 1, 1);
+            paragraphs.forEach(paragraph -> {
+                paragraphService.createIndex(paragraph, embeddingModel);
+                paragraphService.updateStatusById(paragraph.getId(),1,2);
+                documentService.updateStatusMetaById(docId);
+            });
+            log.info("结束--->文档索引:{}", docId);
         }
-        documentService.updateStatusById(event.getDocId(), 1, 2);
+        documentService.updateStatusById(docId, 1, 2);
     }
 }

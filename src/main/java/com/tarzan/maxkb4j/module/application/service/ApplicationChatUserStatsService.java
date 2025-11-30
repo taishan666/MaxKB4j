@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tarzan.maxkb4j.module.application.domian.dto.ChatQueryDTO;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatUserStatsEntity;
-import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationChatUserStatsVO;
+import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationStatisticsVO;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatUserStatsMapper;
 import org.springframework.stereotype.Service;
 
@@ -17,7 +17,7 @@ import java.util.List;
 @Service
 public class ApplicationChatUserStatsService extends ServiceImpl<ApplicationChatUserStatsMapper, ApplicationChatUserStatsEntity>{
 
-    public List<ApplicationChatUserStatsVO> getCustomerCountTrend(String appId, ChatQueryDTO query) {
+    public List<ApplicationStatisticsVO> getCustomerCountTrend(String appId, ChatQueryDTO query) {
         return baseMapper.getCustomerCountTrend(appId,query);
     }
 
