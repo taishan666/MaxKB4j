@@ -1,6 +1,5 @@
 package com.tarzan.maxkb4j.config;
 
-
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
@@ -13,7 +12,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-public class SwaggerConfig {
+public class Knife4jConfiguration {
 
     // Header 参数名称
     public static final String HEADER_NAME = "Authorization";
@@ -22,15 +21,7 @@ public class SwaggerConfig {
 
     @Bean
     public OpenAPI customOpenAPI() {
-/*        // 定义安全方案：使用 header 传递 API Key
-        SecurityScheme apiKeyScheme = new SecurityScheme()
-                .type(SecurityScheme.Type.APIKEY)
-                .in(SecurityScheme.In.HEADER)
-                .name(HEADER_NAME);
 
-        // 定义全局安全需求：所有接口都应用该 header
-        SecurityRequirement securityRequirement = new SecurityRequirement()
-                .addList(HEADER_NAME);*/
         return new OpenAPI()
                 .info(new Info()
                         .title("MaxKB4J API文档") // 设置文档标题

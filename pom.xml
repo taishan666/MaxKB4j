@@ -44,10 +44,11 @@
             <artifactId>p6spy-spring-boot-starter</artifactId>
             <version>1.10.0</version>
         </dependency>
+        <!--引入Knife4j的官方start包,该指南选择Spring Boot版本<3.0,开发者需要注意-->
         <dependency>
             <groupId>com.github.xiaoymin</groupId>
             <artifactId>knife4j-openapi3-jakarta-spring-boot-starter</artifactId>
-            <version>4.5.0</version>
+            <version>4.4.0</version>
         </dependency>
         <!-- Spring Boot 缓存支持 -->
         <dependency>
@@ -222,11 +223,6 @@
         </dependency>
         <dependency>
             <groupId>dev.langchain4j</groupId>
-            <artifactId>langchain4j-web-search-engine-searchapi</artifactId>
-            <version>${langchain4j.version}-beta15</version>
-        </dependency>
-        <dependency>
-            <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-experimental-sql</artifactId>
             <version>${langchain4j.version}-beta15</version>
         </dependency>
@@ -382,8 +378,23 @@
 
         <dependency>
             <groupId>dev.langchain4j</groupId>
-            <artifactId>langchain4j-experimental-sql</artifactId>
-            <version>1.9.0-beta16</version>
+            <artifactId>langchain4j-web-search-engine-google-custom</artifactId>
+            <version>1.9.1-beta17</version>
+        </dependency>
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-web-search-engine-searchapi</artifactId>
+            <version>1.9.1-beta17</version>
+        </dependency>
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-community-web-search-engine-searxng</artifactId>
+            <version>1.9.1-beta17</version>
+        </dependency>
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-web-search-engine-tavily</artifactId>
+            <version>1.9.1-beta17</version>
         </dependency>
     </dependencies>
 
