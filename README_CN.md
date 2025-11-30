@@ -12,12 +12,6 @@ MaxKB4j = Max Knowledge Base for Java，是一款基于Java语言开发的LLM工
 - **多种模型支持**：支持语音识别和语音合成模型、支持图像识别和图像生成模型。（视频生成模型支持规划中。。。）
 
 
-目前已经完成所有核心的功能的开发，正在完善优化项目，预计月底完成，之后会完善文档和示例，欢迎大家参与完善。
-
-
-## 功能导图
-![输入图片说明](image/MaxKB4J.png)
-
 ## 快速开始
 
 ```
@@ -33,11 +27,6 @@ docker-compose up -d
 - 默认用户/密码 admin/tarzan@123456
 
 
-## 案例展示
-
-MaxKB4j 自发布以来，日均安装下载超过 1000 次，被广泛应用于智能客服、企业内部知识库、学术教育研究等场景。
-
-
 ## UI 展示
 
 
@@ -47,7 +36,7 @@ MaxKB4j 自发布以来，日均安装下载超过 1000 次，被广泛应用于
     <td style="padding: 5px;background-color:#fff;"><img src= "image/dataset.png" alt="MaxKB4j dataset"   /></td>
   </tr>
   <tr>
-    <td style="padding: 5px;background-color:#fff;"><img src= "image/function.png" alt="MaxKB4j function"   /></td>
+    <td style="padding: 5px;background-color:#fff;"><img src= "image/tool.png" alt="MaxKB4j function"   /></td>
     <td style="padding: 5px;background-color:#fff;"><img src= "image/mcp.png" alt="MaxKB4j dataset_setting"   /></td>
   </tr>
  <tr>
@@ -67,7 +56,7 @@ MaxKB4j 自发布以来，日均安装下载超过 1000 次，被广泛应用于
     <td style="padding: 5px;background-color:#fff;"><img src= "image/problem.png" alt="MaxKB4j problem"   /></td>
   </tr>
  <tr>
-    <td style="padding: 5px;background-color:#fff;"><img src= "image/team.png" alt="MaxKB4j team"   /></td>
+    <td style="padding: 5px;background-color:#fff;"><img src= "image/user_resources.png" alt="MaxKB4j team"   /></td>
     <td style="padding: 5px;background-color:#fff;"><img src= "image/model.png" alt="MaxKB4j model"   /></td>
   </tr>
  <tr>
@@ -109,8 +98,8 @@ MaxKB4j 自发布以来，日均安装下载超过 1000 次，被广泛应用于
 
 Copyright (c) 2025-2035 洛阳泰山 TARZAN, All rights reserved.
 
-Licensed under The GNU General Public License version 3 (GPLv3)  (the "License");  you may not use this file except in compliance with the License. You may obtain a copy of the License at
+根据GNU通用公共许可证版本3 (GPLv3)（“许可证”）进行许可；除非遵守许可，否则您不得使用此项目文件。您可以从以下网址获得许可证的副本
 
-<http://www.apache.org/licenses>
+<https://www.gnu.org/licenses/gpl-3.0.html>
 
-Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
+除非适用法律要求或经书面同意，依据本许可分发的软件均按“原样”提供，不附带任何形式的明示或暗示的担保或条件。有关许可下具体权限和限制的条款，请参见本许可协议。
