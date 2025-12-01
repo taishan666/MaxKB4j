@@ -44,6 +44,7 @@ public class NodeHandlerBuilder {
         HANDLER_POOL.put(NodeType.VARIABLE_SPLITTING.getKey(), SpringUtil.getBean(VariableSplittingNodeHandler.class));
         HANDLER_POOL.put(NodeType.PARAMETER_EXTRACTION.getKey(), SpringUtil.getBean(ParameterExtractionNodeHandler.class));
         HANDLER_POOL.put(NodeType.USER_SELECT.getKey(), SpringUtil.getBean(UserSelectNodeHandler.class));
+        HANDLER_POOL.put(NodeType.NL2SQL.getKey(), SpringUtil.getBean(NL2SqlNodeHandler.class));
     }
 
     /**

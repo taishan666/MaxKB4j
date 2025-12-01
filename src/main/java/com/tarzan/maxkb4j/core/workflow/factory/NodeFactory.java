@@ -36,6 +36,7 @@ public class NodeFactory {
             case RERANKER -> new RerankerNode(properties);
             case FORM -> new FormNode(properties);
             case MCP -> new McpNode(properties);
+            case NL2SQL -> new NL2SqlNode(properties);
             case INTENT_CLASSIFY -> new IntentClassifyNode(properties);
             case HTTP_CLIENT -> new HttpNode(properties);
             case PARAMETER_EXTRACTION -> new ParameterExtractionNode(properties);
