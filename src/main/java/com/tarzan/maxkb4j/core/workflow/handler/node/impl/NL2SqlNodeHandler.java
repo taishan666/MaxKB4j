@@ -16,8 +16,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import javax.sql.DataSource;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Slf4j
 @AllArgsConstructor
@@ -37,10 +39,47 @@ public class NL2SqlNodeHandler implements INodeHandler {
         List<Content> contents = sqlDatabaseContentRetriever.retrieve(Query.from(question));
         Content content = contents.get(0);
         String text=content.textSegment().text();
-        String sql=text.substring(text.indexOf("'")+1,text.lastIndexOf("':"));
-        String result=text.split(":")[1];
-        System.out.println(content);
-        System.out.println("sql= "+sql);
+        String sql=text.substring(text.indexOf("'")+1,text.indexOf("':\n"));
+        String result=text.substring(text.indexOf("':\n")+3);
+       // String markdown=convertToMarkdown(result);
         return new NodeResult(Map.of("sql",sql,"result",result), Map.of());
     }
+
+    public static String convertToMarkdown(String result) {
+        String[] rows=result.split("\n");
+        StringBuilder markdown = new StringBuilder();
+        String topRow = rows[0];
+        List<String> HEADERS=Arrays.stream(topRow.split(",")).map(String::trim).toList();
+        // 添加表头
+        markdown.append("| ").append(String.join(" | ", HEADERS)).append(" |\n");
+
+        // 添加分隔行
+        markdown.append("|").append(HEADERS.stream().map(h -> " -- ").collect(Collectors.joining("|"))).append("|\n");
+
+        for (int i = 1; i < rows.length; i++) {
+            String line=rows[i];
+            String[] fields = parseCsvLine(line);
+            if (fields.length < HEADERS.size()) {
+                // 如果字段不足，补空字符串
+                fields = Arrays.copyOf(fields, HEADERS.size());
+            }
+
+            markdown.append("| ")
+                    .append(Arrays.stream(fields)
+                            .limit(HEADERS.size())
+                            .collect(Collectors.joining(" | ")))
+                    .append(" |\n");
+        }
+        return markdown.toString();
+    }
+
+    // 简单 CSV 解析（不处理引号内逗号，适用于你当前的数据）
+    private static String[] parseCsvLine(String line) {
+        // 去掉末尾可能多余的逗号（如你数据最后一列后还有逗号）
+        if (line.endsWith(",")) {
+            line = line.substring(0, line.length() - 1);
+        }
+        return line.split(",", -1); // -1 保留尾部空字段
+    }
+
 }
