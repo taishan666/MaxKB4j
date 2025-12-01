@@ -1,1 +1,0 @@
-import{ei as i,ea as s,eb as r}from"./admin-DcRor5Hd.js";const e="/auth",u=(t,o)=>r(`${e}/${t}/detail`,void 0,o),a=(t,o)=>i(`${e}/connection`,t,void 0,o),p=(t,o,n)=>s(`${e}/${t}/info`,o,void 0,n),g={getAuthSetting:u,postAuthSetting:a,putAuthSetting:p};export{g as a};
