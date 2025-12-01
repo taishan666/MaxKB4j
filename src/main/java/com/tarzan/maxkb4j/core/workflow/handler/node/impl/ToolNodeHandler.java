@@ -15,7 +15,6 @@ import java.util.Map;
 
 @Component
 public class ToolNodeHandler implements INodeHandler {
-
     @Override
     public NodeResult execute(Workflow workflow, INode node) throws Exception {
         ToolNode.NodeParams nodeParams = node.getNodeData().toJavaObject(ToolNode.NodeParams.class);
@@ -26,7 +25,7 @@ public class ToolNodeHandler implements INodeHandler {
                 params.put(inputField.getName(), value);
             }
         }
-        GroovyScriptExecutor scriptExecutor=new GroovyScriptExecutor(nodeParams.getCode(), Map.of());
+        GroovyScriptExecutor scriptExecutor=new GroovyScriptExecutor(nodeParams.getCode(), nodeParams.getInitParams());
         // 执行脚本并返回结果
         Object result = scriptExecutor.execute(params);
         node.getDetail().put("params", params);

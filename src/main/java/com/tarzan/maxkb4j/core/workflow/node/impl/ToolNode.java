@@ -1,8 +1,8 @@
 package com.tarzan.maxkb4j.core.workflow.node.impl;
 
 import com.alibaba.fastjson.JSONObject;
-import com.tarzan.maxkb4j.core.workflow.node.INode;
 import com.tarzan.maxkb4j.core.workflow.model.Workflow;
+import com.tarzan.maxkb4j.core.workflow.node.INode;
 import com.tarzan.maxkb4j.module.tool.domain.dto.ToolInputField;
 import lombok.Data;
 
@@ -27,5 +27,6 @@ public class ToolNode extends INode {
     public static class NodeParams {
         private List<ToolInputField> inputFieldList;
         private String code;
+        private Map<String,Object> initParams;
     }
 }
