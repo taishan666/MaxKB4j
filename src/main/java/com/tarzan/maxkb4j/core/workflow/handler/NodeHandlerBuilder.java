@@ -37,7 +37,7 @@ public class NodeHandlerBuilder {
         HANDLER_POOL.put(NodeType.SPEECH_TO_TEXT.getKey(), SpringUtil.getBean(SpeechToTextNodeHandler.class));
         HANDLER_POOL.put(NodeType.START.getKey(), SpringUtil.getBean(StartNodeHandler.class));
         HANDLER_POOL.put(NodeType.TEXT_TO_SPEECH.getKey(), SpringUtil.getBean(TextToSpeechNodeHandler.class));
-        HANDLER_POOL.put(NodeType.TOOL_LIB.getKey(), SpringUtil.getBean(ToolLibNodeHandler.class));
+        HANDLER_POOL.put(NodeType.TOOL_LIB.getKey(), SpringUtil.getBean(ToolNodeHandler.class));
         HANDLER_POOL.put(NodeType.TOOL.getKey(), SpringUtil.getBean(ToolNodeHandler.class));
         HANDLER_POOL.put(NodeType.VARIABLE_ASSIGN.getKey(), SpringUtil.getBean(VariableAssignNodeHandler.class));
         HANDLER_POOL.put(NodeType.VARIABLE_AGGREGATE.getKey(), SpringUtil.getBean(VariableAggregationNodeHandler.class));

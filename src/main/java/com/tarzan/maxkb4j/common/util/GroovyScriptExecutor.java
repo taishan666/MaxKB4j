@@ -34,7 +34,9 @@ public class GroovyScriptExecutor implements ToolExecutor {
     public String execute(Map<String, Object> params) {
         Object result="";
         if(StringUtils.isNotBlank(code)){
-            params.putAll(initParams);
+            if (initParams!=null){
+                params.putAll(initParams);
+            }
             Binding binding = new Binding(params);
             // 创建 GroovyShell 并执行脚本
             GroovyShell shell = new GroovyShell(binding);
