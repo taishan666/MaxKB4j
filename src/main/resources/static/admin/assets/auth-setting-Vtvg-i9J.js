@@ -1,1 +1,0 @@
-import{ej as i,eb as s,ec as r}from"./admin-dLm56Amu.js";const e="/auth",u=(t,o)=>r(`${e}/${t}/detail`,void 0,o),a=(t,o)=>i(`${e}/connection`,t,void 0,o),c=(t,o,n)=>s(`${e}/${t}/info`,o,void 0,n),g={getAuthSetting:u,postAuthSetting:a,putAuthSetting:c};export{g as a};

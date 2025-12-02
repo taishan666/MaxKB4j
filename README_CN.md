@@ -67,11 +67,11 @@ docker-compose up -d
 
 ## 技术栈
 
-- 前端：[Vue.js](https://cn.vuejs.org/)
-- 后端：[Java17 / Springboot3](https://www.djangoproject.com/)
+- 前端：[Vue3](https://cn.vuejs.org/)/[nodejs:V20.16.0](https://nodejs.org/en)
+- 后端：[Java17](https://www.java.com/zh-CN/)/[Springboot3](https://spring.io/projects/spring-boot)
 - 缓存：[caffeine](https://github.com/ben-manes/caffeine)
 - LangChain4j：[LangChain4j](https://docs.langchain4j.dev/)
-- 向量数据库：[PostgreSQL / pgvector](https://www.postgresql.org/)
+- 向量数据库：[PostgreSQL15 / pgvector](https://www.postgresql.org/)
 - 全文检索数据库：[MongoDB](https://www.mongodb.com/)
 - 用户鉴权：[sa-token](https://sa-token.dev33.cn/)
 

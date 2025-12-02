@@ -31,6 +31,8 @@ public enum NodeType {
 
     MCP("mcp-node", "MCP节点"),
 
+    NL2SQL("nl2sql-node", "自然语言转SQL节点"),
+
     INTENT_CLASSIFY("intent-node", "意图分类"),
 
     RERANKER("reranker-node", "多路召回"),
@@ -56,10 +58,6 @@ public enum NodeType {
     TOOL_LIB("tool-lib-node", "工具库节点"),
 
     HTTP_CLIENT("http-node", "HTTP请求节点"),
-
-    FUNCTION_LIB("function-lib-node", "函数库节点"),
-
-    API("api-node", "api调用"),
 
     AI_CHAT("ai-chat-node", "智能聊天节点"),
 
