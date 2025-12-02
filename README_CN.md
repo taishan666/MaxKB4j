@@ -96,41 +96,8 @@ docker-compose up -d
 ---
 
 ## 📸 UI 展示
+<img src= "image/maxkb4j.gif" alt="MaxKB4j team"   />
 
-<table style="border-collapse: collapse; border: 1px solid black;">
-  <tr>
-    <td style="padding: 5px;background-color:#fff;"><img src= "image/app.png" alt="MaxKB4j app"   /></td>
-    <td style="padding: 5px;background-color:#fff;"><img src= "image/dataset.png" alt="MaxKB4j dataset"   /></td>
-  </tr>
-  <tr>
-    <td style="padding: 5px;background-color:#fff;"><img src= "image/tool.png" alt="MaxKB4j function"   /></td>
-    <td style="padding: 5px;background-color:#fff;"><img src= "image/mcp.png" alt="MaxKB4j dataset_setting"   /></td>
-  </tr>
- <tr>
-    <td style="padding: 5px;background-color:#fff;"><img src= "image/app_overview.png" alt="MaxKB4j app_overview"   /></td>
-    <td style="padding: 5px;background-color:#fff;"><img src= "image/app_logs.png" alt="MaxKB4j app_logs"   /></td>
-  </tr>
- <tr>
-    <td style="padding: 5px;background-color:#fff;"><img src= "image/app_flow.png" alt="MaxKB4j app_flow"   /></td>
-    <td style="padding: 5px;background-color:#fff;"><img src= "image/app_simple.png" alt="MaxKB4j app_simple"   /></td>
-  </tr>
- <tr>
-    <td style="padding: 5px;background-color:#fff;"><img src= "image/doc.png" alt="MaxKB4j doc"   /></td>
-    <td style="padding: 5px;background-color:#fff;"><img src= "image/doc_upload.png" alt="MaxKB4j doc_upload"   /></td>
-  </tr>
- <tr>
-    <td style="padding: 5px;background-color:#fff;"><img src= "image/hitTest.png" alt="MaxKB4j hitTest"   /></td>
-    <td style="padding: 5px;background-color:#fff;"><img src= "image/problem.png" alt="MaxKB4j problem"   /></td>
-  </tr>
- <tr>
-    <td style="padding: 5px;background-color:#fff;"><img src= "image/user_resources.png" alt="MaxKB4j team"   /></td>
-    <td style="padding: 5px;background-color:#fff;"><img src= "image/model.png" alt="MaxKB4j model"   /></td>
-  </tr>
- <tr>
-    <td style="padding: 5px;background-color:#fff;"><img src= "image/user.png" alt="MaxKB4j user"   /></td>
-    <td style="padding: 5px;background-color:#fff;"><img src= "image/email.png" alt="MaxKB4j email"   /></td>
-  </tr>
-</table>
 > 更多界面请参考项目 Wiki 或实际部署体验。
 
 ---
