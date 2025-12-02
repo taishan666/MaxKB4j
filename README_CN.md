@@ -68,7 +68,7 @@ docker-compose up -d
 ```
 
 ### 4. 访问 Web 界面
-- 地址：http://localhost:8080/login
+- 地址：http://localhost:8080/admin/login
 - 默认账号：`admin`
 - 默认密码：`tarzan@123456`
 
