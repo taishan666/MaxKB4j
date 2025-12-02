@@ -57,11 +57,8 @@
 
 ### 2. 启动服务
 ```bash
-# 下载最新 release
-wget https://gitee.com/taisan/MaxKB4j/releases/download/v1.0.0/maxkb4j-1.0.0.jar
-
 # 启动应用
-java -jar maxkb4j-1.0.0.jar
+java -jar MaxKB4j.jar
 ```
 
 ### 3. Docker 部署（推荐）
