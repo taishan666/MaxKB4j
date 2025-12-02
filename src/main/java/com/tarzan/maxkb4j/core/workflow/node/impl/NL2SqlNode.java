@@ -25,6 +25,8 @@ public class NL2SqlNode extends INode {
     public static class NodeParams {
         private String modelId;
         private JSONObject modelParamsSetting;
+        private String dialogueType;
+        private int dialogueNumber;
         private DatabaseSetting databaseSetting;
         private List<String> questionReferenceAddress;
     }

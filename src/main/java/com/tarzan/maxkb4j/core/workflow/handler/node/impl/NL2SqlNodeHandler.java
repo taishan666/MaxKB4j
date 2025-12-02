@@ -2,12 +2,14 @@ package com.tarzan.maxkb4j.core.workflow.handler.node.impl;
 
 import com.tarzan.maxkb4j.common.util.DatabaseUtil;
 import com.tarzan.maxkb4j.core.assistant.NL2SqlAssistant;
+import com.tarzan.maxkb4j.core.langchain4j.AppChatMemory;
 import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;
 import com.tarzan.maxkb4j.core.workflow.model.Workflow;
 import com.tarzan.maxkb4j.core.workflow.node.INode;
 import com.tarzan.maxkb4j.core.workflow.node.impl.NL2SqlNode;
 import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
 import com.tarzan.maxkb4j.module.model.info.service.ModelFactory;
+import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.output.TokenUsage;
 import dev.langchain4j.service.AiServices;
@@ -36,7 +38,8 @@ public class NL2SqlNodeHandler implements INodeHandler {
         DataSource dataSource = DatabaseUtil.getDataSource(databaseSetting.getType(), databaseSetting.getHost(), databaseSetting.getPort(), databaseSetting.getUsername(), databaseSetting.getPassword(), databaseSetting.getDatabase());
         String sqlDialect=DatabaseUtil.getSqlDialect(dataSource);
         String databaseStructure=DatabaseUtil.generateDDL(dataSource);
-        NL2SqlAssistant  assistant= AiServices.builder(NL2SqlAssistant.class).chatModel(chatModel).build();
+        List<ChatMessage> historyMessages = workflow.getHistoryMessages(nodeParams.getDialogueNumber(), nodeParams.getDialogueType(), node.getRuntimeNodeId());
+        NL2SqlAssistant  assistant= AiServices.builder(NL2SqlAssistant.class).chatModel(chatModel).chatMemory(AppChatMemory.withMessages(historyMessages)).build();
         Result<String> result=assistant.generateSqlQuery(sqlDialect,databaseStructure,question);
         String sql=DatabaseUtil.cleanSql(result.content());
         String sqlResult=DatabaseUtil.executeSqlQuery(result.content(),dataSource);

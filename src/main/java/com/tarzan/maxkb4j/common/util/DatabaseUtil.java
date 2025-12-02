@@ -54,7 +54,6 @@ public class DatabaseUtil {
         } catch (SQLException e) {
             throw new RuntimeException("Failed to generate DDL from DataSource", e);
         }
-
         return ddl.toString();
     }
 
@@ -139,7 +138,6 @@ public class DatabaseUtil {
 
     private static String generateCreateTableStatement(String tableName, DatabaseMetaData metaData) {
         StringBuilder createTableStatement = new StringBuilder();
-
         try {
             ResultSet columns = metaData.getColumns(null, null, tableName, null);
             ResultSet pk = metaData.getPrimaryKeys(null, null, tableName);
@@ -148,9 +146,7 @@ public class DatabaseUtil {
             if (pk.next()) {
                 primaryKeyColumn = pk.getString("COLUMN_NAME");
             }
-
             createTableStatement.append("CREATE TABLE ").append(tableName).append(" (\n");
-
             String columnName;
             String tableComment;
             while(columns.next()) {
@@ -164,24 +160,20 @@ public class DatabaseUtil {
                 if (columnName.equals(primaryKeyColumn)) {
                     createTableStatement.append(" PRIMARY KEY");
                 }
-
                 createTableStatement.append(",\n");
                 if (comment != null && !comment.isEmpty()) {
                     createTableStatement.append("  COMMENT ON COLUMN ").append(tableName).append(".").append(columnName).append(" IS '").append(comment).append("',\n");
                 }
             }
-
             while(fks.next()) {
                 columnName = fks.getString("FKCOLUMN_NAME");
                 tableComment = fks.getString("PKTABLE_NAME");
                 String pkColumnName = fks.getString("PKCOLUMN_NAME");
                 createTableStatement.append("  FOREIGN KEY (").append(columnName).append(") REFERENCES ").append(tableComment).append("(").append(pkColumnName).append("),\n");
             }
-
             if (createTableStatement.charAt(createTableStatement.length() - 2) == ',') {
                 createTableStatement.delete(createTableStatement.length() - 2, createTableStatement.length());
             }
-
             createTableStatement.append(");\n");
             ResultSet tableRemarks = metaData.getTables(null, null, tableName, null);
             if (tableRemarks.next()) {
