@@ -61,13 +61,19 @@
 java -jar MaxKB4j.jar
 ```
 
-### 3. Docker 部署（推荐）
+### 3. 基于Docker 部署
+```yaml
+docker run --name maxkb4j -d --restart always -p 8080:8080 -e SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/MaxKB4j -e SPRING_DATASOURCE_USERNAME=postgres   -e SPRING_DATASOURCE_PASSWORD=123456  -e SPRING_DATA_MONGODB_URI=mongodb://admin:123456@localhost:27017/MaxKB4j?authSource=admin  registry.cn-hangzhou.aliyuncs.com/tarzanx/maxkb4j:2.0
+```
+其中，`-p 8080:8080` 中的第一个 8080 是宿主机的端口，`-e SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/MaxKB4j -e SPRING_DATASOURCE_USERNAME=postgres   -e SPRING_DATASOURCE_PASSWORD=123456` 是PostgreSQL数据库的连接配置参数，`-e SPRING_DATA_MONGODB_URI=mongodb://admin:123456@localhost:27017/MaxKB4j?authSource=admin`是MongoDB的连接配置参数， 可以根据需要进行修改。
+
+### 4. Docker-Compose 部署（推荐）
 ```yaml
 # docker-compose.yml 示例见项目根目录
 docker-compose up -d
 ```
 
-### 4. 访问 Web 界面
+### 5. 访问 Web 界面
 - 地址：http://localhost:8080/admin/login
 - 默认账号：`admin`
 - 默认密码：`tarzan@123456`
