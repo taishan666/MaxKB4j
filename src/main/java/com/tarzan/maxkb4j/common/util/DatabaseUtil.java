@@ -2,9 +2,17 @@ package com.tarzan.maxkb4j.common.util;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import lombok.extern.slf4j.Slf4j;
+import net.sf.jsqlparser.JSQLParserException;
+import net.sf.jsqlparser.parser.CCJSqlParserUtil;
+import net.sf.jsqlparser.statement.select.Select;
 
 import javax.sql.DataSource;
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
+@Slf4j
 public class DatabaseUtil {
 
     public static DataSource getDataSource(String databaseType, String host, Integer port, String username, String password,String databaseName) {
@@ -20,6 +28,173 @@ public class DatabaseUtil {
         config.setMaxLifetime(1800000);
         config.setConnectionTimeout(30000);
         return new HikariDataSource(config);
+    }
+
+    public static String getSqlDialect(DataSource dataSource) {
+        try (Connection connection = dataSource.getConnection()) {
+            DatabaseMetaData metaData = connection.getMetaData();
+            return metaData.getDatabaseProductName();
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to retrieve database product name", e);
+        }
+    }
+
+    public static String generateDDL(DataSource dataSource) {
+        StringBuilder ddl = new StringBuilder();
+        try (Connection connection = dataSource.getConnection()) {
+            DatabaseMetaData metaData = connection.getMetaData();
+            // 使用 try-with-resources 自动关闭 ResultSet
+            try (ResultSet tables = metaData.getTables(null, null, "%", new String[]{"TABLE"})) {
+                while (tables.next()) {
+                    String tableName = tables.getString("TABLE_NAME");
+                    String createTableStatement = generateCreateTableStatement(tableName, metaData);
+                    ddl.append(createTableStatement).append("\n");
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to generate DDL from DataSource", e);
+        }
+
+        return ddl.toString();
+    }
+
+    public static String executeSqlQuery(String sqlQuery,DataSource dataSource) {
+        // 只允许 SELECT 查询
+        if (!isSelect(sqlQuery)) {
+            // 可选：记录警告日志
+            return "";
+        }
+        // 验证 SQL（如防止注入等）
+        validate(sqlQuery);
+        // 使用 try-with-resources 自动管理资源
+        try (Connection connection = dataSource.getConnection(); Statement statement = connection.createStatement()) {
+            return execute(sqlQuery, statement);
+        } catch (SQLException e) {
+            log.error("Failed to execute SQL query", e);
+        }
+        return "";
+    }
+
+    protected static void validate(String sqlQuery) {
+        if (!sqlQuery.startsWith("SELECT")){
+            throw new IllegalArgumentException("SQL query must start");
+        }
+    }
+
+
+    protected static boolean isSelect(String sqlQuery) {
+        try {
+            net.sf.jsqlparser.statement.Statement statement = CCJSqlParserUtil.parse(sqlQuery);
+            return statement instanceof Select;
+        } catch (JSQLParserException e) {
+            return false;
+        }
+    }
+
+    private static String execute(String sqlQuery, Statement statement) throws SQLException {
+        List<String> resultRows = new ArrayList<>();
+        ResultSet resultSet = statement.executeQuery(sqlQuery);
+        try {
+            int columnCount = resultSet.getMetaData().getColumnCount();
+            List<String> columnNames = new ArrayList<>();
+
+            for(int i = 1; i <= columnCount; ++i) {
+                columnNames.add(resultSet.getMetaData().getColumnName(i));
+            }
+
+            resultRows.add(String.join(",", columnNames));
+
+            while(resultSet.next()) {
+                List<String> columnValues = new ArrayList<>();
+                for(int i = 1; i <= columnCount; ++i) {
+                    String columnValue = resultSet.getObject(i) == null ? "" : resultSet.getObject(i).toString();
+                    if (columnValue.contains(",")) {
+                        columnValue = "\"" + columnValue + "\"";
+                    }
+                    columnValues.add(columnValue);
+                }
+                resultRows.add(String.join(",", columnValues));
+            }
+        } catch (Throwable var11) {
+            if (resultSet != null) {
+                try {
+                    resultSet.close();
+                } catch (Throwable var10) {
+                    var11.addSuppressed(var10);
+                }
+            }
+            throw var11;
+        }
+        resultSet.close();
+        return String.join("\n", resultRows);
+    }
+
+    public static String cleanSql(String sqlQuery) {
+        if (sqlQuery.contains("```sql")) {
+            return sqlQuery.substring(sqlQuery.indexOf("```sql") + 6, sqlQuery.lastIndexOf("```"));
+        } else {
+            return sqlQuery.contains("```") ? sqlQuery.substring(sqlQuery.indexOf("```") + 3, sqlQuery.lastIndexOf("```")) : sqlQuery;
+        }
+    }
+
+    private static String generateCreateTableStatement(String tableName, DatabaseMetaData metaData) {
+        StringBuilder createTableStatement = new StringBuilder();
+
+        try {
+            ResultSet columns = metaData.getColumns(null, null, tableName, null);
+            ResultSet pk = metaData.getPrimaryKeys(null, null, tableName);
+            ResultSet fks = metaData.getImportedKeys(null, null, tableName);
+            String primaryKeyColumn = "";
+            if (pk.next()) {
+                primaryKeyColumn = pk.getString("COLUMN_NAME");
+            }
+
+            createTableStatement.append("CREATE TABLE ").append(tableName).append(" (\n");
+
+            String columnName;
+            String tableComment;
+            while(columns.next()) {
+                columnName = columns.getString("COLUMN_NAME");
+                tableComment = columns.getString("TYPE_NAME");
+                int size = columns.getInt("COLUMN_SIZE");
+                String nullable = columns.getString("IS_NULLABLE").equals("YES") ? " NULL" : " NOT NULL";
+                String columnDef = columns.getString("COLUMN_DEF") != null ? " DEFAULT " + columns.getString("COLUMN_DEF") : "";
+                String comment = columns.getString("REMARKS");
+                createTableStatement.append("  ").append(columnName).append(" ").append(tableComment).append("(").append(size).append(")").append(nullable).append(columnDef);
+                if (columnName.equals(primaryKeyColumn)) {
+                    createTableStatement.append(" PRIMARY KEY");
+                }
+
+                createTableStatement.append(",\n");
+                if (comment != null && !comment.isEmpty()) {
+                    createTableStatement.append("  COMMENT ON COLUMN ").append(tableName).append(".").append(columnName).append(" IS '").append(comment).append("',\n");
+                }
+            }
+
+            while(fks.next()) {
+                columnName = fks.getString("FKCOLUMN_NAME");
+                tableComment = fks.getString("PKTABLE_NAME");
+                String pkColumnName = fks.getString("PKCOLUMN_NAME");
+                createTableStatement.append("  FOREIGN KEY (").append(columnName).append(") REFERENCES ").append(tableComment).append("(").append(pkColumnName).append("),\n");
+            }
+
+            if (createTableStatement.charAt(createTableStatement.length() - 2) == ',') {
+                createTableStatement.delete(createTableStatement.length() - 2, createTableStatement.length());
+            }
+
+            createTableStatement.append(");\n");
+            ResultSet tableRemarks = metaData.getTables(null, null, tableName, null);
+            if (tableRemarks.next()) {
+                tableComment = tableRemarks.getString("REMARKS");
+                if (tableComment != null && !tableComment.isEmpty()) {
+                    createTableStatement.append("COMMENT ON TABLE ").append(tableName).append(" IS '").append(tableComment).append("';\n");
+                }
+            }
+        } catch (SQLException var13) {
+            throw new RuntimeException(var13);
+        }
+
+        return createTableStatement.toString();
     }
 
     private static String buildJdbcUrl(String databaseType, String host, int port, String databaseName) {
