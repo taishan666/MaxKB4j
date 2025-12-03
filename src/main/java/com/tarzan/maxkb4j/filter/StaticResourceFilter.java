@@ -32,7 +32,5 @@ public class StaticResourceFilter implements Filter {
         } else {
             chain.doFilter(request, response);
         }
-
-
     }
 }

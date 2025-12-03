@@ -35,7 +35,7 @@ public class AuthController {
 	public R<JSONObject> getProfile(){
 		JSONObject json=new JSONObject();
 		json.put("edition","CE");
-		json.put("VERSION","v2.0.1 (build at 2025-07-18T15:28, commit: 6e16c74)");
+		json.put("version","v2.0.1 (build at 2025-07-18T15:28, commit: 6e16c74)");
 	    json.put("license_is_valid",false);
 		return R.data(json);
 	}

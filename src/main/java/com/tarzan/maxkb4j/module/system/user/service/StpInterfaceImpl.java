@@ -39,7 +39,6 @@ public class StpInterfaceImpl implements StpInterface {
                 permissions.add(operate);
             });
         }
-        // permissions.add("x-pack");
         return permissions;
     }
 
