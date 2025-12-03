@@ -43,8 +43,8 @@ public class GeminiModelProvider extends IModelProvider {
         modelInfos.add(new ModelInfo("models/embedding-001","",ModelType.EMBEDDING));
         modelInfos.add(new ModelInfo("gemini-1.5-flash","",ModelType.STT));
         modelInfos.add(new ModelInfo("gemini-1.5-pro","",ModelType.STT));
-        modelInfos.add(new ModelInfo("gemini-1.5-flash","",ModelType.IMAGE_UNDERSTANDING));
-        modelInfos.add(new ModelInfo("gemini-1.5-pro","",ModelType.IMAGE_UNDERSTANDING));
+        modelInfos.add(new ModelInfo("gemini-1.5-flash","",ModelType.VISION));
+        modelInfos.add(new ModelInfo("gemini-1.5-pro","",ModelType.VISION));
         return modelInfos;
     }
 

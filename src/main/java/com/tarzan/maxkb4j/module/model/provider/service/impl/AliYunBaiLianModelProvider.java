@@ -52,8 +52,8 @@ public class AliYunBaiLianModelProvider extends IModelProvider {
         modelInfos.add(new ModelInfo("cosyvoice-v2","语音生成模型", ModelType.TTS,CosyVoiceTTS.class,new CosyVoiceV2TTSParams()));
         modelInfos.add(new ModelInfo("sambert-v1","语音生成模型", ModelType.TTS,SamBertTTS.class,new SamBertTTSParams()));
         modelInfos.add(new ModelInfo("qwen-tts","语音生成模型", ModelType.TTS,QWenTTS.class,new QWenTTSParams()));
-        modelInfos.add(new ModelInfo(QwenModelName.QWEN_VL_PLUS,"AI视觉模型", ModelType.IMAGE_UNDERSTANDING, new LlmModelParams()));
-        modelInfos.add(new ModelInfo(QwenModelName.QWEN_VL_MAX,"AI视觉模型", ModelType.IMAGE_UNDERSTANDING, new LlmModelParams()));
+        modelInfos.add(new ModelInfo(QwenModelName.QWEN_VL_PLUS,"AI视觉模型", ModelType.VISION, new LlmModelParams()));
+        modelInfos.add(new ModelInfo(QwenModelName.QWEN_VL_MAX,"AI视觉模型", ModelType.VISION, new LlmModelParams()));
         modelInfos.add(new ModelInfo(WanxModelName.WANX2_1_T2I_TURBO,"文生图模型", ModelType.TTI,WanXImageModel.class,new WanXImageModelParams()));
         modelInfos.add(new ModelInfo(WanxModelName.WANX2_1_T2I_PLUS,"文生图模型", ModelType.TTI,WanXImageModel.class,new WanXImageModelParams()));
         modelInfos.add(new ModelInfo("qwen-image-plus","文生图模型", ModelType.TTI,WanXImageModel.class,new QwenImageModelParams()));

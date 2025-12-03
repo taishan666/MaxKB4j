@@ -43,8 +43,9 @@ public class DatabaseUtil {
         StringBuilder ddl = new StringBuilder();
         try (Connection connection = dataSource.getConnection()) {
             DatabaseMetaData metaData = connection.getMetaData();
+            String catalog = connection.getCatalog();
             // 使用 try-with-resources 自动关闭 ResultSet
-            try (ResultSet tables = metaData.getTables(null, null, "%", new String[]{"TABLE"})) {
+            try (ResultSet tables = metaData.getTables(catalog, null, "%", new String[]{"TABLE"})) {
                 while (tables.next()) {
                     String tableName = tables.getString("TABLE_NAME");
                     String createTableStatement = generateCreateTableStatement(tableName, metaData);
@@ -146,42 +147,40 @@ public class DatabaseUtil {
             if (pk.next()) {
                 primaryKeyColumn = pk.getString("COLUMN_NAME");
             }
-            createTableStatement.append("CREATE TABLE ").append(tableName).append(" (\n");
+            createTableStatement.append("TABLE ").append(tableName);
+            ResultSet tableRemarks = metaData.getTables(null, null, tableName, null);
+            if (tableRemarks.next()) {
+                String tableComment = tableRemarks.getString("REMARKS");
+                if (tableComment != null && !tableComment.isEmpty()) {
+                    createTableStatement.append("(").append(tableComment).append(")");
+                }
+            }
+            createTableStatement.append(" {\n");
             String columnName;
-            String tableComment;
+            String columnComment;
             while(columns.next()) {
                 columnName = columns.getString("COLUMN_NAME");
-                tableComment = columns.getString("TYPE_NAME");
-                int size = columns.getInt("COLUMN_SIZE");
-                String nullable = columns.getString("IS_NULLABLE").equals("YES") ? " NULL" : " NOT NULL";
-                String columnDef = columns.getString("COLUMN_DEF") != null ? " DEFAULT " + columns.getString("COLUMN_DEF") : "";
+                columnComment = columns.getString("TYPE_NAME");
                 String comment = columns.getString("REMARKS");
-                createTableStatement.append("  ").append(columnName).append(" ").append(tableComment).append("(").append(size).append(")").append(nullable).append(columnDef);
+                createTableStatement.append("  ").append(columnName).append(" ").append(columnComment);
                 if (columnName.equals(primaryKeyColumn)) {
                     createTableStatement.append(" PRIMARY KEY");
                 }
-                createTableStatement.append(",\n");
                 if (comment != null && !comment.isEmpty()) {
-                    createTableStatement.append("  COMMENT ON COLUMN ").append(tableName).append(".").append(columnName).append(" IS '").append(comment).append("',\n");
+                    createTableStatement.append("  COMMENT ").append(comment);
                 }
+                createTableStatement.append(",\n");
             }
             while(fks.next()) {
                 columnName = fks.getString("FKCOLUMN_NAME");
-                tableComment = fks.getString("PKTABLE_NAME");
+                columnComment = fks.getString("PKTABLE_NAME");
                 String pkColumnName = fks.getString("PKCOLUMN_NAME");
-                createTableStatement.append("  FOREIGN KEY (").append(columnName).append(") REFERENCES ").append(tableComment).append("(").append(pkColumnName).append("),\n");
+                createTableStatement.append("  FOREIGN KEY (").append(columnName).append(") REFERENCES ").append(columnComment).append("(").append(pkColumnName).append("),\n");
             }
             if (createTableStatement.charAt(createTableStatement.length() - 2) == ',') {
                 createTableStatement.delete(createTableStatement.length() - 2, createTableStatement.length());
             }
-            createTableStatement.append(");\n");
-            ResultSet tableRemarks = metaData.getTables(null, null, tableName, null);
-            if (tableRemarks.next()) {
-                tableComment = tableRemarks.getString("REMARKS");
-                if (tableComment != null && !tableComment.isEmpty()) {
-                    createTableStatement.append("COMMENT ON TABLE ").append(tableName).append(" IS '").append(tableComment).append("';\n");
-                }
-            }
+            createTableStatement.append("\n}\n");
         } catch (SQLException var13) {
             throw new RuntimeException(var13);
         }

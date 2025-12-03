@@ -43,8 +43,8 @@ public class OLlamaModelProvider extends IModelProvider {
         modelInfos.add(new ModelInfo("llama3:8b","", ModelType.LLM, new LlmModelParams()));
         modelInfos.add(new ModelInfo("deepseek-r1:8b","", ModelType.LLM,new LlmModelParams()));
         modelInfos.add(new ModelInfo("nomic-embed-text","", ModelType.EMBEDDING));
-        modelInfos.add(new ModelInfo("llava:7b","", ModelType.IMAGE_UNDERSTANDING, new LlmModelParams()));
-        modelInfos.add(new ModelInfo("llava:13b","", ModelType.IMAGE_UNDERSTANDING,new LlmModelParams()));
+        modelInfos.add(new ModelInfo("llava:7b","", ModelType.VISION, new LlmModelParams()));
+        modelInfos.add(new ModelInfo("llava:13b","", ModelType.VISION,new LlmModelParams()));
         return modelInfos;
     }
 

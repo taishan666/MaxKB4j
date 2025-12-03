@@ -33,8 +33,8 @@ public class XfModelProvider  extends IModelProvider {
         modelInfos.add(new ModelInfo("glm-4","", ModelType.LLM));
         modelInfos.add(new ModelInfo("glm-4v","",ModelType.LLM));
         modelInfos.add(new ModelInfo("glm-3-turbo","",ModelType.LLM));
-        modelInfos.add(new ModelInfo("glm-4v-plus","",ModelType.IMAGE_UNDERSTANDING));
-        modelInfos.add(new ModelInfo("glm-4v-flash","",ModelType.IMAGE_UNDERSTANDING));
+        modelInfos.add(new ModelInfo("glm-4v-plus","",ModelType.VISION));
+        modelInfos.add(new ModelInfo("glm-4v-flash","",ModelType.VISION));
         modelInfos.add(new ModelInfo("cogview-3","",ModelType.TTI));
         modelInfos.add(new ModelInfo("cogview-3-plus","",ModelType.TTI));
         return modelInfos;

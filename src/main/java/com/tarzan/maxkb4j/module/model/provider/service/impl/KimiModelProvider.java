@@ -43,9 +43,9 @@ public class KimiModelProvider extends IModelProvider {
         modelInfos.add(new ModelInfo("kimi-k2-turbo-preview","",ModelType.LLM,new LlmModelParams()));
         modelInfos.add(new ModelInfo("kimi-k2-thinking","",ModelType.LLM,new LlmModelParams()));
         modelInfos.add(new ModelInfo("kimi-k2-thinking-turbo","",ModelType.LLM,new LlmModelParams()));
-        modelInfos.add(new ModelInfo("moonshot-v1-8k-vision-preview","",ModelType.IMAGE_UNDERSTANDING,new LlmModelParams()));
-        modelInfos.add(new ModelInfo("moonshot-v1-32k-vision-preview","",ModelType.IMAGE_UNDERSTANDING,new LlmModelParams()));
-        modelInfos.add(new ModelInfo("moonshot-v1-128k-vision-preview","",ModelType.IMAGE_UNDERSTANDING,new LlmModelParams()));
+        modelInfos.add(new ModelInfo("moonshot-v1-8k-vision-preview","",ModelType.VISION,new LlmModelParams()));
+        modelInfos.add(new ModelInfo("moonshot-v1-32k-vision-preview","",ModelType.VISION,new LlmModelParams()));
+        modelInfos.add(new ModelInfo("moonshot-v1-128k-vision-preview","",ModelType.VISION,new LlmModelParams()));
         return modelInfos;
     }
 

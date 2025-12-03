@@ -50,7 +50,7 @@ public class OpenaiModelProvider extends IModelProvider {
         modelInfos.add(new ModelInfo("text-embedding-ada-002","",ModelType.EMBEDDING));
         modelInfos.add(new ModelInfo("whisper-1","",ModelType.STT));
         modelInfos.add(new ModelInfo("tts-1","",ModelType.TTS));
-        modelInfos.add(new ModelInfo("gpt-4o","",ModelType.IMAGE_UNDERSTANDING,new LlmModelParams()));
+        modelInfos.add(new ModelInfo("gpt-4o","",ModelType.VISION,new LlmModelParams()));
         modelInfos.add(new ModelInfo("dall-e-2","",ModelType.TTI));
         return modelInfos;
     }

@@ -47,8 +47,8 @@ public class AzureModelProvider  extends IModelProvider {
         modelInfos.add(new ModelInfo("text-embedding-3-large","", ModelType.EMBEDDING));
         modelInfos.add(new ModelInfo("text-embedding-3-small","", ModelType.EMBEDDING));
         modelInfos.add(new ModelInfo("text-embedding-ada-002","", ModelType.EMBEDDING));
-        modelInfos.add(new ModelInfo("gpt-4o","", ModelType.IMAGE_UNDERSTANDING, new LlmModelParams()));
-        modelInfos.add(new ModelInfo("gpt-4o-mini","", ModelType.IMAGE_UNDERSTANDING, new LlmModelParams()));
+        modelInfos.add(new ModelInfo("gpt-4o","", ModelType.VISION, new LlmModelParams()));
+        modelInfos.add(new ModelInfo("gpt-4o-mini","", ModelType.VISION, new LlmModelParams()));
         modelInfos.add(new ModelInfo("dall-e-3","", ModelType.TTI));
         return modelInfos;
     }
