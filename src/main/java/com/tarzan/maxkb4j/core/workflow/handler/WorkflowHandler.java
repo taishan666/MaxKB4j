@@ -9,15 +9,18 @@ import com.tarzan.maxkb4j.core.workflow.result.NodeResultFuture;
 import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class WorkflowHandler {
+
+    private final TaskExecutor chatTaskExecutor;
 
 
     public String execute(Workflow workflow) {
@@ -31,28 +34,27 @@ public class WorkflowHandler {
         return workflow.getAnswer();
     }
 
-    public void runChainNodes(Workflow workflow, List<INode> nodeList) {
-        for (INode node : nodeList) {
-            List<INode> nextNodeList = runChainNode(workflow, node);
-            runChainNodes(workflow, nextNodeList);
-        }
-    }
 
-/*    public void parallelRunChainNodes(Workflow workflow, List<INode> nodeList) {
+    public void runChainNodes(Workflow workflow, List<INode> nodeList) {
         if (nodeList == null || nodeList.isEmpty()) {
             return;
         }
-        List<CompletableFuture<List<INode>>> futureList = new ArrayList<>();
-        for (INode node : nodeList) {
-            futureList.add(CompletableFuture.supplyAsync(() -> runChainNode(workflow, node)));
+        if(nodeList.size()==1){
+            List<INode>  nextNodeList = runChainNode(workflow, nodeList.get(0));
+            runChainNodes(workflow, nextNodeList);
+        }else {
+            List<CompletableFuture<List<INode>>> futureList = new ArrayList<>();
+            for (INode node : nodeList) {
+                futureList.add(CompletableFuture.supplyAsync(() -> runChainNode(workflow, node),chatTaskExecutor));
+            }
+            List<List<INode>> nextNodeLists = futureList.stream()
+                    .map(CompletableFuture::join)
+                    .toList();
+            for (List<INode> nextNodeList : nextNodeLists) {
+                runChainNodes(workflow, nextNodeList);
+            }
         }
-        List<INode> nextNodeList = futureList.stream().flatMap(future -> future.join().stream()).toList();
-        Set<String> seen = new HashSet<>();
-        List<INode> uniqueList = nextNodeList.stream()
-                .filter(e -> seen.add(e.getId()))
-                .toList();
-        runChainNodes(workflow, uniqueList);
-    }*/
+    }
 
 
     public List<INode> runChainNode(Workflow workflow, INode node) {

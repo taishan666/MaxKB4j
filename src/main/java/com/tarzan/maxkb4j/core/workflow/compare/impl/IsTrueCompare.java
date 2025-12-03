@@ -10,6 +10,12 @@ public class IsTrueCompare implements Compare {
 
     @Override
     public boolean compare(Object sourceValue, String targetValue) {
-        return (boolean)sourceValue;
+        if (sourceValue instanceof Boolean) {
+            return  (Boolean) sourceValue;
+        } else if (sourceValue instanceof String) {
+            return Boolean.parseBoolean((String) sourceValue); // 或 Boolean.parseBoolean((String) value)
+        } else {
+            return false;
+        }
     }
 }
