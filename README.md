@@ -3,11 +3,13 @@
 > A ready-to-use, secure, model-agnostic RAG (Retrieval-Augmented Generation) + LLM workflow engine, purpose-built for enterprise-grade intelligent Q&A systems.</br>
 > Widely used in scenarios such as intelligent customer service, internal enterprise knowledge bases, data analysis, academic research, and education.
 
-[![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
-[![Java 17+](https://img.shields.io/badge/Java-17+-green)]()
-[![Spring Boot 3](https://img.shields.io/badge/Spring%20Boot-3.x-brightgreen)]()
-[![Stars](https://gitee.com/taisan/MaxKB4j/badge/star.svg?theme=white)](https://gitee.com/taisan/MaxKB4j)
-[![Forks](https://gitee.com/taisan/MaxKB4j/badge/fork.svg?theme=white)](https://gitee.com/taisan/MaxKB4j)
+<p align="center">
+  <a href="https://www.gnu.org/licenses/gpl-3.0.html#license-text"><img src="https://img.shields.io/badge/License-GPL%20v3-blue" alt="License: GPL v3"></a>
+  <a href=""><img src="https://img.shields.io/badge/Java-17+-green" alt="Java 17+"></a>
+  <a href=""><img src="https://img.shields.io/badge/Spring%20Boot-3.x-brightgreen" alt="Spring Boot 3.x"></a>    
+  <a href=""><img src="https://img.shields.io/badge/Langchain4J-1.x-green" alt="Nodejs"></a><br/>
+ [<a href="/README_CN.md">中文(简体)</a>] | [<a href="/README.md">English</a>] 
+</p>
 
 ## ✨ Core Features
 ### 🔍 Out-of-the-Box Knowledge Base Q&A

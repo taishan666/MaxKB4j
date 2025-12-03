@@ -5,11 +5,15 @@
 > 一个开箱即用、安全可靠、模型中立的 **RAG（检索增强生成）+ LLM 工作流引擎**，专为构建企业级智能问答系统而设计。
 > 广泛应用于 智能客服、企业内部知识库、数据分析、学术研究与教育等场景。
 
-[![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
-[![Java 17+](https://img.shields.io/badge/Java-17+-green)]()
-[![Spring Boot 3](https://img.shields.io/badge/Spring%20Boot-3.x-brightgreen)]()
-[![Stars](https://gitee.com/taisan/MaxKB4j/badge/star.svg?theme=white)](https://gitee.com/taisan/MaxKB4j)
-[![Forks](https://gitee.com/taisan/MaxKB4j/badge/fork.svg?theme=white)](https://gitee.com/taisan/MaxKB4j)
+
+
+<p align="center">
+  <a href="https://www.gnu.org/licenses/gpl-3.0.html#license-text"><img src="https://img.shields.io/badge/License-GPL%20v3-blue" alt="License: GPL v3"></a>
+  <a href=""><img src="https://img.shields.io/badge/Java-17+-green" alt="Java 17+"></a>
+  <a href=""><img src="https://img.shields.io/badge/Spring%20Boot-3.x-brightgreen" alt="Spring Boot 3.x"></a>    
+  <a href=""><img src="https://img.shields.io/badge/Langchain4J-1.x-green" alt="Nodejs"></a><br/>
+ [<a href="/README_CN.md">中文(简体)</a>] | [<a href="/README.md">English</a>] 
+</p>
 
 ---
 
