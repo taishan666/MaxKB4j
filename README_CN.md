@@ -121,7 +121,7 @@ docker-compose up -d
 | ¥500 | 获取 **V2 完整前后端源码**（含最新功能） |
 
 
-> <table style="border-collapse: collapse; border: 1px solid black;">
+<table style="border-collapse: collapse; border: 1px solid black;">
   <tr>
     <th style="padding: 10px;"> <div align="center">支付宝赞赏码</div></th>
     <th style="padding: 10px;"> <div align="center">微信赞赏码</div></th>
