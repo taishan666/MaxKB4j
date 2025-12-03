@@ -2,18 +2,24 @@ package com.tarzan.maxkb4j.module.model.provider.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.common.util.IoUtil;
+import com.tarzan.maxkb4j.module.model.custom.params.impl.LlmModelParams;
+import com.tarzan.maxkb4j.module.model.custom.params.impl.TextEmbeddingV3Params;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelCredential;
 import com.tarzan.maxkb4j.module.model.provider.enums.ModelProviderEnum;
+import com.tarzan.maxkb4j.module.model.provider.enums.ModelType;
 import com.tarzan.maxkb4j.module.model.provider.service.IModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.vo.ModelInfo;
 import com.tarzan.maxkb4j.module.model.provider.vo.ModelProviderInfo;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.StreamingChatModel;
+import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.model.openai.OpenAiChatModel;
+import dev.langchain4j.model.openai.OpenAiEmbeddingModel;
 import dev.langchain4j.model.openai.OpenAiStreamingChatModel;
 import org.springframework.stereotype.Component;
 
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 
 @Component
@@ -36,7 +42,14 @@ public class VolcanicEngineModelProvider extends IModelProvider {
 
     @Override
     public List<ModelInfo> getModelList() {
-        return List.of();
+        List<ModelInfo> modelInfos = new ArrayList<>();
+        modelInfos.add(new ModelInfo("doubao-1-5-pro-32k-250115","大语言模型", ModelType.LLM, new LlmModelParams()));
+        modelInfos.add(new ModelInfo("doubao-seed-1-6-251015","大语言模型", ModelType.LLM, new LlmModelParams()));
+        modelInfos.add(new ModelInfo("doubao-seed-1-6-flash-250828","大语言模型", ModelType.LLM, new LlmModelParams()));
+        modelInfos.add(new ModelInfo("doubao-seed-1-6-thinking-250715","文本向量模型", ModelType.LLM,new LlmModelParams()));
+        modelInfos.add(new ModelInfo("doubao-seed-1-6-vision-250815","图片理解", ModelType.VISION,new LlmModelParams()));
+        modelInfos.add(new ModelInfo("doubao-embedding-text-240715","文本向量模型", ModelType.EMBEDDING,new TextEmbeddingV3Params()));
+        return modelInfos;
     }
 
 
@@ -46,6 +59,7 @@ public class VolcanicEngineModelProvider extends IModelProvider {
                 .baseUrl(BASE_URL)
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
+                .returnThinking(true)
                 .build();
     }
 
@@ -56,6 +70,15 @@ public class VolcanicEngineModelProvider extends IModelProvider {
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
                 .returnThinking(true)
+                .build();
+    }
+
+    @Override
+    public EmbeddingModel buildEmbeddingModel(String modelName, ModelCredential credential, JSONObject params) {
+        return OpenAiEmbeddingModel.builder()
+                .baseUrl(BASE_URL)
+                .apiKey(credential.getApiKey())
+                .modelName(modelName)
                 .build();
     }
 
