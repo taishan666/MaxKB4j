@@ -1,0 +1,1 @@
+import{ek as i,ec as s,ed as r}from"./admin-BK8mZVyy.js";const e="/auth",u=(t,o)=>r(`${e}/${t}/detail`,void 0,o),a=(t,o)=>i(`${e}/connection`,t,void 0,o),c=(t,o,n)=>s(`${e}/${t}/info`,o,void 0,n),d={getAuthSetting:u,postAuthSetting:a,putAuthSetting:c};export{d as a};
