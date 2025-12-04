@@ -63,7 +63,7 @@ public class OpenaiModelProvider extends IModelProvider {
     @Override
     public ChatModel buildChatModel(String modelName, ModelCredential credential, JSONObject params) {
         return OpenAiChatModel.builder()
-                // .baseUrl(credential.getBaseUrl())
+                .baseUrl(credential.getBaseUrl())
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
                 .build();
@@ -72,7 +72,7 @@ public class OpenaiModelProvider extends IModelProvider {
     @Override
     public StreamingChatModel buildStreamingChatModel(String modelName, ModelCredential credential, JSONObject params) {
         return OpenAiStreamingChatModel.builder()
-                // .baseUrl(credential.getBaseUrl())
+                .baseUrl(credential.getBaseUrl())
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
                 .build();
@@ -81,7 +81,7 @@ public class OpenaiModelProvider extends IModelProvider {
     @Override
     public EmbeddingModel buildEmbeddingModel(String modelName, ModelCredential credential, JSONObject params) {
         return  OpenAiEmbeddingModel.builder()
-                //.baseUrl(credential.getBaseUrl())
+                .baseUrl(credential.getBaseUrl())
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
                 .build();
@@ -90,8 +90,10 @@ public class OpenaiModelProvider extends IModelProvider {
     @Override
     public ImageModel buildImageModel(String modelName, ModelCredential credential, JSONObject params) {
         return  OpenAiImageModel.builder()
+                .baseUrl(credential.getBaseUrl())
                 .apiKey(credential.getApiKey())
-                .modelName(modelName).build();
+                .modelName(modelName)
+                .build();
     }
 
 

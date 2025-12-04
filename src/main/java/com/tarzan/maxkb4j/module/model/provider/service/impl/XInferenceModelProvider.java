@@ -93,7 +93,11 @@ public class XInferenceModelProvider extends IModelProvider {
 
     @Override
     public ScoringModel buildScoringModel(String modelName, ModelCredential credential, JSONObject params) {
-        return XinferenceScoringModel.builder().baseUrl(credential.getBaseUrl()).apiKey(credential.getApiKey()).modelName(modelName).build();
+        return XinferenceScoringModel.builder()
+                .baseUrl(credential.getBaseUrl())
+                .apiKey(credential.getApiKey())
+                .modelName(modelName)
+                .build();
     }
 
 

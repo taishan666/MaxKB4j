@@ -17,8 +17,8 @@
 
     <properties>
         <java.version>17</java.version>
-        <langchain4j.version>1.8.0</langchain4j.version>
-        <langchain4j.beta.version>beta15</langchain4j.beta.version>
+        <langchain4j.version>1.9.1</langchain4j.version>
+        <langchain4j.beta.version>1.9.1-beta17</langchain4j.beta.version>
     </properties>
     <dependencies>
         <dependency>
@@ -189,12 +189,6 @@
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-database-postgresql</artifactId>
         </dependency>
-        <!--   <dependency>
-               <groupId>org.springframework.boot</groupId>
-               <artifactId>spring-boot-devtools</artifactId>
-               <scope>runtime</scope>
-               <optional>true</optional>
-           </dependency>-->
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
@@ -219,22 +213,22 @@
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-spring-boot-starter</artifactId>
-            <version>${langchain4j.version}-beta15</version>
+            <version>${langchain4j.beta.version}</version>
         </dependency>
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-experimental-sql</artifactId>
-            <version>${langchain4j.version}-beta15</version>
+            <version>${langchain4j.beta.version}</version>
         </dependency>
-        <dependency>
+   <!--     <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-reactor</artifactId>
-            <version>${langchain4j.version}-beta15</version>
-        </dependency>
+            <version>${langchain4j.beta.version}</version>
+        </dependency>-->
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-embeddings</artifactId>
-            <version>${langchain4j.version}-beta15</version>
+            <version>${langchain4j.beta.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.apache.commons</groupId>
@@ -245,17 +239,12 @@
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-mcp</artifactId>
-            <version>${langchain4j.version}-beta15</version>
+            <version>${langchain4j.beta.version}</version>
         </dependency>
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-azure-ai-search</artifactId>
-            <version>${langchain4j.version}-beta15</version>
-        </dependency>
-        <dependency>
-            <groupId>dev.langchain4j</groupId>
-            <artifactId>langchain4j-open-ai-official</artifactId>
-            <version>${langchain4j.version}-beta15</version>
+            <version>${langchain4j.beta.version}</version>
         </dependency>
         <dependency>
             <groupId>dev.langchain4j</groupId>
@@ -290,24 +279,59 @@
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-community-dashscope</artifactId>
-            <version>${langchain4j.version}-beta15</version>
+            <version>${langchain4j.beta.version}</version>
         </dependency>
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-community-zhipu-ai</artifactId>
-            <version>${langchain4j.version}-beta15</version>
+            <version>${langchain4j.beta.version}</version>
         </dependency>
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-community-qianfan</artifactId>
-            <version>${langchain4j.version}-beta15</version>
+            <version>${langchain4j.beta.version}</version>
         </dependency>
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-community-xinference</artifactId>
-            <version>${langchain4j.version}-beta15</version>
+            <version>${langchain4j.beta.version}</version>
         </dependency>
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-embeddings-all-minilm-l6-v2-q</artifactId>
+            <version>${langchain4j.beta.version}</version>
+        </dependency>
+        <!--        <dependency>
+                    <groupId>dev.langchain4j</groupId>
+                    <artifactId>langchain4j-onnx-scoring</artifactId>
+                    <version>${langchain4j.version}</version>
+                </dependency>-->
        <!--   tika文档解析-->
+        <!--        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-agentic</artifactId>
+            <version>1.9.0-beta16</version>
+        </dependency>-->
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-web-search-engine-google-custom</artifactId>
+            <version>${langchain4j.beta.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-web-search-engine-searchapi</artifactId>
+            <version>${langchain4j.beta.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-community-web-search-engine-searxng</artifactId>
+            <version>${langchain4j.beta.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-web-search-engine-tavily</artifactId>
+            <version>${langchain4j.beta.version}</version>
+        </dependency>
         <dependency>
             <groupId>org.apache.tika</groupId>
             <artifactId>tika-core</artifactId>
@@ -356,44 +380,9 @@
             <version>1.6.2</version>
         </dependency>
         <dependency>
-            <groupId>dev.langchain4j</groupId>
-            <artifactId>langchain4j-embeddings-all-minilm-l6-v2-q</artifactId>
-            <version>${langchain4j.version}-beta15</version>
-        </dependency>
-<!--        <dependency>
-            <groupId>dev.langchain4j</groupId>
-            <artifactId>langchain4j-onnx-scoring</artifactId>
-            <version>${langchain4j.version}</version>
-        </dependency>-->
-        <dependency>
             <groupId>com.mysql</groupId>
             <artifactId>mysql-connector-j</artifactId>
             <version>8.3.0</version>
-        </dependency>
-<!--        <dependency>
-            <groupId>dev.langchain4j</groupId>
-            <artifactId>langchain4j-agentic</artifactId>
-            <version>1.9.0-beta16</version>
-        </dependency>-->
-        <dependency>
-            <groupId>dev.langchain4j</groupId>
-            <artifactId>langchain4j-web-search-engine-google-custom</artifactId>
-            <version>1.9.1-beta17</version>
-        </dependency>
-        <dependency>
-            <groupId>dev.langchain4j</groupId>
-            <artifactId>langchain4j-web-search-engine-searchapi</artifactId>
-            <version>1.9.1-beta17</version>
-        </dependency>
-        <dependency>
-            <groupId>dev.langchain4j</groupId>
-            <artifactId>langchain4j-community-web-search-engine-searxng</artifactId>
-            <version>1.9.1-beta17</version>
-        </dependency>
-        <dependency>
-            <groupId>dev.langchain4j</groupId>
-            <artifactId>langchain4j-web-search-engine-tavily</artifactId>
-            <version>1.9.1-beta17</version>
         </dependency>
     </dependencies>
 
