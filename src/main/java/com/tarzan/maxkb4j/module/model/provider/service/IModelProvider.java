@@ -1,14 +1,14 @@
 package com.tarzan.maxkb4j.module.model.provider.service;
 
 import com.alibaba.fastjson.JSONObject;
+import com.tarzan.maxkb4j.common.util.IoUtil;
 import com.tarzan.maxkb4j.module.model.custom.base.STTModel;
 import com.tarzan.maxkb4j.module.model.custom.base.TTSModel;
-import com.tarzan.maxkb4j.module.model.custom.credential.impl.BaseModelCredential;
+import com.tarzan.maxkb4j.module.model.custom.credential.ModelCredentialForm;
 import com.tarzan.maxkb4j.module.model.custom.model.disabled.DisabledSTTModel;
 import com.tarzan.maxkb4j.module.model.custom.model.disabled.DisabledScoringModel;
 import com.tarzan.maxkb4j.module.model.custom.model.disabled.DisabledTTSModel;
 import com.tarzan.maxkb4j.module.model.custom.params.ModelParams;
-import com.tarzan.maxkb4j.module.model.custom.params.impl.LlmModelParams;
 import com.tarzan.maxkb4j.module.model.custom.params.impl.NoModelParams;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelCredential;
 import com.tarzan.maxkb4j.module.model.provider.enums.ModelType;
@@ -24,6 +24,7 @@ import dev.langchain4j.model.image.DisabledImageModel;
 import dev.langchain4j.model.image.ImageModel;
 import dev.langchain4j.model.scoring.ScoringModel;
 
+import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.function.Function;
@@ -31,44 +32,34 @@ import java.util.function.Function;
 public abstract class IModelProvider {
 
 
-    private ModelInfo getModelInfo(String modelType, String modelName) {
-        List<ModelInfo> modelList = getModelList();
-        if (modelList==null) {
-            return null;
-        }
-        return modelList.stream().filter(modelInfo -> modelInfo.getModelType().getKey().equals(modelType) && modelInfo.getName().equals(modelName)).findFirst().orElse(null);
+    public boolean isSupport(ModelType modelType) {
+        return getModelList().stream().anyMatch(e -> e.getModelType().equals(modelType));
     }
 
-
-    public BaseModelCredential getModelCredential() {
-        return new BaseModelCredential(false, true);
+    private ModelInfo getModelInfo(ModelType modelType, String modelName) {
+        return getModelList().stream().filter(modelInfo -> modelInfo.getModelType().equals(modelType) && modelInfo.getName().equals(modelName)).findFirst().orElse(null);
     }
 
-
-    private ModelParams getDefaultModelParams(String type) {
-        ModelType modelType = ModelType.getByKey(type);
-        assert modelType != null;
-        return switch (modelType) {
-            case LLM, TTI -> new LlmModelParams();
-            default -> new NoModelParams();
-        };
+    public ModelCredentialForm getModelCredential() {
+        return new ModelCredentialForm(false, true);
     }
 
-    public ModelParams getModelParams(String modelType, String modelName) {
+    public ModelParams getModelParams(ModelType modelType, String modelName) {
         ModelInfo modelInfo = this.getModelInfo(modelType, modelName);
-        if (modelInfo == null) {
-            return getDefaultModelParams(modelType);
+        if (modelInfo == null || modelInfo.getModelParams() == null) {
+            return new NoModelParams();
         }
         return modelInfo.getModelParams();
     }
 
-    public boolean isSupport(String modelType) {
-        List<ModelInfo> modelList = getModelList();
-        return modelList.stream().anyMatch(e -> e.getModelType().getKey().equals(modelType));
+    public String getSvgIcon(String name) {
+        ClassLoader classLoader = IModelProvider.class.getClassLoader();
+        InputStream inputStream = classLoader.getResourceAsStream("icon/"+name);
+        return IoUtil.readToString(inputStream);
     }
 
 
-    private Object buildModelFromInfo(String modelType, String modelName, ModelCredential credential, JSONObject params) {
+    private Object buildModelClass(ModelType modelType, String modelName, ModelCredential credential, JSONObject params) {
         ModelInfo modelInfo = getModelInfo(modelType, modelName);
         if (modelInfo == null || modelInfo.getModelClass() == null) {
             return null;
@@ -83,15 +74,11 @@ public abstract class IModelProvider {
         }
     }
 
+
     @SuppressWarnings("unchecked")
-    public <T> T buildWithFallback(
-            String modelType,
-            String modelName,
-            ModelCredential credential,
-            JSONObject params,
-            Function<JSONObject, T> fallbackBuilder) {
-        Object model = buildModelFromInfo(modelType, modelName, credential, params);
-        return model != null ? (T) model : fallbackBuilder.apply(params);
+    public <T> T buildModelFallback(ModelType modelType, String modelName, ModelCredential credential, JSONObject params, Function<JSONObject, T> fallback) {
+        Object model = buildModelClass(modelType, modelName, credential, params);
+        return model != null ? (T) model : fallback.apply(params);
     }
 
 
@@ -122,7 +109,6 @@ public abstract class IModelProvider {
     public STTModel buildSTTModel(String modelName, ModelCredential credential, JSONObject params) {
         return new DisabledSTTModel();
     }
-
 
     public TTSModel buildTTSModel(String modelName, ModelCredential credential, JSONObject params) {
         return new DisabledTTSModel();

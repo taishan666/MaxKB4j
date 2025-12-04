@@ -1,7 +1,6 @@
 package com.tarzan.maxkb4j.module.model.provider.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
-import com.tarzan.maxkb4j.common.util.IoUtil;
 import com.tarzan.maxkb4j.module.model.custom.params.impl.LlmModelParams;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelCredential;
 import com.tarzan.maxkb4j.module.model.provider.enums.ModelProviderEnum;
@@ -19,7 +18,6 @@ import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.model.image.ImageModel;
 import org.springframework.stereotype.Component;
 
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,13 +25,8 @@ import java.util.List;
 public class ZhiPuModelProvider extends IModelProvider {
     @Override
     public ModelProviderInfo getBaseInfo() {
-        ModelProviderInfo info = new ModelProviderInfo();
-        info.setProvider(ModelProviderEnum.ZhiPu.getProvider());
-        info.setName(ModelProviderEnum.ZhiPu.getName());
-        ClassLoader classLoader = AliYunBaiLianModelProvider.class.getClassLoader();
-        InputStream inputStream = classLoader.getResourceAsStream("icon/zhipuai_icon.svg");
-        String icon= IoUtil.readToString(inputStream);
-        info.setIcon(icon);
+        ModelProviderInfo info = new ModelProviderInfo(ModelProviderEnum.ZhiPu);
+        info.setIcon(getSvgIcon("zhipu_ai_icon.svg"));
         return info;
     }
 

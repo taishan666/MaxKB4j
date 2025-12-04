@@ -2,7 +2,6 @@ package com.tarzan.maxkb4j.module.model.provider.vo;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.tarzan.maxkb4j.module.model.custom.params.ModelParams;
-import com.tarzan.maxkb4j.module.model.custom.params.impl.NoModelParams;
 import com.tarzan.maxkb4j.module.model.provider.enums.ModelType;
 import lombok.Data;
 
@@ -21,15 +20,12 @@ public class ModelInfo {
         this.name = name;
         this.desc = desc;
         this.modelType = modelType;
-        this.modelClass = null;
-        this.modelParams = new NoModelParams();
     }
 
     public ModelInfo(String name, String desc, ModelType modelType, ModelParams modelParams) {
         this.name = name;
         this.desc = desc;
         this.modelType = modelType;
-        this.modelClass = null;
         this.modelParams = modelParams;
     }
 
@@ -38,9 +34,7 @@ public class ModelInfo {
         this.desc = desc;
         this.modelType = modelType;
         this.modelClass = modelClass;
-        this.modelParams = new NoModelParams();
     }
-
 
 
     public ModelInfo(String name, String desc, ModelType modelType, Class<?> modelClass, ModelParams modelParams) {

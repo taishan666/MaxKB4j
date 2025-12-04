@@ -220,11 +220,6 @@
             <artifactId>langchain4j-experimental-sql</artifactId>
             <version>${langchain4j.beta.version}</version>
         </dependency>
-   <!--     <dependency>
-            <groupId>dev.langchain4j</groupId>
-            <artifactId>langchain4j-reactor</artifactId>
-            <version>${langchain4j.beta.version}</version>
-        </dependency>-->
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-embeddings</artifactId>
@@ -301,17 +296,22 @@
             <artifactId>langchain4j-embeddings-all-minilm-l6-v2-q</artifactId>
             <version>${langchain4j.beta.version}</version>
         </dependency>
-        <!--        <dependency>
-                    <groupId>dev.langchain4j</groupId>
-                    <artifactId>langchain4j-onnx-scoring</artifactId>
-                    <version>${langchain4j.version}</version>
-                </dependency>-->
-       <!--   tika文档解析-->
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-onnx-scoring</artifactId>
+            <version>${langchain4j.beta.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-local-ai</artifactId>
+            <version>${langchain4j.beta.version}</version>
+        </dependency>
         <!--        <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-agentic</artifactId>
             <version>1.9.0-beta16</version>
         </dependency>-->
+        <!--   tika文档解析-->
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-web-search-engine-google-custom</artifactId>

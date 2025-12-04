@@ -1,7 +1,6 @@
 package com.tarzan.maxkb4j.module.model.provider.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
-import com.tarzan.maxkb4j.common.util.IoUtil;
 import com.tarzan.maxkb4j.module.model.custom.params.impl.ImageModelParams;
 import com.tarzan.maxkb4j.module.model.custom.params.impl.LlmModelParams;
 import com.tarzan.maxkb4j.module.model.custom.params.impl.NoModelParams;
@@ -20,27 +19,19 @@ import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.model.openai.OpenAiEmbeddingModel;
 import dev.langchain4j.model.openai.OpenAiImageModel;
 import dev.langchain4j.model.openai.OpenAiStreamingChatModel;
-import org.springframework.stereotype.Component;
 
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-@Component
 public class VolcanicEngineModelProvider extends IModelProvider {
 
     public final String BASE_URL = "https://ark.cn-beijing.volces.com/api/v3";
 
     @Override
     public ModelProviderInfo getBaseInfo() {
-        ModelProviderInfo info = new ModelProviderInfo();
-        info.setProvider(ModelProviderEnum.VolcanicEngine.getProvider());
-        info.setName(ModelProviderEnum.VolcanicEngine.getName());
-        ClassLoader classLoader = AliYunBaiLianModelProvider.class.getClassLoader();
-        InputStream inputStream = classLoader.getResourceAsStream("icon/volcanic_engine_icon.svg");
-        String icon= IoUtil.readToString(inputStream);
-        info.setIcon(icon);
+        ModelProviderInfo info = new ModelProviderInfo(ModelProviderEnum.VolcanicEngine);
+        info.setIcon(getSvgIcon("volcanic_engine_icon.svg"));
         return info;
     }
 

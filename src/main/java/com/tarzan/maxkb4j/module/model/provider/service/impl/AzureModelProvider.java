@@ -1,7 +1,6 @@
 package com.tarzan.maxkb4j.module.model.provider.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
-import com.tarzan.maxkb4j.common.util.IoUtil;
 import com.tarzan.maxkb4j.module.model.custom.params.impl.LlmModelParams;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelCredential;
 import com.tarzan.maxkb4j.module.model.provider.enums.ModelProviderEnum;
@@ -17,23 +16,15 @@ import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.model.image.ImageModel;
-import org.springframework.stereotype.Component;
 
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-@Component
 public class AzureModelProvider  extends IModelProvider {
     @Override
     public ModelProviderInfo getBaseInfo() {
-        ModelProviderInfo info = new ModelProviderInfo();
-        info.setProvider(ModelProviderEnum.Azure.getProvider());
-        info.setName(ModelProviderEnum.Azure.getName());
-        ClassLoader classLoader = AliYunBaiLianModelProvider.class.getClassLoader();
-        InputStream inputStream = classLoader.getResourceAsStream("icon/azure_icon.svg");
-        String icon= IoUtil.readToString(inputStream);
-        info.setIcon(icon);
+        ModelProviderInfo info = new ModelProviderInfo(ModelProviderEnum.Azure);
+        info.setIcon(getSvgIcon("azure_icon.svg"));
         return info;
     }
 

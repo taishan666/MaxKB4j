@@ -1,4 +1,4 @@
-package com.tarzan.maxkb4j.filter;
+package com.tarzan.maxkb4j.common.filter;
 
 import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;

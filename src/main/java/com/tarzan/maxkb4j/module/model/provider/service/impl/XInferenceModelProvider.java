@@ -1,8 +1,7 @@
 package com.tarzan.maxkb4j.module.model.provider.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
-import com.tarzan.maxkb4j.common.util.IoUtil;
-import com.tarzan.maxkb4j.module.model.custom.credential.impl.BaseModelCredential;
+import com.tarzan.maxkb4j.module.model.custom.credential.ModelCredentialForm;
 import com.tarzan.maxkb4j.module.model.custom.params.impl.LlmModelParams;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelCredential;
 import com.tarzan.maxkb4j.module.model.provider.enums.ModelProviderEnum;
@@ -18,7 +17,6 @@ import dev.langchain4j.model.image.ImageModel;
 import dev.langchain4j.model.scoring.ScoringModel;
 import org.springframework.stereotype.Component;
 
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,33 +24,28 @@ import java.util.List;
 public class XInferenceModelProvider extends IModelProvider {
     @Override
     public ModelProviderInfo getBaseInfo() {
-        ModelProviderInfo info = new ModelProviderInfo();
-        info.setProvider(ModelProviderEnum.XInference.getProvider());
-        info.setName(ModelProviderEnum.XInference.getName());
-        ClassLoader classLoader = AliYunBaiLianModelProvider.class.getClassLoader();
-        InputStream inputStream = classLoader.getResourceAsStream("icon/xinference_icon.svg");
-        String icon = IoUtil.readToString(inputStream);
-        info.setIcon(icon);
+        ModelProviderInfo info = new ModelProviderInfo(ModelProviderEnum.XInference);
+        info.setIcon(getSvgIcon("xinference_icon.svg"));
         return info;
     }
 
     @Override
     public List<ModelInfo> getModelList() {
         List<ModelInfo> modelInfos = new ArrayList<>();
-        modelInfos.add(new ModelInfo("qwen:7b", "", ModelType.LLM,  new LlmModelParams()));
+        modelInfos.add(new ModelInfo("qwen3:8b", "", ModelType.LLM,  new LlmModelParams()));
         modelInfos.add(new ModelInfo("llama3:8b", "", ModelType.LLM,  new LlmModelParams()));
         modelInfos.add(new ModelInfo("deepseek-r1:8b", "", ModelType.LLM,  new LlmModelParams()));
         modelInfos.add(new ModelInfo("bge-base-zh", "", ModelType.EMBEDDING,  new LlmModelParams()));
         modelInfos.add(new ModelInfo("llava:7b", "", ModelType.VISION,  new LlmModelParams()));
         modelInfos.add(new ModelInfo("llava:13b", "", ModelType.VISION,  new LlmModelParams()));
         modelInfos.add(new ModelInfo("sdxl-turbo", "", ModelType.TTI,  new LlmModelParams()));
-        // modelInfos.add(new ModelInfo("linux6200/bge-reranker-v2-m3","",ModelTypeEnum.RERANKER.name(),new BaiLianReranker()));
+        modelInfos.add(new ModelInfo("linux6200/bge-reranker-v2-m3","",ModelType.RERANKER));
         return modelInfos;
     }
 
     @Override
-    public BaseModelCredential getModelCredential() {
-        return new BaseModelCredential(true, true);
+    public ModelCredentialForm getModelCredential() {
+        return new ModelCredentialForm(true, true);
     }
 
     @Override

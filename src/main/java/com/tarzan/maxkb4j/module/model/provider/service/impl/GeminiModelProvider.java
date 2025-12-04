@@ -1,7 +1,6 @@
 package com.tarzan.maxkb4j.module.model.provider.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
-import com.tarzan.maxkb4j.common.util.IoUtil;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelCredential;
 import com.tarzan.maxkb4j.module.model.provider.enums.ModelProviderEnum;
 import com.tarzan.maxkb4j.module.model.provider.enums.ModelType;
@@ -14,23 +13,15 @@ import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.model.googleai.GoogleAiEmbeddingModel;
 import dev.langchain4j.model.googleai.GoogleAiGeminiChatModel;
 import dev.langchain4j.model.googleai.GoogleAiGeminiStreamingChatModel;
-import org.springframework.stereotype.Component;
 
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-@Component("model_gemini_provider")
 public class GeminiModelProvider extends IModelProvider {
     @Override
     public ModelProviderInfo getBaseInfo() {
-        ModelProviderInfo info = new ModelProviderInfo();
-        info.setProvider(ModelProviderEnum.Gemini.getProvider());
-        info.setName(ModelProviderEnum.Gemini.getName());
-        ClassLoader classLoader = AliYunBaiLianModelProvider.class.getClassLoader();
-        InputStream inputStream = classLoader.getResourceAsStream("icon/gemini_icon.svg");
-        String icon= IoUtil.readToString(inputStream);
-        info.setIcon(icon);
+        ModelProviderInfo info = new ModelProviderInfo(ModelProviderEnum.Gemini);
+        info.setIcon(getSvgIcon("gemini_icon.svg"));
         return info;
     }
 

@@ -4,10 +4,7 @@ import com.tarzan.maxkb4j.module.model.provider.service.IModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.service.impl.*;
 import lombok.Getter;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Getter
 public enum ModelProviderEnum {
@@ -16,15 +13,16 @@ public enum ModelProviderEnum {
     DeepSeek("DeepSeek","DeepSeek", new DeepSeekModelProvider()),
     Gemini("Google DeepMind","Gemini", new GeminiModelProvider()),
     Kimi("月之暗面","Kimi", new KimiModelProvider()),
-    Openai("OpenAI","Openai", new OpenaiModelProvider()),
+    OpenAI("OpenAI","OpenAI", new OpenaiModelProvider()),
     Tencent("腾讯混元","Tencent", new TencentModelProvider()),
     VolcanicEngine("火山引擎","VolcanicEngine", new VolcanicEngineModelProvider()),
     WenXin("文心一言","WenXin", new WenXinModelProvider()),
     XunFei("讯飞星火","XunFei", new XfModelProvider()),
     ZhiPu("智谱清言","ZhiPu", new ZhiPuModelProvider()),
-    Local("本地模型","model_local_provider", new LocalModelProvider()),
-    OLlama("OLlama","model_ollama_provider", new OLlamaModelProvider()),
-    XInference("Xorbits Inference","model_xinference_provider", new XInferenceModelProvider());
+    Local("本地模型","LocalModel", new LocalModelProvider()),
+    LocalAI("LocalAI","LocalAI", new LocalAIModelProvider()),
+    OLlama("OLlama","OLlama", new OLlamaModelProvider()),
+    XInference("Xorbits Inference","XInference", new XInferenceModelProvider());
 
     private final String name;
     private final String provider;
@@ -52,6 +50,8 @@ public enum ModelProviderEnum {
     }
 
     public static List<IModelProvider> getAllProvider() {
-        return new ArrayList<>(PROVIDER_MAP.values());
+        return Arrays.stream(values())
+                .map(e -> e.modelProvider)
+                .toList();
     }
 }

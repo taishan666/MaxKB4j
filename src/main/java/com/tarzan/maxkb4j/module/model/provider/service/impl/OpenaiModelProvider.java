@@ -1,8 +1,7 @@
 package com.tarzan.maxkb4j.module.model.provider.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
-import com.tarzan.maxkb4j.common.util.IoUtil;
-import com.tarzan.maxkb4j.module.model.custom.credential.impl.BaseModelCredential;
+import com.tarzan.maxkb4j.module.model.custom.credential.ModelCredentialForm;
 import com.tarzan.maxkb4j.module.model.custom.params.impl.LlmModelParams;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelCredential;
 import com.tarzan.maxkb4j.module.model.provider.enums.ModelProviderEnum;
@@ -18,23 +17,15 @@ import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.model.openai.OpenAiEmbeddingModel;
 import dev.langchain4j.model.openai.OpenAiImageModel;
 import dev.langchain4j.model.openai.OpenAiStreamingChatModel;
-import org.springframework.stereotype.Component;
 
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-@Component("model_openai_provider")
 public class OpenaiModelProvider extends IModelProvider {
     @Override
     public ModelProviderInfo getBaseInfo() {
-        ModelProviderInfo info = new ModelProviderInfo();
-        info.setProvider(ModelProviderEnum.Openai.getProvider());
-        info.setName(ModelProviderEnum.Openai.getName());
-        ClassLoader classLoader = AliYunBaiLianModelProvider.class.getClassLoader();
-        InputStream inputStream = classLoader.getResourceAsStream("icon/openai_icon.svg");
-        String icon= IoUtil.readToString(inputStream);
-        info.setIcon(icon);
+        ModelProviderInfo info = new ModelProviderInfo(ModelProviderEnum.OpenAI);
+        info.setIcon(getSvgIcon("openai_icon.svg"));
         return info;
     }
 
@@ -56,8 +47,8 @@ public class OpenaiModelProvider extends IModelProvider {
     }
 
     @Override
-    public BaseModelCredential getModelCredential() {
-       return new BaseModelCredential(true,true);
+    public ModelCredentialForm getModelCredential() {
+       return new ModelCredentialForm(true,true);
     }
 
     @Override

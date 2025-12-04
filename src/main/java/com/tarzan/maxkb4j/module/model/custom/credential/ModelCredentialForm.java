@@ -1,4 +1,4 @@
-package com.tarzan.maxkb4j.module.model.custom.credential.impl;
+package com.tarzan.maxkb4j.module.model.custom.credential;
 
 import com.tarzan.maxkb4j.common.form.BaseFiled;
 import com.tarzan.maxkb4j.common.form.TextInputField;
@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @AllArgsConstructor
-public  class BaseModelCredential {
+public  class ModelCredentialForm {
 
     private boolean showBaseUrl;
     private boolean showApiKey;

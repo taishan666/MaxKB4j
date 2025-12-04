@@ -7,7 +7,7 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-public  class NoModelParams implements ModelParams {
+public class NoModelParams implements ModelParams {
 
     @Override
     public List<BaseFiled> toForm() {

@@ -1,7 +1,6 @@
 package com.tarzan.maxkb4j.module.model.provider.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
-import com.tarzan.maxkb4j.common.util.IoUtil;
 import com.tarzan.maxkb4j.module.model.custom.base.STTModel;
 import com.tarzan.maxkb4j.module.model.custom.base.TTSModel;
 import com.tarzan.maxkb4j.module.model.custom.params.impl.LlmModelParams;
@@ -19,7 +18,6 @@ import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.model.openai.OpenAiStreamingChatModel;
 import dev.langchain4j.model.scoring.ScoringModel;
 
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,13 +27,8 @@ public class DeepSeekModelProvider extends IModelProvider {
 
     @Override
     public ModelProviderInfo getBaseInfo() {
-        ModelProviderInfo info = new ModelProviderInfo();
-        info.setProvider(ModelProviderEnum.DeepSeek.getProvider());
-        info.setName(ModelProviderEnum.DeepSeek.getName());
-        ClassLoader classLoader = AliYunBaiLianModelProvider.class.getClassLoader();
-        InputStream inputStream = classLoader.getResourceAsStream("icon/deepseek_icon.svg");
-        String icon = IoUtil.readToString(inputStream);
-        info.setIcon(icon);
+        ModelProviderInfo info = new ModelProviderInfo(ModelProviderEnum.DeepSeek);
+        info.setIcon(getSvgIcon("deepseek_icon.svg"));
         return info;
     }
 

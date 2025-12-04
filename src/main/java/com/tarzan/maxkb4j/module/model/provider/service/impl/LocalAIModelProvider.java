@@ -1,64 +1,71 @@
 package com.tarzan.maxkb4j.module.model.provider.service.impl;
 
-
 import com.alibaba.fastjson.JSONObject;
+import com.tarzan.maxkb4j.module.model.custom.credential.ModelCredentialForm;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelCredential;
 import com.tarzan.maxkb4j.module.model.provider.enums.ModelProviderEnum;
-import com.tarzan.maxkb4j.module.model.provider.enums.ModelType;
 import com.tarzan.maxkb4j.module.model.provider.service.IModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.vo.ModelInfo;
 import com.tarzan.maxkb4j.module.model.provider.vo.ModelProviderInfo;
-import dev.langchain4j.community.model.qianfan.QianfanChatModel;
-import dev.langchain4j.community.model.qianfan.QianfanEmbeddingModel;
-import dev.langchain4j.community.model.qianfan.QianfanStreamingChatModel;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.model.embedding.EmbeddingModel;
+import dev.langchain4j.model.localai.LocalAiChatModel;
+import dev.langchain4j.model.localai.LocalAiEmbeddingModel;
+import dev.langchain4j.model.localai.LocalAiStreamingChatModel;
 
-import java.util.ArrayList;
 import java.util.List;
 
-public class WenXinModelProvider extends IModelProvider {
+public class LocalAIModelProvider extends IModelProvider {
     @Override
     public ModelProviderInfo getBaseInfo() {
-        ModelProviderInfo info = new ModelProviderInfo(ModelProviderEnum.WenXin);
-        info.setIcon(getSvgIcon("wenxin_icon.svg"));
+        ModelProviderInfo info = new ModelProviderInfo(ModelProviderEnum.LocalAI);
+        info.setIcon(getSvgIcon("local_ai_icon.svg"));
         return info;
     }
 
     @Override
-    public List<ModelInfo> getModelList() {
-        List<ModelInfo> modelInfos = new ArrayList<>();
-        modelInfos.add(new ModelInfo("ERNIE-Bot-4", "", ModelType.LLM));
-        modelInfos.add(new ModelInfo("ERNIE-Bot", "", ModelType.LLM));
-        modelInfos.add(new ModelInfo("ERNIE-Bot-turbo", "", ModelType.LLM));
-        modelInfos.add(new ModelInfo("Embedding-V1", "", ModelType.EMBEDDING));
-        return modelInfos;
+    public ModelCredentialForm getModelCredential() {
+        return new ModelCredentialForm(true, false);
     }
 
     @Override
+    public List<ModelInfo> getModelList() {
+        return List.of();
+    }
+
+
+    @Override
     public ChatModel buildChatModel(String modelName, ModelCredential credential, JSONObject params) {
-        return QianfanChatModel.builder()
-                .apiKey(credential.getApiKey())
+        return LocalAiChatModel.builder()
+                .baseUrl(credential.getBaseUrl())
                 .modelName(modelName)
+                .temperature(params.getDouble("temperature"))
+                .topP(params.getDouble("topP"))
+                .maxTokens(params.getInteger("maxTokens"))
                 .build();
     }
 
     @Override
     public StreamingChatModel buildStreamingChatModel(String modelName, ModelCredential credential, JSONObject params) {
-        return QianfanStreamingChatModel.builder()
-                .apiKey(credential.getApiKey())
+        return LocalAiStreamingChatModel.builder()
+                .baseUrl(credential.getBaseUrl())
                 .modelName(modelName)
+                .temperature(params.getDouble("temperature"))
+                .topP(params.getDouble("topP"))
+                .maxTokens(params.getInteger("maxTokens"))
                 .build();
     }
 
     @Override
     public EmbeddingModel buildEmbeddingModel(String modelName, ModelCredential credential, JSONObject params) {
-        return  QianfanEmbeddingModel.builder()
-                .apiKey(credential.getApiKey())
+        return LocalAiEmbeddingModel.builder()
+                .baseUrl(credential.getBaseUrl())
                 .modelName(modelName)
+                .maxRetries(params.getInteger("maxRetries"))
                 .build();
     }
+
 
 
 }

@@ -1,8 +1,7 @@
 package com.tarzan.maxkb4j.module.model.provider.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
-import com.tarzan.maxkb4j.common.util.IoUtil;
-import com.tarzan.maxkb4j.module.model.custom.credential.impl.BaseModelCredential;
+import com.tarzan.maxkb4j.module.model.custom.credential.ModelCredentialForm;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelCredential;
 import com.tarzan.maxkb4j.module.model.provider.enums.ModelProviderEnum;
 import com.tarzan.maxkb4j.module.model.provider.enums.ModelType;
@@ -11,29 +10,23 @@ import com.tarzan.maxkb4j.module.model.provider.vo.ModelInfo;
 import com.tarzan.maxkb4j.module.model.provider.vo.ModelProviderInfo;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.model.embedding.onnx.allminilml6v2q.AllMiniLmL6V2QuantizedEmbeddingModel;
-import org.springframework.stereotype.Component;
+import dev.langchain4j.model.scoring.ScoringModel;
+import dev.langchain4j.model.scoring.onnx.OnnxScoringModel;
 
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-@Component
 public class LocalModelProvider extends IModelProvider {
     @Override
     public ModelProviderInfo getBaseInfo() {
-        ModelProviderInfo info = new ModelProviderInfo();
-        info.setProvider(ModelProviderEnum.Local.getProvider());
-        info.setName(ModelProviderEnum.Local.getName());
-        ClassLoader classLoader = AliYunBaiLianModelProvider.class.getClassLoader();
-        InputStream inputStream = classLoader.getResourceAsStream("icon/local_icon.svg");
-        String icon= IoUtil.readToString(inputStream);
-        info.setIcon(icon);
+        ModelProviderInfo info = new ModelProviderInfo(ModelProviderEnum.Local);
+        info.setIcon(getSvgIcon("local_icon.svg"));
         return info;
     }
 
     @Override
-    public BaseModelCredential getModelCredential() {
-        return new BaseModelCredential(false, false);
+    public ModelCredentialForm getModelCredential() {
+        return new ModelCredentialForm(false, false);
     }
 
     @Override
@@ -47,6 +40,12 @@ public class LocalModelProvider extends IModelProvider {
     @Override
     public EmbeddingModel buildEmbeddingModel(String modelName, ModelCredential credential, JSONObject params) {
         return new AllMiniLmL6V2QuantizedEmbeddingModel();
+    }
+
+    @Override
+    public ScoringModel buildScoringModel(String modelName, ModelCredential credential, JSONObject params) {
+        return new OnnxScoringModel(credential.getModelPath(), credential.getTokenizerPath()
+        );
     }
 
 

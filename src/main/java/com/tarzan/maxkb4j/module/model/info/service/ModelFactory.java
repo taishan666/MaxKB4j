@@ -35,8 +35,8 @@ public class ModelFactory {
         ModelEntity model = getModel(modelId);
         IModelProvider modelProvider = getModelProvider(model);
         modelParams = modelParams == null ? new JSONObject() : modelParams;
-        return modelProvider.buildWithFallback(
-                ModelType.LLM.name(), model.getModelName(), model.getCredential(), modelParams,
+        return modelProvider.buildModelFallback(
+                ModelType.LLM, model.getModelName(), model.getCredential(), modelParams,
                 p -> modelProvider.buildChatModel(model.getModelName(), model.getCredential(), p));
     }
 
@@ -44,8 +44,8 @@ public class ModelFactory {
         ModelEntity model = getModel(modelId);
         IModelProvider modelProvider = getModelProvider(model);
         modelParams = modelParams == null ? new JSONObject() : modelParams;
-        return modelProvider.buildWithFallback(
-                ModelType.LLM.name(), model.getModelName(), model.getCredential(), modelParams,
+        return modelProvider.buildModelFallback(
+                ModelType.LLM, model.getModelName(), model.getCredential(), modelParams,
                 p -> modelProvider.buildStreamingChatModel(model.getModelName(), model.getCredential(), p));
     }
 
@@ -57,8 +57,8 @@ public class ModelFactory {
         ModelEntity model = getModel(modelId);
         IModelProvider modelProvider = getModelProvider(model);
         modelParams = modelParams == null ? new JSONObject() : modelParams;
-        return modelProvider.buildWithFallback(
-                ModelType.EMBEDDING.name(), model.getModelName(), model.getCredential(), modelParams,
+        return modelProvider.buildModelFallback(
+                ModelType.EMBEDDING, model.getModelName(), model.getCredential(), modelParams,
                 p -> modelProvider.buildEmbeddingModel(model.getModelName(), model.getCredential(), p));
     }
 
@@ -66,8 +66,8 @@ public class ModelFactory {
         ModelEntity model = getModel(modelId);
         IModelProvider modelProvider = getModelProvider(model);
         modelParams = modelParams == null ? new JSONObject() : modelParams;
-        return modelProvider.buildWithFallback(
-                ModelType.TTI.name(), model.getModelName(), model.getCredential(), modelParams,
+        return modelProvider.buildModelFallback(
+                ModelType.TTI, model.getModelName(), model.getCredential(), modelParams,
                 p -> modelProvider.buildImageModel(model.getModelName(), model.getCredential(), p));
     }
 
@@ -79,8 +79,8 @@ public class ModelFactory {
         ModelEntity model = getModel(modelId);
         IModelProvider modelProvider = getModelProvider(model);
         modelParams = modelParams == null ? new JSONObject() : modelParams;
-        return modelProvider.buildWithFallback(
-                ModelType.RERANKER.name(), model.getModelName(), model.getCredential(), modelParams,
+        return modelProvider.buildModelFallback(
+                ModelType.RERANKER, model.getModelName(), model.getCredential(), modelParams,
                 p -> modelProvider.buildScoringModel(model.getModelName(), model.getCredential(), p));
     }
 
@@ -88,16 +88,16 @@ public class ModelFactory {
         ModelEntity model = getModel(modelId);
         IModelProvider modelProvider = getModelProvider(model);
         modelParams = modelParams == null ? new JSONObject() : modelParams;
-        return modelProvider.buildWithFallback(
-                ModelType.TTS.name(), model.getModelName(), model.getCredential(), modelParams,
+        return modelProvider.buildModelFallback(
+                ModelType.TTS, model.getModelName(), model.getCredential(), modelParams,
                 p -> modelProvider.buildTTSModel(model.getModelName(), model.getCredential(), p));
     }
 
     public STTModel buildSTTModel(String modelId) {
         ModelEntity model = getModel(modelId);
         IModelProvider modelProvider = getModelProvider(model);
-        return modelProvider.buildWithFallback(
-                ModelType.STT.name(), model.getModelName(), model.getCredential(), new JSONObject(),
+        return modelProvider.buildModelFallback(
+                ModelType.STT, model.getModelName(), model.getCredential(), new JSONObject(),
                 p -> modelProvider.buildSTTModel(model.getModelName(), model.getCredential(), p));
     }
 
@@ -115,7 +115,6 @@ public class ModelFactory {
         }
         return ModelProviderEnum.get(model.getProvider());
     }
-
 
 
 }

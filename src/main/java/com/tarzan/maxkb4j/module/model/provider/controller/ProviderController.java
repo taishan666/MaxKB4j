@@ -30,50 +30,49 @@ import java.util.stream.Collectors;
 public class ProviderController {
 
     @GetMapping("/provider")
-	public R<List<ModelProviderInfo>> provider(String modelType){
-		List<IModelProvider> list= ModelProviderEnum.getAllProvider();
-		if (StringUtils.isBlank(modelType)){
-			return R.success(list.stream().map(IModelProvider::getBaseInfo).toList());
-		}
-		return R.success(list.stream().filter(e->e.isSupport(modelType)).map(IModelProvider::getBaseInfo).toList());
-	}
+    public R<List<ModelProviderInfo>> provider(String modelType) {
+        List<IModelProvider> list = ModelProviderEnum.getAllProvider();
+        if (StringUtils.isBlank(modelType)) {
+            return R.success(list.stream().map(IModelProvider::getBaseInfo).toList());
+        }
+        return R.success(list.stream().filter(e -> e.isSupport(ModelType.getByKey(modelType))).map(IModelProvider::getBaseInfo).toList());
+    }
 
 
-	@GetMapping("/provider/model_type_list")
-	public R<List<KeyAndValueVO>> modelTypeList(String provider){
-		IModelProvider modelProvider= ModelProviderEnum.get(provider);
-		List<ModelInfo> modelInfos=modelProvider.getModelList();
-		Map<ModelType,List<ModelInfo>> map=modelInfos.stream().collect(Collectors.groupingBy(ModelInfo::getModelType));
-		Set<ModelType> keys=map.keySet();
-		List<KeyAndValueVO> list= ModelType.getModelTypeList().stream().filter(keys::contains).map(e -> new KeyAndValueVO(e.getName(), e.getKey())).toList();
-		return R.success(list);
-	}
+    @GetMapping("/provider/model_type_list")
+    public R<List<KeyAndValueVO>> modelTypeList(String provider) {
+        IModelProvider modelProvider = ModelProviderEnum.get(provider);
+        List<ModelInfo> modelInfos = modelProvider.getModelList();
+        Map<ModelType, List<ModelInfo>> map = modelInfos.stream().collect(Collectors.groupingBy(ModelInfo::getModelType));
+        Set<ModelType> keys = map.keySet();
+        List<KeyAndValueVO> list = ModelType.getModelTypeList().stream().filter(keys::contains).map(e -> new KeyAndValueVO(e.getName(), e.getKey())).toList();
+        return R.success(list);
+    }
 
-	@GetMapping("/provider/model_form")
-	public R<List<BaseFiled>> modelForm(String provider, String modelType, String modelName){
-		//todo 目前根据provider获取凭证form,后续遇到需要modelType和modelName的时候再调整
-		IModelProvider modelProvider=ModelProviderEnum.get(provider);
-		return R.success(modelProvider.getModelCredential().toForm());
-	}
-
-
-	@GetMapping("/provider/model_params_form")
-	public R<List<BaseFiled>> modelParamsForm(String provider, String modelType, String modelName){
-		IModelProvider modelProvider=ModelProviderEnum.get(provider);
-		return R.success(modelProvider.getModelParams(modelType, modelName).toForm());
-	}
+    @GetMapping("/provider/model_form")
+    public R<List<BaseFiled>> modelForm(String provider, String modelType, String modelName) {
+        IModelProvider modelProvider = ModelProviderEnum.get(provider);
+        return R.success(modelProvider.getModelCredential().toForm());
+    }
 
 
-	@GetMapping("/provider/model_list")
-	public R<List<ModelInfo>> modelList(String provider, String modelType){
-		IModelProvider modelProvider=ModelProviderEnum.get(provider);
-		List<ModelInfo> modelInfos=modelProvider.getModelList();
-		if (StringUtils.isBlank(modelType)){
-			return R.success(modelInfos);
-		}
-		List<ModelInfo>  modelList=modelInfos.stream().filter(e->e.getModelType().getKey().equals(modelType)).toList();
-		return R.success(modelList);
-	}
+    @GetMapping("/provider/model_params_form")
+    public R<List<BaseFiled>> modelParamsForm(String provider, String modelType, String modelName) {
+        IModelProvider modelProvider = ModelProviderEnum.get(provider);
+        return R.success(modelProvider.getModelParams(ModelType.getByKey(modelType), modelName).toForm());
+    }
+
+
+    @GetMapping("/provider/model_list")
+    public R<List<ModelInfo>> modelList(String provider, String modelType) {
+        IModelProvider modelProvider = ModelProviderEnum.get(provider);
+        List<ModelInfo> modelInfos = modelProvider.getModelList();
+        if (StringUtils.isBlank(modelType)) {
+            return R.success(modelInfos);
+        }
+        List<ModelInfo> modelList = modelInfos.stream().filter(e -> e.getModelType().getKey().equals(modelType)).toList();
+        return R.success(modelList);
+    }
 
 
 }
