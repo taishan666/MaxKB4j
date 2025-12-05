@@ -128,7 +128,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 ## 🔗 Related Resources
 - 📘 [Open-source Model Library](https://modelscope.cn/models)
 - 🐦 [MCP Plaza](https://modelscope.cn/mcp)
-- 🌟 Star this repo to support China’s open-source AI ecosystem!
+>  🌟 Star this repo to support China’s open-source AI ecosystem!</br>
 > 🎯 Check this out! 👉 [Master Practical AI Large Model Application Development! 🔥](https://example.com/ai-guide)
 
 ---
