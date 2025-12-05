@@ -56,7 +56,7 @@ Video generation model support is under active development…
    -e SPRING_DATASOURCE_USERNAME=postgres \
    -e SPRING_DATASOURCE_PASSWORD=123456 \
    -e SPRING_DATA_MONGODB_URI=mongodb://admin:123456@localhost:27017/MaxKB4j?authSource=admin \
-   registry.cn-hangzhou.aliyuncs.com/tarzanx/maxkb4j:2.0
+   registry.cn-hangzhou.aliyuncs.com/tarzanx/maxkb4j
    ```
    Note: The first 8080 in -p 8080:8080 is the host port. The PostgreSQL and MongoDB connection parameters can be customized as needed.
 ### 4. Deploy with Docker Compose (Recommended)
@@ -72,14 +72,14 @@ Video generation model support is under active development…
 ---
 ## 🛠 Tech Stack
 
-|Category |Technologies|
-|------|------|
-|Backend |Java 17, Spring Boot 3, Sa-Token (authentication)|
-|AI Framework| LangChain4j|
-|Vector DB |PostgreSQL 15 + pgvector|
-|Full-Text Search |MongoDB|
-|Caching |Caffeine|
-|Frontend |Vue 3, Node.js v20.16.0|
+|Category | Technologies                                      |
+|------|---------------------------------------------------|
+|Backend | Java 17, Spring Boot 3, Sa-Token (authentication) |
+|AI Framework| LangChain4j                                       |
+|Vector DB | PostgreSQL 15 + pgvector                          |
+|Full-Text Search | MongoDB 5+                                        |
+|Caching | Caffeine                                          |
+|Frontend | Vue 3, Node.js v20.16.0                           |
 
 ---
 

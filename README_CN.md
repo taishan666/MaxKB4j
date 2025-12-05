@@ -67,7 +67,7 @@ java -jar MaxKB4j.jar
 
 ### 3. 基于Docker 部署
 ```bash
-docker run --name maxkb4j -d --restart always -p 8080:8080 -e SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/MaxKB4j -e SPRING_DATASOURCE_USERNAME=postgres   -e SPRING_DATASOURCE_PASSWORD=123456  -e SPRING_DATA_MONGODB_URI=mongodb://admin:123456@localhost:27017/MaxKB4j?authSource=admin  registry.cn-hangzhou.aliyuncs.com/tarzanx/maxkb4j:2.0
+docker run --name maxkb4j -d --restart always -p 8080:8080 -e SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/MaxKB4j -e SPRING_DATASOURCE_USERNAME=postgres   -e SPRING_DATASOURCE_PASSWORD=123456  -e SPRING_DATA_MONGODB_URI=mongodb://admin:123456@localhost:27017/MaxKB4j?authSource=admin  registry.cn-hangzhou.aliyuncs.com/tarzanx/maxkb4j
 ```
 其中，`-p 8080:8080` 中的第一个 8080 是宿主机的端口，`-e SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/MaxKB4j -e SPRING_DATASOURCE_USERNAME=postgres   -e SPRING_DATASOURCE_PASSWORD=123456` 是PostgreSQL数据库的连接配置参数，`-e SPRING_DATA_MONGODB_URI=mongodb://admin:123456@localhost:27017/MaxKB4j?authSource=admin`是MongoDB的连接配置参数， 可以根据需要进行修改。
 
@@ -88,14 +88,14 @@ docker-compose up -d
 
 ## 🛠 技术栈
 
-| 类别 | 技术 |
-|------|------|
+| 类别 | 技术                                   |
+|------|--------------------------------------|
 | **后端** | Java 17, Spring Boot 3, Sa-Token（鉴权） |
-| **AI 框架** | LangChain4j |
-| **向量数据库** | PostgreSQL 15 + pgvector |
-| **全文检索** | MongoDB |
-| **缓存** | Caffeine |
-| **前端** | Vue 3, Node.js v20.16.0 |
+| **AI 框架** | LangChain4j                          |
+| **向量数据库** | PostgreSQL 15 + pgvector             |
+| **全文检索** | MongoDB 5.0+                         |
+| **缓存** | Caffeine                             |
+| **前端** | Vue 3, Node.js v20.16.0              |
 
 ---
 
