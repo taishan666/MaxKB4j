@@ -53,15 +53,6 @@ public class StartNode extends INode {
         detail.remove("document");
         detail.remove("audio");
         detail.remove("other");
-        JSONObject config=super.getProperties().getJSONObject("config");
-        JSONArray globalFields=config.getJSONArray("globalFields");
-        for (int i = 0; i < globalFields.size(); i++) {
-            JSONObject globalField=globalFields.getJSONObject(i);
-            String key=globalField.getString("value");
-            globalField.put("key",key);
-            globalField.put("value", detail.get(key));
-        }
-        detail.put("globalFields",globalFields);
         return detail;
     }
 

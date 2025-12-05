@@ -32,6 +32,15 @@ public class StartNodeHandler implements INodeHandler {
         // 合并全局变量
         globalVariable.putAll(chatParams.getFormData());
         workflow.getContext().putAll(globalVariable);
+        JSONObject config=node.getProperties().getJSONObject("config");
+        JSONArray globalFields=config.getJSONArray("globalFields");
+        for (int i = 0; i < globalFields.size(); i++) {
+            JSONObject globalField=globalFields.getJSONObject(i);
+            String key=globalField.getString("value");
+            globalField.put("key",key);
+            globalField.put("value", workflow.getContext().get(key));
+        }
+        node.getDetail().put("globalFields",globalFields);
         //会话变量
         workflow.getChatContext().putAll(getChatVariable(node,chatParams.getChatId()));
         // 构建节点变量
