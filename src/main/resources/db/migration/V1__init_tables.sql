@@ -705,7 +705,8 @@ CREATE TABLE "public"."embedding" (
                                       "knowledge_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
                                       "document_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
                                       "paragraph_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
-                                      "search_vector" tsvector
+                                      "search_vector" tsvector,
+                                      "dimension" int4 NOT NULL
 )
 ;
 
