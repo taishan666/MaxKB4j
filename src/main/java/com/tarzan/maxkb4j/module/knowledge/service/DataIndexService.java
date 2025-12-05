@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.huaban.analysis.jieba.JiebaSegmenter;
 import com.tarzan.maxkb4j.common.util.BatchUtil;
+import com.tarzan.maxkb4j.core.langchain4j.EmbeddingStoreFactory;
 import com.tarzan.maxkb4j.module.knowledge.consts.SourceType;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.EmbeddingEntity;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.ParagraphEntity;
@@ -29,6 +30,7 @@ public class DataIndexService {
 
     private final MongoTemplate mongoTemplate;
     private final EmbeddingMapper embeddingMapper;
+    private final EmbeddingStoreFactory embeddingStoreFactory;
 
 
     public void insertAll(List<EmbeddingEntity> embeddingEntities, EmbeddingModel embeddingModel) {

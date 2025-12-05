@@ -8,11 +8,10 @@
         WHERE paragraph_id = #{paragraphId}
     </update>
 
-    <select id="embeddingSearch" resultType="com.tarzan.maxkb4j.module.knowledge.domain.vo.TextChunkVO">
+    <select id="embeddingSearch1" resultType="com.tarzan.maxkb4j.module.knowledge.domain.vo.TextChunkVO">
         SELECT paragraph_id, score
         FROM (
-        SELECT DISTINCT ON (paragraph_id) paragraph_id, (2 - (
-        <![CDATA[embedding <=> CAST (#{referenceEmbedding  } AS vector)]]>))/2 AS score
+        SELECT DISTINCT ON (paragraph_id)  (1 - ( ))) AS score
         FROM EMBEDDING
         WHERE is_active=true
         <if test="knowledgeIds != null and !knowledgeIds.isEmpty()">
@@ -27,11 +26,45 @@
                 #{id}
             </foreach>
         </if>
-        ) t
+        ) DISTINCT_TEMP
         WHERE score > #{minScore}
         ORDER BY score DESC
         LIMIT #{maxResults}
     </select>
+
+    <select id="embeddingSearch" resultType="com.tarzan.maxkb4j.module.knowledge.domain.vo.TextChunkVO">
+        SELECT paragraph_id,comprehensive_score as score
+        FROM
+            (
+            SELECT DISTINCT ON
+            ("paragraph_id") paragraph_id,(1 - distance) AS comprehensive_score
+            FROM
+                ( SELECT *, ( <![CDATA[embedding::vector(2560) <=> #{referenceEmbedding}::vector]]>) AS distance
+                FROM embedding
+                        WHERE is_active=true
+                        <if test="knowledgeIds != null and !knowledgeIds.isEmpty()">
+                            AND knowledge_id IN
+                            <foreach item="id" collection="knowledgeIds" open="(" separator="," close=")">
+                                #{id}
+                            </foreach>
+                        </if>
+                        <if test="excludeParagraphIds != null and !excludeParagraphIds.isEmpty()">
+                            AND paragraph_id NOT IN
+                            <foreach item="id" collection="excludeParagraphIds" open="(" separator="," close=")">
+                                #{id}
+                            </foreach>
+                        </if>
+                ORDER BY distance
+                ) TEMP
+            ORDER BY
+            paragraph_id,
+            distance
+            ) DISTINCT_TEMP
+        WHERE comprehensive_score>#{minScore}
+        ORDER BY comprehensive_score DESC
+        LIMIT #{maxResults}
+    </select>
+
 
 
 </mapper>

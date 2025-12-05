@@ -35,18 +35,14 @@ public class ModelFactory {
         ModelEntity model = getModel(modelId);
         IModelProvider modelProvider = getModelProvider(model);
         modelParams = modelParams == null ? new JSONObject() : modelParams;
-        return modelProvider.buildModelFallback(
-                ModelType.LLM, model.getModelName(), model.getCredential(), modelParams,
-                p -> modelProvider.buildChatModel(model.getModelName(), model.getCredential(), p));
+        return modelProvider.buildChatModel(model.getModelName(), model.getCredential(), modelParams);
     }
 
     public StreamingChatModel buildStreamingChatModel(String modelId, JSONObject modelParams) {
         ModelEntity model = getModel(modelId);
         IModelProvider modelProvider = getModelProvider(model);
         modelParams = modelParams == null ? new JSONObject() : modelParams;
-        return modelProvider.buildModelFallback(
-                ModelType.LLM, model.getModelName(), model.getCredential(), modelParams,
-                p -> modelProvider.buildStreamingChatModel(model.getModelName(), model.getCredential(), p));
+        return modelProvider.buildStreamingChatModel(model.getModelName(), model.getCredential(), modelParams);
     }
 
     public EmbeddingModel buildEmbeddingModel(String modelId) {
@@ -57,18 +53,14 @@ public class ModelFactory {
         ModelEntity model = getModel(modelId);
         IModelProvider modelProvider = getModelProvider(model);
         modelParams = modelParams == null ? new JSONObject() : modelParams;
-        return modelProvider.buildModelFallback(
-                ModelType.EMBEDDING, model.getModelName(), model.getCredential(), modelParams,
-                p -> modelProvider.buildEmbeddingModel(model.getModelName(), model.getCredential(), p));
+        return modelProvider.buildEmbeddingModel(model.getModelName(), model.getCredential(), modelParams);
     }
 
     public ImageModel buildImageModel(String modelId, JSONObject modelParams) {
         ModelEntity model = getModel(modelId);
         IModelProvider modelProvider = getModelProvider(model);
         modelParams = modelParams == null ? new JSONObject() : modelParams;
-        return modelProvider.buildModelFallback(
-                ModelType.TTI, model.getModelName(), model.getCredential(), modelParams,
-                p -> modelProvider.buildImageModel(model.getModelName(), model.getCredential(), p));
+        return modelProvider.buildImageModel(model.getModelName(), model.getCredential(), modelParams);
     }
 
     public ScoringModel buildScoringModel(String modelId) {
@@ -79,9 +71,7 @@ public class ModelFactory {
         ModelEntity model = getModel(modelId);
         IModelProvider modelProvider = getModelProvider(model);
         modelParams = modelParams == null ? new JSONObject() : modelParams;
-        return modelProvider.buildModelFallback(
-                ModelType.RERANKER, model.getModelName(), model.getCredential(), modelParams,
-                p -> modelProvider.buildScoringModel(model.getModelName(), model.getCredential(), p));
+        return modelProvider.buildScoringModel(model.getModelName(), model.getCredential(), modelParams);
     }
 
     public TTSModel buildTTSModel(String modelId, JSONObject modelParams) {

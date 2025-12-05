@@ -59,7 +59,11 @@ public class ProviderController {
     @GetMapping("/provider/model_params_form")
     public R<List<BaseFiled>> modelParamsForm(String provider, String modelType, String modelName) {
         IModelProvider modelProvider = ModelProviderEnum.get(provider);
-        return R.success(modelProvider.getModelParams(ModelType.getByKey(modelType), modelName).toForm());
+        ModelInfo modelInfo = modelProvider.getModelInfo(ModelType.getByKey(modelType), modelName);
+        if (modelInfo == null|| modelInfo.getModelParams()==null){
+            return R.success(List.of());
+        }
+        return R.success(modelInfo.getModelParams().toForm());
     }
 
 

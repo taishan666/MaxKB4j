@@ -8,8 +8,6 @@ import com.tarzan.maxkb4j.module.model.custom.credential.ModelCredentialForm;
 import com.tarzan.maxkb4j.module.model.custom.model.disabled.DisabledSTTModel;
 import com.tarzan.maxkb4j.module.model.custom.model.disabled.DisabledScoringModel;
 import com.tarzan.maxkb4j.module.model.custom.model.disabled.DisabledTTSModel;
-import com.tarzan.maxkb4j.module.model.custom.params.ModelParams;
-import com.tarzan.maxkb4j.module.model.custom.params.impl.NoModelParams;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelCredential;
 import com.tarzan.maxkb4j.module.model.provider.enums.ModelType;
 import com.tarzan.maxkb4j.module.model.provider.vo.ModelInfo;
@@ -36,20 +34,12 @@ public abstract class IModelProvider {
         return getModelList().stream().anyMatch(e -> e.getModelType().equals(modelType));
     }
 
-    private ModelInfo getModelInfo(ModelType modelType, String modelName) {
+    public ModelInfo getModelInfo(ModelType modelType, String modelName) {
         return getModelList().stream().filter(modelInfo -> modelInfo.getModelType().equals(modelType) && modelInfo.getName().equals(modelName)).findFirst().orElse(null);
     }
 
     public ModelCredentialForm getModelCredential() {
         return new ModelCredentialForm(false, true);
-    }
-
-    public ModelParams getModelParams(ModelType modelType, String modelName) {
-        ModelInfo modelInfo = this.getModelInfo(modelType, modelName);
-        if (modelInfo == null || modelInfo.getModelParams() == null) {
-            return new NoModelParams();
-        }
-        return modelInfo.getModelParams();
     }
 
     public String getSvgIcon(String name) {

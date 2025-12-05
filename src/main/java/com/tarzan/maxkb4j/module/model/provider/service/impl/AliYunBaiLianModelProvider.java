@@ -16,6 +16,7 @@ import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.model.image.ImageModel;
+import dev.langchain4j.model.scoring.ScoringModel;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,10 +48,10 @@ public class AliYunBaiLianModelProvider extends IModelProvider {
         modelInfos.add(new ModelInfo("qwen-tts","语音生成模型", ModelType.TTS,QWenTTS.class,new QWenTTSParams()));
         modelInfos.add(new ModelInfo(QwenModelName.QWEN_VL_PLUS,"AI视觉模型", ModelType.VISION, new LlmModelParams()));
         modelInfos.add(new ModelInfo(QwenModelName.QWEN_VL_MAX,"AI视觉模型", ModelType.VISION, new LlmModelParams()));
-        modelInfos.add(new ModelInfo(WanxModelName.WANX2_1_T2I_TURBO,"文生图模型", ModelType.TTI,WanXImageModel.class,new WanXImageModelParams()));
-        modelInfos.add(new ModelInfo(WanxModelName.WANX2_1_T2I_PLUS,"文生图模型", ModelType.TTI,WanXImageModel.class,new WanXImageModelParams()));
-        modelInfos.add(new ModelInfo("qwen-image-plus","文生图模型", ModelType.TTI,WanXImageModel.class,new QwenImageModelParams()));
-        modelInfos.add(new ModelInfo("gte-rerank","重排模型", ModelType.RERANKER,BaiLianReranker.class));
+        modelInfos.add(new ModelInfo(WanxModelName.WANX2_1_T2I_TURBO,"文生图模型", ModelType.TTI,new WanXImageModelParams()));
+        modelInfos.add(new ModelInfo(WanxModelName.WANX2_1_T2I_PLUS,"文生图模型", ModelType.TTI,new WanXImageModelParams()));
+        modelInfos.add(new ModelInfo("qwen-image-plus","文生图模型", ModelType.TTI,new QwenImageModelParams()));
+        modelInfos.add(new ModelInfo("gte-rerank","重排模型", ModelType.RERANKER));
         return modelInfos;
     }
 
@@ -89,7 +90,6 @@ public class AliYunBaiLianModelProvider extends IModelProvider {
 
     @Override
     public ImageModel buildImageModel(String modelName, ModelCredential credential, JSONObject params) {
-       // return new WanXImageModel(modelName,credential,params);
         return WanxImageModel.builder()
                 .modelName(modelName)
                 .apiKey(credential.getApiKey())
@@ -103,8 +103,13 @@ public class AliYunBaiLianModelProvider extends IModelProvider {
     }
 
     @Override
+    public ScoringModel buildScoringModel(String modelName, ModelCredential credential, JSONObject params) {
+        return new BaiLianReranker(modelName,credential,params);
+    }
+
+    @Override
     public STTModel buildSTTModel(String modelName, ModelCredential credential, JSONObject params) {
-        return new BaiLianASR(modelName,credential,params);
+        return new BaiLianSTTModel(modelName,credential,params);
     }
 
 }

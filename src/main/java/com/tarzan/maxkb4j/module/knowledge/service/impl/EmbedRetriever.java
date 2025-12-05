@@ -25,8 +25,10 @@ public class EmbedRetriever implements IDataRetriever {
     public List<TextChunkVO> search(List<String> knowledgeIds, List<String> excludeParagraphIds, String keyword, int maxResults, float minScore) {
         if (StringUtils.isNotBlank(keyword)) {
             EmbeddingModel embeddingModel = knowledgeBaseService.getEmbeddingModel(knowledgeIds.get(0));
+            System.out.println("search="+embeddingModel.dimension());
             Response<Embedding> res = embeddingModel.embed(keyword);
-            return embeddingMapper.embeddingSearch(knowledgeIds, excludeParagraphIds, maxResults, minScore, res.content().vector());
+            System.out.println("search121 ="+res.content().vector().length);
+            return embeddingMapper.embeddingSearch(knowledgeIds, excludeParagraphIds, maxResults, minScore, res.content().vector(),embeddingModel.dimension());
         }
         return List.of();
     }

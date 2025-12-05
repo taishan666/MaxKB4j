@@ -48,6 +48,7 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
     private final ApplicationEventPublisher eventPublisher;
 
 
+
     public void updateStatusById(String id, int type, int status) {
         baseMapper.updateStatusByIds(List.of(id),type,status,type-1,type+1);
     }

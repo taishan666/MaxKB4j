@@ -29,13 +29,6 @@ public class ModelInfo {
         this.modelParams = modelParams;
     }
 
-    public ModelInfo(String name, String desc, ModelType modelType, Class<?> modelClass) {
-        this.name = name;
-        this.desc = desc;
-        this.modelType = modelType;
-        this.modelClass = modelClass;
-    }
-
 
     public ModelInfo(String name, String desc, ModelType modelType, Class<?> modelClass, ModelParams modelParams) {
         this.name = name;
