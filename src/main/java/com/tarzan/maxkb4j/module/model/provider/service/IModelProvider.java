@@ -23,9 +23,7 @@ import dev.langchain4j.model.image.ImageModel;
 import dev.langchain4j.model.scoring.ScoringModel;
 
 import java.io.InputStream;
-import java.lang.reflect.InvocationTargetException;
 import java.util.List;
-import java.util.function.Function;
 
 public abstract class IModelProvider {
 
@@ -44,31 +42,8 @@ public abstract class IModelProvider {
 
     public String getSvgIcon(String name) {
         ClassLoader classLoader = IModelProvider.class.getClassLoader();
-        InputStream inputStream = classLoader.getResourceAsStream("icon/"+name);
+        InputStream inputStream = classLoader.getResourceAsStream("icon/" + name);
         return IoUtil.readToString(inputStream);
-    }
-
-
-    private Object buildModelClass(ModelType modelType, String modelName, ModelCredential credential, JSONObject params) {
-        ModelInfo modelInfo = getModelInfo(modelType, modelName);
-        if (modelInfo == null || modelInfo.getModelClass() == null) {
-            return null;
-        }
-        Class<?> clazz = modelInfo.getModelClass();
-        try {
-            return clazz.getDeclaredConstructor(String.class, ModelCredential.class, JSONObject.class)
-                    .newInstance(modelName, credential, params);
-        } catch (InstantiationException | IllegalAccessException | InvocationTargetException |
-                 NoSuchMethodException e) {
-            throw new RuntimeException("Failed to instantiate model: " + modelName + " of type " + modelType, e);
-        }
-    }
-
-
-    @SuppressWarnings("unchecked")
-    public <T> T buildModelFallback(ModelType modelType, String modelName, ModelCredential credential, JSONObject params, Function<JSONObject, T> fallback) {
-        Object model = buildModelClass(modelType, modelName, credential, params);
-        return model != null ? (T) model : fallback.apply(params);
     }
 
 

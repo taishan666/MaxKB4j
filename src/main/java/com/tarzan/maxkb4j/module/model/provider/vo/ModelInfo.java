@@ -13,8 +13,6 @@ public class ModelInfo {
     private ModelType modelType;
     @JsonIgnore
     private ModelParams modelParams;
-    @JsonIgnore
-    private Class<?> modelClass;
 
     public ModelInfo(String name, String desc, ModelType modelType) {
         this.name = name;
@@ -26,15 +24,6 @@ public class ModelInfo {
         this.name = name;
         this.desc = desc;
         this.modelType = modelType;
-        this.modelParams = modelParams;
-    }
-
-
-    public ModelInfo(String name, String desc, ModelType modelType, Class<?> modelClass, ModelParams modelParams) {
-        this.name = name;
-        this.desc = desc;
-        this.modelType = modelType;
-        this.modelClass = modelClass;
         this.modelParams = modelParams;
     }
 

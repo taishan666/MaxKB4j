@@ -30,7 +30,6 @@ public class DataIndexService {
 
     private final MongoTemplate mongoTemplate;
     private final EmbeddingMapper embeddingMapper;
-    private final EmbeddingStoreFactory embeddingStoreFactory;
 
 
     public void insertAll(List<EmbeddingEntity> embeddingEntities, EmbeddingModel embeddingModel) {
@@ -43,6 +42,7 @@ public class DataIndexService {
                 EmbeddingEntity embeddingEntity = batch.get(i);
                 embeddingEntity.setEmbedding(embedding.vectorAsList());
                 embeddingEntity.setContent(segmentContent(embeddingEntity.getContent()));
+                embeddingEntity.setDimension(embeddingModel.dimension());
             }
         });
         embeddingMapper.insert(embeddingEntities);

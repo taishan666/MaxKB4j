@@ -39,5 +39,7 @@ public class EmbeddingEntity {
 	@TableField(exist = false)
 	@TextScore
 	private float score; // 匹配度得分
+	@Transient
+	private Integer dimension;
 
 } 

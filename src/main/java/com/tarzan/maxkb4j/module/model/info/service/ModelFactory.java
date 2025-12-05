@@ -1,12 +1,11 @@
 package com.tarzan.maxkb4j.module.model.info.service;
 
 import com.alibaba.fastjson.JSONObject;
-import com.tarzan.maxkb4j.module.model.info.entity.ModelEntity;
-import com.tarzan.maxkb4j.module.model.provider.enums.ModelProviderEnum;
-import com.tarzan.maxkb4j.module.model.provider.enums.ModelType;
-import com.tarzan.maxkb4j.module.model.provider.service.IModelProvider;
 import com.tarzan.maxkb4j.module.model.custom.base.STTModel;
 import com.tarzan.maxkb4j.module.model.custom.base.TTSModel;
+import com.tarzan.maxkb4j.module.model.info.entity.ModelEntity;
+import com.tarzan.maxkb4j.module.model.provider.enums.ModelProviderEnum;
+import com.tarzan.maxkb4j.module.model.provider.service.IModelProvider;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.model.embedding.EmbeddingModel;
@@ -78,17 +77,13 @@ public class ModelFactory {
         ModelEntity model = getModel(modelId);
         IModelProvider modelProvider = getModelProvider(model);
         modelParams = modelParams == null ? new JSONObject() : modelParams;
-        return modelProvider.buildModelFallback(
-                ModelType.TTS, model.getModelName(), model.getCredential(), modelParams,
-                p -> modelProvider.buildTTSModel(model.getModelName(), model.getCredential(), p));
+        return modelProvider.buildTTSModel(model.getModelName(), model.getCredential(), modelParams);
     }
 
     public STTModel buildSTTModel(String modelId) {
         ModelEntity model = getModel(modelId);
         IModelProvider modelProvider = getModelProvider(model);
-        return modelProvider.buildModelFallback(
-                ModelType.STT, model.getModelName(), model.getCredential(), new JSONObject(),
-                p -> modelProvider.buildSTTModel(model.getModelName(), model.getCredential(), p));
+        return modelProvider.buildSTTModel(model.getModelName(), model.getCredential(), new JSONObject());
     }
 
 
