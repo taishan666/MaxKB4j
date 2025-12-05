@@ -126,10 +126,10 @@ This project is licensed under the GNU General Public License v3.0 (GPLv3). You 
 Unless required by applicable law or agreed to in writing, software distributed under this License is provided "as is," without warranties or conditions of any kind, either express or implied. See the License for specific language governing permissions and limitations.
 
 ## 🔗 Related Resources
-📘 [Official Documentation (Coming Soon)]()
-🐦 [Author’s WeChat Official Account]()
-🌟 Star this repo to support China’s open-source AI ecosystem!
-🎯 Check this out! 👉 [Master Practical AI Large Model Application Development! 🔥](https://example.com/ai-guide)
+- 📘 [Open-source Model Library](https://modelscope.cn/models)
+- 🐦 [MCP Plaza](https://modelscope.cn/mcp)
+- 🌟 Star this repo to support China’s open-source AI ecosystem!
+> 🎯 Check this out! 👉 [Master Practical AI Large Model Application Development! 🔥](https://example.com/ai-guide)
 
 ---
 ✅ MaxKB4j — Empowering every Java team to effortlessly build enterprise-grade AI knowledge bases!
