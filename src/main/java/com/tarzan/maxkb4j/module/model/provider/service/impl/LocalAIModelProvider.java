@@ -26,7 +26,7 @@ public class LocalAIModelProvider extends IModelProvider {
 
     @Override
     public ModelCredentialForm getModelCredential() {
-        return new ModelCredentialForm(true, false);
+        return new ModelCredentialForm(true, false,"http://host.docker.internal:8080");
     }
 
     @Override

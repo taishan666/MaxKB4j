@@ -41,7 +41,7 @@ public class OLlamaModelProvider extends IModelProvider {
 
     @Override
     public ModelCredentialForm getModelCredential() {
-        return new ModelCredentialForm(true,false);
+        return new ModelCredentialForm(true, false,"http://host.docker.internal:11434");
     }
 
     @Override

@@ -45,7 +45,7 @@ public class XInferenceModelProvider extends IModelProvider {
 
     @Override
     public ModelCredentialForm getModelCredential() {
-        return new ModelCredentialForm(true, true);
+        return new ModelCredentialForm(true, false,"http://host.docker.internal:9997");
     }
 
     @Override

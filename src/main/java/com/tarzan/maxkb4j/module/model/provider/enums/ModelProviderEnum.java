@@ -51,6 +51,7 @@ public enum ModelProviderEnum {
 
     public static List<IModelProvider> getAllProvider() {
         return Arrays.stream(values())
+                .filter(e->!e.equals(ModelProviderEnum.LocalAI))
                 .map(e -> e.modelProvider)
                 .toList();
     }
