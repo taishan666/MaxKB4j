@@ -40,7 +40,7 @@ public class ParameterExtractionNodeHandler implements INodeHandler {
         Map<String, Object> nodeVariable=new HashMap<>();
         nodeVariable.put("result", result.content());
         nodeVariable.putAll(result.content());
-        return new NodeResult(nodeVariable,Map.of());
+        return new NodeResult(nodeVariable);
     }
 
 

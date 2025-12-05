@@ -36,7 +36,7 @@ public class FormNodeHandler implements INodeHandler {
             node.getDetail().put("form_field_list", formFieldList);
             nodeVariable.put("is_submit", false);
         }
-        return new NodeResult(nodeVariable, Map.of(),false,this::isInterrupt);
+        return new NodeResult(nodeVariable,false,this::isInterrupt);
     }
 
 

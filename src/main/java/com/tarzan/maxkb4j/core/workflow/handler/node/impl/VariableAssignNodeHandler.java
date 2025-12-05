@@ -39,7 +39,7 @@ public class VariableAssignNodeHandler implements INodeHandler {
             }
         }
         node.getDetail().put("resultList",resultList);
-        return new NodeResult(Map.of(),Map.of());
+        return new NodeResult(Map.of());
     }
 
     private Map<String, Object> getGlobalHandleResult(Workflow workflow,Map<String, Object> variable,List<String> fields){

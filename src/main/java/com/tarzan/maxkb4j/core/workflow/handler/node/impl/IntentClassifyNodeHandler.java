@@ -57,7 +57,7 @@ public class IntentClassifyNodeHandler implements INodeHandler {
         node.getDetail().put("messageTokens", tokenUsage.inputTokenCount());
         node.getDetail().put("answerTokens", tokenUsage.outputTokenCount());
         node.getDetail().put("answer", category);
-        return new NodeResult(Map.of("branchId",branchId,"category", category,"reason", ""),Map.of());
+        return new NodeResult(Map.of("branchId",branchId,"category", category,"reason", ""));
     }
 
     protected String optionsFormat(Map<Integer, String> idToClassification,List<IntentClassifyNode.Branch> branches) {

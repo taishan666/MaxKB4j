@@ -120,7 +120,7 @@ public class AiChatNodeHandler implements INodeHandler {
         TokenUsage tokenUsage = response.tokenUsage();
         node.getDetail().put("messageTokens", tokenUsage.inputTokenCount());
         node.getDetail().put("answerTokens", tokenUsage.outputTokenCount());
-        return new NodeResult(Map.of("answer", node.getAnswerText(), "reasoningContent", thinking), Map.of(), true);
+        return new NodeResult(Map.of("answer", node.getAnswerText(), "reasoningContent", thinking),  true);
 
     }
 

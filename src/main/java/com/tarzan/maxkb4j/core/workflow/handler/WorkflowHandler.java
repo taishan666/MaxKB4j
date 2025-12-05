@@ -77,7 +77,7 @@ public class WorkflowHandler {
             }
         }else if (NodeRunStatus.SKIP.equals(node.getRunStatus())) {
             // 获取下一个节点列表
-            List<INode> nextNodeList = workflow.getNextNodeList(node, new NodeResult(Map.of(), Map.of()));
+            List<INode> nextNodeList = workflow.getNextNodeList(node, new NodeResult(Map.of()));
             nextNodeList.forEach(nextNode -> {
                 if (!workflow.isReadyJoinNode(nextNode)){
                     nextNode.setRunStatus(NodeRunStatus.SKIP);

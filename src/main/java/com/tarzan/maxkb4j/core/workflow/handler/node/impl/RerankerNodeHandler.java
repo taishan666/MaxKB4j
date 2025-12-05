@@ -70,7 +70,7 @@ public class RerankerNodeHandler implements INodeHandler {
         assert tokenUsage != null;
         node.getDetail().put("documentList", documentList);
         return new NodeResult(Map.of("resultList", resultList,
-                "result", result), Map.of());
+                "result", result));
     }
 
     @SuppressWarnings("unchecked")

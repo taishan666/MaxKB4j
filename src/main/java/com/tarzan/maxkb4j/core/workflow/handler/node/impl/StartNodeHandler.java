@@ -31,6 +31,7 @@ public class StartNodeHandler implements INodeHandler {
         Map<String, Object> globalVariable = getDefaultGlobalVariable(workflow,chatParams);
         // 合并全局变量
         globalVariable.putAll(chatParams.getFormData());
+        workflow.getContext().putAll(globalVariable);
         //会话变量
         workflow.getChatContext().putAll(getChatVariable(node,chatParams.getChatId()));
         // 构建节点变量
@@ -40,7 +41,7 @@ public class StartNodeHandler implements INodeHandler {
         nodeVariable.put("document", chatParams.getDocumentList());
         nodeVariable.put("audio", chatParams.getAudioList());
         nodeVariable.put("other", chatParams.getOtherList());
-        return new NodeResult(nodeVariable, globalVariable);
+        return new NodeResult(nodeVariable);
     }
 
     private Map<String, Object> getDefaultGlobalVariable(Workflow workflow,ChatParams chatParams) {

@@ -46,6 +46,6 @@ public class ImageGenerateNodeHandler implements INodeHandler {
         }
         node.setAnswerText(answerSb.toString());
         node.getDetail().put("question",prompt);
-        return new NodeResult(Map.of("answer",answerSb.toString(),"image",imageUrls),Map.of());
+        return new NodeResult(Map.of("answer",answerSb.toString(),"image",imageUrls));
     }
 }

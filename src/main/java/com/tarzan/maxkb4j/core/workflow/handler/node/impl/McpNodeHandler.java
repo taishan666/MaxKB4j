@@ -51,6 +51,6 @@ public class McpNodeHandler implements INodeHandler {
         }
         node.getDetail().put("toolParams",toolParams);
         node.getDetail().put("mcpTool",nodeParams.getMcpTool());
-        return new NodeResult(Map.of("result",result), Map.of());
+        return new NodeResult(Map.of("result",result));
     }
 }

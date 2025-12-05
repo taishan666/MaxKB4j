@@ -47,7 +47,7 @@ public class NL2SqlNodeHandler implements INodeHandler {
         node.getDetail().put("question", question);
         node.getDetail().put("messageTokens", tokenUsage.inputTokenCount());
         node.getDetail().put("answerTokens", tokenUsage.outputTokenCount());
-        return new NodeResult(Map.of("sql",sql,"result",sqlResult), Map.of());
+        return new NodeResult(Map.of("sql",sql,"result",sqlResult));
     }
 
 /*    public static String convertToMarkdown(String result) {

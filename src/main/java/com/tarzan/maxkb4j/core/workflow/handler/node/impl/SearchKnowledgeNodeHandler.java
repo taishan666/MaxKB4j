@@ -46,7 +46,7 @@ public class SearchKnowledgeNodeHandler implements INodeHandler {
                 "isHitHandlingMethodList", isHitHandlingMethodList,
                 "data", processParagraphs(paragraphList, knowledgeSetting.getMaxParagraphCharNumber()),
                 "directlyReturn", directlyReturns(isHitHandlingMethodList)
-        ), Map.of());
+        ));
     }
 
     @SuppressWarnings("unchecked")

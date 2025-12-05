@@ -14,24 +14,22 @@ import java.util.Map;
 @Data
 public class NodeResult {
     private Map<String, Object> nodeVariable;
-    private Map<String, Object> globalVariable;
     private boolean streamOutput;
     private WriteContextFunction writeContextFunc;
     private WriteDetailFunction writeDetailFunc;
     private IsInterruptFunction isInterrupt;
 
-    public NodeResult(Map<String, Object> nodeVariable, Map<String, Object> globalVariable) {
+
+    public NodeResult(Map<String, Object> nodeVariable) {
         this.nodeVariable = nodeVariable;
-        this.globalVariable = globalVariable;
         this.streamOutput = false;
         this.writeContextFunc = this::defaultWriteContextFunc;
         this.writeDetailFunc = this::defaultWriteDetailFunc;
         this.isInterrupt = this::defaultIsInterrupt;
     }
 
-    public NodeResult(Map<String, Object> nodeVariable, Map<String, Object> globalVariable, boolean streamOutput) {
+    public NodeResult(Map<String, Object> nodeVariable, boolean streamOutput) {
         this.nodeVariable = nodeVariable;
-        this.globalVariable = globalVariable;
         this.streamOutput = streamOutput;
         this.writeContextFunc = this::defaultWriteContextFunc;
         this.writeDetailFunc = this::defaultWriteDetailFunc;
@@ -39,9 +37,8 @@ public class NodeResult {
     }
 
 
-    public NodeResult(Map<String, Object> nodeVariable, Map<String, Object> globalVariable, boolean streamOutput, IsInterruptFunction isInterrupt) {
+    public NodeResult(Map<String, Object> nodeVariable,  boolean streamOutput, IsInterruptFunction isInterrupt) {
         this.nodeVariable = nodeVariable;
-        this.globalVariable = globalVariable;
         this.streamOutput = streamOutput;
         this.writeContextFunc = this::defaultWriteContextFunc;
         this.writeDetailFunc = this::defaultWriteDetailFunc;
@@ -50,11 +47,11 @@ public class NodeResult {
 
 
     public void writeContext(INode currentNode, Workflow workflow) {
-        this.writeContextFunc.apply(nodeVariable, globalVariable, currentNode, workflow);
+        this.writeContextFunc.apply(nodeVariable, currentNode, workflow);
     }
 
     public void writeDetail(INode currentNode) {
-        this.writeDetailFunc.apply(nodeVariable, globalVariable, currentNode);
+        this.writeDetailFunc.apply(nodeVariable, currentNode);
     }
 
     public boolean isInterruptExec(INode currentNode) {
@@ -65,10 +62,10 @@ public class NodeResult {
         return false;
     }
 
-    public void defaultWriteContextFunc(Map<String, Object> nodeVariable, Map<String, Object> globalVariable, INode node, Workflow workflow) {
+    public void defaultWriteContextFunc(Map<String, Object> nodeVariable, INode node, Workflow workflow) {
         if (nodeVariable != null) {
             node.getContext().putAll(nodeVariable);
-            if (workflow.isResult(node, new NodeResult(nodeVariable, globalVariable)) && StringUtils.isNotBlank(node.getAnswerText())) {
+            if (workflow.isResult(node, new NodeResult(nodeVariable)) && StringUtils.isNotBlank(node.getAnswerText())) {
                 if (!this.streamOutput) {
                     ChatMessageVO vo = node.toChatMessageVO(
                             workflow.getChatParams().getChatId(),
@@ -88,12 +85,9 @@ public class NodeResult {
                 workflow.getChatParams().getSink().tryEmitNext(endVo);
             }
         }
-        if (globalVariable != null) {
-            workflow.getContext().putAll(globalVariable);
-        }
     }
 
-    public void defaultWriteDetailFunc(Map<String, Object> nodeVariable, Map<String, Object> globalVariable, INode node) {
+    public void defaultWriteDetailFunc(Map<String, Object> nodeVariable, INode node) {
         if (nodeVariable != null) {
             if (NodeType.FORM.getKey().equals(node.getType())) {
                 node.getDetail().put("form_data", nodeVariable.get("form_data"));
@@ -102,21 +96,18 @@ public class NodeResult {
                 node.getDetail().putAll(nodeVariable);
             }
         }
-        if (globalVariable != null) {
-            node.getDetail().putAll(globalVariable);
-        }
     }
 
 
     @FunctionalInterface
     public interface WriteContextFunction {
-        void apply(Map<String, Object> nodeVariable, Map<String, Object> workflowVariable, INode node, Workflow workflow);
+        void apply(Map<String, Object> nodeVariable, INode node, Workflow workflow);
     }
 
 
     @FunctionalInterface
     public interface WriteDetailFunction {
-        void apply(Map<String, Object> nodeVariable, Map<String, Object> workflowVariable, INode node);
+        void apply(Map<String, Object> nodeVariable, INode node);
     }
 
     @FunctionalInterface

@@ -115,7 +115,7 @@ public class ApplicationNodeHandler implements INodeHandler {
         node.getDetail().put("is_interrupt_exec", is_interrupt_exec.get());
         return new NodeResult(Map.of(
                 "result", node.getAnswerText()
-        ), Map.of(),true,this::isInterrupt);
+        ), true,this::isInterrupt);
     }
 
 

@@ -45,7 +45,7 @@ public class UserSelectNodeHandler implements INodeHandler {
             nodeVariable.put("is_submit", false);
 
         }
-        return new NodeResult(nodeVariable, Map.of(), false, this::isInterrupt);
+        return new NodeResult(nodeVariable, false, this::isInterrupt);
     }
 
     public boolean isInterrupt(INode node) {

@@ -36,6 +36,6 @@ public class TextToSpeechNodeHandler implements INodeHandler {
         node.getDetail().put("content",content);
         node.setAnswerText(answer);
         // 输出生成的 HTML 标签
-        return new NodeResult(Map.of("result",List.of(fileVO)),Map.of());
+        return new NodeResult(Map.of("result",List.of(fileVO)));
     }
 }

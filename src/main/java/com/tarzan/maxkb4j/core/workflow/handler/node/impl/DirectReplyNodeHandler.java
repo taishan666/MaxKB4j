@@ -30,7 +30,7 @@ public class DirectReplyNodeHandler implements INodeHandler {
         } else {
             node.setAnswerText(workflow.generatePrompt(nodeParams.getContent()));
         }
-        return new NodeResult(Map.of("answer", node.getAnswerText()), Map.of());
+        return new NodeResult(Map.of("answer", node.getAnswerText()));
     }
 
 }

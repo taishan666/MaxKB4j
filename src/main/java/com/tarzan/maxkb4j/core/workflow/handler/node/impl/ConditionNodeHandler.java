@@ -42,7 +42,7 @@ public class ConditionNodeHandler implements INodeHandler {
         ConditionNode.NodeParams nodeParams= node.getNodeData().toJavaObject(ConditionNode.NodeParams.class);
         ConditionNode.Branch branch = _execute(workflow,nodeParams.getBranch());
         assert branch != null;
-        return new NodeResult(Map.of("branchId", branch.getId(), "branchName", branch.getType()), Map.of());
+        return new NodeResult(Map.of("branchId", branch.getId(), "branchName", branch.getType()));
     }
 
     private ConditionNode.Branch _execute(Workflow workflow,List<ConditionNode.Branch> branchList) {
