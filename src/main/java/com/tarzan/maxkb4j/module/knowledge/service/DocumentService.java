@@ -11,7 +11,6 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.tarzan.maxkb4j.common.base.dto.BaseQuery;
 import com.tarzan.maxkb4j.common.util.ExcelUtil;
 import com.tarzan.maxkb4j.common.util.IoUtil;
 import com.tarzan.maxkb4j.common.util.JsoupUtil;
@@ -19,6 +18,7 @@ import com.tarzan.maxkb4j.core.event.DocumentIndexEvent;
 import com.tarzan.maxkb4j.core.event.GenerateProblemEvent;
 import com.tarzan.maxkb4j.listener.DataListener;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.DatasetBatchHitHandlingDTO;
+import com.tarzan.maxkb4j.module.knowledge.domain.dto.DocQuery;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.DocumentNameDTO;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.GenerateProblemDTO;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.DocumentEntity;
@@ -42,7 +42,6 @@ import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.poi.util.StringUtil;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.springframework.context.ApplicationEventPublisher;
@@ -401,7 +400,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         return this.removeById(docId);
     }
 
-    public IPage<DocumentVO> getDocByKnowledgeId(String knowledgeId, int current, int size, BaseQuery query) {
+    public IPage<DocumentVO> getDocByKnowledgeId(String knowledgeId, int current, int size, DocQuery query) {
         Page<DocumentVO> docPage = new Page<>(current, size);
         baseMapper.selectDocPage(docPage, knowledgeId, query);
         return docPage;

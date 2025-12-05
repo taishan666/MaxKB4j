@@ -78,8 +78,11 @@
             <if test="query.name != null and query.name != ''">
                 and d.name like CONCAT('%',#{query.name},'%')
             </if>
-            <if test="query.createUser != null and query.createUser != ''">
-                and d.user_id = #{query.createUser}
+            <if test="query.isActive != null">
+                and d.is_active = #{query.isActive}
+            </if>
+            <if test="query.hitHandlingMethod != null and query.hitHandlingMethod != ''">
+                and d.hit_handling_method=#{query.hitHandlingMethod}
             </if>
         </where>
         GROUP BY d.ID

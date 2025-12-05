@@ -77,7 +77,7 @@ public class DocumentController {
 
   
     @GetMapping("/knowledge/{id}/document")
-    public R<List<DocumentEntity>> listDocByDatasetId(@PathVariable String id) {
+    public R<List<DocumentEntity>> listDocByKnowledgeId(@PathVariable String id) {
         return R.success(documentService.listDocByKnowledgeId(id));
     }
 
@@ -149,7 +149,7 @@ public class DocumentController {
 
   
     @GetMapping("/knowledge/{knowledgeId}/document/{current}/{size}")
-    public R<IPage<DocumentVO>> pageDocByDatasetId(@PathVariable String knowledgeId, @PathVariable("current") int current, @PathVariable("size") int size, BaseQuery query) {
+    public R<IPage<DocumentVO>> pageDocByDatasetId(@PathVariable String knowledgeId, @PathVariable("current") int current, @PathVariable("size") int size, DocQuery query) {
         return R.success(documentService.getDocByKnowledgeId(knowledgeId, current, size, query));
     }
 
