@@ -6,6 +6,5 @@ spring:
     driver-class-name: org.postgresql.Driver
   data:
     mongodb:
-      database: MaxKB4j
-      uri: mongodb://myusername:mypassword@localhost:27017
+      uri: mongodb://tarzan_mongo:ycn4NRhjN2@localhost:27017/MaxKB4J?authSource=admin
 
