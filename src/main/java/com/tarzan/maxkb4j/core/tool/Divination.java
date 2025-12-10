@@ -115,6 +115,7 @@ public class Divination {
         String guaLiuQin = getGuaLiuQin(gongWx, yaoWxs);
         LocalDateTime now = LocalDateTime.now();
         String dayGan = GanZhiCalendar.toDayGan(now);
+        System.out.println("本卦日干：" + dayGan);
         String guaTG = getGuaDayGan(benGua);
         String guaLiuShen = getGuaLiuShen(dayGan);
         int shiYaoIndex = getShiYaoIndex(benGua);
@@ -122,6 +123,7 @@ public class Divination {
         System.out.println("本卦：" + benGua
                 + " 卦名：" + guaName + "(" + (LIU_HE_GUA.contains(benGua) ? "六合" : "") + (LIU_CHONG_GUA.contains(benGua) ? "六冲" : "") + ")"
                 + " 卦宫：" + guaGong + "(" + gongWx + ")"
+                + " 农历：" + GanZhiCalendar.toLunarDate(now)
                 + " 干支：" + GanZhiCalendar.toGanZhi(now));
 
         for (int i = benGua.length() - 1; i >= 0; i--) {
