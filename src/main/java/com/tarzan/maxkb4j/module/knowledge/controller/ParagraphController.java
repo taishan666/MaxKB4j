@@ -43,6 +43,11 @@ public class ParagraphController {
         return R.success(paragraphService.getById(paragraphId));
     }
 
+    @PutMapping("/knowledge/{id}/document/{docId}/paragraph/association")
+    public R<Boolean> association(@PathVariable String id, @PathVariable("docId") String docId, @RequestParam String paragraphId, @RequestParam String problemId) {
+        return R.status(problemParagraphService.association(id, docId, paragraphId, problemId));
+    }
+
   
     @DeleteMapping("/knowledge/{knowledgeId}/document/{docId}/paragraph/{paragraphId}")
     public R<Boolean> deleteParagraphByParagraphId(@PathVariable String knowledgeId, @PathVariable("docId") String docId, @PathVariable("paragraphId") String paragraphId) {
@@ -68,25 +73,22 @@ public class ParagraphController {
     }
 
   
-    @PutMapping("/knowledge/{id}/document/{docId}/paragraph/{paragraphId}/problem/{problemId}/association")
-    public R<Boolean> association(@PathVariable String id, @PathVariable("docId") String docId, @PathVariable("paragraphId") String paragraphId, @PathVariable("problemId") String problemId) {
-        return R.success(problemParagraphService.association(id, docId, paragraphId, problemId));
-    }
+
 
  
     @PutMapping("/knowledge/{id}/document/{docId}/paragraph/{paragraphId}/problem/{problemId}/un_association")
     public R<Boolean> unAssociation(@PathVariable String id, @PathVariable("docId") String docId, @PathVariable("paragraphId") String paragraphId, @PathVariable("problemId") String problemId) {
-        return R.success(problemParagraphService.unAssociation(id, docId, paragraphId, problemId));
+        return R.status(problemParagraphService.unAssociation(id, docId, paragraphId, problemId));
     }
 
    
     @PutMapping("/knowledge/{sourceKnowledgeId}/document/{sourceDocId}/paragraph/migrate/knowledge/{targetKnowledgeId}/document/{targetDocId}")
     public R<Boolean> paragraphMigrate(@PathVariable String sourceKnowledgeId, @PathVariable String sourceDocId, @PathVariable String targetKnowledgeId, @PathVariable String targetDocId, @RequestBody IdListDTO dto) {
-        return R.success(paragraphService.paragraphMigrate(sourceKnowledgeId, sourceDocId, targetKnowledgeId, targetDocId, dto.getIdList()));
+        return R.status(paragraphService.paragraphMigrate(sourceKnowledgeId, sourceDocId, targetKnowledgeId, targetDocId, dto.getIdList()));
     }
     @PutMapping("/knowledge/{KnowledgeId}/document/{documentId}/paragraph/adjust_position")
     public R<Boolean> adjustPosition(@PathVariable String KnowledgeId, @PathVariable String documentId, String paragraphId, Integer newPosition) {
-        return R.success(paragraphService.adjustPosition(KnowledgeId, documentId, paragraphId, newPosition));
+        return R.status(paragraphService.adjustPosition(KnowledgeId, documentId, paragraphId, newPosition));
     }
 
 }
