@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Getter
-public enum ResourcePermissionEnum {
+public enum PermissionEnum {
 
 
     APPLICATION_CREATE("APPLICATION","APPLICATION","READ+CREATE", "MANAGE"),
@@ -15,7 +15,7 @@ public enum ResourcePermissionEnum {
     APPLICATION_DELETE("APPLICATION","APPLICATION","READ+DELETE", "MANAGE"),
     APPLICATION_READ("APPLICATION","APPLICATION","READ", "VIEW"),
     APPLICATION_EXPORT("APPLICATION","APPLICATION","READ+EXPORT", "MANAGE"),
-    APPLICATION_IMPORT("KNOWLEDGE","KNOWLEDGE","READ+IMPORT", "MANAGE"),
+    APPLICATION_IMPORT("APPLICATION","APPLICATION","READ+IMPORT", "MANAGE"),
 
     APPLICATION_OVERVIEW_PUBLIC_ACCESS("APPLICATION","APPLICATION_OVERVIEW","READ+PUBLIC_ACCESS", "MANAGE"),
     APPLICATION_OVERVIEW_ACCESS("APPLICATION","APPLICATION_OVERVIEW","READ+ACCESS", "MANAGE"),
@@ -73,21 +73,25 @@ public enum ResourcePermissionEnum {
     MODEL_READ("MODEL","MODEL","READ", "VIEW"),
     ;
 
-    private final String group;
+    private final String resourceType;
     private final String resource;
     private final String operate;
     private final String permission;
 
-    ResourcePermissionEnum(String group,String resource, String operate, String permission) {
-        this.group = group;
+    PermissionEnum(String resourceType, String resource, String operate, String permission) {
+        this.resourceType = resourceType;
         this.resource = resource;
         this.operate = operate;
         this.permission = permission;
     }
 
 
-    public static List<ResourcePermissionEnum> getPermissions(String group) {
-        return Arrays.stream(values()).filter(e-> e.group.equals(group))
+    public static List<PermissionEnum> getPermissions(String resourceType) {
+        return Arrays.stream(values()).filter(e-> e.resourceType.equals(resourceType))
                 .collect(Collectors.toList());
+    }
+
+    public static List<PermissionEnum> getPermissions(String resourceType, List<String> permissionList) {
+        return getPermissions(resourceType).stream().filter(e -> permissionList.contains(e.getPermission())).toList();
     }
 }

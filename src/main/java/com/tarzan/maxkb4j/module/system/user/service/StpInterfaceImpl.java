@@ -6,7 +6,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.tarzan.maxkb4j.module.system.permission.entity.UserResourcePermissionEntity;
 import com.tarzan.maxkb4j.module.system.permission.service.UserResourcePermissionService;
 import com.tarzan.maxkb4j.module.system.user.domain.entity.UserEntity;
-import com.tarzan.maxkb4j.module.system.user.enums.ResourcePermissionEnum;
+import com.tarzan.maxkb4j.module.system.user.enums.PermissionEnum;
 import com.tarzan.maxkb4j.module.system.user.mapper.UserMapper;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -33,10 +33,10 @@ public class StpInterfaceImpl implements StpInterface {
         List<UserResourcePermissionEntity> userResourcePermissions = userResourcePermissionService.getByUserId(userId);
         List<String> permissions = new ArrayList<>();
         for (UserResourcePermissionEntity permission : userResourcePermissions) {
-            List<ResourcePermissionEnum> resourcePermissionEnums = ResourcePermissionEnum.getPermissions(permission.getAuthTargetType()).stream().filter(e -> permission.getPermissionList().contains(e.getPermission())).toList();
+            List<PermissionEnum> resourcePermissionEnums = PermissionEnum.getPermissions(permission.getAuthTargetType(),permission.getPermissionList());
             resourcePermissionEnums.forEach(e -> {
-                String operate = e.getResource() + ":" + e.getOperate() + ":/WORKSPACE/" + permission.getWorkspaceId() + "/" + permission.getAuthTargetType() + "/" + permission.getTargetId();
-                permissions.add(operate);
+                String perm = e.getResource() + ":" + e.getOperate() + ":/WORKSPACE/" + permission.getWorkspaceId() + "/" + permission.getAuthTargetType() + "/" + permission.getTargetId();
+                permissions.add(perm);
             });
         }
         return permissions;

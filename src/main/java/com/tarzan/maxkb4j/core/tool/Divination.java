@@ -9,8 +9,7 @@ public class Divination {
     // 定义八卦与二进制表示的映射
     static String[] TRIGRAMS = {"坤", "艮", "坎", "巽", "震", "离", "兑", "乾"};
 
-    static String[] TRIGRAMS_TIAN_GAN
-            = {"坤:乙癸", "艮:丙", "坎:戊", "巽:辛", "震:庚", "离:己", "兑:丁", "乾:甲壬"};
+    static String[] TRIGRAMS_TIAN_GAN = {"坤:乙癸", "艮:丙", "坎:戊", "巽:辛", "震:庚", "离:己", "兑:丁", "乾:甲壬"};
 
     static final String[] INNER_GUA_DI_ZHI = {
             "坤:丑亥酉", "艮:辰午申", "坎:寅辰午", "巽:丑亥酉", "震:子寅辰", "离:卯丑亥", "兑:巳卯丑", "乾:子寅辰"
@@ -45,7 +44,7 @@ public class Divination {
             // 震宫（木）
             {"震为雷", "雷地豫", "雷水解", "雷风恒", "地风升", "水风井", "泽风大过", "泽雷随"},
             // 离宫（火）
-            {"离为火", "火山旅", "火风鼎", "火水未济", "山水蒙", "风水涣", "天水讼","天火同人"},
+            {"离为火", "火山旅", "火风鼎", "火水未济", "山水蒙", "风水涣", "天水讼", "天火同人"},
             // 兑宫（金）
             {"兑为泽", "泽水困", "泽地萃", "泽山咸", "水山蹇", "地山谦", "雷山小过", "雷泽归妹"},
             // 乾宫（金）
@@ -80,8 +79,6 @@ public class Divination {
     static final String[] DI_ZHI_FIVE_ELEMENTS = {
             "寅卯:木", "巳午:火", "申酉:金", "亥子:水", "辰戌丑未:土"
     };
-    // 十天支
-    static final String[] TIAN_GAN = {"甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"};
     // 六神顺序：从初爻开始的默认顺序
     static final String[] LIU_SHEN = {"青龙", "朱雀", "勾陈", "螣蛇", "白虎", "玄武"};
     //天干对应的六神的下标
@@ -111,21 +108,20 @@ public class Divination {
         int[] sixYao = toSixYao(fourQuadrant);
         String benGua = convert(sixYao);
         String guaName = getGuaName(benGua);
-        System.out.println("本卦：" + benGua + " 卦名：" + guaName);
         String guaGong = getGuaGong(benGua);
         String guaDiZhi = getGuaDiZhi(benGua);
-        String guaWx = getGuaFiveElement(guaGong);
+        String gongWx = getGongFiveElement(guaGong);
         String yaoWxs = getYaoFiveElement(guaDiZhi);
-        String guaLiuQin = getGuaLiuQin(guaWx, yaoWxs);
+        String guaLiuQin = getGuaLiuQin(gongWx, yaoWxs);
         LocalDateTime now = LocalDateTime.now();
-        String tianGan = GanZhiCalendar.toDayGan(now);
+        String dayGan = GanZhiCalendar.toDayGan(now);
         String guaTG = getGuaDayGan(benGua);
-        String guaLiuShen = getGuaLiuShen(tianGan);
+        String guaLiuShen = getGuaLiuShen(dayGan);
         int shiYaoIndex = getShiYaoIndex(benGua);
         int yingYaoIndex = getYingYaoIndex(shiYaoIndex);
         System.out.println("本卦：" + benGua
                 + " 卦名：" + guaName + "(" + (LIU_HE_GUA.contains(benGua) ? "六合" : "") + (LIU_CHONG_GUA.contains(benGua) ? "六冲" : "") + ")"
-                + " 卦宫：" + guaGong + "(" + guaWx + ")"
+                + " 卦宫：" + guaGong + "(" + gongWx + ")"
                 + " 干支：" + GanZhiCalendar.toGanZhi(now));
 
         for (int i = benGua.length() - 1; i >= 0; i--) {
@@ -143,9 +139,6 @@ public class Divination {
             String ls = guaLiuShen.substring(i * 2, (i + 1) * 2);
             System.out.println(ls + " " + yaoName + " " + lq + yaoTG + dz + wx + " " + shiYao + yingYao);
         }
-
-        //  int[] changeHexagram = changeHexagram(sixthLines);
-        //  System.out.println("变卦：" + Arrays.toString(changeHexagram)+"  卦名："+getGuaName(changeHexagram));
     }
 
     public static int getShiYaoIndex(String gua) {
@@ -202,10 +195,6 @@ public class Divination {
         if (idx == GUA_KUN) return "癸";
         return TRIGRAMS_TIAN_GAN[idx].split(":")[1];
     }
-
-
-
-
 
 
     public static String getGuaLiuShen(String tianGan) {
@@ -270,7 +259,7 @@ public class Divination {
     }
 
 
-    public static String getGuaFiveElement(String gong) {
+    public static String getGongFiveElement(String gong) {
         for (String element : GONG_FIVE_ELEMENTS) {
             if (element.contains(gong)) {
                 return element.split(":")[1];
@@ -331,16 +320,6 @@ public class Divination {
             } else if (yao == 7) {
                 gua[i] = 3;
             }
-        }
-        return gua;
-    }
-
-    public static int[] toQuaternary(int[] sixthLines) {
-        int[] gua = new int[6];
-        for (int i = 0; i < sixthLines.length; i++) {
-            int yao = sixthLines[i];
-            String quaternary = Integer.toString(yao, 4);
-            gua[i] = Integer.parseInt(quaternary);
         }
         return gua;
     }
@@ -409,19 +388,19 @@ public class Divination {
         return Integer.parseInt(binaryStr, 2);
     }
 
-    private static class WuXing {
-        static String WOOD = "木";
-        static String FIRE = "火";
-        static String EARTH = "土";
-        static String METAL = "金";
-        static String WATER = "水";
+    static class WuXing {
+        final static String WOOD = "木";
+        final static String FIRE = "火";
+        final static String EARTH = "土";
+        final static String METAL = "金";
+        final static String WATER = "水";
     }
 
-    private static class LiuQin {
-        static String PARENTS = "父母";
-        static String CHILDREN = "子孙";
-        static String OFFICIAL_GHOST = "官鬼";
-        static String SPOUSE_WEALTH = "妻财";
-        static String BROTHERS = "兄弟";
+    static class LiuQin {
+        final static String PARENTS = "父母";
+        final static String CHILDREN = "子孙";
+        final static String OFFICIAL_GHOST = "官鬼";
+        final static String SPOUSE_WEALTH = "妻财";
+        final static String BROTHERS = "兄弟";
     }
 }

@@ -2,6 +2,7 @@
 package com.tarzan.maxkb4j.common.handler;
 
 import cn.dev33.satoken.exception.NotLoginException;
+import cn.dev33.satoken.exception.NotPermissionException;
 import cn.dev33.satoken.jwt.exception.SaJwtException;
 import com.tarzan.maxkb4j.common.api.R;
 import com.tarzan.maxkb4j.common.exception.*;
@@ -36,6 +37,13 @@ public class GlobalExceptionHandler {
         log.error("未登录异常: {}", e.getMessage());
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 设置HTTP状态码为401
         return R.fail(401, e.getMessage());
+    }
+
+    @ExceptionHandler(NotPermissionException.class)
+    @ResponseBody
+    public R<String> handleException(NotPermissionException e) {
+        log.error("无此权限异常: {}", e.getMessage(), e);
+        return R.fail(500, e.getMessage());
     }
 
     @ExceptionHandler(SaJwtException.class)

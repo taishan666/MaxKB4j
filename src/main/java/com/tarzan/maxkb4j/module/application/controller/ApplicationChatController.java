@@ -1,11 +1,13 @@
 package com.tarzan.maxkb4j.module.application.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.tarzan.maxkb4j.common.aop.SaCheckPerm;
 import com.tarzan.maxkb4j.common.api.R;
 import com.tarzan.maxkb4j.common.constant.AppConst;
 import com.tarzan.maxkb4j.module.application.domian.dto.ChatQueryDTO;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatEntity;
 import com.tarzan.maxkb4j.module.application.service.ApplicationChatService;
+import com.tarzan.maxkb4j.module.system.user.enums.PermissionEnum;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;

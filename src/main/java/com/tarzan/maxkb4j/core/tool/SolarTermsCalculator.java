@@ -29,7 +29,7 @@ public class SolarTermsCalculator {
                 LocalDate start = getSolarTermDay(date.getYear(), i);
                 LocalDate end = getSolarTermDay(date.getYear(), i+1);
                 if ((start.isEqual(date)||start.isBefore(date)) && end.isAfter(date)){
-                    System.out.println(year + "年" + TERMS[i] + ": " + date.format(fmt));
+                 //   System.out.println(year + "年" + TERMS[i] + ": " + date.format(fmt));
                     return  i<2?12:i/2;
                 }
             }
