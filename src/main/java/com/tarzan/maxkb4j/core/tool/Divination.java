@@ -100,34 +100,38 @@ public class Divination {
 
     public static void main(String[] args) {
         System.out.println("=== 六爻排盘 ===");
+        LocalDateTime now = LocalDateTime.now();
+        String dayGan = GanZhiCalendar.toDayGan(now);
+        System.out.println("农历：" + GanZhiCalendar.toLunarDate(now));
+        System.out.println("干支：" + GanZhiCalendar.toGanZhi(now));
+        System.out.println("日空：" + GanZhiCalendar.getKongWang(now));
         int[] randomNumbers = getRandomNumbers();
-        System.out.println("六爻（十进制 ）：" + Arrays.toString(randomNumbers));
-        System.out.println("六爻（二进制 ）：" + toBinary(randomNumbers));
         int[] fourQuadrant = toFourQuadrant(randomNumbers);
-        System.out.println("六爻（四象）：" + Arrays.toString(fourQuadrant));
-        int[] sixYao = toSixYao(fourQuadrant);
-        String benGua = convert(sixYao);
-        String guaName = getGuaName(benGua);
-        String guaGong = getGuaGong(benGua);
-        String guaDiZhi = getGuaDiZhi(benGua);
+     //   System.out.println("六爻（四象）：" + Arrays.toString(fourQuadrant));
+        String benGua = toSixYao(fourQuadrant);
+        System.out.println("=== 本卦：" + benGua
+                + " 卦名：" + getGuaName(benGua) + "(" + (LIU_HE_GUA.contains(benGua) ? "六合" : "") + (LIU_CHONG_GUA.contains(benGua) ? "六冲" : "") + ") ===");
+        getGuaInfo(benGua,dayGan);
+        String changeGua = changeSixYao(fourQuadrant);
+        System.out.println("=== 变卦：" + changeGua
+                + " 卦名：" + getGuaName(changeGua) + "(" + (LIU_HE_GUA.contains(changeGua) ? "六合" : "") + (LIU_CHONG_GUA.contains(changeGua) ? "六冲" : "") + ") ===");
+        getGuaInfo(changeGua,dayGan);
+
+    }
+
+
+    public static void getGuaInfo(String gua,String dayGan) {
+        String guaGong = getGuaGong(gua);
+        String guaDiZhi = getGuaDiZhi(gua);
         String gongWx = getGongFiveElement(guaGong);
         String yaoWxs = getYaoFiveElement(guaDiZhi);
         String guaLiuQin = getGuaLiuQin(gongWx, yaoWxs);
-        LocalDateTime now = LocalDateTime.now();
-        String dayGan = GanZhiCalendar.toDayGan(now);
-        System.out.println("本卦日干：" + dayGan);
-        String guaTG = getGuaDayGan(benGua);
+        String guaTG = getGuaDayGan(gua);
         String guaLiuShen = getGuaLiuShen(dayGan);
-        int shiYaoIndex = getShiYaoIndex(benGua);
+        int shiYaoIndex = getShiYaoIndex(gua);
         int yingYaoIndex = getYingYaoIndex(shiYaoIndex);
-        System.out.println("本卦：" + benGua
-                + " 卦名：" + guaName + "(" + (LIU_HE_GUA.contains(benGua) ? "六合" : "") + (LIU_CHONG_GUA.contains(benGua) ? "六冲" : "") + ")"
-                + " 卦宫：" + guaGong + "(" + gongWx + ")"
-                + " 农历：" + GanZhiCalendar.toLunarDate(now)
-                + " 干支：" + GanZhiCalendar.toGanZhi(now));
-
-        for (int i = benGua.length() - 1; i >= 0; i--) {
-            String c = benGua.substring(i, i + 1);
+        for (int i = gua.length() - 1; i >= 0; i--) {
+            String c = gua.substring(i, i + 1);
             String yaoName = (c.equals("0") ? "六" : "九") + CHINESE_NUMBERS[i];
             if (i == 0 || i == 5) {
                 yaoName = CHINESE_NUMBERS[i] + (c.equals("0") ? "六" : "九");
@@ -142,6 +146,7 @@ public class Divination {
             System.out.println(ls + " " + yaoName + " " + lq + yaoTG + dz + wx + " " + shiYao + yingYao);
         }
     }
+
 
     public static int getShiYaoIndex(String gua) {
         Map<String, Integer> map = new HashMap<>();
@@ -326,7 +331,7 @@ public class Divination {
         return gua;
     }
 
-    public static int[] toSixYao(int[] fourQuadrant) {
+    public static String toSixYao(int[] fourQuadrant) {
         int[] gua = new int[6];
         for (int i = 0; i < fourQuadrant.length; i++) {
             int yao = fourQuadrant[i];
@@ -336,13 +341,13 @@ public class Divination {
                 gua[i] = 1;
             }
         }
-        return gua;
+        return convert(gua);
     }
 
-    public static int[] changeHexagram(int[] sixthLines) {
+    public static String changeSixYao(int[] fourQuadrant) {
         int[] gua = new int[6];
-        for (int i = 0; i < sixthLines.length; i++) {
-            int yao = sixthLines[i];
+        for (int i = 0; i < fourQuadrant.length; i++) {
+            int yao = fourQuadrant[i];
             if (yao == 3) {
                 gua[i] = 0;
             } else if (yao == 2) {
@@ -353,7 +358,7 @@ public class Divination {
                 gua[i] = 1;
             }
         }
-        return gua;
+        return convert(gua);
     }
 
     public static String getGuaGong(String gua) {
@@ -373,7 +378,7 @@ public class Divination {
         int innerGuaIdx = getTrigram(gua.substring(0, 3));
         int outerGuaIdx = getTrigram(gua.substring(3));
         // 打印结果
-        System.out.println("内卦: " + TRIGRAMS[innerGuaIdx] + " 外卦: " + TRIGRAMS[outerGuaIdx]);
+      //  System.out.println("内卦: " + TRIGRAMS[innerGuaIdx] + " 外卦: " + TRIGRAMS[outerGuaIdx]);
         for (int i = 0; i < SIXTY_FOUR_GUA.length; i++) {
             String[] gong_gua = SIXTY_FOUR_GUA[i];
             for (int j = 0; j < gong_gua.length; j++) {
