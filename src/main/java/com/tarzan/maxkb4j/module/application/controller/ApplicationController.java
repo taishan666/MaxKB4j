@@ -43,11 +43,13 @@ public class ApplicationController {
 
     private final ApplicationService applicationService;
 
+    @SaCheckPerm(PermissionEnum.APPLICATION_READ)
     @GetMapping("/application")
     public R<List<ApplicationListVO>> listApps(String folderId) {
         return R.success(applicationService.listApps(folderId));
     }
 
+    @SaCheckPerm(PermissionEnum.APPLICATION_CREATE)
     @PostMapping("/application")
     public R<ApplicationEntity> createApp(@RequestBody ApplicationEntity application) {
         return R.success(applicationService.createApp(application));
@@ -70,6 +72,7 @@ public class ApplicationController {
         applicationService.appExport(id,response);
     }
 
+    @SaCheckPerm(PermissionEnum.APPLICATION_READ)
     @GetMapping("/application/{current}/{size}")
     public R<IPage<ApplicationVO>> userApplications(@PathVariable("current") int current, @PathVariable("size") int size, ApplicationQuery query) {
         return R.success(applicationService.selectAppPage(current, size, query));
@@ -93,47 +96,53 @@ public class ApplicationController {
         return R.success(applicationService.deleteByAppId(id));
     }
 
-    @PostMapping("/application/{appId}/play_demo_text")
-    public ResponseEntity<byte[]> playDemoText(@PathVariable("appId") String appId, @RequestBody JSONObject data) {
+    @SaCheckPerm(PermissionEnum.APPLICATION_READ)
+    @PostMapping("/application/{id}/play_demo_text")
+    public ResponseEntity<byte[]> playDemoText(@PathVariable("id") String id, @RequestBody JSONObject data) {
         // 设置 HTTP 响应头
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.parseMediaType("audio/wav"));
-        return new ResponseEntity<>(applicationService.playDemoText(appId, data), headers, HttpStatus.OK);
+        return new ResponseEntity<>(applicationService.playDemoText(id, data), headers, HttpStatus.OK);
     }
 
-    @PostMapping("/application/{appId}/text_to_speech")
-    public ResponseEntity<byte[]> textToSpeech(@PathVariable("appId") String appId, @RequestBody JSONObject data) {
+    @SaCheckPerm(PermissionEnum.APPLICATION_READ)
+    @PostMapping("/application/{id}/text_to_speech")
+    public ResponseEntity<byte[]> textToSpeech(@PathVariable("id") String id, @RequestBody JSONObject data) {
         // 设置 HTTP 响应头
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.parseMediaType("audio/mp3"));
-        return new ResponseEntity<>(applicationService.textToSpeech(appId, data), headers, HttpStatus.OK);
+        return new ResponseEntity<>(applicationService.textToSpeech(id, data), headers, HttpStatus.OK);
     }
 
-    @PostMapping("/application/{appId}/speech_to_text")
-    public  R<String> speechToText(@PathVariable("appId") String appId, MultipartFile file) throws IOException {
-        return  R.data(applicationService.speechToText(appId,file));
+    @SaCheckPerm(PermissionEnum.APPLICATION_READ)
+    @PostMapping("/application/{id}/speech_to_text")
+    public  R<String> speechToText(@PathVariable("id") String id, MultipartFile file) throws IOException {
+        return  R.data(applicationService.speechToText(id,file));
     }
 
 
-    @GetMapping("/application/{appId}/access_token")
-    public R<ApplicationAccessTokenEntity> getAccessToken(@PathVariable("appId") String appId) {
-        return R.success(applicationService.getAccessToken(appId));
+    @SaCheckPerm(PermissionEnum.APPLICATION_ACCESS_READ)
+    @GetMapping("/application/{id}/access_token")
+    public R<ApplicationAccessTokenEntity> getAccessToken(@PathVariable("id") String id) {
+        return R.success(applicationService.getAccessToken(id));
     }
 
+    @SaCheckPerm(PermissionEnum.APPLICATION_ACCESS_EDIT)
     @PutMapping("/application/{appId}/access_token")
     public R<ApplicationAccessTokenEntity> updateAccessToken(@PathVariable("appId") String appId, @RequestBody ApplicationAccessTokenDTO dto) {
         return R.success(applicationService.updateAccessToken(appId, dto));
     }
 
-
-    @PostMapping(path = "application/{appId}/model/{modelId}/prompt_generate", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<Map<String,String>> promptGenerate(@PathVariable String appId, @PathVariable String modelId, @RequestBody PromptGenerateDTO dto){
-        return applicationService.promptGenerate(appId,modelId,dto);
+    @SaCheckPerm(PermissionEnum.APPLICATION_EDIT)
+    @PostMapping(path = "application/{id}/model/{modelId}/prompt_generate", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public Flux<Map<String,String>> promptGenerate(@PathVariable String id, @PathVariable String modelId, @RequestBody PromptGenerateDTO dto){
+        return applicationService.promptGenerate(id,modelId,dto);
     }
 
-    @GetMapping("/application/{appId}/application_stats")
-    public R<List<ApplicationStatisticsVO>> applicationStats(@PathVariable("appId") String appId, ChatQueryDTO query) {
-        return R.success(applicationService.applicationStats(appId, query));
+    @SaCheckPerm(PermissionEnum.APPLICATION_READ)
+    @GetMapping("/application/{id}/application_stats")
+    public R<List<ApplicationStatisticsVO>> applicationStats(@PathVariable("id") String id, ChatQueryDTO query) {
+        return R.success(applicationService.applicationStats(id, query));
     }
 
 

@@ -10,8 +10,10 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tarzan.maxkb4j.common.util.BeanUtil;
 import com.tarzan.maxkb4j.common.util.StpKit;
+import com.tarzan.maxkb4j.core.event.GenerateProblemEvent;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationKnowledgeMappingEntity;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationKnowledgeMappingMapper;
+import com.tarzan.maxkb4j.module.knowledge.domain.dto.GenerateProblemDTO;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.KnowledgeDTO;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.KnowledgeQuery;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.*;
@@ -27,6 +29,7 @@ import com.tarzan.maxkb4j.module.system.user.service.UserService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -57,6 +60,7 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
     private final DocumentService documentService;
     private final UserService userService;
     private final UserResourcePermissionService userResourcePermissionService;
+    private final ApplicationEventPublisher eventPublisher;
 
 
     public IPage<KnowledgeVO> selectKnowledgePage(Page<KnowledgeVO> knowledgePage, KnowledgeQuery query) {
@@ -235,5 +239,10 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
     public List<KnowledgeEntity> listKnowledge() {
         List<String> targetIds =userResourcePermissionService.getTargetIds(AuthTargetType.KNOWLEDGE, StpKit.ADMIN.getLoginIdAsString());
         return this.lambdaQuery().in(KnowledgeEntity::getId, targetIds).list();
+    }
+
+    public Boolean generateRelated(String knowledgeId, GenerateProblemDTO dto) {
+        eventPublisher.publishEvent(new GenerateProblemEvent(this, knowledgeId,dto.getDocumentIdList(),dto.getModelId(),dto.getPrompt(),dto.getStateList()));
+        return true;
     }
 }

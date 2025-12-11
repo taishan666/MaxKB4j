@@ -19,37 +19,28 @@ import java.io.IOException;
  */
 @RestController
 @AllArgsConstructor
-public class FileController{
+public class FileController {
 
-	//private	final FileService fileService;
-	private	final MongoFileService mongoFileService;
-
-/*	@GetMapping(value = "/file/{id}", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
-	public ResponseEntity<byte[]> editIcon(@PathVariable("id") String id){
-		final HttpHeaders headers = new HttpHeaders();
-		headers.setContentType(MediaType.APPLICATION_OCTET_STREAM); // 根据实际情况调整MediaType
-		byte[] data =fileService.getBytes(id);
-		return new ResponseEntity<>(data, headers, HttpStatus.OK);
-	}*/
+    private final MongoFileService mongoFileService;
 
 
-	@PostMapping(value = "/{prefix}/api/oss/file")
-	public R<String> uploadFile(@PathVariable("prefix") String prefix, MultipartFile file) throws IOException {
-		ChatFile chatFile=mongoFileService.uploadFile(file);
-		return R.success(chatFile.getUrl());
-	}
+    @PostMapping(value = "/{prefix}/api/oss/file")
+    public R<String> uploadFile(@PathVariable("prefix") String prefix, MultipartFile file) throws IOException {
+        ChatFile chatFile = mongoFileService.uploadFile(file);
+        return R.success(chatFile.getUrl());
+    }
 
 
-	@GetMapping(value = "admin/application/workspace/{appId}/oss/file/{id}")
-	public void getAppFile(@PathVariable("appId") String appId, @PathVariable("id") String id, HttpServletResponse response){
-		mongoFileService.getFile(id, response);
-	}
+    @GetMapping(value = "admin/application/workspace/{appId}/oss/file/{id}")
+    public void getAppFile(@PathVariable("appId") String appId, @PathVariable("id") String id, HttpServletResponse response) {
+        mongoFileService.getFile(id, response);
+    }
 
 
-	@GetMapping(value = "/{prefix}/oss/file/{id}")
-	public void getFile(@PathVariable String prefix,@PathVariable("id") String id, HttpServletResponse response){
-		mongoFileService.getFile(id, response);
-	}
+    @GetMapping(value = "/{prefix}/oss/file/{id}")
+    public void getFile(@PathVariable String prefix, @PathVariable("id") String id, HttpServletResponse response) {
+        mongoFileService.getFile(id, response);
+    }
 
 
 }

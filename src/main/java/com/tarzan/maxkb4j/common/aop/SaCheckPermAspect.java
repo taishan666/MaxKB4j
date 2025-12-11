@@ -45,8 +45,9 @@ public class SaCheckPermAspect {
         PermissionEnum permission = saCheckPerm.value();
         String actualPath = permission.getResource() + ":" + permission.getOperate() + ":/WORKSPACE/default/" + permission.getResourceType() + "/{id}";
         if (pathVars != null) {
-            for (Map.Entry<String, String> entry : pathVars.entrySet()) {
-                actualPath = actualPath.replace("{" + entry.getKey() + "}", entry.getValue());
+            String resourceId=pathVars.get("id");
+            if (resourceId != null){
+                actualPath = actualPath.replace("{id}", resourceId);
             }
         }
         actualPath = actualPath.replace("{id}", "default");
