@@ -120,16 +120,15 @@ public class ChatApiController {
         String userId = StpKit.USER.getLoginIdAsString();
         Sinks.Many<ChatMessageVO> sink = Sinks.many().unicast().onBackpressureBuffer();
         params.setChatId(chatId);
-        params.setSink(sink);
         params.setChatUserId(userId);
         params.setChatUserType(ChatUserType.ANONYMOUS_USER.name());
         params.setDebug(false);
         if (Boolean.TRUE.equals(params.getStream())) {
             // 异步执行业务逻辑
-            chatTaskExecutor.execute(() -> chatService.chatMessage(params));
+            chatTaskExecutor.execute(() -> chatService.chatMessage(params,sink));
             return sink.asFlux();
         } else {
-            ChatResponse chatResponse = chatService.chatMessage(params);
+            ChatResponse chatResponse = chatService.chatMessage(params,sink);
             return ResponseEntity.ok()
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .body(R.data(chatResponse));

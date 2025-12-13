@@ -77,7 +77,7 @@ public class ApplicationNodeHandler implements INodeHandler {
                 .reChat(chatParams.getReChat())
                 .chatUserId(chatParams.getChatUserId())
                 .chatUserType(chatParams.getChatUserType())
-                .sink(appNodeSink)
+             //   .sink(appNodeSink)
                 .imageList(imageList)
                 .audioList(audioList)
                 .documentList(docList)
@@ -86,7 +86,7 @@ public class ApplicationNodeHandler implements INodeHandler {
                 .nodeData(chatParams.getNodeData())
                 .debug(chatParams.getDebug())
                 .build();
-        CompletableFuture<ChatResponse> future = chatService.chatMessageAsync(nodeChatParams);
+        CompletableFuture<ChatResponse> future = chatService.chatMessageAsync(nodeChatParams,appNodeSink);
         // 使用原子变量或收集器来安全地累积 token
         AtomicBoolean is_interrupt_exec=new AtomicBoolean( false);
         if (nodeParams.getIsResult()) {
@@ -103,7 +103,7 @@ public class ApplicationNodeHandler implements INodeHandler {
                         e.getReasoningContent(),
                         childNode,
                         false);
-                workflow.getChatParams().getSink().tryEmitNext(vo);
+                workflow.getSink().tryEmitNext(vo);
             });
         }
         ChatResponse chatResponse=future.join();

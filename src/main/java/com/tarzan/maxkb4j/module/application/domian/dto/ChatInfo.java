@@ -1,8 +1,6 @@
 package com.tarzan.maxkb4j.module.application.domian.dto;
 
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatRecordEntity;
-import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationVO;
-import com.tarzan.maxkb4j.common.util.BeanUtil;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -19,7 +17,7 @@ public class ChatInfo implements Serializable {
     private Map<String, Object>  chatVariables=new HashMap<>(10);
     private List<ApplicationChatRecordEntity> chatRecordList= new ArrayList<>();
 
-    public Map<String, Object> toBasePipelineManageParams(){
+/*    public Map<String, Object> toBasePipelineManageParams(){
         return BeanUtil.toMap(this);
     }
 
@@ -32,7 +30,7 @@ public class ChatInfo implements Serializable {
         params.put("chatUserId", chatUserId);
         params.put("chatUserType", chatUserType);
         return params;
-    }
+    }*/
 
     public void addChatRecord(ApplicationChatRecordEntity chatRecord) {
           this.chatRecordList.add(chatRecord);

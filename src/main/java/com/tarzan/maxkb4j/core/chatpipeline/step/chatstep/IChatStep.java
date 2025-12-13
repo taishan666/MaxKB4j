@@ -21,11 +21,11 @@ public abstract class IChatStep extends IChatPipelineStep {
     @Override
     @SuppressWarnings("unchecked")
     protected void _run(PipelineManage manage) {
-        String chatId = (String) manage.context.get("chatId");
+        String chatId = manage.chatParams.getChatId();
         List<ParagraphVO> paragraphList = (List<ParagraphVO>) manage.context.get("paragraphList");
-        ApplicationVO application = (ApplicationVO) manage.context.get("application");
+        ApplicationVO application = manage.application;
         String userPrompt = (String) manage.context.get("user_prompt");
-        String chatRecordId = (String) manage.context.get("chatRecordId");
+        String chatRecordId =manage.chatParams.getChatRecordId();
         AtomicReference<String> answerText = new AtomicReference<>("");
         if (CollectionUtils.isEmpty(paragraphList)) {
             paragraphList = new ArrayList<>();
@@ -38,7 +38,7 @@ public abstract class IChatStep extends IChatPipelineStep {
         }
         KnowledgeSetting knowledgeSetting = application.getKnowledgeSetting();
         NoReferencesSetting noReferencesSetting = knowledgeSetting.getNoReferencesSetting();
-        String problemText = (String) manage.context.get("problemText");
+        String problemText = manage.chatParams.getMessage();
         boolean isAiAnswer = false;
        if (StringUtils.isBlank(problemText)) {
             answerText.set("用户消息不能为空");

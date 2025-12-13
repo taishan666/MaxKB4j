@@ -30,7 +30,7 @@ public class ChatPostHandler implements PostResponseHandler {
     private final ApplicationChatRecordMapper chatRecordMapper;
 
     @Override
-    public void handler(ChatParams chatParams, ChatResponse chatResponse, ApplicationChatRecordEntity chatRecord, long startTime) {
+    public void handler(ChatParams chatParams, ChatResponse chatResponse, long startTime) {
         String chatId = chatParams.getChatId();
         String chatRecordId = chatParams.getChatRecordId();
         String problemText = chatParams.getMessage();
@@ -43,8 +43,9 @@ public class ChatPostHandler implements PostResponseHandler {
         int messageTokens = chatResponse.getMessageTokens();
         int answerTokens = chatResponse.getAnswerTokens();
         JSONObject details = chatResponse.getRunDetails();
+        ApplicationChatRecordEntity chatRecord=chatParams.getChatRecord();
         if (chatRecord != null) {
-            chatRecord.setAnswerTextList(List.of(answerText));
+            chatRecord.setAnswerTextList(List.of());
             chatRecord.setAnswerText(answerText);
             chatRecord.setDetails(new JSONObject(details));
             chatRecord.setMessageTokens(messageTokens);
@@ -79,8 +80,8 @@ public class ChatPostHandler implements PostResponseHandler {
             }
             long chatCount = chatMapper.selectCount(Wrappers.<ApplicationChatEntity>lambdaQuery().eq(ApplicationChatEntity::getId, chatId));
             ApplicationChatEntity chatEntity = new ApplicationChatEntity();
+            chatEntity.setId(chatId);
             if (chatCount == 0) {
-                chatEntity.setId(chatId);
                 chatEntity.setApplicationId(chatInfo.getAppId());
                 String problemOverview = problemText.length() > 50 ? problemText.substring(0, 50) : problemText;
                 chatEntity.setSummary(problemOverview);
@@ -95,7 +96,6 @@ public class ChatPostHandler implements PostResponseHandler {
                 chatEntity.setMarkSum(0);
                 chatMapper.insert(chatEntity);
             }else {
-                chatEntity.setId(chatId);
                 chatEntity.setChatRecordCount(chatInfo.getChatRecordList().size());
                 chatMapper.updateById(chatEntity);
             }

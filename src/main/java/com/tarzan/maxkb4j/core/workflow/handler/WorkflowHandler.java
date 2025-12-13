@@ -30,7 +30,7 @@ public class WorkflowHandler {
         }
         runChainNodes(workflow, List.of(currentNode));
         ChatMessageVO vo = new ChatMessageVO(workflow.getChatParams().getChatId(), workflow.getChatParams().getChatRecordId(), true);
-        workflow.getChatParams().getSink().tryEmitNext(vo);
+        workflow.getSink().tryEmitNext(vo);
         return workflow.getAnswer();
     }
 
@@ -108,7 +108,7 @@ public class WorkflowHandler {
                     String.format("Exception: %s", ex.getMessage()),
                     "",
                     true);
-            workflow.getChatParams().getSink().tryEmitNext(errMessage);
+            workflow.getSink().tryEmitNext(errMessage);
             node.setRunStatus(NodeRunStatus.ERROR);
             return new NodeResultFuture(null, ex, 500);
         }

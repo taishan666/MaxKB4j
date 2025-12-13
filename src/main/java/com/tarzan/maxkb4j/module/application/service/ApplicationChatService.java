@@ -14,9 +14,10 @@ import com.tarzan.maxkb4j.core.chat.provider.IChatActuator;
 import com.tarzan.maxkb4j.module.application.domian.dto.ChatInfo;
 import com.tarzan.maxkb4j.module.application.domian.dto.ChatQueryDTO;
 import com.tarzan.maxkb4j.module.application.domian.entity.*;
-import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationStatisticsVO;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationVO;
+import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
 import com.tarzan.maxkb4j.module.application.domian.vo.ChatRecordDetailVO;
+import com.tarzan.maxkb4j.module.application.handler.PostResponseHandler;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatMapper;
 import com.tarzan.maxkb4j.module.chat.cache.ChatCache;
 import com.tarzan.maxkb4j.module.chat.dto.ChatParams;
@@ -27,6 +28,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import reactor.core.publisher.Sinks;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -48,6 +50,7 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
     private final ApplicationChatUserStatsService chatUserStatsService;
     private final ApplicationAccessTokenService accessTokenService;
     private final ApplicationVersionService applicationVersionService;
+    private final PostResponseHandler postResponseHandler;
 
 
     public IPage<ApplicationChatEntity> chatLogs(String appId, int page, int size, ChatQueryDTO query) {
@@ -55,13 +58,13 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
         LambdaQueryWrapper<ApplicationChatEntity> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(ApplicationChatEntity::getApplicationId, appId);
         wrapper.like(StringUtils.isNotBlank(query.getSummary()), ApplicationChatEntity::getSummary, query.getSummary());
-        if(StringUtils.isNotBlank(query.getStartTime())){
+        if (StringUtils.isNotBlank(query.getStartTime())) {
             LocalDateTime startOfDay = DateTimeUtil.parseDate(query.getStartTime()).atStartOfDay();
             wrapper.gt(ApplicationChatEntity::getCreateTime, startOfDay);
         }
-        if(StringUtils.isNotBlank(query.getEndTime())){
-            LocalDateTime endOfDay  = DateTimeUtil.parseDate(query.getEndTime()).atTime(LocalTime.MAX);
-            wrapper.le(ApplicationChatEntity::getCreateTime,endOfDay);
+        if (StringUtils.isNotBlank(query.getEndTime())) {
+            LocalDateTime endOfDay = DateTimeUtil.parseDate(query.getEndTime()).atTime(LocalTime.MAX);
+            wrapper.le(ApplicationChatEntity::getCreateTime, endOfDay);
         }
         wrapper.ge(Objects.nonNull(query.getMinStar()), ApplicationChatEntity::getStarNum, query.getMinStar());
         wrapper.ge(Objects.nonNull(query.getMinTrample()), ApplicationChatEntity::getTrampleNum, query.getMinTrample());
@@ -103,44 +106,52 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
         return chatInfo;
     }
 
-    public ChatResponse chatMessage(ChatParams chatParams) {
+    public ChatResponse chatMessage(ChatParams chatParams, Sinks.Many<ChatMessageVO> sink) {
+        long startTime = System.currentTimeMillis();
         ChatInfo chatInfo = this.getChatInfo(chatParams.getChatId());
         if (chatInfo == null) {
-            chatParams.getSink().tryEmitError(new ApiException("会话不存在"));
-            return new ChatResponse("",null);
+            sink.tryEmitError(new ApiException("会话不存在"));
+            return new ChatResponse("", null);
         } else {
             if (StringUtils.isEmpty(chatParams.getAppId())) {
                 chatParams.setAppId(chatInfo.getAppId());
             }
         }
-        if (!visitCountCheck(chatParams)){
-            return new ChatResponse("",null);
+        if (!visitCountCheck(chatParams, sink)) {
+            return new ChatResponse("", null);
+        }
+        List<ApplicationChatRecordEntity> historyChatRecordList = chatRecordService.getChatRecords(chatParams.getChatId());
+        chatParams.setHistoryChatRecords(historyChatRecordList);
+        if (StringUtils.isNotBlank(chatParams.getChatRecordId())) {
+            ApplicationChatRecordEntity chatRecord = historyChatRecordList.stream().filter(e -> e.getId().equals(chatParams.getChatRecordId())).findFirst().orElse(null);
+            chatParams.setChatRecord(chatRecord);
         }
         ApplicationVO application = applicationService.getAppDetail(chatParams.getAppId(), chatParams.getDebug());
         IChatActuator chatActuator = ChatActuatorBuilder.getActuator(application.getType());
-        ChatResponse chatResponse = chatActuator.chatMessage(application, chatParams);
-        chatParams.getSink().tryEmitComplete();
+        ChatResponse chatResponse = chatActuator.chatMessage(application, chatParams, sink);
+        sink.tryEmitComplete();
+        postResponseHandler.handler(chatParams, chatResponse, startTime);
         return chatResponse;
     }
 
     @Async("chatTaskExecutor")
-    public CompletableFuture<ChatResponse> chatMessageAsync(ChatParams chatParams) {
-        String chatId= StringUtils.isNotBlank(chatParams.getChatId()) ? chatParams.getChatId() : IdWorker.get32UUID();
+    public CompletableFuture<ChatResponse> chatMessageAsync(ChatParams chatParams, Sinks.Many<ChatMessageVO> sink) {
+        String chatId = StringUtils.isNotBlank(chatParams.getChatId()) ? chatParams.getChatId() : IdWorker.get32UUID();
         ChatInfo chatInfo = ChatCache.get(chatId);
-        if (chatInfo == null){
+        if (chatInfo == null) {
             chatInfo = new ChatInfo();
             chatInfo.setChatId(chatId);
             chatInfo.setAppId(chatParams.getAppId());
             ChatCache.put(chatInfo.getChatId(), chatInfo);
         }
-        return CompletableFuture.completedFuture(chatMessage(chatParams));
+        return CompletableFuture.completedFuture(chatMessage(chatParams, sink));
     }
 
-    public boolean visitCountCheck(ChatParams chatParams) {
-        String appId=chatParams.getAppId();
-        String chatUserId=chatParams.getChatUserId();
-        String chatUserType=chatParams.getChatUserType();
-        boolean debug=chatParams.getDebug();
+    public boolean visitCountCheck(ChatParams chatParams, Sinks.Many<ChatMessageVO> sink) {
+        String appId = chatParams.getAppId();
+        String chatUserId = chatParams.getChatUserId();
+        String chatUserType = chatParams.getChatUserType();
+        boolean debug = chatParams.getDebug();
         if (!debug && Objects.nonNull(appId)) {
             ApplicationChatUserStatsEntity chatUserStats = chatUserStatsService.getByUserIdAndAppId(chatUserId, appId);
             if (Objects.isNull(chatUserStats)) {
@@ -155,11 +166,10 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
             ApplicationAccessTokenEntity appAccessToken = accessTokenService.lambdaQuery().select(ApplicationAccessTokenEntity::getAccessNum).eq(ApplicationAccessTokenEntity::getApplicationId, appId).one();
             if (Objects.nonNull(appAccessToken)) {
                 if (appAccessToken.getAccessNum() < chatUserStats.getIntraDayAccessNum()) {
-                    chatParams.getSink().tryEmitError(new AccessNumLimitException());
+                    sink.tryEmitError(new AccessNumLimitException());
                     return false;
                 }
             }
-
         }
         return true;
     }
@@ -176,7 +186,4 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
         return this.removeById(chatId);
     }
 
-    public List<ApplicationStatisticsVO> statistics(String appId, ChatQueryDTO query) {
-        return baseMapper.statistics(appId, query);
-    }
 }

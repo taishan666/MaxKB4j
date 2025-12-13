@@ -2,11 +2,10 @@ package com.tarzan.maxkb4j.module.chat.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.tarzan.maxkb4j.core.workflow.model.ChatFile;
-import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
+import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatRecordEntity;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Data;
-import reactor.core.publisher.Sinks;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
@@ -58,7 +57,9 @@ public class ChatParams {
     @JsonIgnore
     private String chatUserType;
     @JsonIgnore
-    private Sinks.Many<ChatMessageVO> sink;
+    private List<ApplicationChatRecordEntity> historyChatRecords;
+    @JsonIgnore
+    private ApplicationChatRecordEntity chatRecord;
 
 
 }

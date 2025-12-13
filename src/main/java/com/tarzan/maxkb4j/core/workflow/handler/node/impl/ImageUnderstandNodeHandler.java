@@ -89,7 +89,7 @@ public class ImageUnderstandNodeHandler implements INodeHandler {
                                 content,
                                 "",
                                 false);
-                        workflow.getChatParams().getSink().tryEmitNext(vo);
+                        workflow.getSink().tryEmitNext(vo);
                     }
                 })
                 .onCompleteResponse(chatResponseFuture::complete)

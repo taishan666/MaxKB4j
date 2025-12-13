@@ -143,8 +143,8 @@ public class KnowledgeController {
     }
 
     @GetMapping("/knowledge/{id}/action/{actionId}")
-    public R<JSONObject> debug(@PathVariable("id") String id, @PathVariable("actionId") String actionId) {
-        return R.success();
+    public R<JSONObject> action(@PathVariable("id") String id, @PathVariable("actionId") String actionId) {
+        return R.success(knowledgeService.action(id,actionId));
     }
 
 

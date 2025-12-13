@@ -36,12 +36,11 @@ public class ChatMessageController {
     public Flux<ChatMessageVO> chatMessage(@PathVariable String chatId, @RequestBody ChatParams params) {
         Sinks.Many<ChatMessageVO> sink = Sinks.many().unicast().onBackpressureBuffer();
         params.setChatId(chatId);
-        params.setSink(sink);
         params.setChatUserId(StpKit.ADMIN.getLoginIdAsString());
         params.setChatUserType(ChatUserType.ANONYMOUS_USER.name());
         params.setDebug(true);
         // 异步执行业务逻辑
-        chatTaskExecutor.execute(() -> chatService.chatMessage(params));
+        chatTaskExecutor.execute(() -> chatService.chatMessage(params,sink));
         return sink.asFlux();
     }
 }

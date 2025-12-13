@@ -2,6 +2,7 @@ package com.tarzan.maxkb4j.core.workflow.model;
 
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.tarzan.maxkb4j.core.workflow.enums.DialogueType;
 import com.tarzan.maxkb4j.core.workflow.enums.NodeRunStatus;
 import com.tarzan.maxkb4j.core.workflow.enums.NodeType;
@@ -9,6 +10,7 @@ import com.tarzan.maxkb4j.core.workflow.logic.LfEdge;
 import com.tarzan.maxkb4j.core.workflow.node.INode;
 import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatRecordEntity;
+import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
 import com.tarzan.maxkb4j.module.chat.dto.ChatParams;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
@@ -17,6 +19,7 @@ import dev.langchain4j.model.input.PromptTemplate;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import reactor.core.publisher.Sinks;
 
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -39,21 +42,36 @@ public class Workflow {
     private String answer;
     private ApplicationChatRecordEntity chatRecord;
     private List<ApplicationChatRecordEntity> historyChatRecords;
+    @JsonIgnore
+    private Sinks.Many<ChatMessageVO> sink;
 
 
-    public Workflow(List<INode> nodes, List<LfEdge> edges, ChatParams chatParams, ApplicationChatRecordEntity chatRecord, List<ApplicationChatRecordEntity> historyChatRecords) {
+    public Workflow(List<INode> nodes, List<LfEdge> edges, ChatParams chatParams, Sinks.Many<ChatMessageVO> sink) {
         this.nodes = nodes;
         this.edges = edges;
         this.chatParams = chatParams;
         this.context = new HashMap<>();
         this.chatContext = new HashMap<>();
         this.nodeContext = new CopyOnWriteArrayList<>();
-        this.chatRecord = chatRecord;
         this.answer = "";
-        this.historyChatRecords = CollectionUtils.isEmpty(historyChatRecords) ? List.of() : historyChatRecords;
+        this.historyChatRecords = CollectionUtils.isEmpty(chatParams.getHistoryChatRecords()) ? List.of() : chatParams.getHistoryChatRecords();
+        this.chatRecord = chatParams.getChatRecord();
         if (StringUtils.isNotBlank(chatParams.getRuntimeNodeId()) && Objects.nonNull(chatRecord)) {
             this.loadNode(chatRecord, chatParams.getRuntimeNodeId(), chatParams.getNodeData());
         }
+        this.sink = sink;
+    }
+
+    public Workflow(List<INode> nodes, List<LfEdge> edges) {
+        this.nodes = nodes;
+        this.edges = edges;
+        this.context = new HashMap<>();
+        this.chatContext = new HashMap<>();
+        this.nodeContext = new CopyOnWriteArrayList<>();
+        this.chatRecord = null;
+        this.answer = "";
+        this.historyChatRecords = List.of();
+        this.sink = null;
     }
 
 

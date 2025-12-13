@@ -82,7 +82,7 @@ public class AiChatNodeHandler implements INodeHandler {
                                 "",
                                 thinking.text(),
                                 false);
-                        workflow.getChatParams().getSink().tryEmitNext(vo);
+                        workflow.getSink().tryEmitNext(vo);
                     }
                 })
                 .onPartialResponse(content -> {
@@ -93,7 +93,7 @@ public class AiChatNodeHandler implements INodeHandler {
                                 content,
                                 "",
                                 false);
-                        workflow.getChatParams().getSink().tryEmitNext(vo);
+                        workflow.getSink().tryEmitNext(vo);
                     }
                 })
                 .onToolExecuted(toolExecute -> {
@@ -104,7 +104,7 @@ public class AiChatNodeHandler implements INodeHandler {
                                 MessageTools.getToolMessage(toolExecute),
                                 "",
                                 false);
-                        workflow.getChatParams().getSink().tryEmitNext(vo);
+                        workflow.getSink().tryEmitNext(vo);
                     }
                 })
                 .onCompleteResponse(chatResponseFuture::complete)

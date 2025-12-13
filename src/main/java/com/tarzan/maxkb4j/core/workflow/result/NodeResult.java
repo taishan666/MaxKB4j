@@ -73,7 +73,7 @@ public class NodeResult {
                             node.getAnswerText(),
                             "",
                             false);
-                    workflow.getChatParams().getSink().tryEmitNext(vo);
+                    workflow.getSink().tryEmitNext(vo);
                 }
                 workflow.setAnswer(workflow.getAnswer() + node.getAnswerText());
                 ChatMessageVO endVo = node.toChatMessageVO(
@@ -82,7 +82,7 @@ public class NodeResult {
                         "",
                         "",
                         true);
-                workflow.getChatParams().getSink().tryEmitNext(endVo);
+                workflow.getSink().tryEmitNext(endVo);
             }
         }
     }

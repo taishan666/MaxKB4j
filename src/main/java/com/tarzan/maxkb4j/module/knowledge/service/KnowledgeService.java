@@ -268,8 +268,18 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
     public JSONObject debug(String id, JSONObject params) {
         JSONObject result = new JSONObject();
         result.put("id", "019b15aed6a3749387910c705d8655e2");
+        result.put("details", Map.of());
         result.put("knowledgeId", "dbce6deccd2e8cefb2ab874dcd622ab4");
         result.put("state", "STARTED");
+        return result;
+    }
+
+    public JSONObject action(String id, String actionId) {
+        JSONObject result = new JSONObject();
+        result.put("id", "019b15aed6a3749387910c705d8655e2");
+        result.put("details", Map.of());
+        result.put("knowledgeId", "dbce6deccd2e8cefb2ab874dcd622ab4");
+        result.put("state", "SUCCESS");
         return result;
     }
 }
