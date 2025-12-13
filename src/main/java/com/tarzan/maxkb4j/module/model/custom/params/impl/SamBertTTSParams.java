@@ -1,6 +1,6 @@
 package com.tarzan.maxkb4j.module.model.custom.params.impl;
 
-import com.tarzan.maxkb4j.common.form.BaseFiled;
+import com.tarzan.maxkb4j.common.form.BaseField;
 import com.tarzan.maxkb4j.common.form.SingleSelectFiled;
 import com.tarzan.maxkb4j.common.form.SliderFiled;
 import com.tarzan.maxkb4j.module.model.custom.params.ModelParams;
@@ -12,7 +12,7 @@ import java.util.Map;
 @Data
 public class SamBertTTSParams implements ModelParams {
     @Override
-    public List<BaseFiled> toForm() {
+    public List<BaseField> toForm() {
         Map<String,Object> options=Map.of(
                 "知楠","zhinan",
                 "知琪","zhiqi",
@@ -25,8 +25,8 @@ public class SamBertTTSParams implements ModelParams {
                 "知薇","zhiwei",
                 "知浩","zhihao"
         );
-        BaseFiled voiceSelectFiled=new SingleSelectFiled("音色","voice","指定音色名称",options,"zhinan");
-        BaseFiled volumeFiled=new SliderFiled(1,100,1,0,"音量","volume","指定音量，取值范围：0~100。",50);
+        BaseField voiceSelectFiled=new SingleSelectFiled("音色","voice","指定音色名称",options,"zhinan");
+        BaseField volumeFiled=new SliderFiled(1,100,1,0,"音量","volume","指定音量，取值范围：0~100。",50);
         return List.of(voiceSelectFiled,volumeFiled);
     }
 }

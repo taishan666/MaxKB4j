@@ -1,10 +1,12 @@
 package com.tarzan.maxkb4j.module.knowledge.controller;
 
+import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.tarzan.maxkb4j.common.aop.SaCheckPerm;
 import com.tarzan.maxkb4j.common.api.R;
 import com.tarzan.maxkb4j.common.constant.AppConst;
+import com.tarzan.maxkb4j.common.form.BaseField;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.DataSearchDTO;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.GenerateProblemDTO;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.KnowledgeDTO;
@@ -44,7 +46,21 @@ public class KnowledgeController {
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_CREATE)
     @PostMapping("/knowledge/base")
     public R<KnowledgeEntity> createDatasetBase(@RequestBody KnowledgeEntity dataset) {
+        dataset.setType(0);
         return R.success(knowledgeService.createDatasetBase(dataset));
+    }
+
+    @SaCheckPerm(PermissionEnum.KNOWLEDGE_CREATE)
+    @PostMapping("/knowledge/workflow")
+    public R<KnowledgeEntity> createDatasetWorkflow(@RequestBody KnowledgeEntity dataset) {
+        dataset.setType(2);
+        return R.success(knowledgeService.createDatasetBase(dataset));
+    }
+
+    @SaCheckPerm(PermissionEnum.KNOWLEDGE_WORKFLOW_EDIT)
+    @PutMapping("/knowledge/{id}/workflow")
+    public R<KnowledgeEntity> updateDatasetWorkflow(@PathVariable String id,@RequestBody KnowledgeEntity dataset) {
+        return R.success(knowledgeService.updateDatasetWorkflow(id,dataset));
     }
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_CREATE)
@@ -109,6 +125,31 @@ public class KnowledgeController {
     public void exportZip(@PathVariable("id") String id, HttpServletResponse response) throws IOException {
         knowledgeService.exportExcelZip(id, response);
     }
+
+    @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_CREATE)
+    @PostMapping("/knowledge/{id}/datasource/local/{nodeType}/form_list")
+    public R<List<BaseField>> datasourceFormList(@PathVariable("id") String id, @PathVariable("nodeType")String nodeType, JSONObject node) {
+      return R.success(knowledgeService.datasourceFormList(id,nodeType,node));
+    }
+
+    @PostMapping("/knowledge/{id}/debug")
+    public R<JSONObject> debug(@PathVariable("id") String id,  JSONObject params) {
+        return R.success(knowledgeService.debug(id,params));
+    }
+
+    @PostMapping("/knowledge/{id}/upload_document")
+    public R<JSONObject> uploadDocument(@PathVariable("id") String id,  JSONObject params) {
+        return R.success(knowledgeService.debug(id,params));
+    }
+
+    @GetMapping("/knowledge/{id}/action/{actionId}")
+    public R<JSONObject> debug(@PathVariable("id") String id, @PathVariable("actionId") String actionId) {
+        return R.success();
+    }
+
+
+
+
 
 
 }

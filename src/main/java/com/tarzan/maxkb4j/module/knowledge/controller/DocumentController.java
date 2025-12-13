@@ -74,8 +74,8 @@ public class DocumentController {
     }
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_READ)
-    @GetMapping("/knowledge/{id}/document/split_pattern")
-    public R<List<KeyAndValueVO>> splitPattern(@PathVariable String id) {
+    @GetMapping("/knowledge/document/split_pattern")
+    public R<List<KeyAndValueVO>> splitPattern() {
         return R.success(documentService.splitPattern());
     }
 

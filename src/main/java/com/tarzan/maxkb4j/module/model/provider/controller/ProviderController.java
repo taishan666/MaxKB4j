@@ -2,7 +2,7 @@ package com.tarzan.maxkb4j.module.model.provider.controller;
 
 import com.tarzan.maxkb4j.common.api.R;
 import com.tarzan.maxkb4j.common.constant.AppConst;
-import com.tarzan.maxkb4j.common.form.BaseFiled;
+import com.tarzan.maxkb4j.common.form.BaseField;
 import com.tarzan.maxkb4j.module.model.info.vo.KeyAndValueVO;
 import com.tarzan.maxkb4j.module.model.provider.enums.ModelProviderEnum;
 import com.tarzan.maxkb4j.module.model.provider.enums.ModelType;
@@ -50,14 +50,14 @@ public class ProviderController {
     }
 
     @GetMapping("/provider/model_form")
-    public R<List<BaseFiled>> modelForm(String provider, String modelType, String modelName) {
+    public R<List<BaseField>> modelForm(String provider, String modelType, String modelName) {
         IModelProvider modelProvider = ModelProviderEnum.get(provider);
         return R.success(modelProvider.getModelCredential().toForm());
     }
 
 
     @GetMapping("/provider/model_params_form")
-    public R<List<BaseFiled>> modelParamsForm(String provider, String modelType, String modelName) {
+    public R<List<BaseField>> modelParamsForm(String provider, String modelType, String modelName) {
         IModelProvider modelProvider = ModelProviderEnum.get(provider);
         ModelInfo modelInfo = modelProvider.getModelInfo(ModelType.getByKey(modelType), modelName);
         if (modelInfo == null|| modelInfo.getModelParams()==null){

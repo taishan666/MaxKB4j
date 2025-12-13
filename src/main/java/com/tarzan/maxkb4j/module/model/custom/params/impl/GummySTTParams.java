@@ -1,6 +1,6 @@
 package com.tarzan.maxkb4j.module.model.custom.params.impl;
 
-import com.tarzan.maxkb4j.common.form.BaseFiled;
+import com.tarzan.maxkb4j.common.form.BaseField;
 import com.tarzan.maxkb4j.common.form.SingleSelectFiled;
 import com.tarzan.maxkb4j.module.model.custom.params.ModelParams;
 
@@ -9,7 +9,7 @@ import java.util.Map;
 
 public class GummySTTParams implements ModelParams {
     @Override
-    public List<BaseFiled> toForm() {
+    public List<BaseField> toForm() {
         Map<String,Object> options=Map.of(
                 "无","none",
                 "英文","en",
@@ -22,7 +22,7 @@ public class GummySTTParams implements ModelParams {
                 "俄语","ru",
                 "意大利语","it"
         );
-        BaseFiled voiceSelectFiled=new SingleSelectFiled("目标语言","targetLanguage","翻译语言",options,"none");
+        BaseField voiceSelectFiled=new SingleSelectFiled("目标语言","targetLanguage","翻译语言",options,"none");
         return List.of(voiceSelectFiled);
     }
 }

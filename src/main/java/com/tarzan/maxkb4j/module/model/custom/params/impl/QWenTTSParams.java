@@ -1,6 +1,6 @@
 package com.tarzan.maxkb4j.module.model.custom.params.impl;
 
-import com.tarzan.maxkb4j.common.form.BaseFiled;
+import com.tarzan.maxkb4j.common.form.BaseField;
 import com.tarzan.maxkb4j.common.form.SingleSelectFiled;
 import com.tarzan.maxkb4j.module.model.custom.params.ModelParams;
 import lombok.Data;
@@ -11,7 +11,7 @@ import java.util.Map;
 @Data
 public class QWenTTSParams implements ModelParams {
     @Override
-    public List<BaseFiled> toForm() {
+    public List<BaseField> toForm() {
         Map<String,Object> options=Map.of(
                 "Cherry","CHERRY",
                 "Serena","SERENA",
@@ -24,7 +24,7 @@ public class QWenTTSParams implements ModelParams {
                 "Jennifer","JENNIFER",
                 "Li","LI"
         );
-        BaseFiled voiceSelectFiled=new SingleSelectFiled("音色","voice","指定音色名称",options,"CHERRY");
+        BaseField voiceSelectFiled=new SingleSelectFiled("音色","voice","指定音色名称",options,"CHERRY");
         return List.of(voiceSelectFiled);
     }
 }

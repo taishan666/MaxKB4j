@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class SingleSelectFiled extends BaseFiled{
+public class SingleSelectFiled extends BaseField {
 
 
     public SingleSelectFiled(String labelName, String field, String tooltip, Map<String,Object> options, Object defaultValue) {

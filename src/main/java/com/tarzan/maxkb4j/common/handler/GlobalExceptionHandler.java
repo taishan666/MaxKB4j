@@ -41,8 +41,9 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(NotPermissionException.class)
     @ResponseBody
-    public R<String> handleException(NotPermissionException e) {
+    public R<String> handleException(NotPermissionException e, HttpServletResponse response) {
         log.error("无此权限异常: {}", e.getMessage(), e);
+        response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         return R.fail(500, e.getMessage());
     }
 

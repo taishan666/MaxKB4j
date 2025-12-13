@@ -1,6 +1,6 @@
 package com.tarzan.maxkb4j.module.model.custom.credential;
 
-import com.tarzan.maxkb4j.common.form.BaseFiled;
+import com.tarzan.maxkb4j.common.form.BaseField;
 import com.tarzan.maxkb4j.common.form.TextInputField;
 
 import java.util.ArrayList;
@@ -23,8 +23,8 @@ public  class ModelCredentialForm {
         this.defaultBaseUrl = defaultBaseUrl;
     }
 
-    public List<BaseFiled> toForm() {
-        List<BaseFiled> list=new ArrayList<>(2);
+    public List<BaseField> toForm() {
+        List<BaseField> list=new ArrayList<>(2);
         if(showBaseUrl){
             list.add(new TextInputField("API 域名","baseUrl",true,defaultBaseUrl));
         }

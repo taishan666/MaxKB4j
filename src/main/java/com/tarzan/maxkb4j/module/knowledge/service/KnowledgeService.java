@@ -8,6 +8,9 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.tarzan.maxkb4j.common.form.BaseField;
+import com.tarzan.maxkb4j.common.form.LocalFileUpload;
+import com.tarzan.maxkb4j.common.form.TextInputField;
 import com.tarzan.maxkb4j.common.util.BeanUtil;
 import com.tarzan.maxkb4j.common.util.StpKit;
 import com.tarzan.maxkb4j.core.event.GenerateProblemEvent;
@@ -209,7 +212,7 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
     public KnowledgeEntity createDatasetBase(KnowledgeEntity knowledge) {
         knowledge.setMeta(new JSONObject());
         knowledge.setUserId(StpKit.ADMIN.getLoginIdAsString());
-        knowledge.setType(0);
+        //knowledge.setType(0);
         this.save(knowledge);
         userResourcePermissionService.ownerSave(AuthTargetType.KNOWLEDGE, knowledge.getId(), knowledge.getUserId());
         return knowledge;
@@ -244,5 +247,29 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
     public Boolean generateRelated(String knowledgeId, GenerateProblemDTO dto) {
         eventPublisher.publishEvent(new GenerateProblemEvent(this, knowledgeId,dto.getDocumentIdList(),dto.getModelId(),dto.getPrompt(),dto.getStateList()));
         return true;
+    }
+
+    public KnowledgeEntity updateDatasetWorkflow(String id, KnowledgeEntity dataset) {
+        dataset.setId(id);
+        return this.updateById(dataset) ? dataset : null;
+    }
+
+    public List<BaseField> datasourceFormList(String id, String nodeType, JSONObject node) {
+        if("data-source-web-node".equals(nodeType)){
+            BaseField field1=new TextInputField("Web 根地址","source_url","请输入 Web 根地址", true);
+            BaseField field2=new TextInputField("选择器","selector", "默认为 body，可输入 .classname/#idname/tagname",false);
+            return List.of(field1,field2);
+        }else {
+            BaseField localFileUpload=new LocalFileUpload(50, 100,List.of("TXT", "DOCX", "PDF", "HTML", "XLS", "XLSX", "CSV"));
+            return List.of(localFileUpload);
+        }
+    }
+
+    public JSONObject debug(String id, JSONObject params) {
+        JSONObject result = new JSONObject();
+        result.put("id", "019b15aed6a3749387910c705d8655e2");
+        result.put("knowledgeId", "dbce6deccd2e8cefb2ab874dcd622ab4");
+        result.put("state", "STARTED");
+        return result;
     }
 }

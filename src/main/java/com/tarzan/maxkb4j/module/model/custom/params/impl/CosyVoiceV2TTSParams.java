@@ -1,6 +1,6 @@
 package com.tarzan.maxkb4j.module.model.custom.params.impl;
 
-import com.tarzan.maxkb4j.common.form.BaseFiled;
+import com.tarzan.maxkb4j.common.form.BaseField;
 import com.tarzan.maxkb4j.common.form.SingleSelectFiled;
 import com.tarzan.maxkb4j.common.form.SliderFiled;
 import com.tarzan.maxkb4j.module.model.custom.params.ModelParams;
@@ -12,7 +12,7 @@ import java.util.Map;
 @Data
 public class CosyVoiceV2TTSParams implements ModelParams {
     @Override
-    public List<BaseFiled> toForm() {
+    public List<BaseField> toForm() {
         Map<String,Object> options=Map.of(
                 "龙婉","longwan_v2",
                 "龙橙","longcheng_v2",
@@ -25,9 +25,9 @@ public class CosyVoiceV2TTSParams implements ModelParams {
                 "龙书","longshu_v2",
                 "龙硕","longshuo_v2"
         );
-        BaseFiled voiceSelectFiled=new SingleSelectFiled("音色","voice","指定音色名称",options,"longxiaochun_v2");
-        BaseFiled volumeFiled=new SliderFiled(1,100,1,0,"音量","volume","指定音量，取值范围：0~100。",50);
-        BaseFiled speechRateField=new SliderFiled(0.5F,2F,0.1F,1,"语速","speechRate","取值范围：0.5~2倍速。",1);
+        BaseField voiceSelectFiled=new SingleSelectFiled("音色","voice","指定音色名称",options,"longxiaochun_v2");
+        BaseField volumeFiled=new SliderFiled(1,100,1,0,"音量","volume","指定音量，取值范围：0~100。",50);
+        BaseField speechRateField=new SliderFiled(0.5F,2F,0.1F,1,"语速","speechRate","取值范围：0.5~2倍速。",1);
         return List.of(voiceSelectFiled,volumeFiled,speechRateField);
     }
 }
