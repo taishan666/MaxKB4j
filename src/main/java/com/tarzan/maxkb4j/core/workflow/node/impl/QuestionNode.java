@@ -12,8 +12,8 @@ import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.QUESTION;
 public class QuestionNode extends INode {
 
 
-    public QuestionNode(JSONObject properties) {
-        super(properties);
+    public QuestionNode(String id,JSONObject properties) {
+        super(id,properties);
         super.setType(QUESTION.getKey());
     }
 

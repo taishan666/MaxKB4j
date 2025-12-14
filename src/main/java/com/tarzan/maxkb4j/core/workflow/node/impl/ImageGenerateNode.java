@@ -12,8 +12,8 @@ import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.IMAGE_GENERATE;
 public class ImageGenerateNode extends INode {
 
 
-    public ImageGenerateNode(JSONObject properties) {
-        super(properties);
+    public ImageGenerateNode(String id,JSONObject properties) {
+        super(id,properties);
         super.setType(IMAGE_GENERATE.getKey());
     }
 

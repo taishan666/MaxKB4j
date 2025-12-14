@@ -15,8 +15,8 @@ import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.AI_CHAT;
 public class AiChatNode extends INode {
 
 
-    public AiChatNode(JSONObject properties) {
-        super(properties);
+    public AiChatNode(String id,JSONObject properties) {
+        super(id,properties);
         super.setType(AI_CHAT.getKey());
     }
 

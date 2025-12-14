@@ -15,8 +15,8 @@ public class SearchKnowledgeNode extends INode {
 
 
 
-    public SearchKnowledgeNode(JSONObject properties) {
-        super(properties);
+    public SearchKnowledgeNode(String id,JSONObject properties) {
+        super(id,properties);
         this.setType(SEARCH_KNOWLEDGE.getKey());
     }
 

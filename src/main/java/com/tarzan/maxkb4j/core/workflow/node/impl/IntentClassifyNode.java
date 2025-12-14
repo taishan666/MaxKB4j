@@ -15,8 +15,8 @@ import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.INTENT_CLASSIFY;
 public class IntentClassifyNode extends INode {
 
 
-    public IntentClassifyNode(JSONObject properties) {
-        super(properties);
+    public IntentClassifyNode(String id,JSONObject properties) {
+        super(id,properties);
         super.setType(INTENT_CLASSIFY.getKey());
     }
 

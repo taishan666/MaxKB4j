@@ -11,8 +11,8 @@ import java.util.Map;
 import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.USER_SELECT;
 
 public class UserSelectNode extends INode {
-    public UserSelectNode(JSONObject properties) {
-        super(properties);
+    public UserSelectNode(String id,JSONObject properties) {
+        super(id,properties);
         super.setType(USER_SELECT.getKey());
         super.setViewType("single_view");
     }

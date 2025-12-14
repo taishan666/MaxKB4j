@@ -14,7 +14,7 @@ import com.tarzan.maxkb4j.common.form.TextInputField;
 import com.tarzan.maxkb4j.common.util.BeanUtil;
 import com.tarzan.maxkb4j.common.util.StpKit;
 import com.tarzan.maxkb4j.core.event.GenerateProblemEvent;
-import com.tarzan.maxkb4j.core.workflow.factory.NodeFactory;
+import com.tarzan.maxkb4j.core.workflow.builder.NodeBuilder;
 import com.tarzan.maxkb4j.core.workflow.handler.WorkflowHandler;
 import com.tarzan.maxkb4j.core.workflow.logic.LogicFlow;
 import com.tarzan.maxkb4j.core.workflow.node.INode;
@@ -281,7 +281,7 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
         result.put("knowledgeId", id);
         result.put("state", "STARTED");
         LogicFlow logicFlow = LogicFlow.newInstance(dataset.getWorkFlow());
-        List<INode> nodes = logicFlow.getNodes().stream().map(NodeFactory::getNode).filter(Objects::nonNull).toList();
+        List<INode> nodes = logicFlow.getNodes().stream().map(NodeBuilder::getNode).filter(Objects::nonNull).toList();
 /*        Workflow workflow = new KnowledgeWorkflow(
                 nodes,
                 logicFlow.getEdges());

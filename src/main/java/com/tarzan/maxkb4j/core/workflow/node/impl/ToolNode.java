@@ -12,8 +12,8 @@ import java.util.Map;
 import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.TOOL;
 
 public class ToolNode extends INode {
-    public ToolNode(JSONObject properties) {
-        super(properties);
+    public ToolNode(String id,JSONObject properties) {
+        super(id,properties);
         this.setType(TOOL.getKey());
     }
 

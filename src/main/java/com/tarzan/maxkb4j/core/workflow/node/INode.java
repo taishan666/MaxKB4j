@@ -35,12 +35,13 @@ public abstract class INode {
     private String errMessage;
 
 
-    public INode(JSONObject properties) {
+    public INode(String id,JSONObject properties) {
+        this.id = id;
+        this.properties = properties;
+        this.viewType = "many_view";
         this.context = new HashMap<>(10);
         this.detail = new HashMap<>(10);
         this.upNodeIdList = new ArrayList<>();
-        this.properties = properties;
-        this.viewType = "many_view";
         this.answerText = "";
         this.runStatus = NodeRunStatus.READY;
         this.status=200;

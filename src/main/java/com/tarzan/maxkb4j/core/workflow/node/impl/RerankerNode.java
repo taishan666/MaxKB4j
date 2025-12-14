@@ -15,8 +15,8 @@ import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.RERANKER;
 public class RerankerNode extends INode {
 
 
-    public RerankerNode(JSONObject properties) {
-        super(properties);
+    public RerankerNode(String id,JSONObject properties) {
+        super(id,properties);
         this.setType(RERANKER.getKey());
     }
 

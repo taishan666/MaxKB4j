@@ -8,8 +8,8 @@ import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.IMAGE_UNDERSTAND;
 @Slf4j
 public class ImageUnderstandNode extends AiChatNode {
 
-    public ImageUnderstandNode(JSONObject properties) {
-        super(properties);
+    public ImageUnderstandNode(String id,JSONObject properties) {
+        super(id,properties);
         super.setType(IMAGE_UNDERSTAND.getKey());
     }
 

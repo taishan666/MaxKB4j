@@ -13,8 +13,8 @@ import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.TEXT_TO_SPEECH;
 public class TextToSpeechNode extends INode {
 
 
-    public TextToSpeechNode(JSONObject properties) {
-        super(properties);
+    public TextToSpeechNode(String id,JSONObject properties) {
+        super(id,properties);
         this.setType(TEXT_TO_SPEECH.getKey());
     }
 

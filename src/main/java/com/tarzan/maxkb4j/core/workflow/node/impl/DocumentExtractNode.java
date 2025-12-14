@@ -13,8 +13,8 @@ import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.DOCUMENT_EXTRACT;
 public class DocumentExtractNode extends INode {
 
 
-    public DocumentExtractNode(JSONObject properties) {
-        super(properties);
+    public DocumentExtractNode(String id,JSONObject properties) {
+        super(id,properties);
         this.setType(DOCUMENT_EXTRACT.getKey());
     }
 
