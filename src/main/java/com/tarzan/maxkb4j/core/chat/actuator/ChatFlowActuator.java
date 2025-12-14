@@ -3,7 +3,7 @@ package com.tarzan.maxkb4j.core.chat.actuator;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.tarzan.maxkb4j.core.chat.provider.IChatActuator;
-import com.tarzan.maxkb4j.core.workflow.factory.NodeFactory;
+import com.tarzan.maxkb4j.core.workflow.builder.NodeBuilder;
 import com.tarzan.maxkb4j.core.workflow.handler.WorkflowHandler;
 import com.tarzan.maxkb4j.core.workflow.logic.LogicFlow;
 import com.tarzan.maxkb4j.core.workflow.model.Workflow;
@@ -29,7 +29,7 @@ public class ChatFlowActuator implements IChatActuator {
     public ChatResponse chatMessage(ApplicationVO application, ChatParams chatParams, Sinks.Many<ChatMessageVO> sink) {
         chatParams.setChatRecordId(chatParams.getChatRecordId() == null ? IdWorker.get32UUID() : chatParams.getChatRecordId());
         LogicFlow logicFlow = LogicFlow.newInstance(application.getWorkFlow());
-        List<INode> nodes = logicFlow.getNodes().stream().map(NodeFactory::getNode).filter(Objects::nonNull).toList();
+        List<INode> nodes = logicFlow.getNodes().stream().map(NodeBuilder::getNode).filter(Objects::nonNull).toList();
         Workflow workflow = new Workflow(
                 nodes,
                 logicFlow.getEdges(),
