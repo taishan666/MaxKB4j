@@ -269,15 +269,6 @@ public class Workflow {
         return false;
     }
 
-    public boolean isResult(INode currentNode, NodeResult currentNodeResult) {
-        if (currentNode.getNodeData() == null) {
-            return false;
-        }
-        Boolean isResult = currentNode.getNodeData().getBoolean("isResult");
-        return isResult != null ? isResult : !hasNextNode(currentNode, currentNodeResult);
-    }
-
-
     @SuppressWarnings("unchecked")
     public Object getFieldValue(Object value, String source) {
         if ("reference".equals(source)) {

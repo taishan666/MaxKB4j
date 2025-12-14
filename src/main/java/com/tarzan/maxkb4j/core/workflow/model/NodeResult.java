@@ -64,7 +64,7 @@ public class NodeResult {
     public void defaultWriteContextFunc(Map<String, Object> nodeVariable, INode node, Workflow workflow) {
         if (nodeVariable != null) {
             node.getContext().putAll(nodeVariable);
-            if (workflow.isResult(node, new NodeResult(nodeVariable)) && StringUtils.isNotBlank(node.getAnswerText())) {
+            if (StringUtils.isNotBlank(node.getAnswerText())) {
                 if (!this.streamOutput) {
                     ChatMessageVO vo = node.toChatMessageVO(
                             workflow.getChatParams().getChatId(),
