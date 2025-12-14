@@ -5,9 +5,9 @@ import com.tarzan.maxkb4j.core.workflow.enums.NodeRunStatus;
 import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;
 import com.tarzan.maxkb4j.core.workflow.model.Workflow;
 import com.tarzan.maxkb4j.core.workflow.node.INode;
-import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
-import com.tarzan.maxkb4j.core.workflow.result.NodeResultFuture;
+import com.tarzan.maxkb4j.core.workflow.model.NodeResult;
 import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.task.TaskExecutor;
@@ -91,7 +91,7 @@ public class WorkflowHandler {
         return List.of();
     }
 
-    public NodeResultFuture runNodeFuture(Workflow workflow, INode node) {
+    private NodeResultFuture runNodeFuture(Workflow workflow, INode node) {
         try {
             long startTime = System.currentTimeMillis();
             INodeHandler nodeHandler = NodeHandlerBuilder.getHandler(node.getType());
@@ -119,3 +119,17 @@ public class WorkflowHandler {
 
 
 }
+
+@Data
+class NodeResultFuture {
+    private Integer status;
+    private NodeResult result;
+    private Exception exception;
+
+    public NodeResultFuture(NodeResult result, Exception exception,Integer status) {
+        this.result = result;
+        this.exception = exception;
+        this.status = status;
+    }
+}
+

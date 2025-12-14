@@ -8,7 +8,7 @@ import com.tarzan.maxkb4j.core.workflow.compare.Compare;
 import com.tarzan.maxkb4j.core.workflow.compare.impl.*;
 import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;
 import com.tarzan.maxkb4j.core.workflow.node.impl.ConditionNode;
-import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
+import com.tarzan.maxkb4j.core.workflow.model.NodeResult;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
