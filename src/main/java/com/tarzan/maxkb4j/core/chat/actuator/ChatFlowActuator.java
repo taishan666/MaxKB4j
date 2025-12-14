@@ -10,7 +10,6 @@ import com.tarzan.maxkb4j.core.workflow.model.Workflow;
 import com.tarzan.maxkb4j.core.workflow.node.INode;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationVO;
 import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
-import com.tarzan.maxkb4j.module.application.service.ApplicationChatRecordService;
 import com.tarzan.maxkb4j.module.chat.dto.ChatParams;
 import com.tarzan.maxkb4j.module.chat.dto.ChatResponse;
 import lombok.AllArgsConstructor;
@@ -24,7 +23,6 @@ import java.util.Objects;
 @Component
 public class ChatFlowActuator implements IChatActuator {
 
-    private final ApplicationChatRecordService chatRecordService;
     private final WorkflowHandler workflowHandler;
 
     @Override

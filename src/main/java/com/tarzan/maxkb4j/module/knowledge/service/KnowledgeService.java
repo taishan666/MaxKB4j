@@ -14,7 +14,12 @@ import com.tarzan.maxkb4j.common.form.TextInputField;
 import com.tarzan.maxkb4j.common.util.BeanUtil;
 import com.tarzan.maxkb4j.common.util.StpKit;
 import com.tarzan.maxkb4j.core.event.GenerateProblemEvent;
+import com.tarzan.maxkb4j.core.workflow.factory.NodeFactory;
+import com.tarzan.maxkb4j.core.workflow.handler.WorkflowHandler;
+import com.tarzan.maxkb4j.core.workflow.logic.LogicFlow;
+import com.tarzan.maxkb4j.core.workflow.node.INode;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationKnowledgeMappingEntity;
+import com.tarzan.maxkb4j.module.application.handler.PostResponseHandler;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationKnowledgeMappingMapper;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.GenerateProblemDTO;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.KnowledgeDTO;
@@ -64,6 +69,9 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
     private final UserService userService;
     private final UserResourcePermissionService userResourcePermissionService;
     private final ApplicationEventPublisher eventPublisher;
+    private final KnowledgeBaseService knowledgeBaseService;
+    private final PostResponseHandler postResponseHandler;
+    private final WorkflowHandler workflowHandler;
 
 
     public IPage<KnowledgeVO> selectKnowledgePage(Page<KnowledgeVO> knowledgePage, KnowledgeQuery query) {
@@ -266,11 +274,19 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
     }
 
     public JSONObject debug(String id, JSONObject params) {
+        KnowledgeEntity dataset =knowledgeBaseService.getById(id);
         JSONObject result = new JSONObject();
         result.put("id", "019b15aed6a3749387910c705d8655e2");
         result.put("details", Map.of());
-        result.put("knowledgeId", "dbce6deccd2e8cefb2ab874dcd622ab4");
+        result.put("knowledgeId", id);
         result.put("state", "STARTED");
+        LogicFlow logicFlow = LogicFlow.newInstance(dataset.getWorkFlow());
+        List<INode> nodes = logicFlow.getNodes().stream().map(NodeFactory::getNode).filter(Objects::nonNull).toList();
+/*        Workflow workflow = new KnowledgeWorkflow(
+                nodes,
+                logicFlow.getEdges());
+        String answer = workflowHandler.execute(workflow);
+        JSONObject details = workflow.getRuntimeDetails();*/
         return result;
     }
 
