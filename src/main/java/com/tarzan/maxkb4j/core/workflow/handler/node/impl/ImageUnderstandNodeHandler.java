@@ -40,13 +40,12 @@ public class ImageUnderstandNodeHandler implements INodeHandler {
     private final ModelFactory modelFactory;
     private final MongoFileService fileService;
 
-
+    @SuppressWarnings("unchecked")
     @Override
     public NodeResult execute(Workflow workflow, INode node) throws Exception {
         ImageUnderstandNode.NodeParams nodeParams = node.getNodeData().toJavaObject(ImageUnderstandNode.NodeParams.class);
         List<String> imageFieldList = nodeParams.getImageList();
         Object object = workflow.getReferenceField(imageFieldList.get(0), imageFieldList.get(1));
-        @SuppressWarnings("unchecked")
         List<ChatFile> ImageFiles = (List<ChatFile>) object;
         StreamingChatModel chatModel = modelFactory.buildStreamingChatModel(nodeParams.getModelId(), nodeParams.getModelParamsSetting());
         String question = workflow.generatePrompt(nodeParams.getPrompt());
@@ -99,12 +98,14 @@ public class ImageUnderstandNodeHandler implements INodeHandler {
                 })
                 .start();
         // 阻塞等待 answer
-        ChatResponse response = chatResponseFuture.join(); // 可设置超时：get(30, TimeUnit.SECONDS)
-        node.setAnswerText(response.aiMessage().text());
+        ChatResponse response = chatResponseFuture.join();
+        if (isResult){
+            node.setAnswerText(response.aiMessage().text());
+        }
         TokenUsage tokenUsage = response.tokenUsage();
         node.getDetail().put("messageTokens", tokenUsage.inputTokenCount());
         node.getDetail().put("answerTokens", tokenUsage.outputTokenCount());
-        return new NodeResult(Map.of("answer", node.getAnswerText()), true);
+        return new NodeResult(Map.of("answer", response.aiMessage().text()), true);
 
     }
 

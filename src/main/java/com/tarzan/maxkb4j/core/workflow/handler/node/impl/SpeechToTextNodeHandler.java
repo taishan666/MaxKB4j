@@ -46,7 +46,9 @@ public class SpeechToTextNodeHandler implements INodeHandler {
         String answer= String.join("\n", answerTextList);
         node.getDetail().put("content", content);
         node.getDetail().put("audioList", audioFiles);
-        node.setAnswerText(answer);
+        if (nodeParams.getIsResult()){
+            node.setAnswerText(answer);
+        }
         return new NodeResult(Map.of("result", answer));
     }
 }

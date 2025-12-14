@@ -29,7 +29,9 @@ public class ToolNodeHandler implements INodeHandler {
         // 执行脚本并返回结果
         Object result = scriptExecutor.execute(params);
         node.getDetail().put("params", params);
-        node.setAnswerText(result.toString());
+        if (nodeParams.getIsResult()){
+            node.setAnswerText(result.toString());
+        }
         return new NodeResult(Map.of("result", result));
     }
 }

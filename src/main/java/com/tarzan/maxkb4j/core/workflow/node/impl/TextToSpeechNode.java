@@ -30,6 +30,7 @@ public class TextToSpeechNode extends INode {
         private String ttsModelId;
         private List<String> contentList;
         private JSONObject modelParamsSetting;
+        private Boolean isResult;
     }
 
 }

@@ -31,6 +31,7 @@ public class QuestionNode extends INode {
         private String prompt;
         private Integer dialogueNumber;
         private JSONObject modelParamsSetting;
+        private Boolean isResult;
     }
 
 

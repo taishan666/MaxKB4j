@@ -21,14 +21,14 @@ public class NodeHandlerBuilder {
 
     static {
         HANDLER_POOL.put(NodeType.APPLICATION.getKey(), SpringUtil.getBean(ApplicationNodeHandler.class));
-        HANDLER_POOL.put(NodeType.AI_CHAT.getKey(), SpringUtil.getBean(AiChatNodeHandler.class));
+        HANDLER_POOL.put(NodeType.AI_CHAT.getKey(), SpringUtil.getBean(LLMNodeHandler.class));
         HANDLER_POOL.put(NodeType.CONDITION.getKey(), SpringUtil.getBean(ConditionNodeHandler.class));
         HANDLER_POOL.put(NodeType.REPLY.getKey(), SpringUtil.getBean(DirectReplyNodeHandler.class));
         HANDLER_POOL.put(NodeType.DOCUMENT_EXTRACT.getKey(), SpringUtil.getBean(DocumentExtractNodeHandler.class));
         HANDLER_POOL.put(NodeType.FORM.getKey(), SpringUtil.getBean(FormNodeHandler.class));
         HANDLER_POOL.put(NodeType.HTTP_CLIENT.getKey(), SpringUtil.getBean(HttpNodeHandler.class));
         HANDLER_POOL.put(NodeType.IMAGE_GENERATE.getKey(), SpringUtil.getBean(ImageGenerateNodeHandler.class));
-        HANDLER_POOL.put(NodeType.IMAGE_UNDERSTAND.getKey(), SpringUtil.getBean(ImageUnderstandNodeHandler.class));
+        HANDLER_POOL.put(NodeType.IMAGE_UNDERSTAND.getKey(), SpringUtil.getBean(LLMNodeHandler.class));
         HANDLER_POOL.put(NodeType.INTENT_CLASSIFY.getKey(), SpringUtil.getBean(IntentClassifyNodeHandler.class));
         HANDLER_POOL.put(NodeType.MCP.getKey(), SpringUtil.getBean(McpNodeHandler.class));
         HANDLER_POOL.put(NodeType.QUESTION.getKey(), SpringUtil.getBean(QuestionNodeHandler.class));

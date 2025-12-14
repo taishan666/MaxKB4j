@@ -33,7 +33,7 @@ public class ImageGenerateNodeHandler implements INodeHandler {
             modelParamsSetting.put("negative_prompt",negativePrompt);
         }
         ImageModel imageModel = modelFactory.buildImageModel(nodeParams.getModelId(), modelParamsSetting);
-        StringBuilder answerSb=new StringBuilder();
+        List<String> answerTexts = new ArrayList<>();
         List<String> imageUrls = new ArrayList<>();
         int n = modelParamsSetting == null ? 1 : modelParamsSetting.getIntValue("n");
         n=n==0 ? 1 : n;
@@ -41,11 +41,13 @@ public class ImageGenerateNodeHandler implements INodeHandler {
         List<Image> images = res.content();
         for (Image image : images) {
             String imageMd ="!["+prompt+"](" + image.url() + ")";
-            answerSb.append(" ").append(imageMd);
+            answerTexts.add(imageMd);
             imageUrls.add(image.url().toString());
         }
-        node.setAnswerText(answerSb.toString());
+        if (nodeParams.getIsResult()){
+            node.setAnswerText(String.join(" ",answerTexts));
+        }
         node.getDetail().put("question",prompt);
-        return new NodeResult(Map.of("answer",answerSb.toString(),"image",imageUrls));
+        return new NodeResult(Map.of("answer",String.join(" ",answerTexts),"image",imageUrls));
     }
 }

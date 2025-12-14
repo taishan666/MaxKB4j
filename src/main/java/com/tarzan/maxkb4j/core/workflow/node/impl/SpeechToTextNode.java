@@ -31,6 +31,6 @@ public class SpeechToTextNode extends INode {
     public static class NodeParams {
         private String sttModelId;
         private List<String> audioList;
-
+        private Boolean isResult;
     }
 }

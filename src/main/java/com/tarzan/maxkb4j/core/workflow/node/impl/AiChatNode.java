@@ -40,6 +40,7 @@ public class AiChatNode extends INode {
         private JSONObject modelSetting;
         private Boolean toolOutputEnable;
         private List<String> toolIds;
+        private List<String> imageList;
 
     }
 

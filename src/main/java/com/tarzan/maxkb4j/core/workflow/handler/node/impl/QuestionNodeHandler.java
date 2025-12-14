@@ -46,9 +46,11 @@ public class QuestionNodeHandler implements INodeHandler {
         TokenUsage tokenUsage =  result.tokenUsage();
         node.getDetail().put("messageTokens", tokenUsage.inputTokenCount());
         node.getDetail().put("answerTokens", tokenUsage.outputTokenCount());
-        node.setAnswerText(result.content());
+        if (nodeParams.getIsResult()){
+            node.setAnswerText(result.content());
+        }
         return new NodeResult(Map.of(
-                "answer", node.getAnswerText()
+                "answer", result.content()
         ));
     }
 }

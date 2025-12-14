@@ -28,5 +28,6 @@ public class ToolNode extends INode {
         private List<ToolInputField> inputFieldList;
         private String code;
         private Map<String,Object> initParams;
+        private Boolean isResult;
     }
 }
