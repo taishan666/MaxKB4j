@@ -3,6 +3,8 @@ package com.tarzan.maxkb4j.core.workflow.handler.node.impl;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONPath;
 import com.tarzan.maxkb4j.common.util.ObjectUtil;
+import com.tarzan.maxkb4j.core.workflow.annotation.NodeHandlerType;
+import com.tarzan.maxkb4j.core.workflow.enums.NodeType;
 import com.tarzan.maxkb4j.core.workflow.model.Workflow;
 import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;
 import com.tarzan.maxkb4j.core.workflow.node.INode;
@@ -14,6 +16,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@NodeHandlerType(NodeType.VARIABLE_SPLITTING)
 @Component
 public class VariableSplittingNodeHandler implements INodeHandler {
 

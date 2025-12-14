@@ -1,5 +1,7 @@
 package com.tarzan.maxkb4j.core.workflow.handler.node.impl;
 
+import com.tarzan.maxkb4j.core.workflow.annotation.NodeHandlerType;
+import com.tarzan.maxkb4j.core.workflow.enums.NodeType;
 import com.tarzan.maxkb4j.core.workflow.node.INode;
 import com.tarzan.maxkb4j.core.workflow.model.Workflow;
 import com.tarzan.maxkb4j.core.workflow.compare.Compare;
@@ -13,6 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+@NodeHandlerType(NodeType.CONDITION)
 @Component
 public class ConditionNodeHandler implements INodeHandler {
 

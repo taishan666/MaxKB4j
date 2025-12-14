@@ -3,6 +3,8 @@ package com.tarzan.maxkb4j.core.workflow.handler.node.impl;
 import com.tarzan.maxkb4j.common.util.DatabaseUtil;
 import com.tarzan.maxkb4j.core.assistant.NL2SqlAssistant;
 import com.tarzan.maxkb4j.core.langchain4j.AppChatMemory;
+import com.tarzan.maxkb4j.core.workflow.annotation.NodeHandlerType;
+import com.tarzan.maxkb4j.core.workflow.enums.NodeType;
 import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;
 import com.tarzan.maxkb4j.core.workflow.model.Workflow;
 import com.tarzan.maxkb4j.core.workflow.node.INode;
@@ -14,7 +16,7 @@ import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.output.TokenUsage;
 import dev.langchain4j.service.AiServices;
 import dev.langchain4j.service.Result;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -23,7 +25,8 @@ import java.util.List;
 import java.util.Map;
 
 @Slf4j
-@AllArgsConstructor
+@NodeHandlerType(NodeType.NL2SQL)
+@RequiredArgsConstructor
 @Component
 public class NL2SqlNodeHandler implements INodeHandler {
 

@@ -1,13 +1,15 @@
 package com.tarzan.maxkb4j.core.workflow.handler.node.impl;
 
-import com.tarzan.maxkb4j.core.workflow.node.INode;
-import com.tarzan.maxkb4j.core.workflow.model.Workflow;
+import com.tarzan.maxkb4j.core.workflow.annotation.NodeHandlerType;
+import com.tarzan.maxkb4j.core.workflow.enums.NodeType;
 import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;
 import com.tarzan.maxkb4j.core.workflow.model.ChatFile;
+import com.tarzan.maxkb4j.core.workflow.model.Workflow;
+import com.tarzan.maxkb4j.core.workflow.node.INode;
 import com.tarzan.maxkb4j.core.workflow.node.impl.DocumentExtractNode;
 import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
 import com.tarzan.maxkb4j.module.oss.service.MongoFileService;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.apache.tika.exception.TikaException;
 import org.apache.tika.extractor.EmbeddedDocumentExtractor;
 import org.apache.tika.metadata.Metadata;
@@ -29,7 +31,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-@AllArgsConstructor
+@NodeHandlerType(NodeType.DOCUMENT_EXTRACT)
+@RequiredArgsConstructor
 @Component
 public class DocumentExtractNodeHandler implements INodeHandler {
 

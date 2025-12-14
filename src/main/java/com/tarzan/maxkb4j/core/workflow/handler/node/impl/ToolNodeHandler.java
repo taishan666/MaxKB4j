@@ -1,6 +1,8 @@
 package com.tarzan.maxkb4j.core.workflow.handler.node.impl;
 
 import com.tarzan.maxkb4j.common.util.GroovyScriptExecutor;
+import com.tarzan.maxkb4j.core.workflow.annotation.NodeHandlerType;
+import com.tarzan.maxkb4j.core.workflow.enums.NodeType;
 import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;
 import com.tarzan.maxkb4j.core.workflow.model.Workflow;
 import com.tarzan.maxkb4j.core.workflow.node.INode;
@@ -13,6 +15,7 @@ import org.springframework.util.CollectionUtils;
 import java.util.HashMap;
 import java.util.Map;
 
+@NodeHandlerType({NodeType.TOOL,NodeType.TOOL_LIB})
 @Component
 public class ToolNodeHandler implements INodeHandler {
     @Override

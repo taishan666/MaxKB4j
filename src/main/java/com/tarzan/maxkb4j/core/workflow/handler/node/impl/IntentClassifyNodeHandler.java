@@ -3,9 +3,11 @@ package com.tarzan.maxkb4j.core.workflow.handler.node.impl;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.tarzan.maxkb4j.core.assistant.IntentClassifyAssistant;
 import com.tarzan.maxkb4j.core.tool.MessageTools;
-import com.tarzan.maxkb4j.core.workflow.model.Workflow;
+import com.tarzan.maxkb4j.core.workflow.annotation.NodeHandlerType;
 import com.tarzan.maxkb4j.core.workflow.enums.DialogueType;
+import com.tarzan.maxkb4j.core.workflow.enums.NodeType;
 import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;
+import com.tarzan.maxkb4j.core.workflow.model.Workflow;
 import com.tarzan.maxkb4j.core.workflow.node.INode;
 import com.tarzan.maxkb4j.core.workflow.node.impl.IntentClassifyNode;
 import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
@@ -16,14 +18,15 @@ import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.output.TokenUsage;
 import dev.langchain4j.service.AiServices;
 import dev.langchain4j.service.Result;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
 
 @Slf4j
-@AllArgsConstructor
+@NodeHandlerType(NodeType.INTENT_CLASSIFY)
+@RequiredArgsConstructor
 @Component
 public class IntentClassifyNodeHandler implements INodeHandler {
 

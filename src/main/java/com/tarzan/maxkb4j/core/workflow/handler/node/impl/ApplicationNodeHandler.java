@@ -1,6 +1,8 @@
 package com.tarzan.maxkb4j.core.workflow.handler.node.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
+import com.tarzan.maxkb4j.core.workflow.annotation.NodeHandlerType;
+import com.tarzan.maxkb4j.core.workflow.enums.NodeType;
 import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;
 import com.tarzan.maxkb4j.core.workflow.model.ChatFile;
 import com.tarzan.maxkb4j.core.workflow.model.Workflow;
@@ -12,7 +14,7 @@ import com.tarzan.maxkb4j.module.application.service.ApplicationChatService;
 import com.tarzan.maxkb4j.module.chat.dto.ChatParams;
 import com.tarzan.maxkb4j.module.chat.dto.ChatResponse;
 import com.tarzan.maxkb4j.module.chat.dto.ChildNode;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Sinks;
@@ -28,7 +30,8 @@ import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.USER_SELECT;
 
 @Slf4j
 @Component
-@AllArgsConstructor
+@NodeHandlerType(NodeType.APPLICATION)
+@RequiredArgsConstructor
 public class ApplicationNodeHandler implements INodeHandler {
 
     private final ApplicationChatService chatService;

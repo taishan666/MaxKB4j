@@ -6,6 +6,8 @@ import com.tarzan.maxkb4j.core.assistant.Assistant;
 import com.tarzan.maxkb4j.core.langchain4j.AppChatMemory;
 import com.tarzan.maxkb4j.core.tool.MessageTools;
 import com.tarzan.maxkb4j.core.tool.MimeTypeUtils;
+import com.tarzan.maxkb4j.core.workflow.annotation.NodeHandlerType;
+import com.tarzan.maxkb4j.core.workflow.enums.NodeType;
 import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;
 import com.tarzan.maxkb4j.core.workflow.model.ChatFile;
 import com.tarzan.maxkb4j.core.workflow.model.Workflow;
@@ -36,6 +38,7 @@ import java.util.concurrent.CompletableFuture;
 
 
 @Slf4j
+@NodeHandlerType({NodeType.AI_CHAT, NodeType.IMAGE_UNDERSTAND})
 @Component
 @AllArgsConstructor
 public class LLMNodeHandler implements INodeHandler {

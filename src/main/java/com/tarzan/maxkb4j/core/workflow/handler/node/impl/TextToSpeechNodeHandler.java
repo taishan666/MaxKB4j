@@ -1,22 +1,25 @@
 package com.tarzan.maxkb4j.core.workflow.handler.node.impl;
 
-import com.tarzan.maxkb4j.core.workflow.node.INode;
-import com.tarzan.maxkb4j.core.workflow.model.Workflow;
+import com.tarzan.maxkb4j.core.workflow.annotation.NodeHandlerType;
+import com.tarzan.maxkb4j.core.workflow.enums.NodeType;
 import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;
 import com.tarzan.maxkb4j.core.workflow.model.ChatFile;
+import com.tarzan.maxkb4j.core.workflow.model.Workflow;
+import com.tarzan.maxkb4j.core.workflow.node.INode;
 import com.tarzan.maxkb4j.core.workflow.node.impl.TextToSpeechNode;
 import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
-import com.tarzan.maxkb4j.module.model.info.service.ModelFactory;
 import com.tarzan.maxkb4j.module.model.custom.base.TTSModel;
+import com.tarzan.maxkb4j.module.model.info.service.ModelFactory;
 import com.tarzan.maxkb4j.module.oss.service.MongoFileService;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-@AllArgsConstructor
+@NodeHandlerType(NodeType.TEXT_TO_SPEECH)
+@RequiredArgsConstructor
 @Component
 public class TextToSpeechNodeHandler implements INodeHandler {
 

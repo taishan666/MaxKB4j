@@ -1,5 +1,7 @@
 package com.tarzan.maxkb4j.core.workflow.handler.node.impl;
 
+import com.tarzan.maxkb4j.core.workflow.annotation.NodeHandlerType;
+import com.tarzan.maxkb4j.core.workflow.enums.NodeType;
 import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;
 import com.tarzan.maxkb4j.core.workflow.model.Workflow;
 import com.tarzan.maxkb4j.core.workflow.node.INode;
@@ -12,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+@NodeHandlerType(NodeType.VARIABLE_AGGREGATE)
 @Component
 public class VariableAggregationNodeHandler implements INodeHandler {
     static Map<String, StrategyFunction> strategy_map = new HashMap<>();

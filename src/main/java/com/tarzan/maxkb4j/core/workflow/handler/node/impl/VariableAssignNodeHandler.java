@@ -1,5 +1,7 @@
 package com.tarzan.maxkb4j.core.workflow.handler.node.impl;
 
+import com.tarzan.maxkb4j.core.workflow.annotation.NodeHandlerType;
+import com.tarzan.maxkb4j.core.workflow.enums.NodeType;
 import com.tarzan.maxkb4j.core.workflow.model.Workflow;
 import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;
 import com.tarzan.maxkb4j.core.workflow.node.INode;
@@ -11,6 +13,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.*;
 
+@NodeHandlerType(NodeType.VARIABLE_ASSIGN)
 @Component
 public class VariableAssignNodeHandler implements INodeHandler {
 

@@ -2,6 +2,8 @@ package com.tarzan.maxkb4j.core.workflow.handler.node.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.tarzan.maxkb4j.common.util.ObjectUtil;
+import com.tarzan.maxkb4j.core.workflow.annotation.NodeHandlerType;
+import com.tarzan.maxkb4j.core.workflow.enums.NodeType;
 import com.tarzan.maxkb4j.core.workflow.model.Workflow;
 import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;
 import com.tarzan.maxkb4j.core.workflow.node.INode;
@@ -13,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
+@NodeHandlerType(NodeType.REPLY)
 @Component
 public class DirectReplyNodeHandler implements INodeHandler {
     @Override
