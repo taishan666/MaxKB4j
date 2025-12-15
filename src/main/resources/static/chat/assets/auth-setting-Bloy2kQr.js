@@ -1,0 +1,1 @@
+import{cG as i,ct as s,cu as u}from"./chat-ESISKCvw.js";const n="/auth",c=(t,o)=>u(`${n}/${t}/detail`,void 0,o),r=(t,o)=>i(`${n}/connection`,t,void 0,o),a=(t,o,e)=>s(`${n}/${t}/info`,o,void 0,e),g={getAuthSetting:c,postAuthSetting:r,putAuthSetting:a};export{g as a};

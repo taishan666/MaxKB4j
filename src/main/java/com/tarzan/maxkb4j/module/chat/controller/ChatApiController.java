@@ -85,7 +85,7 @@ public class ChatApiController {
         extraData.put("applicationId", accessTokenEntity.getApplicationId());
         extraData.put("chatUserType", ChatUserType.ANONYMOUS_USER.name());
         extraData.put("accessToken", accessToken);
-        String token = StpKit.USER.createTokenValue(chatUserId, StpKit.USER.getLoginDevice(), StpKit.USER.getTokenTimeout(), extraData);
+        String token = StpKit.USER.createTokenValue(chatUserId, StpKit.USER.getLoginDevice(), -1L, extraData);
         return R.success(token);
     }
 
@@ -93,6 +93,8 @@ public class ChatApiController {
     @Operation(summary = "获取应用相关信息", description = "获取应用相关信息")
     @GetMapping("/application/profile")
     public R<ApplicationEntity> appProfile() {
+        String tokenValue = WebUtil.getTokenValue();
+        StpKit.USER.setTokenValue(tokenValue);
         if (StpKit.USER.isLogin()) {
             String appId = (String) StpKit.USER.getExtra("applicationId");
             ApplicationAccessTokenEntity appAccessToken = accessTokenService.getById(appId);
