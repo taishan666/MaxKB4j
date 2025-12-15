@@ -7,7 +7,7 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum NodeType {
 
-    BASE("base-node", "基础"),
+    BASE("base-node", "基础节点"),
 
     START("start-node", "开始节点"),
 
@@ -47,6 +47,8 @@ public enum NodeType {
 
     DOCUMENT_EXTRACT("document-extract-node", "文档内容提取"),
 
+    DOCUMENT_SPLIT("document-split-node", "文档分段节点"),
+
     VARIABLE_ASSIGN("variable-assign-node", "变量赋值"),
 
     VARIABLE_AGGREGATE("variable-aggregation-node", "变量聚合"),
@@ -64,6 +66,14 @@ public enum NodeType {
     APPLICATION("application-node", "应用节点"),
 
     PARAMETER_EXTRACTION("parameter-extraction-node", "参数提取节点"),
+
+    KNOWLEDGE_BASE("knowledge-base-node", "知识库基础节点"),
+
+    DATA_SOURCE_LOCAL("data-source-local-node", "本地数据源"),
+
+    DATA_SOURCE_WEB("data-source-web-node", "WEB数据源"),
+
+    KNOWLEDGE_WRITE("knowledge-write-node", "知识库写入节点"),
     ;
 
     private final String key;

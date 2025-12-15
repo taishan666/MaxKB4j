@@ -110,7 +110,6 @@ public class Workflow {
         }
     }
 
-
     public INode getStartNode() {
         return getNodeClsById(NodeType.START.getKey(), List.of(), null);
     }
@@ -169,7 +168,7 @@ public class Workflow {
     }
 
 
-    private INode getNodeClsById(String nodeId, List<String> upNodeIds, Function<INode, JSONObject> getNodeProperties) {
+    public INode getNodeClsById(String nodeId, List<String> upNodeIds, Function<INode, JSONObject> getNodeProperties) {
         Optional<INode> nodeOpt = nodes.stream().filter(Objects::nonNull).filter(e -> nodeId.equals(e.getId())).findFirst();
         if (nodeOpt.isPresent()) {
             INode node = nodeOpt.get();

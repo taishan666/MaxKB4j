@@ -15,10 +15,13 @@ import com.tarzan.maxkb4j.common.util.BeanUtil;
 import com.tarzan.maxkb4j.common.util.StpKit;
 import com.tarzan.maxkb4j.core.event.GenerateProblemEvent;
 import com.tarzan.maxkb4j.core.workflow.builder.NodeBuilder;
+import com.tarzan.maxkb4j.core.workflow.handler.KnowledgeWorkflowHandler;
 import com.tarzan.maxkb4j.core.workflow.logic.LogicFlow;
+import com.tarzan.maxkb4j.core.workflow.model.KnowledgeWorkflow;
 import com.tarzan.maxkb4j.core.workflow.node.INode;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationKnowledgeMappingEntity;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationKnowledgeMappingMapper;
+import com.tarzan.maxkb4j.module.chat.dto.KnowledgeParams;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.GenerateProblemDTO;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.KnowledgeDTO;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.KnowledgeQuery;
@@ -68,17 +71,19 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
     private final UserResourcePermissionService userResourcePermissionService;
     private final ApplicationEventPublisher eventPublisher;
     private final DataIndexService dataIndexService;
+    private final KnowledgeActionService knowledgeActionService;
+    private final KnowledgeWorkflowHandler knowledgeWorkflowHandler;
 
 
     public IPage<KnowledgeVO> selectKnowledgePage(Page<KnowledgeVO> knowledgePage, KnowledgeQuery query) {
         String loginId = StpKit.ADMIN.getLoginIdAsString();
-        List<String> targetIds =userResourcePermissionService.getTargetIds(AuthTargetType.KNOWLEDGE,loginId);
-        UserEntity user =userService.getById(loginId);
+        List<String> targetIds = userResourcePermissionService.getTargetIds(AuthTargetType.KNOWLEDGE, loginId);
+        UserEntity user = userService.getById(loginId);
         query.setIsAdmin(user.getRole().contains("ADMIN"));
         query.setTargetIds(targetIds);
-        IPage<KnowledgeVO>  page= baseMapper.selectKnowledgePage(knowledgePage, query);
-        Map<String, String> nicknameMap=userService.getNicknameMap();
-        page.getRecords().forEach(vo-> vo.setNickname(nicknameMap.get(vo.getUserId())));
+        IPage<KnowledgeVO> page = baseMapper.selectKnowledgePage(knowledgePage, query);
+        Map<String, String> nicknameMap = userService.getNicknameMap();
+        page.getRecords().forEach(vo -> vo.setNickname(nicknameMap.get(vo.getUserId())));
         return page;
     }
 
@@ -107,9 +112,6 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
         }
         return Collections.emptyList();
     }
-
-
-
 
 
     @Transactional
@@ -188,7 +190,6 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
     }
 
 
-
     private List<DatasetExcel> getDatasetExcelByDoc(DocumentEntity doc) {
         List<DatasetExcel> list = new ArrayList<>();
         List<ParagraphEntity> paragraphs = paragraphMapper.selectList(Wrappers.<ParagraphEntity>lambdaQuery().eq(ParagraphEntity::getDocumentId, doc.getId()));
@@ -210,8 +211,7 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
     }
 
 
-
-    public List<KnowledgeEntity> list(String userId,String folderId) {
+    public List<KnowledgeEntity> list(String userId, String folderId) {
         return this.lambdaQuery().eq(KnowledgeEntity::getUserId, userId).eq(KnowledgeEntity::getFolderId, folderId).list();
     }
 
@@ -229,12 +229,12 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
     public KnowledgeEntity createDatasetWeb(KnowledgeDTO knowledge) {
         knowledge.setUserId(StpKit.ADMIN.getLoginIdAsString());
         JSONObject meta = new JSONObject();
-        meta.put("source_url",knowledge.getSourceUrl());
-        meta.put("selector",knowledge.getSelector());
+        meta.put("source_url", knowledge.getSourceUrl());
+        meta.put("selector", knowledge.getSelector());
         knowledge.setMeta(meta);
         knowledge.setType(1);
         this.save(knowledge);
-        documentService.webDataset(knowledge.getId(),knowledge.getSourceUrl(),knowledge.getSelector());
+        documentService.webDataset(knowledge.getId(), knowledge.getSourceUrl(), knowledge.getSelector());
         userResourcePermissionService.ownerSave(AuthTargetType.KNOWLEDGE, knowledge.getId(), knowledge.getUserId());
         return knowledge;
     }
@@ -242,18 +242,18 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
 
     //TODO
     public boolean embeddingKnowledge(String knowledgeId) {
-        List<DocumentEntity> documents=documentService.lambdaQuery().select(DocumentEntity::getId).eq(DocumentEntity::getKnowledgeId, knowledgeId).list();
-        documentService.embedByDocIds(knowledgeId,documents.stream().map(DocumentEntity::getId).toList(),List.of("0","1","2","3","n"));
+        List<DocumentEntity> documents = documentService.lambdaQuery().select(DocumentEntity::getId).eq(DocumentEntity::getKnowledgeId, knowledgeId).list();
+        documentService.embedByDocIds(knowledgeId, documents.stream().map(DocumentEntity::getId).toList(), List.of("0", "1", "2", "3", "n"));
         return true;
     }
 
     public List<KnowledgeEntity> listKnowledge() {
-        List<String> targetIds =userResourcePermissionService.getTargetIds(AuthTargetType.KNOWLEDGE, StpKit.ADMIN.getLoginIdAsString());
+        List<String> targetIds = userResourcePermissionService.getTargetIds(AuthTargetType.KNOWLEDGE, StpKit.ADMIN.getLoginIdAsString());
         return this.lambdaQuery().in(KnowledgeEntity::getId, targetIds).list();
     }
 
     public Boolean generateRelated(String knowledgeId, GenerateProblemDTO dto) {
-        eventPublisher.publishEvent(new GenerateProblemEvent(this, knowledgeId,dto.getDocumentIdList(),dto.getModelId(),dto.getPrompt(),dto.getStateList()));
+        eventPublisher.publishEvent(new GenerateProblemEvent(this, knowledgeId, dto.getDocumentIdList(), dto.getModelId(), dto.getPrompt(), dto.getStateList()));
         return true;
     }
 
@@ -263,39 +263,41 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
     }
 
     public List<BaseField> datasourceFormList(String id, String nodeType, JSONObject node) {
-        if("data-source-web-node".equals(nodeType)){
-            BaseField field1=new TextInputField("Web 根地址","source_url","请输入 Web 根地址", true);
-            BaseField field2=new TextInputField("选择器","selector", "默认为 body，可输入 .classname/#idname/tagname",false);
-            return List.of(field1,field2);
-        }else {
-            BaseField localFileUpload=new LocalFileUpload(50, 100,List.of("TXT", "DOCX", "PDF", "HTML", "XLS", "XLSX", "CSV"));
+        if ("data-source-web-node".equals(nodeType)) {
+            BaseField field1 = new TextInputField("Web 根地址", "source_url", "请输入 Web 根地址", true);
+            BaseField field2 = new TextInputField("选择器", "selector", "默认为 body，可输入 .classname/#idname/tagname", false);
+            return List.of(field1, field2);
+        } else {
+            BaseField localFileUpload = new LocalFileUpload(50, 100, List.of("TXT", "DOCX", "PDF", "HTML", "XLS", "XLSX", "CSV"));
             return List.of(localFileUpload);
         }
     }
 
-    public JSONObject debug(String id, JSONObject params) {
-        KnowledgeEntity dataset =baseMapper.selectById(id);
-        JSONObject result = new JSONObject();
-        result.put("id", "019b15aed6a3749387910c705d8655e2");
-        result.put("details", Map.of());
-        result.put("knowledgeId", id);
-        result.put("state", "STARTED");
-        LogicFlow logicFlow = LogicFlow.newInstance(dataset.getWorkFlow());
+    public KnowledgeActionEntity debug(String id, KnowledgeParams params) {
+        KnowledgeEntity knowledge = baseMapper.selectById(id);
+        KnowledgeActionEntity knowledgeAction = new KnowledgeActionEntity();
+        knowledgeAction.setKnowledgeId(id);
+        knowledgeAction.setState("STARTED");
+        knowledgeAction.setDetails(new JSONObject());
+        knowledgeAction.setRunTime(0F);
+        JSONObject meta = new JSONObject();
+        meta.put("user_id", StpKit.ADMIN.getLoginIdAsString());
+        knowledgeAction.setMeta(meta);
+        knowledgeActionService.save(knowledgeAction);
+        LogicFlow logicFlow = LogicFlow.newInstance(knowledge.getWorkFlow());
         List<INode> nodes = logicFlow.getNodes().stream().map(NodeBuilder::getNode).filter(Objects::nonNull).toList();
-/*        Workflow workflow = new KnowledgeWorkflow(
+        params.setActionId(knowledgeAction.getId());
+        KnowledgeWorkflow workflow = new KnowledgeWorkflow(
+                params,
                 nodes,
                 logicFlow.getEdges());
-        String answer = workflowHandler.execute(workflow);
-        JSONObject details = workflow.getRuntimeDetails();*/
-        return result;
+        knowledgeWorkflowHandler.execute(workflow);
+        return knowledgeAction;
     }
 
-    public JSONObject action(String id, String actionId) {
-        JSONObject result = new JSONObject();
-        result.put("id", "019b15aed6a3749387910c705d8655e2");
-        result.put("details", Map.of());
-        result.put("knowledgeId", "dbce6deccd2e8cefb2ab874dcd622ab4");
-        result.put("state", "SUCCESS");
-        return result;
+    public KnowledgeActionEntity action(String id, String actionId) {
+        KnowledgeActionEntity knowledgeAction = knowledgeActionService.getById(actionId);
+        knowledgeAction.setState("SUCCESS");
+        return knowledgeAction;
     }
 }

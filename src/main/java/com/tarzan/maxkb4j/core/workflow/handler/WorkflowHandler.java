@@ -4,11 +4,10 @@ import com.tarzan.maxkb4j.core.workflow.builder.NodeHandlerBuilder;
 import com.tarzan.maxkb4j.core.workflow.enums.NodeRunStatus;
 import com.tarzan.maxkb4j.core.workflow.enums.WorkflowMode;
 import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;
+import com.tarzan.maxkb4j.core.workflow.model.NodeResult;
 import com.tarzan.maxkb4j.core.workflow.model.Workflow;
 import com.tarzan.maxkb4j.core.workflow.node.INode;
-import com.tarzan.maxkb4j.core.workflow.model.NodeResult;
 import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
-import com.tarzan.maxkb4j.module.knowledge.service.KnowledgeActionService;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,7 +25,6 @@ import java.util.concurrent.CompletableFuture;
 public class WorkflowHandler {
 
     private final TaskExecutor chatTaskExecutor;
-    private final KnowledgeActionService knowledgeActionService;
 
 
     public String execute(Workflow workflow) {
@@ -37,7 +35,6 @@ public class WorkflowHandler {
         runChainNodes(workflow, List.of(currentNode));
         return workflow.getAnswer();
     }
-
 
     public void runChainNodes(Workflow workflow, List<INode> nodeList) {
         if (nodeList == null || nodeList.isEmpty()) {
@@ -75,7 +72,7 @@ public class WorkflowHandler {
                     }
                 }
                 // 添加已运行节点
-                workflow.appendNode(node);
+                addExecutedNode(workflow,node);
                 // 获取下一个节点列表
                 return workflow.getNextNodeList(node, nodeResult);
             }
@@ -90,6 +87,10 @@ public class WorkflowHandler {
             return nextNodeList;
         }
         return List.of();
+    }
+
+    public  void addExecutedNode(Workflow workflow,INode node){
+        workflow.appendNode(node);
     }
 
     private NodeResultFuture runNodeFuture(Workflow workflow, INode node) {

@@ -30,6 +30,7 @@ public class NodeBuilder {
             case IMAGE_GENERATE -> new ImageGenerateNode(id,properties);
             case TEXT_TO_SPEECH -> new TextToSpeechNode(id,properties);
             case DOCUMENT_EXTRACT -> new DocumentExtractNode(id,properties);
+            case DOCUMENT_SPLIT -> new DocumentSpiltNode(id,properties);
             case SPEECH_TO_TEXT -> new SpeechToTextNode(id,properties);
             case VARIABLE_ASSIGN -> new VariableAssignNode(id,properties);
             case VARIABLE_AGGREGATE -> new VariableAggregationNode(id,properties);
@@ -45,6 +46,9 @@ public class NodeBuilder {
             case HTTP_CLIENT -> new HttpNode(id,properties);
             case PARAMETER_EXTRACTION -> new ParameterExtractionNode(id,properties);
             case USER_SELECT -> new UserSelectNode(id,properties);
+            case DATA_SOURCE_LOCAL -> new DataSourceLocalNode(id,properties);
+            case DATA_SOURCE_WEB -> new DataSourceWebNode(id,properties);
+            case KNOWLEDGE_WRITE -> new KnowledgeWriteNode(id,properties);
             default -> null;
         };
     }

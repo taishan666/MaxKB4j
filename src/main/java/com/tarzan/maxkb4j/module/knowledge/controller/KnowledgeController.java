@@ -7,10 +7,12 @@ import com.tarzan.maxkb4j.common.aop.SaCheckPerm;
 import com.tarzan.maxkb4j.common.api.R;
 import com.tarzan.maxkb4j.common.constant.AppConst;
 import com.tarzan.maxkb4j.common.form.BaseField;
+import com.tarzan.maxkb4j.module.chat.dto.KnowledgeParams;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.DataSearchDTO;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.GenerateProblemDTO;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.KnowledgeDTO;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.KnowledgeQuery;
+import com.tarzan.maxkb4j.module.knowledge.domain.entity.KnowledgeActionEntity;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.KnowledgeEntity;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.KnowledgeVO;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.ParagraphVO;
@@ -133,17 +135,17 @@ public class KnowledgeController {
     }
 
     @PostMapping("/knowledge/{id}/debug")
-    public R<JSONObject> debug(@PathVariable("id") String id,  JSONObject params) {
+    public R<KnowledgeActionEntity> debug(@PathVariable("id") String id,@RequestBody KnowledgeParams params) {
         return R.success(knowledgeService.debug(id,params));
     }
 
     @PostMapping("/knowledge/{id}/upload_document")
-    public R<JSONObject> uploadDocument(@PathVariable("id") String id,  JSONObject params) {
+    public R<KnowledgeActionEntity> uploadDocument(@PathVariable("id") String id,@RequestBody  KnowledgeParams params) {
         return R.success(knowledgeService.debug(id,params));
     }
 
     @GetMapping("/knowledge/{id}/action/{actionId}")
-    public R<JSONObject> action(@PathVariable("id") String id, @PathVariable("actionId") String actionId) {
+    public R<KnowledgeActionEntity> action(@PathVariable("id") String id, @PathVariable("actionId") String actionId) {
         return R.success(knowledgeService.action(id,actionId));
     }
 

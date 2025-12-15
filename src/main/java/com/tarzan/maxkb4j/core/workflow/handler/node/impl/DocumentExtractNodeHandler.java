@@ -38,15 +38,15 @@ public class DocumentExtractNodeHandler implements INodeHandler {
 
     private final MongoFileService fileService;
 
+    @SuppressWarnings("unchecked")
     @Override
     public NodeResult execute(Workflow workflow, INode node) throws Exception {
         String splitter = "\n-----------------------------------\n";
         DocumentExtractNode.NodeParams nodeParams=node.getNodeData().toJavaObject(DocumentExtractNode.NodeParams.class);
         List<String> documentList=nodeParams.getDocumentList();
-        Object res=workflow.getReferenceField(documentList.get(0),documentList.get(1));
-        @SuppressWarnings("unchecked")
-        List<ChatFile> documents= (List<ChatFile>) res;
         List<String> content=new LinkedList<>();
+        Object res=workflow.getReferenceField(documentList.get(0),documentList.get(1));
+        List<ChatFile> documents= res==null?List.of():(List<ChatFile>) res;
         for (ChatFile chatFile : documents) {
             byte[] data= fileService.getBytes(chatFile.getFileId());
             // 初始化解析器、元数据和上下文
