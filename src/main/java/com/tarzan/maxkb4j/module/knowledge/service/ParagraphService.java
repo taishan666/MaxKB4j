@@ -57,9 +57,6 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
         baseMapper.updateStatusByIds(paragraphIds,type,status,type-1,type+1);
     }
 
-    public void updateStatusByDocIds(List<String> docIds, int type,int status)  {
-        baseMapper.updateStatusByDocIds(docIds,type,status,type-1,type+1);
-    }
 
     @Transactional
     public void migrateDoc(String sourceKnowledgeId, String targetKnowledgeId, List<String> docIds) {

@@ -25,16 +25,17 @@ import com.tarzan.maxkb4j.module.knowledge.domain.dto.KnowledgeQuery;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.*;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.KnowledgeVO;
 import com.tarzan.maxkb4j.module.knowledge.excel.DatasetExcel;
-import com.tarzan.maxkb4j.module.knowledge.mapper.DocumentMapper;
-import com.tarzan.maxkb4j.module.knowledge.mapper.KnowledgeMapper;
-import com.tarzan.maxkb4j.module.knowledge.mapper.ProblemParagraphMapper;
+import com.tarzan.maxkb4j.module.knowledge.mapper.*;
+import com.tarzan.maxkb4j.module.model.info.service.ModelFactory;
 import com.tarzan.maxkb4j.module.system.permission.constant.AuthTargetType;
 import com.tarzan.maxkb4j.module.system.permission.service.UserResourcePermissionService;
 import com.tarzan.maxkb4j.module.system.user.domain.entity.UserEntity;
 import com.tarzan.maxkb4j.module.system.user.service.UserService;
+import dev.langchain4j.model.embedding.EmbeddingModel;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -58,16 +59,16 @@ import java.util.zip.ZipOutputStream;
 @RequiredArgsConstructor
 public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEntity> {
 
-    private final DocumentMapper documentMapper;
-    private final ProblemService problemService;
+    private final ProblemMapper problemMapper;
     private final ApplicationKnowledgeMappingMapper applicationDatasetMappingMapper;
-    private final ParagraphService paragraphService;
+    private final ParagraphMapper paragraphMapper;
     private final ProblemParagraphMapper problemParagraphMapper;
     private final DocumentService documentService;
     private final UserService userService;
     private final UserResourcePermissionService userResourcePermissionService;
     private final ApplicationEventPublisher eventPublisher;
-    private final KnowledgeBaseService knowledgeBaseService;
+    private final ModelFactory modelFactory;
+    private final DataIndexService dataIndexService;
 
 
     public IPage<KnowledgeVO> selectKnowledgePage(Page<KnowledgeVO> knowledgePage, KnowledgeQuery query) {
@@ -103,9 +104,18 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
                 .select(ProblemParagraphEntity::getParagraphId).eq(ProblemParagraphEntity::getProblemId, problemId));
         if (!CollectionUtils.isEmpty(list)) {
             List<String> paragraphIds = list.stream().map(ProblemParagraphEntity::getParagraphId).toList();
-            return paragraphService.lambdaQuery().in(ParagraphEntity::getId, paragraphIds).list();
+            return paragraphMapper.selectByIds(paragraphIds);
         }
         return Collections.emptyList();
+    }
+
+    @Cacheable(cacheNames = "dataset_embedding_model", key = "#knowledgeId")
+    public EmbeddingModel getEmbeddingModel(String knowledgeId){
+        KnowledgeEntity dataset=baseMapper.selectById(knowledgeId);
+        if (dataset==null){
+            throw new RuntimeException("数据集不存在");
+        }
+        return modelFactory.buildEmbeddingModel(dataset.getEmbeddingModelId());
     }
 
 
@@ -113,11 +123,12 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
     @Transactional
     public Boolean deleteKnowledgeId(String id) {
         problemParagraphMapper.delete(Wrappers.<ProblemParagraphEntity>lambdaQuery().eq(ProblemParagraphEntity::getKnowledgeId, id));
-        problemService.lambdaUpdate().eq(ProblemEntity::getKnowledgeId, id).remove();
-        paragraphService.deleteByKnowledgeId(id);
-        documentMapper.delete(Wrappers.<DocumentEntity>lambdaQuery().eq(DocumentEntity::getKnowledgeId, id));
+        problemMapper.delete(Wrappers.<ProblemEntity>lambdaQuery().eq(ProblemEntity::getKnowledgeId, id));
+        paragraphMapper.delete(Wrappers.<ParagraphEntity>lambdaQuery().eq(ParagraphEntity::getKnowledgeId, id));
+        documentService.remove(Wrappers.<DocumentEntity>lambdaQuery().eq(DocumentEntity::getKnowledgeId, id));
         applicationDatasetMappingMapper.delete(Wrappers.<ApplicationKnowledgeMappingEntity>lambdaQuery().eq(ApplicationKnowledgeMappingEntity::getKnowledgeId, id));
         userResourcePermissionService.remove(AuthTargetType.APPLICATION, id);
+        dataIndexService.removeByDatasetId(id);
         return this.removeById(id);
     }
 
@@ -160,13 +171,13 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
 
     public void exportExcelZip(String id, HttpServletResponse response) throws IOException {
         KnowledgeEntity dataset = this.getById(id);
-        List<DocumentEntity> docs = documentMapper.selectList(Wrappers.<DocumentEntity>lambdaQuery().eq(DocumentEntity::getKnowledgeId, id));
+        List<DocumentEntity> docs = documentService.list(Wrappers.<DocumentEntity>lambdaQuery().eq(DocumentEntity::getKnowledgeId, id));
         exportExcelZipByDocs(docs, dataset.getName(), response);
     }
 
     public void exportExcel(String id, HttpServletResponse response) throws IOException {
         KnowledgeEntity dataset = this.getById(id);
-        List<DocumentEntity> docs = documentMapper.selectList(Wrappers.<DocumentEntity>lambdaQuery().eq(DocumentEntity::getKnowledgeId, id));
+        List<DocumentEntity> docs = documentService.list(Wrappers.<DocumentEntity>lambdaQuery().eq(DocumentEntity::getKnowledgeId, id));
         response.setContentType("application/vnd.ms-excel");
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());
         String fileName = URLEncoder.encode(dataset.getName(), StandardCharsets.UTF_8);
@@ -188,7 +199,7 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
 
     private List<DatasetExcel> getDatasetExcelByDoc(DocumentEntity doc) {
         List<DatasetExcel> list = new ArrayList<>();
-        List<ParagraphEntity> paragraphs = paragraphService.lambdaQuery().eq(ParagraphEntity::getDocumentId, doc.getId()).list();
+        List<ParagraphEntity> paragraphs = paragraphMapper.selectList(Wrappers.<ParagraphEntity>lambdaQuery().eq(ParagraphEntity::getDocumentId, doc.getId()));
         for (ParagraphEntity paragraph : paragraphs) {
             DatasetExcel excel = new DatasetExcel();
             excel.setTitle(paragraph.getTitle());
@@ -237,6 +248,7 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
     }
 
 
+    //TODO
     public boolean embeddingKnowledge(String knowledgeId) {
         List<DocumentEntity> documents=documentService.lambdaQuery().select(DocumentEntity::getId).eq(DocumentEntity::getKnowledgeId, knowledgeId).list();
         documentService.embedByDocIds(knowledgeId,documents.stream().map(DocumentEntity::getId).toList(),List.of("0","1","2","3","n"));
@@ -270,7 +282,7 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
     }
 
     public JSONObject debug(String id, JSONObject params) {
-        KnowledgeEntity dataset =knowledgeBaseService.getById(id);
+        KnowledgeEntity dataset =baseMapper.selectById(id);
         JSONObject result = new JSONObject();
         result.put("id", "019b15aed6a3749387910c705d8655e2");
         result.put("details", Map.of());
