@@ -85,7 +85,7 @@ public class ChatApiController {
         extraData.put("applicationId", accessTokenEntity.getApplicationId());
         extraData.put("chatUserType", ChatUserType.ANONYMOUS_USER.name());
         extraData.put("accessToken", accessToken);
-        String token = StpKit.USER.createTokenValue(chatUserId, StpKit.USER.getLoginDevice(), StpKit.USER.getTokenTimeout(), extraData);
+        String token = StpKit.USER.createTokenValue(chatUserId, StpKit.USER.getLoginDevice(), -1L, extraData);
         return R.success(token);
     }
 
