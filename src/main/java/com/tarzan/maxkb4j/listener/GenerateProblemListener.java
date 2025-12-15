@@ -5,9 +5,9 @@ import com.tarzan.maxkb4j.core.event.GenerateProblemEvent;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.ParagraphEntity;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.ProblemEntity;
 import com.tarzan.maxkb4j.module.knowledge.service.DocumentService;
-import com.tarzan.maxkb4j.module.knowledge.service.KnowledgeService;
 import com.tarzan.maxkb4j.module.knowledge.service.ParagraphService;
 import com.tarzan.maxkb4j.module.knowledge.service.ProblemService;
+import com.tarzan.maxkb4j.module.knowledge.service.knowledgeModelService;
 import com.tarzan.maxkb4j.module.model.info.service.ModelFactory;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.embedding.EmbeddingModel;
@@ -28,14 +28,14 @@ public class GenerateProblemListener {
     private final ParagraphService paragraphService;
     private final ModelFactory modelFactory;
     private final ProblemService problemService;
-    private final KnowledgeService knowledgeService;
+    private final knowledgeModelService knowledgeModelService;
 
     @Async
     @EventListener
     public void handleEvent(GenerateProblemEvent event) {
         System.out.println("收到事件消息: " + event.getDocumentIdList());
         ChatModel chatModel=modelFactory.buildChatModel(event.getModelId());
-        EmbeddingModel embeddingModel=knowledgeService.getEmbeddingModel(event.getKnowledgeId());
+        EmbeddingModel embeddingModel=knowledgeModelService.getEmbeddingModel(event.getKnowledgeId());
         documentService.updateStatusByIds(event.getDocumentIdList(), 2, 0);
         List<ProblemEntity> knowledgeProblems = problemService.lambdaQuery().eq(ProblemEntity::getKnowledgeId, event.getKnowledgeId()).list();
         for (String docId : event.getDocumentIdList()) {

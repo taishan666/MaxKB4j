@@ -24,7 +24,7 @@ import java.util.Objects;
 public class ProblemParagraphService extends ServiceImpl<ProblemParagraphMapper, ProblemParagraphEntity>{
 
     private final ProblemMapper problemMapper;
-    private final KnowledgeService knowledgeService;
+    private final knowledgeModelService knowledgeModelService;
     private final DataIndexService dataIndexService;
 
     public List<ProblemEntity> getProblemsByParagraphId(String paragraphId) {
@@ -37,7 +37,7 @@ public class ProblemParagraphService extends ServiceImpl<ProblemParagraphMapper,
         entity.setProblemId(problemId);
         entity.setParagraphId(paragraphId);
         entity.setDocumentId(docId);
-        EmbeddingModel embeddingModel=knowledgeService.getEmbeddingModel(knowledgeId);
+        EmbeddingModel embeddingModel=knowledgeModelService.getEmbeddingModel(knowledgeId);
         return this.save(entity) && createProblemIndex(knowledgeId, docId, paragraphId, problemId,embeddingModel);
     }
 

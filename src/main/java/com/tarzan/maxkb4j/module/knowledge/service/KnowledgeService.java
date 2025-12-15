@@ -25,17 +25,17 @@ import com.tarzan.maxkb4j.module.knowledge.domain.dto.KnowledgeQuery;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.*;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.KnowledgeVO;
 import com.tarzan.maxkb4j.module.knowledge.excel.DatasetExcel;
-import com.tarzan.maxkb4j.module.knowledge.mapper.*;
-import com.tarzan.maxkb4j.module.model.info.service.ModelFactory;
+import com.tarzan.maxkb4j.module.knowledge.mapper.KnowledgeMapper;
+import com.tarzan.maxkb4j.module.knowledge.mapper.ParagraphMapper;
+import com.tarzan.maxkb4j.module.knowledge.mapper.ProblemMapper;
+import com.tarzan.maxkb4j.module.knowledge.mapper.ProblemParagraphMapper;
 import com.tarzan.maxkb4j.module.system.permission.constant.AuthTargetType;
 import com.tarzan.maxkb4j.module.system.permission.service.UserResourcePermissionService;
 import com.tarzan.maxkb4j.module.system.user.domain.entity.UserEntity;
 import com.tarzan.maxkb4j.module.system.user.service.UserService;
-import dev.langchain4j.model.embedding.EmbeddingModel;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -67,7 +67,6 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
     private final UserService userService;
     private final UserResourcePermissionService userResourcePermissionService;
     private final ApplicationEventPublisher eventPublisher;
-    private final ModelFactory modelFactory;
     private final DataIndexService dataIndexService;
 
 
@@ -109,14 +108,7 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
         return Collections.emptyList();
     }
 
-    @Cacheable(cacheNames = "dataset_embedding_model", key = "#knowledgeId")
-    public EmbeddingModel getEmbeddingModel(String knowledgeId){
-        KnowledgeEntity dataset=baseMapper.selectById(knowledgeId);
-        if (dataset==null){
-            throw new RuntimeException("数据集不存在");
-        }
-        return modelFactory.buildEmbeddingModel(dataset.getEmbeddingModelId());
-    }
+
 
 
 
