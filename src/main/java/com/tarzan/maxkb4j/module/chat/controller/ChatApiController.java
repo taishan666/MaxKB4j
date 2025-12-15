@@ -1,7 +1,6 @@
 package com.tarzan.maxkb4j.module.chat.controller;
 
 import cn.dev33.satoken.annotation.SaIgnore;
-import cn.dev33.satoken.stp.SaLoginModel;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -30,7 +29,7 @@ import com.tarzan.maxkb4j.module.chat.dto.ChatResponse;
 import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -41,7 +40,9 @@ import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Sinks;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Tag(name = "MaxKB4J开放接口")
 @RestController
@@ -74,18 +75,18 @@ public class ChatApiController {
     public R<String> auth(@RequestBody JSONObject params) {
         String accessToken = params.getString("accessToken");
         ApplicationAccessTokenEntity accessTokenEntity = accessTokenService.getByAccessToken(accessToken);
-        //防止刷新时，会话中的token丢失
         String tokenValue = WebUtil.getTokenValue();
         StpKit.USER.setTokenValue(tokenValue);
-        if (!StpKit.USER.isLogin()) {
-            String chatUserId = IdWorker.get32UUID();
-            SaLoginModel loginModel = new SaLoginModel();
-            loginModel.setExtra("applicationId", accessTokenEntity.getApplicationId());
-            loginModel.setExtra("chatUserType", ChatUserType.ANONYMOUS_USER.name());
-            loginModel.setExtra("accessToken", accessToken);
-            StpKit.USER.login(chatUserId, loginModel);
+        String chatUserId = IdWorker.get32UUID();
+        if (StpKit.USER.isLogin()) {
+            chatUserId = StpKit.USER.getLoginIdAsString();
         }
-        return R.success(StpKit.USER.getTokenValue());
+        Map<String, Object> extraData = new HashMap<>();
+        extraData.put("applicationId", accessTokenEntity.getApplicationId());
+        extraData.put("chatUserType", ChatUserType.ANONYMOUS_USER.name());
+        extraData.put("accessToken", accessToken);
+        String token = StpKit.USER.createTokenValue(chatUserId, StpKit.USER.getLoginDevice(), StpKit.USER.getTokenTimeout(), extraData);
+        return R.success(token);
     }
 
 
