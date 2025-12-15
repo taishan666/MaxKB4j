@@ -20,7 +20,7 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping(AppConst.ADMIN_API)
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class UserController{
 
 	private final UserService userService;

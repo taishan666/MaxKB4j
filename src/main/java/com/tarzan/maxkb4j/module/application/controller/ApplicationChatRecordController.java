@@ -9,7 +9,7 @@ import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatRecord
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationChatRecordVO;
 import com.tarzan.maxkb4j.module.application.service.ApplicationChatRecordService;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.ParagraphEntity;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,7 +20,7 @@ import java.util.List;
  */
 @RestController
 @RequestMapping(AppConst.ADMIN_API+"/workspace/default")
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class ApplicationChatRecordController {
 
     private final ApplicationChatRecordService chatRecordService;

@@ -20,7 +20,7 @@ import reactor.core.publisher.Sinks;
  * @date 2024-12-25 13:09:54
  */
 @RestController
-@AllArgsConstructor
+@RequiredArgsConstructor
 @RequestMapping(AppConst.ADMIN_API)
 public class ChatMessageController {
 

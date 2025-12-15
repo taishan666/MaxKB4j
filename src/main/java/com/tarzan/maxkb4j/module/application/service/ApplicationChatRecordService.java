@@ -22,7 +22,7 @@ import com.tarzan.maxkb4j.module.chat.cache.ChatCache;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.ParagraphEntity;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.ParagraphVO;
 import com.tarzan.maxkb4j.module.knowledge.service.ParagraphService;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -38,14 +38,12 @@ import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.SEARCH_KNOWLEDGE;
  * @author tarzan
  * @date 2025-01-10 11:46:06
  */
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Service
 public class ApplicationChatRecordService extends ServiceImpl<ApplicationChatRecordMapper, ApplicationChatRecordEntity> {
 
     private final ParagraphService paragraphService;
     private final ApplicationChatMapper chatMapper;
-
-
 
     private ApplicationChatRecordEntity getChatRecordEntity(ChatInfo chatInfo, String chatRecordId) {
         ApplicationChatRecordEntity chatRecord = null;

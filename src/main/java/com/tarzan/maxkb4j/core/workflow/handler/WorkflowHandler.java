@@ -2,11 +2,13 @@ package com.tarzan.maxkb4j.core.workflow.handler;
 
 import com.tarzan.maxkb4j.core.workflow.builder.NodeHandlerBuilder;
 import com.tarzan.maxkb4j.core.workflow.enums.NodeRunStatus;
+import com.tarzan.maxkb4j.core.workflow.enums.WorkflowMode;
 import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;
 import com.tarzan.maxkb4j.core.workflow.model.Workflow;
 import com.tarzan.maxkb4j.core.workflow.node.INode;
 import com.tarzan.maxkb4j.core.workflow.model.NodeResult;
 import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
+import com.tarzan.maxkb4j.module.knowledge.service.KnowledgeActionService;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,6 +26,7 @@ import java.util.concurrent.CompletableFuture;
 public class WorkflowHandler {
 
     private final TaskExecutor chatTaskExecutor;
+    private final KnowledgeActionService knowledgeActionService;
 
 
     public String execute(Workflow workflow) {
@@ -32,8 +35,6 @@ public class WorkflowHandler {
             currentNode = workflow.getStartNode();
         }
         runChainNodes(workflow, List.of(currentNode));
-        ChatMessageVO vo = new ChatMessageVO(workflow.getChatParams().getChatId(), workflow.getChatParams().getChatRecordId(), true);
-        workflow.getSink().tryEmitNext(vo);
         return workflow.getAnswer();
     }
 
@@ -105,13 +106,15 @@ public class WorkflowHandler {
             log.error("error:", ex);
             node.setErrMessage(ex.getMessage());
             log.error("NODE: {} Exception :{}", node.getType(), ex.getMessage());
-            ChatMessageVO errMessage = node.toChatMessageVO(
-                    workflow.getChatParams().getChatId(),
-                    workflow.getChatParams().getChatRecordId(),
-                    String.format("Exception: %s", ex.getMessage()),
-                    "",
-                    true);
-            workflow.getSink().tryEmitNext(errMessage);
+            if(WorkflowMode.APPLICATION.equals(workflow.getWorkflowMode())){
+                ChatMessageVO errMessage = node.toChatMessageVO(
+                        workflow.getChatParams().getChatId(),
+                        workflow.getChatParams().getChatRecordId(),
+                        String.format("Exception: %s", ex.getMessage()),
+                        "",
+                        true);
+                workflow.getSink().tryEmitNext(errMessage);
+            }
             node.setRunStatus(NodeRunStatus.ERROR);
             return new NodeResultFuture(null, ex, 500);
         }

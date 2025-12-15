@@ -18,7 +18,7 @@ import java.util.List;
 
 @Slf4j
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class DataIndexListener {
 
     private final KnowledgeBaseService knowledgeBaseService;

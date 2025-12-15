@@ -42,7 +42,7 @@ import java.util.concurrent.CompletableFuture;
  * @date 2024-12-26 09:50:23
  */
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, ApplicationChatEntity> {
 
     private final ApplicationChatRecordService chatRecordService;
@@ -129,6 +129,7 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
         ApplicationVO application = applicationService.getAppDetail(chatParams.getAppId(), chatParams.getDebug());
         IChatActuator chatActuator = ChatActuatorBuilder.getActuator(application.getType());
         ChatResponse chatResponse = chatActuator.chatMessage(application, chatParams, sink);
+        sink.tryEmitNext(new ChatMessageVO(chatParams.getChatId(), chatParams.getChatRecordId(), true));
         sink.tryEmitComplete();
         postResponseHandler.handler(chatParams, chatResponse, startTime);
         return chatResponse;

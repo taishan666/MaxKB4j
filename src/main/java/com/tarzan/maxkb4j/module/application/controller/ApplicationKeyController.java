@@ -15,7 +15,7 @@ import java.util.List;
  */
 @RestController
 @RequestMapping(AppConst.ADMIN_API+"/workspace/default")
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class ApplicationKeyController {
 
     private final ApplicationApiKeyService apiKeyService;

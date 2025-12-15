@@ -30,7 +30,7 @@ import java.util.Map;
 
 @Slf4j
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class DocumentParseService {
 
     private final MongoFileService fileService;

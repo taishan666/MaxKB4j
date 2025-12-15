@@ -20,7 +20,7 @@ import java.util.List;
 /**
  * 自定义权限加载接口实现类
  */
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Component    // 保证此类被 SpringBoot 扫描，完成 Sa-Token 的自定义权限验证扩展
 public class StpInterfaceImpl implements StpInterface {
 

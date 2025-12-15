@@ -13,7 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @date 2024-12-31 17:33:32
  */
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class SystemSettingService extends ServiceImpl<SystemSettingMapper, SystemSettingEntity>{
 
     private final EmailService emailService;

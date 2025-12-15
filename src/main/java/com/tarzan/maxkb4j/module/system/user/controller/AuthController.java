@@ -26,7 +26,7 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping(AppConst.ADMIN_API)
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class AuthController {
 
 	private final UserService userService;

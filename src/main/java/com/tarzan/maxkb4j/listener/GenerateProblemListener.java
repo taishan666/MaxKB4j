@@ -21,7 +21,7 @@ import java.util.List;
 
 @Slf4j
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class GenerateProblemListener {
 
     private final DocumentService documentService;

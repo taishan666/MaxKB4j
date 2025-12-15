@@ -21,7 +21,7 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.Map;
 
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Component
 public class ChatPostHandler implements PostResponseHandler {
 

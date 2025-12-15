@@ -46,7 +46,7 @@ import java.util.List;
 @Tag(name = "MaxKB4J开放接口")
 @RestController
 @RequestMapping(AppConst.CHAT_API)
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class ChatApiController {
 
     private final ApplicationAccessTokenService accessTokenService;

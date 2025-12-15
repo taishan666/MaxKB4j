@@ -19,7 +19,7 @@ import java.util.List;
  */
 @RestController
 @RequestMapping(AppConst.ADMIN_API+"/workspace/default")
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class UserResourcePermissionController {
 
     private final UserResourcePermissionService userResourcePermissionService;

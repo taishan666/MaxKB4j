@@ -30,7 +30,7 @@ import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class ChatStep extends IChatStep {
 
     private final ModelFactory modelFactory;

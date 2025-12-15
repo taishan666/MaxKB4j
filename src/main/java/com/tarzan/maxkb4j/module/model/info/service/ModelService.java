@@ -32,7 +32,7 @@ import java.util.Objects;
  * @date 2024-12-25 12:22:22
  */
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class ModelService extends ServiceImpl<ModelMapper, ModelEntity> {
 
     private final UserService userService;

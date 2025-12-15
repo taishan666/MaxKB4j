@@ -28,7 +28,6 @@ public class ChatParams {
     @Schema(description = "运行节点id")
     private String runtimeNodeId;
     @Schema(description = "是否流式响应,默认为false")
-    @NotNull(message = "流式输出不能为空")
     private Boolean stream;
     @Schema(description = "表单数据", example = "{ \"name\": \"张三\", \"age\": 25 }")
     private Map<String,Object> formData;

@@ -38,7 +38,7 @@ import java.util.Map;
 @Tag(name = "APP应用管理", description = "APP应用管理")
 @RestController
 @RequestMapping(AppConst.ADMIN_API+"/workspace/default")
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class ApplicationController {
 
     private final ApplicationService applicationService;

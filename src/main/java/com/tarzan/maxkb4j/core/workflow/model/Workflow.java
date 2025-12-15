@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.tarzan.maxkb4j.core.workflow.enums.DialogueType;
 import com.tarzan.maxkb4j.core.workflow.enums.NodeRunStatus;
 import com.tarzan.maxkb4j.core.workflow.enums.NodeType;
+import com.tarzan.maxkb4j.core.workflow.enums.WorkflowMode;
 import com.tarzan.maxkb4j.core.workflow.logic.LfEdge;
 import com.tarzan.maxkb4j.core.workflow.node.INode;
 import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatRecordEntity;
@@ -35,17 +36,18 @@ public class Workflow {
     private ChatParams chatParams;
     private List<INode> nodes;
     private List<LfEdge> edges;
+    private WorkflowMode workflowMode;
     private Map<String, Object> context;
     private Map<String, Object> chatContext;
     private List<INode> nodeContext;
     private String answer;
-    private ApplicationChatRecordEntity chatRecord;
     private List<ApplicationChatRecordEntity> historyChatRecords;
     @JsonIgnore
     private Sinks.Many<ChatMessageVO> sink;
 
 
     public Workflow(List<INode> nodes, List<LfEdge> edges, ChatParams chatParams, Sinks.Many<ChatMessageVO> sink) {
+        this.workflowMode=WorkflowMode.APPLICATION;
         this.nodes = nodes;
         this.edges = edges;
         this.chatParams = chatParams;
@@ -54,20 +56,19 @@ public class Workflow {
         this.nodeContext = new CopyOnWriteArrayList<>();
         this.answer = "";
         this.historyChatRecords = CollectionUtils.isEmpty(chatParams.getHistoryChatRecords()) ? List.of() : chatParams.getHistoryChatRecords();
-        this.chatRecord = chatParams.getChatRecord();
-        if (StringUtils.isNotBlank(chatParams.getRuntimeNodeId()) && Objects.nonNull(chatRecord)) {
-            this.loadNode(chatRecord, chatParams.getRuntimeNodeId(), chatParams.getNodeData());
+        if (StringUtils.isNotBlank(chatParams.getRuntimeNodeId()) && Objects.nonNull(chatParams.getChatRecord())) {
+            this.loadNode(chatParams.getChatRecord(), chatParams.getRuntimeNodeId(), chatParams.getNodeData());
         }
         this.sink = sink;
     }
 
-    public Workflow(List<INode> nodes, List<LfEdge> edges) {
+    public Workflow(WorkflowMode workflowMode,List<INode> nodes,List<LfEdge> edges) {
+        this.workflowMode=workflowMode;
         this.nodes = nodes;
         this.edges = edges;
         this.context = new HashMap<>();
         this.chatContext = new HashMap<>();
         this.nodeContext = new CopyOnWriteArrayList<>();
-        this.chatRecord = null;
         this.answer = "";
         this.historyChatRecords = List.of();
         this.sink = null;
@@ -245,28 +246,6 @@ public class Workflow {
             }
         }
         this.nodeContext.add(currentNode);
-    }
-
-
-    private boolean hasNextNode(INode currentNode, NodeResult nodeResult) {
-        if (nodeResult != null && nodeResult.isAssertionResult()) {
-            for (LfEdge edge : edges) {
-                if (edge.getSourceNodeId().equals(currentNode.getId())) {
-                    String branchId = (String) nodeResult.getNodeVariable().get("branchId");
-                    String expectedSourceAnchorId = String.format("%s_%s_right", edge.getSourceNodeId(), branchId);
-                    if (expectedSourceAnchorId.equals(edge.getSourceAnchorId())) {
-                        return true;
-                    }
-                }
-            }
-        } else {
-            for (LfEdge edge : edges) {
-                if (edge.getSourceNodeId().equals(currentNode.getId())) {
-                    return true;
-                }
-            }
-        }
-        return false;
     }
 
     @SuppressWarnings("unchecked")

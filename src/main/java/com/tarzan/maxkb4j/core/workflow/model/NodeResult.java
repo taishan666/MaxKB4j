@@ -1,6 +1,7 @@
 package com.tarzan.maxkb4j.core.workflow.model;
 
 import com.tarzan.maxkb4j.core.workflow.enums.NodeType;
+import com.tarzan.maxkb4j.core.workflow.enums.WorkflowMode;
 import com.tarzan.maxkb4j.core.workflow.node.INode;
 import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
 import lombok.Data;
@@ -65,23 +66,16 @@ public class NodeResult {
         if (nodeVariable != null) {
             node.getContext().putAll(nodeVariable);
             if (StringUtils.isNotBlank(node.getAnswerText())) {
-                if (!this.streamOutput) {
+                if(WorkflowMode.APPLICATION.equals(workflow.getWorkflowMode())){
                     ChatMessageVO vo = node.toChatMessageVO(
                             workflow.getChatParams().getChatId(),
                             workflow.getChatParams().getChatRecordId(),
-                            node.getAnswerText(),
+                            streamOutput?"":node.getAnswerText(),
                             "",
                             false);
                     workflow.getSink().tryEmitNext(vo);
                 }
                 workflow.setAnswer(workflow.getAnswer() + node.getAnswerText());
-                ChatMessageVO endVo = node.toChatMessageVO(
-                        workflow.getChatParams().getChatId(),
-                        workflow.getChatParams().getChatRecordId(),
-                        "",
-                        "",
-                        true);
-                workflow.getSink().tryEmitNext(endVo);
             }
         }
     }

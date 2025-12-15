@@ -10,7 +10,7 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 @Component(SearchType.HYBRID)
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class HybridRetriever implements IDataRetriever {
 
     private final EmbedRetriever embedRetriever;

@@ -38,7 +38,7 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEntity>{
 
     private final ProblemService problemService;

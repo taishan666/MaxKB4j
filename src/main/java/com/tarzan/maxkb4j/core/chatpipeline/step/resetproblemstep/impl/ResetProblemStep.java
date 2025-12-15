@@ -18,7 +18,7 @@ import java.util.List;
 
 @Slf4j
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class ResetProblemStep extends IResetProblemStep {
 
     private final ModelFactory modelFactory;

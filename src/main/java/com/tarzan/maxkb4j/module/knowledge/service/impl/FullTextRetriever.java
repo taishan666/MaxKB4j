@@ -19,7 +19,7 @@ import java.util.Collections;
 import java.util.List;
 
 @Component(SearchType.FULL_TEXT)
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class FullTextRetriever implements IDataRetriever {
 
     private final MongoTemplate mongoTemplate;

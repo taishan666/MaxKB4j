@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.Objects;
 
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class DataIndexService {
 
     private final MongoTemplate mongoTemplate;

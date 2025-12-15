@@ -34,7 +34,7 @@ import java.util.List;
 
 @Slf4j
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class MongoFileService {
 
     private final GridFsTemplate gridFsTemplate;

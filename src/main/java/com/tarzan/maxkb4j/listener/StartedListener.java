@@ -33,7 +33,7 @@ import java.util.Map;
  */
 @Slf4j
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class StartedListener implements ApplicationListener<ApplicationStartedEvent> {
 
     private final SystemSettingService systemSettingService;

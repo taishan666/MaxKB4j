@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
  * @author tarzan
  * @date 2024-12-28 18:47:27
  */
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Service
 public class ApplicationVersionService extends ServiceImpl<ApplicationVersionMapper, ApplicationVersionEntity>{
 

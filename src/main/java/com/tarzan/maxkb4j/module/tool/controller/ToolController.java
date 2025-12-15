@@ -33,7 +33,7 @@ import java.util.*;
  */
 @RestController
 @RequestMapping(AppConst.ADMIN_API)
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Slf4j
 public class ToolController {
 

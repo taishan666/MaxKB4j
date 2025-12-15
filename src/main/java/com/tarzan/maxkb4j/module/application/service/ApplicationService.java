@@ -60,7 +60,7 @@ import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.SEARCH_KNOWLEDGE;
  * @date 2024-12-25 13:09:54
  */
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class ApplicationService extends ServiceImpl<ApplicationMapper, ApplicationEntity> {
 
     private final ModelFactory modelFactory;

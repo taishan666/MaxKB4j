@@ -80,7 +80,6 @@ public class ApplicationNodeHandler implements INodeHandler {
                 .reChat(chatParams.getReChat())
                 .chatUserId(chatParams.getChatUserId())
                 .chatUserType(chatParams.getChatUserType())
-             //   .sink(appNodeSink)
                 .imageList(imageList)
                 .audioList(audioList)
                 .documentList(docList)

@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
  */
 @RestController
 @RequestMapping(AppConst.ADMIN_API)
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class ProviderController {
 
     @GetMapping("/provider")

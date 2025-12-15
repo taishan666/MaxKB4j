@@ -19,7 +19,7 @@ import reactor.core.publisher.Sinks;
 import java.util.List;
 import java.util.Objects;
 
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Component
 public class ChatFlowActuator implements IChatActuator {
 

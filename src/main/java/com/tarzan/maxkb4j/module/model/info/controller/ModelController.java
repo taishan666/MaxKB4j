@@ -20,7 +20,7 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping(AppConst.ADMIN_API+"/workspace/default")
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class ModelController{
 
 	private final ModelService modelService;

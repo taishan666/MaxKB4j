@@ -46,7 +46,7 @@ import java.util.stream.Collectors;
  * @date 2024-12-25 11:27:27
  */
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class UserService extends ServiceImpl<UserMapper, UserEntity> {
 
     private final EmailService emailService;

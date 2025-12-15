@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 @Component(SearchType.EMBEDDING)
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class EmbedRetriever implements IDataRetriever {
 
     private final KnowledgeBaseService knowledgeBaseService;

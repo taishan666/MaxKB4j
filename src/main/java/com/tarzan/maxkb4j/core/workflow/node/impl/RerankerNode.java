@@ -42,7 +42,7 @@ public class RerankerNode extends INode {
         private Integer maxParagraphCharNumber;
     }
 
-    @AllArgsConstructor
+    @RequiredArgsConstructor
     @NoArgsConstructor
     @Data
     public static class RerankResult {

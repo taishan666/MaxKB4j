@@ -4,12 +4,12 @@ import com.tarzan.maxkb4j.module.knowledge.domain.entity.KnowledgeEntity;
 import com.tarzan.maxkb4j.module.knowledge.mapper.KnowledgeMapper;
 import com.tarzan.maxkb4j.module.model.info.service.ModelFactory;
 import dev.langchain4j.model.embedding.EmbeddingModel;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class KnowledgeBaseService {
     private final KnowledgeMapper datasetMapper;
     private final ModelFactory modelFactory;

@@ -23,7 +23,7 @@ import java.util.List;
  */
 @Tag(name = "APP会话管理", description = "APP会话管理")
 @RestController
-@AllArgsConstructor
+@RequiredArgsConstructor
 @RequestMapping(AppConst.ADMIN_API + "/workspace/default")
 @Slf4j
 public class ApplicationChatController {

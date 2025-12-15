@@ -18,7 +18,7 @@ import java.io.IOException;
  * @date 2025-01-21 09:34:51
  */
 @RestController
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class FileController {
 
     private final MongoFileService mongoFileService;

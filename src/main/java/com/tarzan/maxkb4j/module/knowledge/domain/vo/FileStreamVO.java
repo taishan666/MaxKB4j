@@ -6,7 +6,7 @@ import lombok.NoArgsConstructor;
 
 import java.io.InputStream;
 
-@AllArgsConstructor
+@RequiredArgsConstructor
 @NoArgsConstructor
 @Data
 public class FileStreamVO {

@@ -1,6 +1,7 @@
 package com.tarzan.maxkb4j.core.workflow.model;
 
 import com.alibaba.fastjson.JSONObject;
+import com.tarzan.maxkb4j.core.workflow.enums.WorkflowMode;
 import com.tarzan.maxkb4j.core.workflow.logic.LfEdge;
 import com.tarzan.maxkb4j.core.workflow.node.INode;
 import lombok.Getter;
@@ -20,7 +21,7 @@ public class KnowledgeWorkflow extends Workflow {
     private JSONObject dataSource;
 
     public KnowledgeWorkflow(List<INode> nodes, List<LfEdge> edges,JSONObject dataSource, Map<String, Object> knowledgeBase) {
-        super(nodes, edges);
+        super(WorkflowMode.KNOWLEDGE,nodes, edges);
         this.dataSource = dataSource;
         super.setContext(knowledgeBase);
     }

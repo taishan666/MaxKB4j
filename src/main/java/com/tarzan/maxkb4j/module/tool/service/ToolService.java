@@ -38,7 +38,7 @@ import java.util.Objects;
  * @date 2025-01-25 22:00:45
  */
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class ToolService extends ServiceImpl<ToolMapper, ToolEntity> {
 
     private final UserService userService;

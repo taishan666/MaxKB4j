@@ -16,7 +16,7 @@ import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class SearchDatasetStep extends ISearchDatasetStep {
 
     private final RetrieveService retrieveService;

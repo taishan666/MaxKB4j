@@ -22,7 +22,7 @@ import java.util.List;
  */
 @RestController
 @RequestMapping(AppConst.ADMIN_API + "/workspace/default")
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class ProblemController {
 
     private final KnowledgeService datasetService;

@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
  */
 @RestController
 @RequestMapping(AppConst.ADMIN_API)
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class SystemSettingController{
 
 	private	final SystemSettingService systemSettingService;

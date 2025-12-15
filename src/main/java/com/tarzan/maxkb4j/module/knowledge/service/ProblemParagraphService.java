@@ -20,7 +20,7 @@ import java.util.Objects;
  * @date 2024-12-27 11:23:44
  */
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class ProblemParagraphService extends ServiceImpl<ProblemParagraphMapper, ProblemParagraphEntity>{
 
     private final ProblemMapper problemMapper;

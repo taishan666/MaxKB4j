@@ -57,7 +57,7 @@ import java.util.zip.ZipOutputStream;
  */
 @Slf4j
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEntity> {
 
     private final DocumentMapper documentMapper;

@@ -66,7 +66,7 @@ import java.util.zip.ZipOutputStream;
  */
 @Slf4j
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity> {
 
     private final ParagraphService paragraphService;

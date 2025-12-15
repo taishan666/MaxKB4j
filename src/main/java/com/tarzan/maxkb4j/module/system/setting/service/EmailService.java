@@ -18,7 +18,7 @@ import java.util.Objects;
 
 @Slf4j
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class EmailService {
 
     private final MailConfigService mailConfigService;

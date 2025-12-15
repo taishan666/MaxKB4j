@@ -3,7 +3,7 @@ package com.tarzan.maxkb4j.core.workflow.enums;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Getter
 public enum NodeRunStatus {
 

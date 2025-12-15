@@ -31,7 +31,7 @@ import java.util.List;
  */
 @Slf4j
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class ProblemService extends ServiceImpl<ProblemMapper, ProblemEntity> {
 
 
