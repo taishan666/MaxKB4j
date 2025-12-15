@@ -93,8 +93,6 @@ public class ChatApiController {
     @Operation(summary = "获取应用相关信息", description = "获取应用相关信息")
     @GetMapping("/application/profile")
     public R<ApplicationEntity> appProfile() {
-        String tokenValue = WebUtil.getTokenValue();
-        StpKit.USER.setTokenValue(tokenValue);
         if (StpKit.USER.isLogin()) {
             String appId = (String) StpKit.USER.getExtra("applicationId");
             ApplicationAccessTokenEntity appAccessToken = accessTokenService.getById(appId);
