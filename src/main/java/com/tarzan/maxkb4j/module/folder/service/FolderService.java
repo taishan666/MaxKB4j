@@ -6,7 +6,7 @@ import com.tarzan.maxkb4j.module.folder.mapper.FolderMapper;
 import com.tarzan.maxkb4j.module.folder.vo.FolderVO;
 import com.tarzan.maxkb4j.module.system.permission.constant.AuthTargetType;
 import com.tarzan.maxkb4j.module.system.user.service.UserService;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

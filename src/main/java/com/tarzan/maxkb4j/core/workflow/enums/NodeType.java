@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @Getter
-@RequiredArgsConstructor
+@AllArgsConstructor
 public enum NodeType {
 
     BASE("base-node", "基础"),

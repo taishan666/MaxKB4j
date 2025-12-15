@@ -17,7 +17,7 @@ import com.tarzan.maxkb4j.module.tool.service.ToolService;
 import groovy.lang.Binding;
 import groovy.lang.GroovyShell;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.CollectionUtils;

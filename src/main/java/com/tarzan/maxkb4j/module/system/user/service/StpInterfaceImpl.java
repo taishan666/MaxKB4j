@@ -11,7 +11,7 @@ import com.tarzan.maxkb4j.module.system.user.constants.ResourceType;
 import com.tarzan.maxkb4j.module.system.user.domain.entity.UserEntity;
 import com.tarzan.maxkb4j.module.system.user.enums.PermissionEnum;
 import com.tarzan.maxkb4j.module.system.user.mapper.UserMapper;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;

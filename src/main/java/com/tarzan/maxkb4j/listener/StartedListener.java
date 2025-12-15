@@ -9,7 +9,7 @@ import com.tarzan.maxkb4j.module.system.setting.enums.SettingType;
 import com.tarzan.maxkb4j.module.system.setting.service.SystemSettingService;
 import com.tarzan.maxkb4j.module.system.user.service.UserService;
 import io.jsonwebtoken.lang.Collections;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.event.ApplicationStartedEvent;
 import org.springframework.context.ApplicationListener;

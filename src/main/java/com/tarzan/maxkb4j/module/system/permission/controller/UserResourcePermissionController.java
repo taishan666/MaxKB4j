@@ -8,7 +8,7 @@ import com.tarzan.maxkb4j.module.system.permission.vo.ResourceUserPermissionVO;
 import com.tarzan.maxkb4j.module.system.permission.vo.UserResourcePermissionVO;
 import com.tarzan.maxkb4j.module.system.user.domain.entity.UserEntity;
 import com.tarzan.maxkb4j.module.system.user.service.UserService;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;

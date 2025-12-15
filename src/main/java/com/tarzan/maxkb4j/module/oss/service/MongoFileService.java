@@ -8,7 +8,7 @@ import com.tarzan.maxkb4j.common.util.IoUtil;
 import com.tarzan.maxkb4j.core.workflow.model.ChatFile;
 import jakarta.activation.MimetypesFileTypeMap;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.Document;
 import org.bson.types.ObjectId;

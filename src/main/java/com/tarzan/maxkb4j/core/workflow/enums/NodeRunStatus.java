@@ -1,7 +1,7 @@
 package com.tarzan.maxkb4j.core.workflow.enums;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 @Getter

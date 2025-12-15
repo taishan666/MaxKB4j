@@ -18,7 +18,7 @@ import com.tarzan.maxkb4j.module.knowledge.service.KnowledgeService;
 import com.tarzan.maxkb4j.module.knowledge.service.RetrieveService;
 import com.tarzan.maxkb4j.module.system.user.enums.PermissionEnum;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;

@@ -6,7 +6,7 @@ import lombok.NoArgsConstructor;
 
 
 @Data
-@RequiredArgsConstructor
+@AllArgsConstructor
 @NoArgsConstructor
 public class TextChunkVO {
     private String paragraphId;

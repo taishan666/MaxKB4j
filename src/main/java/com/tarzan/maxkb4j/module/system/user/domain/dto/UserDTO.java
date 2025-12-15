@@ -6,7 +6,7 @@ import lombok.NoArgsConstructor;
 
 @NoArgsConstructor
 @Data
-@RequiredArgsConstructor
+@AllArgsConstructor
 public class UserDTO {
     private String id;
     private String username;
@@ -14,8 +14,4 @@ public class UserDTO {
     private String email;
     private Boolean isActive;
 
-    public UserDTO(String id, String username) {
-        this.id = id;
-        this.username = username;
-    }
 }
