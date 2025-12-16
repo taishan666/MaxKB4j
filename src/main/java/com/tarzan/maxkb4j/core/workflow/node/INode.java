@@ -42,6 +42,7 @@ public abstract class INode {
         this.context = new HashMap<>(10);
         this.detail = new HashMap<>(10);
         this.upNodeIdList = new ArrayList<>();
+        this.runtimeNodeId = generateRuntimeNodeId();
         this.answerText = "";
         this.runStatus = NodeRunStatus.READY;
         this.status=200;

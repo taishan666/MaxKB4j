@@ -296,8 +296,6 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
     }
 
     public KnowledgeActionEntity action(String id, String actionId) {
-        KnowledgeActionEntity knowledgeAction = knowledgeActionService.getById(actionId);
-        knowledgeAction.setState("SUCCESS");
-        return knowledgeAction;
+        return knowledgeActionService.getById(actionId);
     }
 }

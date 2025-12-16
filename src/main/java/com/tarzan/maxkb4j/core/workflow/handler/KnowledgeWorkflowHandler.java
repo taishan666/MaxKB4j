@@ -22,12 +22,16 @@ public class KnowledgeWorkflowHandler extends WorkflowHandler {
         this.knowledgeActionService = knowledgeActionService;
     }
 
-
     @Override
     public String execute(Workflow workflow) {
-        if (workflow instanceof KnowledgeWorkflow) {
-            List<INode> nodes = ((KnowledgeWorkflow) workflow).getStartNodes();
+        if (workflow instanceof KnowledgeWorkflow knowledgeWorkflow) {
+            List<INode> nodes = knowledgeWorkflow.getStartNodes();
             runChainNodes(workflow, nodes);
+            KnowledgeActionEntity knowledgeActionEntity = new KnowledgeActionEntity();
+            knowledgeActionEntity.setId(knowledgeWorkflow.getKnowledgeParams().getActionId());
+            knowledgeActionEntity.setDetails(workflow.getRuntimeDetails());
+            knowledgeActionEntity.setState("SUCCESS");
+            knowledgeActionService.updateById(knowledgeActionEntity);
         }
         return workflow.getAnswer();
     }
@@ -35,9 +39,9 @@ public class KnowledgeWorkflowHandler extends WorkflowHandler {
     @Override
     public void addExecutedNode(Workflow workflow, INode node) {
         workflow.appendNode(node);
-        if (workflow instanceof KnowledgeWorkflow) {
+        if (workflow instanceof KnowledgeWorkflow knowledgeWorkflow) {
             KnowledgeActionEntity knowledgeActionEntity = new KnowledgeActionEntity();
-            knowledgeActionEntity.setId(((KnowledgeWorkflow) workflow).getKnowledgeParams().getActionId());
+            knowledgeActionEntity.setId(knowledgeWorkflow.getKnowledgeParams().getActionId());
             knowledgeActionEntity.setDetails(workflow.getRuntimeDetails());
             knowledgeActionService.updateById(knowledgeActionEntity);
         }

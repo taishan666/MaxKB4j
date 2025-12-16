@@ -3,16 +3,13 @@ package com.tarzan.maxkb4j.core.workflow.handler.node.impl;
 import com.tarzan.maxkb4j.core.workflow.annotation.NodeHandlerType;
 import com.tarzan.maxkb4j.core.workflow.enums.NodeType;
 import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;
+import com.tarzan.maxkb4j.core.workflow.model.NodeResult;
 import com.tarzan.maxkb4j.core.workflow.model.Workflow;
 import com.tarzan.maxkb4j.core.workflow.node.INode;
 import com.tarzan.maxkb4j.core.workflow.node.impl.VariableAggregationNode;
-import com.tarzan.maxkb4j.core.workflow.model.NodeResult;
 import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 @NodeHandlerType(NodeType.VARIABLE_AGGREGATE)
 @Component
@@ -35,6 +32,13 @@ public class VariableAggregationNodeHandler implements INodeHandler {
             resetVariable(variableList,workflow);
             StrategyFunction strategy = strategy_map.get(strategyName);
             group.setValue(strategy.apply(variableList));
+            if ("first_non_null".equals(strategyName)){
+                variableList.stream()
+                        .filter(variable -> variable.getValue() != null)
+                        .findFirst()
+                        .map(List::of)
+                        .ifPresent(group::setVariableList);
+            }
             nodeVariable.put(group.getField(), group.getValue());
         }
         node.getDetail().put("strategy", strategyName);
