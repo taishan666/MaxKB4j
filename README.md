@@ -97,12 +97,12 @@ Feel free to submit Issues or PRs!
 
 This project is maintained by an individual developer. Your support helps ensure continuous development!
 
-|Donation Amount| Benefits|
-|--------|------|
-|¥20 |Add author on WeChat (vxhqqh) and join the discussion group (mention “donated”)|
-|¥50 |Above benefits + free access to [Knowledge Planet🔥](https://wx.zsxq.com/group/28882525858841)|
-|¥200 |Get V1 frontend source code|
-|¥500 |Get full V2 source code (frontend + backend, including latest features)|
+| Donation Amount | Benefits|
+|-----------------|------|
+| ¥10             |Add author on WeChat (vxhqqh) and join the discussion group (mention “donated”)|
+| ¥50             |Above benefits + free access to [Knowledge Planet🔥](https://wx.zsxq.com/group/28882525858841)|
+| ¥200            |Get V1 frontend source code|
+| ¥500            |Get full V2 source code (frontend + backend, including latest features)|
 <table style="border-collapse: collapse; border: 1px solid black;">
 <tr>
 <th style="padding: 10px;"> <div align="center">Alipay QR Code</div></th>
