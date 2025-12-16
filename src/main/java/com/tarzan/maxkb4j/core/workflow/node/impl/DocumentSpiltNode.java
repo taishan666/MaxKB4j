@@ -26,6 +26,7 @@ public class DocumentSpiltNode extends INode {
         private String splitStrategy;
         private List<String> documentList;
         private String[]  patterns;
+        private Integer chunkSize;
         private Integer limit;
     }
 }

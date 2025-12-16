@@ -30,7 +30,7 @@ public class DocumentSpiltService {
 
     public List<TextSegment> split(String docText, String[] patterns, Integer limit, Boolean withFilter) {
         Document document=Document.document(docText);
-        if (patterns != null) {
+        if (patterns != null&&patterns.length > 0) {
             List<TextSegment> textSegments = recursive(document, patterns, limit);
             if (withFilter) {
                 textSegments = textSegments.stream()
