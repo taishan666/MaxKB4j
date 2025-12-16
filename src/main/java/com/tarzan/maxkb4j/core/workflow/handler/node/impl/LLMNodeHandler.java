@@ -10,7 +10,7 @@ import com.tarzan.maxkb4j.core.workflow.annotation.NodeHandlerType;
 import com.tarzan.maxkb4j.core.workflow.enums.NodeType;
 import com.tarzan.maxkb4j.core.workflow.enums.WorkflowMode;
 import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;
-import com.tarzan.maxkb4j.core.workflow.model.ChatFile;
+import com.tarzan.maxkb4j.core.workflow.model.SysFile;
 import com.tarzan.maxkb4j.core.workflow.model.NodeResult;
 import com.tarzan.maxkb4j.core.workflow.model.Workflow;
 import com.tarzan.maxkb4j.core.workflow.node.INode;
@@ -105,11 +105,11 @@ public class LLMNodeHandler implements INodeHandler {
             if (!(object instanceof List<?> fileList)) {
                 return contents;
             }
-            List<ChatFile> imageFiles = fileList.stream()
-                    .filter(ChatFile.class::isInstance)
-                    .map(ChatFile.class::cast)
+            List<SysFile> imageFiles = fileList.stream()
+                    .filter(SysFile.class::isInstance)
+                    .map(SysFile.class::cast)
                     .toList();
-            for (ChatFile file : imageFiles) {
+            for (SysFile file : imageFiles) {
                 byte[] bytes = fileService.getBytes(file.getFileId());
                 String base64Data = Base64.getEncoder().encodeToString(bytes);
                 String extension = extractFileExtension(file.getName());

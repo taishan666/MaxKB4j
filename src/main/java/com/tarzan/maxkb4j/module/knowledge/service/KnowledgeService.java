@@ -50,6 +50,7 @@ import java.io.OutputStream;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -291,7 +292,7 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
                 params,
                 nodes,
                 logicFlow.getEdges());
-        knowledgeWorkflowHandler.execute(workflow);
+        CompletableFuture.runAsync(() -> knowledgeWorkflowHandler.execute(workflow));
         return knowledgeAction;
     }
 

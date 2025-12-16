@@ -3,7 +3,7 @@ package com.tarzan.maxkb4j.core.workflow.handler.node.impl;
 import com.tarzan.maxkb4j.core.workflow.annotation.NodeHandlerType;
 import com.tarzan.maxkb4j.core.workflow.enums.NodeType;
 import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;
-import com.tarzan.maxkb4j.core.workflow.model.ChatFile;
+import com.tarzan.maxkb4j.core.workflow.model.SysFile;
 import com.tarzan.maxkb4j.core.workflow.model.KnowledgeWorkflow;
 import com.tarzan.maxkb4j.core.workflow.model.NodeResult;
 import com.tarzan.maxkb4j.core.workflow.model.Workflow;
@@ -29,7 +29,7 @@ public class DataSourceLocalHandler implements INodeHandler {
         DataSourceLocalNode.NodeParams nodeParams = node.getNodeData().toJavaObject(DataSourceLocalNode.NodeParams.class);
         if (workflow instanceof KnowledgeWorkflow knowledgeWorkflow) {
             KnowledgeParams knowledgeParams = knowledgeWorkflow.getKnowledgeParams();
-            List<ChatFile> fileList=new ArrayList<>();
+            List<SysFile> fileList=new ArrayList<>();
             DataSource dataSource= knowledgeParams.getDataSource();
             if (dataSource != null){
                 fileList=dataSource.getFileList();

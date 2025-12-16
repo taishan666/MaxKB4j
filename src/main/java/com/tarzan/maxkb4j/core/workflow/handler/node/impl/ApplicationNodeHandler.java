@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.tarzan.maxkb4j.core.workflow.annotation.NodeHandlerType;
 import com.tarzan.maxkb4j.core.workflow.enums.NodeType;
 import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;
-import com.tarzan.maxkb4j.core.workflow.model.ChatFile;
+import com.tarzan.maxkb4j.core.workflow.model.SysFile;
 import com.tarzan.maxkb4j.core.workflow.model.Workflow;
 import com.tarzan.maxkb4j.core.workflow.node.INode;
 import com.tarzan.maxkb4j.core.workflow.node.impl.ApplicationNode;
@@ -44,25 +44,25 @@ public class ApplicationNodeHandler implements INodeHandler {
         String question = (String) workflow.getReferenceField(questionFields.get(0), questionFields.get(1));
         ChatParams chatParams = workflow.getChatParams();
         String chatId = chatParams.getChatId() + nodeParams.getApplicationId();
-        List<ChatFile> docList = new ArrayList<>();
+        List<SysFile> docList = new ArrayList<>();
         List<String> docFields = nodeParams.getDocumentList();
         if (CollectionUtils.isNotEmpty(docFields)) {
-            docList = (List<ChatFile>) workflow.getReferenceField(docFields.get(0), docFields.get(1));
+            docList = (List<SysFile>) workflow.getReferenceField(docFields.get(0), docFields.get(1));
         }
-        List<ChatFile> imageList = new ArrayList<>();
+        List<SysFile> imageList = new ArrayList<>();
         List<String> imageFields = nodeParams.getImageList();
         if (CollectionUtils.isNotEmpty(imageFields)) {
-            imageList = (List<ChatFile>) workflow.getReferenceField(imageFields.get(0), imageFields.get(1));
+            imageList = (List<SysFile>) workflow.getReferenceField(imageFields.get(0), imageFields.get(1));
         }
-        List<ChatFile> audioList = new ArrayList<>();
+        List<SysFile> audioList = new ArrayList<>();
         List<String> audioFields = nodeParams.getAudioList();
         if (CollectionUtils.isNotEmpty(audioFields)) {
-            audioList = (List<ChatFile>) workflow.getReferenceField(audioFields.get(0), audioFields.get(1));
+            audioList = (List<SysFile>) workflow.getReferenceField(audioFields.get(0), audioFields.get(1));
         }
-        List<ChatFile> otherList = new ArrayList<>();
+        List<SysFile> otherList = new ArrayList<>();
         List<String> otherFields = nodeParams.getOtherList();
         if (CollectionUtils.isNotEmpty(audioFields)) {
-            otherList = (List<ChatFile>) workflow.getReferenceField(otherFields.get(0), otherFields.get(1));
+            otherList = (List<SysFile>) workflow.getReferenceField(otherFields.get(0), otherFields.get(1));
         }
         Sinks.Many<ChatMessageVO> appNodeSink = Sinks.many().unicast().onBackpressureBuffer();
         String nodeChatRecordId=null;

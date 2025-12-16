@@ -3,7 +3,7 @@ package com.tarzan.maxkb4j.core.workflow.handler.node.impl;
 import com.tarzan.maxkb4j.core.workflow.annotation.NodeHandlerType;
 import com.tarzan.maxkb4j.core.workflow.enums.NodeType;
 import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;
-import com.tarzan.maxkb4j.core.workflow.model.ChatFile;
+import com.tarzan.maxkb4j.core.workflow.model.SysFile;
 import com.tarzan.maxkb4j.core.workflow.model.Workflow;
 import com.tarzan.maxkb4j.core.workflow.node.INode;
 import com.tarzan.maxkb4j.core.workflow.node.impl.TextToSpeechNode;
@@ -33,7 +33,7 @@ public class TextToSpeechNodeHandler implements INodeHandler {
         Object content=workflow.getReferenceField(contentList.get(0),contentList.get(1));
         TTSModel ttsModel = modelFactory.buildTTSModel(nodeParams.getTtsModelId(), nodeParams.getModelParamsSetting());
         byte[]  audioData = ttsModel.textToSpeech(content.toString());
-        ChatFile fileVO = fileService.uploadFile("generated_audio_"+ UUID.randomUUID() +".mp3",audioData);
+        SysFile fileVO = fileService.uploadFile("generated_audio_"+ UUID.randomUUID() +".mp3",audioData);
         node.getDetail().put("content",content);
         if (nodeParams.getIsResult()){
             // 使用字符串拼接生成 HTML 音频标签

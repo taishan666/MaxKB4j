@@ -3,7 +3,7 @@ package com.tarzan.maxkb4j.core.workflow.handler.node.impl;
 import com.tarzan.maxkb4j.core.workflow.annotation.NodeHandlerType;
 import com.tarzan.maxkb4j.core.workflow.enums.NodeType;
 import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;
-import com.tarzan.maxkb4j.core.workflow.model.ChatFile;
+import com.tarzan.maxkb4j.core.workflow.model.SysFile;
 import com.tarzan.maxkb4j.core.workflow.model.Workflow;
 import com.tarzan.maxkb4j.core.workflow.node.INode;
 import com.tarzan.maxkb4j.core.workflow.node.impl.SpeechToTextNode;
@@ -36,10 +36,10 @@ public class SpeechToTextNodeHandler implements INodeHandler {
         Object res = workflow.getReferenceField(audioList.get(0), audioList.get(1));
         STTModel sttModel = modelFactory.buildSTTModel(nodeParams.getSttModelId());
         @SuppressWarnings("unchecked")
-        List<ChatFile> audioFiles = (List<ChatFile>) res;
+        List<SysFile> audioFiles = (List<SysFile>) res;
         List<String> content = new ArrayList<>();
         List<String> answerTextList = new ArrayList<>();
-        for (ChatFile file: audioFiles) {
+        for (SysFile file: audioFiles) {
             byte[] data = fileService.getBytes(file.getFileId());
             String suffix=file.getName().substring(file.getName().lastIndexOf(".") + 1);
             String result = sttModel.speechToText(data,suffix);

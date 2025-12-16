@@ -7,7 +7,7 @@ import java.util.Date;
 
 @Schema(description = "对话文件对象")
 @Data
-public class ChatFile {
+public class SysFile {
     @Schema(description = "文件ID")
     private String fileId;
     @Schema(description = "文件名称")

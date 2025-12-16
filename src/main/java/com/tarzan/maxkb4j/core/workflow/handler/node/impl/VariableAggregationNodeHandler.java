@@ -32,13 +32,6 @@ public class VariableAggregationNodeHandler implements INodeHandler {
             resetVariable(variableList,workflow);
             StrategyFunction strategy = strategy_map.get(strategyName);
             group.setValue(strategy.apply(variableList));
-            if ("first_non_null".equals(strategyName)){
-                variableList.stream()
-                        .filter(variable -> variable.getValue() != null)
-                        .findFirst()
-                        .map(List::of)
-                        .ifPresent(group::setVariableList);
-            }
             nodeVariable.put(group.getField(), group.getValue());
         }
         node.getDetail().put("strategy", strategyName);
