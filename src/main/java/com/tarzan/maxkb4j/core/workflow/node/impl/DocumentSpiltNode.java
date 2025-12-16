@@ -23,10 +23,11 @@ public class DocumentSpiltNode extends INode {
 
     @Data
     public static class NodeParams  {
-        private String splitStrategy;
         private List<String> documentList;
+        private String splitStrategy;
         private String[]  patterns;
         private Integer chunkSize;
-        private Integer limit;
+        private Boolean paragraphTitleRelateProblem;
+        private Boolean withFilter;
     }
 }

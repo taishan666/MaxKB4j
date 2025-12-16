@@ -46,7 +46,13 @@ public class DocumentSpiltHandler implements INodeHandler {
             document.setName(sysFile.getName());
             document.setMeta(new JSONObject());
             List<Paragraph>  paragraphs=new ArrayList<>();
-            List<String> chunks=split(content,nodeParams.getPatterns(),nodeParams.getLimit(),false);
+            List<String> chunks;
+            if ("qa".equals(nodeParams.getSplitStrategy())){
+                //todo
+                chunks=new ArrayList<>();
+            }else {
+                 chunks=split(content,nodeParams.getPatterns(),nodeParams.getChunkSize(),nodeParams.getWithFilter());
+            }
             for (int i = 0; i < chunks.size(); i++) {
                 Paragraph paragraph=new Paragraph();
                 paragraph.setContent(chunks.get(i));

@@ -68,9 +68,9 @@ public class DocumentController {
     }
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_CREATE)
-    @PostMapping("/knowledge/{knowledgeId}/document/split")
-    public R<List<TextSegmentVO>> split(@PathVariable String knowledgeId, MultipartFile[] file, String[] patterns, Integer limit, Boolean with_filter) throws IOException {
-        return R.success(documentService.split(file, patterns, limit, with_filter));
+    @PostMapping("/knowledge/{id}/document/split")
+    public R<List<TextSegmentVO>> split(@PathVariable String id, MultipartFile[] file, String[] patterns, Integer limit, Boolean withFilter) throws IOException {
+        return R.success(documentService.split(file, patterns, limit, withFilter));
     }
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_READ)
