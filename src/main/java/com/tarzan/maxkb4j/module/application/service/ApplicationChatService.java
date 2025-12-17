@@ -16,6 +16,7 @@ import com.tarzan.maxkb4j.module.application.domian.dto.ChatQueryDTO;
 import com.tarzan.maxkb4j.module.application.domian.entity.*;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationStatisticsVO;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationVO;
+import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
 import com.tarzan.maxkb4j.module.application.domian.vo.ChatRecordDetailVO;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatMapper;
 import com.tarzan.maxkb4j.module.chat.cache.ChatCache;
@@ -119,6 +120,8 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
         ApplicationVO application = applicationService.getAppDetail(chatParams.getAppId(), chatParams.getDebug());
         IChatActuator chatActuator = ChatActuatorBuilder.getActuator(application.getType());
         ChatResponse chatResponse = chatActuator.chatMessage(application, chatParams);
+        ChatMessageVO vo = new ChatMessageVO(chatParams.getChatId(), chatParams.getChatRecordId(), true);
+        chatParams.getSink().tryEmitNext(vo);
         chatParams.getSink().tryEmitComplete();
         return chatResponse;
     }

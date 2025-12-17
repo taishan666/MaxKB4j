@@ -1,0 +1,1 @@
+import{cF as i,cs as s,ct as c}from"./chat-BtFLNZ96.js";const n="/auth",r=(t,o)=>c(`${n}/${t}/detail`,void 0,o),u=(t,o)=>i(`${n}/connection`,t,void 0,o),a=(t,o,e)=>s(`${n}/${t}/info`,o,void 0,e),g={getAuthSetting:r,postAuthSetting:u,putAuthSetting:a};export{g as a};
