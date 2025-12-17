@@ -78,6 +78,6 @@ public abstract class IChatStep extends IChatPipelineStep {
                 "many_view",
                 null,
                 nodeIsEnd,
-                nodeIsEnd);
+                false);
     }
 }
