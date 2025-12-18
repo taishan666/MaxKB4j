@@ -4,6 +4,7 @@ import com.alibaba.excel.EasyExcel;
 import com.alibaba.excel.ExcelWriter;
 import com.alibaba.excel.write.metadata.WriteSheet;
 import com.alibaba.fastjson.JSONObject;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -39,6 +40,7 @@ import com.tarzan.maxkb4j.module.system.user.service.UserService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -282,7 +284,8 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
         knowledgeAction.setDetails(new JSONObject());
         knowledgeAction.setRunTime(0F);
         JSONObject meta = new JSONObject();
-        meta.put("user_id", StpKit.ADMIN.getLoginIdAsString());
+        meta.put("userId", StpKit.ADMIN.getLoginIdAsString());
+        meta.put("username", StpKit.ADMIN.getExtra("username"));
         knowledgeAction.setMeta(meta);
         knowledgeActionService.save(knowledgeAction);
         LogicFlow logicFlow = LogicFlow.newInstance(knowledge.getWorkFlow());
@@ -298,5 +301,21 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
 
     public KnowledgeActionEntity action(String id, String actionId) {
         return knowledgeActionService.getById(actionId);
+    }
+
+    public IPage<KnowledgeActionEntity> actionPage(String id, int current, int size, String username, String state) {
+        Page<KnowledgeActionEntity> actionPage = new Page<>(current, size);
+        LambdaQueryWrapper<KnowledgeActionEntity> query = Wrappers.lambdaQuery();
+        //todo
+        if (!StringUtils.isEmpty(username)){
+            query.eq(KnowledgeActionEntity::getMeta, username);
+        }
+        if (!StringUtils.isEmpty(state)){
+            query.eq(KnowledgeActionEntity::getState, state);
+        }
+        query.eq(KnowledgeActionEntity::getKnowledgeId, id);
+        query.orderByDesc(KnowledgeActionEntity::getCreateTime);
+        return  knowledgeActionService.pageList(actionPage,username, state);
+       // return knowledgeActionService.page(actionPage, query);
     }
 }

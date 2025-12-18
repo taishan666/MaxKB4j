@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tarzan.maxkb4j.module.knowledge.mapper.KnowledgeActionMapper">
+
+
+    <select id="pageList" resultType="com.tarzan.maxkb4j.module.knowledge.domain.entity.KnowledgeActionEntity">
+        SELECT *
+        FROM
+        knowledge_action
+        <where>
+            <if test="username != null and username != ''">
+                AND  meta->>'username' LIKE '%' || #{username} || '%'
+            </if>
+            <if test="state != null and state != ''">
+                AND state = #{state}
+            </if>
+        </where>
+        ORDER BY create_time DESC
+    </select>
+</mapper>

@@ -2,13 +2,12 @@ package com.tarzan.maxkb4j.core.workflow.handler;
 
 import com.tarzan.maxkb4j.core.workflow.builder.NodeHandlerBuilder;
 import com.tarzan.maxkb4j.core.workflow.enums.NodeRunStatus;
-import com.tarzan.maxkb4j.core.workflow.enums.WorkflowMode;
 import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;
 import com.tarzan.maxkb4j.core.workflow.model.NodeResult;
+import com.tarzan.maxkb4j.core.workflow.model.NodeResultFuture;
 import com.tarzan.maxkb4j.core.workflow.model.Workflow;
 import com.tarzan.maxkb4j.core.workflow.node.INode;
 import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
-import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.task.TaskExecutor;
@@ -61,6 +60,7 @@ public class WorkflowHandler {
     public List<INode> runChainNode(Workflow workflow, INode node) {
         if (NodeRunStatus.READY.equals(node.getRunStatus())|| NodeRunStatus.INTERRUPT.equals(node.getRunStatus())) {
             if (workflow.dependentNodeBeenExecuted(node)){
+                workflow.appendNode(node);
                 NodeResultFuture nodeResultFuture = runNodeFuture(workflow, node);
                 node.setStatus(nodeResultFuture.getStatus());
                 NodeResult nodeResult = nodeResultFuture.getResult();
@@ -71,8 +71,6 @@ public class WorkflowHandler {
                         node.setRunStatus(NodeRunStatus.INTERRUPT);
                     }
                 }
-                // 添加已运行节点
-                addExecutedNode(workflow,node);
                 // 获取下一个节点列表
                 return workflow.getNextNodeList(node, nodeResult);
             }
@@ -89,11 +87,7 @@ public class WorkflowHandler {
         return List.of();
     }
 
-    public  void addExecutedNode(Workflow workflow,INode node){
-        workflow.appendNode(node);
-    }
-
-    private NodeResultFuture runNodeFuture(Workflow workflow, INode node) {
+    public NodeResultFuture runNodeFuture(Workflow workflow, INode node) {
         try {
             long startTime = System.currentTimeMillis();
             INodeHandler nodeHandler = NodeHandlerBuilder.getHandler(node.getType());
@@ -107,15 +101,14 @@ public class WorkflowHandler {
             log.error("error:", ex);
             node.setErrMessage(ex.getMessage());
             log.error("NODE: {} Exception :{}", node.getType(), ex.getMessage());
-            if(WorkflowMode.APPLICATION.equals(workflow.getWorkflowMode())){
-                ChatMessageVO errMessage = node.toChatMessageVO(
-                        workflow.getChatParams().getChatId(),
-                        workflow.getChatParams().getChatRecordId(),
-                        String.format("Exception: %s", ex.getMessage()),
-                        "",
-                        true);
-                workflow.getSink().tryEmitNext(errMessage);
-            }
+            ChatMessageVO errMessage = node.toChatMessageVO(
+                    workflow.getChatParams().getChatId(),
+                    workflow.getChatParams().getChatRecordId(),
+                    String.format("Exception: %s", ex.getMessage()),
+                    "",
+                    null,
+                    true);
+            workflow.getSink().tryEmitNext(errMessage);
             node.setRunStatus(NodeRunStatus.ERROR);
             return new NodeResultFuture(null, ex, 500);
         }
@@ -124,16 +117,5 @@ public class WorkflowHandler {
 
 }
 
-@Data
-class NodeResultFuture {
-    private Integer status;
-    private NodeResult result;
-    private Exception exception;
 
-    public NodeResultFuture(NodeResult result, Exception exception,Integer status) {
-        this.result = result;
-        this.exception = exception;
-        this.status = status;
-    }
-}
 

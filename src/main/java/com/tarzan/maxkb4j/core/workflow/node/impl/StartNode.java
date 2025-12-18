@@ -44,7 +44,7 @@ public class StartNode extends INode {
     }
 
     @Override
-    public Map<String, Object> executeDetail() {
+    public Map<String, Object> getDetail() {
         detail.put("imageList", detail.get("image"));
         detail.put("documentList", detail.get("document"));
         detail.put("audioList", detail.get("audio"));

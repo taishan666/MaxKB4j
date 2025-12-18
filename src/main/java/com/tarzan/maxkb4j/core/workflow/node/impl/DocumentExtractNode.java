@@ -31,7 +31,7 @@ public class DocumentExtractNode extends INode {
 
 
     @Override
-    public Map<String, Object> executeDetail() {
+    public Map<String, Object> getDetail() {
         String content = (String) context.getOrDefault("content","");
         detail.put("content", content.split(splitter));
         return detail;

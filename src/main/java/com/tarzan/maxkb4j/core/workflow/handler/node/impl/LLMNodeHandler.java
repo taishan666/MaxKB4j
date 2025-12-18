@@ -193,6 +193,7 @@ public class LLMNodeHandler implements INodeHandler {
                 workflow.getChatParams().getChatRecordId(),
                 content,
                 reasoning,
+                null,
                 false
         );
         workflow.getSink().tryEmitNext(vo);

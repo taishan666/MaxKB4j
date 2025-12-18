@@ -139,6 +139,11 @@ public class KnowledgeController {
         return R.success(knowledgeService.debug(id,params));
     }
 
+    @GetMapping("/knowledge/{id}/action/{current}/{size}")
+    public R<IPage<KnowledgeActionEntity>> actionPage(@PathVariable("id") String id,@PathVariable("current") int current, @PathVariable("size") int size, String username, String state) {
+        return R.success(knowledgeService.actionPage(id,current,size,username,state));
+    }
+
     @PostMapping("/knowledge/{id}/upload_document")
     public R<KnowledgeActionEntity> uploadDocument(@PathVariable("id") String id,@RequestBody  KnowledgeParams params) {
         return R.success(knowledgeService.debug(id,params));

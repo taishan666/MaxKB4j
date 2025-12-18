@@ -72,6 +72,7 @@ public class NodeResult {
                             workflow.getChatParams().getChatRecordId(),
                             streamOutput?"":node.getAnswerText(),
                             "",
+                            null,
                             false);
                     workflow.getSink().tryEmitNext(vo);
                 }

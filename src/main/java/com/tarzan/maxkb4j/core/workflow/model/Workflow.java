@@ -221,7 +221,7 @@ public class Workflow {
         for (int index = 0; index < nodeContext.size(); index++) {
             INode node = nodeContext.get(index);
             JSONObject runtimeDetail = new JSONObject();
-            runtimeDetail.putAll(node.executeDetail());
+            runtimeDetail.putAll(node.getDetail());
             runtimeDetail.put("nodeId", node.getId());
             runtimeDetail.put("upNodeIdList", node.getUpNodeIdList());
             runtimeDetail.put("runtimeNodeId", node.getRuntimeNodeId());

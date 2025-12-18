@@ -117,7 +117,8 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
                 chatParams.setAppId(chatInfo.getAppId());
             }
         }
-        if (!visitCountCheck(chatParams, sink)) {
+        if (!visitCountCheck(chatParams)) {
+            sink.tryEmitError(new AccessNumLimitException());
             return new ChatResponse("", null);
         }
         List<ApplicationChatRecordEntity> historyChatRecordList = chatRecordService.getChatRecords(chatParams.getChatId());
@@ -148,7 +149,7 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
         return CompletableFuture.completedFuture(chatMessage(chatParams, sink));
     }
 
-    public boolean visitCountCheck(ChatParams chatParams, Sinks.Many<ChatMessageVO> sink) {
+    public boolean visitCountCheck(ChatParams chatParams) {
         String appId = chatParams.getAppId();
         String chatUserId = chatParams.getChatUserId();
         String chatUserType = chatParams.getChatUserType();
@@ -166,10 +167,7 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
             }
             ApplicationAccessTokenEntity appAccessToken = accessTokenService.lambdaQuery().select(ApplicationAccessTokenEntity::getAccessNum).eq(ApplicationAccessTokenEntity::getApplicationId, appId).one();
             if (Objects.nonNull(appAccessToken)) {
-                if (appAccessToken.getAccessNum() < chatUserStats.getIntraDayAccessNum()) {
-                    sink.tryEmitError(new AccessNumLimitException());
-                    return false;
-                }
+                return appAccessToken.getAccessNum() >= chatUserStats.getIntraDayAccessNum();
             }
         }
         return true;

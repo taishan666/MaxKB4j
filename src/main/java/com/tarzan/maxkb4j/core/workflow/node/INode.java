@@ -65,11 +65,6 @@ public abstract class INode {
 
     public abstract void saveContext(Workflow workflow, Map<String, Object> detail);
 
-    public Map<String, Object> executeDetail() {
-        return detail;
-    }
-
-
     private String generateRuntimeNodeId() {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-1");
@@ -110,23 +105,6 @@ public abstract class INode {
             newMessageList.remove(newMessageList.size() - 1);
         }
         return newMessageList;
-    }
-
-    public ChatMessageVO toChatMessageVO(String chatId, String chatRecordId, String content, String reasoningContent, boolean nodeIsEnd) {
-        return new ChatMessageVO(
-                chatId,
-                chatRecordId,
-                this.getId(),
-                content,
-                reasoningContent,
-                this.getUpNodeIdList(),
-                this.getRuntimeNodeId(),
-                this.getType(),
-                this.getViewType(),
-                null,
-                nodeIsEnd,
-                false
-        );
     }
 
     public ChatMessageVO toChatMessageVO(String chatId, String chatRecordId, String content, String reasoningContent, ChildNode childNode, boolean nodeIsEnd) {
