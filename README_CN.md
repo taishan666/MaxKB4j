@@ -91,7 +91,7 @@ docker-compose up -d
 
 > Sealos 的服务器在国外，不需要额外处理网络问题，支持高并发 & 动态伸缩。
 
-点击以下按钮一键部署（部署后访问出现 404 请等待 3~5 分钟）：
+点击以下按钮一键部署：
 
 [![Deploy-on-Sealos.svg](https://hzh.sealos.run/logo.svg) ](https://blog.csdn.net/weixin_40986713/article/details/156026021)
 
