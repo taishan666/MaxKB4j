@@ -82,9 +82,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(ApiException.class)
     @ResponseBody
-    public R<String> handleException(ApiException e, HttpServletResponse response) {
+    public R<String> handleException(ApiException e) {
         log.error("Api异常: {}", e.getMessage());
-        response.setStatus(HttpServletResponse.SC_BAD_REQUEST); // 设置HTTP状态码为400
         return R.fail(500, e.getMessage());
     }
 
