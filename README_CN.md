@@ -84,7 +84,7 @@ docker-compose up -d
 
 > 首次启动会自动初始化数据库（PostgreSQL + MongoDB），请确保端口未被占用。
 
-### 部署到第三方平台
+### 6. 部署到第三方平台
 <details>
 <summary><strong>部署到 Sealos </strong></summary>
 <div>
