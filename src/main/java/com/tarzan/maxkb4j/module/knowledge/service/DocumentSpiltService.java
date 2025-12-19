@@ -2,9 +2,9 @@ package com.tarzan.maxkb4j.module.knowledge.service;
 
 import dev.langchain4j.data.document.Document;
 import dev.langchain4j.data.document.DocumentSplitter;
-import dev.langchain4j.data.document.splitter.DocumentByCharacterSplitter;
 import dev.langchain4j.data.document.splitter.DocumentByParagraphSplitter;
 import dev.langchain4j.data.document.splitter.DocumentByRegexSplitter;
+import dev.langchain4j.data.document.splitter.DocumentBySentenceSplitter;
 import dev.langchain4j.data.segment.TextSegment;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 @Component
 public class DocumentSpiltService {
 
-    private final DocumentSplitter defaultSplitter = new DocumentByParagraphSplitter(512, 64);
+    private final DocumentSplitter defaultSplitter = new DocumentByParagraphSplitter(512, 0);
 
     public List<TextSegment> defaultSplit(String text) {
         Document document = Document.document(text);
@@ -67,10 +67,11 @@ public class DocumentSpiltService {
 
     public List<TextSegment> recursive(Document document, String[] patterns, Integer limit) {
         List<TextSegment> textSegments = new ArrayList<>();
+        DocumentSplitter subSplitter = new DocumentBySentenceSplitter(limit, 0);
         for (int i = 0; i < patterns.length; i++) {
             String pattern = patterns[i];
             if (i == 0) {
-                DocumentSplitter splitter = new DocumentByRegexSplitter(pattern, "", 1, 0, new DocumentByCharacterSplitter(limit, 0));
+               DocumentSplitter splitter = new DocumentByRegexSplitter(pattern, "---", limit, 0, subSplitter);
                 textSegments = recursive(splitter.split(document), pattern);
             } else {
                 textSegments = recursive(textSegments, pattern);

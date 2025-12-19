@@ -2,7 +2,6 @@ package com.tarzan.maxkb4j.module.knowledge.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.tarzan.maxkb4j.common.api.R;
-import com.tarzan.maxkb4j.common.base.dto.BaseQuery;
 import com.tarzan.maxkb4j.common.constant.AppConst;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.*;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.DocumentEntity;
@@ -65,13 +64,13 @@ public class DocumentController {
     }
 
 
-    @PostMapping("/knowledge/{knowledgeId}/document/split")
-    public R<List<TextSegmentVO>> split(@PathVariable String knowledgeId, MultipartFile[] file, String[] patterns, Integer limit, Boolean with_filter) throws IOException {
+    @PostMapping("/knowledge/{id}/document/split")
+    public R<List<TextSegmentVO>> split(@PathVariable String id, MultipartFile[] file, String[] patterns, Integer limit, Boolean with_filter) throws IOException {
         return R.success(documentService.split(file, patterns, limit, with_filter));
     }
   
-    @GetMapping("/knowledge/{knowledgeId}/document/split_pattern")
-    public R<List<KeyAndValueVO>> splitPattern(@PathVariable String knowledgeId) {
+    @GetMapping("/knowledge/{id}/document/split_pattern")
+    public R<List<KeyAndValueVO>> splitPattern(@PathVariable String id) {
         return R.success(documentService.splitPattern());
     }
 
