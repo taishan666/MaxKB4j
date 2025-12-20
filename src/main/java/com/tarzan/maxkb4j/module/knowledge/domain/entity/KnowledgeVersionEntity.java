@@ -8,27 +8,18 @@ import com.tarzan.maxkb4j.common.typehandler.JSONBTypeHandler;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-
 /**
  * @author tarzan
- * @date 2024-12-25 16:00:15
+ * @date 2025-12-20 16:00:15
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
-@TableName(value = "knowledge", autoResultMap = true)
-public class KnowledgeEntity extends BaseEntity {
-    
+@TableName(value = "knowledge_workflow_version", autoResultMap = true)
+public class KnowledgeVersionEntity extends BaseEntity {
     private String name;
-    private String desc;
-    private Integer type;
-    @TableField(typeHandler = JSONBTypeHandler.class)
-    private JSONObject meta;
-    private String userId;
-    private String embeddingModelId;
-    private Integer fileSizeLimit;
-    private Integer fileCountLimit;
-    private String folderId;
+    private String publishUserId;
+    private String publishUserName;
+    private String knowledgeId;
     @TableField(typeHandler = JSONBTypeHandler.class)
     private JSONObject workFlow;
-    private Boolean isPublish;
 }

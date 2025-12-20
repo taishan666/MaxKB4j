@@ -303,12 +303,11 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         application.setPublishTime(new Date());
         this.updateById(application);
         application = this.getById(id);
-        long count = applicationVersionService.count(Wrappers.<ApplicationVersionEntity>lambdaQuery().eq(ApplicationVersionEntity::getApplicationId, id));
         ApplicationVersionEntity entity = BeanUtil.copy(application, ApplicationVersionEntity.class);
         entity.setId(null);
         entity.setApplicationId(id);
         entity.setApplicationName(application.getName());
-        entity.setName(application.getName() + "-V" + (count + 1));
+        entity.setName(DateTimeUtil.now());
         entity.setPublishUserId(StpKit.ADMIN.getLoginIdAsString());
         entity.setPublishUserName((String) StpKit.ADMIN.getExtra("username"));
         return applicationVersionService.save(entity);

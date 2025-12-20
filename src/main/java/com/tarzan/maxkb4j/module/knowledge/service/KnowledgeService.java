@@ -13,6 +13,7 @@ import com.tarzan.maxkb4j.common.form.BaseField;
 import com.tarzan.maxkb4j.common.form.LocalFileUpload;
 import com.tarzan.maxkb4j.common.form.TextInputField;
 import com.tarzan.maxkb4j.common.util.BeanUtil;
+import com.tarzan.maxkb4j.common.util.DateTimeUtil;
 import com.tarzan.maxkb4j.common.util.StpKit;
 import com.tarzan.maxkb4j.core.event.GenerateProblemEvent;
 import com.tarzan.maxkb4j.core.workflow.builder.NodeBuilder;
@@ -76,6 +77,7 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
     private final DataIndexService dataIndexService;
     private final KnowledgeActionService knowledgeActionService;
     private final KnowledgeWorkflowHandler knowledgeWorkflowHandler;
+    private final KnowledgeVersionService knowledgeVersionService;
 
 
     public IPage<KnowledgeVO> selectKnowledgePage(Page<KnowledgeVO> knowledgePage, KnowledgeQuery query) {
@@ -316,6 +318,25 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
         query.eq(KnowledgeActionEntity::getKnowledgeId, id);
         query.orderByDesc(KnowledgeActionEntity::getCreateTime);
         return  knowledgeActionService.pageList(actionPage,username, state);
-       // return knowledgeActionService.page(actionPage, query);
+    }
+
+    @Transactional
+    public Boolean publish(String id) {
+        KnowledgeEntity knowledge = new KnowledgeEntity();
+        knowledge.setId(id);
+        knowledge.setIsPublish(true);
+        this.updateById(knowledge);
+        knowledge= this.getById(id);
+        KnowledgeVersionEntity knowledgeVersion = new KnowledgeVersionEntity();
+        knowledgeVersion.setKnowledgeId(id);
+        knowledgeVersion.setName(DateTimeUtil.now());
+        knowledgeVersion.setWorkFlow(knowledge.getWorkFlow());
+        knowledgeVersion.setPublishUserId(StpKit.ADMIN.getLoginIdAsString());
+        knowledgeVersion.setPublishUserName((String) StpKit.ADMIN.getExtra("username"));
+        return knowledgeVersionService.save(knowledgeVersion);
+    }
+
+    public List<KnowledgeVersionEntity> knowledgeVersion(String id) {
+        return knowledgeVersionService.lambdaQuery().eq(KnowledgeVersionEntity::getKnowledgeId, id).list();
     }
 }

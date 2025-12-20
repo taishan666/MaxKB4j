@@ -14,6 +14,7 @@ import com.tarzan.maxkb4j.module.knowledge.domain.dto.KnowledgeDTO;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.KnowledgeQuery;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.KnowledgeActionEntity;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.KnowledgeEntity;
+import com.tarzan.maxkb4j.module.knowledge.domain.entity.KnowledgeVersionEntity;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.KnowledgeVO;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.ParagraphVO;
 import com.tarzan.maxkb4j.module.knowledge.service.KnowledgeService;
@@ -137,6 +138,15 @@ public class KnowledgeController {
     @PostMapping("/knowledge/{id}/debug")
     public R<KnowledgeActionEntity> debug(@PathVariable("id") String id,@RequestBody KnowledgeParams params) {
         return R.success(knowledgeService.debug(id,params));
+    }
+
+    @PutMapping("/knowledge/{id}/publish")
+    public R<Boolean> publish(@PathVariable("id") String id) {
+        return R.success(knowledgeService.publish(id));
+    }
+    @GetMapping("/knowledge/{id}/knowledge_version")
+    public R<List<KnowledgeVersionEntity>> knowledgeVersion(@PathVariable("id") String id) {
+        return R.success(knowledgeService.knowledgeVersion(id));
     }
 
     @GetMapping("/knowledge/{id}/action/{current}/{size}")
