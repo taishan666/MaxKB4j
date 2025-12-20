@@ -1,5 +1,5 @@
 
-# 🧠 MaxKB4j — 用 Java 快速构建企业级智能问答系统：开箱即用的 RAG + LLM 工作流引擎
+# 🧠 MaxKB4j — 企业级智能问答系统：开箱即用的 RAG + LLM 工作流引擎
 
 > **MaxKB4j = Max Knowledge Base for Java**  
 > 一个开箱即用、安全可靠、模型中立的 **RAG（检索增强生成）+ LLM 工作流引擎**，专为构建企业级智能问答系统而设计。
