@@ -339,4 +339,9 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
     public List<KnowledgeVersionEntity> knowledgeVersion(String id) {
         return knowledgeVersionService.lambdaQuery().eq(KnowledgeVersionEntity::getKnowledgeId, id).list();
     }
+
+    public Boolean knowledgeVersion(String versionId,KnowledgeVersionEntity  knowledgeVersion) {
+        knowledgeVersion.setId(versionId);
+        return knowledgeVersionService.updateById(knowledgeVersion);
+    }
 }

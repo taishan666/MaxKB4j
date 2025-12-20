@@ -149,6 +149,11 @@ public class KnowledgeController {
         return R.success(knowledgeService.knowledgeVersion(id));
     }
 
+    @PutMapping("/knowledge/{id}/knowledge_version/{versionId}")
+    public R<Boolean> knowledgeVersion(@PathVariable("id") String id,@PathVariable("versionId") String versionId,@RequestBody KnowledgeVersionEntity knowledgeVersionEntity) {
+        return R.success(knowledgeService.knowledgeVersion(versionId,knowledgeVersionEntity));
+    }
+
     @GetMapping("/knowledge/{id}/action/{current}/{size}")
     public R<IPage<KnowledgeActionEntity>> actionPage(@PathVariable("id") String id,@PathVariable("current") int current, @PathVariable("size") int size, String username, String state) {
         return R.success(knowledgeService.actionPage(id,current,size,username,state));
