@@ -29,7 +29,6 @@ public class OpenAiTTSModel implements TTSModel {
     @Override
     public byte[] textToSpeech(String text){
         String voice= params.getString("voice");
-        Integer volume= params.getInteger("volume");
         Float speechRate=params.getFloat("speechRate");
         SpeechCreateParams speechCreateParams = SpeechCreateParams.builder()
                 .model(modelName)
