@@ -118,8 +118,6 @@ docker-compose up -d
 ## 📸 UI 展示
 <img src= "image/maxkb4j.gif" alt="MaxKB4j team"   />
 
-> 更多界面请参考项目 Wiki 或实际部署体验。
-
 ---
 
 ## ❓ 反馈与建议
