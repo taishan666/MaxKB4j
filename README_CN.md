@@ -1,5 +1,5 @@
 
-# 🧠 MaxKB4j — 基于 Java 的开源 RAG 知识库与 LLM 工作流平台
+# 🧠 MaxKB4j — 企业级智能问答系统：开箱即用的 RAG + LLM 工作流引擎
 
 > **MaxKB4j = Max Knowledge Base for Java**  
 > 一个开箱即用、安全可靠、模型中立的 **RAG（检索增强生成）+ LLM 工作流引擎**，专为构建企业级智能问答系统而设计。
@@ -11,7 +11,7 @@
   <a href="https://www.gnu.org/licenses/gpl-3.0.html#license-text"><img src="https://img.shields.io/badge/License-GPL%20v3-blue" alt="License: GPL v3"></a>
   <a href=""><img src="https://img.shields.io/badge/Java-17+-green" alt="Java 17+"></a>
   <a href=""><img src="https://img.shields.io/badge/Spring%20Boot-3.x-brightgreen" alt="Spring Boot 3.x"></a>    
-  <a href=""><img src="https://img.shields.io/badge/Langchain4J-1.x-green" alt="Nodejs"></a><br/>
+  <a href=""><img src="https://img.shields.io/badge/Langchain4J-1.x-green" alt="LangChain4j"></a><br/>
  [<a href="/README_CN.md">中文(简体)</a>] | [<a href="/README.md">English</a>] 
 </p>
 
@@ -69,7 +69,9 @@ java -jar MaxKB4j.jar
 ```bash
 docker run --name maxkb4j -d --restart always -p 8080:8080 -e SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/MaxKB4j -e SPRING_DATASOURCE_USERNAME=postgres   -e SPRING_DATASOURCE_PASSWORD=123456  -e SPRING_DATA_MONGODB_URI=mongodb://admin:123456@localhost:27017/MaxKB4j?authSource=admin  registry.cn-hangzhou.aliyuncs.com/tarzanx/maxkb4j
 ```
-其中，`-p 8080:8080` 中的第一个 8080 是宿主机的端口，`-e SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/MaxKB4j -e SPRING_DATASOURCE_USERNAME=postgres   -e SPRING_DATASOURCE_PASSWORD=123456` 是PostgreSQL数据库的连接配置参数，`-e SPRING_DATA_MONGODB_URI=mongodb://admin:123456@localhost:27017/MaxKB4j?authSource=admin`是MongoDB的连接配置参数， 可以根据需要进行修改。
+- `-p 8080:8080` 中的第一个 8080 是宿主机的端口，第二个 8080 是docker容器开发的端口
+- `-e SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/MaxKB4j -e SPRING_DATASOURCE_USERNAME=postgres   -e SPRING_DATASOURCE_PASSWORD=123456` 是PostgreSQL数据库的连接配置参数， 可以根据需要进行修改
+- `-e SPRING_DATA_MONGODB_URI=mongodb://admin:123456@localhost:27017/MaxKB4j?authSource=admin`是MongoDB的连接配置参数， 可以根据需要进行修改
 
 ### 4. Docker-Compose 部署（推荐）
 ```yaml
@@ -83,6 +85,20 @@ docker-compose up -d
 - 默认密码：`tarzan@123456`
 
 > 首次启动会自动初始化数据库（PostgreSQL + MongoDB），请确保端口未被占用。
+
+### 6. 部署到第三方平台
+<details>
+<summary><strong>部署到 Sealos </strong></summary>
+<div>
+
+> Sealos 的服务器在国外，不需要额外处理网络问题，支持高并发 & 动态伸缩。
+
+点击以下按钮一键部署：
+
+[![Deploy-on-Sealos.svg](https://hzh.sealos.run/logo.svg) ](https://blog.csdn.net/weixin_40986713/article/details/156026021)
+
+</div>
+</details>
 
 ---
 
@@ -102,16 +118,26 @@ docker-compose up -d
 ## 📸 UI 展示
 <img src= "image/maxkb4j.gif" alt="MaxKB4j team"   />
 
-> 更多界面请参考项目 Wiki 或实际部署体验。
+---
+
+## ❓ 反馈与建议
+
+欢迎社区用户提交 **Bug 报告**、**使用问题** 或 **新功能建议**！
+
+- 如果你发现了程序中的异常行为，请提交一个 **Issue**，帮助我们改进项目；
+- 如果你有好的想法或希望增加某项功能，也欢迎通过 Issue 提出建议；
+- 更鼓励你直接贡献代码 👉 欢迎提交 **Pull Request (PR)**！
+
+🔗 **提交入口**：[Gitee Issues 页面](https://gitee.com/taisan/MaxKB4j/issues)
+
+> 💡 提交 Issue 时，请尽量提供以下信息以加快处理速度：
+> - 使用的 MaxKB4j 版本
+> - Java 运行环境（JDK 版本）
+> - 复现步骤或示例代码
+> - 错误日志或截图（如有）
 
 ---
 
-## ❓ 问题与建议
-
-欢迎提交 Issue 或 PR！  
-👉 [Gitee Issues](https://gitee.com/taisan/MaxKB4j/issues)
-
----
 
 ## 💖 支持与赞助
 
@@ -161,4 +187,4 @@ Copyright © 2025–2035 洛阳泰山 TARZAN. All rights reserved.
 
 ---
 
-✅ **MaxKB4j — 让每个 Java 团队都能轻松构建企业级 AI 知识库！**
+✅ **MaxKB4j — 轻松构建高性能且稳定的智能体工作流和RAG知识库解决方案**
