@@ -1,5 +1,5 @@
 
-# 🧠 MaxKB4j — 基于 Java 的开源 RAG 知识库与 LLM 工作流平台
+# 🧠 MaxKB4j — 用 Java 快速构建企业级智能问答系统：开箱即用的 RAG + LLM 工作流引擎
 
 > **MaxKB4j = Max Knowledge Base for Java**  
 > 一个开箱即用、安全可靠、模型中立的 **RAG（检索增强生成）+ LLM 工作流引擎**，专为构建企业级智能问答系统而设计。
@@ -11,7 +11,7 @@
   <a href="https://www.gnu.org/licenses/gpl-3.0.html#license-text"><img src="https://img.shields.io/badge/License-GPL%20v3-blue" alt="License: GPL v3"></a>
   <a href=""><img src="https://img.shields.io/badge/Java-17+-green" alt="Java 17+"></a>
   <a href=""><img src="https://img.shields.io/badge/Spring%20Boot-3.x-brightgreen" alt="Spring Boot 3.x"></a>    
-  <a href=""><img src="https://img.shields.io/badge/Langchain4J-1.x-green" alt="Nodejs"></a><br/>
+  <a href=""><img src="https://img.shields.io/badge/Langchain4J-1.x-green" alt="LangChain4j"></a><br/>
  [<a href="/README_CN.md">中文(简体)</a>] | [<a href="/README.md">English</a>] 
 </p>
 
@@ -189,4 +189,4 @@ Copyright © 2025–2035 洛阳泰山 TARZAN. All rights reserved.
 
 ---
 
-✅ **MaxKB4j — 让每个 Java 团队都能轻松构建企业级 AI 知识库！**
+✅ **MaxKB4j — 轻松构建高性能且稳定的智能体工作流和RAG知识库解决方案**
