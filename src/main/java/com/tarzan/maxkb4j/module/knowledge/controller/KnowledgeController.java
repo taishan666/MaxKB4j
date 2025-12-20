@@ -150,7 +150,8 @@ public class KnowledgeController {
     }
 
     @PutMapping("/knowledge/{id}/knowledge_version/{versionId}")
-    public R<Boolean> knowledgeVersion(@PathVariable("id") String id,@PathVariable("versionId") String versionId,@RequestBody KnowledgeVersionEntity knowledgeVersionEntity) {
+    public R<Boolean> knowledgeVersion(@PathVariable("id") String
+                                                   id,@PathVariable("versionId") String versionId,@RequestBody KnowledgeVersionEntity knowledgeVersionEntity) {
         return R.success(knowledgeService.knowledgeVersion(versionId,knowledgeVersionEntity));
     }
 
