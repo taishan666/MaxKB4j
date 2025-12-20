@@ -1,7 +1,11 @@
 package com.tarzan.maxkb4j.module.model.provider.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.tarzan.maxkb4j.module.model.custom.base.STTModel;
+import com.tarzan.maxkb4j.module.model.custom.base.TTSModel;
 import com.tarzan.maxkb4j.module.model.custom.credential.ModelCredentialForm;
+import com.tarzan.maxkb4j.module.model.custom.model.OpenAiSTTModel;
+import com.tarzan.maxkb4j.module.model.custom.model.OpenAiTTSModel;
 import com.tarzan.maxkb4j.module.model.custom.params.impl.LlmModelParams;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelCredential;
 import com.tarzan.maxkb4j.module.model.provider.enums.ModelProviderEnum;
@@ -21,7 +25,7 @@ import dev.langchain4j.model.openai.OpenAiStreamingChatModel;
 import java.util.ArrayList;
 import java.util.List;
 
-public class OpenaiModelProvider extends IModelProvider {
+public class OpenAiModelProvider extends IModelProvider {
     @Override
     public ModelProviderInfo getBaseInfo() {
         ModelProviderInfo info = new ModelProviderInfo(ModelProviderEnum.OpenAI);
@@ -32,23 +36,23 @@ public class OpenaiModelProvider extends IModelProvider {
     @Override
     public List<ModelInfo> getModelList() {
         List<ModelInfo> modelInfos = new ArrayList<>();
-        modelInfos.add(new ModelInfo("gpt-3.5-turbo","", ModelType.LLM,new LlmModelParams()));
-        modelInfos.add(new ModelInfo("gpt-4","",ModelType.LLM,new LlmModelParams()));
-        modelInfos.add(new ModelInfo("gpt-4o","",ModelType.LLM,new LlmModelParams()));
-        modelInfos.add(new ModelInfo("gpt-4o-mini","",ModelType.LLM,new LlmModelParams()));
-        modelInfos.add(new ModelInfo("gpt-4-turbo","",ModelType.LLM,new LlmModelParams()));
-        modelInfos.add(new ModelInfo("gpt-4-turbo-preview","",ModelType.LLM,new LlmModelParams()));
-        modelInfos.add(new ModelInfo("text-embedding-ada-002","",ModelType.EMBEDDING));
-        modelInfos.add(new ModelInfo("whisper-1","",ModelType.STT));
-        modelInfos.add(new ModelInfo("tts-1","",ModelType.TTS));
-        modelInfos.add(new ModelInfo("gpt-4o","",ModelType.VISION,new LlmModelParams()));
-        modelInfos.add(new ModelInfo("dall-e-2","",ModelType.TTI));
+        modelInfos.add(new ModelInfo("gpt-3.5-turbo", "", ModelType.LLM, new LlmModelParams()));
+        modelInfos.add(new ModelInfo("gpt-4", "", ModelType.LLM, new LlmModelParams()));
+        modelInfos.add(new ModelInfo("gpt-4o", "", ModelType.LLM, new LlmModelParams()));
+        modelInfos.add(new ModelInfo("gpt-4o-mini", "", ModelType.LLM, new LlmModelParams()));
+        modelInfos.add(new ModelInfo("gpt-4-turbo", "", ModelType.LLM, new LlmModelParams()));
+        modelInfos.add(new ModelInfo("gpt-4-turbo-preview", "", ModelType.LLM, new LlmModelParams()));
+        modelInfos.add(new ModelInfo("text-embedding-ada-002", "", ModelType.EMBEDDING));
+        modelInfos.add(new ModelInfo("whisper-1", "", ModelType.STT));
+        modelInfos.add(new ModelInfo("tts-1", "", ModelType.TTS));
+        modelInfos.add(new ModelInfo("gpt-4o", "", ModelType.VISION, new LlmModelParams()));
+        modelInfos.add(new ModelInfo("dall-e-2", "", ModelType.TTI));
         return modelInfos;
     }
 
     @Override
     public ModelCredentialForm getModelCredential() {
-       return new ModelCredentialForm(true,true);
+        return new ModelCredentialForm(true, true);
     }
 
     @Override
@@ -71,7 +75,7 @@ public class OpenaiModelProvider extends IModelProvider {
 
     @Override
     public EmbeddingModel buildEmbeddingModel(String modelName, ModelCredential credential, JSONObject params) {
-        return  OpenAiEmbeddingModel.builder()
+        return OpenAiEmbeddingModel.builder()
                 .baseUrl(credential.getBaseUrl())
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
@@ -80,11 +84,21 @@ public class OpenaiModelProvider extends IModelProvider {
 
     @Override
     public ImageModel buildImageModel(String modelName, ModelCredential credential, JSONObject params) {
-        return  OpenAiImageModel.builder()
+        return OpenAiImageModel.builder()
                 .baseUrl(credential.getBaseUrl())
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
                 .build();
+    }
+
+    @Override
+    public STTModel buildSTTModel(String modelName, ModelCredential credential, JSONObject params) {
+        return new OpenAiSTTModel(modelName, credential, params);
+    }
+
+    @Override
+    public TTSModel buildTTSModel(String modelName, ModelCredential credential, JSONObject params) {
+        return new OpenAiTTSModel(modelName, credential, params);
     }
 
 

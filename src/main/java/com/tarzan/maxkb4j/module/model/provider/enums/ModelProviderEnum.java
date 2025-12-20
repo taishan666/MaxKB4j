@@ -13,7 +13,7 @@ public enum ModelProviderEnum {
     DeepSeek("DeepSeek","DeepSeek", new DeepSeekModelProvider()),
     Gemini("Google DeepMind","Gemini", new GeminiModelProvider()),
     Kimi("月之暗面","Kimi", new KimiModelProvider()),
-    OpenAI("OpenAI","OpenAI", new OpenaiModelProvider()),
+    OpenAI("OpenAI","OpenAI", new OpenAiModelProvider()),
     Tencent("腾讯混元","Tencent", new TencentModelProvider()),
     VolcanicEngine("火山引擎","VolcanicEngine", new VolcanicEngineModelProvider()),
     WenXin("文心一言","WenXin", new WenXinModelProvider()),
