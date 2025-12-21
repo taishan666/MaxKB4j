@@ -137,7 +137,7 @@ public class KnowledgeController {
 
     @PostMapping("/knowledge/{id}/debug")
     public R<KnowledgeActionEntity> debug(@PathVariable("id") String id,@RequestBody KnowledgeParams params) {
-        return R.success(knowledgeService.debug(id,params));
+        return R.success(knowledgeService.uploadDocument(id,params, true));
     }
 
     @PutMapping("/knowledge/{id}/publish")
@@ -150,8 +150,7 @@ public class KnowledgeController {
     }
 
     @PutMapping("/knowledge/{id}/knowledge_version/{versionId}")
-    public R<Boolean> knowledgeVersion(@PathVariable("id") String
-                                                   id,@PathVariable("versionId") String versionId,@RequestBody KnowledgeVersionEntity knowledgeVersionEntity) {
+    public R<Boolean> knowledgeVersion(@PathVariable("id") String id,@PathVariable("versionId") String versionId,@RequestBody KnowledgeVersionEntity knowledgeVersionEntity) {
         return R.success(knowledgeService.knowledgeVersion(versionId,knowledgeVersionEntity));
     }
 
@@ -162,7 +161,7 @@ public class KnowledgeController {
 
     @PostMapping("/knowledge/{id}/upload_document")
     public R<KnowledgeActionEntity> uploadDocument(@PathVariable("id") String id,@RequestBody  KnowledgeParams params) {
-        return R.success(knowledgeService.debug(id,params));
+        return R.success(knowledgeService.uploadDocument(id,params, false));
     }
 
     @GetMapping("/knowledge/{id}/action/{actionId}")

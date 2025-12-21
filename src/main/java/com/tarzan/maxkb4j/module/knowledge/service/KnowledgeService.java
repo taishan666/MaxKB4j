@@ -278,7 +278,7 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
         }
     }
 
-    public KnowledgeActionEntity debug(String id, KnowledgeParams params) {
+    public KnowledgeActionEntity uploadDocument(String id, KnowledgeParams params,boolean debug) {
         KnowledgeEntity knowledge = baseMapper.selectById(id);
         KnowledgeActionEntity knowledgeAction = new KnowledgeActionEntity();
         knowledgeAction.setKnowledgeId(id);
