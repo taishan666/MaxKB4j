@@ -42,6 +42,7 @@ import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream;
 import org.apache.commons.lang3.StringUtils;
+import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.springframework.context.ApplicationEventPublisher;
@@ -158,7 +159,8 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
                     ParagraphEntity paragraph = paragraphService.createParagraph(knowledgeId, doc.getId(), "", text, null);
                     paragraphs.add(paragraph);
                 }
-                this.save(doc, uploadFile);
+                doc.setMeta(upload(uploadFile));
+                this.save(doc);
                 paragraphService.saveBatch(paragraphs);
             }
             docIds.add(doc.getId());
@@ -167,10 +169,9 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
     }
 
 
-    private void save(DocumentEntity doc, MultipartFile file) throws IOException {
+    private JSONObject upload(MultipartFile file) throws IOException {
         String fileId = mongoFileService.storeFile(file);
-        doc.setMeta(new JSONObject(Map.of("allow_download", true, "source_file_id", fileId)));
-        this.save(doc);
+        return  new JSONObject(Map.of("allow_download", true, "source_file_id", fileId));
     }
 
     @Transactional
@@ -328,6 +329,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
                     });
                 }
                 doc.setCharLength(docCharLength.get());
+                doc.setMeta(new JSONObject(Map.of("allow_download", true, "source_file_id", e.getSourceFileId())));
                 documentEntities.add(doc);
             });
             if (!CollectionUtils.isEmpty(paragraphEntities)) {
@@ -444,14 +446,15 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
                             String entryName = entry.getName();
                             byte[] bytes = zis.readAllBytes();
                             InputStream inputStream = new ByteArrayInputStream(bytes);
-                            fileStreams.add(new FileStreamVO(entryName, inputStream));
+                            //todo
+                            fileStreams.add(new FileStreamVO(entryName, inputStream, ""));
                         }
                     }
                 } catch (IOException e) {
                     throw new RuntimeException("解压ZIP文件失败", e);
                 }
             } else {
-                fileStreams.add(new FileStreamVO(file.getOriginalFilename(), file.getInputStream()));
+                fileStreams.add(new FileStreamVO(file.getOriginalFilename(), file.getInputStream(), file.getContentType()));
             }
         }
         for (FileStreamVO fileStream : fileStreams) {
@@ -466,6 +469,8 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
                     .map(segment -> new ParagraphSimpleVO(segment.text()))
                     .collect(Collectors.toList());
             textSegmentVO.setContent(content);
+            String fileId = mongoFileService.storeFile(fileStream.getInputStream(), fileStream.getName(), fileStream.getContentType());
+            textSegmentVO.setSourceFileId(fileId);
             list.add(textSegmentVO);
         }
         return list;
@@ -516,7 +521,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         List<ParagraphEntity> paragraphs = new ArrayList<>();
         String finalSelector = selector;
         sourceUrlList.forEach(url -> {
-            org.jsoup.nodes.Document html = JsoupUtil.getDocument(url);
+            Document html = JsoupUtil.getDocument(url);
             Elements elements = html.select(finalSelector);
             DocumentEntity doc = createDocument(knowledgeId, JsoupUtil.getTitle(html), DocType.WEB.getType());
             JSONObject meta = new JSONObject();

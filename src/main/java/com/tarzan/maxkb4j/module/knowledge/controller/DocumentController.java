@@ -61,6 +61,12 @@ public class DocumentController {
         return R.success(documentService.split(file, patterns, limit, withFilter));
     }
 
+    @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_CREATE)
+    @PutMapping("/knowledge/{id}/document/batch_create")
+    public R<Boolean> createBatchDoc(@PathVariable("id") String id, @RequestBody List<DocumentNameDTO> docs) {
+        return R.success(documentService.batchCreateDoc(id, docs));
+    }
+
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_READ)
     @GetMapping("/knowledge/document/split_pattern")
     public R<List<KeyAndValueVO>> splitPattern() {
@@ -79,11 +85,7 @@ public class DocumentController {
         return R.success(documentService.batchGenerateRelated(id, dto));
     }
 
-    @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_CREATE)
-    @PutMapping("/knowledge/{id}/document/batch_create")
-    public R<Boolean> createBatchDoc(@PathVariable("id") String id, @RequestBody List<DocumentNameDTO> docs) {
-        return R.success(documentService.batchCreateDoc(id, docs));
-    }
+
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_MIGRATE)
     @PutMapping("/knowledge/{id}/document/migrate/{targetKnowledgeId}")

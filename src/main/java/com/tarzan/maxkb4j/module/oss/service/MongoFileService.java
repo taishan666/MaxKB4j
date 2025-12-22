@@ -60,7 +60,11 @@ public class MongoFileService {
         String contentType = file.getContentType();
         // 获得文件输入流
         InputStream ins = file.getInputStream();
-        ObjectId objectId =  gridFsTemplate.store(ins, originalFilename, contentType);
+        return storeFile(ins,originalFilename,contentType);
+    }
+
+    public String storeFile(InputStream ins,String fileName,String contentType) {
+        ObjectId objectId =  gridFsTemplate.store(ins, fileName, contentType);
         return objectId.toString();
     }
 
