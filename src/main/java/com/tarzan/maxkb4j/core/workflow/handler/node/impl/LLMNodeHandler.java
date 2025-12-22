@@ -1,5 +1,6 @@
 package com.tarzan.maxkb4j.core.workflow.handler.node.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.tarzan.maxkb4j.common.util.ToolUtil;
 import com.tarzan.maxkb4j.core.assistant.Assistant;
@@ -116,7 +117,7 @@ public class LLMNodeHandler implements INodeHandler {
                 ImageContent imageContent = ImageContent.from(base64Data, MimeTypeUtils.getMimeType(extension));
                 contents.add(imageContent);
             }
-            node.getDetail().put("imageList", imageFiles);
+            node.getDetail().put("imageList", JSON.toJSON(imageFiles));
         } catch (Exception e) {
             log.warn("Failed to load image contents for node: {}", node.getRuntimeNodeId(), e);
         }
