@@ -12,4 +12,5 @@ import java.io.InputStream;
 public class FileStreamVO {
     private String name;
     private InputStream inputStream;
+    private String contentType;
 }

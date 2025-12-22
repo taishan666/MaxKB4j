@@ -41,13 +41,13 @@ public class DocumentController {
     }
   
     @GetMapping("/knowledge/{knowledgeId}/document/{docId}/export")
-    public void export(@PathVariable("knowledgeId") String knowledgeId, @PathVariable("docId") String docId, HttpServletResponse response) throws IOException {
+    public void export(@PathVariable("knowledgeId") String knowledgeId, @PathVariable("docId") String docId, HttpServletResponse response) {
         documentService.exportExcelByDocId(docId, response);
     }
 
   
     @GetMapping("/knowledge/{id}/document/{docId}/export_zip")
-    public void exportZip(@PathVariable("id") String id, @PathVariable("docId") String docId, HttpServletResponse response) {
+    public void exportZip(@PathVariable("id") String id, @PathVariable("docId") String docId, HttpServletResponse response) throws IOException {
         documentService.exportExcelZipByDocId(docId, response);
     }
 
@@ -67,6 +67,11 @@ public class DocumentController {
     @PostMapping("/knowledge/{id}/document/split")
     public R<List<TextSegmentVO>> split(@PathVariable String id, MultipartFile[] file, String[] patterns, Integer limit, Boolean with_filter) throws IOException {
         return R.success(documentService.split(file, patterns, limit, with_filter));
+    }
+
+    @PutMapping("/knowledge/{id}/document/batch_create")
+    public R<Boolean> createBatchDoc(@PathVariable("id") String id, @RequestBody List<DocumentNameDTO> docs) {
+        return R.success(documentService.batchCreateDoc(id, docs));
     }
   
     @GetMapping("/knowledge/{id}/document/split_pattern")
@@ -99,10 +104,7 @@ public class DocumentController {
     }
 
  
-    @PutMapping("/knowledge/{id}/document/batch_create")
-    public R<Boolean> createBatchDoc(@PathVariable("id") String id, @RequestBody List<DocumentNameDTO> docs) {
-        return R.success(documentService.batchCreateDoc(id, docs));
-    }
+
 
   
     @PutMapping("/knowledge/{id}/document/batch_delete")

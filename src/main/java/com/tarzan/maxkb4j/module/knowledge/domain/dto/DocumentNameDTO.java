@@ -8,4 +8,5 @@ import java.util.List;
 public class DocumentNameDTO {
     private String name;
     private List<ParagraphSimpleDTO> paragraphs;
+    private String sourceFileId;
 }

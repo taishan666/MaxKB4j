@@ -10,4 +10,6 @@ public class TextSegmentVO {
     private String name;
 
     private List<ParagraphSimpleVO> content;
+
+    private String sourceFileId;
 }

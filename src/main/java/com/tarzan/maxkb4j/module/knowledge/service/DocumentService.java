@@ -158,7 +158,8 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
                     ParagraphEntity paragraph = paragraphService.createParagraph(knowledgeId, doc.getId(), "", text, null);
                     paragraphs.add(paragraph);
                 }
-                this.save(doc, uploadFile);
+                doc.setMeta(upload(uploadFile));
+                this.save(doc);
                 paragraphService.saveBatch(paragraphs);
             }
             docIds.add(doc.getId());
@@ -167,10 +168,15 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
     }
 
 
-    private void save(DocumentEntity doc, MultipartFile file) throws IOException {
+/*    private void save(DocumentEntity doc, MultipartFile file) throws IOException {
         String fileId = mongoFileService.storeFile(file);
-        doc.setMeta(new JSONObject(Map.of("allow_download", true, "source_file_id", fileId)));
+        doc.setMeta(new JSONObject(Map.of("allow_download", true, "sourceFileId", fileId)));
         this.save(doc);
+    }*/
+
+    private JSONObject upload(MultipartFile file) throws IOException {
+        String fileId = mongoFileService.storeFile(file);
+        return  new JSONObject(Map.of("allow_download", true, "sourceFileId", fileId));
     }
 
     @Transactional
@@ -244,15 +250,15 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
     }
 
 
-    public void exportExcelByDocId(String docId, HttpServletResponse response) throws IOException {
-        DocumentEntity doc = this.getById(docId);
-        exportExcelZipByDocs(List.of(doc), doc.getName(), response);
-    }
-
-    public void exportExcelZipByDocId(String docId, HttpServletResponse response) {
+    public void exportExcelByDocId(String docId, HttpServletResponse response){
         DocumentEntity doc = this.getById(docId);
         List<DatasetExcel> list = getDatasetExcelByDoc(doc);
         ExcelUtil.export(response, doc.getName(), doc.getName(), list, DatasetExcel.class);
+    }
+
+    public void exportExcelZipByDocId(String docId, HttpServletResponse response) throws IOException {
+        DocumentEntity doc = this.getById(docId);
+        exportExcelZipByDocs(List.of(doc), doc.getName(), response);
     }
 
     private List<DatasetExcel> getDatasetExcelByDoc(DocumentEntity doc) {
@@ -327,6 +333,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
                     });
                 }
                 doc.setCharLength(docCharLength.get());
+                doc.setMeta(new JSONObject(Map.of("allow_download", true, "sourceFileId", e.getSourceFileId())));
                 documentEntities.add(doc);
             });
             if (!CollectionUtils.isEmpty(paragraphEntities)) {
@@ -443,14 +450,14 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
                             String entryName = entry.getName();
                             byte[] bytes = zis.readAllBytes();
                             InputStream inputStream = new ByteArrayInputStream(bytes);
-                            fileStreams.add(new FileStreamVO(entryName, inputStream));
+                            fileStreams.add(new FileStreamVO(entryName, inputStream,""));
                         }
                     }
                 } catch (IOException e) {
                     throw new RuntimeException("解压ZIP文件失败", e);
                 }
             } else {
-                fileStreams.add(new FileStreamVO(file.getOriginalFilename(), file.getInputStream()));
+                fileStreams.add(new FileStreamVO(file.getOriginalFilename(), file.getInputStream(), file.getContentType()));
             }
         }
         for (FileStreamVO fileStream : fileStreams) {
@@ -465,6 +472,8 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
                     .map(segment -> new ParagraphSimpleVO(segment.text()))
                     .collect(Collectors.toList());
             textSegmentVO.setContent(content);
+            String fileId =mongoFileService.storeFile(fileStream.getInputStream(),fileStream.getName(), fileStream.getContentType());
+            textSegmentVO.setSourceFileId(fileId);
             list.add(textSegmentVO);
         }
         return list;
@@ -549,8 +558,8 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
     public boolean downloadSourceFile(String docId, HttpServletResponse response) throws IOException {
         DocumentEntity doc = this.getById(docId);
         JSONObject meta = doc.getMeta();
-        if (meta.get("source_file_id") != null) {
-            String fileId = doc.getMeta().getString("source_file_id");
+        if (meta.get("sourceFileId") != null) {
+            String fileId = doc.getMeta().getString("sourceFileId");
             InputStream inputStream = mongoFileService.getStream(fileId);
             IoUtil.copy(inputStream, response.getOutputStream());
             return true;
