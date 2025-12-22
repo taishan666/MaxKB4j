@@ -244,15 +244,16 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
     }
 
 
-    public void exportExcelByDocId(String docId, HttpServletResponse response) throws IOException {
-        DocumentEntity doc = this.getById(docId);
-        exportExcelZipByDocs(List.of(doc), doc.getName(), response);
-    }
-
-    public void exportExcelZipByDocId(String docId, HttpServletResponse response) {
+    public void exportExcelByDocId(String docId, HttpServletResponse response) {
         DocumentEntity doc = this.getById(docId);
         List<DatasetExcel> list = getDatasetExcelByDoc(doc);
         ExcelUtil.export(response, doc.getName(), doc.getName(), list, DatasetExcel.class);
+
+    }
+
+    public void exportExcelZipByDocId(String docId, HttpServletResponse response) throws IOException {
+        DocumentEntity doc = this.getById(docId);
+        exportExcelZipByDocs(List.of(doc), doc.getName(), response);
     }
 
     private List<DatasetExcel> getDatasetExcelByDoc(DocumentEntity doc) {

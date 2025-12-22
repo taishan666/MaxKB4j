@@ -42,18 +42,6 @@ public class DocumentController {
         documentService.sync(id,docId);
     }
 
-    @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_EXPORT)
-    @GetMapping("/knowledge/{id}/document/{docId}/export")
-    public void export(@PathVariable("id") String id, @PathVariable("docId") String docId, HttpServletResponse response) throws IOException {
-        documentService.exportExcelByDocId(docId, response);
-    }
-
-
-    @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_EXPORT)
-    @GetMapping("/knowledge/{id}/document/{docId}/export_zip")
-    public void exportZip(@PathVariable("id") String id, @PathVariable("docId") String docId, HttpServletResponse response) {
-        documentService.exportExcelZipByDocId(docId, response);
-    }
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_CREATE)
     @PostMapping("/knowledge/{id}/document/qa")
@@ -155,6 +143,19 @@ public class DocumentController {
     @GetMapping("/knowledge/{id}/document/{current}/{size}")
     public R<IPage<DocumentVO>> pageDocByDatasetId(@PathVariable String id, @PathVariable("current") int current, @PathVariable("size") int size, DocQuery query) {
         return R.success(documentService.getDocByKnowledgeId(id, current, size, query));
+    }
+
+    @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_EXPORT)
+    @GetMapping("/knowledge/{id}/document/{docId}/export")
+    public void export(@PathVariable("id") String id, @PathVariable("docId") String docId, HttpServletResponse response){
+        documentService.exportExcelByDocId(docId, response);
+    }
+
+
+    @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_EXPORT)
+    @GetMapping("/knowledge/{id}/document/{docId}/export_zip")
+    public void exportZip(@PathVariable("id") String id, @PathVariable("docId") String docId, HttpServletResponse response) throws IOException {
+        documentService.exportExcelZipByDocId(docId, response);
     }
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_DOWNLOAD)
