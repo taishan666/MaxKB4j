@@ -40,15 +40,12 @@ public class FileController{
 	}
 
 
-	@GetMapping(value = "admin/application/workspace/{appId}/oss/file/{id}")
-	public void getAppFile(@PathVariable("appId") String appId, @PathVariable("id") String id, HttpServletResponse response){
-		mongoFileService.getFile(id, response);
-	}
-
-
-	@GetMapping(value = "/{prefix}/oss/file/{id}")
-	public void getFile(@PathVariable String prefix,@PathVariable("id") String id, HttpServletResponse response){
-		mongoFileService.getFile(id, response);
+	@GetMapping({
+			"/admin/application/workspace/*/oss/file/{fileId:[\\w-]+}",
+			"/admin/application/workspace/*/WORK_FLOW/oss/file/{fileId:[\\w-]+}",
+			"/oss/file/{fileId:[\\w-]+}"})
+	public void getFile(@PathVariable("fileId") String fileId, HttpServletResponse response){
+		mongoFileService.getFile(fileId, response);
 	}
 
 

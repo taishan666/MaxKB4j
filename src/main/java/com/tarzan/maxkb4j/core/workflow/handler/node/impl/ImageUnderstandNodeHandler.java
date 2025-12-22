@@ -1,5 +1,6 @@
 package com.tarzan.maxkb4j.core.workflow.handler.node.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.tarzan.maxkb4j.core.assistant.Assistant;
 import com.tarzan.maxkb4j.core.langchain4j.AppChatMemory;
@@ -73,7 +74,7 @@ public class ImageUnderstandNodeHandler implements INodeHandler {
         node.getDetail().put("system", systemPrompt);
         node.getDetail().put("history_message", node.resetMessageList(historyMessages));
         node.getDetail().put("question", question);
-        node.getDetail().put("imageList", ImageFiles);
+        node.getDetail().put("imageList", JSON.toJSON(ImageFiles));
         return writeContextStream(nodeParams, tokenStream, node, workflow);
     }
 
