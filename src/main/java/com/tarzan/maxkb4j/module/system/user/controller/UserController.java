@@ -31,12 +31,7 @@ public class UserController{
 
 	private final UserService userService;
 
-	@SaCheckRole(type= LoginType.ADMIN,value = {RoleType.ADMIN, RoleType.USER},mode = SaMode.OR)
-	@GetMapping("user/profile")
-	public R<UserVO> getUserProfile(){
-		String userId = StpKit.ADMIN.getLoginIdAsString();
-		return R.data(userService.getUserById(userId));
-	}
+
 
 	@SaCheckRole(type=LoginType.ADMIN,value = RoleType.ADMIN)
 	@GetMapping("/user_manage/{page}/{size}")

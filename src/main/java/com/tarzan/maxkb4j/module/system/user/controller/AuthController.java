@@ -6,6 +6,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.common.api.R;
 import com.tarzan.maxkb4j.common.constant.AppConst;
 import com.tarzan.maxkb4j.common.util.StpKit;
+import com.tarzan.maxkb4j.module.system.user.constants.LoginType;
 import com.tarzan.maxkb4j.module.system.user.domain.dto.ResetPasswordDTO;
 import com.tarzan.maxkb4j.module.system.user.domain.dto.UserLoginDTO;
 import com.tarzan.maxkb4j.module.system.user.domain.entity.UserEntity;
@@ -40,12 +41,10 @@ public class AuthController {
 		return R.data(json);
 	}
 
-
-
-	@SaCheckLogin
-	@GetMapping("/user")
-	public R<UserVO> getUser(){
-		return R.data(userService.getUserById(StpKit.ADMIN.getLoginIdAsString()));
+	@GetMapping("user/profile")
+	public R<UserVO> getUserProfile(){
+		String userId = StpKit.ADMIN.getLoginIdAsString();
+		return R.data(userService.getUserById(userId));
 	}
 
 	@PostMapping("/user/login")
@@ -88,7 +87,6 @@ public class AuthController {
 		return R.status(false);
 	}
 
-	@SaCheckLogin
 	@PostMapping("/user/logout")
 	public R<Boolean> logout(){
 		if(StpKit.ADMIN.isLogin()){
