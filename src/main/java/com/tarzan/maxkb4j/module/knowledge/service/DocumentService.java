@@ -171,7 +171,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
 
     private JSONObject upload(MultipartFile file) throws IOException {
         String fileId = mongoFileService.storeFile(file);
-        return  new JSONObject(Map.of("allow_download", true, "source_file_id", fileId));
+        return  new JSONObject(Map.of("allow_download", true, "sourceFileId", fileId));
     }
 
     @Transactional
@@ -329,7 +329,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
                     });
                 }
                 doc.setCharLength(docCharLength.get());
-                doc.setMeta(new JSONObject(Map.of("allow_download", true, "source_file_id", e.getSourceFileId())));
+                doc.setMeta(new JSONObject(Map.of("allow_download", true, "sourceFileId", e.getSourceFileId())));
                 documentEntities.add(doc);
             });
             if (!CollectionUtils.isEmpty(paragraphEntities)) {
@@ -556,8 +556,8 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
     public boolean downloadSourceFile(String docId, HttpServletResponse response) throws IOException {
         DocumentEntity doc = this.getById(docId);
         JSONObject meta = doc.getMeta();
-        if (meta.get("source_file_id") != null) {
-            String fileId = doc.getMeta().getString("source_file_id");
+        if (meta.get("sourceFileId") != null) {
+            String fileId = doc.getMeta().getString("sourceFileId");
             InputStream inputStream = mongoFileService.getStream(fileId);
             IoUtil.copy(inputStream, response.getOutputStream());
             return true;
