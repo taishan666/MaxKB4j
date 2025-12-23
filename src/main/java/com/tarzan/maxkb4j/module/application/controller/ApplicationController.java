@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.tarzan.maxkb4j.common.aop.SaCheckPerm;
 import com.tarzan.maxkb4j.common.api.R;
 import com.tarzan.maxkb4j.common.constant.AppConst;
+import com.tarzan.maxkb4j.common.util.McpToolUtil;
 import com.tarzan.maxkb4j.module.application.domian.dto.ApplicationAccessTokenDTO;
 import com.tarzan.maxkb4j.module.application.domian.dto.ApplicationQuery;
 import com.tarzan.maxkb4j.module.application.domian.dto.ChatQueryDTO;
@@ -14,6 +15,7 @@ import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationEntity;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationListVO;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationStatisticsVO;
 import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationVO;
+import com.tarzan.maxkb4j.module.application.domian.vo.McpToolVO;
 import com.tarzan.maxkb4j.module.application.service.ApplicationService;
 import com.tarzan.maxkb4j.module.system.user.enums.PermissionEnum;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -143,6 +145,13 @@ public class ApplicationController {
     @GetMapping("/application/{id}/application_stats")
     public R<List<ApplicationStatisticsVO>> applicationStats(@PathVariable("id") String id, ChatQueryDTO query) {
         return R.success(applicationService.applicationStats(id, query));
+    }
+
+    @SaCheckPerm(PermissionEnum.APPLICATION_READ)
+    @PostMapping("/application/{id}/mcp_tools")
+    public R<List<McpToolVO>> mcpTools(@PathVariable("id") String id, @RequestBody JSONObject mcpServers) {
+        JSONObject mcpServersJson=JSONObject.parseObject(mcpServers.getString("mcpServers"));
+        return R.data(McpToolUtil.getToolVos(mcpServersJson));
     }
 
 
