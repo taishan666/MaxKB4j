@@ -8,6 +8,7 @@ import com.tarzan.maxkb4j.module.system.setting.domain.dto.DisplayInfo;
 import com.tarzan.maxkb4j.module.system.setting.domain.entity.SystemSettingEntity;
 import com.tarzan.maxkb4j.module.system.setting.enums.SettingType;
 import com.tarzan.maxkb4j.module.system.setting.service.SystemSettingService;
+import com.tarzan.maxkb4j.module.system.user.constants.LoginType;
 import com.tarzan.maxkb4j.module.system.user.constants.RoleType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -24,7 +25,7 @@ public class SystemSettingController{
 
 	private	final SystemSettingService systemSettingService;
 
-	@SaCheckRole(RoleType.ADMIN)
+	@SaCheckRole(type= LoginType.ADMIN,value = RoleType.ADMIN)
 	@GetMapping("/email_setting")
 	public R<JSONObject> getEmailSetting(){
 		SystemSettingEntity systemSetting=systemSettingService.lambdaQuery().eq(SystemSettingEntity::getType, SettingType.Email.getType()).one();
@@ -32,7 +33,7 @@ public class SystemSettingController{
 		return R.success(json);
 	}
 
-	@SaCheckRole(RoleType.ADMIN)
+	@SaCheckRole(type=LoginType.ADMIN,value = RoleType.ADMIN)
 	@PostMapping("/email_setting")
 	public R<Boolean> testEmail(@RequestBody JSONObject meta){
 		if(systemSettingService.testConnect(meta)){
@@ -42,13 +43,13 @@ public class SystemSettingController{
 		}
 	}
 
-	@SaCheckRole(RoleType.ADMIN)
+	@SaCheckRole(type=LoginType.ADMIN,value = RoleType.ADMIN)
 	@PutMapping("/email_setting")
 	public R<Boolean> saveEmailSetting(@RequestBody JSONObject meta){
 		return R.status(systemSettingService.saveOrUpdate(meta, SettingType.Email.getType()));
 	}
 
-	@SaCheckRole(RoleType.ADMIN)
+	@SaCheckRole(type=LoginType.ADMIN,value = RoleType.ADMIN)
 	@PostMapping(value = "/display/update", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public R<DisplayInfo> display(DisplayInfo formData){
 		JSONObject jsonObject = JSONObject.parseObject(JSONObject.toJSONString(formData));
@@ -56,7 +57,7 @@ public class SystemSettingController{
 		return R.data(formData);
 	}
 
-	@SaCheckRole(RoleType.ADMIN)
+	@SaCheckRole(type=LoginType.ADMIN,value = RoleType.ADMIN)
 	@GetMapping("/display/info")
 	public R<DisplayInfo> display(){
 		SystemSettingEntity systemSetting=systemSettingService.lambdaQuery().eq(SystemSettingEntity::getType, SettingType.DISPLAY.getType()).one();

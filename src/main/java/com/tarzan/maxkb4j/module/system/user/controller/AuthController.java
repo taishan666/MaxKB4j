@@ -40,11 +40,7 @@ public class AuthController {
 		return R.data(json);
 	}
 
-	@GetMapping("user/profile")
-	public R<UserVO> getUserProfile(){
-		String userId = StpKit.ADMIN.getLoginIdAsString();
-		return R.data(userService.getUserById(userId));
-	}
+
 
 	@SaCheckLogin
 	@GetMapping("/user")
