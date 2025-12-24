@@ -11,8 +11,8 @@ import java.util.Map;
 import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.VARIABLE_SPLITTING;
 
 public class VariableSplittingNode extends INode {
-    public VariableSplittingNode(JSONObject properties) {
-        super(properties);
+    public VariableSplittingNode(String id,JSONObject properties) {
+        super(id,properties);
         this.setType(VARIABLE_SPLITTING.getKey());
     }
 

@@ -1,8 +1,10 @@
 package com.tarzan.maxkb4j.core.chatpipeline;
 
 import com.alibaba.fastjson.JSONObject;
-import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatRecordEntity;
-import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
+import com.tarzan.maxkb4j.module.application.domain.entity.ApplicationChatRecordEntity;
+import com.tarzan.maxkb4j.module.application.domain.vo.ApplicationVO;
+import com.tarzan.maxkb4j.module.application.domain.vo.ChatMessageVO;
+import com.tarzan.maxkb4j.module.chat.dto.ChatParams;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.ParagraphVO;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
@@ -20,6 +22,8 @@ import java.util.Map;
 public class PipelineManage {
     public List<IChatPipelineStep> stepList;
     public Map<String, Object> context;
+    public ApplicationVO application;
+    public ChatParams chatParams;
     public Sinks.Many<ChatMessageVO> sink;
 
     public PipelineManage(List<IChatPipelineStep> stepList) {
@@ -42,10 +46,25 @@ public class PipelineManage {
         return (String) this.context.get("answer");
     }
 
-    @SuppressWarnings("unchecked")
+    public String run(ApplicationVO application, ChatParams chatParams, Sinks.Many<ChatMessageVO> sink) {
+        if (application != null) {
+            this.application= application;
+        }
+        if (chatParams != null) {
+            this.chatParams= chatParams;
+        }
+        if (sink != null){
+            this.sink = sink;
+        }
+        for (IChatPipelineStep step : stepList) {
+            step.run(this);
+        }
+        return (String) this.context.get("answer");
+    }
+
     public List<ChatMessage> getHistoryMessages(int dialogueNumber) {
         List<ChatMessage> historyMessages=new ArrayList<>();
-        List<ApplicationChatRecordEntity> historyChatRecords= (List<ApplicationChatRecordEntity>) context.get("chatRecordList");
+        List<ApplicationChatRecordEntity> historyChatRecords= chatParams.getHistoryChatRecords();
         int total=historyChatRecords.size();
         int startIndex = Math.max(total - dialogueNumber, 0);
         for (int i = startIndex; i < total; i++) {

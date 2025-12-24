@@ -278,7 +278,7 @@ public class MyBatisPlusTool {
             sb.append("import org.springframework.web.bind.annotation.RestController;\n");
             sb.append("import lombok.AllArgsConstructor;\n");
             sb.append("import ").append(packageName).append(".service.").append(beanName).append("Service;\n");
-            sb.append("/**\n" + " * @author ").append(author).append("\n").append(" * @date ").append(format.format(new Date())).append("\n").append(" */\n").append("@RestController\n").append("@AllArgsConstructor\n").append("public class ").append(beanName).append("Controller{\n")
+            sb.append("/**\n" + " * @author ").append(author).append("\n").append(" * @date ").append(format.format(new Date())).append("\n").append(" */\n").append("@RestController\n").append("@RequiredArgsConstructor\n").append("public class ").append(beanName).append("Controller{\n")
                     .append("\n")
                     .append("\tprivate\tfinal ").append(beanName).append("Service ").append(aliasName).append("Service;\n")
                     .append("}");

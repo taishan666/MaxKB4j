@@ -5,10 +5,10 @@ import com.tarzan.maxkb4j.core.event.DocumentIndexEvent;
 import com.tarzan.maxkb4j.core.event.ParagraphIndexEvent;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.ParagraphEntity;
 import com.tarzan.maxkb4j.module.knowledge.service.DocumentService;
-import com.tarzan.maxkb4j.module.knowledge.service.KnowledgeBaseService;
 import com.tarzan.maxkb4j.module.knowledge.service.ParagraphService;
+import com.tarzan.maxkb4j.module.knowledge.service.knowledgeModelService;
 import dev.langchain4j.model.embedding.EmbeddingModel;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
@@ -18,10 +18,10 @@ import java.util.List;
 
 @Slf4j
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class DataIndexListener {
 
-    private final KnowledgeBaseService knowledgeBaseService;
+    private final knowledgeModelService knowledgeModelService;
     private final DocumentService documentService;
     private final ParagraphService paragraphService;
 
@@ -29,7 +29,7 @@ public class DataIndexListener {
     @EventListener
     public void handleEvent(DocumentIndexEvent event) {
         System.out.println("收到文档向量化事件消息: " + event.getDocIds());
-        EmbeddingModel embeddingModel=knowledgeBaseService.getEmbeddingModel(event.getKnowledgeId());
+        EmbeddingModel embeddingModel=knowledgeModelService.getEmbeddingModel(event.getKnowledgeId());
         documentService.updateStatusByIds(event.getDocIds(), 1, 0);
         for (String docId : event.getDocIds()) {
             List<ParagraphEntity> paragraphs = paragraphService.listByStateIds(docId,1, event.getStateList());
@@ -42,7 +42,7 @@ public class DataIndexListener {
     public void handleEvent(ParagraphIndexEvent event) {
         System.out.println("收到段落向量化事件消息: " + event.getParagraphIds());
         List<ParagraphEntity> paragraphs= paragraphService.listByIds(event.getParagraphIds());
-        EmbeddingModel embeddingModel=knowledgeBaseService.getEmbeddingModel(event.getKnowledgeId());
+        EmbeddingModel embeddingModel=knowledgeModelService.getEmbeddingModel(event.getKnowledgeId());
         embed(embeddingModel, event.getDocId(), paragraphs);
     }
 

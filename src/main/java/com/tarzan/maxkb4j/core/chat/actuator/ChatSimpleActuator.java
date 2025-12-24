@@ -8,20 +8,18 @@ import com.tarzan.maxkb4j.core.chatpipeline.step.chatstep.IChatStep;
 import com.tarzan.maxkb4j.core.chatpipeline.step.generatehumanmessagestep.IGenerateHumanMessageStep;
 import com.tarzan.maxkb4j.core.chatpipeline.step.resetproblemstep.IResetProblemStep;
 import com.tarzan.maxkb4j.core.chatpipeline.step.searchdatasetstep.ISearchDatasetStep;
-import com.tarzan.maxkb4j.module.application.domian.dto.ChatInfo;
-import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationVO;
-import com.tarzan.maxkb4j.module.application.handler.PostResponseHandler;
-import com.tarzan.maxkb4j.module.chat.cache.ChatCache;
+import com.tarzan.maxkb4j.module.application.domain.vo.ApplicationVO;
+import com.tarzan.maxkb4j.module.application.domain.vo.ChatMessageVO;
 import com.tarzan.maxkb4j.module.chat.dto.ChatParams;
 import com.tarzan.maxkb4j.module.chat.dto.ChatResponse;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
+import reactor.core.publisher.Sinks;
 
-import java.util.Map;
 import java.util.Objects;
 
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Component
 public class ChatSimpleActuator implements IChatActuator {
 
@@ -29,15 +27,9 @@ public class ChatSimpleActuator implements IChatActuator {
     private final ISearchDatasetStep searchDatasetStep;
     private final IGenerateHumanMessageStep generateHumanMessageStep;
     private final IChatStep chatStep;
-    private final PostResponseHandler postResponseHandler;
-
 
     @Override
-    public ChatResponse chatMessage(ApplicationVO application, ChatParams chatParams) {
-        long startTime = System.currentTimeMillis();
-        ChatInfo chatInfo = ChatCache.get(chatParams.getChatId());
-        String problemText = chatParams.getMessage();
-        boolean reChat = chatParams.getReChat() != null && chatParams.getReChat();
+    public ChatResponse chatMessage(ApplicationVO application, ChatParams chatParams, Sinks.Many<ChatMessageVO> sink) {
         PipelineManage.Builder pipelineManageBuilder = new PipelineManage.Builder();
         Boolean problemOptimization = application.getProblemOptimization();
         if (!CollectionUtils.isEmpty(application.getKnowledgeIdList())) {
@@ -50,14 +42,10 @@ public class ChatSimpleActuator implements IChatActuator {
         pipelineManageBuilder.addStep(chatStep);
         PipelineManage pipelineManage = pipelineManageBuilder.build();
         chatParams.setChatRecordId(chatParams.getChatRecordId() == null ? IdWorker.get32UUID() : chatParams.getChatRecordId());
-        Map<String, Object> params = chatInfo.toPipelineManageParams(application, chatParams.getChatRecordId(), problemText,reChat, chatParams.getChatUserId(), chatParams.getChatUserType());
-        String answer = pipelineManage.run(params, chatParams.getSink());
+        String answer = pipelineManage.run(application,chatParams, sink);
         JSONObject details = pipelineManage.getDetails();
-        ChatResponse chatResponse = new ChatResponse(answer, details);
-        postResponseHandler.handler(chatParams, chatResponse, null,  startTime);
-        return chatResponse;
+        return new ChatResponse(answer, details);
     }
-
 
 
 }

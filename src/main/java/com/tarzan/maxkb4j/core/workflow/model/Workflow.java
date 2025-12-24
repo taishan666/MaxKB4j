@@ -2,13 +2,15 @@ package com.tarzan.maxkb4j.core.workflow.model;
 
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.tarzan.maxkb4j.core.workflow.enums.DialogueType;
 import com.tarzan.maxkb4j.core.workflow.enums.NodeRunStatus;
 import com.tarzan.maxkb4j.core.workflow.enums.NodeType;
+import com.tarzan.maxkb4j.core.workflow.enums.WorkflowMode;
 import com.tarzan.maxkb4j.core.workflow.logic.LfEdge;
 import com.tarzan.maxkb4j.core.workflow.node.INode;
-import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
-import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatRecordEntity;
+import com.tarzan.maxkb4j.module.application.domain.entity.ApplicationChatRecordEntity;
+import com.tarzan.maxkb4j.module.application.domain.vo.ChatMessageVO;
 import com.tarzan.maxkb4j.module.chat.dto.ChatParams;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
@@ -17,6 +19,7 @@ import dev.langchain4j.model.input.PromptTemplate;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import reactor.core.publisher.Sinks;
 
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -33,27 +36,42 @@ public class Workflow {
     private ChatParams chatParams;
     private List<INode> nodes;
     private List<LfEdge> edges;
+    private WorkflowMode workflowMode;
     private Map<String, Object> context;
     private Map<String, Object> chatContext;
     private List<INode> nodeContext;
     private String answer;
-    private ApplicationChatRecordEntity chatRecord;
     private List<ApplicationChatRecordEntity> historyChatRecords;
+    @JsonIgnore
+    private Sinks.Many<ChatMessageVO> sink;
 
 
-    public Workflow(List<INode> nodes, List<LfEdge> edges, ChatParams chatParams, ApplicationChatRecordEntity chatRecord, List<ApplicationChatRecordEntity> historyChatRecords) {
+    public Workflow(List<INode> nodes, List<LfEdge> edges, ChatParams chatParams, Sinks.Many<ChatMessageVO> sink) {
+        this.workflowMode=WorkflowMode.APPLICATION;
         this.nodes = nodes;
         this.edges = edges;
         this.chatParams = chatParams;
         this.context = new HashMap<>();
         this.chatContext = new HashMap<>();
         this.nodeContext = new CopyOnWriteArrayList<>();
-        this.chatRecord = chatRecord;
         this.answer = "";
-        this.historyChatRecords = CollectionUtils.isEmpty(historyChatRecords) ? List.of() : historyChatRecords;
-        if (StringUtils.isNotBlank(chatParams.getRuntimeNodeId()) && Objects.nonNull(chatRecord)) {
-            this.loadNode(chatRecord, chatParams.getRuntimeNodeId(), chatParams.getNodeData());
+        this.historyChatRecords = CollectionUtils.isEmpty(chatParams.getHistoryChatRecords()) ? List.of() : chatParams.getHistoryChatRecords();
+        if (StringUtils.isNotBlank(chatParams.getRuntimeNodeId()) && Objects.nonNull(chatParams.getChatRecord())) {
+            this.loadNode(chatParams.getChatRecord(), chatParams.getRuntimeNodeId(), chatParams.getNodeData());
         }
+        this.sink = sink;
+    }
+
+    public Workflow(WorkflowMode workflowMode,List<INode> nodes,List<LfEdge> edges) {
+        this.workflowMode=workflowMode;
+        this.nodes = nodes;
+        this.edges = edges;
+        this.context = new HashMap<>();
+        this.chatContext = new HashMap<>();
+        this.nodeContext = new CopyOnWriteArrayList<>();
+        this.answer = "";
+        this.historyChatRecords = List.of();
+        this.sink = null;
     }
 
 
@@ -91,7 +109,6 @@ public class Workflow {
             }
         }
     }
-
 
     public INode getStartNode() {
         return getNodeClsById(NodeType.START.getKey(), List.of(), null);
@@ -151,7 +168,7 @@ public class Workflow {
     }
 
 
-    private INode getNodeClsById(String nodeId, List<String> upNodeIds, Function<INode, JSONObject> getNodeProperties) {
+    public INode getNodeClsById(String nodeId, List<String> upNodeIds, Function<INode, JSONObject> getNodeProperties) {
         Optional<INode> nodeOpt = nodes.stream().filter(Objects::nonNull).filter(e -> nodeId.equals(e.getId())).findFirst();
         if (nodeOpt.isPresent()) {
             INode node = nodeOpt.get();
@@ -204,7 +221,7 @@ public class Workflow {
         for (int index = 0; index < nodeContext.size(); index++) {
             INode node = nodeContext.get(index);
             JSONObject runtimeDetail = new JSONObject();
-            runtimeDetail.putAll(node.executeDetail());
+            runtimeDetail.putAll(node.getDetail());
             runtimeDetail.put("nodeId", node.getId());
             runtimeDetail.put("upNodeIdList", node.getUpNodeIdList());
             runtimeDetail.put("runtimeNodeId", node.getRuntimeNodeId());
@@ -229,37 +246,6 @@ public class Workflow {
         }
         this.nodeContext.add(currentNode);
     }
-
-
-    private boolean hasNextNode(INode currentNode, NodeResult nodeResult) {
-        if (nodeResult != null && nodeResult.isAssertionResult()) {
-            for (LfEdge edge : edges) {
-                if (edge.getSourceNodeId().equals(currentNode.getId())) {
-                    String branchId = (String) nodeResult.getNodeVariable().get("branchId");
-                    String expectedSourceAnchorId = String.format("%s_%s_right", edge.getSourceNodeId(), branchId);
-                    if (expectedSourceAnchorId.equals(edge.getSourceAnchorId())) {
-                        return true;
-                    }
-                }
-            }
-        } else {
-            for (LfEdge edge : edges) {
-                if (edge.getSourceNodeId().equals(currentNode.getId())) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    public boolean isResult(INode currentNode, NodeResult currentNodeResult) {
-        if (currentNode.getNodeData() == null) {
-            return false;
-        }
-        Boolean isResult = currentNode.getNodeData().getBoolean("isResult");
-        return isResult != null ? isResult : !hasNextNode(currentNode, currentNodeResult);
-    }
-
 
     @SuppressWarnings("unchecked")
     public Object getFieldValue(Object value, String source) {

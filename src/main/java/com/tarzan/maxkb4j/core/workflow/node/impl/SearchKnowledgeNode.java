@@ -3,7 +3,7 @@ package com.tarzan.maxkb4j.core.workflow.node.impl;
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.workflow.node.INode;
 import com.tarzan.maxkb4j.core.workflow.model.Workflow;
-import com.tarzan.maxkb4j.module.application.domian.entity.KnowledgeSetting;
+import com.tarzan.maxkb4j.module.application.domain.entity.KnowledgeSetting;
 import lombok.Data;
 
 import java.util.List;
@@ -15,8 +15,8 @@ public class SearchKnowledgeNode extends INode {
 
 
 
-    public SearchKnowledgeNode(JSONObject properties) {
-        super(properties);
+    public SearchKnowledgeNode(String id,JSONObject properties) {
+        super(id,properties);
         this.setType(SEARCH_KNOWLEDGE.getKey());
     }
 

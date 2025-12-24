@@ -1,18 +1,21 @@
 package com.tarzan.maxkb4j.core.workflow.handler;
 
+import com.tarzan.maxkb4j.core.workflow.builder.NodeHandlerBuilder;
 import com.tarzan.maxkb4j.core.workflow.enums.NodeRunStatus;
 import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;
+import com.tarzan.maxkb4j.core.workflow.model.NodeResult;
+import com.tarzan.maxkb4j.core.workflow.model.NodeResultFuture;
 import com.tarzan.maxkb4j.core.workflow.model.Workflow;
 import com.tarzan.maxkb4j.core.workflow.node.INode;
-import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
-import com.tarzan.maxkb4j.core.workflow.result.NodeResultFuture;
-import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
+import com.tarzan.maxkb4j.module.application.domain.vo.ChatMessageVO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 @Slf4j
@@ -31,7 +34,6 @@ public class WorkflowHandler {
         runChainNodes(workflow, List.of(currentNode));
         return workflow.getAnswer();
     }
-
 
     public void runChainNodes(Workflow workflow, List<INode> nodeList) {
         if (nodeList == null || nodeList.isEmpty()) {
@@ -58,6 +60,7 @@ public class WorkflowHandler {
     public List<INode> runChainNode(Workflow workflow, INode node) {
         if (NodeRunStatus.READY.equals(node.getRunStatus())|| NodeRunStatus.INTERRUPT.equals(node.getRunStatus())) {
             if (workflow.dependentNodeBeenExecuted(node)){
+                workflow.appendNode(node);
                 NodeResultFuture nodeResultFuture = runNodeFuture(workflow, node);
                 node.setStatus(nodeResultFuture.getStatus());
                 NodeResult nodeResult = nodeResultFuture.getResult();
@@ -68,8 +71,6 @@ public class WorkflowHandler {
                         node.setRunStatus(NodeRunStatus.INTERRUPT);
                     }
                 }
-                // 添加已运行节点
-                workflow.appendNode(node);
                 // 获取下一个节点列表
                 return workflow.getNextNodeList(node, nodeResult);
             }
@@ -105,8 +106,9 @@ public class WorkflowHandler {
                     workflow.getChatParams().getChatRecordId(),
                     String.format("Exception: %s", ex.getMessage()),
                     "",
+                    null,
                     true);
-            workflow.getChatParams().getSink().tryEmitNext(errMessage);
+            workflow.getSink().tryEmitNext(errMessage);
             node.setRunStatus(NodeRunStatus.ERROR);
             return new NodeResultFuture(null, ex, 500);
         }
@@ -114,3 +116,6 @@ public class WorkflowHandler {
 
 
 }
+
+
+

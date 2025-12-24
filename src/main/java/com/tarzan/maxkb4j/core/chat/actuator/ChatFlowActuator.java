@@ -3,54 +3,41 @@ package com.tarzan.maxkb4j.core.chat.actuator;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.tarzan.maxkb4j.core.chat.provider.IChatActuator;
-import com.tarzan.maxkb4j.core.workflow.factory.NodeFactory;
+import com.tarzan.maxkb4j.core.workflow.builder.NodeBuilder;
 import com.tarzan.maxkb4j.core.workflow.handler.WorkflowHandler;
 import com.tarzan.maxkb4j.core.workflow.logic.LogicFlow;
 import com.tarzan.maxkb4j.core.workflow.model.Workflow;
 import com.tarzan.maxkb4j.core.workflow.node.INode;
-import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatRecordEntity;
-import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationVO;
-import com.tarzan.maxkb4j.module.application.handler.PostResponseHandler;
-import com.tarzan.maxkb4j.module.application.service.ApplicationChatRecordService;
+import com.tarzan.maxkb4j.module.application.domain.vo.ApplicationVO;
+import com.tarzan.maxkb4j.module.application.domain.vo.ChatMessageVO;
 import com.tarzan.maxkb4j.module.chat.dto.ChatParams;
 import com.tarzan.maxkb4j.module.chat.dto.ChatResponse;
-import lombok.AllArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import reactor.core.publisher.Sinks;
 
 import java.util.List;
 import java.util.Objects;
 
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Component
 public class ChatFlowActuator implements IChatActuator {
 
-    private final ApplicationChatRecordService chatRecordService;
-    private final PostResponseHandler postResponseHandler;
     private final WorkflowHandler workflowHandler;
 
     @Override
-    public ChatResponse chatMessage(ApplicationVO application, ChatParams chatParams) {
-        long startTime = System.currentTimeMillis();
-        List<ApplicationChatRecordEntity> historyChatRecordList = chatRecordService.getChatRecords(chatParams.getChatId());
-        ApplicationChatRecordEntity chatRecord = null;
-        if (StringUtils.isNotBlank(chatParams.getChatRecordId())) {
-            chatRecord = historyChatRecordList.stream().filter(e -> e.getId().equals(chatParams.getChatRecordId())).findFirst().orElse(null);
-        }
+    public ChatResponse chatMessage(ApplicationVO application, ChatParams chatParams, Sinks.Many<ChatMessageVO> sink) {
         chatParams.setChatRecordId(chatParams.getChatRecordId() == null ? IdWorker.get32UUID() : chatParams.getChatRecordId());
         LogicFlow logicFlow = LogicFlow.newInstance(application.getWorkFlow());
-        List<INode> nodes = logicFlow.getNodes().stream().map(NodeFactory::getNode).filter(Objects::nonNull).toList();
-        Workflow workflow= new Workflow(
+        List<INode> nodes = logicFlow.getNodes().stream().map(NodeBuilder::getNode).filter(Objects::nonNull).toList();
+        Workflow workflow = new Workflow(
                 nodes,
                 logicFlow.getEdges(),
                 chatParams,
-                chatRecord,
-                historyChatRecordList);
+                sink);
         String answer = workflowHandler.execute(workflow);
         JSONObject details = workflow.getRuntimeDetails();
-        ChatResponse chatResponse = new ChatResponse(answer, details);
-        postResponseHandler.handler(chatParams, chatResponse, chatRecord, startTime);
-        return chatResponse;
+        return new ChatResponse(answer, details);
     }
 
 }

@@ -15,8 +15,8 @@ import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.HTTP_CLIENT;
 public class HttpNode extends INode {
 
 
-    public HttpNode(JSONObject properties) {
-        super(properties);
+    public HttpNode(String id,JSONObject properties) {
+        super(id,properties);
         super.setType(HTTP_CLIENT.getKey());
     }
 

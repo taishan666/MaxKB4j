@@ -11,8 +11,8 @@ import java.util.Map;
 import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.NL2SQL;
 
 public class NL2SqlNode extends INode {
-    public NL2SqlNode(JSONObject properties) {
-        super(properties);
+    public NL2SqlNode(String id,JSONObject properties) {
+        super(id,properties);
         this.setType(NL2SQL.getKey());
     }
 

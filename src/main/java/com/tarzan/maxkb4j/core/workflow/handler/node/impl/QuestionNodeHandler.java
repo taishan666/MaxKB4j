@@ -2,19 +2,21 @@ package com.tarzan.maxkb4j.core.workflow.handler.node.impl;
 
 import com.tarzan.maxkb4j.core.assistant.Assistant;
 import com.tarzan.maxkb4j.core.langchain4j.AppChatMemory;
-import com.tarzan.maxkb4j.core.workflow.model.Workflow;
+import com.tarzan.maxkb4j.core.workflow.annotation.NodeHandlerType;
 import com.tarzan.maxkb4j.core.workflow.enums.DialogueType;
+import com.tarzan.maxkb4j.core.workflow.enums.NodeType;
 import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;
+import com.tarzan.maxkb4j.core.workflow.model.Workflow;
 import com.tarzan.maxkb4j.core.workflow.node.INode;
 import com.tarzan.maxkb4j.core.workflow.node.impl.QuestionNode;
-import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
+import com.tarzan.maxkb4j.core.workflow.model.NodeResult;
 import com.tarzan.maxkb4j.module.model.info.service.ModelFactory;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.output.TokenUsage;
 import dev.langchain4j.service.AiServices;
 import dev.langchain4j.service.Result;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -22,7 +24,8 @@ import java.util.List;
 import java.util.Map;
 
 @Slf4j
-@AllArgsConstructor
+@NodeHandlerType(NodeType.QUESTION)
+@RequiredArgsConstructor
 @Component
 public class QuestionNodeHandler implements INodeHandler {
 
@@ -46,9 +49,11 @@ public class QuestionNodeHandler implements INodeHandler {
         TokenUsage tokenUsage =  result.tokenUsage();
         node.getDetail().put("messageTokens", tokenUsage.inputTokenCount());
         node.getDetail().put("answerTokens", tokenUsage.outputTokenCount());
-        node.setAnswerText(result.content());
+        if (nodeParams.getIsResult()){
+            node.setAnswerText(result.content());
+        }
         return new NodeResult(Map.of(
-                "answer", node.getAnswerText()
+                "answer", result.content()
         ));
     }
 }

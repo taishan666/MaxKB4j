@@ -2,7 +2,7 @@ package com.tarzan.maxkb4j.common.form;
 
 import com.alibaba.fastjson.JSONObject;
 
-public class SwitchField extends BaseFiled{
+public class SwitchField extends BaseField {
 
     public SwitchField(String labelName,String field,String tooltip,boolean defaultValue) {
         super.setInput_type("SwitchInput");

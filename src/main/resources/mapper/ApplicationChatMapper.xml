@@ -3,7 +3,7 @@
 <mapper namespace="com.tarzan.maxkb4j.module.application.mapper.ApplicationChatMapper">
 
 
-    <select id="statistics" resultType="com.tarzan.maxkb4j.module.application.domian.vo.ApplicationStatisticsVO">
+    <select id="statistics" resultType="com.tarzan.maxkb4j.module.application.domain.vo.ApplicationStatisticsVO">
         SELECT SUM(chat.star_num) AS star_num,
         SUM (chat.trample_num) AS trample_num,
         SUM(chat.chat_record_count) as chat_record_count,
@@ -29,7 +29,7 @@
         </where>
         GROUP BY "day";
     </select>
-    <select id="chatRecordDetail" resultType="com.tarzan.maxkb4j.module.application.domian.vo.ChatRecordDetailVO">
+    <select id="chatRecordDetail" resultType="com.tarzan.maxkb4j.module.application.domain.vo.ChatRecordDetailVO">
         SELECT record.chat_id,chat.overview,record.vote_status,record.problemText,record.answer_text, record.cost,record."index", record.run_time, record.create_time
         FROM application_chat chat
         LEFT JOIN application_chat_record record

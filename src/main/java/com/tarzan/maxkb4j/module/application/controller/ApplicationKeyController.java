@@ -1,10 +1,10 @@
 package com.tarzan.maxkb4j.module.application.controller;
 
-import com.tarzan.maxkb4j.common.constant.AppConst;
 import com.tarzan.maxkb4j.common.api.R;
-import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationApiKeyEntity;
+import com.tarzan.maxkb4j.common.constant.AppConst;
+import com.tarzan.maxkb4j.module.application.domain.entity.ApplicationApiKeyEntity;
 import com.tarzan.maxkb4j.module.application.service.ApplicationApiKeyService;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -15,7 +15,7 @@ import java.util.List;
  */
 @RestController
 @RequestMapping(AppConst.ADMIN_API+"/workspace/default")
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class ApplicationKeyController {
 
     private final ApplicationApiKeyService apiKeyService;

@@ -12,8 +12,8 @@ import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.VARIABLE_AGGREGATE
 
 
 public class VariableAggregationNode extends INode {
-    public VariableAggregationNode(JSONObject properties) {
-        super(properties);
+    public VariableAggregationNode(String id,JSONObject properties) {
+        super(id,properties);
         this.setType(VARIABLE_AGGREGATE.getKey());
     }
 

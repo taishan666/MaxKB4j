@@ -12,8 +12,8 @@ import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.FORM;
 
 public class FormNode extends INode {
 
-    public FormNode(JSONObject properties) {
-        super(properties);
+    public FormNode(String id,JSONObject properties) {
+        super(id,properties);
         super.setType(FORM.getKey());
         super.setViewType("single_view");
     }

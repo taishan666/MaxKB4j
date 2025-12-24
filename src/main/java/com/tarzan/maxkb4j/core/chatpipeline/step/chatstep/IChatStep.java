@@ -3,10 +3,10 @@ package com.tarzan.maxkb4j.core.chatpipeline.step.chatstep;
 import com.alibaba.excel.util.StringUtils;
 import com.tarzan.maxkb4j.core.chatpipeline.IChatPipelineStep;
 import com.tarzan.maxkb4j.core.chatpipeline.PipelineManage;
-import com.tarzan.maxkb4j.module.application.domian.entity.KnowledgeSetting;
-import com.tarzan.maxkb4j.module.application.domian.entity.NoReferencesSetting;
-import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationVO;
-import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
+import com.tarzan.maxkb4j.module.application.domain.entity.KnowledgeSetting;
+import com.tarzan.maxkb4j.module.application.domain.entity.NoReferencesSetting;
+import com.tarzan.maxkb4j.module.application.domain.vo.ApplicationVO;
+import com.tarzan.maxkb4j.module.application.domain.vo.ChatMessageVO;
 import com.tarzan.maxkb4j.module.application.enums.AIAnswerType;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.ParagraphVO;
 import dev.langchain4j.data.message.AiMessage;
@@ -21,11 +21,11 @@ public abstract class IChatStep extends IChatPipelineStep {
     @Override
     @SuppressWarnings("unchecked")
     protected void _run(PipelineManage manage) {
-        String chatId = (String) manage.context.get("chatId");
+        String chatId = manage.chatParams.getChatId();
         List<ParagraphVO> paragraphList = (List<ParagraphVO>) manage.context.get("paragraphList");
-        ApplicationVO application = (ApplicationVO) manage.context.get("application");
+        ApplicationVO application = manage.application;
         String userPrompt = (String) manage.context.get("user_prompt");
-        String chatRecordId = (String) manage.context.get("chatRecordId");
+        String chatRecordId =manage.chatParams.getChatRecordId();
         AtomicReference<String> answerText = new AtomicReference<>("");
         if (CollectionUtils.isEmpty(paragraphList)) {
             paragraphList = new ArrayList<>();
@@ -38,7 +38,7 @@ public abstract class IChatStep extends IChatPipelineStep {
         }
         KnowledgeSetting knowledgeSetting = application.getKnowledgeSetting();
         NoReferencesSetting noReferencesSetting = knowledgeSetting.getNoReferencesSetting();
-        String problemText = (String) manage.context.get("problemText");
+        String problemText = manage.chatParams.getMessage();
         boolean isAiAnswer = false;
        if (StringUtils.isBlank(problemText)) {
             answerText.set("用户消息不能为空");
@@ -57,11 +57,7 @@ public abstract class IChatStep extends IChatPipelineStep {
                 }
             }
         }
-       if (isAiAnswer){
-           manage.sink.tryEmitNext(this.toChatMessageVO(chatId, chatRecordId, "", "",true));
-       }else {
-           manage.sink.tryEmitNext(this.toChatMessageVO(chatId, chatRecordId, answerText.get(), "",true));
-       }
+        manage.sink.tryEmitNext(this.toChatMessageVO(chatId, chatRecordId, isAiAnswer?answerText.get():"", "",true));
         manage.context.put("answer", answerText.get());
     }
 

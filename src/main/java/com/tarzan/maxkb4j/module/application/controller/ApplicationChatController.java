@@ -1,16 +1,14 @@
 package com.tarzan.maxkb4j.module.application.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.tarzan.maxkb4j.common.aop.SaCheckPerm;
 import com.tarzan.maxkb4j.common.api.R;
 import com.tarzan.maxkb4j.common.constant.AppConst;
-import com.tarzan.maxkb4j.module.application.domian.dto.ChatQueryDTO;
-import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatEntity;
+import com.tarzan.maxkb4j.module.application.domain.dto.ChatQueryDTO;
+import com.tarzan.maxkb4j.module.application.domain.entity.ApplicationChatEntity;
 import com.tarzan.maxkb4j.module.application.service.ApplicationChatService;
-import com.tarzan.maxkb4j.module.system.user.enums.PermissionEnum;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,7 +21,7 @@ import java.util.List;
  */
 @Tag(name = "APP会话管理", description = "APP会话管理")
 @RestController
-@AllArgsConstructor
+@RequiredArgsConstructor
 @RequestMapping(AppConst.ADMIN_API + "/workspace/default")
 @Slf4j
 public class ApplicationChatController {

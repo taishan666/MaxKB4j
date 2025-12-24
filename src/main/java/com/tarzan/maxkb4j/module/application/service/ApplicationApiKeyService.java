@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tarzan.maxkb4j.common.constant.AppConst;
 import com.tarzan.maxkb4j.common.util.StpKit;
-import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationApiKeyEntity;
+import com.tarzan.maxkb4j.module.application.domain.entity.ApplicationApiKeyEntity;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationApiKeyMapper;
 import org.springframework.stereotype.Service;
 

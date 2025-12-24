@@ -14,8 +14,8 @@ import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.APPLICATION;
 
 public class ApplicationNode extends INode {
 
-    public ApplicationNode(JSONObject properties) {
-        super(properties);
+    public ApplicationNode(String id,JSONObject properties) {
+        super(id,properties);
         this.setType(APPLICATION.getKey());
     }
 

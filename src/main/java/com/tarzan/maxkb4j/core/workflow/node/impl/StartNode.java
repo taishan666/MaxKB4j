@@ -12,8 +12,8 @@ import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.START;
 public class StartNode extends INode {
 
 
-    public StartNode(JSONObject properties) {
-        super(properties);
+    public StartNode(String id,JSONObject properties) {
+        super(id,properties);
         super.setType(START.getKey());
     }
 
@@ -44,7 +44,7 @@ public class StartNode extends INode {
     }
 
     @Override
-    public Map<String, Object> executeDetail() {
+    public Map<String, Object> getDetail() {
         detail.put("imageList", detail.get("image"));
         detail.put("documentList", detail.get("document"));
         detail.put("audioList", detail.get("audio"));

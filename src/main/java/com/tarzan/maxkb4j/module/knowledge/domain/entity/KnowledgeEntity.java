@@ -15,7 +15,7 @@ import lombok.EqualsAndHashCode;
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
-@TableName(value = "knowledge")
+@TableName(value = "knowledge", autoResultMap = true)
 public class KnowledgeEntity extends BaseEntity {
     
     private String name;
@@ -28,4 +28,7 @@ public class KnowledgeEntity extends BaseEntity {
     private Integer fileSizeLimit;
     private Integer fileCountLimit;
     private String folderId;
+    @TableField(typeHandler = JSONBTypeHandler.class)
+    private JSONObject workFlow;
+    private Boolean isPublish;
 }

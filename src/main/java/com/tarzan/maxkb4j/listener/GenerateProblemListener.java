@@ -5,13 +5,13 @@ import com.tarzan.maxkb4j.core.event.GenerateProblemEvent;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.ParagraphEntity;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.ProblemEntity;
 import com.tarzan.maxkb4j.module.knowledge.service.DocumentService;
-import com.tarzan.maxkb4j.module.knowledge.service.KnowledgeBaseService;
 import com.tarzan.maxkb4j.module.knowledge.service.ParagraphService;
 import com.tarzan.maxkb4j.module.knowledge.service.ProblemService;
+import com.tarzan.maxkb4j.module.knowledge.service.knowledgeModelService;
 import com.tarzan.maxkb4j.module.model.info.service.ModelFactory;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.embedding.EmbeddingModel;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
@@ -21,21 +21,21 @@ import java.util.List;
 
 @Slf4j
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class GenerateProblemListener {
 
     private final DocumentService documentService;
     private final ParagraphService paragraphService;
     private final ModelFactory modelFactory;
     private final ProblemService problemService;
-    private final KnowledgeBaseService knowledgeBaseService;
+    private final knowledgeModelService knowledgeModelService;
 
     @Async
     @EventListener
     public void handleEvent(GenerateProblemEvent event) {
         System.out.println("收到事件消息: " + event.getDocumentIdList());
         ChatModel chatModel=modelFactory.buildChatModel(event.getModelId());
-        EmbeddingModel embeddingModel=knowledgeBaseService.getEmbeddingModel(event.getKnowledgeId());
+        EmbeddingModel embeddingModel=knowledgeModelService.getEmbeddingModel(event.getKnowledgeId());
         documentService.updateStatusByIds(event.getDocumentIdList(), 2, 0);
         List<ProblemEntity> knowledgeProblems = problemService.lambdaQuery().eq(ProblemEntity::getKnowledgeId, event.getKnowledgeId()).list();
         for (String docId : event.getDocumentIdList()) {

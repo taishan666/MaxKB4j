@@ -6,6 +6,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.common.api.R;
 import com.tarzan.maxkb4j.common.constant.AppConst;
 import com.tarzan.maxkb4j.common.util.StpKit;
+import com.tarzan.maxkb4j.module.system.user.constants.LoginType;
 import com.tarzan.maxkb4j.module.system.user.domain.dto.ResetPasswordDTO;
 import com.tarzan.maxkb4j.module.system.user.domain.dto.UserLoginDTO;
 import com.tarzan.maxkb4j.module.system.user.domain.entity.UserEntity;
@@ -15,7 +16,7 @@ import com.wf.captcha.SpecCaptcha;
 import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -26,7 +27,7 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping(AppConst.ADMIN_API)
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class AuthController {
 
 	private final UserService userService;
@@ -44,12 +45,6 @@ public class AuthController {
 	public R<UserVO> getUserProfile(){
 		String userId = StpKit.ADMIN.getLoginIdAsString();
 		return R.data(userService.getUserById(userId));
-	}
-
-	@SaCheckLogin
-	@GetMapping("/user")
-	public R<UserVO> getUser(){
-		return R.data(userService.getUserById(StpKit.ADMIN.getLoginIdAsString()));
 	}
 
 	@PostMapping("/user/login")
@@ -92,7 +87,6 @@ public class AuthController {
 		return R.status(false);
 	}
 
-	@SaCheckLogin
 	@PostMapping("/user/logout")
 	public R<Boolean> logout(){
 		if(StpKit.ADMIN.isLogin()){

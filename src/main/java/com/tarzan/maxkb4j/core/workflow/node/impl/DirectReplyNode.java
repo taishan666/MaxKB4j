@@ -12,8 +12,8 @@ import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.REPLY;
 
 public class DirectReplyNode extends INode {
 
-    public DirectReplyNode(JSONObject properties) {
-        super(properties);
+    public DirectReplyNode(String id,JSONObject properties) {
+        super(id,properties);
         super.setType(REPLY.getKey());
     }
 
@@ -28,6 +28,7 @@ public class DirectReplyNode extends INode {
         private String replyType;
         private List<String> fields;
         private String content;
+        private Boolean isResult;
     }
 
 }

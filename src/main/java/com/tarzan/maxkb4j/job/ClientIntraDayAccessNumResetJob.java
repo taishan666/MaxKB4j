@@ -1,7 +1,7 @@
 package com.tarzan.maxkb4j.job;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatUserStatsEntity;
+import com.tarzan.maxkb4j.module.application.domain.entity.ApplicationChatUserStatsEntity;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatUserStatsMapper;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;

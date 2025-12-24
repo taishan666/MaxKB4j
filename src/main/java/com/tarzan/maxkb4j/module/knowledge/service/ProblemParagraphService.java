@@ -8,7 +8,7 @@ import com.tarzan.maxkb4j.module.knowledge.domain.entity.ProblemParagraphEntity;
 import com.tarzan.maxkb4j.module.knowledge.mapper.ProblemMapper;
 import com.tarzan.maxkb4j.module.knowledge.mapper.ProblemParagraphMapper;
 import dev.langchain4j.model.embedding.EmbeddingModel;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,11 +20,11 @@ import java.util.Objects;
  * @date 2024-12-27 11:23:44
  */
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class ProblemParagraphService extends ServiceImpl<ProblemParagraphMapper, ProblemParagraphEntity>{
 
     private final ProblemMapper problemMapper;
-    private final KnowledgeBaseService knowledgeBaseService;
+    private final knowledgeModelService knowledgeModelService;
     private final DataIndexService dataIndexService;
 
     public List<ProblemEntity> getProblemsByParagraphId(String paragraphId) {
@@ -37,7 +37,7 @@ public class ProblemParagraphService extends ServiceImpl<ProblemParagraphMapper,
         entity.setProblemId(problemId);
         entity.setParagraphId(paragraphId);
         entity.setDocumentId(docId);
-        EmbeddingModel embeddingModel=knowledgeBaseService.getEmbeddingModel(knowledgeId);
+        EmbeddingModel embeddingModel=knowledgeModelService.getEmbeddingModel(knowledgeId);
         return this.save(entity) && createProblemIndex(knowledgeId, docId, paragraphId, problemId,embeddingModel);
     }
 

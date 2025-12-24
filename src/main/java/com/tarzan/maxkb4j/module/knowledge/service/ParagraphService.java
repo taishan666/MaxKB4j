@@ -18,7 +18,7 @@ import com.tarzan.maxkb4j.module.knowledge.domain.entity.ProblemParagraphEntity;
 import com.tarzan.maxkb4j.module.knowledge.mapper.DocumentMapper;
 import com.tarzan.maxkb4j.module.knowledge.mapper.ParagraphMapper;
 import dev.langchain4j.model.embedding.EmbeddingModel;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.ApplicationEventPublisher;
@@ -38,7 +38,7 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEntity>{
 
     private final ProblemService problemService;
@@ -57,9 +57,6 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
         baseMapper.updateStatusByIds(paragraphIds,type,status,type-1,type+1);
     }
 
-    public void updateStatusByDocIds(List<String> docIds, int type,int status)  {
-        baseMapper.updateStatusByDocIds(docIds,type,status,type-1,type+1);
-    }
 
     @Transactional
     public void migrateDoc(String sourceKnowledgeId, String targetKnowledgeId, List<String> docIds) {

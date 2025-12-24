@@ -12,8 +12,8 @@ import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.PARAMETER_EXTRACTI
 
 public class ParameterExtractionNode extends INode {
 
-    public ParameterExtractionNode(JSONObject properties) {
-        super(properties);
+    public ParameterExtractionNode(String id,JSONObject properties) {
+        super(id,properties);
         super.setType(PARAMETER_EXTRACTION.getKey());
     }
 

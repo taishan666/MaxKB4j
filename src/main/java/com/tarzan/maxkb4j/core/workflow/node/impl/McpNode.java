@@ -12,8 +12,8 @@ import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.MCP;
 
 public class McpNode extends INode {
 
-    public McpNode(JSONObject properties) {
-        super(properties);
+    public McpNode(String id,JSONObject properties) {
+        super(id,properties);
         this.setType(MCP.getKey());
     }
 

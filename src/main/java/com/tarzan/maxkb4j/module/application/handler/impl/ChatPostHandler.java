@@ -2,10 +2,10 @@ package com.tarzan.maxkb4j.module.application.handler.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.tarzan.maxkb4j.module.application.domian.dto.ChatInfo;
-import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatEntity;
-import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatRecordEntity;
-import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatUserStatsEntity;
+import com.tarzan.maxkb4j.module.application.domain.dto.ChatInfo;
+import com.tarzan.maxkb4j.module.application.domain.entity.ApplicationChatEntity;
+import com.tarzan.maxkb4j.module.application.domain.entity.ApplicationChatRecordEntity;
+import com.tarzan.maxkb4j.module.application.domain.entity.ApplicationChatUserStatsEntity;
 import com.tarzan.maxkb4j.module.application.enums.ChatUserType;
 import com.tarzan.maxkb4j.module.application.handler.PostResponseHandler;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatMapper;
@@ -14,14 +14,14 @@ import com.tarzan.maxkb4j.module.application.service.ApplicationChatUserStatsSer
 import com.tarzan.maxkb4j.module.chat.cache.ChatCache;
 import com.tarzan.maxkb4j.module.chat.dto.ChatParams;
 import com.tarzan.maxkb4j.module.chat.dto.ChatResponse;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Map;
 
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Component
 public class ChatPostHandler implements PostResponseHandler {
 
@@ -30,7 +30,7 @@ public class ChatPostHandler implements PostResponseHandler {
     private final ApplicationChatRecordMapper chatRecordMapper;
 
     @Override
-    public void handler(ChatParams chatParams, ChatResponse chatResponse, ApplicationChatRecordEntity chatRecord, long startTime) {
+    public void handler(ChatParams chatParams, ChatResponse chatResponse, long startTime) {
         String chatId = chatParams.getChatId();
         String chatRecordId = chatParams.getChatRecordId();
         String problemText = chatParams.getMessage();
@@ -43,8 +43,9 @@ public class ChatPostHandler implements PostResponseHandler {
         int messageTokens = chatResponse.getMessageTokens();
         int answerTokens = chatResponse.getAnswerTokens();
         JSONObject details = chatResponse.getRunDetails();
+        ApplicationChatRecordEntity chatRecord=chatParams.getChatRecord();
         if (chatRecord != null) {
-            chatRecord.setAnswerTextList(List.of(answerText));
+            chatRecord.setAnswerTextList(List.of());
             chatRecord.setAnswerText(answerText);
             chatRecord.setDetails(new JSONObject(details));
             chatRecord.setMessageTokens(messageTokens);
@@ -79,8 +80,8 @@ public class ChatPostHandler implements PostResponseHandler {
             }
             long chatCount = chatMapper.selectCount(Wrappers.<ApplicationChatEntity>lambdaQuery().eq(ApplicationChatEntity::getId, chatId));
             ApplicationChatEntity chatEntity = new ApplicationChatEntity();
+            chatEntity.setId(chatId);
             if (chatCount == 0) {
-                chatEntity.setId(chatId);
                 chatEntity.setApplicationId(chatInfo.getAppId());
                 String problemOverview = problemText.length() > 50 ? problemText.substring(0, 50) : problemText;
                 chatEntity.setSummary(problemOverview);
@@ -95,7 +96,6 @@ public class ChatPostHandler implements PostResponseHandler {
                 chatEntity.setMarkSum(0);
                 chatMapper.insert(chatEntity);
             }else {
-                chatEntity.setId(chatId);
                 chatEntity.setChatRecordCount(chatInfo.getChatRecordList().size());
                 chatMapper.updateById(chatEntity);
             }

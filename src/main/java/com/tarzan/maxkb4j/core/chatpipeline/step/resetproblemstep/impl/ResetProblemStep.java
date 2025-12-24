@@ -2,17 +2,15 @@ package com.tarzan.maxkb4j.core.chatpipeline.step.resetproblemstep.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.assistant.CompressingQueryAssistant;
-import com.tarzan.maxkb4j.core.chatpipeline.PipelineManage;
 import com.tarzan.maxkb4j.core.chatpipeline.step.resetproblemstep.IResetProblemStep;
 import com.tarzan.maxkb4j.core.tool.MessageTools;
-import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationEntity;
 import com.tarzan.maxkb4j.module.model.info.service.ModelFactory;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.output.TokenUsage;
 import dev.langchain4j.service.AiServices;
 import dev.langchain4j.service.Result;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -20,19 +18,16 @@ import java.util.List;
 
 @Slf4j
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class ResetProblemStep extends IResetProblemStep {
 
     private final ModelFactory modelFactory;
 
     @Override
-    protected String execute(ApplicationEntity application, String question,PipelineManage manage) {
+    protected String execute( String modelId,JSONObject modelParams, String question, List<ChatMessage> chatMemory) {
         long startTime = System.currentTimeMillis();
-        String modelId = application.getModelId();
-        JSONObject modelParams = application.getModelParamsSetting();
         ChatModel chatModel = modelFactory.buildChatModel(modelId,modelParams);
         // String systemText = application.getModelSetting().getSystem();
-        List<ChatMessage> chatMemory= manage.getHistoryMessages(application.getDialogueNumber());
         CompressingQueryAssistant queryAssistant = AiServices.builder(CompressingQueryAssistant.class)
                 .chatModel(chatModel)
                 .build();

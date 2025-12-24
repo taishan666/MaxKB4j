@@ -18,7 +18,7 @@ import com.tarzan.maxkb4j.module.tool.domain.vo.ToolVO;
 import com.tarzan.maxkb4j.module.tool.mapper.ToolMapper;
 import dev.langchain4j.mcp.client.McpClient;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,7 +38,7 @@ import java.util.Objects;
  * @date 2025-01-25 22:00:45
  */
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class ToolService extends ServiceImpl<ToolMapper, ToolEntity> {
 
     private final UserService userService;

@@ -7,7 +7,7 @@ import com.tarzan.maxkb4j.common.constant.AppConst;
 import com.tarzan.maxkb4j.common.util.ResponseProvider;
 import com.tarzan.maxkb4j.common.util.StpKit;
 import com.tarzan.maxkb4j.common.util.WebUtil;
-import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationApiKeyEntity;
+import com.tarzan.maxkb4j.module.application.domain.entity.ApplicationApiKeyEntity;
 import com.tarzan.maxkb4j.module.application.enums.ChatUserType;
 import com.tarzan.maxkb4j.module.application.handler.AuthHandler;
 import com.tarzan.maxkb4j.module.application.service.ApplicationApiKeyService;

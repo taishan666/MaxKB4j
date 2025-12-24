@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class RadioCardFiled extends BaseFiled{
+public class RadioCardFiled extends BaseField {
 
     public RadioCardFiled(String labelName, String field, Map<String,Object> options, Object defaultValue) {
         super.setInput_type("RadioCard");

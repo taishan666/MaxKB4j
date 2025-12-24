@@ -11,11 +11,11 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tarzan.maxkb4j.common.exception.ApiException;
 import com.tarzan.maxkb4j.common.util.*;
-import com.tarzan.maxkb4j.module.application.domian.dto.*;
-import com.tarzan.maxkb4j.module.application.domian.entity.*;
-import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationListVO;
-import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationStatisticsVO;
-import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationVO;
+import com.tarzan.maxkb4j.module.application.domain.dto.*;
+import com.tarzan.maxkb4j.module.application.domain.entity.*;
+import com.tarzan.maxkb4j.module.application.domain.vo.ApplicationListVO;
+import com.tarzan.maxkb4j.module.application.domain.vo.ApplicationStatisticsVO;
+import com.tarzan.maxkb4j.module.application.domain.vo.ApplicationVO;
 import com.tarzan.maxkb4j.module.application.enums.AppType;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatMapper;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationMapper;
@@ -34,7 +34,7 @@ import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.model.chat.response.ChatResponse;
 import dev.langchain4j.model.chat.response.StreamingChatResponseHandler;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -60,7 +60,7 @@ import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.SEARCH_KNOWLEDGE;
  * @date 2024-12-25 13:09:54
  */
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class ApplicationService extends ServiceImpl<ApplicationMapper, ApplicationEntity> {
 
     private final ModelFactory modelFactory;
@@ -303,12 +303,11 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         application.setPublishTime(new Date());
         this.updateById(application);
         application = this.getById(id);
-        long count = applicationVersionService.count(Wrappers.<ApplicationVersionEntity>lambdaQuery().eq(ApplicationVersionEntity::getApplicationId, id));
         ApplicationVersionEntity entity = BeanUtil.copy(application, ApplicationVersionEntity.class);
         entity.setId(null);
         entity.setApplicationId(id);
         entity.setApplicationName(application.getName());
-        entity.setName(application.getName() + "-V" + (count + 1));
+        entity.setName(DateTimeUtil.now());
         entity.setPublishUserId(StpKit.ADMIN.getLoginIdAsString());
         entity.setPublishUserName((String) StpKit.ADMIN.getExtra("username"));
         return applicationVersionService.save(entity);

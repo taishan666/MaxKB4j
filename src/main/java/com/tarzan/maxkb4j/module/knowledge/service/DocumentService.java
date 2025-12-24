@@ -36,12 +36,13 @@ import com.tarzan.maxkb4j.module.model.info.vo.KeyAndValueVO;
 import com.tarzan.maxkb4j.module.oss.service.MongoFileService;
 import dev.langchain4j.data.segment.TextSegment;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream;
 import org.apache.commons.lang3.StringUtils;
+import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.springframework.context.ApplicationEventPublisher;
@@ -66,7 +67,7 @@ import java.util.zip.ZipOutputStream;
  */
 @Slf4j
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity> {
 
     private final ParagraphService paragraphService;
@@ -168,12 +169,6 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
     }
 
 
-/*    private void save(DocumentEntity doc, MultipartFile file) throws IOException {
-        String fileId = mongoFileService.storeFile(file);
-        doc.setMeta(new JSONObject(Map.of("allow_download", true, "sourceFileId", fileId)));
-        this.save(doc);
-    }*/
-
     private JSONObject upload(MultipartFile file) throws IOException {
         String fileId = mongoFileService.storeFile(file);
         return  new JSONObject(Map.of("allow_download", true, "sourceFileId", fileId));
@@ -250,10 +245,11 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
     }
 
 
-    public void exportExcelByDocId(String docId, HttpServletResponse response){
+    public void exportExcelByDocId(String docId, HttpServletResponse response) {
         DocumentEntity doc = this.getById(docId);
         List<DatasetExcel> list = getDatasetExcelByDoc(doc);
         ExcelUtil.export(response, doc.getName(), doc.getName(), list, DatasetExcel.class);
+
     }
 
     public void exportExcelZipByDocId(String docId, HttpServletResponse response) throws IOException {
@@ -450,7 +446,8 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
                             String entryName = entry.getName();
                             byte[] bytes = zis.readAllBytes();
                             InputStream inputStream = new ByteArrayInputStream(bytes);
-                            fileStreams.add(new FileStreamVO(entryName, inputStream,""));
+                            //todo
+                            fileStreams.add(new FileStreamVO(entryName, inputStream, ""));
                         }
                     }
                 } catch (IOException e) {
@@ -472,12 +469,13 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
                     .map(segment -> new ParagraphSimpleVO(segment.text()))
                     .collect(Collectors.toList());
             textSegmentVO.setContent(content);
-            String fileId =mongoFileService.storeFile(fileStream.getInputStream(),fileStream.getName(), fileStream.getContentType());
+            String fileId = mongoFileService.storeFile(fileStream.getInputStream(), fileStream.getName(), fileStream.getContentType());
             textSegmentVO.setSourceFileId(fileId);
             list.add(textSegmentVO);
         }
         return list;
     }
+
 
     /**
      * 判断是否为 ZIP 文件（通过文件头 MAGIC NUMBER）
@@ -523,7 +521,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         List<ParagraphEntity> paragraphs = new ArrayList<>();
         String finalSelector = selector;
         sourceUrlList.forEach(url -> {
-            org.jsoup.nodes.Document html = JsoupUtil.getDocument(url);
+            Document html = JsoupUtil.getDocument(url);
             Elements elements = html.select(finalSelector);
             DocumentEntity doc = createDocument(knowledgeId, JsoupUtil.getTitle(html), DocType.WEB.getType());
             JSONObject meta = new JSONObject();

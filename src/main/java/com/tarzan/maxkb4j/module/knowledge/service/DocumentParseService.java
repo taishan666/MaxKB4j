@@ -3,9 +3,9 @@ package com.tarzan.maxkb4j.module.knowledge.service;
 import com.alibaba.excel.EasyExcel;
 import com.alibaba.excel.context.AnalysisContext;
 import com.alibaba.excel.event.AnalysisEventListener;
-import com.tarzan.maxkb4j.core.workflow.model.ChatFile;
+import com.tarzan.maxkb4j.core.workflow.model.SysFile;
 import com.tarzan.maxkb4j.module.oss.service.MongoFileService;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tika.exception.TikaException;
 import org.apache.tika.extractor.EmbeddedDocumentExtractor;
@@ -30,7 +30,7 @@ import java.util.Map;
 
 @Slf4j
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class DocumentParseService {
 
     private final MongoFileService fileService;
@@ -73,13 +73,12 @@ public class DocumentParseService {
                     String src = attrs.getValue("src");
                     if (src != null && src.startsWith("embedded:")) {
                         String imageName = src.split(":")[1];
-                        ChatFile image = fileService.uploadFile(imageName, new byte[0]);
+                        SysFile image = fileService.uploadFile(imageName, new byte[0]);
                         imageMap.put(imageName, image.getFileId());
                         markdown.append("![").append(imageName).append("](").append(image.getUrl()).append(")\n");
                     }
                 }
             }
-
             public String getMarkdown() {
                 return markdown.toString();
             }
@@ -92,7 +91,6 @@ public class DocumentParseService {
                 return metadata.get(Metadata.CONTENT_TYPE) != null &&
                         metadata.get(Metadata.CONTENT_TYPE).startsWith("image/");
             }
-
             @Override
             public void parseEmbedded(InputStream inputStream, ContentHandler embeddedHandler, Metadata metadata, boolean b) {
                 String fileName = metadata.get("resourceName");

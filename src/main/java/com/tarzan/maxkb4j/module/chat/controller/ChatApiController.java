@@ -11,14 +11,14 @@ import com.tarzan.maxkb4j.common.api.R;
 import com.tarzan.maxkb4j.common.constant.AppConst;
 import com.tarzan.maxkb4j.common.util.StpKit;
 import com.tarzan.maxkb4j.common.util.WebUtil;
-import com.tarzan.maxkb4j.module.application.domian.dto.EmbedDTO;
-import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationAccessTokenEntity;
-import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatEntity;
-import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatRecordEntity;
-import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationEntity;
-import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationChatRecordVO;
-import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationVO;
-import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
+import com.tarzan.maxkb4j.module.application.domain.dto.EmbedDTO;
+import com.tarzan.maxkb4j.module.application.domain.entity.ApplicationAccessTokenEntity;
+import com.tarzan.maxkb4j.module.application.domain.entity.ApplicationChatEntity;
+import com.tarzan.maxkb4j.module.application.domain.entity.ApplicationChatRecordEntity;
+import com.tarzan.maxkb4j.module.application.domain.entity.ApplicationEntity;
+import com.tarzan.maxkb4j.module.application.domain.vo.ApplicationChatRecordVO;
+import com.tarzan.maxkb4j.module.application.domain.vo.ApplicationVO;
+import com.tarzan.maxkb4j.module.application.domain.vo.ChatMessageVO;
 import com.tarzan.maxkb4j.module.application.enums.ChatUserType;
 import com.tarzan.maxkb4j.module.application.service.ApplicationAccessTokenService;
 import com.tarzan.maxkb4j.module.application.service.ApplicationChatRecordService;
@@ -29,7 +29,7 @@ import com.tarzan.maxkb4j.module.chat.dto.ChatResponse;
 import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -47,7 +47,7 @@ import java.util.Map;
 @Tag(name = "MaxKB4J开放接口")
 @RestController
 @RequestMapping(AppConst.CHAT_API)
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class ChatApiController {
 
     private final ApplicationAccessTokenService accessTokenService;
@@ -121,16 +121,15 @@ public class ChatApiController {
         String userId = StpKit.USER.getLoginIdAsString();
         Sinks.Many<ChatMessageVO> sink = Sinks.many().unicast().onBackpressureBuffer();
         params.setChatId(chatId);
-        params.setSink(sink);
         params.setChatUserId(userId);
         params.setChatUserType(ChatUserType.ANONYMOUS_USER.name());
         params.setDebug(false);
         if (Boolean.TRUE.equals(params.getStream())) {
             // 异步执行业务逻辑
-            chatTaskExecutor.execute(() -> chatService.chatMessage(params));
+            chatTaskExecutor.execute(() -> chatService.chatMessage(params,sink));
             return sink.asFlux();
         } else {
-            ChatResponse chatResponse = chatService.chatMessage(params);
+            ChatResponse chatResponse = chatService.chatMessage(params,sink);
             return ResponseEntity.ok()
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .body(R.data(chatResponse));

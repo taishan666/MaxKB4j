@@ -3,9 +3,11 @@ package com.tarzan.maxkb4j.module.tool.controller;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.tarzan.maxkb4j.common.aop.SaCheckPerm;
 import com.tarzan.maxkb4j.common.api.R;
 import com.tarzan.maxkb4j.common.constant.AppConst;
 import com.tarzan.maxkb4j.common.util.StpKit;
+import com.tarzan.maxkb4j.module.system.user.enums.PermissionEnum;
 import com.tarzan.maxkb4j.module.tool.domain.dto.ToolDTO;
 import com.tarzan.maxkb4j.module.tool.domain.dto.ToolInputField;
 import com.tarzan.maxkb4j.module.tool.domain.dto.ToolQuery;
@@ -15,7 +17,7 @@ import com.tarzan.maxkb4j.module.tool.service.ToolService;
 import groovy.lang.Binding;
 import groovy.lang.GroovyShell;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.CollectionUtils;
@@ -31,27 +33,30 @@ import java.util.*;
  */
 @RestController
 @RequestMapping(AppConst.ADMIN_API)
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Slf4j
 public class ToolController {
 
     private final ToolService toolService;
 
+    @SaCheckPerm(PermissionEnum.TOOL_READ)
     @GetMapping("/workspace/default/tool/{current}/{size}")
     public R<IPage<ToolVO>> page(@PathVariable int current, @PathVariable int size, ToolQuery query) {
         return R.success(toolService.pageList(current, size, query));
     }
 
+    @SaCheckPerm(PermissionEnum.TOOL_READ)
     @GetMapping("/workspace/default/tool")
     public R<Map<String, List<ToolEntity>>> list(String folderId, String toolType) {
-        return R.success(Map.of("folders", List.of(), "tools", toolService.listTools("WORKSPACE",toolType)));
+        return R.success(Map.of("folders", List.of(), "tools", toolService.listTools("WORKSPACE", toolType)));
     }
 
+    @SaCheckPerm(PermissionEnum.TOOL_READ)
     @GetMapping("/workspace/default/tool/tool_list")
     public R<Map<String, List<ToolEntity>>> toolList(String scope, String toolType) {
-        return R.success(Map.of("shared_tools", List.of(),"tools", toolService.listTools(scope,toolType)));
+        return R.success(Map.of("shared_tools", List.of(), "tools", toolService.listTools(scope, toolType)));
     }
-
+    @SaCheckPerm(PermissionEnum.TOOL_READ)
     @GetMapping("/workspace/internal/tool")
     public R<List<ToolEntity>> internalTools(String name) {
         LambdaQueryWrapper<ToolEntity> wrapper = Wrappers.lambdaQuery();
@@ -62,9 +67,7 @@ public class ToolController {
         return R.success(toolService.list(wrapper));
     }
 
-
-
-
+    @SaCheckPerm(PermissionEnum.TOOL_CREATE)
     @PostMapping("/workspace/default/tool/{templateId}/add_internal_tool")
     public R<ToolEntity> addInternalTool(@PathVariable String templateId) {
         ToolEntity entity = toolService.getById(templateId);
@@ -79,10 +82,11 @@ public class ToolController {
         return R.data(entity);
     }
 
+    @SaCheckPerm(PermissionEnum.TOOL_CREATE)
     @PostMapping("/workspace/default/tool")
     public R<ToolEntity> toolLib(@RequestBody ToolEntity dto) {
         dto.setIsActive(true);
-        if (StringUtils.isBlank(dto.getToolType())){
+        if (StringUtils.isBlank(dto.getToolType())) {
             dto.setToolType("CUSTOM");
         }
         dto.setUserId(StpKit.ADMIN.getLoginIdAsString());
@@ -91,6 +95,7 @@ public class ToolController {
         return R.data(dto);
     }
 
+    @SaCheckPerm(PermissionEnum.TOOL_EDIT)
     @PostMapping("/workspace/default/tool/debug")
     public R<Object> debug(@RequestBody ToolDTO dto) {
         Map<String, Object> params = new HashMap<>(5);
@@ -108,12 +113,13 @@ public class ToolController {
         return R.data(shell.evaluate(dto.getCode()));
     }
 
-
+    @SaCheckPerm(PermissionEnum.TOOL_READ)
     @GetMapping("/workspace/default/tool/{id}")
     public R<ToolEntity> get(@PathVariable String id) {
         return R.data(toolService.getById(id));
     }
 
+    @SaCheckPerm(PermissionEnum.TOOL_EDIT)
     @PutMapping("/workspace/default/tool/{id}")
     public R<ToolEntity> tool(@PathVariable String id, @RequestBody ToolEntity dto) {
         dto.setId(id);
@@ -121,6 +127,7 @@ public class ToolController {
         return R.data(toolService.getById(id));
     }
 
+    @SaCheckPerm(PermissionEnum.TOOL_DELETE)
     @DeleteMapping("/workspace/default/tool/{id}")
     public R<Boolean> tool(@PathVariable String id) {
         return R.status(toolService.removeToolById(id));
@@ -128,24 +135,24 @@ public class ToolController {
 
     @PostMapping("/workspace/default/tool/pylint")
     public R<List<ToolEntity>> pylint(@RequestBody ToolEntity dto) {
-		String code = dto.getCode();
-		//校验code
         return R.success(Collections.emptyList());
     }
 
-
+    @SaCheckPerm(PermissionEnum.TOOL_EXPORT)
     @GetMapping("/workspace/default/tool/{id}/export")
     public void toolExport(@PathVariable("id") String id, HttpServletResponse response) throws IOException {
         toolService.toolExport(id, response);
     }
 
+    @SaCheckPerm(PermissionEnum.TOOL_IMPORT)
     @PostMapping("/workspace/default/tool/import")
     public R<Boolean> toolImport(MultipartFile file, String folderId) throws IOException {
         return R.status(toolService.toolImport(file, folderId));
     }
 
+    @SaCheckPerm(PermissionEnum.TOOL_EDIT)
     @PostMapping("/workspace/default/tool/test_connection")
-    public R<Boolean> testConnection(@RequestBody ToolEntity dto) throws IOException {
+    public R<Boolean> testConnection(@RequestBody ToolEntity dto) {
         return R.status(toolService.testConnection(dto.getCode()));
     }
 

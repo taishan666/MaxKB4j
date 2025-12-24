@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.workflow.enums.NodeRunStatus;
 import com.tarzan.maxkb4j.core.workflow.model.Workflow;
-import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
+import com.tarzan.maxkb4j.module.application.domain.vo.ChatMessageVO;
 import com.tarzan.maxkb4j.module.chat.dto.ChildNode;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
@@ -35,12 +35,14 @@ public abstract class INode {
     private String errMessage;
 
 
-    public INode(JSONObject properties) {
+    public INode(String id,JSONObject properties) {
+        this.id = id;
+        this.properties = properties;
+        this.viewType = "many_view";
         this.context = new HashMap<>(10);
         this.detail = new HashMap<>(10);
         this.upNodeIdList = new ArrayList<>();
-        this.properties = properties;
-        this.viewType = "many_view";
+        this.runtimeNodeId = generateRuntimeNodeId();
         this.answerText = "";
         this.runStatus = NodeRunStatus.READY;
         this.status=200;
@@ -62,11 +64,6 @@ public abstract class INode {
 
 
     public abstract void saveContext(Workflow workflow, Map<String, Object> detail);
-
-    public Map<String, Object> executeDetail() {
-        return detail;
-    }
-
 
     private String generateRuntimeNodeId() {
         try {
@@ -110,23 +107,6 @@ public abstract class INode {
         return newMessageList;
     }
 
-    public ChatMessageVO toChatMessageVO(String chatId, String chatRecordId, String content, String reasoningContent, boolean nodeIsEnd) {
-        return new ChatMessageVO(
-                chatId,
-                chatRecordId,
-                this.getId(),
-                content,
-                reasoningContent,
-                this.getUpNodeIdList(),
-                this.getRuntimeNodeId(),
-                this.getType(),
-                this.getViewType(),
-                null,
-                nodeIsEnd,
-                false
-        );
-    }
-
     public ChatMessageVO toChatMessageVO(String chatId, String chatRecordId, String content, String reasoningContent, ChildNode childNode, boolean nodeIsEnd) {
         return new ChatMessageVO(
                 chatId,
@@ -142,9 +122,7 @@ public abstract class INode {
                 nodeIsEnd,false);
     }
 
-
 }
-
 
 
 

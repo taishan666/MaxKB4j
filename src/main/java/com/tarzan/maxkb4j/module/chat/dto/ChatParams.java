@@ -1,12 +1,11 @@
 package com.tarzan.maxkb4j.module.chat.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.tarzan.maxkb4j.core.workflow.model.ChatFile;
-import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
+import com.tarzan.maxkb4j.core.workflow.model.SysFile;
+import com.tarzan.maxkb4j.module.application.domain.entity.ApplicationChatRecordEntity;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Data;
-import reactor.core.publisher.Sinks;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
@@ -29,7 +28,6 @@ public class ChatParams {
     @Schema(description = "运行节点id")
     private String runtimeNodeId;
     @Schema(description = "是否流式响应,默认为false")
-    @NotNull(message = "流式输出不能为空")
     private Boolean stream;
     @Schema(description = "表单数据", example = "{ \"name\": \"张三\", \"age\": 25 }")
     private Map<String,Object> formData;
@@ -38,13 +36,13 @@ public class ChatParams {
     @Schema(description = "子节点对象", implementation = ChildNode.class)
     private ChildNode childNode;
     @Schema(description = "音频列表")
-    private List<ChatFile> audioList;
+    private List<SysFile> audioList;
     @Schema(description = "文档列表")
-    private List<ChatFile> documentList;
+    private List<SysFile> documentList;
     @Schema(description = "图片列表")
-    private List<ChatFile> imageList;
+    private List<SysFile> imageList;
     @Schema(description = "其他列表")
-    private List<ChatFile> otherList;
+    private List<SysFile> otherList;
     @Schema(description = "是否重新回答")
     @NotNull(message = "是否重新回答")
     private Boolean reChat;
@@ -58,7 +56,9 @@ public class ChatParams {
     @JsonIgnore
     private String chatUserType;
     @JsonIgnore
-    private Sinks.Many<ChatMessageVO> sink;
+    private List<ApplicationChatRecordEntity> historyChatRecords;
+    @JsonIgnore
+    private ApplicationChatRecordEntity chatRecord;
 
 
 }

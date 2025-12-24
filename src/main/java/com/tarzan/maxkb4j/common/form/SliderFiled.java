@@ -6,7 +6,7 @@ import lombok.EqualsAndHashCode;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class SliderFiled extends BaseFiled{
+public class SliderFiled extends BaseField {
 
 
     public SliderFiled(float min, float max, float step,int precision, String labelName,String field,String tooltip,float defaultValue) {

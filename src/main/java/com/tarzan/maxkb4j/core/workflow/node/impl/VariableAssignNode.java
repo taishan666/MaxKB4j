@@ -11,8 +11,8 @@ import java.util.Map;
 import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.VARIABLE_ASSIGN;
 
 public class VariableAssignNode extends INode {
-    public VariableAssignNode(JSONObject properties) {
-        super(properties);
+    public VariableAssignNode(String id,JSONObject properties) {
+        super(id,properties);
         this.setType(VARIABLE_ASSIGN.getKey());
     }
 

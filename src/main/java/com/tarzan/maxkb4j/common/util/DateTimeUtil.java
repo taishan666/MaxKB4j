@@ -10,7 +10,6 @@ import java.time.Period;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.Temporal;
-import java.time.temporal.TemporalAccessor;
 import java.util.Date;
 
 public class DateTimeUtil {
@@ -21,20 +20,13 @@ public class DateTimeUtil {
     public DateTimeUtil() {
     }
 
-    public static String formatDateTime(TemporalAccessor temporal) {
-        return DATETIME_FORMAT.format(temporal);
+
+    public static String format(LocalDateTime  dateTime, String pattern) {
+        return DateTimeFormatter.ofPattern(pattern).format(dateTime);
     }
 
-    public static String formatDate(TemporalAccessor temporal) {
-        return DATE_FORMAT.format(temporal);
-    }
-
-    public static String formatTime(TemporalAccessor temporal) {
-        return TIME_FORMAT.format(temporal);
-    }
-
-    public static String format(TemporalAccessor temporal, String pattern) {
-        return DateTimeFormatter.ofPattern(pattern).format(temporal);
+    public static String now() {
+        return DATETIME_FORMAT.format(LocalDateTime.now());
     }
 
     public static LocalDateTime parseDateTime(String dateStr, String pattern) {

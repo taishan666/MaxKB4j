@@ -1,16 +1,16 @@
 package com.tarzan.maxkb4j.module.knowledge.service.impl;
 
-import com.tarzan.maxkb4j.module.knowledge.domain.vo.TextChunkVO;
 import com.tarzan.maxkb4j.module.knowledge.consts.SearchType;
+import com.tarzan.maxkb4j.module.knowledge.domain.vo.TextChunkVO;
 import com.tarzan.maxkb4j.module.knowledge.service.IDataRetriever;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 @Component(SearchType.HYBRID)
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class HybridRetriever implements IDataRetriever {
 
     private final EmbedRetriever embedRetriever;

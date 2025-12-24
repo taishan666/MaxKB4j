@@ -1,6 +1,6 @@
 package com.tarzan.maxkb4j.module.model.custom.params.impl;
 
-import com.tarzan.maxkb4j.common.form.BaseFiled;
+import com.tarzan.maxkb4j.common.form.BaseField;
 import com.tarzan.maxkb4j.common.form.SingleSelectFiled;
 import com.tarzan.maxkb4j.module.model.custom.params.ModelParams;
 import lombok.Data;
@@ -12,7 +12,7 @@ import java.util.Map;
 public class TextEmbeddingV4Params implements ModelParams {
 
     @Override
-    public List<BaseFiled> toForm() {
+    public List<BaseField> toForm() {
         Map<String,Object> options=Map.of(
                 "2,048",2048,
                 "1,536",1536,
@@ -23,7 +23,7 @@ public class TextEmbeddingV4Params implements ModelParams {
                 "128",128,
                 "64",64
         );
-        BaseFiled dimension=new SingleSelectFiled("dimension","dimension","向量维度",options,1024);
+        BaseField dimension=new SingleSelectFiled("dimension","dimension","向量维度",options,1024);
         return List.of(dimension);
     }
 }

@@ -3,13 +3,13 @@ package com.tarzan.maxkb4j.module.application.controller;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.tarzan.maxkb4j.common.api.R;
 import com.tarzan.maxkb4j.common.constant.AppConst;
-import com.tarzan.maxkb4j.module.application.domian.dto.AddChatImproveDTO;
-import com.tarzan.maxkb4j.module.application.domian.dto.ChatImproveDTO;
-import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatRecordEntity;
-import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationChatRecordVO;
+import com.tarzan.maxkb4j.module.application.domain.dto.AddChatImproveDTO;
+import com.tarzan.maxkb4j.module.application.domain.dto.ChatImproveDTO;
+import com.tarzan.maxkb4j.module.application.domain.entity.ApplicationChatRecordEntity;
+import com.tarzan.maxkb4j.module.application.domain.vo.ApplicationChatRecordVO;
 import com.tarzan.maxkb4j.module.application.service.ApplicationChatRecordService;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.ParagraphEntity;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,7 +20,7 @@ import java.util.List;
  */
 @RestController
 @RequestMapping(AppConst.ADMIN_API+"/workspace/default")
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class ApplicationChatRecordController {
 
     private final ApplicationChatRecordService chatRecordService;

@@ -1,11 +1,11 @@
 package com.tarzan.maxkb4j.module.knowledge.service.impl;
 
 import com.huaban.analysis.jieba.JiebaSegmenter;
+import com.tarzan.maxkb4j.module.knowledge.consts.SearchType;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.EmbeddingEntity;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.TextChunkVO;
-import com.tarzan.maxkb4j.module.knowledge.consts.SearchType;
 import com.tarzan.maxkb4j.module.knowledge.service.IDataRetriever;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.MongoExpression;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -19,7 +19,7 @@ import java.util.Collections;
 import java.util.List;
 
 @Component(SearchType.FULL_TEXT)
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class FullTextRetriever implements IDataRetriever {
 
     private final MongoTemplate mongoTemplate;

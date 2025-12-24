@@ -6,12 +6,12 @@ import com.tarzan.maxkb4j.module.folder.mapper.FolderMapper;
 import com.tarzan.maxkb4j.module.folder.vo.FolderVO;
 import com.tarzan.maxkb4j.module.system.permission.constant.AuthTargetType;
 import com.tarzan.maxkb4j.module.system.user.service.UserService;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Service
 public class FolderService extends ServiceImpl<FolderMapper, FolderEntity> {
 
@@ -19,14 +19,14 @@ public class FolderService extends ServiceImpl<FolderMapper, FolderEntity> {
     private final UserService userService;
 
     public List<FolderVO> tree(String source) {
-        FolderVO defaultFolder = new FolderVO("default", "工作空间", null, null,List.of());
-        if (AuthTargetType.APPLICATION.equals( source)){
+        FolderVO defaultFolder = new FolderVO("default", "工作空间");
+        if (AuthTargetType.APPLICATION.equals(source)){
             defaultFolder.setName("应用空间");
         }
         if (AuthTargetType.KNOWLEDGE.equals( source)){
             defaultFolder.setName("知识库空间");
         }
-        if (AuthTargetType.TOOL.equals( source)){
+        if (AuthTargetType.TOOL.equals(source)){
             defaultFolder.setName("工具空间");
         }
         return List.of(defaultFolder);

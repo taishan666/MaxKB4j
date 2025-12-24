@@ -31,7 +31,7 @@ import com.tarzan.maxkb4j.module.system.user.mapper.UserMapper;
 import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -46,7 +46,7 @@ import java.util.stream.Collectors;
  * @date 2024-12-25 11:27:27
  */
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class UserService extends ServiceImpl<UserMapper, UserEntity> {
 
     private final EmailService emailService;

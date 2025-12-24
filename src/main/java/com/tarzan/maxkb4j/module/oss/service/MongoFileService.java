@@ -5,10 +5,10 @@ import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
 import com.mongodb.client.gridfs.model.GridFSFile;
 import com.tarzan.maxkb4j.common.util.IoUtil;
-import com.tarzan.maxkb4j.core.workflow.model.ChatFile;
+import com.tarzan.maxkb4j.core.workflow.model.SysFile;
 import jakarta.activation.MimetypesFileTypeMap;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.Document;
 import org.bson.types.ObjectId;
@@ -34,13 +34,13 @@ import java.util.List;
 
 @Slf4j
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class MongoFileService {
 
     private final GridFsTemplate gridFsTemplate;
 
-    public ChatFile uploadFile(MultipartFile file) throws IOException {
-        ChatFile fileVO = new ChatFile();
+    public SysFile uploadFile(MultipartFile file) throws IOException {
+        SysFile fileVO = new SysFile();
         // 新文件名
         fileVO.setName(file.getOriginalFilename());
         fileVO.setSize(file.getSize());
@@ -60,16 +60,16 @@ public class MongoFileService {
         String contentType = file.getContentType();
         // 获得文件输入流
         InputStream ins = file.getInputStream();
-        return storeFile(ins, originalFilename, contentType);
+        return storeFile(ins,originalFilename,contentType);
     }
 
-    public String storeFile(InputStream ins,String fileName,String contentType) throws IOException {
+    public String storeFile(InputStream ins,String fileName,String contentType) {
         ObjectId objectId =  gridFsTemplate.store(ins, fileName, contentType);
         return objectId.toString();
     }
 
-    public ChatFile uploadFile(String fileName, byte[] fileBytes)  {
-        ChatFile fileVO = new ChatFile();
+    public SysFile uploadFile(String fileName, byte[] fileBytes)  {
+        SysFile fileVO = new SysFile();
         InputStream ins = new ByteArrayInputStream(fileBytes);
         // 新文件名
         fileVO.setName(fileName);

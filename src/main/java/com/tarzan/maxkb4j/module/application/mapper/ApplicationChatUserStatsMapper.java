@@ -1,9 +1,9 @@
 package com.tarzan.maxkb4j.module.application.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.tarzan.maxkb4j.module.application.domian.dto.ChatQueryDTO;
-import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatUserStatsEntity;
-import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationStatisticsVO;
+import com.tarzan.maxkb4j.module.application.domain.dto.ChatQueryDTO;
+import com.tarzan.maxkb4j.module.application.domain.entity.ApplicationChatUserStatsEntity;
+import com.tarzan.maxkb4j.module.application.domain.vo.ApplicationStatisticsVO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 

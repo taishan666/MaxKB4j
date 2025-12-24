@@ -16,7 +16,7 @@ import com.tarzan.maxkb4j.module.system.permission.constant.AuthTargetType;
 import com.tarzan.maxkb4j.module.system.permission.service.UserResourcePermissionService;
 import com.tarzan.maxkb4j.module.system.user.domain.entity.UserEntity;
 import com.tarzan.maxkb4j.module.system.user.service.UserService;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
@@ -32,7 +32,7 @@ import java.util.Objects;
  * @date 2024-12-25 12:22:22
  */
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class ModelService extends ServiceImpl<ModelMapper, ModelEntity> {
 
     private final UserService userService;

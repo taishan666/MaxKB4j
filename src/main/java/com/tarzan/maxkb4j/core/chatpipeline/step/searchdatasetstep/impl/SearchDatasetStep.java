@@ -3,11 +3,10 @@ package com.tarzan.maxkb4j.core.chatpipeline.step.searchdatasetstep.impl;
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.chatpipeline.PipelineManage;
 import com.tarzan.maxkb4j.core.chatpipeline.step.searchdatasetstep.ISearchDatasetStep;
-import com.tarzan.maxkb4j.module.application.domian.entity.KnowledgeSetting;
-import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationVO;
+import com.tarzan.maxkb4j.module.application.domain.entity.KnowledgeSetting;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.ParagraphVO;
 import com.tarzan.maxkb4j.module.knowledge.service.RetrieveService;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
@@ -17,20 +16,19 @@ import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class SearchDatasetStep extends ISearchDatasetStep {
 
     private final RetrieveService retrieveService;
 
     @Override
-    protected List<ParagraphVO> execute(ApplicationVO application, String problemText, String paddingProblemText, Boolean reChat, PipelineManage manage) {
+    protected List<ParagraphVO> execute(List<String> knowledgeIdList,KnowledgeSetting datasetSetting, String problemText, String paddingProblemText, Boolean reChat, PipelineManage manage) {
         long startTime = System.currentTimeMillis();
         List<String> excludeParagraphIds = reChat ? manage.getExcludeParagraphIds(problemText) : List.of();
-        KnowledgeSetting datasetSetting = application.getKnowledgeSetting();
         List<CompletableFuture<List<ParagraphVO>>> futureList = new ArrayList<>();
-        futureList.add(CompletableFuture.supplyAsync(() -> retrieveService.paragraphSearch(problemText, application.getKnowledgeIdList(), excludeParagraphIds, datasetSetting)));
+        futureList.add(CompletableFuture.supplyAsync(() -> retrieveService.paragraphSearch(problemText, knowledgeIdList, excludeParagraphIds, datasetSetting)));
         if (StringUtils.isNotBlank(paddingProblemText) && !problemText.equals(paddingProblemText)) {
-            futureList.add(CompletableFuture.supplyAsync(() -> retrieveService.paragraphSearch(paddingProblemText, application.getKnowledgeIdList(), excludeParagraphIds, datasetSetting)));
+            futureList.add(CompletableFuture.supplyAsync(() -> retrieveService.paragraphSearch(paddingProblemText, knowledgeIdList, excludeParagraphIds, datasetSetting)));
         }
         List<ParagraphVO> paragraphList = futureList.stream().flatMap(future -> future.join().stream()).toList();
         if (paragraphList.size() > datasetSetting.getTopN()) {

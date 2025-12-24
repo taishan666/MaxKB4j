@@ -13,8 +13,8 @@ import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.CONDITION;
 
 public class ConditionNode extends INode {
 
-    public ConditionNode(JSONObject properties) {
-        super(properties);
+    public ConditionNode(String id,JSONObject properties) {
+        super(id,properties);
         this.setType(CONDITION.getKey());
     }
 

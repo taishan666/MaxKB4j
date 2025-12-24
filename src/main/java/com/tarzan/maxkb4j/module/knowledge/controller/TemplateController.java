@@ -1,9 +1,11 @@
 package com.tarzan.maxkb4j.module.knowledge.controller;
 
+import com.tarzan.maxkb4j.common.aop.SaCheckPerm;
 import com.tarzan.maxkb4j.common.constant.AppConst;
 import com.tarzan.maxkb4j.module.knowledge.service.TemplateService;
+import com.tarzan.maxkb4j.module.system.user.enums.PermissionEnum;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -14,17 +16,17 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping(AppConst.ADMIN_API + "/workspace")
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class TemplateController {
 
     private final TemplateService templateService;
 
-
+    @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_EXPORT)
     @GetMapping("/knowledge/document/table_template/export")
     public void tableTemplateExport(String type, HttpServletResponse response) throws Exception {
         templateService.tableTemplateExport(type, response);
     }
-
+    @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_EXPORT)
     @GetMapping("/knowledge/document/template/export")
     public void templateExport(String type, HttpServletResponse response) throws Exception {
         templateService.qaTemplateExport(type, response);

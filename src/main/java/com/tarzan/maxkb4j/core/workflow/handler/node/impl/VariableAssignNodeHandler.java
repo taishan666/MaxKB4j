@@ -1,16 +1,19 @@
 package com.tarzan.maxkb4j.core.workflow.handler.node.impl;
 
+import com.tarzan.maxkb4j.core.workflow.annotation.NodeHandlerType;
+import com.tarzan.maxkb4j.core.workflow.enums.NodeType;
 import com.tarzan.maxkb4j.core.workflow.model.Workflow;
 import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;
 import com.tarzan.maxkb4j.core.workflow.node.INode;
 import com.tarzan.maxkb4j.core.workflow.node.impl.VariableAssignNode;
-import com.tarzan.maxkb4j.core.workflow.result.NodeResult;
+import com.tarzan.maxkb4j.core.workflow.model.NodeResult;
 import com.tarzan.maxkb4j.module.chat.cache.ChatCache;
-import com.tarzan.maxkb4j.module.application.domian.dto.ChatInfo;
+import com.tarzan.maxkb4j.module.application.domain.dto.ChatInfo;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
 
+@NodeHandlerType(NodeType.VARIABLE_ASSIGN)
 @Component
 public class VariableAssignNodeHandler implements INodeHandler {
 
