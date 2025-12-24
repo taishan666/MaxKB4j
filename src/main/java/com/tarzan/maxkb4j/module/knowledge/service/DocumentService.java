@@ -136,7 +136,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
                     while ((entry = zipIn.getNextEntry()) != null) {
                         // 假设ZIP包内只有一个文件或主要处理第一个找到的Excel文件
                         if (!entry.isDirectory() && (entry.getName().toLowerCase().endsWith(".xls") || entry.getName().endsWith(".xlsx") || entry.getName().endsWith(".csv"))) {
-                            processQaFile(knowledgeId, zipIn,fileName);
+                            processQaFile(knowledgeId, zipIn, fileName);
                             break; // 如果只处理一个文件，则在此处跳出循环
                         }
                     }
@@ -148,7 +148,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
 
     @Transactional
     public void importTable(String knowledgeId, MultipartFile[] file) throws IOException {
-        List<String> docIds=new ArrayList<>();
+        List<String> docIds = new ArrayList<>();
         for (MultipartFile uploadFile : file) {
             List<String> list = documentParseService.extractTable(uploadFile.getInputStream());
             List<ParagraphEntity> paragraphs = new ArrayList<>();
@@ -165,17 +165,17 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
             }
             docIds.add(doc.getId());
         }
-        eventPublisher.publishEvent(new DocumentIndexEvent(this, knowledgeId,docIds,List.of("0")));
+        eventPublisher.publishEvent(new DocumentIndexEvent(this, knowledgeId, docIds, List.of("0")));
     }
 
 
     private JSONObject upload(MultipartFile file) throws IOException {
         String fileId = mongoFileService.storeFile(file);
-        return  new JSONObject(Map.of("allow_download", true, "sourceFileId", fileId));
+        return new JSONObject(Map.of("allow_download", true, "sourceFileId", fileId));
     }
 
     @Transactional
-    protected void processQaFile(String knowledgeId, InputStream fis,String fileName) {
+    protected void processQaFile(String knowledgeId, InputStream fis, String fileName) {
         List<ProblemEntity> knowledgeProblems = problemService.lambdaQuery().eq(ProblemEntity::getKnowledgeId, knowledgeId).list();
         List<ProblemEntity> problemEntities = new ArrayList<>();
         List<ProblemParagraphEntity> problemParagraphs = new ArrayList<>();
@@ -185,7 +185,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         try (ExcelReader excelReader = EasyExcel.read(fis, DatasetExcel.class, dataListener).build()) {
             List<ReadSheet> sheets = excelReader.excelExecutor().sheetList();
             for (ReadSheet sheet : sheets) {
-                String sheetName = sheet.getSheetName()==null?fileName:sheet.getSheetName();
+                String sheetName = sheet.getSheetName() == null ? fileName : sheet.getSheetName();
                 DocumentEntity doc = createDocument(knowledgeId, sheetName, DocType.BASE.getType());
                 docs.add(doc);
                 System.out.println("正在读取 Sheet: " + sheet.getSheetName());
@@ -232,9 +232,8 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         paragraphService.saveBatch(paragraphs);
         problemService.saveBatch(problemEntities);
         problemParagraphService.saveBatch(problemParagraphs);
-        eventPublisher.publishEvent(new DocumentIndexEvent(this, knowledgeId,docs.stream().map(DocumentEntity::getId).toList(),List.of("0")));
+        eventPublisher.publishEvent(new DocumentIndexEvent(this, knowledgeId, docs.stream().map(DocumentEntity::getId).toList(), List.of("0")));
     }
-
 
 
     private boolean isExistProblemParagraph(String paragraphId, String problemId, List<ProblemParagraphEntity> problemParagraphs) {
@@ -315,7 +314,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
 
     @Transactional
     public boolean batchCreateDoc(String knowledgeId, List<DocumentSimple> docs) {
-        List<String> docIds=new ArrayList<>();
+        List<String> docIds = new ArrayList<>();
         if (!CollectionUtils.isEmpty(docs)) {
             List<DocumentEntity> documentEntities = new ArrayList<>();
             List<ParagraphEntity> paragraphEntities = new ArrayList<>();
@@ -329,7 +328,8 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
                     });
                 }
                 doc.setCharLength(docCharLength.get());
-                doc.setMeta(new JSONObject(Map.of("allow_download", true, "sourceFileId", e.getSourceFileId())));
+                String sourceFileId = e.getSourceFileId() == null ? "" : e.getSourceFileId();
+                doc.setMeta(new JSONObject(Map.of("allow_download", true, "sourceFileId", sourceFileId)));
                 documentEntities.add(doc);
             });
             if (!CollectionUtils.isEmpty(paragraphEntities)) {
@@ -337,7 +337,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
             }
             this.saveBatch(documentEntities);
             documentEntities.forEach(doc -> docIds.add(doc.getId()));
-            eventPublisher.publishEvent(new DocumentIndexEvent(this, knowledgeId,docIds,List.of("0")));
+            eventPublisher.publishEvent(new DocumentIndexEvent(this, knowledgeId, docIds, List.of("0")));
         }
         return true;
     }
@@ -368,8 +368,8 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
     }
 
     @Transactional
-    public boolean embedByDocIds(String knowledgeId,List<String> docIds,List<String> stateList) {
-        eventPublisher.publishEvent(new DocumentIndexEvent(this, knowledgeId,docIds,stateList));
+    public boolean embedByDocIds(String knowledgeId, List<String> docIds, List<String> stateList) {
+        eventPublisher.publishEvent(new DocumentIndexEvent(this, knowledgeId, docIds, stateList));
         return true;
     }
 
@@ -538,7 +538,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         });
         this.saveBatch(docs);
         paragraphService.saveBatch(paragraphs);
-        eventPublisher.publishEvent(new DocumentIndexEvent(this, knowledgeId,docs.stream().map(DocumentEntity::getId).toList(),List.of("0")));
+        eventPublisher.publishEvent(new DocumentIndexEvent(this, knowledgeId, docs.stream().map(DocumentEntity::getId).toList(), List.of("0")));
     }
 
     @Transactional
@@ -549,7 +549,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
     }
 
     public boolean batchGenerateRelated(String knowledgeId, GenerateProblemDTO dto) {
-        eventPublisher.publishEvent(new GenerateProblemEvent(this, knowledgeId,dto.getDocumentIdList(),dto.getModelId(),dto.getPrompt(),dto.getStateList()));
+        eventPublisher.publishEvent(new GenerateProblemEvent(this, knowledgeId, dto.getDocumentIdList(), dto.getModelId(), dto.getPrompt(), dto.getStateList()));
         return true;
     }
 
