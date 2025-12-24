@@ -32,9 +32,12 @@ public class KnowledgeWriteHandler implements INodeHandler {
         Object value = workflow.getReferenceField(nodeParams.getDocumentList().get(0),nodeParams.getDocumentList().get(1));
         node.getDetail().put("write_content", JSON.toJSON(value));
         if (workflow instanceof KnowledgeWorkflow knowledgeWorkflow) {
-            String knowledgeId = knowledgeWorkflow.getKnowledgeParams().getKnowledgeId();
-            List<DocumentSimple> docs=(List<DocumentSimple>)value;
-            documentService.batchCreateDoc(knowledgeId, docs);
+            boolean debug = knowledgeWorkflow.getKnowledgeParams().isDebug();
+            if (!debug){
+                String knowledgeId = knowledgeWorkflow.getKnowledgeParams().getKnowledgeId();
+                List<DocumentSimple> docs=(List<DocumentSimple>)value;
+                documentService.batchCreateDoc(knowledgeId, docs);
+            }
         }
         return new NodeResult(Map.of());
     }

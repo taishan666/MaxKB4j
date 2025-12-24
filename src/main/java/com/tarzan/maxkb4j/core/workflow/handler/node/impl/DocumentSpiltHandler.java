@@ -57,9 +57,11 @@ public class DocumentSpiltHandler implements INodeHandler {
             }
             for (String chunk : chunks) {
                 ParagraphSimple paragraph = new ParagraphSimple();
+                paragraph.setTitle("");
                 paragraph.setContent(chunk);
                 paragraphs.add(paragraph);
             }
+            document.setSourceFileId(sysFile.getFileId());
             document.setParagraphs(paragraphs);
             documentList.add(document);
         }
