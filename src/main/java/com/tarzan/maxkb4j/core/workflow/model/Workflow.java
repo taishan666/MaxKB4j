@@ -214,26 +214,26 @@ public class Workflow {
 
 
     public JSONObject getRuntimeDetails() {
-        JSONObject detailsResult = new JSONObject();
+        Map<String, Object> result = new LinkedHashMap<>();
         if (nodeContext == null || nodeContext.isEmpty()) {
-            return detailsResult;
+            return new JSONObject();
         }
         for (int index = 0; index < nodeContext.size(); index++) {
             INode node = nodeContext.get(index);
-            JSONObject runtimeDetail = new JSONObject();
-            runtimeDetail.putAll(node.getDetail());
+            Map<String, Object> runtimeDetail = new LinkedHashMap<>();
+            runtimeDetail.put("index", index);
             runtimeDetail.put("nodeId", node.getId());
+            runtimeDetail.put("name", node.getProperties().getString("nodeName"));
             runtimeDetail.put("upNodeIdList", node.getUpNodeIdList());
             runtimeDetail.put("runtimeNodeId", node.getRuntimeNodeId());
             runtimeDetail.put("runStatus", node.getRunStatus());
-            runtimeDetail.put("name", node.getProperties().getString("nodeName"));
-            runtimeDetail.put("index", index);
             runtimeDetail.put("type", node.getType());
             runtimeDetail.put("status", node.getStatus());
             runtimeDetail.put("errMessage", node.getErrMessage());
-            detailsResult.put(node.getRuntimeNodeId(), runtimeDetail);
+            runtimeDetail.putAll(node.getDetail());
+            result.put(node.getRuntimeNodeId(), runtimeDetail);
         }
-        return detailsResult;
+        return new JSONObject(result);
     }
 
     public void appendNode(INode currentNode) {
