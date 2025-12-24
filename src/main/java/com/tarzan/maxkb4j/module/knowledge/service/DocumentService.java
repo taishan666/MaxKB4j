@@ -19,7 +19,7 @@ import com.tarzan.maxkb4j.core.event.GenerateProblemEvent;
 import com.tarzan.maxkb4j.listener.DataListener;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.DatasetBatchHitHandlingDTO;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.DocQuery;
-import com.tarzan.maxkb4j.module.knowledge.domain.dto.DocumentNameDTO;
+import com.tarzan.maxkb4j.module.knowledge.domain.dto.DocumentSimple;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.GenerateProblemDTO;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.DocumentEntity;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.ParagraphEntity;
@@ -314,7 +314,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
     }
 
     @Transactional
-    public boolean batchCreateDoc(String knowledgeId, List<DocumentNameDTO> docs) {
+    public boolean batchCreateDoc(String knowledgeId, List<DocumentSimple> docs) {
         List<String> docIds=new ArrayList<>();
         if (!CollectionUtils.isEmpty(docs)) {
             List<DocumentEntity> documentEntities = new ArrayList<>();

@@ -8,6 +8,8 @@ import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;
 import com.tarzan.maxkb4j.core.workflow.model.*;
 import com.tarzan.maxkb4j.core.workflow.node.INode;
 import com.tarzan.maxkb4j.core.workflow.node.impl.DocumentSpiltNode;
+import com.tarzan.maxkb4j.module.knowledge.domain.dto.DocumentSimple;
+import com.tarzan.maxkb4j.module.knowledge.domain.dto.ParagraphSimple;
 import com.tarzan.maxkb4j.module.knowledge.service.DocumentParseService;
 import com.tarzan.maxkb4j.module.knowledge.service.DocumentSpiltService;
 import com.tarzan.maxkb4j.module.oss.service.MongoFileService;
@@ -38,14 +40,14 @@ public class DocumentSpiltHandler implements INodeHandler {
         List<String> fileIds=nodeParams.getDocumentList();
         Object res=workflow.getReferenceField(fileIds.get(0),fileIds.get(1));
         List<SysFile> fileList= res==null?List.of():(List<SysFile>) res;
-        List<Document> documentList=new LinkedList<>();
+        List<DocumentSimple> documentList=new LinkedList<>();
         for (SysFile sysFile : fileList) {
             InputStream inputStream= fileService.getStream(sysFile.getFileId());
             String content=documentParseService.extractText(inputStream);
-            Document document=new Document();
+            DocumentSimple document=new DocumentSimple();
             document.setName(sysFile.getName());
             document.setMeta(new JSONObject());
-            List<Paragraph>  paragraphs=new ArrayList<>();
+            List<ParagraphSimple>  paragraphs=new ArrayList<>();
             List<String> chunks;
             if ("qa".equals(nodeParams.getSplitStrategy())){
                 //todo
@@ -53,18 +55,13 @@ public class DocumentSpiltHandler implements INodeHandler {
             }else {
                  chunks=split(content,nodeParams.getPatterns(),nodeParams.getChunkSize(),nodeParams.getWithFilter());
             }
-            for (int i = 0; i < chunks.size(); i++) {
-                Paragraph paragraph=new Paragraph();
-                paragraph.setContent(chunks.get(i));
-                paragraph.setIsActive(i==0);
+            for (String chunk : chunks) {
+                ParagraphSimple paragraph = new ParagraphSimple();
+                paragraph.setContent(chunk);
                 paragraphs.add(paragraph);
             }
             document.setParagraphs(paragraphs);
             documentList.add(document);
-        }
-        if (workflow instanceof KnowledgeWorkflow knowledgeWorkflow) {
-            String knowledgeId = knowledgeWorkflow.getKnowledgeParams().getKnowledgeId();
-            documentList.forEach(document -> document.setKnowledgeId(knowledgeId));
         }
         node.getDetail().put("splitStrategy",nodeParams.getSplitStrategy());
         node.getDetail().put("chunkSize",nodeParams.getChunkSize());

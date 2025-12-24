@@ -63,7 +63,7 @@ public class DocumentController {
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_CREATE)
     @PutMapping("/knowledge/{id}/document/batch_create")
-    public R<Boolean> createBatchDoc(@PathVariable("id") String id, @RequestBody List<DocumentNameDTO> docs) {
+    public R<Boolean> createBatchDoc(@PathVariable("id") String id, @RequestBody List<DocumentSimple> docs) {
         return R.success(documentService.batchCreateDoc(id, docs));
     }
 
