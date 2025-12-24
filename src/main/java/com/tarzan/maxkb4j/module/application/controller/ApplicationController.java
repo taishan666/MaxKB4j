@@ -60,13 +60,11 @@ public class ApplicationController {
         return R.status(applicationService.appImport(file));
     }
 
-    @SaCheckPerm(PermissionEnum.APPLICATION_EDIT)
     @PutMapping("/application/{id}/publish")
     public R<Boolean> publish(@PathVariable("id") String id, @RequestBody JSONObject params) {
         return R.success(applicationService.publish(id, params));
     }
 
-    @SaCheckPerm(PermissionEnum.APPLICATION_EXPORT)
     @GetMapping("/application/{id}/export")
     public void appExport(@PathVariable("id") String id,HttpServletResponse response) throws IOException {
         applicationService.appExport(id,response);
@@ -77,19 +75,16 @@ public class ApplicationController {
         return R.success(applicationService.selectAppPage(current, size, query));
     }
 
-    @SaCheckPerm(PermissionEnum.APPLICATION_READ)
     @GetMapping("/application/{id}")
     public R<ApplicationVO> getByAppId(@PathVariable("id") String id) {
         return R.success(applicationService.getDetail(id));
     }
 
-    @SaCheckPerm(PermissionEnum.APPLICATION_EDIT)
     @PutMapping("/application/{id}")
     public R<Boolean> updateByAppId(@PathVariable("id") String id, @RequestBody ApplicationVO appVO) {
         return R.success(applicationService.updateAppById(id, appVO));
     }
 
-    @SaCheckPerm(PermissionEnum.APPLICATION_DELETE)
     @DeleteMapping("/application/{id}")
     public R<Boolean> deleteByAppId(@PathVariable("id") String id) {
         return R.success(applicationService.deleteByAppId(id));
