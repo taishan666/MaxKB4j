@@ -40,6 +40,6 @@ public class DocumentExtractNodeHandler implements INodeHandler {
             String text=documentParseService.extractText(fileStream);
             content.add(text);
         }
-        return new NodeResult(Map.of("content",String.join(splitter, content),"documentList",documents));
+        return new NodeResult(Map.of("content",String.join(splitter, content),"documentList", documents));
     }
 }

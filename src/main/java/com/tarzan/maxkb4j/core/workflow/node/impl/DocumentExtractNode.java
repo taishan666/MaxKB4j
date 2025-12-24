@@ -1,8 +1,9 @@
 package com.tarzan.maxkb4j.core.workflow.node.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.tarzan.maxkb4j.core.workflow.node.INode;
 import com.tarzan.maxkb4j.core.workflow.model.Workflow;
+import com.tarzan.maxkb4j.core.workflow.node.INode;
 import lombok.Data;
 
 import java.util.List;
@@ -26,7 +27,8 @@ public class DocumentExtractNode extends INode {
         @SuppressWarnings("unchecked")
         List<String> content= (List<String>) detail.get("content");
         context.put("content", String.join(splitter, content));
-        context.put("documentList", detail.get("documentList"));
+        Object documentList=detail.get("documentList");
+        context.put("documentList", JSON.toJSON(documentList));
     }
 
 

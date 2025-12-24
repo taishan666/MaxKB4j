@@ -79,7 +79,6 @@ public class DocumentParseService {
                     }
                 }
             }
-
             public String getMarkdown() {
                 return markdown.toString();
             }
