@@ -293,6 +293,7 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
         List<INode> nodes = logicFlow.getNodes().stream().map(NodeBuilder::getNode).filter(Objects::nonNull).toList();
         params.setActionId(knowledgeAction.getId());
         params.setKnowledgeId(id);
+        params.setDebug(debug);
         KnowledgeWorkflow workflow = new KnowledgeWorkflow(
                 params,
                 nodes,

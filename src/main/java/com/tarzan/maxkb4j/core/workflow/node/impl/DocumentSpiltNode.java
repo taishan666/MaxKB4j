@@ -18,7 +18,6 @@ public class DocumentSpiltNode extends INode {
 
     @Override
     public void saveContext(Workflow workflow, Map<String, Object> detail) {
-
     }
 
     @Data

@@ -36,6 +36,7 @@ public class DocumentExtractNode extends INode {
     public Map<String, Object> getDetail() {
         String content = (String) context.getOrDefault("content","");
         detail.put("content", content.split(splitter));
+        detail.put("documentList", JSON.toJSON(context.get("documentList")));
         return detail;
     }
 

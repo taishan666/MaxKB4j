@@ -5,8 +5,7 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-public class ParagraphSimpleDTO {
-
+public class ParagraphSimple {
     private String title;
     private String content;
     private List<String> problemList;

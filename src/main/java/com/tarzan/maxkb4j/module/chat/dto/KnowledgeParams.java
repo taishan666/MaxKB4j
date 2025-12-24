@@ -13,5 +13,6 @@ public class KnowledgeParams {
     private String knowledgeId;
     private DataSource dataSource;
     private Map<String, Object> knowledgeBase;
+    private boolean debug;
 
 }

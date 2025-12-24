@@ -31,8 +31,9 @@ public class FileController {
     }
 
     @GetMapping({
-            "/admin/application/workspace/*/oss/file/{fileId:[\\w-]+}",
-            "/admin/application/workspace/*/WORK_FLOW/oss/file/{fileId:[\\w-]+}",
+            "/admin/application/*/*/oss/file/{fileId:[\\w-]+}",
+            "/admin/application/*/*/*/oss/file/{fileId:[\\w-]+}",
+            "/admin/knowledge/*/*/oss/file/{fileId:[\\w-]+}",
             "/oss/file/{fileId:[\\w-]+}"})
     public void getFile(@PathVariable("fileId") String fileId, HttpServletResponse response){
         mongoFileService.getFile(fileId, response);
