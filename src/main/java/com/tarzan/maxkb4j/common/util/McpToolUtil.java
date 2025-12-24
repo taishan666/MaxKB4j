@@ -1,7 +1,7 @@
 package com.tarzan.maxkb4j.common.util;
 
 import com.alibaba.fastjson.JSONObject;
-import com.tarzan.maxkb4j.module.application.domian.vo.McpToolVO;
+import com.tarzan.maxkb4j.module.application.domain.vo.McpToolVO;
 import dev.langchain4j.agent.tool.ToolSpecification;
 import dev.langchain4j.mcp.McpToolExecutor;
 import dev.langchain4j.mcp.client.DefaultMcpClient;

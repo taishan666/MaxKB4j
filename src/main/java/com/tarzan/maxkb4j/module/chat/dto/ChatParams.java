@@ -2,7 +2,7 @@ package com.tarzan.maxkb4j.module.chat.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.tarzan.maxkb4j.core.workflow.model.SysFile;
-import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatRecordEntity;
+import com.tarzan.maxkb4j.module.application.domain.entity.ApplicationChatRecordEntity;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Data;

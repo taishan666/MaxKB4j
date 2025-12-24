@@ -3,7 +3,7 @@ package com.tarzan.maxkb4j.module.application.controller;
 import com.tarzan.maxkb4j.common.api.R;
 import com.tarzan.maxkb4j.common.constant.AppConst;
 import com.tarzan.maxkb4j.common.util.StpKit;
-import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
+import com.tarzan.maxkb4j.module.application.domain.vo.ChatMessageVO;
 import com.tarzan.maxkb4j.module.application.enums.ChatUserType;
 import com.tarzan.maxkb4j.module.application.service.ApplicationChatService;
 import com.tarzan.maxkb4j.module.chat.dto.ChatParams;

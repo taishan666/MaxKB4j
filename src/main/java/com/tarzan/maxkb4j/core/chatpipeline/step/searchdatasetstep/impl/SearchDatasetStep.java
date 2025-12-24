@@ -3,7 +3,7 @@ package com.tarzan.maxkb4j.core.chatpipeline.step.searchdatasetstep.impl;
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.chatpipeline.PipelineManage;
 import com.tarzan.maxkb4j.core.chatpipeline.step.searchdatasetstep.ISearchDatasetStep;
-import com.tarzan.maxkb4j.module.application.domian.entity.KnowledgeSetting;
+import com.tarzan.maxkb4j.module.application.domain.entity.KnowledgeSetting;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.ParagraphVO;
 import com.tarzan.maxkb4j.module.knowledge.service.RetrieveService;
 import lombok.RequiredArgsConstructor;

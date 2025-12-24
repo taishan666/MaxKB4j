@@ -62,6 +62,10 @@ public class DocumentSpiltHandler implements INodeHandler {
             document.setParagraphs(paragraphs);
             documentList.add(document);
         }
+        if (workflow instanceof KnowledgeWorkflow knowledgeWorkflow) {
+            String knowledgeId = knowledgeWorkflow.getKnowledgeParams().getKnowledgeId();
+            documentList.forEach(document -> document.setKnowledgeId(knowledgeId));
+        }
         node.getDetail().put("splitStrategy",nodeParams.getSplitStrategy());
         node.getDetail().put("chunkSize",nodeParams.getChunkSize());
         node.getDetail().put("documentList", JSON.toJSON(documentList));

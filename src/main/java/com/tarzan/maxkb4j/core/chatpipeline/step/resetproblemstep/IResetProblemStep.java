@@ -3,7 +3,7 @@ package com.tarzan.maxkb4j.core.chatpipeline.step.resetproblemstep;
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.chatpipeline.IChatPipelineStep;
 import com.tarzan.maxkb4j.core.chatpipeline.PipelineManage;
-import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationEntity;
+import com.tarzan.maxkb4j.module.application.domain.entity.ApplicationEntity;
 import dev.langchain4j.data.message.ChatMessage;
 
 import java.util.List;

@@ -2,11 +2,10 @@ package com.tarzan.maxkb4j.module.application.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationVersionEntity;
-import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationVO;
+import com.tarzan.maxkb4j.module.application.domain.entity.ApplicationVersionEntity;
+import com.tarzan.maxkb4j.module.application.domain.vo.ApplicationVO;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationVersionMapper;
 import com.tarzan.maxkb4j.common.util.BeanUtil;
-import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 /**

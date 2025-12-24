@@ -9,7 +9,7 @@ import com.tarzan.maxkb4j.core.chatpipeline.PipelineManage;
 import com.tarzan.maxkb4j.core.chatpipeline.step.chatstep.IChatStep;
 import com.tarzan.maxkb4j.core.langchain4j.AppChatMemory;
 import com.tarzan.maxkb4j.core.tool.MessageTools;
-import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationVO;
+import com.tarzan.maxkb4j.module.application.domain.vo.ApplicationVO;
 import com.tarzan.maxkb4j.module.model.info.service.ModelFactory;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;

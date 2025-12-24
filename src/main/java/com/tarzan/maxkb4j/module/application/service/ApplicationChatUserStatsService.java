@@ -2,9 +2,9 @@ package com.tarzan.maxkb4j.module.application.service;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.tarzan.maxkb4j.module.application.domian.dto.ChatQueryDTO;
-import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatUserStatsEntity;
-import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationStatisticsVO;
+import com.tarzan.maxkb4j.module.application.domain.dto.ChatQueryDTO;
+import com.tarzan.maxkb4j.module.application.domain.entity.ApplicationChatUserStatsEntity;
+import com.tarzan.maxkb4j.module.application.domain.vo.ApplicationStatisticsVO;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatUserStatsMapper;
 import org.springframework.stereotype.Service;
 

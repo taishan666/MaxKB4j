@@ -16,7 +16,7 @@ import com.tarzan.maxkb4j.core.workflow.model.NodeResult;
 import com.tarzan.maxkb4j.core.workflow.model.Workflow;
 import com.tarzan.maxkb4j.core.workflow.node.INode;
 import com.tarzan.maxkb4j.core.workflow.node.impl.AiChatNode;
-import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
+import com.tarzan.maxkb4j.module.application.domain.vo.ChatMessageVO;
 import com.tarzan.maxkb4j.module.model.info.service.ModelFactory;
 import com.tarzan.maxkb4j.module.oss.service.MongoFileService;
 import dev.langchain4j.data.message.ChatMessage;

@@ -10,4 +10,5 @@ public class Document {
     private JSONObject meta;
     private String name;
     private List<Paragraph> paragraphs;
+    private String knowledgeId;
 }

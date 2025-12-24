@@ -1,9 +1,9 @@
 package com.tarzan.maxkb4j.core.chatpipeline;
 
 import com.alibaba.fastjson.JSONObject;
-import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatRecordEntity;
-import com.tarzan.maxkb4j.module.application.domian.vo.ApplicationVO;
-import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
+import com.tarzan.maxkb4j.module.application.domain.entity.ApplicationChatRecordEntity;
+import com.tarzan.maxkb4j.module.application.domain.vo.ApplicationVO;
+import com.tarzan.maxkb4j.module.application.domain.vo.ChatMessageVO;
 import com.tarzan.maxkb4j.module.chat.dto.ChatParams;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.ParagraphVO;
 import dev.langchain4j.data.message.AiMessage;

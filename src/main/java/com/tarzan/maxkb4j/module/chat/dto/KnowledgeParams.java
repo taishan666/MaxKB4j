@@ -10,6 +10,7 @@ import java.util.Map;
 public class KnowledgeParams {
 
     private String actionId;
+    private String knowledgeId;
     private DataSource dataSource;
     private Map<String, Object> knowledgeBase;
 

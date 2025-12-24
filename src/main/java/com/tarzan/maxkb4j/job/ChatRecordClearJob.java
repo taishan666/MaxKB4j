@@ -2,9 +2,9 @@ package com.tarzan.maxkb4j.job;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatEntity;
-import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatRecordEntity;
-import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationEntity;
+import com.tarzan.maxkb4j.module.application.domain.entity.ApplicationChatEntity;
+import com.tarzan.maxkb4j.module.application.domain.entity.ApplicationChatRecordEntity;
+import com.tarzan.maxkb4j.module.application.domain.entity.ApplicationEntity;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatMapper;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatRecordMapper;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationMapper;
@@ -30,7 +30,7 @@ public class ChatRecordClearJob {
 
     @Scheduled(cron = "0 0 6 * * *")
     public void execute() {
-        log.info("开始应用聊天记录");
+        log.info("开始清除应用聊天记录");
         LambdaQueryWrapper<ApplicationEntity> appWrapper=Wrappers.lambdaQuery();
         appWrapper.select(ApplicationEntity::getId,ApplicationEntity::getCleanTime);
         List<ApplicationEntity> applications = applicationMapper.selectList(appWrapper);
@@ -46,6 +46,6 @@ public class ChatRecordClearJob {
             chatRecordWrapper.lt(ApplicationChatRecordEntity::getCreateTime,cleanTimeAgo);
             chatRecordMapper.delete(chatRecordWrapper);
         }
-        log.info("结束应用聊天记录");
+        log.info("结束清除应用聊天记录");
     }
 }

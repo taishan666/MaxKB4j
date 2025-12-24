@@ -3,7 +3,7 @@ package com.tarzan.maxkb4j.core.workflow.model;
 import com.tarzan.maxkb4j.core.workflow.enums.NodeType;
 import com.tarzan.maxkb4j.core.workflow.enums.WorkflowMode;
 import com.tarzan.maxkb4j.core.workflow.node.INode;
-import com.tarzan.maxkb4j.module.application.domian.vo.ChatMessageVO;
+import com.tarzan.maxkb4j.module.application.domain.vo.ChatMessageVO;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;

@@ -1,6 +1,6 @@
 package com.tarzan.maxkb4j.module.knowledge.service;
 
-import com.tarzan.maxkb4j.module.application.domian.entity.KnowledgeSetting;
+import com.tarzan.maxkb4j.module.application.domain.entity.KnowledgeSetting;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.DataSearchDTO;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.ParagraphVO;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.TextChunkVO;

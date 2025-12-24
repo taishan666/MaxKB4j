@@ -2,7 +2,7 @@ package com.tarzan.maxkb4j.common.typehandler;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.serializer.SerializerFeature;
-import com.tarzan.maxkb4j.module.application.domian.entity.KnowledgeSetting;
+import com.tarzan.maxkb4j.module.application.domain.entity.KnowledgeSetting;
 import org.apache.ibatis.type.BaseTypeHandler;
 import org.apache.ibatis.type.JdbcType;
 import org.postgresql.util.PGobject;

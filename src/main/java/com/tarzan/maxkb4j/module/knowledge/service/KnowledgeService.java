@@ -21,7 +21,7 @@ import com.tarzan.maxkb4j.core.workflow.handler.KnowledgeWorkflowHandler;
 import com.tarzan.maxkb4j.core.workflow.logic.LogicFlow;
 import com.tarzan.maxkb4j.core.workflow.model.KnowledgeWorkflow;
 import com.tarzan.maxkb4j.core.workflow.node.INode;
-import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationKnowledgeMappingEntity;
+import com.tarzan.maxkb4j.module.application.domain.entity.ApplicationKnowledgeMappingEntity;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationKnowledgeMappingMapper;
 import com.tarzan.maxkb4j.module.chat.dto.KnowledgeParams;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.GenerateProblemDTO;
@@ -292,6 +292,7 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
         LogicFlow logicFlow = LogicFlow.newInstance(knowledge.getWorkFlow());
         List<INode> nodes = logicFlow.getNodes().stream().map(NodeBuilder::getNode).filter(Objects::nonNull).toList();
         params.setActionId(knowledgeAction.getId());
+        params.setKnowledgeId(id);
         KnowledgeWorkflow workflow = new KnowledgeWorkflow(
                 params,
                 nodes,

@@ -11,8 +11,8 @@ import com.tarzan.maxkb4j.core.workflow.model.ChatRecordSimple;
 import com.tarzan.maxkb4j.core.workflow.node.INode;
 import com.tarzan.maxkb4j.core.workflow.model.NodeResult;
 import com.tarzan.maxkb4j.module.chat.cache.ChatCache;
-import com.tarzan.maxkb4j.module.application.domian.dto.ChatInfo;
-import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatRecordEntity;
+import com.tarzan.maxkb4j.module.application.domain.dto.ChatInfo;
+import com.tarzan.maxkb4j.module.application.domain.entity.ApplicationChatRecordEntity;
 import com.tarzan.maxkb4j.module.chat.dto.ChatParams;
 import org.springframework.stereotype.Component;
 

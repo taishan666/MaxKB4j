@@ -2,10 +2,10 @@ package com.tarzan.maxkb4j.module.application.handler.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.tarzan.maxkb4j.module.application.domian.dto.ChatInfo;
-import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatEntity;
-import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatRecordEntity;
-import com.tarzan.maxkb4j.module.application.domian.entity.ApplicationChatUserStatsEntity;
+import com.tarzan.maxkb4j.module.application.domain.dto.ChatInfo;
+import com.tarzan.maxkb4j.module.application.domain.entity.ApplicationChatEntity;
+import com.tarzan.maxkb4j.module.application.domain.entity.ApplicationChatRecordEntity;
+import com.tarzan.maxkb4j.module.application.domain.entity.ApplicationChatUserStatsEntity;
 import com.tarzan.maxkb4j.module.application.enums.ChatUserType;
 import com.tarzan.maxkb4j.module.application.handler.PostResponseHandler;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatMapper;
