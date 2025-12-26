@@ -39,8 +39,8 @@ public abstract class INode {
         this.id = id;
         this.properties = properties;
         this.viewType = "many_view";
-        this.context = new LinkedHashMap<>(10);
-        this.detail = new LinkedHashMap<>(10);
+        this.context = new LinkedHashMap<>(5);
+        this.detail = new LinkedHashMap<>(5);
         this.upNodeIdList = new ArrayList<>();
         this.runtimeNodeId = generateRuntimeNodeId();
         this.answerText = "";

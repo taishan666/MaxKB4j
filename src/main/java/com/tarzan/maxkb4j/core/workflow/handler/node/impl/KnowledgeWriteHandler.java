@@ -30,7 +30,7 @@ public class KnowledgeWriteHandler implements INodeHandler {
     public NodeResult execute(Workflow workflow, INode node) throws Exception {
         KnowledgeWriteNode.NodeParams nodeParams = node.getNodeData().toJavaObject(KnowledgeWriteNode.NodeParams.class);
         Object value = workflow.getReferenceField(nodeParams.getDocumentList().get(0),nodeParams.getDocumentList().get(1));
-        node.getDetail().put("write_content", JSON.toJSON(value));
+        node.getDetail().put("write_content", value);
         if (workflow instanceof KnowledgeWorkflow knowledgeWorkflow) {
             boolean debug = knowledgeWorkflow.getKnowledgeParams().isDebug();
             if (!debug){

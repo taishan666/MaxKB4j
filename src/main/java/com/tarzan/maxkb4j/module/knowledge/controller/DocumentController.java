@@ -85,8 +85,6 @@ public class DocumentController {
         return R.success(documentService.batchGenerateRelated(id, dto));
     }
 
-
-
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_MIGRATE)
     @PutMapping("/knowledge/{id}/document/migrate/{targetKnowledgeId}")
     public R<Boolean> migrateDoc(@PathVariable("id") String sourceKnowledgeId, @PathVariable("targetKnowledgeId") String targetKnowledgeId, @RequestBody List<String> docIds) {
