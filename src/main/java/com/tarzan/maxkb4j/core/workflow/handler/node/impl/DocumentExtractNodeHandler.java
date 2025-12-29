@@ -14,11 +14,7 @@ import com.tarzan.maxkb4j.module.knowledge.domain.dto.DocumentSimple;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @NodeHandlerType(NodeType.DOCUMENT_EXTRACT)
 @RequiredArgsConstructor
