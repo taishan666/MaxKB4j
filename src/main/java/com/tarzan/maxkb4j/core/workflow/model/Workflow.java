@@ -214,13 +214,13 @@ public class Workflow {
 
 
     public JSONObject getRuntimeDetails() {
-        Map<String, Object> result = new LinkedHashMap<>();
+        JSONObject result = new JSONObject(true);
         if (nodeContext == null || nodeContext.isEmpty()) {
-            return new JSONObject();
+            return result;
         }
         for (int index = 0; index < nodeContext.size(); index++) {
             INode node = nodeContext.get(index);
-            Map<String, Object> runtimeDetail = new LinkedHashMap<>();
+            Map<String,Object> runtimeDetail = new LinkedHashMap<>(10);
             runtimeDetail.put("index", index);
             runtimeDetail.put("nodeId", node.getId());
             runtimeDetail.put("name", node.getProperties().getString("nodeName"));
@@ -233,7 +233,7 @@ public class Workflow {
             runtimeDetail.putAll(node.getDetail());
             result.put(node.getRuntimeNodeId(), runtimeDetail);
         }
-        return new JSONObject(result);
+        return result;
     }
 
     public void appendNode(INode currentNode) {

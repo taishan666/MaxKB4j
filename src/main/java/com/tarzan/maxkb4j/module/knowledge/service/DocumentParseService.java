@@ -75,7 +75,7 @@ public class DocumentParseService {
                         String imageName = src.split(":")[1];
                         SysFile image = fileService.uploadFile(imageName, new byte[0]);
                         imageMap.put(imageName, image.getFileId());
-                        markdown.append("![").append(imageName).append("](").append(image.getUrl()).append(")\n");
+                        markdown.append("![](").append(image.getUrl()).append(")\n");
                     }
                 }
             }

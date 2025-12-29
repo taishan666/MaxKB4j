@@ -36,7 +36,6 @@ public class VariableAggregationNodeHandler implements INodeHandler {
         }
         node.getDetail().put("strategy", strategyName);
         node.getDetail().put("groupList", groupList);
-        System.out.println(groupList);
         return new NodeResult(nodeVariable);
     }
 

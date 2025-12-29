@@ -9,5 +9,4 @@ public class ParagraphSimple {
     private String title;
     private String content;
     private List<String> problemList;
-
 }
