@@ -1,10 +1,10 @@
 package com.tarzan.maxkb4j.core.workflow.parser;
 
-import com.tarzan.maxkb4j.core.workflow.model.SysFile;
+import java.io.InputStream;
 
 public interface DocumentParser {
 
-    boolean support(SysFile sysFile);
+    boolean support(String fileName);
 
-    String handle(SysFile sysFile);
+    String handle(InputStream inputStream);
 }
