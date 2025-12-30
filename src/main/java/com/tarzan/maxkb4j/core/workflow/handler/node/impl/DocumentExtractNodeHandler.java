@@ -9,11 +9,13 @@ import com.tarzan.maxkb4j.core.workflow.model.SysFile;
 import com.tarzan.maxkb4j.core.workflow.model.Workflow;
 import com.tarzan.maxkb4j.core.workflow.node.INode;
 import com.tarzan.maxkb4j.core.workflow.node.impl.DocumentExtractNode;
-import com.tarzan.maxkb4j.core.workflow.parser.DocumentParser;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.DocumentSimple;
+import com.tarzan.maxkb4j.module.knowledge.service.DocumentParseService;
+import com.tarzan.maxkb4j.module.oss.service.MongoFileService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.io.InputStream;
 import java.util.*;
 
 @NodeHandlerType(NodeType.DOCUMENT_EXTRACT)
@@ -23,7 +25,8 @@ public class DocumentExtractNodeHandler implements INodeHandler {
 
     private static final String SPLITTER = "\n-----------------------------------\n";
 
-    private final List<DocumentParser> parsers;
+    private final DocumentParseService documentParseService;
+    private final MongoFileService fileService;
 
     @Override
     public NodeResult execute(Workflow workflow, INode node) throws Exception {
@@ -59,7 +62,8 @@ public class DocumentExtractNodeHandler implements INodeHandler {
         List<DocumentSimple> documentList = new ArrayList<>();
 
         for (SysFile sysFile : documentFiles) {
-            String text = parse(sysFile);
+            InputStream ins = fileService.getStream(sysFile.getFileId());
+            String text =  documentParseService.extractText(sysFile.getName(), ins);
             contentList.add(text);
             documentList.add(buildDocumentSimple(sysFile, text));
         }
@@ -78,19 +82,8 @@ public class DocumentExtractNodeHandler implements INodeHandler {
         doc.setContent(content);
         doc.setMeta(new JSONObject());
         doc.setSourceFileId(sysFile.getFileId());
-        doc.setParagraphs(Collections.emptyList()); // 明确空列表
+        doc.setParagraphs(new ArrayList<>());
         return doc;
     }
 
-    public String parse(SysFile sysFile) {
-        for (DocumentParser parser : parsers) {
-            if (parser.support(sysFile)) {
-                return parser.handle(sysFile);
-            }
-        }
-        throw new IllegalArgumentException(
-                "No suitable DocumentParser found for file: " + sysFile.getName() +
-                        " (ID: " + sysFile.getFileId() + ", Type: " + sysFile.getType() + ")"
-        );
-    }
 }
