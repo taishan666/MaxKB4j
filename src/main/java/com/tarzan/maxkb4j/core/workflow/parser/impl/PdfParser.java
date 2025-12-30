@@ -19,6 +19,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.nodes.Node;
 import org.jsoup.nodes.TextNode;
+import org.jsoup.select.Elements;
 import org.springframework.stereotype.Component;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.SAXException;
@@ -26,6 +27,8 @@ import org.xml.sax.SAXException;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -103,7 +106,6 @@ public class PdfParser implements DocumentParser {
         Document doc = Jsoup.parse(xhtml, "", org.jsoup.parser.Parser.xmlParser());
         Element body = doc.body();
         // 使用 flexmark 或手动转换（这里用简易规则模拟）
-        // 实际项目建议引入 flexmark-java + jsoup-to-markdown 转换器
         return simpleXhtmlToMarkdown(body,embeddedImages);
     }
 
@@ -194,12 +196,98 @@ public class PdfParser implements DocumentParser {
                             md.append("[").append(linkText).append("](").append(href).append(")");
                         }
                         break;
+                    case "table":
+                        md.append("\n").append(parseTableToMarkdown(child, embeddedImages)).append("\n");
+                        break;
                     default:
                         // 对未知标签，递归处理其内容（不加额外格式）
                         md.append(simpleXhtmlToMarkdown(child, embeddedImages));
                         break;
                 }
             }
+        }
+        return md.toString();
+    }
+
+    private String parseTableToMarkdown(Element table, Map<String, byte[]> embeddedImages) {
+        StringBuilder md = new StringBuilder();
+        Elements rows = new Elements();
+        // 直接子元素中找 tr
+        for (Element e : table.children()) {
+            if ("tr".equals(e.tagName())) {
+                rows.add(e);
+            } else if ("thead".equals(e.tagName()) ||
+                    "tbody".equals(e.tagName()) ||
+                    "tfoot".equals(e.tagName())) {
+                // 在 thead/tbody/tfoot 下找直接子 tr
+                for (Element tr : e.children()) {
+                    if ("tr".equals(tr.tagName())) {
+                        rows.add(tr);
+                    }
+                }
+            }
+        }
+        if (rows.isEmpty()) {
+            return "";
+        }
+        List<String> headers = new ArrayList<>();
+        List<List<String>> dataRows = new ArrayList<>();
+        boolean isFirstRow = true;
+        for (Element row : rows) {
+            Elements cells = row.select("th, td");
+            List<String> cellTexts = new ArrayList<>();
+            for (Element cell : cells) {
+                Elements tables = cell.getElementsByTag("table");
+                if (tables.isEmpty()){
+                    // 递归处理单元格内的内容（可能包含 p, strong, a 等）
+                    String cellContent = simpleXhtmlToMarkdown(cell, embeddedImages).trim();
+                    // 转义管道符和换行，避免破坏 Markdown 表格
+                    cellContent = cellContent.replace("|", "\\|").replace("\n", " ");
+                    cellTexts.add(cellContent);
+                }
+            }
+            if (cellTexts.isEmpty()) {
+                continue; // 跳过空行
+            }
+            if (isFirstRow && !row.select("th").isEmpty()) {
+                // 如果第一行包含 <th>，视为表头
+                headers.addAll(cellTexts);
+            } else {
+                dataRows.add(cellTexts);
+                if (isFirstRow) {
+                    // 即使没有 <th>，也把第一行当表头（常见于 Word/PDF 转出的 XHTML）
+                    headers.addAll(cellTexts);
+                    dataRows.clear(); // 清除刚加的“假表头”行
+                }
+            }
+            isFirstRow = false;
+        }
+        if (headers.isEmpty() && dataRows.isEmpty()) {
+            return "";
+        }
+        // 确保所有行列数一致（取最大列数）
+        int maxCols = headers.size();
+        for (List<String> row : dataRows) {
+            maxCols = Math.max(maxCols, row.size());
+        }
+        // 补齐表头
+        while (headers.size() < maxCols) {
+            headers.add("");
+        }
+        // 写表头
+        md.append("| ").append(String.join(" | ", headers)).append(" |\n");
+        // 写分隔线
+        List<String> aligners = new ArrayList<>();
+        for (int i = 0; i < maxCols; i++) {
+            aligners.add("---");
+        }
+        md.append("| ").append(String.join(" | ", aligners)).append(" |\n");
+        // 写数据行
+        for (List<String> row : dataRows) {
+            while (row.size() < maxCols) {
+                row.add("");
+            }
+            md.append("| ").append(String.join(" | ", row)).append(" |\n");
         }
         return md.toString();
     }

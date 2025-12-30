@@ -220,7 +220,7 @@ public class Workflow {
         }
         for (int index = 0; index < nodeContext.size(); index++) {
             INode node = nodeContext.get(index);
-            Map<String,Object> runtimeDetail = new LinkedHashMap<>(10);
+            JSONObject runtimeDetail = new JSONObject(true);
             runtimeDetail.put("index", index);
             runtimeDetail.put("nodeId", node.getId());
             runtimeDetail.put("name", node.getProperties().getString("nodeName"));
