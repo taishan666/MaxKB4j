@@ -9,9 +9,7 @@ import com.tarzan.maxkb4j.core.workflow.node.INode;
 import com.tarzan.maxkb4j.core.workflow.node.impl.DocumentSpiltNode;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.DocumentSimple;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.ParagraphSimple;
-import com.tarzan.maxkb4j.module.knowledge.service.DocumentParseService;
 import com.tarzan.maxkb4j.module.knowledge.service.DocumentSpiltService;
-import com.tarzan.maxkb4j.module.oss.service.MongoFileService;
 import dev.langchain4j.data.segment.TextSegment;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,8 +26,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class DocumentSpiltHandler implements INodeHandler {
 
-    private final MongoFileService fileService;
-    private final DocumentParseService documentParseService;
     private final DocumentSpiltService documentSpiltService;
 
     @SuppressWarnings("unchecked")
@@ -55,7 +51,7 @@ public class DocumentSpiltHandler implements INodeHandler {
     private void defaultSplit(DocumentSimple document,String[] pattern, int chunkSize,boolean withFilter) throws IOException {
         String content = document.getContent();
         List<String> chunks = split(content, pattern, chunkSize, withFilter);
-        List<ParagraphSimple> paragraphs = document.getParagraphs();
+        List<ParagraphSimple> paragraphs = new ArrayList<>();
         for (String chunk : chunks) {
             ParagraphSimple paragraph = new ParagraphSimple();
             paragraph.setTitle("");

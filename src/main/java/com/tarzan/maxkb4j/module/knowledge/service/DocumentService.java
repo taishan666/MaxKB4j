@@ -460,7 +460,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         for (FileStreamVO fileStream : fileStreams) {
             TextSegmentVO textSegmentVO = new TextSegmentVO();
             textSegmentVO.setName(fileStream.getName());
-            String docText = documentParseService.extractText(fileStream.getInputStream());
+            String docText = documentParseService.extractText(fileStream.getName(),fileStream.getInputStream());
             List<TextSegment> textSegments = Collections.emptyList();
             if (StringUtils.isNotBlank(docText)) {
                 textSegments = documentSpiltService.split(docText, patterns, limit, withFilter);
@@ -493,7 +493,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         }
         String finalSelector = selector;
         baseUrl = baseUrl.endsWith("/") ? baseUrl.substring(0, baseUrl.length() - 1) : baseUrl;
-        org.jsoup.nodes.Document html = JsoupUtil.getDocument(baseUrl);
+        Document html = JsoupUtil.getDocument(baseUrl);
         Elements elements = html.select(finalSelector);
         List<String> sourceUrlList = new ArrayList<>();
         sourceUrlList.add(baseUrl);
