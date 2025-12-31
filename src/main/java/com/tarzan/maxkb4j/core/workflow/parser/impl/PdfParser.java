@@ -162,11 +162,13 @@ public class PdfParser implements DocumentParser {
                         md.append("`").append(simpleXhtmlToMarkdown(child, embeddedImages)).append("`");
                         break;
                     case "strong","b":
-                        md.append("<strong>").append(simpleXhtmlToMarkdown(child, embeddedImages)).append("</strong>");
+                     //   md.append("<strong>").append(simpleXhtmlToMarkdown(child, embeddedImages)).append("</strong>");
+                        md.append(simpleXhtmlToMarkdown(child, embeddedImages));
                         break;
                     case "em":
                     case "i":
-                        md.append("_").append(simpleXhtmlToMarkdown(child, embeddedImages)).append("_");
+                     //   md.append("_").append(simpleXhtmlToMarkdown(child, embeddedImages)).append("_");
+                        md.append(simpleXhtmlToMarkdown(child, embeddedImages));
                         break;
                     case "br":
                         md.append("  \n");

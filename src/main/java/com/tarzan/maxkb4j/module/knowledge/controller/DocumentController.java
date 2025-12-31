@@ -67,9 +67,8 @@ public class DocumentController {
         return R.success(documentService.batchCreateDoc(id, docs));
     }
 
-    @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_READ)
-    @GetMapping("/knowledge/document/split_pattern")
-    public R<List<KeyAndValueVO>> splitPattern() {
+    @GetMapping("/knowledge/{id}/document/split_pattern")
+    public R<List<KeyAndValueVO>> splitPattern(@PathVariable("id") String id) {
         return R.success(documentService.splitPattern());
     }
 
