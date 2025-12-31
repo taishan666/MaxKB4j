@@ -2,7 +2,7 @@ package com.tarzan.maxkb4j.core.workflow.handler.node.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.tarzan.maxkb4j.core.assistant.IntentClassifyAssistant;
-import com.tarzan.maxkb4j.core.tool.MessageTools;
+import com.tarzan.maxkb4j.common.util.MessageUtils;
 import com.tarzan.maxkb4j.core.workflow.annotation.NodeHandlerType;
 import com.tarzan.maxkb4j.core.workflow.enums.DialogueType;
 import com.tarzan.maxkb4j.core.workflow.enums.NodeType;
@@ -45,7 +45,7 @@ public class IntentClassifyNodeHandler implements INodeHandler {
         node.getDetail().put("history_message", node.resetMessageList(historyMessages));
         Map<Integer, String> idToClassification=new HashMap<>();
         String options =optionsFormat(idToClassification,branches);
-        String chatMemory = MessageTools.format(historyMessages);
+        String chatMemory = MessageUtils.format(historyMessages);
         IntentClassifyAssistant assistant = AiServices.builder(IntentClassifyAssistant.class)
                 .chatModel(chatModel)
                 .build();

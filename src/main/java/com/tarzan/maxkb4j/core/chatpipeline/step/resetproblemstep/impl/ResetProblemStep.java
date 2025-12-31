@@ -3,7 +3,7 @@ package com.tarzan.maxkb4j.core.chatpipeline.step.resetproblemstep.impl;
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.assistant.CompressingQueryAssistant;
 import com.tarzan.maxkb4j.core.chatpipeline.step.resetproblemstep.IResetProblemStep;
-import com.tarzan.maxkb4j.core.tool.MessageTools;
+import com.tarzan.maxkb4j.common.util.MessageUtils;
 import com.tarzan.maxkb4j.module.model.info.service.ModelFactory;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.model.chat.ChatModel;
@@ -31,7 +31,7 @@ public class ResetProblemStep extends IResetProblemStep {
         CompressingQueryAssistant queryAssistant = AiServices.builder(CompressingQueryAssistant.class)
                 .chatModel(chatModel)
                 .build();
-        Result<String> result= queryAssistant.transform(MessageTools.format(chatMemory),question);
+        Result<String> result= queryAssistant.transform(MessageUtils.format(chatMemory),question);
         String paddingProblem=result.content();
         super.context.put("modelId", modelId);
         super.context.put("problemText", question);

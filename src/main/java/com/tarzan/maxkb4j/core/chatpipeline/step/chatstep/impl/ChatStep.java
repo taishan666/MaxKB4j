@@ -8,7 +8,7 @@ import com.tarzan.maxkb4j.core.assistant.Assistant;
 import com.tarzan.maxkb4j.core.chatpipeline.PipelineManage;
 import com.tarzan.maxkb4j.core.chatpipeline.step.chatstep.IChatStep;
 import com.tarzan.maxkb4j.core.langchain4j.AppChatMemory;
-import com.tarzan.maxkb4j.core.tool.MessageTools;
+import com.tarzan.maxkb4j.common.util.MessageUtils;
 import com.tarzan.maxkb4j.module.application.domain.vo.ApplicationVO;
 import com.tarzan.maxkb4j.module.model.info.service.ModelFactory;
 import dev.langchain4j.data.message.AiMessage;
@@ -64,7 +64,7 @@ public class ChatStep extends IChatStep {
                 .onPartialResponse(text -> manage.sink.tryEmitNext(super.toChatMessageVO(chatId, chatRecordId, text, "", false)))
                 .onToolExecuted(toolExecute -> {
                     if (Boolean.TRUE.equals(application.getToolOutputEnable())) {
-                        manage.sink.tryEmitNext(super.toChatMessageVO(chatId, chatRecordId, MessageTools.getToolMessage(toolExecute), "", false));
+                        manage.sink.tryEmitNext(super.toChatMessageVO(chatId, chatRecordId, MessageUtils.getToolMessage(toolExecute), "", false));
                     }
                 })
                 .onCompleteResponse(response -> {

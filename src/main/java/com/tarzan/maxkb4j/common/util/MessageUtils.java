@@ -1,4 +1,4 @@
-package com.tarzan.maxkb4j.core.tool;
+package com.tarzan.maxkb4j.common.util;
 
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-public class MessageTools {
+public class MessageUtils {
 
     private static final String tool_message_template = """
             <details>
@@ -39,7 +39,7 @@ public class MessageTools {
     }
 
     public static String format(List<ChatMessage> chatMemory) {
-        return chatMemory.stream().map(MessageTools::format).filter(Objects::nonNull).collect(Collectors.joining("\n"));
+        return chatMemory.stream().map(MessageUtils::format).filter(Objects::nonNull).collect(Collectors.joining("\n"));
     }
 
     protected  static String format(ChatMessage message) {

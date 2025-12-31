@@ -1,4 +1,4 @@
-package com.tarzan.maxkb4j.core.tool;
+package com.tarzan.maxkb4j.common.util;
 
 import java.util.HashMap;
 import java.util.Map;

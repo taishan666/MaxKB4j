@@ -4,8 +4,8 @@ import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.tarzan.maxkb4j.common.util.ToolUtil;
 import com.tarzan.maxkb4j.core.assistant.Assistant;
 import com.tarzan.maxkb4j.core.langchain4j.AppChatMemory;
-import com.tarzan.maxkb4j.core.tool.MessageTools;
-import com.tarzan.maxkb4j.core.tool.MimeTypeUtils;
+import com.tarzan.maxkb4j.common.util.MessageUtils;
+import com.tarzan.maxkb4j.common.util.MimeTypeUtils;
 import com.tarzan.maxkb4j.core.workflow.annotation.NodeHandlerType;
 import com.tarzan.maxkb4j.core.workflow.enums.NodeType;
 import com.tarzan.maxkb4j.core.workflow.enums.WorkflowMode;
@@ -165,7 +165,7 @@ public class LLMNodeHandler implements INodeHandler {
                 })
                 .onToolExecuted(toolExecute -> {
                     if (isResult && toolOutputEnable) {
-                        String toolMessage = MessageTools.getToolMessage(toolExecute);
+                        String toolMessage = MessageUtils.getToolMessage(toolExecute);
                         emitMessage(workflow, node, toolMessage, "");
                     }
                 })
