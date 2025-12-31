@@ -2,9 +2,7 @@ package com.tarzan.maxkb4j.module.knowledge.domain.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.tarzan.maxkb4j.common.base.entity.BaseEntity;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 /**
  * @author tarzan
@@ -14,6 +12,8 @@ import lombok.NoArgsConstructor;
 @Data
 @TableName("problem")
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class ProblemEntity extends BaseEntity {
     
     private String content;

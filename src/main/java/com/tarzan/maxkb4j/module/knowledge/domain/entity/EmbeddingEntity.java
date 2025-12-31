@@ -4,7 +4,10 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.tarzan.maxkb4j.common.typehandler.EmbeddingTypeHandler;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Transient;
 import org.springframework.data.mongodb.core.index.TextIndexed;
@@ -20,6 +23,9 @@ import java.util.List;
 @Data
 @TableName(value = "embedding",autoResultMap = true)
 @Document(collection = "embedding")
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class EmbeddingEntity {
 	@TableId
 	@Id

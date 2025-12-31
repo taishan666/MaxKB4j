@@ -132,68 +132,82 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
     }
 
 
-    public void exportExcelZipByDocs(List<DocumentEntity> docs, String exportName, HttpServletResponse response) throws IOException {
-        response.setContentType("application/zip");
-        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
-        String fileName = URLEncoder.encode(exportName, StandardCharsets.UTF_8);
-        response.setHeader("Content-disposition", "attachment;filename=" + fileName + ".zip");
-        // 创建字节输出流和ZIP输出流
-        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        ZipOutputStream zipOutputStream = new ZipOutputStream(byteArrayOutputStream);
-        // 使用ByteArrayOutputStream作为临时存储Excel文件
-        ByteArrayOutputStream excelOutputStream = new ByteArrayOutputStream();
-        ExcelWriter excelWriter = EasyExcel.write(excelOutputStream, DatasetExcel.class).build();
-        for (DocumentEntity doc : docs) {
-            List<DatasetExcel> list = getDatasetExcelByDoc(doc);
-            // 使用同一个写入器添加新的 sheet 页
-            WriteSheet writeSheet = EasyExcel.writerSheet(doc.getName()).build();
-            excelWriter.write(list, writeSheet);
-        }
-        // 完成写入操作
-        excelWriter.finish();
-        // 将生成的Excel添加到ZIP中
-        ZipEntry zipEntry = new ZipEntry(exportName + ".xlsx");
-        zipOutputStream.putNextEntry(zipEntry);
-        zipOutputStream.write(excelOutputStream.toByteArray()); // 将字节输出流转为字节数组写入
-        zipOutputStream.closeEntry();
-        // 关闭Excel相关的资源
-        excelOutputStream.close();
-        // 完成ZIP文件的写入
-        zipOutputStream.finish();
-        zipOutputStream.close();
-        // 将所有数据写入最终输出流
-        OutputStream outputStream = response.getOutputStream();
-        byteArrayOutputStream.writeTo(outputStream);
-        outputStream.flush();
-        byteArrayOutputStream.close(); // 关闭字节输出流
+
+    // 公共方法：根据 knowledgeId 获取文档列表
+    private List<DocumentEntity> getDocumentsByKnowledgeId(String knowledgeId) {
+        return documentService.list(Wrappers.<DocumentEntity>lambdaQuery()
+                .eq(DocumentEntity::getKnowledgeId, knowledgeId));
     }
 
-    public void exportExcelZip(String id, HttpServletResponse response) throws IOException {
-        KnowledgeEntity dataset = this.getById(id);
-        List<DocumentEntity> docs = documentService.list(Wrappers.<DocumentEntity>lambdaQuery().eq(DocumentEntity::getKnowledgeId, id));
-        exportExcelZipByDocs(docs, dataset.getName(), response);
-    }
-
-    public void exportExcel(String id, HttpServletResponse response) throws IOException {
-        KnowledgeEntity dataset = this.getById(id);
-        List<DocumentEntity> docs = documentService.list(Wrappers.<DocumentEntity>lambdaQuery().eq(DocumentEntity::getKnowledgeId, id));
+    // 公共方法：设置 Excel 响应头
+    private void setExcelResponseHeader(HttpServletResponse response, String fileName) {
         response.setContentType("application/vnd.ms-excel");
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());
-        String fileName = URLEncoder.encode(dataset.getName(), StandardCharsets.UTF_8);
-        response.setHeader("Content-disposition", "attachment;filename=" + fileName + ".xlsx");
-        OutputStream outputStream = response.getOutputStream();
-        // 创建 EasyExcel 写入器
-        ExcelWriter excelWriter = EasyExcel.write(outputStream, DatasetExcel.class).build();
-        for (DocumentEntity doc : docs) {
-            List<DatasetExcel> list = getDatasetExcelByDoc(doc);
-            // 使用同一个写入器添加新的 sheet 页
-            WriteSheet writeSheet = EasyExcel.writerSheet(doc.getName()).build();
-            excelWriter.write(list, writeSheet);
-        }
-        // 完成写入操作
-        excelWriter.finish();
+        String encodedName = URLEncoder.encode(fileName, StandardCharsets.UTF_8)
+                .replaceAll("\\+", "%20"); // 兼容部分浏览器空格变+的问题
+        response.setHeader("Content-disposition", "attachment;filename=" + encodedName + ".xlsx");
     }
 
+    // 公共方法：设置 ZIP 响应头
+    private void setZipResponseHeader(HttpServletResponse response, String fileName) {
+        response.setContentType("application/zip");
+        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
+        String encodedName = URLEncoder.encode(fileName, StandardCharsets.UTF_8)
+                .replaceAll("\\+", "%20");
+        response.setHeader("Content-disposition", "attachment;filename=" + encodedName + ".zip");
+    }
+
+    // 核心：导出多个 sheet 到单个 Excel 文件（写入 OutputStream）
+    private void writeMultiSheetExcel(OutputStream outputStream, List<DocumentEntity> docs) {
+        try (ExcelWriter excelWriter = EasyExcel.write(outputStream, DatasetExcel.class).build()) {
+            for (DocumentEntity doc : docs) {
+                List<DatasetExcel> list = getDatasetExcelByDoc(doc);
+                if (list.isEmpty()) continue; // 跳过空数据
+                WriteSheet writeSheet = EasyExcel.writerSheet(doc.getName()).build();
+                excelWriter.write(list, writeSheet);
+            }
+        }
+    }
+
+
+    // 根据 ID 导出 ZIP
+    public void exportExcelZip(String id, HttpServletResponse response) throws IOException {
+        KnowledgeEntity dataset = this.getById(id);
+        if (dataset == null) {
+            throw new IllegalArgumentException("未找到知识库 ID: " + id);
+        }
+        List<DocumentEntity> docs = getDocumentsByKnowledgeId(id);
+        if (docs == null || docs.isEmpty()) {
+            throw new IllegalArgumentException("文档列表为空，无法导出");
+        }
+        setZipResponseHeader(response, dataset.getName());
+        try (ByteArrayOutputStream zipBuffer = new ByteArrayOutputStream();
+             ZipOutputStream zipOut = new ZipOutputStream(zipBuffer)) {
+            // 生成 Excel 内容到内存
+            try (ByteArrayOutputStream excelBuffer = new ByteArrayOutputStream()) {
+                writeMultiSheetExcel(excelBuffer, docs);
+                // 添加到 ZIP
+                String entryName = "knowledge.xlsx";
+                zipOut.putNextEntry(new ZipEntry(entryName));
+                zipOut.write(excelBuffer.toByteArray());
+                zipOut.closeEntry();
+            }
+            // 写回 HTTP 响应
+            zipBuffer.writeTo(response.getOutputStream());
+            response.getOutputStream().flush();
+        }
+    }
+
+    // 直接导出 Excel（不压缩）
+    public void exportExcel(String id, HttpServletResponse response) throws IOException {
+        KnowledgeEntity dataset = this.getById(id);
+        if (dataset == null) {
+            throw new IllegalArgumentException("未找到知识库 ID: " + id);
+        }
+        List<DocumentEntity> docs = getDocumentsByKnowledgeId(id);
+        setExcelResponseHeader(response, dataset.getName());
+        writeMultiSheetExcel(response.getOutputStream(), docs);
+    }
 
     private List<DatasetExcel> getDatasetExcelByDoc(DocumentEntity doc) {
         List<DatasetExcel> list = new ArrayList<>();

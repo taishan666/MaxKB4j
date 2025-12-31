@@ -48,11 +48,18 @@ import org.jsoup.select.Elements;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -70,6 +77,10 @@ import java.util.zip.ZipOutputStream;
 @RequiredArgsConstructor
 public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity> {
 
+    private static final String DEFAULT_DOC_STATUS = "nn0";
+    private static final String DEFAULT_HIT_HANDLING_METHOD = "optimization";
+    private static final double DEFAULT_SIMILARITY_THRESHOLD = 0.9;
+
     private final ParagraphService paragraphService;
     private final ProblemService problemService;
     private final ProblemParagraphService problemParagraphService;
@@ -77,14 +88,19 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
     private final DocumentSpiltService documentSpiltService;
     private final MongoFileService mongoFileService;
     private final ApplicationEventPublisher eventPublisher;
+    private final PlatformTransactionManager transactionManager;
 
+    // 构造 TransactionTemplate
+    private TransactionTemplate createTransactionTemplate() {
+        DefaultTransactionDefinition def = new DefaultTransactionDefinition();
+        def.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+        return new TransactionTemplate(transactionManager, def);
+    }
 
     public void updateStatusMetaById(String id) {
         baseMapper.updateStatusMetaByIds(List.of(id));
     }
 
-
-    //type 1向量化 2 生成问题 3同步
     public void updateStatusById(String id, int type, int status) {
         baseMapper.updateStatusByIds(List.of(id), type, status);
     }
@@ -93,66 +109,67 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         baseMapper.updateStatusByIds(ids, type, status);
     }
 
-
     public List<DocumentEntity> listDocByKnowledgeId(String id) {
         return this.lambdaQuery().eq(DocumentEntity::getKnowledgeId, id).list();
     }
 
     @Transactional
     public boolean migrateDoc(String sourceKnowledgeId, String targetKnowledgeId, List<String> docIds) {
-        if (!CollectionUtils.isEmpty(docIds)) {
-            paragraphService.migrateDoc(sourceKnowledgeId, targetKnowledgeId, docIds);
-            return this.lambdaUpdate().set(DocumentEntity::getKnowledgeId, targetKnowledgeId).in(DocumentEntity::getId, docIds).update();
+        if (CollectionUtils.isEmpty(docIds)) {
+            return false;
         }
-        return false;
+        paragraphService.migrateDoc(sourceKnowledgeId, targetKnowledgeId, docIds);
+        return this.lambdaUpdate()
+                .set(DocumentEntity::getKnowledgeId, targetKnowledgeId)
+                .in(DocumentEntity::getId, docIds)
+                .update();
     }
 
     @Transactional
     public boolean batchHitHandling(String knowledgeId, DatasetBatchHitHandlingDTO dto) {
         List<String> ids = dto.getIdList();
-        if (!CollectionUtils.isEmpty(ids)) {
-            List<DocumentEntity> documentEntities = new ArrayList<>();
-            ids.forEach(id -> {
-                DocumentEntity entity = new DocumentEntity();
-                entity.setId(id);
-                entity.setKnowledgeId(knowledgeId);
-                entity.setHitHandlingMethod(dto.getHitHandlingMethod());
-                entity.setDirectlyReturnSimilarity(dto.getDirectlyReturnSimilarity());
-                documentEntities.add(entity);
-            });
-            return this.updateBatchById(documentEntities);
+        if (CollectionUtils.isEmpty(ids)) {
+            return false;
         }
-        return false;
+        List<DocumentEntity> documentEntities = ids.stream().map(id -> {
+            DocumentEntity entity = new DocumentEntity();
+            entity.setId(id);
+            entity.setKnowledgeId(knowledgeId);
+            entity.setHitHandlingMethod(dto.getHitHandlingMethod());
+            entity.setDirectlyReturnSimilarity(dto.getDirectlyReturnSimilarity());
+            return entity;
+        }).collect(Collectors.toList());
+        return this.updateBatchById(documentEntities);
     }
 
     @Transactional
-    public void importQa(String knowledgeId, MultipartFile[] file) throws IOException {
-        for (MultipartFile uploadFile : file) {
-            String fileName = uploadFile.getOriginalFilename();
-            if (fileName != null && fileName.toLowerCase().endsWith(".zip")) {
-                try (InputStream fis = uploadFile.getInputStream();
-                     ZipArchiveInputStream zipIn = new ZipArchiveInputStream(fis)) {
-                    ArchiveEntry entry;
-                    while ((entry = zipIn.getNextEntry()) != null) {
-                        // 假设ZIP包内只有一个文件或主要处理第一个找到的Excel文件
-                        if (!entry.isDirectory() && (entry.getName().toLowerCase().endsWith(".xls") || entry.getName().endsWith(".xlsx") || entry.getName().endsWith(".csv"))) {
-                            processQaFile(knowledgeId, zipIn, fileName);
-                            break; // 如果只处理一个文件，则在此处跳出循环
-                        }
-                    }
-                }
+    public void importQa(String knowledgeId, MultipartFile[] files) throws IOException {
+        if (files == null) return;
+        for (MultipartFile file : files) {
+            if (file == null || file.isEmpty()) continue;
+            String fileName = file.getOriginalFilename();
+            if (fileName == null) continue;
+            if (fileName.toLowerCase().endsWith(".zip")) {
+                processZipQaFile(knowledgeId, file);
+            } else {
+                processQaFile(knowledgeId, file.getInputStream(), fileName);
             }
-            processQaFile(knowledgeId, uploadFile.getInputStream(), fileName);
         }
     }
 
     @Transactional
-    public void importTable(String knowledgeId, MultipartFile[] file) throws IOException {
+    public void importTable(String knowledgeId, MultipartFile[] files) throws IOException {
+        if (files == null) return;
         List<String> docIds = new ArrayList<>();
-        for (MultipartFile uploadFile : file) {
+        for (MultipartFile uploadFile : files) {
+            if (uploadFile == null || uploadFile.isEmpty()) continue;
+            String originalFilename = uploadFile.getOriginalFilename();
+            if (originalFilename == null) continue;
+
             List<String> list = documentParseService.extractTable(uploadFile.getInputStream());
             List<ParagraphEntity> paragraphs = new ArrayList<>();
-            DocumentEntity doc = createDocument(knowledgeId, uploadFile.getOriginalFilename(), DocType.BASE.getType());
+            DocumentEntity doc = createDocument(knowledgeId, originalFilename, DocType.BASE.getType());
+
             if (!CollectionUtils.isEmpty(list)) {
                 for (String text : list) {
                     doc.setCharLength(doc.getCharLength() + text.length());
@@ -168,15 +185,39 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         eventPublisher.publishEvent(new DocumentIndexEvent(this, knowledgeId, docIds, List.of("0")));
     }
 
-
     private JSONObject upload(MultipartFile file) throws IOException {
         String fileId = mongoFileService.storeFile(file);
         return new JSONObject(Map.of("allow_download", true, "sourceFileId", fileId));
     }
 
     @Transactional
+    protected void processZipQaFile(String knowledgeId, MultipartFile zipFile) throws IOException {
+        try (InputStream fis = zipFile.getInputStream();
+             ZipArchiveInputStream zipIn = new ZipArchiveInputStream(fis)) {
+            ArchiveEntry entry;
+            while ((entry = zipIn.getNextEntry()) != null) {
+                if (!entry.isDirectory() && isExcelOrCsv(entry.getName())) {
+                    byte[] content = zipIn.readAllBytes();
+                    try (ByteArrayInputStream bis = new ByteArrayInputStream(content)) {
+                        processQaFile(knowledgeId, bis, entry.getName());
+                    }
+                    break; // 只处理第一个有效文件
+                }
+            }
+        }
+    }
+
+    private boolean isExcelOrCsv(String name) {
+        if (name == null) return false;
+        String lower = name.toLowerCase();
+        return lower.endsWith(".xls") || lower.endsWith(".xlsx") || lower.endsWith(".csv");
+    }
+
+    @Transactional
     protected void processQaFile(String knowledgeId, InputStream fis, String fileName) {
-        List<ProblemEntity> knowledgeProblems = problemService.lambdaQuery().eq(ProblemEntity::getKnowledgeId, knowledgeId).list();
+        List<ProblemEntity> knowledgeProblems = problemService.lambdaQuery()
+                .eq(ProblemEntity::getKnowledgeId, knowledgeId)
+                .list();
         List<ProblemEntity> problemEntities = new ArrayList<>();
         List<ProblemParagraphEntity> problemParagraphs = new ArrayList<>();
         List<ParagraphEntity> paragraphs = new ArrayList<>();
@@ -185,21 +226,23 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         try (ExcelReader excelReader = EasyExcel.read(fis, DatasetExcel.class, dataListener).build()) {
             List<ReadSheet> sheets = excelReader.excelExecutor().sheetList();
             for (ReadSheet sheet : sheets) {
-                String sheetName = sheet.getSheetName() == null ? fileName : sheet.getSheetName();
+                String sheetName = StringUtils.defaultIfBlank(sheet.getSheetName(), fileName);
                 DocumentEntity doc = createDocument(knowledgeId, sheetName, DocType.BASE.getType());
                 docs.add(doc);
-                System.out.println("正在读取 Sheet: " + sheet.getSheetName());
-                // 使用已构建的 excelReader 读取当前 sheet
+                log.info("正在读取 Sheet: {}", sheet.getSheetName());
                 excelReader.read(sheet);
                 List<DatasetExcel> dataList = dataListener.getDataList();
                 for (DatasetExcel data : dataList) {
-                    log.info("在Sheet {} 中读取到一条数据{}", sheet.getSheetName(), JSON.toJSONString(data));
-                    ParagraphEntity paragraph = paragraphService.createParagraph(knowledgeId, doc.getId(), data.getTitle(), data.getContent(), null);
+                    log.info("在Sheet {} 中读取到一条数据: {}", sheet.getSheetName(), JSON.toJSONString(data));
+                    ParagraphEntity paragraph = paragraphService.createParagraph(
+                            knowledgeId, doc.getId(), data.getTitle(), data.getContent(), null);
                     paragraphs.add(paragraph);
                     doc.setCharLength(doc.getCharLength() + paragraph.getContent().length());
                     if (StringUtils.isNotBlank(data.getProblems())) {
                         String[] problems = data.getProblems().split("\n");
                         for (String problem : problems) {
+                            problem = problem.trim();
+                            if (problem.isEmpty()) continue;
                             String problemId = IdWorker.get32UUID();
                             ProblemEntity existingProblem = problemService.findProblem(problem, knowledgeProblems);
                             if (existingProblem == null) {
@@ -213,12 +256,12 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
                                 problemId = existingProblem.getId();
                             }
                             if (!isExistProblemParagraph(paragraph.getId(), problemId, problemParagraphs)) {
-                                ProblemParagraphEntity problemParagraph = new ProblemParagraphEntity();
-                                problemParagraph.setKnowledgeId(knowledgeId);
-                                problemParagraph.setParagraphId(paragraph.getId());
-                                problemParagraph.setDocumentId(doc.getId());
-                                problemParagraph.setProblemId(problemId);
-                                problemParagraphs.add(problemParagraph);
+                                ProblemParagraphEntity pp = new ProblemParagraphEntity();
+                                pp.setKnowledgeId(knowledgeId);
+                                pp.setParagraphId(paragraph.getId());
+                                pp.setDocumentId(doc.getId());
+                                pp.setProblemId(problemId);
+                                problemParagraphs.add(pp);
                             }
                         }
                     }
@@ -226,119 +269,114 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
                 dataListener.clear();
             }
         } catch (Exception e) {
+            log.error("读取 Excel 失败: {}", e.getMessage(), e);
             throw new RuntimeException("读取 Excel 失败", e);
         }
         this.saveBatch(docs);
         paragraphService.saveBatch(paragraphs);
-        problemService.saveBatch(problemEntities);
-        problemParagraphService.saveBatch(problemParagraphs);
-        eventPublisher.publishEvent(new DocumentIndexEvent(this, knowledgeId, docs.stream().map(DocumentEntity::getId).toList(), List.of("0")));
+        if (!problemEntities.isEmpty()) {
+            problemService.saveBatch(problemEntities);
+        }
+        if (!problemParagraphs.isEmpty()) {
+            problemParagraphService.saveBatch(problemParagraphs);
+        }
+        publishDocumentIndexEvent(knowledgeId, docs.stream().map(DocumentEntity::getId).toList(),List.of("0"));
     }
 
-
     private boolean isExistProblemParagraph(String paragraphId, String problemId, List<ProblemParagraphEntity> problemParagraphs) {
-        if (CollectionUtils.isEmpty(problemParagraphs)) {
-            return false;
-        }
         return problemParagraphs.stream().anyMatch(e -> problemId.equals(e.getProblemId()) && paragraphId.equals(e.getParagraphId()));
     }
 
-
     public void exportExcelByDocId(String docId, HttpServletResponse response) {
         DocumentEntity doc = this.getById(docId);
+        if (doc == null) return;
         List<DatasetExcel> list = getDatasetExcelByDoc(doc);
         ExcelUtil.export(response, doc.getName(), doc.getName(), list, DatasetExcel.class);
-
     }
 
     public void exportExcelZipByDocId(String docId, HttpServletResponse response) throws IOException {
         DocumentEntity doc = this.getById(docId);
+        if (doc == null) return;
         exportExcelZipByDocs(List.of(doc), doc.getName(), response);
     }
 
     private List<DatasetExcel> getDatasetExcelByDoc(DocumentEntity doc) {
         List<DatasetExcel> list = new ArrayList<>();
-        List<ParagraphEntity> paragraphs = paragraphService.lambdaQuery().eq(ParagraphEntity::getDocumentId, doc.getId()).list();
+        List<ParagraphEntity> paragraphs = paragraphService.lambdaQuery()
+                .eq(ParagraphEntity::getDocumentId, doc.getId())
+                .list();
         for (ParagraphEntity paragraph : paragraphs) {
             DatasetExcel excel = new DatasetExcel();
             excel.setTitle(paragraph.getTitle());
             excel.setContent(paragraph.getContent());
             List<ProblemEntity> problemEntities = problemParagraphService.getProblemsByParagraphId(paragraph.getId());
-            StringBuilder sb = new StringBuilder();
             if (!CollectionUtils.isEmpty(problemEntities)) {
-                List<String> problems = problemEntities.stream().map(ProblemEntity::getContent).toList();
-                String result = String.join("\n", problems);
-                sb.append(result);
+                String problems = problemEntities.stream()
+                        .map(ProblemEntity::getContent)
+                        .filter(StringUtils::isNotBlank)
+                        .collect(Collectors.joining("\n"));
+                excel.setProblems(problems);
             }
-            excel.setProblems(sb.toString());
             list.add(excel);
         }
         return list;
     }
 
     public void exportExcelZipByDocs(List<DocumentEntity> docs, String exportName, HttpServletResponse response) throws IOException {
+        if (docs.isEmpty()) return;
         response.setContentType("application/zip");
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());
-        String fileName = URLEncoder.encode(exportName, StandardCharsets.UTF_8);
-        response.setHeader("Content-disposition", "attachment;filename=" + fileName + ".zip");
-        // 创建字节输出流和ZIP输出流
-        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        ZipOutputStream zipOutputStream = new ZipOutputStream(byteArrayOutputStream);
-        // 使用ByteArrayOutputStream作为临时存储Excel文件
-        ByteArrayOutputStream excelOutputStream = new ByteArrayOutputStream();
-        ExcelWriter excelWriter = EasyExcel.write(excelOutputStream, DatasetExcel.class).build();
-        for (DocumentEntity doc : docs) {
-            List<DatasetExcel> list = getDatasetExcelByDoc(doc);
-            // 使用同一个写入器添加新的 sheet 页
-            WriteSheet writeSheet = EasyExcel.writerSheet(doc.getName()).build();
-            excelWriter.write(list, writeSheet);
+        String encodedName = URLEncoder.encode(exportName, StandardCharsets.UTF_8);
+        response.setHeader("Content-disposition", "attachment;filename=" + encodedName + ".zip");
+        try (ByteArrayOutputStream zipBuffer = new ByteArrayOutputStream();
+             ZipOutputStream zipOut = new ZipOutputStream(zipBuffer);
+             ByteArrayOutputStream excelBuffer = new ByteArrayOutputStream();
+             ExcelWriter excelWriter = EasyExcel.write(excelBuffer, DatasetExcel.class).build()) {
+            for (DocumentEntity doc : docs) {
+                List<DatasetExcel> data = getDatasetExcelByDoc(doc);
+                WriteSheet sheet = EasyExcel.writerSheet(doc.getName()).build();
+                excelWriter.write(data, sheet);
+            }
+            excelWriter.finish();
+
+            ZipEntry zipEntry = new ZipEntry(exportName + ".xlsx");
+            zipOut.putNextEntry(zipEntry);
+            zipOut.write(excelBuffer.toByteArray());
+            zipOut.closeEntry();
+            zipOut.finish();
+
+            IoUtil.copy(new ByteArrayInputStream(zipBuffer.toByteArray()), response.getOutputStream());
         }
-        // 完成写入操作
-        excelWriter.finish();
-        // 将生成的Excel添加到ZIP中
-        ZipEntry zipEntry = new ZipEntry(exportName + ".xlsx");
-        zipOutputStream.putNextEntry(zipEntry);
-        zipOutputStream.write(excelOutputStream.toByteArray()); // 将字节输出流转为字节数组写入
-        zipOutputStream.closeEntry();
-        // 关闭Excel相关的资源
-        excelOutputStream.close();
-        // 完成ZIP文件的写入
-        zipOutputStream.finish();
-        zipOutputStream.close();
-        // 将所有数据写入最终输出流
-        OutputStream outputStream = response.getOutputStream();
-        byteArrayOutputStream.writeTo(outputStream);
-        outputStream.flush();
-        byteArrayOutputStream.close(); // 关闭字节输出流
     }
 
     @Transactional
     public boolean batchCreateDoc(String knowledgeId, List<DocumentSimple> docs) {
-        List<String> docIds = new ArrayList<>();
-        if (!CollectionUtils.isEmpty(docs)) {
-            List<DocumentEntity> documentEntities = new ArrayList<>();
-            List<ParagraphEntity> paragraphEntities = new ArrayList<>();
-            docs.parallelStream().forEach(e -> {
-                DocumentEntity doc = createDocument(knowledgeId, e.getName(), DocType.BASE.getType());
-                AtomicInteger docCharLength = new AtomicInteger();
-                if (!CollectionUtils.isEmpty(e.getParagraphs())) {
-                    e.getParagraphs().forEach(p -> {
-                        paragraphEntities.add(paragraphService.createParagraph(knowledgeId, doc.getId(), p.getTitle(), p.getContent(), null));
-                        docCharLength.addAndGet(p.getContent().length());
-                    });
-                }
-                doc.setCharLength(docCharLength.get());
-                String sourceFileId = e.getSourceFileId() == null ? "" : e.getSourceFileId();
-                doc.setMeta(new JSONObject(Map.of("allow_download", true, "sourceFileId", sourceFileId)));
-                documentEntities.add(doc);
-            });
-            if (!CollectionUtils.isEmpty(paragraphEntities)) {
-                paragraphService.saveBatch(paragraphEntities);
-            }
-            this.saveBatch(documentEntities);
-            documentEntities.forEach(doc -> docIds.add(doc.getId()));
-            eventPublisher.publishEvent(new DocumentIndexEvent(this, knowledgeId, docIds, List.of("0")));
+        if (CollectionUtils.isEmpty(docs)) {
+            return true;
         }
+        List<DocumentEntity> documentEntities = new ArrayList<>();
+        List<ParagraphEntity> paragraphEntities = new ArrayList<>();
+        // 改为普通 stream，避免 parallelStream 修改共享 list 的线程安全问题
+        for (DocumentSimple e : docs) {
+            DocumentEntity doc = createDocument(knowledgeId, e.getName(), DocType.BASE.getType());
+            AtomicInteger docCharLength = new AtomicInteger();
+            if (!CollectionUtils.isEmpty(e.getParagraphs())) {
+                for (var p : e.getParagraphs()) {
+                    paragraphEntities.add(paragraphService.createParagraph(knowledgeId, doc.getId(), p.getTitle(), p.getContent(), null));
+                    docCharLength.addAndGet(p.getContent().length());
+                }
+            }
+            doc.setCharLength(docCharLength.get());
+            String sourceFileId = Optional.ofNullable(e.getSourceFileId()).orElse("");
+            doc.setMeta(new JSONObject(Map.of("allow_download", true, "sourceFileId", sourceFileId)));
+            documentEntities.add(doc);
+        }
+        if (!paragraphEntities.isEmpty()) {
+            paragraphService.saveBatch(paragraphEntities);
+        }
+        this.saveBatch(documentEntities);
+        List<String> docIds = documentEntities.stream().map(DocumentEntity::getId).toList();
+        publishDocumentIndexEvent(knowledgeId, docIds,List.of("0"));
         return true;
     }
 
@@ -347,16 +385,15 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         documentEntity.setId(IdWorker.get32UUID());
         documentEntity.setKnowledgeId(knowledgeId);
         documentEntity.setName(name);
-        documentEntity.setMeta(new JSONObject());
+        documentEntity.setMeta(new JSONObject(Map.of("allow_download", true)));
         documentEntity.setCharLength(0);
-        documentEntity.setStatus("nn0");
+        documentEntity.setStatus(DEFAULT_DOC_STATUS);
         documentEntity.setIsActive(true);
         documentEntity.setType(type);
-        documentEntity.setHitHandlingMethod("optimization");
-        documentEntity.setDirectlyReturnSimilarity(0.9);
+        documentEntity.setHitHandlingMethod(DEFAULT_HIT_HANDLING_METHOD);
+        documentEntity.setDirectlyReturnSimilarity(DEFAULT_SIMILARITY_THRESHOLD);
         return documentEntity;
     }
-
 
     @Transactional
     public boolean deleteBatchDocByDocIds(String knowledgeId, List<String> docIds) {
@@ -369,20 +406,24 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
 
     @Transactional
     public boolean embedByDocIds(String knowledgeId, List<String> docIds, List<String> stateList) {
-        eventPublisher.publishEvent(new DocumentIndexEvent(this, knowledgeId, docIds, stateList));
+        publishDocumentIndexEvent(knowledgeId, docIds,stateList);
         return true;
     }
 
-
     public boolean cancelTask(String docId, DocumentEntity doc) {
         DocumentEntity entity = baseMapper.selectById(docId);
-        entity.setId(docId);
+        if (entity == null) return false;
+
         String status = entity.getStatus();
+        if (status == null || status.length() < 3) return false;
+
+        StringBuilder newStatus = new StringBuilder(status);
         if (doc.getType() == 1) {
-            entity.setStatus(status.replace(status.substring(2), "3"));
+            newStatus.setCharAt(2, '3'); // 向量化取消
         } else if (doc.getType() == 2) {
-            entity.setStatus(status.replace(status.substring(1, 2), "3"));
+            newStatus.setCharAt(1, '3'); // 问题生成取消
         }
+        entity.setStatus(newStatus.toString());
         return this.updateById(entity);
     }
 
@@ -394,11 +435,16 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
 
     @Transactional
     public boolean deleteDoc(String docId) {
-        List<ProblemParagraphEntity> list = problemParagraphService.lambdaQuery().select(ProblemParagraphEntity::getProblemId).eq(ProblemParagraphEntity::getDocumentId, docId).list();
+        List<ProblemParagraphEntity> list = problemParagraphService.lambdaQuery()
+                .select(ProblemParagraphEntity::getProblemId)
+                .eq(ProblemParagraphEntity::getDocumentId, docId)
+                .list();
         problemParagraphService.lambdaUpdate().eq(ProblemParagraphEntity::getDocumentId, docId).remove();
         paragraphService.lambdaUpdate().eq(ParagraphEntity::getDocumentId, docId).remove();
+
         if (!CollectionUtils.isEmpty(list)) {
-            problemService.removeBatchByIds(list.stream().map(ProblemParagraphEntity::getProblemId).toList());
+            List<String> problemIds = list.stream().map(ProblemParagraphEntity::getProblemId).distinct().toList();
+            problemService.removeBatchByIds(problemIds);
         }
         return this.removeById(docId);
     }
@@ -409,158 +455,174 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         return docPage;
     }
 
-
     public List<KeyAndValueVO> splitPattern() {
-        List<KeyAndValueVO> resultList = new ArrayList<>();
-        resultList.add(new KeyAndValueVO("#", "(?<=^)# .*|(?<=\\n)# .*"));
-        resultList.add(new KeyAndValueVO("##", "(?<=\\n)(?<!#)## (?!#).*|(?<=^)(?<!#)## (?!#).*"));
-        resultList.add(new KeyAndValueVO("###", "(?<=\\n)(?<!#)### (?!#).*|(?<=^)(?<!#)### (?!#).*"));
-        resultList.add(new KeyAndValueVO("####", "(?<=\\n)(?<!#)#### (?!#).*|(?<=^)(?<!#)#### (?!#).*"));
-        resultList.add(new KeyAndValueVO("#####", "(?<=\\n)(?<!#)##### (?!#).*|(?<=^)(?<!#)##### (?!#).*"));
-        resultList.add(new KeyAndValueVO("######", "(?<=\\n)(?<!#)###### (?!#).*|(?<=^)(?<!#)###### (?!#).*"));
-        resultList.add(new KeyAndValueVO("-", "(?<! )- .*"));
-        resultList.add(new KeyAndValueVO("space", "(?<! ) (?! )"));
-        resultList.add(new KeyAndValueVO("semicolon", "(?<!；)；(?!；)"));
-        resultList.add(new KeyAndValueVO("comma", "(?<!，)，(?!，)"));
-        resultList.add(new KeyAndValueVO("period", "(?<!。)。(?!。)"));
-        resultList.add(new KeyAndValueVO("enter", "(?<!\\n)\\n(?!\\n)"));
-        resultList.add(new KeyAndValueVO("blank line", "(?<!\\n)\\n\\n(?!\\n)"));
-        return resultList;
+        return Arrays.asList(
+                new KeyAndValueVO("#", "(?<=^)# .*|(?<=\\n)# .*"),
+                new KeyAndValueVO("##", "(?<=\\n)(?<!#)## (?!#).*|(?<=^)(?<!#)## (?!#).*"),
+                new KeyAndValueVO("###", "(?<=\\n)(?<!#)### (?!#).*|(?<=^)(?<!#)### (?!#).*"),
+                new KeyAndValueVO("####", "(?<=\\n)(?<!#)#### (?!#).*|(?<=^)(?<!#)#### (?!#).*"),
+                new KeyAndValueVO("#####", "(?<=\\n)(?<!#)##### (?!#).*|(?<=^)(?<!#)##### (?!#).*"),
+                new KeyAndValueVO("######", "(?<=\\n)(?<!#)###### (?!#).*|(?<=^)(?<!#)###### (?!#).*"),
+                new KeyAndValueVO("-", "(?<! )- .*"),
+                new KeyAndValueVO("space", "(?<! ) (?! )"),
+                new KeyAndValueVO("semicolon", "(?<!；)；(?!；)"),
+                new KeyAndValueVO("comma", "(?<!，)，(?!，)"),
+                new KeyAndValueVO("period", "(?<!。)。(?!。)"),
+                new KeyAndValueVO("enter", "(?<!\\n)\\n(?!\\n)"),
+                new KeyAndValueVO("blank line", "(?<!\\n)\\n\\n(?!\\n)")
+        );
     }
 
     public List<TextSegmentVO> split(MultipartFile[] files, String[] patterns, Integer limit, Boolean withFilter) throws IOException {
-        List<TextSegmentVO> list = new ArrayList<>();
+        List<TextSegmentVO> result = new ArrayList<>();
         List<FileStreamVO> fileStreams = new ArrayList<>();
+
+        if (files == null) return result;
+
         for (MultipartFile file : files) {
-            if (file == null || file.isEmpty()) {
-                continue; // 或抛出异常根据业务需求
-            }
-            // 判断是否是zip文件
-            if (isZipFile(file)) {
-                //todo 未处理zip下的zip文件
+            if (file == null || file.isEmpty()) continue;
+            String name = file.getOriginalFilename();
+            if (name == null) continue;
+
+            if (name.toLowerCase().endsWith(".zip")) {
                 try (ZipArchiveInputStream zis = new ZipArchiveInputStream(file.getInputStream())) {
                     ZipArchiveEntry entry;
                     while ((entry = zis.getNextEntry()) != null) {
                         if (!entry.isDirectory()) {
-                            String entryName = entry.getName();
                             byte[] bytes = zis.readAllBytes();
                             InputStream inputStream = new ByteArrayInputStream(bytes);
-                            //todo
-                            fileStreams.add(new FileStreamVO(entryName, inputStream, ""));
+                            fileStreams.add(new FileStreamVO(entry.getName(), inputStream, ""));
                         }
                     }
-                } catch (IOException e) {
-                    throw new RuntimeException("解压ZIP文件失败", e);
                 }
             } else {
-                fileStreams.add(new FileStreamVO(file.getOriginalFilename(), file.getInputStream(), file.getContentType()));
+                fileStreams.add(new FileStreamVO(name, file.getInputStream(), file.getContentType()));
             }
         }
-        for (FileStreamVO fileStream : fileStreams) {
-            TextSegmentVO textSegmentVO = new TextSegmentVO();
-            textSegmentVO.setName(fileStream.getName());
-            String docText = documentParseService.extractText(fileStream.getName(),fileStream.getInputStream());
-            List<TextSegment> textSegments = Collections.emptyList();
-            if (StringUtils.isNotBlank(docText)) {
-                textSegments = documentSpiltService.split(docText, patterns, limit, withFilter);
-            }
-            List<ParagraphSimpleVO> content = textSegments.stream()
-                    .map(segment -> new ParagraphSimpleVO(segment.text()))
-                    .collect(Collectors.toList());
-            textSegmentVO.setContent(content);
-            String fileId = mongoFileService.storeFile(fileStream.getInputStream(), fileStream.getName(), fileStream.getContentType());
-            textSegmentVO.setSourceFileId(fileId);
-            list.add(textSegmentVO);
+
+        for (FileStreamVO fs : fileStreams) {
+            TextSegmentVO vo = new TextSegmentVO();
+            vo.setName(fs.getName());
+            String text = documentParseService.extractText(fs.getName(), fs.getInputStream());
+            List<TextSegment> segments = StringUtils.isNotBlank(text)
+                    ? documentSpiltService.split(text, patterns, limit, withFilter)
+                    : Collections.emptyList();
+
+            vo.setContent(segments.stream()
+                    .map(seg -> new ParagraphSimpleVO(seg.text()))
+                    .collect(Collectors.toList()));
+
+            String fileId = mongoFileService.storeFile(fs.getInputStream(), fs.getName(), fs.getContentType());
+            vo.setSourceFileId(fileId);
+            result.add(vo);
         }
-        return list;
+        return result;
     }
-
-
-    /**
-     * 判断是否为 ZIP 文件（通过文件头 MAGIC NUMBER）
-     */
-    private boolean isZipFile(MultipartFile file) {
-        return Objects.requireNonNull(file.getOriginalFilename()).endsWith(".zip");
-    }
-
 
     @Async
-    @Transactional
     public void webDataset(String knowledgeId, String baseUrl, String selector) {
-        if (StringUtils.isBlank(selector)) {
-            selector = "body";
-        }
-        String finalSelector = selector;
+        createTransactionTemplate().execute(status -> {
+            doWebDataset(knowledgeId, baseUrl, selector);
+            return null;
+        });
+    }
+
+    private void doWebDataset(String knowledgeId, String baseUrl, String selector) {
+        if (StringUtils.isBlank(baseUrl)) return;
+        String finalSelector = StringUtils.defaultIfBlank(selector, "body");
         baseUrl = baseUrl.endsWith("/") ? baseUrl.substring(0, baseUrl.length() - 1) : baseUrl;
+
         Document html = JsoupUtil.getDocument(baseUrl);
         Elements elements = html.select(finalSelector);
-        List<String> sourceUrlList = new ArrayList<>();
-        sourceUrlList.add(baseUrl);
-        Elements links = elements.select("a");
+        Set<String> sourceUrlSet = new LinkedHashSet<>();
+        sourceUrlSet.add(baseUrl);
+
+        Elements links = elements.select("a[href]");
         for (Element link : links) {
-            String href = link.attr("href");
-            String url = baseUrl + href;
-            String[] catalogs = href.split("/");
-            if (!sourceUrlList.contains(url) && href.startsWith("/") && catalogs.length == 2) {
-                if (!href.contains("?") && !href.contains("#")) {
-                    sourceUrlList.add(baseUrl + href);
+            String href = link.attr("href").trim();
+            if (href.startsWith("/")) {
+                String[] parts = href.split("/");
+                if (parts.length == 2 && !href.contains("?") && !href.contains("#")) {
+                    sourceUrlSet.add(baseUrl + href);
                 }
             }
         }
-        webDoc(knowledgeId, sourceUrlList, finalSelector);
-    }
 
+        webDocInternal(knowledgeId, new ArrayList<>(sourceUrlSet), finalSelector);
+    }
 
     @Transactional
     public void webDoc(String knowledgeId, List<String> sourceUrlList, String selector) {
-        if (StringUtils.isBlank(selector)) {
-            selector = "body";
-        }
+        webDocInternal(knowledgeId, sourceUrlList, selector);
+    }
+
+    public void webDocInternal(String knowledgeId, List<String> urls, String selector) {
+        if (CollectionUtils.isEmpty(urls)) return;
+        String finalSelector = StringUtils.defaultIfBlank(selector, "body");
         List<DocumentEntity> docs = new ArrayList<>();
         List<ParagraphEntity> paragraphs = new ArrayList<>();
-        String finalSelector = selector;
-        sourceUrlList.forEach(url -> {
-            Document html = JsoupUtil.getDocument(url);
-            Elements elements = html.select(finalSelector);
-            DocumentEntity doc = createDocument(knowledgeId, JsoupUtil.getTitle(html), DocType.WEB.getType());
-            JSONObject meta = new JSONObject();
-            meta.put("source_url", url);
-            meta.put("selector", finalSelector);
-            doc.setMeta(meta);
-            List<TextSegment> textSegments = documentSpiltService.defaultSplit(elements.text());
-            for (TextSegment textSegment : textSegments) {
-                ParagraphEntity paragraph = paragraphService.createParagraph(knowledgeId, doc.getId(), "", textSegment.text(), null);
-                paragraphs.add(paragraph);
-                doc.setCharLength(doc.getCharLength() + paragraph.getContent().length());
+        for (String url : urls) {
+            try {
+                Document html = JsoupUtil.getDocument(url);
+                Elements elements = html.select(finalSelector);
+                DocumentEntity doc = createDocument(knowledgeId, JsoupUtil.getTitle(html), DocType.WEB.getType());
+                JSONObject meta = new JSONObject();
+                meta.put("source_url", url);
+                meta.put("selector", finalSelector);
+                doc.setMeta(meta);
+
+                List<TextSegment> segments = documentSpiltService.defaultSplit(elements.text());
+                for (TextSegment seg : segments) {
+                    ParagraphEntity p = paragraphService.createParagraph(knowledgeId, doc.getId(), "", seg.text(), null);
+                    paragraphs.add(p);
+                    doc.setCharLength(doc.getCharLength() + seg.text().length());
+                }
+                docs.add(doc);
+            } catch (Exception e) {
+                log.warn("抓取网页失败: {}", url, e);
             }
-            docs.add(doc);
-        });
-        this.saveBatch(docs);
-        paragraphService.saveBatch(paragraphs);
-        eventPublisher.publishEvent(new DocumentIndexEvent(this, knowledgeId, docs.stream().map(DocumentEntity::getId).toList(), List.of("0")));
+        }
+        if (!docs.isEmpty()) {
+            baseMapper.insert(docs);
+            paragraphService.saveBatch(paragraphs);
+            publishDocumentIndexEvent(knowledgeId, docs.stream().map(DocumentEntity::getId).toList(),List.of("0"));
+        }
     }
 
     @Transactional
     public void sync(String knowledgeId, String docId) {
         DocumentEntity doc = this.getById(docId);
+        if (doc == null || doc.getMeta() == null) return;
+        String sourceUrl = doc.getMeta().getString("source_url");
+        String selector = doc.getMeta().getString("selector");
+        if (StringUtils.isAnyBlank(sourceUrl, selector)) return;
         deleteBatchDocByDocIds(knowledgeId, List.of(docId));
-        webDoc(knowledgeId, List.of(doc.getMeta().getString("source_url")), doc.getMeta().getString("selector"));
+        webDocInternal(knowledgeId, List.of(sourceUrl), selector);
     }
 
     public boolean batchGenerateRelated(String knowledgeId, GenerateProblemDTO dto) {
-        eventPublisher.publishEvent(new GenerateProblemEvent(this, knowledgeId, dto.getDocumentIdList(), dto.getModelId(), dto.getPrompt(), dto.getStateList()));
+        eventPublisher.publishEvent(new GenerateProblemEvent(
+                this, knowledgeId, dto.getDocumentIdList(), dto.getModelId(), dto.getPrompt(), dto.getStateList()));
         return true;
     }
 
     public boolean downloadSourceFile(String docId, HttpServletResponse response) throws IOException {
         DocumentEntity doc = this.getById(docId);
-        JSONObject meta = doc.getMeta();
-        if (meta.get("sourceFileId") != null) {
-            String fileId = doc.getMeta().getString("sourceFileId");
-            InputStream inputStream = mongoFileService.getStream(fileId);
-            IoUtil.copy(inputStream, response.getOutputStream());
+        if (doc == null || doc.getMeta() == null) return false;
+
+        String fileId = doc.getMeta().getString("sourceFileId");
+        if (StringUtils.isBlank(fileId)) return false;
+
+        try (InputStream in = mongoFileService.getStream(fileId)) {
+            IoUtil.copy(in, response.getOutputStream());
             return true;
         }
-        return false;
+    }
+
+    // ===== 封装事件发布 =====
+    private void publishDocumentIndexEvent(String knowledgeId, List<String> docIds,List<String> stateList) {
+        if (!docIds.isEmpty()) {
+            eventPublisher.publishEvent(new DocumentIndexEvent(this, knowledgeId, docIds, stateList));
+        }
     }
 }
