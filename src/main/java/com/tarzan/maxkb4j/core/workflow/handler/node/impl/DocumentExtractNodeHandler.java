@@ -77,7 +77,6 @@ public class DocumentExtractNodeHandler implements INodeHandler {
 
     private DocumentSimple buildDocumentSimple(SysFile sysFile, String content) {
         DocumentSimple doc = new DocumentSimple();
-        doc.setId(sysFile.getFileId());
         doc.setName(sysFile.getName());
         doc.setContent(content);
         doc.setMeta(new JSONObject());

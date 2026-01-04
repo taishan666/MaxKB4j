@@ -7,7 +7,6 @@ import java.util.List;
 
 @Data
 public class DocumentSimple {
-    private String id;
     private String name;
     private String content;
     private JSONObject meta;
