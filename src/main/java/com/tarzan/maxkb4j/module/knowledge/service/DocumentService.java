@@ -17,10 +17,7 @@ import com.tarzan.maxkb4j.common.util.JsoupUtil;
 import com.tarzan.maxkb4j.core.event.DocumentIndexEvent;
 import com.tarzan.maxkb4j.core.event.GenerateProblemEvent;
 import com.tarzan.maxkb4j.listener.DataListener;
-import com.tarzan.maxkb4j.module.knowledge.domain.dto.DatasetBatchHitHandlingDTO;
-import com.tarzan.maxkb4j.module.knowledge.domain.dto.DocQuery;
-import com.tarzan.maxkb4j.module.knowledge.domain.dto.DocumentSimple;
-import com.tarzan.maxkb4j.module.knowledge.domain.dto.GenerateProblemDTO;
+import com.tarzan.maxkb4j.module.knowledge.domain.dto.*;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.DocumentEntity;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.ParagraphEntity;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.ProblemEntity;
@@ -169,7 +166,6 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
             List<String> list = documentParseService.extractTable(uploadFile.getInputStream());
             List<ParagraphEntity> paragraphs = new ArrayList<>();
             DocumentEntity doc = createDocument(knowledgeId, originalFilename, DocType.BASE.getType());
-
             if (!CollectionUtils.isEmpty(list)) {
                 for (String text : list) {
                     doc.setCharLength(doc.getCharLength() + text.length());
@@ -215,72 +211,40 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
 
     @Transactional
     protected void processQaFile(String knowledgeId, InputStream fis, String fileName) {
-        List<ProblemEntity> knowledgeProblems = problemService.lambdaQuery()
-                .eq(ProblemEntity::getKnowledgeId, knowledgeId)
-                .list();
-        List<ProblemEntity> problemEntities = new ArrayList<>();
-        List<ProblemParagraphEntity> problemParagraphs = new ArrayList<>();
-        List<ParagraphEntity> paragraphs = new ArrayList<>();
-        List<DocumentEntity> docs = new ArrayList<>();
+        List<DocumentSimple> docs = new ArrayList<>();
         DataListener<DatasetExcel> dataListener = new DataListener<>();
+        String fileId = mongoFileService.storeFile(fis, fileName,null);
         try (ExcelReader excelReader = EasyExcel.read(fis, DatasetExcel.class, dataListener).build()) {
             List<ReadSheet> sheets = excelReader.excelExecutor().sheetList();
             for (ReadSheet sheet : sheets) {
+                DocumentSimple docSimple = new DocumentSimple();
                 String sheetName = StringUtils.defaultIfBlank(sheet.getSheetName(), fileName);
-                DocumentEntity doc = createDocument(knowledgeId, sheetName, DocType.BASE.getType());
-                docs.add(doc);
+                docSimple.setName(sheetName);
+                docSimple.setSourceFileId(fileId);
+                List<ParagraphSimple> paragraphs = new ArrayList<>();
                 log.info("正在读取 Sheet: {}", sheet.getSheetName());
                 excelReader.read(sheet);
                 List<DatasetExcel> dataList = dataListener.getDataList();
                 for (DatasetExcel data : dataList) {
                     log.info("在Sheet {} 中读取到一条数据: {}", sheet.getSheetName(), JSON.toJSONString(data));
-                    ParagraphEntity paragraph = paragraphService.createParagraph(
-                            knowledgeId, doc.getId(), data.getTitle(), data.getContent(), null);
-                    paragraphs.add(paragraph);
-                    doc.setCharLength(doc.getCharLength() + paragraph.getContent().length());
+                    ParagraphSimple paragraph = new ParagraphSimple();
+                    paragraph.setTitle(data.getTitle());
+                    paragraph.setContent(data.getContent());
                     if (StringUtils.isNotBlank(data.getProblems())) {
                         String[] problems = data.getProblems().split("\n");
-                        for (String problem : problems) {
-                            problem = problem.trim();
-                            if (problem.isEmpty()) continue;
-                            String problemId = IdWorker.get32UUID();
-                            ProblemEntity existingProblem = problemService.findProblem(problem, knowledgeProblems);
-                            if (existingProblem == null) {
-                                ProblemEntity problemEntity = ProblemEntity.createDefault();
-                                problemEntity.setId(problemId);
-                                problemEntity.setKnowledgeId(knowledgeId);
-                                problemEntity.setContent(problem);
-                                problemEntities.add(problemEntity);
-                                knowledgeProblems.add(problemEntity);
-                            } else {
-                                problemId = existingProblem.getId();
-                            }
-                            if (isExistProblemParagraph(paragraph.getId(), problemId, problemParagraphs)) {
-                                ProblemParagraphEntity pp = new ProblemParagraphEntity();
-                                pp.setKnowledgeId(knowledgeId);
-                                pp.setParagraphId(paragraph.getId());
-                                pp.setDocumentId(doc.getId());
-                                pp.setProblemId(problemId);
-                                problemParagraphs.add(pp);
-                            }
-                        }
+                        paragraph.setProblemList(Arrays.asList(problems));
                     }
+                    paragraphs.add(paragraph);
                 }
+                docSimple.setParagraphs(paragraphs);
+                docs.add(docSimple);
                 dataListener.clear();
             }
         } catch (Exception e) {
             log.error("读取 Excel 失败: {}", e.getMessage(), e);
             throw new RuntimeException("读取 Excel 失败", e);
         }
-        this.saveBatch(docs);
-        paragraphService.saveBatch(paragraphs);
-        if (!problemEntities.isEmpty()) {
-            problemService.saveBatch(problemEntities);
-        }
-        if (!problemParagraphs.isEmpty()) {
-            problemParagraphService.saveBatch(problemParagraphs);
-        }
-        publishDocumentIndexEvent(knowledgeId, docs.stream().map(DocumentEntity::getId).toList(), List.of("0"));
+        batchCreateDoc(knowledgeId, docs);
     }
 
     @Transactional
@@ -337,10 +301,10 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
             doc.setMeta(new JSONObject(Map.of("allow_download", true, "sourceFileId", sourceFileId)));
             documentEntities.add(doc);
         }
+        this.saveBatch(documentEntities);
         if (!paragraphEntities.isEmpty()) {
             paragraphService.saveBatch(paragraphEntities);
         }
-        this.saveBatch(documentEntities);
         List<String> docIds = documentEntities.stream().map(DocumentEntity::getId).toList();
         if (!problemEntities.isEmpty()) {
             problemService.saveBatch(problemEntities);
