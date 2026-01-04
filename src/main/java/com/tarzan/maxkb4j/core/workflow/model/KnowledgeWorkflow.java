@@ -1,6 +1,6 @@
 package com.tarzan.maxkb4j.core.workflow.model;
 
-import com.tarzan.maxkb4j.core.workflow.enums.NodeRunStatus;
+import com.tarzan.maxkb4j.core.workflow.enums.NodeStatus;
 import com.tarzan.maxkb4j.core.workflow.enums.WorkflowMode;
 import com.tarzan.maxkb4j.core.workflow.logic.LfEdge;
 import com.tarzan.maxkb4j.core.workflow.node.INode;
@@ -28,7 +28,7 @@ public class KnowledgeWorkflow extends Workflow {
         List<INode> startNodes = super.getNodes().stream().filter(e -> !isTargetNode(e.getId())).toList();
         for (INode startNode : startNodes) {
             if (!startNode.getId().equals(nodeId)){
-                startNode.setRunStatus(NodeRunStatus.SKIP);
+                startNode.setStatus(NodeStatus.SKIP.getCode());
             }
         }
         return startNodes;

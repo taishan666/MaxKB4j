@@ -1,7 +1,7 @@
 package com.tarzan.maxkb4j.core.workflow.handler;
 
 import com.tarzan.maxkb4j.core.workflow.builder.NodeHandlerBuilder;
-import com.tarzan.maxkb4j.core.workflow.enums.NodeRunStatus;
+import com.tarzan.maxkb4j.core.workflow.enums.NodeStatus;
 import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;
 import com.tarzan.maxkb4j.core.workflow.model.NodeResult;
 import com.tarzan.maxkb4j.core.workflow.model.NodeResultFuture;
@@ -58,7 +58,7 @@ public class WorkflowHandler {
 
 
     public List<INode> runChainNode(Workflow workflow, INode node) {
-        if (NodeRunStatus.READY.equals(node.getRunStatus())|| NodeRunStatus.INTERRUPT.equals(node.getRunStatus())) {
+        if (NodeStatus.READY.getCode()==node.getStatus()||NodeStatus.INTERRUPT.getCode()==node.getStatus()) {
             if (workflow.dependentNodeBeenExecuted(node)){
                 workflow.appendNode(node);
                 NodeResultFuture nodeResultFuture = runNodeFuture(workflow, node);
@@ -68,18 +68,18 @@ public class WorkflowHandler {
                     nodeResult.writeContext(node, workflow);
                     nodeResult.writeDetail(node);
                     if(nodeResult.isInterruptExec(node)){
-                        node.setRunStatus(NodeRunStatus.INTERRUPT);
+                        node.setStatus(NodeStatus.INTERRUPT.getCode());
                     }
                 }
                 // 获取下一个节点列表
                 return workflow.getNextNodeList(node, nodeResult);
             }
-        }else if (NodeRunStatus.SKIP.equals(node.getRunStatus())) {
+        }else if (NodeStatus.SKIP.getCode()==node.getStatus()) {
             // 获取下一个节点列表
             List<INode> nextNodeList = workflow.getNextNodeList(node, new NodeResult(Map.of()));
             nextNodeList.forEach(nextNode -> {
                 if (!workflow.isReadyJoinNode(nextNode)){
-                    nextNode.setRunStatus(NodeRunStatus.SKIP);
+                    nextNode.setStatus(NodeStatus.SKIP.getCode());
                 }
             });
             return nextNodeList;
@@ -95,8 +95,7 @@ public class WorkflowHandler {
             float runTime = (System.currentTimeMillis() - startTime) / 1000F;
             node.getDetail().put("runTime", runTime);
             log.info("node:{}, runTime:{} s", node.getProperties().getString("nodeName"), runTime);
-            node.setRunStatus(NodeRunStatus.SUCCESS);
-            return new NodeResultFuture(result, null, 200);
+            return new NodeResultFuture(result, null, NodeStatus.SUCCESS.getCode());
         } catch (Exception ex) {
             log.error("error:", ex);
             node.setErrMessage(ex.getMessage());
@@ -109,8 +108,7 @@ public class WorkflowHandler {
                     null,
                     true);
             workflow.getSink().tryEmitNext(errMessage);
-            node.setRunStatus(NodeRunStatus.ERROR);
-            return new NodeResultFuture(null, ex, 500);
+            return new NodeResultFuture(null, ex, NodeStatus.ERROR.getCode());
         }
     }
 

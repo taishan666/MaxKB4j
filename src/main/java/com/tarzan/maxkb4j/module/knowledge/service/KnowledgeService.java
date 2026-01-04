@@ -57,6 +57,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.DATA_SOURCE_WEB;
+
 /**
  * @author tarzan
  * @date 2024-12-25 16:00:15
@@ -281,7 +283,7 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
     }
 
     public List<BaseField> datasourceFormList(String id, String nodeType, JSONObject node) {
-        if ("data-source-web-node".equals(nodeType)) {
+        if (DATA_SOURCE_WEB.getKey().equals(nodeType)) {
             BaseField field1 = new TextInputField("Web 根地址", "source_url", "请输入 Web 根地址", true);
             BaseField field2 = new TextInputField("选择器", "selector", "默认为 body，可输入 .classname/#idname/tagname", false);
             return List.of(field1, field2);

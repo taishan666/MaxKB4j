@@ -3,10 +3,7 @@ package com.tarzan.maxkb4j.core.workflow.model;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.tarzan.maxkb4j.core.workflow.enums.DialogueType;
-import com.tarzan.maxkb4j.core.workflow.enums.NodeRunStatus;
-import com.tarzan.maxkb4j.core.workflow.enums.NodeType;
-import com.tarzan.maxkb4j.core.workflow.enums.WorkflowMode;
+import com.tarzan.maxkb4j.core.workflow.enums.*;
 import com.tarzan.maxkb4j.core.workflow.logic.LfEdge;
 import com.tarzan.maxkb4j.core.workflow.node.INode;
 import com.tarzan.maxkb4j.module.application.domain.entity.ApplicationChatRecordEntity;
@@ -82,7 +79,7 @@ public class Workflow {
             String nodeId = (String) nodeDetail.get("nodeId");
             List<String> upNodeIdList = (List<String>) nodeDetail.get("upNodeIdList");
             String runtimeNodeId = (String) nodeDetail.get("runtimeNodeId");
-            NodeRunStatus runStatus = (NodeRunStatus) nodeDetail.get("runStatus");
+            Integer nodeStatus = (Integer) nodeDetail.get("status");
             if (runtimeNodeId.equals(currentNodeId)) {
                 // 处理起始节点
                 this.currentNode = getNodeClsById(nodeId, upNodeIdList, n -> {
@@ -94,7 +91,7 @@ public class Workflow {
                     return nodeProperties;
                 });
                 assert currentNode != null;
-                currentNode.setRunStatus(runStatus);
+                currentNode.setStatus(nodeStatus);
                 currentNode.setDetail(nodeDetail);
                 currentNode.saveContext(this, nodeDetail);
                 nodeContext.add(currentNode);
@@ -102,7 +99,7 @@ public class Workflow {
                 // 处理其他节点
                 INode node = getNodeClsById(nodeId, upNodeIdList, null);
                 assert node != null;
-                node.setRunStatus(runStatus);
+                node.setStatus(nodeStatus);
                 node.setDetail(nodeDetail);
                 node.saveContext(this, nodeDetail);
                 nodeContext.add(node);
@@ -134,7 +131,7 @@ public class Workflow {
                     String expectedAnchorId = String.format("%s_%s_right", currentNode.getId(), branchId);
                     if (!expectedAnchorId.equals(edge.getSourceAnchorId())) {
                         assert nextNode != null;
-                        nextNode.setRunStatus(NodeRunStatus.SKIP);
+                        nextNode.setStatus(NodeStatus.SKIP.getCode());
                     }
                 }
             }
@@ -151,7 +148,7 @@ public class Workflow {
             return true;
         }
         List<INode> upNodes = nodes.stream().filter(e -> upNodeIdList.contains(e.getId())).toList();
-        return upNodes.stream().allMatch(e -> (NodeRunStatus.SUCCESS.equals(e.getRunStatus()) || NodeRunStatus.SKIP.equals(e.getRunStatus())));
+        return upNodes.stream().allMatch(e -> (NodeStatus.SUCCESS.getCode()==e.getStatus() || NodeStatus.SKIP.getCode()==e.getStatus()));
     }
 
     // 是否是汇聚节点（排除上游节点都是SKIP的汇聚节点）
@@ -162,7 +159,7 @@ public class Workflow {
         }
         if (upNodeIdList.size() > 1) {
             List<INode> upNodes = nodes.stream().filter(e -> upNodeIdList.contains(e.getId())).toList();
-            return !upNodes.stream().allMatch(e -> NodeRunStatus.SKIP.equals(e.getRunStatus()));
+            return !upNodes.stream().allMatch(e -> NodeStatus.SKIP.getCode()==e.getStatus());
         }
         return false;
     }
@@ -226,7 +223,6 @@ public class Workflow {
             runtimeDetail.put("name", node.getProperties().getString("nodeName"));
             runtimeDetail.put("upNodeIdList", node.getUpNodeIdList());
             runtimeDetail.put("runtimeNodeId", node.getRuntimeNodeId());
-            runtimeDetail.put("runStatus", node.getRunStatus());
             runtimeDetail.put("type", node.getType());
             runtimeDetail.put("status", node.getStatus());
             runtimeDetail.put("errMessage", node.getErrMessage());
