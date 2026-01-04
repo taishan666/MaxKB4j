@@ -59,30 +59,4 @@ public class DeepSeekModelProvider extends IModelProvider {
                 .build();
     }
 
-    @Override
-    public EmbeddingModel buildEmbeddingModel(String modelName, ModelCredential credential, JSONObject params) {
-        return null;
-    }
-
-    @Override
-    public ImageModel buildImageModel(String modelName, ModelCredential credential, JSONObject params) {
-        return null;
-    }
-
-    @Override
-    public ScoringModel buildScoringModel(String modelName, ModelCredential credential, JSONObject params) {
-        return null;
-    }
-
-    @Override
-    public STTModel buildSTTModel(String modelName, ModelCredential credential, JSONObject params) {
-        return null;
-    }
-
-    @Override
-    public TTSModel buildTTSModel(String modelName, ModelCredential credential, JSONObject params) {
-        return null;
-    }
-
-
 }
