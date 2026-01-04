@@ -292,7 +292,10 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
     }
 
     public KnowledgeActionEntity uploadDocument(String id, KnowledgeParams params,boolean debug) {
-        KnowledgeEntity knowledge = baseMapper.selectById(id);
+        KnowledgeVersionEntity knowledge =  knowledgeVersionService.lambdaQuery().eq(KnowledgeVersionEntity::getKnowledgeId, id).orderByDesc(KnowledgeVersionEntity::getCreateTime).last("limit 1").one();
+        if (knowledge == null){
+            throw new IllegalArgumentException("未找到知识库 ID: " + id);
+        }
         KnowledgeActionEntity knowledgeAction = new KnowledgeActionEntity();
         knowledgeAction.setKnowledgeId(id);
         knowledgeAction.setState("STARTED");
