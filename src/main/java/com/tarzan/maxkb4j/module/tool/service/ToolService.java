@@ -10,6 +10,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tarzan.maxkb4j.common.util.*;
 import com.tarzan.maxkb4j.module.system.permission.constant.AuthTargetType;
 import com.tarzan.maxkb4j.module.system.permission.service.UserResourcePermissionService;
+import com.tarzan.maxkb4j.module.system.user.constants.RoleType;
 import com.tarzan.maxkb4j.module.system.user.domain.entity.UserEntity;
 import com.tarzan.maxkb4j.module.system.user.service.UserService;
 import com.tarzan.maxkb4j.module.tool.domain.dto.ToolQuery;
@@ -71,7 +72,7 @@ public class ToolService extends ServiceImpl<ToolMapper, ToolEntity> {
         UserEntity user = userService.getUserById(loginId);
         if (Objects.nonNull(user)) {
             if (!CollectionUtils.isEmpty(user.getRole())) {
-                if (user.getRole().contains("USER")) {
+                if (user.getRole().contains(RoleType.USER)) {
                     List<String> targetIds = userResourcePermissionService.getTargetIds(AuthTargetType.TOOL, loginId);
                     if (!CollectionUtils.isEmpty(targetIds)) {
                         wrapper.in(ToolEntity::getId, targetIds);

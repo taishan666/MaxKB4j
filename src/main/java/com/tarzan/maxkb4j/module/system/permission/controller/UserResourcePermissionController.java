@@ -37,7 +37,7 @@ public class UserResourcePermissionController {
     @SaCheckRole(type=LoginType.ADMIN,value = RoleType.ADMIN)
     @GetMapping("/user_member")
     public R<List<UserEntity>> userMembers(){
-        return R.success(userService.lambdaQuery().eq(UserEntity::getRole,"USER").eq(UserEntity::getIsActive, true).list());
+        return R.success(userService.lambdaQuery().eq(UserEntity::getRole,RoleType.USER).eq(UserEntity::getIsActive, true).list());
     }
 
     @SaCheckRole(type=LoginType.ADMIN,value = RoleType.ADMIN)

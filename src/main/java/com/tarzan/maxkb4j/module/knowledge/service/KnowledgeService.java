@@ -36,6 +36,7 @@ import com.tarzan.maxkb4j.module.knowledge.mapper.ProblemMapper;
 import com.tarzan.maxkb4j.module.knowledge.mapper.ProblemParagraphMapper;
 import com.tarzan.maxkb4j.module.system.permission.constant.AuthTargetType;
 import com.tarzan.maxkb4j.module.system.permission.service.UserResourcePermissionService;
+import com.tarzan.maxkb4j.module.system.user.constants.RoleType;
 import com.tarzan.maxkb4j.module.system.user.domain.entity.UserEntity;
 import com.tarzan.maxkb4j.module.system.user.service.UserService;
 import jakarta.servlet.http.HttpServletResponse;
@@ -86,7 +87,7 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
         String loginId = StpKit.ADMIN.getLoginIdAsString();
         List<String> targetIds = userResourcePermissionService.getTargetIds(AuthTargetType.KNOWLEDGE, loginId);
         UserEntity user = userService.getById(loginId);
-        query.setIsAdmin(user.getRole().contains("ADMIN"));
+        query.setIsAdmin(user.getRole().contains(RoleType.ADMIN));
         query.setTargetIds(targetIds);
         IPage<KnowledgeVO> page = baseMapper.selectKnowledgePage(knowledgePage, query);
         Map<String, String> nicknameMap = userService.getNicknameMap();
