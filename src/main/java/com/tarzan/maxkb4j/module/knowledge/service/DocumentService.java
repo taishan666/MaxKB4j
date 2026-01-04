@@ -255,7 +255,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
                             } else {
                                 problemId = existingProblem.getId();
                             }
-                            if (!isExistProblemParagraph(paragraph.getId(), problemId, problemParagraphs)) {
+                            if (isExistProblemParagraph(paragraph.getId(), problemId, problemParagraphs)) {
                                 ProblemParagraphEntity pp = new ProblemParagraphEntity();
                                 pp.setKnowledgeId(knowledgeId);
                                 pp.setParagraphId(paragraph.getId());
@@ -280,11 +280,80 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         if (!problemParagraphs.isEmpty()) {
             problemParagraphService.saveBatch(problemParagraphs);
         }
-        publishDocumentIndexEvent(knowledgeId, docs.stream().map(DocumentEntity::getId).toList(),List.of("0"));
+        publishDocumentIndexEvent(knowledgeId, docs.stream().map(DocumentEntity::getId).toList(), List.of("0"));
+    }
+
+    @Transactional
+    public boolean batchCreateDoc(String knowledgeId, List<DocumentSimple> docs) {
+        if (CollectionUtils.isEmpty(docs)) {
+            return true;
+        }
+        List<ProblemEntity> knowledgeProblems = problemService.lambdaQuery()
+                .eq(ProblemEntity::getKnowledgeId, knowledgeId)
+                .list();
+        List<DocumentEntity> documentEntities = new ArrayList<>();
+        List<ParagraphEntity> paragraphEntities = new ArrayList<>();
+        List<ProblemParagraphEntity> problemParagraphs = new ArrayList<>();
+        List<ProblemEntity> problemEntities = new ArrayList<>();
+        // 改为普通 stream，避免 parallelStream 修改共享 list 的线程安全问题
+        for (DocumentSimple e : docs) {
+            DocumentEntity doc = createDocument(knowledgeId, e.getName(), DocType.BASE.getType());
+            AtomicInteger docCharLength = new AtomicInteger();
+            if (!CollectionUtils.isEmpty(e.getParagraphs())) {
+                for (var p : e.getParagraphs()) {
+                    ParagraphEntity paragraph = paragraphService.createParagraph(knowledgeId, doc.getId(), p.getTitle(), p.getContent(), null);
+                    paragraphEntities.add(paragraph);
+                    docCharLength.addAndGet(p.getContent().length());
+                    if (!CollectionUtils.isEmpty(p.getProblemList())) {
+                        for (String problem : p.getProblemList()) {
+                            problem = problem.trim();
+                            if (problem.isEmpty()) continue;
+                            String problemId = IdWorker.get32UUID();
+                            ProblemEntity existingProblem = problemService.findProblem(problem, knowledgeProblems);
+                            if (existingProblem == null) {
+                                ProblemEntity problemEntity = ProblemEntity.createDefault();
+                                problemEntity.setId(problemId);
+                                problemEntity.setKnowledgeId(knowledgeId);
+                                problemEntity.setContent(problem);
+                                problemEntities.add(problemEntity);
+                                knowledgeProblems.add(problemEntity);
+                            } else {
+                                problemId = existingProblem.getId();
+                            }
+                            if (isExistProblemParagraph(paragraph.getId(), problemId, problemParagraphs)) {
+                                ProblemParagraphEntity pp = new ProblemParagraphEntity();
+                                pp.setKnowledgeId(knowledgeId);
+                                pp.setParagraphId(paragraph.getId());
+                                pp.setDocumentId(doc.getId());
+                                pp.setProblemId(problemId);
+                                problemParagraphs.add(pp);
+                            }
+                        }
+                    }
+                }
+            }
+            doc.setCharLength(docCharLength.get());
+            String sourceFileId = Optional.ofNullable(e.getSourceFileId()).orElse("");
+            doc.setMeta(new JSONObject(Map.of("allow_download", true, "sourceFileId", sourceFileId)));
+            documentEntities.add(doc);
+        }
+        if (!paragraphEntities.isEmpty()) {
+            paragraphService.saveBatch(paragraphEntities);
+        }
+        this.saveBatch(documentEntities);
+        List<String> docIds = documentEntities.stream().map(DocumentEntity::getId).toList();
+        if (!problemEntities.isEmpty()) {
+            problemService.saveBatch(problemEntities);
+        }
+        if (!problemParagraphs.isEmpty()) {
+            problemParagraphService.saveBatch(problemParagraphs);
+        }
+        publishDocumentIndexEvent(knowledgeId, docIds, List.of("0"));
+        return true;
     }
 
     private boolean isExistProblemParagraph(String paragraphId, String problemId, List<ProblemParagraphEntity> problemParagraphs) {
-        return problemParagraphs.stream().anyMatch(e -> problemId.equals(e.getProblemId()) && paragraphId.equals(e.getParagraphId()));
+        return problemParagraphs.stream().noneMatch(e -> problemId.equals(e.getProblemId()) && paragraphId.equals(e.getParagraphId()));
     }
 
     public void exportExcelByDocId(String docId, HttpServletResponse response) {
@@ -322,7 +391,8 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         return list;
     }
 
-    public void exportExcelZipByDocs(List<DocumentEntity> docs, String exportName, HttpServletResponse response) throws IOException {
+    public void exportExcelZipByDocs(List<DocumentEntity> docs, String exportName, HttpServletResponse response) throws
+            IOException {
         if (docs.isEmpty()) return;
         response.setContentType("application/zip");
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());
@@ -349,36 +419,6 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         }
     }
 
-    @Transactional
-    public boolean batchCreateDoc(String knowledgeId, List<DocumentSimple> docs) {
-        if (CollectionUtils.isEmpty(docs)) {
-            return true;
-        }
-        List<DocumentEntity> documentEntities = new ArrayList<>();
-        List<ParagraphEntity> paragraphEntities = new ArrayList<>();
-        // 改为普通 stream，避免 parallelStream 修改共享 list 的线程安全问题
-        for (DocumentSimple e : docs) {
-            DocumentEntity doc = createDocument(knowledgeId, e.getName(), DocType.BASE.getType());
-            AtomicInteger docCharLength = new AtomicInteger();
-            if (!CollectionUtils.isEmpty(e.getParagraphs())) {
-                for (var p : e.getParagraphs()) {
-                    paragraphEntities.add(paragraphService.createParagraph(knowledgeId, doc.getId(), p.getTitle(), p.getContent(), null));
-                    docCharLength.addAndGet(p.getContent().length());
-                }
-            }
-            doc.setCharLength(docCharLength.get());
-            String sourceFileId = Optional.ofNullable(e.getSourceFileId()).orElse("");
-            doc.setMeta(new JSONObject(Map.of("allow_download", true, "sourceFileId", sourceFileId)));
-            documentEntities.add(doc);
-        }
-        if (!paragraphEntities.isEmpty()) {
-            paragraphService.saveBatch(paragraphEntities);
-        }
-        this.saveBatch(documentEntities);
-        List<String> docIds = documentEntities.stream().map(DocumentEntity::getId).toList();
-        publishDocumentIndexEvent(knowledgeId, docIds,List.of("0"));
-        return true;
-    }
 
     public DocumentEntity createDocument(String knowledgeId, String name, Integer type) {
         DocumentEntity documentEntity = new DocumentEntity();
@@ -406,17 +446,15 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
 
     @Transactional
     public boolean embedByDocIds(String knowledgeId, List<String> docIds, List<String> stateList) {
-        publishDocumentIndexEvent(knowledgeId, docIds,stateList);
+        publishDocumentIndexEvent(knowledgeId, docIds, stateList);
         return true;
     }
 
     public boolean cancelTask(String docId, DocumentEntity doc) {
         DocumentEntity entity = baseMapper.selectById(docId);
         if (entity == null) return false;
-
         String status = entity.getStatus();
         if (status == null || status.length() < 3) return false;
-
         StringBuilder newStatus = new StringBuilder(status);
         if (doc.getType() == 1) {
             newStatus.setCharAt(2, '3'); // 向量化取消
@@ -441,7 +479,6 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
                 .list();
         problemParagraphService.lambdaUpdate().eq(ProblemParagraphEntity::getDocumentId, docId).remove();
         paragraphService.lambdaUpdate().eq(ParagraphEntity::getDocumentId, docId).remove();
-
         if (!CollectionUtils.isEmpty(list)) {
             List<String> problemIds = list.stream().map(ProblemParagraphEntity::getProblemId).distinct().toList();
             problemService.removeBatchByIds(problemIds);
@@ -473,7 +510,8 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         );
     }
 
-    public List<TextSegmentVO> split(MultipartFile[] files, String[] patterns, Integer limit, Boolean withFilter) throws IOException {
+    public List<TextSegmentVO> split(MultipartFile[] files, String[] patterns, Integer limit, Boolean withFilter) throws
+            IOException {
         List<TextSegmentVO> result = new ArrayList<>();
         List<FileStreamVO> fileStreams = new ArrayList<>();
 
@@ -585,7 +623,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         if (!docs.isEmpty()) {
             baseMapper.insert(docs);
             paragraphService.saveBatch(paragraphs);
-            publishDocumentIndexEvent(knowledgeId, docs.stream().map(DocumentEntity::getId).toList(),List.of("0"));
+            publishDocumentIndexEvent(knowledgeId, docs.stream().map(DocumentEntity::getId).toList(), List.of("0"));
         }
     }
 
@@ -620,7 +658,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
     }
 
     // ===== 封装事件发布 =====
-    private void publishDocumentIndexEvent(String knowledgeId, List<String> docIds,List<String> stateList) {
+    private void publishDocumentIndexEvent(String knowledgeId, List<String> docIds, List<String> stateList) {
         if (!docIds.isEmpty()) {
             eventPublisher.publishEvent(new DocumentIndexEvent(this, knowledgeId, docIds, stateList));
         }

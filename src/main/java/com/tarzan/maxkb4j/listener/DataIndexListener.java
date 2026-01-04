@@ -28,7 +28,7 @@ public class DataIndexListener {
     @Async
     @EventListener
     public void handleEvent(DocumentIndexEvent event) {
-        System.out.println("收到文档向量化事件消息: " + event.getDocIds());
+        log.info("收到文档向量化事件消息: {}", event.getDocIds());
         EmbeddingModel embeddingModel=knowledgeModelService.getEmbeddingModel(event.getKnowledgeId());
         documentService.updateStatusByIds(event.getDocIds(), 1, 0);
         for (String docId : event.getDocIds()) {
@@ -40,7 +40,7 @@ public class DataIndexListener {
     @Async
     @EventListener
     public void handleEvent(ParagraphIndexEvent event) {
-        System.out.println("收到段落向量化事件消息: " + event.getParagraphIds());
+        log.info("收到段落向量化事件消息: {}", event.getParagraphIds());
         List<ParagraphEntity> paragraphs= paragraphService.listByIds(event.getParagraphIds());
         EmbeddingModel embeddingModel=knowledgeModelService.getEmbeddingModel(event.getKnowledgeId());
         embed(embeddingModel, event.getDocId(), paragraphs);
