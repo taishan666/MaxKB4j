@@ -45,21 +45,19 @@ public class DocumentSpiltHandler implements INodeHandler {
         boolean paragraphTitleRelateProblem = Boolean.TRUE.equals(nodeParams.getParagraphTitleRelateProblem());
         boolean documentNameRelateProblem = Boolean.TRUE.equals(nodeParams.getDocumentNameRelateProblem());
         if (paragraphTitleRelateProblem || documentNameRelateProblem) {
-            documentList.forEach(document -> {
-                document.getParagraphs().forEach(paragraph -> {
-                    List<String> problemList = paragraph.getProblemList();
-                    if (problemList == null) {
-                        problemList = new ArrayList<>();
-                        paragraph.setProblemList(problemList);
-                    }
-                    if (paragraphTitleRelateProblem && StringUtils.isNotBlank(paragraph.getTitle())) {
-                        problemList.add(paragraph.getTitle());
-                    }
-                    if (documentNameRelateProblem && StringUtils.isNotBlank(document.getName())) {
-                        problemList.add(document.getName());
-                    }
-                });
-            });
+            documentList.forEach(document -> document.getParagraphs().forEach(paragraph -> {
+                List<String> problemList = paragraph.getProblemList();
+                if (problemList == null) {
+                    problemList = new ArrayList<>();
+                    paragraph.setProblemList(problemList);
+                }
+                if (paragraphTitleRelateProblem && StringUtils.isNotBlank(paragraph.getTitle())) {
+                    problemList.add(paragraph.getTitle());
+                }
+                if (documentNameRelateProblem && StringUtils.isNotBlank(document.getName())) {
+                    problemList.add(document.getName());
+                }
+            }));
         }
         node.getDetail().put("splitStrategy", nodeParams.getSplitStrategy());
         node.getDetail().put("chunkSize", nodeParams.getChunkSize());
@@ -72,9 +70,7 @@ public class DocumentSpiltHandler implements INodeHandler {
         List<String> chunks = split(content, pattern, chunkSize, withFilter);
         List<ParagraphSimple> paragraphs = new ArrayList<>();
         for (String chunk : chunks) {
-            ParagraphSimple paragraph = new ParagraphSimple();
-            paragraph.setTitle("");
-            paragraph.setContent(chunk);
+            ParagraphSimple paragraph = ParagraphSimple.builder().title("").content(chunk).build();
             paragraphs.add(paragraph);
         }
         document.setParagraphs(paragraphs);
@@ -120,10 +116,7 @@ public class DocumentSpiltHandler implements INodeHandler {
             List<ParagraphSimple> paragraphs = document.getParagraphs();
 
             for (String chunk : chunks) {
-                ParagraphSimple paragraph = new ParagraphSimple();
-                paragraph.setTitle(title);
-                paragraph.setContent(chunk);
-                paragraph.setProblemList(questions);
+                ParagraphSimple paragraph = ParagraphSimple.builder().title(title).content(chunk).problemList(questions).build();
                 paragraphs.add(paragraph);
             }
             document.setParagraphs(paragraphs);

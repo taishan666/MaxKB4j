@@ -11,6 +11,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.tarzan.maxkb4j.common.splitter.MdParagraphSplitter;
 import com.tarzan.maxkb4j.common.util.ExcelUtil;
 import com.tarzan.maxkb4j.common.util.IoUtil;
 import com.tarzan.maxkb4j.common.util.JsoupUtil;
@@ -24,7 +25,6 @@ import com.tarzan.maxkb4j.module.knowledge.domain.entity.ProblemEntity;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.ProblemParagraphEntity;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.DocumentVO;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.FileStreamVO;
-import com.tarzan.maxkb4j.module.knowledge.domain.vo.ParagraphSimpleVO;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.TextSegmentVO;
 import com.tarzan.maxkb4j.module.knowledge.enums.DocType;
 import com.tarzan.maxkb4j.module.knowledge.excel.DatasetExcel;
@@ -227,9 +227,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
                 List<DatasetExcel> dataList = dataListener.getDataList();
                 for (DatasetExcel data : dataList) {
                     log.info("在Sheet {} 中读取到一条数据: {}", sheet.getSheetName(), JSON.toJSONString(data));
-                    ParagraphSimple paragraph = new ParagraphSimple();
-                    paragraph.setTitle(data.getTitle());
-                    paragraph.setContent(data.getContent());
+                    ParagraphSimple paragraph = ParagraphSimple.builder().title(data.getTitle()).content(data.getContent()).build();
                     if (StringUtils.isNotBlank(data.getProblems())) {
                         String[] problems = data.getProblems().split("\n");
                         paragraph.setProblemList(Arrays.asList(problems));
@@ -474,18 +472,14 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         );
     }
 
-    public List<TextSegmentVO> split(MultipartFile[] files, String[] patterns, Integer limit, Boolean withFilter) throws
-            IOException {
+    public List<TextSegmentVO> split(MultipartFile[] files, String[] patterns, Integer limit, Boolean withFilter) throws IOException {
         List<TextSegmentVO> result = new ArrayList<>();
         List<FileStreamVO> fileStreams = new ArrayList<>();
-
         if (files == null) return result;
-
         for (MultipartFile file : files) {
             if (file == null || file.isEmpty()) continue;
             String name = file.getOriginalFilename();
             if (name == null) continue;
-
             if (name.toLowerCase().endsWith(".zip")) {
                 try (ZipArchiveInputStream zis = new ZipArchiveInputStream(file.getInputStream())) {
                     ZipArchiveEntry entry;
@@ -501,7 +495,41 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
                 fileStreams.add(new FileStreamVO(name, file.getInputStream(), file.getContentType()));
             }
         }
+        for (FileStreamVO fs : fileStreams) {
+            TextSegmentVO vo = new TextSegmentVO();
+            vo.setName(fs.getName());
+            String text = documentParseService.extractText(fs.getName(), fs.getInputStream());
+            vo.setContent(MdParagraphSplitter.split(text));
+            String fileId = mongoFileService.storeFile(fs.getInputStream(), fs.getName(), fs.getContentType());
+            vo.setSourceFileId(fileId);
+            result.add(vo);
+        }
+        return result;
+    }
 
+    public List<TextSegmentVO> split1(MultipartFile[] files, String[] patterns, Integer limit, Boolean withFilter) throws IOException {
+        List<TextSegmentVO> result = new ArrayList<>();
+        List<FileStreamVO> fileStreams = new ArrayList<>();
+        if (files == null) return result;
+        for (MultipartFile file : files) {
+            if (file == null || file.isEmpty()) continue;
+            String name = file.getOriginalFilename();
+            if (name == null) continue;
+            if (name.toLowerCase().endsWith(".zip")) {
+                try (ZipArchiveInputStream zis = new ZipArchiveInputStream(file.getInputStream())) {
+                    ZipArchiveEntry entry;
+                    while ((entry = zis.getNextEntry()) != null) {
+                        if (!entry.isDirectory()) {
+                            byte[] bytes = zis.readAllBytes();
+                            InputStream inputStream = new ByteArrayInputStream(bytes);
+                            fileStreams.add(new FileStreamVO(entry.getName(), inputStream, ""));
+                        }
+                    }
+                }
+            } else {
+                fileStreams.add(new FileStreamVO(name, file.getInputStream(), file.getContentType()));
+            }
+        }
         for (FileStreamVO fs : fileStreams) {
             TextSegmentVO vo = new TextSegmentVO();
             vo.setName(fs.getName());
@@ -511,7 +539,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
                     : Collections.emptyList();
 
             vo.setContent(segments.stream()
-                    .map(seg -> new ParagraphSimpleVO(seg.text()))
+                    .map(seg -> ParagraphSimple.builder().content(seg.text()).build())
                     .collect(Collectors.toList()));
 
             String fileId = mongoFileService.storeFile(fs.getInputStream(), fs.getName(), fs.getContentType());

@@ -9,7 +9,7 @@ import com.tarzan.maxkb4j.module.model.provider.vo.ModelProviderInfo;
 import java.util.ArrayList;
 import java.util.List;
 
-public class XfModelProvider  extends IModelProvider {
+public class XunFeiModelProvider extends IModelProvider {
     @Override
     public ModelProviderInfo getBaseInfo() {
         ModelProviderInfo info = new ModelProviderInfo(ModelProviderEnum.XunFei);
@@ -21,13 +21,10 @@ public class XfModelProvider  extends IModelProvider {
     @Override
     public List<ModelInfo> getModelList() {
         List<ModelInfo> modelInfos = new ArrayList<>();
-        modelInfos.add(new ModelInfo("glm-4","", ModelType.LLM));
-        modelInfos.add(new ModelInfo("glm-4v","",ModelType.LLM));
-        modelInfos.add(new ModelInfo("glm-3-turbo","",ModelType.LLM));
-        modelInfos.add(new ModelInfo("glm-4v-plus","",ModelType.VISION));
-        modelInfos.add(new ModelInfo("glm-4v-flash","",ModelType.VISION));
-        modelInfos.add(new ModelInfo("cogview-3","",ModelType.TTI));
-        modelInfos.add(new ModelInfo("cogview-3-plus","",ModelType.TTI));
+        modelInfos.add(new ModelInfo("generalv3.5","", ModelType.LLM));
+        modelInfos.add(new ModelInfo("generalv3","",ModelType.LLM));
+        modelInfos.add(new ModelInfo("generalv2","",ModelType.LLM));
+        modelInfos.add(new ModelInfo("embedding","",ModelType.EMBEDDING));
         return modelInfos;
     }
 
