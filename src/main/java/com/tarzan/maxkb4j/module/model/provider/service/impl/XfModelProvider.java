@@ -12,7 +12,7 @@ import java.util.List;
 public class XfModelProvider  extends IModelProvider {
     @Override
     public ModelProviderInfo getBaseInfo() {
-        ModelProviderInfo info = new ModelProviderInfo(ModelProviderEnum.WenXin);
+        ModelProviderInfo info = new ModelProviderInfo(ModelProviderEnum.XunFei);
         info.setIcon(getSvgIcon("xf_icon.svg"));
         return info;
     }
