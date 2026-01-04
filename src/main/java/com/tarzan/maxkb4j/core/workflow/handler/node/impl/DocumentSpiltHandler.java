@@ -31,24 +31,43 @@ public class DocumentSpiltHandler implements INodeHandler {
     @SuppressWarnings("unchecked")
     @Override
     public NodeResult execute(Workflow workflow, INode node) throws Exception {
-        DocumentSpiltNode.NodeParams nodeParams=node.getNodeData().toJavaObject(DocumentSpiltNode.NodeParams.class);
-        List<String> fileIds=nodeParams.getDocumentList();
-        Object res=workflow.getReferenceField(fileIds.get(0),fileIds.get(1));
-        List<DocumentSimple> documentList= res==null?List.of():(List<DocumentSimple>) res;
+        DocumentSpiltNode.NodeParams nodeParams = node.getNodeData().toJavaObject(DocumentSpiltNode.NodeParams.class);
+        List<String> fileIds = nodeParams.getDocumentList();
+        Object res = workflow.getReferenceField(fileIds.get(0), fileIds.get(1));
+        List<DocumentSimple> documentList = res == null ? List.of() : (List<DocumentSimple>) res;
         for (DocumentSimple document : documentList) {
-            if ("qa".equals(nodeParams.getSplitStrategy())){
-                qaSplit(document,nodeParams.getPatterns(),nodeParams.getChunkSize(),nodeParams.getWithFilter());
-            }else {
-                defaultSplit(document,nodeParams.getPatterns(),nodeParams.getChunkSize(),nodeParams.getWithFilter());
+            if ("qa".equals(nodeParams.getSplitStrategy())) {
+                qaSplit(document, nodeParams.getPatterns(), nodeParams.getChunkSize(), nodeParams.getWithFilter());
+            } else {
+                defaultSplit(document, nodeParams.getPatterns(), nodeParams.getChunkSize(), nodeParams.getWithFilter());
             }
         }
-        node.getDetail().put("splitStrategy",nodeParams.getSplitStrategy());
-        node.getDetail().put("chunkSize",nodeParams.getChunkSize());
+        boolean paragraphTitleRelateProblem = Boolean.TRUE.equals(nodeParams.getParagraphTitleRelateProblem());
+        boolean documentNameRelateProblem = Boolean.TRUE.equals(nodeParams.getDocumentNameRelateProblem());
+        if (paragraphTitleRelateProblem || documentNameRelateProblem) {
+            documentList.forEach(document -> {
+                document.getParagraphs().forEach(paragraph -> {
+                    List<String> problemList = paragraph.getProblemList();
+                    if (problemList == null) {
+                        problemList = new ArrayList<>();
+                        paragraph.setProblemList(problemList);
+                    }
+                    if (paragraphTitleRelateProblem && StringUtils.isNotBlank(paragraph.getTitle())) {
+                        problemList.add(paragraph.getTitle());
+                    }
+                    if (documentNameRelateProblem && StringUtils.isNotBlank(document.getName())) {
+                        problemList.add(document.getName());
+                    }
+                });
+            });
+        }
+        node.getDetail().put("splitStrategy", nodeParams.getSplitStrategy());
+        node.getDetail().put("chunkSize", nodeParams.getChunkSize());
         node.getDetail().put("documentList", documentList);
-        return new NodeResult(Map.of("paragraphList",documentList));
+        return new NodeResult(Map.of("paragraphList", documentList));
     }
 
-    private void defaultSplit(DocumentSimple document,String[] pattern, int chunkSize,boolean withFilter) throws IOException {
+    private void defaultSplit(DocumentSimple document, String[] pattern, int chunkSize, boolean withFilter) throws IOException {
         String content = document.getContent();
         List<String> chunks = split(content, pattern, chunkSize, withFilter);
         List<ParagraphSimple> paragraphs = new ArrayList<>();
