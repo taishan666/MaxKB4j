@@ -34,7 +34,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @RequiredArgsConstructor
 @Component
-public class PdfParser implements DocumentParser {
+public class TikaParser implements DocumentParser {
 
     private final MongoFileService fileService;
 
