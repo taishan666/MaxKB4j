@@ -472,7 +472,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         );
     }
 
-    public List<TextSegmentVO> split(MultipartFile[] files, String[] patterns, Integer limit, Boolean withFilter) throws IOException {
+    public List<TextSegmentVO> split1(MultipartFile[] files, String[] patterns, Integer limit, Boolean withFilter) throws IOException {
         List<TextSegmentVO> result = new ArrayList<>();
         List<FileStreamVO> fileStreams = new ArrayList<>();
         if (files == null) return result;
@@ -507,7 +507,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         return result;
     }
 
-    public List<TextSegmentVO> split1(MultipartFile[] files, String[] patterns, Integer limit, Boolean withFilter) throws IOException {
+    public List<TextSegmentVO> split(MultipartFile[] files, String[] patterns, Integer limit, Boolean withFilter) throws IOException {
         List<TextSegmentVO> result = new ArrayList<>();
         List<FileStreamVO> fileStreams = new ArrayList<>();
         if (files == null) return result;
