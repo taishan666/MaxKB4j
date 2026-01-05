@@ -9,7 +9,6 @@ import dev.langchain4j.data.segment.TextSegment;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -54,6 +53,6 @@ public class DocumentSpiltService {
         }
         // 执行分割
         List<TextSegment> result = currentSplitter.split(document);
-        return result != null ? result : new ArrayList<>();
+        return result != null ? result : List.of();
     }
 }
