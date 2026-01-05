@@ -11,7 +11,6 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.tarzan.maxkb4j.common.splitter.MdParagraphSplitter;
 import com.tarzan.maxkb4j.common.util.ExcelUtil;
 import com.tarzan.maxkb4j.common.util.IoUtil;
 import com.tarzan.maxkb4j.common.util.JsoupUtil;
@@ -470,41 +469,6 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
                 new KeyAndValueVO("enter", "(?<!\\n)\\n(?!\\n)"),
                 new KeyAndValueVO("blank line", "(?<!\\n)\\n\\n(?!\\n)")
         );
-    }
-
-    public List<TextSegmentVO> split1(MultipartFile[] files, String[] patterns, Integer limit, Boolean withFilter) throws IOException {
-        List<TextSegmentVO> result = new ArrayList<>();
-        List<FileStreamVO> fileStreams = new ArrayList<>();
-        if (files == null) return result;
-        for (MultipartFile file : files) {
-            if (file == null || file.isEmpty()) continue;
-            String name = file.getOriginalFilename();
-            if (name == null) continue;
-            if (name.toLowerCase().endsWith(".zip")) {
-                try (ZipArchiveInputStream zis = new ZipArchiveInputStream(file.getInputStream())) {
-                    ZipArchiveEntry entry;
-                    while ((entry = zis.getNextEntry()) != null) {
-                        if (!entry.isDirectory()) {
-                            byte[] bytes = zis.readAllBytes();
-                            InputStream inputStream = new ByteArrayInputStream(bytes);
-                            fileStreams.add(new FileStreamVO(entry.getName(), inputStream, ""));
-                        }
-                    }
-                }
-            } else {
-                fileStreams.add(new FileStreamVO(name, file.getInputStream(), file.getContentType()));
-            }
-        }
-        for (FileStreamVO fs : fileStreams) {
-            TextSegmentVO vo = new TextSegmentVO();
-            vo.setName(fs.getName());
-            String text = documentParseService.extractText(fs.getName(), fs.getInputStream());
-            vo.setContent(MdParagraphSplitter.split(text));
-            String fileId = mongoFileService.storeFile(fs.getInputStream(), fs.getName(), fs.getContentType());
-            vo.setSourceFileId(fileId);
-            result.add(vo);
-        }
-        return result;
     }
 
     public List<TextSegmentVO> split(MultipartFile[] files, String[] patterns, Integer limit, Boolean withFilter) throws IOException {
