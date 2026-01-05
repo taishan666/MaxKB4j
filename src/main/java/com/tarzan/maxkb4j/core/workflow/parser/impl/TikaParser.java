@@ -114,7 +114,8 @@ public class TikaParser implements DocumentParser {
         StringBuilder md = new StringBuilder();
         for (Node node : element.childNodes()) {
             if (node instanceof TextNode) {
-                String text = ((TextNode) node).text().trim();
+               // String text = ((TextNode) node).text();
+                String text = node.outerHtml();
                 if (!text.isEmpty()) {
                     md.append(text);
                 }
