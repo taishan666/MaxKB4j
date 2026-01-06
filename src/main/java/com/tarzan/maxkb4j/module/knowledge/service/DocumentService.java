@@ -498,14 +498,12 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
             TextSegmentVO vo = new TextSegmentVO();
             vo.setName(fs.getName());
             String text = documentParseService.extractText(fs.getName(), fs.getInputStream());
-            List<TextSegment> segments = StringUtils.isNotBlank(text)
+            List<String> segments = StringUtils.isNotBlank(text)
                     ? documentSpiltService.split(text, patterns, limit, withFilter)
                     : Collections.emptyList();
-
             vo.setContent(segments.stream()
-                    .map(seg -> ParagraphSimple.builder().content(seg.text()).build())
+                    .map(seg -> ParagraphSimple.builder().content(seg).build())
                     .collect(Collectors.toList()));
-
             String fileId = mongoFileService.storeFile(fs.getInputStream(), fs.getName(), fs.getContentType());
             vo.setSourceFileId(fileId);
             result.add(vo);
@@ -564,7 +562,6 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
                 meta.put("source_url", url);
                 meta.put("selector", finalSelector);
                 doc.setMeta(meta);
-
                 List<TextSegment> segments = documentSpiltService.defaultSplit(elements.text());
                 for (TextSegment seg : segments) {
                     ParagraphEntity p = paragraphService.createParagraph(knowledgeId, doc.getId(), "", seg.text(), null);

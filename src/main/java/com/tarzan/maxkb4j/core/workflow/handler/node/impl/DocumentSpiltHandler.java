@@ -10,7 +10,6 @@ import com.tarzan.maxkb4j.core.workflow.node.impl.DocumentSpiltNode;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.DocumentSimple;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.ParagraphSimple;
 import com.tarzan.maxkb4j.module.knowledge.service.DocumentSpiltService;
-import dev.langchain4j.data.segment.TextSegment;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -126,10 +125,9 @@ public class DocumentSpiltHandler implements INodeHandler {
 
 
     public List<String> split(String content, String[] patterns, Integer limit, Boolean withFilter) throws IOException {
-        List<TextSegment> textSegments = Collections.emptyList();
         if (StringUtils.isNotBlank(content)) {
-            textSegments = documentSpiltService.split(content, patterns, limit, withFilter);
+            return documentSpiltService.split(content, patterns, limit, withFilter);
         }
-        return textSegments.stream().map(TextSegment::text).toList();
+        return Collections.emptyList();
     }
 }
