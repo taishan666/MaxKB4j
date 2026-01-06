@@ -126,7 +126,7 @@ public class DocumentSpiltHandler implements INodeHandler {
 
     public List<String> split(String content, String[] patterns, Integer limit, Boolean withFilter) throws IOException {
         if (StringUtils.isNotBlank(content)) {
-            return documentSpiltService.split(content, patterns, limit, withFilter);
+            return documentSpiltService.split(content, patterns, limit, withFilter).stream().map(ParagraphSimple::getContent).toList();
         }
         return Collections.emptyList();
     }

@@ -161,7 +161,6 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
             if (uploadFile == null || uploadFile.isEmpty()) continue;
             String originalFilename = uploadFile.getOriginalFilename();
             if (originalFilename == null) continue;
-
             List<String> list = documentParseService.extractTable(uploadFile.getInputStream());
             List<ParagraphEntity> paragraphs = new ArrayList<>();
             DocumentEntity doc = createDocument(knowledgeId, originalFilename, DocType.BASE.getType());
@@ -498,12 +497,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
             TextSegmentVO vo = new TextSegmentVO();
             vo.setName(fs.getName());
             String text = documentParseService.extractText(fs.getName(), fs.getInputStream());
-            List<String> segments = StringUtils.isNotBlank(text)
-                    ? documentSpiltService.split(text, patterns, limit, withFilter)
-                    : Collections.emptyList();
-            vo.setContent(segments.stream()
-                    .map(seg -> ParagraphSimple.builder().content(seg).build())
-                    .collect(Collectors.toList()));
+            vo.setContent(documentSpiltService.split(text, patterns, limit, withFilter));
             String fileId = mongoFileService.storeFile(fs.getInputStream(), fs.getName(), fs.getContentType());
             vo.setSourceFileId(fileId);
             result.add(vo);

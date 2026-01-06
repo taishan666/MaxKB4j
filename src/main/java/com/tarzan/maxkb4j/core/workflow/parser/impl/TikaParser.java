@@ -4,6 +4,7 @@ import com.tarzan.maxkb4j.core.workflow.model.SysFile;
 import com.tarzan.maxkb4j.core.workflow.parser.DocumentParser;
 import com.tarzan.maxkb4j.module.oss.service.MongoFileService;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.text.StringEscapeUtils;
 import org.apache.tika.exception.TikaException;
 import org.apache.tika.extractor.EmbeddedDocumentExtractor;
 import org.apache.tika.metadata.Metadata;
@@ -113,7 +114,8 @@ public class TikaParser implements DocumentParser {
         StringBuilder md = new StringBuilder();
         for (Node node : element.childNodes()) {
             if (node instanceof TextNode) {
-                String text = node.outerHtml();
+                String html = node.outerHtml();
+                String text = StringEscapeUtils.unescapeHtml4(html);
                 if (!text.isEmpty()) {
                     md.append(text);
                 }
@@ -161,12 +163,11 @@ public class TikaParser implements DocumentParser {
                         md.append("`").append(simpleXhtmlToMarkdown(child, embeddedImages)).append("`");
                         break;
                     case "strong","b":
-                        //   md.append("<strong>").append(simpleXhtmlToMarkdown(child, embeddedImages)).append("</strong>");
+                       // md.append("<b>").append(simpleXhtmlToMarkdown(child, embeddedImages)).append("</b>");
                         md.append(simpleXhtmlToMarkdown(child, embeddedImages));
                         break;
-                    case "em":
                     case "i":
-                        //   md.append("_").append(simpleXhtmlToMarkdown(child, embeddedImages)).append("_");
+                        //md.append("_").append(simpleXhtmlToMarkdown(child, embeddedImages)).append("_");
                         md.append(simpleXhtmlToMarkdown(child, embeddedImages));
                         break;
                     case "br":
@@ -188,7 +189,6 @@ public class TikaParser implements DocumentParser {
                         }
                         break;
                     case "a":
-                        // 可选：处理超链接
                         String href = child.attr("href");
                         String linkText = simpleXhtmlToMarkdown(child, embeddedImages);
                         if (href.isEmpty()) {
@@ -280,7 +280,6 @@ public class TikaParser implements DocumentParser {
         for (List<String> row : dataRows) {
             maxCols = Math.max(maxCols, row.size());
         }
-        // 补齐表头
         while (headers.size() < maxCols) {
             headers.add("");
         }

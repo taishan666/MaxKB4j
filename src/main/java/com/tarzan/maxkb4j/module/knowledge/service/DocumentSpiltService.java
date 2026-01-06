@@ -1,5 +1,6 @@
 package com.tarzan.maxkb4j.module.knowledge.service;
 
+import com.tarzan.maxkb4j.module.knowledge.domain.dto.ParagraphSimple;
 import dev.langchain4j.data.document.Document;
 import dev.langchain4j.data.document.DocumentSplitter;
 import dev.langchain4j.data.document.splitter.DocumentBySentenceSplitter;
@@ -24,13 +25,13 @@ public class DocumentSpiltService {
     }
 
 
-    public List<String> split(String docText, String[] patterns, Integer limit, Boolean withFilter) {
-        if (patterns != null&&patterns.length > 0) {
-            return recursive(docText, patterns, limit,withFilter);
+    public List<ParagraphSimple> split(String docText, String[] patterns, Integer limit, Boolean withFilter) {
+        if (patterns != null && patterns.length > 0) {
+            return recursive(docText, patterns, limit, withFilter);
         } else {
-            Document document=Document.document(docText);
-            List<TextSegment> textSegments =  defaultSplitter.split(document);
-            return textSegments.stream().map(TextSegment::text).toList();
+            Document document = Document.document(docText);
+            List<TextSegment> textSegments = defaultSplitter.split(document);
+            return textSegments.stream().map(e -> ParagraphSimple.builder().content(e.text()).build()).toList();
         }
     }
 
@@ -39,7 +40,7 @@ public class DocumentSpiltService {
     private static final Pattern MULTIPLE_SPACES = Pattern.compile(" +");
     private static final Pattern MULTIPLE_NEWLINES = Pattern.compile("\n{2,}");
     // 统一移除 Markdown 标题前缀（支持 1~6 个 # 后跟空格）
-    private static final Pattern MARKDOWN_HEADER = Pattern.compile("^#{1,6} ");
+    private static final Pattern MARKDOWN_HEADER = Pattern.compile("#{1,6} ");
 
     /**
      * 清理字符串中的多余空格和空行，并移除 Markdown 标题符号
@@ -47,9 +48,9 @@ public class DocumentSpiltService {
      * @param input 原始字符串
      * @return 清理后的字符串
      */
-    public static String cleanWhitespace(String input) {
-        if (input == null) {
-            return null;
+    public static String cleanAndFilter(String input) {
+        if (StringUtils.isEmpty(input)) {
+            return "";
         }
         String result = MULTIPLE_SPACES.matcher(input).replaceAll(" ");
         result = MULTIPLE_NEWLINES.matcher(result).replaceAll("\n");
@@ -58,69 +59,72 @@ public class DocumentSpiltService {
         return result.trim();
     }
 
+    public static String cleanTitle(String input) {
+        // 使用正则统一移除 Markdown 标题前缀（更健壮）
+        String result = MARKDOWN_HEADER.matcher(input).replaceAll("");
+        return result.trim();
+    }
 
 
-    public List<String> recursive(String docText, String[] patterns, Integer limit, Boolean withFilter) {
+    public List<ParagraphSimple> recursive(String docText, String[] patterns, int limit, Boolean withFilter) {
         if (docText == null || docText.isEmpty()) {
             return Collections.emptyList();
         }
         // 初始只有一个完整文本
-        List<String> parts = Collections.singletonList(docText);
-        // 按照 patterns 顺序逐层分割（不考虑 limit）
+        List<ParagraphSimple> parts = Collections.singletonList(ParagraphSimple.builder().title("").content(docText).build());
         for (String regex : patterns) {
             if (regex == null || regex.isEmpty()) {
                 continue;
             }
-            List<String> newParts = new ArrayList<>();
-            for (String part : parts) {
-               // 使用带 MULTILINE 和 DOTALL 的模式
+            List<ParagraphSimple> newParts = new ArrayList<>();
+            for (ParagraphSimple part : parts) {
                 Pattern pattern = Pattern.compile(regex);
-                Matcher matcher = pattern.matcher(part);
+                Matcher matcher = pattern.matcher(part.getContent());
                 int lastEnd = 0;
+                String lastTitle = part.getTitle();
                 while (matcher.find()) {
                     // 输出上一段内容（从上次结束到当前标题前）
-                    String contentBefore = part.substring(lastEnd, matcher.start()).trim();
-                    if (!contentBefore.isEmpty()) {
-                        newParts.add(contentBefore);
-                    }
-                    lastEnd = matcher.start();
+                    String lastContent = part.getContent().substring(lastEnd, matcher.start()).trim();
+                    newParts.add(ParagraphSimple.builder().title(lastTitle).content(lastContent).build());
+                    lastTitle=part.getTitle() + " " + cleanTitle(matcher.group());
+                    lastEnd = matcher.end();
                 }
                 // 最后一段内容
-                String finalContent = part.substring(lastEnd).trim();
-                if (!finalContent.isEmpty()) {
-                    newParts.add(finalContent);
+                String endContent = part.getContent().substring(lastEnd).trim();
+                if (!endContent.isEmpty()) {
+                    newParts.add(ParagraphSimple.builder().title(lastTitle).content(endContent).build());
                 }
             }
             parts = newParts;
         }
+        //todo 句子级别切分
         // 所有 pattern 分割完成后，再处理超长片段：按 limit 切分
-        List<String> result = new ArrayList<>();
-        for (String part : parts) {
-            if (StringUtils.isNotBlank(part)) {
-                if (part.length() <= limit) {
+        List<ParagraphSimple> result = new ArrayList<>();
+        for (ParagraphSimple part : parts) {
+            if (StringUtils.isNotBlank(part.getContent())) {
+                if (part.getContent().length() <= limit) {
                     result.add(part);
                 } else {
-                    // 按字符长度切分，每段最多 limit 个字符
                     int start = 0;
-                    int len = part.length();
+                    int len = part.getContent().length();
                     while (start < len) {
                         int end = Math.min(start + limit, len);
-                        result.add(part.substring(start, end));
+                        String substring = part.getContent().substring(start, end);
+                        ParagraphSimple newPart = ParagraphSimple.builder().title(part.getTitle()).content(substring).build();
+                        result.add(newPart);
                         start = end;
                     }
                 }
             }
         }
-        // 应用清理（注意：必须收集返回值）
         if (Boolean.TRUE.equals(withFilter)) {
             return result.stream()
-                    .map(DocumentSpiltService::cleanWhitespace)
-                    .filter(StringUtils::isNotBlank)
-                    .toList(); // Java 16+；若用旧版改用 collect(Collectors.toList())
+                    .filter(e -> StringUtils.isNotBlank(e.getContent()))
+                    .peek(e -> e.setContent(cleanAndFilter(e.getContent())))
+                    .toList();
         }
-
         return result.stream()
-                .filter(StringUtils::isNotBlank)
+                .filter(e -> StringUtils.isNotBlank(e.getContent()))
                 .toList();
     }
 
