@@ -17,11 +17,17 @@ import java.util.regex.Pattern;
 @Component
 public class DocumentSpiltService {
 
-    private final DocumentSplitter defaultSplitter = new DocumentBySentenceSplitter(512, 0);
+    private final String[] DEFAULT_PATTERNS = {
+            "(?<=^)# .*|(?<=\\n)# .*",
+            "(?<=\\n)(?<!#)## (?!#).*|(?<=^)(?<!#)## (?!#).*",
+            "(?<=\\n)(?<!#)### (?!#).*|(?<=^)(?<!#)### (?!#).*",
+            "(?<=\\n)(?<!#)#### (?!#).*|(?<=^)(?<!#)#### (?!#).*",
+            "(?<=\\n)(?<!#)##### (?!#).*|(?<=^)(?<!#)##### (?!#).*",
+            "(?<=\\n)(?<!#)###### (?!#).*|(?<=^)(?<!#)###### (?!#).*"
+    };
 
-    public List<TextSegment> defaultSplit(String text) {
-        Document document = Document.document(text);
-        return defaultSplitter.split(document);
+    public List<ParagraphSimple> smartSplit(String text) {
+        return recursive(text, DEFAULT_PATTERNS, 512, true);
     }
 
 
@@ -29,9 +35,7 @@ public class DocumentSpiltService {
         if (patterns != null && patterns.length > 0) {
             return recursive(docText, patterns, limit, withFilter);
         } else {
-            Document document = Document.document(docText);
-            List<TextSegment> textSegments = defaultSplitter.split(document);
-            return textSegments.stream().map(e -> ParagraphSimple.builder().content(e.text()).build()).toList();
+            return smartSplit(docText);
         }
     }
 
@@ -59,7 +63,7 @@ public class DocumentSpiltService {
         return result.trim();
     }
 
-    public static String cleanTitle(String input) {
+    private static String cleanTitle(String input) {
         // 使用正则统一移除 Markdown 标题前缀（更健壮）
         String result = MARKDOWN_HEADER.matcher(input).replaceAll("");
         return result.trim();
@@ -86,7 +90,7 @@ public class DocumentSpiltService {
                     // 输出上一段内容（从上次结束到当前标题前）
                     String lastContent = part.getContent().substring(lastEnd, matcher.start()).trim();
                     newParts.add(ParagraphSimple.builder().title(lastTitle).content(lastContent).build());
-                    lastTitle=part.getTitle() + " " + cleanTitle(matcher.group());
+                    lastTitle = part.getTitle() + " " + cleanTitle(matcher.group());
                     lastEnd = matcher.end();
                 }
                 // 最后一段内容
@@ -97,23 +101,15 @@ public class DocumentSpiltService {
             }
             parts = newParts;
         }
-        //todo 句子级别切分
         // 所有 pattern 分割完成后，再处理超长片段：按 limit 切分
         List<ParagraphSimple> result = new ArrayList<>();
         for (ParagraphSimple part : parts) {
             if (StringUtils.isNotBlank(part.getContent())) {
-                if (part.getContent().length() <= limit) {
-                    result.add(part);
-                } else {
-                    int start = 0;
-                    int len = part.getContent().length();
-                    while (start < len) {
-                        int end = Math.min(start + limit, len);
-                        String substring = part.getContent().substring(start, end);
-                        ParagraphSimple newPart = ParagraphSimple.builder().title(part.getTitle()).content(substring).build();
-                        result.add(newPart);
-                        start = end;
-                    }
+                DocumentSplitter sentenceSplitter = new DocumentBySentenceSplitter(limit, 0);
+                List<TextSegment> textSegments = sentenceSplitter.split(Document.from(part.getContent()));
+                for (TextSegment textSegment : textSegments) {
+                    ParagraphSimple newPart = ParagraphSimple.builder().title(part.getTitle()).content(textSegment.text()).build();
+                    result.add(newPart);
                 }
             }
         }

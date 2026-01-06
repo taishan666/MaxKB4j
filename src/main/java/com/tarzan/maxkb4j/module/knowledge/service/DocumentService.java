@@ -30,7 +30,6 @@ import com.tarzan.maxkb4j.module.knowledge.excel.DatasetExcel;
 import com.tarzan.maxkb4j.module.knowledge.mapper.DocumentMapper;
 import com.tarzan.maxkb4j.module.model.info.vo.KeyAndValueVO;
 import com.tarzan.maxkb4j.module.oss.service.MongoFileService;
-import dev.langchain4j.data.segment.TextSegment;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -556,11 +555,11 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
                 meta.put("source_url", url);
                 meta.put("selector", finalSelector);
                 doc.setMeta(meta);
-                List<TextSegment> segments = documentSpiltService.defaultSplit(elements.text());
-                for (TextSegment seg : segments) {
-                    ParagraphEntity p = paragraphService.createParagraph(knowledgeId, doc.getId(), "", seg.text(), null);
+                List<ParagraphSimple> segments = documentSpiltService.smartSplit(elements.text());
+                for (ParagraphSimple seg : segments) {
+                    ParagraphEntity p = paragraphService.createParagraph(knowledgeId, doc.getId(), seg.getTitle(), seg.getContent(), null);
                     paragraphs.add(p);
-                    doc.setCharLength(doc.getCharLength() + seg.text().length());
+                    doc.setCharLength(doc.getCharLength() + seg.getContent().length());
                 }
                 docs.add(doc);
             } catch (Exception e) {
