@@ -52,7 +52,7 @@ public class DocumentSpiltService {
             return null;
         }
         String result = MULTIPLE_SPACES.matcher(input).replaceAll(" ");
-        result = MULTIPLE_NEWLINES.matcher(result).replaceAll("\n\n");
+        result = MULTIPLE_NEWLINES.matcher(result).replaceAll("\n");
         // 使用正则统一移除 Markdown 标题前缀（更健壮）
         result = MARKDOWN_HEADER.matcher(result).replaceAll("");
         return result.trim();
@@ -61,7 +61,6 @@ public class DocumentSpiltService {
 
 
     public List<String> recursive(String docText, String[] patterns, Integer limit, Boolean withFilter) {
-
         if (docText == null || docText.isEmpty()) {
             return Collections.emptyList();
         }
@@ -82,7 +81,6 @@ public class DocumentSpiltService {
                     // 输出上一段内容（从上次结束到当前标题前）
                     String contentBefore = part.substring(lastEnd, matcher.start()).trim();
                     if (!contentBefore.isEmpty()) {
-                        System.out.println("前一段内容: " + contentBefore);
                         newParts.add(contentBefore);
                     }
                     lastEnd = matcher.start();
@@ -90,7 +88,6 @@ public class DocumentSpiltService {
                 // 最后一段内容
                 String finalContent = part.substring(lastEnd).trim();
                 if (!finalContent.isEmpty()) {
-                    System.out.println("最后一段内容: " + finalContent);
                     newParts.add(finalContent);
                 }
             }
