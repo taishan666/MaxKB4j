@@ -27,9 +27,9 @@ public class DataSourceLocalHandler implements INodeHandler {
     @Override
     public NodeResult execute(Workflow workflow, INode node) throws Exception {
         DataSourceLocalNode.NodeParams nodeParams = node.getNodeData().toJavaObject(DataSourceLocalNode.NodeParams.class);
+        List<SysFile> fileList=new ArrayList<>();
         if (workflow instanceof KnowledgeWorkflow knowledgeWorkflow) {
             KnowledgeParams knowledgeParams = knowledgeWorkflow.getKnowledgeParams();
-            List<SysFile> fileList=new ArrayList<>();
             DataSource dataSource= knowledgeParams.getDataSource();
             if (dataSource != null){
                 fileList=dataSource.getFileList();
@@ -38,8 +38,7 @@ public class DataSourceLocalHandler implements INodeHandler {
             if (knowledgeBase != null){
                 workflow.getContext().putAll(knowledgeBase);
             }
-            return new NodeResult(Map.of("fileList", fileList));
         }
-        return new NodeResult(Map.of());
+        return new NodeResult(Map.of("fileList", fileList));
     }
 }

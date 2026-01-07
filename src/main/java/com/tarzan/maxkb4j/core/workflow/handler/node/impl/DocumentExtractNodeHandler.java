@@ -1,6 +1,5 @@
 package com.tarzan.maxkb4j.core.workflow.handler.node.impl;
 
-import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.workflow.annotation.NodeHandlerType;
 import com.tarzan.maxkb4j.core.workflow.enums.NodeType;
 import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;
@@ -65,7 +64,7 @@ public class DocumentExtractNodeHandler implements INodeHandler {
             InputStream ins = fileService.getStream(sysFile.getFileId());
             String text =  documentParseService.extractText(sysFile.getName(), ins);
             contentList.add(text);
-            documentList.add(buildDocumentSimple(sysFile, text));
+            documentList.add(new DocumentSimple(sysFile.getName(), text,sysFile.getFileId()));
         }
 
         // 5. 返回结果
@@ -75,14 +74,5 @@ public class DocumentExtractNodeHandler implements INodeHandler {
         ));
     }
 
-    private DocumentSimple buildDocumentSimple(SysFile sysFile, String content) {
-        DocumentSimple doc = new DocumentSimple();
-        doc.setName(sysFile.getName());
-        doc.setContent(content);
-        doc.setMeta(new JSONObject());
-        doc.setSourceFileId(sysFile.getFileId());
-        doc.setParagraphs(new ArrayList<>());
-        return doc;
-    }
 
 }

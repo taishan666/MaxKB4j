@@ -517,12 +517,10 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         if (StringUtils.isBlank(baseUrl)) return;
         String finalSelector = StringUtils.defaultIfBlank(selector, "body");
         baseUrl = baseUrl.endsWith("/") ? baseUrl.substring(0, baseUrl.length() - 1) : baseUrl;
-
         Document html = JsoupUtil.getDocument(baseUrl);
         Elements elements = html.select(finalSelector);
         Set<String> sourceUrlSet = new LinkedHashSet<>();
         sourceUrlSet.add(baseUrl);
-
         Elements links = elements.select("a[href]");
         for (Element link : links) {
             String href = link.attr("href").trim();
@@ -533,7 +531,6 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
                 }
             }
         }
-
         webDocInternal(knowledgeId, new ArrayList<>(sourceUrlSet), finalSelector);
     }
 
@@ -553,11 +550,11 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
                 Elements elements = html.select(finalSelector);
                 DocumentEntity doc = createDocument(knowledgeId, JsoupUtil.getTitle(html), DocType.WEB.getType());
                 JSONObject meta = new JSONObject();
-                meta.put("source_url", url);
+                meta.put("sourceUrl", url);
                 meta.put("selector", finalSelector);
                 doc.setMeta(meta);
                 FlexmarkHtmlConverter converter = FlexmarkHtmlConverter.builder().build();
-                String mdText = converter.convert(elements.html());
+                String mdText = converter.convert(elements.outerHtml());
                 List<ParagraphSimple> segments = documentSpiltService.smartSplit(mdText);
                 for (ParagraphSimple seg : segments) {
                     ParagraphEntity p = paragraphService.createParagraph(knowledgeId, doc.getId(), seg.getTitle(), seg.getContent(), null);
@@ -580,7 +577,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
     public void sync(String knowledgeId, String docId) {
         DocumentEntity doc = this.getById(docId);
         if (doc == null || doc.getMeta() == null) return;
-        String sourceUrl = doc.getMeta().getString("source_url");
+        String sourceUrl = doc.getMeta().getString("sourceUrl");
         String selector = doc.getMeta().getString("selector");
         if (StringUtils.isAnyBlank(sourceUrl, selector)) return;
         deleteBatchDocByDocIds(knowledgeId, List.of(docId));

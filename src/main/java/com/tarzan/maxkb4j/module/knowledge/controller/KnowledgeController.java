@@ -166,7 +166,7 @@ public class KnowledgeController {
 
     @GetMapping("/knowledge/{id}/action/{actionId}")
     public R<KnowledgeActionEntity> action(@PathVariable("id") String id, @PathVariable("actionId") String actionId) {
-        return R.success(knowledgeService.action(id,actionId));
+        return R.success(knowledgeService.action(actionId));
     }
 
 

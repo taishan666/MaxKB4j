@@ -15,7 +15,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -36,7 +35,7 @@ public class DocumentSpiltHandler implements INodeHandler {
         List<DocumentSimple> documentList = res == null ? List.of() : (List<DocumentSimple>) res;
         for (DocumentSimple document : documentList) {
             if ("qa".equals(nodeParams.getSplitStrategy())) {
-                qaSplit(document, nodeParams.getPatterns(), nodeParams.getChunkSize(), nodeParams.getWithFilter());
+                qaSplit(document, nodeParams.getChunkSize());
             } else {
                 defaultSplit(document, nodeParams.getPatterns(), nodeParams.getChunkSize(), nodeParams.getWithFilter());
             }
@@ -64,27 +63,21 @@ public class DocumentSpiltHandler implements INodeHandler {
         return new NodeResult(Map.of("paragraphList", documentList));
     }
 
-    private void defaultSplit(DocumentSimple document, String[] pattern, int chunkSize, boolean withFilter) throws IOException {
+    private void defaultSplit(DocumentSimple document, String[] patterns, int chunkSize, boolean withFilter) {
         String content = document.getContent();
-        List<String> chunks = split(content, pattern, chunkSize, withFilter);
-        List<ParagraphSimple> paragraphs = new ArrayList<>();
-        for (String chunk : chunks) {
-            ParagraphSimple paragraph = ParagraphSimple.builder().title("").content(chunk).build();
-            paragraphs.add(paragraph);
-        }
+        List<ParagraphSimple> paragraphs = documentSpiltService.split(content, patterns, chunkSize, withFilter);
         document.setParagraphs(paragraphs);
     }
 
-    private void qaSplit(DocumentSimple document, String[] pattern, int chunkSize, boolean withFilter) throws IOException {
+    private void qaSplit(DocumentSimple document, int chunkSize) {
         String[] lines = document.getContent().split("\n");
         boolean dataStarted = false;
-
+        List<ParagraphSimple> paragraphs = new ArrayList<>();
         for (String line : lines) {
             line = line.trim();
             if (!line.startsWith("|") || !line.endsWith("|")) {
                 continue;
             }
-
             // 跳过表头：识别分隔行（如 | --- | --- |）来标志数据开始
             if (!dataStarted) {
                 if (line.contains("---")) {
@@ -92,7 +85,6 @@ public class DocumentSpiltHandler implements INodeHandler {
                 }
                 continue; // 无论是表头还是分隔行，都跳过
             }
-
             // 处理数据行
             String content = line.substring(1, line.length() - 1).trim();
             String[] cells = Arrays.stream(content.split("\\|"))
@@ -110,24 +102,10 @@ public class DocumentSpiltHandler implements INodeHandler {
                             .map(String::trim)
                             .filter(q -> !q.isEmpty())
                             .collect(Collectors.toList());
-
-            List<String> chunks = split(contentText, pattern, chunkSize, withFilter);
-            List<ParagraphSimple> paragraphs = document.getParagraphs();
-
-            for (String chunk : chunks) {
-                ParagraphSimple paragraph = ParagraphSimple.builder().title(title).content(chunk).problemList(questions).build();
-                paragraphs.add(paragraph);
-            }
-            document.setParagraphs(paragraphs);
+            ParagraphSimple paragraph = ParagraphSimple.builder().title(title).content(contentText).problemList(questions).build();
+            paragraphs.add(paragraph);
         }
-
+        document.setParagraphs(paragraphs);
     }
 
-
-    public List<String> split(String content, String[] patterns, Integer limit, Boolean withFilter) throws IOException {
-        if (StringUtils.isNotBlank(content)) {
-            return documentSpiltService.split(content, patterns, limit, withFilter).stream().map(ParagraphSimple::getContent).toList();
-        }
-        return Collections.emptyList();
-    }
 }

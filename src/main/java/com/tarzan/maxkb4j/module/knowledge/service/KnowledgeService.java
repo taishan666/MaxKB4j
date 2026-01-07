@@ -251,7 +251,7 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
     public KnowledgeEntity createDatasetWeb(KnowledgeDTO knowledge) {
         knowledge.setUserId(StpKit.ADMIN.getLoginIdAsString());
         JSONObject meta = new JSONObject();
-        meta.put("source_url", knowledge.getSourceUrl());
+        meta.put("sourceUrl", knowledge.getSourceUrl());
         meta.put("selector", knowledge.getSelector());
         knowledge.setMeta(meta);
         knowledge.setType(1);
@@ -285,7 +285,7 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
 
     public List<BaseField> datasourceFormList(String id, String nodeType, JSONObject node) {
         if (DATA_SOURCE_WEB.getKey().equals(nodeType)) {
-            BaseField field1 = new TextInputField("Web 根地址", "source_url", "请输入 Web 根地址", true);
+            BaseField field1 = new TextInputField("Web 根地址", "sourceUrl", "请输入 Web 根地址", true);
             BaseField field2 = new TextInputField("选择器", "selector", "默认为 body，可输入 .classname/#idname/tagname", false);
             return List.of(field1, field2);
         } else {
@@ -294,9 +294,25 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
         }
     }
 
+    public JSONObject getKnowledgeWorkFlow(String id,boolean debug) {
+        JSONObject workFlow = null;
+        if (debug){
+            KnowledgeEntity knowledge =   baseMapper.selectById(id);
+            if (knowledge != null){
+                workFlow=knowledge.getWorkFlow();
+            }
+        }else {
+            KnowledgeVersionEntity KnowledgeVersion =  knowledgeVersionService.lambdaQuery().eq(KnowledgeVersionEntity::getKnowledgeId, id).orderByDesc(KnowledgeVersionEntity::getCreateTime).last("limit 1").one();
+            if (KnowledgeVersion != null){
+                workFlow=KnowledgeVersion.getWorkFlow();
+            }
+        }
+        return workFlow;
+    }
+
     public KnowledgeActionEntity uploadDocument(String id, KnowledgeParams params,boolean debug) {
-        KnowledgeVersionEntity knowledge =  knowledgeVersionService.lambdaQuery().eq(KnowledgeVersionEntity::getKnowledgeId, id).orderByDesc(KnowledgeVersionEntity::getCreateTime).last("limit 1").one();
-        if (knowledge == null){
+        JSONObject knowledgeWorkFlow =  getKnowledgeWorkFlow(id,debug);
+        if (knowledgeWorkFlow == null){
             throw new IllegalArgumentException("未找到知识库 ID: " + id);
         }
         KnowledgeActionEntity knowledgeAction = new KnowledgeActionEntity();
@@ -309,7 +325,7 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
         meta.put("username", StpKit.ADMIN.getExtra("username"));
         knowledgeAction.setMeta(meta);
         knowledgeActionService.save(knowledgeAction);
-        LogicFlow logicFlow = LogicFlow.newInstance(knowledge.getWorkFlow());
+        LogicFlow logicFlow = LogicFlow.newInstance(knowledgeWorkFlow);
         List<INode> nodes = logicFlow.getNodes().stream().map(NodeBuilder::getNode).filter(Objects::nonNull).toList();
         params.setActionId(knowledgeAction.getId());
         params.setKnowledgeId(id);
@@ -322,7 +338,7 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
         return knowledgeAction;
     }
 
-    public KnowledgeActionEntity action(String id, String actionId) {
+    public KnowledgeActionEntity action(String actionId) {
         return knowledgeActionService.getById(actionId);
     }
 
