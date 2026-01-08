@@ -17,6 +17,7 @@ import com.tarzan.maxkb4j.module.knowledge.domain.entity.KnowledgeEntity;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.KnowledgeVersionEntity;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.KnowledgeVO;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.ParagraphVO;
+import com.tarzan.maxkb4j.module.knowledge.enums.KnowledgeType;
 import com.tarzan.maxkb4j.module.knowledge.service.KnowledgeService;
 import com.tarzan.maxkb4j.module.knowledge.service.RetrieveService;
 import com.tarzan.maxkb4j.module.system.user.enums.PermissionEnum;
@@ -48,29 +49,32 @@ public class KnowledgeController {
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_CREATE)
     @PostMapping("/knowledge/base")
-    public R<KnowledgeEntity> createDatasetBase(@RequestBody KnowledgeEntity dataset) {
-        dataset.setType(0);
-        return R.success(knowledgeService.createDatasetBase(dataset));
-    }
-
-    @SaCheckPerm(PermissionEnum.KNOWLEDGE_CREATE)
-    @PostMapping("/knowledge/workflow")
-    public R<KnowledgeEntity> createDatasetWorkflow(@RequestBody KnowledgeEntity dataset) {
-        dataset.setType(2);
-        return R.success(knowledgeService.createDatasetBase(dataset));
-    }
-
-    @SaCheckPerm(PermissionEnum.KNOWLEDGE_WORKFLOW_EDIT)
-    @PutMapping("/knowledge/{id}/workflow")
-    public R<KnowledgeEntity> updateDatasetWorkflow(@PathVariable String id,@RequestBody KnowledgeEntity dataset) {
-        return R.success(knowledgeService.updateDatasetWorkflow(id,dataset));
+    public R<KnowledgeEntity> createKnowledgeBase(@RequestBody KnowledgeEntity knowledge) {
+        knowledge.setType(KnowledgeType.BASE.getType());
+        return R.success(knowledgeService.createKnowledge(knowledge));
     }
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_CREATE)
     @PostMapping("/knowledge/web")
-    public R<KnowledgeEntity> createDatasetWeb(@RequestBody KnowledgeDTO dataset) {
-        return R.success(knowledgeService.createDatasetWeb(dataset));
+    public R<KnowledgeEntity> createKnowledgeWeb(@RequestBody KnowledgeDTO knowledge) {
+        knowledge.setType(KnowledgeType.WEB.getType());
+        return R.success(knowledgeService.createKnowledgeWeb(knowledge));
     }
+
+    @SaCheckPerm(PermissionEnum.KNOWLEDGE_CREATE)
+    @PostMapping("/knowledge/workflow")
+    public R<KnowledgeEntity> createKnowledgeWorkflow(@RequestBody KnowledgeEntity knowledge) {
+        knowledge.setType(KnowledgeType.WORKFLOW.getType());
+        return R.success(knowledgeService.createKnowledge(knowledge));
+    }
+
+    @SaCheckPerm(PermissionEnum.KNOWLEDGE_WORKFLOW_EDIT)
+    @PutMapping("/knowledge/{id}/workflow")
+    public R<KnowledgeEntity> updateDatasetWorkflow(@PathVariable String id,@RequestBody KnowledgeEntity knowledge) {
+        return R.success(knowledgeService.updateDatasetWorkflow(id,knowledge));
+    }
+
+
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_READ)
     @GetMapping("/knowledge/{id}")

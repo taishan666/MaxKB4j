@@ -8,12 +8,10 @@ import com.alibaba.excel.write.metadata.WriteSheet;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tarzan.maxkb4j.common.util.ExcelUtil;
 import com.tarzan.maxkb4j.common.util.IoUtil;
-import com.tarzan.maxkb4j.common.util.JsoupUtil;
 import com.tarzan.maxkb4j.core.event.DocumentIndexEvent;
 import com.tarzan.maxkb4j.core.event.GenerateProblemEvent;
 import com.tarzan.maxkb4j.listener.DataListener;
@@ -25,12 +23,11 @@ import com.tarzan.maxkb4j.module.knowledge.domain.entity.ProblemParagraphEntity;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.DocumentVO;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.FileStreamVO;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.TextSegmentVO;
-import com.tarzan.maxkb4j.module.knowledge.enums.DocType;
+import com.tarzan.maxkb4j.module.knowledge.enums.KnowledgeType;
 import com.tarzan.maxkb4j.module.knowledge.excel.DatasetExcel;
 import com.tarzan.maxkb4j.module.knowledge.mapper.DocumentMapper;
 import com.tarzan.maxkb4j.module.model.info.vo.KeyAndValueVO;
 import com.tarzan.maxkb4j.module.oss.service.MongoFileService;
-import com.vladsch.flexmark.html2md.converter.FlexmarkHtmlConverter;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,17 +35,10 @@ import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream;
 import org.apache.commons.lang3.StringUtils;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.DefaultTransactionDefinition;
-import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -58,8 +48,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -73,10 +65,6 @@ import java.util.zip.ZipOutputStream;
 @RequiredArgsConstructor
 public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity> {
 
-    private static final String DEFAULT_DOC_STATUS = "nn0";
-    private static final String DEFAULT_HIT_HANDLING_METHOD = "optimization";
-    private static final double DEFAULT_SIMILARITY_THRESHOLD = 0.9;
-
     private final ParagraphService paragraphService;
     private final ProblemService problemService;
     private final ProblemParagraphService problemParagraphService;
@@ -84,14 +72,8 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
     private final DocumentSpiltService documentSpiltService;
     private final MongoFileService mongoFileService;
     private final ApplicationEventPublisher eventPublisher;
-    private final PlatformTransactionManager transactionManager;
-
-    // 构造 TransactionTemplate
-    private TransactionTemplate createTransactionTemplate() {
-        DefaultTransactionDefinition def = new DefaultTransactionDefinition();
-        def.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
-        return new TransactionTemplate(transactionManager, def);
-    }
+    private final DocumentWebService documentWebService;
+    private final DocumentWriteService documentWriteService;
 
     public void updateStatusMetaById(String id) {
         baseMapper.updateStatusMetaByIds(List.of(id));
@@ -163,7 +145,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
             if (originalFilename == null) continue;
             List<String> list = documentParseService.extractTable(uploadFile.getInputStream());
             List<ParagraphEntity> paragraphs = new ArrayList<>();
-            DocumentEntity doc = createDocument(knowledgeId, originalFilename, DocType.BASE.getType());
+            DocumentEntity doc = new DocumentEntity(knowledgeId, originalFilename, KnowledgeType.BASE.getType());
             if (!CollectionUtils.isEmpty(list)) {
                 for (String text : list) {
                     doc.setCharLength(doc.getCharLength() + text.length());
@@ -195,7 +177,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
                     try (ByteArrayInputStream bis = new ByteArrayInputStream(content)) {
                         processQaFile(knowledgeId, bis, entry.getName());
                     }
-                    break; // 只处理第一个有效文件
+                    break;
                 }
             }
         }
@@ -240,80 +222,11 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
             log.error("读取 Excel 失败: {}", e.getMessage(), e);
             throw new RuntimeException("读取 Excel 失败", e);
         }
-        batchCreateDoc(knowledgeId, docs);
+        batchCreateDocs(knowledgeId,KnowledgeType.BASE.getType(), docs);
     }
 
-    @Transactional
-    public boolean batchCreateDoc(String knowledgeId, List<DocumentSimple> docs) {
-        if (CollectionUtils.isEmpty(docs)) {
-            return true;
-        }
-        List<ProblemEntity> knowledgeProblems = problemService.lambdaQuery()
-                .eq(ProblemEntity::getKnowledgeId, knowledgeId)
-                .list();
-        List<DocumentEntity> documentEntities = new ArrayList<>();
-        List<ParagraphEntity> paragraphEntities = new ArrayList<>();
-        List<ProblemParagraphEntity> problemParagraphs = new ArrayList<>();
-        List<ProblemEntity> problemEntities = new ArrayList<>();
-        // 改为普通 stream，避免 parallelStream 修改共享 list 的线程安全问题
-        for (DocumentSimple e : docs) {
-            DocumentEntity doc = createDocument(knowledgeId, e.getName(), DocType.BASE.getType());
-            AtomicInteger docCharLength = new AtomicInteger();
-            if (!CollectionUtils.isEmpty(e.getParagraphs())) {
-                for (var p : e.getParagraphs()) {
-                    ParagraphEntity paragraph = paragraphService.createParagraph(knowledgeId, doc.getId(), p.getTitle(), p.getContent(), null);
-                    paragraphEntities.add(paragraph);
-                    docCharLength.addAndGet(p.getContent().length());
-                    if (!CollectionUtils.isEmpty(p.getProblemList())) {
-                        for (String problem : p.getProblemList()) {
-                            problem = problem.trim();
-                            if (problem.isEmpty()) continue;
-                            String problemId = IdWorker.get32UUID();
-                            ProblemEntity existingProblem = problemService.findProblem(problem, knowledgeProblems);
-                            if (existingProblem == null) {
-                                ProblemEntity problemEntity = ProblemEntity.createDefault();
-                                problemEntity.setId(problemId);
-                                problemEntity.setKnowledgeId(knowledgeId);
-                                problemEntity.setContent(problem);
-                                problemEntities.add(problemEntity);
-                                knowledgeProblems.add(problemEntity);
-                            } else {
-                                problemId = existingProblem.getId();
-                            }
-                            if (isExistProblemParagraph(paragraph.getId(), problemId, problemParagraphs)) {
-                                ProblemParagraphEntity pp = new ProblemParagraphEntity();
-                                pp.setKnowledgeId(knowledgeId);
-                                pp.setParagraphId(paragraph.getId());
-                                pp.setDocumentId(doc.getId());
-                                pp.setProblemId(problemId);
-                                problemParagraphs.add(pp);
-                            }
-                        }
-                    }
-                }
-            }
-            doc.setCharLength(docCharLength.get());
-            String sourceFileId = Optional.ofNullable(e.getSourceFileId()).orElse("");
-            doc.setMeta(new JSONObject(Map.of("allow_download", true, "sourceFileId", sourceFileId)));
-            documentEntities.add(doc);
-        }
-        this.saveBatch(documentEntities);
-        if (!paragraphEntities.isEmpty()) {
-            paragraphService.saveBatch(paragraphEntities);
-        }
-        List<String> docIds = documentEntities.stream().map(DocumentEntity::getId).toList();
-        if (!problemEntities.isEmpty()) {
-            problemService.saveBatch(problemEntities);
-        }
-        if (!problemParagraphs.isEmpty()) {
-            problemParagraphService.saveBatch(problemParagraphs);
-        }
-        publishDocumentIndexEvent(knowledgeId, docIds, List.of("0"));
-        return true;
-    }
-
-    private boolean isExistProblemParagraph(String paragraphId, String problemId, List<ProblemParagraphEntity> problemParagraphs) {
-        return problemParagraphs.stream().noneMatch(e -> problemId.equals(e.getProblemId()) && paragraphId.equals(e.getParagraphId()));
+    public boolean batchCreateDocs(String knowledgeId,int knowledgeType, List<DocumentSimple> docs) {
+       return documentWriteService.batchCreateDocs(knowledgeId,knowledgeType, docs);
     }
 
     public void exportExcelByDocId(String docId, HttpServletResponse response) {
@@ -379,21 +292,6 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         }
     }
 
-
-    public DocumentEntity createDocument(String knowledgeId, String name, Integer type) {
-        DocumentEntity documentEntity = new DocumentEntity();
-        documentEntity.setId(IdWorker.get32UUID());
-        documentEntity.setKnowledgeId(knowledgeId);
-        documentEntity.setName(name);
-        documentEntity.setMeta(new JSONObject(Map.of("allow_download", true)));
-        documentEntity.setCharLength(0);
-        documentEntity.setStatus(DEFAULT_DOC_STATUS);
-        documentEntity.setIsActive(true);
-        documentEntity.setType(type);
-        documentEntity.setHitHandlingMethod(DEFAULT_HIT_HANDLING_METHOD);
-        documentEntity.setDirectlyReturnSimilarity(DEFAULT_SIMILARITY_THRESHOLD);
-        return documentEntity;
-    }
 
     @Transactional
     public boolean deleteBatchDocByDocIds(String knowledgeId, List<String> docIds) {
@@ -506,87 +404,37 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
     }
 
     @Async
-    public void webDataset(String knowledgeId, String baseUrl, String selector) {
-        createTransactionTemplate().execute(status -> {
-            doWebDataset(knowledgeId, baseUrl, selector);
-            return null;
-        });
+    public void webDataset(String knowledgeId, String sourceUrl, String selector) {
+        List<DocumentSimple> docs =documentWebService.getWebDocuments(sourceUrl, selector,true);
+        batchCreateDocs(knowledgeId, KnowledgeType.WEB.getType(), docs);
     }
 
-    private void doWebDataset(String knowledgeId, String baseUrl, String selector) {
-        if (StringUtils.isBlank(baseUrl)) return;
-        String finalSelector = StringUtils.defaultIfBlank(selector, "body");
-        baseUrl = baseUrl.endsWith("/") ? baseUrl.substring(0, baseUrl.length() - 1) : baseUrl;
-        Document html = JsoupUtil.getDocument(baseUrl);
-        Elements elements = html.select(finalSelector);
-        Set<String> sourceUrlSet = new LinkedHashSet<>();
-        sourceUrlSet.add(baseUrl);
-        Elements links = elements.select("a[href]");
-        for (Element link : links) {
-            String href = link.attr("href").trim();
-            if (href.startsWith("/")) {
-                String[] parts = href.split("/");
-                if (parts.length == 2 && !href.contains("?") && !href.contains("#")) {
-                    sourceUrlSet.add(baseUrl + href);
-                }
-            }
-        }
-        webDocInternal(knowledgeId, new ArrayList<>(sourceUrlSet), finalSelector);
-    }
 
     @Transactional
-    public void webDoc(String knowledgeId, List<String> sourceUrlList, String selector) {
-        webDocInternal(knowledgeId, sourceUrlList, selector);
+    public void createWebDoc(String knowledgeId, List<String> sourceUrlList, String selector) {
+        for (String sourceUrl : sourceUrlList) {
+            List<DocumentSimple> docs =documentWebService.getWebDocuments(sourceUrl, selector,false);
+            batchCreateDocs(knowledgeId, KnowledgeType.WEB.getType(), docs);
+        }
     }
 
-    public void webDocInternal(String knowledgeId, List<String> urls, String selector) {
-        if (CollectionUtils.isEmpty(urls)) return;
-        String finalSelector = StringUtils.defaultIfBlank(selector, "body");
-        List<DocumentEntity> docs = new ArrayList<>();
-        List<ParagraphEntity> paragraphs = new ArrayList<>();
-        for (String url : urls) {
-            try {
-                Document html = JsoupUtil.getDocument(url);
-                Elements elements = html.select(finalSelector);
-                DocumentEntity doc = createDocument(knowledgeId, JsoupUtil.getTitle(html), DocType.WEB.getType());
-                JSONObject meta = new JSONObject();
-                meta.put("sourceUrl", url);
-                meta.put("selector", finalSelector);
-                doc.setMeta(meta);
-                FlexmarkHtmlConverter converter = FlexmarkHtmlConverter.builder().build();
-                String mdText = converter.convert(elements.outerHtml());
-                List<ParagraphSimple> segments = documentSpiltService.smartSplit(mdText);
-                for (ParagraphSimple seg : segments) {
-                    ParagraphEntity p = paragraphService.createParagraph(knowledgeId, doc.getId(), seg.getTitle(), seg.getContent(), null);
-                    paragraphs.add(p);
-                    doc.setCharLength(doc.getCharLength() + seg.getContent().length());
-                }
-                docs.add(doc);
-            } catch (Exception e) {
-                log.warn("抓取网页失败: {}", url, e);
-            }
-        }
-        if (!docs.isEmpty()) {
-            baseMapper.insert(docs);
-            paragraphService.saveBatch(paragraphs);
-            publishDocumentIndexEvent(knowledgeId, docs.stream().map(DocumentEntity::getId).toList(), List.of("0"));
-        }
-    }
 
     @Transactional
-    public void sync(String knowledgeId, String docId) {
+    public void syncWebDoc(String knowledgeId, String docId) {
         DocumentEntity doc = this.getById(docId);
         if (doc == null || doc.getMeta() == null) return;
         String sourceUrl = doc.getMeta().getString("sourceUrl");
         String selector = doc.getMeta().getString("selector");
         if (StringUtils.isAnyBlank(sourceUrl, selector)) return;
         deleteBatchDocByDocIds(knowledgeId, List.of(docId));
-        webDocInternal(knowledgeId, List.of(sourceUrl), selector);
+        List<DocumentSimple> docs =documentWebService.getWebDocuments(sourceUrl, selector,false);
+        batchCreateDocs(knowledgeId, KnowledgeType.WEB.getType(), docs);
     }
 
+
+
     public boolean batchGenerateRelated(String knowledgeId, GenerateProblemDTO dto) {
-        eventPublisher.publishEvent(new GenerateProblemEvent(
-                this, knowledgeId, dto.getDocumentIdList(), dto.getModelId(), dto.getPrompt(), dto.getStateList()));
+        eventPublisher.publishEvent(new GenerateProblemEvent(this, knowledgeId, dto.getDocumentIdList(), dto.getModelId(), dto.getPrompt(), dto.getStateList()));
         return true;
     }
 

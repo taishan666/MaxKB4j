@@ -8,6 +8,7 @@ import com.tarzan.maxkb4j.module.knowledge.domain.dto.*;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.DocumentEntity;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.DocumentVO;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.TextSegmentVO;
+import com.tarzan.maxkb4j.module.knowledge.enums.KnowledgeType;
 import com.tarzan.maxkb4j.module.knowledge.service.DocumentService;
 import com.tarzan.maxkb4j.module.model.info.vo.KeyAndValueVO;
 import com.tarzan.maxkb4j.module.system.user.enums.PermissionEnum;
@@ -33,13 +34,13 @@ public class DocumentController {
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_CREATE)
     @PostMapping("/knowledge/{id}/document/web")
     public void web(@PathVariable("id") String id, @RequestBody WebUrlDTO params) throws IOException {
-        documentService.webDoc(id,params.getSourceUrlList(),params.getSelector());
+        documentService.createWebDoc(id,params.getSourceUrlList(),params.getSelector());
     }
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_SYNC)
     @PutMapping("/knowledge/{id}/document/{docId}/sync")
     public void sync(@PathVariable("id") String id,@PathVariable("docId") String docId) throws IOException {
-        documentService.sync(id,docId);
+        documentService.syncWebDoc(id,docId);
     }
 
 
@@ -64,7 +65,7 @@ public class DocumentController {
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_CREATE)
     @PutMapping("/knowledge/{id}/document/batch_create")
     public R<Boolean> createBatchDoc(@PathVariable("id") String id, @RequestBody List<DocumentSimple> docs) {
-        return R.success(documentService.batchCreateDoc(id, docs));
+        return R.success(documentService.batchCreateDocs(id, KnowledgeType.BASE.getType(), docs));
     }
 
     @GetMapping("/knowledge/{id}/document/split_pattern")

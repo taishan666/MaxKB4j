@@ -238,26 +238,18 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
     }
 
     @Transactional
-    public KnowledgeEntity createDatasetBase(KnowledgeEntity knowledge) {
+    public KnowledgeEntity createKnowledge(KnowledgeEntity knowledge) {
         knowledge.setMeta(new JSONObject());
         knowledge.setUserId(StpKit.ADMIN.getLoginIdAsString());
-        //knowledge.setType(0);
         this.save(knowledge);
         userResourcePermissionService.ownerSave(AuthTargetType.KNOWLEDGE, knowledge.getId(), knowledge.getUserId());
         return knowledge;
     }
 
     @Transactional
-    public KnowledgeEntity createDatasetWeb(KnowledgeDTO knowledge) {
-        knowledge.setUserId(StpKit.ADMIN.getLoginIdAsString());
-        JSONObject meta = new JSONObject();
-        meta.put("sourceUrl", knowledge.getSourceUrl());
-        meta.put("selector", knowledge.getSelector());
-        knowledge.setMeta(meta);
-        knowledge.setType(1);
-        this.save(knowledge);
+    public KnowledgeEntity createKnowledgeWeb(KnowledgeDTO knowledge) {
+        createKnowledge(knowledge);
         documentService.webDataset(knowledge.getId(), knowledge.getSourceUrl(), knowledge.getSelector());
-        userResourcePermissionService.ownerSave(AuthTargetType.KNOWLEDGE, knowledge.getId(), knowledge.getUserId());
         return knowledge;
     }
 
