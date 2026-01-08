@@ -74,7 +74,7 @@
 - PostgreSQL 12+（启用 pgvector 扩展）
 - MongoDB 6.0+（可选，用于全文检索）
 
-### 2. 启动服务
+### 2. 本地启动（JAR 方式）
 ```bash
 # 启动应用
 java -jar MaxKB4j.jar
@@ -93,7 +93,6 @@ docker run --name maxkb4j -d --restart always -p 8080:8080 -e SPRING_DATASOURCE_
 # docker-compose.yml 示例见项目根目录
 docker-compose up -d
 ```
-
 ### 5. 访问 Web 界面
 - 地址：http://localhost:8080/admin/login
 - 默认账号：`admin`
@@ -114,6 +113,8 @@ docker-compose up -d
 
 </div>
 </details>
+
+
 
 ---
 
