@@ -451,10 +451,20 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         }
     }
 
+    public boolean replaceSourceFile(String id, String docId, MultipartFile file) throws IOException {
+        DocumentEntity doc = this.getById(docId);
+        if (doc == null) return false;
+        String fileId = mongoFileService.storeFile(file);
+        doc.setMeta(new JSONObject(Map.of("allow_download", true, "sourceFileId", fileId)));
+        return this.updateById(doc);
+    }
+
     // ===== 封装事件发布 =====
     private void publishDocumentIndexEvent(String knowledgeId, List<String> docIds, List<String> stateList) {
         if (!docIds.isEmpty()) {
             eventPublisher.publishEvent(new DocumentIndexEvent(this, knowledgeId, docIds, stateList));
         }
     }
+
+
 }
