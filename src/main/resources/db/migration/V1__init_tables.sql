@@ -408,8 +408,6 @@ ALTER TABLE "public"."application_version" ADD CONSTRAINT "application_version_p
 -- ----------------------------
 DROP TABLE IF EXISTS "public"."knowledge";
 CREATE TABLE "public"."knowledge" (
-                                      "create_time" timestamp(6) NOT NULL,
-                                      "update_time" timestamp(6) NOT NULL,
                                       "id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
                                       "name" varchar(150) COLLATE "pg_catalog"."default" NOT NULL,
                                       "desc" varchar(256) COLLATE "pg_catalog"."default" NOT NULL,
@@ -419,7 +417,11 @@ CREATE TABLE "public"."knowledge" (
                                       "file_size_limit" int4 DEFAULT 100,
                                       "file_count_limit" int4 DEFAULT 50,
                                       "type" int2,
-                                      "folder_id" varchar(64) COLLATE "pg_catalog"."default"
+                                      "folder_id" varchar(64) COLLATE "pg_catalog"."default",
+                                      "is_publish" bool NOT NULL DEFAULT false,
+                                      "work_flow"  jsonb NOT NULL,
+                                      "create_time" timestamp(6) NOT NULL,
+                                      "update_time" timestamp(6) NOT NULL
 )
 ;
 
@@ -809,3 +811,74 @@ ALTER TABLE "public"."problem_paragraph_mapping" ADD CONSTRAINT "problem_paragra
 -- Foreign Keys structure for table problem_paragraph_mapping
 -- ----------------------------
 ALTER TABLE "public"."problem_paragraph_mapping" ADD CONSTRAINT "problem_paragraph_mapping_document_id_fk_document_id" FOREIGN KEY ("document_id") REFERENCES "public"."document" ("id") ON DELETE NO ACTION ON UPDATE NO ACTION DEFERRABLE INITIALLY DEFERRED;
+
+
+-- ----------------------------
+-- Table structure for knowledge_workflow_version
+-- ----------------------------
+DROP TABLE IF EXISTS "public"."knowledge_workflow_version";
+CREATE TABLE "public"."knowledge_workflow_version" (
+                                                       "create_time" timestamptz(6) NOT NULL,
+                                                       "update_time" timestamptz(6) NOT NULL,
+                                                       "id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
+                                                       "work_flow" jsonb NOT NULL,
+                                                       "publish_user_id" varchar(50) COLLATE "pg_catalog"."default",
+                                                       "publish_user_name" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+                                                       "knowledge_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
+                                                       "name" varchar(128) COLLATE "pg_catalog"."default" NOT NULL
+)
+;
+
+-- ----------------------------
+-- Indexes structure for table knowledge_workflow_version
+-- ----------------------------
+CREATE INDEX "knowledge_workflow_version_create_time" ON "public"."knowledge_workflow_version" USING btree (
+    "create_time" "pg_catalog"."timestamptz_ops" ASC NULLS LAST
+    );
+CREATE INDEX "knowledge_workflow_version_knowledge_id" ON "public"."knowledge_workflow_version" USING btree (
+    "knowledge_id" COLLATE "pg_catalog"."default" "pg_catalog"."text_ops" ASC NULLS LAST
+    );
+CREATE INDEX "knowledge_workflow_version_update_time" ON "public"."knowledge_workflow_version" USING btree (
+    "update_time" "pg_catalog"."timestamptz_ops" ASC NULLS LAST
+    );
+
+-- ----------------------------
+-- Primary Key structure for table knowledge_workflow_version
+-- ----------------------------
+ALTER TABLE "public"."knowledge_workflow_version" ADD CONSTRAINT "knowledge_workflow_version_pkey" PRIMARY KEY ("id");
+
+
+
+-- ----------------------------
+-- Table structure for knowledge_action
+-- ----------------------------
+DROP TABLE IF EXISTS "public"."knowledge_action";
+CREATE TABLE "public"."knowledge_action" (
+                                             "create_time" timestamptz(6) NOT NULL,
+                                             "update_time" timestamptz(6) NOT NULL,
+                                             "id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
+                                             "state" varchar(20) COLLATE "pg_catalog"."default" NOT NULL,
+                                             "details" jsonb NOT NULL,
+                                             "run_time" float8 NOT NULL,
+                                             "meta" jsonb NOT NULL,
+                                             "knowledge_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL
+)
+;
+
+-- ----------------------------
+-- Indexes structure for table knowledge_action
+-- ----------------------------
+CREATE INDEX "knowledge_action_create_time" ON "public"."knowledge_action" USING btree (
+    "create_time" "pg_catalog"."timestamptz_ops" ASC NULLS LAST
+    );
+CREATE INDEX "knowledge_action_knowledge_id" ON "public"."knowledge_action" USING btree (
+    "knowledge_id" COLLATE "pg_catalog"."default" "pg_catalog"."text_ops" ASC NULLS LAST
+    );
+CREATE INDEX "knowledge_action_update_time" ON "public"."knowledge_action" USING btree (
+    "update_time" "pg_catalog"."timestamptz_ops" ASC NULLS LAST
+    );
+
+-- ----------------------------
+-- Primary Key structure for table knowledge_action
+-- ----------------------------
+ALTER TABLE "public"."knowledge_action" ADD CONSTRAINT "knowledge_action_pkey" PRIMARY KEY ("id");
