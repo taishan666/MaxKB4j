@@ -249,7 +249,7 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
     @Transactional
     public KnowledgeEntity createKnowledgeWeb(KnowledgeDTO knowledge) {
         createKnowledge(knowledge);
-        documentService.webDataset(knowledge.getId(), knowledge.getSourceUrl(), knowledge.getSelector());
+        documentService.createWebDocs(knowledge.getId(), knowledge.getSourceUrl(), knowledge.getSelector());
         return knowledge;
     }
 

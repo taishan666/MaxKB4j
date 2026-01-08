@@ -404,7 +404,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
     }
 
     @Async
-    public void webDataset(String knowledgeId, String sourceUrl, String selector) {
+    public void createWebDocs(String knowledgeId, String sourceUrl, String selector) {
         List<DocumentSimple> docs =documentWebService.getWebDocuments(sourceUrl, selector,true);
         batchCreateDocs(knowledgeId, KnowledgeType.WEB.getType(), docs);
     }
