@@ -1,0 +1,1 @@
+import{aW as i,aX as a,aY as s}from"./admin-BOU8h_tu.js";const n="/auth",r=(t,o)=>s(`${n}/${t}/detail`,void 0,o),u=(t,o)=>i(`${n}/connection`,t,void 0,o),p=(t,o,e)=>a(`${n}/${t}/info`,o,void 0,e),g={getAuthSetting:r,postAuthSetting:u,putAuthSetting:p};export{g as a};
