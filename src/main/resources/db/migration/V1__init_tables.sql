@@ -12,14 +12,12 @@ CREATE TABLE "public"."system_setting" (
                                            "meta" jsonb NOT NULL,
                                            "create_time" timestamp(6) NOT NULL,
                                            "update_time" timestamp(6) NOT NULL
-)
-;
+);
 
 -- ----------------------------
 -- Primary Key structure for table system_setting
 -- ----------------------------
 ALTER TABLE "public"."system_setting" ADD CONSTRAINT "system_setting_pkey" PRIMARY KEY ("type");
-
 
 -- ----------------------------
 -- Table structure for user
@@ -38,8 +36,7 @@ CREATE TABLE "public"."user" (
                                  "language" varchar(10) COLLATE "pg_catalog"."default" NOT NULL,
                                  "create_time" timestamp(6),
                                  "update_time" timestamp(6)
-)
-;
+);
 
 -- ----------------------------
 -- Indexes structure for table user
@@ -76,10 +73,7 @@ CREATE TABLE "public"."user_resource_permission" (
                                                      "user_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
                                                      "create_time" timestamp(6) NOT NULL,
                                                      "update_time" timestamp(6) NOT NULL
-)
-;
-
-
+);
 
 -- ----------------------------
 -- Primary Key structure for table user_resource_permission
@@ -125,8 +119,7 @@ CREATE TABLE "public"."application" (
                                         "publish_time" timestamp(6),
                                         "create_time" timestamp(6) NOT NULL,
                                         "update_time" timestamp(6) NOT NULL
-)
-;
+);
 
 -- ----------------------------
 -- Indexes structure for table application
@@ -149,8 +142,6 @@ CREATE INDEX "application_user_id" ON "public"."application" USING btree (
 -- ----------------------------
 ALTER TABLE "public"."application" ADD CONSTRAINT "application_pkey" PRIMARY KEY ("id");
 
-
-
 -- ----------------------------
 -- Table structure for application_access_token
 -- ----------------------------
@@ -168,8 +159,7 @@ CREATE TABLE "public"."application_access_token" (
                                                      "language" varchar(10) COLLATE "pg_catalog"."default",
                                                      "show_exec" bool NOT NULL DEFAULT true,
                                                      "authentication" bool NOT NULL  DEFAULT false
-)
-;
+);
 
 -- ----------------------------
 -- Indexes structure for table application_access_token
@@ -193,24 +183,21 @@ ALTER TABLE "public"."application_access_token" ADD CONSTRAINT "application_acce
 -- ----------------------------
 ALTER TABLE "public"."application_access_token" ADD CONSTRAINT "application_access_token_application_id_fk_application_id" FOREIGN KEY ("application_id") REFERENCES "public"."application" ("id") ON DELETE NO ACTION ON UPDATE NO ACTION DEFERRABLE INITIALLY DEFERRED;
 
-
-
 -- ----------------------------
 -- Table structure for application_api_key
 -- ----------------------------
 DROP TABLE IF EXISTS "public"."application_api_key";
 CREATE TABLE "public"."application_api_key" (
-                                                "create_time" timestamp(6) NOT NULL,
-                                                "update_time" timestamp(6) NOT NULL,
                                                 "id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
                                                 "secret_key" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
                                                 "is_active" bool NOT NULL,
                                                 "application_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
                                                 "user_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
                                                 "allow_cross_domain" bool NOT NULL DEFAULT false,
-                                                "cross_domain_list" varchar(128)[] COLLATE "pg_catalog"."default" NOT NULL
-)
-;
+                                                "cross_domain_list" varchar(128)[] COLLATE "pg_catalog"."default" NOT NULL,
+                                                "create_time" timestamp(6) NOT NULL,
+                                                "update_time" timestamp(6) NOT NULL
+);
 
 -- ----------------------------
 -- Indexes structure for table application_api_key
@@ -247,8 +234,6 @@ ALTER TABLE "public"."application_api_key" ADD CONSTRAINT "application_api_key_u
 -- ----------------------------
 DROP TABLE IF EXISTS "public"."application_chat";
 CREATE TABLE "public"."application_chat" (
-                                             "create_time" timestamp(6) NOT NULL,
-                                             "update_time" timestamp(6) NOT NULL,
                                              "id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
                                              "summary" varchar(1024) COLLATE "pg_catalog"."default" NOT NULL,
                                              "chat_user_id" varchar COLLATE "pg_catalog"."default",
@@ -260,9 +245,10 @@ CREATE TABLE "public"."application_chat" (
                                              "trample_num" int4 NOT NULL,
                                              "chat_record_count" int4 NOT NULL,
                                              "mark_sum" int4 NOT NULL,
-                                             "application_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL
-)
-;
+                                             "application_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
+                                             "create_time" timestamp(6) NOT NULL,
+                                             "update_time" timestamp(6) NOT NULL
+);
 
 -- ----------------------------
 -- Indexes structure for table application_chat
@@ -287,8 +273,6 @@ ALTER TABLE "public"."application_chat" ADD CONSTRAINT "application_chat_pkey" P
 -- ----------------------------
 DROP TABLE IF EXISTS "public"."application_chat_record";
 CREATE TABLE "public"."application_chat_record" (
-                                                    "create_time" timestamp(6) NOT NULL,
-                                                    "update_time" timestamp(6) NOT NULL,
                                                     "id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
                                                     "vote_status" varchar(10) COLLATE "pg_catalog"."default" NOT NULL,
                                                     "problem_text" varchar(10240) COLLATE "pg_catalog"."default" NOT NULL,
@@ -301,9 +285,10 @@ CREATE TABLE "public"."application_chat_record" (
                                                     "run_time" float8 NOT NULL,
                                                     "index" int4 NOT NULL,
                                                     "chat_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
-                                                    "answer_text_list" varchar[] COLLATE "pg_catalog"."default"
-)
-;
+                                                    "answer_text_list" varchar[] COLLATE "pg_catalog"."default",
+                                                    "create_time" timestamp(6) NOT NULL,
+                                                    "update_time" timestamp(6) NOT NULL
+);
 
 -- ----------------------------
 -- Indexes structure for table application_chat_record
@@ -323,16 +308,15 @@ ALTER TABLE "public"."application_chat_record" ADD CONSTRAINT "application_chat_
 -- ----------------------------
 DROP TABLE IF EXISTS "public"."application_chat_user_stats";
 CREATE TABLE "public"."application_chat_user_stats" (
-                                                        "create_time" timestamp(6) NOT NULL,
-                                                        "update_time" timestamp(6) NOT NULL,
                                                         "id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
                                                         "access_num" int4 NOT NULL,
                                                         "intra_day_access_num" int4 NOT NULL,
                                                         "application_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
                                                         "chat_user_id" varchar(50) COLLATE "pg_catalog"."default",
-                                                        "chat_user_type" varchar(64) COLLATE "pg_catalog"."default"
-)
-;
+                                                        "chat_user_type" varchar(64) COLLATE "pg_catalog"."default",
+                                                        "create_time" timestamp(6) NOT NULL,
+                                                        "update_time" timestamp(6) NOT NULL
+);
 
 -- ----------------------------
 -- Indexes structure for table application_chat_user_stats
@@ -350,8 +334,6 @@ ALTER TABLE "public"."application_chat_user_stats" ADD CONSTRAINT "application_p
 -- Foreign Keys structure for table application_chat_user_stats
 -- ----------------------------
 ALTER TABLE "public"."application_chat_user_stats" ADD CONSTRAINT "application_chat_user_stats_application_id_fk_application_id" FOREIGN KEY ("application_id") REFERENCES "public"."application" ("id") ON DELETE NO ACTION ON UPDATE NO ACTION DEFERRABLE INITIALLY DEFERRED;
-
-
 
 -- ----------------------------
 -- Table structure for application_version
@@ -393,15 +375,12 @@ CREATE TABLE "public"."application_version" (
                                                 "tool_output_enable" bool NOT NULL DEFAULT true,
                                                 "create_time" timestamp(6) NOT NULL,
                                                 "update_time" timestamp(6) NOT NULL
-)
-;
+);
 
 -- ----------------------------
 -- Primary Key structure for table application_version
 -- ----------------------------
 ALTER TABLE "public"."application_version" ADD CONSTRAINT "application_version_pkey" PRIMARY KEY ("id");
-
-
 
 -- ----------------------------
 -- Table structure for knowledge
@@ -422,8 +401,7 @@ CREATE TABLE "public"."knowledge" (
                                       "work_flow"  jsonb NOT NULL,
                                       "create_time" timestamp(6) NOT NULL,
                                       "update_time" timestamp(6) NOT NULL
-)
-;
+);
 
 -- ----------------------------
 -- Indexes structure for table knowledge
@@ -452,8 +430,6 @@ ALTER TABLE "public"."knowledge" ADD CONSTRAINT "knowledge_user_id_fk_user_id" F
 -- ----------------------------
 DROP TABLE IF EXISTS "public"."document";
 CREATE TABLE "public"."document" (
-                                     "create_time" timestamp(6) NOT NULL,
-                                     "update_time" timestamp(6) NOT NULL,
                                      "id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
                                      "name" varchar(150) COLLATE "pg_catalog"."default" NOT NULL,
                                      "char_length" int4 NOT NULL,
@@ -464,9 +440,10 @@ CREATE TABLE "public"."document" (
                                      "knowledge_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
                                      "hit_handling_method" varchar(20) COLLATE "pg_catalog"."default" NOT NULL,
                                      "directly_return_similarity" float8 NOT NULL,
-                                     "status_meta" jsonb NOT NULL
-)
-;
+                                     "status_meta" jsonb NOT NULL,
+                                     "create_time" timestamp(6) NOT NULL,
+                                     "update_time" timestamp(6) NOT NULL
+);
 
 -- ----------------------------
 -- Indexes structure for table document
@@ -485,16 +462,11 @@ ALTER TABLE "public"."document" ADD CONSTRAINT "document_pkey" PRIMARY KEY ("id"
 -- ----------------------------
 ALTER TABLE "public"."document" ADD CONSTRAINT "document_knowledge_id_fk_knowledge_id" FOREIGN KEY ("knowledge_id") REFERENCES "public"."knowledge" ("id") ON DELETE NO ACTION ON UPDATE NO ACTION DEFERRABLE INITIALLY DEFERRED;
 
-
-
-
 -- ----------------------------
 -- Table structure for paragraph
 -- ----------------------------
 DROP TABLE IF EXISTS "public"."paragraph";
 CREATE TABLE "public"."paragraph" (
-                                      "create_time" timestamp(6) NOT NULL,
-                                      "update_time" timestamp(6) NOT NULL,
                                       "id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
                                       "content" varchar(102400) COLLATE "pg_catalog"."default" NOT NULL,
                                       "title" varchar(256) COLLATE "pg_catalog"."default" NOT NULL,
@@ -504,9 +476,10 @@ CREATE TABLE "public"."paragraph" (
                                       "knowledge_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
                                       "document_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
                                       "status_meta" jsonb,
-                                      "position" int4 DEFAULT 1
-)
-;
+                                      "position" int4 DEFAULT 1,
+                                      "create_time" timestamp(6) NOT NULL,
+                                      "update_time" timestamp(6) NOT NULL
+);
 
 -- ----------------------------
 -- Indexes structure for table paragraph
@@ -536,14 +509,13 @@ ALTER TABLE "public"."paragraph" ADD CONSTRAINT "paragraph_knowledge_id_fk_knowl
 -- ----------------------------
 DROP TABLE IF EXISTS "public"."problem";
 CREATE TABLE "public"."problem" (
-                                    "create_time" timestamp(6) NOT NULL,
-                                    "update_time" timestamp(6) NOT NULL,
                                     "id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
                                     "content" varchar(256) COLLATE "pg_catalog"."default" NOT NULL,
                                     "hit_num" int4 NOT NULL,
-                                    "knowledge_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL
-)
-;
+                                    "knowledge_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
+                                    "create_time" timestamp(6) NOT NULL,
+                                    "update_time" timestamp(6) NOT NULL
+);
 
 -- ----------------------------
 -- Indexes structure for table problem
@@ -564,16 +536,15 @@ ALTER TABLE "public"."problem" ADD CONSTRAINT "problem_pkey" PRIMARY KEY ("id");
 -- ----------------------------
 DROP TABLE IF EXISTS "public"."folder";
 CREATE TABLE "public"."folder" (
-                                   "create_time" timestamp(6) NOT NULL,
-                                   "update_time" timestamp(6) NOT NULL,
                                    "id" varchar(64) COLLATE "pg_catalog"."default" NOT NULL,
                                    "name" varchar(64) COLLATE "pg_catalog"."default" NOT NULL,
                                    "desc" varchar(200) COLLATE "pg_catalog"."default",
                                    "parent_id" varchar(64) COLLATE "pg_catalog"."default",
                                    "user_id" varchar(64) COLLATE "pg_catalog"."default" NOT NULL,
-                                   "source" varchar(64) COLLATE "pg_catalog"."default" NOT NULL
-)
-;
+                                   "source" varchar(64) COLLATE "pg_catalog"."default" NOT NULL,
+                                   "create_time" timestamp(6) NOT NULL,
+                                   "update_time" timestamp(6) NOT NULL
+);
 
 -- ----------------------------
 -- Indexes structure for table folder
@@ -616,8 +587,6 @@ ALTER TABLE "public"."folder" ADD CONSTRAINT "application_folder_pkey" PRIMARY K
 -- ----------------------------
 DROP TABLE IF EXISTS "public"."tool";
 CREATE TABLE "public"."tool" (
-                                 "create_time" timestamp(6) NOT NULL,
-                                 "update_time" timestamp(6) NOT NULL,
                                  "id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
                                  "name" varchar(64) COLLATE "pg_catalog"."default" NOT NULL,
                                  "desc" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
@@ -631,9 +600,11 @@ CREATE TABLE "public"."tool" (
                                  "label" varchar(128) COLLATE "pg_catalog"."default",
                                  "scope" varchar(50) COLLATE "pg_catalog"."default",
                                  "icon" varchar(255) COLLATE "pg_catalog"."default",
-                                 "folder_id" varchar(64) COLLATE "pg_catalog"."default"
-)
-;
+                                 "folder_id" varchar(64) COLLATE "pg_catalog"."default",
+                                 "create_time" timestamp(6) NOT NULL,
+                                 "update_time" timestamp(6) NOT NULL
+);
+
 COMMENT ON COLUMN "public"."tool"."tool_type" IS '工具类型';
 
 -- ----------------------------
@@ -660,8 +631,6 @@ ALTER TABLE "public"."tool" ADD CONSTRAINT "tool_user_id_fk_user_id" FOREIGN KEY
 -- ----------------------------
 DROP TABLE IF EXISTS "public"."model";
 CREATE TABLE "public"."model" (
-                                  "create_time" timestamp(6) NOT NULL,
-                                  "update_time" timestamp(6) NOT NULL,
                                   "id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
                                   "name" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
                                   "model_type" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
@@ -671,9 +640,10 @@ CREATE TABLE "public"."model" (
                                   "user_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
                                   "meta" jsonb NOT NULL,
                                   "status" varchar(20) COLLATE "pg_catalog"."default" NOT NULL,
-                                  "model_params_form" jsonb NOT NULL
-)
-;
+                                  "model_params_form" jsonb NOT NULL,
+                                  "create_time" timestamp(6) NOT NULL,
+                                  "update_time" timestamp(6) NOT NULL
+);
 
 -- ----------------------------
 -- Indexes structure for table model
@@ -709,8 +679,7 @@ CREATE TABLE "public"."embedding" (
                                       "paragraph_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
                                       "search_vector" tsvector,
                                       "dimension" int4 NOT NULL
-)
-;
+);
 
 -- ----------------------------
 -- Indexes structure for table embedding
@@ -740,13 +709,12 @@ ALTER TABLE "public"."embedding" ADD CONSTRAINT "embedding_pkey" PRIMARY KEY ("i
 -- ----------------------------
 DROP TABLE IF EXISTS "public"."application_knowledge_mapping";
 CREATE TABLE "public"."application_knowledge_mapping" (
-                                                          "create_time" timestamp(6) NOT NULL,
-                                                          "update_time" timestamp(6) NOT NULL,
                                                           "id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
                                                           "application_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
-                                                          "knowledge_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL
-)
-;
+                                                          "knowledge_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
+                                                          "create_time" timestamp(6) NOT NULL,
+                                                          "update_time" timestamp(6) NOT NULL
+);
 
 -- ----------------------------
 -- Indexes structure for table application_knowledge_mapping
@@ -776,15 +744,14 @@ ALTER TABLE "public"."application_knowledge_mapping" ADD CONSTRAINT "application
 -- ----------------------------
 DROP TABLE IF EXISTS "public"."problem_paragraph_mapping";
 CREATE TABLE "public"."problem_paragraph_mapping" (
-                                                      "create_time" timestamp(6) NOT NULL,
-                                                      "update_time" timestamp(6) NOT NULL,
                                                       "id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
                                                       "knowledge_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
                                                       "document_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
                                                       "paragraph_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
-                                                      "problem_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL
-)
-;
+                                                      "problem_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
+                                                      "create_time" timestamp(6) NOT NULL,
+                                                      "update_time" timestamp(6) NOT NULL
+);
 
 -- ----------------------------
 -- Indexes structure for table problem_paragraph_mapping
@@ -818,16 +785,15 @@ ALTER TABLE "public"."problem_paragraph_mapping" ADD CONSTRAINT "problem_paragra
 -- ----------------------------
 DROP TABLE IF EXISTS "public"."knowledge_workflow_version";
 CREATE TABLE "public"."knowledge_workflow_version" (
-                                                       "create_time" timestamptz(6) NOT NULL,
-                                                       "update_time" timestamptz(6) NOT NULL,
                                                        "id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
                                                        "work_flow" jsonb NOT NULL,
                                                        "publish_user_id" varchar(50) COLLATE "pg_catalog"."default",
                                                        "publish_user_name" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
                                                        "knowledge_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
-                                                       "name" varchar(128) COLLATE "pg_catalog"."default" NOT NULL
-)
-;
+                                                       "name" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+                                                       "create_time" timestamptz(6) NOT NULL,
+                                                       "update_time" timestamptz(6) NOT NULL
+);
 
 -- ----------------------------
 -- Indexes structure for table knowledge_workflow_version
@@ -854,16 +820,15 @@ ALTER TABLE "public"."knowledge_workflow_version" ADD CONSTRAINT "knowledge_work
 -- ----------------------------
 DROP TABLE IF EXISTS "public"."knowledge_action";
 CREATE TABLE "public"."knowledge_action" (
-                                             "create_time" timestamptz(6) NOT NULL,
-                                             "update_time" timestamptz(6) NOT NULL,
                                              "id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
                                              "state" varchar(20) COLLATE "pg_catalog"."default" NOT NULL,
                                              "details" jsonb NOT NULL,
                                              "run_time" float8 NOT NULL,
                                              "meta" jsonb NOT NULL,
-                                             "knowledge_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL
-)
-;
+                                             "knowledge_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
+                                             "create_time" timestamptz(6) NOT NULL,
+                                             "update_time" timestamptz(6) NOT NULL
+);
 
 -- ----------------------------
 -- Indexes structure for table knowledge_action
