@@ -16,6 +16,6 @@ public class ParagraphVO extends ParagraphEntity {
     private Float comprehensiveScore;
 
    public boolean isHitHandlingMethod(){
-       return "directly_return".equals(hitHandlingMethod)&& similarity>=directlyReturnSimilarity;
+       return "directlyReturn".equals(hitHandlingMethod)&& similarity>=directlyReturnSimilarity;
    }
 }

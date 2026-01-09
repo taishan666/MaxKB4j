@@ -593,7 +593,7 @@ CREATE TABLE "public"."tool" (
                                  "code" varchar(10240) COLLATE "pg_catalog"."default" NOT NULL,
                                  "user_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
                                  "is_active" bool NOT NULL,
-                                 "input_field_list" jsonb NOT NULL,
+                                 "inputFieldList" jsonb NOT NULL,
                                  "tool_type" varchar(20) COLLATE "pg_catalog"."default" NOT NULL,
                                  "init_field_list" jsonb,
                                  "init_params" jsonb,

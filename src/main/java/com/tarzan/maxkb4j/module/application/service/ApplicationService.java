@@ -321,13 +321,16 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         response.setContentType("text/plain");
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());
         String fileName = URLEncoder.encode(app.getName(), StandardCharsets.UTF_8);
-        response.setHeader("Content-disposition", "attachment;filename=" + fileName + ".mk");
+        response.setHeader("Content-disposition", "attachment;filename=" + fileName + ".mk4j");
         OutputStream outputStream = response.getOutputStream();
         outputStream.write(bytes);
     }
 
     @Transactional
     public boolean appImport(MultipartFile file) throws IOException {
+        if (!Objects.requireNonNull(file.getOriginalFilename()).endsWith(".mk4j")) {
+            throw new ApiException("文件格式错误");
+        }
         String text = IoUtil.readToString(file.getInputStream());
         MaxKb4J maxKb4J = JSONObject.parseObject(text, MaxKb4J.class);
         ApplicationEntity application = maxKb4J.getApplication();

@@ -21,7 +21,7 @@ public class FolderService extends ServiceImpl<FolderMapper, FolderEntity> {
     public List<FolderVO> tree(String source) {
         FolderVO defaultFolder = new FolderVO("default", "工作空间");
         if (AuthTargetType.APPLICATION.equals(source)){
-            defaultFolder.setName("应用空间");
+            defaultFolder.setName("智能体空间");
         }
         if (AuthTargetType.KNOWLEDGE.equals( source)){
             defaultFolder.setName("知识库空间");
@@ -32,16 +32,6 @@ public class FolderService extends ServiceImpl<FolderMapper, FolderEntity> {
         return List.of(defaultFolder);
     }
 /*
-    @Transactional
-    public List<FolderVO> tree1(String source) {
-     *//*   String userId = StpKit.ADMIN.getLoginIdAsString();
-        UserEntity loginUser = userService.getById(userId);
-        if (Objects.nonNull(loginUser) && loginUser.getRole().contains("ADMIN")) {
-            return getAdminFolder(source);
-        }
-        return getUserFolder(userId, source);*//*
-        return treeFolder(source);
-    }
 
     private List<FolderVO> treeFolder(String source) {
         FolderVO rootFolder = new FolderVO("default", "根目录", null, null,List.of());

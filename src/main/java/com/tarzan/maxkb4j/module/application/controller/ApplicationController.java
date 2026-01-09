@@ -6,10 +6,7 @@ import com.tarzan.maxkb4j.common.aop.SaCheckPerm;
 import com.tarzan.maxkb4j.common.api.R;
 import com.tarzan.maxkb4j.common.constant.AppConst;
 import com.tarzan.maxkb4j.common.util.McpToolUtil;
-import com.tarzan.maxkb4j.module.application.domain.dto.ApplicationAccessTokenDTO;
-import com.tarzan.maxkb4j.module.application.domain.dto.ApplicationQuery;
-import com.tarzan.maxkb4j.module.application.domain.dto.ChatQueryDTO;
-import com.tarzan.maxkb4j.module.application.domain.dto.PromptGenerateDTO;
+import com.tarzan.maxkb4j.module.application.domain.dto.*;
 import com.tarzan.maxkb4j.module.application.domain.entity.ApplicationAccessTokenEntity;
 import com.tarzan.maxkb4j.module.application.domain.entity.ApplicationEntity;
 import com.tarzan.maxkb4j.module.application.domain.vo.ApplicationListVO;
@@ -53,12 +50,12 @@ public class ApplicationController {
 
     @SaCheckPerm(PermissionEnum.APPLICATION_CREATE)
     @PostMapping("/application")
-    public R<ApplicationEntity> createApp(@RequestBody ApplicationEntity application) {
+    public R<ApplicationEntity> createApp(@RequestBody ApplicationDTO application) {
         return R.success(applicationService.createApp(application));
     }
 
     @PostMapping("/application/folder/{folderId}/import")
-    public R<Boolean> appImport(MultipartFile file) throws Exception {
+    public R<Boolean> appImport(@PathVariable String folderId,MultipartFile file) throws Exception {
         return R.status(applicationService.appImport(file));
     }
 
