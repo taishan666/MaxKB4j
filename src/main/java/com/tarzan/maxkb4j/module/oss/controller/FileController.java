@@ -34,6 +34,7 @@ public class FileController {
             "/admin/application/*/*/oss/file/{fileId:[\\w-]+}",
             "/admin/application/*/*/*/oss/file/{fileId:[\\w-]+}",
             "/admin/knowledge/*/*/oss/file/{fileId:[\\w-]+}",
+            "/chat/oss/file/{fileId:[\\w-]+}",
             "/oss/file/{fileId:[\\w-]+}"})
     public void getFile(@PathVariable("fileId") String fileId, HttpServletResponse response){
         mongoFileService.getFile(fileId, response);
