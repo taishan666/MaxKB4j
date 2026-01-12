@@ -22,8 +22,6 @@ import java.util.*;
 @Component
 public class DocumentExtractNodeHandler implements INodeHandler {
 
-    private static final String SPLITTER = "\n-----------------------------------\n";
-
     private final DocumentParseService documentParseService;
     private final MongoFileService fileService;
 
@@ -69,7 +67,7 @@ public class DocumentExtractNodeHandler implements INodeHandler {
 
         // 5. 返回结果
         return new NodeResult(Map.of(
-                "content", String.join(SPLITTER, contentList),
+                "content", String.join(DocumentExtractNode.SPLITTER, contentList),
                 "documentList", documentList
         ));
     }

@@ -13,33 +13,32 @@ import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.DOCUMENT_EXTRACT;
 public class DocumentExtractNode extends INode {
 
 
-    public DocumentExtractNode(String id,JSONObject properties) {
-        super(id,properties);
+    public DocumentExtractNode(String id, JSONObject properties) {
+        super(id, properties);
         this.setType(DOCUMENT_EXTRACT.getKey());
     }
 
-    String splitter = "\n-----------------------------------\n";
+    public static final String SPLITTER = "\n-----------------------------------\n";
 
-    @SuppressWarnings("unchecked")
     @Override
     public void saveContext(Workflow workflow, Map<String, Object> detail) {
-        List<String> content= (List<String>) detail.get("content");
-        context.put("content", String.join(splitter, content));
+        String[] content = (String[]) detail.get("content");
+        context.put("content", String.join(SPLITTER, content));
         context.put("documentList", detail.get("documentList"));
     }
 
 
     @Override
     public Map<String, Object> getDetail() {
-        String content = (String) context.getOrDefault("content","");
-        detail.put("content", content.split(splitter));
+        String content = (String) context.getOrDefault("content", "");
+        detail.put("content", content.split(SPLITTER));
         detail.put("documentList", context.get("documentList"));
         return detail;
     }
 
 
     @Data
-    public static class NodeParams  {
+    public static class NodeParams {
         private List<String> documentList;
     }
 
