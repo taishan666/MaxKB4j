@@ -70,7 +70,7 @@ import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.DATA_SOURCE_WEB;
 public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEntity> {
 
     private final ProblemMapper problemMapper;
-    private final ApplicationKnowledgeMappingMapper applicationDatasetMappingMapper;
+    private final ApplicationKnowledgeMappingMapper applicationKnowledgeMappingMapper;
     private final ParagraphMapper paragraphMapper;
     private final ProblemParagraphMapper problemParagraphMapper;
     private final DocumentService documentService;
@@ -79,8 +79,9 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
     private final ApplicationEventPublisher eventPublisher;
     private final DataIndexService dataIndexService;
     private final KnowledgeActionService knowledgeActionService;
-    private final KnowledgeWorkflowHandler knowledgeWorkflowHandler;
     private final KnowledgeVersionService knowledgeVersionService;
+    private final KnowledgeWorkflowHandler knowledgeWorkflowHandler;
+
 
 
     public IPage<KnowledgeVO> selectKnowledgePage(Page<KnowledgeVO> knowledgePage, KnowledgeQuery query) {
@@ -102,7 +103,7 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
             return null;
         }
         KnowledgeVO vo = BeanUtil.copy(entity, KnowledgeVO.class);
-        List<ApplicationKnowledgeMappingEntity> apps = applicationDatasetMappingMapper.selectList(Wrappers.lambdaQuery(ApplicationKnowledgeMappingEntity.class)
+        List<ApplicationKnowledgeMappingEntity> apps = applicationKnowledgeMappingMapper.selectList(Wrappers.lambdaQuery(ApplicationKnowledgeMappingEntity.class)
                 .select(ApplicationKnowledgeMappingEntity::getApplicationId)
                 .eq(ApplicationKnowledgeMappingEntity::getKnowledgeId, id));
         List<String> appIds = apps.stream().map(ApplicationKnowledgeMappingEntity::getApplicationId).toList();
@@ -128,7 +129,9 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
         problemMapper.delete(Wrappers.<ProblemEntity>lambdaQuery().eq(ProblemEntity::getKnowledgeId, id));
         paragraphMapper.delete(Wrappers.<ParagraphEntity>lambdaQuery().eq(ParagraphEntity::getKnowledgeId, id));
         documentService.remove(Wrappers.<DocumentEntity>lambdaQuery().eq(DocumentEntity::getKnowledgeId, id));
-        applicationDatasetMappingMapper.delete(Wrappers.<ApplicationKnowledgeMappingEntity>lambdaQuery().eq(ApplicationKnowledgeMappingEntity::getKnowledgeId, id));
+        applicationKnowledgeMappingMapper.delete(Wrappers.<ApplicationKnowledgeMappingEntity>lambdaQuery().eq(ApplicationKnowledgeMappingEntity::getKnowledgeId, id));
+        knowledgeVersionService.lambdaQuery().eq(KnowledgeVersionEntity::getKnowledgeId, id);
+        knowledgeActionService.lambdaQuery().eq(KnowledgeActionEntity::getKnowledgeId, id);
         userResourcePermissionService.remove(AuthTargetType.APPLICATION, id);
         dataIndexService.removeByDatasetId(id);
         return this.removeById(id);
