@@ -1,7 +1,6 @@
 package com.tarzan.maxkb4j.module.model.provider.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
-import com.tarzan.maxkb4j.listener.LlmListener;
 import com.tarzan.maxkb4j.module.model.custom.params.impl.ImageModelParams;
 import com.tarzan.maxkb4j.module.model.custom.params.impl.LlmModelParams;
 import com.tarzan.maxkb4j.module.model.custom.params.impl.TextEmbeddingV3Params;
@@ -58,7 +57,6 @@ public class VolcanicEngineModelProvider extends IModelProvider {
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
                 .returnThinking(true)
-                .listeners(List.of(new LlmListener()))
                 .build();
     }
 
@@ -69,7 +67,6 @@ public class VolcanicEngineModelProvider extends IModelProvider {
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
                 .returnThinking(true)
-                .listeners(List.of(new LlmListener()))
                 .build();
     }
 
