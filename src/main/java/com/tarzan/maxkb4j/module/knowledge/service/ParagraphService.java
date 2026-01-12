@@ -201,6 +201,9 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
                 long count = this.lambdaQuery().eq(ParagraphEntity::getKnowledgeId, knowledgeId).eq(ParagraphEntity::getDocumentId, docId).count();
                 int position= (int) (count+1);
                 for (ParagraphEntity paragraph : docParagraphs) {
+                    if (paragraph.getTitle()!=null&&paragraph.getTitle().trim().length()>256){
+                        paragraph.setTitle(paragraph.getTitle().substring(0,256));
+                    }
                     paragraph.setPosition(position);
                     position++;
                 }
