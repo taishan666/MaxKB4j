@@ -127,9 +127,9 @@ public class ApplicationController {
     }
 
     @SaCheckPerm(PermissionEnum.APPLICATION_ACCESS_EDIT)
-    @PutMapping("/application/{appId}/access_token")
-    public R<ApplicationAccessTokenEntity> updateAccessToken(@PathVariable("appId") String appId, @RequestBody ApplicationAccessTokenDTO dto) {
-        return R.success(applicationService.updateAccessToken(appId, dto));
+    @PutMapping("/application/{id}/access_token")
+    public R<ApplicationAccessTokenEntity> updateAccessToken(@PathVariable("id") String id, @RequestBody ApplicationAccessTokenDTO dto) {
+        return R.success(applicationService.updateAccessToken(id, dto));
     }
 
     @SaCheckPerm(PermissionEnum.APPLICATION_EDIT)

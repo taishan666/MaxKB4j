@@ -4,13 +4,11 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.io.InputStream;
-
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class FileStreamVO {
+public class DocFileVO {
     private String name;
-    private InputStream inputStream;
+    private byte[] bytes;
     private String contentType;
 }

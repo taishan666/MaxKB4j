@@ -29,21 +29,21 @@ public class ApplicationChatController {
     private final ApplicationChatService chatService;
 
 
-    @PutMapping("/application/{appId}/chat/client/{chatId}")
-    public R<Boolean> updateChat(@PathVariable("appId") String appId, @PathVariable("chatId") String chatId, @RequestBody ApplicationChatEntity chatEntity) {
+    @PutMapping("/application/{id}/chat/client/{chatId}")
+    public R<Boolean> updateChat(@PathVariable("id") String id, @PathVariable("chatId") String chatId, @RequestBody ApplicationChatEntity chatEntity) {
         chatEntity.setId(chatId);
         return R.success(chatService.updateById(chatEntity));
     }
 
-    @DeleteMapping("/application/{appId}/chat/client/{chatId}")
-    public R<Boolean> deleteChat(@PathVariable("appId") String appId, @PathVariable("chatId") String chatId) {
+    @DeleteMapping("/application/{id}/chat/client/{chatId}")
+    public R<Boolean> deleteChat(@PathVariable("id") String id, @PathVariable("chatId") String chatId) {
         return R.success(chatService.deleteById(chatId));
     }
 
 
-    @GetMapping("/application/{appId}/chat/{page}/{size}")
-    public R<IPage<ApplicationChatEntity>> chatLogs(@PathVariable("appId") String appId, @PathVariable("page") int page, @PathVariable("size") int size, ChatQueryDTO query) {
-        return R.success(chatService.chatLogs(appId, page, size, query));
+    @GetMapping("/application/{id}/chat/{page}/{size}")
+    public R<IPage<ApplicationChatEntity>> chatLogs(@PathVariable("id") String id, @PathVariable("page") int page, @PathVariable("size") int size, ChatQueryDTO query) {
+        return R.success(chatService.chatLogs(id, page, size, query));
     }
 
     @PostMapping("/application/{id}/chat/export")

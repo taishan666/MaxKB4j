@@ -16,16 +16,14 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.gridfs.GridFsResource;
 import org.springframework.data.mongodb.gridfs.GridFsTemplate;
-import org.springframework.data.mongodb.gridfs.GridFsUpload;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
-import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -58,13 +56,11 @@ public class MongoFileService {
         String originalFilename = file.getOriginalFilename();
         // 获得文件类型
         String contentType = file.getContentType();
-        // 获得文件输入流
-        InputStream ins = file.getInputStream();
-        return storeFile(ins,originalFilename,contentType);
+        return storeFile(file.getBytes(),originalFilename,contentType);
     }
 
-    public String storeFile(InputStream ins,String fileName,String contentType) {
-        ObjectId objectId =  gridFsTemplate.store(ins, fileName, contentType);
+    public String storeFile(byte[] bytes,String fileName,String contentType) {
+        ObjectId objectId =  gridFsTemplate.store(new ByteArrayInputStream(bytes), fileName, contentType);
         return objectId.toString();
     }
 
@@ -85,30 +81,54 @@ public class MongoFileService {
         return fileVO;
     }
 
-    public void getFile(String id, HttpServletResponse response){
+    public void getFile(String id, HttpServletResponse response) {
         try {
             GridFSFile file = this.getById(id);
-            Document doc=file.getMetadata();
-            // 获取文件的MIME类型
-            assert doc != null;
-            String mimeType = doc.getString("_contentType");
-            response.setContentType(mimeType);
-            String encodedFileName = URLEncoder.encode(file.getFilename(), StandardCharsets.UTF_8).replace("+", "%20");
-            response.setHeader(HttpHeaders.CONTENT_DISPOSITION,
-                    "inline; filename*=UTF-8''" + encodedFileName);
-            IoUtil.copy(this.getStream(file), response.getOutputStream());
+            if (file == null || file.getLength() <= 0) {
+                response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                return;
+            }
+
+            Document doc = file.getMetadata();
+            String contentType = (doc != null) ? doc.getString("_contentType") : "application/octet-stream";
+            response.setContentType(contentType);
+
+            boolean previewAble = contentType != null &&
+                    (contentType.startsWith("image/") || "application/pdf".equals(contentType));
+
+            if (previewAble) {
+                response.setHeader("Content-Disposition", "inline");
+            } else {
+                String encodedFileName = URLEncoder.encode(file.getFilename(), StandardCharsets.UTF_8)
+                        .replace("+", "%20");
+                response.setHeader(HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename*=UTF-8''" + encodedFileName);
+            }
+
+            // ✅ 必须在 getOutputStream() 之前设置！
+            response.setContentLengthLong(file.getLength());
+
+            try (InputStream inputStream = this.getStream(file);
+                 OutputStream outputStream = response.getOutputStream()) {
+
+                if (inputStream == null) {
+                    log.warn("Input stream is null for file ID: {}", id);
+                    response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                    return;
+                }
+
+                IoUtil.copy(inputStream, outputStream);
+                outputStream.flush();
+            }
+
         } catch (Exception e) {
-            log.error(e.getMessage());
+            log.error("Error serving file with ID: {}", id, e);
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
     }
 
-
     public List<GridFSFile> list() {
         return  gridFsTemplate.find(new Query()).into(new ArrayList<>());
-    }
-
-    public void removeById(String fileId) {
-        gridFsTemplate.delete(Query.query(Criteria.where("_id").is(fileId)));
     }
 
     public GridFSFile getById(String fileId) {
@@ -127,8 +147,7 @@ public class MongoFileService {
 
     public InputStream getStream(String fileId) throws IOException {
         GridFSFile file=getById(fileId);
-        GridFsResource resource = gridFsTemplate.getResource(file);
-        return resource.getInputStream();
+        return getStream(file);
     }
 
     public InputStream getStream(GridFSFile file) throws IOException {
@@ -136,23 +155,6 @@ public class MongoFileService {
         return resource.getInputStream();
     }
 
-    public void updateFile(String fileId, InputStream content) {
-        GridFSFile file= getById(fileId);
-        removeById(fileId);
-        GridFsUpload.GridFsUploadBuilder<ObjectId> uploadBuilder = GridFsUpload.fromStream(content);
-        //这里要用file.getId()因为是BsonValue类型不要用fileId，不然查询时，会找不到
-        uploadBuilder.id(file.getId());
-        if (StringUtils.hasText(file.getFilename())) {
-            uploadBuilder.filename(file.getFilename());
-        }
-        if (!ObjectUtils.isEmpty(file.getMetadata())) {
-            uploadBuilder.metadata(file.getMetadata());
-        }
-        if (StringUtils.hasText(file.getMetadata().getString("_contentType"))) {
-            uploadBuilder.contentType(file.getMetadata().getString("_contentType"));
-        }
-         gridFsTemplate.store(uploadBuilder.build());
-    }
 }
 
 
