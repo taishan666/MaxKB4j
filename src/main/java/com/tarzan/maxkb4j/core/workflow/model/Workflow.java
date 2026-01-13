@@ -92,16 +92,16 @@ public class Workflow {
                 });
                 assert currentNode != null;
                 currentNode.setStatus(nodeStatus);
-                currentNode.setDetail(nodeDetail);
                 currentNode.saveContext(this, nodeDetail);
+                currentNode.setDetail(nodeDetail);
                 nodeContext.add(currentNode);
             } else {
                 // 处理其他节点
                 INode node = getNodeClsById(nodeId, upNodeIdList, null);
                 assert node != null;
                 node.setStatus(nodeStatus);
-                node.setDetail(nodeDetail);
                 node.saveContext(this, nodeDetail);
+                node.setDetail(nodeDetail);
                 nodeContext.add(node);
             }
         }

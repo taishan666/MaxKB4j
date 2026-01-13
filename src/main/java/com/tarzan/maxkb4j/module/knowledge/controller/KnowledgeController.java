@@ -74,8 +74,6 @@ public class KnowledgeController {
         return R.success(knowledgeService.updateDatasetWorkflow(id,knowledge));
     }
 
-
-
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_READ)
     @GetMapping("/knowledge/{id}")
     public R<KnowledgeVO> getKnowledgeById(@PathVariable("id") String id) {

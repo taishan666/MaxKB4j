@@ -98,7 +98,7 @@ CREATE TABLE "public"."application" (
                                         "user_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
                                         "icon" varchar(256) COLLATE "pg_catalog"."default",
                                         "type" varchar(256) COLLATE "pg_catalog"."default" NOT NULL,
-                                        "work_flow" jsonb NOT NULL,
+                                        "work_flow" jsonb ,
                                         "model_params_setting" jsonb NOT NULL,
                                         "stt_model_id" varchar(50) COLLATE "pg_catalog"."default",
                                         "stt_model_enable" bool NOT NULL DEFAULT false,
@@ -356,7 +356,7 @@ CREATE TABLE "public"."application_version" (
                                                 "tts_model_params_setting" jsonb NOT NULL,
                                                 "problem_optimization" bool NOT NULL DEFAULT false,
                                                 "icon" varchar(256) COLLATE "pg_catalog"."default" NOT NULL,
-                                                "work_flow" jsonb NOT NULL,
+                                                "work_flow" jsonb ,
                                                 "type" varchar(256) COLLATE "pg_catalog"."default" NOT NULL,
                                                 "problem_optimization_prompt" varchar(102400) COLLATE "pg_catalog"."default",
                                                 "tts_model_id" varchar(50) COLLATE "pg_catalog"."default",
@@ -398,7 +398,7 @@ CREATE TABLE "public"."knowledge" (
                                       "type" int2,
                                       "folder_id" varchar(64) COLLATE "pg_catalog"."default",
                                       "is_publish" bool NOT NULL DEFAULT false,
-                                      "work_flow"  jsonb NOT NULL,
+                                      "work_flow"  jsonb ,
                                       "create_time" timestamp(6) NOT NULL,
                                       "update_time" timestamp(6) NOT NULL
 );
@@ -786,7 +786,7 @@ ALTER TABLE "public"."problem_paragraph_mapping" ADD CONSTRAINT "problem_paragra
 DROP TABLE IF EXISTS "public"."knowledge_workflow_version";
 CREATE TABLE "public"."knowledge_workflow_version" (
                                                        "id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
-                                                       "work_flow" jsonb NOT NULL,
+                                                       "work_flow" jsonb ,
                                                        "publish_user_id" varchar(50) COLLATE "pg_catalog"."default",
                                                        "publish_user_name" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
                                                        "knowledge_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,

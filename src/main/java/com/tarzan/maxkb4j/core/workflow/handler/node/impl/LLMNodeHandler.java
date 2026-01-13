@@ -1,11 +1,12 @@
 package com.tarzan.maxkb4j.core.workflow.handler.node.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
+import com.tarzan.maxkb4j.common.util.MessageUtils;
+import com.tarzan.maxkb4j.common.util.MimeTypeUtils;
 import com.tarzan.maxkb4j.common.util.ToolUtil;
 import com.tarzan.maxkb4j.core.assistant.Assistant;
 import com.tarzan.maxkb4j.core.langchain4j.AppChatMemory;
-import com.tarzan.maxkb4j.common.util.MessageUtils;
-import com.tarzan.maxkb4j.common.util.MimeTypeUtils;
+import com.tarzan.maxkb4j.core.langchain4j.AssistantServices;
 import com.tarzan.maxkb4j.core.workflow.annotation.NodeHandlerType;
 import com.tarzan.maxkb4j.core.workflow.enums.NodeType;
 import com.tarzan.maxkb4j.core.workflow.enums.WorkflowMode;
@@ -82,7 +83,7 @@ public class LLMNodeHandler implements INodeHandler {
     }
 
     private AiServices<Assistant> buildAiServices(String systemPrompt, List<ChatMessage> historyMessages, List<String> toolIds) {
-        AiServices<Assistant> builder = AiServices.builder(Assistant.class);
+        AiServices<Assistant> builder = AssistantServices.builder(Assistant.class);
         if (StringUtils.isNotBlank(systemPrompt)) {
             builder.systemMessageProvider(chatMemoryId -> systemPrompt);
         }

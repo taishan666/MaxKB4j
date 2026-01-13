@@ -47,7 +47,12 @@ public class DocumentEntity extends BaseEntity {
 	public DocumentEntity(String knowledgeId, String name, Integer type) {
 		super.setId(IdWorker.get32UUID());
 		this.knowledgeId = knowledgeId;
-		this.name = name;
+		// 限制 name 长度不超过 150 个字符
+		if (name != null && name.length() > 150) {
+			this.name = name.substring(0, 150);
+		} else {
+			this.name = name;
+		}
 		this.type = type;
 		this.status = "nn0";
 		this.isActive = true;

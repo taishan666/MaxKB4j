@@ -1,7 +1,6 @@
 package com.tarzan.maxkb4j.module.model.provider.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
-import com.tarzan.maxkb4j.listener.LlmListener;
 import com.tarzan.maxkb4j.module.model.custom.params.impl.LlmModelParams;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelCredential;
 import com.tarzan.maxkb4j.module.model.provider.enums.ModelProviderEnum;
@@ -42,7 +41,6 @@ public class DeepSeekModelProvider extends IModelProvider {
                 .baseUrl(BASE_URL)
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
-                .listeners(List.of(new LlmListener()))
                 .build();
     }
 
@@ -52,7 +50,6 @@ public class DeepSeekModelProvider extends IModelProvider {
                 .baseUrl(BASE_URL)
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
-                .listeners(List.of(new LlmListener()))
                 .build();
     }
 

@@ -59,7 +59,11 @@ public class ChatPostHandler implements PostResponseHandler {
             chatRecord.setProblemText(problemText);
             chatRecord.setAnswerText(answerText);
             chatRecord.setAnswerTextList(List.of(answerText));
-            chatRecord.setIndex(chatInfo.getChatRecordList().size() + 1);
+            if (chatInfo!=null){
+                chatRecord.setIndex(chatInfo.getChatRecordList().size() + 1);
+            }else {
+                chatRecord.setIndex(0);
+            }
             chatRecord.setMessageTokens(messageTokens);
             chatRecord.setAnswerTokens(answerTokens);
             chatRecord.setRunTime(runTime);
@@ -68,6 +72,7 @@ public class ChatPostHandler implements PostResponseHandler {
             chatRecord.setDetails(details);
             chatRecord.setImproveParagraphIdList(List.of());
         }
+        assert chatInfo != null;
         chatInfo.addChatRecord(chatRecord);
         // 重新设置缓存
         ChatCache.put(chatId, chatInfo);
