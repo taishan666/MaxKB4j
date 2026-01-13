@@ -1,9 +1,9 @@
-package com.tarzan.maxkb4j.core.workflow.parser.impl;
+package com.tarzan.maxkb4j.core.parser.impl;
 
 import com.alibaba.excel.EasyExcel;
 import com.alibaba.excel.context.AnalysisContext;
 import com.alibaba.excel.event.AnalysisEventListener;
-import com.tarzan.maxkb4j.core.workflow.parser.DocumentParser;
+import com.tarzan.maxkb4j.core.parser.DocumentParser;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;

@@ -1,7 +1,7 @@
-package com.tarzan.maxkb4j.core.workflow.parser.impl;
+package com.tarzan.maxkb4j.core.parser.impl;
 
 import com.tarzan.maxkb4j.core.workflow.model.SysFile;
-import com.tarzan.maxkb4j.core.workflow.parser.DocumentParser;
+import com.tarzan.maxkb4j.core.parser.DocumentParser;
 import com.tarzan.maxkb4j.module.oss.service.MongoFileService;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.text.StringEscapeUtils;
@@ -41,7 +41,7 @@ public class TikaParser implements DocumentParser {
 
     @Override
     public boolean support(String fileName) {
-        return fileName.endsWith(".pdf") || fileName.endsWith(".doc") || fileName.endsWith(".docx");
+        return fileName.endsWith(".pdf")||fileName.endsWith(".doc") || fileName.endsWith(".docx");
     }
 
     @Override
@@ -99,15 +99,15 @@ public class TikaParser implements DocumentParser {
             throw new RuntimeException(e);
         }
         String xhtml = handler.toString();
-        return convertXhtmlToMarkdown(xhtml,embeddedResources);
+        return convertXhtmlToMarkdown(xhtml, embeddedResources);
     }
 
-    private String convertXhtmlToMarkdown(String xhtml,Map<String, byte[]> embeddedImages) {
+    private String convertXhtmlToMarkdown(String xhtml, Map<String, byte[]> embeddedImages) {
         // 使用 jsoup 解析 XHTML
         Document doc = Jsoup.parse(xhtml, "", org.jsoup.parser.Parser.xmlParser());
         Element body = doc.body();
         // 使用 flexmark 或手动转换（这里用简易规则模拟）
-        return simpleXhtmlToMarkdown(body,embeddedImages);
+        return simpleXhtmlToMarkdown(body, embeddedImages);
     }
 
     private String simpleXhtmlToMarkdown(Element element, Map<String, byte[]> embeddedImages) {
@@ -162,8 +162,8 @@ public class TikaParser implements DocumentParser {
                     case "code":
                         md.append("`").append(simpleXhtmlToMarkdown(child, embeddedImages)).append("`");
                         break;
-                    case "strong","b":
-                       // md.append("<b>").append(simpleXhtmlToMarkdown(child, embeddedImages)).append("</b>");
+                    case "strong", "b":
+                        // md.append("<b>").append(simpleXhtmlToMarkdown(child, embeddedImages)).append("</b>");
                         md.append(simpleXhtmlToMarkdown(child, embeddedImages));
                         break;
                     case "i":
@@ -176,7 +176,7 @@ public class TikaParser implements DocumentParser {
                     case "img":
                         String src = child.attr("src");
                         if (src.startsWith("embedded:")) {
-                            String resourceName =src.split(":")[1];
+                            String resourceName = src.split(":")[1];
                             byte[] imageData = embeddedImages.get(resourceName);
                             if (imageData != null && imageData.length > 0) {
                                 SysFile uploadedImage = fileService.uploadFile(resourceName, imageData);
@@ -211,7 +211,7 @@ public class TikaParser implements DocumentParser {
     }
 
 
-    private String parseTitleToMarkdown(String titleLevel,Element child) {
+    private String parseTitleToMarkdown(String titleLevel, Element child) {
         String text = child.text();
         if (!text.isEmpty()) {
             return "\n" + titleLevel + " " + text + "\n";
@@ -248,7 +248,7 @@ public class TikaParser implements DocumentParser {
             List<String> cellTexts = new ArrayList<>();
             for (Element cell : cells) {
                 Elements tables = cell.getElementsByTag("table");
-                if (tables.isEmpty()){
+                if (tables.isEmpty()) {
                     // 递归处理单元格内的内容（可能包含 p, strong, a 等）
                     String cellContent = simpleXhtmlToMarkdown(cell, embeddedImages).trim();
                     // 转义管道符和换行，避免破坏 Markdown 表格

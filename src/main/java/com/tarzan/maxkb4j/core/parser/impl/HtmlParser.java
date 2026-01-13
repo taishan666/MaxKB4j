@@ -1,7 +1,7 @@
-package com.tarzan.maxkb4j.core.workflow.parser.impl;
+package com.tarzan.maxkb4j.core.parser.impl;
 
 import com.tarzan.maxkb4j.common.util.IoUtil;
-import com.tarzan.maxkb4j.core.workflow.parser.DocumentParser;
+import com.tarzan.maxkb4j.core.parser.DocumentParser;
 import com.vladsch.flexmark.html2md.converter.FlexmarkHtmlConverter;
 import com.vladsch.flexmark.util.data.MutableDataSet;
 import lombok.RequiredArgsConstructor;

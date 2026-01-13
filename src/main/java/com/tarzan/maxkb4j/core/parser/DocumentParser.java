@@ -1,4 +1,4 @@
-package com.tarzan.maxkb4j.core.workflow.parser;
+package com.tarzan.maxkb4j.core.parser;
 
 import java.io.InputStream;
 

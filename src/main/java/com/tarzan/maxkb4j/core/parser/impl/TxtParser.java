@@ -1,6 +1,6 @@
-package com.tarzan.maxkb4j.core.workflow.parser.impl;
+package com.tarzan.maxkb4j.core.parser.impl;
 
-import com.tarzan.maxkb4j.core.workflow.parser.DocumentParser;
+import com.tarzan.maxkb4j.core.parser.DocumentParser;
 import dev.langchain4j.data.document.Document;
 import dev.langchain4j.data.document.parser.TextDocumentParser;
 import lombok.RequiredArgsConstructor;
