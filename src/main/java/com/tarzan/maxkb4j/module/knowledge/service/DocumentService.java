@@ -21,7 +21,7 @@ import com.tarzan.maxkb4j.module.knowledge.domain.entity.ParagraphEntity;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.ProblemEntity;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.ProblemParagraphEntity;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.DocumentVO;
-import com.tarzan.maxkb4j.module.knowledge.domain.vo.FileStreamVO;
+import com.tarzan.maxkb4j.module.knowledge.domain.vo.DocFileVO;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.TextSegmentVO;
 import com.tarzan.maxkb4j.module.knowledge.enums.KnowledgeType;
 import com.tarzan.maxkb4j.module.knowledge.excel.DatasetExcel;
@@ -130,7 +130,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
             if (fileName.toLowerCase().endsWith(".zip")) {
                 processZipQaFile(knowledgeId, file);
             } else {
-                processQaFile(knowledgeId, file.getInputStream(), fileName);
+                processQaFile(knowledgeId, file.getBytes(), fileName);
             }
         }
     }
@@ -174,9 +174,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
             while ((entry = zipIn.getNextEntry()) != null) {
                 if (!entry.isDirectory() && isExcelOrCsv(entry.getName())) {
                     byte[] content = zipIn.readAllBytes();
-                    try (ByteArrayInputStream bis = new ByteArrayInputStream(content)) {
-                        processQaFile(knowledgeId, bis, entry.getName());
-                    }
+                    processQaFile(knowledgeId, content, entry.getName());
                     break;
                 }
             }
@@ -190,11 +188,11 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
     }
 
     @Transactional
-    protected void processQaFile(String knowledgeId, InputStream fis, String fileName) {
+    protected void processQaFile(String knowledgeId, byte[] bytes, String fileName) {
         List<DocumentSimple> docs = new ArrayList<>();
         DataListener<DatasetExcel> dataListener = new DataListener<>();
-        String fileId = mongoFileService.storeFile(fis, fileName,null);
-        try (ExcelReader excelReader = EasyExcel.read(fis, DatasetExcel.class, dataListener).build()) {
+        String fileId = mongoFileService.storeFile(bytes, fileName,null);
+        try (ExcelReader excelReader = EasyExcel.read(new ByteArrayInputStream(bytes), DatasetExcel.class, dataListener).build()) {
             List<ReadSheet> sheets = excelReader.excelExecutor().sheetList();
             for (ReadSheet sheet : sheets) {
                 DocumentSimple docSimple = new DocumentSimple();
@@ -370,7 +368,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
 
     public List<TextSegmentVO> split(MultipartFile[] files, String[] patterns, Integer limit, Boolean withFilter) throws IOException {
         List<TextSegmentVO> result = new ArrayList<>();
-        List<FileStreamVO> fileStreams = new ArrayList<>();
+        List<DocFileVO> fileStreams = new ArrayList<>();
         if (files == null) return result;
         for (MultipartFile file : files) {
             if (file == null || file.isEmpty()) continue;
@@ -382,21 +380,20 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
                     while ((entry = zis.getNextEntry()) != null) {
                         if (!entry.isDirectory()) {
                             byte[] bytes = zis.readAllBytes();
-                            InputStream inputStream = new ByteArrayInputStream(bytes);
-                            fileStreams.add(new FileStreamVO(entry.getName(), inputStream, ""));
+                            fileStreams.add(new DocFileVO(entry.getName(), bytes, ""));
                         }
                     }
                 }
             } else {
-                fileStreams.add(new FileStreamVO(name, file.getInputStream(), file.getContentType()));
+                fileStreams.add(new DocFileVO(name, file.getBytes(), file.getContentType()));
             }
         }
-        for (FileStreamVO fs : fileStreams) {
+        for (DocFileVO fs : fileStreams) {
             TextSegmentVO vo = new TextSegmentVO();
             vo.setName(fs.getName());
-            String text = documentParseService.extractText(fs.getName(), fs.getInputStream());
+            String fileId = mongoFileService.storeFile(fs.getBytes(), fs.getName(), fs.getContentType());
+            String text = documentParseService.extractText(fs.getName(), new ByteArrayInputStream(fs.getBytes()));
             vo.setContent(documentSpiltService.split(text, patterns, limit, withFilter));
-            String fileId = mongoFileService.storeFile(fs.getInputStream(), fs.getName(), fs.getContentType());
             vo.setSourceFileId(fileId);
             result.add(vo);
         }

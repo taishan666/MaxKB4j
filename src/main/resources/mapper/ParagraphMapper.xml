@@ -46,6 +46,7 @@
             doc."name" AS document_name,
             doc."hit_handling_method",
             doc."directly_return_similarity",
+            doc."meta",
             knowledge."name" AS knowledge_name,
             knowledge."type" AS knowledge_type
         FROM
