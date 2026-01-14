@@ -7,6 +7,7 @@ import com.tarzan.maxkb4j.common.constant.AppConst;
 import com.tarzan.maxkb4j.module.application.domain.dto.ChatQueryDTO;
 import com.tarzan.maxkb4j.module.application.domain.entity.ApplicationChatEntity;
 import com.tarzan.maxkb4j.module.application.service.ApplicationChatService;
+import com.tarzan.maxkb4j.module.system.user.enums.PermissionEnum;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
