@@ -29,7 +29,7 @@ public class ChatMessageController {
 
     @GetMapping("/workspace/default/application/{id}/open")
     public R<String> open(@PathVariable("id") String id) {
-        return R.success(chatService.chatOpen(id,true));
+        return R.success(chatService.chatOpen(id, true));
     }
 
     @PostMapping(path = "/chat_message/{chatId}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
@@ -40,7 +40,7 @@ public class ChatMessageController {
         params.setChatUserType(ChatUserType.ANONYMOUS_USER.name());
         params.setDebug(true);
         // 异步执行业务逻辑
-        chatTaskExecutor.execute(() -> chatService.chatMessage(params,sink));
+        chatTaskExecutor.execute(() -> chatService.chatMessage(params, sink));
         return sink.asFlux();
     }
 }
