@@ -244,7 +244,9 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
     public KnowledgeEntity createKnowledge(KnowledgeEntity knowledge) {
         knowledge.setMeta(new JSONObject());
         knowledge.setUserId(StpKit.ADMIN.getLoginIdAsString());
-        knowledge.setWorkFlow(new JSONObject());
+        if (knowledge.getWorkFlow() == null){
+            knowledge.setWorkFlow(new JSONObject());
+        }
         this.save(knowledge);
         userResourcePermissionService.ownerSave(AuthTargetType.KNOWLEDGE, knowledge.getId(), knowledge.getUserId());
         return knowledge;
