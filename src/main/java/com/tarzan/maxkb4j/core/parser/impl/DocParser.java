@@ -35,13 +35,13 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @RequiredArgsConstructor
 @Component
-public class TikaParser implements DocumentParser {
+public class DocParser implements DocumentParser {
 
     private final MongoFileService fileService;
 
     @Override
     public boolean support(String fileName) {
-        return fileName.endsWith(".pdf")||fileName.endsWith(".doc") || fileName.endsWith(".docx");
+        return fileName.endsWith(".doc") || fileName.endsWith(".docx");
     }
 
     @Override
