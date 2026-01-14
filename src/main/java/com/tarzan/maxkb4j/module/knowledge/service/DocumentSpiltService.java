@@ -1,10 +1,7 @@
 package com.tarzan.maxkb4j.module.knowledge.service;
 
+import com.tarzan.maxkb4j.common.util.SentenceSplitter;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.ParagraphSimple;
-import dev.langchain4j.data.document.Document;
-import dev.langchain4j.data.document.DocumentSplitter;
-import dev.langchain4j.data.document.splitter.DocumentBySentenceSplitter;
-import dev.langchain4j.data.segment.TextSegment;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
@@ -105,10 +102,9 @@ public class DocumentSpiltService {
         List<ParagraphSimple> result = new ArrayList<>();
         for (ParagraphSimple part : parts) {
             if (StringUtils.isNotBlank(part.getContent())) {
-                DocumentSplitter sentenceSplitter = new DocumentBySentenceSplitter(limit, 0);
-                List<TextSegment> textSegments = sentenceSplitter.split(Document.from(part.getContent()));
-                for (TextSegment textSegment : textSegments) {
-                    ParagraphSimple newPart = ParagraphSimple.builder().title(part.getTitle()).content(textSegment.text()).build();
+                List<String> texts = SentenceSplitter.split(part.getContent(),limit);
+                for (String test : texts) {
+                    ParagraphSimple newPart = ParagraphSimple.builder().title(part.getTitle()).content(test).build();
                     result.add(newPart);
                 }
             }
