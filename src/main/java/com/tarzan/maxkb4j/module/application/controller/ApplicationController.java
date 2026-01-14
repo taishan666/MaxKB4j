@@ -36,7 +36,7 @@ import java.util.Map;
  */
 @Tag(name = "APP应用管理", description = "APP应用管理")
 @RestController
-@RequestMapping(AppConst.ADMIN_API+"/workspace/default")
+@RequestMapping(AppConst.ADMIN_API + "/workspace/default")
 @RequiredArgsConstructor
 public class ApplicationController {
 
@@ -55,7 +55,7 @@ public class ApplicationController {
     }
 
     @PostMapping("/application/folder/{folderId}/import")
-    public R<Boolean> appImport(@PathVariable String folderId,MultipartFile file) throws Exception {
+    public R<Boolean> appImport(@PathVariable String folderId, MultipartFile file) throws Exception {
         return R.status(applicationService.appImport(file));
     }
 
@@ -67,8 +67,8 @@ public class ApplicationController {
 
     @SaCheckPerm(PermissionEnum.APPLICATION_EXPORT)
     @GetMapping("/application/{id}/export")
-    public void appExport(@PathVariable("id") String id,HttpServletResponse response) throws IOException {
-        applicationService.appExport(id,response);
+    public void appExport(@PathVariable("id") String id, HttpServletResponse response) throws IOException {
+        applicationService.appExport(id, response);
     }
 
     @SaCheckPerm(PermissionEnum.APPLICATION_READ)
@@ -115,8 +115,8 @@ public class ApplicationController {
 
     @SaCheckPerm(PermissionEnum.APPLICATION_READ)
     @PostMapping("/application/{id}/speech_to_text")
-    public  R<String> speechToText(@PathVariable("id") String id, MultipartFile file) throws IOException {
-        return  R.data(applicationService.speechToText(id,file));
+    public R<String> speechToText(@PathVariable("id") String id, MultipartFile file) throws IOException {
+        return R.data(applicationService.speechToText(id, file));
     }
 
 
@@ -134,8 +134,8 @@ public class ApplicationController {
 
     @SaCheckPerm(PermissionEnum.APPLICATION_EDIT)
     @PostMapping(path = "application/{id}/model/{modelId}/prompt_generate", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<Map<String,String>> promptGenerate(@PathVariable String id, @PathVariable String modelId, @RequestBody PromptGenerateDTO dto){
-        return applicationService.promptGenerate(id,modelId,dto);
+    public Flux<Map<String, String>> promptGenerate(@PathVariable String id, @PathVariable String modelId, @RequestBody PromptGenerateDTO dto) {
+        return applicationService.promptGenerate(id, modelId, dto);
     }
 
     @SaCheckPerm(PermissionEnum.APPLICATION_READ)
@@ -147,13 +147,9 @@ public class ApplicationController {
     @SaCheckPerm(PermissionEnum.APPLICATION_READ)
     @PostMapping("/application/{id}/mcp_tools")
     public R<List<McpToolVO>> mcpTools(@PathVariable("id") String id, @RequestBody JSONObject mcpServers) {
-        JSONObject mcpServersJson=JSONObject.parseObject(mcpServers.getString("mcpServers"));
+        JSONObject mcpServersJson = JSONObject.parseObject(mcpServers.getString("mcpServers"));
         return R.data(McpToolUtil.getToolVos(mcpServersJson));
     }
-
-
-
-
 
 
 }
