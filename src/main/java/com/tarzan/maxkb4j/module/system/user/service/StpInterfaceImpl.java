@@ -40,7 +40,7 @@ public class StpInterfaceImpl implements StpInterface {
         permissions.add(ResourceConst.KNOWLEDGE + ":" + Operate.READ + ":/WORKSPACE/default/" + ResourceType.KNOWLEDGE + "/default");
         permissions.add(ResourceConst.KNOWLEDGE + ":" + Operate.CREATE + ":/WORKSPACE/default/" + ResourceType.KNOWLEDGE + "/default");
         permissions.add(ResourceConst.KNOWLEDGE_DOCUMENT + ":" + Operate.READ + ":/WORKSPACE/default/" + ResourceType.KNOWLEDGE + "/default");
-      //  permissions.add(ResourceConst.KNOWLEDGE_DOCUMENT + ":" + Operate.CREATE + ":/WORKSPACE/default/" + ResourceType.KNOWLEDGE + "/default");
+        permissions.add(ResourceConst.KNOWLEDGE_DOCUMENT + ":" + Operate.CREATE + ":/WORKSPACE/default/" + ResourceType.KNOWLEDGE + "/default");
         permissions.add(ResourceConst.TOOL + ":" + Operate.READ + ":/WORKSPACE/default/" + ResourceType.TOOL + "/default");
         permissions.add(ResourceConst.TOOL + ":" + Operate.CREATE + ":/WORKSPACE/default/" + ResourceType.TOOL + "/default");
         permissions.add(ResourceConst.MODEL + ":" + Operate.READ + ":/WORKSPACE/default/" + ResourceType.MODEL + "/default");
