@@ -33,7 +33,9 @@ public class StartNodeHandler implements INodeHandler {
         // 获取默认全局变量
         Map<String, Object> globalVariable = getDefaultGlobalVariable(workflow,chatParams);
         // 合并全局变量
-        globalVariable.putAll(chatParams.getFormData());
+        if(chatParams.getFormData()!=null){
+            globalVariable.putAll(chatParams.getFormData());
+        }
         workflow.getContext().putAll(globalVariable);
         JSONObject config=node.getProperties().getJSONObject("config");
         JSONArray globalFields=config.getJSONArray("globalFields");

@@ -2,7 +2,7 @@ package com.tarzan.maxkb4j.core.workflow.handler;
 
 import com.tarzan.maxkb4j.core.workflow.builder.NodeHandlerBuilder;
 import com.tarzan.maxkb4j.core.workflow.enums.ActionStatus;
-import com.tarzan.maxkb4j.core.workflow.enums.NodeRunStatus;
+import com.tarzan.maxkb4j.core.workflow.enums.NodeStatus;
 import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;
 import com.tarzan.maxkb4j.core.workflow.model.KnowledgeWorkflow;
 import com.tarzan.maxkb4j.core.workflow.model.NodeResult;
@@ -42,21 +42,19 @@ public class KnowledgeWorkflowHandler extends WorkflowHandler {
     public NodeResultFuture runNodeFuture(Workflow workflow, INode node) {
         try {
             long startTime = System.currentTimeMillis();
-            node.setStatus(202);
+            node.setStatus(NodeStatus.STARTED.getCode());
             knowledgeActionService.updateState(workflow, ActionStatus.STARTED);
             INodeHandler nodeHandler = NodeHandlerBuilder.getHandler(node.getType());
             NodeResult result = nodeHandler.execute(workflow, node);
             float runTime = (System.currentTimeMillis() - startTime) / 1000F;
             node.getDetail().put("runTime", runTime);
             log.info("node:{}, runTime:{} s", node.getProperties().getString("nodeName"), runTime);
-            node.setRunStatus(NodeRunStatus.SUCCESS);
-            return new NodeResultFuture(result, null, 200);
+            return new NodeResultFuture(result, null, NodeStatus.SUCCESS.getCode());
         } catch (Exception ex) {
             log.error("error:", ex);
             node.setErrMessage(ex.getMessage());
             log.error("NODE: {} Exception :{}", node.getType(), ex.getMessage());
-            node.setRunStatus(NodeRunStatus.ERROR);
-            return new NodeResultFuture(null, ex, 500);
+            return new NodeResultFuture(null, ex, NodeStatus.ERROR.getCode());
         }
     }
 }

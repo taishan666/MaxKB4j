@@ -7,9 +7,12 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tarzan.maxkb4j.common.util.*;
 import com.tarzan.maxkb4j.module.system.permission.constant.AuthTargetType;
 import com.tarzan.maxkb4j.module.system.permission.service.UserResourcePermissionService;
+import com.tarzan.maxkb4j.module.system.user.constants.RoleType;
 import com.tarzan.maxkb4j.module.system.user.domain.entity.UserEntity;
 import com.tarzan.maxkb4j.module.system.user.service.UserService;
 import com.tarzan.maxkb4j.module.tool.domain.dto.ToolQuery;
@@ -29,6 +32,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -71,7 +75,7 @@ public class ToolService extends ServiceImpl<ToolMapper, ToolEntity> {
         UserEntity user = userService.getUserById(loginId);
         if (Objects.nonNull(user)) {
             if (!CollectionUtils.isEmpty(user.getRole())) {
-                if (user.getRole().contains("USER")) {
+                if (user.getRole().contains(RoleType.USER)) {
                     List<String> targetIds = userResourcePermissionService.getTargetIds(AuthTargetType.TOOL, loginId);
                     if (!CollectionUtils.isEmpty(targetIds)) {
                         wrapper.in(ToolEntity::getId, targetIds);
@@ -99,6 +103,56 @@ public class ToolService extends ServiceImpl<ToolMapper, ToolEntity> {
     public void saveInfo(ToolEntity entity) {
         this.save(entity);
         userResourcePermissionService.ownerSave(AuthTargetType.TOOL, entity.getId(), entity.getUserId());
+    }
+
+    public boolean mcpServerConfigValid(ToolEntity entity) {
+        if ("MCP".equals(entity.getToolType())) {
+            String jsonStr = entity.getCode();
+            try {
+                ObjectMapper mapper = new ObjectMapper();
+                JsonNode root = mapper.readTree(jsonStr);
+
+                // 1. 必须是对象
+                if (!root.isObject()) {
+                    return false;
+                }
+
+                // 2. 遍历所有顶层字段（使用 fieldNames()）
+                Iterator<String> fieldNames = root.fieldNames();
+                while (fieldNames.hasNext()) {
+                    String fieldName = fieldNames.next();
+                    JsonNode value = root.get(fieldName);
+
+                    // 每个值必须是对象
+                    if (!value.isObject()) {
+                        return false;
+                    }
+
+                    // 检查是否存在 url 和 type 字段
+                    if (!value.has("url") || !value.has("type")) {
+                        return false;
+                    }
+
+                    JsonNode urlNode = value.get("url");
+                    JsonNode typeNode = value.get("type");
+
+                    // url 必须是非空字符串
+                    if (!urlNode.isTextual() || urlNode.asText().trim().isEmpty()) {
+                        return false;
+                    }
+
+                    // type 必须是 "sse"
+                    if (!typeNode.isTextual() || !"sse".equals(typeNode.asText())) {
+                        return false;
+                    }
+                }
+                return true; // 所有检查通过
+            } catch (Exception e) {
+                // JSON 解析失败也算无效
+                return false;
+            }
+        }
+        return true;
     }
 
     public void toolExport(String id, HttpServletResponse response) throws IOException {

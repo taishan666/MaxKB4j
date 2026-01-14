@@ -14,6 +14,7 @@ import com.tarzan.maxkb4j.module.model.info.mapper.ModelMapper;
 import com.tarzan.maxkb4j.module.model.info.vo.ModelVO;
 import com.tarzan.maxkb4j.module.system.permission.constant.AuthTargetType;
 import com.tarzan.maxkb4j.module.system.permission.service.UserResourcePermissionService;
+import com.tarzan.maxkb4j.module.system.user.constants.RoleType;
 import com.tarzan.maxkb4j.module.system.user.domain.entity.UserEntity;
 import com.tarzan.maxkb4j.module.system.user.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -74,7 +75,7 @@ public class ModelService extends ServiceImpl<ModelMapper, ModelEntity> {
         UserEntity user = userService.getById(loginId);
         if (Objects.nonNull(user)) {
             if (!org.springframework.util.CollectionUtils.isEmpty(user.getRole())) {
-                if (user.getRole().contains("USER")) {
+                if (user.getRole().contains(RoleType.USER)) {
                     List<String> targetIds = userResourcePermissionService.getTargetIds(AuthTargetType.MODEL, loginId);
                     if (!org.springframework.util.CollectionUtils.isEmpty(targetIds)) {
                         wrapper.in(ModelEntity::getId, targetIds);

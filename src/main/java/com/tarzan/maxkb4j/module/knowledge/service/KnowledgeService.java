@@ -36,6 +36,7 @@ import com.tarzan.maxkb4j.module.knowledge.mapper.ProblemMapper;
 import com.tarzan.maxkb4j.module.knowledge.mapper.ProblemParagraphMapper;
 import com.tarzan.maxkb4j.module.system.permission.constant.AuthTargetType;
 import com.tarzan.maxkb4j.module.system.permission.service.UserResourcePermissionService;
+import com.tarzan.maxkb4j.module.system.user.constants.RoleType;
 import com.tarzan.maxkb4j.module.system.user.domain.entity.UserEntity;
 import com.tarzan.maxkb4j.module.system.user.service.UserService;
 import jakarta.servlet.http.HttpServletResponse;
@@ -57,6 +58,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.DATA_SOURCE_WEB;
+
 /**
  * @author tarzan
  * @date 2024-12-25 16:00:15
@@ -67,7 +70,7 @@ import java.util.zip.ZipOutputStream;
 public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEntity> {
 
     private final ProblemMapper problemMapper;
-    private final ApplicationKnowledgeMappingMapper applicationDatasetMappingMapper;
+    private final ApplicationKnowledgeMappingMapper applicationKnowledgeMappingMapper;
     private final ParagraphMapper paragraphMapper;
     private final ProblemParagraphMapper problemParagraphMapper;
     private final DocumentService documentService;
@@ -76,15 +79,16 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
     private final ApplicationEventPublisher eventPublisher;
     private final DataIndexService dataIndexService;
     private final KnowledgeActionService knowledgeActionService;
-    private final KnowledgeWorkflowHandler knowledgeWorkflowHandler;
     private final KnowledgeVersionService knowledgeVersionService;
+    private final KnowledgeWorkflowHandler knowledgeWorkflowHandler;
+
 
 
     public IPage<KnowledgeVO> selectKnowledgePage(Page<KnowledgeVO> knowledgePage, KnowledgeQuery query) {
         String loginId = StpKit.ADMIN.getLoginIdAsString();
         List<String> targetIds = userResourcePermissionService.getTargetIds(AuthTargetType.KNOWLEDGE, loginId);
         UserEntity user = userService.getById(loginId);
-        query.setIsAdmin(user.getRole().contains("ADMIN"));
+        query.setIsAdmin(user.getRole().contains(RoleType.ADMIN));
         query.setTargetIds(targetIds);
         IPage<KnowledgeVO> page = baseMapper.selectKnowledgePage(knowledgePage, query);
         Map<String, String> nicknameMap = userService.getNicknameMap();
@@ -99,7 +103,7 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
             return null;
         }
         KnowledgeVO vo = BeanUtil.copy(entity, KnowledgeVO.class);
-        List<ApplicationKnowledgeMappingEntity> apps = applicationDatasetMappingMapper.selectList(Wrappers.lambdaQuery(ApplicationKnowledgeMappingEntity.class)
+        List<ApplicationKnowledgeMappingEntity> apps = applicationKnowledgeMappingMapper.selectList(Wrappers.lambdaQuery(ApplicationKnowledgeMappingEntity.class)
                 .select(ApplicationKnowledgeMappingEntity::getApplicationId)
                 .eq(ApplicationKnowledgeMappingEntity::getKnowledgeId, id));
         List<String> appIds = apps.stream().map(ApplicationKnowledgeMappingEntity::getApplicationId).toList();
@@ -125,75 +129,91 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
         problemMapper.delete(Wrappers.<ProblemEntity>lambdaQuery().eq(ProblemEntity::getKnowledgeId, id));
         paragraphMapper.delete(Wrappers.<ParagraphEntity>lambdaQuery().eq(ParagraphEntity::getKnowledgeId, id));
         documentService.remove(Wrappers.<DocumentEntity>lambdaQuery().eq(DocumentEntity::getKnowledgeId, id));
-        applicationDatasetMappingMapper.delete(Wrappers.<ApplicationKnowledgeMappingEntity>lambdaQuery().eq(ApplicationKnowledgeMappingEntity::getKnowledgeId, id));
+        applicationKnowledgeMappingMapper.delete(Wrappers.<ApplicationKnowledgeMappingEntity>lambdaQuery().eq(ApplicationKnowledgeMappingEntity::getKnowledgeId, id));
+        knowledgeVersionService.lambdaQuery().eq(KnowledgeVersionEntity::getKnowledgeId, id);
+        knowledgeActionService.lambdaQuery().eq(KnowledgeActionEntity::getKnowledgeId, id);
         userResourcePermissionService.remove(AuthTargetType.APPLICATION, id);
         dataIndexService.removeByDatasetId(id);
         return this.removeById(id);
     }
 
 
-    public void exportExcelZipByDocs(List<DocumentEntity> docs, String exportName, HttpServletResponse response) throws IOException {
-        response.setContentType("application/zip");
-        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
-        String fileName = URLEncoder.encode(exportName, StandardCharsets.UTF_8);
-        response.setHeader("Content-disposition", "attachment;filename=" + fileName + ".zip");
-        // 创建字节输出流和ZIP输出流
-        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        ZipOutputStream zipOutputStream = new ZipOutputStream(byteArrayOutputStream);
-        // 使用ByteArrayOutputStream作为临时存储Excel文件
-        ByteArrayOutputStream excelOutputStream = new ByteArrayOutputStream();
-        ExcelWriter excelWriter = EasyExcel.write(excelOutputStream, DatasetExcel.class).build();
-        for (DocumentEntity doc : docs) {
-            List<DatasetExcel> list = getDatasetExcelByDoc(doc);
-            // 使用同一个写入器添加新的 sheet 页
-            WriteSheet writeSheet = EasyExcel.writerSheet(doc.getName()).build();
-            excelWriter.write(list, writeSheet);
-        }
-        // 完成写入操作
-        excelWriter.finish();
-        // 将生成的Excel添加到ZIP中
-        ZipEntry zipEntry = new ZipEntry(exportName + ".xlsx");
-        zipOutputStream.putNextEntry(zipEntry);
-        zipOutputStream.write(excelOutputStream.toByteArray()); // 将字节输出流转为字节数组写入
-        zipOutputStream.closeEntry();
-        // 关闭Excel相关的资源
-        excelOutputStream.close();
-        // 完成ZIP文件的写入
-        zipOutputStream.finish();
-        zipOutputStream.close();
-        // 将所有数据写入最终输出流
-        OutputStream outputStream = response.getOutputStream();
-        byteArrayOutputStream.writeTo(outputStream);
-        outputStream.flush();
-        byteArrayOutputStream.close(); // 关闭字节输出流
+
+    // 公共方法：根据 knowledgeId 获取文档列表
+    private List<DocumentEntity> getDocumentsByKnowledgeId(String knowledgeId) {
+        return documentService.list(Wrappers.<DocumentEntity>lambdaQuery()
+                .eq(DocumentEntity::getKnowledgeId, knowledgeId));
     }
 
-    public void exportExcelZip(String id, HttpServletResponse response) throws IOException {
-        KnowledgeEntity dataset = this.getById(id);
-        List<DocumentEntity> docs = documentService.list(Wrappers.<DocumentEntity>lambdaQuery().eq(DocumentEntity::getKnowledgeId, id));
-        exportExcelZipByDocs(docs, dataset.getName(), response);
-    }
-
-    public void exportExcel(String id, HttpServletResponse response) throws IOException {
-        KnowledgeEntity dataset = this.getById(id);
-        List<DocumentEntity> docs = documentService.list(Wrappers.<DocumentEntity>lambdaQuery().eq(DocumentEntity::getKnowledgeId, id));
+    // 公共方法：设置 Excel 响应头
+    private void setExcelResponseHeader(HttpServletResponse response, String fileName) {
         response.setContentType("application/vnd.ms-excel");
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());
-        String fileName = URLEncoder.encode(dataset.getName(), StandardCharsets.UTF_8);
-        response.setHeader("Content-disposition", "attachment;filename=" + fileName + ".xlsx");
-        OutputStream outputStream = response.getOutputStream();
-        // 创建 EasyExcel 写入器
-        ExcelWriter excelWriter = EasyExcel.write(outputStream, DatasetExcel.class).build();
-        for (DocumentEntity doc : docs) {
-            List<DatasetExcel> list = getDatasetExcelByDoc(doc);
-            // 使用同一个写入器添加新的 sheet 页
-            WriteSheet writeSheet = EasyExcel.writerSheet(doc.getName()).build();
-            excelWriter.write(list, writeSheet);
-        }
-        // 完成写入操作
-        excelWriter.finish();
+        String encodedName = URLEncoder.encode(fileName, StandardCharsets.UTF_8)
+                .replaceAll("\\+", "%20"); // 兼容部分浏览器空格变+的问题
+        response.setHeader("Content-disposition", "attachment;filename=" + encodedName + ".xlsx");
     }
 
+    // 公共方法：设置 ZIP 响应头
+    private void setZipResponseHeader(HttpServletResponse response, String fileName) {
+        response.setContentType("application/zip");
+        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
+        String encodedName = URLEncoder.encode(fileName, StandardCharsets.UTF_8)
+                .replaceAll("\\+", "%20");
+        response.setHeader("Content-disposition", "attachment;filename=" + encodedName + ".zip");
+    }
+
+    // 核心：导出多个 sheet 到单个 Excel 文件（写入 OutputStream）
+    private void writeMultiSheetExcel(OutputStream outputStream, List<DocumentEntity> docs) {
+        try (ExcelWriter excelWriter = EasyExcel.write(outputStream, DatasetExcel.class).build()) {
+            for (DocumentEntity doc : docs) {
+                List<DatasetExcel> list = getDatasetExcelByDoc(doc);
+                if (list.isEmpty()) continue; // 跳过空数据
+                WriteSheet writeSheet = EasyExcel.writerSheet(doc.getName()).build();
+                excelWriter.write(list, writeSheet);
+            }
+        }
+    }
+
+
+    // 根据 ID 导出 ZIP
+    public void exportExcelZip(String id, HttpServletResponse response) throws IOException {
+        KnowledgeEntity dataset = this.getById(id);
+        if (dataset == null) {
+            throw new IllegalArgumentException("未找到知识库 ID: " + id);
+        }
+        List<DocumentEntity> docs = getDocumentsByKnowledgeId(id);
+        if (docs == null || docs.isEmpty()) {
+            throw new IllegalArgumentException("文档列表为空，无法导出");
+        }
+        setZipResponseHeader(response, dataset.getName());
+        try (ByteArrayOutputStream zipBuffer = new ByteArrayOutputStream();
+             ZipOutputStream zipOut = new ZipOutputStream(zipBuffer)) {
+            // 生成 Excel 内容到内存
+            try (ByteArrayOutputStream excelBuffer = new ByteArrayOutputStream()) {
+                writeMultiSheetExcel(excelBuffer, docs);
+                // 添加到 ZIP
+                String entryName = "knowledge.xlsx";
+                zipOut.putNextEntry(new ZipEntry(entryName));
+                zipOut.write(excelBuffer.toByteArray());
+                zipOut.closeEntry();
+            }
+            // 写回 HTTP 响应
+            zipBuffer.writeTo(response.getOutputStream());
+            response.getOutputStream().flush();
+        }
+    }
+
+    // 直接导出 Excel（不压缩）
+    public void exportExcel(String id, HttpServletResponse response) throws IOException {
+        KnowledgeEntity dataset = this.getById(id);
+        if (dataset == null) {
+            throw new IllegalArgumentException("未找到知识库 ID: " + id);
+        }
+        List<DocumentEntity> docs = getDocumentsByKnowledgeId(id);
+        setExcelResponseHeader(response, dataset.getName());
+        writeMultiSheetExcel(response.getOutputStream(), docs);
+    }
 
     private List<DatasetExcel> getDatasetExcelByDoc(DocumentEntity doc) {
         List<DatasetExcel> list = new ArrayList<>();
@@ -221,26 +241,19 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
     }
 
     @Transactional
-    public KnowledgeEntity createDatasetBase(KnowledgeEntity knowledge) {
+    public KnowledgeEntity createKnowledge(KnowledgeEntity knowledge) {
         knowledge.setMeta(new JSONObject());
         knowledge.setUserId(StpKit.ADMIN.getLoginIdAsString());
-        //knowledge.setType(0);
+        knowledge.setWorkFlow(new JSONObject());
         this.save(knowledge);
         userResourcePermissionService.ownerSave(AuthTargetType.KNOWLEDGE, knowledge.getId(), knowledge.getUserId());
         return knowledge;
     }
 
     @Transactional
-    public KnowledgeEntity createDatasetWeb(KnowledgeDTO knowledge) {
-        knowledge.setUserId(StpKit.ADMIN.getLoginIdAsString());
-        JSONObject meta = new JSONObject();
-        meta.put("source_url", knowledge.getSourceUrl());
-        meta.put("selector", knowledge.getSelector());
-        knowledge.setMeta(meta);
-        knowledge.setType(1);
-        this.save(knowledge);
-        documentService.webDataset(knowledge.getId(), knowledge.getSourceUrl(), knowledge.getSelector());
-        userResourcePermissionService.ownerSave(AuthTargetType.KNOWLEDGE, knowledge.getId(), knowledge.getUserId());
+    public KnowledgeEntity createKnowledgeWeb(KnowledgeDTO knowledge) {
+        createKnowledge(knowledge);
+        documentService.createWebDocs(knowledge.getId(), knowledge.getSourceUrl(), knowledge.getSelector());
         return knowledge;
     }
 
@@ -267,8 +280,8 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
     }
 
     public List<BaseField> datasourceFormList(String id, String nodeType, JSONObject node) {
-        if ("data-source-web-node".equals(nodeType)) {
-            BaseField field1 = new TextInputField("Web 根地址", "source_url", "请输入 Web 根地址", true);
+        if (DATA_SOURCE_WEB.getKey().equals(nodeType)) {
+            BaseField field1 = new TextInputField("Web 根地址", "sourceUrl", "请输入 Web 根地址", true);
             BaseField field2 = new TextInputField("选择器", "selector", "默认为 body，可输入 .classname/#idname/tagname", false);
             return List.of(field1, field2);
         } else {
@@ -277,8 +290,27 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
         }
     }
 
+    public JSONObject getKnowledgeWorkFlow(String id,boolean debug) {
+        JSONObject workFlow = null;
+        if (debug){
+            KnowledgeEntity knowledge =   baseMapper.selectById(id);
+            if (knowledge != null){
+                workFlow=knowledge.getWorkFlow();
+            }
+        }else {
+            KnowledgeVersionEntity KnowledgeVersion =  knowledgeVersionService.lambdaQuery().eq(KnowledgeVersionEntity::getKnowledgeId, id).orderByDesc(KnowledgeVersionEntity::getCreateTime).last("limit 1").one();
+            if (KnowledgeVersion != null){
+                workFlow=KnowledgeVersion.getWorkFlow();
+            }
+        }
+        return workFlow;
+    }
+
     public KnowledgeActionEntity uploadDocument(String id, KnowledgeParams params,boolean debug) {
-        KnowledgeEntity knowledge = baseMapper.selectById(id);
+        JSONObject knowledgeWorkFlow =  getKnowledgeWorkFlow(id,debug);
+        if (knowledgeWorkFlow == null){
+            throw new IllegalArgumentException("未找到知识库 ID: " + id);
+        }
         KnowledgeActionEntity knowledgeAction = new KnowledgeActionEntity();
         knowledgeAction.setKnowledgeId(id);
         knowledgeAction.setState("STARTED");
@@ -289,7 +321,7 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
         meta.put("username", StpKit.ADMIN.getExtra("username"));
         knowledgeAction.setMeta(meta);
         knowledgeActionService.save(knowledgeAction);
-        LogicFlow logicFlow = LogicFlow.newInstance(knowledge.getWorkFlow());
+        LogicFlow logicFlow = LogicFlow.newInstance(knowledgeWorkFlow);
         List<INode> nodes = logicFlow.getNodes().stream().map(NodeBuilder::getNode).filter(Objects::nonNull).toList();
         params.setActionId(knowledgeAction.getId());
         params.setKnowledgeId(id);
@@ -302,7 +334,7 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
         return knowledgeAction;
     }
 
-    public KnowledgeActionEntity action(String id, String actionId) {
+    public KnowledgeActionEntity action(String actionId) {
         return knowledgeActionService.getById(actionId);
     }
 

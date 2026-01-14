@@ -1,5 +1,6 @@
 package com.tarzan.maxkb4j.module.knowledge.domain.vo;
 
+import com.tarzan.maxkb4j.module.knowledge.domain.dto.ParagraphSimple;
 import lombok.Data;
 
 import java.util.List;
@@ -9,7 +10,7 @@ public class TextSegmentVO {
 
     private String name;
 
-    private List<ParagraphSimpleVO> content;
+    private List<ParagraphSimple> content;
 
     private String sourceFileId;
 }

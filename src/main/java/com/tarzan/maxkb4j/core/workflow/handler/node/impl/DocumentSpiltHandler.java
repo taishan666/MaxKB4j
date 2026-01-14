@@ -1,27 +1,22 @@
 package com.tarzan.maxkb4j.core.workflow.handler.node.impl;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.workflow.annotation.NodeHandlerType;
 import com.tarzan.maxkb4j.core.workflow.enums.NodeType;
 import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;
-import com.tarzan.maxkb4j.core.workflow.model.*;
+import com.tarzan.maxkb4j.core.workflow.model.NodeResult;
+import com.tarzan.maxkb4j.core.workflow.model.Workflow;
 import com.tarzan.maxkb4j.core.workflow.node.INode;
 import com.tarzan.maxkb4j.core.workflow.node.impl.DocumentSpiltNode;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.DocumentSimple;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.ParagraphSimple;
-import com.tarzan.maxkb4j.module.knowledge.service.DocumentParseService;
 import com.tarzan.maxkb4j.module.knowledge.service.DocumentSpiltService;
-import com.tarzan.maxkb4j.module.oss.service.MongoFileService;
-import dev.langchain4j.data.segment.TextSegment;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -29,53 +24,88 @@ import java.util.*;
 @RequiredArgsConstructor
 public class DocumentSpiltHandler implements INodeHandler {
 
-    private final MongoFileService fileService;
-    private final DocumentParseService documentParseService;
     private final DocumentSpiltService documentSpiltService;
 
     @SuppressWarnings("unchecked")
     @Override
     public NodeResult execute(Workflow workflow, INode node) throws Exception {
-        DocumentSpiltNode.NodeParams nodeParams=node.getNodeData().toJavaObject(DocumentSpiltNode.NodeParams.class);
-        List<String> fileIds=nodeParams.getDocumentList();
-        Object res=workflow.getReferenceField(fileIds.get(0),fileIds.get(1));
-        List<SysFile> fileList= res==null?List.of():(List<SysFile>) res;
-        List<DocumentSimple> documentList=new LinkedList<>();
-        for (SysFile sysFile : fileList) {
-            InputStream inputStream= fileService.getStream(sysFile.getFileId());
-            String content=documentParseService.extractText(inputStream);
-            DocumentSimple document=new DocumentSimple();
-            document.setName(sysFile.getName());
-            document.setMeta(new JSONObject());
-            List<ParagraphSimple>  paragraphs=new ArrayList<>();
-            List<String> chunks;
-            if ("qa".equals(nodeParams.getSplitStrategy())){
-                //todo
-                chunks=new ArrayList<>();
-            }else {
-                 chunks=split(content,nodeParams.getPatterns(),nodeParams.getChunkSize(),nodeParams.getWithFilter());
+        DocumentSpiltNode.NodeParams nodeParams = node.getNodeData().toJavaObject(DocumentSpiltNode.NodeParams.class);
+        List<String> fileIds = nodeParams.getDocumentList();
+        Object res = workflow.getReferenceField(fileIds.get(0), fileIds.get(1));
+        List<DocumentSimple> documentList = res == null ? List.of() : (List<DocumentSimple>) res;
+        for (DocumentSimple document : documentList) {
+            if ("qa".equals(nodeParams.getSplitStrategy())) {
+                qaSplit(document, nodeParams.getChunkSize());
+            } else {
+                defaultSplit(document, nodeParams.getPatterns(), nodeParams.getChunkSize(), nodeParams.getWithFilter());
             }
-            for (String chunk : chunks) {
-                ParagraphSimple paragraph = new ParagraphSimple();
-                paragraph.setTitle("");
-                paragraph.setContent(chunk);
-                paragraphs.add(paragraph);
-            }
-            document.setSourceFileId(sysFile.getFileId());
-            document.setParagraphs(paragraphs);
-            documentList.add(document);
         }
-        node.getDetail().put("splitStrategy",nodeParams.getSplitStrategy());
-        node.getDetail().put("chunkSize",nodeParams.getChunkSize());
-        node.getDetail().put("documentList", JSON.toJSON(documentList));
-        return new NodeResult(Map.of("paragraphList",documentList));
+        boolean paragraphTitleRelateProblem = Boolean.TRUE.equals(nodeParams.getParagraphTitleRelateProblem());
+        boolean documentNameRelateProblem = Boolean.TRUE.equals(nodeParams.getDocumentNameRelateProblem());
+        if (paragraphTitleRelateProblem || documentNameRelateProblem) {
+            documentList.forEach(document -> document.getParagraphs().forEach(paragraph -> {
+                List<String> problemList = paragraph.getProblemList();
+                if (problemList == null) {
+                    problemList = new ArrayList<>();
+                    paragraph.setProblemList(problemList);
+                }
+                if (paragraphTitleRelateProblem && StringUtils.isNotBlank(paragraph.getTitle())) {
+                    problemList.add(paragraph.getTitle());
+                }
+                if (documentNameRelateProblem && StringUtils.isNotBlank(document.getName())) {
+                    problemList.add(document.getName());
+                }
+            }));
+        }
+        node.getDetail().put("splitStrategy", nodeParams.getSplitStrategy());
+        node.getDetail().put("chunkSize", nodeParams.getChunkSize());
+        node.getDetail().put("documentList", documentList);
+        return new NodeResult(Map.of("paragraphList", documentList));
     }
 
-    public List<String> split(String content, String[] patterns, Integer limit, Boolean withFilter) throws IOException {
-        List<TextSegment> textSegments = Collections.emptyList();
-        if (StringUtils.isNotBlank(content)) {
-            textSegments = documentSpiltService.split(content, patterns, limit, withFilter);
-        }
-        return textSegments.stream().map(TextSegment::text).toList();
+    private void defaultSplit(DocumentSimple document, String[] patterns, int chunkSize, boolean withFilter) {
+        String content = document.getContent();
+        List<ParagraphSimple> paragraphs = documentSpiltService.split(content, patterns, chunkSize, withFilter);
+        document.setParagraphs(paragraphs);
     }
+
+    private void qaSplit(DocumentSimple document, int chunkSize) {
+        String[] lines = document.getContent().split("\n");
+        boolean dataStarted = false;
+        List<ParagraphSimple> paragraphs = new ArrayList<>();
+        for (String line : lines) {
+            line = line.trim();
+            if (!line.startsWith("|") || !line.endsWith("|")) {
+                continue;
+            }
+            // 跳过表头：识别分隔行（如 | --- | --- |）来标志数据开始
+            if (!dataStarted) {
+                if (line.contains("---")) {
+                    dataStarted = true;
+                }
+                continue; // 无论是表头还是分隔行，都跳过
+            }
+            // 处理数据行
+            String content = line.substring(1, line.length() - 1).trim();
+            String[] cells = Arrays.stream(content.split("\\|"))
+                    .map(String::trim)
+                    .toArray(String[]::new);
+
+            if (cells.length < 3) continue;
+
+            String title = cells[0].isEmpty() ? null : cells[0];
+            String contentText = cells[1];
+            String questionsCell = cells[2];
+
+            List<String> questions = questionsCell.isEmpty() ? Collections.emptyList() :
+                    Arrays.stream(questionsCell.split("<br>"))
+                            .map(String::trim)
+                            .filter(q -> !q.isEmpty())
+                            .collect(Collectors.toList());
+            ParagraphSimple paragraph = ParagraphSimple.builder().title(title).content(contentText).problemList(questions).build();
+            paragraphs.add(paragraph);
+        }
+        document.setParagraphs(paragraphs);
+    }
+
 }

@@ -1,7 +1,6 @@
 package com.tarzan.maxkb4j.module.system.permission.controller;
 
 import cn.dev33.satoken.annotation.SaCheckRole;
-import cn.dev33.satoken.annotation.SaMode;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.tarzan.maxkb4j.common.api.R;
 import com.tarzan.maxkb4j.common.constant.AppConst;
@@ -29,7 +28,7 @@ public class UserResourcePermissionController {
     private final UserResourcePermissionService userResourcePermissionService;
     private final UserService userService;
 
-    @SaCheckRole(type= LoginType.ADMIN,value = {RoleType.ADMIN, RoleType.USER},mode = SaMode.OR)
+   // @SaCheckRole(type= LoginType.ADMIN,value = {RoleType.ADMIN, RoleType.USER},mode = SaMode.OR)
     @GetMapping("/user_list")
     public R<List<UserEntity>> userList(){
         return R.data(userService.lambdaQuery().eq(UserEntity::getIsActive, true).list());
@@ -38,7 +37,7 @@ public class UserResourcePermissionController {
     @SaCheckRole(type=LoginType.ADMIN,value = RoleType.ADMIN)
     @GetMapping("/user_member")
     public R<List<UserEntity>> userMembers(){
-        return R.success(userService.lambdaQuery().eq(UserEntity::getRole,"USER").eq(UserEntity::getIsActive, true).list());
+        return R.success(userService.lambdaQuery().eq(UserEntity::getRole,RoleType.USER).eq(UserEntity::getIsActive, true).list());
     }
 
     @SaCheckRole(type=LoginType.ADMIN,value = RoleType.ADMIN)

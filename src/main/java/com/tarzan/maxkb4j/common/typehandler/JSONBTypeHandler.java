@@ -1,6 +1,7 @@
 package com.tarzan.maxkb4j.common.typehandler;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.parser.Feature;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import org.apache.ibatis.type.BaseTypeHandler;
 import org.apache.ibatis.type.JdbcType;
@@ -43,7 +44,7 @@ public class JSONBTypeHandler extends BaseTypeHandler<JSON> {
 
     private JSON convert(String value){
         if(notNull(value)){
-            return (JSON) JSON.parse(value);
+            return JSON.parseObject(value, JSON.class, Feature.OrderedField);
         }
         return null;
     }
@@ -52,8 +53,7 @@ public class JSONBTypeHandler extends BaseTypeHandler<JSON> {
         return (null != value && !value.isEmpty());
     }
 
-    public String toJson(Object obj) {
-        return JSON.toJSONString(obj, SerializerFeature.WriteMapNullValue,
-                SerializerFeature.WriteNullListAsEmpty, SerializerFeature.WriteNullStringAsEmpty);
+    public String toJson(JSON obj) {
+        return  JSON.toJSONString(obj, SerializerFeature.DisableCircularReferenceDetect);
     }
 }

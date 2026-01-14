@@ -8,6 +8,7 @@ import com.tarzan.maxkb4j.module.knowledge.domain.dto.*;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.DocumentEntity;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.DocumentVO;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.TextSegmentVO;
+import com.tarzan.maxkb4j.module.knowledge.enums.KnowledgeType;
 import com.tarzan.maxkb4j.module.knowledge.service.DocumentService;
 import com.tarzan.maxkb4j.module.model.info.vo.KeyAndValueVO;
 import com.tarzan.maxkb4j.module.system.user.enums.PermissionEnum;
@@ -24,7 +25,7 @@ import java.util.List;
  * @date 2024-12-25 16:00:15
  */
 @RestController
-@RequestMapping(AppConst.ADMIN_API+"/workspace/default")
+@RequestMapping(AppConst.ADMIN_API + "/workspace/default")
 @RequiredArgsConstructor
 public class DocumentController {
 
@@ -33,13 +34,13 @@ public class DocumentController {
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_CREATE)
     @PostMapping("/knowledge/{id}/document/web")
     public void web(@PathVariable("id") String id, @RequestBody WebUrlDTO params) throws IOException {
-        documentService.webDoc(id,params.getSourceUrlList(),params.getSelector());
+        documentService.createWebDoc(id, params.getSourceUrlList(), params.getSelector());
     }
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_SYNC)
     @PutMapping("/knowledge/{id}/document/{docId}/sync")
-    public void sync(@PathVariable("id") String id,@PathVariable("docId") String docId) throws IOException {
-        documentService.sync(id,docId);
+    public void sync(@PathVariable("id") String id, @PathVariable("docId") String docId) throws IOException {
+        documentService.syncWebDoc(id, docId);
     }
 
 
@@ -64,12 +65,11 @@ public class DocumentController {
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_CREATE)
     @PutMapping("/knowledge/{id}/document/batch_create")
     public R<Boolean> createBatchDoc(@PathVariable("id") String id, @RequestBody List<DocumentSimple> docs) {
-        return R.success(documentService.batchCreateDoc(id, docs));
+        return R.success(documentService.batchCreateDocs(id, KnowledgeType.BASE.getType(), docs));
     }
 
-    @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_READ)
-    @GetMapping("/knowledge/document/split_pattern")
-    public R<List<KeyAndValueVO>> splitPattern() {
+    @GetMapping("/knowledge/{id}/document/split_pattern")
+    public R<List<KeyAndValueVO>> splitPattern(@PathVariable("id") String id) {
         return R.success(documentService.splitPattern());
     }
 
@@ -84,8 +84,6 @@ public class DocumentController {
     public R<Boolean> batchGenerateRelated(@PathVariable String id, @RequestBody GenerateProblemDTO dto) {
         return R.success(documentService.batchGenerateRelated(id, dto));
     }
-
-
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_MIGRATE)
     @PutMapping("/knowledge/{id}/document/migrate/{targetKnowledgeId}")
@@ -102,7 +100,7 @@ public class DocumentController {
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_DELETE)
     @PutMapping("/knowledge/{id}/document/batch_delete")
     public R<Boolean> deleteBatchDocByDocIds(@PathVariable("id") String id, @RequestBody IdListDTO dto) {
-        return R.success(documentService.deleteBatchDocByDocIds(id,dto.getIdList()));
+        return R.success(documentService.deleteBatchDocByDocIds(id, dto.getIdList()));
     }
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_READ)
@@ -114,13 +112,13 @@ public class DocumentController {
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_VECTOR)
     @PutMapping("/knowledge/{id}/document/{docId}/refresh")
     public R<Boolean> refresh(@PathVariable String id, @PathVariable("docId") String docId, @RequestBody DocumentEmbedDTO dto) {
-        return R.success(documentService.embedByDocIds(id,List.of(docId),dto.getStateList()));
+        return R.success(documentService.embedByDocIds(id, List.of(docId), dto.getStateList()));
     }
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_VECTOR)
     @PutMapping("/knowledge/{id}/document/batch_refresh")
     public R<Boolean> batchRefresh(@PathVariable String id, @RequestBody DocumentEmbedDTO dto) {
-        return R.success(documentService.embedByDocIds(id,dto.getIdList(),dto.getStateList()));
+        return R.success(documentService.embedByDocIds(id, dto.getIdList(), dto.getStateList()));
     }
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_EDIT)
@@ -149,7 +147,7 @@ public class DocumentController {
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_EXPORT)
     @GetMapping("/knowledge/{id}/document/{docId}/export")
-    public void export(@PathVariable("id") String id, @PathVariable("docId") String docId, HttpServletResponse response){
+    public void export(@PathVariable("id") String id, @PathVariable("docId") String docId, HttpServletResponse response) {
         documentService.exportExcelByDocId(docId, response);
     }
 
@@ -162,9 +160,16 @@ public class DocumentController {
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_DOWNLOAD)
     @GetMapping("/knowledge/{id}/document/{docId}/download_source_file")
-    public R<String>  downloadSourceFile(@PathVariable String id, @PathVariable String docId, HttpServletResponse response) throws IOException {
-         boolean flag=documentService.downloadSourceFile(docId,response);
-         return flag?R.success():R.fail("文件不存在, 仅支持手动上传的文档");
+    public R<String> downloadSourceFile(@PathVariable String id, @PathVariable String docId, HttpServletResponse response) throws IOException {
+        boolean flag = documentService.downloadSourceFile(docId, response);
+        return flag ? R.success() : R.fail("文件不存在, 仅支持手动上传的文档");
+    }
+
+    @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_REPLACE)
+    @PostMapping("/knowledge/{id}/document/{docId}/replace_source_file")
+    public R<String> replaceSourceFile(@PathVariable String id, @PathVariable String docId, MultipartFile file) throws IOException {
+        boolean flag = documentService.replaceSourceFile(id,docId,file);
+        return flag ? R.success() : R.fail("文件不存在, 仅支持手动上传的文档");
     }
 
 

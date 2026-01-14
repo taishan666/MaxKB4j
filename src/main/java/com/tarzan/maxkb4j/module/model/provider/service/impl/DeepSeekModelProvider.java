@@ -1,8 +1,6 @@
 package com.tarzan.maxkb4j.module.model.provider.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
-import com.tarzan.maxkb4j.module.model.custom.base.STTModel;
-import com.tarzan.maxkb4j.module.model.custom.base.TTSModel;
 import com.tarzan.maxkb4j.module.model.custom.params.impl.LlmModelParams;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelCredential;
 import com.tarzan.maxkb4j.module.model.provider.enums.ModelProviderEnum;
@@ -12,11 +10,8 @@ import com.tarzan.maxkb4j.module.model.provider.vo.ModelInfo;
 import com.tarzan.maxkb4j.module.model.provider.vo.ModelProviderInfo;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.StreamingChatModel;
-import dev.langchain4j.model.embedding.EmbeddingModel;
-import dev.langchain4j.model.image.ImageModel;
 import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.model.openai.OpenAiStreamingChatModel;
-import dev.langchain4j.model.scoring.ScoringModel;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -55,34 +50,7 @@ public class DeepSeekModelProvider extends IModelProvider {
                 .baseUrl(BASE_URL)
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
-                .returnThinking(true)
                 .build();
     }
-
-    @Override
-    public EmbeddingModel buildEmbeddingModel(String modelName, ModelCredential credential, JSONObject params) {
-        return null;
-    }
-
-    @Override
-    public ImageModel buildImageModel(String modelName, ModelCredential credential, JSONObject params) {
-        return null;
-    }
-
-    @Override
-    public ScoringModel buildScoringModel(String modelName, ModelCredential credential, JSONObject params) {
-        return null;
-    }
-
-    @Override
-    public STTModel buildSTTModel(String modelName, ModelCredential credential, JSONObject params) {
-        return null;
-    }
-
-    @Override
-    public TTSModel buildTTSModel(String modelName, ModelCredential credential, JSONObject params) {
-        return null;
-    }
-
 
 }

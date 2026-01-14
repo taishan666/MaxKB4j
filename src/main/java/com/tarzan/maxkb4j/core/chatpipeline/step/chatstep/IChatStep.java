@@ -57,7 +57,7 @@ public abstract class IChatStep extends IChatPipelineStep {
                 }
             }
         }
-        manage.sink.tryEmitNext(this.toChatMessageVO(chatId, chatRecordId, isAiAnswer?answerText.get():"", "",true));
+        manage.sink.tryEmitNext(this.toChatMessageVO(chatId, chatRecordId, isAiAnswer?"":answerText.get(), "",true));
         manage.context.put("answer", answerText.get());
     }
 

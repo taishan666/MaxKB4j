@@ -24,8 +24,11 @@ public class FileController {
     private final MongoFileService mongoFileService;
 
 
-    @PostMapping(value = "/{prefix}/api/oss/file")
-    public R<String> uploadFile(@PathVariable("prefix") String prefix, MultipartFile file) throws IOException {
+    @PostMapping(value = {
+            "/admin/api/oss/file",
+            "/chat/api/oss/file"
+    })
+    public R<String> uploadFile(MultipartFile file) throws IOException {
         SysFile chatFile = mongoFileService.uploadFile(file);
         return R.success(chatFile.getUrl());
     }
@@ -34,6 +37,8 @@ public class FileController {
             "/admin/application/*/*/oss/file/{fileId:[\\w-]+}",
             "/admin/application/*/*/*/oss/file/{fileId:[\\w-]+}",
             "/admin/knowledge/*/*/oss/file/{fileId:[\\w-]+}",
+            "/admin/oss/file/{fileId:[\\w-]+}",
+            "/chat/oss/file/{fileId:[\\w-]+}",
             "/oss/file/{fileId:[\\w-]+}"})
     public void getFile(@PathVariable("fileId") String fileId, HttpServletResponse response){
         mongoFileService.getFile(fileId, response);

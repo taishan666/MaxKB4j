@@ -1,7 +1,6 @@
 package com.tarzan.maxkb4j.module.model.provider.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
-import com.tarzan.maxkb4j.listener.LlmListener;
 import com.tarzan.maxkb4j.module.model.custom.base.STTModel;
 import com.tarzan.maxkb4j.module.model.custom.base.TTSModel;
 import com.tarzan.maxkb4j.module.model.custom.model.*;
@@ -64,7 +63,6 @@ public class AliYunBaiLianModelProvider extends IModelProvider {
                 .isMultimodalModel(params==null?null:params.getBoolean("isMultimodalModel"))
                 .temperature(params==null?null:params.getFloat("temperature"))
                 .maxTokens(params==null?null:params.getInteger("maxTokens"))
-                .listeners(List.of(new LlmListener()))
                 .build();
     }
 
@@ -76,7 +74,6 @@ public class AliYunBaiLianModelProvider extends IModelProvider {
                 .isMultimodalModel(params==null?null:params.getBoolean("isMultimodalModel"))
                 .temperature(params==null?null:params.getFloat("temperature"))
                 .maxTokens(params==null?null:params.getInteger("maxTokens"))
-                .listeners(List.of(new LlmListener()))
                 .build();
     }
 

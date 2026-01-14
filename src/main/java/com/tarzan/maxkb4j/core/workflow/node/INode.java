@@ -2,7 +2,7 @@ package com.tarzan.maxkb4j.core.workflow.node;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.tarzan.maxkb4j.core.workflow.enums.NodeRunStatus;
+import com.tarzan.maxkb4j.core.workflow.enums.NodeStatus;
 import com.tarzan.maxkb4j.core.workflow.model.Workflow;
 import com.tarzan.maxkb4j.module.application.domain.vo.ChatMessageVO;
 import com.tarzan.maxkb4j.module.chat.dto.ChildNode;
@@ -30,7 +30,6 @@ public abstract class INode {
     private List<String> upNodeIdList;
     private String runtimeNodeId;
     private String answerText;
-    private NodeRunStatus runStatus;
     private Integer status;
     private String errMessage;
 
@@ -39,13 +38,12 @@ public abstract class INode {
         this.id = id;
         this.properties = properties;
         this.viewType = "many_view";
-        this.context = new LinkedHashMap<>(10);
-        this.detail = new LinkedHashMap<>(10);
+        this.context = new LinkedHashMap<>(5);
+        this.detail = new LinkedHashMap<>(5);
         this.upNodeIdList = new ArrayList<>();
         this.runtimeNodeId = generateRuntimeNodeId();
         this.answerText = "";
-        this.runStatus = NodeRunStatus.READY;
-        this.status=200;
+        this.status= NodeStatus.READY.getCode();
         this.errMessage = "";
     }
 

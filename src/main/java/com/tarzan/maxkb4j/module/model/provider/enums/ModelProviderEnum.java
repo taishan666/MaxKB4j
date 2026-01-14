@@ -17,7 +17,7 @@ public enum ModelProviderEnum {
     Tencent("腾讯混元","Tencent", new TencentModelProvider()),
     VolcanicEngine("火山引擎","VolcanicEngine", new VolcanicEngineModelProvider()),
     WenXin("文心一言","WenXin", new WenXinModelProvider()),
-    XunFei("讯飞星火","XunFei", new XfModelProvider()),
+    XunFei("讯飞星火","XunFei", new XunFeiModelProvider()),
     ZhiPu("智谱清言","ZhiPu", new ZhiPuModelProvider()),
     Local("本地模型","LocalModel", new LocalModelProvider()),
     LocalAI("LocalAI","LocalAI", new LocalAIModelProvider()),
@@ -51,7 +51,7 @@ public enum ModelProviderEnum {
 
     public static List<IModelProvider> getAllProvider() {
         return Arrays.stream(values())
-                .filter(e->!e.equals(ModelProviderEnum.LocalAI))
+                .filter(e->!e.equals(ModelProviderEnum.LocalAI)&&!e.equals(ModelProviderEnum.XunFei))
                 .map(e -> e.modelProvider)
                 .toList();
     }

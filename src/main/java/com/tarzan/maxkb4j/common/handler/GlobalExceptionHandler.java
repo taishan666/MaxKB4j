@@ -7,6 +7,7 @@ import cn.dev33.satoken.jwt.exception.SaJwtException;
 import com.tarzan.maxkb4j.common.api.R;
 import com.tarzan.maxkb4j.common.exception.*;
 import com.tarzan.maxkb4j.common.util.StpKit;
+import dev.langchain4j.exception.RateLimitException;
 import io.swagger.v3.oas.annotations.Hidden;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -43,7 +44,6 @@ public class GlobalExceptionHandler {
     @ResponseBody
     public R<String> handleException(NotPermissionException e, HttpServletResponse response) {
         log.error("无此权限异常: {}", e.getMessage(), e);
-        response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         return R.fail(500, e.getMessage());
     }
 
@@ -85,6 +85,13 @@ public class GlobalExceptionHandler {
     @ResponseBody
     public R<String> handleException(ApiException e) {
         log.error("Api异常: {}", e.getMessage());
+        return R.fail(500, e.getMessage());
+    }
+
+    @ExceptionHandler(RateLimitException.class)
+    @ResponseBody
+    public R<String> handleException(RateLimitException e) {
+        log.error("RateLimitException: {}", e.getMessage());
         return R.fail(500, e.getMessage());
     }
 

@@ -27,6 +27,7 @@ public class DocumentSpiltNode extends INode {
         private String[]  patterns;
         private Integer chunkSize;
         private Boolean paragraphTitleRelateProblem;
+        private Boolean documentNameRelateProblem;
         private Boolean withFilter;
     }
 }

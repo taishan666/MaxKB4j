@@ -1,18 +1,18 @@
 package com.tarzan.maxkb4j.core.workflow.handler.node.impl;
 
-import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
+import com.tarzan.maxkb4j.common.util.MessageUtils;
+import com.tarzan.maxkb4j.common.util.MimeTypeUtils;
 import com.tarzan.maxkb4j.common.util.ToolUtil;
 import com.tarzan.maxkb4j.core.assistant.Assistant;
 import com.tarzan.maxkb4j.core.langchain4j.AppChatMemory;
-import com.tarzan.maxkb4j.core.tool.MessageTools;
-import com.tarzan.maxkb4j.core.tool.MimeTypeUtils;
+import com.tarzan.maxkb4j.core.langchain4j.AssistantServices;
 import com.tarzan.maxkb4j.core.workflow.annotation.NodeHandlerType;
 import com.tarzan.maxkb4j.core.workflow.enums.NodeType;
 import com.tarzan.maxkb4j.core.workflow.enums.WorkflowMode;
 import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;
-import com.tarzan.maxkb4j.core.workflow.model.SysFile;
 import com.tarzan.maxkb4j.core.workflow.model.NodeResult;
+import com.tarzan.maxkb4j.core.workflow.model.SysFile;
 import com.tarzan.maxkb4j.core.workflow.model.Workflow;
 import com.tarzan.maxkb4j.core.workflow.node.INode;
 import com.tarzan.maxkb4j.core.workflow.node.impl.AiChatNode;
@@ -83,7 +83,7 @@ public class LLMNodeHandler implements INodeHandler {
     }
 
     private AiServices<Assistant> buildAiServices(String systemPrompt, List<ChatMessage> historyMessages, List<String> toolIds) {
-        AiServices<Assistant> builder = AiServices.builder(Assistant.class);
+        AiServices<Assistant> builder = AssistantServices.builder(Assistant.class);
         if (StringUtils.isNotBlank(systemPrompt)) {
             builder.systemMessageProvider(chatMemoryId -> systemPrompt);
         }
@@ -117,7 +117,7 @@ public class LLMNodeHandler implements INodeHandler {
                 ImageContent imageContent = ImageContent.from(base64Data, MimeTypeUtils.getMimeType(extension));
                 contents.add(imageContent);
             }
-            node.getDetail().put("imageList", JSON.toJSON(imageFiles));
+            node.getDetail().put("imageList", imageFiles);
         } catch (Exception e) {
             log.warn("Failed to load image contents for node: {}", node.getRuntimeNodeId(), e);
         }
@@ -166,7 +166,7 @@ public class LLMNodeHandler implements INodeHandler {
                 })
                 .onToolExecuted(toolExecute -> {
                     if (isResult && toolOutputEnable) {
-                        String toolMessage = MessageTools.getToolMessage(toolExecute);
+                        String toolMessage = MessageUtils.getToolMessage(toolExecute);
                         emitMessage(workflow, node, toolMessage, "");
                     }
                 })

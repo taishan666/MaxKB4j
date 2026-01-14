@@ -20,24 +20,24 @@ public class ApplicationKeyController {
 
     private final ApplicationApiKeyService apiKeyService;
 
-    @GetMapping("/application/{appId}/application_key")
-    public R<List<ApplicationApiKeyEntity>> listApikey(@PathVariable("appId") String appId) {
-        return R.success(apiKeyService.listApikey(appId));
+    @GetMapping("/application/{id}/application_key")
+    public R<List<ApplicationApiKeyEntity>> listApikey(@PathVariable("id") String id) {
+        return R.success(apiKeyService.listApikey(id));
     }
 
-    @PostMapping("/application/{appId}/application_key")
-    public R<Boolean> createApikey(@PathVariable("appId") String appId) {
-        return R.success(apiKeyService.createApikey(appId));
+    @PostMapping("/application/{id}/application_key")
+    public R<Boolean> createApikey(@PathVariable("id") String id) {
+        return R.success(apiKeyService.createApikey(id));
     }
 
-    @PutMapping("/application/{appId}/application_key/{apiKeyId}")
-    public R<Boolean> updateApikey(@PathVariable("appId") String appId, @PathVariable("apiKeyId") String apiKeyId, @RequestBody ApplicationApiKeyEntity apiKeyEntity) {
-        return R.success(apiKeyService.updateApikey(appId, apiKeyId, apiKeyEntity));
+    @PutMapping("/application/{id}/application_key/{apiKeyId}")
+    public R<Boolean> updateApikey(@PathVariable("id") String id, @PathVariable("apiKeyId") String apiKeyId, @RequestBody ApplicationApiKeyEntity apiKeyEntity) {
+        return R.success(apiKeyService.updateApikey(id, apiKeyId, apiKeyEntity));
     }
 
-    @DeleteMapping("/application/{appId}/application_key/{apiKeyId}")
-    public R<Boolean> deleteApikey(@PathVariable("appId") String appId, @PathVariable("apiKeyId") String apiKeyId) {
-        return R.success(apiKeyService.deleteApikey(appId, apiKeyId));
+    @DeleteMapping("/application/{id}/application_key/{apiKeyId}")
+    public R<Boolean> deleteApikey(@PathVariable("id") String id, @PathVariable("apiKeyId") String apiKeyId) {
+        return R.success(apiKeyService.deleteApikey(id, apiKeyId));
     }
 
 }

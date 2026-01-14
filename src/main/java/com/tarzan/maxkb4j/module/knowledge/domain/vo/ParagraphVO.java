@@ -1,5 +1,8 @@
 package com.tarzan.maxkb4j.module.knowledge.domain.vo;
 
+import com.alibaba.fastjson.JSONObject;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.tarzan.maxkb4j.common.typehandler.JSONBTypeHandler;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.ParagraphEntity;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -13,9 +16,11 @@ public class ParagraphVO extends ParagraphEntity {
     private String hitHandlingMethod;
     private Float similarity;
     private Float directlyReturnSimilarity;
+    @TableField(typeHandler = JSONBTypeHandler.class)
+    private JSONObject meta;
     private Float comprehensiveScore;
 
    public boolean isHitHandlingMethod(){
-       return "directly_return".equals(hitHandlingMethod)&& similarity>=directlyReturnSimilarity;
+       return "directlyReturn".equals(hitHandlingMethod)&& similarity>=directlyReturnSimilarity;
    }
 }

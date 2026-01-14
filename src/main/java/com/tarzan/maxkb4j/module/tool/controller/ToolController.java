@@ -91,7 +91,11 @@ public class ToolController {
         }
         dto.setUserId(StpKit.ADMIN.getLoginIdAsString());
         dto.setScope("WORKSPACE");
-        toolService.saveInfo(dto);
+        if (toolService.mcpServerConfigValid(dto)){
+            toolService.saveInfo(dto);
+        }else {
+            return R.fail("请检查配置信息");
+        }
         return R.data(dto);
     }
 
@@ -123,7 +127,11 @@ public class ToolController {
     @PutMapping("/workspace/default/tool/{id}")
     public R<ToolEntity> tool(@PathVariable String id, @RequestBody ToolEntity dto) {
         dto.setId(id);
-        toolService.updateById(dto);
+        if (toolService.mcpServerConfigValid(dto)){
+            toolService.updateById(dto);
+        }else {
+            return R.fail("请检查配置信息");
+        }
         return R.data(toolService.getById(id));
     }
 

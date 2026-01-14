@@ -3,12 +3,13 @@ package com.tarzan.maxkb4j.core.chatpipeline.step.chatstep.impl;
 import com.alibaba.excel.util.StringUtils;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.tarzan.maxkb4j.common.util.MessageUtils;
 import com.tarzan.maxkb4j.common.util.ToolUtil;
 import com.tarzan.maxkb4j.core.assistant.Assistant;
 import com.tarzan.maxkb4j.core.chatpipeline.PipelineManage;
 import com.tarzan.maxkb4j.core.chatpipeline.step.chatstep.IChatStep;
 import com.tarzan.maxkb4j.core.langchain4j.AppChatMemory;
-import com.tarzan.maxkb4j.core.tool.MessageTools;
+import com.tarzan.maxkb4j.core.langchain4j.AssistantServices;
 import com.tarzan.maxkb4j.module.application.domain.vo.ApplicationVO;
 import com.tarzan.maxkb4j.module.model.info.service.ModelFactory;
 import dev.langchain4j.data.message.AiMessage;
@@ -43,7 +44,7 @@ public class ChatStep extends IChatStep {
         JSONObject params = application.getModelParamsSetting();
         StreamingChatModel chatModel = modelFactory.buildStreamingChatModel(modelId, params);
         String systemText = application.getModelSetting().getSystem();
-        AiServices<Assistant> aiServicesBuilder = AiServices.builder(Assistant.class);
+        AiServices<Assistant> aiServicesBuilder = AssistantServices.builder(Assistant.class);
         if (StringUtils.isNotBlank(systemText)) {
             aiServicesBuilder.systemMessageProvider(chatMemoryId -> systemText);
         }
@@ -64,7 +65,7 @@ public class ChatStep extends IChatStep {
                 .onPartialResponse(text -> manage.sink.tryEmitNext(super.toChatMessageVO(chatId, chatRecordId, text, "", false)))
                 .onToolExecuted(toolExecute -> {
                     if (Boolean.TRUE.equals(application.getToolOutputEnable())) {
-                        manage.sink.tryEmitNext(super.toChatMessageVO(chatId, chatRecordId, MessageTools.getToolMessage(toolExecute), "", false));
+                        manage.sink.tryEmitNext(super.toChatMessageVO(chatId, chatRecordId, MessageUtils.getToolMessage(toolExecute), "", false));
                     }
                 })
                 .onCompleteResponse(response -> {

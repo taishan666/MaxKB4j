@@ -1,6 +1,5 @@
 package com.tarzan.maxkb4j.core.workflow.node.impl;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.workflow.model.Workflow;
 import com.tarzan.maxkb4j.core.workflow.node.INode;
@@ -14,35 +13,32 @@ import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.DOCUMENT_EXTRACT;
 public class DocumentExtractNode extends INode {
 
 
-    public DocumentExtractNode(String id,JSONObject properties) {
-        super(id,properties);
+    public DocumentExtractNode(String id, JSONObject properties) {
+        super(id, properties);
         this.setType(DOCUMENT_EXTRACT.getKey());
     }
 
-    String splitter = "\n-----------------------------------\n";
-
+    public static final String SPLITTER = "\n-----------------------------------\n";
 
     @Override
     public void saveContext(Workflow workflow, Map<String, Object> detail) {
-        @SuppressWarnings("unchecked")
-        List<String> content= (List<String>) detail.get("content");
-        context.put("content", String.join(splitter, content));
-        Object documentList=detail.get("documentList");
-        context.put("documentList", JSON.toJSON(documentList));
+        String[] content = (String[]) detail.get("content");
+        context.put("content", String.join(SPLITTER, content));
+        context.put("documentList", detail.get("documentList"));
     }
 
 
     @Override
     public Map<String, Object> getDetail() {
-        String content = (String) context.getOrDefault("content","");
-        detail.put("content", content.split(splitter));
-        detail.put("documentList", JSON.toJSON(context.get("documentList")));
+        String content = (String) context.getOrDefault("content", "");
+        detail.put("content", content.split(SPLITTER));
+        detail.put("documentList", context.get("documentList"));
         return detail;
     }
 
 
     @Data
-    public static class NodeParams  {
+    public static class NodeParams {
         private List<String> documentList;
     }
 
