@@ -16,6 +16,7 @@ import dev.langchain4j.model.chat.request.json.JsonObjectSchema;
 import dev.langchain4j.model.chat.request.json.JsonSchemaElement;
 import dev.langchain4j.service.tool.ToolExecutor;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -31,16 +32,19 @@ public class ToolUtil {
     private final ApplicationService applicationService;
     private final ApplicationApiKeyService apiKeyService;
 
+    @Value("${server.port}")
+    private int serverPort;
+
     public Map<ToolSpecification, ToolExecutor> getToolMap(List<String> toolIds, List<String> applicationIds) {
         Map<ToolSpecification, ToolExecutor> tools = getToolMap(toolIds);
         if (CollectionUtils.isEmpty(applicationIds)) {
             JSONObject mcpServers = new JSONObject();
             LambdaQueryWrapper<ApplicationEntity> wrapper = Wrappers.lambdaQuery();
-            wrapper.select(ApplicationEntity::getName);
+            wrapper.select(ApplicationEntity::getId, ApplicationEntity::getName);
             wrapper.in(ApplicationEntity::getId, applicationIds);
             List<ApplicationEntity> applications = applicationService.list(wrapper);
             for (ApplicationEntity app : applications) {
-                JSONObject mcpConfig = getAppMcpConfig(app);
+                JSONObject mcpConfig = getAppMcpConfig(app.getId());
                 mcpServers.put(app.getName(), mcpConfig);
             }
             tools.putAll(McpToolUtil.getToolMap(mcpServers));
@@ -48,10 +52,10 @@ public class ToolUtil {
         return tools;
     }
 
-    public JSONObject getAppMcpConfig(ApplicationEntity app) {
-        ApplicationApiKeyEntity apiKey = apiKeyService.lambdaQuery().select(ApplicationApiKeyEntity::getSecretKey).last("limit 1").one();
+    public JSONObject getAppMcpConfig(String appId) {
+        ApplicationApiKeyEntity apiKey = apiKeyService.lambdaQuery().select(ApplicationApiKeyEntity::getSecretKey).eq(ApplicationApiKeyEntity::getApplicationId, appId).last("limit 1").one();
         JSONObject mcpConfig = new JSONObject();
-        mcpConfig.put("url", "http://127.0.0.1:8080/chat/api/mcp");
+        mcpConfig.put("url", "http://127.0.0.1:" + serverPort + "/chat/api/mcp");
         mcpConfig.put("type", "streamable_http");
         mcpConfig.put("headers", Map.of("Authorization", "Bearer " + apiKey.getSecretKey()));
         return mcpConfig;

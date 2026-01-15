@@ -24,7 +24,7 @@ public class McpToolUtil {
         Map<ToolSpecification, ToolExecutor> mcpToolMap = new HashMap<>();
         mcpServers.keySet().forEach(key -> {
             JSONObject serverConfig = (JSONObject) mcpServers.get(key);
-            McpClient mcpClient = getMcpClient(serverConfig);
+            McpClient mcpClient = getMcpClient(key,serverConfig);
             Map<ToolSpecification, ToolExecutor> mcpClientToolMap = mcpClient.listTools().stream().collect(Collectors.toMap(
                     mcpTool -> mcpTool,
                     mcpTool -> new McpToolExecutor(mcpClient)
@@ -38,14 +38,14 @@ public class McpToolUtil {
         List<McpClient> mcpClients = new ArrayList<>();
         mcpServers.keySet().forEach(key -> {
             JSONObject serverConfig = (JSONObject) mcpServers.get(key);
-            McpClient mcpClient = getMcpClient(serverConfig);
+            McpClient mcpClient = getMcpClient(key,serverConfig);
             mcpClients.add(mcpClient);
         });
         return mcpClients;
     }
 
     @SuppressWarnings("unchecked")
-    private static McpClient getMcpClient(JSONObject serverConfig) {
+    private static McpClient getMcpClient(String key,JSONObject serverConfig) {
         String url = serverConfig.getString("url");
         StreamableHttpMcpTransport.Builder builder = new StreamableHttpMcpTransport.Builder();
         builder.url(url).logRequests(true).logResponses(true);
@@ -55,21 +55,22 @@ public class McpToolUtil {
         }
         McpTransport transport = builder.build();
         return new DefaultMcpClient.Builder()
+                .key(key)
                 .transport(transport)
                 .build();
     }
 
     public static List<McpToolVO> getToolVos(JSONObject mcpServers) {
         List<McpToolVO> toolVos = new ArrayList<>();
-        mcpServers.keySet().forEach(server -> {
-            JSONObject serverConfig = (JSONObject) mcpServers.get(server);
-            McpClient mcpClient = getMcpClient(serverConfig);
-            toolVos.addAll(convert(server, mcpClient.listTools()));
+        mcpServers.keySet().forEach(key -> {
+            JSONObject serverConfig = (JSONObject) mcpServers.get(key);
+            McpClient mcpClient = getMcpClient(key,serverConfig);
+            toolVos.addAll(convert(key, mcpClient.listTools()));
         });
         return toolVos;
     }
 
-    public static List<McpToolVO> convert(String serverName, List<ToolSpecification> tools) {
+    private static List<McpToolVO> convert(String serverName, List<ToolSpecification> tools) {
         return tools.stream().map(tool -> {
             McpToolVO vo = new McpToolVO();
             vo.setServer(serverName);

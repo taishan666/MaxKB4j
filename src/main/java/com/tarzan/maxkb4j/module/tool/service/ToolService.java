@@ -173,9 +173,10 @@ public class ToolService extends ServiceImpl<ToolMapper, ToolEntity> {
         try {
             JSONObject serverConfig = JSONObject.parseObject(code);
             List<McpClient> mcpClients = McpToolUtil.getMcpClients(serverConfig);
-            McpClient mcpClient = mcpClients.get(0);
-            mcpClient.checkHealth();
-            mcpClient.close();
+            for (McpClient mcpClient : mcpClients) {
+                mcpClient.checkHealth();
+                mcpClient.close();
+            }
         } catch (Exception e) {
             log.error(e.getMessage());
             return false;
