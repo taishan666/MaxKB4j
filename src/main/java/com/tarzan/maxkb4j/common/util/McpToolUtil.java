@@ -7,7 +7,6 @@ import dev.langchain4j.mcp.McpToolExecutor;
 import dev.langchain4j.mcp.client.DefaultMcpClient;
 import dev.langchain4j.mcp.client.McpClient;
 import dev.langchain4j.mcp.client.transport.McpTransport;
-import dev.langchain4j.mcp.client.transport.http.HttpMcpTransport;
 import dev.langchain4j.mcp.client.transport.http.StreamableHttpMcpTransport;
 import dev.langchain4j.model.chat.request.json.*;
 import dev.langchain4j.service.tool.ToolExecutor;
@@ -20,16 +19,6 @@ import java.util.stream.Collectors;
 
 public class McpToolUtil {
 
-
-    public static List<ToolSpecification> getTools(JSONObject mcpServers) {
-        List<ToolSpecification> tools = new ArrayList<>();
-        mcpServers.keySet().forEach(key -> {
-            JSONObject serverConfig = (JSONObject) mcpServers.get(key);
-            McpClient mcpClient = getMcpClient(serverConfig);
-            tools.addAll(mcpClient.listTools());
-        });
-        return tools;
-    }
 
     public static Map<ToolSpecification, ToolExecutor> getToolMap(JSONObject mcpServers) {
         Map<ToolSpecification, ToolExecutor> mcpToolMap = new HashMap<>();
@@ -55,37 +44,29 @@ public class McpToolUtil {
         return mcpClients;
     }
 
+    @SuppressWarnings("unchecked")
     private static McpClient getMcpClient(JSONObject serverConfig) {
         String url = serverConfig.getString("url");
-        String type = serverConfig.getString("type");
-        McpTransport transport;
-        if ("sse".equals(type)) {
-            transport = new HttpMcpTransport.Builder()
-                    .sseUrl(url)
-                    .logRequests(true) // if you want to see the traffic in the log
-                    .logResponses(true)
-                    .build();
-        } else {
-            transport = new StreamableHttpMcpTransport.Builder()
-                    .url(url)
-                    .logRequests(true) // if you want to see the traffic in the log
-                    .logResponses(true)
-                    .build();
+        StreamableHttpMcpTransport.Builder builder = new StreamableHttpMcpTransport.Builder();
+        builder.url(url).logRequests(true).logResponses(true);
+        if (serverConfig.containsKey("headers")) {
+            Map<String, String> headers = (Map<String, String>) serverConfig.get("headers");
+            builder.customHeaders(headers);
         }
+        McpTransport transport = builder.build();
         return new DefaultMcpClient.Builder()
-                .key("MaxKB4JMCPClient")
                 .transport(transport)
                 .build();
     }
 
     public static List<McpToolVO> getToolVos(JSONObject mcpServers) {
-        List<McpToolVO> tools = new ArrayList<>();
+        List<McpToolVO> toolVos = new ArrayList<>();
         mcpServers.keySet().forEach(server -> {
             JSONObject serverConfig = (JSONObject) mcpServers.get(server);
             McpClient mcpClient = getMcpClient(serverConfig);
-            tools.addAll(convert(server, mcpClient.listTools()));
+            toolVos.addAll(convert(server, mcpClient.listTools()));
         });
-        return tools;
+        return toolVos;
     }
 
     public static List<McpToolVO> convert(String serverName, List<ToolSpecification> tools) {
@@ -126,7 +107,6 @@ public class McpToolUtil {
                     property.put("type", "reference");
                     property.put("description", schema.reference());
                 } else {
-                    JsonNullSchema schema = (JsonNullSchema) v;
                     property.put("type", "null");
                     property.put("description", "");
                 }

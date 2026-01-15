@@ -111,38 +111,32 @@ public class ToolService extends ServiceImpl<ToolMapper, ToolEntity> {
             try {
                 ObjectMapper mapper = new ObjectMapper();
                 JsonNode root = mapper.readTree(jsonStr);
-
                 // 1. 必须是对象
                 if (!root.isObject()) {
                     return false;
                 }
-
                 // 2. 遍历所有顶层字段（使用 fieldNames()）
                 Iterator<String> fieldNames = root.fieldNames();
                 while (fieldNames.hasNext()) {
                     String fieldName = fieldNames.next();
                     JsonNode value = root.get(fieldName);
-
                     // 每个值必须是对象
                     if (!value.isObject()) {
                         return false;
                     }
-
                     // 检查是否存在 url 和 type 字段
                     if (!value.has("url") || !value.has("type")) {
                         return false;
                     }
-
                     JsonNode urlNode = value.get("url");
                     JsonNode typeNode = value.get("type");
-
                     // url 必须是非空字符串
                     if (!urlNode.isTextual() || urlNode.asText().trim().isEmpty()) {
                         return false;
                     }
-
-                    // type 必须是 "sse"
-                    if (!typeNode.isTextual() || !"sse".equals(typeNode.asText())) {
+                    // type 必须是 "sse" 或者 "streamable_http"
+                    boolean supported = typeNode.isTextual() && "streamable_http".equals(typeNode.asText());
+                    if (!supported) {
                         return false;
                     }
                 }
@@ -195,15 +189,15 @@ public class ToolService extends ServiceImpl<ToolMapper, ToolEntity> {
         return this.removeById(id);
     }
 
-    public List<ToolEntity> listTools(String scope,String toolType) {
-        List<String> targetIds =userResourcePermissionService.getTargetIds(AuthTargetType.TOOL, StpKit.ADMIN.getLoginIdAsString());
+    public List<ToolEntity> listTools(String scope, String toolType) {
+        List<String> targetIds = userResourcePermissionService.getTargetIds(AuthTargetType.TOOL, StpKit.ADMIN.getLoginIdAsString());
         LambdaQueryWrapper<ToolEntity> wrapper = Wrappers.lambdaQuery();
-        if (StringUtils.isNotBlank(toolType)){
+        if (StringUtils.isNotBlank(toolType)) {
             wrapper.eq(ToolEntity::getToolType, toolType);
         }
         wrapper.eq(ToolEntity::getIsActive, true);
         wrapper.eq(ToolEntity::getScope, scope);
-        if (!CollectionUtils.isEmpty(targetIds)){
+        if (!CollectionUtils.isEmpty(targetIds)) {
             wrapper.in(ToolEntity::getId, targetIds);
         }
         return this.list(wrapper);
