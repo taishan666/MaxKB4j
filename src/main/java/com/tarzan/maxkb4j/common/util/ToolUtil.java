@@ -3,6 +3,10 @@ package com.tarzan.maxkb4j.common.util;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.tarzan.maxkb4j.module.application.domain.entity.ApplicationApiKeyEntity;
+import com.tarzan.maxkb4j.module.application.domain.entity.ApplicationEntity;
+import com.tarzan.maxkb4j.module.application.service.ApplicationApiKeyService;
+import com.tarzan.maxkb4j.module.application.service.ApplicationService;
 import com.tarzan.maxkb4j.module.tool.domain.dto.ToolInputField;
 import com.tarzan.maxkb4j.module.tool.domain.entity.ToolEntity;
 import com.tarzan.maxkb4j.module.tool.service.ToolService;
@@ -24,6 +28,35 @@ import java.util.Map;
 public class ToolUtil {
 
     private final ToolService toolService;
+    private final ApplicationService applicationService;
+    private final ApplicationApiKeyService apiKeyService;
+
+    public Map<ToolSpecification, ToolExecutor> getToolMap(List<String> toolIds, List<String> applicationIds) {
+        Map<ToolSpecification, ToolExecutor> tools = getToolMap(toolIds);
+        if (CollectionUtils.isEmpty(applicationIds)) {
+            JSONObject mcpServers = new JSONObject();
+            LambdaQueryWrapper<ApplicationEntity> wrapper = Wrappers.lambdaQuery();
+            wrapper.select(ApplicationEntity::getName);
+            wrapper.in(ApplicationEntity::getId, applicationIds);
+            List<ApplicationEntity> applications = applicationService.list(wrapper);
+            for (ApplicationEntity app : applications) {
+                JSONObject mcpConfig = getAppMcpConfig(app);
+                mcpServers.put(app.getName(), mcpConfig);
+            }
+            tools.putAll(McpToolUtil.getToolMap(mcpServers));
+        }
+        return tools;
+    }
+
+    public JSONObject getAppMcpConfig(ApplicationEntity app) {
+        ApplicationApiKeyEntity apiKey = apiKeyService.lambdaQuery().select(ApplicationApiKeyEntity::getSecretKey).last("limit 1").one();
+        JSONObject mcpConfig = new JSONObject();
+        mcpConfig.put("url", "http://127.0.0.1:8080/chat/api/mcp");
+        mcpConfig.put("type", "streamable_http");
+        mcpConfig.put("headers", Map.of("Authorization", "Bearer " + apiKey.getSecretKey()));
+        return mcpConfig;
+    }
+
 
     public Map<ToolSpecification, ToolExecutor> getToolMap(List<String> toolIds) {
         Map<ToolSpecification, ToolExecutor> tools = new HashMap<>();
@@ -55,7 +88,7 @@ public class ToolUtil {
                         parametersBuilder.addProperty(param.getName(), element);
                     } else if ("object".equals(param.getType())) {
                         JsonSchemaElement element = JsonObjectSchema.builder().build();
-                        parametersBuilder.addProperty(param.getName(),element);
+                        parametersBuilder.addProperty(param.getName(), element);
                     }
                 }
                 ToolSpecification toolSpecification = ToolSpecification.builder()
