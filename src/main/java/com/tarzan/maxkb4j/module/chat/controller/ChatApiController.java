@@ -2,30 +2,25 @@ package com.tarzan.maxkb4j.module.chat.controller;
 
 import cn.dev33.satoken.annotation.SaIgnore;
 import com.alibaba.fastjson.JSONObject;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.core.toolkit.IdWorker;
-import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tarzan.maxkb4j.common.api.R;
 import com.tarzan.maxkb4j.common.constant.AppConst;
+import com.tarzan.maxkb4j.common.exception.ApiException;
 import com.tarzan.maxkb4j.common.util.StpKit;
 import com.tarzan.maxkb4j.common.util.WebUtil;
 import com.tarzan.maxkb4j.module.application.domain.dto.EmbedDTO;
-import com.tarzan.maxkb4j.module.application.domain.entity.ApplicationAccessTokenEntity;
-import com.tarzan.maxkb4j.module.application.domain.entity.ApplicationChatEntity;
-import com.tarzan.maxkb4j.module.application.domain.entity.ApplicationChatRecordEntity;
-import com.tarzan.maxkb4j.module.application.domain.entity.ApplicationEntity;
+import com.tarzan.maxkb4j.module.application.domain.entity.*;
 import com.tarzan.maxkb4j.module.application.domain.vo.ApplicationChatRecordVO;
-import com.tarzan.maxkb4j.module.application.domain.vo.ApplicationVO;
 import com.tarzan.maxkb4j.module.application.domain.vo.ChatMessageVO;
 import com.tarzan.maxkb4j.module.application.enums.ChatUserType;
-import com.tarzan.maxkb4j.module.application.service.ApplicationAccessTokenService;
-import com.tarzan.maxkb4j.module.application.service.ApplicationChatRecordService;
-import com.tarzan.maxkb4j.module.application.service.ApplicationChatService;
-import com.tarzan.maxkb4j.module.application.service.ApplicationService;
+import com.tarzan.maxkb4j.module.application.service.*;
 import com.tarzan.maxkb4j.module.chat.dto.ChatParams;
 import com.tarzan.maxkb4j.module.chat.dto.ChatResponse;
+import com.tarzan.maxkb4j.module.chat.dto.McpRequest;
+import com.tarzan.maxkb4j.module.chat.dto.McpResponse;
+import com.tarzan.maxkb4j.module.chat.service.ChatApiService;
 import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -35,14 +30,12 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyEmitter;
 import reactor.core.publisher.Sinks;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @Tag(name = "MaxKB4J开放接口")
 @RestController
@@ -55,6 +48,9 @@ public class ChatApiController {
     private final ApplicationChatService chatService;
     private final ApplicationChatRecordService chatRecordService;
     private final TaskExecutor chatTaskExecutor;
+    private final ChatApiService chatApiService;
+    private final ApplicationApiKeyService apiKeyService;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
 
     @Hidden
@@ -73,20 +69,7 @@ public class ChatApiController {
     @Hidden
     @PostMapping("/auth/anonymous")
     public R<String> auth(@RequestBody JSONObject params) {
-        String accessToken = params.getString("accessToken");
-        ApplicationAccessTokenEntity accessTokenEntity = accessTokenService.getByAccessToken(accessToken);
-        String tokenValue = WebUtil.getTokenValue();
-        StpKit.USER.setTokenValue(tokenValue);
-        String chatUserId = IdWorker.get32UUID();
-        if (StpKit.USER.isLogin()) {
-            chatUserId = StpKit.USER.getLoginIdAsString();
-        }
-        Map<String, Object> extraData = new HashMap<>();
-        extraData.put("applicationId", accessTokenEntity.getApplicationId());
-        extraData.put("chatUserType", ChatUserType.ANONYMOUS_USER.name());
-        extraData.put("accessToken", accessToken);
-        String token = StpKit.USER.createTokenValue(chatUserId, StpKit.USER.getLoginDevice(), -1L, extraData);
-        return R.success(token);
+        return R.success(chatApiService.authToken(params));
     }
 
 
@@ -95,14 +78,7 @@ public class ChatApiController {
     public R<ApplicationEntity> appProfile() {
         if (StpKit.USER.isLogin()) {
             String appId = (String) StpKit.USER.getExtra("applicationId");
-            ApplicationAccessTokenEntity appAccessToken = accessTokenService.getById(appId);
-            ApplicationVO application = applicationService.getDetail(appId);
-            if (appAccessToken != null && application != null) {
-                application.setLanguage(appAccessToken.getLanguage());
-                application.setShowSource(appAccessToken.getShowSource());
-                application.setShowExec(appAccessToken.getShowExec());
-            }
-            return R.success(application);
+            return R.success(chatApiService.appProfile(appId));
         }
         return R.fail("未登录");
     }
@@ -126,29 +102,50 @@ public class ChatApiController {
         params.setDebug(false);
         if (Boolean.TRUE.equals(params.getStream())) {
             // 异步执行业务逻辑
-            chatTaskExecutor.execute(() -> chatService.chatMessage(params,sink));
+            chatTaskExecutor.execute(() -> chatService.chatMessage(params, sink));
             return sink.asFlux();
         } else {
-            ChatResponse chatResponse = chatService.chatMessage(params,sink);
+            ChatResponse chatResponse = chatService.chatMessage(params, sink);
             return ResponseEntity.ok()
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .body(R.data(chatResponse));
         }
     }
 
+    @PostMapping(
+            path = "/mcp",
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = "text/plain; charset=utf-8"
+    )
+    public ResponseBodyEmitter handleMcpRequest(@RequestBody List<McpRequest> requests) {
+        ResponseBodyEmitter emitter = new ResponseBodyEmitter();
+        String secretKey = WebUtil.getTokenValue();
+        ApplicationApiKeyEntity apiKey = apiKeyService.getBySecretKey(secretKey);
+        if (apiKey==null || !apiKey.getIsActive()){
+            emitter.completeWithError(new ApiException("token不合法或被禁用"));
+        }else {
+            // 异步处理（避免阻塞主线程）
+            new Thread(() -> {
+                try {
+                    for (McpRequest req : requests) {
+                        McpResponse resp = chatApiService.mcpHandle(apiKey,req);
+                        String line = objectMapper.writeValueAsString(resp) + "\n";
+                        emitter.send(line);
+                    }
+                    emitter.complete();
+                } catch (IOException e) {
+                    emitter.completeWithError(e);
+                }
+            }).start();
+        }
+        return emitter;
+    }
+
 
     @Hidden
     @GetMapping("/historical_conversation/{current}/{size}")
     public R<Page<ApplicationChatEntity>> historicalConversation(@PathVariable int current, @PathVariable int size) {
-        String tokenValue = WebUtil.getTokenValue();
-        StpKit.USER.setTokenValue(tokenValue);
-        String appId = (String) StpKit.USER.getExtra("applicationId");
-        String userId = StpKit.USER.getLoginIdAsString();
-        Page<ApplicationChatEntity> page = new Page<>(current, size);
-        LambdaQueryWrapper<ApplicationChatEntity> wrapper = Wrappers.lambdaQuery();
-        wrapper.eq(ApplicationChatEntity::getApplicationId, appId).eq(ApplicationChatEntity::getChatUserId, userId);
-        wrapper.orderByDesc(ApplicationChatEntity::getCreateTime);
-        return R.success(chatService.page(page, wrapper));
+        return R.data(chatApiService.historicalConversation(current, size));
     }
 
     @Hidden
@@ -173,13 +170,7 @@ public class ChatApiController {
     @Hidden
     @DeleteMapping("/historical_conversation/clear")
     public R<Boolean> historicalConversationClear() {
-        String tokenValue = WebUtil.getTokenValue();
-        StpKit.USER.setTokenValue(tokenValue);
-        String appId = (String) StpKit.USER.getExtra("applicationId");
-        String userId = StpKit.USER.getLoginIdAsString();
-        LambdaQueryWrapper<ApplicationChatEntity> wrapper = Wrappers.lambdaQuery();
-        wrapper.eq(ApplicationChatEntity::getApplicationId, appId).eq(ApplicationChatEntity::getChatUserId, userId);
-        return R.success(chatService.remove(wrapper));
+        return R.success(chatApiService.historicalConversationClear());
     }
 
     @Hidden
@@ -190,19 +181,8 @@ public class ChatApiController {
 
     @Hidden
     @PutMapping("/vote/chat/{chatId}/chat_record/{chatRecordId}")
-    @Transactional
     public R<Boolean> updateConversation(@PathVariable String chatId, @PathVariable String chatRecordId, @RequestBody ApplicationChatRecordEntity chatRecord) {
-        chatRecord.setChatId(chatId);
-        chatRecord.setId(chatRecordId);
-        chatRecordService.updateById(chatRecord);
-        List<ApplicationChatRecordEntity> chatRecordEntities = chatRecordService.lambdaQuery().select(ApplicationChatRecordEntity::getVoteStatus).eq(ApplicationChatRecordEntity::getChatId, chatId).list();
-        ApplicationChatEntity chatEntity = new ApplicationChatEntity();
-        chatEntity.setId(chatId);
-        int starNum = (int) chatRecordEntities.stream().filter(item -> item.getVoteStatus().equals("0")).count();
-        int trampleNum = (int) chatRecordEntities.stream().filter(item -> item.getVoteStatus().equals("1")).count();
-        chatEntity.setStarNum(starNum);
-        chatEntity.setTrampleNum(trampleNum);
-        return R.success(chatService.updateById(chatEntity));
+        return R.success(chatApiService.updateConversation(chatId, chatRecordId, chatRecord));
     }
 
     @Hidden
@@ -224,10 +204,10 @@ public class ChatApiController {
     @GetMapping("/embed")
     @SaIgnore
     public ResponseEntity<String> embed(EmbedDTO dto) throws IOException {
-        return ResponseEntity.ok()
-                .header("Content-Type", "text/javascript; charset=utf-8")
-                .body(applicationService.embed(dto));
+        return ResponseEntity.ok().header("Content-Type", "text/javascript; charset=utf-8").body(applicationService.embed(dto));
     }
+
+
 
 
 }
