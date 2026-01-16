@@ -1,0 +1,1 @@
+import{bl as i,bm as s,bn as r}from"./chat-BFw4auTk.js";const o="/auth",u=(t,n)=>r(`${o}/${t}/detail`,void 0,n),a=(t,n)=>i(`${o}/connection`,t,void 0,n),p=(t,n,e)=>s(`${o}/${t}/info`,n,void 0,e),g={getAuthSetting:u,postAuthSetting:a,putAuthSetting:p};export{g as a};
