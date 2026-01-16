@@ -57,10 +57,10 @@ public class LLMNodeHandler implements INodeHandler {
                 nodeParams.getDialogueType(),
                 node.getRuntimeNodeId()
         );
-        List<String> toolIds = Optional.ofNullable(nodeParams.getToolIds())
-                .orElse(List.of());
+        List<String> toolIds = Optional.ofNullable(nodeParams.getToolIds()).orElse(List.of());
+        List<String> applicationIds = Optional.ofNullable(nodeParams.getApplicationIds()).orElse(List.of());
         // 构建 AI 服务
-        AiServices<Assistant> aiServicesBuilder = buildAiServices(systemPrompt, historyMessages, toolIds);
+        AiServices<Assistant> aiServicesBuilder = buildAiServices(systemPrompt, historyMessages, toolIds,applicationIds);
         // 构建多模态内容（如图片）
         List<Content> contents = buildImageContents(workflow, node, nodeParams.getImageList());
         // 记录上下文用于调试/追踪
@@ -82,7 +82,7 @@ public class LLMNodeHandler implements INodeHandler {
         }
     }
 
-    private AiServices<Assistant> buildAiServices(String systemPrompt, List<ChatMessage> historyMessages, List<String> toolIds) {
+    private AiServices<Assistant> buildAiServices(String systemPrompt, List<ChatMessage> historyMessages, List<String> toolIds, List<String> applicationIds) {
         AiServices<Assistant> builder = AssistantServices.builder(Assistant.class);
         if (StringUtils.isNotBlank(systemPrompt)) {
             builder.systemMessageProvider(chatMemoryId -> systemPrompt);
@@ -91,7 +91,7 @@ public class LLMNodeHandler implements INodeHandler {
             builder.chatMemory(AppChatMemory.withMessages(historyMessages));
         }
         if (CollectionUtils.isNotEmpty(toolIds)) {
-            builder.tools(toolUtil.getToolMap(toolIds));
+            builder.tools(toolUtil.getToolMap(toolIds,applicationIds));
         }
         return builder;
     }

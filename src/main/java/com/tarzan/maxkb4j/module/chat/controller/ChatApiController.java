@@ -4,6 +4,7 @@ import cn.dev33.satoken.annotation.SaIgnore;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tarzan.maxkb4j.common.api.R;
 import com.tarzan.maxkb4j.common.constant.AppConst;
@@ -35,7 +36,6 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyEmitter
 import reactor.core.publisher.Sinks;
 
 import java.io.IOException;
-import java.util.List;
 
 @Tag(name = "MaxKB4J开放接口")
 @RestController
@@ -114,10 +114,9 @@ public class ChatApiController {
 
     @PostMapping(
             path = "/mcp",
-            consumes = MediaType.APPLICATION_JSON_VALUE,
-            produces = "text/plain; charset=utf-8"
+            produces = MediaType.APPLICATION_JSON_VALUE
     )
-    public ResponseBodyEmitter handleMcpRequest(@RequestBody List<McpRequest> requests) {
+    public ResponseBodyEmitter handleMcpRequest(@RequestBody McpRequest req) {
         ResponseBodyEmitter emitter = new ResponseBodyEmitter();
         String secretKey = WebUtil.getTokenValue();
         ApplicationApiKeyEntity apiKey = apiKeyService.getBySecretKey(secretKey);
@@ -127,11 +126,10 @@ public class ChatApiController {
             // 异步处理（避免阻塞主线程）
             new Thread(() -> {
                 try {
-                    for (McpRequest req : requests) {
-                        McpResponse resp = chatApiService.mcpHandle(apiKey,req);
-                        String line = objectMapper.writeValueAsString(resp) + "\n";
-                        emitter.send(line);
-                    }
+                    McpResponse resp = chatApiService.mcpHandle(apiKey,req);
+                    objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+                    String line = objectMapper.writeValueAsString(resp) + "\n";
+                    emitter.send(line);
                     emitter.complete();
                 } catch (IOException e) {
                     emitter.completeWithError(e);

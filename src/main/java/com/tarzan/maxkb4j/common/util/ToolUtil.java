@@ -37,7 +37,7 @@ public class ToolUtil {
 
     public Map<ToolSpecification, ToolExecutor> getToolMap(List<String> toolIds, List<String> applicationIds) {
         Map<ToolSpecification, ToolExecutor> tools = getToolMap(toolIds);
-        if (CollectionUtils.isEmpty(applicationIds)) {
+        if (!CollectionUtils.isEmpty(applicationIds)) {
             JSONObject mcpServers = new JSONObject();
             LambdaQueryWrapper<ApplicationEntity> wrapper = Wrappers.lambdaQuery();
             wrapper.select(ApplicationEntity::getId, ApplicationEntity::getName);

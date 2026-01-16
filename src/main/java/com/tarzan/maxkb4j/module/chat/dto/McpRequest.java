@@ -7,5 +7,5 @@ import lombok.Data;
 public class McpRequest {
     public String method;
     public JSONObject params;
-    public String id;
+    public Object id;
 }

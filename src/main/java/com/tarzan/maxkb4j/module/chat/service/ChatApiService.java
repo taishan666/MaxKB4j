@@ -109,7 +109,7 @@ public class ChatApiService {
         try {
             if ("initialize".equals(req.method)) {
                 resp.result = Map.of(
-                        "protocolVersion", "2026-01-15",
+                        "protocolVersion", "2025-06-18",
                         "serverInfo", Map.of(
                                 "name", "MaxKb4j",
                                 "description", "MaxKb4j is a knowledge-based AI assistant",
@@ -117,7 +117,11 @@ public class ChatApiService {
                         ),
                         "capabilities", Map.of("tools", Map.of())
                 );
-            } else if ("list_tools".equals(req.method)) {
+            } else if ("notifications/initialized".equals(req.method)) {
+                resp.result = Map.of();
+            } else if ("ping".equals(req.method)) {
+                resp.result = Map.of();
+            } else if ("tools/list".equals(req.method)) {
                 ApplicationEntity app=applicationMapper.selectOne(Wrappers.<ApplicationEntity>lambdaQuery()
                         .select(ApplicationEntity::getId)
                         .select(ApplicationEntity::getName)
@@ -134,20 +138,23 @@ public class ChatApiService {
                                 )
                         )
                 ));
-            } else if ("call_tool".equals(req.method)) {
+            } else if ("tools/call".equals(req.method)) {
                 JSONObject args = req.params.getJSONObject("arguments");
                 String message = args.getString("message");
+                String chatId=chatService.chatOpen(apiKey.getApplicationId(),false);
                 ChatParams params = ChatParams.builder()
                         .message(message)
                         .reChat(false)
                         .stream(false)
+                        .chatId(chatId)
                         .appId(apiKey.getApplicationId())
                         .chatUserId(IdWorker.get32UUID())
                         .chatUserType(ChatUserType.ANONYMOUS_USER.name())
                         .debug(false)
                         .build();
                 ChatResponse chatResponse = chatService.chatMessage(params, Sinks.many().unicast().onBackpressureBuffer());
-                resp.result=chatResponse.getAnswer();
+                Map<String, Object> content=Map.of("type","text","text",chatResponse.getAnswer());
+                resp.result=Map.of("content", List.of(content));
             } else {
                 resp.error = Map.of("code", -32601, "message", "Method not supported");
             }

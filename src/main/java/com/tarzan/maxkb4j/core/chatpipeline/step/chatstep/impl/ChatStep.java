@@ -27,6 +27,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 @Slf4j
@@ -48,9 +49,9 @@ public class ChatStep extends IChatStep {
         if (StringUtils.isNotBlank(systemText)) {
             aiServicesBuilder.systemMessageProvider(chatMemoryId -> systemText);
         }
-        if (!CollectionUtils.isEmpty(application.getToolIds())) {
-            aiServicesBuilder.tools(toolUtil.getToolMap(application.getToolIds()));
-        }
+        List<String> toolIds = Optional.ofNullable(application.getToolIds()).orElse(List.of());
+        List<String> applicationIds = Optional.ofNullable(application.getApplicationIds()).orElse(List.of());
+        aiServicesBuilder.tools(toolUtil.getToolMap(toolIds,applicationIds));
         int dialogueNumber = application.getDialogueNumber();
         List<ChatMessage> historyMessages = manage.getHistoryMessages(dialogueNumber);
         Assistant assistant = aiServicesBuilder.chatMemory(AppChatMemory.withMessages(historyMessages)).streamingChatModel(chatModel).build();
