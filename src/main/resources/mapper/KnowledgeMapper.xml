@@ -50,7 +50,7 @@
             <choose>
                 <when test="query.isAdmin != null and !query.isAdmin">
                   <choose>
-                      <when test="query.targetIds != null and @org.apache.commons.collections.CollectionUtils@isNotEmpty(query.targetIds)">
+                      <when test="query.targetIds != null">
                           AND k.ID IN
                           <foreach collection="query.targetIds" item="targetId" open="(" separator="," close=")">
                               #{targetId}
