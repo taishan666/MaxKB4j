@@ -113,6 +113,7 @@ CREATE TABLE "public"."application" (
                                         "tts_autoplay" bool NOT NULL DEFAULT false,
                                         "stt_auto_send" bool NOT NULL DEFAULT false,
                                         "tool_ids" varchar[] NOT NULL,
+                                        "application_ids" varchar[] NOT NULL,
                                         "tool_output_enable" bool NOT NULL DEFAULT true,
                                         "folder_id" varchar(64) COLLATE "pg_catalog"."default",
                                         "is_publish" bool NOT NULL DEFAULT false,
@@ -372,6 +373,7 @@ CREATE TABLE "public"."application_version" (
                                                 "application_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
                                                 "user_id" varchar(50) COLLATE "pg_catalog"."default",
                                                 "tool_ids" varchar[] NOT NULL,
+                                                "application_ids" varchar[] NOT NULL,
                                                 "tool_output_enable" bool NOT NULL DEFAULT true,
                                                 "create_time" timestamp(6) NOT NULL,
                                                 "update_time" timestamp(6) NOT NULL
