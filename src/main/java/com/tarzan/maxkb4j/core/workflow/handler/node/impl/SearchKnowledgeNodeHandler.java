@@ -5,7 +5,7 @@ import com.tarzan.maxkb4j.core.workflow.annotation.NodeHandlerType;
 import com.tarzan.maxkb4j.core.workflow.enums.NodeType;
 import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;
 import com.tarzan.maxkb4j.core.workflow.model.Workflow;
-import com.tarzan.maxkb4j.core.workflow.node.INode;
+import com.tarzan.maxkb4j.core.workflow.node.AbsNode;
 import com.tarzan.maxkb4j.core.workflow.node.impl.SearchKnowledgeNode;
 import com.tarzan.maxkb4j.core.workflow.model.NodeResult;
 import com.tarzan.maxkb4j.module.application.domain.entity.ApplicationChatRecordEntity;
@@ -31,7 +31,7 @@ public class SearchKnowledgeNodeHandler implements INodeHandler {
 
     private final RetrieveService retrieveService;
     @Override
-    public NodeResult execute(Workflow workflow, INode node) throws Exception {
+    public NodeResult execute(Workflow workflow, AbsNode node) throws Exception {
         SearchKnowledgeNode.NodeParams nodeParams=node.getNodeData().toJavaObject(SearchKnowledgeNode.NodeParams .class);
         KnowledgeSetting knowledgeSetting=nodeParams.getKnowledgeSetting();
         List<String> fields=nodeParams.getQuestionReferenceAddress();

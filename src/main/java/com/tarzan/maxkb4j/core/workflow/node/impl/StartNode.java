@@ -3,13 +3,13 @@ package com.tarzan.maxkb4j.core.workflow.node.impl;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.workflow.model.Workflow;
-import com.tarzan.maxkb4j.core.workflow.node.INode;
+import com.tarzan.maxkb4j.core.workflow.node.AbsNode;
 
 import java.util.Map;
 
 import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.START;
 
-public class StartNode extends INode {
+public class StartNode extends AbsNode {
 
 
     public StartNode(String id,JSONObject properties) {

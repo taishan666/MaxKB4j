@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.common.form.RadioCardFiled;
 import com.tarzan.maxkb4j.core.workflow.annotation.NodeHandlerType;
 import com.tarzan.maxkb4j.core.workflow.enums.NodeType;
-import com.tarzan.maxkb4j.core.workflow.node.INode;
+import com.tarzan.maxkb4j.core.workflow.node.AbsNode;
 import com.tarzan.maxkb4j.core.workflow.model.Workflow;
 import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;
 import com.tarzan.maxkb4j.core.workflow.node.impl.UserSelectNode;
@@ -20,7 +20,7 @@ import java.util.Map;
 public class UserSelectNodeHandler implements INodeHandler {
 
     @Override
-    public NodeResult execute(Workflow workflow, INode node) throws Exception {
+    public NodeResult execute(Workflow workflow, AbsNode node) throws Exception {
         UserSelectNode.NodeParams nodeParams = node.getNodeData().toJavaObject(UserSelectNode.NodeParams.class);
         JSONObject formData = nodeParams.getFormData();
         Map<String, Object> options = new HashMap<>();
@@ -51,7 +51,7 @@ public class UserSelectNodeHandler implements INodeHandler {
         return new NodeResult(nodeVariable, false, this::isInterrupt);
     }
 
-    public boolean isInterrupt(INode node) {
+    public boolean isInterrupt(AbsNode node) {
         return !(boolean) node.getContext().getOrDefault("is_submit", false);
     }
 }

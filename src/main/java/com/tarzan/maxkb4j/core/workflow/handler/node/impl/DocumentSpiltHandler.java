@@ -5,7 +5,7 @@ import com.tarzan.maxkb4j.core.workflow.enums.NodeType;
 import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;
 import com.tarzan.maxkb4j.core.workflow.model.NodeResult;
 import com.tarzan.maxkb4j.core.workflow.model.Workflow;
-import com.tarzan.maxkb4j.core.workflow.node.INode;
+import com.tarzan.maxkb4j.core.workflow.node.AbsNode;
 import com.tarzan.maxkb4j.core.workflow.node.impl.DocumentSpiltNode;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.DocumentSimple;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.ParagraphSimple;
@@ -28,7 +28,7 @@ public class DocumentSpiltHandler implements INodeHandler {
 
     @SuppressWarnings("unchecked")
     @Override
-    public NodeResult execute(Workflow workflow, INode node) throws Exception {
+    public NodeResult execute(Workflow workflow, AbsNode node) throws Exception {
         DocumentSpiltNode.NodeParams nodeParams = node.getNodeData().toJavaObject(DocumentSpiltNode.NodeParams.class);
         List<String> fileIds = nodeParams.getDocumentList();
         Object res = workflow.getReferenceField(fileIds.get(0), fileIds.get(1));

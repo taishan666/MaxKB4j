@@ -5,7 +5,7 @@ import com.tarzan.maxkb4j.core.workflow.enums.NodeType;
 import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;
 import com.tarzan.maxkb4j.core.workflow.model.NodeResult;
 import com.tarzan.maxkb4j.core.workflow.model.Workflow;
-import com.tarzan.maxkb4j.core.workflow.node.INode;
+import com.tarzan.maxkb4j.core.workflow.node.AbsNode;
 import com.tarzan.maxkb4j.core.workflow.node.impl.VariableAggregationNode;
 import org.springframework.stereotype.Component;
 
@@ -22,7 +22,7 @@ public class VariableAggregationNodeHandler implements INodeHandler {
     }
 
     @Override
-    public NodeResult execute(Workflow workflow, INode node) throws Exception {
+    public NodeResult execute(Workflow workflow, AbsNode node) throws Exception {
         VariableAggregationNode.NodeParams nodeParams = node.getNodeData().toJavaObject(VariableAggregationNode.NodeParams.class);
         String strategyName = nodeParams.getStrategy();
         Map<String, Object> nodeVariable = new HashMap<>();
@@ -43,7 +43,7 @@ public class VariableAggregationNodeHandler implements INodeHandler {
         for (VariableAggregationNode.Variable e : variableList) {
             String nodeId = e.getVariable().get(0);
             String field = e.getVariable().get(1);
-            INode lfNode = workflow.getNode(nodeId);
+            AbsNode lfNode = workflow.getNode(nodeId);
             Object value = workflow.getReferenceField(nodeId, field);
             e.setNodeName(lfNode.getProperties().getString("nodeName"));
             e.setField(field);

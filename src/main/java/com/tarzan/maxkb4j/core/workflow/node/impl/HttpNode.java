@@ -4,7 +4,7 @@ package com.tarzan.maxkb4j.core.workflow.node.impl;
 import cn.hutool.http.Method;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.tarzan.maxkb4j.core.workflow.node.INode;
+import com.tarzan.maxkb4j.core.workflow.node.AbsNode;
 import com.tarzan.maxkb4j.core.workflow.model.Workflow;
 import lombok.Data;
 
@@ -12,7 +12,7 @@ import java.util.Map;
 
 import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.HTTP_CLIENT;
 
-public class HttpNode extends INode {
+public class HttpNode extends AbsNode {
 
 
     public HttpNode(String id,JSONObject properties) {

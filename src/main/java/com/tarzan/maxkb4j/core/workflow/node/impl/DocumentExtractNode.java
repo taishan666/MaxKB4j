@@ -2,7 +2,7 @@ package com.tarzan.maxkb4j.core.workflow.node.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.workflow.model.Workflow;
-import com.tarzan.maxkb4j.core.workflow.node.INode;
+import com.tarzan.maxkb4j.core.workflow.node.AbsNode;
 import lombok.Data;
 
 import java.util.List;
@@ -10,7 +10,7 @@ import java.util.Map;
 
 import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.DOCUMENT_EXTRACT;
 
-public class DocumentExtractNode extends INode {
+public class DocumentExtractNode extends AbsNode {
 
 
     public DocumentExtractNode(String id, JSONObject properties) {

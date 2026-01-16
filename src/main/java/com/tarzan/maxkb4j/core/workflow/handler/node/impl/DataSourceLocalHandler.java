@@ -7,7 +7,7 @@ import com.tarzan.maxkb4j.core.workflow.model.SysFile;
 import com.tarzan.maxkb4j.core.workflow.model.KnowledgeWorkflow;
 import com.tarzan.maxkb4j.core.workflow.model.NodeResult;
 import com.tarzan.maxkb4j.core.workflow.model.Workflow;
-import com.tarzan.maxkb4j.core.workflow.node.INode;
+import com.tarzan.maxkb4j.core.workflow.node.AbsNode;
 import com.tarzan.maxkb4j.core.workflow.node.impl.DataSourceLocalNode;
 import com.tarzan.maxkb4j.module.chat.dto.DataSource;
 import com.tarzan.maxkb4j.module.chat.dto.KnowledgeParams;
@@ -25,7 +25,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class DataSourceLocalHandler implements INodeHandler {
     @Override
-    public NodeResult execute(Workflow workflow, INode node) throws Exception {
+    public NodeResult execute(Workflow workflow, AbsNode node) throws Exception {
         DataSourceLocalNode.NodeParams nodeParams = node.getNodeData().toJavaObject(DataSourceLocalNode.NodeParams.class);
         List<SysFile> fileList=new ArrayList<>();
         if (workflow instanceof KnowledgeWorkflow knowledgeWorkflow) {

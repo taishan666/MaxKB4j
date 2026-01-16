@@ -7,7 +7,7 @@ import com.tarzan.maxkb4j.core.workflow.annotation.NodeHandlerType;
 import com.tarzan.maxkb4j.core.workflow.enums.NodeType;
 import com.tarzan.maxkb4j.core.workflow.model.Workflow;
 import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;
-import com.tarzan.maxkb4j.core.workflow.node.INode;
+import com.tarzan.maxkb4j.core.workflow.node.AbsNode;
 import com.tarzan.maxkb4j.core.workflow.node.impl.VariableSplittingNode;
 import com.tarzan.maxkb4j.core.workflow.model.NodeResult;
 import org.springframework.stereotype.Component;
@@ -21,7 +21,7 @@ import java.util.Map;
 public class VariableSplittingNodeHandler implements INodeHandler {
 
     @Override
-    public NodeResult execute(Workflow workflow, INode node) throws Exception {
+    public NodeResult execute(Workflow workflow, AbsNode node) throws Exception {
         VariableSplittingNode.NodeParams nodeParams = node.getNodeData().toJavaObject(VariableSplittingNode.NodeParams.class);
         List<String> inputVariable=nodeParams.getInputVariable();
         Object inputValue = workflow.getReferenceField(inputVariable.get(0), inputVariable.get(1));

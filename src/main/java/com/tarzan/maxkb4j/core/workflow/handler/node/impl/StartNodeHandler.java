@@ -8,7 +8,7 @@ import com.tarzan.maxkb4j.core.workflow.enums.NodeType;
 import com.tarzan.maxkb4j.core.workflow.model.Workflow;
 import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;
 import com.tarzan.maxkb4j.core.workflow.model.ChatRecordSimple;
-import com.tarzan.maxkb4j.core.workflow.node.INode;
+import com.tarzan.maxkb4j.core.workflow.node.AbsNode;
 import com.tarzan.maxkb4j.core.workflow.model.NodeResult;
 import com.tarzan.maxkb4j.module.chat.cache.ChatCache;
 import com.tarzan.maxkb4j.module.application.domain.dto.ChatInfo;
@@ -28,7 +28,7 @@ import java.util.Map;
 public class StartNodeHandler implements INodeHandler {
 
     @Override
-    public NodeResult execute(Workflow workflow, INode node) throws Exception {
+    public NodeResult execute(Workflow workflow, AbsNode node) throws Exception {
         ChatParams chatParams=workflow.getChatParams();
         // 获取默认全局变量
         Map<String, Object> globalVariable = getDefaultGlobalVariable(workflow,chatParams);
@@ -81,7 +81,7 @@ public class StartNodeHandler implements INodeHandler {
         return list;
     }
 
-    private Map<String, Object> getChatVariable(INode node,String chatId) {
+    private Map<String, Object> getChatVariable(AbsNode node, String chatId) {
         Map<String, Object> resultMap = new HashMap<>();
         //更新会话变量
         ChatInfo chatInfo = ChatCache.get(chatId);

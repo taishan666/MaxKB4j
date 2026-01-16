@@ -7,7 +7,7 @@ import com.tarzan.maxkb4j.core.workflow.enums.NodeType;
 import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;
 import com.tarzan.maxkb4j.core.workflow.model.NodeResult;
 import com.tarzan.maxkb4j.core.workflow.model.Workflow;
-import com.tarzan.maxkb4j.core.workflow.node.INode;
+import com.tarzan.maxkb4j.core.workflow.node.AbsNode;
 import com.tarzan.maxkb4j.core.workflow.node.impl.McpNode;
 import dev.langchain4j.agent.tool.ToolExecutionRequest;
 import dev.langchain4j.mcp.client.McpClient;
@@ -28,7 +28,7 @@ public class McpNodeHandler implements INodeHandler {
 
     @Override
     @SuppressWarnings("unchecked")
-    public NodeResult execute(Workflow workflow, INode node) throws Exception {
+    public NodeResult execute(Workflow workflow, AbsNode node) throws Exception {
         McpNode.NodeParams nodeParams=node.getNodeData().toJavaObject(McpNode.NodeParams.class);
         JSONObject toolParams=nodeParams.getToolParams();
         JSONObject params=new JSONObject();

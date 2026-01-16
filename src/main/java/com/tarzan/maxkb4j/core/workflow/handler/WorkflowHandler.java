@@ -6,7 +6,7 @@ import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;
 import com.tarzan.maxkb4j.core.workflow.model.NodeResult;
 import com.tarzan.maxkb4j.core.workflow.model.NodeResultFuture;
 import com.tarzan.maxkb4j.core.workflow.model.Workflow;
-import com.tarzan.maxkb4j.core.workflow.node.INode;
+import com.tarzan.maxkb4j.core.workflow.node.AbsNode;
 import com.tarzan.maxkb4j.module.application.domain.vo.ChatMessageVO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,7 +27,7 @@ public class WorkflowHandler {
 
 
     public String execute(Workflow workflow) {
-        INode currentNode = workflow.getCurrentNode();
+        AbsNode currentNode = workflow.getCurrentNode();
         if (currentNode == null) {
             currentNode = workflow.getStartNode();
         }
@@ -35,29 +35,29 @@ public class WorkflowHandler {
         return workflow.getAnswer();
     }
 
-    public void runChainNodes(Workflow workflow, List<INode> nodeList) {
+    public void runChainNodes(Workflow workflow, List<AbsNode> nodeList) {
         if (nodeList == null || nodeList.isEmpty()) {
             return;
         }
         if(nodeList.size()==1){
-            List<INode>  nextNodeList = runChainNode(workflow, nodeList.get(0));
+            List<AbsNode>  nextNodeList = runChainNode(workflow, nodeList.get(0));
             runChainNodes(workflow, nextNodeList);
         }else {
-            List<CompletableFuture<List<INode>>> futureList = new ArrayList<>();
-            for (INode node : nodeList) {
+            List<CompletableFuture<List<AbsNode>>> futureList = new ArrayList<>();
+            for (AbsNode node : nodeList) {
                 futureList.add(CompletableFuture.supplyAsync(() -> runChainNode(workflow, node),chatTaskExecutor));
             }
-            List<List<INode>> nextNodeLists = futureList.stream()
+            List<List<AbsNode>> nextNodeLists = futureList.stream()
                     .map(CompletableFuture::join)
                     .toList();
-            for (List<INode> nextNodeList : nextNodeLists) {
+            for (List<AbsNode> nextNodeList : nextNodeLists) {
                 runChainNodes(workflow, nextNodeList);
             }
         }
     }
 
 
-    public List<INode> runChainNode(Workflow workflow, INode node) {
+    public List<AbsNode> runChainNode(Workflow workflow, AbsNode node) {
         if (NodeStatus.READY.getCode()==node.getStatus()||NodeStatus.INTERRUPT.getCode()==node.getStatus()) {
             if (workflow.dependentNodeBeenExecuted(node)){
                 workflow.appendNode(node);
@@ -76,7 +76,7 @@ public class WorkflowHandler {
             }
         }else if (NodeStatus.SKIP.getCode()==node.getStatus()) {
             // 获取下一个节点列表
-            List<INode> nextNodeList = workflow.getNextNodeList(node, new NodeResult(Map.of()));
+            List<AbsNode> nextNodeList = workflow.getNextNodeList(node, new NodeResult(Map.of()));
             nextNodeList.forEach(nextNode -> {
                 if (!workflow.isReadyJoinNode(nextNode)){
                     nextNode.setStatus(NodeStatus.SKIP.getCode());
@@ -87,7 +87,7 @@ public class WorkflowHandler {
         return List.of();
     }
 
-    public NodeResultFuture runNodeFuture(Workflow workflow, INode node) {
+    public NodeResultFuture runNodeFuture(Workflow workflow, AbsNode node) {
         try {
             long startTime = System.currentTimeMillis();
             INodeHandler nodeHandler = NodeHandlerBuilder.getHandler(node.getType());

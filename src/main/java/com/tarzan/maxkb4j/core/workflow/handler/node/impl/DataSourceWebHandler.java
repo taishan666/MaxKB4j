@@ -6,7 +6,7 @@ import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;
 import com.tarzan.maxkb4j.core.workflow.model.KnowledgeWorkflow;
 import com.tarzan.maxkb4j.core.workflow.model.NodeResult;
 import com.tarzan.maxkb4j.core.workflow.model.Workflow;
-import com.tarzan.maxkb4j.core.workflow.node.INode;
+import com.tarzan.maxkb4j.core.workflow.node.AbsNode;
 import com.tarzan.maxkb4j.module.chat.dto.DataSource;
 import com.tarzan.maxkb4j.module.chat.dto.KnowledgeParams;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.DocumentSimple;
@@ -29,7 +29,7 @@ public class DataSourceWebHandler implements INodeHandler {
     private final DocumentWebService documentWebService;
 
     @Override
-    public NodeResult execute(Workflow workflow, INode node) throws Exception {
+    public NodeResult execute(Workflow workflow, AbsNode node) throws Exception {
         List<DocumentSimple> documentList = new ArrayList<>();
         Map<String, Object> inputParams = new HashMap<>();
         if (workflow instanceof KnowledgeWorkflow knowledgeWorkflow) {

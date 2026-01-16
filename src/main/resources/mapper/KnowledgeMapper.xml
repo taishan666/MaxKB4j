@@ -38,7 +38,7 @@
             <if test="query.createUser != null and query.createUser != ''">
                 AND k.user_id = #{query.createUser}
             </if>
-            <if test="query.name != null and !query.name!= ''">
+            <if test="query.name != null and query.name!= ''">
                 AND k.name LIKE '%' || #{query.name} || '%'
             </if>
             <if test="query.folderId != null and !query.folderId!= ''">
@@ -50,7 +50,7 @@
             <choose>
                 <when test="query.isAdmin != null and !query.isAdmin">
                   <choose>
-                      <when test="query.targetIds != null">
+                      <when test="query.targetIds != null and !query.targetIds.isEmpty()">
                           AND k.ID IN
                           <foreach collection="query.targetIds" item="targetId" open="(" separator="," close=")">
                               #{targetId}

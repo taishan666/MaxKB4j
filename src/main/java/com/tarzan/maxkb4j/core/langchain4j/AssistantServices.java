@@ -7,22 +7,20 @@ import com.tarzan.maxkb4j.listener.AssistantToolExecutedEventListener;
 import dev.langchain4j.observability.api.listener.AiServiceListener;
 import dev.langchain4j.service.AiServices;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 
 public class AssistantServices {
 
-    public static <T> AiServices<T> builder(Class<T> aiService) {
-        return AiServices.builder(aiService).registerListeners(getListeners());
-    }
+    private static final Collection<AiServiceListener<?>> LISTENERS = Arrays.asList(
+            new AssistantStartedListener(),
+            new AssistantCompletedListener(),
+            new AssistantToolExecutedEventListener(),
+            new AssistantErrorListener()
+    );
 
-    private static Collection<AiServiceListener<?>> getListeners(){
-        Collection<AiServiceListener<?>> listeners = new ArrayList<>();
-        listeners.add(new AssistantStartedListener());
-        listeners.add(new AssistantCompletedListener());
-        listeners.add(new AssistantToolExecutedEventListener());
-        listeners.add(new AssistantErrorListener());
-        return listeners;
+    public static <T> AiServices<T> builder(Class<T> aiService) {
+        return AiServices.builder(aiService).registerListeners(LISTENERS);
     }
 
 }

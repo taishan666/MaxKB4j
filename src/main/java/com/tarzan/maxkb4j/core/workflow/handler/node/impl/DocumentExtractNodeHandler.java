@@ -6,7 +6,7 @@ import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;
 import com.tarzan.maxkb4j.core.workflow.model.NodeResult;
 import com.tarzan.maxkb4j.core.workflow.model.SysFile;
 import com.tarzan.maxkb4j.core.workflow.model.Workflow;
-import com.tarzan.maxkb4j.core.workflow.node.INode;
+import com.tarzan.maxkb4j.core.workflow.node.AbsNode;
 import com.tarzan.maxkb4j.core.workflow.node.impl.DocumentExtractNode;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.DocumentSimple;
 import com.tarzan.maxkb4j.module.knowledge.service.DocumentParseService;
@@ -26,7 +26,7 @@ public class DocumentExtractNodeHandler implements INodeHandler {
     private final MongoFileService fileService;
 
     @Override
-    public NodeResult execute(Workflow workflow, INode node) throws Exception {
+    public NodeResult execute(Workflow workflow, AbsNode node) throws Exception {
         // 1. 解析节点参数
         DocumentExtractNode.NodeParams nodeParams = node.getNodeData()
                 .toJavaObject(DocumentExtractNode.NodeParams.class);
