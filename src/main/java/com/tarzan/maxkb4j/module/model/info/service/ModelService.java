@@ -15,7 +15,6 @@ import com.tarzan.maxkb4j.module.model.info.vo.ModelVO;
 import com.tarzan.maxkb4j.module.system.permission.constant.AuthTargetType;
 import com.tarzan.maxkb4j.module.system.permission.service.UserResourcePermissionService;
 import com.tarzan.maxkb4j.module.system.user.constants.RoleType;
-import com.tarzan.maxkb4j.module.system.user.domain.entity.UserEntity;
 import com.tarzan.maxkb4j.module.system.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -25,7 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
+import java.util.Set;
 
 /**
  * @author tarzan
@@ -71,19 +70,15 @@ public class ModelService extends ServiceImpl<ModelMapper, ModelEntity> {
             wrapper.eq(ModelEntity::getProvider, provider);
         }
         String loginId = StpKit.ADMIN.getLoginIdAsString();
-        UserEntity user = userService.getById(loginId);
-        if (Objects.nonNull(user)) {
-            if (!org.springframework.util.CollectionUtils.isEmpty(user.getRole())) {
-                if (user.getRole().contains(RoleType.USER)) {
-                    List<String> targetIds = userResourcePermissionService.getTargetIds(AuthTargetType.MODEL, loginId);
-                    if (!org.springframework.util.CollectionUtils.isEmpty(targetIds)) {
-                        wrapper.in(ModelEntity::getId, targetIds);
-                    } else {
-                        wrapper.last(" limit 0");
-                    }
+        Set<String> role = userService.getRoleById(loginId);
+        if (!CollectionUtils.isEmpty(role)) {
+            if (role.contains(RoleType.USER)) {
+                List<String> targetIds = userResourcePermissionService.getTargetIds(AuthTargetType.MODEL, loginId);
+                if (!org.springframework.util.CollectionUtils.isEmpty(targetIds)) {
+                    wrapper.in(ModelEntity::getId, targetIds);
+                } else {
+                    wrapper.last(" limit 0");
                 }
-            } else {
-                wrapper.last(" limit 0");
             }
         } else {
             wrapper.last(" limit 0");

@@ -21,8 +21,6 @@ import com.tarzan.maxkb4j.core.workflow.handler.KnowledgeWorkflowHandler;
 import com.tarzan.maxkb4j.core.workflow.logic.LogicFlow;
 import com.tarzan.maxkb4j.core.workflow.model.KnowledgeWorkflow;
 import com.tarzan.maxkb4j.core.workflow.node.AbsNode;
-import com.tarzan.maxkb4j.module.application.domain.entity.ApplicationKnowledgeMappingEntity;
-import com.tarzan.maxkb4j.module.application.mapper.ApplicationKnowledgeMappingMapper;
 import com.tarzan.maxkb4j.module.chat.dto.KnowledgeParams;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.GenerateProblemDTO;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.KnowledgeDTO;
@@ -37,7 +35,6 @@ import com.tarzan.maxkb4j.module.knowledge.mapper.ProblemParagraphMapper;
 import com.tarzan.maxkb4j.module.system.permission.constant.AuthTargetType;
 import com.tarzan.maxkb4j.module.system.permission.service.UserResourcePermissionService;
 import com.tarzan.maxkb4j.module.system.user.constants.RoleType;
-import com.tarzan.maxkb4j.module.system.user.domain.entity.UserEntity;
 import com.tarzan.maxkb4j.module.system.user.service.UserService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -70,7 +67,7 @@ import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.DATA_SOURCE_WEB;
 public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEntity> {
 
     private final ProblemMapper problemMapper;
-    private final ApplicationKnowledgeMappingMapper applicationKnowledgeMappingMapper;
+    //private final ApplicationKnowledgeMappingMapper applicationKnowledgeMappingMapper;
     private final ParagraphMapper paragraphMapper;
     private final ProblemParagraphMapper problemParagraphMapper;
     private final DocumentService documentService;
@@ -83,12 +80,11 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
     private final KnowledgeWorkflowHandler knowledgeWorkflowHandler;
 
 
-
     public IPage<KnowledgeVO> selectKnowledgePage(Page<KnowledgeVO> knowledgePage, KnowledgeQuery query) {
         String loginId = StpKit.ADMIN.getLoginIdAsString();
         List<String> targetIds = userResourcePermissionService.getTargetIds(AuthTargetType.KNOWLEDGE, loginId);
-        UserEntity user = userService.getById(loginId);
-        query.setIsAdmin(user.getRole().contains(RoleType.ADMIN));
+        Set<String> role = userService.getRoleById(loginId);
+        query.setIsAdmin(role.contains(RoleType.ADMIN));
         query.setTargetIds(targetIds);
         IPage<KnowledgeVO> page = baseMapper.selectKnowledgePage(knowledgePage, query);
         Map<String, String> nicknameMap = userService.getNicknameMap();
@@ -103,11 +99,11 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
             return null;
         }
         KnowledgeVO vo = BeanUtil.copy(entity, KnowledgeVO.class);
-        List<ApplicationKnowledgeMappingEntity> apps = applicationKnowledgeMappingMapper.selectList(Wrappers.lambdaQuery(ApplicationKnowledgeMappingEntity.class)
+/*        List<ApplicationKnowledgeMappingEntity> apps = applicationKnowledgeMappingMapper.selectList(Wrappers.lambdaQuery(ApplicationKnowledgeMappingEntity.class)
                 .select(ApplicationKnowledgeMappingEntity::getApplicationId)
                 .eq(ApplicationKnowledgeMappingEntity::getKnowledgeId, id));
         List<String> appIds = apps.stream().map(ApplicationKnowledgeMappingEntity::getApplicationId).toList();
-        vo.setApplicationIdList(appIds);
+        vo.setApplicationIdList(appIds);*/
         return vo;
     }
 
@@ -129,7 +125,6 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
         problemMapper.delete(Wrappers.<ProblemEntity>lambdaQuery().eq(ProblemEntity::getKnowledgeId, id));
         paragraphMapper.delete(Wrappers.<ParagraphEntity>lambdaQuery().eq(ParagraphEntity::getKnowledgeId, id));
         documentService.remove(Wrappers.<DocumentEntity>lambdaQuery().eq(DocumentEntity::getKnowledgeId, id));
-        applicationKnowledgeMappingMapper.delete(Wrappers.<ApplicationKnowledgeMappingEntity>lambdaQuery().eq(ApplicationKnowledgeMappingEntity::getKnowledgeId, id));
         knowledgeVersionService.lambdaQuery().eq(KnowledgeVersionEntity::getKnowledgeId, id);
         knowledgeActionService.lambdaQuery().eq(KnowledgeActionEntity::getKnowledgeId, id);
         userResourcePermissionService.remove(AuthTargetType.APPLICATION, id);

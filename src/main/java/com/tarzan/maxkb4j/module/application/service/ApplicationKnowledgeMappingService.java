@@ -1,3 +1,4 @@
+/*
 package com.tarzan.maxkb4j.module.application.service;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -10,10 +11,12 @@ import org.springframework.util.CollectionUtils;
 import java.util.ArrayList;
 import java.util.List;
 
+*/
 /**
  * @author tarzan
  * @date 2024-12-25 17:18:42
- */
+ *//*
+
 @Service
 public class ApplicationKnowledgeMappingService extends ServiceImpl<ApplicationKnowledgeMappingMapper, ApplicationKnowledgeMappingEntity>{
 
@@ -29,11 +32,11 @@ public class ApplicationKnowledgeMappingService extends ServiceImpl<ApplicationK
     }
 
     @Transactional
-    public void updateByAppId(String appId, List<String> knowledgeIdList) {
+    public void updateByAppId(String appId, List<String> knowledgeIds) {
         this.lambdaUpdate().eq(ApplicationKnowledgeMappingEntity::getApplicationId, appId).remove();
-        if (!CollectionUtils.isEmpty(knowledgeIdList)) {
+        if (!CollectionUtils.isEmpty(knowledgeIds)) {
             List<ApplicationKnowledgeMappingEntity> mappingList = new ArrayList<>();
-            for (String knowledgeId : knowledgeIdList) {
+            for (String knowledgeId : knowledgeIds) {
                 ApplicationKnowledgeMappingEntity mapping = new ApplicationKnowledgeMappingEntity();
                 mapping.setApplicationId(appId);
                 mapping.setKnowledgeId(knowledgeId);
@@ -43,3 +46,4 @@ public class ApplicationKnowledgeMappingService extends ServiceImpl<ApplicationK
         }
     }
 }
+*/

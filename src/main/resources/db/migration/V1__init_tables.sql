@@ -114,6 +114,7 @@ CREATE TABLE "public"."application" (
                                         "stt_auto_send" bool NOT NULL DEFAULT false,
                                         "tool_ids" varchar[] NOT NULL,
                                         "application_ids" varchar[] NOT NULL,
+                                        "knowledge_ids" varchar[] NOT NULL,
                                         "tool_output_enable" bool NOT NULL DEFAULT true,
                                         "folder_id" varchar(64) COLLATE "pg_catalog"."default",
                                         "is_publish" bool NOT NULL DEFAULT false,
@@ -374,6 +375,7 @@ CREATE TABLE "public"."application_version" (
                                                 "user_id" varchar(50) COLLATE "pg_catalog"."default",
                                                 "tool_ids" varchar[] NOT NULL,
                                                 "application_ids" varchar[] NOT NULL,
+                                                "knowledge_ids" varchar[] NOT NULL,
                                                 "tool_output_enable" bool NOT NULL DEFAULT true,
                                                 "create_time" timestamp(6) NOT NULL,
                                                 "update_time" timestamp(6) NOT NULL
@@ -703,42 +705,6 @@ CREATE INDEX "embedding_paragraph_id" ON "public"."embedding" USING btree (
 -- Primary Key structure for table embedding
 -- ----------------------------
 ALTER TABLE "public"."embedding" ADD CONSTRAINT "embedding_pkey" PRIMARY KEY ("id");
-
-
-
--- ----------------------------
--- Table structure for application_knowledge_mapping
--- ----------------------------
-DROP TABLE IF EXISTS "public"."application_knowledge_mapping";
-CREATE TABLE "public"."application_knowledge_mapping" (
-                                                          "id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
-                                                          "application_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
-                                                          "knowledge_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
-                                                          "create_time" timestamp(6) NOT NULL,
-                                                          "update_time" timestamp(6) NOT NULL
-);
-
--- ----------------------------
--- Indexes structure for table application_knowledge_mapping
--- ----------------------------
-CREATE INDEX "application_knowledge_mapping_application_id" ON "public"."application_knowledge_mapping" USING btree (
-    "application_id" COLLATE "pg_catalog"."default" "pg_catalog"."varchar_pattern_ops" ASC NULLS LAST
-    );
-CREATE INDEX "application_knowledge_mapping_knowledge_id" ON "public"."application_knowledge_mapping" USING btree (
-    "knowledge_id" COLLATE "pg_catalog"."default" "pg_catalog"."varchar_pattern_ops" ASC NULLS LAST
-    );
-
--- ----------------------------
--- Primary Key structure for table application_knowledge_mapping
--- ----------------------------
-ALTER TABLE "public"."application_knowledge_mapping" ADD CONSTRAINT "application_knowledge_mapping_pkey" PRIMARY KEY ("id");
-
--- ----------------------------
--- Foreign Keys structure for table application_knowledge_mapping
--- ----------------------------
-ALTER TABLE "public"."application_knowledge_mapping" ADD CONSTRAINT "application_knowledge_application_id_fk_application_id" FOREIGN KEY ("application_id") REFERENCES "public"."application" ("id") ON DELETE NO ACTION ON UPDATE NO ACTION DEFERRABLE INITIALLY DEFERRED;
-ALTER TABLE "public"."application_knowledge_mapping" ADD CONSTRAINT "application_knowledge_mapping_knowledge_id_fk_knowledge_id" FOREIGN KEY ("knowledge_id") REFERENCES "public"."knowledge" ("id") ON DELETE NO ACTION ON UPDATE NO ACTION DEFERRABLE INITIALLY DEFERRED;
-
 
 
 -- ----------------------------

@@ -32,7 +32,7 @@ public class ChatSimpleActuator implements IChatActuator {
     public ChatResponse chatMessage(ApplicationVO application, ChatParams chatParams, Sinks.Many<ChatMessageVO> sink) {
         PipelineManage.Builder pipelineManageBuilder = new PipelineManage.Builder();
         Boolean problemOptimization = application.getProblemOptimization();
-        if (!CollectionUtils.isEmpty(application.getKnowledgeIdList())) {
+        if (!CollectionUtils.isEmpty(application.getKnowledgeIds())) {
             if (Objects.nonNull(problemOptimization) && problemOptimization) {
                 pipelineManageBuilder.addStep(resetProblemStep);
             }

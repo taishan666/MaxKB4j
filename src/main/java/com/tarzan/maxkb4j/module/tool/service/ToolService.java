@@ -13,7 +13,6 @@ import com.tarzan.maxkb4j.common.util.*;
 import com.tarzan.maxkb4j.module.system.permission.constant.AuthTargetType;
 import com.tarzan.maxkb4j.module.system.permission.service.UserResourcePermissionService;
 import com.tarzan.maxkb4j.module.system.user.constants.RoleType;
-import com.tarzan.maxkb4j.module.system.user.domain.entity.UserEntity;
 import com.tarzan.maxkb4j.module.system.user.service.UserService;
 import com.tarzan.maxkb4j.module.tool.domain.dto.ToolQuery;
 import com.tarzan.maxkb4j.module.tool.domain.entity.ToolEntity;
@@ -32,10 +31,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * @author tarzan
@@ -72,19 +68,15 @@ public class ToolService extends ServiceImpl<ToolMapper, ToolEntity> {
             wrapper.eq(ToolEntity::getIsActive, query.getIsActive());
         }
         String loginId = StpKit.ADMIN.getLoginIdAsString();
-        UserEntity user = userService.getUserById(loginId);
-        if (Objects.nonNull(user)) {
-            if (!CollectionUtils.isEmpty(user.getRole())) {
-                if (user.getRole().contains(RoleType.USER)) {
-                    List<String> targetIds = userResourcePermissionService.getTargetIds(AuthTargetType.TOOL, loginId);
-                    if (!CollectionUtils.isEmpty(targetIds)) {
-                        wrapper.in(ToolEntity::getId, targetIds);
-                    } else {
-                        wrapper.last(" limit 0");
-                    }
+        Set<String> role = userService.getRoleById(loginId);
+        if (!CollectionUtils.isEmpty(role)) {
+            if (role.contains(RoleType.USER)) {
+                List<String> targetIds = userResourcePermissionService.getTargetIds(AuthTargetType.TOOL, loginId);
+                if (!CollectionUtils.isEmpty(targetIds)) {
+                    wrapper.in(ToolEntity::getId, targetIds);
+                } else {
+                    wrapper.last(" limit 0");
                 }
-            } else {
-                wrapper.last(" limit 0");
             }
         } else {
             wrapper.last(" limit 0");

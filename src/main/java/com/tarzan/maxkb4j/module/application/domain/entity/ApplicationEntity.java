@@ -92,6 +92,9 @@ public class ApplicationEntity extends BaseEntity {
     @TableField(typeHandler = StringListTypeHandler.class)
     private List<String> applicationIds;
 
+    @TableField(typeHandler = StringListTypeHandler.class)
+    private List<String> knowledgeIds;
+
     private Boolean toolOutputEnable;
 
 
