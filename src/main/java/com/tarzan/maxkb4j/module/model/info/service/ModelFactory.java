@@ -25,7 +25,6 @@ public class ModelFactory {
 
     private final ModelService modelService;
 
-
     public ChatModel buildChatModel(String modelId) {
         return buildChatModel(modelId, new JSONObject());
     }
@@ -91,7 +90,10 @@ public class ModelFactory {
         if (StringUtils.isBlank(modelId)) {
             return null;
         }
-        return modelService.getCacheModelById(modelId);
+        return modelService.lambdaQuery()
+                .select(ModelEntity::getProvider,ModelEntity::getModelType,ModelEntity::getModelName,ModelEntity::getCredential)
+                .eq(ModelEntity::getId,modelId)
+                .one();
     }
 
     public IModelProvider getModelProvider(ModelEntity model) {

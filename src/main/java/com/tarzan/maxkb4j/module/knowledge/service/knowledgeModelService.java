@@ -1,11 +1,12 @@
 package com.tarzan.maxkb4j.module.knowledge.service;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.KnowledgeEntity;
 import com.tarzan.maxkb4j.module.knowledge.mapper.KnowledgeMapper;
 import com.tarzan.maxkb4j.module.model.info.service.ModelFactory;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import lombok.RequiredArgsConstructor;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 
 @RequiredArgsConstructor
@@ -15,9 +16,11 @@ public class knowledgeModelService {
     private final ModelFactory modelFactory;
     private final KnowledgeMapper knowledgeMapper;
 
-    @Cacheable(cacheNames = "dataset_embedding_model", key = "#knowledgeId")
     public EmbeddingModel getEmbeddingModel(String knowledgeId){
-        KnowledgeEntity dataset=knowledgeMapper.selectById(knowledgeId);
+        LambdaQueryWrapper<KnowledgeEntity> wrapper=Wrappers.<KnowledgeEntity>lambdaQuery()
+                .select(KnowledgeEntity::getEmbeddingModelId)
+                .eq(KnowledgeEntity::getId,knowledgeId);
+        KnowledgeEntity dataset=knowledgeMapper.selectOne(wrapper);
         if (dataset==null){
             throw new RuntimeException("数据集不存在");
         }
