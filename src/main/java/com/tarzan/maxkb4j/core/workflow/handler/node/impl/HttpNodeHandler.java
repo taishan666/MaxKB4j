@@ -9,7 +9,7 @@ import com.tarzan.maxkb4j.core.workflow.annotation.NodeHandlerType;
 import com.tarzan.maxkb4j.core.workflow.enums.NodeType;
 import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;
 import com.tarzan.maxkb4j.core.workflow.model.Workflow;
-import com.tarzan.maxkb4j.core.workflow.node.INode;
+import com.tarzan.maxkb4j.core.workflow.node.AbsNode;
 import com.tarzan.maxkb4j.core.workflow.node.impl.HttpNode;
 import com.tarzan.maxkb4j.core.workflow.model.NodeResult;
 import org.apache.commons.lang3.StringUtils;
@@ -22,7 +22,7 @@ import java.util.Map;
 public class HttpNodeHandler implements INodeHandler {
 
     @Override
-    public NodeResult execute(Workflow workflow, INode node) throws Exception {
+    public NodeResult execute(Workflow workflow, AbsNode node) throws Exception {
         HttpNode.NodeParams nodeParams=node.getNodeData().toJavaObject(HttpNode.NodeParams.class);
         HttpRequest request= HttpUtil.createRequest(nodeParams.getMethod(), nodeParams.getUrl());
         node.getDetail().put("url",nodeParams.getUrl());

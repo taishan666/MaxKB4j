@@ -1,7 +1,7 @@
 package com.tarzan.maxkb4j.core.workflow.node.impl;
 
 import com.alibaba.fastjson.JSONObject;
-import com.tarzan.maxkb4j.core.workflow.node.INode;
+import com.tarzan.maxkb4j.core.workflow.node.AbsNode;
 import com.tarzan.maxkb4j.core.workflow.model.Workflow;
 import lombok.Data;
 
@@ -11,7 +11,7 @@ import java.util.Map;
 
 import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.CONDITION;
 
-public class ConditionNode extends INode {
+public class ConditionNode extends AbsNode {
 
     public ConditionNode(String id,JSONObject properties) {
         super(id,properties);

@@ -5,7 +5,7 @@ import com.tarzan.maxkb4j.core.workflow.annotation.NodeHandlerType;
 import com.tarzan.maxkb4j.core.workflow.enums.NodeType;
 import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;
 import com.tarzan.maxkb4j.core.workflow.model.Workflow;
-import com.tarzan.maxkb4j.core.workflow.node.INode;
+import com.tarzan.maxkb4j.core.workflow.node.AbsNode;
 import com.tarzan.maxkb4j.core.workflow.node.impl.ToolNode;
 import com.tarzan.maxkb4j.core.workflow.model.NodeResult;
 import com.tarzan.maxkb4j.module.tool.domain.dto.ToolInputField;
@@ -19,7 +19,7 @@ import java.util.Map;
 @Component
 public class ToolNodeHandler implements INodeHandler {
     @Override
-    public NodeResult execute(Workflow workflow, INode node) throws Exception {
+    public NodeResult execute(Workflow workflow, AbsNode node) throws Exception {
         ToolNode.NodeParams nodeParams = node.getNodeData().toJavaObject(ToolNode.NodeParams.class);
         Map<String, Object> params = new HashMap<>(5);
         if (!CollectionUtils.isEmpty(nodeParams.getInputFieldList())) {

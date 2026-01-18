@@ -4,7 +4,7 @@ import com.tarzan.maxkb4j.core.workflow.annotation.NodeHandlerType;
 import com.tarzan.maxkb4j.core.workflow.enums.NodeType;
 import com.tarzan.maxkb4j.core.workflow.model.Workflow;
 import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;
-import com.tarzan.maxkb4j.core.workflow.node.INode;
+import com.tarzan.maxkb4j.core.workflow.node.AbsNode;
 import com.tarzan.maxkb4j.core.workflow.node.impl.VariableAssignNode;
 import com.tarzan.maxkb4j.core.workflow.model.NodeResult;
 import com.tarzan.maxkb4j.module.chat.cache.ChatCache;
@@ -18,7 +18,7 @@ import java.util.*;
 public class VariableAssignNodeHandler implements INodeHandler {
 
     @Override
-    public NodeResult execute(Workflow workflow, INode node) throws Exception {
+    public NodeResult execute(Workflow workflow, AbsNode node) throws Exception {
         VariableAssignNode.NodeParams nodeParams = node.getNodeData().toJavaObject(VariableAssignNode.NodeParams.class);
         List<Map<String, Object>> resultList = new ArrayList<>();
         for (Map<String, Object> variable : nodeParams.getVariableList()) {

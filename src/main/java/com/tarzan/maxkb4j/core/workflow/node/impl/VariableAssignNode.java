@@ -1,7 +1,7 @@
 package com.tarzan.maxkb4j.core.workflow.node.impl;
 
 import com.alibaba.fastjson.JSONObject;
-import com.tarzan.maxkb4j.core.workflow.node.INode;
+import com.tarzan.maxkb4j.core.workflow.node.AbsNode;
 import com.tarzan.maxkb4j.core.workflow.model.Workflow;
 import lombok.Data;
 
@@ -10,7 +10,7 @@ import java.util.Map;
 
 import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.VARIABLE_ASSIGN;
 
-public class VariableAssignNode extends INode {
+public class VariableAssignNode extends AbsNode {
     public VariableAssignNode(String id,JSONObject properties) {
         super(id,properties);
         this.setType(VARIABLE_ASSIGN.getKey());

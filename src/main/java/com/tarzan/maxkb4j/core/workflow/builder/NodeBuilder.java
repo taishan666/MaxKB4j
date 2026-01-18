@@ -3,12 +3,12 @@ package com.tarzan.maxkb4j.core.workflow.builder;
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.workflow.enums.NodeType;
 import com.tarzan.maxkb4j.core.workflow.logic.LfNode;
-import com.tarzan.maxkb4j.core.workflow.node.INode;
+import com.tarzan.maxkb4j.core.workflow.node.AbsNode;
 import com.tarzan.maxkb4j.core.workflow.node.impl.*;
 
 public class NodeBuilder {
 
-    public static INode getNode(LfNode lfNode) {
+    public static AbsNode getNode(LfNode lfNode) {
         if (lfNode == null) {
             throw new IllegalArgumentException("LfNode 不能为 null");
         }

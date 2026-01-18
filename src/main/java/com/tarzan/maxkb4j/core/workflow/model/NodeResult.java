@@ -2,7 +2,7 @@ package com.tarzan.maxkb4j.core.workflow.model;
 
 import com.tarzan.maxkb4j.core.workflow.enums.NodeType;
 import com.tarzan.maxkb4j.core.workflow.enums.WorkflowMode;
-import com.tarzan.maxkb4j.core.workflow.node.INode;
+import com.tarzan.maxkb4j.core.workflow.node.AbsNode;
 import com.tarzan.maxkb4j.module.application.domain.vo.ChatMessageVO;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -46,23 +46,23 @@ public class NodeResult {
     }
 
 
-    public void writeContext(INode currentNode, Workflow workflow) {
+    public void writeContext(AbsNode currentNode, Workflow workflow) {
         this.writeContextFunc.apply(nodeVariable, currentNode, workflow);
     }
 
-    public void writeDetail(INode currentNode) {
+    public void writeDetail(AbsNode currentNode) {
         this.writeDetailFunc.apply(nodeVariable, currentNode);
     }
 
-    public boolean isInterruptExec(INode currentNode) {
+    public boolean isInterruptExec(AbsNode currentNode) {
         return this.isInterrupt.apply(currentNode);
     }
 
-    public boolean defaultIsInterrupt(INode node) {
+    public boolean defaultIsInterrupt(AbsNode node) {
         return false;
     }
 
-    public void defaultWriteContextFunc(Map<String, Object> nodeVariable, INode node, Workflow workflow) {
+    public void defaultWriteContextFunc(Map<String, Object> nodeVariable, AbsNode node, Workflow workflow) {
         if (nodeVariable != null) {
             node.getContext().putAll(nodeVariable);
             if (StringUtils.isNotBlank(node.getAnswerText())) {
@@ -81,7 +81,7 @@ public class NodeResult {
         }
     }
 
-    public void defaultWriteDetailFunc(Map<String, Object> nodeVariable, INode node) {
+    public void defaultWriteDetailFunc(Map<String, Object> nodeVariable, AbsNode node) {
         if (nodeVariable != null) {
             if (NodeType.FORM.getKey().equals(node.getType())) {
                 node.getDetail().put("form_data", nodeVariable.get("form_data"));
@@ -97,18 +97,18 @@ public class NodeResult {
 
     @FunctionalInterface
     public interface WriteContextFunction {
-        void apply(Map<String, Object> nodeVariable, INode node, Workflow workflow);
+        void apply(Map<String, Object> nodeVariable, AbsNode node, Workflow workflow);
     }
 
 
     @FunctionalInterface
     public interface WriteDetailFunction {
-        void apply(Map<String, Object> nodeVariable, INode node);
+        void apply(Map<String, Object> nodeVariable, AbsNode node);
     }
 
     @FunctionalInterface
     public interface IsInterruptFunction {
-        boolean apply(INode currentNode);
+        boolean apply(AbsNode currentNode);
     }
 
     public boolean isAssertionResult() {

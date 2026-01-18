@@ -5,7 +5,7 @@ import com.tarzan.maxkb4j.core.workflow.enums.NodeType;
 import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;
 import com.tarzan.maxkb4j.core.workflow.model.SysFile;
 import com.tarzan.maxkb4j.core.workflow.model.Workflow;
-import com.tarzan.maxkb4j.core.workflow.node.INode;
+import com.tarzan.maxkb4j.core.workflow.node.AbsNode;
 import com.tarzan.maxkb4j.core.workflow.node.impl.SpeechToTextNode;
 import com.tarzan.maxkb4j.core.workflow.model.NodeResult;
 import com.tarzan.maxkb4j.module.model.custom.base.STTModel;
@@ -30,7 +30,7 @@ public class SpeechToTextNodeHandler implements INodeHandler {
     private final MongoFileService fileService;
 
     @Override
-    public NodeResult execute(Workflow workflow, INode node) throws Exception {
+    public NodeResult execute(Workflow workflow, AbsNode node) throws Exception {
         SpeechToTextNode.NodeParams nodeParams=node.getNodeData().toJavaObject(SpeechToTextNode.NodeParams.class);
         List<String> audioList = nodeParams.getAudioList();
         Object res = workflow.getReferenceField(audioList.get(0), audioList.get(1));

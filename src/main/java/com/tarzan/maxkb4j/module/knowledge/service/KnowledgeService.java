@@ -20,7 +20,7 @@ import com.tarzan.maxkb4j.core.workflow.builder.NodeBuilder;
 import com.tarzan.maxkb4j.core.workflow.handler.KnowledgeWorkflowHandler;
 import com.tarzan.maxkb4j.core.workflow.logic.LogicFlow;
 import com.tarzan.maxkb4j.core.workflow.model.KnowledgeWorkflow;
-import com.tarzan.maxkb4j.core.workflow.node.INode;
+import com.tarzan.maxkb4j.core.workflow.node.AbsNode;
 import com.tarzan.maxkb4j.module.application.domain.entity.ApplicationKnowledgeMappingEntity;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationKnowledgeMappingMapper;
 import com.tarzan.maxkb4j.module.chat.dto.KnowledgeParams;
@@ -324,7 +324,7 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
         knowledgeAction.setMeta(meta);
         knowledgeActionService.save(knowledgeAction);
         LogicFlow logicFlow = LogicFlow.newInstance(knowledgeWorkFlow);
-        List<INode> nodes = logicFlow.getNodes().stream().map(NodeBuilder::getNode).filter(Objects::nonNull).toList();
+        List<AbsNode> nodes = logicFlow.getNodes().stream().map(NodeBuilder::getNode).filter(Objects::nonNull).toList();
         params.setActionId(knowledgeAction.getId());
         params.setKnowledgeId(id);
         params.setDebug(debug);

@@ -1,7 +1,7 @@
 package com.tarzan.maxkb4j.core.workflow.node.impl;
 
 import com.alibaba.fastjson.JSONObject;
-import com.tarzan.maxkb4j.core.workflow.node.INode;
+import com.tarzan.maxkb4j.core.workflow.node.AbsNode;
 import com.tarzan.maxkb4j.core.workflow.model.Workflow;
 import lombok.Data;
 
@@ -9,7 +9,7 @@ import java.util.Map;
 
 import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.QUESTION;
 
-public class QuestionNode extends INode {
+public class QuestionNode extends AbsNode {
 
 
     public QuestionNode(String id,JSONObject properties) {

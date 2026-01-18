@@ -8,7 +8,7 @@ import com.tarzan.maxkb4j.core.workflow.model.KnowledgeWorkflow;
 import com.tarzan.maxkb4j.core.workflow.model.NodeResult;
 import com.tarzan.maxkb4j.core.workflow.model.NodeResultFuture;
 import com.tarzan.maxkb4j.core.workflow.model.Workflow;
-import com.tarzan.maxkb4j.core.workflow.node.INode;
+import com.tarzan.maxkb4j.core.workflow.node.AbsNode;
 import com.tarzan.maxkb4j.module.knowledge.service.KnowledgeActionService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.task.TaskExecutor;
@@ -30,7 +30,7 @@ public class KnowledgeWorkflowHandler extends WorkflowHandler {
     @Override
     public String execute(Workflow workflow) {
         if (workflow instanceof KnowledgeWorkflow knowledgeWorkflow) {
-            List<INode> nodes = knowledgeWorkflow.getStartNodes();
+            List<AbsNode> nodes = knowledgeWorkflow.getStartNodes();
             runChainNodes(workflow, nodes);
             knowledgeActionService.updateState(workflow, ActionStatus.SUCCESS);
         }
@@ -39,7 +39,7 @@ public class KnowledgeWorkflowHandler extends WorkflowHandler {
 
 
     @Override
-    public NodeResultFuture runNodeFuture(Workflow workflow, INode node) {
+    public NodeResultFuture runNodeFuture(Workflow workflow, AbsNode node) {
         try {
             long startTime = System.currentTimeMillis();
             node.setStatus(NodeStatus.STARTED.getCode());

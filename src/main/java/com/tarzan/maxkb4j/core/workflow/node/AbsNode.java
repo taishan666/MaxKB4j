@@ -20,7 +20,7 @@ import java.util.*;
 
 @Slf4j
 @Data
-public abstract class INode {
+public abstract class AbsNode {
     private String id;
     private String type;
     private String viewType;
@@ -34,7 +34,7 @@ public abstract class INode {
     private String errMessage;
 
 
-    public INode(String id,JSONObject properties) {
+    public AbsNode(String id, JSONObject properties) {
         this.id = id;
         this.properties = properties;
         this.viewType = "many_view";

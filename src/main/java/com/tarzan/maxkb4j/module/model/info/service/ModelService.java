@@ -19,7 +19,6 @@ import com.tarzan.maxkb4j.module.system.user.domain.entity.UserEntity;
 import com.tarzan.maxkb4j.module.system.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,10 +39,10 @@ public class ModelService extends ServiceImpl<ModelMapper, ModelEntity> {
     private final UserResourcePermissionService userResourcePermissionService;
 
 
-    @Cacheable(cacheNames = "model_info", key = "#modelId")
+  /*  @Cacheable(cacheNames = "model_info", key = "#modelId")
     public ModelEntity getCacheModelById(String modelId) {
         return this.getById(modelId);
-    }
+    }*/
 
 
     public List<ModelVO> models(String name, String createUser, String modelType, String provider) {

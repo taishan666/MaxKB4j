@@ -1,7 +1,7 @@
 package com.tarzan.maxkb4j.core.workflow.node.impl;
 
 import com.alibaba.fastjson.JSONObject;
-import com.tarzan.maxkb4j.core.workflow.node.INode;
+import com.tarzan.maxkb4j.core.workflow.node.AbsNode;
 import com.tarzan.maxkb4j.core.workflow.model.Workflow;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -12,7 +12,7 @@ import java.util.Map;
 import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.INTENT_CLASSIFY;
 
 @Slf4j
-public class IntentClassifyNode extends INode {
+public class IntentClassifyNode extends AbsNode {
 
 
     public IntentClassifyNode(String id,JSONObject properties) {

@@ -14,7 +14,7 @@ import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;
 import com.tarzan.maxkb4j.core.workflow.model.NodeResult;
 import com.tarzan.maxkb4j.core.workflow.model.SysFile;
 import com.tarzan.maxkb4j.core.workflow.model.Workflow;
-import com.tarzan.maxkb4j.core.workflow.node.INode;
+import com.tarzan.maxkb4j.core.workflow.node.AbsNode;
 import com.tarzan.maxkb4j.core.workflow.node.impl.AiChatNode;
 import com.tarzan.maxkb4j.module.application.domain.vo.ChatMessageVO;
 import com.tarzan.maxkb4j.module.model.info.service.ModelFactory;
@@ -48,7 +48,7 @@ public class LLMNodeHandler implements INodeHandler {
     private final MongoFileService fileService;
 
     @Override
-    public NodeResult execute(Workflow workflow, INode node) throws Exception {
+    public NodeResult execute(Workflow workflow, AbsNode node) throws Exception {
         AiChatNode.NodeParams nodeParams = node.getNodeData().toJavaObject(AiChatNode.NodeParams.class);
         String question = workflow.generatePrompt(nodeParams.getPrompt());
         String systemPrompt = workflow.generatePrompt(nodeParams.getSystem());
@@ -96,7 +96,7 @@ public class LLMNodeHandler implements INodeHandler {
         return builder;
     }
 
-    private List<Content> buildImageContents(Workflow workflow, INode node, List<String> imageFieldList) {
+    private List<Content> buildImageContents(Workflow workflow, AbsNode node, List<String> imageFieldList) {
         List<Content> contents = new ArrayList<>();
         if (CollectionUtils.isEmpty(imageFieldList)) {
             return contents;
@@ -129,7 +129,7 @@ public class LLMNodeHandler implements INodeHandler {
         return lastDotIndex > 0 ? fileName.substring(lastDotIndex + 1).toLowerCase() : "bin";
     }
 
-    private void recordNodeDetails(INode node, String systemPrompt, List<ChatMessage> historyMessages,
+    private void recordNodeDetails(AbsNode node, String systemPrompt, List<ChatMessage> historyMessages,
                                    String question, List<Content> contents) {
         node.getDetail().put("system", systemPrompt);
         node.getDetail().put("history_message", node.resetMessageList(historyMessages));
@@ -137,7 +137,7 @@ public class LLMNodeHandler implements INodeHandler {
         node.getDetail().put("hasImages", !contents.isEmpty());
     }
 
-    private NodeResult handleChatResponse(ChatResponse response, INode node) {
+    private NodeResult handleChatResponse(ChatResponse response, AbsNode node) {
         String answer = Optional.ofNullable(response.aiMessage().text()).orElse("");
         String reasoning = Optional.ofNullable(response.aiMessage().thinking()).orElse("");
 
@@ -151,7 +151,7 @@ public class LLMNodeHandler implements INodeHandler {
     }
 
     private NodeResult writeContextStream(AiChatNode.NodeParams nodeParams, TokenStream tokenStream,
-                                          Workflow workflow, INode node) {
+                                          Workflow workflow, AbsNode node) {
         boolean isResult = Boolean.TRUE.equals(nodeParams.getIsResult());
         boolean toolOutputEnable = Boolean.TRUE.equals(nodeParams.getToolOutputEnable());
         boolean reasoningContentEnable = Optional.ofNullable(nodeParams.getModelSetting())
@@ -188,7 +188,7 @@ public class LLMNodeHandler implements INodeHandler {
         return handleChatResponse(response, node);
     }
 
-    private void emitMessage(Workflow workflow, INode node, String content, String reasoning) {
+    private void emitMessage(Workflow workflow, AbsNode node, String content, String reasoning) {
         ChatMessageVO vo = node.toChatMessageVO(
                 workflow.getChatParams().getChatId(),
                 workflow.getChatParams().getChatRecordId(),

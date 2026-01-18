@@ -6,7 +6,7 @@ import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;
 import com.tarzan.maxkb4j.core.workflow.model.KnowledgeWorkflow;
 import com.tarzan.maxkb4j.core.workflow.model.NodeResult;
 import com.tarzan.maxkb4j.core.workflow.model.Workflow;
-import com.tarzan.maxkb4j.core.workflow.node.INode;
+import com.tarzan.maxkb4j.core.workflow.node.AbsNode;
 import com.tarzan.maxkb4j.core.workflow.node.impl.KnowledgeWriteNode;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.DocumentSimple;
 import com.tarzan.maxkb4j.module.knowledge.enums.KnowledgeType;
@@ -27,7 +27,7 @@ public class KnowledgeWriteHandler implements INodeHandler {
 
     @SuppressWarnings("unchecked")
     @Override
-    public NodeResult execute(Workflow workflow, INode node) throws Exception {
+    public NodeResult execute(Workflow workflow, AbsNode node) throws Exception {
         KnowledgeWriteNode.NodeParams nodeParams = node.getNodeData().toJavaObject(KnowledgeWriteNode.NodeParams.class);
         Object value = workflow.getReferenceField(nodeParams.getDocumentList().get(0),nodeParams.getDocumentList().get(1));
         node.getDetail().put("write_content", value);

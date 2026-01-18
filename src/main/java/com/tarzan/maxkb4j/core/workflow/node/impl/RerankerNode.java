@@ -1,7 +1,7 @@
 package com.tarzan.maxkb4j.core.workflow.node.impl;
 
 import com.alibaba.fastjson.JSONObject;
-import com.tarzan.maxkb4j.core.workflow.node.INode;
+import com.tarzan.maxkb4j.core.workflow.node.AbsNode;
 import com.tarzan.maxkb4j.core.workflow.model.Workflow;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -12,7 +12,7 @@ import java.util.Map;
 
 import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.RERANKER;
 
-public class RerankerNode extends INode {
+public class RerankerNode extends AbsNode {
 
 
     public RerankerNode(String id,JSONObject properties) {

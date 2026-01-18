@@ -6,7 +6,7 @@ import com.tarzan.maxkb4j.core.workflow.annotation.NodeHandlerType;
 import com.tarzan.maxkb4j.core.workflow.enums.NodeType;
 import com.tarzan.maxkb4j.core.workflow.model.Workflow;
 import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;
-import com.tarzan.maxkb4j.core.workflow.node.INode;
+import com.tarzan.maxkb4j.core.workflow.node.AbsNode;
 import com.tarzan.maxkb4j.core.workflow.node.impl.DirectReplyNode;
 import com.tarzan.maxkb4j.core.workflow.model.NodeResult;
 import org.springframework.stereotype.Component;
@@ -19,7 +19,7 @@ import java.util.concurrent.atomic.AtomicReference;
 @Component
 public class DirectReplyNodeHandler implements INodeHandler {
     @Override
-    public NodeResult execute(Workflow workflow, INode node) throws Exception {
+    public NodeResult execute(Workflow workflow, AbsNode node) throws Exception {
         DirectReplyNode.NodeParams nodeParams = node.getNodeData().toJavaObject(DirectReplyNode.NodeParams.class);
         AtomicReference<String> answerText = new AtomicReference<>("");
         if ("referencing".equals(nodeParams.getReplyType())) {

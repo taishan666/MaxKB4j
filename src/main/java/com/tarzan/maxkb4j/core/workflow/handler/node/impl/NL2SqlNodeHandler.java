@@ -7,7 +7,7 @@ import com.tarzan.maxkb4j.core.workflow.annotation.NodeHandlerType;
 import com.tarzan.maxkb4j.core.workflow.enums.NodeType;
 import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;
 import com.tarzan.maxkb4j.core.workflow.model.Workflow;
-import com.tarzan.maxkb4j.core.workflow.node.INode;
+import com.tarzan.maxkb4j.core.workflow.node.AbsNode;
 import com.tarzan.maxkb4j.core.workflow.node.impl.NL2SqlNode;
 import com.tarzan.maxkb4j.core.workflow.model.NodeResult;
 import com.tarzan.maxkb4j.module.model.info.service.ModelFactory;
@@ -32,7 +32,7 @@ public class NL2SqlNodeHandler implements INodeHandler {
 
     private final ModelFactory modelFactory;
     @Override
-    public NodeResult execute(Workflow workflow, INode node) throws Exception {
+    public NodeResult execute(Workflow workflow, AbsNode node) throws Exception {
         NL2SqlNode.NodeParams nodeParams=node.getNodeData().toJavaObject(NL2SqlNode.NodeParams.class);
         NL2SqlNode.DatabaseSetting databaseSetting=nodeParams.getDatabaseSetting();
         List<String> fields=nodeParams.getQuestionReferenceAddress();

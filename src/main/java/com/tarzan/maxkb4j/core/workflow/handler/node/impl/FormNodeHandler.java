@@ -5,7 +5,7 @@ import com.tarzan.maxkb4j.core.workflow.annotation.NodeHandlerType;
 import com.tarzan.maxkb4j.core.workflow.enums.NodeType;
 import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;
 import com.tarzan.maxkb4j.core.workflow.model.Workflow;
-import com.tarzan.maxkb4j.core.workflow.node.INode;
+import com.tarzan.maxkb4j.core.workflow.node.AbsNode;
 import com.tarzan.maxkb4j.core.workflow.node.impl.FormNode;
 import com.tarzan.maxkb4j.core.workflow.model.NodeResult;
 import org.springframework.stereotype.Component;
@@ -19,7 +19,7 @@ import java.util.Map;
 public class FormNodeHandler implements INodeHandler {
 
     @Override
-    public NodeResult execute(Workflow workflow, INode node) throws Exception {
+    public NodeResult execute(Workflow workflow, AbsNode node) throws Exception {
         FormNode.NodeParams nodeParams = node.getNodeData().toJavaObject(FormNode.NodeParams.class);
         Map<String, Object> formData = nodeParams.getFormData();
         Map<String, Object> nodeVariable=new HashMap<>();
@@ -44,7 +44,7 @@ public class FormNodeHandler implements INodeHandler {
 
 
 
-    public boolean isInterrupt(INode node) {
+    public boolean isInterrupt(AbsNode node) {
         return !(boolean)node.getContext().getOrDefault("is_submit", false);
     }
 

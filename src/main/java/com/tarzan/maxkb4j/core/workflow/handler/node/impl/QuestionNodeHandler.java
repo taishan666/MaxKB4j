@@ -7,7 +7,7 @@ import com.tarzan.maxkb4j.core.workflow.enums.DialogueType;
 import com.tarzan.maxkb4j.core.workflow.enums.NodeType;
 import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;
 import com.tarzan.maxkb4j.core.workflow.model.Workflow;
-import com.tarzan.maxkb4j.core.workflow.node.INode;
+import com.tarzan.maxkb4j.core.workflow.node.AbsNode;
 import com.tarzan.maxkb4j.core.workflow.node.impl.QuestionNode;
 import com.tarzan.maxkb4j.core.workflow.model.NodeResult;
 import com.tarzan.maxkb4j.module.model.info.service.ModelFactory;
@@ -31,7 +31,7 @@ public class QuestionNodeHandler implements INodeHandler {
 
     private final ModelFactory modelFactory;
     @Override
-    public NodeResult execute(Workflow workflow, INode node) throws Exception {
+    public NodeResult execute(Workflow workflow, AbsNode node) throws Exception {
         QuestionNode.NodeParams nodeParams = node.getNodeData().toJavaObject(QuestionNode.NodeParams.class);
         ChatModel chatModel = modelFactory.buildChatModel(nodeParams.getModelId(), nodeParams.getModelParamsSetting());
         List<ChatMessage> historyMessages=workflow.getHistoryMessages(nodeParams.getDialogueNumber(), DialogueType.WORK_FLOW.name(), node.getRuntimeNodeId());

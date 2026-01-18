@@ -6,7 +6,7 @@ import com.tarzan.maxkb4j.core.workflow.enums.NodeType;
 import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;
 import com.tarzan.maxkb4j.core.workflow.model.SysFile;
 import com.tarzan.maxkb4j.core.workflow.model.Workflow;
-import com.tarzan.maxkb4j.core.workflow.node.INode;
+import com.tarzan.maxkb4j.core.workflow.node.AbsNode;
 import com.tarzan.maxkb4j.core.workflow.node.impl.ApplicationNode;
 import com.tarzan.maxkb4j.core.workflow.model.NodeResult;
 import com.tarzan.maxkb4j.module.application.domain.vo.ChatMessageVO;
@@ -38,7 +38,7 @@ public class ApplicationNodeHandler implements INodeHandler {
 
     @SuppressWarnings("unchecked")
     @Override
-    public NodeResult execute(Workflow workflow,INode node) throws Exception {
+    public NodeResult execute(Workflow workflow, AbsNode node) throws Exception {
         ApplicationNode.NodeParams nodeParams = node.getNodeData().toJavaObject(ApplicationNode.NodeParams.class);
         List<String> questionFields = nodeParams.getQuestionReferenceAddress();
         String question = (String) workflow.getReferenceField(questionFields.get(0), questionFields.get(1));
@@ -121,7 +121,7 @@ public class ApplicationNodeHandler implements INodeHandler {
     }
 
 
-    public boolean isInterrupt(INode node) {
+    public boolean isInterrupt(AbsNode node) {
         return node.getDetail().containsKey("is_interrupt_exec")&&(boolean)node.getDetail().get("is_interrupt_exec");
     }
 
