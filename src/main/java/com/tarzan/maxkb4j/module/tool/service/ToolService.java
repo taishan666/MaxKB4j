@@ -202,17 +202,26 @@ public class ToolService extends ServiceImpl<ToolMapper, ToolEntity> {
     public List<ToolEntity> store(String name) throws IOException {
         List<ToolEntity> list = new ArrayList<>();
         PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
-        Resource[] resources = resolver.getResources("classpath:templates/tool/*");
+        Resource[] resources = resolver.getResources("classpath:templates/tool/*/*.tool");
         for (Resource resource : resources) {
-            if (resource.isFile()&& Objects.requireNonNull(resource.getFilename()).endsWith(".tool")){
+            if (resource.isFile() && Objects.requireNonNull(resource.getFilename()).endsWith(".tool")) {
+                String filename = resource.getFilename();
+                String parentFilename=resource.getFile().getParentFile().getName();
+                String[] parts = filename.split("-", 2);
+                String version =parts.length>1?parts[1].substring(0, parts[1].length() - 5):"1.0.0";
                 String text = IoUtil.readToString(resource.getInputStream());
                 ToolEntity tool = JSONObject.parseObject(text, ToolEntity.class);
-                list.add(tool);
+                if (tool!=null){
+                    tool.setLabel(parentFilename);
+                    tool.setVersion(version);
+                    list.add(tool);
+                }
             }
         }
-        if (StringUtils.isNotBlank(name)){
+        if(StringUtils.isNotBlank(name)) {
             list = list.stream().filter(tool -> tool.getName().contains(name)).collect(Collectors.toList());
         }
         return list;
     }
+
 }
