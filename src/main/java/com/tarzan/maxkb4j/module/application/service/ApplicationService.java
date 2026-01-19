@@ -11,6 +11,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tarzan.maxkb4j.common.exception.ApiException;
 import com.tarzan.maxkb4j.common.util.*;
+import com.tarzan.maxkb4j.core.workflow.enums.NodeType;
 import com.tarzan.maxkb4j.module.application.domain.dto.*;
 import com.tarzan.maxkb4j.module.application.domain.entity.*;
 import com.tarzan.maxkb4j.module.application.domain.vo.ApplicationListVO;
@@ -27,6 +28,7 @@ import com.tarzan.maxkb4j.module.system.permission.constant.AuthTargetType;
 import com.tarzan.maxkb4j.module.system.permission.service.UserResourcePermissionService;
 import com.tarzan.maxkb4j.module.system.user.constants.RoleType;
 import com.tarzan.maxkb4j.module.system.user.service.UserService;
+import com.tarzan.maxkb4j.module.tool.service.ToolService;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.UserMessage;
@@ -70,10 +72,10 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     private final ApplicationApiKeyService applicationApiKeyService;
     private final ApplicationChatUserStatsService chatUserStatsService;
     private final ApplicationVersionService applicationVersionService;
-  //  private final ApplicationKnowledgeMappingService knowledgeMappingService;
     private final ApplicationChatRecordService applicationChatRecordService;
     private final ApplicationChatMapper applicationChatMapper;
     private final UserResourcePermissionService userResourcePermissionService;
+    private final ToolService toolService;
 
     public IPage<ApplicationVO> selectAppPage(int page, int size, ApplicationQuery query) {
         Page<ApplicationEntity> appPage = new Page<>(page, size);
@@ -196,15 +198,11 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
 
 
     public ApplicationVO wrapVo(ApplicationVO vo) {
-        if (AppType.SIMPLE.name().equals(vo.getType())) {
-            List<String> knowledgeIds =vo.getKnowledgeIds();
-          //  List<String> knowledgeIds = knowledgeMappingService.getKnowledgeIdsByAppId(vo.getId());
-           // vo.setKnowledgeIdList(knowledgeIds);
-            if (!CollectionUtils.isEmpty(knowledgeIds)) {
-                vo.setKnowledgeList(knowledgeService.listByIds(knowledgeIds));
-            } else {
-                vo.setKnowledgeList(List.of());
-            }
+        List<String> knowledgeIds =vo.getKnowledgeIds();
+        if (!CollectionUtils.isEmpty(knowledgeIds)) {
+            vo.setKnowledgeList(knowledgeService.listByIds(knowledgeIds));
+        } else {
+            vo.setKnowledgeList(List.of());
         }
         if (AppType.WORK_FLOW.name().equals(vo.getType())) {
             JSONObject workFlow = vo.getWorkFlow();
@@ -217,11 +215,12 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
                         if (properties != null) {
                             JSONObject nodeData = properties.getJSONObject("nodeData");
                             JSONArray knowledgeIdListJson = nodeData.getJSONArray("knowledgeIds");
-                            List<String> knowledgeIds = knowledgeIdListJson.toJavaList(String.class);
-                            if (!CollectionUtils.isEmpty(knowledgeIds)){
-                                nodeData.put("knowledgeList", knowledgeService.listByIds(knowledgeIds));
-                            }else {
-                                nodeData.put("knowledgeList", List.of());
+                            nodeData.put("knowledgeList", List.of());
+                            if (knowledgeIdListJson != null){
+                                List<String> nodeKnowledgeIds = knowledgeIdListJson.toJavaList(String.class);
+                                if (!CollectionUtils.isEmpty(nodeKnowledgeIds)){
+                                    nodeData.put("knowledgeList", knowledgeService.listByIds(nodeKnowledgeIds));
+                                }
                             }
                         }
                     }
@@ -258,7 +257,6 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         app.setId(appId);
         List<String> knowledgeIds =appVO.getKnowledgeIds()==null?List.of():appVO.getKnowledgeIds();
         app.setKnowledgeIds(knowledgeIds);
-        // knowledgeMappingService.updateByAppId(appId, knowledgeIds);
         JSONObject workFlow = appVO.getWorkFlow();
         if (workFlow != null && workFlow.containsKey("nodes")) {
             JSONArray nodes = workFlow.getJSONArray("nodes");
@@ -316,7 +314,12 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
 
     public void appExport(String id, HttpServletResponse response) throws IOException {
         ApplicationEntity app = this.getById(id);
-        MaxKb4J maxKb4J = new MaxKb4J(app, new ArrayList<>(), "v1");
+        List<String> toolIds = new ArrayList<>();
+        if (app.getToolIds()!= null){
+            toolIds.addAll(app.getToolIds());
+        }
+        toolIds.addAll(getToolIdList(app.getWorkFlow()));
+        MaxKb4J maxKb4J = new MaxKb4J(app, toolService.listByIds(toolIds), "v2");
         byte[] bytes = JSONUtil.toJsonStr(maxKb4J).getBytes(StandardCharsets.UTF_8);
         response.setContentType("text/plain");
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());
@@ -324,6 +327,69 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         response.setHeader("Content-disposition", "attachment;filename=" + fileName + ".mk4j");
         OutputStream outputStream = response.getOutputStream();
         outputStream.write(bytes);
+    }
+
+    @SuppressWarnings("unchecked")
+    public static List<String> getToolIdList(JSONObject workflow) {
+        List<String> result = new ArrayList<>();
+        if (workflow == null) {
+            return result;
+        }
+        JSONArray nodes = workflow.getJSONArray("nodes");
+        if (nodes == null) {
+            return result;
+        }
+        for (int i = 0; i < nodes.size(); i++) {
+            JSONObject node= nodes.getJSONObject(i);
+            if (node == null) continue;
+            String type = node.getString("type");
+            if (NodeType.TOOL_LIB.getKey().equals(type)) {
+                JSONObject properties = node.getJSONObject("properties");
+                if (properties != null) {
+                    JSONObject nodeData = properties.getJSONObject("nodeData");
+                    if (nodeData != null) {
+                        String toolId = nodeData.getString("toolLibId");
+                        if (toolId != null && !toolId.isEmpty()) {
+                            result.add(toolId);
+                        }
+                    }
+                }
+            } else if (NodeType.LOOP.getKey().equals(type)) {
+                JSONObject properties = node.getJSONObject("properties");
+                if (properties != null) {
+                    JSONObject nodeData = properties.getJSONObject("nodeData");
+                    if (nodeData != null) {
+                        JSONObject loopBody = nodeData.getJSONObject("loop_body");
+                        if (loopBody != null) {
+                            result.addAll(getToolIdList(loopBody));
+                        }
+                    }
+                }
+            } else if (NodeType.AI_CHAT.getKey().equals(type)) {
+                JSONObject properties = node.getJSONObject("properties");
+                if (properties != null) {
+                    JSONObject nodeData = properties.getJSONObject("nodeData");
+                    if (nodeData != null) {
+                        List<String> toolIds = (List<String>) nodeData.getJSONObject("toolIds");
+                        if (toolIds != null) {
+                            result.addAll(toolIds);
+                        }
+                    }
+                }
+            } else if (NodeType.MCP.getKey().equals(type)) {
+                JSONObject properties = node.getJSONObject("properties");
+                if (properties != null) {
+                    JSONObject nodeData = properties.getJSONObject("nodeData");
+                    if (nodeData != null) {
+                        String mcpToolId = nodeData.getString("mcpToolId");
+                        if (mcpToolId != null && !mcpToolId.isEmpty()) {
+                            result.add(mcpToolId);
+                        }
+                    }
+                }
+            }
+        }
+        return result;
     }
 
     @Transactional
