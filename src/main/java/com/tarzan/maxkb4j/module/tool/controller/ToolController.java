@@ -11,6 +11,7 @@ import com.tarzan.maxkb4j.module.tool.domain.dto.ToolInputField;
 import com.tarzan.maxkb4j.module.tool.domain.dto.ToolQuery;
 import com.tarzan.maxkb4j.module.tool.domain.entity.ToolEntity;
 import com.tarzan.maxkb4j.module.tool.domain.vo.ToolVO;
+import com.tarzan.maxkb4j.module.tool.enums.ToolType;
 import com.tarzan.maxkb4j.module.tool.service.ToolService;
 import groovy.lang.Binding;
 import groovy.lang.GroovyShell;
@@ -67,7 +68,7 @@ public class ToolController {
         dto.setUserId(StpKit.ADMIN.getLoginIdAsString());
         dto.setTemplateId(templateId);
         dto.setScope("WORKSPACE");
-        dto.setToolType("CUSTOM");
+        dto.setToolType(ToolType.CUSTOM.getValue());
         Date now = new Date();
         dto.setCreateTime(now);
         dto.setUpdateTime(now);

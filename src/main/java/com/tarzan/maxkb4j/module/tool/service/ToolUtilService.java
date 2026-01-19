@@ -1,15 +1,17 @@
-package com.tarzan.maxkb4j.common.util;
+package com.tarzan.maxkb4j.module.tool.service;
 
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.tarzan.maxkb4j.common.util.GroovyScriptExecutor;
+import com.tarzan.maxkb4j.common.util.McpToolUtil;
 import com.tarzan.maxkb4j.module.application.domain.entity.ApplicationApiKeyEntity;
 import com.tarzan.maxkb4j.module.application.domain.entity.ApplicationEntity;
 import com.tarzan.maxkb4j.module.application.service.ApplicationApiKeyService;
 import com.tarzan.maxkb4j.module.application.service.ApplicationService;
 import com.tarzan.maxkb4j.module.tool.domain.dto.ToolInputField;
 import com.tarzan.maxkb4j.module.tool.domain.entity.ToolEntity;
-import com.tarzan.maxkb4j.module.tool.service.ToolService;
+import com.tarzan.maxkb4j.module.tool.enums.ToolType;
 import dev.langchain4j.agent.tool.ToolSpecification;
 import dev.langchain4j.model.chat.request.json.JsonArraySchema;
 import dev.langchain4j.model.chat.request.json.JsonObjectSchema;
@@ -26,7 +28,7 @@ import java.util.Map;
 
 @RequiredArgsConstructor
 @Service
-public class ToolUtil {
+public class ToolUtilService {
 
     private final ToolService toolService;
     private final ApplicationService applicationService;
@@ -72,7 +74,7 @@ public class ToolUtil {
         wrapper.eq(ToolEntity::getIsActive, true);
         List<ToolEntity> toolEntities = toolService.list(wrapper);
         for (ToolEntity tool : toolEntities) {
-            if ("MCP".equals(tool.getToolType())) {
+            if (ToolType.MCP.getValue().equals(tool.getToolType())) {
                 JSONObject mcpServers = JSONObject.parseObject(tool.getCode());
                 tools.putAll(McpToolUtil.getToolMap(mcpServers));
             } else {

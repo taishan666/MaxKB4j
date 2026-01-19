@@ -13,7 +13,10 @@ import com.tarzan.maxkb4j.module.application.domain.vo.ApplicationListVO;
 import com.tarzan.maxkb4j.module.application.domain.vo.ApplicationStatisticsVO;
 import com.tarzan.maxkb4j.module.application.domain.vo.ApplicationVO;
 import com.tarzan.maxkb4j.module.application.domain.vo.McpToolVO;
+import com.tarzan.maxkb4j.module.application.service.ApplicationAccessTokenService;
+import com.tarzan.maxkb4j.module.application.service.ApplicationExportService;
 import com.tarzan.maxkb4j.module.application.service.ApplicationService;
+import com.tarzan.maxkb4j.module.application.service.ApplicationStatsService;
 import com.tarzan.maxkb4j.module.system.user.enums.PermissionEnum;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
@@ -41,6 +44,9 @@ import java.util.Map;
 public class ApplicationController {
 
     private final ApplicationService applicationService;
+    private final ApplicationExportService exportService;
+    private final ApplicationStatsService applicationStatsService;
+    private final ApplicationAccessTokenService accessTokenService;
 
     @SaCheckPerm(PermissionEnum.APPLICATION_READ)
     @GetMapping("/application")
@@ -54,9 +60,10 @@ public class ApplicationController {
         return R.success(applicationService.createApp(application));
     }
 
+    @SaCheckPerm(PermissionEnum.APPLICATION_IMPORT)
     @PostMapping("/application/folder/{folderId}/import")
     public R<Boolean> appImport(@PathVariable String folderId, MultipartFile file) throws Exception {
-        return R.status(applicationService.appImport(file));
+        return R.status(exportService.appImport(file));
     }
 
     @SaCheckPerm(PermissionEnum.APPLICATION_EDIT)
@@ -68,7 +75,7 @@ public class ApplicationController {
     @SaCheckPerm(PermissionEnum.APPLICATION_EXPORT)
     @GetMapping("/application/{id}/export")
     public void appExport(@PathVariable("id") String id, HttpServletResponse response) throws IOException {
-        applicationService.appExport(id, response);
+        exportService.appExport(id, response);
     }
 
     @SaCheckPerm(PermissionEnum.APPLICATION_READ)
@@ -123,13 +130,13 @@ public class ApplicationController {
     @SaCheckPerm(PermissionEnum.APPLICATION_ACCESS_READ)
     @GetMapping("/application/{id}/access_token")
     public R<ApplicationAccessTokenEntity> getAccessToken(@PathVariable("id") String id) {
-        return R.success(applicationService.getAccessToken(id));
+        return R.success(accessTokenService.accessToken(id));
     }
 
     @SaCheckPerm(PermissionEnum.APPLICATION_ACCESS_EDIT)
     @PutMapping("/application/{id}/access_token")
     public R<ApplicationAccessTokenEntity> updateAccessToken(@PathVariable("id") String id, @RequestBody ApplicationAccessTokenDTO dto) {
-        return R.success(applicationService.updateAccessToken(id, dto));
+        return R.success(accessTokenService.updateAccessToken(id, dto));
     }
 
     @SaCheckPerm(PermissionEnum.APPLICATION_EDIT)
@@ -141,7 +148,7 @@ public class ApplicationController {
     @SaCheckPerm(PermissionEnum.APPLICATION_READ)
     @GetMapping("/application/{id}/application_stats")
     public R<List<ApplicationStatisticsVO>> applicationStats(@PathVariable("id") String id, ChatQueryDTO query) {
-        return R.success(applicationService.applicationStats(id, query));
+        return R.success(applicationStatsService.applicationStats(id, query));
     }
 
     @SaCheckPerm(PermissionEnum.APPLICATION_READ)

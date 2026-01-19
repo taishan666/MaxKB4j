@@ -13,6 +13,6 @@ import java.util.List;
 @NoArgsConstructor
 public class MaxKb4J {
     private ApplicationEntity application;
-    private List<ToolEntity> functionLibList;
+    private List<ToolEntity> toolList;
     private String version;
 }

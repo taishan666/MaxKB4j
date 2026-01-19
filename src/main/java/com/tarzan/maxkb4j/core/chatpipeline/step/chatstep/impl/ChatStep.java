@@ -4,7 +4,7 @@ import com.alibaba.excel.util.StringUtils;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.common.util.MessageUtils;
-import com.tarzan.maxkb4j.common.util.ToolUtil;
+import com.tarzan.maxkb4j.module.tool.service.ToolUtilService;
 import com.tarzan.maxkb4j.core.assistant.Assistant;
 import com.tarzan.maxkb4j.core.chatpipeline.PipelineManage;
 import com.tarzan.maxkb4j.core.chatpipeline.step.chatstep.IChatStep;
@@ -36,7 +36,7 @@ import java.util.concurrent.CompletableFuture;
 public class ChatStep extends IChatStep {
 
     private final ModelFactory modelFactory;
-    private final ToolUtil toolUtil;
+    private final ToolUtilService toolUtil;
 
 
     @Override
