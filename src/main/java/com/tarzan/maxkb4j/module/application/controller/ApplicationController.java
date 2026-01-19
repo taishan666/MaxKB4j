@@ -54,6 +54,7 @@ public class ApplicationController {
         return R.success(applicationService.createApp(application));
     }
 
+    @SaCheckPerm(PermissionEnum.APPLICATION_IMPORT)
     @PostMapping("/application/folder/{folderId}/import")
     public R<Boolean> appImport(@PathVariable String folderId, MultipartFile file) throws Exception {
         return R.status(applicationService.appImport(file));

@@ -28,6 +28,7 @@ import com.tarzan.maxkb4j.module.system.permission.constant.AuthTargetType;
 import com.tarzan.maxkb4j.module.system.permission.service.UserResourcePermissionService;
 import com.tarzan.maxkb4j.module.system.user.constants.RoleType;
 import com.tarzan.maxkb4j.module.system.user.service.UserService;
+import com.tarzan.maxkb4j.module.tool.domain.entity.ToolEntity;
 import com.tarzan.maxkb4j.module.tool.service.ToolService;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
@@ -397,16 +398,28 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         if (!Objects.requireNonNull(file.getOriginalFilename()).endsWith(".mk4j")) {
             throw new ApiException("文件格式错误");
         }
+        Date now = new Date();
         String text = IoUtil.readToString(file.getInputStream());
         MaxKb4J maxKb4J = JSONObject.parseObject(text, MaxKb4J.class);
         ApplicationEntity application = maxKb4J.getApplication();
         application.setId(null);
         application.setIsPublish(false);
+        application.setCreateTime(now);
+        application.setUpdateTime(now);
         boolean flag = this.save(application);
         ApplicationAccessTokenEntity accessToken = ApplicationAccessTokenEntity.createDefault();
         accessToken.setApplicationId(application.getId());
         accessToken.setLanguage((String) StpKit.ADMIN.getExtra("language"));
         accessTokenService.save(accessToken);
+        List<ToolEntity> toolList=maxKb4J.getToolList();
+        toolList.forEach(e->{
+            e.setId(null);
+            e.setUserId(StpKit.ADMIN.getLoginIdAsString());
+            e.setIsActive(true);
+            e.setCreateTime(now);
+            e.setUpdateTime(now);
+        });
+        toolService.saveBatch(toolList);
         return flag;
     }
 
