@@ -1,8 +1,6 @@
 package com.tarzan.maxkb4j.module.tool.controller;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.tarzan.maxkb4j.common.aop.SaCheckPerm;
 import com.tarzan.maxkb4j.common.api.R;
 import com.tarzan.maxkb4j.common.constant.AppConst;
@@ -58,28 +56,24 @@ public class ToolController {
     }
     @SaCheckPerm(PermissionEnum.TOOL_READ)
     @GetMapping("/workspace/internal/tool")
-    public R<List<ToolEntity>> internalTools(String name) {
-        LambdaQueryWrapper<ToolEntity> wrapper = Wrappers.lambdaQuery();
-        wrapper.eq(ToolEntity::getToolType, "INTERNAL");
-        if (StringUtils.isNotBlank(name)) {
-            wrapper.like(ToolEntity::getName, name);
-        }
-        return R.success(toolService.list(wrapper));
+    public R<List<ToolEntity>> internalTools(String name) throws IOException {
+        return R.success(toolService.store(name));
     }
 
     @SaCheckPerm(PermissionEnum.TOOL_CREATE)
     @PostMapping("/workspace/default/tool/{templateId}/add_internal_tool")
-    public R<ToolEntity> addInternalTool(@PathVariable String templateId) {
-        ToolEntity entity = toolService.getById(templateId);
-        entity.setId(null);
-        entity.setUserId(StpKit.ADMIN.getLoginIdAsString());
+    public R<ToolEntity> addInternalTool(@PathVariable String templateId,@RequestBody ToolEntity dto) {
+        dto.setId(null);
+        dto.setUserId(StpKit.ADMIN.getLoginIdAsString());
+        dto.setTemplateId(templateId);
+        dto.setScope("WORKSPACE");
+        dto.setToolType("CUSTOM");
         Date now = new Date();
-        entity.setCreateTime(now);
-        entity.setScope("WORKSPACE");
-        entity.setToolType("CUSTOM");
-        entity.setUpdateTime(now);
-        toolService.saveInfo(entity);
-        return R.data(entity);
+        dto.setCreateTime(now);
+        dto.setUpdateTime(now);
+        dto.setIsActive(false);
+        toolService.saveInfo(dto);
+        return R.data(dto);
     }
 
     @SaCheckPerm(PermissionEnum.TOOL_CREATE)

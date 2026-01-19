@@ -22,6 +22,8 @@ import dev.langchain4j.mcp.client.McpClient;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -32,6 +34,7 @@ import java.io.OutputStream;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author tarzan
@@ -194,5 +197,22 @@ public class ToolService extends ServiceImpl<ToolMapper, ToolEntity> {
             wrapper.in(ToolEntity::getId, targetIds);
         }
         return this.list(wrapper);
+    }
+
+    public List<ToolEntity> store(String name) throws IOException {
+        List<ToolEntity> list = new ArrayList<>();
+        PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
+        Resource[] resources = resolver.getResources("classpath:templates/tool/*");
+        for (Resource resource : resources) {
+            if (resource.isFile()&& Objects.requireNonNull(resource.getFilename()).endsWith(".tool")){
+                String text = IoUtil.readToString(resource.getInputStream());
+                ToolEntity tool = JSONObject.parseObject(text, ToolEntity.class);
+                list.add(tool);
+            }
+        }
+        if (StringUtils.isNotBlank(name)){
+            list = list.stream().filter(tool -> tool.getName().contains(name)).collect(Collectors.toList());
+        }
+        return list;
     }
 }
