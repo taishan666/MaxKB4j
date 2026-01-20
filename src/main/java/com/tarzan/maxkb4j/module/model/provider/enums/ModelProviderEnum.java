@@ -9,10 +9,11 @@ import java.util.*;
 @Getter
 public enum ModelProviderEnum {
     AliYunBaiLian("阿里百练","AliYunBaiLian", new AliYunBaiLianModelProvider()),
+    Anthropic("Anthropic","Anthropic", new AnthropicProvider()),
     Azure("Azure OpenAI","Azure", new AzureModelProvider()),
     DeepSeek("DeepSeek","DeepSeek", new DeepSeekModelProvider()),
-    Gemini("Google DeepMind","Gemini", new GeminiModelProvider()),
-    Kimi("月之暗面","Kimi", new KimiModelProvider()),
+    Gemini("Google Gemini","Gemini", new GeminiModelProvider()),
+    Kimi("Kimi","Kimi", new KimiModelProvider()),
     OpenAI("OpenAI","OpenAI", new OpenAiModelProvider()),
     Tencent("腾讯混元","Tencent", new TencentModelProvider()),
     VolcanicEngine("火山引擎","VolcanicEngine", new VolcanicEngineModelProvider()),
