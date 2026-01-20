@@ -14,25 +14,10 @@ public class ChatInfo implements Serializable {
 
     private String chatId;
     private String appId;
-    private Map<String, Object>  chatVariables=new HashMap<>(10);
-    private List<ApplicationChatRecordEntity> chatRecordList= new ArrayList<>();
-
-/*    public Map<String, Object> toBasePipelineManageParams(){
-        return BeanUtil.toMap(this);
-    }
-
-    public Map<String, Object> toPipelineManageParams(ApplicationVO application,String chatRecordId, String problemText,boolean reChat, String chatUserId, String chatUserType){
-        Map<String, Object> params = toBasePipelineManageParams();
-        params.put("application", application);
-        params.put("chatRecordId", chatRecordId);
-        params.put("problemText", problemText);
-        params.put("reChat", reChat);
-        params.put("chatUserId", chatUserId);
-        params.put("chatUserType", chatUserType);
-        return params;
-    }*/
+    private Map<String, Object> chatVariables = new HashMap<>(10);
+    private List<ApplicationChatRecordEntity> chatRecordList = new ArrayList<>();
 
     public void addChatRecord(ApplicationChatRecordEntity chatRecord) {
-          this.chatRecordList.add(chatRecord);
+        this.chatRecordList.add(chatRecord);
     }
 }

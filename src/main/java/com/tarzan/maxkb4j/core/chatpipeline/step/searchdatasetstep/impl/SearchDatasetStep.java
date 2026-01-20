@@ -22,13 +22,13 @@ public class SearchDatasetStep extends ISearchDatasetStep {
     private final RetrieveService retrieveService;
 
     @Override
-    protected List<ParagraphVO> execute(List<String> knowledgeIdList,KnowledgeSetting datasetSetting, String problemText, String paddingProblemText, Boolean reChat, PipelineManage manage) {
+    protected List<ParagraphVO> execute(List<String> knowledgeIds,KnowledgeSetting datasetSetting, String problemText, String paddingProblemText, Boolean reChat, PipelineManage manage) {
         long startTime = System.currentTimeMillis();
         List<String> excludeParagraphIds = reChat ? manage.getExcludeParagraphIds(problemText) : List.of();
         List<CompletableFuture<List<ParagraphVO>>> futureList = new ArrayList<>();
-        futureList.add(CompletableFuture.supplyAsync(() -> retrieveService.paragraphSearch(problemText, knowledgeIdList, excludeParagraphIds, datasetSetting)));
+        futureList.add(CompletableFuture.supplyAsync(() -> retrieveService.paragraphSearch(problemText, knowledgeIds, excludeParagraphIds, datasetSetting)));
         if (StringUtils.isNotBlank(paddingProblemText) && !problemText.equals(paddingProblemText)) {
-            futureList.add(CompletableFuture.supplyAsync(() -> retrieveService.paragraphSearch(paddingProblemText, knowledgeIdList, excludeParagraphIds, datasetSetting)));
+            futureList.add(CompletableFuture.supplyAsync(() -> retrieveService.paragraphSearch(paddingProblemText, knowledgeIds, excludeParagraphIds, datasetSetting)));
         }
         List<ParagraphVO> paragraphList = futureList.stream().flatMap(future -> future.join().stream()).toList();
         if (paragraphList.size() > datasetSetting.getTopN()) {

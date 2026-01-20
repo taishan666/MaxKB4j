@@ -220,6 +220,14 @@ public class UserService extends ServiceImpl<UserMapper, UserEntity> {
     }
 
 
+    public Set<String>  getRoleById(String id) {
+        UserEntity user= this.lambdaQuery().select(UserEntity::getRole).eq(UserEntity::getId, id).one();
+        if (Objects.isNull(user)){
+            return Set.of();
+        }
+        return user.getRole();
+    }
+
     public Map<String, String> getNicknameMap() {
         return this.lambdaQuery().select(UserEntity::getId, UserEntity::getNickname).list().stream().collect(Collectors.toMap(UserEntity::getId, UserEntity::getNickname));
     }

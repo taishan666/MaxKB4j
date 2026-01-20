@@ -3,7 +3,7 @@ package com.tarzan.maxkb4j.core.workflow.handler.node.impl;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.tarzan.maxkb4j.common.util.MessageUtils;
 import com.tarzan.maxkb4j.common.util.MimeTypeUtils;
-import com.tarzan.maxkb4j.common.util.ToolUtil;
+import com.tarzan.maxkb4j.module.tool.service.ToolUtilService;
 import com.tarzan.maxkb4j.core.assistant.Assistant;
 import com.tarzan.maxkb4j.core.langchain4j.AppChatMemory;
 import com.tarzan.maxkb4j.core.langchain4j.AssistantServices;
@@ -44,7 +44,7 @@ import java.util.concurrent.CompletableFuture;
 public class LLMNodeHandler implements INodeHandler {
 
     private final ModelFactory modelFactory;
-    private final ToolUtil toolUtil;
+    private final ToolUtilService toolUtil;
     private final MongoFileService fileService;
 
     @Override

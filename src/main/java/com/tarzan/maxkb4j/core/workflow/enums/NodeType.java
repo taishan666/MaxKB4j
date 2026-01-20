@@ -74,6 +74,8 @@ public enum NodeType {
     DATA_SOURCE_WEB("data-source-web-node", "WEB数据源"),
 
     KNOWLEDGE_WRITE("knowledge-write-node", "知识库写入节点"),
+
+    LOOP("loop-node", "循环节点"),
     ;
 
     private final String key;

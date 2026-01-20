@@ -27,7 +27,6 @@ public class ApplicationChatRecordEntity extends BaseEntity {
 	private Integer answerTokens;
 	private Integer cost;
 	@TableField(typeHandler = JSONBTypeHandler.class)
-	@JsonIgnore
 	private JSONObject details;
 	@TableField(typeHandler = StringListTypeHandler.class)
 	private List<String> improveParagraphIdList;

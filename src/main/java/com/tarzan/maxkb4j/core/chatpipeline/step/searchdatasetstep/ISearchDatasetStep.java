@@ -15,11 +15,11 @@ public abstract class ISearchDatasetStep extends IChatPipelineStep {
         String problemText = manage.chatParams.getMessage();
         String paddingProblemText = (String) manage.context.get("paddingProblemText");
         Boolean reChat =  manage.chatParams.getReChat();
-        List<String> knowledgeIdList = application.getKnowledgeIdList();
+        List<String> knowledgeIds= application.getKnowledgeIds();
         KnowledgeSetting datasetSetting = application.getKnowledgeSetting();
-        List<ParagraphVO> paragraphList = execute(knowledgeIdList,datasetSetting, problemText, paddingProblemText, reChat,manage);
+        List<ParagraphVO> paragraphList = execute(knowledgeIds,datasetSetting, problemText, paddingProblemText, reChat,manage);
         manage.context.put("paragraphList", paragraphList);
     }
 
-    protected abstract List<ParagraphVO> execute(List<String> knowledgeIdList,KnowledgeSetting datasetSetting,String problemText,String paddingProblemText,Boolean reChat,PipelineManage manage);
+    protected abstract List<ParagraphVO> execute(List<String> knowledgeIds,KnowledgeSetting datasetSetting,String problemText,String paddingProblemText,Boolean reChat,PipelineManage manage);
 }

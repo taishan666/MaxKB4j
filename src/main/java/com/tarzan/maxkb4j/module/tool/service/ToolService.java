@@ -13,7 +13,6 @@ import com.tarzan.maxkb4j.common.util.*;
 import com.tarzan.maxkb4j.module.system.permission.constant.AuthTargetType;
 import com.tarzan.maxkb4j.module.system.permission.service.UserResourcePermissionService;
 import com.tarzan.maxkb4j.module.system.user.constants.RoleType;
-import com.tarzan.maxkb4j.module.system.user.domain.entity.UserEntity;
 import com.tarzan.maxkb4j.module.system.user.service.UserService;
 import com.tarzan.maxkb4j.module.tool.domain.dto.ToolQuery;
 import com.tarzan.maxkb4j.module.tool.domain.entity.ToolEntity;
@@ -23,6 +22,8 @@ import dev.langchain4j.mcp.client.McpClient;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -32,10 +33,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author tarzan
@@ -72,19 +71,15 @@ public class ToolService extends ServiceImpl<ToolMapper, ToolEntity> {
             wrapper.eq(ToolEntity::getIsActive, query.getIsActive());
         }
         String loginId = StpKit.ADMIN.getLoginIdAsString();
-        UserEntity user = userService.getUserById(loginId);
-        if (Objects.nonNull(user)) {
-            if (!CollectionUtils.isEmpty(user.getRole())) {
-                if (user.getRole().contains(RoleType.USER)) {
-                    List<String> targetIds = userResourcePermissionService.getTargetIds(AuthTargetType.TOOL, loginId);
-                    if (!CollectionUtils.isEmpty(targetIds)) {
-                        wrapper.in(ToolEntity::getId, targetIds);
-                    } else {
-                        wrapper.last(" limit 0");
-                    }
+        Set<String> role = userService.getRoleById(loginId);
+        if (!CollectionUtils.isEmpty(role)) {
+            if (role.contains(RoleType.USER)) {
+                List<String> targetIds = userResourcePermissionService.getTargetIds(AuthTargetType.TOOL, loginId);
+                if (!CollectionUtils.isEmpty(targetIds)) {
+                    wrapper.in(ToolEntity::getId, targetIds);
+                } else {
+                    wrapper.last(" limit 0");
                 }
-            } else {
-                wrapper.last(" limit 0");
             }
         } else {
             wrapper.last(" limit 0");
@@ -203,4 +198,30 @@ public class ToolService extends ServiceImpl<ToolMapper, ToolEntity> {
         }
         return this.list(wrapper);
     }
+
+    public List<ToolEntity> store(String name) throws IOException {
+        List<ToolEntity> list = new ArrayList<>();
+        PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
+        Resource[] resources = resolver.getResources("classpath:templates/tool/*/*.tool");
+        for (Resource resource : resources) {
+            if (resource.isFile() && Objects.requireNonNull(resource.getFilename()).endsWith(".tool")) {
+                String filename = resource.getFilename();
+                String parentFilename=resource.getFile().getParentFile().getName();
+                String[] parts = filename.split("-", 2);
+                String version =parts.length>1?parts[1].substring(0, parts[1].length() - 5):"1.0.0";
+                String text = IoUtil.readToString(resource.getInputStream());
+                ToolEntity tool = JSONObject.parseObject(text, ToolEntity.class);
+                if (tool!=null){
+                    tool.setLabel(parentFilename);
+                    tool.setVersion(version);
+                    list.add(tool);
+                }
+            }
+        }
+        if(StringUtils.isNotBlank(name)) {
+            list = list.stream().filter(tool -> tool.getName().contains(name)).collect(Collectors.toList());
+        }
+        return list;
+    }
+
 }

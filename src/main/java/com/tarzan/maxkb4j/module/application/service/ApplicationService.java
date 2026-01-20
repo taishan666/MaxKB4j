@@ -1,6 +1,5 @@
 package com.tarzan.maxkb4j.module.application.service;
 
-import cn.hutool.json.JSONUtil;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -14,7 +13,6 @@ import com.tarzan.maxkb4j.common.util.*;
 import com.tarzan.maxkb4j.module.application.domain.dto.*;
 import com.tarzan.maxkb4j.module.application.domain.entity.*;
 import com.tarzan.maxkb4j.module.application.domain.vo.ApplicationListVO;
-import com.tarzan.maxkb4j.module.application.domain.vo.ApplicationStatisticsVO;
 import com.tarzan.maxkb4j.module.application.domain.vo.ApplicationVO;
 import com.tarzan.maxkb4j.module.application.enums.AppType;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatMapper;
@@ -25,7 +23,7 @@ import com.tarzan.maxkb4j.module.model.custom.base.TTSModel;
 import com.tarzan.maxkb4j.module.model.info.service.ModelFactory;
 import com.tarzan.maxkb4j.module.system.permission.constant.AuthTargetType;
 import com.tarzan.maxkb4j.module.system.permission.service.UserResourcePermissionService;
-import com.tarzan.maxkb4j.module.system.user.domain.entity.UserEntity;
+import com.tarzan.maxkb4j.module.system.user.constants.RoleType;
 import com.tarzan.maxkb4j.module.system.user.service.UserService;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
@@ -33,7 +31,6 @@ import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.model.chat.response.ChatResponse;
 import dev.langchain4j.model.chat.response.StreamingChatResponseHandler;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -45,11 +42,7 @@ import reactor.core.publisher.Sinks;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.BASE;
@@ -70,7 +63,6 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     private final ApplicationApiKeyService applicationApiKeyService;
     private final ApplicationChatUserStatsService chatUserStatsService;
     private final ApplicationVersionService applicationVersionService;
-    private final ApplicationKnowledgeMappingService knowledgeMappingService;
     private final ApplicationChatRecordService applicationChatRecordService;
     private final ApplicationChatMapper applicationChatMapper;
     private final UserResourcePermissionService userResourcePermissionService;
@@ -91,25 +83,21 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
             wrapper.eq(ApplicationEntity::getUserId, query.getCreateUser());
         }
         String loginId = StpKit.ADMIN.getLoginIdAsString();
-        UserEntity user = userService.getById(loginId);
-        if (Objects.nonNull(user)) {
-            if (!CollectionUtils.isEmpty(user.getRole())) {
-                if (user.getRole().contains("USER")) {
-                    List<String> targetIds = userResourcePermissionService.getTargetIds(AuthTargetType.APPLICATION, loginId);
-                    if (!CollectionUtils.isEmpty(targetIds)) {
-                        wrapper.in(ApplicationEntity::getId, targetIds);
-                    } else {
-                        wrapper.last(" limit 0");
-                    }
+        Set<String> role = userService.getRoleById(loginId);
+        if (!CollectionUtils.isEmpty(role)) {
+            if (role.contains(RoleType.USER)) {
+                List<String> targetIds = userResourcePermissionService.getTargetIds(AuthTargetType.APPLICATION, loginId);
+                if (!CollectionUtils.isEmpty(targetIds)) {
+                    wrapper.in(ApplicationEntity::getId, targetIds);
                 } else {
-                    if (StringUtils.isNotBlank(query.getFolderId())) {
-                        wrapper.eq(ApplicationEntity::getFolderId, query.getFolderId());
-                    } else {
-                        wrapper.eq(ApplicationEntity::getFolderId, "default");
-                    }
+                    wrapper.last(" limit 0");
                 }
             } else {
-                wrapper.last(" limit 0");
+                if (StringUtils.isNotBlank(query.getFolderId())) {
+                    wrapper.eq(ApplicationEntity::getFolderId, query.getFolderId());
+                } else {
+                    wrapper.eq(ApplicationEntity::getFolderId, "default");
+                }
             }
         } else {
             wrapper.last(" limit 0");
@@ -125,22 +113,12 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     }
 
 
-    public ApplicationAccessTokenEntity getAccessToken(String appId) {
-        return accessTokenService.accessToken(appId);
-    }
-
-    public ApplicationAccessTokenEntity updateAccessToken(String appId, ApplicationAccessTokenDTO dto) {
-        return accessTokenService.updateAccessToken(appId, dto);
-    }
-
-
     @Transactional
     public boolean deleteByAppId(String appId) {
         accessTokenService.remove(Wrappers.<ApplicationAccessTokenEntity>lambdaQuery().eq(ApplicationAccessTokenEntity::getApplicationId, appId));
         applicationApiKeyService.remove(Wrappers.<ApplicationApiKeyEntity>lambdaQuery().eq(ApplicationApiKeyEntity::getApplicationId, appId));
         chatUserStatsService.remove(Wrappers.<ApplicationChatUserStatsEntity>lambdaQuery().eq(ApplicationChatUserStatsEntity::getApplicationId, appId));
         applicationVersionService.remove(Wrappers.<ApplicationVersionEntity>lambdaQuery().eq(ApplicationVersionEntity::getApplicationId, appId));
-        knowledgeMappingService.remove(Wrappers.<ApplicationKnowledgeMappingEntity>lambdaQuery().eq(ApplicationKnowledgeMappingEntity::getApplicationId, appId));
         List<String> chatIds = applicationChatMapper.selectList(Wrappers.<ApplicationChatEntity>lambdaQuery().eq(ApplicationChatEntity::getApplicationId, appId)).stream().map(ApplicationChatEntity::getId).toList();
         if (!CollectionUtils.isEmpty(chatIds)) {
             applicationChatMapper.delete(Wrappers.<ApplicationChatEntity>lambdaQuery().eq(ApplicationChatEntity::getApplicationId, appId));
@@ -161,6 +139,8 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
             application.setWorkFlow(new JSONObject());
         }
         application.setToolIds(List.of());
+        application.setKnowledgeIds(List.of());
+        application.setApplicationIds(List.of());
         this.save(application);
         ApplicationAccessTokenEntity accessToken = ApplicationAccessTokenEntity.createDefault();
         accessToken.setApplicationId(application.getId());
@@ -198,14 +178,11 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
 
 
     public ApplicationVO wrapVo(ApplicationVO vo) {
-        if (AppType.SIMPLE.name().equals(vo.getType())) {
-            List<String> knowledgeIds = knowledgeMappingService.getKnowledgeIdsByAppId(vo.getId());
-            vo.setKnowledgeIdList(knowledgeIds);
-            if (!CollectionUtils.isEmpty(knowledgeIds)) {
-                vo.setKnowledgeList(knowledgeService.listByIds(knowledgeIds));
-            } else {
-                vo.setKnowledgeList(List.of());
-            }
+        List<String> knowledgeIds =vo.getKnowledgeIds();
+        if (!CollectionUtils.isEmpty(knowledgeIds)) {
+            vo.setKnowledgeList(knowledgeService.listByIds(knowledgeIds));
+        } else {
+            vo.setKnowledgeList(List.of());
         }
         if (AppType.WORK_FLOW.name().equals(vo.getType())) {
             JSONObject workFlow = vo.getWorkFlow();
@@ -217,12 +194,13 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
                         JSONObject properties = node.getJSONObject("properties"); // 假设每个节点都有 id 字段
                         if (properties != null) {
                             JSONObject nodeData = properties.getJSONObject("nodeData");
-                            JSONArray knowledgeIdListJson = nodeData.getJSONArray("knowledgeIdList");
-                            List<String> knowledgeIds = knowledgeIdListJson.toJavaList(String.class);
-                            if (!CollectionUtils.isEmpty(knowledgeIds)){
-                                nodeData.put("knowledgeList", knowledgeService.listByIds(knowledgeIds));
-                            }else {
-                                nodeData.put("knowledgeList", List.of());
+                            JSONArray knowledgeIdListJson = nodeData.getJSONArray("knowledgeIds");
+                            nodeData.put("knowledgeList", List.of());
+                            if (knowledgeIdListJson != null){
+                                List<String> nodeKnowledgeIds = knowledgeIdListJson.toJavaList(String.class);
+                                if (!CollectionUtils.isEmpty(nodeKnowledgeIds)){
+                                    nodeData.put("knowledgeList", knowledgeService.listByIds(nodeKnowledgeIds));
+                                }
                             }
                         }
                     }
@@ -257,8 +235,8 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     public Boolean updateAppById(String appId, ApplicationVO appVO) {
         ApplicationEntity app = BeanUtil.copy(appVO, ApplicationEntity.class);
         app.setId(appId);
-        List<String> knowledgeIds =appVO.getKnowledgeIdList()==null?List.of():appVO.getKnowledgeIdList();
-        knowledgeMappingService.updateByAppId(appId, knowledgeIds);
+        List<String> knowledgeIds =appVO.getKnowledgeIds()==null?List.of():appVO.getKnowledgeIds();
+        app.setKnowledgeIds(knowledgeIds);
         JSONObject workFlow = appVO.getWorkFlow();
         if (workFlow != null && workFlow.containsKey("nodes")) {
             JSONArray nodes = workFlow.getJSONArray("nodes");
@@ -312,38 +290,6 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         entity.setPublishUserName((String) StpKit.ADMIN.getExtra("username"));
         return applicationVersionService.save(entity);
     }
-
-
-    public void appExport(String id, HttpServletResponse response) throws IOException {
-        ApplicationEntity app = this.getById(id);
-        MaxKb4J maxKb4J = new MaxKb4J(app, new ArrayList<>(), "v1");
-        byte[] bytes = JSONUtil.toJsonStr(maxKb4J).getBytes(StandardCharsets.UTF_8);
-        response.setContentType("text/plain");
-        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
-        String fileName = URLEncoder.encode(app.getName(), StandardCharsets.UTF_8);
-        response.setHeader("Content-disposition", "attachment;filename=" + fileName + ".mk4j");
-        OutputStream outputStream = response.getOutputStream();
-        outputStream.write(bytes);
-    }
-
-    @Transactional
-    public boolean appImport(MultipartFile file) throws IOException {
-        if (!Objects.requireNonNull(file.getOriginalFilename()).endsWith(".mk4j")) {
-            throw new ApiException("文件格式错误");
-        }
-        String text = IoUtil.readToString(file.getInputStream());
-        MaxKb4J maxKb4J = JSONObject.parseObject(text, MaxKb4J.class);
-        ApplicationEntity application = maxKb4J.getApplication();
-        application.setId(null);
-        application.setIsPublish(false);
-        boolean flag = this.save(application);
-        ApplicationAccessTokenEntity accessToken = ApplicationAccessTokenEntity.createDefault();
-        accessToken.setApplicationId(application.getId());
-        accessToken.setLanguage((String) StpKit.ADMIN.getExtra("language"));
-        accessTokenService.save(accessToken);
-        return flag;
-    }
-
 
     public String speechToText(String appId, MultipartFile file) throws IOException {
         ApplicationEntity app = this.getById(appId);
@@ -405,56 +351,6 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         }
         List<ApplicationEntity> list = this.lambdaQuery().in(ApplicationEntity::getId, targetIds).eq(ApplicationEntity::getIsPublish, true).list();
         return list.stream().filter(e -> folderId.equals(e.getFolderId())).map(e -> BeanUtil.copy(e, ApplicationListVO.class)).toList();
-    }
-
-
-    // 定义日期格式
-    static DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-    public List<ApplicationStatisticsVO> applicationStats(String appId, ChatQueryDTO query) {
-        List<ApplicationStatisticsVO> result = new ArrayList<>();
-        if (Objects.isNull(query.getStartTime()) || Objects.isNull(query.getEndTime())) {
-            return result;
-        }
-        List<ApplicationStatisticsVO> list = applicationChatMapper.statistics(appId, query);
-        List<ApplicationStatisticsVO> accessClientList = chatUserStatsService.getCustomerCountTrend(appId, query);
-        // 将字符串解析为LocalDate对象
-        LocalDate startDate = DateTimeUtil.parseDate(query.getStartTime());
-        LocalDate endDate = DateTimeUtil.parseDate(query.getEndTime());
-        // 遍历从开始日期到结束日期之间的所有日期
-        for (LocalDate date = startDate; !date.isAfter(endDate); date = date.plusDays(1)) {
-            String day = date.format(formatter);
-            ApplicationStatisticsVO vo = getApplicationStatisticsVO(list, day);
-            vo.setCustomerAddedCount(getCustomerAddedCount(accessClientList, day));
-            result.add(vo);
-        }
-        return result;
-    }
-
-    public ApplicationStatisticsVO getApplicationStatisticsVO(List<ApplicationStatisticsVO> list, String day) {
-        if (!CollectionUtils.isEmpty(list)) {
-            Optional<ApplicationStatisticsVO> optional = list.stream().filter(e -> e.getDay().equals(day)).findFirst();
-            if (optional.isPresent()) {
-                return optional.get();
-            }
-        }
-        ApplicationStatisticsVO vo = new ApplicationStatisticsVO();
-        vo.setDay(day);
-        vo.setStarNum(0);
-        vo.setTokensNum(0);
-        vo.setCustomerNum(0);
-        vo.setChatRecordCount(0);
-        vo.setTrampleNum(0);
-        return vo;
-    }
-
-    public int getCustomerAddedCount(List<ApplicationStatisticsVO> list, String day) {
-        if (!CollectionUtils.isEmpty(list)) {
-            Optional<ApplicationStatisticsVO> optional = list.stream().filter(e -> e.getDay().equals(day)).findFirst();
-            if (optional.isPresent()) {
-                return optional.get().getCustomerAddedCount();
-            }
-        }
-        return 0;
     }
 
     public Flux<Map<String,String>> promptGenerate(String appId,String modelId,PromptGenerateDTO dto) {

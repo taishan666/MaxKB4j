@@ -1,0 +1,28 @@
+services:
+  postgres:
+    image: registry.cn-hangzhou.aliyuncs.com/tarzanx/pgvector:0.7.0-pg15
+    container_name: maxkb4j-pgvector
+    restart: always
+    networks:
+      - maxkb4j_network
+    environment:
+      POSTGRES_USER: tarzan_postgres
+      POSTGRES_PASSWORD: ycn4NRhjN2
+      POSTGRES_DB: MaxKB4j
+    volumes:
+      - ./postgres/data:/var/lib/postgresql/data
+  mongo:
+    image: registry.cn-hangzhou.aliyuncs.com/tarzanx/mongo:8.0
+    container_name: maxkb4j-mongo
+    restart: always
+    networks:
+      - maxkb4j_network
+    environment:
+      TZ: 'Asia/Shanghai'
+      MONGO_INITDB_ROOT_USERNAME: tarzan_mongo
+      MONGO_INITDB_ROOT_PASSWORD: ycn4NRhjN2
+    volumes:
+      - ./mongo/data:/data/db
+      - ./mongo/configdb:/data/configdb
+networks:
+  maxkb4j_network:

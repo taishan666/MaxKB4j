@@ -33,7 +33,7 @@ public class SearchKnowledgeNode extends AbsNode {
 
     @Data
     public static class NodeParams {
-        private List<String> knowledgeIdList;
+        private List<String> knowledgeIds;
         private KnowledgeSetting knowledgeSetting;
         private List<String> questionReferenceAddress;
         private Boolean showKnowledge;

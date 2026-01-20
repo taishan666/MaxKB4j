@@ -4,12 +4,14 @@ import cn.dev33.satoken.annotation.SaCheckRole;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.tarzan.maxkb4j.common.api.R;
 import com.tarzan.maxkb4j.common.constant.AppConst;
+import com.tarzan.maxkb4j.common.util.BeanUtil;
 import com.tarzan.maxkb4j.module.system.permission.service.UserResourcePermissionService;
 import com.tarzan.maxkb4j.module.system.permission.vo.ResourceUserPermissionVO;
 import com.tarzan.maxkb4j.module.system.permission.vo.UserResourcePermissionVO;
 import com.tarzan.maxkb4j.module.system.user.constants.LoginType;
 import com.tarzan.maxkb4j.module.system.user.constants.RoleType;
 import com.tarzan.maxkb4j.module.system.user.domain.entity.UserEntity;
+import com.tarzan.maxkb4j.module.system.user.domain.vo.UserNameVO;
 import com.tarzan.maxkb4j.module.system.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -30,8 +32,9 @@ public class UserResourcePermissionController {
 
    // @SaCheckRole(type= LoginType.ADMIN,value = {RoleType.ADMIN, RoleType.USER},mode = SaMode.OR)
     @GetMapping("/user_list")
-    public R<List<UserEntity>> userList(){
-        return R.data(userService.lambdaQuery().eq(UserEntity::getIsActive, true).list());
+    public R<List<UserNameVO>> userList(){
+        List<UserEntity> userList = userService.lambdaQuery().eq(UserEntity::getIsActive, true).list();
+        return R.data(BeanUtil.copyList(userList, UserNameVO.class));
     }
 
     @SaCheckRole(type=LoginType.ADMIN,value = RoleType.ADMIN)

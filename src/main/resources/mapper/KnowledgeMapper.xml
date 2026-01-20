@@ -12,7 +12,15 @@
         k.*,
         COALESCE(doc_stats.document_count, 0) AS document_count,
         COALESCE(doc_stats.char_length, 0) AS char_length,
-        COALESCE(map_stats.application_mapping_count, 0) AS application_mapping_count
+        COALESCE(doc_stats.char_length, 0) AS char_length,
+        COALESCE(
+        (
+        SELECT COUNT(*)
+        FROM application a
+        WHERE k.id = ANY(a.knowledge_ids)
+        ),
+        0
+        ) AS application_mapping_count
         FROM
         knowledge k
         LEFT JOIN (
@@ -25,15 +33,6 @@
         GROUP BY
         d.knowledge_id
         ) doc_stats ON k.ID = doc_stats.knowledge_id
-        LEFT JOIN (
-        SELECT
-        adm.knowledge_id,
-        COUNT(DISTINCT adm.application_id) AS application_mapping_count
-        FROM
-        application_knowledge_mapping adm
-        GROUP BY
-        adm.knowledge_id
-        ) map_stats ON k.ID = map_stats.knowledge_id
         <where>
             <if test="query.createUser != null and query.createUser != ''">
                 AND k.user_id = #{query.createUser}

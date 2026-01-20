@@ -30,7 +30,7 @@
         GROUP BY "day";
     </select>
     <select id="chatRecordDetail" resultType="com.tarzan.maxkb4j.module.application.domain.vo.ChatRecordDetailVO">
-        SELECT record.chat_id,chat.overview,record.vote_status,record.problemText,record.answer_text, record.cost,record."index", record.run_time, record.create_time
+        SELECT record.chat_id,chat.summary,record.vote_status,record.problem_text,record.answer_text, record.cost,record."index", record.run_time, record.create_time
         FROM application_chat chat
         LEFT JOIN application_chat_record record
         ON chat.id=record.chat_id

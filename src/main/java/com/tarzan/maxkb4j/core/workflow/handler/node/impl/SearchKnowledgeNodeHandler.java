@@ -40,7 +40,7 @@ public class SearchKnowledgeNodeHandler implements INodeHandler {
         if (workflow.getChatParams().getReChat()){
             excludeParagraphIds=getExcludeParagraphIds(workflow,node.getRuntimeNodeId(),question);
         }
-        List<ParagraphVO> paragraphList= retrieveService.paragraphSearch(question,nodeParams.getKnowledgeIdList(),excludeParagraphIds,knowledgeSetting);
+        List<ParagraphVO> paragraphList= retrieveService.paragraphSearch(question,nodeParams.getKnowledgeIds(),excludeParagraphIds,knowledgeSetting);
         List<ParagraphVO> isHitHandlingMethodList=paragraphList.stream().filter(ParagraphVO::isHitHandlingMethod).toList();
         node.getDetail().put("question",question);
         node.getDetail().put("showKnowledge", nodeParams.getShowKnowledge());

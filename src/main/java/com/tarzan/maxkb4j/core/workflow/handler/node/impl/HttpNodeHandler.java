@@ -24,43 +24,50 @@ public class HttpNodeHandler implements INodeHandler {
     @Override
     public NodeResult execute(Workflow workflow, AbsNode node) throws Exception {
         HttpNode.NodeParams nodeParams=node.getNodeData().toJavaObject(HttpNode.NodeParams.class);
-        HttpRequest request= HttpUtil.createRequest(nodeParams.getMethod(), nodeParams.getUrl());
-        node.getDetail().put("url",nodeParams.getUrl());
-        node.getDetail().put("method",nodeParams.getMethod());
-        JSONArray headers=nodeParams.getHeaders();
-        for (int i = 0; i < headers.size(); i++) {
-            JSONObject header=headers.getJSONObject(i);
-            if (!header.isEmpty()){
-                request.header(header.getString("name"),header.getString("value"));
+        String url=nodeParams.getUrl();
+        String resDody="";
+        int resStatus=100;
+        if (url.startsWith("http")||url.startsWith("https")){
+            HttpRequest request= HttpUtil.createRequest(nodeParams.getMethod(), url);
+            node.getDetail().put("url",url);
+            node.getDetail().put("method",nodeParams.getMethod());
+            JSONArray headers=nodeParams.getHeaders();
+            for (int i = 0; i < headers.size(); i++) {
+                JSONObject header=headers.getJSONObject(i);
+                if (!header.isEmpty()){
+                    request.header(header.getString("name"),header.getString("value"));
+                }
             }
-        }
-        node.getDetail().put("headers",request.headers());
-        String body=nodeParams.getBody();
-        node.getDetail().put("requestBody",body);
-        if (StringUtils.isNotBlank(body)){
-            request.body(body);
-        }
-        JSONArray params=nodeParams.getParams();
-        for (int i = 0; i < params.size(); i++) {
-            JSONObject param=params.getJSONObject(i);
-            if (!param.isEmpty()){
-                request.form(param.getString("name"),param.getString("value"));
+            node.getDetail().put("headers",request.headers());
+            String body=nodeParams.getBody();
+            node.getDetail().put("requestBody",body);
+            if (StringUtils.isNotBlank(body)){
+                request.body(body);
             }
-        }
-        node.getDetail().put("params",request.form());
-        if (StringUtils.isNotBlank(nodeParams.getAuthType())){
-            switch (nodeParams.getAuthType()){
-                case "basic":
-                    request.basicAuth(nodeParams.getUsername(),nodeParams.getPassword());
-                    break;
-                case "bearer":
-                    request.bearerAuth(nodeParams.getToken());
-                    break;
+            JSONArray params=nodeParams.getParams();
+            for (int i = 0; i < params.size(); i++) {
+                JSONObject param=params.getJSONObject(i);
+                if (!param.isEmpty()){
+                    request.form(param.getString("name"),param.getString("value"));
+                }
             }
+            node.getDetail().put("params",request.form());
+            if (StringUtils.isNotBlank(nodeParams.getAuthType())){
+                switch (nodeParams.getAuthType()){
+                    case "basic":
+                        request.basicAuth(nodeParams.getUsername(),nodeParams.getPassword());
+                        break;
+                    case "bearer":
+                        request.bearerAuth(nodeParams.getToken());
+                        break;
+                }
+            }
+            request.timeout(nodeParams.getTimeout()*1000);
+            node.getDetail().put("timeout",nodeParams.getTimeout());
+            HttpResponse response=request.execute();
+            resDody=response.body();
+            resStatus=response.getStatus();
         }
-        request.timeout(nodeParams.getTimeout()*1000);
-        node.getDetail().put("timeout",nodeParams.getTimeout());
-        HttpResponse response=request.execute();
-        return new NodeResult(Map.of("status",response.getStatus(),"body",response.body()));
+        return new NodeResult(Map.of("status",resStatus,"body",resDody));
     }
 }
