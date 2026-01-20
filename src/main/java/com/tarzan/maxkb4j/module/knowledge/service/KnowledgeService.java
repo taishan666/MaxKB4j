@@ -67,7 +67,6 @@ import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.DATA_SOURCE_WEB;
 public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEntity> {
 
     private final ProblemMapper problemMapper;
-    //private final ApplicationKnowledgeMappingMapper applicationKnowledgeMappingMapper;
     private final ParagraphMapper paragraphMapper;
     private final ProblemParagraphMapper problemParagraphMapper;
     private final DocumentService documentService;
@@ -98,13 +97,12 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
         if (Objects.isNull(entity)) {
             return null;
         }
-        KnowledgeVO vo = BeanUtil.copy(entity, KnowledgeVO.class);
-/*        List<ApplicationKnowledgeMappingEntity> apps = applicationKnowledgeMappingMapper.selectList(Wrappers.lambdaQuery(ApplicationKnowledgeMappingEntity.class)
+        /*        List<ApplicationKnowledgeMappingEntity> apps = applicationKnowledgeMappingMapper.selectList(Wrappers.lambdaQuery(ApplicationKnowledgeMappingEntity.class)
                 .select(ApplicationKnowledgeMappingEntity::getApplicationId)
                 .eq(ApplicationKnowledgeMappingEntity::getKnowledgeId, id));
         List<String> appIds = apps.stream().map(ApplicationKnowledgeMappingEntity::getApplicationId).toList();
         vo.setApplicationIdList(appIds);*/
-        return vo;
+        return BeanUtil.copy(entity, KnowledgeVO.class);
     }
 
 
@@ -338,7 +336,6 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
     public IPage<KnowledgeActionEntity> actionPage(String id, int current, int size, String username, String state) {
         Page<KnowledgeActionEntity> actionPage = new Page<>(current, size);
         LambdaQueryWrapper<KnowledgeActionEntity> query = Wrappers.lambdaQuery();
-        //todo
         if (!StringUtils.isEmpty(username)){
             query.eq(KnowledgeActionEntity::getMeta, username);
         }

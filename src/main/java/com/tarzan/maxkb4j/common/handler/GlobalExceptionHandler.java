@@ -123,6 +123,12 @@ public class GlobalExceptionHandler {
         return R.fail(1002, e.getMessage());
     }
 
+    @ExceptionHandler(Exception.class)
+    public R<String> handleException(Exception e) {
+        log.error("未知异常", e);
+        return R.fail(500, "系统异常");
+    }
+
 
 }
 

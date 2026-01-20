@@ -136,13 +136,12 @@ public class ApplicationExportService {
         accessTokenService.save(accessToken);
         List<ToolEntity> toolList=maxKb4J.getToolList();
         toolList.forEach(e->{
-            e.setId(null);
             e.setUserId(StpKit.ADMIN.getLoginIdAsString());
             e.setIsActive(true);
             e.setCreateTime(now);
             e.setUpdateTime(now);
         });
-        toolService.saveBatch(toolList);
+        toolService.saveOrUpdateBatch(toolList);
         return flag;
     }
 
