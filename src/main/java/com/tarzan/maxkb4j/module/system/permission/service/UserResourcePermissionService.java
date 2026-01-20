@@ -9,6 +9,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tarzan.maxkb4j.common.util.BeanUtil;
 import com.tarzan.maxkb4j.common.util.PageUtil;
+import com.tarzan.maxkb4j.common.util.StpKit;
 import com.tarzan.maxkb4j.module.application.domain.entity.ApplicationEntity;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationMapper;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.KnowledgeEntity;
@@ -145,9 +146,12 @@ public class UserResourcePermissionService extends ServiceImpl<UserResourcePermi
                         e -> e,
                         (existing, replacement) -> existing // 保留第一个，也可选 replacement 保留最后一个
                 ));
-        LambdaQueryWrapper<UserEntity>  userWrapper = Wrappers.<UserEntity>lambdaQuery().in(UserEntity::getIsActive,true).orderByAsc(UserEntity::getCreateTime);
+        String userId = StpKit.ADMIN.getLoginIdAsString();
+        LambdaQueryWrapper<UserEntity>  userWrapper = Wrappers.<UserEntity>lambdaQuery()
+                .in(UserEntity::getIsActive,true)
+                .ne(UserEntity::getId, userId).orderByAsc(UserEntity::getCreateTime);
         Page<UserEntity> userPage = new Page<>(current, size);
-        userPage= userMapper.selectPage( userPage,userWrapper);
+        userPage= userMapper.selectPage(userPage,userWrapper);
         return PageUtil.copy(userPage, e -> {
             ResourceUserPermissionVO vo = new ResourceUserPermissionVO();
             UserResourcePermissionEntity permission = map.get(e.getId());
