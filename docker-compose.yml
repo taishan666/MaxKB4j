@@ -1,7 +1,7 @@
 services:
   postgres:
     image: registry.cn-hangzhou.aliyuncs.com/tarzanx/pgvector:0.7.0-pg15
-    container_name: pgvector
+    container_name: maxkb4j-pgvector
     restart: always
     networks:
       - maxkb4j_network
@@ -13,7 +13,7 @@ services:
       - ./postgres/data:/var/lib/postgresql/data
   mongo:
     image: registry.cn-hangzhou.aliyuncs.com/tarzanx/mongo:8.0
-    container_name: mongo
+    container_name: maxkb4j-mongo
     restart: always
     networks:
       - maxkb4j_network
@@ -25,7 +25,7 @@ services:
       - ./mongo/data:/data/db
       - ./mongo/configdb:/data/configdb
   maxKB4j:
-    container_name: MaxKB4j
+    container_name: maxkb4j-app
     image: registry.cn-hangzhou.aliyuncs.com/tarzanx/maxkb4j:2.0
     ports:
       - "8080:8080"
