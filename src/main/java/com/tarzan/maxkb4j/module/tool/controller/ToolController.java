@@ -94,11 +94,13 @@ public class ToolController {
         return R.data(dto);
     }
 
-    @SaCheckPerm(PermissionEnum.TOOL_EDIT)
+    @SaCheckPerm(PermissionEnum.TOOL_DEBUG)
     @PostMapping("/workspace/default/tool/debug")
     public R<Object> debug(@RequestBody ToolDTO dto) {
         Map<String, Object> params = new HashMap<>(5);
-        params.putAll(dto.getInitParams());
+        if (dto.getInitParams()!=null){
+            params.putAll(dto.getInitParams());
+        }
         if (!CollectionUtils.isEmpty(dto.getDebugFieldList())) {
             for (ToolInputField inputField : dto.getDebugFieldList()) {
                 params.put(inputField.getName(), inputField.getValue());

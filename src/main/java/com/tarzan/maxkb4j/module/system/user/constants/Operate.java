@@ -3,6 +3,7 @@ package com.tarzan.maxkb4j.module.system.user.constants;
 public interface Operate {
     String READ = "READ";
     String CREATE = "READ+CREATE";
+    String DEBUG = "READ+DEBUG";
     String EDIT = "READ+EDIT";
     String DELETE = "READ+DELETE";
     String EXPORT = "READ+EXPORT";

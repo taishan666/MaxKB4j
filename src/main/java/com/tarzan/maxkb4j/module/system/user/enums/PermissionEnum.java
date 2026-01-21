@@ -68,6 +68,7 @@ public enum PermissionEnum {
     KNOWLEDGE_PROBLEM_READ(ResourceType.KNOWLEDGE, "KNOWLEDGE_PROBLEM", Operate.READ, Permission.VIEW),
 
     TOOL_CREATE(ResourceType.TOOL, "TOOL", Operate.CREATE, Permission.MANAGE),
+    TOOL_DEBUG(ResourceType.TOOL, "TOOL", Operate.DEBUG, Permission.MANAGE),
     TOOL_EDIT(ResourceType.TOOL, "TOOL", Operate.EDIT, Permission.MANAGE),
     TOOL_DELETE(ResourceType.TOOL, "TOOL", Operate.DELETE, Permission.MANAGE),
     TOOL_READ(ResourceType.TOOL, "TOOL", Operate.READ, Permission.VIEW),
@@ -100,6 +101,11 @@ public enum PermissionEnum {
 
     public static List<PermissionEnum> getPermissions(String resourceType, List<String> permissionList) {
         return getPermissions(resourceType).stream().filter(e -> permissionList.contains(e.getPermission())).toList();
+    }
+
+
+    public  String getWorkspaceResourcePerm(String workspaceId,String targetId) {
+        return   resource + ":" + operate + ":/WORKSPACE/" + workspaceId + "/" + resourceType + "/" + targetId;
     }
 
 }
