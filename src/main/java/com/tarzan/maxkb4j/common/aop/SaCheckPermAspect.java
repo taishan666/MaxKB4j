@@ -2,6 +2,7 @@ package com.tarzan.maxkb4j.common.aop;
 
 import cn.dev33.satoken.exception.NotPermissionException;
 import com.tarzan.maxkb4j.common.util.StpKit;
+import com.tarzan.maxkb4j.module.system.user.constants.RoleType;
 import com.tarzan.maxkb4j.module.system.user.enums.PermissionEnum;
 import jakarta.servlet.http.HttpServletRequest;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -42,11 +43,12 @@ public class SaCheckPermAspect {
         }
         permissionStr = permissionStr.replace("{id}", "default");
         //校验权限（精确匹配）
-        if (!StpKit.ADMIN.hasPermission(permissionStr)) {
+        if (StpKit.ADMIN.hasPermission(permissionStr)||StpKit.ADMIN.hasRole(RoleType.ADMIN)) {
+            // 放行
+            return joinPoint.proceed();
+        }else {
             throw new NotPermissionException(permissionStr);
         }
-        // 放行
-        return joinPoint.proceed();
     }
 
 }

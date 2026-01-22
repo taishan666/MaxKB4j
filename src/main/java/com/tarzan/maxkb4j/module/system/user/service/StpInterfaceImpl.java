@@ -35,23 +35,15 @@ public class StpInterfaceImpl implements StpInterface {
         String userId = loginId.toString();
         List<UserResourcePermissionEntity> userResourcePermissions = userResourcePermissionService.getByUserId(userId);
         List<String> permissions = new ArrayList<>();
-        permissions.add(ResourceConst.APPLICATION + ":" + Operate.READ + ":/WORKSPACE/default/" + ResourceType.APPLICATION + "/default");
         permissions.add(ResourceConst.APPLICATION + ":" + Operate.CREATE + ":/WORKSPACE/default/" + ResourceType.APPLICATION + "/default");
-        permissions.add(ResourceConst.KNOWLEDGE + ":" + Operate.READ + ":/WORKSPACE/default/" + ResourceType.KNOWLEDGE + "/default");
         permissions.add(ResourceConst.KNOWLEDGE + ":" + Operate.CREATE + ":/WORKSPACE/default/" + ResourceType.KNOWLEDGE + "/default");
-        permissions.add(ResourceConst.KNOWLEDGE_DOCUMENT + ":" + Operate.READ + ":/WORKSPACE/default/" + ResourceType.KNOWLEDGE + "/default");
         permissions.add(ResourceConst.KNOWLEDGE_DOCUMENT + ":" + Operate.CREATE + ":/WORKSPACE/default/" + ResourceType.KNOWLEDGE + "/default");
-        permissions.add(ResourceConst.TOOL + ":" + Operate.READ + ":/WORKSPACE/default/" + ResourceType.TOOL + "/default");
         permissions.add(ResourceConst.TOOL + ":" + Operate.CREATE + ":/WORKSPACE/default/" + ResourceType.TOOL + "/default");
-        permissions.add(ResourceConst.MODEL + ":" + Operate.READ + ":/WORKSPACE/default/" + ResourceType.MODEL + "/default");
+        permissions.add(ResourceConst.TOOL + ":" + Operate.DEBUG + ":/WORKSPACE/default/" + ResourceType.TOOL + "/default");
         permissions.add(ResourceConst.MODEL + ":" + Operate.CREATE + ":/WORKSPACE/default/" + ResourceType.MODEL + "/default");
         for (UserResourcePermissionEntity permission : userResourcePermissions) {
             List<PermissionEnum> resourcePermissionEnums = PermissionEnum.getPermissions(permission.getAuthTargetType(),permission.getPermissionList());
-            resourcePermissionEnums.forEach(e -> {
-                String perm = e.getResource() + ":" + e.getOperate() + ":/WORKSPACE/" + permission.getWorkspaceId() + "/" + e.getResourceType() + "/" + permission.getTargetId();
-                permissions.add(perm);
-            });
-
+            resourcePermissionEnums.forEach(e -> permissions.add(e.getWorkspaceResourcePerm(permission.getWorkspaceId(),permission.getTargetId())));
         }
         return permissions;
     }

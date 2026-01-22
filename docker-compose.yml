@@ -26,7 +26,7 @@ services:
       - ./mongo/configdb:/data/configdb
   maxKB4j:
     container_name: maxkb4j-app
-    image: registry.cn-hangzhou.aliyuncs.com/tarzanx/maxkb4j:2.0
+    image: registry.cn-hangzhou.aliyuncs.com/tarzanx/maxkb4j:latest
     ports:
       - "8080:8080"
     networks:

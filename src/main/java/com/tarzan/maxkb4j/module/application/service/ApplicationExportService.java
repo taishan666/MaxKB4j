@@ -3,12 +3,8 @@ package com.tarzan.maxkb4j.module.application.service;
 import cn.hutool.json.JSONUtil;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.tarzan.maxkb4j.common.exception.ApiException;
-import com.tarzan.maxkb4j.common.util.IoUtil;
-import com.tarzan.maxkb4j.common.util.StpKit;
 import com.tarzan.maxkb4j.core.workflow.enums.NodeType;
 import com.tarzan.maxkb4j.module.application.domain.dto.MaxKb4J;
-import com.tarzan.maxkb4j.module.application.domain.entity.ApplicationAccessTokenEntity;
 import com.tarzan.maxkb4j.module.application.domain.entity.ApplicationEntity;
 import com.tarzan.maxkb4j.module.tool.domain.entity.ToolEntity;
 import com.tarzan.maxkb4j.module.tool.service.ToolService;
@@ -16,16 +12,14 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-import java.util.Objects;
 
 @RequiredArgsConstructor
 @Service
@@ -33,8 +27,6 @@ public class ApplicationExportService {
 
     private final ApplicationService applicationService;
     private final ToolService toolService;
-    private final ApplicationAccessTokenService accessTokenService;
-
 
     public void appExport(String id, HttpServletResponse response) throws IOException {
         ApplicationEntity app = applicationService.getById(id);
@@ -43,12 +35,16 @@ public class ApplicationExportService {
             toolIds.addAll(app.getToolIds());
         }
         toolIds.addAll(getToolIdList(app.getWorkFlow()));
-        MaxKb4J maxKb4J = new MaxKb4J(app, toolService.listByIds(toolIds), "v2");
+        List<ToolEntity> toolList=new ArrayList<>();
+        if (!toolIds.isEmpty()){
+            toolList=toolService.listByIds(toolIds);
+        }
+        MaxKb4J maxKb4J = new MaxKb4J(app, toolList, "v2");
         byte[] bytes = JSONUtil.toJsonStr(maxKb4J).getBytes(StandardCharsets.UTF_8);
         response.setContentType("text/plain");
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());
         String fileName = URLEncoder.encode(app.getName(), StandardCharsets.UTF_8);
-        response.setHeader("Content-disposition", "attachment;filename=" + fileName + ".mk4j");
+        response.setHeader("Content-disposition", "attachment;filename=" + fileName + ".mk");
         OutputStream outputStream = response.getOutputStream();
         outputStream.write(bytes);
     }
@@ -117,33 +113,12 @@ public class ApplicationExportService {
     }
 
     @Transactional
-    public boolean appImport(MultipartFile file) throws IOException {
-        if (!Objects.requireNonNull(file.getOriginalFilename()).endsWith(".mk4j")) {
-            throw new ApiException("文件格式错误");
-        }
-        Date now = new Date();
-        String text = IoUtil.readToString(file.getInputStream());
-        MaxKb4J maxKb4J = JSONObject.parseObject(text, MaxKb4J.class);
-        ApplicationEntity application = maxKb4J.getApplication();
-        application.setId(null);
-        application.setIsPublish(false);
-        application.setCreateTime(now);
-        application.setUpdateTime(now);
-        boolean flag = applicationService.save(application);
-        ApplicationAccessTokenEntity accessToken = ApplicationAccessTokenEntity.createDefault();
-        accessToken.setApplicationId(application.getId());
-        accessToken.setLanguage((String) StpKit.ADMIN.getExtra("language"));
-        accessTokenService.save(accessToken);
-        List<ToolEntity> toolList=maxKb4J.getToolList();
-        toolList.forEach(e->{
-            e.setUserId(StpKit.ADMIN.getLoginIdAsString());
-            e.setIsActive(true);
-            e.setCreateTime(now);
-            e.setUpdateTime(now);
-        });
-        toolService.saveOrUpdateBatch(toolList);
-        return flag;
+    public boolean appImport(InputStream inputStream) {
+        MaxKb4J maxKb4j =applicationService.parseMk(inputStream);
+        return applicationService.saveMk(maxKb4j);
     }
+
+
 
 
 }
