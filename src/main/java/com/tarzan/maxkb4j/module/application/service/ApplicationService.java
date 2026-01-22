@@ -1,6 +1,7 @@
 package com.tarzan.maxkb4j.module.application.service;
 
 import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONException;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -25,6 +26,8 @@ import com.tarzan.maxkb4j.module.system.permission.constant.AuthTargetType;
 import com.tarzan.maxkb4j.module.system.permission.service.UserResourcePermissionService;
 import com.tarzan.maxkb4j.module.system.user.constants.RoleType;
 import com.tarzan.maxkb4j.module.system.user.service.UserService;
+import com.tarzan.maxkb4j.module.tool.domain.entity.ToolEntity;
+import com.tarzan.maxkb4j.module.tool.service.ToolService;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.UserMessage;
@@ -40,6 +43,8 @@ import org.springframework.web.multipart.MultipartFile;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Sinks;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -66,6 +71,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     private final ApplicationChatRecordService applicationChatRecordService;
     private final ApplicationChatMapper applicationChatMapper;
     private final UserResourcePermissionService userResourcePermissionService;
+    private final ToolService toolService;
 
     public IPage<ApplicationVO> selectAppPage(int page, int size, ApplicationQuery query) {
         Page<ApplicationEntity> appPage = new Page<>(page, size);
@@ -129,26 +135,46 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     }
 
     @Transactional
-    public ApplicationEntity createApp(ApplicationEntity application) {
-        application.setIcon("./favicon.ico");
-        application.setUserId(StpKit.ADMIN.getLoginIdAsString());
-        application.setTtsModelParamsSetting(new JSONObject());
-        application.setFileUploadSetting(new JSONObject());
-        application.setCleanTime(365);
-        if (application.getWorkFlow() == null) {
-            application.setWorkFlow(new JSONObject());
+    public ApplicationEntity createApp(ApplicationDTO application) {
+        JSONObject workFlowTemplate =application.getWorkFlowTemplate();
+        if (workFlowTemplate != null) {
+            String downloadUrl = workFlowTemplate.getString("downloadUrl");
+            if (StringUtils.isNotBlank(downloadUrl)){
+                MaxKb4J maxKb4j;
+                try {
+                    maxKb4j = parseMk(new FileInputStream(downloadUrl));
+                    ApplicationEntity app = maxKb4j.getApplication();
+                    app.setName(application.getName());
+                    app.setDesc(application.getDesc());
+                    saveMk(maxKb4j);
+                    application.setId(app.getId());
+                } catch (FileNotFoundException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }else {
+            application.setIcon("./favicon.ico");
+            application.setUserId(StpKit.ADMIN.getLoginIdAsString());
+            application.setTtsModelParamsSetting(new JSONObject());
+            application.setFileUploadSetting(new JSONObject());
+            application.setCleanTime(365);
+            if (application.getWorkFlow() == null) {
+                application.setWorkFlow(new JSONObject());
+            }
+            application.setToolIds(List.of());
+            application.setKnowledgeIds(List.of());
+            application.setApplicationIds(List.of());
+            this.save(application);
+            ApplicationAccessTokenEntity accessToken = ApplicationAccessTokenEntity.createDefault();
+            accessToken.setApplicationId(application.getId());
+            accessToken.setLanguage((String) StpKit.ADMIN.getExtra("language"));
+            accessTokenService.save(accessToken);
+            userResourcePermissionService.ownerSave(AuthTargetType.APPLICATION, application.getId(), application.getUserId());
         }
-        application.setToolIds(List.of());
-        application.setKnowledgeIds(List.of());
-        application.setApplicationIds(List.of());
-        this.save(application);
-        ApplicationAccessTokenEntity accessToken = ApplicationAccessTokenEntity.createDefault();
-        accessToken.setApplicationId(application.getId());
-        accessToken.setLanguage((String) StpKit.ADMIN.getExtra("language"));
-        accessTokenService.save(accessToken);
-        userResourcePermissionService.ownerSave(AuthTargetType.APPLICATION, application.getId(), application.getUserId());
         return application;
     }
+
+
 
 
     public ApplicationVO getAppDetail(String appId, boolean debug) {
@@ -390,5 +416,45 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
             }
         });
         return sink.asFlux();
+    }
+
+    public MaxKb4J parseMk(InputStream inputStream) {
+        try {
+            String text = IoUtil.readToString(inputStream); // 显式指定编码更安全
+            return JSONObject.parseObject(text, MaxKb4J.class);
+        } catch (JSONException e) {
+            // JSON 格式错误
+            throw new IllegalArgumentException("无效的 JSON 格式: " + e.getMessage(), e);
+        } catch (Exception e) {
+            // 其他异常，如 IO 异常等
+            throw new RuntimeException("解析输入流时发生错误: " + e.getMessage(), e);
+        }
+    }
+
+    @Transactional
+    public boolean saveMk(MaxKb4J maxKb4j) {
+        if (maxKb4j == null){
+            return false;
+        }
+        Date now = new Date();
+        ApplicationEntity application = maxKb4j.getApplication();
+        application.setId(null);
+        application.setIsPublish(false);
+        application.setCreateTime(now);
+        application.setUpdateTime(now);
+        this.save(application);
+        ApplicationAccessTokenEntity accessToken = ApplicationAccessTokenEntity.createDefault();
+        accessToken.setApplicationId(application.getId());
+        accessToken.setLanguage((String) StpKit.ADMIN.getExtra("language"));
+        accessTokenService.save(accessToken);
+        List<ToolEntity> toolList=maxKb4j.getToolList();
+        toolList.forEach(e->{
+            e.setUserId(StpKit.ADMIN.getLoginIdAsString());
+            e.setIsActive(true);
+            e.setCreateTime(now);
+            e.setUpdateTime(now);
+        });
+        toolService.saveOrUpdateBatch(toolList);
+        return userResourcePermissionService.ownerSave(AuthTargetType.APPLICATION, application.getId(), application.getUserId());
     }
 }

@@ -32,6 +32,7 @@ import reactor.core.publisher.Flux;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * @author tarzan
@@ -63,7 +64,10 @@ public class ApplicationController {
     @SaCheckPerm(PermissionEnum.APPLICATION_IMPORT)
     @PostMapping("/application/folder/{folderId}/import")
     public R<Boolean> appImport(@PathVariable String folderId, MultipartFile file) throws Exception {
-        return R.status(exportService.appImport(file));
+        if (!Objects.requireNonNull(file.getOriginalFilename()).endsWith(".mk")) {
+            return R.fail("文件格式错误");
+        }
+        return R.status(exportService.appImport(file.getInputStream()));
     }
 
     @SaCheckPerm(PermissionEnum.APPLICATION_EDIT)
