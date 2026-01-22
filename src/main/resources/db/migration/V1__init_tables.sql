@@ -606,6 +606,7 @@ CREATE TABLE "public"."tool" (
                                  "icon" varchar(255) COLLATE "pg_catalog"."default",
                                  "template_id" varchar(50) COLLATE "pg_catalog"."default",
                                  "folder_id" varchar(64) COLLATE "pg_catalog"."default",
+                                 "template_id" varchar(50) COLLATE "pg_catalog"."default",
                                  "version" varchar(64) COLLATE "pg_catalog"."default",
                                  "create_time" timestamp(6) NOT NULL,
                                  "update_time" timestamp(6) NOT NULL
