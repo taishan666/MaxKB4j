@@ -597,7 +597,7 @@ CREATE TABLE "public"."tool" (
                                  "code" varchar(10240) COLLATE "pg_catalog"."default" NOT NULL,
                                  "user_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
                                  "is_active" bool NOT NULL,
-                                 "inputFieldList" jsonb NOT NULL,
+                                 "input_field_list" jsonb NOT NULL,
                                  "tool_type" varchar(20) COLLATE "pg_catalog"."default" NOT NULL,
                                  "init_field_list" jsonb,
                                  "init_params" jsonb,
@@ -606,7 +606,6 @@ CREATE TABLE "public"."tool" (
                                  "icon" varchar(255) COLLATE "pg_catalog"."default",
                                  "template_id" varchar(50) COLLATE "pg_catalog"."default",
                                  "folder_id" varchar(64) COLLATE "pg_catalog"."default",
-                                 "template_id" varchar(50) COLLATE "pg_catalog"."default",
                                  "version" varchar(64) COLLATE "pg_catalog"."default",
                                  "create_time" timestamp(6) NOT NULL,
                                  "update_time" timestamp(6) NOT NULL
