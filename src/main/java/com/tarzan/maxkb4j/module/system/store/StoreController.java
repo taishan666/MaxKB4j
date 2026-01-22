@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -44,11 +45,17 @@ public class StoreController {
                 AppTemplate app = new AppTemplate();
                 String parentFilename=resource.getFile().getParentFile().getName();
                 app.setIcon("./app/"+parentFilename+"/logo.png");
-                app.setName(filename.substring(0, filename.length() - 5));
+                app.setName(filename.substring(0, filename.length() - 3));
                 String descPath=resource.getFile().getPath().replace(filename,"desc.txt");
-                app.setDescription(IoUtil.readToString(new FileInputStream(descPath)));
+                File descFile=new File(descPath);
+                if (descFile.exists()){
+                    app.setDescription(IoUtil.readToString(new FileInputStream(descFile)));
+                }
                 String readmePath=resource.getFile().getPath().replace(filename,"readme.md");
-                app.setReadMe(IoUtil.readToString(new FileInputStream(readmePath)));
+                File readmeFile=new File(readmePath);
+                if (readmeFile.exists()){
+                    app.setReadMe(IoUtil.readToString(new FileInputStream(readmeFile)));
+                }
                 app.setDownloadUrl(resource.getFile().getAbsolutePath());
                 app.setLabel("application_template");
                 apps.add(app);
