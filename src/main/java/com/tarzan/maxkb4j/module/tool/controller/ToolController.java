@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.*;
 
 /**
@@ -57,7 +58,7 @@ public class ToolController {
     }
     @SaCheckPerm(PermissionEnum.TOOL_READ)
     @GetMapping("/workspace/internal/tool")
-    public R<List<ToolEntity>> internalTools(String name) throws IOException {
+    public R<List<ToolEntity>> internalTools(String name) throws IOException, URISyntaxException {
         return R.success(toolService.store(name));
     }
 

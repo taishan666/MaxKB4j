@@ -6,6 +6,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.common.api.R;
 import com.tarzan.maxkb4j.common.constant.AppConst;
 import com.tarzan.maxkb4j.common.util.IoUtil;
+import com.tarzan.maxkb4j.common.util.JarUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
@@ -13,8 +14,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -40,23 +39,21 @@ public class StoreController {
         List<AppTemplate> apps = new ArrayList<>();
         Resource[] resources = resolver.getResources("classpath:templates/app/*/*.mk");
         for (Resource resource : resources) {
-            if (resource.isFile() && Objects.requireNonNull(resource.getFilename()).endsWith(".mk")) {
+            if (Objects.requireNonNull(resource.getFilename()).endsWith(".mk")) {
                 String filename = resource.getFilename();
                 AppTemplate app = new AppTemplate();
-                String parentFilename=resource.getFile().getParentFile().getName();
-                app.setIcon("./app/"+parentFilename+"/logo.png");
+                String parentDirName = JarUtil.getParentDirName(resource);
+                app.setIcon("./app/"+parentDirName+"/logo.png");
                 app.setName(filename.substring(0, filename.length() - 3));
-                String descPath=resource.getFile().getPath().replace(filename,"desc.txt");
-                File descFile=new File(descPath);
-                if (descFile.exists()){
-                    app.setDescription(IoUtil.readToString(new FileInputStream(descFile)));
+                Resource descResource= resolver.getResource("templates/app/"+parentDirName+"/desc.txt");
+                if (descResource.exists()){
+                    app.setDescription(IoUtil.readToString(descResource.getInputStream()));
                 }
-                String readmePath=resource.getFile().getPath().replace(filename,"readme.md");
-                File readmeFile=new File(readmePath);
-                if (readmeFile.exists()){
-                    app.setReadMe(IoUtil.readToString(new FileInputStream(readmeFile)));
+                Resource readmeResource= resolver.getResource("templates/app/"+parentDirName+"/readme.md");
+                if (readmeResource.exists()){
+                    app.setReadMe(IoUtil.readToString(readmeResource.getInputStream()));
                 }
-                app.setDownloadUrl(resource.getFile().getAbsolutePath());
+                app.setDownloadUrl(parentDirName+"/"+filename);
                 app.setLabel("application_template");
                 apps.add(app);
             }

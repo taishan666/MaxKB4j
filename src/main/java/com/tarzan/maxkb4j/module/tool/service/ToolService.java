@@ -31,6 +31,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -199,20 +200,21 @@ public class ToolService extends ServiceImpl<ToolMapper, ToolEntity> {
         return this.list(wrapper);
     }
 
-    public List<ToolEntity> store(String name) throws IOException {
+    public List<ToolEntity> store(String name) throws IOException, URISyntaxException {
         List<ToolEntity> list = new ArrayList<>();
         PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
         Resource[] resources = resolver.getResources("classpath:templates/tool/*/*.tool");
         for (Resource resource : resources) {
-            if (resource.isFile() && Objects.requireNonNull(resource.getFilename()).endsWith(".tool")) {
-                String filename = resource.getFilename();
-                String parentFilename=resource.getFile().getParentFile().getName();
+            String filename = resource.getFilename();
+            if (Objects.requireNonNull(filename).endsWith(".tool")) {
+                // ✅ 安全获取父目录名：从 resource 的 URL 路径中解析
+                String parentDirName = JarUtil.getParentDirName(resource);
                 String[] parts = filename.split("-", 2);
                 String version =parts.length>1?parts[1].substring(0, parts[1].length() - 5):"1.0.0";
                 String text = IoUtil.readToString(resource.getInputStream());
                 ToolEntity tool = JSONObject.parseObject(text, ToolEntity.class);
                 if (tool!=null){
-                    tool.setLabel(parentFilename);
+                    tool.setLabel(parentDirName);
                     tool.setVersion(version);
                     list.add(tool);
                 }
@@ -223,5 +225,6 @@ public class ToolService extends ServiceImpl<ToolMapper, ToolEntity> {
         }
         return list;
     }
+
 
 }

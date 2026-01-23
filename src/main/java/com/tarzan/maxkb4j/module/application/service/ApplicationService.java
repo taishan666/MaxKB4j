@@ -36,6 +36,8 @@ import dev.langchain4j.model.chat.response.ChatResponse;
 import dev.langchain4j.model.chat.response.StreamingChatResponseHandler;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -43,8 +45,6 @@ import org.springframework.web.multipart.MultipartFile;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Sinks;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -142,13 +142,15 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
             if (StringUtils.isNotBlank(downloadUrl)){
                 MaxKb4J maxKb4j;
                 try {
-                    maxKb4j = parseMk(new FileInputStream(downloadUrl));
+                    PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
+                    Resource resource= resolver.getResource("templates/app/"+downloadUrl);
+                    maxKb4j = parseMk(resource.getInputStream());
                     ApplicationEntity app = maxKb4j.getApplication();
                     app.setName(application.getName());
                     app.setDesc(application.getDesc());
                     saveMk(maxKb4j);
                     application.setId(app.getId());
-                } catch (FileNotFoundException e) {
+                } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
             }
