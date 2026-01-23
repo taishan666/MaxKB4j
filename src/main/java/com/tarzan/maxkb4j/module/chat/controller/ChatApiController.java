@@ -112,10 +112,7 @@ public class ChatApiController {
         }
     }
 
-    @PostMapping(
-            path = "/mcp",
-            produces = MediaType.APPLICATION_JSON_VALUE
-    )
+    @PostMapping(path = "/mcp", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseBodyEmitter handleMcpRequest(@RequestBody McpRequest req) {
         ResponseBodyEmitter emitter = new ResponseBodyEmitter();
         String secretKey = WebUtil.getTokenValue();
