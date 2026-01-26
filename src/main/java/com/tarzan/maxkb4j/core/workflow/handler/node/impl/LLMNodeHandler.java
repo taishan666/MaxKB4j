@@ -197,6 +197,8 @@ public class LLMNodeHandler implements INodeHandler {
                 null,
                 false
         );
-        workflow.getSink().tryEmitNext(vo);
+        if (workflow.getSink() != null) {
+            workflow.getSink().tryEmitNext(vo);
+        }
     }
 }

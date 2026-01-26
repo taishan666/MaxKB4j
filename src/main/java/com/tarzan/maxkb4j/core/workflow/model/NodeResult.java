@@ -74,7 +74,9 @@ public class NodeResult {
                             "",
                             null,
                             false);
-                    workflow.getSink().tryEmitNext(vo);
+                    if (workflow.getSink() != null) {
+                        workflow.getSink().tryEmitNext(vo);
+                    }
                 }
                 workflow.setAnswer(workflow.getAnswer() + node.getAnswerText());
             }

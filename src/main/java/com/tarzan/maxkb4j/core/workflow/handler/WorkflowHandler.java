@@ -100,14 +100,17 @@ public class WorkflowHandler {
             log.error("error:", ex);
             node.setErrMessage(ex.getMessage());
             log.error("NODE: {} Exception :{}", node.getType(), ex.getMessage());
-            ChatMessageVO errMessage = node.toChatMessageVO(
-                    workflow.getChatParams().getChatId(),
-                    workflow.getChatParams().getChatRecordId(),
-                    String.format("Exception: %s", ex.getMessage()),
-                    "",
-                    null,
-                    true);
-            workflow.getSink().tryEmitNext(errMessage);
+            // 添加空指针检查，防止 chatParams 为 null 时导致的异常
+            if (workflow.getChatParams() != null && workflow.getSink() != null) {
+                ChatMessageVO errMessage = node.toChatMessageVO(
+                        workflow.getChatParams().getChatId(),
+                        workflow.getChatParams().getChatRecordId(),
+                        String.format("Exception: %s", ex.getMessage()),
+                        "",
+                        null,
+                        true);
+                workflow.getSink().tryEmitNext(errMessage);
+            }
             return new NodeResultFuture(null, ex, NodeStatus.ERROR.getCode());
         }
     }
