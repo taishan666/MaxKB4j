@@ -86,26 +86,25 @@ public class LoopNodeHandler implements INodeHandler {
                 }
         });
         future.join();
+        JSONObject runtimeDetails = loopWorkflow.getRuntimeDetails();
         node.getDetail().put("is_interrupt_exec", isInterruptExec.get());
     }
 
     private void generateLoopArray(List<String> array, Workflow workflow,JSONObject loopBody, AbsNode node) {
-        int startIndex = (int) node.getContext().getOrDefault("current_index", 0);
-        for (int i = startIndex; i < array.size(); i++) {
+        for (int i = 0; i < array.size(); i++) {
             Object item = array.get(i);
             loop(workflow,loopBody,new LoopParams(i,item), node);
         }
     }
 
     private void generateLoopNumber(Integer number, Workflow workflow,  JSONObject loopBody, AbsNode node) {
-        int startIndex = (int) node.getContext().getOrDefault("current_index", 0);
-        for (int i = startIndex; i < number; i++) {
+        for (int i = 0; i < number; i++) {
             loop(workflow,loopBody,new LoopParams(i,i), node);
         }
     }
 
     private void generateWhileLoop(Workflow workflow,  JSONObject loopBody,AbsNode node) {
-        int i = (int) node.getContext().getOrDefault("current_index", 0);
+        int i = 0;
         do {
             loop(workflow,loopBody,new LoopParams(i,i), node);
             i++;
