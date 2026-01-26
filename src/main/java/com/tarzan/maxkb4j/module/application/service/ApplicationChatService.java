@@ -25,7 +25,6 @@ import com.tarzan.maxkb4j.module.chat.dto.ChatResponse;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Sinks;
@@ -136,7 +135,7 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
         return chatResponse;
     }
 
-    @Async("chatTaskExecutor")
+   // @Async("chatTaskExecutor")
     public CompletableFuture<ChatResponse> chatMessageAsync(ChatParams chatParams, Sinks.Many<ChatMessageVO> sink) {
         String chatId = StringUtils.isNotBlank(chatParams.getChatId()) ? chatParams.getChatId() : IdWorker.get32UUID();
         ChatInfo chatInfo = ChatCache.get(chatId);
