@@ -17,13 +17,16 @@ import java.util.List;
 public class LoopWorkFlow extends Workflow {
 
     private LoopParams loopParams;
+    private List<AbsNode> nodes;
 
     public LoopWorkFlow(List<AbsNode> nodes, List<LfEdge> edges, ChatParams chatParams, LoopParams loopParams,Sinks.Many<ChatMessageVO> sink) {
         super(nodes, edges, chatParams, sink);
         this.loopParams = loopParams;
+        this.nodes = nodes;
     }
 
+    @Override
     public AbsNode getStartNode() {
-        return getNodeClsById(NodeType.LOOP_START_NODE.getKey(), List.of(), null);
+        return getNodeClsById(NodeType.LOOP_START.getKey(), List.of(), null);
     }
 }

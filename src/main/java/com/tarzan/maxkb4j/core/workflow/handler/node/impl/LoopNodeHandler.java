@@ -13,15 +13,22 @@ import com.tarzan.maxkb4j.core.workflow.model.Workflow;
 import com.tarzan.maxkb4j.core.workflow.node.AbsNode;
 import com.tarzan.maxkb4j.core.workflow.node.impl.LoopNode;
 import com.tarzan.maxkb4j.module.application.domain.vo.ChatMessageVO;
+import com.tarzan.maxkb4j.module.chat.dto.ChildNode;
 import com.tarzan.maxkb4j.module.chat.dto.LoopParams;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import reactor.core.publisher.Sinks;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicBoolean;
 
-@NodeHandlerType(NodeType.LOOP_NODE)
+import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.FORM;
+import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.USER_SELECT;
+
+@NodeHandlerType(NodeType.LOOP)
 @Component
 @RequiredArgsConstructor
 public class LoopNodeHandler implements INodeHandler {
@@ -49,22 +56,37 @@ public class LoopNodeHandler implements INodeHandler {
     private void loop(Workflow workflow, JSONObject loopBody,LoopParams loopParams, AbsNode node) {
         LogicFlow logicFlow = LogicFlow.newInstance(loopBody);
         List<AbsNode> nodes = logicFlow.getNodes().stream().map(NodeBuilder::getNode).filter(Objects::nonNull).toList();
+        Sinks.Many<ChatMessageVO> nodeSink = Sinks.many().unicast().onBackpressureBuffer();
         LoopWorkFlow  loopWorkflow= new LoopWorkFlow(
                 nodes,
                 logicFlow.getEdges(),
                 workflow.getChatParams(),
                 loopParams,
-                workflow.getSink());
-        workflowHandler.execute(loopWorkflow);
-        ChatMessageVO vo = node.toChatMessageVO(
-                loopParams.getIndex(),
-                workflow.getChatParams().getChatId(),
-                workflow.getChatParams().getChatRecordId(),
-                "",
-                "",
-                null,
-                false);
-        workflow.getSink().tryEmitNext(vo);
+                nodeSink);
+       // 异步执行
+        CompletableFuture<String> future = workflowHandler.executeAsync(loopWorkflow);
+        // 使用原子变量或收集器来安全地累积 token
+        AtomicBoolean isInterruptExec=new AtomicBoolean( false);
+            // 订阅并累积 token，同时发送消息
+        nodeSink.asFlux().subscribe(e -> {
+                if(FORM.getKey().equals(e.getNodeType())||USER_SELECT.getKey().equals(e.getNodeType())){
+                    isInterruptExec.set(true);
+                }
+                ChildNode childNode=new ChildNode(e.getChatRecordId(),e.getRuntimeNodeId());
+                ChatMessageVO vo = node.toChatMessageVO(
+                        loopParams.getIndex(),
+                        workflow.getChatParams().getChatId(),
+                        workflow.getChatParams().getChatRecordId(),
+                        e.getContent(),
+                        e.getReasoningContent(),
+                        childNode,
+                        false);
+                if (workflow.getSink() != null) {
+                    workflow.getSink().tryEmitNext(vo);
+                }
+        });
+        future.join();
+        node.getDetail().put("is_interrupt_exec", isInterruptExec.get());
     }
 
     private void generateLoopArray(List<String> array, Workflow workflow,JSONObject loopBody, AbsNode node) {

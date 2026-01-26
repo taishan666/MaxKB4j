@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Map;
 
-@NodeHandlerType(NodeType.LOOP_START_NODE)
+@NodeHandlerType(NodeType.LOOP_START)
 @Component
 public class LoopStartNodeHandler implements INodeHandler {
 

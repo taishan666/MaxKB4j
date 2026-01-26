@@ -8,16 +8,15 @@ import lombok.Data;
 import java.util.List;
 import java.util.Map;
 
-import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.LOOP_START_NODE;
+import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.LOOP_START;
 
 public class LoopStartNode extends AbsNode {
     public LoopStartNode(String id, JSONObject properties) {
         super(id,properties);
-        super.setType(LOOP_START_NODE.getKey());
+        super.setType(LOOP_START.getKey());
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public void saveContext(Workflow workflow, Map<String, Object> detail) {
         context.put("index", detail.get("current_index"));
         context.put("item", detail.get("current_item"));

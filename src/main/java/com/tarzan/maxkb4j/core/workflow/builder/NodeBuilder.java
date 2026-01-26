@@ -40,10 +40,10 @@ public class NodeBuilder {
             case IMAGE_UNDERSTAND -> new ImageUnderstandNode(id, properties);
             case RERANKER -> new RerankerNode(id, properties);
             case FORM -> new FormNode(id, properties);
-            case LOOP_BREAK_NODE -> new LoopBreakNode(id, properties);
-            case LOOP_CONTINUE_NODE -> new LoopContinueNode(id, properties);
-            case LOOP_NODE -> new LoopNode(id, properties);
-            case LOOP_START_NODE -> new LoopStartNode(id, properties);
+            case LOOP_BREAK -> new LoopBreakNode(id, properties);
+            case LOOP_CONTINUE -> new LoopContinueNode(id, properties);
+            case LOOP_START -> new LoopStartNode(id, properties);
+            case LOOP -> new LoopNode(id, properties);
             case MCP -> new McpNode(id, properties);
             case NL2SQL -> new NL2SqlNode(id, properties);
             case INTENT_CLASSIFY -> new IntentClassifyNode(id, properties);
@@ -53,7 +53,6 @@ public class NodeBuilder {
             case DATA_SOURCE_LOCAL -> new DataSourceLocalNode(id, properties);
             case DATA_SOURCE_WEB -> new DataSourceWebNode(id, properties);
             case KNOWLEDGE_WRITE -> new KnowledgeWriteNode(id, properties);
-
             default -> null;
         };
     }

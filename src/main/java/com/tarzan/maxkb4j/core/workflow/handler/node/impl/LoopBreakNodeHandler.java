@@ -13,7 +13,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@NodeHandlerType(NodeType.LOOP_BREAK_NODE)
+@NodeHandlerType(NodeType.LOOP_BREAK)
 @Component
 public class LoopBreakNodeHandler implements INodeHandler {
 

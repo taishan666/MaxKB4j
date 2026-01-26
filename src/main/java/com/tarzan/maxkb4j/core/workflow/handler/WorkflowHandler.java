@@ -35,6 +35,10 @@ public class WorkflowHandler {
         return workflow.getAnswer();
     }
 
+    public CompletableFuture<String> executeAsync(Workflow workflow) {
+        return CompletableFuture.completedFuture(execute(workflow));
+    }
+
     public void runChainNodes(Workflow workflow, List<AbsNode> nodeList) {
         if (nodeList == null || nodeList.isEmpty()) {
             return;

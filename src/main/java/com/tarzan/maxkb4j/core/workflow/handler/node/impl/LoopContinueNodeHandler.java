@@ -13,7 +13,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@NodeHandlerType(NodeType.LOOP_CONTINUE_NODE)
+@NodeHandlerType(NodeType.LOOP_CONTINUE)
 @Component
 public class LoopContinueNodeHandler implements INodeHandler {
 

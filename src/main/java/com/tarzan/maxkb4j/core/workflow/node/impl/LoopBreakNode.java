@@ -8,16 +8,15 @@ import lombok.Data;
 import java.util.List;
 import java.util.Map;
 
-import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.LOOP_BREAK_NODE;
+import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.LOOP_BREAK;
 
 public class LoopBreakNode extends AbsNode {
     public LoopBreakNode(String id, JSONObject properties) {
         super(id,properties);
-        super.setType(LOOP_BREAK_NODE.getKey());
+        super.setType(LOOP_BREAK.getKey());
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public void saveContext(Workflow workflow, Map<String, Object> detail) {
         context.put("exception_message", detail.get("err_message"));
         context.put("is_break", detail.get("is_break"));
