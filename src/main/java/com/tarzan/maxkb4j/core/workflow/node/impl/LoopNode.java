@@ -14,16 +14,17 @@ public class LoopNode extends AbsNode {
     public LoopNode(String id, JSONObject properties) {
         super(id,properties);
         super.setType(LOOP_NODE.getKey());
+        super.setViewType("single_view");
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public void saveContext(Workflow workflow, Map<String, Object> detail) {
-        context.put("loop_type", detail.get("loop_type"));
+        context.put("loopType", detail.get("loopType"));
         context.put("number", detail.get("number"));
         context.put("is_result", detail.get("is_result"));
         context.put("result", detail.get("result"));
-        context.put("loop_body", detail.get("loop_body"));
+        context.put("loopBody", detail.get("loopBody"));
         context.put("run_time", detail.get("run_time"));
 
         
@@ -40,11 +41,8 @@ public class LoopNode extends AbsNode {
     @Data
     public static class NodeParams {
         private String loopType;
-        private Integer number;
-        private Boolean isResult;
         private JSONObject loopBody;
-        private List<Object> array;
-
-
+        private Integer number;
+        private List<String> array;
     }
 }

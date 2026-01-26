@@ -86,6 +86,12 @@ public class ApplicationVersionEntity extends BaseEntity {
 	@TableField(typeHandler = StringListTypeHandler.class)
 	private List<String> toolIds;
 
+	@TableField(typeHandler = StringListTypeHandler.class)
+	private List<String> applicationIds;
+
+	@TableField(typeHandler = StringListTypeHandler.class)
+	private List<String> knowledgeIds;
+
 	private Boolean toolOutputEnable;
 
 }

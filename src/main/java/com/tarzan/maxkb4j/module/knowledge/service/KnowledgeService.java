@@ -322,9 +322,9 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
         params.setKnowledgeId(id);
         params.setDebug(debug);
         KnowledgeWorkflow workflow = new KnowledgeWorkflow(
-                params,
                 nodes,
-                logicFlow.getEdges());
+                logicFlow.getEdges(),
+                params);
         CompletableFuture.runAsync(() -> knowledgeWorkflowHandler.execute(workflow));
         return knowledgeAction;
     }

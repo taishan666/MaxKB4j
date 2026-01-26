@@ -16,8 +16,7 @@ public class KnowledgeWorkflow extends Workflow {
 
     private KnowledgeParams knowledgeParams;
 
-
-    public KnowledgeWorkflow(KnowledgeParams knowledgeParams, List<AbsNode> nodes, List<LfEdge> edges) {
+    public KnowledgeWorkflow(List<AbsNode> nodes, List<LfEdge> edges,KnowledgeParams knowledgeParams) {
         super(WorkflowMode.KNOWLEDGE,nodes, edges);
         this.knowledgeParams = knowledgeParams;
     }

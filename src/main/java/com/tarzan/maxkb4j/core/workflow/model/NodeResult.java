@@ -67,15 +67,23 @@ public class NodeResult {
             node.getContext().putAll(nodeVariable);
             if (StringUtils.isNotBlank(node.getAnswerText())) {
                 if(WorkflowMode.APPLICATION.equals(workflow.getWorkflowMode())){
-                    ChatMessageVO vo = node.toChatMessageVO(
-                            workflow.getChatParams().getChatId(),
-                            workflow.getChatParams().getChatRecordId(),
-                            streamOutput?"":node.getAnswerText(),
-                            "",
-                            null,
-                            false);
                     if (workflow.getSink() != null) {
+                        ChatMessageVO vo = node.toChatMessageVO(
+                                workflow.getChatParams().getChatId(),
+                                workflow.getChatParams().getChatRecordId(),
+                                streamOutput?"":node.getAnswerText(),
+                                "",
+                                null,
+                                false);
                         workflow.getSink().tryEmitNext(vo);
+                        ChatMessageVO nodeEndVo = node.toChatMessageVO(
+                                workflow.getChatParams().getChatId(),
+                                workflow.getChatParams().getChatRecordId(),
+                                "",
+                                "",
+                                null,
+                                true);
+                        workflow.getSink().tryEmitNext(nodeEndVo);
                     }
                 }
                 workflow.setAnswer(workflow.getAnswer() + node.getAnswerText());
