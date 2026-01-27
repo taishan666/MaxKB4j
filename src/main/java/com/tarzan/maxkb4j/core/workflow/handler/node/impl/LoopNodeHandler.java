@@ -1,6 +1,8 @@
 package com.tarzan.maxkb4j.core.workflow.handler.node.impl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.google.common.reflect.TypeToken;
+import com.google.gson.Gson;
 import com.tarzan.maxkb4j.core.workflow.annotation.NodeHandlerType;
 import com.tarzan.maxkb4j.core.workflow.builder.NodeBuilder;
 import com.tarzan.maxkb4j.core.workflow.enums.NodeType;
@@ -50,68 +52,77 @@ public class LoopNodeHandler implements INodeHandler {
                 if (value instanceof List<?>) {
                     @SuppressWarnings("unchecked")
                     List<Object> list = (List<Object>) value;
-                    loopDetails=generateLoopArray(list,workflow, loopBody, node);
+                    loopDetails = generateLoopArray(list, workflow, loopBody, node);
+                } else {
+                    @SuppressWarnings("unchecked")
+                    Gson gson = new Gson();
+                    String inputStr = value.toString().trim();
+                    if (!inputStr.startsWith("[") || !inputStr.endsWith("]")) {
+                        inputStr = "[" + inputStr + "]";
+                    }
+                    List<Object> resultList = gson.fromJson(inputStr, new TypeToken<List<Object>>(){}.getType());
+                    loopDetails = generateLoopArray(resultList, workflow, loopBody, node);
                 }
             }
         } else if ("LOOP".equals(loopType)) {
-            loopDetails=generateWhileLoop(workflow, loopBody,node);
+            loopDetails = generateWhileLoop(workflow, loopBody, node);
         } else {
-            loopDetails=generateLoopNumber(number,workflow, loopBody,node);
+            loopDetails = generateLoopNumber(number, workflow, loopBody, node);
         }
         node.getDetail().put("loop_node_data", loopDetails);
         node.getDetail().put("loopType", loopType);
         node.getDetail().put("number", number);
-        return  new NodeResult(Map.of());
+        return new NodeResult(Map.of());
     }
 
 
-    private JSONObject loopWorkflow(Workflow workflow, JSONObject loopBody,LoopParams loopParams, AbsNode node) {
+    private JSONObject loopWorkflow(Workflow workflow, JSONObject loopBody, LoopParams loopParams, AbsNode node) {
         LogicFlow logicFlow = LogicFlow.newInstance(loopBody);
         List<AbsNode> nodes = logicFlow.getNodes().stream().map(NodeBuilder::getNode).filter(Objects::nonNull).toList();
         Sinks.Many<ChatMessageVO> nodeSink = Sinks.many().unicast().onBackpressureBuffer();
-        LoopWorkFlow  loopWorkflow= new LoopWorkFlow(
+        LoopWorkFlow loopWorkflow = new LoopWorkFlow(
                 nodes,
                 logicFlow.getEdges(),
                 workflow.getChatParams(),
                 loopParams,
                 nodeSink);
-       // 异步执行
+        // 异步执行
         CompletableFuture<String> future = workflowHandler.executeAsync(loopWorkflow);
         // 使用原子变量或收集器来安全地累积 token
-        AtomicBoolean isInterruptExec=new AtomicBoolean( false);
-            // 订阅并累积 token，同时发送消息
+        AtomicBoolean isInterruptExec = new AtomicBoolean(false);
+        // 订阅并累积 token，同时发送消息
         nodeSink.asFlux().subscribe(e -> {
-                if(FORM.getKey().equals(e.getNodeType())||USER_SELECT.getKey().equals(e.getNodeType())){
-                    isInterruptExec.set(true);
-                }
-                ChildNode childNode=new ChildNode(e.getChatRecordId(),e.getRuntimeNodeId());
-                ChatMessageVO vo = node.toChatMessageVO(
-                        loopParams.getIndex(),
-                        workflow.getChatParams().getChatId(),
-                        workflow.getChatParams().getChatRecordId(),
-                        e.getContent(),
-                        e.getReasoningContent(),
-                        childNode,
-                        false);
-                if (workflow.getSink() != null) {
-                    workflow.getSink().tryEmitNext(vo);
-                }
+            if (FORM.getKey().equals(e.getNodeType()) || USER_SELECT.getKey().equals(e.getNodeType())) {
+                isInterruptExec.set(true);
+            }
+            ChildNode childNode = new ChildNode(e.getChatRecordId(), e.getRuntimeNodeId());
+            ChatMessageVO vo = node.toChatMessageVO(
+                    loopParams.getIndex(),
+                    workflow.getChatParams().getChatId(),
+                    workflow.getChatParams().getChatRecordId(),
+                    e.getContent(),
+                    e.getReasoningContent(),
+                    childNode,
+                    false);
+            if (workflow.getSink() != null) {
+                workflow.getSink().tryEmitNext(vo);
+            }
         });
         future.join();
         node.getDetail().put("is_interrupt_exec", isInterruptExec.get());
         return loopWorkflow.getRuntimeDetails();
     }
 
-    private List<JSONObject> generateLoopArray(List<Object> array, Workflow workflow,JSONObject loopBody, AbsNode node) {
+    private List<JSONObject> generateLoopArray(List<Object> array, Workflow workflow, JSONObject loopBody, AbsNode node) {
         List<JSONObject> details = new ArrayList<>();
         for (int i = 0; i < array.size(); i++) {
             Object item = array.get(i);
-           JSONObject detail =loopWorkflow(workflow,loopBody,new LoopParams(i,item), node);
-           details.add(detail);
-            if (isContinue(detail)){
+            JSONObject detail = loopWorkflow(workflow, loopBody, new LoopParams(i, item), node);
+            details.add(detail);
+            if (isContinue(detail)) {
                 continue;
             }
-            if (isBreak(detail)){
+            if (isBreak(detail)) {
                 break;
             }
         }
@@ -119,32 +130,31 @@ public class LoopNodeHandler implements INodeHandler {
     }
 
 
-
-    private List<JSONObject> generateLoopNumber(Integer number, Workflow workflow,  JSONObject loopBody, AbsNode node) {
+    private List<JSONObject> generateLoopNumber(Integer number, Workflow workflow, JSONObject loopBody, AbsNode node) {
         List<JSONObject> details = new ArrayList<>();
         for (int i = 0; i < number; i++) {
-            JSONObject detail =  loopWorkflow(workflow,loopBody,new LoopParams(i,i), node);
+            JSONObject detail = loopWorkflow(workflow, loopBody, new LoopParams(i, i), node);
             details.add(detail);
-            if (isContinue(detail)){
+            if (isContinue(detail)) {
                 continue;
             }
-            if (isBreak(detail)){
+            if (isBreak(detail)) {
                 break;
             }
         }
         return details;
     }
 
-    private List<JSONObject> generateWhileLoop(Workflow workflow,  JSONObject loopBody,AbsNode node) {
+    private List<JSONObject> generateWhileLoop(Workflow workflow, JSONObject loopBody, AbsNode node) {
         List<JSONObject> details = new ArrayList<>();
         int i = 0;
         do {
-            JSONObject detail =   loopWorkflow(workflow,loopBody,new LoopParams(i,i), node);
+            JSONObject detail = loopWorkflow(workflow, loopBody, new LoopParams(i, i), node);
             details.add(detail);
-            if (isContinue(detail)){
+            if (isContinue(detail)) {
                 continue;
             }
-            if (isBreak(detail)){
+            if (isBreak(detail)) {
                 break;
             }
             i++;
@@ -156,7 +166,7 @@ public class LoopNodeHandler implements INodeHandler {
         for (String key : details.keySet()) {
             JSONObject value = details.getJSONObject(key);
             String type = value.getString("type");
-            if (NodeType.LOOP_BREAK.getKey().equals(type)){
+            if (NodeType.LOOP_BREAK.getKey().equals(type)) {
                 return value.getBooleanValue("is_break");
             }
         }
@@ -167,7 +177,7 @@ public class LoopNodeHandler implements INodeHandler {
         for (String key : details.keySet()) {
             JSONObject value = details.getJSONObject(key);
             String type = value.getString("type");
-            if (NodeType.LOOP_CONTINUE.getKey().equals(type)){
+            if (NodeType.LOOP_CONTINUE.getKey().equals(type)) {
                 return value.getBooleanValue("is_continue");
             }
         }
