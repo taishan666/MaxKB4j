@@ -81,6 +81,13 @@ public class ApplicationNodeHandler implements INodeHandler {
                 formData.put(field.getField(), value);
             }
         }
+        List<NodeField> apiInputFieldList= nodeParams.getApiInputFieldList();
+        if (CollectionUtils.isNotEmpty(apiInputFieldList)) {
+            for (NodeField field : apiInputFieldList) {
+                Object value = workflow.getReferenceField(field.getValue());
+                formData.put(field.getField(), value);
+            }
+        }
         ChatParams nodeChatParams = ChatParams.builder()
                 .message(question)
                 .appId(nodeParams.getApplicationId())

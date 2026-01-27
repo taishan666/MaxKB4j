@@ -267,7 +267,7 @@ public class Workflow {
     }
 
     public Object getReferenceField(List<String> reference) {
-        if (CollectionUtils.isNotEmpty(reference)&&reference.size()>2){
+        if (CollectionUtils.isNotEmpty(reference)&&reference.size()>1){
             return getReferenceField(reference.get(0), reference.get(1));
         }
         return null;

@@ -35,7 +35,6 @@ public class ConditionUtil {
      * 判断某个分支是否满足条件
      *
      * @param workflow 工作流上下文
-     * @param branch   分支定义
      * @return 是否匹配该分支
      */
     public static boolean assertion(Workflow workflow, String conditionType, List<Condition> conditionList) {
