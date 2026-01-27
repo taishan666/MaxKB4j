@@ -10,7 +10,6 @@ import com.tarzan.maxkb4j.core.workflow.node.AbsNode;
 import com.tarzan.maxkb4j.module.application.domain.vo.ChatMessageVO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -22,9 +21,6 @@ import java.util.concurrent.CompletableFuture;
 @Component
 @RequiredArgsConstructor
 public class WorkflowHandler {
-
-    private final TaskExecutor chatTaskExecutor;
-
 
     public String execute(Workflow workflow) {
         AbsNode currentNode = workflow.getCurrentNode();
@@ -49,7 +45,7 @@ public class WorkflowHandler {
         }else {
             List<CompletableFuture<List<AbsNode>>> futureList = new ArrayList<>();
             for (AbsNode node : nodeList) {
-                futureList.add(CompletableFuture.supplyAsync(() -> runChainNode(workflow, node),chatTaskExecutor));
+                futureList.add(CompletableFuture.supplyAsync(() -> runChainNode(workflow, node)));
             }
             List<List<AbsNode>> nextNodeLists = futureList.stream()
                     .map(CompletableFuture::join)

@@ -26,7 +26,6 @@ import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.core.task.TaskExecutor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -47,7 +46,6 @@ public class ChatApiController {
     private final ApplicationService applicationService;
     private final ApplicationChatService chatService;
     private final ApplicationChatRecordService chatRecordService;
-    private final TaskExecutor chatTaskExecutor;
     private final ChatApiService chatApiService;
     private final ApplicationApiKeyService apiKeyService;
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -102,7 +100,7 @@ public class ChatApiController {
         params.setDebug(false);
         if (Boolean.TRUE.equals(params.getStream())) {
             // 异步执行业务逻辑
-            chatTaskExecutor.execute(() -> chatService.chatMessage(params, sink));
+            chatService.chatMessageAsync(params, sink);
             return sink.asFlux();
         } else {
             ChatResponse chatResponse = chatService.chatMessage(params, sink);

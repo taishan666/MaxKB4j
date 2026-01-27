@@ -8,7 +8,6 @@ import com.tarzan.maxkb4j.module.application.enums.ChatUserType;
 import com.tarzan.maxkb4j.module.application.service.ApplicationChatService;
 import com.tarzan.maxkb4j.module.chat.dto.ChatParams;
 import lombok.RequiredArgsConstructor;
-import org.springframework.core.task.TaskExecutor;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
@@ -25,7 +24,6 @@ import reactor.core.publisher.Sinks;
 public class ChatMessageController {
 
     private final ApplicationChatService chatService;
-    private final TaskExecutor chatTaskExecutor;
 
     @GetMapping("/workspace/default/application/{id}/open")
     public R<String> open(@PathVariable("id") String id) {
@@ -40,7 +38,7 @@ public class ChatMessageController {
         params.setChatUserType(ChatUserType.ANONYMOUS_USER.name());
         params.setDebug(true);
         // 异步执行业务逻辑
-        chatTaskExecutor.execute(() -> chatService.chatMessage(params, sink));
+        chatService.chatMessageAsync(params, sink);
         return sink.asFlux();
     }
 }
