@@ -43,20 +43,22 @@ public class LoopNodeHandler implements INodeHandler {
         List<String> array = nodeParams.getArray();
         Integer number = nodeParams.getNumber();
         JSONObject loopBody = nodeParams.getLoopBody();
+        List<JSONObject> loopDetails = new ArrayList<>();
         if ("ARRAY".equals(loopType)) {
             Object value = workflow.getReferenceField(array.get(0), array.get(1));
             if (value != null) {
                 if (value instanceof List<?>) {
                     @SuppressWarnings("unchecked")
                     List<Object> list = (List<Object>) value;
-                    generateLoopArray(list,workflow, loopBody, node);
+                    loopDetails=generateLoopArray(list,workflow, loopBody, node);
                 }
             }
         } else if ("LOOP".equals(loopType)) {
-            generateWhileLoop(workflow, loopBody,node);
+            loopDetails=generateWhileLoop(workflow, loopBody,node);
         } else {
-            generateLoopNumber(number,workflow, loopBody,node);
+            loopDetails=generateLoopNumber(number,workflow, loopBody,node);
         }
+        node.getDetail().put("loop_node_data", loopDetails);
         node.getDetail().put("loopType", loopType);
         node.getDetail().put("number", number);
         return  new NodeResult(Map.of());
@@ -100,34 +102,76 @@ public class LoopNodeHandler implements INodeHandler {
         return loopWorkflow.getRuntimeDetails();
     }
 
-    private void generateLoopArray(List<Object> array, Workflow workflow,JSONObject loopBody, AbsNode node) {
+    private List<JSONObject> generateLoopArray(List<Object> array, Workflow workflow,JSONObject loopBody, AbsNode node) {
         List<JSONObject> details = new ArrayList<>();
         for (int i = 0; i < array.size(); i++) {
             Object item = array.get(i);
-           JSONObject detail = new JSONObject(); loopWorkflow(workflow,loopBody,new LoopParams(i,item), node);
+           JSONObject detail =loopWorkflow(workflow,loopBody,new LoopParams(i,item), node);
            details.add(detail);
+            if (isContinue(detail)){
+                continue;
+            }
+            if (isBreak(detail)){
+                break;
+            }
         }
-        node.getDetail().put("loop_node_data", details);
+        return details;
     }
 
-    private void generateLoopNumber(Integer number, Workflow workflow,  JSONObject loopBody, AbsNode node) {
+
+
+    private List<JSONObject> generateLoopNumber(Integer number, Workflow workflow,  JSONObject loopBody, AbsNode node) {
         List<JSONObject> details = new ArrayList<>();
         for (int i = 0; i < number; i++) {
             JSONObject detail =  loopWorkflow(workflow,loopBody,new LoopParams(i,i), node);
             details.add(detail);
+            if (isContinue(detail)){
+                continue;
+            }
+            if (isBreak(detail)){
+                break;
+            }
         }
-        node.getDetail().put("loop_node_data", details);
+        return details;
     }
 
-    private void generateWhileLoop(Workflow workflow,  JSONObject loopBody,AbsNode node) {
+    private List<JSONObject> generateWhileLoop(Workflow workflow,  JSONObject loopBody,AbsNode node) {
         List<JSONObject> details = new ArrayList<>();
         int i = 0;
         do {
             JSONObject detail =   loopWorkflow(workflow,loopBody,new LoopParams(i,i), node);
             details.add(detail);
+            if (isContinue(detail)){
+                continue;
+            }
+            if (isBreak(detail)){
+                break;
+            }
             i++;
-        } while (i <= 500);
-        node.getDetail().put("loop_node_data", details);
+        } while (i < 1000);
+        return details;
+    }
+
+    private boolean isBreak(JSONObject details) {
+        for (String key : details.keySet()) {
+            JSONObject value = details.getJSONObject(key);
+            String type = value.getString("type");
+            if (NodeType.LOOP_BREAK.getKey().equals(type)){
+                return value.getBooleanValue("is_break");
+            }
+        }
+        return false;
+    }
+
+    private boolean isContinue(JSONObject details) {
+        for (String key : details.keySet()) {
+            JSONObject value = details.getJSONObject(key);
+            String type = value.getString("type");
+            if (NodeType.LOOP_CONTINUE.getKey().equals(type)){
+                return value.getBooleanValue("is_continue");
+            }
+        }
+        return false;
     }
 
 }

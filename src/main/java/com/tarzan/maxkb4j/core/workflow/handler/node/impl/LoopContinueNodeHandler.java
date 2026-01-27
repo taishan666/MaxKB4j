@@ -1,5 +1,6 @@
 package com.tarzan.maxkb4j.core.workflow.handler.node.impl;
 
+import com.tarzan.maxkb4j.common.util.ConditionUtil;
 import com.tarzan.maxkb4j.core.workflow.annotation.NodeHandlerType;
 import com.tarzan.maxkb4j.core.workflow.enums.NodeType;
 import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;
@@ -9,8 +10,6 @@ import com.tarzan.maxkb4j.core.workflow.node.AbsNode;
 import com.tarzan.maxkb4j.core.workflow.node.impl.LoopContinueNode;
 import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @NodeHandlerType(NodeType.LOOP_CONTINUE)
@@ -19,78 +18,10 @@ public class LoopContinueNodeHandler implements INodeHandler {
 
     @Override
     public NodeResult execute(Workflow workflow, AbsNode node) throws Exception {
-        Map<String, Object> nodeVariable = new HashMap<>();
-        LoopContinueNode.NodeParams nodeParams = node.getNodeData().toJavaObject(LoopContinueNode.NodeParams.class);
-        
-        String condition = nodeParams.getCondition();
-        List<LoopContinueNode.NodeParams.Condition> conditionList = nodeParams.getConditionList();
-        
-        List<Boolean> results = conditionList.stream()
-                .map(cond -> assertion(workflow, cond.getField(), cond.getCompare(), cond.getValue()))
-                .toList();
-        
-        boolean isContinue = "and".equals(condition) ? results.stream().allMatch(b -> b) : results.stream().anyMatch(b -> b);
-        
-        node.getContext().put("is_continue", isContinue);
-        
-        nodeVariable.put("is_continue", isContinue);
-        nodeVariable.put("loop_continue", true);
-        
-        if (isContinue) {
-            nodeVariable.put("branch_id", "continue");
-        }
-        
-        return new NodeResult(nodeVariable);
+        LoopContinueNode.NodeParams nodeParams= node.getNodeData().toJavaObject(LoopContinueNode.NodeParams.class);
+        boolean isContinue = ConditionUtil.assertion(workflow, nodeParams.getCondition(), nodeParams.getConditionList());
+        node.getDetail().put("is_continue", isContinue);
+        return new NodeResult(Map.of());
     }
 
-    private boolean assertion(Workflow workflow, List<String> fieldList, String compare, String value) {
-        if (fieldList == null || fieldList.isEmpty()) {
-            return false;
-        }
-        
-        Object fieldValue = null;
-        try {
-            if (fieldList.size() > 1) {
-                fieldValue = workflow.getReferenceField(fieldList.get(0), fieldList.get(1));
-            } else {
-                fieldValue = workflow.getReferenceField(fieldList.get(0), "");
-            }
-        } catch (Exception e) {
-        }
-        
-        return compareValues(fieldValue, compare, value);
-    }
-
-    private boolean compareValues(Object fieldValue, String compare, String value) {
-        if (fieldValue == null) {
-            return false;
-        }
-        
-        try {
-            String fieldStr = fieldValue.toString();
-            
-            switch (compare) {
-                case "eq":
-                    return fieldStr.equals(value);
-                case "neq":
-                    return !fieldStr.equals(value);
-                case "gt":
-                    return Double.parseDouble(fieldStr) > Double.parseDouble(value);
-                case "lt":
-                    return Double.parseDouble(fieldStr) < Double.parseDouble(value);
-                case "gte":
-                    return Double.parseDouble(fieldStr) >= Double.parseDouble(value);
-                case "lte":
-                    return Double.parseDouble(fieldStr) <= Double.parseDouble(value);
-                case "contains":
-                    return fieldStr.contains(value);
-                case "not_contains":
-                    return !fieldStr.contains(value);
-                default:
-                    return false;
-            }
-        } catch (Exception e) {
-            return false;
-        }
-    }
 }

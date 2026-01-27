@@ -1,6 +1,7 @@
 package com.tarzan.maxkb4j.core.workflow.node.impl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.tarzan.maxkb4j.core.workflow.model.Condition;
 import com.tarzan.maxkb4j.core.workflow.model.Workflow;
 import com.tarzan.maxkb4j.core.workflow.node.AbsNode;
 import lombok.Data;
@@ -27,12 +28,6 @@ public class LoopBreakNode extends AbsNode {
     public static class NodeParams {
         private String condition;
         private List<Condition> conditionList;
-        
-        @Data
-        public static class Condition {
-            private List<String> field;
-            private String compare;
-            private String value;
-        }
     }
+
 }
