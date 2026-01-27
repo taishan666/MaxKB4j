@@ -48,7 +48,11 @@ public class HttpNodeHandler implements INodeHandler {
             for (int i = 0; i < params.size(); i++) {
                 JSONObject param=params.getJSONObject(i);
                 if (!param.isEmpty()){
-                    request.form(param.getString("name"),param.getString("value"));
+                    String name=param.getString("name");
+                    String value=param.getString("value");
+                    name=workflow.generatePrompt(name);
+                    value=workflow.generatePrompt(value);
+                    request.form(name,value);
                 }
             }
             node.getDetail().put("params",request.form());

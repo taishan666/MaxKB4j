@@ -23,13 +23,6 @@ public class WebConfig implements WebMvcConfigurer {
         configurer.setTaskExecutor(executor);
     }
 
-
-    @Override
-    public void addResourceHandlers(@NotNull ResourceHandlerRegistry registry) {
-    /*    registry.addResourceHandler("/doc.html").addResourceLocations("classpath:/META-INF/resources/");
-        registry.addResourceHandler("/webjars/**").addResourceLocations("classpath:/META-INF/resources/webjars/");*/
-    }
-
     /**
      * 注册sa-token的拦截器
      */
@@ -43,6 +36,12 @@ public class WebConfig implements WebMvcConfigurer {
     }
 
 
+
+    @Override
+    public void addResourceHandlers(@NotNull ResourceHandlerRegistry registry) {
+    }
+
+
     @Override
     public void addViewControllers(@NotNull ViewControllerRegistry registry) {
         registry.addViewController("/admin/{path:[^.]*}").setViewName("forward:/admin/index.html");
@@ -51,6 +50,11 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addViewController("/admin/{path1:[^.]*}/{path2:[^.]*}/{path3:[^.]*}/{path4:[^.]*}").setViewName("forward:/admin/index.html");
         registry.addViewController("/admin/{path1:[^.]*}/{path2:[^.]*}/{path3:[^.]*}/{path4:[^.]*}/{path5:[^.]*}").setViewName("forward:/admin/index.html");
         registry.addViewController("/chat/{path:[^.]*}").setViewName("forward:/chat/index.html");
+        registry.addViewController("/admin/application/workspace/{path:[^.]*}/favicon.ico").setViewName("forward:/favicon.ico");
+        registry.addViewController("/admin/application/workspace/{path:[^.]*}/{path1:[^.]*}/favicon.ico").setViewName("forward:/favicon.ico");
+        registry.addViewController("/admin/knowledge/{path:[^.]*}/{path1:[^.]*}/favicon.ico").setViewName("forward:/favicon.ico");
+        registry.addViewController("/admin/knowledge/{path:[^.]*}/{path1:[^.]*}/{path2:[^.]*}/favicon.ico").setViewName("forward:/favicon.ico");
+        registry.addViewController("/admin/system/{path:[^.]*}/favicon.ico").setViewName("forward:/favicon.ico");
         registry.addViewController("/chat-api-doc").setViewName("forward:/doc.html");
     }
 
