@@ -35,13 +35,18 @@ public class HttpNodeHandler implements INodeHandler {
             for (int i = 0; i < headers.size(); i++) {
                 JSONObject header=headers.getJSONObject(i);
                 if (!header.isEmpty()){
-                    request.header(header.getString("name"),header.getString("value"));
+                    String name=header.getString("name");
+                    String value=header.getString("value");
+                    name=workflow.generatePrompt(name);
+                    value=workflow.generatePrompt(value);
+                    request.header(name,value);
                 }
             }
             node.getDetail().put("headers",request.headers());
             String body=nodeParams.getBody();
             node.getDetail().put("requestBody",body);
             if (StringUtils.isNotBlank(body)){
+                body=workflow.generatePrompt(body);
                 request.body(body);
             }
             JSONArray params=nodeParams.getParams();
@@ -59,10 +64,13 @@ public class HttpNodeHandler implements INodeHandler {
             if (StringUtils.isNotBlank(nodeParams.getAuthType())){
                 switch (nodeParams.getAuthType()){
                     case "basic":
-                        request.basicAuth(nodeParams.getUsername(),nodeParams.getPassword());
+                        String username=workflow.generatePrompt(nodeParams.getUsername());
+                        String password=workflow.generatePrompt(nodeParams.getPassword());
+                        request.basicAuth(username,password);
                         break;
                     case "bearer":
-                        request.bearerAuth(nodeParams.getToken());
+                        String token=workflow.generatePrompt(nodeParams.getToken());
+                        request.bearerAuth(token);
                         break;
                 }
             }
