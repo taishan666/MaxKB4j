@@ -35,7 +35,7 @@ public class IntentClassifyNodeHandler implements INodeHandler {
     public NodeResult execute(Workflow workflow, AbsNode node) throws Exception {
         IntentClassifyNode.NodeParams nodeParams = node.getNodeData().toJavaObject(IntentClassifyNode.NodeParams.class);
         ChatModel chatModel = modelFactory.buildChatModel(nodeParams.getModelId(), nodeParams.getModelParamsSetting());
-        Object query = workflow.getReferenceField(nodeParams.getContentList().get(0),nodeParams.getContentList().get(1));
+        Object query = workflow.getReferenceField(nodeParams.getContentList());
         Map<String,String> branchMap = new HashMap<>();
         List<IntentClassifyNode.Branch> branches=nodeParams.getBranch();
         for (IntentClassifyNode.Branch branch : branches) {

@@ -29,7 +29,7 @@ public class KnowledgeWriteHandler implements INodeHandler {
     @Override
     public NodeResult execute(Workflow workflow, AbsNode node) throws Exception {
         KnowledgeWriteNode.NodeParams nodeParams = node.getNodeData().toJavaObject(KnowledgeWriteNode.NodeParams.class);
-        Object value = workflow.getReferenceField(nodeParams.getDocumentList().get(0),nodeParams.getDocumentList().get(1));
+        Object value = workflow.getReferenceField(nodeParams.getDocumentList());
         node.getDetail().put("write_content", value);
         if (workflow instanceof KnowledgeWorkflow knowledgeWorkflow) {
             boolean debug = knowledgeWorkflow.getKnowledgeParams().isDebug();

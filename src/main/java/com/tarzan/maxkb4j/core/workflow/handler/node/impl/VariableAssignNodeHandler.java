@@ -113,7 +113,7 @@ public class VariableAssignNodeHandler implements INodeHandler {
             @SuppressWarnings("unchecked")
             List<String> reference = (List<String>) variable.get("reference");
             if (reference != null && reference.size() >= 2) {
-                return workflow.getReferenceField(reference.get(0), reference.get(1));
+                return workflow.getReferenceField(reference);
             }
         }
         // 默认返回 variable 中的 value 字段（可能是字面量）
@@ -124,7 +124,7 @@ public class VariableAssignNodeHandler implements INodeHandler {
         if (fields == null || fields.size() < 2) {
             return ""; // 或抛异常，但 execute 中已做过校验，这里可宽松处理
         }
-        Object result = workflow.getReferenceField(fields.get(0), fields.get(1));
+        Object result = workflow.getReferenceField(fields);
         return result == null ? "" : String.valueOf(result);
     }
 }

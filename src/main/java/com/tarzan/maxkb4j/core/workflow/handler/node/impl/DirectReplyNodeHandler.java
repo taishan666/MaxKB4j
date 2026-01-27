@@ -24,7 +24,7 @@ public class DirectReplyNodeHandler implements INodeHandler {
         AtomicReference<String> answerText = new AtomicReference<>("");
         if ("referencing".equals(nodeParams.getReplyType())) {
             List<String> fields = nodeParams.getFields();
-            Object value = workflow.getReferenceField(fields.get(0), fields.get(1));
+            Object value = workflow.getReferenceField(fields);
             if (value == null) {
                 answerText.set("None");
             } else if (ObjectUtil.isSimpleType(value)) {

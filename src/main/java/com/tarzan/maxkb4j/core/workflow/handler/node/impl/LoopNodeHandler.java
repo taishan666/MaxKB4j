@@ -45,7 +45,7 @@ public class LoopNodeHandler implements INodeHandler {
         JSONObject loopBody = nodeParams.getLoopBody();
         List<JSONObject> loopDetails = new ArrayList<>();
         if ("ARRAY".equals(loopType)) {
-            Object value = workflow.getReferenceField(array.get(0), array.get(1));
+            Object value = workflow.getReferenceField(array);
             if (value != null) {
                 if (value instanceof List<?>) {
                     @SuppressWarnings("unchecked")

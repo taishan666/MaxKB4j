@@ -64,7 +64,7 @@ public class ConditionUtil {
         if (fieldList == null || fieldList.size() != 2) {
             return false;
         }
-        Object fieldValue = workflow.getReferenceField(fieldList.get(0), fieldList.get(1));
+        Object fieldValue = workflow.getReferenceField(fieldList);
         for (Compare handler : COMPARE_HANDLERS) {
             if (handler.support(compare)) {
                 return handler.compare(fieldValue, valueToCompare);

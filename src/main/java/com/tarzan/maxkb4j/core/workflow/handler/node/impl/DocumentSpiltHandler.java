@@ -31,7 +31,7 @@ public class DocumentSpiltHandler implements INodeHandler {
     public NodeResult execute(Workflow workflow, AbsNode node) throws Exception {
         DocumentSpiltNode.NodeParams nodeParams = node.getNodeData().toJavaObject(DocumentSpiltNode.NodeParams.class);
         List<String> fileIds = nodeParams.getDocumentList();
-        Object res = workflow.getReferenceField(fileIds.get(0), fileIds.get(1));
+        Object res = workflow.getReferenceField(fileIds);
         List<DocumentSimple> documentList = res == null ? List.of() : (List<DocumentSimple>) res;
         for (DocumentSimple document : documentList) {
             if ("qa".equals(nodeParams.getSplitStrategy())) {

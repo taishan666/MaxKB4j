@@ -37,7 +37,7 @@ public class DocumentExtractNodeHandler implements INodeHandler {
         }
 
         // 3. 获取引用字段（workflow 中的文档列表）
-        Object res = workflow.getReferenceField(nodeParams.getDocumentList().get(0), nodeParams.getDocumentList().get(1));
+        Object res = workflow.getReferenceField(nodeParams.getDocumentList());
         List<SysFile> documentFiles;
         if (res == null) {
             documentFiles = Collections.emptyList();

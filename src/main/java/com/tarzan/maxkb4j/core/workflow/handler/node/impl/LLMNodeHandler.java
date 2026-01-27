@@ -102,7 +102,7 @@ public class LLMNodeHandler implements INodeHandler {
             return contents;
         }
         try {
-            Object object = workflow.getReferenceField(imageFieldList.get(0), imageFieldList.get(1));
+            Object object = workflow.getReferenceField(imageFieldList);
             if (!(object instanceof List<?> fileList)) {
                 return contents;
             }

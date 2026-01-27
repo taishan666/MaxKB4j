@@ -36,7 +36,7 @@ public class NL2SqlNodeHandler implements INodeHandler {
         NL2SqlNode.NodeParams nodeParams=node.getNodeData().toJavaObject(NL2SqlNode.NodeParams.class);
         NL2SqlNode.DatabaseSetting databaseSetting=nodeParams.getDatabaseSetting();
         List<String> fields=nodeParams.getQuestionReferenceAddress();
-        String question= (String)workflow.getReferenceField(fields.get(0),fields.get(1));
+        String question= (String)workflow.getReferenceField(fields);
         ChatModel chatModel = modelFactory.buildChatModel(nodeParams.getModelId(), nodeParams.getModelParamsSetting());
         DataSource dataSource = DatabaseUtil.getDataSource(databaseSetting.getType(), databaseSetting.getHost(), databaseSetting.getPort(), databaseSetting.getUsername(), databaseSetting.getPassword(), databaseSetting.getDatabase());
         String sqlDialect=DatabaseUtil.getSqlDialect(dataSource);

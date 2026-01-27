@@ -266,6 +266,13 @@ public class Workflow {
         return value;
     }
 
+    public Object getReferenceField(List<String> reference) {
+        if (CollectionUtils.isNotEmpty(reference)&&reference.size()>2){
+            return getReferenceField(reference.get(0), reference.get(1));
+        }
+        return null;
+    }
+
     public Object getReferenceField(String nodeId, String key) {
         Map<String, Object> nodeVariable = getFlowVariables().get(nodeId);
         return nodeVariable == null ? null : nodeVariable.get(key);

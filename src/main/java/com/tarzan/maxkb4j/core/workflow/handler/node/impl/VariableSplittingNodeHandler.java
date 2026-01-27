@@ -24,7 +24,7 @@ public class VariableSplittingNodeHandler implements INodeHandler {
     public NodeResult execute(Workflow workflow, AbsNode node) throws Exception {
         VariableSplittingNode.NodeParams nodeParams = node.getNodeData().toJavaObject(VariableSplittingNode.NodeParams.class);
         List<String> inputVariable=nodeParams.getInputVariable();
-        Object inputValue = workflow.getReferenceField(inputVariable.get(0), inputVariable.get(1));
+        Object inputValue = workflow.getReferenceField(inputVariable);
         Map<String, Object> nodeVariable = new HashMap<>();
         List<VariableSplittingNode.Variable> variableList=nodeParams.getVariableList();
         Map<String, Object> result = new HashMap<>();

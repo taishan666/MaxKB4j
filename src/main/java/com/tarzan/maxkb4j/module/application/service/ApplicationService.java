@@ -377,7 +377,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         if (targetIds.isEmpty()) {
             return new ArrayList<>();
         }
-        List<ApplicationEntity> list = this.lambdaQuery().in(ApplicationEntity::getId, targetIds).eq(ApplicationEntity::getIsPublish, true).list();
+        List<ApplicationEntity> list = this.lambdaQuery().in(ApplicationEntity::getId, targetIds).eq(ApplicationEntity::getIsPublish, true).orderByDesc(ApplicationEntity::getCreateTime).list();
         return list.stream().filter(e -> folderId.equals(e.getFolderId())).map(e -> BeanUtil.copy(e, ApplicationListVO.class)).toList();
     }
 

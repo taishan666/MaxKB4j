@@ -4,11 +4,12 @@ import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.tarzan.maxkb4j.core.workflow.annotation.NodeHandlerType;
 import com.tarzan.maxkb4j.core.workflow.enums.NodeType;
 import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;
+import com.tarzan.maxkb4j.core.workflow.model.NodeField;
+import com.tarzan.maxkb4j.core.workflow.model.NodeResult;
 import com.tarzan.maxkb4j.core.workflow.model.SysFile;
 import com.tarzan.maxkb4j.core.workflow.model.Workflow;
 import com.tarzan.maxkb4j.core.workflow.node.AbsNode;
 import com.tarzan.maxkb4j.core.workflow.node.impl.ApplicationNode;
-import com.tarzan.maxkb4j.core.workflow.model.NodeResult;
 import com.tarzan.maxkb4j.module.application.domain.vo.ChatMessageVO;
 import com.tarzan.maxkb4j.module.application.service.ApplicationChatService;
 import com.tarzan.maxkb4j.module.chat.dto.ChatParams;
@@ -20,6 +21,7 @@ import org.springframework.stereotype.Component;
 import reactor.core.publisher.Sinks;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -41,28 +43,28 @@ public class ApplicationNodeHandler implements INodeHandler {
     public NodeResult execute(Workflow workflow, AbsNode node) throws Exception {
         ApplicationNode.NodeParams nodeParams = node.getNodeData().toJavaObject(ApplicationNode.NodeParams.class);
         List<String> questionFields = nodeParams.getQuestionReferenceAddress();
-        String question = (String) workflow.getReferenceField(questionFields.get(0), questionFields.get(1));
+        String question = (String) workflow.getReferenceField(questionFields);
         ChatParams chatParams = workflow.getChatParams();
         String chatId = chatParams.getChatId() + nodeParams.getApplicationId();
         List<SysFile> docList = new ArrayList<>();
         List<String> docFields = nodeParams.getDocumentList();
         if (CollectionUtils.isNotEmpty(docFields)) {
-            docList = (List<SysFile>) workflow.getReferenceField(docFields.get(0), docFields.get(1));
+            docList = (List<SysFile>) workflow.getReferenceField(docFields);
         }
         List<SysFile> imageList = new ArrayList<>();
         List<String> imageFields = nodeParams.getImageList();
         if (CollectionUtils.isNotEmpty(imageFields)) {
-            imageList = (List<SysFile>) workflow.getReferenceField(imageFields.get(0), imageFields.get(1));
+            imageList = (List<SysFile>) workflow.getReferenceField(imageFields);
         }
         List<SysFile> audioList = new ArrayList<>();
         List<String> audioFields = nodeParams.getAudioList();
         if (CollectionUtils.isNotEmpty(audioFields)) {
-            audioList = (List<SysFile>) workflow.getReferenceField(audioFields.get(0), audioFields.get(1));
+            audioList = (List<SysFile>) workflow.getReferenceField(audioFields);
         }
         List<SysFile> otherList = new ArrayList<>();
         List<String> otherFields = nodeParams.getOtherList();
         if (CollectionUtils.isNotEmpty(audioFields)) {
-            otherList = (List<SysFile>) workflow.getReferenceField(otherFields.get(0), otherFields.get(1));
+            otherList = (List<SysFile>) workflow.getReferenceField(otherFields);
         }
         Sinks.Many<ChatMessageVO> appNodeSink = Sinks.many().unicast().onBackpressureBuffer();
         String nodeChatRecordId=null;
@@ -70,6 +72,14 @@ public class ApplicationNodeHandler implements INodeHandler {
         if (chatParams.getChildNode()!=null){
             nodeChatRecordId=chatParams.getChildNode().getChatRecordId();
             nodeRuntimeNodeId=chatParams.getChildNode().getRuntimeNodeId();
+        }
+        Map<String,Object> formData=new HashMap<>();
+        List<NodeField> userInputFieldList= nodeParams.getUserInputFieldList();
+        if (CollectionUtils.isNotEmpty(userInputFieldList)) {
+            for (NodeField field : userInputFieldList) {
+                Object value = workflow.getReferenceField(field.getValue());
+                formData.put(field.getField(), value);
+            }
         }
         ChatParams nodeChatParams = ChatParams.builder()
                 .message(question)
@@ -84,14 +94,14 @@ public class ApplicationNodeHandler implements INodeHandler {
                 .audioList(audioList)
                 .documentList(docList)
                 .otherList(otherList)
-                .formData(chatParams.getFormData())
+                .formData(formData)
                 .nodeData(chatParams.getNodeData())
                 .debug(chatParams.getDebug())
                 .build();
         CompletableFuture<ChatResponse> future = chatService.chatMessageAsync(nodeChatParams,appNodeSink);
         // 使用原子变量或收集器来安全地累积 token
         AtomicBoolean is_interrupt_exec=new AtomicBoolean( false);
-        if (nodeParams.getIsResult()) {
+        if (Boolean.TRUE.equals(nodeParams.getIsResult())) {
             // 订阅并累积 token，同时发送消息
             appNodeSink.asFlux().subscribe(e -> {
                 if(FORM.getKey().equals(e.getNodeType())||USER_SELECT.getKey().equals(e.getNodeType())){
