@@ -74,7 +74,8 @@ public class HttpNodeHandler implements INodeHandler {
                         break;
                 }
             }
-            request.timeout(nodeParams.getTimeout()*1000);
+            int timeout=nodeParams.getTimeout()==null?30:nodeParams.getTimeout();
+            request.timeout(timeout);
             node.getDetail().put("timeout",nodeParams.getTimeout());
             HttpResponse response=request.execute();
             resDody=response.body();
