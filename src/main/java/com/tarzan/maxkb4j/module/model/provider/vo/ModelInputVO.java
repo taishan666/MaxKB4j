@@ -6,7 +6,7 @@ import lombok.Data;
 @Data
 public class ModelInputVO {
     private JSONObject attrs;
-    private Object default_value;
+    private Object defaultValue;
     private String field;
     private String input_type;
     private Object label;

@@ -28,7 +28,7 @@ public class SliderFiled extends BaseField {
         label.put("props_info",new JSONObject());
         super.setLabel(label);
         super.setField(field);
-        super.setDefault_value(defaultValue);
+        super.setDefaultValue(defaultValue);
         super.setShow_default_value(true);
     }
 }

@@ -8,4 +8,5 @@ import java.util.List;
 public class NodeField {
     private String field;
     private List<String> value;
+    private Object defaultValue;
 }

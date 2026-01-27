@@ -78,6 +78,7 @@ public class ApplicationNodeHandler implements INodeHandler {
         if (CollectionUtils.isNotEmpty(userInputFieldList)) {
             for (NodeField field : userInputFieldList) {
                 Object value = workflow.getReferenceField(field.getValue());
+                value=value==null?field.getDefaultValue():value;
                 formData.put(field.getField(), value);
             }
         }
@@ -85,6 +86,7 @@ public class ApplicationNodeHandler implements INodeHandler {
         if (CollectionUtils.isNotEmpty(apiInputFieldList)) {
             for (NodeField field : apiInputFieldList) {
                 Object value = workflow.getReferenceField(field.getValue());
+                value=value==null?field.getDefaultValue():value;
                 formData.put(field.getField(), value);
             }
         }
