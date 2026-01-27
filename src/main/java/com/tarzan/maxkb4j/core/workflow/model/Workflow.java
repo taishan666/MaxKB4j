@@ -199,6 +199,12 @@ public class Workflow {
                 result.put(nodeName + "." + key, value == null ? "*" : value);
             }
         }
+        if (this instanceof LoopWorkFlow loopWorkFlow){
+            for (String key : loopWorkFlow.getLoopContext().keySet()) {
+                Object value = loopWorkFlow.getLoopContext().get(key);
+                result.put("loop." + key, value == null ? "*" : value);
+            }
+        }
         return result;
     }
 
@@ -206,6 +212,9 @@ public class Workflow {
         Map<String, Map<String, Object>> result = new HashMap<>(100);
         result.put("global", context);
         result.put("chat", chatContext);
+        if (this instanceof LoopWorkFlow loopWorkFlow){
+            result.put("loop", loopWorkFlow.getLoopContext());
+        }
         for (AbsNode node : nodeContext) {
             result.put(node.getId(), node.getContext());
         }

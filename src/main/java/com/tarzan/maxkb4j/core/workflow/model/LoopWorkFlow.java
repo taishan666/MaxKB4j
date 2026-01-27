@@ -10,19 +10,21 @@ import lombok.Getter;
 import lombok.Setter;
 import reactor.core.publisher.Sinks;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Getter
 @Setter
 public class LoopWorkFlow extends Workflow {
 
     private LoopParams loopParams;
-    private List<AbsNode> nodes;
+    private Map<String, Object> loopContext;
 
     public LoopWorkFlow(List<AbsNode> nodes, List<LfEdge> edges, ChatParams chatParams, LoopParams loopParams,Sinks.Many<ChatMessageVO> sink) {
         super(nodes, edges, chatParams, sink);
         this.loopParams = loopParams;
-        this.nodes = nodes;
+        this.loopContext = new HashMap<>();
     }
 
     @Override
