@@ -19,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Sinks;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -43,17 +44,26 @@ public class LoopNodeHandler implements INodeHandler {
         Integer number = nodeParams.getNumber();
         JSONObject loopBody = nodeParams.getLoopBody();
         if ("ARRAY".equals(loopType)) {
-            generateLoopArray(array,workflow, loopBody, node);
+            Object value = workflow.getReferenceField(array.get(0), array.get(1));
+            if (value != null) {
+                if (value instanceof List<?>) {
+                    @SuppressWarnings("unchecked")
+                    List<Object> list = (List<Object>) value;
+                    generateLoopArray(list,workflow, loopBody, node);
+                }
+            }
         } else if ("LOOP".equals(loopType)) {
             generateWhileLoop(workflow, loopBody,node);
         } else {
             generateLoopNumber(number,workflow, loopBody,node);
         }
+        node.getDetail().put("loopType", loopType);
+        node.getDetail().put("number", number);
         return  new NodeResult(Map.of());
     }
 
 
-    private void loop(Workflow workflow, JSONObject loopBody,LoopParams loopParams, AbsNode node) {
+    private JSONObject loopWorkflow(Workflow workflow, JSONObject loopBody,LoopParams loopParams, AbsNode node) {
         LogicFlow logicFlow = LogicFlow.newInstance(loopBody);
         List<AbsNode> nodes = logicFlow.getNodes().stream().map(NodeBuilder::getNode).filter(Objects::nonNull).toList();
         Sinks.Many<ChatMessageVO> nodeSink = Sinks.many().unicast().onBackpressureBuffer();
@@ -86,29 +96,38 @@ public class LoopNodeHandler implements INodeHandler {
                 }
         });
         future.join();
-        JSONObject runtimeDetails = loopWorkflow.getRuntimeDetails();
         node.getDetail().put("is_interrupt_exec", isInterruptExec.get());
+        return loopWorkflow.getRuntimeDetails();
     }
 
-    private void generateLoopArray(List<String> array, Workflow workflow,JSONObject loopBody, AbsNode node) {
+    private void generateLoopArray(List<Object> array, Workflow workflow,JSONObject loopBody, AbsNode node) {
+        List<JSONObject> details = new ArrayList<>();
         for (int i = 0; i < array.size(); i++) {
             Object item = array.get(i);
-            loop(workflow,loopBody,new LoopParams(i,item), node);
+           JSONObject detail = new JSONObject(); loopWorkflow(workflow,loopBody,new LoopParams(i,item), node);
+           details.add(detail);
         }
+        node.getDetail().put("loop_node_data", details);
     }
 
     private void generateLoopNumber(Integer number, Workflow workflow,  JSONObject loopBody, AbsNode node) {
+        List<JSONObject> details = new ArrayList<>();
         for (int i = 0; i < number; i++) {
-            loop(workflow,loopBody,new LoopParams(i,i), node);
+            JSONObject detail =  loopWorkflow(workflow,loopBody,new LoopParams(i,i), node);
+            details.add(detail);
         }
+        node.getDetail().put("loop_node_data", details);
     }
 
     private void generateWhileLoop(Workflow workflow,  JSONObject loopBody,AbsNode node) {
+        List<JSONObject> details = new ArrayList<>();
         int i = 0;
         do {
-            loop(workflow,loopBody,new LoopParams(i,i), node);
+            JSONObject detail =   loopWorkflow(workflow,loopBody,new LoopParams(i,i), node);
+            details.add(detail);
             i++;
         } while (i <= 500);
+        node.getDetail().put("loop_node_data", details);
     }
 
 }
