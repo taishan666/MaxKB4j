@@ -65,26 +65,24 @@ public class NodeResult {
     public void defaultWriteContextFunc(Map<String, Object> nodeVariable, AbsNode node, Workflow workflow) {
         if (nodeVariable != null) {
             node.getContext().putAll(nodeVariable);
-            if (StringUtils.isNotBlank(node.getAnswerText())) {
-                if(WorkflowMode.APPLICATION.equals(workflow.getWorkflowMode())){
-                    if (workflow.getSink() != null) {
-                        ChatMessageVO vo = node.toChatMessageVO(
-                                workflow.getChatParams().getChatId(),
-                                workflow.getChatParams().getChatRecordId(),
-                                streamOutput?"":node.getAnswerText(),
-                                "",
-                                null,
-                                false);
-                        workflow.getSink().tryEmitNext(vo);
-                        ChatMessageVO nodeEndVo = node.toChatMessageVO(
-                                workflow.getChatParams().getChatId(),
-                                workflow.getChatParams().getChatRecordId(),
-                                "",
-                                "",
-                                null,
-                                true);
-                        workflow.getSink().tryEmitNext(nodeEndVo);
-                    }
+            if(WorkflowMode.APPLICATION.equals(workflow.getWorkflowMode())){
+               if (StringUtils.isNotBlank(node.getAnswerText())) {
+                   ChatMessageVO vo = node.toChatMessageVO(
+                           workflow.getChatParams().getChatId(),
+                           workflow.getChatParams().getChatRecordId(),
+                           streamOutput?"":node.getAnswerText(),
+                           "",
+                           null,
+                           false);
+                   workflow.getSink().tryEmitNext(vo);
+                   ChatMessageVO nodeEndVo = node.toChatMessageVO(
+                           workflow.getChatParams().getChatId(),
+                           workflow.getChatParams().getChatRecordId(),
+                           "",
+                           "",
+                           null,
+                           true);
+                   workflow.getSink().tryEmitNext(nodeEndVo);
                 }
                 workflow.setAnswer(workflow.getAnswer() + node.getAnswerText());
             }

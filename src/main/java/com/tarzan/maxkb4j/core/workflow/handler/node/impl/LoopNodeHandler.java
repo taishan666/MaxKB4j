@@ -22,10 +22,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Sinks;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.IntStream;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.*;
 
@@ -59,23 +62,24 @@ public class LoopNodeHandler implements INodeHandler {
                     if (!inputStr.startsWith("[") && !inputStr.endsWith("]")) {
                         inputStr = "[" + inputStr + "]";
                     }
-                    List<Object> resultList = gson.fromJson(inputStr, new TypeToken<List<Object>>(){}.getType());
+                    List<Object> resultList = gson.fromJson(inputStr, new TypeToken<List<Object>>() {
+                    }.getType());
                     loopDetails = generateLoopArray(resultList, workflow, loopBody, node);
                 }
             }
         } else if ("LOOP".equals(loopType)) {
-            loopDetails = generateLoopNumber(1000,workflow, loopBody, node);
+            loopDetails = generateLoopNumber(1000, workflow, loopBody, node);
         } else {
             loopDetails = generateLoopNumber(number, workflow, loopBody, node);
         }
         node.getDetail().put("loop_node_data", loopDetails);
         node.getDetail().put("loopType", loopType);
         node.getDetail().put("number", number);
-        return new NodeResult(Map.of(),true,this::isInterrupt);
+        return new NodeResult(Map.of(), true, this::isInterrupt);
     }
 
     public boolean isInterrupt(AbsNode node) {
-        return node.getDetail().containsKey("is_interrupt_exec")&&(boolean)node.getDetail().get("is_interrupt_exec");
+        return node.getDetail().containsKey("is_interrupt_exec") && (boolean) node.getDetail().get("is_interrupt_exec");
     }
 
     private List<JSONObject> generateLoopArray(List<Object> array, Workflow workflow, JSONObject loopBody, AbsNode node) {
@@ -83,25 +87,32 @@ public class LoopNodeHandler implements INodeHandler {
     }
 
     private List<JSONObject> generateLoopNumber(int number, Workflow workflow, JSONObject loopBody, AbsNode node) {
-        return generateLoop(Collections.singletonList(IntStream.range(0, number).boxed().toList()), workflow, loopBody, node);
+        List<Object> array = new ArrayList<>();
+        for (int i = 0; i < number; i++) {
+            array.add(i);
+        }
+        return generateLoop(array, workflow, loopBody, node);
     }
 
     @SuppressWarnings("unchecked")
     private List<JSONObject> generateLoop(List<Object> list, Workflow workflow, JSONObject loopBody, AbsNode node) {
-        AtomicBoolean breakOuter= new AtomicBoolean(false);
-        List<JSONObject> loopNodeData =   (List<JSONObject>) node.getDetail().get("loop_node_data");
-        List<JSONObject> loopDetails =loopNodeData==null? new ArrayList<>():loopNodeData;
-        Object currentIndex =  node.getDetail().get("current_index");
-        int startIndex = currentIndex==null?0: (int)currentIndex;
+        AtomicBoolean breakOuter = new AtomicBoolean(false);
+        List<JSONObject> loopNodeData = (List<JSONObject>) node.getDetail().get("loop_node_data");
+        List<JSONObject> loopDetails = loopNodeData == null ? new ArrayList<>() : loopNodeData;
+        Object currentIndex = node.getDetail().get("current_index");
+        int startIndex = currentIndex == null ? 0 : (int) currentIndex;
         ChatParams chatParams = workflow.getChatParams();
-        if (chatParams.getChildNode()!=null){
+        if (chatParams.getChildNode() != null) {
             chatParams.setRuntimeNodeId(chatParams.getChildNode().getRuntimeNodeId());
         }
-        JSONObject details =new JSONObject();
-        if ( loopDetails.size()>startIndex){
+        JSONObject details = new JSONObject();
+        if (loopDetails.size() > startIndex) {
             details = loopDetails.get(startIndex);
         }
         do {
+            if (loopDetails.size() > startIndex) {
+                loopDetails.remove(0);
+            }
             Sinks.Many<ChatMessageVO> nodeSink = Sinks.many().unicast().onBackpressureBuffer();
             LogicFlow logicFlow = LogicFlow.newInstance(loopBody);
             List<AbsNode> nodes = logicFlow.getNodes().stream().map(NodeBuilder::getNode).filter(Objects::nonNull).toList();
@@ -115,28 +126,38 @@ public class LoopNodeHandler implements INodeHandler {
                     nodeSink);
             // 异步执行
             CompletableFuture<String> future = workflowHandler.executeAsync(loopWorkflow);
+            AtomicReference<ChildNode> childNode = new AtomicReference<>(new ChildNode(chatParams.getChatRecordId(), node.getRuntimeNodeId()));
             // 订阅并累积 token，同时发送消息
             nodeSink.asFlux().subscribe(e -> {
-                if (LOOP_BREAK.getKey().equals(e.getNodeType())){
+                if (LOOP_BREAK.getKey().equals(e.getNodeType())) {
                     breakOuter.set("BREAK".equals(e.getContent()));
                 }
                 if (FORM.getKey().equals(e.getNodeType()) || USER_SELECT.getKey().equals(e.getNodeType())) {
                     isInterruptExec.set(true);
                     breakOuter.set(true);
                 }
-                ChildNode childNode = new ChildNode(e.getChatRecordId(), e.getRuntimeNodeId());
+                childNode.set(new ChildNode(e.getChatRecordId(), e.getRuntimeNodeId()));
                 ChatMessageVO vo = node.toChatMessageVO(
                         loopParams.getIndex(),
                         workflow.getChatParams().getChatId(),
                         workflow.getChatParams().getChatRecordId(),
                         e.getContent(),
                         e.getReasoningContent(),
-                        childNode,
+                        childNode.get(),
                         false);
-                if (workflow.getSink() != null) {
-                    workflow.getSink().tryEmitNext(vo);
-                }
+                vo.setNodeType(e.getNodeType());
+                vo.setViewType(e.getViewType());
+                workflow.getSink().tryEmitNext(vo);
             });
+            ChatMessageVO vo = node.toChatMessageVO(
+                    loopParams.getIndex(),
+                    workflow.getChatParams().getChatId(),
+                    workflow.getChatParams().getChatRecordId(),
+                    "",
+                    "",
+                    childNode.get(),
+                    false);
+            workflow.getSink().tryEmitNext(vo);
             future.join();
             node.getDetail().put("is_interrupt_exec", isInterruptExec.get());
             node.getDetail().put("current_index", startIndex);
@@ -150,8 +171,6 @@ public class LoopNodeHandler implements INodeHandler {
         } while (startIndex < list.size());
         return loopDetails;
     }
-
-
 
 
 }
