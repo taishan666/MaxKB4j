@@ -20,8 +20,10 @@ public class LoopContinueNodeHandler implements INodeHandler {
     public NodeResult execute(Workflow workflow, AbsNode node) throws Exception {
         LoopContinueNode.NodeParams nodeParams= node.getNodeData().toJavaObject(LoopContinueNode.NodeParams.class);
         boolean isContinue = ConditionUtil.assertion(workflow, nodeParams.getCondition(), nodeParams.getConditionList());
-        node.getDetail().put("is_continue", isContinue);
-        return new NodeResult(Map.of());
+        if (isContinue){
+            return new NodeResult(Map.of("is_continue", true,"branchId", "continue"));
+        }
+        return new NodeResult(Map.of("is_continue", false));
     }
 
 }

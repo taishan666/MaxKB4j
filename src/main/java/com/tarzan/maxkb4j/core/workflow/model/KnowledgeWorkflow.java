@@ -4,6 +4,7 @@ import com.tarzan.maxkb4j.core.workflow.enums.NodeStatus;
 import com.tarzan.maxkb4j.core.workflow.enums.WorkflowMode;
 import com.tarzan.maxkb4j.core.workflow.logic.LfEdge;
 import com.tarzan.maxkb4j.core.workflow.node.AbsNode;
+import com.tarzan.maxkb4j.module.chat.dto.ChatParams;
 import com.tarzan.maxkb4j.module.chat.dto.KnowledgeParams;
 import lombok.Getter;
 import lombok.Setter;
@@ -18,7 +19,7 @@ public class KnowledgeWorkflow extends Workflow {
     private KnowledgeParams knowledgeParams;
 
     public KnowledgeWorkflow(List<AbsNode> nodes, List<LfEdge> edges, KnowledgeParams knowledgeParams) {
-        super(WorkflowMode.KNOWLEDGE, nodes, edges);
+        super(WorkflowMode.KNOWLEDGE, nodes, edges,ChatParams.builder().build(), null);
         this.knowledgeParams = knowledgeParams;
         Map<String, Object> knowledgeBase = knowledgeParams.getKnowledgeBase();
         if (knowledgeBase != null) {

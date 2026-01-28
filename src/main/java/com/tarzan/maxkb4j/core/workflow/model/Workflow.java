@@ -32,35 +32,20 @@ import java.util.stream.Collectors;
 @Slf4j
 @Data
 public class Workflow {
+
+    private WorkflowMode workflowMode;
     private AbsNode currentNode;
     private ChatParams chatParams;
     private List<AbsNode> nodes;
     private List<LfEdge> edges;
-    private WorkflowMode workflowMode;
     private Map<String, Object> context;
     private Map<String, Object> chatContext;
     private List<AbsNode> nodeContext;
-    private String answer;
     private List<ApplicationChatRecordEntity> historyChatRecords;
+    private String answer;
     @JsonIgnore
     private Sinks.Many<ChatMessageVO> sink;
 
-
-    public Workflow(List<AbsNode> nodes, List<LfEdge> edges, ChatParams chatParams, Sinks.Many<ChatMessageVO> sink) {
-        this.workflowMode=WorkflowMode.APPLICATION;
-        this.nodes = nodes;
-        this.edges = edges;
-        this.chatParams = chatParams;
-        this.context = new HashMap<>();
-        this.chatContext = new HashMap<>();
-        this.nodeContext = new CopyOnWriteArrayList<>();
-        this.answer = "";
-        this.historyChatRecords = CollectionUtils.isEmpty(chatParams.getHistoryChatRecords()) ? List.of() : chatParams.getHistoryChatRecords();
-        if (StringUtils.isNotBlank(chatParams.getRuntimeNodeId()) && Objects.nonNull(chatParams.getChatRecord())) {
-            this.loadNode(chatParams.getChatRecord(), chatParams.getRuntimeNodeId(), chatParams.getNodeData());
-        }
-        this.sink = sink;
-    }
 
     public Workflow(WorkflowMode workflowMode,List<AbsNode> nodes, List<LfEdge> edges, ChatParams chatParams, Sinks.Many<ChatMessageVO> sink) {
         this.workflowMode=workflowMode;
@@ -73,27 +58,43 @@ public class Workflow {
         this.answer = "";
         this.historyChatRecords = CollectionUtils.isEmpty(chatParams.getHistoryChatRecords()) ? List.of() : chatParams.getHistoryChatRecords();
         if (StringUtils.isNotBlank(chatParams.getRuntimeNodeId()) && Objects.nonNull(chatParams.getChatRecord())) {
-            this.loadNode(chatParams.getChatRecord(), chatParams.getRuntimeNodeId(), chatParams.getNodeData());
+            JSONObject details=chatParams.getChatRecord().getDetails();
+            if (details!=null){
+                this.loadNode(details, chatParams.getRuntimeNodeId(), chatParams.getNodeData());
+            }
         }
         this.sink = sink;
     }
 
-    public Workflow(WorkflowMode workflowMode, List<AbsNode> nodes, List<LfEdge> edges) {
+    public Workflow(WorkflowMode workflowMode,List<AbsNode> nodes, List<LfEdge> edges, ChatParams chatParams, JSONObject details,Sinks.Many<ChatMessageVO> sink) {
         this.workflowMode=workflowMode;
         this.nodes = nodes;
         this.edges = edges;
+        this.chatParams = chatParams;
         this.context = new HashMap<>();
         this.chatContext = new HashMap<>();
         this.nodeContext = new CopyOnWriteArrayList<>();
         this.answer = "";
-        this.historyChatRecords = List.of();
-        this.sink = null;
+        this.historyChatRecords = CollectionUtils.isEmpty(chatParams.getHistoryChatRecords()) ? List.of() : chatParams.getHistoryChatRecords();
+        if (StringUtils.isNotBlank(chatParams.getRuntimeNodeId()) && Objects.nonNull(chatParams.getChatRecord())) {
+            if (details!=null){
+                this.loadNode(details, chatParams.getRuntimeNodeId(), chatParams.getNodeData());
+            }
+
+        }
+        this.sink = sink;
     }
 
 
     @SuppressWarnings("unchecked")
-    private void loadNode(ApplicationChatRecordEntity chatRecord, String currentNodeId, Map<String, Object> currentNodeData) {
-        List<Map<String, Object>> sortedDetails = chatRecord.getDetails().values().stream().map(row -> (Map<String, Object>) row).sorted(Comparator.comparingInt(e -> (int) e.get("index"))).toList();
+    public void loadNode(JSONObject details, String currentNodeId, Map<String, Object> currentNodeData) {
+        List<Map<String, Object>> sortedDetails = details.values().stream()
+                .map(row -> (Map<String, Object>) row)
+                .sorted(Comparator.comparing(
+                        e -> (Integer) e.get("index"), // 注意这里返回的是 Integer，不是 int
+                        Comparator.nullsLast(Comparator.naturalOrder()) // 把 null 放最后（或用 nullsFirst）
+                ))
+                .toList();
         for (Map<String, Object> nodeDetail : sortedDetails) {
             String nodeId = (String) nodeDetail.get("nodeId");
             List<String> upNodeIdList = (List<String>) nodeDetail.get("upNodeIdList");
@@ -109,19 +110,21 @@ public class Workflow {
                     }
                     return nodeProperties;
                 });
-                assert currentNode != null;
-                currentNode.setStatus(nodeStatus);
-                currentNode.saveContext(this, nodeDetail);
-                currentNode.setDetail(nodeDetail);
-                nodeContext.add(currentNode);
+               if (currentNode!= null){
+                   currentNode.setStatus(nodeStatus);
+                   currentNode.saveContext(this, nodeDetail);
+                   currentNode.setDetail(nodeDetail);
+                   nodeContext.add(currentNode);
+               }
             } else {
                 // 处理其他节点
                 AbsNode node = getNodeClsById(nodeId, upNodeIdList, null);
-                assert node != null;
-                node.setStatus(nodeStatus);
-                node.saveContext(this, nodeDetail);
-                node.setDetail(nodeDetail);
-                nodeContext.add(node);
+                if (node != null){
+                    node.setStatus(nodeStatus);
+                    node.saveContext(this, nodeDetail);
+                    node.setDetail(nodeDetail);
+                    nodeContext.add(node);
+                }
             }
         }
     }

@@ -18,6 +18,7 @@ public class LoopNode extends AbsNode {
 
     @Override
     public void saveContext(Workflow workflow, Map<String, Object> detail) {
+        context.put("current_index", detail.get("current_index"));
     }
 
 

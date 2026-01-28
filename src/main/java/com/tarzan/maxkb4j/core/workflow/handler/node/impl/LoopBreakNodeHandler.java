@@ -21,6 +21,7 @@ public class LoopBreakNodeHandler implements INodeHandler {
         LoopBreakNode.NodeParams nodeParams= node.getNodeData().toJavaObject(LoopBreakNode.NodeParams.class);
         boolean isBreak= ConditionUtil.assertion(workflow, nodeParams.getCondition(), nodeParams.getConditionList());
         node.getDetail().put("is_break",isBreak);
+        node.setAnswerText("BREAK");
         return new NodeResult(Map.of());
     }
 

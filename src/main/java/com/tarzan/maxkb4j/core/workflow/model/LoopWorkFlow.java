@@ -1,5 +1,6 @@
 package com.tarzan.maxkb4j.core.workflow.model;
 
+import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.workflow.enums.NodeType;
 import com.tarzan.maxkb4j.core.workflow.logic.LfEdge;
 import com.tarzan.maxkb4j.core.workflow.node.AbsNode;
@@ -20,13 +21,15 @@ public class LoopWorkFlow extends Workflow {
     private LoopParams loopParams;
     private Map<String, Object> loopContext;
 
-    public LoopWorkFlow(Workflow workflow, List<AbsNode> nodes, List<LfEdge> edges, LoopParams loopParams, Sinks.Many<ChatMessageVO> sink) {
-        super(workflow.getWorkflowMode(),nodes, edges, workflow.getChatParams(), sink);
+    public LoopWorkFlow(Workflow workflow, List<AbsNode> nodes, List<LfEdge> edges, LoopParams loopParams, JSONObject details, Sinks.Many<ChatMessageVO> sink) {
+        super(workflow.getWorkflowMode(),nodes, edges,workflow.getChatParams(),details,sink);
         this.loopParams = loopParams;
         this.loopContext = new HashMap<>();
         this.setContext(workflow.getContext());
         this.setChatContext(workflow.getChatContext());
+        this.setHistoryChatRecords(workflow.getHistoryChatRecords());
     }
+
 
     @Override
     public AbsNode getStartNode() {

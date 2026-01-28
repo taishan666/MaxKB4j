@@ -15,21 +15,19 @@ import com.tarzan.maxkb4j.core.workflow.model.Workflow;
 import com.tarzan.maxkb4j.core.workflow.node.AbsNode;
 import com.tarzan.maxkb4j.core.workflow.node.impl.LoopNode;
 import com.tarzan.maxkb4j.module.application.domain.vo.ChatMessageVO;
+import com.tarzan.maxkb4j.module.chat.dto.ChatParams;
 import com.tarzan.maxkb4j.module.chat.dto.ChildNode;
 import com.tarzan.maxkb4j.module.chat.dto.LoopParams;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Sinks;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.IntStream;
 
-import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.FORM;
-import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.USER_SELECT;
+import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.*;
 
 @NodeHandlerType(NodeType.LOOP)
 @Component
@@ -37,6 +35,8 @@ import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.USER_SELECT;
 public class LoopNodeHandler implements INodeHandler {
 
     private final WorkflowHandler workflowHandler;
+    private final AtomicBoolean isInterruptExec = new AtomicBoolean(false);
+
 
     @SuppressWarnings("unchecked")
     @Override
@@ -64,123 +64,94 @@ public class LoopNodeHandler implements INodeHandler {
                 }
             }
         } else if ("LOOP".equals(loopType)) {
-            loopDetails = generateWhileLoop(workflow, loopBody, node);
+            loopDetails = generateLoopNumber(1000,workflow, loopBody, node);
         } else {
             loopDetails = generateLoopNumber(number, workflow, loopBody, node);
         }
         node.getDetail().put("loop_node_data", loopDetails);
         node.getDetail().put("loopType", loopType);
         node.getDetail().put("number", number);
-        return new NodeResult(Map.of());
+        return new NodeResult(Map.of(),true,this::isInterrupt);
     }
 
-
-    private JSONObject loopWorkflow(Workflow workflow, JSONObject loopBody, LoopParams loopParams, AbsNode node) {
-        LogicFlow logicFlow = LogicFlow.newInstance(loopBody);
-        List<AbsNode> nodes = logicFlow.getNodes().stream().map(NodeBuilder::getNode).filter(Objects::nonNull).toList();
-        Sinks.Many<ChatMessageVO> nodeSink = Sinks.many().unicast().onBackpressureBuffer();
-        LoopWorkFlow loopWorkflow = new LoopWorkFlow(
-                workflow,
-                nodes,
-                logicFlow.getEdges(),
-                loopParams,
-                nodeSink);
-        // 异步执行
-        CompletableFuture<String> future = workflowHandler.executeAsync(loopWorkflow);
-        // 使用原子变量或收集器来安全地累积 token
-        AtomicBoolean isInterruptExec = new AtomicBoolean(false);
-        // 订阅并累积 token，同时发送消息
-        nodeSink.asFlux().subscribe(e -> {
-            if (FORM.getKey().equals(e.getNodeType()) || USER_SELECT.getKey().equals(e.getNodeType())) {
-                isInterruptExec.set(true);
-            }
-            ChildNode childNode = new ChildNode(e.getChatRecordId(), e.getRuntimeNodeId());
-            ChatMessageVO vo = node.toChatMessageVO(
-                    loopParams.getIndex(),
-                    workflow.getChatParams().getChatId(),
-                    workflow.getChatParams().getChatRecordId(),
-                    e.getContent(),
-                    e.getReasoningContent(),
-                    childNode,
-                    false);
-            if (workflow.getSink() != null) {
-                workflow.getSink().tryEmitNext(vo);
-            }
-        });
-        future.join();
-        node.getDetail().put("is_interrupt_exec", isInterruptExec.get());
-        return loopWorkflow.getRuntimeDetails();
+    public boolean isInterrupt(AbsNode node) {
+        return node.getDetail().containsKey("is_interrupt_exec")&&(boolean)node.getDetail().get("is_interrupt_exec");
     }
 
     private List<JSONObject> generateLoopArray(List<Object> array, Workflow workflow, JSONObject loopBody, AbsNode node) {
-        List<JSONObject> details = new ArrayList<>();
-        for (int i = 0; i < array.size(); i++) {
-            Object item = array.get(i);
-            JSONObject detail = loopWorkflow(workflow, loopBody, new LoopParams(i, item), node);
-            details.add(detail);
-            if (isContinue(detail)) {
-                continue;
-            }
-            if (isBreak(detail)) {
-                break;
-            }
-        }
-        return details;
+        return generateLoop(array, workflow, loopBody, node);
     }
 
-
-    private List<JSONObject> generateLoopNumber(Integer number, Workflow workflow, JSONObject loopBody, AbsNode node) {
-        List<JSONObject> details = new ArrayList<>();
-        for (int i = 0; i < number; i++) {
-            JSONObject detail = loopWorkflow(workflow, loopBody, new LoopParams(i, i), node);
-            details.add(detail);
-            if (isContinue(detail)) {
-                continue;
-            }
-            if (isBreak(detail)) {
-                break;
-            }
-        }
-        return details;
+    private List<JSONObject> generateLoopNumber(int number, Workflow workflow, JSONObject loopBody, AbsNode node) {
+        return generateLoop(Collections.singletonList(IntStream.range(0, number).boxed().toList()), workflow, loopBody, node);
     }
 
-    private List<JSONObject> generateWhileLoop(Workflow workflow, JSONObject loopBody, AbsNode node) {
-        List<JSONObject> details = new ArrayList<>();
-        int i = 0;
+    @SuppressWarnings("unchecked")
+    private List<JSONObject> generateLoop(List<Object> list, Workflow workflow, JSONObject loopBody, AbsNode node) {
+        AtomicBoolean breakOuter= new AtomicBoolean(false);
+        List<JSONObject> loopNodeData =   (List<JSONObject>) node.getDetail().get("loop_node_data");
+        List<JSONObject> loopDetails =loopNodeData==null? new ArrayList<>():loopNodeData;
+        Object currentIndex =  node.getDetail().get("current_index");
+        int startIndex = currentIndex==null?0: (int)currentIndex;
+        ChatParams chatParams = workflow.getChatParams();
+        if (chatParams.getChildNode()!=null){
+            chatParams.setRuntimeNodeId(chatParams.getChildNode().getRuntimeNodeId());
+        }
+        JSONObject details =new JSONObject();
+        if ( loopDetails.size()>startIndex){
+            details = loopDetails.get(startIndex);
+        }
         do {
-            JSONObject detail = loopWorkflow(workflow, loopBody, new LoopParams(i, i), node);
-            details.add(detail);
-            if (isContinue(detail)) {
-                continue;
-            }
-            if (isBreak(detail)) {
+            Sinks.Many<ChatMessageVO> nodeSink = Sinks.many().unicast().onBackpressureBuffer();
+            LogicFlow logicFlow = LogicFlow.newInstance(loopBody);
+            List<AbsNode> nodes = logicFlow.getNodes().stream().map(NodeBuilder::getNode).filter(Objects::nonNull).toList();
+            LoopParams loopParams = new LoopParams(startIndex, list.get(startIndex));
+            LoopWorkFlow loopWorkflow = new LoopWorkFlow(
+                    workflow,
+                    nodes,
+                    logicFlow.getEdges(),
+                    loopParams,
+                    details,
+                    nodeSink);
+            // 异步执行
+            CompletableFuture<String> future = workflowHandler.executeAsync(loopWorkflow);
+            // 订阅并累积 token，同时发送消息
+            nodeSink.asFlux().subscribe(e -> {
+                if (LOOP_BREAK.getKey().equals(e.getNodeType())){
+                    breakOuter.set("BREAK".equals(e.getContent()));
+                }
+                if (FORM.getKey().equals(e.getNodeType()) || USER_SELECT.getKey().equals(e.getNodeType())) {
+                    isInterruptExec.set(true);
+                    breakOuter.set(true);
+                }
+                ChildNode childNode = new ChildNode(e.getChatRecordId(), e.getRuntimeNodeId());
+                ChatMessageVO vo = node.toChatMessageVO(
+                        loopParams.getIndex(),
+                        workflow.getChatParams().getChatId(),
+                        workflow.getChatParams().getChatRecordId(),
+                        e.getContent(),
+                        e.getReasoningContent(),
+                        childNode,
+                        false);
+                if (workflow.getSink() != null) {
+                    workflow.getSink().tryEmitNext(vo);
+                }
+            });
+            future.join();
+            node.getDetail().put("is_interrupt_exec", isInterruptExec.get());
+            node.getDetail().put("current_index", startIndex);
+            JSONObject detail = loopWorkflow.getRuntimeDetails();
+            loopDetails.add(detail);
+            if (breakOuter.get()) {
                 break;
             }
-            i++;
-        } while (i < 1000);
-        return details;
+            chatParams.setRuntimeNodeId(null);
+            startIndex++;
+        } while (startIndex < list.size());
+        return loopDetails;
     }
 
-    private boolean isBreak(JSONObject details) {
-        for (String key : details.keySet()) {
-            JSONObject value = details.getJSONObject(key);
-            String type = value.getString("type");
-            if (NodeType.LOOP_BREAK.getKey().equals(type)) {
-                return value.getBooleanValue("is_break");
-            }
-        }
-        return false;
-    }
 
-    private boolean isContinue(JSONObject details) {
-        for (String key : details.keySet()) {
-            JSONObject value = details.getJSONObject(key);
-            String type = value.getString("type");
-            if (NodeType.LOOP_CONTINUE.getKey().equals(type)) {
-                return value.getBooleanValue("is_continue");
-            }
-        }
-        return false;
-    }
+
 
 }
