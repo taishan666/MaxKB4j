@@ -38,7 +38,6 @@ import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.*;
 public class LoopNodeHandler implements INodeHandler {
 
     private final WorkflowHandler workflowHandler;
-    private final AtomicBoolean isInterruptExec = new AtomicBoolean(false);
 
 
     @SuppressWarnings("unchecked")
@@ -109,6 +108,7 @@ public class LoopNodeHandler implements INodeHandler {
         if (loopDetails.size() > startIndex) {
             details = loopDetails.get(startIndex);
         }
+        AtomicBoolean isInterruptExec = new AtomicBoolean(false);
         do {
             if (loopDetails.size() > startIndex) {
                 loopDetails.remove(0);
@@ -129,25 +129,26 @@ public class LoopNodeHandler implements INodeHandler {
             AtomicReference<ChildNode> childNode = new AtomicReference<>(new ChildNode(chatParams.getChatRecordId(), node.getRuntimeNodeId()));
             // 订阅并累积 token，同时发送消息
             nodeSink.asFlux().subscribe(e -> {
-                if (LOOP_BREAK.getKey().equals(e.getNodeType())) {
-                    breakOuter.set("BREAK".equals(e.getContent()));
-                }
-                if (FORM.getKey().equals(e.getNodeType()) || USER_SELECT.getKey().equals(e.getNodeType())) {
-                    isInterruptExec.set(true);
+                if (LOOP_BREAK.getKey().equals(e.getNodeType()) && "BREAK".equals(e.getContent())) {
                     breakOuter.set(true);
+                } else {
+                    if (FORM.getKey().equals(e.getNodeType()) || USER_SELECT.getKey().equals(e.getNodeType())) {
+                        breakOuter.set(true);
+                        isInterruptExec.set(true);
+                    }
+                    childNode.set(new ChildNode(e.getChatRecordId(), e.getRuntimeNodeId()));
+                    ChatMessageVO vo = node.toChatMessageVO(
+                            loopParams.getIndex(),
+                            workflow.getChatParams().getChatId(),
+                            workflow.getChatParams().getChatRecordId(),
+                            e.getContent(),
+                            e.getReasoningContent(),
+                            childNode.get(),
+                            false);
+                    vo.setNodeType(e.getNodeType());
+                    vo.setViewType(e.getViewType());
+                    workflow.getSink().tryEmitNext(vo);
                 }
-                childNode.set(new ChildNode(e.getChatRecordId(), e.getRuntimeNodeId()));
-                ChatMessageVO vo = node.toChatMessageVO(
-                        loopParams.getIndex(),
-                        workflow.getChatParams().getChatId(),
-                        workflow.getChatParams().getChatRecordId(),
-                        e.getContent(),
-                        e.getReasoningContent(),
-                        childNode.get(),
-                        false);
-                vo.setNodeType(e.getNodeType());
-                vo.setViewType(e.getViewType());
-                workflow.getSink().tryEmitNext(vo);
             });
             ChatMessageVO vo = node.toChatMessageVO(
                     loopParams.getIndex(),

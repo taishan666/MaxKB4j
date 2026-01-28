@@ -36,7 +36,6 @@ public class ChatMessageVO {
     }
 
 
-
     public ChatMessageVO(String chatId, String chatRecordId, String nodeId, String content, String reasoningContent, List<String> upNodeIdList,String runtimeNodeId, String nodeType, String viewType,ChildNode childNode, Boolean nodeIsEnd, Boolean isEnd) {
         this.chatId = chatId;
         this.chatRecordId = chatRecordId;
