@@ -200,7 +200,7 @@ public class Workflow {
         return null;
     }
 
-    private Map<String, Object> getPromptVariables() {
+    public Map<String, Object> getPromptVariables() {
         Map<String, Object> result = new HashMap<>(100);
         for (String key : this.context.keySet()) {
             Object value = this.context.get(key);
@@ -211,18 +211,18 @@ public class Workflow {
             result.put("chat." + key, value == null ? "*" : value);
         }
         for (AbsNode node : nodeContext) {
-            String nodeName = node.getProperties().getString("nodeName");
-            Map<String, Object> context = node.getContext();
-            for (String key : context.keySet()) {
-                Object value = context.get(key);
-                result.put(nodeName + "." + key, value == null ? "*" : value);
-            }
+            result.putAll(getNodeVariables(node));
         }
-        if (this instanceof LoopWorkFlow loopWorkFlow){
-            for (String key : loopWorkFlow.getLoopContext().keySet()) {
-                Object value = loopWorkFlow.getLoopContext().get(key);
-                result.put("loop." + key, value == null ? "*" : value);
-            }
+        return result;
+    }
+
+    public Map<String, Object> getNodeVariables(AbsNode node) {
+        Map<String, Object> result = new HashMap<>(100);
+        String nodeName = node.getProperties().getString("nodeName");
+        Map<String, Object> context = node.getContext();
+        for (String key : context.keySet()) {
+            Object value = context.get(key);
+            result.put(nodeName + "." + key, value == null ? "*" : value);
         }
         return result;
     }
