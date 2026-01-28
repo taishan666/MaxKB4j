@@ -38,6 +38,7 @@ public class LoopNodeHandler implements INodeHandler {
 
     private final WorkflowHandler workflowHandler;
 
+    @SuppressWarnings("unchecked")
     @Override
     public NodeResult execute(Workflow workflow, AbsNode node) throws Exception {
         LoopNode.NodeParams nodeParams = node.getNodeData().toJavaObject(LoopNode.NodeParams.class);
@@ -50,14 +51,12 @@ public class LoopNodeHandler implements INodeHandler {
             Object value = workflow.getReferenceField(array);
             if (value != null) {
                 if (value instanceof List<?>) {
-                    @SuppressWarnings("unchecked")
                     List<Object> list = (List<Object>) value;
                     loopDetails = generateLoopArray(list, workflow, loopBody, node);
                 } else {
-                    @SuppressWarnings("unchecked")
                     Gson gson = new Gson();
                     String inputStr = value.toString().trim();
-                    if (!inputStr.startsWith("[") || !inputStr.endsWith("]")) {
+                    if (!inputStr.startsWith("[") && !inputStr.endsWith("]")) {
                         inputStr = "[" + inputStr + "]";
                     }
                     List<Object> resultList = gson.fromJson(inputStr, new TypeToken<List<Object>>(){}.getType());
@@ -81,9 +80,9 @@ public class LoopNodeHandler implements INodeHandler {
         List<AbsNode> nodes = logicFlow.getNodes().stream().map(NodeBuilder::getNode).filter(Objects::nonNull).toList();
         Sinks.Many<ChatMessageVO> nodeSink = Sinks.many().unicast().onBackpressureBuffer();
         LoopWorkFlow loopWorkflow = new LoopWorkFlow(
+                workflow,
                 nodes,
                 logicFlow.getEdges(),
-                workflow.getChatParams(),
                 loopParams,
                 nodeSink);
         // 异步执行

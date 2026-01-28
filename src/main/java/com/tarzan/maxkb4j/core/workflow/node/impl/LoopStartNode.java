@@ -34,6 +34,6 @@ public class LoopStartNode extends AbsNode {
 
     @Data
     public static class NodeParams {
-        private List<JSONObject> globalFields;
+        private List<JSONObject> loopInputFieldList;
     }
 }

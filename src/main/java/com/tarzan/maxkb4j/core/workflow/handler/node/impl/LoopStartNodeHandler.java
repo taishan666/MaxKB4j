@@ -1,5 +1,7 @@
 package com.tarzan.maxkb4j.core.workflow.handler.node.impl;
 
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.workflow.annotation.NodeHandlerType;
 import com.tarzan.maxkb4j.core.workflow.enums.NodeType;
 import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;
@@ -24,6 +26,12 @@ public class LoopStartNodeHandler implements INodeHandler {
             LoopParams loopParams = loopWorkFlow.getLoopParams();
             index=loopParams.getIndex();
             item=loopParams.getItem();
+            JSONArray loopInputFieldList=node.getProperties().getJSONArray("loopInputFieldList");
+            for (int i = 0; i < loopInputFieldList.size(); i++) {
+                JSONObject loopInputField=loopInputFieldList.getJSONObject(i);
+                String key=loopInputField.getString("field");
+                loopWorkFlow.getLoopContext().put(key,"");
+            }
         }
         return new NodeResult(Map.of("index",index,"item",item));
     }

@@ -4,7 +4,6 @@ import com.tarzan.maxkb4j.core.workflow.enums.NodeType;
 import com.tarzan.maxkb4j.core.workflow.logic.LfEdge;
 import com.tarzan.maxkb4j.core.workflow.node.AbsNode;
 import com.tarzan.maxkb4j.module.application.domain.vo.ChatMessageVO;
-import com.tarzan.maxkb4j.module.chat.dto.ChatParams;
 import com.tarzan.maxkb4j.module.chat.dto.LoopParams;
 import lombok.Getter;
 import lombok.Setter;
@@ -21,10 +20,12 @@ public class LoopWorkFlow extends Workflow {
     private LoopParams loopParams;
     private Map<String, Object> loopContext;
 
-    public LoopWorkFlow(List<AbsNode> nodes, List<LfEdge> edges, ChatParams chatParams, LoopParams loopParams,Sinks.Many<ChatMessageVO> sink) {
-        super(nodes, edges, chatParams, sink);
+    public LoopWorkFlow(Workflow workflow, List<AbsNode> nodes, List<LfEdge> edges, LoopParams loopParams, Sinks.Many<ChatMessageVO> sink) {
+        super(workflow.getWorkflowMode(),nodes, edges, workflow.getChatParams(), sink);
         this.loopParams = loopParams;
         this.loopContext = new HashMap<>();
+        this.setContext(workflow.getContext());
+        this.setChatContext(workflow.getChatContext());
     }
 
     @Override

@@ -62,6 +62,22 @@ public class Workflow {
         this.sink = sink;
     }
 
+    public Workflow(WorkflowMode workflowMode,List<AbsNode> nodes, List<LfEdge> edges, ChatParams chatParams, Sinks.Many<ChatMessageVO> sink) {
+        this.workflowMode=workflowMode;
+        this.nodes = nodes;
+        this.edges = edges;
+        this.chatParams = chatParams;
+        this.context = new HashMap<>();
+        this.chatContext = new HashMap<>();
+        this.nodeContext = new CopyOnWriteArrayList<>();
+        this.answer = "";
+        this.historyChatRecords = CollectionUtils.isEmpty(chatParams.getHistoryChatRecords()) ? List.of() : chatParams.getHistoryChatRecords();
+        if (StringUtils.isNotBlank(chatParams.getRuntimeNodeId()) && Objects.nonNull(chatParams.getChatRecord())) {
+            this.loadNode(chatParams.getChatRecord(), chatParams.getRuntimeNodeId(), chatParams.getNodeData());
+        }
+        this.sink = sink;
+    }
+
     public Workflow(WorkflowMode workflowMode, List<AbsNode> nodes, List<LfEdge> edges) {
         this.workflowMode=workflowMode;
         this.nodes = nodes;
