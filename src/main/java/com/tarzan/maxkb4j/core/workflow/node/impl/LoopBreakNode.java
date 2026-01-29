@@ -19,7 +19,6 @@ public class LoopBreakNode extends AbsNode {
 
     @Override
     public void saveContext(Workflow workflow, Map<String, Object> detail) {
-        context.put("exception_message", detail.get("err_message"));
         context.put("is_break", detail.get("is_break"));
     }
 
