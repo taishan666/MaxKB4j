@@ -444,6 +444,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         application.setIsPublish(false);
         application.setCreateTime(now);
         application.setUpdateTime(now);
+        application.setUserId(StpKit.ADMIN.getLoginIdAsString());
         this.save(application);
         ApplicationAccessTokenEntity accessToken = ApplicationAccessTokenEntity.createDefault();
         accessToken.setApplicationId(application.getId());

@@ -20,7 +20,7 @@ public enum PermissionEnum {
     APPLICATION_EXPORT(ResourceType.APPLICATION, "APPLICATION", Operate.EXPORT, Permission.MANAGE),
     APPLICATION_IMPORT(ResourceType.APPLICATION, "APPLICATION", Operate.IMPORT, Permission.MANAGE),
 
-    APPLICATION_OVERVIEW_PUBLIC_ACCESS(ResourceType.APPLICATION, "APPLICATION_OVERVIEW",Operate.PUBLIC_ACCESS, Permission.MANAGE),
+    APPLICATION_OVERVIEW_PUBLIC_ACCESS(ResourceType.APPLICATION, "APPLICATION_OVERVIEW", Operate.PUBLIC_ACCESS, Permission.MANAGE),
     APPLICATION_OVERVIEW_ACCESS(ResourceType.APPLICATION, "APPLICATION_OVERVIEW", Operate.ACCESS, Permission.MANAGE),
     APPLICATION_OVERVIEW_EMBED(ResourceType.APPLICATION, "APPLICATION_OVERVIEW", Operate.EMBED, Permission.MANAGE),
     APPLICATION_OVERVIEW_API_KEY(ResourceType.APPLICATION, "APPLICATION_OVERVIEW", Operate.API_KEY, Permission.MANAGE),
@@ -103,9 +103,12 @@ public enum PermissionEnum {
         return getPermissions(resourceType).stream().filter(e -> permissionList.contains(e.getPermission())).toList();
     }
 
+    public String getResourcePerm() {
+        return this.resource + ":" + operate + ":/WORKSPACE/default/" + resourceType + "/default";
+    }
 
-    public  String getWorkspaceResourcePerm(String workspaceId,String targetId) {
-        return   resource + ":" + operate + ":/WORKSPACE/" + workspaceId + "/" + resourceType + "/" + targetId;
+    public String getWorkspaceResourcePerm(String workspaceId, String targetId) {
+        return resource + ":" + operate + ":/WORKSPACE/" + workspaceId + "/" + resourceType + "/" + targetId;
     }
 
 }
