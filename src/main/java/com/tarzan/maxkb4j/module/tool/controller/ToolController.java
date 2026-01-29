@@ -74,7 +74,7 @@ public class ToolController {
         dto.setCreateTime(now);
         dto.setUpdateTime(now);
         dto.setIsActive(false);
-        toolService.saveInfo(dto);
+        toolService.saveTool(dto);
         return R.data(dto);
     }
 
@@ -88,7 +88,7 @@ public class ToolController {
         dto.setUserId(StpKit.ADMIN.getLoginIdAsString());
         dto.setScope("WORKSPACE");
         if (toolService.mcpServerConfigValid(dto)){
-            toolService.saveInfo(dto);
+            toolService.saveTool(dto);
         }else {
             return R.fail("请检查配置信息");
         }

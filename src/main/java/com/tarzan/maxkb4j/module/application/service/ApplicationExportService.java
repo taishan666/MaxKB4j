@@ -112,13 +112,4 @@ public class ApplicationExportService {
         return result;
     }
 
-    @Transactional
-    public boolean appImport(InputStream inputStream) {
-        MaxKb4J maxKb4j =applicationService.parseMk(inputStream);
-        return applicationService.saveMk(maxKb4j);
-    }
-
-
-
-
 }
