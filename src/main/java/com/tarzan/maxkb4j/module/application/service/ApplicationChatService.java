@@ -3,6 +3,7 @@ package com.tarzan.maxkb4j.module.application.service;
 import com.alibaba.excel.EasyExcel;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -175,8 +176,10 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
 
 
     public void chatExport(List<String> ids, HttpServletResponse response) throws IOException {
-        List<ChatRecordDetailVO> rows = baseMapper.chatRecordDetail(ids);
-        EasyExcel.write(response.getOutputStream(), ChatRecordDetailVO.class).sheet("sheet").doWrite(rows);
+        if (CollectionUtils.isNotEmpty(ids)){
+            List<ChatRecordDetailVO> rows = baseMapper.chatRecordDetail(ids);
+            EasyExcel.write(response.getOutputStream(), ChatRecordDetailVO.class).sheet("sheet").doWrite(rows);
+        }
     }
 
     @Transactional
