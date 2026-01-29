@@ -79,7 +79,7 @@ public class ApplicationExportService {
                 if (properties != null) {
                     JSONObject nodeData = properties.getJSONObject("nodeData");
                     if (nodeData != null) {
-                        JSONObject loopBody = nodeData.getJSONObject("loop_body");
+                        JSONObject loopBody = nodeData.getJSONObject("loopBody");
                         if (loopBody != null) {
                             result.addAll(getToolIdList(loopBody));
                         }

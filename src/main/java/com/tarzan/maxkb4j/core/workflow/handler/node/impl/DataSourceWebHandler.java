@@ -42,10 +42,6 @@ public class DataSourceWebHandler implements INodeHandler {
                 inputParams.put("selector", selector);
                 documentList = documentWebService.getDocumentList(sourceUrl, selector,true);
             }
-            Map<String, Object> knowledgeBase = knowledgeParams.getKnowledgeBase();
-            if (knowledgeBase != null) {
-                workflow.getContext().putAll(knowledgeBase);
-            }
         }
         node.getDetail().put("inputParams", inputParams);
         node.getDetail().put("outputParams", documentList);

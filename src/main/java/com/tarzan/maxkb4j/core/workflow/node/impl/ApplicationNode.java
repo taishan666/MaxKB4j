@@ -1,8 +1,9 @@
 package com.tarzan.maxkb4j.core.workflow.node.impl;
 
 import com.alibaba.fastjson.JSONObject;
-import com.tarzan.maxkb4j.core.workflow.node.AbsNode;
+import com.tarzan.maxkb4j.core.workflow.model.NodeField;
 import com.tarzan.maxkb4j.core.workflow.model.Workflow;
+import com.tarzan.maxkb4j.core.workflow.node.AbsNode;
 import lombok.Data;
 
 import javax.validation.constraints.NotBlank;
@@ -35,23 +36,16 @@ public class ApplicationNode extends AbsNode {
         private String applicationId;
         @NotNull(message = "用户问题不能为空")
         private List<String> questionReferenceAddress;
-        private List<String> apiInputFieldList; // Optional
-
-        private List<String> userInputFieldList; // Optional,
-
-        private List<String> imageList; // Optional
-
-        private List<String> documentList; // Optional
-
-        private List<String> audioList; // Optional
-
+        //api 输入
+        private List<NodeField> apiInputFieldList;
+        //用户输入
+        private List<NodeField> userInputFieldList;
+        private List<String> imageList;
+        private List<String> documentList;
+        private List<String> audioList;
         private List<String> otherList;
-
         private Boolean isResult;
 
-        public Boolean getIsResult() {
-            return isResult != null && isResult;
-        }
     }
 
 

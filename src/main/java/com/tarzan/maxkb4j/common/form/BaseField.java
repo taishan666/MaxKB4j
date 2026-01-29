@@ -10,7 +10,7 @@ import java.util.List;
 @Data
 public class BaseField {
     private JSONObject attrs;
-    private Object default_value;
+    private Object defaultValue;
     private String field;
     private String input_type;
     private Object label;

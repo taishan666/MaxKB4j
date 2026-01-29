@@ -197,6 +197,7 @@ public class ToolService extends ServiceImpl<ToolMapper, ToolEntity> {
         if (!CollectionUtils.isEmpty(targetIds)) {
             wrapper.in(ToolEntity::getId, targetIds);
         }
+        wrapper.orderByDesc(ToolEntity::getCreateTime);
         return this.list(wrapper);
     }
 

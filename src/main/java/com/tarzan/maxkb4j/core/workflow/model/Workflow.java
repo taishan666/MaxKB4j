@@ -3,7 +3,10 @@ package com.tarzan.maxkb4j.core.workflow.model;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.tarzan.maxkb4j.core.workflow.enums.*;
+import com.tarzan.maxkb4j.core.workflow.enums.DialogueType;
+import com.tarzan.maxkb4j.core.workflow.enums.NodeStatus;
+import com.tarzan.maxkb4j.core.workflow.enums.NodeType;
+import com.tarzan.maxkb4j.core.workflow.enums.WorkflowMode;
 import com.tarzan.maxkb4j.core.workflow.logic.LfEdge;
 import com.tarzan.maxkb4j.core.workflow.node.AbsNode;
 import com.tarzan.maxkb4j.module.application.domain.entity.ApplicationChatRecordEntity;
@@ -29,22 +32,23 @@ import java.util.stream.Collectors;
 @Slf4j
 @Data
 public class Workflow {
+
+    private WorkflowMode workflowMode;
     private AbsNode currentNode;
     private ChatParams chatParams;
     private List<AbsNode> nodes;
     private List<LfEdge> edges;
-    private WorkflowMode workflowMode;
     private Map<String, Object> context;
     private Map<String, Object> chatContext;
     private List<AbsNode> nodeContext;
-    private String answer;
     private List<ApplicationChatRecordEntity> historyChatRecords;
+    private String answer;
     @JsonIgnore
     private Sinks.Many<ChatMessageVO> sink;
 
 
-    public Workflow(List<AbsNode> nodes, List<LfEdge> edges, ChatParams chatParams, Sinks.Many<ChatMessageVO> sink) {
-        this.workflowMode=WorkflowMode.APPLICATION;
+    public Workflow(WorkflowMode workflowMode,List<AbsNode> nodes, List<LfEdge> edges, ChatParams chatParams, Sinks.Many<ChatMessageVO> sink) {
+        this.workflowMode=workflowMode;
         this.nodes = nodes;
         this.edges = edges;
         this.chatParams = chatParams;
@@ -54,27 +58,43 @@ public class Workflow {
         this.answer = "";
         this.historyChatRecords = CollectionUtils.isEmpty(chatParams.getHistoryChatRecords()) ? List.of() : chatParams.getHistoryChatRecords();
         if (StringUtils.isNotBlank(chatParams.getRuntimeNodeId()) && Objects.nonNull(chatParams.getChatRecord())) {
-            this.loadNode(chatParams.getChatRecord(), chatParams.getRuntimeNodeId(), chatParams.getNodeData());
+            JSONObject details=chatParams.getChatRecord().getDetails();
+            if (details!=null){
+                this.loadNode(details, chatParams.getRuntimeNodeId(), chatParams.getNodeData());
+            }
         }
         this.sink = sink;
     }
 
-    public Workflow(WorkflowMode workflowMode, List<AbsNode> nodes, List<LfEdge> edges) {
+    public Workflow(WorkflowMode workflowMode,List<AbsNode> nodes, List<LfEdge> edges, ChatParams chatParams, JSONObject details,Sinks.Many<ChatMessageVO> sink) {
         this.workflowMode=workflowMode;
         this.nodes = nodes;
         this.edges = edges;
+        this.chatParams = chatParams;
         this.context = new HashMap<>();
         this.chatContext = new HashMap<>();
         this.nodeContext = new CopyOnWriteArrayList<>();
         this.answer = "";
-        this.historyChatRecords = List.of();
-        this.sink = null;
+        this.historyChatRecords = CollectionUtils.isEmpty(chatParams.getHistoryChatRecords()) ? List.of() : chatParams.getHistoryChatRecords();
+        if (StringUtils.isNotBlank(chatParams.getRuntimeNodeId()) && Objects.nonNull(chatParams.getChatRecord())) {
+            if (details!=null){
+                this.loadNode(details, chatParams.getRuntimeNodeId(), chatParams.getNodeData());
+            }
+
+        }
+        this.sink = sink;
     }
 
 
     @SuppressWarnings("unchecked")
-    private void loadNode(ApplicationChatRecordEntity chatRecord, String currentNodeId, Map<String, Object> currentNodeData) {
-        List<Map<String, Object>> sortedDetails = chatRecord.getDetails().values().stream().map(row -> (Map<String, Object>) row).sorted(Comparator.comparingInt(e -> (int) e.get("index"))).toList();
+    public void loadNode(JSONObject details, String currentNodeId, Map<String, Object> currentNodeData) {
+        List<Map<String, Object>> sortedDetails = details.values().stream()
+                .map(row -> (Map<String, Object>) row)
+                .sorted(Comparator.comparing(
+                        e -> (Integer) e.get("index"), // 注意这里返回的是 Integer，不是 int
+                        Comparator.nullsLast(Comparator.naturalOrder()) // 把 null 放最后（或用 nullsFirst）
+                ))
+                .toList();
         for (Map<String, Object> nodeDetail : sortedDetails) {
             String nodeId = (String) nodeDetail.get("nodeId");
             List<String> upNodeIdList = (List<String>) nodeDetail.get("upNodeIdList");
@@ -90,19 +110,21 @@ public class Workflow {
                     }
                     return nodeProperties;
                 });
-                assert currentNode != null;
-                currentNode.setStatus(nodeStatus);
-                currentNode.saveContext(this, nodeDetail);
-                currentNode.setDetail(nodeDetail);
-                nodeContext.add(currentNode);
+               if (currentNode!= null){
+                   currentNode.setStatus(nodeStatus);
+                   currentNode.saveContext(this, nodeDetail);
+                   currentNode.setDetail(nodeDetail);
+                   nodeContext.add(currentNode);
+               }
             } else {
                 // 处理其他节点
                 AbsNode node = getNodeClsById(nodeId, upNodeIdList, null);
-                assert node != null;
-                node.setStatus(nodeStatus);
-                node.saveContext(this, nodeDetail);
-                node.setDetail(nodeDetail);
-                nodeContext.add(node);
+                if (node != null){
+                    node.setStatus(nodeStatus);
+                    node.saveContext(this, nodeDetail);
+                    node.setDetail(nodeDetail);
+                    nodeContext.add(node);
+                }
             }
         }
     }
@@ -178,7 +200,7 @@ public class Workflow {
         return null;
     }
 
-    private Map<String, Object> getPromptVariables() {
+    public Map<String, Object> getPromptVariables() {
         Map<String, Object> result = new HashMap<>(100);
         for (String key : this.context.keySet()) {
             Object value = this.context.get(key);
@@ -189,12 +211,18 @@ public class Workflow {
             result.put("chat." + key, value == null ? "*" : value);
         }
         for (AbsNode node : nodeContext) {
-            String nodeName = node.getProperties().getString("nodeName");
-            Map<String, Object> context = node.getContext();
-            for (String key : context.keySet()) {
-                Object value = context.get(key);
-                result.put(nodeName + "." + key, value == null ? "*" : value);
-            }
+            result.putAll(getNodeVariables(node));
+        }
+        return result;
+    }
+
+    public Map<String, Object> getNodeVariables(AbsNode node) {
+        Map<String, Object> result = new HashMap<>(100);
+        String nodeName = node.getProperties().getString("nodeName");
+        Map<String, Object> context = node.getContext();
+        for (String key : context.keySet()) {
+            Object value = context.get(key);
+            result.put(nodeName + "." + key, value == null ? "*" : value);
         }
         return result;
     }
@@ -203,6 +231,9 @@ public class Workflow {
         Map<String, Map<String, Object>> result = new HashMap<>(100);
         result.put("global", context);
         result.put("chat", chatContext);
+        if (this instanceof LoopWorkFlow loopWorkFlow){
+            result.put("loop", loopWorkFlow.getLoopContext());
+        }
         for (AbsNode node : nodeContext) {
             result.put(node.getId(), node.getContext());
         }
@@ -252,6 +283,13 @@ public class Workflow {
             }
         }
         return value;
+    }
+
+    public Object getReferenceField(List<String> reference) {
+        if (CollectionUtils.isNotEmpty(reference)&&reference.size()>1){
+            return getReferenceField(reference.get(0), reference.get(1));
+        }
+        return null;
     }
 
     public Object getReferenceField(String nodeId, String key) {

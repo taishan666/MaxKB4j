@@ -26,7 +26,7 @@ public class TextInputField extends BaseField {
         super.setLabel(labelName);
         super.setField(field);
         super.setRequired(required);
-        super.setDefault_value(defaultValue);
+        super.setDefaultValue(defaultValue);
         if (defaultValue != null){
             super.setShow_default_value(true);
         }

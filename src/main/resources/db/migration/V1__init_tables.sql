@@ -817,3 +817,5 @@ CREATE INDEX "knowledge_action_update_time" ON "public"."knowledge_action" USING
 -- Primary Key structure for table knowledge_action
 -- ----------------------------
 ALTER TABLE "public"."knowledge_action" ADD CONSTRAINT "knowledge_action_pkey" PRIMARY KEY ("id");
+
+

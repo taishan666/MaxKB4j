@@ -117,7 +117,25 @@ public abstract class AbsNode {
                 this.getType(),
                 this.getViewType(),
                 childNode,
-                nodeIsEnd,false);
+                nodeIsEnd,
+                false);
+    }
+
+    public ChatMessageVO toChatMessageVO(int index,String chatId, String chatRecordId, String content, String reasoningContent, ChildNode childNode, boolean nodeIsEnd) {
+        return new ChatMessageVO(
+                chatId,
+                chatRecordId,
+                this.getId(),
+                content,
+                reasoningContent,
+                this.getUpNodeIdList(),
+                this.getRuntimeNodeId(),
+                this.getRuntimeNodeId()+"_"+index,
+                this.getType(),
+                this.getViewType(),
+                childNode,
+                nodeIsEnd,
+                false);
     }
 
 }

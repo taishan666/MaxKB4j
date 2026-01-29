@@ -36,7 +36,7 @@ public class McpNodeHandler implements INodeHandler {
             Object value =toolParams.get(key);
             if (value instanceof List){
                 List<String> fields=(List<String>)value;
-                value=workflow.getReferenceField(fields.get(0),fields.get(1));
+                value=workflow.getReferenceField(fields);
             }
             params.put(key,value);
         }

@@ -3,6 +3,7 @@ package com.tarzan.maxkb4j.module.application.service;
 import com.alibaba.excel.EasyExcel;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -25,7 +26,7 @@ import com.tarzan.maxkb4j.module.chat.dto.ChatResponse;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.scheduling.annotation.Async;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Sinks;
@@ -51,6 +52,7 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
     private final ApplicationAccessTokenService accessTokenService;
     private final ApplicationVersionService applicationVersionService;
     private final PostResponseHandler postResponseHandler;
+    private final TaskExecutor chatTaskExecutor;
 
 
     public IPage<ApplicationChatEntity> chatLogs(String appId, int page, int size, ChatQueryDTO query) {
@@ -136,7 +138,6 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
         return chatResponse;
     }
 
-    @Async("chatTaskExecutor")
     public CompletableFuture<ChatResponse> chatMessageAsync(ChatParams chatParams, Sinks.Many<ChatMessageVO> sink) {
         String chatId = StringUtils.isNotBlank(chatParams.getChatId()) ? chatParams.getChatId() : IdWorker.get32UUID();
         ChatInfo chatInfo = ChatCache.get(chatId);
@@ -146,7 +147,7 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
             chatInfo.setAppId(chatParams.getAppId());
             ChatCache.put(chatInfo.getChatId(), chatInfo);
         }
-        return CompletableFuture.completedFuture(chatMessage(chatParams, sink));
+        return CompletableFuture.supplyAsync(() -> chatMessage(chatParams, sink),chatTaskExecutor);
     }
 
     public boolean visitCountCheck(ChatParams chatParams) {
@@ -175,8 +176,10 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
 
 
     public void chatExport(List<String> ids, HttpServletResponse response) throws IOException {
-        List<ChatRecordDetailVO> rows = baseMapper.chatRecordDetail(ids);
-        EasyExcel.write(response.getOutputStream(), ChatRecordDetailVO.class).sheet("sheet").doWrite(rows);
+        if (CollectionUtils.isNotEmpty(ids)){
+            List<ChatRecordDetailVO> rows = baseMapper.chatRecordDetail(ids);
+            EasyExcel.write(response.getOutputStream(), ChatRecordDetailVO.class).sheet("sheet").doWrite(rows);
+        }
     }
 
     @Transactional

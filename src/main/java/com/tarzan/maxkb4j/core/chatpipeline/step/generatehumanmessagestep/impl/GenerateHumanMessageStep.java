@@ -15,22 +15,27 @@ import java.util.List;
 public class GenerateHumanMessageStep extends IGenerateHumanMessageStep {
     @Override
     protected String execute(LlmModelSetting llmModelSetting , KnowledgeSetting knowledgeSetting, String problemText, List<ParagraphVO> paragraphList) {
+        String safeProblemText = problemText != null ? problemText : "";
         if (!CollectionUtils.isEmpty(paragraphList)){
             String prompt = llmModelSetting.getPrompt();
-            StringBuilder data=new StringBuilder();
-            for (ParagraphVO paragraphVO : paragraphList) {
-                data.append("<data>").append(paragraphVO.getTitle()).append(":").append(paragraphVO.getContent()).append("</data>");
+            if (prompt != null) {
+                StringBuilder data=new StringBuilder();
+                for (ParagraphVO paragraphVO : paragraphList) {
+                    data.append("<data>").append(paragraphVO.getTitle()).append(":").append(paragraphVO.getContent()).append("</data>");
+                }
+                prompt=prompt.replace("{question}", safeProblemText).replace("{data}", data);
+                return prompt;
             }
-            prompt=prompt.replace("{question}", problemText).replace("{data}", data);
-            return prompt;
         }else {
             String status=knowledgeSetting.getNoReferencesSetting().getStatus();
             if (AIAnswerType.ai_questioning.name().equals(status)){
                 String noReferencesPrompt = llmModelSetting.getNoReferencesPrompt();
-                return noReferencesPrompt.replace("{question}", problemText);
+                if (noReferencesPrompt != null) {
+                    return noReferencesPrompt.replace("{question}", safeProblemText);
+                }
             }
         }
-        return problemText;
+        return safeProblemText;
     }
 
     @Override

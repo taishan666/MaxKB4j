@@ -1,11 +1,11 @@
 package com.tarzan.maxkb4j.core.workflow.node.impl;
 
 import com.alibaba.fastjson.JSONObject;
-import com.tarzan.maxkb4j.core.workflow.node.AbsNode;
+import com.tarzan.maxkb4j.core.workflow.model.Condition;
 import com.tarzan.maxkb4j.core.workflow.model.Workflow;
+import com.tarzan.maxkb4j.core.workflow.node.AbsNode;
 import lombok.Data;
 
-import javax.validation.constraints.NotBlank;
 import java.util.List;
 import java.util.Map;
 
@@ -36,20 +36,5 @@ public class ConditionNode extends AbsNode {
         private String condition;
         private List<Condition> conditions;
     }
-
-
-    @Data
-    public static class Condition {
-        private List<String> field;
-
-        @NotBlank(message = "Compare operation cannot be blank")
-        private String compare;
-
-        @NotBlank(message = "Value cannot be blank")
-        private String value;
-    }
-
-
-
 
 }

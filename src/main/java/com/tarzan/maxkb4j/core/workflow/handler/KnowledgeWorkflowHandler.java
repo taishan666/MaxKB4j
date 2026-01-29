@@ -10,22 +10,18 @@ import com.tarzan.maxkb4j.core.workflow.model.NodeResultFuture;
 import com.tarzan.maxkb4j.core.workflow.model.Workflow;
 import com.tarzan.maxkb4j.core.workflow.node.AbsNode;
 import com.tarzan.maxkb4j.module.knowledge.service.KnowledgeActionService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class KnowledgeWorkflowHandler extends WorkflowHandler {
 
     private final KnowledgeActionService knowledgeActionService;
-
-    public KnowledgeWorkflowHandler(TaskExecutor chatTaskExecutor, KnowledgeActionService knowledgeActionService) {
-        super(chatTaskExecutor);
-        this.knowledgeActionService = knowledgeActionService;
-    }
 
     @Override
     public String execute(Workflow workflow) {

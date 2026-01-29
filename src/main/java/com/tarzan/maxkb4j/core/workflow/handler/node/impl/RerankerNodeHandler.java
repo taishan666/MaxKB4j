@@ -36,7 +36,7 @@ public class RerankerNodeHandler implements INodeHandler {
     public NodeResult execute(Workflow workflow, AbsNode node) throws Exception {
         RerankerNode.NodeParams nodeParams = node.getNodeData().toJavaObject(RerankerNode.NodeParams.class);
         List<String> questionReferenceAddress = nodeParams.getQuestionReferenceAddress();
-        String question = (String) workflow.getReferenceField(questionReferenceAddress.get(0), questionReferenceAddress.get(1));
+        String question = (String) workflow.getReferenceField(questionReferenceAddress);
         List<List<String>> rerankerReferenceList = nodeParams.getRerankerReferenceList();
         List<TextSegment> textSegments = getRerankerList(workflow,rerankerReferenceList);
         // 获取重排序模型实例
@@ -80,10 +80,7 @@ public class RerankerNodeHandler implements INodeHandler {
     public List<TextSegment> getRerankerList(Workflow workflow,List<List<String>> rerankerReferenceList) {
         List<TextSegment> textSegments=new ArrayList<>();
         for (List<String> reference : rerankerReferenceList) {
-            Object value = workflow.getReferenceField(
-                    reference.get(0), // 第1个元素
-                    reference.get(1)// 剩余部分
-            );
+            Object value = workflow.getReferenceField(reference);
             List<ParagraphVO> paragraphs = (List<ParagraphVO>) value;
             textSegments.addAll(paragraphs.stream()
                     .map(paragraph ->{

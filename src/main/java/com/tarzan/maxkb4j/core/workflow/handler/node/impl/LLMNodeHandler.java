@@ -3,7 +3,6 @@ package com.tarzan.maxkb4j.core.workflow.handler.node.impl;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.tarzan.maxkb4j.common.util.MessageUtils;
 import com.tarzan.maxkb4j.common.util.MimeTypeUtils;
-import com.tarzan.maxkb4j.module.tool.service.ToolUtilService;
 import com.tarzan.maxkb4j.core.assistant.Assistant;
 import com.tarzan.maxkb4j.core.langchain4j.AppChatMemory;
 import com.tarzan.maxkb4j.core.langchain4j.AssistantServices;
@@ -19,15 +18,14 @@ import com.tarzan.maxkb4j.core.workflow.node.impl.AiChatNode;
 import com.tarzan.maxkb4j.module.application.domain.vo.ChatMessageVO;
 import com.tarzan.maxkb4j.module.model.info.service.ModelFactory;
 import com.tarzan.maxkb4j.module.oss.service.MongoFileService;
+import com.tarzan.maxkb4j.module.tool.service.ToolUtilService;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.Content;
 import dev.langchain4j.data.message.ImageContent;
-import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.model.chat.response.ChatResponse;
 import dev.langchain4j.model.output.TokenUsage;
 import dev.langchain4j.service.AiServices;
-import dev.langchain4j.service.Result;
 import dev.langchain4j.service.TokenStream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,6 +34,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicReference;
 
 @Slf4j
 @NodeHandlerType({NodeType.AI_CHAT, NodeType.IMAGE_UNDERSTAND})
@@ -65,21 +64,12 @@ public class LLMNodeHandler implements INodeHandler {
         List<Content> contents = buildImageContents(workflow, node, nodeParams.getImageList());
         // 记录上下文用于调试/追踪
         recordNodeDetails(node, systemPrompt, historyMessages, question, contents);
-        if (WorkflowMode.APPLICATION.equals(workflow.getWorkflowMode())) {
-            StreamingChatModel chatModel = modelFactory.buildStreamingChatModel(
-                    nodeParams.getModelId(), nodeParams.getModelParamsSetting()
-            );
-            Assistant assistant = aiServicesBuilder.streamingChatModel(chatModel).build();
-            TokenStream tokenStream = assistant.chatStream(question, contents);
-            return writeContextStream(nodeParams, tokenStream, workflow, node);
-        } else {
-            ChatModel chatModel = modelFactory.buildChatModel(
-                    nodeParams.getModelId(), nodeParams.getModelParamsSetting()
-            );
-            Assistant assistant = aiServicesBuilder.chatModel(chatModel).build();
-            Result<String> result = assistant.chat(question, contents);
-            return handleChatResponse(result.finalResponse(), node);
-        }
+        StreamingChatModel chatModel = modelFactory.buildStreamingChatModel(
+                nodeParams.getModelId(), nodeParams.getModelParamsSetting()
+        );
+        Assistant assistant = aiServicesBuilder.streamingChatModel(chatModel).build();
+        TokenStream tokenStream = assistant.chatStream(question, contents);
+        return writeContextStream(nodeParams, tokenStream, workflow, node);
     }
 
     private AiServices<Assistant> buildAiServices(String systemPrompt, List<ChatMessage> historyMessages, List<String> toolIds, List<String> applicationIds) {
@@ -102,7 +92,7 @@ public class LLMNodeHandler implements INodeHandler {
             return contents;
         }
         try {
-            Object object = workflow.getReferenceField(imageFieldList.get(0), imageFieldList.get(1));
+            Object object = workflow.getReferenceField(imageFieldList);
             if (!(object instanceof List<?> fileList)) {
                 return contents;
             }
@@ -137,66 +127,63 @@ public class LLMNodeHandler implements INodeHandler {
         node.getDetail().put("hasImages", !contents.isEmpty());
     }
 
-    private NodeResult handleChatResponse(ChatResponse response, AbsNode node) {
+    private NodeResult handleChatResponse(ChatResponse response, AbsNode node,String errorMessage) {
         String answer = Optional.ofNullable(response.aiMessage().text()).orElse("");
         String reasoning = Optional.ofNullable(response.aiMessage().thinking()).orElse("");
-
         TokenUsage tokenUsage = response.tokenUsage();
         if (tokenUsage != null) {
             node.getDetail().put("messageTokens", tokenUsage.inputTokenCount());
             node.getDetail().put("answerTokens", tokenUsage.outputTokenCount());
         }
-
-        return new NodeResult(Map.of("answer", answer, "reasoningContent", reasoning), true);
+        return new NodeResult(Map.of("answer", answer, "reasoningContent", reasoning,"exceptionMessage",errorMessage), true);
     }
 
     private NodeResult writeContextStream(AiChatNode.NodeParams nodeParams, TokenStream tokenStream,
                                           Workflow workflow, AbsNode node) {
+        AtomicReference<String> errorMessage = new AtomicReference<>("");
         boolean isResult = Boolean.TRUE.equals(nodeParams.getIsResult());
         boolean toolOutputEnable = Boolean.TRUE.equals(nodeParams.getToolOutputEnable());
         boolean reasoningContentEnable = Optional.ofNullable(nodeParams.getModelSetting())
                 .map(setting -> setting.getBooleanValue("reasoningContentEnable"))
                 .orElse(false);
         CompletableFuture<ChatResponse> chatResponseFuture = new CompletableFuture<>();
-        tokenStream
-                .onPartialThinking(thinking -> {
+        tokenStream.onPartialThinking(thinking -> {
                     if (isResult && reasoningContentEnable) {
                         emitMessage(workflow, node, "", thinking.text());
                     }
-                })
-                .onToolExecuted(toolExecute -> {
+                }).onToolExecuted(toolExecute -> {
                     if (isResult && toolOutputEnable) {
                         String toolMessage = MessageUtils.getToolMessage(toolExecute);
                         emitMessage(workflow, node, toolMessage, "");
                     }
-                })
-                .onPartialResponse(content -> {
+                }).onPartialResponse(content -> {
                     if (isResult) {
                         emitMessage(workflow, node, content, "");
                     }
-                })
-                .onCompleteResponse(chatResponseFuture::complete)
+                }).onCompleteResponse(chatResponseFuture::complete)
                 .onError(error -> {
-                    log.error("Streaming execution error in node: {}", node.getRuntimeNodeId(), error);
-                    chatResponseFuture.completeExceptionally(error);
+                    errorMessage.set(error.getMessage());
+                    chatResponseFuture.complete(ChatResponse.builder().build());
                 })
                 .start();
         ChatResponse response = chatResponseFuture.join();
         if (isResult) {
             node.setAnswerText(response.aiMessage().text());
         }
-        return handleChatResponse(response, node);
+        return handleChatResponse(response, node,errorMessage.get());
     }
 
     private void emitMessage(Workflow workflow, AbsNode node, String content, String reasoning) {
-        ChatMessageVO vo = node.toChatMessageVO(
-                workflow.getChatParams().getChatId(),
-                workflow.getChatParams().getChatRecordId(),
-                content,
-                reasoning,
-                null,
-                false
-        );
-        workflow.getSink().tryEmitNext(vo);
+        if (WorkflowMode.APPLICATION.equals(workflow.getWorkflowMode())) {
+            ChatMessageVO vo = node.toChatMessageVO(
+                    workflow.getChatParams().getChatId(),
+                    workflow.getChatParams().getChatRecordId(),
+                    content,
+                    reasoning,
+                    null,
+                    false
+            );
+            workflow.getSink().tryEmitNext(vo);
+        }
     }
 }

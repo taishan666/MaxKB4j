@@ -10,7 +10,6 @@ import com.tarzan.maxkb4j.core.workflow.node.AbsNode;
 import com.tarzan.maxkb4j.module.application.domain.vo.ChatMessageVO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -23,9 +22,6 @@ import java.util.concurrent.CompletableFuture;
 @RequiredArgsConstructor
 public class WorkflowHandler {
 
-    private final TaskExecutor chatTaskExecutor;
-
-
     public String execute(Workflow workflow) {
         AbsNode currentNode = workflow.getCurrentNode();
         if (currentNode == null) {
@@ -33,6 +29,10 @@ public class WorkflowHandler {
         }
         runChainNodes(workflow, List.of(currentNode));
         return workflow.getAnswer();
+    }
+
+    public CompletableFuture<String> executeAsync(Workflow workflow) {
+        return CompletableFuture.completedFuture(execute(workflow));
     }
 
     public void runChainNodes(Workflow workflow, List<AbsNode> nodeList) {
@@ -45,7 +45,7 @@ public class WorkflowHandler {
         }else {
             List<CompletableFuture<List<AbsNode>>> futureList = new ArrayList<>();
             for (AbsNode node : nodeList) {
-                futureList.add(CompletableFuture.supplyAsync(() -> runChainNode(workflow, node),chatTaskExecutor));
+                futureList.add(CompletableFuture.supplyAsync(() -> runChainNode(workflow, node)));
             }
             List<List<AbsNode>> nextNodeLists = futureList.stream()
                     .map(CompletableFuture::join)
@@ -100,14 +100,17 @@ public class WorkflowHandler {
             log.error("error:", ex);
             node.setErrMessage(ex.getMessage());
             log.error("NODE: {} Exception :{}", node.getType(), ex.getMessage());
-            ChatMessageVO errMessage = node.toChatMessageVO(
-                    workflow.getChatParams().getChatId(),
-                    workflow.getChatParams().getChatRecordId(),
-                    String.format("Exception: %s", ex.getMessage()),
-                    "",
-                    null,
-                    true);
-            workflow.getSink().tryEmitNext(errMessage);
+            // 添加空指针检查，防止 chatParams 为 null 时导致的异常
+            if (workflow.getChatParams() != null && workflow.getSink() != null) {
+                ChatMessageVO errMessage = node.toChatMessageVO(
+                        workflow.getChatParams().getChatId(),
+                        workflow.getChatParams().getChatRecordId(),
+                        String.format("Exception: %s", ex.getMessage()),
+                        "",
+                        null,
+                        true);
+                workflow.getSink().tryEmitNext(errMessage);
+            }
             return new NodeResultFuture(null, ex, NodeStatus.ERROR.getCode());
         }
     }

@@ -18,7 +18,6 @@ public class DataSourceLocalNode extends AbsNode {
 
     @Override
     public void saveContext(Workflow workflow, Map<String, Object> detail) {
-
     }
 
     @Data

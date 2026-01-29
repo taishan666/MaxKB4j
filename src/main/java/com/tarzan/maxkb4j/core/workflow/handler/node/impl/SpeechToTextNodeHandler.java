@@ -33,7 +33,7 @@ public class SpeechToTextNodeHandler implements INodeHandler {
     public NodeResult execute(Workflow workflow, AbsNode node) throws Exception {
         SpeechToTextNode.NodeParams nodeParams=node.getNodeData().toJavaObject(SpeechToTextNode.NodeParams.class);
         List<String> audioList = nodeParams.getAudioList();
-        Object res = workflow.getReferenceField(audioList.get(0), audioList.get(1));
+        Object res = workflow.getReferenceField(audioList);
         STTModel sttModel = modelFactory.buildSTTModel(nodeParams.getSttModelId());
         @SuppressWarnings("unchecked")
         List<SysFile> audioFiles = (List<SysFile>) res;

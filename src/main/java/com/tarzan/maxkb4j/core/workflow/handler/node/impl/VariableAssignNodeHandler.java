@@ -2,6 +2,7 @@ package com.tarzan.maxkb4j.core.workflow.handler.node.impl;
 
 import com.tarzan.maxkb4j.core.workflow.annotation.NodeHandlerType;
 import com.tarzan.maxkb4j.core.workflow.enums.NodeType;
+import com.tarzan.maxkb4j.core.workflow.model.LoopWorkFlow;
 import com.tarzan.maxkb4j.core.workflow.model.Workflow;
 import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;
 import com.tarzan.maxkb4j.core.workflow.node.AbsNode;
@@ -17,6 +18,7 @@ import java.util.*;
 @Component
 public class VariableAssignNodeHandler implements INodeHandler {
 
+    @SuppressWarnings("unchecked")
     @Override
     public NodeResult execute(Workflow workflow, AbsNode node) throws Exception {
         VariableAssignNode.NodeParams nodeParams = node.getNodeData().toJavaObject(VariableAssignNode.NodeParams.class);
@@ -25,7 +27,6 @@ public class VariableAssignNodeHandler implements INodeHandler {
             if (variable == null || !variable.containsKey("fields")) {
                 continue;
             }
-            @SuppressWarnings("unchecked")
             List<String> fields = (List<String>) variable.get("fields");
             if (fields == null || fields.size() < 2) {
                 continue; // invalid fields
@@ -39,6 +40,9 @@ public class VariableAssignNodeHandler implements INodeHandler {
                 //更新会话变量
                 ChatInfo chatInfo = ChatCache.get(workflow.getChatParams().getChatId());
                 chatInfo.getChatVariables().putAll(workflow.getChatContext());
+            }
+            if ("loop".equals(scope) ){
+                resultList.add(getLoopHandleResult(workflow,variable,fields));
             }
         }
         node.getDetail().put("resultList",resultList);
@@ -61,6 +65,24 @@ public class VariableAssignNodeHandler implements INodeHandler {
         return result;
     }
 
+    private Map<String, Object> getLoopHandleResult(Workflow workflow,Map<String, Object> variable,List<String> fields){
+        Map<String, Object> result = new HashMap<>();
+        if (workflow instanceof LoopWorkFlow loopWorkflow){
+            String varName = fields.get(1);
+            // 获取 input_value（原始引用内容）
+            String inputValue = getReferenceContent(workflow,fields);
+            // 解析 value
+            Object value = resolveValue(workflow,variable);
+            // 更新 global 变量
+            loopWorkflow.getLoopContext().put(varName,value);
+            // 构建 result
+            result.put("name", variable.get("name"));
+            result.put("input_value", inputValue);
+            result.put("output_value", value);
+        }
+        return result;
+    }
+
     private Map<String, Object> getChatHandleResult(Workflow workflow,Map<String, Object> variable,List<String> fields){
         String varName = fields.get(1);
         // 获取 input_value（原始引用内容）
@@ -69,6 +91,10 @@ public class VariableAssignNodeHandler implements INodeHandler {
         Object value = resolveValue(workflow,variable);
         // 更新 chat变量
         workflow.getChatContext().put(varName,value);
+        // 更新 loop变量
+        if (workflow instanceof LoopWorkFlow loopWorkflow){
+            loopWorkflow.getLoopContext().put(varName,value);
+        }
         // 构建 result
         Map<String, Object> result = new HashMap<>();
         result.put("name", variable.get("name"));
@@ -87,7 +113,7 @@ public class VariableAssignNodeHandler implements INodeHandler {
             @SuppressWarnings("unchecked")
             List<String> reference = (List<String>) variable.get("reference");
             if (reference != null && reference.size() >= 2) {
-                return workflow.getReferenceField(reference.get(0), reference.get(1));
+                return workflow.getReferenceField(reference);
             }
         }
         // 默认返回 variable 中的 value 字段（可能是字面量）
@@ -98,7 +124,7 @@ public class VariableAssignNodeHandler implements INodeHandler {
         if (fields == null || fields.size() < 2) {
             return ""; // 或抛异常，但 execute 中已做过校验，这里可宽松处理
         }
-        Object result = workflow.getReferenceField(fields.get(0), fields.get(1));
+        Object result = workflow.getReferenceField(fields);
         return result == null ? "" : String.valueOf(result);
     }
 }

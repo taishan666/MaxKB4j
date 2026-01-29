@@ -30,7 +30,7 @@ public class TextToSpeechNodeHandler implements INodeHandler {
     public NodeResult execute(Workflow workflow, AbsNode node) throws Exception {
         TextToSpeechNode.NodeParams nodeParams=node.getNodeData().toJavaObject(TextToSpeechNode.NodeParams.class);
         List<String> contentList=nodeParams.getContentList();
-        Object content=workflow.getReferenceField(contentList.get(0),contentList.get(1));
+        Object content=workflow.getReferenceField(contentList);
         TTSModel ttsModel = modelFactory.buildTTSModel(nodeParams.getTtsModelId(), nodeParams.getModelParamsSetting());
         byte[]  audioData = ttsModel.textToSpeech(content.toString());
         SysFile fileVO = fileService.uploadFile("generated_audio_"+ UUID.randomUUID() +".mp3",audioData);

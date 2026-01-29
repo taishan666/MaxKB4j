@@ -75,7 +75,13 @@ public enum NodeType {
 
     KNOWLEDGE_WRITE("knowledge-write-node", "知识库写入节点"),
 
-    LOOP("loop-node", "循环节点"),
+    LOOP("loop-node","循环节点"),
+
+    LOOP_START("loop-start-node","循环开始"),
+
+    LOOP_CONTINUE("loop-continue-node","循环继续"),
+
+    LOOP_BREAK("loop-break-node","循环跳出"),
     ;
 
     private final String key;

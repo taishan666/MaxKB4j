@@ -35,7 +35,7 @@ public class SearchKnowledgeNodeHandler implements INodeHandler {
         SearchKnowledgeNode.NodeParams nodeParams=node.getNodeData().toJavaObject(SearchKnowledgeNode.NodeParams .class);
         KnowledgeSetting knowledgeSetting=nodeParams.getKnowledgeSetting();
         List<String> fields=nodeParams.getQuestionReferenceAddress();
-        String question= (String)workflow.getReferenceField(fields.get(0),fields.get(1));
+        String question= (String)workflow.getReferenceField(fields);
         List<String> excludeParagraphIds=new ArrayList<>();
         if (workflow.getChatParams().getReChat()){
             excludeParagraphIds=getExcludeParagraphIds(workflow,node.getRuntimeNodeId(),question);

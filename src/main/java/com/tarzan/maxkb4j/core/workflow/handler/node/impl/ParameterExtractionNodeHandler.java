@@ -30,7 +30,7 @@ public class ParameterExtractionNodeHandler implements INodeHandler {
     public NodeResult execute(Workflow workflow, AbsNode node) throws Exception {
         ParameterExtractionNode.NodeParams nodeParams = node.getNodeData().toJavaObject(ParameterExtractionNode.NodeParams.class);
         ChatModel chatModel = modelFactory.buildChatModel(nodeParams.getModelId(), nodeParams.getModelParamsSetting());
-        Object query = workflow.getReferenceField(nodeParams.getInputVariable().get(0),nodeParams.getInputVariable().get(1));
+        Object query = workflow.getReferenceField(nodeParams.getInputVariable());
         ParameterExtractionAssistant assistant = AiServices.builder(ParameterExtractionAssistant.class)
                 .chatModel(chatModel)
                 .build();
