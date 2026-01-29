@@ -21,6 +21,7 @@ import com.tarzan.maxkb4j.module.system.permission.entity.UserResourcePermission
 import com.tarzan.maxkb4j.module.system.permission.mapper.UserResourcePermissionMapper;
 import com.tarzan.maxkb4j.module.system.permission.vo.ResourceUserPermissionVO;
 import com.tarzan.maxkb4j.module.system.permission.vo.UserResourcePermissionVO;
+import com.tarzan.maxkb4j.module.system.user.constants.Permission;
 import com.tarzan.maxkb4j.module.system.user.domain.entity.UserEntity;
 import com.tarzan.maxkb4j.module.system.user.mapper.UserMapper;
 import com.tarzan.maxkb4j.module.tool.domain.entity.ToolEntity;
@@ -48,7 +49,7 @@ public class UserResourcePermissionService extends ServiceImpl<UserResourcePermi
         entity.setAuthTargetType(type);
         entity.setTargetId(targetId);
         entity.setUserId(userId);
-        entity.setPermissionList(List.of("VIEW", "MANAGE"));
+        entity.setPermissionList(List.of(Permission.VIEW, Permission.MANAGE));
         entity.setAuthType("RESOURCE_PERMISSION_GROUP");
         entity.setWorkspaceId(DEFAULT_ID);
         return this.save(entity);
@@ -161,7 +162,7 @@ public class UserResourcePermissionService extends ServiceImpl<UserResourcePermi
             if (permission != null){
                 vo.setPermission(getPermissionFromList(permission.getPermissionList()));
             }else{
-                vo.setPermission("NOT_AUTH");
+                vo.setPermission(Permission.NOT_AUTH);
             }
             vo.setWorkspaceId(DEFAULT_ID);
             vo.setAuthTargetType(type);
@@ -172,15 +173,15 @@ public class UserResourcePermissionService extends ServiceImpl<UserResourcePermi
 
     private String getPermissionFromList(List<String> permissionList) {
         if (CollectionUtils.isNotEmpty(permissionList)) {
-            if (permissionList.contains("MANAGE")) {
-                return "MANAGE";
-            } else if (permissionList.contains("VIEW")) {
-                return "VIEW";
+            if (permissionList.contains(Permission.MANAGE)) {
+                return Permission.MANAGE;
+            } else if (permissionList.contains(Permission.VIEW)) {
+                return Permission.VIEW;
             } else {
-                return "NOT_AUTH";
+                return Permission.NOT_AUTH;
             }
         } else {
-            return "NOT_AUTH";
+            return Permission.NOT_AUTH;
         }
     }
 
@@ -217,10 +218,10 @@ public class UserResourcePermissionService extends ServiceImpl<UserResourcePermi
     }
 
     private List<String>  getPermissionFromList(String permission) {
-        if ("MANAGE".equals(permission)) {
-            return List.of("MANAGE", "VIEW");
-        } else if ("VIEW".equals(permission)) {
-            return List.of("VIEW");
+        if (Permission.MANAGE.equals(permission)) {
+            return List.of(Permission.MANAGE, Permission.VIEW);
+        } else if (Permission.VIEW.equals(permission)) {
+            return List.of(Permission.VIEW);
         }
         return List.of();
     }
@@ -231,7 +232,7 @@ public class UserResourcePermissionService extends ServiceImpl<UserResourcePermi
                 .eq(UserResourcePermissionEntity::getUserId, userId)
                 .eq(UserResourcePermissionEntity::getAuthTargetType, authTargetType).list();
         return userResourcePermissions.stream()
-                .filter(permission -> permission.getPermissionList().contains("VIEW"))
+                .filter(permission -> permission.getPermissionList().contains(Permission.VIEW))
                 .map(UserResourcePermissionEntity::getTargetId).toList();
     }
 

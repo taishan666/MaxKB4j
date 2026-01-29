@@ -18,6 +18,7 @@ import com.tarzan.maxkb4j.module.application.domain.vo.ApplicationVO;
 import com.tarzan.maxkb4j.module.application.enums.AppType;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationChatMapper;
 import com.tarzan.maxkb4j.module.application.mapper.ApplicationMapper;
+import com.tarzan.maxkb4j.module.knowledge.domain.entity.KnowledgeEntity;
 import com.tarzan.maxkb4j.module.knowledge.service.KnowledgeService;
 import com.tarzan.maxkb4j.module.model.custom.base.STTModel;
 import com.tarzan.maxkb4j.module.model.custom.base.TTSModel;
@@ -222,12 +223,6 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
 
 
     public ApplicationVO wrapVo(ApplicationVO vo) {
-        List<String> knowledgeIds = vo.getKnowledgeIds();
-        if (!CollectionUtils.isEmpty(knowledgeIds)) {
-            vo.setKnowledgeList(knowledgeService.listByIds(knowledgeIds));
-        } else {
-            vo.setKnowledgeList(List.of());
-        }
         if (AppType.WORK_FLOW.name().equals(vo.getType())) {
             JSONObject workFlow = vo.getWorkFlow();
             JSONArray nodes = workFlow.getJSONArray("nodes");
@@ -249,6 +244,17 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
                         }
                     }
                 }
+            }
+        }else {
+            List<String> knowledgeIds = vo.getKnowledgeIds();
+            if (!CollectionUtils.isEmpty(knowledgeIds)) {
+                List<KnowledgeEntity> knowledgeList=knowledgeService.lambdaQuery()
+                        .select(KnowledgeEntity::getId, KnowledgeEntity::getName)
+                        .in(KnowledgeEntity::getId, knowledgeIds)
+                        .orderByDesc(KnowledgeEntity::getCreateTime).list();
+                vo.setKnowledgeList(knowledgeList);
+            } else {
+                vo.setKnowledgeList(List.of());
             }
         }
         return vo;
@@ -389,15 +395,14 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
 
     public List<ApplicationListVO> listApps(String folderId) {
         String userId = StpKit.ADMIN.getLoginIdAsString();
-        LambdaQueryWrapper<ApplicationEntity> wrapper = Wrappers.lambdaQuery();
         Set<String> role = userService.getRoleById(userId);
         List<ApplicationEntity> list;
         if (role.contains(RoleType.ADMIN)) {
             list = this.lambdaQuery().eq(ApplicationEntity::getIsPublish, true).orderByDesc(ApplicationEntity::getCreateTime).list();
         } else {
             List<String> targetIds = userResourcePermissionService.getTargetIds(AuthTargetType.APPLICATION, userId);
-            if (!targetIds.isEmpty()) {
-                wrapper.in(ApplicationEntity::getId, targetIds);
+            if (targetIds.isEmpty()) {
+                return Collections.emptyList();
             }
             list = this.lambdaQuery().in(ApplicationEntity::getId, targetIds).eq(ApplicationEntity::getIsPublish, true).orderByDesc(ApplicationEntity::getCreateTime).list();
         }

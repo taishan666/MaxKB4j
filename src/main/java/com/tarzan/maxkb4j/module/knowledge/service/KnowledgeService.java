@@ -26,6 +26,7 @@ import com.tarzan.maxkb4j.module.knowledge.domain.dto.GenerateProblemDTO;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.KnowledgeDTO;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.KnowledgeQuery;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.*;
+import com.tarzan.maxkb4j.module.knowledge.domain.vo.KnowledgeListVO;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.KnowledgeVO;
 import com.tarzan.maxkb4j.module.knowledge.excel.DatasetExcel;
 import com.tarzan.maxkb4j.module.knowledge.mapper.KnowledgeMapper;
@@ -259,9 +260,20 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
         return true;
     }
 
-    public List<KnowledgeEntity> listKnowledge() {
-        List<String> targetIds = userResourcePermissionService.getTargetIds(AuthTargetType.KNOWLEDGE, StpKit.ADMIN.getLoginIdAsString());
-        return this.lambdaQuery().in(KnowledgeEntity::getId, targetIds).list();
+    public List<KnowledgeListVO> listKnowledge() {
+        String userId = StpKit.ADMIN.getLoginIdAsString();
+        Set<String> role = userService.getRoleById(userId);
+        List<KnowledgeEntity> list;
+        if (role.contains(RoleType.ADMIN)) {
+            list = this.lambdaQuery().select(KnowledgeEntity::getId, KnowledgeEntity::getName, KnowledgeEntity::getDesc, KnowledgeEntity::getType, KnowledgeEntity::getFolderId).orderByDesc(KnowledgeEntity::getCreateTime).list();
+        } else {
+            List<String> targetIds = userResourcePermissionService.getTargetIds(AuthTargetType.KNOWLEDGE, userId);
+            if (targetIds.isEmpty()) {
+                return Collections.emptyList();
+            }
+            list = this.lambdaQuery().select(KnowledgeEntity::getId, KnowledgeEntity::getName, KnowledgeEntity::getDesc, KnowledgeEntity::getType, KnowledgeEntity::getFolderId).in(KnowledgeEntity::getId, targetIds).orderByDesc(KnowledgeEntity::getCreateTime).list();
+        }
+        return BeanUtil.copyList(list, KnowledgeListVO.class);
     }
 
     public Boolean generateRelated(String knowledgeId, GenerateProblemDTO dto) {

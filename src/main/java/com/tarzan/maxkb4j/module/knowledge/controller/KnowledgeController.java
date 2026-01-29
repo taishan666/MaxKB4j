@@ -15,6 +15,7 @@ import com.tarzan.maxkb4j.module.knowledge.domain.dto.KnowledgeQuery;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.KnowledgeActionEntity;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.KnowledgeEntity;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.KnowledgeVersionEntity;
+import com.tarzan.maxkb4j.module.knowledge.domain.vo.KnowledgeListVO;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.KnowledgeVO;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.ParagraphVO;
 import com.tarzan.maxkb4j.module.knowledge.enums.KnowledgeType;
@@ -43,7 +44,7 @@ public class KnowledgeController {
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_READ)
     @GetMapping("/knowledge")
-    public R<List<KnowledgeEntity>> listKnowledge(String folderId) {
+    public R<List<KnowledgeListVO>> listKnowledge(String folderId) {
         return R.success(knowledgeService.listKnowledge());
     }
 
