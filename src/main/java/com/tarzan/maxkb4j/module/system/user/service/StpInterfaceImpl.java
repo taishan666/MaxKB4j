@@ -34,6 +34,7 @@ public class StpInterfaceImpl implements StpInterface {
         List<String> permissions = new ArrayList<>();
         permissions.add(PermissionEnum.APPLICATION_READ.getResourcePerm());
         permissions.add(PermissionEnum.APPLICATION_CREATE.getResourcePerm());
+        permissions.add(PermissionEnum.APPLICATION_IMPORT.getResourcePerm());
         permissions.add(PermissionEnum.KNOWLEDGE_CREATE.getResourcePerm());
         permissions.add(PermissionEnum.KNOWLEDGE_READ.getResourcePerm());
         permissions.add(PermissionEnum.KNOWLEDGE_DOCUMENT_CREATE.getResourcePerm());
@@ -42,6 +43,7 @@ public class StpInterfaceImpl implements StpInterface {
         permissions.add(PermissionEnum.TOOL_CREATE.getResourcePerm());
         permissions.add(PermissionEnum.TOOL_DEBUG.getResourcePerm());
         permissions.add(PermissionEnum.TOOL_READ.getResourcePerm());
+        permissions.add(PermissionEnum.TOOL_IMPORT.getResourcePerm());
         permissions.add(PermissionEnum.MODEL_CREATE.getResourcePerm());
         permissions.add(PermissionEnum.MODEL_READ.getResourcePerm());
         for (UserResourcePermissionEntity permission : userResourcePermissions) {

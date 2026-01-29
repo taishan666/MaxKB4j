@@ -12,7 +12,7 @@ public class MongoConfig {
     @Bean
     public MongoTemplate mongoTemplate(MongoDatabaseFactory factory) {
         MongoTemplate template = new MongoTemplate(factory);
-        template.indexOps(EmbeddingEntity.class).ensureIndex(
+        template.indexOps(EmbeddingEntity.class).createIndex(
                 new TextIndexDefinition.TextIndexDefinitionBuilder()
                         .onField("content")
                         .build()

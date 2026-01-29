@@ -136,14 +136,14 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
 
     @Transactional
     public ApplicationEntity createApp(ApplicationDTO application) {
-        JSONObject workFlowTemplate =application.getWorkFlowTemplate();
+        JSONObject workFlowTemplate = application.getWorkFlowTemplate();
         if (workFlowTemplate != null) {
             String downloadUrl = workFlowTemplate.getString("downloadUrl");
-            if (StringUtils.isNotBlank(downloadUrl)){
+            if (StringUtils.isNotBlank(downloadUrl)) {
                 MaxKb4J maxKb4j;
                 try {
                     PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
-                    Resource resource= resolver.getResource("templates/app/"+downloadUrl);
+                    Resource resource = resolver.getResource("templates/app/" + downloadUrl);
                     maxKb4j = parseMk(resource.getInputStream());
                     ApplicationEntity app = maxKb4j.getApplication();
                     app.setName(application.getName());
@@ -154,7 +154,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
                     throw new RuntimeException(e);
                 }
             }
-        }else {
+        } else {
             application.setIcon("./favicon.ico");
             application.setUserId(StpKit.ADMIN.getLoginIdAsString());
             application.setTtsModelParamsSetting(new JSONObject());
@@ -166,17 +166,26 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
             application.setToolIds(List.of());
             application.setKnowledgeIds(List.of());
             application.setApplicationIds(List.of());
-            this.save(application);
-            ApplicationAccessTokenEntity accessToken = ApplicationAccessTokenEntity.createDefault();
-            accessToken.setApplicationId(application.getId());
-            accessToken.setLanguage((String) StpKit.ADMIN.getExtra("language"));
-            accessTokenService.save(accessToken);
-            userResourcePermissionService.ownerSave(AuthTargetType.APPLICATION, application.getId(), application.getUserId());
+            this.savaApp(application);
         }
         return application;
     }
 
+    @Transactional
+    public boolean appImport(InputStream inputStream) {
+        MaxKb4J maxKb4j = parseMk(inputStream);
+        return saveMk(maxKb4j);
+    }
 
+    @Transactional
+    protected boolean savaApp(ApplicationEntity application) {
+        this.save(application);
+        ApplicationAccessTokenEntity accessToken = ApplicationAccessTokenEntity.createDefault();
+        accessToken.setApplicationId(application.getId());
+        accessToken.setLanguage((String) StpKit.ADMIN.getExtra("language"));
+        accessTokenService.save(accessToken);
+        return userResourcePermissionService.ownerSave(AuthTargetType.APPLICATION, application.getId(), application.getUserId());
+    }
 
 
     public ApplicationVO getAppDetail(String appId, boolean debug) {
@@ -206,7 +215,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
 
 
     public ApplicationVO wrapVo(ApplicationVO vo) {
-        List<String> knowledgeIds =vo.getKnowledgeIds();
+        List<String> knowledgeIds = vo.getKnowledgeIds();
         if (!CollectionUtils.isEmpty(knowledgeIds)) {
             vo.setKnowledgeList(knowledgeService.listByIds(knowledgeIds));
         } else {
@@ -224,9 +233,9 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
                             JSONObject nodeData = properties.getJSONObject("nodeData");
                             JSONArray knowledgeIdListJson = nodeData.getJSONArray("knowledgeIds");
                             nodeData.put("knowledgeList", List.of());
-                            if (knowledgeIdListJson != null){
+                            if (knowledgeIdListJson != null) {
                                 List<String> nodeKnowledgeIds = knowledgeIdListJson.toJavaList(String.class);
-                                if (!CollectionUtils.isEmpty(nodeKnowledgeIds)){
+                                if (!CollectionUtils.isEmpty(nodeKnowledgeIds)) {
                                     nodeData.put("knowledgeList", knowledgeService.listByIds(nodeKnowledgeIds));
                                 }
                             }
@@ -263,7 +272,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     public Boolean updateAppById(String appId, ApplicationVO appVO) {
         ApplicationEntity app = BeanUtil.copy(appVO, ApplicationEntity.class);
         app.setId(appId);
-        List<String> knowledgeIds =appVO.getKnowledgeIds()==null?List.of():appVO.getKnowledgeIds();
+        List<String> knowledgeIds = appVO.getKnowledgeIds() == null ? List.of() : appVO.getKnowledgeIds();
         app.setKnowledgeIds(knowledgeIds);
         JSONObject workFlow = appVO.getWorkFlow();
         if (workFlow != null && workFlow.containsKey("nodes")) {
@@ -381,26 +390,26 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         return list.stream().filter(e -> folderId.equals(e.getFolderId())).map(e -> BeanUtil.copy(e, ApplicationListVO.class)).toList();
     }
 
-    public Flux<Map<String,String>> promptGenerate(String appId,String modelId,PromptGenerateDTO dto) {
-        ApplicationEntity app=this.getById(appId);
-        StreamingChatModel chatModel =modelFactory.buildStreamingChatModel(modelId, null);
+    public Flux<Map<String, String>> promptGenerate(String appId, String modelId, PromptGenerateDTO dto) {
+        ApplicationEntity app = this.getById(appId);
+        StreamingChatModel chatModel = modelFactory.buildStreamingChatModel(modelId, null);
         List<ChatMessage> messages = new ArrayList<>();
         for (ChatMessageDTO message : dto.getMessages()) {
-            if (message.getRole().equals("user")){
+            if (message.getRole().equals("user")) {
                 messages.add(UserMessage.from(message.getContent()));
             }
-            if (message.getRole().equals("ai")){
+            if (message.getRole().equals("ai")) {
                 messages.add(AiMessage.from(message.getContent()));
             }
         }
         int endIndex = messages.size() - 1;
         String prompt = dto.getPrompt();
-        String detail=StringUtils.isBlank(app.getDesc())?app.getName():app.getDesc();
-        prompt =prompt.replace("{application_name}", app.getName());
-        prompt =prompt.replace("{detail}", detail);
-        prompt =prompt.replace("{userInput}", dto.getMessages().get(endIndex).getContent());
+        String detail = StringUtils.isBlank(app.getDesc()) ? app.getName() : app.getDesc();
+        prompt = prompt.replace("{application_name}", app.getName());
+        prompt = prompt.replace("{detail}", detail);
+        prompt = prompt.replace("{userInput}", dto.getMessages().get(endIndex).getContent());
         messages.set(endIndex, UserMessage.from(prompt));
-        Sinks.Many<Map<String,String>> sink = Sinks.many().unicast().onBackpressureBuffer();
+        Sinks.Many<Map<String, String>> sink = Sinks.many().unicast().onBackpressureBuffer();
         chatModel.chat(messages, new StreamingChatResponseHandler() {
             @Override
             public void onPartialResponse(String partialResponse) {
@@ -420,7 +429,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         return sink.asFlux();
     }
 
-    public MaxKb4J parseMk(InputStream inputStream) {
+    private MaxKb4J parseMk(InputStream inputStream) {
         try {
             String text = IoUtil.readToString(inputStream); // 显式指定编码更安全
             return JSONObject.parseObject(text, MaxKb4J.class);
@@ -434,8 +443,8 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     }
 
     @Transactional
-    public boolean saveMk(MaxKb4J maxKb4j) {
-        if (maxKb4j == null){
+    boolean saveMk(MaxKb4J maxKb4j) {
+        if (maxKb4j == null) {
             return false;
         }
         Date now = new Date();
@@ -445,19 +454,20 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         application.setCreateTime(now);
         application.setUpdateTime(now);
         application.setUserId(StpKit.ADMIN.getLoginIdAsString());
-        this.save(application);
-        ApplicationAccessTokenEntity accessToken = ApplicationAccessTokenEntity.createDefault();
-        accessToken.setApplicationId(application.getId());
-        accessToken.setLanguage((String) StpKit.ADMIN.getExtra("language"));
-        accessTokenService.save(accessToken);
-        List<ToolEntity> toolList=maxKb4j.getToolList();
-        toolList.forEach(e->{
-            e.setUserId(StpKit.ADMIN.getLoginIdAsString());
-            e.setIsActive(true);
-            e.setCreateTime(now);
-            e.setUpdateTime(now);
-        });
-        toolService.saveOrUpdateBatch(toolList);
-        return userResourcePermissionService.ownerSave(AuthTargetType.APPLICATION, application.getId(), application.getUserId());
+        List<ToolEntity> toolList = maxKb4j.getToolList();
+        if (!CollectionUtils.isEmpty(toolList)) {
+            toolList.forEach(e -> {
+                e.setUserId(StpKit.ADMIN.getLoginIdAsString());
+                e.setIsActive(true);
+                e.setCreateTime(now);
+                e.setUpdateTime(now);
+            });
+            toolService.saveOrUpdateBatch(toolList);
+            List<String> toolIds = toolList.stream().map(ToolEntity::getId).toList();
+            application.setToolIds(toolIds);
+        }
+        return this.savaApp(application);
     }
+
+
 }

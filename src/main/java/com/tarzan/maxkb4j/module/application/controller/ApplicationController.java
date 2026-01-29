@@ -67,7 +67,8 @@ public class ApplicationController {
         if (!Objects.requireNonNull(file.getOriginalFilename()).endsWith(".mk")) {
             return R.fail("文件格式错误");
         }
-        return R.status(exportService.appImport(file.getInputStream()));
+        boolean flag = applicationService.appImport(file.getInputStream());
+        return R.status(flag);
     }
 
     @SaCheckPerm(PermissionEnum.APPLICATION_EDIT)

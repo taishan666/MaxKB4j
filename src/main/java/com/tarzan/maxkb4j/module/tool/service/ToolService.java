@@ -96,9 +96,9 @@ public class ToolService extends ServiceImpl<ToolMapper, ToolEntity> {
     }
 
     @Transactional
-    public void saveInfo(ToolEntity entity) {
+    public boolean saveTool(ToolEntity entity) {
         this.save(entity);
-        userResourcePermissionService.ownerSave(AuthTargetType.TOOL, entity.getId(), entity.getUserId());
+       return userResourcePermissionService.ownerSave(AuthTargetType.TOOL, entity.getId(), entity.getUserId());
     }
 
     public boolean mcpServerConfigValid(ToolEntity entity) {
@@ -156,13 +156,15 @@ public class ToolService extends ServiceImpl<ToolMapper, ToolEntity> {
         outputStream.write(bytes);
     }
 
+    @Transactional
     public boolean toolImport(MultipartFile file, String folderId) throws IOException {
         String text = IoUtil.readToString(file.getInputStream());
         ToolEntity tool = JSONObject.parseObject(text, ToolEntity.class);
         tool.setId(null);
         tool.setIsActive(false);
         tool.setFolderId(folderId);
-        return this.save(tool);
+        tool.setUserId(StpKit.ADMIN.getLoginIdAsString());
+        return this.saveTool(tool);
     }
 
     public boolean testConnection(String code) {
