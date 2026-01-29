@@ -187,6 +187,13 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         return userResourcePermissionService.ownerSave(AuthTargetType.APPLICATION, application.getId(), application.getUserId());
     }
 
+    public ApplicationVO appProfile(String appId) {
+        ApplicationVO appProfile = this.getDetail(appId);
+        if (appProfile == null || !appProfile.getIsPublish()) {
+            return appProfile;
+        }
+        return this.getPublishedDetail(appId);
+    }
 
     public ApplicationVO getAppDetail(String appId, boolean debug) {
         if (debug) {
@@ -205,7 +212,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         return wrapVo(vo);
     }
 
-    public ApplicationVO getPublishedDetail(String id) {
+    private ApplicationVO getPublishedDetail(String id) {
         ApplicationVO vo = applicationVersionService.getAppLatestOne(id);
         if (vo == null) {
             return null;
@@ -382,11 +389,18 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
 
     public List<ApplicationListVO> listApps(String folderId) {
         String userId = StpKit.ADMIN.getLoginIdAsString();
-        List<String> targetIds = userResourcePermissionService.getTargetIds(AuthTargetType.APPLICATION, userId);
-        if (targetIds.isEmpty()) {
-            return new ArrayList<>();
+        LambdaQueryWrapper<ApplicationEntity> wrapper = Wrappers.lambdaQuery();
+        Set<String> role = userService.getRoleById(userId);
+        List<ApplicationEntity> list;
+        if (role.contains(RoleType.ADMIN)) {
+            list = this.lambdaQuery().eq(ApplicationEntity::getIsPublish, true).orderByDesc(ApplicationEntity::getCreateTime).list();
+        } else {
+            List<String> targetIds = userResourcePermissionService.getTargetIds(AuthTargetType.APPLICATION, userId);
+            if (!targetIds.isEmpty()) {
+                wrapper.in(ApplicationEntity::getId, targetIds);
+            }
+            list = this.lambdaQuery().in(ApplicationEntity::getId, targetIds).eq(ApplicationEntity::getIsPublish, true).orderByDesc(ApplicationEntity::getCreateTime).list();
         }
-        List<ApplicationEntity> list = this.lambdaQuery().in(ApplicationEntity::getId, targetIds).eq(ApplicationEntity::getIsPublish, true).orderByDesc(ApplicationEntity::getCreateTime).list();
         return list.stream().filter(e -> folderId.equals(e.getFolderId())).map(e -> BeanUtil.copy(e, ApplicationListVO.class)).toList();
     }
 

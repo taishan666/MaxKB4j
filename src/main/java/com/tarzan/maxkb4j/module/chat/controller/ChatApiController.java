@@ -76,7 +76,7 @@ public class ChatApiController {
     public R<ApplicationEntity> appProfile() {
         if (StpKit.USER.isLogin()) {
             String appId = (String) StpKit.USER.getExtra("applicationId");
-            return R.success(chatApiService.appProfile(appId));
+            return R.data(chatApiService.appProfile(appId));
         }
         return R.fail("未登录");
     }

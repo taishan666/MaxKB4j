@@ -157,9 +157,9 @@ public class UserService extends ServiceImpl<UserMapper, UserEntity> {
         }
         UserVO user = BeanUtil.copy(userEntity, UserVO.class);
         user.setPermissions(stpInterface.getPermissionList(userId, null));
-        if (user.getRole().contains("ADMIN")){
+        if (user.getRole().contains("ADMIN")) {
             userEntity.getRole().add("WORKSPACE_MANAGE:/WORKSPACE/default");
-        }else {
+        } else {
             user.setRole(Set.of("USER:/WORKSPACE/default"));
         }
         List<Map<String, String>> workspaceList = new ArrayList<>();
@@ -184,7 +184,7 @@ public class UserService extends ServiceImpl<UserMapper, UserEntity> {
     }
 
     public boolean checkCode(String email, String code) {
-        String codeCache=AUTH_CODE_CACHE.getIfPresent(email);
+        String codeCache = AUTH_CODE_CACHE.getIfPresent(email);
         return code.equals(codeCache);
     }
 
@@ -220,9 +220,9 @@ public class UserService extends ServiceImpl<UserMapper, UserEntity> {
     }
 
 
-    public Set<String>  getRoleById(String id) {
-        UserEntity user= this.lambdaQuery().select(UserEntity::getRole).eq(UserEntity::getId, id).one();
-        if (Objects.isNull(user)){
+    public Set<String> getRoleById(String id) {
+        UserEntity user = this.lambdaQuery().select(UserEntity::getRole).eq(UserEntity::getId, id).one();
+        if (Objects.isNull(user)) {
             return Set.of();
         }
         return user.getRole();

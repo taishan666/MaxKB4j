@@ -57,7 +57,7 @@ public class ChatApiService {
 
     public ApplicationEntity appProfile(String appId) {
         ApplicationAccessTokenEntity appAccessToken = accessTokenService.getById(appId);
-        ApplicationVO application = applicationService.getPublishedDetail(appId);
+        ApplicationVO application = applicationService.appProfile(appId);
         if (appAccessToken != null && application != null) {
             application.setLanguage(appAccessToken.getLanguage());
             application.setShowSource(appAccessToken.getShowSource());
