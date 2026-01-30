@@ -37,8 +37,8 @@ mybatis-plus:
     #log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
 ############## Sa-Token 配置 (文档: https://sa-token.cc) ##############
 sa-token:
-  # jwt秘钥
-  jwt-secret-key: asdasdasifhueuiwyurfewbfjsdafjk
+  # jwt秘钥 - 使用环境变量配置
+  jwt-secret-key: ${SA_TOKEN_JWT_SECRET_KEY:asdasdasifhueuiwyurfewbfjsdafjk}
   # token 名称（同时也是 cookie 名称）
   token-name: token
   # token 有效期（单位：秒） 默认30天，-1 代表永久有效
@@ -67,4 +67,4 @@ decorator:
 
 system:
   default-username: admin
-  default-password: tarzan@123456
+  default-password: ${SYSTEM_DEFAULT_PASSWORD:tarzan@123456}
