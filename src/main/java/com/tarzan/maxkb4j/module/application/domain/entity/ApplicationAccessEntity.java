@@ -3,7 +3,7 @@ package com.tarzan.maxkb4j.module.application.domain.entity;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.tarzan.maxkb4j.common.base.entity.BaseEntity;
+import com.tarzan.maxkb4j.common.domain.base.entity.BaseEntity;
 import com.tarzan.maxkb4j.common.typehandler.JSONBTypeHandler;
 import lombok.Data;
 import lombok.EqualsAndHashCode;

@@ -1,4 +1,4 @@
-package com.tarzan.maxkb4j.common.form;
+package com.tarzan.maxkb4j.common.domain.form;
 
 import com.alibaba.fastjson.JSONObject;
 

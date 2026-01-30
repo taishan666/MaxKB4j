@@ -2,8 +2,8 @@ package com.tarzan.maxkb4j.module.system.store;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.tarzan.maxkb4j.common.ResourceUtil;
-import com.tarzan.maxkb4j.common.api.R;
+import com.tarzan.maxkb4j.common.util.ResourceUtil;
+import com.tarzan.maxkb4j.common.domain.api.R;
 import com.tarzan.maxkb4j.common.constant.AppConst;
 import com.tarzan.maxkb4j.common.util.IoUtil;
 import com.tarzan.maxkb4j.common.util.JarUtil;

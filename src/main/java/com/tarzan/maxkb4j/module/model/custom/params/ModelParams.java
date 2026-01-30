@@ -1,6 +1,6 @@
 package com.tarzan.maxkb4j.module.model.custom.params;
 
-import com.tarzan.maxkb4j.common.form.BaseField;
+import com.tarzan.maxkb4j.common.domain.form.BaseField;
 
 import java.util.List;
 

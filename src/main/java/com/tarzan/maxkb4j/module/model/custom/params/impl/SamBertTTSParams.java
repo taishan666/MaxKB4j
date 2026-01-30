@@ -1,8 +1,8 @@
 package com.tarzan.maxkb4j.module.model.custom.params.impl;
 
-import com.tarzan.maxkb4j.common.form.BaseField;
-import com.tarzan.maxkb4j.common.form.SingleSelectFiled;
-import com.tarzan.maxkb4j.common.form.SliderFiled;
+import com.tarzan.maxkb4j.common.domain.form.BaseField;
+import com.tarzan.maxkb4j.common.domain.form.SingleSelectFiled;
+import com.tarzan.maxkb4j.common.domain.form.SliderFiled;
 import com.tarzan.maxkb4j.module.model.custom.params.ModelParams;
 import lombok.Data;
 

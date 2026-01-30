@@ -2,7 +2,7 @@ package com.tarzan.maxkb4j.module.system.user.controller;
 
 import cn.dev33.satoken.secure.SaSecureUtil;
 import com.alibaba.fastjson.JSONObject;
-import com.tarzan.maxkb4j.common.api.R;
+import com.tarzan.maxkb4j.common.domain.api.R;
 import com.tarzan.maxkb4j.common.constant.AppConst;
 import com.tarzan.maxkb4j.common.util.StpKit;
 import com.tarzan.maxkb4j.module.system.user.domain.dto.ResetPasswordDTO;

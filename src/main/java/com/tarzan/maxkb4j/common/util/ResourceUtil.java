@@ -1,8 +1,7 @@
-package com.tarzan.maxkb4j.common;
+package com.tarzan.maxkb4j.common.util;
 
 import com.alibaba.fastjson.JSONException;
 import com.alibaba.fastjson.JSONObject;
-import com.tarzan.maxkb4j.common.util.IoUtil;
 import com.tarzan.maxkb4j.module.application.domain.dto.MaxKb4J;
 import org.springframework.core.io.Resource;
 import org.springframework.lang.NonNull;

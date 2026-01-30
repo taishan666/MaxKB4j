@@ -42,7 +42,7 @@ public abstract class IModelProvider {
 
     public String getSvgIcon(String name) {
         ClassLoader classLoader = IModelProvider.class.getClassLoader();
-        InputStream inputStream = classLoader.getResourceAsStream("icon/" + name);
+        InputStream inputStream = classLoader.getResourceAsStream("model-icons/" + name);
         return IoUtil.readToString(inputStream);
     }
 

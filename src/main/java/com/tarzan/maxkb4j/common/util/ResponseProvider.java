@@ -1,7 +1,7 @@
 package com.tarzan.maxkb4j.common.util;
 
-import com.tarzan.maxkb4j.common.api.R;
-import com.tarzan.maxkb4j.common.api.ResultCode;
+import com.tarzan.maxkb4j.common.domain.api.R;
+import com.tarzan.maxkb4j.common.domain.api.ResultCode;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 

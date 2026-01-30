@@ -1,8 +1,8 @@
-package com.tarzan.maxkb4j.core.chat.actuator;
+package com.tarzan.maxkb4j.core.chat.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
-import com.tarzan.maxkb4j.core.chat.provider.IChatActuator;
+import com.tarzan.maxkb4j.core.chat.service.IChatService;
 import com.tarzan.maxkb4j.core.workflow.builder.NodeBuilder;
 import com.tarzan.maxkb4j.core.workflow.enums.WorkflowMode;
 import com.tarzan.maxkb4j.core.workflow.handler.WorkflowHandler;
@@ -22,7 +22,7 @@ import java.util.Objects;
 
 @RequiredArgsConstructor
 @Component
-public class ChatFlowActuator implements IChatActuator {
+public class ChatFlowServiceImpl implements IChatService {
 
     private final WorkflowHandler workflowHandler;
 

@@ -1,6 +1,6 @@
 package com.tarzan.maxkb4j.module.knowledge.controller;
 
-import com.tarzan.maxkb4j.common.aop.SaCheckPerm;
+import com.tarzan.maxkb4j.common.annotation.SaCheckPerm;
 import com.tarzan.maxkb4j.common.constant.AppConst;
 import com.tarzan.maxkb4j.module.knowledge.service.TemplateService;
 import com.tarzan.maxkb4j.module.system.user.enums.PermissionEnum;

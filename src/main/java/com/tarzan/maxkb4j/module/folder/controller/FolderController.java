@@ -1,6 +1,6 @@
 package com.tarzan.maxkb4j.module.folder.controller;
 
-import com.tarzan.maxkb4j.common.api.R;
+import com.tarzan.maxkb4j.common.domain.api.R;
 import com.tarzan.maxkb4j.common.constant.AppConst;
 import com.tarzan.maxkb4j.module.folder.service.FolderService;
 import com.tarzan.maxkb4j.module.folder.vo.FolderVO;

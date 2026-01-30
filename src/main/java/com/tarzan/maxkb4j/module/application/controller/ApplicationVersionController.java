@@ -1,7 +1,7 @@
 package com.tarzan.maxkb4j.module.application.controller;
 
-import com.tarzan.maxkb4j.common.aop.SaCheckPerm;
-import com.tarzan.maxkb4j.common.api.R;
+import com.tarzan.maxkb4j.common.annotation.SaCheckPerm;
+import com.tarzan.maxkb4j.common.domain.api.R;
 import com.tarzan.maxkb4j.common.constant.AppConst;
 import com.tarzan.maxkb4j.module.application.domain.entity.ApplicationVersionEntity;
 import com.tarzan.maxkb4j.module.application.service.ApplicationVersionService;

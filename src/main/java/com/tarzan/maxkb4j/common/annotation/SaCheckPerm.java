@@ -1,4 +1,4 @@
-package com.tarzan.maxkb4j.common.aop;
+package com.tarzan.maxkb4j.common.annotation;
 
 import com.tarzan.maxkb4j.module.system.user.enums.PermissionEnum;
 

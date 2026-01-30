@@ -1,4 +1,4 @@
-package com.tarzan.maxkb4j.common.base.dto;
+package com.tarzan.maxkb4j.common.domain.base.dto;
 
 import lombok.Data;
 

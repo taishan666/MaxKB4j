@@ -10,8 +10,8 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tarzan.maxkb4j.common.exception.AccessNumLimitException;
 import com.tarzan.maxkb4j.common.exception.ApiException;
 import com.tarzan.maxkb4j.common.util.DateTimeUtil;
-import com.tarzan.maxkb4j.core.chat.provider.ChatActuatorBuilder;
-import com.tarzan.maxkb4j.core.chat.provider.IChatActuator;
+import com.tarzan.maxkb4j.core.chat.provider.ChatServiceBuilder;
+import com.tarzan.maxkb4j.core.chat.service.IChatService;
 import com.tarzan.maxkb4j.module.application.domain.dto.ChatInfo;
 import com.tarzan.maxkb4j.module.application.domain.dto.ChatQueryDTO;
 import com.tarzan.maxkb4j.module.application.domain.entity.*;
@@ -130,7 +130,7 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
             chatParams.setChatRecord(chatRecord);
         }
         ApplicationVO application = applicationService.getAppDetail(chatParams.getAppId(), chatParams.getDebug());
-        IChatActuator chatActuator = ChatActuatorBuilder.getActuator(application.getType());
+        IChatService chatActuator = ChatServiceBuilder.getActuator(application.getType());
         ChatResponse chatResponse = chatActuator.chatMessage(application, chatParams, sink);
         postResponseHandler.handler(chatParams, chatResponse, startTime);
         sink.tryEmitNext(new ChatMessageVO(chatParams.getChatId(), chatParams.getChatRecordId(), true));

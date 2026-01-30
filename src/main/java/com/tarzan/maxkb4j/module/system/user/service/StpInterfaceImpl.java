@@ -48,7 +48,7 @@ public class StpInterfaceImpl implements StpInterface {
         permissions.add(PermissionEnum.MODEL_READ.getResourcePerm());
         for (UserResourcePermissionEntity permission : userResourcePermissions) {
             List<PermissionEnum> resourcePermissionEnums = PermissionEnum.getPermissions(permission.getAuthTargetType(),permission.getPermissionList());
-            resourcePermissionEnums.forEach(e -> permissions.add(e.getWorkspaceResourcePerm(permission.getWorkspaceId(),permission.getTargetId())));
+            resourcePermissionEnums.forEach(e -> permissions.add(e.getResourcePerm(permission.getWorkspaceId(),permission.getTargetId())));
         }
         return permissions;
     }

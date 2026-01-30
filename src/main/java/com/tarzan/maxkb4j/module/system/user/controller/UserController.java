@@ -3,7 +3,7 @@ package com.tarzan.maxkb4j.module.system.user.controller;
 import cn.dev33.satoken.annotation.SaCheckRole;
 import cn.dev33.satoken.annotation.SaMode;
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.tarzan.maxkb4j.common.api.R;
+import com.tarzan.maxkb4j.common.domain.api.R;
 import com.tarzan.maxkb4j.common.constant.AppConst;
 import com.tarzan.maxkb4j.common.props.SystemProperties;
 import com.tarzan.maxkb4j.module.system.user.constants.LoginType;

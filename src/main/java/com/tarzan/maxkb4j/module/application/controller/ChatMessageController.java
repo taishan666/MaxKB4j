@@ -1,6 +1,6 @@
 package com.tarzan.maxkb4j.module.application.controller;
 
-import com.tarzan.maxkb4j.common.api.R;
+import com.tarzan.maxkb4j.common.domain.api.R;
 import com.tarzan.maxkb4j.common.constant.AppConst;
 import com.tarzan.maxkb4j.common.util.StpKit;
 import com.tarzan.maxkb4j.module.application.domain.vo.ChatMessageVO;

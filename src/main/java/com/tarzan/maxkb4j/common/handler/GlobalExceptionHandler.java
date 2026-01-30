@@ -4,7 +4,7 @@ package com.tarzan.maxkb4j.common.handler;
 import cn.dev33.satoken.exception.NotLoginException;
 import cn.dev33.satoken.exception.NotPermissionException;
 import cn.dev33.satoken.jwt.exception.SaJwtException;
-import com.tarzan.maxkb4j.common.api.R;
+import com.tarzan.maxkb4j.common.domain.api.R;
 import com.tarzan.maxkb4j.common.exception.*;
 import com.tarzan.maxkb4j.common.util.StpKit;
 import dev.langchain4j.exception.RateLimitException;

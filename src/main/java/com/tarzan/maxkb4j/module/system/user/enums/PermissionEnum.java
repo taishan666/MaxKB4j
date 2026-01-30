@@ -104,10 +104,10 @@ public enum PermissionEnum {
     }
 
     public String getResourcePerm() {
-        return this.resource + ":" + operate + ":/WORKSPACE/default/" + resourceType + "/default";
+        return getResourcePerm("default","default");
     }
 
-    public String getWorkspaceResourcePerm(String workspaceId, String targetId) {
+    public String getResourcePerm(String workspaceId, String targetId) {
         return resource + ":" + operate + ":/WORKSPACE/" + workspaceId + "/" + resourceType + "/" + targetId;
     }
 

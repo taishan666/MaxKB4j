@@ -1,4 +1,4 @@
-package com.tarzan.maxkb4j.common.api;
+package com.tarzan.maxkb4j.common.domain.api;
 
 
 import com.tarzan.maxkb4j.common.util.JsonUtil;

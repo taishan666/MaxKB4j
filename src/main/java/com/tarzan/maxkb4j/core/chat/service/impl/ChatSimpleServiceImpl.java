@@ -1,8 +1,8 @@
-package com.tarzan.maxkb4j.core.chat.actuator;
+package com.tarzan.maxkb4j.core.chat.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
-import com.tarzan.maxkb4j.core.chat.provider.IChatActuator;
+import com.tarzan.maxkb4j.core.chat.service.IChatService;
 import com.tarzan.maxkb4j.core.chatpipeline.PipelineManage;
 import com.tarzan.maxkb4j.core.chatpipeline.step.chatstep.IChatStep;
 import com.tarzan.maxkb4j.core.chatpipeline.step.generatehumanmessagestep.IGenerateHumanMessageStep;
@@ -21,7 +21,7 @@ import java.util.Objects;
 
 @RequiredArgsConstructor
 @Component
-public class ChatSimpleActuator implements IChatActuator {
+public class ChatSimpleServiceImpl implements IChatService {
 
     private final IResetProblemStep resetProblemStep;
     private final ISearchDatasetStep searchDatasetStep;

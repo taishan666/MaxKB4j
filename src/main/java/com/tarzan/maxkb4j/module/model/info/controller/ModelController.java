@@ -1,8 +1,8 @@
 package com.tarzan.maxkb4j.module.model.info.controller;
 
 import com.alibaba.fastjson.JSONArray;
-import com.tarzan.maxkb4j.common.aop.SaCheckPerm;
-import com.tarzan.maxkb4j.common.api.R;
+import com.tarzan.maxkb4j.common.annotation.SaCheckPerm;
+import com.tarzan.maxkb4j.common.domain.api.R;
 import com.tarzan.maxkb4j.common.constant.AppConst;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelEntity;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
