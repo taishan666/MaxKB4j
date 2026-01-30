@@ -11,10 +11,8 @@ import com.tarzan.maxkb4j.module.tool.service.ToolService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
