@@ -1,14 +1,14 @@
-package com.tarzan.maxkb4j.core.chatpipeline.step.searchdatasetstep;
+package com.tarzan.maxkb4j.core.pipeline.step.searchdatasetstep;
 
-import com.tarzan.maxkb4j.core.chatpipeline.IChatPipelineStep;
-import com.tarzan.maxkb4j.core.chatpipeline.PipelineManage;
+import com.tarzan.maxkb4j.core.pipeline.AbsStep;
+import com.tarzan.maxkb4j.core.pipeline.PipelineManage;
 import com.tarzan.maxkb4j.module.application.domain.entity.KnowledgeSetting;
 import com.tarzan.maxkb4j.module.application.domain.vo.ApplicationVO;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.ParagraphVO;
 
 import java.util.List;
 
-public abstract class ISearchDatasetStep extends IChatPipelineStep {
+public abstract class AbsSearchDatasetStep extends AbsStep {
     @Override
     protected void _run(PipelineManage manage) {
         ApplicationVO application = manage.application;

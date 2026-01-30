@@ -1,7 +1,7 @@
-package com.tarzan.maxkb4j.core.chatpipeline.step.generatehumanmessagestep;
+package com.tarzan.maxkb4j.core.pipeline.step.generatehumanmessagestep;
 
-import com.tarzan.maxkb4j.core.chatpipeline.IChatPipelineStep;
-import com.tarzan.maxkb4j.core.chatpipeline.PipelineManage;
+import com.tarzan.maxkb4j.core.pipeline.AbsStep;
+import com.tarzan.maxkb4j.core.pipeline.PipelineManage;
 import com.tarzan.maxkb4j.module.application.domain.entity.KnowledgeSetting;
 import com.tarzan.maxkb4j.module.application.domain.entity.LlmModelSetting;
 import com.tarzan.maxkb4j.module.application.domain.vo.ApplicationVO;
@@ -9,7 +9,7 @@ import com.tarzan.maxkb4j.module.knowledge.domain.vo.ParagraphVO;
 
 import java.util.List;
 
-public abstract class IGenerateHumanMessageStep extends IChatPipelineStep {
+public abstract class AbsGenerateHumanMessageStep extends AbsStep {
 
     @Override
     @SuppressWarnings("unchecked")

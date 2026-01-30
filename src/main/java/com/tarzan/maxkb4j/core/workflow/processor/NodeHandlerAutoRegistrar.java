@@ -1,4 +1,4 @@
-package com.tarzan.maxkb4j.core.workflow.config;
+package com.tarzan.maxkb4j.core.workflow.processor;
 
 
 import com.tarzan.maxkb4j.core.workflow.annotation.NodeHandlerType;

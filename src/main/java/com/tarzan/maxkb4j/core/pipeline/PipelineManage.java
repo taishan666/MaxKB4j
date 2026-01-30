@@ -1,4 +1,4 @@
-package com.tarzan.maxkb4j.core.chatpipeline;
+package com.tarzan.maxkb4j.core.pipeline;
 
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.module.application.domain.entity.ApplicationChatRecordEntity;
@@ -20,13 +20,13 @@ import java.util.Map;
 
 @Slf4j
 public class PipelineManage {
-    public List<IChatPipelineStep> stepList;
+    public List<AbsStep> stepList;
     public Map<String, Object> context;
     public ApplicationVO application;
     public ChatParams chatParams;
     public Sinks.Many<ChatMessageVO> sink;
 
-    public PipelineManage(List<IChatPipelineStep> stepList) {
+    public PipelineManage(List<AbsStep> stepList) {
         this.stepList = stepList;
         this.context = new HashMap<>();
         this.context.put("messageTokens", 0);
@@ -40,7 +40,7 @@ public class PipelineManage {
         if (sink != null){
             this.sink = sink;
         }
-        for (IChatPipelineStep step : stepList) {
+        for (AbsStep step : stepList) {
             step.run(this);
         }
         return (String) this.context.get("answer");
@@ -56,7 +56,7 @@ public class PipelineManage {
         if (sink != null){
             this.sink = sink;
         }
-        for (IChatPipelineStep step : stepList) {
+        for (AbsStep step : stepList) {
             step.run(this);
         }
         return (String) this.context.get("answer");
@@ -98,7 +98,7 @@ public class PipelineManage {
 
     public JSONObject getDetails() {
         JSONObject details = new JSONObject();
-        for (IChatPipelineStep row : stepList) {
+        for (AbsStep row : stepList) {
             JSONObject item = row.getDetails();
             if (item != null) {
                 String stepType = item.getString("step_type");
@@ -109,9 +109,9 @@ public class PipelineManage {
     }
 
     public static class Builder {
-        private final List<IChatPipelineStep> stepList = new ArrayList<>();
+        private final List<AbsStep> stepList = new ArrayList<>();
 
-        public void addStep(IChatPipelineStep step) {
+        public void addStep(AbsStep step) {
             stepList.add(step);
         }
 

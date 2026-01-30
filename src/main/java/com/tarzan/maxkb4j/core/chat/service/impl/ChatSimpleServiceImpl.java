@@ -3,11 +3,11 @@ package com.tarzan.maxkb4j.core.chat.service.impl;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.tarzan.maxkb4j.core.chat.service.IChatService;
-import com.tarzan.maxkb4j.core.chatpipeline.PipelineManage;
-import com.tarzan.maxkb4j.core.chatpipeline.step.chatstep.IChatStep;
-import com.tarzan.maxkb4j.core.chatpipeline.step.generatehumanmessagestep.IGenerateHumanMessageStep;
-import com.tarzan.maxkb4j.core.chatpipeline.step.resetproblemstep.IResetProblemStep;
-import com.tarzan.maxkb4j.core.chatpipeline.step.searchdatasetstep.ISearchDatasetStep;
+import com.tarzan.maxkb4j.core.pipeline.PipelineManage;
+import com.tarzan.maxkb4j.core.pipeline.step.chatstep.AbsChatStep;
+import com.tarzan.maxkb4j.core.pipeline.step.generatehumanmessagestep.AbsGenerateHumanMessageStep;
+import com.tarzan.maxkb4j.core.pipeline.step.resetproblemstep.AbsResetProblemStep;
+import com.tarzan.maxkb4j.core.pipeline.step.searchdatasetstep.AbsSearchDatasetStep;
 import com.tarzan.maxkb4j.module.application.domain.vo.ApplicationVO;
 import com.tarzan.maxkb4j.module.application.domain.vo.ChatMessageVO;
 import com.tarzan.maxkb4j.module.chat.dto.ChatParams;
@@ -23,10 +23,10 @@ import java.util.Objects;
 @Component
 public class ChatSimpleServiceImpl implements IChatService {
 
-    private final IResetProblemStep resetProblemStep;
-    private final ISearchDatasetStep searchDatasetStep;
-    private final IGenerateHumanMessageStep generateHumanMessageStep;
-    private final IChatStep chatStep;
+    private final AbsResetProblemStep resetProblemStep;
+    private final AbsSearchDatasetStep searchDatasetStep;
+    private final AbsGenerateHumanMessageStep generateHumanMessageStep;
+    private final AbsChatStep chatStep;
 
     @Override
     public ChatResponse chatMessage(ApplicationVO application, ChatParams chatParams, Sinks.Many<ChatMessageVO> sink) {

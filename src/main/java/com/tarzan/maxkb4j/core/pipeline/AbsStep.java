@@ -1,11 +1,11 @@
-package com.tarzan.maxkb4j.core.chatpipeline;
+package com.tarzan.maxkb4j.core.pipeline;
 
 
 import com.alibaba.fastjson.JSONObject;
 
 import java.util.Map;
 
-public abstract class IChatPipelineStep {
+public abstract class AbsStep {
     protected Map<String, Object> context = new JSONObject();
 
     public void run(PipelineManage manage) {

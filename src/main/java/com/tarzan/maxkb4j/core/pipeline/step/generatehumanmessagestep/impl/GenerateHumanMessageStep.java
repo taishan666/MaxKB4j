@@ -1,8 +1,8 @@
-package com.tarzan.maxkb4j.core.chatpipeline.step.generatehumanmessagestep.impl;
+package com.tarzan.maxkb4j.core.pipeline.step.generatehumanmessagestep.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
-import com.tarzan.maxkb4j.core.chatpipeline.step.generatehumanmessagestep.IGenerateHumanMessageStep;
+import com.tarzan.maxkb4j.core.pipeline.step.generatehumanmessagestep.AbsGenerateHumanMessageStep;
 import com.tarzan.maxkb4j.module.application.domain.entity.KnowledgeSetting;
 import com.tarzan.maxkb4j.module.application.domain.entity.LlmModelSetting;
 import com.tarzan.maxkb4j.module.application.enums.AIAnswerType;
@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 @Component
-public class GenerateHumanMessageStep extends IGenerateHumanMessageStep {
+public class GenerateHumanMessageStep extends AbsGenerateHumanMessageStep {
     @Override
     protected String execute(LlmModelSetting llmModelSetting , KnowledgeSetting knowledgeSetting, String problemText, List<ParagraphVO> paragraphList) {
         String safeProblemText = problemText != null ? problemText : "";

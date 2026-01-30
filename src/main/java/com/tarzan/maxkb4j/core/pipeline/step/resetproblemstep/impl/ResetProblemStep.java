@@ -1,8 +1,8 @@
-package com.tarzan.maxkb4j.core.chatpipeline.step.resetproblemstep.impl;
+package com.tarzan.maxkb4j.core.pipeline.step.resetproblemstep.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.assistant.CompressingQueryAssistant;
-import com.tarzan.maxkb4j.core.chatpipeline.step.resetproblemstep.IResetProblemStep;
+import com.tarzan.maxkb4j.core.pipeline.step.resetproblemstep.AbsResetProblemStep;
 import com.tarzan.maxkb4j.common.util.MessageUtils;
 import com.tarzan.maxkb4j.module.model.info.service.ModelFactory;
 import dev.langchain4j.data.message.ChatMessage;
@@ -19,7 +19,7 @@ import java.util.List;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class ResetProblemStep extends IResetProblemStep {
+public class ResetProblemStep extends AbsResetProblemStep {
 
     private final ModelFactory modelFactory;
 

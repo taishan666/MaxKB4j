@@ -1,4 +1,4 @@
-package com.tarzan.maxkb4j.core.chatpipeline.step.chatstep.impl;
+package com.tarzan.maxkb4j.core.pipeline.step.chatstep.impl;
 
 import com.alibaba.excel.util.StringUtils;
 import com.alibaba.fastjson.JSONArray;
@@ -6,8 +6,8 @@ import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.common.util.MessageUtils;
 import com.tarzan.maxkb4j.module.tool.service.ToolUtilService;
 import com.tarzan.maxkb4j.core.assistant.Assistant;
-import com.tarzan.maxkb4j.core.chatpipeline.PipelineManage;
-import com.tarzan.maxkb4j.core.chatpipeline.step.chatstep.IChatStep;
+import com.tarzan.maxkb4j.core.pipeline.PipelineManage;
+import com.tarzan.maxkb4j.core.pipeline.step.chatstep.AbsChatStep;
 import com.tarzan.maxkb4j.core.langchain4j.AppChatMemory;
 import com.tarzan.maxkb4j.core.langchain4j.AssistantServices;
 import com.tarzan.maxkb4j.module.application.domain.vo.ApplicationVO;
@@ -33,7 +33,7 @@ import java.util.concurrent.CompletableFuture;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class ChatStep extends IChatStep {
+public class ChatStep extends AbsChatStep {
 
     private final ModelFactory modelFactory;
     private final ToolUtilService toolUtil;

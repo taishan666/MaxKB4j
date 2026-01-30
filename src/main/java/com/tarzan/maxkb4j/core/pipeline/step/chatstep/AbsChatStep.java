@@ -1,8 +1,8 @@
-package com.tarzan.maxkb4j.core.chatpipeline.step.chatstep;
+package com.tarzan.maxkb4j.core.pipeline.step.chatstep;
 
 import com.alibaba.excel.util.StringUtils;
-import com.tarzan.maxkb4j.core.chatpipeline.IChatPipelineStep;
-import com.tarzan.maxkb4j.core.chatpipeline.PipelineManage;
+import com.tarzan.maxkb4j.core.pipeline.AbsStep;
+import com.tarzan.maxkb4j.core.pipeline.PipelineManage;
 import com.tarzan.maxkb4j.module.application.domain.entity.KnowledgeSetting;
 import com.tarzan.maxkb4j.module.application.domain.entity.NoReferencesSetting;
 import com.tarzan.maxkb4j.module.application.domain.vo.ApplicationVO;
@@ -16,7 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
-public abstract class IChatStep extends IChatPipelineStep {
+public abstract class AbsChatStep extends AbsStep {
 
     @Override
     @SuppressWarnings("unchecked")

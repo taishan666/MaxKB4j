@@ -1,8 +1,8 @@
-package com.tarzan.maxkb4j.core.chatpipeline.step.searchdatasetstep.impl;
+package com.tarzan.maxkb4j.core.pipeline.step.searchdatasetstep.impl;
 
 import com.alibaba.fastjson.JSONObject;
-import com.tarzan.maxkb4j.core.chatpipeline.PipelineManage;
-import com.tarzan.maxkb4j.core.chatpipeline.step.searchdatasetstep.ISearchDatasetStep;
+import com.tarzan.maxkb4j.core.pipeline.PipelineManage;
+import com.tarzan.maxkb4j.core.pipeline.step.searchdatasetstep.AbsSearchDatasetStep;
 import com.tarzan.maxkb4j.module.application.domain.entity.KnowledgeSetting;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.ParagraphVO;
 import com.tarzan.maxkb4j.module.knowledge.service.RetrieveService;
@@ -17,7 +17,7 @@ import java.util.concurrent.CompletableFuture;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class SearchDatasetStep extends ISearchDatasetStep {
+public class SearchDatasetStep extends AbsSearchDatasetStep {
 
     private final RetrieveService retrieveService;
 
