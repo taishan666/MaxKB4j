@@ -1,7 +1,6 @@
 package com.tarzan.maxkb4j.module.application.service;
 
 import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONException;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -9,6 +8,7 @@ import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.tarzan.maxkb4j.common.ResourceUtil;
 import com.tarzan.maxkb4j.common.exception.ApiException;
 import com.tarzan.maxkb4j.common.util.*;
 import com.tarzan.maxkb4j.module.application.domain.dto.*;
@@ -141,19 +141,14 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         if (workFlowTemplate != null) {
             String downloadUrl = workFlowTemplate.getString("downloadUrl");
             if (StringUtils.isNotBlank(downloadUrl)) {
-                MaxKb4J maxKb4j;
-                try {
-                    PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
-                    Resource resource = resolver.getResource("templates/app/" + downloadUrl);
-                    maxKb4j = parseMk(resource.getInputStream());
-                    ApplicationEntity app = maxKb4j.getApplication();
-                    app.setName(application.getName());
-                    app.setDesc(application.getDesc());
-                    saveMk(maxKb4j);
-                    application.setId(app.getId());
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
+                PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
+                Resource resource = resolver.getResource("templates/app/" + downloadUrl);
+                MaxKb4J maxKb4j = ResourceUtil.parseMk(resource);
+                ApplicationEntity app = maxKb4j.getApplication();
+                app.setName(application.getName());
+                app.setDesc(application.getDesc());
+                saveMk(maxKb4j);
+                application.setId(app.getId());
             }
         } else {
             application.setIcon("./favicon.ico");
@@ -174,7 +169,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
 
     @Transactional
     public boolean appImport(InputStream inputStream) {
-        MaxKb4J maxKb4j = parseMk(inputStream);
+        MaxKb4J maxKb4j = ResourceUtil.parseMk(inputStream);
         return saveMk(maxKb4j);
     }
 
@@ -245,10 +240,10 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
                     }
                 }
             }
-        }else {
+        } else {
             List<String> knowledgeIds = vo.getKnowledgeIds();
             if (!CollectionUtils.isEmpty(knowledgeIds)) {
-                List<KnowledgeEntity> knowledgeList=knowledgeService.lambdaQuery()
+                List<KnowledgeEntity> knowledgeList = knowledgeService.lambdaQuery()
                         .select(KnowledgeEntity::getId, KnowledgeEntity::getName)
                         .in(KnowledgeEntity::getId, knowledgeIds)
                         .orderByDesc(KnowledgeEntity::getCreateTime).list();
@@ -324,7 +319,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
 
 
     @Transactional
-    public Boolean publish(String id, JSONObject params) {
+    public ApplicationEntity publish(String id, JSONObject params) {
         ApplicationEntity application = new ApplicationEntity();
         application.setId(id);
         application.setIsPublish(true);
@@ -338,7 +333,8 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         entity.setName(DateTimeUtil.now());
         entity.setPublishUserId(StpKit.ADMIN.getLoginIdAsString());
         entity.setPublishUserName((String) StpKit.ADMIN.getExtra("username"));
-        return applicationVersionService.save(entity);
+        applicationVersionService.save(entity);
+        return application;
     }
 
     public String speechToText(String appId, MultipartFile file) throws IOException {
@@ -448,18 +444,6 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         return sink.asFlux();
     }
 
-    private MaxKb4J parseMk(InputStream inputStream) {
-        try {
-            String text = IoUtil.readToString(inputStream); // 显式指定编码更安全
-            return JSONObject.parseObject(text, MaxKb4J.class);
-        } catch (JSONException e) {
-            // JSON 格式错误
-            throw new IllegalArgumentException("无效的 JSON 格式: " + e.getMessage(), e);
-        } catch (Exception e) {
-            // 其他异常，如 IO 异常等
-            throw new RuntimeException("解析输入流时发生错误: " + e.getMessage(), e);
-        }
-    }
 
     @Transactional
     boolean saveMk(MaxKb4J maxKb4j) {

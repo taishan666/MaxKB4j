@@ -1,8 +1,8 @@
 package com.tarzan.maxkb4j.module.system.store;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.tarzan.maxkb4j.common.ResourceUtil;
 import com.tarzan.maxkb4j.common.api.R;
 import com.tarzan.maxkb4j.common.constant.AppConst;
 import com.tarzan.maxkb4j.common.util.IoUtil;
@@ -18,7 +18,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -45,10 +44,7 @@ public class StoreController {
                 String parentDirName = JarUtil.getParentDirName(resource);
                 app.setIcon("./app/"+parentDirName+"/logo.png");
                 app.setName(filename.substring(0, filename.length() - 3));
-                Resource descResource= resolver.getResource("templates/app/"+parentDirName+"/desc.txt");
-                if (descResource.exists()){
-                    app.setDescription(IoUtil.readToString(descResource.getInputStream()));
-                }
+                app.setDescription(ResourceUtil.parseMkDesc(resource));
                 Resource readmeResource= resolver.getResource("templates/app/"+parentDirName+"/readme.md");
                 if (readmeResource.exists()){
                     app.setReadMe(IoUtil.readToString(readmeResource.getInputStream()));
@@ -65,7 +61,7 @@ public class StoreController {
         return R.data(result);
     }
 
-    @GetMapping("/workspace/store/application_template1")
+ /*   @GetMapping("/workspace/store/application_template1")
     public R<JSONObject> applicationTemplate1(String name) {
         ClassLoader classLoader = StoreController.class.getClassLoader();
         InputStream inputStream = classLoader.getResourceAsStream("templates/maxkb.json");
@@ -87,7 +83,7 @@ public class StoreController {
         }
         result.put("apps", finalApps);
         return R.success(result);
-    }
+    }*/
 
 
 }

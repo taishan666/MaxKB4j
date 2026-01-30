@@ -73,7 +73,7 @@ public class ApplicationController {
 
     @SaCheckPerm(PermissionEnum.APPLICATION_EDIT)
     @PutMapping("/application/{id}/publish")
-    public R<Boolean> publish(@PathVariable("id") String id, @RequestBody JSONObject params) {
+    public R<ApplicationEntity> publish(@PathVariable("id") String id, @RequestBody JSONObject params) {
         return R.success(applicationService.publish(id, params));
     }
 
