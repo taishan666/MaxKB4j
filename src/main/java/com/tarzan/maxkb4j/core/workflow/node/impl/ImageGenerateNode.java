@@ -5,6 +5,7 @@ import com.tarzan.maxkb4j.core.workflow.node.AbsNode;
 import com.tarzan.maxkb4j.core.workflow.model.Workflow;
 import lombok.Data;
 
+import java.util.List;
 import java.util.Map;
 
 import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.IMAGE_GENERATE;
@@ -32,6 +33,7 @@ public class ImageGenerateNode extends AbsNode {
         private Integer dialogueNumber;
         private String dialogueType;
         private JSONObject modelParamsSetting;
+        private List<String> imageList;
         private Boolean isResult;
     }
 

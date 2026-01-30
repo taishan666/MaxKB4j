@@ -36,6 +36,8 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static org.springframework.web.util.UriUtils.extractFileExtension;
+
 @Slf4j
 @NodeHandlerType({NodeType.AI_CHAT, NodeType.IMAGE_UNDERSTAND})
 @Component
@@ -114,10 +116,7 @@ public class LLMNodeHandler implements INodeHandler {
         return contents;
     }
 
-    private String extractFileExtension(String fileName) {
-        int lastDotIndex = fileName.lastIndexOf('.');
-        return lastDotIndex > 0 ? fileName.substring(lastDotIndex + 1).toLowerCase() : "bin";
-    }
+
 
     private void recordNodeDetails(AbsNode node, String systemPrompt, List<ChatMessage> historyMessages,
                                    String question, List<Content> contents) {

@@ -19,7 +19,7 @@ public class BaiLianReranker implements ScoringModel {
     private TextReRankParam param;
 
     public BaiLianReranker(String modelName, ModelCredential credential, JSONObject params) {
-        param = TextReRankParam.builder()
+        this.param = TextReRankParam.builder()
                 .model(modelName)
                 .apiKey(credential.getApiKey())
                 .returnDocuments(false)

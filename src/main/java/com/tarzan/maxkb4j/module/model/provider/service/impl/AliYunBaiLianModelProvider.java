@@ -88,16 +88,7 @@ public class AliYunBaiLianModelProvider extends IModelProvider {
 
     @Override
     public ImageModel buildImageModel(String modelName, ModelCredential credential, JSONObject params) {
-        return WanxImageModel.builder()
-                .modelName(modelName)
-                .apiKey(credential.getApiKey())
-                .size(WanxImageSize.of(params.getString("size")))
-                .style(WanxImageStyle.of(params.getString("style")))
-                .negativePrompt(params.getString("negative_prompt"))
-                .promptExtend(params.getBoolean("prompt_extend"))
-                .watermark(params.getBoolean("watermark"))
-                .seed(params.getInteger("seed"))
-                .build();
+        return new BaiLianImageModel(modelName,credential,params);
     }
 
     @Override
