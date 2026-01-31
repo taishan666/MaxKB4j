@@ -21,8 +21,10 @@ public class GenerateHumanMessageStep extends AbsGenerateHumanMessageStep {
             if (prompt != null) {
                 StringBuilder data=new StringBuilder();
                 for (ParagraphVO paragraphVO : paragraphList) {
-                    data.append("<data>").append(paragraphVO.getTitle()).append(":").append(paragraphVO.getContent()).append("</data>");
-                }
+                String title = paragraphVO.getTitle() != null ? paragraphVO.getTitle() : "";
+                String content = paragraphVO.getContent() != null ? paragraphVO.getContent() : "";
+                data.append("<data>").append(title).append(":").append(content).append("</data>");
+            }
                 prompt=prompt.replace("{question}", safeProblemText).replace("{data}", data);
                 return prompt;
             }

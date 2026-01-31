@@ -84,8 +84,8 @@ public class SearchKnowledgeNodeHandler implements INodeHandler {
     public  String directlyReturns(List<ParagraphVO> isHitHandlingMethodList) {
         StringBuilder result = new StringBuilder();
         for (ParagraphVO paragraph : isHitHandlingMethodList) {
-            String content =paragraph.getContent();
-            if (!content.isEmpty()) {
+            String content = paragraph.getContent();
+            if (content != null && !content.isEmpty()) {
                 result.append("\n").append(content);
             }
         }
@@ -97,10 +97,10 @@ public class SearchKnowledgeNodeHandler implements INodeHandler {
         StringBuilder result = new StringBuilder();
         for (ParagraphVO paragraph : paragraphList) {
             String title = resetTitle(paragraph.getTitle());
-            String content =paragraph.getContent();
+            String content = paragraph.getContent() != null ? paragraph.getContent() : "";
             // 拼接标题和内容
-            if (!title.isEmpty() || !content.isEmpty()) {
-                result.append(title).append(content).append("\n");
+            if ((title != null && !title.isEmpty()) || !content.isEmpty()) {
+                result.append(title != null ? title : "").append(content).append("\n");
                 // 如果超出最大字符数限制，截断并返回
                 if (result.length() > maxParagraphCharNumber) {
                     return result.substring(0, maxParagraphCharNumber);

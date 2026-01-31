@@ -32,7 +32,12 @@ public class DataIndexService {
 
 
     public void insertAll(List<EmbeddingEntity> embeddingEntities, EmbeddingModel embeddingModel) {
-        BatchUtil.protectBach(embeddingEntities, 3,batch->{
+        // Filter out entities with null or blank content first
+        List<EmbeddingEntity> validEntities = embeddingEntities.stream()
+                .filter(e -> e != null && StringUtils.isNotBlank(e.getContent()))
+                .toList();
+        
+        BatchUtil.protectBach(validEntities, 3,batch->{
             List<TextSegment> textSegments=batch.stream().map(e -> TextSegment.from(e.getContent())).toList();
             Response<List<Embedding>> res = embeddingModel.embedAll(textSegments);
             List<Embedding> embeddings = res.content();
@@ -44,8 +49,8 @@ public class DataIndexService {
                 embeddingEntity.setDimension(embeddingModel.dimension());
             }
         });
-        embeddingMapper.insert(embeddingEntities);
-        mongoTemplate.insertAll(embeddingEntities);
+        embeddingMapper.insert(validEntities);
+        mongoTemplate.insertAll(validEntities);
     }
 
 

@@ -55,9 +55,10 @@ public class DocumentWriteService extends ServiceImpl<DocumentMapper, DocumentEn
             AtomicInteger docCharLength = new AtomicInteger();
             if (!CollectionUtils.isEmpty(d.getParagraphs())) {
                 for (var p : d.getParagraphs()) {
-                    ParagraphEntity paragraph = paragraphService.createParagraph(knowledgeId, doc.getId(), p.getTitle(), p.getContent(), null);
+                    String content = p.getContent() != null ? p.getContent() : "";
+                    ParagraphEntity paragraph = paragraphService.createParagraph(knowledgeId, doc.getId(), p.getTitle(), content, null);
                     paragraphEntities.add(paragraph);
-                    docCharLength.addAndGet(p.getContent().length());
+                    docCharLength.addAndGet(content.length());
                     if (!CollectionUtils.isEmpty(p.getProblemList())) {
                         for (String problem : p.getProblemList()) {
                             problem = problem.trim();

@@ -87,7 +87,9 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
             paragraphEmbed.setSourceId(paragraph.getId());
             paragraphEmbed.setSourceType(SourceType.PARAGRAPH);
             paragraphEmbed.setIsActive(paragraph.getIsActive());
-            paragraphEmbed.setContent(paragraph.getTitle() + paragraph.getContent());
+            String title = paragraph.getTitle() != null ? paragraph.getTitle() : "";
+            String content = paragraph.getContent() != null ? paragraph.getContent() : "";
+            paragraphEmbed.setContent(title + content);
             embeddingEntities.add(paragraphEmbed);
             List<ProblemEntity> problems=problemParagraphService.getProblemsByParagraphId(paragraph.getId());
             for (ProblemEntity problem : problems) {

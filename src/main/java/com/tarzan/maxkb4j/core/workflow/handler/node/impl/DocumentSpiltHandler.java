@@ -70,7 +70,8 @@ public class DocumentSpiltHandler implements INodeHandler {
     }
 
     private void qaSplit(DocumentSimple document, int chunkSize) {
-        String[] lines = document.getContent().split("\n");
+        String resContent = document.getContent() != null ? document.getContent() : "";
+        String[] lines = resContent.split("\n");
         boolean dataStarted = false;
         List<ParagraphSimple> paragraphs = new ArrayList<>();
         for (String line : lines) {
