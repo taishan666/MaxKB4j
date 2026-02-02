@@ -13,12 +13,12 @@ import lombok.Data;
 public class DatasetExcel {
 
     @ColumnWidth(30)
-    @ExcelProperty("分段标题（选填）")
+    @ExcelProperty(index = 0)
     private String title;
     @ColumnWidth(90)
-    @ExcelProperty("分段内容（必填，问题答案，最长不超过4096个字符）")
+    @ExcelProperty(index = 1)
     private String content;
     @ColumnWidth(60)
-    @ExcelProperty(value = "问题（选填，单元格内一行一个）")
+    @ExcelProperty(index = 2)
     private String problems;
 }
