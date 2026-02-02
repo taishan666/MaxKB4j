@@ -51,7 +51,7 @@ public class CsvParser implements DocumentParser {
                         .setHeader().setSkipHeaderRecord(true)
                         .setIgnoreEmptyLines(true)
                         .setTrim(true)
-                        .build();
+                        .get();
                 CSVParser csvParser = csvFormat.parse(reader);
                 List<String> headers = new ArrayList<>(csvParser.getHeaderNames());
                 List<List<String>> rows = new ArrayList<>();
