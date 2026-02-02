@@ -18,7 +18,7 @@ username	str	SQLBot的 用户名
 password	str	SQLBot的 密码
 
 工作流：
-![img.png](img.png)
+![img.png](/admin/app/sql_bot_assistant/img.png)
 四、应用效果
 
-![sqlbot_ai.gif](sqlbot_ai.gif)
+![sqlbot_ai.gif](/admin/app/sql_bot_assistant/sqlbot_ai.gif)
