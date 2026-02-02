@@ -126,7 +126,7 @@ public class LoopNodeHandler implements INodeHandler {
                     nodeSink);
             // 异步执行
             CompletableFuture<String> future = workflowHandler.executeAsync(loopWorkflow);
-            AtomicReference<ChildNode> childNode = new AtomicReference<>(new ChildNode(chatParams.getChatRecordId(), node.getRuntimeNodeId()));
+            AtomicReference<ChildNode> childNode = new AtomicReference<>(null);
             // 订阅并累积 token，同时发送消息
             nodeSink.asFlux().subscribe(e -> {
                 if (LOOP_BREAK.getKey().equals(e.getNodeType()) && "BREAK".equals(e.getContent())) {
@@ -136,9 +136,9 @@ public class LoopNodeHandler implements INodeHandler {
                         breakOuter.set(true);
                         isInterruptExec.set(true);
                     }
-                    childNode.set(new ChildNode(e.getChatRecordId(), e.getRuntimeNodeId()));
+                    String runtimeNodeId = e.getRuntimeNodeId() + "_" + loopParams.getIndex();
+                    childNode.set(new ChildNode(e.getChatRecordId(), runtimeNodeId));
                     ChatMessageVO vo = node.toChatMessageVO(
-                            loopParams.getIndex(),
                             workflow.getChatParams().getChatId(),
                             workflow.getChatParams().getChatRecordId(),
                             e.getContent(),
@@ -151,7 +151,6 @@ public class LoopNodeHandler implements INodeHandler {
                 }
             });
             ChatMessageVO vo = node.toChatMessageVO(
-                    loopParams.getIndex(),
                     workflow.getChatParams().getChatId(),
                     workflow.getChatParams().getChatRecordId(),
                     "",
@@ -162,8 +161,14 @@ public class LoopNodeHandler implements INodeHandler {
             future.join();
             node.getDetail().put("is_interrupt_exec", isInterruptExec.get());
             node.getDetail().put("current_index", startIndex);
-            JSONObject detail = loopWorkflow.getRuntimeDetails();
-            loopDetails.add(detail);
+            JSONObject runtimeDetails = loopWorkflow.getRuntimeDetails();
+            for (String key : runtimeDetails.keySet()) {
+                JSONObject value = runtimeDetails.getJSONObject(key);
+                String runtimeNodeId = value.getString("runtimeNodeId");
+                runtimeNodeId=runtimeNodeId+"_"+startIndex;
+                value.put("runtimeNodeId", runtimeNodeId);
+            }
+            loopDetails.add(runtimeDetails);
             if (breakOuter.get()) {
                 break;
             }

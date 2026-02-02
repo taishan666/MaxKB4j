@@ -39,7 +39,7 @@ public class ImageGenerateNodeHandler implements INodeHandler {
     @Override
     public NodeResult execute(Workflow workflow, AbsNode node) throws Exception {
         ImageGenerateNode.NodeParams nodeParams=node.getNodeData().toJavaObject(ImageGenerateNode.NodeParams.class);
-        String prompt=workflow.generatePrompt(nodeParams.getPrompt());
+        String prompt=workflow.renderPrompt(nodeParams.getPrompt());
         String negativePrompt=nodeParams.getNegativePrompt();
         JSONObject modelParamsSetting=nodeParams.getModelParamsSetting();
         if (modelParamsSetting!=null){

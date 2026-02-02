@@ -3,6 +3,7 @@ package com.tarzan.maxkb4j.core.pipeline.step.chatstep;
 import com.alibaba.excel.util.StringUtils;
 import com.tarzan.maxkb4j.core.pipeline.AbsStep;
 import com.tarzan.maxkb4j.core.pipeline.PipelineManage;
+import com.tarzan.maxkb4j.core.workflow.util.MessageConverter;
 import com.tarzan.maxkb4j.module.application.domain.entity.KnowledgeSetting;
 import com.tarzan.maxkb4j.module.application.domain.entity.NoReferencesSetting;
 import com.tarzan.maxkb4j.module.application.domain.vo.ApplicationVO;
@@ -64,20 +65,32 @@ public abstract class AbsChatStep extends AbsStep {
 
     protected abstract String execute(String chatId,String chatRecordId,ApplicationVO application,String userPrompt,PipelineManage manage);
 
-
+    /**
+     * 转换为聊天消息VO
+     * 使用 MessageConverter 工具类
+     *
+     * @param chatId           聊天ID
+     * @param chatRecordId     聊天记录ID
+     * @param content          消息内容
+     * @param reasoningContent 推理内容
+     * @param nodeIsEnd        节点是否结束
+     * @return 聊天消息VO
+     */
     public ChatMessageVO toChatMessageVO(String chatId, String chatRecordId, String content, String reasoningContent, boolean nodeIsEnd) {
-        return new ChatMessageVO(
+        return MessageConverter.toChatMessageVO(
                 chatId,
                 chatRecordId,
                 "ai-chat-node",
                 content,
                 reasoningContent,
                 List.of(),
-                null,
+                "",
+                "",
                 "ai-chat-node",
                 "many_view",
                 null,
                 nodeIsEnd,
                 false);
     }
+
 }

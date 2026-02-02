@@ -34,7 +34,7 @@ public class FormNodeHandler implements INodeHandler {
             formSetting.put("form_field_list", formFieldList);
             String form = "<form_render>" + formSetting + "</form_render>";
             String formContentFormat = nodeParams.getFormContentFormat();
-            String answerText =workflow.generatePrompt(formContentFormat,Map.of("form", form));
+            String answerText =workflow.getTemplateRenderer().render(formContentFormat,Map.of("form", form));
             node.setAnswerText(answerText);
             node.getDetail().put("form_field_list", formFieldList);
             nodeVariable.put("is_submit", false);

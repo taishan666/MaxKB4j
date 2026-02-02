@@ -38,7 +38,7 @@ public class UserSelectNodeHandler implements INodeHandler {
             UserSelectNode.Branch selectBranch = branches.stream().filter(branch -> branch.getId().equals(branchId)).findFirst().orElse(null);
             nodeVariable.put("branchName", selectBranch == null ? "" : selectBranch.getOption());
         } else {
-            String labelName = workflow.generatePrompt(nodeParams.getLabelName());
+            String labelName = workflow.renderPrompt(nodeParams.getLabelName());
             RadioCardFiled radioCardFiled = new RadioCardFiled(labelName, SELECT_FILED, options);
             List<RadioCardFiled> formFieldList = List.of(radioCardFiled);
             JSONObject formSetting = new JSONObject();

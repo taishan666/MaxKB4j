@@ -37,8 +37,8 @@ public class HttpNodeHandler implements INodeHandler {
                 if (!header.isEmpty()){
                     String name=header.getString("name");
                     String value=header.getString("value");
-                    name=workflow.generatePrompt(name);
-                    value=workflow.generatePrompt(value);
+                    name=workflow.renderPrompt(name);
+                    value=workflow.renderPrompt(value);
                     request.header(name,value);
                 }
             }
@@ -46,7 +46,7 @@ public class HttpNodeHandler implements INodeHandler {
             String body=nodeParams.getBody();
             node.getDetail().put("requestBody",body);
             if (StringUtils.isNotBlank(body)){
-                body=workflow.generatePrompt(body);
+                body=workflow.renderPrompt(body);
                 request.body(body);
             }
             JSONArray params=nodeParams.getParams();
@@ -55,8 +55,8 @@ public class HttpNodeHandler implements INodeHandler {
                 if (!param.isEmpty()){
                     String name=param.getString("name");
                     String value=param.getString("value");
-                    name=workflow.generatePrompt(name);
-                    value=workflow.generatePrompt(value);
+                    name=workflow.renderPrompt(name);
+                    value=workflow.renderPrompt(value);
                     request.form(name,value);
                 }
             }
@@ -64,12 +64,12 @@ public class HttpNodeHandler implements INodeHandler {
             if (StringUtils.isNotBlank(nodeParams.getAuthType())){
                 switch (nodeParams.getAuthType()){
                     case "basic":
-                        String username=workflow.generatePrompt(nodeParams.getUsername());
-                        String password=workflow.generatePrompt(nodeParams.getPassword());
+                        String username=workflow.renderPrompt(nodeParams.getUsername());
+                        String password=workflow.renderPrompt(nodeParams.getPassword());
                         request.basicAuth(username,password);
                         break;
                     case "bearer":
-                        String token=workflow.generatePrompt(nodeParams.getToken());
+                        String token=workflow.renderPrompt(nodeParams.getToken());
                         request.bearerAuth(token);
                         break;
                 }

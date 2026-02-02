@@ -6,10 +6,11 @@ import com.tarzan.maxkb4j.core.workflow.annotation.NodeHandlerType;
 import com.tarzan.maxkb4j.core.workflow.enums.DialogueType;
 import com.tarzan.maxkb4j.core.workflow.enums.NodeType;
 import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;
+import com.tarzan.maxkb4j.core.workflow.model.NodeResult;
 import com.tarzan.maxkb4j.core.workflow.model.Workflow;
 import com.tarzan.maxkb4j.core.workflow.node.AbsNode;
 import com.tarzan.maxkb4j.core.workflow.node.impl.QuestionNode;
-import com.tarzan.maxkb4j.core.workflow.model.NodeResult;
+import com.tarzan.maxkb4j.core.workflow.util.MessageConverter;
 import com.tarzan.maxkb4j.module.model.info.service.ModelFactory;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.model.chat.ChatModel;
@@ -35,9 +36,9 @@ public class QuestionNodeHandler implements INodeHandler {
         QuestionNode.NodeParams nodeParams = node.getNodeData().toJavaObject(QuestionNode.NodeParams.class);
         ChatModel chatModel = modelFactory.buildChatModel(nodeParams.getModelId(), nodeParams.getModelParamsSetting());
         List<ChatMessage> historyMessages=workflow.getHistoryMessages(nodeParams.getDialogueNumber(), DialogueType.WORK_FLOW.name(), node.getRuntimeNodeId());
-        node.getDetail().put("history_message", node.resetMessageList(historyMessages));
-        String question = workflow.generatePrompt(nodeParams.getPrompt());
-        String systemPrompt = workflow.generatePrompt(nodeParams.getSystem());
+        node.getDetail().put("history_message", MessageConverter.resetMessageList(historyMessages));
+        String question = workflow.renderPrompt(nodeParams.getPrompt());
+        String systemPrompt = workflow.renderPrompt(nodeParams.getSystem());
         Assistant assistant = AiServices.builder(Assistant.class)
                 .systemMessageProvider(chatMemoryId -> systemPrompt)
                 .chatMemory(AppChatMemory.withMessages(historyMessages))

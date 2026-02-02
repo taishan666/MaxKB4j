@@ -1,16 +1,17 @@
 package com.tarzan.maxkb4j.core.workflow.handler.node.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
-import com.tarzan.maxkb4j.core.assistant.IntentClassifyAssistant;
 import com.tarzan.maxkb4j.common.util.MessageUtils;
+import com.tarzan.maxkb4j.core.assistant.IntentClassifyAssistant;
 import com.tarzan.maxkb4j.core.workflow.annotation.NodeHandlerType;
 import com.tarzan.maxkb4j.core.workflow.enums.DialogueType;
 import com.tarzan.maxkb4j.core.workflow.enums.NodeType;
 import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;
+import com.tarzan.maxkb4j.core.workflow.model.NodeResult;
 import com.tarzan.maxkb4j.core.workflow.model.Workflow;
 import com.tarzan.maxkb4j.core.workflow.node.AbsNode;
 import com.tarzan.maxkb4j.core.workflow.node.impl.IntentClassifyNode;
-import com.tarzan.maxkb4j.core.workflow.model.NodeResult;
+import com.tarzan.maxkb4j.core.workflow.util.MessageConverter;
 import com.tarzan.maxkb4j.module.model.info.service.ModelFactory;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.internal.ValidationUtils;
@@ -42,7 +43,7 @@ public class IntentClassifyNodeHandler implements INodeHandler {
             branchMap.put(branch.getId(), branch.getContent());
         }
         List<ChatMessage> historyMessages = workflow.getHistoryMessages(nodeParams.getDialogueNumber(), DialogueType.WORK_FLOW.name(), node.getRuntimeNodeId());
-        node.getDetail().put("history_message", node.resetMessageList(historyMessages));
+        node.getDetail().put("history_message", MessageConverter.resetMessageList(historyMessages));
         Map<Integer, String> idToClassification=new HashMap<>();
         String options =optionsFormat(idToClassification,branches);
         String chatMemory = MessageUtils.format(historyMessages);

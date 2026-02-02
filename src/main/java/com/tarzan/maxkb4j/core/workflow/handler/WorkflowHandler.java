@@ -60,7 +60,6 @@ public class WorkflowHandler {
     public List<AbsNode> runChainNode(Workflow workflow, AbsNode node) {
         if (NodeStatus.READY.getStatus()==node.getStatus()||NodeStatus.INTERRUPT.getStatus()==node.getStatus()) {
             if (workflow.dependentNodeBeenExecuted(node)){
-                workflow.appendNode(node);
                 NodeResultFuture nodeResultFuture = runNodeFuture(workflow, node);
                 node.setStatus(nodeResultFuture.getStatus());
                 NodeResult nodeResult = nodeResultFuture.getResult();

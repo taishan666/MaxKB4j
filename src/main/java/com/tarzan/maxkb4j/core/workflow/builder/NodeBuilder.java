@@ -1,61 +1,41 @@
 package com.tarzan.maxkb4j.core.workflow.builder;
 
-import com.alibaba.fastjson.JSONObject;
-import com.tarzan.maxkb4j.core.workflow.enums.NodeType;
+import com.tarzan.maxkb4j.core.workflow.factory.NodeFactory;
 import com.tarzan.maxkb4j.core.workflow.logic.LfNode;
 import com.tarzan.maxkb4j.core.workflow.node.AbsNode;
-import com.tarzan.maxkb4j.core.workflow.node.impl.*;
 
+/**
+ * 节点构建器
+ * 重构后使用 NodeFactory 的注册表模式，符合开闭原则
+ *
+ */
 public class NodeBuilder {
 
+    /**
+     * 节点工厂实例（单例）
+     */
+    private static final NodeFactory FACTORY = new NodeFactory();
+
+    /**
+     * 获取节点实例
+     *
+     * @param lfNode 前端节点数据
+     * @return 节点实例
+     * @throws IllegalArgumentException 如果 lfNode 为 null
+     * @throws IllegalStateException  如果不支持的节点类型
+     */
     public static AbsNode getNode(LfNode lfNode) {
-        if (lfNode == null) {
-            throw new IllegalArgumentException("LfNode 不能为 null");
-        }
-        String id = lfNode.getId();
-        String type = lfNode.getType();
-        JSONObject properties = lfNode.getProperties();
-        NodeType nodeType = NodeType.getByKey(type);
-        if (nodeType == null) {
-            throw new IllegalStateException("不支持的节点类型: " + type);
-        }
-        return switch (nodeType) {
-            case START -> new StartNode(id, properties);
-            case AI_CHAT -> new AiChatNode(id, properties);
-            case SEARCH_KNOWLEDGE -> new SearchKnowledgeNode(id, properties);
-            case CONDITION -> new ConditionNode(id, properties);
-            case REPLY -> new DirectReplyNode(id, properties);
-            case APPLICATION -> new ApplicationNode(id, properties);
-            case QUESTION -> new QuestionNode(id, properties);
-            case IMAGE_GENERATE -> new ImageGenerateNode(id, properties);
-            case TEXT_TO_SPEECH -> new TextToSpeechNode(id, properties);
-            case DOCUMENT_EXTRACT -> new DocumentExtractNode(id, properties);
-            case DOCUMENT_SPLIT -> new DocumentSpiltNode(id, properties);
-            case SPEECH_TO_TEXT -> new SpeechToTextNode(id, properties);
-            case VARIABLE_ASSIGN -> new VariableAssignNode(id, properties);
-            case VARIABLE_AGGREGATE -> new VariableAggregationNode(id, properties);
-            case VARIABLE_SPLITTING -> new VariableSplittingNode(id, properties);
-            case TOOL -> new ToolNode(id, properties);
-            case TOOL_LIB -> new ToolLibNode(id, properties);
-            case IMAGE_UNDERSTAND -> new ImageUnderstandNode(id, properties);
-            case RERANKER -> new RerankerNode(id, properties);
-            case FORM -> new FormNode(id, properties);
-            case LOOP_BREAK -> new LoopBreakNode(id, properties);
-            case LOOP_CONTINUE -> new LoopContinueNode(id, properties);
-            case LOOP_START -> new LoopStartNode(id, properties);
-            case LOOP -> new LoopNode(id, properties);
-            case MCP -> new McpNode(id, properties);
-            case NL2SQL -> new NL2SqlNode(id, properties);
-            case INTENT_CLASSIFY -> new IntentClassifyNode(id, properties);
-            case HTTP_CLIENT -> new HttpNode(id, properties);
-            case PARAMETER_EXTRACTION -> new ParameterExtractionNode(id, properties);
-            case USER_SELECT -> new UserSelectNode(id, properties);
-            case DATA_SOURCE_LOCAL -> new DataSourceLocalNode(id, properties);
-            case DATA_SOURCE_WEB -> new DataSourceWebNode(id, properties);
-            case KNOWLEDGE_WRITE -> new KnowledgeWriteNode(id, properties);
-            default -> null;
-        };
+        return FACTORY.createNode(lfNode);
     }
 
-
+    /**
+     * 获取节点工厂实例
+     * 用于扩展和自定义节点注册
+     *
+     * @return 节点工厂实例
+     */
+    public static NodeFactory getFactory() {
+        return FACTORY;
+    }
 }
+

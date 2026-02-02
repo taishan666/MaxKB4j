@@ -33,7 +33,7 @@ public class DirectReplyNodeHandler implements INodeHandler {
                 answerText.set(JSON.toJSONString(value));
             }
         } else {
-            answerText.set(workflow.generatePrompt(nodeParams.getContent()));
+            answerText.set(workflow.renderPrompt(nodeParams.getContent()));
         }
         if (nodeParams.getIsResult()){
             node.setAnswerText(answerText.get());

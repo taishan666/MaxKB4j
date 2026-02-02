@@ -1,23 +1,24 @@
 package com.tarzan.maxkb4j.core.workflow.node;
 
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.workflow.enums.NodeStatus;
 import com.tarzan.maxkb4j.core.workflow.model.Workflow;
+import com.tarzan.maxkb4j.core.workflow.util.MessageConverter;
+import com.tarzan.maxkb4j.core.workflow.util.NodeIdGenerator;
 import com.tarzan.maxkb4j.module.application.domain.vo.ChatMessageVO;
 import com.tarzan.maxkb4j.module.chat.dto.ChildNode;
-import dev.langchain4j.data.message.AiMessage;
-import dev.langchain4j.data.message.ChatMessage;
-import dev.langchain4j.data.message.UserMessage;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.util.CollectionUtils;
 
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
+/**
+ * 节点抽象基类
+ * 所有工作流节点的基类，提供通用功能
+ * 重构后职责更加清晰：
+ * - 使用 NodeIdGenerator 生成运行时ID
+ * - 使用 MessageConverter 进行消息转换
+ */
 @Slf4j
 @Data
 public abstract class AbsNode {
@@ -33,7 +34,6 @@ public abstract class AbsNode {
     private Integer status;
     private String errMessage;
 
-
     public AbsNode(String id, JSONObject properties) {
         this.id = id;
         this.properties = properties;
@@ -43,10 +43,9 @@ public abstract class AbsNode {
         this.upNodeIdList = new ArrayList<>();
         this.runtimeNodeId = generateRuntimeNodeId();
         this.answerText = "";
-        this.status= NodeStatus.READY.getStatus();
+        this.status = NodeStatus.READY.getStatus();
         this.errMessage = "";
     }
-
 
     public JSONObject getNodeData() {
         if (Objects.nonNull(properties) && properties.containsKey("nodeData")) {
@@ -60,53 +59,45 @@ public abstract class AbsNode {
         this.runtimeNodeId = generateRuntimeNodeId();
     }
 
-
+    /**
+     * 保存节点上下文
+     * 子类需要实现具体逻辑
+     *
+     * @param workflow 工作流实例
+     * @param detail   节点详情
+     */
     public abstract void saveContext(Workflow workflow, Map<String, Object> detail);
 
+    /**
+     * 生成运行时节点ID
+     * 使用 NodeIdGenerator 工具类
+     *
+     * @return 运行时节点ID
+     */
     private String generateRuntimeNodeId() {
-        try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-1");
-            String input = Arrays.toString(upNodeIdList.toArray()) + id;
-            byte[] hashBytes = digest.digest(input.getBytes(StandardCharsets.UTF_8));
-            StringBuilder hexString = new StringBuilder();
-            for (byte b : hashBytes) {
-                String hex = Integer.toHexString(0xff & b);
-                if (hex.length() == 1) hexString.append('0');
-                hexString.append(hex);
-            }
-            return hexString.toString();
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
-        }
+        return NodeIdGenerator.generateRuntimeNodeId(id, upNodeIdList);
     }
 
 
-    public JSONArray resetMessageList(List<ChatMessage> historyMessages) {
-        if (CollectionUtils.isEmpty(historyMessages)) {
-            return new JSONArray();
-        }
-        JSONArray newMessageList = new JSONArray();
-        for (ChatMessage chatMessage : historyMessages) {
-            JSONObject message = new JSONObject();
-            if (chatMessage instanceof UserMessage userMessage) {
-                message.put("role", "user");
-                message.put("content", userMessage.singleText());
-                newMessageList.add(message);
-            }
-            if (chatMessage instanceof AiMessage aiMessage) {
-                message.put("role", "ai");
-                message.put("content", aiMessage.text());
-                newMessageList.add(message);
-            }
-        }
-        if (newMessageList.size() % 2 != 0) {
-            newMessageList.remove(newMessageList.size() - 1);
-        }
-        return newMessageList;
-    }
 
+    /**
+     * 转换为聊天消息VO
+     * 使用 MessageConverter 工具类
+     *
+     * @param chatId           聊天ID
+     * @param chatRecordId     聊天记录ID
+     * @param content          消息内容
+     * @param reasoningContent 推理内容
+     * @param childNode        子节点
+     * @param nodeIsEnd        节点是否结束
+     * @return 聊天消息VO
+     */
     public ChatMessageVO toChatMessageVO(String chatId, String chatRecordId, String content, String reasoningContent, ChildNode childNode, boolean nodeIsEnd) {
-        return new ChatMessageVO(
+        String realNodeId=this.getRuntimeNodeId();
+        if (childNode!=null){
+            realNodeId=childNode.getRuntimeNodeId();
+        }
+        return MessageConverter.toChatMessageVO(
                 chatId,
                 chatRecordId,
                 this.getId(),
@@ -114,23 +105,7 @@ public abstract class AbsNode {
                 reasoningContent,
                 this.getUpNodeIdList(),
                 this.getRuntimeNodeId(),
-                this.getType(),
-                this.getViewType(),
-                childNode,
-                nodeIsEnd,
-                false);
-    }
-
-    public ChatMessageVO toChatMessageVO(int index,String chatId, String chatRecordId, String content, String reasoningContent, ChildNode childNode, boolean nodeIsEnd) {
-        return new ChatMessageVO(
-                chatId,
-                chatRecordId,
-                this.getId(),
-                content,
-                reasoningContent,
-                this.getUpNodeIdList(),
-                this.getRuntimeNodeId(),
-                this.getRuntimeNodeId()+"_"+index,
+                realNodeId,
                 this.getType(),
                 this.getViewType(),
                 childNode,

@@ -87,6 +87,8 @@ public class NodeResult {
             }
             workflow.setAnswer(workflow.getAnswer() + node.getAnswerText());
         }
+        // 同步更新到工作流上下文
+        workflow.getWorkflowContext().appendNode(node);
     }
 
     public void defaultWriteDetailFunc(Map<String, Object> nodeVariable, AbsNode node) {

@@ -16,6 +16,7 @@ import com.tarzan.maxkb4j.core.workflow.model.SysFile;
 import com.tarzan.maxkb4j.core.workflow.model.Workflow;
 import com.tarzan.maxkb4j.core.workflow.node.AbsNode;
 import com.tarzan.maxkb4j.core.workflow.node.impl.AiChatNode;
+import com.tarzan.maxkb4j.core.workflow.util.MessageConverter;
 import com.tarzan.maxkb4j.module.application.domain.vo.ChatMessageVO;
 import com.tarzan.maxkb4j.module.model.info.service.ModelFactory;
 import com.tarzan.maxkb4j.module.oss.service.MongoFileService;
@@ -52,8 +53,8 @@ public class LLMNodeHandler implements INodeHandler {
     @Override
     public NodeResult execute(Workflow workflow, AbsNode node) throws Exception {
         AiChatNode.NodeParams nodeParams = node.getNodeData().toJavaObject(AiChatNode.NodeParams.class);
-        String question = workflow.generatePrompt(nodeParams.getPrompt());
-        String systemPrompt = workflow.generatePrompt(nodeParams.getSystem());
+        String question = workflow.renderPrompt(nodeParams.getPrompt());
+        String systemPrompt = workflow.renderPrompt(nodeParams.getSystem());
         List<ChatMessage> historyMessages = workflow.getHistoryMessages(
                 nodeParams.getDialogueNumber(),
                 nodeParams.getDialogueType(),
@@ -127,7 +128,7 @@ public class LLMNodeHandler implements INodeHandler {
     private void recordNodeDetails(AbsNode node, String systemPrompt, List<ChatMessage> historyMessages,
                                    String question, List<Content> contents) {
         node.getDetail().put("system", systemPrompt);
-        node.getDetail().put("history_message", node.resetMessageList(historyMessages));
+        node.getDetail().put("history_message", MessageConverter.resetMessageList(historyMessages));
         node.getDetail().put("question", question);
         node.getDetail().put("hasImages", !contents.isEmpty());
     }
