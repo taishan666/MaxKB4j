@@ -74,7 +74,7 @@ public class ToolUtilService {
         wrapper.eq(ToolEntity::getIsActive, true);
         List<ToolEntity> toolEntities = toolService.list(wrapper);
         for (ToolEntity tool : toolEntities) {
-            if (ToolType.MCP.getValue().equals(tool.getToolType())) {
+            if (ToolType.MCP.getKey().equals(tool.getToolType())) {
                 JSONObject mcpServers = JSONObject.parseObject(tool.getCode());
                 tools.putAll(McpToolUtil.getToolMap(mcpServers));
             } else {

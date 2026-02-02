@@ -69,7 +69,7 @@ public class ToolController {
         dto.setUserId(StpKit.ADMIN.getLoginIdAsString());
         dto.setTemplateId(templateId);
         dto.setScope("WORKSPACE");
-        dto.setToolType(ToolType.CUSTOM.getValue());
+        dto.setToolType(ToolType.CUSTOM.getKey());
         Date now = new Date();
         dto.setCreateTime(now);
         dto.setUpdateTime(now);
@@ -83,7 +83,7 @@ public class ToolController {
     public R<ToolEntity> toolLib(@RequestBody ToolEntity dto) {
         dto.setIsActive(true);
         if (StringUtils.isBlank(dto.getToolType())) {
-            dto.setToolType("CUSTOM");
+            dto.setToolType(ToolType.CUSTOM.getKey());
         }
         dto.setUserId(StpKit.ADMIN.getLoginIdAsString());
         dto.setScope("WORKSPACE");

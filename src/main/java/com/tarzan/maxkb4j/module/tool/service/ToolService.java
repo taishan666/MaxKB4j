@@ -17,6 +17,7 @@ import com.tarzan.maxkb4j.module.system.user.service.UserService;
 import com.tarzan.maxkb4j.module.tool.domain.dto.ToolQuery;
 import com.tarzan.maxkb4j.module.tool.domain.entity.ToolEntity;
 import com.tarzan.maxkb4j.module.tool.domain.vo.ToolVO;
+import com.tarzan.maxkb4j.module.tool.enums.ToolType;
 import com.tarzan.maxkb4j.module.tool.mapper.ToolMapper;
 import dev.langchain4j.mcp.client.McpClient;
 import jakarta.servlet.http.HttpServletResponse;
@@ -102,7 +103,7 @@ public class ToolService extends ServiceImpl<ToolMapper, ToolEntity> {
     }
 
     public boolean mcpServerConfigValid(ToolEntity entity) {
-        if ("MCP".equals(entity.getToolType())) {
+        if (ToolType.MCP.getKey().equals(entity.getToolType())) {
             String jsonStr = entity.getCode();
             try {
                 ObjectMapper mapper = new ObjectMapper();

@@ -9,10 +9,10 @@ public enum ToolType {
     CUSTOM("CUSTOM"),
     ;
 
-    private final String value;
+    private final String key;
 
-    ToolType(String value) {
-        this.value = value;
+    ToolType(String key) {
+        this.key = key;
     }
 
 }
