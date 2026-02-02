@@ -47,8 +47,7 @@ public class ApplicationExportService {
         outputStream.write(bytes);
     }
 
-    @SuppressWarnings("unchecked")
-    public static List<String> getToolIdList(JSONObject workflow) {
+    private static List<String> getToolIdList(JSONObject workflow) {
         List<String> result = new ArrayList<>();
         if (workflow == null) {
             return result;
@@ -88,9 +87,9 @@ public class ApplicationExportService {
                 if (properties != null) {
                     JSONObject nodeData = properties.getJSONObject("nodeData");
                     if (nodeData != null) {
-                        List<String> toolIds = (List<String>) nodeData.getJSONObject("toolIds");
-                        if (toolIds != null) {
-                            result.addAll(toolIds);
+                        JSONArray toolIds =  nodeData.getJSONArray("toolIds");
+                        for (Object toolId : toolIds) {
+                            result.add(toolId.toString());
                         }
                     }
                 }

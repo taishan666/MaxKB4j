@@ -190,17 +190,23 @@ public class ToolService extends ServiceImpl<ToolMapper, ToolEntity> {
     }
 
     public List<ToolEntity> listTools(String scope, String toolType) {
-        List<String> targetIds = userResourcePermissionService.getTargetIds(AuthTargetType.TOOL, StpKit.ADMIN.getLoginIdAsString());
+        String loginId = StpKit.ADMIN.getLoginIdAsString();
+        Set<String> role = userService.getRoleById(loginId);
         LambdaQueryWrapper<ToolEntity> wrapper = Wrappers.lambdaQuery();
         if (StringUtils.isNotBlank(toolType)) {
             wrapper.eq(ToolEntity::getToolType, toolType);
         }
         wrapper.eq(ToolEntity::getIsActive, true);
         wrapper.eq(ToolEntity::getScope, scope);
-        if (!CollectionUtils.isEmpty(targetIds)) {
-            wrapper.in(ToolEntity::getId, targetIds);
-        }
         wrapper.orderByDesc(ToolEntity::getCreateTime);
+        if (role.contains(RoleType.ADMIN)){
+            return this.list(wrapper);
+        }else {
+            List<String> targetIds = userResourcePermissionService.getTargetIds(AuthTargetType.TOOL, StpKit.ADMIN.getLoginIdAsString());
+            if (!CollectionUtils.isEmpty(targetIds)) {
+                wrapper.in(ToolEntity::getId, targetIds);
+            }
+        }
         return this.list(wrapper);
     }
 
