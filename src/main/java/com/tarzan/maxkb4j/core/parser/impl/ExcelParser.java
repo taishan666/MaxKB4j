@@ -17,11 +17,11 @@ import java.util.Map;
 @Slf4j
 @RequiredArgsConstructor
 @Component
-public class TableParser implements DocumentParser {
+public class ExcelParser implements DocumentParser {
 
     @Override
     public boolean support(String fileName) {
-        return fileName.endsWith(".xls")||fileName.endsWith(".xlsx")||fileName.endsWith(".csv");
+        return fileName.endsWith(".xls")||fileName.endsWith(".xlsx");
     }
 
     @Override
