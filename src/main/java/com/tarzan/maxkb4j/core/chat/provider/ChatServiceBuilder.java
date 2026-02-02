@@ -25,7 +25,7 @@ public class ChatServiceBuilder {
      * @param appType 应用类型
      * @return IChatActuator
      */
-    public static IChatService getActuator(String appType) {
+    public static IChatService getChatService(String appType) {
         IChatService chatActuator = ACTUATOR_POOL.get(appType);
         if (chatActuator == null) {
             throw new ApiException("no appType was found");

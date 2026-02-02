@@ -3,6 +3,7 @@ package com.tarzan.maxkb4j.module.tool.service;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.tarzan.maxkb4j.common.exception.ApiException;
 import com.tarzan.maxkb4j.common.util.GroovyScriptExecutor;
 import com.tarzan.maxkb4j.common.util.McpToolUtil;
 import com.tarzan.maxkb4j.module.application.domain.entity.ApplicationApiKeyEntity;
@@ -37,7 +38,7 @@ public class ToolUtilService {
     @Value("${server.port}")
     private int serverPort;
 
-    public Map<ToolSpecification, ToolExecutor> getToolMap(List<String> toolIds, List<String> applicationIds) {
+    public Map<ToolSpecification, ToolExecutor> getToolMap(List<String> toolIds, List<String> applicationIds) throws ApiException {
         Map<ToolSpecification, ToolExecutor> tools = getToolMap(toolIds);
         if (!CollectionUtils.isEmpty(applicationIds)) {
             JSONObject mcpServers = new JSONObject();
@@ -46,7 +47,7 @@ public class ToolUtilService {
             wrapper.in(ApplicationEntity::getId, applicationIds);
             List<ApplicationEntity> applications = applicationService.list(wrapper);
             for (ApplicationEntity app : applications) {
-                JSONObject mcpConfig = getAppMcpConfig(app.getId());
+                JSONObject mcpConfig = getAppMcpConfig(app);
                 mcpServers.put(app.getName(), mcpConfig);
             }
             tools.putAll(McpToolUtil.getToolMap(mcpServers));
@@ -54,8 +55,11 @@ public class ToolUtilService {
         return tools;
     }
 
-    public JSONObject getAppMcpConfig(String appId) {
-        ApplicationApiKeyEntity apiKey = apiKeyService.lambdaQuery().select(ApplicationApiKeyEntity::getSecretKey).eq(ApplicationApiKeyEntity::getApplicationId, appId).last("limit 1").one();
+    private JSONObject getAppMcpConfig(ApplicationEntity app) throws ApiException{
+        ApplicationApiKeyEntity apiKey = apiKeyService.lambdaQuery().select(ApplicationApiKeyEntity::getSecretKey).eq(ApplicationApiKeyEntity::getApplicationId, app.getId()).last("limit 1").one();
+        if (apiKey == null) {
+            throw new ApiException(String.format("Agent Key is required for agent tool 【%s】", app.getName()));
+        }
         JSONObject mcpConfig = new JSONObject();
         mcpConfig.put("url", "http://127.0.0.1:" + serverPort + "/chat/api/mcp");
         mcpConfig.put("type", "streamable_http");

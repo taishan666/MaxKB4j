@@ -3,6 +3,7 @@ package com.tarzan.maxkb4j.core.pipeline.step.chatstep.impl;
 import com.alibaba.excel.util.StringUtils;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.tarzan.maxkb4j.common.exception.ApiException;
 import com.tarzan.maxkb4j.common.util.MessageUtils;
 import com.tarzan.maxkb4j.module.tool.service.ToolUtilService;
 import com.tarzan.maxkb4j.core.assistant.Assistant;
@@ -51,7 +52,11 @@ public class ChatStep extends AbsChatStep {
         }
         List<String> toolIds = Optional.ofNullable(application.getToolIds()).orElse(List.of());
         List<String> applicationIds = Optional.ofNullable(application.getApplicationIds()).orElse(List.of());
-        aiServicesBuilder.tools(toolUtil.getToolMap(toolIds,applicationIds));
+        try {
+            aiServicesBuilder.tools(toolUtil.getToolMap(toolIds,applicationIds));
+        }catch (ApiException e){
+            manage.sink.tryEmitError(e);
+        }
         int dialogueNumber = application.getDialogueNumber();
         List<ChatMessage> historyMessages = manage.getHistoryMessages(dialogueNumber);
         Assistant assistant = aiServicesBuilder.chatMemory(AppChatMemory.withMessages(historyMessages)).streamingChatModel(chatModel).build();

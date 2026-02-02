@@ -6,7 +6,6 @@ import com.tarzan.maxkb4j.module.knowledge.mapper.EmbeddingMapper;
 import com.tarzan.maxkb4j.module.knowledge.service.IDataRetriever;
 import com.tarzan.maxkb4j.module.knowledge.service.knowledgeModelService;
 import dev.langchain4j.data.embedding.Embedding;
-import dev.langchain4j.exception.RateLimitException;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.model.output.Response;
 import lombok.RequiredArgsConstructor;

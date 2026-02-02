@@ -1,6 +1,7 @@
 package com.tarzan.maxkb4j.core.workflow.handler.node.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
+import com.tarzan.maxkb4j.common.exception.ApiException;
 import com.tarzan.maxkb4j.common.util.MessageUtils;
 import com.tarzan.maxkb4j.common.util.MimeTypeUtils;
 import com.tarzan.maxkb4j.core.assistant.Assistant;
@@ -61,7 +62,7 @@ public class LLMNodeHandler implements INodeHandler {
         List<String> toolIds = Optional.ofNullable(nodeParams.getToolIds()).orElse(List.of());
         List<String> applicationIds = Optional.ofNullable(nodeParams.getApplicationIds()).orElse(List.of());
         // 构建 AI 服务
-        AiServices<Assistant> aiServicesBuilder = buildAiServices(systemPrompt, historyMessages, toolIds,applicationIds);
+        AiServices<Assistant> aiServicesBuilder = buildAiServices(workflow,systemPrompt, historyMessages, toolIds,applicationIds);
         // 构建多模态内容（如图片）
         List<Content> contents = buildImageContents(workflow, node, nodeParams.getImageList());
         // 记录上下文用于调试/追踪
@@ -74,7 +75,7 @@ public class LLMNodeHandler implements INodeHandler {
         return writeContextStream(nodeParams, tokenStream, workflow, node);
     }
 
-    private AiServices<Assistant> buildAiServices(String systemPrompt, List<ChatMessage> historyMessages, List<String> toolIds, List<String> applicationIds) {
+    private AiServices<Assistant> buildAiServices(Workflow workflow,String systemPrompt, List<ChatMessage> historyMessages, List<String> toolIds, List<String> applicationIds) {
         AiServices<Assistant> builder = AssistantServices.builder(Assistant.class);
         if (StringUtils.isNotBlank(systemPrompt)) {
             builder.systemMessageProvider(chatMemoryId -> systemPrompt);
@@ -83,6 +84,11 @@ public class LLMNodeHandler implements INodeHandler {
             builder.chatMemory(AppChatMemory.withMessages(historyMessages));
         }
         if (CollectionUtils.isNotEmpty(toolIds)) {
+            try {
+                builder.tools(toolUtil.getToolMap(toolIds,applicationIds));
+            }catch (ApiException e){
+                workflow.getSink().tryEmitError(e);
+            }
             builder.tools(toolUtil.getToolMap(toolIds,applicationIds));
         }
         return builder;

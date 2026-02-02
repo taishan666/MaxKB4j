@@ -130,8 +130,8 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
             chatParams.setChatRecord(chatRecord);
         }
         ApplicationVO application = applicationService.getAppDetail(chatParams.getAppId(), chatParams.getDebug());
-        IChatService chatActuator = ChatServiceBuilder.getActuator(application.getType());
-        ChatResponse chatResponse = chatActuator.chatMessage(application, chatParams, sink);
+        IChatService chatService = ChatServiceBuilder.getChatService(application.getType());
+        ChatResponse chatResponse = chatService.chatMessage(application, chatParams, sink);
         postResponseHandler.handler(chatParams, chatResponse, startTime);
         sink.tryEmitNext(new ChatMessageVO(chatParams.getChatId(), chatParams.getChatRecordId(), true));
         sink.tryEmitComplete();
