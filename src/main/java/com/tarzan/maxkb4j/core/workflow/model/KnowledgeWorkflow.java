@@ -33,7 +33,7 @@ public class KnowledgeWorkflow extends Workflow {
         List<AbsNode> startNodes = super.getNodes().stream().filter(e -> !isTargetNode(e.getId())).toList();
         for (AbsNode startNode : startNodes) {
             if (!startNode.getId().equals(nodeId)) {
-                startNode.setStatus(NodeStatus.SKIP.getCode());
+                startNode.setStatus(NodeStatus.SKIP.getStatus());
             }
         }
         return startNodes;

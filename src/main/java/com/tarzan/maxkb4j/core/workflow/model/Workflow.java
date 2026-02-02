@@ -153,7 +153,7 @@ public class Workflow {
                     String expectedAnchorId = String.format("%s_%s_right", currentNode.getId(), branchId);
                     if (!expectedAnchorId.equals(edge.getSourceAnchorId())) {
                         assert nextNode != null;
-                        nextNode.setStatus(NodeStatus.SKIP.getCode());
+                        nextNode.setStatus(NodeStatus.SKIP.getStatus());
                     }
                 }
             }
@@ -170,7 +170,7 @@ public class Workflow {
             return true;
         }
         List<AbsNode> upNodes = nodes.stream().filter(e -> upNodeIdList.contains(e.getId())).toList();
-        return upNodes.stream().allMatch(e -> (NodeStatus.SUCCESS.getCode()==e.getStatus() || NodeStatus.SKIP.getCode()==e.getStatus()));
+        return upNodes.stream().allMatch(e -> (NodeStatus.SUCCESS.getStatus()==e.getStatus() || NodeStatus.SKIP.getStatus()==e.getStatus()));
     }
 
     // 是否是汇聚节点（排除上游节点都是SKIP的汇聚节点）
@@ -181,7 +181,7 @@ public class Workflow {
         }
         if (upNodeIdList.size() > 1) {
             List<AbsNode> upNodes = nodes.stream().filter(e -> upNodeIdList.contains(e.getId())).toList();
-            return !upNodes.stream().allMatch(e -> NodeStatus.SKIP.getCode()==e.getStatus());
+            return !upNodes.stream().allMatch(e -> NodeStatus.SKIP.getStatus()==e.getStatus());
         }
         return false;
     }

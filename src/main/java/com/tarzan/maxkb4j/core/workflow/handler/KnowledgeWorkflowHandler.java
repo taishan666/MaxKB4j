@@ -38,19 +38,19 @@ public class KnowledgeWorkflowHandler extends WorkflowHandler {
     public NodeResultFuture runNodeFuture(Workflow workflow, AbsNode node) {
         try {
             long startTime = System.currentTimeMillis();
-            node.setStatus(NodeStatus.STARTED.getCode());
+            node.setStatus(NodeStatus.STARTED.getStatus());
             knowledgeActionService.updateState(workflow, ActionStatus.STARTED);
             INodeHandler nodeHandler = NodeHandlerBuilder.getHandler(node.getType());
             NodeResult result = nodeHandler.execute(workflow, node);
             float runTime = (System.currentTimeMillis() - startTime) / 1000F;
             node.getDetail().put("runTime", runTime);
             log.info("node:{}, runTime:{} s", node.getProperties().getString("nodeName"), runTime);
-            return new NodeResultFuture(result, null, NodeStatus.SUCCESS.getCode());
+            return new NodeResultFuture(result, null, NodeStatus.SUCCESS.getStatus());
         } catch (Exception ex) {
             log.error("error:", ex);
             node.setErrMessage(ex.getMessage());
             log.error("NODE: {} Exception :{}", node.getType(), ex.getMessage());
-            return new NodeResultFuture(null, ex, NodeStatus.ERROR.getCode());
+            return new NodeResultFuture(null, ex, NodeStatus.ERROR.getStatus());
         }
     }
 }

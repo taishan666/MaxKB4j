@@ -15,5 +15,5 @@ public enum NodeStatus {
     ERROR(500),
     ;
 
-    private final int code;
+    private final int status;
 }

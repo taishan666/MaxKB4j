@@ -43,7 +43,7 @@ public abstract class AbsNode {
         this.upNodeIdList = new ArrayList<>();
         this.runtimeNodeId = generateRuntimeNodeId();
         this.answerText = "";
-        this.status= NodeStatus.READY.getCode();
+        this.status= NodeStatus.READY.getStatus();
         this.errMessage = "";
     }
 

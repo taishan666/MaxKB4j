@@ -58,7 +58,7 @@ public class WorkflowHandler {
 
 
     public List<AbsNode> runChainNode(Workflow workflow, AbsNode node) {
-        if (NodeStatus.READY.getCode()==node.getStatus()||NodeStatus.INTERRUPT.getCode()==node.getStatus()) {
+        if (NodeStatus.READY.getStatus()==node.getStatus()||NodeStatus.INTERRUPT.getStatus()==node.getStatus()) {
             if (workflow.dependentNodeBeenExecuted(node)){
                 workflow.appendNode(node);
                 NodeResultFuture nodeResultFuture = runNodeFuture(workflow, node);
@@ -68,18 +68,18 @@ public class WorkflowHandler {
                     nodeResult.writeContext(node, workflow);
                     nodeResult.writeDetail(node);
                     if(nodeResult.isInterruptExec(node)){
-                        node.setStatus(NodeStatus.INTERRUPT.getCode());
+                        node.setStatus(NodeStatus.INTERRUPT.getStatus());
                     }
                 }
                 // 获取下一个节点列表
                 return workflow.getNextNodeList(node, nodeResult);
             }
-        }else if (NodeStatus.SKIP.getCode()==node.getStatus()) {
+        }else if (NodeStatus.SKIP.getStatus()==node.getStatus()) {
             // 获取下一个节点列表
             List<AbsNode> nextNodeList = workflow.getNextNodeList(node, new NodeResult(Map.of()));
             nextNodeList.forEach(nextNode -> {
                 if (!workflow.isReadyJoinNode(nextNode)){
-                    nextNode.setStatus(NodeStatus.SKIP.getCode());
+                    nextNode.setStatus(NodeStatus.SKIP.getStatus());
                 }
             });
             return nextNodeList;
@@ -95,7 +95,7 @@ public class WorkflowHandler {
             float runTime = (System.currentTimeMillis() - startTime) / 1000F;
             node.getDetail().put("runTime", runTime);
             log.info("node:{}, runTime:{} s", node.getProperties().getString("nodeName"), runTime);
-            return new NodeResultFuture(result, null, NodeStatus.SUCCESS.getCode());
+            return new NodeResultFuture(result, null, NodeStatus.SUCCESS.getStatus());
         } catch (Exception ex) {
             log.error("error:", ex);
             node.setErrMessage(ex.getMessage());
@@ -111,7 +111,7 @@ public class WorkflowHandler {
                         true);
                 workflow.getSink().tryEmitNext(errMessage);
             }
-            return new NodeResultFuture(null, ex, NodeStatus.ERROR.getCode());
+            return new NodeResultFuture(null, ex, NodeStatus.ERROR.getStatus());
         }
     }
 
