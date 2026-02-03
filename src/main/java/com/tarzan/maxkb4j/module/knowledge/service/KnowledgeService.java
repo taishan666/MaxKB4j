@@ -1,8 +1,5 @@
 package com.tarzan.maxkb4j.module.knowledge.service;
 
-import com.alibaba.excel.EasyExcel;
-import com.alibaba.excel.ExcelWriter;
-import com.alibaba.excel.write.metadata.WriteSheet;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -33,6 +30,7 @@ import com.tarzan.maxkb4j.module.knowledge.mapper.KnowledgeMapper;
 import com.tarzan.maxkb4j.module.knowledge.mapper.ParagraphMapper;
 import com.tarzan.maxkb4j.module.knowledge.mapper.ProblemMapper;
 import com.tarzan.maxkb4j.module.knowledge.mapper.ProblemParagraphMapper;
+import com.tarzan.maxkb4j.module.knowledge.service.handler.KnowledgeExportHandler;
 import com.tarzan.maxkb4j.module.system.permission.constant.AuthTargetType;
 import com.tarzan.maxkb4j.module.system.permission.service.UserResourcePermissionService;
 import com.tarzan.maxkb4j.module.system.user.constants.RoleType;
@@ -46,15 +44,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
 
 import static com.tarzan.maxkb4j.core.workflow.enums.NodeType.DATA_SOURCE_WEB;
 
@@ -78,6 +70,7 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
     private final KnowledgeActionService knowledgeActionService;
     private final KnowledgeVersionService knowledgeVersionService;
     private final KnowledgeWorkflowHandler knowledgeWorkflowHandler;
+    private final KnowledgeExportHandler knowledgeExportHandler;
 
 
     public IPage<KnowledgeVO> selectKnowledgePage(Page<KnowledgeVO> knowledgePage, KnowledgeQuery query) {
@@ -98,11 +91,6 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
         if (Objects.isNull(entity)) {
             return null;
         }
-        /*        List<ApplicationKnowledgeMappingEntity> apps = applicationKnowledgeMappingMapper.selectList(Wrappers.lambdaQuery(ApplicationKnowledgeMappingEntity.class)
-                .select(ApplicationKnowledgeMappingEntity::getApplicationId)
-                .eq(ApplicationKnowledgeMappingEntity::getKnowledgeId, id));
-        List<String> appIds = apps.stream().map(ApplicationKnowledgeMappingEntity::getApplicationId).toList();
-        vo.setApplicationIdList(appIds);*/
         return BeanUtil.copy(entity, KnowledgeVO.class);
     }
 
@@ -139,37 +127,6 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
                 .eq(DocumentEntity::getKnowledgeId, knowledgeId));
     }
 
-    // 公共方法：设置 Excel 响应头
-    private void setExcelResponseHeader(HttpServletResponse response, String fileName) {
-        response.setContentType("application/vnd.ms-excel");
-        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
-        String encodedName = URLEncoder.encode(fileName, StandardCharsets.UTF_8)
-                .replaceAll("\\+", "%20"); // 兼容部分浏览器空格变+的问题
-        response.setHeader("Content-disposition", "attachment;filename=" + encodedName + ".xlsx");
-    }
-
-    // 公共方法：设置 ZIP 响应头
-    private void setZipResponseHeader(HttpServletResponse response, String fileName) {
-        response.setContentType("application/zip");
-        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
-        String encodedName = URLEncoder.encode(fileName, StandardCharsets.UTF_8)
-                .replaceAll("\\+", "%20");
-        response.setHeader("Content-disposition", "attachment;filename=" + encodedName + ".zip");
-    }
-
-    // 核心：导出多个 sheet 到单个 Excel 文件（写入 OutputStream）
-    private void writeMultiSheetExcel(OutputStream outputStream, List<DocumentEntity> docs) {
-        try (ExcelWriter excelWriter = EasyExcel.write(outputStream, DatasetExcel.class).build()) {
-            for (DocumentEntity doc : docs) {
-                List<DatasetExcel> list = getDatasetExcelByDoc(doc);
-                if (list.isEmpty()) continue; // 跳过空数据
-                WriteSheet writeSheet = EasyExcel.writerSheet(doc.getName()).build();
-                excelWriter.write(list, writeSheet);
-            }
-        }
-    }
-
-
     // 根据 ID 导出 ZIP
     public void exportExcelZip(String id, HttpServletResponse response) throws IOException {
         KnowledgeEntity dataset = this.getById(id);
@@ -180,22 +137,8 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
         if (docs == null || docs.isEmpty()) {
             throw new IllegalArgumentException("文档列表为空，无法导出");
         }
-        setZipResponseHeader(response, dataset.getName());
-        try (ByteArrayOutputStream zipBuffer = new ByteArrayOutputStream();
-             ZipOutputStream zipOut = new ZipOutputStream(zipBuffer)) {
-            // 生成 Excel 内容到内存
-            try (ByteArrayOutputStream excelBuffer = new ByteArrayOutputStream()) {
-                writeMultiSheetExcel(excelBuffer, docs);
-                // 添加到 ZIP
-                String entryName = "knowledge.xlsx";
-                zipOut.putNextEntry(new ZipEntry(entryName));
-                zipOut.write(excelBuffer.toByteArray());
-                zipOut.closeEntry();
-            }
-            // 写回 HTTP 响应
-            zipBuffer.writeTo(response.getOutputStream());
-            response.getOutputStream().flush();
-        }
+
+        knowledgeExportHandler.writeExcelToZipAndResponse(docs, dataset.getName(), response);
     }
 
     // 直接导出 Excel（不压缩）
@@ -205,28 +148,12 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
             throw new IllegalArgumentException("未找到知识库 ID: " + id);
         }
         List<DocumentEntity> docs = getDocumentsByKnowledgeId(id);
-        setExcelResponseHeader(response, dataset.getName());
-        writeMultiSheetExcel(response.getOutputStream(), docs);
+        knowledgeExportHandler.setExcelResponseHeader(response, dataset.getName());
+        knowledgeExportHandler.writeMultiSheetExcel(response.getOutputStream(), docs);
     }
 
     private List<DatasetExcel> getDatasetExcelByDoc(DocumentEntity doc) {
-        List<DatasetExcel> list = new ArrayList<>();
-        List<ParagraphEntity> paragraphs = paragraphMapper.selectList(Wrappers.<ParagraphEntity>lambdaQuery().eq(ParagraphEntity::getDocumentId, doc.getId()));
-        for (ParagraphEntity paragraph : paragraphs) {
-            DatasetExcel excel = new DatasetExcel();
-            excel.setTitle(paragraph.getTitle());
-            excel.setContent(paragraph.getContent());
-            List<ProblemEntity> problemEntities = problemParagraphMapper.getProblemsByParagraphId(paragraph.getId());
-            StringBuilder sb = new StringBuilder();
-            if (!CollectionUtils.isEmpty(problemEntities)) {
-                List<String> problems = problemEntities.stream().map(ProblemEntity::getContent).toList();
-                String result = String.join("\n", problems);
-                sb.append(result);
-            }
-            excel.setProblems(sb.toString());
-            list.add(excel);
-        }
-        return list;
+        return knowledgeExportHandler.getDatasetExcelByDoc(doc);
     }
 
 

@@ -36,7 +36,6 @@ public class DataIndexService {
         List<EmbeddingEntity> validEntities = embeddingEntities.stream()
                 .filter(e -> e != null && StringUtils.isNotBlank(e.getContent()))
                 .toList();
-        
         BatchUtil.protectBach(validEntities, 3,batch->{
             List<TextSegment> textSegments=batch.stream().map(e -> TextSegment.from(e.getContent())).toList();
             Response<List<Embedding>> res = embeddingModel.embedAll(textSegments);
