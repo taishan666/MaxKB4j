@@ -24,7 +24,7 @@ import java.util.Objects;
 public class ProblemParagraphService extends ServiceImpl<ProblemParagraphMapper, ProblemParagraphEntity>{
 
     private final ProblemMapper problemMapper;
-    private final knowledgeModelService knowledgeModelService;
+    private final KnowledgeModelService knowledgeModelService;
     private final DataIndexService dataIndexService;
 
     public List<ProblemEntity> getProblemsByParagraphId(String paragraphId) {

@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 
 @RequiredArgsConstructor
 @Component
-public class knowledgeModelService {
+public class KnowledgeModelService {
 
     private final ModelFactory modelFactory;
     private final KnowledgeMapper knowledgeMapper;

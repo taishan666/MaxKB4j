@@ -36,7 +36,7 @@ public class ZhiPuModelProvider extends IModelProvider {
         modelInfos.add(new ModelInfo("glm-4","", ModelType.LLM, new LlmModelParams()));
         modelInfos.add(new ModelInfo("glm-4v","", ModelType.LLM,  new LlmModelParams()));
         modelInfos.add(new ModelInfo("glm-3-turbo","", ModelType.LLM,  new LlmModelParams()));
-        modelInfos.add(new ModelInfo("text-embedding-v3","", ModelType.EMBEDDING));
+        modelInfos.add(new ModelInfo("embedding-3","", ModelType.EMBEDDING));
         modelInfos.add(new ModelInfo("glm-4v-plus","", ModelType.VISION));
         modelInfos.add(new ModelInfo("glm-4v","", ModelType.VISION,  new LlmModelParams()));
         modelInfos.add(new ModelInfo("glm-4v-flash","", ModelType.VISION, new LlmModelParams()));

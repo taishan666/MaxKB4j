@@ -51,6 +51,7 @@ public abstract class IModelProvider {
 
     public abstract List<ModelInfo> getModelList();
 
+
     public ChatModel buildChatModel(String modelName, ModelCredential credential, JSONObject params) {
         return new DisabledChatModel();
     }

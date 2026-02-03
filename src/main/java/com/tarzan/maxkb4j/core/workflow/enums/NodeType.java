@@ -9,6 +9,8 @@ public enum NodeType {
 
     BASE("base-node", "基础节点"),
 
+    KNOWLEDGE_BASE("knowledge-base-node", "知识库基础节点"),
+
     START("start-node", "开始节点"),
 
     CONDITION("condition-node", "条件节点"),
@@ -66,8 +68,6 @@ public enum NodeType {
     APPLICATION("application-node", "应用节点"),
 
     PARAMETER_EXTRACTION("parameter-extraction-node", "参数提取节点"),
-
-    KNOWLEDGE_BASE("knowledge-base-node", "知识库基础节点"),
 
     DATA_SOURCE_LOCAL("data-source-local-node", "本地数据源"),
 

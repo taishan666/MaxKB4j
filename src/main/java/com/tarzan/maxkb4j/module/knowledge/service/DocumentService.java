@@ -23,7 +23,7 @@ import com.tarzan.maxkb4j.module.knowledge.domain.entity.ProblemParagraphEntity;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.DocFileVO;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.DocumentVO;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.TextSegmentVO;
-import com.tarzan.maxkb4j.module.knowledge.enums.KnowledgeType;
+import com.tarzan.maxkb4j.module.knowledge.consts.KnowledgeType;
 import com.tarzan.maxkb4j.module.knowledge.excel.DatasetExcel;
 import com.tarzan.maxkb4j.module.knowledge.mapper.DocumentMapper;
 import com.tarzan.maxkb4j.module.model.info.vo.KeyAndValueVO;
@@ -150,7 +150,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
             if (originalFilename == null) continue;
             List<String> list = documentParseService.extractTable(uploadFile.getInputStream());
             List<ParagraphEntity> paragraphs = new ArrayList<>();
-            DocumentEntity doc = new DocumentEntity(knowledgeId, originalFilename, KnowledgeType.BASE.getType());
+            DocumentEntity doc = new DocumentEntity(knowledgeId, originalFilename, KnowledgeType.BASE);
             if (!CollectionUtils.isEmpty(list)) {
                 for (String text : list) {
                     doc.setCharLength(doc.getCharLength() + text.length());
@@ -273,7 +273,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
                 throw new RuntimeException("读取 Excel 失败", e);
             }
         }
-        batchCreateDocs(knowledgeId, KnowledgeType.BASE.getType(), docs);
+        batchCreateDocs(knowledgeId, KnowledgeType.BASE, docs);
     }
 
     public boolean batchCreateDocs(String knowledgeId,int knowledgeType, List<DocumentSimple> docs) {
@@ -456,7 +456,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
     @Async
     public void createWebDocs(String knowledgeId, String sourceUrl, String selector) {
         List<DocumentSimple> docs =documentWebService.getWebDocuments(sourceUrl, selector,true);
-        batchCreateDocs(knowledgeId, KnowledgeType.WEB.getType(), docs);
+        batchCreateDocs(knowledgeId, KnowledgeType.WEB, docs);
     }
 
 
@@ -464,7 +464,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
     public void createWebDoc(String knowledgeId, List<String> sourceUrlList, String selector) {
         for (String sourceUrl : sourceUrlList) {
             List<DocumentSimple> docs =documentWebService.getWebDocuments(sourceUrl, selector,false);
-            batchCreateDocs(knowledgeId, KnowledgeType.WEB.getType(), docs);
+            batchCreateDocs(knowledgeId, KnowledgeType.WEB, docs);
         }
     }
 
@@ -478,7 +478,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         if (StringUtils.isAnyBlank(sourceUrl, selector)) return;
         deleteBatchDocByDocIds(knowledgeId, List.of(docId));
         List<DocumentSimple> docs =documentWebService.getWebDocuments(sourceUrl, selector,false);
-        batchCreateDocs(knowledgeId, KnowledgeType.WEB.getType(), docs);
+        batchCreateDocs(knowledgeId, KnowledgeType.WEB, docs);
     }
 
 

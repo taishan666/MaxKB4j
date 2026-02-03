@@ -4,7 +4,7 @@ import com.tarzan.maxkb4j.module.knowledge.consts.SearchType;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.TextChunkVO;
 import com.tarzan.maxkb4j.module.knowledge.mapper.EmbeddingMapper;
 import com.tarzan.maxkb4j.module.knowledge.service.IDataRetriever;
-import com.tarzan.maxkb4j.module.knowledge.service.knowledgeModelService;
+import com.tarzan.maxkb4j.module.knowledge.service.KnowledgeModelService;
 import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.model.output.Response;
@@ -20,7 +20,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class EmbedRetriever implements IDataRetriever {
 
-    private final knowledgeModelService knowledgeModelService;
+    private final KnowledgeModelService knowledgeModelService;
     private final EmbeddingMapper embeddingMapper;
 
     @Override

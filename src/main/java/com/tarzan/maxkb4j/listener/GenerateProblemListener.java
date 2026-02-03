@@ -7,7 +7,7 @@ import com.tarzan.maxkb4j.module.knowledge.domain.entity.ProblemEntity;
 import com.tarzan.maxkb4j.module.knowledge.service.DocumentService;
 import com.tarzan.maxkb4j.module.knowledge.service.ParagraphService;
 import com.tarzan.maxkb4j.module.knowledge.service.ProblemService;
-import com.tarzan.maxkb4j.module.knowledge.service.knowledgeModelService;
+import com.tarzan.maxkb4j.module.knowledge.service.KnowledgeModelService;
 import com.tarzan.maxkb4j.module.model.info.service.ModelFactory;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.embedding.EmbeddingModel;
@@ -28,7 +28,7 @@ public class GenerateProblemListener {
     private final ParagraphService paragraphService;
     private final ModelFactory modelFactory;
     private final ProblemService problemService;
-    private final knowledgeModelService knowledgeModelService;
+    private final KnowledgeModelService knowledgeModelService;
 
     @Async
     @EventListener

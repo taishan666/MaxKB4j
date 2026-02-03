@@ -8,7 +8,7 @@ import com.tarzan.maxkb4j.module.knowledge.domain.dto.*;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.DocumentEntity;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.DocumentVO;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.TextSegmentVO;
-import com.tarzan.maxkb4j.module.knowledge.enums.KnowledgeType;
+import com.tarzan.maxkb4j.module.knowledge.consts.KnowledgeType;
 import com.tarzan.maxkb4j.module.knowledge.service.DocumentService;
 import com.tarzan.maxkb4j.module.model.info.vo.KeyAndValueVO;
 import com.tarzan.maxkb4j.module.system.user.enums.PermissionEnum;
@@ -65,7 +65,7 @@ public class DocumentController {
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_CREATE)
     @PutMapping("/knowledge/{id}/document/batch_create")
     public R<Boolean> createBatchDoc(@PathVariable("id") String id, @RequestBody List<DocumentSimple> docs) {
-        return R.success(documentService.batchCreateDocs(id, KnowledgeType.BASE.getType(), docs));
+        return R.success(documentService.batchCreateDocs(id, KnowledgeType.BASE, docs));
     }
 
     @GetMapping("/knowledge/{id}/document/split_pattern")

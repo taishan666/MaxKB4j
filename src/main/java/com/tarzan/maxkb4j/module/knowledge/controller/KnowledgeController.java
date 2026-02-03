@@ -18,7 +18,7 @@ import com.tarzan.maxkb4j.module.knowledge.domain.entity.KnowledgeVersionEntity;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.KnowledgeListVO;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.KnowledgeVO;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.ParagraphVO;
-import com.tarzan.maxkb4j.module.knowledge.enums.KnowledgeType;
+import com.tarzan.maxkb4j.module.knowledge.consts.KnowledgeType;
 import com.tarzan.maxkb4j.module.knowledge.service.KnowledgeService;
 import com.tarzan.maxkb4j.module.knowledge.service.RetrieveService;
 import com.tarzan.maxkb4j.module.system.user.enums.PermissionEnum;
@@ -51,21 +51,21 @@ public class KnowledgeController {
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_CREATE)
     @PostMapping("/knowledge/base")
     public R<KnowledgeEntity> createKnowledgeBase(@RequestBody KnowledgeEntity knowledge) {
-        knowledge.setType(KnowledgeType.BASE.getType());
+        knowledge.setType(KnowledgeType.BASE);
         return R.success(knowledgeService.createKnowledge(knowledge));
     }
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_CREATE)
     @PostMapping("/knowledge/web")
     public R<KnowledgeEntity> createKnowledgeWeb(@RequestBody KnowledgeDTO knowledge) {
-        knowledge.setType(KnowledgeType.WEB.getType());
+        knowledge.setType(KnowledgeType.WEB);
         return R.success(knowledgeService.createKnowledgeWeb(knowledge));
     }
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_CREATE)
     @PostMapping("/knowledge/workflow")
     public R<KnowledgeEntity> createKnowledgeWorkflow(@RequestBody KnowledgeEntity knowledge) {
-        knowledge.setType(KnowledgeType.WORKFLOW.getType());
+        knowledge.setType(KnowledgeType.WORKFLOW);
         return R.success(knowledgeService.createKnowledge(knowledge));
     }
 

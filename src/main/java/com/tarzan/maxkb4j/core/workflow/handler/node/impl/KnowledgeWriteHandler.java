@@ -9,7 +9,7 @@ import com.tarzan.maxkb4j.core.workflow.model.Workflow;
 import com.tarzan.maxkb4j.core.workflow.node.AbsNode;
 import com.tarzan.maxkb4j.core.workflow.node.impl.KnowledgeWriteNode;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.DocumentSimple;
-import com.tarzan.maxkb4j.module.knowledge.enums.KnowledgeType;
+import com.tarzan.maxkb4j.module.knowledge.consts.KnowledgeType;
 import com.tarzan.maxkb4j.module.knowledge.service.DocumentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,7 +36,7 @@ public class KnowledgeWriteHandler implements INodeHandler {
             if (!debug){
                 String knowledgeId = knowledgeWorkflow.getKnowledgeParams().getKnowledgeId();
                 List<DocumentSimple> docs=(List<DocumentSimple>)value;
-                documentService.batchCreateDocs(knowledgeId, KnowledgeType.WORKFLOW.getType(), docs);
+                documentService.batchCreateDocs(knowledgeId, KnowledgeType.WORKFLOW, docs);
             }
         }
         return new NodeResult(Map.of());

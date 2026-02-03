@@ -6,7 +6,7 @@ import com.tarzan.maxkb4j.core.event.ParagraphIndexEvent;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.ParagraphEntity;
 import com.tarzan.maxkb4j.module.knowledge.service.DocumentService;
 import com.tarzan.maxkb4j.module.knowledge.service.ParagraphService;
-import com.tarzan.maxkb4j.module.knowledge.service.knowledgeModelService;
+import com.tarzan.maxkb4j.module.knowledge.service.KnowledgeModelService;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,7 +21,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class DataIndexListener {
 
-    private final knowledgeModelService knowledgeModelService;
+    private final KnowledgeModelService knowledgeModelService;
     private final DocumentService documentService;
     private final ParagraphService paragraphService;
 

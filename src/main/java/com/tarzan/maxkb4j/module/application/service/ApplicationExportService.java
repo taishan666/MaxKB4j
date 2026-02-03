@@ -88,6 +88,7 @@ public class ApplicationExportService {
                     JSONObject nodeData = properties.getJSONObject("nodeData");
                     if (nodeData != null) {
                         JSONArray toolIds =  nodeData.getJSONArray("toolIds");
+                        if (toolIds == null) continue;
                         for (Object toolId : toolIds) {
                             result.add(toolId.toString());
                         }

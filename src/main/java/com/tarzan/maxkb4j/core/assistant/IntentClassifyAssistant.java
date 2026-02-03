@@ -18,4 +18,16 @@ public interface IntentClassifyAssistant {
             Conversation: {{chatMemory}}
             User query: {{query}}""")
     Result<String> route(@V("options") String options,@V("chatMemory") String chatMemory, @V("query")String  query);
+
+
+    @SystemMessage(SYSTEM_MESSAGE)
+    @UserMessage("""
+            Based on the user query, \
+            determine the most suitable option(s) to retrieve relevant information from the following options:
+            {{options}}
+            It is very important that your answer consists of a single number and nothing else!
+            Background information: {{background}}
+            Conversation: {{chatMemory}}
+            User query: {{query}}""")
+    Result<String> route(@V("options") String options,@V("chatMemory") String chatMemory, @V("background")String  background, @V("query")String  query);
 }
