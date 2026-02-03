@@ -10,6 +10,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tarzan.maxkb4j.common.exception.AccessNumLimitException;
 import com.tarzan.maxkb4j.common.exception.ApiException;
 import com.tarzan.maxkb4j.common.util.DateTimeUtil;
+import com.tarzan.maxkb4j.common.util.StpKit;
 import com.tarzan.maxkb4j.core.chat.provider.ChatServiceBuilder;
 import com.tarzan.maxkb4j.core.chat.service.IChatService;
 import com.tarzan.maxkb4j.module.application.domain.dto.ChatInfo;
@@ -152,7 +153,7 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
 
     public boolean visitCountCheck(ChatParams chatParams) {
         String appId = chatParams.getAppId();
-        String chatUserId = chatParams.getChatUserId();
+        String chatUserId = StpKit.ADMIN.getLoginIdAsString();
         String chatUserType = chatParams.getChatUserType();
         boolean debug = chatParams.getDebug();
         if (!debug && Objects.nonNull(appId)) {

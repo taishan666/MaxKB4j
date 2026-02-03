@@ -7,6 +7,7 @@ import com.tarzan.maxkb4j.module.application.domain.vo.ApplicationStatisticsVO;
 import com.tarzan.maxkb4j.module.application.domain.vo.ChatRecordDetailVO;
 import org.apache.ibatis.annotations.Mapper;
 
+import java.time.LocalDate;
 import java.util.List;
 
 /**
@@ -19,4 +20,8 @@ public interface ApplicationChatMapper extends BaseMapper<ApplicationChatEntity>
     List<ChatRecordDetailVO> chatRecordDetail(List<String>  ids);
 
     List<ApplicationStatisticsVO> statistics(String appId, ChatQueryDTO query);
+
+    List<ApplicationStatisticsVO> userTokenUsage(String appId, ChatQueryDTO query);
+
+    List<ApplicationStatisticsVO> topQuestions(String appId, ChatQueryDTO query);
 }
