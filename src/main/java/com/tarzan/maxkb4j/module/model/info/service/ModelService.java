@@ -1,5 +1,6 @@
 package com.tarzan.maxkb4j.module.model.info.service;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
@@ -36,13 +37,6 @@ public class ModelService extends ServiceImpl<ModelMapper, ModelEntity> {
 
     private final UserService userService;
     private final UserResourcePermissionService userResourcePermissionService;
-
-
-  /*  @Cacheable(cacheNames = "model_info", key = "#modelId")
-    public ModelEntity getCacheModelById(String modelId) {
-        return this.getById(modelId);
-    }*/
-
 
     public List<ModelVO> models(String name, String createUser, String modelType, String provider) {
         Map<String, String> userMap = userService.getNicknameMap();
@@ -99,6 +93,9 @@ public class ModelService extends ServiceImpl<ModelMapper, ModelEntity> {
         long count = this.lambdaQuery().eq(ModelEntity::getName, model.getName()).eq(ModelEntity::getUserId, userId).count();
         if (count > 0) {
             return false;
+        }
+        if (model.getModelParamsForm() == null){
+            model.setModelParamsForm(new JSONArray());
         }
         model.setUserId(userId);
         model.setMeta(new JSONObject());

@@ -8,7 +8,7 @@ import com.tarzan.maxkb4j.module.knowledge.service.DocumentService;
 import com.tarzan.maxkb4j.module.knowledge.service.ParagraphService;
 import com.tarzan.maxkb4j.module.knowledge.service.ProblemService;
 import com.tarzan.maxkb4j.module.knowledge.service.KnowledgeModelService;
-import com.tarzan.maxkb4j.module.model.info.service.ModelFactory;
+import com.tarzan.maxkb4j.module.model.info.factory.impl.ModelFactory;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import lombok.RequiredArgsConstructor;

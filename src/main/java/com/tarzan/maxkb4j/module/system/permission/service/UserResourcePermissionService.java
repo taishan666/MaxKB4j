@@ -27,6 +27,7 @@ import com.tarzan.maxkb4j.module.system.user.mapper.UserMapper;
 import com.tarzan.maxkb4j.module.tool.domain.entity.ToolEntity;
 import com.tarzan.maxkb4j.module.tool.mapper.ToolMapper;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -135,7 +136,9 @@ public class UserResourcePermissionService extends ServiceImpl<UserResourcePermi
                 return new Page<>(current, size);
         }
     }
-    public IPage<ResourceUserPermissionVO> resourceUserPermissionPage(String resourceId, String type, int current, int size) {
+
+    //todo 权限查询实现
+    public IPage<ResourceUserPermissionVO> resourceUserPermissionPage(String resourceId, String type, int current, int size,String nickname,String username,String[] permissions) {
         LambdaQueryWrapper<UserResourcePermissionEntity> wrapper = Wrappers.<UserResourcePermissionEntity>lambdaQuery()
                 .eq(UserResourcePermissionEntity::getTargetId, resourceId)
                 .eq(UserResourcePermissionEntity::getAuthTargetType, type)
@@ -150,6 +153,8 @@ public class UserResourcePermissionService extends ServiceImpl<UserResourcePermi
         String userId = StpKit.ADMIN.getLoginIdAsString();
         LambdaQueryWrapper<UserEntity>  userWrapper = Wrappers.<UserEntity>lambdaQuery()
                 .in(UserEntity::getIsActive,true)
+                .like(StringUtils.isNotBlank(nickname), UserEntity::getNickname, nickname)
+                .like(StringUtils.isNotBlank(username), UserEntity::getUsername, username)
                 .ne(UserEntity::getId, userId).orderByAsc(UserEntity::getCreateTime);
         Page<UserEntity> userPage = new Page<>(current, size);
         userPage= userMapper.selectPage(userPage,userWrapper);

@@ -51,8 +51,8 @@ public class UserResourcePermissionController {
 
     @SaCheckRole(type=LoginType.ADMIN,value = RoleType.ADMIN)
     @GetMapping("/resource_user_permission/resource/{resourceId}/resource/{type}/{current}/{size}")
-    public R<IPage<ResourceUserPermissionVO>> resourceUserPage(@PathVariable String resourceId, @PathVariable String type, @PathVariable int current, @PathVariable int size){
-        return R.success(userResourcePermissionService.resourceUserPermissionPage(resourceId,type,current,size));
+    public R<IPage<ResourceUserPermissionVO>> resourceUserPage(@PathVariable String resourceId, @PathVariable String type, @PathVariable int current, @PathVariable int size,String nickname,String username,String[] permission){
+        return R.success(userResourcePermissionService.resourceUserPermissionPage(resourceId,type,current,size,nickname,username,permission));
     }
 
     @SaCheckRole(type=LoginType.ADMIN,value = RoleType.ADMIN)

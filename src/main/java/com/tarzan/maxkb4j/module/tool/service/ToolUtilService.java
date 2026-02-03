@@ -10,9 +10,9 @@ import com.tarzan.maxkb4j.module.application.domain.entity.ApplicationApiKeyEnti
 import com.tarzan.maxkb4j.module.application.domain.entity.ApplicationEntity;
 import com.tarzan.maxkb4j.module.application.service.ApplicationApiKeyService;
 import com.tarzan.maxkb4j.module.application.service.ApplicationService;
+import com.tarzan.maxkb4j.module.tool.consts.ToolConstants;
 import com.tarzan.maxkb4j.module.tool.domain.dto.ToolInputField;
 import com.tarzan.maxkb4j.module.tool.domain.entity.ToolEntity;
-import com.tarzan.maxkb4j.module.tool.enums.ToolType;
 import dev.langchain4j.agent.tool.ToolSpecification;
 import dev.langchain4j.model.chat.request.json.JsonArraySchema;
 import dev.langchain4j.model.chat.request.json.JsonObjectSchema;
@@ -78,7 +78,7 @@ public class ToolUtilService {
         wrapper.eq(ToolEntity::getIsActive, true);
         List<ToolEntity> toolEntities = toolService.list(wrapper);
         for (ToolEntity tool : toolEntities) {
-            if (ToolType.MCP.getKey().equals(tool.getToolType())) {
+            if (ToolConstants.ToolType.MCP.equals(tool.getToolType())) {
                 JSONObject mcpServers = JSONObject.parseObject(tool.getCode());
                 tools.putAll(McpToolUtil.getToolMap(mcpServers));
             } else {

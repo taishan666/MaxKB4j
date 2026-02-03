@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.KnowledgeEntity;
 import com.tarzan.maxkb4j.module.knowledge.mapper.KnowledgeMapper;
-import com.tarzan.maxkb4j.module.model.info.service.ModelFactory;
+import com.tarzan.maxkb4j.module.model.info.factory.impl.ModelFactory;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;

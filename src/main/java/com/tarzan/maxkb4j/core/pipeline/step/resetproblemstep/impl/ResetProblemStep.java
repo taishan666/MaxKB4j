@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.assistant.CompressingQueryAssistant;
 import com.tarzan.maxkb4j.core.pipeline.step.resetproblemstep.AbsResetProblemStep;
 import com.tarzan.maxkb4j.common.util.MessageUtils;
-import com.tarzan.maxkb4j.module.model.info.service.ModelFactory;
+import com.tarzan.maxkb4j.module.model.info.factory.impl.ModelFactory;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.output.TokenUsage;

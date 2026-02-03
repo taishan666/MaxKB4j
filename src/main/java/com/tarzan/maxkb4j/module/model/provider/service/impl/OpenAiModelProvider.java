@@ -25,6 +25,10 @@ import dev.langchain4j.model.openai.OpenAiStreamingChatModel;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * OpenAI Model Provider Implementation
+ * Provides integration with OpenAI's API services
+ */
 public class OpenAiModelProvider extends IModelProvider {
     @Override
     public ModelProviderInfo getBaseInfo() {
@@ -36,23 +40,23 @@ public class OpenAiModelProvider extends IModelProvider {
     @Override
     public List<ModelInfo> getModelList() {
         List<ModelInfo> modelInfos = new ArrayList<>();
-        modelInfos.add(new ModelInfo("gpt-3.5-turbo", "", ModelType.LLM, new LlmModelParams()));
-        modelInfos.add(new ModelInfo("gpt-4", "", ModelType.LLM, new LlmModelParams()));
-        modelInfos.add(new ModelInfo("gpt-4o", "", ModelType.LLM, new LlmModelParams()));
-        modelInfos.add(new ModelInfo("gpt-4o-mini", "", ModelType.LLM, new LlmModelParams()));
-        modelInfos.add(new ModelInfo("gpt-4-turbo", "", ModelType.LLM, new LlmModelParams()));
-        modelInfos.add(new ModelInfo("gpt-4-turbo-preview", "", ModelType.LLM, new LlmModelParams()));
-        modelInfos.add(new ModelInfo("text-embedding-ada-002", "", ModelType.EMBEDDING));
-        modelInfos.add(new ModelInfo("whisper-1", "", ModelType.STT));
-        modelInfos.add(new ModelInfo("tts-1", "", ModelType.TTS));
-        modelInfos.add(new ModelInfo("gpt-4o", "", ModelType.VISION, new LlmModelParams()));
-        modelInfos.add(new ModelInfo("dall-e-2", "", ModelType.TTI));
+        modelInfos.add(new ModelInfo("gpt-3.5-turbo", "GPT-3.5 Turbo", ModelType.LLM, new LlmModelParams()));
+        modelInfos.add(new ModelInfo("gpt-4", "GPT-4", ModelType.LLM, new LlmModelParams()));
+        modelInfos.add(new ModelInfo("gpt-4o", "GPT-4 Omni", ModelType.LLM, new LlmModelParams()));
+        modelInfos.add(new ModelInfo("gpt-4o-mini", "GPT-4 Omni Mini", ModelType.LLM, new LlmModelParams()));
+        modelInfos.add(new ModelInfo("gpt-4-turbo", "GPT-4 Turbo", ModelType.LLM, new LlmModelParams()));
+        modelInfos.add(new ModelInfo("gpt-4-turbo-preview", "GPT-4 Turbo Preview", ModelType.LLM, new LlmModelParams()));
+        modelInfos.add(new ModelInfo("text-embedding-ada-002", "Text Embedding Ada v2", ModelType.EMBEDDING));
+        modelInfos.add(new ModelInfo("whisper-1", "Whisper Speech-to-Text", ModelType.STT));
+        modelInfos.add(new ModelInfo("tts-1", "Text-to-Speech", ModelType.TTS));
+        modelInfos.add(new ModelInfo("gpt-4o", "GPT-4 Vision", ModelType.VISION, new LlmModelParams()));
+        modelInfos.add(new ModelInfo("dall-e-2", "DALL·E 2", ModelType.TTI));
         return modelInfos;
     }
 
     @Override
     public ModelCredentialForm getModelCredential() {
-        return new ModelCredentialForm(true, true);
+        return new ModelCredentialForm(true, true); // Both API key and base URL required
     }
 
     @Override
@@ -61,6 +65,9 @@ public class OpenAiModelProvider extends IModelProvider {
                 .baseUrl(credential.getBaseUrl())
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
+                .temperature(params.getDouble("temperature"))
+                .topP(params.getDouble("topP"))
+                .maxTokens(params.getInteger("maxTokens"))
                 .build();
     }
 
@@ -70,6 +77,8 @@ public class OpenAiModelProvider extends IModelProvider {
                 .baseUrl(credential.getBaseUrl())
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
+                .temperature(params.getDouble("temperature"))
+                .topP(params.getDouble("topP"))
                 .build();
     }
 
@@ -88,6 +97,9 @@ public class OpenAiModelProvider extends IModelProvider {
                 .baseUrl(credential.getBaseUrl())
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
+                .size(params.getString("size"))
+                .quality(params.getString("quality"))
+                .style(params.getString("style"))
                 .build();
     }
 
@@ -100,6 +112,4 @@ public class OpenAiModelProvider extends IModelProvider {
     public TTSModel buildTTSModel(String modelName, ModelCredential credential, JSONObject params) {
         return new OpenAiTTSModel(modelName, credential, params);
     }
-
-
 }

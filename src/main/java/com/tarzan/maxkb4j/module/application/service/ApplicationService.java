@@ -22,7 +22,7 @@ import com.tarzan.maxkb4j.module.knowledge.domain.entity.KnowledgeEntity;
 import com.tarzan.maxkb4j.module.knowledge.service.KnowledgeService;
 import com.tarzan.maxkb4j.module.model.custom.base.STTModel;
 import com.tarzan.maxkb4j.module.model.custom.base.TTSModel;
-import com.tarzan.maxkb4j.module.model.info.service.ModelFactory;
+import com.tarzan.maxkb4j.module.model.info.factory.impl.ModelFactory;
 import com.tarzan.maxkb4j.module.system.permission.constant.AuthTargetType;
 import com.tarzan.maxkb4j.module.system.permission.service.UserResourcePermissionService;
 import com.tarzan.maxkb4j.module.system.user.constants.RoleType;

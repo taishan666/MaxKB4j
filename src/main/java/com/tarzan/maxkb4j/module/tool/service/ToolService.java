@@ -1,25 +1,24 @@
 package com.tarzan.maxkb4j.module.tool.service;
 
-import cn.hutool.json.JSONUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tarzan.maxkb4j.common.util.*;
 import com.tarzan.maxkb4j.module.system.permission.constant.AuthTargetType;
 import com.tarzan.maxkb4j.module.system.permission.service.UserResourcePermissionService;
 import com.tarzan.maxkb4j.module.system.user.constants.RoleType;
 import com.tarzan.maxkb4j.module.system.user.service.UserService;
+import com.tarzan.maxkb4j.module.tool.consts.ToolConstants;
 import com.tarzan.maxkb4j.module.tool.domain.dto.ToolQuery;
 import com.tarzan.maxkb4j.module.tool.domain.entity.ToolEntity;
 import com.tarzan.maxkb4j.module.tool.domain.vo.ToolVO;
-import com.tarzan.maxkb4j.module.tool.enums.ToolType;
 import com.tarzan.maxkb4j.module.tool.mapper.ToolMapper;
-import dev.langchain4j.mcp.client.McpClient;
+import com.tarzan.maxkb4j.module.tool.handler.ToolConnectionHandler;
+import com.tarzan.maxkb4j.module.tool.handler.ToolImportExportHandler;
+import com.tarzan.maxkb4j.module.tool.handler.ToolValidationHandler;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -31,10 +30,7 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.io.OutputStream;
 import java.net.URISyntaxException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -48,6 +44,9 @@ public class ToolService extends ServiceImpl<ToolMapper, ToolEntity> {
 
     private final UserService userService;
     private final UserResourcePermissionService userResourcePermissionService;
+    private final ToolValidationHandler validationHandler;
+    private final ToolImportExportHandler importExportHandler;
+    private final ToolConnectionHandler connectionHandler;
 
     public IPage<ToolVO> pageList(int current, int size, ToolQuery query) {
         IPage<ToolEntity> page = new Page<>(current, size);
@@ -103,84 +102,27 @@ public class ToolService extends ServiceImpl<ToolMapper, ToolEntity> {
     }
 
     public boolean mcpServerConfigValid(ToolEntity entity) {
-        if (ToolType.MCP.getKey().equals(entity.getToolType())) {
-            String jsonStr = entity.getCode();
-            try {
-                ObjectMapper mapper = new ObjectMapper();
-                JsonNode root = mapper.readTree(jsonStr);
-                // 1. 必须是对象
-                if (!root.isObject()) {
-                    return false;
-                }
-                // 2. 遍历所有顶层字段（使用 fieldNames()）
-                Iterator<String> fieldNames = root.fieldNames();
-                while (fieldNames.hasNext()) {
-                    String fieldName = fieldNames.next();
-                    JsonNode value = root.get(fieldName);
-                    // 每个值必须是对象
-                    if (!value.isObject()) {
-                        return false;
-                    }
-                    // 检查是否存在 url 和 type 字段
-                    if (!value.has("url") || !value.has("type")) {
-                        return false;
-                    }
-                    JsonNode urlNode = value.get("url");
-                    JsonNode typeNode = value.get("type");
-                    // url 必须是非空字符串
-                    if (!urlNode.isTextual() || urlNode.asText().trim().isEmpty()) {
-                        return false;
-                    }
-                    // type 必须是 "sse" 或者 "streamable_http"
-                    boolean supported = typeNode.isTextual() && "streamable_http".equals(typeNode.asText());
-                    if (!supported) {
-                        return false;
-                    }
-                }
-                return true; // 所有检查通过
-            } catch (Exception e) {
-                // JSON 解析失败也算无效
-                return false;
-            }
-        }
-        return true;
+        return validationHandler.validateMcpServerConfig(entity);
     }
 
     public void toolExport(String id, HttpServletResponse response) throws IOException {
         ToolEntity entity = this.getById(id);
-        byte[] bytes = JSONUtil.toJsonStr(entity).getBytes(StandardCharsets.UTF_8);
-        response.setContentType("text/plain");
-        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
-        String fileName = URLEncoder.encode(entity.getName(), StandardCharsets.UTF_8);
-        response.setHeader("Content-disposition", "attachment;filename=" + fileName + ".tool");
-        OutputStream outputStream = response.getOutputStream();
-        outputStream.write(bytes);
+        importExportHandler.exportTool(entity, response);
     }
 
     @Transactional
     public boolean toolImport(MultipartFile file, String folderId) throws IOException {
-        String text = IoUtil.readToString(file.getInputStream());
-        ToolEntity tool = JSONObject.parseObject(text, ToolEntity.class);
-        tool.setId(null);
-        tool.setIsActive(false);
-        tool.setFolderId(folderId);
-        tool.setUserId(StpKit.ADMIN.getLoginIdAsString());
+        ToolEntity tool = importExportHandler.importTool(file, folderId);
         return this.saveTool(tool);
     }
 
     public boolean testConnection(String code) {
         try {
-            JSONObject serverConfig = JSONObject.parseObject(code);
-            List<McpClient> mcpClients = McpToolUtil.getMcpClients(serverConfig);
-            for (McpClient mcpClient : mcpClients) {
-                mcpClient.checkHealth();
-                mcpClient.close();
-            }
+            return connectionHandler.testConnection(code);
         } catch (Exception e) {
-            log.error(e.getMessage());
+            log.error("连接测试失败: {}",e);
             return false;
         }
-        return true;
     }
 
     @Transactional
@@ -196,7 +138,7 @@ public class ToolService extends ServiceImpl<ToolMapper, ToolEntity> {
         if (StringUtils.isNotBlank(toolType)) {
             wrapper.eq(ToolEntity::getToolType, toolType);
         }
-        wrapper.eq(ToolEntity::getIsActive, true);
+        wrapper.eq(ToolEntity::getIsActive, ToolConstants.Status.ACTIVE);
         wrapper.eq(ToolEntity::getScope, scope);
         wrapper.orderByDesc(ToolEntity::getCreateTime);
         if (role.contains(RoleType.ADMIN)){
@@ -213,14 +155,14 @@ public class ToolService extends ServiceImpl<ToolMapper, ToolEntity> {
     public List<ToolEntity> store(String name) throws IOException, URISyntaxException {
         List<ToolEntity> list = new ArrayList<>();
         PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
-        Resource[] resources = resolver.getResources("classpath:templates/tool/*/*.tool");
+        Resource[] resources = resolver.getResources("classpath:templates/tool/*/*" + ToolConstants.FileType.TOOL_EXTENSION);
         for (Resource resource : resources) {
             String filename = resource.getFilename();
-            if (Objects.requireNonNull(filename).endsWith(".tool")) {
+            if (Objects.requireNonNull(filename).endsWith(ToolConstants.FileType.TOOL_EXTENSION)) {
                 // ✅ 安全获取父目录名：从 resource 的 URL 路径中解析
                 String parentDirName = JarUtil.getParentDirName(resource);
                 String[] parts = filename.split("-", 2);
-                String version =parts.length>1?parts[1].substring(0, parts[1].length() - 5):"1.0.0";
+                String version =parts.length>1?parts[1].substring(0, parts[1].length() - 5): ToolConstants.Defaults.DEFAULT_VERSION;
                 String text = IoUtil.readToString(resource.getInputStream());
                 ToolEntity tool = JSONObject.parseObject(text, ToolEntity.class);
                 if (tool!=null){

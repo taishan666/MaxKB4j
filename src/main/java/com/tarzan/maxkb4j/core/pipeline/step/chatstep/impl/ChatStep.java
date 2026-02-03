@@ -12,7 +12,7 @@ import com.tarzan.maxkb4j.core.pipeline.step.chatstep.AbsChatStep;
 import com.tarzan.maxkb4j.core.langchain4j.AppChatMemory;
 import com.tarzan.maxkb4j.core.langchain4j.AssistantServices;
 import com.tarzan.maxkb4j.module.application.domain.vo.ApplicationVO;
-import com.tarzan.maxkb4j.module.model.info.service.ModelFactory;
+import com.tarzan.maxkb4j.module.model.info.factory.impl.ModelFactory;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.SystemMessage;

@@ -2,16 +2,16 @@ package com.tarzan.maxkb4j.module.tool.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.tarzan.maxkb4j.common.annotation.SaCheckPerm;
-import com.tarzan.maxkb4j.common.domain.api.R;
 import com.tarzan.maxkb4j.common.constant.AppConst;
+import com.tarzan.maxkb4j.common.domain.api.R;
 import com.tarzan.maxkb4j.common.util.StpKit;
 import com.tarzan.maxkb4j.module.system.user.enums.PermissionEnum;
+import com.tarzan.maxkb4j.module.tool.consts.ToolConstants;
 import com.tarzan.maxkb4j.module.tool.domain.dto.ToolDTO;
 import com.tarzan.maxkb4j.module.tool.domain.dto.ToolInputField;
 import com.tarzan.maxkb4j.module.tool.domain.dto.ToolQuery;
 import com.tarzan.maxkb4j.module.tool.domain.entity.ToolEntity;
 import com.tarzan.maxkb4j.module.tool.domain.vo.ToolVO;
-import com.tarzan.maxkb4j.module.tool.enums.ToolType;
 import com.tarzan.maxkb4j.module.tool.service.ToolService;
 import groovy.lang.Binding;
 import groovy.lang.GroovyShell;
@@ -48,7 +48,7 @@ public class ToolController {
     @SaCheckPerm(PermissionEnum.TOOL_READ)
     @GetMapping("/workspace/default/tool")
     public R<Map<String, List<ToolEntity>>> list(String folderId, String toolType) {
-        return R.success(Map.of("folders", List.of(), "tools", toolService.listTools("WORKSPACE", toolType)));
+        return R.success(Map.of("folders", List.of(), "tools", toolService.listTools(ToolConstants.Scope.WORKSPACE, toolType)));
     }
 
     @SaCheckPerm(PermissionEnum.TOOL_READ)
@@ -69,7 +69,7 @@ public class ToolController {
         dto.setUserId(StpKit.ADMIN.getLoginIdAsString());
         dto.setTemplateId(templateId);
         dto.setScope("WORKSPACE");
-        dto.setToolType(ToolType.CUSTOM.getKey());
+        dto.setToolType(ToolConstants.ToolType.CUSTOM);
         Date now = new Date();
         dto.setCreateTime(now);
         dto.setUpdateTime(now);
@@ -83,7 +83,7 @@ public class ToolController {
     public R<ToolEntity> toolLib(@RequestBody ToolEntity dto) {
         dto.setIsActive(true);
         if (StringUtils.isBlank(dto.getToolType())) {
-            dto.setToolType(ToolType.CUSTOM.getKey());
+            dto.setToolType(ToolConstants.ToolType.CUSTOM);
         }
         dto.setUserId(StpKit.ADMIN.getLoginIdAsString());
         dto.setScope("WORKSPACE");

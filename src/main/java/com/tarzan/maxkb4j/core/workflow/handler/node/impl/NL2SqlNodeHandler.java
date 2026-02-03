@@ -10,7 +10,7 @@ import com.tarzan.maxkb4j.core.workflow.model.Workflow;
 import com.tarzan.maxkb4j.core.workflow.node.AbsNode;
 import com.tarzan.maxkb4j.core.workflow.node.impl.NL2SqlNode;
 import com.tarzan.maxkb4j.core.workflow.model.NodeResult;
-import com.tarzan.maxkb4j.module.model.info.service.ModelFactory;
+import com.tarzan.maxkb4j.module.model.info.factory.impl.ModelFactory;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.output.TokenUsage;

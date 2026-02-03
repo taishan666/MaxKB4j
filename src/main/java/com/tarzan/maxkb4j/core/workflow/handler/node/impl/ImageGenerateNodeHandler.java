@@ -11,7 +11,7 @@ import com.tarzan.maxkb4j.core.workflow.model.SysFile;
 import com.tarzan.maxkb4j.core.workflow.model.Workflow;
 import com.tarzan.maxkb4j.core.workflow.node.AbsNode;
 import com.tarzan.maxkb4j.core.workflow.node.impl.ImageGenerateNode;
-import com.tarzan.maxkb4j.module.model.info.service.ModelFactory;
+import com.tarzan.maxkb4j.module.model.info.factory.impl.ModelFactory;
 import com.tarzan.maxkb4j.module.oss.service.MongoFileService;
 import dev.langchain4j.data.image.Image;
 import dev.langchain4j.model.image.ImageModel;
