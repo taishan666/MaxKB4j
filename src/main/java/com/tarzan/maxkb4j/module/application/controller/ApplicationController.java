@@ -157,6 +157,18 @@ public class ApplicationController {
     }
 
     @SaCheckPerm(PermissionEnum.APPLICATION_READ)
+    @GetMapping("/application/{id}/application_token_usage")
+    public R<List<ApplicationStatisticsVO>> getTokenUsage(@PathVariable("id") String id, ChatQueryDTO query) {
+        return R.success(applicationStatsService.getTokenUsage(id, query));
+    }
+
+    @SaCheckPerm(PermissionEnum.APPLICATION_READ)
+    @GetMapping("/application/{id}/top_questions")
+    public R<List<ApplicationStatisticsVO>> topQuestions(@PathVariable("id") String id, ChatQueryDTO query) {
+        return R.success(applicationStatsService.topQuestions(id, query));
+    }
+
+    @SaCheckPerm(PermissionEnum.APPLICATION_READ)
     @PostMapping("/application/{id}/mcp_tools")
     public R<List<McpToolVO>> mcpTools(@PathVariable("id") String id, @RequestBody JSONObject mcpServers) {
         JSONObject mcpServersJson = JSONObject.parseObject(mcpServers.getString("mcpServers"));

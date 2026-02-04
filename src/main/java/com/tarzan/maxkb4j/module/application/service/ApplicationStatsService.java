@@ -22,6 +22,7 @@ public class ApplicationStatsService {
     private final ApplicationChatMapper applicationChatMapper;
     private final ApplicationChatUserStatsService chatUserStatsService;
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
     public List<ApplicationStatisticsVO> applicationStats(String appId, ChatQueryDTO query) {
         List<ApplicationStatisticsVO> result = new ArrayList<>();
         if (Objects.isNull(query.getStartTime()) || Objects.isNull(query.getEndTime())) {
@@ -67,5 +68,36 @@ public class ApplicationStatsService {
             }
         }
         return 0;
+    }
+
+    public List<ApplicationStatisticsVO> getTokenUsage(String appId, ChatQueryDTO query) {
+        List<ApplicationStatisticsVO> result = new ArrayList<>();
+        if (Objects.isNull(query.getStartTime()) || Objects.isNull(query.getEndTime())) {
+            return result;
+        }
+        // 按用户维度统计 token 消耗
+        List<ApplicationStatisticsVO> userTokenList = applicationChatMapper.userTokenUsage(appId, query);
+        for (ApplicationStatisticsVO asv : userTokenList) {
+            ApplicationStatisticsVO vo = new ApplicationStatisticsVO();
+            vo.setUserName(asv.getUserName());
+            vo.setTokenUsage(asv.getTokenUsage());
+            result.add(vo);
+        }
+        return result;
+    }
+
+    public List<ApplicationStatisticsVO> topQuestions(String appId, ChatQueryDTO query) {
+        List<ApplicationStatisticsVO> result = new ArrayList<>();
+        if (Objects.isNull(query.getStartTime()) || Objects.isNull(query.getEndTime())) {
+            return result;
+        }
+        List<ApplicationStatisticsVO> userTokenList = applicationChatMapper.topQuestions(appId, query);
+        for (ApplicationStatisticsVO asv : userTokenList) {
+            ApplicationStatisticsVO vo = new ApplicationStatisticsVO();
+            vo.setUserName(asv.getUserName());
+            vo.setChatRecordCount(asv.getChatRecordCount());
+            result.add(vo);
+        }
+        return result;
     }
 }

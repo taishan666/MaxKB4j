@@ -27,9 +27,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * 工具服务工具类，用于创建和管理工具规范和执行器
+ */
 @RequiredArgsConstructor
 @Service
 public class ToolUtilService {
+
+    private static final String MCP_API_PATH = "/chat/api/mcp";
+    private static final String MCP_TYPE = "streamable_http";
+    private static final String AUTH_HEADER_PREFIX = "Bearer ";
+    private static final String LOCALHOST = "http://127.0.0.1";
 
     private final ToolService toolService;
     private final ApplicationService applicationService;
@@ -39,13 +47,24 @@ public class ToolUtilService {
     private int serverPort;
 
     public Map<ToolSpecification, ToolExecutor> getToolMap(List<String> toolIds, List<String> applicationIds) throws ApiException {
+        // 参数验证
+        if (CollectionUtils.isEmpty(toolIds) && CollectionUtils.isEmpty(applicationIds)) {
+            return new HashMap<>();
+        }
+        
         Map<ToolSpecification, ToolExecutor> tools = getToolMap(toolIds);
+        
         if (!CollectionUtils.isEmpty(applicationIds)) {
             JSONObject mcpServers = new JSONObject();
-            LambdaQueryWrapper<ApplicationEntity> wrapper = Wrappers.lambdaQuery();
-            wrapper.select(ApplicationEntity::getId, ApplicationEntity::getName);
-            wrapper.in(ApplicationEntity::getId, applicationIds);
+            LambdaQueryWrapper<ApplicationEntity> wrapper = Wrappers.lambdaQuery(ApplicationEntity.class)
+                    .select(ApplicationEntity::getId, ApplicationEntity::getName)
+                    .in(ApplicationEntity::getId, applicationIds);
+            
             List<ApplicationEntity> applications = applicationService.list(wrapper);
+            if (applications.isEmpty()) {
+                throw new ApiException("No valid applications found for the provided application IDs");
+            }
+            
             for (ApplicationEntity app : applications) {
                 JSONObject mcpConfig = getAppMcpConfig(app);
                 mcpServers.put(app.getName(), mcpConfig);
@@ -61,9 +80,16 @@ public class ToolUtilService {
             throw new ApiException(String.format("Agent Key is required for agent tool 【%s】", app.getName()));
         }
         JSONObject mcpConfig = new JSONObject();
-        mcpConfig.put("url", "http://127.0.0.1:" + serverPort + "/chat/api/mcp");
-        mcpConfig.put("type", "streamable_http");
-        mcpConfig.put("headers", Map.of("Authorization", "Bearer " + apiKey.getSecretKey()));
+        // 构建URL更安全的方式
+        String url = String.format("%s:%d%s", LOCALHOST, serverPort, MCP_API_PATH);
+        mcpConfig.put("url", url);
+        mcpConfig.put("type", MCP_TYPE);
+        
+        // 创建headers更清晰
+        Map<String, String> headers = new HashMap<>();
+        headers.put("Authorization", String.format("%s%s", AUTH_HEADER_PREFIX, apiKey.getSecretKey()));
+        mcpConfig.put("headers", headers);
+        
         return mcpConfig;
     }
 
@@ -85,20 +111,29 @@ public class ToolUtilService {
                 List<ToolInputField> params = tool.getInputFieldList();
                 JsonObjectSchema.Builder parametersBuilder = JsonObjectSchema.builder();
                 for (ToolInputField param : params) {
-                    if ("string".equals(param.getType())) {
-                        parametersBuilder.addStringProperty(param.getName());
-                    } else if ("int".equals(param.getType())) {
-                        parametersBuilder.addIntegerProperty(param.getName());
-                    } else if ("number".equals(param.getType())) {
-                        parametersBuilder.addNumberProperty(param.getName());
-                    } else if ("boolean".equals(param.getType())) {
-                        parametersBuilder.addBooleanProperty(param.getName());
-                    } else if ("array".equals(param.getType())) {
-                        JsonSchemaElement element = JsonArraySchema.builder().build();
-                        parametersBuilder.addProperty(param.getName(), element);
-                    } else if ("object".equals(param.getType())) {
-                        JsonSchemaElement element = JsonObjectSchema.builder().build();
-                        parametersBuilder.addProperty(param.getName(), element);
+                    JsonSchemaElement schemaElement = switch (param.getType()) {
+                        case "string" -> {
+                            parametersBuilder.addStringProperty(param.getName());
+                            yield null;
+                        }
+                        case "int" -> {
+                            parametersBuilder.addIntegerProperty(param.getName());
+                            yield null;
+                        }
+                        case "number" -> {
+                            parametersBuilder.addNumberProperty(param.getName());
+                            yield null;
+                        }
+                        case "boolean" -> {
+                            parametersBuilder.addBooleanProperty(param.getName());
+                            yield null;
+                        }
+                        case "array" -> JsonArraySchema.builder().build();
+                        case "object" -> JsonObjectSchema.builder().build();
+                        default -> null;
+                    };
+                    if (schemaElement != null) {
+                        parametersBuilder.addProperty(param.getName(), schemaElement);
                     }
                 }
                 ToolSpecification toolSpecification = ToolSpecification.builder()
