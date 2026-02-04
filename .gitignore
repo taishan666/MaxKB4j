@@ -6,7 +6,6 @@
 
 # BlueJ files
 *.ctxt
-
 .idea
 target
 
@@ -32,3 +31,4 @@ hs_err_pid*
 /ui_old/src/assets/
 /ui_old/
 
+CLAUDE.md
