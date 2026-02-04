@@ -66,14 +66,15 @@ public class Workflow {
     @JsonIgnore
     private Sinks.Many<ChatMessageVO> sink;
 
+
     public Workflow(WorkflowMode workflowMode, List<AbsNode> nodes, List<LfEdge> edges) {
-        init(workflowMode, nodes, edges, chatParams, Sinks.many().unicast().onBackpressureBuffer(), null);
+        init(workflowMode, nodes, edges, ChatParams.builder().build(), Sinks.many().unicast().onBackpressureBuffer(), null);
     }
 
-    public Workflow(WorkflowMode workflowMode, List<AbsNode> nodes, List<LfEdge> edges, ChatParams chatParams, Sinks.Many<ChatMessageVO> sink) {
-        JSONObject details=null;
-        if (chatParams.getChatRecord()!=null){
-            details=chatParams.getChatRecord().getDetails();
+    public Workflow(WorkflowMode workflowMode, List<AbsNode> nodes, List<LfEdge> edges, ChatParams chatParams,Sinks.Many<ChatMessageVO> sink) {
+        JSONObject details = null;
+        if (chatParams != null && chatParams.getChatRecord() != null) {
+            details = chatParams.getChatRecord().getDetails();
         }
         init(workflowMode, nodes, edges, chatParams, sink, details);
     }
@@ -81,6 +82,7 @@ public class Workflow {
     public Workflow(WorkflowMode workflowMode, List<AbsNode> nodes, List<LfEdge> edges, ChatParams chatParams, JSONObject details, Sinks.Many<ChatMessageVO> sink) {
         init(workflowMode, nodes, edges, chatParams, sink, details);
     }
+
 
     /**
      * 初始化工作流
@@ -93,11 +95,12 @@ public class Workflow {
         this.answer = "";
         this.sink = sink;
         this.workflowContext = new WorkflowContext();
-        this.historyManager = new HistoryManager(chatParams.getHistoryChatRecords());
+        // 如果chatParams为null，传入空的历史记录列表
+        this.historyManager = new HistoryManager(chatParams != null ? chatParams.getHistoryChatRecords() : Collections.emptyList());
         this.variableResolver = new VariableResolver(this.workflowContext);
         this.templateRenderer = new TemplateRenderer(this.variableResolver);
         // 加载节点状态
-        if (StringUtils.isNotBlank(chatParams.getRuntimeNodeId()) && Objects.nonNull(chatParams.getChatRecord())) {
+        if (chatParams != null && StringUtils.isNotBlank(chatParams.getRuntimeNodeId()) && Objects.nonNull(chatParams.getChatRecord())) {
             if (details != null) {
                 this.loadNode(details, chatParams.getRuntimeNodeId(), chatParams.getNodeData());
             }
@@ -112,8 +115,7 @@ public class Workflow {
                 .sorted(Comparator.comparing(
                         e -> (Integer) e.get("index"),
                         Comparator.nullsLast(Comparator.naturalOrder())
-                ))
-                .toList();
+                )).toList();
         for (Map<String, Object> nodeDetail : sortedDetails) {
             String nodeId = (String) nodeDetail.get("nodeId");
             List<String> upNodeIdList = (List<String>) nodeDetail.get("upNodeIdList");
