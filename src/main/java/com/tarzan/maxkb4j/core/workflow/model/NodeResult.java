@@ -1,7 +1,6 @@
 package com.tarzan.maxkb4j.core.workflow.model;
 
 import com.tarzan.maxkb4j.core.workflow.enums.NodeType;
-import com.tarzan.maxkb4j.core.workflow.enums.WorkflowMode;
 import com.tarzan.maxkb4j.core.workflow.node.AbsNode;
 import com.tarzan.maxkb4j.module.application.domain.vo.ChatMessageVO;
 import lombok.Data;
@@ -66,7 +65,8 @@ public class NodeResult {
         if (nodeVariable != null) {
             node.getContext().putAll(nodeVariable);
         }
-        if(WorkflowMode.APPLICATION.equals(workflow.getWorkflowMode())){
+        // 使用工作流的决策方法而不是旧的硬编码检查
+        if (workflow.needsSinkOutput()) {
             if (StringUtils.isNotBlank(node.getAnswerText())) {
                 ChatMessageVO vo = node.toChatMessageVO(
                         workflow.getChatParams().getChatId(),
@@ -85,8 +85,8 @@ public class NodeResult {
                         true);
                 workflow.getSink().tryEmitNext(nodeEndVo);
             }
-            workflow.setAnswer(workflow.getAnswer() + node.getAnswerText());
         }
+        workflow.setAnswer(workflow.getAnswer() + node.getAnswerText());
         // 同步更新到工作流上下文
         workflow.getWorkflowContext().appendNode(node);
     }

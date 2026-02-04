@@ -1,7 +1,6 @@
 package com.tarzan.maxkb4j.core.workflow.handler.node.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
-import com.tarzan.maxkb4j.common.util.StpKit;
 import com.tarzan.maxkb4j.core.workflow.annotation.NodeHandlerType;
 import com.tarzan.maxkb4j.core.workflow.enums.NodeType;
 import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;
@@ -126,9 +125,7 @@ public class ApplicationNodeHandler implements INodeHandler {
                         e.getReasoningContent(),
                         childNode,
                         false);
-                if (workflow.getSink() != null) {
-                    workflow.getSink().tryEmitNext(vo);
-                }
+                workflow.getSink().tryEmitNext(vo);
             });
         }
         ChatResponse chatResponse=future.join();

@@ -67,7 +67,7 @@ public class Workflow {
     private Sinks.Many<ChatMessageVO> sink;
 
     public Workflow(WorkflowMode workflowMode, List<AbsNode> nodes, List<LfEdge> edges) {
-        init(workflowMode, nodes, edges, chatParams, null, null);
+        init(workflowMode, nodes, edges, chatParams, Sinks.many().unicast().onBackpressureBuffer(), null);
     }
 
     public Workflow(WorkflowMode workflowMode, List<AbsNode> nodes, List<LfEdge> edges, ChatParams chatParams, Sinks.Many<ChatMessageVO> sink) {
@@ -281,5 +281,13 @@ public class Workflow {
         return workflowContext.getGlobalContext();
     }
 
+    /**
+     * 判断当前工作流是否需要输出到Sink
+     * 知识库工作流不需要输出，对话工作流需要输出
+     * @return 是否需要输出到Sink
+     */
+    public boolean needsSinkOutput() {
+        return workflowMode == WorkflowMode.APPLICATION || workflowMode == WorkflowMode.APPLICATION_LOOP;
+    }
 
 }

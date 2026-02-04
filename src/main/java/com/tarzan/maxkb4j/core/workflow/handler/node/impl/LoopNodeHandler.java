@@ -147,7 +147,11 @@ public class LoopNodeHandler implements INodeHandler {
                             false);
                     vo.setNodeType(e.getNodeType());
                     vo.setViewType(e.getViewType());
-                    workflow.getSink().tryEmitNext(vo);
+
+                    // 使用策略来决定是否发送到主工作流的sink
+                    if (workflow.needsSinkOutput()) {
+                        workflow.getSink().tryEmitNext(vo);
+                    }
                 }
             });
             ChatMessageVO vo = node.toChatMessageVO(
@@ -157,7 +161,11 @@ public class LoopNodeHandler implements INodeHandler {
                     "",
                     childNode.get(),
                     false);
-            workflow.getSink().tryEmitNext(vo);
+
+            // 同样使用策略来决定是否发送消息结束标记
+            if (workflow.needsSinkOutput()) {
+                workflow.getSink().tryEmitNext(vo);
+            }
             future.join();
             node.getDetail().put("is_interrupt_exec", isInterruptExec.get());
             node.getDetail().put("current_index", startIndex);

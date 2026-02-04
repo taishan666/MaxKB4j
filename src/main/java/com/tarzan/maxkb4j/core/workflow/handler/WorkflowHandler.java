@@ -99,8 +99,8 @@ public class WorkflowHandler {
             log.error("error:", ex);
             node.setErrMessage(ex.getMessage());
             log.error("NODE: {} Exception :{}", node.getType(), ex.getMessage());
-            // 添加空指针检查，防止 chatParams 为 null 时导致的异常
-            if (workflow.getChatParams() != null && workflow.getSink() != null) {
+            // 使用工作流的sink输出决策
+            if (workflow.getChatParams() != null && workflow.needsSinkOutput()) {
                 ChatMessageVO errMessage = node.toChatMessageVO(
                         workflow.getChatParams().getChatId(),
                         workflow.getChatParams().getChatRecordId(),
