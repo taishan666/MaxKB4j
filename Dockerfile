@@ -1,5 +1,4 @@
-# docker build -t registry.cn-hangzhou.aliyuncs.com/tarzanx/maxkb4j:latest .
-# docker tag  registry.cn-hangzhou.aliyuncs.com/tarzanx/maxkb4j:latest  registry.cn-hangzhou.aliyuncs.com/tarzanx/maxkb4j:2.0
+# docker build -t registry.cn-hangzhou.aliyuncs.com/tarzanx/maxkb4j .
 
 #基础镜像为java17
 FROM amazoncorretto:17

@@ -13,11 +13,11 @@ public class TemplateService {
 
 
     public void tableTemplateExport(String type, HttpServletResponse response) throws Exception {
-        exportTemplate(type, response, "templates/knowledge_table_template.csv", "templates/knowledge_table_template.xlsx", "table_csv_template.csv", "table_excel_template.xlsx");
+        exportTemplate(type, response, "templates/document/knowledge_table_template.csv", "templates/document/knowledge_table_template.xlsx", "table_csv_template.csv", "table_excel_template.xlsx");
     }
 
     public void qaTemplateExport(String type, HttpServletResponse response) throws Exception {
-        exportTemplate(type, response, "templates/knowledge_qa_template.csv", "templates/knowledge_qa_template.xlsx", "qa_csv_template.csv", "qa_excel_template.xlsx");
+        exportTemplate(type, response, "templates/document/knowledge_qa_template.csv", "templates/document/knowledge_qa_template.xlsx", "qa_csv_template.csv", "qa_excel_template.xlsx");
     }
 
 

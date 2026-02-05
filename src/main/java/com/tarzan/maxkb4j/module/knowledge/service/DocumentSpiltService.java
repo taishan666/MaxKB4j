@@ -1,13 +1,12 @@
 package com.tarzan.maxkb4j.module.knowledge.service;
 
 import com.tarzan.maxkb4j.common.util.SentenceSplitter;
+import com.tarzan.maxkb4j.common.util.TextSplitter;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.ParagraphSimple;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -37,7 +36,24 @@ public class DocumentSpiltService {
     }
 
     public List<ParagraphSimple> smartSplit(String text) {
-        return recursive(text, DEFAULT_PATTERNS, 512, true);
+        List<ParagraphSimple> result = new ArrayList<>();
+        int limit = 512;
+        List<ParagraphSimple> parts = recursive(text, DEFAULT_PATTERNS, limit, true);
+        for (ParagraphSimple part : parts) {
+            if (StringUtils.isNotBlank(part.getContent())) {
+                List<String> lines = lineSplit(part.getContent(), limit);
+                for (String line : lines) {
+                    ParagraphSimple newPart = ParagraphSimple.builder().title(part.getTitle()).content(line).build();
+                    result.add(newPart);
+                }
+            }
+        }
+        return result;
+    }
+
+    public static List<String> lineSplit(String text, int limit) {
+        String[] texts = text.split("\n");
+        return TextSplitter.mergeChunksIntoParts(Arrays.asList(texts), limit);
     }
 
 
@@ -101,16 +117,12 @@ public class DocumentSpiltService {
         List<ParagraphSimple> result = new ArrayList<>();
         for (ParagraphSimple part : parts) {
             if (StringUtils.isNotBlank(part.getContent())) {
-                List<String> texts = SentenceSplitter.split(part.getContent(),limit);
+                List<String> texts = SentenceSplitter.split(part.getContent(), limit);
                 for (String text : texts) {
                     ParagraphSimple newPart = ParagraphSimple.builder().title(part.getTitle()).content(text).build();
                     result.add(newPart);
                 }
             }
-        }
-        //todo
-        if (result.size()==1){
-            ParagraphSimple part=result.get(0);
         }
         if (Boolean.TRUE.equals(withFilter)) {
             return result.stream()

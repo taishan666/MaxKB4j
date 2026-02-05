@@ -44,10 +44,8 @@ public class SentenceSplitter {
             start = end;
             end = sentenceIter.next();
         }
-
         // Step 3: 合并为段落
-        List<String> paragraphs = mergeSentencesIntoParagraphs(sentences, limit);
-
+        List<String> paragraphs = TextSplitter.mergeChunksIntoParts(sentences, limit);
         // Step 4: 还原占位符为原始图片
         return restoreImagesFromPlaceholders(paragraphs, placeholderToImage);
     }
@@ -91,26 +89,4 @@ public class SentenceSplitter {
         return restored;
     }
 
-    /**
-     * 将句子列表合并为不超过 limit 的段落
-     */
-    private static List<String> mergeSentencesIntoParagraphs(List<String> sentences, int limit) {
-        List<String> paragraphs = new ArrayList<>();
-        StringBuilder current = new StringBuilder();
-
-        for (String sentence : sentences) {
-            if (current.isEmpty()) {
-                current.append(sentence);
-            } else if (current.length() + sentence.length() <= limit) {
-                current.append(sentence);
-            } else {
-                paragraphs.add(current.toString());
-                current = new StringBuilder(sentence);
-            }
-        }
-        if (!current.isEmpty()) {
-            paragraphs.add(current.toString());
-        }
-        return paragraphs;
-    }
 }

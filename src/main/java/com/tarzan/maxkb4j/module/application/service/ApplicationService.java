@@ -148,7 +148,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
                 app.setName(application.getName());
                 app.setDesc(application.getDesc());
                 saveMk(maxKb4j);
-                application.setId(app.getId());
+                return app;
             }
         } else {
             application.setIcon("./favicon.ico");

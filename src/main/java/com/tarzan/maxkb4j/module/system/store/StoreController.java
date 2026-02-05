@@ -7,6 +7,7 @@ import com.tarzan.maxkb4j.common.domain.api.R;
 import com.tarzan.maxkb4j.common.constant.AppConst;
 import com.tarzan.maxkb4j.common.util.IoUtil;
 import com.tarzan.maxkb4j.common.util.JarUtil;
+import com.tarzan.maxkb4j.module.application.domain.entity.ApplicationEntity;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
@@ -35,29 +36,35 @@ public class StoreController {
         InputStream inputStream = resolver.getResource("templates/maxkb.json").getInputStream();
         String text = IoUtil.readToString(inputStream);
         JSONObject result = JSON.parseObject(text);
-        List<AppTemplate> apps = new ArrayList<>();
+        List<AppTemplate> appTemplates = new ArrayList<>();
         Resource[] resources = resolver.getResources("classpath:templates/app/*/*.mk");
         for (Resource resource : resources) {
             if (Objects.requireNonNull(resource.getFilename()).endsWith(".mk")) {
                 String filename = resource.getFilename();
-                AppTemplate app = new AppTemplate();
-                String parentDirName = JarUtil.getParentDirName(resource);
-                app.setIcon("./app/"+parentDirName+"/logo.png");
-                app.setName(filename.substring(0, filename.length() - 3));
-                app.setDescription(ResourceUtil.parseMkDesc(resource));
-                Resource readmeResource= resolver.getResource("templates/app/"+parentDirName+"/readme.md");
-                if (readmeResource.exists()){
-                    app.setReadMe(IoUtil.readToString(readmeResource.getInputStream()));
+                AppTemplate appTemplate = new AppTemplate();
+                ApplicationEntity app= ResourceUtil.parseApp(resource);
+                if (app!=null){
+                    String parentDirName = JarUtil.getParentDirName(resource);
+                    String icon=StringUtils.isNotBlank(app.getIcon())?app.getIcon():"./app/"+parentDirName+"/logo.png";
+                    appTemplate.setIcon(icon);
+                    appTemplate.setName(app.getName());
+                    appTemplate.setDescription(app.getDesc());
+                    appTemplate.setType(app.getType());
+                    Resource readmeResource= resolver.getResource("templates/app/"+parentDirName+"/readme.md");
+                    if (readmeResource.exists()){
+                        appTemplate.setReadMe(IoUtil.readToString(readmeResource.getInputStream()));
+                    }
+                    appTemplate.setDownloadUrl(parentDirName+"/"+filename);
+                    appTemplate.setLabel("application_template");
+                    appTemplates.add(appTemplate);
                 }
-                app.setDownloadUrl(parentDirName+"/"+filename);
-                app.setLabel("application_template");
-                apps.add(app);
+
             }
         }
         if(StringUtils.isNotBlank(name)) {
-            apps = apps.stream().filter(app -> app.getName().contains(name)).collect(Collectors.toList());
+            appTemplates = appTemplates.stream().filter(app -> app.getName().contains(name)).collect(Collectors.toList());
         }
-        result.put("apps", apps);
+        result.put("apps", appTemplates);
         return R.data(result);
     }
 
