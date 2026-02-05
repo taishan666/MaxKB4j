@@ -131,7 +131,6 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
             if (fileName == null) continue;
             // 验证文件名安全性
             if (SecurityUtil.validFileName(fileName)) {
-                log.warn("非法的文件名: {}", fileName);
                 continue; // 跳过非法文件
             }
             if (fileName.toLowerCase().endsWith(".zip")) {
@@ -157,7 +156,6 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
 
             // 验证文件名安全性
             if (SecurityUtil.validFileName(originalFilename)) {
-                log.warn("非法的文件名: {}", originalFilename);
                 continue; // 跳过非法文件
             }
 
@@ -320,20 +318,18 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
             if (file == null || file.isEmpty()) continue;
             String name = file.getOriginalFilename();
             if (name == null) continue;
-
             // 验证文件名安全性
             if (SecurityUtil.validFileName(name)) {
                 log.warn("非法的文件名: {}", name);
                 continue; // 跳过非法文件
             }
-
             if (name.toLowerCase().endsWith(".zip")) {
                 try (ZipArchiveInputStream zis = new ZipArchiveInputStream(file.getInputStream())) {
                     ZipArchiveEntry entry;
                     while ((entry = zis.getNextEntry()) != null) {
                         if (!entry.isDirectory()) {
                             // 验证压缩包内文件名的安全性
-                            String entryName = com.tarzan.maxkb4j.common.util.SecurityUtil.normalizeFilePath(entry.getName());
+                            String entryName = SecurityUtil.normalizeFilePath(entry.getName());
                             if (entryName == null) {
                                 log.warn("压缩包中存在非法的文件路径: {}", entry.getName());
                                 continue; // 跳过非法文件

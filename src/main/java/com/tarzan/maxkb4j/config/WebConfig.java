@@ -50,11 +50,9 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addViewController("/admin/{path1:[^.]*}/{path2:[^.]*}/{path3:[^.]*}/{path4:[^.]*}").setViewName("forward:/admin/index.html");
         registry.addViewController("/admin/{path1:[^.]*}/{path2:[^.]*}/{path3:[^.]*}/{path4:[^.]*}/{path5:[^.]*}").setViewName("forward:/admin/index.html");
         registry.addViewController("/chat/{path:[^.]*}").setViewName("forward:/chat/index.html");
-        registry.addViewController("/admin/application/workspace/{path:[^.]*}/favicon.ico").setViewName("forward:/favicon.ico");
-        registry.addViewController("/admin/application/workspace/{path:[^.]*}/{path1:[^.]*}/favicon.ico").setViewName("forward:/favicon.ico");
-        registry.addViewController("/admin/knowledge/{path:[^.]*}/{path1:[^.]*}/favicon.ico").setViewName("forward:/favicon.ico");
-        registry.addViewController("/admin/knowledge/{path:[^.]*}/{path1:[^.]*}/{path2:[^.]*}/favicon.ico").setViewName("forward:/favicon.ico");
-        registry.addViewController("/admin/system/{path:[^.]*}/favicon.ico").setViewName("forward:/favicon.ico");
+        registry.addViewController("/admin/{path1:[^.]*}/{path2:[^.]*}/favicon.ico").setViewName("forward:/favicon.ico");
+        registry.addViewController("/admin/{path1:[^.]*}/{path2:[^.]*}/{path3:[^.]*}/favicon.ico").setViewName("forward:/favicon.ico");
+        registry.addViewController("/admin/{path1:[^.]*}/{path2:[^.]*}/{path3:[^.]*}/{path4:[^.]*}/favicon.ico").setViewName("forward:/favicon.ico");
         registry.addViewController("/chat-api-doc").setViewName("forward:/doc.html");
     }
 

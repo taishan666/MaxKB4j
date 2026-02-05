@@ -14,6 +14,11 @@ import java.util.regex.Pattern;
 @Component
 public class DocumentSpiltService {
 
+    // 预编译正则表达式以提高性能
+    private static final Pattern MULTIPLE_SPACES = Pattern.compile(" +");
+    private static final Pattern MULTIPLE_NEWLINES = Pattern.compile("\n{2,}");
+    // 统一移除 Markdown 标题前缀（支持 1~6 个 # 后跟空格）
+    private static final Pattern MARKDOWN_HEADER = Pattern.compile("#{1,6} ");
     private final String[] DEFAULT_PATTERNS = {
             "(?<=^)# .*|(?<=\\n)# .*",
             "(?<=\\n)(?<!#)## (?!#).*|(?<=^)(?<!#)## (?!#).*",
@@ -23,11 +28,6 @@ public class DocumentSpiltService {
             "(?<=\\n)(?<!#)###### (?!#).*|(?<=^)(?<!#)###### (?!#).*"
     };
 
-    public List<ParagraphSimple> smartSplit(String text) {
-        return recursive(text, DEFAULT_PATTERNS, 512, true);
-    }
-
-
     public List<ParagraphSimple> split(String docText, String[] patterns, Integer limit, Boolean withFilter) {
         if (patterns != null && patterns.length > 0) {
             return recursive(docText, patterns, limit, withFilter);
@@ -36,12 +36,10 @@ public class DocumentSpiltService {
         }
     }
 
+    public List<ParagraphSimple> smartSplit(String text) {
+        return recursive(text, DEFAULT_PATTERNS, 512, true);
+    }
 
-    // 预编译正则表达式以提高性能
-    private static final Pattern MULTIPLE_SPACES = Pattern.compile(" +");
-    private static final Pattern MULTIPLE_NEWLINES = Pattern.compile("\n{2,}");
-    // 统一移除 Markdown 标题前缀（支持 1~6 个 # 后跟空格）
-    private static final Pattern MARKDOWN_HEADER = Pattern.compile("#{1,6} ");
 
     /**
      * 清理字符串中的多余空格和空行，并移除 Markdown 标题符号
@@ -73,11 +71,12 @@ public class DocumentSpiltService {
         }
         // 初始只有一个完整文本
         List<ParagraphSimple> parts = Collections.singletonList(ParagraphSimple.builder().title("").content(docText).build());
+        //先按照标题层级循环切分
         for (String regex : patterns) {
             if (regex == null || regex.isEmpty()) {
                 continue;
             }
-            List<ParagraphSimple> newParts = new ArrayList<>();
+            List<ParagraphSimple> titleParts = new ArrayList<>();
             for (ParagraphSimple part : parts) {
                 Pattern pattern = Pattern.compile(regex);
                 Matcher matcher = pattern.matcher(part.getContent());
@@ -86,28 +85,32 @@ public class DocumentSpiltService {
                 while (matcher.find()) {
                     // 输出上一段内容（从上次结束到当前标题前）
                     String lastContent = part.getContent().substring(lastEnd, matcher.start()).trim();
-                    newParts.add(ParagraphSimple.builder().title(lastTitle).content(lastContent).build());
+                    titleParts.add(ParagraphSimple.builder().title(lastTitle).content(lastContent).build());
                     lastTitle = part.getTitle() + " " + cleanTitle(matcher.group());
                     lastEnd = matcher.end();
                 }
                 // 最后一段内容
                 String endContent = part.getContent().substring(lastEnd).trim();
                 if (!endContent.isEmpty()) {
-                    newParts.add(ParagraphSimple.builder().title(lastTitle).content(endContent).build());
+                    titleParts.add(ParagraphSimple.builder().title(lastTitle).content(endContent).build());
                 }
             }
-            parts = newParts;
+            parts = titleParts;
         }
-        // 所有 pattern 分割完成后，再处理超长片段：按 limit 切分
+        // 所有 pattern 分割完成后，再处理超长片段：按 limit 切分，颗粒度为句子级别
         List<ParagraphSimple> result = new ArrayList<>();
         for (ParagraphSimple part : parts) {
             if (StringUtils.isNotBlank(part.getContent())) {
                 List<String> texts = SentenceSplitter.split(part.getContent(),limit);
-                for (String test : texts) {
-                    ParagraphSimple newPart = ParagraphSimple.builder().title(part.getTitle()).content(test).build();
+                for (String text : texts) {
+                    ParagraphSimple newPart = ParagraphSimple.builder().title(part.getTitle()).content(text).build();
                     result.add(newPart);
                 }
             }
+        }
+        //todo
+        if (result.size()==1){
+            ParagraphSimple part=result.get(0);
         }
         if (Boolean.TRUE.equals(withFilter)) {
             return result.stream()
