@@ -1,4 +1,4 @@
-package com.tarzan.maxkb4j.module.knowledge.service.handler;
+package com.tarzan.maxkb4j.module.knowledge.handler;
 
 import com.alibaba.excel.EasyExcel;
 import com.alibaba.excel.ExcelWriter;

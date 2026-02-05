@@ -9,6 +9,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tarzan.maxkb4j.common.util.ExcelUtil;
 import com.tarzan.maxkb4j.common.util.IoUtil;
+import com.tarzan.maxkb4j.common.util.SecurityUtil;
 import com.tarzan.maxkb4j.core.event.DocumentIndexEvent;
 import com.tarzan.maxkb4j.core.event.GenerateProblemEvent;
 import com.tarzan.maxkb4j.module.knowledge.consts.KnowledgeType;
@@ -24,8 +25,8 @@ import com.tarzan.maxkb4j.module.knowledge.domain.vo.DocFileVO;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.DocumentVO;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.TextSegmentVO;
 import com.tarzan.maxkb4j.module.knowledge.excel.DatasetExcel;
+import com.tarzan.maxkb4j.module.knowledge.handler.DocumentHandler;
 import com.tarzan.maxkb4j.module.knowledge.mapper.DocumentMapper;
-import com.tarzan.maxkb4j.module.knowledge.service.handler.DocumentHandler;
 import com.tarzan.maxkb4j.module.model.info.vo.KeyAndValueVO;
 import com.tarzan.maxkb4j.module.oss.service.MongoFileService;
 import jakarta.servlet.http.HttpServletResponse;
@@ -128,6 +129,11 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
             if (file == null || file.isEmpty()) continue;
             String fileName = file.getOriginalFilename();
             if (fileName == null) continue;
+            // 验证文件名安全性
+            if (SecurityUtil.validFileName(fileName)) {
+                log.warn("非法的文件名: {}", fileName);
+                continue; // 跳过非法文件
+            }
             if (fileName.toLowerCase().endsWith(".zip")) {
                 docs.addAll(documentHandler.processZipQaFile(file));
             } else {
@@ -148,6 +154,13 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
             if (uploadFile == null || uploadFile.isEmpty()) continue;
             String originalFilename = uploadFile.getOriginalFilename();
             if (originalFilename == null) continue;
+
+            // 验证文件名安全性
+            if (SecurityUtil.validFileName(originalFilename)) {
+                log.warn("非法的文件名: {}", originalFilename);
+                continue; // 跳过非法文件
+            }
+
             docs.addAll(documentHandler.processTable(uploadFile.getBytes(), originalFilename));
         }
         // 将解析的文档保存到数据库
@@ -307,13 +320,26 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
             if (file == null || file.isEmpty()) continue;
             String name = file.getOriginalFilename();
             if (name == null) continue;
+
+            // 验证文件名安全性
+            if (SecurityUtil.validFileName(name)) {
+                log.warn("非法的文件名: {}", name);
+                continue; // 跳过非法文件
+            }
+
             if (name.toLowerCase().endsWith(".zip")) {
                 try (ZipArchiveInputStream zis = new ZipArchiveInputStream(file.getInputStream())) {
                     ZipArchiveEntry entry;
                     while ((entry = zis.getNextEntry()) != null) {
                         if (!entry.isDirectory()) {
+                            // 验证压缩包内文件名的安全性
+                            String entryName = com.tarzan.maxkb4j.common.util.SecurityUtil.normalizeFilePath(entry.getName());
+                            if (entryName == null) {
+                                log.warn("压缩包中存在非法的文件路径: {}", entry.getName());
+                                continue; // 跳过非法文件
+                            }
                             byte[] bytes = zis.readAllBytes();
-                            fileStreams.add(new DocFileVO(entry.getName(), bytes, ""));
+                            fileStreams.add(new DocFileVO(entryName, bytes, ""));
                         }
                     }
                 }

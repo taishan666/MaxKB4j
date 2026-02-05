@@ -1,4 +1,4 @@
-package com.tarzan.maxkb4j.module.knowledge.service.handler;
+package com.tarzan.maxkb4j.module.knowledge.handler;
 
 import com.alibaba.excel.EasyExcel;
 import com.alibaba.excel.ExcelReader;
@@ -11,6 +11,7 @@ import com.tarzan.maxkb4j.module.knowledge.domain.dto.DocumentSimple;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.ParagraphSimple;
 import com.tarzan.maxkb4j.module.knowledge.excel.DatasetExcel;
 import com.tarzan.maxkb4j.module.oss.service.MongoFileService;
+import com.tarzan.maxkb4j.common.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.compress.archivers.ArchiveEntry;
@@ -52,8 +53,14 @@ public class DocumentHandler {
             ArchiveEntry entry;
             while ((entry = zipIn.getNextEntry()) != null) {
                 if (!entry.isDirectory() && isExcelOrCsv(entry.getName())) {
+                    // 防止路径穿越攻击
+                    String entryName = SecurityUtil.normalizeFilePath(entry.getName());
+                    if (entryName == null) {
+                        log.warn("非法的文件路径: {}", entry.getName());
+                        continue;
+                    }
                     byte[] content = zipIn.readAllBytes();
-                    docs.addAll(processQaFile(content, entry.getName()));
+                    docs.addAll(processQaFile(content, entryName));
                     break;
                 }
             }
@@ -76,6 +83,12 @@ public class DocumentHandler {
      * @return 解析后的文档列表
      */
     public List<DocumentSimple> processQaFile(byte[] bytes, String fileName) {
+        // 验证文件名安全性
+        if (SecurityUtil.validFileName(fileName)) {
+            log.warn("非法的文件名: {}", fileName);
+            throw new IllegalArgumentException("非法文件名");
+        }
+
         List<DocumentSimple> docs = new ArrayList<>();
         // 判断是否为 CSV 文件（不区分大小写）
         boolean isCsv = fileName.toLowerCase().endsWith(".csv");
@@ -165,6 +178,12 @@ public class DocumentHandler {
      * @return 解析后的文档列表
      */
     public List<DocumentSimple> processTable(byte[] bytes, String fileName) {
+        // 验证文件名安全性
+        if (SecurityUtil.validFileName(fileName)) {
+            log.warn("非法的文件名: {}", fileName);
+            throw new IllegalArgumentException("非法文件名");
+        }
+
         List<DocumentSimple> docs = new ArrayList<>();
         // 判断是否为 CSV 文件（不区分大小写）
         boolean isCsv = fileName.toLowerCase().endsWith(".csv");
