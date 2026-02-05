@@ -33,18 +33,6 @@ public class PipelineManage {
         this.context.put("answerTokens", 0);
     }
 
-    public String run(Map<String, Object> params, Sinks.Many<ChatMessageVO> sink) {
-        if (params != null) {
-            this.context.putAll(params);
-        }
-        if (sink != null){
-            this.sink = sink;
-        }
-        for (AbsStep step : stepList) {
-            step.run(this);
-        }
-        return (String) this.context.get("answer");
-    }
 
     public String run(ApplicationVO application, ChatParams chatParams, Sinks.Many<ChatMessageVO> sink) {
         if (application != null) {
