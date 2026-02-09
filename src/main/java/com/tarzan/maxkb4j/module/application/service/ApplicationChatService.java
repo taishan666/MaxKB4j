@@ -90,16 +90,20 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
     }
 
 
-    public ChatInfo getChatInfo(String chatId) {
+    //todo 优化，考虑放到redis中
+    public ChatInfo getChatInfo(String chatId,String appId) {
         ChatInfo chatInfo = ChatCache.get(chatId);
         if (chatInfo == null) {
-            ApplicationChatEntity chatEntity = this.lambdaQuery().select(ApplicationChatEntity::getApplicationId).eq(ApplicationChatEntity::getId, chatId).one();
-            if (chatEntity == null) {
-                return null;
-            }
             chatInfo = new ChatInfo();
             chatInfo.setChatId(chatId);
-            chatInfo.setAppId(chatEntity.getApplicationId());
+            if (StringUtils.isNotBlank(appId)){
+                chatInfo.setAppId(appId);
+            }else {
+                ApplicationChatEntity chatEntity = this.lambdaQuery().select(ApplicationChatEntity::getApplicationId).eq(ApplicationChatEntity::getId, chatId).one();
+                if (chatEntity != null) {
+                    chatInfo.setAppId(chatEntity.getApplicationId());
+                }
+            }
             List<ApplicationChatRecordEntity> chatRecordList = chatRecordService.lambdaQuery().eq(ApplicationChatRecordEntity::getChatId, chatId).list();
             chatInfo.setChatRecordList(chatRecordList);
             ChatCache.put(chatInfo.getChatId(), chatInfo);
@@ -110,14 +114,9 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
 
     public ChatResponse chatMessage(ChatParams chatParams, Sinks.Many<ChatMessageVO> sink) {
         long startTime = System.currentTimeMillis();
-        ChatInfo chatInfo = this.getChatInfo(chatParams.getChatId());
-        if (chatInfo == null) {
-            sink.tryEmitError(new ApiException("会话不存在"));
-            return new ChatResponse("", null);
-        } else {
-            if (StringUtils.isEmpty(chatParams.getAppId())) {
-                chatParams.setAppId(chatInfo.getAppId());
-            }
+        ChatInfo chatInfo = this.getChatInfo(chatParams.getChatId(),chatParams.getAppId());
+        if (StringUtils.isEmpty(chatParams.getAppId())) {
+            chatParams.setAppId(chatInfo.getAppId());
         }
         if (!visitCountCheck(chatParams)) {
             sink.tryEmitError(new AccessNumLimitException());
@@ -139,15 +138,7 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
     }
 
     public CompletableFuture<ChatResponse> chatMessageAsync(ChatParams chatParams, Sinks.Many<ChatMessageVO> sink) {
-        String chatId = StringUtils.isNotBlank(chatParams.getChatId()) ? chatParams.getChatId() : IdWorker.get32UUID();
-        ChatInfo chatInfo = ChatCache.get(chatId);
-        if (chatInfo == null) {
-            chatInfo = new ChatInfo();
-            chatInfo.setChatId(chatId);
-            chatInfo.setAppId(chatParams.getAppId());
-            ChatCache.put(chatInfo.getChatId(), chatInfo);
-        }
-        return CompletableFuture.supplyAsync(() -> chatMessage(chatParams, sink),chatTaskExecutor);
+        return CompletableFuture.supplyAsync(() -> chatMessage(chatParams, sink), chatTaskExecutor);
     }
 
     public boolean visitCountCheck(ChatParams chatParams) {
@@ -176,7 +167,7 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
 
 
     public void chatExport(List<String> ids, HttpServletResponse response) throws IOException {
-        if (CollectionUtils.isNotEmpty(ids)){
+        if (CollectionUtils.isNotEmpty(ids)) {
             List<ChatRecordDetailVO> rows = baseMapper.chatRecordDetail(ids);
             EasyExcel.write(response.getOutputStream(), ChatRecordDetailVO.class).sheet("sheet").doWrite(rows);
         }

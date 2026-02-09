@@ -45,7 +45,7 @@ public class ApplicationNodeHandler implements INodeHandler {
         List<String> questionFields = nodeParams.getQuestionReferenceAddress();
         String question = (String) workflow.getReferenceField(questionFields);
         ChatParams chatParams = workflow.getChatParams();
-        String chatId = chatParams.getChatId() + nodeParams.getApplicationId();
+        String chatId = chatParams.getChatId()+"_" + nodeParams.getApplicationId();
         List<SysFile> docList = new ArrayList<>();
         List<String> docFields = nodeParams.getDocumentList();
         if (CollectionUtils.isNotEmpty(docFields)) {
