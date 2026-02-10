@@ -37,7 +37,7 @@ public class ResetProblemStep extends AbsResetProblemStep {
         super.context.put("problemText", question);
         TokenUsage tokenUsage=result.tokenUsage();
         super.context.put("messageTokens", tokenUsage.inputTokenCount());
-        super.context.put("answerTokens", tokenUsage.inputTokenCount());
+        super.context.put("answerTokens", tokenUsage.outputTokenCount());
         super.context.put("paddingProblemText", paddingProblem);
         log.info("BaseResetProblemStep 耗时 {} ms", System.currentTimeMillis() - startTime);
         return paddingProblem;
