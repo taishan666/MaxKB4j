@@ -1,7 +1,7 @@
 package com.tarzan.maxkb4j.module.chat.dto;
 
 import com.alibaba.fastjson.JSONObject;
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.tarzan.maxkb4j.core.workflow.model.Answer;
 import lombok.Data;
 
 import java.util.List;
@@ -9,13 +9,12 @@ import java.util.List;
 @Data
 public class ChatResponse {
 
-    private List<String> answerTextList;
+    private List<Answer> answerTextList;
     private Integer messageTokens;
     private Integer answerTokens;
-    @JsonIgnore
     private JSONObject runDetails;
 
-    public ChatResponse(List<String> answerTextList, JSONObject runDetails) {
+    public ChatResponse(List<Answer> answerTextList, JSONObject runDetails) {
         this.answerTextList = answerTextList;
         this.runDetails = runDetails;
     }
@@ -37,6 +36,6 @@ public class ChatResponse {
     }
 
     public String getAnswer() {
-        return String.join("\n\n", answerTextList);
+        return String.join("\n\n", answerTextList.stream().map(Answer::getContent).toList());
     }
 }

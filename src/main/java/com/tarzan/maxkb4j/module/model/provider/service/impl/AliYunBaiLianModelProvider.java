@@ -34,9 +34,9 @@ public class AliYunBaiLianModelProvider extends IModelProvider {
     @Override
     public List<ModelInfo> getModelList() {
         List<ModelInfo> modelInfos = new ArrayList<>();
-        modelInfos.add(new ModelInfo(QwenModelName.QWEN_TURBO,"大语言模型", ModelType.LLM, new LlmModelParams()));
-        modelInfos.add(new ModelInfo(QwenModelName.QWEN_PLUS,"大语言模型", ModelType.LLM, new LlmModelParams()));
-        modelInfos.add(new ModelInfo(QwenModelName.QWEN_MAX,"大语言模型", ModelType.LLM,new LlmModelParams()));
+        modelInfos.add(new ModelInfo(QwenModelName.QWEN_TURBO,"大语言模型", ModelType.LLM, new QwenChatModelParams()));
+        modelInfos.add(new ModelInfo(QwenModelName.QWEN_PLUS,"大语言模型", ModelType.LLM, new QwenChatModelParams()));
+        modelInfos.add(new ModelInfo(QwenModelName.QWEN_MAX,"大语言模型", ModelType.LLM,new QwenChatModelParams()));
         modelInfos.add(new ModelInfo("text-embedding-v4","文本向量模型", ModelType.EMBEDDING,new TextEmbeddingV4Params()));
         modelInfos.add(new ModelInfo("text-embedding-v3","文本向量模型", ModelType.EMBEDDING,new TextEmbeddingV3Params()));
         modelInfos.add(new ModelInfo("paraformer-realtime-v2","语音识别模型", ModelType.STT));
@@ -46,8 +46,8 @@ public class AliYunBaiLianModelProvider extends IModelProvider {
         modelInfos.add(new ModelInfo("cosyvoice-v2","语音生成模型", ModelType.TTS,new CosyVoiceV2TTSParams()));
         modelInfos.add(new ModelInfo("sambert-v1","语音生成模型", ModelType.TTS,new SamBertTTSParams()));
         modelInfos.add(new ModelInfo("qwen-tts","语音生成模型", ModelType.TTS,new QWenTTSParams()));
-        modelInfos.add(new ModelInfo(QwenModelName.QWEN_VL_PLUS,"AI视觉模型", ModelType.VISION, new LlmModelParams()));
-        modelInfos.add(new ModelInfo(QwenModelName.QWEN_VL_MAX,"AI视觉模型", ModelType.VISION, new LlmModelParams()));
+        modelInfos.add(new ModelInfo(QwenModelName.QWEN_VL_PLUS,"AI视觉模型", ModelType.VISION, new QwenChatModelParams()));
+        modelInfos.add(new ModelInfo(QwenModelName.QWEN_VL_MAX,"AI视觉模型", ModelType.VISION, new QwenChatModelParams()));
         modelInfos.add(new ModelInfo(WanxModelName.WANX2_1_T2I_TURBO,"文生图模型", ModelType.TTI,new WanXImageModelParams()));
         modelInfos.add(new ModelInfo(WanxModelName.WANX2_1_T2I_PLUS,"文生图模型", ModelType.TTI,new WanXImageModelParams()));
         modelInfos.add(new ModelInfo("qwen-image-plus","文生图模型", ModelType.TTI,new QwenImageModelParams()));
@@ -60,9 +60,9 @@ public class AliYunBaiLianModelProvider extends IModelProvider {
         return QwenChatModel.builder()
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
-                .isMultimodalModel(params==null?null:params.getBoolean("isMultimodalModel"))
-                .temperature(params==null?null:params.getFloat("temperature"))
-                .maxTokens(params==null?null:params.getInteger("maxTokens"))
+                .isMultimodalModel(params.getBoolean("isMultimodalModel"))
+                .temperature(params.getFloat("temperature"))
+                .maxTokens(params.getInteger("maxTokens"))
                 .build();
     }
 
@@ -71,9 +71,9 @@ public class AliYunBaiLianModelProvider extends IModelProvider {
         return  QwenStreamingChatModel.builder()
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
-                .isMultimodalModel(params==null?null:params.getBoolean("isMultimodalModel"))
-                .temperature(params==null?null:params.getFloat("temperature"))
-                .maxTokens(params==null?null:params.getInteger("maxTokens"))
+                .isMultimodalModel(params.getBoolean("isMultimodalModel"))
+                .temperature(params.getFloat("temperature"))
+                .maxTokens(params.getInteger("maxTokens"))
                 .build();
     }
 

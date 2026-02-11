@@ -22,6 +22,8 @@ import java.util.List;
 
 @Component
 public class XInferenceModelProvider extends IModelProvider {
+
+    private final static String BASE_URL = "http://host.docker.internal:9997";
     @Override
     public ModelProviderInfo getBaseInfo() {
         ModelProviderInfo info = new ModelProviderInfo(ModelProviderEnum.XInference);
@@ -45,7 +47,7 @@ public class XInferenceModelProvider extends IModelProvider {
 
     @Override
     public ModelCredentialForm getModelCredential() {
-        return new ModelCredentialForm(true, false,"http://host.docker.internal:9997");
+        return new ModelCredentialForm(false,BASE_URL);
     }
 
     @Override

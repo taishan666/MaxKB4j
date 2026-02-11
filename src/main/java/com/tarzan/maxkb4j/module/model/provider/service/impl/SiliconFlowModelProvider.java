@@ -29,34 +29,40 @@ import java.util.List;
  * OpenAI Model Provider Implementation
  * Provides integration with OpenAI's API services
  */
-public class OpenAiModelProvider extends IModelProvider {
+public class SiliconFlowModelProvider extends IModelProvider {
+
+    private final static String BASE_URL = "https://api.siliconflow.cn/v1";
+
     @Override
     public ModelProviderInfo getBaseInfo() {
-        ModelProviderInfo info = new ModelProviderInfo(ModelProviderEnum.OpenAI);
-        info.setIcon(getSvgIcon("openai_icon.svg"));
+        ModelProviderInfo info = new ModelProviderInfo(ModelProviderEnum.SiliconFlow);
+        info.setIcon(getSvgIcon("silicon_flow_icon.svg"));
         return info;
     }
 
     @Override
     public List<ModelInfo> getModelList() {
         List<ModelInfo> modelInfos = new ArrayList<>();
-        modelInfos.add(new ModelInfo("gpt-3.5-turbo", "GPT-3.5 Turbo", ModelType.LLM, new LlmModelParams()));
-        modelInfos.add(new ModelInfo("gpt-4", "GPT-4", ModelType.LLM, new LlmModelParams()));
-        modelInfos.add(new ModelInfo("gpt-4o", "GPT-4 Omni", ModelType.LLM, new LlmModelParams()));
-        modelInfos.add(new ModelInfo("gpt-4o-mini", "GPT-4 Omni Mini", ModelType.LLM, new LlmModelParams()));
-        modelInfos.add(new ModelInfo("gpt-4-turbo", "GPT-4 Turbo", ModelType.LLM, new LlmModelParams()));
-        modelInfos.add(new ModelInfo("gpt-4-turbo-preview", "GPT-4 Turbo Preview", ModelType.LLM, new LlmModelParams()));
-        modelInfos.add(new ModelInfo("text-embedding-ada-002", "Text Embedding Ada v2", ModelType.EMBEDDING));
-        modelInfos.add(new ModelInfo("whisper-1", "Whisper Speech-to-Text", ModelType.STT));
-        modelInfos.add(new ModelInfo("tts-1", "Text-to-Speech", ModelType.TTS));
-        modelInfos.add(new ModelInfo("gpt-4o", "GPT-4 Vision", ModelType.VISION, new LlmModelParams()));
-        modelInfos.add(new ModelInfo("dall-e-2", "DALL·E 2", ModelType.TTI));
+        modelInfos.add(new ModelInfo("deepseek-ai/DeepSeek-V3.2", "", ModelType.LLM, new LlmModelParams()));
+        modelInfos.add(new ModelInfo("Pro/moonshotai/Kimi-K2.5", "", ModelType.LLM, new LlmModelParams()));
+        modelInfos.add(new ModelInfo("Qwen/Qwen3-VL-32B-Thinking", "", ModelType.LLM, new LlmModelParams()));
+        modelInfos.add(new ModelInfo("Pro/zai-org/GLM-4.7", "", ModelType.LLM, new LlmModelParams()));
+        modelInfos.add(new ModelInfo("Pro/MiniMaxAI/MiniMax-M2.1", "", ModelType.LLM, new LlmModelParams()));
+        modelInfos.add(new ModelInfo("tencent/Hunyuan-MT-7B", "", ModelType.LLM, new LlmModelParams()));
+        modelInfos.add(new ModelInfo("Qwen/Qwen3-Embedding-8B", "", ModelType.EMBEDDING));
+        modelInfos.add(new ModelInfo("BAAI/bge-m3", "", ModelType.EMBEDDING));
+        modelInfos.add(new ModelInfo("netease-youdao/bce-embedding-base_v1", "", ModelType.EMBEDDING));
+        modelInfos.add(new ModelInfo("Qwen/Qwen3-Reranker-8B", "", ModelType.RERANKER));
+        modelInfos.add(new ModelInfo("BAAI/bge-reranker-v2-m3", "", ModelType.RERANKER));
+        modelInfos.add(new ModelInfo("netease-youdao/bce-reranker-base_v1", "", ModelType.RERANKER));
+        modelInfos.add(new ModelInfo("Qwen/Qwen3-VL-32B-Thinking", "", ModelType.VISION, new LlmModelParams()));
+        modelInfos.add(new ModelInfo("Qwen/Qwen-Image", "", ModelType.TTI));
         return modelInfos;
     }
 
     @Override
     public ModelCredentialForm getModelCredential() {
-        return new ModelCredentialForm(true, true); // Both API key and base URL required
+        return new ModelCredentialForm(true, BASE_URL);
     }
 
     @Override

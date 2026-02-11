@@ -1,7 +1,10 @@
 package com.tarzan.maxkb4j.module.application.handler.impl;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.tarzan.maxkb4j.core.workflow.model.Answer;
 import com.tarzan.maxkb4j.module.application.domain.dto.ChatInfo;
 import com.tarzan.maxkb4j.module.application.domain.entity.ApplicationChatEntity;
 import com.tarzan.maxkb4j.module.application.domain.entity.ApplicationChatRecordEntity;
@@ -40,14 +43,14 @@ public class ChatPostHandler implements PostResponseHandler {
         float runTime = (System.currentTimeMillis() - startTime) / 1000F;
         ChatInfo chatInfo = ChatCache.get(chatId);
         String answerText = chatResponse.getAnswer();
-        List<String> answerTextList=chatResponse.getAnswerTextList();
+        List<Answer> answerTextList=chatResponse.getAnswerTextList();
         int messageTokens = chatResponse.getMessageTokens();
         int answerTokens = chatResponse.getAnswerTokens();
         JSONObject details = chatResponse.getRunDetails();
         ApplicationChatRecordEntity chatRecord=chatParams.getChatRecord();
         if (chatRecord != null) {
             chatRecord.setAnswerText(answerText);
-            chatRecord.setAnswerTextList(answerTextList);
+            chatRecord.setAnswerTextList(JSONArray.parseArray(JSON.toJSONString(answerTextList)));
             chatRecord.setDetails(new JSONObject(details));
             chatRecord.setMessageTokens(messageTokens);
             chatRecord.setAnswerTokens(answerTokens);
@@ -59,7 +62,7 @@ public class ChatPostHandler implements PostResponseHandler {
             chatRecord.setChatId(chatId);
             chatRecord.setProblemText(problemText);
             chatRecord.setAnswerText(answerText);
-            chatRecord.setAnswerTextList(answerTextList);
+            chatRecord.setAnswerTextList(JSONArray.parseArray(JSON.toJSONString(answerTextList)));
             if (chatInfo!=null){
                 chatRecord.setIndex(chatInfo.getChatRecordList().size() + 1);
             }else {

@@ -2,6 +2,7 @@ package com.tarzan.maxkb4j.core.workflow.node.impl;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.tarzan.maxkb4j.core.workflow.model.Answer;
 import com.tarzan.maxkb4j.core.workflow.model.Workflow;
 import com.tarzan.maxkb4j.core.workflow.node.AbsNode;
 import lombok.Data;
@@ -35,7 +36,7 @@ public class FormNode extends AbsNode {
 
     @Override
     @SuppressWarnings("unchecked")
-    public List<String> getAnswerTextList()  {
+    public List<Answer> getAnswerList()  {
         Map<String, Object> formData = (Map<String, Object>) context.getOrDefault("form_data",Map.of());
         boolean isSubmit = (boolean) context.getOrDefault("is_submit",false);
         String runtimeNodeId=this.getRuntimeNodeId();
@@ -46,9 +47,9 @@ public class FormNode extends AbsNode {
         formSetting.put("is_submit", isSubmit);
         formSetting.put("form_data", formData);
         formSetting.put("runtimeNodeId", runtimeNodeId);
-        String form = "<form_render>" + formSetting + "</form_render>";
-        String answerText = super.getTemplateRenderer().render(formContentFormat,Map.of("form", form));
-        return List.of(answerText);
+        String formRender = "<form_render>" + formSetting + "</form_render>";
+        String answerText = super.getTemplateRenderer().render(formContentFormat,Map.of("form", formRender));
+        return List.of(Answer.builder().content(answerText).reasoningContent("").runtimeNodeId(runtimeNodeId).viewType(this.getViewType()).build());
     }
 
 

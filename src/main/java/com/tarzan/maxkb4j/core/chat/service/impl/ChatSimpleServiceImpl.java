@@ -8,6 +8,7 @@ import com.tarzan.maxkb4j.core.pipeline.step.chatstep.AbsChatStep;
 import com.tarzan.maxkb4j.core.pipeline.step.generatehumanmessagestep.AbsGenerateHumanMessageStep;
 import com.tarzan.maxkb4j.core.pipeline.step.resetproblemstep.AbsResetProblemStep;
 import com.tarzan.maxkb4j.core.pipeline.step.searchdatasetstep.AbsSearchDatasetStep;
+import com.tarzan.maxkb4j.core.workflow.model.Answer;
 import com.tarzan.maxkb4j.module.application.domain.vo.ApplicationVO;
 import com.tarzan.maxkb4j.module.application.domain.vo.ChatMessageVO;
 import com.tarzan.maxkb4j.module.chat.dto.ChatParams;
@@ -43,7 +44,7 @@ public class ChatSimpleServiceImpl implements IChatService {
         pipelineManageBuilder.addStep(chatStep);
         PipelineManage pipelineManage = pipelineManageBuilder.build();
         chatParams.setChatRecordId(chatParams.getChatRecordId() == null ? IdWorker.get32UUID() : chatParams.getChatRecordId());
-        String answer = pipelineManage.run(application,chatParams, sink);
+        Answer answer = pipelineManage.run(application,chatParams, sink);
         JSONObject details = pipelineManage.getDetails();
         return new ChatResponse(List.of(answer), details);
     }

@@ -1,6 +1,7 @@
 package com.tarzan.maxkb4j.core.pipeline;
 
 import com.alibaba.fastjson.JSONObject;
+import com.tarzan.maxkb4j.core.workflow.model.Answer;
 import com.tarzan.maxkb4j.module.application.domain.entity.ApplicationChatRecordEntity;
 import com.tarzan.maxkb4j.module.application.domain.vo.ApplicationVO;
 import com.tarzan.maxkb4j.module.application.domain.vo.ChatMessageVO;
@@ -34,7 +35,7 @@ public class PipelineManage {
     }
 
 
-    public String run(ApplicationVO application, ChatParams chatParams, Sinks.Many<ChatMessageVO> sink) {
+    public Answer run(ApplicationVO application, ChatParams chatParams, Sinks.Many<ChatMessageVO> sink) {
         if (application != null) {
             this.application= application;
         }
@@ -47,7 +48,8 @@ public class PipelineManage {
         for (AbsStep step : stepList) {
             step.run(this);
         }
-        return (String) this.context.get("answer");
+        String answer =(String) this.context.getOrDefault("answer","");
+        return Answer.builder().content(answer).reasoningContent("").viewType("many_view").runtimeNodeId("ai-chat-node").build();
     }
 
     public List<ChatMessage> getHistoryMessages(int dialogueNumber) {

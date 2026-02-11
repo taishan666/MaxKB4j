@@ -17,8 +17,8 @@ public  class ModelCredentialForm {
         this.showApiKey = showApiKey;
     }
 
-    public ModelCredentialForm(boolean showBaseUrl, boolean showApiKey, String defaultBaseUrl) {
-        this.showBaseUrl = showBaseUrl;
+    public ModelCredentialForm(boolean showApiKey, String defaultBaseUrl) {
+        this.showBaseUrl = true;
         this.showApiKey = showApiKey;
         this.defaultBaseUrl = defaultBaseUrl;
     }

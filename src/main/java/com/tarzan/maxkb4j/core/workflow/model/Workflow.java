@@ -217,14 +217,14 @@ public class Workflow {
         return null;
     }
 
-    public List<String> getAnswerTextList() {
+    public List<Answer> getAnswerTextList() {
         List<AbsNode> nodeContext=workflowContext.getNodeContext().stream().filter(e ->nodes.stream().anyMatch(n -> e.getId().equals(n.getId()))).toList();
         if (nodeContext.isEmpty()) {
             return List.of();
         }
-        List<String> answerTextList = new ArrayList<>();
+        List<Answer> answerTextList = new ArrayList<>();
         for (AbsNode node : nodeContext) {
-            answerTextList.addAll(node.getAnswerTextList());
+            answerTextList.addAll(node.getAnswerList());
         }
         return answerTextList;
     }
