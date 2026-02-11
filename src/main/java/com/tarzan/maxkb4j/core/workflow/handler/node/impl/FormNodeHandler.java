@@ -36,7 +36,8 @@ public class FormNodeHandler implements INodeHandler {
             String formContentFormat = nodeParams.getFormContentFormat();
             String answerText =workflow.getTemplateRenderer().render(formContentFormat,Map.of("form", form));
             node.setAnswerText(answerText);
-            node.getDetail().put("form_field_list", formFieldList);
+            nodeVariable.put("form_field_list", formFieldList);
+            nodeVariable.put("form_content_format", formContentFormat);
             nodeVariable.put("is_submit", false);
         }
         return new NodeResult(nodeVariable,false,this::isInterrupt);

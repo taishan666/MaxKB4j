@@ -18,7 +18,6 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -41,14 +40,13 @@ public class ChatPostHandler implements PostResponseHandler {
         float runTime = (System.currentTimeMillis() - startTime) / 1000F;
         ChatInfo chatInfo = ChatCache.get(chatId);
         String answerText = chatResponse.getAnswer();
+        List<String> answerTextList=chatResponse.getAnswerTextList();
         int messageTokens = chatResponse.getMessageTokens();
         int answerTokens = chatResponse.getAnswerTokens();
         JSONObject details = chatResponse.getRunDetails();
         ApplicationChatRecordEntity chatRecord=chatParams.getChatRecord();
         if (chatRecord != null) {
             chatRecord.setAnswerText(answerText);
-            List<String> answerTextList= chatRecord.getAnswerTextList();
-            answerTextList.add(answerText);
             chatRecord.setAnswerTextList(answerTextList);
             chatRecord.setDetails(new JSONObject(details));
             chatRecord.setMessageTokens(messageTokens);
@@ -61,7 +59,7 @@ public class ChatPostHandler implements PostResponseHandler {
             chatRecord.setChatId(chatId);
             chatRecord.setProblemText(problemText);
             chatRecord.setAnswerText(answerText);
-            chatRecord.setAnswerTextList(new ArrayList<>(List.of(answerText)));
+            chatRecord.setAnswerTextList(answerTextList);
             if (chatInfo!=null){
                 chatRecord.setIndex(chatInfo.getChatRecordList().size() + 1);
             }else {

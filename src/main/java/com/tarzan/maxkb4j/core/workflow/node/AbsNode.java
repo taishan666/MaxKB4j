@@ -3,12 +3,14 @@ package com.tarzan.maxkb4j.core.workflow.node;
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.workflow.enums.NodeStatus;
 import com.tarzan.maxkb4j.core.workflow.model.Workflow;
+import com.tarzan.maxkb4j.core.workflow.service.TemplateRenderer;
 import com.tarzan.maxkb4j.core.workflow.util.MessageConverter;
 import com.tarzan.maxkb4j.core.workflow.util.NodeIdGenerator;
 import com.tarzan.maxkb4j.module.application.domain.vo.ChatMessageVO;
 import com.tarzan.maxkb4j.module.chat.dto.ChildNode;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
 
@@ -33,6 +35,10 @@ public abstract class AbsNode {
     private String answerText;
     private Integer status;
     private String errMessage;
+    /**
+     * 模板渲染器
+     */
+    private TemplateRenderer templateRenderer;
 
     public AbsNode(String id, JSONObject properties) {
         this.id = id;
@@ -78,7 +84,12 @@ public abstract class AbsNode {
         return NodeIdGenerator.generateRuntimeNodeId(id, upNodeIdList);
     }
 
-
+    public List<String> getAnswerTextList() {
+        if (StringUtils.isNotBlank(answerText)){
+            return List.of(answerText);
+        }
+        return List.of();
+    }
 
     /**
      * 转换为聊天消息VO

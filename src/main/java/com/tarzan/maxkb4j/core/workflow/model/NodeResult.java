@@ -92,10 +92,7 @@ public class NodeResult {
 
     public void defaultWriteDetailFunc(Map<String, Object> nodeVariable, AbsNode node) {
         if (nodeVariable != null) {
-            if (NodeType.FORM.getKey().equals(node.getType())) {
-                node.getDetail().put("form_data", nodeVariable.get("form_data"));
-                node.getDetail().put("is_submit", nodeVariable.get("is_submit"));
-            } else if (NodeType.VARIABLE_AGGREGATE.getKey().equals(node.getType())) {
+            if (NodeType.VARIABLE_AGGREGATE.getKey().equals(node.getType())) {
                 node.getDetail().put("result", nodeVariable);
             } else {
                 node.getDetail().putAll(nodeVariable);

@@ -121,7 +121,7 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
         }
         if (!visitCountCheck(chatParams)) {
             sink.tryEmitError(new AccessNumLimitException());
-            return new ChatResponse(List.of(""), null);
+            return new ChatResponse(List.of(), null);
         }
         List<ApplicationChatRecordEntity> historyChatRecordList = chatRecordService.getChatRecords(chatParams.getChatId());
         chatParams.setHistoryChatRecords(historyChatRecordList);
