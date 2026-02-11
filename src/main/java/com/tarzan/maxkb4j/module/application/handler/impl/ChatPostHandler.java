@@ -40,13 +40,14 @@ public class ChatPostHandler implements PostResponseHandler {
         float runTime = (System.currentTimeMillis() - startTime) / 1000F;
         ChatInfo chatInfo = ChatCache.get(chatId);
         String answerText = chatResponse.getAnswer();
+        List<String> answerTextList=chatResponse.getAnswerTextList();
         int messageTokens = chatResponse.getMessageTokens();
         int answerTokens = chatResponse.getAnswerTokens();
         JSONObject details = chatResponse.getRunDetails();
         ApplicationChatRecordEntity chatRecord=chatParams.getChatRecord();
         if (chatRecord != null) {
-            chatRecord.setAnswerTextList(List.of());
             chatRecord.setAnswerText(answerText);
+            chatRecord.setAnswerTextList(answerTextList);
             chatRecord.setDetails(new JSONObject(details));
             chatRecord.setMessageTokens(messageTokens);
             chatRecord.setAnswerTokens(answerTokens);
@@ -58,7 +59,7 @@ public class ChatPostHandler implements PostResponseHandler {
             chatRecord.setChatId(chatId);
             chatRecord.setProblemText(problemText);
             chatRecord.setAnswerText(answerText);
-            chatRecord.setAnswerTextList(List.of(answerText));
+            chatRecord.setAnswerTextList(answerTextList);
             if (chatInfo!=null){
                 chatRecord.setIndex(chatInfo.getChatRecordList().size() + 1);
             }else {

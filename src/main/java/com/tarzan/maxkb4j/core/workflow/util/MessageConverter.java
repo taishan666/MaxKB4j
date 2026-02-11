@@ -72,7 +72,7 @@ public class MessageConverter {
      * @param viewType       视图类型
      * @param childNode      子节点
      * @param nodeIsEnd      节点是否结束
-     * @param nodeIsBlock    节点是否阻塞
+     * @param isEnd    是否结束
      * @return 聊天消息VO
      */
     public static ChatMessageVO toChatMessageVO(
@@ -88,7 +88,7 @@ public class MessageConverter {
             String viewType,
             ChildNode childNode,
             boolean nodeIsEnd,
-            boolean nodeIsBlock) {
+            boolean isEnd) {
 
         return new ChatMessageVO(
                 chatId,
@@ -103,7 +103,7 @@ public class MessageConverter {
                 viewType,
                 childNode,
                 nodeIsEnd,
-                nodeIsBlock);
+                isEnd);
     }
 
 

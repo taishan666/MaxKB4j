@@ -24,13 +24,12 @@ public class KnowledgeWorkflowHandler extends WorkflowHandler {
     private final KnowledgeActionService knowledgeActionService;
 
     @Override
-    public String execute(Workflow workflow) {
+    public void execute(Workflow workflow) {
         if (workflow instanceof KnowledgeWorkflow knowledgeWorkflow) {
             List<AbsNode> nodes = knowledgeWorkflow.getStartNodes();
             runChainNodes(workflow, nodes);
             knowledgeActionService.updateState(workflow, ActionStatus.SUCCESS);
         }
-        return workflow.getAnswer();
     }
 
 

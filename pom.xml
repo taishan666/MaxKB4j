@@ -395,6 +395,17 @@
             <artifactId>commons-text</artifactId>
             <version>1.11.0</version> <!-- 推荐使用最新稳定版 -->
         </dependency>
+        <dependency>
+            <groupId>io.github.mymonstercat</groupId>
+            <artifactId>rapidocr</artifactId>
+            <version>0.0.7</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.mymonstercat</groupId>
+            <artifactId>rapidocr-onnx-platform</artifactId>
+            <!--  可前往maven中央仓库https://repo1.maven.org/maven2/io/github/mymonstercat/rapidocr/，查看版本      -->
+            <version>0.0.7</version>
+        </dependency>
     </dependencies>
 
     <repositories>

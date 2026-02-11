@@ -43,21 +43,20 @@ public class Workflow {
     private ChatParams chatParams;
     private List<AbsNode> nodes;
     private List<LfEdge> edges;
-    private String answer;
     /**
      * 上下文管理器
      *  获取工作流上下文
      */
     private WorkflowContext workflowContext;
     /**
+     * 历史消息管理器
+     */
+    private HistoryManager historyManager;
+    /**
      * 变量解析器
      *  获取变量解析器
      */
     private VariableResolver variableResolver;
-    /**
-     * 历史消息管理器
-     */
-    private HistoryManager historyManager;
     /**
      * 模板渲染器
      */
@@ -92,7 +91,6 @@ public class Workflow {
         this.nodes = nodes;
         this.edges = edges;
         this.chatParams = chatParams;
-        this.answer = "";
         this.sink = sink;
         this.workflowContext = new WorkflowContext();
         // 如果chatParams为null，传入空的历史记录列表
@@ -210,12 +208,25 @@ public class Workflow {
         if (nodeOpt.isPresent()) {
             AbsNode node = nodeOpt.get();
             node.setUpNodeIdList(upNodeIds);
+            node.setTemplateRenderer(templateRenderer);
             if (getNodeProperties != null) {
                 getNodeProperties.apply(node);
             }
             return node;
         }
         return null;
+    }
+
+    public List<String> getAnswerTextList() {
+        List<AbsNode> nodeContext=workflowContext.getNodeContext().stream().filter(e ->nodes.stream().anyMatch(n -> e.getId().equals(n.getId()))).toList();
+        if (nodeContext.isEmpty()) {
+            return List.of();
+        }
+        List<String> answerTextList = new ArrayList<>();
+        for (AbsNode node : nodeContext) {
+            answerTextList.addAll(node.getAnswerTextList());
+        }
+        return answerTextList;
     }
 
     public JSONObject getRuntimeDetails() {
@@ -291,5 +302,6 @@ public class Workflow {
     public boolean needsSinkOutput() {
         return workflowMode == WorkflowMode.APPLICATION || workflowMode == WorkflowMode.APPLICATION_LOOP;
     }
+
 
 }
