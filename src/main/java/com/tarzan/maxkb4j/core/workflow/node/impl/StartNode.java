@@ -45,10 +45,10 @@ public class StartNode extends AbsNode {
 
     @Override
     public Map<String, Object> getDetail() {
-        detail.put("imageList", detail.get("image"));
-        detail.put("documentList", detail.get("document"));
-        detail.put("audioList", detail.get("audio"));
-        detail.put("otherList", detail.get("other"));
+        detail.put("imageList", context.get("image"));
+        detail.put("documentList", context.get("document"));
+        detail.put("audioList", context.get("audio"));
+        detail.put("otherList", context.get("other"));
         detail.remove("image");
         detail.remove("document");
         detail.remove("audio");

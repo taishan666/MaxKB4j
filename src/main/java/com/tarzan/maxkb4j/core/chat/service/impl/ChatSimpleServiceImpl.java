@@ -17,6 +17,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import reactor.core.publisher.Sinks;
 
+import java.util.List;
 import java.util.Objects;
 
 @RequiredArgsConstructor
@@ -44,7 +45,7 @@ public class ChatSimpleServiceImpl implements IChatService {
         chatParams.setChatRecordId(chatParams.getChatRecordId() == null ? IdWorker.get32UUID() : chatParams.getChatRecordId());
         String answer = pipelineManage.run(application,chatParams, sink);
         JSONObject details = pipelineManage.getDetails();
-        return new ChatResponse(answer, details);
+        return new ChatResponse(List.of(answer), details);
     }
 
 

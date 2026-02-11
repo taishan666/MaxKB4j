@@ -22,18 +22,24 @@ import java.util.concurrent.CompletableFuture;
 @RequiredArgsConstructor
 public class WorkflowHandler {
 
-    public String execute(Workflow workflow) {
+    public void execute(Workflow workflow) {
         AbsNode currentNode = workflow.getCurrentNode();
         if (currentNode == null) {
             currentNode = workflow.getStartNode();
         }
+        log.info("工作流开始-开始节点:{}", currentNode.getType());
         runChainNodes(workflow, List.of(currentNode));
-        return workflow.getAnswer();
+        log.info("工作流结束");
     }
 
-    public CompletableFuture<String> executeAsync(Workflow workflow) {
-        return CompletableFuture.completedFuture(execute(workflow));
+
+    public CompletableFuture<Void> executeAsync(Workflow workflow) {
+        return CompletableFuture.runAsync(() -> {
+            execute(workflow);
+        });
     }
+
+
 
     public void runChainNodes(Workflow workflow, List<AbsNode> nodeList) {
         if (nodeList == null || nodeList.isEmpty()) {

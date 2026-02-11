@@ -4,17 +4,19 @@ import com.alibaba.fastjson.JSONObject;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 
+import java.util.List;
+
 @Data
 public class ChatResponse {
 
-    private String answer;
+    private List<String> answerTextList;
     private Integer messageTokens;
     private Integer answerTokens;
     @JsonIgnore
     private JSONObject runDetails;
 
-    public ChatResponse(String answer, JSONObject runDetails) {
-        this.answer = answer;
+    public ChatResponse(List<String> answerTextList, JSONObject runDetails) {
+        this.answerTextList = answerTextList;
         this.runDetails = runDetails;
     }
 
@@ -32,5 +34,9 @@ public class ChatResponse {
                 .filter(row -> row.containsKey("answerTokens") && row.get("answerTokens") != null)
                 .mapToInt(row -> row.getIntValue("answerTokens"))
                 .sum();
+    }
+
+    public String getAnswer() {
+        return String.join("\n\n", answerTextList);
     }
 }

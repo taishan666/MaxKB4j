@@ -37,6 +37,7 @@ import java.time.LocalTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 
 /**
  * @author tarzan
@@ -120,7 +121,7 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
         }
         if (!visitCountCheck(chatParams)) {
             sink.tryEmitError(new AccessNumLimitException());
-            return new ChatResponse("", null);
+            return new ChatResponse(List.of(""), null);
         }
         List<ApplicationChatRecordEntity> historyChatRecordList = chatRecordService.getChatRecords(chatParams.getChatId());
         chatParams.setHistoryChatRecords(historyChatRecordList);
@@ -138,7 +139,16 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
     }
 
     public CompletableFuture<ChatResponse> chatMessageAsync(ChatParams chatParams, Sinks.Many<ChatMessageVO> sink) {
-        return CompletableFuture.supplyAsync(() -> chatMessage(chatParams, sink), chatTaskExecutor);
+        return CompletableFuture.supplyAsync(() -> chatMessage(chatParams, sink), chatTaskExecutor)
+                .exceptionally(throwable -> {
+                    // 记录异常日志（关键！）
+                    log.error("Async chatMessage failed", throwable);
+                    // 可选：向 sink 发送错误消息（如果前端需要感知）
+                    sink.tryEmitError(throwable);
+                    // 返回一个默认/空响应，或重新抛出（但需包装为 CompletionException）
+                    throw new CompletionException(throwable); // 如果调用方需要捕获
+                    // 或 return ChatResponse.empty(); // 如果允许返回默认值
+                });
     }
 
     public boolean visitCountCheck(ChatParams chatParams) {

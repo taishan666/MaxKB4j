@@ -39,7 +39,6 @@ public class LoopNodeHandler implements INodeHandler {
 
     private final WorkflowHandler workflowHandler;
 
-
     @SuppressWarnings("unchecked")
     @Override
     public NodeResult execute(Workflow workflow, AbsNode node) throws Exception {
@@ -125,7 +124,7 @@ public class LoopNodeHandler implements INodeHandler {
                     details,
                     nodeSink);
             // 异步执行
-            CompletableFuture<String> future = workflowHandler.executeAsync(loopWorkflow);
+            CompletableFuture<Void> future = workflowHandler.executeAsync(loopWorkflow);
             AtomicReference<ChildNode> childNode = new AtomicReference<>(null);
             // 订阅并累积 token，同时发送消息
             nodeSink.asFlux().subscribe(e -> {

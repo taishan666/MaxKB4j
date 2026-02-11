@@ -86,7 +86,6 @@ public class NodeResult {
                 workflow.getSink().tryEmitNext(nodeEndVo);
             }
         }
-        workflow.setAnswer(workflow.getAnswer() + node.getAnswerText());
         // 同步更新到工作流上下文
         workflow.getWorkflowContext().appendNode(node);
     }

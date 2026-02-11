@@ -43,7 +43,7 @@ public class Workflow {
     private ChatParams chatParams;
     private List<AbsNode> nodes;
     private List<LfEdge> edges;
-    private String answer;
+    //private List<String> answerTextList;
     /**
      * 上下文管理器
      *  获取工作流上下文
@@ -92,7 +92,6 @@ public class Workflow {
         this.nodes = nodes;
         this.edges = edges;
         this.chatParams = chatParams;
-        this.answer = "";
         this.sink = sink;
         this.workflowContext = new WorkflowContext();
         // 如果chatParams为null，传入空的历史记录列表
@@ -218,6 +217,18 @@ public class Workflow {
         return null;
     }
 
+    public List<String> getAnswerTextList() {
+        List<AbsNode> nodeContext=workflowContext.getNodeContext().stream().filter(e ->nodes.stream().anyMatch(n -> e.getId().equals(n.getId()))).toList();
+        if (nodeContext.isEmpty()) {
+            return List.of("");
+        }
+        List<String> answerTextList = new ArrayList<>();
+        for (AbsNode node : nodeContext) {
+            answerTextList.add(node.getAnswerText());
+        }
+        return answerTextList;
+    }
+
     public JSONObject getRuntimeDetails() {
         JSONObject result = new JSONObject(true);
         List<AbsNode> nodeContext=workflowContext.getNodeContext().stream().filter(e ->nodes.stream().anyMatch(n -> e.getId().equals(n.getId()))).toList();
@@ -291,5 +302,6 @@ public class Workflow {
     public boolean needsSinkOutput() {
         return workflowMode == WorkflowMode.APPLICATION || workflowMode == WorkflowMode.APPLICATION_LOOP;
     }
+
 
 }

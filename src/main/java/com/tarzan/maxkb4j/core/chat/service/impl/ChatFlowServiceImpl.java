@@ -37,9 +37,10 @@ public class ChatFlowServiceImpl implements IChatService {
                 logicFlow.getEdges(),
                 chatParams,
                 sink);
-        String answer = workflowHandler.execute(workflow);
+        workflowHandler.execute(workflow);
+        List<String> answerTextList =workflow.getAnswerTextList();
         JSONObject details = workflow.getRuntimeDetails();
-        return new ChatResponse(answer, details);
+        return new ChatResponse(answerTextList, details);
     }
 
 }
