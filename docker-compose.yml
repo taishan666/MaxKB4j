@@ -39,8 +39,8 @@ services:
     restart: always
     logging:
       options:
-        max-size: 10m
-        max-file: 1
+        max-size: "30m"
+        max-file: "3"
     environment:
       - SPRING_DATA_MONGODB_URI=mongodb://tarzan_mongo:ycn4NRhjN2@mongo:27017/MaxKB4j?authSource=admin
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/MaxKB4j
