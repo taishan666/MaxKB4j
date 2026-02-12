@@ -45,7 +45,8 @@ public class VariableAggregationNodeHandler implements INodeHandler {
             String field = e.getVariable().get(1);
             AbsNode lfNode = workflow.getNode(nodeId);
             Object value = workflow.getVariableResolver().getReferenceField(nodeId, field);
-            e.setNodeName(lfNode.getProperties().getString("nodeName"));
+            String nodeName = lfNode.getProperties().getString("nodeName");
+            e.setNodeName(nodeName==null?"未知":nodeName);
             e.setField(field);
             e.setValue(value);
         }

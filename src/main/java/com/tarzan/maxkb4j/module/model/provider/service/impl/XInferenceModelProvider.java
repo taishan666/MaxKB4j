@@ -47,7 +47,7 @@ public class XInferenceModelProvider extends IModelProvider {
 
     @Override
     public ModelCredentialForm getModelCredential() {
-        return new ModelCredentialForm(false,BASE_URL);
+        return new ModelCredentialForm(true,BASE_URL);
     }
 
     @Override

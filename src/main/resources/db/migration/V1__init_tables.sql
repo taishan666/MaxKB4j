@@ -236,7 +236,7 @@ ALTER TABLE "public"."application_api_key" ADD CONSTRAINT "application_api_key_u
 -- ----------------------------
 DROP TABLE IF EXISTS "public"."application_chat";
 CREATE TABLE "public"."application_chat" (
-                                             "id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
+                                           "id" varchar(120) COLLATE "pg_catalog"."default" NOT NULL,
                                              "summary" varchar(1024) COLLATE "pg_catalog"."default" NOT NULL,
                                              "chat_user_id" varchar COLLATE "pg_catalog"."default",
                                              "chat_user_type" varchar(64) COLLATE "pg_catalog"."default" NOT NULL,
