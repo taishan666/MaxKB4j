@@ -27,6 +27,8 @@ import java.util.List;
 public class PDFParser extends PDFTextStripper {
 
     private final List<TextLine> lines;
+    private final static PDFParser converter = new PDFParser();
+    private final static PDFTextStripper stripper = new PDFTextStripper();
     private final static InferenceEngine engine = InferenceEngine.getInstance(Model.ONNX_PPOCR_V4);
 
     public PDFParser() {
@@ -77,7 +79,6 @@ public class PDFParser extends PDFTextStripper {
                 if (isScannedPDF(document)) {
                     return extractTextFromScannedPDF(document);
                 }
-                PDFParser converter = new PDFParser();
                 converter.setStartPage(1);
                 converter.setEndPage(document.getNumberOfPages());
                 converter.getText(document); // 触发 writeString 调用
@@ -93,7 +94,6 @@ public class PDFParser extends PDFTextStripper {
     }
 
     public static boolean isScannedPDF(PDDocument document) throws IOException {
-        PDFTextStripper stripper = new PDFTextStripper();
         String text = stripper.getText(document);
         // 去除空白字符后判断是否为空或极短
         String cleanText = text.replaceAll("\\s+", "");
