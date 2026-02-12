@@ -1,5 +1,6 @@
 package com.tarzan.maxkb4j.module.chat.dto;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.workflow.model.Answer;
 import lombok.Data;
@@ -17,6 +18,12 @@ public class ChatResponse {
     public ChatResponse(List<Answer> answerTextList, JSONObject runDetails) {
         this.answerTextList = answerTextList;
         this.runDetails = runDetails;
+    }
+
+    public JSONArray getAnswerJSONArray() {
+        JSONArray array = new JSONArray();
+        array.addAll(answerTextList);
+        return array;
     }
 
     public Integer getMessageTokens() {

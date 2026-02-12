@@ -85,14 +85,14 @@ public abstract class AbsNode {
         return NodeIdGenerator.generateRuntimeNodeId(id, upNodeIdList);
     }
 
-    public List<Answer> getAnswerList() {
+    public List<Answer> getAnswerList(String chatRecordId) {
         if (StringUtils.isNotBlank(answerText)){
             String reasoningContent="";
             Object value=context.get("reasoningContent");
             if (value!=null){
                 reasoningContent=value.toString();
             }
-            return List.of(Answer.builder().content(answerText).reasoningContent(reasoningContent).runtimeNodeId(runtimeNodeId).viewType(viewType).build());
+            return List.of(Answer.builder().content(answerText).reasoningContent(reasoningContent).chatRecordId(chatRecordId).runtimeNodeId(runtimeNodeId).realNodeId(runtimeNodeId).viewType(viewType).build());
         }
         return List.of();
     }

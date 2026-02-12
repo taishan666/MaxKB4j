@@ -9,5 +9,7 @@ public class Answer {
     private String viewType;
     private String content;
     private String reasoningContent;
+    private String chatRecordId;
     private String runtimeNodeId;
+    private String realNodeId;
 }

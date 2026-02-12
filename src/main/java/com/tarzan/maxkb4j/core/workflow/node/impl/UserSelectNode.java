@@ -26,7 +26,7 @@ public class UserSelectNode extends AbsNode {
 
     @Override
     @SuppressWarnings("unchecked")
-    public List<Answer> getAnswerList()  {
+    public List<Answer> getAnswerList(String chatRecordId)  {
         Map<String, Object> formData = (Map<String, Object>) context.getOrDefault("form_data",Map.of());
         boolean isSubmit = (boolean) context.getOrDefault("is_submit",false);
         String runtimeNodeId=this.getRuntimeNodeId();
@@ -36,9 +36,9 @@ public class UserSelectNode extends AbsNode {
         formSetting.put("is_submit", isSubmit);
         formSetting.put("form_data", formData);
         formSetting.put("runtimeNodeId", runtimeNodeId);
+        formSetting.put("chatRecordId", chatRecordId);
         String formRender = "<card_selection_render>" + formSetting + "</card_selection_render>";
-        return List.of(Answer.builder().content(formRender).reasoningContent("").runtimeNodeId(runtimeNodeId).viewType(this.getViewType()).build());
-
+        return List.of(Answer.builder().content(formRender).reasoningContent("").chatRecordId(chatRecordId).runtimeNodeId(runtimeNodeId).realNodeId(runtimeNodeId).viewType(this.getViewType()).build());
     }
 
     @Data

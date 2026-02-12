@@ -224,7 +224,7 @@ public class Workflow {
         }
         List<Answer> answerTextList = new ArrayList<>();
         for (AbsNode node : nodeContext) {
-            answerTextList.addAll(node.getAnswerList());
+            answerTextList.addAll(node.getAnswerList(chatParams.getChatRecordId()));
         }
         return answerTextList;
     }
