@@ -1,5 +1,6 @@
 package com.tarzan.maxkb4j.module.application.handler.impl;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.tarzan.maxkb4j.module.application.domain.dto.ChatInfo;
@@ -40,7 +41,7 @@ public class ChatPostHandler implements PostResponseHandler {
         float runTime = (System.currentTimeMillis() - startTime) / 1000F;
         ChatInfo chatInfo = ChatCache.get(chatId);
         String answerText = chatResponse.getAnswer();
-        List<String> answerTextList=chatResponse.getAnswerTextList();
+        JSONArray answerTextList=chatResponse.getAnswerJSONArray();
         int messageTokens = chatResponse.getMessageTokens();
         int answerTokens = chatResponse.getAnswerTokens();
         JSONObject details = chatResponse.getRunDetails();

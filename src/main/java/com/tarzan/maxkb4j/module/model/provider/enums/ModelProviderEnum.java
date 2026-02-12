@@ -15,6 +15,7 @@ public enum ModelProviderEnum {
     Gemini("Google Gemini","Gemini", new GeminiModelProvider()),
     Kimi("Kimi","Kimi", new KimiModelProvider()),
     OpenAI("OpenAI","OpenAI", new OpenAiModelProvider()),
+    SiliconFlow("Silicon Flow","SiliconFlow", new SiliconFlowModelProvider()),
     Tencent("腾讯混元","Tencent", new TencentModelProvider()),
     VolcanicEngine("火山引擎","VolcanicEngine", new VolcanicEngineModelProvider()),
     WenXin("文心一言","WenXin", new WenXinModelProvider()),

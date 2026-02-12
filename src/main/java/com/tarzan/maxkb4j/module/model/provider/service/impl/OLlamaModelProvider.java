@@ -20,6 +20,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class OLlamaModelProvider extends IModelProvider {
+
+    private final static String BASE_URL = "http://host.docker.internal:11434";
+
     @Override
     public ModelProviderInfo getBaseInfo() {
         ModelProviderInfo info = new ModelProviderInfo(ModelProviderEnum.OLlama);
@@ -30,18 +33,18 @@ public class OLlamaModelProvider extends IModelProvider {
     @Override
     public List<ModelInfo> getModelList() {
         List<ModelInfo> modelInfos = new ArrayList<>();
-        modelInfos.add(new ModelInfo("qwen:7b","", ModelType.LLM, new LlmModelParams()));
-        modelInfos.add(new ModelInfo("llama3:8b","", ModelType.LLM, new LlmModelParams()));
-        modelInfos.add(new ModelInfo("deepseek-r1:8b","", ModelType.LLM,new LlmModelParams()));
-        modelInfos.add(new ModelInfo("nomic-embed-text","", ModelType.EMBEDDING));
-        modelInfos.add(new ModelInfo("llava:7b","", ModelType.VISION, new LlmModelParams()));
-        modelInfos.add(new ModelInfo("llava:13b","", ModelType.VISION,new LlmModelParams()));
+        modelInfos.add(new ModelInfo("qwen:7b", "", ModelType.LLM, new LlmModelParams()));
+        modelInfos.add(new ModelInfo("llama3:8b", "", ModelType.LLM, new LlmModelParams()));
+        modelInfos.add(new ModelInfo("deepseek-r1:8b", "", ModelType.LLM, new LlmModelParams()));
+        modelInfos.add(new ModelInfo("nomic-embed-text", "", ModelType.EMBEDDING));
+        modelInfos.add(new ModelInfo("llava:7b", "", ModelType.VISION, new LlmModelParams()));
+        modelInfos.add(new ModelInfo("llava:13b", "", ModelType.VISION, new LlmModelParams()));
         return modelInfos;
     }
 
     @Override
     public ModelCredentialForm getModelCredential() {
-        return new ModelCredentialForm(true, false,"http://host.docker.internal:11434");
+        return new ModelCredentialForm(false, BASE_URL);
     }
 
     @Override

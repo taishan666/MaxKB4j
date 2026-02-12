@@ -2,6 +2,7 @@ package com.tarzan.maxkb4j.core.workflow.node;
 
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.core.workflow.enums.NodeStatus;
+import com.tarzan.maxkb4j.core.workflow.model.Answer;
 import com.tarzan.maxkb4j.core.workflow.model.Workflow;
 import com.tarzan.maxkb4j.core.workflow.service.TemplateRenderer;
 import com.tarzan.maxkb4j.core.workflow.util.MessageConverter;
@@ -84,9 +85,14 @@ public abstract class AbsNode {
         return NodeIdGenerator.generateRuntimeNodeId(id, upNodeIdList);
     }
 
-    public List<String> getAnswerTextList() {
+    public List<Answer> getAnswerList(String chatRecordId) {
         if (StringUtils.isNotBlank(answerText)){
-            return List.of(answerText);
+            String reasoningContent="";
+            Object value=context.get("reasoningContent");
+            if (value!=null){
+                reasoningContent=value.toString();
+            }
+            return List.of(Answer.builder().content(answerText).reasoningContent(reasoningContent).chatRecordId(chatRecordId).runtimeNodeId(runtimeNodeId).realNodeId(runtimeNodeId).viewType(viewType).build());
         }
         return List.of();
     }

@@ -17,6 +17,9 @@ import dev.langchain4j.model.localai.LocalAiStreamingChatModel;
 import java.util.List;
 
 public class LocalAIModelProvider extends IModelProvider {
+
+    private final static String BASE_URL = "http://host.docker.internal:8080";
+
     @Override
     public ModelProviderInfo getBaseInfo() {
         ModelProviderInfo info = new ModelProviderInfo(ModelProviderEnum.LocalAI);
@@ -26,7 +29,7 @@ public class LocalAIModelProvider extends IModelProvider {
 
     @Override
     public ModelCredentialForm getModelCredential() {
-        return new ModelCredentialForm(true, false,"http://host.docker.internal:8080");
+        return new ModelCredentialForm( false,BASE_URL);
     }
 
     @Override
@@ -41,7 +44,6 @@ public class LocalAIModelProvider extends IModelProvider {
                 .baseUrl(credential.getBaseUrl())
                 .modelName(modelName)
                 .temperature(params.getDouble("temperature"))
-                .topP(params.getDouble("topP"))
                 .maxTokens(params.getInteger("maxTokens"))
                 .build();
     }
@@ -52,7 +54,6 @@ public class LocalAIModelProvider extends IModelProvider {
                 .baseUrl(credential.getBaseUrl())
                 .modelName(modelName)
                 .temperature(params.getDouble("temperature"))
-                .topP(params.getDouble("topP"))
                 .maxTokens(params.getInteger("maxTokens"))
                 .build();
     }

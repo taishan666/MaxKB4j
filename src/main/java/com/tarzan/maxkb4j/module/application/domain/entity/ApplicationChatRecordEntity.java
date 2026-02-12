@@ -1,5 +1,6 @@
 package com.tarzan.maxkb4j.module.application.domain.entity;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
@@ -32,8 +33,8 @@ public class ApplicationChatRecordEntity extends BaseEntity {
 	private Float runTime;
 	private Integer index;
 	private String chatId;
-	@TableField(typeHandler = StringListTypeHandler.class)
-	private List<String> answerTextList;
+	@TableField(typeHandler = JSONBTypeHandler.class)
+	private JSONArray answerTextList;
 
     public JSONObject getNodeDetailsByRuntimeNodeId(String runtimeNodeId) {
 		return details.getJSONObject(runtimeNodeId);

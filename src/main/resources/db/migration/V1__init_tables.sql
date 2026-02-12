@@ -287,7 +287,7 @@ CREATE TABLE "public"."application_chat_record" (
                                                     "run_time" float8 NOT NULL,
                                                     "index" int4 NOT NULL,
                                                     "chat_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
-                                                    "answer_text_list" varchar[] COLLATE "pg_catalog"."default",
+                                                    "answer_text_list" jsonb NOT NULL,
                                                     "create_time" timestamp(6) NOT NULL,
                                                     "update_time" timestamp(6) NOT NULL
 );

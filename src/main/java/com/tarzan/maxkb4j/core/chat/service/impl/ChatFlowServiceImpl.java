@@ -7,6 +7,7 @@ import com.tarzan.maxkb4j.core.workflow.builder.NodeBuilder;
 import com.tarzan.maxkb4j.core.workflow.enums.WorkflowMode;
 import com.tarzan.maxkb4j.core.workflow.handler.WorkflowHandler;
 import com.tarzan.maxkb4j.core.workflow.logic.LogicFlow;
+import com.tarzan.maxkb4j.core.workflow.model.Answer;
 import com.tarzan.maxkb4j.core.workflow.model.Workflow;
 import com.tarzan.maxkb4j.core.workflow.node.AbsNode;
 import com.tarzan.maxkb4j.module.application.domain.vo.ApplicationVO;
@@ -38,7 +39,7 @@ public class ChatFlowServiceImpl implements IChatService {
                 chatParams,
                 sink);
         workflowHandler.execute(workflow);
-        List<String> answerTextList =workflow.getAnswerTextList();
+        List<Answer> answerTextList =workflow.getAnswerTextList();
         JSONObject details = workflow.getRuntimeDetails();
         return new ChatResponse(answerTextList, details);
     }

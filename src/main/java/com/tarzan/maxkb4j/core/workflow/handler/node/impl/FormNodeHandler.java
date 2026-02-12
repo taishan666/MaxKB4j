@@ -32,9 +32,9 @@ public class FormNodeHandler implements INodeHandler {
             JSONArray formFieldList = nodeParams.getFormFieldList();
             JSONObject formSetting = new JSONObject();
             formSetting.put("form_field_list", formFieldList);
-            String form = "<form_render>" + formSetting + "</form_render>";
+            String formRender = "<form_render>" + formSetting + "</form_render>";
             String formContentFormat = nodeParams.getFormContentFormat();
-            String answerText =workflow.getTemplateRenderer().render(formContentFormat,Map.of("form", form));
+            String answerText =workflow.getTemplateRenderer().render(formContentFormat,Map.of("form", formRender));
             node.setAnswerText(answerText);
             nodeVariable.put("form_field_list", formFieldList);
             nodeVariable.put("form_content_format", formContentFormat);
