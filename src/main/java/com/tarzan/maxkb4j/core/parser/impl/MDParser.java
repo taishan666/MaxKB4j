@@ -6,14 +6,15 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.io.InputStream;
+import java.util.List;
 
 @RequiredArgsConstructor
 @Component
-public class MarkDownParser implements DocumentParser {
+public class MDParser implements DocumentParser {
 
     @Override
-    public boolean support(String fileName) {
-        return fileName.endsWith(".md");
+    public List<String> getExtensions() {
+        return List.of(".md");
     }
 
     @Override

@@ -40,8 +40,8 @@ public class DocParser implements DocumentParser {
     private final MongoFileService fileService;
 
     @Override
-    public boolean support(String fileName) {
-        return fileName.endsWith(".doc") || fileName.endsWith(".docx");
+    public List<String> getExtensions() {
+        return List.of(".doc", ".docx");
     }
 
     @Override

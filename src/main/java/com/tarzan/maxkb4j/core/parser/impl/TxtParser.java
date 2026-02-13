@@ -7,15 +7,17 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.io.InputStream;
+import java.util.List;
 
 @RequiredArgsConstructor
 @Component
 public class TxtParser implements DocumentParser {
 
     @Override
-    public boolean support(String fileName) {
-        return fileName.endsWith(".txt");
+    public List<String> getExtensions() {
+        return List.of(".txt");
     }
+
 
     @Override
     public String handle(InputStream inputStream) {

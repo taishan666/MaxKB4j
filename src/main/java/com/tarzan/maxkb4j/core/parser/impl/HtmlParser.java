@@ -8,14 +8,15 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.io.InputStream;
+import java.util.List;
 
 @RequiredArgsConstructor
 @Component
 public class HtmlParser implements DocumentParser {
 
     @Override
-    public boolean support(String fileName) {
-        return fileName.endsWith(".html");
+    public List<String> getExtensions() {
+        return List.of(".html", ".htm");
     }
 
     @Override

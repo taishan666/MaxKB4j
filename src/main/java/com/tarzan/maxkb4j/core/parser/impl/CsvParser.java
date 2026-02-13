@@ -23,8 +23,8 @@ import java.util.List;
 public class CsvParser implements DocumentParser {
 
     @Override
-    public boolean support(String fileName) {
-        return fileName != null && fileName.toLowerCase().endsWith(".csv");
+    public List<String> getExtensions() {
+        return List.of(".csv");
     }
 
     @Override

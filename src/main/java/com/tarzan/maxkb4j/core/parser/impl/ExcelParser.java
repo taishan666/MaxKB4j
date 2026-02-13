@@ -20,8 +20,8 @@ import java.util.Map;
 public class ExcelParser implements DocumentParser {
 
     @Override
-    public boolean support(String fileName) {
-        return fileName.endsWith(".xls")||fileName.endsWith(".xlsx");
+    public List<String> getExtensions() {
+        return List.of(".xls", ".xlsx");
     }
 
     @Override
