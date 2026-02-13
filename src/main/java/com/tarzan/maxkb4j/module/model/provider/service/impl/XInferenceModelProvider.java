@@ -39,11 +39,8 @@ public class XInferenceModelProvider extends IModelProvider {
     public List<ModelInfo> getModelList() {
         List<ModelInfo> modelInfos = new ArrayList<>();
         modelInfos.add(new ModelInfo("qwen3:8b", "", ModelType.LLM,  new LlmModelParams()));
-        modelInfos.add(new ModelInfo("llama3:8b", "", ModelType.LLM,  new LlmModelParams()));
-        modelInfos.add(new ModelInfo("deepseek-r1:8b", "", ModelType.LLM,  new LlmModelParams()));
-        modelInfos.add(new ModelInfo("bge-base-zh", "", ModelType.EMBEDDING,  new LlmModelParams()));
+        modelInfos.add(new ModelInfo("bge-m3", "", ModelType.EMBEDDING,  new LlmModelParams()));
         modelInfos.add(new ModelInfo("llava:7b", "", ModelType.VISION,  new LlmModelParams()));
-        modelInfos.add(new ModelInfo("llava:13b", "", ModelType.VISION,  new LlmModelParams()));
         modelInfos.add(new ModelInfo("sdxl-turbo", "", ModelType.TTI,  new LlmModelParams()));
         modelInfos.add(new ModelInfo("bge-reranker-base","",ModelType.RERANKER));
         modelInfos.add(new ModelInfo("ChatTTS","",ModelType.TTS));
