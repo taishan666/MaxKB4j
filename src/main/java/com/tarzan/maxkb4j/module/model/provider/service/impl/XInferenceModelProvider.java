@@ -1,7 +1,11 @@
 package com.tarzan.maxkb4j.module.model.provider.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.tarzan.maxkb4j.module.model.custom.base.STTModel;
+import com.tarzan.maxkb4j.module.model.custom.base.TTSModel;
 import com.tarzan.maxkb4j.module.model.custom.credential.ModelCredentialForm;
+import com.tarzan.maxkb4j.module.model.custom.model.OpenAiSTTModel;
+import com.tarzan.maxkb4j.module.model.custom.model.OpenAiTTSModel;
 import com.tarzan.maxkb4j.module.model.custom.params.impl.LlmModelParams;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelCredential;
 import com.tarzan.maxkb4j.module.model.provider.enums.ModelProviderEnum;
@@ -41,7 +45,9 @@ public class XInferenceModelProvider extends IModelProvider {
         modelInfos.add(new ModelInfo("llava:7b", "", ModelType.VISION,  new LlmModelParams()));
         modelInfos.add(new ModelInfo("llava:13b", "", ModelType.VISION,  new LlmModelParams()));
         modelInfos.add(new ModelInfo("sdxl-turbo", "", ModelType.TTI,  new LlmModelParams()));
-        modelInfos.add(new ModelInfo("linux6200/bge-reranker-v2-m3","",ModelType.RERANKER));
+        modelInfos.add(new ModelInfo("bge-reranker-base","",ModelType.RERANKER));
+        modelInfos.add(new ModelInfo("ChatTTS","",ModelType.TTS));
+        modelInfos.add(new ModelInfo("whisper-large-v3","",ModelType.STT));
         return modelInfos;
     }
 
@@ -93,6 +99,16 @@ public class XInferenceModelProvider extends IModelProvider {
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
                 .build();
+    }
+
+    @Override
+    public STTModel buildSTTModel(String modelName, ModelCredential credential, JSONObject params) {
+        return new OpenAiSTTModel(modelName, credential, params);
+    }
+
+    @Override
+    public TTSModel buildTTSModel(String modelName, ModelCredential credential, JSONObject params) {
+        return new OpenAiTTSModel(modelName, credential, params);
     }
 
 
