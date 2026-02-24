@@ -157,8 +157,16 @@ public class Workflow {
         if (currentNodeResult == null || currentNodeResult.isInterruptExec(currentNode)) {
             return List.of();
         }
+        // 获取从当前节点出发的所有边，并去重（相同 sourceNodeId + targetNodeId 只保留一条）
+        Set<String> seenKeys = new HashSet<>();
         // 处理非断言结果分支
-        List<LfEdge> sourceEdges = edges.stream().filter(edge -> edge.getSourceNodeId().equals(currentNode.getId())).toList();
+        List<LfEdge> sourceEdges = edges.stream()
+                .filter(edge -> edge.getSourceNodeId().equals(currentNode.getId()))
+                .filter(edge -> {
+                    String key = edge.getSourceNodeId() + "|" + edge.getTargetNodeId();
+                    return seenKeys.add(key); // add 返回 true 表示是新 key，保留；false 表示重复，过滤
+                })
+                .toList();
         // 获取节点实例并添加到列表
         return sourceEdges.stream().map(edge -> {
             List<String> upNodeIdList = new ArrayList<>(currentNode.getUpNodeIdList());

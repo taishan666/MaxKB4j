@@ -30,7 +30,10 @@ public class UserSelectNode extends AbsNode {
         Map<String, Object> formData = (Map<String, Object>) context.getOrDefault("form_data",Map.of());
         boolean isSubmit = (boolean) context.getOrDefault("is_submit",false);
         String runtimeNodeId=this.getRuntimeNodeId();
-        JSONArray formFieldList =(JSONArray)context.getOrDefault("form_field_list", new JSONArray());
+        JSONArray formFieldList =new JSONArray();
+        if (!formData.isEmpty()){
+             formFieldList =(JSONArray)context.getOrDefault("form_field_list", new JSONArray());
+        }
         JSONObject formSetting = new JSONObject();
         formSetting.put("form_field_list", formFieldList);
         formSetting.put("is_submit", isSubmit);
