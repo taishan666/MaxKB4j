@@ -91,7 +91,7 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
     }
 
 
-    //todo 优化，考虑放到redis中
+
     public ChatInfo getChatInfo(String chatId,String appId) {
         ChatInfo chatInfo = ChatCache.get(chatId);
         if (chatInfo == null) {
@@ -116,9 +116,6 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
     public ChatResponse chatMessage(ChatParams chatParams, Sinks.Many<ChatMessageVO> sink) {
         long startTime = System.currentTimeMillis();
         ChatInfo chatInfo = this.getChatInfo(chatParams.getChatId(),chatParams.getAppId());
-        if (StringUtils.isEmpty(chatParams.getAppId())) {
-            chatParams.setAppId(chatInfo.getAppId());
-        }
         if (!visitCountCheck(chatParams)) {
             sink.tryEmitError(new AccessNumLimitException());
             return new ChatResponse(List.of(), null);
@@ -129,7 +126,7 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
             ApplicationChatRecordEntity chatRecord = historyChatRecordList.stream().filter(e -> e.getId().equals(chatParams.getChatRecordId())).findFirst().orElse(null);
             chatParams.setChatRecord(chatRecord);
         }
-        ApplicationVO application = applicationService.getAppDetail(chatParams.getAppId(), chatParams.getDebug());
+        ApplicationVO application = applicationService.getAppDetail(chatInfo.getAppId(), chatParams.getDebug());
         IChatService chatService = ChatServiceBuilder.getChatService(application.getType());
         ChatResponse chatResponse = chatService.chatMessage(application, chatParams, sink);
         postResponseHandler.handler(chatParams, chatResponse, startTime);

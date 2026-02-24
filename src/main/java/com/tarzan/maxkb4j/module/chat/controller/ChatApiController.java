@@ -182,6 +182,7 @@ public class ChatApiController {
     @Hidden
     @PostMapping("/speech_to_text")
     public R<String> speechToText(MultipartFile file) throws IOException {
+        StpKit.USER.setTokenValue( WebUtil.getTokenValue());
         String appId = (String) StpKit.USER.getExtra("applicationId");
         return R.data(applicationService.speechToText(appId, file));
     }
@@ -193,7 +194,8 @@ public class ChatApiController {
         // 设置 HTTP 响应头
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.parseMediaType("audio/mp3"));
-        String appId = StpKit.USER.getLoginIdAsString().split("-")[1];
+        StpKit.USER.setTokenValue(WebUtil.getTokenValue());
+        String appId = (String) StpKit.USER.getExtra("applicationId");
         return new ResponseEntity<>(applicationService.textToSpeech(appId, data), headers, HttpStatus.OK);
     }
 
