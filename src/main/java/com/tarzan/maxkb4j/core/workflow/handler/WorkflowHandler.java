@@ -27,9 +27,9 @@ public class WorkflowHandler {
         if (currentNode == null) {
             currentNode = workflow.getStartNode();
         }
-        log.info("工作流开始-开始节点:{}", currentNode.getType());
+        log.info("工作流-开始");
         runChainNodes(workflow, List.of(currentNode));
-        log.info("工作流结束");
+        log.info("工作流-结束");
     }
 
 
