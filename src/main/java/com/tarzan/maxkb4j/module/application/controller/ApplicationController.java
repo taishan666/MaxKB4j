@@ -122,13 +122,13 @@ public class ApplicationController {
         // 设置 HTTP 响应头
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.parseMediaType("audio/mp3"));
-        return new ResponseEntity<>(applicationService.textToSpeech(id, data), headers, HttpStatus.OK);
+        return new ResponseEntity<>(applicationService.textToSpeech(id, data,true), headers, HttpStatus.OK);
     }
 
     @SaCheckPerm(PermissionEnum.APPLICATION_READ)
     @PostMapping("/application/{id}/speech_to_text")
     public R<String> speechToText(@PathVariable("id") String id, MultipartFile file) throws IOException {
-        return R.data(applicationService.speechToText(id, file));
+        return R.data(applicationService.speechToText(id, file,true));
     }
 
 

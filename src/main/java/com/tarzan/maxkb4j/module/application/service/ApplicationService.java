@@ -262,9 +262,9 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         return ttsModel.textToSpeech("你好，这里是语音播放测试");
     }
 
-    public byte[] textToSpeech(String appId, JSONObject data) {
+    public byte[] textToSpeech(String appId, JSONObject data,boolean debug) {
         String text = data.getString("text");
-        ApplicationEntity app = this.getById(appId);
+        ApplicationEntity app = this.getAppDetail(appId,debug);
         if ("BROWSER".equals(app.getTtsType())) {
             return new byte[0];
         }
@@ -337,8 +337,8 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         return application;
     }
 
-    public String speechToText(String appId, MultipartFile file) throws IOException {
-        ApplicationEntity app = this.getById(appId);
+    public String speechToText(String appId, MultipartFile file,boolean debug) throws IOException {
+        ApplicationEntity app = this.getAppDetail(appId,debug);
         STTModel sttModel = modelFactory.buildSTTModel(app.getSttModelId());
         String suffix = Objects.requireNonNull(file.getContentType()).split("/")[1];
         return sttModel.speechToText(file.getBytes(), suffix);
