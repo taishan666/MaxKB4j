@@ -6,8 +6,8 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.tarzan.maxkb4j.common.domain.api.R;
 import com.tarzan.maxkb4j.common.constant.AppConst;
+import com.tarzan.maxkb4j.common.domain.api.R;
 import com.tarzan.maxkb4j.common.exception.ApiException;
 import com.tarzan.maxkb4j.common.util.StpKit;
 import com.tarzan.maxkb4j.common.util.WebUtil;
@@ -31,6 +31,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyEmitter;
 import reactor.core.publisher.Sinks;
 
@@ -179,6 +180,14 @@ public class ChatApiController {
     }
 
     @Hidden
+    @PostMapping("/speech_to_text")
+    public R<String> speechToText(MultipartFile file) throws IOException {
+        String appId = (String) StpKit.USER.getExtra("applicationId");
+        return R.data(applicationService.speechToText(appId, file));
+    }
+
+
+    @Hidden
     @PostMapping("/text_to_speech")
     public ResponseEntity<byte[]> textToSpeech(@RequestBody JSONObject data) {
         // 设置 HTTP 响应头
@@ -187,6 +196,7 @@ public class ChatApiController {
         String appId = StpKit.USER.getLoginIdAsString().split("-")[1];
         return new ResponseEntity<>(applicationService.textToSpeech(appId, data), headers, HttpStatus.OK);
     }
+
 
     /**
      * 嵌入第三方
