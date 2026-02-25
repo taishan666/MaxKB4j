@@ -1,5 +1,6 @@
 package com.tarzan.maxkb4j.common.util;
 
+import com.alibaba.fastjson.JSON;
 import dev.langchain4j.agent.tool.ToolExecutionRequest;
 import dev.langchain4j.internal.Json;
 import dev.langchain4j.internal.Utils;
@@ -28,10 +29,11 @@ public class GroovyScriptExecutor implements ToolExecutor {
     @Override
     public String execute(ToolExecutionRequest toolExecutionRequest,  Object memoryId) {
         Map<String, Object> params = argumentsAsMap(toolExecutionRequest.arguments());
-        return execute(params);
+        Object value= execute(params);
+        return JSON.toJSONString(value);
     }
 
-    public String execute(Map<String, Object> params) {
+    public Object execute(Map<String, Object> params) {
         Object result="";
         if(StringUtils.isNotBlank(code)){
             if (initParams!=null){
@@ -42,7 +44,7 @@ public class GroovyScriptExecutor implements ToolExecutor {
             GroovyShell shell = new GroovyShell(binding);
             result = shell.evaluate(code);
         }
-        return result.toString();
+        return result;
     }
 
     private static final Type MAP_TYPE = new ParameterizedType() {

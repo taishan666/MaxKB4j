@@ -51,19 +51,21 @@ public class LoopNodeHandler implements INodeHandler {
         if ("ARRAY".equals(loopType)) {
             Object value = workflow.getReferenceField(array);
             if (value != null) {
+                List<Object> list;
                 if (value instanceof List<?>) {
-                    List<Object> list = (List<Object>) value;
-                    loopDetails = generateLoopArray(list, workflow, loopBody, node);
-                } else {
+                    list = (List<Object>) value;
+                }else if (value instanceof String) {
                     Gson gson = new Gson();
                     String inputStr = value.toString().trim();
-                    if (!inputStr.startsWith("[") && !inputStr.endsWith("]")) {
-                        inputStr = "[" + inputStr + "]";
+                    if (inputStr.startsWith("[") && inputStr.endsWith("]")) {
+                        list= gson.fromJson(inputStr, new TypeToken<List<Object>>() {}.getType());
+                    }else {
+                        list= List.of(value);
                     }
-                    List<Object> resultList = gson.fromJson(inputStr, new TypeToken<List<Object>>() {
-                    }.getType());
-                    loopDetails = generateLoopArray(resultList, workflow, loopBody, node);
+                } else {
+                    list= List.of(value);
                 }
+                loopDetails = generateLoopArray(list, workflow, loopBody, node);
             }
         } else if ("LOOP".equals(loopType)) {
             loopDetails = generateLoopNumber(1000, workflow, loopBody, node);
