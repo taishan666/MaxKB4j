@@ -246,6 +246,7 @@ public class Workflow {
         for (int index = 0; index < nodeContext.size(); index++) {
             AbsNode node = nodeContext.get(index);
             JSONObject runtimeDetail = new JSONObject(true);
+            runtimeDetail.putAll(node.getDetail());
             runtimeDetail.put("index", index);
             runtimeDetail.put("nodeId", node.getId());
             runtimeDetail.put("name", node.getProperties().getString("nodeName"));
@@ -254,7 +255,6 @@ public class Workflow {
             runtimeDetail.put("type", node.getType());
             runtimeDetail.put("status", node.getStatus());
             runtimeDetail.put("errMessage", node.getErrMessage());
-            runtimeDetail.putAll(node.getDetail());
             result.put(node.getRuntimeNodeId(), runtimeDetail);
         }
         return result;

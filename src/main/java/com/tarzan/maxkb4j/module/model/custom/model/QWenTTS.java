@@ -6,20 +6,18 @@ import com.alibaba.dashscope.aigc.multimodalconversation.MultiModalConversationP
 import com.alibaba.dashscope.aigc.multimodalconversation.MultiModalConversationResult;
 import com.alibaba.dashscope.exception.NoApiKeyException;
 import com.alibaba.dashscope.exception.UploadFileException;
-import com.alibaba.dashscope.utils.JsonUtils;
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.module.model.custom.base.TTSModel;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelCredential;
-import io.reactivex.Flowable;
 import lombok.Data;
-import org.apache.commons.lang3.StringUtils;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.util.Base64;
 
+@Slf4j
 @Data
 public class QWenTTS  implements TTSModel{
     private MultiModalConversationParam param;
@@ -61,27 +59,4 @@ public class QWenTTS  implements TTSModel{
         }
     }
 
-    public byte[] textToSpeech1(String text) {
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        MultiModalConversation conv = new MultiModalConversation();
-        param.setText(text);
-        Flowable<MultiModalConversationResult> result;
-        try {
-            result = conv.streamCall(param);
-        } catch (NoApiKeyException | UploadFileException e) {
-            throw new RuntimeException(e);
-        }
-        result.blockingForEach(r -> {
-            System.out.println("result: " + JsonUtils.toJson(r));
-            String dataStr= r.getOutput().getAudio().getData();
-            if (StringUtils.isNotBlank(dataStr)){
-                //Base64 解码为字节流
-                byte[] byteArray = Base64.getDecoder().decode(dataStr);
-                System.out.println("byteArray  length:  " + byteArray.length);
-                outputStream.write(byteArray);
-            }
-        });
-        System.out.println("outputStream  length:  " + outputStream.toByteArray().length);
-        return outputStream.toByteArray();
-    }
 }

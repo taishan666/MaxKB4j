@@ -40,12 +40,6 @@ public class WorkflowContext {
         this.nodeContext = new CopyOnWriteArrayList<>();
     }
 
-  /*  public WorkflowContext(Map<String, Object> globalContext, Map<String, Object> chatContext) {
-        this.globalContext = globalContext;
-        this.chatContext = chatContext;
-        this.nodeContext = new CopyOnWriteArrayList<>();
-    }*/
-
     /**
      * 添加节点到上下文
      */
@@ -58,6 +52,7 @@ public class WorkflowContext {
             }
         }
         this.nodeContext.add(currentNode);
+
     }
 
 }

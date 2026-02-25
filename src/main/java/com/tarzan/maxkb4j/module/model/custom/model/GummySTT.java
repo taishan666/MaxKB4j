@@ -8,6 +8,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.module.model.custom.base.STTModel;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelCredential;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -18,6 +19,7 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
 
+@Slf4j
 @Data
 public class GummySTT implements STTModel {
 
@@ -65,7 +67,7 @@ public class GummySTT implements STTModel {
 
             @Override
             public void onError(Exception e) {
-                System.out.println("RecognitionCallback error: " + e.getMessage());
+                log.error("RecognitionCallback error: {}", e.getMessage());
             }
         };
         // 将录音音频数据发送给流式识别服务

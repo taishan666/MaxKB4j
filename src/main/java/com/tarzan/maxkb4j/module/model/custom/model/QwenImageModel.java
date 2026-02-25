@@ -12,6 +12,7 @@ import com.tarzan.maxkb4j.module.model.info.entity.ModelCredential;
 import dev.langchain4j.data.image.Image;
 import dev.langchain4j.model.image.ImageModel;
 import dev.langchain4j.model.output.Response;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -19,10 +20,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 public class QwenImageModel implements ImageModel {
 
-    private MultiModalConversationParam param;
-    private Map<String, Object> parameters;
+    private final MultiModalConversationParam param;
+    private final Map<String, Object> parameters;
 
     public QwenImageModel(String modelName, ModelCredential credential, JSONObject params) {
         this.param = MultiModalConversationParam.builder()
@@ -66,14 +68,13 @@ public class QwenImageModel implements ImageModel {
         MultiModalMessage userMessage = MultiModalMessage.builder().role(Role.USER.getValue())
                 .content(List.of(Map.of("text", prompt))).build();
         param.setMessages(Collections.singletonList(userMessage));
-        
+
         List<Image> images = new ArrayList<>();
         try {
             MultiModalConversationResult result = conv.call(param);
             List<Map<String, Object>> contentList = result.getOutput().getChoices().get(0).getMessage().getContent();
             for (Map<String, Object> content : contentList) {
                 if (content.containsKey("image")) {
-                    System.out.println("输出图像的URL：" + content.get("image"));
                     images.add(Image.builder().url(content.get("image").toString()).build());
                 }
             }
@@ -126,7 +127,7 @@ public class QwenImageModel implements ImageModel {
             if (!contentList.isEmpty()) {
                 Map<String, Object> content = contentList.get(0);
                 if (content.containsKey("image")) {
-                    System.out.println("输出图像的URL：" + content.get("image"));
+                    log.info("输出图像的URL：{}", content.get("image"));
                     return Response.from(Image.builder().url(content.get("image").toString()).build());
                 }
             }

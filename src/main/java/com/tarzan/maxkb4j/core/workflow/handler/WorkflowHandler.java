@@ -40,7 +40,6 @@ public class WorkflowHandler {
     }
 
 
-
     public void runChainNodes(Workflow workflow, List<AbsNode> nodeList) {
         if (nodeList == null || nodeList.isEmpty()) {
             return;
