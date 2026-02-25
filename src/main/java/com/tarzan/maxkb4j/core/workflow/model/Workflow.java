@@ -23,7 +23,6 @@ import reactor.core.publisher.Sinks;
 
 import java.util.*;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 /**
  * 工作流模型类
@@ -157,35 +156,27 @@ public class Workflow {
         if (currentNodeResult == null || currentNodeResult.isInterruptExec(currentNode)) {
             return List.of();
         }
-        // 获取从当前节点出发的所有边，并去重（相同 sourceNodeId + targetNodeId 只保留一条）
-        Set<String> seenKeys = new HashSet<>();
         // 处理非断言结果分支
-        List<LfEdge> sourceEdges = edges.stream()
-                .filter(edge -> edge.getSourceNodeId().equals(currentNode.getId()))
-                .filter(edge -> {
-                    String key = edge.getSourceNodeId() + "|" + edge.getTargetNodeId();
-                    return seenKeys.add(key); // add 返回 true 表示是新 key，保留；false 表示重复，过滤
-                })
+        List<LfEdge> sourceEdges = edges.stream().filter(edge -> edge.getSourceNodeId().equals(currentNode.getId())).toList();
+        if (currentNodeResult.isAssertionResult()) {
+            List<LfEdge> targetEdges = sourceEdges.stream().filter(edge -> {
+                Map<String, Object> nodeVariables = currentNodeResult.getNodeVariable();
+                String branchId = nodeVariables != null ? (String) nodeVariables.getOrDefault("branchId", "") : "";
+                String expectedAnchorId = String.format("%s_%s_right", currentNode.getId(), branchId);
+                return expectedAnchorId.equals(edge.getSourceAnchorId());
+            }).toList();
+            return edgesToNodes(targetEdges, currentNode);
+        }else {
+            return edgesToNodes(sourceEdges, currentNode);
+        }
+    }
+
+    private List<AbsNode> edgesToNodes(List<LfEdge> edges, AbsNode currentNode) {
+        List<String> upNodeIdList = new ArrayList<>(currentNode.getUpNodeIdList());
+        upNodeIdList.add(currentNode.getId());
+        return edges.stream()
+                .map(edge -> getNodeClsById(edge.getTargetNodeId(), upNodeIdList, null))
                 .toList();
-        // 获取节点实例并添加到列表
-        return sourceEdges.stream().map(edge -> {
-            List<String> upNodeIdList = new ArrayList<>(currentNode.getUpNodeIdList());
-            upNodeIdList.add(currentNode.getId());
-            AbsNode nextNode = getNodeClsById(edge.getTargetNodeId(), upNodeIdList, null);
-            if (currentNodeResult.isAssertionResult()) {
-                if (edge.getSourceNodeId().equals(currentNode.getId())) {
-                    Map<String, Object> nodeVariables = currentNodeResult.getNodeVariable();
-                    String branchId = nodeVariables != null ? (String) nodeVariables.getOrDefault("branchId", "") : "";
-                    String expectedAnchorId = String.format("%s_%s_right", currentNode.getId(), branchId);
-                    if (!expectedAnchorId.equals(edge.getSourceAnchorId())) {
-                        assert nextNode != null;
-                        nextNode.setStatus(NodeStatus.SKIP.getStatus());
-                    }
-                }
-            }
-            // 获取节点实例并添加到列表
-            return nextNode;
-        }).collect(Collectors.toList());
     }
 
     public boolean dependentNodeBeenExecuted(AbsNode node) {

@@ -34,9 +34,7 @@ public class WorkflowHandler {
 
 
     public CompletableFuture<Void> executeAsync(Workflow workflow) {
-        return CompletableFuture.runAsync(() -> {
-            execute(workflow);
-        });
+        return CompletableFuture.runAsync(() -> execute(workflow));
     }
 
 
