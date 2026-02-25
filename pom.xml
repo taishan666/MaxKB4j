@@ -300,12 +300,6 @@
             <artifactId>langchain4j-local-ai</artifactId>
             <version>${langchain4j.beta.version}</version>
         </dependency>
-        <!--        <dependency>
-            <groupId>dev.langchain4j</groupId>
-            <artifactId>langchain4j-agentic</artifactId>
-            <version>1.9.0-beta16</version>
-        </dependency>-->
-
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-pgvector</artifactId>
@@ -403,7 +397,6 @@
         <dependency>
             <groupId>io.github.mymonstercat</groupId>
             <artifactId>rapidocr-onnx-platform</artifactId>
-            <!--  可前往maven中央仓库https://repo1.maven.org/maven2/io/github/mymonstercat/rapidocr/，查看版本      -->
             <version>0.0.7</version>
         </dependency>
     </dependencies>
