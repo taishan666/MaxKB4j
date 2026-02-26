@@ -4,11 +4,13 @@ import com.tarzan.maxkb4j.common.util.GroovyScriptExecutor;
 import com.tarzan.maxkb4j.core.workflow.annotation.NodeHandlerType;
 import com.tarzan.maxkb4j.core.workflow.enums.NodeType;
 import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;
+import com.tarzan.maxkb4j.core.workflow.model.NodeResult;
 import com.tarzan.maxkb4j.core.workflow.model.Workflow;
 import com.tarzan.maxkb4j.core.workflow.node.AbsNode;
 import com.tarzan.maxkb4j.core.workflow.node.impl.ToolNode;
-import com.tarzan.maxkb4j.core.workflow.model.NodeResult;
+import com.tarzan.maxkb4j.module.oss.service.MongoFileService;
 import com.tarzan.maxkb4j.module.tool.domain.dto.ToolInputField;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
@@ -17,11 +19,16 @@ import java.util.Map;
 
 @NodeHandlerType({NodeType.TOOL,NodeType.TOOL_LIB})
 @Component
+@RequiredArgsConstructor
 public class ToolNodeHandler implements INodeHandler {
+
+    private final MongoFileService fileService;
+
     @Override
     public NodeResult execute(Workflow workflow, AbsNode node) throws Exception {
         ToolNode.NodeParams nodeParams = node.getNodeData().toJavaObject(ToolNode.NodeParams.class);
         Map<String, Object> params = new HashMap<>(5);
+        params.put("fileService", fileService);
         if (!CollectionUtils.isEmpty(nodeParams.getInputFieldList())) {
             for (ToolInputField inputField : nodeParams.getInputFieldList()) {
                 Object value = workflow.getFieldValue(inputField.getValue(), inputField.getSource());
@@ -32,7 +39,7 @@ public class ToolNodeHandler implements INodeHandler {
         // 执行脚本并返回结果
         Object result = scriptExecutor.execute(params);
         node.getDetail().put("params", params);
-        if (nodeParams.getIsResult()){
+        if (Boolean.TRUE.equals(nodeParams.getIsResult())){
             node.setAnswerText(result.toString());
         }
         return new NodeResult(Map.of("result", result));

@@ -110,13 +110,14 @@ public class DocParser implements DocumentParser {
         return simpleXhtmlToMarkdown(body, embeddedImages);
     }
 
+
     private String simpleXhtmlToMarkdown(Element element, Map<String, byte[]> embeddedImages) {
         StringBuilder md = new StringBuilder();
         for (Node node : element.childNodes()) {
             if (node instanceof TextNode) {
                 String html = node.outerHtml();
                 String text = StringEscapeUtils.unescapeHtml4(html);
-                if (!text.isEmpty()) {
+                if (!text.isEmpty()&&!"\n".equals(text)) {
                     md.append(text);
                 }
             } else if (node instanceof Element child) {
@@ -141,7 +142,7 @@ public class DocParser implements DocumentParser {
                         md.append(parseTitleToMarkdown("######", child));
                         break;
                     case "p":
-                        md.append("\n").append(simpleXhtmlToMarkdown(child, embeddedImages)).append("\n");
+                        md.append(simpleXhtmlToMarkdown(child, embeddedImages)).append("\n");
                         break;
                     case "ul":
                         for (Element li : child.select("li")) {

@@ -43,6 +43,8 @@ public class GroovyScriptExecutor implements ToolExecutor {
             // 创建 GroovyShell 并执行脚本
             GroovyShell shell = new GroovyShell(binding);
             result = shell.evaluate(code);
+            result=result==null?"":result;
+            System.out.println("result:"+result);
         }
         return result;
     }
