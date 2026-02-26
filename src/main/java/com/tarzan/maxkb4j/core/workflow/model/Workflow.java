@@ -158,24 +158,41 @@ public class Workflow {
         }
         // 处理非断言结果分支
         List<LfEdge> sourceEdges = edges.stream().filter(edge -> edge.getSourceNodeId().equals(currentNode.getId())).toList();
+        if (sourceEdges.isEmpty()) {
+            return List.of();
+        }
+        List<String> targetNodeIds = sourceEdges.stream()
+                .map(LfEdge::getTargetNodeId)     // 提取 targetNodeId
+                .distinct()                       // 去重
+                .toList();                        // 收集为 List（Java 16+）
         if (currentNodeResult.isAssertionResult()) {
-            List<LfEdge> targetEdges = sourceEdges.stream().filter(edge -> {
-                Map<String, Object> nodeVariables = currentNodeResult.getNodeVariable();
-                String branchId = nodeVariables != null ? (String) nodeVariables.getOrDefault("branchId", "") : "";
-                String expectedAnchorId = String.format("%s_%s_right", currentNode.getId(), branchId);
-                return expectedAnchorId.equals(edge.getSourceAnchorId());
-            }).toList();
-            return edgesToNodes(targetEdges, currentNode);
+            List<AbsNode> targetNodes = buildNodes(targetNodeIds, currentNode);
+            targetNodes.forEach(e->{
+                if (!isAssertionNode(e.getId(), currentNodeResult, sourceEdges)){
+                    e.setStatus(NodeStatus.SKIP.getStatus());
+                }
+            });
+            return targetNodes;
         }else {
-            return edgesToNodes(sourceEdges, currentNode);
+            return buildNodes(targetNodeIds, currentNode);
         }
     }
 
-    private List<AbsNode> edgesToNodes(List<LfEdge> edges, AbsNode currentNode) {
+    private boolean isAssertionNode(String nodeId, NodeResult currentNodeResult,List<LfEdge> sourceEdges) {
+        List<String> assertionNodeIds = sourceEdges.stream().filter(edge -> {
+            Map<String, Object> nodeVariables=currentNodeResult.getNodeVariable();
+            String branchId = nodeVariables != null ? (String) nodeVariables.getOrDefault("branchId", "") : "";
+            String expectedAnchorId = String.format("%s_%s_right", edge.getSourceNodeId(), branchId);
+            return expectedAnchorId.equals(edge.getSourceAnchorId());
+        }).map(LfEdge::getTargetNodeId).toList();
+        return CollectionUtils.isNotEmpty(assertionNodeIds)&&assertionNodeIds.contains(nodeId);
+    }
+
+    private List<AbsNode> buildNodes(List<String> targetNodeIds, AbsNode currentNode) {
         List<String> upNodeIdList = new ArrayList<>(currentNode.getUpNodeIdList());
         upNodeIdList.add(currentNode.getId());
-        return edges.stream()
-                .map(edge -> getNodeClsById(edge.getTargetNodeId(), upNodeIdList, null))
+        return targetNodeIds.stream()
+                .map(nodeId -> getNodeClsById(nodeId, upNodeIdList, null))
                 .toList();
     }
 
