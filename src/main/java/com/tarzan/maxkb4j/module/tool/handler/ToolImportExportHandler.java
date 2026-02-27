@@ -38,10 +38,9 @@ public class ToolImportExportHandler {
         }
         try {
             byte[] bytes = JSONUtil.toJsonStr(entity).getBytes(StandardCharsets.UTF_8);
-            response.setContentType(ToolConstants.FileType.JSON_CONTENT_TYPE);
             response.setCharacterEncoding(StandardCharsets.UTF_8.name());
-            String fileName = URLEncoder.encode(entity.getName(), StandardCharsets.UTF_8);
-            response.setHeader("Content-disposition", "attachment;filename=" + fileName + ToolConstants.FileType.TOOL_EXTENSION);
+            String fileName = URLEncoder.encode(entity.getName()+ ToolConstants.FileType.TOOL_EXTENSION, StandardCharsets.UTF_8);
+            response.setHeader("Content-disposition", "attachment;filename=" + fileName);
             try (OutputStream outputStream = response.getOutputStream()) {
                 outputStream.write(bytes);
                 outputStream.flush();

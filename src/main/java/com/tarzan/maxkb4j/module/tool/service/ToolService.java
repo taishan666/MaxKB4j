@@ -105,7 +105,7 @@ public class ToolService extends ServiceImpl<ToolMapper, ToolEntity> {
         return validationHandler.validateMcpServerConfig(entity);
     }
 
-    public void toolExport(String id, HttpServletResponse response) throws IOException {
+    public void toolExport(String id, HttpServletResponse response) {
         ToolEntity entity = this.getById(id);
         importExportHandler.exportTool(entity, response);
     }

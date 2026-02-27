@@ -17,8 +17,8 @@
 
     <properties>
         <java.version>17</java.version>
-        <langchain4j.version>1.10.0</langchain4j.version>
-        <langchain4j.beta.version>1.10.0-beta18</langchain4j.beta.version>
+        <langchain4j.version>1.11.0</langchain4j.version>
+        <langchain4j.beta.version>1.11.0-beta19</langchain4j.beta.version>
         <p6spy.version>1.10.0</p6spy.version>
         <knife4j.version>4.4.0</knife4j.version>
         <sa-token.version>1.39.0</sa-token.version>
@@ -258,6 +258,16 @@
             <version>${langchain4j.version}</version>
         </dependency>
         <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-azure-open-ai</artifactId>
+            <version>${langchain4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-http-client-spring-restclient</artifactId>
+            <version>${langchain4j.beta.version}</version>
+        </dependency>
+        <dependency>
             <groupId>com.openai</groupId>
             <artifactId>openai-java</artifactId>
             <version>${openai-java.version}</version>
@@ -271,11 +281,6 @@
             <groupId>com.vladsch.flexmark</groupId>
             <artifactId>flexmark-html2md-converter</artifactId>
             <version>${flexmark.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>dev.langchain4j</groupId>
-            <artifactId>langchain4j-azure-open-ai</artifactId>
-            <version>${langchain4j.version}</version>
         </dependency>
         <dependency>
             <groupId>dev.langchain4j</groupId>

@@ -146,7 +146,7 @@ public class ToolController {
 
     @SaCheckPerm(PermissionEnum.TOOL_EXPORT)
     @GetMapping("/workspace/default/tool/{id}/export")
-    public void toolExport(@PathVariable("id") String id, HttpServletResponse response) throws IOException {
+    public void toolExport(@PathVariable("id") String id, HttpServletResponse response) {
         toolService.toolExport(id, response);
     }
 

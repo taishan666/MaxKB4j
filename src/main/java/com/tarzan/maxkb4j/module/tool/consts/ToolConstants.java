@@ -35,8 +35,6 @@ public interface ToolConstants {
      */
     interface FileType {
         String TOOL_EXTENSION = ".tool";
-        String JSON_CONTENT_TYPE = "application/json";
-        String TEXT_CONTENT_TYPE = "text/plain";
     }
 
     /**

@@ -13,6 +13,8 @@ import com.tarzan.maxkb4j.module.model.provider.enums.ModelType;
 import com.tarzan.maxkb4j.module.model.provider.service.IModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.vo.ModelInfo;
 import com.tarzan.maxkb4j.module.model.provider.vo.ModelProviderInfo;
+import dev.langchain4j.http.client.HttpClientBuilder;
+import dev.langchain4j.http.client.spring.restclient.SpringRestClient;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.model.embedding.EmbeddingModel;
@@ -21,6 +23,8 @@ import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.model.openai.OpenAiEmbeddingModel;
 import dev.langchain4j.model.openai.OpenAiImageModel;
 import dev.langchain4j.model.openai.OpenAiStreamingChatModel;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.web.client.RestClient;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,6 +34,8 @@ import java.util.List;
  * Provides integration with OpenAI's API services
  */
 public class OpenAiModelProvider extends IModelProvider {
+
+
     @Override
     public ModelProviderInfo getBaseInfo() {
         ModelProviderInfo info = new ModelProviderInfo(ModelProviderEnum.OpenAI);
@@ -59,9 +65,17 @@ public class OpenAiModelProvider extends IModelProvider {
         return new ModelCredentialForm(true, true); // Both API key and base URL required
     }
 
+    private HttpClientBuilder buildHttpClientBuilder() {
+        RestClient.Builder restClientBuilder = RestClient.builder()
+                .requestFactory(new HttpComponentsClientHttpRequestFactory());
+        return SpringRestClient.builder()
+                .restClientBuilder(restClientBuilder);
+    }
+
     @Override
     public ChatModel buildChatModel(String modelName, ModelCredential credential, JSONObject params) {
         return OpenAiChatModel.builder()
+                .httpClientBuilder(buildHttpClientBuilder())
                 .baseUrl(credential.getBaseUrl())
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
@@ -74,6 +88,7 @@ public class OpenAiModelProvider extends IModelProvider {
     @Override
     public StreamingChatModel buildStreamingChatModel(String modelName, ModelCredential credential, JSONObject params) {
         return OpenAiStreamingChatModel.builder()
+                .httpClientBuilder(buildHttpClientBuilder())
                 .baseUrl(credential.getBaseUrl())
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
@@ -86,6 +101,7 @@ public class OpenAiModelProvider extends IModelProvider {
     @Override
     public EmbeddingModel buildEmbeddingModel(String modelName, ModelCredential credential, JSONObject params) {
         return OpenAiEmbeddingModel.builder()
+                .httpClientBuilder(buildHttpClientBuilder())
                 .baseUrl(credential.getBaseUrl())
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
