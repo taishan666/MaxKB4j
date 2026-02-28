@@ -44,22 +44,27 @@ public class OLlamaModelProvider extends AbsModelProvider {
     @Override
     public ChatModel buildChatModel(String modelName, ModelCredential credential, JSONObject params) {
         return OllamaChatModel.builder()
+                .httpClientBuilder(getHttpClientBuilder())
                 .baseUrl(credential.getBaseUrl())
                 .modelName(modelName)
+                .temperature(getDoubleParam(params, "temperature"))
                 .build();
     }
 
     @Override
     public StreamingChatModel buildStreamingChatModel(String modelName, ModelCredential credential, JSONObject params) {
         return OllamaStreamingChatModel.builder()
+                .httpClientBuilder(getHttpClientBuilder())
                 .baseUrl(credential.getBaseUrl())
                 .modelName(modelName)
+                .temperature(getDoubleParam(params, "temperature"))
                 .build();
     }
 
     @Override
     public EmbeddingModel buildEmbeddingModel(String modelName, ModelCredential credential, JSONObject params) {
         return OllamaEmbeddingModel.builder()
+                .httpClientBuilder(getHttpClientBuilder())
                 .baseUrl(credential.getBaseUrl())
                 .modelName(modelName)
                 .build();

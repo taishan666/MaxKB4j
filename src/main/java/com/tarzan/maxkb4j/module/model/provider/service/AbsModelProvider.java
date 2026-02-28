@@ -25,6 +25,7 @@ import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.web.client.RestClient;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Abstract base class for model providers
@@ -47,6 +48,61 @@ public abstract class AbsModelProvider {
 
     protected HttpClientBuilder getHttpClientBuilder() {
         return httpClientBuilder;
+    }
+
+    /**
+     * Gets double value from params with null safety
+     * @param params the params JSONObject
+     * @param key the key to lookup
+     * @return the double value or null if not present
+     */
+    protected Double getDoubleParam(JSONObject params, String key) {
+        return Optional.ofNullable(params).map(p -> p.getDouble(key)).orElse(null);
+    }
+
+    /**
+     * Gets integer value from params with null safety
+     * @param params the params JSONObject
+     * @param key the key to lookup
+     * @return the integer value or null if not present
+     */
+    protected Integer getIntParam(JSONObject params, String key) {
+        return Optional.ofNullable(params).map(p -> p.getInteger(key)).orElse(null);
+    }
+
+    /**
+     * Gets string value from params with null safety
+     * @param params the params JSONObject
+     * @param key the key to lookup
+     * @return the string value or null if not present
+     */
+    protected String getStringParam(JSONObject params, String key) {
+        return Optional.ofNullable(params).map(p -> p.getString(key)).orElse(null);
+    }
+
+    /**
+     * Gets boolean value from params with null safety
+     * @param params the params JSONObject
+     * @param key the key to lookup
+     * @return the boolean value or null if not present
+     */
+    protected Boolean getBooleanParam(JSONObject params, String key) {
+        return Optional.ofNullable(params).map(p -> p.getBoolean(key)).orElse(null);
+    }
+
+    /**
+     * Gets float value from params with null safety and Double to Float conversion
+     * @param params the params JSONObject
+     * @param key the key to lookup
+     * @return the float value or null if not present
+     */
+    protected Float getFloatParam(JSONObject params, String key) {
+        return Optional.ofNullable(params)
+                .map(p -> {
+                    Double d = p.getDouble(key);
+                    return d != null ? d.floatValue() : null;
+                })
+                .orElse(null);
     }
 
     /**

@@ -1,6 +1,5 @@
 package com.tarzan.maxkb4j.module.model.provider.service.impl;
 
-import com.tarzan.maxkb4j.module.model.custom.credential.ModelCredentialForm;
 import com.tarzan.maxkb4j.module.model.custom.params.impl.ImageModelParams;
 import com.tarzan.maxkb4j.module.model.custom.params.impl.LlmModelParams;
 import com.tarzan.maxkb4j.module.model.custom.params.impl.TextEmbeddingV3Params;
@@ -33,7 +32,7 @@ public class VolcanicEngineModelProvider extends OpenAiModelProvider {
     }
 
     @Override
-    public ModelCredentialForm getModelCredential() {
-        return new ModelCredentialForm(true, BASE_URL);
+    public String getDefaultBaseUrl(){
+        return BASE_URL;
     }
 }

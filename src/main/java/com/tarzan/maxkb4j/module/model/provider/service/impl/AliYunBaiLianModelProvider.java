@@ -58,9 +58,8 @@ public class AliYunBaiLianModelProvider extends AbsModelProvider {
         return QwenChatModel.builder()
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
-                .isMultimodalModel(params.getBoolean("isMultimodalModel"))
-                .temperature(params.getFloat("temperature"))
-                .maxTokens(params.getInteger("maxTokens"))
+                .temperature(getFloatParam(params, "temperature"))
+                .maxTokens(getIntParam(params, "maxTokens"))
                 .build();
     }
 
@@ -69,9 +68,8 @@ public class AliYunBaiLianModelProvider extends AbsModelProvider {
         return QwenStreamingChatModel.builder()
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
-                .isMultimodalModel(params.getBoolean("isMultimodalModel"))
-                .temperature(params.getFloat("temperature"))
-                .maxTokens(params.getInteger("maxTokens"))
+                .temperature(getFloatParam(params, "temperature"))
+                .maxTokens(getIntParam(params, "maxTokens"))
                 .build();
     }
 
@@ -80,7 +78,7 @@ public class AliYunBaiLianModelProvider extends AbsModelProvider {
         return QwenEmbeddingModel.builder()
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
-                .dimension(params.getInteger("dimension"))
+                .dimension(getIntParam(params, "dimension"))
                 .build();
     }
 

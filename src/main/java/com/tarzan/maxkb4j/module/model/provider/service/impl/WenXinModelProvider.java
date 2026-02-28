@@ -26,7 +26,6 @@ public class WenXinModelProvider extends AbsModelProvider {
             new ModelInfo("Embedding-V1", "", ModelType.EMBEDDING)
     );
 
-
     @Override
     public List<ModelInfo> getModelList() {
         return MODEL_INFOS;
@@ -37,6 +36,8 @@ public class WenXinModelProvider extends AbsModelProvider {
         return QianfanChatModel.builder()
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
+                .maxOutputTokens(params.getInteger("maxTokens"))
+                .temperature(params.getDouble("temperature"))
                 .build();
     }
 
@@ -45,6 +46,8 @@ public class WenXinModelProvider extends AbsModelProvider {
         return QianfanStreamingChatModel.builder()
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
+                .maxOutputTokens(params.getInteger("maxTokens"))
+                .temperature(params.getDouble("temperature"))
                 .build();
     }
 

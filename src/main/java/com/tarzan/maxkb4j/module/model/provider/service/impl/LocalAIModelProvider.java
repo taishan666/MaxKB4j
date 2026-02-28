@@ -37,8 +37,8 @@ public class LocalAIModelProvider extends AbsModelProvider {
         return LocalAiChatModel.builder()
                 .baseUrl(credential.getBaseUrl())
                 .modelName(modelName)
-                .temperature(params.getDouble("temperature"))
-                .maxTokens(params.getInteger("maxTokens"))
+                .temperature(getDoubleParam(params, "temperature"))
+                .maxTokens(getIntParam(params, "maxTokens"))
                 .build();
     }
 
@@ -47,8 +47,8 @@ public class LocalAIModelProvider extends AbsModelProvider {
         return LocalAiStreamingChatModel.builder()
                 .baseUrl(credential.getBaseUrl())
                 .modelName(modelName)
-                .temperature(params.getDouble("temperature"))
-                .maxTokens(params.getInteger("maxTokens"))
+                .temperature(getDoubleParam(params, "temperature"))
+                .maxTokens(getIntParam(params, "maxTokens"))
                 .build();
     }
 
@@ -57,9 +57,7 @@ public class LocalAIModelProvider extends AbsModelProvider {
         return LocalAiEmbeddingModel.builder()
                 .baseUrl(credential.getBaseUrl())
                 .modelName(modelName)
-                .maxRetries(params.getInteger("maxRetries"))
+                .maxRetries(getIntParam(params, "maxRetries"))
                 .build();
     }
-
-
 }

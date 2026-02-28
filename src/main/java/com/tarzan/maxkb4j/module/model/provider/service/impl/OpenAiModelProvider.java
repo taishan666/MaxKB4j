@@ -28,8 +28,6 @@ import java.util.List;
  */
 public class OpenAiModelProvider extends AbsModelProvider {
 
-    private static final String BASE_URL = "https://api.openai.com/v1";
-
     private static final List<ModelInfo> MODEL_INFOS = List.of(
             new ModelInfo("gpt-3.5-turbo", "GPT-3.5 Turbo", ModelType.LLM, new LlmModelParams()),
             new ModelInfo("gpt-4", "GPT-4", ModelType.LLM, new LlmModelParams()),
@@ -44,6 +42,10 @@ public class OpenAiModelProvider extends AbsModelProvider {
             new ModelInfo("dall-e-2", "DALL·E 2", ModelType.TTI)
     );
 
+    public String getDefaultBaseUrl(){
+        return "https://api.openai.com/v1";
+    }
+
 
     @Override
     public List<ModelInfo> getModelList() {
@@ -52,7 +54,7 @@ public class OpenAiModelProvider extends AbsModelProvider {
 
     @Override
     public ModelCredentialForm getModelCredential() {
-        return new ModelCredentialForm(true, BASE_URL);
+        return new ModelCredentialForm(true, getDefaultBaseUrl());
     }
 
     @Override
@@ -62,9 +64,8 @@ public class OpenAiModelProvider extends AbsModelProvider {
                 .baseUrl(credential.getBaseUrl())
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
-                .temperature(params.getDouble("temperature"))
-                .maxTokens(params.getInteger("maxTokens"))
-                .returnThinking(params.getBoolean("enableThinking"))
+                .temperature(getDoubleParam(params, "temperature"))
+                .maxTokens(getIntParam(params, "maxTokens"))
                 .build();
     }
 
@@ -75,9 +76,8 @@ public class OpenAiModelProvider extends AbsModelProvider {
                 .baseUrl(credential.getBaseUrl())
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
-                .temperature(params.getDouble("temperature"))
-                .maxTokens(params.getInteger("maxTokens"))
-                .returnThinking(params.getBoolean("enableThinking"))
+                .temperature(getDoubleParam(params, "temperature"))
+                .maxTokens(getIntParam(params, "maxTokens"))
                 .build();
     }
 
@@ -98,9 +98,9 @@ public class OpenAiModelProvider extends AbsModelProvider {
                 .baseUrl(credential.getBaseUrl())
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
-                .size(params.getString("size"))
-                .quality(params.getString("quality"))
-                .style(params.getString("style"))
+                .size(getStringParam(params, "size"))
+                .quality(getStringParam(params, "quality"))
+                .style(getStringParam(params, "style"))
                 .build();
     }
 

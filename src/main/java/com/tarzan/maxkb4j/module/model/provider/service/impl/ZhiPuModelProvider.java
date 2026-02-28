@@ -45,6 +45,8 @@ public class ZhiPuModelProvider extends AbsModelProvider {
         return ZhipuAiChatModel.builder()
                 .apiKey(credential.getApiKey())
                 .model(modelName)
+                .temperature(getDoubleParam(params, "temperature"))
+                .maxToken(getIntParam(params, "maxTokens"))
                 .build();
     }
 
@@ -53,6 +55,8 @@ public class ZhiPuModelProvider extends AbsModelProvider {
         return ZhipuAiStreamingChatModel.builder()
                 .apiKey(credential.getApiKey())
                 .model(modelName)
+                .temperature(getDoubleParam(params, "temperature"))
+                .maxToken(getIntParam(params, "maxTokens"))
                 .build();
     }
 

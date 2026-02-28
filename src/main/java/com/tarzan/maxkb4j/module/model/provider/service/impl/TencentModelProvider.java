@@ -1,6 +1,5 @@
 package com.tarzan.maxkb4j.module.model.provider.service.impl;
 
-import com.tarzan.maxkb4j.module.model.custom.credential.ModelCredentialForm;
 import com.tarzan.maxkb4j.module.model.provider.enums.ModelType;
 import com.tarzan.maxkb4j.module.model.provider.vo.ModelInfo;
 
@@ -31,7 +30,7 @@ public class TencentModelProvider extends OpenAiModelProvider {
     }
 
     @Override
-    public ModelCredentialForm getModelCredential() {
-        return new ModelCredentialForm(true, BASE_URL);
+    public String getDefaultBaseUrl(){
+        return BASE_URL;
     }
 }

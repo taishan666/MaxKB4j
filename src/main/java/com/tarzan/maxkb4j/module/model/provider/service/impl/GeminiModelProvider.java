@@ -39,6 +39,8 @@ public class GeminiModelProvider extends AbsModelProvider {
                 .httpClientBuilder(getHttpClientBuilder())
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
+                .maxOutputTokens(getIntParam(params, "maxTokens"))
+                .temperature(getDoubleParam(params, "temperature"))
                 .build();
     }
 
@@ -48,6 +50,8 @@ public class GeminiModelProvider extends AbsModelProvider {
                 .httpClientBuilder(getHttpClientBuilder())
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
+                .maxOutputTokens(getIntParam(params, "maxTokens"))
+                .temperature(getDoubleParam(params, "temperature"))
                 .build();
     }
 

@@ -46,6 +46,8 @@ public class AzureModelProvider extends AbsModelProvider {
         return AzureOpenAiChatModel.builder()
                 .apiKey(credential.getApiKey())
                 .deploymentName(modelName)
+                .temperature(getDoubleParam(params, "temperature"))
+                .maxTokens(getIntParam(params, "maxTokens"))
                 .build();
     }
 
@@ -54,6 +56,8 @@ public class AzureModelProvider extends AbsModelProvider {
         return AzureOpenAiStreamingChatModel.builder()
                 .apiKey(credential.getApiKey())
                 .deploymentName(modelName)
+                .temperature(getDoubleParam(params, "temperature"))
+                .maxTokens(getIntParam(params, "maxTokens"))
                 .build();
     }
 

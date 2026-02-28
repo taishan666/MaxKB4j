@@ -9,7 +9,4 @@ public class ModelNotFoundException extends ModelException {
         super("Model not found: " + modelId);
     }
 
-    public ModelNotFoundException(String modelId, Throwable cause) {
-        super("Model not found: " + modelId, cause);
-    }
 }
