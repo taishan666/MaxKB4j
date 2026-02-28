@@ -9,7 +9,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Getter
-public enum ModelProviderEnum {
+public enum ModelProvider {
     AliYunBaiLian("阿里百练", "AliYunBaiLian", "qwen_icon.svg",new AliYunBaiLianModelProvider()),
     Anthropic("Anthropic", "Anthropic", "anthropic_icon.svg",new AnthropicProvider()),
     Azure("Azure OpenAI", "Azure","azure_icon.svg", new AzureModelProvider()),
@@ -21,7 +21,7 @@ public enum ModelProviderEnum {
     Tencent("腾讯混元", "Tencent","tencent_icon.svg", new TencentModelProvider()),
     VolcanicEngine("火山引擎", "VolcanicEngine","volcanic_engine_icon.svg", new VolcanicEngineModelProvider()),
     WenXin("文心一言", "WenXin","wenxin_icon.svg", new WenXinModelProvider()),
-   // XunFei("讯飞星火", "XunFei", "xf_icon.svg",new XunFeiModelProvider()),
+    XunFei("讯飞星火", "XunFei", "xf_icon.svg",new XunFeiModelProvider()),
     ZhiPu("智谱清言", "ZhiPu", "zhipu_ai_icon.svg",new ZhiPuModelProvider()),
     Local("本地模型", "LocalModel", "local_icon.svg",new LocalModelProvider()),
    // LocalAI("LocalAI", "LocalAI", "local_ai_icon.svg",new LocalAIModelProvider()),
@@ -33,7 +33,7 @@ public enum ModelProviderEnum {
     private final String icon;
     private final AbsModelProvider modelProvider;
 
-    ModelProviderEnum(String name, String provider,String icon, AbsModelProvider modelProvider) {
+    ModelProvider(String name, String provider, String icon, AbsModelProvider modelProvider) {
         this.name = name;
         this.provider = provider;
         this.icon = icon;
@@ -43,7 +43,7 @@ public enum ModelProviderEnum {
     private static final Map<String, AbsModelProvider> PROVIDER_MAP = new HashMap<>();
 
     static {
-        for (ModelProviderEnum value : ModelProviderEnum.values()) {
+        for (ModelProvider value : ModelProvider.values()) {
             PROVIDER_MAP.put(value.provider, value.modelProvider);
         }
     }

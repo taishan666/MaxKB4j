@@ -1,6 +1,6 @@
 package com.tarzan.maxkb4j.module.model.provider.vo;
 
-import com.tarzan.maxkb4j.module.model.provider.enums.ModelProviderEnum;
+import com.tarzan.maxkb4j.module.model.provider.enums.ModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.service.AbsModelProvider;
 import lombok.Data;
 
@@ -15,7 +15,7 @@ public class ModelProviderInfo {
     private String name;
     private String icon;
 
-    public ModelProviderInfo(ModelProviderEnum modelProvider) {
+    public ModelProviderInfo(ModelProvider modelProvider) {
         this.provider = modelProvider.getProvider();
         this.name = modelProvider.getName();
         this.icon = getSvgIcon(modelProvider.getIcon());

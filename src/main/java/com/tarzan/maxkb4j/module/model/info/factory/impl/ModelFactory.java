@@ -7,7 +7,7 @@ import com.tarzan.maxkb4j.module.model.info.entity.ModelEntity;
 import com.tarzan.maxkb4j.module.model.info.exception.ModelNotFoundException;
 import com.tarzan.maxkb4j.module.model.info.factory.IModelFactory;
 import com.tarzan.maxkb4j.module.model.info.service.ModelService;
-import com.tarzan.maxkb4j.module.model.provider.enums.ModelProviderEnum;
+import com.tarzan.maxkb4j.module.model.provider.enums.ModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.service.AbsModelProvider;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.StreamingChatModel;
@@ -127,7 +127,7 @@ public class ModelFactory implements IModelFactory {
         if (model == null) {
             return null;
         }
-        return ModelProviderEnum.get(model.getProvider());
+        return ModelProvider.get(model.getProvider());
     }
 
     private AbsModelProvider getModelProviderOrThrow(ModelEntity model) {

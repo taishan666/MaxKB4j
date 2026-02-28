@@ -4,7 +4,7 @@ import com.tarzan.maxkb4j.common.domain.api.R;
 import com.tarzan.maxkb4j.common.constant.AppConst;
 import com.tarzan.maxkb4j.common.domain.form.BaseField;
 import com.tarzan.maxkb4j.module.model.info.vo.KeyAndValueVO;
-import com.tarzan.maxkb4j.module.model.provider.enums.ModelProviderEnum;
+import com.tarzan.maxkb4j.module.model.provider.enums.ModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.enums.ModelType;
 import com.tarzan.maxkb4j.module.model.provider.service.AbsModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.vo.ModelInfo;
@@ -30,21 +30,21 @@ public class ProviderController {
 
     @GetMapping("/provider")
     public R<List<ModelProviderInfo>> provider(String modelType) {
-        ModelProviderEnum[] providerEnums = ModelProviderEnum.values();
+        ModelProvider[] providerEnums = ModelProvider.values();
         if (StringUtils.isBlank(modelType)) {
-            return R.success(Arrays.stream(providerEnums).map(ModelProviderEnum::getInfo).toList());
+            return R.success(Arrays.stream(providerEnums).map(ModelProvider::getInfo).toList());
         }
         List<ModelProviderInfo> list = Arrays.stream(providerEnums).filter(e -> {
             AbsModelProvider modelProvider = e.getModelProvider();
             return modelProvider.isSupport(ModelType.getByKey(modelType));
-        }).map(ModelProviderEnum::getInfo).toList();
+        }).map(ModelProvider::getInfo).toList();
         return R.success(list);
     }
 
 
     @GetMapping("/provider/model_type_list")
     public R<List<KeyAndValueVO>> modelTypeList(String provider) {
-        AbsModelProvider modelProvider = ModelProviderEnum.get(provider);
+        AbsModelProvider modelProvider = ModelProvider.get(provider);
         List<ModelInfo> modelInfos = modelProvider.getModelList();
         Map<ModelType, List<ModelInfo>> map = modelInfos.stream().collect(Collectors.groupingBy(ModelInfo::getModelType));
         Set<ModelType> keys = map.keySet();
@@ -54,14 +54,14 @@ public class ProviderController {
 
     @GetMapping("/provider/model_form")
     public R<List<BaseField>> modelForm(String provider, String modelType, String modelName) {
-        AbsModelProvider modelProvider = ModelProviderEnum.get(provider);
+        AbsModelProvider modelProvider = ModelProvider.get(provider);
         return R.success(modelProvider.getModelCredential().toForm());
     }
 
 
     @GetMapping("/provider/model_params_form")
     public R<List<BaseField>> modelParamsForm(String provider, String modelType, String modelName) {
-        AbsModelProvider modelProvider = ModelProviderEnum.get(provider);
+        AbsModelProvider modelProvider = ModelProvider.get(provider);
         ModelInfo modelInfo = modelProvider.getModelInfo(ModelType.getByKey(modelType), modelName);
         if (modelInfo == null || modelInfo.getModelParams() == null) {
             return R.success(List.of());
@@ -72,7 +72,7 @@ public class ProviderController {
 
     @GetMapping("/provider/model_list")
     public R<List<ModelInfo>> modelList(String provider, String modelType) {
-        AbsModelProvider modelProvider = ModelProviderEnum.get(provider);
+        AbsModelProvider modelProvider = ModelProvider.get(provider);
         List<ModelInfo> modelInfos = modelProvider.getModelList();
         if (StringUtils.isBlank(modelType)) {
             return R.success(modelInfos);
