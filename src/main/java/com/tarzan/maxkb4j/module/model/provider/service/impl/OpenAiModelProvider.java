@@ -30,7 +30,7 @@ import java.util.List;
  */
 public class OpenAiModelProvider extends AbsModelProvider {
 
-    private static final String BASE_URL = "https://api.deepseek.com/v1";
+    private static final String BASE_URL = "https://api.openai.com/v1";
 
     private static final List<ModelInfo> MODEL_INFOS = List.of(
             new ModelInfo("gpt-3.5-turbo", "GPT-3.5 Turbo", ModelType.LLM, new LlmModelParams()),
