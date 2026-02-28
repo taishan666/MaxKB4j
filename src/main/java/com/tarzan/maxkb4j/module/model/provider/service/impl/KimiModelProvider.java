@@ -18,7 +18,7 @@ import java.util.List;
 
 public class KimiModelProvider extends IModelProvider {
 
-    public final String BASE_URL = "https://api.moonshot.cn/v1";
+    private final String BASE_URL = "https://api.moonshot.cn/v1";
     @Override
     public ModelProviderInfo getBaseInfo() {
         ModelProviderInfo info = new ModelProviderInfo(ModelProviderEnum.Kimi);

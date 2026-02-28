@@ -12,6 +12,8 @@ import com.tarzan.maxkb4j.module.model.info.entity.ModelCredential;
 import com.tarzan.maxkb4j.module.model.provider.enums.ModelType;
 import com.tarzan.maxkb4j.module.model.provider.vo.ModelInfo;
 import com.tarzan.maxkb4j.module.model.provider.vo.ModelProviderInfo;
+import dev.langchain4j.http.client.HttpClientBuilder;
+import dev.langchain4j.http.client.spring.restclient.SpringRestClient;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.DisabledChatModel;
 import dev.langchain4j.model.chat.DisabledStreamingChatModel;
@@ -21,6 +23,8 @@ import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.model.image.DisabledImageModel;
 import dev.langchain4j.model.image.ImageModel;
 import dev.langchain4j.model.scoring.ScoringModel;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.web.client.RestClient;
 
 import java.io.InputStream;
 import java.util.List;
@@ -30,6 +34,13 @@ import java.util.List;
  * Defines the contract for all model providers in the system
  */
 public abstract class IModelProvider {
+
+    protected HttpClientBuilder buildHttpClientBuilder() {
+        RestClient.Builder restClientBuilder = RestClient.builder()
+                .requestFactory(new HttpComponentsClientHttpRequestFactory());
+        return SpringRestClient.builder()
+                .restClientBuilder(restClientBuilder);
+    }
 
     /**
      * Checks if the provider supports a specific model type

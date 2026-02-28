@@ -8,15 +8,27 @@ import com.tarzan.maxkb4j.module.model.provider.enums.ModelType;
 import com.tarzan.maxkb4j.module.model.provider.service.IModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.vo.ModelInfo;
 import com.tarzan.maxkb4j.module.model.provider.vo.ModelProviderInfo;
+import dev.langchain4j.http.client.HttpClientBuilder;
 import dev.langchain4j.model.anthropic.AnthropicChatModel;
 import dev.langchain4j.model.anthropic.AnthropicStreamingChatModel;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.StreamingChatModel;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class AnthropicProvider extends IModelProvider {
+
+    private final HttpClientBuilder httpClientBuilder = buildHttpClientBuilder();
+
+    private static final List<ModelInfo> MODEL_INFOS = List.of(
+            new ModelInfo("claude-3-opus-20240229", "大语言模型", ModelType.LLM, new LlmModelParams()),
+            new ModelInfo("claude-3-sonnet-20240229", "大语言模型", ModelType.LLM, new LlmModelParams()),
+            new ModelInfo("claude-3-haiku-20240307", "大语言模型", ModelType.LLM, new LlmModelParams()),
+            new ModelInfo("claude-3-5-sonnet-20241022", "大语言模型", ModelType.LLM, new LlmModelParams()),
+            new ModelInfo("claude-3-5-haiku-20241022", "大语言模型", ModelType.LLM, new LlmModelParams()),
+            new ModelInfo("claude-3-5-sonnet-20241022", "AI视觉模型", ModelType.VISION, new LlmModelParams())
+    );
+
     @Override
     public ModelProviderInfo getBaseInfo() {
         ModelProviderInfo info = new ModelProviderInfo(ModelProviderEnum.Anthropic);
@@ -26,20 +38,14 @@ public class AnthropicProvider extends IModelProvider {
 
     @Override
     public List<ModelInfo> getModelList() {
-        List<ModelInfo> modelInfos = new ArrayList<>();
-        modelInfos.add(new ModelInfo("claude-3-opus-20240229","大语言模型", ModelType.LLM, new LlmModelParams()));
-        modelInfos.add(new ModelInfo("claude-3-sonnet-20240229","大语言模型", ModelType.LLM, new LlmModelParams()));
-        modelInfos.add(new ModelInfo("claude-3-haiku-20240307","大语言模型", ModelType.LLM, new LlmModelParams()));
-        modelInfos.add(new ModelInfo("claude-3-5-sonnet-20241022","大语言模型", ModelType.LLM, new LlmModelParams()));
-        modelInfos.add(new ModelInfo("claude-3-5-haiku-20241022","大语言模型", ModelType.LLM, new LlmModelParams()));
-        modelInfos.add(new ModelInfo("claude-3-5-sonnet-20241022","AI视觉模型", ModelType.VISION, new LlmModelParams()));
-        return modelInfos;
+        return MODEL_INFOS;
     }
 
 
     @Override
     public ChatModel buildChatModel(String modelName, ModelCredential credential, JSONObject params) {
         return AnthropicChatModel.builder()
+                .httpClientBuilder(httpClientBuilder)
                 .baseUrl(credential.getBaseUrl())
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
@@ -49,6 +55,7 @@ public class AnthropicProvider extends IModelProvider {
     @Override
     public StreamingChatModel buildStreamingChatModel(String modelName, ModelCredential credential, JSONObject params) {
         return AnthropicStreamingChatModel.builder()
+                .httpClientBuilder(httpClientBuilder)
                 .baseUrl(credential.getBaseUrl())
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)

@@ -14,7 +14,6 @@ import com.tarzan.maxkb4j.module.model.provider.service.IModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.vo.ModelInfo;
 import com.tarzan.maxkb4j.module.model.provider.vo.ModelProviderInfo;
 import dev.langchain4j.http.client.HttpClientBuilder;
-import dev.langchain4j.http.client.spring.restclient.SpringRestClient;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.model.embedding.EmbeddingModel;
@@ -23,10 +22,7 @@ import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.model.openai.OpenAiEmbeddingModel;
 import dev.langchain4j.model.openai.OpenAiImageModel;
 import dev.langchain4j.model.openai.OpenAiStreamingChatModel;
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
-import org.springframework.web.client.RestClient;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -34,6 +30,22 @@ import java.util.List;
  * Provides integration with OpenAI's API services
  */
 public class OpenAiModelProvider extends IModelProvider {
+
+    private final HttpClientBuilder httpClientBuilder = buildHttpClientBuilder();
+
+    private static final List<ModelInfo> MODEL_INFOS = List.of(
+            new ModelInfo("gpt-3.5-turbo", "GPT-3.5 Turbo", ModelType.LLM, new LlmModelParams()),
+            new ModelInfo("gpt-4", "GPT-4", ModelType.LLM, new LlmModelParams()),
+            new ModelInfo("gpt-4o", "GPT-4 Omni", ModelType.LLM, new LlmModelParams()),
+            new ModelInfo("gpt-4o-mini", "GPT-4 Omni Mini", ModelType.LLM, new LlmModelParams()),
+            new ModelInfo("gpt-4-turbo", "GPT-4 Turbo", ModelType.LLM, new LlmModelParams()),
+            new ModelInfo("gpt-4-turbo-preview", "GPT-4 Turbo Preview", ModelType.LLM, new LlmModelParams()),
+            new ModelInfo("text-embedding-ada-002", "Text Embedding Ada v2", ModelType.EMBEDDING),
+            new ModelInfo("whisper-1", "Whisper Speech-to-Text", ModelType.STT),
+            new ModelInfo("tts-1", "Text-to-Speech", ModelType.TTS),
+            new ModelInfo("gpt-4o", "GPT-4 Vision", ModelType.VISION, new LlmModelParams()),
+            new ModelInfo("dall-e-2", "DALL·E 2", ModelType.TTI)
+    );
 
 
     @Override
@@ -45,19 +57,7 @@ public class OpenAiModelProvider extends IModelProvider {
 
     @Override
     public List<ModelInfo> getModelList() {
-        List<ModelInfo> modelInfos = new ArrayList<>();
-        modelInfos.add(new ModelInfo("gpt-3.5-turbo", "GPT-3.5 Turbo", ModelType.LLM, new LlmModelParams()));
-        modelInfos.add(new ModelInfo("gpt-4", "GPT-4", ModelType.LLM, new LlmModelParams()));
-        modelInfos.add(new ModelInfo("gpt-4o", "GPT-4 Omni", ModelType.LLM, new LlmModelParams()));
-        modelInfos.add(new ModelInfo("gpt-4o-mini", "GPT-4 Omni Mini", ModelType.LLM, new LlmModelParams()));
-        modelInfos.add(new ModelInfo("gpt-4-turbo", "GPT-4 Turbo", ModelType.LLM, new LlmModelParams()));
-        modelInfos.add(new ModelInfo("gpt-4-turbo-preview", "GPT-4 Turbo Preview", ModelType.LLM, new LlmModelParams()));
-        modelInfos.add(new ModelInfo("text-embedding-ada-002", "Text Embedding Ada v2", ModelType.EMBEDDING));
-        modelInfos.add(new ModelInfo("whisper-1", "Whisper Speech-to-Text", ModelType.STT));
-        modelInfos.add(new ModelInfo("tts-1", "Text-to-Speech", ModelType.TTS));
-        modelInfos.add(new ModelInfo("gpt-4o", "GPT-4 Vision", ModelType.VISION, new LlmModelParams()));
-        modelInfos.add(new ModelInfo("dall-e-2", "DALL·E 2", ModelType.TTI));
-        return modelInfos;
+        return MODEL_INFOS;
     }
 
     @Override
@@ -65,17 +65,11 @@ public class OpenAiModelProvider extends IModelProvider {
         return new ModelCredentialForm(true, true); // Both API key and base URL required
     }
 
-    private HttpClientBuilder buildHttpClientBuilder() {
-        RestClient.Builder restClientBuilder = RestClient.builder()
-                .requestFactory(new HttpComponentsClientHttpRequestFactory());
-        return SpringRestClient.builder()
-                .restClientBuilder(restClientBuilder);
-    }
 
     @Override
     public ChatModel buildChatModel(String modelName, ModelCredential credential, JSONObject params) {
         return OpenAiChatModel.builder()
-                .httpClientBuilder(buildHttpClientBuilder())
+                .httpClientBuilder(httpClientBuilder)
                 .baseUrl(credential.getBaseUrl())
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
@@ -88,7 +82,7 @@ public class OpenAiModelProvider extends IModelProvider {
     @Override
     public StreamingChatModel buildStreamingChatModel(String modelName, ModelCredential credential, JSONObject params) {
         return OpenAiStreamingChatModel.builder()
-                .httpClientBuilder(buildHttpClientBuilder())
+                .httpClientBuilder(httpClientBuilder)
                 .baseUrl(credential.getBaseUrl())
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
@@ -101,7 +95,7 @@ public class OpenAiModelProvider extends IModelProvider {
     @Override
     public EmbeddingModel buildEmbeddingModel(String modelName, ModelCredential credential, JSONObject params) {
         return OpenAiEmbeddingModel.builder()
-                .httpClientBuilder(buildHttpClientBuilder())
+                .httpClientBuilder(httpClientBuilder)
                 .baseUrl(credential.getBaseUrl())
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
@@ -111,6 +105,7 @@ public class OpenAiModelProvider extends IModelProvider {
     @Override
     public ImageModel buildImageModel(String modelName, ModelCredential credential, JSONObject params) {
         return OpenAiImageModel.builder()
+                .httpClientBuilder(httpClientBuilder)
                 .baseUrl(credential.getBaseUrl())
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
