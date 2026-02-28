@@ -46,6 +46,7 @@
         <lombok.version>1.18.30</lombok.version>
         <commons-text.version>1.11.0</commons-text.version>
         <rapidocr.version>0.0.7</rapidocr.version>
+        <imageio.version>1.4.0</imageio.version>
     </properties>
     <dependencies>
         <dependency>
@@ -430,6 +431,11 @@
             <groupId>io.github.mymonstercat</groupId>
             <artifactId>rapidocr-onnx-platform</artifactId>
             <version>${rapidocr.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.jai-imageio</groupId>
+            <artifactId>jai-imageio-jpeg2000</artifactId>
+            <version>${imageio.version}</version>
         </dependency>
     </dependencies>
 
