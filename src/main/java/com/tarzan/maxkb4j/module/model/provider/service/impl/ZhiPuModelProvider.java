@@ -3,11 +3,9 @@ package com.tarzan.maxkb4j.module.model.provider.service.impl;
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.module.model.custom.params.impl.LlmModelParams;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelCredential;
-import com.tarzan.maxkb4j.module.model.provider.enums.ModelProviderEnum;
 import com.tarzan.maxkb4j.module.model.provider.enums.ModelType;
 import com.tarzan.maxkb4j.module.model.provider.service.AbsModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.vo.ModelInfo;
-import com.tarzan.maxkb4j.module.model.provider.vo.ModelProviderInfo;
 import dev.langchain4j.community.model.zhipu.ZhipuAiChatModel;
 import dev.langchain4j.community.model.zhipu.ZhipuAiEmbeddingModel;
 import dev.langchain4j.community.model.zhipu.ZhipuAiImageModel;
@@ -36,11 +34,6 @@ public class ZhiPuModelProvider extends AbsModelProvider {
             new ModelInfo("cogview-3-plus", "", ModelType.TTI),
             new ModelInfo("cogview-3-flash", "", ModelType.TTI)
     );
-
-    @Override
-    public ModelProviderInfo getBaseInfo() {
-        return new ModelProviderInfo(ModelProviderEnum.ZhiPu);
-    }
 
     @Override
     public List<ModelInfo> getModelList() {

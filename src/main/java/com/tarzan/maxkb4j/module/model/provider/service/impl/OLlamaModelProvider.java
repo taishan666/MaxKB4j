@@ -4,11 +4,9 @@ import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.module.model.custom.credential.ModelCredentialForm;
 import com.tarzan.maxkb4j.module.model.custom.params.impl.LlmModelParams;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelCredential;
-import com.tarzan.maxkb4j.module.model.provider.enums.ModelProviderEnum;
 import com.tarzan.maxkb4j.module.model.provider.enums.ModelType;
 import com.tarzan.maxkb4j.module.model.provider.service.AbsModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.vo.ModelInfo;
-import com.tarzan.maxkb4j.module.model.provider.vo.ModelProviderInfo;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.model.embedding.EmbeddingModel;
@@ -32,11 +30,6 @@ public class OLlamaModelProvider extends AbsModelProvider {
             new ModelInfo("llava:7b", "", ModelType.VISION, new LlmModelParams()),
             new ModelInfo("llava:13b", "", ModelType.VISION, new LlmModelParams())
     );
-
-    @Override
-    public ModelProviderInfo getBaseInfo() {
-        return new ModelProviderInfo(ModelProviderEnum.OLlama);
-    }
 
     @Override
     public ModelCredentialForm getModelCredential() {

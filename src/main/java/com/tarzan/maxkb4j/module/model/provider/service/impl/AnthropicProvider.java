@@ -3,11 +3,9 @@ package com.tarzan.maxkb4j.module.model.provider.service.impl;
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.module.model.custom.params.impl.LlmModelParams;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelCredential;
-import com.tarzan.maxkb4j.module.model.provider.enums.ModelProviderEnum;
 import com.tarzan.maxkb4j.module.model.provider.enums.ModelType;
 import com.tarzan.maxkb4j.module.model.provider.service.AbsModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.vo.ModelInfo;
-import com.tarzan.maxkb4j.module.model.provider.vo.ModelProviderInfo;
 import dev.langchain4j.model.anthropic.AnthropicChatModel;
 import dev.langchain4j.model.anthropic.AnthropicStreamingChatModel;
 import dev.langchain4j.model.chat.ChatModel;
@@ -29,10 +27,6 @@ public class AnthropicProvider extends AbsModelProvider {
             new ModelInfo("claude-3-5-sonnet-20241022", "AI 视觉模型", ModelType.VISION, new LlmModelParams())
     );
 
-    @Override
-    public ModelProviderInfo getBaseInfo() {
-        return new ModelProviderInfo(ModelProviderEnum.Anthropic);
-    }
 
     @Override
     public List<ModelInfo> getModelList() {

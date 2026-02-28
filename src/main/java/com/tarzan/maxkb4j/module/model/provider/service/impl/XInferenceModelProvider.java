@@ -8,11 +8,9 @@ import com.tarzan.maxkb4j.module.model.custom.model.OpenAiSTTModel;
 import com.tarzan.maxkb4j.module.model.custom.model.OpenAiTTSModel;
 import com.tarzan.maxkb4j.module.model.custom.params.impl.LlmModelParams;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelCredential;
-import com.tarzan.maxkb4j.module.model.provider.enums.ModelProviderEnum;
 import com.tarzan.maxkb4j.module.model.provider.enums.ModelType;
 import com.tarzan.maxkb4j.module.model.provider.service.AbsModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.vo.ModelInfo;
-import com.tarzan.maxkb4j.module.model.provider.vo.ModelProviderInfo;
 import dev.langchain4j.community.model.xinference.XinferenceChatModel;
 import dev.langchain4j.community.model.xinference.XinferenceEmbeddingModel;
 import dev.langchain4j.community.model.xinference.XinferenceImageModel;
@@ -42,10 +40,6 @@ public class XInferenceModelProvider extends AbsModelProvider {
             new ModelInfo("whisper-large-v3", "", ModelType.STT)
     );
 
-    @Override
-    public ModelProviderInfo getBaseInfo() {
-        return new ModelProviderInfo(ModelProviderEnum.XInference);
-    }
 
     @Override
     public List<ModelInfo> getModelList() {

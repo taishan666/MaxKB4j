@@ -1,10 +1,8 @@
 package com.tarzan.maxkb4j.module.model.provider.service.impl;
 
-import com.tarzan.maxkb4j.module.model.provider.enums.ModelProviderEnum;
 import com.tarzan.maxkb4j.module.model.provider.enums.ModelType;
 import com.tarzan.maxkb4j.module.model.provider.service.AbsModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.vo.ModelInfo;
-import com.tarzan.maxkb4j.module.model.provider.vo.ModelProviderInfo;
 
 import java.util.List;
 
@@ -21,10 +19,7 @@ public class XunFeiModelProvider extends AbsModelProvider {
             new ModelInfo("embedding", "", ModelType.EMBEDDING)
     );
 
-    @Override
-    public ModelProviderInfo getBaseInfo() {
-        return new ModelProviderInfo(ModelProviderEnum.XunFei);
-    }
+
 
     @Override
     public List<ModelInfo> getModelList() {

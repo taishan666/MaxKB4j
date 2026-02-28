@@ -2,9 +2,11 @@ package com.tarzan.maxkb4j.module.model.provider.enums;
 
 import com.tarzan.maxkb4j.module.model.provider.service.AbsModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.service.impl.*;
+import com.tarzan.maxkb4j.module.model.provider.vo.ModelProviderInfo;
 import lombok.Getter;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 
 @Getter
 public enum ModelProviderEnum {
@@ -19,10 +21,10 @@ public enum ModelProviderEnum {
     Tencent("腾讯混元", "Tencent","tencent_icon.svg", new TencentModelProvider()),
     VolcanicEngine("火山引擎", "VolcanicEngine","volcanic_engine_icon.svg", new VolcanicEngineModelProvider()),
     WenXin("文心一言", "WenXin","wenxin_icon.svg", new WenXinModelProvider()),
-    XunFei("讯飞星火", "XunFei", "xf_icon.svg",new XunFeiModelProvider()),
+   // XunFei("讯飞星火", "XunFei", "xf_icon.svg",new XunFeiModelProvider()),
     ZhiPu("智谱清言", "ZhiPu", "zhipu_ai_icon.svg",new ZhiPuModelProvider()),
     Local("本地模型", "LocalModel", "local_icon.svg",new LocalModelProvider()),
-    LocalAI("LocalAI", "LocalAI", "local_ai_icon.svg",new LocalAIModelProvider()),
+   // LocalAI("LocalAI", "LocalAI", "local_ai_icon.svg",new LocalAIModelProvider()),
     OLlama("OLlama", "OLlama","ollama_icon.svg", new OLlamaModelProvider()),
     XInference("Xorbits Inference", "XInference","xinference_icon.svg", new XInferenceModelProvider());
 
@@ -53,10 +55,8 @@ public enum ModelProviderEnum {
         return PROVIDER_MAP.getOrDefault(provider, null);
     }
 
-    public static List<AbsModelProvider> getAllProvider() {
-        return Arrays.stream(values())
-                .filter(e -> !e.equals(ModelProviderEnum.LocalAI) && !e.equals(ModelProviderEnum.XunFei))
-                .map(e -> e.modelProvider)
-                .toList();
+
+    public ModelProviderInfo getInfo() {
+        return new ModelProviderInfo(this);
     }
 }

@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -29,11 +30,15 @@ public class ProviderController {
 
     @GetMapping("/provider")
     public R<List<ModelProviderInfo>> provider(String modelType) {
-        List<AbsModelProvider> list = ModelProviderEnum.getAllProvider();
+        ModelProviderEnum[] providerEnums = ModelProviderEnum.values();
         if (StringUtils.isBlank(modelType)) {
-            return R.success(list.stream().map(AbsModelProvider::getBaseInfo).toList());
+            return R.success(Arrays.stream(providerEnums).map(ModelProviderEnum::getInfo).toList());
         }
-        return R.success(list.stream().filter(e -> e.isSupport(ModelType.getByKey(modelType))).map(AbsModelProvider::getBaseInfo).toList());
+        List<ModelProviderInfo> list = Arrays.stream(providerEnums).filter(e -> {
+            AbsModelProvider modelProvider = e.getModelProvider();
+            return modelProvider.isSupport(ModelType.getByKey(modelType));
+        }).map(ModelProviderEnum::getInfo).toList();
+        return R.success(list);
     }
 
 

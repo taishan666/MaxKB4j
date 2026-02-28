@@ -10,7 +10,6 @@ import com.tarzan.maxkb4j.module.model.custom.model.disabled.DisabledTTSModel;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelCredential;
 import com.tarzan.maxkb4j.module.model.provider.enums.ModelType;
 import com.tarzan.maxkb4j.module.model.provider.vo.ModelInfo;
-import com.tarzan.maxkb4j.module.model.provider.vo.ModelProviderInfo;
 import dev.langchain4j.http.client.HttpClientBuilder;
 import dev.langchain4j.http.client.spring.restclient.SpringRestClient;
 import dev.langchain4j.model.chat.ChatModel;
@@ -81,15 +80,6 @@ public abstract class AbsModelProvider {
     public ModelCredentialForm getModelCredential() {
         return new ModelCredentialForm(false, true);
     }
-
-
-
-    /**
-     * Gets the base information for this provider
-     * @return the provider info
-     */
-    public abstract ModelProviderInfo getBaseInfo();
-
     /**
      * Gets the list of available models for this provider
      * @return list of model info

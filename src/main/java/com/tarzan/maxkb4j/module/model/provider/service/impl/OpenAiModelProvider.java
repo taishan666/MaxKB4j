@@ -8,11 +8,9 @@ import com.tarzan.maxkb4j.module.model.custom.model.OpenAiSTTModel;
 import com.tarzan.maxkb4j.module.model.custom.model.OpenAiTTSModel;
 import com.tarzan.maxkb4j.module.model.custom.params.impl.LlmModelParams;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelCredential;
-import com.tarzan.maxkb4j.module.model.provider.enums.ModelProviderEnum;
 import com.tarzan.maxkb4j.module.model.provider.enums.ModelType;
 import com.tarzan.maxkb4j.module.model.provider.service.AbsModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.vo.ModelInfo;
-import com.tarzan.maxkb4j.module.model.provider.vo.ModelProviderInfo;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.model.embedding.EmbeddingModel;
@@ -46,10 +44,6 @@ public class OpenAiModelProvider extends AbsModelProvider {
             new ModelInfo("dall-e-2", "DALL·E 2", ModelType.TTI)
     );
 
-    @Override
-    public ModelProviderInfo getBaseInfo() {
-        return new ModelProviderInfo(ModelProviderEnum.OpenAI);
-    }
 
     @Override
     public List<ModelInfo> getModelList() {

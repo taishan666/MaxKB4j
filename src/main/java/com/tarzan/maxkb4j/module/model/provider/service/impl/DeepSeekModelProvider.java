@@ -2,10 +2,8 @@ package com.tarzan.maxkb4j.module.model.provider.service.impl;
 
 import com.tarzan.maxkb4j.module.model.custom.credential.ModelCredentialForm;
 import com.tarzan.maxkb4j.module.model.custom.params.impl.LlmModelParams;
-import com.tarzan.maxkb4j.module.model.provider.enums.ModelProviderEnum;
 import com.tarzan.maxkb4j.module.model.provider.enums.ModelType;
 import com.tarzan.maxkb4j.module.model.provider.vo.ModelInfo;
-import com.tarzan.maxkb4j.module.model.provider.vo.ModelProviderInfo;
 
 import java.util.List;
 
@@ -20,10 +18,6 @@ public class DeepSeekModelProvider extends OpenAiModelProvider {
             new ModelInfo("deepseek-reasoner", "DeepSeek Reasoner Model", ModelType.LLM, new LlmModelParams())
     );
 
-    @Override
-    public ModelProviderInfo getBaseInfo() {
-        return new ModelProviderInfo(ModelProviderEnum.DeepSeek);
-    }
 
     @Override
     public List<ModelInfo> getModelList() {

@@ -3,10 +3,8 @@ package com.tarzan.maxkb4j.module.model.provider.service.impl;
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.module.model.custom.credential.ModelCredentialForm;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelCredential;
-import com.tarzan.maxkb4j.module.model.provider.enums.ModelProviderEnum;
 import com.tarzan.maxkb4j.module.model.provider.service.AbsModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.vo.ModelInfo;
-import com.tarzan.maxkb4j.module.model.provider.vo.ModelProviderInfo;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.model.embedding.EmbeddingModel;
@@ -23,10 +21,6 @@ public class LocalAIModelProvider extends AbsModelProvider {
 
     private static final String BASE_URL = "http://host.docker.internal:8080";
 
-    @Override
-    public ModelProviderInfo getBaseInfo() {
-        return new ModelProviderInfo(ModelProviderEnum.LocalAI);
-    }
 
     @Override
     public List<ModelInfo> getModelList() {

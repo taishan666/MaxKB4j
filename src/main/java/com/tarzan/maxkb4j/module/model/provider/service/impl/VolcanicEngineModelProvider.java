@@ -4,10 +4,8 @@ import com.tarzan.maxkb4j.module.model.custom.credential.ModelCredentialForm;
 import com.tarzan.maxkb4j.module.model.custom.params.impl.ImageModelParams;
 import com.tarzan.maxkb4j.module.model.custom.params.impl.LlmModelParams;
 import com.tarzan.maxkb4j.module.model.custom.params.impl.TextEmbeddingV3Params;
-import com.tarzan.maxkb4j.module.model.provider.enums.ModelProviderEnum;
 import com.tarzan.maxkb4j.module.model.provider.enums.ModelType;
 import com.tarzan.maxkb4j.module.model.provider.vo.ModelInfo;
-import com.tarzan.maxkb4j.module.model.provider.vo.ModelProviderInfo;
 
 import java.util.List;
 
@@ -28,11 +26,6 @@ public class VolcanicEngineModelProvider extends OpenAiModelProvider {
             new ModelInfo("doubao-embedding-text-240715", "文本向量模型", ModelType.EMBEDDING, new TextEmbeddingV3Params())
     );
 
-
-    @Override
-    public ModelProviderInfo getBaseInfo() {
-        return new ModelProviderInfo(ModelProviderEnum.VolcanicEngine);
-    }
 
     @Override
     public List<ModelInfo> getModelList() {

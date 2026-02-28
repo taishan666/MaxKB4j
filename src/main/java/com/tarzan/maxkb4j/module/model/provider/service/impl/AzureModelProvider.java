@@ -3,11 +3,9 @@ package com.tarzan.maxkb4j.module.model.provider.service.impl;
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.module.model.custom.params.impl.LlmModelParams;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelCredential;
-import com.tarzan.maxkb4j.module.model.provider.enums.ModelProviderEnum;
 import com.tarzan.maxkb4j.module.model.provider.enums.ModelType;
 import com.tarzan.maxkb4j.module.model.provider.service.AbsModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.vo.ModelInfo;
-import com.tarzan.maxkb4j.module.model.provider.vo.ModelProviderInfo;
 import dev.langchain4j.model.azure.AzureOpenAiChatModel;
 import dev.langchain4j.model.azure.AzureOpenAiEmbeddingModel;
 import dev.langchain4j.model.azure.AzureOpenAiImageModel;
@@ -37,10 +35,6 @@ public class AzureModelProvider extends AbsModelProvider {
             new ModelInfo("dall-e-3", "", ModelType.TTI)
     );
 
-    @Override
-    public ModelProviderInfo getBaseInfo() {
-        return  new ModelProviderInfo(ModelProviderEnum.Azure);
-    }
 
     @Override
     public List<ModelInfo> getModelList() {

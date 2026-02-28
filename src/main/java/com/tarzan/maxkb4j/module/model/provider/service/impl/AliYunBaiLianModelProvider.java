@@ -9,11 +9,9 @@ import com.tarzan.maxkb4j.module.model.custom.model.BaiLianSTTModel;
 import com.tarzan.maxkb4j.module.model.custom.model.BaiLianTTSModel;
 import com.tarzan.maxkb4j.module.model.custom.params.impl.*;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelCredential;
-import com.tarzan.maxkb4j.module.model.provider.enums.ModelProviderEnum;
 import com.tarzan.maxkb4j.module.model.provider.enums.ModelType;
 import com.tarzan.maxkb4j.module.model.provider.service.AbsModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.vo.ModelInfo;
-import com.tarzan.maxkb4j.module.model.provider.vo.ModelProviderInfo;
 import dev.langchain4j.community.model.dashscope.*;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.StreamingChatModel;
@@ -49,10 +47,6 @@ public class AliYunBaiLianModelProvider extends AbsModelProvider {
             new ModelInfo("gte-rerank", "重排模型", ModelType.RERANKER)
     );
 
-    @Override
-    public ModelProviderInfo getBaseInfo() {
-        return new ModelProviderInfo(ModelProviderEnum.AliYunBaiLian);
-    }
 
     @Override
     public List<ModelInfo> getModelList() {
