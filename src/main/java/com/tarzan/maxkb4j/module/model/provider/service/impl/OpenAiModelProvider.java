@@ -10,10 +10,9 @@ import com.tarzan.maxkb4j.module.model.custom.params.impl.LlmModelParams;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelCredential;
 import com.tarzan.maxkb4j.module.model.provider.enums.ModelProviderEnum;
 import com.tarzan.maxkb4j.module.model.provider.enums.ModelType;
-import com.tarzan.maxkb4j.module.model.provider.service.IModelProvider;
+import com.tarzan.maxkb4j.module.model.provider.service.AbsModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.vo.ModelInfo;
 import com.tarzan.maxkb4j.module.model.provider.vo.ModelProviderInfo;
-import dev.langchain4j.http.client.HttpClientBuilder;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.model.embedding.EmbeddingModel;
@@ -29,9 +28,9 @@ import java.util.List;
  * OpenAI Model Provider Implementation
  * Provides integration with OpenAI's API services
  */
-public class OpenAiModelProvider extends IModelProvider {
+public class OpenAiModelProvider extends AbsModelProvider {
 
-    private final HttpClientBuilder httpClientBuilder = buildHttpClientBuilder();
+    private static final String BASE_URL = "https://api.deepseek.com/v1";
 
     private static final List<ModelInfo> MODEL_INFOS = List.of(
             new ModelInfo("gpt-3.5-turbo", "GPT-3.5 Turbo", ModelType.LLM, new LlmModelParams()),
@@ -47,12 +46,9 @@ public class OpenAiModelProvider extends IModelProvider {
             new ModelInfo("dall-e-2", "DALL·E 2", ModelType.TTI)
     );
 
-
     @Override
     public ModelProviderInfo getBaseInfo() {
-        ModelProviderInfo info = new ModelProviderInfo(ModelProviderEnum.OpenAI);
-        info.setIcon(getSvgIcon("openai_icon.svg"));
-        return info;
+        return new ModelProviderInfo(ModelProviderEnum.OpenAI);
     }
 
     @Override
@@ -62,14 +58,13 @@ public class OpenAiModelProvider extends IModelProvider {
 
     @Override
     public ModelCredentialForm getModelCredential() {
-        return new ModelCredentialForm(true, true); // Both API key and base URL required
+        return new ModelCredentialForm(true, BASE_URL);
     }
-
 
     @Override
     public ChatModel buildChatModel(String modelName, ModelCredential credential, JSONObject params) {
         return OpenAiChatModel.builder()
-                .httpClientBuilder(httpClientBuilder)
+                .httpClientBuilder(getHttpClientBuilder())
                 .baseUrl(credential.getBaseUrl())
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
@@ -82,7 +77,7 @@ public class OpenAiModelProvider extends IModelProvider {
     @Override
     public StreamingChatModel buildStreamingChatModel(String modelName, ModelCredential credential, JSONObject params) {
         return OpenAiStreamingChatModel.builder()
-                .httpClientBuilder(httpClientBuilder)
+                .httpClientBuilder(getHttpClientBuilder())
                 .baseUrl(credential.getBaseUrl())
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
@@ -95,7 +90,7 @@ public class OpenAiModelProvider extends IModelProvider {
     @Override
     public EmbeddingModel buildEmbeddingModel(String modelName, ModelCredential credential, JSONObject params) {
         return OpenAiEmbeddingModel.builder()
-                .httpClientBuilder(httpClientBuilder)
+                .httpClientBuilder(getHttpClientBuilder())
                 .baseUrl(credential.getBaseUrl())
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
@@ -105,7 +100,7 @@ public class OpenAiModelProvider extends IModelProvider {
     @Override
     public ImageModel buildImageModel(String modelName, ModelCredential credential, JSONObject params) {
         return OpenAiImageModel.builder()
-                .httpClientBuilder(httpClientBuilder)
+                .httpClientBuilder(getHttpClientBuilder())
                 .baseUrl(credential.getBaseUrl())
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)

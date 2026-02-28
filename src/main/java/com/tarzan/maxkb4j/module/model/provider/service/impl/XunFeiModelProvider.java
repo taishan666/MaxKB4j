@@ -2,31 +2,32 @@ package com.tarzan.maxkb4j.module.model.provider.service.impl;
 
 import com.tarzan.maxkb4j.module.model.provider.enums.ModelProviderEnum;
 import com.tarzan.maxkb4j.module.model.provider.enums.ModelType;
-import com.tarzan.maxkb4j.module.model.provider.service.IModelProvider;
+import com.tarzan.maxkb4j.module.model.provider.service.AbsModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.vo.ModelInfo;
 import com.tarzan.maxkb4j.module.model.provider.vo.ModelProviderInfo;
 
-import java.util.ArrayList;
 import java.util.List;
 
-public class XunFeiModelProvider extends IModelProvider {
+/**
+ * XunFei (iFLYTEK) Model Provider
+ * Note: This provider currently only returns model info without implementation
+ */
+public class XunFeiModelProvider extends AbsModelProvider {
+
+    private static final List<ModelInfo> MODEL_INFOS = List.of(
+            new ModelInfo("generalv3.5", "", ModelType.LLM),
+            new ModelInfo("generalv3", "", ModelType.LLM),
+            new ModelInfo("generalv2", "", ModelType.LLM),
+            new ModelInfo("embedding", "", ModelType.EMBEDDING)
+    );
+
     @Override
     public ModelProviderInfo getBaseInfo() {
-        ModelProviderInfo info = new ModelProviderInfo(ModelProviderEnum.XunFei);
-        info.setIcon(getSvgIcon("xf_icon.svg"));
-        return info;
+        return new ModelProviderInfo(ModelProviderEnum.XunFei);
     }
-
 
     @Override
     public List<ModelInfo> getModelList() {
-        List<ModelInfo> modelInfos = new ArrayList<>();
-        modelInfos.add(new ModelInfo("generalv3.5","", ModelType.LLM));
-        modelInfos.add(new ModelInfo("generalv3","",ModelType.LLM));
-        modelInfos.add(new ModelInfo("generalv2","",ModelType.LLM));
-        modelInfos.add(new ModelInfo("embedding","",ModelType.EMBEDDING));
-        return modelInfos;
+        return MODEL_INFOS;
     }
-
-
 }

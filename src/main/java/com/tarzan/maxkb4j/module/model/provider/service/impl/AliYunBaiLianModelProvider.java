@@ -11,7 +11,7 @@ import com.tarzan.maxkb4j.module.model.custom.params.impl.*;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelCredential;
 import com.tarzan.maxkb4j.module.model.provider.enums.ModelProviderEnum;
 import com.tarzan.maxkb4j.module.model.provider.enums.ModelType;
-import com.tarzan.maxkb4j.module.model.provider.service.IModelProvider;
+import com.tarzan.maxkb4j.module.model.provider.service.AbsModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.vo.ModelInfo;
 import com.tarzan.maxkb4j.module.model.provider.vo.ModelProviderInfo;
 import dev.langchain4j.community.model.dashscope.*;
@@ -23,7 +23,10 @@ import dev.langchain4j.model.scoring.ScoringModel;
 
 import java.util.List;
 
-public class AliYunBaiLianModelProvider extends IModelProvider {
+/**
+ * AliYun BaiLian (DashScope) Model Provider
+ */
+public class AliYunBaiLianModelProvider extends AbsModelProvider {
 
     private static final List<ModelInfo> MODEL_INFOS = List.of(
             new ModelInfo(QwenModelName.QWEN_TURBO, "大语言模型", ModelType.LLM, new QwenChatModelParams()),
@@ -38,8 +41,8 @@ public class AliYunBaiLianModelProvider extends IModelProvider {
             new ModelInfo("cosyvoice-v2", "语音生成模型", ModelType.TTS, new CosyVoiceV2TTSParams()),
             new ModelInfo("sambert-v1", "语音生成模型", ModelType.TTS, new SamBertTTSParams()),
             new ModelInfo("qwen-tts", "语音生成模型", ModelType.TTS, new QWenTTSParams()),
-            new ModelInfo(QwenModelName.QWEN_VL_PLUS, "AI视觉模型", ModelType.VISION, new QwenChatModelParams()),
-            new ModelInfo(QwenModelName.QWEN_VL_MAX, "AI视觉模型", ModelType.VISION, new QwenChatModelParams()),
+            new ModelInfo(QwenModelName.QWEN_VL_PLUS, "AI 视觉模型", ModelType.VISION, new QwenChatModelParams()),
+            new ModelInfo(QwenModelName.QWEN_VL_MAX, "AI 视觉模型", ModelType.VISION, new QwenChatModelParams()),
             new ModelInfo(WanxModelName.WANX2_1_T2I_TURBO, "文生图模型", ModelType.TTI, new WanXImageModelParams()),
             new ModelInfo(WanxModelName.WANX2_1_T2I_PLUS, "文生图模型", ModelType.TTI, new WanXImageModelParams()),
             new ModelInfo("qwen-image-plus", "文生图模型", ModelType.TTI, new QwenImageModelParams()),
@@ -48,11 +51,8 @@ public class AliYunBaiLianModelProvider extends IModelProvider {
 
     @Override
     public ModelProviderInfo getBaseInfo() {
-        ModelProviderInfo info = new ModelProviderInfo(ModelProviderEnum.AliYunBaiLian);
-        info.setIcon(getSvgIcon("qwen_icon.svg"));
-        return info;
+        return new ModelProviderInfo(ModelProviderEnum.AliYunBaiLian);
     }
-
 
     @Override
     public List<ModelInfo> getModelList() {
@@ -109,5 +109,4 @@ public class AliYunBaiLianModelProvider extends IModelProvider {
     public TTSModel buildTTSModel(String modelName, ModelCredential credential, JSONObject params) {
         return new BaiLianTTSModel(modelName, credential, params);
     }
-
 }

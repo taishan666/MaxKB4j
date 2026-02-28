@@ -10,47 +10,51 @@ import com.tarzan.maxkb4j.module.model.custom.params.impl.LlmModelParams;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelCredential;
 import com.tarzan.maxkb4j.module.model.provider.enums.ModelProviderEnum;
 import com.tarzan.maxkb4j.module.model.provider.enums.ModelType;
-import com.tarzan.maxkb4j.module.model.provider.service.IModelProvider;
+import com.tarzan.maxkb4j.module.model.provider.service.AbsModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.vo.ModelInfo;
 import com.tarzan.maxkb4j.module.model.provider.vo.ModelProviderInfo;
-import dev.langchain4j.community.model.xinference.*;
+import dev.langchain4j.community.model.xinference.XinferenceChatModel;
+import dev.langchain4j.community.model.xinference.XinferenceEmbeddingModel;
+import dev.langchain4j.community.model.xinference.XinferenceImageModel;
+import dev.langchain4j.community.model.xinference.XinferenceScoringModel;
+import dev.langchain4j.community.model.xinference.XinferenceStreamingChatModel;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.model.image.ImageModel;
 import dev.langchain4j.model.scoring.ScoringModel;
-import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.List;
 
-@Component
-public class XInferenceModelProvider extends IModelProvider {
+/**
+ * XInference Model Provider - Local deployment with OpenAI compatible API
+ */
+public class XInferenceModelProvider extends AbsModelProvider {
 
-    private final static String BASE_URL = "http://host.docker.internal:9997";
+    private static final String BASE_URL = "http://host.docker.internal:9997";
+    private static final List<ModelInfo> MODEL_INFOS = List.of(
+            new ModelInfo("qwen3:8b", "", ModelType.LLM, new LlmModelParams()),
+            new ModelInfo("bge-m3", "", ModelType.EMBEDDING, new LlmModelParams()),
+            new ModelInfo("llava:7b", "", ModelType.VISION, new LlmModelParams()),
+            new ModelInfo("sdxl-turbo", "", ModelType.TTI, new LlmModelParams()),
+            new ModelInfo("bge-reranker-base", "", ModelType.RERANKER),
+            new ModelInfo("ChatTTS", "", ModelType.TTS),
+            new ModelInfo("whisper-large-v3", "", ModelType.STT)
+    );
+
     @Override
     public ModelProviderInfo getBaseInfo() {
-        ModelProviderInfo info = new ModelProviderInfo(ModelProviderEnum.XInference);
-        info.setIcon(getSvgIcon("xinference_icon.svg"));
-        return info;
+        return new ModelProviderInfo(ModelProviderEnum.XInference);
     }
 
     @Override
     public List<ModelInfo> getModelList() {
-        List<ModelInfo> modelInfos = new ArrayList<>();
-        modelInfos.add(new ModelInfo("qwen3:8b", "", ModelType.LLM,  new LlmModelParams()));
-        modelInfos.add(new ModelInfo("bge-m3", "", ModelType.EMBEDDING,  new LlmModelParams()));
-        modelInfos.add(new ModelInfo("llava:7b", "", ModelType.VISION,  new LlmModelParams()));
-        modelInfos.add(new ModelInfo("sdxl-turbo", "", ModelType.TTI,  new LlmModelParams()));
-        modelInfos.add(new ModelInfo("bge-reranker-base","",ModelType.RERANKER));
-        modelInfos.add(new ModelInfo("ChatTTS","",ModelType.TTS));
-        modelInfos.add(new ModelInfo("whisper-large-v3","",ModelType.STT));
-        return modelInfos;
+        return MODEL_INFOS;
     }
 
     @Override
     public ModelCredentialForm getModelCredential() {
-        return new ModelCredentialForm(true,BASE_URL);
+        return new ModelCredentialForm(true, BASE_URL);
     }
 
     @Override
@@ -107,6 +111,4 @@ public class XInferenceModelProvider extends IModelProvider {
     public TTSModel buildTTSModel(String modelName, ModelCredential credential, JSONObject params) {
         return new OpenAiTTSModel(modelName, credential, params);
     }
-
-
 }

@@ -5,10 +5,9 @@ import com.tarzan.maxkb4j.module.model.custom.params.impl.LlmModelParams;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelCredential;
 import com.tarzan.maxkb4j.module.model.provider.enums.ModelProviderEnum;
 import com.tarzan.maxkb4j.module.model.provider.enums.ModelType;
-import com.tarzan.maxkb4j.module.model.provider.service.IModelProvider;
+import com.tarzan.maxkb4j.module.model.provider.service.AbsModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.vo.ModelInfo;
 import com.tarzan.maxkb4j.module.model.provider.vo.ModelProviderInfo;
-import dev.langchain4j.http.client.HttpClientBuilder;
 import dev.langchain4j.model.azure.AzureOpenAiChatModel;
 import dev.langchain4j.model.azure.AzureOpenAiEmbeddingModel;
 import dev.langchain4j.model.azure.AzureOpenAiImageModel;
@@ -18,32 +17,34 @@ import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.model.image.ImageModel;
 
-import java.util.ArrayList;
 import java.util.List;
 
-public class AzureModelProvider  extends IModelProvider {
+/**
+ * Azure OpenAI Model Provider
+ */
+public class AzureModelProvider extends AbsModelProvider {
+
+    private static final List<ModelInfo> MODEL_INFOS = List.of(
+            new ModelInfo("Azure OpenAI", "", ModelType.LLM, new LlmModelParams()),
+            new ModelInfo("gpt-4", "", ModelType.LLM, new LlmModelParams()),
+            new ModelInfo("gpt-4o", "", ModelType.LLM, new LlmModelParams()),
+            new ModelInfo("gpt-4o-mini", "", ModelType.LLM, new LlmModelParams()),
+            new ModelInfo("text-embedding-3-large", "", ModelType.EMBEDDING),
+            new ModelInfo("text-embedding-3-small", "", ModelType.EMBEDDING),
+            new ModelInfo("text-embedding-ada-002", "", ModelType.EMBEDDING),
+            new ModelInfo("gpt-4o", "", ModelType.VISION, new LlmModelParams()),
+            new ModelInfo("gpt-4o-mini", "", ModelType.VISION, new LlmModelParams()),
+            new ModelInfo("dall-e-3", "", ModelType.TTI)
+    );
 
     @Override
     public ModelProviderInfo getBaseInfo() {
-        ModelProviderInfo info = new ModelProviderInfo(ModelProviderEnum.Azure);
-        info.setIcon(getSvgIcon("azure_icon.svg"));
-        return info;
+        return  new ModelProviderInfo(ModelProviderEnum.Azure);
     }
 
     @Override
     public List<ModelInfo> getModelList() {
-        List<ModelInfo> modelInfos = new ArrayList<>();
-        modelInfos.add(new ModelInfo("Azure OpenAI","", ModelType.LLM, new LlmModelParams()));
-        modelInfos.add(new ModelInfo("gpt-4","", ModelType.LLM, new LlmModelParams()));
-        modelInfos.add(new ModelInfo("gpt-4o","", ModelType.LLM,new LlmModelParams()));
-        modelInfos.add(new ModelInfo("gpt-4o-mini","", ModelType.LLM, new LlmModelParams()));
-        modelInfos.add(new ModelInfo("text-embedding-3-large","", ModelType.EMBEDDING));
-        modelInfos.add(new ModelInfo("text-embedding-3-small","", ModelType.EMBEDDING));
-        modelInfos.add(new ModelInfo("text-embedding-ada-002","", ModelType.EMBEDDING));
-        modelInfos.add(new ModelInfo("gpt-4o","", ModelType.VISION, new LlmModelParams()));
-        modelInfos.add(new ModelInfo("gpt-4o-mini","", ModelType.VISION, new LlmModelParams()));
-        modelInfos.add(new ModelInfo("dall-e-3","", ModelType.TTI));
-        return modelInfos;
+        return MODEL_INFOS;
     }
 
     @Override
@@ -72,10 +73,9 @@ public class AzureModelProvider  extends IModelProvider {
 
     @Override
     public ImageModel buildImageModel(String modelName, ModelCredential credential, JSONObject params) {
-        return  AzureOpenAiImageModel.builder()
+        return AzureOpenAiImageModel.builder()
                 .apiKey(credential.getApiKey())
-                .deploymentName(modelName).build();
+                .deploymentName(modelName)
+                .build();
     }
-
-
 }

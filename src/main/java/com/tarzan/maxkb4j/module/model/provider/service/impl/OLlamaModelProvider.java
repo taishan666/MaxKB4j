@@ -6,7 +6,7 @@ import com.tarzan.maxkb4j.module.model.custom.params.impl.LlmModelParams;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelCredential;
 import com.tarzan.maxkb4j.module.model.provider.enums.ModelProviderEnum;
 import com.tarzan.maxkb4j.module.model.provider.enums.ModelType;
-import com.tarzan.maxkb4j.module.model.provider.service.IModelProvider;
+import com.tarzan.maxkb4j.module.model.provider.service.AbsModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.vo.ModelInfo;
 import com.tarzan.maxkb4j.module.model.provider.vo.ModelProviderInfo;
 import dev.langchain4j.model.chat.ChatModel;
@@ -16,35 +16,36 @@ import dev.langchain4j.model.ollama.OllamaChatModel;
 import dev.langchain4j.model.ollama.OllamaEmbeddingModel;
 import dev.langchain4j.model.ollama.OllamaStreamingChatModel;
 
-import java.util.ArrayList;
 import java.util.List;
 
-public class OLlamaModelProvider extends IModelProvider {
+/**
+ * Ollama Model Provider - Local deployment
+ */
+public class OLlamaModelProvider extends AbsModelProvider {
 
-    private final static String BASE_URL = "http://host.docker.internal:11434";
+    private static final String BASE_URL = "http://host.docker.internal:11434";
+    private static final List<ModelInfo> MODEL_INFOS = List.of(
+            new ModelInfo("qwen:7b", "", ModelType.LLM, new LlmModelParams()),
+            new ModelInfo("llama3:8b", "", ModelType.LLM, new LlmModelParams()),
+            new ModelInfo("deepseek-r1:8b", "", ModelType.LLM, new LlmModelParams()),
+            new ModelInfo("nomic-embed-text", "", ModelType.EMBEDDING),
+            new ModelInfo("llava:7b", "", ModelType.VISION, new LlmModelParams()),
+            new ModelInfo("llava:13b", "", ModelType.VISION, new LlmModelParams())
+    );
 
     @Override
     public ModelProviderInfo getBaseInfo() {
-        ModelProviderInfo info = new ModelProviderInfo(ModelProviderEnum.OLlama);
-        info.setIcon(getSvgIcon("ollama_icon.svg"));
-        return info;
-    }
-
-    @Override
-    public List<ModelInfo> getModelList() {
-        List<ModelInfo> modelInfos = new ArrayList<>();
-        modelInfos.add(new ModelInfo("qwen:7b", "", ModelType.LLM, new LlmModelParams()));
-        modelInfos.add(new ModelInfo("llama3:8b", "", ModelType.LLM, new LlmModelParams()));
-        modelInfos.add(new ModelInfo("deepseek-r1:8b", "", ModelType.LLM, new LlmModelParams()));
-        modelInfos.add(new ModelInfo("nomic-embed-text", "", ModelType.EMBEDDING));
-        modelInfos.add(new ModelInfo("llava:7b", "", ModelType.VISION, new LlmModelParams()));
-        modelInfos.add(new ModelInfo("llava:13b", "", ModelType.VISION, new LlmModelParams()));
-        return modelInfos;
+        return new ModelProviderInfo(ModelProviderEnum.OLlama);
     }
 
     @Override
     public ModelCredentialForm getModelCredential() {
         return new ModelCredentialForm(false, BASE_URL);
+    }
+
+    @Override
+    public List<ModelInfo> getModelList() {
+        return MODEL_INFOS;
     }
 
     @Override
@@ -70,6 +71,4 @@ public class OLlamaModelProvider extends IModelProvider {
                 .modelName(modelName)
                 .build();
     }
-
-
 }

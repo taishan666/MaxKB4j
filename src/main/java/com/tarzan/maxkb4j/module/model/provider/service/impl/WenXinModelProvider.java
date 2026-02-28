@@ -1,11 +1,10 @@
 package com.tarzan.maxkb4j.module.model.provider.service.impl;
 
-
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelCredential;
 import com.tarzan.maxkb4j.module.model.provider.enums.ModelProviderEnum;
 import com.tarzan.maxkb4j.module.model.provider.enums.ModelType;
-import com.tarzan.maxkb4j.module.model.provider.service.IModelProvider;
+import com.tarzan.maxkb4j.module.model.provider.service.AbsModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.vo.ModelInfo;
 import com.tarzan.maxkb4j.module.model.provider.vo.ModelProviderInfo;
 import dev.langchain4j.community.model.qianfan.QianfanChatModel;
@@ -15,25 +14,28 @@ import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 
-import java.util.ArrayList;
 import java.util.List;
 
-public class WenXinModelProvider extends IModelProvider {
+/**
+ * WenXin (Baidu Qianfan) Model Provider
+ */
+public class WenXinModelProvider extends AbsModelProvider {
+
+    private static final List<ModelInfo> MODEL_INFOS = List.of(
+            new ModelInfo("ERNIE-Bot-4", "", ModelType.LLM),
+            new ModelInfo("ERNIE-Bot", "", ModelType.LLM),
+            new ModelInfo("ERNIE-Bot-turbo", "", ModelType.LLM),
+            new ModelInfo("Embedding-V1", "", ModelType.EMBEDDING)
+    );
+
     @Override
     public ModelProviderInfo getBaseInfo() {
-        ModelProviderInfo info = new ModelProviderInfo(ModelProviderEnum.WenXin);
-        info.setIcon(getSvgIcon("wenxin_icon.svg"));
-        return info;
+        return new ModelProviderInfo(ModelProviderEnum.WenXin);
     }
 
     @Override
     public List<ModelInfo> getModelList() {
-        List<ModelInfo> modelInfos = new ArrayList<>();
-        modelInfos.add(new ModelInfo("ERNIE-Bot-4", "", ModelType.LLM));
-        modelInfos.add(new ModelInfo("ERNIE-Bot", "", ModelType.LLM));
-        modelInfos.add(new ModelInfo("ERNIE-Bot-turbo", "", ModelType.LLM));
-        modelInfos.add(new ModelInfo("Embedding-V1", "", ModelType.EMBEDDING));
-        return modelInfos;
+        return MODEL_INFOS;
     }
 
     @Override
@@ -54,11 +56,9 @@ public class WenXinModelProvider extends IModelProvider {
 
     @Override
     public EmbeddingModel buildEmbeddingModel(String modelName, ModelCredential credential, JSONObject params) {
-        return  QianfanEmbeddingModel.builder()
+        return QianfanEmbeddingModel.builder()
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
                 .build();
     }
-
-
 }

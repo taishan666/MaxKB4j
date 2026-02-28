@@ -6,7 +6,7 @@ import com.tarzan.maxkb4j.common.domain.form.BaseField;
 import com.tarzan.maxkb4j.module.model.info.vo.KeyAndValueVO;
 import com.tarzan.maxkb4j.module.model.provider.enums.ModelProviderEnum;
 import com.tarzan.maxkb4j.module.model.provider.enums.ModelType;
-import com.tarzan.maxkb4j.module.model.provider.service.IModelProvider;
+import com.tarzan.maxkb4j.module.model.provider.service.AbsModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.vo.ModelInfo;
 import com.tarzan.maxkb4j.module.model.provider.vo.ModelProviderInfo;
 import org.apache.commons.lang3.StringUtils;
@@ -20,8 +20,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * @author tarzan
- * @date 2024-12-25 12:22:22
+ * Model Provider Controller
+ * Provides APIs for querying provider and model information
  */
 @RestController
 @RequestMapping(AppConst.ADMIN_API)
@@ -29,17 +29,17 @@ public class ProviderController {
 
     @GetMapping("/provider")
     public R<List<ModelProviderInfo>> provider(String modelType) {
-        List<IModelProvider> list = ModelProviderEnum.getAllProvider();
+        List<AbsModelProvider> list = ModelProviderEnum.getAllProvider();
         if (StringUtils.isBlank(modelType)) {
-            return R.success(list.stream().map(IModelProvider::getBaseInfo).toList());
+            return R.success(list.stream().map(AbsModelProvider::getBaseInfo).toList());
         }
-        return R.success(list.stream().filter(e -> e.isSupport(ModelType.getByKey(modelType))).map(IModelProvider::getBaseInfo).toList());
+        return R.success(list.stream().filter(e -> e.isSupport(ModelType.getByKey(modelType))).map(AbsModelProvider::getBaseInfo).toList());
     }
 
 
     @GetMapping("/provider/model_type_list")
     public R<List<KeyAndValueVO>> modelTypeList(String provider) {
-        IModelProvider modelProvider = ModelProviderEnum.get(provider);
+        AbsModelProvider modelProvider = ModelProviderEnum.get(provider);
         List<ModelInfo> modelInfos = modelProvider.getModelList();
         Map<ModelType, List<ModelInfo>> map = modelInfos.stream().collect(Collectors.groupingBy(ModelInfo::getModelType));
         Set<ModelType> keys = map.keySet();
@@ -49,16 +49,16 @@ public class ProviderController {
 
     @GetMapping("/provider/model_form")
     public R<List<BaseField>> modelForm(String provider, String modelType, String modelName) {
-        IModelProvider modelProvider = ModelProviderEnum.get(provider);
+        AbsModelProvider modelProvider = ModelProviderEnum.get(provider);
         return R.success(modelProvider.getModelCredential().toForm());
     }
 
 
     @GetMapping("/provider/model_params_form")
     public R<List<BaseField>> modelParamsForm(String provider, String modelType, String modelName) {
-        IModelProvider modelProvider = ModelProviderEnum.get(provider);
+        AbsModelProvider modelProvider = ModelProviderEnum.get(provider);
         ModelInfo modelInfo = modelProvider.getModelInfo(ModelType.getByKey(modelType), modelName);
-        if (modelInfo == null|| modelInfo.getModelParams()==null){
+        if (modelInfo == null || modelInfo.getModelParams() == null) {
             return R.success(List.of());
         }
         return R.success(modelInfo.getModelParams().toForm());
@@ -67,7 +67,7 @@ public class ProviderController {
 
     @GetMapping("/provider/model_list")
     public R<List<ModelInfo>> modelList(String provider, String modelType) {
-        IModelProvider modelProvider = ModelProviderEnum.get(provider);
+        AbsModelProvider modelProvider = ModelProviderEnum.get(provider);
         List<ModelInfo> modelInfos = modelProvider.getModelList();
         if (StringUtils.isBlank(modelType)) {
             return R.success(modelInfos);

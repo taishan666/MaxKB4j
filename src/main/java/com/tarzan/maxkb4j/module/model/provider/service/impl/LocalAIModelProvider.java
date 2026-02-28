@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.module.model.custom.credential.ModelCredentialForm;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelCredential;
 import com.tarzan.maxkb4j.module.model.provider.enums.ModelProviderEnum;
-import com.tarzan.maxkb4j.module.model.provider.service.IModelProvider;
+import com.tarzan.maxkb4j.module.model.provider.service.AbsModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.vo.ModelInfo;
 import com.tarzan.maxkb4j.module.model.provider.vo.ModelProviderInfo;
 import dev.langchain4j.model.chat.ChatModel;
@@ -16,20 +16,16 @@ import dev.langchain4j.model.localai.LocalAiStreamingChatModel;
 
 import java.util.List;
 
-public class LocalAIModelProvider extends IModelProvider {
+/**
+ * LocalAI Model Provider - Local deployment
+ */
+public class LocalAIModelProvider extends AbsModelProvider {
 
-    private final static String BASE_URL = "http://host.docker.internal:8080";
+    private static final String BASE_URL = "http://host.docker.internal:8080";
 
     @Override
     public ModelProviderInfo getBaseInfo() {
-        ModelProviderInfo info = new ModelProviderInfo(ModelProviderEnum.LocalAI);
-        info.setIcon(getSvgIcon("local_ai_icon.svg"));
-        return info;
-    }
-
-    @Override
-    public ModelCredentialForm getModelCredential() {
-        return new ModelCredentialForm( false,BASE_URL);
+        return new ModelProviderInfo(ModelProviderEnum.LocalAI);
     }
 
     @Override
@@ -37,6 +33,10 @@ public class LocalAIModelProvider extends IModelProvider {
         return List.of();
     }
 
+    @Override
+    public ModelCredentialForm getModelCredential() {
+        return new ModelCredentialForm(true, BASE_URL);
+    }
 
     @Override
     public ChatModel buildChatModel(String modelName, ModelCredential credential, JSONObject params) {
@@ -66,7 +66,6 @@ public class LocalAIModelProvider extends IModelProvider {
                 .maxRetries(params.getInteger("maxRetries"))
                 .build();
     }
-
 
 
 }

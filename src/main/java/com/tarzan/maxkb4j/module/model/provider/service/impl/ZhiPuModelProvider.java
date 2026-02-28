@@ -5,7 +5,7 @@ import com.tarzan.maxkb4j.module.model.custom.params.impl.LlmModelParams;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelCredential;
 import com.tarzan.maxkb4j.module.model.provider.enums.ModelProviderEnum;
 import com.tarzan.maxkb4j.module.model.provider.enums.ModelType;
-import com.tarzan.maxkb4j.module.model.provider.service.IModelProvider;
+import com.tarzan.maxkb4j.module.model.provider.service.AbsModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.vo.ModelInfo;
 import com.tarzan.maxkb4j.module.model.provider.vo.ModelProviderInfo;
 import dev.langchain4j.community.model.zhipu.ZhipuAiChatModel;
@@ -16,34 +16,35 @@ import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.model.image.ImageModel;
-import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.List;
 
-@Component("model_zhipu_provider")
-public class ZhiPuModelProvider extends IModelProvider {
+/**
+ * ZhiPu (GLM) Model Provider
+ */
+public class ZhiPuModelProvider extends AbsModelProvider {
+
+    private static final List<ModelInfo> MODEL_INFOS = List.of(
+            new ModelInfo("glm-4", "", ModelType.LLM, new LlmModelParams()),
+            new ModelInfo("glm-4v", "", ModelType.LLM, new LlmModelParams()),
+            new ModelInfo("glm-3-turbo", "", ModelType.LLM, new LlmModelParams()),
+            new ModelInfo("embedding-3", "", ModelType.EMBEDDING),
+            new ModelInfo("glm-4v-plus", "", ModelType.VISION),
+            new ModelInfo("glm-4v", "", ModelType.VISION, new LlmModelParams()),
+            new ModelInfo("glm-4v-flash", "", ModelType.VISION, new LlmModelParams()),
+            new ModelInfo("cogview-3", "", ModelType.TTI),
+            new ModelInfo("cogview-3-plus", "", ModelType.TTI),
+            new ModelInfo("cogview-3-flash", "", ModelType.TTI)
+    );
+
     @Override
     public ModelProviderInfo getBaseInfo() {
-        ModelProviderInfo info = new ModelProviderInfo(ModelProviderEnum.ZhiPu);
-        info.setIcon(getSvgIcon("zhipu_ai_icon.svg"));
-        return info;
+        return new ModelProviderInfo(ModelProviderEnum.ZhiPu);
     }
 
     @Override
     public List<ModelInfo> getModelList() {
-        List<ModelInfo> modelInfos = new ArrayList<>();
-        modelInfos.add(new ModelInfo("glm-4","", ModelType.LLM, new LlmModelParams()));
-        modelInfos.add(new ModelInfo("glm-4v","", ModelType.LLM,  new LlmModelParams()));
-        modelInfos.add(new ModelInfo("glm-3-turbo","", ModelType.LLM,  new LlmModelParams()));
-        modelInfos.add(new ModelInfo("embedding-3","", ModelType.EMBEDDING));
-        modelInfos.add(new ModelInfo("glm-4v-plus","", ModelType.VISION));
-        modelInfos.add(new ModelInfo("glm-4v","", ModelType.VISION,  new LlmModelParams()));
-        modelInfos.add(new ModelInfo("glm-4v-flash","", ModelType.VISION, new LlmModelParams()));
-        modelInfos.add(new ModelInfo("cogview-3","", ModelType.TTI));
-        modelInfos.add(new ModelInfo("cogview-3-plus","", ModelType.TTI));
-        modelInfos.add(new ModelInfo("cogview-3-flash","", ModelType.TTI));
-        return modelInfos;
+        return MODEL_INFOS;
     }
 
     @Override
@@ -64,7 +65,7 @@ public class ZhiPuModelProvider extends IModelProvider {
 
     @Override
     public EmbeddingModel buildEmbeddingModel(String modelName, ModelCredential credential, JSONObject params) {
-        return  ZhipuAiEmbeddingModel.builder()
+        return ZhipuAiEmbeddingModel.builder()
                 .apiKey(credential.getApiKey())
                 .model(modelName)
                 .build();
@@ -72,10 +73,9 @@ public class ZhiPuModelProvider extends IModelProvider {
 
     @Override
     public ImageModel buildImageModel(String modelName, ModelCredential credential, JSONObject params) {
-        return  ZhipuAiImageModel.builder()
+        return ZhipuAiImageModel.builder()
                 .apiKey(credential.getApiKey())
-                .model(modelName).build();
+                .model(modelName)
+                .build();
     }
-
-
 }

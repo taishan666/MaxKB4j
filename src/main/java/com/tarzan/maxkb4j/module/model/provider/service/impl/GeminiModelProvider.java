@@ -4,10 +4,9 @@ import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.module.model.info.entity.ModelCredential;
 import com.tarzan.maxkb4j.module.model.provider.enums.ModelProviderEnum;
 import com.tarzan.maxkb4j.module.model.provider.enums.ModelType;
-import com.tarzan.maxkb4j.module.model.provider.service.IModelProvider;
+import com.tarzan.maxkb4j.module.model.provider.service.AbsModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.vo.ModelInfo;
 import com.tarzan.maxkb4j.module.model.provider.vo.ModelProviderInfo;
-import dev.langchain4j.http.client.HttpClientBuilder;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.model.embedding.EmbeddingModel;
@@ -17,9 +16,10 @@ import dev.langchain4j.model.googleai.GoogleAiGeminiStreamingChatModel;
 
 import java.util.List;
 
-public class GeminiModelProvider extends IModelProvider {
-
-    private final HttpClientBuilder httpClientBuilder = buildHttpClientBuilder();
+/**
+ * Google Gemini Model Provider
+ */
+public class GeminiModelProvider extends AbsModelProvider {
 
     private static final List<ModelInfo> MODEL_INFOS = List.of(
             new ModelInfo("gemini-1.0-pro", "", ModelType.LLM),
@@ -31,11 +31,8 @@ public class GeminiModelProvider extends IModelProvider {
 
     @Override
     public ModelProviderInfo getBaseInfo() {
-        ModelProviderInfo info = new ModelProviderInfo(ModelProviderEnum.Gemini);
-        info.setIcon(getSvgIcon("gemini_icon.svg"));
-        return info;
+        return new ModelProviderInfo(ModelProviderEnum.Gemini);
     }
-
 
     @Override
     public List<ModelInfo> getModelList() {
@@ -45,7 +42,7 @@ public class GeminiModelProvider extends IModelProvider {
     @Override
     public ChatModel buildChatModel(String modelName, ModelCredential credential, JSONObject params) {
         return GoogleAiGeminiChatModel.builder()
-                .httpClientBuilder(httpClientBuilder)
+                .httpClientBuilder(getHttpClientBuilder())
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
                 .build();
@@ -54,7 +51,7 @@ public class GeminiModelProvider extends IModelProvider {
     @Override
     public StreamingChatModel buildStreamingChatModel(String modelName, ModelCredential credential, JSONObject params) {
         return GoogleAiGeminiStreamingChatModel.builder()
-                .httpClientBuilder(httpClientBuilder)
+                .httpClientBuilder(getHttpClientBuilder())
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
                 .build();
@@ -63,11 +60,9 @@ public class GeminiModelProvider extends IModelProvider {
     @Override
     public EmbeddingModel buildEmbeddingModel(String modelName, ModelCredential credential, JSONObject params) {
         return GoogleAiEmbeddingModel.builder()
-                .httpClientBuilder(httpClientBuilder)
+                .httpClientBuilder(getHttpClientBuilder())
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
                 .build();
     }
-
-
 }
