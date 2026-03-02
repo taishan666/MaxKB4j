@@ -25,12 +25,11 @@ import com.tarzan.maxkb4j.module.knowledge.domain.dto.KnowledgeQuery;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.*;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.KnowledgeListVO;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.KnowledgeVO;
-import com.tarzan.maxkb4j.module.knowledge.excel.DatasetExcel;
+import com.tarzan.maxkb4j.module.knowledge.handler.KnowledgeExportHandler;
 import com.tarzan.maxkb4j.module.knowledge.mapper.KnowledgeMapper;
 import com.tarzan.maxkb4j.module.knowledge.mapper.ParagraphMapper;
 import com.tarzan.maxkb4j.module.knowledge.mapper.ProblemMapper;
 import com.tarzan.maxkb4j.module.knowledge.mapper.ProblemParagraphMapper;
-import com.tarzan.maxkb4j.module.knowledge.handler.KnowledgeExportHandler;
 import com.tarzan.maxkb4j.module.system.permission.constant.AuthTargetType;
 import com.tarzan.maxkb4j.module.system.permission.service.UserResourcePermissionService;
 import com.tarzan.maxkb4j.module.system.user.constants.RoleType;
@@ -66,7 +65,7 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
     private final UserService userService;
     private final UserResourcePermissionService userResourcePermissionService;
     private final ApplicationEventPublisher eventPublisher;
-    private final DataIndexService dataIndexService;
+    private final IChunkIndexService chunkIndexService;
     private final KnowledgeActionService knowledgeActionService;
     private final KnowledgeVersionService knowledgeVersionService;
     private final KnowledgeWorkflowHandler knowledgeWorkflowHandler;
@@ -115,7 +114,7 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
         knowledgeVersionService.lambdaQuery().eq(KnowledgeVersionEntity::getKnowledgeId, id);
         knowledgeActionService.lambdaQuery().eq(KnowledgeActionEntity::getKnowledgeId, id);
         userResourcePermissionService.remove(AuthTargetType.APPLICATION, id);
-        dataIndexService.removeByKnowledgeId(id);
+        chunkIndexService.removeByKnowledgeId(id);
         return this.removeById(id);
     }
 
@@ -150,11 +149,6 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
         List<DocumentEntity> docs = getDocumentsByKnowledgeId(id);
         knowledgeExportHandler.setExcelResponseHeader(response, dataset.getName());
         knowledgeExportHandler.writeMultiSheetExcel(response.getOutputStream(), docs);
-    }
-
-    //todo
-    private List<DatasetExcel> getDatasetExcelByDoc(DocumentEntity doc) {
-        return knowledgeExportHandler.getDatasetExcelByDoc(doc);
     }
 
 

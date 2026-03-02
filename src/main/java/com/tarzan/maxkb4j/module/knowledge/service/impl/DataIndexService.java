@@ -1,4 +1,4 @@
-package com.tarzan.maxkb4j.module.knowledge.service;
+package com.tarzan.maxkb4j.module.knowledge.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -7,6 +7,7 @@ import com.tarzan.maxkb4j.module.knowledge.consts.SourceType;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.EmbeddingEntity;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.ParagraphEntity;
 import com.tarzan.maxkb4j.module.knowledge.mapper.EmbeddingMapper;
+import com.tarzan.maxkb4j.module.knowledge.service.IChunkIndexService;
 import com.tarzan.maxkb4j.module.knowledge.util.TextSegmentUtil;
 import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.data.segment.TextSegment;
@@ -24,7 +25,7 @@ import java.util.List;
 
 @Component
 @RequiredArgsConstructor
-public class DataIndexService implements IChunkIndexService{
+public class DataIndexService implements IChunkIndexService {
 
     private final MongoTemplate mongoTemplate;
     private final EmbeddingMapper embeddingMapper;

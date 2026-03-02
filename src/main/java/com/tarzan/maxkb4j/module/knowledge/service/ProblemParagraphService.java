@@ -27,7 +27,7 @@ public class ProblemParagraphService extends ServiceImpl<ProblemParagraphMapper,
 
     private final ProblemMapper problemMapper;
     private final KnowledgeModelService knowledgeModelService;
-    private final DataIndexService dataIndexService;
+    private final IChunkIndexService chunkIndexService;
 
     public List<ProblemEntity> getProblemsByParagraphId(String paragraphId) {
         return baseMapper.getProblemsByParagraphId(paragraphId);
@@ -49,7 +49,7 @@ public class ProblemParagraphService extends ServiceImpl<ProblemParagraphMapper,
 
     @Transactional
     public boolean unAssociation(String knowledgeId, String docId, String paragraphId, String problemId) {
-        dataIndexService.removeByProblemIdAndParagraphId(knowledgeId,problemId,paragraphId);
+        chunkIndexService.removeByProblemIdAndParagraphId(knowledgeId,problemId,paragraphId);
         return this.lambdaUpdate()
                 .eq(ProblemParagraphEntity::getParagraphId, paragraphId)
                 .eq(ProblemParagraphEntity::getProblemId, problemId)
@@ -70,7 +70,7 @@ public class ProblemParagraphService extends ServiceImpl<ProblemParagraphMapper,
             embeddingEntity.setContent(e.getContent());
             return embeddingEntity;
         }).toList();
-        dataIndexService.insertAll(embeddingEntities,embeddingModel);
+        chunkIndexService.insertAll(embeddingEntities,embeddingModel);
         return true;
     }
 }

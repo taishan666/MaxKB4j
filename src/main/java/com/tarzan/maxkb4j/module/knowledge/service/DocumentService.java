@@ -175,7 +175,10 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         DocumentEntity doc = this.getById(docId);
         if (doc == null) return;
         List<DatasetExcel> list = getDatasetExcelByDoc(doc);
-        ExcelUtil.export(response, doc.getName(), doc.getName(), list, DatasetExcel.class);
+        int index=doc.getName().lastIndexOf(".");
+        int end=Math.min(31,index);
+        String sheetName=doc.getName().substring(0,end);
+        ExcelUtil.export(response, doc.getName(), sheetName, list, DatasetExcel.class);
     }
 
     public void exportExcelZipByDocId(String docId, HttpServletResponse response) throws IOException {

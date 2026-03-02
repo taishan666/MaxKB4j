@@ -36,7 +36,7 @@ import java.util.stream.Collectors;
 public class ProblemService extends ServiceImpl<ProblemMapper, ProblemEntity> {
 
     private final ProblemParagraphService problemParagraphService;
-    private final DataIndexService dataIndexService;
+    private final IChunkIndexService chunkIndexService;
 
     /**
      * 分页查询指定知识库下的问题
@@ -208,7 +208,7 @@ public class ProblemService extends ServiceImpl<ProblemMapper, ProblemEntity> {
                 .in(ProblemParagraphEntity::getProblemId, problemIds)
                 .remove();
         // 删除向量索引
-        dataIndexService.removeBySourceIds(knowledgeId, problemIds);
+        chunkIndexService.removeBySourceIds(knowledgeId, problemIds);
         // 删除问题本体
         return this.removeByIds(problemIds);
     }
