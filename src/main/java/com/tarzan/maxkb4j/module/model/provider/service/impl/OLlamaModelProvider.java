@@ -48,6 +48,7 @@ public class OLlamaModelProvider extends AbsModelProvider {
                 .baseUrl(credential.getBaseUrl())
                 .modelName(modelName)
                 .temperature(getDoubleParam(params, "temperature"))
+                .returnThinking(true)
                 .build();
     }
 
@@ -58,6 +59,7 @@ public class OLlamaModelProvider extends AbsModelProvider {
                 .baseUrl(credential.getBaseUrl())
                 .modelName(modelName)
                 .temperature(getDoubleParam(params, "temperature"))
+                .returnThinking(true)
                 .build();
     }
 

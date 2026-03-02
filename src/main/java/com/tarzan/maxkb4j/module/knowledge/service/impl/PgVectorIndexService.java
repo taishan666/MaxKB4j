@@ -25,7 +25,7 @@ import java.util.List;
 
 @Component
 @RequiredArgsConstructor
-public class DataIndexService implements IChunkIndexService {
+public class PgVectorIndexService implements IChunkIndexService {
 
     private final MongoTemplate mongoTemplate;
     private final EmbeddingMapper embeddingMapper;

@@ -4,6 +4,7 @@ import com.tarzan.maxkb4j.common.util.SentenceSplitter;
 import com.tarzan.maxkb4j.common.util.TextSplitter;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.ParagraphSimple;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
@@ -26,6 +27,13 @@ public class DocumentSplitService {
             "(?<=\\n)(?<!#)##### (?!#).*|(?<=^)(?<!#)##### (?!#).*",
             "(?<=\\n)(?<!#)###### (?!#).*|(?<=^)(?<!#)###### (?!#).*"
     };
+
+    // 匹配 Markdown 表格的正则（多行模式）
+    private static final Pattern MD_TABLE_PATTERN = Pattern.compile(
+            "(?sm)^\\\\s*\\\\|.*?\\\\|\\\\s*(?:\\\\n|$)" +              // 第一行：| ... |
+            "(?:\\\\s*\\\\|[-:\\\\s|]*\\\\|\\\\s*(?:\\\\n|$))?" +        // 可选的分隔行：|---|:--:|---|
+            "(?:\\\\s*\\\\|.*?\\\\|\\\\s*(?:\\\\n|$))*"                 // 后续数据行
+    );
 
     private static final int DEFAULT_LIMIT=512;
 
@@ -118,12 +126,8 @@ public class DocumentSplitService {
         List<ParagraphSimple> result = new ArrayList<>();
         for (ParagraphSimple part : parts) {
             if (StringUtils.isNotBlank(part.getContent())) {
-                //todo 当是md表格时，表格里有句号，会破快表格结构
-                List<String> texts = SentenceSplitter.split(part.getContent(), limit);
-                for (String text : texts) {
-                    ParagraphSimple newPart = ParagraphSimple.builder().title(part.getTitle()).content(text).build();
-                    result.add(newPart);
-                }
+                List<ParagraphSimple> splitParts = splitContentPreserveTable(part, limit);
+                result.addAll(splitParts);
             }
         }
         if (Boolean.TRUE.equals(withFilter)) {
@@ -136,5 +140,65 @@ public class DocumentSplitService {
                 .filter(e -> StringUtils.isNotBlank(e.getContent()))
                 .toList();
     }
+
+    public static List<ParagraphSimple> splitContentPreserveTable(ParagraphSimple part, int limit) {
+        List<ParagraphSimple> result = new ArrayList<>();
+        String content = part.getContent();
+
+        if (StringUtils.isBlank(content)) {
+            return result;
+        }
+
+        // 查找所有表格块
+        List<String> segments = getStringList(content);
+
+        // 遍历 segments，对非表格段切分，表格段保留
+        for (String seg : segments) {
+            if (seg.startsWith("{{TABLE}}") && seg.endsWith("{{/TABLE}}")) {
+                // 是表格，直接添加
+                String tableContent = seg.substring("{{TABLE}}".length(), seg.length() - "{{/TABLE}}".length());
+                result.add(ParagraphSimple.builder()
+                        .title(part.getTitle())
+                        .content(tableContent)
+                        .build());
+            } else {
+                // 非表格内容，进行句子切分
+                List<String> texts = SentenceSplitter.split(seg, limit);
+                for (String text : texts) {
+                    if (StringUtils.isNotBlank(text)) {
+                        result.add(ParagraphSimple.builder()
+                                .title(part.getTitle())
+                                .content(text.trim())
+                                .build());
+                    }
+                }
+            }
+        }
+
+        return result;
+    }
+
+    private static @NotNull List<String> getStringList(String content) {
+        Matcher matcher = MD_TABLE_PATTERN.matcher(content);
+        List<String> segments = new ArrayList<>();
+        int lastEnd = 0;
+
+        while (matcher.find()) {
+            // 添加非表格部分（需切分）
+            if (matcher.start() > lastEnd) {
+                segments.add(content.substring(lastEnd, matcher.start()));
+            }
+            // 添加表格部分（不切分，标记为表格）
+            segments.add("{{TABLE}}" + matcher.group() + "{{/TABLE}}");
+            lastEnd = matcher.end();
+        }
+
+        // 添加剩余非表格部分
+        if (lastEnd < content.length()) {
+            segments.add(content.substring(lastEnd));
+        }
+        return segments;
+    }
+
 
 }
