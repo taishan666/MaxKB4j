@@ -45,7 +45,7 @@ public class SentenceSplitter {
             end = sentenceIter.next();
         }
         // Step 3: 合并为段落
-        List<String> paragraphs = TextSplitter.mergeChunksIntoParts(sentences, limit);
+        List<String> paragraphs = TextSplitter.mergeChunksIntoParts(sentences, limit,"");
         // Step 4: 还原占位符为原始图片
         return restoreImagesFromPlaceholders(paragraphs, placeholderToImage);
     }

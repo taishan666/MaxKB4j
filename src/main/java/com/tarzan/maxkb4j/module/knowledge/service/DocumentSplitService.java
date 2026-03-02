@@ -18,7 +18,7 @@ public class DocumentSplitService {
     private static final Pattern MULTIPLE_NEWLINES = Pattern.compile("\n{2,}");
     // 统一移除 Markdown 标题前缀（支持 1~6 个 # 后跟空格）
     private static final Pattern MARKDOWN_HEADER = Pattern.compile("#{1,6} ");
-    private final String[] DEFAULT_PATTERNS = {
+    private static final String[] DEFAULT_PATTERNS = {
             "(?<=^)# .*|(?<=\\n)# .*",
             "(?<=\\n)(?<!#)## (?!#).*|(?<=^)(?<!#)## (?!#).*",
             "(?<=\\n)(?<!#)### (?!#).*|(?<=^)(?<!#)### (?!#).*",
@@ -26,6 +26,8 @@ public class DocumentSplitService {
             "(?<=\\n)(?<!#)##### (?!#).*|(?<=^)(?<!#)##### (?!#).*",
             "(?<=\\n)(?<!#)###### (?!#).*|(?<=^)(?<!#)###### (?!#).*"
     };
+
+    private static final int DEFAULT_LIMIT=512;
 
     public List<ParagraphSimple> split(String docText, String[] patterns, Integer limit, Boolean withFilter) {
         if (patterns != null && patterns.length > 0) {
@@ -37,11 +39,10 @@ public class DocumentSplitService {
 
     public List<ParagraphSimple> smartSplit(String text) {
         List<ParagraphSimple> result = new ArrayList<>();
-        int limit = 512;
-        List<ParagraphSimple> parts = recursive(text, DEFAULT_PATTERNS, limit, true);
+        List<ParagraphSimple> parts = recursive(text, DEFAULT_PATTERNS, DEFAULT_LIMIT, true);
         for (ParagraphSimple part : parts) {
             if (StringUtils.isNotBlank(part.getContent())) {
-                List<String> lines = lineSplit(part.getContent(), limit);
+                List<String> lines = lineSplit(part.getContent(), DEFAULT_LIMIT);
                 for (String line : lines) {
                     ParagraphSimple newPart = ParagraphSimple.builder().title(part.getTitle()).content(line).build();
                     result.add(newPart);
@@ -53,7 +54,7 @@ public class DocumentSplitService {
 
     public static List<String> lineSplit(String text, int limit) {
         String[] texts = text.split("\n");
-        return TextSplitter.mergeChunksIntoParts(Arrays.asList(texts), limit);
+        return TextSplitter.mergeChunksIntoParts(Arrays.asList(texts), limit,"\n");
     }
 
 
@@ -117,6 +118,7 @@ public class DocumentSplitService {
         List<ParagraphSimple> result = new ArrayList<>();
         for (ParagraphSimple part : parts) {
             if (StringUtils.isNotBlank(part.getContent())) {
+                //todo 当是md表格时，表格里有句号，会破快表格结构
                 List<String> texts = SentenceSplitter.split(part.getContent(), limit);
                 for (String text : texts) {
                     ParagraphSimple newPart = ParagraphSimple.builder().title(part.getTitle()).content(text).build();
