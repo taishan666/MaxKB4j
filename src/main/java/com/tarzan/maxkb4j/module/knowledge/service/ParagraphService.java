@@ -70,7 +70,6 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
         dataIndexService.removeByDocIds(knowledgeId,docIds);
         this.lambdaUpdate().in(ParagraphEntity::getDocumentId, docIds).remove();
         problemParagraphService.lambdaUpdate().in(ProblemParagraphEntity::getDocumentId, docIds).remove();
-
     }
 
 
@@ -301,12 +300,6 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
             return baseMapper.listByStateIds(docId, 1,stateList);
         }
 
-    }
-
-    @Transactional
-    public void deleteByKnowledgeId(String id) {
-        this.lambdaUpdate().eq(ParagraphEntity::getKnowledgeId, id).remove();
-        dataIndexService.removeByDatasetId(id);
     }
 
     @Transactional

@@ -5,12 +5,11 @@ import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tarzan.maxkb4j.core.assistant.ProblemGenerateAssistant;
-import com.tarzan.maxkb4j.module.knowledge.consts.SourceType;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.ProblemDTO;
-import com.tarzan.maxkb4j.module.knowledge.domain.entity.EmbeddingEntity;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.ParagraphEntity;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.ProblemEntity;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.ProblemParagraphEntity;
+import com.tarzan.maxkb4j.module.knowledge.domain.vo.ProblemParagraphVO;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.ProblemVO;
 import com.tarzan.maxkb4j.module.knowledge.mapper.ProblemMapper;
 import dev.langchain4j.model.chat.ChatModel;
@@ -75,28 +74,28 @@ public class ProblemService extends ServiceImpl<ProblemMapper, ProblemEntity> {
             return;
         }
         // 去重并准备新增问题
-        Map<String, ProblemEntity> problemMap = existingProblems.stream()
-                .collect(Collectors.toMap(ProblemEntity::getContent, p -> p, (a, b) -> a));
+        Map<String, String> problemMap = existingProblems.stream()
+                .collect(Collectors.toMap(ProblemEntity::getContent, ProblemEntity::getId,  (n, o) -> n));
 
         List<ProblemEntity> newProblems = new ArrayList<>();
-        List<ProblemParagraphEntity> associations = new ArrayList<>();
+        List<ProblemParagraphVO> associations = new ArrayList<>();
         for (String question : generatedQuestions) {
             if (problemMap.containsKey(question)) {
                 // 已存在，仅建立关联
-                String problemId = problemMap.get(question).getId();
+                String problemId = problemMap.get(question);
                 if (!isAssociationExists(problemId, paragraph.getId())) {
-                    associations.add(buildProblemParagraph(knowledgeId, docId, paragraph.getId(), problemId));
+                    associations.add(buildProblemParagraph(knowledgeId, docId, paragraph.getId(), problemId,question));
                 }
             } else {
                 // 新增问题
                 String problemId = IdWorker.get32UUID();
+                problemMap.put(question, problemId);
                 ProblemEntity newProblem = ProblemEntity.createDefault();
                 newProblem.setId(problemId);
                 newProblem.setKnowledgeId(knowledgeId);
                 newProblem.setContent(question);
                 newProblems.add(newProblem);
-                problemMap.put(question, newProblem); // 避免同一段落内重复
-                associations.add(buildProblemParagraph(knowledgeId, docId, paragraph.getId(), problemId));
+                associations.add(buildProblemParagraph(knowledgeId, docId, paragraph.getId(), problemId,question));
             }
         }
         // 批量保存新问题
@@ -106,24 +105,12 @@ public class ProblemService extends ServiceImpl<ProblemMapper, ProblemEntity> {
                 log.error("批量保存问题失败，段落 ID: {}", paragraph.getId());
                 return;
             }
-            // 构建 Embedding 实体
-            List<EmbeddingEntity> embeddings = newProblems.stream()
-                    .map(problem -> EmbeddingEntity.builder()
-                            .knowledgeId(knowledgeId)
-                            .documentId(docId)
-                            .paragraphId(paragraph.getId())
-                            .sourceId(problem.getId())
-                            .sourceType(SourceType.PROBLEM)
-                            .isActive(true)
-                            .content(problem.getContent())
-                            .build())
-                    .collect(Collectors.toList());
-
-            dataIndexService.insertAll(embeddings, embeddingModel);
         }
         // 批量保存关联关系（避免逐条插入）
         if (!associations.isEmpty()) {
-            problemParagraphService.saveBatch(associations);
+            List<ProblemParagraphEntity> entities = new ArrayList<>(associations);
+            problemParagraphService.saveBatch(entities);
+            problemParagraphService.createProblemsIndex(associations,embeddingModel);
         }
         log.info("完成段落 [{}] 的问题生成，新增 {} 个问题，建立 {} 个关联", paragraph.getId(), newProblems.size(), associations.size());
     }
@@ -141,13 +128,14 @@ public class ProblemService extends ServiceImpl<ProblemMapper, ProblemEntity> {
     /**
      * 构建 ProblemParagraphEntity
      */
-    private ProblemParagraphEntity buildProblemParagraph(String knowledgeId, String docId, String paragraphId, String problemId) {
-        ProblemParagraphEntity entity = new ProblemParagraphEntity();
-        entity.setKnowledgeId(knowledgeId);
-        entity.setDocumentId(docId);
-        entity.setParagraphId(paragraphId);
-        entity.setProblemId(problemId);
-        return entity;
+    private ProblemParagraphVO buildProblemParagraph(String knowledgeId, String docId, String paragraphId, String problemId,String content) {
+        ProblemParagraphVO vo = new ProblemParagraphVO();
+        vo.setKnowledgeId(knowledgeId);
+        vo.setDocumentId(docId);
+        vo.setParagraphId(paragraphId);
+        vo.setProblemId(problemId);
+        vo.setContent(content);
+        return vo;
     }
 
     /**

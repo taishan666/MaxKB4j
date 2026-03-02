@@ -1,10 +1,13 @@
 package com.tarzan.maxkb4j.module.knowledge.service;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tarzan.maxkb4j.module.knowledge.consts.SourceType;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.EmbeddingEntity;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.ProblemEntity;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.ProblemParagraphEntity;
+import com.tarzan.maxkb4j.module.knowledge.domain.vo.ProblemParagraphVO;
 import com.tarzan.maxkb4j.module.knowledge.mapper.ProblemMapper;
 import com.tarzan.maxkb4j.module.knowledge.mapper.ProblemParagraphMapper;
 import dev.langchain4j.model.embedding.EmbeddingModel;
@@ -13,7 +16,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Objects;
 
 /**
  * @author tarzan
@@ -30,15 +32,19 @@ public class ProblemParagraphService extends ServiceImpl<ProblemParagraphMapper,
     public List<ProblemEntity> getProblemsByParagraphId(String paragraphId) {
         return baseMapper.getProblemsByParagraphId(paragraphId);
     }
+
     @Transactional
     public boolean association(String knowledgeId, String docId, String paragraphId, String problemId) {
-        ProblemParagraphEntity entity = new ProblemParagraphEntity();
-        entity.setKnowledgeId(knowledgeId);
-        entity.setProblemId(problemId);
-        entity.setParagraphId(paragraphId);
-        entity.setDocumentId(docId);
+        ProblemParagraphVO problemParagraph = new ProblemParagraphVO();
+        problemParagraph.setKnowledgeId(knowledgeId);
+        problemParagraph.setProblemId(problemId);
+        problemParagraph.setParagraphId(paragraphId);
+        problemParagraph.setDocumentId(docId);
+        LambdaQueryWrapper<ProblemEntity> wrapper= Wrappers.<ProblemEntity>lambdaQuery().select(ProblemEntity::getContent).eq(ProblemEntity::getId,problemParagraph.getProblemId());
+        ProblemEntity  problem= problemMapper.selectById(wrapper);
+        problemParagraph.setContent(problem.getContent());
         EmbeddingModel embeddingModel=knowledgeModelService.getEmbeddingModel(knowledgeId);
-        return this.save(entity) && createProblemIndex(knowledgeId, docId, paragraphId, problemId,embeddingModel);
+        return this.save(problemParagraph) && createProblemsIndex(List.of(problemParagraph),embeddingModel);
     }
 
     @Transactional
@@ -52,20 +58,19 @@ public class ProblemParagraphService extends ServiceImpl<ProblemParagraphMapper,
                 .remove();
     }
 
-    public boolean createProblemIndex(String knowledgeId, String docId, String paragraphId, String problemId, EmbeddingModel embeddingModel) {
-        ProblemEntity problem = problemMapper.selectById(problemId);
-        if (Objects.nonNull(problem)) {
+    public boolean createProblemsIndex(List<ProblemParagraphVO> associations , EmbeddingModel embeddingModel) {
+        List<EmbeddingEntity> embeddingEntities=associations.stream().map(e -> {
             EmbeddingEntity embeddingEntity = new EmbeddingEntity();
-            embeddingEntity.setKnowledgeId(knowledgeId);
-            embeddingEntity.setDocumentId(docId);
-            embeddingEntity.setParagraphId(paragraphId);
-            embeddingEntity.setSourceId(problemId);
+            embeddingEntity.setKnowledgeId(e.getKnowledgeId());
+            embeddingEntity.setDocumentId(e.getDocumentId());
+            embeddingEntity.setParagraphId(e.getParagraphId());
+            embeddingEntity.setSourceId(e.getProblemId());
             embeddingEntity.setSourceType(SourceType.PROBLEM);
             embeddingEntity.setIsActive(true);
-            embeddingEntity.setContent(problem.getContent());
-            dataIndexService.insertAll(List.of(embeddingEntity),embeddingModel);
-            return true;
-        }
+            embeddingEntity.setContent(e.getContent());
+            return embeddingEntity;
+        }).toList();
+        dataIndexService.insertAll(embeddingEntities,embeddingModel);
         return false;
     }
 }

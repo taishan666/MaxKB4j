@@ -110,7 +110,7 @@ public class KnowledgeController {
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DELETE)
     @DeleteMapping("/knowledge/{id}")
     public R<Boolean> deleteKnowledgeId(@PathVariable("id") String id) {
-        return R.success(knowledgeService.deleteKnowledgeId(id));
+        return R.success(knowledgeService.deleteById(id));
     }
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_READ)
