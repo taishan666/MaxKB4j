@@ -80,8 +80,8 @@ public class ParagraphController {
     }
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_READ)
-    @PutMapping("/knowledge/{id}/document/{docId}/paragraph/{paragraphId}/problem/{problemId}/un_association")
-    public R<Boolean> unAssociation(@PathVariable String id, @PathVariable("docId") String docId, @PathVariable("paragraphId") String paragraphId, @PathVariable("problemId") String problemId) {
+    @PutMapping("/knowledge/{id}/document/{docId}/paragraph/un_association")
+    public R<Boolean> unAssociation(@PathVariable String id, @PathVariable("docId") String docId, @RequestParam("paragraphId") String paragraphId, @RequestParam("problemId") String problemId) {
         return R.status(problemParagraphService.unAssociation(id, docId, paragraphId, problemId));
     }
 

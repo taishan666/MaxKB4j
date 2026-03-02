@@ -11,7 +11,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Component
-public class DocumentSpiltService {
+public class DocumentSplitService {
 
     // 预编译正则表达式以提高性能
     private static final Pattern MULTIPLE_SPACES = Pattern.compile(" +");

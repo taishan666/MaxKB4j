@@ -40,8 +40,8 @@ public class ProblemParagraphService extends ServiceImpl<ProblemParagraphMapper,
         problemParagraph.setProblemId(problemId);
         problemParagraph.setParagraphId(paragraphId);
         problemParagraph.setDocumentId(docId);
-        LambdaQueryWrapper<ProblemEntity> wrapper= Wrappers.<ProblemEntity>lambdaQuery().select(ProblemEntity::getContent).eq(ProblemEntity::getId,problemParagraph.getProblemId());
-        ProblemEntity  problem= problemMapper.selectById(wrapper);
+        LambdaQueryWrapper<ProblemEntity> wrapper= Wrappers.<ProblemEntity>lambdaQuery().select(ProblemEntity::getContent).eq(ProblemEntity::getId,problemId);
+        ProblemEntity  problem= problemMapper.selectOne(wrapper);
         problemParagraph.setContent(problem.getContent());
         EmbeddingModel embeddingModel=knowledgeModelService.getEmbeddingModel(knowledgeId);
         return this.save(problemParagraph) && createProblemsIndex(List.of(problemParagraph),embeddingModel);
@@ -52,8 +52,8 @@ public class ProblemParagraphService extends ServiceImpl<ProblemParagraphMapper,
         dataIndexService.removeByProblemIdAndParagraphId(knowledgeId,problemId,paragraphId);
         return this.lambdaUpdate()
                 .eq(ProblemParagraphEntity::getParagraphId, paragraphId)
-                .eq(ProblemParagraphEntity::getDocumentId, docId)
                 .eq(ProblemParagraphEntity::getProblemId, problemId)
+                .eq(ProblemParagraphEntity::getDocumentId, docId)
                 .eq(ProblemParagraphEntity::getKnowledgeId, knowledgeId)
                 .remove();
     }
@@ -71,6 +71,6 @@ public class ProblemParagraphService extends ServiceImpl<ProblemParagraphMapper,
             return embeddingEntity;
         }).toList();
         dataIndexService.insertAll(embeddingEntities,embeddingModel);
-        return false;
+        return true;
     }
 }

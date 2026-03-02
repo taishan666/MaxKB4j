@@ -9,7 +9,7 @@ import com.tarzan.maxkb4j.core.workflow.node.AbsNode;
 import com.tarzan.maxkb4j.core.workflow.node.impl.DocumentSpiltNode;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.DocumentSimple;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.ParagraphSimple;
-import com.tarzan.maxkb4j.module.knowledge.service.DocumentSpiltService;
+import com.tarzan.maxkb4j.module.knowledge.service.DocumentSplitService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class DocumentSpiltHandler implements INodeHandler {
 
-    private final DocumentSpiltService documentSpiltService;
+    private final DocumentSplitService documentSpiltService;
 
     @SuppressWarnings("unchecked")
     @Override

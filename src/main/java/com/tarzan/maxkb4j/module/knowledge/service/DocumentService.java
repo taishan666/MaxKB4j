@@ -69,7 +69,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
     private final ProblemService problemService;
     private final ProblemParagraphService problemParagraphService;
     private final DocumentParseService documentParseService;
-    private final DocumentSpiltService documentSpiltService;
+    private final DocumentSplitService documentSpiltService;
     private final MongoFileService mongoFileService;
     private final ApplicationEventPublisher eventPublisher;
     private final DocumentWebService documentWebService;

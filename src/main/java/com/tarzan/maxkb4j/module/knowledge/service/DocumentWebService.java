@@ -30,7 +30,7 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class DocumentWebService {
 
-    private final DocumentSpiltService documentSpiltService;
+    private final DocumentSplitService documentSpiltService;
 
     public List<DocumentSimple> getDocumentList(String sourceUrl, String selector,boolean isRecursive) {
         List<DocumentSimple> documentList = new ArrayList<>();

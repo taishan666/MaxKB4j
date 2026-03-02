@@ -115,7 +115,7 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
         knowledgeVersionService.lambdaQuery().eq(KnowledgeVersionEntity::getKnowledgeId, id);
         knowledgeActionService.lambdaQuery().eq(KnowledgeActionEntity::getKnowledgeId, id);
         userResourcePermissionService.remove(AuthTargetType.APPLICATION, id);
-        dataIndexService.removeByDatasetId(id);
+        dataIndexService.removeByKnowledgeId(id);
         return this.removeById(id);
     }
 
@@ -152,6 +152,7 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
         knowledgeExportHandler.writeMultiSheetExcel(response.getOutputStream(), docs);
     }
 
+    //todo
     private List<DatasetExcel> getDatasetExcelByDoc(DocumentEntity doc) {
         return knowledgeExportHandler.getDatasetExcelByDoc(doc);
     }

@@ -1,10 +1,10 @@
 package com.tarzan.maxkb4j.module.knowledge.service.impl;
 
-import com.huaban.analysis.jieba.JiebaSegmenter;
 import com.tarzan.maxkb4j.module.knowledge.consts.SearchType;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.EmbeddingEntity;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.TextChunkVO;
 import com.tarzan.maxkb4j.module.knowledge.service.IDataRetriever;
+import com.tarzan.maxkb4j.module.knowledge.util.TextSegmentUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.MongoExpression;
@@ -27,7 +27,7 @@ public class FullTextRetriever implements IDataRetriever {
     @Override
     public List<TextChunkVO> search(List<String> knowledgeIds, List<String> excludeParagraphIds, String keyword, int maxResults, float minScore) {
         // 假设 textCriteria 和 keyword 已经定义好
-        TextCriteria textCriteria = TextCriteria.forDefaultLanguage().matching(segmentContent(keyword));
+        TextCriteria textCriteria = TextCriteria.forDefaultLanguage().matching(TextSegmentUtil.segment(keyword));
         Criteria baseCriteria = Criteria.where("knowledgeId").in(knowledgeIds);
         if (!CollectionUtils.isEmpty(excludeParagraphIds)) {
             baseCriteria.and("paragraphId").nin(excludeParagraphIds);
@@ -79,9 +79,4 @@ public class FullTextRetriever implements IDataRetriever {
         return result.stream().map(entity -> new TextChunkVO(entity.getParagraphId(), entity.getScore())).filter(vo -> vo.getScore() >= minScore).toList();
     }
 
-    public String segmentContent(String text) {
-        JiebaSegmenter jiebaSegmenter = new JiebaSegmenter();
-        List<String> tokens = jiebaSegmenter.sentenceProcess(text);
-        return String.join(" ", tokens);
-    }
 }
