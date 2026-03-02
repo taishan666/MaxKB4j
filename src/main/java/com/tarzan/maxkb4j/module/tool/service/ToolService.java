@@ -161,13 +161,13 @@ public class ToolService extends ServiceImpl<ToolMapper, ToolEntity> {
             if (Objects.requireNonNull(filename).endsWith(ToolConstants.FileType.TOOL_EXTENSION)) {
                 // ✅ 安全获取父目录名：从 resource 的 URL 路径中解析
                 String parentDirName = JarUtil.getParentDirName(resource);
-                String[] parts = filename.split("-", 2);
-                String version =parts.length>1?parts[1].substring(0, parts[1].length() - 5): ToolConstants.Defaults.DEFAULT_VERSION;
                 String text = IoUtil.readToString(resource.getInputStream());
                 ToolEntity tool = JSONObject.parseObject(text, ToolEntity.class);
                 if (tool!=null){
                     tool.setLabel(parentDirName);
-                    tool.setVersion(version);
+                    if(StringUtils.isBlank(tool.getVersion())){
+                        tool.setVersion(ToolConstants.Defaults.DEFAULT_VERSION);
+                    }
                     list.add(tool);
                 }
             }

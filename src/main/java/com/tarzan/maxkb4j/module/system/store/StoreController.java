@@ -68,29 +68,5 @@ public class StoreController {
         return R.data(result);
     }
 
- /*   @GetMapping("/workspace/store/application_template1")
-    public R<JSONObject> applicationTemplate1(String name) {
-        ClassLoader classLoader = StoreController.class.getClassLoader();
-        InputStream inputStream = classLoader.getResourceAsStream("templates/maxkb.json");
-        String text = IoUtil.readToString(inputStream);
-        JSONObject result = JSON.parseObject(text);
-        JSONArray apps = result.getJSONArray("apps");
-        JSONObject additionalProperties = result.getJSONObject("additionalProperties");
-        JSONArray tags = additionalProperties.getJSONArray("tags");
-        Map<String, Object> tagsMap = tags.stream().collect(Collectors.toMap(tag -> ((JSONObject)tag).getString("name"), tag -> ((JSONObject)tag).getString("key")));
-        JSONArray finalApps = new JSONArray();
-        for (int i = 0; i < apps.size(); i++) {
-            JSONObject app = apps.getJSONObject(i);
-            String downloadUrl = app.getString("downloadUrl");
-            JSONArray appTags = app.getJSONArray("tags");
-            app.put("label",tagsMap.get(appTags.getString(0)));
-            if (downloadUrl != null&& downloadUrl.endsWith(".mk")){
-                finalApps.add(app);
-            }
-        }
-        result.put("apps", finalApps);
-        return R.success(result);
-    }*/
-
 
 }

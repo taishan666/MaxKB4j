@@ -8,8 +8,6 @@ import com.tarzan.maxkb4j.module.model.provider.service.AbsModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.vo.ModelInfo;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.model.embedding.onnx.allminilml6v2q.AllMiniLmL6V2QuantizedEmbeddingModel;
-import dev.langchain4j.model.scoring.ScoringModel;
-import dev.langchain4j.model.scoring.onnx.OnnxScoringModel;
 
 import java.util.List;
 
@@ -38,8 +36,4 @@ public class LocalModelProvider extends AbsModelProvider {
         return new AllMiniLmL6V2QuantizedEmbeddingModel();
     }
 
-    @Override
-    public ScoringModel buildScoringModel(String modelName, ModelCredential credential, JSONObject params) {
-        return new OnnxScoringModel(credential.getModelPath(), credential.getTokenizerPath());
-    }
 }
