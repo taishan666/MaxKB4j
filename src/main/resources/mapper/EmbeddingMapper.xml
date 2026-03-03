@@ -2,11 +2,6 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.tarzan.maxkb4j.module.knowledge.mapper.EmbeddingMapper">
-    <update id="updateActiveByParagraphId">
-        UPDATE EMBEDDING
-        SET is_active = #{isActive}
-        WHERE paragraph_id = #{paragraphId}
-    </update>
 
     <select id="embeddingSearch" resultType="com.tarzan.maxkb4j.module.knowledge.domain.vo.TextChunkVO">
         SELECT paragraph_id,score

@@ -1,6 +1,7 @@
 package com.tarzan.maxkb4j.module.knowledge.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.tarzan.maxkb4j.common.util.BatchUtil;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.EmbeddingEntity;
@@ -52,7 +53,9 @@ public class PgVectorIndexService implements IChunkIndexService {
 
     @Override
     public void updateActiveByParagraphId(String knowledgeId,String paragraphId, Boolean isActive) {
-        embeddingMapper.updateActiveByParagraphId(knowledgeId,paragraphId,Boolean.TRUE.equals(isActive));
+        LambdaUpdateWrapper<EmbeddingEntity> updateWrapper =Wrappers.lambdaUpdate();
+        updateWrapper.set(EmbeddingEntity::getIsActive,Boolean.TRUE.equals(isActive)).eq(EmbeddingEntity::getKnowledgeId,knowledgeId).eq(EmbeddingEntity::getParagraphId,paragraphId);
+        embeddingMapper.update(updateWrapper);
         // 创建查询条件，匹配 paragraphId
         Query query = new Query(Criteria.where("paragraphId").is(paragraphId));
         // 创建更新对象，设置 IsActive 字段的新值

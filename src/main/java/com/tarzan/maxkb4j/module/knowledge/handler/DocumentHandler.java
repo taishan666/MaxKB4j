@@ -6,7 +6,7 @@ import com.alibaba.excel.context.AnalysisContext;
 import com.alibaba.excel.event.AnalysisEventListener;
 import com.alibaba.excel.read.metadata.ReadSheet;
 import com.alibaba.fastjson.JSON;
-import com.tarzan.maxkb4j.listener.DataListener;
+import com.tarzan.maxkb4j.listener.ExcelDataListener;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.DocumentSimple;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.ParagraphSimple;
 import com.tarzan.maxkb4j.module.knowledge.excel.DatasetExcel;
@@ -135,7 +135,7 @@ public class DocumentHandler {
             }
         } else {
             // === 原有 Excel 逻辑保持不变 ===
-            DataListener<DatasetExcel> dataListener = new DataListener<>();
+            ExcelDataListener<DatasetExcel> dataListener = new ExcelDataListener<>();
             try (ExcelReader excelReader = EasyExcel.read(new ByteArrayInputStream(bytes), DatasetExcel.class, dataListener).build()) {
                 List<ReadSheet> sheets = excelReader.excelExecutor().sheetList();
                 for (ReadSheet sheet : sheets) {

@@ -9,10 +9,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Getter
-public class DataListener<T> extends AnalysisEventListener<T> {
+public class ExcelDataListener<T> extends AnalysisEventListener<T> {
     private final List<T> dataList = new ArrayList<>();
 
-    public DataListener() {
+    public ExcelDataListener() {
     }
 
     public void invoke(T data, AnalysisContext analysisContext) {
