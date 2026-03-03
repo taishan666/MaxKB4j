@@ -75,6 +75,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
     private final DocumentWebService documentWebService;
     private final DocumentWriteService documentWriteService;
     private final DocumentHandler documentHandler;
+    private final IChunkIndexService chunkIndexService;
 
     public void updateStatusMetaById(String id) {
         baseMapper.updateStatusMetaByIds(List.of(id));
@@ -97,7 +98,10 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         if (CollectionUtils.isEmpty(docIds)) {
             return false;
         }
-        paragraphService.migrateDoc(sourceKnowledgeId, targetKnowledgeId, docIds);
+        chunkIndexService.removeByDocIds(targetKnowledgeId,docIds);
+        paragraphService.lambdaUpdate().set(ParagraphEntity::getKnowledgeId, targetKnowledgeId).in(ParagraphEntity::getDocumentId, docIds).update();
+        problemParagraphService.lambdaUpdate().eq(ProblemParagraphEntity::getKnowledgeId, sourceKnowledgeId).in(ProblemParagraphEntity::getDocumentId, docIds).remove();
+        publishDocumentIndexEvent(targetKnowledgeId, docIds, List.of("0","1","2","3","4","5","n"));
         return this.lambdaUpdate()
                 .set(DocumentEntity::getKnowledgeId, targetKnowledgeId)
                 .in(DocumentEntity::getId, docIds)

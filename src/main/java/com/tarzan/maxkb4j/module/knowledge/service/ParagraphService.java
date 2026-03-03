@@ -26,10 +26,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -47,8 +44,6 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
     private final DocumentMapper documentMapper;
     private final ApplicationEventPublisher eventPublisher;
 
-
-
     public void updateStatusById(String id, int type, int status) {
         baseMapper.updateStatusByIds(List.of(id),type,status,type-1,type+1);
     }
@@ -57,13 +52,6 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
         baseMapper.updateStatusByIds(paragraphIds,type,status,type-1,type+1);
     }
 
-
-    @Transactional
-    public void migrateDoc(String sourceKnowledgeId, String targetKnowledgeId, List<String> docIds) {
-        chunkIndexService.migrateDoc(targetKnowledgeId,docIds);
-        this.lambdaUpdate().set(ParagraphEntity::getKnowledgeId, targetKnowledgeId).in(ParagraphEntity::getDocumentId, docIds).update();
-        problemParagraphService.lambdaUpdate().eq(ProblemParagraphEntity::getKnowledgeId, sourceKnowledgeId).in(ProblemParagraphEntity::getDocumentId, docIds).remove();
-    }
 
     @Transactional
     public void deleteByDocIds(String knowledgeId,List<String> docIds) {
@@ -76,7 +64,7 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
     public void createIndex(ParagraphEntity paragraph, EmbeddingModel embeddingModel) {
         if (paragraph != null) {
             //清除之前向量
-            chunkIndexService.removeByParagraphId(paragraph.getId());
+            chunkIndexService.removeByParagraphId(paragraph.getKnowledgeId(),paragraph.getId());
             List<EmbeddingEntity> embeddingEntities = new ArrayList<>();
             log.info("开始---->向量化段落:{}", paragraph.getId());
             EmbeddingEntity paragraphEmbed = new EmbeddingEntity();
@@ -103,7 +91,7 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
                 problemEmbed.setContent(problem.getContent());
                 embeddingEntities.add(problemEmbed);
             }
-            chunkIndexService.insertAll(embeddingEntities,embeddingModel);
+            chunkIndexService.insertAll(embeddingModel,embeddingEntities);
             log.info("结束---->向量化段落:{}", paragraph.getId());
         }
     }
@@ -111,17 +99,18 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
 
     @Transactional
     public void updateParagraphById(String knowledgeId,String docId,ParagraphEntity paragraph) {
-        chunkIndexService.updateActiveByParagraphId(knowledgeId,paragraph);
-        this.updateStatusById(paragraph.getId(),1,0);
         this.updateById(paragraph);
-        documentMapper.updateCharLengthById(docId);
-        eventPublisher.publishEvent(new ParagraphIndexEvent(this, knowledgeId,docId,List.of(paragraph.getId())));
+        if (Objects.nonNull(paragraph.getContent())){
+            documentMapper.updateCharLengthById(docId);
+            eventPublisher.publishEvent(new ParagraphIndexEvent(this, knowledgeId,docId,List.of(paragraph.getId())));
+        }
+        chunkIndexService.updateActiveByParagraphId(knowledgeId,paragraph.getId(),paragraph.getIsActive());
     }
 
 
     @Transactional
     public Boolean deleteBatchByIds(String knowledgeId,String docId, List<String> paragraphIds) {
-        chunkIndexService.removeByParagraphIds(paragraphIds);
+        chunkIndexService.removeByParagraphIds(knowledgeId,paragraphIds);
         this.removeByIds(paragraphIds);
         return documentMapper.updateCharLengthById(docId);
     }
@@ -246,7 +235,7 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
 
     @Transactional
     public Boolean paragraphMigrate(String sourceKnowledgeId, String sourceDocId, String targetKnowledgeId, String targetDocId, List<String> paragraphIds) {
-        chunkIndexService.migrateParagraph(sourceKnowledgeId,targetKnowledgeId,targetDocId,paragraphIds);
+        chunkIndexService.removeByParagraphIds(sourceKnowledgeId,paragraphIds);
         if (sourceKnowledgeId.equals(targetKnowledgeId)){
             problemParagraphService.lambdaUpdate()
                     .in(ProblemParagraphEntity::getParagraphId, paragraphIds)
@@ -277,6 +266,7 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
                     .update();
             targetCount++;
         }
+        eventPublisher.publishEvent(new ParagraphIndexEvent(this, targetKnowledgeId,targetDocId,paragraphIds));
         documentMapper.updateCharLengthById(sourceDocId);
         return documentMapper.updateCharLengthById(targetDocId);
     }
@@ -303,8 +293,8 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
     }
 
     @Transactional
-    public boolean deleteById(String paragraphId) {
-        chunkIndexService.removeByParagraphId(paragraphId);
+    public boolean deleteById(String knowledgeId,String paragraphId) {
+        chunkIndexService.removeByParagraphId(knowledgeId, paragraphId);
         problemParagraphService.lambdaUpdate().eq(ProblemParagraphEntity::getParagraphId, paragraphId).remove();
         return this.removeById(paragraphId);
     }

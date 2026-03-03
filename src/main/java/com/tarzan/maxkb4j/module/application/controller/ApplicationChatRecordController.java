@@ -54,7 +54,7 @@ public class ApplicationChatRecordController {
     @SaCheckPerm(PermissionEnum.APPLICATION_DELETE)
     @DeleteMapping("/application/{id}/chat/{chatId}/chat_record/{chatRecordId}/knowledge/{knowledgeId}/document/{docId}/paragraph/{paragraphId}/improve")
     public R<Boolean> improveChatLog(@PathVariable("id") String id, @PathVariable("chatId") String chatId, @PathVariable("chatRecordId") String chatRecordId, @PathVariable("knowledgeId") String knowledgeId, @PathVariable("docId") String docId, @PathVariable("paragraphId") String paragraphId) {
-        return R.success(chatRecordService.removeImproveChatLog(chatId, chatRecordId, paragraphId));
+        return R.success(chatRecordService.removeImproveChatLog(chatId, chatRecordId, knowledgeId,paragraphId));
     }
 
     @SaCheckPerm(PermissionEnum.APPLICATION_READ)

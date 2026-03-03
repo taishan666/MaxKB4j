@@ -50,10 +50,11 @@ public class DataIndexListener {
         documentService.updateStatusById(docId, 1, 0);
         if (CollectionUtils.isNotEmpty(paragraphs)){
             log.info("开始--->文档索引:{}", docId);
-            List<String> paragraphIds = paragraphs.stream().map(ParagraphEntity::getId).toList();
-            paragraphService.updateStatusByIds(paragraphIds, 1, 1);
             documentService.updateStatusById(docId, 1, 1);
+            List<String> paragraphIds = paragraphs.stream().map(ParagraphEntity::getId).toList();
+            paragraphService.updateStatusByIds(paragraphIds,1,0);
             paragraphs.forEach(paragraph -> {
+                paragraphService.updateStatusById(paragraph.getId(), 1, 1);
                 paragraphService.createIndex(paragraph, embeddingModel);
                 paragraphService.updateStatusById(paragraph.getId(),1,2);
                 documentService.updateStatusMetaById(docId);

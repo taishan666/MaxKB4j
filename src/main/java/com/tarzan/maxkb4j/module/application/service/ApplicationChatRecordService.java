@@ -156,7 +156,7 @@ public class ApplicationChatRecordService extends ServiceImpl<ApplicationChatRec
     }
 
     @Transactional
-    public boolean removeImproveChatLog(String chatId,String chatRecordId,String paragraphId) {
+    public boolean removeImproveChatLog(String chatId,String chatRecordId,String knowledgeId,String paragraphId) {
         ApplicationChatRecordEntity chatRecord = new ApplicationChatRecordEntity();
         chatRecord.setId(chatRecordId);
         chatRecord.setImproveParagraphIdList(List.of());
@@ -166,7 +166,7 @@ public class ApplicationChatRecordService extends ServiceImpl<ApplicationChatRec
         updateChatEntity.setId(chatId);
         updateChatEntity.setMarkSum(chatEntity.getMarkSum()-1);
         chatMapper.updateById(updateChatEntity);
-        return paragraphService.deleteById(paragraphId);
+        return paragraphService.deleteById(knowledgeId,paragraphId);
     }
 
     public List<ParagraphEntity> improveChatLog(String chatRecordId) {

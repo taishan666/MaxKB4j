@@ -1,31 +1,28 @@
 package com.tarzan.maxkb4j.module.knowledge.service;
 
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.EmbeddingEntity;
-import com.tarzan.maxkb4j.module.knowledge.domain.entity.ParagraphEntity;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 
 import java.util.List;
 
 public interface IChunkIndexService {
 
-    void insertAll(List<EmbeddingEntity> embeddingEntities, EmbeddingModel embeddingModel);
+    void insertAll(EmbeddingModel embeddingModel, List<EmbeddingEntity> embeddingEntities);
 
-    void updateActiveByParagraphId(String knowledgeId, ParagraphEntity paragraph);
+    void updateActiveByParagraphId(String knowledgeId, String paragraphId, Boolean isActive);
 
-    void removeByProblemIdAndParagraphId(String knowledgeId,String problemId, String paragraphId);
-    default void removeByParagraphId(String paragraphId) {
-        removeByParagraphIds(List.of(paragraphId));
+    void removeByProblemIdAndParagraphId(String knowledgeId, String problemId, String paragraphId);
+
+    default void removeByParagraphId(String knowledgeId, String paragraphId) {
+        removeByParagraphIds(knowledgeId, List.of(paragraphId));
     }
 
-    void removeByParagraphIds(List<String> paragraphIds);
+    void removeByParagraphIds(String knowledgeId, List<String> paragraphIds);
 
-    void removeByDocIds(String knowledgeId,List<String> docIds);
+    void removeByDocIds(String knowledgeId, List<String> docIds);
 
-    void removeBySourceIds(String knowledgeId,List<String> sourceIds);
+    void removeBySourceIds(String knowledgeId, List<String> sourceIds);
 
     void removeByKnowledgeId(String knowledgeId);
 
-    void migrateDoc(String targetKnowledgeId, List<String> docIds);
-
-    void migrateParagraph(String sourceKnowledgeId, String targetKnowledgeId, String targetDocId, List<String> paragraphIds);
 }

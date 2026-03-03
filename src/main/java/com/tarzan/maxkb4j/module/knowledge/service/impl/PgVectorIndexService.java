@@ -3,9 +3,7 @@ package com.tarzan.maxkb4j.module.knowledge.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.tarzan.maxkb4j.common.util.BatchUtil;
-import com.tarzan.maxkb4j.module.knowledge.consts.SourceType;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.EmbeddingEntity;
-import com.tarzan.maxkb4j.module.knowledge.domain.entity.ParagraphEntity;
 import com.tarzan.maxkb4j.module.knowledge.mapper.EmbeddingMapper;
 import com.tarzan.maxkb4j.module.knowledge.service.IChunkIndexService;
 import com.tarzan.maxkb4j.module.knowledge.util.TextSegmentUtil;
@@ -32,8 +30,7 @@ public class PgVectorIndexService implements IChunkIndexService {
 
 
     @Override
-    public void insertAll(List<EmbeddingEntity> embeddingEntities, EmbeddingModel embeddingModel) {
-        // Filter out entities with null or blank content first
+    public void insertAll( EmbeddingModel embeddingModel,List<EmbeddingEntity> embeddingEntities) {
         List<EmbeddingEntity> validEntities = embeddingEntities.stream()
                 .filter(e -> e != null && StringUtils.isNotBlank(e.getContent()))
                 .toList();
@@ -54,13 +51,12 @@ public class PgVectorIndexService implements IChunkIndexService {
     }
 
     @Override
-    public void updateActiveByParagraphId(String knowledgeId,ParagraphEntity paragraph) {
-        paragraph.setIsActive(Boolean.TRUE.equals(paragraph.getIsActive()));
-        embeddingMapper.updateActiveByParagraphId(knowledgeId,paragraph.getId(),paragraph.getIsActive());
+    public void updateActiveByParagraphId(String knowledgeId,String paragraphId, Boolean isActive) {
+        embeddingMapper.updateActiveByParagraphId(knowledgeId,paragraphId,Boolean.TRUE.equals(isActive));
         // 创建查询条件，匹配 paragraphId
-        Query query = new Query(Criteria.where("paragraphId").is(paragraph.getId()));
+        Query query = new Query(Criteria.where("paragraphId").is(paragraphId));
         // 创建更新对象，设置 IsActive 字段的新值
-        Update update = new Update().set("isActive", paragraph.getIsActive());
+        Update update = new Update().set("isActive", Boolean.TRUE.equals(isActive));
         // 使用 MongoTemplate 执行更新操作
         mongoTemplate.updateMulti(query, update, EmbeddingEntity.class);
     }
@@ -78,7 +74,7 @@ public class PgVectorIndexService implements IChunkIndexService {
 
 
     @Override
-    public void removeByParagraphIds(List<String> paragraphIds) {
+    public void removeByParagraphIds(String knowledgeId,List<String> paragraphIds) {
         LambdaQueryWrapper<EmbeddingEntity>  queryWrapper = Wrappers.lambdaQuery();
         queryWrapper.in(EmbeddingEntity::getParagraphId,paragraphIds);
         embeddingMapper.delete(queryWrapper);
@@ -115,38 +111,6 @@ public class PgVectorIndexService implements IChunkIndexService {
         mongoTemplate.remove(query, EmbeddingEntity.class);
     }
 
-    @Override
-    public void migrateDoc(String targetKnowledgeId, List<String> docIds) {
-        embeddingMapper.update(Wrappers.<EmbeddingEntity>lambdaUpdate().set(EmbeddingEntity::getKnowledgeId, targetKnowledgeId).eq(EmbeddingEntity::getSourceType, SourceType.PARAGRAPH).in(EmbeddingEntity::getDocumentId, docIds));
-        embeddingMapper.delete(Wrappers.<EmbeddingEntity>lambdaUpdate().eq(EmbeddingEntity::getSourceType, SourceType.PROBLEM).in(EmbeddingEntity::getDocumentId, docIds));
-        Query query = new Query(Criteria.where("documentId").in(docIds).and("sourceType").is(SourceType.PARAGRAPH));
-        Update update = new Update().set("knowledgeId", targetKnowledgeId);
-        mongoTemplate.updateMulti(query, update, EmbeddingEntity.class);
-        mongoTemplate.remove(new Query(Criteria.where("documentId").in(docIds).and("sourceType").is(SourceType.PROBLEM)), EmbeddingEntity.class);
-    }
 
-    @Override
-    public void migrateParagraph(String sourceKnowledgeId, String targetKnowledgeId, String targetDocId, List<String> paragraphIds) {
-        if (sourceKnowledgeId.equals(targetKnowledgeId)) {
-            embeddingMapper.update(Wrappers.<EmbeddingEntity>lambdaUpdate()
-                    .set(EmbeddingEntity::getKnowledgeId, targetKnowledgeId)
-                    .set(EmbeddingEntity::getDocumentId, targetDocId)
-                    .in(EmbeddingEntity::getParagraphId, paragraphIds));
-            Query query = new Query(Criteria.where("paragraphId").in(paragraphIds));
-            Update update = new Update().set("knowledgeId", targetKnowledgeId).set("documentId", targetDocId);
-            mongoTemplate.updateMulti(query, update, EmbeddingEntity.class);
-        } else {
-            embeddingMapper.update(Wrappers.<EmbeddingEntity>lambdaUpdate()
-                    .set(EmbeddingEntity::getKnowledgeId, targetKnowledgeId)
-                    .set(EmbeddingEntity::getDocumentId, targetDocId)
-                    .eq(EmbeddingEntity::getSourceType, SourceType.PARAGRAPH)
-                    .in(EmbeddingEntity::getParagraphId, paragraphIds));
-            embeddingMapper.delete(Wrappers.<EmbeddingEntity>lambdaUpdate().eq(EmbeddingEntity::getSourceType, SourceType.PROBLEM).in(EmbeddingEntity::getParagraphId, paragraphIds));
-            Query query = new Query(Criteria.where("paragraphId").in(paragraphIds).and("sourceType").is(SourceType.PARAGRAPH));
-            Update update = new Update().set("knowledgeId", targetKnowledgeId).set("documentId", targetDocId);
-            mongoTemplate.updateMulti(query, update, EmbeddingEntity.class);
-            mongoTemplate.remove(new Query(Criteria.where("paragraphId").in(paragraphIds).and("sourceType").is(SourceType.PROBLEM)), EmbeddingEntity.class);
-        }
-    }
 
 }

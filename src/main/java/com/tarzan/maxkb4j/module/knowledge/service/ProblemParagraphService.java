@@ -70,7 +70,7 @@ public class ProblemParagraphService extends ServiceImpl<ProblemParagraphMapper,
             embeddingEntity.setContent(e.getContent());
             return embeddingEntity;
         }).toList();
-        chunkIndexService.insertAll(embeddingEntities,embeddingModel);
+        chunkIndexService.insertAll(embeddingModel,embeddingEntities);
         return true;
     }
 }
