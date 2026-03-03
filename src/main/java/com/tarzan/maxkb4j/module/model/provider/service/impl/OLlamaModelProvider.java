@@ -7,6 +7,8 @@ import com.tarzan.maxkb4j.module.model.info.entity.ModelCredential;
 import com.tarzan.maxkb4j.module.model.provider.enums.ModelType;
 import com.tarzan.maxkb4j.module.model.provider.service.AbsModelProvider;
 import com.tarzan.maxkb4j.module.model.provider.vo.ModelInfo;
+import dev.langchain4j.http.client.HttpClientBuilder;
+import dev.langchain4j.http.client.jdk.JdkHttpClientBuilder;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.model.embedding.EmbeddingModel;
@@ -31,6 +33,8 @@ public class OLlamaModelProvider extends AbsModelProvider {
             new ModelInfo("llava:13b", "", ModelType.VISION, new LlmModelParams())
     );
 
+    private final HttpClientBuilder jdkHttpClientBuilder= new JdkHttpClientBuilder();
+
     @Override
     public ModelCredentialForm getModelCredential() {
         return new ModelCredentialForm(false, BASE_URL);
@@ -44,7 +48,7 @@ public class OLlamaModelProvider extends AbsModelProvider {
     @Override
     public ChatModel buildChatModel(String modelName, ModelCredential credential, JSONObject params) {
         return OllamaChatModel.builder()
-                .httpClientBuilder(getHttpClientBuilder())
+                .httpClientBuilder(jdkHttpClientBuilder)
                 .baseUrl(credential.getBaseUrl())
                 .modelName(modelName)
                 .temperature(getDoubleParam(params, "temperature"))
@@ -55,7 +59,7 @@ public class OLlamaModelProvider extends AbsModelProvider {
     @Override
     public StreamingChatModel buildStreamingChatModel(String modelName, ModelCredential credential, JSONObject params) {
         return OllamaStreamingChatModel.builder()
-                .httpClientBuilder(getHttpClientBuilder())
+                .httpClientBuilder(jdkHttpClientBuilder)
                 .baseUrl(credential.getBaseUrl())
                 .modelName(modelName)
                 .temperature(getDoubleParam(params, "temperature"))

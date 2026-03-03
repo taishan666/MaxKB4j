@@ -264,17 +264,6 @@
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-mcp</artifactId>
             <version>${langchain4j.beta.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>dev.langchain4j</groupId>
-                    <artifactId>langchain4j-http-client-jdk</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>dev.langchain4j</groupId>
-            <artifactId>langchain4j-http-client-spring-restclient</artifactId>
-            <version>${langchain4j.beta.version}</version>
         </dependency>
         <dependency>
             <groupId>dev.langchain4j</groupId>
@@ -283,8 +272,8 @@
         </dependency>
         <dependency>
             <groupId>dev.langchain4j</groupId>
-            <artifactId>langchain4j-azure-open-ai</artifactId>
-            <version>${langchain4j.version}</version>
+            <artifactId>langchain4j-azure-open-ai-spring-boot-starter</artifactId>
+            <version>${langchain4j.beta.version}</version>
         </dependency>
         <dependency>
             <groupId>dev.langchain4j</groupId>
@@ -315,36 +304,18 @@
         </dependency>
         <dependency>
             <groupId>dev.langchain4j</groupId>
-            <artifactId>langchain4j-google-ai-gemini</artifactId>
-            <version>${langchain4j.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>dev.langchain4j</groupId>
-                    <artifactId>langchain4j-http-client-jdk</artifactId>
-                </exclusion>
-            </exclusions>
+            <artifactId>langchain4j-google-ai-gemini-spring-boot-starter</artifactId>
+            <version>${langchain4j.beta.version}</version>
         </dependency>
         <dependency>
             <groupId>dev.langchain4j</groupId>
-            <artifactId>langchain4j-anthropic</artifactId>
-            <version>${langchain4j.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>dev.langchain4j</groupId>
-                    <artifactId>langchain4j-http-client-jdk</artifactId>
-                </exclusion>
-            </exclusions>
+            <artifactId>langchain4j-anthropic-spring-boot-starter</artifactId>
+            <version>${langchain4j.beta.version}</version>
         </dependency>
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-community-zhipu-ai</artifactId>
             <version>${langchain4j.beta.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>dev.langchain4j</groupId>
-                    <artifactId>langchain4j-http-client-jdk</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>dev.langchain4j</groupId>
@@ -386,12 +357,6 @@
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-community-web-search-engine-searxng</artifactId>
             <version>${langchain4j.beta.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>dev.langchain4j</groupId>
-                    <artifactId>langchain4j-http-client-jdk</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>dev.langchain4j</groupId>
