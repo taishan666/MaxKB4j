@@ -7,6 +7,7 @@ import dev.langchain4j.mcp.McpToolExecutor;
 import dev.langchain4j.mcp.client.DefaultMcpClient;
 import dev.langchain4j.mcp.client.McpClient;
 import dev.langchain4j.mcp.client.transport.McpTransport;
+import dev.langchain4j.mcp.client.transport.http.HttpMcpTransport;
 import dev.langchain4j.mcp.client.transport.http.StreamableHttpMcpTransport;
 import dev.langchain4j.model.chat.request.json.*;
 import dev.langchain4j.service.tool.ToolExecutor;
@@ -47,13 +48,26 @@ public class McpToolUtil {
     @SuppressWarnings("unchecked")
     private static McpClient getMcpClient(String key,JSONObject serverConfig) {
         String url = serverConfig.getString("url");
-        StreamableHttpMcpTransport.Builder builder = new StreamableHttpMcpTransport.Builder();
-        builder.url(url).logRequests(true).logResponses(true);
+        String type = serverConfig.getString("type");
+        Map<String, String> headers =new HashMap<>();
         if (serverConfig.containsKey("headers")) {
-            Map<String, String> headers = (Map<String, String>) serverConfig.get("headers");
-            builder.customHeaders(headers);
+             headers = (Map<String, String>) serverConfig.get("headers");
         }
-        McpTransport transport = builder.build();
+        McpTransport transport;
+        if ("sse".equals(type)) {
+            transport = new HttpMcpTransport.Builder()
+                    .sseUrl(url)
+                    .customHeaders(headers)
+                    .logRequests(true) // if you want to see the traffic in the log
+                    .logResponses(true)
+                    .build();
+        } else {
+             transport = StreamableHttpMcpTransport.builder()
+                    .url(url)
+                    .logRequests(true) // if you want to see the traffic in the log
+                    .logResponses(true)
+                    .build();
+        }
         return new DefaultMcpClient.Builder()
                 .key(key)
                 .transport(transport)

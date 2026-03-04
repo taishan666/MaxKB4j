@@ -49,27 +49,22 @@ public class ToolValidationHandler {
             while (fieldNames.hasNext()) {
                 String fieldName = fieldNames.next();
                 JsonNode value = root.get(fieldName);
-
                 // 每个值必须是对象
                 if (!value.isObject()) {
                     return false;
                 }
-
                 // 检查是否存在 url 和 type 字段
                 if (!value.has("url") || !value.has("type")) {
                     return false;
                 }
-
                 JsonNode urlNode = value.get("url");
                 JsonNode typeNode = value.get("type");
-
                 // url 必须是非空字符串
                 if (!urlNode.isTextual() || urlNode.asText().trim().isEmpty()) {
                     return false;
                 }
-
                 // type 必须是 "streamable_http"
-                boolean supported = typeNode.isTextual() && "streamable_http".equals(typeNode.asText());
+                boolean supported = typeNode.isTextual() && ("streamable_http".equals(typeNode.asText())||"sse".equals(typeNode.asText()));
                 if (!supported) {
                     return false;
                 }
