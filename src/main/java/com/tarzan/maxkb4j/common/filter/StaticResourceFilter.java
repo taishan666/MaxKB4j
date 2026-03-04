@@ -12,6 +12,7 @@ public class StaticResourceFilter implements Filter {
 
     private static final String REGEX = "^/admin/.*/assets/[\\w.-]+$";
     private static final Pattern PATTERN = Pattern.compile(REGEX);
+    private static final String ADMIN_ASSETS= "/admin/assets";
 
     public static boolean matches(String path) {
         return PATTERN.matcher(path).matches();
@@ -22,12 +23,9 @@ public class StaticResourceFilter implements Filter {
             throws IOException, ServletException {
         HttpServletRequest httpRequest = (HttpServletRequest) request;
         String path = httpRequest.getRequestURI();
-        if (path.startsWith("/admin/") && path.endsWith("/favicon.ico")) {
-            RequestDispatcher dispatcher = request.getRequestDispatcher("/admin/favicon.ico");
-            dispatcher.forward(request, response);
-        } else if (matches(path)) {
+        if (matches(path)) {
             String assetPath = path.substring(path.lastIndexOf("/"));
-            RequestDispatcher dispatcher = request.getRequestDispatcher("/admin/assets"+assetPath);
+            RequestDispatcher dispatcher = request.getRequestDispatcher(ADMIN_ASSETS+assetPath);
             dispatcher.forward(request, response);
         } else {
             chain.doFilter(request, response);
