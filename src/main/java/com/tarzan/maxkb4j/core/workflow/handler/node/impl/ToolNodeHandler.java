@@ -1,6 +1,6 @@
 package com.tarzan.maxkb4j.core.workflow.handler.node.impl;
 
-import com.tarzan.maxkb4j.common.util.GroovyScriptExecutor;
+import com.tarzan.maxkb4j.module.tool.executor.GroovyScriptExecutor;
 import com.tarzan.maxkb4j.core.workflow.annotation.NodeHandlerType;
 import com.tarzan.maxkb4j.core.workflow.enums.NodeType;
 import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;

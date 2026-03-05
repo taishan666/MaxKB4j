@@ -1,5 +1,6 @@
 package com.tarzan.maxkb4j.module.tool.controller;
 
+import cn.hutool.http.HttpResponse;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.tarzan.maxkb4j.common.annotation.SaCheckPerm;
 import com.tarzan.maxkb4j.common.constant.AppConst;
@@ -12,9 +13,9 @@ import com.tarzan.maxkb4j.module.tool.domain.dto.ToolInputField;
 import com.tarzan.maxkb4j.module.tool.domain.dto.ToolQuery;
 import com.tarzan.maxkb4j.module.tool.domain.entity.ToolEntity;
 import com.tarzan.maxkb4j.module.tool.domain.vo.ToolVO;
+import com.tarzan.maxkb4j.module.tool.executor.GroovyScriptExecutor;
+import com.tarzan.maxkb4j.module.tool.executor.HttpRequestExecutor;
 import com.tarzan.maxkb4j.module.tool.service.ToolService;
-import groovy.lang.Binding;
-import groovy.lang.GroovyShell;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -99,20 +100,23 @@ public class ToolController {
     @PostMapping("/workspace/default/tool/debug")
     public R<Object> debug(@RequestBody ToolDTO dto) {
         Map<String, Object> params = new HashMap<>(5);
-        if (dto.getInitParams()!=null){
-            params.putAll(dto.getInitParams());
-        }
         if (!CollectionUtils.isEmpty(dto.getDebugFieldList())) {
             for (ToolInputField inputField : dto.getDebugFieldList()) {
                 params.put(inputField.getName(), inputField.getValue());
             }
         }
-        log.info("Groovy binding params: {}", params);
-        Binding binding = new Binding(params);
-        // 创建 GroovyShell 并执行脚本
-        GroovyShell shell = new GroovyShell(binding);
-        // 执行脚本并返回结果
-        return R.data(shell.evaluate(dto.getCode()));
+        log.info("input params: {}", params);
+        String toolType = dto.getToolType();
+        Object result="";
+        if (ToolConstants.ToolType.HTTP.equals(toolType)){
+            HttpResponse response=  new HttpRequestExecutor(dto.getCode()).execute(params);
+            result=response.body();
+        }else {
+            // 执行脚本并返回结果
+            result=new GroovyScriptExecutor(dto.getCode(),dto.getInitParams()).execute(params);;
+        }
+        return R.data(result);
+
     }
 
     @SaCheckPerm(PermissionEnum.TOOL_READ)

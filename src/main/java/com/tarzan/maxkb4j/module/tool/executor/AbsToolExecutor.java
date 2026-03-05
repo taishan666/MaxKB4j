@@ -1,13 +1,8 @@
-package com.tarzan.maxkb4j.common.util;
+package com.tarzan.maxkb4j.module.tool.executor;
 
-import com.alibaba.fastjson.JSON;
-import dev.langchain4j.agent.tool.ToolExecutionRequest;
 import dev.langchain4j.internal.Json;
 import dev.langchain4j.internal.Utils;
 import dev.langchain4j.service.tool.ToolExecutor;
-import groovy.lang.Binding;
-import groovy.lang.GroovyShell;
-import org.apache.commons.lang3.StringUtils;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -15,39 +10,11 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class GroovyScriptExecutor implements ToolExecutor {
+public abstract class AbsToolExecutor implements ToolExecutor {
 
-
-    private final String code;
-    private final Map<String, Object> initParams;
-
-    public GroovyScriptExecutor(String code, Map<String, Object> initParams) {
-        this.code = code;
-        this.initParams=initParams;
-    }
-
-    @Override
-    public String execute(ToolExecutionRequest toolExecutionRequest,  Object memoryId) {
-        Map<String, Object> params = argumentsAsMap(toolExecutionRequest.arguments());
-        Object value= execute(params);
-        return JSON.toJSONString(value);
-    }
-
-    public Object execute(Map<String, Object> params) {
-        Object result="";
-        if(StringUtils.isNotBlank(code)){
-            if (initParams!=null){
-                params.putAll(initParams);
-            }
-            Binding binding = new Binding(params);
-            // 创建 GroovyShell 并执行脚本
-            GroovyShell shell = new GroovyShell(binding);
-            result = shell.evaluate(code);
-            result=result==null?"":result;
-        }
-        return result;
-    }
-
+    private static final Pattern TRAILING_COMMA_PATTERN = Pattern.compile(",(\\s*[}\\]])");
+    private static final Pattern LEADING_TRAILING_QUOTE_PATTERN = Pattern.compile("^\"|\"$");
+    private static final Pattern ESCAPED_QUOTE_PATTERN = Pattern.compile("\\\\\"");
     private static final Type MAP_TYPE = new ParameterizedType() {
         public Type[] getActualTypeArguments() {
             return new Type[]{String.class, Object.class};
@@ -62,6 +29,7 @@ public class GroovyScriptExecutor implements ToolExecutor {
         }
     };
 
+
     static Map<String, Object> argumentsAsMap(String arguments) {
         if (Utils.isNullOrBlank(arguments)) {
             return Map.of();
@@ -75,8 +43,6 @@ public class GroovyScriptExecutor implements ToolExecutor {
         }
     }
 
-    private static final Pattern TRAILING_COMMA_PATTERN = Pattern.compile(",(\\s*[}\\]])");
-
     static String removeTrailingComma(String json) {
         if (json != null && !json.isEmpty()) {
             Matcher matcher = TRAILING_COMMA_PATTERN.matcher(json);
@@ -85,9 +51,6 @@ public class GroovyScriptExecutor implements ToolExecutor {
             return json;
         }
     }
-
-    private static final Pattern LEADING_TRAILING_QUOTE_PATTERN = Pattern.compile("^\"|\"$");
-    private static final Pattern ESCAPED_QUOTE_PATTERN = Pattern.compile("\\\\\"");
 
     static String normalizeJsonString(String arguments) {
         if (arguments != null && !arguments.isEmpty()) {

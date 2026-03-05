@@ -20,6 +20,7 @@ public interface ToolConstants {
     interface ToolType {
         String MCP = "MCP";
         String CUSTOM = "CUSTOM";
+        String HTTP = "HTTP";
     }
 
     /**
