@@ -121,8 +121,8 @@ public class ToolController {
 
     @SaCheckPerm(PermissionEnum.TOOL_READ)
     @GetMapping("/workspace/default/tool/{id}")
-    public R<ToolEntity> get(@PathVariable String id) {
-        return R.data(toolService.getById(id));
+    public R<ToolVO> get(@PathVariable String id) {
+        return R.data(toolService.getVoById(id));
     }
 
     @SaCheckPerm(PermissionEnum.TOOL_EDIT)
@@ -134,7 +134,7 @@ public class ToolController {
         }else {
             return R.fail("请检查配置信息");
         }
-        return R.data(toolService.getById(id));
+        return R.data(toolService.getVoById(id));
     }
 
     @SaCheckPerm(PermissionEnum.TOOL_DELETE)
@@ -164,6 +164,12 @@ public class ToolController {
     @PostMapping("/workspace/default/tool/test_connection")
     public R<Boolean> testConnection(@RequestBody ToolEntity dto) {
         return R.status(toolService.testConnection(dto.getCode()));
+    }
+
+    @SaCheckPerm(PermissionEnum.TOOL_EDIT)
+    @PutMapping("/workspace/default/tool/upload_skill_file")
+    public R<String> uploadSkillFile(MultipartFile file) throws IOException {
+        return R.data(toolService.uploadSkillFile(file));
     }
 
 

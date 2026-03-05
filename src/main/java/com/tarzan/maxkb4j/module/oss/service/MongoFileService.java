@@ -81,6 +81,23 @@ public class MongoFileService {
         return fileVO;
     }
 
+    public SysFile getFile(String id) {
+        GridFSFile file = this.getById(id);
+        if (file == null || file.getLength() <= 0){
+            return null;
+        }
+        SysFile fileVO = new SysFile();
+        // 新文件名
+        fileVO.setName(file.getFilename());
+        fileVO.setSize(file.getLength());
+        // 获得文件类型
+        assert file.getMetadata() != null;
+        fileVO.setType(file.getMetadata().getString("contentType"));
+        fileVO.setUploadTime(file.getUploadDate());
+        fileVO.setUrl("./oss/file/" + file.getId());
+        return fileVO;
+    }
+
     public void getFile(String id, HttpServletResponse response) {
         try {
             GridFSFile file = this.getById(id);

@@ -232,5 +232,10 @@ public class UserService extends ServiceImpl<UserMapper, UserEntity> {
         return this.lambdaQuery().select(UserEntity::getId, UserEntity::getNickname).list().stream().collect(Collectors.toMap(UserEntity::getId, UserEntity::getNickname));
     }
 
+    public String getNickname(String userId) {
+        List<UserEntity> list = this.lambdaQuery().select(UserEntity::getNickname).eq(UserEntity::getId, userId).list();
+        return list.isEmpty() ? "" : list.get(0).getNickname();
+    }
+
 
 }

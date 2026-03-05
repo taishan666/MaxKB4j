@@ -7,6 +7,8 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tarzan.maxkb4j.common.util.*;
+import com.tarzan.maxkb4j.core.workflow.model.SysFile;
+import com.tarzan.maxkb4j.module.oss.service.MongoFileService;
 import com.tarzan.maxkb4j.module.system.permission.constant.AuthTargetType;
 import com.tarzan.maxkb4j.module.system.permission.service.UserResourcePermissionService;
 import com.tarzan.maxkb4j.module.system.user.constants.RoleType;
@@ -15,10 +17,10 @@ import com.tarzan.maxkb4j.module.tool.consts.ToolConstants;
 import com.tarzan.maxkb4j.module.tool.domain.dto.ToolQuery;
 import com.tarzan.maxkb4j.module.tool.domain.entity.ToolEntity;
 import com.tarzan.maxkb4j.module.tool.domain.vo.ToolVO;
-import com.tarzan.maxkb4j.module.tool.mapper.ToolMapper;
 import com.tarzan.maxkb4j.module.tool.handler.ToolConnectionHandler;
 import com.tarzan.maxkb4j.module.tool.handler.ToolImportExportHandler;
 import com.tarzan.maxkb4j.module.tool.handler.ToolValidationHandler;
+import com.tarzan.maxkb4j.module.tool.mapper.ToolMapper;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -43,6 +45,7 @@ import java.util.stream.Collectors;
 public class ToolService extends ServiceImpl<ToolMapper, ToolEntity> {
 
     private final UserService userService;
+    private final MongoFileService mongoFileService;
     private final UserResourcePermissionService userResourcePermissionService;
     private final ToolValidationHandler validationHandler;
     private final ToolImportExportHandler importExportHandler;
@@ -98,7 +101,7 @@ public class ToolService extends ServiceImpl<ToolMapper, ToolEntity> {
     @Transactional
     public boolean saveTool(ToolEntity entity) {
         this.save(entity);
-       return userResourcePermissionService.ownerSave(AuthTargetType.TOOL, entity.getId(), entity.getUserId());
+        return userResourcePermissionService.ownerSave(AuthTargetType.TOOL, entity.getId(), entity.getUserId());
     }
 
     public boolean mcpServerConfigValid(ToolEntity entity) {
@@ -120,7 +123,7 @@ public class ToolService extends ServiceImpl<ToolMapper, ToolEntity> {
         try {
             return connectionHandler.testConnection(code);
         } catch (Exception e) {
-            log.error("连接测试失败: {}",e);
+            log.error("连接测试失败: {}", e);
             return false;
         }
     }
@@ -141,9 +144,9 @@ public class ToolService extends ServiceImpl<ToolMapper, ToolEntity> {
         wrapper.eq(ToolEntity::getIsActive, ToolConstants.Status.ACTIVE);
         wrapper.eq(ToolEntity::getScope, scope);
         wrapper.orderByDesc(ToolEntity::getCreateTime);
-        if (role.contains(RoleType.ADMIN)){
+        if (role.contains(RoleType.ADMIN)) {
             return this.list(wrapper);
-        }else {
+        } else {
             List<String> targetIds = userResourcePermissionService.getTargetIds(AuthTargetType.TOOL, StpKit.ADMIN.getLoginIdAsString());
             if (!CollectionUtils.isEmpty(targetIds)) {
                 wrapper.in(ToolEntity::getId, targetIds);
@@ -163,20 +166,38 @@ public class ToolService extends ServiceImpl<ToolMapper, ToolEntity> {
                 String parentDirName = JarUtil.getParentDirName(resource);
                 String text = IoUtil.readToString(resource.getInputStream());
                 ToolEntity tool = JSONObject.parseObject(text, ToolEntity.class);
-                if (tool!=null){
+                if (tool != null) {
                     tool.setLabel(parentDirName);
-                    if(StringUtils.isBlank(tool.getVersion())){
+                    if (StringUtils.isBlank(tool.getVersion())) {
                         tool.setVersion(ToolConstants.Defaults.DEFAULT_VERSION);
                     }
                     list.add(tool);
                 }
             }
         }
-        if(StringUtils.isNotBlank(name)) {
+        if (StringUtils.isNotBlank(name)) {
             list = list.stream().filter(tool -> tool.getName().contains(name)).collect(Collectors.toList());
         }
         return list;
     }
 
 
+    public ToolVO getVoById(String id) {
+        ToolVO vo = new ToolVO();
+        ToolEntity tool = this.getById(id);
+        if (tool != null) {
+            vo = BeanUtil.copy(tool, ToolVO.class);
+            String nickname =userService.getNickname(vo.getUserId());
+            vo.setNickname(nickname);
+            if (ToolConstants.ToolType.SKILL.equals(tool.getToolType())) {
+                SysFile file = mongoFileService.getFile(tool.getCode());
+                vo.setFileList(file == null ? List.of() : List.of(file));
+            }
+        }
+        return vo;
+    }
+
+    public String uploadSkillFile(MultipartFile file) throws IOException {
+        return mongoFileService.storeFile(file);
+    }
 }
