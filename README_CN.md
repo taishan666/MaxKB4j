@@ -70,6 +70,7 @@
 - 支持 [MCP](https://modelcontextprotocol.io/) 协议，让 AI 理解**代码上下文**、项目结构、依赖关系
 - 支持本地代码函数编程工具调用
 - 支持HTTP接口工具调用
+- 支持Claude SKILLS技能调用
 
 ### 🎙️ 多模态扩展
 -  语音识别（ASR）、语音合成（TTS）
