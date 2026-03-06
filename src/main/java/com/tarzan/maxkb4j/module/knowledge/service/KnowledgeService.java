@@ -1,6 +1,5 @@
 package com.tarzan.maxkb4j.module.knowledge.service;
 
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -211,75 +210,35 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
         return this.updateById(dataset) ? dataset : null;
     }
 
-    public List<BaseField> datasourceFormList(String id, String nodeType, JSONObject node) {
+    public List<BaseField> datasourceFormList(String nodeType, JSONObject params) {
         if (DATA_SOURCE_WEB.getKey().equals(nodeType)) {
             BaseField field1 = new TextInputField("Web 根地址", "sourceUrl", "请输入 Web 根地址", true);
             BaseField field2 = new TextInputField("选择器", "selector", "默认为 body，可输入 .classname/#idname/tagname", false);
             return List.of(field1, field2);
         } else {
-            KnowledgeEntity entity = baseMapper.selectById(id);
-            BaseField localFileUpload = null;
-            if (Objects.isNull(entity)) {
-                localFileUpload = new LocalFileUpload(50, 100, List.of("TXT", "DOCX", "PDF", "HTML", "XLS", "XLSX", "CSV"));
-            } else {
-                JSONObject workFlow = entity.getWorkFlow();
-                JSONObject currentNode = node.containsKey("node") ? node.getJSONObject("node") : node;
-                if (currentNode == null) {
-                    localFileUpload = new LocalFileUpload(50, 100, List.of("TXT", "DOCX", "PDF", "HTML", "XLS", "XLSX", "CSV"));
-                }else{
-                    String currentId = currentNode.getString("id");
-                    localFileUpload = createLocalFileUploadByNodeId(workFlow,currentId);
-                }
-
-
+            BaseField localFileUpload= new LocalFileUpload(50, 100, List.of("TXT", "DOCX", "PDF", "HTML", "XLS", "XLSX", "CSV"));
+            if (params == null) {
+                return List.of(localFileUpload);
             }
-            return List.of(localFileUpload);
+            JSONObject node=params.getJSONObject("node");
+            if (node == null) {
+                return List.of(localFileUpload);
+            }
+            JSONObject properties=node.getJSONObject("properties");
+            if (properties == null) {
+                return List.of(localFileUpload);
+            }
+            JSONObject nodeData=properties.getJSONObject("nodeData");
+            if (nodeData == null) {
+                return List.of(localFileUpload);
+            }
+            Integer fileCountLimit=nodeData.getInteger("fileCountLimit");
+            Integer fileSizeLimit=nodeData.getInteger("fileSizeLimit");
+            List<String> fileTypeList=nodeData.getJSONArray("fileTypeList").toJavaList(String.class);
+            return List.of(new LocalFileUpload(fileCountLimit, fileSizeLimit, fileTypeList));
         }
     }
 
-    private BaseField createLocalFileUploadByNodeId(JSONObject workFlow, String currentId) {
-        BaseField localFileUpload = null;
-        if (Objects.isNull(workFlow) || Objects.isNull(currentId)) {
-            localFileUpload = new LocalFileUpload(50, 100, List.of("TXT", "DOCX", "PDF", "HTML", "XLS", "XLSX", "CSV"));
-        } else {
-            JSONArray nodes = workFlow.getJSONArray("nodes");
-            boolean found = false;
-            if (nodes != null && !nodes.isEmpty() ) {
-                for (int i = 0; i < nodes.size(); i++) {
-                    JSONObject n = nodes.getJSONObject(i);
-                    if (currentId.equals(n.getString("id"))) {
-                        JSONObject properties = n.getJSONObject("properties");
-                        if (properties != null) {
-                            JSONObject nodeData = properties.getJSONObject("nodeData");
-                            if (nodeData != null) {
-                                Integer fileCountLimit = nodeData.getInteger("fileCountLimit");
-                                Integer fileSizeLimit = nodeData.getInteger("fileSizeLimit");
-                                JSONArray fileTypeListJson = nodeData.getJSONArray("fileTypeList");
-
-                                List<String> fileTypeList = new ArrayList<>();
-                                if (fileTypeListJson != null) {
-                                    fileTypeList = fileTypeListJson.toJavaList(String.class);
-                                }
-
-                                int count = fileCountLimit != null ? fileCountLimit : 50;
-                                int size = fileSizeLimit != null ? fileSizeLimit : 100;
-                                List<String> types = fileTypeList.isEmpty() ?
-                                        List.of("TXT", "DOCX", "PDF", "HTML", "XLS", "XLSX", "CSV") : fileTypeList;
-
-                                localFileUpload = new LocalFileUpload(count, size, types);
-                                found = true;
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-            if (!found) {
-                localFileUpload = new LocalFileUpload(50, 100, List.of("TXT", "DOCX", "PDF", "HTML", "XLS", "XLSX", "CSV"));
-            }
-        }
-        return localFileUpload;
-    }
 
     public JSONObject getKnowledgeWorkFlow(String id,boolean debug) {
         JSONObject workFlow = null;
@@ -307,7 +266,7 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
         if(Objects.isNull(dataSource)){
             localFileUpload = new LocalFileUpload(50, 100, List.of("TXT", "DOCX", "PDF", "HTML", "XLS", "XLSX", "CSV"));
         }else{
-            localFileUpload = createLocalFileUploadByNodeId(knowledgeWorkFlow, dataSource.getNodeId());
+         //   localFileUpload = createLocalFileUploadByNodeId(knowledgeWorkFlow, dataSource.getNodeId());
         }
         //判断文件大小、数量是否符合要求
         JSONObject attrs = localFileUpload.getAttrs();

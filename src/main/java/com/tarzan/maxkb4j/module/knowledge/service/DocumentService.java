@@ -7,6 +7,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.tarzan.maxkb4j.common.exception.FileLimitExceededException;
 import com.tarzan.maxkb4j.common.util.ExcelUtil;
 import com.tarzan.maxkb4j.common.util.IoUtil;
 import com.tarzan.maxkb4j.common.util.SecurityUtil;
@@ -17,16 +18,14 @@ import com.tarzan.maxkb4j.module.knowledge.domain.dto.DatasetBatchHitHandlingDTO
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.DocQuery;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.DocumentSimple;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.GenerateProblemDTO;
-import com.tarzan.maxkb4j.module.knowledge.domain.entity.DocumentEntity;
-import com.tarzan.maxkb4j.module.knowledge.domain.entity.ParagraphEntity;
-import com.tarzan.maxkb4j.module.knowledge.domain.entity.ProblemEntity;
-import com.tarzan.maxkb4j.module.knowledge.domain.entity.ProblemParagraphEntity;
+import com.tarzan.maxkb4j.module.knowledge.domain.entity.*;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.DocFileVO;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.DocumentVO;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.TextSegmentVO;
 import com.tarzan.maxkb4j.module.knowledge.excel.DatasetExcel;
 import com.tarzan.maxkb4j.module.knowledge.handler.DocumentHandler;
 import com.tarzan.maxkb4j.module.knowledge.mapper.DocumentMapper;
+import com.tarzan.maxkb4j.module.knowledge.mapper.KnowledgeMapper;
 import com.tarzan.maxkb4j.module.model.info.vo.KeyAndValueVO;
 import com.tarzan.maxkb4j.module.oss.service.MongoFileService;
 import jakarta.servlet.http.HttpServletResponse;
@@ -48,10 +47,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -76,6 +72,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
     private final DocumentWriteService documentWriteService;
     private final DocumentHandler documentHandler;
     private final IChunkIndexService chunkIndexService;
+    private final KnowledgeMapper knowledgeMapper;
 
     public void updateStatusMetaById(String id) {
         baseMapper.updateStatusMetaByIds(List.of(id));
@@ -127,6 +124,9 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
 
     @Transactional
     public void importQa(String knowledgeId, MultipartFile[] files) throws IOException {
+        if (checkFileLimit(knowledgeId,files)){
+            throw new FileLimitExceededException("文件数量超出限制");
+        }
         if (files == null) return;
         List<DocumentSimple> docs =new ArrayList<>();
         for (MultipartFile file : files) {
@@ -151,6 +151,9 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
 
     @Transactional
     public void importTable(String knowledgeId, MultipartFile[] files) throws IOException {
+        if (checkFileLimit(knowledgeId,files)){
+            throw new FileLimitExceededException("文件数量超出限制");
+        }
         if (files == null) return;
         List<DocumentSimple> docs =new ArrayList<>();
         for (MultipartFile uploadFile : files) {
@@ -317,7 +320,10 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         );
     }
 
-    public List<TextSegmentVO> split(MultipartFile[] files, String[] patterns, Integer limit, Boolean withFilter) throws IOException {
+    public List<TextSegmentVO> split(String knowledgeId,MultipartFile[] files, String[] patterns, Integer limit, Boolean withFilter) throws IOException {
+        if (checkFileLimit(knowledgeId,files)){
+            throw new FileLimitExceededException("文件数量超出限制");
+        }
         List<TextSegmentVO> result = new ArrayList<>();
         List<DocFileVO> fileStreams = new ArrayList<>();
         if (files == null) return result;
@@ -423,6 +429,34 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         if (!docIds.isEmpty()) {
             eventPublisher.publishEvent(new DocumentIndexEvent(this, knowledgeId, docIds, stateList));
         }
+    }
+
+    private boolean checkFileLimit(String id, MultipartFile[] files) {
+        KnowledgeEntity knowledge = knowledgeMapper.selectById(id);
+        if (Objects.isNull(knowledge)) {
+            return false;
+        }
+        int fileSizeLimit = knowledge.getFileSizeLimit();
+        int fileCountLimit = knowledge.getFileCountLimit();
+        // 检查文件数量
+        if (files == null || files.length == 0) {
+            return false;
+        }
+        if (files.length > fileCountLimit) {
+            return false;
+        }
+        // 预计算字节上限（避免循环内重复计算）
+        long fileSizeLimitBytes = (long) fileSizeLimit * 1024 * 1024;
+        // 收集超限文件的序号（从1开始）
+        List<Integer> overLimitIndices = new ArrayList<>();
+        for (int i = 0; i < files.length; i++) {
+            MultipartFile file = files[i];
+            if (file != null && file.getSize() > fileSizeLimitBytes) {
+                overLimitIndices.add(i + 1);
+            }
+        }
+        // 若有超限文件，返回提示
+        return overLimitIndices.isEmpty();
     }
 
 

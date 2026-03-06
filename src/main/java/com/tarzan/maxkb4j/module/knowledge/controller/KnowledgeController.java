@@ -4,10 +4,11 @@ import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.tarzan.maxkb4j.common.annotation.SaCheckPerm;
-import com.tarzan.maxkb4j.common.domain.api.R;
 import com.tarzan.maxkb4j.common.constant.AppConst;
+import com.tarzan.maxkb4j.common.domain.api.R;
 import com.tarzan.maxkb4j.common.domain.form.BaseField;
 import com.tarzan.maxkb4j.module.chat.dto.KnowledgeParams;
+import com.tarzan.maxkb4j.module.knowledge.consts.KnowledgeType;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.DataSearchDTO;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.GenerateProblemDTO;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.KnowledgeDTO;
@@ -18,7 +19,6 @@ import com.tarzan.maxkb4j.module.knowledge.domain.entity.KnowledgeVersionEntity;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.KnowledgeListVO;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.KnowledgeVO;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.ParagraphVO;
-import com.tarzan.maxkb4j.module.knowledge.consts.KnowledgeType;
 import com.tarzan.maxkb4j.module.knowledge.service.KnowledgeService;
 import com.tarzan.maxkb4j.module.knowledge.service.RetrieveService;
 import com.tarzan.maxkb4j.module.system.user.enums.PermissionEnum;
@@ -134,9 +134,8 @@ public class KnowledgeController {
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_CREATE)
     @PostMapping("/knowledge/{id}/datasource/local/{nodeType}/form_list")
-    public R<List<BaseField>> datasourceFormList(@PathVariable("id") String id, @PathVariable("nodeType")String nodeType,
-                                                 @RequestBody JSONObject node) {
-      return R.success(knowledgeService.datasourceFormList(id,nodeType,node));
+    public R<List<BaseField>> datasourceFormList(@PathVariable("id") String id, @PathVariable("nodeType")String nodeType, @RequestBody JSONObject params) {
+      return R.success(knowledgeService.datasourceFormList(nodeType,params));
     }
 
     @PostMapping("/knowledge/{id}/debug")

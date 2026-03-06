@@ -1,19 +1,15 @@
 package com.tarzan.maxkb4j.module.knowledge.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.google.api.client.util.Lists;
 import com.tarzan.maxkb4j.common.annotation.SaCheckPerm;
-import com.tarzan.maxkb4j.common.domain.api.R;
 import com.tarzan.maxkb4j.common.constant.AppConst;
-import com.tarzan.maxkb4j.common.exception.FileLimitExceededException;
+import com.tarzan.maxkb4j.common.domain.api.R;
+import com.tarzan.maxkb4j.module.knowledge.consts.KnowledgeType;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.*;
 import com.tarzan.maxkb4j.module.knowledge.domain.entity.DocumentEntity;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.DocumentVO;
-import com.tarzan.maxkb4j.module.knowledge.domain.vo.KnowledgeVO;
 import com.tarzan.maxkb4j.module.knowledge.domain.vo.TextSegmentVO;
-import com.tarzan.maxkb4j.module.knowledge.consts.KnowledgeType;
 import com.tarzan.maxkb4j.module.knowledge.service.DocumentService;
-import com.tarzan.maxkb4j.module.knowledge.service.KnowledgeService;
 import com.tarzan.maxkb4j.module.model.info.vo.KeyAndValueVO;
 import com.tarzan.maxkb4j.module.system.user.enums.PermissionEnum;
 import jakarta.servlet.http.HttpServletResponse;
@@ -23,7 +19,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * @author tarzan
@@ -35,8 +30,6 @@ import java.util.Objects;
 public class DocumentController {
 
     private final DocumentService documentService;
-
-    private final KnowledgeService knowledgeService;
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_CREATE)
     @PostMapping("/knowledge/{id}/document/web")
@@ -54,65 +47,21 @@ public class DocumentController {
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_CREATE)
     @PostMapping("/knowledge/{id}/document/qa")
     public void importQa(@PathVariable("id") String id, MultipartFile[] file) throws IOException {
-        R r = chkLimit(id,file);
-        if(R.isNotSuccess(r)){
-            throw new FileLimitExceededException(r.getmessage());
-        }
         documentService.importQa(id, file);
     }
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_CREATE)
     @PostMapping("/knowledge/{id}/document/table")
     public void importTable(@PathVariable("id") String id, MultipartFile[] file) throws IOException {
-        R r = chkLimit(id,file);
-        if(R.isNotSuccess(r)){
-           throw new FileLimitExceededException(r.getmessage());
-        }
         documentService.importTable(id, file);
     }
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_CREATE)
     @PostMapping("/knowledge/{id}/document/split")
     public R<List<TextSegmentVO>> split(@PathVariable String id, MultipartFile[] file, String[] patterns, Integer limit, Boolean withFilter) throws IOException {
-        R r = chkLimit(id,file);
-        if(R.isNotSuccess(r)){
-            return r;
-        }
-        return R.success(documentService.split(file, patterns, limit, withFilter));
+        return R.success(documentService.split(id,file, patterns, limit, withFilter));
     }
 
-    private R chkLimit(String id, MultipartFile[] file) {
-        KnowledgeVO knowledgeVO = knowledgeService.getKnowledgeById(id);
-        if(Objects.isNull(knowledgeVO)){
-            return R.fail("未查询到知识库");
-        }
-        int fileSizeLimit = knowledgeVO.getFileSizeLimit();
-        int fileCountLimit = knowledgeVO.getFileCountLimit();
-        if(file.length == 0 || file.length > fileCountLimit){
-            return R.fail("文件数量超出限制。当前知识库最大支持" + fileCountLimit + "个文件");
-        }
-        //循环每一个文件判断大小是否超过了fileSizeLimit，单位是MB。循环完成后，把所有超过的下标+1个返回
-        List<Integer> fileSizeLimitIndexList = Lists.newArrayList();
-        for (int i = 0; i < file.length; i++) {
-            if(file[i].getSize() > fileSizeLimit * 1024 * 1024){
-                fileSizeLimitIndexList.add(i+1);
-            }
-        }
-        //return R.fail("文件大小超出限制");
-        if (!fileSizeLimitIndexList.isEmpty()){
-            StringBuilder sb = new StringBuilder();
-            sb.append("第");
-            for (Integer index : fileSizeLimitIndexList) {
-                sb.append(index).append("个").append(",");
-            }
-            //如果最后一个是逗号去掉
-            if (sb.charAt(sb.length() - 1) == ',') {
-                sb.deleteCharAt(sb.length() - 1);
-            }
-            return R.fail(sb.toString()  + "文件大小超出限制，当前单个文件最大" + fileSizeLimit + "MB");
-        }
-        return R.success();
-    }
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_CREATE)
     @PutMapping("/knowledge/{id}/document/batch_create")
