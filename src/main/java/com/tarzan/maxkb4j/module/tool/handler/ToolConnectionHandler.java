@@ -1,7 +1,7 @@
 package com.tarzan.maxkb4j.module.tool.handler;
 
 import com.alibaba.fastjson.JSONObject;
-import com.tarzan.maxkb4j.common.util.McpToolUtil;
+import com.tarzan.maxkb4j.module.tool.util.McpToolUtil;
 import dev.langchain4j.mcp.client.McpClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;

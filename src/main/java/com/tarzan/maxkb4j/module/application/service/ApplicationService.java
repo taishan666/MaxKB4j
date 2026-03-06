@@ -280,8 +280,6 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     public Boolean updateAppById(String appId, ApplicationVO appVO) {
         ApplicationEntity app = BeanUtil.copy(appVO, ApplicationEntity.class);
         app.setId(appId);
-        List<String> knowledgeIds = appVO.getKnowledgeIds() == null ? List.of() : appVO.getKnowledgeIds();
-        app.setKnowledgeIds(knowledgeIds);
         JSONObject workFlow = appVO.getWorkFlow();
         if (workFlow != null && workFlow.containsKey("nodes")) {
             JSONArray nodes = workFlow.getJSONArray("nodes");

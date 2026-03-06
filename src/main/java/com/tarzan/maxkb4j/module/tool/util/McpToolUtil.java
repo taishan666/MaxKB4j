@@ -1,4 +1,4 @@
-package com.tarzan.maxkb4j.common.util;
+package com.tarzan.maxkb4j.module.tool.util;
 
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.module.application.domain.vo.McpToolVO;

@@ -5,7 +5,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.tarzan.maxkb4j.common.annotation.SaCheckPerm;
 import com.tarzan.maxkb4j.common.domain.api.R;
 import com.tarzan.maxkb4j.common.constant.AppConst;
-import com.tarzan.maxkb4j.common.util.McpToolUtil;
+import com.tarzan.maxkb4j.module.tool.util.McpToolUtil;
 import com.tarzan.maxkb4j.module.application.domain.dto.*;
 import com.tarzan.maxkb4j.module.application.domain.entity.ApplicationAccessTokenEntity;
 import com.tarzan.maxkb4j.module.application.domain.entity.ApplicationEntity;

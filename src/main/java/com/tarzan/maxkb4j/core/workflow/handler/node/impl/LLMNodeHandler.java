@@ -20,7 +20,7 @@ import com.tarzan.maxkb4j.core.workflow.util.MessageConverter;
 import com.tarzan.maxkb4j.module.application.domain.vo.ChatMessageVO;
 import com.tarzan.maxkb4j.module.model.info.factory.impl.ModelFactory;
 import com.tarzan.maxkb4j.module.oss.service.MongoFileService;
-import com.tarzan.maxkb4j.module.tool.service.ToolUtilService;
+import com.tarzan.maxkb4j.module.tool.service.ToolProviderService;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.Content;
 import dev.langchain4j.data.message.ImageContent;
@@ -47,7 +47,7 @@ import static org.springframework.web.util.UriUtils.extractFileExtension;
 public class LLMNodeHandler implements INodeHandler {
 
     private final ModelFactory modelFactory;
-    private final ToolUtilService toolUtil;
+    private final ToolProviderService toolUtil;
     private final MongoFileService fileService;
 
     @Override

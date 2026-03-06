@@ -5,7 +5,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.tarzan.maxkb4j.common.exception.ApiException;
 import com.tarzan.maxkb4j.common.util.MessageUtils;
-import com.tarzan.maxkb4j.module.tool.service.ToolUtilService;
+import com.tarzan.maxkb4j.module.tool.service.ToolProviderService;
 import com.tarzan.maxkb4j.core.assistant.Assistant;
 import com.tarzan.maxkb4j.core.pipeline.PipelineManage;
 import com.tarzan.maxkb4j.core.pipeline.step.chatstep.AbsChatStep;
@@ -37,7 +37,7 @@ import java.util.concurrent.CompletableFuture;
 public class ChatStep extends AbsChatStep {
 
     private final ModelFactory modelFactory;
-    private final ToolUtilService toolUtil;
+    private final ToolProviderService toolUtil;
 
 
     @Override

@@ -1,7 +1,7 @@
 package com.tarzan.maxkb4j.core.workflow.handler.node.impl;
 
 import com.alibaba.fastjson.JSONObject;
-import com.tarzan.maxkb4j.common.util.McpToolUtil;
+import com.tarzan.maxkb4j.module.tool.util.McpToolUtil;
 import com.tarzan.maxkb4j.core.workflow.annotation.NodeHandlerType;
 import com.tarzan.maxkb4j.core.workflow.enums.NodeType;
 import com.tarzan.maxkb4j.core.workflow.handler.node.INodeHandler;
