@@ -134,7 +134,8 @@ public class KnowledgeController {
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_CREATE)
     @PostMapping("/knowledge/{id}/datasource/local/{nodeType}/form_list")
-    public R<List<BaseField>> datasourceFormList(@PathVariable("id") String id, @PathVariable("nodeType")String nodeType, JSONObject node) {
+    public R<List<BaseField>> datasourceFormList(@PathVariable("id") String id, @PathVariable("nodeType")String nodeType,
+                                                 @RequestBody JSONObject node) {
       return R.success(knowledgeService.datasourceFormList(id,nodeType,node));
     }
 

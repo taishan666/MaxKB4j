@@ -11,9 +11,11 @@ import dev.langchain4j.exception.RateLimitException;
 import io.swagger.v3.oas.annotations.Hidden;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import javax.crypto.BadPaddingException;
@@ -118,10 +120,27 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(UserIdentityException.class)
     @ResponseBody
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     public R<String> handleException(UserIdentityException e, HttpServletResponse response) {
         response.setStatus(460); // 设置HTTP状态码为461
         return R.fail(1002, e.getMessage());
     }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    @ResponseBody
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public R<String> handleIllegalArgumentException(IllegalArgumentException e) {
+        log.error("非法参数: {}", e.getMessage(), e);
+        return R.fail(400, e.getMessage());
+    }
+
+    @ExceptionHandler(FileLimitExceededException.class)
+    @ResponseBody
+    public R<String> handleFileLimitExceededException(FileLimitExceededException e) {
+        log.error("业务规则校验失败: {}", e.getMessage(), e);
+        return R.fail(400, e.getMessage());
+    }
+
 
     @ExceptionHandler(Exception.class)
     public R<String> handleException(Exception e) {
