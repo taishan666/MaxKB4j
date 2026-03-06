@@ -9,7 +9,6 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tarzan.maxkb4j.common.domain.form.BaseField;
 import com.tarzan.maxkb4j.common.domain.form.LocalFileUpload;
 import com.tarzan.maxkb4j.common.domain.form.TextInputField;
-import com.tarzan.maxkb4j.common.exception.FileLimitExceededException;
 import com.tarzan.maxkb4j.common.util.BeanUtil;
 import com.tarzan.maxkb4j.common.util.DateTimeUtil;
 import com.tarzan.maxkb4j.common.util.StpKit;
@@ -19,7 +18,6 @@ import com.tarzan.maxkb4j.core.workflow.handler.KnowledgeWorkflowHandler;
 import com.tarzan.maxkb4j.core.workflow.logic.LogicFlow;
 import com.tarzan.maxkb4j.core.workflow.model.KnowledgeWorkflow;
 import com.tarzan.maxkb4j.core.workflow.node.AbsNode;
-import com.tarzan.maxkb4j.module.chat.dto.DataSource;
 import com.tarzan.maxkb4j.module.chat.dto.KnowledgeParams;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.GenerateProblemDTO;
 import com.tarzan.maxkb4j.module.knowledge.domain.dto.KnowledgeDTO;
@@ -261,31 +259,6 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
         if (knowledgeWorkFlow == null){
             throw new IllegalArgumentException("未找到知识库 ID: " + id);
         }
-        BaseField localFileUpload = null;
-        DataSource dataSource = params.getDataSource();
-        if(Objects.isNull(dataSource)){
-            localFileUpload = new LocalFileUpload(50, 100, List.of("TXT", "DOCX", "PDF", "HTML", "XLS", "XLSX", "CSV"));
-        }else{
-         //   localFileUpload = createLocalFileUploadByNodeId(knowledgeWorkFlow, dataSource.getNodeId());
-        }
-        //判断文件大小、数量是否符合要求
-        JSONObject attrs = localFileUpload.getAttrs();
-        int count = attrs.getIntValue("file_count_limit");
-        int size = attrs.getIntValue("file_size_limit");
-        List<String> types = attrs.getJSONArray("fileTypeList").toJavaList(String.class);
-        //开始判断
-        if (dataSource.getFileList().size() > count) {
-            throw new FileLimitExceededException("文件数量超出限制。当前一次最多能上传" + count + "个文件");
-        }
-        dataSource.getFileList().forEach(file -> {
-            if (file.getSize() > size * 1024 * 1024) {
-                throw new FileLimitExceededException("文件大小超出限制。当前文件大小为" + file.getSize() + "，最大允许" + size + "MB");
-            }
-            if (!types.contains(file.getName().substring(file.getName().lastIndexOf(".") + 1))) {
-                throw new FileLimitExceededException("文件类型超出限制。当前文件类型为" + file.getName().substring(file.getName().lastIndexOf(".") + 1) + "，不允许");
-            }
-        });
-
         KnowledgeActionEntity knowledgeAction = new KnowledgeActionEntity();
         knowledgeAction.setKnowledgeId(id);
         knowledgeAction.setState("STARTED");
