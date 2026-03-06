@@ -37,7 +37,7 @@ import java.util.concurrent.CompletableFuture;
 public class ChatStep extends AbsChatStep {
 
     private final ModelFactory modelFactory;
-    private final ToolProviderService toolUtil;
+    private final ToolProviderService toolProvider;
 
 
     @Override
@@ -53,7 +53,7 @@ public class ChatStep extends AbsChatStep {
         List<String> toolIds = Optional.ofNullable(application.getToolIds()).orElse(List.of());
         List<String> applicationIds = Optional.ofNullable(application.getApplicationIds()).orElse(List.of());
         try {
-            aiServicesBuilder.tools(toolUtil.getToolMap(toolIds,applicationIds));
+            aiServicesBuilder.tools(toolProvider.getToolMap(toolIds,applicationIds));
         }catch (ApiException e){
             manage.sink.tryEmitError(e);
         }

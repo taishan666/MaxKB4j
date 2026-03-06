@@ -85,7 +85,7 @@ public class ToolProviderService {
         return buildToolProvider(appSkillPath, toolIds);
     }
 
-    public ToolProvider getSkillsToolProvider(String applicationId, List<String> toolIds) throws ApiException {
+    public ToolProvider getSkillsToolProvider(String applicationId, List<String> toolIds) throws ApiException{
         String appSkillPath = "app/" + applicationId + "/skills/";
         return buildToolProvider(appSkillPath, toolIds);
     }
@@ -103,7 +103,7 @@ public class ToolProviderService {
 
 
 
-    private  void unzipSkills(Path appSkillFolderPath, List<String> newToolIds,Map<String, String> manifestToUpdate) {
+    private  void unzipSkills(Path appSkillFolderPath, List<String> newToolIds,Map<String, String> manifestToUpdate) throws ApiException{
         try {
             Files.createDirectories(appSkillFolderPath); // 自动创建多级目录
         } catch (IOException e) {
@@ -120,7 +120,7 @@ public class ToolProviderService {
                 String folderName= SkillsToolUtil.unzipSkill(appSkillFolderPath,is);
                 manifestToUpdate.put(skill.getId(), folderName);
             } catch (IOException e) {
-                throw new RuntimeException(e);
+                throw new ApiException("Failed to extract the skill file.");
             }
         }
     }
@@ -129,35 +129,32 @@ public class ToolProviderService {
     /**
      * 根据工具 ID 列表构建工具映射
      */
-    private Map<ToolSpecification, ToolExecutor> buildToolMapFromToolIds(List<String> toolIds) {
-        List<ToolEntity> toolEntities = toolService.lambdaQuery()
+    private Map<ToolSpecification, ToolExecutor> buildToolMapFromToolIds(List<String> toolIds) throws ApiException{
+        List<ToolEntity> tools = toolService.lambdaQuery()
                 .select(ToolEntity::getId, ToolEntity::getName, ToolEntity::getDesc, ToolEntity::getCode, ToolEntity::getCode, ToolEntity::getInitParams, ToolEntity::getInputFieldList, ToolEntity::getToolType)
                 .in(ToolEntity::getId, toolIds)
                 .eq(ToolEntity::getIsActive, true)
                 .in(ToolEntity::getToolType, ToolConstants.ToolType.MCP, ToolConstants.ToolType.CUSTOM, ToolConstants.ToolType.HTTP)
                 .list();
-        Map<ToolSpecification, ToolExecutor> tools = new HashMap<>();
-        for (ToolEntity tool : toolEntities) {
-            try {
-                if (ToolConstants.ToolType.MCP.equals(tool.getToolType())) {
-                    JSONObject mcpConfig = JSONObject.parseObject(tool.getCode());
-                    tools.putAll(McpToolUtil.getToolMap(mcpConfig));
-                }
-                if (ToolConstants.ToolType.HTTP.equals(tool.getToolType())) {
-                    ToolSpecification spec = buildToolSpecification(tool);
-                    ToolExecutor executor = new HttpRequestExecutor(tool.getCode());
-                    tools.put(spec, executor);
-                } else if (ToolConstants.ToolType.CUSTOM.equals(tool.getToolType())) {
-                    ToolSpecification spec = buildToolSpecification(tool);
-                    ToolExecutor executor = new GroovyScriptExecutor(tool.getCode(), tool.getInitParams());
-                    tools.put(spec, executor);
-                }
-            } catch (Exception e) {
-                log.warn("Failed to process tool: {}, error: {}", tool.getId(), e.getMessage(), e);
-                // 可选：跳过错误工具 or 抛出异常
+        if (tools.isEmpty()) {
+            throw new ApiException("No valid tools found for the provided tool IDs");
+        }
+        Map<ToolSpecification, ToolExecutor> toolMap = new HashMap<>();
+        for (ToolEntity tool : tools) {
+            if (ToolConstants.ToolType.MCP.equals(tool.getToolType())) {
+                JSONObject mcpConfig = JSONObject.parseObject(tool.getCode());
+                toolMap.putAll(McpToolUtil.getToolMap(mcpConfig));
+            }else if (ToolConstants.ToolType.HTTP.equals(tool.getToolType())) {
+                ToolSpecification spec = buildToolSpecification(tool);
+                ToolExecutor executor = new HttpRequestExecutor(tool.getCode());
+                toolMap.put(spec, executor);
+            } else if (ToolConstants.ToolType.CUSTOM.equals(tool.getToolType())) {
+                ToolSpecification spec = buildToolSpecification(tool);
+                ToolExecutor executor = new GroovyScriptExecutor(tool.getCode(), tool.getInitParams());
+                toolMap.put(spec, executor);
             }
         }
-        return tools;
+        return toolMap;
     }
 
     /**
@@ -171,13 +168,13 @@ public class ToolProviderService {
         if (applications.isEmpty()) {
             throw new ApiException("No valid applications found for the provided application IDs");
         }
-        Map<ToolSpecification, ToolExecutor> tools = new HashMap<>();
+        Map<ToolSpecification, ToolExecutor> toolMap = new HashMap<>();
         for (ApplicationEntity app : applications) {
             ToolSpecification spec = buildToolSpecification(app);
             ToolExecutor executor = new AgentExecutor(app.getId(), chatService);
-            tools.put(spec, executor);
+            toolMap.put(spec, executor);
         }
-        return tools;
+        return toolMap;
     }
 
     /**
@@ -201,7 +198,7 @@ public class ToolProviderService {
     /**
      * 为单个应用构建 MCP 配置
      */
-    private JSONObject buildAppMcpConfig(ApplicationEntity app) throws ApiException {
+    private JSONObject buildAppMcpConfig(ApplicationEntity app){
         ApplicationApiKeyEntity apiKey = apiKeyService.lambdaQuery()
                 .select(ApplicationApiKeyEntity::getSecretKey)
                 .eq(ApplicationApiKeyEntity::getApplicationId, app.getId())

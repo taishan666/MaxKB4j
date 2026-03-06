@@ -47,7 +47,7 @@ import static org.springframework.web.util.UriUtils.extractFileExtension;
 public class LLMNodeHandler implements INodeHandler {
 
     private final ModelFactory modelFactory;
-    private final ToolProviderService toolUtil;
+    private final ToolProviderService toolProviderService;
     private final MongoFileService fileService;
 
     @Override
@@ -86,11 +86,11 @@ public class LLMNodeHandler implements INodeHandler {
         }
         if (CollectionUtils.isNotEmpty(toolIds)) {
             try {
-                builder.tools(toolUtil.getToolMap(toolIds,applicationIds));
+                builder.tools(toolProviderService.getToolMap(toolIds,applicationIds));
             }catch (ApiException e){
                 workflow.getSink().tryEmitError(e);
             }
-            builder.tools(toolUtil.getToolMap(toolIds,applicationIds));
+            builder.tools(toolProviderService.getToolMap(toolIds,applicationIds));
         }
         return builder;
     }
