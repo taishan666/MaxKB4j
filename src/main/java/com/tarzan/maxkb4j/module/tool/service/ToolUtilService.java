@@ -8,22 +8,37 @@ import com.tarzan.maxkb4j.common.util.McpToolUtil;
 import com.tarzan.maxkb4j.module.application.domain.entity.ApplicationApiKeyEntity;
 import com.tarzan.maxkb4j.module.application.domain.entity.ApplicationEntity;
 import com.tarzan.maxkb4j.module.application.service.ApplicationApiKeyService;
+import com.tarzan.maxkb4j.module.application.service.ApplicationChatService;
 import com.tarzan.maxkb4j.module.application.service.ApplicationService;
+import com.tarzan.maxkb4j.module.oss.service.MongoFileService;
 import com.tarzan.maxkb4j.module.tool.consts.ToolConstants;
 import com.tarzan.maxkb4j.module.tool.domain.dto.ToolInputField;
 import com.tarzan.maxkb4j.module.tool.domain.entity.ToolEntity;
+import com.tarzan.maxkb4j.module.tool.executor.AgentExecutor;
 import com.tarzan.maxkb4j.module.tool.executor.GroovyScriptExecutor;
 import com.tarzan.maxkb4j.module.tool.executor.HttpRequestExecutor;
 import dev.langchain4j.agent.tool.ToolSpecification;
-import dev.langchain4j.model.chat.request.json.*;
+import dev.langchain4j.model.chat.request.json.JsonArraySchema;
+import dev.langchain4j.model.chat.request.json.JsonObjectSchema;
 import dev.langchain4j.service.tool.ToolExecutor;
+import dev.langchain4j.service.tool.ToolProvider;
+import dev.langchain4j.skills.FileSystemSkillLoader;
+import dev.langchain4j.skills.Skills;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.*;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 /**
  * 工具服务工具类，用于创建和管理工具规范和执行器
@@ -41,6 +56,8 @@ public class ToolUtilService {
     private final ToolService toolService;
     private final ApplicationService applicationService;
     private final ApplicationApiKeyService apiKeyService;
+    private final MongoFileService mongoFileService;
+    private final ApplicationChatService chatService;
 
     @Value("${server.port}")
     private int serverPort;
@@ -55,39 +72,103 @@ public class ToolUtilService {
         Map<ToolSpecification, ToolExecutor> tools = new HashMap<>();
         // 1. 加载普通工具
         if (!CollectionUtils.isEmpty(toolIds)) {
-            tools.putAll(buildToolMapFromToolEntities(toolIds));
+            tools.putAll(buildToolMapFromToolIds(toolIds));
         }
-        // 2. 加载应用（MCP）工具
+        // 2. 加载智能体应用工具
         if (!CollectionUtils.isEmpty(applicationIds)) {
-            JSONObject mcpServers = buildMcpServerConfig(applicationIds);
-            tools.putAll(McpToolUtil.getToolMap(mcpServers));
+            tools.putAll(buildToolMapFromAppIds(applicationIds));
         }
         return tools;
+    }
+
+    public ToolProvider getSkillsToolProvider(String applicationId,List<String> toolIds) throws ApiException {
+        List<ToolEntity> skillTools = toolService.lambdaQuery()
+                .select(ToolEntity::getCode)
+                .in(ToolEntity::getId, toolIds)
+                .eq(ToolEntity::getIsActive, true)
+                .eq(ToolEntity::getToolType, ToolConstants.ToolType.SKILL)
+                .list();
+        String appPath = applicationId + "/skills/";
+        Path appSkillFolderPath = Paths.get(appPath);
+        try {
+            Files.createDirectories(appSkillFolderPath); // 自动创建多级目录
+        } catch (IOException e) {
+            throw new ApiException("Failed to create skill directory: " + e.getMessage());
+        }
+        for (ToolEntity skill : skillTools) {
+            try (InputStream is = mongoFileService.getStream(skill.getCode()); ZipInputStream zis = new ZipInputStream(is)) {
+                ZipEntry entry;
+                while ((entry = zis.getNextEntry()) != null) {
+                    // 防止 zip slip 漏洞：确保解压路径在目标目录内
+                    Path targetPath = appSkillFolderPath.resolve(entry.getName()).normalize();
+                    if (!targetPath.startsWith(appSkillFolderPath)) {
+                        throw new ApiException("Zip entry is outside target directory: " + entry.getName());
+                    }
+                    if (entry.isDirectory()) {
+                        Files.createDirectories(targetPath);
+                    } else {
+                        Files.createDirectories(targetPath.getParent());
+                        Files.copy(zis, targetPath, StandardCopyOption.REPLACE_EXISTING);
+                    }
+                    zis.closeEntry();
+                }
+            } catch (IOException e) {
+                throw new ApiException("Failed to extract skill zip file: " + skill.getCode());
+            }
+        }
+        Skills skills = Skills.from(FileSystemSkillLoader.loadSkills(appSkillFolderPath));
+        return skills.toolProvider();
     }
 
     /**
      * 根据工具 ID 列表构建工具映射
      */
-    private Map<ToolSpecification, ToolExecutor> buildToolMapFromToolEntities(List<String> toolIds) {
-        LambdaQueryWrapper<ToolEntity> wrapper = Wrappers.lambdaQuery(ToolEntity.class)
+    private Map<ToolSpecification, ToolExecutor> buildToolMapFromToolIds(List<String> toolIds) {
+        List<ToolEntity> toolEntities = toolService.lambdaQuery()
+                .select(ToolEntity::getId,ToolEntity::getName,ToolEntity::getDesc,ToolEntity::getCode,ToolEntity::getCode, ToolEntity::getInitParams, ToolEntity::getInputFieldList,ToolEntity::getToolType)
                 .in(ToolEntity::getId, toolIds)
-                .eq(ToolEntity::getIsActive, true);
-        List<ToolEntity> toolEntities = toolService.list(wrapper);
+                .eq(ToolEntity::getIsActive, true)
+                .in(ToolEntity::getToolType, ToolConstants.ToolType.MCP, ToolConstants.ToolType.CUSTOM,ToolConstants.ToolType.HTTP)
+                .list();
         Map<ToolSpecification, ToolExecutor> tools = new HashMap<>();
         for (ToolEntity tool : toolEntities) {
             try {
                 if (ToolConstants.ToolType.MCP.equals(tool.getToolType())) {
                     JSONObject mcpConfig = JSONObject.parseObject(tool.getCode());
                     tools.putAll(McpToolUtil.getToolMap(mcpConfig));
-                } else {
+                } if (ToolConstants.ToolType.HTTP.equals(tool.getToolType())) {
                     ToolSpecification spec = buildToolSpecification(tool);
-                    ToolExecutor executor = createToolExecutor(tool);
+                    ToolExecutor executor =   new HttpRequestExecutor(tool.getCode());;
+                    tools.put(spec, executor);
+                } else if (ToolConstants.ToolType.CUSTOM.equals(tool.getToolType())){
+                    ToolSpecification spec = buildToolSpecification(tool);
+                    ToolExecutor executor =   new GroovyScriptExecutor(tool.getCode(), tool.getInitParams());;
                     tools.put(spec, executor);
                 }
             } catch (Exception e) {
                 log.warn("Failed to process tool: {}, error: {}", tool.getId(), e.getMessage(), e);
                 // 可选：跳过错误工具 or 抛出异常
             }
+        }
+        return tools;
+    }
+
+    /**
+     * 构建 MCP 服务器配置（用于应用工具）
+     */
+    private Map<ToolSpecification, ToolExecutor>  buildToolMapFromAppIds(List<String> applicationIds) throws ApiException {
+        LambdaQueryWrapper<ApplicationEntity> wrapper = Wrappers.lambdaQuery(ApplicationEntity.class)
+                .select(ApplicationEntity::getId, ApplicationEntity::getName, ApplicationEntity::getDesc)
+                .in(ApplicationEntity::getId, applicationIds);
+        List<ApplicationEntity> applications = applicationService.list(wrapper);
+        if (applications.isEmpty()) {
+            throw new ApiException("No valid applications found for the provided application IDs");
+        }
+        Map<ToolSpecification, ToolExecutor> tools = new HashMap<>();
+        for (ApplicationEntity app : applications) {
+            ToolSpecification spec = buildToolSpecification(app);
+            ToolExecutor executor =   new AgentExecutor(app.getId(),chatService);
+            tools.put(spec, executor);
         }
         return tools;
     }
@@ -119,17 +200,14 @@ public class ToolUtilService {
                 .eq(ApplicationApiKeyEntity::getApplicationId, app.getId())
                 .last("LIMIT 1")
                 .one();
-
         if (apiKey == null || apiKey.getSecretKey() == null) {
             throw new ApiException(String.format("Agent Key is required for agent tool 【%s】", app.getName()));
         }
-
         String url = String.format("%s:%d%s", LOCALHOST, serverPort, MCP_API_PATH);
         Map<String, String> headers = Collections.singletonMap(
                 "Authorization",
                 AUTH_HEADER_PREFIX + apiKey.getSecretKey()
         );
-
         JSONObject config = new JSONObject();
         config.put("url", url);
         config.put("type", MCP_TYPE);
@@ -142,12 +220,15 @@ public class ToolUtilService {
      */
     private ToolSpecification buildToolSpecification(ToolEntity tool) {
         JsonObjectSchema.Builder parametersBuilder = JsonObjectSchema.builder();
-
         List<ToolInputField> params = Optional.ofNullable(tool.getInputFieldList()).orElse(Collections.emptyList());
+        List<String> required=new ArrayList<>();
         for (ToolInputField param : params) {
             String type = param.getType();
             String name = param.getName();
-
+            boolean isRequired =param.getIsRequired();
+            if (isRequired){
+                required.add(name);
+            }
             switch (type) {
                 case "string" -> parametersBuilder.addStringProperty(name);
                 case "int" -> parametersBuilder.addIntegerProperty(name);
@@ -158,22 +239,27 @@ public class ToolUtilService {
                 default -> log.warn("Unsupported parameter type: {} for field: {}", type, name);
             }
         }
-
+        if (!required.isEmpty()){
+            parametersBuilder.required(required);
+        }
         return ToolSpecification.builder()
-                .name(tool.getName())
-                .description(tool.getDesc())
+                .name("tool_"+tool.getId())
+                .description("**"+tool.getName()+"**"+":"+tool.getDesc())
                 .parameters(parametersBuilder.build())
                 .build();
     }
 
-    /**
-     * 创建对应的工具执行器
-     */
-    private ToolExecutor createToolExecutor(ToolEntity tool) {
-        if (ToolConstants.ToolType.HTTP.equals(tool.getToolType())) {
-            return new HttpRequestExecutor(tool.getCode());
-        } else {
-            return new GroovyScriptExecutor(tool.getCode(), tool.getInitParams());
-        }
+
+    private ToolSpecification buildToolSpecification(ApplicationEntity app) {
+        JsonObjectSchema parameters = JsonObjectSchema.builder()
+                .addStringProperty("message")
+                .required("message")
+                .build();
+        return ToolSpecification.builder()
+                .name("agent_"+app.getId())
+                .description("**"+app.getName()+"**"+":"+app.getDesc())
+                .parameters(parameters)
+                .build();
     }
+
 }
