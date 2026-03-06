@@ -52,20 +52,16 @@ public class ToolUtilService {
         if (CollectionUtils.isEmpty(toolIds) && CollectionUtils.isEmpty(applicationIds)) {
             return Collections.emptyMap();
         }
-
         Map<ToolSpecification, ToolExecutor> tools = new HashMap<>();
-
         // 1. 加载普通工具
         if (!CollectionUtils.isEmpty(toolIds)) {
             tools.putAll(buildToolMapFromToolEntities(toolIds));
         }
-
         // 2. 加载应用（MCP）工具
         if (!CollectionUtils.isEmpty(applicationIds)) {
             JSONObject mcpServers = buildMcpServerConfig(applicationIds);
             tools.putAll(McpToolUtil.getToolMap(mcpServers));
         }
-
         return tools;
     }
 
@@ -76,10 +72,8 @@ public class ToolUtilService {
         LambdaQueryWrapper<ToolEntity> wrapper = Wrappers.lambdaQuery(ToolEntity.class)
                 .in(ToolEntity::getId, toolIds)
                 .eq(ToolEntity::getIsActive, true);
-
         List<ToolEntity> toolEntities = toolService.list(wrapper);
         Map<ToolSpecification, ToolExecutor> tools = new HashMap<>();
-
         for (ToolEntity tool : toolEntities) {
             try {
                 if (ToolConstants.ToolType.MCP.equals(tool.getToolType())) {
@@ -105,12 +99,10 @@ public class ToolUtilService {
         LambdaQueryWrapper<ApplicationEntity> wrapper = Wrappers.lambdaQuery(ApplicationEntity.class)
                 .select(ApplicationEntity::getId, ApplicationEntity::getName)
                 .in(ApplicationEntity::getId, applicationIds);
-
         List<ApplicationEntity> applications = applicationService.list(wrapper);
         if (applications.isEmpty()) {
             throw new ApiException("No valid applications found for the provided application IDs");
         }
-
         JSONObject mcpServers = new JSONObject();
         for (ApplicationEntity app : applications) {
             mcpServers.put(app.getName(), buildAppMcpConfig(app));

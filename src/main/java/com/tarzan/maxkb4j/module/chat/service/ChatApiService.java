@@ -10,7 +10,6 @@ import com.tarzan.maxkb4j.common.util.WebUtil;
 import com.tarzan.maxkb4j.module.application.domain.entity.*;
 import com.tarzan.maxkb4j.module.application.domain.vo.ApplicationVO;
 import com.tarzan.maxkb4j.module.application.enums.ChatUserType;
-import com.tarzan.maxkb4j.module.application.mapper.ApplicationMapper;
 import com.tarzan.maxkb4j.module.application.service.ApplicationAccessTokenService;
 import com.tarzan.maxkb4j.module.application.service.ApplicationChatRecordService;
 import com.tarzan.maxkb4j.module.application.service.ApplicationChatService;
@@ -32,7 +31,6 @@ import java.util.Map;
 @Service
 public class ChatApiService {
 
-    private final ApplicationMapper applicationMapper;
     private final ApplicationAccessTokenService accessTokenService;
     private final ApplicationService applicationService;
     private final ApplicationChatService chatService;
@@ -122,15 +120,13 @@ public class ChatApiService {
             } else if ("ping".equals(req.method)) {
                 resp.result = Map.of();
             } else if ("tools/list".equals(req.method)) {
-                ApplicationEntity app=applicationMapper.selectOne(Wrappers.<ApplicationEntity>lambdaQuery()
-                        .select(ApplicationEntity::getId)
-                        .select(ApplicationEntity::getName)
-                        .select(ApplicationEntity::getDesc)
-                        .eq(ApplicationEntity::getId, apiKey.getApplicationId()));
+                ApplicationEntity app=applicationService.lambdaQuery()
+                        .select(ApplicationEntity::getName,ApplicationEntity::getDesc)
+                        .eq(ApplicationEntity::getId, apiKey.getApplicationId()).one();
                 resp.result = Map.of("tools", List.of(
                         Map.of(
-                                "name", "ai_chat",
-                                "description", app.getName()+" "+app.getDesc(),
+                                "name",  String.format("agent_%s", apiKey.getApplicationId()),
+                                "description", app.getName()+" - "+app.getDesc(),
                                 "inputSchema", Map.of(
                                         "type", "object",
                                         "properties", Map.of("message", Map.of("type", "string", "description", "The message to send to the AI.")),

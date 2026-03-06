@@ -58,15 +58,16 @@ public class McpToolUtil {
             transport = new HttpMcpTransport.Builder()
                     .sseUrl(url)
                     .customHeaders(headers)
-                    .logRequests(true) // if you want to see the traffic in the log
+                    .logRequests(true)
                     .logResponses(true)
                     .build();
         } else {
              transport = StreamableHttpMcpTransport.builder()
-                    .url(url)
-                    .logRequests(true) // if you want to see the traffic in the log
-                    .logResponses(true)
-                    .build();
+                     .url(url)
+                     .customHeaders(headers)
+                     .logRequests(true)
+                     .logResponses(true)
+                     .build();
         }
         return new DefaultMcpClient.Builder()
                 .key(key)
