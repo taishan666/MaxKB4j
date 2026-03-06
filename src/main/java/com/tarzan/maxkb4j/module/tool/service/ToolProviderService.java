@@ -80,13 +80,22 @@ public class ToolProviderService {
         return tools;
     }
 
+    public ToolProvider getSkillsToolProvider(String applicationId, String nodeId, List<String> toolIds) throws ApiException {
+        String appSkillPath = "app/" + applicationId + "/" + nodeId + "/skills/";
+        return buildToolProvider(appSkillPath, toolIds);
+    }
 
     public ToolProvider getSkillsToolProvider(String applicationId, List<String> toolIds) throws ApiException {
         String appSkillPath = "app/" + applicationId + "/skills/";
+        return buildToolProvider(appSkillPath, toolIds);
+    }
+
+    // 公共逻辑
+    private ToolProvider buildToolProvider(String appSkillPath, List<String> toolIds) throws ApiException {
         Path appSkillFolderPath = Paths.get(appSkillPath);
         Map<String, String> manifest = SkillsToolUtil.readManifest(appSkillPath);
-        List<String> newToolIds = SkillsToolUtil.getAddShills(appSkillPath, toolIds,manifest);
-        unzipSkills(appSkillFolderPath,newToolIds,manifest);
+        List<String> newToolIds = SkillsToolUtil.getAddShills(appSkillPath, toolIds, manifest);
+        unzipSkills(appSkillFolderPath, newToolIds, manifest);
         SkillsToolUtil.updateManifest(appSkillPath, manifest);
         Skills skills = Skills.from(FileSystemSkillLoader.loadSkills(appSkillFolderPath));
         return skills.toolProvider();
