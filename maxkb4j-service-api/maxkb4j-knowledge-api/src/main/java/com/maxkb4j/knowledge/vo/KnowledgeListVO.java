@@ -1,0 +1,12 @@
+package com.maxkb4j.knowledge.vo;
+
+import lombok.Data;
+
+@Data
+public class KnowledgeListVO {
+    private String id;
+    private String name;
+    private String desc;
+    private Integer type;
+    private String folderId;
+}

@@ -1,0 +1,47 @@
+package com.maxkb4j.core.workflow.handler.node.impl;
+
+import com.maxkb4j.core.executor.GroovyScriptExecutor;
+import com.maxkb4j.core.workflow.annotation.NodeHandlerType;
+import com.maxkb4j.core.workflow.enums.NodeType;
+import com.maxkb4j.core.workflow.handler.node.INodeHandler;
+import com.maxkb4j.core.workflow.model.NodeResult;
+import com.maxkb4j.core.workflow.model.Workflow;
+import com.maxkb4j.core.workflow.node.AbsNode;
+import com.maxkb4j.core.workflow.node.impl.ToolNode;
+import com.maxkb4j.oss.service.IOssService;
+import com.maxkb4j.tool.dto.ToolInputField;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
+
+import java.util.HashMap;
+import java.util.Map;
+
+@NodeHandlerType({NodeType.TOOL,NodeType.TOOL_LIB})
+@Component
+@RequiredArgsConstructor
+public class ToolNodeHandler implements INodeHandler {
+
+    private final IOssService fileService;
+
+    @Override
+    public NodeResult execute(Workflow workflow, AbsNode node) throws Exception {
+        ToolNode.NodeParams nodeParams = node.getNodeData().toJavaObject(ToolNode.NodeParams.class);
+        Map<String, Object> params = new HashMap<>(5);
+        params.put("fileService", fileService);
+        if (!CollectionUtils.isEmpty(nodeParams.getInputFieldList())) {
+            for (ToolInputField inputField : nodeParams.getInputFieldList()) {
+                Object value = workflow.getFieldValue(inputField.getValue(), inputField.getSource());
+                params.put(inputField.getName(), value);
+            }
+        }
+        GroovyScriptExecutor scriptExecutor=new GroovyScriptExecutor(nodeParams.getCode(), nodeParams.getInitParams());
+        // 执行脚本并返回结果
+        Object result = scriptExecutor.execute(params);
+        node.getDetail().put("params", params);
+        if (Boolean.TRUE.equals(nodeParams.getIsResult())){
+            node.setAnswerText(result.toString());
+        }
+        return new NodeResult(Map.of("result", result));
+    }
+}

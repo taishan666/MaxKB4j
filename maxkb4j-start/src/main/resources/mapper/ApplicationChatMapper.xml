@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.maxkb4j.application.mapper.ApplicationChatMapper">
+
+
+    <select id="statistics" resultType="com.maxkb4j.application.vo.ApplicationStatisticsVO">
+        SELECT SUM(chat.star_num) AS star_num,
+        SUM (chat.trample_num) AS trample_num,
+        SUM(chat.chat_record_count) as chat_record_count,
+        SUM(chat_record.tokens_num) as tokens_num,
+        COUNT(DISTINCT chat.chat_user_id) customer_num,
+        chat.create_time :: DATE as "day"
+        FROM
+        application_chat chat
+        LEFT JOIN (
+         select chat_id, ( SUM (message_tokens)+ SUM (answer_tokens)) as tokens_num
+        FROM
+        application_chat_record
+         GROUP BY chat_id
+        ) chat_record ON chat."id" = chat_record.chat_id
+        <where>
+            APPLICATION_ID = #{appId}
+            <if test="query.startTime != null and query.startTime != ''">
+                and  <![CDATA[TO_CHAR(CREATE_TIME, 'YYYY-MM-DD') >= #{query.startTime} ]]>
+            </if>
+            <if test="query.endTime != null and query.endTime != ''">
+                and  <![CDATA[TO_CHAR(CREATE_TIME, 'YYYY-MM-DD') <= #{query.endTime} ]]>
+            </if>
+        </where>
+        GROUP BY "day";
+    </select>
+    <select id="userTokenUsage" resultType="com.maxkb4j.application.vo.ApplicationStatisticsVO">
+        SELECT
+        SUM(chat_record.tokens_num) as tokenUsage,
+        "user".nickname as userName
+        FROM
+        application_chat chat
+        LEFT JOIN (
+        select chat_id, ( SUM (message_tokens)+ SUM (answer_tokens)) as tokens_num
+        FROM
+        application_chat_record
+        GROUP BY chat_id
+        ) chat_record ON chat."id" = chat_record.chat_id
+        INNER JOIN "user" ON chat.chat_user_id = "user"."id"
+        <where>
+            APPLICATION_ID = #{appId}
+            <if test="query.startTime != null and query.startTime != ''">
+                and  <![CDATA[TO_CHAR(chat.CREATE_TIME, 'YYYY-MM-DD') >= #{query.startTime} ]]>
+            </if>
+            <if test="query.endTime != null and query.endTime != ''">
+                and  <![CDATA[TO_CHAR(chat.CREATE_TIME, 'YYYY-MM-DD') <= #{query.endTime} ]]>
+            </if>
+        </where>
+        GROUP BY "user"."id";
+    </select>
+    <select id="topQuestions" resultType="com.maxkb4j.application.vo.ApplicationStatisticsVO">
+        SELECT
+            SUM(chat.chat_record_count) as chat_record_count,
+        "user".nickname as userName
+        FROM
+        application_chat chat
+        LEFT JOIN (
+        select chat_id, ( SUM (message_tokens)+ SUM (answer_tokens)) as tokens_num
+        FROM
+        application_chat_record
+        GROUP BY chat_id
+        ) chat_record ON chat."id" = chat_record.chat_id
+        INNER JOIN "user" ON chat.chat_user_id = "user"."id"
+        <where>
+            APPLICATION_ID = #{appId}
+            <if test="query.startTime != null and query.startTime != ''">
+                and  <![CDATA[TO_CHAR(chat.CREATE_TIME, 'YYYY-MM-DD') >= #{query.startTime} ]]>
+            </if>
+            <if test="query.endTime != null and query.endTime != ''">
+                and  <![CDATA[TO_CHAR(chat.CREATE_TIME, 'YYYY-MM-DD') <= #{query.endTime} ]]>
+            </if>
+        </where>
+        GROUP BY "user"."id";
+    </select>
+    <select id="chatRecordDetail" resultType="com.maxkb4j.application.vo.ChatRecordDetailVO">
+        SELECT record.chat_id,chat.summary,record.vote_status,record.problem_text,record.answer_text, record.cost,record."index", record.run_time, record.create_time
+        FROM application_chat chat
+        LEFT JOIN application_chat_record record
+        ON chat.id=record.chat_id
+        WHERE chat.id IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+        ORDER BY chat.id,record.create_time
+    </select>
+
+</mapper>

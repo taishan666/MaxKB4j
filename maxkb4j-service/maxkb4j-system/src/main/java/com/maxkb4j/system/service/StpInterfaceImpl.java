@@ -1,0 +1,67 @@
+package com.maxkb4j.system.service;
+
+import cn.dev33.satoken.stp.StpInterface;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.maxkb4j.common.enums.PermissionEnum;
+import com.maxkb4j.system.entity.UserResourcePermissionEntity;
+import com.maxkb4j.system.mapper.UserMapper;
+import com.maxkb4j.user.entity.UserEntity;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * 自定义权限加载接口实现类
+ */
+@RequiredArgsConstructor
+@Component    // 保证此类被 SpringBoot 扫描，完成 Sa-Token 的自定义权限验证扩展
+public class StpInterfaceImpl implements StpInterface {
+
+    private final UserMapper userMapper;
+    private final UserResourcePermissionService userResourcePermissionService;
+
+    /**
+     * 返回一个账号所拥有的权限码集合
+     */
+    @Override
+    public List<String> getPermissionList(Object loginId, String loginType) {
+        String userId = loginId.toString();
+        List<UserResourcePermissionEntity> userResourcePermissions = userResourcePermissionService.getByUserId(userId);
+        List<String> permissions = new ArrayList<>();
+        permissions.add(PermissionEnum.APPLICATION_READ.getResourcePerm());
+        permissions.add(PermissionEnum.APPLICATION_CREATE.getResourcePerm());
+        permissions.add(PermissionEnum.APPLICATION_IMPORT.getResourcePerm());
+        permissions.add(PermissionEnum.KNOWLEDGE_CREATE.getResourcePerm());
+        permissions.add(PermissionEnum.KNOWLEDGE_READ.getResourcePerm());
+        permissions.add(PermissionEnum.KNOWLEDGE_DOCUMENT_CREATE.getResourcePerm());
+        permissions.add(PermissionEnum.KNOWLEDGE_DOCUMENT_READ.getResourcePerm());
+        permissions.add(PermissionEnum.KNOWLEDGE_PROBLEM_CREATE.getResourcePerm());
+        permissions.add(PermissionEnum.TOOL_CREATE.getResourcePerm());
+        permissions.add(PermissionEnum.TOOL_DEBUG.getResourcePerm());
+        permissions.add(PermissionEnum.TOOL_READ.getResourcePerm());
+        permissions.add(PermissionEnum.TOOL_IMPORT.getResourcePerm());
+        permissions.add(PermissionEnum.MODEL_CREATE.getResourcePerm());
+        permissions.add(PermissionEnum.MODEL_READ.getResourcePerm());
+        for (UserResourcePermissionEntity permission : userResourcePermissions) {
+            List<PermissionEnum> resourcePermissionEnums = PermissionEnum.getPermissions(permission.getAuthTargetType(),permission.getPermissionList());
+            resourcePermissionEnums.forEach(e -> permissions.add(e.getResourcePerm(permission.getWorkspaceId(),permission.getTargetId())));
+        }
+        return permissions;
+    }
+
+    /**
+     * 返回一个账号所拥有的角色标识集合 (权限与角色可分开校验)
+     */
+    @Override
+    public List<String> getRoleList(Object loginId, String loginType) {
+        LambdaQueryWrapper<UserEntity>  wrapper= Wrappers.lambdaQuery();
+        wrapper.eq(UserEntity::getId,loginId);
+        wrapper.select(UserEntity::getRole);
+        UserEntity user = userMapper.selectOne(wrapper);
+        return new ArrayList<>(user.getRole());
+    }
+
+}

@@ -10,13 +10,17 @@
     </parent>
     <groupId>com.tarzan</groupId>
     <artifactId>MaxKB4j</artifactId>
-    <version>1.0-SNAPSHOT</version>
-    <packaging>jar</packaging>
+    <version>${revision}</version>
+    <packaging>pom</packaging>
+
     <name>MaxKB4j</name>
     <description>MaxKB4j</description>
 
     <properties>
+        <revision>1.0.0</revision>
         <java.version>17</java.version>
+        <maven.plugin.version>3.11.0</maven.plugin.version>
+        <maven.flatten.version>1.3.0</maven.flatten.version>
         <langchain4j.version>1.12.1</langchain4j.version>
         <langchain4j.beta.version>1.12.1-beta21</langchain4j.beta.version>
         <p6spy.version>1.10.0</p6spy.version>
@@ -48,6 +52,14 @@
         <rapidocr.version>0.0.7</rapidocr.version>
         <imageio.version>1.4.0</imageio.version>
     </properties>
+    <modules>
+        <module>maxkb4j-commom</module>
+        <module>maxkb4j-service</module>
+        <module>maxkb4j-service-api</module>
+        <module>maxkb4j-core</module>
+        <module>maxkb4j-start</module>
+    </modules>
+
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -529,16 +541,70 @@
         </resources>
         <plugins>
             <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>flatten-maven-plugin</artifactId>
+                <version>${maven.flatten.version}</version>
+                <configuration>
+                    <updatePomFile>true</updatePomFile>
+                    <flattenMode>oss</flattenMode>
+                    <pomElements>
+                        <url>remove</url>
+                        <scm>remove</scm>
+                        <developers>remove</developers>
+                        <properties>remove</properties>
+                        <repositories>remove</repositories>
+                        <distributionManagement>remove</distributionManagement>
+                    </pomElements>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>flatten</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>flatten</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>flatten.clean</id>
+                        <phase>clean</phase>
+                        <goals>
+                            <goal>clean</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${maven.plugin.version}</version>
                 <configuration>
-                    <excludes>
-                        <exclude>
-                            <groupId>org.projectlombok</groupId>
-                            <artifactId>lombok</artifactId>
-                        </exclude>
-                    </excludes>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+                    <encoding>UTF-8</encoding>
+                    <compilerArgs>
+                        <arg>-parameters</arg>
+                    </compilerArgs>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.commonjava.maven.plugins</groupId>
+                <artifactId>directory-maven-plugin</artifactId>
+                <version>1.0</version>
+                <executions>
+                    <execution>
+                        <id>directories</id>
+                        <goals>
+                            <goal>highest-basedir</goal>
+                        </goals>
+                        <phase>initialize</phase>
+                        <configuration>
+                            <property>project.root.directory</property>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

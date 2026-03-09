@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.tarzan</groupId>
+        <artifactId>MaxKB4j</artifactId>
+        <version>${revision}</version>
+    </parent>
+
+    <artifactId>maxkb4j-service</artifactId>
+    <name>${project.artifactId}</name>
+    <packaging>pom</packaging>
+    <modules>
+        <module>maxkb4j-system</module>
+        <module>maxkb4j-model</module>
+        <module>maxkb4j-tool</module>
+        <module>maxkb4j-chat</module>
+        <module>maxkb4j-knowledge</module>
+        <module>maxkb4j-oss</module>
+        <module>maxkb4j-application</module>
+    </modules>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <skip>true</skip>
+                    <finalName>${project.name}</finalName>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.maxkb4j.knowledge.mapper.EmbeddingMapper">
+
+    <select id="embeddingSearch" resultType="com.maxkb4j.knowledge.vo.TextChunkVO">
+        SELECT paragraph_id,score
+        FROM (
+            SELECT DISTINCT ON (paragraph_id)
+                paragraph_id,
+                (1-(<![CDATA[embedding <=> #{referenceEmbedding}::vector]]>)) AS score
+            FROM embedding
+            WHERE is_active=true
+                AND dimension=#{dimension}
+                <if test="knowledgeIds != null and !knowledgeIds.isEmpty()">
+                    AND knowledge_id IN
+                    <foreach item="id" collection="knowledgeIds" open="(" separator="," close=")">
+                        #{id}
+                    </foreach>
+                </if>
+                <if test="excludeParagraphIds != null and !excludeParagraphIds.isEmpty()">
+                    AND paragraph_id NOT IN
+                    <foreach item="id" collection="excludeParagraphIds" open="(" separator="," close=")">
+                        #{id}
+                    </foreach>
+                </if>
+            ORDER BY paragraph_id, score DESC
+        ) t
+        WHERE score>#{minScore}
+        ORDER BY score DESC
+        LIMIT #{maxResults}
+    </select>
+
+</mapper>

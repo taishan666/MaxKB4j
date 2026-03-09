@@ -1,0 +1,26 @@
+package com.maxkb4j.core.langchain4j;
+
+import com.maxkb4j.core.listener.AssistantCompletedListener;
+import com.maxkb4j.core.listener.AssistantErrorListener;
+import com.maxkb4j.core.listener.AssistantStartedListener;
+import com.maxkb4j.core.listener.AssistantToolExecutedEventListener;
+import dev.langchain4j.observability.api.listener.AiServiceListener;
+import dev.langchain4j.service.AiServices;
+
+import java.util.Arrays;
+import java.util.Collection;
+
+public class AssistantServices {
+
+    private static final Collection<AiServiceListener<?>> LISTENERS = Arrays.asList(
+            new AssistantStartedListener(),
+            new AssistantCompletedListener(),
+            new AssistantToolExecutedEventListener(),
+            new AssistantErrorListener()
+    );
+
+    public static <T> AiServices<T> builder(Class<T> aiService) {
+        return AiServices.builder(aiService).registerListeners(LISTENERS);
+    }
+
+}

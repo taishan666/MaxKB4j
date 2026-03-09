@@ -1,0 +1,115 @@
+package com.maxkb4j.application.handler.impl;
+
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.maxkb4j.application.cache.ChatCache;
+import com.maxkb4j.application.dto.ChatInfo;
+import com.maxkb4j.application.dto.ChatParams;
+import com.maxkb4j.application.entity.ApplicationChatEntity;
+import com.maxkb4j.application.entity.ApplicationChatRecordEntity;
+import com.maxkb4j.application.entity.ApplicationChatUserStatsEntity;
+import com.maxkb4j.application.handler.PostResponseHandler;
+import com.maxkb4j.application.mapper.ApplicationChatMapper;
+import com.maxkb4j.application.mapper.ApplicationChatRecordMapper;
+import com.maxkb4j.application.service.ApplicationChatUserStatsService;
+import com.maxkb4j.chat.vo.ChatResponse;
+import com.maxkb4j.system.enums.ChatUserType;
+import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.stereotype.Component;
+
+import java.util.List;
+import java.util.Map;
+
+@RequiredArgsConstructor
+@Component
+public class ChatPostHandler implements PostResponseHandler {
+
+    private final ApplicationChatUserStatsService chatUserStatsService;
+    private final ApplicationChatMapper chatMapper;
+    private final ApplicationChatRecordMapper chatRecordMapper;
+
+    @Override
+    public void handler(ChatParams chatParams, ChatResponse chatResponse, long startTime) {
+        String chatId = chatParams.getChatId();
+        String chatRecordId = chatParams.getChatRecordId();
+        String problemText = chatParams.getMessage();
+        String chatUserId = chatParams.getChatUserId();
+        String chatUserType = chatParams.getChatUserType();
+        boolean debug = chatParams.getDebug();
+        float runTime = (System.currentTimeMillis() - startTime) / 1000F;
+        ChatInfo chatInfo = ChatCache.get(chatId);
+        String answerText = chatResponse.getAnswer();
+        JSONArray answerTextList=chatResponse.getAnswerJSONArray();
+        int messageTokens = chatResponse.getMessageTokens();
+        int answerTokens = chatResponse.getAnswerTokens();
+        JSONObject details = chatResponse.getRunDetails();
+        ApplicationChatRecordEntity chatRecord=chatParams.getChatRecord();
+        if (chatRecord != null) {
+            chatRecord.setAnswerText(answerText);
+            chatRecord.setAnswerTextList(answerTextList);
+            chatRecord.setDetails(new JSONObject(details));
+            chatRecord.setMessageTokens(messageTokens);
+            chatRecord.setAnswerTokens(answerTokens);
+            chatRecord.setCost(messageTokens + answerTokens);
+            chatRecord.setRunTime(runTime + chatRecord.getRunTime());
+        } else {
+            chatRecord = new ApplicationChatRecordEntity();
+            chatRecord.setId(chatRecordId);
+            chatRecord.setChatId(chatId);
+            chatRecord.setProblemText(problemText);
+            chatRecord.setAnswerText(answerText);
+            chatRecord.setAnswerTextList(answerTextList);
+            if (chatInfo!=null){
+                chatRecord.setIndex(chatInfo.getChatRecordList().size() + 1);
+            }else {
+                chatRecord.setIndex(0);
+            }
+            chatRecord.setMessageTokens(messageTokens);
+            chatRecord.setAnswerTokens(answerTokens);
+            chatRecord.setRunTime(runTime);
+            chatRecord.setVoteStatus("-1");
+            chatRecord.setCost(messageTokens + answerTokens);
+            chatRecord.setDetails(details);
+            chatRecord.setImproveParagraphIdList(List.of());
+        }
+        assert chatInfo != null;
+        chatInfo.addChatRecord(chatRecord);
+        // 重新设置缓存
+        ChatCache.put(chatId, chatInfo);
+        if (!debug) {
+            ApplicationChatUserStatsEntity chatUserStats = chatUserStatsService.getByUserIdAndAppId(chatUserId, chatInfo.getAppId());
+            if (chatUserStats != null) {
+                chatUserStats.setAccessNum(chatUserStats.getAccessNum() + 1);
+                chatUserStats.setIntraDayAccessNum(chatUserStats.getIntraDayAccessNum() + 1);
+                chatUserStatsService.updateById(chatUserStats);
+            }
+            long chatCount = chatMapper.selectCount(Wrappers.<ApplicationChatEntity>lambdaQuery().eq(ApplicationChatEntity::getId, chatId));
+            ApplicationChatEntity chatEntity = new ApplicationChatEntity();
+            chatEntity.setId(chatId);
+            if (chatCount == 0) {
+                chatEntity.setApplicationId(chatInfo.getAppId());
+                String problemOverview = problemText.length() > 50 ? problemText.substring(0, 50) : problemText;
+                chatEntity.setSummary(problemOverview);
+                chatEntity.setChatUserId(chatUserId);
+                chatEntity.setChatUserType(StringUtils.isBlank(chatUserType) ? ChatUserType.CHAT_USER.name() : chatUserType);
+                chatEntity.setIsDeleted(false);
+                chatEntity.setAsker(new JSONObject(Map.of("username", "游客")));
+                chatEntity.setMeta(new JSONObject());
+                chatEntity.setStarNum(0);
+                chatEntity.setTrampleNum(0);
+                chatEntity.setChatRecordCount(1);
+                chatEntity.setMarkSum(0);
+                chatMapper.insert(chatEntity);
+            }else {
+                chatEntity.setChatRecordCount(chatInfo.getChatRecordList().size());
+                chatMapper.updateById(chatEntity);
+            }
+            chatRecordMapper.insertOrUpdate(chatRecord);
+        }
+    }
+
+
+}
+

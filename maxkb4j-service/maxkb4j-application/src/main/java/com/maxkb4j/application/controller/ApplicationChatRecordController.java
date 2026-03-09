@@ -1,0 +1,67 @@
+package com.maxkb4j.application.controller;
+
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.maxkb4j.application.dto.AddChatImproveDTO;
+import com.maxkb4j.application.dto.ChatImproveDTO;
+import com.maxkb4j.application.entity.ApplicationChatRecordEntity;
+import com.maxkb4j.application.service.ApplicationChatRecordService;
+import com.maxkb4j.application.vo.ApplicationChatRecordVO;
+import com.maxkb4j.common.annotation.SaCheckPerm;
+import com.maxkb4j.common.constant.AppConst;
+import com.maxkb4j.common.domain.api.R;
+import com.maxkb4j.common.enums.PermissionEnum;
+import com.maxkb4j.knowledge.entity.ParagraphEntity;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+/**
+ * @author tarzan
+ * @date 2024-12-25 13:09:54
+ */
+@RestController
+@RequestMapping(AppConst.ADMIN_API + "/workspace/default")
+@RequiredArgsConstructor
+public class ApplicationChatRecordController {
+
+    private final ApplicationChatRecordService chatRecordService;
+
+    @SaCheckPerm(PermissionEnum.APPLICATION_READ)
+    @GetMapping("/application/{id}/chat/{chatId}/chat_record/{chatRecordId}")
+    public R<ApplicationChatRecordVO> chatRecord(@PathVariable String id, @PathVariable String chatId, @PathVariable String chatRecordId) {
+        return R.success(chatRecordService.getChatRecordInfo(chatId, chatRecordId));
+    }
+
+    @SaCheckPerm(PermissionEnum.APPLICATION_READ)
+    @GetMapping("/application/{id}/chat/{chatId}/chat_record/{current}/{size}")
+    public R<IPage<ApplicationChatRecordVO>> chatRecordPage(@PathVariable String id, @PathVariable String chatId, @PathVariable int current, @PathVariable int size) {
+        return R.success(chatRecordService.chatRecordPage(chatId, current, size));
+    }
+
+    @SaCheckPerm(PermissionEnum.APPLICATION_CREATE)
+    @PostMapping("/application/{id}/add_knowledge")
+    public R<Boolean> addKnowledge(@PathVariable("id") String id, @RequestBody AddChatImproveDTO dto) {
+        return R.success(chatRecordService.addChatLogs(id, dto));
+    }
+
+    @SaCheckPerm(PermissionEnum.APPLICATION_EDIT)
+    @PutMapping("/application/{id}/chat/{chatId}/chat_record/{chatRecordId}/knowledge/{knowledgeId}/document/{docId}/improve")
+    public R<ApplicationChatRecordEntity> improveChatLog(@PathVariable("id") String id, @PathVariable("chatId") String chatId, @PathVariable("chatRecordId") String chatRecordId, @PathVariable("knowledgeId") String knowledgeId, @PathVariable("docId") String docId, @RequestBody ChatImproveDTO dto) {
+        return R.success(chatRecordService.improveChatLog(chatId, chatRecordId, knowledgeId, docId, dto));
+    }
+
+    @SaCheckPerm(PermissionEnum.APPLICATION_DELETE)
+    @DeleteMapping("/application/{id}/chat/{chatId}/chat_record/{chatRecordId}/knowledge/{knowledgeId}/document/{docId}/paragraph/{paragraphId}/improve")
+    public R<Boolean> improveChatLog(@PathVariable("id") String id, @PathVariable("chatId") String chatId, @PathVariable("chatRecordId") String chatRecordId, @PathVariable("knowledgeId") String knowledgeId, @PathVariable("docId") String docId, @PathVariable("paragraphId") String paragraphId) {
+        return R.success(chatRecordService.removeImproveChatLog(chatId, chatRecordId, knowledgeId,paragraphId));
+    }
+
+    @SaCheckPerm(PermissionEnum.APPLICATION_READ)
+    @GetMapping("/application/{id}/chat/{chatId}/chat_record/{chatRecordId}/improve")
+    public R<List<ParagraphEntity>> improveChatLog(@PathVariable("id") String id, @PathVariable("chatId") String chatId, @PathVariable("chatRecordId") String chatRecordId) {
+        return R.success(chatRecordService.improveChatLog(chatRecordId));
+    }
+
+
+}

@@ -1,0 +1,19 @@
+package com.maxkb4j.model.custom.params.impl;
+
+
+import com.maxkb4j.common.domain.form.BaseField;
+import com.maxkb4j.common.domain.form.SliderFiled;
+import com.maxkb4j.common.domain.form.SwitchField;
+import com.maxkb4j.model.custom.params.ModelParams;
+
+import java.util.List;
+
+public class QwenChatModelParams implements ModelParams {
+    @Override
+    public List<BaseField> toForm() {
+        BaseField sliderFiled1=new SliderFiled(1,100000,1,0,"输出最大Tokens","maxTokens","指定模型可生成的最大token个数",800);
+        BaseField sliderFiled2=new SliderFiled(0.1f,1,0.01f,2,"温度","temperature","较高的数值会使输出更加随机，而较低的数值会使其更加集中和确定",0.7f);
+        BaseField switchField=new SwitchField("是否为多模态模型","isMultimodalModel","是否为多模态模型",false);
+        return List.of(sliderFiled1,sliderFiled2,switchField);
+    }
+}
