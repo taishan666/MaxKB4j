@@ -1,4 +1,3 @@
-
 package com.maxkb4j.start.config;
 
 import com.maxkb4j.core.interceptor.AuthInterceptor;
@@ -40,7 +39,7 @@ public class WebConfig implements WebMvcConfigurer {
     }
 
     /**
-     * 注意：前端路由转发由 ForwardFilter 处理，不使用 ViewControllerRegistry
+     * 注意：前端路由转发由 SpaForwardFilter 处理，不使用 ViewControllerRegistry
      * 因为 ViewControllerRegistry 的优先级高于@RestController，会导致 API 请求被错误转发
      */
 
