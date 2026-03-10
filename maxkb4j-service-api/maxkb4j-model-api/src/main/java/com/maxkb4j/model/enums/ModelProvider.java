@@ -2,7 +2,6 @@ package com.maxkb4j.model.enums;
 
 import com.maxkb4j.model.provider.AbsModelProvider;
 import com.maxkb4j.model.provider.extend.*;
-import com.maxkb4j.model.service.impl.*;
 import com.maxkb4j.model.vo.ModelProviderInfo;
 import lombok.Getter;
 
