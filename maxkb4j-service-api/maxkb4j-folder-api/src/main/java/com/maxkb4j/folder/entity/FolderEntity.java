@@ -1,7 +1,7 @@
 package com.maxkb4j.folder.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.tarzan.maxkb4j.common.domain.base.entity.BaseEntity;
+import com.maxkb4j.common.domain.base.entity.BaseEntity;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 

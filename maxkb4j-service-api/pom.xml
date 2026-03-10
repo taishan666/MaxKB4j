@@ -13,6 +13,7 @@
     <name>${project.artifactId}</name>
     <packaging>pom</packaging>
     <modules>
+        <module>maxkb4j-folder-api</module>
         <module>maxkb4j-system-api</module>
         <module>maxkb4j-model-api</module>
         <module>maxkb4j-oss-api</module>
@@ -21,7 +22,6 @@
         <module>maxkb4j-user-api</module>
         <module>maxkb4j-knowledge-api</module>
         <module>maxkb4j-application-api</module>
-        <module>maxkb4j-folder-api</module>
     </modules>
     <build>
         <plugins>
