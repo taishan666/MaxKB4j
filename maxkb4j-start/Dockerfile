@@ -22,5 +22,5 @@ EXPOSE 8080
 WORKDIR /opt/running/
 
 #运行启动命令
-CMD ["java", "-jar", "-Dfile.encoding=UTF-8", "MaxKB4j.jar"]
+CMD ["java", "-jar", "-Dfile.encoding=UTF-8", "maxkb4j-start.jar"]
 
