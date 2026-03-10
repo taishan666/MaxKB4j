@@ -8,7 +8,7 @@ import com.maxkb4j.core.workflow.model.Workflow;
 import com.maxkb4j.core.workflow.node.AbsNode;
 import com.maxkb4j.core.workflow.node.impl.TextToSpeechNode;
 import com.maxkb4j.model.custom.base.TTSModel;
-import com.maxkb4j.model.service.IModelFactory;
+import com.maxkb4j.model.service.IModelProviderService;
 import com.maxkb4j.oss.dto.SysFile;
 import com.maxkb4j.oss.service.IOssService;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +24,7 @@ import java.util.UUID;
 public class TextToSpeechNodeHandler implements INodeHandler {
 
     private final IOssService fileService;
-    private final IModelFactory modelFactory;
+    private final IModelProviderService modelFactory;
 
     @Override
     public NodeResult execute(Workflow workflow, AbsNode node) throws Exception {

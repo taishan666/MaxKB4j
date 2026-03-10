@@ -1,4 +1,4 @@
-package com.maxkb4j.model.service;
+package com.maxkb4j.model.provider;
 
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.common.domain.base.entity.ModelCredential;

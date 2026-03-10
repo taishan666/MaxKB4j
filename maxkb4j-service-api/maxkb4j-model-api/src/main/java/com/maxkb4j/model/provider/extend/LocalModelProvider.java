@@ -1,10 +1,10 @@
-package com.maxkb4j.model.service.impl;
+package com.maxkb4j.model.provider.extend;
 
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.common.domain.base.entity.ModelCredential;
 import com.maxkb4j.model.custom.credential.ModelCredentialForm;
 import com.maxkb4j.model.enums.ModelType;
-import com.maxkb4j.model.service.AbsModelProvider;
+import com.maxkb4j.model.provider.AbsModelProvider;
 import com.maxkb4j.model.vo.ModelInfo;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.model.embedding.onnx.allminilml6v2q.AllMiniLmL6V2QuantizedEmbeddingModel;

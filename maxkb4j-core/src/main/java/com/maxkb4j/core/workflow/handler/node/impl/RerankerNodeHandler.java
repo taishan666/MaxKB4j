@@ -8,7 +8,7 @@ import com.maxkb4j.core.workflow.model.Workflow;
 import com.maxkb4j.core.workflow.node.AbsNode;
 import com.maxkb4j.core.workflow.node.impl.RerankerNode;
 import com.maxkb4j.knowledge.vo.ParagraphVO;
-import com.maxkb4j.model.service.IModelFactory;
+import com.maxkb4j.model.service.IModelProviderService;
 import dev.langchain4j.data.document.Metadata;
 import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.model.output.Response;
@@ -30,7 +30,7 @@ import java.util.Map;
 @Component
 public class RerankerNodeHandler implements INodeHandler {
 
-    private final IModelFactory modelFactory;
+    private final IModelProviderService modelFactory;
 
     @Override
     public NodeResult execute(Workflow workflow, AbsNode node) throws Exception {

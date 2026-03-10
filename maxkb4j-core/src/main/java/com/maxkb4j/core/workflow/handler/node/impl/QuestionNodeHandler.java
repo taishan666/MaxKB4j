@@ -11,7 +11,7 @@ import com.maxkb4j.core.workflow.model.Workflow;
 import com.maxkb4j.core.workflow.node.AbsNode;
 import com.maxkb4j.core.workflow.node.impl.QuestionNode;
 import com.maxkb4j.core.workflow.util.MessageConverter;
-import com.maxkb4j.model.service.IModelFactory;
+import com.maxkb4j.model.service.IModelProviderService;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.output.TokenUsage;
@@ -30,7 +30,7 @@ import java.util.Map;
 @Component
 public class QuestionNodeHandler implements INodeHandler {
 
-    private final IModelFactory modelFactory;
+    private final IModelProviderService modelFactory;
     @Override
     public NodeResult execute(Workflow workflow, AbsNode node) throws Exception {
         QuestionNode.NodeParams nodeParams = node.getNodeData().toJavaObject(QuestionNode.NodeParams.class);

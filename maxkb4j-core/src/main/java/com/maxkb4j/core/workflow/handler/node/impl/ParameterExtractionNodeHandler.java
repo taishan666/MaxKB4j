@@ -8,7 +8,7 @@ import com.maxkb4j.core.workflow.model.NodeResult;
 import com.maxkb4j.core.workflow.model.Workflow;
 import com.maxkb4j.core.workflow.node.AbsNode;
 import com.maxkb4j.core.workflow.node.impl.ParameterExtractionNode;
-import com.maxkb4j.model.service.IModelFactory;
+import com.maxkb4j.model.service.IModelProviderService;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.output.TokenUsage;
 import dev.langchain4j.service.AiServices;
@@ -25,7 +25,7 @@ import java.util.Map;
 @Component
 public class ParameterExtractionNodeHandler implements INodeHandler {
 
-    private final IModelFactory modelFactory;
+    private final IModelProviderService modelFactory;
     @Override
     public NodeResult execute(Workflow workflow, AbsNode node) throws Exception {
         ParameterExtractionNode.NodeParams nodeParams = node.getNodeData().toJavaObject(ParameterExtractionNode.NodeParams.class);

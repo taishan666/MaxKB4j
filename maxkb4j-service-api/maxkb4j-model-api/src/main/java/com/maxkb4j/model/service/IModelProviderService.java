@@ -13,7 +13,7 @@ import dev.langchain4j.model.scoring.ScoringModel;
 /**
  * Interface for model factory implementations
  */
-public interface IModelFactory {
+public interface IModelProviderService {
 
     ChatModel buildChatModel(String modelId);
 

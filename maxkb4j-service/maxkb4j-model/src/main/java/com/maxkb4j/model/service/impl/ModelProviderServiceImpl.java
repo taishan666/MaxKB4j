@@ -1,4 +1,4 @@
-package com.maxkb4j.model.factory.impl;
+package com.maxkb4j.model.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.model.custom.base.STTModel;
@@ -6,8 +6,8 @@ import com.maxkb4j.model.custom.base.TTSModel;
 import com.maxkb4j.model.entity.ModelEntity;
 import com.maxkb4j.model.enums.ModelProvider;
 import com.maxkb4j.model.exception.ModelNotFoundException;
-import com.maxkb4j.model.service.AbsModelProvider;
-import com.maxkb4j.model.service.IModelFactory;
+import com.maxkb4j.model.provider.AbsModelProvider;
+import com.maxkb4j.model.service.IModelProviderService;
 import com.maxkb4j.model.service.ModelService;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.StreamingChatModel;
@@ -26,7 +26,7 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class ModelFactory implements IModelFactory {
+public class ModelProviderServiceImpl implements IModelProviderService {
 
     private final ModelService modelService;
 

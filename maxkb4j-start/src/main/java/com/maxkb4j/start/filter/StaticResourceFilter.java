@@ -24,7 +24,6 @@ public class StaticResourceFilter implements Filter {
         HttpServletRequest httpRequest = (HttpServletRequest) request;
         String path = httpRequest.getRequestURI();
         if (matches(path)) {
-            System.out.println("匹配静态资源：" + path);
             String assetPath = path.substring(path.lastIndexOf("/"));
             RequestDispatcher dispatcher = request.getRequestDispatcher(ADMIN_ASSETS+assetPath);
             dispatcher.forward(request, response);

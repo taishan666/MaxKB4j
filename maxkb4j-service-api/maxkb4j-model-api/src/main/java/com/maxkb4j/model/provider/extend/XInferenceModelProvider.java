@@ -1,4 +1,4 @@
-package com.maxkb4j.model.service.impl;
+package com.maxkb4j.model.provider.extend;
 
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.common.domain.base.entity.ModelCredential;
@@ -9,7 +9,7 @@ import com.maxkb4j.model.custom.model.OpenAiSTTModel;
 import com.maxkb4j.model.custom.model.OpenAiTTSModel;
 import com.maxkb4j.model.custom.params.impl.LlmModelParams;
 import com.maxkb4j.model.enums.ModelType;
-import com.maxkb4j.model.service.AbsModelProvider;
+import com.maxkb4j.model.provider.AbsModelProvider;
 import com.maxkb4j.model.vo.ModelInfo;
 import dev.langchain4j.community.model.xinference.*;
 import dev.langchain4j.model.chat.ChatModel;

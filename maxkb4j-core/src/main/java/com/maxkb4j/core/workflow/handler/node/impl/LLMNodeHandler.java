@@ -17,7 +17,7 @@ import com.maxkb4j.core.workflow.model.Workflow;
 import com.maxkb4j.core.workflow.node.AbsNode;
 import com.maxkb4j.core.workflow.node.impl.AiChatNode;
 import com.maxkb4j.core.workflow.util.MessageConverter;
-import com.maxkb4j.model.service.IModelFactory;
+import com.maxkb4j.model.service.IModelProviderService;
 import com.maxkb4j.oss.dto.SysFile;
 import com.maxkb4j.oss.service.IOssService;
 import com.maxkb4j.tool.service.IToolProviderService;
@@ -46,7 +46,7 @@ import static org.springframework.web.util.UriUtils.extractFileExtension;
 @RequiredArgsConstructor
 public class LLMNodeHandler implements INodeHandler {
 
-    private final IModelFactory modelFactory;
+    private final IModelProviderService modelFactory;
     private final IToolProviderService toolProviderService;
     private final IOssService fileService;
 

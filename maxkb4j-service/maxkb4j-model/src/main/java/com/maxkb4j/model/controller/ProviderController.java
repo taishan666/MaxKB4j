@@ -5,7 +5,7 @@ import com.maxkb4j.common.domain.api.R;
 import com.maxkb4j.common.domain.form.BaseField;
 import com.maxkb4j.model.enums.ModelProvider;
 import com.maxkb4j.model.enums.ModelType;
-import com.maxkb4j.model.service.AbsModelProvider;
+import com.maxkb4j.model.provider.AbsModelProvider;
 import com.maxkb4j.model.vo.KeyAndValueVO;
 import com.maxkb4j.model.vo.ModelInfo;
 import com.maxkb4j.model.vo.ModelProviderInfo;

@@ -2,7 +2,7 @@ package com.maxkb4j.model.vo;
 
 import com.maxkb4j.common.util.IoUtil;
 import com.maxkb4j.model.enums.ModelProvider;
-import com.maxkb4j.model.service.AbsModelProvider;
+import com.maxkb4j.model.provider.AbsModelProvider;
 import lombok.Data;
 
 import java.io.InputStream;

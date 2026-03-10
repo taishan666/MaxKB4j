@@ -1,4 +1,4 @@
-package com.maxkb4j.model.service.impl;
+package com.maxkb4j.model.provider.extend;
 
 import com.maxkb4j.model.custom.params.impl.LlmModelParams;
 import com.maxkb4j.model.enums.ModelType;

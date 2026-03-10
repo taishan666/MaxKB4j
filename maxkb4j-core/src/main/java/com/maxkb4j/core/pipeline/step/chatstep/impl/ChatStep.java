@@ -11,7 +11,7 @@ import com.maxkb4j.core.langchain4j.AppChatMemory;
 import com.maxkb4j.core.langchain4j.AssistantServices;
 import com.maxkb4j.core.pipeline.PipelineManage;
 import com.maxkb4j.core.pipeline.step.chatstep.AbsChatStep;
-import com.maxkb4j.model.service.IModelFactory;
+import com.maxkb4j.model.service.IModelProviderService;
 import com.maxkb4j.tool.service.IToolProviderService;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
@@ -36,7 +36,7 @@ import java.util.concurrent.CompletableFuture;
 @RequiredArgsConstructor
 public class ChatStep extends AbsChatStep {
 
-    private final IModelFactory modelFactory;
+    private final IModelProviderService modelFactory;
     private final IToolProviderService toolProvider;
 
 

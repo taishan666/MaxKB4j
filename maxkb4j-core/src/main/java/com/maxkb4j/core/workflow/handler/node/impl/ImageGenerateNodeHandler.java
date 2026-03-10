@@ -10,7 +10,7 @@ import com.maxkb4j.core.workflow.model.NodeResult;
 import com.maxkb4j.core.workflow.model.Workflow;
 import com.maxkb4j.core.workflow.node.AbsNode;
 import com.maxkb4j.core.workflow.node.impl.ImageGenerateNode;
-import com.maxkb4j.model.service.IModelFactory;
+import com.maxkb4j.model.service.IModelProviderService;
 import com.maxkb4j.oss.dto.SysFile;
 import com.maxkb4j.oss.service.IOssService;
 import dev.langchain4j.data.image.Image;
@@ -33,7 +33,7 @@ import static org.springframework.web.util.UriUtils.extractFileExtension;
 @Slf4j
 public class ImageGenerateNodeHandler implements INodeHandler {
 
-    private final IModelFactory modelFactory;
+    private final IModelProviderService modelFactory;
     private final IOssService fileService;
 
     @Override

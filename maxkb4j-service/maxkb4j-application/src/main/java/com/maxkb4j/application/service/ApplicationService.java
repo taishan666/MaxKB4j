@@ -23,7 +23,7 @@ import com.maxkb4j.knowledge.entity.KnowledgeEntity;
 import com.maxkb4j.knowledge.service.IKnowledgeService;
 import com.maxkb4j.model.custom.base.STTModel;
 import com.maxkb4j.model.custom.base.TTSModel;
-import com.maxkb4j.model.service.IModelFactory;
+import com.maxkb4j.model.service.IModelProviderService;
 import com.maxkb4j.system.constant.AuthTargetType;
 import com.maxkb4j.user.service.IUserResourcePermissionService;
 import com.maxkb4j.tool.entity.ToolEntity;
@@ -63,7 +63,7 @@ import static com.maxkb4j.core.workflow.enums.NodeType.SEARCH_KNOWLEDGE;
 @RequiredArgsConstructor
 public class ApplicationService extends ServiceImpl<ApplicationMapper, ApplicationEntity> implements IApplicationService{
 
-    private final IModelFactory modelFactory;
+    private final IModelProviderService modelFactory;
     private final IKnowledgeService knowledgeService;
     private final IUserService userService;
     private final ApplicationAccessTokenService accessTokenService;

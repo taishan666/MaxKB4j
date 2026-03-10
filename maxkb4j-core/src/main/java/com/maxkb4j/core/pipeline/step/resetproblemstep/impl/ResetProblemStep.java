@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.common.util.MessageUtils;
 import com.maxkb4j.core.assistant.CompressingQueryAssistant;
 import com.maxkb4j.core.pipeline.step.resetproblemstep.AbsResetProblemStep;
-import com.maxkb4j.model.service.IModelFactory;
+import com.maxkb4j.model.service.IModelProviderService;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.output.TokenUsage;
@@ -21,7 +21,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ResetProblemStep extends AbsResetProblemStep {
 
-    private final IModelFactory modelFactory;
+    private final IModelProviderService modelFactory;
 
     @Override
     protected String execute( String modelId,JSONObject modelParams, String question, List<ChatMessage> chatMemory) {
