@@ -38,6 +38,21 @@ public class WebConfig implements WebMvcConfigurer {
                 .addPathPatterns("/chat/api/chat_message/*");
     }
 
+    @Override
+    public void addViewControllers(@NotNull ViewControllerRegistry registry) {
+        registry.addViewController("/admin/{path:[^.]*}").setViewName("forward:/admin/index.html");
+        registry.addViewController("/admin/{path1:[^.]*}/{path2:[^.]*}").setViewName("forward:/admin/index.html");
+        registry.addViewController("/admin/{path1:[^.]*}/{path2:[^.]*}/{path3:[^.]*}").setViewName("forward:/admin/index.html");
+        registry.addViewController("/admin/{path1:[^.]*}/{path2:[^.]*}/{path3:[^.]*}/{path4:[^.]*}").setViewName("forward:/admin/index.html");
+        registry.addViewController("/admin/{path1:[^.]*}/{path2:[^.]*}/{path3:[^.]*}/{path4:[^.]*}/{path5:[^.]*}").setViewName("forward:/admin/index.html");
+        registry.addViewController("/chat/{path:[^.]*}").setViewName("forward:/chat/index.html");
+        registry.addViewController("/admin/{path1:[^.]*}/favicon.ico").setViewName("forward:/favicon.ico");
+        registry.addViewController("/admin/{path1:[^.]*}/{path2:[^.]*}/favicon.ico").setViewName("forward:/favicon.ico");
+        registry.addViewController("/admin/{path1:[^.]*}/{path2:[^.]*}/{path3:[^.]*}/favicon.ico").setViewName("forward:/favicon.ico");
+        registry.addViewController("/admin/{path1:[^.]*}/{path2:[^.]*}/{path3:[^.]*}/{path4:[^.]*}/favicon.ico").setViewName("forward:/favicon.ico");
+        registry.addViewController("/chat-api-doc").setViewName("forward:/doc.html");
+    }
+
     /**
      * 注意：前端路由转发由 SpaForwardFilter 处理，不使用 ViewControllerRegistry
      * 因为 ViewControllerRegistry 的优先级高于@RestController，会导致 API 请求被错误转发
