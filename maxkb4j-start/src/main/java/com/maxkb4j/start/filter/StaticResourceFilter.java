@@ -29,7 +29,6 @@ public class StaticResourceFilter implements Filter {
             RequestDispatcher dispatcher = request.getRequestDispatcher(ADMIN_ASSETS+assetPath);
             dispatcher.forward(request, response);
         } else {
-            System.out.println("匹配静态资源1：" + path);
             chain.doFilter(request, response);
         }
     }

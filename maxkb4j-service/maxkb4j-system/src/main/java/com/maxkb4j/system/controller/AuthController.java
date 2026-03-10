@@ -1,5 +1,6 @@
-package com.maxkb4j.auth.controller;
+package com.maxkb4j.system.controller;
 
+import cn.dev33.satoken.annotation.SaIgnore;
 import cn.dev33.satoken.secure.SaSecureUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.common.constant.AppConst;
@@ -39,6 +40,7 @@ public class AuthController {
 		return R.data(json);
 	}
 
+	@SaIgnore
 	@GetMapping("user/profile")
 	public R<UserVO> getUserProfile(){
 		String userId = StpKit.ADMIN.getLoginIdAsString();
