@@ -53,7 +53,7 @@
         <imageio.version>1.4.0</imageio.version>
     </properties>
     <modules>
-        <module>maxkb4j-commom</module>
+        <module>maxkb4j-common</module>
         <module>maxkb4j-service</module>
         <module>maxkb4j-service-api</module>
         <module>maxkb4j-core</module>
