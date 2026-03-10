@@ -15,7 +15,7 @@ import com.maxkb4j.model.entity.ModelEntity;
 import com.maxkb4j.model.mapper.ModelMapper;
 import com.maxkb4j.model.vo.ModelVO;
 import com.maxkb4j.system.constant.AuthTargetType;
-import com.maxkb4j.system.service.IUserResourcePermissionService;
+import com.maxkb4j.user.service.IUserResourcePermissionService;
 import com.maxkb4j.user.service.IUserService;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;

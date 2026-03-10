@@ -1,4 +1,4 @@
-package com.maxkb4j.common.filter;
+package com.maxkb4j.start.filter;
 
 import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
@@ -24,10 +24,12 @@ public class StaticResourceFilter implements Filter {
         HttpServletRequest httpRequest = (HttpServletRequest) request;
         String path = httpRequest.getRequestURI();
         if (matches(path)) {
+            System.out.println("匹配静态资源：" + path);
             String assetPath = path.substring(path.lastIndexOf("/"));
             RequestDispatcher dispatcher = request.getRequestDispatcher(ADMIN_ASSETS+assetPath);
             dispatcher.forward(request, response);
         } else {
+            System.out.println("匹配静态资源1：" + path);
             chain.doFilter(request, response);
         }
     }

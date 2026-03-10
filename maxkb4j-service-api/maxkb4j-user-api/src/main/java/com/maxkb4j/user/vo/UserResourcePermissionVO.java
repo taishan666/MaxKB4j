@@ -1,6 +1,6 @@
-package com.maxkb4j.system.vo;
+package com.maxkb4j.user.vo;
 
-import com.maxkb4j.system.entity.UserResourcePermissionEntity;
+import com.maxkb4j.user.entity.UserResourcePermissionEntity;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 

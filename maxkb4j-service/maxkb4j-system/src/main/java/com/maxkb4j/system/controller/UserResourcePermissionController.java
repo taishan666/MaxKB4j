@@ -7,10 +7,10 @@ import com.maxkb4j.common.constant.LoginType;
 import com.maxkb4j.common.domain.api.R;
 import com.maxkb4j.common.util.BeanUtil;
 import com.maxkb4j.system.constant.RoleType;
-import com.maxkb4j.system.service.UserResourcePermissionService;
-import com.maxkb4j.system.service.UserService;
-import com.maxkb4j.system.vo.ResourceUserPermissionVO;
-import com.maxkb4j.system.vo.UserResourcePermissionVO;
+import com.maxkb4j.system.service.impl.UserResourcePermissionServiceImpl;
+import com.maxkb4j.system.service.impl.UserServiceImpl;
+import com.maxkb4j.user.vo.ResourceUserPermissionVO;
+import com.maxkb4j.user.vo.UserResourcePermissionVO;
 import com.maxkb4j.user.entity.UserEntity;
 import com.maxkb4j.user.vo.UserNameVO;
 import lombok.RequiredArgsConstructor;
@@ -27,8 +27,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UserResourcePermissionController {
 
-    private final UserResourcePermissionService userResourcePermissionService;
-    private final UserService userService;
+    private final UserResourcePermissionServiceImpl userResourcePermissionService;
+    private final UserServiceImpl userService;
 
    // @SaCheckRole(type= LoginType.ADMIN,value = {RoleType.ADMIN, RoleType.USER},mode = SaMode.OR)
     @GetMapping("/user_list")

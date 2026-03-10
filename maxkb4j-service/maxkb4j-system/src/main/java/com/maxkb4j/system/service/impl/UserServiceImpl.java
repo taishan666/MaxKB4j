@@ -1,4 +1,4 @@
-package com.maxkb4j.system.service;
+package com.maxkb4j.system.service.impl;
 
 import cn.dev33.satoken.exception.NotLoginException;
 import cn.dev33.satoken.jwt.StpLogicJwtForStateless;
@@ -21,7 +21,8 @@ import com.maxkb4j.common.util.StpKit;
 import com.maxkb4j.system.constant.RoleType;
 import com.maxkb4j.system.constant.UserSource;
 import com.maxkb4j.system.enums.ChatUserType;
-import com.maxkb4j.system.mapper.UserMapper;
+import com.maxkb4j.system.service.EmailService;
+import com.maxkb4j.user.mapper.UserMapper;
 import com.maxkb4j.user.dto.PasswordDTO;
 import com.maxkb4j.user.dto.UserDTO;
 import com.maxkb4j.user.dto.UserLoginDTO;
@@ -47,7 +48,7 @@ import java.util.stream.Collectors;
  */
 @Service
 @RequiredArgsConstructor
-public class UserService extends ServiceImpl<UserMapper, UserEntity> implements IUserService {
+public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> implements IUserService {
 
     private final EmailService emailService;
     private final StpInterface stpInterface;

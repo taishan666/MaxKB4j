@@ -1,14 +1,14 @@
-package com.maxkb4j.system.controller;
+package com.maxkb4j.auth.controller;
 
 import cn.dev33.satoken.secure.SaSecureUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.domain.api.R;
 import com.maxkb4j.common.util.StpKit;
-import com.maxkb4j.system.service.UserService;
 import com.maxkb4j.user.dto.ResetPasswordDTO;
 import com.maxkb4j.user.dto.UserLoginDTO;
 import com.maxkb4j.user.entity.UserEntity;
+import com.maxkb4j.user.service.IUserService;
 import com.maxkb4j.user.vo.UserVO;
 import com.wf.captcha.SpecCaptcha;
 import jakarta.mail.MessagingException;
@@ -28,7 +28,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class AuthController {
 
-	private final UserService userService;
+	private final IUserService userService;
 
 	@GetMapping("/profile")
 	public R<JSONObject> getProfile(){

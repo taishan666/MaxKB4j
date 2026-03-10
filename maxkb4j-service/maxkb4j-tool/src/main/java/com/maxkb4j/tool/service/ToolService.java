@@ -11,7 +11,7 @@ import com.maxkb4j.common.util.*;
 import com.maxkb4j.oss.dto.SysFile;
 import com.maxkb4j.oss.service.IOssService;
 import com.maxkb4j.system.constant.AuthTargetType;
-import com.maxkb4j.system.service.IUserResourcePermissionService;
+import com.maxkb4j.user.service.IUserResourcePermissionService;
 import com.maxkb4j.tool.consts.ToolConstants;
 import com.maxkb4j.tool.dto.ToolQuery;
 import com.maxkb4j.tool.entity.ToolEntity;

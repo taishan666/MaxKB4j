@@ -1,4 +1,4 @@
-package com.maxkb4j.system.service;
+package com.maxkb4j.system.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -18,14 +18,15 @@ import com.maxkb4j.model.entity.ModelEntity;
 import com.maxkb4j.model.mapper.ModelMapper;
 import com.maxkb4j.system.constant.AuthTargetType;
 import com.maxkb4j.system.constant.Permission;
-import com.maxkb4j.system.entity.UserResourcePermissionEntity;
-import com.maxkb4j.system.mapper.UserMapper;
-import com.maxkb4j.system.mapper.UserResourcePermissionMapper;
-import com.maxkb4j.system.vo.ResourceUserPermissionVO;
-import com.maxkb4j.system.vo.UserResourcePermissionVO;
+import com.maxkb4j.user.entity.UserResourcePermissionEntity;
+import com.maxkb4j.user.mapper.UserMapper;
+import com.maxkb4j.user.mapper.UserResourcePermissionMapper;
+import com.maxkb4j.user.vo.ResourceUserPermissionVO;
+import com.maxkb4j.user.vo.UserResourcePermissionVO;
 import com.maxkb4j.tool.entity.ToolEntity;
 import com.maxkb4j.tool.mapper.ToolMapper;
 import com.maxkb4j.user.entity.UserEntity;
+import com.maxkb4j.user.service.IUserResourcePermissionService;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -37,7 +38,7 @@ import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
-public class UserResourcePermissionService extends ServiceImpl<UserResourcePermissionMapper, UserResourcePermissionEntity> implements IUserResourcePermissionService{
+public class UserResourcePermissionServiceImpl extends ServiceImpl<UserResourcePermissionMapper, UserResourcePermissionEntity> implements IUserResourcePermissionService {
     private final String DEFAULT_ID = "default";
     private final ApplicationMapper applicationMapper;
     private final KnowledgeMapper datasetMapper;

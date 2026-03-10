@@ -25,7 +25,7 @@ import com.maxkb4j.model.custom.base.STTModel;
 import com.maxkb4j.model.custom.base.TTSModel;
 import com.maxkb4j.model.service.IModelFactory;
 import com.maxkb4j.system.constant.AuthTargetType;
-import com.maxkb4j.system.service.IUserResourcePermissionService;
+import com.maxkb4j.user.service.IUserResourcePermissionService;
 import com.maxkb4j.tool.entity.ToolEntity;
 import com.maxkb4j.tool.service.IToolService;
 import com.maxkb4j.user.service.IUserService;

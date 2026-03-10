@@ -8,7 +8,7 @@ import com.maxkb4j.common.constant.LoginType;
 import com.maxkb4j.common.domain.api.R;
 import com.maxkb4j.common.props.SystemProperties;
 import com.maxkb4j.system.constant.RoleType;
-import com.maxkb4j.system.service.UserService;
+import com.maxkb4j.system.service.impl.UserServiceImpl;
 import com.maxkb4j.user.dto.PasswordDTO;
 import com.maxkb4j.user.dto.UserDTO;
 import com.maxkb4j.user.entity.UserEntity;
@@ -28,7 +28,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class UserController {
 
-    private final UserService userService;
+    private final UserServiceImpl userService;
 	private final SystemProperties systemProperties;
 
     @SaCheckRole(type = LoginType.ADMIN, value = RoleType.ADMIN)

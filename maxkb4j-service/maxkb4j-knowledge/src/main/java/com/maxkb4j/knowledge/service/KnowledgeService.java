@@ -32,7 +32,7 @@ import com.maxkb4j.knowledge.mapper.ProblemParagraphMapper;
 import com.maxkb4j.knowledge.vo.KnowledgeListVO;
 import com.maxkb4j.knowledge.vo.KnowledgeVO;
 import com.maxkb4j.system.constant.AuthTargetType;
-import com.maxkb4j.system.service.IUserResourcePermissionService;
+import com.maxkb4j.user.service.IUserResourcePermissionService;
 import com.maxkb4j.user.service.IUserService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;

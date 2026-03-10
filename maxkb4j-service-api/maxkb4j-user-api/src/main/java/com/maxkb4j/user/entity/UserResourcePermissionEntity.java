@@ -1,4 +1,4 @@
-package com.maxkb4j.system.entity;
+package com.maxkb4j.user.entity;
 
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
