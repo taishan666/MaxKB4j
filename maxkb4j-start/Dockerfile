@@ -10,10 +10,10 @@ ENV TZ=Asia/Shanghai
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 # 删除之前的镜像文件
-RUN rm -rf /opt/running/MaxKB4j*
+RUN rm -rf /opt/running/maxkb4j-start*
 
 #拷贝jar包，到容器内的指定位置
-ADD ./target/MaxKB4j.jar  /opt/running/MaxKB4j.jar
+ADD ./target/maxkb4j-start.jar  /opt/running/maxkb4j-start.jar
 
 #容器对外映射端口
 EXPOSE 8080
