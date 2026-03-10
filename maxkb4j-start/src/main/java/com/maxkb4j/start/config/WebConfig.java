@@ -28,7 +28,7 @@ public class WebConfig implements WebMvcConfigurer {
     }
 
     /**
-     * 注册sa-token的拦截器
+     * 注册 sa-token 的拦截器
      */
     @Override
     public void addInterceptors(@NotNull InterceptorRegistry registry) {
@@ -39,29 +39,10 @@ public class WebConfig implements WebMvcConfigurer {
                 .addPathPatterns("/chat/api/chat_message/*");
     }
 
-
-
-    @Override
-    public void addResourceHandlers(@NotNull ResourceHandlerRegistry registry) {
-    }
-
-
-    @Override
-    public void addViewControllers(@NotNull ViewControllerRegistry registry) {
-        registry.addViewController("/admin/{path:[^.]*}").setViewName("forward:/admin/index.html");
-        registry.addViewController("/admin/{path1:[^.]*}/{path2:[^.]*}").setViewName("forward:/admin/index.html");
-        registry.addViewController("/admin/{path1:[^.]*}/{path2:[^.]*}/{path3:[^.]*}").setViewName("forward:/admin/index.html");
-        registry.addViewController("/admin/{path1:[^.]*}/{path2:[^.]*}/{path3:[^.]*}/{path4:[^.]*}").setViewName("forward:/admin/index.html");
-        registry.addViewController("/admin/{path1:[^.]*}/{path2:[^.]*}/{path3:[^.]*}/{path4:[^.]*}/{path5:[^.]*}").setViewName("forward:/admin/index.html");
-        registry.addViewController("/chat/{path:[^.]*}").setViewName("forward:/chat/index.html");
-        registry.addViewController("/admin/{path1:[^.]*}/favicon.ico").setViewName("forward:/favicon.ico");
-        registry.addViewController("/admin/{path1:[^.]*}/{path2:[^.]*}/favicon.ico").setViewName("forward:/favicon.ico");
-        registry.addViewController("/admin/{path1:[^.]*}/{path2:[^.]*}/{path3:[^.]*}/favicon.ico").setViewName("forward:/favicon.ico");
-        registry.addViewController("/admin/{path1:[^.]*}/{path2:[^.]*}/{path3:[^.]*}/{path4:[^.]*}/favicon.ico").setViewName("forward:/favicon.ico");
-        registry.addViewController("/chat-api-doc").setViewName("forward:/doc.html");
-    }
-
-
+    /**
+     * 注意：前端路由转发由 ForwardFilter 处理，不使用 ViewControllerRegistry
+     * 因为 ViewControllerRegistry 的优先级高于@RestController，会导致 API 请求被错误转发
+     */
 
     @Override
     public void addCorsMappings(CorsRegistry registry) {
@@ -69,11 +50,11 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addMapping("/**")
                 // 放行哪些原始域
                 .allowedOriginPatterns("*")
-                // 是否发送Cookie信息
+                // 是否发送 Cookie 信息
                 .allowCredentials(true)
-                // 放行哪些原始域(请求方式)
+                // 放行哪些原始域 (请求方式)
                 .allowedMethods("*")
-                // 放行哪些原始域(头部信息)
+                // 放行哪些原始域 (头部信息)
                 .allowedHeaders("*")
                 // 暴露哪些头部信息（因为跨域访问默认不能获取全部头部信息）
                 .exposedHeaders("access-control-allow-headers",

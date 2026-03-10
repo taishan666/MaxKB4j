@@ -46,6 +46,11 @@
         </dependency>
         <dependency>
             <groupId>com.tarzan</groupId>
+            <artifactId>maxkb4j-folder-api</artifactId>
+            <version>${revision}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.tarzan</groupId>
             <artifactId>maxkb4j-model-api</artifactId>
             <version>${revision}</version>
         </dependency>

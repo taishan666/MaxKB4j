@@ -31,6 +31,7 @@ public class AuthController {
 
 	private final IUserService userService;
 
+	@SaIgnore
 	@GetMapping("/profile")
 	public R<JSONObject> getProfile(){
 		JSONObject json=new JSONObject();
@@ -40,7 +41,6 @@ public class AuthController {
 		return R.data(json);
 	}
 
-	@SaIgnore
 	@GetMapping("user/profile")
 	public R<UserVO> getUserProfile(){
 		String userId = StpKit.ADMIN.getLoginIdAsString();

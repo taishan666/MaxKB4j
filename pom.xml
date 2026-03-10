@@ -58,6 +58,7 @@
         <module>maxkb4j-service-api</module>
         <module>maxkb4j-core</module>
         <module>maxkb4j-start</module>
+        <module>maxkb4j-service-api/maxkb4j-folder-api</module>
     </modules>
 
     <dependencies>
