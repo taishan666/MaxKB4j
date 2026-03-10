@@ -20,17 +20,7 @@
         </dependency>
         <dependency>
             <groupId>com.tarzan</groupId>
-            <artifactId>maxkb4j-chat</artifactId>
-            <version>${revision}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.tarzan</groupId>
             <artifactId>maxkb4j-knowledge</artifactId>
-            <version>${revision}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.tarzan</groupId>
-            <artifactId>maxkb4j-model</artifactId>
             <version>${revision}</version>
         </dependency>
         <dependency>
@@ -45,12 +35,17 @@
         </dependency>
         <dependency>
             <groupId>com.tarzan</groupId>
-            <artifactId>maxkb4j-oss</artifactId>
+            <artifactId>maxkb4j-chat</artifactId>
             <version>${revision}</version>
         </dependency>
         <dependency>
             <groupId>com.tarzan</groupId>
-            <artifactId>maxkb4j-core</artifactId>
+            <artifactId>maxkb4j-model</artifactId>
+            <version>${revision}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.tarzan</groupId>
+            <artifactId>maxkb4j-oss</artifactId>
             <version>${revision}</version>
         </dependency>
     </dependencies>
