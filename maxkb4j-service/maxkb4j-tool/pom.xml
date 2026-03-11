@@ -52,8 +52,7 @@
         <dependency>
             <groupId>com.tarzan</groupId>
             <artifactId>maxkb4j-core</artifactId>
-            <version>1.0.0</version>
-            <scope>compile</scope>
+            <version>${revision}</version>
         </dependency>
     </dependencies>
 
