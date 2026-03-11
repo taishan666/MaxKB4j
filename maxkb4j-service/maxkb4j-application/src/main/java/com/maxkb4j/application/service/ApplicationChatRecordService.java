@@ -32,7 +32,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
-import static com.maxkb4j.core.workflow.enums.NodeType.SEARCH_KNOWLEDGE;
+import static com.maxkb4j.workflow.enums.NodeType.SEARCH_KNOWLEDGE;
 
 
 /**

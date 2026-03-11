@@ -1,12 +1,12 @@
 package com.maxkb4j.application.controller;
 
 import com.maxkb4j.application.service.ApplicationChatService;
-import com.maxkb4j.chat.vo.ChatMessageVO;
+import com.maxkb4j.core.chat.ChatMessageVO;
 import com.maxkb4j.application.dto.ChatParams;
 import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.domain.api.R;
 import com.maxkb4j.common.util.StpKit;
-import com.maxkb4j.system.enums.ChatUserType;
+import com.maxkb4j.common.enums.ChatUserType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;

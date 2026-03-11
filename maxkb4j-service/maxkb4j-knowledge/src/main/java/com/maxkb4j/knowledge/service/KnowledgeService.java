@@ -6,7 +6,6 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.maxkb4j.chat.dto.KnowledgeParams;
 import com.maxkb4j.common.constant.RoleType;
 import com.maxkb4j.common.domain.form.BaseField;
 import com.maxkb4j.common.domain.form.LocalFileUpload;
@@ -15,11 +14,6 @@ import com.maxkb4j.common.util.BeanUtil;
 import com.maxkb4j.common.util.DateTimeUtil;
 import com.maxkb4j.common.util.StpKit;
 import com.maxkb4j.core.event.GenerateProblemEvent;
-import com.maxkb4j.core.workflow.builder.NodeBuilder;
-import com.maxkb4j.core.workflow.handler.KnowledgeWorkflowHandler;
-import com.maxkb4j.core.workflow.logic.LogicFlow;
-import com.maxkb4j.core.workflow.model.KnowledgeWorkflow;
-import com.maxkb4j.core.workflow.node.AbsNode;
 import com.maxkb4j.knowledge.dto.GenerateProblemDTO;
 import com.maxkb4j.knowledge.dto.KnowledgeDTO;
 import com.maxkb4j.knowledge.dto.KnowledgeQuery;
@@ -34,6 +28,11 @@ import com.maxkb4j.knowledge.vo.KnowledgeVO;
 import com.maxkb4j.system.constant.AuthTargetType;
 import com.maxkb4j.user.service.IUserResourcePermissionService;
 import com.maxkb4j.user.service.IUserService;
+import com.maxkb4j.workflow.builder.NodeBuilder;
+import com.maxkb4j.workflow.logic.LogicFlow;
+import com.maxkb4j.workflow.model.KnowledgeParams;
+import com.maxkb4j.workflow.model.KnowledgeWorkflow;
+import com.maxkb4j.workflow.node.AbsNode;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -42,12 +41,13 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
+import service.IWorkFlowActuator;
 
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
-import static com.maxkb4j.core.workflow.enums.NodeType.DATA_SOURCE_WEB;
+import static com.maxkb4j.workflow.enums.NodeType.DATA_SOURCE_WEB;
 
 
 /**
@@ -69,7 +69,7 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
     private final IChunkIndexService chunkIndexService;
     private final KnowledgeActionService knowledgeActionService;
     private final KnowledgeVersionService knowledgeVersionService;
-    private final KnowledgeWorkflowHandler knowledgeWorkflowHandler;
+    private final IWorkFlowActuator workFlowActuator;
     private final KnowledgeExportHandler knowledgeExportHandler;
 
 
@@ -279,7 +279,7 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
                 nodes,
                 logicFlow.getEdges(),
                 params);
-        CompletableFuture.runAsync(() -> knowledgeWorkflowHandler.execute(workflow));
+        CompletableFuture.runAsync(() -> workFlowActuator.execute(workflow));
         return knowledgeAction;
     }
 

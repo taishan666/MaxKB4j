@@ -20,7 +20,7 @@ import com.maxkb4j.common.props.SystemProperties;
 import com.maxkb4j.common.util.BeanUtil;
 import com.maxkb4j.common.util.StpKit;
 import com.maxkb4j.system.constant.UserSource;
-import com.maxkb4j.system.enums.ChatUserType;
+import com.maxkb4j.common.enums.ChatUserType;
 import com.maxkb4j.system.service.EmailService;
 import com.maxkb4j.user.dto.PasswordDTO;
 import com.maxkb4j.user.dto.UserDTO;

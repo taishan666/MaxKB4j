@@ -1,8 +1,8 @@
 package com.maxkb4j.model.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
-import com.maxkb4j.model.custom.base.STTModel;
-import com.maxkb4j.model.custom.base.TTSModel;
+import com.maxkb4j.model.service.STTModel;
+import com.maxkb4j.model.service.TTSModel;
 import com.maxkb4j.model.entity.ModelEntity;
 import com.maxkb4j.model.enums.ModelProvider;
 import com.maxkb4j.model.exception.ModelNotFoundException;

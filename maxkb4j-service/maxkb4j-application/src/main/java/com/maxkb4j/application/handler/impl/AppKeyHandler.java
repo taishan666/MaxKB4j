@@ -10,7 +10,7 @@ import com.maxkb4j.common.util.ResponseProvider;
 import com.maxkb4j.common.util.StpKit;
 import com.maxkb4j.common.util.WebUtil;
 import com.maxkb4j.core.handler.AuthHandler;
-import com.maxkb4j.system.enums.ChatUserType;
+import com.maxkb4j.common.enums.ChatUserType;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;

@@ -22,6 +22,7 @@
         <module>maxkb4j-user-api</module>
         <module>maxkb4j-knowledge-api</module>
         <module>maxkb4j-application-api</module>
+        <module>maxkb4j-workflow-api</module>
     </modules>
     <build>
         <plugins>

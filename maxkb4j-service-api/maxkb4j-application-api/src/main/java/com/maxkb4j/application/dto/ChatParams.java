@@ -2,7 +2,7 @@ package com.maxkb4j.application.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.maxkb4j.application.entity.ApplicationChatRecordEntity;
-import com.maxkb4j.chat.dto.ChildNode;
+import com.maxkb4j.core.chat.ChildNode;
 import com.maxkb4j.oss.dto.SysFile;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;

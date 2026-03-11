@@ -44,6 +44,16 @@
             <artifactId>maxkb4j-user-api</artifactId>
             <version>${revision}</version>
         </dependency>
+        <dependency>
+            <groupId>com.tarzan</groupId>
+            <artifactId>maxkb4j-model-api</artifactId>
+            <version>${revision}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.tarzan</groupId>
+            <artifactId>maxkb4j-workflow-api</artifactId>
+            <version>${revision}</version>
+        </dependency>
     </dependencies>
 
 </project>

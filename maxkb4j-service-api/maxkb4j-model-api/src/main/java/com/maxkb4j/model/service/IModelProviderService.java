@@ -2,8 +2,6 @@ package com.maxkb4j.model.service;
 
 
 import com.alibaba.fastjson.JSONObject;
-import com.maxkb4j.model.custom.base.STTModel;
-import com.maxkb4j.model.custom.base.TTSModel;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.model.embedding.EmbeddingModel;

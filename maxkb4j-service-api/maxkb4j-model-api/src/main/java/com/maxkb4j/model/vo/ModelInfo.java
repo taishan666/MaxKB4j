@@ -1,8 +1,8 @@
 package com.maxkb4j.model.vo;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.maxkb4j.model.custom.params.ModelParams;
 import com.maxkb4j.model.enums.ModelType;
+import com.maxkb4j.model.service.ModelParams;
 import lombok.Data;
 
 @Data

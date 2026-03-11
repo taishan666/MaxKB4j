@@ -18,11 +18,11 @@ import com.maxkb4j.application.vo.ApplicationVO;
 import com.maxkb4j.common.constant.RoleType;
 import com.maxkb4j.common.exception.ApiException;
 import com.maxkb4j.common.util.*;
-import com.maxkb4j.core.util.ResourceUtil;
+import com.maxkb4j.application.util.ResourceUtil;
 import com.maxkb4j.knowledge.entity.KnowledgeEntity;
 import com.maxkb4j.knowledge.service.IKnowledgeService;
-import com.maxkb4j.model.custom.base.STTModel;
-import com.maxkb4j.model.custom.base.TTSModel;
+import com.maxkb4j.model.service.STTModel;
+import com.maxkb4j.model.service.TTSModel;
 import com.maxkb4j.model.service.IModelProviderService;
 import com.maxkb4j.system.constant.AuthTargetType;
 import com.maxkb4j.user.service.IUserResourcePermissionService;
@@ -51,8 +51,8 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
-import static com.maxkb4j.core.workflow.enums.NodeType.BASE;
-import static com.maxkb4j.core.workflow.enums.NodeType.SEARCH_KNOWLEDGE;
+import static com.maxkb4j.workflow.enums.NodeType.BASE;
+import static com.maxkb4j.workflow.enums.NodeType.SEARCH_KNOWLEDGE;
 
 
 /**
