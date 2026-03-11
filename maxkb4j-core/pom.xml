@@ -19,41 +19,6 @@
             <artifactId>maxkb4j-common</artifactId>
             <version>${revision}</version>
         </dependency>
-        <dependency>
-            <groupId>com.tarzan</groupId>
-            <artifactId>maxkb4j-oss-api</artifactId>
-            <version>${revision}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.tika</groupId>
-            <artifactId>tika-parsers-standard-package</artifactId>
-            <version>${tika.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.tika</groupId>
-            <artifactId>tika-core</artifactId>
-            <version>${tika.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.vladsch.flexmark</groupId>
-            <artifactId>flexmark-html2md-converter</artifactId>
-            <version>${flexmark.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.github.mymonstercat</groupId>
-            <artifactId>rapidocr</artifactId>
-            <version>${rapidocr.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.github.mymonstercat</groupId>
-            <artifactId>rapidocr-onnx-platform</artifactId>
-            <version>${rapidocr.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.github.jai-imageio</groupId>
-            <artifactId>jai-imageio-jpeg2000</artifactId>
-            <version>${imageio.version}</version>
-        </dependency>
     </dependencies>
     <build>
         <plugins>

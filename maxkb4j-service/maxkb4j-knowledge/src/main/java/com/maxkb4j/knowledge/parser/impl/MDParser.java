@@ -1,7 +1,7 @@
-package com.maxkb4j.core.parser.impl;
+package com.maxkb4j.knowledge.parser.impl;
 
 import com.maxkb4j.common.util.IoUtil;
-import com.maxkb4j.core.parser.DocumentParser;
+import com.maxkb4j.knowledge.parser.DocumentParser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

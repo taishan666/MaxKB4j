@@ -1,6 +1,6 @@
 package com.maxkb4j.knowledge.service;
 
-import com.maxkb4j.core.parser.DocumentParser;
+import com.maxkb4j.knowledge.parser.DocumentParser;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;

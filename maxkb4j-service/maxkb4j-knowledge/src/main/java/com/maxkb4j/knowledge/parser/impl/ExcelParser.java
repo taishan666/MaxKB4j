@@ -1,9 +1,9 @@
-package com.maxkb4j.core.parser.impl;
+package com.maxkb4j.knowledge.parser.impl;
 
 import com.alibaba.excel.EasyExcel;
 import com.alibaba.excel.context.AnalysisContext;
 import com.alibaba.excel.event.AnalysisEventListener;
-import com.maxkb4j.core.parser.DocumentParser;
+import com.maxkb4j.knowledge.parser.DocumentParser;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;

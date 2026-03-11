@@ -1,4 +1,4 @@
-package com.maxkb4j.core.parser;
+package com.maxkb4j.knowledge.parser;
 
 import java.io.InputStream;
 import java.util.List;

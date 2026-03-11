@@ -1,6 +1,6 @@
-package com.maxkb4j.core.parser.impl;
+package com.maxkb4j.knowledge.parser.impl;
 
-import com.maxkb4j.core.parser.DocumentParser;
+import com.maxkb4j.knowledge.parser.DocumentParser;
 import lombok.RequiredArgsConstructor;
 import org.apache.tika.exception.TikaException;
 import org.apache.tika.metadata.Metadata;

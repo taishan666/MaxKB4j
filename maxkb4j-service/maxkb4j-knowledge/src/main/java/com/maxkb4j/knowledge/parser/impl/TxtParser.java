@@ -1,6 +1,6 @@
-package com.maxkb4j.core.parser.impl;
+package com.maxkb4j.knowledge.parser.impl;
 
-import com.maxkb4j.core.parser.DocumentParser;
+import com.maxkb4j.knowledge.parser.DocumentParser;
 import dev.langchain4j.data.document.Document;
 import dev.langchain4j.data.document.parser.TextDocumentParser;
 import lombok.RequiredArgsConstructor;
