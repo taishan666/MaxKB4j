@@ -39,11 +39,6 @@
             <artifactId>maxkb4j-oss-api</artifactId>
             <version>${revision}</version>
         </dependency>
-        <dependency>
-            <groupId>com.tarzan</groupId>
-            <artifactId>maxkb4j-oss</artifactId>
-            <version>${revision}</version>
-        </dependency>
     </dependencies>
     <build>
         <plugins>
