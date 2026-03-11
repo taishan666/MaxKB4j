@@ -44,6 +44,11 @@
             <artifactId>maxkb4j-model-api</artifactId>
             <version>${revision}</version>
         </dependency>
+        <dependency>
+            <groupId>com.huaban</groupId>
+            <artifactId>jieba-analysis</artifactId>
+            <version>${jieba.version}</version>
+        </dependency>
     </dependencies>
 
 </project>

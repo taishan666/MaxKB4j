@@ -4,18 +4,19 @@ import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.common.util.JsoupUtil;
 import com.maxkb4j.knowledge.dto.DocumentSimple;
 import com.maxkb4j.knowledge.dto.ParagraphSimple;
-import com.vladsch.flexmark.html2md.converter.FlexmarkHtmlConverter;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.springframework.stereotype.Service;
 
+import java.io.ByteArrayInputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -31,6 +32,7 @@ import java.util.Set;
 public class DocumentWebService implements IDocumentWebService{
 
     private final DocumentSplitService documentSpiltService;
+    private final DocumentParseService documentParseService;
 
     public List<DocumentSimple> getDocumentList(String sourceUrl, String selector, boolean isRecursive) {
         List<DocumentSimple> documentList = new ArrayList<>();
@@ -65,8 +67,7 @@ public class DocumentWebService implements IDocumentWebService{
         if (htmlContent.isBlank()) {
             return;
         }
-        FlexmarkHtmlConverter converter = FlexmarkHtmlConverter.builder().build();
-        String mdText = converter.convert(htmlContent);
+        String mdText=documentParseService.extractText("file.url", new ByteArrayInputStream(htmlContent.getBytes(StandardCharsets.UTF_8)));
         JSONObject meta = new JSONObject();
         meta.put("sourceUrl", url);
         meta.put("selector", selector);
