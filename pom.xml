@@ -430,7 +430,6 @@
                     <artifactId>postgresql</artifactId>
                 </exclusion>
             </exclusions>
-            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.tika</groupId>
