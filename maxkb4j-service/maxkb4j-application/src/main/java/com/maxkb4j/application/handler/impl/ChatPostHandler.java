@@ -5,15 +5,15 @@ import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.maxkb4j.application.cache.ChatCache;
 import com.maxkb4j.application.dto.ChatInfo;
-import com.maxkb4j.application.dto.ChatParams;
+import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.application.entity.ApplicationChatEntity;
-import com.maxkb4j.application.entity.ApplicationChatRecordEntity;
+import com.maxkb4j.common.domain.entity.ChatRecordEntity;
 import com.maxkb4j.application.entity.ApplicationChatUserStatsEntity;
 import com.maxkb4j.application.handler.PostResponseHandler;
 import com.maxkb4j.application.mapper.ApplicationChatMapper;
 import com.maxkb4j.application.mapper.ApplicationChatRecordMapper;
 import com.maxkb4j.application.service.ApplicationChatUserStatsService;
-import com.maxkb4j.core.chat.ChatResponse;
+import com.maxkb4j.common.domain.dto.ChatResponse;
 import com.maxkb4j.common.enums.ChatUserType;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -45,7 +45,7 @@ public class ChatPostHandler implements PostResponseHandler {
         int messageTokens = chatResponse.getMessageTokens();
         int answerTokens = chatResponse.getAnswerTokens();
         JSONObject details = chatResponse.getRunDetails();
-        ApplicationChatRecordEntity chatRecord=chatParams.getChatRecord();
+        ChatRecordEntity chatRecord=chatParams.getChatRecord();
         if (chatRecord != null) {
             chatRecord.setAnswerText(answerText);
             chatRecord.setAnswerTextList(answerTextList);
@@ -55,7 +55,7 @@ public class ChatPostHandler implements PostResponseHandler {
             chatRecord.setCost(messageTokens + answerTokens);
             chatRecord.setRunTime(runTime + chatRecord.getRunTime());
         } else {
-            chatRecord = new ApplicationChatRecordEntity();
+            chatRecord = new ChatRecordEntity();
             chatRecord.setId(chatRecordId);
             chatRecord.setChatId(chatId);
             chatRecord.setProblemText(problemText);

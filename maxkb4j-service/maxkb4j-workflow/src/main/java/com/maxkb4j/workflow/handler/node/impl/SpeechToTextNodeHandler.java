@@ -9,7 +9,7 @@ import com.maxkb4j.workflow.node.AbsNode;
 import com.maxkb4j.workflow.node.impl.SpeechToTextNode;
 import com.maxkb4j.model.service.STTModel;
 import com.maxkb4j.model.service.IModelProviderService;
-import com.maxkb4j.oss.dto.SysFile;
+import com.maxkb4j.common.domain.dto.SysFile;
 import com.maxkb4j.oss.service.IOssService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

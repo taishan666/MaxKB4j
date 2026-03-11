@@ -1,6 +1,6 @@
 package com.maxkb4j.oss.service;
 
-import com.maxkb4j.oss.dto.SysFile;
+import com.maxkb4j.common.domain.dto.SysFile;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;

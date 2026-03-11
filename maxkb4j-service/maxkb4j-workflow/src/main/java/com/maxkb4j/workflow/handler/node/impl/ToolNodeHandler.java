@@ -1,8 +1,8 @@
 package com.maxkb4j.workflow.handler.node.impl;
 
 import com.maxkb4j.application.executor.GroovyScriptExecutor;
+import com.maxkb4j.common.domain.base.entity.ToolInputField;
 import com.maxkb4j.oss.service.IOssService;
-import com.maxkb4j.tool.dto.ToolInputField;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.NodeType;
 import com.maxkb4j.workflow.handler.node.INodeHandler;

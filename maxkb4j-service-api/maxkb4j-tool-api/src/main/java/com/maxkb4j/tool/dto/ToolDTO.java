@@ -1,5 +1,6 @@
 package com.maxkb4j.tool.dto;
 
+import com.maxkb4j.common.domain.base.entity.ToolInputField;
 import com.maxkb4j.tool.entity.ToolEntity;
 import lombok.Data;
 import lombok.EqualsAndHashCode;

@@ -1,9 +1,7 @@
-package com.maxkb4j.application.dto;
+package com.maxkb4j.common.domain.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.maxkb4j.application.entity.ApplicationChatRecordEntity;
-import com.maxkb4j.core.chat.ChildNode;
-import com.maxkb4j.oss.dto.SysFile;
+import com.maxkb4j.common.domain.entity.ChatRecordEntity;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Data;
@@ -57,9 +55,9 @@ public class ChatParams {
     @JsonIgnore
     private String chatUserType;
     @JsonIgnore
-    private List<ApplicationChatRecordEntity> historyChatRecords;
+    private List<ChatRecordEntity> historyChatRecords;
     @JsonIgnore
-    private ApplicationChatRecordEntity chatRecord;
+    private ChatRecordEntity chatRecord;
 
 
 }

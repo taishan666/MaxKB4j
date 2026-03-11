@@ -2,12 +2,12 @@ package com.maxkb4j.application.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
-import com.maxkb4j.application.dto.ChatParams;
+import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.application.service.IChatService;
 import com.maxkb4j.application.vo.ApplicationVO;
-import com.maxkb4j.core.chat.Answer;
-import com.maxkb4j.core.chat.ChatMessageVO;
-import com.maxkb4j.core.chat.ChatResponse;
+import com.maxkb4j.common.domain.dto.Answer;
+import com.maxkb4j.common.domain.dto.ChatMessageVO;
+import com.maxkb4j.common.domain.dto.ChatResponse;
 import com.maxkb4j.workflow.builder.NodeBuilder;
 import com.maxkb4j.workflow.enums.WorkflowMode;
 import com.maxkb4j.workflow.logic.LogicFlow;

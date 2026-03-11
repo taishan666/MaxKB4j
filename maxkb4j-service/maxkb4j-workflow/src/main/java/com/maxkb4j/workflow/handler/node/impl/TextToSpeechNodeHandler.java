@@ -9,7 +9,7 @@ import com.maxkb4j.workflow.node.AbsNode;
 import com.maxkb4j.workflow.node.impl.TextToSpeechNode;
 import com.maxkb4j.model.service.TTSModel;
 import com.maxkb4j.model.service.IModelProviderService;
-import com.maxkb4j.oss.dto.SysFile;
+import com.maxkb4j.common.domain.dto.SysFile;
 import com.maxkb4j.oss.service.IOssService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;

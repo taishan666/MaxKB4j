@@ -1,6 +1,6 @@
 package com.maxkb4j.tool.vo;
 
-import com.maxkb4j.oss.dto.SysFile;
+import com.maxkb4j.common.domain.dto.SysFile;
 import com.maxkb4j.tool.entity.ToolEntity;
 import lombok.Data;
 import lombok.EqualsAndHashCode;

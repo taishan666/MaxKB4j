@@ -1,12 +1,8 @@
 package com.maxkb4j.workflow.handler.node.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
-import com.maxkb4j.application.dto.ChatParams;
 import com.maxkb4j.application.service.IApplicationChatService;
-import com.maxkb4j.core.chat.ChatMessageVO;
-import com.maxkb4j.core.chat.ChatResponse;
-import com.maxkb4j.core.chat.ChildNode;
-import com.maxkb4j.oss.dto.SysFile;
+import com.maxkb4j.common.domain.dto.*;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.NodeType;
 import com.maxkb4j.workflow.handler.node.INodeHandler;

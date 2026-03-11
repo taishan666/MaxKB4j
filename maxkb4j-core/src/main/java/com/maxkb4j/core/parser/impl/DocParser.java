@@ -1,7 +1,7 @@
 package com.maxkb4j.core.parser.impl;
 
 import com.maxkb4j.core.parser.DocumentParser;
-import com.maxkb4j.oss.dto.SysFile;
+import com.maxkb4j.common.domain.dto.SysFile;
 import com.maxkb4j.oss.service.IOssService;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.text.StringEscapeUtils;

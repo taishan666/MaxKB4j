@@ -1,7 +1,7 @@
 package com.maxkb4j.workflow.model;
 
 import com.alibaba.fastjson.JSONObject;
-import com.maxkb4j.core.chat.ChatMessageVO;
+import com.maxkb4j.common.domain.dto.ChatMessageVO;
 import com.maxkb4j.workflow.enums.NodeType;
 import com.maxkb4j.workflow.logic.LfEdge;
 import com.maxkb4j.workflow.node.AbsNode;

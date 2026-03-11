@@ -2,7 +2,7 @@ package com.maxkb4j.workflow.node.impl;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.maxkb4j.core.chat.Answer;
+import com.maxkb4j.common.domain.dto.Answer;
 import com.maxkb4j.workflow.model.Workflow;
 import com.maxkb4j.workflow.node.AbsNode;
 import lombok.Data;

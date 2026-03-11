@@ -1,10 +1,10 @@
 package com.maxkb4j.application.executor;
 
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
-import com.maxkb4j.application.dto.ChatParams;
 import com.maxkb4j.application.service.IApplicationChatService;
+import com.maxkb4j.common.domain.dto.ChatParams;
+import com.maxkb4j.common.domain.dto.ChatResponse;
 import com.maxkb4j.common.enums.ChatUserType;
-import com.maxkb4j.core.chat.ChatResponse;
 import dev.langchain4j.agent.tool.ToolExecutionRequest;
 import dev.langchain4j.invocation.InvocationContext;
 import dev.langchain4j.service.tool.ToolExecutionResult;

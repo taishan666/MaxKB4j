@@ -1,6 +1,6 @@
 package com.maxkb4j.workflow.handler;
 
-import com.maxkb4j.core.chat.ChatMessageVO;
+import com.maxkb4j.common.domain.dto.ChatMessageVO;
 import com.maxkb4j.workflow.builder.NodeHandlerBuilder;
 import com.maxkb4j.workflow.enums.NodeStatus;
 import com.maxkb4j.workflow.handler.node.INodeHandler;

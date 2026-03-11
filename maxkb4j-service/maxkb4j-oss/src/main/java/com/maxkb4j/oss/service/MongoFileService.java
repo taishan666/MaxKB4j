@@ -2,7 +2,7 @@ package com.maxkb4j.oss.service;
 
 
 import cn.hutool.core.io.IoUtil;
-import com.maxkb4j.oss.dto.SysFile;
+import com.maxkb4j.common.domain.dto.SysFile;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
 import com.mongodb.client.gridfs.model.GridFSFile;

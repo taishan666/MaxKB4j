@@ -16,7 +16,7 @@
     <dependencies>
         <dependency>
             <groupId>com.tarzan</groupId>
-            <artifactId>maxkb4j-core</artifactId>
+            <artifactId>maxkb4j-commom</artifactId>
             <version>${revision}</version>
         </dependency>
         <dependency>

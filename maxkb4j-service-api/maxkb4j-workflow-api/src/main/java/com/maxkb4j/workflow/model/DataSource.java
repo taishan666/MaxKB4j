@@ -1,6 +1,6 @@
 package com.maxkb4j.workflow.model;
 
-import com.maxkb4j.oss.dto.SysFile;
+import com.maxkb4j.common.domain.dto.SysFile;
 import lombok.Data;
 
 import java.util.List;

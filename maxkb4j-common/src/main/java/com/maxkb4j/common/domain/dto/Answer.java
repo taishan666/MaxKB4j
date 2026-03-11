@@ -1,4 +1,4 @@
-package com.maxkb4j.core.chat;
+package com.maxkb4j.common.domain.dto;
 
 import lombok.Builder;
 import lombok.Data;

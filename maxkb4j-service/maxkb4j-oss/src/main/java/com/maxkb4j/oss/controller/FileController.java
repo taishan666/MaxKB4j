@@ -1,7 +1,7 @@
 package com.maxkb4j.oss.controller;
 
 import com.maxkb4j.common.domain.api.R;
-import com.maxkb4j.oss.dto.SysFile;
+import com.maxkb4j.common.domain.dto.SysFile;
 import com.maxkb4j.oss.service.MongoFileService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;

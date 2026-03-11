@@ -1,7 +1,7 @@
 package com.maxkb4j.workflow.handler.node.impl;
 
 import com.alibaba.fastjson.JSONObject;
-import com.maxkb4j.application.entity.ApplicationChatRecordEntity;
+import com.maxkb4j.common.domain.entity.ChatRecordEntity;
 import com.maxkb4j.common.domain.base.entity.KnowledgeSetting;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.NodeType;
@@ -55,7 +55,7 @@ public class SearchKnowledgeNodeHandler implements INodeHandler {
     @SuppressWarnings("unchecked")
     private List<String> getExcludeParagraphIds(Workflow workflow, String runtimeNodeId,String question){
         List<String> excludeParagraphIds=new ArrayList<>();
-        for (ApplicationChatRecordEntity chatRecord : workflow.getHistoryChatRecords()) {
+        for (ChatRecordEntity chatRecord : workflow.getHistoryChatRecords()) {
             if (chatRecord.getProblemText().equals(workflow.getChatParams().getMessage())){
                 JSONObject details=chatRecord.getDetails();
                 if (!details.isEmpty()){

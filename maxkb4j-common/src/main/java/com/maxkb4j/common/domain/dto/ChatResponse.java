@@ -1,4 +1,4 @@
-package com.maxkb4j.core.chat;
+package com.maxkb4j.common.domain.dto;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;

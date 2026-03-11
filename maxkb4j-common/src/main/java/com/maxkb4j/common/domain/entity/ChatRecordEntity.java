@@ -1,4 +1,4 @@
-package com.maxkb4j.application.entity;
+package com.maxkb4j.common.domain.entity;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -19,7 +19,7 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 @Data
 @TableName(value = "application_chat_record",autoResultMap = true)
-public class ApplicationChatRecordEntity extends BaseEntity {
+public class ChatRecordEntity extends BaseEntity {
 	private String voteStatus;
 	private String problemText;
 	private String answerText;

@@ -1,10 +1,10 @@
 package com.maxkb4j.workflow.node;
 
 import com.alibaba.fastjson.JSONObject;
-import com.maxkb4j.core.chat.Answer;
-import com.maxkb4j.core.chat.ChatMessageVO;
-import com.maxkb4j.core.chat.ChildNode;
-import com.maxkb4j.core.chat.MessageConverter;
+import com.maxkb4j.common.domain.dto.Answer;
+import com.maxkb4j.common.domain.dto.ChatMessageVO;
+import com.maxkb4j.common.domain.dto.ChildNode;
+import com.maxkb4j.common.domain.dto.MessageConverter;
 import com.maxkb4j.workflow.enums.NodeStatus;
 import com.maxkb4j.workflow.model.TemplateRenderer;
 import com.maxkb4j.workflow.model.Workflow;

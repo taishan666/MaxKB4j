@@ -1,6 +1,6 @@
 package com.maxkb4j.application.dto;
 
-import com.maxkb4j.application.entity.ApplicationChatRecordEntity;
+import com.maxkb4j.common.domain.entity.ChatRecordEntity;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -15,9 +15,9 @@ public class ChatInfo implements Serializable {
     private String chatId;
     private String appId;
     private Map<String, Object> chatVariables = new HashMap<>(10);
-    private List<ApplicationChatRecordEntity> chatRecordList = new ArrayList<>();
+    private List<ChatRecordEntity> chatRecordList = new ArrayList<>();
 
-    public void addChatRecord(ApplicationChatRecordEntity chatRecord) {
+    public void addChatRecord(ChatRecordEntity chatRecord) {
         this.chatRecordList.add(chatRecord);
     }
 }

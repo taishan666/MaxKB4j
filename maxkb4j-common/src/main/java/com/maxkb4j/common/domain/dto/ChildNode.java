@@ -1,4 +1,4 @@
-package com.maxkb4j.core.chat;
+package com.maxkb4j.common.domain.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;

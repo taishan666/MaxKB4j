@@ -10,7 +10,7 @@ import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.model.Workflow;
 import com.maxkb4j.workflow.node.AbsNode;
 import com.maxkb4j.workflow.node.impl.QuestionNode;
-import com.maxkb4j.core.chat.MessageConverter;
+import com.maxkb4j.common.domain.dto.MessageConverter;
 import com.maxkb4j.model.service.IModelProviderService;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.model.chat.ChatModel;

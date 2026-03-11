@@ -13,7 +13,7 @@ import com.maxkb4j.application.dto.AddChatImproveDTO;
 import com.maxkb4j.application.dto.ChatImproveDTO;
 import com.maxkb4j.application.dto.ChatInfo;
 import com.maxkb4j.application.entity.ApplicationChatEntity;
-import com.maxkb4j.application.entity.ApplicationChatRecordEntity;
+import com.maxkb4j.common.domain.entity.ChatRecordEntity;
 import com.maxkb4j.application.mapper.ApplicationChatMapper;
 import com.maxkb4j.application.mapper.ApplicationChatRecordMapper;
 import com.maxkb4j.application.vo.ApplicationChatRecordVO;
@@ -41,13 +41,13 @@ import static com.maxkb4j.workflow.enums.NodeType.SEARCH_KNOWLEDGE;
  */
 @RequiredArgsConstructor
 @Service
-public class ApplicationChatRecordService extends ServiceImpl<ApplicationChatRecordMapper, ApplicationChatRecordEntity> implements IApplicationChatRecordService {
+public class ApplicationChatRecordService extends ServiceImpl<ApplicationChatRecordMapper, ChatRecordEntity> implements IApplicationChatRecordService {
 
     private final IParagraphService paragraphService;
     private final ApplicationChatMapper chatMapper;
 
-    private ApplicationChatRecordEntity getChatRecordEntity(ChatInfo chatInfo, String chatRecordId) {
-        ApplicationChatRecordEntity chatRecord = null;
+    private ChatRecordEntity getChatRecordEntity(ChatInfo chatInfo, String chatRecordId) {
+        ChatRecordEntity chatRecord = null;
         if (Objects.nonNull(chatInfo) && !CollectionUtils.isEmpty(chatInfo.getChatRecordList())) {
             chatRecord = chatInfo.getChatRecordList().stream()
                     .filter(e -> e.getId().equals(chatRecordId))
@@ -60,25 +60,25 @@ public class ApplicationChatRecordService extends ServiceImpl<ApplicationChatRec
         return chatRecord;
     }
 
-    public List<ApplicationChatRecordEntity> getChatRecords(String chatId) {
+    public List<ChatRecordEntity> getChatRecords(String chatId) {
         ChatInfo chatInfo = ChatCache.get(chatId);
-        List<ApplicationChatRecordEntity> chatRecords = new ArrayList<>();
+        List<ChatRecordEntity> chatRecords = new ArrayList<>();
         if (Objects.nonNull(chatInfo)) {
             chatRecords = chatInfo.getChatRecordList();
         }
         if (CollectionUtils.isEmpty(chatRecords)) {
-            chatRecords = this.lambdaQuery().eq(ApplicationChatRecordEntity::getChatId, chatId).list();
+            chatRecords = this.lambdaQuery().eq(ChatRecordEntity::getChatId, chatId).list();
         }
         return chatRecords;
     }
 
     public ApplicationChatRecordVO getChatRecordInfo(String chatId, String chatRecordId) {
         ChatInfo chatInfo = ChatCache.get(chatId);
-        ApplicationChatRecordEntity chatRecord = getChatRecordEntity(chatInfo, chatRecordId);
+        ChatRecordEntity chatRecord = getChatRecordEntity(chatInfo, chatRecordId);
         return convert(chatRecord);
     }
 
-    private ApplicationChatRecordVO convert(ApplicationChatRecordEntity chatRecord) {
+    private ApplicationChatRecordVO convert(ChatRecordEntity chatRecord) {
         if (Objects.isNull(chatRecord)) {
             return null;
         }
@@ -121,19 +121,19 @@ public class ApplicationChatRecordService extends ServiceImpl<ApplicationChatRec
 
 
     public IPage<ApplicationChatRecordVO> chatRecordPage(String chatId, int current, int size) {
-        Page<ApplicationChatRecordEntity> chatRecordpage = new Page<>(current, size);
-        LambdaQueryWrapper<ApplicationChatRecordEntity> wrapper = Wrappers.lambdaQuery();
-        wrapper.eq(ApplicationChatRecordEntity::getChatId, chatId);
-        IPage<ApplicationChatRecordEntity> chatRecordIpage = this.page(chatRecordpage, wrapper);
+        Page<ChatRecordEntity> chatRecordpage = new Page<>(current, size);
+        LambdaQueryWrapper<ChatRecordEntity> wrapper = Wrappers.lambdaQuery();
+        wrapper.eq(ChatRecordEntity::getChatId, chatId);
+        IPage<ChatRecordEntity> chatRecordIpage = this.page(chatRecordpage, wrapper);
         return PageUtil.copy(chatRecordIpage, this::convert);
     }
 
 
     @Transactional
     public boolean addChatLogs(String appId, AddChatImproveDTO dto) {
-        List<ApplicationChatRecordEntity> chatRecords = this.lambdaQuery().select(ApplicationChatRecordEntity::getProblemText, ApplicationChatRecordEntity::getAnswerText).in(ApplicationChatRecordEntity::getChatId, dto.getChatIds()).list();
+        List<ChatRecordEntity> chatRecords = this.lambdaQuery().select(ChatRecordEntity::getProblemText, ChatRecordEntity::getAnswerText).in(ChatRecordEntity::getChatId, dto.getChatIds()).list();
         List<ParagraphEntity> paragraphs=new ArrayList<>();
-        for (ApplicationChatRecordEntity e : chatRecords) {
+        for (ChatRecordEntity e : chatRecords) {
             ParagraphEntity paragraphEntity = paragraphService.createParagraph(dto.getKnowledgeId(), dto.getDocumentId(), e.getProblemText(), e.getAnswerText(), null);
             paragraphs.add(paragraphEntity);
         }
@@ -141,10 +141,10 @@ public class ApplicationChatRecordService extends ServiceImpl<ApplicationChatRec
     }
 
     @Transactional
-    public ApplicationChatRecordEntity improveChatLog(String chatId,String chatRecordId,String knowledgeId, String docId, ChatImproveDTO dto) {
+    public ChatRecordEntity improveChatLog(String chatId, String chatRecordId, String knowledgeId, String docId, ChatImproveDTO dto) {
         ParagraphEntity paragraphEntity = paragraphService.createParagraph(knowledgeId, docId, dto.getTitle(), dto.getContent(), null);
         paragraphService.saveParagraphAndProblem(paragraphEntity,List.of(dto.getProblemText()));
-        ApplicationChatRecordEntity chatRecord = new ApplicationChatRecordEntity();
+        ChatRecordEntity chatRecord = new ChatRecordEntity();
         chatRecord.setId(chatRecordId);
         chatRecord.setImproveParagraphIdList(List.of(paragraphEntity.getId()));
         this.updateById(chatRecord);
@@ -158,7 +158,7 @@ public class ApplicationChatRecordService extends ServiceImpl<ApplicationChatRec
 
     @Transactional
     public boolean removeImproveChatLog(String chatId,String chatRecordId,String knowledgeId,String paragraphId) {
-        ApplicationChatRecordEntity chatRecord = new ApplicationChatRecordEntity();
+        ChatRecordEntity chatRecord = new ChatRecordEntity();
         chatRecord.setId(chatRecordId);
         chatRecord.setImproveParagraphIdList(List.of());
         this.updateById(chatRecord);
@@ -171,7 +171,7 @@ public class ApplicationChatRecordService extends ServiceImpl<ApplicationChatRec
     }
 
     public List<ParagraphEntity> improveChatLog(String chatRecordId) {
-        ApplicationChatRecordEntity chatRecord =this.getById(chatRecordId);
+        ChatRecordEntity chatRecord =this.getById(chatRecordId);
         return paragraphService.listByIds(chatRecord.getImproveParagraphIdList());
     }
 

@@ -3,7 +3,7 @@ package com.maxkb4j.application.controller;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.maxkb4j.application.dto.AddChatImproveDTO;
 import com.maxkb4j.application.dto.ChatImproveDTO;
-import com.maxkb4j.application.entity.ApplicationChatRecordEntity;
+import com.maxkb4j.common.domain.entity.ChatRecordEntity;
 import com.maxkb4j.application.service.ApplicationChatRecordService;
 import com.maxkb4j.application.vo.ApplicationChatRecordVO;
 import com.maxkb4j.common.annotation.SaCheckPerm;
@@ -47,7 +47,7 @@ public class ApplicationChatRecordController {
 
     @SaCheckPerm(PermissionEnum.APPLICATION_EDIT)
     @PutMapping("/application/{id}/chat/{chatId}/chat_record/{chatRecordId}/knowledge/{knowledgeId}/document/{docId}/improve")
-    public R<ApplicationChatRecordEntity> improveChatLog(@PathVariable("id") String id, @PathVariable("chatId") String chatId, @PathVariable("chatRecordId") String chatRecordId, @PathVariable("knowledgeId") String knowledgeId, @PathVariable("docId") String docId, @RequestBody ChatImproveDTO dto) {
+    public R<ChatRecordEntity> improveChatLog(@PathVariable("id") String id, @PathVariable("chatId") String chatId, @PathVariable("chatRecordId") String chatRecordId, @PathVariable("knowledgeId") String knowledgeId, @PathVariable("docId") String docId, @RequestBody ChatImproveDTO dto) {
         return R.success(chatRecordService.improveChatLog(chatId, chatRecordId, knowledgeId, docId, dto));
     }
 

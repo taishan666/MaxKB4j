@@ -1,8 +1,8 @@
 package com.maxkb4j.application.controller;
 
 import com.maxkb4j.application.service.ApplicationChatService;
-import com.maxkb4j.core.chat.ChatMessageVO;
-import com.maxkb4j.application.dto.ChatParams;
+import com.maxkb4j.common.domain.dto.ChatMessageVO;
+import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.domain.api.R;
 import com.maxkb4j.common.util.StpKit;

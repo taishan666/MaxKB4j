@@ -8,7 +8,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.maxkb4j.common.constant.RoleType;
 import com.maxkb4j.common.util.*;
-import com.maxkb4j.oss.dto.SysFile;
+import com.maxkb4j.common.domain.dto.SysFile;
 import com.maxkb4j.oss.service.IOssService;
 import com.maxkb4j.system.constant.AuthTargetType;
 import com.maxkb4j.user.service.IUserResourcePermissionService;

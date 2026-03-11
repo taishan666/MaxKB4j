@@ -1,7 +1,7 @@
 package com.maxkb4j.workflow.model;
 
 import com.alibaba.fastjson.JSONObject;
-import com.maxkb4j.application.entity.ApplicationChatRecordEntity;
+import com.maxkb4j.common.domain.entity.ChatRecordEntity;
 import com.maxkb4j.workflow.enums.DialogueType;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
@@ -22,14 +22,14 @@ import java.util.regex.Pattern;
  *                           获取历史记录列表
  */
 @Slf4j
-public record HistoryManager(List<ApplicationChatRecordEntity> historyChatRecords) {
+public record HistoryManager(List<ChatRecordEntity> historyChatRecords) {
 
     /**
      * 表单渲染标签正则表达式
      */
     private static final Pattern FORM_RENDER_PATTERN = Pattern.compile("<form_render>(.*?)</form_render>", Pattern.DOTALL);
 
-    public HistoryManager(List<ApplicationChatRecordEntity> historyChatRecords) {
+    public HistoryManager(List<ChatRecordEntity> historyChatRecords) {
         this.historyChatRecords = Objects.requireNonNullElseGet(historyChatRecords, () -> new ArrayList<>(0));
     }
 
@@ -65,7 +65,7 @@ public record HistoryManager(List<ApplicationChatRecordEntity> historyChatRecord
      */
     private List<ChatMessage> getWorkFlowMessages() {
         List<ChatMessage> messages = new ArrayList<>();
-        for (ApplicationChatRecordEntity message : historyChatRecords) {
+        for (ChatRecordEntity message : historyChatRecords) {
             String answerText = message.getAnswerText();
             Matcher matcher = FORM_RENDER_PATTERN.matcher(answerText);
 
@@ -87,7 +87,7 @@ public record HistoryManager(List<ApplicationChatRecordEntity> historyChatRecord
      */
     private List<ChatMessage> getNodeMessages(String runtimeNodeId) {
         List<ChatMessage> messages = new ArrayList<>();
-        for (ApplicationChatRecordEntity record : historyChatRecords) {
+        for (ChatRecordEntity record : historyChatRecords) {
             // 获取节点详情
             JSONObject nodeDetails = record.getNodeDetailsByRuntimeNodeId(runtimeNodeId);
 

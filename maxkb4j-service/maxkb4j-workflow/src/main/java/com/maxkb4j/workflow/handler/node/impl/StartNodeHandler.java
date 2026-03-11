@@ -5,8 +5,8 @@ import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.maxkb4j.application.cache.ChatCache;
 import com.maxkb4j.application.dto.ChatInfo;
-import com.maxkb4j.application.dto.ChatParams;
-import com.maxkb4j.application.entity.ApplicationChatRecordEntity;
+import com.maxkb4j.common.domain.dto.ChatParams;
+import com.maxkb4j.common.domain.entity.ChatRecordEntity;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.NodeType;
 import com.maxkb4j.workflow.handler.node.INodeHandler;
@@ -72,7 +72,7 @@ public class StartNodeHandler implements INodeHandler {
     private List<ChatRecordSimple> getHistoryContext(Workflow workflow) {
         // 获取历史聊天记录
         List<ChatRecordSimple> list = new ArrayList<>();
-        for (ApplicationChatRecordEntity chatRecord : workflow.getHistoryChatRecords()) {
+        for (ChatRecordEntity chatRecord : workflow.getHistoryChatRecords()) {
             ChatRecordSimple record = new ChatRecordSimple();
             record.setQuestion(chatRecord.getProblemText());
             record.setAnswer(chatRecord.getAnswerText());

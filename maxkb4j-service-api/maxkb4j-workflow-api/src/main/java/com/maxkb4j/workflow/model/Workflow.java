@@ -3,10 +3,10 @@ package com.maxkb4j.workflow.model;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.maxkb4j.application.dto.ChatParams;
-import com.maxkb4j.application.entity.ApplicationChatRecordEntity;
-import com.maxkb4j.core.chat.Answer;
-import com.maxkb4j.core.chat.ChatMessageVO;
+import com.maxkb4j.common.domain.dto.Answer;
+import com.maxkb4j.common.domain.dto.ChatMessageVO;
+import com.maxkb4j.common.domain.dto.ChatParams;
+import com.maxkb4j.common.domain.entity.ChatRecordEntity;
 import com.maxkb4j.workflow.enums.NodeStatus;
 import com.maxkb4j.workflow.enums.NodeType;
 import com.maxkb4j.workflow.enums.WorkflowMode;
@@ -290,7 +290,7 @@ public class Workflow {
         return templateRenderer.render(prompt);
     }
 
-    public List<ApplicationChatRecordEntity>  getHistoryChatRecords() {
+    public List<ChatRecordEntity>  getHistoryChatRecords() {
         return historyManager.historyChatRecords();
     }
 

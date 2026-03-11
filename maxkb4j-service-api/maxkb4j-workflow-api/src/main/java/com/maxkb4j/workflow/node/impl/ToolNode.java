@@ -1,9 +1,9 @@
 package com.maxkb4j.workflow.node.impl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.maxkb4j.common.domain.base.entity.ToolInputField;
 import com.maxkb4j.workflow.model.Workflow;
 import com.maxkb4j.workflow.node.AbsNode;
-import com.maxkb4j.tool.dto.ToolInputField;
 import lombok.Data;
 
 import java.util.List;

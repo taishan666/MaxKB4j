@@ -16,6 +16,7 @@ import com.maxkb4j.application.mapper.ApplicationMapper;
 import com.maxkb4j.application.vo.ApplicationListVO;
 import com.maxkb4j.application.vo.ApplicationVO;
 import com.maxkb4j.common.constant.RoleType;
+import com.maxkb4j.common.domain.entity.ChatRecordEntity;
 import com.maxkb4j.common.exception.ApiException;
 import com.maxkb4j.common.util.*;
 import com.maxkb4j.application.util.ResourceUtil;
@@ -130,7 +131,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         List<String> chatIds = applicationChatMapper.selectList(Wrappers.<ApplicationChatEntity>lambdaQuery().eq(ApplicationChatEntity::getApplicationId, appId)).stream().map(ApplicationChatEntity::getId).toList();
         if (!CollectionUtils.isEmpty(chatIds)) {
             applicationChatMapper.delete(Wrappers.<ApplicationChatEntity>lambdaQuery().eq(ApplicationChatEntity::getApplicationId, appId));
-            applicationChatRecordService.remove(Wrappers.<ApplicationChatRecordEntity>lambdaQuery().in(ApplicationChatRecordEntity::getChatId, chatIds));
+            applicationChatRecordService.remove(Wrappers.<ChatRecordEntity>lambdaQuery().in(ChatRecordEntity::getChatId, chatIds));
         }
         userResourcePermissionService.remove(AuthTargetType.APPLICATION, appId);
         return this.removeById(appId);

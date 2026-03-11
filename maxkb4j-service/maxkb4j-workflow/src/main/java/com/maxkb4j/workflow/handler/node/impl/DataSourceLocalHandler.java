@@ -1,7 +1,7 @@
 package com.maxkb4j.workflow.handler.node.impl;
 
 import com.maxkb4j.workflow.model.Workflow;
-import com.maxkb4j.oss.dto.SysFile;
+import com.maxkb4j.common.domain.dto.SysFile;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.NodeType;
 import com.maxkb4j.workflow.handler.node.INodeHandler;

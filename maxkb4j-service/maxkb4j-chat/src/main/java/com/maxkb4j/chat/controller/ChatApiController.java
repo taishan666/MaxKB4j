@@ -4,7 +4,7 @@ import cn.dev33.satoken.annotation.SaIgnore;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.maxkb4j.application.dto.ChatParams;
+import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.application.dto.EmbedDTO;
 import com.maxkb4j.application.entity.*;
 import com.maxkb4j.application.service.*;
@@ -13,11 +13,12 @@ import com.maxkb4j.chat.dto.McpRequest;
 import com.maxkb4j.chat.service.ChatApiService;
 import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.domain.api.R;
+import com.maxkb4j.common.domain.entity.ChatRecordEntity;
 import com.maxkb4j.common.exception.ApiException;
 import com.maxkb4j.common.util.StpKit;
 import com.maxkb4j.common.util.WebUtil;
-import com.maxkb4j.core.chat.ChatMessageVO;
-import com.maxkb4j.core.chat.ChatResponse;
+import com.maxkb4j.common.domain.dto.ChatMessageVO;
+import com.maxkb4j.common.domain.dto.ChatResponse;
 import com.maxkb4j.common.enums.ChatUserType;
 import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
@@ -161,7 +162,7 @@ public class ChatApiController {
 
     @Hidden
     @PutMapping("/vote/chat/{chatId}/chat_record/{chatRecordId}")
-    public R<Boolean> updateConversation(@PathVariable String chatId, @PathVariable String chatRecordId, @RequestBody ApplicationChatRecordEntity chatRecord) {
+    public R<Boolean> updateConversation(@PathVariable String chatId, @PathVariable String chatRecordId, @RequestBody ChatRecordEntity chatRecord) {
         return R.success(chatApiService.updateConversation(chatId, chatRecordId, chatRecord));
     }
 
