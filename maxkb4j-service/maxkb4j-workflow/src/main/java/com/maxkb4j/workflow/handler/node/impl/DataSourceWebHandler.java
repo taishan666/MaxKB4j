@@ -1,5 +1,6 @@
 package com.maxkb4j.workflow.handler.node.impl;
 
+import com.maxkb4j.workflow.model.Workflow;
 import com.maxkb4j.knowledge.dto.DocumentSimple;
 import com.maxkb4j.knowledge.service.IDocumentWebService;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
