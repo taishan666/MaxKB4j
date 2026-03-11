@@ -15,19 +15,14 @@
 
     <dependencies>
         <dependency>
-            <groupId>com.tarzan</groupId>
-            <artifactId>maxkb4j-common</artifactId>
-            <version>${revision}</version>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-core</artifactId>
+            <version>${langchain4j.version}</version>
         </dependency>
         <dependency>
             <groupId>com.tarzan</groupId>
             <artifactId>maxkb4j-oss-api</artifactId>
             <version>${revision}</version>
-        </dependency>
-        <dependency>
-            <groupId>dev.langchain4j</groupId>
-            <artifactId>langchain4j-core</artifactId>
-            <version>${langchain4j.version}</version>
         </dependency>
         <dependency>
             <groupId>dev.langchain4j</groupId>
