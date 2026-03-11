@@ -4,18 +4,15 @@ import cn.dev33.satoken.annotation.SaIgnore;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.maxkb4j.application.dto.ChatParams;
 import com.maxkb4j.application.dto.EmbedDTO;
 import com.maxkb4j.application.entity.*;
 import com.maxkb4j.application.service.*;
 import com.maxkb4j.application.vo.ApplicationChatRecordVO;
-import com.maxkb4j.application.dto.ChatParams;
 import com.maxkb4j.chat.dto.McpRequest;
 import com.maxkb4j.chat.service.ChatApiService;
 import com.maxkb4j.chat.vo.ChatMessageVO;
 import com.maxkb4j.chat.vo.ChatResponse;
-import com.maxkb4j.chat.vo.McpResponse;
 import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.domain.api.R;
 import com.maxkb4j.common.exception.ApiException;
@@ -49,7 +46,6 @@ public class ChatApiController {
     private final IApplicationChatRecordService chatRecordService;
     private final ChatApiService chatApiService;
     private final IApplicationApiKeyService apiKeyService;
-    private final ObjectMapper objectMapper = new ObjectMapper();
 
 
     @Hidden
@@ -120,17 +116,7 @@ public class ChatApiController {
             emitter.completeWithError(new ApiException("token不合法或被禁用"));
         }else {
             // 异步处理（避免阻塞主线程）
-            new Thread(() -> {
-                try {
-                    McpResponse resp = chatApiService.mcpHandle(apiKey,req);
-                    objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-                    String line = objectMapper.writeValueAsString(resp) + "\n";
-                    emitter.send(line);
-                    emitter.complete();
-                } catch (IOException e) {
-                    emitter.completeWithError(e);
-                }
-            }).start();
+            chatApiService.mcpHandleAsync(apiKey,req,emitter);
         }
         return emitter;
     }

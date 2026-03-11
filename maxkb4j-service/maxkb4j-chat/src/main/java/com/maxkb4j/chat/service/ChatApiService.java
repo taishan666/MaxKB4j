@@ -5,24 +5,30 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.maxkb4j.application.entity.*;
-import com.maxkb4j.application.vo.ApplicationVO;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.maxkb4j.application.dto.ChatParams;
-import com.maxkb4j.chat.dto.McpRequest;
-import com.maxkb4j.chat.vo.ChatResponse;
-import com.maxkb4j.chat.vo.McpResponse;
-import com.maxkb4j.common.util.StpKit;
-import com.maxkb4j.common.util.WebUtil;
-import com.maxkb4j.system.enums.ChatUserType;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import reactor.core.publisher.Sinks;
+import com.maxkb4j.application.entity.*;
 import com.maxkb4j.application.service.IApplicationAccessTokenService;
 import com.maxkb4j.application.service.IApplicationChatRecordService;
 import com.maxkb4j.application.service.IApplicationChatService;
 import com.maxkb4j.application.service.IApplicationService;
+import com.maxkb4j.application.vo.ApplicationVO;
+import com.maxkb4j.chat.dto.McpRequest;
+import com.maxkb4j.chat.vo.ChatResponse;
+import com.maxkb4j.chat.vo.McpResponse;
+import com.maxkb4j.common.util.JsonUtil;
+import com.maxkb4j.common.util.StpKit;
+import com.maxkb4j.common.util.WebUtil;
+import com.maxkb4j.system.enums.ChatUserType;
+import lombok.RequiredArgsConstructor;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyEmitter;
+import reactor.core.publisher.Sinks;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,6 +41,7 @@ public class ChatApiService {
     private final IApplicationService applicationService;
     private final IApplicationChatService chatService;
     private final IApplicationChatRecordService chatRecordService;
+    private final ObjectMapper objectMapper = JsonUtil.getInstance();
 
 
     public String authToken(JSONObject params) {
@@ -99,6 +106,20 @@ public class ChatApiService {
         chatEntity.setStarNum(starNum);
         chatEntity.setTrampleNum(trampleNum);
         return chatService.updateById(chatEntity);
+    }
+
+    @Async
+    public void mcpHandleAsync(ApplicationApiKeyEntity apiKey, McpRequest req, ResponseBodyEmitter emitter) {
+        McpResponse resp = this.mcpHandle(apiKey,req);
+        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+        try {
+            String line = objectMapper.writeValueAsString(resp) + "\n";
+            emitter.send(line);
+            emitter.complete();
+        } catch (IOException e) {
+            emitter.completeWithError(e);
+        }
+
     }
 
     public McpResponse mcpHandle(ApplicationApiKeyEntity apiKey, McpRequest req) {

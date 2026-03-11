@@ -4,15 +4,15 @@ import cn.dev33.satoken.annotation.SaCheckRole;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.constant.LoginType;
+import com.maxkb4j.common.constant.RoleType;
 import com.maxkb4j.common.domain.api.R;
 import com.maxkb4j.common.util.BeanUtil;
-import com.maxkb4j.system.constant.RoleType;
 import com.maxkb4j.system.service.impl.UserResourcePermissionServiceImpl;
 import com.maxkb4j.system.service.impl.UserServiceImpl;
-import com.maxkb4j.user.vo.ResourceUserPermissionVO;
-import com.maxkb4j.user.vo.UserResourcePermissionVO;
 import com.maxkb4j.user.entity.UserEntity;
+import com.maxkb4j.user.vo.ResourceUserPermissionVO;
 import com.maxkb4j.user.vo.UserNameVO;
+import com.maxkb4j.user.vo.UserResourcePermissionVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 

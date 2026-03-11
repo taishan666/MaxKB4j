@@ -416,6 +416,9 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
                 messages.add(AiMessage.from(message.getContent()));
             }
         }
+        if (messages.isEmpty()) {
+            return Flux.error(new IllegalArgumentException("No user message found to generate prompt"));
+        }
         int endIndex = messages.size() - 1;
         String prompt = dto.getPrompt();
         String detail = StringUtils.isBlank(app.getDesc()) ? app.getName() : app.getDesc();

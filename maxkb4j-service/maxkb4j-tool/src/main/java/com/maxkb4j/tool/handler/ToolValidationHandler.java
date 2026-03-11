@@ -2,6 +2,7 @@ package com.maxkb4j.tool.handler;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.maxkb4j.common.util.JsonUtil;
 import com.maxkb4j.tool.consts.ToolConstants;
 import com.maxkb4j.tool.entity.ToolEntity;
 import com.maxkb4j.tool.exception.ToolValidationException;
@@ -35,7 +36,7 @@ public class ToolValidationHandler {
             }
             JsonNode root;
             try {
-                ObjectMapper mapper = new ObjectMapper();
+                ObjectMapper mapper = JsonUtil.getInstance();
                 root = mapper.readTree(jsonStr);
             } catch (Exception e) {
                 throw new ToolValidationException("MCP服务器配置解析失败: " + e.getMessage(), e);

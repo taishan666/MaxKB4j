@@ -34,16 +34,4 @@ public class CosyVoiceTTS  implements TTSModel {
         return audio.array();
     }
 
-/*    public String voiceClone(String fileUrl) {
-        VoiceEnrollmentService service = new VoiceEnrollmentService(param.getApiKey());
-        Voice myVoice;
-        try {
-            myVoice = service.createVoice(param.getModel(), "clone_voice", fileUrl);
-        } catch (NoApiKeyException | InputRequiredException e) {
-            throw new RuntimeException(e);
-        }
-        System.out.println("your voice id is " + myVoice.getVoiceId());
-        System.out.println("voice status is " + myVoice.getStatus());
-        return myVoice.getVoiceId();
-    }*/
 }

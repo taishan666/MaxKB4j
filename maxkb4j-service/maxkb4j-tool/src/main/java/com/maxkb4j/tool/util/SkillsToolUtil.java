@@ -3,6 +3,7 @@ package com.maxkb4j.tool.util;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.maxkb4j.common.exception.ApiException;
+import com.maxkb4j.common.util.JsonUtil;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -15,7 +16,7 @@ import java.util.zip.ZipInputStream;
 public class SkillsToolUtil {
 
     private static final String MANIFEST_FILE_NAME = "manifest.json";
-    private static final ObjectMapper objectMapper = new ObjectMapper();
+    private static final ObjectMapper objectMapper = JsonUtil.getInstance();
 
     public static Path getManifestPath(String appSkillPath) {
         return Paths.get(appSkillPath, MANIFEST_FILE_NAME);

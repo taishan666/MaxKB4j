@@ -45,7 +45,6 @@ public class QwenImageModel implements ImageModel {
             if (!contentList.isEmpty()) {
                 Map<String, Object> content = contentList.get(0);
                 if (content.containsKey("image")) {
-                    System.out.println("输出图像的URL：" + content.get("image"));
                     return Response.from(Image.builder().url(content.get("image").toString()).build());
                 }
             }
