@@ -51,13 +51,13 @@ public class RerankerNodeHandler implements INodeHandler {
                 Double score = scores.get(i);
                 TextSegment textSegment = textSegments.get(i);
                 Map<String, Object> metadata = textSegment.metadata().toMap();
-                metadata.put("relevance_score", score);
+                metadata.put("relevanceScore", score);
                 RerankerNode.RerankResult textSegmentResult = new RerankerNode.RerankResult(textSegment.text(), metadata);
                 documentList.add(textSegmentResult);
             }
             resultList =documentList.stream().filter(rerankResult -> {
-                if (rerankResult.getMetadata().containsKey("relevance_score")){
-                    Double score = (Double) rerankResult.getMetadata().get("relevance_score");
+                if (rerankResult.getMetadata().containsKey("relevanceScore")){
+                    Double score = (Double) rerankResult.getMetadata().get("relevanceScore");
                     return score > similarity;
                 }
                 return false;
