@@ -1,6 +1,8 @@
 package com.maxkb4j.workflow.handler.node.impl;
 
 import com.maxkb4j.core.assistant.ParameterExtractionAssistant;
+import com.maxkb4j.core.langchain4j.AssistantServices;
+import com.maxkb4j.model.service.IModelProviderService;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.NodeType;
 import com.maxkb4j.workflow.handler.node.INodeHandler;
@@ -8,10 +10,8 @@ import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.model.Workflow;
 import com.maxkb4j.workflow.node.AbsNode;
 import com.maxkb4j.workflow.node.impl.ParameterExtractionNode;
-import com.maxkb4j.model.service.IModelProviderService;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.output.TokenUsage;
-import dev.langchain4j.service.AiServices;
 import dev.langchain4j.service.Result;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -31,7 +31,7 @@ public class ParameterExtractionNodeHandler implements INodeHandler {
         ParameterExtractionNode.NodeParams nodeParams = node.getNodeData().toJavaObject(ParameterExtractionNode.NodeParams.class);
         ChatModel chatModel = modelFactory.buildChatModel(nodeParams.getModelId(), nodeParams.getModelParamsSetting());
         Object query = workflow.getReferenceField(nodeParams.getInputVariable());
-        ParameterExtractionAssistant assistant = AiServices.builder(ParameterExtractionAssistant.class)
+        ParameterExtractionAssistant assistant = AssistantServices.builder(ParameterExtractionAssistant.class)
                 .chatModel(chatModel)
                 .build();
         String extractInfo=format(nodeParams.getVariableList());

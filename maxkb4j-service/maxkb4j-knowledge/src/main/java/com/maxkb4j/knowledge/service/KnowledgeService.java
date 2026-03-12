@@ -325,4 +325,9 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
         knowledgeVersion.setId(versionId);
         return knowledgeVersionService.updateById(knowledgeVersion);
     }
+
+    @Override
+    public List<KnowledgeEntity> listNameAndDescByIds(List<String> knowledgeIds) {
+        return this.lambdaQuery().select(KnowledgeEntity::getId, KnowledgeEntity::getName, KnowledgeEntity::getDesc).in(KnowledgeEntity::getId, knowledgeIds).list();
+    }
 }

@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 @Data
 public class KnowledgeSetting {
 
+    private Boolean onDemandEnable;
     private Integer topN;
     private Integer maxParagraphCharNumber;
     private String searchMode;

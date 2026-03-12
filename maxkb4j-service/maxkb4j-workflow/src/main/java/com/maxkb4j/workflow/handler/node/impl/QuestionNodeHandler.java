@@ -1,7 +1,10 @@
 package com.maxkb4j.workflow.handler.node.impl;
 
+import com.maxkb4j.common.domain.dto.MessageConverter;
 import com.maxkb4j.core.assistant.Assistant;
 import com.maxkb4j.core.langchain4j.AppChatMemory;
+import com.maxkb4j.core.langchain4j.AssistantServices;
+import com.maxkb4j.model.service.IModelProviderService;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.DialogueType;
 import com.maxkb4j.workflow.enums.NodeType;
@@ -10,12 +13,9 @@ import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.model.Workflow;
 import com.maxkb4j.workflow.node.AbsNode;
 import com.maxkb4j.workflow.node.impl.QuestionNode;
-import com.maxkb4j.common.domain.dto.MessageConverter;
-import com.maxkb4j.model.service.IModelProviderService;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.output.TokenUsage;
-import dev.langchain4j.service.AiServices;
 import dev.langchain4j.service.Result;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -39,7 +39,7 @@ public class QuestionNodeHandler implements INodeHandler {
         node.getDetail().put("history_message", MessageConverter.resetMessageList(historyMessages));
         String question = workflow.renderPrompt(nodeParams.getPrompt());
         String systemPrompt = workflow.renderPrompt(nodeParams.getSystem());
-        Assistant assistant = AiServices.builder(Assistant.class)
+        Assistant assistant = AssistantServices.builder(Assistant.class)
                 .systemMessageProvider(chatMemoryId -> systemPrompt)
                 .chatMemory(AppChatMemory.withMessages(historyMessages))
                 .chatModel(chatModel)

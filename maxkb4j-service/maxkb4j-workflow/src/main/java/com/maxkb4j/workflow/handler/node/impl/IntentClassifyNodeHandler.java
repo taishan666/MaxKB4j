@@ -1,8 +1,11 @@
 package com.maxkb4j.workflow.handler.node.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
+import com.maxkb4j.common.domain.dto.MessageConverter;
 import com.maxkb4j.common.util.MessageUtils;
 import com.maxkb4j.core.assistant.IntentClassifyAssistant;
+import com.maxkb4j.core.langchain4j.AssistantServices;
+import com.maxkb4j.model.service.IModelProviderService;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.DialogueType;
 import com.maxkb4j.workflow.enums.NodeType;
@@ -11,13 +14,10 @@ import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.model.Workflow;
 import com.maxkb4j.workflow.node.AbsNode;
 import com.maxkb4j.workflow.node.impl.IntentClassifyNode;
-import com.maxkb4j.common.domain.dto.MessageConverter;
-import com.maxkb4j.model.service.IModelProviderService;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.internal.ValidationUtils;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.output.TokenUsage;
-import dev.langchain4j.service.AiServices;
 import dev.langchain4j.service.Result;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -47,7 +47,7 @@ public class IntentClassifyNodeHandler implements INodeHandler {
         Map<Integer, String> idToClassification=new HashMap<>();
         String options =optionsFormat(idToClassification,branches);
         String chatMemory = MessageUtils.format(historyMessages);
-        IntentClassifyAssistant assistant = AiServices.builder(IntentClassifyAssistant.class)
+        IntentClassifyAssistant assistant = AssistantServices.builder(IntentClassifyAssistant.class)
                 .chatModel(chatModel)
                 .build();
         Result<String> result = assistant.route(options,chatMemory, query.toString());

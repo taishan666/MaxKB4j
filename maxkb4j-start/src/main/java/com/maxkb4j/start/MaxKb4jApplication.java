@@ -1,5 +1,6 @@
 package com.maxkb4j.start;
 
+import dev.langchain4j.rag.query.router.QueryRouter;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.thymeleaf.ThymeleafAutoConfiguration;
