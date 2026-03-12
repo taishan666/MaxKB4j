@@ -7,11 +7,10 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.maxkb4j.common.constant.RoleType;
-import com.maxkb4j.common.util.*;
 import com.maxkb4j.common.domain.dto.OssFile;
+import com.maxkb4j.common.util.*;
 import com.maxkb4j.oss.service.IOssService;
 import com.maxkb4j.system.constant.AuthTargetType;
-import com.maxkb4j.user.service.IUserResourcePermissionService;
 import com.maxkb4j.tool.consts.ToolConstants;
 import com.maxkb4j.tool.dto.ToolQuery;
 import com.maxkb4j.tool.entity.ToolEntity;
@@ -22,8 +21,8 @@ import com.maxkb4j.tool.mapper.ToolMapper;
 import com.maxkb4j.tool.util.McpToolUtil;
 import com.maxkb4j.tool.vo.McpToolVO;
 import com.maxkb4j.tool.vo.ToolVO;
+import com.maxkb4j.user.service.IUserResourcePermissionService;
 import com.maxkb4j.user.service.IUserService;
-import dev.langchain4j.mcp.client.McpClient;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -209,8 +208,4 @@ public class ToolService  extends ServiceImpl<ToolMapper, ToolEntity> implements
         return McpToolUtil.getToolVos(mcpServersJson);
     }
 
-    @Override
-    public List<McpClient> getMcpClients(JSONObject mcpServersJson) {
-        return McpToolUtil.getMcpClients(mcpServersJson);
-    }
 }

@@ -12,37 +12,31 @@ import dev.langchain4j.mcp.client.transport.http.StreamableHttpMcpTransport;
 import dev.langchain4j.model.chat.request.json.*;
 import dev.langchain4j.service.tool.ToolExecutor;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class McpToolUtil {
 
 
     public static Map<ToolSpecification, ToolExecutor> getToolMap(JSONObject mcpServers) {
-        Map<ToolSpecification, ToolExecutor> mcpToolMap = new HashMap<>();
-        mcpServers.keySet().forEach(key -> {
-            JSONObject serverConfig = (JSONObject) mcpServers.get(key);
-            McpClient mcpClient = getMcpClient(key,serverConfig);
-            Map<ToolSpecification, ToolExecutor> mcpClientToolMap = mcpClient.listTools().stream().collect(Collectors.toMap(
+        McpClient mcpClient = getMcpClient(mcpServers);
+        if (Objects.nonNull(mcpClient)){
+            return mcpClient.listTools().stream().collect(Collectors.toMap(
                     mcpTool -> mcpTool,
                     mcpTool -> new McpToolExecutor(mcpClient)
             ));
-            mcpToolMap.putAll(mcpClientToolMap);
-        });
-        return mcpToolMap;
+        }
+        return Map.of();
     }
 
-    public static List<McpClient> getMcpClients(JSONObject mcpServers) {
-        List<McpClient> mcpClients = new ArrayList<>();
-        mcpServers.keySet().forEach(key -> {
-            JSONObject serverConfig = (JSONObject) mcpServers.get(key);
-            McpClient mcpClient = getMcpClient(key,serverConfig);
-            mcpClients.add(mcpClient);
-        });
-        return mcpClients;
+    public static McpClient getMcpClient(JSONObject mcpServers) {
+        Optional<String> keyOpt = mcpServers.keySet().stream().findFirst();
+        if (keyOpt.isPresent()){
+            String key = keyOpt.get();
+            JSONObject serverConfig = mcpServers.getJSONObject(key);
+            return getMcpClient(key,serverConfig);
+        }
+        return null;
     }
 
     @SuppressWarnings("unchecked")
