@@ -62,6 +62,54 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
+                <groupId>org.bouncycastle</groupId>
+                <artifactId>bcpkix-jdk18on</artifactId>
+                <version>${bcpkix.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.tika</groupId>
+                <artifactId>tika-parsers-standard-package</artifactId>
+                <version>${tika.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>commons-io</groupId>
+                        <artifactId>commons-io</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.bouncycastle</groupId>
+                        <artifactId>bcprov-jdk18on</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.bouncycastle</groupId>
+                        <artifactId>bcpkix-jdk18on</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.tika</groupId>
+                <artifactId>tika-core</artifactId>
+                <version>${tika.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.alibaba</groupId>
+                <artifactId>easyexcel</artifactId>
+                <version>${easyexcel.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.apache.poi</groupId>
+                        <artifactId>poi-ooxml</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.apache.poi</groupId>
+                        <artifactId>poi</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.apache.commons</groupId>
+                        <artifactId>commons-csv</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
                 <groupId>dev.langchain4j</groupId>
                 <artifactId>langchain4j-spring-boot-starter</artifactId>
                 <version>${langchain4j.beta.version}</version>
@@ -332,7 +380,6 @@
             <artifactId>knife4j-openapi3-jakarta-spring-boot-starter</artifactId>
             <version>${knife4j.version}</version>
         </dependency>
-
         <dependency>
             <groupId>javax.validation</groupId>
             <artifactId>validation-api</artifactId>
@@ -342,30 +389,6 @@
             <groupId>com.alibaba</groupId>
             <artifactId>fastjson</artifactId>
             <version>${fastjson.version}</version> <!-- 请根据实际情况选择最新版本 -->
-        </dependency>
-        <dependency>
-            <groupId>com.alibaba</groupId>
-            <artifactId>easyexcel</artifactId>
-            <version>${easyexcel.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.apache.poi</groupId>
-                    <artifactId>poi-ooxml</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.apache.poi</groupId>
-                    <artifactId>poi</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.apache.commons</groupId>
-                    <artifactId>commons-csv</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.bouncycastle</groupId>
-            <artifactId>bcpkix-jdk18on</artifactId>
-            <version>${bcpkix.version}</version>
         </dependency>
         <dependency>
             <groupId>cn.hutool</groupId>
@@ -431,35 +454,11 @@
                 </exclusion>
             </exclusions>
         </dependency>
-        <dependency>
-            <groupId>org.apache.tika</groupId>
-            <artifactId>tika-parsers-standard-package</artifactId>
-            <version>${tika.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>commons-io</groupId>
-                    <artifactId>commons-io</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.bouncycastle</groupId>
-                    <artifactId>bcprov-jdk18on</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.bouncycastle</groupId>
-                    <artifactId>bcpkix-jdk18on</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.tika</groupId>
-            <artifactId>tika-core</artifactId>
-            <version>${tika.version}</version>
-        </dependency>
-        <dependency>
+<!--        <dependency>
             <groupId>org.reflections</groupId>
             <artifactId>reflections</artifactId>
             <version>${reflections.version}</version>
-        </dependency>
+        </dependency>-->
         <dependency>
             <groupId>com.github.ben-manes.caffeine</groupId>
             <artifactId>caffeine</artifactId>
@@ -481,7 +480,6 @@
             <artifactId>logback-classic</artifactId>
             <version>${logback.version}</version>
         </dependency>
-
         <dependency>
             <groupId>com.mysql</groupId>
             <artifactId>mysql-connector-j</artifactId>

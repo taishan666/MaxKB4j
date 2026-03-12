@@ -1,7 +1,7 @@
 package com.maxkb4j.knowledge.service;
 
 import com.alibaba.fastjson.JSONObject;
-import com.maxkb4j.common.util.JsoupUtil;
+import com.maxkb4j.knowledge.util.JsoupUtil;
 import com.maxkb4j.knowledge.dto.DocumentSimple;
 import com.maxkb4j.knowledge.dto.ParagraphSimple;
 import jakarta.validation.constraints.NotNull;

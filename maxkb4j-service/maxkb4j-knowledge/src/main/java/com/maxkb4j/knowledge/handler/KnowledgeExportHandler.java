@@ -8,7 +8,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.maxkb4j.knowledge.entity.DocumentEntity;
 import com.maxkb4j.knowledge.entity.ParagraphEntity;
 import com.maxkb4j.knowledge.entity.ProblemEntity;
-import com.maxkb4j.knowledge.excel.DatasetExcel;
+import com.maxkb4j.knowledge.excel.KnowledgeExcel;
 import com.maxkb4j.knowledge.mapper.ParagraphMapper;
 import com.maxkb4j.knowledge.mapper.ProblemParagraphMapper;
 import jakarta.servlet.http.HttpServletResponse;
@@ -47,13 +47,13 @@ public class KnowledgeExportHandler {
      * @param doc 文档实体
      * @return Excel数据列表
      */
-    public List<DatasetExcel> getDatasetExcelByDoc(DocumentEntity doc) {
-        List<DatasetExcel> list = new ArrayList<>();
+    public List<KnowledgeExcel> getDatasetExcelByDoc(DocumentEntity doc) {
+        List<KnowledgeExcel> list = new ArrayList<>();
         LambdaQueryWrapper<ParagraphEntity> queryWrapper = Wrappers.<ParagraphEntity>lambdaQuery()
                 .eq(ParagraphEntity::getDocumentId, doc.getId());
         List<ParagraphEntity> paragraphs = paragraphMapper.selectList(queryWrapper);
         for (ParagraphEntity paragraph : paragraphs) {
-            DatasetExcel excel = new DatasetExcel();
+            KnowledgeExcel excel = new KnowledgeExcel();
             excel.setTitle(paragraph.getTitle());
             excel.setContent(paragraph.getContent());
             List<ProblemEntity> problemEntities = problemParagraphMapper.getProblemsByParagraphId(paragraph.getId());
@@ -98,9 +98,9 @@ public class KnowledgeExportHandler {
      * 写入多Sheet的Excel文件到输出流
      */
     public void writeMultiSheetExcel(java.io.OutputStream outputStream, List<DocumentEntity> docs) {
-        try (ExcelWriter excelWriter = EasyExcel.write(outputStream, DatasetExcel.class).build()) {
+        try (ExcelWriter excelWriter = EasyExcel.write(outputStream, KnowledgeExcel.class).build()) {
             for (DocumentEntity doc : docs) {
-                List<DatasetExcel> list = getDatasetExcelByDoc(doc);
+                List<KnowledgeExcel> list = getDatasetExcelByDoc(doc);
                 if (list.isEmpty()) {
                     log.debug("文档 {} 没有数据，跳过该sheet", doc.getName());
                     continue; // 跳过空数据

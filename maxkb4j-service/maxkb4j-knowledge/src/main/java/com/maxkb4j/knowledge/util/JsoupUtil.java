@@ -1,4 +1,4 @@
-package com.maxkb4j.common.util;
+package com.maxkb4j.knowledge.util;
 
 import cn.hutool.http.HttpUtil;
 import lombok.extern.slf4j.Slf4j;

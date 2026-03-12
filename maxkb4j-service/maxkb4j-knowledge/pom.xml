@@ -59,7 +59,6 @@
             <artifactId>jieba-analysis</artifactId>
             <version>${jieba.version}</version>
         </dependency>
-
         <dependency>
             <groupId>org.apache.tika</groupId>
             <artifactId>tika-parsers-standard-package</artifactId>

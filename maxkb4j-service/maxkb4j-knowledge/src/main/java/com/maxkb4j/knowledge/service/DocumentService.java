@@ -8,7 +8,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.maxkb4j.common.exception.FileLimitExceededException;
-import com.maxkb4j.common.util.ExcelUtil;
+import com.maxkb4j.core.util.ExcelUtil;
 import com.maxkb4j.common.util.IoUtil;
 import com.maxkb4j.common.util.SecurityUtil;
 import com.maxkb4j.core.event.DocumentIndexEvent;
@@ -19,7 +19,7 @@ import com.maxkb4j.knowledge.dto.DocQuery;
 import com.maxkb4j.knowledge.dto.DocumentSimple;
 import com.maxkb4j.knowledge.dto.GenerateProblemDTO;
 import com.maxkb4j.knowledge.entity.*;
-import com.maxkb4j.knowledge.excel.DatasetExcel;
+import com.maxkb4j.knowledge.excel.KnowledgeExcel;
 import com.maxkb4j.knowledge.handler.DocumentHandler;
 import com.maxkb4j.knowledge.mapper.DocumentMapper;
 import com.maxkb4j.knowledge.mapper.KnowledgeMapper;
@@ -181,11 +181,11 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
     public void exportExcelByDocId(String docId, HttpServletResponse response) {
         DocumentEntity doc = this.getById(docId);
         if (doc == null) return;
-        List<DatasetExcel> list = getDatasetExcelByDoc(doc);
+        List<KnowledgeExcel> list = getDatasetExcelByDoc(doc);
         int index=doc.getName().lastIndexOf(".");
         int end=Math.min(31,index);
         String sheetName=doc.getName().substring(0,end);
-        ExcelUtil.export(response, doc.getName(), sheetName, list, DatasetExcel.class);
+        ExcelUtil.export(response, doc.getName(), sheetName, list, KnowledgeExcel.class);
     }
 
     public void exportExcelZipByDocId(String docId, HttpServletResponse response) throws IOException {
@@ -194,13 +194,13 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         exportExcelZipByDocs(List.of(doc), doc.getName(), response);
     }
 
-    private List<DatasetExcel> getDatasetExcelByDoc(DocumentEntity doc) {
-        List<DatasetExcel> list = new ArrayList<>();
+    private List<KnowledgeExcel> getDatasetExcelByDoc(DocumentEntity doc) {
+        List<KnowledgeExcel> list = new ArrayList<>();
         List<ParagraphEntity> paragraphs = paragraphService.lambdaQuery()
                 .eq(ParagraphEntity::getDocumentId, doc.getId())
                 .list();
         for (ParagraphEntity paragraph : paragraphs) {
-            DatasetExcel excel = new DatasetExcel();
+            KnowledgeExcel excel = new KnowledgeExcel();
             excel.setTitle(paragraph.getTitle());
             excel.setContent(paragraph.getContent());
             List<ProblemEntity> problemEntities = problemParagraphService.getProblemsByParagraphId(paragraph.getId());
@@ -226,9 +226,9 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         try (ByteArrayOutputStream zipBuffer = new ByteArrayOutputStream();
              ZipOutputStream zipOut = new ZipOutputStream(zipBuffer);
              ByteArrayOutputStream excelBuffer = new ByteArrayOutputStream();
-             ExcelWriter excelWriter = EasyExcel.write(excelBuffer, DatasetExcel.class).build()) {
+             ExcelWriter excelWriter = EasyExcel.write(excelBuffer, KnowledgeExcel.class).build()) {
             for (DocumentEntity doc : docs) {
-                List<DatasetExcel> data = getDatasetExcelByDoc(doc);
+                List<KnowledgeExcel> data = getDatasetExcelByDoc(doc);
                 WriteSheet sheet = EasyExcel.writerSheet(doc.getName()).build();
                 excelWriter.write(data, sheet);
             }

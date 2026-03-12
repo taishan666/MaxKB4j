@@ -12,6 +12,7 @@ import com.maxkb4j.application.cache.ChatCache;
 import com.maxkb4j.application.dto.ChatInfo;
 import com.maxkb4j.application.dto.ChatQueryDTO;
 import com.maxkb4j.application.entity.*;
+import com.maxkb4j.application.excel.ChatRecordDetailExcel;
 import com.maxkb4j.application.handler.PostResponseHandler;
 import com.maxkb4j.application.mapper.ApplicationChatMapper;
 import com.maxkb4j.application.vo.ApplicationVO;
@@ -22,6 +23,7 @@ import com.maxkb4j.common.domain.dto.ChatRecordDTO;
 import com.maxkb4j.common.domain.dto.ChatResponse;
 import com.maxkb4j.common.exception.AccessNumLimitException;
 import com.maxkb4j.common.exception.ApiException;
+import com.maxkb4j.common.util.BeanUtil;
 import com.maxkb4j.common.util.DateTimeUtil;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -175,7 +177,8 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
 
     public void chatExport(List<String> ids, HttpServletResponse response) throws IOException {
         if (CollectionUtils.isNotEmpty(ids)) {
-            List<ChatRecordDetailVO> rows = baseMapper.chatRecordDetail(ids);
+            List<ChatRecordDetailVO> list = baseMapper.chatRecordDetail(ids);
+            List<ChatRecordDetailExcel> rows = BeanUtil.copyList(list, ChatRecordDetailExcel.class);
             EasyExcel.write(response.getOutputStream(), ChatRecordDetailVO.class).sheet("sheet").doWrite(rows);
         }
     }

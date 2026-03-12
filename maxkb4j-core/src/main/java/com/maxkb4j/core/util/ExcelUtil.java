@@ -1,4 +1,4 @@
-package com.maxkb4j.common.util;
+package com.maxkb4j.core.util;
 
 import com.alibaba.excel.EasyExcel;
 import jakarta.servlet.http.HttpServletResponse;

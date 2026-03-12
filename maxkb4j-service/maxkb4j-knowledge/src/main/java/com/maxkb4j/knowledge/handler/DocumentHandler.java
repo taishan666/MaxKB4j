@@ -9,7 +9,7 @@ import com.alibaba.fastjson.JSON;
 import com.maxkb4j.common.util.SecurityUtil;
 import com.maxkb4j.knowledge.dto.DocumentSimple;
 import com.maxkb4j.knowledge.dto.ParagraphSimple;
-import com.maxkb4j.knowledge.excel.DatasetExcel;
+import com.maxkb4j.knowledge.excel.KnowledgeExcel;
 import com.maxkb4j.knowledge.listener.ExcelDataListener;
 import com.maxkb4j.oss.service.IOssService;
 import lombok.RequiredArgsConstructor;
@@ -135,8 +135,8 @@ public class DocumentHandler {
             }
         } else {
             // === 原有 Excel 逻辑保持不变 ===
-            ExcelDataListener<DatasetExcel> dataListener = new ExcelDataListener<>();
-            try (ExcelReader excelReader = EasyExcel.read(new ByteArrayInputStream(bytes), DatasetExcel.class, dataListener).build()) {
+            ExcelDataListener<KnowledgeExcel> dataListener = new ExcelDataListener<>();
+            try (ExcelReader excelReader = EasyExcel.read(new ByteArrayInputStream(bytes), KnowledgeExcel.class, dataListener).build()) {
                 List<ReadSheet> sheets = excelReader.excelExecutor().sheetList();
                 for (ReadSheet sheet : sheets) {
                     DocumentSimple docSimple = new DocumentSimple();
@@ -146,8 +146,8 @@ public class DocumentHandler {
                     List<ParagraphSimple> paragraphs = new ArrayList<>();
                     log.info("正在读取 Sheet: {}", sheet.getSheetName());
                     excelReader.read(sheet);
-                    List<DatasetExcel> dataList = dataListener.getDataList();
-                    for (DatasetExcel data : dataList) {
+                    List<KnowledgeExcel> dataList = dataListener.getDataList();
+                    for (KnowledgeExcel data : dataList) {
                         log.info("在Sheet {} 中读取到一条数据: {}", sheet.getSheetName(), JSON.toJSONString(data));
                         ParagraphSimple paragraph = ParagraphSimple.builder()
                                 .title(data.getTitle())

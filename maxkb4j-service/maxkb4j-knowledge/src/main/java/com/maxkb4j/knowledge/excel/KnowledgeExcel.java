@@ -10,7 +10,7 @@ import lombok.Data;
 @ColumnWidth(30)
 @HeadRowHeight(15)
 @ContentRowHeight(20)
-public class DatasetExcel {
+public class KnowledgeExcel {
 
     @ColumnWidth(30)
     @ExcelProperty(index = 0)
