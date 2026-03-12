@@ -1,5 +1,8 @@
 package com.maxkb4j.workflow.handler.node.impl;
 
+import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
+import com.maxkb4j.knowledge.vo.ParagraphVO;
+import com.maxkb4j.model.service.IModelProviderService;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.NodeType;
 import com.maxkb4j.workflow.handler.node.INodeHandler;
@@ -7,12 +10,9 @@ import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.model.Workflow;
 import com.maxkb4j.workflow.node.AbsNode;
 import com.maxkb4j.workflow.node.impl.RerankerNode;
-import com.maxkb4j.knowledge.vo.ParagraphVO;
-import com.maxkb4j.model.service.IModelProviderService;
 import dev.langchain4j.data.document.Metadata;
 import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.model.output.Response;
-import dev.langchain4j.model.output.TokenUsage;
 import dev.langchain4j.model.scoring.ScoringModel;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,40 +37,40 @@ public class RerankerNodeHandler implements INodeHandler {
         RerankerNode.NodeParams nodeParams = node.getNodeData().toJavaObject(RerankerNode.NodeParams.class);
         List<String> questionReferenceAddress = nodeParams.getQuestionReferenceAddress();
         String question = (String) workflow.getReferenceField(questionReferenceAddress);
-        List<List<String>> rerankerReferenceList = nodeParams.getRerankerReferenceList();
-        List<TextSegment> textSegments = getRerankerList(workflow,rerankerReferenceList);
-        // 获取重排序模型实例
-        ScoringModel rerankerModel = modelFactory.buildScoringModel(nodeParams.getRerankerModelId());
-        double similarity = nodeParams.getRerankerSetting().getSimilarity();
-        Response<List<Double>> response = rerankerModel.scoreAll(textSegments, question);
         List<RerankerNode.RerankResult> documentList = new ArrayList<>();
-        List<Double> scores = response.content();
-        for (int i = 0; i < textSegments.size(); i++) {
-            Double score = scores.get(i);
-            TextSegment textSegment = textSegments.get(i);
-            Map<String, Object> metadata = textSegment.metadata().toMap();
-            metadata.put("relevance_score", score);
-            RerankerNode.RerankResult textSegmentResult = new RerankerNode.RerankResult(textSegment.text(), metadata);
-            documentList.add(textSegmentResult);
-        }
-        List<RerankerNode.RerankResult> resultList =documentList.stream().filter(rerankResult -> {
-            if (rerankResult.getMetadata().containsKey("relevance_score")){
-                Double score = (Double) rerankResult.getMetadata().get("relevance_score");
-                return score > similarity;
+        List<RerankerNode.RerankResult> resultList=new ArrayList<>();
+        List<List<String>> rerankerReferenceList = nodeParams.getRerankerReferenceList();
+        if (CollectionUtils.isNotEmpty(rerankerReferenceList)){
+            double similarity = nodeParams.getRerankerSetting().getSimilarity();
+            List<TextSegment> textSegments = getRerankerList(workflow,rerankerReferenceList);
+            // 获取重排序模型实例
+            ScoringModel rerankerModel = modelFactory.buildScoringModel(nodeParams.getRerankerModelId());
+            Response<List<Double>> response = rerankerModel.scoreAll(textSegments, question);
+            List<Double> scores = response.content();
+            for (int i = 0; i < textSegments.size(); i++) {
+                Double score = scores.get(i);
+                TextSegment textSegment = textSegments.get(i);
+                Map<String, Object> metadata = textSegment.metadata().toMap();
+                metadata.put("relevance_score", score);
+                RerankerNode.RerankResult textSegmentResult = new RerankerNode.RerankResult(textSegment.text(), metadata);
+                documentList.add(textSegmentResult);
             }
-            return false;
-        }).toList();
-        int topN = nodeParams.getRerankerSetting().getTopN();
-        int endListIndex = Math.min(topN, resultList.size());
-        resultList=resultList.subList(0, endListIndex);
+            resultList =documentList.stream().filter(rerankResult -> {
+                if (rerankResult.getMetadata().containsKey("relevance_score")){
+                    Double score = (Double) rerankResult.getMetadata().get("relevance_score");
+                    return score > similarity;
+                }
+                return false;
+            }).toList();
+            int topN = nodeParams.getRerankerSetting().getTopN();
+            int endListIndex = Math.min(topN, resultList.size());
+            resultList=resultList.subList(0, endListIndex);
+        }
         String result = String.join("", resultList.stream().map(RerankerNode.RerankResult::getPageContent).toList());
         int maxParagraphCharNumber = nodeParams.getRerankerSetting().getMaxParagraphCharNumber();
         int endIndex = Math.min(result.length(), maxParagraphCharNumber);
         result = result.substring(0, endIndex);
         node.getDetail().put("question", question);
-        node.getDetail().put("documentList", documentList);
-        TokenUsage tokenUsage =  response.tokenUsage();
-        assert tokenUsage != null;
         node.getDetail().put("documentList", documentList);
         return new NodeResult(Map.of("resultList", resultList,
                 "result", result));
