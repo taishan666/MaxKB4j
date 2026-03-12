@@ -36,38 +36,40 @@ public class SearchDatasetStep extends AbsSearchDatasetStep {
     @Override
     protected List<ParagraphVO> execute(List<String> knowledgeIds, KnowledgeSetting datasetSetting, String problemText, String paddingProblemText, Boolean reChat, PipelineManage manage) {
         long startTime = System.currentTimeMillis();
-        if(Boolean.TRUE.equals(datasetSetting.getOnDemandEnable())){
-            System.out.println("进来了！！！");
-            ApplicationEntity application = manage.application;
-            String modelId = application.getModelId();
-            JSONObject modelParams = application.getModelParamsSetting();
-            ChatModel chatModel = modelFactory.buildChatModel(modelId,modelParams);
-            RouterAssistant assistant = AssistantServices.builder(RouterAssistant.class)
-                    .chatModel(chatModel)
-                    .build();
-            List<String> options=new ArrayList<>();
-            List<KnowledgeEntity> knowledgeList =knowledgeService.listNameAndDescByIds(knowledgeIds);
-            Map<String, String> idToClassification=new HashMap<>();
-            for (int i = 0; i < knowledgeList.size(); i++) {
-                KnowledgeEntity knowledge=knowledgeList.get(i);
-                int id = i + 1;
-                options.add(id+ ":" + knowledge.getName()+"("+knowledge.getDesc()+")");
-                idToClassification.put(String.valueOf(id), knowledge.getId());
-            }
-            Result<List<String>> result = assistant.route(String.join("\n", options), problemText);
-            List<String> classificationIds = result.content();
-            for (String classificationId : classificationIds) {
-                if (!idToClassification.containsKey(classificationId)){
-                    knowledgeIds.remove(idToClassification.get(classificationId));
+        List<ParagraphVO> paragraphList= new ArrayList<>();
+        if (CollectionUtils.isNotEmpty(knowledgeIds)){
+            if(Boolean.TRUE.equals(datasetSetting.getOnDemandEnable())){
+                ApplicationEntity application = manage.application;
+                String modelId = application.getModelId();
+                JSONObject modelParams = application.getModelParamsSetting();
+                ChatModel chatModel = modelFactory.buildChatModel(modelId,modelParams);
+                RouterAssistant assistant = AssistantServices.builder(RouterAssistant.class)
+                        .chatModel(chatModel)
+                        .build();
+                List<String> options=new ArrayList<>();
+                List<KnowledgeEntity> knowledgeList =knowledgeService.listNameAndDescByIds(knowledgeIds);
+                Map<String, String> idToClassification=new HashMap<>();
+                for (int i = 0; i < knowledgeList.size(); i++) {
+                    KnowledgeEntity knowledge=knowledgeList.get(i);
+                    int id = i + 1;
+                    options.add(id+ ":" + knowledge.getName()+"("+knowledge.getDesc()+")");
+                    idToClassification.put(String.valueOf(id), knowledge.getId());
                 }
+                Result<List<String>> result = assistant.route(String.join("\n", options), problemText);
+                List<String> classificationIds = result.content();
+                for (String classificationId : classificationIds) {
+                    if (!idToClassification.containsKey(classificationId)){
+                        knowledgeIds.remove(idToClassification.get(classificationId));
+                    }
+                }
+                System.out.println(knowledgeIds);
+                TokenUsage tokenUsage=result.tokenUsage();
+                super.context.put("messageTokens", tokenUsage.inputTokenCount());
+                super.context.put("answerTokens", tokenUsage.outputTokenCount());
             }
-            System.out.println(knowledgeIds);
-            TokenUsage tokenUsage=result.tokenUsage();
-            super.context.put("messageTokens", tokenUsage.inputTokenCount());
-            super.context.put("answerTokens", tokenUsage.outputTokenCount());
+            List<String> excludeParagraphIds = reChat ? manage.getExcludeParagraphIds(problemText) : List.of();
+            paragraphList = retrieval(knowledgeIds,datasetSetting, problemText, paddingProblemText, reChat,excludeParagraphIds);
         }
-        List<String> excludeParagraphIds = reChat ? manage.getExcludeParagraphIds(problemText) : List.of();
-        List<ParagraphVO> paragraphList = retrieval(knowledgeIds,datasetSetting, problemText, paddingProblemText, reChat,excludeParagraphIds);
         log.info("dataset search 耗时 {} ms", System.currentTimeMillis() - startTime);
         super.context.put("paragraphList", paragraphList);
         super.context.put("problemText", problemText);
@@ -75,34 +77,31 @@ public class SearchDatasetStep extends AbsSearchDatasetStep {
     }
 
     protected List<ParagraphVO> retrieval(List<String> knowledgeIds, KnowledgeSetting datasetSetting, String problemText, String paddingProblemText, Boolean reChat,List<String> excludeParagraphIds) {
-       if (CollectionUtils.isNotEmpty(knowledgeIds)){
-           List<CompletableFuture<List<ParagraphVO>>> futureList = new ArrayList<>();
-           futureList.add(CompletableFuture.supplyAsync(() -> retrieveService.paragraphSearch(problemText, knowledgeIds, excludeParagraphIds, datasetSetting)));
-           if (StringUtils.isNotBlank(paddingProblemText) && !problemText.equals(paddingProblemText)) {
-               futureList.add(CompletableFuture.supplyAsync(() -> retrieveService.paragraphSearch(paddingProblemText, knowledgeIds, excludeParagraphIds, datasetSetting)));
-           }
-           List<ParagraphVO> paragraphList= futureList.stream().flatMap(future -> future.join().stream()).toList();
-           //当有优化的问题时
-           if (paragraphList.size() > datasetSetting.getTopN()) {
-               Map<String, ParagraphVO> map = new LinkedHashMap<>();
-               //融合排序
-               for (ParagraphVO paragraph : paragraphList) {
-                   if (map.containsKey(paragraph.getId())) {
-                       if (map.get(paragraph.getId()).getComprehensiveScore() < paragraph.getComprehensiveScore()) {
-                           map.put(paragraph.getId(), paragraph);
-                       }
-                   } else {
-                       map.put(paragraph.getId(), paragraph);
-                   }
-               }
-               List<ParagraphVO> results = new ArrayList<>(map.values());
-               results.sort(Comparator.comparing(ParagraphVO::getComprehensiveScore).reversed());
-               int endIndex = Math.min(datasetSetting.getTopN(), results.size());
-               return results.subList(0, endIndex);
-           }
-           return paragraphList;
-       }
-       return Collections.emptyList();
+        List<CompletableFuture<List<ParagraphVO>>> futureList = new ArrayList<>();
+        futureList.add(CompletableFuture.supplyAsync(() -> retrieveService.paragraphSearch(problemText, knowledgeIds, excludeParagraphIds, datasetSetting)));
+        if (StringUtils.isNotBlank(paddingProblemText) && !problemText.equals(paddingProblemText)) {
+            futureList.add(CompletableFuture.supplyAsync(() -> retrieveService.paragraphSearch(paddingProblemText, knowledgeIds, excludeParagraphIds, datasetSetting)));
+        }
+        List<ParagraphVO> paragraphList= futureList.stream().flatMap(future -> future.join().stream()).toList();
+        //当有优化的问题时
+        if (paragraphList.size() > datasetSetting.getTopN()) {
+            Map<String, ParagraphVO> map = new LinkedHashMap<>();
+            //融合排序
+            for (ParagraphVO paragraph : paragraphList) {
+                if (map.containsKey(paragraph.getId())) {
+                    if (map.get(paragraph.getId()).getComprehensiveScore() < paragraph.getComprehensiveScore()) {
+                        map.put(paragraph.getId(), paragraph);
+                    }
+                } else {
+                    map.put(paragraph.getId(), paragraph);
+                }
+            }
+            List<ParagraphVO> results = new ArrayList<>(map.values());
+            results.sort(Comparator.comparing(ParagraphVO::getComprehensiveScore).reversed());
+            int endIndex = Math.min(datasetSetting.getTopN(), results.size());
+            return results.subList(0, endIndex);
+        }
+        return paragraphList;
     }
 
 
