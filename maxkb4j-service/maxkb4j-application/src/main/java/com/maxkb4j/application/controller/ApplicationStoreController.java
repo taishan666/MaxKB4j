@@ -5,7 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.application.entity.ApplicationEntity;
 import com.maxkb4j.application.util.ResourceUtil;
 import com.maxkb4j.common.constant.AppConst;
-import com.maxkb4j.common.domain.api.R;
+import com.maxkb4j.common.api.R;
 import com.maxkb4j.common.util.IoUtil;
 import com.maxkb4j.common.util.JarUtil;
 import com.maxkb4j.system.dto.AppTemplate;

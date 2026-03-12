@@ -14,7 +14,7 @@ import com.maxkb4j.application.vo.ApplicationStatisticsVO;
 import com.maxkb4j.application.vo.ApplicationVO;
 import com.maxkb4j.common.annotation.SaCheckPerm;
 import com.maxkb4j.common.constant.AppConst;
-import com.maxkb4j.common.domain.api.R;
+import com.maxkb4j.common.api.R;
 import com.maxkb4j.common.enums.PermissionEnum;
 import com.maxkb4j.tool.service.IToolService;
 import com.maxkb4j.tool.vo.McpToolVO;

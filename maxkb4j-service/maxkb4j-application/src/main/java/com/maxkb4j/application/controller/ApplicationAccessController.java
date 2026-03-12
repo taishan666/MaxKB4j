@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.application.dto.PlatformStatusDTO;
 import com.maxkb4j.application.service.ApplicationAccessService;
 import com.maxkb4j.common.constant.AppConst;
-import com.maxkb4j.common.domain.api.R;
+import com.maxkb4j.common.api.R;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 

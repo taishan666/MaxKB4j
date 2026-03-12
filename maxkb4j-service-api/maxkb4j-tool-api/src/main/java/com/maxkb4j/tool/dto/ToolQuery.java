@@ -1,12 +1,12 @@
 package com.maxkb4j.tool.dto;
 
-import com.maxkb4j.common.domain.base.dto.BaseQuery;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 
-@EqualsAndHashCode(callSuper = true)
 @Data
-public class ToolQuery extends BaseQuery {
+public class ToolQuery{
+    private String name;
+    private String createUser;
+    private String folderId;
     private String scope;
     private String toolType;
     private Boolean isActive;

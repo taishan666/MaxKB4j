@@ -3,7 +3,7 @@ package com.maxkb4j.model.custom.model;
 import com.alibaba.dashscope.audio.tts.SpeechSynthesisParam;
 import com.alibaba.dashscope.audio.tts.SpeechSynthesizer;
 import com.alibaba.fastjson.JSONObject;
-import com.maxkb4j.common.domain.base.entity.ModelCredential;
+import com.maxkb4j.common.mp.entity.ModelCredential;
 import com.maxkb4j.model.service.TTSModel;
 import lombok.Data;
 

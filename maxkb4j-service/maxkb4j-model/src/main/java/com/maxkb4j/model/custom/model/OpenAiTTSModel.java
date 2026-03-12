@@ -1,7 +1,7 @@
 package com.maxkb4j.model.custom.model;
 
 import com.alibaba.fastjson.JSONObject;
-import com.maxkb4j.common.domain.base.entity.ModelCredential;
+import com.maxkb4j.common.mp.entity.ModelCredential;
 import com.maxkb4j.model.service.TTSModel;
 import com.openai.client.OpenAIClient;
 import com.openai.client.okhttp.OpenAIOkHttpClient;

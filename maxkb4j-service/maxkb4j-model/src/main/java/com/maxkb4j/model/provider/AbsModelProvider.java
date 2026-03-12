@@ -1,7 +1,7 @@
 package com.maxkb4j.model.provider;
 
 import com.alibaba.fastjson.JSONObject;
-import com.maxkb4j.common.domain.base.entity.ModelCredential;
+import com.maxkb4j.common.mp.entity.ModelCredential;
 import com.maxkb4j.model.custom.credential.ModelCredentialForm;
 import com.maxkb4j.model.custom.disabled.DisabledSTTModel;
 import com.maxkb4j.model.custom.disabled.DisabledScoringModel;

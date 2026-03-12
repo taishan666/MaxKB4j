@@ -12,6 +12,8 @@ public class ChatRecordDTO {
     private JSONObject details;
     private JSONArray answerTextList;
     private Float runTime;
+    private Integer messageTokens;
+    private Integer answerTokens;
 
     public JSONObject getNodeDetailsByRuntimeNodeId(String runtimeNodeId) {
         return details.getJSONObject(runtimeNodeId);

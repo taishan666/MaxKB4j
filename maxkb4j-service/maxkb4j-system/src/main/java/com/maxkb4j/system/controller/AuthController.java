@@ -4,7 +4,7 @@ import cn.dev33.satoken.annotation.SaIgnore;
 import cn.dev33.satoken.secure.SaSecureUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.common.constant.AppConst;
-import com.maxkb4j.common.domain.api.R;
+import com.maxkb4j.common.api.R;
 import com.maxkb4j.common.util.StpKit;
 import com.maxkb4j.user.dto.ResetPasswordDTO;
 import com.maxkb4j.user.dto.UserLoginDTO;

@@ -1,4 +1,4 @@
-package com.maxkb4j.common.domain.api;
+package com.maxkb4j.common.api;
 
 
 import com.maxkb4j.common.util.ObjectUtil;

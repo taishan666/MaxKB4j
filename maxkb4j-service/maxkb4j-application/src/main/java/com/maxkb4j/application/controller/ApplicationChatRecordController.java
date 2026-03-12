@@ -8,7 +8,7 @@ import com.maxkb4j.application.service.ApplicationChatRecordService;
 import com.maxkb4j.application.vo.ApplicationChatRecordVO;
 import com.maxkb4j.common.annotation.SaCheckPerm;
 import com.maxkb4j.common.constant.AppConst;
-import com.maxkb4j.common.domain.api.R;
+import com.maxkb4j.common.api.R;
 import com.maxkb4j.common.enums.PermissionEnum;
 import com.maxkb4j.knowledge.entity.ParagraphEntity;
 import lombok.RequiredArgsConstructor;

@@ -7,7 +7,7 @@ import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.maxkb4j.common.constant.RoleType;
-import com.maxkb4j.common.domain.base.entity.ModelCredential;
+import com.maxkb4j.common.mp.entity.ModelCredential;
 import com.maxkb4j.common.util.BeanUtil;
 import com.maxkb4j.common.util.DataMaskUtil;
 import com.maxkb4j.common.util.StpKit;

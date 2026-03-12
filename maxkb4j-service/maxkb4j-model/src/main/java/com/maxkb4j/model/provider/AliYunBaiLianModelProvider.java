@@ -1,7 +1,7 @@
 package com.maxkb4j.model.provider;
 
 import com.alibaba.fastjson.JSONObject;
-import com.maxkb4j.common.domain.base.entity.ModelCredential;
+import com.maxkb4j.common.mp.entity.ModelCredential;
 import com.maxkb4j.model.custom.model.BaiLianImageModel;
 import com.maxkb4j.model.custom.model.BaiLianReranker;
 import com.maxkb4j.model.custom.model.BaiLianSTTModel;

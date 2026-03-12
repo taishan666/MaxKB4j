@@ -1,7 +1,7 @@
 package com.maxkb4j.model.custom.model;
 
 import com.alibaba.fastjson.JSONObject;
-import com.maxkb4j.common.domain.base.entity.ModelCredential;
+import com.maxkb4j.common.mp.entity.ModelCredential;
 import dev.langchain4j.community.model.dashscope.WanxImageModel;
 import dev.langchain4j.community.model.dashscope.WanxImageSize;
 import dev.langchain4j.community.model.dashscope.WanxImageStyle;

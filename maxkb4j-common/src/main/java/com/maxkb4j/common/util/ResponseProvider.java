@@ -1,7 +1,7 @@
 package com.maxkb4j.common.util;
 
-import com.maxkb4j.common.domain.api.R;
-import com.maxkb4j.common.domain.api.ResultCode;
+import com.maxkb4j.common.api.R;
+import com.maxkb4j.common.api.ResultCode;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 

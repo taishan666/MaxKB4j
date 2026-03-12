@@ -1,7 +1,7 @@
 package com.maxkb4j.system.controller;
 
 import com.maxkb4j.common.constant.AppConst;
-import com.maxkb4j.common.domain.api.R;
+import com.maxkb4j.common.api.R;
 import com.maxkb4j.folder.service.IFolderService;
 import com.maxkb4j.folder.vo.FolderVO;
 import lombok.RequiredArgsConstructor;

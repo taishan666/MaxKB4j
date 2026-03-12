@@ -12,7 +12,7 @@ import com.maxkb4j.application.vo.ApplicationChatRecordVO;
 import com.maxkb4j.chat.dto.McpRequest;
 import com.maxkb4j.chat.service.ChatApiService;
 import com.maxkb4j.common.constant.AppConst;
-import com.maxkb4j.common.domain.api.R;
+import com.maxkb4j.common.api.R;
 import com.maxkb4j.application.entity.ApplicationChatRecordEntity;
 import com.maxkb4j.common.exception.ApiException;
 import com.maxkb4j.common.util.StpKit;

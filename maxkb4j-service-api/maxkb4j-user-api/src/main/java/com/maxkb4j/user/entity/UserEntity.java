@@ -2,7 +2,7 @@ package com.maxkb4j.user.entity;
 
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.maxkb4j.common.domain.base.entity.BaseEntity;
+import com.maxkb4j.common.mp.base.BaseEntity;
 import com.maxkb4j.common.typehandler.StringSetTypeHandler;
 import lombok.Data;
 import lombok.EqualsAndHashCode;

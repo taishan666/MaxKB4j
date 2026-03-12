@@ -85,6 +85,7 @@ public class ApplicationChatRecordService extends ServiceImpl<ApplicationChatRec
         ChatRecordDTO  chatRecord=BeanUtil.copy(chatRecordEntity, ChatRecordDTO.class);
         return convert(chatRecord);
     }
+    @SuppressWarnings("unchecked")
     private ApplicationChatRecordVO convert(ChatRecordDTO chatRecord) {
         if (Objects.isNull(chatRecord)) {
             return null;
@@ -115,7 +116,6 @@ public class ApplicationChatRecordService extends ServiceImpl<ApplicationChatRec
                     if (showKnowledge) {
                         Object paragraphListObj = detail.get("paragraphList"); // 假设每个节点都有 id 字段
                         if (paragraphListObj != null) {
-                            @SuppressWarnings("unchecked")
                             List<ParagraphDTO> list = (List<ParagraphDTO>) paragraphListObj;
                             chatRecordVO.getParagraphList().addAll(list);
                         }

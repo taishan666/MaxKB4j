@@ -5,7 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.constant.LoginType;
 import com.maxkb4j.common.constant.RoleType;
-import com.maxkb4j.common.domain.api.R;
+import com.maxkb4j.common.api.R;
 import com.maxkb4j.system.dto.DisplayInfo;
 import com.maxkb4j.system.entity.SystemSettingEntity;
 import com.maxkb4j.system.enums.SettingType;

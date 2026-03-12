@@ -20,10 +20,10 @@ public class KnowledgeModelService {
         LambdaQueryWrapper<KnowledgeEntity> wrapper=Wrappers.<KnowledgeEntity>lambdaQuery()
                 .select(KnowledgeEntity::getEmbeddingModelId)
                 .eq(KnowledgeEntity::getId,knowledgeId);
-        KnowledgeEntity dataset=knowledgeMapper.selectOne(wrapper);
-        if (dataset==null){
+        KnowledgeEntity knowledge=knowledgeMapper.selectOne(wrapper);
+        if (knowledge==null){
             throw new RuntimeException("数据集不存在");
         }
-        return modelFactory.buildEmbeddingModel(dataset.getEmbeddingModelId());
+        return modelFactory.buildEmbeddingModel(knowledge.getEmbeddingModelId());
     }
 }

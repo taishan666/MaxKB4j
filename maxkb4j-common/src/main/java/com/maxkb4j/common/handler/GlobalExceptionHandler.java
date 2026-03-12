@@ -4,7 +4,7 @@ package com.maxkb4j.common.handler;
 import cn.dev33.satoken.exception.NotLoginException;
 import cn.dev33.satoken.exception.NotPermissionException;
 import cn.dev33.satoken.jwt.exception.SaJwtException;
-import com.maxkb4j.common.domain.api.R;
+import com.maxkb4j.common.api.R;
 import com.maxkb4j.common.exception.*;
 import com.maxkb4j.common.util.StpKit;
 import jakarta.servlet.http.HttpServletResponse;

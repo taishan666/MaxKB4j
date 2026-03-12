@@ -11,7 +11,7 @@ import com.maxkb4j.application.executor.HttpRequestExecutor;
 import com.maxkb4j.application.service.IApplicationApiKeyService;
 import com.maxkb4j.application.service.IApplicationChatService;
 import com.maxkb4j.application.service.IApplicationService;
-import com.maxkb4j.common.domain.base.entity.ToolInputField;
+import com.maxkb4j.common.mp.entity.ToolInputField;
 import com.maxkb4j.common.exception.ApiException;
 import com.maxkb4j.oss.service.IOssService;
 import com.maxkb4j.tool.consts.ToolConstants;

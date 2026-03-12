@@ -4,7 +4,7 @@ import com.maxkb4j.application.entity.ApplicationApiKeyEntity;
 import com.maxkb4j.application.service.ApplicationApiKeyService;
 import com.maxkb4j.common.annotation.SaCheckPerm;
 import com.maxkb4j.common.constant.AppConst;
-import com.maxkb4j.common.domain.api.R;
+import com.maxkb4j.common.api.R;
 import com.maxkb4j.common.enums.PermissionEnum;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;

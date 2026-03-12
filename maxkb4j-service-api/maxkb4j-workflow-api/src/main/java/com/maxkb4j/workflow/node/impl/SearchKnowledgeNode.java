@@ -1,7 +1,7 @@
 package com.maxkb4j.workflow.node.impl;
 
 import com.alibaba.fastjson.JSONObject;
-import com.maxkb4j.common.domain.base.entity.KnowledgeSetting;
+import com.maxkb4j.common.mp.entity.KnowledgeSetting;
 import com.maxkb4j.workflow.model.Workflow;
 import com.maxkb4j.workflow.node.AbsNode;
 import lombok.Data;

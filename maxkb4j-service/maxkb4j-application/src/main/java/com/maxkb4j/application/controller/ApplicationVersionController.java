@@ -4,7 +4,7 @@ import com.maxkb4j.application.entity.ApplicationVersionEntity;
 import com.maxkb4j.application.service.ApplicationVersionService;
 import com.maxkb4j.common.annotation.SaCheckPerm;
 import com.maxkb4j.common.constant.AppConst;
-import com.maxkb4j.common.domain.api.R;
+import com.maxkb4j.common.api.R;
 import com.maxkb4j.common.enums.PermissionEnum;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;

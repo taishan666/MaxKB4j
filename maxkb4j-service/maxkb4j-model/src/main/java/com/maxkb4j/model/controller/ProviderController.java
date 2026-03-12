@@ -1,7 +1,7 @@
 package com.maxkb4j.model.controller;
 
 import com.maxkb4j.common.constant.AppConst;
-import com.maxkb4j.common.domain.api.R;
+import com.maxkb4j.common.api.R;
 import com.maxkb4j.common.domain.form.BaseField;
 import com.maxkb4j.common.domain.vo.KeyAndValueVO;
 import com.maxkb4j.model.enums.ModelProvider;

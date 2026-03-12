@@ -1,4 +1,4 @@
-package com.maxkb4j.common.domain.api;
+package com.maxkb4j.common.api;
 
 
 import java.io.Serializable;

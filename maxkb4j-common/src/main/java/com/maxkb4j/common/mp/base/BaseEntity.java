@@ -1,4 +1,4 @@
-package com.maxkb4j.common.domain.base.entity;
+package com.maxkb4j.common.mp.base;
 
 import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.IdType;

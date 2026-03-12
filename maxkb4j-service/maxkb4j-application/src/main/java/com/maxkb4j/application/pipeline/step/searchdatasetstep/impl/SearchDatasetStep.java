@@ -1,7 +1,7 @@
 package com.maxkb4j.application.pipeline.step.searchdatasetstep.impl;
 
 import com.alibaba.fastjson.JSONObject;
-import com.maxkb4j.common.domain.base.entity.KnowledgeSetting;
+import com.maxkb4j.common.mp.entity.KnowledgeSetting;
 import com.maxkb4j.application.pipeline.PipelineManage;
 import com.maxkb4j.application.pipeline.step.searchdatasetstep.AbsSearchDatasetStep;
 import com.maxkb4j.knowledge.service.IRetrieveService;

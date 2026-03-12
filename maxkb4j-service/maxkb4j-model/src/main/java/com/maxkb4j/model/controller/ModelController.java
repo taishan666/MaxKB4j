@@ -3,7 +3,7 @@ package com.maxkb4j.model.controller;
 import com.alibaba.fastjson.JSONArray;
 import com.maxkb4j.common.annotation.SaCheckPerm;
 import com.maxkb4j.common.constant.AppConst;
-import com.maxkb4j.common.domain.api.R;
+import com.maxkb4j.common.api.R;
 import com.maxkb4j.common.enums.PermissionEnum;
 import com.maxkb4j.model.entity.ModelEntity;
 import com.maxkb4j.model.service.ModelService;

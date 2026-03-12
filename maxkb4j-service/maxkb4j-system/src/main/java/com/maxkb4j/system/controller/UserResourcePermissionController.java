@@ -5,7 +5,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.constant.LoginType;
 import com.maxkb4j.common.constant.RoleType;
-import com.maxkb4j.common.domain.api.R;
+import com.maxkb4j.common.api.R;
 import com.maxkb4j.common.util.BeanUtil;
 import com.maxkb4j.system.service.impl.UserResourcePermissionServiceImpl;
 import com.maxkb4j.system.service.impl.UserServiceImpl;
