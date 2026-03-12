@@ -2,7 +2,7 @@ package com.maxkb4j.oss.service;
 
 
 import cn.hutool.core.io.IoUtil;
-import com.maxkb4j.common.domain.dto.SysFile;
+import com.maxkb4j.common.domain.dto.OssFile;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
 import com.mongodb.client.gridfs.model.GridFSFile;
@@ -37,8 +37,8 @@ public class MongoFileService implements IOssService{
 
     private final GridFsTemplate gridFsTemplate;
 
-    public SysFile uploadFile(MultipartFile file) throws IOException {
-        SysFile fileVO = new SysFile();
+    public OssFile uploadFile(MultipartFile file) throws IOException {
+        OssFile fileVO = new OssFile();
         // 新文件名
         fileVO.setName(file.getOriginalFilename());
         fileVO.setSize(file.getSize());
@@ -64,8 +64,8 @@ public class MongoFileService implements IOssService{
         return objectId.toString();
     }
 
-    public SysFile uploadFile(String fileName, byte[] fileBytes)  {
-        SysFile fileVO = new SysFile();
+    public OssFile uploadFile(String fileName, byte[] fileBytes)  {
+        OssFile fileVO = new OssFile();
         InputStream ins = new ByteArrayInputStream(fileBytes);
         // 新文件名
         fileVO.setName(fileName);
@@ -81,12 +81,12 @@ public class MongoFileService implements IOssService{
         return fileVO;
     }
 
-    public SysFile getFile(String id) {
+    public OssFile getFile(String id) {
         GridFSFile file = this.getById(id);
         if (file == null || file.getLength() <= 0){
             return null;
         }
-        SysFile fileVO = new SysFile();
+        OssFile fileVO = new OssFile();
         // 新文件名
         fileVO.setName(file.getFilename());
         fileVO.setSize(file.getLength());

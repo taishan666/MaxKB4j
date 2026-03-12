@@ -10,19 +10,19 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.maxkb4j.application.builder.ChatServiceBuilder;
 import com.maxkb4j.application.cache.ChatCache;
 import com.maxkb4j.application.dto.ChatInfo;
-import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.application.dto.ChatQueryDTO;
 import com.maxkb4j.application.entity.*;
 import com.maxkb4j.application.handler.PostResponseHandler;
 import com.maxkb4j.application.mapper.ApplicationChatMapper;
 import com.maxkb4j.application.vo.ApplicationVO;
 import com.maxkb4j.application.vo.ChatRecordDetailVO;
-import com.maxkb4j.common.domain.entity.ChatRecordEntity;
+import com.maxkb4j.common.domain.dto.ChatMessageVO;
+import com.maxkb4j.common.domain.dto.ChatParams;
+import com.maxkb4j.common.domain.dto.ChatRecordDTO;
+import com.maxkb4j.common.domain.dto.ChatResponse;
 import com.maxkb4j.common.exception.AccessNumLimitException;
 import com.maxkb4j.common.exception.ApiException;
 import com.maxkb4j.common.util.DateTimeUtil;
-import com.maxkb4j.common.domain.dto.ChatMessageVO;
-import com.maxkb4j.common.domain.dto.ChatResponse;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -105,7 +105,7 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
                     chatInfo.setAppId(chatEntity.getApplicationId());
                 }
             }
-            List<ChatRecordEntity> chatRecordList = chatRecordService.lambdaQuery().eq(ChatRecordEntity::getChatId, chatId).list();
+            List<ApplicationChatRecordEntity> chatRecordList = chatRecordService.lambdaQuery().eq(ApplicationChatRecordEntity::getChatId, chatId).list();
             chatInfo.setChatRecordList(chatRecordList);
             ChatCache.put(chatInfo.getChatId(), chatInfo);
             return chatInfo;
@@ -120,10 +120,10 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
             sink.tryEmitError(new AccessNumLimitException());
             return new ChatResponse(List.of(), null);
         }
-        List<ChatRecordEntity> historyChatRecordList = chatRecordService.getChatRecords(chatParams.getChatId());
+        List<ChatRecordDTO> historyChatRecordList = chatRecordService.getChatRecords(chatParams.getChatId());
         chatParams.setHistoryChatRecords(historyChatRecordList);
         if (StringUtils.isNotBlank(chatParams.getChatRecordId())) {
-            ChatRecordEntity chatRecord = historyChatRecordList.stream().filter(e -> e.getId().equals(chatParams.getChatRecordId())).findFirst().orElse(null);
+            ChatRecordDTO chatRecord = historyChatRecordList.stream().filter(e -> e.getId().equals(chatParams.getChatRecordId())).findFirst().orElse(null);
             chatParams.setChatRecord(chatRecord);
         }
         ApplicationVO application = applicationService.getAppDetail(chatInfo.getAppId(), chatParams.getDebug());
@@ -182,7 +182,7 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
 
     @Transactional
     public Boolean deleteById(String chatId) {
-        chatRecordService.lambdaUpdate().eq(ChatRecordEntity::getChatId, chatId).remove();
+        chatRecordService.lambdaUpdate().eq(ApplicationChatRecordEntity::getChatId, chatId).remove();
         return this.removeById(chatId);
     }
 

@@ -19,21 +19,6 @@
             <artifactId>maxkb4j-common</artifactId>
             <version>${revision}</version>
         </dependency>
-        <dependency>
-            <groupId>com.tarzan</groupId>
-            <artifactId>maxkb4j-chat-api</artifactId>
-            <version>${revision}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.tarzan</groupId>
-            <artifactId>maxkb4j-knowledge-api</artifactId>
-            <version>${revision}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.tarzan</groupId>
-            <artifactId>maxkb4j-tool-api</artifactId>
-            <version>${revision}</version>
-        </dependency>
     </dependencies>
 
 </project>

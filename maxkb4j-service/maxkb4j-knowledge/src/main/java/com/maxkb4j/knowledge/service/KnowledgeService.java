@@ -15,7 +15,7 @@ import com.maxkb4j.common.util.DateTimeUtil;
 import com.maxkb4j.common.util.StpKit;
 import com.maxkb4j.core.event.GenerateProblemEvent;
 import com.maxkb4j.knowledge.dto.GenerateProblemDTO;
-import com.maxkb4j.knowledge.dto.KnowledgeDTO;
+import com.maxkb4j.knowledge.dto.WebKnowledgeDTO;
 import com.maxkb4j.knowledge.dto.KnowledgeQuery;
 import com.maxkb4j.knowledge.entity.*;
 import com.maxkb4j.knowledge.handler.KnowledgeExportHandler;
@@ -170,7 +170,7 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
     }
 
     @Transactional
-    public KnowledgeEntity createKnowledgeWeb(KnowledgeDTO knowledge) {
+    public KnowledgeEntity createKnowledgeWeb(WebKnowledgeDTO knowledge) {
         createKnowledge(knowledge);
         documentService.createWebDocs(knowledge.getId(), knowledge.getSourceUrl(), knowledge.getSelector());
         return knowledge;

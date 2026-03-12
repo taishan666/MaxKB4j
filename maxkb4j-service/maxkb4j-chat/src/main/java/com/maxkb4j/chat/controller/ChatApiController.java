@@ -13,7 +13,7 @@ import com.maxkb4j.chat.dto.McpRequest;
 import com.maxkb4j.chat.service.ChatApiService;
 import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.domain.api.R;
-import com.maxkb4j.common.domain.entity.ChatRecordEntity;
+import com.maxkb4j.application.entity.ApplicationChatRecordEntity;
 import com.maxkb4j.common.exception.ApiException;
 import com.maxkb4j.common.util.StpKit;
 import com.maxkb4j.common.util.WebUtil;
@@ -162,7 +162,7 @@ public class ChatApiController {
 
     @Hidden
     @PutMapping("/vote/chat/{chatId}/chat_record/{chatRecordId}")
-    public R<Boolean> updateConversation(@PathVariable String chatId, @PathVariable String chatRecordId, @RequestBody ChatRecordEntity chatRecord) {
+    public R<Boolean> updateConversation(@PathVariable String chatId, @PathVariable String chatRecordId, @RequestBody ApplicationChatRecordEntity chatRecord) {
         return R.success(chatApiService.updateConversation(chatId, chatRecordId, chatRecord));
     }
 

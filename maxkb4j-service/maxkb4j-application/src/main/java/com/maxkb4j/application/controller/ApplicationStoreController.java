@@ -1,4 +1,4 @@
-package com.maxkb4j.system.controller;
+package com.maxkb4j.application.controller;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
  */
 @RestController
 @RequestMapping(AppConst.ADMIN_API)
-public class StoreController {
+public class ApplicationStoreController {
 
     @GetMapping("/workspace/store/application_template")
     public R<JSONObject> applicationTemplate(String name) throws IOException {

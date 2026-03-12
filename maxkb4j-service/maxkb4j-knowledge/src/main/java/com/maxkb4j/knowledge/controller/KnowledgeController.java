@@ -11,7 +11,7 @@ import com.maxkb4j.common.enums.PermissionEnum;
 import com.maxkb4j.knowledge.consts.KnowledgeType;
 import com.maxkb4j.knowledge.dto.DataSearchDTO;
 import com.maxkb4j.knowledge.dto.GenerateProblemDTO;
-import com.maxkb4j.knowledge.dto.KnowledgeDTO;
+import com.maxkb4j.knowledge.dto.WebKnowledgeDTO;
 import com.maxkb4j.knowledge.dto.KnowledgeQuery;
 import com.maxkb4j.knowledge.entity.KnowledgeActionEntity;
 import com.maxkb4j.knowledge.entity.KnowledgeEntity;
@@ -57,7 +57,7 @@ public class KnowledgeController {
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_CREATE)
     @PostMapping("/knowledge/web")
-    public R<KnowledgeEntity> createKnowledgeWeb(@RequestBody KnowledgeDTO knowledge) {
+    public R<KnowledgeEntity> createKnowledgeWeb(@RequestBody WebKnowledgeDTO knowledge) {
         knowledge.setType(KnowledgeType.WEB);
         return R.success(knowledgeService.createKnowledgeWeb(knowledge));
     }

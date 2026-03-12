@@ -43,25 +43,25 @@ public class ApplicationNodeHandler implements INodeHandler {
         String question = (String) workflow.getReferenceField(questionFields);
         ChatParams chatParams = workflow.getChatParams();
         String chatId = chatParams.getChatId()+"_" + nodeParams.getApplicationId();
-        List<SysFile> docList = new ArrayList<>();
+        List<OssFile> docList = new ArrayList<>();
         List<String> docFields = nodeParams.getDocumentList();
         if (CollectionUtils.isNotEmpty(docFields)) {
-            docList = (List<SysFile>) workflow.getReferenceField(docFields);
+            docList = (List<OssFile>) workflow.getReferenceField(docFields);
         }
-        List<SysFile> imageList = new ArrayList<>();
+        List<OssFile> imageList = new ArrayList<>();
         List<String> imageFields = nodeParams.getImageList();
         if (CollectionUtils.isNotEmpty(imageFields)) {
-            imageList = (List<SysFile>) workflow.getReferenceField(imageFields);
+            imageList = (List<OssFile>) workflow.getReferenceField(imageFields);
         }
-        List<SysFile> audioList = new ArrayList<>();
+        List<OssFile> audioList = new ArrayList<>();
         List<String> audioFields = nodeParams.getAudioList();
         if (CollectionUtils.isNotEmpty(audioFields)) {
-            audioList = (List<SysFile>) workflow.getReferenceField(audioFields);
+            audioList = (List<OssFile>) workflow.getReferenceField(audioFields);
         }
-        List<SysFile> otherList = new ArrayList<>();
+        List<OssFile> otherList = new ArrayList<>();
         List<String> otherFields = nodeParams.getOtherList();
         if (CollectionUtils.isNotEmpty(audioFields)) {
-            otherList = (List<SysFile>) workflow.getReferenceField(otherFields);
+            otherList = (List<OssFile>) workflow.getReferenceField(otherFields);
         }
         Sinks.Many<ChatMessageVO> appNodeSink = Sinks.many().unicast().onBackpressureBuffer();
         String nodeChatRecordId=null;

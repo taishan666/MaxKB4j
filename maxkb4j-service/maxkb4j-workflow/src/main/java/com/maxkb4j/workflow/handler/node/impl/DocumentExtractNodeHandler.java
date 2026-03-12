@@ -9,7 +9,7 @@ import com.maxkb4j.workflow.node.AbsNode;
 import com.maxkb4j.workflow.node.impl.DocumentExtractNode;
 import com.maxkb4j.knowledge.dto.DocumentSimple;
 import com.maxkb4j.knowledge.service.IDocumentParseService;
-import com.maxkb4j.common.domain.dto.SysFile;
+import com.maxkb4j.common.domain.dto.OssFile;
 import com.maxkb4j.oss.service.IOssService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -38,15 +38,15 @@ public class DocumentExtractNodeHandler implements INodeHandler {
 
         // 3. 获取引用字段（workflow 中的文档列表）
         Object res = workflow.getReferenceField(nodeParams.getDocumentList());
-        List<SysFile> documentFiles;
+        List<OssFile> documentFiles;
         if (res == null) {
             documentFiles = Collections.emptyList();
         } else if (res instanceof List<?>) {
             // 安全转型：只保留 SysFile 类型
             documentFiles = new ArrayList<>();
             for (Object item : (List<?>) res) {
-                if (item instanceof SysFile) {
-                    documentFiles.add((SysFile) item);
+                if (item instanceof OssFile) {
+                    documentFiles.add((OssFile) item);
                 }
                 // 可选：记录非 SysFile 元素（或抛异常）
             }
@@ -58,7 +58,7 @@ public class DocumentExtractNodeHandler implements INodeHandler {
         List<String> contentList = new LinkedList<>();
         List<DocumentSimple> documentList = new ArrayList<>();
 
-        for (SysFile sysFile : documentFiles) {
+        for (OssFile sysFile : documentFiles) {
             InputStream ins = fileService.getStream(sysFile.getFileId());
             String text =  documentParseService.extractText(sysFile.getName(), ins);
             contentList.add(text);

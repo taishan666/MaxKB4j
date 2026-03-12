@@ -9,7 +9,7 @@ import com.maxkb4j.workflow.node.AbsNode;
 import com.maxkb4j.workflow.node.impl.SpeechToTextNode;
 import com.maxkb4j.model.service.STTModel;
 import com.maxkb4j.model.service.IModelProviderService;
-import com.maxkb4j.common.domain.dto.SysFile;
+import com.maxkb4j.common.domain.dto.OssFile;
 import com.maxkb4j.oss.service.IOssService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,10 +36,10 @@ public class SpeechToTextNodeHandler implements INodeHandler {
         Object res = workflow.getReferenceField(audioList);
         STTModel sttModel = modelFactory.buildSTTModel(nodeParams.getSttModelId());
         @SuppressWarnings("unchecked")
-        List<SysFile> audioFiles = (List<SysFile>) res;
+        List<OssFile> audioFiles = (List<OssFile>) res;
         List<String> content = new ArrayList<>();
         List<String> answerTextList = new ArrayList<>();
-        for (SysFile file: audioFiles) {
+        for (OssFile file: audioFiles) {
             byte[] data = fileService.getBytes(file.getFileId());
             String suffix=file.getName().substring(file.getName().lastIndexOf(".") + 1);
             String result = sttModel.speechToText(data,suffix);

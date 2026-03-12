@@ -6,7 +6,7 @@ import lombok.EqualsAndHashCode;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class KnowledgeDTO extends KnowledgeEntity {
+public class WebKnowledgeDTO extends KnowledgeEntity {
     private String sourceUrl;
     private String selector;
 }

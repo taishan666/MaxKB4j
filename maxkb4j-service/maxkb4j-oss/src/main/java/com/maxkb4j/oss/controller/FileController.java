@@ -1,7 +1,7 @@
 package com.maxkb4j.oss.controller;
 
 import com.maxkb4j.common.domain.api.R;
-import com.maxkb4j.common.domain.dto.SysFile;
+import com.maxkb4j.common.domain.dto.OssFile;
 import com.maxkb4j.oss.service.MongoFileService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -29,7 +29,7 @@ public class FileController {
             "/chat/api/oss/file"
     })
     public R<String> uploadFile(MultipartFile file) throws IOException {
-        SysFile chatFile = mongoFileService.uploadFile(file);
+        OssFile chatFile = mongoFileService.uploadFile(file);
         return R.success(chatFile.getUrl());
     }
 

@@ -1,8 +1,10 @@
 package com.maxkb4j.workflow.handler.node.impl;
 
 import com.alibaba.fastjson.JSONObject;
-import com.maxkb4j.common.domain.entity.ChatRecordEntity;
 import com.maxkb4j.common.domain.base.entity.KnowledgeSetting;
+import com.maxkb4j.common.domain.dto.ChatRecordDTO;
+import com.maxkb4j.knowledge.service.IRetrieveService;
+import com.maxkb4j.knowledge.vo.ParagraphVO;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.NodeType;
 import com.maxkb4j.workflow.handler.node.INodeHandler;
@@ -10,8 +12,6 @@ import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.model.Workflow;
 import com.maxkb4j.workflow.node.AbsNode;
 import com.maxkb4j.workflow.node.impl.SearchKnowledgeNode;
-import com.maxkb4j.knowledge.service.IRetrieveService;
-import com.maxkb4j.knowledge.vo.ParagraphVO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -55,7 +55,7 @@ public class SearchKnowledgeNodeHandler implements INodeHandler {
     @SuppressWarnings("unchecked")
     private List<String> getExcludeParagraphIds(Workflow workflow, String runtimeNodeId,String question){
         List<String> excludeParagraphIds=new ArrayList<>();
-        for (ChatRecordEntity chatRecord : workflow.getHistoryChatRecords()) {
+        for (ChatRecordDTO chatRecord : workflow.getHistoryChatRecords()) {
             if (chatRecord.getProblemText().equals(workflow.getChatParams().getMessage())){
                 JSONObject details=chatRecord.getDetails();
                 if (!details.isEmpty()){

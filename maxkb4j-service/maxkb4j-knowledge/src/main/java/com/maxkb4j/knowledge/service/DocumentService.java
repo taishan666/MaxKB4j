@@ -25,7 +25,7 @@ import com.maxkb4j.knowledge.mapper.DocumentMapper;
 import com.maxkb4j.knowledge.mapper.KnowledgeMapper;
 import com.maxkb4j.knowledge.vo.DocFileVO;
 import com.maxkb4j.knowledge.vo.DocumentVO;
-import com.maxkb4j.knowledge.vo.KeyAndValueVO;
+import com.maxkb4j.common.domain.vo.KeyAndValueVO;
 import com.maxkb4j.knowledge.vo.TextSegmentVO;
 import com.maxkb4j.oss.service.IOssService;
 import jakarta.servlet.http.HttpServletResponse;

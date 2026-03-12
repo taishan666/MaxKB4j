@@ -10,7 +10,7 @@ import com.maxkb4j.knowledge.dto.*;
 import com.maxkb4j.knowledge.entity.DocumentEntity;
 import com.maxkb4j.knowledge.service.DocumentService;
 import com.maxkb4j.knowledge.vo.DocumentVO;
-import com.maxkb4j.knowledge.vo.KeyAndValueVO;
+import com.maxkb4j.common.domain.vo.KeyAndValueVO;
 import com.maxkb4j.knowledge.vo.TextSegmentVO;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;

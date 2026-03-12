@@ -9,7 +9,7 @@ import com.maxkb4j.workflow.node.AbsNode;
 import com.maxkb4j.workflow.node.impl.TextToSpeechNode;
 import com.maxkb4j.model.service.TTSModel;
 import com.maxkb4j.model.service.IModelProviderService;
-import com.maxkb4j.common.domain.dto.SysFile;
+import com.maxkb4j.common.domain.dto.OssFile;
 import com.maxkb4j.oss.service.IOssService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -33,7 +33,7 @@ public class TextToSpeechNodeHandler implements INodeHandler {
         Object content=workflow.getReferenceField(contentList);
         TTSModel ttsModel = modelFactory.buildTTSModel(nodeParams.getTtsModelId(), nodeParams.getModelParamsSetting());
         byte[]  audioData = ttsModel.textToSpeech(content.toString());
-        SysFile fileVO = fileService.uploadFile("generated_audio_"+ UUID.randomUUID() +".mp3",audioData);
+        OssFile fileVO = fileService.uploadFile("generated_audio_"+ UUID.randomUUID() +".mp3",audioData);
         node.getDetail().put("content",content);
         if (nodeParams.getIsResult()){
             // 使用字符串拼接生成 HTML 音频标签

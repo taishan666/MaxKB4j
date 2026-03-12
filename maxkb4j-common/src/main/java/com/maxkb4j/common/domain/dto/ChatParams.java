@@ -1,7 +1,6 @@
 package com.maxkb4j.common.domain.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.maxkb4j.common.domain.entity.ChatRecordEntity;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Data;
@@ -35,13 +34,13 @@ public class ChatParams {
     @Schema(description = "子节点对象", implementation = ChildNode.class)
     private ChildNode childNode;
     @Schema(description = "音频列表")
-    private List<SysFile> audioList;
+    private List<OssFile> audioList;
     @Schema(description = "文档列表")
-    private List<SysFile> documentList;
+    private List<OssFile> documentList;
     @Schema(description = "图片列表")
-    private List<SysFile> imageList;
+    private List<OssFile> imageList;
     @Schema(description = "其他列表")
-    private List<SysFile> otherList;
+    private List<OssFile> otherList;
     @Schema(description = "是否重新回答")
     @NotNull(message = "是否重新回答")
     private Boolean reChat;
@@ -55,9 +54,9 @@ public class ChatParams {
     @JsonIgnore
     private String chatUserType;
     @JsonIgnore
-    private List<ChatRecordEntity> historyChatRecords;
+    private List<ChatRecordDTO> historyChatRecords;
     @JsonIgnore
-    private ChatRecordEntity chatRecord;
+    private ChatRecordDTO chatRecord;
 
 
 }

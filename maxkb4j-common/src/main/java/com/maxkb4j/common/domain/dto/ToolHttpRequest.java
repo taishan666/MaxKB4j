@@ -1,4 +1,4 @@
-package com.maxkb4j.tool.dto;
+package com.maxkb4j.common.domain.dto;
 
 import cn.hutool.http.Method;
 import lombok.Data;

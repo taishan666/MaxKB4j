@@ -1,4 +1,4 @@
-package com.maxkb4j.common.domain.entity;
+package com.maxkb4j.application.entity;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -19,7 +19,7 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 @Data
 @TableName(value = "application_chat_record",autoResultMap = true)
-public class ChatRecordEntity extends BaseEntity {
+public class ApplicationChatRecordEntity extends BaseEntity {
 	private String voteStatus;
 	private String problemText;
 	private String answerText;
@@ -36,7 +36,5 @@ public class ChatRecordEntity extends BaseEntity {
 	@TableField(typeHandler = JSONBTypeHandler.class)
 	private JSONArray answerTextList;
 
-    public JSONObject getNodeDetailsByRuntimeNodeId(String runtimeNodeId) {
-		return details.getJSONObject(runtimeNodeId);
-    }
+
 }

@@ -2,10 +2,11 @@ package com.maxkb4j.application.pipeline;
 
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.common.domain.dto.ChatParams;
-import com.maxkb4j.common.domain.entity.ChatRecordEntity;
+import com.maxkb4j.application.entity.ApplicationChatRecordEntity;
 import com.maxkb4j.application.vo.ApplicationVO;
 import com.maxkb4j.common.domain.dto.Answer;
 import com.maxkb4j.common.domain.dto.ChatMessageVO;
+import com.maxkb4j.common.domain.dto.ChatRecordDTO;
 import com.maxkb4j.knowledge.vo.ParagraphVO;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
@@ -54,7 +55,7 @@ public class PipelineManage {
 
     public List<ChatMessage> getHistoryMessages(int dialogueNumber) {
         List<ChatMessage> historyMessages=new ArrayList<>();
-        List<ChatRecordEntity> historyChatRecords= chatParams.getHistoryChatRecords();
+        List<ChatRecordDTO> historyChatRecords= chatParams.getHistoryChatRecords();
         int total=historyChatRecords.size();
         int startIndex = Math.max(total - dialogueNumber, 0);
         for (int i = startIndex; i < total; i++) {
@@ -67,9 +68,9 @@ public class PipelineManage {
     @SuppressWarnings("unchecked")
     public List<String> getExcludeParagraphIds(String problemText) {
         List<String> excludeParagraphIds = new ArrayList<>();
-        List<ChatRecordEntity> chatRecordList= (List<ChatRecordEntity>) context.get("chatRecordList");
+        List<ApplicationChatRecordEntity> chatRecordList= (List<ApplicationChatRecordEntity>) context.get("chatRecordList");
         if (!CollectionUtils.isEmpty(chatRecordList)) {
-            for (ChatRecordEntity chatRecord : chatRecordList) {
+            for (ApplicationChatRecordEntity chatRecord : chatRecordList) {
                 JSONObject details = chatRecord.getDetails();
                 if (!details.isEmpty()) {
                     if (problemText.equals(chatRecord.getProblemText()) && details.containsKey("search_step")) {

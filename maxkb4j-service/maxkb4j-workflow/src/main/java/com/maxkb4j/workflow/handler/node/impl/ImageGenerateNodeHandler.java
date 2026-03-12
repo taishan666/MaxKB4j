@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.maxkb4j.common.util.MimeTypeUtils;
 import com.maxkb4j.model.service.IModelProviderService;
-import com.maxkb4j.common.domain.dto.SysFile;
+import com.maxkb4j.common.domain.dto.OssFile;
 import com.maxkb4j.oss.service.IOssService;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.NodeType;
@@ -87,12 +87,12 @@ public class ImageGenerateNodeHandler implements INodeHandler {
             if (!(object instanceof List<?> fileList)) {
                 return images;
             }
-            List<SysFile> imageFiles = fileList.stream()
-                    .filter(SysFile.class::isInstance)
-                    .map(SysFile.class::cast)
+            List<OssFile> imageFiles = fileList.stream()
+                    .filter(OssFile.class::isInstance)
+                    .map(OssFile.class::cast)
                     .toList();
             node.getDetail().put("imageList", imageFiles);
-            for (SysFile file : imageFiles) {
+            for (OssFile file : imageFiles) {
                 byte[] bytes = fileService.getBytes(file.getFileId());
                 String base64Data = Base64.getEncoder().encodeToString(bytes);
                 String extension = extractFileExtension(file.getName());

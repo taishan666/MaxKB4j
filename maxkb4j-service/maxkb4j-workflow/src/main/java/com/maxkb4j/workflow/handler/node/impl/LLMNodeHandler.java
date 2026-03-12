@@ -10,7 +10,7 @@ import com.maxkb4j.common.domain.dto.MessageConverter;
 import com.maxkb4j.core.langchain4j.AppChatMemory;
 import com.maxkb4j.core.langchain4j.AssistantServices;
 import com.maxkb4j.model.service.IModelProviderService;
-import com.maxkb4j.common.domain.dto.SysFile;
+import com.maxkb4j.common.domain.dto.OssFile;
 import com.maxkb4j.oss.service.IOssService;
 import com.maxkb4j.tool.service.IToolProviderService;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
@@ -105,11 +105,11 @@ public class LLMNodeHandler implements INodeHandler {
             if (!(object instanceof List<?> fileList)) {
                 return contents;
             }
-            List<SysFile> imageFiles = fileList.stream()
-                    .filter(SysFile.class::isInstance)
-                    .map(SysFile.class::cast)
+            List<OssFile> imageFiles = fileList.stream()
+                    .filter(OssFile.class::isInstance)
+                    .map(OssFile.class::cast)
                     .toList();
-            for (SysFile file : imageFiles) {
+            for (OssFile file : imageFiles) {
                 byte[] bytes = fileService.getBytes(file.getFileId());
                 String base64Data = Base64.getEncoder().encodeToString(bytes);
                 String extension = extractFileExtension(file.getName());

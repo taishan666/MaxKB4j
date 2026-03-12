@@ -8,7 +8,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.maxkb4j.common.constant.RoleType;
 import com.maxkb4j.common.util.*;
-import com.maxkb4j.common.domain.dto.SysFile;
+import com.maxkb4j.common.domain.dto.OssFile;
 import com.maxkb4j.oss.service.IOssService;
 import com.maxkb4j.system.constant.AuthTargetType;
 import com.maxkb4j.user.service.IUserResourcePermissionService;
@@ -193,7 +193,7 @@ public class ToolService  extends ServiceImpl<ToolMapper, ToolEntity> implements
             String nickname =userService.getNickname(vo.getUserId());
             vo.setNickname(nickname);
             if (ToolConstants.ToolType.SKILL.equals(tool.getToolType())) {
-                SysFile file = mongoFileService.getFile(tool.getCode());
+                OssFile file = mongoFileService.getFile(tool.getCode());
                 vo.setFileList(file == null ? List.of() : List.of(file));
             }
         }

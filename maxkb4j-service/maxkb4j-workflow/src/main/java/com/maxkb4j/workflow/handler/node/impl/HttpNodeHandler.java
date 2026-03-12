@@ -2,7 +2,7 @@ package com.maxkb4j.workflow.handler.node.impl;
 
 import cn.hutool.http.HttpResponse;
 import com.maxkb4j.application.executor.HttpRequestExecutor;
-import com.maxkb4j.tool.dto.ToolHttpRequest;
+import com.maxkb4j.common.domain.dto.ToolHttpRequest;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.NodeType;
 import com.maxkb4j.workflow.handler.node.INodeHandler;

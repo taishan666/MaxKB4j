@@ -1,8 +1,8 @@
 package com.maxkb4j.application.vo;
 
 import com.alibaba.fastjson.JSONObject;
-import com.maxkb4j.common.domain.entity.ChatRecordEntity;
-import com.maxkb4j.knowledge.vo.ParagraphVO;
+import com.maxkb4j.common.domain.dto.ParagraphDTO;
+import com.maxkb4j.application.entity.ApplicationChatRecordEntity;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -10,9 +10,9 @@ import java.util.List;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class ApplicationChatRecordVO extends ChatRecordEntity {
+public class ApplicationChatRecordVO extends ApplicationChatRecordEntity {
 
-    private List<ParagraphVO> paragraphList;
+    private List<ParagraphDTO> paragraphList;
     private String paddingProblemText;
     private List<JSONObject> executionDetails;
 }

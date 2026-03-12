@@ -6,7 +6,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.maxkb4j.common.domain.dto.Answer;
 import com.maxkb4j.common.domain.dto.ChatMessageVO;
 import com.maxkb4j.common.domain.dto.ChatParams;
-import com.maxkb4j.common.domain.entity.ChatRecordEntity;
+import com.maxkb4j.common.domain.dto.ChatRecordDTO;
 import com.maxkb4j.workflow.enums.NodeStatus;
 import com.maxkb4j.workflow.enums.NodeType;
 import com.maxkb4j.workflow.enums.WorkflowMode;
@@ -290,7 +290,7 @@ public class Workflow {
         return templateRenderer.render(prompt);
     }
 
-    public List<ChatRecordEntity>  getHistoryChatRecords() {
+    public List<ChatRecordDTO>  getHistoryChatRecords() {
         return historyManager.historyChatRecords();
     }
 

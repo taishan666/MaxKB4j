@@ -16,7 +16,7 @@ import com.maxkb4j.application.service.IApplicationService;
 import com.maxkb4j.application.vo.ApplicationVO;
 import com.maxkb4j.chat.dto.McpRequest;
 import com.maxkb4j.chat.vo.McpResponse;
-import com.maxkb4j.common.domain.entity.ChatRecordEntity;
+import com.maxkb4j.application.entity.ApplicationChatRecordEntity;
 import com.maxkb4j.common.util.JsonUtil;
 import com.maxkb4j.common.util.StpKit;
 import com.maxkb4j.common.util.WebUtil;
@@ -95,11 +95,11 @@ public class ChatApiService {
     }
 
     @Transactional
-    public boolean updateConversation(String chatId, String chatRecordId, ChatRecordEntity chatRecord) {
+    public boolean updateConversation(String chatId, String chatRecordId, ApplicationChatRecordEntity chatRecord) {
         chatRecord.setChatId(chatId);
         chatRecord.setId(chatRecordId);
         chatRecordService.updateById(chatRecord);
-        List<ChatRecordEntity> chatRecordEntities = chatRecordService.lambdaQuery().select(ChatRecordEntity::getVoteStatus).eq(ChatRecordEntity::getChatId, chatId).list();
+        List<ApplicationChatRecordEntity> chatRecordEntities = chatRecordService.lambdaQuery().select(ApplicationChatRecordEntity::getVoteStatus).eq(ApplicationChatRecordEntity::getChatId, chatId).list();
         ApplicationChatEntity chatEntity = new ApplicationChatEntity();
         chatEntity.setId(chatId);
         int starNum = (int) chatRecordEntities.stream().filter(item -> item.getVoteStatus().equals("0")).count();
