@@ -6,8 +6,6 @@ import dev.langchain4j.mcp.client.McpClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-
 /**
  * 工具连接测试处理器
  *
@@ -28,19 +26,20 @@ public class ToolConnectionHandler {
         if (serverConfig == null || serverConfig.isEmpty()) {
             return false;
         }
-        List<McpClient> mcpClients = McpToolUtil.getMcpClients(serverConfig);
-        for (McpClient mcpClient : mcpClients) {
+        McpClient mcpClient= McpToolUtil.getMcpClient(serverConfig);
+        if (mcpClient == null){
+            return false;
+        }
+        try {
+            mcpClient.checkHealth();
+            return true;
+        } catch (Exception e) {
+            log.warn("MCP服务器连接测试失败", e);
+        } finally {
             try {
-                mcpClient.checkHealth();
-                return true;
+                mcpClient.close();
             } catch (Exception e) {
-                log.warn("MCP服务器连接测试失败", e);
-            } finally {
-                try {
-                    mcpClient.close();
-                } catch (Exception e) {
-                    log.warn("关闭MCP客户端时发生错误", e);
-                }
+                log.warn("关闭MCP客户端时发生错误", e);
             }
         }
         return false;
