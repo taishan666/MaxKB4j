@@ -102,7 +102,7 @@ public class DocumentController {
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_DELETE)
     @PutMapping("/knowledge/{id}/document/batch_delete")
     public R<Boolean> deleteBatchDocByDocIds(@PathVariable("id") String id, @RequestBody IdListDTO dto) {
-        return R.success(documentService.deleteBatchDocByDocIds(id, dto.getIdList()));
+        return R.success(documentService.deleteDocByIds(id, dto.getIdList()));
     }
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_READ)
@@ -138,7 +138,7 @@ public class DocumentController {
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_DELETE)
     @DeleteMapping("/knowledge/{id}/document/{docId}")
     public R<Boolean> deleteDoc(@PathVariable("id") String id, @PathVariable("docId") String docId) {
-        return R.success(documentService.deleteDoc(docId));
+        return R.success(documentService.deleteDocByIds(id,List.of(docId)));
     }
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_READ)

@@ -244,14 +244,17 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         }
     }
 
-
+    //todo 删除文档时，要不要删除 问题
     @Transactional
-    public boolean deleteBatchDocByDocIds(String knowledgeId, List<String> docIds) {
+    public boolean deleteDocByIds(String knowledgeId, List<String> docIds) {
         if (CollectionUtils.isEmpty(docIds)) {
             return false;
         }
+        this.lambdaUpdate().in(DocumentEntity::getId, docIds).remove();
         paragraphService.deleteByDocIds(knowledgeId, docIds);
-        return this.lambdaUpdate().in(DocumentEntity::getId, docIds).remove();
+        paragraphService.lambdaUpdate().in(ParagraphEntity::getDocumentId, docIds).remove();
+        chunkIndexService.removeByDocIds(knowledgeId,docIds);
+        return  problemParagraphService.lambdaUpdate().in(ProblemParagraphEntity::getDocumentId, docIds).remove();
     }
 
     @Transactional
@@ -281,20 +284,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         return this.getById(docId);
     }
 
-    @Transactional
-    public boolean deleteDoc(String docId) {
-        List<ProblemParagraphEntity> list = problemParagraphService.lambdaQuery()
-                .select(ProblemParagraphEntity::getProblemId)
-                .eq(ProblemParagraphEntity::getDocumentId, docId)
-                .list();
-        problemParagraphService.lambdaUpdate().eq(ProblemParagraphEntity::getDocumentId, docId).remove();
-        paragraphService.lambdaUpdate().eq(ParagraphEntity::getDocumentId, docId).remove();
-        if (!CollectionUtils.isEmpty(list)) {
-            List<String> problemIds = list.stream().map(ProblemParagraphEntity::getProblemId).distinct().toList();
-            problemService.removeBatchByIds(problemIds);
-        }
-        return this.removeById(docId);
-    }
+
 
     public IPage<DocumentVO> getDocByKnowledgeId(String knowledgeId, int current, int size, DocQuery query) {
         Page<DocumentVO> docPage = new Page<>(current, size);
@@ -391,7 +381,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         String sourceUrl = doc.getMeta().getString("sourceUrl");
         String selector = doc.getMeta().getString("selector");
         if (StringUtils.isAnyBlank(sourceUrl, selector)) return;
-        deleteBatchDocByDocIds(knowledgeId, List.of(docId));
+        deleteDocByIds(knowledgeId, List.of(docId));
         List<DocumentSimple> docs =documentWebService.getWebDocuments(sourceUrl, selector,false);
         batchCreateDocs(knowledgeId, KnowledgeType.WEB, docs);
     }

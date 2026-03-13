@@ -202,7 +202,6 @@ public class ProblemService extends ServiceImpl<ProblemMapper, ProblemEntity> im
         if (CollectionUtils.isEmpty(problemIds)) {
             return false;
         }
-
         // 删除关联关系
         problemParagraphService.lambdaUpdate()
                 .in(ProblemParagraphEntity::getProblemId, problemIds)

@@ -53,14 +53,6 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
     }
 
 
-    @Transactional
-    public void deleteByDocIds(String knowledgeId,List<String> docIds) {
-        chunkIndexService.removeByDocIds(knowledgeId,docIds);
-        this.lambdaUpdate().in(ParagraphEntity::getDocumentId, docIds).remove();
-        problemParagraphService.lambdaUpdate().in(ProblemParagraphEntity::getDocumentId, docIds).remove();
-    }
-
-
     public void createIndex(ParagraphEntity paragraph, EmbeddingModel embeddingModel) {
         if (paragraph != null) {
             //清除之前向量
