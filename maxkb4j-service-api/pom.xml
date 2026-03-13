@@ -24,6 +24,7 @@
         <module>maxkb4j-application-api</module>
         <module>maxkb4j-workflow-api</module>
     </modules>
+
     <build>
         <plugins>
             <plugin>

@@ -95,8 +95,6 @@
                 <artifactId>hutool-http</artifactId>
                 <version>${hutool.version}</version>
             </dependency>
-            <!-- Optional dependencies - only needed by specific modules -->
-            <!-- Note: Spring Boot starters (mail, thymeleaf, webflux, mongodb) are managed by spring-boot-starter-parent -->
             <!-- Groovy core module (lighter than groovy-all) -->
             <dependency>
                 <groupId>org.apache.groovy</groupId>
