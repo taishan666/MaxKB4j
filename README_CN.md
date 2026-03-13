@@ -104,7 +104,7 @@
 #### 2.1 本地启动（JAR 方式）
 ```bash
 # 启动应用
-java -jar MaxKB4j.jar
+java -jar maxkb4j-start.jar
 ```
 
 #### 2.2. 基于Docker 部署
