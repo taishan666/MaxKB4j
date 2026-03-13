@@ -122,6 +122,7 @@ public class ApplicationAccessService extends ServiceImpl<ApplicationAccessMappe
         return this.saveOrUpdate(entity);
     }
 
+    // ==================== 回调相关 ====================
     public boolean platformCallback(String id, String key, JSONObject params) {
         ApplicationAccessEntity entity = this.getById(id);
         if (entity != null) {

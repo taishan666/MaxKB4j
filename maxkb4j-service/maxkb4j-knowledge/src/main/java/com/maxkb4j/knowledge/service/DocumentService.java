@@ -62,7 +62,6 @@ import java.util.zip.ZipOutputStream;
 public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity> implements IDocumentService{
 
     private final ParagraphService paragraphService;
-    private final ProblemService problemService;
     private final ProblemParagraphService problemParagraphService;
     private final DocumentParseService documentParseService;
     private final DocumentSplitService documentSpiltService;
@@ -244,14 +243,13 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         }
     }
 
-    //todo 删除文档时，要不要删除 问题
+
     @Transactional
     public boolean deleteDocByIds(String knowledgeId, List<String> docIds) {
         if (CollectionUtils.isEmpty(docIds)) {
             return false;
         }
         this.lambdaUpdate().in(DocumentEntity::getId, docIds).remove();
-        paragraphService.deleteByDocIds(knowledgeId, docIds);
         paragraphService.lambdaUpdate().in(ParagraphEntity::getDocumentId, docIds).remove();
         chunkIndexService.removeByDocIds(knowledgeId,docIds);
         return  problemParagraphService.lambdaUpdate().in(ProblemParagraphEntity::getDocumentId, docIds).remove();

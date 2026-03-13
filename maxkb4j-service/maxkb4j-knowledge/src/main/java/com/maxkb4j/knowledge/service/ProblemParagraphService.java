@@ -58,18 +58,17 @@ public class ProblemParagraphService extends ServiceImpl<ProblemParagraphMapper,
                 .remove();
     }
 
+    //todo 批量创建索引
     public boolean createProblemsIndex(List<ProblemParagraphVO> associations , EmbeddingModel embeddingModel) {
-        List<EmbeddingEntity> embeddingEntities=associations.stream().map(e -> {
-            EmbeddingEntity embeddingEntity = new EmbeddingEntity();
-            embeddingEntity.setKnowledgeId(e.getKnowledgeId());
-            embeddingEntity.setDocumentId(e.getDocumentId());
-            embeddingEntity.setParagraphId(e.getParagraphId());
-            embeddingEntity.setSourceId(e.getProblemId());
-            embeddingEntity.setSourceType(SourceType.PROBLEM);
-            embeddingEntity.setIsActive(true);
-            embeddingEntity.setContent(e.getContent());
-            return embeddingEntity;
-        }).toList();
+        List<EmbeddingEntity> embeddingEntities=associations.stream().map(e -> EmbeddingEntity.builder()
+                .knowledgeId(e.getKnowledgeId())
+                .documentId(e.getDocumentId())
+                .paragraphId(e.getId())
+                .sourceId(e.getId())
+                .sourceType(SourceType.PROBLEM)
+                .content(e.getContent())
+                .isActive(true)
+                .build()).toList();
         chunkIndexService.insertAll(embeddingModel,embeddingEntities);
         return true;
     }

@@ -59,34 +59,36 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
             chunkIndexService.removeByParagraphId(paragraph.getKnowledgeId(),paragraph.getId());
             List<EmbeddingEntity> embeddingEntities = new ArrayList<>();
             log.info("开始---->向量化段落:{}", paragraph.getId());
-            EmbeddingEntity paragraphEmbed = new EmbeddingEntity();
-            paragraphEmbed.setKnowledgeId(paragraph.getKnowledgeId());
-            paragraphEmbed.setDocumentId(paragraph.getDocumentId());
-            paragraphEmbed.setParagraphId(paragraph.getId());
-            paragraphEmbed.setSourceId(paragraph.getId());
-            paragraphEmbed.setSourceType(SourceType.PARAGRAPH);
-            paragraphEmbed.setIsActive(paragraph.getIsActive());
             String title = paragraph.getTitle() != null ? paragraph.getTitle() : "";
             String content = paragraph.getContent() != null ? paragraph.getContent() : "";
-            paragraphEmbed.setContent(title + content);
+            EmbeddingEntity paragraphEmbed = EmbeddingEntity.builder()
+                    .knowledgeId(paragraph.getKnowledgeId())
+                    .documentId(paragraph.getDocumentId())
+                    .paragraphId(paragraph.getId())
+                    .sourceId(paragraph.getId())
+                    .sourceType(SourceType.PARAGRAPH)
+                    .content(title + content)
+                    .isActive(paragraph.getIsActive())
+                    .build();
             embeddingEntities.add(paragraphEmbed);
             List<ProblemEntity> problems=problemParagraphService.getProblemsByParagraphId(paragraph.getId());
             for (ProblemEntity problem : problems) {
-                EmbeddingEntity problemEmbed = new EmbeddingEntity();
-                problemEmbed.setKnowledgeId(paragraph.getKnowledgeId());
-                problemEmbed.setDocumentId(paragraph.getDocumentId());
-                problemEmbed.setParagraphId(paragraph.getId());
-                problemEmbed.setSourceId(problem.getId());
-                paragraphEmbed.setSourceId(problem.getId());
-                problemEmbed.setSourceType(SourceType.PROBLEM);
-                problemEmbed.setIsActive(paragraph.getIsActive());
-                problemEmbed.setContent(problem.getContent());
+                EmbeddingEntity problemEmbed = EmbeddingEntity.builder()
+                        .knowledgeId(paragraph.getKnowledgeId())
+                        .documentId(paragraph.getDocumentId())
+                        .paragraphId(paragraph.getId())
+                        .sourceId(problem.getId())
+                        .sourceType(SourceType.PROBLEM)
+                        .content(content)
+                        .isActive(paragraph.getIsActive())
+                        .build();
                 embeddingEntities.add(problemEmbed);
             }
             chunkIndexService.insertAll(embeddingModel,embeddingEntities);
             log.info("结束---->向量化段落:{}", paragraph.getId());
         }
     }
+
 
 
     @Transactional

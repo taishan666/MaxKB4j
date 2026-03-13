@@ -138,7 +138,6 @@ public class UserResourcePermissionServiceImpl extends ServiceImpl<UserResourceP
         }
     }
 
-    //todo 权限查询实现
     public IPage<ResourceUserPermissionVO> resourceUserPermissionPage(String resourceId, String type, int current, int size, String nickname, String username, String[] permissions) {
         LambdaQueryWrapper<UserResourcePermissionEntity> wrapper = Wrappers.<UserResourcePermissionEntity>lambdaQuery()
                 .eq(UserResourcePermissionEntity::getTargetId, resourceId)
