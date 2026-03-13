@@ -54,10 +54,6 @@
             <artifactId>maxkb4j-workflow-api</artifactId>
             <version>${revision}</version>
         </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-webflux</artifactId>
-        </dependency>
     </dependencies>
 
 </project>

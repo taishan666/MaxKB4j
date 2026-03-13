@@ -22,7 +22,6 @@
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-embeddings</artifactId>
-            <version>${langchain4j.beta.version}</version>
         </dependency>
         <!-- MongoDB for EmbeddingEntity -->
         <dependency>

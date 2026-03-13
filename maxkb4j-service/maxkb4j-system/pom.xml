@@ -58,7 +58,6 @@
         <dependency>
             <groupId>com.github.whvcse</groupId>
             <artifactId>easy-captcha</artifactId>
-            <version>${easy-captcha.version}</version>
         </dependency>
         <!-- Mail support for email functionality -->
         <dependency>

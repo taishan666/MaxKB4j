@@ -22,7 +22,11 @@
         <dependency>
             <groupId>com.alibaba</groupId>
             <artifactId>easyexcel</artifactId>
-            <version>${easyexcel.version}</version>
+        </dependency>
+        <!-- MyBatis Plus JSqlParser for SQL parsing -->
+        <dependency>
+            <groupId>com.baomidou</groupId>
+            <artifactId>mybatis-plus-jsqlparser</artifactId>
         </dependency>
     </dependencies>
     <build>

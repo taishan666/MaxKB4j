@@ -52,8 +52,7 @@
         <!-- Groovy for tool node handling -->
         <dependency>
             <groupId>org.apache.groovy</groupId>
-            <artifactId>groovy-all</artifactId>
-            <type>pom</type>
+            <artifactId>groovy</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
