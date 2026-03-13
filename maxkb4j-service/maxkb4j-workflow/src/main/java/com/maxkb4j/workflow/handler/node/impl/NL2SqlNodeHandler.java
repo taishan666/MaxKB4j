@@ -1,6 +1,6 @@
 package com.maxkb4j.workflow.handler.node.impl;
 
-import com.maxkb4j.common.util.DatabaseUtil;
+import com.maxkb4j.core.util.DatabaseUtil;
 import com.maxkb4j.core.assistant.NL2SqlAssistant;
 import com.maxkb4j.core.langchain4j.AppChatMemory;
 import com.maxkb4j.core.langchain4j.AssistantServices;

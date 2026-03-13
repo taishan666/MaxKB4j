@@ -1,4 +1,4 @@
-package com.maxkb4j.common.util;
+package com.maxkb4j.core.util;
 
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;

@@ -1,4 +1,4 @@
-package com.maxkb4j.common.util;
+package com.maxkb4j.core.util;
 
 import java.util.ArrayList;
 import java.util.List;

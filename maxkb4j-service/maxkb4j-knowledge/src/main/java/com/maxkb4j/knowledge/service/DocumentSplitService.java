@@ -1,7 +1,7 @@
 package com.maxkb4j.knowledge.service;
 
-import com.maxkb4j.common.util.SentenceSplitter;
-import com.maxkb4j.common.util.TextSplitter;
+import com.maxkb4j.core.util.SentenceSplitter;
+import com.maxkb4j.core.util.TextSplitter;
 import com.maxkb4j.knowledge.dto.ParagraphSimple;
 import jakarta.validation.constraints.NotNull;
 import org.apache.commons.lang3.StringUtils;

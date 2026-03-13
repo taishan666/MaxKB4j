@@ -7,7 +7,7 @@ import com.maxkb4j.application.pipeline.PipelineManage;
 import com.maxkb4j.application.pipeline.step.chatstep.AbsChatStep;
 import com.maxkb4j.application.vo.ApplicationVO;
 import com.maxkb4j.common.exception.ApiException;
-import com.maxkb4j.common.util.MessageUtils;
+import com.maxkb4j.core.util.MessageUtils;
 import com.maxkb4j.core.assistant.Assistant;
 import com.maxkb4j.core.langchain4j.AppChatMemory;
 import com.maxkb4j.core.langchain4j.AssistantServices;

@@ -2,7 +2,7 @@ package com.maxkb4j.application.pipeline.step.resetproblemstep.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.application.pipeline.step.resetproblemstep.AbsResetProblemStep;
-import com.maxkb4j.common.util.MessageUtils;
+import com.maxkb4j.core.util.MessageUtils;
 import com.maxkb4j.core.assistant.CompressingQueryAssistant;
 import com.maxkb4j.core.langchain4j.AssistantServices;
 import com.maxkb4j.model.service.IModelProviderService;

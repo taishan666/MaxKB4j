@@ -2,7 +2,7 @@ package com.maxkb4j.workflow.handler.node.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.maxkb4j.common.domain.dto.MessageConverter;
-import com.maxkb4j.common.util.MessageUtils;
+import com.maxkb4j.core.util.MessageUtils;
 import com.maxkb4j.core.assistant.IntentClassifyAssistant;
 import com.maxkb4j.core.langchain4j.AssistantServices;
 import com.maxkb4j.model.service.IModelProviderService;

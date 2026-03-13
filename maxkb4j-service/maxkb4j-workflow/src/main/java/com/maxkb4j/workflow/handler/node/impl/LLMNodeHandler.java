@@ -2,7 +2,7 @@ package com.maxkb4j.workflow.handler.node.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.maxkb4j.common.exception.ApiException;
-import com.maxkb4j.common.util.MessageUtils;
+import com.maxkb4j.core.util.MessageUtils;
 import com.maxkb4j.common.util.MimeTypeUtils;
 import com.maxkb4j.core.assistant.Assistant;
 import com.maxkb4j.common.domain.dto.ChatMessageVO;
