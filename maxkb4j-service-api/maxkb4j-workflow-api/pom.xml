@@ -19,6 +19,11 @@
             <artifactId>maxkb4j-common</artifactId>
             <version>${revision}</version>
         </dependency>
+        <!-- WebFlux for reactive streams (Project Reactor) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webflux</artifactId>
+        </dependency>
     </dependencies>
 
 

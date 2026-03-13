@@ -19,5 +19,10 @@
             <artifactId>maxkb4j-common</artifactId>
             <version>${revision}</version>
         </dependency>
+        <!-- Mail for MessagingException in IUserService -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mail</artifactId>
+        </dependency>
     </dependencies>
 </project>

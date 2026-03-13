@@ -8,8 +8,8 @@ import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.maxkb4j.application.builder.ChatServiceBuilder;
-import com.maxkb4j.application.cache.ChatCache;
-import com.maxkb4j.application.dto.ChatInfo;
+import com.maxkb4j.common.cache.ChatCache;
+import com.maxkb4j.common.domain.dto.ChatInfo;
 import com.maxkb4j.application.dto.ChatQueryDTO;
 import com.maxkb4j.application.entity.*;
 import com.maxkb4j.application.excel.ChatRecordDetailExcel;
@@ -108,7 +108,7 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
                 }
             }
             List<ApplicationChatRecordEntity> chatRecordList = chatRecordService.lambdaQuery().eq(ApplicationChatRecordEntity::getChatId, chatId).list();
-            chatInfo.setChatRecordList(chatRecordList);
+            chatInfo.setChatRecordList(BeanUtil.copyList(chatRecordList, ChatRecordDTO.class));
             ChatCache.put(chatInfo.getChatId(), chatInfo);
             return chatInfo;
         }

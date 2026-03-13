@@ -18,7 +18,6 @@ import com.maxkb4j.chat.vo.McpResponse;
 import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.common.domain.dto.ChatResponse;
 import com.maxkb4j.common.enums.ChatUserType;
-import com.maxkb4j.common.util.JsonUtil;
 import com.maxkb4j.common.util.StpKit;
 import com.maxkb4j.common.util.WebUtil;
 import lombok.RequiredArgsConstructor;
@@ -41,7 +40,7 @@ public class ChatApiService {
     private final IApplicationService applicationService;
     private final IApplicationChatService chatService;
     private final IApplicationChatRecordService chatRecordService;
-    private final ObjectMapper objectMapper = JsonUtil.getInstance();
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
 
     public String authToken(JSONObject params) {

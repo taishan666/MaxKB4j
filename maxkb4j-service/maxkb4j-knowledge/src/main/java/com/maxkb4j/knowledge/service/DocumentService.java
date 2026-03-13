@@ -456,7 +456,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
             }
         }
         // 若有超限文件，返回提示
-        return overLimitIndices.isEmpty();
+        return !overLimitIndices.isEmpty();
     }
 
 

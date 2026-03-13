@@ -24,6 +24,11 @@
             <artifactId>langchain4j-embeddings</artifactId>
             <version>${langchain4j.beta.version}</version>
         </dependency>
+        <!-- MongoDB for EmbeddingEntity -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-mongodb</artifactId>
+        </dependency>
     </dependencies>
 
 </project>

@@ -1,7 +1,6 @@
 package com.maxkb4j.workflow.node.impl;
 
 
-import cn.hutool.http.Method;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.workflow.model.Workflow;
@@ -31,7 +30,7 @@ public class HttpNode extends AbsNode {
     @Data
     public static class NodeParams {
         private String url;
-        private Method method;
+        private String method;
         private String body;
         private JSONArray headers;
         private JSONArray params;

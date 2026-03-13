@@ -11,8 +11,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
+import com.maxkb4j.common.cache.AuthCodeCache;
 import com.maxkb4j.common.constant.RoleType;
 import com.maxkb4j.common.enums.ChatUserType;
 import com.maxkb4j.common.exception.ApiException;
@@ -39,7 +38,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.thymeleaf.context.Context;
 
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -53,15 +51,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
     private final EmailService emailService;
     private final StpInterface stpInterface;
     private final SystemProperties systemProperties;
-    // 创建缓存并配置
-    private static final Cache<String, String> AUTH_CODE_CACHE = Caffeine.newBuilder()
-            .initialCapacity(5)
-            // 超出最大容量时淘汰
-            .maximumSize(100000)
-            //设置写缓存后n秒钟过期
-            .expireAfterWrite(1, TimeUnit.MINUTES)
-            .expireAfterAccess(1, TimeUnit.MINUTES)
-            .build();
+
 
     public IPage<UserEntity> selectUserPage(int page, int size, UserDTO dto) {
         Page<UserEntity> userPage = new Page<>(page, size);
@@ -179,13 +169,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
         Context context = new Context();
         String code = generateCode();
         context.setVariable("code", code);
-        AUTH_CODE_CACHE.put(email, code);
+        AuthCodeCache.put(email, code);
         emailService.sendMessage(email, subject, "email_template", context);
         return true;
     }
 
     public boolean checkCode(String email, String code) {
-        String codeCache = AUTH_CODE_CACHE.getIfPresent(email);
+        String codeCache = AuthCodeCache.getIfPresent(email);
         return code.equals(codeCache);
     }
 

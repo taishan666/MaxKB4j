@@ -49,5 +49,15 @@
             <artifactId>maxkb4j-application-api</artifactId>
             <version>${revision}</version>
         </dependency>
+        <!-- Groovy for tool node handling -->
+        <dependency>
+            <groupId>org.apache.groovy</groupId>
+            <artifactId>groovy-all</artifactId>
+            <type>pom</type>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webflux</artifactId>
+        </dependency>
     </dependencies>
 </project>

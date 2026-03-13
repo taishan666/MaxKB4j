@@ -15,6 +15,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.OutputStream;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.Objects;
 
 /**
  * 工具导入导出处理器
@@ -37,7 +38,7 @@ public class ToolImportExportHandler {
             throw new ToolImportExportException("工具不存在，无法导出");
         }
         try {
-            byte[] bytes = JSONUtil.toJsonStr(entity).getBytes(StandardCharsets.UTF_8);
+            byte[] bytes = Objects.requireNonNull(JSONUtil.toJsonStr(entity)).getBytes(StandardCharsets.UTF_8);
             response.setCharacterEncoding(StandardCharsets.UTF_8.name());
             String fileName = URLEncoder.encode(entity.getName()+ ToolConstants.FileType.TOOL_EXTENSION, StandardCharsets.UTF_8);
             response.setHeader("Content-disposition", "attachment;filename=" + fileName);

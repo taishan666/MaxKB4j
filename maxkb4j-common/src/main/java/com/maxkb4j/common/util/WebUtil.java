@@ -1,5 +1,6 @@
 package com.maxkb4j.common.util;
 
+import cn.hutool.json.JSONUtil;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -74,7 +75,7 @@ public class WebUtil extends WebUtils {
         response.setContentType(contentType);
 
         try (PrintWriter out = response.getWriter()) {
-            out.append(JsonUtil.toJson(result));
+            out.append(JSONUtil.toJsonStr(result));
         } catch (IOException var16) {
             log.error(var16.getMessage(), var16);
         }

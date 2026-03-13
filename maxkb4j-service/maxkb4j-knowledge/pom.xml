@@ -89,6 +89,15 @@
             <artifactId>jai-imageio-jpeg2000</artifactId>
             <version>${imageio.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-mongodb</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-text</artifactId>
+            <version>${commons-text.version}</version> <!-- 推荐使用最新稳定版 -->
+        </dependency>
     </dependencies>
 
 </project>

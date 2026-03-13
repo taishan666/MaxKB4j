@@ -24,6 +24,17 @@
             <artifactId>langchain4j-mcp</artifactId>
             <version>${langchain4j.beta.version}</version>
         </dependency>
+        <!-- Groovy for GroovyScriptExecutor -->
+        <dependency>
+            <groupId>org.apache.groovy</groupId>
+            <artifactId>groovy-all</artifactId>
+            <type>pom</type>
+        </dependency>
+        <!-- WebFlux for reactive streams (Project Reactor) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webflux</artifactId>
+        </dependency>
     </dependencies>
 
 </project>

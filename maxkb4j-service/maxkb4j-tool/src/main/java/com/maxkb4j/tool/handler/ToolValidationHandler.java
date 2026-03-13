@@ -1,16 +1,13 @@
 package com.maxkb4j.tool.handler;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.maxkb4j.common.util.JsonUtil;
+import cn.hutool.json.JSONObject;
+import cn.hutool.json.JSONUtil;
 import com.maxkb4j.tool.consts.ToolConstants;
 import com.maxkb4j.tool.entity.ToolEntity;
 import com.maxkb4j.tool.exception.ToolValidationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-
-import java.util.Iterator;
 
 /**
  * 工具验证处理器
@@ -34,45 +31,41 @@ public class ToolValidationHandler {
             if (jsonStr == null || jsonStr.trim().isEmpty()) {
                 return false;
             }
-            JsonNode root;
-            try {
-                ObjectMapper mapper = JsonUtil.getInstance();
-                root = mapper.readTree(jsonStr);
-            } catch (Exception e) {
-                throw new ToolValidationException("MCP服务器配置解析失败: " + e.getMessage(), e);
+            if (JSONUtil.isTypeJSONObject(jsonStr)){
+                throw new ToolValidationException("MCP服务器配置解析失败");
             }
-            // 1. 必须是对象
-            if (!root.isObject()) {
-                return false;
-            }
-            // 2. 遴历所有顶层字段
-            Iterator<String> fieldNames = root.fieldNames();
-            while (fieldNames.hasNext()) {
-                String fieldName = fieldNames.next();
-                JsonNode value = root.get(fieldName);
-                // 每个值必须是对象
-                if (!value.isObject()) {
+            JSONObject root= JSONUtil.parseObj(jsonStr);
+            for (String fieldName : root.keySet()) {
+                Object valueObj = root.get(fieldName);
+                // 每个值必须是 JSONObject (对应原代码的 isObject())
+                if (!(valueObj instanceof JSONObject value)) {
                     return false;
                 }
                 // 检查是否存在 url 和 type 字段
-                if (!value.has("url") || !value.has("type")) {
+                if (!value.containsKey("url") || !value.containsKey("type")) {
                     return false;
                 }
-                JsonNode urlNode = value.get("url");
-                JsonNode typeNode = value.get("type");
+                Object urlObj = value.get("url");
+                Object typeObj = value.get("type");
                 // url 必须是非空字符串
-                if (!urlNode.isTextual() || urlNode.asText().trim().isEmpty()) {
+                if (!(urlObj instanceof String urlStr)) {
                     return false;
                 }
-                // type 必须是 "streamable_http"
-                boolean supported = typeNode.isTextual() && ("streamable_http".equals(typeNode.asText())||"sse".equals(typeNode.asText()));
+                if (urlStr.trim().isEmpty()) {
+                    return false;
+                }
+                // type 必须是 "streamable_http" 或 "sse"
+                if (!(typeObj instanceof String typeStr)) {
+                    return false;
+                }
+                boolean supported = "streamable_http".equals(typeStr) || "sse".equals(typeStr);
                 if (!supported) {
                     return false;
                 }
             }
             return true; // 所有检查通过
         }
-        return true;
+        return false;
     }
 
     /**

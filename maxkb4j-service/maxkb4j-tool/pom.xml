@@ -75,6 +75,12 @@
             <artifactId>langchain4j-web-search-engine-tavily</artifactId>
             <version>${langchain4j.beta.version}</version>
         </dependency>
+        <!-- Groovy for script execution -->
+        <dependency>
+            <groupId>org.apache.groovy</groupId>
+            <artifactId>groovy-all</artifactId>
+            <type>pom</type>
+        </dependency>
     </dependencies>
 
 

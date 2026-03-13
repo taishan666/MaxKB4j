@@ -24,6 +24,11 @@
             <artifactId>maxkb4j-oss-api</artifactId>
             <version>${revision}</version>
         </dependency>
+        <!-- MongoDB support for file storage -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-mongodb</artifactId>
+        </dependency>
     </dependencies>
 
 </project>

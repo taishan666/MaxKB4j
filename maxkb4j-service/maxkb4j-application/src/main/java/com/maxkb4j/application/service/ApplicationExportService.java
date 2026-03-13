@@ -18,6 +18,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @RequiredArgsConstructor
 @Service
@@ -38,7 +39,7 @@ public class ApplicationExportService {
             toolList=toolService.listByIds(toolIds);
         }
         MaxKb4J maxKb4J = new MaxKb4J(app, toolList, "v2");
-        byte[] bytes = JSONUtil.toJsonStr(maxKb4J).getBytes(StandardCharsets.UTF_8);
+        byte[] bytes = Objects.requireNonNull(JSONUtil.toJsonStr(maxKb4J)).getBytes(StandardCharsets.UTF_8);
         response.setContentType("text/plain");
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());
         String fileName = URLEncoder.encode(app.getName(), StandardCharsets.UTF_8);

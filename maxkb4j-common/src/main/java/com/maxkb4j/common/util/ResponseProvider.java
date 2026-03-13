@@ -1,5 +1,6 @@
 package com.maxkb4j.common.util;
 
+import cn.hutool.json.JSONUtil;
 import com.maxkb4j.common.api.R;
 import com.maxkb4j.common.api.ResultCode;
 import jakarta.servlet.http.HttpServletResponse;
@@ -17,7 +18,7 @@ public class ResponseProvider {
         response.setHeader("Content-type", "application/json;charset=UTF-8");
         response.setStatus(200);
         try {
-            response.getWriter().write(Objects.requireNonNull(JsonUtil.toJson(result)));
+            response.getWriter().write(Objects.requireNonNull(JSONUtil.toJsonStr(result)));
         } catch (IOException e) {
             log.error(e.getMessage());
         }

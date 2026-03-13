@@ -1,7 +1,7 @@
 package com.maxkb4j.common.api;
 
 
-import com.maxkb4j.common.util.JsonUtil;
+import cn.hutool.json.JSONUtil;
 import lombok.Getter;
 
 /**
@@ -30,7 +30,7 @@ public enum ResultCode implements IResultCode {
     final String message;
 
     public String toString() {
-        return JsonUtil.toJson(this);
+        return JSONUtil.toJsonStr(this);
     }
 
     ResultCode(final int code, final String message) {

@@ -3,8 +3,8 @@ package com.maxkb4j.application.handler.impl;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.maxkb4j.application.cache.ChatCache;
-import com.maxkb4j.application.dto.ChatInfo;
+import com.maxkb4j.common.cache.ChatCache;
+import com.maxkb4j.common.domain.dto.ChatInfo;
 import com.maxkb4j.application.entity.ApplicationChatEntity;
 import com.maxkb4j.application.entity.ApplicationChatRecordEntity;
 import com.maxkb4j.application.entity.ApplicationChatUserStatsEntity;
@@ -16,6 +16,7 @@ import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.common.domain.dto.ChatRecordDTO;
 import com.maxkb4j.common.domain.dto.ChatResponse;
 import com.maxkb4j.common.enums.ChatUserType;
+import com.maxkb4j.common.util.BeanUtil;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
@@ -76,7 +77,7 @@ public class ChatPostHandler implements PostResponseHandler {
             chatRecordEntity.setImproveParagraphIdList(List.of());
         }
         assert chatInfo != null;
-        chatInfo.addChatRecord(chatRecordEntity);
+        chatInfo.addChatRecord(BeanUtil.copy(chatRecord, ChatRecordDTO.class));
         // 重新设置缓存
         ChatCache.put(chatId, chatInfo);
         if (!debug) {

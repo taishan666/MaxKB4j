@@ -1,7 +1,7 @@
 package com.maxkb4j.workflow.handler.node.impl;
 
-import com.maxkb4j.application.cache.ChatCache;
-import com.maxkb4j.application.dto.ChatInfo;
+import com.maxkb4j.common.cache.ChatCache;
+import com.maxkb4j.common.domain.dto.ChatInfo;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.NodeType;
 import com.maxkb4j.workflow.handler.node.INodeHandler;
