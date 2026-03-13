@@ -31,7 +31,6 @@
         <easyexcel.version>4.0.3</easyexcel.version>
         <bcpkix.version>1.83</bcpkix.version>
         <hutool.version>5.8.25</hutool.version>
-        <hutool-http.version>5.7.19</hutool-http.version>
         <commons-lang3.version>3.18.0</commons-lang3.version>
         <mybatis-plus.version>3.5.9</mybatis-plus.version>
         <jaxb-api.version>2.3.1</jaxb-api.version>
@@ -412,14 +411,13 @@
         </dependency>
         <dependency>
             <groupId>cn.hutool</groupId>
+            <artifactId>hutool-core</artifactId>
+            <version>${hutool.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>cn.hutool</groupId>
             <artifactId>hutool-http</artifactId>
-            <version>${hutool-http.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>cn.hutool</groupId>
-                    <artifactId>hutool-core</artifactId>
-                </exclusion>
-            </exclusions>
+            <version>${hutool.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>

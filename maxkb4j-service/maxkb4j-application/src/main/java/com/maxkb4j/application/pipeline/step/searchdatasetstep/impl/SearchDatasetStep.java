@@ -62,7 +62,6 @@ public class SearchDatasetStep extends AbsSearchDatasetStep {
                         knowledgeIds.remove(idToClassification.get(classificationId));
                     }
                 }
-                System.out.println(knowledgeIds);
                 TokenUsage tokenUsage=result.tokenUsage();
                 super.context.put("messageTokens", tokenUsage.inputTokenCount());
                 super.context.put("answerTokens", tokenUsage.outputTokenCount());

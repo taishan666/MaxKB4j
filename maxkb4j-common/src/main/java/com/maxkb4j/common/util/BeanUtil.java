@@ -107,10 +107,10 @@ public class BeanUtil {
                 }
             } catch (IllegalAccessException e) {
                 // 处理访问失败的情况
-                System.err.println("Failed to access field " + field.getName() + ": " + e.getMessage());
+                log.error("Failed to access field {}: {}", field.getName(), e.getMessage());
             } catch (Exception e) {
                 // 捕获其他可能的异常，如InaccessibleObjectException
-                System.err.println("Unexpected error with field " + field.getName() + ": " + e.getMessage());
+                log.error("Unexpected error with field {}: {}", field.getName(), e.getMessage());
             }
         }
 

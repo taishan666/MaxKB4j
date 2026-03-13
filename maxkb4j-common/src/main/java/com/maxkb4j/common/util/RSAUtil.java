@@ -1,5 +1,6 @@
 package com.maxkb4j.common.util;
 
+import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
@@ -27,6 +28,7 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 
+@Slf4j
 public class RSAUtil{
 
     private final static String password = "mac_kb_password";
@@ -88,28 +90,28 @@ public class RSAUtil{
             KeyPair keyPair = generateRSAKeyPair();
             PublicKey publicKey1 = keyPair.getPublic();
             PrivateKey privateKey1 = keyPair.getPrivate();
-            System.out.println("publicKey: " + byteToBase64(publicKey1.getEncoded()));
-            System.out.println("privateKey: " + byteToBase64(privateKey1.getEncoded()));
+            log.info("publicKey: {}", byteToBase64(publicKey1.getEncoded()));
+            log.info("privateKey: {}", byteToBase64(privateKey1.getEncoded()));
             // 要加密的明文
             String originalText = "Hello, RSA Encryption!";
             PublicKey publicKey =importPublicKey(byteToBase64(publicKey1.getEncoded()));
             PrivateKey privateKey = importPrivateKey(byteToBase64(privateKey1.getEncoded()));
             // 加密
             String encryptedText = encrypt(originalText, publicKey);
-            System.out.println("Encrypted: " + encryptedText);
+            log.info("Encrypted: {}", encryptedText);
 
             // 解密
             String decryptedText = decrypt(encryptedText, privateKey);
-            System.out.println("Decrypted: " + decryptedText);
+            log.info("Decrypted: {}", decryptedText);
 
             // 验证加密和解密是否正确
             if (originalText.equals(decryptedText)) {
-                System.out.println("Encryption and decryption were successful.");
+                log.info("Encryption and decryption were successful.");
             } else {
-                System.out.println("Encryption and decryption failed.");
+                log.info("Encryption and decryption failed.");
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("RSA test failed", e);
         }
     }
     static {
