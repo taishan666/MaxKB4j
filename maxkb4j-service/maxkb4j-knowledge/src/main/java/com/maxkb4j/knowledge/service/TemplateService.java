@@ -50,9 +50,6 @@ public class TemplateService {
                     outputStream.write(buffer, 0, bytesRead);
                 }
                 outputStream.flush();
-            } finally {
-                // 确保输入流被关闭，即使发生异常
-                inputStream.close();
             }
         } else {
             throw new Exception("无法找到指定类型的模板文件");

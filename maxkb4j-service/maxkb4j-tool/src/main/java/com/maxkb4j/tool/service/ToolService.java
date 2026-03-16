@@ -132,7 +132,7 @@ public class ToolService  extends ServiceImpl<ToolMapper, ToolEntity> implements
 
     @Transactional
     public boolean removeToolById(String id) {
-        userResourcePermissionService.remove(AuthTargetType.APPLICATION, id);
+        userResourcePermissionService.remove(AuthTargetType.TOOL, id);
         return this.removeById(id);
     }
 

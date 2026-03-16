@@ -90,7 +90,6 @@ public class LLMNodeHandler implements INodeHandler {
             }catch (ApiException e){
                 workflow.getSink().tryEmitError(e);
             }
-            builder.tools(toolProviderService.getToolMap(toolIds,applicationIds));
         }
         return builder;
     }

@@ -20,10 +20,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -154,12 +151,15 @@ public class MongoFileService implements IOssService{
 
     public byte[] getBytes(String fileId) {
         GridFsResource resource = gridFsTemplate.getResource(getById(fileId));
+        if (!resource.exists()) {
+            log.error("File not found for ID: {}", fileId);
+        }
         try {
             return resource.getContentAsByteArray();
         } catch (IOException e) {
             log.error(e.getMessage());
+            throw new IllegalStateException("Failed to read file content: " + fileId, e);
         }
-        return new byte[0];
     }
 
     public InputStream getStream(String fileId) throws IOException {
