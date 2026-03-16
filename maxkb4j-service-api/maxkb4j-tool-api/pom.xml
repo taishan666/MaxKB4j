@@ -15,11 +15,6 @@
 
     <dependencies>
         <dependency>
-            <groupId>com.tarzan</groupId>
-            <artifactId>maxkb4j-common</artifactId>
-            <version>${revision}</version>
-        </dependency>
-        <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-core</artifactId>
         </dependency>

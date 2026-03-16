@@ -13,12 +13,4 @@
     <name>${project.artifactId}</name>
     <packaging>jar</packaging>
 
-    <dependencies>
-        <dependency>
-            <groupId>com.tarzan</groupId>
-            <artifactId>maxkb4j-common</artifactId>
-            <version>${revision}</version>
-        </dependency>
-    </dependencies>
-
 </project>

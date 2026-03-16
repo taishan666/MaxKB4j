@@ -26,6 +26,15 @@
         <module>maxkb4j-trigger-api</module>
     </modules>
 
+    <dependencies>
+        <!-- 公共依赖 - 所有API模块都需要 -->
+        <dependency>
+            <groupId>com.tarzan</groupId>
+            <artifactId>maxkb4j-common</artifactId>
+            <version>${revision}</version>
+        </dependency>
+    </dependencies>
+
     <build>
         <plugins>
             <plugin>
