@@ -100,22 +100,11 @@ public class ModelProviderServiceImpl implements IModelProviderService {
         return modelProvider.buildSTTModel(model.getModelName(), model.getCredential(), new JSONObject());
     }
 
-
-    public ModelEntity getModel(String modelId) {
-        if (StringUtils.isBlank(modelId)) {
-            return null;
-        }
-        return modelService.lambdaQuery()
-                .select(ModelEntity::getProvider, ModelEntity::getModelType, ModelEntity::getModelName, ModelEntity::getCredential)
-                .eq(ModelEntity::getId, modelId)
-                .one();
-    }
-
     private ModelEntity getModelOrThrow(String modelId) {
         if (StringUtils.isBlank(modelId)) {
             throw new IllegalArgumentException("Model ID cannot be blank");
         }
-        ModelEntity model = getModel(modelId);
+        ModelEntity model = modelService.getModelById(modelId);
         if (model == null) {
             log.error("Model not found with ID: {}", modelId);
             throw new ModelNotFoundException(modelId);

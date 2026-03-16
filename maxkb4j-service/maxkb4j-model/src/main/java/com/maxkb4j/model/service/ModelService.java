@@ -146,4 +146,14 @@ public class ModelService extends ServiceImpl<ModelMapper, ModelEntity> {
         }
         return null;
     }
+
+    public ModelEntity getModelById(String modelId) {
+        if (StringUtils.isBlank(modelId)) {
+            return null;
+        }
+        return this.lambdaQuery()
+                .select(ModelEntity::getProvider, ModelEntity::getModelType, ModelEntity::getModelName, ModelEntity::getCredential)
+                .eq(ModelEntity::getId, modelId)
+                .one();
+    }
 }
