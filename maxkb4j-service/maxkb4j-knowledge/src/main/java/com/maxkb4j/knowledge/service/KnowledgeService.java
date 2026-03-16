@@ -114,7 +114,7 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
         documentService.remove(Wrappers.<DocumentEntity>lambdaQuery().eq(DocumentEntity::getKnowledgeId, id));
         knowledgeVersionService.lambdaQuery().eq(KnowledgeVersionEntity::getKnowledgeId, id);
         knowledgeActionService.lambdaQuery().eq(KnowledgeActionEntity::getKnowledgeId, id);
-        userResourcePermissionService.remove(AuthTargetType.APPLICATION, id);
+        userResourcePermissionService.remove(AuthTargetType.KNOWLEDGE, id);
         chunkIndexService.removeByKnowledgeId(id);
         return this.removeById(id);
     }

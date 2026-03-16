@@ -3,14 +3,14 @@ package com.maxkb4j.model.custom.params.impl;
 import com.maxkb4j.common.domain.form.BaseField;
 import com.maxkb4j.common.domain.form.SingleSelectFiled;
 import com.maxkb4j.common.domain.form.SwitchField;
-import com.maxkb4j.model.service.ModelParams;
+import com.maxkb4j.model.service.IModelParams;
 import lombok.Data;
 
 import java.util.List;
 import java.util.Map;
 
 @Data
-public class ImageModelParams implements ModelParams {
+public class ImageModelParams implements IModelParams {
     @Override
     public List<BaseField> toForm() {
         //支持在 [512, 1440] 像素范围内任意组合宽高，总像素不超过 1440*1440

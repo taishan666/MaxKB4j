@@ -18,7 +18,7 @@
 
     <properties>
         <revision>1.0.0</revision>
-        <java.version>17</java.version>
+        <java.version>21</java.version>
         <maven.plugin.version>3.11.0</maven.plugin.version>
         <maven.flatten.version>1.3.0</maven.flatten.version>
         <langchain4j.version>1.12.1</langchain4j.version>
@@ -535,5 +535,4 @@
             </plugin>
         </plugins>
     </build>
-
 </project>

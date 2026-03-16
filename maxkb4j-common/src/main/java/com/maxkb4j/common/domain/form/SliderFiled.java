@@ -30,5 +30,6 @@ public class SliderFiled extends BaseField {
         super.setField(field);
         super.setDefaultValue(defaultValue);
         super.setShow_default_value(true);
+        super.setRequired(true);
     }
 }

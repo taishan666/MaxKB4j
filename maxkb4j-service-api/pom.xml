@@ -23,6 +23,7 @@
         <module>maxkb4j-knowledge-api</module>
         <module>maxkb4j-application-api</module>
         <module>maxkb4j-workflow-api</module>
+        <module>maxkb4j-trigger-api</module>
     </modules>
 
     <build>

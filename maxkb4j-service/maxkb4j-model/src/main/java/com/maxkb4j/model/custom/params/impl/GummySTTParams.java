@@ -2,12 +2,12 @@ package com.maxkb4j.model.custom.params.impl;
 
 import com.maxkb4j.common.domain.form.BaseField;
 import com.maxkb4j.common.domain.form.SingleSelectFiled;
-import com.maxkb4j.model.service.ModelParams;
+import com.maxkb4j.model.service.IModelParams;
 
 import java.util.List;
 import java.util.Map;
 
-public class GummySTTParams implements ModelParams {
+public class GummySTTParams implements IModelParams {
     @Override
     public List<BaseField> toForm() {
         Map<String,Object> options=Map.of(

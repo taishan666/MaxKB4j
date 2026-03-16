@@ -21,6 +21,7 @@
         <module>maxkb4j-oss</module>
         <module>maxkb4j-application</module>
         <module>maxkb4j-workflow</module>
+        <module>maxkb4j-trigger</module>
     </modules>
 
     <dependencies>

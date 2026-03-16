@@ -3,14 +3,14 @@ package com.maxkb4j.model.custom.params.impl;
 import com.maxkb4j.common.domain.form.BaseField;
 import com.maxkb4j.common.domain.form.SingleSelectFiled;
 import com.maxkb4j.common.domain.form.SliderFiled;
-import com.maxkb4j.model.service.ModelParams;
+import com.maxkb4j.model.service.IModelParams;
 import lombok.Data;
 
 import java.util.List;
 import java.util.Map;
 
 @Data
-public class CosyVoiceV1TTSParams implements ModelParams {
+public class CosyVoiceV1TTSParams implements IModelParams {
     @Override
     public List<BaseField> toForm() {
         Map<String,Object> options=Map.of(

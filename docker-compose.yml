@@ -51,7 +51,7 @@ services:
     entrypoint: >
       sh -c "
       sleep 10;
-      exec java -jar MaxKB4j.jar 
+      exec java -jar maxkb4j-start.jar 
       "
 networks:
   maxkb4j_network:
