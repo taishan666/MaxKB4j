@@ -4,7 +4,9 @@ import lombok.Getter;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Getter
 public enum ModelType {
@@ -30,6 +32,14 @@ public enum ModelType {
         this.name = name;
     }
 
+    private static final Map<String, ModelType> KEY_MAP = new HashMap<>();
+
+    static {
+        for (ModelType type : ModelType.values()) {
+            KEY_MAP.put(type.getKey(), type);
+        }
+    }
+
     public static List<ModelType> getModelTypeList() {
         List<ModelType> list = new ArrayList<>();
         Collections.addAll(list, ModelType.values());
@@ -37,12 +47,7 @@ public enum ModelType {
     }
 
     public static ModelType getByKey(String key) {
-        for (ModelType type : ModelType.values()) {
-            if (type.getKey().equals(key)) {
-                return type;
-            }
-        }
-        return null;
+        return KEY_MAP.get(key);
     }
 
 }
