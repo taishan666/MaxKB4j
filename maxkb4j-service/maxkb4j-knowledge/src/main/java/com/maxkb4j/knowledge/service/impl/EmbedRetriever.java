@@ -1,5 +1,6 @@
 package com.maxkb4j.knowledge.service.impl;
 
+import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.maxkb4j.knowledge.consts.SearchType;
 import com.maxkb4j.knowledge.mapper.EmbeddingMapper;
 import com.maxkb4j.knowledge.service.IDataRetriever;
@@ -25,13 +26,14 @@ public class EmbedRetriever implements IDataRetriever {
 
     @Override
     public List<TextChunkVO> search(List<String> knowledgeIds, List<String> excludeParagraphIds, String keyword, int maxResults, float minScore) {
-        if (StringUtils.isNotBlank(keyword)) {
+        if (CollectionUtils.isNotEmpty(knowledgeIds)&&StringUtils.isNotBlank(keyword)) {
             EmbeddingModel embeddingModel = knowledgeModelService.getEmbeddingModel(knowledgeIds.get(0));
             try {
                 Response<Embedding> res = embeddingModel.embed(keyword);
                 return embeddingMapper.embeddingSearch(knowledgeIds, excludeParagraphIds, maxResults, minScore, res.content().vector(),embeddingModel.dimension());
             }catch (Exception e){
                 log.error("向量化异常: {}", e.getMessage());
+                throw new RuntimeException("向量搜索服务异常，无法完成搜索请求", e);
             }
         }
         return List.of();
