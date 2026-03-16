@@ -77,7 +77,7 @@ public class ChatPostHandler implements PostResponseHandler {
             chatRecordEntity.setImproveParagraphIdList(List.of());
         }
         assert chatInfo != null;
-        chatInfo.addChatRecord(BeanUtil.copy(chatRecord, ChatRecordDTO.class));
+        chatInfo.addChatRecord(BeanUtil.copy(chatRecordEntity, ChatRecordDTO.class));
         // 重新设置缓存
         ChatCache.put(chatId, chatInfo);
         if (!debug) {
