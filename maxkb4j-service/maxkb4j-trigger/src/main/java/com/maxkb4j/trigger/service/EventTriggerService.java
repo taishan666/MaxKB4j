@@ -260,7 +260,7 @@ public class EventTriggerService extends ServiceImpl<EventTriggerMapper, EventTr
                     int monthDay = Integer.parseInt(monthDayList.get(0));
                     return DateTimeUtil.getSameDayNextMonth(monthDay, hour, minute, 0).toString();
                 case INTERVAL:
-                    String intervalValue = (String) triggerSetting.get("intervalValue");
+                    String intervalValue = triggerSetting.get("intervalValue").toString();
                     String intervalUnit = (String) triggerSetting.get("intervalUnit");
                     return DateTimeUtil.getSameDayNextInterval(intervalValue, intervalUnit,hour, minute, 0).toString();
                 default:
@@ -481,6 +481,19 @@ public class EventTriggerService extends ServiceImpl<EventTriggerMapper, EventTr
         
         //TODO: 实现根据sourceType和sourceId查询触发器列表的逻辑
         return List.of();
+    }
+
+    @Override
+    public List<EventTriggerEntity> getTriggerList(String id) {
+        LambdaQueryWrapper<EventTriggerTaskEntity> wrapperTask = Wrappers.lambdaQuery();
+        wrapperTask.eq(EventTriggerTaskEntity::getSourceId, id);
+        List<EventTriggerTaskEntity> allTasks = eventTriggerTaskService.list(wrapperTask);
+        List<EventTriggerEntity> resTask = new ArrayList<>();
+        for (EventTriggerTaskEntity task : allTasks) {
+            EventTriggerEntity  newTask = this.getById(task.getTriggerId()) ;
+            resTask.add(newTask);
+        }
+        return resTask;
     }
 
 

@@ -13,11 +13,13 @@ import com.maxkb4j.application.vo.ApplicationListVO;
 import com.maxkb4j.application.vo.ApplicationStatisticsVO;
 import com.maxkb4j.application.vo.ApplicationVO;
 import com.maxkb4j.common.annotation.SaCheckPerm;
-import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.api.R;
+import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.enums.PermissionEnum;
 import com.maxkb4j.tool.service.IToolService;
 import com.maxkb4j.tool.vo.McpToolVO;
+import com.maxkb4j.trigger.entity.EventTriggerEntity;
+import com.maxkb4j.trigger.service.IEventTriggerService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -49,7 +51,7 @@ public class ApplicationController {
     private final ApplicationExportService exportService;
     private final ApplicationStatsService applicationStatsService;
     private final ApplicationAccessTokenService accessTokenService;
-
+    private final IEventTriggerService eventTriggerService;
     @SaCheckPerm(PermissionEnum.APPLICATION_READ)
     @GetMapping("/application")
     public R<List<ApplicationListVO>> listApps(String folderId) {
@@ -123,13 +125,13 @@ public class ApplicationController {
         // 设置 HTTP 响应头
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.parseMediaType("audio/mp3"));
-        return new ResponseEntity<>(applicationService.textToSpeech(id, data,true), headers, HttpStatus.OK);
+        return new ResponseEntity<>(applicationService.textToSpeech(id, data, true), headers, HttpStatus.OK);
     }
 
     @SaCheckPerm(PermissionEnum.APPLICATION_READ)
     @PostMapping("/application/{id}/speech_to_text")
     public R<String> speechToText(@PathVariable("id") String id, MultipartFile file) throws IOException {
-        return R.data(applicationService.speechToText(id, file,true));
+        return R.data(applicationService.speechToText(id, file, true));
     }
 
 
@@ -176,5 +178,15 @@ public class ApplicationController {
         return R.data(toolService.getMcpToolVos(mcpServersJson));
     }
 
+//    @SaCheckPerm(PermissionEnum.APPLICATION_READ)
+    @PostMapping("/APPLICATION/{id}/trigger")
+    public R<EventTriggerEntity> trigger(@RequestBody EventTriggerEntity dto) {
+        eventTriggerService.saveTrigger(dto, false);
+        return R.data(dto);
+    }
+    @GetMapping("/APPLICATION/{id}/trigger")
+    public R< List<EventTriggerEntity>> getTrigger(@PathVariable("id") String id) {        ;
+        return R.data(eventTriggerService.getTriggerList(id));
+    }
 
 }

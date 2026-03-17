@@ -19,4 +19,6 @@ public interface IEventTriggerService extends IService<EventTriggerEntity> {
     EventTriggerEntity getDetailById(String id);
 
     List<EventTriggerEntity> listBySource(String sourceType, String sourceId);
+
+    List<EventTriggerEntity> getTriggerList(String id);
 }
