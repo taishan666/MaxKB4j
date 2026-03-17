@@ -40,7 +40,7 @@
 
 ### ⚡ 高并发高性能
 
-- 基于 **Java 17 + Spring Boot 3 + 虚拟线程（Project Loom）** 构建，充分利用现代 JVM 的轻量级并发能力，显著提升吞吐量与响应速度。
+- 基于 **Java 21 + Spring Boot 3 + 虚拟线程（Project Loom）** 构建，充分利用现代 JVM 的轻量级并发能力，显著提升吞吐量与响应速度。
 - 采用 **响应式编程模型（Reactor）** 与 **异步非阻塞 I/O**，有效应对数千级并发请求，资源占用更低、延迟更小。
 - 内置 **多级缓存机制**，加速知识检索与模型调用链路。
 
@@ -150,7 +150,7 @@ docker-compose up -d
 
 | 类别 | 技术                                   |
 |------|--------------------------------------|
-| **后端** | Java 17, Spring Boot 3, Sa-Token（鉴权） |
+| **后端** | Java 21, Spring Boot 3, Sa-Token（鉴权） |
 | **AI 框架** | LangChain4j                          |
 | **向量数据库** | PostgreSQL 15 + pgvector             |
 | **全文检索** | MongoDB 5.0+                         |
