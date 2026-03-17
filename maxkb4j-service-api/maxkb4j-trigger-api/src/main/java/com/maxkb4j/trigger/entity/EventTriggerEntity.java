@@ -8,9 +8,11 @@ import com.maxkb4j.common.typehandler.JSONBTypeHandler;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.util.List;
+
 @EqualsAndHashCode(callSuper = true)
 @Data
-@TableName(value = "event_trigger",autoResultMap = true)
+@TableName(value = "event_trigger", autoResultMap = true)
 public class EventTriggerEntity extends BaseEntity {
 
     private String workspaceId;
@@ -23,4 +25,9 @@ public class EventTriggerEntity extends BaseEntity {
     private JSONObject meta;
     private String userId;
     private Boolean isActive;
+    @TableField(exist = false)
+    private List<EventTriggerTaskEntity> triggerTask;
+    @TableField(exist = false)
+    private List<String> idList;
+
 }
