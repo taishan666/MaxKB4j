@@ -10,6 +10,7 @@ import com.maxkb4j.knowledge.entity.ParagraphEntity;
 import com.maxkb4j.knowledge.entity.ProblemEntity;
 import com.maxkb4j.knowledge.entity.ProblemParagraphEntity;
 import com.maxkb4j.knowledge.mapper.ProblemMapper;
+import com.maxkb4j.knowledge.store.IDataStore;
 import com.maxkb4j.knowledge.vo.ProblemParagraphVO;
 import com.maxkb4j.knowledge.vo.ProblemVO;
 import dev.langchain4j.model.chat.ChatModel;
@@ -36,7 +37,7 @@ import java.util.stream.Collectors;
 public class ProblemService extends ServiceImpl<ProblemMapper, ProblemEntity> implements IProblemService{
 
     private final ProblemParagraphService problemParagraphService;
-    private final IChunkIndexService chunkIndexService;
+    private final IDataStore compositeStore;
 
     /**
      * 分页查询指定知识库下的问题
@@ -207,7 +208,7 @@ public class ProblemService extends ServiceImpl<ProblemMapper, ProblemEntity> im
                 .in(ProblemParagraphEntity::getProblemId, problemIds)
                 .remove();
         // 删除向量索引
-        chunkIndexService.removeBySourceIds(knowledgeId, problemIds);
+        compositeStore.deleteProblemByIds(knowledgeId, problemIds);
         // 删除问题本体
         return this.removeByIds(problemIds);
     }

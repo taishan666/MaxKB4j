@@ -23,6 +23,7 @@ import com.maxkb4j.knowledge.mapper.KnowledgeMapper;
 import com.maxkb4j.knowledge.mapper.ParagraphMapper;
 import com.maxkb4j.knowledge.mapper.ProblemMapper;
 import com.maxkb4j.knowledge.mapper.ProblemParagraphMapper;
+import com.maxkb4j.knowledge.store.IDataStore;
 import com.maxkb4j.knowledge.vo.KnowledgeListVO;
 import com.maxkb4j.knowledge.vo.KnowledgeVO;
 import com.maxkb4j.system.constant.AuthTargetType;
@@ -66,7 +67,7 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
     private final IUserService userService;
     private final IUserResourcePermissionService userResourcePermissionService;
     private final ApplicationEventPublisher eventPublisher;
-    private final IChunkIndexService chunkIndexService;
+    private final IDataStore compositeStore;
     private final KnowledgeActionService knowledgeActionService;
     private final KnowledgeVersionService knowledgeVersionService;
     private final IWorkFlowActuator workFlowActuator;
@@ -115,7 +116,7 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
         knowledgeVersionService.lambdaQuery().eq(KnowledgeVersionEntity::getKnowledgeId, id);
         knowledgeActionService.lambdaQuery().eq(KnowledgeActionEntity::getKnowledgeId, id);
         userResourcePermissionService.remove(AuthTargetType.KNOWLEDGE, id);
-        chunkIndexService.removeByKnowledgeId(id);
+        compositeStore.deleteByKnowledgeId(id);
         return this.removeById(id);
     }
 

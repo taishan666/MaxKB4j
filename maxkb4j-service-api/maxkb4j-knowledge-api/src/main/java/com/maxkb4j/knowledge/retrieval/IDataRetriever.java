@@ -1,4 +1,4 @@
-package com.maxkb4j.knowledge.service;
+package com.maxkb4j.knowledge.retrieval;
 
 
 import com.maxkb4j.knowledge.vo.TextChunkVO;

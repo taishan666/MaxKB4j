@@ -29,11 +29,12 @@ public class DataIndexListener {
     @EventListener
     public void handleEvent(DocumentIndexEvent event) {
         log.info("收到文档向量化事件消息: {}", event.getDocIds());
-        EmbeddingModel embeddingModel=knowledgeModelService.getEmbeddingModel(event.getKnowledgeId());
+        EmbeddingModel embeddingModel = knowledgeModelService.getEmbeddingModel(event.getKnowledgeId());
         documentService.updateStatusByIds(event.getDocIds(), 1, 0);
+
         for (String docId : event.getDocIds()) {
-            List<ParagraphEntity> paragraphs = paragraphService.listByStateIds(docId,1, event.getStateList());
-            embed(embeddingModel, docId, paragraphs);
+            List<ParagraphEntity> paragraphs = paragraphService.listByStateIds(docId, 1, event.getStateList());
+            embedBatch(embeddingModel, docId, paragraphs);
         }
     }
 
@@ -41,26 +42,43 @@ public class DataIndexListener {
     @EventListener
     public void handleEvent(ParagraphIndexEvent event) {
         log.info("收到段落向量化事件消息: {}", event.getParagraphIds());
-        List<ParagraphEntity> paragraphs= paragraphService.listByIds(event.getParagraphIds());
-        EmbeddingModel embeddingModel=knowledgeModelService.getEmbeddingModel(event.getKnowledgeId());
-        embed(embeddingModel, event.getDocId(), paragraphs);
+        List<ParagraphEntity> paragraphs = paragraphService.listByIds(event.getParagraphIds());
+        EmbeddingModel embeddingModel = knowledgeModelService.getEmbeddingModel(event.getKnowledgeId());
+        embedBatch(embeddingModel, event.getDocId(), paragraphs);
     }
 
-    private void embed(EmbeddingModel embeddingModel,String docId,List<ParagraphEntity> paragraphs) {
+    /**
+     * Batch embed paragraphs with optimized processing
+     */
+    private void embedBatch(EmbeddingModel embeddingModel, String docId, List<ParagraphEntity> paragraphs) {
         documentService.updateStatusById(docId, 1, 0);
-        if (CollectionUtils.isNotEmpty(paragraphs)){
-            log.info("开始--->文档索引:{}", docId);
+
+        if (CollectionUtils.isNotEmpty(paragraphs)) {
+            log.info("开始--->文档索引: {}", docId);
             documentService.updateStatusById(docId, 1, 1);
+
             List<String> paragraphIds = paragraphs.stream().map(ParagraphEntity::getId).toList();
-            paragraphService.updateStatusByIds(paragraphIds,1,0);
-            paragraphs.forEach(paragraph -> {
-                paragraphService.updateStatusById(paragraph.getId(), 1, 1);
-                paragraphService.createIndex(paragraph, embeddingModel);
-                paragraphService.updateStatusById(paragraph.getId(),1,2);
+            paragraphService.updateStatusByIds(paragraphIds, 1, 0);
+
+            try {
+                // Use batch indexing instead of processing one by one
+                paragraphService.createIndexBatch(paragraphs, embeddingModel);
+
+                // Update all paragraph statuses to completed
+                paragraphService.updateStatusByIds(paragraphIds, 1, 2);
+
+                // Update document status
                 documentService.updateStatusMetaById(docId);
-            });
-            log.info("结束--->文档索引:{}", docId);
+
+                log.info("结束--->文档索引: {} (处理了 {} 个段落)", docId, paragraphs.size());
+
+            } catch (Exception e) {
+                log.error("文档索引失败: {}, 错误: {}", docId, e.getMessage(), e);
+                // Keep paragraphs in processing state for retry
+                throw new RuntimeException("文档索引失败: " + docId, e);
+            }
         }
+
         documentService.updateStatusById(docId, 1, 2);
     }
 }

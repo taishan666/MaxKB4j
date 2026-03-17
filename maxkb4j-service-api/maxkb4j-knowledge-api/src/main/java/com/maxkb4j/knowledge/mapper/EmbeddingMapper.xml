@@ -31,4 +31,12 @@
         LIMIT #{maxResults}
     </select>
 
+    <insert id="insertBatch" parameterType="java.util.List">
+        INSERT INTO embedding (id, source_id, source_type, is_active, knowledge_id, document_id, paragraph_id, embedding, content, dimension)
+        VALUES
+        <foreach collection="entities" item="entity" separator=",">
+            (#{entity.id}, #{entity.sourceId}, #{entity.sourceType}, #{entity.isActive}, #{entity.knowledgeId}, #{entity.documentId}, #{entity.paragraphId}, #{entity.embedding}::vector, #{entity.content}, #{entity.dimension})
+        </foreach>
+    </insert>
+
 </mapper>

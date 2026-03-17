@@ -23,6 +23,7 @@ import com.maxkb4j.knowledge.excel.KnowledgeExcel;
 import com.maxkb4j.knowledge.handler.DocumentHandler;
 import com.maxkb4j.knowledge.mapper.DocumentMapper;
 import com.maxkb4j.knowledge.mapper.KnowledgeMapper;
+import com.maxkb4j.knowledge.store.IDataStore;
 import com.maxkb4j.knowledge.vo.DocFileVO;
 import com.maxkb4j.knowledge.vo.DocumentVO;
 import com.maxkb4j.common.domain.vo.KeyAndValueVO;
@@ -70,7 +71,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
     private final DocumentWebService documentWebService;
     private final DocumentWriteService documentWriteService;
     private final DocumentHandler documentHandler;
-    private final IChunkIndexService chunkIndexService;
+    private final IDataStore compositeStore;
     private final KnowledgeMapper knowledgeMapper;
 
     public void updateStatusMetaById(String id) {
@@ -94,7 +95,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         if (CollectionUtils.isEmpty(docIds)) {
             return false;
         }
-        chunkIndexService.removeByDocIds(targetKnowledgeId,docIds);
+        compositeStore.deleteByDocumentIds(targetKnowledgeId,docIds);
         paragraphService.lambdaUpdate().set(ParagraphEntity::getKnowledgeId, targetKnowledgeId).in(ParagraphEntity::getDocumentId, docIds).update();
         problemParagraphService.lambdaUpdate().eq(ProblemParagraphEntity::getKnowledgeId, sourceKnowledgeId).in(ProblemParagraphEntity::getDocumentId, docIds).remove();
         publishDocumentIndexEvent(targetKnowledgeId, docIds, List.of("0","1","2","3","4","5","n"));
@@ -251,7 +252,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         }
         this.lambdaUpdate().in(DocumentEntity::getId, docIds).remove();
         paragraphService.lambdaUpdate().in(ParagraphEntity::getDocumentId, docIds).remove();
-        chunkIndexService.removeByDocIds(knowledgeId,docIds);
+        compositeStore.deleteByDocumentIds(knowledgeId,docIds);
         return  problemParagraphService.lambdaUpdate().in(ProblemParagraphEntity::getDocumentId, docIds).remove();
     }
 

@@ -3,6 +3,7 @@ package com.maxkb4j.knowledge.service;
 import com.maxkb4j.common.mp.entity.KnowledgeSetting;
 import com.maxkb4j.knowledge.dto.DataSearchDTO;
 import com.maxkb4j.knowledge.mapper.ParagraphMapper;
+import com.maxkb4j.knowledge.retrieval.IDataRetriever;
 import com.maxkb4j.knowledge.vo.ParagraphVO;
 import com.maxkb4j.knowledge.vo.TextChunkVO;
 import lombok.RequiredArgsConstructor;

@@ -16,4 +16,15 @@ public interface IParagraphService extends IService<ParagraphEntity> {
     void updateStatusById(String id, int type, int status);
     void updateStatusByIds(List<String> ids, int type, int status);
     void createIndex(ParagraphEntity paragraph, EmbeddingModel embeddingModel);
+
+    /**
+     * Batch create index for multiple paragraphs
+     * @param paragraphs list of paragraphs to index
+     * @param embeddingModel embedding model for vectorization
+     */
+    default void createIndexBatch(List<ParagraphEntity> paragraphs, EmbeddingModel embeddingModel) {
+        for (ParagraphEntity paragraph : paragraphs) {
+            createIndex(paragraph, embeddingModel);
+        }
+    }
 }

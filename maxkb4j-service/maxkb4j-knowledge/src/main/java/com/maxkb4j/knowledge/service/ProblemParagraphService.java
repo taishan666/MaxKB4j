@@ -9,6 +9,7 @@ import com.maxkb4j.knowledge.entity.ProblemEntity;
 import com.maxkb4j.knowledge.entity.ProblemParagraphEntity;
 import com.maxkb4j.knowledge.mapper.ProblemMapper;
 import com.maxkb4j.knowledge.mapper.ProblemParagraphMapper;
+import com.maxkb4j.knowledge.store.IDataStore;
 import com.maxkb4j.knowledge.vo.ProblemParagraphVO;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +28,7 @@ public class ProblemParagraphService extends ServiceImpl<ProblemParagraphMapper,
 
     private final ProblemMapper problemMapper;
     private final KnowledgeModelService knowledgeModelService;
-    private final IChunkIndexService chunkIndexService;
+    private final IDataStore compositeStore;
 
     public List<ProblemEntity> getProblemsByParagraphId(String paragraphId) {
         return baseMapper.getProblemsByParagraphId(paragraphId);
@@ -49,7 +50,7 @@ public class ProblemParagraphService extends ServiceImpl<ProblemParagraphMapper,
 
     @Transactional
     public boolean unAssociation(String knowledgeId, String docId, String paragraphId, String problemId) {
-        chunkIndexService.removeByProblemIdAndParagraphId(knowledgeId,problemId,paragraphId);
+        compositeStore.deleteByProblemIdAndParagraphId(knowledgeId,problemId,paragraphId);
         return this.lambdaUpdate()
                 .eq(ProblemParagraphEntity::getParagraphId, paragraphId)
                 .eq(ProblemParagraphEntity::getProblemId, problemId)
@@ -69,7 +70,7 @@ public class ProblemParagraphService extends ServiceImpl<ProblemParagraphMapper,
                 .content(e.getContent())
                 .isActive(true)
                 .build()).toList();
-        chunkIndexService.insertAll(embeddingModel,embeddingEntities);
+        compositeStore.upsert(embeddingModel,embeddingEntities);
         return true;
     }
 }
