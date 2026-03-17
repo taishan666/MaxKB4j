@@ -1,18 +1,22 @@
 package com.maxkb4j.workflow.compare.impl;
 
 
+import com.maxkb4j.workflow.annotation.CompareType;
 import com.maxkb4j.workflow.compare.Compare;
+import com.maxkb4j.workflow.enums.CompareOperator;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+@Component
+@CompareType(CompareOperator.LENGTH_EQ)
 public class LengthEqualCompare implements Compare {
-    @Override
-    public boolean support(String compare) {
-        return compare.equals("len_eq");
-    }
 
     @Override
     public boolean compare(Object sourceValue, String targetValue) {
+        if (sourceValue == null || targetValue == null) {
+            return false;
+        }
         int target = Integer.parseInt(targetValue);
         if (sourceValue instanceof List<?>) {
             return ((List<?>) sourceValue).size() == target;

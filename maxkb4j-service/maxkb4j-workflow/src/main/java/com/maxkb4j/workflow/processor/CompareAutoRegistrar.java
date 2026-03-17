@@ -1,0 +1,43 @@
+package com.maxkb4j.workflow.processor;
+
+
+import com.maxkb4j.workflow.annotation.CompareType;
+import com.maxkb4j.workflow.builder.CompareBuilder;
+import com.maxkb4j.workflow.compare.Compare;
+import com.maxkb4j.workflow.enums.CompareOperator;
+import jakarta.validation.constraints.NotNull;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.config.BeanPostProcessor;
+import org.springframework.stereotype.Component;
+
+/**
+ * Auto-registers Compare beans annotated with @CompareType to CompareBuilder.
+ * Similar to NodeHandlerAutoRegistrar pattern for consistent architecture.
+ */
+@Slf4j
+@Component
+public class CompareAutoRegistrar implements BeanPostProcessor {
+
+    @Override
+    public Object postProcessAfterInitialization(@NotNull Object bean, @NotNull String beanName) throws BeansException {
+        if (bean instanceof Compare) {
+            CompareType annotation = bean.getClass().getAnnotation(CompareType.class);
+            if (annotation != null) {
+                Compare handler = (Compare) bean;
+                CompareOperator[] operators = annotation.value();
+                if (operators.length == 0) {
+                    log.warn("@CompareType on {} has no operators defined", bean.getClass().getName());
+                    return bean;
+                }
+                boolean replaced = CompareBuilder.registerHandler(operators, handler);
+                if (replaced) {
+                    log.info("Compare handlers were replaced by {}", bean.getClass().getSimpleName());
+                }
+            } else {
+                log.debug("Compare bean {} without @CompareType annotation will not be auto-registered", bean.getClass().getName());
+            }
+        }
+        return bean;
+    }
+}

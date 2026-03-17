@@ -1,45 +1,29 @@
 package com.maxkb4j.workflow.util;
 
+import com.maxkb4j.workflow.builder.CompareBuilder;
 import com.maxkb4j.workflow.compare.Compare;
-import com.maxkb4j.workflow.compare.impl.*;
 import com.maxkb4j.workflow.model.Condition;
 import com.maxkb4j.workflow.model.Workflow;
 
-import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Utility class for evaluating workflow conditions.
+ * Uses CompareBuilder for handler lookup.
+ */
 public class ConditionUtil {
 
-    private static final List<Compare> COMPARE_HANDLERS = new ArrayList<>();
-
-    static {
-        COMPARE_HANDLERS.add(new GECompare());
-        COMPARE_HANDLERS.add(new GTCompare());
-        COMPARE_HANDLERS.add(new ContainCompare());
-        COMPARE_HANDLERS.add(new EqualCompare());
-        COMPARE_HANDLERS.add(new LTCompare());
-        COMPARE_HANDLERS.add(new LECompare());
-        COMPARE_HANDLERS.add(new LengthLECompare());
-        COMPARE_HANDLERS.add(new LengthLTCompare());
-        COMPARE_HANDLERS.add(new LengthEqualCompare());
-        COMPARE_HANDLERS.add(new LengthGECompare());
-        COMPARE_HANDLERS.add(new LengthGTCompare());
-        COMPARE_HANDLERS.add(new IsNullCompare());
-        COMPARE_HANDLERS.add(new IsNotNullCompare());
-        COMPARE_HANDLERS.add(new NotContainCompare());
-        COMPARE_HANDLERS.add(new IsTrueCompare());
-        COMPARE_HANDLERS.add(new IsNotTrueCompare());
-    }
-
     /**
-     * 判断某个分支是否满足条件
+     * Evaluate whether a branch meets the specified conditions.
      *
-     * @param workflow 工作流上下文
-     * @return 是否匹配该分支
+     * @param workflow      the workflow context
+     * @param conditionType "and" or "or" for condition combination
+     * @param conditionList the list of conditions to evaluate
+     * @return whether the conditions are satisfied
      */
     public static boolean assertion(Workflow workflow, String conditionType, List<Condition> conditionList) {
         if (conditionList == null || conditionList.isEmpty()) {
-            return true; // 无条件视为满足（可按需调整）
+            return true; // No conditions means satisfied
         }
         boolean isAnd = "and".equals(conditionType);
         boolean result = isAnd;
@@ -47,28 +31,29 @@ public class ConditionUtil {
             boolean conditionResult = assertion(workflow, cond.getField(), cond.getCompare(), cond.getValue());
             if (isAnd) {
                 result = conditionResult;
-                if (!result) break; // 短路优化
+                if (!result) break; // Short-circuit for AND
             } else {
                 result = conditionResult;
-                if (result) break; // 短路优化
+                if (result) break; // Short-circuit for OR
             }
         }
         return result;
     }
 
     /**
-     * 执行单个条件的断言判断
+     * Execute a single condition assertion.
      */
     private static boolean assertion(Workflow workflow, List<String> fieldList, String compare, String valueToCompare) {
         if (fieldList == null || fieldList.size() != 2) {
             return false;
         }
         Object fieldValue = workflow.getReferenceField(fieldList);
-        for (Compare handler : COMPARE_HANDLERS) {
-            if (handler.support(compare)) {
-                return handler.compare(fieldValue, valueToCompare);
-            }
+        try {
+            Compare handler = CompareBuilder.getHandler(compare);
+            return handler.compare(fieldValue, valueToCompare);
+        } catch (IllegalArgumentException e) {
+            // Unknown comparison operator
+            return false;
         }
-        return false;
     }
 }

@@ -8,46 +8,57 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * 模板渲染服务
- * 负责工作流中的模板变量替换和渲染
+ * Template rendering service
+ * Responsible for template variable replacement and rendering in workflows
  *
  * @param variableResolver -- GETTER --
- *                         获取变量解析器
+ *                         Get variable resolver
  */
 @Slf4j
 public record TemplateRenderer(VariableResolver variableResolver) {
 
     /**
-     * 渲染模板
-     * 将模板中的变量占位符替换为实际值
+     * Render template
+     * Replace variable placeholders in the template with actual values
      *
-     * @param prompt 模板字符串，使用 {{variable}} 格式引用变量
-     * @return 渲染后的字符串
+     * @param prompt Template string using {{variable}} format for variable references
+     * @return Rendered string
      */
     public String render(String prompt) {
+        if (variableResolver == null) {
+            log.warn("VariableResolver is null, returning original prompt");
+            return prompt != null ? prompt : "";
+        }
         return render(prompt, variableResolver.getPromptVariables());
     }
 
     /**
-     * 渲染模板（带额外变量）
-     * 将模板中的变量占位符替换为实际值，并合并额外的变量
+     * Render template with additional variables
+     * Replace variable placeholders in the template with actual values, merging additional variables
      *
-     * @param prompt       模板字符串
-     * @param addVariables 额外的变量映射，会覆盖同名的上下文变量
-     * @return 渲染后的字符串
+     * @param prompt       Template string
+     * @param addVariables Additional variable map, will override same-name context variables
+     * @return Rendered string
      */
     public String render(String prompt, Map<String, Object> addVariables) {
         if (StringUtils.isBlank(prompt)) {
             return "";
         }
         try {
-            Map<String, Object> variables = new HashMap<>(variableResolver.getPromptVariables());
-            variables.putAll(addVariables);
+            Map<String, Object> baseVariables = variableResolver != null
+                    ? variableResolver.getPromptVariables()
+                    : new HashMap<>();
+            Map<String, Object> variables = new HashMap<>(baseVariables);
+            if (addVariables != null) {
+                variables.putAll(addVariables);
+            }
             PromptTemplate promptTemplate = PromptTemplate.from(prompt);
             return promptTemplate.apply(variables).text();
         } catch (Exception e) {
-            log.error("模板渲染失败: prompt={}", prompt, e);
-            throw new IllegalArgumentException(e);
+            log.error("Template rendering failed: prompt length={}, error={}", prompt.length(), e.getMessage());
+            throw new IllegalArgumentException(
+                    String.format("Template rendering failed for prompt (length=%d): %s",
+                            prompt.length(), e.getMessage()), e);
         }
     }
 

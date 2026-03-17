@@ -40,9 +40,13 @@ public class VariableAssignNodeHandler implements INodeHandler {
             }
             if ("chat".equals(scope) ){
                 resultList.add(getChatHandleResult(workflow,variable,fields));
-                //更新会话变量
-                ChatInfo chatInfo = ChatCache.get(workflow.getChatParams().getChatId());
-                chatInfo.getChatVariables().putAll(workflow.getChatContext());
+                // Update chat variables
+                if (workflow.getChatParams() != null && workflow.getChatParams().getChatId() != null) {
+                    ChatInfo chatInfo = ChatCache.get(workflow.getChatParams().getChatId());
+                    if (chatInfo != null && chatInfo.getChatVariables() != null) {
+                        chatInfo.getChatVariables().putAll(workflow.getChatContext());
+                    }
+                }
             }
             if ("loop".equals(scope) ){
                 resultList.add(getLoopHandleResult(workflow,variable,fields));

@@ -7,15 +7,15 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * 变量解析服务
- * 负责解析工作流中的各种变量：全局变量、聊天变量、节点变量、循环变量
+ * Variable resolver service
+ * Responsible for resolving various variables in workflows: global variables, chat variables, node variables, loop variables
  */
 public class VariableResolver {
 
     private final WorkflowContext context;
 
     /**
-     * 循环变量上下文（用于 LoopWorkFlow）
+     * Loop variable context (for LoopWorkFlow)
      */
     private final Map<String, Object> loopContext;
 
@@ -30,84 +30,127 @@ public class VariableResolver {
     }
 
     /**
-     * 获取提示词变量
-     * 将所有作用域的变量合并为统一格式，用于模板渲染
+     * Get prompt variables
+     * Merge all scope variables into unified format for template rendering
      *
-     * @return 变量映射，格式为 "scope.variable": value
+     * @return variable map in "scope.variable": value format
      */
     public Map<String, Object> getPromptVariables() {
-        Map<String, Object> result = new HashMap<>(100);
-        // 全局变量: global.xxx
-        for (String key : context.getGlobalContext().keySet()) {
-            Object value = context.getGlobalContext().get(key);
-            result.put("global." + key, value == null ? "*" : value);
-        }
-        // 聊天变量: chat.xxx
-        for (String key : context.getChatContext().keySet()) {
-            Object value = context.getChatContext().get(key);
-            result.put("chat." + key, value == null ? "*" : value);
-        }
-        // 循环变量: loop.xxx
-        if (loopContext != null) {
-            for (String key : loopContext.keySet()) {
-                Object value = loopContext.get(key);
-                result.put("loop." + key, value == null ? "*" : value);
+        // Estimate initial capacity to avoid resizing
+        int globalSize = context.getGlobalContext() != null ? context.getGlobalContext().size() : 0;
+        int chatSize = context.getChatContext() != null ? context.getChatContext().size() : 0;
+        int loopSize = loopContext != null ? loopContext.size() : 0;
+        int nodeCount = context.getNodeContext() != null ? context.getNodeContext().size() : 0;
+
+        // Estimate: each node has ~3 variables on average
+        int estimatedSize = globalSize + chatSize + loopSize + (nodeCount * 3) + 16;
+        Map<String, Object> result = new HashMap<>(estimatedSize);
+
+        // Global variables: global.xxx
+        if (context.getGlobalContext() != null) {
+            for (Map.Entry<String, Object> entry : context.getGlobalContext().entrySet()) {
+                Object value = entry.getValue();
+                result.put("global." + entry.getKey(), value == null ? "*" : value);
             }
         }
-        for (AbsNode node : context.getNodeContext()) {
-            result.putAll(getNodeVariables(node));
+
+        // Chat variables: chat.xxx
+        if (context.getChatContext() != null) {
+            for (Map.Entry<String, Object> entry : context.getChatContext().entrySet()) {
+                Object value = entry.getValue();
+                result.put("chat." + entry.getKey(), value == null ? "*" : value);
+            }
+        }
+
+        // Loop variables: loop.xxx
+        if (loopContext != null) {
+            for (Map.Entry<String, Object> entry : loopContext.entrySet()) {
+                Object value = entry.getValue();
+                result.put("loop." + entry.getKey(), value == null ? "*" : value);
+            }
+        }
+
+        // Node variables
+        if (context.getNodeContext() != null) {
+            for (AbsNode node : context.getNodeContext()) {
+                result.putAll(getNodeVariables(node));
+            }
         }
 
         return result;
     }
 
     /**
-     * 获取指定节点的变量
+     * Get variables for a specific node
      *
-     * @param node 节点对象
-     * @return 变量映射，格式为 "nodeName.variable": value
+     * @param node node object
+     * @return variable map in "nodeName.variable": value format
      */
     public Map<String, Object> getNodeVariables(AbsNode node) {
-        Map<String, Object> result = new HashMap<>(100);
+        if (node == null || node.getProperties() == null) {
+            return new HashMap<>(0);
+        }
         String nodeName = node.getProperties().getString("nodeName");
         Map<String, Object> nodeContext = node.getContext();
 
-        for (String key : nodeContext.keySet()) {
-            Object value = nodeContext.get(key);
-            result.put(nodeName + "." + key, value == null ? "*" : value);
+        if (nodeName == null || nodeContext == null) {
+            return new HashMap<>(0);
+        }
+
+        Map<String, Object> result = new HashMap<>(nodeContext.size() + 4);
+
+        for (Map.Entry<String, Object> entry : nodeContext.entrySet()) {
+            Object value = entry.getValue();
+            result.put(nodeName + "." + entry.getKey(), value == null ? "*" : value);
         }
 
         return result;
     }
 
     /**
-     * 获取所有流变量
-     * 用于获取引用字段时查找变量
+     * Get all flow variables
+     * Used for finding variables when getting reference fields
      *
-     * @return 按作用域分组的变量映射
+     * @return variable map grouped by scope
      */
     public Map<String, Map<String, Object>> getFlowVariables() {
-        Map<String, Map<String, Object>> result = new HashMap<>(100);
-        result.put("global", context.getGlobalContext());
-        result.put("chat", context.getChatContext());
+        // Estimate capacity: global + chat + loop + nodes
+        int nodeCount = context.getNodeContext() != null ? context.getNodeContext().size() : 0;
+        int estimatedSize = 3 + nodeCount + 4;
+
+        Map<String, Map<String, Object>> result = new HashMap<>(estimatedSize);
+
+        result.put("global", context.getGlobalContext() != null ? context.getGlobalContext() : new HashMap<>());
+        result.put("chat", context.getChatContext() != null ? context.getChatContext() : new HashMap<>());
+
         if (loopContext != null) {
             result.put("loop", loopContext);
         }
-        for (AbsNode node : context.getNodeContext()) {
-            result.put(node.getId(), node.getContext());
+
+        if (context.getNodeContext() != null) {
+            for (AbsNode node : context.getNodeContext()) {
+                if (node != null && node.getId() != null) {
+                    result.put(node.getId(), node.getContext() != null ? node.getContext() : new HashMap<>());
+                }
+            }
         }
+
         return result;
     }
 
     /**
-     * 获取引用字段的值
+     * Get reference field value
      *
-     * @param nodeId 节点ID或作用域名称（global, chat, loop）
-     * @param key    字段键
-     * @return 字段值
+     * @param nodeId node ID or scope name (global, chat, loop)
+     * @param key    field key
+     * @return field value
      */
     public Object getReferenceField(String nodeId, String key) {
-        Map<String, Object> nodeVariable = getFlowVariables().get(nodeId);
+        if (nodeId == null || key == null) {
+            return null;
+        }
+        Map<String, Map<String, Object>> flowVariables = getFlowVariables();
+        Map<String, Object> nodeVariable = flowVariables.get(nodeId);
         return nodeVariable == null ? null : nodeVariable.get(key);
     }
 
