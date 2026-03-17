@@ -7,4 +7,12 @@ import com.maxkb4j.trigger.entity.EventTriggerEntity;
 
 public interface IEventTriggerService extends IService<EventTriggerEntity> {
     IPage<EventTriggerEntity> pageList(int current, int size, EventQuery query);
+
+    boolean saveTigger(EventTriggerEntity dto, Boolean isEdit);
+
+    boolean batchActivate(String id, Boolean isActive);
+
+    boolean batchDelete(String id);
+
+    EventTriggerEntity getDetailById(String id);
 }
