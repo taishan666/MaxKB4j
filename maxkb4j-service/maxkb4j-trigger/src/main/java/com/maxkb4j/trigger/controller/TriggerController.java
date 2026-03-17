@@ -43,8 +43,8 @@ public class TriggerController {
      * @return
      */
     @PostMapping("/workspace/default/trigger")
-    public R<EventTriggerEntity> addTigger(@RequestBody EventTriggerEntity dto) {
-        eventTriggerService.saveTigger(dto, false);
+    public R<EventTriggerEntity> addTrigger(@RequestBody EventTriggerEntity dto) {
+        eventTriggerService.saveTrigger(dto, false);
         return R.data(dto);
     }
 
@@ -68,7 +68,7 @@ public class TriggerController {
     @PutMapping("/workspace/default/trigger/{id}")
     public R<EventTriggerEntity> updateTrigger(@PathVariable String id, @RequestBody EventTriggerEntity dto) {
         dto.setId(id);
-        eventTriggerService.saveTigger(dto, true);
+        eventTriggerService.saveTrigger(dto, true);
         return R.data(dto);
     }
 
