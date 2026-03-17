@@ -24,7 +24,6 @@ import java.util.Objects;
 @Service
 public class EventTriggerService extends ServiceImpl<EventTriggerMapper, EventTriggerEntity> implements IEventTriggerService {
     private final IEventTriggerTaskService eventTriggerTaskService;
-    private final String DEFAULT_ID = "default";
 
     @Override
     public IPage<EventTriggerEntity> pageList(int current, int size, EventQuery query) {
@@ -64,6 +63,7 @@ public class EventTriggerService extends ServiceImpl<EventTriggerMapper, EventTr
             dto.setIsActive(false);
             dto.setCreateTime(now);
         }
+        String DEFAULT_ID = "default";
         dto.setWorkspaceId(DEFAULT_ID);
         dto.setUpdateTime(now);
         this.saveOrUpdate(dto);
@@ -134,6 +134,12 @@ public class EventTriggerService extends ServiceImpl<EventTriggerMapper, EventTr
         wrapperTask.eq(EventTriggerTaskEntity::getTriggerId, entity.getId());
         entity.setTriggerTask(eventTriggerTaskService.list(wrapperTask));
         return entity;
+    }
+
+    @Override
+    public List<EventTriggerEntity> listBySource(String sourceType, String sourceId) {
+        //TODO
+        return List.of();
     }
 
 

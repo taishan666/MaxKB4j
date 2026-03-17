@@ -5,6 +5,8 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.maxkb4j.trigger.dto.EventQuery;
 import com.maxkb4j.trigger.entity.EventTriggerEntity;
 
+import java.util.List;
+
 public interface IEventTriggerService extends IService<EventTriggerEntity> {
     IPage<EventTriggerEntity> pageList(int current, int size, EventQuery query);
 
@@ -15,4 +17,6 @@ public interface IEventTriggerService extends IService<EventTriggerEntity> {
     boolean batchDelete(String id);
 
     EventTriggerEntity getDetailById(String id);
+
+    List<EventTriggerEntity> listBySource(String sourceType, String sourceId);
 }

@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -118,6 +119,11 @@ public class TriggerController {
             }
         });
         return R.success(result.get());
+    }
+
+    @GetMapping("/workspace/default/{sourceType}/{sourceId}/trigger")
+    public R<List<EventTriggerEntity>> listBySource(@PathVariable String sourceType, @PathVariable String sourceId) {
+        return R.success(eventTriggerService.listBySource(sourceType, sourceId));
     }
 
 
