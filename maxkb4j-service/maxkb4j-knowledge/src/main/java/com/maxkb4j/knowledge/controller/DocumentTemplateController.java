@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping(AppConst.ADMIN_API + "/workspace")
 @RequiredArgsConstructor
-public class TemplateController {
+public class DocumentTemplateController {
 
     private final TemplateService templateService;
 
