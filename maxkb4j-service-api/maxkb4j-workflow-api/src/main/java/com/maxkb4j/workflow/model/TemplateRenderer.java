@@ -25,7 +25,7 @@ public record TemplateRenderer(VariableResolver variableResolver) {
      * @return 渲染后的字符串
      */
     public String render(String prompt) {
-        return render(prompt, Map.of());
+        return render(prompt, variableResolver.getPromptVariables());
     }
 
     /**
@@ -47,7 +47,7 @@ public record TemplateRenderer(VariableResolver variableResolver) {
             return promptTemplate.apply(variables).text();
         } catch (Exception e) {
             log.error("模板渲染失败: prompt={}", prompt, e);
-            return prompt; // 渲染失败时返回原始模板
+            throw new IllegalArgumentException(e);
         }
     }
 
