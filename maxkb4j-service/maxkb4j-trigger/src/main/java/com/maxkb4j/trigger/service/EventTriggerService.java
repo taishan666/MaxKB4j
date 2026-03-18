@@ -88,9 +88,7 @@ public class EventTriggerService extends ServiceImpl<EventTriggerMapper, EventTr
         
         if (allTasks == null || allTasks.isEmpty()) {
             // 没有任务，直接设置昵称并返回
-            records.forEach(eventTriggerEntity -> {
-                eventTriggerEntity.setCreateUser(nicknameMap.get(eventTriggerEntity.getUserId()));
-            });
+            records.forEach(eventTriggerEntity -> eventTriggerEntity.setCreateUser(nicknameMap.get(eventTriggerEntity.getUserId())));
             return res;
         }
         

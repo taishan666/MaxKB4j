@@ -24,7 +24,8 @@
         <langchain4j.version>1.12.1</langchain4j.version>
         <langchain4j.beta.version>1.12.1-beta21</langchain4j.beta.version>
         <p6spy.version>1.10.0</p6spy.version>
-        <knife4j.version>4.4.0</knife4j.version>
+        <knife4j.version>4.5.0</knife4j.version>
+        <springdoc-openapi.version>2.8.6</springdoc-openapi.version>
         <sa-token.version>1.39.0</sa-token.version>
         <validation-api.version>2.0.1.Final</validation-api.version>
         <fastjson.version>2.0.47</fastjson.version>
@@ -154,6 +155,22 @@
                 <groupId>com.github.xiaoymin</groupId>
                 <artifactId>knife4j-openapi3-jakarta-spring-boot-starter</artifactId>
                 <version>${knife4j.version}</version>
+            </dependency>
+            <!-- Override springdoc-openapi version for Spring Framework 6.2.x compatibility -->
+            <dependency>
+                <groupId>org.springdoc</groupId>
+                <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+                <version>${springdoc-openapi.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springdoc</groupId>
+                <artifactId>springdoc-openapi-starter-webmvc-api</artifactId>
+                <version>${springdoc-openapi.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springdoc</groupId>
+                <artifactId>springdoc-openapi-starter-common</artifactId>
+                <version>${springdoc-openapi.version}</version>
             </dependency>
             <!-- JSON processing -->
             <dependency>
