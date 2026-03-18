@@ -110,6 +110,9 @@ public class FullTextStoreImpl implements IDataStore {
                     .matching(TextSegmentUtil.segment(request.getQuery()));
             Criteria baseCriteria = Criteria.where("knowledgeId").in(request.getKnowledgeIds())
                     .and("isActive").is(true);
+            if (!CollectionUtils.isEmpty(request.getExcludeDocumentIds())) {
+                baseCriteria.and("documentId").nin(request.getExcludeDocumentIds());
+            }
             if (!CollectionUtils.isEmpty(request.getExcludeParagraphIds())) {
                 baseCriteria.and("paragraphId").nin(request.getExcludeParagraphIds());
             }
@@ -136,14 +139,12 @@ public class FullTextStoreImpl implements IDataStore {
                     // Step 8: Limit results
                     Aggregation.limit(request.getTopK())
             );
-
             // Execute aggregation
             List<EmbeddingEntity> result = mongoTemplate.aggregate(
                     aggregation,
                     mongoTemplate.getCollectionName(EmbeddingEntity.class),
                     EmbeddingEntity.class
             ).getMappedResults();
-
             if (CollectionUtils.isEmpty(result)) {
                 return Collections.emptyList();
             }

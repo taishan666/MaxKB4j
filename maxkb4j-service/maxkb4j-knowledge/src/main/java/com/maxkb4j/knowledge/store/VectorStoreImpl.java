@@ -77,7 +77,7 @@ public class VectorStoreImpl implements IDataStore {
         // Insert successfully processed entities into PostgreSQL
         if (!processedEntities.isEmpty()) {
             try {
-                embeddingMapper.insertBatch(processedEntities);
+                embeddingMapper.insert(processedEntities);
                 log.debug("Inserted {} embedding entities into PostgreSQL", processedEntities.size());
             } catch (Exception e) {
                 log.error("Failed to insert embeddings into PostgreSQL: {}", e.getMessage(), e);
@@ -107,7 +107,6 @@ public class VectorStoreImpl implements IDataStore {
                 List<TextSegment> textSegments = batch.stream()
                         .map(e -> TextSegment.from(e.getContent()))
                         .toList();
-
                 // Generate embeddings for the batch
                 Response<List<Embedding>> res = model.embedAll(textSegments);
                 List<Embedding> embeddings = res.content();
@@ -120,7 +119,6 @@ public class VectorStoreImpl implements IDataStore {
                     embeddingEntity.setContent(TextSegmentUtil.segment(embeddingEntity.getContent()));
                     embeddingEntity.setDimension(model.dimension());
                 }
-
                 // Successfully processed
                 processedEntities.addAll(batch);
                 return;
@@ -233,10 +231,10 @@ public class VectorStoreImpl implements IDataStore {
             // Generate embedding for query
             Response<Embedding> res = embeddingModel.embed(request.getQuery());
             float[] queryVector = res.content().vector();
-
             // Perform vector search
             return embeddingMapper.embeddingSearch(
                     request.getKnowledgeIds(),
+                    request.getExcludeDocumentIds(),
                     request.getExcludeParagraphIds(),
                     request.getTopK(),
                     request.getMinScore(),

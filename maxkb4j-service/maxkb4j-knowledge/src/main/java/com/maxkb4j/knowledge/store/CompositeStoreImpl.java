@@ -1,7 +1,7 @@
 package com.maxkb4j.knowledge.store;
 
 import com.maxkb4j.knowledge.entity.EmbeddingEntity;
-import com.maxkb4j.knowledge.retrieval.RRFFusion;
+import com.maxkb4j.knowledge.retriever.RRFFusion;
 import com.maxkb4j.knowledge.retrieval.SearchRequest;
 import com.maxkb4j.knowledge.vo.TextChunkVO;
 import dev.langchain4j.model.embedding.EmbeddingModel;
@@ -82,7 +82,6 @@ public class CompositeStoreImpl implements IDataStore {
     @Override
     public void deleteByDocumentIds(String knowledgeId, List<String> documentIds) {
         log.debug("Deleting embeddings by document IDs from both stores");
-
         try {
             vectorStore.deleteByDocumentIds(knowledgeId, documentIds);
             fullTextStore.deleteByDocumentIds(knowledgeId, documentIds);
@@ -95,7 +94,6 @@ public class CompositeStoreImpl implements IDataStore {
     @Override
     public void deleteByKnowledgeId(String knowledgeId) {
         log.debug("Deleting embeddings for knowledge ID from both stores");
-
         try {
             vectorStore.deleteByKnowledgeId(knowledgeId);
             fullTextStore.deleteByKnowledgeId(knowledgeId);
@@ -108,7 +106,6 @@ public class CompositeStoreImpl implements IDataStore {
     @Override
     public void updateActiveStatus(String knowledgeId, String paragraphId, boolean isActive) {
         log.debug("Updating active status for paragraph in both stores");
-
         try {
             vectorStore.updateActiveStatus(knowledgeId, paragraphId, isActive);
             fullTextStore.updateActiveStatus(knowledgeId, paragraphId, isActive);

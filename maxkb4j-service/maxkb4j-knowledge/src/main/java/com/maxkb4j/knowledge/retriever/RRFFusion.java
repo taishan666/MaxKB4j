@@ -1,4 +1,4 @@
-package com.maxkb4j.knowledge.retrieval;
+package com.maxkb4j.knowledge.retriever;
 
 import com.maxkb4j.knowledge.vo.TextChunkVO;
 import lombok.Setter;
@@ -53,23 +53,18 @@ public class RRFFusion {
         if (resultLists == null || resultLists.isEmpty()) {
             return Collections.emptyList();
         }
-
         // Calculate RRF scores for each unique paragraph
         Map<String, Double> rrfScores = new HashMap<>();
-
         for (List<TextChunkVO> resultList : resultLists) {
             if (resultList == null) continue;
-
             for (int rank = 0; rank < resultList.size(); rank++) {
                 TextChunkVO chunk = resultList.get(rank);
                 String paragraphId = chunk.getParagraphId();
-
                 // RRF score contribution: 1 / (k + rank + 1)
                 double contribution = 1.0 / (k + rank + 1);
                 rrfScores.merge(paragraphId, contribution, Double::sum);
             }
         }
-
         // Sort by RRF score and return top K results
         return rrfScores.entrySet().stream()
                 .sorted(Map.Entry.<String, Double>comparingByValue().reversed())
