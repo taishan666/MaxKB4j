@@ -18,7 +18,6 @@ import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.enums.PermissionEnum;
 import com.maxkb4j.tool.service.IToolService;
 import com.maxkb4j.tool.vo.McpToolVO;
-import com.maxkb4j.trigger.entity.EventTriggerEntity;
 import com.maxkb4j.trigger.service.IEventTriggerService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
@@ -178,15 +177,5 @@ public class ApplicationController {
         return R.data(toolService.getMcpToolVos(mcpServersJson));
     }
 
-//    @SaCheckPerm(PermissionEnum.APPLICATION_READ)
-    @PostMapping("/APPLICATION/{id}/trigger")
-    public R<EventTriggerEntity> trigger(@RequestBody EventTriggerEntity dto) {
-        eventTriggerService.saveTrigger(dto, false);
-        return R.data(dto);
-    }
-    @GetMapping("/APPLICATION/{id}/trigger")
-    public R< List<EventTriggerEntity>> getTrigger(@PathVariable("id") String id) {        ;
-        return R.data(eventTriggerService.getTriggerList(id));
-    }
 
 }

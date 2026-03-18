@@ -12,13 +12,17 @@ import com.maxkb4j.application.service.IApplicationService;
 import com.maxkb4j.common.exception.ApiException;
 import com.maxkb4j.common.util.BeanUtil;
 import com.maxkb4j.common.util.DateTimeUtil;
+import com.maxkb4j.common.util.PageUtil;
 import com.maxkb4j.common.util.StpKit;
 import com.maxkb4j.tool.entity.ToolEntity;
 import com.maxkb4j.tool.service.IToolService;
 import com.maxkb4j.trigger.dto.EventQuery;
+import com.maxkb4j.trigger.dto.EventTriggerDTO;
 import com.maxkb4j.trigger.entity.EventTriggerEntity;
 import com.maxkb4j.trigger.entity.EventTriggerTaskEntity;
 import com.maxkb4j.trigger.mapper.EventTriggerMapper;
+import com.maxkb4j.trigger.vo.EventTriggerVO;
+import com.maxkb4j.trigger.vo.SourceEventTriggerVO;
 import com.maxkb4j.user.service.IUserService;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -45,7 +49,7 @@ public class EventTriggerService extends ServiceImpl<EventTriggerMapper, EventTr
     private final IToolService toolService;
 
     @Override
-    public IPage<EventTriggerEntity> pageList(int current, int size, EventQuery query) {       
+    public IPage<EventTriggerVO> pageList(int current, int size, EventQuery query) {
         IPage<EventTriggerEntity> page = new Page<>(current, size);
         LambdaQueryWrapper<EventTriggerEntity> wrapper = Wrappers.lambdaQuery();
         if (query != null) {
@@ -63,9 +67,9 @@ public class EventTriggerService extends ServiceImpl<EventTriggerMapper, EventTr
             }
         }
         wrapper.orderByDesc(EventTriggerEntity::getCreateTime);
-        IPage<EventTriggerEntity> res = this.page(page, wrapper);
+        IPage<EventTriggerVO> res = PageUtil.copy(this.page(page, wrapper), EventTriggerVO.class);
         Map<String, String> nicknameMap = userService.getNicknameMap();
-        List<EventTriggerEntity> records = res.getRecords();
+        List<EventTriggerVO> records =res.getRecords();
         if (records == null || records.isEmpty()) {
             return res;
         }
@@ -233,7 +237,7 @@ public class EventTriggerService extends ServiceImpl<EventTriggerMapper, EventTr
 
     @Override
     @Transactional
-    public void saveTrigger(EventTriggerEntity dto, Boolean isEdit) {
+    public void saveTrigger(EventTriggerDTO dto, Boolean isEdit) {
         if (dto == null) {
             return;
         }
@@ -264,7 +268,6 @@ public class EventTriggerService extends ServiceImpl<EventTriggerMapper, EventTr
                 if (item == null || StringUtils.isBlank(item.getSourceId())) {
                     continue;
                 }
-                
                 EventTriggerTaskEntity ett = new EventTriggerTaskEntity();
                 if (!isEditValue) {
                     ett.setId(null);
@@ -338,12 +341,12 @@ public class EventTriggerService extends ServiceImpl<EventTriggerMapper, EventTr
     }
 
     @Override
-    public EventTriggerEntity getDetailById(String id) {
+    public EventTriggerVO getDetailById(String id) {
         EventTriggerEntity entity = this.getById(id);
         if (entity == null) {
             return null;
         }
-
+        EventTriggerVO vo = BeanUtil.copy(entity, EventTriggerVO.class);
         LambdaQueryWrapper<EventTriggerTaskEntity> wrapperTask = Wrappers.lambdaQuery();
         wrapperTask.eq(EventTriggerTaskEntity::getTriggerId, id);
         List<EventTriggerTaskEntity> allTasks = eventTriggerTaskService.list(wrapperTask);
@@ -359,30 +362,25 @@ public class EventTriggerService extends ServiceImpl<EventTriggerMapper, EventTr
                 .map(EventTriggerTaskEntity::getSourceId)
                 .distinct()
                 .toList();
-
         // 批量查询应用程序和工具
         Map<String, ApplicationEntity> appMap = new HashMap<>();
         if (!appIds.isEmpty()) {
             List<ApplicationEntity> apps = applicationService.listByIds(appIds);
             appMap = apps.stream().collect(Collectors.toMap(ApplicationEntity::getId, app -> app));
         }
-
         Map<String, ToolEntity> toolMap = new HashMap<>();
         if (!toolIds.isEmpty()) {
             List<ToolEntity> tools = toolService.listByIds(toolIds);
             toolMap = tools.stream().collect(Collectors.toMap(ToolEntity::getId, tool -> tool));
         }
-
         // 处理任务列表
         StringBuilder taskStrBuilder = new StringBuilder();
         List<EventTriggerTaskEntity> resTask = new ArrayList<>();
         List<ApplicationEntity> appsList = new ArrayList<>();
         List<ToolEntity> toolsList = new ArrayList<>();
-
         for (EventTriggerTaskEntity task : allTasks) {
             EventTriggerTaskEntity newTask = BeanUtil.copy(task, EventTriggerTaskEntity.class);
             newTask.setType(task.getSourceType());
-
             if (SOURCE_TYPE_APPLICATION.equals(task.getSourceType())) {
                 ApplicationEntity app = appMap.get(task.getSourceId());
                 if (app != null) {
@@ -402,36 +400,41 @@ public class EventTriggerService extends ServiceImpl<EventTriggerMapper, EventTr
             }
             resTask.add(newTask);
         }
-
-        entity.setApplicationTaskList(appsList);
-        entity.setToolTaskList(toolsList);
-        entity.setTriggerTask(resTask);
-        entity.setTriggerTaskStr(taskStrBuilder.toString().trim());
-        return entity;
+        vo.setApplicationTaskList(appsList);
+        vo.setTriggerTask(resTask);
+        vo.setTriggerTaskStr(taskStrBuilder.toString().trim());
+        return vo;
     }
+
+    @Override
+    public SourceEventTriggerVO getDetailBySourceId(String id) {
+        EventTriggerVO vo=getDetailById(id);
+        SourceEventTriggerVO sourceVO = BeanUtil.copy(vo, SourceEventTriggerVO.class);
+        if (CollectionUtils.isNotEmpty(vo.getApplicationTaskList())){
+            sourceVO.setApplicationTask(vo.getApplicationTaskList().get(0));
+        }
+        if (CollectionUtils.isNotEmpty(vo.getToolTaskList())){
+            sourceVO.setToolTask(vo.getToolTaskList().get(0));
+        }
+        if (CollectionUtils.isNotEmpty(vo.getTriggerTask())){
+            sourceVO.setTriggerTask(vo.getTriggerTask().get(0));
+        }
+        return sourceVO;
+    }
+
 
     @Override
     public List<EventTriggerEntity> listBySource(String sourceType, String sourceId) {
-        if (!StringUtils.isBlank(sourceType)) {
-            StringUtils.isBlank(sourceId);
-        }
-        //TODO: 实现根据sourceType和sourceId查询触发器列表的逻辑
-        return List.of();
-    }
-
-    @Override
-    public List<EventTriggerEntity> getTriggerList(String id) {
-        if (StringUtils.isBlank(id)) {
+        if (StringUtils.isBlank(sourceId)) {
             return List.of();
         }
         LambdaQueryWrapper<EventTriggerTaskEntity> wrapperTask = Wrappers.lambdaQuery();
-        wrapperTask.eq(EventTriggerTaskEntity::getSourceId, id);
+        wrapperTask.eq(EventTriggerTaskEntity::getSourceType, sourceType);
+        wrapperTask.eq(EventTriggerTaskEntity::getSourceId, sourceId);
         List<EventTriggerTaskEntity> allTasks = eventTriggerTaskService.list(wrapperTask);
-
         if (allTasks == null || allTasks.isEmpty()) {
             return List.of();
         }
-
         // 批量查询避免N+1问题
         List<String> triggerIds = allTasks.stream()
                 .map(EventTriggerTaskEntity::getTriggerId)
@@ -439,6 +442,8 @@ public class EventTriggerService extends ServiceImpl<EventTriggerMapper, EventTr
                 .toList();
         return this.listByIds(triggerIds);
     }
+
+
 
 
 }

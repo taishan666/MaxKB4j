@@ -3,22 +3,25 @@ package com.maxkb4j.trigger.service;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.maxkb4j.trigger.dto.EventQuery;
+import com.maxkb4j.trigger.dto.EventTriggerDTO;
 import com.maxkb4j.trigger.entity.EventTriggerEntity;
+import com.maxkb4j.trigger.vo.EventTriggerVO;
+import com.maxkb4j.trigger.vo.SourceEventTriggerVO;
 
 import java.util.List;
 
 public interface IEventTriggerService extends IService<EventTriggerEntity> {
-    IPage<EventTriggerEntity> pageList(int current, int size, EventQuery query);
+    IPage<EventTriggerVO> pageList(int current, int size, EventQuery query);
 
-    void saveTrigger(EventTriggerEntity dto, Boolean isEdit);
+    void saveTrigger(EventTriggerDTO dto, Boolean isEdit);
 
     boolean batchActivate(String id, Boolean isActive);
 
     boolean batchDelete(String id);
 
-    EventTriggerEntity getDetailById(String id);
+    EventTriggerVO getDetailById(String id);
 
     List<EventTriggerEntity> listBySource(String sourceType, String sourceId);
 
-    List<EventTriggerEntity> getTriggerList(String id);
+    SourceEventTriggerVO getDetailBySourceId(String id);
 }
