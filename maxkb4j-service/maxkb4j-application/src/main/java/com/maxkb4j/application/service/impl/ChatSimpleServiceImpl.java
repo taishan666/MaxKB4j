@@ -2,7 +2,6 @@ package com.maxkb4j.application.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
-import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.application.pipeline.PipelineManage;
 import com.maxkb4j.application.pipeline.step.chatstep.AbsChatStep;
 import com.maxkb4j.application.pipeline.step.generatehumanmessagestep.AbsGenerateHumanMessageStep;
@@ -12,6 +11,7 @@ import com.maxkb4j.application.service.IChatService;
 import com.maxkb4j.application.vo.ApplicationVO;
 import com.maxkb4j.common.domain.dto.Answer;
 import com.maxkb4j.common.domain.dto.ChatMessageVO;
+import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.common.domain.dto.ChatResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;

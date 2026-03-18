@@ -48,6 +48,7 @@ services:
       - SPRING_DATASOURCE_PASSWORD=ycn4NRhjN2
     volumes:
       - ./logs:/logs
+      - ./server.crt:/tmp/certs/server.crt
     entrypoint: >
       sh -c "
       sleep 10;
