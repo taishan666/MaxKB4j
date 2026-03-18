@@ -3,10 +3,7 @@ package com.maxkb4j.workflow.model;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.maxkb4j.common.domain.dto.Answer;
-import com.maxkb4j.common.domain.dto.ChatMessageVO;
-import com.maxkb4j.common.domain.dto.ChatParams;
-import com.maxkb4j.common.domain.dto.ChatRecordDTO;
+import com.maxkb4j.common.domain.dto.*;
 import com.maxkb4j.workflow.enums.NodeStatus;
 import com.maxkb4j.workflow.enums.NodeType;
 import com.maxkb4j.workflow.enums.WorkflowMode;
@@ -353,6 +350,8 @@ public class Workflow {
     public Map<String, Object> getContext() {
         return workflowContext.getGlobalContext();
     }
+
+
 
     /**
      * Determine if current workflow needs sink output

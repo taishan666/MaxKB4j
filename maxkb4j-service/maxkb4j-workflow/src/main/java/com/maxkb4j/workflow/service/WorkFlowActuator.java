@@ -6,7 +6,6 @@ import com.maxkb4j.workflow.model.KnowledgeWorkflow;
 import com.maxkb4j.workflow.model.Workflow;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import service.IWorkFlowActuator;
 
 @RequiredArgsConstructor
 @Component

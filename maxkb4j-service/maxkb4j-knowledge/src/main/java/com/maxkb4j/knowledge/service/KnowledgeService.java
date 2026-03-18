@@ -42,7 +42,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
-import service.IWorkFlowActuator;
+import com.maxkb4j.workflow.service.IWorkFlowActuator;
 
 import java.io.IOException;
 import java.util.*;

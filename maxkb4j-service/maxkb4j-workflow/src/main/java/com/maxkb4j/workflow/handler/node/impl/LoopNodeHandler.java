@@ -21,7 +21,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Sinks;
-import service.IWorkFlowActuator;
+import com.maxkb4j.workflow.service.IWorkFlowActuator;
 
 import java.util.ArrayList;
 import java.util.List;

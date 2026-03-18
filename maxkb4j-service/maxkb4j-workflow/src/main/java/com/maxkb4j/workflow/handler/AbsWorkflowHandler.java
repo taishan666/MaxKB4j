@@ -8,7 +8,7 @@ import com.maxkb4j.workflow.model.NodeResultFuture;
 import com.maxkb4j.workflow.model.Workflow;
 import com.maxkb4j.workflow.node.AbsNode;
 import lombok.extern.slf4j.Slf4j;
-import service.IWorkflowHandler;
+import com.maxkb4j.workflow.service.IWorkflowHandler;
 
 import java.util.ArrayList;
 import java.util.List;
