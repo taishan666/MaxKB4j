@@ -1,7 +1,6 @@
 package com.maxkb4j.knowledge.store;
 
 import com.maxkb4j.knowledge.entity.EmbeddingEntity;
-import com.maxkb4j.knowledge.retriever.RRFFusion;
 import com.maxkb4j.knowledge.retrieval.SearchRequest;
 import com.maxkb4j.knowledge.vo.TextChunkVO;
 import dev.langchain4j.model.embedding.EmbeddingModel;
@@ -9,9 +8,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Composite vector store that combines multiple stores for unified access
@@ -24,7 +22,6 @@ public class CompositeStoreImpl implements IDataStore {
 
     private final VectorStoreImpl vectorStore;
     private final FullTextStoreImpl fullTextStore;
-    private final RRFFusion rrfFusion;
 
 
     @Override
@@ -120,30 +117,26 @@ public class CompositeStoreImpl implements IDataStore {
      */
     @Override
     public List<TextChunkVO> search(SearchRequest request) {
-        List<List<TextChunkVO>> resultLists = new ArrayList<>();
-        // Perform vector search
-        try {
-            List<TextChunkVO> vectorResults = vectorStore.search(request);
-            if (vectorResults != null && !vectorResults.isEmpty()) {
-                resultLists.add(vectorResults);
+        Map<String, Float> map = new LinkedHashMap<>();
+        List<TextChunkVO> results = new ArrayList<>();
+        List<CompletableFuture<List<TextChunkVO>>> futureList = new ArrayList<>();
+        futureList.add(CompletableFuture.supplyAsync(()->vectorStore.search(request)));
+        futureList.add(CompletableFuture.supplyAsync(()->fullTextStore.search(request)));
+        List<TextChunkVO> retrieveResults = futureList.stream().flatMap(future-> future.join().stream()).toList();
+        //融合排序
+        for (TextChunkVO result : retrieveResults) {
+            if (map.containsKey(result.getParagraphId())) {
+                if (map.get(result.getParagraphId()) < result.getScore()) {
+                    map.put(result.getParagraphId(), result.getScore());
+                }
+            } else {
+                map.put(result.getParagraphId(), result.getScore());
             }
-        } catch (Exception e) {
-            log.warn("Vector search failed in hybrid mode: {}", e.getMessage());
         }
-        // Perform full-text search
-        try {
-            List<TextChunkVO> textResults = fullTextStore.search(request);
-            if (textResults != null && !textResults.isEmpty()) {
-                resultLists.add(textResults);
-            }
-        } catch (Exception e) {
-            log.warn("Full-text search failed in hybrid mode: {}", e.getMessage());
-        }
-        // Apply RRF fusion
-        if (resultLists.isEmpty()) {
-            return Collections.emptyList();
-        }
-        return rrfFusion.fuse(resultLists, request.getTopK());
+        map.forEach((key, value) -> results.add(new TextChunkVO(key, value)));
+        results.sort(Comparator.comparing(TextChunkVO::getScore).reversed());
+        int endIndex = Math.min(request.getTopK(), results.size());
+        return results.subList(0, endIndex);
     }
 
 
