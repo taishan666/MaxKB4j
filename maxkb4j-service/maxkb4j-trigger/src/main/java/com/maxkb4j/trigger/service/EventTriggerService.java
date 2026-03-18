@@ -2,6 +2,7 @@ package com.maxkb4j.trigger.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -45,7 +46,6 @@ public class EventTriggerService extends ServiceImpl<EventTriggerMapper, EventTr
     public IPage<EventTriggerEntity> pageList(int current, int size, EventQuery query) {       
         IPage<EventTriggerEntity> page = new Page<>(current, size);
         LambdaQueryWrapper<EventTriggerEntity> wrapper = Wrappers.lambdaQuery();
-        
         if (query != null) {
             if (StringUtils.isNotBlank(query.getName())) {
                 wrapper.like(EventTriggerEntity::getName, query.getName());
@@ -53,117 +53,92 @@ public class EventTriggerService extends ServiceImpl<EventTriggerMapper, EventTr
             if (StringUtils.isNotBlank(query.getCreateUser())) {
                 wrapper.eq(EventTriggerEntity::getUserId, query.getCreateUser());
             }
-            if (StringUtils.isNotBlank(query.getTriggerType())) {
-                wrapper.eq(EventTriggerEntity::getTriggerType, query.getTriggerType());
+            if (StringUtils.isNotBlank(query.getType())) {
+                wrapper.eq(EventTriggerEntity::getTriggerType, query.getType());
             }
             if (Objects.nonNull(query.getIsActive())) {
                 wrapper.eq(EventTriggerEntity::getIsActive, query.getIsActive());
             }
         }
-        
         wrapper.orderByDesc(EventTriggerEntity::getCreateTime);
         IPage<EventTriggerEntity> res = this.page(page, wrapper);
-        
         Map<String, String> nicknameMap = userService.getNicknameMap();
         List<EventTriggerEntity> records = res.getRecords();
-        
         if (records == null || records.isEmpty()) {
             return res;
         }
-        
         // 批量查询所有trigger对应的task
         List<String> triggerIds = records.stream()
-                .filter(Objects::nonNull)
                 .map(EventTriggerEntity::getId)
-                .filter(Objects::nonNull)
                 .toList();
-        
         if (triggerIds.isEmpty()) {
             return res;
         }
-        
         LambdaQueryWrapper<EventTriggerTaskEntity> taskWrapper = Wrappers.lambdaQuery();
         taskWrapper.in(EventTriggerTaskEntity::getTriggerId, triggerIds);
         List<EventTriggerTaskEntity> allTasks = eventTriggerTaskService.list(taskWrapper);
-        
         if (allTasks == null || allTasks.isEmpty()) {
             // 没有任务，直接设置昵称并返回
             records.forEach(eventTriggerEntity -> eventTriggerEntity.setCreateUser(nicknameMap.get(eventTriggerEntity.getUserId())));
             return res;
         }
-        
         // 分组整理tasks
         Map<String, List<EventTriggerTaskEntity>> taskMap = allTasks.stream()
-                .filter(Objects::nonNull)
                 .collect(Collectors.groupingBy(EventTriggerTaskEntity::getTriggerId));
-        
         // 提取所有需要查询的application和tool的id
         List<String> appIds = allTasks.stream()
-                .filter(Objects::nonNull)
                 .filter(task -> SOURCE_TYPE_APPLICATION.equals(task.getSourceType()))
                 .map(EventTriggerTaskEntity::getSourceId)
                 .filter(StringUtils::isNotBlank)
                 .distinct()
                 .toList();
-        
         List<String> toolIds = allTasks.stream()
-                .filter(Objects::nonNull)
                 .filter(task -> !SOURCE_TYPE_APPLICATION.equals(task.getSourceType()))
                 .map(EventTriggerTaskEntity::getSourceId)
                 .filter(StringUtils::isNotBlank)
                 .distinct()
                 .toList();
-        
         // 批量查询application和tool
-        Map<String, Object> appMap = new HashMap<>();
-        if (!appIds.isEmpty()) {
-            List<Map<String, Object>> apps = applicationService.listMaps(Wrappers.lambdaQuery(ApplicationEntity.class).in(ApplicationEntity::getId, appIds));
-            if (apps != null) {
-                apps.forEach(app -> {
-                    Object id = app.get("id");
-                    if (id != null) {
-                        appMap.put(id.toString(), app);
-                    }
-                });
-            }
-        }
-        
-        Map<String, Object> toolMap = new HashMap<>();
-        if (!toolIds.isEmpty()) {
-            List<Map<String, Object>> tools = toolService.listMaps(Wrappers.lambdaQuery(ToolEntity.class).in(ToolEntity::getId, toolIds));
-            if (tools != null) {
-                tools.forEach(tool -> {
-                    Object id = tool.get("id");
-                    if (id != null) {
-                        toolMap.put(id.toString(), tool);
-                    }
-                });
-            }
-        }
+        List<Map<String, Object>>  apps = CollectionUtils.isEmpty(appIds)? List.of() : applicationService.listMaps(Wrappers.lambdaQuery(ApplicationEntity.class).in(ApplicationEntity::getId, appIds));
+        List<Map<String, Object>>  tools = CollectionUtils.isEmpty(toolIds)? List.of() :toolService.listMaps(Wrappers.lambdaQuery(ToolEntity.class).in(ToolEntity::getId, toolIds));
         // 处理数据
         records.forEach(eventTriggerEntity -> {
-            List<EventTriggerTaskEntity> triggerTasks = taskMap.getOrDefault(eventTriggerEntity.getId(), new ArrayList<>());
-            TaskProcessResult result = processTaskList(triggerTasks, appMap, toolMap);
-            List<EventTriggerTaskEntity> processedTasks = result.getTasks();
-            String taskStr = result.getTaskString();
-            // 计算下次执行时间
-            if (eventTriggerEntity.getTriggerType().equals("SCHEDULED")) {
+            List<EventTriggerTaskEntity> triggerTasks = taskMap.getOrDefault(eventTriggerEntity.getId(), List.of());
+            TaskProcessResult result = processTaskList(triggerTasks, buildSourceMap(apps),  buildSourceMap(tools));
+            if (TRIGGER_TYPE_SCHEDULED.equals(eventTriggerEntity.getTriggerType())) {
                 String nextRunTime = calculateNextRunTime(eventTriggerEntity.getTriggerSetting());
                 if (StringUtils.isNotBlank(nextRunTime)) {
                     eventTriggerEntity.setNextRunTime(nextRunTime);
                 }
             }
-            eventTriggerEntity.setTriggerTask(processedTasks);
-            eventTriggerEntity.setTriggerTaskStr(taskStr);
+            eventTriggerEntity.setTriggerTask(result.tasks());
+            eventTriggerEntity.setTriggerTaskStr(result.taskString());
             eventTriggerEntity.setCreateUser(nicknameMap.get(eventTriggerEntity.getUserId()));
         });
         return res;
     }
 
     /**
+     * 根据ID列表构建源数据Map
+     */
+    private  Map<String, Map<String, Object>> buildSourceMap(List<Map<String, Object>> list) {
+        if (list.isEmpty()) {
+            return Map.of();
+        }
+        Map<String, Map<String, Object>> result = new HashMap<>();
+        list.forEach(item -> {
+            Object id = item.get("id");
+            if (id != null) {
+                result.put(String.valueOf(id), item);
+            }
+        });
+        return result;
+    }
+
+    /**
      * 处理任务列表，设置任务名称、图标等信息
      */
-    private TaskProcessResult processTaskList(List<EventTriggerTaskEntity> tasks, Map<String, Object> appMap, Map<String, Object> toolMap) {
+    private TaskProcessResult processTaskList(List<EventTriggerTaskEntity> tasks, Map<String, Map<String, Object>> appMap, Map<String, Map<String, Object>> toolMap) {
         StringBuilder taskStrBuilder = new StringBuilder();
         List<EventTriggerTaskEntity> processedTasks = new ArrayList<>();
 
@@ -172,74 +147,45 @@ public class EventTriggerService extends ServiceImpl<EventTriggerMapper, EventTr
             BeanUtil.copyProperties(task, processedTask);
             processedTask.setType(task.getSourceType());
 
-            if (SOURCE_TYPE_APPLICATION.equals(task.getSourceType())) {
-                Map<String, Object> app = (Map<String, Object>) appMap.get(task.getSourceId());
-                if (app != null) {
-                    processedTask.setIcon(app.get("icon") != null ? app.get("icon").toString() : "");
-                    processedTask.setName(app.get("name") != null ? app.get("name").toString() : "");
-                    taskStrBuilder.append(" " + app.get("name"));
-                }
-            } else {
-                Map<String, Object> tool = (Map<String, Object>) toolMap.get(task.getSourceId());
-                if (tool != null) {
-                    processedTask.setIcon(tool.get("icon") != null ? tool.get("icon").toString() : "");
-                    processedTask.setName(tool.get("name") != null ? tool.get("name").toString() : "");
-                    taskStrBuilder.append(" " + tool.get("name"));
-                }
+            Map<String, Map<String, Object>> sourceMap = SOURCE_TYPE_APPLICATION.equals(task.getSourceType()) ? appMap : toolMap;
+            Map<String, Object> source = sourceMap.get(task.getSourceId());
+            if (source != null) {
+                processedTask.setIcon(source.get("icon") != null ? source.get("icon").toString() : "");
+                processedTask.setName(source.get("name") != null ? source.get("name").toString() : "");
+                taskStrBuilder.append(" ").append(source.get("name"));
             }
             processedTasks.add(processedTask);
         }
-
         return new TaskProcessResult(processedTasks, taskStrBuilder.toString().trim());
     }
 
     /**
      * 任务处理结果封装类
      */
-    private static class TaskProcessResult {
-        private final List<EventTriggerTaskEntity> tasks;
-        private final String taskString;
-
-        public TaskProcessResult(List<EventTriggerTaskEntity> tasks, String taskString) {
-            this.tasks = tasks;
-            this.taskString = taskString;
-        }
-
-        public List<EventTriggerTaskEntity> getTasks() {
-            return tasks;
-        }
-
-        public String getTaskString() {
-            return taskString;
-        }
-    }
+    private record TaskProcessResult(List<EventTriggerTaskEntity> tasks, String taskString) {}
 
     /**
      * 计算下次执行时间
      */
+    @SuppressWarnings("unchecked")
     private String calculateNextRunTime(Object triggerSettingObj) {
         if (!(triggerSettingObj instanceof Map)) {
             return null;
         }
-
         Map<String, Object> triggerSetting = (Map<String, Object>) triggerSettingObj;
         String scheduleType = (String) triggerSetting.get("scheduleType");
         List<String> timeList = getStringList(triggerSetting.get("time"));
-
         if (timeList == null || timeList.isEmpty()) {
             return null;
         }
-
         String timeStr = timeList.get(0); // 取第一个时间
         String[] timeParts = timeStr.split(":");
         if (timeParts.length < 2) {
             return null;
         }
-
         try {
             int hour = Integer.parseInt(timeParts[0]);
             int minute = Integer.parseInt(timeParts[1]);
-
             switch (scheduleType) {
                 case SCHEDULE_TYPE_DAILY:
                     return DateTimeUtil.getNextDayAtTime(hour, minute, 0).toString();
@@ -274,24 +220,20 @@ public class EventTriggerService extends ServiceImpl<EventTriggerMapper, EventTr
      * 安全地将对象转换为字符串列表
      */
     private List<String> getStringList(Object obj) {
-        List<String> result = new ArrayList<>();
-        if (obj instanceof List<?>) {
-            for (Object item : (List<?>) obj) {
-                if (item instanceof String) {
-                    result.add((String) item);
-                } else if (item instanceof Integer) {
-                    result.add(item.toString());
-                }
-            }
+        if (!(obj instanceof List<?> list)) {
+            return List.of();
         }
-        return result;
+        return list.stream()
+                .map(item -> item instanceof String s ? s : item != null ? item.toString() : null)
+                .filter(Objects::nonNull)
+                .toList();
     }
 
     @Override
     @Transactional
-    public boolean saveTrigger(EventTriggerEntity dto, Boolean isEdit) {
+    public void saveTrigger(EventTriggerEntity dto, Boolean isEdit) {
         if (dto == null) {
-            return false;
+            return;
         }
         
         dto.setUserId(StpKit.ADMIN.getLoginIdAsString());
@@ -307,13 +249,7 @@ public class EventTriggerService extends ServiceImpl<EventTriggerMapper, EventTr
         dto.setWorkspaceId(DEFAULT_WORKSPACE_ID);
         dto.setUpdateTime(now);
         this.saveOrUpdate(dto);
-        
-        if (!isEditValue) {
-            LambdaQueryWrapper<EventTriggerTaskEntity> wrapperTask = Wrappers.lambdaQuery();
-            wrapperTask.eq(EventTriggerTaskEntity::getTriggerId, dto.getId());
-            dto.setTriggerTask(eventTriggerTaskService.list(wrapperTask));
-        }
-        
+
         if (dto.getTriggerTask() != null) {
             LambdaQueryWrapper<EventTriggerTaskEntity> wrapperTask = Wrappers.lambdaQuery();
             wrapperTask.eq(EventTriggerTaskEntity::getTriggerId, dto.getId());
@@ -345,7 +281,6 @@ public class EventTriggerService extends ServiceImpl<EventTriggerMapper, EventTr
             }
         }
 
-        return true;
     }
 
     @Override
@@ -411,12 +346,12 @@ public class EventTriggerService extends ServiceImpl<EventTriggerMapper, EventTr
 
         // 提取所有应用程序ID和工具ID
         List<String> appIds = allTasks.stream()
-                .filter(task -> "APPLICATION".equals(task.getSourceType()))
+                .filter(task -> SOURCE_TYPE_APPLICATION.equals(task.getSourceType()))
                 .map(EventTriggerTaskEntity::getSourceId)
                 .distinct()
                 .toList();
         List<String> toolIds = allTasks.stream()
-                .filter(task -> !"APPLICATION".equals(task.getSourceType()))
+                .filter(task -> !SOURCE_TYPE_APPLICATION.equals(task.getSourceType()))
                 .map(EventTriggerTaskEntity::getSourceId)
                 .distinct()
                 .toList();
@@ -450,7 +385,7 @@ public class EventTriggerService extends ServiceImpl<EventTriggerMapper, EventTr
                     appsList.add(app);
                     newTask.setIcon(app.getIcon());
                     newTask.setName(app.getName());
-                    taskStrBuilder.append(" " + app.getName());
+                    taskStrBuilder.append(" ").append(app.getName());
                 }
             } else {
                 ToolEntity tool = toolMap.get(task.getSourceId());
@@ -458,7 +393,7 @@ public class EventTriggerService extends ServiceImpl<EventTriggerMapper, EventTr
                     toolsList.add(tool);
                     newTask.setIcon(tool.getIcon());
                     newTask.setName(tool.getName());
-                    taskStrBuilder.append(" " + tool.getName());
+                    taskStrBuilder.append(" ").append(tool.getName());
                 }
             }
             resTask.add(newTask);
@@ -473,25 +408,32 @@ public class EventTriggerService extends ServiceImpl<EventTriggerMapper, EventTr
 
     @Override
     public List<EventTriggerEntity> listBySource(String sourceType, String sourceId) {
-        if (StringUtils.isBlank(sourceType) || StringUtils.isBlank(sourceId)) {
-            return List.of();
+        if (!StringUtils.isBlank(sourceType)) {
+            StringUtils.isBlank(sourceId);
         }
-        
         //TODO: 实现根据sourceType和sourceId查询触发器列表的逻辑
         return List.of();
     }
 
     @Override
     public List<EventTriggerEntity> getTriggerList(String id) {
+        if (StringUtils.isBlank(id)) {
+            return List.of();
+        }
         LambdaQueryWrapper<EventTriggerTaskEntity> wrapperTask = Wrappers.lambdaQuery();
         wrapperTask.eq(EventTriggerTaskEntity::getSourceId, id);
         List<EventTriggerTaskEntity> allTasks = eventTriggerTaskService.list(wrapperTask);
-        List<EventTriggerEntity> resTask = new ArrayList<>();
-        for (EventTriggerTaskEntity task : allTasks) {
-            EventTriggerEntity  newTask = this.getById(task.getTriggerId()) ;
-            resTask.add(newTask);
+
+        if (allTasks == null || allTasks.isEmpty()) {
+            return List.of();
         }
-        return resTask;
+
+        // 批量查询避免N+1问题
+        List<String> triggerIds = allTasks.stream()
+                .map(EventTriggerTaskEntity::getTriggerId)
+                .distinct()
+                .toList();
+        return this.listByIds(triggerIds);
     }
 
 

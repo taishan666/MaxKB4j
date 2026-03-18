@@ -6,6 +6,6 @@ import lombok.Data;
 public class EventQuery {
     private String name;
     private String createUser;
-    private String triggerType;
+    private String type;
     private Boolean isActive;
 }

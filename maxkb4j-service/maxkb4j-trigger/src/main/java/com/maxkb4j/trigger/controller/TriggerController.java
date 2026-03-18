@@ -11,9 +11,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
+ * 触发器管理控制器
+ *
  * @author tarzan
  * @date 2025-03-15 22:00:45
  */
@@ -26,11 +27,7 @@ public class TriggerController {
     private final IEventTriggerService eventTriggerService;
 
     /**
-     * 查看触发器分页接口
-     * @param current
-     * @param size
-     * @param query
-     * @return
+     * 分页查询触发器列表
      */
     @GetMapping("/workspace/default/trigger/{current}/{size}")
     public R<IPage<EventTriggerEntity>> page(@PathVariable int current, @PathVariable int size, EventQuery query) {
@@ -39,8 +36,6 @@ public class TriggerController {
 
     /**
      * 新增触发器
-     * @param dto
-     * @return
      */
     @PostMapping("/workspace/default/trigger")
     public R<EventTriggerEntity> addTrigger(@RequestBody EventTriggerEntity dto) {
@@ -50,20 +45,14 @@ public class TriggerController {
 
     /**
      * 获取触发器详情
-     * @param id
-     * @return
      */
     @GetMapping("/workspace/default/trigger/{id}")
     public R<EventTriggerEntity> getTrigger(@PathVariable String id) {
-        EventTriggerEntity entity = eventTriggerService.getDetailById(id);
-        return R.success(entity);
+        return R.success(eventTriggerService.getDetailById(id));
     }
 
     /**
      * 编辑触发器
-     * @param id
-     * @param dto
-     * @return
      */
     @PutMapping("/workspace/default/trigger/{id}")
     public R<EventTriggerEntity> updateTrigger(@PathVariable String id, @RequestBody EventTriggerEntity dto) {
@@ -73,52 +62,31 @@ public class TriggerController {
     }
 
     /**
-     * 单个删触发器
-     * @param id
-     * @return
+     * 删除触发器
      */
     @DeleteMapping("/workspace/default/trigger/{id}")
     public R<Boolean> delete(@PathVariable String id) {
-        AtomicBoolean result = new AtomicBoolean(true);
-        var res = eventTriggerService.batchDelete(id);
-        if (!res) {
-            result.set(false);
-        }
-        return R.success(result.get());
+        return R.success(eventTriggerService.batchDelete(id));
     }
 
     /**
      * 批量删除触发器
-     * @param dto
-     * @return
      */
     @PutMapping("/workspace/default/trigger/batch_delete")
     public R<Boolean> batchDelete(@RequestBody EventTriggerEntity dto) {
-        AtomicBoolean result = new AtomicBoolean(true);
-        dto.getIdList().forEach(id -> {
-            var res = eventTriggerService.batchDelete(id);
-            if (!res) {
-                result.set(false);
-            }
-        });
-        return R.success(result.get());
+        boolean allSuccess = dto.getIdList().stream()
+                .allMatch(eventTriggerService::batchDelete);
+        return R.success(allSuccess);
     }
 
     /**
-     * 批量启用禁用触发器
-     * @param dto
-     * @return
+     * 批量启用/禁用触发器
      */
     @PutMapping("/workspace/default/trigger/batch_activate")
     public R<Boolean> batchActivate(@RequestBody EventTriggerEntity dto) {
-        AtomicBoolean result = new AtomicBoolean(true);
-        dto.getIdList().forEach(id -> {
-            var res = eventTriggerService.batchActivate(id, dto.getIsActive());
-            if (!res) {
-                result.set(false);
-            }
-        });
-        return R.success(result.get());
+        boolean allSuccess = dto.getIdList().stream()
+                .allMatch(id -> eventTriggerService.batchActivate(id, dto.getIsActive()));
+        return R.success(allSuccess);
     }
 
     @GetMapping("/workspace/default/{sourceType}/{sourceId}/trigger")

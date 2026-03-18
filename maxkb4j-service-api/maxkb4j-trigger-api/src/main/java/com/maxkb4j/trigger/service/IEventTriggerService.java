@@ -10,7 +10,7 @@ import java.util.List;
 public interface IEventTriggerService extends IService<EventTriggerEntity> {
     IPage<EventTriggerEntity> pageList(int current, int size, EventQuery query);
 
-    boolean saveTrigger(EventTriggerEntity dto, Boolean isEdit);
+    void saveTrigger(EventTriggerEntity dto, Boolean isEdit);
 
     boolean batchActivate(String id, Boolean isActive);
 
