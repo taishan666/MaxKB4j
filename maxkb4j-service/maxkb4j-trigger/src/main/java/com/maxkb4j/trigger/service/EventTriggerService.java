@@ -1,5 +1,6 @@
 package com.maxkb4j.trigger.service;
 
+import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
@@ -8,6 +9,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.maxkb4j.application.entity.ApplicationEntity;
 import com.maxkb4j.application.service.IApplicationService;
+import com.maxkb4j.common.exception.ApiException;
 import com.maxkb4j.common.util.BeanUtil;
 import com.maxkb4j.common.util.DateTimeUtil;
 import com.maxkb4j.common.util.StpKit;
@@ -235,21 +237,23 @@ public class EventTriggerService extends ServiceImpl<EventTriggerMapper, EventTr
         if (dto == null) {
             return;
         }
-        
+        if (TRIGGER_TYPE_SCHEDULED.equals(dto.getTriggerType())){
+            JSONObject triggerSetting=dto.getTriggerSetting();
+            if (triggerSetting == null||!triggerSetting.containsKey("scheduleType")){
+                throw new ApiException( "请选择触发周期");
+            }
+        }
         dto.setUserId(StpKit.ADMIN.getLoginIdAsString());
         Date now = new Date();
         boolean isEditValue = Boolean.TRUE.equals(isEdit);
-        
         if (!isEditValue) {
             dto.setId(null);
             dto.setIsActive(false);
             dto.setCreateTime(now);
         }
-        
         dto.setWorkspaceId(DEFAULT_WORKSPACE_ID);
         dto.setUpdateTime(now);
         this.saveOrUpdate(dto);
-
         if (dto.getTriggerTask() != null) {
             LambdaQueryWrapper<EventTriggerTaskEntity> wrapperTask = Wrappers.lambdaQuery();
             wrapperTask.eq(EventTriggerTaskEntity::getTriggerId, dto.getId());
