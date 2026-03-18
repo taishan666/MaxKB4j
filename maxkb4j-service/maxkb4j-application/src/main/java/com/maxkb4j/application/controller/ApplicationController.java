@@ -18,7 +18,6 @@ import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.enums.PermissionEnum;
 import com.maxkb4j.tool.service.IToolService;
 import com.maxkb4j.tool.vo.McpToolVO;
-import com.maxkb4j.trigger.service.IEventTriggerService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -50,7 +49,6 @@ public class ApplicationController {
     private final ApplicationExportService exportService;
     private final ApplicationStatsService applicationStatsService;
     private final ApplicationAccessTokenService accessTokenService;
-    private final IEventTriggerService eventTriggerService;
     @SaCheckPerm(PermissionEnum.APPLICATION_READ)
     @GetMapping("/application")
     public R<List<ApplicationListVO>> listApps(String folderId) {
