@@ -1,5 +1,6 @@
 package com.maxkb4j.trigger.service;
 
+import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.maxkb4j.trigger.dto.EventQuery;
@@ -24,4 +25,6 @@ public interface IEventTriggerService extends IService<EventTriggerEntity> {
     List<EventTriggerEntity> listBySource(String sourceType, String sourceId);
 
     SourceEventTriggerVO getDetailBySourceId(String id,String sourceType,String sourceId);
+
+    Boolean webhook(String triggerId, JSONObject params);
 }

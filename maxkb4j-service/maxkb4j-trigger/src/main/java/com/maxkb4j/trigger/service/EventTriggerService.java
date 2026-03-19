@@ -214,14 +214,11 @@ public class EventTriggerService extends ServiceImpl<EventTriggerMapper, EventTr
         if (entity == null) {
             return null;
         }
-
         EventTriggerVO vo = BeanUtil.copy(entity, EventTriggerVO.class);
         LambdaQueryWrapper<EventTriggerTaskEntity> wrapperTask = Wrappers.lambdaQuery();
         wrapperTask.eq(EventTriggerTaskEntity::getTriggerId, id);
         List<EventTriggerTaskEntity> allTasks = eventTriggerTaskService.list(wrapperTask);
-
         EventTriggerTaskProcessor.DetailResult result = taskProcessor.processForDetail(allTasks);
-
         vo.setApplicationTaskList(result.apps());
         vo.setToolTaskList(result.tools());
         vo.setTriggerTask(result.tasks());
@@ -251,6 +248,17 @@ public class EventTriggerService extends ServiceImpl<EventTriggerMapper, EventTr
             vo.setTriggerTask(sourceTask.get());
         }
         return vo;
+    }
+
+    @Override
+    public Boolean webhook(String triggerId, JSONObject params) {
+        EventTriggerVO triggerVO=getDetailById(triggerId);
+        if (triggerVO==null){
+            return false;
+        }
+        List<EventTriggerTaskEntity> tasks = triggerVO.getTriggerTask();
+        //todo
+        return true;
     }
 
     @Override
