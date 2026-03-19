@@ -115,6 +115,12 @@ public class TriggerController {
         return R.success(eventTriggerService.listBySource(sourceType, sourceId));
     }
 
+    @DeleteMapping("/workspace/default/{sourceType}/{sourceId}/trigger/{id}")
+    public R<Boolean> deleteBySourceId(@PathVariable String sourceType, @PathVariable String sourceId, @PathVariable String id) {
+        return R.success(eventTriggerService.deleteTrigger(id));
+    }
+
+
     @PostMapping("/trigger/v1/webhook/{id}")
     public R<Boolean> webhook(@PathVariable String id, @RequestBody JSONObject params) {
         return R.data(eventTriggerService.webhook(id, params));

@@ -77,22 +77,15 @@ public class EventTriggerService extends ServiceImpl<EventTriggerMapper, EventTr
             return pageList;
         }
         // 批量查询所有trigger对应的task
-        List<String> triggerIds = records.stream()
-                .map(EventTriggerEntity::getId)
-                .toList();
+        List<String> triggerIds = records.stream().map(EventTriggerEntity::getId).toList();
         if (triggerIds.isEmpty()) {
             return pageList;
         }
         LambdaQueryWrapper<EventTriggerTaskEntity> taskWrapper = Wrappers.lambdaQuery();
         taskWrapper.in(EventTriggerTaskEntity::getTriggerId, triggerIds);
         List<EventTriggerTaskEntity> allTasks = eventTriggerTaskService.list(taskWrapper);
-        if (allTasks == null || allTasks.isEmpty()) {
-            records.forEach(eventTrigger -> eventTrigger.setCreateUser(nicknameMap.get(eventTrigger.getUserId())));
-            return pageList;
-        }
         // 分组整理tasks
-        Map<String, List<EventTriggerTaskEntity>> taskMap = allTasks.stream()
-                .collect(Collectors.groupingBy(EventTriggerTaskEntity::getTriggerId));
+        Map<String, List<EventTriggerTaskEntity>> taskMap = allTasks.stream().collect(Collectors.groupingBy(EventTriggerTaskEntity::getTriggerId));
         // 处理数据
         records.forEach(eventTriggerEntity -> {
             List<EventTriggerTaskEntity> triggerTasks = taskMap.getOrDefault(eventTriggerEntity.getId(), List.of());
@@ -176,18 +169,14 @@ public class EventTriggerService extends ServiceImpl<EventTriggerMapper, EventTr
         Date now = new Date();
         // 直接更新触发器状态
         LambdaUpdateWrapper<EventTriggerEntity> updateWrapper = Wrappers.lambdaUpdate();
-        updateWrapper.eq(EventTriggerEntity::getId, id)
-                .set(EventTriggerEntity::getIsActive, isActive)
-                .set(EventTriggerEntity::getUpdateTime, now);
+        updateWrapper.eq(EventTriggerEntity::getId, id).set(EventTriggerEntity::getIsActive, isActive).set(EventTriggerEntity::getUpdateTime, now);
         boolean updated = this.update(updateWrapper);
         if (!updated) {
             return false;
         }
         // 同时更新关联任务的状态
         LambdaUpdateWrapper<EventTriggerTaskEntity> taskUpdateWrapper = Wrappers.lambdaUpdate();
-        taskUpdateWrapper.eq(EventTriggerTaskEntity::getTriggerId, id)
-                .set(EventTriggerTaskEntity::getIsActive, isActive)
-                .set(EventTriggerTaskEntity::getUpdateTime, now);
+        taskUpdateWrapper.eq(EventTriggerTaskEntity::getTriggerId, id).set(EventTriggerTaskEntity::getIsActive, isActive).set(EventTriggerTaskEntity::getUpdateTime, now);
         eventTriggerTaskService.update(taskUpdateWrapper);
         // 更新调度状态
         EventTriggerEntity trigger = this.getById(id);
@@ -249,9 +238,7 @@ public class EventTriggerService extends ServiceImpl<EventTriggerMapper, EventTr
         LambdaQueryWrapper<EventTriggerTaskEntity> wrapperTask = Wrappers.lambdaQuery();
         wrapperTask.eq(EventTriggerTaskEntity::getTriggerId, id);
         List<EventTriggerTaskEntity> allTasks = eventTriggerTaskService.list(wrapperTask);
-        Optional<EventTriggerTaskEntity> sourceTask = allTasks.stream()
-                .filter(task -> sourceType.equals(task.getSourceType()) && sourceId.equals(task.getSourceId()))
-                .findFirst();
+        Optional<EventTriggerTaskEntity> sourceTask = allTasks.stream().filter(task -> sourceType.equals(task.getSourceType()) && sourceId.equals(task.getSourceId())).findFirst();
         if (sourceTask.isPresent()) {
             if (ResourceType.APPLICATION.equals(sourceType)) {
                 vo.setApplicationTask(applicationService.getById(sourceTask.get().getSourceId()));
@@ -265,8 +252,8 @@ public class EventTriggerService extends ServiceImpl<EventTriggerMapper, EventTr
 
     @Override
     public Boolean webhook(String triggerId, JSONObject params) {
-        EventTriggerVO triggerVO=getDetailById(triggerId);
-        if (triggerVO==null){
+        EventTriggerVO triggerVO = getDetailById(triggerId);
+        if (triggerVO == null) {
             return false;
         }
         List<EventTriggerTaskEntity> tasks = triggerVO.getTriggerTask();
@@ -287,10 +274,7 @@ public class EventTriggerService extends ServiceImpl<EventTriggerMapper, EventTr
             return List.of();
         }
         // 批量查询避免N+1问题
-        List<String> triggerIds = allTasks.stream()
-                .map(EventTriggerTaskEntity::getTriggerId)
-                .distinct()
-                .toList();
+        List<String> triggerIds = allTasks.stream().map(EventTriggerTaskEntity::getTriggerId).distinct().toList();
         return this.listByIds(triggerIds);
     }
 }
