@@ -63,25 +63,25 @@ public class EventTriggerService extends ServiceImpl<EventTriggerMapper, EventTr
             }
         }
         wrapper.orderByDesc(EventTriggerEntity::getCreateTime);
-        IPage<EventTriggerVO> res = PageUtil.copy(this.page(page, wrapper), EventTriggerVO.class);
+        IPage<EventTriggerVO> pageList = PageUtil.copy(this.page(page, wrapper), EventTriggerVO.class);
         Map<String, String> nicknameMap = userService.getNicknameMap();
-        List<EventTriggerVO> records = res.getRecords();
+        List<EventTriggerVO> records = pageList.getRecords();
         if (records == null || records.isEmpty()) {
-            return res;
+            return pageList;
         }
         // 批量查询所有trigger对应的task
         List<String> triggerIds = records.stream()
                 .map(EventTriggerEntity::getId)
                 .toList();
         if (triggerIds.isEmpty()) {
-            return res;
+            return pageList;
         }
         LambdaQueryWrapper<EventTriggerTaskEntity> taskWrapper = Wrappers.lambdaQuery();
         taskWrapper.in(EventTriggerTaskEntity::getTriggerId, triggerIds);
         List<EventTriggerTaskEntity> allTasks = eventTriggerTaskService.list(taskWrapper);
         if (allTasks == null || allTasks.isEmpty()) {
             records.forEach(eventTriggerEntity -> eventTriggerEntity.setCreateUser(nicknameMap.get(eventTriggerEntity.getUserId())));
-            return res;
+            return pageList;
         }
         // 分组整理tasks
         Map<String, List<EventTriggerTaskEntity>> taskMap = allTasks.stream()
@@ -91,7 +91,7 @@ public class EventTriggerService extends ServiceImpl<EventTriggerMapper, EventTr
             List<EventTriggerTaskEntity> triggerTasks = taskMap.getOrDefault(eventTriggerEntity.getId(), List.of());
             EventTriggerTaskProcessor.PageResult result = taskProcessor.processForPage(triggerTasks);
             if (TriggerType.SCHEDULED.name().equals(eventTriggerEntity.getTriggerType())) {
-                String nextRunTime = nextRunTimeCalculator.calculate(eventTriggerEntity.getTriggerSetting());
+                String nextRunTime = nextRunTimeCalculator.calculateStr(eventTriggerEntity.getTriggerSetting());
                 if (StringUtils.isNotBlank(nextRunTime)) {
                     eventTriggerEntity.setNextRunTime(nextRunTime);
                 }
@@ -99,7 +99,7 @@ public class EventTriggerService extends ServiceImpl<EventTriggerMapper, EventTr
             eventTriggerEntity.setTriggerTask(result.tasks());
             eventTriggerEntity.setCreateUser(nicknameMap.get(eventTriggerEntity.getUserId()));
         });
-        return res;
+        return pageList;
     }
 
     @Override

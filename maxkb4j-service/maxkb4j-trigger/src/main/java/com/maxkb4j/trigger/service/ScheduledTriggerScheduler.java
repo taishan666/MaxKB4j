@@ -8,11 +8,11 @@ import com.maxkb4j.common.util.DateTimeUtil;
 import com.maxkb4j.trigger.entity.EventTriggerEntity;
 import com.maxkb4j.trigger.enums.ScheduleType;
 import com.maxkb4j.trigger.enums.TriggerType;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.stereotype.Component;
 
@@ -26,21 +26,16 @@ import java.util.concurrent.ScheduledFuture;
 
 @Component
 @Slf4j
+@RequiredArgsConstructor
 public class ScheduledTriggerScheduler implements ApplicationRunner {
 
     private final ThreadPoolTaskScheduler taskScheduler;
     private final IEventTriggerService eventTriggerService;
     private final TriggerTaskExecutor triggerTaskExecutor;
+    private final NextRunTimeCalculator nextRunTimeCalculator;
 
     private final ConcurrentHashMap<String, ScheduledFuture<?>> scheduledTasks = new ConcurrentHashMap<>();
 
-    public ScheduledTriggerScheduler(ThreadPoolTaskScheduler taskScheduler,
-                                     @Lazy IEventTriggerService eventTriggerService,
-                                     TriggerTaskExecutor triggerTaskExecutor) {
-        this.taskScheduler = taskScheduler;
-        this.eventTriggerService = eventTriggerService;
-        this.triggerTaskExecutor = triggerTaskExecutor;
-    }
 
     @Override
     public void run(ApplicationArguments args) {
@@ -100,7 +95,7 @@ public class ScheduledTriggerScheduler implements ApplicationRunner {
     }
 
     private void scheduleDaily(String triggerId, JSONObject setting) {
-        LocalDateTime nextRunTime = calculateNextRunTime(setting);
+        LocalDateTime nextRunTime = nextRunTimeCalculator.calculate(setting);
         if (nextRunTime == null) {
             log.warn("Failed to calculate next run time for daily trigger {}", triggerId);
             return;
@@ -109,7 +104,7 @@ public class ScheduledTriggerScheduler implements ApplicationRunner {
     }
 
     private void scheduleWeekly(String triggerId, JSONObject setting) {
-        LocalDateTime nextRunTime = calculateNextRunTime(setting);
+        LocalDateTime nextRunTime = nextRunTimeCalculator.calculate(setting);
         if (nextRunTime == null) {
             log.warn("Failed to calculate next run time for weekly trigger {}", triggerId);
             return;
@@ -118,7 +113,7 @@ public class ScheduledTriggerScheduler implements ApplicationRunner {
     }
 
     private void scheduleMonthly(String triggerId, JSONObject setting) {
-        LocalDateTime nextRunTime = calculateNextRunTime(setting);
+        LocalDateTime nextRunTime = nextRunTimeCalculator.calculate(setting);
         if (nextRunTime == null) {
             log.warn("Failed to calculate next run time for monthly trigger {}", triggerId);
             return;
@@ -135,7 +130,7 @@ public class ScheduledTriggerScheduler implements ApplicationRunner {
             return;
         }
 
-        LocalDateTime nextRunTime = calculateNextRunTime(setting);
+        LocalDateTime nextRunTime = nextRunTimeCalculator.calculate(setting);
         if (nextRunTime == null) {
             nextRunTime = LocalDateTime.now().plus(intervalValue, getChronoUnit(intervalUnit));
         }
@@ -226,39 +221,6 @@ public class ScheduledTriggerScheduler implements ApplicationRunner {
         return scheduledTasks.size();
     }
 
-    private LocalDateTime calculateNextRunTime(JSONObject setting) {
-        if (setting == null) {
-            return null;
-        }
-
-        String scheduleType = setting.getString("scheduleType");
-        List<String> timeList = getStringList(setting.get("time"));
-
-        if (StringUtils.isBlank(scheduleType) || CollectionUtils.isEmpty(timeList)) {
-            return null;
-        }
-
-        String timeStr = timeList.get(0);
-        String[] timeParts = timeStr.split(":");
-        if (timeParts.length < 2) {
-            return null;
-        }
-
-        try {
-            int hour = Integer.parseInt(timeParts[0]);
-            int minute = Integer.parseInt(timeParts[1]);
-
-            return switch (ScheduleType.fromValue(scheduleType)) {
-                case DAILY -> DateTimeUtil.getNextDayAtTime(hour, minute, 0);
-                case WEEKLY -> calculateWeekly(setting, hour, minute);
-                case MONTHLY -> calculateMonthly(setting, hour, minute);
-                case INTERVAL -> calculateInterval(setting, hour, minute);
-            };
-        } catch (Exception e) {
-            log.error("Error calculating next run time: {}", e.getMessage());
-            return null;
-        }
-    }
 
     private LocalDateTime calculateWeekly(JSONObject setting, int hour, int minute) {
         List<String> days = getStringList(setting.get("days"));
@@ -276,16 +238,15 @@ public class ScheduledTriggerScheduler implements ApplicationRunner {
         return DateTimeUtil.getSameDayNextMonth(Integer.parseInt(days.get(0)), hour, minute, 0);
     }
 
-    private LocalDateTime calculateInterval(JSONObject setting, int hour, int minute) {
+    private LocalDateTime calculateInterval(JSONObject setting) {
         Object value = setting.get("intervalValue");
         String unit = setting.getString("intervalUnit");
         if (value == null || StringUtils.isBlank(unit)) {
             return null;
         }
-        return DateTimeUtil.getSameDayNextInterval(value.toString(), unit, hour, minute, 0);
+        return DateTimeUtil.getSameDayNextInterval(value.toString(), unit);
     }
 
-    @SuppressWarnings("unchecked")
     private List<String> getStringList(Object obj) {
         if (obj instanceof List<?> list) {
             return list.stream()

@@ -1,17 +1,7 @@
 package com.maxkb4j.common.util;
 
 
-import org.apache.commons.lang3.StringUtils;
-
-import org.apache.commons.lang3.StringUtils;
-
-import java.time.Duration;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.Period;
-import java.time.ZoneId;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.Temporal;
 import java.util.Date;
@@ -168,24 +158,16 @@ public class DateTimeUtil {
      * 获取指定周期下一个时间点
      * @param intervalValue 1
      * @param intervalUnit 单位hours 或者minutes
-     * @param hour 小时
-     * @param minute 分钟
-     * @param second 秒
      * @return
      */
-    public static LocalDateTime getSameDayNextInterval(String intervalValue, String intervalUnit, int hour, int minute, int second) {
+    public static LocalDateTime getSameDayNextInterval(String intervalValue, String intervalUnit) {
         int interval = Integer.parseInt(intervalValue);
         LocalDateTime now = LocalDateTime.now();
-        LocalDateTime baseTime = now.withHour(hour).withMinute(minute).withSecond(second);
-        // 如果基准时间已经过了当前时间，从当前时间开始计算
-        if (baseTime.isBefore(now)) {
-            baseTime = now;
-        }
         // 计算下一个间隔时间点
         if ("hours".equals(intervalUnit)) {
-            return baseTime.plusHours(interval);
+            return now.plusHours(interval);
         } else if ("minutes".equals(intervalUnit)) {
-            return baseTime.plusMinutes(interval);
+            return now.plusMinutes(interval);
         } else {
             throw new IllegalArgumentException("Invalid interval unit: " + intervalUnit);
         }
