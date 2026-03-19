@@ -137,6 +137,8 @@ public class TriggerTaskExecutor {
             record.setTaskRecordId(record.getId());
             record.setMeta(meta);
             eventTriggerTaskRecordService.save(record);
+            record.setTaskRecordId(record.getId());
+            eventTriggerTaskRecordService.saveOrUpdate(record);
         } catch (Exception e) {
             log.error("Failed to save task record: {}", e.getMessage(), e);
         }
