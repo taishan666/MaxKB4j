@@ -25,6 +25,7 @@ import com.maxkb4j.trigger.vo.EventTriggerVO;
 import com.maxkb4j.trigger.vo.SourceEventTriggerVO;
 import com.maxkb4j.user.service.IUserService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -34,6 +35,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Slf4j
 @RequiredArgsConstructor
 @Service
 public class EventTriggerService extends ServiceImpl<EventTriggerMapper, EventTriggerEntity> implements IEventTriggerService {
@@ -158,9 +160,9 @@ public class EventTriggerService extends ServiceImpl<EventTriggerMapper, EventTr
                 eventTriggerTaskService.saveOrUpdateBatch(resList);
             }
         }
+        EventTriggerEntity savedTrigger = this.getById(dto.getId());
         // 重新调度定时触发器
-        if (TriggerType.SCHEDULED.name().equals(dto.getTriggerType())) {
-            EventTriggerEntity savedTrigger = this.getById(dto.getId());
+        if (TriggerType.SCHEDULED.name().equals(savedTrigger.getTriggerType())) {
             scheduledTriggerScheduler.rescheduleTrigger(savedTrigger);
         }
     }
@@ -187,13 +189,16 @@ public class EventTriggerService extends ServiceImpl<EventTriggerMapper, EventTr
                 .set(EventTriggerTaskEntity::getIsActive, isActive)
                 .set(EventTriggerTaskEntity::getUpdateTime, now);
         eventTriggerTaskService.update(taskUpdateWrapper);
-
         // 更新调度状态
         EventTriggerEntity trigger = this.getById(id);
+        log.info("batchActivate: id={}, isActive={}, trigger={}", id, isActive, trigger);
         if (trigger != null && TriggerType.SCHEDULED.name().equals(trigger.getTriggerType())) {
+            // 手动设置 isActive 确保使用最新值（避免缓存问题）
+            trigger.setIsActive(isActive);
             if (Boolean.TRUE.equals(isActive)) {
                 scheduledTriggerScheduler.scheduleTrigger(trigger);
             } else {
+                log.info("Calling cancelSchedule for trigger {}", id);
                 scheduledTriggerScheduler.cancelSchedule(id);
             }
         }

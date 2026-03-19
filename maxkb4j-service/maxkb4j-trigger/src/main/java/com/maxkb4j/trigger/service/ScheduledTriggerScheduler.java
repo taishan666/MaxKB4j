@@ -190,8 +190,12 @@ public class ScheduledTriggerScheduler implements ApplicationRunner {
     public void cancelSchedule(String triggerId) {
         ScheduledFuture<?> future = scheduledTasks.remove(triggerId);
         if (future != null) {
-            future.cancel(false);
-            log.info("Cancelled schedule for trigger {}", triggerId);
+            boolean cancelled = future.cancel(false);
+            log.info("Cancelled schedule for trigger {}, cancelled={}, isCancelled={}, isDone={}",
+                    triggerId, cancelled, future.isCancelled(), future.isDone());
+        } else {
+            log.warn("No scheduled task found for trigger {}, current scheduled tasks: {}",
+                    triggerId, scheduledTasks.keySet());
         }
     }
 
