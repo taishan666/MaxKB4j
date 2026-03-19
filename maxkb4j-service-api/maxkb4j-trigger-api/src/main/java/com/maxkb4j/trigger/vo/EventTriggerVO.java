@@ -13,7 +13,6 @@ import java.util.List;
 public class EventTriggerVO extends EventTriggerDTO {
     private String createUser;
     private String nextRunTime;
-    private String triggerTaskStr;
     private List<ApplicationEntity> applicationTaskList;
     private List<ToolEntity> toolTaskList;
 }

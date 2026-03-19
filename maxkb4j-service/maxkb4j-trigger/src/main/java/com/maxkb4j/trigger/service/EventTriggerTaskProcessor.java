@@ -27,7 +27,7 @@ public class EventTriggerTaskProcessor {
 
     public PageResult processForPage(List<EventTriggerTaskEntity> tasks) {
         if (CollectionUtils.isEmpty(tasks)) {
-            return new PageResult(List.of(), "");
+            return new PageResult(List.of());
         }
 
         Map<String, Map<String, Object>> appMap = querySourceMap(tasks, ResourceType.APPLICATION);
@@ -38,52 +38,43 @@ public class EventTriggerTaskProcessor {
 
     public DetailResult processForDetail(List<EventTriggerTaskEntity> tasks) {
         if (CollectionUtils.isEmpty(tasks)) {
-            return new DetailResult(List.of(), "", List.of(), List.of());
+            return new DetailResult(List.of(), List.of(), List.of());
         }
-
         List<String> appIds = extractIds(tasks, ResourceType.APPLICATION);
         List<String> toolIds = extractIds(tasks, ResourceType.TOOL);
-
         Map<String, ApplicationEntity> appMap = new HashMap<>();
         List<ApplicationEntity> appsList = new ArrayList<>();
         if (!appIds.isEmpty()) {
             appsList = applicationService.listByIds(appIds);
             appMap = appsList.stream().collect(Collectors.toMap(ApplicationEntity::getId, a -> a));
         }
-
         Map<String, ToolEntity> toolMap = new HashMap<>();
         List<ToolEntity> toolsList = new ArrayList<>();
         if (!toolIds.isEmpty()) {
             toolsList = toolService.listByIds(toolIds);
             toolMap = toolsList.stream().collect(Collectors.toMap(ToolEntity::getId, t -> t));
         }
-
-        StringBuilder sb = new StringBuilder();
         List<EventTriggerTaskEntity> result = new ArrayList<>();
-
         for (EventTriggerTaskEntity task : tasks) {
             EventTriggerTaskEntity newTask = BeanUtil.copy(task, EventTriggerTaskEntity.class);
             newTask.setType(task.getSourceType());
-
             if (ResourceType.APPLICATION.equals(task.getSourceType())) {
                 ApplicationEntity app = appMap.get(task.getSourceId());
                 if (app != null) {
                     newTask.setIcon(app.getIcon());
                     newTask.setName(app.getName());
-                    sb.append(" ").append(app.getName());
                 }
             } else if (ResourceType.TOOL.equals(task.getSourceType())) {
                 ToolEntity tool = toolMap.get(task.getSourceId());
                 if (tool != null) {
                     newTask.setIcon(tool.getIcon());
                     newTask.setName(tool.getName());
-                    sb.append(" ").append(tool.getName());
                 }
             }
             result.add(newTask);
         }
 
-        return new DetailResult(result, sb.toString().trim(), appsList, toolsList);
+        return new DetailResult(result, appsList, toolsList);
     }
 
     private Map<String, Map<String, Object>> querySourceMap(List<EventTriggerTaskEntity> tasks, String type) {
@@ -116,9 +107,7 @@ public class EventTriggerTaskProcessor {
     private PageResult processTasks(List<EventTriggerTaskEntity> tasks,
                                      Map<String, Map<String, Object>> appMap,
                                      Map<String, Map<String, Object>> toolMap) {
-        StringBuilder sb = new StringBuilder();
         List<EventTriggerTaskEntity> result = new ArrayList<>();
-
         for (EventTriggerTaskEntity task : tasks) {
             EventTriggerTaskEntity newTask = new EventTriggerTaskEntity();
             BeanUtil.copyProperties(task, newTask);
@@ -131,15 +120,13 @@ public class EventTriggerTaskProcessor {
             if (source != null) {
                 newTask.setIcon(source.get("icon") != null ? source.get("icon").toString() : "");
                 newTask.setName(source.get("name") != null ? source.get("name").toString() : "");
-                sb.append(" ").append(source.get("name"));
             }
             result.add(newTask);
         }
 
-        return new PageResult(result, sb.toString().trim());
+        return new PageResult(result);
     }
 
-    public record PageResult(List<EventTriggerTaskEntity> tasks, String taskString) {}
-    public record DetailResult(List<EventTriggerTaskEntity> tasks, String taskString,
-                               List<ApplicationEntity> apps, List<ToolEntity> tools) {}
+    public record PageResult(List<EventTriggerTaskEntity> tasks) {}
+    public record DetailResult(List<EventTriggerTaskEntity> tasks, List<ApplicationEntity> apps, List<ToolEntity> tools) {}
 }

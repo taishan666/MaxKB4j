@@ -101,7 +101,6 @@ public class EventTriggerService extends ServiceImpl<EventTriggerMapper, EventTr
                 }
             }
             eventTriggerEntity.setTriggerTask(result.tasks());
-            eventTriggerEntity.setTriggerTaskStr(result.taskString());
             eventTriggerEntity.setCreateUser(nicknameMap.get(eventTriggerEntity.getUserId()));
         });
         return res;
@@ -226,7 +225,6 @@ public class EventTriggerService extends ServiceImpl<EventTriggerMapper, EventTr
         vo.setApplicationTaskList(result.apps());
         vo.setToolTaskList(result.tools());
         vo.setTriggerTask(result.tasks());
-        vo.setTriggerTaskStr(result.taskString());
         return vo;
     }
 

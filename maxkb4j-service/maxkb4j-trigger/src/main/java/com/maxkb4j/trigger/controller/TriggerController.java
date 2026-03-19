@@ -93,7 +93,7 @@ public class TriggerController {
     }
 
     @PostMapping("/workspace/default/{sourceType}/{sourceId}/trigger")
-    public R<EventTriggerEntity> addTriggerBySourceId(@PathVariable String sourceType, @PathVariable String sourceId,@RequestBody EventTriggerDTO dto) {
+    public R<EventTriggerDTO> addTriggerBySourceId(@PathVariable String sourceType, @PathVariable String sourceId,@RequestBody EventTriggerDTO dto) {
         eventTriggerService.saveTrigger(dto, false);
         return R.data(dto);
     }
@@ -101,6 +101,12 @@ public class TriggerController {
     @GetMapping("/workspace/default/{sourceType}/{sourceId}/trigger/{id}")
     public R<SourceEventTriggerVO> getTriggerBySourceId(@PathVariable String sourceType, @PathVariable String sourceId, @PathVariable String id) {
         return R.success(eventTriggerService.getDetailBySourceId(id,sourceType,sourceId));
+    }
+
+    @PutMapping("/workspace/default/{sourceType}/{sourceId}/trigger/{id}")
+    public R<EventTriggerDTO> updateTriggerBySourceId(@PathVariable String sourceType, @PathVariable String sourceId, @PathVariable String id,@RequestBody EventTriggerDTO dto) {
+        eventTriggerService.saveTrigger(dto, true);
+        return R.success(dto);
     }
 
     @GetMapping("/workspace/default/{sourceType}/{sourceId}/trigger")
