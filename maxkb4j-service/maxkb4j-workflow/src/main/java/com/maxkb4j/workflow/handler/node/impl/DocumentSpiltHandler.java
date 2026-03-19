@@ -32,7 +32,7 @@ public class DocumentSpiltHandler implements INodeHandler {
         DocumentSpiltNode.NodeParams nodeParams = node.getNodeData().toJavaObject(DocumentSpiltNode.NodeParams.class);
         List<String> fileIds = nodeParams.getDocumentList();
         Object res = workflow.getReferenceField(fileIds);
-        List<DocumentSimple> documentList = res == null ? List.of() : (List<DocumentSimple>) res;
+        List<DocumentSimple> documentList = res == null ? new ArrayList<>() : (List<DocumentSimple>) res;
         for (DocumentSimple document : documentList) {
             if ("qa".equals(nodeParams.getSplitStrategy())) {
                 qaSplit(document, nodeParams.getChunkSize());
