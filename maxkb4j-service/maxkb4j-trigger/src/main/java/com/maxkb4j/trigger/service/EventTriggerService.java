@@ -26,6 +26,8 @@ import com.maxkb4j.trigger.vo.SourceEventTriggerVO;
 import com.maxkb4j.user.service.IUserService;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,7 +44,10 @@ public class EventTriggerService extends ServiceImpl<EventTriggerMapper, EventTr
     private final IToolService toolService;
     private final NextRunTimeCalculator nextRunTimeCalculator;
     private final EventTriggerTaskProcessor taskProcessor;
-    private final ScheduledTriggerScheduler scheduledTriggerScheduler;
+
+    @Lazy
+    @Autowired
+    private ScheduledTriggerScheduler scheduledTriggerScheduler;
 
     @Override
     public IPage<EventTriggerVO> pageList(int current, int size, EventQuery query) {
@@ -80,7 +85,7 @@ public class EventTriggerService extends ServiceImpl<EventTriggerMapper, EventTr
         taskWrapper.in(EventTriggerTaskEntity::getTriggerId, triggerIds);
         List<EventTriggerTaskEntity> allTasks = eventTriggerTaskService.list(taskWrapper);
         if (allTasks == null || allTasks.isEmpty()) {
-            records.forEach(eventTriggerEntity -> eventTriggerEntity.setCreateUser(nicknameMap.get(eventTriggerEntity.getUserId())));
+            records.forEach(eventTrigger -> eventTrigger.setCreateUser(nicknameMap.get(eventTrigger.getUserId())));
             return pageList;
         }
         // 分组整理tasks
@@ -155,7 +160,6 @@ public class EventTriggerService extends ServiceImpl<EventTriggerMapper, EventTr
                 eventTriggerTaskService.saveOrUpdateBatch(resList);
             }
         }
-
         // 重新调度定时触发器
         if (TriggerType.SCHEDULED.name().equals(dto.getTriggerType())) {
             EventTriggerEntity savedTrigger = this.getById(dto.getId());

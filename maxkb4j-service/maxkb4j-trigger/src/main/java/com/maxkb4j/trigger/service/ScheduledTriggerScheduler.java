@@ -221,42 +221,6 @@ public class ScheduledTriggerScheduler implements ApplicationRunner {
         return scheduledTasks.size();
     }
 
-
-    private LocalDateTime calculateWeekly(JSONObject setting, int hour, int minute) {
-        List<String> days = getStringList(setting.get("days"));
-        if (CollectionUtils.isEmpty(days)) {
-            return null;
-        }
-        return DateTimeUtil.getSameDayNextWeek(Integer.parseInt(days.get(0)), hour, minute, 0);
-    }
-
-    private LocalDateTime calculateMonthly(JSONObject setting, int hour, int minute) {
-        List<String> days = getStringList(setting.get("days"));
-        if (CollectionUtils.isEmpty(days)) {
-            return null;
-        }
-        return DateTimeUtil.getSameDayNextMonth(Integer.parseInt(days.get(0)), hour, minute, 0);
-    }
-
-    private LocalDateTime calculateInterval(JSONObject setting) {
-        Object value = setting.get("intervalValue");
-        String unit = setting.getString("intervalUnit");
-        if (value == null || StringUtils.isBlank(unit)) {
-            return null;
-        }
-        return DateTimeUtil.getSameDayNextInterval(value.toString(), unit);
-    }
-
-    private List<String> getStringList(Object obj) {
-        if (obj instanceof List<?> list) {
-            return list.stream()
-                    .map(item -> item instanceof String s ? s : item != null ? item.toString() : null)
-                    .filter(Objects::nonNull)
-                    .toList();
-        }
-        return List.of();
-    }
-
     private long calculatePeriodMillis(int intervalValue, String intervalUnit) {
         return switch (intervalUnit.toLowerCase()) {
             case "minutes" -> intervalValue * 60L * 1000L;

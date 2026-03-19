@@ -158,16 +158,24 @@ public class DateTimeUtil {
      * 获取指定周期下一个时间点
      * @param intervalValue 1
      * @param intervalUnit 单位hours 或者minutes
+     * @param hour 小时
+     * @param minute 分钟
+     * @param second 秒
      * @return
      */
-    public static LocalDateTime getSameDayNextInterval(String intervalValue, String intervalUnit) {
+    public static LocalDateTime getSameDayNextInterval(String intervalValue, String intervalUnit, int hour, int minute, int second) {
         int interval = Integer.parseInt(intervalValue);
         LocalDateTime now = LocalDateTime.now();
+        LocalDateTime baseTime = now.withHour(hour).withMinute(minute).withSecond(second);
+        // 如果基准时间已经过了当前时间，从当前时间开始计算
+        if (baseTime.isBefore(now)) {
+            baseTime = now;
+        }
         // 计算下一个间隔时间点
         if ("hours".equals(intervalUnit)) {
-            return now.plusHours(interval);
+            return baseTime.plusHours(interval);
         } else if ("minutes".equals(intervalUnit)) {
-            return now.plusMinutes(interval);
+            return baseTime.plusMinutes(interval);
         } else {
             throw new IllegalArgumentException("Invalid interval unit: " + intervalUnit);
         }

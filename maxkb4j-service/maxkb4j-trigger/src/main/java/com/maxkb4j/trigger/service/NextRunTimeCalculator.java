@@ -1,6 +1,7 @@
 package com.maxkb4j.trigger.service;
 
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.TypeReference;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.maxkb4j.common.util.DateTimeUtil;
 import com.maxkb4j.trigger.enums.ScheduleType;
@@ -8,7 +9,6 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * 下次执行时间计算器
@@ -26,9 +26,9 @@ public class NextRunTimeCalculator {
             return null;
         }
         if (ScheduleType.INTERVAL.getValue().equals(scheduleType)){
-            return calculateInterval(triggerSetting);
+            return calculateInterval(triggerSetting,0,0);
         }else {
-            List<String> timeList = getStringList(triggerSetting.get("time"));
+            List<String> timeList = triggerSetting.getObject("time", new TypeReference<List<String>>() {});
             if (CollectionUtils.isEmpty(timeList)) {
                 return null;
             }
@@ -62,29 +62,22 @@ public class NextRunTimeCalculator {
     }
 
     private LocalDateTime calculateWeekly(JSONObject setting, int hour, int minute) {
-        List<String> days = getStringList(setting.get("days"));
+        List<String> days = setting.getObject("days", new TypeReference<List<String>>() {});
         if (CollectionUtils.isEmpty(days)) return null;
         return DateTimeUtil.getSameDayNextWeek(Integer.parseInt(days.get(0)), hour, minute, 0);
     }
 
     private LocalDateTime calculateMonthly(JSONObject setting, int hour, int minute) {
-        List<String> days = getStringList(setting.get("days"));
+        List<String> days =setting.getObject("days", new TypeReference<List<String>>() {});
         if (CollectionUtils.isEmpty(days)) return null;
         return DateTimeUtil.getSameDayNextMonth(Integer.parseInt(days.get(0)), hour, minute, 0);
     }
 
-    private LocalDateTime calculateInterval(JSONObject setting) {
-        Integer value = setting.getInteger("intervalValue");
+    private LocalDateTime calculateInterval(JSONObject setting, int hour, int minute) {
+        Object value = setting.get("intervalValue");
         String unit = setting.getString("intervalUnit");
         if (value == null || unit == null) return null;
-        return DateTimeUtil.getSameDayNextInterval(value.toString(), unit);
+        return DateTimeUtil.getSameDayNextInterval(value.toString(), unit, hour, minute, 0);
     }
 
-    private List<String> getStringList(Object obj) {
-        if (!(obj instanceof List<?> list)) return List.of();
-        return list.stream()
-                .map(item -> item instanceof String s ? s : item != null ? item.toString() : null)
-                .filter(Objects::nonNull)
-                .toList();
-    }
 }
