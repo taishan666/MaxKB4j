@@ -20,7 +20,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Sinks;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -81,16 +80,16 @@ public class TriggerTaskExecutor {
     private void executeApplicationTask(EventTriggerTaskEntity task, long startTime) {
         String appId = task.getSourceId();
         JSONObject parameter = task.getParameter();
-        String message = null;
+        String question = null;
         if (parameter != null) {
-            message = parameter.getString("message");
+            question = parameter.getString("question");
         }
-        if (!StringUtils.isBlank(message)) {
+        if (!StringUtils.isBlank(question)) {
             try {
                 String chatId = applicationChatService.chatOpen(appId, true);
                 Sinks.Many<ChatMessageVO> sink = Sinks.many().unicast().onBackpressureBuffer();
                 ChatParams chatParams = ChatParams.builder()
-                        .message(message)
+                        .message(question)
                         .chatId(chatId)
                         .appId(appId)
                         .debug(true)
@@ -118,7 +117,8 @@ public class TriggerTaskExecutor {
         log.info("Tool task triggered: toolId={}", toolId);
         ToolEntity tool =toolService.lambdaQuery().select(ToolEntity::getCode, ToolEntity::getInitParams).eq(ToolEntity::getId, toolId).one();
         GroovyScriptExecutor scriptExecutor=new GroovyScriptExecutor(tool.getCode(), tool.getInitParams());
-        Object response =scriptExecutor.execute(new HashMap<>());
+        JSONObject parameter = task.getParameter();
+        Object response =scriptExecutor.execute(parameter);
         float runTime = (System.currentTimeMillis() - startTime) / 1000f;
         TaskState state = (response != null ) ? TaskState.SUCCESS : TaskState.FAILURE;
         saveRecord(task.getTriggerId(), task.getId(), ResourceType.TOOL, toolId, state, runTime, new JSONObject());
