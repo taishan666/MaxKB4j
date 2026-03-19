@@ -130,12 +130,10 @@ public class EventTriggerService extends ServiceImpl<EventTriggerMapper, EventTr
         dto.setWorkspaceId(AppConst.DEFAULT_WORKSPACE_ID);
         dto.setUpdateTime(now);
         this.saveOrUpdate(dto);
-
         if (dto.getTriggerTask() != null) {
             LambdaQueryWrapper<EventTriggerTaskEntity> wrapperTask = Wrappers.lambdaQuery();
             wrapperTask.eq(EventTriggerTaskEntity::getTriggerId, dto.getId());
             eventTriggerTaskService.remove(wrapperTask);
-
             List<EventTriggerTaskEntity> resList = new ArrayList<>();
             for (EventTriggerTaskEntity item : dto.getTriggerTask()) {
                 if (item == null || StringUtils.isBlank(item.getSourceId())) {

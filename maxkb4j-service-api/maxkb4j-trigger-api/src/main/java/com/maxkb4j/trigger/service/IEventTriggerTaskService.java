@@ -6,5 +6,4 @@ import com.maxkb4j.trigger.dto.EventTaskQuery;
 import com.maxkb4j.trigger.entity.EventTriggerTaskEntity;
 
 public interface IEventTriggerTaskService extends IService<EventTriggerTaskEntity> {
-    IPage<EventTriggerTaskEntity> pageList(String id, int current, int size, EventTaskQuery query);
 }

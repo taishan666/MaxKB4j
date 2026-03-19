@@ -20,7 +20,6 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
 
@@ -66,31 +65,25 @@ public class ScheduledTriggerScheduler implements ApplicationRunner {
         if (trigger == null || trigger.getIsActive() == null || !trigger.getIsActive()) {
             return;
         }
-
         String triggerId = trigger.getId();
         JSONObject triggerSetting = trigger.getTriggerSetting();
         if (triggerSetting == null) {
             log.warn("Trigger {} has no triggerSetting", triggerId);
             return;
         }
-
         String scheduleTypeStr = triggerSetting.getString("scheduleType");
         if (StringUtils.isBlank(scheduleTypeStr)) {
             log.warn("Trigger {} has no scheduleType", triggerId);
             return;
         }
-
         cancelSchedule(triggerId);
-
         ScheduleType scheduleType = ScheduleType.fromValue(scheduleTypeStr);
-
         switch (scheduleType) {
             case DAILY -> scheduleDaily(triggerId, triggerSetting);
             case WEEKLY -> scheduleWeekly(triggerId, triggerSetting);
             case MONTHLY -> scheduleMonthly(triggerId, triggerSetting);
             case INTERVAL -> scheduleInterval(triggerId, triggerSetting);
         }
-
         log.info("Scheduled trigger {} with type {}", triggerId, scheduleType);
     }
 

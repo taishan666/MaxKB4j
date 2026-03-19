@@ -4,8 +4,8 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.maxkb4j.common.api.R;
 import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.trigger.dto.EventTaskQuery;
-import com.maxkb4j.trigger.entity.EventTriggerTaskEntity;
-import com.maxkb4j.trigger.service.IEventTriggerTaskService;
+import com.maxkb4j.trigger.entity.EventTriggerTaskRecordEntity;
+import com.maxkb4j.trigger.service.IEventTriggerTaskRecordService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,16 +23,16 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping(AppConst.ADMIN_API)
 @RequiredArgsConstructor
 @Slf4j
-public class TriggerTaskController {
+public class TriggerTaskRecordController {
 
-    private final IEventTriggerTaskService eventTriggerTaskService;
+    private final IEventTriggerTaskRecordService eventTriggerTaskRecordService;
 
     /**
      * 分页查询触发器列表
      */
     @GetMapping("/workspace/default/trigger/{id}/task_record/{current}/{size}")
-    public R<IPage<EventTriggerTaskEntity>> page(@PathVariable String id, @PathVariable int current, @PathVariable int size, EventTaskQuery query) {
-        return R.success(eventTriggerTaskService.pageList(id,current, size, query));
+    public R<IPage<EventTriggerTaskRecordEntity>> page(@PathVariable String id, @PathVariable int current, @PathVariable int size, EventTaskQuery query) {
+        return R.success(eventTriggerTaskRecordService.pageList(id,current, size, query));
     }
 
 
