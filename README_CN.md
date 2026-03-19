@@ -120,27 +120,12 @@ docker-compose up -d
 
 我们欢迎社区用户参与贡献！如有建议、Bug 或新功能需求，请通过 [Issue](https://gitee.com/taisan/MaxKB4j/issues) 提出，或直接提交 Pull Request。
 
-### 🎯 贡献方式
+| 类别 | 详细说明 |
+| :--- | :--- |
+| 🎯 贡献方式 | • 🐛 Bug修复: 发现并修复系统缺陷<br>• ✨ 新功能: 提出并实现新特性<br>• 📚 文档改进: 完善项目文档<br>• 🧪 测试用例: 编写单元测试和集成测试<br>• 🎨 UI/UX优化: 改进用户界面和体验 |
+| 📋 贡献流程 | 1. Fork项目: 到你的 GitHub 账户<br>2. 创建分支: `git checkout -b feature/amazing-feature`<br>3. 提交更改: `git commit -m 'Add amazing feature'`<br>4. 推送分支: `git push origin feature/amazing-feature`<br>5. 创建 PR: 创建 Pull Request 并详细描述变更内容 |
+| 🎨 代码规范 | • 遵循 Alibaba Java Coding Guidelines 规则<br>• 添加必要的单元测试<br>• 更新相关文档 |
 
-- 🐛 **Bug修复**: 发现并修复系统缺陷
-- ✨ **新功能**: 提出并实现新特性
-- 📚 **文档改进**: 完善项目文档
-- 🧪 **测试用例**: 编写单元测试和集成测试
-- 🎨 **UI/UX优化**: 改进用户界面和体验
-
-### 📋 贡献流程
-
-1. **Fork项目** 到你的GitHub账户
-2. **创建特性分支** `git checkout -b feature/amazing-feature`
-3. **提交更改** `git commit -m 'Add amazing feature'`
-4. **推送分支** `git push origin feature/amazing-feature`
-5. **创建Pull Request** 并详细描述变更内容
-
-### 🎨 代码规范
-
-- 遵循 **alibaba java coding guidelines**规则 
-- 添加必要的单元测试
-- 更新相关文档
 
 
 ## 💖 支持与赞助

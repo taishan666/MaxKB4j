@@ -42,6 +42,7 @@ public class EventTriggerService extends ServiceImpl<EventTriggerMapper, EventTr
     private final IToolService toolService;
     private final NextRunTimeCalculator nextRunTimeCalculator;
     private final EventTriggerTaskProcessor taskProcessor;
+    private final ScheduledTriggerScheduler scheduledTriggerScheduler;
 
     @Override
     public IPage<EventTriggerVO> pageList(int current, int size, EventQuery query) {
@@ -68,7 +69,6 @@ public class EventTriggerService extends ServiceImpl<EventTriggerMapper, EventTr
         if (records == null || records.isEmpty()) {
             return res;
         }
-
         // 批量查询所有trigger对应的task
         List<String> triggerIds = records.stream()
                 .map(EventTriggerEntity::getId)
@@ -76,7 +76,6 @@ public class EventTriggerService extends ServiceImpl<EventTriggerMapper, EventTr
         if (triggerIds.isEmpty()) {
             return res;
         }
-
         LambdaQueryWrapper<EventTriggerTaskEntity> taskWrapper = Wrappers.lambdaQuery();
         taskWrapper.in(EventTriggerTaskEntity::getTriggerId, triggerIds);
         List<EventTriggerTaskEntity> allTasks = eventTriggerTaskService.list(taskWrapper);
@@ -84,16 +83,13 @@ public class EventTriggerService extends ServiceImpl<EventTriggerMapper, EventTr
             records.forEach(eventTriggerEntity -> eventTriggerEntity.setCreateUser(nicknameMap.get(eventTriggerEntity.getUserId())));
             return res;
         }
-
         // 分组整理tasks
         Map<String, List<EventTriggerTaskEntity>> taskMap = allTasks.stream()
                 .collect(Collectors.groupingBy(EventTriggerTaskEntity::getTriggerId));
-
         // 处理数据
         records.forEach(eventTriggerEntity -> {
             List<EventTriggerTaskEntity> triggerTasks = taskMap.getOrDefault(eventTriggerEntity.getId(), List.of());
             EventTriggerTaskProcessor.PageResult result = taskProcessor.processForPage(triggerTasks);
-
             if (TriggerType.SCHEDULED.name().equals(eventTriggerEntity.getTriggerType())) {
                 String nextRunTime = nextRunTimeCalculator.calculate(eventTriggerEntity.getTriggerSetting());
                 if (StringUtils.isNotBlank(nextRunTime)) {
@@ -159,6 +155,12 @@ public class EventTriggerService extends ServiceImpl<EventTriggerMapper, EventTr
                 eventTriggerTaskService.saveOrUpdateBatch(resList);
             }
         }
+
+        // 重新调度定时触发器
+        if (TriggerType.SCHEDULED.name().equals(dto.getTriggerType())) {
+            EventTriggerEntity savedTrigger = this.getById(dto.getId());
+            scheduledTriggerScheduler.rescheduleTrigger(savedTrigger);
+        }
     }
 
     @Override
@@ -167,26 +169,32 @@ public class EventTriggerService extends ServiceImpl<EventTriggerMapper, EventTr
         if (StringUtils.isBlank(id)) {
             return false;
         }
-
         Date now = new Date();
-
         // 直接更新触发器状态
         LambdaUpdateWrapper<EventTriggerEntity> updateWrapper = Wrappers.lambdaUpdate();
         updateWrapper.eq(EventTriggerEntity::getId, id)
                 .set(EventTriggerEntity::getIsActive, isActive)
                 .set(EventTriggerEntity::getUpdateTime, now);
         boolean updated = this.update(updateWrapper);
-
         if (!updated) {
             return false;
         }
-
         // 同时更新关联任务的状态
         LambdaUpdateWrapper<EventTriggerTaskEntity> taskUpdateWrapper = Wrappers.lambdaUpdate();
         taskUpdateWrapper.eq(EventTriggerTaskEntity::getTriggerId, id)
                 .set(EventTriggerTaskEntity::getIsActive, isActive)
                 .set(EventTriggerTaskEntity::getUpdateTime, now);
         eventTriggerTaskService.update(taskUpdateWrapper);
+
+        // 更新调度状态
+        EventTriggerEntity trigger = this.getById(id);
+        if (trigger != null && TriggerType.SCHEDULED.name().equals(trigger.getTriggerType())) {
+            if (Boolean.TRUE.equals(isActive)) {
+                scheduledTriggerScheduler.scheduleTrigger(trigger);
+            } else {
+                scheduledTriggerScheduler.cancelSchedule(id);
+            }
+        }
 
         return true;
     }
@@ -197,14 +205,13 @@ public class EventTriggerService extends ServiceImpl<EventTriggerMapper, EventTr
         if (StringUtils.isBlank(id)) {
             return false;
         }
-
+        // 取消调度
+        scheduledTriggerScheduler.cancelSchedule(id);
         this.removeById(id);
-
         // 同时删除关联的任务
         LambdaQueryWrapper<EventTriggerTaskEntity> wrapperTask = Wrappers.lambdaQuery();
         wrapperTask.eq(EventTriggerTaskEntity::getTriggerId, id);
         eventTriggerTaskService.remove(wrapperTask);
-
         return true;
     }
 
@@ -242,7 +249,6 @@ public class EventTriggerService extends ServiceImpl<EventTriggerMapper, EventTr
             if (ResourceType.APPLICATION.equals(sourceType)) {
                 vo.setApplicationTask(applicationService.getById(sourceTask.get().getSourceId()));
             } else if (ResourceType.TOOL.equals(sourceType)) {
-                // Bug修复: TOOL类型应该调用toolService，而不是applicationService
                 vo.setToolTask(toolService.getById(sourceTask.get().getSourceId()));
             }
             vo.setTriggerTask(sourceTask.get());
