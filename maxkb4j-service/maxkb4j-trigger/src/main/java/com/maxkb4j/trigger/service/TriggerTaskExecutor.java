@@ -134,6 +134,7 @@ public class TriggerTaskExecutor {
             record.setSourceId(sourceId);
             record.setState(state.name());
             record.setRunTime(runTime);
+            record.setTaskRecordId(record.getId());
             record.setMeta(meta);
             eventTriggerTaskRecordService.save(record);
         } catch (Exception e) {

@@ -20,4 +20,5 @@ public class EventTriggerTaskRecordEntity extends BaseEntity {
     @TableField(typeHandler = JSONBTypeHandler.class)
     private JSONObject meta;
     private Float runTime;
+    private String taskRecordId;
 }
