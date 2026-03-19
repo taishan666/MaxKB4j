@@ -9,6 +9,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.maxkb4j.application.service.IApplicationService;
 import com.maxkb4j.common.constant.AppConst;
+import com.maxkb4j.common.constant.ResourceType;
 import com.maxkb4j.common.exception.ApiException;
 import com.maxkb4j.common.util.BeanUtil;
 import com.maxkb4j.common.util.PageUtil;
@@ -94,7 +95,7 @@ public class EventTriggerService extends ServiceImpl<EventTriggerMapper, EventTr
             EventTriggerTaskProcessor.PageResult result = taskProcessor.processForPage(triggerTasks);
 
             if (TriggerType.SCHEDULED.name().equals(eventTriggerEntity.getTriggerType())) {
-                String nextRunTime = nextRunTimeCalculator.calculate((JSONObject) eventTriggerEntity.getTriggerSetting());
+                String nextRunTime = nextRunTimeCalculator.calculate(eventTriggerEntity.getTriggerSetting());
                 if (StringUtils.isNotBlank(nextRunTime)) {
                     eventTriggerEntity.setNextRunTime(nextRunTime);
                 }
@@ -235,20 +236,17 @@ public class EventTriggerService extends ServiceImpl<EventTriggerMapper, EventTr
         if (entity == null) {
             return null;
         }
-
         SourceEventTriggerVO vo = BeanUtil.copy(entity, SourceEventTriggerVO.class);
         LambdaQueryWrapper<EventTriggerTaskEntity> wrapperTask = Wrappers.lambdaQuery();
         wrapperTask.eq(EventTriggerTaskEntity::getTriggerId, id);
         List<EventTriggerTaskEntity> allTasks = eventTriggerTaskService.list(wrapperTask);
-
         Optional<EventTriggerTaskEntity> sourceTask = allTasks.stream()
                 .filter(task -> sourceType.equals(task.getSourceType()) && sourceId.equals(task.getSourceId()))
                 .findFirst();
-
         if (sourceTask.isPresent()) {
-            if ("APPLICATION".equals(sourceType)) {
+            if (ResourceType.APPLICATION.equals(sourceType)) {
                 vo.setApplicationTask(applicationService.getById(sourceTask.get().getSourceId()));
-            } else if ("TOOL".equals(sourceType)) {
+            } else if (ResourceType.TOOL.equals(sourceType)) {
                 // Bug修复: TOOL类型应该调用toolService，而不是applicationService
                 vo.setToolTask(toolService.getById(sourceTask.get().getSourceId()));
             }
@@ -262,16 +260,13 @@ public class EventTriggerService extends ServiceImpl<EventTriggerMapper, EventTr
         if (StringUtils.isBlank(sourceId)) {
             return List.of();
         }
-
         LambdaQueryWrapper<EventTriggerTaskEntity> wrapperTask = Wrappers.lambdaQuery();
         wrapperTask.eq(EventTriggerTaskEntity::getSourceType, sourceType);
         wrapperTask.eq(EventTriggerTaskEntity::getSourceId, sourceId);
         List<EventTriggerTaskEntity> allTasks = eventTriggerTaskService.list(wrapperTask);
-
         if (allTasks == null || allTasks.isEmpty()) {
             return List.of();
         }
-
         // 批量查询避免N+1问题
         List<String> triggerIds = allTasks.stream()
                 .map(EventTriggerTaskEntity::getTriggerId)

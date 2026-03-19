@@ -7,7 +7,7 @@ public enum ScheduleType {
     DAILY("daily"),
     WEEKLY("weekly"),
     MONTHLY("monthly"),
-    INTERVAL("interval"); // 修正了拼写：INTERVA -> INTERVAL, "interva" -> "interval"
+    INTERVAL("interval");
 
     // 可选：提供一个 getter 方法以便外部获取该值
     private final String value; // 建议加上 final，因为枚举值通常不可变
