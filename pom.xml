@@ -40,7 +40,7 @@
         <openai-java.version>4.9.0</openai-java.version>
         <flexmark.version>0.64.8</flexmark.version>
         <tika.version>3.2.3</tika.version>
-        <groovy.version>4.0.9</groovy.version>
+        <groovy.version>4.0.22</groovy.version>
         <reflections.version>0.10.2</reflections.version>
         <caffeine.version>2.9.0</caffeine.version>
         <jieba.version>1.0.2</jieba.version>
@@ -102,7 +102,7 @@
                 <artifactId>groovy</artifactId>
                 <version>${groovy.version}</version>
             </dependency>
-            <dependency>
+         <!--   <dependency>
                 <groupId>org.apache.groovy</groupId>
                 <artifactId>groovy-all</artifactId>
                 <version>${groovy.version}</version>
@@ -117,7 +117,7 @@
                         <artifactId>asm</artifactId>
                     </exclusion>
                 </exclusions>
-            </dependency>
+            </dependency>-->
             <!-- Database related dependencies -->
             <dependency>
                 <groupId>com.baomidou</groupId>

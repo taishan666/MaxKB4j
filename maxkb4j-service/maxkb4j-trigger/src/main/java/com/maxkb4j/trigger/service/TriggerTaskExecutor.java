@@ -20,8 +20,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Sinks;
 
+import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 @Component
@@ -86,31 +86,31 @@ public class TriggerTaskExecutor {
         if (parameter != null) {
             message = parameter.getString("message");
         }
-        if (StringUtils.isBlank(message)) {
-            message = "定时触发";
-        }
-        try {
-            String chatId = applicationChatService.chatOpen(appId, true);
-            Sinks.Many<ChatMessageVO> sink = Sinks.many().unicast().onBackpressureBuffer();
-            ChatParams chatParams = ChatParams.builder()
-                    .message(message)
-                    .chatId(chatId)
-                    .appId(appId)
-                    .debug(true)
-                    .reChat(false)
-                    .stream(false)
-                    .build();
-            CompletableFuture<ChatResponse> future = applicationChatService.chatMessageAsync(chatParams, sink);
-            ChatResponse response = future.join();
-            float runTime = (System.currentTimeMillis() - startTime) / 1000f;
-            TaskState state = (response != null && response.getAnswerTextList() != null) ? TaskState.SUCCESS : TaskState.FAILURE;
-            saveRecord(task.getTriggerId(), task.getId(), ResourceType.APPLICATION, appId, state, runTime, new JSONObject());
-            log.info("Application task executed: appId={}, chatId={}, state={}, runTime={}s",
-                    appId, chatId, state, runTime);
-        } catch (Exception e) {
-            log.error("Failed to execute application task: appId={}, error={}", appId, e.getMessage(), e);
-            float runTime = (System.currentTimeMillis() - startTime) / 1000f;
-            saveRecord(task.getTriggerId(), task.getId(), ResourceType.APPLICATION, appId, TaskState.FAILURE, runTime, buildErrorMeta(e));
+        if (!StringUtils.isBlank(message)) {
+            try {
+                String chatId = applicationChatService.chatOpen(appId, true);
+                Sinks.Many<ChatMessageVO> sink = Sinks.many().unicast().onBackpressureBuffer();
+                ChatParams chatParams = ChatParams.builder()
+                        .message(message)
+                        .chatId(chatId)
+                        .appId(appId)
+                        .debug(true)
+                        .reChat(false)
+                        .stream(false)
+                        .build();
+                CompletableFuture<ChatResponse> future = applicationChatService.chatMessageAsync(chatParams, sink);
+                ChatResponse response = future.join();
+                float runTime = (System.currentTimeMillis() - startTime) / 1000f;
+                TaskState state = (response != null && response.getAnswerTextList() != null) ? TaskState.SUCCESS : TaskState.FAILURE;
+                assert response != null;
+                saveRecord(task.getTriggerId(), task.getId(), ResourceType.APPLICATION, appId, state, runTime, response.getRunDetails());
+                log.info("Application task executed: appId={}, chatId={}, state={}, runTime={}s",
+                        appId, chatId, state, runTime);
+            } catch (Exception e) {
+                log.error("Failed to execute application task: appId={}, error={}", appId, e.getMessage(), e);
+                float runTime = (System.currentTimeMillis() - startTime) / 1000f;
+                saveRecord(task.getTriggerId(), task.getId(), ResourceType.APPLICATION, appId, TaskState.FAILURE, runTime, buildErrorMeta(e));
+            }
         }
     }
 
@@ -119,7 +119,7 @@ public class TriggerTaskExecutor {
         log.info("Tool task triggered: toolId={}", toolId);
         ToolEntity tool =toolService.lambdaQuery().select(ToolEntity::getCode, ToolEntity::getInitParams).eq(ToolEntity::getId, toolId).one();
         GroovyScriptExecutor scriptExecutor=new GroovyScriptExecutor(tool.getCode(), tool.getInitParams());
-        Object response =scriptExecutor.execute(Map.of());
+        Object response =scriptExecutor.execute(new HashMap<>());
         float runTime = (System.currentTimeMillis() - startTime) / 1000f;
         TaskState state = (response != null ) ? TaskState.SUCCESS : TaskState.FAILURE;
         saveRecord(task.getTriggerId(), task.getId(), ResourceType.TOOL, toolId, state, runTime, new JSONObject());
