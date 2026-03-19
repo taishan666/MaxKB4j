@@ -53,12 +53,10 @@ public class ScheduledTriggerScheduler implements ApplicationRunner {
         wrapper.eq(EventTriggerEntity::getTriggerType, TriggerType.SCHEDULED.name());
         wrapper.eq(EventTriggerEntity::getIsActive, true);
         List<EventTriggerEntity> triggers = eventTriggerService.list(wrapper);
-
         if (CollectionUtils.isEmpty(triggers)) {
             log.info("No active scheduled triggers found");
             return;
         }
-
         for (EventTriggerEntity trigger : triggers) {
             try {
                 scheduleTrigger(trigger);
@@ -164,7 +162,6 @@ public class ScheduledTriggerScheduler implements ApplicationRunner {
     private void scheduleAtFixedRate(String triggerId, LocalDateTime startTime, int intervalValue, String intervalUnit) {
         Instant startInstant = DateTimeUtil.toInstant(startTime);
         long periodMillis = calculatePeriodMillis(intervalValue, intervalUnit);
-
         ScheduledFuture<?> future = taskScheduler.scheduleAtFixedRate(
                 () -> executeTrigger(triggerId),
                 startInstant,
