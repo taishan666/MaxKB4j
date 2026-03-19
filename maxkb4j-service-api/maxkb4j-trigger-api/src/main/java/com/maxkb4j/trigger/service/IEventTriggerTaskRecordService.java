@@ -7,4 +7,6 @@ import com.maxkb4j.trigger.entity.EventTriggerTaskRecordEntity;
 
 public interface IEventTriggerTaskRecordService extends IService<EventTriggerTaskRecordEntity> {
     IPage<EventTriggerTaskRecordEntity> pageList(String id, int current, int size, EventTaskQuery query);
+
+    EventTriggerTaskRecordEntity get(String id, String taskId, String recordId);
 }

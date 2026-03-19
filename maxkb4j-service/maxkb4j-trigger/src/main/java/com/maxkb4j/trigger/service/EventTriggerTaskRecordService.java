@@ -29,4 +29,9 @@ public class EventTriggerTaskRecordService extends ServiceImpl<EventTriggerTaskR
         wrapper.orderByDesc(EventTriggerTaskRecordEntity::getCreateTime);
         return this.page(page, wrapper);
     }
+
+    @Override
+    public EventTriggerTaskRecordEntity get(String id, String taskId, String recordId) {
+        return this.getById(recordId);
+    }
 }

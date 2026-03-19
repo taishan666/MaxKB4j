@@ -13,6 +13,7 @@ import com.maxkb4j.tool.entity.ToolEntity;
 import com.maxkb4j.tool.service.IToolService;
 import com.maxkb4j.trigger.entity.EventTriggerTaskEntity;
 import com.maxkb4j.trigger.entity.EventTriggerTaskRecordEntity;
+import com.maxkb4j.trigger.enums.TaskState;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -54,7 +55,7 @@ public class TriggerTaskExecutor {
             } catch (Exception e) {
                 log.error("Error executing task {} for trigger {}: {}",
                         task.getId(), triggerId, e.getMessage(), e);
-                saveRecord(triggerId, task.getId(), task.getSourceType(), task.getSourceId(), "failed", 0f, new JSONObject());
+                saveRecord(triggerId, task.getId(), task.getSourceType(), task.getSourceId(), TaskState.FAILURE, 0f, new JSONObject());
             }
         }
     }
@@ -73,7 +74,7 @@ public class TriggerTaskExecutor {
         } catch (Exception e) {
             float runTime = (System.currentTimeMillis() - startTime) / 1000f;
             saveRecord(task.getTriggerId(), task.getId(), sourceType, task.getSourceId(),
-                    "failed", runTime, buildErrorMeta(e));
+                    TaskState.FAILURE, runTime, buildErrorMeta(e));
             throw e;
         }
     }
@@ -102,14 +103,14 @@ public class TriggerTaskExecutor {
             CompletableFuture<ChatResponse> future = applicationChatService.chatMessageAsync(chatParams, sink);
             ChatResponse response = future.join();
             float runTime = (System.currentTimeMillis() - startTime) / 1000f;
-            String state = (response != null && response.getAnswerTextList() != null) ? "success" : "failed";
+            TaskState state = (response != null && response.getAnswerTextList() != null) ? TaskState.SUCCESS : TaskState.FAILURE;
             saveRecord(task.getTriggerId(), task.getId(), ResourceType.APPLICATION, appId, state, runTime, new JSONObject());
             log.info("Application task executed: appId={}, chatId={}, state={}, runTime={}s",
                     appId, chatId, state, runTime);
         } catch (Exception e) {
             log.error("Failed to execute application task: appId={}, error={}", appId, e.getMessage(), e);
             float runTime = (System.currentTimeMillis() - startTime) / 1000f;
-            saveRecord(task.getTriggerId(), task.getId(), ResourceType.APPLICATION, appId, "failed", runTime, buildErrorMeta(e));
+            saveRecord(task.getTriggerId(), task.getId(), ResourceType.APPLICATION, appId, TaskState.FAILURE, runTime, buildErrorMeta(e));
         }
     }
 
@@ -120,19 +121,19 @@ public class TriggerTaskExecutor {
         GroovyScriptExecutor scriptExecutor=new GroovyScriptExecutor(tool.getCode(), tool.getInitParams());
         Object response =scriptExecutor.execute(Map.of());
         float runTime = (System.currentTimeMillis() - startTime) / 1000f;
-        String state = (response != null ) ? "success" : "failed";
+        TaskState state = (response != null ) ? TaskState.SUCCESS : TaskState.FAILURE;
         saveRecord(task.getTriggerId(), task.getId(), ResourceType.TOOL, toolId, state, runTime, new JSONObject());
     }
 
     private void saveRecord(String triggerId, String taskId, String sourceType, String sourceId,
-                            String state, float runTime, JSONObject meta) {
+                            TaskState state, float runTime, JSONObject meta) {
         try {
             EventTriggerTaskRecordEntity record = new EventTriggerTaskRecordEntity();
             record.setTriggerId(triggerId);
             record.setTriggerTaskId(taskId);
             record.setSourceType(sourceType);
             record.setSourceId(sourceId);
-            record.setState(state);
+            record.setState(state.name());
             record.setRunTime(runTime);
             record.setMeta(meta);
             eventTriggerTaskRecordService.save(record);

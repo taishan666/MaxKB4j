@@ -35,5 +35,11 @@ public class TriggerTaskRecordController {
         return R.success(eventTriggerTaskRecordService.pageList(id,current, size, query));
     }
 
+    @GetMapping("/workspace/default/trigger/{id}/trigger_task/{taskId}/trigger_task_record/{recordId}")
+    public R<EventTriggerTaskRecordEntity> get(@PathVariable String id, @PathVariable String taskId, @PathVariable String recordId) {
+        return R.success(eventTriggerTaskRecordService.get(id,taskId, recordId));
+    }
+
+
 
 }
