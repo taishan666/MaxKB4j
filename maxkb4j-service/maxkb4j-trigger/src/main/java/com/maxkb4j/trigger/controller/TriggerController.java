@@ -100,7 +100,7 @@ public class TriggerController {
 
     @GetMapping("/workspace/default/{sourceType}/{sourceId}/trigger/{id}")
     public R<SourceEventTriggerVO> getTriggerBySourceId(@PathVariable String sourceType, @PathVariable String sourceId, @PathVariable String id) {
-        return R.success(eventTriggerService.getDetailBySourceId(id));
+        return R.success(eventTriggerService.getDetailBySourceId(id,sourceType,sourceId));
     }
 
     @GetMapping("/workspace/default/{sourceType}/{sourceId}/trigger")

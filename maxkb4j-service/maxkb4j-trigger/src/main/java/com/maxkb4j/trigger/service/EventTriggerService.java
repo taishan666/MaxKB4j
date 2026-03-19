@@ -20,6 +20,9 @@ import com.maxkb4j.trigger.dto.EventQuery;
 import com.maxkb4j.trigger.dto.EventTriggerDTO;
 import com.maxkb4j.trigger.entity.EventTriggerEntity;
 import com.maxkb4j.trigger.entity.EventTriggerTaskEntity;
+import com.maxkb4j.trigger.enums.ScheduleType;
+import com.maxkb4j.trigger.enums.SourceType;
+import com.maxkb4j.trigger.enums.TriggerType;
 import com.maxkb4j.trigger.mapper.EventTriggerMapper;
 import com.maxkb4j.trigger.vo.EventTriggerVO;
 import com.maxkb4j.trigger.vo.SourceEventTriggerVO;
@@ -36,13 +39,7 @@ import java.util.stream.Collectors;
 @Service
 public class EventTriggerService extends ServiceImpl<EventTriggerMapper, EventTriggerEntity> implements IEventTriggerService {
     // 常量定义
-    private static final String SOURCE_TYPE_APPLICATION = "APPLICATION";
     private static final String DEFAULT_WORKSPACE_ID = "default";
-    private static final String TRIGGER_TYPE_SCHEDULED = "SCHEDULED";
-    private static final String SCHEDULE_TYPE_DAILY = "daily";
-    private static final String SCHEDULE_TYPE_WEEKLY = "weekly";
-    private static final String SCHEDULE_TYPE_MONTHLY = "monthly";
-    private static final String INTERVAL = "interval";
     private final IEventTriggerTaskService eventTriggerTaskService;
     private final IUserService userService;
     private final IApplicationService applicationService;
@@ -93,13 +90,13 @@ public class EventTriggerService extends ServiceImpl<EventTriggerMapper, EventTr
                 .collect(Collectors.groupingBy(EventTriggerTaskEntity::getTriggerId));
         // 提取所有需要查询的application和tool的id
         List<String> appIds = allTasks.stream()
-                .filter(task -> SOURCE_TYPE_APPLICATION.equals(task.getSourceType()))
+                .filter(task -> SourceType.APPLICATION.name().equals(task.getSourceType()))
                 .map(EventTriggerTaskEntity::getSourceId)
                 .filter(StringUtils::isNotBlank)
                 .distinct()
                 .toList();
         List<String> toolIds = allTasks.stream()
-                .filter(task -> !SOURCE_TYPE_APPLICATION.equals(task.getSourceType()))
+                .filter(task -> SourceType.TOOL.name().equals(task.getSourceType()))
                 .map(EventTriggerTaskEntity::getSourceId)
                 .filter(StringUtils::isNotBlank)
                 .distinct()
@@ -111,7 +108,7 @@ public class EventTriggerService extends ServiceImpl<EventTriggerMapper, EventTr
         records.forEach(eventTriggerEntity -> {
             List<EventTriggerTaskEntity> triggerTasks = taskMap.getOrDefault(eventTriggerEntity.getId(), List.of());
             TaskProcessResult result = processTaskList(triggerTasks, buildSourceMap(apps),  buildSourceMap(tools));
-            if (TRIGGER_TYPE_SCHEDULED.equals(eventTriggerEntity.getTriggerType())) {
+            if (TriggerType.SCHEDULED.name().equals(eventTriggerEntity.getTriggerType())) {
                 String nextRunTime = calculateNextRunTime(eventTriggerEntity.getTriggerSetting());
                 if (StringUtils.isNotBlank(nextRunTime)) {
                     eventTriggerEntity.setNextRunTime(nextRunTime);
@@ -153,7 +150,7 @@ public class EventTriggerService extends ServiceImpl<EventTriggerMapper, EventTr
             BeanUtil.copyProperties(task, processedTask);
             processedTask.setType(task.getSourceType());
 
-            Map<String, Map<String, Object>> sourceMap = SOURCE_TYPE_APPLICATION.equals(task.getSourceType()) ? appMap : toolMap;
+            Map<String, Map<String, Object>> sourceMap = SourceType.APPLICATION.name().equals(task.getSourceType()) ? appMap : toolMap;
             Map<String, Object> source = sourceMap.get(task.getSourceId());
             if (source != null) {
                 processedTask.setIcon(source.get("icon") != null ? source.get("icon").toString() : "");
@@ -192,17 +189,17 @@ public class EventTriggerService extends ServiceImpl<EventTriggerMapper, EventTr
         try {
             int hour = Integer.parseInt(timeParts[0]);
             int minute = Integer.parseInt(timeParts[1]);
-            switch (scheduleType) {
-                case SCHEDULE_TYPE_DAILY:
+            switch (ScheduleType.fromValue(scheduleType)) {
+                case DAILY:
                     return DateTimeUtil.getNextDayAtTime(hour, minute, 0).toString();
-                case SCHEDULE_TYPE_WEEKLY:
+                case WEEKLY:
                     List<String> dayList = getStringList(triggerSetting.get("days"));
                     if (dayList == null || dayList.isEmpty()) {
                         return null;
                     }
                     int day = Integer.parseInt(dayList.get(0));
                     return DateTimeUtil.getSameDayNextWeek(day, hour, minute, 0).toString();
-                case SCHEDULE_TYPE_MONTHLY:
+                case MONTHLY:
                     List<String> monthDayList = getStringList(triggerSetting.get("days"));
                     if (monthDayList == null || monthDayList.isEmpty()) {
                         return null;
@@ -241,7 +238,7 @@ public class EventTriggerService extends ServiceImpl<EventTriggerMapper, EventTr
         if (dto == null) {
             return;
         }
-        if (TRIGGER_TYPE_SCHEDULED.equals(dto.getTriggerType())){
+        if (TriggerType.SCHEDULED.name().equals(dto.getTriggerType())){
             JSONObject triggerSetting=dto.getTriggerSetting();
             if (triggerSetting == null||!triggerSetting.containsKey("scheduleType")){
                 throw new ApiException( "请选择触发周期");
@@ -353,12 +350,12 @@ public class EventTriggerService extends ServiceImpl<EventTriggerMapper, EventTr
 
         // 提取所有应用程序ID和工具ID
         List<String> appIds = allTasks.stream()
-                .filter(task -> SOURCE_TYPE_APPLICATION.equals(task.getSourceType()))
+                .filter(task -> SourceType.APPLICATION.name().equals(task.getSourceType()))
                 .map(EventTriggerTaskEntity::getSourceId)
                 .distinct()
                 .toList();
         List<String> toolIds = allTasks.stream()
-                .filter(task -> !SOURCE_TYPE_APPLICATION.equals(task.getSourceType()))
+                .filter(task -> SourceType.TOOL.name().equals(task.getSourceType()))
                 .map(EventTriggerTaskEntity::getSourceId)
                 .distinct()
                 .toList();
@@ -381,7 +378,7 @@ public class EventTriggerService extends ServiceImpl<EventTriggerMapper, EventTr
         for (EventTriggerTaskEntity task : allTasks) {
             EventTriggerTaskEntity newTask = BeanUtil.copy(task, EventTriggerTaskEntity.class);
             newTask.setType(task.getSourceType());
-            if (SOURCE_TYPE_APPLICATION.equals(task.getSourceType())) {
+            if (SourceType.APPLICATION.name().equals(task.getSourceType())) {
                 ApplicationEntity app = appMap.get(task.getSourceId());
                 if (app != null) {
                     appsList.add(app);
@@ -401,25 +398,35 @@ public class EventTriggerService extends ServiceImpl<EventTriggerMapper, EventTr
             resTask.add(newTask);
         }
         vo.setApplicationTaskList(appsList);
+        vo.setToolTaskList(toolsList);
         vo.setTriggerTask(resTask);
         vo.setTriggerTaskStr(taskStrBuilder.toString().trim());
         return vo;
     }
 
     @Override
-    public SourceEventTriggerVO getDetailBySourceId(String id) {
-        EventTriggerVO vo=getDetailById(id);
-        SourceEventTriggerVO sourceVO = BeanUtil.copy(vo, SourceEventTriggerVO.class);
-        if (CollectionUtils.isNotEmpty(vo.getApplicationTaskList())){
-            sourceVO.setApplicationTask(vo.getApplicationTaskList().get(0));
+    public SourceEventTriggerVO getDetailBySourceId(String id,String sourceType,String sourceId) {
+        EventTriggerEntity entity = this.getById(id);
+        if (entity == null) {
+            return null;
         }
-        if (CollectionUtils.isNotEmpty(vo.getToolTaskList())){
-            sourceVO.setToolTask(vo.getToolTaskList().get(0));
+        SourceEventTriggerVO vo = BeanUtil.copy(entity, SourceEventTriggerVO.class);
+        LambdaQueryWrapper<EventTriggerTaskEntity> wrapperTask = Wrappers.lambdaQuery();
+        wrapperTask.eq(EventTriggerTaskEntity::getTriggerId, id);
+        List<EventTriggerTaskEntity> allTasks = eventTriggerTaskService.list(wrapperTask);
+        Optional<EventTriggerTaskEntity> sourceTask = allTasks.stream()
+                .filter(task -> sourceType.equals(task.getSourceType())&& sourceId.equals(task.getSourceId()))
+                .findFirst();
+        if (sourceTask.isPresent()){
+            if (SourceType.APPLICATION.name().equals(sourceType)){
+                vo.setApplicationTask(applicationService.getById(sourceTask.get().getSourceId()));
+            }
+            if (SourceType.TOOL.name().equals(sourceType)){
+                vo.setApplicationTask(applicationService.getById(sourceTask.get().getSourceId()));
+            }
+            vo.setTriggerTask(sourceTask.get());
         }
-        if (CollectionUtils.isNotEmpty(vo.getTriggerTask())){
-            sourceVO.setTriggerTask(vo.getTriggerTask().get(0));
-        }
-        return sourceVO;
+        return vo;
     }
 
 
