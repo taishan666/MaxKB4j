@@ -69,7 +69,7 @@ public class TriggerController {
      */
     @DeleteMapping("/workspace/default/trigger/{id}")
     public R<Boolean> delete(@PathVariable String id) {
-        return R.success(eventTriggerService.batchDelete(id));
+        return R.success(eventTriggerService.deleteTrigger(id));
     }
 
     /**
@@ -78,7 +78,7 @@ public class TriggerController {
     @PutMapping("/workspace/default/trigger/batch_delete")
     public R<Boolean> batchDelete(@RequestBody EventTriggerDTO dto) {
         boolean allSuccess = dto.getIdList().stream()
-                .allMatch(eventTriggerService::batchDelete);
+                .allMatch(eventTriggerService::deleteTrigger);
         return R.success(allSuccess);
     }
 

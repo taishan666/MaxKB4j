@@ -17,7 +17,7 @@ public interface IEventTriggerService extends IService<EventTriggerEntity> {
 
     boolean batchActivate(String id, Boolean isActive);
 
-    boolean batchDelete(String id);
+    boolean deleteTrigger(String id);
 
     EventTriggerVO getDetailById(String id);
 
