@@ -18,7 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Sinks;
 
-@Tag(name = "MaxKB4J开放接口")
+@Tag(name = "MaxKB4J兼容 OpenAI API 格式")
 @RestController
 @RequestMapping(AppConst.CHAT_API)
 @RequiredArgsConstructor
