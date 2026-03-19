@@ -43,7 +43,6 @@ public class TriggerTaskExecutor {
         }
         LambdaQueryWrapper<EventTriggerTaskEntity> wrapper = Wrappers.lambdaQuery();
         wrapper.eq(EventTriggerTaskEntity::getTriggerId, triggerId);
-        wrapper.eq(EventTriggerTaskEntity::getIsActive, true);
         List<EventTriggerTaskEntity> tasks = eventTriggerTaskService.list(wrapper);
         if (tasks == null || tasks.isEmpty()) {
             log.info("No active tasks found for trigger: {}", triggerId);

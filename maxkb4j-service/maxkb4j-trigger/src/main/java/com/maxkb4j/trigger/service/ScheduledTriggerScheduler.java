@@ -76,7 +76,9 @@ public class ScheduledTriggerScheduler implements ApplicationRunner {
             log.warn("Trigger {} has no scheduleType", triggerId);
             return;
         }
-        cancelSchedule(triggerId);
+        if (isScheduled(triggerId)) {
+            cancelSchedule(triggerId);
+        }
         ScheduleType scheduleType = ScheduleType.fromValue(scheduleTypeStr);
         switch (scheduleType) {
             case DAILY -> scheduleDaily(triggerId, triggerSetting);
@@ -203,7 +205,6 @@ public class ScheduledTriggerScheduler implements ApplicationRunner {
         if (trigger == null) {
             return;
         }
-        cancelSchedule(trigger.getId());
         if (Boolean.TRUE.equals(trigger.getIsActive())) {
             scheduleTrigger(trigger);
         }
@@ -214,9 +215,6 @@ public class ScheduledTriggerScheduler implements ApplicationRunner {
         return future != null && !future.isCancelled() && !future.isDone();
     }
 
-    public int getScheduledCount() {
-        return scheduledTasks.size();
-    }
 
     private long calculatePeriodMillis(int intervalValue, String intervalUnit) {
         return switch (intervalUnit.toLowerCase()) {
