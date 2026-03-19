@@ -6,6 +6,7 @@ import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.trigger.dto.EventTaskQuery;
 import com.maxkb4j.trigger.entity.EventTriggerTaskRecordEntity;
 import com.maxkb4j.trigger.service.IEventTriggerTaskRecordService;
+import com.maxkb4j.trigger.vo.EventTriggerTaskRecordVO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -31,7 +32,7 @@ public class TriggerTaskRecordController {
      * 分页查询触发器列表
      */
     @GetMapping("/workspace/default/trigger/{id}/task_record/{current}/{size}")
-    public R<IPage<EventTriggerTaskRecordEntity>> page(@PathVariable String id, @PathVariable int current, @PathVariable int size, EventTaskQuery query) {
+    public R<IPage<EventTriggerTaskRecordVO>> page(@PathVariable String id, @PathVariable int current, @PathVariable int size, EventTaskQuery query) {
         return R.success(eventTriggerTaskRecordService.pageList(id,current, size, query));
     }
 
