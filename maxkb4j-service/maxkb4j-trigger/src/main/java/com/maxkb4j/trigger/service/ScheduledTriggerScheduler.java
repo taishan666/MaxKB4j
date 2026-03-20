@@ -207,6 +207,8 @@ public class ScheduledTriggerScheduler implements ApplicationRunner {
         }
         if (Boolean.TRUE.equals(trigger.getIsActive())) {
             scheduleTrigger(trigger);
+        }else {
+            cancelSchedule(trigger.getId());
         }
     }
 
