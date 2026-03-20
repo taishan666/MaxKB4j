@@ -163,6 +163,11 @@ public class EventTriggerService extends ServiceImpl<EventTriggerMapper, EventTr
         if (StringUtils.isBlank(id)) {
             return false;
         }
+        // 先查询触发器类型，避免更新后再查询
+        EventTriggerEntity trigger = this.getById(id);
+        if (trigger == null) {
+            return false;
+        }
         Date now = new Date();
         // 直接更新触发器状态
         LambdaUpdateWrapper<EventTriggerEntity> updateWrapper = Wrappers.lambdaUpdate();
@@ -176,15 +181,11 @@ public class EventTriggerService extends ServiceImpl<EventTriggerMapper, EventTr
         taskUpdateWrapper.eq(EventTriggerTaskEntity::getTriggerId, id).set(EventTriggerTaskEntity::getIsActive, isActive).set(EventTriggerTaskEntity::getUpdateTime, now);
         eventTriggerTaskService.update(taskUpdateWrapper);
         // 更新调度状态
-        EventTriggerEntity trigger = this.getById(id);
-        log.info("batchActivate: id={}, isActive={}, trigger={}", id, isActive, trigger);
-        if (trigger != null && TriggerType.SCHEDULED.name().equals(trigger.getTriggerType())) {
-            // 手动设置 isActive 确保使用最新值（避免缓存问题）
+        if (TriggerType.SCHEDULED.name().equals(trigger.getTriggerType())) {
             trigger.setIsActive(isActive);
             if (Boolean.TRUE.equals(isActive)) {
                 triggerSchedulerProvider.getObject().scheduleTrigger(trigger);
             } else {
-                log.info("Calling cancelSchedule for trigger {}", id);
                 triggerSchedulerProvider.getObject().cancelSchedule(id);
             }
         }

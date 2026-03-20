@@ -194,7 +194,7 @@ public class ChatApiController {
     @Hidden
     @GetMapping("/embed")
     @SaIgnore
-    public ResponseEntity<String> embed(EmbedDTO dto) throws IOException {
+    public ResponseEntity<String> embed(EmbedDTO dto) {
         return ResponseEntity.ok().header("Content-Type", "text/javascript; charset=utf-8").body(applicationService.embed(dto));
     }
 

@@ -12,7 +12,10 @@ import com.maxkb4j.trigger.vo.EventTriggerTaskVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -42,39 +45,41 @@ public class EventTriggerTaskProcessor {
         }
         List<String> appIds = extractIds(tasks, ResourceType.APPLICATION);
         List<String> toolIds = extractIds(tasks, ResourceType.TOOL);
-        Map<String, ApplicationEntity> appMap = new HashMap<>();
-        List<ApplicationEntity> appsList = new ArrayList<>();
-        if (!appIds.isEmpty()) {
-            appsList = applicationService.listByIds(appIds);
-            appMap = appsList.stream().collect(Collectors.toMap(ApplicationEntity::getId, a -> a));
-        }
-        Map<String, ToolEntity> toolMap = new HashMap<>();
-        List<ToolEntity> toolsList = new ArrayList<>();
-        if (!toolIds.isEmpty()) {
-            toolsList = toolService.listByIds(toolIds);
-            toolMap = toolsList.stream().collect(Collectors.toMap(ToolEntity::getId, t -> t));
-        }
-        List<EventTriggerTaskVO> result = new ArrayList<>();
-        for (EventTriggerTaskVO task : tasks) {
-            EventTriggerTaskVO newTask = BeanUtil.copy(task, EventTriggerTaskVO.class);
-            newTask.setType(task.getSourceType());
-            if (ResourceType.APPLICATION.equals(task.getSourceType())) {
-                ApplicationEntity app = appMap.get(task.getSourceId());
-                if (app != null) {
-                    newTask.setIcon(app.getIcon());
-                    newTask.setName(app.getName());
-                }
-            } else if (ResourceType.TOOL.equals(task.getSourceType())) {
-                ToolEntity tool = toolMap.get(task.getSourceId());
-                if (tool != null) {
-                    newTask.setIcon(tool.getIcon());
-                    newTask.setName(tool.getName());
-                }
-            }
-            result.add(newTask);
-        }
+
+        List<ApplicationEntity> appsList = appIds.isEmpty() ? List.of() : applicationService.listByIds(appIds);
+        List<ToolEntity> toolsList = toolIds.isEmpty() ? List.of() : toolService.listByIds(toolIds);
+
+        Map<String, ApplicationEntity> appMap = appsList.stream()
+                .collect(Collectors.toMap(ApplicationEntity::getId, a -> a));
+        Map<String, ToolEntity> toolMap = toolsList.stream()
+                .collect(Collectors.toMap(ToolEntity::getId, t -> t));
+
+        List<EventTriggerTaskVO> result = tasks.stream()
+                .map(task -> enrichTask(task, appMap, toolMap))
+                .toList();
 
         return new DetailResult(result, appsList, toolsList);
+    }
+
+    private EventTriggerTaskVO enrichTask(EventTriggerTaskVO task,
+                                          Map<String, ApplicationEntity> appMap,
+                                          Map<String, ToolEntity> toolMap) {
+        EventTriggerTaskVO newTask = BeanUtil.copy(task, EventTriggerTaskVO.class);
+        newTask.setType(task.getSourceType());
+        if (ResourceType.APPLICATION.equals(task.getSourceType())) {
+            ApplicationEntity app = appMap.get(task.getSourceId());
+            if (app != null) {
+                newTask.setIcon(app.getIcon());
+                newTask.setName(app.getName());
+            }
+        } else if (ResourceType.TOOL.equals(task.getSourceType())) {
+            ToolEntity tool = toolMap.get(task.getSourceId());
+            if (tool != null) {
+                newTask.setIcon(tool.getIcon());
+                newTask.setName(tool.getName());
+            }
+        }
+        return newTask;
     }
 
     private Map<String, Map<String, Object>> querySourceMap(List<EventTriggerTaskVO> tasks, String type) {
@@ -107,22 +112,26 @@ public class EventTriggerTaskProcessor {
     private PageResult processTasks(List<EventTriggerTaskVO> tasks,
                                      Map<String, Map<String, Object>> appMap,
                                      Map<String, Map<String, Object>> toolMap) {
-        List<EventTriggerTaskVO> result = new ArrayList<>();
-        for (EventTriggerTaskVO task : tasks) {
-            EventTriggerTaskVO newTask = new EventTriggerTaskVO();
-            BeanUtil.copyProperties(task, newTask);
-            newTask.setType(task.getSourceType());
-            Map<String, Map<String, Object>> sourceMap = ResourceType.APPLICATION.equals(task.getSourceType())
-                    ? appMap : toolMap;
-            Map<String, Object> source = sourceMap.get(task.getSourceId());
-
-            if (source != null) {
-                newTask.setIcon(source.get("icon") != null ? source.get("icon").toString() : "");
-                newTask.setName(source.get("name") != null ? source.get("name").toString() : "");
-            }
-            result.add(newTask);
-        }
+        List<EventTriggerTaskVO> result = tasks.stream()
+                .map(task -> enrichTaskFromMaps(task, appMap, toolMap))
+                .toList();
         return new PageResult(result);
+    }
+
+    private EventTriggerTaskVO enrichTaskFromMaps(EventTriggerTaskVO task,
+                                                   Map<String, Map<String, Object>> appMap,
+                                                   Map<String, Map<String, Object>> toolMap) {
+        EventTriggerTaskVO newTask = BeanUtil.copy(task, EventTriggerTaskVO.class);
+        newTask.setType(task.getSourceType());
+        Map<String, Map<String, Object>> sourceMap = ResourceType.APPLICATION.equals(task.getSourceType())
+                ? appMap : toolMap;
+        Map<String, Object> source = sourceMap.get(task.getSourceId());
+
+        if (source != null) {
+            newTask.setIcon(source.get("icon") != null ? source.get("icon").toString() : "");
+            newTask.setName(source.get("name") != null ? source.get("name").toString() : "");
+        }
+        return newTask;
     }
 
     public record PageResult(List<EventTriggerTaskVO> tasks) {}

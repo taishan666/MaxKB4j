@@ -45,20 +45,22 @@ public class EventTriggerTaskRecordService extends ServiceImpl<EventTriggerTaskR
         }
         wrapper.orderByDesc(EventTriggerTaskRecordEntity::getCreateTime);
         IPage<EventTriggerTaskRecordVO> pageList = PageUtil.copy(this.page(page, wrapper), EventTriggerTaskRecordVO.class);
+        List<EventTriggerTaskRecordVO> records = pageList.getRecords();
+        if (records.isEmpty()) {
+            return pageList;
+        }
         Map<String, String> sourceMap = new HashMap<>();
-        List<String> appIds = pageList.getRecords().stream().filter(record -> ResourceType.APPLICATION.equals(record.getSourceType())).map(EventTriggerTaskRecordVO::getSourceId).toList();
-        if (!appIds.isEmpty()){
-           List<ApplicationEntity>  apps=applicationService.lambdaQuery().select(ApplicationEntity::getId, ApplicationEntity::getName).in(ApplicationEntity::getId, appIds).list();
+        List<String> appIds = records.stream().filter(record -> ResourceType.APPLICATION.equals(record.getSourceType())).map(EventTriggerTaskRecordVO::getSourceId).toList();
+        if (!appIds.isEmpty()) {
+            List<ApplicationEntity> apps = applicationService.lambdaQuery().select(ApplicationEntity::getId, ApplicationEntity::getName).in(ApplicationEntity::getId, appIds).list();
             sourceMap.putAll(apps.stream().collect(Collectors.toMap(ApplicationEntity::getId, ApplicationEntity::getName)));
         }
-        List<String> tooIds = pageList.getRecords().stream().filter(record -> ResourceType.TOOL.equals(record.getSourceType())).map(EventTriggerTaskRecordVO::getSourceId).toList();
-        if (!tooIds.isEmpty()){
-            List<ToolEntity>  tools=toolService.lambdaQuery().select(ToolEntity::getId, ToolEntity::getName).in(ToolEntity::getId, tooIds).list();
+        List<String> toolIds = records.stream().filter(record -> ResourceType.TOOL.equals(record.getSourceType())).map(EventTriggerTaskRecordVO::getSourceId).toList();
+        if (!toolIds.isEmpty()) {
+            List<ToolEntity> tools = toolService.lambdaQuery().select(ToolEntity::getId, ToolEntity::getName).in(ToolEntity::getId, toolIds).list();
             sourceMap.putAll(tools.stream().collect(Collectors.toMap(ToolEntity::getId, ToolEntity::getName)));
         }
-        pageList.getRecords().forEach(record -> {
-            record.setSourceName(sourceMap.get(record.getSourceId()));
-        });
+        records.forEach(record -> record.setSourceName(sourceMap.get(record.getSourceId())));
         return pageList;
     }
 
