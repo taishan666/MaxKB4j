@@ -38,7 +38,7 @@ public class WebhookTriggerController {
         if (!eventTrigger.getIsActive()){
             return R.fail("事件触发器已禁用");
         }
-        triggerTaskExecutor.eventExecute(id,data);
+        triggerTaskExecutor.execute(id,data);
         return R.data(true);
     }
 

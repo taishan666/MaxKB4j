@@ -38,30 +38,11 @@ public class TriggerTaskExecutor {
     /**
      * 执行触发器的所有关联任务
      */
-    public void scheduledExecute(String triggerId) {
-        if (StringUtils.isBlank(triggerId)) {
-            return;
-        }
-        log.info("Executing trigger tasks for triggerId: {}", triggerId);
-        LambdaQueryWrapper<EventTriggerTaskEntity> wrapper = Wrappers.lambdaQuery();
-        wrapper.eq(EventTriggerTaskEntity::getTriggerId, triggerId);
-        List<EventTriggerTaskEntity> tasks = eventTriggerTaskService.list(wrapper);
-        if (tasks == null || tasks.isEmpty()) {
-            log.info("No active tasks found for trigger: {}", triggerId);
-            return;
-        }
-        for (EventTriggerTaskEntity task : tasks) {
-            try {
-                executeTask(task);
-            } catch (Exception e) {
-                log.error("Error executing task {} for trigger {}: {}",
-                        task.getId(), triggerId, e.getMessage(), e);
-                saveRecord(triggerId, task.getId(), task.getSourceType(), task.getSourceId(), TaskState.FAILURE, 0f, new JSONObject());
-            }
-        }
+    public void execute(String triggerId) {
+        execute(triggerId, new JSONObject());
     }
 
-    public void eventExecute(String triggerId,JSONObject data) {
+    public void execute(String triggerId,JSONObject data) {
         if (StringUtils.isBlank(triggerId)) {
             return;
         }
