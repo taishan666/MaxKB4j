@@ -119,17 +119,14 @@ public class TriggerScheduler implements ApplicationRunner {
     private void scheduleInterval(String triggerId, JSONObject setting) {
         Integer intervalValue = setting.getInteger("intervalValue");
         String intervalUnit = setting.getString("intervalUnit");
-
         if (intervalValue == null || intervalValue <= 0 || StringUtils.isBlank(intervalUnit)) {
             log.warn("Invalid interval configuration for trigger {}", triggerId);
             return;
         }
-
         LocalDateTime nextRunTime = nextRunTimeCalculator.calculate(setting);
         if (nextRunTime == null) {
             nextRunTime = LocalDateTime.now().plus(intervalValue, getChronoUnit(intervalUnit));
         }
-
         scheduleAtFixedRate(triggerId, nextRunTime, intervalValue, intervalUnit);
     }
 
