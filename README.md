@@ -121,13 +121,11 @@ Click the button below for one-click deployment:
 
 We welcome community contributions! If you have suggestions, bug reports, or new feature requests, please submit them via [Issue](https://gitee.com/taisan/MaxKB4j/issues) or directly submit a Pull Request.
 
-| Category | Details |
+| Category | Description |
 | :--- | :--- |
-| 🎯 Contribution Methods | • 🐛 Bug Fixes: Discover and fix system defects<br>• ✨ New Features: Propose and implement new features<br>• 📚 Documentation Improvements: Enhance project documentation<br>• 🧪 Test Cases: Write unit tests and integration tests<br>• 🎨 UI/UX Optimization: Improve user interface and experience |
-| 📋 Contribution Process | 1. Fork Project: To your GitHub account<br>2. Create Branch: `git checkout -b feature/amazing-feature`<br>3. Commit Changes: `git commit -m 'Add amazing feature'`<br>4. Push Branch: `git push origin feature/amazing-feature`<br>5. Create PR: Create a Pull Request and describe the changes in detail |
-| 🎨 Code Standards | • Follow Alibaba Java Coding Guidelines<br>• Add necessary unit tests<br>• Update related documentation |
-
-
+| 🎯 How to Contribute | Fix bugs, develop new features, improve documentation, write tests, or optimize UI/UX. |
+| 📋 Process | Fork project → Create branch → Commit changes → Push branch → Open Pull Request. |
+| 🎨 Standards | Follow Alibaba Java Coding Guidelines, include unit tests, and update documentation. |
 
 ## 💖 Support & Sponsorship
 
