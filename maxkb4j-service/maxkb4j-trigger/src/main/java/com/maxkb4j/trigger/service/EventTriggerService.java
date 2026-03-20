@@ -21,6 +21,7 @@ import com.maxkb4j.trigger.entity.EventTriggerEntity;
 import com.maxkb4j.trigger.entity.EventTriggerTaskEntity;
 import com.maxkb4j.trigger.enums.TriggerType;
 import com.maxkb4j.trigger.mapper.EventTriggerMapper;
+import com.maxkb4j.trigger.vo.EventTriggerTaskVO;
 import com.maxkb4j.trigger.vo.EventTriggerVO;
 import com.maxkb4j.trigger.vo.SourceEventTriggerVO;
 import com.maxkb4j.user.service.IUserService;
@@ -79,12 +80,12 @@ public class EventTriggerService extends ServiceImpl<EventTriggerMapper, EventTr
         }
         LambdaQueryWrapper<EventTriggerTaskEntity> taskWrapper = Wrappers.lambdaQuery();
         taskWrapper.in(EventTriggerTaskEntity::getTriggerId, triggerIds);
-        List<EventTriggerTaskEntity> allTasks = eventTriggerTaskService.list(taskWrapper);
+        List<EventTriggerTaskVO> allTasks = BeanUtil.copyList(eventTriggerTaskService.list(taskWrapper),EventTriggerTaskVO.class);
         // 分组整理tasks
-        Map<String, List<EventTriggerTaskEntity>> taskMap = allTasks.stream().collect(Collectors.groupingBy(EventTriggerTaskEntity::getTriggerId));
+        Map<String, List<EventTriggerTaskVO>> taskMap = allTasks.stream().collect(Collectors.groupingBy(EventTriggerTaskVO::getTriggerId));
         // 处理数据
         records.forEach(eventTriggerEntity -> {
-            List<EventTriggerTaskEntity> triggerTasks = taskMap.getOrDefault(eventTriggerEntity.getId(), List.of());
+            List<EventTriggerTaskVO> triggerTasks = taskMap.getOrDefault(eventTriggerEntity.getId(), List.of());
             EventTriggerTaskProcessor.PageResult result = taskProcessor.processForPage(triggerTasks);
             if (TriggerType.SCHEDULED.name().equals(eventTriggerEntity.getTriggerType())) {
                 String nextRunTime = nextRunTimeCalculator.calculateStr(eventTriggerEntity.getTriggerSetting());
@@ -217,7 +218,7 @@ public class EventTriggerService extends ServiceImpl<EventTriggerMapper, EventTr
         LambdaQueryWrapper<EventTriggerTaskEntity> wrapperTask = Wrappers.lambdaQuery();
         wrapperTask.eq(EventTriggerTaskEntity::getTriggerId, id);
         List<EventTriggerTaskEntity> allTasks = eventTriggerTaskService.list(wrapperTask);
-        EventTriggerTaskProcessor.DetailResult result = taskProcessor.processForDetail(allTasks);
+        EventTriggerTaskProcessor.DetailResult result = taskProcessor.processForDetail(BeanUtil.copyList(allTasks, EventTriggerTaskVO.class));
         vo.setApplicationTaskList(result.apps());
         vo.setToolTaskList(result.tools());
         vo.setTriggerTask(result.tasks());

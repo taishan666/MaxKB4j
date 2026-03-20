@@ -27,18 +27,18 @@ public class WebhookTriggerController {
     private final TriggerTaskExecutor triggerTaskExecutor;
 
     @PostMapping("/trigger/v1/webhook/{id}")
-    public R<Boolean> webhook(@PathVariable String id, @RequestBody JSONObject params) {
+    public R<Boolean> webhook(@PathVariable String id, @RequestBody JSONObject data) {
         EventTriggerEntity eventTrigger =eventTriggerService.getById( id);
         if (eventTrigger == null){
-            return R.fail("触发器不存在");
+            return R.fail("事件触发器不存在");
         }
         if (!TriggerType.EVENT.name().equals(eventTrigger.getTriggerType())){
             return R.fail("触发器不是webhook类型");
         }
         if (!eventTrigger.getIsActive()){
-            return R.fail("触发器已禁用");
+            return R.fail("事件触发器已禁用");
         }
-        triggerTaskExecutor.executeTriggerTasks(id);
+        triggerTaskExecutor.eventExecute(id,data);
         return R.data(true);
     }
 

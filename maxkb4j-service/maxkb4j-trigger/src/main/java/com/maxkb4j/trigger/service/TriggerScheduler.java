@@ -165,7 +165,7 @@ public class TriggerScheduler implements ApplicationRunner {
     private void executeTrigger(String triggerId) {
         log.info("Executing trigger {}", triggerId);
         try {
-            triggerTaskExecutor.executeTriggerTasks(triggerId);
+            triggerTaskExecutor.scheduledExecute(triggerId);
         } catch (Exception e) {
             log.error("Error executing trigger {}: {}", triggerId, e.getMessage(), e);
         }

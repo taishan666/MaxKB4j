@@ -8,7 +8,7 @@ import com.maxkb4j.common.constant.ResourceType;
 import com.maxkb4j.common.util.BeanUtil;
 import com.maxkb4j.tool.entity.ToolEntity;
 import com.maxkb4j.tool.service.IToolService;
-import com.maxkb4j.trigger.entity.EventTriggerTaskEntity;
+import com.maxkb4j.trigger.vo.EventTriggerTaskVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -25,7 +25,7 @@ public class EventTriggerTaskProcessor {
     private final IApplicationService applicationService;
     private final IToolService toolService;
 
-    public PageResult processForPage(List<EventTriggerTaskEntity> tasks) {
+    public PageResult processForPage(List<EventTriggerTaskVO> tasks) {
         if (CollectionUtils.isEmpty(tasks)) {
             return new PageResult(List.of());
         }
@@ -36,7 +36,7 @@ public class EventTriggerTaskProcessor {
         return processTasks(tasks, appMap, toolMap);
     }
 
-    public DetailResult processForDetail(List<EventTriggerTaskEntity> tasks) {
+    public DetailResult processForDetail(List<EventTriggerTaskVO> tasks) {
         if (CollectionUtils.isEmpty(tasks)) {
             return new DetailResult(List.of(), List.of(), List.of());
         }
@@ -54,9 +54,9 @@ public class EventTriggerTaskProcessor {
             toolsList = toolService.listByIds(toolIds);
             toolMap = toolsList.stream().collect(Collectors.toMap(ToolEntity::getId, t -> t));
         }
-        List<EventTriggerTaskEntity> result = new ArrayList<>();
-        for (EventTriggerTaskEntity task : tasks) {
-            EventTriggerTaskEntity newTask = BeanUtil.copy(task, EventTriggerTaskEntity.class);
+        List<EventTriggerTaskVO> result = new ArrayList<>();
+        for (EventTriggerTaskVO task : tasks) {
+            EventTriggerTaskVO newTask = BeanUtil.copy(task, EventTriggerTaskVO.class);
             newTask.setType(task.getSourceType());
             if (ResourceType.APPLICATION.equals(task.getSourceType())) {
                 ApplicationEntity app = appMap.get(task.getSourceId());
@@ -77,7 +77,7 @@ public class EventTriggerTaskProcessor {
         return new DetailResult(result, appsList, toolsList);
     }
 
-    private Map<String, Map<String, Object>> querySourceMap(List<EventTriggerTaskEntity> tasks, String type) {
+    private Map<String, Map<String, Object>> querySourceMap(List<EventTriggerTaskVO> tasks, String type) {
         List<String> ids = extractIds(tasks, type);
         if (ids.isEmpty()) return Map.of();
 
@@ -95,24 +95,23 @@ public class EventTriggerTaskProcessor {
         return map;
     }
 
-    private List<String> extractIds(List<EventTriggerTaskEntity> tasks, String type) {
+    private List<String> extractIds(List<EventTriggerTaskVO> tasks, String type) {
         return tasks.stream()
                 .filter(t -> type.equals(t.getSourceType()))
-                .map(EventTriggerTaskEntity::getSourceId)
+                .map(EventTriggerTaskVO::getSourceId)
                 .filter(Objects::nonNull)
                 .distinct()
                 .toList();
     }
 
-    private PageResult processTasks(List<EventTriggerTaskEntity> tasks,
+    private PageResult processTasks(List<EventTriggerTaskVO> tasks,
                                      Map<String, Map<String, Object>> appMap,
                                      Map<String, Map<String, Object>> toolMap) {
-        List<EventTriggerTaskEntity> result = new ArrayList<>();
-        for (EventTriggerTaskEntity task : tasks) {
-            EventTriggerTaskEntity newTask = new EventTriggerTaskEntity();
+        List<EventTriggerTaskVO> result = new ArrayList<>();
+        for (EventTriggerTaskVO task : tasks) {
+            EventTriggerTaskVO newTask = new EventTriggerTaskVO();
             BeanUtil.copyProperties(task, newTask);
             newTask.setType(task.getSourceType());
-
             Map<String, Map<String, Object>> sourceMap = ResourceType.APPLICATION.equals(task.getSourceType())
                     ? appMap : toolMap;
             Map<String, Object> source = sourceMap.get(task.getSourceId());
@@ -123,10 +122,9 @@ public class EventTriggerTaskProcessor {
             }
             result.add(newTask);
         }
-
         return new PageResult(result);
     }
 
-    public record PageResult(List<EventTriggerTaskEntity> tasks) {}
-    public record DetailResult(List<EventTriggerTaskEntity> tasks, List<ApplicationEntity> apps, List<ToolEntity> tools) {}
+    public record PageResult(List<EventTriggerTaskVO> tasks) {}
+    public record DetailResult(List<EventTriggerTaskVO> tasks, List<ApplicationEntity> apps, List<ToolEntity> tools) {}
 }
