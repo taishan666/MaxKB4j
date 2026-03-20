@@ -36,7 +36,6 @@ public class ChatOpenAiController {
         Sinks.Many<ChatMessageVO> sink = Sinks.many().unicast().onBackpressureBuffer();
         // 构建 ChatParams
         ChatParams params = convertToChatParams(request, chatId, appId);
-
         if (Boolean.TRUE.equals(request.getStream())) {
             return handleStreamResponse(request, params, sink);
         } else {
