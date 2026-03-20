@@ -57,7 +57,6 @@ public class TriggerTaskExecutor {
         for (EventTriggerTaskEntity task : tasks) {
             try {
                 JSONObject parameter = task.getParameter();
-                System.out.println(parameter);
                 for (String key : parameter.keySet()) {
                     Object value = parameter.get(key);
                     if (value instanceof JSONObject){
@@ -73,7 +72,6 @@ public class TriggerTaskExecutor {
                         }
                     }
                 }
-                System.out.println(parameter);
                 executeTask(task);
             } catch (Exception e) {
                 log.error("Error executing task {} for trigger {}: {}",
