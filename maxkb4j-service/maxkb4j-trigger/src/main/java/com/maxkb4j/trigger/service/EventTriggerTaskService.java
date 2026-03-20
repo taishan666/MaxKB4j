@@ -7,5 +7,4 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class EventTriggerTaskService extends ServiceImpl<EventTriggerTaskMapper, EventTriggerTaskEntity> implements IEventTriggerTaskService {
-
 }

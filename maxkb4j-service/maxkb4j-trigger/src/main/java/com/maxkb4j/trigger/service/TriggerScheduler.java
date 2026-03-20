@@ -230,7 +230,7 @@ public class TriggerScheduler implements ApplicationRunner {
         return switch (intervalUnit.toLowerCase()) {
             case "minutes" -> ChronoUnit.MINUTES;
             case "hours" -> ChronoUnit.HOURS;
-            default -> ChronoUnit.MINUTES;
+            default -> throw new IllegalArgumentException("Invalid interval unit: " + intervalUnit);
         };
     }
 }
