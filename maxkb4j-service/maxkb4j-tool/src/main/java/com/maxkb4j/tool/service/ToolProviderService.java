@@ -11,8 +11,9 @@ import com.maxkb4j.application.executor.HttpRequestExecutor;
 import com.maxkb4j.application.service.IApplicationApiKeyService;
 import com.maxkb4j.application.service.IApplicationChatService;
 import com.maxkb4j.application.service.IApplicationService;
-import com.maxkb4j.common.mp.entity.ToolInputField;
 import com.maxkb4j.common.exception.ApiException;
+import com.maxkb4j.common.mp.entity.ToolInputField;
+import com.maxkb4j.core.util.MessageUtils;
 import com.maxkb4j.oss.service.IOssService;
 import com.maxkb4j.tool.consts.ToolConstants;
 import com.maxkb4j.tool.entity.ToolEntity;
@@ -21,6 +22,7 @@ import com.maxkb4j.tool.util.SkillsToolUtil;
 import dev.langchain4j.agent.tool.ToolSpecification;
 import dev.langchain4j.model.chat.request.json.JsonArraySchema;
 import dev.langchain4j.model.chat.request.json.JsonObjectSchema;
+import dev.langchain4j.service.tool.ToolExecution;
 import dev.langchain4j.service.tool.ToolExecutor;
 import dev.langchain4j.service.tool.ToolProvider;
 import dev.langchain4j.skills.FileSystemSkillLoader;
@@ -52,7 +54,7 @@ public class ToolProviderService implements IToolProviderService {
     private static final String AUTH_HEADER_PREFIX = "Bearer ";
     private static final String LOCALHOST = "http://127.0.0.1";
 
-    private final ToolService toolService;
+    private final IToolService toolService;
     private final IApplicationService applicationService;
     private final IApplicationApiKeyService apiKeyService;
     private final IOssService mongoFileService;
@@ -85,7 +87,7 @@ public class ToolProviderService implements IToolProviderService {
         return buildToolProvider(appSkillPath, toolIds);
     }
 
-    public ToolProvider getSkillsToolProvider(String applicationId, List<String> toolIds) throws ApiException{
+    public ToolProvider getSkillsToolProvider(String applicationId, List<String> toolIds) throws ApiException {
         String appSkillPath = "app/" + applicationId + "/skills/";
         return buildToolProvider(appSkillPath, toolIds);
     }
@@ -102,8 +104,7 @@ public class ToolProviderService implements IToolProviderService {
     }
 
 
-
-    private  void unzipSkills(Path appSkillFolderPath, List<String> newToolIds,Map<String, String> manifestToUpdate) throws ApiException{
+    private void unzipSkills(Path appSkillFolderPath, List<String> newToolIds, Map<String, String> manifestToUpdate) throws ApiException {
         try {
             Files.createDirectories(appSkillFolderPath); // 自动创建多级目录
         } catch (IOException e) {
@@ -117,7 +118,7 @@ public class ToolProviderService implements IToolProviderService {
                 .list();
         for (ToolEntity skill : skillTools) {
             try (InputStream is = mongoFileService.getStream(skill.getCode())) {
-                String folderName= SkillsToolUtil.unzipSkill(appSkillFolderPath,is);
+                String folderName = SkillsToolUtil.unzipSkill(appSkillFolderPath, is);
                 manifestToUpdate.put(skill.getId(), folderName);
             } catch (IOException e) {
                 throw new ApiException("Failed to extract the skill file.");
@@ -129,7 +130,7 @@ public class ToolProviderService implements IToolProviderService {
     /**
      * 根据工具 ID 列表构建工具映射
      */
-    private Map<ToolSpecification, ToolExecutor> buildToolMapFromToolIds(List<String> toolIds) throws ApiException{
+    private Map<ToolSpecification, ToolExecutor> buildToolMapFromToolIds(List<String> toolIds) throws ApiException {
         List<ToolEntity> tools = toolService.lambdaQuery()
                 .select(ToolEntity::getId, ToolEntity::getName, ToolEntity::getDesc, ToolEntity::getCode, ToolEntity::getCode, ToolEntity::getInitParams, ToolEntity::getInputFieldList, ToolEntity::getToolType)
                 .in(ToolEntity::getId, toolIds)
@@ -144,7 +145,7 @@ public class ToolProviderService implements IToolProviderService {
             if (ToolConstants.ToolType.MCP.equals(tool.getToolType())) {
                 JSONObject mcpConfig = JSONObject.parseObject(tool.getCode());
                 toolMap.putAll(McpToolUtil.getToolMap(mcpConfig));
-            }else if (ToolConstants.ToolType.HTTP.equals(tool.getToolType())) {
+            } else if (ToolConstants.ToolType.HTTP.equals(tool.getToolType())) {
                 ToolSpecification spec = buildToolSpecification(tool);
                 ToolExecutor executor = new HttpRequestExecutor(tool.getCode());
                 toolMap.put(spec, executor);
@@ -198,7 +199,7 @@ public class ToolProviderService implements IToolProviderService {
     /**
      * 为单个应用构建 MCP 配置
      */
-    private JSONObject buildAppMcpConfig(ApplicationEntity app){
+    private JSONObject buildAppMcpConfig(ApplicationEntity app) {
         ApplicationApiKeyEntity apiKey = apiKeyService.lambdaQuery()
                 .select(ApplicationApiKeyEntity::getSecretKey)
                 .eq(ApplicationApiKeyEntity::getApplicationId, app.getId())
@@ -264,6 +265,27 @@ public class ToolProviderService implements IToolProviderService {
                 .description("**" + app.getName() + "**" + ":" + app.getDesc())
                 .parameters(parameters)
                 .build();
+    }
+
+    public String format(ToolExecution toolExecute) {
+        String name= toolExecute.request().name();
+        String[] split = name.split("_");
+        String type = split[0];
+        String id = split[1];
+        if ("tool".equals(type)){
+            ToolEntity tool =toolService.lambdaQuery().select(ToolEntity::getIcon,ToolEntity::getName).eq(ToolEntity::getId, id).one();
+            if (tool == null){
+                return MessageUtils.buildToolCallRender("", name, "",toolExecute.request().arguments(), toolExecute.result());
+            }
+            return MessageUtils.buildToolCallRender(tool.getIcon(), tool.getName(), tool.getToolType(),toolExecute.request().arguments(), toolExecute.result());
+        }else {
+            ApplicationEntity app =applicationService.lambdaQuery().select(ApplicationEntity::getIcon,ApplicationEntity::getName).eq(ApplicationEntity::getId, id).one();
+            if (app == null){
+                return MessageUtils.buildToolCallRender("", name, "",toolExecute.request().arguments(), toolExecute.result());
+            }
+            return MessageUtils.buildToolCallRender(app.getIcon(), app.getName(), "",toolExecute.request().arguments(), toolExecute.result());
+        }
+
     }
 
 }

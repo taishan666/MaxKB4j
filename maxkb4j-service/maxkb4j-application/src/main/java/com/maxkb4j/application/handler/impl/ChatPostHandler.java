@@ -50,13 +50,19 @@ public class ChatPostHandler implements PostResponseHandler {
         ChatRecordDTO chatRecord=chatParams.getChatRecord();
         ApplicationChatRecordEntity chatRecordEntity = new ApplicationChatRecordEntity();
         if (chatRecord != null) {
+            chatRecordEntity.setId(chatRecordId);
+            chatRecordEntity.setChatId(chatId);
+            chatRecordEntity.setProblemText(chatRecord.getProblemText());
             chatRecordEntity.setAnswerText(answerText);
             chatRecordEntity.setAnswerTextList(answerTextList);
-            chatRecordEntity.setDetails(new JSONObject(details));
+            chatRecordEntity.setIndex(chatRecord.getIndex());
             chatRecordEntity.setMessageTokens(messageTokens);
             chatRecordEntity.setAnswerTokens(answerTokens);
             chatRecordEntity.setCost(messageTokens + answerTokens);
             chatRecordEntity.setRunTime(runTime + chatRecord.getRunTime());
+            chatRecordEntity.setVoteStatus(chatRecord.getVoteStatus());
+            chatRecordEntity.setDetails(details);
+            chatRecordEntity.setImproveParagraphIdList(List.of());
         } else {
             chatRecordEntity.setId(chatRecordId);
             chatRecordEntity.setChatId(chatId);

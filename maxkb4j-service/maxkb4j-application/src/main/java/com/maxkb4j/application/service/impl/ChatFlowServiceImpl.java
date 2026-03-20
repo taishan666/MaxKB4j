@@ -16,7 +16,7 @@ import com.maxkb4j.workflow.node.AbsNode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Sinks;
-import service.IWorkFlowActuator;
+import com.maxkb4j.workflow.service.IWorkFlowActuator;
 
 import java.util.List;
 import java.util.Objects;

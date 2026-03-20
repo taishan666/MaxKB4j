@@ -25,7 +25,7 @@ public class StringListTypeHandler extends BaseTypeHandler<List<String>> {
         Array array = rs.getArray(columnName);
         if (array != null) {
             String[] stringArray = (String[]) array.getArray();
-            return Arrays.asList(stringArray);
+            return new ArrayList<>(Arrays.asList(stringArray));
         }
         return null;
     }
@@ -35,7 +35,7 @@ public class StringListTypeHandler extends BaseTypeHandler<List<String>> {
         Array array = rs.getArray(columnIndex);
         if (array != null) {
             String[] stringArray = (String[]) array.getArray();
-            return Arrays.asList(stringArray);
+            return new ArrayList<>(Arrays.asList(stringArray));
         }
         return null;
     }

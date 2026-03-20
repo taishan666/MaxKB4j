@@ -6,6 +6,9 @@ server:
     whitelabel:
       enabled: true
 spring:
+  output:
+    ansi:
+      enabled: ALWAYS
   application:
       name: MaxKB4j
   servlet:

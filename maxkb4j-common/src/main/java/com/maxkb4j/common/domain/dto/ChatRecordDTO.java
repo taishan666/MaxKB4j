@@ -11,9 +11,11 @@ public class ChatRecordDTO {
     private String answerText;
     private JSONObject details;
     private JSONArray answerTextList;
+    private Integer index;
     private Float runTime;
     private Integer messageTokens;
     private Integer answerTokens;
+    private String voteStatus;
 
     public JSONObject getNodeDetailsByRuntimeNodeId(String runtimeNodeId) {
         return details.getJSONObject(runtimeNodeId);

@@ -88,7 +88,6 @@ public class DocumentHandler {
             log.warn("非法的文件名: {}", fileName);
             throw new IllegalArgumentException("非法文件名");
         }
-
         List<DocumentSimple> docs = new ArrayList<>();
         // 判断是否为 CSV 文件（不区分大小写）
         boolean isCsv = fileName.toLowerCase().endsWith(".csv");
@@ -123,7 +122,7 @@ public class DocumentHandler {
                                 .build();
                         if (StringUtils.isNotBlank(record.get(2))) {
                             String[] problems = record.get(2).split("\n");
-                            paragraph.setProblemList(Arrays.asList(problems));
+                            paragraph.setProblemList(new ArrayList<>(Arrays.asList(problems)));
                         }
                         paragraphs.add(paragraph);
                     }
@@ -155,7 +154,7 @@ public class DocumentHandler {
                                 .build();
                         if (StringUtils.isNotBlank(data.getProblems())) {
                             String[] problems = data.getProblems().split("\n");
-                            paragraph.setProblemList(Arrays.asList(problems));
+                            paragraph.setProblemList(new ArrayList<>(Arrays.asList(problems)));
                         }
                         paragraphs.add(paragraph);
                     }

@@ -116,7 +116,7 @@ public class ToolService  extends ServiceImpl<ToolMapper, ToolEntity> implements
     }
 
     @Transactional
-    public boolean toolImport(MultipartFile file, String folderId) throws IOException {
+    public boolean toolImport(MultipartFile file, String folderId) {
         ToolEntity tool = importExportHandler.importTool(file, folderId);
         return this.saveTool(tool);
     }

@@ -37,13 +37,16 @@ public abstract class AbsChatStep extends AbsStep {
                 directlyReturnChunkList.add(AiMessage.from(paragraph.getContent()));
             }
         }
-        KnowledgeSetting knowledgeSetting = application.getKnowledgeSetting();
-        NoReferencesSetting noReferencesSetting = knowledgeSetting.getNoReferencesSetting();
         String problemText = manage.chatParams.getMessage();
+        String modelId = application.getModelId();
         boolean isAiAnswer = false;
-       if (StringUtils.isBlank(problemText)) {
+        if (StringUtils.isBlank(modelId)) {
+            answerText.set("抱歉，AI 模型未配置，请先前往智能体设置 AI 模型。");
+        }else if (StringUtils.isBlank(problemText)) {
             answerText.set("用户消息不能为空");
         } else {
+            KnowledgeSetting knowledgeSetting = application.getKnowledgeSetting();
+            NoReferencesSetting noReferencesSetting = knowledgeSetting.getNoReferencesSetting();
             String status = noReferencesSetting.getStatus();
             if (!CollectionUtils.isEmpty(directlyReturnChunkList)) {
                 answerText.set(directlyReturnChunkList.get(0).text());

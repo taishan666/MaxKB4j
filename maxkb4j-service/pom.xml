@@ -21,9 +21,16 @@
         <module>maxkb4j-oss</module>
         <module>maxkb4j-application</module>
         <module>maxkb4j-workflow</module>
+        <module>maxkb4j-trigger</module>
     </modules>
 
     <dependencies>
+        <!-- 核心模块 - 所有service模块都需要 -->
+        <dependency>
+            <groupId>com.tarzan</groupId>
+            <artifactId>maxkb4j-core</artifactId>
+            <version>${revision}</version>
+        </dependency>
         <!-- Web容器 - service层需要 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

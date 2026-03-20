@@ -17,6 +17,7 @@ import com.maxkb4j.knowledge.entity.ProblemEntity;
 import com.maxkb4j.knowledge.entity.ProblemParagraphEntity;
 import com.maxkb4j.knowledge.mapper.DocumentMapper;
 import com.maxkb4j.knowledge.mapper.ParagraphMapper;
+import com.maxkb4j.knowledge.store.IDataStore;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,7 +41,7 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
 
     private final ProblemService problemService;
     private final ProblemParagraphService problemParagraphService;
-    private final IChunkIndexService chunkIndexService;
+    private final IDataStore compositeStore;
     private final DocumentMapper documentMapper;
     private final ApplicationEventPublisher eventPublisher;
 
@@ -56,7 +57,7 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
     public void createIndex(ParagraphEntity paragraph, EmbeddingModel embeddingModel) {
         if (paragraph != null) {
             //清除之前向量
-            chunkIndexService.removeByParagraphId(paragraph.getKnowledgeId(),paragraph.getId());
+            compositeStore.deleteByParagraphId(paragraph.getKnowledgeId(),paragraph.getId());
             List<EmbeddingEntity> embeddingEntities = new ArrayList<>();
             log.info("开始---->向量化段落:{}", paragraph.getId());
             String title = paragraph.getTitle() != null ? paragraph.getTitle() : "";
@@ -84,8 +85,68 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
                         .build();
                 embeddingEntities.add(problemEmbed);
             }
-            chunkIndexService.insertAll(embeddingModel,embeddingEntities);
+            compositeStore.upsert(embeddingModel,embeddingEntities);
             log.info("结束---->向量化段落:{}", paragraph.getId());
+        }
+    }
+
+    /**
+     * Batch create index for multiple paragraphs with optimized processing
+     */
+    @Override
+    public void createIndexBatch(List<ParagraphEntity> paragraphs, EmbeddingModel embeddingModel) {
+        if (CollectionUtils.isEmpty(paragraphs)) {
+            return;
+        }
+
+        log.info("开始批量索引 {} 个段落", paragraphs.size());
+
+        // Collect all embedding entities for batch processing
+        List<EmbeddingEntity> allEmbeddingEntities = new ArrayList<>();
+        List<String> paragraphIds = new ArrayList<>();
+
+        for (ParagraphEntity paragraph : paragraphs) {
+            if (paragraph == null) continue;
+
+            // Clear previous vectors
+            compositeStore.deleteByParagraphId(paragraph.getKnowledgeId(), paragraph.getId());
+            paragraphIds.add(paragraph.getId());
+
+            String title = paragraph.getTitle() != null ? paragraph.getTitle() : "";
+            String content = paragraph.getContent() != null ? paragraph.getContent() : "";
+
+            // Create paragraph embedding
+            EmbeddingEntity paragraphEmbed = EmbeddingEntity.builder()
+                    .knowledgeId(paragraph.getKnowledgeId())
+                    .documentId(paragraph.getDocumentId())
+                    .paragraphId(paragraph.getId())
+                    .sourceId(paragraph.getId())
+                    .sourceType(SourceType.PARAGRAPH)
+                    .content(title + content)
+                    .isActive(paragraph.getIsActive())
+                    .build();
+            allEmbeddingEntities.add(paragraphEmbed);
+
+            // Create problem embeddings
+            List<ProblemEntity> problems = problemParagraphService.getProblemsByParagraphId(paragraph.getId());
+            for (ProblemEntity problem : problems) {
+                EmbeddingEntity problemEmbed = EmbeddingEntity.builder()
+                        .knowledgeId(paragraph.getKnowledgeId())
+                        .documentId(paragraph.getDocumentId())
+                        .paragraphId(paragraph.getId())
+                        .sourceId(problem.getId())
+                        .sourceType(SourceType.PROBLEM)
+                        .content(content)
+                        .isActive(paragraph.getIsActive())
+                        .build();
+                allEmbeddingEntities.add(problemEmbed);
+            }
+        }
+
+        // Batch insert all embeddings
+        if (!allEmbeddingEntities.isEmpty()) {
+            compositeStore.upsert(embeddingModel, allEmbeddingEntities);
+            log.info("批量索引完成，共处理 {} 个嵌入实体", allEmbeddingEntities.size());
         }
     }
 
@@ -98,13 +159,13 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
             documentMapper.updateCharLengthById(docId);
             eventPublisher.publishEvent(new ParagraphIndexEvent(this, knowledgeId,docId,List.of(paragraph.getId())));
         }
-        chunkIndexService.updateActiveByParagraphId(knowledgeId,paragraph.getId(),paragraph.getIsActive());
+        compositeStore.updateActiveStatus(knowledgeId,paragraph.getId(),paragraph.getIsActive());
     }
 
 
     @Transactional
     public Boolean deleteBatchByIds(String knowledgeId,String docId, List<String> paragraphIds) {
-        chunkIndexService.removeByParagraphIds(knowledgeId,paragraphIds);
+        compositeStore.deleteByParagraphIds(knowledgeId,paragraphIds);
         this.removeByIds(paragraphIds);
         return documentMapper.updateCharLengthById(docId);
     }
@@ -229,7 +290,7 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
 
     @Transactional
     public Boolean paragraphMigrate(String sourceKnowledgeId, String sourceDocId, String targetKnowledgeId, String targetDocId, List<String> paragraphIds) {
-        chunkIndexService.removeByParagraphIds(sourceKnowledgeId,paragraphIds);
+        compositeStore.deleteByParagraphIds(sourceKnowledgeId,paragraphIds);
         if (sourceKnowledgeId.equals(targetKnowledgeId)){
             problemParagraphService.lambdaUpdate()
                     .in(ProblemParagraphEntity::getParagraphId, paragraphIds)
@@ -288,7 +349,7 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
 
     @Transactional
     public boolean deleteById(String knowledgeId,String paragraphId) {
-        chunkIndexService.removeByParagraphId(knowledgeId, paragraphId);
+        compositeStore.deleteByParagraphId(knowledgeId, paragraphId);
         problemParagraphService.lambdaUpdate().eq(ProblemParagraphEntity::getParagraphId, paragraphId).remove();
         return this.removeById(paragraphId);
     }

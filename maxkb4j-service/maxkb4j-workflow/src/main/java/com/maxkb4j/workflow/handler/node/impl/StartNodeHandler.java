@@ -29,27 +29,27 @@ public class StartNodeHandler implements INodeHandler {
 
     @Override
     public NodeResult execute(Workflow workflow, AbsNode node) throws Exception {
-        ChatParams chatParams=workflow.getChatParams();
+        ChatParams chatParams = workflow.getChatParams();
         // 获取默认全局变量
-        Map<String, Object> globalVariable = getDefaultGlobalVariable(workflow,chatParams);
+        Map<String, Object> globalVariable = getDefaultGlobalVariable(workflow, chatParams);
         // 合并全局变量
-        if(chatParams.getFormData()!=null){
+        if (chatParams.getFormData() != null) {
             globalVariable.putAll(chatParams.getFormData());
         }
         workflow.getContext().putAll(globalVariable);
-        JSONObject config=node.getProperties().getJSONObject("config");
-        JSONArray globalFields=config.getJSONArray("globalFields");
+        JSONObject config = node.getProperties().getJSONObject("config");
+        JSONArray globalFields = config.getJSONArray("globalFields");
         for (int i = 0; i < globalFields.size(); i++) {
-            JSONObject globalField=globalFields.getJSONObject(i);
-            String key=globalField.getString("value");
-            globalField.put("key",key);
+            JSONObject globalField = globalFields.getJSONObject(i);
+            String key = globalField.getString("value");
+            globalField.put("key", key);
             globalField.put("value", workflow.getContext().get(key));
         }
-        node.getDetail().put("globalFields",globalFields);
+        node.getDetail().put("globalFields", globalFields);
         //会话变量
-        workflow.getChatContext().putAll(getChatVariable(node,chatParams.getChatId()));
+        workflow.getChatContext().putAll(getChatVariable(node, chatParams.getChatId()));
         // 构建节点变量
-        Map<String, Object> nodeVariable =new HashMap<>();
+        Map<String, Object> nodeVariable = new HashMap<>();
         nodeVariable.put("question", chatParams.getMessage());
         nodeVariable.put("image", chatParams.getImageList());
         nodeVariable.put("document", chatParams.getDocumentList());
@@ -58,7 +58,7 @@ public class StartNodeHandler implements INodeHandler {
         return new NodeResult(nodeVariable);
     }
 
-    private Map<String, Object> getDefaultGlobalVariable(Workflow workflow,ChatParams chatParams) {
+    private Map<String, Object> getDefaultGlobalVariable(Workflow workflow, ChatParams chatParams) {
         Map<String, Object> resultMap = new HashMap<>();
         resultMap.put("time", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
         resultMap.put("historyContext", getHistoryContext(workflow));
@@ -81,22 +81,24 @@ public class StartNodeHandler implements INodeHandler {
         return list;
     }
 
-    private Map<String, Object> getChatVariable(AbsNode node, String chatId) {
+    public Map<String, Object> getChatVariable(AbsNode node, String chatId) {
         Map<String, Object> resultMap = new HashMap<>();
         //更新会话变量
         ChatInfo chatInfo = ChatCache.get(chatId);
-        Map<String, Object> chatVariable=chatInfo.getChatVariables();
-        JSONObject config=node.getProperties().getJSONObject("config");
-        if (config != null){
-            JSONArray chatFields=config.getJSONArray("chatFields");
-            if (chatFields!=null){
+        Map<String, Object> chatVariable = chatInfo.getChatVariables();
+        JSONObject config = node.getProperties().getJSONObject("config");
+        if (config != null) {
+            JSONArray chatFields = config.getJSONArray("chatFields");
+            if (chatFields != null) {
                 for (int i = 0; i < chatFields.size(); i++) {
-                    JSONObject chatField=chatFields.getJSONObject(i);
-                    String key=chatField.getString("value");
+                    JSONObject chatField = chatFields.getJSONObject(i);
+                    String key = chatField.getString("value");
                     resultMap.put(key, chatVariable.getOrDefault(key, "None"));
                 }
             }
         }
         return resultMap;
     }
+
+
 }

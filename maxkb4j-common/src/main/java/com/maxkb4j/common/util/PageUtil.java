@@ -3,7 +3,6 @@ package com.maxkb4j.common.util;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -20,7 +19,7 @@ public class PageUtil {
         IPage<T> pageResult = new Page<>(page.getCurrent(),page.getSize(),page.getTotal());
         pageResult.setTotal(page.getTotal());
         pageResult.setSize(page.getSize());
-        List<T> records = Collections.singletonList(BeanUtil.copy(sourceList, targetClazz));
+        List<T> records = BeanUtil.copyList(sourceList, targetClazz);
         pageResult.setRecords(records);
         return pageResult;
     }

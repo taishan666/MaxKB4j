@@ -1,7 +1,7 @@
-# docker build -t registry.cn-hangzhou.aliyuncs.com/tarzanx/maxkb4j .
+# docker build -t registry.cn-hangzhou.aliyuncs.com/tarzanx/maxkb4j:latest .
 
-#基础镜像为java17
-FROM amazoncorretto:17
+#基础镜像为java21
+FROM amazoncorretto:21
 
 #作者签名
 LABEL maintainer="tarzan <1334512682@qq.com>"

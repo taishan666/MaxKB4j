@@ -3,10 +3,7 @@ package com.maxkb4j.workflow.model;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.maxkb4j.common.domain.dto.Answer;
-import com.maxkb4j.common.domain.dto.ChatMessageVO;
-import com.maxkb4j.common.domain.dto.ChatParams;
-import com.maxkb4j.common.domain.dto.ChatRecordDTO;
+import com.maxkb4j.common.domain.dto.*;
 import com.maxkb4j.workflow.enums.NodeStatus;
 import com.maxkb4j.workflow.enums.NodeType;
 import com.maxkb4j.workflow.enums.WorkflowMode;
@@ -20,15 +17,16 @@ import reactor.core.publisher.Sinks;
 
 import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
- * 工作流模型类
- * 负责工作流的配置、节点管理和执行控制
- * 重构后职责更加清晰：
- * - 使用 WorkflowContext 管理上下文
- * - 使用 VariableResolver 处理变量解析
- * - 使用 HistoryManager 管理历史消息
- * - 使用 TemplateRenderer 渲染模板
+ * Workflow model class
+ * Responsible for workflow configuration, node management and execution control
+ * After refactoring, responsibilities are clearer:
+ * - Use WorkflowContext for context management
+ * - Use VariableResolver for variable resolution
+ * - Use HistoryManager for history messages
+ * - Use TemplateRenderer for template rendering
  */
 @Slf4j
 @Data
@@ -40,23 +38,28 @@ public class Workflow {
     private List<AbsNode> nodes;
     private List<LfEdge> edges;
     /**
-     * 上下文管理器
-     *  获取工作流上下文
+     * Context manager
+     * Get workflow context
      */
     private WorkflowContext workflowContext;
     /**
-     * 历史消息管理器
+     * History message manager
      */
     private HistoryManager historyManager;
     /**
-     * 变量解析器
-     *  获取变量解析器
+     * Variable resolver
+     * Get variable resolver
      */
     private VariableResolver variableResolver;
     /**
-     * 模板渲染器
+     * Template renderer
      */
     private TemplateRenderer templateRenderer;
+
+    /**
+     * Cached node ID to node map for O(1) lookups
+     */
+    private Map<String, AbsNode> nodeMap;
 
     @JsonIgnore
     private Sinks.Many<ChatMessageVO> sink;
@@ -66,7 +69,7 @@ public class Workflow {
         init(workflowMode, nodes, edges, ChatParams.builder().build(), Sinks.many().unicast().onBackpressureBuffer(), null);
     }
 
-    public Workflow(WorkflowMode workflowMode, List<AbsNode> nodes, List<LfEdge> edges, ChatParams chatParams,Sinks.Many<ChatMessageVO> sink) {
+    public Workflow(WorkflowMode workflowMode, List<AbsNode> nodes, List<LfEdge> edges, ChatParams chatParams, Sinks.Many<ChatMessageVO> sink) {
         JSONObject details = null;
         if (chatParams != null && chatParams.getChatRecord() != null) {
             details = chatParams.getChatRecord().getDetails();
@@ -79,7 +82,7 @@ public class Workflow {
     }
 
     /**
-     * 初始化工作流
+     * Initialize workflow
      */
     private void init(WorkflowMode workflowMode, List<AbsNode> nodes, List<LfEdge> edges, ChatParams chatParams, Sinks.Many<ChatMessageVO> sink, JSONObject details) {
         this.workflowMode = workflowMode;
@@ -88,11 +91,15 @@ public class Workflow {
         this.chatParams = chatParams;
         this.sink = sink;
         this.workflowContext = new WorkflowContext();
-        // 如果chatParams为null，传入空的历史记录列表
+        // Build node map for O(1) lookups
+        this.nodeMap = nodes != null
+                ? nodes.stream().filter(Objects::nonNull).collect(Collectors.toMap(AbsNode::getId, n -> n, (a, b) -> a))
+                : new HashMap<>();
+        // If chatParams is null, pass empty history list
         this.historyManager = new HistoryManager(chatParams != null ? chatParams.getHistoryChatRecords() : Collections.emptyList());
         this.variableResolver = new VariableResolver(this.workflowContext);
         this.templateRenderer = new TemplateRenderer(this.variableResolver);
-        // 加载节点状态
+        // Load node state
         if (chatParams != null && StringUtils.isNotBlank(chatParams.getRuntimeNodeId()) && Objects.nonNull(chatParams.getChatRecord())) {
             if (details != null) {
                 this.loadNode(details, chatParams.getRuntimeNodeId(), chatParams.getNodeData());
@@ -103,8 +110,14 @@ public class Workflow {
 
     @SuppressWarnings("unchecked")
     public void loadNode(JSONObject details, String currentNodeId, Map<String, Object> currentNodeData) {
+        if (details == null || currentNodeId == null) {
+            log.warn("loadNode called with null details or currentNodeId");
+            return;
+        }
         List<Map<String, Object>> sortedDetails = details.values().stream()
+                .filter(Objects::nonNull)
                 .map(row -> (Map<String, Object>) row)
+                .filter(Objects::nonNull)
                 .sorted(Comparator.comparing(
                         e -> (Integer) e.get("index"),
                         Comparator.nullsLast(Comparator.naturalOrder())
@@ -115,7 +128,7 @@ public class Workflow {
             String runtimeNodeId = (String) nodeDetail.get("runtimeNodeId");
             Integer nodeStatus = (Integer) nodeDetail.get("status");
             if (runtimeNodeId.equals(currentNodeId)) {
-                // 处理起始节点
+                // Process start node
                 this.currentNode = getNodeClsById(nodeId, upNodeIdList, n -> {
                     JSONObject nodeProperties = n.getProperties();
                     if (nodeProperties.containsKey("nodeData")) {
@@ -124,16 +137,16 @@ public class Workflow {
                     }
                     return nodeProperties;
                 });
-               if (currentNode!= null){
-                   currentNode.setStatus(nodeStatus);
-                   currentNode.saveContext(this, nodeDetail);
-                   currentNode.setDetail(nodeDetail);
-                   workflowContext.appendNode(currentNode);
-               }
+                if (currentNode != null) {
+                    currentNode.setStatus(nodeStatus);
+                    currentNode.saveContext(this, nodeDetail);
+                    currentNode.setDetail(nodeDetail);
+                    workflowContext.appendNode(currentNode);
+                }
             } else {
-                // 处理其他节点
+                // Process other nodes
                 AbsNode node = getNodeClsById(nodeId, upNodeIdList, null);
-                if (node != null){
+                if (node != null) {
                     node.setStatus(nodeStatus);
                     node.saveContext(this, nodeDetail);
                     node.setDetail(nodeDetail);
@@ -148,40 +161,40 @@ public class Workflow {
     }
 
     public List<AbsNode> getNextNodeList(AbsNode currentNode, NodeResult currentNodeResult) {
-        // 判断是否中断执行
+        // Check if execution should be interrupted
         if (currentNodeResult == null || currentNodeResult.isInterruptExec(currentNode)) {
             return List.of();
         }
-        // 处理非断言结果分支
-        List<LfEdge> sourceEdges = edges.stream().filter(edge -> edge.getSourceNodeId().equals(currentNode.getId())).toList();
+        // Process non-assertion result branches
+        List<LfEdge> sourceEdges = findDownstreamEdges(currentNode.getId());
         if (sourceEdges.isEmpty()) {
             return List.of();
         }
         List<String> targetNodeIds = sourceEdges.stream()
-                .map(LfEdge::getTargetNodeId)     // 提取 targetNodeId
-                .distinct()                       // 去重
-                .toList();                        // 收集为 List（Java 16+）
+                .map(LfEdge::getTargetNodeId)
+                .distinct()
+                .toList();
         if (currentNodeResult.isAssertionResult()) {
             List<AbsNode> targetNodes = buildNodes(targetNodeIds, currentNode);
-            targetNodes.forEach(e->{
-                if (!isAssertionNode(e.getId(), currentNodeResult, sourceEdges)){
+            targetNodes.forEach(e -> {
+                if (!isAssertionNode(e.getId(), currentNodeResult, sourceEdges)) {
                     e.setStatus(NodeStatus.SKIP.getStatus());
                 }
             });
             return targetNodes;
-        }else {
+        } else {
             return buildNodes(targetNodeIds, currentNode);
         }
     }
 
-    private boolean isAssertionNode(String nodeId, NodeResult currentNodeResult,List<LfEdge> sourceEdges) {
+    private boolean isAssertionNode(String nodeId, NodeResult currentNodeResult, List<LfEdge> sourceEdges) {
         List<String> assertionNodeIds = sourceEdges.stream().filter(edge -> {
-            Map<String, Object> nodeVariables=currentNodeResult.getNodeVariable();
+            Map<String, Object> nodeVariables = currentNodeResult.getNodeVariable();
             String branchId = nodeVariables != null ? (String) nodeVariables.getOrDefault("branchId", "") : "";
             String expectedAnchorId = String.format("%s_%s_right", edge.getSourceNodeId(), branchId);
             return expectedAnchorId.equals(edge.getSourceAnchorId());
         }).map(LfEdge::getTargetNodeId).toList();
-        return CollectionUtils.isNotEmpty(assertionNodeIds)&&assertionNodeIds.contains(nodeId);
+        return CollectionUtils.isNotEmpty(assertionNodeIds) && assertionNodeIds.contains(nodeId);
     }
 
     private List<AbsNode> buildNodes(List<String> targetNodeIds, AbsNode currentNode) {
@@ -189,52 +202,84 @@ public class Workflow {
         upNodeIdList.add(currentNode.getId());
         return targetNodeIds.stream()
                 .map(nodeId -> getNodeClsById(nodeId, upNodeIdList, null))
+                .filter(Objects::nonNull)
+                .toList();
+    }
+
+    /**
+     * Find upstream node IDs for a given node.
+     */
+    private List<String> findUpstreamNodeIds(String nodeId) {
+        return edges.stream()
+                .filter(edge -> nodeId.equals(edge.getTargetNodeId()))
+                .map(LfEdge::getSourceNodeId)
+                .toList();
+    }
+
+    /**
+     * Find downstream edges for a given node.
+     */
+    private List<LfEdge> findDownstreamEdges(String nodeId) {
+        return edges.stream()
+                .filter(edge -> nodeId.equals(edge.getSourceNodeId()))
+                .toList();
+    }
+
+    /**
+     * Get nodes that are in the current workflow configuration.
+     */
+    private List<AbsNode> getValidNodeContext() {
+        Set<String> nodeIds = nodeMap.keySet();
+        return workflowContext.getNodeContext().stream()
+                .filter(e -> nodeIds.contains(e.getId()))
                 .toList();
     }
 
     public boolean dependentNodeBeenExecuted(AbsNode node) {
-        List<String> upNodeIdList = edges.stream().filter(edge -> edge.getTargetNodeId().equals(node.getId())).map(LfEdge::getSourceNodeId).toList();
-        //针对开始节点放行
+        List<String> upNodeIdList = findUpstreamNodeIds(node.getId());
+        // Allow start node to pass
         if (CollectionUtils.isEmpty(upNodeIdList)) {
             return true;
         }
-        List<AbsNode> upNodes = nodes.stream().filter(e -> upNodeIdList.contains(e.getId())).toList();
-        return upNodes.stream().allMatch(e -> (NodeStatus.SUCCESS.getStatus()==e.getStatus() || NodeStatus.SKIP.getStatus()==e.getStatus()));
+        Set<String> upNodeIdSet = new HashSet<>(upNodeIdList);
+        return nodes.stream()
+                .filter(e -> upNodeIdSet.contains(e.getId()))
+                .allMatch(e -> NodeStatus.SUCCESS.getStatus() == e.getStatus() || NodeStatus.SKIP.getStatus() == e.getStatus());
     }
 
-    // 是否是汇聚节点（排除上游节点都是SKIP的汇聚节点）
+    // Check if it's a join node (excluding join nodes where all upstream nodes are SKIP)
     public boolean isReadyJoinNode(AbsNode node) {
-        List<String> upNodeIdList = edges.stream().filter(edge -> edge.getTargetNodeId().equals(node.getId())).map(LfEdge::getSourceNodeId).toList();
+        List<String> upNodeIdList = findUpstreamNodeIds(node.getId());
         if (CollectionUtils.isEmpty(upNodeIdList)) {
             return false;
         }
         if (upNodeIdList.size() > 1) {
-            List<AbsNode> upNodes = nodes.stream().filter(e -> upNodeIdList.contains(e.getId())).toList();
-            return !upNodes.stream().allMatch(e -> NodeStatus.SKIP.getStatus()==e.getStatus());
+            Set<String> upNodeIdSet = new HashSet<>(upNodeIdList);
+            return !nodes.stream()
+                    .filter(e -> upNodeIdSet.contains(e.getId()))
+                    .allMatch(e -> NodeStatus.SKIP.getStatus() == e.getStatus());
         }
         return false;
     }
 
     public AbsNode getNodeClsById(String nodeId, List<String> upNodeIds, Function<AbsNode, JSONObject> getNodeProperties) {
-        Optional<AbsNode> nodeOpt = nodes.stream().filter(Objects::nonNull).filter(e -> nodeId.equals(e.getId())).findFirst();
-        if (nodeOpt.isPresent()) {
-            AbsNode node = nodeOpt.get();
+        AbsNode node = nodeMap.get(nodeId);
+        if (node != null) {
             node.setUpNodeIdList(upNodeIds);
             node.setTemplateRenderer(templateRenderer);
             if (getNodeProperties != null) {
                 getNodeProperties.apply(node);
             }
-            return node;
         }
-        return null;
+        return node;
     }
 
     public List<Answer> getAnswerTextList() {
-        List<AbsNode> nodeContext=workflowContext.getNodeContext().stream().filter(e ->nodes.stream().anyMatch(n -> e.getId().equals(n.getId()))).toList();
+        List<AbsNode> nodeContext = getValidNodeContext();
         if (nodeContext.isEmpty()) {
             return List.of();
         }
-        List<Answer> answerTextList = new ArrayList<>();
+        List<Answer> answerTextList = new ArrayList<>(nodeContext.size());
         for (AbsNode node : nodeContext) {
             answerTextList.addAll(node.getAnswerList(chatParams.getChatRecordId()));
         }
@@ -243,7 +288,7 @@ public class Workflow {
 
     public JSONObject getRuntimeDetails() {
         JSONObject result = new JSONObject(true);
-        List<AbsNode> nodeContext=workflowContext.getNodeContext().stream().filter(e ->nodes.stream().anyMatch(n -> e.getId().equals(n.getId()))).toList();
+        List<AbsNode> nodeContext = getValidNodeContext();
         if (nodeContext.isEmpty()) {
             return result;
         }
@@ -276,21 +321,21 @@ public class Workflow {
     }
 
     public Object getReferenceField(List<String> reference) {
-        if (CollectionUtils.isNotEmpty(reference)&&reference.size()>1){
+        if (CollectionUtils.isNotEmpty(reference) && reference.size() > 1) {
             return variableResolver.getReferenceField(reference.get(0), reference.get(1));
         }
         return null;
     }
 
     public AbsNode getNode(String nodeId) {
-        return nodes.stream().filter(e -> nodeId.equals(e.getId())).findAny().orElse(null);
+        return nodeMap.get(nodeId);
     }
 
     public String renderPrompt(String prompt) {
         return templateRenderer.render(prompt);
     }
 
-    public List<ChatRecordDTO>  getHistoryChatRecords() {
+    public List<ChatRecordDTO> getHistoryChatRecords() {
         return historyManager.historyChatRecords();
     }
 
@@ -298,18 +343,21 @@ public class Workflow {
         return historyManager.getHistoryMessages(dialogueNumber, dialogueType, runtimeNodeId);
     }
 
-    public Map<String,Object> getChatContext() {
+    public Map<String, Object> getChatContext() {
         return workflowContext.getChatContext();
     }
 
-    public Map<String,Object> getContext() {
+    public Map<String, Object> getContext() {
         return workflowContext.getGlobalContext();
     }
 
+
+
     /**
-     * 判断当前工作流是否需要输出到Sink
-     * 知识库工作流不需要输出，对话工作流需要输出
-     * @return 是否需要输出到Sink
+     * Determine if current workflow needs sink output
+     * Knowledge workflow doesn't need output, chat workflow needs output
+     *
+     * @return whether sink output is needed
      */
     public boolean needsSinkOutput() {
         return workflowMode == WorkflowMode.APPLICATION || workflowMode == WorkflowMode.APPLICATION_LOOP;

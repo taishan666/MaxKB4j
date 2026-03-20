@@ -3,6 +3,11 @@ package com.maxkb4j.workflow.enums;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+import java.util.Arrays;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
 @Getter
 @AllArgsConstructor
 public enum NodeType {
@@ -88,14 +93,24 @@ public enum NodeType {
 
     private final String name;
 
+    /**
+     * Static map for O(1) key-based lookup
+     */
+    private static final Map<String, NodeType> KEY_MAP;
 
+    static {
+        KEY_MAP = Arrays.stream(values())
+                .collect(Collectors.toUnmodifiableMap(NodeType::getKey, Function.identity()));
+    }
+
+    /**
+     * Get NodeType by key with O(1) lookup
+     *
+     * @param key the node type key
+     * @return NodeType or null if not found
+     */
     public static NodeType getByKey(String key) {
-        for (NodeType type : NodeType.values()) {
-            if (type.getKey().equals(key)) {
-                return type;
-            }
-        }
-        return null;
+        return KEY_MAP.get(key);
     }
 
 }

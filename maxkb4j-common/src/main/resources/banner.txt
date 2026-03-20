@@ -1,0 +1,9 @@
+${AnsiColor.BRIGHT_CYAN} __  __            _    _    _  _   _
+${AnsiColor.BRIGHT_CYAN}|  \/  |          | |  | |  | || | (_)
+${AnsiColor.BRIGHT_CYAN}| \  / | __ ___  _| | _| |__| || |_ _
+${AnsiColor.BRIGHT_CYAN}| |\/| |/ _` \ \/ / |/ / '_ \__   _| |
+${AnsiColor.BRIGHT_CYAN}| |  | | (_| |>  <|   <| |_) | | | | |
+${AnsiColor.BRIGHT_CYAN}|_|  |_|\__,_/_/\_\_|\_\_.__/  |_| | |
+${AnsiColor.BRIGHT_CYAN}                                  _/ |
+${AnsiColor.BRIGHT_CYAN}                                 |__/
+${AnsiColor.BLUE}:: Tarzan :: ${spring.application.name}:${AnsiColor.RED}${spring.profiles.active}${AnsiColor.BLUE} :: Running SpringBoot ${spring-boot.version} :: ${AnsiColor.BRIGHT_BLACK}

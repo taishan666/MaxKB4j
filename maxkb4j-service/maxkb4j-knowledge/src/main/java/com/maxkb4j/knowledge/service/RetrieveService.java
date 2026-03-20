@@ -3,6 +3,7 @@ package com.maxkb4j.knowledge.service;
 import com.maxkb4j.common.mp.entity.KnowledgeSetting;
 import com.maxkb4j.knowledge.dto.DataSearchDTO;
 import com.maxkb4j.knowledge.mapper.ParagraphMapper;
+import com.maxkb4j.knowledge.retrieval.IDataRetriever;
 import com.maxkb4j.knowledge.vo.ParagraphVO;
 import com.maxkb4j.knowledge.vo.TextChunkVO;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +21,7 @@ import java.util.stream.Collectors;
 public class RetrieveService implements IRetrieveService{
 
     private final ParagraphMapper paragraphMapper;
-    private final Map<String, IDataRetriever> dataRetrieverMap;
+    private final IDataRetriever dataRetriever;
 
 
     public List<ParagraphVO> paragraphSearch(String question, List<String> knowledgeIds, List<String> excludeParagraphIds, KnowledgeSetting datasetSetting) {
@@ -37,11 +38,9 @@ public class RetrieveService implements IRetrieveService{
         if (CollectionUtils.isEmpty(knowledgeIds)) {
             return Collections.emptyList();
         }
-        IDataRetriever dataRetriever=dataRetrieverMap.get(dto.getSearchMode());
-        if (dataRetriever == null){
-            return Collections.emptyList();
-        }
-        return dataRetriever.search(knowledgeIds,dto.getExcludeParagraphIds(), dto.getQueryText(), dto.getTopNumber(), dto.getSimilarity());
+        return dataRetriever.search(knowledgeIds, dto.getExcludeParagraphIds(),
+                                dto.getQueryText(), dto.getTopNumber(),
+                                dto.getSimilarity(), dto.getSearchMode());
     }
 
     public List<ParagraphVO> paragraphSearch(List<String> knowledgeIds, DataSearchDTO dto) {

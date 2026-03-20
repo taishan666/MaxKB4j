@@ -44,7 +44,7 @@ public class JSONBTypeHandler extends BaseTypeHandler<JSON> {
 
     private JSON convert(String value){
         if(notNull(value)){
-            return JSON.parseObject(value, JSON.class, Feature.OrderedField);
+            return (JSON) JSON.parse(value);
         }
         return null;
     }

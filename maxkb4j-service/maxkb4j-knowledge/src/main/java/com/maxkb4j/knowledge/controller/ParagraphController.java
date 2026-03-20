@@ -42,7 +42,7 @@ public class ParagraphController {
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_EDIT)
     @PutMapping("/knowledge/{id}/document/{docId}/paragraph/{paragraphId}")
-    public R<ParagraphEntity> updateParagraphByParagraphId(@PathVariable String id, @PathVariable("docId") String docId, @PathVariable("paragraphId") String paragraphId, @RequestBody ParagraphEntity paragraph) {
+    public R<ParagraphEntity> updateParagraphById(@PathVariable String id, @PathVariable("docId") String docId, @PathVariable("paragraphId") String paragraphId, @RequestBody ParagraphEntity paragraph) {
         paragraph.setId(paragraphId);
         paragraphService.updateParagraphById(id, docId, paragraph);
         return R.success(paragraphService.getById(paragraphId));

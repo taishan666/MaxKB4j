@@ -16,11 +16,6 @@
     <dependencies>
         <dependency>
             <groupId>com.tarzan</groupId>
-            <artifactId>maxkb4j-core</artifactId>
-            <version>${revision}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.tarzan</groupId>
             <artifactId>maxkb4j-application-api</artifactId>
             <version>${revision}</version>
         </dependency>
