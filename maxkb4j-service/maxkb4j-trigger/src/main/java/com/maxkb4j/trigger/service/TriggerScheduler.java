@@ -26,7 +26,7 @@ import java.util.concurrent.ScheduledFuture;
 @Component
 @Slf4j
 @RequiredArgsConstructor
-public class ScheduledTriggerScheduler implements ApplicationRunner {
+public class TriggerScheduler implements ApplicationRunner {
 
     private final ThreadPoolTaskScheduler taskScheduler;
     private final IEventTriggerService eventTriggerService;

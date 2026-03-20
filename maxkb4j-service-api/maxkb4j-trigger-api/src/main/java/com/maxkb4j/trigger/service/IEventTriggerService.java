@@ -26,5 +26,4 @@ public interface IEventTriggerService extends IService<EventTriggerEntity> {
 
     SourceEventTriggerVO getDetailBySourceId(String id,String sourceType,String sourceId);
 
-    Boolean webhook(String triggerId, JSONObject params);
 }

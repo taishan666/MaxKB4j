@@ -1,6 +1,5 @@
 package com.maxkb4j.trigger.controller;
 
-import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.maxkb4j.common.api.R;
 import com.maxkb4j.common.constant.AppConst;
@@ -119,12 +118,5 @@ public class TriggerController {
     public R<Boolean> deleteBySourceId(@PathVariable String sourceType, @PathVariable String sourceId, @PathVariable String id) {
         return R.success(eventTriggerService.deleteTrigger(id));
     }
-
-
-    @PostMapping("/trigger/v1/webhook/{id}")
-    public R<Boolean> webhook(@PathVariable String id, @RequestBody JSONObject params) {
-        return R.data(eventTriggerService.webhook(id, params));
-    }
-
 
 }

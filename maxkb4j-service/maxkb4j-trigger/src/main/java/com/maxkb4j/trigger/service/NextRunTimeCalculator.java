@@ -26,7 +26,7 @@ public class NextRunTimeCalculator {
             return null;
         }
         if (ScheduleType.INTERVAL.getValue().equals(scheduleType)){
-            return calculateInterval(triggerSetting,0,0);
+            return calculateInterval(triggerSetting);
         }else {
             List<String> timeList = triggerSetting.getObject("time", new TypeReference<List<String>>() {});
             if (CollectionUtils.isEmpty(timeList)) {
@@ -73,11 +73,11 @@ public class NextRunTimeCalculator {
         return DateTimeUtil.getSameDayNextMonth(Integer.parseInt(days.get(0)), hour, minute, 0);
     }
 
-    private LocalDateTime calculateInterval(JSONObject setting, int hour, int minute) {
+    private LocalDateTime calculateInterval(JSONObject setting) {
         Object value = setting.get("intervalValue");
         String unit = setting.getString("intervalUnit");
         if (value == null || unit == null) return null;
-        return DateTimeUtil.getSameDayNextInterval(value.toString(), unit, hour, minute, 0);
+        return DateTimeUtil.getSameDayNextInterval(value.toString(), unit, 0);
     }
 
 }

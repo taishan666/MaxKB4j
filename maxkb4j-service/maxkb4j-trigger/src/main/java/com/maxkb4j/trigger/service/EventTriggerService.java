@@ -27,8 +27,7 @@ import com.maxkb4j.user.service.IUserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -46,10 +45,7 @@ public class EventTriggerService extends ServiceImpl<EventTriggerMapper, EventTr
     private final IToolService toolService;
     private final NextRunTimeCalculator nextRunTimeCalculator;
     private final EventTriggerTaskProcessor taskProcessor;
-
-    @Lazy
-    @Autowired
-    private ScheduledTriggerScheduler scheduledTriggerScheduler;
+    private final ObjectProvider<TriggerScheduler> triggerSchedulerProvider;
 
     @Override
     public IPage<EventTriggerVO> pageList(int current, int size, EventQuery query) {
@@ -156,7 +152,7 @@ public class EventTriggerService extends ServiceImpl<EventTriggerMapper, EventTr
         EventTriggerEntity savedTrigger = this.getById(dto.getId());
         // 重新调度定时触发器
         if (TriggerType.SCHEDULED.name().equals(savedTrigger.getTriggerType())) {
-            scheduledTriggerScheduler.rescheduleTrigger(savedTrigger);
+            triggerSchedulerProvider.getObject().rescheduleTrigger(savedTrigger);
         }
     }
 
@@ -185,10 +181,10 @@ public class EventTriggerService extends ServiceImpl<EventTriggerMapper, EventTr
             // 手动设置 isActive 确保使用最新值（避免缓存问题）
             trigger.setIsActive(isActive);
             if (Boolean.TRUE.equals(isActive)) {
-                scheduledTriggerScheduler.scheduleTrigger(trigger);
+                triggerSchedulerProvider.getObject().scheduleTrigger(trigger);
             } else {
                 log.info("Calling cancelSchedule for trigger {}", id);
-                scheduledTriggerScheduler.cancelSchedule(id);
+                triggerSchedulerProvider.getObject().cancelSchedule(id);
             }
         }
 
@@ -202,7 +198,7 @@ public class EventTriggerService extends ServiceImpl<EventTriggerMapper, EventTr
             return false;
         }
         // 取消调度
-        scheduledTriggerScheduler.cancelSchedule(id);
+        triggerSchedulerProvider.getObject().cancelSchedule(id);
         this.removeById(id);
         // 同时删除关联的任务
         LambdaQueryWrapper<EventTriggerTaskEntity> wrapperTask = Wrappers.lambdaQuery();
@@ -248,17 +244,6 @@ public class EventTriggerService extends ServiceImpl<EventTriggerMapper, EventTr
             vo.setTriggerTask(sourceTask.get());
         }
         return vo;
-    }
-
-    @Override
-    public Boolean webhook(String triggerId, JSONObject params) {
-        EventTriggerVO triggerVO = getDetailById(triggerId);
-        if (triggerVO == null) {
-            return false;
-        }
-        List<EventTriggerTaskEntity> tasks = triggerVO.getTriggerTask();
-        //todo
-        return true;
     }
 
     @Override

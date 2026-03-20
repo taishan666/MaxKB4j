@@ -163,14 +163,10 @@ public class DateTimeUtil {
      * @param second 秒
      * @return
      */
-    public static LocalDateTime getSameDayNextInterval(String intervalValue, String intervalUnit, int hour, int minute, int second) {
+    public static LocalDateTime getSameDayNextInterval(String intervalValue, String intervalUnit, int second) {
         int interval = Integer.parseInt(intervalValue);
         LocalDateTime now = LocalDateTime.now();
-        LocalDateTime baseTime = now.withHour(hour).withMinute(minute).withSecond(second);
-        // 如果基准时间已经过了当前时间，从当前时间开始计算
-        if (baseTime.isBefore(now)) {
-            baseTime = now;
-        }
+        LocalDateTime baseTime = now.withSecond(second);
         // 计算下一个间隔时间点
         if ("hours".equals(intervalUnit)) {
             return baseTime.plusHours(interval);
