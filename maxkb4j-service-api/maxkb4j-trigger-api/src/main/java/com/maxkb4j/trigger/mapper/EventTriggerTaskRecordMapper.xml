@@ -31,6 +31,9 @@
             <if test="query != null and query.state != null and query.state != ''">
                 AND r.state LIKE CONCAT('%', #{query.state}, '%')
             </if>
+            <if test="query != null and query.name != null and query.name != ''">
+                AND (a.name LIKE CONCAT('%', #{query.name}, '%') OR t.name LIKE CONCAT('%', #{query.name}, '%'))
+            </if>
         </where>
         ORDER BY r.create_time DESC
     </select>
