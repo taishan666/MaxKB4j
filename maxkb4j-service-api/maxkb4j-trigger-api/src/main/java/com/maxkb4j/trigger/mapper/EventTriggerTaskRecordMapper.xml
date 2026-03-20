@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.maxkb4j.trigger.mapper.EventTriggerTaskRecordMapper">
+
+    <select id="pageListWithSourceName" resultType="com.maxkb4j.trigger.vo.EventTriggerTaskRecordVO">
+        SELECT
+            r.id,
+            r.source_type,
+            r.source_id,
+            r.trigger_id,
+            r.trigger_task_id,
+            r.state,
+            r.meta,
+            r.run_time,
+            r.task_record_id,
+            r.create_time,
+            r.update_time,
+            CASE
+                WHEN r.source_type = 'APPLICATION' THEN a.name
+                WHEN r.source_type = 'TOOL' THEN t.name
+                ELSE NULL
+            END AS source_name
+        FROM event_trigger_task_record r
+        LEFT JOIN application a ON r.source_type = 'APPLICATION' AND r.source_id = a.id
+        LEFT JOIN tool t ON r.source_type = 'TOOL' AND r.source_id = t.id
+        <where>
+            r.trigger_id = #{triggerId}
+            <if test="query != null and query.sourceType != null and query.sourceType != ''">
+                AND r.source_type LIKE CONCAT('%', #{query.sourceType}, '%')
+            </if>
+            <if test="query != null and query.state != null and query.state != ''">
+                AND r.state LIKE CONCAT('%', #{query.state}, '%')
+            </if>
+        </where>
+        ORDER BY r.create_time DESC
+    </select>
+
+</mapper>

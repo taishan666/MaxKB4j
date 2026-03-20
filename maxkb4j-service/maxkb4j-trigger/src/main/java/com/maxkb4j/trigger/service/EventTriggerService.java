@@ -12,7 +12,6 @@ import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.constant.ResourceType;
 import com.maxkb4j.common.exception.ApiException;
 import com.maxkb4j.common.util.BeanUtil;
-import com.maxkb4j.common.util.PageUtil;
 import com.maxkb4j.common.util.StpKit;
 import com.maxkb4j.tool.service.IToolService;
 import com.maxkb4j.trigger.dto.EventQuery;
@@ -50,24 +49,8 @@ public class EventTriggerService extends ServiceImpl<EventTriggerMapper, EventTr
 
     @Override
     public IPage<EventTriggerVO> pageList(int current, int size, EventQuery query) {
-        IPage<EventTriggerEntity> page = new Page<>(current, size);
-        LambdaQueryWrapper<EventTriggerEntity> wrapper = Wrappers.lambdaQuery();
-        if (query != null) {
-            if (StringUtils.isNotBlank(query.getName())) {
-                wrapper.like(EventTriggerEntity::getName, query.getName());
-            }
-            if (StringUtils.isNotBlank(query.getCreateUser())) {
-                wrapper.eq(EventTriggerEntity::getUserId, query.getCreateUser());
-            }
-            if (StringUtils.isNotBlank(query.getType())) {
-                wrapper.eq(EventTriggerEntity::getTriggerType, query.getType());
-            }
-            if (Objects.nonNull(query.getIsActive())) {
-                wrapper.eq(EventTriggerEntity::getIsActive, query.getIsActive());
-            }
-        }
-        wrapper.orderByDesc(EventTriggerEntity::getCreateTime);
-        IPage<EventTriggerVO> pageList = PageUtil.copy(this.page(page, wrapper), EventTriggerVO.class);
+        Page<EventTriggerVO> page = new Page<>(current, size);
+        IPage<EventTriggerVO> pageList = this.baseMapper.selectEventTriggerPage(page, query);
         Map<String, String> nicknameMap = userService.getNicknameMap();
         List<EventTriggerVO> records = pageList.getRecords();
         if (records == null || records.isEmpty()) {
@@ -84,17 +67,17 @@ public class EventTriggerService extends ServiceImpl<EventTriggerMapper, EventTr
         // 分组整理tasks
         Map<String, List<EventTriggerTaskVO>> taskMap = allTasks.stream().collect(Collectors.groupingBy(EventTriggerTaskVO::getTriggerId));
         // 处理数据
-        records.forEach(eventTriggerEntity -> {
-            List<EventTriggerTaskVO> triggerTasks = taskMap.getOrDefault(eventTriggerEntity.getId(), List.of());
+        records.forEach(eventTrigger -> {
+            List<EventTriggerTaskVO> triggerTasks = taskMap.getOrDefault(eventTrigger.getId(), List.of());
             EventTriggerTaskProcessor.PageResult result = taskProcessor.processForPage(triggerTasks);
-            if (TriggerType.SCHEDULED.name().equals(eventTriggerEntity.getTriggerType())) {
-                String nextRunTime = nextRunTimeCalculator.calculateStr(eventTriggerEntity.getTriggerSetting());
+            if (TriggerType.SCHEDULED.name().equals(eventTrigger.getTriggerType())) {
+                String nextRunTime = nextRunTimeCalculator.calculateStr(eventTrigger.getTriggerSetting());
                 if (StringUtils.isNotBlank(nextRunTime)) {
-                    eventTriggerEntity.setNextRunTime(nextRunTime);
+                    eventTrigger.setNextRunTime(nextRunTime);
                 }
             }
-            eventTriggerEntity.setTriggerTask(result.tasks());
-            eventTriggerEntity.setCreateUser(nicknameMap.get(eventTriggerEntity.getUserId()));
+            eventTrigger.setTriggerTask(result.tasks());
+            eventTrigger.setCreateUser(nicknameMap.get(eventTrigger.getUserId()));
         });
         return pageList;
     }

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.maxkb4j.trigger.mapper.EventTriggerMapper">
+
+    <resultMap id="eventTriggerResultMap" type="com.maxkb4j.trigger.vo.EventTriggerVO">
+        <result property="meta" column="meta"
+                typeHandler="com.maxkb4j.common.typehandler.JSONBTypeHandler"/>
+        <result property="triggerSetting" column="trigger_setting"
+                typeHandler="com.maxkb4j.common.typehandler.JSONBTypeHandler"/>
+    </resultMap>
+
+    <select id="selectEventTriggerPage" resultMap="eventTriggerResultMap">
+        SELECT
+            et.*
+        FROM
+            event_trigger et
+        <where>
+            <if test="query.name != null and query.name != ''">
+                AND et.name LIKE '%' || #{query.name} || '%'
+            </if>
+            <if test="query.createUser != null and query.createUser != ''">
+                AND et.user_id = #{query.createUser}
+            </if>
+            <if test="query.type != null and query.type != ''">
+                AND et.trigger_type = #{query.type}
+            </if>
+            <if test="query.isActive != null">
+                AND et.is_active = #{query.isActive}
+            </if>
+        </where>
+        ORDER BY et.create_time DESC
+    </select>
+
+</mapper>
