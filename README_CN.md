@@ -122,13 +122,11 @@ docker-compose up -d
 
 我们欢迎社区用户参与贡献！如有建议、Bug 或新功能需求，请通过 [Issue](https://gitee.com/taisan/MaxKB4j/issues) 提出，或直接提交 Pull Request。
 
-| 类别 | 详细说明 |
+| 类别 | 说明 |
 | :--- | :--- |
-| 🎯 贡献方式 | • 🐛 Bug修复: 发现并修复系统缺陷<br>• ✨ 新功能: 提出并实现新特性<br>• 📚 文档改进: 完善项目文档<br>• 🧪 测试用例: 编写单元测试和集成测试<br>• 🎨 UI/UX优化: 改进用户界面和体验 |
-| 📋 贡献流程 | 1. Fork项目: 到你的 GitHub 账户<br>2. 创建分支: `git checkout -b feature/amazing-feature`<br>3. 提交更改: `git commit -m 'Add amazing feature'`<br>4. 推送分支: `git push origin feature/amazing-feature`<br>5. 创建 PR: 创建 Pull Request 并详细描述变更内容 |
-| 🎨 代码规范 | • 遵循 Alibaba Java Coding Guidelines 规则<br>• 添加必要的单元测试<br>• 更新相关文档 |
-
-
+| 🎯 如何贡献 | 修复 Bug、开发新功能、完善文档、编写测试或优化 UI/UX。 |
+| 📋 流程 | Fork 项目 → 创建分支 → 提交代码 → 推送分支 → 发起 Pull Request。 |
+| 🎨 规范 | 遵循 Alibaba Java 编码规范，包含单元测试并更新文档。 |
 
 ## 💖 支持与赞助
 
