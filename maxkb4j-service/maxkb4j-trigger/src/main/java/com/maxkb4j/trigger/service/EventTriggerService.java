@@ -98,7 +98,6 @@ public class EventTriggerService extends ServiceImpl<EventTriggerMapper, EventTr
         Date now = new Date();
         boolean isEditValue = Boolean.TRUE.equals(isEdit);
         if (!isEditValue) {
-            dto.setId(null);
             dto.setIsActive(false);
             dto.setCreateTime(now);
         }
@@ -128,7 +127,6 @@ public class EventTriggerService extends ServiceImpl<EventTriggerMapper, EventTr
                 ett.setUpdateTime(now);
                 resList.add(ett);
             }
-
             if (!resList.isEmpty()) {
                 eventTriggerTaskService.saveOrUpdateBatch(resList);
             }

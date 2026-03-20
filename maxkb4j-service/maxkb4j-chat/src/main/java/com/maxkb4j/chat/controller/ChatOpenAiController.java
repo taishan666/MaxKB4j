@@ -34,10 +34,8 @@ public class ChatOpenAiController {
     public Object chatCompletion(@PathVariable String appId, @RequestBody OpenAIChatCompletionRequest request) {
         String chatId = chatService.chatOpen(appId, false);
         Sinks.Many<ChatMessageVO> sink = Sinks.many().unicast().onBackpressureBuffer();
-
         // 构建 ChatParams
         ChatParams params = convertToChatParams(request, chatId, appId);
-
         if (Boolean.TRUE.equals(request.getStream())) {
             return handleStreamResponse(request, params, sink);
         } else {
@@ -66,7 +64,6 @@ public class ChatOpenAiController {
     private Flux<ServerSentEvent<String>> handleStreamResponse(OpenAIChatCompletionRequest request, ChatParams params, Sinks.Many<ChatMessageVO> sink) {
         String completionId = generateCompletionId();
         String model = request.getModel() != null ? request.getModel() : "maxkb4j";
-
         // 异步执行业务逻辑
         chatService.chatMessageAsync(params, sink);
 
