@@ -1,16 +1,15 @@
 package com.maxkb4j.workflow.handler.node.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
-import com.maxkb4j.common.exception.ApiException;
-import com.maxkb4j.core.util.MessageUtils;
-import com.maxkb4j.common.util.MimeTypeUtils;
-import com.maxkb4j.core.assistant.Assistant;
 import com.maxkb4j.common.domain.dto.ChatMessageVO;
 import com.maxkb4j.common.domain.dto.MessageConverter;
+import com.maxkb4j.common.domain.dto.OssFile;
+import com.maxkb4j.common.exception.ApiException;
+import com.maxkb4j.common.util.MimeTypeUtils;
+import com.maxkb4j.core.assistant.Assistant;
 import com.maxkb4j.core.langchain4j.AppChatMemory;
 import com.maxkb4j.core.langchain4j.AssistantServices;
 import com.maxkb4j.model.service.IModelProviderService;
-import com.maxkb4j.common.domain.dto.OssFile;
 import com.maxkb4j.oss.service.IOssService;
 import com.maxkb4j.tool.service.IToolProviderService;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
@@ -158,7 +157,7 @@ public class LLMNodeHandler implements INodeHandler {
                     }
                 }).onToolExecuted(toolExecute -> {
                     if (isResult && toolOutputEnable) {
-                        String toolMessage = MessageUtils.getToolMessage(toolExecute);
+                        String toolMessage = toolProviderService.format(toolExecute);
                         emitMessage(workflow, node, toolMessage, "");
                     }
                 }).onPartialResponse(content -> {

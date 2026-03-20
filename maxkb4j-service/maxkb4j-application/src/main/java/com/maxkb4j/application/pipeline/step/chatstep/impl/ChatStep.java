@@ -7,7 +7,6 @@ import com.maxkb4j.application.pipeline.PipelineManage;
 import com.maxkb4j.application.pipeline.step.chatstep.AbsChatStep;
 import com.maxkb4j.application.vo.ApplicationVO;
 import com.maxkb4j.common.exception.ApiException;
-import com.maxkb4j.core.util.MessageUtils;
 import com.maxkb4j.core.assistant.Assistant;
 import com.maxkb4j.core.langchain4j.AppChatMemory;
 import com.maxkb4j.core.langchain4j.AssistantServices;
@@ -71,7 +70,7 @@ public class ChatStep extends AbsChatStep {
                 .onPartialResponse(text -> manage.sink.tryEmitNext(super.toChatMessageVO(chatId, chatRecordId, text, "", false)))
                 .onToolExecuted(toolExecute -> {
                     if (Boolean.TRUE.equals(application.getToolOutputEnable())) {
-                        manage.sink.tryEmitNext(super.toChatMessageVO(chatId, chatRecordId, MessageUtils.getToolMessage(toolExecute), "", false));
+                        manage.sink.tryEmitNext(super.toChatMessageVO(chatId, chatRecordId, toolProvider.format(toolExecute), "", false));
                     }
                 })
                 .onCompleteResponse(response -> {
