@@ -1,8 +1,7 @@
 package com.maxkb4j.chat.controller;
 
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
-import com.maxkb4j.application.service.*;
-import com.maxkb4j.chat.service.ChatApiService;
+import com.maxkb4j.application.service.IApplicationChatService;
 import com.maxkb4j.common.api.R;
 import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.domain.dto.ChatMessageVO;
@@ -27,7 +26,7 @@ public class ChatOpenAiController {
     private final IApplicationChatService chatService;
 
     @Operation(summary = "聊天对话", description = "聊天对话")
-    @PostMapping(path = "/{appId}/v1/chat/completions", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    @PostMapping(path = "/{appId}/chat/completions", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     @SuppressWarnings("ReactiveStreamsUnusedPublisher")
     public Object chatMessage(@PathVariable String appId, @RequestBody ChatParams params) {
         String chatId = chatService.chatOpen(appId, false);
