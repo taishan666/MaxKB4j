@@ -57,17 +57,19 @@ public class TriggerTaskExecutor {
         for (EventTriggerTaskEntity task : tasks) {
             try {
                 JSONObject parameter = task.getParameter();
-                for (String key : parameter.keySet()) {
-                    Object value = parameter.get(key);
-                    if (value instanceof JSONObject){
-                        JSONObject fieldValue = parameter.getJSONObject(key);
-                        if (fieldValue.containsKey("source")){
-                            String source = fieldValue.getString("source");
-                            if (source.equals("reference")){
-                                List<String> reference = fieldValue.getObject("value", new TypeReference<List<String>>() {});
-                                parameter.put(key, data.get(reference.get(1)));
-                            }else {
-                                parameter.put(key, fieldValue.get("value"));
+                if (parameter != null) {
+                    for (String key : parameter.keySet()) {
+                        Object value = parameter.get(key);
+                        if (value instanceof JSONObject) {
+                            JSONObject fieldValue = parameter.getJSONObject(key);
+                            if (fieldValue.containsKey("source")) {
+                                String source = fieldValue.getString("source");
+                                if ("reference".equals(source)) {
+                                    List<String> reference = fieldValue.getObject("value", new TypeReference<List<String>>() {});
+                                    parameter.put(key, data.get(reference.get(1)));
+                                } else {
+                                    parameter.put(key, fieldValue.get("value"));
+                                }
                             }
                         }
                     }
@@ -103,11 +105,8 @@ public class TriggerTaskExecutor {
     private void executeApplicationTask(EventTriggerTaskEntity task, long startTime) {
         String appId = task.getSourceId();
         JSONObject parameter = task.getParameter();
-        String question = null;
-        if (parameter != null) {
-            question = parameter.getString("question");
-        }
-        if (!StringUtils.isBlank(question)) {
+        String question = parameter != null ? parameter.getString("question") : null;
+        if (StringUtils.isNotBlank(question)) {
             try {
                 String chatId = applicationChatService.chatOpen(appId, true);
                 Sinks.Many<ChatMessageVO> sink = Sinks.many().unicast().onBackpressureBuffer();
@@ -123,8 +122,8 @@ public class TriggerTaskExecutor {
                 ChatResponse response = future.join();
                 float runTime = (System.currentTimeMillis() - startTime) / 1000f;
                 TaskState state = (response != null && response.getAnswerTextList() != null) ? TaskState.SUCCESS : TaskState.FAILURE;
-                assert response != null;
-                saveRecord(task.getTriggerId(), task.getId(), ResourceType.APPLICATION, appId, state, runTime, response.getRunDetails());
+                JSONObject meta = (response != null) ? response.getRunDetails() : new JSONObject();
+                saveRecord(task.getTriggerId(), task.getId(), ResourceType.APPLICATION, appId, state, runTime, meta);
                 log.info("Application task executed: appId={}, chatId={}, state={}, runTime={}s",
                         appId, chatId, state, runTime);
             } catch (Exception e) {
@@ -137,16 +136,23 @@ public class TriggerTaskExecutor {
 
     private void executeToolTask(EventTriggerTaskEntity task, long startTime) {
         String toolId = task.getSourceId();
-        ToolEntity tool =toolService.lambdaQuery().select(ToolEntity::getCode, ToolEntity::getInitParams).eq(ToolEntity::getId, toolId).one();
-        GroovyScriptExecutor scriptExecutor=new GroovyScriptExecutor(tool.getCode(), tool.getInitParams());
-        JSONObject parameter = task.getParameter();
-        Object response =scriptExecutor.execute(parameter);
-        float runTime = (System.currentTimeMillis() - startTime) / 1000f;
-        TaskState state = (response != null ) ? TaskState.SUCCESS : TaskState.FAILURE;
-        JSONObject meta=new JSONObject();
-        int status=response != null? 200:500;
-        meta.put("tool_call", Map.of("index",1,"type", "tool-node", "status", status, "params",parameter,"result", response != null? response:""));
-        saveRecord(task.getTriggerId(), task.getId(), ResourceType.TOOL, toolId, state, runTime,meta);
+        try {
+            ToolEntity tool = toolService.lambdaQuery().select(ToolEntity::getCode, ToolEntity::getInitParams).eq(ToolEntity::getId, toolId).one();
+            GroovyScriptExecutor scriptExecutor = new GroovyScriptExecutor(tool.getCode(), tool.getInitParams());
+            JSONObject parameter = task.getParameter();
+            Object response = scriptExecutor.execute(parameter);
+            float runTime = (System.currentTimeMillis() - startTime) / 1000f;
+            TaskState state = (response != null) ? TaskState.SUCCESS : TaskState.FAILURE;
+            JSONObject meta = new JSONObject();
+            int status = response != null ? 200 : 500;
+            meta.put("tool_call", Map.of("index", 1, "type", "tool-node", "status", status, "params", parameter, "result", response != null ? response : ""));
+            saveRecord(task.getTriggerId(), task.getId(), ResourceType.TOOL, toolId, state, runTime, meta);
+            log.info("Tool task executed: toolId={}, state={}, runTime={}s", toolId, state, runTime);
+        } catch (Exception e) {
+            log.error("Failed to execute tool task: toolId={}, error={}", toolId, e.getMessage(), e);
+            float runTime = (System.currentTimeMillis() - startTime) / 1000f;
+            saveRecord(task.getTriggerId(), task.getId(), ResourceType.TOOL, toolId, TaskState.FAILURE, runTime, buildErrorMeta(e));
+        }
     }
 
     private void saveRecord(String triggerId, String taskId, String sourceType, String sourceId,
@@ -162,8 +168,6 @@ public class TriggerTaskExecutor {
             record.setTaskRecordId(record.getId());
             record.setMeta(meta);
             eventTriggerTaskRecordService.save(record);
-            record.setTaskRecordId(record.getId());
-            eventTriggerTaskRecordService.saveOrUpdate(record);
         } catch (Exception e) {
             log.error("Failed to save task record: {}", e.getMessage(), e);
         }
