@@ -21,6 +21,7 @@ import org.springframework.stereotype.Component;
 import reactor.core.publisher.Sinks;
 
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 @Component
@@ -114,14 +115,16 @@ public class TriggerTaskExecutor {
 
     private void executeToolTask(EventTriggerTaskEntity task, long startTime) {
         String toolId = task.getSourceId();
-        log.info("Tool task triggered: toolId={}", toolId);
         ToolEntity tool =toolService.lambdaQuery().select(ToolEntity::getCode, ToolEntity::getInitParams).eq(ToolEntity::getId, toolId).one();
         GroovyScriptExecutor scriptExecutor=new GroovyScriptExecutor(tool.getCode(), tool.getInitParams());
         JSONObject parameter = task.getParameter();
         Object response =scriptExecutor.execute(parameter);
         float runTime = (System.currentTimeMillis() - startTime) / 1000f;
         TaskState state = (response != null ) ? TaskState.SUCCESS : TaskState.FAILURE;
-        saveRecord(task.getTriggerId(), task.getId(), ResourceType.TOOL, toolId, state, runTime, new JSONObject());
+        JSONObject meta=new JSONObject();
+        int status=response != null? 200:500;
+        meta.put("tool_call", Map.of("index",1,"type", "tool-node", "status", status, "params",parameter,"result", response != null? response:""));
+        saveRecord(task.getTriggerId(), task.getId(), ResourceType.TOOL, toolId, state, runTime,meta);
     }
 
     private void saveRecord(String triggerId, String taskId, String sourceType, String sourceId,
