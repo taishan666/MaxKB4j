@@ -1,6 +1,7 @@
 package com.maxkb4j.trigger.service;
 
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.TypeReference;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.maxkb4j.application.executor.GroovyScriptExecutor;
@@ -74,6 +75,24 @@ public class TriggerTaskExecutor {
         }
         for (EventTriggerTaskEntity task : tasks) {
             try {
+                JSONObject parameter = task.getParameter();
+                System.out.println(parameter);
+                for (String key : parameter.keySet()) {
+                    Object value = parameter.get(key);
+                    if (value instanceof JSONObject){
+                        JSONObject fieldValue = parameter.getJSONObject(key);
+                        if (fieldValue.containsKey("source")){
+                            String source = fieldValue.getString("source");
+                            if (source.equals("reference")){
+                                List<String> reference = fieldValue.getObject("value", new TypeReference<List<String>>() {});
+                                parameter.put(key, data.get(reference.get(1)));
+                            }else {
+                                parameter.put(key, fieldValue.get("value"));
+                            }
+                        }
+                    }
+                }
+                System.out.println(parameter);
                 executeTask(task);
             } catch (Exception e) {
                 log.error("Error executing task {} for trigger {}: {}",
