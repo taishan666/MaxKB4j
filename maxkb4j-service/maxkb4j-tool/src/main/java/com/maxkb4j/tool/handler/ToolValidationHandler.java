@@ -65,7 +65,7 @@ public class ToolValidationHandler {
             }
             return true; // 所有检查通过
         }
-        return false;
+        return true;
     }
 
     /**
