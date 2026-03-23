@@ -49,14 +49,15 @@ public class ToolController {
     @SaCheckPerm(PermissionEnum.TOOL_READ)
     @GetMapping("/workspace/default/tool")
     public R<Map<String, List<ToolEntity>>> list(String folderId, String toolType) {
-        return R.success(Map.of("folders", List.of(), "tools", toolService.listTools(ToolConstants.Scope.WORKSPACE, toolType)));
+        return R.success(Map.of("folders", List.of(), "tools", toolService.listTools(folderId,ToolConstants.Scope.WORKSPACE, toolType)));
     }
 
     @SaCheckPerm(PermissionEnum.TOOL_READ)
     @GetMapping("/workspace/default/tool/tool_list")
     public R<Map<String, List<ToolEntity>>> toolList(String scope, String toolType) {
-        return R.success(Map.of("shared_tools", List.of(), "tools", toolService.listTools(scope, toolType)));
+        return R.success(Map.of("shared_tools", List.of(), "tools", toolService.listTools(null,scope, toolType)));
     }
+
     @SaCheckPerm(PermissionEnum.TOOL_READ)
     @GetMapping("/workspace/internal/tool")
     public R<List<ToolEntity>> internalTools(String name) throws IOException, URISyntaxException {

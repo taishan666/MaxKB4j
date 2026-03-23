@@ -136,10 +136,14 @@ public class ToolService  extends ServiceImpl<ToolMapper, ToolEntity> implements
         return this.removeById(id);
     }
 
-    public List<ToolEntity> listTools(String scope, String toolType) {
+    public List<ToolEntity> listTools(String folderId,String scope, String toolType) {
         String loginId = StpKit.ADMIN.getLoginIdAsString();
         Set<String> role = userService.getRoleById(loginId);
         LambdaQueryWrapper<ToolEntity> wrapper = Wrappers.lambdaQuery();
+        wrapper.select(ToolEntity::getId,ToolEntity::getName,ToolEntity::getDesc,ToolEntity::getIcon,ToolEntity::getToolType,ToolEntity::getIsActive);
+        if (StringUtils.isNotBlank(folderId)) {
+            wrapper.eq(ToolEntity::getFolderId, folderId);
+        }
         if (StringUtils.isNotBlank(toolType)) {
             wrapper.eq(ToolEntity::getToolType, toolType);
         }

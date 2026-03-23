@@ -3,6 +3,7 @@ package com.maxkb4j.tool.util;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.maxkb4j.common.exception.ApiException;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -12,6 +13,7 @@ import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+@Slf4j
 public class SkillsToolUtil {
 
     private static final String MANIFEST_FILE_NAME = "manifest.json";
@@ -21,7 +23,7 @@ public class SkillsToolUtil {
         return Paths.get(appSkillPath, MANIFEST_FILE_NAME);
     }
 
-    public static List<String> getAddShills(String appSkillPath, List<String> toolIds,Map<String, String> existingManifest ) {
+    public static List<String> getAddShills(String appSkillPath, List<String> toolIds, Map<String, String> existingManifest) {
         // 获取当前需要的 toolId 集合
         Set<String> currentToolIds = new HashSet<>(toolIds);
         Set<String> existingToolIds = new HashSet<>(existingManifest.keySet());
@@ -71,7 +73,7 @@ public class SkillsToolUtil {
         try (ZipInputStream zis = new ZipInputStream(is)) {
             ZipEntry entry;
             while ((entry = zis.getNextEntry()) != null) {
-                if (rootFolderName == null) {
+                if (rootFolderName == null && entry.isDirectory()) {
                     rootFolderName = entry.getName();
                 }
                 // 防止 zip slip 漏洞：确保解压路径在目标目录内
@@ -92,7 +94,6 @@ public class SkillsToolUtil {
         }
         return rootFolderName;
     }
-
 
 
     /**
@@ -118,7 +119,7 @@ public class SkillsToolUtil {
             });
         } catch (IOException e) {
             // 可选：记录警告日志
-            // log.warn("Failed to delete directory: " + path, e);
+            log.warn("Failed to delete directory: " + path, e);
         }
     }
 

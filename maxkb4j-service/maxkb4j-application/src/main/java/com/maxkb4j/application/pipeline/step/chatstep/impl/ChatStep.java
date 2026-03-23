@@ -52,6 +52,7 @@ public class ChatStep extends AbsChatStep {
         List<String> toolIds = Optional.ofNullable(application.getToolIds()).orElse(List.of());
         List<String> applicationIds = Optional.ofNullable(application.getApplicationIds()).orElse(List.of());
         try {
+            aiServicesBuilder.toolProvider(toolProvider.getSkillsToolProvider(application.getId(),toolIds));
             aiServicesBuilder.tools(toolProvider.getToolMap(toolIds,applicationIds));
         }catch (ApiException e){
             manage.sink.tryEmitError(e);

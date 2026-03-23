@@ -3,12 +3,10 @@ package com.maxkb4j.tool.service;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.maxkb4j.application.entity.ApplicationApiKeyEntity;
 import com.maxkb4j.application.entity.ApplicationEntity;
 import com.maxkb4j.application.executor.AgentExecutor;
 import com.maxkb4j.application.executor.GroovyScriptExecutor;
 import com.maxkb4j.application.executor.HttpRequestExecutor;
-import com.maxkb4j.application.service.IApplicationApiKeyService;
 import com.maxkb4j.application.service.IApplicationChatService;
 import com.maxkb4j.application.service.IApplicationService;
 import com.maxkb4j.common.exception.ApiException;
@@ -26,10 +24,9 @@ import dev.langchain4j.service.tool.ToolExecution;
 import dev.langchain4j.service.tool.ToolExecutor;
 import dev.langchain4j.service.tool.ToolProvider;
 import dev.langchain4j.skills.FileSystemSkillLoader;
-import dev.langchain4j.skills.Skills;
+import dev.langchain4j.skills.shell.ShellSkills;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -49,23 +46,15 @@ import java.util.*;
 @Slf4j
 public class ToolProviderService implements IToolProviderService {
 
-    private static final String MCP_API_PATH = "/chat/api/mcp";
-    private static final String MCP_TYPE = "streamable_http";
-    private static final String AUTH_HEADER_PREFIX = "Bearer ";
-    private static final String LOCALHOST = "http://127.0.0.1";
-
     private final IToolService toolService;
     private final IApplicationService applicationService;
-    private final IApplicationApiKeyService apiKeyService;
     private final IOssService mongoFileService;
     private final IApplicationChatService chatService;
-
-    @Value("${server.port}")
-    private int serverPort;
 
     /**
      * 获取工具映射：支持普通工具 + 应用（MCP）工具
      */
+    @Override
     public Map<ToolSpecification, ToolExecutor> getToolMap(List<String> toolIds, List<String> applicationIds) throws ApiException {
         if (CollectionUtils.isEmpty(toolIds) && CollectionUtils.isEmpty(applicationIds)) {
             return Collections.emptyMap();
@@ -82,13 +71,16 @@ public class ToolProviderService implements IToolProviderService {
         return tools;
     }
 
-    public ToolProvider getSkillsToolProvider(String applicationId, String nodeId, List<String> toolIds) throws ApiException {
-        String appSkillPath = "app/" + applicationId + "/" + nodeId + "/skills/";
+    @Override
+    public ToolProvider getSkillsToolProvider(String applicationId, List<String> toolIds) throws ApiException {
+        String appSkillPath = "app/" + applicationId + "/skills/";
         return buildToolProvider(appSkillPath, toolIds);
     }
 
-    public ToolProvider getSkillsToolProvider(String applicationId, List<String> toolIds) throws ApiException {
-        String appSkillPath = "app/" + applicationId + "/skills/";
+
+    @Override
+    public ToolProvider getSkillsToolProvider(String applicationId, String nodeId, List<String> toolIds) throws ApiException {
+        String appSkillPath = "app/" + applicationId + "/" + nodeId + "/skills/";
         return buildToolProvider(appSkillPath, toolIds);
     }
 
@@ -99,7 +91,7 @@ public class ToolProviderService implements IToolProviderService {
         List<String> newToolIds = SkillsToolUtil.getAddShills(appSkillPath, toolIds, manifest);
         unzipSkills(appSkillFolderPath, newToolIds, manifest);
         SkillsToolUtil.updateManifest(appSkillPath, manifest);
-        Skills skills = Skills.from(FileSystemSkillLoader.loadSkills(appSkillFolderPath));
+        ShellSkills skills = ShellSkills.from(FileSystemSkillLoader.loadSkills(appSkillFolderPath));
         return skills.toolProvider();
     }
 
@@ -110,18 +102,20 @@ public class ToolProviderService implements IToolProviderService {
         } catch (IOException e) {
             throw new ApiException("Failed to create skill directory: " + e.getMessage());
         }
-        List<ToolEntity> skillTools = toolService.lambdaQuery()
-                .select(ToolEntity::getCode)
-                .in(ToolEntity::getId, newToolIds)
-                .eq(ToolEntity::getIsActive, true)
-                .eq(ToolEntity::getToolType, ToolConstants.ToolType.SKILL)
-                .list();
-        for (ToolEntity skill : skillTools) {
-            try (InputStream is = mongoFileService.getStream(skill.getCode())) {
-                String folderName = SkillsToolUtil.unzipSkill(appSkillFolderPath, is);
-                manifestToUpdate.put(skill.getId(), folderName);
-            } catch (IOException e) {
-                throw new ApiException("Failed to extract the skill file.");
+        if (!CollectionUtils.isEmpty(newToolIds)){
+            List<ToolEntity> skillTools = toolService.lambdaQuery()
+                    .select(ToolEntity::getId,ToolEntity::getCode)
+                    .in(ToolEntity::getId, newToolIds)
+                    .eq(ToolEntity::getIsActive, true)
+                    .eq(ToolEntity::getToolType, ToolConstants.ToolType.SKILL)
+                    .list();
+            for (ToolEntity skill : skillTools) {
+                try (InputStream is = mongoFileService.getStream(skill.getCode())) {
+                    String folderName = SkillsToolUtil.unzipSkill(appSkillFolderPath, is);
+                    manifestToUpdate.put(skill.getId(), folderName);
+                } catch (IOException e) {
+                    throw new ApiException("Failed to extract the skill file.");
+                }
             }
         }
     }
@@ -130,17 +124,17 @@ public class ToolProviderService implements IToolProviderService {
     /**
      * 根据工具 ID 列表构建工具映射
      */
-    private Map<ToolSpecification, ToolExecutor> buildToolMapFromToolIds(List<String> toolIds) throws ApiException {
+    private Map<ToolSpecification, ToolExecutor> buildToolMapFromToolIds(List<String> toolIds)  {
         List<ToolEntity> tools = toolService.lambdaQuery()
                 .select(ToolEntity::getId, ToolEntity::getName, ToolEntity::getDesc, ToolEntity::getCode, ToolEntity::getCode, ToolEntity::getInitParams, ToolEntity::getInputFieldList, ToolEntity::getToolType)
                 .in(ToolEntity::getId, toolIds)
                 .eq(ToolEntity::getIsActive, true)
                 .in(ToolEntity::getToolType, ToolConstants.ToolType.MCP, ToolConstants.ToolType.CUSTOM, ToolConstants.ToolType.HTTP)
                 .list();
-        if (tools.isEmpty()) {
-            throw new ApiException("No valid tools found for the provided tool IDs");
-        }
         Map<ToolSpecification, ToolExecutor> toolMap = new HashMap<>();
+        if (tools.isEmpty()) {
+            return toolMap;
+        }
         for (ToolEntity tool : tools) {
             if (ToolConstants.ToolType.MCP.equals(tool.getToolType())) {
                 JSONObject mcpConfig = JSONObject.parseObject(tool.getCode());
@@ -166,10 +160,10 @@ public class ToolProviderService implements IToolProviderService {
                 .select(ApplicationEntity::getId, ApplicationEntity::getName, ApplicationEntity::getDesc)
                 .in(ApplicationEntity::getId, applicationIds);
         List<ApplicationEntity> applications = applicationService.list(wrapper);
-        if (applications.isEmpty()) {
-            throw new ApiException("No valid applications found for the provided application IDs");
-        }
         Map<ToolSpecification, ToolExecutor> toolMap = new HashMap<>();
+        if (applications.isEmpty()) {
+            return toolMap;
+        }
         for (ApplicationEntity app : applications) {
             ToolSpecification spec = buildToolSpecification(app);
             ToolExecutor executor = new AgentExecutor(app.getId(), chatService);
@@ -178,47 +172,6 @@ public class ToolProviderService implements IToolProviderService {
         return toolMap;
     }
 
-    /**
-     * 构建 MCP 服务器配置（用于应用工具）
-     */
-    private JSONObject buildMcpServerConfig(List<String> applicationIds) throws ApiException {
-        LambdaQueryWrapper<ApplicationEntity> wrapper = Wrappers.lambdaQuery(ApplicationEntity.class)
-                .select(ApplicationEntity::getId, ApplicationEntity::getName)
-                .in(ApplicationEntity::getId, applicationIds);
-        List<ApplicationEntity> applications = applicationService.list(wrapper);
-        if (applications.isEmpty()) {
-            throw new ApiException("No valid applications found for the provided application IDs");
-        }
-        JSONObject mcpServers = new JSONObject();
-        for (ApplicationEntity app : applications) {
-            mcpServers.put(app.getName(), buildAppMcpConfig(app));
-        }
-        return mcpServers;
-    }
-
-    /**
-     * 为单个应用构建 MCP 配置
-     */
-    private JSONObject buildAppMcpConfig(ApplicationEntity app) {
-        ApplicationApiKeyEntity apiKey = apiKeyService.lambdaQuery()
-                .select(ApplicationApiKeyEntity::getSecretKey)
-                .eq(ApplicationApiKeyEntity::getApplicationId, app.getId())
-                .last("LIMIT 1")
-                .one();
-        if (apiKey == null || apiKey.getSecretKey() == null) {
-            throw new ApiException(String.format("Agent Key is required for agent tool 【%s】", app.getName()));
-        }
-        String url = String.format("%s:%d%s", LOCALHOST, serverPort, MCP_API_PATH);
-        Map<String, String> headers = Collections.singletonMap(
-                "Authorization",
-                AUTH_HEADER_PREFIX + apiKey.getSecretKey()
-        );
-        JSONObject config = new JSONObject();
-        config.put("url", url);
-        config.put("type", MCP_TYPE);
-        config.put("headers", headers);
-        return config;
-    }
 
     /**
      * 构建 ToolSpecification（参数 schema）
@@ -267,6 +220,7 @@ public class ToolProviderService implements IToolProviderService {
                 .build();
     }
 
+    @Override
     public String format(ToolExecution toolExecute) {
         String name= toolExecute.request().name();
         String[] split = name.split("_");

@@ -69,6 +69,10 @@
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-web-search-engine-tavily</artifactId>
         </dependency>
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-experimental-skills-shell</artifactId>
+        </dependency>
         <!-- Groovy for script execution -->
         <dependency>
             <groupId>org.apache.groovy</groupId>
