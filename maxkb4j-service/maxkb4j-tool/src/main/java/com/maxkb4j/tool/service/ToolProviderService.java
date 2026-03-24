@@ -112,8 +112,11 @@ public class ToolProviderService implements IToolProviderService {
     }
 
     public Map<ToolSpecification, ToolExecutor> getSkillsToolMap(String modelId, List<String> toolIds) throws ApiException {
-        ChatModel chatModel = modelFactory.buildChatModel(modelId);
         Map<ToolSpecification, ToolExecutor> toolMap = new HashMap<>();
+        if (CollectionUtils.isEmpty(toolIds)){
+            return toolMap;
+        }
+        ChatModel chatModel = modelFactory.buildChatModel(modelId);
         List<ToolEntity> toolSkills = toolService.lambdaQuery()
                 .select(ToolEntity::getId, ToolEntity::getCode)
                 .in(ToolEntity::getId, toolIds)
