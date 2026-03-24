@@ -11,13 +11,17 @@ import com.maxkb4j.application.service.IApplicationChatService;
 import com.maxkb4j.application.service.IApplicationService;
 import com.maxkb4j.common.exception.ApiException;
 import com.maxkb4j.common.mp.entity.ToolInputField;
+import com.maxkb4j.core.assistant.Assistant;
+import com.maxkb4j.core.langchain4j.AssistantServices;
 import com.maxkb4j.core.util.MessageUtils;
+import com.maxkb4j.model.service.IModelProviderService;
 import com.maxkb4j.oss.service.IOssService;
 import com.maxkb4j.tool.consts.ToolConstants;
 import com.maxkb4j.tool.entity.ToolEntity;
 import com.maxkb4j.tool.util.McpToolUtil;
 import com.maxkb4j.tool.util.SkillsToolUtil;
 import dev.langchain4j.agent.tool.ToolSpecification;
+import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.request.json.JsonArraySchema;
 import dev.langchain4j.model.chat.request.json.JsonObjectSchema;
 import dev.langchain4j.service.tool.ToolExecution;
@@ -26,10 +30,15 @@ import dev.langchain4j.service.tool.ToolProvider;
 import dev.langchain4j.service.tool.ToolProviderResult;
 import dev.langchain4j.skills.FileSystemSkill;
 import dev.langchain4j.skills.FileSystemSkillLoader;
+import dev.langchain4j.skills.Skills;
 import dev.langchain4j.skills.shell.ShellSkills;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
+import org.apache.commons.lang3.StringUtils;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -49,18 +58,11 @@ import java.util.*;
 @Slf4j
 public class ToolProviderService implements IToolProviderService {
 
-    private static final String MCP_API_PATH = "/chat/api/mcp";
-    private static final String MCP_TYPE = "streamable_http";
-    private static final String AUTH_HEADER_PREFIX = "Bearer ";
-    private static final String LOCALHOST = "http://127.0.0.1";
-
-    @Value("${server.port}")
-    private int serverPort;
-
     private final IToolService toolService;
     private final IApplicationService applicationService;
     private final IOssService mongoFileService;
     private final IApplicationChatService chatService;
+    private final IModelProviderService modelFactory;
 
     /**
      * 获取工具映射：支持普通工具 + 应用（MCP）工具
@@ -82,12 +84,13 @@ public class ToolProviderService implements IToolProviderService {
         return tools;
     }
 
+
     @Override
-    public List<ToolProvider> getToolProviders(String applicationId,List<String> toolIds, List<String> applicationIds) throws ApiException {
-        String appSkillPath = "app/" + applicationId + "/skills/";
+    public List<ToolProvider> getToolProviders(List<String> toolIds, List<String> applicationIds) throws ApiException {
+        String appSkillPath = "app/skills/";
         List<ToolProvider> toolProviders = new ArrayList<>();
         Map<ToolSpecification, ToolExecutor> toolMap = getToolMap(toolIds, applicationIds);
-        if (!toolMap.isEmpty()){
+        if (!toolMap.isEmpty()) {
             toolProviders.add((request) -> ToolProviderResult.builder().addAll(toolMap).build());
         }
         Path appSkillFolderPath = Paths.get(appSkillPath);
@@ -95,8 +98,8 @@ public class ToolProviderService implements IToolProviderService {
         List<String> newToolIds = SkillsToolUtil.getAddShills(appSkillPath, toolIds, manifest);
         unzipSkills(appSkillFolderPath, newToolIds, manifest);
         SkillsToolUtil.updateManifest(appSkillPath, manifest);
-        List<FileSystemSkill> list =FileSystemSkillLoader.loadSkills(appSkillFolderPath);
-        if (!list.isEmpty()){
+        List<FileSystemSkill> list = FileSystemSkillLoader.loadSkills(appSkillFolderPath);
+        if (!list.isEmpty()) {
             ShellSkills skills = ShellSkills.from(list);
             toolProviders.add(skills.toolProvider());
         }
@@ -105,34 +108,96 @@ public class ToolProviderService implements IToolProviderService {
 
 
     @Override
-    public ShellSkills getShellSkills(String applicationId, List<String> toolIds) throws ApiException {
-        String appSkillPath = "app/" + applicationId + "/skills/";
+    public ShellSkills getSkills(List<String> toolIds) throws ApiException {
+        String appSkillPath = "skills/";
         Path appSkillFolderPath = Paths.get(appSkillPath);
         Map<String, String> manifest = SkillsToolUtil.readManifest(appSkillPath);
         List<String> newToolIds = SkillsToolUtil.getAddShills(appSkillPath, toolIds, manifest);
         unzipSkills(appSkillFolderPath, newToolIds, manifest);
         SkillsToolUtil.updateManifest(appSkillPath, manifest);
-        List<FileSystemSkill> list =FileSystemSkillLoader.loadSkills(appSkillFolderPath);
-        System.err.println(list);
-        if (list.isEmpty()){
+        List<FileSystemSkill> list = FileSystemSkillLoader.loadSkills(appSkillFolderPath);
+        if (list.isEmpty()) {
             return null;
         }
         return ShellSkills.from(list);
     }
 
+    public ShellSkills getShellSkill(String toolId,String code) throws ApiException {
+        String skillsPath = "skills/";
+        Path skillsFolder = Paths.get(skillsPath);
+        Path skillFolder=skillsFolder.resolve(toolId);
+        if (!Files.exists(skillFolder)){
+            unzipSkill(skillsFolder, code,toolId);
+        }
+        FileSystemSkill fileSystemSkill = FileSystemSkillLoader.loadSkill(skillFolder);
+        if (fileSystemSkill == null) {
+            return null;
+        }
+        return ShellSkills.from(fileSystemSkill);
+    }
+
+    public Skills getSkill(String toolId,String code) throws ApiException {
+        String skillsPath = "skills/";
+        Path skillsFolder = Paths.get(skillsPath);
+        Path skillFolder=skillsFolder.resolve(toolId);
+        if (!Files.exists(skillFolder)){
+            unzipSkill(skillsFolder, code,toolId);
+        }
+        FileSystemSkill fileSystemSkill = FileSystemSkillLoader.loadSkill(skillFolder);
+        if (fileSystemSkill == null) {
+            return null;
+        }
+        return Skills.from(fileSystemSkill);
+    }
+
+
+    public ToolProvider getSkillsProvider(String modelId, String userMessage, List<String> toolIds) throws ApiException {
+        Map<ToolSpecification, ToolExecutor> toolMap = getSkillsToolMap(modelId, userMessage, toolIds);
+        return (request) -> ToolProviderResult.builder().addAll(toolMap).build();
+    }
+
+    public Map<ToolSpecification, ToolExecutor> getSkillsToolMap(String modelId, String userMessage, List<String> toolIds) throws ApiException {
+        ChatModel chatModel = modelFactory.buildChatModel(modelId);
+        Map<ToolSpecification, ToolExecutor> toolMap = new HashMap<>();
+        List<ToolEntity> toolSkills = toolService.lambdaQuery()
+                .select(ToolEntity::getId, ToolEntity::getCode)
+                .in(ToolEntity::getId, toolIds)
+                .eq(ToolEntity::getIsActive, true)
+                .eq(ToolEntity::getToolType, ToolConstants.ToolType.SKILL)
+                .list();
+        for (ToolEntity skill : toolSkills) {
+            ShellSkills skills = this.getShellSkill(skill.getId(), skill.getCode());
+            if (skills != null) {
+                String availableSkills = skills.formatAvailableSkills();
+                Document doc = Jsoup.parse(availableSkills);
+                Elements skillsElements = doc.getElementsByTag("skill");
+                for (Element skillElement : skillsElements) {
+                    String name = skillElement.getElementsByTag("name").text();
+                    String description = skillElement.getElementsByTag("description").text();
+                    ToolSpecification spec = ToolSpecification.builder()
+                            .name(name)
+                            .description(description)
+                            .build();
+                    ToolExecutor executor = (toolExecutionRequest, memoryId) -> {
+                        Assistant assistant = AssistantServices.builder(Assistant.class).chatModel(chatModel).toolProvider(skills.toolProvider()).build();
+                        return assistant.chat(userMessage).content();
+                    };
+                    toolMap.put(spec, executor);
+                }
+            }
+        }
+        return toolMap;
+    }
+
+
 
     @Override
-    public ToolProvider getSkillsToolProvider(String applicationId, List<String> toolIds) throws ApiException {
-        String appSkillPath = "app/" + applicationId + "/skills/";
+    public ToolProvider getSkillsToolProvider(List<String> toolIds) throws ApiException {
+        String appSkillPath = "skills/";
         return buildToolProvider(appSkillPath, toolIds);
     }
 
 
-    @Override
-    public ToolProvider getSkillsToolProvider(String applicationId, String nodeId, List<String> toolIds) throws ApiException {
-        String appSkillPath = "app/" + applicationId + "/" + nodeId + "/skills/";
-        return buildToolProvider(appSkillPath, toolIds);
-    }
 
     // 公共逻辑
     private ToolProvider buildToolProvider(String appSkillPath, List<String> toolIds) throws ApiException {
@@ -141,16 +206,13 @@ public class ToolProviderService implements IToolProviderService {
         List<String> newToolIds = SkillsToolUtil.getAddShills(appSkillPath, toolIds, manifest);
         unzipSkills(appSkillFolderPath, newToolIds, manifest);
         SkillsToolUtil.updateManifest(appSkillPath, manifest);
-        List<FileSystemSkill> list =FileSystemSkillLoader.loadSkills(appSkillFolderPath);
-        if (list.isEmpty()){
+        List<FileSystemSkill> list = FileSystemSkillLoader.loadSkills(appSkillFolderPath);
+        if (list.isEmpty()) {
             return (request) -> ToolProviderResult.builder().addAll(Map.of()).build();
         }
         ShellSkills skills = ShellSkills.from(list);
-        //System.err.println(skills.formatAvailableSkills());
         return skills.toolProvider();
     }
-
-
 
 
     private void unzipSkills(Path appSkillFolderPath, List<String> newToolIds, Map<String, String> manifestToUpdate) throws ApiException {
@@ -159,16 +221,16 @@ public class ToolProviderService implements IToolProviderService {
         } catch (IOException e) {
             throw new ApiException("Failed to create skill directory: " + e.getMessage());
         }
-        if (!CollectionUtils.isEmpty(newToolIds)){
+        if (!CollectionUtils.isEmpty(newToolIds)) {
             List<ToolEntity> skillTools = toolService.lambdaQuery()
-                    .select(ToolEntity::getId,ToolEntity::getCode)
+                    .select(ToolEntity::getId, ToolEntity::getCode)
                     .in(ToolEntity::getId, newToolIds)
                     .eq(ToolEntity::getIsActive, true)
                     .eq(ToolEntity::getToolType, ToolConstants.ToolType.SKILL)
                     .list();
             for (ToolEntity skill : skillTools) {
                 try (InputStream is = mongoFileService.getStream(skill.getCode())) {
-                    String folderName = SkillsToolUtil.unzipSkill(appSkillFolderPath, is);
+                    String folderName = SkillsToolUtil.unzipSkill(appSkillFolderPath, is, skill.getId());
                     manifestToUpdate.put(skill.getId(), folderName);
                 } catch (IOException e) {
                     throw new ApiException("Failed to extract the skill file.");
@@ -177,13 +239,49 @@ public class ToolProviderService implements IToolProviderService {
         }
     }
 
+    private void unzipSkill(Path skillsFolder,String fileId, String toolId) throws ApiException {
+        try {
+            Files.createDirectories(skillsFolder); // 自动创建多级目录
+        } catch (IOException e) {
+            throw new ApiException("Failed to create skill directory: " + e.getMessage());
+        }
+        if (!StringUtils.isEmpty(toolId)&&!StringUtils.isEmpty(fileId)) {
+            try (InputStream is = mongoFileService.getStream(fileId)) {
+                SkillsToolUtil.unzipSkill(skillsFolder, is, toolId);
+            } catch (IOException e) {
+                throw new ApiException("Failed to extract the skill file.");
+            }
+        }
+    }
 
+/*    private void unzipSkill(Path skillsFolder, String toolId) throws ApiException {
+        try {
+            Files.createDirectories(skillsFolder); // 自动创建多级目录
+        } catch (IOException e) {
+            throw new ApiException("Failed to create skill directory: " + e.getMessage());
+        }
+        if (!StringUtils.isEmpty(toolId)) {
+            ToolEntity skill = toolService.lambdaQuery()
+                    .select(ToolEntity::getId, ToolEntity::getCode)
+                    .eq(ToolEntity::getId, toolId)
+                    .eq(ToolEntity::getIsActive, true)
+                    .eq(ToolEntity::getToolType, ToolConstants.ToolType.SKILL)
+                    .one();
+            if (skill != null) {
+                try (InputStream is = mongoFileService.getStream(skill.getCode())) {
+                    SkillsToolUtil.unzipSkill(skillsFolder, is, toolId);
+                } catch (IOException e) {
+                    throw new ApiException("Failed to extract the skill file.");
+                }
+            }
+        }
+    }*/
 
 
     /**
      * 根据工具 ID 列表构建工具映射
      */
-    private Map<ToolSpecification, ToolExecutor> buildToolMapFromToolIds(List<String> toolIds)  {
+    private Map<ToolSpecification, ToolExecutor> buildToolMapFromToolIds(List<String> toolIds) {
         List<ToolEntity> tools = toolService.lambdaQuery()
                 .select(ToolEntity::getId, ToolEntity::getName, ToolEntity::getDesc, ToolEntity::getCode, ToolEntity::getCode, ToolEntity::getInitParams, ToolEntity::getInputFieldList, ToolEntity::getToolType)
                 .in(ToolEntity::getId, toolIds)
@@ -202,11 +300,6 @@ public class ToolProviderService implements IToolProviderService {
                 ToolSpecification spec = buildToolSpecification(tool);
                 ToolExecutor executor = new HttpRequestExecutor(tool.getCode());
                 toolMap.put(spec, executor);
-            } else if (ToolConstants.ToolType.SKILL.equals(tool.getToolType())) {
-                ToolSpecification spec = buildToolSpecification(tool);
-                ToolExecutor executor = new HttpRequestExecutor(tool.getCode());
-
-                toolMap.put(spec, executor);
             } else if (ToolConstants.ToolType.CUSTOM.equals(tool.getToolType())) {
                 ToolSpecification spec = buildToolSpecification(tool);
                 ToolExecutor executor = new GroovyScriptExecutor(tool.getCode(), tool.getInitParams());
@@ -216,24 +309,6 @@ public class ToolProviderService implements IToolProviderService {
         return toolMap;
     }
 
-    private JSONObject buildMcpConfig(List<String> toolIds){
-        String url = String.format("%s:%d%s", LOCALHOST, serverPort, MCP_API_PATH);
-     /*   Map<String, String> headers = Collections.singletonMap(
-                "Authorization",
-                AUTH_HEADER_PREFIX + apiKey.getSecretKey()
-        );*/
-        List<ToolEntity> skillTools = toolService.lambdaQuery()
-                .select(ToolEntity::getId,ToolEntity::getCode)
-                .in(ToolEntity::getId, toolIds)
-                .eq(ToolEntity::getIsActive, true)
-                .eq(ToolEntity::getToolType, ToolConstants.ToolType.SKILL)
-                .list();
-        JSONObject config = new JSONObject();
-        config.put("url", url);
-        config.put("type", MCP_TYPE);
-     //   config.put("headers", headers);
-        return config;
-    }
 
     /**
      * 构建 MCP 服务器配置（用于应用工具）
@@ -305,22 +380,25 @@ public class ToolProviderService implements IToolProviderService {
 
     @Override
     public String format(ToolExecution toolExecute) {
-        String name= toolExecute.request().name();
+        String name = toolExecute.request().name();
         String[] split = name.split("_");
+        if (split.length < 2) {
+            return MessageUtils.buildToolCallRender("", name, "", toolExecute.request().arguments(), toolExecute.result());
+        }
         String type = split[0];
         String id = split[1];
-        if ("tool".equals(type)){
-            ToolEntity tool =toolService.lambdaQuery().select(ToolEntity::getIcon,ToolEntity::getName).eq(ToolEntity::getId, id).one();
-            if (tool == null){
-                return MessageUtils.buildToolCallRender("", name, "",toolExecute.request().arguments(), toolExecute.result());
+        if ("tool".equals(type)) {
+            ToolEntity tool = toolService.lambdaQuery().select(ToolEntity::getIcon, ToolEntity::getName).eq(ToolEntity::getId, id).one();
+            if (tool == null) {
+                return MessageUtils.buildToolCallRender("", name, "", toolExecute.request().arguments(), toolExecute.result());
             }
-            return MessageUtils.buildToolCallRender(tool.getIcon(), tool.getName(), tool.getToolType(),toolExecute.request().arguments(), toolExecute.result());
-        }else {
-            ApplicationEntity app =applicationService.lambdaQuery().select(ApplicationEntity::getIcon,ApplicationEntity::getName).eq(ApplicationEntity::getId, id).one();
-            if (app == null){
-                return MessageUtils.buildToolCallRender("", name, "",toolExecute.request().arguments(), toolExecute.result());
+            return MessageUtils.buildToolCallRender(tool.getIcon(), tool.getName(), tool.getToolType(), toolExecute.request().arguments(), toolExecute.result());
+        } else {
+            ApplicationEntity app = applicationService.lambdaQuery().select(ApplicationEntity::getIcon, ApplicationEntity::getName).eq(ApplicationEntity::getId, id).one();
+            if (app == null) {
+                return MessageUtils.buildToolCallRender("", name, "", toolExecute.request().arguments(), toolExecute.result());
             }
-            return MessageUtils.buildToolCallRender(app.getIcon(), app.getName(), "",toolExecute.request().arguments(), toolExecute.result());
+            return MessageUtils.buildToolCallRender(app.getIcon(), app.getName(), "", toolExecute.request().arguments(), toolExecute.result());
         }
 
     }

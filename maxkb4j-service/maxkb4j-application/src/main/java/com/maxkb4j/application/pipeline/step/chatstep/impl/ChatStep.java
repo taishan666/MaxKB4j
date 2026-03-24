@@ -21,6 +21,7 @@ import dev.langchain4j.model.chat.response.ChatResponse;
 import dev.langchain4j.model.output.TokenUsage;
 import dev.langchain4j.service.AiServices;
 import dev.langchain4j.service.TokenStream;
+import dev.langchain4j.skills.shell.ShellSkills;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -45,15 +46,23 @@ public class ChatStep extends AbsChatStep {
         JSONObject params = application.getModelParamsSetting();
         StreamingChatModel chatModel = modelFactory.buildStreamingChatModel(modelId, params);
         String systemText = application.getModelSetting().getSystem();
-        AiServices<Assistant> aiServicesBuilder = AssistantServices.builder(Assistant.class);
-        if (StringUtils.isNotBlank(systemText)) {
-            aiServicesBuilder.systemMessageProvider(chatMemoryId -> systemText);
-        }
         List<String> toolIds = Optional.ofNullable(application.getToolIds()).orElse(List.of());
         List<String> applicationIds = Optional.ofNullable(application.getApplicationIds()).orElse(List.of());
+        // 获取 skills 描述并合并到 system message
+        ShellSkills skills = toolProvider.getSkills(toolIds);
+        if (StringUtils.isNotBlank(skills.formatAvailableSkills())) {
+            if (StringUtils.isNotBlank(systemText)) {
+                systemText = systemText + "\n\nYou have access to the following skills:\n" + skills.formatAvailableSkills()
+                        + "\nWhen the user's request relates to one of these skills, use the `run_shell_command` tool to execute the relevant shell command.";
+            } else {
+                systemText = "You have access to the following skills:\n" + skills.formatAvailableSkills()
+                        + "\nWhen the user's request relates to one of these skills, use the `run_shell_command` tool to execute the relevant shell command.";
+            }
+        }
+        AiServices<Assistant> aiServicesBuilder = AssistantServices.builder(Assistant.class);
         try {
-            aiServicesBuilder.toolProvider(toolProvider.getSkillsToolProvider(application.getId(),toolIds));
-            aiServicesBuilder.tools(toolProvider.getToolMap(toolIds,applicationIds));
+            aiServicesBuilder.systemMessage(systemText);
+            aiServicesBuilder.toolProvider(skills.toolProvider());
         }catch (ApiException e){
             manage.sink.tryEmitError(e);
         }

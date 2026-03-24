@@ -13,9 +13,10 @@ import java.util.Map;
 public interface IToolProviderService {
 
     Map<ToolSpecification, ToolExecutor> getToolMap(List<String> toolIds, List<String> applicationIds) throws ApiException;
-    ToolProvider getSkillsToolProvider(String applicationId, List<String> toolIds);
-    List<ToolProvider> getToolProviders(String applicationId,List<String> toolIds, List<String> applicationIds);
-    ToolProvider getSkillsToolProvider(String applicationId, String nodeId, List<String> toolIds);
+    ToolProvider getSkillsToolProvider(List<String> toolIds);
+    ToolProvider getSkillsProvider(String modelId,String userMessage, List<String> toolIds);
+    List<ToolProvider> getToolProviders(List<String> toolIds, List<String> applicationIds);
     String format(ToolExecution toolExecute);
-    ShellSkills getShellSkills(String applicationId, List<String> toolIds);
+    ShellSkills getSkills(List<String> toolIds);
+
 }

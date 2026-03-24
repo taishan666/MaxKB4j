@@ -83,7 +83,7 @@ public class LLMNodeHandler implements INodeHandler {
         if (CollectionUtils.isNotEmpty(historyMessages)) {
             builder.chatMemory(AppChatMemory.withMessages(historyMessages));
         }
-        if (CollectionUtils.isNotEmpty(toolIds)) {
+        if (CollectionUtils.isNotEmpty(toolIds) || CollectionUtils.isNotEmpty(applicationIds)) {
             try {
                 builder.tools(toolProviderService.getToolMap(toolIds,applicationIds));
             }catch (ApiException e){

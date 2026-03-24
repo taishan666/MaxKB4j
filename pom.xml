@@ -50,6 +50,7 @@
         <commons-text.version>1.11.0</commons-text.version>
         <rapidocr.version>0.0.7</rapidocr.version>
         <imageio.version>1.4.0</imageio.version>
+        <jsoup.version>1.9.1</jsoup.version>
     </properties>
     <modules>
         <module>maxkb4j-common</module>
@@ -224,7 +225,7 @@
             <dependency>
                 <groupId>dev.langchain4j</groupId>
                 <artifactId>langchain4j-experimental-sql</artifactId>
-                <version>${langchain4j.beta.version}</version>
+                <version>1.9.1-beta17</version>
                 <exclusions>
                     <exclusion>
                         <groupId>com.github.jsqlparser</groupId>
@@ -431,6 +432,11 @@
                         <artifactId>hutool-json</artifactId>
                     </exclusion>
                 </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>org.jsoup</groupId>
+                <artifactId>jsoup</artifactId>
+                <version>${jsoup.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

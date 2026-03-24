@@ -68,6 +68,10 @@ public class SkillsToolUtil {
     }
 
     public static String unzipSkill(Path appSkillFolderPath, InputStream is) {
+        return unzipSkill(appSkillFolderPath, is, null);
+    }
+
+    public static String unzipSkill(Path appSkillFolderPath, InputStream is, String targetFolderName) {
         String rootFolderName = null;
         try (ZipInputStream zis = new ZipInputStream(is)) {
             ZipEntry entry;
@@ -75,8 +79,13 @@ public class SkillsToolUtil {
                 if (rootFolderName == null && entry.isDirectory()) {
                     rootFolderName = entry.getName().substring(0, entry.getName().indexOf('/'));
                 }
+                // 如果指定了目标文件夹名，替换 zip 中的根目录名
+                String entryName = entry.getName();
+                if (targetFolderName != null && rootFolderName != null) {
+                    entryName = targetFolderName + entryName.substring(rootFolderName.length());
+                }
                 // 防止 zip slip 漏洞：确保解压路径在目标目录内
-                Path targetPath = appSkillFolderPath.resolve(entry.getName()).normalize();
+                Path targetPath = appSkillFolderPath.resolve(entryName).normalize();
                 if (!targetPath.startsWith(appSkillFolderPath)) {
                     throw new ApiException("Zip entry is outside target directory: " + entry.getName());
                 }
@@ -91,7 +100,7 @@ public class SkillsToolUtil {
         } catch (IOException e) {
             throw new ApiException("Failed to extract skill zip file ");
         }
-        return rootFolderName;
+        return targetFolderName != null ? targetFolderName : rootFolderName;
     }
 
 
