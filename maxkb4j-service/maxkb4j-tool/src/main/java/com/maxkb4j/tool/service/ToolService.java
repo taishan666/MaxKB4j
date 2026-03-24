@@ -8,6 +8,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.maxkb4j.common.constant.RoleType;
 import com.maxkb4j.common.domain.dto.OssFile;
+import com.maxkb4j.common.exception.ApiException;
 import com.maxkb4j.common.util.*;
 import com.maxkb4j.oss.service.IOssService;
 import com.maxkb4j.system.constant.AuthTargetType;
@@ -19,6 +20,7 @@ import com.maxkb4j.tool.handler.ToolImportExportHandler;
 import com.maxkb4j.tool.handler.ToolValidationHandler;
 import com.maxkb4j.tool.mapper.ToolMapper;
 import com.maxkb4j.tool.util.McpToolUtil;
+import com.maxkb4j.tool.util.SkillsToolUtil;
 import com.maxkb4j.tool.vo.McpToolVO;
 import com.maxkb4j.tool.vo.ToolVO;
 import com.maxkb4j.user.service.IUserResourcePermissionService;
@@ -34,7 +36,7 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.net.URISyntaxException;
+import java.io.InputStream;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -103,6 +105,13 @@ public class ToolService  extends ServiceImpl<ToolMapper, ToolEntity> implements
     @Transactional
     public boolean saveTool(ToolEntity entity) {
         this.save(entity);
+        if (ToolConstants.ToolType.SKILL.equals(entity.getToolType())){
+            try (InputStream is = mongoFileService.getStream(entity.getCode())) {
+                SkillsToolUtil.unzipSkill(is, entity.getId());
+            } catch (IOException e) {
+                throw new ApiException("Failed to extract the skill file.");
+            }
+        }
         return userResourcePermissionService.ownerSave(AuthTargetType.TOOL, entity.getId(), entity.getUserId());
     }
 
@@ -132,6 +141,10 @@ public class ToolService  extends ServiceImpl<ToolMapper, ToolEntity> implements
 
     @Transactional
     public boolean removeToolById(String id) {
+        ToolEntity entity = this.getById(id);
+        if (ToolConstants.ToolType.SKILL.equals(entity.getToolType())){
+            SkillsToolUtil.deleteDirectory(id);
+        }
         userResourcePermissionService.remove(AuthTargetType.TOOL, id);
         return this.removeById(id);
     }
@@ -161,7 +174,7 @@ public class ToolService  extends ServiceImpl<ToolMapper, ToolEntity> implements
         return this.list(wrapper);
     }
 
-    public List<ToolEntity> store(String name) throws IOException, URISyntaxException {
+    public List<ToolEntity> store(String name) throws IOException {
         List<ToolEntity> list = new ArrayList<>();
         PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
         Resource[] resources = resolver.getResources("classpath:templates/tool/*/*" + ToolConstants.FileType.TOOL_EXTENSION);
@@ -187,18 +200,62 @@ public class ToolService  extends ServiceImpl<ToolMapper, ToolEntity> implements
         return list;
     }
 
+    /**
+     * 更新工具
+     */
+    public ToolVO updateTool(ToolEntity dto) throws IOException {
+        // 1. 先查询旧数据，用于后续比对和业务逻辑
+        ToolEntity oldTool = this.getById(dto.getId());
 
-    public ToolVO getVoById(String id) {
-        ToolVO vo = new ToolVO();
-        ToolEntity tool = this.getById(id);
-        if (tool != null) {
-            vo = BeanUtil.copy(tool, ToolVO.class);
-            String nickname =userService.getNickname(vo.getUserId());
-            vo.setNickname(nickname);
-            if (ToolConstants.ToolType.SKILL.equals(tool.getToolType())) {
-                OssFile file = mongoFileService.getFile(tool.getCode());
-                vo.setFileList(file == null ? List.of() : List.of(file));
+        if (oldTool == null) {
+            return null; // 或者抛出异常 new BusinessException("工具不存在");
+        }
+
+        // 2. 处理 Skill 类型的特殊业务逻辑 (文件更新)
+        if (ToolConstants.ToolType.SKILL.equals(dto.getToolType())) {
+            if (!oldTool.getCode().equals(dto.getCode())) {
+                // 删除旧目录
+                SkillsToolUtil.deleteDirectory(oldTool.getId());
+                // 解压新文件
+                SkillsToolUtil.unzipSkill(mongoFileService.getStream(dto.getCode()), dto.getId());
             }
+        }
+
+        // 3. 执行数据库更新
+        this.updateById(dto);
+
+        // 4. 复用 VO 组装逻辑 (传入更新后的 dto 作为最新数据)
+        return assembleToolVO(dto);
+    }
+
+    /**
+     * 获取工具详情
+     */
+    public ToolVO getVoById(String id) {
+        ToolEntity tool = this.getById(id);
+        // 利用 Optional 简化 null 判断，如果为空则返回 null
+        return java.util.Optional.ofNullable(tool)
+                .map(this::assembleToolVO)
+                .orElse(null);
+    }
+
+    /**
+     * 【核心重构】提取公共的 VO 组装逻辑
+     * 无论是查询还是更新，最终都需要组装 VO 返回，统一在这里处理
+     */
+    private ToolVO assembleToolVO(ToolEntity tool) {
+        // 1. 基础属性拷贝
+        ToolVO vo = BeanUtil.copy(tool, ToolVO.class);
+        // 2. 补充非实体字段：用户昵称
+        String nickname = userService.getNickname(vo.getUserId());
+        vo.setNickname(nickname);
+        // 3. 补充非实体字段：文件列表 (仅 Skill 类型)
+        if (ToolConstants.ToolType.SKILL.equals(tool.getToolType())) {
+            OssFile file = mongoFileService.getFile(tool.getCode());
+            vo.setFileList(file == null ? List.of() : List.of(file));
+        } else {
+            // 建议：非 Skill 类型也显式设置为空，避免前端 NPE
+            vo.setFileList(List.of());
         }
         return vo;
     }

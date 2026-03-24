@@ -128,14 +128,13 @@ public class ToolController {
 
     @SaCheckPerm(PermissionEnum.TOOL_EDIT)
     @PutMapping("/workspace/default/tool/{id}")
-    public R<ToolEntity> tool(@PathVariable String id, @RequestBody ToolEntity dto) {
+    public R<ToolEntity> tool(@PathVariable String id, @RequestBody ToolEntity dto) throws IOException {
         dto.setId(id);
         if (toolService.mcpServerConfigValid(dto)){
-            toolService.updateById(dto);
+            return R.data(toolService.updateTool(dto));
         }else {
             return R.fail("请检查配置信息");
         }
-        return R.data(toolService.getVoById(id));
     }
 
     @SaCheckPerm(PermissionEnum.TOOL_DELETE)
