@@ -1,77 +1,33 @@
 package com.maxkb4j.tool.util;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.maxkb4j.common.exception.ApiException;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 @Slf4j
 public class SkillsToolUtil {
 
-    private static final String MANIFEST_FILE_NAME = "manifest.json";
-    private static final ObjectMapper objectMapper = new ObjectMapper();
+    @Getter
+    private final static Path skillsFolder = Paths.get("skills");
 
-    public static Path getManifestPath(String appSkillPath) {
-        return Paths.get(appSkillPath, MANIFEST_FILE_NAME);
+
+    public static Path getSkillFolder(String toolId) {
+        return skillsFolder.resolve(toolId);
     }
 
-    public static List<String> getAddShills(String appSkillPath, List<String> toolIds, Map<String, String> existingManifest) {
-        // 获取当前需要的 toolId 集合
-        Set<String> currentToolIds = new HashSet<>(toolIds);
-        Set<String> existingToolIds = new HashSet<>(existingManifest.keySet());
-        // 1. 找出新增的：需要解压
-        Set<String> toAdd = new HashSet<>(currentToolIds);
-        toAdd.removeAll(existingToolIds);
-        // 2. 找出要删除的：已存在但不在当前列表中
-        Set<String> toRemove = new HashSet<>(existingToolIds);
-        toRemove.removeAll(currentToolIds);
-        // 删除不再需要的技能目录
-        for (String toolId : toRemove) {
-            String folderName = existingManifest.get(toolId);
-            if (folderName != null) {
-                Path dirToDelete = Paths.get(appSkillPath, folderName);
-                deleteRecursively(dirToDelete);
-            }
-            existingManifest.remove(toolId);
-        }
-        return new ArrayList<>(toAdd);
-    }
-
-    public static Map<String, String> readManifest(String appSkillPath) {
-        Path manifestPath = getManifestPath(appSkillPath);
-        if (!Files.exists(manifestPath)) {
-            return new HashMap<>();
-        }
+    public static void unzipSkill(InputStream is, String toolId) {
         try {
-            return objectMapper.readValue(manifestPath.toFile(), new TypeReference<>() {});
+            Files.createDirectories(skillsFolder); // 自动创建多级目录
         } catch (IOException e) {
-            // 若 manifest 损坏，视为无记录，重建
-            return new HashMap<>();
+            throw new ApiException("Failed to create skill directory: " + e.getMessage());
         }
-    }
-
-    public static void updateManifest(String appSkillPath, Map<String, String> manifest) throws ApiException {
-        Path manifestPath = getManifestPath(appSkillPath);
-        try {
-            objectMapper.writeValue(manifestPath.toFile(), manifest);
-        } catch (IOException e) {
-            throw new ApiException("Failed to write tool manifest: " + e.getMessage());
-        }
-    }
-
-    public static String unzipSkill(Path appSkillFolderPath, InputStream is) {
-        return unzipSkill(appSkillFolderPath, is, null);
-    }
-
-    public static String unzipSkill(Path appSkillFolderPath, InputStream is, String targetFolderName) {
         String rootFolderName = null;
         try (ZipInputStream zis = new ZipInputStream(is)) {
             ZipEntry entry;
@@ -79,14 +35,13 @@ public class SkillsToolUtil {
                 if (rootFolderName == null && entry.isDirectory()) {
                     rootFolderName = entry.getName().substring(0, entry.getName().indexOf('/'));
                 }
-                // 如果指定了目标文件夹名，替换 zip 中的根目录名
                 String entryName = entry.getName();
-                if (targetFolderName != null && rootFolderName != null) {
-                    entryName = targetFolderName + entryName.substring(rootFolderName.length());
+                if (toolId != null && rootFolderName != null) {
+                    entryName = toolId + entryName.substring(rootFolderName.length());
                 }
                 // 防止 zip slip 漏洞：确保解压路径在目标目录内
-                Path targetPath = appSkillFolderPath.resolve(entryName).normalize();
-                if (!targetPath.startsWith(appSkillFolderPath)) {
+                Path targetPath = skillsFolder.resolve(entryName).normalize();
+                if (!targetPath.startsWith(skillsFolder)) {
                     throw new ApiException("Zip entry is outside target directory: " + entry.getName());
                 }
                 if (entry.isDirectory()) {
@@ -100,19 +55,19 @@ public class SkillsToolUtil {
         } catch (IOException e) {
             throw new ApiException("Failed to extract skill zip file ");
         }
-        return targetFolderName != null ? targetFolderName : rootFolderName;
     }
 
 
     /**
      * 递归删除目录及其内容
      */
-    private static void deleteRecursively(Path path) {
-        if (!Files.exists(path)) {
+    public static void deleteDirectory(String toolId) {
+        Path skillFolder = skillsFolder.resolve(toolId);
+        if (!Files.exists(skillFolder)) {
             return;
         }
         try {
-            Files.walkFileTree(path, new SimpleFileVisitor<>() {
+            Files.walkFileTree(skillFolder, new SimpleFileVisitor<>() {
                 @Override
                 public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
                     Files.delete(file);
@@ -127,7 +82,7 @@ public class SkillsToolUtil {
             });
         } catch (IOException e) {
             // 可选：记录警告日志
-            log.warn("Failed to delete directory: " + path, e);
+            log.warn("Failed to delete directory: {}", skillFolder, e);
         }
     }
 

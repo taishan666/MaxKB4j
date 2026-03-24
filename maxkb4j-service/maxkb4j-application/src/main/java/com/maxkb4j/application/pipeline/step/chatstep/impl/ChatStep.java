@@ -1,6 +1,5 @@
 package com.maxkb4j.application.pipeline.step.chatstep.impl;
 
-import com.alibaba.excel.util.StringUtils;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.application.pipeline.PipelineManage;
@@ -21,9 +20,9 @@ import dev.langchain4j.model.chat.response.ChatResponse;
 import dev.langchain4j.model.output.TokenUsage;
 import dev.langchain4j.service.AiServices;
 import dev.langchain4j.service.TokenStream;
-import dev.langchain4j.skills.shell.ShellSkills;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
@@ -48,23 +47,13 @@ public class ChatStep extends AbsChatStep {
         String systemText = application.getModelSetting().getSystem();
         List<String> toolIds = Optional.ofNullable(application.getToolIds()).orElse(List.of());
         List<String> applicationIds = Optional.ofNullable(application.getApplicationIds()).orElse(List.of());
-        // 获取 skills 描述并合并到 system message
-        ShellSkills skills = toolProvider.getSkills(toolIds);
-        String formatAvailableSkills =skills.formatAvailableSkills();
-        System.err.println(formatAvailableSkills);
-        if (StringUtils.isNotBlank(formatAvailableSkills)) {
-            if (StringUtils.isNotBlank(systemText)) {
-                systemText = systemText + "\n\nYou have access to the following skills:\n" + formatAvailableSkills
-                        + "\nWhen the user's request relates to one of these skills, use the `run_shell_command` tool to execute the relevant shell command.";
-            } else {
-                systemText = "You have access to the following skills:\n" + formatAvailableSkills
-                        + "\nWhen the user's request relates to one of these skills, use the `run_shell_command` tool to execute the relevant shell command.";
-            }
-        }
         AiServices<Assistant> aiServicesBuilder = AssistantServices.builder(Assistant.class);
-        try {
+        if (StringUtils.isNotBlank(systemText)){
             aiServicesBuilder.systemMessage(systemText);
-            aiServicesBuilder.toolProvider(skills.toolProvider());
+        }
+        try {
+            aiServicesBuilder.toolProvider(toolProvider.getSkillsProvider(modelId, toolIds));
+            aiServicesBuilder.tools(toolProvider.getToolMap(toolIds, applicationIds));
         }catch (ApiException e){
             manage.sink.tryEmitError(e);
         }
