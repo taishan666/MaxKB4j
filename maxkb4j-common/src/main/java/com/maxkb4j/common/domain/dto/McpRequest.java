@@ -1,4 +1,4 @@
-package com.maxkb4j.chat.dto;
+package com.maxkb4j.common.domain.dto;
 
 import com.alibaba.fastjson.JSONObject;
 import lombok.Data;

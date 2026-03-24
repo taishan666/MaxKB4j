@@ -48,9 +48,13 @@
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-spring-boot-starter</artifactId>
         </dependency>
-        <dependency>
+  <!--      <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-skills</artifactId>
+        </dependency>-->
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-experimental-skills-shell</artifactId>
         </dependency>
         <!--   search-engine -->
         <dependency>
@@ -68,10 +72,6 @@
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-web-search-engine-tavily</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>dev.langchain4j</groupId>
-            <artifactId>langchain4j-experimental-skills-shell</artifactId>
         </dependency>
         <!-- Groovy for script execution -->
         <dependency>

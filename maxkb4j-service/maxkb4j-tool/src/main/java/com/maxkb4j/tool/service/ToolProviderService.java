@@ -23,10 +23,13 @@ import dev.langchain4j.model.chat.request.json.JsonObjectSchema;
 import dev.langchain4j.service.tool.ToolExecution;
 import dev.langchain4j.service.tool.ToolExecutor;
 import dev.langchain4j.service.tool.ToolProvider;
+import dev.langchain4j.service.tool.ToolProviderResult;
+import dev.langchain4j.skills.FileSystemSkill;
 import dev.langchain4j.skills.FileSystemSkillLoader;
 import dev.langchain4j.skills.shell.ShellSkills;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -45,6 +48,14 @@ import java.util.*;
 @Service
 @Slf4j
 public class ToolProviderService implements IToolProviderService {
+
+    private static final String MCP_API_PATH = "/chat/api/mcp";
+    private static final String MCP_TYPE = "streamable_http";
+    private static final String AUTH_HEADER_PREFIX = "Bearer ";
+    private static final String LOCALHOST = "http://127.0.0.1";
+
+    @Value("${server.port}")
+    private int serverPort;
 
     private final IToolService toolService;
     private final IApplicationService applicationService;
@@ -72,6 +83,45 @@ public class ToolProviderService implements IToolProviderService {
     }
 
     @Override
+    public List<ToolProvider> getToolProviders(String applicationId,List<String> toolIds, List<String> applicationIds) throws ApiException {
+        String appSkillPath = "app/" + applicationId + "/skills/";
+        List<ToolProvider> toolProviders = new ArrayList<>();
+        Map<ToolSpecification, ToolExecutor> toolMap = getToolMap(toolIds, applicationIds);
+        if (!toolMap.isEmpty()){
+            toolProviders.add((request) -> ToolProviderResult.builder().addAll(toolMap).build());
+        }
+        Path appSkillFolderPath = Paths.get(appSkillPath);
+        Map<String, String> manifest = SkillsToolUtil.readManifest(appSkillPath);
+        List<String> newToolIds = SkillsToolUtil.getAddShills(appSkillPath, toolIds, manifest);
+        unzipSkills(appSkillFolderPath, newToolIds, manifest);
+        SkillsToolUtil.updateManifest(appSkillPath, manifest);
+        List<FileSystemSkill> list =FileSystemSkillLoader.loadSkills(appSkillFolderPath);
+        if (!list.isEmpty()){
+            ShellSkills skills = ShellSkills.from(list);
+            toolProviders.add(skills.toolProvider());
+        }
+        return toolProviders;
+    }
+
+
+    @Override
+    public ShellSkills getShellSkills(String applicationId, List<String> toolIds) throws ApiException {
+        String appSkillPath = "app/" + applicationId + "/skills/";
+        Path appSkillFolderPath = Paths.get(appSkillPath);
+        Map<String, String> manifest = SkillsToolUtil.readManifest(appSkillPath);
+        List<String> newToolIds = SkillsToolUtil.getAddShills(appSkillPath, toolIds, manifest);
+        unzipSkills(appSkillFolderPath, newToolIds, manifest);
+        SkillsToolUtil.updateManifest(appSkillPath, manifest);
+        List<FileSystemSkill> list =FileSystemSkillLoader.loadSkills(appSkillFolderPath);
+        System.err.println(list);
+        if (list.isEmpty()){
+            return null;
+        }
+        return ShellSkills.from(list);
+    }
+
+
+    @Override
     public ToolProvider getSkillsToolProvider(String applicationId, List<String> toolIds) throws ApiException {
         String appSkillPath = "app/" + applicationId + "/skills/";
         return buildToolProvider(appSkillPath, toolIds);
@@ -91,9 +141,16 @@ public class ToolProviderService implements IToolProviderService {
         List<String> newToolIds = SkillsToolUtil.getAddShills(appSkillPath, toolIds, manifest);
         unzipSkills(appSkillFolderPath, newToolIds, manifest);
         SkillsToolUtil.updateManifest(appSkillPath, manifest);
-        ShellSkills skills = ShellSkills.from(FileSystemSkillLoader.loadSkills(appSkillFolderPath));
+        List<FileSystemSkill> list =FileSystemSkillLoader.loadSkills(appSkillFolderPath);
+        if (list.isEmpty()){
+            return (request) -> ToolProviderResult.builder().addAll(Map.of()).build();
+        }
+        ShellSkills skills = ShellSkills.from(list);
+        //System.err.println(skills.formatAvailableSkills());
         return skills.toolProvider();
     }
+
+
 
 
     private void unzipSkills(Path appSkillFolderPath, List<String> newToolIds, Map<String, String> manifestToUpdate) throws ApiException {
@@ -121,6 +178,8 @@ public class ToolProviderService implements IToolProviderService {
     }
 
 
+
+
     /**
      * 根据工具 ID 列表构建工具映射
      */
@@ -143,6 +202,11 @@ public class ToolProviderService implements IToolProviderService {
                 ToolSpecification spec = buildToolSpecification(tool);
                 ToolExecutor executor = new HttpRequestExecutor(tool.getCode());
                 toolMap.put(spec, executor);
+            } else if (ToolConstants.ToolType.SKILL.equals(tool.getToolType())) {
+                ToolSpecification spec = buildToolSpecification(tool);
+                ToolExecutor executor = new HttpRequestExecutor(tool.getCode());
+
+                toolMap.put(spec, executor);
             } else if (ToolConstants.ToolType.CUSTOM.equals(tool.getToolType())) {
                 ToolSpecification spec = buildToolSpecification(tool);
                 ToolExecutor executor = new GroovyScriptExecutor(tool.getCode(), tool.getInitParams());
@@ -150,6 +214,25 @@ public class ToolProviderService implements IToolProviderService {
             }
         }
         return toolMap;
+    }
+
+    private JSONObject buildMcpConfig(List<String> toolIds){
+        String url = String.format("%s:%d%s", LOCALHOST, serverPort, MCP_API_PATH);
+     /*   Map<String, String> headers = Collections.singletonMap(
+                "Authorization",
+                AUTH_HEADER_PREFIX + apiKey.getSecretKey()
+        );*/
+        List<ToolEntity> skillTools = toolService.lambdaQuery()
+                .select(ToolEntity::getId,ToolEntity::getCode)
+                .in(ToolEntity::getId, toolIds)
+                .eq(ToolEntity::getIsActive, true)
+                .eq(ToolEntity::getToolType, ToolConstants.ToolType.SKILL)
+                .list();
+        JSONObject config = new JSONObject();
+        config.put("url", url);
+        config.put("type", MCP_TYPE);
+     //   config.put("headers", headers);
+        return config;
     }
 
     /**

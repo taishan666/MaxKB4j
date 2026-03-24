@@ -51,8 +51,7 @@ public class SkillsToolUtil {
             return new HashMap<>();
         }
         try {
-            return objectMapper.readValue(manifestPath.toFile(), new TypeReference<>() {
-            });
+            return objectMapper.readValue(manifestPath.toFile(), new TypeReference<>() {});
         } catch (IOException e) {
             // 若 manifest 损坏，视为无记录，重建
             return new HashMap<>();
@@ -74,7 +73,7 @@ public class SkillsToolUtil {
             ZipEntry entry;
             while ((entry = zis.getNextEntry()) != null) {
                 if (rootFolderName == null && entry.isDirectory()) {
-                    rootFolderName = entry.getName();
+                    rootFolderName = entry.getName().substring(0, entry.getName().indexOf('/'));
                 }
                 // 防止 zip slip 漏洞：确保解压路径在目标目录内
                 Path targetPath = appSkillFolderPath.resolve(entry.getName()).normalize();

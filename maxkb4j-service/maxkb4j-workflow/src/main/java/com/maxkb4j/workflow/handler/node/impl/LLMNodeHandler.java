@@ -78,7 +78,7 @@ public class LLMNodeHandler implements INodeHandler {
     private AiServices<Assistant> buildAiServices(Workflow workflow,String systemPrompt, List<ChatMessage> historyMessages, List<String> toolIds, List<String> applicationIds) {
         AiServices<Assistant> builder = AssistantServices.builder(Assistant.class);
         if (StringUtils.isNotBlank(systemPrompt)) {
-            builder.systemMessageProvider(chatMemoryId -> systemPrompt);
+            builder.systemMessage(systemPrompt);
         }
         if (CollectionUtils.isNotEmpty(historyMessages)) {
             builder.chatMemory(AppChatMemory.withMessages(historyMessages));

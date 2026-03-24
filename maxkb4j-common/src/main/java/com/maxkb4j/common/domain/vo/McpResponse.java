@@ -1,4 +1,4 @@
-package com.maxkb4j.chat.vo;
+package com.maxkb4j.common.domain.vo;
 
 import lombok.Data;
 

@@ -18,5 +18,9 @@
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-core</artifactId>
         </dependency>
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-experimental-skills-shell</artifactId>
+        </dependency>
     </dependencies>
 </project>
