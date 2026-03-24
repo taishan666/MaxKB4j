@@ -105,6 +105,7 @@ public class ToolProviderService implements IToolProviderService {
     }
 
 
+    @Override
     public ToolProvider getSkillsProvider(String modelId, List<String> toolIds) throws ApiException {
         Map<ToolSpecification, ToolExecutor> toolMap = getSkillsToolMap(modelId, toolIds);
         return (request) -> ToolProviderResult.builder().addAll(toolMap).build();
