@@ -50,12 +50,14 @@ public class ChatStep extends AbsChatStep {
         List<String> applicationIds = Optional.ofNullable(application.getApplicationIds()).orElse(List.of());
         // 获取 skills 描述并合并到 system message
         ShellSkills skills = toolProvider.getSkills(toolIds);
-        if (StringUtils.isNotBlank(skills.formatAvailableSkills())) {
+        String formatAvailableSkills =skills.formatAvailableSkills();
+        System.err.println(formatAvailableSkills);
+        if (StringUtils.isNotBlank(formatAvailableSkills)) {
             if (StringUtils.isNotBlank(systemText)) {
-                systemText = systemText + "\n\nYou have access to the following skills:\n" + skills.formatAvailableSkills()
+                systemText = systemText + "\n\nYou have access to the following skills:\n" + formatAvailableSkills
                         + "\nWhen the user's request relates to one of these skills, use the `run_shell_command` tool to execute the relevant shell command.";
             } else {
-                systemText = "You have access to the following skills:\n" + skills.formatAvailableSkills()
+                systemText = "You have access to the following skills:\n" + formatAvailableSkills
                         + "\nWhen the user's request relates to one of these skills, use the `run_shell_command` tool to execute the relevant shell command.";
             }
         }
