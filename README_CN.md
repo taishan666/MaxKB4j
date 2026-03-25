@@ -138,8 +138,8 @@ docker-compose up -d
 | ☕ 咖啡支持 |  ¥10  | • 添加作者微信 `vxhqqh`<br>• 加入核心交流群（备注"已赞助"）<br>• 项目更新优先通知                                       | 认可项目价值的个人开发者 |
 | 📚 学习会员 |  ¥50  | • 咖啡支持全部权益<br>• 免费加入 [《👉 知识星球🔥》](https://wx.zsxq.com/group/28882525858841)<br>• 星球内问题优先解答 | 希望深度学习的开发者 |
 | 🔧 进阶开发者 | ¥200  | • 学习会员全部权益<br>• 项目部署上线协助 <br>• 技术答疑优先响应 <br>• 参与新功能需求讨论                                     | 想深入理解架构的开发者 |
-| 🏢 企业伙伴 | ¥600  | • 进阶开发者全部权益<br>• V2 完整前后端源码 <br>• 问题售后技术支持                                 | 企业用户/深度使用者 |
-| 👑 战略合作 | ¥1200 | • 企业伙伴全部权益 <br>• 一年内项目免费升级 <br>• 企业 Logo 展示于官网赞助墙                                           | 深度合作伙伴 |
+| 🏢 企业伙伴 | ¥650  | • 进阶开发者全部权益<br>• V2 完整前后端源码 <br>• 问题售后技术支持                                 | 企业用户/深度使用者 |
+| 👑 战略合作 | ¥1299 | • 企业伙伴全部权益 <br>• 一年内项目免费升级 <br>• 企业 Logo 展示于官网赞助墙                                           | 深度合作伙伴 |
 
 
 <table style="border-collapse: collapse; border: 1px solid black;">
@@ -173,8 +173,8 @@ Copyright © 2025–2035 洛阳泰山 TARZAN. All rights reserved.
 ## 🔗 相关资源
 
 - 📘 [开源模型库](https://modelscope.cn/models)
-- 🐦 [MCP广场](https://modelscope.cn/mcp)
-- 🌐 [Skills](https://skills.sh/)
+- 🐦 [MCP 广场](https://modelscope.cn/mcp)
+- 🌐 [Skills 中心](https://modelscope.cn/skills)
 
 >  🌟 **Star 本项目，助力国产开源 AI 生态！** </br>
 > 🎯 **看看这个！👉 [点击了解 AI 大模型应用开发实战！🔥](https://example.com/ai-guide)**

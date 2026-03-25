@@ -133,13 +133,13 @@ We welcome community contributions! If you have suggestions, bug reports, or new
 > MaxKB4j is maintained by individual developers and community members. Your support will be directly used for server costs, token testing consumption, API testing, bug fixes, and new feature development!
 
 
-| Tier |  Amount   | Core Benefits                                                                                        | Target Audience |
-|:---:|:-----:|:--------------------------------------------------------------------------------------------|:---|
-| ☕ Coffee Support |  ¥10  | • Add author on WeChat `vxhqqh`<br>• Join core discussion group (mention "sponsored")<br>• Priority notification of project updates                                       | Individual developers who recognize project value |
-| 📚 Learning Member |  ¥50  | • All Coffee Support benefits<br>• Free access to [Knowledge Planet🔥](https://wx.zsxq.com/group/28882525858841)<br>• Priority answers to questions in the Planet | Developers who want to learn in depth |
-| 🔧 Advanced Developer | ¥200  | • All Learning Member benefits<br>• Project deployment assistance <br>• Priority technical support response <br>• Participate in new feature requirement discussions                                     | Developers who want to deeply understand architecture |
-| 🏢 Enterprise Partner | ¥600  | • All Advanced Developer benefits<br>• V2 complete frontend and backend source code <br>• Issue after-sales technical support                                 | Enterprise users / Advanced users |
-| 👑 Strategic Partner | ¥1200 | • All Enterprise Partner benefits <br>• Free project upgrades within one year <br>• Enterprise logo displayed on official website sponsor wall                                           | Deep cooperation partners |
+| Tier | Amount | Core Benefits                                                                                        | Target Audience |
+|:---:|:------:|:--------------------------------------------------------------------------------------------|:---|
+| ☕ Coffee Support |  ¥10   | • Add author on WeChat `vxhqqh`<br>• Join core discussion group (mention "sponsored")<br>• Priority notification of project updates                                       | Individual developers who recognize project value |
+| 📚 Learning Member |  ¥50   | • All Coffee Support benefits<br>• Free access to [Knowledge Planet🔥](https://wx.zsxq.com/group/28882525858841)<br>• Priority answers to questions in the Planet | Developers who want to learn in depth |
+| 🔧 Advanced Developer |  ¥200  | • All Learning Member benefits<br>• Project deployment assistance <br>• Priority technical support response <br>• Participate in new feature requirement discussions                                     | Developers who want to deeply understand architecture |
+| 🏢 Enterprise Partner |  ¥650  | • All Advanced Developer benefits<br>• V2 complete frontend and backend source code <br>• Issue after-sales technical support                                 | Enterprise users / Advanced users |
+| 👑 Strategic Partner | ¥1299  | • All Enterprise Partner benefits <br>• Free project upgrades within one year <br>• Enterprise logo displayed on official website sponsor wall                                           | Deep cooperation partners |
 
 
 <table style="border-collapse: collapse; border: 1px solid black;">
@@ -174,7 +174,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 
 - 📘 [Open-source Model Library](https://modelscope.cn/models)
 - 🐦 [MCP Plaza](https://modelscope.cn/mcp)
-- 🌐 [Skills](https://skills.sh/)
+- 🌐 [Skills Center](https://skills.sh/)
 
 >  🌟 **Star this project to support China's open-source AI ecosystem!** </br>
 > 🎯 **Check this out! 👉 [Learn about AI large model application development in practice! 🔥](https://example.com/ai-guide)**
