@@ -40,11 +40,6 @@
             <version>${revision}</version>
         </dependency>
         <dependency>
-            <groupId>com.tarzan</groupId>
-            <artifactId>maxkb4j-chat-api</artifactId>
-            <version>${revision}</version>
-        </dependency>
-        <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-spring-boot-starter</artifactId>
         </dependency>
@@ -85,8 +80,7 @@
         <dependency>
             <groupId>com.tarzan</groupId>
             <artifactId>maxkb4j-model-api</artifactId>
-            <version>1.0.0</version>
-            <scope>compile</scope>
+            <version>${revision}</version>
         </dependency>
     </dependencies>
 

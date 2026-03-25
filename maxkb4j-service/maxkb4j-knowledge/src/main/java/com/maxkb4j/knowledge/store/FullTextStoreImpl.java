@@ -148,8 +148,9 @@ public class FullTextStoreImpl implements IDataStore {
             if (CollectionUtils.isEmpty(result)) {
                 return Collections.emptyList();
             }
+            float score=result.get(0)==null?0:result.get(0).getScore();
             // Normalize scores
-            float maxScore = Math.max(result.get(0).getScore(), 2);
+            float maxScore = Math.max(score, 2);
             for (EmbeddingEntity entity : result) {
                 float normalizedScore = entity.getScore() / maxScore;
                 entity.setScore(normalizedScore);
