@@ -85,8 +85,7 @@ docker-compose up -d
 
 点击以下按钮一键部署：
 
-[![外链图片转存失败,源站可能有防盗链机制,建议将图片保存下来直接上传](https://img-home.csdnimg.cn/images/20230724024159.png?origin_url=https%3A%2F%2Fhzh.sealos.run%2Flogo.svg&pos_id=img-ulndzmCF-1768647863738) ](https://blog.csdn.net/weixin_40986713/article/details/156026021)
-
+[![](https://sealos.run/app_store/img/sealos.svg)](https://blog.csdn.net/weixin_40986713/article/details/156026021)
 </div>
 </details>
 
