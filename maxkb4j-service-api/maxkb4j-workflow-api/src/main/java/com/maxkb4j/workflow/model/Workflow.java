@@ -117,7 +117,6 @@ public class Workflow {
         List<Map<String, Object>> sortedDetails = details.values().stream()
                 .filter(Objects::nonNull)
                 .map(row -> (Map<String, Object>) row)
-                .filter(Objects::nonNull)
                 .sorted(Comparator.comparing(
                         e -> (Integer) e.get("index"),
                         Comparator.nullsLast(Comparator.naturalOrder())
