@@ -7,10 +7,7 @@ import org.springframework.beans.BeanWrapperImpl;
 import java.beans.FeatureDescriptor;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -79,7 +76,7 @@ public class BeanUtil {
      */
     public static <T, K> List<K> copyList(List<T> source, Class<K> target) {
         if (null == source || source.isEmpty()) {
-            return Collections.emptyList();
+            return new ArrayList<>();
         }
         return source.stream().map(e -> copy(e, target)).collect(Collectors.toList());
     }
@@ -117,29 +114,4 @@ public class BeanUtil {
         return map;
     }
 
-  /*  public static <T> Map<String, T> toMap(Object requestParameters) {
-        Map<String, T> map = new HashMap<>(10);
-        // 获取f对象对应类中的所有属性域
-        Field[] fields = requestParameters.getClass().getDeclaredFields();
-        for (Field field : fields) {
-            String varName = field.getName();
-            // 获取原来的访问控制权限
-            boolean accessFlag = field.isAccessible();
-            // 修改访问控制权限
-            field.setAccessible(true);
-            // 获取在对象f中属性fields[i]对应的对象中的变量
-            Object o = null;
-            try {
-                o = field.get(requestParameters);
-            } catch (IllegalAccessException e) {
-                log.error(e.getMessage(), e);
-            }
-            if (o != null && StringUtils.isNotBlank(o.toString().trim())) {
-                map.put(varName, (T) o);
-                // 恢复访问控制权限
-                field.setAccessible(accessFlag);
-            }
-        }
-        return map;
-    }*/
 }
