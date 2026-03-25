@@ -24,6 +24,7 @@ import dev.langchain4j.agent.tool.ToolSpecification;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.request.json.JsonArraySchema;
 import dev.langchain4j.model.chat.request.json.JsonObjectSchema;
+import dev.langchain4j.service.Result;
 import dev.langchain4j.service.tool.ToolExecution;
 import dev.langchain4j.service.tool.ToolExecutor;
 import dev.langchain4j.service.tool.ToolProvider;
@@ -118,7 +119,7 @@ public class ToolProviderService implements IToolProviderService {
         }
         ChatModel chatModel = modelFactory.buildChatModel(modelId);
         List<ToolEntity> toolSkills = toolService.lambdaQuery()
-                .select(ToolEntity::getId, ToolEntity::getCode)
+                .select(ToolEntity::getId, ToolEntity::getCode, ToolEntity::getInitParams)
                 .in(ToolEntity::getId, toolIds)
                 .eq(ToolEntity::getIsActive, true)
                 .eq(ToolEntity::getToolType, ToolConstants.ToolType.SKILL)
@@ -138,9 +139,21 @@ public class ToolProviderService implements IToolProviderService {
                             .parameters(JsonObjectSchema.builder().addStringProperty("question", "User's input question").required("question").build())
                             .build();
                     ToolExecutor executor = (toolExecutionRequest, memoryId) -> {
+                        JSONObject initParams = skill.getInitParams();
+                        if (initParams != null&&!initParams.isEmpty()){
+                            for (String key : initParams.keySet()) {
+                                System.setProperty(key, initParams.getString(key));
+                            }
+                        }
                         Assistant assistant = AssistantServices.builder(Assistant.class).chatModel(chatModel).toolProvider(skills.toolProvider()).build();
                         JSONObject arguments = JSONObject.parseObject(toolExecutionRequest.arguments());
-                        return assistant.chat(arguments.getString("question")).content();
+                        Result<String>  result=assistant.chat(arguments.getString("question"));
+                        if (initParams != null&&!initParams.isEmpty()){
+                            for (String key : initParams.keySet()) {
+                                System.clearProperty(key);
+                            }
+                        }
+                        return result.content();
                     };
                     toolMap.put(spec, executor);
                 }
