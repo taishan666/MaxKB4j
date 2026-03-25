@@ -38,8 +38,8 @@
 | 🌐 模型中立，灵活对接 | 支持各类主流大模型，包括：<br>• 本地私有模型：DeepSeek-R1、Llama 3、Qwen 2 等（通过 Ollama / Xorbits Inference / LocalAI）<br>• 国内公有模型：通义千问、腾讯混元、字节豆包、百度千帆、智谱 GLM、Kimi、DeepSeek等<br>• 国际公有模型：OpenAI (GPT)、Anthropic (Claude)、Google (Gemini)                                                                          |
 | ⚙️ 可视化工作流编排 | • 内置 低代码 AI 工作流引擎，支持条件分支、函数调用、多轮对话记忆<br>• 提供丰富 内置函数工具库（HTTP 请求、数据库查询、时间处理、正则提取等）<br>• 适用于复杂业务场景：客服工单生成、数据报告解读、内部制度问答等                                                                                                                                                                      |
 | 🤝 多 Agent 协作能力 | • 内置 多智能体（Multi-Agent）协作框架，支持多个专业化 AI Agent 并行或串行协同工作<br>• 每个 Agent 可配置独立角色（如：数据分析师、代码审查员、客服专员）、专属知识库与工具集<br>• 支持 动态任务分发 与 上下文感知的 Agent 路由，复杂任务自动拆解、分派、汇总（例如：用户提问 → 需求理解 Agent → 数据查询 Agent → 报告生成 Agent）<br>• 提供 Agent 间通信机制 与 共享记忆总线，确保信息一致性与协作连贯性<br>• 适用于高阶场景：跨部门流程自动化、端到端产品设计、联合故障诊断等 |
-| 🧩 无缝嵌入现有系统 | • 提供 RESTful API 和 前端嵌入组件（iframe / Web SDK）<br>• 无需改造原有系统，5 分钟集成智能问答能力<br>• 提供兼容Open AI的对话接口                                                                                                                                                                                               |
-| 🤖 技能工具 | • 支持 [MCP](https://modelcontextprotocol.io/) 协议，让 AI 理解代码上下文、项目结构、依赖关系<br>• 支持本地代码函数编程工具调用<br>• 支持HTTP接口工具调用<br>• 支持Claude SKILLS技能调用 （内测中）                                                                                                                                                |
+| 🧩 无缝嵌入现有系统 | • 提供 RESTful API 和 前端嵌入组件（iframe / Web SDK）<br>• 无需改造原有系统，5 分钟集成智能问答能力<br>• 提供兼容Open AI的对话接口<br>• 提供兼容steam_http mcp方式接入智能体                                                                                                                                                                |
+| 🤖 技能工具 | • 支持 [MCP](https://modelcontextprotocol.io/) 协议，让 AI 理解代码上下文、项目结构、依赖关系<br>• 支持本地代码函数编程工具调用<br>• 支持HTTP接口工具调用<br>• 支持Claude SKILLS技能调用                                                                                                                                                      |
 | 🎙️ 多模态扩展 | • 语音识别（ASR）、语音合成（TTS）<br>• 图像识别（OCR）、图像生成（Stable Diffusion）                                                                                                                                                                                                                                |
 | 🔒 用户权限管理 | • 细粒度权限控制（应用 / 知识库 / 工具 / 模型）<br>• 审计日志、认证授权（基于 Sa-Token）                                                                                                                                                                                                                                  |
 | 🌱 生态扩展（可扩展性与开箱即用） | • 丰富的智能体模板库：提供数十种预置 Agent 模板（如客服助手、数据分析师、代码导师、会议纪要员等），一键启用，快速适配业务场景。<br>• 灵活的插件化工具市场：支持通过插件机制动态加载功能模块，涵盖：<br>✅ 数据连接器（MySQL、PostgreSQL、MongoDB 等）<br>✅ 第三方服务集成（飞书、钉钉、企业微信）<br>✅ 网络搜素工具（Google Search、SearchApi、SearXNg 等）                                                                   |
@@ -85,8 +85,7 @@ docker-compose up -d
 
 点击以下按钮一键部署：
 
-[![外链图片转存失败,源站可能有防盗链机制,建议将图片保存下来直接上传](https://img-home.csdnimg.cn/images/20230724024159.png?origin_url=https%3A%2F%2Fhzh.sealos.run%2Flogo.svg&pos_id=img-ulndzmCF-1768647863738) ](https://blog.csdn.net/weixin_40986713/article/details/156026021)
-
+[![](https://sealos.run/app_store/img/sealos.svg)](https://blog.csdn.net/weixin_40986713/article/details/156026021)
 </div>
 </details>
 
@@ -139,8 +138,8 @@ docker-compose up -d
 | ☕ 咖啡支持 |  ¥10  | • 添加作者微信 `vxhqqh`<br>• 加入核心交流群（备注"已赞助"）<br>• 项目更新优先通知                                       | 认可项目价值的个人开发者 |
 | 📚 学习会员 |  ¥50  | • 咖啡支持全部权益<br>• 免费加入 [《👉 知识星球🔥》](https://wx.zsxq.com/group/28882525858841)<br>• 星球内问题优先解答 | 希望深度学习的开发者 |
 | 🔧 进阶开发者 | ¥200  | • 学习会员全部权益<br>• 项目部署上线协助 <br>• 技术答疑优先响应 <br>• 参与新功能需求讨论                                     | 想深入理解架构的开发者 |
-| 🏢 企业伙伴 | ¥600  | • 进阶开发者全部权益<br>• V2 完整前后端源码 <br>• 问题售后技术支持                                 | 企业用户/深度使用者 |
-| 👑 战略合作 | ¥1200 | • 企业伙伴全部权益 <br>• 一年内项目免费升级 <br>• 企业 Logo 展示于官网赞助墙                                           | 深度合作伙伴 |
+| 🏢 企业伙伴 | ¥650  | • 进阶开发者全部权益<br>• V2 完整前后端源码 <br>• 问题售后技术支持                                 | 企业用户/深度使用者 |
+| 👑 战略合作 | ¥1299 | • 企业伙伴全部权益 <br>• 一年内项目免费升级 <br>• 企业 Logo 展示于官网赞助墙                                           | 深度合作伙伴 |
 
 
 <table style="border-collapse: collapse; border: 1px solid black;">
@@ -174,8 +173,8 @@ Copyright © 2025–2035 洛阳泰山 TARZAN. All rights reserved.
 ## 🔗 相关资源
 
 - 📘 [开源模型库](https://modelscope.cn/models)
-- 🐦 [MCP广场](https://modelscope.cn/mcp)
-- 🌐 [Skills](https://skills.sh/)
+- 🐦 [MCP 广场](https://modelscope.cn/mcp)
+- 🌐 [Skills 中心](https://modelscope.cn/skills)
 
 >  🌟 **Star 本项目，助力国产开源 AI 生态！** </br>
 > 🎯 **看看这个！👉 [点击了解 AI 大模型应用开发实战！🔥](https://example.com/ai-guide)**

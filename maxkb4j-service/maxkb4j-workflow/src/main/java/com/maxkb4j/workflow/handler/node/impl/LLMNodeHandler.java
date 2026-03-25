@@ -1,5 +1,6 @@
 package com.maxkb4j.workflow.handler.node.impl;
 
+import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.maxkb4j.common.domain.dto.ChatMessageVO;
 import com.maxkb4j.common.domain.dto.MessageConverter;
@@ -61,36 +62,36 @@ public class LLMNodeHandler implements INodeHandler {
         );
         List<String> toolIds = Optional.ofNullable(nodeParams.getToolIds()).orElse(List.of());
         List<String> applicationIds = Optional.ofNullable(nodeParams.getApplicationIds()).orElse(List.of());
-        // 构建 AI 服务
-        AiServices<Assistant> aiServicesBuilder = buildAiServices(workflow,systemPrompt, historyMessages, toolIds,applicationIds);
         // 构建多模态内容（如图片）
         List<Content> contents = buildImageContents(workflow, node, nodeParams.getImageList());
         // 记录上下文用于调试/追踪
         recordNodeDetails(node, systemPrompt, historyMessages, question, contents);
-        StreamingChatModel chatModel = modelFactory.buildStreamingChatModel(
-                nodeParams.getModelId(), nodeParams.getModelParamsSetting()
-        );
-        Assistant assistant = aiServicesBuilder.streamingChatModel(chatModel).build();
+        // 构建 AI 服务
+        Assistant assistant = buildAiServices(nodeParams.getModelId(), nodeParams.getModelParamsSetting(),workflow,systemPrompt, historyMessages, toolIds,applicationIds);
         TokenStream tokenStream = assistant.chatStream(question, contents);
         return writeContextStream(nodeParams, tokenStream, workflow, node);
     }
 
-    private AiServices<Assistant> buildAiServices(Workflow workflow,String systemPrompt, List<ChatMessage> historyMessages, List<String> toolIds, List<String> applicationIds) {
+    private Assistant buildAiServices(String modelId, JSONObject modelParamsSetting, Workflow workflow, String systemPrompt, List<ChatMessage> historyMessages, List<String> toolIds, List<String> applicationIds) {
         AiServices<Assistant> builder = AssistantServices.builder(Assistant.class);
         if (StringUtils.isNotBlank(systemPrompt)) {
-            builder.systemMessageProvider(chatMemoryId -> systemPrompt);
+            builder.systemMessage(systemPrompt);
         }
         if (CollectionUtils.isNotEmpty(historyMessages)) {
             builder.chatMemory(AppChatMemory.withMessages(historyMessages));
         }
-        if (CollectionUtils.isNotEmpty(toolIds)) {
+        if (CollectionUtils.isNotEmpty(toolIds) || CollectionUtils.isNotEmpty(applicationIds)) {
             try {
+                builder.toolProvider(toolProviderService.getSkillsProvider(modelId, toolIds));
                 builder.tools(toolProviderService.getToolMap(toolIds,applicationIds));
             }catch (ApiException e){
                 workflow.getSink().tryEmitError(e);
             }
         }
-        return builder;
+        StreamingChatModel chatModel = modelFactory.buildStreamingChatModel(
+                modelId, modelParamsSetting
+        );
+        return  builder.streamingChatModel(chatModel).build();
     }
 
     private List<Content> buildImageContents(Workflow workflow, AbsNode node, List<String> imageFieldList) {

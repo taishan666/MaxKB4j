@@ -6,8 +6,6 @@ import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.common.domain.dto.ChatResponse;
 import com.maxkb4j.common.enums.ChatUserType;
 import dev.langchain4j.agent.tool.ToolExecutionRequest;
-import dev.langchain4j.invocation.InvocationContext;
-import dev.langchain4j.service.tool.ToolExecutionResult;
 import reactor.core.publisher.Sinks;
 
 import java.util.Map;
@@ -40,9 +38,5 @@ public class AgentExecutor extends AbsToolExecutor{
         return chatResponse.getAnswer();
     }
 
-    @Override
-    public ToolExecutionResult executeWithContext(ToolExecutionRequest request, InvocationContext context) {
-        return super.executeWithContext(request, context);
-    }
 }
 

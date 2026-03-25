@@ -40,7 +40,7 @@ public class QuestionNodeHandler implements INodeHandler {
         String question = workflow.renderPrompt(nodeParams.getPrompt());
         String systemPrompt = workflow.renderPrompt(nodeParams.getSystem());
         Assistant assistant = AssistantServices.builder(Assistant.class)
-                .systemMessageProvider(chatMemoryId -> systemPrompt)
+                .systemMessage(systemPrompt)
                 .chatMemory(AppChatMemory.withMessages(historyMessages))
                 .chatModel(chatModel)
                 .build();

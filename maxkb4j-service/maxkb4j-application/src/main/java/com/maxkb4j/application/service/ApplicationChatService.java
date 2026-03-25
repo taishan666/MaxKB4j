@@ -85,9 +85,7 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
                 throw new ApiException("应用未发布，请发布后使用。");
             }
         }
-        ChatInfo chatInfo = new ChatInfo();
-        chatInfo.setChatId(IdWorker.get32UUID());
-        chatInfo.setAppId(appId);
+        ChatInfo chatInfo = new ChatInfo(IdWorker.get32UUID(),appId);
         ChatCache.put(chatInfo.getChatId(), chatInfo);
         return chatInfo.getChatId();
     }
@@ -97,16 +95,13 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
     public ChatInfo getChatInfo(String chatId,String appId) {
         ChatInfo chatInfo = ChatCache.get(chatId);
         if (chatInfo == null) {
-            chatInfo = new ChatInfo();
-            chatInfo.setChatId(chatId);
-            if (StringUtils.isNotBlank(appId)){
-                chatInfo.setAppId(appId);
-            }else {
+            if (StringUtils.isBlank(appId)){
                 ApplicationChatEntity chatEntity = this.lambdaQuery().select(ApplicationChatEntity::getApplicationId).eq(ApplicationChatEntity::getId, chatId).one();
                 if (chatEntity != null) {
-                    chatInfo.setAppId(chatEntity.getApplicationId());
+                    appId=chatEntity.getApplicationId();
                 }
             }
+            chatInfo = new ChatInfo(chatId,appId);
             List<ApplicationChatRecordEntity> chatRecordList = chatRecordService.lambdaQuery().eq(ApplicationChatRecordEntity::getChatId, chatId).list();
             chatInfo.setChatRecordList(BeanUtil.copyList(chatRecordList, ChatRecordDTO.class));
             ChatCache.put(chatInfo.getChatId(), chatInfo);

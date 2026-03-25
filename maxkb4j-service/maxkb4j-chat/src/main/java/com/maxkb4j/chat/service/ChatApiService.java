@@ -13,10 +13,10 @@ import com.maxkb4j.application.service.IApplicationChatRecordService;
 import com.maxkb4j.application.service.IApplicationChatService;
 import com.maxkb4j.application.service.IApplicationService;
 import com.maxkb4j.application.vo.ApplicationVO;
-import com.maxkb4j.chat.dto.McpRequest;
-import com.maxkb4j.chat.vo.McpResponse;
 import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.common.domain.dto.ChatResponse;
+import com.maxkb4j.common.domain.dto.McpRequest;
+import com.maxkb4j.common.domain.vo.McpResponse;
 import com.maxkb4j.common.enums.ChatUserType;
 import com.maxkb4j.common.util.StpKit;
 import com.maxkb4j.common.util.WebUtil;
@@ -125,8 +125,8 @@ public class ChatApiService {
         McpResponse resp = new McpResponse();
         resp.id = req.id;
         try {
-            if ("initialize".equals(req.method)) {
-                resp.result = Map.of(
+            switch (req.method) {
+                case "initialize" -> resp.result = Map.of(
                         "protocolVersion", "2025-06-18",
                         "serverInfo", Map.of(
                                 "name", "MaxKb4j",
@@ -135,44 +135,43 @@ public class ChatApiService {
                         ),
                         "capabilities", Map.of("tools", Map.of())
                 );
-            } else if ("notifications/initialized".equals(req.method)) {
-                resp.result = Map.of();
-            } else if ("ping".equals(req.method)) {
-                resp.result = Map.of();
-            } else if ("tools/list".equals(req.method)) {
-                ApplicationEntity app=applicationService.lambdaQuery()
-                        .select(ApplicationEntity::getName,ApplicationEntity::getDesc)
-                        .eq(ApplicationEntity::getId, apiKey.getApplicationId()).one();
-                resp.result = Map.of("tools", List.of(
-                        Map.of(
-                                "name",  String.format("agent_%s", apiKey.getApplicationId()),
-                                "description", app.getName()+" - "+app.getDesc(),
-                                "inputSchema", Map.of(
-                                        "type", "object",
-                                        "properties", Map.of("message", Map.of("type", "string", "description", "The message to send to the AI.")),
-                                        "required", List.of("message")
-                                )
-                        )
-                ));
-            } else if ("tools/call".equals(req.method)) {
-                JSONObject args = req.params.getJSONObject("arguments");
-                String message = args.getString("message");
-                String chatId=chatService.chatOpen(apiKey.getApplicationId(),false);
-                ChatParams params = ChatParams.builder()
-                        .message(message)
-                        .reChat(false)
-                        .stream(false)
-                        .chatId(chatId)
-                        .appId(apiKey.getApplicationId())
-                        .chatUserId(IdWorker.get32UUID())
-                        .chatUserType(ChatUserType.ANONYMOUS_USER.name())
-                        .debug(false)
-                        .build();
-                ChatResponse chatResponse = chatService.chatMessage(params, Sinks.many().unicast().onBackpressureBuffer());
-                Map<String, Object> content=Map.of("type","text","text",chatResponse.getAnswer());
-                resp.result=Map.of("content", List.of(content));
-            } else {
-                resp.error = Map.of("code", -32601, "message", "Method not supported");
+                case "notifications/initialized" -> resp.result = Map.of();
+                case "ping" -> resp.result = Map.of();
+                case "tools/list" -> {
+                    ApplicationEntity app = applicationService.lambdaQuery()
+                            .select(ApplicationEntity::getName, ApplicationEntity::getDesc)
+                            .eq(ApplicationEntity::getId, apiKey.getApplicationId()).one();
+                    resp.result = Map.of("tools", List.of(
+                            Map.of(
+                                    "name", String.format("agent_%s", apiKey.getApplicationId()),
+                                    "description", app.getName() + " - " + app.getDesc(),
+                                    "inputSchema", Map.of(
+                                            "type", "object",
+                                            "properties", Map.of("message", Map.of("type", "string", "description", "The message to send to the AI.")),
+                                            "required", List.of("message")
+                                    )
+                            )
+                    ));
+                }
+                case "tools/call" -> {
+                    JSONObject args = req.params.getJSONObject("arguments");
+                    String message = args.getString("message");
+                    String chatId = chatService.chatOpen(apiKey.getApplicationId(), false);
+                    ChatParams params = ChatParams.builder()
+                            .message(message)
+                            .reChat(false)
+                            .stream(false)
+                            .chatId(chatId)
+                            .appId(apiKey.getApplicationId())
+                            .chatUserId(IdWorker.get32UUID())
+                            .chatUserType(ChatUserType.ANONYMOUS_USER.name())
+                            .debug(false)
+                            .build();
+                    ChatResponse chatResponse = chatService.chatMessage(params, Sinks.many().unicast().onBackpressureBuffer());
+                    Map<String, Object> content = Map.of("type", "text", "text", chatResponse.getAnswer());
+                    resp.result = Map.of("content", List.of(content));
+                }
+                case null, default -> resp.error = Map.of("code", -32601, "message", "Method not supported");
             }
         } catch (Exception e) {
             resp.error = Map.of("code", -32000, "message", e.getMessage());

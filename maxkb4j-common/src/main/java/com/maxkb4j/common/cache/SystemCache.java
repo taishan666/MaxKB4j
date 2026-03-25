@@ -18,10 +18,18 @@ public class SystemCache {
     }
 
     public static String getPrivateKey() {
-        return CACHE.get(1).getString("value");
+        JSONObject json = CACHE.get(1);
+        if (json == null){
+            return null;
+        }
+        return json.getString("value");
     }
 
     public static String getPublicKey() {
-        return CACHE.get(1).getString("key");
+        JSONObject json = CACHE.get(1);
+        if (json == null){
+            return null;
+        }
+        return json.getString("key");
     }
 }

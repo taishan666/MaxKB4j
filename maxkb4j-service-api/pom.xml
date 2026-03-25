@@ -17,7 +17,6 @@
         <module>maxkb4j-system-api</module>
         <module>maxkb4j-model-api</module>
         <module>maxkb4j-oss-api</module>
-        <module>maxkb4j-chat-api</module>
         <module>maxkb4j-tool-api</module>
         <module>maxkb4j-user-api</module>
         <module>maxkb4j-knowledge-api</module>

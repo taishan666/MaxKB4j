@@ -1,6 +1,5 @@
 package com.maxkb4j.application.pipeline.step.chatstep.impl;
 
-import com.alibaba.excel.util.StringUtils;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.application.pipeline.PipelineManage;
@@ -23,6 +22,7 @@ import dev.langchain4j.service.AiServices;
 import dev.langchain4j.service.TokenStream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
@@ -45,14 +45,15 @@ public class ChatStep extends AbsChatStep {
         JSONObject params = application.getModelParamsSetting();
         StreamingChatModel chatModel = modelFactory.buildStreamingChatModel(modelId, params);
         String systemText = application.getModelSetting().getSystem();
-        AiServices<Assistant> aiServicesBuilder = AssistantServices.builder(Assistant.class);
-        if (StringUtils.isNotBlank(systemText)) {
-            aiServicesBuilder.systemMessageProvider(chatMemoryId -> systemText);
-        }
         List<String> toolIds = Optional.ofNullable(application.getToolIds()).orElse(List.of());
         List<String> applicationIds = Optional.ofNullable(application.getApplicationIds()).orElse(List.of());
+        AiServices<Assistant> aiServicesBuilder = AssistantServices.builder(Assistant.class);
+        if (StringUtils.isNotBlank(systemText)){
+            aiServicesBuilder.systemMessage(systemText);
+        }
         try {
-            aiServicesBuilder.tools(toolProvider.getToolMap(toolIds,applicationIds));
+            aiServicesBuilder.toolProvider(toolProvider.getSkillsProvider(modelId, toolIds));
+            aiServicesBuilder.tools(toolProvider.getToolMap(toolIds, applicationIds));
         }catch (ApiException e){
             manage.sink.tryEmitError(e);
         }
