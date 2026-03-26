@@ -50,6 +50,10 @@
             <version>${revision}</version>
         </dependency>
         <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-pgvector</artifactId>
+        </dependency>
+        <dependency>
             <groupId>com.huaban</groupId>
             <artifactId>jieba-analysis</artifactId>
         </dependency>

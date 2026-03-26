@@ -1,30 +1,36 @@
 package com.maxkb4j.knowledge.store;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.maxkb4j.common.util.BatchUtil;
+import com.maxkb4j.knowledge.EmbeddingStoreProxy;
 import com.maxkb4j.knowledge.consts.SourceType;
 import com.maxkb4j.knowledge.entity.EmbeddingEntity;
 import com.maxkb4j.knowledge.mapper.EmbeddingMapper;
 import com.maxkb4j.knowledge.retrieval.SearchRequest;
 import com.maxkb4j.knowledge.service.KnowledgeModelService;
-import com.maxkb4j.knowledge.util.TextSegmentUtil;
 import com.maxkb4j.knowledge.vo.TextChunkVO;
+import dev.langchain4j.data.document.Metadata;
 import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.model.output.Response;
+import dev.langchain4j.store.embedding.EmbeddingMatch;
+import dev.langchain4j.store.embedding.EmbeddingSearchRequest;
+import dev.langchain4j.store.embedding.EmbeddingSearchResult;
+import dev.langchain4j.store.embedding.EmbeddingStore;
+import dev.langchain4j.store.embedding.filter.Filter;
+import dev.langchain4j.store.embedding.filter.comparison.IsEqualTo;
+import dev.langchain4j.store.embedding.filter.comparison.IsIn;
+import dev.langchain4j.store.embedding.filter.comparison.IsNotIn;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.stream.Collectors;
+import java.util.Map;
 
 /**
  * PostgreSQL pgvector implementation of VectorStore
@@ -37,16 +43,6 @@ public class VectorStoreImpl implements IDataStore {
     private final EmbeddingMapper embeddingMapper;
     private final KnowledgeModelService knowledgeModelService;
 
-    @Value("${vector.store.batch-size:100}")
-    private int batchSize = 100;
-
-    @Value("${vector.store.retry-times:3}")
-    private int retryTimes = 3;
-
-    @Value("${vector.store.retry-delay-ms:1000}")
-    private int retryDelayMs = 1000;
-
-
     @Override
     public void upsert(EmbeddingModel model, List<EmbeddingEntity> entities) {
         if (entities == null || entities.isEmpty()) {
@@ -55,125 +51,46 @@ public class VectorStoreImpl implements IDataStore {
         // Filter valid entities
         List<EmbeddingEntity> validEntities = entities.stream()
                 .filter(e -> e != null && StringUtils.isNotBlank(e.getContent()))
-                .collect(Collectors.toList());
+                .toList();
 
         if (validEntities.isEmpty()) {
             return;
         }
+        List<TextSegment> textSegments=validEntities.stream().map(e->{
+            Metadata metadata=Metadata.from(Map.of(
+                    "sourceId",e.getSourceId(),
+                    "sourceType",e.getSourceType(),
+                    "knowledgeId",e.getKnowledgeId(),
+                    "documentId",e.getDocumentId(),
+                    "paragraphId",e.getParagraphId(),
+                    "isActive",String.valueOf(e.getIsActive())
+                    ));
+            return TextSegment.from(e.getContent(),metadata);
+        }).toList();
+        List<Embedding> embeddings=model.embedAll(textSegments).content();
         log.debug("Processing {} valid entities for embedding", validEntities.size());
-        // Track successfully processed entities
-        List<EmbeddingEntity> processedEntities = new CopyOnWriteArrayList<>();
-        List<EmbeddingEntity> failedEntities = new CopyOnWriteArrayList<>();
-        // Process in batches with configurable batch size
-        BatchUtil.protectBach(validEntities, batchSize, batch -> {
-            try {
-                processBatchWithRetry(model, batch, processedEntities, failedEntities);
-            } catch (Exception e) {
-                log.error("Failed to process batch after retries: {}", e.getMessage());
-                failedEntities.addAll(batch);
-            }
-        });
-
-        // Insert successfully processed entities into PostgreSQL
-        if (!processedEntities.isEmpty()) {
-            try {
-                embeddingMapper.insert(processedEntities);
-                log.debug("Inserted {} embedding entities into PostgreSQL", processedEntities.size());
-            } catch (Exception e) {
-                log.error("Failed to insert embeddings into PostgreSQL: {}", e.getMessage(), e);
-                throw new RuntimeException("Failed to insert embeddings", e);
-            }
-        }
-        // Log failed entities for later processing
-        if (!failedEntities.isEmpty()) {
-            log.warn("Failed to process {} entities. They can be retried later.", failedEntities.size());
-            // Optionally, store failed entities for later retry
-        }
+        EmbeddingStore<TextSegment> embeddingStore = EmbeddingStoreProxy.get(model.dimension());
+        embeddingStore.addAll(embeddings, textSegments);
     }
-
-
-
-    /**
-     * Process a batch with retry mechanism
-     */
-    private void processBatchWithRetry(EmbeddingModel model, List<EmbeddingEntity> batch,
-                                       List<EmbeddingEntity> processedEntities,
-                                       List<EmbeddingEntity> failedEntities) {
-        Exception lastException = null;
-
-        for (int attempt = 1; attempt <= retryTimes; attempt++) {
-            try {
-                // Create text segments for embedding
-                List<TextSegment> textSegments = batch.stream()
-                        .map(e -> TextSegment.from(e.getContent()))
-                        .toList();
-                // Generate embeddings for the batch
-                Response<List<Embedding>> res = model.embedAll(textSegments);
-                List<Embedding> embeddings = res.content();
-
-                // Update entities with embeddings
-                for (int i = 0; i < batch.size(); i++) {
-                    Embedding embedding = embeddings.get(i);
-                    EmbeddingEntity embeddingEntity = batch.get(i);
-                    embeddingEntity.setEmbedding(embedding.vectorAsList());
-                    embeddingEntity.setContent(TextSegmentUtil.segment(embeddingEntity.getContent()));
-                    embeddingEntity.setDimension(model.dimension());
-                }
-                // Successfully processed
-                processedEntities.addAll(batch);
-                return;
-
-            } catch (Exception e) {
-                lastException = e;
-                log.warn("Batch processing attempt {} failed: {}", attempt, e.getMessage());
-
-                if (attempt < retryTimes) {
-                    try {
-                        Thread.sleep(retryDelayMs);
-                    } catch (InterruptedException ie) {
-                        Thread.currentThread().interrupt();
-                        break;
-                    }
-                }
-            }
-        }
-
-        // All retries failed
-        if (lastException != null) {
-            log.error("All {} retry attempts failed for batch of size {}", retryTimes, batch.size());
-            throw new RuntimeException("Batch processing failed after retries", lastException);
-        }
-    }
-
 
     @Override
     public void deleteByProblemIdAndParagraphId(String knowledgeId, String problemId, String paragraphId) {
-        LambdaQueryWrapper<EmbeddingEntity> queryWrapper = Wrappers.lambdaQuery();
-        queryWrapper.eq(EmbeddingEntity::getKnowledgeId, knowledgeId);
-        queryWrapper.eq(EmbeddingEntity::getParagraphId, paragraphId);
-        queryWrapper.eq(EmbeddingEntity::getSourceId, problemId);
-        embeddingMapper.delete(queryWrapper);
+        Filter filter=new IsEqualTo("knowledgeId",knowledgeId).and(new IsEqualTo("paragraphId",paragraphId)).and(new IsEqualTo("problemId",problemId));
+        EmbeddingStoreProxy.removeAll(filter);
     }
 
     @Override
     public void deleteProblemByIds(String knowledgeId, List<String> problemIds) {
-        LambdaQueryWrapper<EmbeddingEntity> queryWrapper = Wrappers.lambdaQuery();
-        queryWrapper.eq(EmbeddingEntity::getKnowledgeId, knowledgeId);
-        queryWrapper.eq(EmbeddingEntity::getSourceType, SourceType.PROBLEM);
-        queryWrapper.in(EmbeddingEntity::getSourceId, problemIds);
-        embeddingMapper.delete(queryWrapper);
+        Filter filter=new IsEqualTo("knowledgeId",knowledgeId).and(new IsEqualTo("sourceType",SourceType.PROBLEM)).and(new IsIn("problemId",problemIds));
+        EmbeddingStoreProxy.removeAll(filter);
     }
     @Override
     public void deleteByParagraphIds(String knowledgeId, List<String> paragraphIds) {
         if (paragraphIds == null || paragraphIds.isEmpty()) {
             return;
         }
-        LambdaQueryWrapper<EmbeddingEntity> queryWrapper = Wrappers.lambdaQuery();
-        queryWrapper.in(EmbeddingEntity::getParagraphId, paragraphIds);
-        if (knowledgeId != null) {
-            queryWrapper.eq(EmbeddingEntity::getKnowledgeId, knowledgeId);
-        }
-        embeddingMapper.delete(queryWrapper);
+        Filter filter=new IsEqualTo("knowledgeId",knowledgeId).and(new IsIn("paragraphId",paragraphIds));
+        EmbeddingStoreProxy.removeAll(filter);
         log.debug("Deleted embeddings by paragraph IDs: {}", paragraphIds);
     }
 
@@ -182,12 +99,8 @@ public class VectorStoreImpl implements IDataStore {
         if (documentIds == null || documentIds.isEmpty()) {
             return;
         }
-        LambdaQueryWrapper<EmbeddingEntity> queryWrapper = Wrappers.lambdaQuery();
-        queryWrapper.in(EmbeddingEntity::getDocumentId, documentIds);
-        if (knowledgeId != null) {
-            queryWrapper.eq(EmbeddingEntity::getKnowledgeId, knowledgeId);
-        }
-        embeddingMapper.delete(queryWrapper);
+        Filter filter=new IsEqualTo("knowledgeId",knowledgeId).and(new IsIn("documentId",documentIds));
+        EmbeddingStoreProxy.removeAll(filter);
         log.debug("Deleted embeddings by document IDs: {}", documentIds);
     }
 
@@ -196,9 +109,8 @@ public class VectorStoreImpl implements IDataStore {
         if (knowledgeId == null) {
             return;
         }
-        LambdaQueryWrapper<EmbeddingEntity> queryWrapper = Wrappers.lambdaQuery();
-        queryWrapper.eq(EmbeddingEntity::getKnowledgeId, knowledgeId);
-        embeddingMapper.delete(queryWrapper);
+        Filter filter=new IsEqualTo("knowledgeId",knowledgeId);
+        EmbeddingStoreProxy.removeAll(filter);
         log.debug("Deleted embeddings for knowledge ID: {}", knowledgeId);
     }
 
@@ -231,16 +143,25 @@ public class VectorStoreImpl implements IDataStore {
             // Generate embedding for query
             Response<Embedding> res = embeddingModel.embed(request.getQuery());
             float[] queryVector = res.content().vector();
+            EmbeddingStore<TextSegment> embeddingStore = EmbeddingStoreProxy.get(embeddingModel.dimension());
+            Filter filter=new IsIn("knowledgeId",request.getKnowledgeIds());
+            if (CollectionUtils.isNotEmpty(request.getExcludeDocumentIds())){
+                filter.and(new IsNotIn("documentId",request.getExcludeDocumentIds()));
+            }
+            if (CollectionUtils.isNotEmpty(request.getExcludeParagraphIds())){
+                filter.and(new IsNotIn("paragraphId",request.getExcludeParagraphIds()));
+            }
+            EmbeddingSearchResult<TextSegment> result= embeddingStore.search(EmbeddingSearchRequest.builder()
+                    .filter(filter)
+                    .queryEmbedding(Embedding.from(queryVector))
+                    .minScore((double) request.getMinScore())
+                    .maxResults(request.getTopK())
+                    .build());
+            List<EmbeddingMatch<TextSegment>> matches = result.matches();
             // Perform vector search
-            return embeddingMapper.embeddingSearch(
-                    request.getKnowledgeIds(),
-                    request.getExcludeDocumentIds(),
-                    request.getExcludeParagraphIds(),
-                    request.getTopK(),
-                    request.getMinScore(),
-                    queryVector,
-                    embeddingModel.dimension()
-            );
+            return matches.stream()
+                    .map(match -> new TextChunkVO(match.embedded().metadata().getString("paragraphId"), match.score().floatValue()))
+                    .toList();
         } catch (Exception e) {
             log.error("Vector search failed: {}", e.getMessage(), e);
             throw new RuntimeException("Vector search service error", e);
