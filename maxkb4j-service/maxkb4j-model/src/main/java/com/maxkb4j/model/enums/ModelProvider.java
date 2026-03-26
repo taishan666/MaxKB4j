@@ -9,34 +9,61 @@ import java.util.Map;
 
 @Getter
 public enum ModelProvider {
-    AliYunBaiLian("阿里百练", "AliYunBaiLian", "qwen_icon.svg",new AliYunBaiLianModelProvider()),
-    Anthropic("Anthropic", "Anthropic", "anthropic_icon.svg",new AnthropicProvider()),
-    Azure("Azure OpenAI", "Azure","azure_icon.svg", new AzureModelProvider()),
-    DeepSeek("DeepSeek", "DeepSeek", "deepseek_icon.svg",new DeepSeekModelProvider()),
-    Gemini("Google Gemini", "Gemini","gemini_icon.svg", new GeminiModelProvider()),
-    Kimi("Kimi", "Kimi","kimi_icon.svg", new KimiModelProvider()),
-    OpenAI("OpenAI", "OpenAI","openai_icon.svg", new OpenAiModelProvider()),
-    SiliconFlow("Silicon Flow", "SiliconFlow","silicon_flow_icon.svg", new SiliconFlowModelProvider()),
-    Tencent("腾讯混元", "Tencent","tencent_icon.svg", new TencentModelProvider()),
-    VolcanicEngine("火山引擎", "VolcanicEngine","volcanic_engine_icon.svg", new VolcanicEngineModelProvider()),
-    WenXin("文心一言", "WenXin","wenxin_icon.svg", new WenXinModelProvider()),
-    XunFei("讯飞星火", "XunFei", "xf_icon.svg",new XunFeiModelProvider()),
-    ZhiPu("智谱清言", "ZhiPu", "zhipu_ai_icon.svg",new ZhiPuModelProvider()),
-    Local("本地模型", "LocalModel", "local_icon.svg",new LocalModelProvider()),
-   // LocalAI("LocalAI", "LocalAI", "local_ai_icon.svg",new LocalAIModelProvider()),
-    OLlama("OLlama", "OLlama","ollama_icon.svg", new OLlamaModelProvider()),
-    XInference("Xorbits Inference", "XInference","xinference_icon.svg", new XInferenceModelProvider());
+    AliYunBaiLian("阿里百练", "AliYunBaiLian", "qwen_icon.svg"),
+    Anthropic("Anthropic", "Anthropic", "anthropic_icon.svg"),
+    Azure("Azure OpenAI", "Azure","azure_icon.svg"),
+    DeepSeek("DeepSeek", "DeepSeek", "deepseek_icon.svg"),
+    Gemini("Google Gemini", "Gemini","gemini_icon.svg"),
+    Kimi("Kimi", "Kimi","kimi_icon.svg"),
+    OpenAI("OpenAI", "OpenAI","openai_icon.svg"),
+    SiliconFlow("Silicon Flow", "SiliconFlow","silicon_flow_icon.svg"),
+    Tencent("腾讯混元", "Tencent","tencent_icon.svg"),
+    VolcanicEngine("火山引擎", "VolcanicEngine","volcanic_engine_icon.svg"),
+    WenXin("文心一言", "WenXin","wenxin_icon.svg"),
+    XunFei("讯飞星火", "XunFei", "xf_icon.svg"),
+    ZhiPu("智谱清言", "ZhiPu", "zhipu_ai_icon.svg"),
+    Local("本地模型", "LocalModel", "local_icon.svg"),
+   // LocalAI("LocalAI", "LocalAI", "local_ai_icon.svg"),
+    OLlama("OLlama", "OLlama","ollama_icon.svg"),
+    XInference("Xorbits Inference", "XInference","xinference_icon.svg");
 
     private final String name;
     private final String provider;
     private final String icon;
     private final AbsModelProvider modelProvider;
+    // 缓存 ModelProviderInfo 对象，避免重复创建
+    private volatile ModelProviderInfo cachedInfo;
 
-    ModelProvider(String name, String provider, String icon, AbsModelProvider modelProvider) {
+    ModelProvider(String name, String provider, String icon) {
         this.name = name;
         this.provider = provider;
         this.icon = icon;
-        this.modelProvider = modelProvider;
+        this.modelProvider = createModelProvider();
+    }
+
+    /**
+     * 创建对应的 ModelProvider 实例
+     * 使用延迟创建避免构造函数中的耗时操作
+     */
+    private AbsModelProvider createModelProvider() {
+        return switch (this) {
+            case AliYunBaiLian -> new AliYunBaiLianModelProvider();
+            case Anthropic -> new AnthropicProvider();
+            case Azure -> new AzureModelProvider();
+            case DeepSeek -> new DeepSeekModelProvider();
+            case Gemini -> new GeminiModelProvider();
+            case Kimi -> new KimiModelProvider();
+            case OpenAI -> new OpenAiModelProvider();
+            case SiliconFlow -> new SiliconFlowModelProvider();
+            case Tencent -> new TencentModelProvider();
+            case VolcanicEngine -> new VolcanicEngineModelProvider();
+            case WenXin -> new WenXinModelProvider();
+            case XunFei -> new XunFeiModelProvider();
+            case ZhiPu -> new ZhiPuModelProvider();
+            case Local -> new LocalModelProvider();
+            case OLlama -> new OLlamaModelProvider();
+            case XInference -> new XInferenceModelProvider();
+        };
     }
 
     private static final Map<String, AbsModelProvider> PROVIDER_MAP = new HashMap<>();
@@ -56,6 +83,13 @@ public enum ModelProvider {
 
 
     public ModelProviderInfo getInfo() {
-        return new ModelProviderInfo(this.provider, this.name, this.icon);
+        if (cachedInfo == null) {
+            synchronized (this) {
+                if (cachedInfo == null) {
+                    cachedInfo = new ModelProviderInfo(this.provider, this.name, this.icon);
+                }
+            }
+        }
+        return cachedInfo;
     }
 }

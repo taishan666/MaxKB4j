@@ -33,10 +33,21 @@ import java.util.Optional;
  */
 public abstract class AbsModelProvider {
 
-    private final HttpClientBuilder httpClientBuilder;
+    private volatile HttpClientBuilder httpClientBuilder;
 
     protected AbsModelProvider() {
-        this.httpClientBuilder = buildHttpClientBuilder();
+        // 延迟初始化 HTTP 客户端，避免构造函数中耗时操作
+    }
+
+    protected HttpClientBuilder getHttpClientBuilder() {
+        if (httpClientBuilder == null) {
+            synchronized (this) {
+                if (httpClientBuilder == null) {
+                    httpClientBuilder = buildHttpClientBuilder();
+                }
+            }
+        }
+        return httpClientBuilder;
     }
 
     protected HttpClientBuilder buildHttpClientBuilder() {
@@ -44,10 +55,6 @@ public abstract class AbsModelProvider {
                 .requestFactory(new HttpComponentsClientHttpRequestFactory());
         return SpringRestClient.builder()
                 .restClientBuilder(restClientBuilder);
-    }
-
-    protected HttpClientBuilder getHttpClientBuilder() {
-        return httpClientBuilder;
     }
 
     /**

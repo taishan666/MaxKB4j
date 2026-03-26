@@ -38,7 +38,6 @@ public class TriggerScheduler implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) {
-        log.info("Loading scheduled triggers on application startup...");
         loadAndScheduleAllTriggers();
     }
 
@@ -51,6 +50,7 @@ public class TriggerScheduler implements ApplicationRunner {
             log.info("No active scheduled triggers found");
             return;
         }
+        log.info("Loading scheduled triggers on application startup...");
         for (EventTriggerEntity trigger : triggers) {
             try {
                 scheduleTrigger(trigger);

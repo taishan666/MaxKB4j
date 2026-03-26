@@ -67,6 +67,9 @@ public class ModelController{
 	@GetMapping("/model/{id}/model_params_form")
 	public R<JSONArray> modelParamsForm(@PathVariable String id){
 		ModelEntity modelEntity= modelService.getById(id);
+		if (modelEntity==null){
+			return R.data(new JSONArray());
+		}
 		return R.success(modelEntity.getModelParamsForm());
 	}
 
