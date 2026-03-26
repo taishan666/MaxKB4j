@@ -49,10 +49,10 @@ public class RetrieveService implements IRetrieveService{
         if (CollectionUtils.isEmpty(paragraphIds)) {
             return Collections.emptyList();
         }
-        Map<String, Float> map = list.stream().collect(Collectors.toMap(TextChunkVO::getParagraphId, TextChunkVO::getScore));
+        Map<String, Double> map = list.stream().collect(Collectors.toMap(TextChunkVO::getParagraphId, TextChunkVO::getScore));
         List<ParagraphVO> paragraphs = paragraphMapper.retrievalParagraph(paragraphIds);
         paragraphs.forEach(e -> {
-            float score = map.get(e.getId());
+            double score = map.get(e.getId());
             e.setSimilarity(score);
             e.setComprehensiveScore(score);
             if (e.getDocumentName()==null){

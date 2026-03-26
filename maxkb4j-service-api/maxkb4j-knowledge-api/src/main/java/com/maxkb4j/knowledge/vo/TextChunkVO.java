@@ -10,5 +10,5 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class TextChunkVO {
     private String paragraphId;
-    private Float score;
+    private Double score;
 }

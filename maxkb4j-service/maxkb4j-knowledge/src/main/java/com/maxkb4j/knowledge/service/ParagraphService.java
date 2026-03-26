@@ -159,7 +159,7 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
             documentMapper.updateCharLengthById(docId);
             eventPublisher.publishEvent(new ParagraphIndexEvent(this, knowledgeId,docId,List.of(paragraph.getId())));
         }
-        compositeStore.updateActiveStatus(knowledgeId,paragraph.getId(),paragraph.getIsActive());
+      //  compositeStore.updateActiveStatus(knowledgeId,paragraph.getId(),paragraph.getIsActive());
     }
 
 

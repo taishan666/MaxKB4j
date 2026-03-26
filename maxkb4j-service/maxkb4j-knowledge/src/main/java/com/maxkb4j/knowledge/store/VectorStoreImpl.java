@@ -29,8 +29,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * PostgreSQL pgvector implementation of VectorStore
@@ -62,8 +64,7 @@ public class VectorStoreImpl implements IDataStore {
                     "sourceType",e.getSourceType(),
                     "knowledgeId",e.getKnowledgeId(),
                     "documentId",e.getDocumentId(),
-                    "paragraphId",e.getParagraphId(),
-                    "isActive",String.valueOf(e.getIsActive())
+                    "paragraphId",e.getParagraphId()
                     ));
             return TextSegment.from(e.getContent(),metadata);
         }).toList();
@@ -75,13 +76,13 @@ public class VectorStoreImpl implements IDataStore {
 
     @Override
     public void deleteByProblemIdAndParagraphId(String knowledgeId, String problemId, String paragraphId) {
-        Filter filter=new IsEqualTo("knowledgeId",knowledgeId).and(new IsEqualTo("paragraphId",paragraphId)).and(new IsEqualTo("problemId",problemId));
+        Filter filter=new IsEqualTo("knowledgeId",knowledgeId).and(new IsEqualTo("paragraphId",paragraphId)).and(new IsEqualTo("sourceId",problemId));
         EmbeddingStoreProxy.removeAll(filter);
     }
 
     @Override
     public void deleteProblemByIds(String knowledgeId, List<String> problemIds) {
-        Filter filter=new IsEqualTo("knowledgeId",knowledgeId).and(new IsEqualTo("sourceType",SourceType.PROBLEM)).and(new IsIn("problemId",problemIds));
+        Filter filter=new IsEqualTo("knowledgeId",knowledgeId).and(new IsEqualTo("sourceType",SourceType.PROBLEM)).and(new IsIn("sourceId",problemIds));
         EmbeddingStoreProxy.removeAll(filter);
     }
     @Override
@@ -116,6 +117,7 @@ public class VectorStoreImpl implements IDataStore {
 
     @Override
     public void updateActiveStatus(String knowledgeId, String paragraphId, boolean isActive) {
+        Filter filter=new IsEqualTo("knowledgeId",knowledgeId).and(new IsEqualTo("paragraphId",paragraphId)).and(new IsEqualTo("isActive",String.valueOf(isActive)));
         LambdaUpdateWrapper<EmbeddingEntity> updateWrapper = Wrappers.lambdaUpdate();
         updateWrapper.set(EmbeddingEntity::getIsActive, isActive)
                 .eq(EmbeddingEntity::getKnowledgeId, knowledgeId)
@@ -133,8 +135,6 @@ public class VectorStoreImpl implements IDataStore {
             return Collections.emptyList();
         }
         try {
-            // Get embedding model for the first knowledge base
-            // Note: This assumes all knowledge bases in the request use the same embedding model
             EmbeddingModel embeddingModel = getEmbeddingModel(request.getKnowledgeIds().get(0));
             if (embeddingModel == null) {
                 log.warn("No embedding model found for knowledge: {}", request.getKnowledgeIds().get(0));
@@ -142,26 +142,37 @@ public class VectorStoreImpl implements IDataStore {
             }
             // Generate embedding for query
             Response<Embedding> res = embeddingModel.embed(request.getQuery());
-            float[] queryVector = res.content().vector();
             EmbeddingStore<TextSegment> embeddingStore = EmbeddingStoreProxy.get(embeddingModel.dimension());
             Filter filter=new IsIn("knowledgeId",request.getKnowledgeIds());
             if (CollectionUtils.isNotEmpty(request.getExcludeDocumentIds())){
-                filter.and(new IsNotIn("documentId",request.getExcludeDocumentIds()));
+                filter = filter.and(new IsNotIn("documentId",request.getExcludeDocumentIds()));
             }
             if (CollectionUtils.isNotEmpty(request.getExcludeParagraphIds())){
-                filter.and(new IsNotIn("paragraphId",request.getExcludeParagraphIds()));
+                filter = filter.and(new IsNotIn("paragraphId",request.getExcludeParagraphIds()));
             }
             EmbeddingSearchResult<TextSegment> result= embeddingStore.search(EmbeddingSearchRequest.builder()
                     .filter(filter)
-                    .queryEmbedding(Embedding.from(queryVector))
-                    .minScore((double) request.getMinScore())
-                    .maxResults(request.getTopK())
+                    .queryEmbedding(res.content())
+                    .minScore(request.getMinScore())
+                    .maxResults(1000)
                     .build());
             List<EmbeddingMatch<TextSegment>> matches = result.matches();
-            // Perform vector search
-            return matches.stream()
-                    .map(match -> new TextChunkVO(match.embedded().metadata().getString("paragraphId"), match.score().floatValue()))
+            List<TextChunkVO> textChunks = matches.stream()
+                    .map(match -> new TextChunkVO(match.embedded().metadata().getString("paragraphId"), match.score()))
                     .toList();
+            // Deduplicate by paragraphId, keep the one with highest score
+            List<TextChunkVO> distinctChunks = textChunks.stream()
+                    .collect(Collectors.toMap(
+                            TextChunkVO::getParagraphId,
+                            t -> t,
+                            (t1, t2) -> t1.getScore() >= t2.getScore() ? t1 : t2
+                    ))
+                    .values()
+                    .stream()
+                    .sorted(Comparator.comparing(TextChunkVO::getScore).reversed())
+                    .toList();
+            int topK = Math.min(request.getTopK(), distinctChunks.size());
+            return distinctChunks.subList(0, topK);
         } catch (Exception e) {
             log.error("Vector search failed: {}", e.getMessage(), e);
             throw new RuntimeException("Vector search service error", e);

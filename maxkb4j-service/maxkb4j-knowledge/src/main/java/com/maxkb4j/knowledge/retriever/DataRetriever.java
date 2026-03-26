@@ -3,10 +3,12 @@ package com.maxkb4j.knowledge.retriever;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.maxkb4j.knowledge.consts.SearchType;
 import com.maxkb4j.knowledge.entity.DocumentEntity;
+import com.maxkb4j.knowledge.entity.ParagraphEntity;
 import com.maxkb4j.knowledge.retrieval.SearchMode;
 import com.maxkb4j.knowledge.retrieval.SearchRequest;
 import com.maxkb4j.knowledge.retrieval.IDataRetriever;
 import com.maxkb4j.knowledge.service.IDocumentService;
+import com.maxkb4j.knowledge.service.IParagraphService;
 import com.maxkb4j.knowledge.store.IDataStore;
 import com.maxkb4j.knowledge.store.VectorStoreImpl;
 import com.maxkb4j.knowledge.store.FullTextStoreImpl;
@@ -16,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -31,6 +34,7 @@ public class DataRetriever implements IDataRetriever {
     private final FullTextStoreImpl fullTextStore;
     private final CompositeStoreImpl compositeStore;
     private final IDocumentService documentService;
+    private final IParagraphService paragraphService;
 
     private static final Map<String, SearchMode> SEARCH_MODE_MAP = Map.of(
         SearchType.EMBEDDING, SearchMode.VECTOR,
@@ -48,10 +52,19 @@ public class DataRetriever implements IDataRetriever {
         request.setTopK(maxResults);
         request.setMinScore(minScore);
         request.setMode(SEARCH_MODE_MAP.get(searchMode));
-        List<DocumentEntity> excludeDocuments =documentService.lambdaQuery().select(DocumentEntity::getId).in(DocumentEntity::getKnowledgeId, knowledgeIds).eq(DocumentEntity::getIsActive, false).list();
-        if (CollectionUtils.isNotEmpty(excludeDocuments)){
-            request.setExcludeDocumentIds(excludeDocuments.stream().map(DocumentEntity::getId).toList());
+        List<DocumentEntity> noActiveDocuments =documentService.lambdaQuery().select(DocumentEntity::getId).in(DocumentEntity::getKnowledgeId, knowledgeIds).eq(DocumentEntity::getIsActive, false).list();
+        if (CollectionUtils.isNotEmpty(noActiveDocuments)){
+            request.setExcludeDocumentIds(noActiveDocuments.stream().map(DocumentEntity::getId).toList());
         }
+        List<String> finalExcludeParagraphIds=new ArrayList<>();
+        if (CollectionUtils.isNotEmpty(excludeParagraphIds)){
+            finalExcludeParagraphIds.addAll(excludeParagraphIds);
+        }
+        List<ParagraphEntity> noActiveParagraphs =paragraphService.lambdaQuery().select(ParagraphEntity::getId).in(ParagraphEntity::getKnowledgeId, knowledgeIds).eq(ParagraphEntity::getIsActive, false).list();
+        if (CollectionUtils.isNotEmpty(noActiveParagraphs)){
+            finalExcludeParagraphIds.addAll(noActiveParagraphs.stream().map(ParagraphEntity::getId).toList());
+        }
+        request.setExcludeParagraphIds(finalExcludeParagraphIds);
         return getStore(searchMode).search(request);
     }
 

@@ -75,8 +75,7 @@ public class ProblemService extends ServiceImpl<ProblemMapper, ProblemEntity> im
             return;
         }
         // 去重并准备新增问题
-        Map<String, String> problemMap = existingProblems.stream()
-                .collect(Collectors.toMap(ProblemEntity::getContent, ProblemEntity::getId,  (n, o) -> n));
+        Map<String, String> problemMap = existingProblems.stream().collect(Collectors.toMap(ProblemEntity::getContent, ProblemEntity::getId,  (n, o) -> n));
 
         List<ProblemEntity> newProblems = new ArrayList<>();
         List<ProblemParagraphVO> associations = new ArrayList<>();

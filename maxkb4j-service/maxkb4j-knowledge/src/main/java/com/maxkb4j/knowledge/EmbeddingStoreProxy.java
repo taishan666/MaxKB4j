@@ -14,13 +14,13 @@ public class EmbeddingStoreProxy {
 
     private static EmbeddingStore<TextSegment> build(Integer dimension) {
         EmbeddingStore<TextSegment> embeddingStore = PgVectorEmbeddingStore.builder()
-                .host("localhost")                           // Required: Host of the PostgreSQL instance
-                .port(5432)                                  // Required: Port of the PostgreSQL instance
-                .database("MaxKB4J_v2")                        // Required: Database name
-                .user("username")                             // Required: Database user
-                .password("password")                     // Required: Database password
-                .table("embeddings_"+dimension)                      // Required: Table name to store embeddings
-                .dimension(dimension)       // Required: Dimension of embeddings
+                .host("localhost")
+                .port(5432)
+                .database("MaxKB4J_v2")
+                .user("username")
+                .password("password")
+                .table("embeddings_"+dimension)
+                .dimension(dimension)
                 .build();
         embeddingStores.put(dimension, embeddingStore);
         return embeddingStore;

@@ -148,11 +148,11 @@ public class FullTextStoreImpl implements IDataStore {
             if (CollectionUtils.isEmpty(result)) {
                 return Collections.emptyList();
             }
-            float score=result.get(0)==null?0:result.get(0).getScore();
+            double score=result.get(0)==null?0:result.get(0).getScore();
             // Normalize scores
-            float maxScore = Math.max(score, 2);
+            double maxScore = Math.max(score, 2);
             for (EmbeddingEntity entity : result) {
-                float normalizedScore = entity.getScore() / maxScore;
+                double normalizedScore = entity.getScore() / maxScore;
                 entity.setScore(normalizedScore);
             }
             // Filter by minimum score and convert to TextChunkVO

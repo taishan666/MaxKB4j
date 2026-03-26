@@ -44,7 +44,7 @@ public class EmbeddingEntity {
 	private String content;
 	@TableField(exist = false)
 	@TextScore
-	private float score; // 匹配度得分
+	private double score; // 匹配度得分
 	@Transient
 	private Integer dimension;
 

@@ -31,12 +31,12 @@ public class SearchResult {
     /**
      * Maximum similarity score in results
      */
-    private float maxScore;
+    private double maxScore;
 
     /**
      * Minimum similarity score in results
      */
-    private float minScore;
+    private double minScore;
 
     /**
      * Time taken for search in milliseconds
@@ -64,15 +64,13 @@ public class SearchResult {
             return empty();
         }
 
-        float max = Float.MIN_VALUE;
-        float min = Float.MAX_VALUE;
-
+        double max = Double.MIN_VALUE;
+        double min = Double.MAX_VALUE;
         for (TextChunkVO chunk : chunks) {
-            float score = chunk.getScore() != null ? chunk.getScore() : 0.0f;
+            double score = chunk.getScore() != null ? chunk.getScore() : 0.0;
             if (score > max) max = score;
             if (score < min) min = score;
         }
-
         return SearchResult.builder()
                 .chunks(chunks)
                 .total(chunks.size())

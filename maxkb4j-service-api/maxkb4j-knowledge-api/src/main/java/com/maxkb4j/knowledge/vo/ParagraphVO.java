@@ -14,11 +14,11 @@ public class ParagraphVO extends ParagraphEntity {
     private Integer knowledgeType;
     private String documentName;
     private String hitHandlingMethod;
-    private Float similarity;
+    private Double similarity;
     private Float directlyReturnSimilarity;
     @TableField(typeHandler = JSONBTypeHandler.class)
     private JSONObject meta;
-    private Float comprehensiveScore;
+    private Double comprehensiveScore;
 
    public boolean isHitHandlingMethod(){
        return "directlyReturn".equals(hitHandlingMethod)&& similarity>=directlyReturnSimilarity;
