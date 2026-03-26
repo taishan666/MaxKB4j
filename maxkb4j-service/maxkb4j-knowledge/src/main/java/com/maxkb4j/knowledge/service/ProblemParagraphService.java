@@ -59,12 +59,11 @@ public class ProblemParagraphService extends ServiceImpl<ProblemParagraphMapper,
                 .remove();
     }
 
-    //todo 批量创建索引
     public boolean createProblemsIndex(List<ProblemParagraphVO> associations , EmbeddingModel embeddingModel) {
         List<EmbeddingEntity> embeddingEntities=associations.stream().map(e -> EmbeddingEntity.builder()
                 .knowledgeId(e.getKnowledgeId())
                 .documentId(e.getDocumentId())
-                .paragraphId(e.getId())
+                .paragraphId(e.getParagraphId())
                 .sourceId(e.getId())
                 .sourceType(SourceType.PROBLEM)
                 .content(e.getContent())

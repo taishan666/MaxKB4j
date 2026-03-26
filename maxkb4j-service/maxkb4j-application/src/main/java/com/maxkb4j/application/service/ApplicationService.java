@@ -149,6 +149,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
                 ApplicationEntity app = maxKb4j.getApplication();
                 app.setName(application.getName());
                 app.setDesc(application.getDesc());
+                app.setIcon(application.getIcon());
                 saveMk(maxKb4j);
                 return app;
             }
