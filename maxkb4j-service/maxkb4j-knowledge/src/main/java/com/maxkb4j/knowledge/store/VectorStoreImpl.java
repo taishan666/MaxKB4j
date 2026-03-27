@@ -140,6 +140,7 @@ public class VectorStoreImpl implements IDataStore {
             EmbeddingSearchResult<TextSegment> result= embeddingStoreProxy.search(EmbeddingSearchRequest.builder()
                     .filter(filter)
                     .queryEmbedding(res.content())
+                    .query(request.getQuery())
                     .minScore(request.getMinScore())
                     .maxResults(1000)
                     .build());

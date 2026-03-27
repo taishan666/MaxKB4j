@@ -22,12 +22,12 @@ public class EmbeddingStoreProxy {
     private final ConcurrentHashMap<Integer, EmbeddingStore<TextSegment>> embeddingStores = new ConcurrentHashMap<>();
     private final DataSource dataSource;
 
+
     private EmbeddingStore<TextSegment> build(Integer dimension) {
         return PgVectorEmbeddingStore.datasourceBuilder()
                 .datasource(dataSource)
                 .table("embeddings_" + dimension)
                 .dimension(dimension)
-                .searchMode(PgVectorEmbeddingStore.SearchMode.VECTOR)
                 .metadataStorageConfig(DefaultMetadataStorageConfig.builder()
                         .storageMode(MetadataStorageMode.COMBINED_JSONB)
                         .columnDefinitions(Collections.singletonList("metadata JSONB NULL"))
