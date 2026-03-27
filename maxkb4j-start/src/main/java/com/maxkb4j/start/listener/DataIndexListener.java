@@ -52,33 +52,25 @@ public class DataIndexListener {
      */
     private void embedBatch(EmbeddingModel embeddingModel, String docId, List<ParagraphEntity> paragraphs) {
         documentService.updateStatusById(docId, 1, 0);
-
         if (CollectionUtils.isNotEmpty(paragraphs)) {
             log.info("开始--->文档索引: {}", docId);
             documentService.updateStatusById(docId, 1, 1);
-
             List<String> paragraphIds = paragraphs.stream().map(ParagraphEntity::getId).toList();
             paragraphService.updateStatusByIds(paragraphIds, 1, 0);
-
             try {
                 // Use batch indexing instead of processing one by one
                 paragraphService.createIndexBatch(paragraphs, embeddingModel);
-
                 // Update all paragraph statuses to completed
                 paragraphService.updateStatusByIds(paragraphIds, 1, 2);
-
                 // Update document status
                 documentService.updateStatusMetaById(docId);
-
                 log.info("结束--->文档索引: {} (处理了 {} 个段落)", docId, paragraphs.size());
-
             } catch (Exception e) {
                 log.error("文档索引失败: {}, 错误: {}", docId, e.getMessage(), e);
                 // Keep paragraphs in processing state for retry
                 throw new RuntimeException("文档索引失败: " + docId, e);
             }
         }
-
         documentService.updateStatusById(docId, 1, 2);
     }
 }

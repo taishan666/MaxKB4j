@@ -3,13 +3,11 @@ package com.maxkb4j.knowledge.entity;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.maxkb4j.common.typehandler.EmbeddingTypeHandler;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
-import org.springframework.data.annotation.Transient;
 import org.springframework.data.mongodb.core.index.TextIndexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.TextScore;
@@ -32,12 +30,9 @@ public class EmbeddingEntity {
 	private String id;
 	private String sourceId;
 	private Integer sourceType;
-	private Boolean isActive;
 	private String knowledgeId;
 	private String documentId;
 	private String paragraphId;
-	@TableField(typeHandler = EmbeddingTypeHandler.class)
-	@Transient
 	private List<Float> embedding;
 	@TextIndexed
 	@TableField(exist = false)
@@ -45,7 +40,5 @@ public class EmbeddingEntity {
 	@TableField(exist = false)
 	@TextScore
 	private double score; // 匹配度得分
-	@Transient
-	private Integer dimension;
 
 } 

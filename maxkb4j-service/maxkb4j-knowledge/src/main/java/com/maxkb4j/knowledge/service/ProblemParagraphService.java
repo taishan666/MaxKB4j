@@ -67,7 +67,6 @@ public class ProblemParagraphService extends ServiceImpl<ProblemParagraphMapper,
                 .sourceId(e.getId())
                 .sourceType(SourceType.PROBLEM)
                 .content(e.getContent())
-                .isActive(true)
                 .build()).toList();
         compositeStore.upsert(embeddingModel,embeddingEntities);
         return true;

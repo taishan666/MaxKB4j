@@ -100,17 +100,6 @@ public class CompositeStoreImpl implements IDataStore {
         }
     }
 
-    @Override
-    public void updateActiveStatus(String knowledgeId, String paragraphId, boolean isActive) {
-        log.debug("Updating active status for paragraph in both stores");
-        try {
-            vectorStore.updateActiveStatus(knowledgeId, paragraphId, isActive);
-            fullTextStore.updateActiveStatus(knowledgeId, paragraphId, isActive);
-        } catch (Exception e) {
-            log.error("Failed to update active status: {}", e.getMessage(), e);
-            throw new RuntimeException("Failed to update status in vector stores", e);
-        }
-    }
 
     /**
      * Perform hybrid search combining vector and full-text search

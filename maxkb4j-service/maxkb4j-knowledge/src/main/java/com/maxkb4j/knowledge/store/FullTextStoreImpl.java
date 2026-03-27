@@ -15,7 +15,6 @@ import org.springframework.data.mongodb.core.aggregation.Aggregation;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.TextCriteria;
-import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
@@ -88,13 +87,6 @@ public class FullTextStoreImpl implements IDataStore {
         log.debug("Deleted embeddings from MongoDB for knowledge ID: {}", knowledgeId);
     }
 
-    @Override
-    public void updateActiveStatus(String knowledgeId, String paragraphId, boolean isActive) {
-        Query query = new Query(Criteria.where("knowledgeId").is(knowledgeId).and("paragraphId").is(paragraphId));
-        Update update = new Update().set("isActive", isActive);
-        mongoTemplate.updateMulti(query, update, EmbeddingEntity.class);
-        log.debug("Updated active status in MongoDB for paragraph: {} to {}", paragraphId, isActive);
-    }
 
     @Override
     public List<TextChunkVO> search(SearchRequest request) {

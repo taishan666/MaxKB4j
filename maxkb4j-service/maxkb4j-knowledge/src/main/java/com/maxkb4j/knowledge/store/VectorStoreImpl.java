@@ -1,12 +1,9 @@
 package com.maxkb4j.knowledge.store;
 
-import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
-import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.maxkb4j.knowledge.EmbeddingStoreProxy;
 import com.maxkb4j.knowledge.consts.SourceType;
 import com.maxkb4j.knowledge.entity.EmbeddingEntity;
-import com.maxkb4j.knowledge.mapper.EmbeddingMapper;
 import com.maxkb4j.knowledge.retrieval.SearchRequest;
 import com.maxkb4j.knowledge.service.KnowledgeModelService;
 import com.maxkb4j.knowledge.vo.TextChunkVO;
@@ -42,8 +39,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class VectorStoreImpl implements IDataStore {
 
-    private final EmbeddingMapper embeddingMapper;
     private final KnowledgeModelService knowledgeModelService;
+    private final EmbeddingStoreProxy embeddingStoreProxy;
 
     @Override
     public void upsert(EmbeddingModel model, List<EmbeddingEntity> entities) {
@@ -70,20 +67,20 @@ public class VectorStoreImpl implements IDataStore {
         }).toList();
         List<Embedding> embeddings=model.embedAll(textSegments).content();
         log.debug("Processing {} valid entities for embedding", validEntities.size());
-        EmbeddingStore<TextSegment> embeddingStore = EmbeddingStoreProxy.get(model.dimension());
+        EmbeddingStore<TextSegment> embeddingStore = embeddingStoreProxy.get(model.dimension());
         embeddingStore.addAll(embeddings, textSegments);
     }
 
     @Override
     public void deleteByProblemIdAndParagraphId(String knowledgeId, String problemId, String paragraphId) {
         Filter filter=new IsEqualTo("knowledgeId",knowledgeId).and(new IsEqualTo("paragraphId",paragraphId)).and(new IsEqualTo("sourceId",problemId));
-        EmbeddingStoreProxy.removeAll(filter);
+        embeddingStoreProxy.removeAll(filter);
     }
 
     @Override
     public void deleteProblemByIds(String knowledgeId, List<String> problemIds) {
         Filter filter=new IsEqualTo("knowledgeId",knowledgeId).and(new IsEqualTo("sourceType",SourceType.PROBLEM)).and(new IsIn("sourceId",problemIds));
-        EmbeddingStoreProxy.removeAll(filter);
+        embeddingStoreProxy.removeAll(filter);
     }
     @Override
     public void deleteByParagraphIds(String knowledgeId, List<String> paragraphIds) {
@@ -91,7 +88,7 @@ public class VectorStoreImpl implements IDataStore {
             return;
         }
         Filter filter=new IsEqualTo("knowledgeId",knowledgeId).and(new IsIn("paragraphId",paragraphIds));
-        EmbeddingStoreProxy.removeAll(filter);
+        embeddingStoreProxy.removeAll(filter);
         log.debug("Deleted embeddings by paragraph IDs: {}", paragraphIds);
     }
 
@@ -101,7 +98,7 @@ public class VectorStoreImpl implements IDataStore {
             return;
         }
         Filter filter=new IsEqualTo("knowledgeId",knowledgeId).and(new IsIn("documentId",documentIds));
-        EmbeddingStoreProxy.removeAll(filter);
+        embeddingStoreProxy.removeAll(filter);
         log.debug("Deleted embeddings by document IDs: {}", documentIds);
     }
 
@@ -111,20 +108,11 @@ public class VectorStoreImpl implements IDataStore {
             return;
         }
         Filter filter=new IsEqualTo("knowledgeId",knowledgeId);
-        EmbeddingStoreProxy.removeAll(filter);
+        embeddingStoreProxy.removeAll(filter);
         log.debug("Deleted embeddings for knowledge ID: {}", knowledgeId);
     }
 
-    @Override
-    public void updateActiveStatus(String knowledgeId, String paragraphId, boolean isActive) {
-        Filter filter=new IsEqualTo("knowledgeId",knowledgeId).and(new IsEqualTo("paragraphId",paragraphId)).and(new IsEqualTo("isActive",String.valueOf(isActive)));
-        LambdaUpdateWrapper<EmbeddingEntity> updateWrapper = Wrappers.lambdaUpdate();
-        updateWrapper.set(EmbeddingEntity::getIsActive, isActive)
-                .eq(EmbeddingEntity::getKnowledgeId, knowledgeId)
-                .eq(EmbeddingEntity::getParagraphId, paragraphId);
-        embeddingMapper.update(updateWrapper);
-        log.debug("Updated active status for paragraph: {} to {}", paragraphId, isActive);
-    }
+
 
     @Override
     public List<TextChunkVO> search(SearchRequest request) {
@@ -142,7 +130,6 @@ public class VectorStoreImpl implements IDataStore {
             }
             // Generate embedding for query
             Response<Embedding> res = embeddingModel.embed(request.getQuery());
-            EmbeddingStore<TextSegment> embeddingStore = EmbeddingStoreProxy.get(embeddingModel.dimension());
             Filter filter=new IsIn("knowledgeId",request.getKnowledgeIds());
             if (CollectionUtils.isNotEmpty(request.getExcludeDocumentIds())){
                 filter = filter.and(new IsNotIn("documentId",request.getExcludeDocumentIds()));
@@ -150,7 +137,7 @@ public class VectorStoreImpl implements IDataStore {
             if (CollectionUtils.isNotEmpty(request.getExcludeParagraphIds())){
                 filter = filter.and(new IsNotIn("paragraphId",request.getExcludeParagraphIds()));
             }
-            EmbeddingSearchResult<TextSegment> result= embeddingStore.search(EmbeddingSearchRequest.builder()
+            EmbeddingSearchResult<TextSegment> result= embeddingStoreProxy.search(EmbeddingSearchRequest.builder()
                     .filter(filter)
                     .queryEmbedding(res.content())
                     .minScore(request.getMinScore())

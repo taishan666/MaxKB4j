@@ -1,40 +1,49 @@
 package com.maxkb4j.knowledge;
 
 import dev.langchain4j.data.segment.TextSegment;
+import dev.langchain4j.store.embedding.EmbeddingSearchRequest;
+import dev.langchain4j.store.embedding.EmbeddingSearchResult;
 import dev.langchain4j.store.embedding.EmbeddingStore;
 import dev.langchain4j.store.embedding.filter.Filter;
+import dev.langchain4j.store.embedding.pgvector.DefaultMetadataStorageConfig;
+import dev.langchain4j.store.embedding.pgvector.MetadataStorageMode;
 import dev.langchain4j.store.embedding.pgvector.PgVectorEmbeddingStore;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
-import java.util.Map;
+import javax.sql.DataSource;
+import java.util.Collections;
+import java.util.concurrent.ConcurrentHashMap;
 
+@RequiredArgsConstructor
+@Component
 public class EmbeddingStoreProxy {
 
-    static Map<Integer, EmbeddingStore<TextSegment>> embeddingStores = new HashMap<>();
+    private final ConcurrentHashMap<Integer, EmbeddingStore<TextSegment>> embeddingStores = new ConcurrentHashMap<>();
+    private final DataSource dataSource;
 
-    private static EmbeddingStore<TextSegment> build(Integer dimension) {
-        EmbeddingStore<TextSegment> embeddingStore = PgVectorEmbeddingStore.builder()
-                .host("localhost")
-                .port(5432)
-                .database("MaxKB4J_v2")
-                .user("username")
-                .password("password")
-                .table("embeddings_"+dimension)
+    private EmbeddingStore<TextSegment> build(Integer dimension) {
+        return PgVectorEmbeddingStore.datasourceBuilder()
+                .datasource(dataSource)
+                .table("embeddings_" + dimension)
                 .dimension(dimension)
+                .searchMode(PgVectorEmbeddingStore.SearchMode.VECTOR)
+                .metadataStorageConfig(DefaultMetadataStorageConfig.builder()
+                        .storageMode(MetadataStorageMode.COMBINED_JSONB)
+                        .columnDefinitions(Collections.singletonList("metadata JSONB NULL"))
+                        .build())
                 .build();
-        embeddingStores.put(dimension, embeddingStore);
-        return embeddingStore;
     }
 
-    public static EmbeddingStore<TextSegment> get(Integer dimension) {
-        EmbeddingStore<TextSegment> embeddingStore = embeddingStores.get(dimension);
-        if (embeddingStore == null) {
-            embeddingStore = build(dimension);
-        }
-        return embeddingStore;
+    public EmbeddingStore<TextSegment> get(Integer dimension) {
+        return embeddingStores.computeIfAbsent(dimension, this::build);
     }
 
-    public static void removeAll(Filter filter) {
-        embeddingStores.values().forEach(embeddingStore -> embeddingStore.removeAll(filter));
+    public EmbeddingSearchResult<TextSegment> search(EmbeddingSearchRequest searchRequest) {
+        return get(searchRequest.queryEmbedding().dimension()).search(searchRequest);
+    }
+
+    public void removeAll(Filter filter) {
+        embeddingStores.values().forEach(store -> store.removeAll(filter));
     }
 }
