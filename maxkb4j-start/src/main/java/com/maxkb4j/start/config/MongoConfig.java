@@ -1,6 +1,6 @@
 package com.maxkb4j.start.config;
 
-import com.maxkb4j.knowledge.entity.EmbeddingEntity;
+import com.maxkb4j.knowledge.entity.TextChunk;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.mongodb.MongoDatabaseFactory;
@@ -12,7 +12,7 @@ public class MongoConfig {
     @Bean
     public MongoTemplate mongoTemplate(MongoDatabaseFactory factory) {
         MongoTemplate template = new MongoTemplate(factory);
-        template.indexOps(EmbeddingEntity.class).createIndex(
+        template.indexOps(TextChunk.class).createIndex(
                 new TextIndexDefinition.TextIndexDefinitionBuilder()
                         .onField("content")
                         .build()

@@ -1,6 +1,6 @@
 package com.maxkb4j.knowledge.store;
 
-import com.maxkb4j.knowledge.entity.EmbeddingEntity;
+import com.maxkb4j.knowledge.entity.TextChunk;
 import com.maxkb4j.knowledge.retrieval.SearchRequest;
 import com.maxkb4j.knowledge.vo.TextChunkVO;
 import dev.langchain4j.model.embedding.EmbeddingModel;
@@ -17,7 +17,7 @@ public interface IDataStore {
      * @param model embedding model for generating vectors
      * @param entities embedding entities to upsert
      */
-    void upsert(EmbeddingModel model, List<EmbeddingEntity> entities);
+    void upsert(EmbeddingModel model, List<TextChunk> entities);
 
 
     void deleteByProblemIdAndParagraphId(String knowledgeId, String problemId, String paragraphId);

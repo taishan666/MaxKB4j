@@ -1,6 +1,6 @@
 package com.maxkb4j.knowledge.store;
 
-import com.maxkb4j.knowledge.entity.EmbeddingEntity;
+import com.maxkb4j.knowledge.entity.TextChunk;
 import com.maxkb4j.knowledge.retrieval.SearchRequest;
 import com.maxkb4j.knowledge.vo.TextChunkVO;
 import dev.langchain4j.model.embedding.EmbeddingModel;
@@ -25,7 +25,7 @@ public class HybridStoreImpl implements IDataStore {
 
 
     @Override
-    public void upsert(EmbeddingModel model, List<EmbeddingEntity> entities) {
+    public void upsert(EmbeddingModel model, List<TextChunk> entities) {
         if (entities == null || entities.isEmpty()) {
             return;
         }

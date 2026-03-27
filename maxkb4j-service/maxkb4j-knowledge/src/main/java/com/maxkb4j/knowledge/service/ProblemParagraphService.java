@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.maxkb4j.knowledge.consts.SourceType;
-import com.maxkb4j.knowledge.entity.EmbeddingEntity;
+import com.maxkb4j.knowledge.entity.TextChunk;
 import com.maxkb4j.knowledge.entity.ProblemEntity;
 import com.maxkb4j.knowledge.entity.ProblemParagraphEntity;
 import com.maxkb4j.knowledge.mapper.ProblemMapper;
@@ -60,7 +60,7 @@ public class ProblemParagraphService extends ServiceImpl<ProblemParagraphMapper,
     }
 
     public boolean createProblemsIndex(List<ProblemParagraphVO> associations , EmbeddingModel embeddingModel) {
-        List<EmbeddingEntity> embeddingEntities=associations.stream().map(e -> EmbeddingEntity.builder()
+        List<TextChunk> embeddingEntities=associations.stream().map(e -> TextChunk.builder()
                 .knowledgeId(e.getKnowledgeId())
                 .documentId(e.getDocumentId())
                 .paragraphId(e.getParagraphId())

@@ -1,7 +1,7 @@
 package com.maxkb4j.knowledge.store;
 
 import com.maxkb4j.knowledge.consts.SourceType;
-import com.maxkb4j.knowledge.entity.EmbeddingEntity;
+import com.maxkb4j.knowledge.entity.TextChunk;
 import com.maxkb4j.knowledge.retrieval.SearchRequest;
 import com.maxkb4j.knowledge.util.Tokenizer;
 import com.maxkb4j.knowledge.vo.TextChunkVO;
@@ -33,7 +33,7 @@ public class FullTextStoreImpl implements IDataStore {
     private final MongoTemplate mongoTemplate;
 
     @Override
-    public void upsert(EmbeddingModel model, List<EmbeddingEntity> entities) {
+    public void upsert(EmbeddingModel model, List<TextChunk> entities) {
         if (entities == null || entities.isEmpty()) {
             return;
         }
@@ -45,7 +45,7 @@ public class FullTextStoreImpl implements IDataStore {
     @Override
     public void deleteByProblemIdAndParagraphId(String knowledgeId, String problemId, String paragraphId) {
         Query query = new Query(Criteria.where("knowledgeId").is(knowledgeId).and("paragraphId").is(paragraphId).and("sourceId").is(problemId));
-        mongoTemplate.remove(query, EmbeddingEntity.class);
+        mongoTemplate.remove(query, TextChunk.class);
     }
 
     @Override
@@ -54,7 +54,7 @@ public class FullTextStoreImpl implements IDataStore {
             return;
         }
         Query query = new Query(Criteria.where("knowledgeId").is(knowledgeId).and("sourceType").is(SourceType.PROBLEM).and("sourceId").in(problemIds));
-        mongoTemplate.remove(query, EmbeddingEntity.class);
+        mongoTemplate.remove(query, TextChunk.class);
     }
 
     @Override
@@ -63,7 +63,7 @@ public class FullTextStoreImpl implements IDataStore {
             return;
         }
         Query query = new Query(Criteria.where("knowledgeId").is(knowledgeId).and("paragraphId").in(paragraphIds));
-        mongoTemplate.remove(query, EmbeddingEntity.class);
+        mongoTemplate.remove(query, TextChunk.class);
         log.debug("Deleted embeddings from MongoDB by paragraph IDs: {}", paragraphIds);
     }
 
@@ -73,7 +73,7 @@ public class FullTextStoreImpl implements IDataStore {
             return;
         }
         Query query = new Query(Criteria.where("knowledgeId").is(knowledgeId).and("documentId").in(documentIds));
-        mongoTemplate.remove(query, EmbeddingEntity.class);
+        mongoTemplate.remove(query, TextChunk.class);
         log.debug("Deleted embeddings from MongoDB by document IDs: {}", documentIds);
     }
 
@@ -83,7 +83,7 @@ public class FullTextStoreImpl implements IDataStore {
             return;
         }
         Query query = new Query(Criteria.where("knowledgeId").is(knowledgeId));
-        mongoTemplate.remove(query, EmbeddingEntity.class);
+        mongoTemplate.remove(query, TextChunk.class);
         log.debug("Deleted embeddings from MongoDB for knowledge ID: {}", knowledgeId);
     }
 
@@ -131,10 +131,10 @@ public class FullTextStoreImpl implements IDataStore {
                     Aggregation.limit(request.getTopK())
             );
             // Execute aggregation
-            List<EmbeddingEntity> result = mongoTemplate.aggregate(
+            List<TextChunk> result = mongoTemplate.aggregate(
                     aggregation,
-                    mongoTemplate.getCollectionName(EmbeddingEntity.class),
-                    EmbeddingEntity.class
+                    mongoTemplate.getCollectionName(TextChunk.class),
+                    TextChunk.class
             ).getMappedResults();
             if (CollectionUtils.isEmpty(result)) {
                 return Collections.emptyList();
@@ -142,7 +142,7 @@ public class FullTextStoreImpl implements IDataStore {
             double score=result.get(0)==null?0:result.get(0).getScore();
             // Normalize scores
             double maxScore = Math.max(score, 2);
-            for (EmbeddingEntity entity : result) {
+            for (TextChunk entity : result) {
                 double normalizedScore = entity.getScore() / maxScore;
                 entity.setScore(normalizedScore);
             }

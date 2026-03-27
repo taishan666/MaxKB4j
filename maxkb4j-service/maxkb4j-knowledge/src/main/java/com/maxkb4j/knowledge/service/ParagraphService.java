@@ -11,7 +11,7 @@ import com.maxkb4j.core.event.ParagraphIndexEvent;
 import com.maxkb4j.knowledge.consts.SourceType;
 import com.maxkb4j.knowledge.dto.GenerateProblemDTO;
 import com.maxkb4j.knowledge.dto.ParagraphAddDTO;
-import com.maxkb4j.knowledge.entity.EmbeddingEntity;
+import com.maxkb4j.knowledge.entity.TextChunk;
 import com.maxkb4j.knowledge.entity.ParagraphEntity;
 import com.maxkb4j.knowledge.entity.ProblemEntity;
 import com.maxkb4j.knowledge.entity.ProblemParagraphEntity;
@@ -63,7 +63,7 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
         }
         log.info("开始批量索引 {} 个段落", paragraphs.size());
         // Collect all embedding entities for batch processing
-        List<EmbeddingEntity> allEmbeddingEntities = new ArrayList<>();
+        List<TextChunk> allEmbeddingEntities = new ArrayList<>();
         for (ParagraphEntity paragraph : paragraphs) {
             if (paragraph == null) continue;
             // Clear previous vectors
@@ -71,7 +71,7 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
             String title = paragraph.getTitle() != null ? paragraph.getTitle() : "";
             String content = paragraph.getContent() != null ? paragraph.getContent() : "";
             // Create paragraph embedding
-            EmbeddingEntity paragraphEmbed = EmbeddingEntity.builder()
+            TextChunk paragraphEmbed = TextChunk.builder()
                     .knowledgeId(paragraph.getKnowledgeId())
                     .documentId(paragraph.getDocumentId())
                     .paragraphId(paragraph.getId())
@@ -83,7 +83,7 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
             // Create problem embeddings
             List<ProblemEntity> problems = problemParagraphService.getProblemsByParagraphId(paragraph.getId());
             for (ProblemEntity problem : problems) {
-                EmbeddingEntity problemEmbed = EmbeddingEntity.builder()
+                TextChunk problemEmbed = TextChunk.builder()
                         .knowledgeId(paragraph.getKnowledgeId())
                         .documentId(paragraph.getDocumentId())
                         .paragraphId(paragraph.getId())

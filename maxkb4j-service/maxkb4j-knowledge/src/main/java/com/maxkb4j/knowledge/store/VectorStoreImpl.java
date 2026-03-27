@@ -3,7 +3,7 @@ package com.maxkb4j.knowledge.store;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.maxkb4j.knowledge.EmbeddingStoreProxy;
 import com.maxkb4j.knowledge.consts.SourceType;
-import com.maxkb4j.knowledge.entity.EmbeddingEntity;
+import com.maxkb4j.knowledge.entity.TextChunk;
 import com.maxkb4j.knowledge.retrieval.SearchRequest;
 import com.maxkb4j.knowledge.service.KnowledgeModelService;
 import com.maxkb4j.knowledge.vo.TextChunkVO;
@@ -43,12 +43,12 @@ public class VectorStoreImpl implements IDataStore {
     private final EmbeddingStoreProxy embeddingStoreProxy;
 
     @Override
-    public void upsert(EmbeddingModel model, List<EmbeddingEntity> entities) {
+    public void upsert(EmbeddingModel model, List<TextChunk> entities) {
         if (entities == null || entities.isEmpty()) {
             return;
         }
         // Filter valid entities
-        List<EmbeddingEntity> validEntities = entities.stream()
+        List<TextChunk> validEntities = entities.stream()
                 .filter(e -> e != null && StringUtils.isNotBlank(e.getContent()))
                 .toList();
 
