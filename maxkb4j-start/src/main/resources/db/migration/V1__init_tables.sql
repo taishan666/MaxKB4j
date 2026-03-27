@@ -584,8 +584,6 @@ CREATE INDEX "application_folder_user_id" ON "public"."folder" USING btree (
 ALTER TABLE "public"."folder" ADD CONSTRAINT "application_folder_pkey" PRIMARY KEY ("id");
 
 
-
-
 -- ----------------------------
 -- Table structure for tool
 -- ----------------------------
@@ -667,47 +665,6 @@ ALTER TABLE "public"."model" ADD CONSTRAINT "model_name_user_id_uniq" UNIQUE ("n
 -- Primary Key structure for table model
 -- ----------------------------
 ALTER TABLE "public"."model" ADD CONSTRAINT "model_pkey" PRIMARY KEY ("id");
-
-
-
--- ----------------------------
--- Table structure for embedding
--- ----------------------------
-DROP TABLE IF EXISTS "public"."embedding";
-CREATE TABLE "public"."embedding" (
-                                      "id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
-                                      "source_id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
-                                      "source_type" int2 NOT NULL,
-                                      "is_active" bool NOT NULL,
-                                      "embedding" "public"."vector" NOT NULL,
-                                      "knowledge_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
-                                      "document_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
-                                      "paragraph_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
-                                      "search_vector" tsvector,
-                                      "dimension" int4 NOT NULL
-);
-
--- ----------------------------
--- Indexes structure for table embedding
--- ----------------------------
-CREATE INDEX "embedding_knowledge_id" ON "public"."embedding" USING btree (
-    "knowledge_id" COLLATE "pg_catalog"."default" "pg_catalog"."varchar_pattern_ops" ASC NULLS LAST
-    );
-CREATE INDEX "embedding_document_id" ON "public"."embedding" USING btree (
-    "document_id" COLLATE "pg_catalog"."default" "pg_catalog"."varchar_pattern_ops" ASC NULLS LAST
-    );
-CREATE INDEX "embedding_id_like" ON "public"."embedding" USING btree (
-    "id" COLLATE "pg_catalog"."default" "pg_catalog"."varchar_pattern_ops" ASC NULLS LAST
-    );
-CREATE INDEX "embedding_paragraph_id" ON "public"."embedding" USING btree (
-    "paragraph_id" COLLATE "pg_catalog"."default" "pg_catalog"."varchar_pattern_ops" ASC NULLS LAST
-    );
-
--- ----------------------------
--- Primary Key structure for table embedding
--- ----------------------------
-ALTER TABLE "public"."embedding" ADD CONSTRAINT "embedding_pkey" PRIMARY KEY ("id");
-
 
 -- ----------------------------
 -- Table structure for problem_paragraph_mapping
