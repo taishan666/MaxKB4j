@@ -28,7 +28,7 @@ public class ProblemParagraphService extends ServiceImpl<ProblemParagraphMapper,
 
     private final ProblemMapper problemMapper;
     private final KnowledgeModelService knowledgeModelService;
-    private final IDataStore compositeStore;
+    private final IDataStore hybridStore;
 
     public List<ProblemEntity> getProblemsByParagraphId(String paragraphId) {
         return baseMapper.getProblemsByParagraphId(paragraphId);
@@ -50,7 +50,7 @@ public class ProblemParagraphService extends ServiceImpl<ProblemParagraphMapper,
 
     @Transactional
     public boolean unAssociation(String knowledgeId, String docId, String paragraphId, String problemId) {
-        compositeStore.deleteByProblemIdAndParagraphId(knowledgeId,problemId,paragraphId);
+        hybridStore.deleteByProblemIdAndParagraphId(knowledgeId,problemId,paragraphId);
         return this.lambdaUpdate()
                 .eq(ProblemParagraphEntity::getParagraphId, paragraphId)
                 .eq(ProblemParagraphEntity::getProblemId, problemId)
@@ -68,7 +68,7 @@ public class ProblemParagraphService extends ServiceImpl<ProblemParagraphMapper,
                 .sourceType(SourceType.PROBLEM)
                 .content(e.getContent())
                 .build()).toList();
-        compositeStore.upsert(embeddingModel,embeddingEntities);
+        hybridStore.upsert(embeddingModel,embeddingEntities);
         return true;
     }
 }

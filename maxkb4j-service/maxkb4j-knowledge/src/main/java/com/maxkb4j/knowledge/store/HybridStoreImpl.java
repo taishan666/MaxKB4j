@@ -16,9 +16,9 @@ import java.util.concurrent.CompletableFuture;
  * Supports dual-write to both PostgreSQL and MongoDB for data consistency
  */
 @Slf4j
-@Component("compositeStore")
+@Component("hybridStore")
 @RequiredArgsConstructor
-public class CompositeStoreImpl implements IDataStore {
+public class HybridStoreImpl implements IDataStore {
 
     private final VectorStoreImpl vectorStore;
     private final FullTextStoreImpl fullTextStore;
@@ -29,13 +29,9 @@ public class CompositeStoreImpl implements IDataStore {
         if (entities == null || entities.isEmpty()) {
             return;
         }
-        log.debug("Upserting {} entities to both PostgreSQL and MongoDB", entities.size());
         try {
-            // Dual-write: insert to PostgreSQL (with vector embeddings)
             vectorStore.upsert(model, entities);
-            // Insert to MongoDB (for full-text search)
             fullTextStore.upsert(model, entities);
-            log.debug("Successfully upserted {} entities to both stores", entities.size());
         } catch (Exception e) {
             log.error("Failed to upsert entities: {}", e.getMessage(), e);
             throw new RuntimeException("Failed to upsert entities to vector stores", e);

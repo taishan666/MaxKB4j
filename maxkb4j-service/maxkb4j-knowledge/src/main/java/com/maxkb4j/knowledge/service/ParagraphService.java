@@ -41,7 +41,7 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
 
     private final ProblemService problemService;
     private final ProblemParagraphService problemParagraphService;
-    private final IDataStore compositeStore;
+    private final IDataStore hybridStore;
     private final DocumentMapper documentMapper;
     private final ApplicationEventPublisher eventPublisher;
 
@@ -67,7 +67,7 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
         for (ParagraphEntity paragraph : paragraphs) {
             if (paragraph == null) continue;
             // Clear previous vectors
-            compositeStore.deleteByParagraphId(paragraph.getKnowledgeId(), paragraph.getId());
+            hybridStore.deleteByParagraphId(paragraph.getKnowledgeId(), paragraph.getId());
             String title = paragraph.getTitle() != null ? paragraph.getTitle() : "";
             String content = paragraph.getContent() != null ? paragraph.getContent() : "";
             // Create paragraph embedding
@@ -96,7 +96,7 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
         }
         // Batch insert all embeddings
         if (!allEmbeddingEntities.isEmpty()) {
-            compositeStore.upsert(embeddingModel, allEmbeddingEntities);
+            hybridStore.upsert(embeddingModel, allEmbeddingEntities);
             log.info("批量索引完成，共处理 {} 个嵌入实体", allEmbeddingEntities.size());
         }
     }
@@ -115,7 +115,7 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
 
     @Transactional
     public Boolean deleteBatchByIds(String knowledgeId,String docId, List<String> paragraphIds) {
-        compositeStore.deleteByParagraphIds(knowledgeId,paragraphIds);
+        hybridStore.deleteByParagraphIds(knowledgeId,paragraphIds);
         this.removeByIds(paragraphIds);
         return documentMapper.updateCharLengthById(docId);
     }
@@ -240,7 +240,7 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
 
     @Transactional
     public Boolean paragraphMigrate(String sourceKnowledgeId, String sourceDocId, String targetKnowledgeId, String targetDocId, List<String> paragraphIds) {
-        compositeStore.deleteByParagraphIds(sourceKnowledgeId,paragraphIds);
+        hybridStore.deleteByParagraphIds(sourceKnowledgeId,paragraphIds);
         if (sourceKnowledgeId.equals(targetKnowledgeId)){
             problemParagraphService.lambdaUpdate()
                     .in(ProblemParagraphEntity::getParagraphId, paragraphIds)
@@ -299,7 +299,7 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
 
     @Transactional
     public boolean deleteById(String knowledgeId,String paragraphId) {
-        compositeStore.deleteByParagraphId(knowledgeId, paragraphId);
+        hybridStore.deleteByParagraphId(knowledgeId, paragraphId);
         problemParagraphService.lambdaUpdate().eq(ProblemParagraphEntity::getParagraphId, paragraphId).remove();
         return this.removeById(paragraphId);
     }

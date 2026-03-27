@@ -12,7 +12,7 @@ import com.maxkb4j.knowledge.service.IParagraphService;
 import com.maxkb4j.knowledge.store.IDataStore;
 import com.maxkb4j.knowledge.store.VectorStoreImpl;
 import com.maxkb4j.knowledge.store.FullTextStoreImpl;
-import com.maxkb4j.knowledge.store.CompositeStoreImpl;
+import com.maxkb4j.knowledge.store.HybridStoreImpl;
 import com.maxkb4j.knowledge.vo.TextChunkVO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,7 +32,7 @@ public class DataRetriever implements IDataRetriever {
 
     private final VectorStoreImpl vectorStore;
     private final FullTextStoreImpl fullTextStore;
-    private final CompositeStoreImpl compositeStore;
+    private final HybridStoreImpl compositeStore;
     private final IDocumentService documentService;
     private final IParagraphService paragraphService;
 

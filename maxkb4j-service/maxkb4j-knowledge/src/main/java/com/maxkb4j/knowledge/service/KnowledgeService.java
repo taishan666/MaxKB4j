@@ -67,7 +67,7 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
     private final IUserService userService;
     private final IUserResourcePermissionService userResourcePermissionService;
     private final ApplicationEventPublisher eventPublisher;
-    private final IDataStore compositeStore;
+    private final IDataStore hybridStore;
     private final KnowledgeActionService knowledgeActionService;
     private final KnowledgeVersionService knowledgeVersionService;
     private final IWorkFlowActuator workFlowActuator;
@@ -116,7 +116,7 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
         knowledgeVersionService.lambdaQuery().eq(KnowledgeVersionEntity::getKnowledgeId, id);
         knowledgeActionService.lambdaQuery().eq(KnowledgeActionEntity::getKnowledgeId, id);
         userResourcePermissionService.remove(AuthTargetType.KNOWLEDGE, id);
-        compositeStore.deleteByKnowledgeId(id);
+        hybridStore.deleteByKnowledgeId(id);
         return this.removeById(id);
     }
 

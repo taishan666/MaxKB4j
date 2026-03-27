@@ -63,7 +63,7 @@ public class VectorStoreImpl implements IDataStore {
                     "documentId",e.getDocumentId(),
                     "paragraphId",e.getParagraphId()
                     ));
-            return TextSegment.from(e.getContent(),metadata);
+            return TextSegment.from("",metadata);
         }).toList();
         List<Embedding> embeddings=model.embedAll(textSegments).content();
         log.debug("Processing {} valid entities for embedding", validEntities.size());
