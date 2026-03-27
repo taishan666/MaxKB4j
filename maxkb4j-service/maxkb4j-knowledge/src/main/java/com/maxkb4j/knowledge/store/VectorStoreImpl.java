@@ -9,7 +9,7 @@ import com.maxkb4j.knowledge.entity.EmbeddingEntity;
 import com.maxkb4j.knowledge.mapper.EmbeddingMapper;
 import com.maxkb4j.knowledge.retrieval.SearchRequest;
 import com.maxkb4j.knowledge.service.KnowledgeModelService;
-import com.maxkb4j.knowledge.util.TextSegmentUtil;
+import com.maxkb4j.knowledge.util.Tokenizer;
 import com.maxkb4j.knowledge.vo.TextChunkVO;
 import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.data.segment.TextSegment;
@@ -116,7 +116,7 @@ public class VectorStoreImpl implements IDataStore {
                     Embedding embedding = embeddings.get(i);
                     EmbeddingEntity embeddingEntity = batch.get(i);
                     embeddingEntity.setEmbedding(embedding.vectorAsList());
-                    embeddingEntity.setContent(TextSegmentUtil.segment(embeddingEntity.getContent()));
+                    embeddingEntity.setContent(Tokenizer.segment(embeddingEntity.getContent()));
                     embeddingEntity.setDimension(model.dimension());
                 }
                 // Successfully processed

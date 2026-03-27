@@ -12,9 +12,8 @@ import java.util.List;
  * @author tarzan
  * @date 2026-03-02
  */
-public final class TextSegmentUtil {
-
-
+public final class Tokenizer {
+    final static JiebaSegmenter jiebaSegmenter = new JiebaSegmenter();
     /**
      * 对文本进行分词处理
      *
@@ -25,7 +24,6 @@ public final class TextSegmentUtil {
         if (StringUtils.isBlank(text)) {
             return StringUtils.EMPTY;
         }
-        JiebaSegmenter jiebaSegmenter = new JiebaSegmenter();
         List<String> tokens = jiebaSegmenter.sentenceProcess(text);
         return String.join(" ", tokens);
     }

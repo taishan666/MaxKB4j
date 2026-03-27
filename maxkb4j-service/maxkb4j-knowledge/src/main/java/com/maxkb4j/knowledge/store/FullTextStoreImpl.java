@@ -3,7 +3,7 @@ package com.maxkb4j.knowledge.store;
 import com.maxkb4j.knowledge.consts.SourceType;
 import com.maxkb4j.knowledge.entity.EmbeddingEntity;
 import com.maxkb4j.knowledge.retrieval.SearchRequest;
-import com.maxkb4j.knowledge.util.TextSegmentUtil;
+import com.maxkb4j.knowledge.util.Tokenizer;
 import com.maxkb4j.knowledge.vo.TextChunkVO;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import lombok.RequiredArgsConstructor;
@@ -38,6 +38,7 @@ public class FullTextStoreImpl implements IDataStore {
         if (entities == null || entities.isEmpty()) {
             return;
         }
+        entities.forEach(entity -> Tokenizer.segment(entity.getContent()));
         // Insert into MongoDB for full-text search
         mongoTemplate.insertAll(entities);
         log.debug("Inserted {} embedding entities into MongoDB", entities.size());
@@ -107,7 +108,7 @@ public class FullTextStoreImpl implements IDataStore {
         try {
             // Create text criteria for full-text search
             TextCriteria textCriteria = TextCriteria.forDefaultLanguage()
-                    .matching(TextSegmentUtil.segment(request.getQuery()));
+                    .matching(Tokenizer.segment(request.getQuery()));
             Criteria baseCriteria = Criteria.where("knowledgeId").in(request.getKnowledgeIds())
                     .and("isActive").is(true);
             if (!CollectionUtils.isEmpty(request.getExcludeDocumentIds())) {
