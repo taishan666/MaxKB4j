@@ -100,8 +100,7 @@ public class FullTextStoreImpl implements IDataStore {
             // Create text criteria for full-text search
             TextCriteria textCriteria = TextCriteria.forDefaultLanguage()
                     .matching(TextSegmentUtil.segment(request.getQuery()));
-            Criteria baseCriteria = Criteria.where("knowledgeId").in(request.getKnowledgeIds())
-                    .and("isActive").is(true);
+            Criteria baseCriteria = Criteria.where("knowledgeId").in(request.getKnowledgeIds());
             if (!CollectionUtils.isEmpty(request.getExcludeDocumentIds())) {
                 baseCriteria.and("documentId").nin(request.getExcludeDocumentIds());
             }
