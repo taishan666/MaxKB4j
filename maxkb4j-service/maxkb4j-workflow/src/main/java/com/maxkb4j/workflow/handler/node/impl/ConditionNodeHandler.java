@@ -17,24 +17,24 @@ import java.util.Map;
 @NodeHandlerType(NodeType.CONDITION)
 @Component
 @RequiredArgsConstructor
-public class ConditionNodeHandler extends AbstractNodeHandler<ConditionNode.NodeParams> {
+public class ConditionNodeHandler extends AbstractNodeHandler<ConditionNodeParams> {
 
     private final ConditionUtil conditionUtil;
 
     @Override
-    protected Class<ConditionNode.NodeParams> getParamsClass() {
-        return ConditionNode.NodeParams.class;
+    protected Class<ConditionNodeParams> getParamsClass() {
+        return ConditionNodeParams.class;
     }
 
     @Override
-    protected NodeResult doExecute(Workflow workflow, AbsNode node, ConditionNode.NodeParams params) throws Exception {
-        ConditionNode.Branch branch = executeBranch(workflow, params.getBranch());
+    protected NodeResult doExecute(Workflow workflow, AbsNode node, ConditionNodeParams params) throws Exception {
+        ConditionNodeParams.Branch branch = executeBranch(workflow, params.getBranch());
         assert branch != null;
         return buildResult(Map.of("branchId", branch.getId(), "branchName", branch.getType()));
     }
 
-    private ConditionNode.Branch executeBranch(Workflow workflow, List<ConditionNode.Branch> branchList) {
-        for (ConditionNode.Branch branch : branchList) {
+    private ConditionNodeParams.Branch executeBranch(Workflow workflow, List<ConditionNodeParams.Branch> branchList) {
+        for (ConditionNodeParams.Branch branch : branchList) {
             if (conditionUtil.assertion(workflow, branch.getCondition(), branch.getConditions())) {
                 return branch;
             }

@@ -1,6 +1,7 @@
 package com.maxkb4j.workflow.handler;
 
 import com.maxkb4j.workflow.enums.NodeStatus;
+import com.maxkb4j.workflow.exception.ExceptionResolverChain;
 import com.maxkb4j.workflow.handler.node.INodeHandler;
 import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.model.NodeResultFuture;
@@ -28,10 +29,12 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
 
     protected final NodeCenter nodeCenter;
     protected final Executor workflowExecutor;
+    protected final ExceptionResolverChain exceptionResolverChain;
 
-    protected AbsWorkflowHandler(NodeCenter nodeCenter, Executor workflowExecutor) {
+    protected AbsWorkflowHandler(NodeCenter nodeCenter, Executor workflowExecutor, ExceptionResolverChain exceptionResolverChain) {
         this.nodeCenter = nodeCenter;
         this.workflowExecutor = workflowExecutor;
+        this.exceptionResolverChain = exceptionResolverChain;
     }
 
     @Override
@@ -168,7 +171,7 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
 
     /**
      * Handles errors during node execution.
-     * Subclasses can override to customize error handling.
+     * Uses ExceptionResolverChain for unified error handling.
      *
      * @param workflow the workflow context
      * @param node     the node that failed
@@ -176,9 +179,8 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
      * @return NodeResultFuture containing the error
      */
     protected NodeResultFuture handleNodeError(Workflow workflow, AbsNode node, Exception ex) {
-        log.error("error:", ex);
-        node.setErrMessage(ex.getMessage());
-        log.error("NODE: {} Exception :{}", node.getType(), ex.getMessage());
+        // 使用统一的异常解析器链处理异常
+        exceptionResolverChain.resolve(workflow, node, ex);
         return new NodeResultFuture(null, ex, NodeStatus.ERROR.getStatus());
     }
 

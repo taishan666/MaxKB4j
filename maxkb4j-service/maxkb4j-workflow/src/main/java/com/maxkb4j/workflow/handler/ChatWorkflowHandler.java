@@ -1,6 +1,7 @@
 package com.maxkb4j.workflow.handler;
 
 import com.maxkb4j.common.domain.dto.ChatMessageVO;
+import com.maxkb4j.workflow.exception.ExceptionResolverChain;
 import com.maxkb4j.workflow.model.KnowledgeWorkflow;
 import com.maxkb4j.workflow.model.NodeResultFuture;
 import com.maxkb4j.workflow.model.Workflow;
@@ -20,8 +21,9 @@ import java.util.concurrent.Executor;
 public class ChatWorkflowHandler extends AbsWorkflowHandler {
 
     public ChatWorkflowHandler(NodeCenter nodeCenter,
-                               @Qualifier("workflowExecutor") Executor workflowExecutor) {
-        super(nodeCenter, workflowExecutor);
+                               @Qualifier("workflowExecutor") Executor workflowExecutor,
+                               ExceptionResolverChain exceptionResolverChain) {
+        super(nodeCenter, workflowExecutor, exceptionResolverChain);
     }
 
     @Override

@@ -2,6 +2,7 @@ package com.maxkb4j.workflow.handler;
 
 import com.maxkb4j.workflow.enums.ActionStatus;
 import com.maxkb4j.workflow.enums.NodeStatus;
+import com.maxkb4j.workflow.exception.ExceptionResolverChain;
 import com.maxkb4j.workflow.model.KnowledgeWorkflow;
 import com.maxkb4j.workflow.model.Workflow;
 import com.maxkb4j.workflow.node.AbsNode;
@@ -24,8 +25,9 @@ public class KnowledgeWorkflowHandler extends AbsWorkflowHandler {
 
     public KnowledgeWorkflowHandler(NodeCenter nodeCenter,
                                      @Qualifier("workflowExecutor") Executor workflowExecutor,
+                                     ExceptionResolverChain exceptionResolverChain,
                                      IKnowledgeActionService knowledgeActionService) {
-        super(nodeCenter, workflowExecutor);
+        super(nodeCenter, workflowExecutor, exceptionResolverChain);
         this.knowledgeActionService = knowledgeActionService;
     }
 

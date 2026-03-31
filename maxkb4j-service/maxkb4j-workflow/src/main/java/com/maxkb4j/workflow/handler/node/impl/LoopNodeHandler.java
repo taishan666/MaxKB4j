@@ -16,7 +16,7 @@ import com.maxkb4j.workflow.model.LoopWorkFlow;
 import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.model.Workflow;
 import com.maxkb4j.workflow.node.AbsNode;
-import com.maxkb4j.workflow.node.impl.LoopNode;
+import com.maxkb4j.workflow.model.params.LoopNodeParams;
 import com.maxkb4j.workflow.service.IWorkFlowActuator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,19 +37,19 @@ import static com.maxkb4j.workflow.enums.NodeType.*;
 @NodeHandlerType(NodeType.LOOP)
 @Component
 @RequiredArgsConstructor
-public class LoopNodeHandler extends AbstractNodeHandler<LoopNode.NodeParams> {
+public class LoopNodeHandler extends AbstractNodeHandler<LoopNodeParams> {
 
     private final IWorkFlowActuator workFlowActuator;
     private final NodeBuilder nodeBuilder;
 
     @Override
-    protected Class<LoopNode.NodeParams> getParamsClass() {
-        return LoopNode.NodeParams.class;
+    protected Class<LoopNodeParams> getParamsClass() {
+        return LoopNodeParams.class;
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    protected NodeResult doExecute(Workflow workflow, AbsNode node, LoopNode.NodeParams params) throws Exception {
+    protected NodeResult doExecute(Workflow workflow, AbsNode node, LoopNodeParams params) throws Exception {
         String loopType = params.getLoopType();
         List<String> array = params.getArray();
         Integer number = params.getNumber();
