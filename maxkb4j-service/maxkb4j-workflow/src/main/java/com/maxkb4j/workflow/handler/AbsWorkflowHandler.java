@@ -15,6 +15,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * Abstract base class for workflow handlers.
@@ -57,11 +59,23 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
                         () -> runChainNode(workflow, node),
                         workflowExecutor));
             }
-            List<List<AbsNode>> nextNodeLists = futureList.stream()
-                    .map(CompletableFuture::join)
-                    .toList();
-            for (List<AbsNode> nextNodeList : nextNodeLists) {
-                runChainNodes(workflow, nextNodeList);
+            long timeoutSeconds = workflow.getConfiguration().getNodeExecutionTimeoutSeconds();
+            for (int i = 0; i < futureList.size(); i++) {
+                try {
+                    List<AbsNode> nextNodeList = futureList.get(i).get(timeoutSeconds, TimeUnit.SECONDS);
+                    runChainNodes(workflow, nextNodeList);
+                } catch (TimeoutException e) {
+                    log.error("Node execution timeout after {} seconds", timeoutSeconds);
+                    futureList.get(i).cancel(true);
+                    AbsNode node = nodeList.get(i);
+                    node.setErrMessage("Node execution timeout after " + timeoutSeconds + " seconds");
+                    node.setStatus(NodeStatus.ERROR.getStatus());
+                } catch (Exception e) {
+                    log.error("Node execution failed: {}", e.getMessage(), e);
+                    AbsNode node = nodeList.get(i);
+                    node.setErrMessage(e.getMessage());
+                    node.setStatus(NodeStatus.ERROR.getStatus());
+                }
             }
         }
     }

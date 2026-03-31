@@ -47,6 +47,12 @@ public class WorkflowConfiguration {
     private ChatParams chatParams;
 
     /**
+     * 节点执行超时时间（秒）
+     * 默认 60 秒
+     */
+    private long nodeExecutionTimeoutSeconds = 60;
+
+    /**
      * 构造器
      *
      * @param workflowMode 工作流模式

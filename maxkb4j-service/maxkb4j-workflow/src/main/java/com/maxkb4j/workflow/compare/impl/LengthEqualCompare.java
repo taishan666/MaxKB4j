@@ -13,11 +13,11 @@ import java.util.List;
 public class LengthEqualCompare implements Compare {
 
     @Override
-    public boolean compare(Object sourceValue, String targetValue) {
+    public boolean compare(Object sourceValue, Object targetValue) {
         if (sourceValue == null || targetValue == null) {
             return false;
         }
-        int target = Integer.parseInt(targetValue);
+        int target = Integer.parseInt(targetValue.toString());
         if (sourceValue instanceof List<?>) {
             return ((List<?>) sourceValue).size() == target;
         }

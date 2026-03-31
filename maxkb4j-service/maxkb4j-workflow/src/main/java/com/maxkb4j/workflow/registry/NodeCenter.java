@@ -13,7 +13,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 统一节点中心
@@ -35,13 +34,13 @@ public class NodeCenter implements INodeCreator {
     private final NodeRegistry nodeRegistry;
 
     /**
-     * 处理器注册表
+     * 处理器注册表（委托给 NodeHandlerRegistry）
      */
-    private final Map<String, INodeHandler> handlerRegistry;
+    private final NodeHandlerRegistry handlerRegistry;
 
-    public NodeCenter(NodeRegistry nodeRegistry) {
+    public NodeCenter(NodeRegistry nodeRegistry, NodeHandlerRegistry handlerRegistry) {
         this.nodeRegistry = nodeRegistry;
-        this.handlerRegistry = new ConcurrentHashMap<>();
+        this.handlerRegistry = handlerRegistry;
         registerDefaultNodeCreators();
         log.info("NodeCenter initialized with {} node creators", nodeRegistry.size());
     }
@@ -122,54 +121,42 @@ public class NodeCenter implements INodeCreator {
 
     /**
      * 获取处理器
+     * 委托给 NodeHandlerRegistry
      *
      * @param nodeType 节点类型标识
      * @return 处理器实例
      * @throws IllegalStateException 如果处理器不存在
      */
     public INodeHandler getHandler(String nodeType) {
-        INodeHandler handler = handlerRegistry.get(nodeType);
-        if (handler == null) {
-            throw new IllegalStateException("No handler found for node type: " + nodeType);
-        }
-        return handler;
+        return handlerRegistry.get(nodeType);
     }
 
     /**
      * 注册处理器
+     * 委托给 NodeHandlerRegistry
      *
      * @param nodeType 节点类型标识
      * @param handler  处理器实例
      * @return true 如果该类型已有处理器被覆盖
      */
     public boolean registerHandler(String nodeType, INodeHandler handler) {
-        if (nodeType == null || nodeType.isBlank()) {
-            throw new IllegalArgumentException("节点类型不能为空");
-        }
-        if (handler == null) {
-            throw new IllegalArgumentException("处理器不能为 null");
-        }
-        boolean replaced = handlerRegistry.put(nodeType, handler) != null;
-        if (replaced) {
-            log.warn("Node handler for type '{}' was replaced by {}", nodeType, handler.getClass().getSimpleName());
-        } else {
-            log.debug("Registered node handler: {} -> {}", nodeType, handler.getClass().getSimpleName());
-        }
-        return replaced;
+        return handlerRegistry.register(nodeType, handler);
     }
 
     /**
      * 检查是否已注册指定节点类型的处理器
+     * 委托给 NodeHandlerRegistry
      *
      * @param nodeType 节点类型标识
      * @return 是否已注册
      */
     public boolean hasHandler(String nodeType) {
-        return handlerRegistry.containsKey(nodeType);
+        return handlerRegistry.has(nodeType);
     }
 
     /**
      * 获取已注册的处理器数量
+     * 委托给 NodeHandlerRegistry
      *
      * @return 处理器数量
      */
