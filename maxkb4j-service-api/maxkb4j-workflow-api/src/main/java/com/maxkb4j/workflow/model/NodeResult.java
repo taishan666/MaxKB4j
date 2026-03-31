@@ -70,16 +70,16 @@ public class NodeResult {
         if (workflow.output().needsSink()) {
             if (StringUtils.isNotBlank(node.getAnswerText())) {
                 ChatMessageVO vo = node.toChatMessageVO(
-                        workflow.getConfiguration().getChatParams().getChatId(),
-                        workflow.getConfiguration().getChatParams().getChatRecordId(),
+                        workflow.getChatParams().getChatId(),
+                        workflow.getChatParams().getChatRecordId(),
                         streamOutput ? "" : node.getAnswerText(),
                         "",
                         null,
                         false);
                 workflow.output().emit(vo);
                 ChatMessageVO nodeEndVo = node.toChatMessageVO(
-                        workflow.getConfiguration().getChatParams().getChatId(),
-                        workflow.getConfiguration().getChatParams().getChatRecordId(),
+                        workflow.getChatParams().getChatId(),
+                        workflow.getChatParams().getChatRecordId(),
                         "",
                         "",
                         null,

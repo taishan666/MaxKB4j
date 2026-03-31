@@ -127,7 +127,7 @@ public class LoopNodeHandler extends AbstractNodeHandler<LoopNodeParams> {
         Object currentIndex = node.getDetail().get("current_index");
         int startIndex = currentIndex == null ? 0 : (int) currentIndex;
 
-        ChatParams chatParams = workflow.getConfiguration().getChatParams();
+        ChatParams chatParams = workflow.getChatParams();
         if (chatParams.getChildNode() != null) {
             chatParams.setRuntimeNodeId(chatParams.getChildNode().getRuntimeNodeId());
         }
@@ -196,7 +196,7 @@ public class LoopNodeHandler extends AbstractNodeHandler<LoopNodeParams> {
         future.join();
 
         // Process runtime details
-        JSONObject runtimeDetails = processRuntimeDetails(loopWorkflow.getOutputManager().getRuntimeDetails(), startIndex);
+        JSONObject runtimeDetails = processRuntimeDetails(loopWorkflow.output().runtimeDetails(), startIndex);
 
         return new LoopIterationResult(runtimeDetails, isInterruptExec.get());
     }
@@ -229,8 +229,8 @@ public class LoopNodeHandler extends AbstractNodeHandler<LoopNodeParams> {
             childNode.set(new ChildNode(e.getChatRecordId(), runtimeNodeId));
 
             ChatMessageVO vo = node.toChatMessageVO(
-                    workflow.getConfiguration().getChatParams().getChatId(),
-                    workflow.getConfiguration().getChatParams().getChatRecordId(),
+                    workflow.getChatParams().getChatId(),
+                    workflow.getChatParams().getChatRecordId(),
                     e.getContent(),
                     e.getReasoningContent(),
                     childNode.get(),
@@ -249,8 +249,8 @@ public class LoopNodeHandler extends AbstractNodeHandler<LoopNodeParams> {
      */
     private void sendLoopEndMessage(AbsNode node, Workflow workflow, AtomicReference<ChildNode> childNode) {
         ChatMessageVO vo = node.toChatMessageVO(
-                workflow.getConfiguration().getChatParams().getChatId(),
-                workflow.getConfiguration().getChatParams().getChatRecordId(),
+                workflow.getChatParams().getChatId(),
+                workflow.getChatParams().getChatRecordId(),
                 "",
                 "",
                 childNode.get(),

@@ -39,7 +39,7 @@ public class FormNodeHandler extends AbstractNodeHandler<FormNode.NodeParams> {
             formSetting.put("form_field_list", formFieldList);
             String formRender = "<form_render>" + formSetting + "</form_render>";
             String formContentFormat = params.getFormContentFormat();
-            String answerText = workflow.getTemplateRenderer().render(formContentFormat, Map.of("form", formRender));
+            String answerText = workflow.renderPrompt(formContentFormat, Map.of("form", formRender));
 
             setAnswer(node, answerText);
 

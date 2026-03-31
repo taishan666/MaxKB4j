@@ -43,7 +43,7 @@ public class SearchKnowledgeNodeHandler extends AbstractNodeHandler<SearchKnowle
         String question = getReferenceFieldAsString(workflow, fields);
 
         List<String> excludeParagraphIds = new ArrayList<>();
-        if (workflow.getConfiguration().getChatParams().getReChat()) {
+        if (workflow.getChatParams().getReChat()) {
             excludeParagraphIds = getExcludeParagraphIds(workflow, node.getRuntimeNodeId(), question);
         }
 
@@ -71,7 +71,7 @@ public class SearchKnowledgeNodeHandler extends AbstractNodeHandler<SearchKnowle
     private List<String> getExcludeParagraphIds(Workflow workflow, String runtimeNodeId, String question) {
         List<String> excludeParagraphIds = new ArrayList<>();
         for (ChatRecordDTO chatRecord : workflow.getHistoryChatRecords()) {
-            if (chatRecord.getProblemText().equals(workflow.getConfiguration().getChatParams().getMessage())) {
+            if (chatRecord.getProblemText().equals(workflow.getChatParams().getMessage())) {
                 JSONObject details = chatRecord.getDetails();
                 if (!details.isEmpty()) {
                     JSONObject detail = details.getJSONObject(runtimeNodeId);

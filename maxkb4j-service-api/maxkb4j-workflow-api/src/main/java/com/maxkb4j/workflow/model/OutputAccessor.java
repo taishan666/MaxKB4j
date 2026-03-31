@@ -46,8 +46,8 @@ public class OutputAccessor {
     public void emit(String content, String reasoning, AbsNode node, Workflow workflow) {
         if (output.needsSinkOutput() && node != null) {
             ChatMessageVO vo = node.toChatMessageVO(
-                    workflow.getConfiguration().getChatParams().getChatId(),
-                    workflow.getConfiguration().getChatParams().getChatRecordId(),
+                    workflow.getChatParams().getChatId(),
+                    workflow.getChatParams().getChatRecordId(),
                     content,
                     reasoning,
                     null,

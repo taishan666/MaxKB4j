@@ -40,12 +40,11 @@ public class ApplicationNodeHandler extends AbstractNodeHandler<ApplicationNode.
         return ApplicationNode.NodeParams.class;
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     protected NodeResult doExecute(Workflow workflow, AbsNode node, ApplicationNode.NodeParams params) throws Exception {
         List<String> questionFields = params.getQuestionReferenceAddress();
         String question = getReferenceFieldAsString(workflow, questionFields);
-        ChatParams chatParams = workflow.getConfiguration().getChatParams();
+        ChatParams chatParams = workflow.getChatParams();
         String chatId = chatParams.getChatId() + "_" + params.getApplicationId();
 
         // 获取各种文件列表
@@ -97,8 +96,8 @@ public class ApplicationNodeHandler extends AbstractNodeHandler<ApplicationNode.
                 }
                 ChildNode childNode = new ChildNode(e.getChatRecordId(), e.getRuntimeNodeId());
                 ChatMessageVO vo = node.toChatMessageVO(
-                        workflow.getConfiguration().getChatParams().getChatId(),
-                        workflow.getConfiguration().getChatParams().getChatRecordId(),
+                        workflow.getChatParams().getChatId(),
+                        workflow.getChatParams().getChatRecordId(),
                         e.getContent(),
                         e.getReasoningContent(),
                         childNode,

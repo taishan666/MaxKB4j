@@ -204,10 +204,10 @@ public class LLMNodeHandler extends AbstractNodeHandler<AiChatNodeParams> {
     }
 
     private void emitMessage(Workflow workflow, AbsNode node, String content, String reasoning) {
-        if (WorkflowMode.APPLICATION.equals(workflow.getConfiguration().getWorkflowMode())) {
+        if (WorkflowMode.APPLICATION.equals(workflow.getWorkflowMode())) {
             ChatMessageVO vo = node.toChatMessageVO(
-                    workflow.getConfiguration().getChatParams().getChatId(),
-                    workflow.getConfiguration().getChatParams().getChatRecordId(),
+                    workflow.getChatParams().getChatId(),
+                    workflow.getChatParams().getChatRecordId(),
                     content,
                     reasoning,
                     null,

@@ -51,8 +51,8 @@ public class LoopWorkFlow extends Workflow {
 
         // 1. 初始化配置
         this.configuration = new WorkflowConfiguration(
-                parentWorkflow.getConfiguration().getWorkflowMode(), nodes, edges);
-        this.configuration.setChatParams(parentWorkflow.getConfiguration().getChatParams());
+                parentWorkflow.configuration.getWorkflowMode(), nodes, edges);
+        this.configuration.setChatParams(parentWorkflow.configuration.getChatParams());
 
         // 2. 复用父工作流的上下文（关键：共享上下文）
         this.workflowContext = parentWorkflow.workflowContext;

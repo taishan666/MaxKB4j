@@ -25,7 +25,7 @@ public class HttpNodeHandler extends AbstractNodeHandler<HttpNodeParams> {
 
     @Override
     protected NodeResult doExecute(Workflow workflow, AbsNode node, HttpNodeParams params) throws Exception {
-        Map<String, Object> variables = workflow.getVariableResolver().getPromptVariables();
+        Map<String, Object> variables = workflow.getPromptVariables();
         HttpRequestExecutor executor = new HttpRequestExecutor(node.getNodeData().toJSONString());
         HttpResponse response = executor.execute(variables);
         ToolHttpRequest request = executor.getData();

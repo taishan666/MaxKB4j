@@ -19,11 +19,11 @@ public class SinkEmitResolver implements NodeExceptionResolver {
 
     @Override
     public boolean resolve(Workflow workflow, AbsNode node, Exception ex) {
-        if (workflow.output().needsSink() && workflow.getConfiguration().getChatParams() != null) {
+        if (workflow.output().needsSink() && workflow.getChatParams() != null) {
             try {
                 ChatMessageVO errVo = node.toChatMessageVO(
-                        workflow.getConfiguration().getChatParams().getChatId(),
-                        workflow.getConfiguration().getChatParams().getChatRecordId(),
+                        workflow.getChatParams().getChatId(),
+                        workflow.getChatParams().getChatRecordId(),
                         String.format("Exception: %s", ex.getMessage()),
                         "",
                         null,
