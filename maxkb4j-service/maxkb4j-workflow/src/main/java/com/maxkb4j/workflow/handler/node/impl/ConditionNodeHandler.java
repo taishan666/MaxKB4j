@@ -8,6 +8,7 @@ import com.maxkb4j.workflow.model.Workflow;
 import com.maxkb4j.workflow.node.AbsNode;
 import com.maxkb4j.workflow.node.impl.ConditionNode;
 import com.maxkb4j.workflow.util.ConditionUtil;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -15,7 +16,10 @@ import java.util.Map;
 
 @NodeHandlerType(NodeType.CONDITION)
 @Component
+@RequiredArgsConstructor
 public class ConditionNodeHandler extends AbstractNodeHandler<ConditionNode.NodeParams> {
+
+    private final ConditionUtil conditionUtil;
 
     @Override
     protected Class<ConditionNode.NodeParams> getParamsClass() {
@@ -31,7 +35,7 @@ public class ConditionNodeHandler extends AbstractNodeHandler<ConditionNode.Node
 
     private ConditionNode.Branch executeBranch(Workflow workflow, List<ConditionNode.Branch> branchList) {
         for (ConditionNode.Branch branch : branchList) {
-            if (ConditionUtil.assertion(workflow, branch.getCondition(), branch.getConditions())) {
+            if (conditionUtil.assertion(workflow, branch.getCondition(), branch.getConditions())) {
                 return branch;
             }
         }

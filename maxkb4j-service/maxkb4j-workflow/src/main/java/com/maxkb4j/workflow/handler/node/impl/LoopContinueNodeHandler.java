@@ -8,13 +8,17 @@ import com.maxkb4j.workflow.model.Workflow;
 import com.maxkb4j.workflow.node.AbsNode;
 import com.maxkb4j.workflow.node.impl.LoopContinueNode;
 import com.maxkb4j.workflow.util.ConditionUtil;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
 
 @NodeHandlerType(NodeType.LOOP_CONTINUE)
 @Component
+@RequiredArgsConstructor
 public class LoopContinueNodeHandler extends AbstractNodeHandler<LoopContinueNode.NodeParams> {
+
+    private final ConditionUtil conditionUtil;
 
     @Override
     protected Class<LoopContinueNode.NodeParams> getParamsClass() {
@@ -23,7 +27,7 @@ public class LoopContinueNodeHandler extends AbstractNodeHandler<LoopContinueNod
 
     @Override
     protected NodeResult doExecute(Workflow workflow, AbsNode node, LoopContinueNode.NodeParams params) throws Exception {
-        boolean isContinue = ConditionUtil.assertion(workflow, params.getCondition(), params.getConditionList());
+        boolean isContinue = conditionUtil.assertion(workflow, params.getCondition(), params.getConditionList());
 
         if (isContinue) {
             return buildResult(Map.of("is_continue", true, "branchId", "continue"));

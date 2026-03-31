@@ -166,7 +166,8 @@ public abstract class AbstractNodeHandler<P> implements INodeHandler {
         float runTime = (endTime - startTime) / 1000F;
         node.getDetail().put("runTime", runTime);
         node.getDetail().put("endTime", endTime);
-        log.debug("Node {} executed in {} seconds", node.getType(), runTime);
+        String nodeName = node.getProperties() != null ? node.getProperties().getString("nodeName") : node.getType();
+        log.info("node: {}, runTime: {} s", nodeName, runTime);
     }
 
     // ==================== 辅助方法 ====================

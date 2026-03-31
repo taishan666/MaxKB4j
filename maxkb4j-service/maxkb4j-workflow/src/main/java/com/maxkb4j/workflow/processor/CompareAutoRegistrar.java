@@ -6,6 +6,7 @@ import com.maxkb4j.workflow.builder.CompareBuilder;
 import com.maxkb4j.workflow.compare.Compare;
 import com.maxkb4j.workflow.enums.CompareOperator;
 import jakarta.validation.constraints.NotNull;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
@@ -13,11 +14,14 @@ import org.springframework.stereotype.Component;
 
 /**
  * Auto-registers Compare beans annotated with @CompareType to CompareBuilder.
- * Similar to NodeHandlerAutoRegistrar pattern for consistent architecture.
+ * Refactored to inject CompareBuilder as Spring Bean for consistency.
  */
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class CompareAutoRegistrar implements BeanPostProcessor {
+
+    private final CompareBuilder compareBuilder;
 
     @Override
     public Object postProcessAfterInitialization(@NotNull Object bean, @NotNull String beanName) throws BeansException {
@@ -30,7 +34,7 @@ public class CompareAutoRegistrar implements BeanPostProcessor {
                     log.warn("@CompareType on {} has no operators defined", bean.getClass().getName());
                     return bean;
                 }
-                boolean replaced = CompareBuilder.registerHandler(operators, handler);
+                boolean replaced = compareBuilder.registerHandler(operators, handler);
                 if (replaced) {
                     log.info("Compare handlers were replaced by {}", bean.getClass().getSimpleName());
                 }

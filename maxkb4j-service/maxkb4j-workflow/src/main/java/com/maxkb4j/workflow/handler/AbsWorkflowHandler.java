@@ -13,18 +13,33 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 
 /**
  * Abstract base class for workflow handlers.
  * Provides common runNodeFuture logic with template method pattern.
+ * Uses dedicated thread pool for parallel node execution.
  */
 @Slf4j
 public abstract class AbsWorkflowHandler implements IWorkflowHandler {
 
     protected final NodeCenter nodeCenter;
+    protected final Executor workflowExecutor;
 
-    protected AbsWorkflowHandler(NodeCenter nodeCenter) {
+    protected AbsWorkflowHandler(NodeCenter nodeCenter, Executor workflowExecutor) {
         this.nodeCenter = nodeCenter;
+        this.workflowExecutor = workflowExecutor;
+    }
+
+    @Override
+    public void execute(Workflow workflow) {
+        AbsNode currentNode = workflow.getCurrentNode();
+        if (currentNode == null) {
+            currentNode = workflow.getStartNode();
+        }
+        log.info("Workflow started");
+        runChainNodes(workflow, List.of(currentNode));
+        log.info("Workflow completed");
     }
 
     protected void runChainNodes(Workflow workflow, List<AbsNode> nodeList) {
@@ -37,7 +52,9 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
         } else {
             List<CompletableFuture<List<AbsNode>>> futureList = new ArrayList<>();
             for (AbsNode node : nodeList) {
-                futureList.add(CompletableFuture.supplyAsync(() -> runChainNode(workflow, node)));
+                futureList.add(CompletableFuture.supplyAsync(
+                        () -> runChainNode(workflow, node),
+                        workflowExecutor));
             }
             List<List<AbsNode>> nextNodeLists = futureList.stream()
                     .map(CompletableFuture::join)
@@ -78,39 +95,35 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
         return List.of();
     }
 
+    /**
+     * 执行节点
+     * 简化后的执行方法，所有执行逻辑集中在 AbstractNodeHandler.execute()
+     *
+     * Note: AbstractNodeHandler.execute() already handles onError internally,
+     * so we don't need to call it again here to avoid duplicate error handling.
+     *
+     * @param workflow 工作流上下文
+     * @param node     节点实例
+     * @return 执行结果Future
+     */
     protected NodeResultFuture runNodeFuture(Workflow workflow, AbsNode node) {
-        INodeHandler nodeHandler = null;
         try {
-            long startTime = System.currentTimeMillis();
-
             // 获取处理器
-            nodeHandler = nodeCenter.getHandler(node.getType());
+            INodeHandler nodeHandler = nodeCenter.getHandler(node.getType());
 
-            // Hook for pre-execution logic (e.g., status updates)
+            // 调用调度层钩子（用于状态更新等调度逻辑）
             onNodeStart(workflow, node);
 
-            // 调用预处理钩子（接口默认方法）
-            nodeHandler.preExecute(workflow, node);
-
-            // 执行节点
+            // 执行节点 - 所有执行逻辑（包括时间记录、钩子调用、onError）都在 Handler 内部处理
             NodeResult result = nodeHandler.execute(workflow, node);
 
-            // 调用后处理钩子
-            nodeHandler.postExecute(workflow, node, result);
-
-            float runTime = (System.currentTimeMillis() - startTime) / 1000F;
-            node.getDetail().put("runTime", runTime);
-            log.info("node:{}, runTime:{} s", node.getProperties().getString("nodeName"), runTime);
-
-            // Hook for post-execution success logic
+            // 调用调度层成功钩子（用于后续调度逻辑）
             onNodeSuccess(workflow, node, result);
 
             return new NodeResultFuture(result, null, NodeStatus.SUCCESS.getStatus());
+
         } catch (Exception ex) {
-            // 调用错误处理钩子
-            if (nodeHandler != null) {
-                nodeHandler.onError(workflow, node, ex);
-            }
+            // AbstractNodeHandler.execute() already called onError, just handle scheduling-level error
             return handleNodeError(workflow, node, ex);
         }
     }

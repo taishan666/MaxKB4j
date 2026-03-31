@@ -122,5 +122,111 @@ public class NodeResult {
         return this.nodeVariable != null && this.nodeVariable.containsKey("branchId");
     }
 
+    // ==================== Builder Pattern ====================
+
+    /**
+     * Create a new Builder for NodeResult.
+     *
+     * @return a new Builder instance
+     */
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    /**
+     * Builder class for NodeResult.
+     * Provides a fluent API for constructing NodeResult instances.
+     */
+    public static class Builder {
+        private Map<String, Object> variables = new HashMap<>();
+        private boolean streamOutput = false;
+        private IsInterruptFunction isInterrupt = null;
+        private WriteContextFunction writeContextFunc = null;
+        private WriteDetailFunction writeDetailFunc = null;
+
+        /**
+         * Set the node variables.
+         *
+         * @param vars the variables map
+         * @return this builder
+         */
+        public Builder variables(Map<String, Object> vars) {
+            this.variables = vars != null ? vars : new HashMap<>();
+            return this;
+        }
+
+        /**
+         * Add a single variable.
+         *
+         * @param key   the variable key
+         * @param value the variable value
+         * @return this builder
+         */
+        public Builder variable(String key, Object value) {
+            this.variables.put(key, value);
+            return this;
+        }
+
+        /**
+         * Set whether to stream output.
+         *
+         * @param stream true for stream output
+         * @return this builder
+         */
+        public Builder streamOutput(boolean stream) {
+            this.streamOutput = stream;
+            return this;
+        }
+
+        /**
+         * Set the interrupt function.
+         *
+         * @param func the interrupt function
+         * @return this builder
+         */
+        public Builder interrupt(IsInterruptFunction func) {
+            this.isInterrupt = func;
+            return this;
+        }
+
+        /**
+         * Set the write context function.
+         *
+         * @param func the write context function
+         * @return this builder
+         */
+        public Builder writeContext(WriteContextFunction func) {
+            this.writeContextFunc = func;
+            return this;
+        }
+
+        /**
+         * Set the write detail function.
+         *
+         * @param func the write detail function
+         * @return this builder
+         */
+        public Builder writeDetail(WriteDetailFunction func) {
+            this.writeDetailFunc = func;
+            return this;
+        }
+
+        /**
+         * Build the NodeResult instance.
+         *
+         * @return a new NodeResult instance
+         */
+        public NodeResult build() {
+            NodeResult result = new NodeResult(variables, streamOutput, isInterrupt);
+            if (writeContextFunc != null) {
+                result.writeContextFunc = writeContextFunc;
+            }
+            if (writeDetailFunc != null) {
+                result.writeDetailFunc = writeDetailFunc;
+            }
+            return result;
+        }
+    }
+
 
 }

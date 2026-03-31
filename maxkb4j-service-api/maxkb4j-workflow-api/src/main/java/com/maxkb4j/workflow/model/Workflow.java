@@ -57,6 +57,11 @@ public class Workflow {
     private TemplateRenderer templateRenderer;
 
     /**
+     * Edge navigator for graph traversal
+     */
+    private EdgeNavigator edgeNavigator;
+
+    /**
      * Cached node ID to node map for O(1) lookups
      */
     private Map<String, AbsNode> nodeMap;
@@ -97,6 +102,7 @@ public class Workflow {
         this.historyManager = new HistoryManager(chatParams != null ? chatParams.getHistoryChatRecords() : Collections.emptyList());
         this.variableResolver = new VariableResolver(this.workflowContext);
         this.templateRenderer = new TemplateRenderer(this.variableResolver);
+        this.edgeNavigator = new EdgeNavigator(edges);
         // Load node state
         if (chatParams != null && StringUtils.isNotBlank(chatParams.getRuntimeNodeId()) && Objects.nonNull(chatParams.getChatRecord())) {
             if (details != null) {
@@ -207,19 +213,14 @@ public class Workflow {
      * Find upstream node IDs for a given node.
      */
     private List<String> findUpstreamNodeIds(String nodeId) {
-        return edges.stream()
-                .filter(edge -> nodeId.equals(edge.getTargetNodeId()))
-                .map(LfEdge::getSourceNodeId)
-                .toList();
+        return edgeNavigator.findUpstreamNodeIds(nodeId);
     }
 
     /**
      * Find downstream edges for a given node.
      */
     private List<LfEdge> findDownstreamEdges(String nodeId) {
-        return edges.stream()
-                .filter(edge -> nodeId.equals(edge.getSourceNodeId()))
-                .toList();
+        return edgeNavigator.findDownstreamEdges(nodeId);
     }
 
     /**

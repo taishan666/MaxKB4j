@@ -8,19 +8,30 @@ import com.maxkb4j.workflow.node.AbsNode;
 import com.maxkb4j.knowledge.service.IKnowledgeActionService;
 import com.maxkb4j.workflow.registry.NodeCenter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.concurrent.Executor;
 
 @Slf4j
 @Component
+@Order(1)
 public class KnowledgeWorkflowHandler extends AbsWorkflowHandler {
 
     private final IKnowledgeActionService knowledgeActionService;
 
-    public KnowledgeWorkflowHandler(NodeCenter nodeCenter, IKnowledgeActionService knowledgeActionService) {
-        super(nodeCenter);
+    public KnowledgeWorkflowHandler(NodeCenter nodeCenter,
+                                     @Qualifier("workflowExecutor") Executor workflowExecutor,
+                                     IKnowledgeActionService knowledgeActionService) {
+        super(nodeCenter, workflowExecutor);
         this.knowledgeActionService = knowledgeActionService;
+    }
+
+    @Override
+    public boolean canHandle(Workflow workflow) {
+        return workflow instanceof KnowledgeWorkflow;
     }
 
     @Override

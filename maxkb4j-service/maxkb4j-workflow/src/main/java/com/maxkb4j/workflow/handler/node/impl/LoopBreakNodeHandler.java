@@ -8,13 +8,17 @@ import com.maxkb4j.workflow.model.Workflow;
 import com.maxkb4j.workflow.node.AbsNode;
 import com.maxkb4j.workflow.node.impl.LoopBreakNode;
 import com.maxkb4j.workflow.util.ConditionUtil;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
 
 @NodeHandlerType(NodeType.LOOP_BREAK)
 @Component
+@RequiredArgsConstructor
 public class LoopBreakNodeHandler extends AbstractNodeHandler<LoopBreakNode.NodeParams> {
+
+    private final ConditionUtil conditionUtil;
 
     @Override
     protected Class<LoopBreakNode.NodeParams> getParamsClass() {
@@ -23,7 +27,7 @@ public class LoopBreakNodeHandler extends AbstractNodeHandler<LoopBreakNode.Node
 
     @Override
     protected NodeResult doExecute(Workflow workflow, AbsNode node, LoopBreakNode.NodeParams params) throws Exception {
-        boolean isBreak = ConditionUtil.assertion(workflow, params.getCondition(), params.getConditionList());
+        boolean isBreak = conditionUtil.assertion(workflow, params.getCondition(), params.getConditionList());
         putDetail(node, "is_break", isBreak);
 
         if (isBreak) {

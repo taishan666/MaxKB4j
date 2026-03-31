@@ -1,32 +1,33 @@
 package com.maxkb4j.workflow.handler;
 
 import com.maxkb4j.common.domain.dto.ChatMessageVO;
+import com.maxkb4j.workflow.model.KnowledgeWorkflow;
 import com.maxkb4j.workflow.model.NodeResultFuture;
 import com.maxkb4j.workflow.model.Workflow;
 import com.maxkb4j.workflow.node.AbsNode;
 import com.maxkb4j.workflow.registry.NodeCenter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
+import java.util.concurrent.Executor;
 
 @Slf4j
 @Component
+@Order(Ordered.LOWEST_PRECEDENCE)
 public class ChatWorkflowHandler extends AbsWorkflowHandler {
 
-    public ChatWorkflowHandler(NodeCenter nodeCenter) {
-        super(nodeCenter);
+    public ChatWorkflowHandler(NodeCenter nodeCenter,
+                               @Qualifier("workflowExecutor") Executor workflowExecutor) {
+        super(nodeCenter, workflowExecutor);
     }
 
     @Override
-    public void execute(Workflow workflow) {
-        AbsNode currentNode = workflow.getCurrentNode();
-        if (currentNode == null) {
-            currentNode = workflow.getStartNode();
-        }
-        log.info("工作流-开始");
-        runChainNodes(workflow, List.of(currentNode));
-        log.info("工作流-结束");
+    public boolean canHandle(Workflow workflow) {
+        // ChatWorkflowHandler handles all workflows except KnowledgeWorkflow
+        return !(workflow instanceof KnowledgeWorkflow);
     }
 
     @Override
