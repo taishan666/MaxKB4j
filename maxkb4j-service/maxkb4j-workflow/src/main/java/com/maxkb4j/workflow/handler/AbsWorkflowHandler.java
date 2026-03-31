@@ -34,9 +34,9 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
 
     @Override
     public void execute(Workflow workflow) {
-        AbsNode currentNode = workflow.getExecutionController().getCurrentNode();
+        AbsNode currentNode = workflow.execution().currentNode();
         if (currentNode == null) {
-            currentNode = workflow.getExecutionController().getStartNode();
+            currentNode = workflow.execution().startNode();
         }
         log.info("Workflow started");
         runChainNodes(workflow, List.of(currentNode));
@@ -69,7 +69,7 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
 
     protected List<AbsNode> runChainNode(Workflow workflow, AbsNode node) {
         if (NodeStatus.READY.getStatus() == node.getStatus() || NodeStatus.INTERRUPT.getStatus() == node.getStatus()) {
-            if (workflow.getExecutionController().dependentNodeBeenExecuted(node)) {
+            if (workflow.execution().dependenciesExecuted(node)) {
                 NodeResultFuture nodeResultFuture = runNodeFuture(workflow, node);
                 node.setStatus(nodeResultFuture.getStatus());
                 NodeResult nodeResult = nodeResultFuture.getResult();
@@ -81,13 +81,13 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
                     }
                 }
                 // 获取下一个节点列表
-                return workflow.getExecutionController().getNextNodeList(node, nodeResult);
+                return workflow.execution().nextNodes(node, nodeResult);
             }
         } else if (NodeStatus.SKIP.getStatus() == node.getStatus()) {
             // 获取下一个节点列表
-            List<AbsNode> nextNodeList = workflow.getExecutionController().getNextNodeList(node, new NodeResult(java.util.Map.of()));
+            List<AbsNode> nextNodeList = workflow.execution().nextNodes(node, new NodeResult(java.util.Map.of()));
             nextNodeList.forEach(nextNode -> {
-                if (!workflow.getExecutionController().isReadyJoinNode(nextNode)) {
+                if (!workflow.execution().isReadyJoin(nextNode)) {
                     nextNode.setStatus(NodeStatus.SKIP.getStatus());
                 }
             });

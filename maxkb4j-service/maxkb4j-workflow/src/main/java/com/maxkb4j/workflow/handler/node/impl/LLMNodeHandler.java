@@ -98,7 +98,7 @@ public class LLMNodeHandler extends AbstractNodeHandler<AiChatNode.NodeParams> {
                 builder.toolProvider(toolProviderService.getSkillsProvider(modelId, toolIds));
                 builder.tools(toolProviderService.getToolMap(toolIds, applicationIds));
             } catch (ApiException e) {
-                workflow.getOutputManager().emitMessage(null); // Error will be propagated differently
+                workflow.output().emit(null); // Error will be propagated differently
             }
         }
 
@@ -213,7 +213,7 @@ public class LLMNodeHandler extends AbstractNodeHandler<AiChatNode.NodeParams> {
                     null,
                     false
             );
-            workflow.getOutputManager().emitMessage(vo);
+            workflow.output().emit(vo);
         }
     }
 }

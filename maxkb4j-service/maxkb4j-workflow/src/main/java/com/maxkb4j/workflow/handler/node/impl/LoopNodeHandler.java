@@ -238,8 +238,8 @@ public class LoopNodeHandler extends AbstractNodeHandler<LoopNode.NodeParams> {
             vo.setNodeType(e.getNodeType());
             vo.setViewType(e.getViewType());
 
-            if (workflow.getOutputManager().needsSinkOutput()) {
-                workflow.getOutputManager().emitMessage(vo);
+            if (workflow.output().needsSink()) {
+                workflow.output().emit(vo);
             }
         }
     }
@@ -256,8 +256,8 @@ public class LoopNodeHandler extends AbstractNodeHandler<LoopNode.NodeParams> {
                 childNode.get(),
                 false);
 
-        if (workflow.getOutputManager().needsSinkOutput()) {
-            workflow.getOutputManager().emitMessage(vo);
+        if (workflow.output().needsSink()) {
+            workflow.output().emit(vo);
         }
     }
 

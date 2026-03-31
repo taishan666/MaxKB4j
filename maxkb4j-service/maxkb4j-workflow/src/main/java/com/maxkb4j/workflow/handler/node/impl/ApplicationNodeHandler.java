@@ -103,7 +103,7 @@ public class ApplicationNodeHandler extends AbstractNodeHandler<ApplicationNode.
                         e.getReasoningContent(),
                         childNode,
                         false);
-                workflow.getOutputManager().emitMessage(vo);
+                workflow.output().emit(vo);
             });
         }
 

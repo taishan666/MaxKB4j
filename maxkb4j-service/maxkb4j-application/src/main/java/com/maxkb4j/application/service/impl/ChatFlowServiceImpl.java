@@ -33,15 +33,13 @@ public class ChatFlowServiceImpl implements IChatService {
         chatParams.setChatRecordId(chatParams.getChatRecordId() == null ? IdWorker.get32UUID() : chatParams.getChatRecordId());
         LogicFlow logicFlow = LogicFlow.newInstance(application.getWorkFlow());
         List<AbsNode> nodes = logicFlow.getNodes().stream().map(nodeBuilder::getNode).filter(Objects::nonNull).toList();
-        Workflow workflow = new Workflow(
-                WorkflowMode.APPLICATION,
-                nodes,
-                logicFlow.getEdges(),
-                chatParams,
-                sink);
+        Workflow workflow = Workflow.builder(WorkflowMode.APPLICATION, nodes, logicFlow.getEdges())
+                .chatParams(chatParams)
+                .sink(sink)
+                .build();
         workFlowActuator.execute(workflow);
-        List<Answer> answerTextList = workflow.getOutputManager().getAnswerTextList();
-        JSONObject details = workflow.getOutputManager().getRuntimeDetails();
+        List<Answer> answerTextList = workflow.output().answers();
+        JSONObject details = workflow.output().runtimeDetails();
         return new ChatResponse(answerTextList, details);
     }
 

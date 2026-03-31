@@ -67,7 +67,7 @@ public class NodeResult {
             node.getContext().putAll(nodeVariable);
         }
         // Use workflow's output manager to check if sink output is needed
-        if (workflow.getOutputManager().needsSinkOutput()) {
+        if (workflow.output().needsSink()) {
             if (StringUtils.isNotBlank(node.getAnswerText())) {
                 ChatMessageVO vo = node.toChatMessageVO(
                         workflow.getConfiguration().getChatParams().getChatId(),
@@ -76,7 +76,7 @@ public class NodeResult {
                         "",
                         null,
                         false);
-                workflow.getOutputManager().emitMessage(vo);
+                workflow.output().emit(vo);
                 ChatMessageVO nodeEndVo = node.toChatMessageVO(
                         workflow.getConfiguration().getChatParams().getChatId(),
                         workflow.getConfiguration().getChatParams().getChatRecordId(),
@@ -84,11 +84,11 @@ public class NodeResult {
                         "",
                         null,
                         true);
-                workflow.getOutputManager().emitMessage(nodeEndVo);
+                workflow.output().emit(nodeEndVo);
             }
         }
         // Sync update to workflow context
-        workflow.getWorkflowContext().appendNode(node);
+        workflow.context().appendNode(node);
     }
 
     public void defaultWriteDetailFunc(Map<String, Object> nodeVariable, AbsNode node) {
