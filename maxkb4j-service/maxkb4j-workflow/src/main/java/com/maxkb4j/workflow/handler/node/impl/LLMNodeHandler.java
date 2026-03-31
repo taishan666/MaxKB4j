@@ -163,7 +163,7 @@ public class LLMNodeHandler extends AbstractNodeHandler<AiChatNodeParams> {
         ), true);
     }
 
-    private NodeResult writeContextStream(AiChatNode.NodeParams params, TokenStream tokenStream,
+    private NodeResult writeContextStream(AiChatNodeParams params, TokenStream tokenStream,
                                            Workflow workflow, AbsNode node) {
         AtomicReference<String> errorMessage = new AtomicReference<>("");
         boolean isResult = Boolean.TRUE.equals(params.getIsResult());

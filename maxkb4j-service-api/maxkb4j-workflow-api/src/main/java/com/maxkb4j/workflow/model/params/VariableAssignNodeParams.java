@@ -7,17 +7,9 @@ import java.util.Map;
 
 /**
  * 变量赋值节点参数
- * 从 VariableAssignNode.NodeParams 提取
+ * 从 VariableAssignNode.NodeParams 提取，保持字段定义一致
  */
 @Data
 public class VariableAssignNodeParams {
-    private List<VariableAssign> variableAssignList;
-
-    @Data
-    public static class VariableAssign {
-        private String variableName;
-        private String source;
-        private Object value;
-        private List<String> reference;
-    }
+    private List<Map<String, Object>> variableList;
 }

@@ -235,16 +235,16 @@ public class NodeResult {
             return this;
         }
 
-        /**
+   /*     *//**
          * 快速创建可中断结果
          *
          * @param func 中断判断函数
          * @return this builder
-         */
+         *//*
         public Builder interrupt(IsInterruptFunction func) {
             this.isInterrupt = func;
             return this;
-        }
+        }*/
 
         /**
          * 快速创建空结果

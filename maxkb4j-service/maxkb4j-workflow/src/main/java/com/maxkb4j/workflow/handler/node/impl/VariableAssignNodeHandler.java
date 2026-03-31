@@ -9,7 +9,7 @@ import com.maxkb4j.workflow.model.LoopWorkFlow;
 import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.model.Workflow;
 import com.maxkb4j.workflow.node.AbsNode;
-import com.maxkb4j.workflow.node.impl.VariableAssignNode;
+import com.maxkb4j.workflow.model.params.VariableAssignNodeParams;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -19,16 +19,16 @@ import java.util.Map;
 
 @NodeHandlerType(NodeType.VARIABLE_ASSIGN)
 @Component
-public class VariableAssignNodeHandler extends AbstractNodeHandler<VariableAssignNode.NodeParams> {
+public class VariableAssignNodeHandler extends AbstractNodeHandler<VariableAssignNodeParams> {
 
     @Override
-    protected Class<VariableAssignNode.NodeParams> getParamsClass() {
-        return VariableAssignNode.NodeParams.class;
+    protected Class<VariableAssignNodeParams> getParamsClass() {
+        return VariableAssignNodeParams.class;
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    protected NodeResult doExecute(Workflow workflow, AbsNode node, VariableAssignNode.NodeParams params) throws Exception {
+    protected NodeResult doExecute(Workflow workflow, AbsNode node, VariableAssignNodeParams params) throws Exception {
         List<Map<String, Object>> resultList = new ArrayList<>();
         for (Map<String, Object> variable : params.getVariableList()) {
             if (variable == null || !variable.containsKey("fields")) {

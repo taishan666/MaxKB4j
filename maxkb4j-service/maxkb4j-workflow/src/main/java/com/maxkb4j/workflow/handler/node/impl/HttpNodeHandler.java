@@ -9,22 +9,22 @@ import com.maxkb4j.workflow.handler.node.AbstractNodeHandler;
 import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.model.Workflow;
 import com.maxkb4j.workflow.node.AbsNode;
-import com.maxkb4j.workflow.node.impl.HttpNode;
+import com.maxkb4j.workflow.model.params.HttpNodeParams;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
 
 @NodeHandlerType(NodeType.HTTP_CLIENT)
 @Component
-public class HttpNodeHandler extends AbstractNodeHandler<HttpNode.NodeParams> {
+public class HttpNodeHandler extends AbstractNodeHandler<HttpNodeParams> {
 
     @Override
-    protected Class<HttpNode.NodeParams> getParamsClass() {
-        return HttpNode.NodeParams.class;
+    protected Class<HttpNodeParams> getParamsClass() {
+        return HttpNodeParams.class;
     }
 
     @Override
-    protected NodeResult doExecute(Workflow workflow, AbsNode node, HttpNode.NodeParams params) throws Exception {
+    protected NodeResult doExecute(Workflow workflow, AbsNode node, HttpNodeParams params) throws Exception {
         Map<String, Object> variables = workflow.getVariableResolver().getPromptVariables();
         HttpRequestExecutor executor = new HttpRequestExecutor(node.getNodeData().toJSONString());
         HttpResponse response = executor.execute(variables);
