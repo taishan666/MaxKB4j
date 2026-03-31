@@ -79,14 +79,24 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
     }
 
     protected NodeResultFuture runNodeFuture(Workflow workflow, AbsNode node) {
+        INodeHandler nodeHandler = null;
         try {
             long startTime = System.currentTimeMillis();
+
+            // 获取处理器
+            nodeHandler = nodeCenter.getHandler(node.getType());
 
             // Hook for pre-execution logic (e.g., status updates)
             onNodeStart(workflow, node);
 
-            INodeHandler nodeHandler = nodeCenter.getHandler(node.getType());
+            // 调用预处理钩子（接口默认方法）
+            nodeHandler.preExecute(workflow, node);
+
+            // 执行节点
             NodeResult result = nodeHandler.execute(workflow, node);
+
+            // 调用后处理钩子
+            nodeHandler.postExecute(workflow, node, result);
 
             float runTime = (System.currentTimeMillis() - startTime) / 1000F;
             node.getDetail().put("runTime", runTime);
@@ -97,6 +107,10 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
 
             return new NodeResultFuture(result, null, NodeStatus.SUCCESS.getStatus());
         } catch (Exception ex) {
+            // 调用错误处理钩子
+            if (nodeHandler != null) {
+                nodeHandler.onError(workflow, node, ex);
+            }
             return handleNodeError(workflow, node, ex);
         }
     }

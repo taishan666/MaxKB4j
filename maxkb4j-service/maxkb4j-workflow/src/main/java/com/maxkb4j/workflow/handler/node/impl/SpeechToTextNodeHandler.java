@@ -2,7 +2,7 @@ package com.maxkb4j.workflow.handler.node.impl;
 
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.NodeType;
-import com.maxkb4j.workflow.handler.node.INodeHandler;
+import com.maxkb4j.workflow.handler.node.AbstractNodeHandler;
 import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.model.Workflow;
 import com.maxkb4j.workflow.node.AbsNode;
@@ -24,34 +24,46 @@ import java.util.Map;
 @NodeHandlerType(NodeType.SPEECH_TO_TEXT)
 @RequiredArgsConstructor
 @Component
-public class SpeechToTextNodeHandler implements INodeHandler {
+public class SpeechToTextNodeHandler extends AbstractNodeHandler<SpeechToTextNode.NodeParams> {
 
     private final IModelProviderService modelFactory;
     private final IOssService fileService;
 
     @Override
-    public NodeResult execute(Workflow workflow, AbsNode node) throws Exception {
-        SpeechToTextNode.NodeParams nodeParams=node.getNodeData().toJavaObject(SpeechToTextNode.NodeParams.class);
-        List<String> audioList = nodeParams.getAudioList();
+    protected Class<SpeechToTextNode.NodeParams> getParamsClass() {
+        return SpeechToTextNode.NodeParams.class;
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    protected NodeResult doExecute(Workflow workflow, AbsNode node, SpeechToTextNode.NodeParams params) throws Exception {
+        List<String> audioList = params.getAudioList();
         Object res = workflow.getReferenceField(audioList);
-        STTModel sttModel = modelFactory.buildSTTModel(nodeParams.getSttModelId());
-        @SuppressWarnings("unchecked")
+        STTModel sttModel = modelFactory.buildSTTModel(params.getSttModelId());
         List<OssFile> audioFiles = (List<OssFile>) res;
+
         List<String> content = new ArrayList<>();
         List<String> answerTextList = new ArrayList<>();
-        for (OssFile file: audioFiles) {
+
+        for (OssFile file : audioFiles) {
             byte[] data = fileService.getBytes(file.getFileId());
-            String suffix=file.getName().substring(file.getName().lastIndexOf(".") + 1);
-            String result = sttModel.speechToText(data,suffix);
+            String suffix = file.getName().substring(file.getName().lastIndexOf(".") + 1);
+            String result = sttModel.speechToText(data, suffix);
             answerTextList.add(result);
-            content.add("### "+file.getName()+"\n"+result);
+            content.add("### " + file.getName() + "\n" + result);
         }
-        String answer= String.join("\n", answerTextList);
-        node.getDetail().put("content", content);
-        node.getDetail().put("audioList", audioFiles);
-        if (nodeParams.getIsResult()){
-            node.setAnswerText(answer);
+
+        String answer = String.join("\n", answerTextList);
+
+        putDetails(node, Map.of(
+                "content", content,
+                "audioList", audioFiles
+        ));
+
+        if (params.getIsResult()) {
+            setAnswer(node, answer);
         }
-        return new NodeResult(Map.of("result", answer));
+
+        return buildResult(Map.of("result", answer));
     }
 }

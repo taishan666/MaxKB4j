@@ -9,7 +9,7 @@ import com.maxkb4j.common.domain.dto.ChildNode;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.builder.NodeBuilder;
 import com.maxkb4j.workflow.enums.NodeType;
-import com.maxkb4j.workflow.handler.node.INodeHandler;
+import com.maxkb4j.workflow.handler.node.AbstractNodeHandler;
 import com.maxkb4j.workflow.logic.LogicFlow;
 import com.maxkb4j.workflow.model.LoopParams;
 import com.maxkb4j.workflow.model.LoopWorkFlow;
@@ -17,11 +17,11 @@ import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.model.Workflow;
 import com.maxkb4j.workflow.node.AbsNode;
 import com.maxkb4j.workflow.node.impl.LoopNode;
+import com.maxkb4j.workflow.service.IWorkFlowActuator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Sinks;
-import com.maxkb4j.workflow.service.IWorkFlowActuator;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,19 +37,23 @@ import static com.maxkb4j.workflow.enums.NodeType.*;
 @NodeHandlerType(NodeType.LOOP)
 @Component
 @RequiredArgsConstructor
-public class LoopNodeHandler implements INodeHandler {
+public class LoopNodeHandler extends AbstractNodeHandler<LoopNode.NodeParams> {
 
     private final IWorkFlowActuator workFlowActuator;
     private final NodeBuilder nodeBuilder;
 
+    @Override
+    protected Class<LoopNode.NodeParams> getParamsClass() {
+        return LoopNode.NodeParams.class;
+    }
+
     @SuppressWarnings("unchecked")
     @Override
-    public NodeResult execute(Workflow workflow, AbsNode node) throws Exception {
-        LoopNode.NodeParams nodeParams = node.getNodeData().toJavaObject(LoopNode.NodeParams.class);
-        String loopType = nodeParams.getLoopType();
-        List<String> array = nodeParams.getArray();
-        Integer number = nodeParams.getNumber();
-        JSONObject loopBody = nodeParams.getLoopBody();
+    protected NodeResult doExecute(Workflow workflow, AbsNode node, LoopNode.NodeParams params) throws Exception {
+        String loopType = params.getLoopType();
+        List<String> array = params.getArray();
+        Integer number = params.getNumber();
+        JSONObject loopBody = params.getLoopBody();
         List<JSONObject> loopDetails = new ArrayList<>();
 
         if ("ARRAY".equals(loopType)) {
@@ -64,18 +68,18 @@ public class LoopNodeHandler implements INodeHandler {
             loopDetails = generateLoopNumber(number, workflow, loopBody, node);
         }
 
-        node.getDetail().put("loop_node_data", loopDetails);
-        node.getDetail().put("loopType", loopType);
-        node.getDetail().put("number", number);
-        return new NodeResult(Map.of(), true, this::isInterrupt);
+        putDetails(node, Map.of(
+                "loop_node_data", loopDetails,
+                "loopType", loopType,
+                "number", number
+        ));
+
+        return new NodeResult(Map.of(), true, this::shouldInterrupt);
     }
 
-    /**
-     * Check if the node execution should be interrupted.
-     */
-    public boolean isInterrupt(AbsNode node) {
-        Object interruptFlag = node.getDetail().get("is_interrupt_exec");
-        return interruptFlag != null && (boolean) interruptFlag;
+    @Override
+    public boolean shouldInterrupt(AbsNode node) {
+        return getInterruptFlag(node);
     }
 
     /**

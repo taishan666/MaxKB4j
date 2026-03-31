@@ -4,7 +4,7 @@ import com.maxkb4j.common.cache.ChatCache;
 import com.maxkb4j.common.domain.dto.ChatInfo;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.NodeType;
-import com.maxkb4j.workflow.handler.node.INodeHandler;
+import com.maxkb4j.workflow.handler.node.AbstractNodeHandler;
 import com.maxkb4j.workflow.model.LoopWorkFlow;
 import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.model.Workflow;
@@ -19,14 +19,18 @@ import java.util.Map;
 
 @NodeHandlerType(NodeType.VARIABLE_ASSIGN)
 @Component
-public class VariableAssignNodeHandler implements INodeHandler {
+public class VariableAssignNodeHandler extends AbstractNodeHandler<VariableAssignNode.NodeParams> {
+
+    @Override
+    protected Class<VariableAssignNode.NodeParams> getParamsClass() {
+        return VariableAssignNode.NodeParams.class;
+    }
 
     @SuppressWarnings("unchecked")
     @Override
-    public NodeResult execute(Workflow workflow, AbsNode node) throws Exception {
-        VariableAssignNode.NodeParams nodeParams = node.getNodeData().toJavaObject(VariableAssignNode.NodeParams.class);
+    protected NodeResult doExecute(Workflow workflow, AbsNode node, VariableAssignNode.NodeParams params) throws Exception {
         List<Map<String, Object>> resultList = new ArrayList<>();
-        for (Map<String, Object> variable : nodeParams.getVariableList()) {
+        for (Map<String, Object> variable : params.getVariableList()) {
             if (variable == null || !variable.containsKey("fields")) {
                 continue;
             }
@@ -35,11 +39,11 @@ public class VariableAssignNodeHandler implements INodeHandler {
                 continue; // invalid fields
             }
             String scope = fields.get(0);
-            if ("global".equals(scope) ){
-                resultList.add(getGlobalHandleResult(workflow,variable,fields));
+            if ("global".equals(scope)) {
+                resultList.add(getGlobalHandleResult(workflow, variable, fields));
             }
-            if ("chat".equals(scope) ){
-                resultList.add(getChatHandleResult(workflow,variable,fields));
+            if ("chat".equals(scope)) {
+                resultList.add(getChatHandleResult(workflow, variable, fields));
                 // Update chat variables
                 if (workflow.getChatParams() != null && workflow.getChatParams().getChatId() != null) {
                     ChatInfo chatInfo = ChatCache.get(workflow.getChatParams().getChatId());
@@ -48,23 +52,19 @@ public class VariableAssignNodeHandler implements INodeHandler {
                     }
                 }
             }
-            if ("loop".equals(scope) ){
-                resultList.add(getLoopHandleResult(workflow,variable,fields));
+            if ("loop".equals(scope)) {
+                resultList.add(getLoopHandleResult(workflow, variable, fields));
             }
         }
-        node.getDetail().put("resultList",resultList);
-        return new NodeResult(Map.of());
+        putDetail(node, "resultList", resultList);
+        return buildResult(Map.of());
     }
 
-    private Map<String, Object> getGlobalHandleResult(Workflow workflow,Map<String, Object> variable,List<String> fields){
+    private Map<String, Object> getGlobalHandleResult(Workflow workflow, Map<String, Object> variable, List<String> fields) {
         String varName = fields.get(1);
-        // 获取 input_value（原始引用内容）
-        String inputValue = getReferenceContent(workflow,fields);
-        // 解析 value
-        Object value = resolveValue(workflow,variable);
-        // 更新 global 变量
-        workflow.getContext().put(varName,value);
-        // 构建 result
+        String inputValue = getReferenceContent(workflow, fields);
+        Object value = resolveValue(workflow, variable);
+        workflow.getContext().put(varName, value);
         Map<String, Object> result = new HashMap<>();
         result.put("name", variable.get("name"));
         result.put("input_value", inputValue);
@@ -72,17 +72,13 @@ public class VariableAssignNodeHandler implements INodeHandler {
         return result;
     }
 
-    private Map<String, Object> getLoopHandleResult(Workflow workflow,Map<String, Object> variable,List<String> fields){
+    private Map<String, Object> getLoopHandleResult(Workflow workflow, Map<String, Object> variable, List<String> fields) {
         Map<String, Object> result = new HashMap<>();
-        if (workflow instanceof LoopWorkFlow loopWorkflow){
+        if (workflow instanceof LoopWorkFlow loopWorkflow) {
             String varName = fields.get(1);
-            // 获取 input_value（原始引用内容）
-            String inputValue = getReferenceContent(workflow,fields);
-            // 解析 value
-            Object value = resolveValue(workflow,variable);
-            // 更新 global 变量
-            loopWorkflow.getLoopContext().put(varName,value);
-            // 构建 result
+            String inputValue = getReferenceContent(workflow, fields);
+            Object value = resolveValue(workflow, variable);
+            loopWorkflow.getLoopContext().put(varName, value);
             result.put("name", variable.get("name"));
             result.put("input_value", inputValue);
             result.put("output_value", value);
@@ -90,46 +86,36 @@ public class VariableAssignNodeHandler implements INodeHandler {
         return result;
     }
 
-    private Map<String, Object> getChatHandleResult(Workflow workflow,Map<String, Object> variable,List<String> fields){
+    private Map<String, Object> getChatHandleResult(Workflow workflow, Map<String, Object> variable, List<String> fields) {
         String varName = fields.get(1);
-        // 获取 input_value（原始引用内容）
-        String inputValue = getReferenceContent(workflow,fields);
-        // 解析 value
-        Object value = resolveValue(workflow,variable);
-        // 更新 chat变量
-        workflow.getChatContext().put(varName,value);
-        // 更新 loop变量
-        if (workflow instanceof LoopWorkFlow loopWorkflow){
-            loopWorkflow.getLoopContext().put(varName,value);
+        String inputValue = getReferenceContent(workflow, fields);
+        Object value = resolveValue(workflow, variable);
+        workflow.getChatContext().put(varName, value);
+        if (workflow instanceof LoopWorkFlow loopWorkflow) {
+            loopWorkflow.getLoopContext().put(varName, value);
         }
-        // 构建 result
         Map<String, Object> result = new HashMap<>();
         result.put("name", variable.get("name"));
         result.put("input_value", inputValue);
-        result.put("output_value", value); // 注意：这里直接放 value，而不是 variable.put 的返回值
+        result.put("output_value", value);
         return result;
     }
 
-
-    /**
-     * 根据 variable 配置解析出实际值
-     */
-    private Object resolveValue(Workflow workflow,Map<String, Object> variable) {
+    @SuppressWarnings("unchecked")
+    private Object resolveValue(Workflow workflow, Map<String, Object> variable) {
         String source = (String) variable.get("source");
         if ("referencing".equals(source)) {
-            @SuppressWarnings("unchecked")
             List<String> reference = (List<String>) variable.get("reference");
             if (reference != null && reference.size() >= 2) {
                 return workflow.getReferenceField(reference);
             }
         }
-        // 默认返回 variable 中的 value 字段（可能是字面量）
         return variable.get("value");
     }
 
-    public String getReferenceContent(Workflow workflow,List<String> fields) {
+    public String getReferenceContent(Workflow workflow, List<String> fields) {
         if (fields == null || fields.size() < 2) {
-            return ""; // 或抛异常，但 execute 中已做过校验，这里可宽松处理
+            return "";
         }
         Object result = workflow.getReferenceField(fields);
         return result == null ? "" : String.valueOf(result);

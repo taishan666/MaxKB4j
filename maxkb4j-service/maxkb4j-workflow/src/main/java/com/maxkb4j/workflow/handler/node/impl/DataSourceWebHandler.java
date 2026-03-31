@@ -5,7 +5,7 @@ import com.maxkb4j.knowledge.dto.DocumentSimple;
 import com.maxkb4j.knowledge.service.IDocumentWebService;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.NodeType;
-import com.maxkb4j.workflow.handler.node.INodeHandler;
+import com.maxkb4j.workflow.handler.node.AbstractNodeHandler;
 import com.maxkb4j.workflow.model.*;
 import com.maxkb4j.workflow.node.AbsNode;
 import lombok.RequiredArgsConstructor;
@@ -21,14 +21,20 @@ import java.util.Map;
 @Component
 @NodeHandlerType(NodeType.DATA_SOURCE_WEB)
 @RequiredArgsConstructor
-public class DataSourceWebHandler implements INodeHandler {
+public class DataSourceWebHandler extends AbstractNodeHandler<Object> {
 
     private final IDocumentWebService documentWebService;
 
     @Override
-    public NodeResult execute(Workflow workflow, AbsNode node) throws Exception {
+    protected Class<Object> getParamsClass() {
+        return Object.class;
+    }
+
+    @Override
+    protected NodeResult doExecute(Workflow workflow, AbsNode node, Object params) throws Exception {
         List<DocumentSimple> documentList = new ArrayList<>();
         Map<String, Object> inputParams = new HashMap<>();
+
         if (workflow instanceof KnowledgeWorkflow knowledgeWorkflow) {
             KnowledgeParams knowledgeParams = knowledgeWorkflow.getKnowledgeParams();
             DataSource dataSource = knowledgeParams.getDataSource();
@@ -37,13 +43,15 @@ public class DataSourceWebHandler implements INodeHandler {
                 String selector = dataSource.getSelector() == null ? "body" : dataSource.getSelector();
                 inputParams.put("sourceUrl", sourceUrl);
                 inputParams.put("selector", selector);
-                documentList = documentWebService.getDocumentList(sourceUrl, selector,true);
+                documentList = documentWebService.getDocumentList(sourceUrl, selector, true);
             }
         }
-        node.getDetail().put("inputParams", inputParams);
-        node.getDetail().put("outputParams", documentList);
-        return new NodeResult(Map.of("documentList", documentList));
+
+        putDetails(node, Map.of(
+                "inputParams", inputParams,
+                "outputParams", documentList
+        ));
+
+        return buildResult(Map.of("documentList", documentList));
     }
-
-
 }

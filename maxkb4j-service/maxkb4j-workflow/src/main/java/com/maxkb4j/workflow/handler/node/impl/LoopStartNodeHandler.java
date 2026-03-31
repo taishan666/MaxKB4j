@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.NodeType;
-import com.maxkb4j.workflow.handler.node.INodeHandler;
+import com.maxkb4j.workflow.handler.node.AbstractNodeHandler;
 import com.maxkb4j.workflow.model.LoopParams;
 import com.maxkb4j.workflow.model.LoopWorkFlow;
 import com.maxkb4j.workflow.model.NodeResult;
@@ -16,23 +16,33 @@ import java.util.Map;
 
 @NodeHandlerType(NodeType.LOOP_START)
 @Component
-public class LoopStartNodeHandler implements INodeHandler {
+public class LoopStartNodeHandler extends AbstractNodeHandler<Object> {
 
     @Override
-    public NodeResult execute(Workflow workflow, AbsNode node) throws Exception {
-        int index=0;
+    protected Class<Object> getParamsClass() {
+        return Object.class;
+    }
+
+    @Override
+    protected NodeResult doExecute(Workflow workflow, AbsNode node, Object params) throws Exception {
+        int index = 0;
         Object item = "None";
+
         if (workflow instanceof LoopWorkFlow loopWorkFlow) {
             LoopParams loopParams = loopWorkFlow.getLoopParams();
-            index=loopParams.getIndex();
-            item=loopParams.getItem();
-            JSONArray loopInputFieldList=node.getProperties().getJSONArray("loopInputFieldList");
-            for (int i = 0; i < loopInputFieldList.size(); i++) {
-                JSONObject loopInputField=loopInputFieldList.getJSONObject(i);
-                String key=loopInputField.getString("field");
-                loopWorkFlow.getLoopContext().put(key,"");
+            index = loopParams.getIndex();
+            item = loopParams.getItem();
+
+            JSONArray loopInputFieldList = node.getProperties().getJSONArray("loopInputFieldList");
+            if (loopInputFieldList != null) {
+                for (int i = 0; i < loopInputFieldList.size(); i++) {
+                    JSONObject loopInputField = loopInputFieldList.getJSONObject(i);
+                    String key = loopInputField.getString("field");
+                    loopWorkFlow.getLoopContext().put(key, "");
+                }
             }
         }
-        return new NodeResult(Map.of("index",index,"item",item));
+
+        return buildResult(Map.of("index", index, "item", item));
     }
 }

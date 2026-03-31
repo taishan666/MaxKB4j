@@ -2,7 +2,7 @@ package com.maxkb4j.workflow.handler.node.impl;
 
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.NodeType;
-import com.maxkb4j.workflow.handler.node.INodeHandler;
+import com.maxkb4j.workflow.handler.node.AbstractNodeHandler;
 import com.maxkb4j.workflow.model.KnowledgeWorkflow;
 import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.model.Workflow;
@@ -22,23 +22,30 @@ import java.util.Map;
 @Component
 @NodeHandlerType(NodeType.KNOWLEDGE_WRITE)
 @RequiredArgsConstructor
-public class KnowledgeWriteHandler implements INodeHandler {
+public class KnowledgeWriteHandler extends AbstractNodeHandler<KnowledgeWriteNode.NodeParams> {
+
     private final IDocumentService documentService;
+
+    @Override
+    protected Class<KnowledgeWriteNode.NodeParams> getParamsClass() {
+        return KnowledgeWriteNode.NodeParams.class;
+    }
 
     @SuppressWarnings("unchecked")
     @Override
-    public NodeResult execute(Workflow workflow, AbsNode node) throws Exception {
-        KnowledgeWriteNode.NodeParams nodeParams = node.getNodeData().toJavaObject(KnowledgeWriteNode.NodeParams.class);
-        Object value = workflow.getReferenceField(nodeParams.getDocumentList());
-        node.getDetail().put("write_content", value);
+    protected NodeResult doExecute(Workflow workflow, AbsNode node, KnowledgeWriteNode.NodeParams params) throws Exception {
+        Object value = workflow.getReferenceField(params.getDocumentList());
+        putDetail(node, "write_content", value);
+
         if (workflow instanceof KnowledgeWorkflow knowledgeWorkflow) {
             boolean debug = knowledgeWorkflow.getKnowledgeParams().isDebug();
-            if (!debug){
+            if (!debug) {
                 String knowledgeId = knowledgeWorkflow.getKnowledgeParams().getKnowledgeId();
-                List<DocumentSimple> docs=(List<DocumentSimple>)value;
+                List<DocumentSimple> docs = (List<DocumentSimple>) value;
                 documentService.batchCreateDocs(knowledgeId, KnowledgeType.WORKFLOW, docs);
             }
         }
-        return new NodeResult(Map.of());
+
+        return buildResult(Map.of());
     }
 }

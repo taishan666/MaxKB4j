@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.NodeType;
-import com.maxkb4j.workflow.handler.node.INodeHandler;
+import com.maxkb4j.workflow.handler.node.AbstractNodeHandler;
 import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.model.Workflow;
 import com.maxkb4j.workflow.node.AbsNode;
@@ -16,37 +16,43 @@ import java.util.Map;
 
 @NodeHandlerType(NodeType.FORM)
 @Component
-public class FormNodeHandler implements INodeHandler {
+public class FormNodeHandler extends AbstractNodeHandler<FormNode.NodeParams> {
 
     @Override
-    public NodeResult execute(Workflow workflow, AbsNode node) throws Exception {
-        FormNode.NodeParams nodeParams = node.getNodeData().toJavaObject(FormNode.NodeParams.class);
-        Map<String, Object> formData = nodeParams.getFormData();
-        Map<String, Object> nodeVariable=new HashMap<>();
+    protected Class<FormNode.NodeParams> getParamsClass() {
+        return FormNode.NodeParams.class;
+    }
+
+    @Override
+    protected NodeResult doExecute(Workflow workflow, AbsNode node, FormNode.NodeParams params) throws Exception {
+        Map<String, Object> formData = params.getFormData();
+        Map<String, Object> nodeVariable = new HashMap<>();
+
         if (formData != null) {
             nodeVariable.put("is_submit", true);
             nodeVariable.put("form_data", formData);
             nodeVariable.putAll(formData);
-            node.getDetail().put("form_data", formData);
+            putDetail(node, "form_data", formData);
         } else {
-            JSONArray formFieldList = nodeParams.getFormFieldList();
+            JSONArray formFieldList = params.getFormFieldList();
             JSONObject formSetting = new JSONObject();
             formSetting.put("form_field_list", formFieldList);
             String formRender = "<form_render>" + formSetting + "</form_render>";
-            String formContentFormat = nodeParams.getFormContentFormat();
-            String answerText =workflow.getTemplateRenderer().render(formContentFormat,Map.of("form", formRender));
-            node.setAnswerText(answerText);
+            String formContentFormat = params.getFormContentFormat();
+            String answerText = workflow.getTemplateRenderer().render(formContentFormat, Map.of("form", formRender));
+
+            setAnswer(node, answerText);
+
             nodeVariable.put("form_field_list", formFieldList);
             nodeVariable.put("form_content_format", formContentFormat);
             nodeVariable.put("is_submit", false);
         }
-        return new NodeResult(nodeVariable,false,this::isInterrupt);
+
+        return new NodeResult(nodeVariable, false, this::shouldInterrupt);
     }
 
-
-
-    public boolean isInterrupt(AbsNode node) {
-        return !(boolean)node.getContext().getOrDefault("is_submit", false);
+    @Override
+    public boolean shouldInterrupt(AbsNode node) {
+        return !(boolean) node.getContext().getOrDefault("is_submit", false);
     }
-
 }

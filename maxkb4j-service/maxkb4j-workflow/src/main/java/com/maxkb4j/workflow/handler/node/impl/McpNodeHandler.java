@@ -5,7 +5,7 @@ import com.maxkb4j.application.executor.McpClientExecutor;
 import com.maxkb4j.tool.service.IToolService;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.NodeType;
-import com.maxkb4j.workflow.handler.node.INodeHandler;
+import com.maxkb4j.workflow.handler.node.AbstractNodeHandler;
 import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.model.Workflow;
 import com.maxkb4j.workflow.node.AbsNode;
@@ -21,27 +21,37 @@ import java.util.Map;
 @NodeHandlerType(NodeType.MCP)
 @RequiredArgsConstructor
 @Component
-public class McpNodeHandler implements INodeHandler {
+public class McpNodeHandler extends AbstractNodeHandler<McpNode.NodeParams> {
 
     private final IToolService toolService;
 
     @Override
+    protected Class<McpNode.NodeParams> getParamsClass() {
+        return McpNode.NodeParams.class;
+    }
+
+    @Override
     @SuppressWarnings("unchecked")
-    public NodeResult execute(Workflow workflow, AbsNode node) throws Exception {
-        McpNode.NodeParams nodeParams=node.getNodeData().toJavaObject(McpNode.NodeParams.class);
-        JSONObject toolParams=nodeParams.getToolParams();
-        JSONObject params=new JSONObject();
+    protected NodeResult doExecute(Workflow workflow, AbsNode node, McpNode.NodeParams params) throws Exception {
+        JSONObject toolParams = params.getToolParams();
+        JSONObject execParams = new JSONObject();
+
         for (String key : toolParams.keySet()) {
-            Object value =toolParams.get(key);
-            if (value instanceof List){
-                List<String> fields=(List<String>)value;
-                value=workflow.getReferenceField(fields);
+            Object value = toolParams.get(key);
+            if (value instanceof List) {
+                List<String> fields = (List<String>) value;
+                value = workflow.getReferenceField(fields);
             }
-            params.put(key,value);
+            execParams.put(key, value);
         }
-        String resultText=new McpClientExecutor(nodeParams.getMcpServers()).execute(nodeParams.getMcpTool(),params);
-        node.getDetail().put("toolParams",toolParams);
-        node.getDetail().put("mcpTool",nodeParams.getMcpTool());
-        return new NodeResult(Map.of("result",resultText));
+
+        String resultText = new McpClientExecutor(params.getMcpServers()).execute(params.getMcpTool(), execParams);
+
+        putDetails(node, Map.of(
+                "toolParams", toolParams,
+                "mcpTool", params.getMcpTool()
+        ));
+
+        return buildResult(Map.of("result", resultText));
     }
 }

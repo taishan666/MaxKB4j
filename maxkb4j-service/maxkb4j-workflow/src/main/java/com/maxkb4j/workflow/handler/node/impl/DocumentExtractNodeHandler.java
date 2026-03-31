@@ -2,7 +2,7 @@ package com.maxkb4j.workflow.handler.node.impl;
 
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.NodeType;
-import com.maxkb4j.workflow.handler.node.INodeHandler;
+import com.maxkb4j.workflow.handler.node.AbstractNodeHandler;
 import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.model.Workflow;
 import com.maxkb4j.workflow.node.AbsNode;
@@ -20,57 +20,54 @@ import java.util.*;
 @NodeHandlerType(NodeType.DOCUMENT_EXTRACT)
 @RequiredArgsConstructor
 @Component
-public class DocumentExtractNodeHandler implements INodeHandler {
+public class DocumentExtractNodeHandler extends AbstractNodeHandler<DocumentExtractNode.NodeParams> {
 
     private final IDocumentParseService documentParseService;
     private final IOssService fileService;
 
     @Override
-    public NodeResult execute(Workflow workflow, AbsNode node) throws Exception {
-        // 1. 解析节点参数
-        DocumentExtractNode.NodeParams nodeParams = node.getNodeData()
-                .toJavaObject(DocumentExtractNode.NodeParams.class);
+    protected Class<DocumentExtractNode.NodeParams> getParamsClass() {
+        return DocumentExtractNode.NodeParams.class;
+    }
 
-        // 2. 安全校验 documentList
-        if (nodeParams == null || nodeParams.getDocumentList() == null || nodeParams.getDocumentList().size() < 2) {
+    @Override
+    protected NodeResult doExecute(Workflow workflow, AbsNode node, DocumentExtractNode.NodeParams params) throws Exception {
+        // 安全校验 documentList
+        if (params == null || params.getDocumentList() == null || params.getDocumentList().size() < 2) {
             throw new IllegalArgumentException("Invalid documentList in node params: expected at least two elements");
         }
 
-        // 3. 获取引用字段（workflow 中的文档列表）
-        Object res = workflow.getReferenceField(nodeParams.getDocumentList());
+        // 获取引用字段（workflow 中的文档列表）
+        Object res = workflow.getReferenceField(params.getDocumentList());
         List<OssFile> documentFiles;
+
         if (res == null) {
             documentFiles = Collections.emptyList();
         } else if (res instanceof List<?>) {
-            // 安全转型：只保留 SysFile 类型
             documentFiles = new ArrayList<>();
             for (Object item : (List<?>) res) {
                 if (item instanceof OssFile) {
                     documentFiles.add((OssFile) item);
                 }
-                // 可选：记录非 SysFile 元素（或抛异常）
             }
         } else {
             throw new IllegalArgumentException("Expected List<SysFile> from reference field, but got: " + res.getClass());
         }
 
-        // 4. 并行处理（若文件多且解析耗时，可考虑并行流，但需注意线程安全）
+        // 处理文档
         List<String> contentList = new LinkedList<>();
         List<DocumentSimple> documentList = new ArrayList<>();
 
         for (OssFile sysFile : documentFiles) {
             InputStream ins = fileService.getStream(sysFile.getFileId());
-            String text =  documentParseService.extractText(sysFile.getName(), ins);
+            String text = documentParseService.extractText(sysFile.getName(), ins);
             contentList.add(text);
-            documentList.add(new DocumentSimple(sysFile.getName(), text,sysFile.getFileId()));
+            documentList.add(new DocumentSimple(sysFile.getName(), text, sysFile.getFileId()));
         }
 
-        // 5. 返回结果
-        return new NodeResult(Map.of(
+        return buildResult(Map.of(
                 "content", String.join(DocumentExtractNode.SPLITTER, contentList),
                 "documentList", documentList
         ));
     }
-
-
 }
