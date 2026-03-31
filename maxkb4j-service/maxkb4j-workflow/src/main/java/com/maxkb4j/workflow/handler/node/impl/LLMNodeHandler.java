@@ -20,7 +20,7 @@ import com.maxkb4j.workflow.handler.node.AbstractNodeHandler;
 import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.model.Workflow;
 import com.maxkb4j.workflow.node.AbsNode;
-import com.maxkb4j.workflow.node.impl.AiChatNode;
+import com.maxkb4j.workflow.model.params.AiChatNodeParams;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.Content;
 import dev.langchain4j.data.message.ImageContent;
@@ -44,19 +44,19 @@ import static org.springframework.web.util.UriUtils.extractFileExtension;
 @NodeHandlerType({NodeType.AI_CHAT, NodeType.IMAGE_UNDERSTAND})
 @Component
 @RequiredArgsConstructor
-public class LLMNodeHandler extends AbstractNodeHandler<AiChatNode.NodeParams> {
+public class LLMNodeHandler extends AbstractNodeHandler<AiChatNodeParams> {
 
     private final IModelProviderService modelFactory;
     private final IToolProviderService toolProviderService;
     private final IOssService fileService;
 
     @Override
-    protected Class<AiChatNode.NodeParams> getParamsClass() {
-        return AiChatNode.NodeParams.class;
+    protected Class<AiChatNodeParams> getParamsClass() {
+        return AiChatNodeParams.class;
     }
 
     @Override
-    protected NodeResult doExecute(Workflow workflow, AbsNode node, AiChatNode.NodeParams params) throws Exception {
+    protected NodeResult doExecute(Workflow workflow, AbsNode node, AiChatNodeParams params) throws Exception {
         String question = workflow.renderPrompt(params.getPrompt());
         String systemPrompt = workflow.renderPrompt(params.getSystem());
         List<ChatMessage> historyMessages = workflow.getHistoryMessages(

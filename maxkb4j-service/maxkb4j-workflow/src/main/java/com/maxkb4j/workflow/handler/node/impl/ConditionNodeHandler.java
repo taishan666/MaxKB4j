@@ -6,7 +6,7 @@ import com.maxkb4j.workflow.handler.node.AbstractNodeHandler;
 import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.model.Workflow;
 import com.maxkb4j.workflow.node.AbsNode;
-import com.maxkb4j.workflow.node.impl.ConditionNode;
+import com.maxkb4j.workflow.model.params.ConditionNodeParams;
 import com.maxkb4j.workflow.util.ConditionUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
