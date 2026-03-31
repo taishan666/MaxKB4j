@@ -40,6 +40,7 @@ import static com.maxkb4j.workflow.enums.NodeType.*;
 public class LoopNodeHandler implements INodeHandler {
 
     private final IWorkFlowActuator workFlowActuator;
+    private final NodeBuilder nodeBuilder;
 
     @SuppressWarnings("unchecked")
     @Override
@@ -170,7 +171,7 @@ public class LoopNodeHandler implements INodeHandler {
         Sinks.Many<ChatMessageVO> nodeSink = Sinks.many().unicast().onBackpressureBuffer();
         LogicFlow logicFlow = LogicFlow.newInstance(loopBody);
         List<AbsNode> nodes = logicFlow.getNodes().stream()
-                .map(NodeBuilder::getNode)
+                .map(nodeBuilder::getNode)
                 .filter(Objects::nonNull)
                 .toList();
 

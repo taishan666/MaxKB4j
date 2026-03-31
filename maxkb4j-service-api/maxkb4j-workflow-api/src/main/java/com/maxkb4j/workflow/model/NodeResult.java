@@ -19,64 +19,6 @@ public class NodeResult {
     private WriteDetailFunction writeDetailFunc;
     private IsInterruptFunction isInterrupt;
 
-    /**
-     * Builder for constructing NodeResult instances.
-     */
-    public static Builder builder() {
-        return new Builder();
-    }
-
-    /**
-     * Builder class for NodeResult.
-     */
-    public static class Builder {
-        private Map<String, Object> nodeVariable = new HashMap<>();
-        private boolean streamOutput = false;
-        private WriteContextFunction writeContextFunc;
-        private WriteDetailFunction writeDetailFunc;
-        private IsInterruptFunction isInterrupt;
-
-        public Builder nodeVariable(Map<String, Object> nodeVariable) {
-            this.nodeVariable = nodeVariable != null ? nodeVariable : new HashMap<>();
-            return this;
-        }
-
-        public Builder putVariable(String key, Object value) {
-            this.nodeVariable.put(key, value);
-            return this;
-        }
-
-        public Builder streamOutput(boolean streamOutput) {
-            this.streamOutput = streamOutput;
-            return this;
-        }
-
-        public Builder writeContextFunc(WriteContextFunction writeContextFunc) {
-            this.writeContextFunc = writeContextFunc;
-            return this;
-        }
-
-        public Builder writeDetailFunc(WriteDetailFunction writeDetailFunc) {
-            this.writeDetailFunc = writeDetailFunc;
-            return this;
-        }
-
-        public Builder isInterrupt(IsInterruptFunction isInterrupt) {
-            this.isInterrupt = isInterrupt;
-            return this;
-        }
-
-        public NodeResult build() {
-            NodeResult result = new NodeResult();
-            result.nodeVariable = this.nodeVariable;
-            result.streamOutput = this.streamOutput;
-            result.writeContextFunc = this.writeContextFunc != null ? this.writeContextFunc : result::defaultWriteContextFunc;
-            result.writeDetailFunc = this.writeDetailFunc != null ? this.writeDetailFunc : result::defaultWriteDetailFunc;
-            result.isInterrupt = this.isInterrupt != null ? this.isInterrupt : result::defaultIsInterrupt;
-            return result;
-        }
-    }
-
     // Legacy constructors for backward compatibility
     public NodeResult(Map<String, Object> nodeVariable) {
         this.nodeVariable = nodeVariable != null ? nodeVariable : new HashMap<>();
@@ -101,10 +43,6 @@ public class NodeResult {
         this.writeContextFunc = this::defaultWriteContextFunc;
         this.writeDetailFunc = this::defaultWriteDetailFunc;
         this.isInterrupt = isInterrupt != null ? isInterrupt : this::defaultIsInterrupt;
-    }
-
-    // Default constructor for Builder
-    private NodeResult() {
     }
 
 

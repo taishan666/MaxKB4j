@@ -6,7 +6,7 @@ import com.maxkb4j.workflow.model.KnowledgeWorkflow;
 import com.maxkb4j.workflow.model.Workflow;
 import com.maxkb4j.workflow.node.AbsNode;
 import com.maxkb4j.knowledge.service.IKnowledgeActionService;
-import lombok.RequiredArgsConstructor;
+import com.maxkb4j.workflow.registry.NodeCenter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -14,10 +14,14 @@ import java.util.List;
 
 @Slf4j
 @Component
-@RequiredArgsConstructor
 public class KnowledgeWorkflowHandler extends AbsWorkflowHandler {
 
     private final IKnowledgeActionService knowledgeActionService;
+
+    public KnowledgeWorkflowHandler(NodeCenter nodeCenter, IKnowledgeActionService knowledgeActionService) {
+        super(nodeCenter);
+        this.knowledgeActionService = knowledgeActionService;
+    }
 
     @Override
     public void execute(Workflow workflow) {

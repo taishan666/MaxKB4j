@@ -4,6 +4,7 @@ import com.maxkb4j.common.domain.dto.ChatMessageVO;
 import com.maxkb4j.workflow.model.NodeResultFuture;
 import com.maxkb4j.workflow.model.Workflow;
 import com.maxkb4j.workflow.node.AbsNode;
+import com.maxkb4j.workflow.registry.NodeCenter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -12,6 +13,10 @@ import java.util.List;
 @Slf4j
 @Component
 public class ChatWorkflowHandler extends AbsWorkflowHandler {
+
+    public ChatWorkflowHandler(NodeCenter nodeCenter) {
+        super(nodeCenter);
+    }
 
     @Override
     public void execute(Workflow workflow) {
@@ -51,6 +56,3 @@ public class ChatWorkflowHandler extends AbsWorkflowHandler {
         }
     }
 }
-
-
-

@@ -92,9 +92,7 @@ public class Workflow {
         this.sink = sink;
         this.workflowContext = new WorkflowContext();
         // Build node map for O(1) lookups
-        this.nodeMap = nodes != null
-                ? nodes.stream().filter(Objects::nonNull).collect(Collectors.toMap(AbsNode::getId, n -> n, (a, b) -> a))
-                : new HashMap<>();
+        this.nodeMap = nodes != null ? nodes.stream().filter(Objects::nonNull).collect(Collectors.toMap(AbsNode::getId, n -> n, (a, b) -> a)) : new HashMap<>();
         // If chatParams is null, pass empty history list
         this.historyManager = new HistoryManager(chatParams != null ? chatParams.getHistoryChatRecords() : Collections.emptyList());
         this.variableResolver = new VariableResolver(this.workflowContext);

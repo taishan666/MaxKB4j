@@ -26,12 +26,13 @@ import java.util.Objects;
 public class ChatFlowServiceImpl implements IChatService {
 
     private final IWorkFlowActuator workFlowActuator;
+    private final NodeBuilder nodeBuilder;
 
     @Override
     public ChatResponse chatMessage(ApplicationVO application, ChatParams chatParams, Sinks.Many<ChatMessageVO> sink) {
         chatParams.setChatRecordId(chatParams.getChatRecordId() == null ? IdWorker.get32UUID() : chatParams.getChatRecordId());
         LogicFlow logicFlow = LogicFlow.newInstance(application.getWorkFlow());
-        List<AbsNode> nodes = logicFlow.getNodes().stream().map(NodeBuilder::getNode).filter(Objects::nonNull).toList();
+        List<AbsNode> nodes = logicFlow.getNodes().stream().map(nodeBuilder::getNode).filter(Objects::nonNull).toList();
         Workflow workflow = new Workflow(
                 WorkflowMode.APPLICATION,
                 nodes,

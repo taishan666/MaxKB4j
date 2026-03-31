@@ -17,11 +17,19 @@ import java.util.concurrent.ConcurrentHashMap;
 public class NodeRegistry {
 
     /**
+     * 节点创建函数接口
+     */
+    @FunctionalInterface
+    public interface NodeCreator {
+        Object create(String id, com.alibaba.fastjson.JSONObject properties);
+    }
+
+    /**
      * 节点创建函数映射
      * Key: 节点类型标识
      * Value: 节点创建函数
      */
-    private final Map<String, NodeFactory.NodeCreator> creators;
+    private final Map<String, NodeCreator> creators;
 
     public NodeRegistry() {
         this.creators = new ConcurrentHashMap<>();
@@ -34,7 +42,7 @@ public class NodeRegistry {
      * @param creator  节点创建函数
      * @throws IllegalArgumentException 如果 nodeType 或 creator 为 null
      */
-    public void register(String nodeType, NodeFactory.NodeCreator creator) {
+    public void register(String nodeType, NodeCreator creator) {
         if (nodeType == null || nodeType.isBlank()) {
             throw new IllegalArgumentException("节点类型不能为空");
         }
@@ -52,7 +60,7 @@ public class NodeRegistry {
      * @param nodeType 节点类型标识
      * @return 节点创建函数，如果不存在返回 null
      */
-    public NodeFactory.NodeCreator getCreator(String nodeType) {
+    public NodeCreator getCreator(String nodeType) {
         if (nodeType == null) {
             return null;
         }
@@ -93,8 +101,8 @@ public class NodeRegistry {
      * @param nodeType 节点类型标识
      * @return 被移除的创建函数，如果不存在返回 null
      */
-    public NodeFactory.NodeCreator unregister(String nodeType) {
-        NodeFactory.NodeCreator removed = creators.remove(nodeType);
+    public NodeCreator unregister(String nodeType) {
+        NodeCreator removed = creators.remove(nodeType);
         if (removed != null) {
             log.debug("注销节点类型: {}", nodeType);
         }

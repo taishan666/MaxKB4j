@@ -72,6 +72,7 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
     private final KnowledgeVersionService knowledgeVersionService;
     private final IWorkFlowActuator workFlowActuator;
     private final KnowledgeExportHandler knowledgeExportHandler;
+    private final NodeBuilder nodeBuilder;
 
 
     public IPage<KnowledgeVO> selectKnowledgePage(Page<KnowledgeVO> knowledgePage, KnowledgeQuery query) {
@@ -272,7 +273,7 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
         knowledgeAction.setMeta(meta);
         knowledgeActionService.save(knowledgeAction);
         LogicFlow logicFlow = LogicFlow.newInstance(knowledgeWorkFlow);
-        List<AbsNode> nodes = logicFlow.getNodes().stream().map(NodeBuilder::getNode).filter(Objects::nonNull).toList();
+        List<AbsNode> nodes = logicFlow.getNodes().stream().map(nodeBuilder::getNode).filter(Objects::nonNull).toList();
         params.setActionId(knowledgeAction.getId());
         params.setKnowledgeId(id);
         params.setDebug(debug);

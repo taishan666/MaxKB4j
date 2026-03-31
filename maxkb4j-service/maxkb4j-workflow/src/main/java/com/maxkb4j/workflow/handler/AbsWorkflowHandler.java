@@ -1,18 +1,17 @@
 package com.maxkb4j.workflow.handler;
 
-import com.maxkb4j.workflow.builder.NodeHandlerBuilder;
 import com.maxkb4j.workflow.enums.NodeStatus;
 import com.maxkb4j.workflow.handler.node.INodeHandler;
 import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.model.NodeResultFuture;
 import com.maxkb4j.workflow.model.Workflow;
 import com.maxkb4j.workflow.node.AbsNode;
-import lombok.extern.slf4j.Slf4j;
+import com.maxkb4j.workflow.registry.NodeCenter;
 import com.maxkb4j.workflow.service.IWorkflowHandler;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -21,6 +20,12 @@ import java.util.concurrent.CompletableFuture;
  */
 @Slf4j
 public abstract class AbsWorkflowHandler implements IWorkflowHandler {
+
+    protected final NodeCenter nodeCenter;
+
+    protected AbsWorkflowHandler(NodeCenter nodeCenter) {
+        this.nodeCenter = nodeCenter;
+    }
 
     protected void runChainNodes(Workflow workflow, List<AbsNode> nodeList) {
         if (nodeList == null || nodeList.isEmpty()) {
@@ -62,7 +67,7 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
             }
         } else if (NodeStatus.SKIP.getStatus() == node.getStatus()) {
             // 获取下一个节点列表
-            List<AbsNode> nextNodeList = workflow.getNextNodeList(node, new NodeResult(Map.of()));
+            List<AbsNode> nextNodeList = workflow.getNextNodeList(node, new NodeResult(java.util.Map.of()));
             nextNodeList.forEach(nextNode -> {
                 if (!workflow.isReadyJoinNode(nextNode)) {
                     nextNode.setStatus(NodeStatus.SKIP.getStatus());
@@ -80,7 +85,7 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
             // Hook for pre-execution logic (e.g., status updates)
             onNodeStart(workflow, node);
 
-            INodeHandler nodeHandler = NodeHandlerBuilder.getHandler(node.getType());
+            INodeHandler nodeHandler = nodeCenter.getHandler(node.getType());
             NodeResult result = nodeHandler.execute(workflow, node);
 
             float runTime = (System.currentTimeMillis() - startTime) / 1000F;
