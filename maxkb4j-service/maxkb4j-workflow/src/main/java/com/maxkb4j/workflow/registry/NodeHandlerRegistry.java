@@ -87,6 +87,32 @@ public class NodeHandlerRegistry {
     }
 
     /**
+     * 注销处理器
+     *
+     * @param nodeType 节点类型标识
+     * @return 被移除的处理器实例，如果不存在则返回 null
+     */
+    public INodeHandler unregister(String nodeType) {
+        if (nodeType == null || nodeType.isBlank()) {
+            throw new IllegalArgumentException("节点类型不能为空");
+        }
+        INodeHandler removed = handlers.remove(nodeType);
+        if (removed != null) {
+            log.debug("Unregistered node handler: {}", nodeType);
+        }
+        return removed;
+    }
+
+    /**
+     * 清空所有注册的处理器
+     */
+    public void clear() {
+        int count = handlers.size();
+        handlers.clear();
+        log.debug("Cleared all {} registered node handlers", count);
+    }
+
+    /**
      * 获取所有已注册的节点类型
      *
      * @return 节点类型集合

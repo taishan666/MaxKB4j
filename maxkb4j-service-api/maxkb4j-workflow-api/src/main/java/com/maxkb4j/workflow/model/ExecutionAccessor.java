@@ -123,4 +123,24 @@ public class ExecutionAccessor {
     public int edgeCount() {
         return executor.getConfiguration().edgeCount();
     }
+
+    // ==================== 执行追踪 ====================
+
+    /**
+     * 记录节点执行
+     *
+     * @param node 正在执行的节点
+     */
+    public void recordExecution(AbsNode node) {
+        executor.recordExecution(node);
+    }
+
+    /**
+     * 获取执行轨迹
+     *
+     * @return 执行轨迹信息
+     */
+    public WorkflowExecutionController.ExecutionTrace getExecutionTrace() {
+        return executor.getExecutionTrace();
+    }
 }

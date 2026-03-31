@@ -49,6 +49,18 @@ public class WorkflowExecutionController {
     @Setter
     private AbsNode currentNode;
 
+    /**
+     * 执行路径记录
+     * 记录已执行节点的 runtimeNodeId 顺序
+     */
+    private final List<String> executionPath;
+
+    /**
+     * 执行时间戳记录
+     * Key: runtimeNodeId, Value: 执行开始时间戳（毫秒）
+     */
+    private final Map<String, Long> executionTimestamps;
+
     public WorkflowExecutionController(WorkflowConfiguration configuration,
                                        WorkflowContext context,
                                        EdgeNavigator navigator,
@@ -57,6 +69,8 @@ public class WorkflowExecutionController {
         this.context = context;
         this.navigator = navigator;
         this.templateRenderer = templateRenderer;
+        this.executionPath = new ArrayList<>();
+        this.executionTimestamps = new LinkedHashMap<>();
     }
 
     /**
@@ -259,5 +273,73 @@ public class WorkflowExecutionController {
                 .map(LfEdge::getTargetNodeId)
                 .toList();
         return CollectionUtils.isNotEmpty(assertionNodeIds) && assertionNodeIds.contains(nodeId);
+    }
+
+    // ==================== 执行追踪功能 ====================
+
+    /**
+     * 记录节点执行
+     *
+     * @param node 正在执行的节点
+     */
+    public void recordExecution(AbsNode node) {
+        if (node == null || node.getRuntimeNodeId() == null) {
+            return;
+        }
+        String runtimeNodeId = node.getRuntimeNodeId();
+        executionPath.add(runtimeNodeId);
+        executionTimestamps.put(runtimeNodeId, System.currentTimeMillis());
+        log.debug("Recorded execution: {} at {}", runtimeNodeId, System.currentTimeMillis());
+    }
+
+    /**
+     * 获取执行轨迹
+     *
+     * @return 执行轨迹信息
+     */
+    public ExecutionTrace getExecutionTrace() {
+        return new ExecutionTrace(
+                Collections.unmodifiableList(executionPath),
+                Collections.unmodifiableMap(executionTimestamps)
+        );
+    }
+
+    /**
+     * 执行轨迹信息 record
+     */
+    public record ExecutionTrace(List<String> path, Map<String, Long> timestamps) {
+        /**
+         * 获取执行节点数量
+         */
+        public int size() {
+            return path.size();
+        }
+
+        /**
+         * 获取指定节点的执行时间
+         *
+         * @param runtimeNodeId 运行时节点ID
+         * @return 执行时间戳，不存在返回 null
+         */
+        public Long getExecutionTime(String runtimeNodeId) {
+            return timestamps.get(runtimeNodeId);
+        }
+
+        /**
+         * 计算总执行时长（毫秒）
+         *
+         * @return 总执行时长，如果路径为空返回 0
+         */
+        public long totalDuration() {
+            if (path.isEmpty()) {
+                return 0;
+            }
+            Long first = timestamps.get(path.get(0));
+            Long last = timestamps.get(path.get(path.size() - 1));
+            if (first == null || last == null) {
+                return 0;
+            }
+            return last - first;
+        }
     }
 }

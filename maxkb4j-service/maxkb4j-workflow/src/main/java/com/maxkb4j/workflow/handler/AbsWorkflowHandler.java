@@ -132,6 +132,9 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
             // 调用调度层钩子（用于状态更新等调度逻辑）
             onNodeStart(workflow, node);
 
+            // 记录执行轨迹
+            workflow.execution().recordExecution(node);
+
             // 执行节点 - 所有执行逻辑（包括时间记录、钩子调用、onError）都在 Handler 内部处理
             NodeResult result = nodeHandler.execute(workflow, node);
 

@@ -211,6 +211,52 @@ public class NodeResult {
             return this;
         }
 
+        // ==================== 快捷方法 ====================
+
+        /**
+         * 快速创建成功结果（非流式）
+         *
+         * @param answer 答案内容
+         * @return this builder
+         */
+        public Builder success(String answer) {
+            this.variables.put("answer", answer);
+            this.streamOutput = false;
+            return this;
+        }
+
+        /**
+         * 快速创建流式输出结果
+         *
+         * @return this builder
+         */
+        public Builder streaming() {
+            this.streamOutput = true;
+            return this;
+        }
+
+        /**
+         * 快速创建可中断结果
+         *
+         * @param func 中断判断函数
+         * @return this builder
+         */
+        public Builder interrupt(IsInterruptFunction func) {
+            this.isInterrupt = func;
+            return this;
+        }
+
+        /**
+         * 快速创建空结果
+         *
+         * @return this builder
+         */
+        public Builder empty() {
+            this.variables = new HashMap<>();
+            this.streamOutput = false;
+            return this;
+        }
+
         /**
          * Build the NodeResult instance.
          *

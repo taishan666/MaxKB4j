@@ -21,6 +21,7 @@ public class ConditionUtil {
 
     /**
      * Evaluate whether a branch meets the specified conditions.
+     * Uses Stream API for clearer logic expression.
      *
      * @param workflow      the workflow context
      * @param conditionType "and" or "or" for condition combination
@@ -31,19 +32,13 @@ public class ConditionUtil {
         if (conditionList == null || conditionList.isEmpty()) {
             return true; // No conditions means satisfied
         }
-        boolean isAnd = "and".equals(conditionType);
-        boolean result = isAnd;
-        for (Condition cond : conditionList) {
-            boolean conditionResult = assertion(workflow, cond.getField(), cond.getCompare(), cond.getValue());
-            if (isAnd) {
-                result = conditionResult;
-                if (!result) break; // Short-circuit for AND
-            } else {
-                result = conditionResult;
-                if (result) break; // Short-circuit for OR
-            }
+        if ("and".equals(conditionType)) {
+            return conditionList.stream().allMatch(
+                    cond -> assertion(workflow, cond.getField(), cond.getCompare(), cond.getValue()));
+        } else {
+            return conditionList.stream().anyMatch(
+                    cond -> assertion(workflow, cond.getField(), cond.getCompare(), cond.getValue()));
         }
-        return result;
     }
 
     /**
