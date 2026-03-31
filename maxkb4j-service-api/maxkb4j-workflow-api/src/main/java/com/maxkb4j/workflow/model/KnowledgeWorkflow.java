@@ -21,14 +21,15 @@ public class KnowledgeWorkflow extends Workflow {
         this.knowledgeParams = knowledgeParams;
         Map<String, Object> knowledgeBase = knowledgeParams.getKnowledgeBase();
         if (knowledgeBase != null) {
-            super.getContext().putAll(knowledgeBase);
+            this.getContext().putAll(knowledgeBase);
         }
     }
 
-
     public List<AbsNode> getStartNodes() {
         String nodeId = knowledgeParams.getDataSource().getNodeId();
-        List<AbsNode> startNodes = super.getNodes().stream().filter(e -> !isTargetNode(e.getId())).toList();
+        List<AbsNode> startNodes = this.getConfiguration().getNodes().stream()
+                .filter(e -> !isTargetNode(e.getId()))
+                .toList();
         for (AbsNode startNode : startNodes) {
             if (!startNode.getId().equals(nodeId)) {
                 startNode.setStatus(NodeStatus.SKIP.getStatus());
@@ -38,9 +39,7 @@ public class KnowledgeWorkflow extends Workflow {
     }
 
     public boolean isTargetNode(String nodeId) {
-        return super.getEdges().stream().anyMatch(e -> e.getTargetNodeId().equals(nodeId));
-
+        return this.getConfiguration().getEdges().stream()
+                .anyMatch(e -> e.getTargetNodeId().equals(nodeId));
     }
-
-
 }

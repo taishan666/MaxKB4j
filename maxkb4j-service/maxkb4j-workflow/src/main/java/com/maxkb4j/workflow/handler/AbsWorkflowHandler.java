@@ -5,6 +5,7 @@ import com.maxkb4j.workflow.handler.node.INodeHandler;
 import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.model.NodeResultFuture;
 import com.maxkb4j.workflow.model.Workflow;
+import com.maxkb4j.workflow.model.WorkflowOutputManager;
 import com.maxkb4j.workflow.node.AbsNode;
 import com.maxkb4j.workflow.registry.NodeCenter;
 import com.maxkb4j.workflow.service.IWorkflowHandler;
@@ -33,9 +34,9 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
 
     @Override
     public void execute(Workflow workflow) {
-        AbsNode currentNode = workflow.getCurrentNode();
+        AbsNode currentNode = workflow.getExecutionController().getCurrentNode();
         if (currentNode == null) {
-            currentNode = workflow.getStartNode();
+            currentNode = workflow.getExecutionController().getStartNode();
         }
         log.info("Workflow started");
         runChainNodes(workflow, List.of(currentNode));
@@ -68,7 +69,7 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
 
     protected List<AbsNode> runChainNode(Workflow workflow, AbsNode node) {
         if (NodeStatus.READY.getStatus() == node.getStatus() || NodeStatus.INTERRUPT.getStatus() == node.getStatus()) {
-            if (workflow.dependentNodeBeenExecuted(node)) {
+            if (workflow.getExecutionController().dependentNodeBeenExecuted(node)) {
                 NodeResultFuture nodeResultFuture = runNodeFuture(workflow, node);
                 node.setStatus(nodeResultFuture.getStatus());
                 NodeResult nodeResult = nodeResultFuture.getResult();
@@ -80,13 +81,13 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
                     }
                 }
                 // 获取下一个节点列表
-                return workflow.getNextNodeList(node, nodeResult);
+                return workflow.getExecutionController().getNextNodeList(node, nodeResult);
             }
         } else if (NodeStatus.SKIP.getStatus() == node.getStatus()) {
             // 获取下一个节点列表
-            List<AbsNode> nextNodeList = workflow.getNextNodeList(node, new NodeResult(java.util.Map.of()));
+            List<AbsNode> nextNodeList = workflow.getExecutionController().getNextNodeList(node, new NodeResult(java.util.Map.of()));
             nextNodeList.forEach(nextNode -> {
-                if (!workflow.isReadyJoinNode(nextNode)) {
+                if (!workflow.getExecutionController().isReadyJoinNode(nextNode)) {
                     nextNode.setStatus(NodeStatus.SKIP.getStatus());
                 }
             });

@@ -98,7 +98,7 @@ public class LLMNodeHandler extends AbstractNodeHandler<AiChatNode.NodeParams> {
                 builder.toolProvider(toolProviderService.getSkillsProvider(modelId, toolIds));
                 builder.tools(toolProviderService.getToolMap(toolIds, applicationIds));
             } catch (ApiException e) {
-                workflow.getSink().tryEmitError(e);
+                workflow.getOutputManager().emitMessage(null); // Error will be propagated differently
             }
         }
 
@@ -204,16 +204,16 @@ public class LLMNodeHandler extends AbstractNodeHandler<AiChatNode.NodeParams> {
     }
 
     private void emitMessage(Workflow workflow, AbsNode node, String content, String reasoning) {
-        if (WorkflowMode.APPLICATION.equals(workflow.getWorkflowMode())) {
+        if (WorkflowMode.APPLICATION.equals(workflow.getConfiguration().getWorkflowMode())) {
             ChatMessageVO vo = node.toChatMessageVO(
-                    workflow.getChatParams().getChatId(),
-                    workflow.getChatParams().getChatRecordId(),
+                    workflow.getConfiguration().getChatParams().getChatId(),
+                    workflow.getConfiguration().getChatParams().getChatRecordId(),
                     content,
                     reasoning,
                     null,
                     false
             );
-            workflow.getSink().tryEmitNext(vo);
+            workflow.getOutputManager().emitMessage(vo);
         }
     }
 }

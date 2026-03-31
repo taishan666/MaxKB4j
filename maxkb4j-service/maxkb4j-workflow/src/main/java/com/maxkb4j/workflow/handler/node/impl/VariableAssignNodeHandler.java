@@ -45,8 +45,9 @@ public class VariableAssignNodeHandler extends AbstractNodeHandler<VariableAssig
             if ("chat".equals(scope)) {
                 resultList.add(getChatHandleResult(workflow, variable, fields));
                 // Update chat variables
-                if (workflow.getChatParams() != null && workflow.getChatParams().getChatId() != null) {
-                    ChatInfo chatInfo = ChatCache.get(workflow.getChatParams().getChatId());
+                if (workflow.getConfiguration().getChatParams() != null
+                        && workflow.getConfiguration().getChatParams().getChatId() != null) {
+                    ChatInfo chatInfo = ChatCache.get(workflow.getConfiguration().getChatParams().getChatId());
                     if (chatInfo != null && chatInfo.getChatVariables() != null) {
                         chatInfo.getChatVariables().putAll(workflow.getChatContext());
                     }

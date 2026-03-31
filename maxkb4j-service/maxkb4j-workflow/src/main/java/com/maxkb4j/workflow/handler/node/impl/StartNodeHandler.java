@@ -38,7 +38,7 @@ public class StartNodeHandler extends AbstractNodeHandler<Object> {
 
     @Override
     protected NodeResult doExecute(Workflow workflow, AbsNode node, Object params) throws Exception {
-        ChatParams chatParams = workflow.getChatParams();
+        ChatParams chatParams = workflow.getConfiguration().getChatParams();
 
         // 获取默认全局变量
         Map<String, Object> globalVariable = getDefaultGlobalVariable(workflow, chatParams);

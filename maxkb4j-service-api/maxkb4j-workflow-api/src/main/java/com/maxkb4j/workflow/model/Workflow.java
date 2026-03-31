@@ -2,322 +2,147 @@ package com.maxkb4j.workflow.model;
 
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.maxkb4j.common.domain.dto.*;
-import com.maxkb4j.workflow.enums.NodeStatus;
-import com.maxkb4j.workflow.enums.NodeType;
+import com.maxkb4j.common.domain.dto.ChatParams;
+import com.maxkb4j.common.domain.dto.ChatRecordDTO;
 import com.maxkb4j.workflow.enums.WorkflowMode;
 import com.maxkb4j.workflow.logic.LfEdge;
 import com.maxkb4j.workflow.node.AbsNode;
 import dev.langchain4j.data.message.ChatMessage;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import reactor.core.publisher.Sinks;
 
-import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 /**
- * Workflow model class
- * Responsible for workflow configuration, node management and execution control
- * After refactoring, responsibilities are clearer:
- * - Use WorkflowContext for context management
- * - Use VariableResolver for variable resolution
- * - Use HistoryManager for history messages
- * - Use TemplateRenderer for template rendering
+ * 工作流协调器
+ * 聚合工作流各组件，提供统一的访问入口
+ *
+ * 重构后职责：
+ * - 聚合 WorkflowConfiguration（配置管理）
+ * - 聚合 WorkflowContext（上下文管理）
+ * - 聚合 WorkflowExecutionController（执行控制）
+ * - 聚合 WorkflowOutputManager（输出管理）
+ * - 聚合 HistoryManager（历史消息）
+ * - 聚合 VariableResolver（变量解析）
+ * - 聚合 TemplateRenderer（模板渲染）
  */
 @Slf4j
-@Data
+@Getter
+@Setter
 public class Workflow {
 
-    private WorkflowMode workflowMode;
-    private AbsNode currentNode;
-    private ChatParams chatParams;
-    private List<AbsNode> nodes;
-    private List<LfEdge> edges;
-    /**
-     * Context manager
-     * Get workflow context
-     */
-    private WorkflowContext workflowContext;
-    /**
-     * History message manager
-     */
-    private HistoryManager historyManager;
-    /**
-     * Variable resolver
-     * Get variable resolver
-     */
-    private VariableResolver variableResolver;
-    /**
-     * Template renderer
-     */
-    private TemplateRenderer templateRenderer;
+    // ==================== 配置组件 ====================
+    protected WorkflowConfiguration configuration;
 
-    /**
-     * Edge navigator for graph traversal
-     */
-    private EdgeNavigator edgeNavigator;
+    // ==================== 上下文组件 ====================
+    protected WorkflowContext workflowContext;
+    protected HistoryManager historyManager;
+    protected VariableResolver variableResolver;
+    protected TemplateRenderer templateRenderer;
 
-    /**
-     * Cached node ID to node map for O(1) lookups
-     */
-    private Map<String, AbsNode> nodeMap;
+    // ==================== 执行控制组件 ====================
+    protected WorkflowExecutionController executionController;
 
-    @JsonIgnore
-    private Sinks.Many<ChatMessageVO> sink;
+    // ==================== 输出管理组件 ====================
+    protected WorkflowOutputManager outputManager;
 
+    // ==================== 边导航器 ====================
+    protected EdgeNavigator edgeNavigator;
+
+    // ==================== 构造器 ====================
 
     public Workflow(WorkflowMode workflowMode, List<AbsNode> nodes, List<LfEdge> edges) {
-        init(workflowMode, nodes, edges, ChatParams.builder().build(), Sinks.many().unicast().onBackpressureBuffer(), null);
+        this(workflowMode, nodes, edges, ChatParams.builder().build(),
+             Sinks.many().unicast().onBackpressureBuffer(), null);
     }
 
-    public Workflow(WorkflowMode workflowMode, List<AbsNode> nodes, List<LfEdge> edges, ChatParams chatParams, Sinks.Many<ChatMessageVO> sink) {
-        JSONObject details = null;
-        if (chatParams != null && chatParams.getChatRecord() != null) {
-            details = chatParams.getChatRecord().getDetails();
-        }
-        init(workflowMode, nodes, edges, chatParams, sink, details);
+    public Workflow(WorkflowMode workflowMode, List<AbsNode> nodes, List<LfEdge> edges,
+                    ChatParams chatParams, Sinks.Many<com.maxkb4j.common.domain.dto.ChatMessageVO> sink) {
+        this(workflowMode, nodes, edges, chatParams, sink,
+             chatParams != null && chatParams.getChatRecord() != null
+                ? chatParams.getChatRecord().getDetails()
+                : null);
     }
 
-    public Workflow(WorkflowMode workflowMode, List<AbsNode> nodes, List<LfEdge> edges, ChatParams chatParams, JSONObject details, Sinks.Many<ChatMessageVO> sink) {
-        init(workflowMode, nodes, edges, chatParams, sink, details);
-    }
+    public Workflow(WorkflowMode workflowMode, List<AbsNode> nodes, List<LfEdge> edges,
+                    ChatParams chatParams, JSONObject details,
+                    Sinks.Many<com.maxkb4j.common.domain.dto.ChatMessageVO> sink) {
+        // 1. 初始化配置
+        this.configuration = new WorkflowConfiguration(workflowMode, nodes, edges);
+        this.configuration.setChatParams(chatParams);
 
-    /**
-     * Initialize workflow
-     */
-    private void init(WorkflowMode workflowMode, List<AbsNode> nodes, List<LfEdge> edges, ChatParams chatParams, Sinks.Many<ChatMessageVO> sink, JSONObject details) {
-        this.workflowMode = workflowMode;
-        this.nodes = nodes;
-        this.edges = edges;
-        this.chatParams = chatParams;
-        this.sink = sink;
+        // 2. 初始化上下文组件
         this.workflowContext = new WorkflowContext();
-        // Build node map for O(1) lookups
-        this.nodeMap = nodes != null ? nodes.stream().filter(Objects::nonNull).collect(Collectors.toMap(AbsNode::getId, n -> n, (a, b) -> a)) : new HashMap<>();
-        // If chatParams is null, pass empty history list
-        this.historyManager = new HistoryManager(chatParams != null ? chatParams.getHistoryChatRecords() : Collections.emptyList());
+        this.historyManager = new HistoryManager(
+                chatParams != null ? chatParams.getHistoryChatRecords() : Collections.emptyList());
         this.variableResolver = new VariableResolver(this.workflowContext);
         this.templateRenderer = new TemplateRenderer(this.variableResolver);
+
+        // 3. 初始化边导航器
         this.edgeNavigator = new EdgeNavigator(edges);
-        // Load node state
-        if (chatParams != null && StringUtils.isNotBlank(chatParams.getRuntimeNodeId()) && Objects.nonNull(chatParams.getChatRecord())) {
-            if (details != null) {
-                this.loadNode(details, chatParams.getRuntimeNodeId(), chatParams.getNodeData());
-            }
+
+        // 4. 初始化执行控制器
+        this.executionController = new WorkflowExecutionController(
+                this.configuration, this.workflowContext, this.edgeNavigator, this.templateRenderer);
+
+        // 5. 初始化输出管理器
+        this.outputManager = new WorkflowOutputManager(
+                this.configuration, this.workflowContext, sink);
+
+        // 6. 加载节点状态（恢复执行）
+        if (chatParams != null && StringUtils.isNotBlank(chatParams.getRuntimeNodeId())
+                && Objects.nonNull(chatParams.getChatRecord()) && details != null) {
+            this.executionController.loadNodeState(this, details,
+                    chatParams.getRuntimeNodeId(), chatParams.getNodeData());
         }
     }
 
+    // ==================== 便捷访问方法 ====================
 
-    @SuppressWarnings("unchecked")
-    public void loadNode(JSONObject details, String currentNodeId, Map<String, Object> currentNodeData) {
-        if (details == null || currentNodeId == null) {
-            log.warn("loadNode called with null details or currentNodeId");
-            return;
-        }
-        List<Map<String, Object>> sortedDetails = details.values().stream()
-                .filter(Objects::nonNull)
-                .map(row -> (Map<String, Object>) row)
-                .sorted(Comparator.comparing(
-                        e -> (Integer) e.get("index"),
-                        Comparator.nullsLast(Comparator.naturalOrder())
-                )).toList();
-        for (Map<String, Object> nodeDetail : sortedDetails) {
-            String nodeId = (String) nodeDetail.get("nodeId");
-            List<String> upNodeIdList = (List<String>) nodeDetail.get("upNodeIdList");
-            String runtimeNodeId = (String) nodeDetail.get("runtimeNodeId");
-            Integer nodeStatus = (Integer) nodeDetail.get("status");
-            if (runtimeNodeId.equals(currentNodeId)) {
-                // Process start node
-                this.currentNode = getNodeClsById(nodeId, upNodeIdList, n -> {
-                    JSONObject nodeProperties = n.getProperties();
-                    if (nodeProperties.containsKey("nodeData")) {
-                        JSONObject nodeParams = nodeProperties.getJSONObject("nodeData");
-                        nodeParams.put("form_data", currentNodeData);
-                    }
-                    return nodeProperties;
-                });
-                if (currentNode != null) {
-                    currentNode.setStatus(nodeStatus);
-                    currentNode.saveContext(this, nodeDetail);
-                    currentNode.setDetail(nodeDetail);
-                    workflowContext.appendNode(currentNode);
-                }
-            } else {
-                // Process other nodes
-                AbsNode node = getNodeClsById(nodeId, upNodeIdList, null);
-                if (node != null) {
-                    node.setStatus(nodeStatus);
-                    node.saveContext(this, nodeDetail);
-                    node.setDetail(nodeDetail);
-                    workflowContext.appendNode(node);
-                }
-            }
-        }
-    }
-
-    public AbsNode getStartNode() {
-        return getNodeClsById(NodeType.START.getKey(), List.of(), null);
-    }
-
-    public List<AbsNode> getNextNodeList(AbsNode currentNode, NodeResult currentNodeResult) {
-        // Check if execution should be interrupted
-        if (currentNodeResult == null || currentNodeResult.isInterruptExec(currentNode)) {
-            return List.of();
-        }
-        // Process non-assertion result branches
-        List<LfEdge> sourceEdges = findDownstreamEdges(currentNode.getId());
-        if (sourceEdges.isEmpty()) {
-            return List.of();
-        }
-        List<String> targetNodeIds = sourceEdges.stream()
-                .map(LfEdge::getTargetNodeId)
-                .distinct()
-                .toList();
-        if (currentNodeResult.isAssertionResult()) {
-            List<AbsNode> targetNodes = buildNodes(targetNodeIds, currentNode);
-            targetNodes.forEach(e -> {
-                if (!isAssertionNode(e.getId(), currentNodeResult, sourceEdges)) {
-                    e.setStatus(NodeStatus.SKIP.getStatus());
-                }
-            });
-            return targetNodes;
-        } else {
-            return buildNodes(targetNodeIds, currentNode);
-        }
-    }
-
-    private boolean isAssertionNode(String nodeId, NodeResult currentNodeResult, List<LfEdge> sourceEdges) {
-        List<String> assertionNodeIds = sourceEdges.stream().filter(edge -> {
-            Map<String, Object> nodeVariables = currentNodeResult.getNodeVariable();
-            String branchId = nodeVariables != null ? (String) nodeVariables.getOrDefault("branchId", "") : "";
-            String expectedAnchorId = String.format("%s_%s_right", edge.getSourceNodeId(), branchId);
-            return expectedAnchorId.equals(edge.getSourceAnchorId());
-        }).map(LfEdge::getTargetNodeId).toList();
-        return CollectionUtils.isNotEmpty(assertionNodeIds) && assertionNodeIds.contains(nodeId);
-    }
-
-    private List<AbsNode> buildNodes(List<String> targetNodeIds, AbsNode currentNode) {
-        List<String> upNodeIdList = new ArrayList<>(currentNode.getUpNodeIdList());
-        upNodeIdList.add(currentNode.getId());
-        return targetNodeIds.stream()
-                .map(nodeId -> getNodeClsById(nodeId, upNodeIdList, null))
-                .filter(Objects::nonNull)
-                .toList();
+    /**
+     * 获取全局上下文
+     */
+    public Map<String, Object> getContext() {
+        return workflowContext.getGlobalContext();
     }
 
     /**
-     * Find upstream node IDs for a given node.
+     * 获取聊天上下文
      */
-    private List<String> findUpstreamNodeIds(String nodeId) {
-        return edgeNavigator.findUpstreamNodeIds(nodeId);
+    public Map<String, Object> getChatContext() {
+        return workflowContext.getChatContext();
     }
 
     /**
-     * Find downstream edges for a given node.
+     * 获取历史聊天记录
      */
-    private List<LfEdge> findDownstreamEdges(String nodeId) {
-        return edgeNavigator.findDownstreamEdges(nodeId);
+    public List<ChatRecordDTO> getHistoryChatRecords() {
+        return historyManager.historyChatRecords();
     }
 
     /**
-     * Get nodes that are in the current workflow configuration.
+     * 获取历史消息
      */
-    private List<AbsNode> getValidNodeContext() {
-        Set<String> nodeIds = nodeMap.keySet();
-        return workflowContext.getNodeContext().stream()
-                .filter(e -> nodeIds.contains(e.getId()))
-                .toList();
+    public List<ChatMessage> getHistoryMessages(int dialogueNumber, String dialogueType, String runtimeNodeId) {
+        return historyManager.getHistoryMessages(dialogueNumber, dialogueType, runtimeNodeId);
     }
 
-    public boolean dependentNodeBeenExecuted(AbsNode node) {
-        List<String> upNodeIdList = findUpstreamNodeIds(node.getId());
-        // Allow start node to pass
-        if (CollectionUtils.isEmpty(upNodeIdList)) {
-            return true;
-        }
-        Set<String> upNodeIdSet = new HashSet<>(upNodeIdList);
-        return nodes.stream()
-                .filter(e -> upNodeIdSet.contains(e.getId()))
-                .allMatch(e -> NodeStatus.SUCCESS.getStatus() == e.getStatus() || NodeStatus.SKIP.getStatus() == e.getStatus());
+    /**
+     * 渲染提示词模板
+     */
+    public String renderPrompt(String prompt) {
+        return templateRenderer.render(prompt);
     }
 
-    // Check if it's a join node (excluding join nodes where all upstream nodes are SKIP)
-    public boolean isReadyJoinNode(AbsNode node) {
-        List<String> upNodeIdList = findUpstreamNodeIds(node.getId());
-        if (CollectionUtils.isEmpty(upNodeIdList)) {
-            return false;
-        }
-        if (upNodeIdList.size() > 1) {
-            Set<String> upNodeIdSet = new HashSet<>(upNodeIdList);
-            return !nodes.stream()
-                    .filter(e -> upNodeIdSet.contains(e.getId()))
-                    .allMatch(e -> NodeStatus.SKIP.getStatus() == e.getStatus());
-        }
-        return false;
-    }
-
-    public AbsNode getNodeClsById(String nodeId, List<String> upNodeIds, Function<AbsNode, JSONObject> getNodeProperties) {
-        AbsNode node = nodeMap.get(nodeId);
-        if (node != null) {
-            node.setUpNodeIdList(upNodeIds);
-            node.setTemplateRenderer(templateRenderer);
-            if (getNodeProperties != null) {
-                getNodeProperties.apply(node);
-            }
-        }
-        return node;
-    }
-
-    public List<Answer> getAnswerTextList() {
-        List<AbsNode> nodeContext = getValidNodeContext();
-        if (nodeContext.isEmpty()) {
-            return List.of();
-        }
-        List<Answer> answerTextList = new ArrayList<>(nodeContext.size());
-        for (AbsNode node : nodeContext) {
-            answerTextList.addAll(node.getAnswerList(chatParams.getChatRecordId()));
-        }
-        return answerTextList;
-    }
-
-    public JSONObject getRuntimeDetails() {
-        JSONObject result = new JSONObject(true);
-        List<AbsNode> nodeContext = getValidNodeContext();
-        if (nodeContext.isEmpty()) {
-            return result;
-        }
-        for (int index = 0; index < nodeContext.size(); index++) {
-            AbsNode node = nodeContext.get(index);
-            JSONObject runtimeDetail = new JSONObject(true);
-            runtimeDetail.putAll(node.getDetail());
-            runtimeDetail.put("index", index);
-            runtimeDetail.put("nodeId", node.getId());
-            runtimeDetail.put("name", node.getProperties().getString("nodeName"));
-            runtimeDetail.put("upNodeIdList", node.getUpNodeIdList());
-            runtimeDetail.put("runtimeNodeId", node.getRuntimeNodeId());
-            runtimeDetail.put("type", node.getType());
-            runtimeDetail.put("status", node.getStatus());
-            runtimeDetail.put("errMessage", node.getErrMessage());
-            result.put(node.getRuntimeNodeId(), runtimeDetail);
-        }
-        return result;
-    }
-
-    @SuppressWarnings("unchecked")
-    public Object getFieldValue(Object value, String source) {
-        if ("reference".equals(source)) {
-            if (value instanceof List) {
-                List<String> fields = (List<String>) value;
-                return variableResolver.getReferenceField(fields.get(0), fields.get(1));
-            }
-        }
-        return value;
-    }
-
+    /**
+     * 获取引用字段值
+     */
     public Object getReferenceField(List<String> reference) {
         if (CollectionUtils.isNotEmpty(reference) && reference.size() > 1) {
             return variableResolver.getReferenceField(reference.get(0), reference.get(1));
@@ -325,41 +150,22 @@ public class Workflow {
         return null;
     }
 
-    public AbsNode getNode(String nodeId) {
-        return nodeMap.get(nodeId);
+    /**
+     * 获取字段值
+     */
+    @SuppressWarnings("unchecked")
+    public Object getFieldValue(Object value, String source) {
+        if ("reference".equals(source) && value instanceof List) {
+            List<String> fields = (List<String>) value;
+            return variableResolver.getReferenceField(fields.get(0), fields.get(1));
+        }
+        return value;
     }
-
-    public String renderPrompt(String prompt) {
-        return templateRenderer.render(prompt);
-    }
-
-    public List<ChatRecordDTO> getHistoryChatRecords() {
-        return historyManager.historyChatRecords();
-    }
-
-    public List<ChatMessage> getHistoryMessages(int dialogueNumber, String dialogueType, String runtimeNodeId) {
-        return historyManager.getHistoryMessages(dialogueNumber, dialogueType, runtimeNodeId);
-    }
-
-    public Map<String, Object> getChatContext() {
-        return workflowContext.getChatContext();
-    }
-
-    public Map<String, Object> getContext() {
-        return workflowContext.getGlobalContext();
-    }
-
-
 
     /**
-     * Determine if current workflow needs sink output
-     * Knowledge workflow doesn't need output, chat workflow needs output
-     *
-     * @return whether sink output is needed
+     * 根据节点ID获取节点
      */
-    public boolean needsSinkOutput() {
-        return workflowMode == WorkflowMode.APPLICATION || workflowMode == WorkflowMode.APPLICATION_LOOP;
+    public AbsNode getNode(String nodeId) {
+        return configuration.getNode(nodeId);
     }
-
-
 }

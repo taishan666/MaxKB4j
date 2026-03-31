@@ -66,25 +66,25 @@ public class NodeResult {
         if (nodeVariable != null) {
             node.getContext().putAll(nodeVariable);
         }
-        // Use workflow's decision method instead of hardcoded checks
-        if (workflow.needsSinkOutput()) {
+        // Use workflow's output manager to check if sink output is needed
+        if (workflow.getOutputManager().needsSinkOutput()) {
             if (StringUtils.isNotBlank(node.getAnswerText())) {
                 ChatMessageVO vo = node.toChatMessageVO(
-                        workflow.getChatParams().getChatId(),
-                        workflow.getChatParams().getChatRecordId(),
+                        workflow.getConfiguration().getChatParams().getChatId(),
+                        workflow.getConfiguration().getChatParams().getChatRecordId(),
                         streamOutput ? "" : node.getAnswerText(),
                         "",
                         null,
                         false);
-                workflow.getSink().tryEmitNext(vo);
+                workflow.getOutputManager().emitMessage(vo);
                 ChatMessageVO nodeEndVo = node.toChatMessageVO(
-                        workflow.getChatParams().getChatId(),
-                        workflow.getChatParams().getChatRecordId(),
+                        workflow.getConfiguration().getChatParams().getChatId(),
+                        workflow.getConfiguration().getChatParams().getChatRecordId(),
                         "",
                         "",
                         null,
                         true);
-                workflow.getSink().tryEmitNext(nodeEndVo);
+                workflow.getOutputManager().emitMessage(nodeEndVo);
             }
         }
         // Sync update to workflow context

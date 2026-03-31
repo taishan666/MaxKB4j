@@ -127,7 +127,7 @@ public class LoopNodeHandler extends AbstractNodeHandler<LoopNode.NodeParams> {
         Object currentIndex = node.getDetail().get("current_index");
         int startIndex = currentIndex == null ? 0 : (int) currentIndex;
 
-        ChatParams chatParams = workflow.getChatParams();
+        ChatParams chatParams = workflow.getConfiguration().getChatParams();
         if (chatParams.getChildNode() != null) {
             chatParams.setRuntimeNodeId(chatParams.getChildNode().getRuntimeNodeId());
         }
@@ -196,7 +196,7 @@ public class LoopNodeHandler extends AbstractNodeHandler<LoopNode.NodeParams> {
         future.join();
 
         // Process runtime details
-        JSONObject runtimeDetails = processRuntimeDetails(loopWorkflow, startIndex);
+        JSONObject runtimeDetails = processRuntimeDetails(loopWorkflow.getOutputManager().getRuntimeDetails(), startIndex);
 
         return new LoopIterationResult(runtimeDetails, isInterruptExec.get());
     }
@@ -229,8 +229,8 @@ public class LoopNodeHandler extends AbstractNodeHandler<LoopNode.NodeParams> {
             childNode.set(new ChildNode(e.getChatRecordId(), runtimeNodeId));
 
             ChatMessageVO vo = node.toChatMessageVO(
-                    workflow.getChatParams().getChatId(),
-                    workflow.getChatParams().getChatRecordId(),
+                    workflow.getConfiguration().getChatParams().getChatId(),
+                    workflow.getConfiguration().getChatParams().getChatRecordId(),
                     e.getContent(),
                     e.getReasoningContent(),
                     childNode.get(),
@@ -238,8 +238,8 @@ public class LoopNodeHandler extends AbstractNodeHandler<LoopNode.NodeParams> {
             vo.setNodeType(e.getNodeType());
             vo.setViewType(e.getViewType());
 
-            if (workflow.needsSinkOutput()) {
-                workflow.getSink().tryEmitNext(vo);
+            if (workflow.getOutputManager().needsSinkOutput()) {
+                workflow.getOutputManager().emitMessage(vo);
             }
         }
     }
@@ -249,23 +249,22 @@ public class LoopNodeHandler extends AbstractNodeHandler<LoopNode.NodeParams> {
      */
     private void sendLoopEndMessage(AbsNode node, Workflow workflow, AtomicReference<ChildNode> childNode) {
         ChatMessageVO vo = node.toChatMessageVO(
-                workflow.getChatParams().getChatId(),
-                workflow.getChatParams().getChatRecordId(),
+                workflow.getConfiguration().getChatParams().getChatId(),
+                workflow.getConfiguration().getChatParams().getChatRecordId(),
                 "",
                 "",
                 childNode.get(),
                 false);
 
-        if (workflow.needsSinkOutput()) {
-            workflow.getSink().tryEmitNext(vo);
+        if (workflow.getOutputManager().needsSinkOutput()) {
+            workflow.getOutputManager().emitMessage(vo);
         }
     }
 
     /**
      * Process runtime details and update node IDs with loop index.
      */
-    private JSONObject processRuntimeDetails(LoopWorkFlow loopWorkflow, int startIndex) {
-        JSONObject runtimeDetails = loopWorkflow.getRuntimeDetails();
+    private JSONObject processRuntimeDetails(JSONObject runtimeDetails, int startIndex) {
         for (String key : runtimeDetails.keySet()) {
             JSONObject value = runtimeDetails.getJSONObject(key);
             String runtimeNodeId = value.getString("runtimeNodeId");
