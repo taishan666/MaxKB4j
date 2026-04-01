@@ -1,1 +1,0 @@
-import{b1 as i,b2 as s,b3 as r}from"./admin-D7Biommy.js";const n="/auth",u=(t,o)=>r(`${n}/${t}/detail`,void 0,o),a=(t,o)=>i(`${n}/connection`,t,void 0,o),p=(t,o,e)=>s(`${n}/${t}/info`,o,void 0,e),g={getAuthSetting:u,postAuthSetting:a,putAuthSetting:p};export{g as a};
