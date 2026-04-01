@@ -31,17 +31,13 @@ import static com.maxkb4j.workflow.enums.NodeType.USER_SELECT;
 @Component
 @NodeHandlerType(NodeType.APPLICATION)
 @RequiredArgsConstructor
-public class ApplicationNodeHandler extends AbstractNodeHandler<ApplicationNode.NodeParams> {
+public class ApplicationNodeHandler extends AbstractNodeHandler {
 
     private final IApplicationChatService chatService;
 
     @Override
-    protected Class<ApplicationNode.NodeParams> getParamsClass() {
-        return ApplicationNode.NodeParams.class;
-    }
-
-    @Override
-    protected NodeResult doExecute(Workflow workflow, AbsNode node, ApplicationNode.NodeParams params) throws Exception {
+    protected NodeResult doExecute(Workflow workflow, AbsNode node) throws Exception {
+        ApplicationNode.NodeParams params = parseParams(node, ApplicationNode.NodeParams.class);
         List<String> questionFields = params.getQuestionReferenceAddress();
         String question = getReferenceFieldAsString(workflow, questionFields);
         ChatParams chatParams = workflow.getChatParams();

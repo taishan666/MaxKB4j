@@ -28,17 +28,13 @@ import java.util.Map;
 @NodeHandlerType(NodeType.QUESTION)
 @RequiredArgsConstructor
 @Component
-public class QuestionNodeHandler extends AbstractNodeHandler<QuestionNode.NodeParams> {
+public class QuestionNodeHandler extends AbstractNodeHandler {
 
     private final IModelProviderService modelFactory;
 
     @Override
-    protected Class<QuestionNode.NodeParams> getParamsClass() {
-        return QuestionNode.NodeParams.class;
-    }
-
-    @Override
-    protected NodeResult doExecute(Workflow workflow, AbsNode node, QuestionNode.NodeParams params) throws Exception {
+    protected NodeResult doExecute(Workflow workflow, AbsNode node) throws Exception {
+        QuestionNode.NodeParams params = parseParams(node, QuestionNode.NodeParams.class);
         ChatModel chatModel = modelFactory.buildChatModel(params.getModelId(), params.getModelParamsSetting());
         List<ChatMessage> historyMessages = workflow.getHistoryMessages(params.getDialogueNumber(), DialogueType.WORK_FLOW.name(), node.getRuntimeNodeId());
 

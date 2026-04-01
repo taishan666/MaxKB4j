@@ -20,37 +20,28 @@ import java.util.Map;
 @NodeHandlerType({NodeType.TOOL, NodeType.TOOL_LIB})
 @Component
 @RequiredArgsConstructor
-public class ToolNodeHandler extends AbstractNodeHandler<ToolNode.NodeParams> {
+public class ToolNodeHandler extends AbstractNodeHandler {
 
     private final IOssService fileService;
 
     @Override
-    protected Class<ToolNode.NodeParams> getParamsClass() {
-        return ToolNode.NodeParams.class;
-    }
-
-    @Override
-    protected NodeResult doExecute(Workflow workflow, AbsNode node, ToolNode.NodeParams params) throws Exception {
+    protected NodeResult doExecute(Workflow workflow, AbsNode node) throws Exception {
+        ToolNode.NodeParams params = parseParams(node, ToolNode.NodeParams.class);
         Map<String, Object> execParams = new HashMap<>(5);
         execParams.put("fileService", fileService);
-
         if (!CollectionUtils.isEmpty(params.getInputFieldList())) {
             for (ToolInputField inputField : params.getInputFieldList()) {
                 Object value = workflow.getFieldValue(inputField.getValue(), inputField.getSource());
                 execParams.put(inputField.getName(), value);
             }
         }
-
         GroovyScriptExecutor scriptExecutor = new GroovyScriptExecutor(params.getCode(), params.getInitParams());
         Object result = scriptExecutor.execute(execParams);
-
         // 使用辅助方法写入详情
         putDetail(node, "params", execParams);
-
         if (Boolean.TRUE.equals(params.getIsResult())) {
             setAnswer(node, result.toString());
         }
-
         return new NodeResult(Map.of("result", result));
     }
 }

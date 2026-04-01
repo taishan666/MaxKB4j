@@ -1,8 +1,8 @@
 package com.maxkb4j.workflow.handler.node.impl;
 
 import com.alibaba.fastjson.JSONObject;
-import com.maxkb4j.common.mp.entity.KnowledgeSetting;
 import com.maxkb4j.common.domain.dto.ChatRecordDTO;
+import com.maxkb4j.common.mp.entity.KnowledgeSetting;
 import com.maxkb4j.knowledge.service.IRetrieveService;
 import com.maxkb4j.knowledge.vo.ParagraphVO;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
@@ -27,17 +27,13 @@ import java.util.Map;
 @NodeHandlerType(NodeType.SEARCH_KNOWLEDGE)
 @RequiredArgsConstructor
 @Component
-public class SearchKnowledgeNodeHandler extends AbstractNodeHandler<SearchKnowledgeNode.NodeParams> {
+public class SearchKnowledgeNodeHandler extends AbstractNodeHandler {
 
     private final IRetrieveService retrieveService;
 
     @Override
-    protected Class<SearchKnowledgeNode.NodeParams> getParamsClass() {
-        return SearchKnowledgeNode.NodeParams.class;
-    }
-
-    @Override
-    protected NodeResult doExecute(Workflow workflow, AbsNode node, SearchKnowledgeNode.NodeParams params) throws Exception {
+    protected NodeResult doExecute(Workflow workflow, AbsNode node) throws Exception {
+        SearchKnowledgeNode.NodeParams params = parseParams(node, SearchKnowledgeNode.NodeParams.class);
         KnowledgeSetting knowledgeSetting = params.getKnowledgeSetting();
         List<String> fields = params.getQuestionReferenceAddress();
         String question = getReferenceFieldAsString(workflow, fields);

@@ -21,17 +21,12 @@ import java.util.Map;
 @Component
 @NodeHandlerType(NodeType.DATA_SOURCE_WEB)
 @RequiredArgsConstructor
-public class DataSourceWebHandler extends AbstractNodeHandler<Object> {
+public class DataSourceWebHandler extends AbstractNodeHandler {
 
     private final IDocumentWebService documentWebService;
 
     @Override
-    protected Class<Object> getParamsClass() {
-        return Object.class;
-    }
-
-    @Override
-    protected NodeResult doExecute(Workflow workflow, AbsNode node, Object params) throws Exception {
+    protected NodeResult doExecute(Workflow workflow, AbsNode node) throws Exception {
         List<DocumentSimple> documentList = new ArrayList<>();
         Map<String, Object> inputParams = new HashMap<>();
         if (workflow instanceof KnowledgeWorkflow knowledgeWorkflow) {

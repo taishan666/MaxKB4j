@@ -23,17 +23,14 @@ import java.util.Map;
 @NodeHandlerType(NodeType.PARAMETER_EXTRACTION)
 @RequiredArgsConstructor
 @Component
-public class ParameterExtractionNodeHandler extends AbstractNodeHandler<ParameterExtractionNode.NodeParams> {
+public class ParameterExtractionNodeHandler extends AbstractNodeHandler {
 
     private final IModelProviderService modelFactory;
 
-    @Override
-    protected Class<ParameterExtractionNode.NodeParams> getParamsClass() {
-        return ParameterExtractionNode.NodeParams.class;
-    }
 
     @Override
-    protected NodeResult doExecute(Workflow workflow, AbsNode node, ParameterExtractionNode.NodeParams params) throws Exception {
+    protected NodeResult doExecute(Workflow workflow, AbsNode node) throws Exception {
+        ParameterExtractionNode.NodeParams params = parseParams(node, ParameterExtractionNode.NodeParams.class);
         ChatModel chatModel = modelFactory.buildChatModel(params.getModelId(), params.getModelParamsSetting());
         Object query = workflow.getReferenceField(params.getInputVariable());
 

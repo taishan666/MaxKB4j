@@ -5,8 +5,8 @@ import com.maxkb4j.workflow.enums.NodeType;
 import com.maxkb4j.workflow.handler.node.AbstractNodeHandler;
 import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.model.Workflow;
-import com.maxkb4j.workflow.node.AbsNode;
 import com.maxkb4j.workflow.model.params.ConditionNodeParams;
+import com.maxkb4j.workflow.node.AbsNode;
 import com.maxkb4j.workflow.util.ConditionUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -17,17 +17,13 @@ import java.util.Map;
 @NodeHandlerType(NodeType.CONDITION)
 @Component
 @RequiredArgsConstructor
-public class ConditionNodeHandler extends AbstractNodeHandler<ConditionNodeParams> {
+public class ConditionNodeHandler extends AbstractNodeHandler {
 
     private final ConditionUtil conditionUtil;
 
     @Override
-    protected Class<ConditionNodeParams> getParamsClass() {
-        return ConditionNodeParams.class;
-    }
-
-    @Override
-    protected NodeResult doExecute(Workflow workflow, AbsNode node, ConditionNodeParams params) throws Exception {
+    protected NodeResult doExecute(Workflow workflow, AbsNode node) throws Exception {
+        ConditionNodeParams params= parseParams(node, ConditionNodeParams.class);
         ConditionNodeParams.Branch branch = executeBranch(workflow, params.getBranch());
         assert branch != null;
         return new NodeResult(Map.of("branchId", branch.getId(), "branchName", branch.getType()));

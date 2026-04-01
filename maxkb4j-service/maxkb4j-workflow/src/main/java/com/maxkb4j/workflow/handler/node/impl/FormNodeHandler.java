@@ -16,15 +16,11 @@ import java.util.Map;
 
 @NodeHandlerType(NodeType.FORM)
 @Component
-public class FormNodeHandler extends AbstractNodeHandler<FormNode.NodeParams> {
+public class FormNodeHandler extends AbstractNodeHandler {
 
     @Override
-    protected Class<FormNode.NodeParams> getParamsClass() {
-        return FormNode.NodeParams.class;
-    }
-
-    @Override
-    protected NodeResult doExecute(Workflow workflow, AbsNode node, FormNode.NodeParams params) throws Exception {
+    protected NodeResult doExecute(Workflow workflow, AbsNode node) throws Exception {
+        FormNode.NodeParams params = parseParams(node, FormNode.NodeParams.class);
         Map<String, Object> formData = params.getFormData();
         Map<String, Object> nodeVariable = new HashMap<>();
 

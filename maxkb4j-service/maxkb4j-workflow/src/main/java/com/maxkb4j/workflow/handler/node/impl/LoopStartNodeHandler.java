@@ -16,15 +16,11 @@ import java.util.Map;
 
 @NodeHandlerType(NodeType.LOOP_START)
 @Component
-public class LoopStartNodeHandler extends AbstractNodeHandler<Object> {
+public class LoopStartNodeHandler extends AbstractNodeHandler {
+
 
     @Override
-    protected Class<Object> getParamsClass() {
-        return Object.class;
-    }
-
-    @Override
-    protected NodeResult doExecute(Workflow workflow, AbsNode node, Object params) throws Exception {
+    protected NodeResult doExecute(Workflow workflow, AbsNode node) throws Exception {
         int index = 0;
         Object item = "None";
 

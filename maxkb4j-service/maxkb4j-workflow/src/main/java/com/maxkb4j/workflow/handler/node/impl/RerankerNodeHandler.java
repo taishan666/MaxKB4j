@@ -28,17 +28,13 @@ import java.util.Map;
 @NodeHandlerType(NodeType.RERANKER)
 @RequiredArgsConstructor
 @Component
-public class RerankerNodeHandler extends AbstractNodeHandler<RerankerNode.NodeParams> {
+public class RerankerNodeHandler extends AbstractNodeHandler {
 
     private final IModelProviderService modelFactory;
 
     @Override
-    protected Class<RerankerNode.NodeParams> getParamsClass() {
-        return RerankerNode.NodeParams.class;
-    }
-
-    @Override
-    protected NodeResult doExecute(Workflow workflow, AbsNode node, RerankerNode.NodeParams params) throws Exception {
+    protected NodeResult doExecute(Workflow workflow, AbsNode node) throws Exception {
+        RerankerNode.NodeParams params = parseParams(node, RerankerNode.NodeParams.class);
         List<String> questionReferenceAddress = params.getQuestionReferenceAddress();
         String question = getReferenceFieldAsString(workflow, questionReferenceAddress);
         List<RerankerNode.RerankResult> documentList = new ArrayList<>();

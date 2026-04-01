@@ -17,12 +17,12 @@ import java.util.Objects;
 /**
  * Workflow 构建器
  * 分离复杂初始化逻辑，提供清晰的构建流程
- *
+ * <p>
  * 设计原则：
  * - 必需参数通过构造器传入
  * - 可选参数通过链式方法设置
  * - 组件初始化顺序在 build() 中统一管理
- *
+ * <p>
  * 使用示例：
  * <pre>
  * Workflow workflow = WorkflowBuilder.create(mode, nodes, edges)
@@ -55,9 +55,9 @@ public class WorkflowBuilder {
     /**
      * 构造器（必需参数）
      *
-     * @param mode   工作流模式
-     * @param nodes  节点列表
-     * @param edges  边列表
+     * @param mode  工作流模式
+     * @param nodes 节点列表
+     * @param edges 边列表
      */
     public WorkflowBuilder(WorkflowMode mode, List<AbsNode> nodes, List<LfEdge> edges) {
         this.workflowMode = Objects.requireNonNull(mode, "workflowMode cannot be null");
@@ -75,6 +75,12 @@ public class WorkflowBuilder {
      */
     public WorkflowBuilder chatParams(ChatParams params) {
         this.chatParams = params;
+        if (params != null &&
+            params.getChatRecord() != null &&
+           params.getChatRecord().getDetails() != null
+        ) {
+            restoreState(chatParams.getChatRecord().getDetails(), chatParams.getRuntimeNodeId(), chatParams.getNodeData());
+        }
         return this;
     }
 
@@ -86,6 +92,14 @@ public class WorkflowBuilder {
      */
     public WorkflowBuilder sink(Many<ChatMessageVO> sink) {
         this.sink = sink;
+        return this;
+    }
+
+    public WorkflowBuilder restoreState(JSONObject details, String nodeId, Map<String, Object> nodeData) {
+        this.details = details;
+        this.currentNodeId = nodeId;
+        this.currentNodeData = nodeData;
+        this.restoreState = (details != null && nodeId != null);
         return this;
     }
 

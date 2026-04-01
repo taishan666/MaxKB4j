@@ -18,17 +18,12 @@ import java.util.Map;
 
 @NodeHandlerType(NodeType.USER_SELECT)
 @Component
-public class UserSelectNodeHandler extends AbstractNodeHandler<UserSelectNode.NodeParams> {
+public class UserSelectNodeHandler extends AbstractNodeHandler {
 
     private static final String SELECT_FILED = "select-card";
-
     @Override
-    protected Class<UserSelectNode.NodeParams> getParamsClass() {
-        return UserSelectNode.NodeParams.class;
-    }
-
-    @Override
-    protected NodeResult doExecute(Workflow workflow, AbsNode node, UserSelectNode.NodeParams params) throws Exception {
+    protected NodeResult doExecute(Workflow workflow, AbsNode node) throws Exception {
+        UserSelectNode.NodeParams params = parseParams(node, UserSelectNode.NodeParams.class);
         JSONObject formData = params.getFormData();
         List<UserSelectNode.Branch> branches = params.getBranch();
         Map<String, Object> nodeVariable = new HashMap<>();

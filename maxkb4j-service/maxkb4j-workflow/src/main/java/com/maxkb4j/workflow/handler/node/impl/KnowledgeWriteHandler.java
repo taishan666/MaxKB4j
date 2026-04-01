@@ -1,5 +1,8 @@
 package com.maxkb4j.workflow.handler.node.impl;
 
+import com.maxkb4j.knowledge.consts.KnowledgeType;
+import com.maxkb4j.knowledge.dto.DocumentSimple;
+import com.maxkb4j.knowledge.service.IDocumentService;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.NodeType;
 import com.maxkb4j.workflow.handler.node.AbstractNodeHandler;
@@ -8,9 +11,6 @@ import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.model.Workflow;
 import com.maxkb4j.workflow.node.AbsNode;
 import com.maxkb4j.workflow.node.impl.KnowledgeWriteNode;
-import com.maxkb4j.knowledge.consts.KnowledgeType;
-import com.maxkb4j.knowledge.dto.DocumentSimple;
-import com.maxkb4j.knowledge.service.IDocumentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -22,18 +22,14 @@ import java.util.Map;
 @Component
 @NodeHandlerType(NodeType.KNOWLEDGE_WRITE)
 @RequiredArgsConstructor
-public class KnowledgeWriteHandler extends AbstractNodeHandler<KnowledgeWriteNode.NodeParams> {
+public class KnowledgeWriteHandler extends AbstractNodeHandler {
 
     private final IDocumentService documentService;
 
-    @Override
-    protected Class<KnowledgeWriteNode.NodeParams> getParamsClass() {
-        return KnowledgeWriteNode.NodeParams.class;
-    }
-
     @SuppressWarnings("unchecked")
     @Override
-    protected NodeResult doExecute(Workflow workflow, AbsNode node, KnowledgeWriteNode.NodeParams params) throws Exception {
+    protected NodeResult doExecute(Workflow workflow, AbsNode node) throws Exception {
+        KnowledgeWriteNode.NodeParams params = parseParams(node, KnowledgeWriteNode.NodeParams.class);
         Object value = workflow.getReferenceField(params.getDocumentList());
         putDetail(node, "write_content", value);
 

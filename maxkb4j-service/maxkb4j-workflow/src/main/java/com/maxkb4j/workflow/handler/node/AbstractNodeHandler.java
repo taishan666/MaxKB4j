@@ -22,18 +22,9 @@ import java.util.Map;
  *   <li>错误处理 - onError() / handleError()</li>
  * </ul>
  *
- * @param <P> 节点参数类型
  */
 @Slf4j
-public abstract class AbstractNodeHandler<P> implements INodeHandler {
-
-    /**
-     * 获取参数类型的 Class 对象
-     * 子类必须实现以支持自动参数解析
-     *
-     * @return 参数类型的 Class
-     */
-    protected abstract Class<P> getParamsClass();
+public abstract class AbstractNodeHandler implements INodeHandler {
 
     /**
      * 核心执行逻辑
@@ -41,11 +32,10 @@ public abstract class AbstractNodeHandler<P> implements INodeHandler {
      *
      * @param workflow 工作流上下文
      * @param node     节点实例
-     * @param params   解析后的参数
      * @return 执行结果
      * @throws Exception 执行异常
      */
-    protected abstract NodeResult doExecute(Workflow workflow, AbsNode node, P params) throws Exception;
+    protected abstract NodeResult doExecute(Workflow workflow, AbsNode node) throws Exception;
 
     /**
      * 模板方法：完整的执行流程
@@ -56,23 +46,18 @@ public abstract class AbstractNodeHandler<P> implements INodeHandler {
     @Override
     public final NodeResult execute(Workflow workflow, AbsNode node) throws Exception {
         long startTime = System.currentTimeMillis();
-        P params = null;
-
         try {
-            // 1. 解析参数
-            params = parseParams(node);
-
             // 2. 内部预处理（记录开始时间等）
-            onPreExecute(workflow, node, params);
+            onPreExecute(workflow, node);
 
             // 3. 外部预处理钩子（子类可覆盖）
             preExecute(workflow, node);
 
             // 4. 核心执行
-            NodeResult result = doExecute(workflow, node, params);
+            NodeResult result = doExecute(workflow, node);
 
             // 5. 内部后处理
-            onPostExecute(workflow, node, params, result);
+            onPostExecute(workflow, node, result);
 
             // 6. 外部后处理钩子
             postExecute(workflow, node, result);
@@ -85,7 +70,7 @@ public abstract class AbstractNodeHandler<P> implements INodeHandler {
         } catch (Exception ex) {
             // 错误处理
             onError(workflow, node, ex);
-            handleError(workflow, node, params, ex);
+            handleError(workflow, node, ex);
             throw ex;
         }
     }
@@ -97,9 +82,8 @@ public abstract class AbstractNodeHandler<P> implements INodeHandler {
      * @param node 节点实例
      * @return 解析后的参数对象，可能为 null
      */
-    protected P parseParams(AbsNode node) {
+    protected <P> P parseParams(AbsNode node,Class<P> paramsClass) {
         JSONObject nodeData = node.getNodeData();
-        Class<P> paramsClass = getParamsClass();
         if (paramsClass == null) {
             log.warn("Cannot parse params: paramsClass is null for handler {}", this.getClass().getSimpleName());
             return null;
@@ -117,13 +101,9 @@ public abstract class AbstractNodeHandler<P> implements INodeHandler {
      *
      * @param workflow 工作流上下文
      * @param node     节点实例
-     * @param params   解析后的参数
      */
-    protected void onPreExecute(Workflow workflow, AbsNode node, P params) {
+    protected void onPreExecute(Workflow workflow, AbsNode node) {
         node.getDetail().put("startTime", System.currentTimeMillis());
-        if (params != null) {
-            node.getDetail().put("params", params);
-        }
     }
 
     /**
@@ -132,10 +112,9 @@ public abstract class AbstractNodeHandler<P> implements INodeHandler {
      *
      * @param workflow 工作流上下文
      * @param node     节点实例
-     * @param params   解析后的参数
      * @param result   执行结果
      */
-    protected void onPostExecute(Workflow workflow, AbsNode node, P params, NodeResult result) {
+    protected void onPostExecute(Workflow workflow, AbsNode node, NodeResult result) {
         // 子类可覆盖添加自定义逻辑
     }
 
@@ -145,10 +124,9 @@ public abstract class AbstractNodeHandler<P> implements INodeHandler {
      *
      * @param workflow 工作流上下文
      * @param node     节点实例
-     * @param params   解析后的参数（可能为 null）
      * @param ex       异常信息
      */
-    protected void handleError(Workflow workflow, AbsNode node, P params, Exception ex) {
+    protected void handleError(Workflow workflow, AbsNode node, Exception ex) {
         log.error("Node {} execution failed: {}", node.getType(), ex.getMessage(), ex);
         node.setErrMessage(ex.getMessage());
         node.getDetail().put("error", ex.getMessage());

@@ -2,9 +2,9 @@ package com.maxkb4j.workflow.handler.node.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
+import com.maxkb4j.common.domain.dto.OssFile;
 import com.maxkb4j.common.util.MimeTypeUtils;
 import com.maxkb4j.model.service.IModelProviderService;
-import com.maxkb4j.common.domain.dto.OssFile;
 import com.maxkb4j.oss.service.IOssService;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.NodeType;
@@ -31,18 +31,14 @@ import static org.springframework.web.util.UriUtils.extractFileExtension;
 @RequiredArgsConstructor
 @Component
 @Slf4j
-public class ImageGenerateNodeHandler extends AbstractNodeHandler<ImageGenerateNode.NodeParams> {
+public class ImageGenerateNodeHandler extends AbstractNodeHandler {
 
     private final IModelProviderService modelFactory;
     private final IOssService fileService;
 
     @Override
-    protected Class<ImageGenerateNode.NodeParams> getParamsClass() {
-        return ImageGenerateNode.NodeParams.class;
-    }
-
-    @Override
-    protected NodeResult doExecute(Workflow workflow, AbsNode node, ImageGenerateNode.NodeParams params) throws Exception {
+    protected NodeResult doExecute(Workflow workflow, AbsNode node) throws Exception {
+        ImageGenerateNode.NodeParams params = parseParams(node, ImageGenerateNode.NodeParams.class);
         String prompt = workflow.renderPrompt(params.getPrompt());
         String negativePrompt = params.getNegativePrompt();
         JSONObject modelParamsSetting = params.getModelParamsSetting();

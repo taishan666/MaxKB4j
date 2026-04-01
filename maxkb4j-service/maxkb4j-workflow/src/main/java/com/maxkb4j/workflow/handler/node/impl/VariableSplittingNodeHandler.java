@@ -18,15 +18,11 @@ import java.util.Map;
 
 @NodeHandlerType(NodeType.VARIABLE_SPLITTING)
 @Component
-public class VariableSplittingNodeHandler extends AbstractNodeHandler<VariableSplittingNode.NodeParams> {
+public class VariableSplittingNodeHandler extends AbstractNodeHandler {
 
     @Override
-    protected Class<VariableSplittingNode.NodeParams> getParamsClass() {
-        return VariableSplittingNode.NodeParams.class;
-    }
-
-    @Override
-    protected NodeResult doExecute(Workflow workflow, AbsNode node, VariableSplittingNode.NodeParams params) throws Exception {
+    protected NodeResult doExecute(Workflow workflow, AbsNode node) throws Exception {
+        VariableSplittingNode.NodeParams params = parseParams(node, VariableSplittingNode.NodeParams.class);
         List<String> inputVariable = params.getInputVariable();
         Object inputValue = workflow.getReferenceField(inputVariable);
 

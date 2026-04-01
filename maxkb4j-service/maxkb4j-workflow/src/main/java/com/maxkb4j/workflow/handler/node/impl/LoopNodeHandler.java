@@ -3,8 +3,8 @@ package com.maxkb4j.workflow.handler.node.impl;
 import com.alibaba.fastjson.JSONObject;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.common.domain.dto.ChatMessageVO;
+import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.common.domain.dto.ChildNode;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.builder.NodeBuilder;
@@ -15,8 +15,8 @@ import com.maxkb4j.workflow.model.LoopParams;
 import com.maxkb4j.workflow.model.LoopWorkFlow;
 import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.model.Workflow;
-import com.maxkb4j.workflow.node.AbsNode;
 import com.maxkb4j.workflow.model.params.LoopNodeParams;
+import com.maxkb4j.workflow.node.AbsNode;
 import com.maxkb4j.workflow.service.IWorkFlowActuator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,19 +37,15 @@ import static com.maxkb4j.workflow.enums.NodeType.*;
 @NodeHandlerType(NodeType.LOOP)
 @Component
 @RequiredArgsConstructor
-public class LoopNodeHandler extends AbstractNodeHandler<LoopNodeParams> {
+public class LoopNodeHandler extends AbstractNodeHandler {
 
     private final IWorkFlowActuator workFlowActuator;
     private final NodeBuilder nodeBuilder;
 
-    @Override
-    protected Class<LoopNodeParams> getParamsClass() {
-        return LoopNodeParams.class;
-    }
 
-    @SuppressWarnings("unchecked")
     @Override
-    protected NodeResult doExecute(Workflow workflow, AbsNode node, LoopNodeParams params) throws Exception {
+    protected NodeResult doExecute(Workflow workflow, AbsNode node) throws Exception {
+        LoopNodeParams params = parseParams(node, LoopNodeParams.class);
         String loopType = params.getLoopType();
         List<String> array = params.getArray();
         Integer number = params.getNumber();

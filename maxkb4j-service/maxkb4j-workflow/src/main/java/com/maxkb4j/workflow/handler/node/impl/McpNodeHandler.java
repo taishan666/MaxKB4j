@@ -2,7 +2,6 @@ package com.maxkb4j.workflow.handler.node.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.application.executor.McpClientExecutor;
-import com.maxkb4j.tool.service.IToolService;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.NodeType;
 import com.maxkb4j.workflow.handler.node.AbstractNodeHandler;
@@ -21,18 +20,12 @@ import java.util.Map;
 @NodeHandlerType(NodeType.MCP)
 @RequiredArgsConstructor
 @Component
-public class McpNodeHandler extends AbstractNodeHandler<McpNode.NodeParams> {
-
-    private final IToolService toolService;
-
-    @Override
-    protected Class<McpNode.NodeParams> getParamsClass() {
-        return McpNode.NodeParams.class;
-    }
+public class McpNodeHandler extends AbstractNodeHandler {
 
     @Override
     @SuppressWarnings("unchecked")
-    protected NodeResult doExecute(Workflow workflow, AbsNode node, McpNode.NodeParams params) throws Exception {
+    protected NodeResult doExecute(Workflow workflow, AbsNode node) throws Exception {
+        McpNode.NodeParams params = parseParams(node, McpNode.NodeParams.class);
         JSONObject toolParams = params.getToolParams();
         JSONObject execParams = new JSONObject();
 

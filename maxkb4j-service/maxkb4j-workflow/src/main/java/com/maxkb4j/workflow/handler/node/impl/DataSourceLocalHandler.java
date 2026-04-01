@@ -19,15 +19,11 @@ import java.util.Map;
 @Component
 @NodeHandlerType(NodeType.DATA_SOURCE_LOCAL)
 @RequiredArgsConstructor
-public class DataSourceLocalHandler extends AbstractNodeHandler<Object> {
+public class DataSourceLocalHandler extends AbstractNodeHandler {
+
 
     @Override
-    protected Class<Object> getParamsClass() {
-        return Object.class;
-    }
-
-    @Override
-    protected NodeResult doExecute(Workflow workflow, AbsNode node, Object params) throws Exception {
+    protected NodeResult doExecute(Workflow workflow, AbsNode node) throws Exception {
         List<OssFile> fileList = new ArrayList<>();
         if (workflow instanceof KnowledgeWorkflow knowledgeWorkflow) {
             KnowledgeParams knowledgeParams = knowledgeWorkflow.getKnowledgeParams();

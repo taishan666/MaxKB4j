@@ -16,17 +16,13 @@ import java.util.Map;
 @NodeHandlerType(NodeType.LOOP_CONTINUE)
 @Component
 @RequiredArgsConstructor
-public class LoopContinueNodeHandler extends AbstractNodeHandler<LoopContinueNode.NodeParams> {
+public class LoopContinueNodeHandler extends AbstractNodeHandler {
 
     private final ConditionUtil conditionUtil;
 
     @Override
-    protected Class<LoopContinueNode.NodeParams> getParamsClass() {
-        return LoopContinueNode.NodeParams.class;
-    }
-
-    @Override
-    protected NodeResult doExecute(Workflow workflow, AbsNode node, LoopContinueNode.NodeParams params) throws Exception {
+    protected NodeResult doExecute(Workflow workflow, AbsNode node) throws Exception {
+        LoopContinueNode.NodeParams params = parseParams(node, LoopContinueNode.NodeParams.class);
         boolean isContinue = conditionUtil.assertion(workflow, params.getCondition(), params.getConditionList());
 
         if (isContinue) {

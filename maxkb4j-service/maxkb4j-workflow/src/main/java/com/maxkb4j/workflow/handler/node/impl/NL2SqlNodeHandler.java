@@ -1,9 +1,9 @@
 package com.maxkb4j.workflow.handler.node.impl;
 
-import com.maxkb4j.core.util.DatabaseUtil;
 import com.maxkb4j.core.assistant.NL2SqlAssistant;
 import com.maxkb4j.core.langchain4j.AppChatMemory;
 import com.maxkb4j.core.langchain4j.AssistantServices;
+import com.maxkb4j.core.util.DatabaseUtil;
 import com.maxkb4j.model.service.IModelProviderService;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.NodeType;
@@ -28,17 +28,13 @@ import java.util.Map;
 @NodeHandlerType(NodeType.NL2SQL)
 @RequiredArgsConstructor
 @Component
-public class NL2SqlNodeHandler extends AbstractNodeHandler<NL2SqlNode.NodeParams> {
+public class NL2SqlNodeHandler extends AbstractNodeHandler {
 
     private final IModelProviderService modelFactory;
 
     @Override
-    protected Class<NL2SqlNode.NodeParams> getParamsClass() {
-        return NL2SqlNode.NodeParams.class;
-    }
-
-    @Override
-    protected NodeResult doExecute(Workflow workflow, AbsNode node, NL2SqlNode.NodeParams params) throws Exception {
+    protected NodeResult doExecute(Workflow workflow, AbsNode node) throws Exception {
+        NL2SqlNode.NodeParams params = parseParams(node, NL2SqlNode.NodeParams.class);
         NL2SqlNode.DatabaseSetting databaseSetting = params.getDatabaseSetting();
         List<String> fields = params.getQuestionReferenceAddress();
         String question = getReferenceFieldAsString(workflow, fields);

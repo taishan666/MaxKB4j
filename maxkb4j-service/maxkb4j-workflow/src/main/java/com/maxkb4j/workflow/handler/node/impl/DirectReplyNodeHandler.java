@@ -17,15 +17,12 @@ import java.util.concurrent.atomic.AtomicReference;
 
 @NodeHandlerType(NodeType.REPLY)
 @Component
-public class DirectReplyNodeHandler extends AbstractNodeHandler<DirectReplyNode.NodeParams> {
+public class DirectReplyNodeHandler extends AbstractNodeHandler {
+
 
     @Override
-    protected Class<DirectReplyNode.NodeParams> getParamsClass() {
-        return DirectReplyNode.NodeParams.class;
-    }
-
-    @Override
-    protected NodeResult doExecute(Workflow workflow, AbsNode node, DirectReplyNode.NodeParams params) throws Exception {
+    protected NodeResult doExecute(Workflow workflow, AbsNode node) throws Exception {
+        DirectReplyNode.NodeParams params = parseParams(node, DirectReplyNode.NodeParams.class);
         AtomicReference<String> answerText = new AtomicReference<>("");
         if ("referencing".equals(params.getReplyType())) {
             List<String> fields = params.getFields();

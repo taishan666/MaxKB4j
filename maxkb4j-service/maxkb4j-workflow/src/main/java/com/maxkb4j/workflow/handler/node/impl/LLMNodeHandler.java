@@ -19,8 +19,8 @@ import com.maxkb4j.workflow.enums.WorkflowMode;
 import com.maxkb4j.workflow.handler.node.AbstractNodeHandler;
 import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.model.Workflow;
-import com.maxkb4j.workflow.node.AbsNode;
 import com.maxkb4j.workflow.model.params.AiChatNodeParams;
+import com.maxkb4j.workflow.node.AbsNode;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.Content;
 import dev.langchain4j.data.message.ImageContent;
@@ -44,19 +44,16 @@ import static org.springframework.web.util.UriUtils.extractFileExtension;
 @NodeHandlerType({NodeType.AI_CHAT, NodeType.IMAGE_UNDERSTAND})
 @Component
 @RequiredArgsConstructor
-public class LLMNodeHandler extends AbstractNodeHandler<AiChatNodeParams> {
+public class LLMNodeHandler extends AbstractNodeHandler {
 
     private final IModelProviderService modelFactory;
     private final IToolProviderService toolProviderService;
     private final IOssService fileService;
 
-    @Override
-    protected Class<AiChatNodeParams> getParamsClass() {
-        return AiChatNodeParams.class;
-    }
 
     @Override
-    protected NodeResult doExecute(Workflow workflow, AbsNode node, AiChatNodeParams params) throws Exception {
+    protected NodeResult doExecute(Workflow workflow, AbsNode node) throws Exception {
+        AiChatNodeParams params = parseParams(node, AiChatNodeParams.class);
         String question = workflow.renderPrompt(params.getPrompt());
         String systemPrompt = workflow.renderPrompt(params.getSystem());
         List<ChatMessage> historyMessages = workflow.getHistoryMessages(
@@ -83,8 +80,8 @@ public class LLMNodeHandler extends AbstractNodeHandler<AiChatNodeParams> {
     }
 
     private Assistant buildAiServices(String modelId, JSONObject modelParamsSetting, Workflow workflow,
-                                       String systemPrompt, List<ChatMessage> historyMessages,
-                                       List<String> toolIds, List<String> applicationIds) {
+                                      String systemPrompt, List<ChatMessage> historyMessages,
+                                      List<String> toolIds, List<String> applicationIds) {
         AiServices<Assistant> builder = AssistantServices.builder(Assistant.class);
 
         if (StringUtils.isNotBlank(systemPrompt)) {
@@ -135,7 +132,7 @@ public class LLMNodeHandler extends AbstractNodeHandler<AiChatNodeParams> {
     }
 
     private void recordNodeDetails(AbsNode node, String systemPrompt, List<ChatMessage> historyMessages,
-                                    String question, List<Content> contents) {
+                                   String question, List<Content> contents) {
         putDetails(node, Map.of(
                 "system", systemPrompt,
                 "history_message", MessageConverter.resetMessageList(historyMessages),
@@ -164,7 +161,7 @@ public class LLMNodeHandler extends AbstractNodeHandler<AiChatNodeParams> {
     }
 
     private NodeResult writeContextStream(AiChatNodeParams params, TokenStream tokenStream,
-                                           Workflow workflow, AbsNode node) {
+                                          Workflow workflow, AbsNode node) {
         AtomicReference<String> errorMessage = new AtomicReference<>("");
         boolean isResult = Boolean.TRUE.equals(params.getIsResult());
         boolean toolOutputEnable = Boolean.TRUE.equals(params.getToolOutputEnable());

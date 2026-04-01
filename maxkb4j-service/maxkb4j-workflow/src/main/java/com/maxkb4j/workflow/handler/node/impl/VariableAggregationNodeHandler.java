@@ -16,7 +16,7 @@ import java.util.Objects;
 
 @NodeHandlerType(NodeType.VARIABLE_AGGREGATE)
 @Component
-public class VariableAggregationNodeHandler extends AbstractNodeHandler<VariableAggregationNode.NodeParams> {
+public class VariableAggregationNodeHandler extends AbstractNodeHandler {
 
     private static final Map<String, StrategyFunction> STRATEGY_MAP = new HashMap<>();
 
@@ -26,12 +26,8 @@ public class VariableAggregationNodeHandler extends AbstractNodeHandler<Variable
     }
 
     @Override
-    protected Class<VariableAggregationNode.NodeParams> getParamsClass() {
-        return VariableAggregationNode.NodeParams.class;
-    }
-
-    @Override
-    protected NodeResult doExecute(Workflow workflow, AbsNode node, VariableAggregationNode.NodeParams params) throws Exception {
+    protected NodeResult doExecute(Workflow workflow, AbsNode node) throws Exception {
+        VariableAggregationNode.NodeParams params = parseParams(node, VariableAggregationNode.NodeParams.class);
         String strategyName = params.getStrategy();
         Map<String, Object> nodeVariable = new HashMap<>();
         List<VariableAggregationNode.Group> groupList = params.getGroupList();

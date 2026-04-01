@@ -14,7 +14,6 @@ import com.maxkb4j.workflow.model.ChatRecordSimple;
 import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.model.Workflow;
 import com.maxkb4j.workflow.node.AbsNode;
-import com.maxkb4j.workflow.node.impl.StartNode;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -26,18 +25,11 @@ import java.util.Map;
 
 @NodeHandlerType(NodeType.START)
 @Component
-public class StartNodeHandler extends AbstractNodeHandler<Object> {
+public class StartNodeHandler extends AbstractNodeHandler {
 
-    /**
-     * StartNode 没有特定的 NodeParams 类型，使用 Object
-     */
-    @Override
-    protected Class<Object> getParamsClass() {
-        return Object.class;
-    }
 
     @Override
-    protected NodeResult doExecute(Workflow workflow, AbsNode node, Object params) throws Exception {
+    protected NodeResult doExecute(Workflow workflow, AbsNode node) throws Exception {
         ChatParams chatParams = workflow.getChatParams();
 
         // 获取默认全局变量

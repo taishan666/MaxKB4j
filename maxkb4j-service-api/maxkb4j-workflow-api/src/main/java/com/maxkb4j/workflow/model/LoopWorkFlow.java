@@ -42,9 +42,6 @@ public class LoopWorkFlow extends Workflow {
      */
     public LoopWorkFlow(Workflow parentWorkflow, List<AbsNode> nodes, List<LfEdge> edges,
                         LoopParams loopParams, JSONObject details, Sinks.Many<ChatMessageVO> sink) {
-        // 调用父类保护构造器
-        super();
-
         this.loopParams = loopParams;
         this.loopContext = new HashMap<>();
 
@@ -61,12 +58,9 @@ public class LoopWorkFlow extends Workflow {
         this.variableResolver = new VariableResolver(this.workflowContext, this.loopContext);
         this.templateRenderer = new TemplateRenderer(this.variableResolver);
         // 5. 初始化执行控制器（覆盖 getStartNode 以返回 LoopStart 节点）
-        this.executionAccessor = new LoopExecutionAccessor(
-                this.configuration, this.workflowContext, new EdgeNavigator(edges), this.templateRenderer);
-
+        this.executionAccessor = new LoopExecutionAccessor(this.configuration, this.workflowContext, new EdgeNavigator(edges), this.templateRenderer);
         // 6. 初始化输出管理器
-        this.outputManager = new WorkflowOutputManager(
-                this.configuration, this.workflowContext, sink);
+        this.outputManager = new WorkflowOutputManager(this.configuration, this.workflowContext, sink);
 
     }
 

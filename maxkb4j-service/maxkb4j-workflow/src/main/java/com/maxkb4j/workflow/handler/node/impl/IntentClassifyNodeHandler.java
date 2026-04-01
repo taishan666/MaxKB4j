@@ -2,9 +2,9 @@ package com.maxkb4j.workflow.handler.node.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.maxkb4j.common.domain.dto.MessageConverter;
-import com.maxkb4j.core.util.MessageUtils;
 import com.maxkb4j.core.assistant.IntentClassifyAssistant;
 import com.maxkb4j.core.langchain4j.AssistantServices;
+import com.maxkb4j.core.util.MessageUtils;
 import com.maxkb4j.model.service.IModelProviderService;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.DialogueType;
@@ -29,17 +29,13 @@ import java.util.*;
 @NodeHandlerType(NodeType.INTENT_CLASSIFY)
 @RequiredArgsConstructor
 @Component
-public class IntentClassifyNodeHandler extends AbstractNodeHandler<IntentClassifyNode.NodeParams> {
+public class IntentClassifyNodeHandler extends AbstractNodeHandler {
 
     private final IModelProviderService modelFactory;
 
     @Override
-    protected Class<IntentClassifyNode.NodeParams> getParamsClass() {
-        return IntentClassifyNode.NodeParams.class;
-    }
-
-    @Override
-    protected NodeResult doExecute(Workflow workflow, AbsNode node, IntentClassifyNode.NodeParams params) throws Exception {
+    protected NodeResult doExecute(Workflow workflow, AbsNode node) throws Exception {
+        IntentClassifyNode.NodeParams params = parseParams(node, IntentClassifyNode.NodeParams.class);
         ChatModel chatModel = modelFactory.buildChatModel(params.getModelId(), params.getModelParamsSetting());
         Object query = workflow.getReferenceField(params.getContentList());
         Map<String, String> branchMap = new HashMap<>();

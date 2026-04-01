@@ -16,24 +16,18 @@ import java.util.Map;
 @NodeHandlerType(NodeType.LOOP_BREAK)
 @Component
 @RequiredArgsConstructor
-public class LoopBreakNodeHandler extends AbstractNodeHandler<LoopBreakNode.NodeParams> {
+public class LoopBreakNodeHandler extends AbstractNodeHandler {
 
     private final ConditionUtil conditionUtil;
 
     @Override
-    protected Class<LoopBreakNode.NodeParams> getParamsClass() {
-        return LoopBreakNode.NodeParams.class;
-    }
-
-    @Override
-    protected NodeResult doExecute(Workflow workflow, AbsNode node, LoopBreakNode.NodeParams params) throws Exception {
+    protected NodeResult doExecute(Workflow workflow, AbsNode node) throws Exception {
+        LoopBreakNode.NodeParams params = parseParams(node, LoopBreakNode.NodeParams.class);
         boolean isBreak = conditionUtil.assertion(workflow, params.getCondition(), params.getConditionList());
         putDetail(node, "is_break", isBreak);
-
         if (isBreak) {
             setAnswer(node, "BREAK");
         }
-
         return new NodeResult(Map.of());
     }
 }
