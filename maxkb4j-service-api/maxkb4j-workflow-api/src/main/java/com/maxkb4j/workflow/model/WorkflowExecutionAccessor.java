@@ -26,24 +26,18 @@ public class WorkflowExecutionAccessor {
      * 工作流配置
      */
     private final WorkflowConfiguration configuration;
-
     /**
      * 工作流上下文
      */
     private final WorkflowContext context;
-
     /**
      * 边导航器
      */
     private final EdgeNavigator navigator;
-
     /**
      * 模板渲染器
      */
     private final TemplateRenderer templateRenderer;
-
-
-
     /**
      * 当前执行节点
      */

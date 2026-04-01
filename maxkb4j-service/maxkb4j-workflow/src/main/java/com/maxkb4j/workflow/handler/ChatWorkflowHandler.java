@@ -9,15 +9,12 @@ import com.maxkb4j.workflow.node.AbsNode;
 import com.maxkb4j.workflow.registry.NodeCenter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.core.Ordered;
-import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import java.util.concurrent.Executor;
 
 @Slf4j
 @Component
-@Order(Ordered.LOWEST_PRECEDENCE)
 public class ChatWorkflowHandler extends AbsWorkflowHandler {
 
     public ChatWorkflowHandler(NodeCenter nodeCenter,

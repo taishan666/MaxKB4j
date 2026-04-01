@@ -33,8 +33,6 @@ import java.util.Map;
 @Slf4j
 public class Workflow {
 
-    // ==================== 内部组件（protected 供子类访问） ====================
-
     protected WorkflowConfiguration configuration;
     protected WorkflowContext workflowContext;
     protected HistoryManager historyManager;

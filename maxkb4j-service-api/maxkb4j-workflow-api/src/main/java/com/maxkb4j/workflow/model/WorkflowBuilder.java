@@ -38,7 +38,6 @@ public class WorkflowBuilder {
     private final WorkflowMode workflowMode;
     private final List<AbsNode> nodes;
     private final List<LfEdge> edges;
-
     // ==================== 可选参数 ====================
     ChatParams chatParams;
     Many<ChatMessageVO> sink;
@@ -47,7 +46,6 @@ public class WorkflowBuilder {
     Map<String, Object> currentNodeData;
     Map<String, Object> loopContext;
     boolean restoreState = false;
-
     // ==================== 内部构建的组件（供 Workflow 构造器使用） ====================
     WorkflowConfiguration configuration;
     WorkflowContext context;
@@ -91,33 +89,6 @@ public class WorkflowBuilder {
         return this;
     }
 
-    /**
-     * 设置恢复执行状态
-     *
-     * @param details       节点详情 JSON
-     * @param nodeId        当前节点运行时 ID
-     * @param nodeData      当前节点数据
-     * @return this
-     */
-    public WorkflowBuilder restoreState(JSONObject details, String nodeId, Map<String, Object> nodeData) {
-        this.details = details;
-        this.currentNodeId = nodeId;
-        this.currentNodeData = nodeData;
-        this.restoreState = (details != null && nodeId != null);
-        return this;
-    }
-
-    /**
-     * 设置循环上下文（用于 LoopWorkFlow）
-     *
-     * @param loopContext 循环变量 Map
-     * @return this
-     */
-    public WorkflowBuilder loopContext(Map<String, Object> loopContext) {
-        this.loopContext = loopContext;
-        return this;
-    }
-
     // ==================== 构建方法 ====================
 
     /**
@@ -129,24 +100,18 @@ public class WorkflowBuilder {
         // 1. 构建 Configuration
         this.configuration = new WorkflowConfiguration(workflowMode, nodes, edges);
         this.configuration.setChatParams(chatParams);
-
         // 2. 构建 Context
         this.context = new WorkflowContext();
-
         // 3. 构建 HistoryManager
         List<ChatRecordDTO> history = chatParams != null
                 ? chatParams.getHistoryChatRecords()
                 : Collections.emptyList();
         this.historyManager = new HistoryManager(history);
-
         // 4. 构建 Navigator
         this.navigator = new EdgeNavigator(edges);
-
         // 5. 构建 Workflow（内部完成依赖组件初始化）
         return new Workflow(this);
     }
-
-    // ==================== 静态工厂方法 ====================
 
     /**
      * 创建构建器
@@ -160,15 +125,4 @@ public class WorkflowBuilder {
         return new WorkflowBuilder(mode, nodes, edges);
     }
 
-    /**
-     * 快速构建简单 Workflow（仅必需参数）
-     *
-     * @param mode  工作流模式
-     * @param nodes 节点列表
-     * @param edges 边列表
-     * @return Workflow 实例
-     */
-    public static Workflow simple(WorkflowMode mode, List<AbsNode> nodes, List<LfEdge> edges) {
-        return create(mode, nodes, edges).build();
-    }
 }

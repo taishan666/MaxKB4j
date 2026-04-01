@@ -1,16 +1,15 @@
 package com.maxkb4j.workflow.handler;
 
+import com.maxkb4j.knowledge.service.IKnowledgeActionService;
 import com.maxkb4j.workflow.enums.ActionStatus;
 import com.maxkb4j.workflow.enums.NodeStatus;
 import com.maxkb4j.workflow.exception.ExceptionResolverChain;
 import com.maxkb4j.workflow.model.KnowledgeWorkflow;
 import com.maxkb4j.workflow.model.Workflow;
 import com.maxkb4j.workflow.node.AbsNode;
-import com.maxkb4j.knowledge.service.IKnowledgeActionService;
 import com.maxkb4j.workflow.registry.NodeCenter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -18,7 +17,6 @@ import java.util.concurrent.Executor;
 
 @Slf4j
 @Component
-@Order(1)
 public class KnowledgeWorkflowHandler extends AbsWorkflowHandler {
 
     private final IKnowledgeActionService knowledgeActionService;
