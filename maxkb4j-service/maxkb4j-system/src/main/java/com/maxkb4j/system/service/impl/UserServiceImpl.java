@@ -81,6 +81,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
     public String login(UserLoginDTO dto, HttpServletRequest request) {
         HttpSession session = request.getSession();
         String sessionCaptcha = (String) session.getAttribute("captcha");
+        //清除验证码
+        session.removeAttribute("captcha");
         if (StringUtils.isBlank(sessionCaptcha)) {
             throw new LoginException("验证码已过期");
         }
