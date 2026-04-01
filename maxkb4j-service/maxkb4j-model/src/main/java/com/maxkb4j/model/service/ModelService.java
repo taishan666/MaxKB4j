@@ -106,7 +106,6 @@ public class ModelService extends ServiceImpl<ModelMapper, ModelEntity> {
         return userResourcePermissionService.ownerSave(AuthTargetType.MODEL, model.getId(), model.getUserId());
     }
 
-    @CachePut(value = "models", key = "#model.id")
     public ModelEntity updateModel(String id, ModelEntity model) {
         model.setId(id);
         ModelCredential credential=getModelCredential(id);
@@ -120,7 +119,6 @@ public class ModelService extends ServiceImpl<ModelMapper, ModelEntity> {
     }
 
     @Transactional
-    @CachePut(value = "models", key = "#id")
     public Boolean removeModelById(String id) {
         userResourcePermissionService.remove(AuthTargetType.MODEL, id);
         return this.removeById(id);
@@ -150,7 +148,6 @@ public class ModelService extends ServiceImpl<ModelMapper, ModelEntity> {
         return null;
     }
 
-    @Cacheable(value = "models", key = "#id")
     public ModelEntity getModelById(String id) {
         if (StringUtils.isBlank(id)) {
             return null;
