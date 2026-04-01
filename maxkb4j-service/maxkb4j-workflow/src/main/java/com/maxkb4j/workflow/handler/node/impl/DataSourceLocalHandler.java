@@ -29,7 +29,6 @@ public class DataSourceLocalHandler extends AbstractNodeHandler<Object> {
     @Override
     protected NodeResult doExecute(Workflow workflow, AbsNode node, Object params) throws Exception {
         List<OssFile> fileList = new ArrayList<>();
-
         if (workflow instanceof KnowledgeWorkflow knowledgeWorkflow) {
             KnowledgeParams knowledgeParams = knowledgeWorkflow.getKnowledgeParams();
             DataSource dataSource = knowledgeParams.getDataSource();
@@ -37,7 +36,6 @@ public class DataSourceLocalHandler extends AbstractNodeHandler<Object> {
                 fileList = dataSource.getFileList();
             }
         }
-
-        return buildResult(Map.of("fileList", fileList));
+        return new NodeResult(Map.of("fileList", fileList));
     }
 }

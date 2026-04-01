@@ -1,6 +1,7 @@
 package com.maxkb4j.workflow.model;
 
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
+import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.common.domain.dto.ChatRecordDTO;
 import com.maxkb4j.workflow.enums.WorkflowMode;
 import com.maxkb4j.workflow.logic.LfEdge;
@@ -14,11 +15,9 @@ import java.util.Map;
 /**
  * 工作流门面类
  * 提供统一的访问入口，隐藏内部组件复杂性
- *
  * 设计原则：
  * - 便捷方法优先：常用操作通过 facade 方法直接访问
  * - 分层访问器：细粒度控制通过 accessor 获取
- *
  * 使用示例：
  * <pre>
  * // 便捷方法（推荐）
@@ -41,18 +40,8 @@ public class Workflow {
     protected HistoryManager historyManager;
     protected VariableResolver variableResolver;
     protected TemplateRenderer templateRenderer;
-    protected EdgeNavigator edgeNavigator;
-    protected WorkflowExecutionController executionController;
+    protected WorkflowExecutionAccessor executionAccessor;
     protected WorkflowOutputManager outputManager;
-
-    // ==================== 分层访问器 ====================
-
-    protected ContextAccessor contextAccessor;
-    protected ExecutionAccessor executionAccessor;
-    protected OutputAccessor outputAccessor;
-
-    // ==================== 构造器 ====================
-
     /**
      * 使用 Builder 构建（推荐）
      *
@@ -63,24 +52,16 @@ public class Workflow {
         this.configuration = builder.configuration;
         this.workflowContext = builder.context;
         this.historyManager = builder.historyManager;
-        this.edgeNavigator = builder.navigator;
-
         // 2. 依赖组件初始化（顺序敏感）
         this.variableResolver = new VariableResolver(this.workflowContext, builder.loopContext);
         this.templateRenderer = new TemplateRenderer(this.variableResolver);
-        this.executionController = new WorkflowExecutionController(
-                this.configuration, this.workflowContext, this.edgeNavigator, this.templateRenderer);
+        this.executionAccessor = new WorkflowExecutionAccessor(
+                this.configuration, this.workflowContext, builder.navigator, this.templateRenderer);
         this.outputManager = new WorkflowOutputManager(
                 this.configuration, this.workflowContext, builder.sink);
-
-        // 3. 初始化访问器
-        this.contextAccessor = new ContextAccessor(this.workflowContext);
-        this.executionAccessor = new ExecutionAccessor(this.executionController);
-        this.outputAccessor = new OutputAccessor(this.outputManager);
-
-        // 4. 加载节点状态（恢复执行）
+        // 3. 加载节点状态（恢复执行）
         if (builder.restoreState) {
-            this.executionController.loadNodeState(this, builder.details,
+            this.executionAccessor.loadNodeState(this, builder.details,
                     builder.currentNodeId, builder.currentNodeData);
         }
     }
@@ -96,12 +77,8 @@ public class Workflow {
         this.historyManager = null;
         this.variableResolver = null;
         this.templateRenderer = null;
-        this.edgeNavigator = null;
-        this.executionController = null;
-        this.outputManager = null;
-        this.contextAccessor = null;
         this.executionAccessor = null;
-        this.outputAccessor = null;
+        this.outputManager = null;
     }
 
     // ==================== 便捷方法层（推荐使用） ====================
@@ -113,6 +90,10 @@ public class Workflow {
      */
     public Map<String, Object> getContext() {
         return workflowContext.getGlobalContext();
+    }
+
+    public WorkflowOutputManager output() {
+        return outputManager;
     }
 
     /**
@@ -219,7 +200,7 @@ public class Workflow {
      *
      * @return ChatParams 实例
      */
-    public com.maxkb4j.common.domain.dto.ChatParams getChatParams() {
+    public ChatParams getChatParams() {
         return configuration.getChatParams();
     }
 
@@ -248,8 +229,8 @@ public class Workflow {
      *
      * @return ContextAccessor 实例
      */
-    public ContextAccessor context() {
-        return contextAccessor;
+    public WorkflowContext context() {
+        return workflowContext;
     }
 
     /**
@@ -257,18 +238,11 @@ public class Workflow {
      *
      * @return ExecutionAccessor 实例
      */
-    public ExecutionAccessor execution() {
+    public WorkflowExecutionAccessor execution() {
         return executionAccessor;
     }
 
-    /**
-     * 获取输出访问器
-     *
-     * @return OutputAccessor 实例
-     */
-    public OutputAccessor output() {
-        return outputAccessor;
-    }
+
 
     // ==================== 静态工厂方法 ====================
 

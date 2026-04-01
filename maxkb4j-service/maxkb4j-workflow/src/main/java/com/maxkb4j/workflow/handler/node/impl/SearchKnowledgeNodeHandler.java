@@ -59,7 +59,7 @@ public class SearchKnowledgeNodeHandler extends AbstractNodeHandler<SearchKnowle
                 "showKnowledge", params.getShowKnowledge()
         ));
 
-        return buildResult(Map.of(
+        return new NodeResult(Map.of(
                 "paragraphList", paragraphList,
                 "isHitHandlingMethodList", isHitHandlingMethodList,
                 "data", processParagraphs(paragraphList, knowledgeSetting.getMaxParagraphCharNumber()),

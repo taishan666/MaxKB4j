@@ -55,7 +55,7 @@ public class ParameterExtractionNodeHandler extends AbstractNodeHandler<Paramete
         nodeVariable.put("result", result.content());
         nodeVariable.putAll(result.content());
 
-        return buildResult(nodeVariable);
+        return new NodeResult(nodeVariable);
     }
 
     protected String format(List<ParameterExtractionNode.Field> fields) {

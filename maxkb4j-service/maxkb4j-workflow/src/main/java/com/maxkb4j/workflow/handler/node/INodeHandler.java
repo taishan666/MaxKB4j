@@ -23,16 +23,6 @@ public interface INodeHandler {
     NodeResult execute(Workflow workflow, AbsNode node) throws Exception;
 
     /**
-     * 获取支持的节点类型
-     * 用于动态注册时的类型声明
-     *
-     * @return 支持的节点类型数组，空数组表示由注解声明
-     */
-    default String[] getSupportedNodeTypes() {
-        return new String[0];
-    }
-
-    /**
      * 预处理钩子 - 执行前调用
      * 可用于：参数校验、状态初始化、权限检查等
      *

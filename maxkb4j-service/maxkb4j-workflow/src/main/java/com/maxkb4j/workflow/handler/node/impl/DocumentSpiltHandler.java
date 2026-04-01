@@ -71,7 +71,7 @@ public class DocumentSpiltHandler extends AbstractNodeHandler<DocumentSpiltNode.
                 "documentList", documentList
         ));
 
-        return buildResult(Map.of("paragraphList", documentList));
+        return new NodeResult(Map.of("paragraphList", documentList));
     }
 
     private void defaultSplit(DocumentSimple document, String[] patterns, int chunkSize, boolean withFilter) {

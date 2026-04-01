@@ -47,13 +47,14 @@ public class WorkflowOutputManager {
         this.sink = sink;
     }
 
+
     /**
      * 判断是否需要 Sink 输出
      * 知识库工作流不需要输出，聊天工作流需要输出
      *
      * @return 是否需要输出
      */
-    public boolean needsSinkOutput() {
+    public boolean needsSink() {
         WorkflowMode mode = configuration.getWorkflowMode();
         return mode == WorkflowMode.APPLICATION || mode == WorkflowMode.APPLICATION_LOOP;
     }
@@ -63,7 +64,7 @@ public class WorkflowOutputManager {
      *
      * @return 答案列表
      */
-    public List<Answer> getAnswerTextList() {
+    public List<Answer> answers() {
         List<AbsNode> validNodes = getValidNodes();
         if (validNodes.isEmpty()) {
             return List.of();
@@ -86,7 +87,7 @@ public class WorkflowOutputManager {
      *
      * @return 节点运行时详情 JSON
      */
-    public JSONObject getRuntimeDetails() {
+    public JSONObject runtimeDetails() {
         JSONObject result = new JSONObject(true);
         List<AbsNode> validNodes = getValidNodes();
         if (validNodes.isEmpty()) {
@@ -116,7 +117,7 @@ public class WorkflowOutputManager {
      *
      * @param message 聊天消息
      */
-    public void emitMessage(ChatMessageVO message) {
+    public void emit(ChatMessageVO message) {
         if (sink != null && message != null) {
             sink.tryEmitNext(message);
         }

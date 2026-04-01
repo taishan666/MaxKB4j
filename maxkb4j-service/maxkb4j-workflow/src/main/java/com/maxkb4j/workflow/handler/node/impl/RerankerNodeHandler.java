@@ -87,7 +87,7 @@ public class RerankerNodeHandler extends AbstractNodeHandler<RerankerNode.NodePa
                 "documentList", documentList
         ));
 
-        return buildResult(Map.of(
+        return new NodeResult(Map.of(
                 "resultList", resultList,
                 "result", result
         ));

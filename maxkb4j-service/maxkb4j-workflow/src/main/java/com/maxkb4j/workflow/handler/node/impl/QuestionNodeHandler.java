@@ -73,6 +73,6 @@ public class QuestionNodeHandler extends AbstractNodeHandler<QuestionNode.NodePa
             setAnswer(node, result.content());
         }
 
-        return buildResult(Map.of("answer", result.content()));
+        return new NodeResult(Map.of("answer", result.content()));
     }
 }

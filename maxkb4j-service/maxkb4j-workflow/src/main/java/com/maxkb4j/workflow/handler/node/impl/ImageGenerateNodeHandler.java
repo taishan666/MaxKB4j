@@ -86,7 +86,7 @@ public class ImageGenerateNodeHandler extends AbstractNodeHandler<ImageGenerateN
 
         putDetail(node, "question", prompt);
 
-        return buildResult(Map.of("answer", String.join(" ", answerTexts), "image", imageUrls));
+        return new NodeResult(Map.of("answer", String.join(" ", answerTexts), "image", imageUrls));
     }
 
     private List<Image> buildImages(Workflow workflow, AbsNode node, List<String> imageFieldList) {

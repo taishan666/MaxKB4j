@@ -27,7 +27,6 @@ public class DirectReplyNodeHandler extends AbstractNodeHandler<DirectReplyNode.
     @Override
     protected NodeResult doExecute(Workflow workflow, AbsNode node, DirectReplyNode.NodeParams params) throws Exception {
         AtomicReference<String> answerText = new AtomicReference<>("");
-
         if ("referencing".equals(params.getReplyType())) {
             List<String> fields = params.getFields();
             Object value = workflow.getReferenceField(fields);
@@ -41,11 +40,9 @@ public class DirectReplyNodeHandler extends AbstractNodeHandler<DirectReplyNode.
         } else {
             answerText.set(workflow.renderPrompt(params.getContent()));
         }
-
         if (params.getIsResult()) {
             setAnswer(node, answerText.get());
         }
-
-        return buildResult(Map.of("answer", node.getAnswerText()));
+        return new NodeResult(Map.of("answer", node.getAnswerText()));
     }
 }

@@ -70,7 +70,7 @@ public class StartNodeHandler extends AbstractNodeHandler<Object> {
         nodeVariable.put("audio", chatParams.getAudioList());
         nodeVariable.put("other", chatParams.getOtherList());
 
-        return buildResult(nodeVariable);
+        return new NodeResult(nodeVariable);
     }
 
     private Map<String, Object> getDefaultGlobalVariable(Workflow workflow, ChatParams chatParams) {

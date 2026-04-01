@@ -34,7 +34,6 @@ public class DataSourceWebHandler extends AbstractNodeHandler<Object> {
     protected NodeResult doExecute(Workflow workflow, AbsNode node, Object params) throws Exception {
         List<DocumentSimple> documentList = new ArrayList<>();
         Map<String, Object> inputParams = new HashMap<>();
-
         if (workflow instanceof KnowledgeWorkflow knowledgeWorkflow) {
             KnowledgeParams knowledgeParams = knowledgeWorkflow.getKnowledgeParams();
             DataSource dataSource = knowledgeParams.getDataSource();
@@ -46,12 +45,10 @@ public class DataSourceWebHandler extends AbstractNodeHandler<Object> {
                 documentList = documentWebService.getDocumentList(sourceUrl, selector, true);
             }
         }
-
         putDetails(node, Map.of(
                 "inputParams", inputParams,
                 "outputParams", documentList
         ));
-
-        return buildResult(Map.of("documentList", documentList));
+        return new NodeResult(Map.of("documentList", documentList));
     }
 }

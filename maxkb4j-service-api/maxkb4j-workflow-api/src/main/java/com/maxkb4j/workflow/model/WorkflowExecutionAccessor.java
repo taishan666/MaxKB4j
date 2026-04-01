@@ -7,7 +7,6 @@ import com.maxkb4j.workflow.enums.NodeType;
 import com.maxkb4j.workflow.logic.LfEdge;
 import com.maxkb4j.workflow.node.AbsNode;
 import lombok.Getter;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
@@ -21,7 +20,7 @@ import java.util.function.Function;
  */
 @Slf4j
 @Getter
-public class WorkflowExecutionController {
+public class WorkflowExecutionAccessor {
 
     /**
      * 工作流配置
@@ -43,10 +42,11 @@ public class WorkflowExecutionController {
      */
     private final TemplateRenderer templateRenderer;
 
+
+
     /**
      * 当前执行节点
      */
-    @Setter
     private AbsNode currentNode;
 
     /**
@@ -61,10 +61,10 @@ public class WorkflowExecutionController {
      */
     private final Map<String, Long> executionTimestamps;
 
-    public WorkflowExecutionController(WorkflowConfiguration configuration,
-                                       WorkflowContext context,
-                                       EdgeNavigator navigator,
-                                       TemplateRenderer templateRenderer) {
+    public WorkflowExecutionAccessor(WorkflowConfiguration configuration,
+                                     WorkflowContext context,
+                                     EdgeNavigator navigator,
+                                     TemplateRenderer templateRenderer) {
         this.configuration = configuration;
         this.context = context;
         this.navigator = navigator;
@@ -73,12 +73,16 @@ public class WorkflowExecutionController {
         this.executionTimestamps = new LinkedHashMap<>();
     }
 
+    public AbsNode currentNode() {
+        return currentNode;
+    }
+
     /**
      * 获取开始节点
      *
      * @return 开始节点实例
      */
-    public AbsNode getStartNode() {
+    public AbsNode startNode() {
         return getNodeInstance(NodeType.START.getKey(), List.of(), null);
     }
 
@@ -89,7 +93,7 @@ public class WorkflowExecutionController {
      * @param currentNodeResult 当前节点执行结果
      * @return 下一节点列表
      */
-    public List<AbsNode> getNextNodeList(AbsNode currentNode, NodeResult currentNodeResult) {
+    public List<AbsNode> nextNodes(AbsNode currentNode, NodeResult currentNodeResult) {
         // 检查是否需要中断执行
         if (currentNodeResult == null || currentNodeResult.isInterruptExec(currentNode)) {
             return List.of();
@@ -125,7 +129,7 @@ public class WorkflowExecutionController {
      * @param node 待检查节点
      * @return 是否所有依赖节点都已执行
      */
-    public boolean dependentNodeBeenExecuted(AbsNode node) {
+    public boolean dependenciesExecuted(AbsNode node) {
         List<String> upNodeIdList = navigator.findUpstreamNodeIds(node.getId());
         // 开始节点无上游依赖，直接通过
         if (CollectionUtils.isEmpty(upNodeIdList)) {
@@ -144,7 +148,7 @@ public class WorkflowExecutionController {
      * @param node 待检查节点
      * @return 是否为就绪的 Join 节点
      */
-    public boolean isReadyJoinNode(AbsNode node) {
+    public boolean isReadyJoin(AbsNode node) {
         List<String> upNodeIdList = navigator.findUpstreamNodeIds(node.getId());
         if (CollectionUtils.isEmpty(upNodeIdList)) {
             return false;
@@ -188,7 +192,6 @@ public class WorkflowExecutionController {
             List<String> upNodeIdList = (List<String>) nodeDetail.get("upNodeIdList");
             String runtimeNodeId = (String) nodeDetail.get("runtimeNodeId");
             Integer nodeStatus = (Integer) nodeDetail.get("status");
-
             if (runtimeNodeId.equals(currentNodeId)) {
                 // 处理当前节点
                 this.currentNode = getNodeInstance(nodeId, upNodeIdList, n -> {

@@ -48,6 +48,6 @@ public class VariableSplittingNodeHandler extends AbstractNodeHandler<VariableSp
 
         putDetail(node, "result", result);
 
-        return buildResult(nodeVariable);
+        return new NodeResult(nodeVariable);
     }
 }

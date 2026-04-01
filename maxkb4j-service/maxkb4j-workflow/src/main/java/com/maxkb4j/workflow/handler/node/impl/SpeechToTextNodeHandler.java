@@ -64,6 +64,6 @@ public class SpeechToTextNodeHandler extends AbstractNodeHandler<SpeechToTextNod
             setAnswer(node, answer);
         }
 
-        return buildResult(Map.of("result", answer));
+        return new NodeResult(Map.of("result", answer));
     }
 }

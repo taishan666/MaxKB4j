@@ -34,6 +34,6 @@ public class LoopBreakNodeHandler extends AbstractNodeHandler<LoopBreakNode.Node
             setAnswer(node, "BREAK");
         }
 
-        return buildResult(Map.of());
+        return new NodeResult(Map.of());
     }
 }

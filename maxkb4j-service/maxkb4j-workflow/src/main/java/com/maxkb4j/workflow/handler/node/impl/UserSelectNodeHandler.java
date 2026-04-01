@@ -32,7 +32,6 @@ public class UserSelectNodeHandler extends AbstractNodeHandler<UserSelectNode.No
         JSONObject formData = params.getFormData();
         List<UserSelectNode.Branch> branches = params.getBranch();
         Map<String, Object> nodeVariable = new HashMap<>();
-
         if (formData != null) {
             nodeVariable.put("is_submit", true);
             nodeVariable.put("form_data", formData);
@@ -54,9 +53,7 @@ public class UserSelectNodeHandler extends AbstractNodeHandler<UserSelectNode.No
             JSONObject formSetting = new JSONObject();
             formSetting.put("form_field_list", formFieldList);
             String formRender = "<card_selection_render>" + formSetting + "</card_selection_render>";
-
             setAnswer(node, formRender);
-
             nodeVariable.put("form_field_list", formFieldList);
             nodeVariable.put("is_submit", false);
         }

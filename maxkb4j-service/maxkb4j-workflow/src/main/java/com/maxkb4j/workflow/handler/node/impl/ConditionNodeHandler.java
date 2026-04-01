@@ -30,7 +30,7 @@ public class ConditionNodeHandler extends AbstractNodeHandler<ConditionNodeParam
     protected NodeResult doExecute(Workflow workflow, AbsNode node, ConditionNodeParams params) throws Exception {
         ConditionNodeParams.Branch branch = executeBranch(workflow, params.getBranch());
         assert branch != null;
-        return buildResult(Map.of("branchId", branch.getId(), "branchName", branch.getType()));
+        return new NodeResult(Map.of("branchId", branch.getId(), "branchName", branch.getType()));
     }
 
     private ConditionNodeParams.Branch executeBranch(Workflow workflow, List<ConditionNodeParams.Branch> branchList) {
@@ -39,7 +39,7 @@ public class ConditionNodeHandler extends AbstractNodeHandler<ConditionNodeParam
                 return branch;
             }
         }
-        return null; // In case no branch matches the assertion.
+        return null;
     }
 
 }

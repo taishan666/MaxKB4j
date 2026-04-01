@@ -58,7 +58,7 @@ public class VariableAssignNodeHandler extends AbstractNodeHandler<VariableAssig
             }
         }
         putDetail(node, "resultList", resultList);
-        return buildResult(Map.of());
+        return new NodeResult(Map.of());
     }
 
     private Map<String, Object> getGlobalHandleResult(Workflow workflow, Map<String, Object> variable, List<String> fields) {

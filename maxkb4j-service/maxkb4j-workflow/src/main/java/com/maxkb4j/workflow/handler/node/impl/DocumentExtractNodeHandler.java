@@ -65,7 +65,7 @@ public class DocumentExtractNodeHandler extends AbstractNodeHandler<DocumentExtr
             documentList.add(new DocumentSimple(sysFile.getName(), text, sysFile.getFileId()));
         }
 
-        return buildResult(Map.of(
+        return new NodeResult(Map.of(
                 "content", String.join(DocumentExtractNode.SPLITTER, contentList),
                 "documentList", documentList
         ));

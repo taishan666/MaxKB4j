@@ -49,7 +49,7 @@ public class VariableAggregationNodeHandler extends AbstractNodeHandler<Variable
                 "groupList", groupList
         ));
 
-        return buildResult(nodeVariable);
+        return new NodeResult(nodeVariable);
     }
 
     private void resetVariable(List<VariableAggregationNode.Variable> variableList, Workflow workflow) {

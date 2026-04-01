@@ -68,6 +68,6 @@ public class NL2SqlNodeHandler extends AbstractNodeHandler<NL2SqlNode.NodeParams
                 "answerTokens", tokenUsage.outputTokenCount()
         ));
 
-        return buildResult(Map.of("sql", sql, "result", sqlResult));
+        return new NodeResult(Map.of("sql", sql, "result", sqlResult));
     }
 }

@@ -40,14 +40,11 @@ public class FormNodeHandler extends AbstractNodeHandler<FormNode.NodeParams> {
             String formRender = "<form_render>" + formSetting + "</form_render>";
             String formContentFormat = params.getFormContentFormat();
             String answerText = workflow.renderPrompt(formContentFormat, Map.of("form", formRender));
-
             setAnswer(node, answerText);
-
             nodeVariable.put("form_field_list", formFieldList);
             nodeVariable.put("form_content_format", formContentFormat);
             nodeVariable.put("is_submit", false);
         }
-
         return new NodeResult(nodeVariable, false, this::shouldInterrupt);
     }
 

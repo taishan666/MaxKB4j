@@ -43,6 +43,6 @@ public class LoopStartNodeHandler extends AbstractNodeHandler<Object> {
             }
         }
 
-        return buildResult(Map.of("index", index, "item", item));
+        return new NodeResult(Map.of("index", index, "item", item));
     }
 }

@@ -207,36 +207,6 @@ public abstract class AbstractNodeHandler<P> implements INodeHandler {
         node.getDetail().put("answer", answer);
     }
 
-    /**
-     * 辅助方法：构建简单结果
-     *
-     * @param variables 变量 Map
-     * @return NodeResult
-     */
-    protected NodeResult buildResult(Map<String, Object> variables) {
-        return new NodeResult(variables);
-    }
-
-    /**
-     * 辅助方法：构建流式输出结果
-     *
-     * @param variables 变量 Map
-     * @return NodeResult（streamOutput=true）
-     */
-    protected NodeResult buildStreamResult(Map<String, Object> variables) {
-        return new NodeResult(variables, true);
-    }
-
-    /**
-     * 辅助方法：构建可中断结果
-     *
-     * @param variables    变量 Map
-     * @param streamOutput 是否流式输出
-     * @return NodeResult（支持中断判断）
-     */
-    protected NodeResult buildInterruptibleResult(Map<String, Object> variables, boolean streamOutput) {
-        return new NodeResult(variables, streamOutput, this::shouldInterrupt);
-    }
 
     /**
      * 从详情中获取中断标志
@@ -246,18 +216,9 @@ public abstract class AbstractNodeHandler<P> implements INodeHandler {
      */
     protected boolean getInterruptFlag(AbsNode node) {
         Object flag = node.getDetail().get("is_interrupt_exec");
-        return flag != null && Boolean.TRUE.equals(flag);
+        return Boolean.TRUE.equals(flag);
     }
 
-    /**
-     * 设置中断标志
-     *
-     * @param node     节点实例
-     * @param interrupt 是否中断
-     */
-    protected void setInterruptFlag(AbsNode node, boolean interrupt) {
-        node.getDetail().put("is_interrupt_exec", interrupt);
-    }
 
     /**
      * 获取引用字段值

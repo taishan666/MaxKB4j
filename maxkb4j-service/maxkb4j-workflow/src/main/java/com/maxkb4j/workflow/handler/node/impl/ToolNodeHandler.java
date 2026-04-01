@@ -51,6 +51,6 @@ public class ToolNodeHandler extends AbstractNodeHandler<ToolNode.NodeParams> {
             setAnswer(node, result.toString());
         }
 
-        return buildResult(Map.of("result", result));
+        return new NodeResult(Map.of("result", result));
     }
 }

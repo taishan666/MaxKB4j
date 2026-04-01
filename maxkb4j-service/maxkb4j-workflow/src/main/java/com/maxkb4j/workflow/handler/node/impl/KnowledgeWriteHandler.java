@@ -46,6 +46,6 @@ public class KnowledgeWriteHandler extends AbstractNodeHandler<KnowledgeWriteNod
             }
         }
 
-        return buildResult(Map.of());
+        return new NodeResult(Map.of());
     }
 }

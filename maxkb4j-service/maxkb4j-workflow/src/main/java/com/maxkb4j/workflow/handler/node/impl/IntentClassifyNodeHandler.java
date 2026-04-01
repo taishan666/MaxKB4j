@@ -76,7 +76,7 @@ public class IntentClassifyNodeHandler extends AbstractNodeHandler<IntentClassif
                 "answer", category
         ));
 
-        return buildResult(Map.of("branchId", branchId, "category", category, "reason", ""));
+        return new NodeResult(Map.of("branchId", branchId, "category", category, "reason", ""));
     }
 
     protected String optionsFormat(Map<Integer, String> idToClassification, List<IntentClassifyNode.Branch> branches) {

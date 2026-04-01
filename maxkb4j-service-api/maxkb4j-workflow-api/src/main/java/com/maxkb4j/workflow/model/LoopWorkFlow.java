@@ -3,7 +3,6 @@ package com.maxkb4j.workflow.model;
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.common.domain.dto.ChatMessageVO;
 import com.maxkb4j.workflow.enums.NodeType;
-import com.maxkb4j.workflow.enums.WorkflowMode;
 import com.maxkb4j.workflow.logic.LfEdge;
 import com.maxkb4j.workflow.node.AbsNode;
 import lombok.Getter;
@@ -61,30 +60,22 @@ public class LoopWorkFlow extends Workflow {
         // 3. 创建包含 loop 上下文的 VariableResolver
         this.variableResolver = new VariableResolver(this.workflowContext, this.loopContext);
         this.templateRenderer = new TemplateRenderer(this.variableResolver);
-
-        // 4. 初始化边导航器
-        this.edgeNavigator = new EdgeNavigator(edges);
-
         // 5. 初始化执行控制器（覆盖 getStartNode 以返回 LoopStart 节点）
-        this.executionController = new LoopExecutionController(
-                this.configuration, this.workflowContext, this.edgeNavigator, this.templateRenderer);
+        this.executionAccessor = new LoopExecutionAccessor(
+                this.configuration, this.workflowContext, new EdgeNavigator(edges), this.templateRenderer);
 
         // 6. 初始化输出管理器
         this.outputManager = new WorkflowOutputManager(
                 this.configuration, this.workflowContext, sink);
 
-        // 7. 初始化访问器
-        this.contextAccessor = new ContextAccessor(this.workflowContext);
-        this.executionAccessor = new ExecutionAccessor(this.executionController);
-        this.outputAccessor = new OutputAccessor(this.outputManager);
     }
 
     /**
      * 循环工作流的执行控制器
      * 覆盖 getStartNode 以返回 LoopStart 节点
      */
-    private static class LoopExecutionController extends WorkflowExecutionController {
-        public LoopExecutionController(WorkflowConfiguration configuration,
+    private static class LoopExecutionAccessor  extends WorkflowExecutionAccessor {
+        public LoopExecutionAccessor(WorkflowConfiguration configuration,
                                        WorkflowContext context,
                                        EdgeNavigator navigator,
                                        TemplateRenderer templateRenderer) {
@@ -92,7 +83,7 @@ public class LoopWorkFlow extends Workflow {
         }
 
         @Override
-        public AbsNode getStartNode() {
+        public AbsNode startNode() {
             return getNodeInstance(NodeType.LOOP_START.getKey(), Collections.emptyList(), null);
         }
     }

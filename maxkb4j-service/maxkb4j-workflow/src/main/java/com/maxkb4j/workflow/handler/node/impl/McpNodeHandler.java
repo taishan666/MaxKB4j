@@ -52,6 +52,6 @@ public class McpNodeHandler extends AbstractNodeHandler<McpNode.NodeParams> {
                 "mcpTool", params.getMcpTool()
         ));
 
-        return buildResult(Map.of("result", resultText));
+        return new NodeResult(Map.of("result", resultText));
     }
 }

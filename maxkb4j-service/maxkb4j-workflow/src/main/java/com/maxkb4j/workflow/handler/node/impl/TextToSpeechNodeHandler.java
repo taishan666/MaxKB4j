@@ -46,6 +46,6 @@ public class TextToSpeechNodeHandler extends AbstractNodeHandler<TextToSpeechNod
             setAnswer(node, answer);
         }
 
-        return buildResult(Map.of("result", List.of(fileVO)));
+        return new NodeResult(Map.of("result", List.of(fileVO)));
     }
 }

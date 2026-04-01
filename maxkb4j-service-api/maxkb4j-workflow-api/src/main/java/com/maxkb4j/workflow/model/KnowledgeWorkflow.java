@@ -40,20 +40,11 @@ public class KnowledgeWorkflow extends Workflow {
         this.variableResolver = new VariableResolver(this.workflowContext);
         this.templateRenderer = new TemplateRenderer(this.variableResolver);
 
-        // 5. 初始化边导航器
-        this.edgeNavigator = new EdgeNavigator(edges);
-
-        // 6. 初始化执行控制器
-        this.executionController = new WorkflowExecutionController(
-                this.configuration, this.workflowContext, this.edgeNavigator, this.templateRenderer);
-
-        // 7. 初始化输出管理器
+        // 5. 初始化执行控制器
+        this.executionAccessor = new WorkflowExecutionAccessor(
+                this.configuration, this.workflowContext, new EdgeNavigator(edges), this.templateRenderer);
+        // 6. 初始化输出管理器
         this.outputManager = new WorkflowOutputManager(this.configuration, this.workflowContext, null);
-
-        // 8. 初始化访问器
-        this.contextAccessor = new ContextAccessor(this.workflowContext);
-        this.executionAccessor = new ExecutionAccessor(this.executionController);
-        this.outputAccessor = new OutputAccessor(this.outputManager);
     }
 
     public List<AbsNode> getStartNodes() {

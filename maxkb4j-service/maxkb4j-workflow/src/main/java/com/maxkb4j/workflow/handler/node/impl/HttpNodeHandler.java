@@ -29,10 +29,8 @@ public class HttpNodeHandler extends AbstractNodeHandler<HttpNodeParams> {
         HttpRequestExecutor executor = new HttpRequestExecutor(node.getNodeData().toJSONString());
         HttpResponse response = executor.execute(variables);
         ToolHttpRequest request = executor.getData();
-
         int resStatus = response.getStatus();
         String resBody = response.body();
-
         // 使用辅助方法写入详情
         putDetails(node, Map.of(
                 "url", request.getUrl(),
@@ -42,7 +40,6 @@ public class HttpNodeHandler extends AbstractNodeHandler<HttpNodeParams> {
                 "params", request.getParams(),
                 "timeout", request.getTimeout()
         ));
-
-        return buildResult(Map.of("status", resStatus, "body", resBody));
+        return new NodeResult(Map.of("status", resStatus, "body", resBody));
     }
 }
