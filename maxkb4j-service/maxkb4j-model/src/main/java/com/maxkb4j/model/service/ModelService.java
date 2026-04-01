@@ -6,6 +6,8 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import com.maxkb4j.common.constant.RoleType;
 import com.maxkb4j.common.mp.entity.ModelCredential;
 import com.maxkb4j.common.util.BeanUtil;
@@ -28,6 +30,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author tarzan
@@ -39,6 +42,15 @@ public class ModelService extends ServiceImpl<ModelMapper, ModelEntity> {
 
     private final IUserService userService;
     private final IUserResourcePermissionService userResourcePermissionService;
+
+    private static final Cache<String, ModelEntity> MODEL_CACHE = Caffeine.newBuilder()
+            .initialCapacity(100)
+            // 超出最大容量时淘汰
+            .maximumSize(10000)
+            //设置写缓存后n秒钟过期
+            .expireAfterWrite(1, TimeUnit.MINUTES)
+            .expireAfterAccess(1, TimeUnit.MINUTES)
+            .build();
 
     public List<ModelVO> models(String name, String createUser, String modelType, String provider) {
         Map<String, String> userMap = userService.getNicknameMap();
@@ -106,7 +118,6 @@ public class ModelService extends ServiceImpl<ModelMapper, ModelEntity> {
         return userResourcePermissionService.ownerSave(AuthTargetType.MODEL, model.getId(), model.getUserId());
     }
 
-    @CachePut(value = "models", key = "#model.id")
     public ModelEntity updateModel(String id, ModelEntity model) {
         model.setId(id);
         ModelCredential credential=getModelCredential(id);
@@ -120,7 +131,6 @@ public class ModelService extends ServiceImpl<ModelMapper, ModelEntity> {
     }
 
     @Transactional
-    @CachePut(value = "models", key = "#id")
     public Boolean removeModelById(String id) {
         userResourcePermissionService.remove(AuthTargetType.MODEL, id);
         return this.removeById(id);
@@ -150,14 +160,13 @@ public class ModelService extends ServiceImpl<ModelMapper, ModelEntity> {
         return null;
     }
 
-    @Cacheable(value = "models", key = "#id")
     public ModelEntity getModelById(String id) {
         if (StringUtils.isBlank(id)) {
             return null;
         }
-        return this.lambdaQuery()
-                .select(ModelEntity::getProvider, ModelEntity::getModelType, ModelEntity::getModelName, ModelEntity::getCredential)
-                .eq(ModelEntity::getId, id)
-                .one();
+       return MODEL_CACHE.get(id,modelId->this.lambdaQuery()
+               .select(ModelEntity::getProvider, ModelEntity::getModelType, ModelEntity::getModelName, ModelEntity::getCredential)
+               .eq(ModelEntity::getId, modelId)
+               .one());
     }
 }
