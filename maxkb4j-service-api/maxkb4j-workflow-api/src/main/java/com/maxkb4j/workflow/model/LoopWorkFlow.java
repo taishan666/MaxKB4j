@@ -33,32 +33,36 @@ public class LoopWorkFlow extends Workflow {
     /**
      * 构造器（使用父工作流上下文）
      *
-     * @param parentWorkflow 父工作流
+     * @param workflow 父工作流
      * @param nodes          循环内节点列表
      * @param edges          循环内边列表
      * @param loopParams     循环参数
      * @param details        节点详情
      * @param sink           输出 Sink
      */
-    public LoopWorkFlow(Workflow parentWorkflow, List<AbsNode> nodes, List<LfEdge> edges,
+    public LoopWorkFlow(Workflow workflow, List<AbsNode> nodes, List<LfEdge> edges,
                         LoopParams loopParams, JSONObject details, Sinks.Many<ChatMessageVO> sink) {
         this.loopParams = loopParams;
         this.loopContext = new HashMap<>();
 
         // 1. 初始化配置
         this.configuration = new WorkflowConfiguration(
-                parentWorkflow.configuration.getWorkflowMode(), nodes, edges);
-        this.configuration.setChatParams(parentWorkflow.configuration.getChatParams());
+                workflow.configuration.getWorkflowMode(), nodes, edges);
+        this.configuration.setChatParams(workflow.configuration.getChatParams());
 
         // 2. 复用父工作流的上下文（关键：共享上下文）
-        this.workflowContext = parentWorkflow.workflowContext;
-        this.historyManager = parentWorkflow.historyManager;
+        this.workflowContext = workflow.workflowContext;
+        this.historyManager = workflow.historyManager;
 
         // 3. 创建包含 loop 上下文的 VariableResolver
         this.variableResolver = new VariableResolver(this.workflowContext, this.loopContext);
         this.templateRenderer = new TemplateRenderer(this.variableResolver);
         // 5. 初始化执行控制器（覆盖 getStartNode 以返回 LoopStart 节点）
         this.executionAccessor = new LoopExecutionAccessor(this.configuration, this.workflowContext, new EdgeNavigator(edges), this.templateRenderer);
+        if (details!=null&&!details.isEmpty()) {
+            this.executionAccessor.loadNodeState(this, details,
+                    workflow.getChatParams().getRuntimeNodeId(), workflow.getChatParams().getNodeData());
+        }
         // 6. 初始化输出管理器
         this.outputManager = new WorkflowOutputManager(this.configuration, this.workflowContext, sink);
 

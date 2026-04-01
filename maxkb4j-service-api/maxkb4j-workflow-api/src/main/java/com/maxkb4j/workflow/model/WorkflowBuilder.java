@@ -95,12 +95,11 @@ public class WorkflowBuilder {
         return this;
     }
 
-    public WorkflowBuilder restoreState(JSONObject details, String nodeId, Map<String, Object> nodeData) {
+    public void restoreState(JSONObject details, String nodeId, Map<String, Object> nodeData) {
         this.details = details;
         this.currentNodeId = nodeId;
         this.currentNodeData = nodeData;
         this.restoreState = (details != null && nodeId != null);
-        return this;
     }
 
     // ==================== 构建方法 ====================
