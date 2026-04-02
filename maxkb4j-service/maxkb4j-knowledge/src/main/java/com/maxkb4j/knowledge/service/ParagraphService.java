@@ -175,16 +175,15 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
     public boolean saveParagraphAndProblem(String knowledgeId, String docId, ParagraphAddDTO addDTO) {
         ParagraphEntity paragraph= createParagraph(knowledgeId, docId, addDTO.getTitle(), addDTO.getContent(),addDTO.getPosition());
         List<ProblemEntity> problemList = addDTO.getProblemList();
+        List<String> problems = new ArrayList<>();
         if (!CollectionUtils.isEmpty(problemList)) {
-            List<String> problems =problemList.stream().map(ProblemEntity::getContent).toList();
-            return saveParagraphAndProblem(paragraph, problems);
+            problems =problemList.stream().map(ProblemEntity::getContent).toList();
         }
-        return saveParagraphAndProblem(paragraph, List.of());
+        return saveParagraphAndProblem(paragraph, problems);
     }
 
 
 
-    @Transactional
     public boolean saveParagraphAndProblem(ParagraphEntity paragraph, List<String> problems) {
         this.save(paragraph);
         if (!CollectionUtils.isEmpty(problems)) {
