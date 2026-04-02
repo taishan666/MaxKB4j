@@ -1,6 +1,5 @@
 package com.maxkb4j.workflow.registry;
 
-import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.workflow.enums.NodeType;
 import com.maxkb4j.workflow.factory.NodeRegistry;
 import com.maxkb4j.workflow.handler.node.INodeHandler;
@@ -11,8 +10,6 @@ import com.maxkb4j.workflow.service.INodeCreator;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-
-import java.util.Map;
 
 /**
  * 统一节点中心
@@ -51,6 +48,7 @@ public class NodeCenter implements INodeCreator {
      */
     private void registerDefaultNodeCreators() {
         register(NodeType.BASE, BaseNode::new);
+        register(NodeType.KNOWLEDGE_BASE, KnowledgeBaseNode::new);
         register(NodeType.START, StartNode::new);
         register(NodeType.AI_CHAT, AiChatNode::new);
         register(NodeType.SEARCH_KNOWLEDGE, SearchKnowledgeNode::new);
