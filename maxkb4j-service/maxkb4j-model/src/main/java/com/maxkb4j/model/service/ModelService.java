@@ -21,8 +21,6 @@ import com.maxkb4j.user.service.IUserResourcePermissionService;
 import com.maxkb4j.user.service.IUserService;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.cache.annotation.CachePut;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -126,6 +124,7 @@ public class ModelService extends ServiceImpl<ModelMapper, ModelEntity> {
             credential.setBaseUrl(model.getCredential().getBaseUrl());
             model.setCredential(credential);
         }
+        MODEL_CACHE.put(id, model);
         this.updateById(model);
         return model;
     }
