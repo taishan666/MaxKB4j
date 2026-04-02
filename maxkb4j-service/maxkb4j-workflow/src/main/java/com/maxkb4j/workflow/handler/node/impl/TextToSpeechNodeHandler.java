@@ -6,7 +6,7 @@ import com.maxkb4j.model.service.TTSModel;
 import com.maxkb4j.oss.service.IOssService;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.NodeType;
-import com.maxkb4j.workflow.handler.node.AbstractNodeHandler;
+import com.maxkb4j.workflow.handler.node.AbsNodeHandler;
 import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.model.Workflow;
 import com.maxkb4j.workflow.node.AbsNode;
@@ -21,7 +21,7 @@ import java.util.UUID;
 @NodeHandlerType(NodeType.TEXT_TO_SPEECH)
 @RequiredArgsConstructor
 @Component
-public class TextToSpeechNodeHandler extends AbstractNodeHandler {
+public class TextToSpeechNodeHandler extends AbsNodeHandler {
 
     private final IOssService fileService;
     private final IModelProviderService modelFactory;

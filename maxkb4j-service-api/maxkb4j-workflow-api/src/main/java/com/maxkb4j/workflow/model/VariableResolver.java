@@ -14,19 +14,9 @@ public class VariableResolver {
 
     private final WorkflowContext context;
 
-    /**
-     * Loop variable context (for LoopWorkFlow)
-     */
-    private final Map<String, Object> loopContext;
 
     public VariableResolver(WorkflowContext context) {
         this.context = context;
-        this.loopContext = null;
-    }
-
-    public VariableResolver(WorkflowContext context, Map<String, Object> loopContext) {
-        this.context = context;
-        this.loopContext = loopContext;
     }
 
     /**
@@ -36,16 +26,13 @@ public class VariableResolver {
      * @return variable map in "scope.variable": value format
      */
     public Map<String, Object> getPromptVariables() {
-        // Estimate initial capacity to avoid resizing
         int globalSize = context.getGlobalContext() != null ? context.getGlobalContext().size() : 0;
         int chatSize = context.getChatContext() != null ? context.getChatContext().size() : 0;
-        int loopSize = loopContext != null ? loopContext.size() : 0;
+        int loopSize = context.getLoopContext() != null ? context.getLoopContext().size() : 0;
         int nodeCount = context.getNodeContext() != null ? context.getNodeContext().size() : 0;
-
         // Estimate: each node has ~3 variables on average
         int estimatedSize = globalSize + chatSize + loopSize + (nodeCount * 3) + 16;
         Map<String, Object> result = new HashMap<>(estimatedSize);
-
         // Global variables: global.xxx
         if (context.getGlobalContext() != null) {
             for (Map.Entry<String, Object> entry : context.getGlobalContext().entrySet()) {
@@ -63,13 +50,12 @@ public class VariableResolver {
         }
 
         // Loop variables: loop.xxx
-        if (loopContext != null) {
-            for (Map.Entry<String, Object> entry : loopContext.entrySet()) {
+        if (context.getLoopContext()  != null) {
+            for (Map.Entry<String, Object> entry : context.getLoopContext().entrySet()) {
                 Object value = entry.getValue();
                 result.put("loop." + entry.getKey(), value == null ? "*" : value);
             }
         }
-
         // Node variables
         if (context.getNodeContext() != null) {
             for (AbsNode node : context.getNodeContext()) {
@@ -117,15 +103,10 @@ public class VariableResolver {
         // Estimate capacity: global + chat + loop + nodes
         int nodeCount = context.getNodeContext() != null ? context.getNodeContext().size() : 0;
         int estimatedSize = 3 + nodeCount + 4;
-
         Map<String, Map<String, Object>> result = new HashMap<>(estimatedSize);
-
         result.put("global", context.getGlobalContext() != null ? context.getGlobalContext() : new HashMap<>());
         result.put("chat", context.getChatContext() != null ? context.getChatContext() : new HashMap<>());
-
-        if (loopContext != null) {
-            result.put("loop", loopContext);
-        }
+        result.put("loop", context.getLoopContext() != null ? context.getLoopContext() : new HashMap<>());
 
         if (context.getNodeContext() != null) {
             for (AbsNode node : context.getNodeContext()) {

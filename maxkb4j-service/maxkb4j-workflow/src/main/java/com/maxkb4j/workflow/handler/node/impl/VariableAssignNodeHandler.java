@@ -4,8 +4,7 @@ import com.maxkb4j.common.cache.ChatCache;
 import com.maxkb4j.common.domain.dto.ChatInfo;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.NodeType;
-import com.maxkb4j.workflow.handler.node.AbstractNodeHandler;
-import com.maxkb4j.workflow.model.LoopWorkFlow;
+import com.maxkb4j.workflow.handler.node.AbsNodeHandler;
 import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.model.Workflow;
 import com.maxkb4j.workflow.model.params.VariableAssignNodeParams;
@@ -19,7 +18,7 @@ import java.util.Map;
 
 @NodeHandlerType(NodeType.VARIABLE_ASSIGN)
 @Component
-public class VariableAssignNodeHandler extends AbstractNodeHandler {
+public class VariableAssignNodeHandler extends AbsNodeHandler {
 
     @SuppressWarnings("unchecked")
     @Override
@@ -61,7 +60,7 @@ public class VariableAssignNodeHandler extends AbstractNodeHandler {
         String varName = fields.get(1);
         String inputValue = getReferenceContent(workflow, fields);
         Object value = resolveValue(workflow, variable);
-        workflow.getContext().put(varName, value);
+        workflow.getGlobalContext().put(varName, value);
         Map<String, Object> result = new HashMap<>();
         result.put("name", variable.get("name"));
         result.put("input_value", inputValue);
@@ -71,15 +70,13 @@ public class VariableAssignNodeHandler extends AbstractNodeHandler {
 
     private Map<String, Object> getLoopHandleResult(Workflow workflow, Map<String, Object> variable, List<String> fields) {
         Map<String, Object> result = new HashMap<>();
-        if (workflow instanceof LoopWorkFlow loopWorkflow) {
-            String varName = fields.get(1);
-            String inputValue = getReferenceContent(workflow, fields);
-            Object value = resolveValue(workflow, variable);
-            loopWorkflow.getLoopContext().put(varName, value);
-            result.put("name", variable.get("name"));
-            result.put("input_value", inputValue);
-            result.put("output_value", value);
-        }
+        String varName = fields.get(1);
+        String inputValue = getReferenceContent(workflow, fields);
+        Object value = resolveValue(workflow, variable);
+        workflow.getLoopContext().put(varName, value);
+        result.put("name", variable.get("name"));
+        result.put("input_value", inputValue);
+        result.put("output_value", value);
         return result;
     }
 
@@ -88,9 +85,7 @@ public class VariableAssignNodeHandler extends AbstractNodeHandler {
         String inputValue = getReferenceContent(workflow, fields);
         Object value = resolveValue(workflow, variable);
         workflow.getChatContext().put(varName, value);
-        if (workflow instanceof LoopWorkFlow loopWorkflow) {
-            loopWorkflow.getLoopContext().put(varName, value);
-        }
+        workflow.getLoopContext().put(varName, value);
         Map<String, Object> result = new HashMap<>();
         result.put("name", variable.get("name"));
         result.put("input_value", inputValue);

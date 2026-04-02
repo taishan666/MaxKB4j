@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.NodeType;
-import com.maxkb4j.workflow.handler.node.AbstractNodeHandler;
+import com.maxkb4j.workflow.handler.node.AbsNodeHandler;
 import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.model.Workflow;
 import com.maxkb4j.workflow.node.AbsNode;
@@ -16,7 +16,7 @@ import java.util.Map;
 
 @NodeHandlerType(NodeType.FORM)
 @Component
-public class FormNodeHandler extends AbstractNodeHandler {
+public class FormNodeHandler extends AbsNodeHandler {
 
     @Override
     protected NodeResult doExecute(Workflow workflow, AbsNode node) throws Exception {

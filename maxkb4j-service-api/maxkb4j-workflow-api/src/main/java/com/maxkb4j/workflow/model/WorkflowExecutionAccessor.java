@@ -35,10 +35,6 @@ public class WorkflowExecutionAccessor {
      */
     private final EdgeNavigator navigator;
     /**
-     * 模板渲染器
-     */
-    private final TemplateRenderer templateRenderer;
-    /**
      * 当前执行节点
      */
     private AbsNode currentNode;
@@ -57,12 +53,10 @@ public class WorkflowExecutionAccessor {
 
     public WorkflowExecutionAccessor(WorkflowConfiguration configuration,
                                      WorkflowContext context,
-                                     EdgeNavigator navigator,
-                                     TemplateRenderer templateRenderer) {
+                                     EdgeNavigator navigator) {
         this.configuration = configuration;
         this.context = context;
         this.navigator = navigator;
-        this.templateRenderer = templateRenderer;
         this.executionPath = new ArrayList<>();
         this.executionTimestamps = new LinkedHashMap<>();
     }
@@ -227,7 +221,6 @@ public class WorkflowExecutionAccessor {
         AbsNode node = configuration.getNode(nodeId);
         if (node != null) {
             node.setUpNodeIdList(upNodeIds);
-            node.setTemplateRenderer(templateRenderer);
             if (getNodeProperties != null) {
                 getNodeProperties.apply(node);
             }
@@ -289,54 +282,4 @@ public class WorkflowExecutionAccessor {
         log.debug("Recorded execution: {} at {}", runtimeNodeId, System.currentTimeMillis());
     }
 
-    /**
-     * 获取执行轨迹
-     *
-     * @return 执行轨迹信息
-     */
-    public ExecutionTrace getExecutionTrace() {
-        return new ExecutionTrace(
-                Collections.unmodifiableList(executionPath),
-                Collections.unmodifiableMap(executionTimestamps)
-        );
-    }
-
-    /**
-     * 执行轨迹信息 record
-     */
-    public record ExecutionTrace(List<String> path, Map<String, Long> timestamps) {
-        /**
-         * 获取执行节点数量
-         */
-        public int size() {
-            return path.size();
-        }
-
-        /**
-         * 获取指定节点的执行时间
-         *
-         * @param runtimeNodeId 运行时节点ID
-         * @return 执行时间戳，不存在返回 null
-         */
-        public Long getExecutionTime(String runtimeNodeId) {
-            return timestamps.get(runtimeNodeId);
-        }
-
-        /**
-         * 计算总执行时长（毫秒）
-         *
-         * @return 总执行时长，如果路径为空返回 0
-         */
-        public long totalDuration() {
-            if (path.isEmpty()) {
-                return 0;
-            }
-            Long first = timestamps.get(path.get(0));
-            Long last = timestamps.get(path.get(path.size() - 1));
-            if (first == null || last == null) {
-                return 0;
-            }
-            return last - first;
-        }
-    }
 }

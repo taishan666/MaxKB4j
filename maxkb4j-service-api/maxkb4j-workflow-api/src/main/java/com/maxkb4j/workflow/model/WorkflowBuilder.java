@@ -44,7 +44,6 @@ public class WorkflowBuilder {
     JSONObject details;
     String currentNodeId;
     Map<String, Object> currentNodeData;
-    Map<String, Object> loopContext;
     boolean restoreState = false;
     // ==================== 内部构建的组件（供 Workflow 构造器使用） ====================
     WorkflowConfiguration configuration;

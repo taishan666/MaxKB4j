@@ -5,7 +5,7 @@ import com.maxkb4j.knowledge.dto.DocumentSimple;
 import com.maxkb4j.knowledge.service.IDocumentWebService;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.NodeType;
-import com.maxkb4j.workflow.handler.node.AbstractNodeHandler;
+import com.maxkb4j.workflow.handler.node.AbsNodeHandler;
 import com.maxkb4j.workflow.model.*;
 import com.maxkb4j.workflow.node.AbsNode;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +21,7 @@ import java.util.Map;
 @Component
 @NodeHandlerType(NodeType.DATA_SOURCE_WEB)
 @RequiredArgsConstructor
-public class DataSourceWebHandler extends AbstractNodeHandler {
+public class DataSourceWebHandler extends AbsNodeHandler {
 
     private final IDocumentWebService documentWebService;
 

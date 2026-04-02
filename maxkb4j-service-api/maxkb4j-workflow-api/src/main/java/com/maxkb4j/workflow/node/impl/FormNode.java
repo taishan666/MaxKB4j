@@ -2,12 +2,10 @@ package com.maxkb4j.workflow.node.impl;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.maxkb4j.common.domain.dto.Answer;
 import com.maxkb4j.workflow.model.Workflow;
 import com.maxkb4j.workflow.node.AbsNode;
 import lombok.Data;
 
-import java.util.List;
 import java.util.Map;
 
 import static com.maxkb4j.workflow.enums.NodeType.FORM;
@@ -35,7 +33,7 @@ public class FormNode extends AbsNode {
         context.put("form_content_format", detail.get("form_content_format"));
     }
 
-    @Override
+/*    @Override
     @SuppressWarnings("unchecked")
     public List<Answer> getAnswerList(String chatRecordId)  {
         Map<String, Object> formData = (Map<String, Object>) context.getOrDefault("form_data",Map.of());
@@ -50,9 +48,11 @@ public class FormNode extends AbsNode {
         formSetting.put("chatRecordId", chatRecordId);
         formSetting.put("runtimeNodeId", runtimeNodeId);
         String formRender = "<form_render>" + formSetting + "</form_render>";
-        String answerText = super.getTemplateRenderer().render(formContentFormat,Map.of("form", formRender));
+        String answerText="";
+        //todo
+     //   String answerText = super.getTemplateRenderer().render(formContentFormat,Map.of("form", formRender));
         return List.of(Answer.builder().content(answerText).reasoningContent("").chatRecordId(chatRecordId).runtimeNodeId(runtimeNodeId).realNodeId(runtimeNodeId).viewType(this.getViewType()).build());
-    }
+    }*/
 
 
     @Data

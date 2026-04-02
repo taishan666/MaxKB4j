@@ -5,7 +5,7 @@ import com.maxkb4j.knowledge.dto.ParagraphSimple;
 import com.maxkb4j.knowledge.service.IDocumentSplitService;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.NodeType;
-import com.maxkb4j.workflow.handler.node.AbstractNodeHandler;
+import com.maxkb4j.workflow.handler.node.AbsNodeHandler;
 import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.model.Workflow;
 import com.maxkb4j.workflow.node.AbsNode;
@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 @Component
 @NodeHandlerType(NodeType.DOCUMENT_SPLIT)
 @RequiredArgsConstructor
-public class DocumentSpiltHandler extends AbstractNodeHandler {
+public class DocumentSpiltHandler extends AbsNodeHandler {
 
     private final IDocumentSplitService documentSpiltService;
 

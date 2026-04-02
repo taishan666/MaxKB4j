@@ -6,7 +6,6 @@ import com.maxkb4j.common.domain.dto.ChatMessageVO;
 import com.maxkb4j.common.domain.dto.ChildNode;
 import com.maxkb4j.common.domain.dto.MessageConverter;
 import com.maxkb4j.workflow.enums.NodeStatus;
-import com.maxkb4j.workflow.model.TemplateRenderer;
 import com.maxkb4j.workflow.model.Workflow;
 import com.maxkb4j.workflow.util.NodeIdGenerator;
 import lombok.Data;
@@ -36,10 +35,6 @@ public abstract class AbsNode {
     private String answerText;
     private Integer status;
     private String errMessage;
-    /**
-     * 模板渲染器
-     */
-    private TemplateRenderer templateRenderer;
 
     public AbsNode(String id, JSONObject properties) {
         this.id = id;

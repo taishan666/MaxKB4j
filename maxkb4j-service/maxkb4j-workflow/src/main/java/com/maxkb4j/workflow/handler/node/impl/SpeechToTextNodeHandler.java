@@ -6,7 +6,7 @@ import com.maxkb4j.model.service.STTModel;
 import com.maxkb4j.oss.service.IOssService;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.NodeType;
-import com.maxkb4j.workflow.handler.node.AbstractNodeHandler;
+import com.maxkb4j.workflow.handler.node.AbsNodeHandler;
 import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.model.Workflow;
 import com.maxkb4j.workflow.node.AbsNode;
@@ -24,7 +24,7 @@ import java.util.Map;
 @NodeHandlerType(NodeType.SPEECH_TO_TEXT)
 @RequiredArgsConstructor
 @Component
-public class SpeechToTextNodeHandler extends AbstractNodeHandler {
+public class SpeechToTextNodeHandler extends AbsNodeHandler {
 
     private final IModelProviderService modelFactory;
     private final IOssService fileService;

@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.common.domain.form.RadioCardFiled;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.NodeType;
-import com.maxkb4j.workflow.handler.node.AbstractNodeHandler;
+import com.maxkb4j.workflow.handler.node.AbsNodeHandler;
 import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.model.Workflow;
 import com.maxkb4j.workflow.node.AbsNode;
@@ -18,7 +18,7 @@ import java.util.Map;
 
 @NodeHandlerType(NodeType.USER_SELECT)
 @Component
-public class UserSelectNodeHandler extends AbstractNodeHandler {
+public class UserSelectNodeHandler extends AbsNodeHandler {
 
     private static final String SELECT_FILED = "select-card";
     @Override

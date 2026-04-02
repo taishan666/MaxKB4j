@@ -16,7 +16,7 @@ import com.maxkb4j.tool.service.IToolProviderService;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.NodeType;
 import com.maxkb4j.workflow.enums.WorkflowMode;
-import com.maxkb4j.workflow.handler.node.AbstractNodeHandler;
+import com.maxkb4j.workflow.handler.node.AbsNodeHandler;
 import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.model.Workflow;
 import com.maxkb4j.workflow.model.params.AiChatNodeParams;
@@ -44,7 +44,7 @@ import static org.springframework.web.util.UriUtils.extractFileExtension;
 @NodeHandlerType({NodeType.AI_CHAT, NodeType.IMAGE_UNDERSTAND})
 @Component
 @RequiredArgsConstructor
-public class LLMNodeHandler extends AbstractNodeHandler {
+public class LLMNodeHandler extends AbsNodeHandler {
 
     private final IModelProviderService modelFactory;
     private final IToolProviderService toolProviderService;

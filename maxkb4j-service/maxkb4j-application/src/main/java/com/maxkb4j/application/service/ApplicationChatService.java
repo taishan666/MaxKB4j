@@ -122,6 +122,8 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
         if (StringUtils.isNotBlank(chatParams.getChatRecordId())) {
             ChatRecordDTO chatRecord = historyChatRecordList.stream().filter(e -> e.getId().equals(chatParams.getChatRecordId())).findFirst().orElse(null);
             chatParams.setChatRecord(chatRecord);
+        }else {
+            chatParams.setChatRecordId(IdWorker.get32UUID());
         }
         ApplicationVO application = applicationService.getAppDetail(chatInfo.getAppId(), chatParams.getDebug());
         IChatService chatService = ChatServiceBuilder.getChatService(application.getType());

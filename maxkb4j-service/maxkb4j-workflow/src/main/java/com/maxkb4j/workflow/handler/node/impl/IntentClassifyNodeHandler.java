@@ -9,7 +9,7 @@ import com.maxkb4j.model.service.IModelProviderService;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.DialogueType;
 import com.maxkb4j.workflow.enums.NodeType;
-import com.maxkb4j.workflow.handler.node.AbstractNodeHandler;
+import com.maxkb4j.workflow.handler.node.AbsNodeHandler;
 import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.model.Workflow;
 import com.maxkb4j.workflow.node.AbsNode;
@@ -29,7 +29,7 @@ import java.util.*;
 @NodeHandlerType(NodeType.INTENT_CLASSIFY)
 @RequiredArgsConstructor
 @Component
-public class IntentClassifyNodeHandler extends AbstractNodeHandler {
+public class IntentClassifyNodeHandler extends AbsNodeHandler {
 
     private final IModelProviderService modelFactory;
 

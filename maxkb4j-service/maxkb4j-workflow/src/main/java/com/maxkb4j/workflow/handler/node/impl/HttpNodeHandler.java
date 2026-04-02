@@ -6,7 +6,7 @@ import com.maxkb4j.application.executor.HttpRequestExecutor;
 import com.maxkb4j.common.domain.dto.ToolHttpRequest;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.NodeType;
-import com.maxkb4j.workflow.handler.node.AbstractNodeHandler;
+import com.maxkb4j.workflow.handler.node.AbsNodeHandler;
 import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.model.Workflow;
 import com.maxkb4j.workflow.model.params.HttpNodeParams;
@@ -17,7 +17,7 @@ import java.util.Map;
 
 @NodeHandlerType(NodeType.HTTP_CLIENT)
 @Component
-public class HttpNodeHandler extends AbstractNodeHandler {
+public class HttpNodeHandler extends AbsNodeHandler {
 
     @Override
     protected NodeResult doExecute(Workflow workflow, AbsNode node) throws Exception {

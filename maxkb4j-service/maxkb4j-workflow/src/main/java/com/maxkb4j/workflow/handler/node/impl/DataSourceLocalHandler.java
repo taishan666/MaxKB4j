@@ -4,7 +4,7 @@ import com.maxkb4j.workflow.model.Workflow;
 import com.maxkb4j.common.domain.dto.OssFile;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.NodeType;
-import com.maxkb4j.workflow.handler.node.AbstractNodeHandler;
+import com.maxkb4j.workflow.handler.node.AbsNodeHandler;
 import com.maxkb4j.workflow.model.*;
 import com.maxkb4j.workflow.node.AbsNode;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +19,7 @@ import java.util.Map;
 @Component
 @NodeHandlerType(NodeType.DATA_SOURCE_LOCAL)
 @RequiredArgsConstructor
-public class DataSourceLocalHandler extends AbstractNodeHandler {
+public class DataSourceLocalHandler extends AbsNodeHandler {
 
 
     @Override

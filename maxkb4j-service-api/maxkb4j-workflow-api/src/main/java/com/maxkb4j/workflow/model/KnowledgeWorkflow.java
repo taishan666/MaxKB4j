@@ -36,13 +36,8 @@ public class KnowledgeWorkflow extends Workflow {
         // 3. 初始化历史管理器
         this.historyManager = new HistoryManager(Collections.emptyList());
 
-        // 4. 初始化变量解析器和模板渲染器
-        this.variableResolver = new VariableResolver(this.workflowContext);
-        this.templateRenderer = new TemplateRenderer(this.variableResolver);
-
         // 5. 初始化执行控制器
-        this.executionAccessor = new WorkflowExecutionAccessor(
-                this.configuration, this.workflowContext, new EdgeNavigator(edges), this.templateRenderer);
+        this.executionAccessor = new WorkflowExecutionAccessor(this.configuration, this.workflowContext, new EdgeNavigator(edges));
         // 6. 初始化输出管理器
         this.outputManager = new WorkflowOutputManager(this.configuration, this.workflowContext, null);
     }

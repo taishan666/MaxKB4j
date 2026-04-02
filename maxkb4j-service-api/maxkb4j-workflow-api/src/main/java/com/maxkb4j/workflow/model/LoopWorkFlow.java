@@ -2,6 +2,7 @@ package com.maxkb4j.workflow.model;
 
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.common.domain.dto.ChatMessageVO;
+import com.maxkb4j.common.util.BeanUtil;
 import com.maxkb4j.workflow.enums.NodeType;
 import com.maxkb4j.workflow.logic.LfEdge;
 import com.maxkb4j.workflow.node.AbsNode;
@@ -10,9 +11,7 @@ import lombok.Setter;
 import reactor.core.publisher.Sinks;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * 循环工作流
@@ -28,7 +27,6 @@ import java.util.Map;
 public class LoopWorkFlow extends Workflow {
 
     private LoopParams loopParams;
-    private final Map<String, Object> loopContext;
 
     /**
      * 构造器（使用父工作流上下文）
@@ -43,22 +41,16 @@ public class LoopWorkFlow extends Workflow {
     public LoopWorkFlow(Workflow workflow, List<AbsNode> nodes, List<LfEdge> edges,
                         LoopParams loopParams, JSONObject details, Sinks.Many<ChatMessageVO> sink) {
         this.loopParams = loopParams;
-        this.loopContext = new HashMap<>();
-
         // 1. 初始化配置
         this.configuration = new WorkflowConfiguration(
                 workflow.configuration.getWorkflowMode(), nodes, edges);
         this.configuration.setChatParams(workflow.configuration.getChatParams());
 
         // 2. 复用父工作流的上下文（关键：共享上下文）
-        this.workflowContext = workflow.workflowContext;
+        this.workflowContext =  BeanUtil.copy(workflow.workflowContext,WorkflowContext.class);
         this.historyManager = workflow.historyManager;
-
-        // 3. 创建包含 loop 上下文的 VariableResolver
-        this.variableResolver = new VariableResolver(this.workflowContext, this.loopContext);
-        this.templateRenderer = new TemplateRenderer(this.variableResolver);
         // 5. 初始化执行控制器（覆盖 getStartNode 以返回 LoopStart 节点）
-        this.executionAccessor = new LoopExecutionAccessor(this.configuration, this.workflowContext, new EdgeNavigator(edges), this.templateRenderer);
+        this.executionAccessor = new LoopExecutionAccessor(this.configuration, this.workflowContext, new EdgeNavigator(edges));
         if (details!=null&&!details.isEmpty()) {
             this.executionAccessor.loadNodeState(this, details,
                     workflow.getChatParams().getRuntimeNodeId(), workflow.getChatParams().getNodeData());
@@ -75,9 +67,8 @@ public class LoopWorkFlow extends Workflow {
     private static class LoopExecutionAccessor  extends WorkflowExecutionAccessor {
         public LoopExecutionAccessor(WorkflowConfiguration configuration,
                                        WorkflowContext context,
-                                       EdgeNavigator navigator,
-                                       TemplateRenderer templateRenderer) {
-            super(configuration, context, navigator, templateRenderer);
+                                       EdgeNavigator navigator) {
+            super(configuration, context, navigator);
         }
 
         @Override

@@ -24,7 +24,7 @@ import java.util.Map;
  *
  */
 @Slf4j
-public abstract class AbstractNodeHandler implements INodeHandler {
+public abstract class AbsNodeHandler implements INodeHandler {
 
     /**
      * 核心执行逻辑

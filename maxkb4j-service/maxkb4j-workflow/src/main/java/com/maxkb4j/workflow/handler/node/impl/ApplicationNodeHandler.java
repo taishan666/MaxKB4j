@@ -5,7 +5,7 @@ import com.maxkb4j.application.service.IApplicationChatService;
 import com.maxkb4j.common.domain.dto.*;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.NodeType;
-import com.maxkb4j.workflow.handler.node.AbstractNodeHandler;
+import com.maxkb4j.workflow.handler.node.AbsNodeHandler;
 import com.maxkb4j.workflow.model.NodeField;
 import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.model.Workflow;
@@ -31,7 +31,7 @@ import static com.maxkb4j.workflow.enums.NodeType.USER_SELECT;
 @Component
 @NodeHandlerType(NodeType.APPLICATION)
 @RequiredArgsConstructor
-public class ApplicationNodeHandler extends AbstractNodeHandler {
+public class ApplicationNodeHandler extends AbsNodeHandler {
 
     private final IApplicationChatService chatService;
 

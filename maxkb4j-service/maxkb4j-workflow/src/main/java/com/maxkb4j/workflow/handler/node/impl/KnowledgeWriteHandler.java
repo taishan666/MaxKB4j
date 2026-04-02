@@ -5,7 +5,7 @@ import com.maxkb4j.knowledge.dto.DocumentSimple;
 import com.maxkb4j.knowledge.service.IDocumentService;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.NodeType;
-import com.maxkb4j.workflow.handler.node.AbstractNodeHandler;
+import com.maxkb4j.workflow.handler.node.AbsNodeHandler;
 import com.maxkb4j.workflow.model.KnowledgeWorkflow;
 import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.model.Workflow;
@@ -22,7 +22,7 @@ import java.util.Map;
 @Component
 @NodeHandlerType(NodeType.KNOWLEDGE_WRITE)
 @RequiredArgsConstructor
-public class KnowledgeWriteHandler extends AbstractNodeHandler {
+public class KnowledgeWriteHandler extends AbsNodeHandler {
 
     private final IDocumentService documentService;
 

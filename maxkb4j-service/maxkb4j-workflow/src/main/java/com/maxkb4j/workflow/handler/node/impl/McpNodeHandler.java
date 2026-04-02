@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.application.executor.McpClientExecutor;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.NodeType;
-import com.maxkb4j.workflow.handler.node.AbstractNodeHandler;
+import com.maxkb4j.workflow.handler.node.AbsNodeHandler;
 import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.model.Workflow;
 import com.maxkb4j.workflow.node.AbsNode;
@@ -20,7 +20,7 @@ import java.util.Map;
 @NodeHandlerType(NodeType.MCP)
 @RequiredArgsConstructor
 @Component
-public class McpNodeHandler extends AbstractNodeHandler {
+public class McpNodeHandler extends AbsNodeHandler {
 
     @Override
     @SuppressWarnings("unchecked")

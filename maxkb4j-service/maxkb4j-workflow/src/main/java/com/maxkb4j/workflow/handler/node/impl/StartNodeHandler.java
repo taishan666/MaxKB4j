@@ -9,7 +9,7 @@ import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.common.domain.dto.ChatRecordDTO;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.NodeType;
-import com.maxkb4j.workflow.handler.node.AbstractNodeHandler;
+import com.maxkb4j.workflow.handler.node.AbsNodeHandler;
 import com.maxkb4j.workflow.model.ChatRecordSimple;
 import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.model.Workflow;
@@ -25,7 +25,7 @@ import java.util.Map;
 
 @NodeHandlerType(NodeType.START)
 @Component
-public class StartNodeHandler extends AbstractNodeHandler {
+public class StartNodeHandler extends AbsNodeHandler {
 
 
     @Override
@@ -39,7 +39,7 @@ public class StartNodeHandler extends AbstractNodeHandler {
         if (chatParams.getFormData() != null) {
             globalVariable.putAll(chatParams.getFormData());
         }
-        workflow.getContext().putAll(globalVariable);
+        workflow.getGlobalContext().putAll(globalVariable);
 
         JSONObject config = node.getProperties().getJSONObject("config");
         JSONArray globalFields = config.getJSONArray("globalFields");
@@ -47,13 +47,11 @@ public class StartNodeHandler extends AbstractNodeHandler {
             JSONObject globalField = globalFields.getJSONObject(i);
             String key = globalField.getString("value");
             globalField.put("key", key);
-            globalField.put("value", workflow.getContext().get(key));
+            globalField.put("value", workflow.getGlobalContext().get(key));
         }
         putDetail(node, "globalFields", globalFields);
-
         // 会话变量
         workflow.getChatContext().putAll(getChatVariable(node, chatParams.getChatId()));
-
         // 构建节点变量
         Map<String, Object> nodeVariable = new HashMap<>();
         nodeVariable.put("question", chatParams.getMessage());
@@ -73,6 +71,9 @@ public class StartNodeHandler extends AbstractNodeHandler {
         resultMap.put("chatUserId", IdWorker.get32UUID());
         resultMap.put("chatUserType", chatParams.getChatUserType());
         resultMap.put("chatUser", new JSONObject(Map.of("username", "游客")));
+        if (chatParams.getFormData() != null){
+            resultMap.putAll(chatParams.getFormData());
+        }
         return resultMap;
     }
 

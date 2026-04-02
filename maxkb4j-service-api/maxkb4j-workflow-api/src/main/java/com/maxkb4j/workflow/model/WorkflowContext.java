@@ -18,26 +18,34 @@ public class WorkflowContext {
     /**
      * 全局变量上下文
      * -- GETTER --
-     *  获取或设置全局变量
-
+     * 获取或设置全局变量
      */
     private final Map<String, Object> globalContext;
-
     /**
      * 聊天变量上下文
-     *  获取或设置聊天上下文变量
+     * 获取或设置聊天上下文变量
      */
     private final Map<String, Object> chatContext;
     /**
      * 节点变量上下文列表
-     *  获取或设置节点上下文
+     * 获取或设置节点上下文
      */
     private final List<AbsNode> nodeContext;
+
+    private Map<String, Object> loopContext;
+
+    protected VariableResolver variableResolver;
+    protected TemplateRenderer templateRenderer;
+
 
     public WorkflowContext() {
         this.globalContext = new HashMap<>();
         this.chatContext = new HashMap<>();
         this.nodeContext = new CopyOnWriteArrayList<>();
+        this.loopContext = new HashMap<>();
+        // 2. 依赖组件初始化（顺序敏感）
+        this.variableResolver = new VariableResolver(this);
+        this.templateRenderer = new TemplateRenderer(this.variableResolver);
     }
 
     /**
@@ -55,4 +63,19 @@ public class WorkflowContext {
 
     }
 
+    public String render(String prompt) {
+        return templateRenderer.render(prompt);
+    }
+
+    public String render(String prompt, Map<String, Object> addVariables) {
+        return templateRenderer.render(prompt, addVariables);
+    }
+
+    public Map<String, Object> getPromptVariables() {
+        return variableResolver.getPromptVariables();
+    }
+
+    public Object getReferenceField(String nodeId, String key) {
+        return variableResolver.getReferenceField(nodeId, key);
+    }
 }

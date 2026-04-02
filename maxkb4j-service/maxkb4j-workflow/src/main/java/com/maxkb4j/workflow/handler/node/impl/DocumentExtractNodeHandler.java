@@ -6,7 +6,7 @@ import com.maxkb4j.knowledge.service.IDocumentParseService;
 import com.maxkb4j.oss.service.IOssService;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.NodeType;
-import com.maxkb4j.workflow.handler.node.AbstractNodeHandler;
+import com.maxkb4j.workflow.handler.node.AbsNodeHandler;
 import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.model.Workflow;
 import com.maxkb4j.workflow.node.AbsNode;
@@ -20,7 +20,7 @@ import java.util.*;
 @NodeHandlerType(NodeType.DOCUMENT_EXTRACT)
 @RequiredArgsConstructor
 @Component
-public class DocumentExtractNodeHandler extends AbstractNodeHandler {
+public class DocumentExtractNodeHandler extends AbsNodeHandler {
 
     private final IDocumentParseService documentParseService;
     private final IOssService fileService;

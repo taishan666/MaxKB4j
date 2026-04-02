@@ -33,9 +33,9 @@ public class StartNode extends AbsNode {
             JSONObject globalField=globalFields.getJSONObject(i);
             String key=globalField.getString("key");
             Object value=globalField.get("value");
-            workflow.getContext().put(key, value);
+            workflow.getGlobalContext().put(key, value);
         }
-        String chatId = (String) workflow.getContext().get("chatId");
+        String chatId = (String) workflow.getGlobalContext().get("chatId");
         ChatInfo chatInfo = ChatCache.get(chatId);
         Map<String, Object> chatVariable = chatInfo.getChatVariables();
         workflow.getChatContext().putAll(chatVariable);

@@ -36,8 +36,6 @@ public class Workflow {
     protected WorkflowConfiguration configuration;
     protected WorkflowContext workflowContext;
     protected HistoryManager historyManager;
-    protected VariableResolver variableResolver;
-    protected TemplateRenderer templateRenderer;
     protected WorkflowExecutionAccessor executionAccessor;
     protected WorkflowOutputManager outputManager;
     /**
@@ -50,11 +48,9 @@ public class Workflow {
         this.configuration = builder.configuration;
         this.workflowContext = builder.context;
         this.historyManager = builder.historyManager;
-        // 2. 依赖组件初始化（顺序敏感）
-        this.variableResolver = new VariableResolver(this.workflowContext, builder.loopContext);
-        this.templateRenderer = new TemplateRenderer(this.variableResolver);
+
         this.executionAccessor = new WorkflowExecutionAccessor(
-                this.configuration, this.workflowContext, builder.navigator, this.templateRenderer);
+                this.configuration, this.workflowContext, builder.navigator);
         this.outputManager = new WorkflowOutputManager(
                 this.configuration, this.workflowContext, builder.sink);
         // 3. 加载节点状态（恢复执行）
@@ -73,25 +69,23 @@ public class Workflow {
         this.configuration = null;
         this.workflowContext = null;
         this.historyManager = null;
-        this.variableResolver = null;
-        this.templateRenderer = null;
         this.executionAccessor = null;
         this.outputManager = null;
     }
 
     // ==================== 便捷方法层（推荐使用） ====================
 
+    public WorkflowOutputManager output() {
+        return outputManager;
+    }
+
     /**
      * 获取全局上下文
      *
      * @return 全局变量 Map
      */
-    public Map<String, Object> getContext() {
+    public Map<String, Object> getGlobalContext() {
         return workflowContext.getGlobalContext();
-    }
-
-    public WorkflowOutputManager output() {
-        return outputManager;
     }
 
     /**
@@ -101,6 +95,17 @@ public class Workflow {
      */
     public Map<String, Object> getChatContext() {
         return workflowContext.getChatContext();
+    }
+
+
+
+    /**
+     * 获取聊天上下文
+     *
+     * @return 聊天变量 Map
+     */
+    public Map<String, Object> getLoopContext() {
+        return workflowContext.getLoopContext();
     }
 
     /**
@@ -131,7 +136,7 @@ public class Workflow {
      * @return 渲染后的字符串
      */
     public String renderPrompt(String prompt) {
-        return templateRenderer.render(prompt);
+        return workflowContext.render(prompt);
     }
 
     /**
@@ -142,7 +147,7 @@ public class Workflow {
      * @return 渲染后的字符串
      */
     public String renderPrompt(String prompt, Map<String, Object> addVariables) {
-        return templateRenderer.render(prompt, addVariables);
+        return workflowContext.render(prompt, addVariables);
     }
 
     /**
@@ -151,7 +156,7 @@ public class Workflow {
      * @return 变量 Map
      */
     public Map<String, Object> getPromptVariables() {
-        return variableResolver.getPromptVariables();
+        return workflowContext.getPromptVariables();
     }
 
     /**
@@ -162,7 +167,7 @@ public class Workflow {
      */
     public Object getReferenceField(List<String> reference) {
         if (CollectionUtils.isNotEmpty(reference) && reference.size() > 1) {
-            return variableResolver.getReferenceField(reference.get(0), reference.get(1));
+            return workflowContext.getReferenceField(reference.get(0), reference.get(1));
         }
         return null;
     }
@@ -178,7 +183,7 @@ public class Workflow {
     public Object getFieldValue(Object value, String source) {
         if ("reference".equals(source) && value instanceof List) {
             List<String> fields = (List<String>) value;
-            return variableResolver.getReferenceField(fields.get(0), fields.get(1));
+            return workflowContext.getReferenceField(fields.get(0), fields.get(1));
         }
         return value;
     }

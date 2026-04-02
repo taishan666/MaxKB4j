@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.NodeType;
-import com.maxkb4j.workflow.handler.node.AbstractNodeHandler;
+import com.maxkb4j.workflow.handler.node.AbsNodeHandler;
 import com.maxkb4j.workflow.model.LoopParams;
 import com.maxkb4j.workflow.model.LoopWorkFlow;
 import com.maxkb4j.workflow.model.NodeResult;
@@ -16,7 +16,7 @@ import java.util.Map;
 
 @NodeHandlerType(NodeType.LOOP_START)
 @Component
-public class LoopStartNodeHandler extends AbstractNodeHandler {
+public class LoopStartNodeHandler extends AbsNodeHandler {
 
 
     @Override

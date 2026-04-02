@@ -5,7 +5,7 @@ import com.maxkb4j.common.mp.entity.ToolInputField;
 import com.maxkb4j.oss.service.IOssService;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.NodeType;
-import com.maxkb4j.workflow.handler.node.AbstractNodeHandler;
+import com.maxkb4j.workflow.handler.node.AbsNodeHandler;
 import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.model.Workflow;
 import com.maxkb4j.workflow.node.AbsNode;
@@ -20,7 +20,7 @@ import java.util.Map;
 @NodeHandlerType({NodeType.TOOL, NodeType.TOOL_LIB})
 @Component
 @RequiredArgsConstructor
-public class ToolNodeHandler extends AbstractNodeHandler {
+public class ToolNodeHandler extends AbsNodeHandler {
 
     private final IOssService fileService;
 
