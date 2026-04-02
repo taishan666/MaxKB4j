@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.context.request.async.AsyncRequestNotUsableException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import javax.crypto.BadPaddingException;
@@ -69,8 +70,23 @@ public class GlobalExceptionHandler {
         return R.fail(500, e.getMessage());
     }
 
+    /**
+     * 处理异步请求不可用异常（客户端断开连接）
+     * SSE 流式响应时客户端关闭连接会触发此异常，属于正常情况，静默处理
+     */
+    @ExceptionHandler(AsyncRequestNotUsableException.class)
+    public void handleAsyncRequestNotUsable(AsyncRequestNotUsableException e) {
+        // 仅记录 debug 级别日志，不抛出异常，避免干扰正常业务流程
+        log.debug("Client disconnected during async request: {}", e.getMessage());
+    }
+
     @ExceptionHandler(NoResourceFoundException.class)
-    public String handleException(NoResourceFoundException e) {
+    public String handleException(NoResourceFoundException e, HttpServletResponse response) {
+        // 如果响应已提交（如 SSE 流已开始发送），则无法 redirect，直接返回 null
+        if (response.isCommitted()) {
+            log.debug("Response already committed, cannot redirect: {}", e.getMessage());
+            return null;
+        }
         log.warn(e.getMessage());
         // 判断是否已登录
         if (StpKit.ADMIN.isLogin()) {
