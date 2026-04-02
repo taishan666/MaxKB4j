@@ -29,162 +29,333 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static com.maxkb4j.workflow.enums.NodeType.*;
+import static com.maxkb4j.workflow.enums.NodeType.FORM;
+import static com.maxkb4j.workflow.enums.NodeType.LOOP_BREAK;
+import static com.maxkb4j.workflow.enums.NodeType.USER_SELECT;
 
+/**
+ * 循环节点处理器
+ * 支持数组遍历、指定次数循环和无限循环三种模式
+ */
 @NodeHandlerType(NodeType.LOOP)
 @Component
 @RequiredArgsConstructor
-public class LoopNodeHandler extends AbsNodeHandler  {
+public class LoopNodeHandler extends AbsNodeHandler {
+
+    // 循环类型常量
+    private static final String LOOP_TYPE_ARRAY = "ARRAY";
+    private static final String LOOP_TYPE_INFINITE = "LOOP";
+    private static final int MAX_INFINITE_LOOP_COUNT = 1000;
+
+    // Detail 键常量
+    private static final String DETAIL_LOOP_DATA = "loop_node_data";
+    private static final String DETAIL_LOOP_TYPE = "loopType";
+    private static final String DETAIL_NUMBER = "number";
+    private static final String DETAIL_CURRENT_INDEX = "current_index";
+    private static final String DETAIL_INTERRUPT_EXEC = "is_interrupt_exec";
 
     private final IWorkFlowActuator workFlowActuator;
     private final NodeBuilder nodeBuilder;
 
-    @SuppressWarnings("unchecked")
     @Override
     public NodeResult doExecute(Workflow workflow, AbsNode node) throws Exception {
         LoopNode.NodeParams nodeParams = parseParams(node, LoopNode.NodeParams.class);
-        String loopType = nodeParams.getLoopType();
-        List<String> array = nodeParams.getArray();
-        Integer number = nodeParams.getNumber();
-        JSONObject loopBody = nodeParams.getLoopBody();
-        List<JSONObject> loopDetails = new ArrayList<>();
-        if ("ARRAY".equals(loopType)) {
-            Object value = workflow.getReferenceField(array);
-            if (value != null) {
-                List<Object> list;
-                if (value instanceof List<?>) {
-                    list = (List<Object>) value;
-                }else if (value instanceof String) {
-                    Gson gson = new Gson();
-                    String inputStr = value.toString().trim();
-                    if (inputStr.startsWith("[") && inputStr.endsWith("]")) {
-                        list= gson.fromJson(inputStr, new TypeToken<List<Object>>() {}.getType());
-                    }else {
-                        list= List.of(value);
-                    }
-                } else {
-                    list= List.of(value);
-                }
-                loopDetails = generateLoopArray(list, workflow, loopBody, node);
-            }
-        } else if ("LOOP".equals(loopType)) {
-            loopDetails = generateLoopNumber(1000, workflow, loopBody, node);
-        } else {
-            loopDetails = generateLoopNumber(number, workflow, loopBody, node);
-        }
-        node.getDetail().put("loop_node_data", loopDetails);
-        node.getDetail().put("loopType", loopType);
-        node.getDetail().put("number", number);
+        List<JSONObject> loopDetails = executeLoop(workflow, node, nodeParams);
+
+        node.getDetail().put(DETAIL_LOOP_DATA, loopDetails);
+        node.getDetail().put(DETAIL_LOOP_TYPE, nodeParams.getLoopType());
+        node.getDetail().put(DETAIL_NUMBER, nodeParams.getNumber());
+
         return new NodeResult(workflow.getLoopContext(), true, this::isInterrupt);
     }
 
     public boolean isInterrupt(AbsNode node) {
-        return node.getDetail().containsKey("is_interrupt_exec") && (boolean) node.getDetail().get("is_interrupt_exec");
+        Object flag = node.getDetail().get(DETAIL_INTERRUPT_EXEC);
+        return Boolean.TRUE.equals(flag);
     }
 
-    private List<JSONObject> generateLoopArray(List<Object> array, Workflow workflow, JSONObject loopBody, AbsNode node) {
-        return generateLoop(array, workflow, loopBody, node);
-    }
-
-    private List<JSONObject> generateLoopNumber(int number, Workflow workflow, JSONObject loopBody, AbsNode node) {
-        List<Object> array = new ArrayList<>();
-        for (int i = 0; i < number; i++) {
-            array.add(i);
+    /**
+     * 根据循环类型执行循环逻辑
+     */
+    private List<JSONObject> executeLoop(Workflow workflow, AbsNode node, LoopNode.NodeParams params) {
+        String loopType = params.getLoopType();
+        if (LOOP_TYPE_ARRAY.equals(loopType)) {
+            return executeArrayLoop(workflow, node, params.getArray(), params.getLoopBody());
+        } else if (LOOP_TYPE_INFINITE.equals(loopType)) {
+            return executeCountLoop(workflow, node, MAX_INFINITE_LOOP_COUNT, params.getLoopBody());
+        } else {
+            return executeCountLoop(workflow, node, params.getNumber(), params.getLoopBody());
         }
-        return generateLoop(array, workflow, loopBody, node);
     }
 
+    /**
+     * 执行数组遍历循环
+     */
+    private List<JSONObject> executeArrayLoop(Workflow workflow, AbsNode node,
+                                               List<String> arrayRef, JSONObject loopBody) {
+        Object value = workflow.getReferenceField(arrayRef);
+        if (value == null) {
+            return new ArrayList<>();
+        }
+        List<Object> items = convertToList(value);
+        return executeIterations(workflow, node, items, loopBody);
+    }
+
+    /**
+     * 执行指定次数循环
+     */
+    private List<JSONObject> executeCountLoop(Workflow workflow, AbsNode node,
+                                               Integer count, JSONObject loopBody) {
+        int iterations = count != null ? count : 0;
+        List<Object> items = createIndexList(iterations);
+        return executeIterations(workflow, node, items, loopBody);
+    }
+
+    /**
+     * 将值转换为列表
+     */
     @SuppressWarnings("unchecked")
-    private List<JSONObject> generateLoop(List<Object> list, Workflow workflow, JSONObject loopBody, AbsNode node) {
-        AtomicBoolean breakOuter = new AtomicBoolean(false);
-        List<JSONObject> loopNodeData = (List<JSONObject>) node.getDetail().get("loop_node_data");
-        List<JSONObject> loopDetails = loopNodeData == null ? new ArrayList<>() : loopNodeData;
-        Object currentIndex = node.getDetail().get("current_index");
-        int startIndex = currentIndex == null ? 0 : (int) currentIndex;
+    private List<Object> convertToList(Object value) {
+        if (value instanceof List) {
+            return (List<Object>) value;
+        }
+        if (value instanceof String) {
+            return parseJsonArray((String) value);
+        }
+        return List.of(value);
+    }
+
+    /**
+     * 解析 JSON 数组字符串
+     */
+    private List<Object> parseJsonArray(String jsonStr) {
+        String trimmed = jsonStr.trim();
+        if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
+            return new Gson().fromJson(trimmed, new TypeToken<List<Object>>() {}.getType());
+        }
+        return List.of(jsonStr);
+    }
+
+    /**
+     * 创建索引列表用于次数循环
+     */
+    private List<Object> createIndexList(int count) {
+        List<Object> indices = new ArrayList<>(count);
+        for (int i = 0; i < count; i++) {
+            indices.add(i);
+        }
+        return indices;
+    }
+
+    /**
+     * 执行循环迭代
+     */
+    private List<JSONObject> executeIterations(Workflow workflow, AbsNode node,
+                                                List<Object> items, JSONObject loopBody) {
+        LoopExecutionContext ctx = prepareLoopContext(node);
+
+        // 设置子节点的 runtimeNodeId
         ChatParams chatParams = workflow.getChatParams();
         if (chatParams.getChildNode() != null) {
             chatParams.setRuntimeNodeId(chatParams.getChildNode().getRuntimeNodeId());
         }
-        JSONObject details = new JSONObject();
-        if (loopDetails.size() > startIndex) {
-            details = loopDetails.get(startIndex);
+
+        while (ctx.currentIndex < items.size() && !ctx.shouldBreak.get()) {
+            executeSingleIteration(workflow, node, items, loopBody, ctx);
+            ctx.currentIndex++;
+            // 清除 runtimeNodeId 以便下次迭代
+            chatParams.setRuntimeNodeId(null);
         }
-        AtomicBoolean isInterruptExec = new AtomicBoolean(false);
-        do {
+
+        return ctx.loopDetails;
+    }
+
+    /**
+     * 循环执行上下文
+     */
+    private static class LoopExecutionContext {
+        int currentIndex;
+        final List<JSONObject> loopDetails;
+        JSONObject currentDetails;
+        final AtomicBoolean shouldBreak;
+        final AtomicBoolean isInterrupted;
+
+        LoopExecutionContext(int startIndex, List<JSONObject> existingDetails) {
+            this.currentIndex = startIndex;
+            this.loopDetails = existingDetails;
+            this.currentDetails = new JSONObject();
+            this.shouldBreak = new AtomicBoolean(false);
+            this.isInterrupted = new AtomicBoolean(false);
+
+            // 恢复之前迭代的详情
             if (loopDetails.size() > startIndex) {
-                loopDetails.remove(0);
+                currentDetails = loopDetails.get(startIndex);
             }
-            Sinks.Many<ChatMessageVO> nodeSink = Sinks.many().unicast().onBackpressureBuffer();
-            LogicFlow logicFlow = LogicFlow.newInstance(loopBody);
-            List<AbsNode> nodes = logicFlow.getNodes().stream().map(nodeBuilder::getNode).filter(Objects::nonNull).toList();
-            LoopParams loopParams = new LoopParams(startIndex, list.get(startIndex));
-            LoopWorkFlow loopWorkflow = new LoopWorkFlow(
-                    workflow,
-                    nodes,
-                    logicFlow.getEdges(),
-                    loopParams,
-                    details,
-                    nodeSink);
-            // 异步执行
-            CompletableFuture<Void> future =CompletableFuture.runAsync(() -> workFlowActuator.execute(loopWorkflow));
-            AtomicReference<ChildNode> childNode = new AtomicReference<>(null);
-            // 订阅并累积 token，同时发送消息
-            nodeSink.asFlux().subscribe(e -> {
-                if (LOOP_BREAK.getKey().equals(e.getNodeType()) && "BREAK".equals(e.getContent())) {
-                    breakOuter.set(true);
-                } else {
-                    if (FORM.getKey().equals(e.getNodeType()) || USER_SELECT.getKey().equals(e.getNodeType())) {
-                        breakOuter.set(true);
-                        isInterruptExec.set(true);
-                    }
-                    String runtimeNodeId = e.getRuntimeNodeId() + "_" + loopParams.getIndex();
-                    childNode.set(new ChildNode(e.getChatRecordId(), runtimeNodeId));
-                    ChatMessageVO vo = node.toChatMessageVO(
-                            workflow.getChatParams().getChatId(),
-                            workflow.getChatParams().getChatRecordId(),
-                            e.getContent(),
-                            e.getReasoningContent(),
-                            childNode.get(),
-                            false);
-                    vo.setNodeType(e.getNodeType());
-                    vo.setViewType(e.getViewType());
-                    // 使用策略来决定是否发送到主工作流的sink
-                    if (workflow.output().needsSink()) {
-                        workflow.output().emit(vo);
-                    }
-                }
-            });
+        }
+    }
+
+    /**
+     * 准备循环执行上下文
+     */
+    @SuppressWarnings("unchecked")
+    private LoopExecutionContext prepareLoopContext(AbsNode node) {
+        List<JSONObject> existingDetails = (List<JSONObject>) node.getDetail().get(DETAIL_LOOP_DATA);
+        List<JSONObject> loopDetails = existingDetails != null ? existingDetails : new ArrayList<>();
+        Object savedIndex = node.getDetail().get(DETAIL_CURRENT_INDEX);
+        int startIndex = savedIndex != null ? (int) savedIndex : 0;
+        return new LoopExecutionContext(startIndex, loopDetails);
+    }
+
+    /**
+     * 执行单次循环迭代
+     */
+    private void executeSingleIteration(Workflow workflow, AbsNode node, List<Object> items,
+                                         JSONObject loopBody, LoopExecutionContext ctx) {
+        // 清理前一次迭代数据
+        removePreviousIterationData(ctx);
+
+        // 构建子工作流
+        Sinks.Many<ChatMessageVO> sink = Sinks.many().unicast().onBackpressureBuffer();
+        LogicFlow logicFlow = LogicFlow.newInstance(loopBody);
+        List<AbsNode> nodes = logicFlow.getNodes().stream()
+                .map(nodeBuilder::getNode)
+                .filter(Objects::nonNull)
+                .toList();
+
+        LoopParams loopParams = new LoopParams(ctx.currentIndex, items.get(ctx.currentIndex));
+        LoopWorkFlow loopWorkflow = new LoopWorkFlow(workflow, nodes, logicFlow.getEdges(),
+                loopParams, ctx.currentDetails, sink);
+
+        // 异步执行并订阅结果
+        CompletableFuture<Void> future = CompletableFuture.runAsync(() -> workFlowActuator.execute(loopWorkflow));
+        AtomicReference<ChildNode> childNodeRef = subscribeToSink(sink, loopParams, ctx, workflow, node);
+
+        // 发送结束标记
+        emitIterationEnd(workflow, node, childNodeRef);
+
+        // 等待执行完成
+        future.join();
+
+        // 更新状态
+        updateIterationState(node, loopWorkflow, ctx);
+    }
+
+    /**
+     * 移除前一次迭代的数据
+     */
+    private void removePreviousIterationData(LoopExecutionContext ctx) {
+        if (ctx.loopDetails.size() > ctx.currentIndex) {
+            ctx.loopDetails.remove(0);
+        }
+    }
+
+    /**
+     * 订阅子工作流输出
+     */
+    private AtomicReference<ChildNode> subscribeToSink(Sinks.Many<ChatMessageVO> sink, LoopParams loopParams,
+                                                        LoopExecutionContext ctx, Workflow workflow, AbsNode node) {
+        AtomicReference<ChildNode> childNodeRef = new AtomicReference<>(null);
+
+        sink.asFlux().subscribe(message -> {
+            if (isBreakSignal(message)) {
+                ctx.shouldBreak.set(true);
+            } else {
+                handleLoopMessage(message, loopParams, ctx, childNodeRef, workflow, node);
+            }
+        });
+
+        return childNodeRef;
+    }
+
+    /**
+     * 判断是否为中断信号
+     */
+    private boolean isBreakSignal(ChatMessageVO message) {
+        return LOOP_BREAK.getKey().equals(message.getNodeType()) && "BREAK".equals(message.getContent());
+    }
+
+    /**
+     * 处理循环消息
+     */
+    private void handleLoopMessage(ChatMessageVO message, LoopParams loopParams, LoopExecutionContext ctx,
+                                    AtomicReference<ChildNode> childNodeRef, Workflow workflow, AbsNode node) {
+        String nodeType = message.getNodeType();
+
+        // 表单和用户选择节点需要中断
+        if (FORM.getKey().equals(nodeType) || USER_SELECT.getKey().equals(nodeType)) {
+            ctx.shouldBreak.set(true);
+            ctx.isInterrupted.set(true);
+        }
+
+        // 更新子节点引用
+        String runtimeNodeId = message.getRuntimeNodeId() + "_" + loopParams.getIndex();
+        childNodeRef.set(new ChildNode(message.getChatRecordId(), runtimeNodeId));
+
+        // 转发消息到主工作流
+        if (workflow.output().needsSink()) {
+            ChatMessageVO vo = buildLoopMessageVO(message, workflow, node, childNodeRef.get());
+            workflow.output().emit(vo);
+        }
+    }
+
+    /**
+     * 构建循环消息VO
+     */
+    private ChatMessageVO buildLoopMessageVO(ChatMessageVO source, Workflow workflow,
+                                              AbsNode node, ChildNode childNode) {
+        ChatMessageVO vo = node.toChatMessageVO(
+                workflow.getChatParams().getChatId(),
+                workflow.getChatParams().getChatRecordId(),
+                source.getContent(),
+                source.getReasoningContent(),
+                childNode,
+                false);
+        vo.setNodeType(source.getNodeType());
+        vo.setViewType(source.getViewType());
+        return vo;
+    }
+
+    /**
+     * 发送迭代结束标记
+     */
+    private void emitIterationEnd(Workflow workflow, AbsNode node, AtomicReference<ChildNode> childNodeRef) {
+        if (workflow.output().needsSink()) {
             ChatMessageVO vo = node.toChatMessageVO(
                     workflow.getChatParams().getChatId(),
                     workflow.getChatParams().getChatRecordId(),
                     "",
                     "",
-                    childNode.get(),
+                    childNodeRef.get(),
                     false);
-
-            // 同样使用策略来决定是否发送消息结束标记
-            if (workflow.output().needsSink()) {
-                workflow.output().emit(vo);
-            }
-            future.join();
-            node.getDetail().put("is_interrupt_exec", isInterruptExec.get());
-            node.getDetail().put("current_index", startIndex);
-            JSONObject runtimeDetails = loopWorkflow.output().runtimeDetails();
-            for (String key : runtimeDetails.keySet()) {
-                JSONObject value = runtimeDetails.getJSONObject(key);
-                String runtimeNodeId = value.getString("runtimeNodeId");
-                runtimeNodeId=runtimeNodeId+"_"+startIndex;
-                value.put("runtimeNodeId", runtimeNodeId);
-            }
-            loopDetails.add(runtimeDetails);
-            if (breakOuter.get()) {
-                break;
-            }
-            chatParams.setRuntimeNodeId(null);
-            startIndex++;
-        } while (startIndex < list.size());
-        return loopDetails;
+            workflow.output().emit(vo);
+        }
     }
 
+    /**
+     * 更新迭代状态
+     */
+    private void updateIterationState(AbsNode node, LoopWorkFlow loopWorkflow, LoopExecutionContext ctx) {
+        node.getDetail().put(DETAIL_INTERRUPT_EXEC, ctx.isInterrupted.get());
+        node.getDetail().put(DETAIL_CURRENT_INDEX, ctx.currentIndex);
 
+        // 收集运行时详情
+        JSONObject runtimeDetails = loopWorkflow.output().runtimeDetails();
+        appendIterationIndex(runtimeDetails, ctx.currentIndex);
+        ctx.loopDetails.add(runtimeDetails);
+    }
+
+    /**
+     * 为运行时详情追加迭代索引
+     */
+    private void appendIterationIndex(JSONObject details, int index) {
+        for (String key : details.keySet()) {
+            JSONObject value = details.getJSONObject(key);
+            if (value != null) {
+                String runtimeNodeId = value.getString("runtimeNodeId");
+                if (runtimeNodeId != null) {
+                    value.put("runtimeNodeId", runtimeNodeId + "_" + index);
+                }
+            }
+        }
+    }
 }
