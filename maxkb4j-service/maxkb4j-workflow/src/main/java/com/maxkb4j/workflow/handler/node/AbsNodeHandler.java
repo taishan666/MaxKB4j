@@ -120,17 +120,18 @@ public abstract class AbsNodeHandler implements INodeHandler {
 
     /**
      * 内部错误处理 - 子类可覆盖
-     * 默认实现：记录错误信息到节点详情
+     * 默认实现：空操作
+     *
+     * Note: 所有错误处理（日志记录、详情记录、Sink发送）
+     * 已统一由 ExceptionResolverChain 责任链处理。
+     * 子类可覆盖此方法添加自定义错误处理逻辑。
      *
      * @param workflow 工作流上下文
      * @param node     节点实例
      * @param ex       异常信息
      */
     protected void handleError(Workflow workflow, AbsNode node, Exception ex) {
-        log.error("Node {} execution failed: {}", node.getType(), ex.getMessage(), ex);
-        node.setErrMessage(ex.getMessage());
-        node.getDetail().put("error", ex.getMessage());
-        node.getDetail().put("errorTime", System.currentTimeMillis());
+        // 默认空实现，异常处理由 ExceptionResolverChain 统一处理
     }
 
     /**

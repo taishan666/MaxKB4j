@@ -6,7 +6,6 @@ import com.maxkb4j.workflow.handler.node.INodeHandler;
 import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.model.NodeResultFuture;
 import com.maxkb4j.workflow.model.Workflow;
-import com.maxkb4j.workflow.model.WorkflowOutputManager;
 import com.maxkb4j.workflow.node.AbsNode;
 import com.maxkb4j.workflow.registry.NodeCenter;
 import com.maxkb4j.workflow.service.IWorkflowHandler;
@@ -71,12 +70,14 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
                     log.error("Node execution timeout after {} seconds", timeoutSeconds);
                     futureList.get(i).cancel(true);
                     AbsNode node = nodeList.get(i);
-                    node.setErrMessage("Node execution timeout after " + timeoutSeconds + " seconds");
+                    // 统一使用责任链处理超时异常
+                    exceptionResolverChain.resolve(workflow, node,
+                            new RuntimeException("Node execution timeout after " + timeoutSeconds + " seconds"));
                     node.setStatus(NodeStatus.ERROR.getStatus());
                 } catch (Exception e) {
-                    log.error("Node execution failed: {}", e.getMessage(), e);
                     AbsNode node = nodeList.get(i);
-                    node.setErrMessage(e.getMessage());
+                    // 统一使用责任链处理执行异常
+                    exceptionResolverChain.resolve(workflow, node, e);
                     node.setStatus(NodeStatus.ERROR.getStatus());
                 }
             }
@@ -115,10 +116,7 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
 
     /**
      * 执行节点
-     * 简化后的执行方法，所有执行逻辑集中在 AbstractNodeHandler.execute()
-     *
-     * Note: AbstractNodeHandler.execute() already handles onError internally,
-     * so we don't need to call it again here to avoid duplicate error handling.
+     * 异常处理统一由 ExceptionResolverChain 责任链处理
      *
      * @param workflow 工作流上下文
      * @param node     节点实例
@@ -135,7 +133,7 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
             // 记录执行轨迹
             workflow.execution().recordExecution(node);
 
-            // 执行节点 - 所有执行逻辑（包括时间记录、钩子调用、onError）都在 Handler 内部处理
+            // 执行节点
             NodeResult result = nodeHandler.execute(workflow, node);
 
             // 调用调度层成功钩子（用于后续调度逻辑）
@@ -144,7 +142,7 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
             return new NodeResultFuture(result, null, NodeStatus.SUCCESS.getStatus());
 
         } catch (Exception ex) {
-            // AbstractNodeHandler.execute() already called onError, just handle scheduling-level error
+            // 统一异常处理：日志记录、详情记录、Sink发送
             return handleNodeError(workflow, node, ex);
         }
     }
