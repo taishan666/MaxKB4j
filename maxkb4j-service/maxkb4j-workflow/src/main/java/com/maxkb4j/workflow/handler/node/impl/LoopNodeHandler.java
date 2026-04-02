@@ -24,7 +24,6 @@ import reactor.core.publisher.Sinks;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -76,7 +75,7 @@ public class LoopNodeHandler extends AbsNodeHandler  {
         node.getDetail().put("loop_node_data", loopDetails);
         node.getDetail().put("loopType", loopType);
         node.getDetail().put("number", number);
-        return new NodeResult(Map.of(), true, this::isInterrupt);
+        return new NodeResult(workflow.getLoopContext(), true, this::isInterrupt);
     }
 
     public boolean isInterrupt(AbsNode node) {
@@ -168,9 +167,6 @@ public class LoopNodeHandler extends AbsNodeHandler  {
                 workflow.output().emit(vo);
             }
             future.join();
-/*            //更新外层变量
-            workflow.getGlobalContext().putAll(loopWorkflow.getGlobalContext());
-            workflow.getChatContext().putAll(loopWorkflow.getChatContext());*/
             node.getDetail().put("is_interrupt_exec", isInterruptExec.get());
             node.getDetail().put("current_index", startIndex);
             JSONObject runtimeDetails = loopWorkflow.output().runtimeDetails();
