@@ -4,6 +4,8 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import lombok.Data;
 
+import java.util.Date;
+
 @Data
 public class ChatRecordDTO {
     private String id;
@@ -16,6 +18,8 @@ public class ChatRecordDTO {
     private Integer messageTokens;
     private Integer answerTokens;
     private String voteStatus;
+    private Date createTime;
+
 
     public JSONObject getNodeDetailsByRuntimeNodeId(String runtimeNodeId) {
         return details.getJSONObject(runtimeNodeId);

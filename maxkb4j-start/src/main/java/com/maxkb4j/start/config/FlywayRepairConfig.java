@@ -1,4 +1,5 @@
 package com.maxkb4j.start.config;
+
 import lombok.extern.slf4j.Slf4j;
 import org.flywaydb.core.Flyway;
 import org.springframework.boot.CommandLineRunner;

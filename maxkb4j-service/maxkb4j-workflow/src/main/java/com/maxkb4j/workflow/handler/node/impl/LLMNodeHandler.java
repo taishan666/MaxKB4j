@@ -187,7 +187,7 @@ public class LLMNodeHandler extends AbsNodeHandler {
                 }).onCompleteResponse(chatResponseFuture::complete)
                 .onError(error -> {
                     errorMessage.set(error.getMessage());
-                    chatResponseFuture.complete(ChatResponse.builder().build());
+                    chatResponseFuture.completeExceptionally(error);
                 })
                 .start();
 
