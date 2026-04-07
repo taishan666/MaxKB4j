@@ -40,6 +40,6 @@ public class DirectReplyNodeHandler extends AbsNodeHandler {
         if (params.getIsResult()) {
             setAnswer(node, answerText.get());
         }
-        return new NodeResult(Map.of("answer", node.getAnswerText()));
+        return new NodeResult(Map.of("answer", answerText.get()));
     }
 }

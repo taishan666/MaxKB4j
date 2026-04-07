@@ -183,7 +183,7 @@ public abstract class AbsNodeHandler implements INodeHandler {
      */
     protected void setAnswer(AbsNode node, String answer) {
         node.setAnswerText(answer);
-        node.getDetail().put("answer", answer);
+      //  node.getDetail().put("answer", answer);
     }
 
 
