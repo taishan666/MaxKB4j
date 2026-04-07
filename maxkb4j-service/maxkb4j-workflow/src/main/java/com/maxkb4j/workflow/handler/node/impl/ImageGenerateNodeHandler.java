@@ -2,13 +2,13 @@ package com.maxkb4j.workflow.handler.node.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
+import com.maxkb4j.common.domain.dto.OssFile;
 import com.maxkb4j.common.util.MimeTypeUtils;
 import com.maxkb4j.model.service.IModelProviderService;
-import com.maxkb4j.common.domain.dto.OssFile;
 import com.maxkb4j.oss.service.IOssService;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.NodeType;
-import com.maxkb4j.workflow.handler.node.INodeHandler;
+import com.maxkb4j.workflow.handler.node.AbsNodeHandler;
 import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.model.Workflow;
 import com.maxkb4j.workflow.node.AbsNode;
@@ -31,50 +31,58 @@ import static org.springframework.web.util.UriUtils.extractFileExtension;
 @RequiredArgsConstructor
 @Component
 @Slf4j
-public class ImageGenerateNodeHandler implements INodeHandler {
+public class ImageGenerateNodeHandler extends AbsNodeHandler {
 
     private final IModelProviderService modelFactory;
     private final IOssService fileService;
 
     @Override
-    public NodeResult execute(Workflow workflow, AbsNode node) throws Exception {
-        ImageGenerateNode.NodeParams nodeParams=node.getNodeData().toJavaObject(ImageGenerateNode.NodeParams.class);
-        String prompt=workflow.renderPrompt(nodeParams.getPrompt());
-        String negativePrompt=nodeParams.getNegativePrompt();
-        JSONObject modelParamsSetting=nodeParams.getModelParamsSetting();
-        if (modelParamsSetting!=null){
-            modelParamsSetting.put("negative_prompt",negativePrompt);
+    protected NodeResult doExecute(Workflow workflow, AbsNode node) throws Exception {
+        ImageGenerateNode.NodeParams params = parseParams(node, ImageGenerateNode.NodeParams.class);
+        String prompt = workflow.renderPrompt(params.getPrompt());
+        String negativePrompt = params.getNegativePrompt();
+        JSONObject modelParamsSetting = params.getModelParamsSetting();
+
+        if (modelParamsSetting != null) {
+            modelParamsSetting.put("negative_prompt", negativePrompt);
         }
+
         List<String> answerTexts = new ArrayList<>();
         List<String> imageUrls = new ArrayList<>();
-        ImageModel imageModel = modelFactory.buildImageModel(nodeParams.getModelId(), modelParamsSetting);
-        List<String> imageFieldList=nodeParams.getImageList();
+        ImageModel imageModel = modelFactory.buildImageModel(params.getModelId(), modelParamsSetting);
+        List<String> imageFieldList = params.getImageList();
         List<Image> outImages = new ArrayList<>();
-        List<Image> editImages=new ArrayList<>();
-        if (CollectionUtils.isNotEmpty(imageFieldList)){
-            editImages= buildImages(workflow, node, imageFieldList);
+        List<Image> editImages = new ArrayList<>();
+
+        if (CollectionUtils.isNotEmpty(imageFieldList)) {
+            editImages = buildImages(workflow, node, imageFieldList);
         }
-        if (CollectionUtils.isNotEmpty(editImages)){
+
+        if (CollectionUtils.isNotEmpty(editImages)) {
             for (Image editImage : editImages) {
-                Response<Image>  res =  imageModel.edit(editImage,prompt);
+                Response<Image> res = imageModel.edit(editImage, prompt);
                 outImages.add(res.content());
             }
-        }else {
+        } else {
             int n = modelParamsSetting == null ? 1 : modelParamsSetting.getIntValue("n");
-            n=n==0 ? 1 : n;
-            Response<List<Image>> res = imageModel.generate(prompt,n);
+            n = n == 0 ? 1 : n;
+            Response<List<Image>> res = imageModel.generate(prompt, n);
             outImages = res.content();
         }
+
         for (Image image : outImages) {
-            String imageMd ="!["+prompt+"](" + image.url() + ")";
+            String imageMd = "![" + prompt + "](" + image.url() + ")";
             answerTexts.add(imageMd);
             imageUrls.add(image.url().toString());
         }
-        if (nodeParams.getIsResult()){
-            node.setAnswerText(String.join(" ",answerTexts));
+
+        if (params.getIsResult()) {
+            setAnswer(node, String.join(" ", answerTexts));
         }
-        node.getDetail().put("question",prompt);
-        return new NodeResult(Map.of("answer",String.join(" ",answerTexts),"image",imageUrls));
+
+        putDetail(node, "question", prompt);
+
+        return new NodeResult(Map.of("answer", String.join(" ", answerTexts), "image", imageUrls));
     }
 
     private List<Image> buildImages(Workflow workflow, AbsNode node, List<String> imageFieldList) {
@@ -91,7 +99,8 @@ public class ImageGenerateNodeHandler implements INodeHandler {
                     .filter(OssFile.class::isInstance)
                     .map(OssFile.class::cast)
                     .toList();
-            node.getDetail().put("imageList", imageFiles);
+            putDetail(node, "imageList", imageFiles);
+
             for (OssFile file : imageFiles) {
                 byte[] bytes = fileService.getBytes(file.getFileId());
                 String base64Data = Base64.getEncoder().encodeToString(bytes);

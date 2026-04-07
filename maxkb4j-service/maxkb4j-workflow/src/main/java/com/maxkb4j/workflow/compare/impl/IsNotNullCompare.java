@@ -15,7 +15,7 @@ import java.util.Objects;
 public class IsNotNullCompare implements Compare {
 
     @Override
-    public boolean compare(Object sourceValue, String targetValue) {
+    public boolean compare(Object sourceValue, Object targetValue) {
         if (sourceValue instanceof Collection) {
             return !CollectionUtils.isEmpty((Collection<?>) sourceValue);
         } else {

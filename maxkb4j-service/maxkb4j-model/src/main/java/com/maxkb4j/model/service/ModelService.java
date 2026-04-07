@@ -6,6 +6,8 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import com.maxkb4j.common.constant.RoleType;
 import com.maxkb4j.common.mp.entity.ModelCredential;
 import com.maxkb4j.common.util.BeanUtil;
@@ -19,8 +21,6 @@ import com.maxkb4j.user.service.IUserResourcePermissionService;
 import com.maxkb4j.user.service.IUserService;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.cache.annotation.CachePut;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,6 +28,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author tarzan
@@ -39,6 +40,15 @@ public class ModelService extends ServiceImpl<ModelMapper, ModelEntity> {
 
     private final IUserService userService;
     private final IUserResourcePermissionService userResourcePermissionService;
+
+    private static final Cache<String, ModelEntity> MODEL_CACHE = Caffeine.newBuilder()
+            .initialCapacity(100)
+            // 超出最大容量时淘汰
+            .maximumSize(10000)
+            //设置写缓存后n秒钟过期
+            .expireAfterWrite(1, TimeUnit.MINUTES)
+            .expireAfterAccess(1, TimeUnit.MINUTES)
+            .build();
 
     public List<ModelVO> models(String name, String createUser, String modelType, String provider) {
         Map<String, String> userMap = userService.getNicknameMap();
@@ -114,6 +124,7 @@ public class ModelService extends ServiceImpl<ModelMapper, ModelEntity> {
             credential.setBaseUrl(model.getCredential().getBaseUrl());
             model.setCredential(credential);
         }
+        MODEL_CACHE.put(id, model);
         this.updateById(model);
         return model;
     }
@@ -152,9 +163,9 @@ public class ModelService extends ServiceImpl<ModelMapper, ModelEntity> {
         if (StringUtils.isBlank(id)) {
             return null;
         }
-        return this.lambdaQuery()
-                .select(ModelEntity::getProvider, ModelEntity::getModelType, ModelEntity::getModelName, ModelEntity::getCredential)
-                .eq(ModelEntity::getId, id)
-                .one();
+       return MODEL_CACHE.get(id,modelId->this.lambdaQuery()
+               .select(ModelEntity::getProvider, ModelEntity::getModelType, ModelEntity::getModelName, ModelEntity::getCredential)
+               .eq(ModelEntity::getId, modelId)
+               .one());
     }
 }

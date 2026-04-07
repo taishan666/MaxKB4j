@@ -4,7 +4,7 @@ import com.maxkb4j.workflow.model.Workflow;
 import com.maxkb4j.common.domain.dto.OssFile;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.NodeType;
-import com.maxkb4j.workflow.handler.node.INodeHandler;
+import com.maxkb4j.workflow.handler.node.AbsNodeHandler;
 import com.maxkb4j.workflow.model.*;
 import com.maxkb4j.workflow.node.AbsNode;
 import lombok.RequiredArgsConstructor;
@@ -19,15 +19,17 @@ import java.util.Map;
 @Component
 @NodeHandlerType(NodeType.DATA_SOURCE_LOCAL)
 @RequiredArgsConstructor
-public class DataSourceLocalHandler implements INodeHandler {
+public class DataSourceLocalHandler extends AbsNodeHandler {
+
+
     @Override
-    public NodeResult execute(Workflow workflow, AbsNode node) throws Exception {
-        List<OssFile> fileList=new ArrayList<>();
+    protected NodeResult doExecute(Workflow workflow, AbsNode node) throws Exception {
+        List<OssFile> fileList = new ArrayList<>();
         if (workflow instanceof KnowledgeWorkflow knowledgeWorkflow) {
             KnowledgeParams knowledgeParams = knowledgeWorkflow.getKnowledgeParams();
-            DataSource dataSource= knowledgeParams.getDataSource();
-            if (dataSource != null){
-                fileList=dataSource.getFileList();
+            DataSource dataSource = knowledgeParams.getDataSource();
+            if (dataSource != null) {
+                fileList = dataSource.getFileList();
             }
         }
         return new NodeResult(Map.of("fileList", fileList));

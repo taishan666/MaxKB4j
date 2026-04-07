@@ -2,7 +2,7 @@ package com.maxkb4j.workflow.handler.node.impl;
 
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.NodeType;
-import com.maxkb4j.workflow.handler.node.INodeHandler;
+import com.maxkb4j.workflow.handler.node.AbsNodeHandler;
 import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.model.Workflow;
 import com.maxkb4j.workflow.node.AbsNode;
@@ -16,29 +16,35 @@ import java.util.Objects;
 
 @NodeHandlerType(NodeType.VARIABLE_AGGREGATE)
 @Component
-public class VariableAggregationNodeHandler implements INodeHandler {
-    static Map<String, StrategyFunction> strategy_map = new HashMap<>();
+public class VariableAggregationNodeHandler extends AbsNodeHandler {
+
+    private static final Map<String, StrategyFunction> STRATEGY_MAP = new HashMap<>();
 
     static {
-        strategy_map.put("first_non_null", VariableAggregationNodeHandler::getFirstNonNull);
-        strategy_map.put("variable_to_json", VariableAggregationNodeHandler::getCollection);
+        STRATEGY_MAP.put("first_non_null", VariableAggregationNodeHandler::getFirstNonNull);
+        STRATEGY_MAP.put("variable_to_json", VariableAggregationNodeHandler::getCollection);
     }
 
     @Override
-    public NodeResult execute(Workflow workflow, AbsNode node) throws Exception {
-        VariableAggregationNode.NodeParams nodeParams = node.getNodeData().toJavaObject(VariableAggregationNode.NodeParams.class);
-        String strategyName = nodeParams.getStrategy();
+    protected NodeResult doExecute(Workflow workflow, AbsNode node) throws Exception {
+        VariableAggregationNode.NodeParams params = parseParams(node, VariableAggregationNode.NodeParams.class);
+        String strategyName = params.getStrategy();
         Map<String, Object> nodeVariable = new HashMap<>();
-        List<VariableAggregationNode.Group> groupList = nodeParams.getGroupList();
+        List<VariableAggregationNode.Group> groupList = params.getGroupList();
+
         for (VariableAggregationNode.Group group : groupList) {
             List<VariableAggregationNode.Variable> variableList = group.getVariableList();
-            resetVariable(variableList,workflow);
-            StrategyFunction strategy = strategy_map.get(strategyName);
+            resetVariable(variableList, workflow);
+            StrategyFunction strategy = STRATEGY_MAP.get(strategyName);
             group.setValue(strategy.apply(variableList));
             nodeVariable.put(group.getField(), group.getValue());
         }
-        node.getDetail().put("strategy", strategyName);
-        node.getDetail().put("groupList", groupList);
+
+        putDetails(node, Map.of(
+                "strategy", strategyName,
+                "groupList", groupList
+        ));
+
         return new NodeResult(nodeVariable);
     }
 
@@ -47,14 +53,13 @@ public class VariableAggregationNodeHandler implements INodeHandler {
             String nodeId = e.getVariable().get(0);
             String field = e.getVariable().get(1);
             AbsNode lfNode = workflow.getNode(nodeId);
-            Object value = workflow.getVariableResolver().getReferenceField(nodeId, field);
+            Object value = workflow.getReferenceField(e.getVariable());
             String nodeName = lfNode.getProperties().getString("nodeName");
-            e.setNodeName(nodeName==null?"未知":nodeName);
+            e.setNodeName(nodeName == null ? "未知" : nodeName);
             e.setField(field);
             e.setValue(value);
         }
     }
-
 
     @FunctionalInterface
     public interface StrategyFunction {
@@ -62,11 +67,16 @@ public class VariableAggregationNodeHandler implements INodeHandler {
     }
 
     public static Object getFirstNonNull(List<VariableAggregationNode.Variable> variableList) {
-        return variableList.stream().map(VariableAggregationNode.Variable::getValue).filter(Objects::nonNull).findFirst().orElse(null);
+        return variableList.stream()
+                .map(VariableAggregationNode.Variable::getValue)
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElse(null);
     }
 
     public static Object getCollection(List<VariableAggregationNode.Variable> variableList) {
-        return variableList.stream().map(VariableAggregationNode.Variable::getValue).toList();
+        return variableList.stream()
+                .map(VariableAggregationNode.Variable::getValue)
+                .toList();
     }
-
 }

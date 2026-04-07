@@ -13,15 +13,15 @@ import java.util.List;
 public class NotContainCompare implements Compare {
 
     @Override
-    public boolean compare(Object sourceValue, String targetValue) {
+    public boolean compare(Object sourceValue, Object targetValue) {
         if (sourceValue == null) {
             return true;
         }
         if (sourceValue instanceof List<?>) {
             return !((List<?>) sourceValue).contains(targetValue);
         }
-        if (sourceValue instanceof String) {
-            return !((String) sourceValue).contains(targetValue);
+        if (sourceValue instanceof String && targetValue instanceof String) {
+            return !((String) sourceValue).contains((String) targetValue);
         }
         return true;
     }

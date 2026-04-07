@@ -153,7 +153,18 @@ public class ToolService  extends ServiceImpl<ToolMapper, ToolEntity> implements
         String loginId = StpKit.ADMIN.getLoginIdAsString();
         Set<String> role = userService.getRoleById(loginId);
         LambdaQueryWrapper<ToolEntity> wrapper = Wrappers.lambdaQuery();
-        wrapper.select(ToolEntity::getId,ToolEntity::getName,ToolEntity::getDesc,ToolEntity::getIcon,ToolEntity::getToolType,ToolEntity::getIsActive);
+        wrapper.select(
+                ToolEntity::getId,
+                ToolEntity::getName,
+                ToolEntity::getDesc,
+                ToolEntity::getIcon,
+                ToolEntity::getToolType,
+                ToolEntity::getCode,
+                ToolEntity::getInitFieldList,
+                ToolEntity::getInitParams,
+                ToolEntity::getInputFieldList,
+                ToolEntity::getIsActive
+        );
         if (StringUtils.isNotBlank(folderId)) {
             wrapper.eq(ToolEntity::getFolderId, folderId);
         }

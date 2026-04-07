@@ -1,13 +1,13 @@
 package com.maxkb4j.workflow.handler.node.impl;
 
-import com.maxkb4j.core.util.DatabaseUtil;
 import com.maxkb4j.core.assistant.NL2SqlAssistant;
 import com.maxkb4j.core.langchain4j.AppChatMemory;
 import com.maxkb4j.core.langchain4j.AssistantServices;
+import com.maxkb4j.core.util.DatabaseUtil;
 import com.maxkb4j.model.service.IModelProviderService;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.NodeType;
-import com.maxkb4j.workflow.handler.node.INodeHandler;
+import com.maxkb4j.workflow.handler.node.AbsNodeHandler;
 import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.model.Workflow;
 import com.maxkb4j.workflow.node.AbsNode;
@@ -28,29 +28,42 @@ import java.util.Map;
 @NodeHandlerType(NodeType.NL2SQL)
 @RequiredArgsConstructor
 @Component
-public class NL2SqlNodeHandler implements INodeHandler {
+public class NL2SqlNodeHandler extends AbsNodeHandler {
 
     private final IModelProviderService modelFactory;
-    @Override
-    public NodeResult execute(Workflow workflow, AbsNode node) throws Exception {
-        NL2SqlNode.NodeParams nodeParams=node.getNodeData().toJavaObject(NL2SqlNode.NodeParams.class);
-        NL2SqlNode.DatabaseSetting databaseSetting=nodeParams.getDatabaseSetting();
-        List<String> fields=nodeParams.getQuestionReferenceAddress();
-        String question= (String)workflow.getReferenceField(fields);
-        ChatModel chatModel = modelFactory.buildChatModel(nodeParams.getModelId(), nodeParams.getModelParamsSetting());
-        DataSource dataSource = DatabaseUtil.getDataSource(databaseSetting.getType(), databaseSetting.getHost(), databaseSetting.getPort(), databaseSetting.getUsername(), databaseSetting.getPassword(), databaseSetting.getDatabase());
-        String sqlDialect=DatabaseUtil.getSqlDialect(dataSource);
-        String databaseStructure=DatabaseUtil.generateDDL(dataSource);
-        List<ChatMessage> historyMessages = workflow.getHistoryMessages(nodeParams.getDialogueNumber(), nodeParams.getDialogueType(), node.getRuntimeNodeId());
-        NL2SqlAssistant assistant= AssistantServices.builder(NL2SqlAssistant.class).chatModel(chatModel).chatMemory(AppChatMemory.withMessages(historyMessages)).build();
-        Result<String> result=assistant.generateSqlQuery(sqlDialect,databaseStructure,question);
-        String sql=DatabaseUtil.cleanSql(result.content());
-        String sqlResult=DatabaseUtil.executeSqlQuery(result.content(),dataSource);
-        TokenUsage tokenUsage =  result.tokenUsage();
-        node.getDetail().put("question", question);
-        node.getDetail().put("messageTokens", tokenUsage.inputTokenCount());
-        node.getDetail().put("answerTokens", tokenUsage.outputTokenCount());
-        return new NodeResult(Map.of("sql",sql,"result",sqlResult));
-    }
 
+    @Override
+    protected NodeResult doExecute(Workflow workflow, AbsNode node) throws Exception {
+        NL2SqlNode.NodeParams params = parseParams(node, NL2SqlNode.NodeParams.class);
+        NL2SqlNode.DatabaseSetting databaseSetting = params.getDatabaseSetting();
+        List<String> fields = params.getQuestionReferenceAddress();
+        String question = getReferenceFieldAsString(workflow, fields);
+
+        ChatModel chatModel = modelFactory.buildChatModel(params.getModelId(), params.getModelParamsSetting());
+        DataSource dataSource = DatabaseUtil.getDataSource(
+                databaseSetting.getType(), databaseSetting.getHost(), databaseSetting.getPort(),
+                databaseSetting.getUsername(), databaseSetting.getPassword(), databaseSetting.getDatabase());
+
+        String sqlDialect = DatabaseUtil.getSqlDialect(dataSource);
+        String databaseStructure = DatabaseUtil.generateDDL(dataSource);
+        List<ChatMessage> historyMessages = workflow.getHistoryMessages(params.getDialogueNumber(), params.getDialogueType(), node.getRuntimeNodeId());
+
+        NL2SqlAssistant assistant = AssistantServices.builder(NL2SqlAssistant.class)
+                .chatModel(chatModel)
+                .chatMemory(AppChatMemory.withMessages(historyMessages))
+                .build();
+
+        Result<String> result = assistant.generateSqlQuery(sqlDialect, databaseStructure, question);
+        String sql = DatabaseUtil.cleanSql(result.content());
+        String sqlResult = DatabaseUtil.executeSqlQuery(result.content(), dataSource);
+
+        TokenUsage tokenUsage = result.tokenUsage();
+        putDetails(node, Map.of(
+                "question", question,
+                "messageTokens", tokenUsage.inputTokenCount(),
+                "answerTokens", tokenUsage.outputTokenCount()
+        ));
+
+        return new NodeResult(Map.of("sql", sql, "result", sqlResult));
+    }
 }

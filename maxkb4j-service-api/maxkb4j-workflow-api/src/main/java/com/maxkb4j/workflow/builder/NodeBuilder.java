@@ -1,42 +1,38 @@
 package com.maxkb4j.workflow.builder;
 
-
-import com.maxkb4j.workflow.factory.NodeFactory;
 import com.maxkb4j.workflow.logic.LfNode;
 import com.maxkb4j.workflow.node.AbsNode;
+import com.maxkb4j.workflow.service.INodeCreator;
 
 /**
  * 节点构建器
- * 重构后使用 NodeFactory 的注册表模式，符合开闭原则
+ * 重构后为非静态类，通过依赖注入使用
  *
+ * 使用方式：
+ * - 通过 Spring 注入 NodeBuilder Bean
+ * - 调用 nodeBuilder.getNode(lfNode) 创建节点实例
  */
 public class NodeBuilder {
 
+    private final INodeCreator nodeCreator;
+
     /**
-     * 节点工厂实例（单例）
+     * 构造器，接收节点创建器
+     *
+     * @param nodeCreator 节点创建器实现（由实现层提供）
      */
-    private static final NodeFactory FACTORY = new NodeFactory();
+    public NodeBuilder(INodeCreator nodeCreator) {
+        this.nodeCreator = nodeCreator;
+    }
 
     /**
      * 获取节点实例
      *
      * @param lfNode 前端节点数据
      * @return 节点实例
-     * @throws IllegalArgumentException 如果 lfNode 为 null
-     * @throws IllegalStateException  如果不支持的节点类型
      */
-    public static AbsNode getNode(LfNode lfNode) {
-        return FACTORY.createNode(lfNode);
+    public AbsNode getNode(LfNode lfNode) {
+        return nodeCreator.createNode(lfNode);
     }
 
-    /**
-     * 获取节点工厂实例
-     * 用于扩展和自定义节点注册
-     *
-     * @return 节点工厂实例
-     */
-    public static NodeFactory getFactory() {
-        return FACTORY;
-    }
 }
-

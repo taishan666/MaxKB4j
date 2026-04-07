@@ -32,5 +32,17 @@ public class ThreadPoolConfig {
         return executor;
     }
 
+    @Bean("workflowExecutor")
+    public TaskExecutor workflowExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(4);
+        executor.setMaxPoolSize(8);
+        executor.setQueueCapacity(50);
+        executor.setThreadNamePrefix("workflow-executor-");
+        executor.setWaitForTasksToCompleteOnShutdown(true);
+        executor.initialize();
+        return executor;
+    }
+
 
 }

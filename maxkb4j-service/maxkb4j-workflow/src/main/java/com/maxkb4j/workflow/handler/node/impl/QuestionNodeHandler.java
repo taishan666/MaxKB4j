@@ -8,7 +8,7 @@ import com.maxkb4j.model.service.IModelProviderService;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.DialogueType;
 import com.maxkb4j.workflow.enums.NodeType;
-import com.maxkb4j.workflow.handler.node.INodeHandler;
+import com.maxkb4j.workflow.handler.node.AbsNodeHandler;
 import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.model.Workflow;
 import com.maxkb4j.workflow.node.AbsNode;
@@ -28,33 +28,47 @@ import java.util.Map;
 @NodeHandlerType(NodeType.QUESTION)
 @RequiredArgsConstructor
 @Component
-public class QuestionNodeHandler implements INodeHandler {
+public class QuestionNodeHandler extends AbsNodeHandler {
 
     private final IModelProviderService modelFactory;
+
     @Override
-    public NodeResult execute(Workflow workflow, AbsNode node) throws Exception {
-        QuestionNode.NodeParams nodeParams = node.getNodeData().toJavaObject(QuestionNode.NodeParams.class);
-        ChatModel chatModel = modelFactory.buildChatModel(nodeParams.getModelId(), nodeParams.getModelParamsSetting());
-        List<ChatMessage> historyMessages=workflow.getHistoryMessages(nodeParams.getDialogueNumber(), DialogueType.WORK_FLOW.name(), node.getRuntimeNodeId());
-        node.getDetail().put("history_message", MessageConverter.resetMessageList(historyMessages));
-        String question = workflow.renderPrompt(nodeParams.getPrompt());
-        String systemPrompt = workflow.renderPrompt(nodeParams.getSystem());
+    protected NodeResult doExecute(Workflow workflow, AbsNode node) throws Exception {
+        QuestionNode.NodeParams params = parseParams(node, QuestionNode.NodeParams.class);
+        ChatModel chatModel = modelFactory.buildChatModel(params.getModelId(), params.getModelParamsSetting());
+        List<ChatMessage> historyMessages = workflow.getHistoryMessages(params.getDialogueNumber(), DialogueType.WORK_FLOW.name(), node.getRuntimeNodeId());
+
+        putDetail(node, "history_message", MessageConverter.resetMessageList(historyMessages));
+
+        String question = workflow.renderPrompt(params.getPrompt());
+        String systemPrompt = workflow.renderPrompt(params.getSystem());
+
         Assistant assistant = AssistantServices.builder(Assistant.class)
                 .systemMessage(systemPrompt)
                 .chatMemory(AppChatMemory.withMessages(historyMessages))
                 .chatModel(chatModel)
                 .build();
+
         Result<String> result = assistant.chat(question);
-        node.getDetail().put("system", systemPrompt);
-        node.getDetail().put("question", question);
-        TokenUsage tokenUsage =  result.tokenUsage();
-        node.getDetail().put("messageTokens", tokenUsage.inputTokenCount());
-        node.getDetail().put("answerTokens", tokenUsage.outputTokenCount());
-        if (nodeParams.getIsResult()){
-            node.setAnswerText(result.content());
-        }
-        return new NodeResult(Map.of(
-                "answer", result.content()
+
+        // 使用辅助方法批量写入详情
+        putDetails(node, Map.of(
+                "system", systemPrompt,
+                "question", question
         ));
+
+        TokenUsage tokenUsage = result.tokenUsage();
+        if (tokenUsage != null) {
+            putDetails(node, Map.of(
+                    "messageTokens", tokenUsage.inputTokenCount(),
+                    "answerTokens", tokenUsage.outputTokenCount()
+            ));
+        }
+
+        if (params.getIsResult()) {
+            setAnswer(node, result.content());
+        }
+
+        return new NodeResult(Map.of("answer", result.content()));
     }
 }

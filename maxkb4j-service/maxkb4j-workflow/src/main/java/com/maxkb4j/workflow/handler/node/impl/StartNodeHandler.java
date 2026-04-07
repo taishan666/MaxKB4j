@@ -9,7 +9,7 @@ import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.common.domain.dto.ChatRecordDTO;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.NodeType;
-import com.maxkb4j.workflow.handler.node.INodeHandler;
+import com.maxkb4j.workflow.handler.node.AbsNodeHandler;
 import com.maxkb4j.workflow.model.ChatRecordSimple;
 import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.model.Workflow;
@@ -25,28 +25,32 @@ import java.util.Map;
 
 @NodeHandlerType(NodeType.START)
 @Component
-public class StartNodeHandler implements INodeHandler {
+public class StartNodeHandler extends AbsNodeHandler {
+
 
     @Override
-    public NodeResult execute(Workflow workflow, AbsNode node) throws Exception {
+    protected NodeResult doExecute(Workflow workflow, AbsNode node) throws Exception {
         ChatParams chatParams = workflow.getChatParams();
+
         // 获取默认全局变量
         Map<String, Object> globalVariable = getDefaultGlobalVariable(workflow, chatParams);
+
         // 合并全局变量
         if (chatParams.getFormData() != null) {
             globalVariable.putAll(chatParams.getFormData());
         }
-        workflow.getContext().putAll(globalVariable);
+        workflow.getGlobalContext().putAll(globalVariable);
+
         JSONObject config = node.getProperties().getJSONObject("config");
         JSONArray globalFields = config.getJSONArray("globalFields");
         for (int i = 0; i < globalFields.size(); i++) {
             JSONObject globalField = globalFields.getJSONObject(i);
             String key = globalField.getString("value");
             globalField.put("key", key);
-            globalField.put("value", workflow.getContext().get(key));
+            globalField.put("value", workflow.getGlobalContext().get(key));
         }
-        node.getDetail().put("globalFields", globalFields);
-        //会话变量
+        putDetail(node, "globalFields", globalFields);
+        // 会话变量
         workflow.getChatContext().putAll(getChatVariable(node, chatParams.getChatId()));
         // 构建节点变量
         Map<String, Object> nodeVariable = new HashMap<>();
@@ -55,6 +59,7 @@ public class StartNodeHandler implements INodeHandler {
         nodeVariable.put("document", chatParams.getDocumentList());
         nodeVariable.put("audio", chatParams.getAudioList());
         nodeVariable.put("other", chatParams.getOtherList());
+
         return new NodeResult(nodeVariable);
     }
 
@@ -66,11 +71,13 @@ public class StartNodeHandler implements INodeHandler {
         resultMap.put("chatUserId", IdWorker.get32UUID());
         resultMap.put("chatUserType", chatParams.getChatUserType());
         resultMap.put("chatUser", new JSONObject(Map.of("username", "游客")));
+        if (chatParams.getFormData() != null){
+            resultMap.putAll(chatParams.getFormData());
+        }
         return resultMap;
     }
 
     private List<ChatRecordSimple> getHistoryContext(Workflow workflow) {
-        // 获取历史聊天记录
         List<ChatRecordSimple> list = new ArrayList<>();
         for (ChatRecordDTO chatRecord : workflow.getHistoryChatRecords()) {
             ChatRecordSimple record = new ChatRecordSimple();
@@ -83,7 +90,6 @@ public class StartNodeHandler implements INodeHandler {
 
     public Map<String, Object> getChatVariable(AbsNode node, String chatId) {
         Map<String, Object> resultMap = new HashMap<>();
-        //更新会话变量
         ChatInfo chatInfo = ChatCache.get(chatId);
         Map<String, Object> chatVariable = chatInfo.getChatVariables();
         JSONObject config = node.getProperties().getJSONObject("config");
@@ -99,6 +105,4 @@ public class StartNodeHandler implements INodeHandler {
         }
         return resultMap;
     }
-
-
 }

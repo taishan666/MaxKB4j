@@ -7,6 +7,7 @@ import com.maxkb4j.workflow.node.AbsNode;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -17,18 +18,35 @@ public class KnowledgeWorkflow extends Workflow {
     private KnowledgeParams knowledgeParams;
 
     public KnowledgeWorkflow(List<AbsNode> nodes, List<LfEdge> edges, KnowledgeParams knowledgeParams) {
-        super(WorkflowMode.KNOWLEDGE, nodes, edges);
+        // 调用父类保护构造器
+        super();
+
         this.knowledgeParams = knowledgeParams;
+
+        // 1. 初始化配置
+        this.configuration = new WorkflowConfiguration(WorkflowMode.KNOWLEDGE, nodes, edges);
+
+        // 2. 初始化上下文
+        this.workflowContext = new WorkflowContext();
         Map<String, Object> knowledgeBase = knowledgeParams.getKnowledgeBase();
         if (knowledgeBase != null) {
-            super.getContext().putAll(knowledgeBase);
+            this.workflowContext.getGlobalContext().putAll(knowledgeBase);
         }
-    }
 
+        // 3. 初始化历史管理器
+        this.historyManager = new HistoryManager(Collections.emptyList());
+
+        // 5. 初始化执行控制器
+        this.executionAccessor = new WorkflowExecutionAccessor(this.configuration, this.workflowContext, new EdgeNavigator(edges));
+        // 6. 初始化输出管理器
+        this.outputManager = new WorkflowOutputManager(this.configuration, this.workflowContext, null);
+    }
 
     public List<AbsNode> getStartNodes() {
         String nodeId = knowledgeParams.getDataSource().getNodeId();
-        List<AbsNode> startNodes = super.getNodes().stream().filter(e -> !isTargetNode(e.getId())).toList();
+        List<AbsNode> startNodes = this.configuration.getNodes().stream()
+                .filter(e -> !isTargetNode(e.getId()))
+                .toList();
         for (AbsNode startNode : startNodes) {
             if (!startNode.getId().equals(nodeId)) {
                 startNode.setStatus(NodeStatus.SKIP.getStatus());
@@ -38,9 +56,7 @@ public class KnowledgeWorkflow extends Workflow {
     }
 
     public boolean isTargetNode(String nodeId) {
-        return super.getEdges().stream().anyMatch(e -> e.getTargetNodeId().equals(nodeId));
-
+        return this.configuration.getEdges().stream()
+                .anyMatch(e -> e.getTargetNodeId().equals(nodeId));
     }
-
-
 }

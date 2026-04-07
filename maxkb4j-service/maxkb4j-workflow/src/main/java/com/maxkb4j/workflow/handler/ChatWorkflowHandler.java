@@ -1,27 +1,32 @@
 package com.maxkb4j.workflow.handler;
 
 import com.maxkb4j.common.domain.dto.ChatMessageVO;
+import com.maxkb4j.workflow.exception.ExceptionResolverChain;
+import com.maxkb4j.workflow.model.KnowledgeWorkflow;
 import com.maxkb4j.workflow.model.NodeResultFuture;
 import com.maxkb4j.workflow.model.Workflow;
 import com.maxkb4j.workflow.node.AbsNode;
+import com.maxkb4j.workflow.registry.NodeCenter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
+import java.util.concurrent.Executor;
 
 @Slf4j
 @Component
 public class ChatWorkflowHandler extends AbsWorkflowHandler {
 
+    public ChatWorkflowHandler(NodeCenter nodeCenter,
+                               @Qualifier("workflowExecutor") Executor workflowExecutor,
+                               ExceptionResolverChain exceptionResolverChain) {
+        super(nodeCenter, workflowExecutor, exceptionResolverChain);
+    }
+
     @Override
-    public void execute(Workflow workflow) {
-        AbsNode currentNode = workflow.getCurrentNode();
-        if (currentNode == null) {
-            currentNode = workflow.getStartNode();
-        }
-        log.info("工作流-开始");
-        runChainNodes(workflow, List.of(currentNode));
-        log.info("工作流-结束");
+    public boolean canHandle(Workflow workflow) {
+        // ChatWorkflowHandler handles all workflows except KnowledgeWorkflow
+        return !(workflow instanceof KnowledgeWorkflow);
     }
 
     @Override
@@ -39,7 +44,8 @@ public class ChatWorkflowHandler extends AbsWorkflowHandler {
      * @param ex       the exception that occurred
      */
     protected void emitErrorToSink(Workflow workflow, AbsNode node, Exception ex) {
-        if (workflow.getChatParams() != null && workflow.needsSinkOutput()) {
+        if (workflow.getChatParams() != null
+                && workflow.output().needsSink()) {
             ChatMessageVO errMessage = node.toChatMessageVO(
                     workflow.getChatParams().getChatId(),
                     workflow.getChatParams().getChatRecordId(),
@@ -47,10 +53,7 @@ public class ChatWorkflowHandler extends AbsWorkflowHandler {
                     "",
                     null,
                     true);
-            workflow.getSink().tryEmitNext(errMessage);
+            workflow.output().emit(errMessage);
         }
     }
 }
-
-
-

@@ -13,7 +13,7 @@ import java.util.Objects;
 public class EqualCompare implements Compare {
 
     @Override
-    public boolean compare(Object sourceValue, String targetValue) {
+    public boolean compare(Object sourceValue, Object targetValue) {
         return Objects.equals(sourceValue, targetValue);
     }
 }

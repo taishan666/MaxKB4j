@@ -14,5 +14,5 @@ public interface Compare {
      * @param targetValue the target value to compare against
      * @return the comparison result
      */
-    boolean compare(Object sourceValue, String targetValue);
+    boolean compare(Object sourceValue, Object targetValue);
 }

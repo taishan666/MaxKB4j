@@ -1,16 +1,16 @@
 package com.maxkb4j.workflow.handler.node.impl;
 
+import com.maxkb4j.common.domain.dto.OssFile;
+import com.maxkb4j.model.service.IModelProviderService;
+import com.maxkb4j.model.service.STTModel;
+import com.maxkb4j.oss.service.IOssService;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.NodeType;
-import com.maxkb4j.workflow.handler.node.INodeHandler;
+import com.maxkb4j.workflow.handler.node.AbsNodeHandler;
 import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.model.Workflow;
 import com.maxkb4j.workflow.node.AbsNode;
 import com.maxkb4j.workflow.node.impl.SpeechToTextNode;
-import com.maxkb4j.model.service.STTModel;
-import com.maxkb4j.model.service.IModelProviderService;
-import com.maxkb4j.common.domain.dto.OssFile;
-import com.maxkb4j.oss.service.IOssService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -24,34 +24,42 @@ import java.util.Map;
 @NodeHandlerType(NodeType.SPEECH_TO_TEXT)
 @RequiredArgsConstructor
 @Component
-public class SpeechToTextNodeHandler implements INodeHandler {
+public class SpeechToTextNodeHandler extends AbsNodeHandler {
 
     private final IModelProviderService modelFactory;
     private final IOssService fileService;
 
+    @SuppressWarnings("unchecked")
     @Override
-    public NodeResult execute(Workflow workflow, AbsNode node) throws Exception {
-        SpeechToTextNode.NodeParams nodeParams=node.getNodeData().toJavaObject(SpeechToTextNode.NodeParams.class);
-        List<String> audioList = nodeParams.getAudioList();
+    protected NodeResult doExecute(Workflow workflow, AbsNode node) throws Exception {
+        SpeechToTextNode.NodeParams params = parseParams(node, SpeechToTextNode.NodeParams.class);
+        List<String> audioList = params.getAudioList();
         Object res = workflow.getReferenceField(audioList);
-        STTModel sttModel = modelFactory.buildSTTModel(nodeParams.getSttModelId());
-        @SuppressWarnings("unchecked")
+        STTModel sttModel = modelFactory.buildSTTModel(params.getSttModelId());
         List<OssFile> audioFiles = (List<OssFile>) res;
+
         List<String> content = new ArrayList<>();
         List<String> answerTextList = new ArrayList<>();
-        for (OssFile file: audioFiles) {
+
+        for (OssFile file : audioFiles) {
             byte[] data = fileService.getBytes(file.getFileId());
-            String suffix=file.getName().substring(file.getName().lastIndexOf(".") + 1);
-            String result = sttModel.speechToText(data,suffix);
+            String suffix = file.getName().substring(file.getName().lastIndexOf(".") + 1);
+            String result = sttModel.speechToText(data, suffix);
             answerTextList.add(result);
-            content.add("### "+file.getName()+"\n"+result);
+            content.add("### " + file.getName() + "\n" + result);
         }
-        String answer= String.join("\n", answerTextList);
-        node.getDetail().put("content", content);
-        node.getDetail().put("audioList", audioFiles);
-        if (nodeParams.getIsResult()){
-            node.setAnswerText(answer);
+
+        String answer = String.join("\n", answerTextList);
+
+        putDetails(node, Map.of(
+                "content", content,
+                "audioList", audioFiles
+        ));
+
+        if (params.getIsResult()) {
+            setAnswer(node, answer);
         }
+
         return new NodeResult(Map.of("result", answer));
     }
 }

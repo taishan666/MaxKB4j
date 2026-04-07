@@ -19,64 +19,6 @@ public class NodeResult {
     private WriteDetailFunction writeDetailFunc;
     private IsInterruptFunction isInterrupt;
 
-    /**
-     * Builder for constructing NodeResult instances.
-     */
-    public static Builder builder() {
-        return new Builder();
-    }
-
-    /**
-     * Builder class for NodeResult.
-     */
-    public static class Builder {
-        private Map<String, Object> nodeVariable = new HashMap<>();
-        private boolean streamOutput = false;
-        private WriteContextFunction writeContextFunc;
-        private WriteDetailFunction writeDetailFunc;
-        private IsInterruptFunction isInterrupt;
-
-        public Builder nodeVariable(Map<String, Object> nodeVariable) {
-            this.nodeVariable = nodeVariable != null ? nodeVariable : new HashMap<>();
-            return this;
-        }
-
-        public Builder putVariable(String key, Object value) {
-            this.nodeVariable.put(key, value);
-            return this;
-        }
-
-        public Builder streamOutput(boolean streamOutput) {
-            this.streamOutput = streamOutput;
-            return this;
-        }
-
-        public Builder writeContextFunc(WriteContextFunction writeContextFunc) {
-            this.writeContextFunc = writeContextFunc;
-            return this;
-        }
-
-        public Builder writeDetailFunc(WriteDetailFunction writeDetailFunc) {
-            this.writeDetailFunc = writeDetailFunc;
-            return this;
-        }
-
-        public Builder isInterrupt(IsInterruptFunction isInterrupt) {
-            this.isInterrupt = isInterrupt;
-            return this;
-        }
-
-        public NodeResult build() {
-            NodeResult result = new NodeResult();
-            result.nodeVariable = this.nodeVariable;
-            result.streamOutput = this.streamOutput;
-            result.writeContextFunc = this.writeContextFunc != null ? this.writeContextFunc : result::defaultWriteContextFunc;
-            result.writeDetailFunc = this.writeDetailFunc != null ? this.writeDetailFunc : result::defaultWriteDetailFunc;
-            result.isInterrupt = this.isInterrupt != null ? this.isInterrupt : result::defaultIsInterrupt;
-            return result;
-        }
-    }
-
     // Legacy constructors for backward compatibility
     public NodeResult(Map<String, Object> nodeVariable) {
         this.nodeVariable = nodeVariable != null ? nodeVariable : new HashMap<>();
@@ -103,10 +45,6 @@ public class NodeResult {
         this.isInterrupt = isInterrupt != null ? isInterrupt : this::defaultIsInterrupt;
     }
 
-    // Default constructor for Builder
-    private NodeResult() {
-    }
-
 
     public void writeContext(AbsNode currentNode, Workflow workflow) {
         this.writeContextFunc.apply(nodeVariable, currentNode, workflow);
@@ -128,8 +66,8 @@ public class NodeResult {
         if (nodeVariable != null) {
             node.getContext().putAll(nodeVariable);
         }
-        // Use workflow's decision method instead of hardcoded checks
-        if (workflow.needsSinkOutput()) {
+        // Use workflow's output manager to check if sink output is needed
+        if (workflow.output().needsSink()) {
             if (StringUtils.isNotBlank(node.getAnswerText())) {
                 ChatMessageVO vo = node.toChatMessageVO(
                         workflow.getChatParams().getChatId(),
@@ -138,7 +76,7 @@ public class NodeResult {
                         "",
                         null,
                         false);
-                workflow.getSink().tryEmitNext(vo);
+                workflow.output().emit(vo);
                 ChatMessageVO nodeEndVo = node.toChatMessageVO(
                         workflow.getChatParams().getChatId(),
                         workflow.getChatParams().getChatRecordId(),
@@ -146,11 +84,11 @@ public class NodeResult {
                         "",
                         null,
                         true);
-                workflow.getSink().tryEmitNext(nodeEndVo);
+                workflow.output().emit(nodeEndVo);
             }
         }
         // Sync update to workflow context
-        workflow.getWorkflowContext().appendNode(node);
+        workflow.context().appendNode(node);
     }
 
     public void defaultWriteDetailFunc(Map<String, Object> nodeVariable, AbsNode node) {
@@ -182,6 +120,158 @@ public class NodeResult {
 
     public boolean isAssertionResult() {
         return this.nodeVariable != null && this.nodeVariable.containsKey("branchId");
+    }
+
+    // ==================== Builder Pattern ====================
+
+    /**
+     * Create a new Builder for NodeResult.
+     *
+     * @return a new Builder instance
+     */
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    /**
+     * Builder class for NodeResult.
+     * Provides a fluent API for constructing NodeResult instances.
+     */
+    public static class Builder {
+        private Map<String, Object> variables = new HashMap<>();
+        private boolean streamOutput = false;
+        private IsInterruptFunction isInterrupt = null;
+        private WriteContextFunction writeContextFunc = null;
+        private WriteDetailFunction writeDetailFunc = null;
+
+        /**
+         * Set the node variables.
+         *
+         * @param vars the variables map
+         * @return this builder
+         */
+        public Builder variables(Map<String, Object> vars) {
+            this.variables = vars != null ? vars : new HashMap<>();
+            return this;
+        }
+
+        /**
+         * Add a single variable.
+         *
+         * @param key   the variable key
+         * @param value the variable value
+         * @return this builder
+         */
+        public Builder variable(String key, Object value) {
+            this.variables.put(key, value);
+            return this;
+        }
+
+        /**
+         * Set whether to stream output.
+         *
+         * @param stream true for stream output
+         * @return this builder
+         */
+        public Builder streamOutput(boolean stream) {
+            this.streamOutput = stream;
+            return this;
+        }
+
+        /**
+         * Set the interrupt function.
+         *
+         * @param func the interrupt function
+         * @return this builder
+         */
+        public Builder interrupt(IsInterruptFunction func) {
+            this.isInterrupt = func;
+            return this;
+        }
+
+        /**
+         * Set the write context function.
+         *
+         * @param func the write context function
+         * @return this builder
+         */
+        public Builder writeContext(WriteContextFunction func) {
+            this.writeContextFunc = func;
+            return this;
+        }
+
+        /**
+         * Set the write detail function.
+         *
+         * @param func the write detail function
+         * @return this builder
+         */
+        public Builder writeDetail(WriteDetailFunction func) {
+            this.writeDetailFunc = func;
+            return this;
+        }
+
+        // ==================== 快捷方法 ====================
+
+        /**
+         * 快速创建成功结果（非流式）
+         *
+         * @param answer 答案内容
+         * @return this builder
+         */
+        public Builder success(String answer) {
+            this.variables.put("answer", answer);
+            this.streamOutput = false;
+            return this;
+        }
+
+        /**
+         * 快速创建流式输出结果
+         *
+         * @return this builder
+         */
+        public Builder streaming() {
+            this.streamOutput = true;
+            return this;
+        }
+
+   /*     *//**
+         * 快速创建可中断结果
+         *
+         * @param func 中断判断函数
+         * @return this builder
+         *//*
+        public Builder interrupt(IsInterruptFunction func) {
+            this.isInterrupt = func;
+            return this;
+        }*/
+
+        /**
+         * 快速创建空结果
+         *
+         * @return this builder
+         */
+        public Builder empty() {
+            this.variables = new HashMap<>();
+            this.streamOutput = false;
+            return this;
+        }
+
+        /**
+         * Build the NodeResult instance.
+         *
+         * @return a new NodeResult instance
+         */
+        public NodeResult build() {
+            NodeResult result = new NodeResult(variables, streamOutput, isInterrupt);
+            if (writeContextFunc != null) {
+                result.writeContextFunc = writeContextFunc;
+            }
+            if (writeDetailFunc != null) {
+                result.writeDetailFunc = writeDetailFunc;
+            }
+            return result;
+        }
     }
 
 

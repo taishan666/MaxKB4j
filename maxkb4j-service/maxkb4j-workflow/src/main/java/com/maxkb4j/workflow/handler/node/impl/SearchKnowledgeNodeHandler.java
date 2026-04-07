@@ -1,13 +1,13 @@
 package com.maxkb4j.workflow.handler.node.impl;
 
 import com.alibaba.fastjson.JSONObject;
-import com.maxkb4j.common.mp.entity.KnowledgeSetting;
 import com.maxkb4j.common.domain.dto.ChatRecordDTO;
+import com.maxkb4j.common.mp.entity.KnowledgeSetting;
 import com.maxkb4j.knowledge.service.IRetrieveService;
 import com.maxkb4j.knowledge.vo.ParagraphVO;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.NodeType;
-import com.maxkb4j.workflow.handler.node.INodeHandler;
+import com.maxkb4j.workflow.handler.node.AbsNodeHandler;
 import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.model.Workflow;
 import com.maxkb4j.workflow.node.AbsNode;
@@ -27,23 +27,34 @@ import java.util.Map;
 @NodeHandlerType(NodeType.SEARCH_KNOWLEDGE)
 @RequiredArgsConstructor
 @Component
-public class SearchKnowledgeNodeHandler implements INodeHandler {
+public class SearchKnowledgeNodeHandler extends AbsNodeHandler {
 
     private final IRetrieveService retrieveService;
+
     @Override
-    public NodeResult execute(Workflow workflow, AbsNode node) throws Exception {
-        SearchKnowledgeNode.NodeParams nodeParams=node.getNodeData().toJavaObject(SearchKnowledgeNode.NodeParams .class);
-        KnowledgeSetting knowledgeSetting=nodeParams.getKnowledgeSetting();
-        List<String> fields=nodeParams.getQuestionReferenceAddress();
-        String question= (String)workflow.getReferenceField(fields);
-        List<String> excludeParagraphIds=new ArrayList<>();
-        if (workflow.getChatParams().getReChat()){
-            excludeParagraphIds=getExcludeParagraphIds(workflow,node.getRuntimeNodeId(),question);
+    protected NodeResult doExecute(Workflow workflow, AbsNode node) throws Exception {
+        SearchKnowledgeNode.NodeParams params = parseParams(node, SearchKnowledgeNode.NodeParams.class);
+        KnowledgeSetting knowledgeSetting = params.getKnowledgeSetting();
+        List<String> fields = params.getQuestionReferenceAddress();
+        String question = getReferenceFieldAsString(workflow, fields);
+
+        List<String> excludeParagraphIds = new ArrayList<>();
+        if (workflow.getChatParams().getReChat()) {
+            excludeParagraphIds = getExcludeParagraphIds(workflow, node.getRuntimeNodeId(), question);
         }
-        List<ParagraphVO> paragraphList= retrieveService.paragraphSearch(question,nodeParams.getKnowledgeIds(),excludeParagraphIds,knowledgeSetting);
-        List<ParagraphVO> isHitHandlingMethodList=paragraphList.stream().filter(ParagraphVO::isHitHandlingMethod).toList();
-        node.getDetail().put("question",question);
-        node.getDetail().put("showKnowledge", nodeParams.getShowKnowledge());
+
+        List<ParagraphVO> paragraphList = retrieveService.paragraphSearch(
+                question, params.getKnowledgeIds(), excludeParagraphIds, knowledgeSetting);
+        List<ParagraphVO> isHitHandlingMethodList = paragraphList.stream()
+                .filter(ParagraphVO::isHitHandlingMethod)
+                .toList();
+
+        // 使用辅助方法写入详情
+        putDetails(node, Map.of(
+                "question", question,
+                "showKnowledge", params.getShowKnowledge()
+        ));
+
         return new NodeResult(Map.of(
                 "paragraphList", paragraphList,
                 "isHitHandlingMethodList", isHitHandlingMethodList,
@@ -53,16 +64,16 @@ public class SearchKnowledgeNodeHandler implements INodeHandler {
     }
 
     @SuppressWarnings("unchecked")
-    private List<String> getExcludeParagraphIds(Workflow workflow, String runtimeNodeId,String question){
-        List<String> excludeParagraphIds=new ArrayList<>();
+    private List<String> getExcludeParagraphIds(Workflow workflow, String runtimeNodeId, String question) {
+        List<String> excludeParagraphIds = new ArrayList<>();
         for (ChatRecordDTO chatRecord : workflow.getHistoryChatRecords()) {
-            if (chatRecord.getProblemText().equals(workflow.getChatParams().getMessage())){
-                JSONObject details=chatRecord.getDetails();
-                if (!details.isEmpty()){
-                    JSONObject detail= details.getJSONObject(runtimeNodeId);
-                    if (question.equals(detail.getString("question"))){
-                        List<ParagraphVO> paragraphList= (List<ParagraphVO>) detail.get("paragraphList");
-                        if (!CollectionUtils.isEmpty(paragraphList)){
+            if (chatRecord.getProblemText().equals(workflow.getChatParams().getMessage())) {
+                JSONObject details = chatRecord.getDetails();
+                if (!details.isEmpty()) {
+                    JSONObject detail = details.getJSONObject(runtimeNodeId);
+                    if (question.equals(detail.getString("question"))) {
+                        List<ParagraphVO> paragraphList = (List<ParagraphVO>) detail.get("paragraphList");
+                        if (!CollectionUtils.isEmpty(paragraphList)) {
                             excludeParagraphIds.addAll(paragraphList.stream().map(ParagraphVO::getId).toList());
                         }
                     }
@@ -72,16 +83,14 @@ public class SearchKnowledgeNodeHandler implements INodeHandler {
         return excludeParagraphIds;
     }
 
-
-    public  String resetTitle(String title) {
-        if(StringUtils.isNotBlank(title)){
+    public String resetTitle(String title) {
+        if (StringUtils.isNotBlank(title)) {
             return title;
         }
         return "";
     }
 
-
-    public  String directlyReturns(List<ParagraphVO> isHitHandlingMethodList) {
+    public String directlyReturns(List<ParagraphVO> isHitHandlingMethodList) {
         StringBuilder result = new StringBuilder();
         for (ParagraphVO paragraph : isHitHandlingMethodList) {
             String content = paragraph.getContent();
@@ -92,8 +101,7 @@ public class SearchKnowledgeNodeHandler implements INodeHandler {
         return result.toString();
     }
 
-
-    public  String processParagraphs(List<ParagraphVO> paragraphList, int maxParagraphCharNumber) {
+    public String processParagraphs(List<ParagraphVO> paragraphList, int maxParagraphCharNumber) {
         StringBuilder result = new StringBuilder();
         for (ParagraphVO paragraph : paragraphList) {
             String title = resetTitle(paragraph.getTitle());
@@ -107,13 +115,11 @@ public class SearchKnowledgeNodeHandler implements INodeHandler {
                 }
             }
         }
-        if (!result.isEmpty()){
+        if (!result.isEmpty()) {
             result.deleteCharAt(result.length() - 1);
         }
         // 如果未超出限制，直接返回结果
         return result.toString();
     }
-
-
 
 }

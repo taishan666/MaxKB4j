@@ -34,9 +34,9 @@ public class FileController {
     }
 
     @GetMapping({
-            "/admin/application/*/*/oss/file/{fileId:[\\w-]+}",
-            "/admin/application/*/*/*/oss/file/{fileId:[\\w-]+}",
-            "/admin/knowledge/*/*/oss/file/{fileId:[\\w-]+}",
+            "/admin/*/oss/file/{fileId:[\\w-]+}",
+            "/admin/*/*/oss/file/{fileId:[\\w-]+}",
+            "/admin/*/*/*/oss/file/{fileId:[\\w-]+}",
             "/admin/oss/file/{fileId:[\\w-]+}",
             "/chat/oss/file/{fileId:[\\w-]+}",
             "/oss/file/{fileId:[\\w-]+}"})

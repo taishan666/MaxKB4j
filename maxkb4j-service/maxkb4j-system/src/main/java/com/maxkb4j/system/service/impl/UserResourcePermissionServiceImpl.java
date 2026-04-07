@@ -9,7 +9,9 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.maxkb4j.application.entity.ApplicationEntity;
 import com.maxkb4j.application.mapper.ApplicationMapper;
+import com.maxkb4j.application.vo.ApplicationVO;
 import com.maxkb4j.common.constant.Permission;
+import com.maxkb4j.common.constant.ResourceType;
 import com.maxkb4j.common.util.BeanUtil;
 import com.maxkb4j.common.util.PageUtil;
 import com.maxkb4j.common.util.StpKit;
@@ -25,6 +27,8 @@ import com.maxkb4j.user.entity.UserResourcePermissionEntity;
 import com.maxkb4j.user.mapper.UserMapper;
 import com.maxkb4j.user.mapper.UserResourcePermissionMapper;
 import com.maxkb4j.user.service.IUserResourcePermissionService;
+import com.maxkb4j.user.service.IUserService;
+import com.maxkb4j.user.vo.ResourceUseVO;
 import com.maxkb4j.user.vo.ResourceUserPermissionVO;
 import com.maxkb4j.user.vo.UserResourcePermissionVO;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +36,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -63,16 +69,12 @@ public class UserResourcePermissionServiceImpl extends ServiceImpl<UserResourceP
     }
 
     public boolean update(String type, String targetId, String userId) {
-        return this.lambdaUpdate()
-                .eq(UserResourcePermissionEntity::getAuthTargetType, type).eq(UserResourcePermissionEntity::getTargetId, targetId).eq(UserResourcePermissionEntity::getUserId, userId).eq(UserResourcePermissionEntity::getWorkspaceId, DEFAULT_ID).update();
+        return this.lambdaUpdate().eq(UserResourcePermissionEntity::getAuthTargetType, type).eq(UserResourcePermissionEntity::getTargetId, targetId).eq(UserResourcePermissionEntity::getUserId, userId).eq(UserResourcePermissionEntity::getWorkspaceId, DEFAULT_ID).update();
     }
 
 
     public IPage<UserResourcePermissionVO> userResourcePermissionPage(String userId, String type, int current, int size) {
-        LambdaQueryWrapper<UserResourcePermissionEntity> wrapper = Wrappers.<UserResourcePermissionEntity>lambdaQuery()
-                .eq(UserResourcePermissionEntity::getUserId, userId)
-                .eq(UserResourcePermissionEntity::getAuthTargetType, type)
-                .eq(UserResourcePermissionEntity::getWorkspaceId, DEFAULT_ID);
+        LambdaQueryWrapper<UserResourcePermissionEntity> wrapper = Wrappers.<UserResourcePermissionEntity>lambdaQuery().eq(UserResourcePermissionEntity::getUserId, userId).eq(UserResourcePermissionEntity::getAuthTargetType, type).eq(UserResourcePermissionEntity::getWorkspaceId, DEFAULT_ID);
         List<UserResourcePermissionEntity> userResourcePermissions = baseMapper.selectList(wrapper);
         Map<String, List<String>> map = userResourcePermissions.stream().collect(Collectors.toMap(UserResourcePermissionEntity::getTargetId, UserResourcePermissionEntity::getPermissionList));
         switch (type) {
@@ -139,34 +141,23 @@ public class UserResourcePermissionServiceImpl extends ServiceImpl<UserResourceP
     }
 
     public IPage<ResourceUserPermissionVO> resourceUserPermissionPage(String resourceId, String type, int current, int size, String nickname, String username, String[] permissions) {
-        LambdaQueryWrapper<UserResourcePermissionEntity> wrapper = Wrappers.<UserResourcePermissionEntity>lambdaQuery()
-                .eq(UserResourcePermissionEntity::getTargetId, resourceId)
-                .eq(UserResourcePermissionEntity::getAuthTargetType, type)
-                .eq(UserResourcePermissionEntity::getWorkspaceId, DEFAULT_ID);
+        LambdaQueryWrapper<UserResourcePermissionEntity> wrapper = Wrappers.<UserResourcePermissionEntity>lambdaQuery().eq(UserResourcePermissionEntity::getTargetId, resourceId).eq(UserResourcePermissionEntity::getAuthTargetType, type).eq(UserResourcePermissionEntity::getWorkspaceId, DEFAULT_ID);
         List<UserResourcePermissionEntity> list = baseMapper.selectList(wrapper);
-        Map<String, UserResourcePermissionEntity> map = list.stream()
-                .collect(Collectors.toMap(
-                        UserResourcePermissionEntity::getUserId,
-                        e -> e,
-                        (existing, replacement) -> existing // 保留第一个，也可选 replacement 保留最后一个
-                ));
+        Map<String, UserResourcePermissionEntity> map = list.stream().collect(Collectors.toMap(UserResourcePermissionEntity::getUserId, e -> e, (existing, replacement) -> existing // 保留第一个，也可选 replacement 保留最后一个
+        ));
         String userId = StpKit.ADMIN.getLoginIdAsString();
-        LambdaQueryWrapper<UserEntity>  userWrapper = Wrappers.<UserEntity>lambdaQuery()
-                .in(UserEntity::getIsActive,true)
-                .like(StringUtils.isNotBlank(nickname), UserEntity::getNickname, nickname)
-                .like(StringUtils.isNotBlank(username), UserEntity::getUsername, username)
-                .ne(UserEntity::getId, userId).orderByAsc(UserEntity::getCreateTime);
+        LambdaQueryWrapper<UserEntity> userWrapper = Wrappers.<UserEntity>lambdaQuery().in(UserEntity::getIsActive, true).like(StringUtils.isNotBlank(nickname), UserEntity::getNickname, nickname).like(StringUtils.isNotBlank(username), UserEntity::getUsername, username).ne(UserEntity::getId, userId).orderByAsc(UserEntity::getCreateTime);
         Page<UserEntity> userPage = new Page<>(current, size);
-        userPage= userMapper.selectPage(userPage,userWrapper);
+        userPage = userMapper.selectPage(userPage, userWrapper);
         return PageUtil.copy(userPage, e -> {
             ResourceUserPermissionVO vo = new ResourceUserPermissionVO();
             UserResourcePermissionEntity permission = map.get(e.getId());
             vo.setId(e.getId());
             vo.setNickname(e.getNickname());
             vo.setUsername(e.getUsername());
-            if (permission != null){
+            if (permission != null) {
                 vo.setPermission(getPermissionFromList(permission.getPermissionList()));
-            }else{
+            } else {
                 vo.setPermission(Permission.NOT_AUTH);
             }
             vo.setWorkspaceId(DEFAULT_ID);
@@ -222,7 +213,7 @@ public class UserResourcePermissionServiceImpl extends ServiceImpl<UserResourceP
         return this.saveBatch(saveList);
     }
 
-    private List<String>  getPermissionFromList(String permission) {
+    private List<String> getPermissionFromList(String permission) {
         if (Permission.MANAGE.equals(permission)) {
             return List.of(Permission.MANAGE, Permission.VIEW);
         } else if (Permission.VIEW.equals(permission)) {
@@ -232,17 +223,89 @@ public class UserResourcePermissionServiceImpl extends ServiceImpl<UserResourceP
     }
 
     public List<String> getTargetIds(String authTargetType, String userId) {
-        List<UserResourcePermissionEntity> userResourcePermissions =this.lambdaQuery()
-                .select(UserResourcePermissionEntity::getTargetId,UserResourcePermissionEntity::getPermissionList)
-                .eq(UserResourcePermissionEntity::getUserId, userId)
-                .eq(UserResourcePermissionEntity::getAuthTargetType, authTargetType).list();
-        return userResourcePermissions.stream()
-                .filter(permission -> permission.getPermissionList().contains(Permission.VIEW))
-                .map(UserResourcePermissionEntity::getTargetId).toList();
+        List<UserResourcePermissionEntity> userResourcePermissions = this.lambdaQuery().select(UserResourcePermissionEntity::getTargetId, UserResourcePermissionEntity::getPermissionList).eq(UserResourcePermissionEntity::getUserId, userId).eq(UserResourcePermissionEntity::getAuthTargetType, authTargetType).list();
+        return userResourcePermissions.stream().filter(permission -> permission.getPermissionList().contains(Permission.VIEW)).map(UserResourcePermissionEntity::getTargetId).toList();
     }
 
 
     public List<UserResourcePermissionEntity> getByUserId(String userId) {
         return this.lambdaQuery().eq(UserResourcePermissionEntity::getUserId, userId).list();
     }
+
+    public IPage<ResourceUseVO> resourceMappingPage(String resourceId, int current, int size, String resourceName, String userName, String[] sourceType, String targetType) {
+        //智能体
+        LambdaQueryWrapper<ApplicationEntity> wrapper = Wrappers.<ApplicationEntity>lambdaQuery();
+        if (targetType.equals("MODEL")) {
+            wrapper.eq(ApplicationEntity::getModelId, resourceId);
+        } else {
+            String fieldName = "work_flow";
+            String sql = fieldName + "::text LIKE CONCAT('%', {0}, '%')";
+            wrapper.apply(sql, resourceId);
+        }
+        if (StringUtils.isNotBlank(resourceName)) {
+            wrapper.like(ApplicationEntity::getName, resourceName);
+        }
+        List<ApplicationEntity> apps = new ArrayList<>();
+        //知识库
+        LambdaQueryWrapper<KnowledgeEntity> datasetWrapper = Wrappers.<KnowledgeEntity>lambdaQuery().eq(KnowledgeEntity::getEmbeddingModelId, resourceId);
+        if (StringUtils.isNotBlank(resourceName)) {
+            datasetWrapper.like(KnowledgeEntity::getName, resourceName);
+        }
+        List<KnowledgeEntity> datases = new ArrayList<>();
+        List<ResourceUseVO> rmp = new ArrayList<>();
+        //用户信息
+        Map<String, String> nicknameMap = userMapper.selectList(new LambdaQueryWrapper<>()).stream().collect(Collectors.toMap(UserEntity::getId, UserEntity::getNickname));
+        if (sourceType == null || Arrays.stream(sourceType).toList().contains(ResourceType.APPLICATION)) {
+            apps = applicationMapper.selectList(wrapper);
+            for (ApplicationEntity app : apps) {
+                ResourceUseVO vo = BeanUtil.copy(app, ResourceUseVO.class);
+                vo.setSourceType(ResourceType.APPLICATION);
+                vo.setTargetId(resourceId);
+                vo.setTargetType(targetType);
+                vo.setUsername(nicknameMap.get(app.getUserId()));
+                if (userName != "" && userName != null) {
+                    if (nicknameMap.get(app.getUserId()).contains(userName)) {
+                        rmp.add(vo);
+                    }
+                } else {
+                    rmp.add(vo);
+                }
+            }
+        }
+        if (sourceType == null || Arrays.asList(sourceType).contains(ResourceType.KNOWLEDGE)) {
+            datases = datasetMapper.selectList(datasetWrapper);
+            for (KnowledgeEntity dataset : datases) {
+                ResourceUseVO vo = BeanUtil.copy(dataset, ResourceUseVO.class);
+                vo.setSourceType(ResourceType.KNOWLEDGE);
+                vo.setTargetId(resourceId);
+                vo.setTargetType(targetType);
+                vo.setUsername(nicknameMap.get(dataset.getUserId()));
+                if (userName != "" && userName != null) {
+                    if (nicknameMap.get(dataset.getUserId()).contains(userName)) {
+                        rmp.add(vo);
+                    }
+                } else {
+                    rmp.add(vo);
+                }
+            }
+        }
+        // 计算分页起始位置和结束位置
+        int start = (current - 1) * size;
+        int end = Math.min(start + size, rmp.size());
+
+        // 处理越界情况
+        if (start > rmp.size()) {
+            start = rmp.size();
+        }
+        if (end > rmp.size()) {
+            end = rmp.size();
+        }
+        // 获取分页后的数据
+        List<ResourceUseVO> pageList = rmp.subList(start, end);
+        // 构建分页结果
+        Page<ResourceUseVO> resultPage = new Page<>(current, size, rmp.size());
+        resultPage.setRecords(pageList);
+        return resultPage;
+    }
+
 }

@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 public class IsTrueCompare implements Compare {
 
     @Override
-    public boolean compare(Object sourceValue, String targetValue) {
+    public boolean compare(Object sourceValue, Object targetValue) {
         if (sourceValue == null) {
             return false;
         }

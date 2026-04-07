@@ -9,4 +9,5 @@ public class KnowledgeListVO {
     private String desc;
     private Integer type;
     private String folderId;
+    private String resourceType="knowledge";
 }

@@ -1,15 +1,15 @@
 package com.maxkb4j.workflow.handler.node.impl;
 
+import com.maxkb4j.knowledge.dto.DocumentSimple;
+import com.maxkb4j.knowledge.dto.ParagraphSimple;
+import com.maxkb4j.knowledge.service.IDocumentSplitService;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.NodeType;
-import com.maxkb4j.workflow.handler.node.INodeHandler;
+import com.maxkb4j.workflow.handler.node.AbsNodeHandler;
 import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.model.Workflow;
 import com.maxkb4j.workflow.node.AbsNode;
 import com.maxkb4j.workflow.node.impl.DocumentSpiltNode;
-import com.maxkb4j.knowledge.dto.DocumentSimple;
-import com.maxkb4j.knowledge.dto.ParagraphSimple;
-import com.maxkb4j.knowledge.service.IDocumentSplitService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -22,26 +22,29 @@ import java.util.stream.Collectors;
 @Component
 @NodeHandlerType(NodeType.DOCUMENT_SPLIT)
 @RequiredArgsConstructor
-public class DocumentSpiltHandler implements INodeHandler {
+public class DocumentSpiltHandler extends AbsNodeHandler {
 
     private final IDocumentSplitService documentSpiltService;
 
     @SuppressWarnings("unchecked")
     @Override
-    public NodeResult execute(Workflow workflow, AbsNode node) throws Exception {
-        DocumentSpiltNode.NodeParams nodeParams = node.getNodeData().toJavaObject(DocumentSpiltNode.NodeParams.class);
-        List<String> fileIds = nodeParams.getDocumentList();
+    protected NodeResult doExecute(Workflow workflow, AbsNode node) throws Exception {
+        DocumentSpiltNode.NodeParams params = parseParams(node, DocumentSpiltNode.NodeParams.class);
+        List<String> fileIds = params.getDocumentList();
         Object res = workflow.getReferenceField(fileIds);
         List<DocumentSimple> documentList = res == null ? new ArrayList<>() : (List<DocumentSimple>) res;
+
         for (DocumentSimple document : documentList) {
-            if ("qa".equals(nodeParams.getSplitStrategy())) {
-                qaSplit(document, nodeParams.getChunkSize());
+            if ("qa".equals(params.getSplitStrategy())) {
+                qaSplit(document, params.getChunkSize());
             } else {
-                defaultSplit(document, nodeParams.getPatterns(), nodeParams.getChunkSize(), nodeParams.getWithFilter());
+                defaultSplit(document, params.getPatterns(), params.getChunkSize(), params.getWithFilter());
             }
         }
-        boolean paragraphTitleRelateProblem = Boolean.TRUE.equals(nodeParams.getParagraphTitleRelateProblem());
-        boolean documentNameRelateProblem = Boolean.TRUE.equals(nodeParams.getDocumentNameRelateProblem());
+
+        boolean paragraphTitleRelateProblem = Boolean.TRUE.equals(params.getParagraphTitleRelateProblem());
+        boolean documentNameRelateProblem = Boolean.TRUE.equals(params.getDocumentNameRelateProblem());
+
         if (paragraphTitleRelateProblem || documentNameRelateProblem) {
             documentList.forEach(document -> document.getParagraphs().forEach(paragraph -> {
                 List<String> problemList = paragraph.getProblemList();
@@ -57,9 +60,13 @@ public class DocumentSpiltHandler implements INodeHandler {
                 }
             }));
         }
-        node.getDetail().put("splitStrategy", nodeParams.getSplitStrategy());
-        node.getDetail().put("chunkSize", nodeParams.getChunkSize());
-        node.getDetail().put("documentList", documentList);
+
+        putDetails(node, Map.of(
+                "splitStrategy", params.getSplitStrategy(),
+                "chunkSize", params.getChunkSize(),
+                "documentList", documentList
+        ));
+
         return new NodeResult(Map.of("paragraphList", documentList));
     }
 
@@ -74,6 +81,7 @@ public class DocumentSpiltHandler implements INodeHandler {
         String[] lines = resContent.split("\n");
         boolean dataStarted = false;
         List<ParagraphSimple> paragraphs = new ArrayList<>();
+
         for (String line : lines) {
             line = line.trim();
             if (!line.startsWith("|") || !line.endsWith("|")) {
@@ -84,7 +92,7 @@ public class DocumentSpiltHandler implements INodeHandler {
                 if (line.contains("---")) {
                     dataStarted = true;
                 }
-                continue; // 无论是表头还是分隔行，都跳过
+                continue;
             }
             // 处理数据行
             String content = line.substring(1, line.length() - 1).trim();
@@ -103,10 +111,14 @@ public class DocumentSpiltHandler implements INodeHandler {
                             .map(String::trim)
                             .filter(q -> !q.isEmpty())
                             .collect(Collectors.toList());
-            ParagraphSimple paragraph = ParagraphSimple.builder().title(title).content(contentText).problemList(questions).build();
+
+            ParagraphSimple paragraph = ParagraphSimple.builder()
+                    .title(title)
+                    .content(contentText)
+                    .problemList(questions)
+                    .build();
             paragraphs.add(paragraph);
         }
         document.setParagraphs(paragraphs);
     }
-
 }

@@ -12,4 +12,5 @@ public class UserResourcePermissionVO extends UserResourcePermissionEntity {
     private String icon;
     private String folderId;
     private String permission;
+
 }

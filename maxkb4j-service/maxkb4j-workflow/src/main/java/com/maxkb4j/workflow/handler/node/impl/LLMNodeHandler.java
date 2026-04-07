@@ -16,11 +16,11 @@ import com.maxkb4j.tool.service.IToolProviderService;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.NodeType;
 import com.maxkb4j.workflow.enums.WorkflowMode;
-import com.maxkb4j.workflow.handler.node.INodeHandler;
+import com.maxkb4j.workflow.handler.node.AbsNodeHandler;
 import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.model.Workflow;
+import com.maxkb4j.workflow.model.params.AiChatNodeParams;
 import com.maxkb4j.workflow.node.AbsNode;
-import com.maxkb4j.workflow.node.impl.AiChatNode;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.Content;
 import dev.langchain4j.data.message.ImageContent;
@@ -44,36 +44,46 @@ import static org.springframework.web.util.UriUtils.extractFileExtension;
 @NodeHandlerType({NodeType.AI_CHAT, NodeType.IMAGE_UNDERSTAND})
 @Component
 @RequiredArgsConstructor
-public class LLMNodeHandler implements INodeHandler {
+public class LLMNodeHandler extends AbsNodeHandler {
 
     private final IModelProviderService modelFactory;
     private final IToolProviderService toolProviderService;
     private final IOssService fileService;
 
+
     @Override
-    public NodeResult execute(Workflow workflow, AbsNode node) throws Exception {
-        AiChatNode.NodeParams nodeParams = node.getNodeData().toJavaObject(AiChatNode.NodeParams.class);
-        String question = workflow.renderPrompt(nodeParams.getPrompt());
-        String systemPrompt = workflow.renderPrompt(nodeParams.getSystem());
+    protected NodeResult doExecute(Workflow workflow, AbsNode node) throws Exception {
+        AiChatNodeParams params = parseParams(node, AiChatNodeParams.class);
+        String question = workflow.renderPrompt(params.getPrompt());
+        String systemPrompt = workflow.renderPrompt(params.getSystem());
         List<ChatMessage> historyMessages = workflow.getHistoryMessages(
-                nodeParams.getDialogueNumber(),
-                nodeParams.getDialogueType(),
+                params.getDialogueNumber(),
+                params.getDialogueType(),
                 node.getRuntimeNodeId()
         );
-        List<String> toolIds = Optional.ofNullable(nodeParams.getToolIds()).orElse(List.of());
-        List<String> applicationIds = Optional.ofNullable(nodeParams.getApplicationIds()).orElse(List.of());
+        List<String> toolIds = Optional.ofNullable(params.getToolIds()).orElse(List.of());
+        List<String> applicationIds = Optional.ofNullable(params.getApplicationIds()).orElse(List.of());
+
         // 构建多模态内容（如图片）
-        List<Content> contents = buildImageContents(workflow, node, nodeParams.getImageList());
+        List<Content> contents = buildImageContents(workflow, node, params.getImageList());
+
         // 记录上下文用于调试/追踪
         recordNodeDetails(node, systemPrompt, historyMessages, question, contents);
+
         // 构建 AI 服务
-        Assistant assistant = buildAiServices(nodeParams.getModelId(), nodeParams.getModelParamsSetting(),workflow,systemPrompt, historyMessages, toolIds,applicationIds);
+        Assistant assistant = buildAiServices(params.getModelId(), params.getModelParamsSetting(),
+                workflow, systemPrompt, historyMessages, toolIds, applicationIds);
+
         TokenStream tokenStream = assistant.chatStream(question, contents);
-        return writeContextStream(nodeParams, tokenStream, workflow, node);
+
+        return writeContextStream(params, tokenStream, workflow, node);
     }
 
-    private Assistant buildAiServices(String modelId, JSONObject modelParamsSetting, Workflow workflow, String systemPrompt, List<ChatMessage> historyMessages, List<String> toolIds, List<String> applicationIds) {
+    private Assistant buildAiServices(String modelId, JSONObject modelParamsSetting, Workflow workflow,
+                                      String systemPrompt, List<ChatMessage> historyMessages,
+                                      List<String> toolIds, List<String> applicationIds) {
         AiServices<Assistant> builder = AssistantServices.builder(Assistant.class);
+
         if (StringUtils.isNotBlank(systemPrompt)) {
             builder.systemMessage(systemPrompt);
         }
@@ -83,15 +93,14 @@ public class LLMNodeHandler implements INodeHandler {
         if (CollectionUtils.isNotEmpty(toolIds) || CollectionUtils.isNotEmpty(applicationIds)) {
             try {
                 builder.toolProvider(toolProviderService.getSkillsProvider(modelId, toolIds));
-                builder.tools(toolProviderService.getToolMap(toolIds,applicationIds));
-            }catch (ApiException e){
-                workflow.getSink().tryEmitError(e);
+                builder.tools(toolProviderService.getToolMap(toolIds, applicationIds));
+            } catch (ApiException e) {
+                workflow.output().emit(null); // Error will be propagated differently
             }
         }
-        StreamingChatModel chatModel = modelFactory.buildStreamingChatModel(
-                modelId, modelParamsSetting
-        );
-        return  builder.streamingChatModel(chatModel).build();
+
+        StreamingChatModel chatModel = modelFactory.buildStreamingChatModel(modelId, modelParamsSetting);
+        return builder.streamingChatModel(chatModel).build();
     }
 
     private List<Content> buildImageContents(Workflow workflow, AbsNode node, List<String> imageFieldList) {
@@ -115,43 +124,53 @@ public class LLMNodeHandler implements INodeHandler {
                 ImageContent imageContent = ImageContent.from(base64Data, MimeTypeUtils.getMimeType(extension));
                 contents.add(imageContent);
             }
-            node.getDetail().put("imageList", imageFiles);
+            putDetail(node, "imageList", imageFiles);
         } catch (Exception e) {
             log.warn("Failed to load image contents for node: {}", node.getRuntimeNodeId(), e);
         }
         return contents;
     }
 
-
-
     private void recordNodeDetails(AbsNode node, String systemPrompt, List<ChatMessage> historyMessages,
                                    String question, List<Content> contents) {
-        node.getDetail().put("system", systemPrompt);
-        node.getDetail().put("history_message", MessageConverter.resetMessageList(historyMessages));
-        node.getDetail().put("question", question);
-        node.getDetail().put("hasImages", !contents.isEmpty());
+        putDetails(node, Map.of(
+                "system", systemPrompt,
+                "history_message", MessageConverter.resetMessageList(historyMessages),
+                "question", question,
+                "hasImages", !contents.isEmpty()
+        ));
     }
 
-    private NodeResult handleChatResponse(ChatResponse response, AbsNode node,String errorMessage) {
+    private NodeResult handleChatResponse(ChatResponse response, AbsNode node, String errorMessage) {
         String answer = Optional.ofNullable(response.aiMessage().text()).orElse("");
         String reasoning = Optional.ofNullable(response.aiMessage().thinking()).orElse("");
         TokenUsage tokenUsage = response.tokenUsage();
+
         if (tokenUsage != null) {
-            node.getDetail().put("messageTokens", tokenUsage.inputTokenCount());
-            node.getDetail().put("answerTokens", tokenUsage.outputTokenCount());
+            putDetails(node, Map.of(
+                    "messageTokens", tokenUsage.inputTokenCount(),
+                    "answerTokens", tokenUsage.outputTokenCount()
+            ));
         }
-        return new NodeResult(Map.of("answer", answer, "reasoningContent", reasoning,"exceptionMessage",errorMessage), true);
+
+        return new NodeResult(Map.of(
+                "answer", answer,
+                "reasoningContent", reasoning,
+                "exceptionMessage", errorMessage
+        ), true);
     }
 
-    private NodeResult writeContextStream(AiChatNode.NodeParams nodeParams, TokenStream tokenStream,
+    private NodeResult writeContextStream(AiChatNodeParams params, TokenStream tokenStream,
                                           Workflow workflow, AbsNode node) {
         AtomicReference<String> errorMessage = new AtomicReference<>("");
-        boolean isResult = Boolean.TRUE.equals(nodeParams.getIsResult());
-        boolean toolOutputEnable = Boolean.TRUE.equals(nodeParams.getToolOutputEnable());
-        boolean reasoningContentEnable = Optional.ofNullable(nodeParams.getModelSetting())
+        boolean isResult = Boolean.TRUE.equals(params.getIsResult());
+        boolean toolOutputEnable = Boolean.TRUE.equals(params.getToolOutputEnable());
+        boolean reasoningContentEnable = Optional.ofNullable(params.getModelSetting())
                 .map(setting -> setting.getBooleanValue("reasoningContentEnable"))
                 .orElse(false);
+
         CompletableFuture<ChatResponse> chatResponseFuture = new CompletableFuture<>();
+
         tokenStream.onPartialThinking(thinking -> {
                     if (isResult && reasoningContentEnable) {
                         emitMessage(workflow, node, "", thinking.text());
@@ -168,14 +187,17 @@ public class LLMNodeHandler implements INodeHandler {
                 }).onCompleteResponse(chatResponseFuture::complete)
                 .onError(error -> {
                     errorMessage.set(error.getMessage());
-                    chatResponseFuture.complete(ChatResponse.builder().build());
+                    chatResponseFuture.completeExceptionally(error);
                 })
                 .start();
+
         ChatResponse response = chatResponseFuture.join();
+
         if (isResult) {
-            node.setAnswerText(response.aiMessage().text());
+            setAnswer(node, response.aiMessage().text());
         }
-        return handleChatResponse(response, node,errorMessage.get());
+
+        return handleChatResponse(response, node, errorMessage.get());
     }
 
     private void emitMessage(Workflow workflow, AbsNode node, String content, String reasoning) {
@@ -188,7 +210,7 @@ public class LLMNodeHandler implements INodeHandler {
                     null,
                     false
             );
-            workflow.getSink().tryEmitNext(vo);
+            workflow.output().emit(vo);
         }
     }
 }
