@@ -44,10 +44,5 @@
             <artifactId>maxkb4j-application-api</artifactId>
             <version>${revision}</version>
         </dependency>
-        <!-- Groovy for tool node handling -->
-        <dependency>
-            <groupId>org.apache.groovy</groupId>
-            <artifactId>groovy</artifactId>
-        </dependency>
     </dependencies>
 </project>

@@ -40,7 +40,7 @@
         <openai-java.version>4.9.0</openai-java.version>
         <flexmark.version>0.64.8</flexmark.version>
         <tika.version>3.2.3</tika.version>
-        <groovy.version>4.0.22</groovy.version>
+        <groovy.version>4.0.20</groovy.version>
         <reflections.version>0.10.2</reflections.version>
         <caffeine.version>2.9.0</caffeine.version>
         <jieba.version>1.0.2</jieba.version>
@@ -98,12 +98,36 @@
                 <artifactId>hutool-http</artifactId>
                 <version>${hutool.version}</version>
             </dependency>
-            <!-- Groovy core module (lighter than groovy-all) -->
             <dependency>
                 <groupId>org.apache.groovy</groupId>
                 <artifactId>groovy</artifactId>
                 <version>${groovy.version}</version>
             </dependency>
+            <dependency>
+                <groupId>org.apache.groovy</groupId>
+                <artifactId>groovy-datetime</artifactId>
+                <version>${groovy.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.groovy</groupId>
+                <artifactId>groovy-json</artifactId>
+                <version>${groovy.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.groovy</groupId>
+                <artifactId>groovy-xml</artifactId>
+                <version>${groovy.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.groovy</groupId>
+                <artifactId>groovy-sql</artifactId>
+                <version>${groovy.version}</version>
+            </dependency>
+ <!--           <dependency>
+                <groupId>org.apache.groovy</groupId>
+                <artifactId>groovy-all</artifactId>
+                <version>${groovy.version}</version>
+            </dependency>-->
             <!-- Database related dependencies -->
             <dependency>
                 <groupId>com.baomidou</groupId>
