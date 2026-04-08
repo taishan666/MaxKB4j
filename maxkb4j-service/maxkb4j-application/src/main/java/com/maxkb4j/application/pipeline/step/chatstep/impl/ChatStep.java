@@ -59,6 +59,7 @@ public class ChatStep extends AbsChatStep {
         }
         int dialogueNumber = application.getDialogueNumber();
         List<ChatMessage> historyMessages = manage.getHistoryMessages(dialogueNumber);
+        context.put("messageList", resetMessageToJSON(historyMessages));
         Assistant assistant = aiServicesBuilder.chatMemory(AppChatMemory.withMessages(historyMessages)).streamingChatModel(chatModel).build();
         Boolean reasoningEnable = application.getModelSetting().getReasoningContentEnable();
         TokenStream tokenStream = assistant.chatStream(userPrompt);
@@ -69,6 +70,11 @@ public class ChatStep extends AbsChatStep {
                     }
                 })
                 .onPartialResponse(text -> manage.sink.tryEmitNext(super.toChatMessageVO(chatId, chatRecordId, text, "", false)))
+                .beforeToolExecution(toolExecute -> {
+                    if (Boolean.TRUE.equals(application.getToolOutputEnable())) {
+                        manage.sink.tryEmitNext(super.toChatMessageVO(chatId, chatRecordId, toolProvider.format(toolExecute), "", false));
+                    }
+                })
                 .onToolExecuted(toolExecute -> {
                     if (Boolean.TRUE.equals(application.getToolOutputEnable())) {
                         manage.sink.tryEmitNext(super.toChatMessageVO(chatId, chatRecordId, toolProvider.format(toolExecute), "", false));
@@ -76,7 +82,6 @@ public class ChatStep extends AbsChatStep {
                 })
                 .onCompleteResponse(response -> {
                     TokenUsage tokenUsage = response.tokenUsage();
-                    context.put("messageList", resetMessageToJSON(historyMessages));
                     context.put("messageTokens", tokenUsage.inputTokenCount());
                     context.put("answerTokens", tokenUsage.outputTokenCount());
                     futureChatResponse.complete(response);// 完成后释放线程
