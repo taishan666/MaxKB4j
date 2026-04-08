@@ -150,10 +150,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
         }
         UserVO user = BeanUtil.copy(userEntity, UserVO.class);
         user.setPermissions(stpInterface.getPermissionList(userId, null));
-        if (user.getRole().contains("ADMIN")) {
+        if (user.getRole().contains(RoleType.ADMIN)) {
             userEntity.getRole().add("WORKSPACE_MANAGE:/WORKSPACE/default");
         } else {
-            user.setRole(Set.of("USER:/WORKSPACE/default"));
+            userEntity.getRole().add("USER:/WORKSPACE/default");
         }
         List<Map<String, String>> workspaceList = new ArrayList<>();
         workspaceList.add(Map.of("id", "default", "name", "default"));
