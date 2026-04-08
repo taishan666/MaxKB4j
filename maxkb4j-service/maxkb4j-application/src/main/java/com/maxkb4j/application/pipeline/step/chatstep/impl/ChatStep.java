@@ -59,7 +59,6 @@ public class ChatStep extends AbsChatStep {
         }
         int dialogueNumber = application.getDialogueNumber();
         List<ChatMessage> historyMessages = manage.getHistoryMessages(dialogueNumber);
-        context.put("messageList", resetMessageToJSON(historyMessages));
         Assistant assistant = aiServicesBuilder.chatMemory(AppChatMemory.withMessages(historyMessages)).streamingChatModel(chatModel).build();
         Boolean reasoningEnable = application.getModelSetting().getReasoningContentEnable();
         TokenStream tokenStream = assistant.chatStream(userPrompt);
@@ -92,6 +91,7 @@ public class ChatStep extends AbsChatStep {
                 })
                 .start();
         ChatResponse response = futureChatResponse.join();
+        context.put("messageList", resetMessageToJSON(historyMessages));
         return response.aiMessage().text(); // 阻塞当前线程直到 futureChatResponse 完成
     }
 
@@ -123,7 +123,7 @@ public class ChatStep extends AbsChatStep {
 
     @Override
     public JSONObject getDetails() {
-        JSONObject details = new JSONObject();
+        JSONObject details = new JSONObject(true);
         details.put("step_type", "chat_step");
         details.put("messageList", context.get("messageList"));
         details.put("runTime", context.get("runTime"));

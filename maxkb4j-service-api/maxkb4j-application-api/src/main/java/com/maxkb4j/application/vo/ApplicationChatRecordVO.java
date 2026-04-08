@@ -15,4 +15,9 @@ public class ApplicationChatRecordVO extends ApplicationChatRecordEntity {
     private List<ParagraphDTO> paragraphList;
     private String paddingProblemText;
     private List<JSONObject> executionDetails;
+
+    public void setExecutionDetails(List<JSONObject> executionDetails) {
+        this.executionDetails = executionDetails;
+        super.setDetails(null);
+    }
 }

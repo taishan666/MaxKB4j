@@ -8,17 +8,17 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.maxkb4j.common.cache.ChatCache;
 import com.maxkb4j.application.dto.AddChatImproveDTO;
 import com.maxkb4j.application.dto.ChatImproveDTO;
-import com.maxkb4j.common.domain.dto.ChatInfo;
 import com.maxkb4j.application.entity.ApplicationChatEntity;
+import com.maxkb4j.application.entity.ApplicationChatRecordEntity;
 import com.maxkb4j.application.mapper.ApplicationChatMapper;
 import com.maxkb4j.application.mapper.ApplicationChatRecordMapper;
 import com.maxkb4j.application.vo.ApplicationChatRecordVO;
+import com.maxkb4j.common.cache.ChatCache;
+import com.maxkb4j.common.domain.dto.ChatInfo;
 import com.maxkb4j.common.domain.dto.ChatRecordDTO;
 import com.maxkb4j.common.domain.dto.ParagraphDTO;
-import com.maxkb4j.application.entity.ApplicationChatRecordEntity;
 import com.maxkb4j.common.util.BeanUtil;
 import com.maxkb4j.common.util.PageUtil;
 import com.maxkb4j.knowledge.entity.ParagraphEntity;
@@ -107,10 +107,8 @@ public class ApplicationChatRecordService extends ServiceImpl<ApplicationChatRec
                 chatRecordVO.setPaddingProblemText(problemPadding.getString("paddingProblemText"));
             }
             List<JSONObject> executionDetails = new ArrayList<>();
-            details.keySet().forEach(key -> executionDetails.add(details.getJSONObject(key)));
-            Collections.reverse(executionDetails);
-            chatRecordVO.setExecutionDetails(executionDetails);
-            for (JSONObject detail : executionDetails) {
+            for (String key : details.keySet()) {
+                JSONObject detail=details.getJSONObject(key);
                 if (SEARCH_KNOWLEDGE.getKey().equals(detail.getString("type"))) {
                     boolean showKnowledge = detail.getBooleanValue("showKnowledge");
                     if (showKnowledge) {
@@ -121,7 +119,10 @@ public class ApplicationChatRecordService extends ServiceImpl<ApplicationChatRec
                         }
                     }
                 }
+                executionDetails.add(detail);
             }
+            Collections.reverse(executionDetails);
+            chatRecordVO.setExecutionDetails(executionDetails);
         }
         return chatRecordVO;
     }
