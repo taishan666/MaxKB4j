@@ -13,7 +13,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
@@ -37,20 +37,31 @@ public class BaiLianASR implements STTModel {
     @Override
     public String speechToText(byte[] audioBytes, String suffix) {
         InputStream in = new ByteArrayInputStream(audioBytes);
+        Path tempFile = null;
         try {
-            Files.copy(in, Paths.get("asr_example.wav"), StandardCopyOption.REPLACE_EXISTING);
+            tempFile = Files.createTempFile("asr_example", ".wav");
+            ;
+            Files.copy(in, tempFile, StandardCopyOption.REPLACE_EXISTING);
+            Recognition recognizer = new Recognition();
+            String result = recognizer.call(param, new File("asr_example.wav"));
+            JSONObject json = JSONObject.parseObject(result);
+            List<String> texts = new ArrayList<>();
+            JSONArray sentences = json.getJSONArray("sentences");
+            for (int i = 0; i < sentences.size(); i++) {
+                JSONObject sentence = sentences.getJSONObject(i);
+                texts.add(sentence.getString("text"));
+            }
+            return String.join("", texts);
         } catch (IOException e) {
             throw new RuntimeException(e);
+        } finally {
+            if (tempFile != null) {
+                try {
+                    Files.deleteIfExists(tempFile);
+                } catch (IOException e) {
+                    // 删除失败可以忽略或记录日志
+                }
+            }
         }
-        Recognition recognizer = new Recognition();
-        String result = recognizer.call(param, new File("asr_example.wav"));
-        JSONObject json = JSONObject.parseObject(result);
-        List<String> texts = new ArrayList<>();
-        JSONArray sentences=json.getJSONArray("sentences");
-        for (int i = 0; i < sentences.size(); i++) {
-            JSONObject sentence = sentences.getJSONObject(i);
-            texts.add(sentence.getString("text"));
-        }
-        return String.join("", texts);
     }
 }
