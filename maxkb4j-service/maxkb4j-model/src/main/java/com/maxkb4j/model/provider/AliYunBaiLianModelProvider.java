@@ -33,6 +33,7 @@ public class AliYunBaiLianModelProvider extends AbsModelProvider {
             new ModelInfo("text-embedding-v3", "文本向量模型", ModelType.EMBEDDING, new TextEmbeddingV3Params()),
             new ModelInfo("paraformer-realtime-v2", "语音识别模型", ModelType.STT),
             new ModelInfo("fun-asr-realtime", "语音识别模型", ModelType.STT),
+           // new ModelInfo("qwen3-asr-flash", "语音识别模型", ModelType.STT),
             new ModelInfo("gummy-realtime-v1", "语音识别模型", ModelType.STT, new GummySTTParams()),
             new ModelInfo("cosyvoice-v1", "语音生成模型", ModelType.TTS, new CosyVoiceV1TTSParams()),
             new ModelInfo("cosyvoice-v2", "语音生成模型", ModelType.TTS, new CosyVoiceV2TTSParams()),
