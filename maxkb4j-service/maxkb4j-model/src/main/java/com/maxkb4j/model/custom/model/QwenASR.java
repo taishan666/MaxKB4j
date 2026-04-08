@@ -32,7 +32,7 @@ public class QwenASR implements STTModel {
         MultiModalConversation conv = new MultiModalConversation();
         MultiModalMessage userMessage = MultiModalMessage.builder()
                 .role(Role.USER.getValue())
-                .content(List.of(Collections.singletonMap("audio", "https://dashscope.oss-cn-beijing.aliyuncs.com/audios/welcome.mp3")))
+                .content(List.of(Collections.singletonMap("audio", "")))
                 .build();
 
         MultiModalMessage sysMessage = MultiModalMessage.builder().role(Role.SYSTEM.getValue()).build();
