@@ -117,11 +117,11 @@ public class ChatApiController {
         ResponseBodyEmitter emitter = new ResponseBodyEmitter();
         String secretKey = WebUtil.getTokenValue();
         ApplicationApiKeyEntity apiKey = apiKeyService.getBySecretKey(secretKey);
-        if (apiKey==null || !apiKey.getIsActive()){
+        if (apiKey == null || !apiKey.getIsActive()) {
             emitter.completeWithError(new ApiException("token不合法或被禁用"));
-        }else {
+        } else {
             // 异步处理（避免阻塞主线程）
-            chatApiService.mcpHandleAsync(apiKey,req,emitter);
+            chatApiService.mcpHandleAsync(apiKey, req, emitter);
         }
         return emitter;
     }
@@ -173,9 +173,9 @@ public class ChatApiController {
     @Hidden
     @PostMapping("/speech_to_text")
     public R<String> speechToText(MultipartFile file) throws IOException {
-        StpKit.USER.setTokenValue( WebUtil.getTokenValue());
+        StpKit.USER.setTokenValue(WebUtil.getTokenValue());
         String appId = (String) StpKit.USER.getExtra("applicationId");
-        return R.data(applicationService.speechToText(appId, file,false));
+        return R.data(applicationService.speechToText(appId, file, false));
     }
 
 
@@ -187,7 +187,7 @@ public class ChatApiController {
         headers.setContentType(MediaType.parseMediaType("audio/mp3"));
         StpKit.USER.setTokenValue(WebUtil.getTokenValue());
         String appId = (String) StpKit.USER.getExtra("applicationId");
-        return new ResponseEntity<>(applicationService.textToSpeech(appId, data,false), headers, HttpStatus.OK);
+        return new ResponseEntity<>(applicationService.textToSpeech(appId, data, false), headers, HttpStatus.OK);
     }
 
 
@@ -207,15 +207,13 @@ public class ChatApiController {
     @SaCheckPerm(PermissionEnum.APPLICATION_READ)
     @PostMapping("/{id}/chat/{chatId}/share_chat")
     public R<Map<String, String>> shareChat(@PathVariable String id, @PathVariable String chatId, @RequestBody ShareChatDTO dto) {
-        return R.success(chatService.shareChat(id,chatId, dto));
+        return R.success(chatService.shareChat(id, chatId, dto));
     }
 
-    @PostMapping("/share/{id}")
+    @GetMapping("/share/{id}")
     public R<ShareChatVO> shareChat(@PathVariable String id) {
         return R.success(chatService.shareChat(id));
     }
-
-
 
 
 }

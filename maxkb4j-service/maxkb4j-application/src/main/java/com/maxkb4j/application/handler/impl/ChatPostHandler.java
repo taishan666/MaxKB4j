@@ -49,10 +49,10 @@ public class ChatPostHandler implements PostResponseHandler {
         JSONObject details = chatResponse.getRunDetails();
         ChatRecordDTO chatRecord=chatParams.getChatRecord();
         ApplicationChatRecordEntity chatRecordEntity = new ApplicationChatRecordEntity();
+        chatRecordEntity.setId(chatRecordId);
+        chatRecordEntity.setChatId(chatId);
+        chatRecordEntity.setProblemText(problemText);
         if (chatRecord != null) {
-            chatRecordEntity.setId(chatRecordId);
-            chatRecordEntity.setChatId(chatId);
-            chatRecordEntity.setProblemText(chatRecord.getProblemText());
             chatRecordEntity.setAnswerText(answerText);
             chatRecordEntity.setAnswerTextList(answerTextList);
             chatRecordEntity.setIndex(chatRecord.getIndex());
@@ -61,12 +61,7 @@ public class ChatPostHandler implements PostResponseHandler {
             chatRecordEntity.setCost(messageTokens + answerTokens);
             chatRecordEntity.setRunTime(runTime + chatRecord.getRunTime());
             chatRecordEntity.setVoteStatus(chatRecord.getVoteStatus());
-            chatRecordEntity.setDetails(details);
-            chatRecordEntity.setImproveParagraphIdList(List.of());
         } else {
-            chatRecordEntity.setId(chatRecordId);
-            chatRecordEntity.setChatId(chatId);
-            chatRecordEntity.setProblemText(problemText);
             chatRecordEntity.setAnswerText(answerText);
             chatRecordEntity.setAnswerTextList(answerTextList);
             if (chatInfo!=null){
@@ -79,9 +74,9 @@ public class ChatPostHandler implements PostResponseHandler {
             chatRecordEntity.setRunTime(runTime);
             chatRecordEntity.setVoteStatus("-1");
             chatRecordEntity.setCost(messageTokens + answerTokens);
-            chatRecordEntity.setDetails(details);
-            chatRecordEntity.setImproveParagraphIdList(List.of());
         }
+        chatRecordEntity.setDetails(details);
+        chatRecordEntity.setImproveParagraphIdList(List.of());
         ChatRecordDTO chatRecordDTO=BeanUtil.copy(chatRecordEntity, ChatRecordDTO.class);
         if (chatInfo==null){
             chatInfo = new ChatInfo(chatId, chatParams.getAppId());
