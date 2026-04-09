@@ -29,4 +29,7 @@ public class ApplicationChatEntity extends BaseEntity {
     private Integer chatRecordCount;
     private Integer markSum;
     private Boolean isDeleted;
+    private String ipAddress;
+    @TableField(typeHandler = JSONBTypeHandler.class)
+    private JSONObject source;
 } 

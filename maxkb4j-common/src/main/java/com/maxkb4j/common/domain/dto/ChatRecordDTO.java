@@ -5,10 +5,12 @@ import com.alibaba.fastjson.JSONObject;
 import lombok.Data;
 
 import java.util.Date;
+import java.util.List;
 
 @Data
 public class ChatRecordDTO {
     private String id;
+    private String chatId;
     private String problemText;
     private String answerText;
     private JSONObject details;
@@ -18,6 +20,7 @@ public class ChatRecordDTO {
     private Integer messageTokens;
     private Integer answerTokens;
     private String voteStatus;
+    private List<String> improveParagraphIdList;
     private Date createTime;
 
 

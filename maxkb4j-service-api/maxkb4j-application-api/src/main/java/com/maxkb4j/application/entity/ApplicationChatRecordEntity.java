@@ -21,6 +21,8 @@ import java.util.List;
 @TableName(value = "application_chat_record",autoResultMap = true)
 public class ApplicationChatRecordEntity extends BaseEntity {
 	private String voteStatus;
+	private String voteReason;
+	private String voteOtherContent;
 	private String problemText;
 	private String answerText;
 	private Integer messageTokens;
@@ -35,6 +37,9 @@ public class ApplicationChatRecordEntity extends BaseEntity {
 	private String chatId;
 	@TableField(typeHandler = JSONBTypeHandler.class)
 	private JSONArray answerTextList;
+	private String ipAddress;
+	@TableField(typeHandler = JSONBTypeHandler.class)
+	private JSONObject source;
 
 
 }
