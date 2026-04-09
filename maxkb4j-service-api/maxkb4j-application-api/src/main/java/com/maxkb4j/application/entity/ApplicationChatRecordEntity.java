@@ -37,9 +37,5 @@ public class ApplicationChatRecordEntity extends BaseEntity {
 	private String chatId;
 	@TableField(typeHandler = JSONBTypeHandler.class)
 	private JSONArray answerTextList;
-	private String ipAddress;
-	@TableField(typeHandler = JSONBTypeHandler.class)
-	private JSONObject source;
-
 
 }

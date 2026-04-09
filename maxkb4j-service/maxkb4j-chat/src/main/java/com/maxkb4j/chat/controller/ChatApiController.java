@@ -99,6 +99,7 @@ public class ChatApiController {
         params.setChatId(chatId);
         params.setChatUserId(userId);
         params.setChatUserType(ChatUserType.ANONYMOUS_USER.name());
+        params.setIpAddress(WebUtil.getIP());
         params.setDebug(false);
         if (Boolean.TRUE.equals(params.getStream())) {
             // 异步执行业务逻辑

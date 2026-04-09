@@ -3,15 +3,16 @@ package com.maxkb4j.application.handler.impl;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.maxkb4j.common.cache.ChatCache;
-import com.maxkb4j.common.domain.dto.ChatInfo;
 import com.maxkb4j.application.entity.ApplicationChatEntity;
 import com.maxkb4j.application.entity.ApplicationChatRecordEntity;
 import com.maxkb4j.application.entity.ApplicationChatUserStatsEntity;
+import com.maxkb4j.application.enums.ChatSource;
 import com.maxkb4j.application.handler.PostResponseHandler;
 import com.maxkb4j.application.mapper.ApplicationChatMapper;
 import com.maxkb4j.application.mapper.ApplicationChatRecordMapper;
 import com.maxkb4j.application.service.ApplicationChatUserStatsService;
+import com.maxkb4j.common.cache.ChatCache;
+import com.maxkb4j.common.domain.dto.ChatInfo;
 import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.common.domain.dto.ChatRecordDTO;
 import com.maxkb4j.common.domain.dto.ChatResponse;
@@ -107,6 +108,8 @@ public class ChatPostHandler implements PostResponseHandler {
                 chatEntity.setTrampleNum(0);
                 chatEntity.setChatRecordCount(1);
                 chatEntity.setMarkSum(0);
+                chatEntity.setIpAddress(chatParams.getIpAddress());
+                chatEntity.setSource(new JSONObject(Map.of("type", ChatSource.ONLINE)));
                 chatMapper.insert(chatEntity);
             }else {
                 chatEntity.setChatRecordCount(chatInfo.getChatRecordList().size());

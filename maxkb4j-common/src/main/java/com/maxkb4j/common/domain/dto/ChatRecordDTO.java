@@ -20,6 +20,8 @@ public class ChatRecordDTO {
     private Integer messageTokens;
     private Integer answerTokens;
     private String voteStatus;
+    private String voteReason;
+    private String voteOtherContent;
     private List<String> improveParagraphIdList;
     private Date createTime;
 
