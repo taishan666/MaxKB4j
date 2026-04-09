@@ -27,6 +27,7 @@ import com.maxkb4j.knowledge.store.IDataStore;
 import com.maxkb4j.knowledge.vo.KnowledgeListVO;
 import com.maxkb4j.knowledge.vo.KnowledgeVO;
 import com.maxkb4j.system.constant.AuthTargetType;
+import com.maxkb4j.system.service.IResourceMappingService;
 import com.maxkb4j.user.service.IUserResourcePermissionService;
 import com.maxkb4j.user.service.IUserService;
 import com.maxkb4j.workflow.builder.NodeBuilder;
@@ -73,6 +74,7 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
     private final IWorkFlowActuator workFlowActuator;
     private final KnowledgeExportHandler knowledgeExportHandler;
     private final NodeBuilder nodeBuilder;
+    private final IResourceMappingService resourceMappingService;
 
 
     public IPage<KnowledgeVO> selectKnowledgePage(Page<KnowledgeVO> knowledgePage, KnowledgeQuery query) {
@@ -118,6 +120,7 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
         knowledgeActionService.lambdaQuery().eq(KnowledgeActionEntity::getKnowledgeId, id);
         userResourcePermissionService.remove(AuthTargetType.KNOWLEDGE, id);
         compositeStore.deleteByKnowledgeId(id);
+        resourceMappingService.deleteByKnowledgeId(id);
         return this.removeById(id);
     }
 
@@ -167,6 +170,7 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
             knowledge.setWorkFlow(new JSONObject());
         }
         this.save(knowledge);
+        resourceMappingService.ownerSave(knowledge.getName(),AuthTargetType.KNOWLEDGE,knowledge.getId(),knowledge.getEmbeddingModelId(), knowledge.getUserId());
         userResourcePermissionService.ownerSave(AuthTargetType.KNOWLEDGE, knowledge.getId(), knowledge.getUserId());
         return knowledge;
     }
@@ -331,5 +335,10 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
     @Override
     public List<KnowledgeEntity> listNameAndDescByIds(List<String> knowledgeIds) {
         return this.lambdaQuery().select(KnowledgeEntity::getId, KnowledgeEntity::getName, KnowledgeEntity::getDesc).in(KnowledgeEntity::getId, knowledgeIds).list();
+    }
+
+    public void changeResourceMapping(KnowledgeEntity datasetEntity) {
+        resourceMappingService.deleteByKnowledgeId(datasetEntity.getId());
+        resourceMappingService.ownerSave(datasetEntity.getName(),AuthTargetType.KNOWLEDGE,datasetEntity.getId(),datasetEntity.getEmbeddingModelId(), datasetEntity.getUserId());
     }
 }

@@ -92,6 +92,7 @@ public class KnowledgeController {
     public R<KnowledgeEntity> updatedKnowledge(@PathVariable("id") String id, @RequestBody KnowledgeEntity datasetEntity) {
         datasetEntity.setId(id);
         knowledgeService.updateById(datasetEntity);
+        knowledgeService.changeResourceMapping(datasetEntity);
         return R.success(datasetEntity);
     }
 
