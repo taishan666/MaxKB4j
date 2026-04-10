@@ -148,14 +148,10 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     /**
      * 批量保存资源映射关系
      */
-    private void saveResourceMappings(String appName, String appId, String userId,
-                                       List<String> applicationIds,
-                                       List<String> knowledgeIds,
-                                       List<String> toolIds,
-                                       String modelId) {
+    private void saveResourceMappings(String appName, String appId, String userId, List<String> applicationIds, List<String> knowledgeIds, List<String> toolIds, String modelId) {
         if (StringUtils.isNotBlank(modelId)) {
             resourceMappingService.deleteByKnowledgeId(ResourceType.MODEL, appId);
-            resourceMappingService.ownerSave(ResourceType.MODEL, appName, AuthTargetType.APPLICATION, appId, modelId, userId);
+            resourceMappingService.ownerSave(AuthTargetType.APPLICATION, appName, ResourceType.MODEL, appId, modelId, userId);
         }
         saveResourceMappingsByType(appName, appId, userId, ResourceType.APPLICATION, applicationIds);
         saveResourceMappingsByType(appName, appId, userId, ResourceType.KNOWLEDGE, knowledgeIds);
@@ -165,7 +161,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     private void saveResourceMappingsByType(String appName, String appId, String userId, String type, List<String> ids) {
         if (!CollectionUtils.isEmpty(ids)) {
             resourceMappingService.deleteByKnowledgeId(type, appId);
-            ids.forEach(id -> resourceMappingService.ownerSave(ResourceType.APPLICATION, appName, type, appId, id, userId));
+            ids.forEach(id -> resourceMappingService.ownerSave(type, appName, ResourceType.APPLICATION, appId, id, userId));
         }
     }
 
@@ -183,9 +179,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
                 app.setDesc(application.getDesc());
                 app.setIcon(StringUtils.isNotBlank(application.getIcon()) ? application.getIcon() : app.getIcon());
                 saveMk(maxKb4j);
-                saveResourceMappings(application.getName(), application.getId(), application.getUserId(),
-                        application.getApplicationIds(), application.getKnowledgeIds(), application.getToolIds(),
-                        application.getModelId());
+                saveResourceMappings(application.getName(), application.getId(), application.getUserId(), application.getApplicationIds(), application.getKnowledgeIds(), application.getToolIds(), application.getModelId());
                 return app;
             }
         }
@@ -199,9 +193,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         application.setToolIds(List.of());
         application.setKnowledgeIds(List.of());
         application.setApplicationIds(List.of());
-        saveResourceMappings(application.getName(), application.getId(), application.getUserId(),
-                application.getApplicationIds(), application.getKnowledgeIds(), application.getToolIds(),
-                application.getModelId());
+        saveResourceMappings(application.getName(), application.getId(), application.getUserId(), application.getApplicationIds(), application.getKnowledgeIds(), application.getToolIds(), application.getModelId());
         this.saveApp(application);
         return application;
     }
@@ -320,21 +312,13 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         if (workFlow != null && workFlow.containsKey("nodes")) {
             JSONArray nodes = workFlow.getJSONArray("nodes");
             if (nodes != null) {
-                JSONObject baseNode = nodes.stream()
-                        .filter(node -> node instanceof Map)
-                        .map(node -> (Map<String, Object>) node)
-                        .filter(node -> BASE.getKey().equals(node.get("type")))
-                        .findFirst()
-                        .map(JSONObject::new)
-                        .orElse(null);
+                JSONObject baseNode = nodes.stream().filter(node -> node instanceof Map).map(node -> (Map<String, Object>) node).filter(node -> BASE.getKey().equals(node.get("type"))).findFirst().map(JSONObject::new).orElse(null);
                 if (baseNode != null) {
                     updateAppFromBaseNode(app, baseNode);
                 }
             }
         } else {
-            saveResourceMappings(app.getName(), app.getId(), app.getUserId(),
-                    app.getApplicationIds(), app.getKnowledgeIds(), app.getToolIds(),
-                    app.getModelId());
+            saveResourceMappings(app.getName(), app.getId(), app.getUserId(), app.getApplicationIds(), app.getKnowledgeIds(), app.getToolIds(), app.getModelId());
         }
         return this.updateById(app);
     }
@@ -367,15 +351,9 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         app.setSttAutoSend(nodeData.getBooleanValue("sttAutoSend"));
         // 保存资源映射
         String modelId = nodeData.getString("modelId");
-        List<String> apps = Optional.ofNullable(nodeData.getJSONArray("applicationIds"))
-                .map(arr -> arr.toJavaList(String.class))
-                .orElse(Collections.emptyList());
-        List<String> knowledgeIds = Optional.ofNullable(nodeData.getJSONArray("knowledgeIds"))
-                .map(arr -> arr.toJavaList(String.class))
-                .orElse(Collections.emptyList());
-        List<String> tools = Optional.ofNullable(nodeData.getJSONArray("toolIds"))
-                .map(arr -> arr.toJavaList(String.class))
-                .orElse(Collections.emptyList());
+        List<String> apps = Optional.ofNullable(nodeData.getJSONArray("applicationIds")).map(arr -> arr.toJavaList(String.class)).orElse(Collections.emptyList());
+        List<String> knowledgeIds = Optional.ofNullable(nodeData.getJSONArray("knowledgeIds")).map(arr -> arr.toJavaList(String.class)).orElse(Collections.emptyList());
+        List<String> tools = Optional.ofNullable(nodeData.getJSONArray("toolIds")).map(arr -> arr.toJavaList(String.class)).orElse(Collections.emptyList());
         saveResourceMappings(app.getName(), app.getId(), app.getUserId(), apps, knowledgeIds, tools, modelId);
     }
 
@@ -470,25 +448,20 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     public Flux<Map<String, String>> promptGenerate(String appId, String modelId, PromptGenerateDTO dto) {
         ApplicationEntity app = this.getById(appId);
         StreamingChatModel chatModel = modelFactory.buildStreamingChatModel(modelId, null);
-        List<ChatMessage> messages = dto.getMessages().stream()
-                .map(message -> {
-                    if ("user".equals(message.getRole())) {
-                        return UserMessage.from(message.getContent());
-                    } else if ("ai".equals(message.getRole())) {
-                        return AiMessage.from(message.getContent());
-                    }
-                    return null;
-                })
-                .filter(Objects::nonNull)
-                .toList();
+        List<ChatMessage> messages = dto.getMessages().stream().map(message -> {
+            if ("user".equals(message.getRole())) {
+                return UserMessage.from(message.getContent());
+            } else if ("ai".equals(message.getRole())) {
+                return AiMessage.from(message.getContent());
+            }
+            return null;
+        }).filter(Objects::nonNull).toList();
         if (messages.isEmpty()) {
             return Flux.error(new IllegalArgumentException("No user message found to generate prompt"));
         }
         String prompt = dto.getPrompt();
         String detail = StringUtils.isBlank(app.getDesc()) ? app.getName() : app.getDesc();
-        prompt = prompt.replace("{application_name}", app.getName())
-                       .replace("{detail}", detail)
-                       .replace("{userInput}", dto.getMessages().get(messages.size() - 1).getContent());
+        prompt = prompt.replace("{application_name}", app.getName()).replace("{detail}", detail).replace("{userInput}", dto.getMessages().get(messages.size() - 1).getContent());
         List<ChatMessage> finalMessages = new ArrayList<>(messages);
         finalMessages.set(finalMessages.size() - 1, UserMessage.from(prompt));
         Sinks.Many<Map<String, String>> sink = Sinks.many().unicast().onBackpressureBuffer();

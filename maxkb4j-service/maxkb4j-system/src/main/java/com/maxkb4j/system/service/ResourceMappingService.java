@@ -42,16 +42,16 @@ public class ResourceMappingService extends ServiceImpl<ResourceMappingMapper, R
     private final KnowledgeMapper knowledgeMapper;
     private final ToolMapper toolMapper;
 
-    public IPage<ResourceUseVO> selectUserPage(String sourceType, String resourceId, int current, int size, String resourceName, String userName, String[] targetType) {
+    public IPage<ResourceUseVO> selectUserPage(String targetType, String resourceId, int current, int size, String resourceName, String userName, String[] sourceType) {
         Page<ResourceMappingEntity> resourcePage = new Page<>(current, size);
         LambdaQueryWrapper<ResourceMappingEntity> wrapper = Wrappers.lambdaQuery();
-        wrapper.eq(ResourceMappingEntity::getSourceType, sourceType);
+        wrapper.eq(ResourceMappingEntity::getTargetType, targetType);
         wrapper.eq(ResourceMappingEntity::getTargetId, resourceId);
         if (StringUtils.isNotBlank(resourceName)) {
             wrapper.like(ResourceMappingEntity::getResourceName, resourceName);
         }
-        if (targetType != null && targetType.length > 0) {
-            wrapper.in(ResourceMappingEntity::getTargetType, Arrays.asList(targetType));
+        if (sourceType != null && sourceType.length > 0) {
+            wrapper.in(ResourceMappingEntity::getSourceType, Arrays.asList(sourceType));
         }
         // 提前获取用户ID列表，用于后续优化
         List<String> userIds;
@@ -94,7 +94,7 @@ public class ResourceMappingService extends ServiceImpl<ResourceMappingMapper, R
                 vo.setName((String) resourceMap.get("name"));
                 vo.setDesc((String) resourceMap.get("desc"));
                 vo.setIcon((String) resourceMap.get("icon"));
-                vo.setType((String) resourceMap.getOrDefault("type", resourceMap.get("toolType")));
+                vo.setType(String.valueOf(resourceMap.getOrDefault("type", resourceMap.get("toolType"))));
             }
             vo.setUsername(nicknameMap.get(resource.getUserId()));
             return vo;
