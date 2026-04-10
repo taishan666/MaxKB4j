@@ -42,16 +42,16 @@ public class ResourceMappingService extends ServiceImpl<ResourceMappingMapper, R
     private final KnowledgeMapper knowledgeMapper;
     private final ToolMapper toolMapper;
 
-    public IPage<ResourceUseVO> selectUserPage(String resourceType, String resourceId, int current, int size, String resourceName, String userName, String[] sourceType) {
+    public IPage<ResourceUseVO> selectUserPage(String sourceType, String resourceId, int current, int size, String resourceName, String userName, String[] targetType) {
         Page<ResourceMappingEntity> resourcePage = new Page<>(current, size);
         LambdaQueryWrapper<ResourceMappingEntity> wrapper = Wrappers.lambdaQuery();
-        wrapper.eq(ResourceMappingEntity::getTargetType, resourceType);
+        wrapper.eq(ResourceMappingEntity::getSourceType, sourceType);
         wrapper.eq(ResourceMappingEntity::getTargetId, resourceId);
         if (StringUtils.isNotBlank(resourceName)) {
             wrapper.like(ResourceMappingEntity::getResourceName, resourceName);
         }
-        if (sourceType != null && sourceType.length > 0) {
-            wrapper.in(ResourceMappingEntity::getSourceType, Arrays.asList(sourceType));
+        if (targetType != null && targetType.length > 0) {
+            wrapper.in(ResourceMappingEntity::getTargetType, Arrays.asList(targetType));
         }
         // 提前获取用户ID列表，用于后续优化
         List<String> userIds;
