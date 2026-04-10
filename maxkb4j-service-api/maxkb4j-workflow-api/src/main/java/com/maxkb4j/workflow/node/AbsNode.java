@@ -85,7 +85,7 @@ public abstract class AbsNode {
             String reasoningContent="";
             Object value=context.get("reasoningContent");
             if (value!=null){
-                reasoningContent=value.toString();
+                reasoningContent=String.valueOf(value);
             }
             return List.of(Answer.builder().content(answerText).reasoningContent(reasoningContent).chatRecordId(chatRecordId).runtimeNodeId(runtimeNodeId).realNodeId(runtimeNodeId).viewType(viewType).build());
         }

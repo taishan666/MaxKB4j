@@ -65,6 +65,7 @@ public class ChatStep extends AbsChatStep {
         Boolean reasoningEnable = application.getModelSetting().getReasoningContentEnable();
         TokenStream tokenStream = assistant.chatStream(userPrompt);
         CompletableFuture<ChatResponse> futureChatResponse = new CompletableFuture<>();
+        // 完成后释放线程
         tokenStream.onPartialThinking(thinking -> {
                     if (Boolean.TRUE.equals(reasoningEnable)) {
                         manage.sink.tryEmitNext(super.toChatMessageVO(chatId, chatRecordId, "", thinking.text(), false));
@@ -86,12 +87,7 @@ public class ChatStep extends AbsChatStep {
                         answerTexts.add(toolText);
                     }
                 })
-                .onCompleteResponse(response -> {
-                    TokenUsage tokenUsage = response.tokenUsage();
-                    context.put("messageTokens", tokenUsage.inputTokenCount());
-                    context.put("answerTokens", tokenUsage.outputTokenCount());
-                    futureChatResponse.complete(response);// 完成后释放线程
-                })
+                .onCompleteResponse(futureChatResponse::complete)
                 .onError(error -> {
                     log.error("执行错误", error);
                     futureChatResponse.completeExceptionally(error); // 完成后释放线程
@@ -100,6 +96,11 @@ public class ChatStep extends AbsChatStep {
         ChatResponse response = futureChatResponse.join();
         context.put("messageList", resetMessageToJSON(historyMessages));
         context.put("reasoningContent", response.aiMessage().thinking());
+        TokenUsage tokenUsage = response.tokenUsage();
+        if (tokenUsage != null) {
+            context.put("messageTokens", tokenUsage.inputTokenCount());
+            context.put("answerTokens", tokenUsage.outputTokenCount());
+        }
         return String.join("", answerTexts);
     }
 

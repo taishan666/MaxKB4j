@@ -98,7 +98,6 @@ public class LLMNodeHandler extends AbsNodeHandler {
                 workflow.output().emit(null); // Error will be propagated differently
             }
         }
-
         StreamingChatModel chatModel = modelFactory.buildStreamingChatModel(modelId, modelParamsSetting);
         return builder.streamingChatModel(chatModel).build();
     }
@@ -141,18 +140,15 @@ public class LLMNodeHandler extends AbsNodeHandler {
         ));
     }
 
-    private NodeResult handleChatResponse(ChatResponse response, AbsNode node, String errorMessage) {
-        String answer = Optional.ofNullable(response.aiMessage().text()).orElse("");
+    private NodeResult handleChatResponse(ChatResponse response,String answer, AbsNode node, String errorMessage) {
         String reasoning = Optional.ofNullable(response.aiMessage().thinking()).orElse("");
         TokenUsage tokenUsage = response.tokenUsage();
-
         if (tokenUsage != null) {
             putDetails(node, Map.of(
                     "messageTokens", tokenUsage.inputTokenCount(),
                     "answerTokens", tokenUsage.outputTokenCount()
             ));
         }
-
         return new NodeResult(Map.of(
                 "answer", answer,
                 "reasoningContent", reasoning,
@@ -162,6 +158,7 @@ public class LLMNodeHandler extends AbsNodeHandler {
 
     private NodeResult writeContextStream(AiChatNodeParams params, TokenStream tokenStream,
                                           Workflow workflow, AbsNode node) {
+        List<String> answerTexts = new ArrayList<>();
         AtomicReference<String> errorMessage = new AtomicReference<>("");
         boolean isResult = Boolean.TRUE.equals(params.getIsResult());
         boolean toolOutputEnable = Boolean.TRUE.equals(params.getToolOutputEnable());
@@ -170,19 +167,25 @@ public class LLMNodeHandler extends AbsNodeHandler {
                 .orElse(false);
 
         CompletableFuture<ChatResponse> chatResponseFuture = new CompletableFuture<>();
-
         tokenStream.onPartialThinking(thinking -> {
                     if (isResult && reasoningContentEnable) {
                         emitMessage(workflow, node, "", thinking.text());
+                    }
+                }).beforeToolExecution(toolExecute -> {
+                    if (isResult && toolOutputEnable) {
+                        String toolMessage = toolProviderService.format(toolExecute);
+                        emitMessage(workflow, node, toolMessage, "");
                     }
                 }).onToolExecuted(toolExecute -> {
                     if (isResult && toolOutputEnable) {
                         String toolMessage = toolProviderService.format(toolExecute);
                         emitMessage(workflow, node, toolMessage, "");
+                        answerTexts.add(toolMessage);
                     }
                 }).onPartialResponse(content -> {
                     if (isResult) {
                         emitMessage(workflow, node, content, "");
+                        answerTexts.add(content);
                     }
                 }).onCompleteResponse(chatResponseFuture::complete)
                 .onError(error -> {
@@ -190,14 +193,12 @@ public class LLMNodeHandler extends AbsNodeHandler {
                     chatResponseFuture.completeExceptionally(error);
                 })
                 .start();
-
         ChatResponse response = chatResponseFuture.join();
-
+        String answer = String.join("", answerTexts);
         if (isResult) {
-            setAnswer(node, response.aiMessage().text());
+            setAnswer(node, answer);
         }
-
-        return handleChatResponse(response, node, errorMessage.get());
+        return handleChatResponse(response, answer,node, errorMessage.get());
     }
 
     private void emitMessage(Workflow workflow, AbsNode node, String content, String reasoning) {
