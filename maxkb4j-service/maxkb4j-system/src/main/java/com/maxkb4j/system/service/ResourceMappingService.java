@@ -24,6 +24,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -80,43 +81,57 @@ public class ResourceMappingService extends ServiceImpl<ResourceMappingMapper, R
                 .toList();
         Map<String, String> nicknameMap = userMapper.selectByIds(allUserIds).stream()
                 .collect(Collectors.toMap(UserEntity::getId, UserEntity::getNickname));
-        List<String> ids = resourcePage.getRecords().stream()
+
+        List<String> sourceIds = resourcePage.getRecords().stream()
                 .map(ResourceMappingEntity::getSourceId)
                 .distinct()
                 .toList();
-        Map<String,Map<String, Object>> resourceMaps = new HashMap<>();
-        List<ApplicationEntity> appList =applicationMapper.selectList(Wrappers.<ApplicationEntity>lambdaQuery()
-                .select(ApplicationEntity::getId, ApplicationEntity::getName, ApplicationEntity::getDesc, ApplicationEntity::getIcon, ApplicationEntity::getType)
-                .in(ApplicationEntity::getId,ids));
-        for (ApplicationEntity app : appList) {
-            resourceMaps.put(app.getId(), BeanUtil.toMap(app));
-        }
-        List<KnowledgeEntity> knowledgeList =knowledgeMapper.selectList(Wrappers.<KnowledgeEntity>lambdaQuery()
-                .select(KnowledgeEntity::getId, KnowledgeEntity::getName, KnowledgeEntity::getDesc, KnowledgeEntity::getType)
-                .in(KnowledgeEntity::getId,ids));
-        for (KnowledgeEntity Knowledge : knowledgeList) {
-            resourceMaps.put(Knowledge.getId(), BeanUtil.toMap(Knowledge));
-        }
-        List<ToolEntity> toolList =toolMapper.selectList(Wrappers.<ToolEntity>lambdaQuery()
-                .select(ToolEntity::getId, ToolEntity::getName, ToolEntity::getDesc, ToolEntity::getIcon, ToolEntity::getToolType)
-                .in(ToolEntity::getId,ids));
-        for (ToolEntity tool : toolList) {
-            resourceMaps.put(tool.getId(), BeanUtil.toMap(tool));
-        }
+
+        Map<String, Map<String, Object>> resourceMaps = buildResourceMaps(sourceIds);
+
         return PageUtil.copy(resourcePage, resource -> {
             ResourceUseVO vo = BeanUtil.copy(resource, ResourceUseVO.class);
-            String sourceId = resource.getSourceId();
-            Map<String, Object> resourceMap = resourceMaps.get(sourceId);
+            Map<String, Object> resourceMap = resourceMaps.get(resource.getSourceId());
             if (resourceMap != null) {
                 vo.setName((String) resourceMap.get("name"));
                 vo.setDesc((String) resourceMap.get("desc"));
                 vo.setIcon((String) resourceMap.get("icon"));
-                vo.setType((String) resourceMap.getOrDefault("type",resourceMap.get("toolType")));
+                vo.setType((String) resourceMap.getOrDefault("type", resourceMap.get("toolType")));
             }
             vo.setUsername(nicknameMap.get(resource.getUserId()));
             return vo;
         });
     }
 
+    /**
+     * 批量查询应用、知识库、工具资源并构建资源映射Map
+     */
+    private Map<String, Map<String, Object>> buildResourceMaps(List<String> sourceIds) {
+        if (CollectionUtils.isEmpty(sourceIds)) {
+            return Collections.emptyMap();
+        }
+
+        Map<String, Map<String, Object>> resourceMaps = new HashMap<>(sourceIds.size() * 2);
+
+        applicationMapper.selectList(Wrappers.<ApplicationEntity>lambdaQuery()
+                        .select(ApplicationEntity::getId, ApplicationEntity::getName,
+                                ApplicationEntity::getDesc, ApplicationEntity::getIcon, ApplicationEntity::getType)
+                        .in(ApplicationEntity::getId, sourceIds))
+                .forEach(app -> resourceMaps.put(app.getId(), BeanUtil.toMap(app)));
+
+        knowledgeMapper.selectList(Wrappers.<KnowledgeEntity>lambdaQuery()
+                        .select(KnowledgeEntity::getId, KnowledgeEntity::getName,
+                                KnowledgeEntity::getDesc, KnowledgeEntity::getType)
+                        .in(KnowledgeEntity::getId, sourceIds))
+                .forEach(knowledge -> resourceMaps.put(knowledge.getId(), BeanUtil.toMap(knowledge)));
+
+        toolMapper.selectList(Wrappers.<ToolEntity>lambdaQuery()
+                        .select(ToolEntity::getId, ToolEntity::getName,
+                                ToolEntity::getDesc, ToolEntity::getIcon, ToolEntity::getToolType)
+                        .in(ToolEntity::getId, sourceIds))
+                .forEach(tool -> resourceMaps.put(tool.getId(), BeanUtil.toMap(tool)));
+
+        return resourceMaps;
+    }
 
 }
