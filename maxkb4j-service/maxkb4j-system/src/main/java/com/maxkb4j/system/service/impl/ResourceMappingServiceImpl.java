@@ -49,12 +49,13 @@ public class ResourceMappingServiceImpl extends ServiceImpl<ResourceMappingMappe
     @Override
     public boolean ownerSave(String resourceName, String sourceType, String sourceId, String targetId, String userId) {
         ResourceMappingEntity entity = new ResourceMappingEntity();
+        entity.setId(null);
         entity.setResourceName(resourceName);
         entity.setTargetId(targetId);
         entity.setSourceType(sourceType);
         entity.setSourceId(sourceId);
         entity.setTargetType(ResourceType.MODEL);
-        entity.setUserId(userId);
+        entity.setUserId(userId != null ? userId : StpKit.ADMIN.getLoginIdAsString());
         return this.save(entity);
     }
 
