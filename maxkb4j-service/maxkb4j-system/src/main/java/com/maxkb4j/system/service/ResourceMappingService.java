@@ -72,7 +72,8 @@ public class ResourceMappingService extends ServiceImpl<ResourceMappingMapper, R
                 .map(SourceResource::getUserId)
                 .distinct()
                 .toList();
-        Map<String, String> nicknameMap = userMapper.selectByIds(allUserIds).stream()
+        Map<String, String> nicknameMap = userMapper.selectList(Wrappers.<UserEntity>lambdaQuery().select(UserEntity::getId, UserEntity::getNickname)
+                        .in(UserEntity::getId, allUserIds)).stream()
                 .collect(Collectors.toMap(UserEntity::getId, UserEntity::getNickname));
         Map<String, SourceResource> resourceMaps = filterSources.stream().collect(Collectors.toMap(SourceResource::getId, e -> e));
         return PageUtil.copy(resourcePage, resource -> {
