@@ -24,9 +24,8 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -43,7 +42,7 @@ public class ResourceMappingService extends ServiceImpl<ResourceMappingMapper, R
 
 
 
-    public IPage<ResourceUseVO> selectUserPage(String resourceType,String resourceId, int current, int size, String resourceName, String userName, String[] sourceType) {
+    public IPage<ResourceUseVO> selectUserPage(String resourceType, String resourceId, int current, int size, String resourceName, String userName, String[] sourceType) {
         Page<ResourceMappingEntity> resourcePage = new Page<>(current, size);
         LambdaQueryWrapper<ResourceMappingEntity> wrapper = Wrappers.lambdaQuery();
         wrapper.eq(ResourceMappingEntity::getTargetType, resourceType);
@@ -51,42 +50,110 @@ public class ResourceMappingService extends ServiceImpl<ResourceMappingMapper, R
         if (StringUtils.isNotBlank(resourceName)) {
             wrapper.like(ResourceMappingEntity::getResourceName, resourceName);
         }
-        if (sourceType!=null && sourceType.length > 0) {
+        if (sourceType != null && sourceType.length > 0) {
             wrapper.in(ResourceMappingEntity::getSourceType, Arrays.asList(sourceType));
         }
+
+        // 提前获取用户ID列表，用于后续优化
+        List<String> userIds;
         if (StringUtils.isNotBlank(userName)) {
             LambdaQueryWrapper<UserEntity> userWrapper = Wrappers.lambdaQuery();
             userWrapper.select(UserEntity::getId);
             userWrapper.like(UserEntity::getNickname, userName);
-            List<String> userIds = userMapper.selectList(userWrapper).stream().map(UserEntity::getId).toList();
-            if (CollectionUtils.isNotEmpty(userIds)){
-                wrapper.in(ResourceMappingEntity::getUserId, userIds);
-            }else {
-                wrapper.last(" limit 0");
+            userIds = userMapper.selectList(userWrapper).stream().map(UserEntity::getId).toList();
+            if (CollectionUtils.isEmpty(userIds)) {
+                return new Page<>(current, size);
             }
+            wrapper.in(ResourceMappingEntity::getUserId, userIds);
         }
         wrapper.orderByDesc(ResourceMappingEntity::getCreateTime);
-        Map<String, String> nicknameMap = userMapper.selectList(new LambdaQueryWrapper<>()).stream().collect(Collectors.toMap(UserEntity::getId, UserEntity::getNickname));
+
         resourcePage = this.page(resourcePage, wrapper);
+        if (CollectionUtils.isEmpty(resourcePage.getRecords())) {
+            return new Page<>(current, size);
+        }
+
+        // 批量查询用户昵称（仅查询涉及的用户）
+        List<String> allUserIds = resourcePage.getRecords().stream()
+                .map(ResourceMappingEntity::getUserId)
+                .distinct()
+                .toList();
+        Map<String, String> nicknameMap = userMapper.selectByIds(allUserIds).stream()
+                .collect(Collectors.toMap(UserEntity::getId, UserEntity::getNickname));
+        switch (resourceType) {
+            case ResourceType.APPLICATION -> {
+                Map<String, ApplicationEntity> appMap = batchQueryResources(
+                        resourcePage.getRecords(), ResourceType.APPLICATION,
+                        ApplicationEntity::getId, applicationMapper::selectByIds);
+                return PageUtil.copy(resourcePage, resource -> {
+                    ResourceUseVO vo = BeanUtil.copy(resource, ResourceUseVO.class);
+                    String sourceId = resource.getSourceId();
+                    ApplicationEntity app = appMap.get(sourceId);
+                    if (app != null) {
+                        vo.setName(app.getName());
+                        vo.setDesc(app.getDesc());
+                    }
+                    vo.setUsername(nicknameMap.get(resource.getUserId()));
+                    return vo;
+                });
+            }
+            case ResourceType.KNOWLEDGE -> {
+                Map<String, KnowledgeEntity> knowledgeMap = batchQueryResources(
+                        resourcePage.getRecords(), ResourceType.KNOWLEDGE,
+                        KnowledgeEntity::getId, knowledgeMapper::selectByIds);
+                return PageUtil.copy(resourcePage, resource -> {
+                    ResourceUseVO vo = BeanUtil.copy(resource, ResourceUseVO.class);
+                    String sourceId = resource.getSourceId();
+                    KnowledgeEntity knowledge = knowledgeMap.get(sourceId);
+                    if (knowledge != null) {
+                        vo.setName(knowledge.getName());
+                        vo.setDesc(knowledge.getDesc());
+                    }
+                    vo.setUsername(nicknameMap.get(resource.getUserId()));
+                    return vo;
+                });
+            }
+            case ResourceType.TOOL -> {
+                Map<String, ToolEntity> toolMap = batchQueryResources(
+                        resourcePage.getRecords(), ResourceType.TOOL,
+                        ToolEntity::getId, toolMapper::selectByIds);
+                return PageUtil.copy(resourcePage, resource -> {
+                    ResourceUseVO vo = BeanUtil.copy(resource, ResourceUseVO.class);
+                    String sourceId = resource.getSourceId();
+                    ToolEntity tool = toolMap.get(sourceId);
+                    if (tool != null) {
+                        vo.setName(tool.getName());
+                        vo.setDesc(tool.getDesc());
+                    }
+                    vo.setUsername(nicknameMap.get(resource.getUserId()));
+                    return vo;
+                });
+            }
+        }
         return PageUtil.copy(resourcePage, resource -> {
             ResourceUseVO vo = BeanUtil.copy(resource, ResourceUseVO.class);
-            if (ResourceType.APPLICATION.equals(resource.getSourceType())) {
-                ApplicationEntity application = applicationMapper.selectById(resource.getSourceId());
-                if (application != null) {
-                    vo.setName(application.getName());
-                    vo.setDesc(application.getDesc());
-                }
-            } else if (ResourceType.KNOWLEDGE.equals(resource.getSourceType())) {
-                KnowledgeEntity knowledge = knowledgeMapper.selectById(resource.getSourceId());
-                vo.setName(knowledge.getName());
-                vo.setDesc(knowledge.getDesc());
-            } else if (ResourceType.TOOL.equals(resource.getSourceType())) {
-                ToolEntity tool = toolMapper.selectById(resource.getSourceId());
-                vo.setName(tool.getName());
-                vo.setDesc(tool.getDesc());
-            }
             vo.setUsername(nicknameMap.get(resource.getUserId()));
             return vo;
         });
+    }
+
+    /**
+     * 批量查询资源，解决 N+1 问题
+     */
+    private <T> Map<String, T> batchQueryResources(
+            List<ResourceMappingEntity> resources,
+            String sourceType,
+            Function<T, String> idExtractor,
+            Function<Collection<String>, List<T>> batchQuery) {
+        List<String> ids = resources.stream()
+                .filter(r -> sourceType.equals(r.getSourceType()))
+                .map(ResourceMappingEntity::getSourceId)
+                .distinct()
+                .toList();
+        if (CollectionUtils.isEmpty(ids)) {
+            return Map.of();
+        }
+        return batchQuery.apply(ids).stream()
+                .collect(Collectors.toMap(idExtractor, t -> t, (a, b) -> a));
     }
 }
