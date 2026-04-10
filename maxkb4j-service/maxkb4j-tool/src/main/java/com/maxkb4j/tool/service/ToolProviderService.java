@@ -273,35 +273,36 @@ public class ToolProviderService implements IToolProviderService {
 
     @Override
     public String format(ToolExecution toolExecute) {
-        return format(toolExecute.request(),toolExecute.result());
+        int status = toolExecute.hasFailed()?400:200;
+        return format(toolExecute.request(),status,toolExecute.result());
 
     }
 
     @Override
     public String format(BeforeToolExecution toolExecute) {
-        return format(toolExecute.request(),"");
+        return format(toolExecute.request(),100,"");
     }
 
-    public String format(ToolExecutionRequest request,String resultText) {
+    public String format(ToolExecutionRequest request,Integer status,String resultText) {
         String name = request.name();
         String[] split = name.split("_");
         if (split.length < 2) {
-            return MessageUtils.buildToolCallRender(request.id(),"", name, "", request.arguments(), resultText);
+            return MessageUtils.buildToolCallRender(request.id(),status,"", name, "", request.arguments(), resultText);
         }
         String type = split[0];
         String id = split[1];
         if ("tool".equals(type)) {
             ToolEntity tool = toolService.lambdaQuery().select(ToolEntity::getIcon, ToolEntity::getName).eq(ToolEntity::getId, id).one();
             if (tool == null) {
-                return MessageUtils.buildToolCallRender(request.id(),"", name, "", request.arguments(), resultText);
+                return MessageUtils.buildToolCallRender(request.id(),status,"", name, "", request.arguments(), resultText);
             }
-            return MessageUtils.buildToolCallRender(request.id(),tool.getIcon(), tool.getName(), tool.getToolType(), request.arguments(), resultText);
+            return MessageUtils.buildToolCallRender(request.id(),status,tool.getIcon(), tool.getName(), tool.getToolType(), request.arguments(), resultText);
         } else {
             ApplicationEntity app = applicationService.lambdaQuery().select(ApplicationEntity::getIcon, ApplicationEntity::getName).eq(ApplicationEntity::getId, id).one();
             if (app == null) {
-                return MessageUtils.buildToolCallRender(request.id(),"", name, "", request.arguments(), resultText);
+                return MessageUtils.buildToolCallRender(request.id(),status,"", name, "", request.arguments(), resultText);
             }
-            return MessageUtils.buildToolCallRender(request.id(),app.getIcon(), app.getName(), "", request.arguments(), resultText);
+            return MessageUtils.buildToolCallRender(request.id(),status,app.getIcon(), app.getName(), "", request.arguments(), resultText);
         }
 
     }

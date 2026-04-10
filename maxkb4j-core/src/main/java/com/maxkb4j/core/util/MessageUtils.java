@@ -24,7 +24,7 @@ public class MessageUtils {
      * @param output 输出内容（可以是字符串或任意对象）
      * @return 格式化后的工具消息字符串
      */
-    public static String buildToolCallRender(String callId,String icon, String name,String toolType, String input, String output) {
+    public static String buildToolCallRender(String callId,Integer status,String icon, String name,String toolType, String input, String output) {
         try {
             // 构建内容结构
             Map<String, Object> contentMap = new HashMap<>();
@@ -38,6 +38,7 @@ public class MessageUtils {
             result.put("icon", icon);
             result.put("title", name);
             result.put("type", "simple-tool-calls");
+            result.put("status", status);
             result.put("toolType", toolType);
             result.put("content", contentMap);
             // 序列化为 JSON 字符串
