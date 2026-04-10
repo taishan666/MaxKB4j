@@ -8,7 +8,6 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.maxkb4j.application.entity.ApplicationEntity;
 import com.maxkb4j.application.mapper.ApplicationMapper;
-import com.maxkb4j.common.constant.ResourceType;
 import com.maxkb4j.common.util.BeanUtil;
 import com.maxkb4j.common.util.PageUtil;
 import com.maxkb4j.knowledge.entity.KnowledgeEntity;
@@ -24,8 +23,10 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
-import java.util.function.Function;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -53,7 +54,6 @@ public class ResourceMappingService extends ServiceImpl<ResourceMappingMapper, R
         if (sourceType != null && sourceType.length > 0) {
             wrapper.in(ResourceMappingEntity::getSourceType, Arrays.asList(sourceType));
         }
-
         // 提前获取用户ID列表，用于后续优化
         List<String> userIds;
         if (StringUtils.isNotBlank(userName)) {
@@ -80,80 +80,43 @@ public class ResourceMappingService extends ServiceImpl<ResourceMappingMapper, R
                 .toList();
         Map<String, String> nicknameMap = userMapper.selectByIds(allUserIds).stream()
                 .collect(Collectors.toMap(UserEntity::getId, UserEntity::getNickname));
-        switch (resourceType) {
-            case ResourceType.APPLICATION -> {
-                Map<String, ApplicationEntity> appMap = batchQueryResources(
-                        resourcePage.getRecords(), ResourceType.APPLICATION,
-                        ApplicationEntity::getId, applicationMapper::selectByIds);
-                return PageUtil.copy(resourcePage, resource -> {
-                    ResourceUseVO vo = BeanUtil.copy(resource, ResourceUseVO.class);
-                    String sourceId = resource.getSourceId();
-                    ApplicationEntity app = appMap.get(sourceId);
-                    if (app != null) {
-                        vo.setName(app.getName());
-                        vo.setDesc(app.getDesc());
-                    }
-                    vo.setUsername(nicknameMap.get(resource.getUserId()));
-                    return vo;
-                });
-            }
-            case ResourceType.KNOWLEDGE -> {
-                Map<String, KnowledgeEntity> knowledgeMap = batchQueryResources(
-                        resourcePage.getRecords(), ResourceType.KNOWLEDGE,
-                        KnowledgeEntity::getId, knowledgeMapper::selectByIds);
-                return PageUtil.copy(resourcePage, resource -> {
-                    ResourceUseVO vo = BeanUtil.copy(resource, ResourceUseVO.class);
-                    String sourceId = resource.getSourceId();
-                    KnowledgeEntity knowledge = knowledgeMap.get(sourceId);
-                    if (knowledge != null) {
-                        vo.setName(knowledge.getName());
-                        vo.setDesc(knowledge.getDesc());
-                    }
-                    vo.setUsername(nicknameMap.get(resource.getUserId()));
-                    return vo;
-                });
-            }
-            case ResourceType.TOOL -> {
-                Map<String, ToolEntity> toolMap = batchQueryResources(
-                        resourcePage.getRecords(), ResourceType.TOOL,
-                        ToolEntity::getId, toolMapper::selectByIds);
-                return PageUtil.copy(resourcePage, resource -> {
-                    ResourceUseVO vo = BeanUtil.copy(resource, ResourceUseVO.class);
-                    String sourceId = resource.getSourceId();
-                    ToolEntity tool = toolMap.get(sourceId);
-                    if (tool != null) {
-                        vo.setName(tool.getName());
-                        vo.setDesc(tool.getDesc());
-                    }
-                    vo.setUsername(nicknameMap.get(resource.getUserId()));
-                    return vo;
-                });
-            }
+        List<String> ids = resourcePage.getRecords().stream()
+                .map(ResourceMappingEntity::getSourceId)
+                .distinct()
+                .toList();
+        Map<String,Map<String, Object>> resourceMaps = new HashMap<>();
+        List<ApplicationEntity> appList =applicationMapper.selectList(Wrappers.<ApplicationEntity>lambdaQuery()
+                .select(ApplicationEntity::getId, ApplicationEntity::getName, ApplicationEntity::getDesc, ApplicationEntity::getIcon, ApplicationEntity::getType)
+                .in(ApplicationEntity::getId,ids));
+        for (ApplicationEntity app : appList) {
+            resourceMaps.put(app.getId(), BeanUtil.toMap(app));
+        }
+        List<KnowledgeEntity> knowledgeList =knowledgeMapper.selectList(Wrappers.<KnowledgeEntity>lambdaQuery()
+                .select(KnowledgeEntity::getId, KnowledgeEntity::getName, KnowledgeEntity::getDesc, KnowledgeEntity::getType)
+                .in(KnowledgeEntity::getId,ids));
+        for (KnowledgeEntity Knowledge : knowledgeList) {
+            resourceMaps.put(Knowledge.getId(), BeanUtil.toMap(Knowledge));
+        }
+        List<ToolEntity> toolList =toolMapper.selectList(Wrappers.<ToolEntity>lambdaQuery()
+                .select(ToolEntity::getId, ToolEntity::getName, ToolEntity::getDesc, ToolEntity::getIcon, ToolEntity::getToolType)
+                .in(ToolEntity::getId,ids));
+        for (ToolEntity tool : toolList) {
+            resourceMaps.put(tool.getId(), BeanUtil.toMap(tool));
         }
         return PageUtil.copy(resourcePage, resource -> {
             ResourceUseVO vo = BeanUtil.copy(resource, ResourceUseVO.class);
+            String sourceId = resource.getSourceId();
+            Map<String, Object> resourceMap = resourceMaps.get(sourceId);
+            if (resourceMap != null) {
+                vo.setName((String) resourceMap.get("name"));
+                vo.setDesc((String) resourceMap.get("desc"));
+                vo.setIcon((String) resourceMap.get("icon"));
+                vo.setType((String) resourceMap.getOrDefault("type",resourceMap.get("toolType")));
+            }
             vo.setUsername(nicknameMap.get(resource.getUserId()));
             return vo;
         });
     }
 
-    /**
-     * 批量查询资源，解决 N+1 问题
-     */
-    private <T> Map<String, T> batchQueryResources(
-            List<ResourceMappingEntity> resources,
-            String sourceType,
-            Function<T, String> idExtractor,
-            Function<Collection<String>, List<T>> batchQuery) {
-        List<String> ids = resources.stream()
-                .filter(r -> sourceType.equals(r.getSourceType()))
-                .map(ResourceMappingEntity::getSourceId)
-                .distinct()
-                .toList();
-        if (CollectionUtils.isEmpty(ids)) {
-            return Map.of();
-        }
-        return batchQuery.apply(ids).stream()
-                .collect(Collectors.toMap(idExtractor, t -> t, (a, b) -> a));
-    }
+
 }

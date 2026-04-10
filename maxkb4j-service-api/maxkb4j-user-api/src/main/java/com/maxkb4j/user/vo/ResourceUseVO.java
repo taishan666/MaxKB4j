@@ -14,6 +14,7 @@ public class ResourceUseVO{
     private String targetId;
     private String name;
     private String desc;
+    private String icon;
     private String userId;
     private String workspaceId;
     private String type;
