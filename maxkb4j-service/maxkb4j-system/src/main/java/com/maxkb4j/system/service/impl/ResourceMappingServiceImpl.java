@@ -47,23 +47,26 @@ public class ResourceMappingServiceImpl extends ServiceImpl<ResourceMappingMappe
 
 
     @Override
-    public boolean ownerSave(String resourceName, String sourceType, String sourceId, String targetId, String userId) {
+    public boolean ownerSave(String targetType, String resourceName, String sourceType, String sourceId, String targetId, String userId) {
         ResourceMappingEntity entity = new ResourceMappingEntity();
         entity.setId(null);
         entity.setResourceName(resourceName);
         entity.setTargetId(targetId);
         entity.setSourceType(sourceType);
         entity.setSourceId(sourceId);
-        entity.setTargetType(ResourceType.MODEL);
+        entity.setTargetType(targetType);
         entity.setUserId(userId != null ? userId : StpKit.ADMIN.getLoginIdAsString());
         return this.save(entity);
     }
 
     @Override
-    public boolean deleteByKnowledgeId(String sourceId) {
+    public boolean deleteByKnowledgeId(String targetType, String sourceId) {
         LambdaQueryWrapper<ResourceMappingEntity> wrapper = Wrappers.lambdaQuery();
         if (StringUtils.isNotBlank(sourceId)) {
             wrapper.eq(ResourceMappingEntity::getSourceId, sourceId);
+        }
+        if (StringUtils.isNotBlank(targetType)) {
+            wrapper.eq(ResourceMappingEntity::getTargetType, targetType);
         }
         return this.remove(wrapper);
     }

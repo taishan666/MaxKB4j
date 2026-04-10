@@ -16,6 +16,7 @@ import com.maxkb4j.application.mapper.ApplicationMapper;
 import com.maxkb4j.application.util.ResourceUtil;
 import com.maxkb4j.application.vo.ApplicationListVO;
 import com.maxkb4j.application.vo.ApplicationVO;
+import com.maxkb4j.common.constant.ResourceType;
 import com.maxkb4j.common.constant.RoleType;
 import com.maxkb4j.common.domain.dto.KnowledgeDTO;
 import com.maxkb4j.common.exception.ApiException;
@@ -136,7 +137,10 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
             applicationChatRecordService.remove(Wrappers.<ApplicationChatRecordEntity>lambdaQuery().in(ApplicationChatRecordEntity::getChatId, chatIds));
         }
         userResourcePermissionService.remove(AuthTargetType.APPLICATION, appId);
-        resourceMappingService.deleteByKnowledgeId(appId);
+        resourceMappingService.deleteByKnowledgeId(ResourceType.MODEL,appId);
+        resourceMappingService.deleteByKnowledgeId(ResourceType.APPLICATION,appId);
+        resourceMappingService.deleteByKnowledgeId(ResourceType.KNOWLEDGE,appId);
+        resourceMappingService.deleteByKnowledgeId(ResourceType.TOOL,appId);
         return this.removeById(appId);
     }
 
@@ -154,6 +158,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
                 app.setDesc(application.getDesc());
                 app.setIcon(StringUtils.isNotBlank(application.getIcon()) ? application.getIcon() : app.getIcon());
                 saveMk(maxKb4j);
+                resourceMappingService.ownerSave(ResourceType.MODEL,application.getName(),AuthTargetType.APPLICATION,application.getId(),application.getModelId(), application.getUserId());
                 return app;
             }
         } else {
@@ -168,9 +173,10 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
             application.setToolIds(List.of());
             application.setKnowledgeIds(List.of());
             application.setApplicationIds(List.of());
+            resourceMappingService.ownerSave(ResourceType.MODEL,application.getName(),AuthTargetType.APPLICATION,application.getId(),application.getModelId(), application.getUserId());
+
             this.savaApp(application);
         }
-        resourceMappingService.ownerSave(application.getName(),AuthTargetType.APPLICATION,application.getId(),application.getModelId(), application.getUserId());
         return application;
     }
 
@@ -319,8 +325,8 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
                 }
             }
         }
-        resourceMappingService.deleteByKnowledgeId(app.getId());
-        resourceMappingService.ownerSave(app.getName(),AuthTargetType.APPLICATION,app.getId(),app.getModelId(), app.getUserId());
+        resourceMappingService.deleteByKnowledgeId(ResourceType.MODEL,app.getId());
+        resourceMappingService.ownerSave(ResourceType.MODEL,app.getName(),AuthTargetType.APPLICATION,app.getId(),app.getModelId(), app.getUserId());
         return this.updateById(app);
     }
 

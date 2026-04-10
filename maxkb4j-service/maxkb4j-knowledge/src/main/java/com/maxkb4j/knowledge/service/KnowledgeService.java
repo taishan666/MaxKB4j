@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.maxkb4j.common.constant.ResourceType;
 import com.maxkb4j.common.constant.RoleType;
 import com.maxkb4j.common.domain.form.BaseField;
 import com.maxkb4j.common.domain.form.LocalFileUpload;
@@ -35,6 +36,7 @@ import com.maxkb4j.workflow.logic.LogicFlow;
 import com.maxkb4j.workflow.model.KnowledgeParams;
 import com.maxkb4j.workflow.model.KnowledgeWorkflow;
 import com.maxkb4j.workflow.node.AbsNode;
+import com.maxkb4j.workflow.service.IWorkFlowActuator;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -43,7 +45,6 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
-import com.maxkb4j.workflow.service.IWorkFlowActuator;
 
 import java.io.IOException;
 import java.util.*;
@@ -100,8 +101,7 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
 
 
     public List<ParagraphEntity> getParagraphByProblemId(String problemId) {
-        List<ProblemParagraphEntity> list = problemParagraphMapper.selectList(Wrappers.<ProblemParagraphEntity>lambdaQuery()
-                .select(ProblemParagraphEntity::getParagraphId).eq(ProblemParagraphEntity::getProblemId, problemId));
+        List<ProblemParagraphEntity> list = problemParagraphMapper.selectList(Wrappers.<ProblemParagraphEntity>lambdaQuery().select(ProblemParagraphEntity::getParagraphId).eq(ProblemParagraphEntity::getProblemId, problemId));
         if (!CollectionUtils.isEmpty(list)) {
             List<String> paragraphIds = list.stream().map(ProblemParagraphEntity::getParagraphId).toList();
             return paragraphMapper.selectByIds(paragraphIds);
@@ -120,16 +120,14 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
         knowledgeActionService.lambdaQuery().eq(KnowledgeActionEntity::getKnowledgeId, id);
         userResourcePermissionService.remove(AuthTargetType.KNOWLEDGE, id);
         compositeStore.deleteByKnowledgeId(id);
-        resourceMappingService.deleteByKnowledgeId(id);
+        resourceMappingService.deleteByKnowledgeId(ResourceType.MODEL, id);
         return this.removeById(id);
     }
 
 
-
     // 公共方法：根据 knowledgeId 获取文档列表
     private List<DocumentEntity> getDocumentsByKnowledgeId(String knowledgeId) {
-        return documentService.list(Wrappers.<DocumentEntity>lambdaQuery()
-                .eq(DocumentEntity::getKnowledgeId, knowledgeId));
+        return documentService.list(Wrappers.<DocumentEntity>lambdaQuery().eq(DocumentEntity::getKnowledgeId, knowledgeId));
     }
 
     // 根据 ID 导出 ZIP
@@ -166,11 +164,11 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
     public KnowledgeEntity createKnowledge(KnowledgeEntity knowledge) {
         knowledge.setMeta(new JSONObject());
         knowledge.setUserId(StpKit.ADMIN.getLoginIdAsString());
-        if (knowledge.getWorkFlow() == null){
+        if (knowledge.getWorkFlow() == null) {
             knowledge.setWorkFlow(new JSONObject());
         }
         this.save(knowledge);
-        resourceMappingService.ownerSave(knowledge.getName(),AuthTargetType.KNOWLEDGE,knowledge.getId(),knowledge.getEmbeddingModelId(), knowledge.getUserId());
+        resourceMappingService.ownerSave(ResourceType.MODEL,knowledge.getName(), AuthTargetType.KNOWLEDGE, knowledge.getId(), knowledge.getEmbeddingModelId(), knowledge.getUserId());
         userResourcePermissionService.ownerSave(AuthTargetType.KNOWLEDGE, knowledge.getId(), knowledge.getUserId());
         return knowledge;
     }
@@ -221,49 +219,49 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
             BaseField field2 = new TextInputField("选择器", "selector", "默认为 body，可输入 .classname/#idname/tagname", false);
             return List.of(field1, field2);
         } else {
-            BaseField localFileUpload= new LocalFileUpload(50, 100, List.of("TXT", "DOCX", "PDF", "HTML", "XLS", "XLSX", "CSV"));
+            BaseField localFileUpload = new LocalFileUpload(50, 100, List.of("TXT", "DOCX", "PDF", "HTML", "XLS", "XLSX", "CSV"));
             if (params == null) {
                 return List.of(localFileUpload);
             }
-            JSONObject node=params.getJSONObject("node");
+            JSONObject node = params.getJSONObject("node");
             if (node == null) {
                 return List.of(localFileUpload);
             }
-            JSONObject properties=node.getJSONObject("properties");
+            JSONObject properties = node.getJSONObject("properties");
             if (properties == null) {
                 return List.of(localFileUpload);
             }
-            JSONObject nodeData=properties.getJSONObject("nodeData");
+            JSONObject nodeData = properties.getJSONObject("nodeData");
             if (nodeData == null) {
                 return List.of(localFileUpload);
             }
-            Integer fileCountLimit=nodeData.getInteger("fileCountLimit");
-            Integer fileSizeLimit=nodeData.getInteger("fileSizeLimit");
-            List<String> fileTypeList=nodeData.getJSONArray("fileTypeList").toJavaList(String.class);
+            Integer fileCountLimit = nodeData.getInteger("fileCountLimit");
+            Integer fileSizeLimit = nodeData.getInteger("fileSizeLimit");
+            List<String> fileTypeList = nodeData.getJSONArray("fileTypeList").toJavaList(String.class);
             return List.of(new LocalFileUpload(fileCountLimit, fileSizeLimit, fileTypeList));
         }
     }
 
 
-    public JSONObject getKnowledgeWorkFlow(String id,boolean debug) {
+    public JSONObject getKnowledgeWorkFlow(String id, boolean debug) {
         JSONObject workFlow = null;
-        if (debug){
-            KnowledgeEntity knowledge =   baseMapper.selectById(id);
-            if (knowledge != null){
-                workFlow=knowledge.getWorkFlow();
+        if (debug) {
+            KnowledgeEntity knowledge = baseMapper.selectById(id);
+            if (knowledge != null) {
+                workFlow = knowledge.getWorkFlow();
             }
-        }else {
-            KnowledgeVersionEntity KnowledgeVersion =  knowledgeVersionService.lambdaQuery().eq(KnowledgeVersionEntity::getKnowledgeId, id).orderByDesc(KnowledgeVersionEntity::getCreateTime).last("limit 1").one();
-            if (KnowledgeVersion != null){
-                workFlow=KnowledgeVersion.getWorkFlow();
+        } else {
+            KnowledgeVersionEntity KnowledgeVersion = knowledgeVersionService.lambdaQuery().eq(KnowledgeVersionEntity::getKnowledgeId, id).orderByDesc(KnowledgeVersionEntity::getCreateTime).last("limit 1").one();
+            if (KnowledgeVersion != null) {
+                workFlow = KnowledgeVersion.getWorkFlow();
             }
         }
         return workFlow;
     }
 
     public KnowledgeActionEntity uploadDocument(String id, KnowledgeParams params, boolean debug) {
-        JSONObject knowledgeWorkFlow =  getKnowledgeWorkFlow(id,debug);
-        if (knowledgeWorkFlow == null){
+        JSONObject knowledgeWorkFlow = getKnowledgeWorkFlow(id, debug);
+        if (knowledgeWorkFlow == null) {
             throw new IllegalArgumentException("未找到知识库 ID: " + id);
         }
         KnowledgeActionEntity knowledgeAction = new KnowledgeActionEntity();
@@ -281,10 +279,7 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
         params.setActionId(knowledgeAction.getId());
         params.setKnowledgeId(id);
         params.setDebug(debug);
-        KnowledgeWorkflow workflow = new KnowledgeWorkflow(
-                nodes,
-                logicFlow.getEdges(),
-                params);
+        KnowledgeWorkflow workflow = new KnowledgeWorkflow(nodes, logicFlow.getEdges(), params);
         CompletableFuture.runAsync(() -> workFlowActuator.execute(workflow));
         return knowledgeAction;
     }
@@ -296,15 +291,15 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
     public IPage<KnowledgeActionEntity> actionPage(String id, int current, int size, String username, String state) {
         Page<KnowledgeActionEntity> actionPage = new Page<>(current, size);
         LambdaQueryWrapper<KnowledgeActionEntity> query = Wrappers.lambdaQuery();
-        if (!StringUtils.isEmpty(username)){
+        if (!StringUtils.isEmpty(username)) {
             query.eq(KnowledgeActionEntity::getMeta, username);
         }
-        if (!StringUtils.isEmpty(state)){
+        if (!StringUtils.isEmpty(state)) {
             query.eq(KnowledgeActionEntity::getState, state);
         }
         query.eq(KnowledgeActionEntity::getKnowledgeId, id);
         query.orderByDesc(KnowledgeActionEntity::getCreateTime);
-        return  knowledgeActionService.pageList(actionPage,username, state);
+        return knowledgeActionService.pageList(actionPage, username, state);
     }
 
     @Transactional
@@ -313,7 +308,7 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
         knowledge.setId(id);
         knowledge.setIsPublish(true);
         this.updateById(knowledge);
-        knowledge= this.getById(id);
+        knowledge = this.getById(id);
         KnowledgeVersionEntity knowledgeVersion = new KnowledgeVersionEntity();
         knowledgeVersion.setKnowledgeId(id);
         knowledgeVersion.setName(DateTimeUtil.now());
@@ -327,7 +322,7 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
         return knowledgeVersionService.lambdaQuery().eq(KnowledgeVersionEntity::getKnowledgeId, id).list();
     }
 
-    public Boolean knowledgeVersion(String versionId,KnowledgeVersionEntity  knowledgeVersion) {
+    public Boolean knowledgeVersion(String versionId, KnowledgeVersionEntity knowledgeVersion) {
         knowledgeVersion.setId(versionId);
         return knowledgeVersionService.updateById(knowledgeVersion);
     }
@@ -338,7 +333,7 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
     }
 
     public void changeResourceMapping(KnowledgeEntity datasetEntity) {
-        resourceMappingService.deleteByKnowledgeId(datasetEntity.getId());
-        resourceMappingService.ownerSave(datasetEntity.getName(),AuthTargetType.KNOWLEDGE,datasetEntity.getId(),datasetEntity.getEmbeddingModelId(), datasetEntity.getUserId());
+        resourceMappingService.deleteByKnowledgeId(ResourceType.MODEL, datasetEntity.getId());
+        resourceMappingService.ownerSave(ResourceType.MODEL, datasetEntity.getName(), AuthTargetType.KNOWLEDGE, datasetEntity.getId(), datasetEntity.getEmbeddingModelId(), datasetEntity.getUserId());
     }
 }
