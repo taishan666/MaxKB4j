@@ -120,7 +120,7 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
         knowledgeActionService.lambdaQuery().eq(KnowledgeActionEntity::getKnowledgeId, id);
         userResourcePermissionService.remove(AuthTargetType.KNOWLEDGE, id);
         compositeStore.deleteByKnowledgeId(id);
-        resourceMappingService.deleteByKnowledgeId(ResourceType.MODEL, id);
+        resourceMappingService.deleteBySourceId(ResourceType.KNOWLEDGE, id);
         return this.removeById(id);
     }
 
@@ -168,7 +168,7 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
             knowledge.setWorkFlow(new JSONObject());
         }
         this.save(knowledge);
-        resourceMappingService.ownerSave(ResourceType.MODEL,knowledge.getName(), AuthTargetType.KNOWLEDGE, knowledge.getId(), knowledge.getEmbeddingModelId(), knowledge.getUserId());
+        resourceMappingService.relation(ResourceType.KNOWLEDGE, knowledge.getId(), ResourceType.MODEL, knowledge.getEmbeddingModelId());
         userResourcePermissionService.ownerSave(AuthTargetType.KNOWLEDGE, knowledge.getId(), knowledge.getUserId());
         return knowledge;
     }
@@ -333,7 +333,6 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
     }
 
     public void changeResourceMapping(KnowledgeEntity datasetEntity) {
-        resourceMappingService.deleteByKnowledgeId(ResourceType.MODEL, datasetEntity.getId());
-        resourceMappingService.ownerSave(ResourceType.MODEL, datasetEntity.getName(), AuthTargetType.KNOWLEDGE, datasetEntity.getId(), datasetEntity.getEmbeddingModelId(), datasetEntity.getUserId());
+        resourceMappingService.relation(ResourceType.KNOWLEDGE, datasetEntity.getId(), ResourceType.MODEL, datasetEntity.getEmbeddingModelId());
     }
 }

@@ -27,6 +27,7 @@ import com.maxkb4j.model.service.IModelProviderService;
 import com.maxkb4j.model.service.STTModel;
 import com.maxkb4j.model.service.TTSModel;
 import com.maxkb4j.system.constant.AuthTargetType;
+import com.maxkb4j.system.entity.TargetResource;
 import com.maxkb4j.system.service.IResourceMappingService;
 import com.maxkb4j.tool.entity.ToolEntity;
 import com.maxkb4j.tool.service.IToolService;
@@ -138,36 +139,26 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         }
         userResourcePermissionService.remove(AuthTargetType.APPLICATION, appId);
         // 批量删除资源映射
-        resourceMappingService.deleteByKnowledgeId(ResourceType.MODEL, appId);
-        resourceMappingService.deleteByKnowledgeId(ResourceType.APPLICATION, appId);
-        resourceMappingService.deleteByKnowledgeId(ResourceType.KNOWLEDGE, appId);
-        resourceMappingService.deleteByKnowledgeId(ResourceType.TOOL, appId);
+        resourceMappingService.deleteBySourceId(ResourceType.APPLICATION, appId);
         return this.removeById(appId);
     }
 
     /**
      * 批量保存资源映射关系
      */
-    private void saveResourceMappings(String appName, String appId, String userId,
-                                       List<String> applicationIds,
-                                       List<String> knowledgeIds,
-                                       List<String> toolIds,
-                                       String modelId) {
-        if (StringUtils.isNotBlank(modelId)) {
-            resourceMappingService.deleteByKnowledgeId(ResourceType.MODEL, appId);
-            resourceMappingService.ownerSave(ResourceType.MODEL, appName, AuthTargetType.APPLICATION, appId, modelId, userId);
-        }
-        saveResourceMappingsByType(appName, appId, userId, ResourceType.APPLICATION, applicationIds);
-        saveResourceMappingsByType(appName, appId, userId, ResourceType.KNOWLEDGE, knowledgeIds);
-        saveResourceMappingsByType(appName, appId, userId, ResourceType.TOOL, toolIds);
+    private void saveResourceMappings(String appId,
+                                      List<String> applicationIds,
+                                      List<String> knowledgeIds,
+                                      List<String> toolIds,
+                                      List<String> modelIds) {
+        List<TargetResource> targets = new ArrayList<>();
+        targets.addAll(applicationIds.stream().filter(Objects::nonNull).map(id -> new TargetResource(id, ResourceType.APPLICATION)).toList());
+        targets.addAll(knowledgeIds.stream().filter(Objects::nonNull).map(id -> new TargetResource(id, ResourceType.KNOWLEDGE)).toList());
+        targets.addAll(toolIds.stream().filter(Objects::nonNull).map(id -> new TargetResource(id, ResourceType.TOOL)).toList());
+        targets.addAll(modelIds.stream().filter(Objects::nonNull).map(id -> new TargetResource(id, ResourceType.MODEL)).toList());
+        resourceMappingService.relation(ResourceType.APPLICATION, appId, targets);
     }
 
-    private void saveResourceMappingsByType(String appName, String appId, String userId, String type, List<String> ids) {
-        if (!CollectionUtils.isEmpty(ids)) {
-            resourceMappingService.deleteByKnowledgeId(type, appId);
-            ids.forEach(id -> resourceMappingService.ownerSave(ResourceType.APPLICATION, appName, type, appId, id, userId));
-        }
-    }
 
     @Transactional
     public ApplicationEntity createApp(ApplicationDTO application) {
@@ -183,9 +174,9 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
                 app.setDesc(application.getDesc());
                 app.setIcon(StringUtils.isNotBlank(application.getIcon()) ? application.getIcon() : app.getIcon());
                 saveMk(maxKb4j);
-                saveResourceMappings(application.getName(), application.getId(), application.getUserId(),
+                saveResourceMappings(application.getId(),
                         application.getApplicationIds(), application.getKnowledgeIds(), application.getToolIds(),
-                        application.getModelId());
+                        List.of(app.getModelId(), app.getSttModelId(), app.getTtsModelId()));
                 return app;
             }
         }
@@ -199,9 +190,9 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         application.setToolIds(List.of());
         application.setKnowledgeIds(List.of());
         application.setApplicationIds(List.of());
-        saveResourceMappings(application.getName(), application.getId(), application.getUserId(),
+        saveResourceMappings(application.getId(),
                 application.getApplicationIds(), application.getKnowledgeIds(), application.getToolIds(),
-                application.getModelId());
+                List.of(application.getModelId(), application.getSttModelId(), application.getTtsModelId()));
         this.saveApp(application);
         return application;
     }
@@ -320,22 +311,17 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         if (workFlow != null && workFlow.containsKey("nodes")) {
             JSONArray nodes = workFlow.getJSONArray("nodes");
             if (nodes != null) {
-                JSONObject baseNode = nodes.stream()
+                nodes.stream()
                         .filter(node -> node instanceof Map)
                         .map(node -> (Map<String, Object>) node)
                         .filter(node -> BASE.getKey().equals(node.get("type")))
                         .findFirst()
-                        .map(JSONObject::new)
-                        .orElse(null);
-                if (baseNode != null) {
-                    updateAppFromBaseNode(app, baseNode);
-                }
+                        .map(JSONObject::new).ifPresent(baseNode -> updateAppFromBaseNode(app, baseNode));
             }
-        } else {
-            saveResourceMappings(app.getName(), app.getId(), app.getUserId(),
-                    app.getApplicationIds(), app.getKnowledgeIds(), app.getToolIds(),
-                    app.getModelId());
         }
+        saveResourceMappings(app.getId(),
+                app.getApplicationIds(), app.getKnowledgeIds(), app.getToolIds(),
+                List.of(app.getModelId(), app.getSttModelId(), app.getTtsModelId()));
         return this.updateById(app);
     }
 
@@ -365,18 +351,6 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         app.setSttModelEnable(nodeData.getBooleanValue("sttModelEnable"));
         app.setSttModelId(nodeData.getString("sttModelId"));
         app.setSttAutoSend(nodeData.getBooleanValue("sttAutoSend"));
-        // 保存资源映射
-        String modelId = nodeData.getString("modelId");
-        List<String> apps = Optional.ofNullable(nodeData.getJSONArray("applicationIds"))
-                .map(arr -> arr.toJavaList(String.class))
-                .orElse(Collections.emptyList());
-        List<String> knowledgeIds = Optional.ofNullable(nodeData.getJSONArray("knowledgeIds"))
-                .map(arr -> arr.toJavaList(String.class))
-                .orElse(Collections.emptyList());
-        List<String> tools = Optional.ofNullable(nodeData.getJSONArray("toolIds"))
-                .map(arr -> arr.toJavaList(String.class))
-                .orElse(Collections.emptyList());
-        saveResourceMappings(app.getName(), app.getId(), app.getUserId(), apps, knowledgeIds, tools, modelId);
     }
 
 
@@ -487,8 +461,8 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         String prompt = dto.getPrompt();
         String detail = StringUtils.isBlank(app.getDesc()) ? app.getName() : app.getDesc();
         prompt = prompt.replace("{application_name}", app.getName())
-                       .replace("{detail}", detail)
-                       .replace("{userInput}", dto.getMessages().get(messages.size() - 1).getContent());
+                .replace("{detail}", detail)
+                .replace("{userInput}", dto.getMessages().get(messages.size() - 1).getContent());
         List<ChatMessage> finalMessages = new ArrayList<>(messages);
         finalMessages.set(finalMessages.size() - 1, UserMessage.from(prompt));
         Sinks.Many<Map<String, String>> sink = Sinks.many().unicast().onBackpressureBuffer();

@@ -8,11 +8,13 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.maxkb4j.application.entity.ApplicationEntity;
 import com.maxkb4j.application.mapper.ApplicationMapper;
+import com.maxkb4j.common.constant.ResourceType;
 import com.maxkb4j.common.util.BeanUtil;
 import com.maxkb4j.common.util.PageUtil;
 import com.maxkb4j.knowledge.entity.KnowledgeEntity;
 import com.maxkb4j.knowledge.mapper.KnowledgeMapper;
 import com.maxkb4j.system.entity.ResourceMappingEntity;
+import com.maxkb4j.system.entity.SourceResource;
 import com.maxkb4j.system.mapper.ResourceMappingMapper;
 import com.maxkb4j.tool.entity.ToolEntity;
 import com.maxkb4j.tool.mapper.ToolMapper;
@@ -23,11 +25,7 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -47,89 +45,89 @@ public class ResourceMappingService extends ServiceImpl<ResourceMappingMapper, R
         LambdaQueryWrapper<ResourceMappingEntity> wrapper = Wrappers.lambdaQuery();
         wrapper.eq(ResourceMappingEntity::getTargetType, resourceType);
         wrapper.eq(ResourceMappingEntity::getTargetId, resourceId);
-        if (StringUtils.isNotBlank(resourceName)) {
-            wrapper.like(ResourceMappingEntity::getResourceName, resourceName);
-        }
         if (sourceType != null && sourceType.length > 0) {
             wrapper.in(ResourceMappingEntity::getSourceType, Arrays.asList(sourceType));
         }
-        // 提前获取用户ID列表，用于后续优化
-        List<String> userIds;
-        if (StringUtils.isNotBlank(userName)) {
-            LambdaQueryWrapper<UserEntity> userWrapper = Wrappers.lambdaQuery();
-            userWrapper.select(UserEntity::getId);
-            userWrapper.like(UserEntity::getNickname, userName);
-            userIds = userMapper.selectList(userWrapper).stream().map(UserEntity::getId).toList();
-            if (CollectionUtils.isEmpty(userIds)) {
-                return new Page<>(current, size);
-            }
-            wrapper.in(ResourceMappingEntity::getUserId, userIds);
+        List<ResourceMappingEntity> targets = this.list(wrapper);
+        if (CollectionUtils.isEmpty(targets)) {
+            return new Page<>(current, size);
         }
+        Map<String, List<String>> groupedIds = targets.stream()
+                .collect(Collectors.groupingBy(
+                        ResourceMappingEntity::getSourceType,
+                        Collectors.mapping(ResourceMappingEntity::getSourceId, Collectors.toList())
+                ));
+        List<SourceResource> filterSources = filterSources(groupedIds, resourceName, userName);
+        if (CollectionUtils.isEmpty(filterSources)) {
+            return new Page<>(current, size);
+        }
+        wrapper.in(ResourceMappingEntity::getSourceId, filterSources.stream().map(SourceResource::getId).toList());
         wrapper.orderByDesc(ResourceMappingEntity::getCreateTime);
-
         resourcePage = this.page(resourcePage, wrapper);
         if (CollectionUtils.isEmpty(resourcePage.getRecords())) {
             return new Page<>(current, size);
         }
-
         // 批量查询用户昵称（仅查询涉及的用户）
-        List<String> allUserIds = resourcePage.getRecords().stream()
-                .map(ResourceMappingEntity::getUserId)
+        List<String> allUserIds = filterSources.stream()
+                .map(SourceResource::getUserId)
                 .distinct()
                 .toList();
         Map<String, String> nicknameMap = userMapper.selectByIds(allUserIds).stream()
                 .collect(Collectors.toMap(UserEntity::getId, UserEntity::getNickname));
-
-        List<String> sourceIds = resourcePage.getRecords().stream()
-                .map(ResourceMappingEntity::getSourceId)
-                .distinct()
-                .toList();
-
-        Map<String, Map<String, Object>> resourceMaps = buildResourceMaps(sourceIds);
-
+        Map<String, SourceResource> resourceMaps = filterSources.stream().collect(Collectors.toMap(SourceResource::getId, e -> e));
         return PageUtil.copy(resourcePage, resource -> {
             ResourceUseVO vo = BeanUtil.copy(resource, ResourceUseVO.class);
-            Map<String, Object> resourceMap = resourceMaps.get(resource.getSourceId());
-            if (resourceMap != null) {
-                vo.setName((String) resourceMap.get("name"));
-                vo.setDesc((String) resourceMap.get("desc"));
-                vo.setIcon((String) resourceMap.get("icon"));
-                vo.setType((String) resourceMap.getOrDefault("type", resourceMap.get("toolType")));
+            SourceResource sourceResource = resourceMaps.get(resource.getSourceId());
+            if (sourceResource != null) {
+                vo.setName(sourceResource.getName());
+                vo.setDesc(sourceResource.getDesc());
+                vo.setIcon(sourceResource.getIcon());
+                vo.setType(sourceResource.getType());
+                vo.setUsername(nicknameMap.get(sourceResource.getUserId()));
             }
-            vo.setUsername(nicknameMap.get(resource.getUserId()));
             return vo;
         });
     }
 
-    /**
-     * 批量查询应用、知识库、工具资源并构建资源映射Map
-     */
-    private Map<String, Map<String, Object>> buildResourceMaps(List<String> sourceIds) {
-        if (CollectionUtils.isEmpty(sourceIds)) {
-            return Collections.emptyMap();
+
+    private List<SourceResource> filterSources(Map<String, List<String>> groupedIds, String resourceName, String userName) {
+        List<SourceResource> sources = new ArrayList<>();
+        if (groupedIds.containsKey(ResourceType.APPLICATION)) {
+            List<ApplicationEntity> apps = applicationMapper.selectList(Wrappers.<ApplicationEntity>lambdaQuery()
+                    .select(ApplicationEntity::getId, ApplicationEntity::getName, ApplicationEntity::getDesc, ApplicationEntity::getIcon, ApplicationEntity::getType, ApplicationEntity::getUserId)
+                    .like(StringUtils.isNotBlank(resourceName), ApplicationEntity::getName, resourceName)
+                    .in(StringUtils.isNotBlank(userName), ApplicationEntity::getUserId, getUserIds(userName))
+                    .in(ApplicationEntity::getId, groupedIds.get(ResourceType.APPLICATION)));
+            sources.addAll(apps.stream().map(e -> new SourceResource(e.getId(), e.getName(), e.getDesc(), e.getIcon(), e.getType(),e.getUserId())).toList());
         }
+        if (groupedIds.containsKey(ResourceType.KNOWLEDGE)) {
+            List<KnowledgeEntity> knowledgeList = knowledgeMapper.selectList(Wrappers.<KnowledgeEntity>lambdaQuery()
+                    .select(KnowledgeEntity::getId, KnowledgeEntity::getName, KnowledgeEntity::getDesc, KnowledgeEntity::getType, KnowledgeEntity::getUserId)
+                    .like(StringUtils.isNotBlank(resourceName), KnowledgeEntity::getName, resourceName)
+                    .in(StringUtils.isNotBlank(userName), KnowledgeEntity::getUserId, getUserIds(userName))
+                    .in(KnowledgeEntity::getId, groupedIds.get(ResourceType.KNOWLEDGE)));
+            sources.addAll(knowledgeList.stream().map(e -> new SourceResource(e.getId(), e.getName(), e.getDesc(), "", String.valueOf(e.getType()),e.getUserId())).toList());
+        }
+        if (groupedIds.containsKey(ResourceType.TOOL)) {
+            List<ToolEntity> tools = toolMapper.selectList(Wrappers.<ToolEntity>lambdaQuery()
+                    .select(ToolEntity::getId, ToolEntity::getName, ToolEntity::getDesc, ToolEntity::getIcon, ToolEntity::getToolType, ToolEntity::getUserId)
+                    .like(StringUtils.isNotBlank(resourceName), ToolEntity::getName, resourceName)
+                    .in(StringUtils.isNotBlank(userName), ToolEntity::getUserId, getUserIds(userName))
+                    .in(ToolEntity::getId, groupedIds.get(ResourceType.TOOL)));
+            sources.addAll(tools.stream().map(e -> new SourceResource(e.getId(), e.getName(), e.getDesc(), e.getIcon(), e.getToolType(),e.getUserId())).toList());
+        }
+        return sources;
+    }
 
-        Map<String, Map<String, Object>> resourceMaps = new HashMap<>(sourceIds.size() * 2);
-
-        applicationMapper.selectList(Wrappers.<ApplicationEntity>lambdaQuery()
-                        .select(ApplicationEntity::getId, ApplicationEntity::getName,
-                                ApplicationEntity::getDesc, ApplicationEntity::getIcon, ApplicationEntity::getType)
-                        .in(ApplicationEntity::getId, sourceIds))
-                .forEach(app -> resourceMaps.put(app.getId(), BeanUtil.toMap(app)));
-
-        knowledgeMapper.selectList(Wrappers.<KnowledgeEntity>lambdaQuery()
-                        .select(KnowledgeEntity::getId, KnowledgeEntity::getName,
-                                KnowledgeEntity::getDesc, KnowledgeEntity::getType)
-                        .in(KnowledgeEntity::getId, sourceIds))
-                .forEach(knowledge -> resourceMaps.put(knowledge.getId(), BeanUtil.toMap(knowledge)));
-
-        toolMapper.selectList(Wrappers.<ToolEntity>lambdaQuery()
-                        .select(ToolEntity::getId, ToolEntity::getName,
-                                ToolEntity::getDesc, ToolEntity::getIcon, ToolEntity::getToolType)
-                        .in(ToolEntity::getId, sourceIds))
-                .forEach(tool -> resourceMaps.put(tool.getId(), BeanUtil.toMap(tool)));
-
-        return resourceMaps;
+    private List<String> getUserIds(String userName) {
+        LambdaQueryWrapper<UserEntity> userWrapper = Wrappers.lambdaQuery();
+        userWrapper.select(UserEntity::getId);
+        userWrapper.like(UserEntity::getNickname, userName);
+        List<String> userIds = userMapper.selectList(userWrapper).stream().map(UserEntity::getId).toList();
+        if (CollectionUtils.isEmpty(userIds)) {
+            return List.of("-1");
+        }
+        return userIds;
     }
 
 }
