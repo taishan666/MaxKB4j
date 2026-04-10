@@ -26,6 +26,7 @@ import com.maxkb4j.model.service.IModelProviderService;
 import com.maxkb4j.model.service.STTModel;
 import com.maxkb4j.model.service.TTSModel;
 import com.maxkb4j.system.constant.AuthTargetType;
+import com.maxkb4j.system.service.IResourceMappingService;
 import com.maxkb4j.tool.entity.ToolEntity;
 import com.maxkb4j.tool.service.IToolService;
 import com.maxkb4j.user.service.IUserResourcePermissionService;
@@ -75,6 +76,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     private final ApplicationChatMapper applicationChatMapper;
     private final IUserResourcePermissionService userResourcePermissionService;
     private final IToolService toolService;
+    private final IResourceMappingService resourceMappingService;
 
     public IPage<ApplicationVO> selectAppPage(int page, int size, ApplicationQuery query) {
         Page<ApplicationEntity> appPage = new Page<>(page, size);
@@ -134,6 +136,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
             applicationChatRecordService.remove(Wrappers.<ApplicationChatRecordEntity>lambdaQuery().in(ApplicationChatRecordEntity::getChatId, chatIds));
         }
         userResourcePermissionService.remove(AuthTargetType.APPLICATION, appId);
+        resourceMappingService.deleteByKnowledgeId(appId);
         return this.removeById(appId);
     }
 
@@ -167,6 +170,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
             application.setApplicationIds(List.of());
             this.savaApp(application);
         }
+        resourceMappingService.ownerSave(application.getName(),AuthTargetType.APPLICATION,application.getId(),application.getModelId(), application.getUserId());
         return application;
     }
 
@@ -315,6 +319,8 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
                 }
             }
         }
+        resourceMappingService.deleteByKnowledgeId(app.getId());
+        resourceMappingService.ownerSave(app.getName(),AuthTargetType.APPLICATION,app.getId(),app.getModelId(), app.getUserId());
         return this.updateById(app);
     }
 
