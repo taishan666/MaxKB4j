@@ -26,6 +26,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -41,6 +42,7 @@ public class ChatStep extends AbsChatStep {
 
     @Override
     protected String execute(String chatId, String chatRecordId, ApplicationVO application, String userPrompt, PipelineManage manage) {
+        List<String> answerTexts = new ArrayList<>();
         String modelId = application.getModelId();
         JSONObject params = application.getModelParamsSetting();
         StreamingChatModel chatModel = modelFactory.buildStreamingChatModel(modelId, params);
@@ -68,7 +70,10 @@ public class ChatStep extends AbsChatStep {
                         manage.sink.tryEmitNext(super.toChatMessageVO(chatId, chatRecordId, "", thinking.text(), false));
                     }
                 })
-                .onPartialResponse(text -> manage.sink.tryEmitNext(super.toChatMessageVO(chatId, chatRecordId, text, "", false)))
+                .onPartialResponse(text -> {
+                    manage.sink.tryEmitNext(super.toChatMessageVO(chatId, chatRecordId, text, "", false));
+                    answerTexts.add(text);
+                })
                 .beforeToolExecution(toolExecute -> {
                     if (Boolean.TRUE.equals(application.getToolOutputEnable())) {
                         manage.sink.tryEmitNext(super.toChatMessageVO(chatId, chatRecordId, toolProvider.format(toolExecute), "", false));
@@ -76,7 +81,9 @@ public class ChatStep extends AbsChatStep {
                 })
                 .onToolExecuted(toolExecute -> {
                     if (Boolean.TRUE.equals(application.getToolOutputEnable())) {
-                        manage.sink.tryEmitNext(super.toChatMessageVO(chatId, chatRecordId, toolProvider.format(toolExecute), "", false));
+                        String toolText = toolProvider.format(toolExecute);
+                        manage.sink.tryEmitNext(super.toChatMessageVO(chatId, chatRecordId, toolText, "", false));
+                        answerTexts.add(toolText);
                     }
                 })
                 .onCompleteResponse(response -> {
@@ -92,7 +99,8 @@ public class ChatStep extends AbsChatStep {
                 .start();
         ChatResponse response = futureChatResponse.join();
         context.put("messageList", resetMessageToJSON(historyMessages));
-        return response.aiMessage().text(); // 阻塞当前线程直到 futureChatResponse 完成
+        context.put("reasoningContent", response.aiMessage().thinking());
+        return String.join("", answerTexts);
     }
 
 

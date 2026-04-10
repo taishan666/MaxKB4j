@@ -61,8 +61,12 @@ public abstract class AbsChatStep extends AbsStep {
                 }
             }
         }
-        manage.sink.tryEmitNext(this.toChatMessageVO(chatId, chatRecordId, isAiAnswer?"":answerText.get(), "",true));
+        if (!isAiAnswer){
+            manage.sink.tryEmitNext(this.toChatMessageVO(chatId, chatRecordId,answerText.get(), "",true));
+        }
         manage.context.put("answer", answerText.get());
+        manage.context.put("reasoningContent", context.get("reasoningContent"));
+
     }
 
 

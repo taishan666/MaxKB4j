@@ -65,6 +65,7 @@ public class OpenAiModelProvider extends AbsModelProvider {
                 .modelName(modelName)
                 .temperature(getDoubleParam(params, "temperature"))
                 .maxTokens(getIntParam(params, "maxTokens"))
+                .returnThinking(true)
                 .build();
     }
 
@@ -77,6 +78,7 @@ public class OpenAiModelProvider extends AbsModelProvider {
                 .modelName(modelName)
                 .temperature(getDoubleParam(params, "temperature"))
                 .maxTokens(getIntParam(params, "maxTokens"))
+                .returnThinking(true)
                 .build();
     }
 

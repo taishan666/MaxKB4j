@@ -132,8 +132,8 @@ public class ToolProviderService implements IToolProviderService {
                     String name = skillElement.getElementsByTag("name").text();
                     String description = skillElement.getElementsByTag("description").text();
                     ToolSpecification spec = ToolSpecification.builder()
-                            .name(name)
-                            .description(description)
+                            .name("tool_"+skill.getId())
+                            .description("**" + name + "**" + ":" + description)
                             .parameters(JsonObjectSchema.builder().addStringProperty("question", "User's input question").required("question").build())
                             .build();
                     ToolExecutor executor = (toolExecutionRequest, memoryId) -> {
@@ -292,7 +292,7 @@ public class ToolProviderService implements IToolProviderService {
         String type = split[0];
         String id = split[1];
         if ("tool".equals(type)) {
-            ToolEntity tool = toolService.lambdaQuery().select(ToolEntity::getIcon, ToolEntity::getName).eq(ToolEntity::getId, id).one();
+            ToolEntity tool = toolService.lambdaQuery().select(ToolEntity::getIcon, ToolEntity::getToolType,ToolEntity::getName).eq(ToolEntity::getId, id).one();
             if (tool == null) {
                 return MessageUtils.buildToolCallRender(request.id(),status,"", name, "", request.arguments(), resultText);
             }

@@ -50,7 +50,8 @@ public class PipelineManage {
             step.run(this);
         }
         String answer =(String) this.context.getOrDefault("answer","");
-        return Answer.builder().content(answer).reasoningContent("").viewType("many_view").runtimeNodeId("ai-chat-node").build();
+        String reasoningContent =(String) this.context.getOrDefault("reasoningContent","");
+        return Answer.builder().content(answer).reasoningContent(reasoningContent).viewType("many_view").runtimeNodeId("ai-chat-node").build();
     }
 
     public List<ChatMessage> getHistoryMessages(int dialogueNumber) {
