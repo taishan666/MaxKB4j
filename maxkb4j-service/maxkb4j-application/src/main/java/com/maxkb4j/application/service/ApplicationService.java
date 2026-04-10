@@ -147,12 +147,10 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
      * 批量保存资源映射关系
      */
     private void saveResourceMappings(String appId,
-                                      List<String> applicationIds,
                                       List<String> knowledgeIds,
                                       List<String> toolIds,
                                       List<String> modelIds) {
         List<TargetResource> targets = new ArrayList<>();
-        targets.addAll(applicationIds.stream().filter(Objects::nonNull).map(id -> new TargetResource(id, ResourceType.APPLICATION)).toList());
         targets.addAll(knowledgeIds.stream().filter(Objects::nonNull).map(id -> new TargetResource(id, ResourceType.KNOWLEDGE)).toList());
         targets.addAll(toolIds.stream().filter(Objects::nonNull).map(id -> new TargetResource(id, ResourceType.TOOL)).toList());
         targets.addAll(modelIds.stream().filter(Objects::nonNull).map(id -> new TargetResource(id, ResourceType.MODEL)).toList());
@@ -174,8 +172,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
                 app.setDesc(application.getDesc());
                 app.setIcon(StringUtils.isNotBlank(application.getIcon()) ? application.getIcon() : app.getIcon());
                 saveMk(maxKb4j);
-                saveResourceMappings(application.getId(),
-                        application.getApplicationIds(), application.getKnowledgeIds(), application.getToolIds(),
+                saveResourceMappings(application.getId(), application.getKnowledgeIds(), application.getToolIds(),
                         List.of(app.getModelId(), app.getSttModelId(), app.getTtsModelId()));
                 return app;
             }
@@ -190,8 +187,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         application.setToolIds(List.of());
         application.setKnowledgeIds(List.of());
         application.setApplicationIds(List.of());
-        saveResourceMappings(application.getId(),
-                application.getApplicationIds(), application.getKnowledgeIds(), application.getToolIds(),
+        saveResourceMappings(application.getId(), application.getKnowledgeIds(), application.getToolIds(),
                 List.of(application.getModelId(), application.getSttModelId(), application.getTtsModelId()));
         this.saveApp(application);
         return application;
@@ -319,8 +315,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
                         .map(JSONObject::new).ifPresent(baseNode -> updateAppFromBaseNode(app, baseNode));
             }
         }
-        saveResourceMappings(app.getId(),
-                app.getApplicationIds(), app.getKnowledgeIds(), app.getToolIds(),
+        saveResourceMappings(app.getId(), app.getKnowledgeIds(), app.getToolIds(),
                 List.of(app.getModelId(), app.getSttModelId(), app.getTtsModelId()));
         return this.updateById(app);
     }

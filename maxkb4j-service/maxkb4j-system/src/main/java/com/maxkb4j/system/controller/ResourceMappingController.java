@@ -25,7 +25,7 @@ public class ResourceMappingController {
 
     @GetMapping("/resource_mapping/{resourceType}/{resourceId}/{current}/{size}")
     public R<IPage<ResourceUseVO>> resourceMappingKnowledgePage(@PathVariable String resourceType, @PathVariable String resourceId, @PathVariable int current, @PathVariable int size, String resourceName, String userName, String[] sourceType) {
-        return R.success(resourceMappingService.selectUserPage(resourceType, resourceId, current, size, resourceName, userName, sourceType));
+        return R.success(resourceMappingService.selectPage(resourceType, resourceId, current, size, resourceName, userName, sourceType));
     }
 
 }

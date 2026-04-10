@@ -40,7 +40,7 @@ public class ResourceMappingService extends ServiceImpl<ResourceMappingMapper, R
     private final KnowledgeMapper knowledgeMapper;
     private final ToolMapper toolMapper;
 
-    public IPage<ResourceUseVO> selectUserPage(String resourceType, String resourceId, int current, int size, String resourceName, String userName, String[] sourceType) {
+    public IPage<ResourceUseVO> selectPage(String resourceType, String resourceId, int current, int size, String resourceName, String userName, String[] sourceType) {
         Page<ResourceMappingEntity> resourcePage = new Page<>(current, size);
         LambdaQueryWrapper<ResourceMappingEntity> wrapper = Wrappers.lambdaQuery();
         wrapper.eq(ResourceMappingEntity::getTargetType, resourceType);
