@@ -28,6 +28,7 @@ import com.maxkb4j.knowledge.store.IDataStore;
 import com.maxkb4j.knowledge.vo.KnowledgeListVO;
 import com.maxkb4j.knowledge.vo.KnowledgeVO;
 import com.maxkb4j.system.constant.AuthTargetType;
+import com.maxkb4j.system.entity.TargetResource;
 import com.maxkb4j.system.service.IResourceMappingService;
 import com.maxkb4j.user.service.IUserResourcePermissionService;
 import com.maxkb4j.user.service.IUserService;
@@ -168,7 +169,7 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
             knowledge.setWorkFlow(new JSONObject());
         }
         this.save(knowledge);
-        resourceMappingService.relation(ResourceType.KNOWLEDGE, knowledge.getId(), ResourceType.MODEL, knowledge.getEmbeddingModelId());
+        resourceMappingService.relation(ResourceType.KNOWLEDGE, knowledge.getId(), List.of(new TargetResource(knowledge.getEmbeddingModelId(), ResourceType.MODEL)));
         userResourcePermissionService.ownerSave(AuthTargetType.KNOWLEDGE, knowledge.getId(), knowledge.getUserId());
         return knowledge;
     }
@@ -332,7 +333,7 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
         return this.lambdaQuery().select(KnowledgeEntity::getId, KnowledgeEntity::getName, KnowledgeEntity::getDesc).in(KnowledgeEntity::getId, knowledgeIds).list();
     }
 
-    public void changeResourceMapping(KnowledgeEntity datasetEntity) {
-        resourceMappingService.relation(ResourceType.KNOWLEDGE, datasetEntity.getId(), ResourceType.MODEL, datasetEntity.getEmbeddingModelId());
+    public void changeResourceMapping(KnowledgeEntity knowledge) {
+        resourceMappingService.relation(ResourceType.KNOWLEDGE, knowledge.getId(), List.of(new TargetResource(knowledge.getEmbeddingModelId(), ResourceType.MODEL)));
     }
 }

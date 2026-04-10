@@ -3,7 +3,6 @@ package com.maxkb4j.system.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.maxkb4j.common.util.StpKit;
 import com.maxkb4j.system.entity.ResourceMappingEntity;
 import com.maxkb4j.system.entity.TargetResource;
 import com.maxkb4j.system.mapper.ResourceMappingMapper;
@@ -19,23 +18,6 @@ import java.util.List;
 @Service
 public class ResourceMappingServiceImpl extends ServiceImpl<ResourceMappingMapper, ResourceMappingEntity> implements IResourceMappingService {
 
-    @Override
-    public boolean relation(String sourceType, String sourceId, String targetType, String targetId) {
-        long count = this.count(Wrappers.<ResourceMappingEntity>lambdaQuery()
-                .eq(ResourceMappingEntity::getSourceType, sourceType)
-                .eq(ResourceMappingEntity::getSourceId, sourceId)
-                .eq(ResourceMappingEntity::getTargetType, targetType)
-                .eq(ResourceMappingEntity::getTargetId, targetId));
-        if (count > 0){
-            return true;
-        }
-        ResourceMappingEntity entity = new ResourceMappingEntity();
-        entity.setTargetId(targetId);
-        entity.setSourceType(sourceType);
-        entity.setSourceId(sourceId);
-        entity.setTargetType(targetType);
-        return this.saveOrUpdate(entity);
-    }
 
     @Transactional
     @Override
