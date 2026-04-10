@@ -56,7 +56,7 @@ public class ResourceMappingServiceImpl extends ServiceImpl<ResourceMappingMappe
         entity.setSourceId(sourceId);
         entity.setTargetType(targetType);
         entity.setUserId(userId != null ? userId : StpKit.ADMIN.getLoginIdAsString());
-        return this.save(entity);
+        return this.saveOrUpdate(entity);
     }
 
     @Override
