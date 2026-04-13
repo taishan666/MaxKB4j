@@ -26,12 +26,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static com.maxkb4j.workflow.enums.NodeType.FORM;
-import static com.maxkb4j.workflow.enums.NodeType.LOOP_BREAK;
-import static com.maxkb4j.workflow.enums.NodeType.USER_SELECT;
+import static com.maxkb4j.workflow.enums.NodeType.*;
 
 /**
  * 循环节点处理器
@@ -77,7 +78,7 @@ public class LoopNodeHandler extends AbsNodeHandler {
     /**
      * 根据循环类型执行循环逻辑
      */
-    private List<JSONObject> executeLoop(Workflow workflow, AbsNode node, LoopNode.NodeParams params) {
+    private List<JSONObject> executeLoop(Workflow workflow, AbsNode node, LoopNode.NodeParams params) throws ExecutionException, InterruptedException, TimeoutException {
         String loopType = params.getLoopType();
         if (LOOP_TYPE_ARRAY.equals(loopType)) {
             return executeArrayLoop(workflow, node, params.getArray(), params.getLoopBody());
@@ -92,7 +93,7 @@ public class LoopNodeHandler extends AbsNodeHandler {
      * 执行数组遍历循环
      */
     private List<JSONObject> executeArrayLoop(Workflow workflow, AbsNode node,
-                                               List<String> arrayRef, JSONObject loopBody) {
+                                               List<String> arrayRef, JSONObject loopBody) throws ExecutionException, InterruptedException, TimeoutException {
         Object value = workflow.getReferenceField(arrayRef);
         if (value == null) {
             return new ArrayList<>();
@@ -105,7 +106,7 @@ public class LoopNodeHandler extends AbsNodeHandler {
      * 执行指定次数循环
      */
     private List<JSONObject> executeCountLoop(Workflow workflow, AbsNode node,
-                                               Integer count, JSONObject loopBody) {
+                                               Integer count, JSONObject loopBody) throws ExecutionException, InterruptedException, TimeoutException {
         int iterations = count != null ? count : 0;
         List<Object> items = createIndexList(iterations);
         return executeIterations(workflow, node, items, loopBody);
@@ -151,7 +152,7 @@ public class LoopNodeHandler extends AbsNodeHandler {
      * 执行循环迭代
      */
     private List<JSONObject> executeIterations(Workflow workflow, AbsNode node,
-                                                List<Object> items, JSONObject loopBody) {
+                                                List<Object> items, JSONObject loopBody) throws ExecutionException, InterruptedException, TimeoutException {
         LoopExecutionContext ctx = prepareLoopContext(node);
 
         // 设置子节点的 runtimeNodeId
@@ -210,7 +211,7 @@ public class LoopNodeHandler extends AbsNodeHandler {
      * 执行单次循环迭代
      */
     private void executeSingleIteration(Workflow workflow, AbsNode node, List<Object> items,
-                                         JSONObject loopBody, LoopExecutionContext ctx) {
+                                         JSONObject loopBody, LoopExecutionContext ctx) throws ExecutionException, InterruptedException, TimeoutException {
         // 清理前一次迭代数据
         removePreviousIterationData(ctx);
 
@@ -234,7 +235,7 @@ public class LoopNodeHandler extends AbsNodeHandler {
         emitIterationEnd(workflow, node, childNodeRef);
 
         // 等待执行完成
-        future.join();
+        future.get(5L, TimeUnit.MINUTES);
 
         // 更新状态
         updateIterationState(node, loopWorkflow, ctx);

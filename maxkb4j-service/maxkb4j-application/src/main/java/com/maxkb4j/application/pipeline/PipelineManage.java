@@ -1,11 +1,11 @@
 package com.maxkb4j.application.pipeline;
 
 import com.alibaba.fastjson.JSONObject;
-import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.application.entity.ApplicationChatRecordEntity;
 import com.maxkb4j.application.vo.ApplicationVO;
 import com.maxkb4j.common.domain.dto.Answer;
 import com.maxkb4j.common.domain.dto.ChatMessageVO;
+import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.common.domain.dto.ChatRecordDTO;
 import com.maxkb4j.knowledge.vo.ParagraphVO;
 import dev.langchain4j.data.message.AiMessage;
@@ -36,7 +36,7 @@ public class PipelineManage {
     }
 
 
-    public Answer run(ApplicationVO application, ChatParams chatParams, Sinks.Many<ChatMessageVO> sink) {
+    public Answer run(ApplicationVO application, ChatParams chatParams, Sinks.Many<ChatMessageVO> sink)  {
         if (application != null) {
             this.application= application;
         }
@@ -47,7 +47,13 @@ public class PipelineManage {
             this.sink = sink;
         }
         for (AbsStep step : stepList) {
-            step.run(this);
+            try {
+                step.run(this);
+            } catch (Exception e) {
+                assert sink != null;
+                sink.tryEmitError(e);
+                throw new RuntimeException(e);
+            }
         }
         String answer =(String) this.context.getOrDefault("answer","");
         String reasoningContent =(String) this.context.getOrDefault("reasoningContent","");

@@ -8,7 +8,7 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-public  class LlmModelParams implements IModelParams {
+public  class LLMChatModelParams implements IModelParams {
 
     @Override
     public List<BaseField> toForm() {

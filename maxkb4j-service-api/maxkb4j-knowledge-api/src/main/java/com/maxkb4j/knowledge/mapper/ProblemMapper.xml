@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.maxkb4j.knowledge.mapper.ProblemMapper">
+
+    <select id="pageByDatasetId" resultType="com.maxkb4j.knowledge.vo.ProblemVO">
+        SELECT
+            p.id,
+            p.content,
+            p.hit_num,
+            p.knowledge_id,
+            p.create_time,
+            p.update_time,
+            COUNT(pp.id) AS paragraph_count,
+            MAX(pp.document_id) AS document_id,
+            MAX(pp.paragraph_id) AS paragraph_id
+        FROM
+            problem p
+        LEFT JOIN
+            problem_paragraph_mapping pp ON p.id = pp.problem_id
+        WHERE
+            p.knowledge_id = #{knowledgeId}
+        <if test="content != null and content != ''">
+            AND p.content LIKE CONCAT('%', #{content}, '%')
+        </if>
+        GROUP BY
+            p.id, p.content, p.hit_num, p.knowledge_id, p.create_time, p.update_time
+        ORDER BY
+            p.create_time DESC
+    </select>
+
+</mapper>

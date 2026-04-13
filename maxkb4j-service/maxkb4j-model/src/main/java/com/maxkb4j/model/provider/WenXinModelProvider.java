@@ -2,6 +2,7 @@ package com.maxkb4j.model.provider;
 
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.common.mp.entity.ModelCredential;
+import com.maxkb4j.model.custom.params.impl.LLMChatModelParams;
 import com.maxkb4j.model.enums.ModelType;
 import com.maxkb4j.model.vo.ModelInfo;
 import dev.langchain4j.community.model.qianfan.QianfanChatModel;
@@ -19,9 +20,9 @@ import java.util.List;
 public class WenXinModelProvider extends AbsModelProvider {
 
     private static final List<ModelInfo> MODEL_INFOS = List.of(
-            new ModelInfo("ERNIE-Bot-4", "", ModelType.LLM),
-            new ModelInfo("ERNIE-Bot", "", ModelType.LLM),
-            new ModelInfo("ERNIE-Bot-turbo", "", ModelType.LLM),
+            new ModelInfo("ERNIE-Bot-4", "", ModelType.LLM,new LLMChatModelParams()),
+            new ModelInfo("ERNIE-Bot", "", ModelType.LLM,new LLMChatModelParams()),
+            new ModelInfo("ERNIE-Bot-turbo", "", ModelType.LLM,new LLMChatModelParams()),
             new ModelInfo("Embedding-V1", "", ModelType.EMBEDDING)
     );
 

@@ -36,6 +36,9 @@ import org.springframework.stereotype.Component;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.springframework.web.util.UriUtils.extractFileExtension;
@@ -157,7 +160,7 @@ public class LLMNodeHandler extends AbsNodeHandler {
     }
 
     private NodeResult writeContextStream(AiChatNodeParams params, TokenStream tokenStream,
-                                          Workflow workflow, AbsNode node) {
+                                          Workflow workflow, AbsNode node) throws ExecutionException, InterruptedException, TimeoutException {
         List<String> answerTexts = new ArrayList<>();
         AtomicReference<String> errorMessage = new AtomicReference<>("");
         boolean isResult = Boolean.TRUE.equals(params.getIsResult());
@@ -166,7 +169,7 @@ public class LLMNodeHandler extends AbsNodeHandler {
                 .map(setting -> setting.getBooleanValue("reasoningContentEnable"))
                 .orElse(false);
 
-        CompletableFuture<ChatResponse> chatResponseFuture = new CompletableFuture<>();
+        CompletableFuture<ChatResponse> future = new CompletableFuture<>();
         tokenStream.onPartialThinking(thinking -> {
                     if (isResult && reasoningContentEnable) {
                         emitMessage(workflow, node, "", thinking.text());
@@ -187,13 +190,13 @@ public class LLMNodeHandler extends AbsNodeHandler {
                         emitMessage(workflow, node, content, "");
                         answerTexts.add(content);
                     }
-                }).onCompleteResponse(chatResponseFuture::complete)
+                }).onCompleteResponse(future::complete)
                 .onError(error -> {
                     errorMessage.set(error.getMessage());
-                    chatResponseFuture.completeExceptionally(error);
+                    future.completeExceptionally(error);
                 })
                 .start();
-        ChatResponse response = chatResponseFuture.join();
+        ChatResponse response = future.get(5L, TimeUnit.MINUTES);
         String answer = String.join("", answerTexts);
         if (isResult) {
             setAnswer(node, answer);

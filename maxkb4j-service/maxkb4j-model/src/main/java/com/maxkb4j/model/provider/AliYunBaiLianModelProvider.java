@@ -61,6 +61,7 @@ public class AliYunBaiLianModelProvider extends AbsModelProvider {
                 .modelName(modelName)
                 .temperature(getFloatParam(params, "temperature"))
                 .maxTokens(getIntParam(params, "maxTokens"))
+                .isMultimodalModel(getBooleanParam(params, "isMultimodalModel"))
                 .build();
     }
 
@@ -71,6 +72,7 @@ public class AliYunBaiLianModelProvider extends AbsModelProvider {
                 .modelName(modelName)
                 .temperature(getFloatParam(params, "temperature"))
                 .maxTokens(getIntParam(params, "maxTokens"))
+                .isMultimodalModel(getBooleanParam(params, "isMultimodalModel"))
                 .build();
     }
 
