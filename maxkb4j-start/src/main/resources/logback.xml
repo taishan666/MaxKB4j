@@ -17,12 +17,9 @@
 
     <!-- 系统日志输出 -->
     <appender name="file_info" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${log.path}/${log.appname}-info.log</file>
-        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-            <fileNamePattern>${log.path}/archive/${log.appname}-info.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
-            <maxFileSize>100MB</maxFileSize>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${log.path}/${log.appname}-info.%d{yyyy-MM-dd}.log</fileNamePattern>
             <maxHistory>30</maxHistory>
-            <totalSizeCap>10GB</totalSizeCap>
         </rollingPolicy>
         <encoder>
             <pattern>${log.pattern}</pattern>
@@ -37,12 +34,9 @@
 
     <!-- 警告日志输出 -->
     <appender name="file_warn" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${log.path}/${log.appname}-warn.log</file>
-        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-            <fileNamePattern>${log.path}/archive/${log.appname}-warn.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
-            <maxFileSize>50MB</maxFileSize>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${log.path}/${log.appname}-warn.%d{yyyy-MM-dd}.log</fileNamePattern>
             <maxHistory>30</maxHistory>
-            <totalSizeCap>5GB</totalSizeCap>
         </rollingPolicy>
         <encoder>
             <pattern>${log.pattern}</pattern>
@@ -57,12 +51,9 @@
 
     <!-- 错误日志输出 -->
     <appender name="file_error" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${log.path}/${log.appname}-error.log</file>
-        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-            <fileNamePattern>${log.path}/archive/${log.appname}-error.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
-            <maxFileSize>50MB</maxFileSize>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${log.path}/${log.appname}-error.%d{yyyy-MM-dd}.log</fileNamePattern>
             <maxHistory>60</maxHistory>
-            <totalSizeCap>5GB</totalSizeCap>
         </rollingPolicy>
         <encoder>
             <pattern>${log.pattern}</pattern>
