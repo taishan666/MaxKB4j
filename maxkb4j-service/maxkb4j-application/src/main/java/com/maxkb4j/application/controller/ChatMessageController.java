@@ -7,6 +7,7 @@ import com.maxkb4j.common.domain.dto.ChatMessageVO;
 import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.common.enums.ChatUserType;
 import com.maxkb4j.common.util.StpKit;
+import com.maxkb4j.common.util.WebUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
@@ -36,6 +37,7 @@ public class ChatMessageController {
         params.setChatId(chatId);
         params.setChatUserId(StpKit.ADMIN.getLoginIdAsString());
         params.setChatUserType(ChatUserType.ANONYMOUS_USER.name());
+        params.setIpAddress(WebUtil.getIP());
         params.setDebug(true);
         // 异步执行业务逻辑
         chatService.chatMessageAsync(params, sink);

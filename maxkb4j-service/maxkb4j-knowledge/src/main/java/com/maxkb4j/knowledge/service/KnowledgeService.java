@@ -1,11 +1,13 @@
 package com.maxkb4j.knowledge.service;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.maxkb4j.common.constant.ResourceType;
 import com.maxkb4j.common.constant.RoleType;
 import com.maxkb4j.common.domain.form.BaseField;
 import com.maxkb4j.common.domain.form.LocalFileUpload;
@@ -27,6 +29,8 @@ import com.maxkb4j.knowledge.store.IDataStore;
 import com.maxkb4j.knowledge.vo.KnowledgeListVO;
 import com.maxkb4j.knowledge.vo.KnowledgeVO;
 import com.maxkb4j.system.constant.AuthTargetType;
+import com.maxkb4j.system.entity.TargetResource;
+import com.maxkb4j.system.service.IResourceMappingService;
 import com.maxkb4j.user.service.IUserResourcePermissionService;
 import com.maxkb4j.user.service.IUserService;
 import com.maxkb4j.workflow.builder.NodeBuilder;
@@ -34,6 +38,7 @@ import com.maxkb4j.workflow.logic.LogicFlow;
 import com.maxkb4j.workflow.model.KnowledgeParams;
 import com.maxkb4j.workflow.model.KnowledgeWorkflow;
 import com.maxkb4j.workflow.node.AbsNode;
+import com.maxkb4j.workflow.service.IWorkFlowActuator;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -42,7 +47,6 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
-import com.maxkb4j.workflow.service.IWorkFlowActuator;
 
 import java.io.IOException;
 import java.util.*;
@@ -73,6 +77,7 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
     private final IWorkFlowActuator workFlowActuator;
     private final KnowledgeExportHandler knowledgeExportHandler;
     private final NodeBuilder nodeBuilder;
+    private final IResourceMappingService resourceMappingService;
 
 
     public IPage<KnowledgeVO> selectKnowledgePage(Page<KnowledgeVO> knowledgePage, KnowledgeQuery query) {
@@ -98,8 +103,7 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
 
 
     public List<ParagraphEntity> getParagraphByProblemId(String problemId) {
-        List<ProblemParagraphEntity> list = problemParagraphMapper.selectList(Wrappers.<ProblemParagraphEntity>lambdaQuery()
-                .select(ProblemParagraphEntity::getParagraphId).eq(ProblemParagraphEntity::getProblemId, problemId));
+        List<ProblemParagraphEntity> list = problemParagraphMapper.selectList(Wrappers.<ProblemParagraphEntity>lambdaQuery().select(ProblemParagraphEntity::getParagraphId).eq(ProblemParagraphEntity::getProblemId, problemId));
         if (!CollectionUtils.isEmpty(list)) {
             List<String> paragraphIds = list.stream().map(ProblemParagraphEntity::getParagraphId).toList();
             return paragraphMapper.selectByIds(paragraphIds);
@@ -118,15 +122,14 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
         knowledgeActionService.lambdaQuery().eq(KnowledgeActionEntity::getKnowledgeId, id);
         userResourcePermissionService.remove(AuthTargetType.KNOWLEDGE, id);
         compositeStore.deleteByKnowledgeId(id);
+        resourceMappingService.deleteBySourceId(ResourceType.KNOWLEDGE, id);
         return this.removeById(id);
     }
 
 
-
     // 公共方法：根据 knowledgeId 获取文档列表
     private List<DocumentEntity> getDocumentsByKnowledgeId(String knowledgeId) {
-        return documentService.list(Wrappers.<DocumentEntity>lambdaQuery()
-                .eq(DocumentEntity::getKnowledgeId, knowledgeId));
+        return documentService.list(Wrappers.<DocumentEntity>lambdaQuery().eq(DocumentEntity::getKnowledgeId, knowledgeId));
     }
 
     // 根据 ID 导出 ZIP
@@ -163,11 +166,12 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
     public KnowledgeEntity createKnowledge(KnowledgeEntity knowledge) {
         knowledge.setMeta(new JSONObject());
         knowledge.setUserId(StpKit.ADMIN.getLoginIdAsString());
-        if (knowledge.getWorkFlow() == null){
+        if (knowledge.getWorkFlow() == null) {
             knowledge.setWorkFlow(new JSONObject());
         }
         this.save(knowledge);
         userResourcePermissionService.ownerSave(AuthTargetType.KNOWLEDGE, knowledge.getId(), knowledge.getUserId());
+        saveResourceMappings(knowledge);
         return knowledge;
     }
 
@@ -217,49 +221,49 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
             BaseField field2 = new TextInputField("选择器", "selector", "默认为 body，可输入 .classname/#idname/tagname", false);
             return List.of(field1, field2);
         } else {
-            BaseField localFileUpload= new LocalFileUpload(50, 100, List.of("TXT", "DOCX", "PDF", "HTML", "XLS", "XLSX", "CSV"));
+            BaseField localFileUpload = new LocalFileUpload(50, 100, List.of("TXT", "DOCX", "PDF", "HTML", "XLS", "XLSX", "CSV"));
             if (params == null) {
                 return List.of(localFileUpload);
             }
-            JSONObject node=params.getJSONObject("node");
+            JSONObject node = params.getJSONObject("node");
             if (node == null) {
                 return List.of(localFileUpload);
             }
-            JSONObject properties=node.getJSONObject("properties");
+            JSONObject properties = node.getJSONObject("properties");
             if (properties == null) {
                 return List.of(localFileUpload);
             }
-            JSONObject nodeData=properties.getJSONObject("nodeData");
+            JSONObject nodeData = properties.getJSONObject("nodeData");
             if (nodeData == null) {
                 return List.of(localFileUpload);
             }
-            Integer fileCountLimit=nodeData.getInteger("fileCountLimit");
-            Integer fileSizeLimit=nodeData.getInteger("fileSizeLimit");
-            List<String> fileTypeList=nodeData.getJSONArray("fileTypeList").toJavaList(String.class);
+            Integer fileCountLimit = nodeData.getInteger("fileCountLimit");
+            Integer fileSizeLimit = nodeData.getInteger("fileSizeLimit");
+            List<String> fileTypeList = nodeData.getJSONArray("fileTypeList").toJavaList(String.class);
             return List.of(new LocalFileUpload(fileCountLimit, fileSizeLimit, fileTypeList));
         }
     }
 
 
-    public JSONObject getKnowledgeWorkFlow(String id,boolean debug) {
+    public JSONObject getKnowledgeWorkFlow(String id, boolean debug) {
         JSONObject workFlow = null;
-        if (debug){
-            KnowledgeEntity knowledge =   baseMapper.selectById(id);
-            if (knowledge != null){
-                workFlow=knowledge.getWorkFlow();
+        if (debug) {
+            KnowledgeEntity knowledge = baseMapper.selectById(id);
+            if (knowledge != null) {
+                workFlow = knowledge.getWorkFlow();
             }
-        }else {
-            KnowledgeVersionEntity KnowledgeVersion =  knowledgeVersionService.lambdaQuery().eq(KnowledgeVersionEntity::getKnowledgeId, id).orderByDesc(KnowledgeVersionEntity::getCreateTime).last("limit 1").one();
-            if (KnowledgeVersion != null){
-                workFlow=KnowledgeVersion.getWorkFlow();
+        } else {
+            KnowledgeVersionEntity KnowledgeVersion = knowledgeVersionService.lambdaQuery().eq(KnowledgeVersionEntity::getKnowledgeId, id).orderByDesc(KnowledgeVersionEntity::getCreateTime).last("limit 1").one();
+            if (KnowledgeVersion != null) {
+                workFlow = KnowledgeVersion.getWorkFlow();
             }
         }
         return workFlow;
     }
 
     public KnowledgeActionEntity uploadDocument(String id, KnowledgeParams params, boolean debug) {
-        JSONObject knowledgeWorkFlow =  getKnowledgeWorkFlow(id,debug);
-        if (knowledgeWorkFlow == null){
+        JSONObject knowledgeWorkFlow = getKnowledgeWorkFlow(id, debug);
+        if (knowledgeWorkFlow == null) {
             throw new IllegalArgumentException("未找到知识库 ID: " + id);
         }
         KnowledgeActionEntity knowledgeAction = new KnowledgeActionEntity();
@@ -277,10 +281,7 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
         params.setActionId(knowledgeAction.getId());
         params.setKnowledgeId(id);
         params.setDebug(debug);
-        KnowledgeWorkflow workflow = new KnowledgeWorkflow(
-                nodes,
-                logicFlow.getEdges(),
-                params);
+        KnowledgeWorkflow workflow = new KnowledgeWorkflow(nodes, logicFlow.getEdges(), params);
         CompletableFuture.runAsync(() -> workFlowActuator.execute(workflow));
         return knowledgeAction;
     }
@@ -292,15 +293,15 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
     public IPage<KnowledgeActionEntity> actionPage(String id, int current, int size, String username, String state) {
         Page<KnowledgeActionEntity> actionPage = new Page<>(current, size);
         LambdaQueryWrapper<KnowledgeActionEntity> query = Wrappers.lambdaQuery();
-        if (!StringUtils.isEmpty(username)){
+        if (!StringUtils.isEmpty(username)) {
             query.eq(KnowledgeActionEntity::getMeta, username);
         }
-        if (!StringUtils.isEmpty(state)){
+        if (!StringUtils.isEmpty(state)) {
             query.eq(KnowledgeActionEntity::getState, state);
         }
         query.eq(KnowledgeActionEntity::getKnowledgeId, id);
         query.orderByDesc(KnowledgeActionEntity::getCreateTime);
-        return  knowledgeActionService.pageList(actionPage,username, state);
+        return knowledgeActionService.pageList(actionPage, username, state);
     }
 
     @Transactional
@@ -309,7 +310,7 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
         knowledge.setId(id);
         knowledge.setIsPublish(true);
         this.updateById(knowledge);
-        knowledge= this.getById(id);
+        knowledge = this.getById(id);
         KnowledgeVersionEntity knowledgeVersion = new KnowledgeVersionEntity();
         knowledgeVersion.setKnowledgeId(id);
         knowledgeVersion.setName(DateTimeUtil.now());
@@ -323,7 +324,7 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
         return knowledgeVersionService.lambdaQuery().eq(KnowledgeVersionEntity::getKnowledgeId, id).list();
     }
 
-    public Boolean knowledgeVersion(String versionId,KnowledgeVersionEntity  knowledgeVersion) {
+    public Boolean knowledgeVersion(String versionId, KnowledgeVersionEntity knowledgeVersion) {
         knowledgeVersion.setId(versionId);
         return knowledgeVersionService.updateById(knowledgeVersion);
     }
@@ -331,5 +332,50 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
     @Override
     public List<KnowledgeEntity> listNameAndDescByIds(List<String> knowledgeIds) {
         return this.lambdaQuery().select(KnowledgeEntity::getId, KnowledgeEntity::getName, KnowledgeEntity::getDesc).in(KnowledgeEntity::getId, knowledgeIds).list();
+    }
+
+
+    public void saveResourceMappings(KnowledgeEntity knowledge) {
+        List<String> modelIds = new ArrayList<>();
+        modelIds.add(knowledge.getEmbeddingModelId());
+        List<String> toolIds = new ArrayList<>();
+        JSONObject workFlow = knowledge.getWorkFlow();
+        if (workFlow != null && workFlow.containsKey("nodes")) {
+            JSONArray nodes = workFlow.getJSONArray("nodes");
+            if (nodes != null) {
+                for (int i = 0; i < nodes.size(); i++) {
+                    JSONObject node = nodes.getJSONObject(i);
+                    JSONObject properties = node.getJSONObject("properties");
+                    if (properties != null && properties.containsKey("nodeData")) {
+                        JSONObject nodeData = properties.getJSONObject("nodeData");
+                        if (nodeData != null && nodeData.containsKey("toolLibId")) {
+                            toolIds.add(nodeData.getString("toolLibId"));
+                        }
+                        if (nodeData != null && nodeData.containsKey("mcpToolId")) {
+                            toolIds.add(nodeData.getString("mcpToolId"));
+                        }
+                        if (nodeData != null && nodeData.containsKey("toolIds")) {
+                            toolIds.addAll((Collection<? extends String>) nodeData.get("toolIds"));
+                        }
+                        if (nodeData != null && nodeData.containsKey("modelId")) {
+                            modelIds.add(nodeData.getString("modelId"));
+                        }
+                        if (nodeData != null && nodeData.containsKey("ttsModelId")) {
+                            modelIds.add(nodeData.getString("ttsModelId"));
+                        }
+                        if (nodeData != null && nodeData.containsKey("sttModelId")) {
+                            modelIds.add(nodeData.getString("sttModelId"));
+                        }
+                        if (nodeData != null && nodeData.containsKey("rerankerModelId")) {
+                            modelIds.add(nodeData.getString("rerankerModelId"));
+                        }
+                    }
+                }
+            }
+        }
+        List<TargetResource> targets = new ArrayList<>();
+        targets.addAll(toolIds.stream().map(id -> new TargetResource(id, ResourceType.TOOL)).toList());
+        targets.addAll(modelIds.stream().filter(Objects::nonNull).map(id -> new TargetResource(id, ResourceType.MODEL)).toList());
+        resourceMappingService.relation(ResourceType.KNOWLEDGE, knowledge.getId(), targets);
     }
 }

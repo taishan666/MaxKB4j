@@ -5,10 +5,10 @@ import com.maxkb4j.application.enums.AIAnswerType;
 import com.maxkb4j.application.pipeline.AbsStep;
 import com.maxkb4j.application.pipeline.PipelineManage;
 import com.maxkb4j.application.vo.ApplicationVO;
-import com.maxkb4j.common.mp.entity.KnowledgeSetting;
-import com.maxkb4j.common.mp.entity.NoReferencesSetting;
 import com.maxkb4j.common.domain.dto.ChatMessageVO;
 import com.maxkb4j.common.domain.dto.MessageConverter;
+import com.maxkb4j.common.mp.entity.KnowledgeSetting;
+import com.maxkb4j.common.mp.entity.NoReferencesSetting;
 import com.maxkb4j.knowledge.vo.ParagraphVO;
 import dev.langchain4j.data.message.AiMessage;
 import org.springframework.util.CollectionUtils;
@@ -61,8 +61,12 @@ public abstract class AbsChatStep extends AbsStep {
                 }
             }
         }
-        manage.sink.tryEmitNext(this.toChatMessageVO(chatId, chatRecordId, isAiAnswer?"":answerText.get(), "",true));
+        if (!isAiAnswer){
+            manage.sink.tryEmitNext(this.toChatMessageVO(chatId, chatRecordId,answerText.get(), "",true));
+        }
         manage.context.put("answer", answerText.get());
+        manage.context.put("reasoningContent", context.get("reasoningContent"));
+
     }
 
 

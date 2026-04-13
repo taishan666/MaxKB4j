@@ -106,7 +106,7 @@ public class SearchDatasetStep extends AbsSearchDatasetStep {
 
     @Override
     public JSONObject getDetails() {
-        JSONObject details = new JSONObject();
+        JSONObject details = new JSONObject(true);
         details.put("step_type", "search_step");
         details.put("paragraphList", context.get("paragraphList"));
         details.put("runTime", context.get("runTime"));

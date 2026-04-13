@@ -8,23 +8,24 @@ import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.maxkb4j.application.builder.ChatServiceBuilder;
-import com.maxkb4j.common.cache.ChatCache;
-import com.maxkb4j.common.domain.dto.ChatInfo;
 import com.maxkb4j.application.dto.ChatQueryDTO;
+import com.maxkb4j.application.dto.ShareChatDTO;
 import com.maxkb4j.application.entity.*;
+import com.maxkb4j.application.enums.ShareLinkType;
 import com.maxkb4j.application.excel.ChatRecordDetailExcel;
 import com.maxkb4j.application.handler.PostResponseHandler;
 import com.maxkb4j.application.mapper.ApplicationChatMapper;
+import com.maxkb4j.application.mapper.ApplicationChatShareLinkMapper;
 import com.maxkb4j.application.vo.ApplicationVO;
 import com.maxkb4j.application.vo.ChatRecordDetailVO;
-import com.maxkb4j.common.domain.dto.ChatMessageVO;
-import com.maxkb4j.common.domain.dto.ChatParams;
-import com.maxkb4j.common.domain.dto.ChatRecordDTO;
-import com.maxkb4j.common.domain.dto.ChatResponse;
+import com.maxkb4j.application.vo.ShareChatVO;
+import com.maxkb4j.common.cache.ChatCache;
+import com.maxkb4j.common.domain.dto.*;
 import com.maxkb4j.common.exception.AccessNumLimitException;
 import com.maxkb4j.common.exception.ApiException;
 import com.maxkb4j.common.util.BeanUtil;
 import com.maxkb4j.common.util.DateTimeUtil;
+import com.maxkb4j.common.util.StpKit;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -37,6 +38,7 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
@@ -56,6 +58,7 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
     private final ApplicationVersionService applicationVersionService;
     private final PostResponseHandler postResponseHandler;
     private final TaskExecutor chatTaskExecutor;
+    private final ApplicationChatShareLinkMapper chatShareLinkMapper;
 
 
     public IPage<ApplicationChatEntity> chatLogs(String appId, int page, int size, ChatQueryDTO query) {
@@ -85,23 +88,22 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
                 throw new ApiException("应用未发布，请发布后使用。");
             }
         }
-        ChatInfo chatInfo = new ChatInfo(IdWorker.get32UUID(),appId);
+        ChatInfo chatInfo = new ChatInfo(IdWorker.get32UUID(), appId);
         ChatCache.put(chatInfo.getChatId(), chatInfo);
         return chatInfo.getChatId();
     }
 
 
-
-    public ChatInfo getChatInfo(String chatId,String appId) {
+    public ChatInfo getChatInfo(String chatId, String appId) {
         ChatInfo chatInfo = ChatCache.get(chatId);
         if (chatInfo == null) {
-            if (StringUtils.isBlank(appId)){
+            if (StringUtils.isBlank(appId)) {
                 ApplicationChatEntity chatEntity = this.lambdaQuery().select(ApplicationChatEntity::getApplicationId).eq(ApplicationChatEntity::getId, chatId).one();
                 if (chatEntity != null) {
-                    appId=chatEntity.getApplicationId();
+                    appId = chatEntity.getApplicationId();
                 }
             }
-            chatInfo = new ChatInfo(chatId,appId);
+            chatInfo = new ChatInfo(chatId, appId);
             List<ApplicationChatRecordEntity> chatRecordList = chatRecordService.lambdaQuery().eq(ApplicationChatRecordEntity::getChatId, chatId).list();
             chatInfo.setChatRecordList(BeanUtil.copyList(chatRecordList, ChatRecordDTO.class));
             ChatCache.put(chatInfo.getChatId(), chatInfo);
@@ -112,7 +114,7 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
 
     public ChatResponse chatMessage(ChatParams chatParams, Sinks.Many<ChatMessageVO> sink) {
         long startTime = System.currentTimeMillis();
-        ChatInfo chatInfo = this.getChatInfo(chatParams.getChatId(),chatParams.getAppId());
+        ChatInfo chatInfo = this.getChatInfo(chatParams.getChatId(), chatParams.getAppId());
         if (!visitCountCheck(chatParams)) {
             sink.tryEmitError(new AccessNumLimitException());
             return new ChatResponse(List.of(), null);
@@ -122,7 +124,7 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
         if (StringUtils.isNotBlank(chatParams.getChatRecordId())) {
             ChatRecordDTO chatRecord = historyChatRecordList.stream().filter(e -> e.getId().equals(chatParams.getChatRecordId())).findFirst().orElse(null);
             chatParams.setChatRecord(chatRecord);
-        }else {
+        } else {
             chatParams.setChatRecordId(IdWorker.get32UUID());
         }
         ApplicationVO application = applicationService.getAppDetail(chatInfo.getAppId(), chatParams.getDebug());
@@ -184,6 +186,35 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
     public Boolean deleteById(String chatId) {
         chatRecordService.lambdaUpdate().eq(ApplicationChatRecordEntity::getChatId, chatId).remove();
         return this.removeById(chatId);
+    }
+
+    @Override
+    public Map<String, String> shareChat(String id, String chatId, ShareChatDTO dto) {
+        ApplicationChatShareLinkEntity chatShareLink = new ApplicationChatShareLinkEntity();
+        chatShareLink.setChatId(chatId);
+        chatShareLink.setApplicationId(id);
+        chatShareLink.setUserId(StpKit.USER.getLoginIdAsString());
+        chatShareLink.setChatRecordIds(dto.getChatRecordIds());
+        chatShareLink.setShareType(ShareLinkType.PUBLIC.name());
+        chatShareLinkMapper.insert(chatShareLink);
+        return Map.of("link", chatShareLink.getId());
+    }
+
+    @Override
+    public ShareChatVO shareChat(String id) {
+        ShareChatVO shareChatVO = new ShareChatVO();
+        ApplicationChatShareLinkEntity chatShareLink = chatShareLinkMapper.selectById(id);
+        ApplicationChatEntity chatEntity = this.lambdaQuery().select(ApplicationChatEntity::getSummary).eq(ApplicationChatEntity::getId, chatShareLink.getChatId()).one();
+        shareChatVO.setSummary(chatEntity.getSummary());
+        List<ApplicationChatRecordEntity> chatRecordList = chatRecordService.lambdaQuery()
+                .select(ApplicationChatRecordEntity::getId,
+                        ApplicationChatRecordEntity::getProblemText,
+                        ApplicationChatRecordEntity::getAnswerText,
+                        ApplicationChatRecordEntity::getAnswerTextList,
+                        ApplicationChatRecordEntity::getCreateTime)
+                .in(ApplicationChatRecordEntity::getId,chatShareLink.getChatRecordIds()).list();
+        shareChatVO.setChatRecordList(chatRecordList);
+        return shareChatVO;
     }
 
 }

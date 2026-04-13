@@ -3,15 +3,16 @@ package com.maxkb4j.application.handler.impl;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.maxkb4j.common.cache.ChatCache;
-import com.maxkb4j.common.domain.dto.ChatInfo;
 import com.maxkb4j.application.entity.ApplicationChatEntity;
 import com.maxkb4j.application.entity.ApplicationChatRecordEntity;
 import com.maxkb4j.application.entity.ApplicationChatUserStatsEntity;
+import com.maxkb4j.application.enums.ChatSource;
 import com.maxkb4j.application.handler.PostResponseHandler;
 import com.maxkb4j.application.mapper.ApplicationChatMapper;
 import com.maxkb4j.application.mapper.ApplicationChatRecordMapper;
 import com.maxkb4j.application.service.ApplicationChatUserStatsService;
+import com.maxkb4j.common.cache.ChatCache;
+import com.maxkb4j.common.domain.dto.ChatInfo;
 import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.common.domain.dto.ChatRecordDTO;
 import com.maxkb4j.common.domain.dto.ChatResponse;
@@ -49,10 +50,10 @@ public class ChatPostHandler implements PostResponseHandler {
         JSONObject details = chatResponse.getRunDetails();
         ChatRecordDTO chatRecord=chatParams.getChatRecord();
         ApplicationChatRecordEntity chatRecordEntity = new ApplicationChatRecordEntity();
+        chatRecordEntity.setId(chatRecordId);
+        chatRecordEntity.setChatId(chatId);
+        chatRecordEntity.setProblemText(problemText);
         if (chatRecord != null) {
-            chatRecordEntity.setId(chatRecordId);
-            chatRecordEntity.setChatId(chatId);
-            chatRecordEntity.setProblemText(chatRecord.getProblemText());
             chatRecordEntity.setAnswerText(answerText);
             chatRecordEntity.setAnswerTextList(answerTextList);
             chatRecordEntity.setIndex(chatRecord.getIndex());
@@ -61,12 +62,7 @@ public class ChatPostHandler implements PostResponseHandler {
             chatRecordEntity.setCost(messageTokens + answerTokens);
             chatRecordEntity.setRunTime(runTime + chatRecord.getRunTime());
             chatRecordEntity.setVoteStatus(chatRecord.getVoteStatus());
-            chatRecordEntity.setDetails(details);
-            chatRecordEntity.setImproveParagraphIdList(List.of());
         } else {
-            chatRecordEntity.setId(chatRecordId);
-            chatRecordEntity.setChatId(chatId);
-            chatRecordEntity.setProblemText(problemText);
             chatRecordEntity.setAnswerText(answerText);
             chatRecordEntity.setAnswerTextList(answerTextList);
             if (chatInfo!=null){
@@ -79,9 +75,9 @@ public class ChatPostHandler implements PostResponseHandler {
             chatRecordEntity.setRunTime(runTime);
             chatRecordEntity.setVoteStatus("-1");
             chatRecordEntity.setCost(messageTokens + answerTokens);
-            chatRecordEntity.setDetails(details);
-            chatRecordEntity.setImproveParagraphIdList(List.of());
         }
+        chatRecordEntity.setDetails(details);
+        chatRecordEntity.setImproveParagraphIdList(List.of());
         ChatRecordDTO chatRecordDTO=BeanUtil.copy(chatRecordEntity, ChatRecordDTO.class);
         if (chatInfo==null){
             chatInfo = new ChatInfo(chatId, chatParams.getAppId());
@@ -112,6 +108,8 @@ public class ChatPostHandler implements PostResponseHandler {
                 chatEntity.setTrampleNum(0);
                 chatEntity.setChatRecordCount(1);
                 chatEntity.setMarkSum(0);
+                chatEntity.setIpAddress(chatParams.getIpAddress());
+                chatEntity.setSource(new JSONObject(Map.of("type", ChatSource.ONLINE)));
                 chatMapper.insert(chatEntity);
             }else {
                 chatEntity.setChatRecordCount(chatInfo.getChatRecordList().size());

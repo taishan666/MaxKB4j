@@ -221,7 +221,6 @@ public class VectorStoreImpl implements IDataStore {
             return Collections.emptyList();
         }
         try {
-            // Get embedding model for the first knowledge base
             // Note: This assumes all knowledge bases in the request use the same embedding model
             EmbeddingModel embeddingModel = getEmbeddingModel(request.getKnowledgeIds().get(0));
             if (embeddingModel == null) {

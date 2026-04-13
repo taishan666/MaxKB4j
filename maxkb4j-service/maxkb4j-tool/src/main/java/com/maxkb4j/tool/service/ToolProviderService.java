@@ -20,15 +20,13 @@ import com.maxkb4j.tool.consts.ToolConstants;
 import com.maxkb4j.tool.entity.ToolEntity;
 import com.maxkb4j.tool.util.McpToolUtil;
 import com.maxkb4j.tool.util.SkillsToolUtil;
+import dev.langchain4j.agent.tool.ToolExecutionRequest;
 import dev.langchain4j.agent.tool.ToolSpecification;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.request.json.JsonArraySchema;
 import dev.langchain4j.model.chat.request.json.JsonObjectSchema;
 import dev.langchain4j.service.Result;
-import dev.langchain4j.service.tool.ToolExecution;
-import dev.langchain4j.service.tool.ToolExecutor;
-import dev.langchain4j.service.tool.ToolProvider;
-import dev.langchain4j.service.tool.ToolProviderResult;
+import dev.langchain4j.service.tool.*;
 import dev.langchain4j.skills.FileSystemSkill;
 import dev.langchain4j.skills.FileSystemSkillLoader;
 import dev.langchain4j.skills.shell.ShellSkills;
@@ -134,8 +132,8 @@ public class ToolProviderService implements IToolProviderService {
                     String name = skillElement.getElementsByTag("name").text();
                     String description = skillElement.getElementsByTag("description").text();
                     ToolSpecification spec = ToolSpecification.builder()
-                            .name(name)
-                            .description(description)
+                            .name("tool_"+skill.getId())
+                            .description("**" + name + "**" + ":" + description)
                             .parameters(JsonObjectSchema.builder().addStringProperty("question", "User's input question").required("question").build())
                             .build();
                     ToolExecutor executor = (toolExecutionRequest, memoryId) -> {
@@ -275,25 +273,36 @@ public class ToolProviderService implements IToolProviderService {
 
     @Override
     public String format(ToolExecution toolExecute) {
-        String name = toolExecute.request().name();
+        int status = toolExecute.hasFailed()?400:200;
+        return format(toolExecute.request(),status,toolExecute.result());
+
+    }
+
+    @Override
+    public String format(BeforeToolExecution toolExecute) {
+        return format(toolExecute.request(),100,"");
+    }
+
+    public String format(ToolExecutionRequest request,Integer status,String resultText) {
+        String name = request.name();
         String[] split = name.split("_");
         if (split.length < 2) {
-            return MessageUtils.buildToolCallRender("", name, "", toolExecute.request().arguments(), toolExecute.result());
+            return MessageUtils.buildToolCallRender(request.id(),status,"", name, "", request.arguments(), resultText);
         }
         String type = split[0];
         String id = split[1];
         if ("tool".equals(type)) {
-            ToolEntity tool = toolService.lambdaQuery().select(ToolEntity::getIcon, ToolEntity::getName).eq(ToolEntity::getId, id).one();
+            ToolEntity tool = toolService.lambdaQuery().select(ToolEntity::getIcon, ToolEntity::getToolType,ToolEntity::getName).eq(ToolEntity::getId, id).one();
             if (tool == null) {
-                return MessageUtils.buildToolCallRender("", name, "", toolExecute.request().arguments(), toolExecute.result());
+                return MessageUtils.buildToolCallRender(request.id(),status,"", name, "", request.arguments(), resultText);
             }
-            return MessageUtils.buildToolCallRender(tool.getIcon(), tool.getName(), tool.getToolType(), toolExecute.request().arguments(), toolExecute.result());
+            return MessageUtils.buildToolCallRender(request.id(),status,tool.getIcon(), tool.getName(), tool.getToolType(), request.arguments(), resultText);
         } else {
             ApplicationEntity app = applicationService.lambdaQuery().select(ApplicationEntity::getIcon, ApplicationEntity::getName).eq(ApplicationEntity::getId, id).one();
             if (app == null) {
-                return MessageUtils.buildToolCallRender("", name, "", toolExecute.request().arguments(), toolExecute.result());
+                return MessageUtils.buildToolCallRender(request.id(),status,"", name, "", request.arguments(), resultText);
             }
-            return MessageUtils.buildToolCallRender(app.getIcon(), app.getName(), "", toolExecute.request().arguments(), toolExecute.result());
+            return MessageUtils.buildToolCallRender(request.id(),status,app.getIcon(), app.getName(), "", request.arguments(), resultText);
         }
 
     }

@@ -26,6 +26,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -41,6 +42,7 @@ public class ChatStep extends AbsChatStep {
 
     @Override
     protected String execute(String chatId, String chatRecordId, ApplicationVO application, String userPrompt, PipelineManage manage) {
+        List<String> answerTexts = new ArrayList<>();
         String modelId = application.getModelId();
         JSONObject params = application.getModelParamsSetting();
         StreamingChatModel chatModel = modelFactory.buildStreamingChatModel(modelId, params);
@@ -63,31 +65,43 @@ public class ChatStep extends AbsChatStep {
         Boolean reasoningEnable = application.getModelSetting().getReasoningContentEnable();
         TokenStream tokenStream = assistant.chatStream(userPrompt);
         CompletableFuture<ChatResponse> futureChatResponse = new CompletableFuture<>();
+        // 完成后释放线程
         tokenStream.onPartialThinking(thinking -> {
                     if (Boolean.TRUE.equals(reasoningEnable)) {
                         manage.sink.tryEmitNext(super.toChatMessageVO(chatId, chatRecordId, "", thinking.text(), false));
                     }
                 })
-                .onPartialResponse(text -> manage.sink.tryEmitNext(super.toChatMessageVO(chatId, chatRecordId, text, "", false)))
-                .onToolExecuted(toolExecute -> {
+                .onPartialResponse(text -> {
+                    manage.sink.tryEmitNext(super.toChatMessageVO(chatId, chatRecordId, text, "", false));
+                    answerTexts.add(text);
+                })
+                .beforeToolExecution(toolExecute -> {
                     if (Boolean.TRUE.equals(application.getToolOutputEnable())) {
                         manage.sink.tryEmitNext(super.toChatMessageVO(chatId, chatRecordId, toolProvider.format(toolExecute), "", false));
                     }
                 })
-                .onCompleteResponse(response -> {
-                    TokenUsage tokenUsage = response.tokenUsage();
-                    context.put("messageList", resetMessageToJSON(historyMessages));
-                    context.put("messageTokens", tokenUsage.inputTokenCount());
-                    context.put("answerTokens", tokenUsage.outputTokenCount());
-                    futureChatResponse.complete(response);// 完成后释放线程
+                .onToolExecuted(toolExecute -> {
+                    if (Boolean.TRUE.equals(application.getToolOutputEnable())) {
+                        String toolText = toolProvider.format(toolExecute);
+                        manage.sink.tryEmitNext(super.toChatMessageVO(chatId, chatRecordId, toolText, "", false));
+                        answerTexts.add(toolText);
+                    }
                 })
+                .onCompleteResponse(futureChatResponse::complete)
                 .onError(error -> {
                     log.error("执行错误", error);
                     futureChatResponse.completeExceptionally(error); // 完成后释放线程
                 })
                 .start();
         ChatResponse response = futureChatResponse.join();
-        return response.aiMessage().text(); // 阻塞当前线程直到 futureChatResponse 完成
+        context.put("messageList", resetMessageToJSON(historyMessages));
+        context.put("reasoningContent", response.aiMessage().thinking());
+        TokenUsage tokenUsage = response.tokenUsage();
+        if (tokenUsage != null) {
+            context.put("messageTokens", tokenUsage.inputTokenCount());
+            context.put("answerTokens", tokenUsage.outputTokenCount());
+        }
+        return String.join("", answerTexts);
     }
 
 
@@ -118,7 +132,7 @@ public class ChatStep extends AbsChatStep {
 
     @Override
     public JSONObject getDetails() {
-        JSONObject details = new JSONObject();
+        JSONObject details = new JSONObject(true);
         details.put("step_type", "chat_step");
         details.put("messageList", context.get("messageList"));
         details.put("runTime", context.get("runTime"));

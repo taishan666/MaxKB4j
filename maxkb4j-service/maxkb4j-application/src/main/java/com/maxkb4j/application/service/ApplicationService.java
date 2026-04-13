@@ -16,6 +16,7 @@ import com.maxkb4j.application.mapper.ApplicationMapper;
 import com.maxkb4j.application.util.ResourceUtil;
 import com.maxkb4j.application.vo.ApplicationListVO;
 import com.maxkb4j.application.vo.ApplicationVO;
+import com.maxkb4j.common.constant.ResourceType;
 import com.maxkb4j.common.constant.RoleType;
 import com.maxkb4j.common.domain.dto.KnowledgeDTO;
 import com.maxkb4j.common.exception.ApiException;
@@ -26,6 +27,8 @@ import com.maxkb4j.model.service.IModelProviderService;
 import com.maxkb4j.model.service.STTModel;
 import com.maxkb4j.model.service.TTSModel;
 import com.maxkb4j.system.constant.AuthTargetType;
+import com.maxkb4j.system.entity.TargetResource;
+import com.maxkb4j.system.service.IResourceMappingService;
 import com.maxkb4j.tool.entity.ToolEntity;
 import com.maxkb4j.tool.service.IToolService;
 import com.maxkb4j.user.service.IUserResourcePermissionService;
@@ -51,9 +54,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.stream.Stream;
 
-import static com.maxkb4j.workflow.enums.NodeType.BASE;
-import static com.maxkb4j.workflow.enums.NodeType.SEARCH_KNOWLEDGE;
+import static com.maxkb4j.workflow.enums.NodeType.*;
 
 
 /**
@@ -62,7 +65,7 @@ import static com.maxkb4j.workflow.enums.NodeType.SEARCH_KNOWLEDGE;
  */
 @Service
 @RequiredArgsConstructor
-public class ApplicationService extends ServiceImpl<ApplicationMapper, ApplicationEntity> implements IApplicationService{
+public class ApplicationService extends ServiceImpl<ApplicationMapper, ApplicationEntity> implements IApplicationService {
 
     private final IModelProviderService modelFactory;
     private final IKnowledgeService knowledgeService;
@@ -75,6 +78,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     private final ApplicationChatMapper applicationChatMapper;
     private final IUserResourcePermissionService userResourcePermissionService;
     private final IToolService toolService;
+    private final IResourceMappingService resourceMappingService;
 
     public IPage<ApplicationVO> selectAppPage(int page, int size, ApplicationQuery query) {
         Page<ApplicationEntity> appPage = new Page<>(page, size);
@@ -134,8 +138,72 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
             applicationChatRecordService.remove(Wrappers.<ApplicationChatRecordEntity>lambdaQuery().in(ApplicationChatRecordEntity::getChatId, chatIds));
         }
         userResourcePermissionService.remove(AuthTargetType.APPLICATION, appId);
+        // 批量删除资源映射
+        resourceMappingService.deleteBySourceId(ResourceType.APPLICATION, appId);
         return this.removeById(appId);
     }
+
+    private void saveResourceMappings(ApplicationEntity app) {
+        List<String> modelIds = new ArrayList<>(Stream.of(app.getModelId(), app.getSttModelId(), app.getTtsModelId())
+                .filter(Objects::nonNull)
+                .toList());
+        List<String> knowledgeIds = app.getKnowledgeIds() == null ? new ArrayList<>() : app.getKnowledgeIds();
+        List<String> toolIds = app.getToolIds() == null ? new ArrayList<>() : app.getToolIds();
+        JSONObject workFlow = app.getWorkFlow();
+        if (workFlow != null && workFlow.containsKey("nodes")) {
+            JSONArray nodes = workFlow.getJSONArray("nodes");
+            if (nodes != null) {
+                for (int i = 0; i < nodes.size(); i++) {
+                    JSONObject node = nodes.getJSONObject(i);
+                    JSONObject properties = node.getJSONObject("properties");
+                    if (properties != null && properties.containsKey("nodeData")) {
+                        JSONObject nodeData = properties.getJSONObject("nodeData");
+                        if (nodeData != null && nodeData.containsKey("toolLibId")) {
+                            toolIds.add(nodeData.getString("toolLibId"));
+                        }
+                        if (nodeData != null && nodeData.containsKey("mcpToolId")) {
+                            toolIds.add(nodeData.getString("mcpToolId"));
+                        }
+                        if (nodeData != null && nodeData.containsKey("toolIds")) {
+                            toolIds.addAll((Collection<? extends String>) nodeData.get("toolIds"));
+                        }
+                        if (nodeData != null && nodeData.containsKey("knowledgeIds")) {
+                            knowledgeIds.addAll((Collection<? extends String>) nodeData.get("knowledgeIds"));
+                        }
+                        if (nodeData != null && nodeData.containsKey("modelId")) {
+                            modelIds.add(nodeData.getString("modelId"));
+                        }
+                        if (nodeData != null && nodeData.containsKey("ttsModelId")) {
+                            modelIds.add(nodeData.getString("ttsModelId"));
+                        }
+                        if (nodeData != null && nodeData.containsKey("sttModelId")) {
+                            modelIds.add(nodeData.getString("sttModelId"));
+                        }
+                        if (nodeData != null && nodeData.containsKey("rerankerModelId")) {
+                            modelIds.add(nodeData.getString("rerankerModelId"));
+                        }
+                    }
+                }
+            }
+        }
+        saveResourceMappings(app.getId(), knowledgeIds, toolIds, modelIds);
+    }
+
+    /**
+     * 批量保存资源映射关系
+     */
+    private void saveResourceMappings(String appId,
+                                      List<String> knowledgeIds,
+                                      List<String> toolIds,
+                                      List<String> modelIds) {
+        knowledgeIds = knowledgeIds == null ? List.of() : knowledgeIds.stream().filter(Objects::nonNull).toList();
+        List<TargetResource> targets = new ArrayList<>(knowledgeIds.stream().map(id -> new TargetResource(id, ResourceType.KNOWLEDGE)).toList());
+        toolIds = toolIds == null ? List.of() : toolIds.stream().filter(Objects::nonNull).toList();
+        targets.addAll(toolIds.stream().map(id -> new TargetResource(id, ResourceType.TOOL)).toList());
+        targets.addAll(modelIds.stream().filter(Objects::nonNull).map(id -> new TargetResource(id, ResourceType.MODEL)).toList());
+        resourceMappingService.relation(ResourceType.APPLICATION, appId, targets);
+    }
+
 
     @Transactional
     public ApplicationEntity createApp(ApplicationDTO application) {
@@ -151,22 +219,22 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
                 app.setDesc(application.getDesc());
                 app.setIcon(StringUtils.isNotBlank(application.getIcon()) ? application.getIcon() : app.getIcon());
                 saveMk(maxKb4j);
+                saveResourceMappings(app);
                 return app;
             }
-        } else {
-            application.setIcon("./favicon.ico");
-            application.setUserId(StpKit.ADMIN.getLoginIdAsString());
-            application.setTtsModelParamsSetting(new JSONObject());
-            application.setFileUploadSetting(new JSONObject());
-            application.setCleanTime(365);
-            if (application.getWorkFlow() == null) {
-                application.setWorkFlow(new JSONObject());
-            }
-            application.setToolIds(List.of());
-            application.setKnowledgeIds(List.of());
-            application.setApplicationIds(List.of());
-            this.savaApp(application);
         }
+        // 非模板方式创建
+        application.setIcon("./favicon.ico");
+        application.setUserId(StpKit.ADMIN.getLoginIdAsString());
+        application.setTtsModelParamsSetting(new JSONObject());
+        application.setFileUploadSetting(new JSONObject());
+        application.setCleanTime(365);
+        application.setWorkFlow(application.getWorkFlow() == null ? new JSONObject() : application.getWorkFlow());
+        application.setToolIds(List.of());
+        application.setKnowledgeIds(List.of());
+        application.setApplicationIds(List.of());
+        this.saveApp(application);
+        saveResourceMappings(application);
         return application;
     }
 
@@ -177,7 +245,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     }
 
     @Transactional
-    protected boolean savaApp(ApplicationEntity application) {
+    protected boolean saveApp(ApplicationEntity application) {
         this.save(application);
         ApplicationAccessTokenEntity accessToken = ApplicationAccessTokenEntity.createDefault();
         accessToken.setApplicationId(application.getId());
@@ -246,10 +314,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         } else {
             List<String> knowledgeIds = vo.getKnowledgeIds();
             if (!CollectionUtils.isEmpty(knowledgeIds)) {
-                List<KnowledgeEntity> knowledgeList = knowledgeService.lambdaQuery()
-                        .select(KnowledgeEntity::getId, KnowledgeEntity::getName)
-                        .in(KnowledgeEntity::getId, knowledgeIds)
-                        .orderByDesc(KnowledgeEntity::getCreateTime).list();
+                List<KnowledgeEntity> knowledgeList = knowledgeService.lambdaQuery().select(KnowledgeEntity::getId, KnowledgeEntity::getName).in(KnowledgeEntity::getId, knowledgeIds).orderByDesc(KnowledgeEntity::getCreateTime).list();
                 vo.setKnowledgeList(BeanUtil.copyList(knowledgeList, KnowledgeDTO.class));
             } else {
                 vo.setKnowledgeList(List.of());
@@ -265,9 +330,9 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         return ttsModel.textToSpeech("你好，这里是语音播放测试");
     }
 
-    public byte[] textToSpeech(String appId, JSONObject data,boolean debug) {
+    public byte[] textToSpeech(String appId, JSONObject data, boolean debug) {
         String text = data.getString("text");
-        ApplicationEntity app = this.getAppDetail(appId,debug);
+        ApplicationEntity app = this.getAppDetail(appId, debug);
         if ("BROWSER".equals(app.getTtsType())) {
             return new byte[0];
         }
@@ -287,35 +352,44 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         if (workFlow != null && workFlow.containsKey("nodes")) {
             JSONArray nodes = workFlow.getJSONArray("nodes");
             if (nodes != null) {
-                JSONObject baseNode = nodes.stream()
+                nodes.stream()
                         .filter(node -> node instanceof Map)
                         .map(node -> (Map<String, Object>) node)
                         .filter(node -> BASE.getKey().equals(node.get("type")))
                         .findFirst()
-                        .map(JSONObject::new) // 将 Map 转为 JSONObject
-                        .orElse(null);
-                if (baseNode != null) {
-                    JSONObject baseNodeProperties = baseNode.getJSONObject("properties");
-                    if (baseNodeProperties != null) {
-                        JSONObject nodeData = baseNodeProperties.getJSONObject("nodeData");
-                        app.setName(nodeData.getString("name"));
-                        app.setDesc(nodeData.getString("desc"));
-                        app.setPrologue(nodeData.getString("prologue"));
-                        app.setFileUploadEnable(nodeData.getBooleanValue("fileUploadEnable"));
-                        app.setFileUploadSetting(nodeData.getJSONObject("fileUploadSetting"));
-                        app.setTtsType(nodeData.getString("ttsType"));
-                        app.setTtsModelEnable(nodeData.getBooleanValue("ttsModelEnable"));
-                        app.setTtsModelId(nodeData.getString("ttsModelId"));
-                        app.setTtsModelParamsSetting(nodeData.getJSONObject("ttsModelParamsSetting"));
-                        app.setTtsAutoplay(nodeData.getBooleanValue("ttsAutoplay"));
-                        app.setSttModelEnable(nodeData.getBooleanValue("sttModelEnable"));
-                        app.setSttModelId(nodeData.getString("sttModelId"));
-                        app.setSttAutoSend(nodeData.getBooleanValue("sttAutoSend"));
-                    }
-                }
+                        .map(JSONObject::new).ifPresent(baseNode -> updateAppFromBaseNode(app, baseNode));
             }
         }
+        saveResourceMappings(app);
         return this.updateById(app);
+    }
+
+    /**
+     * 从基础节点更新应用配置
+     */
+    private void updateAppFromBaseNode(ApplicationEntity app, JSONObject baseNode) {
+        JSONObject baseNodeProperties = baseNode.getJSONObject("properties");
+        if (baseNodeProperties == null) {
+            return;
+        }
+        JSONObject nodeData = baseNodeProperties.getJSONObject("nodeData");
+        if (nodeData == null) {
+            return;
+        }
+        // 更新应用基础信息
+        app.setName(nodeData.getString("name"));
+        app.setDesc(nodeData.getString("desc"));
+        app.setPrologue(nodeData.getString("prologue"));
+        app.setFileUploadEnable(nodeData.getBooleanValue("fileUploadEnable"));
+        app.setFileUploadSetting(nodeData.getJSONObject("fileUploadSetting"));
+        app.setTtsType(nodeData.getString("ttsType"));
+        app.setTtsModelEnable(nodeData.getBooleanValue("ttsModelEnable"));
+        app.setTtsModelId(nodeData.getString("ttsModelId"));
+        app.setTtsModelParamsSetting(nodeData.getJSONObject("ttsModelParamsSetting"));
+        app.setTtsAutoplay(nodeData.getBooleanValue("ttsAutoplay"));
+        app.setSttModelEnable(nodeData.getBooleanValue("sttModelEnable"));
+        app.setSttModelId(nodeData.getString("sttModelId"));
+        app.setSttAutoSend(nodeData.getBooleanValue("sttAutoSend"));
     }
 
 
@@ -338,8 +412,8 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         return application;
     }
 
-    public String speechToText(String appId, MultipartFile file,boolean debug) throws IOException {
-        ApplicationEntity app = this.getAppDetail(appId,debug);
+    public String speechToText(String appId, MultipartFile file, boolean debug) throws IOException {
+        ApplicationEntity app = this.getAppDetail(appId, debug);
         STTModel sttModel = modelFactory.buildSTTModel(app.getSttModelId());
         String suffix = Objects.requireNonNull(file.getContentType()).split("/")[1];
         return sttModel.speechToText(file.getBytes(), suffix);
@@ -409,27 +483,29 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     public Flux<Map<String, String>> promptGenerate(String appId, String modelId, PromptGenerateDTO dto) {
         ApplicationEntity app = this.getById(appId);
         StreamingChatModel chatModel = modelFactory.buildStreamingChatModel(modelId, null);
-        List<ChatMessage> messages = new ArrayList<>();
-        for (ChatMessageDTO message : dto.getMessages()) {
-            if (message.getRole().equals("user")) {
-                messages.add(UserMessage.from(message.getContent()));
-            }
-            if (message.getRole().equals("ai")) {
-                messages.add(AiMessage.from(message.getContent()));
-            }
-        }
+        List<ChatMessage> messages = dto.getMessages().stream()
+                .map(message -> {
+                    if ("user".equals(message.getRole())) {
+                        return UserMessage.from(message.getContent());
+                    } else if ("ai".equals(message.getRole())) {
+                        return AiMessage.from(message.getContent());
+                    }
+                    return null;
+                })
+                .filter(Objects::nonNull)
+                .toList();
         if (messages.isEmpty()) {
             return Flux.error(new IllegalArgumentException("No user message found to generate prompt"));
         }
-        int endIndex = messages.size() - 1;
         String prompt = dto.getPrompt();
         String detail = StringUtils.isBlank(app.getDesc()) ? app.getName() : app.getDesc();
-        prompt = prompt.replace("{application_name}", app.getName());
-        prompt = prompt.replace("{detail}", detail);
-        prompt = prompt.replace("{userInput}", dto.getMessages().get(endIndex).getContent());
-        messages.set(endIndex, UserMessage.from(prompt));
+        prompt = prompt.replace("{application_name}", app.getName())
+                .replace("{detail}", detail)
+                .replace("{userInput}", dto.getMessages().get(messages.size() - 1).getContent());
+        List<ChatMessage> finalMessages = new ArrayList<>(messages);
+        finalMessages.set(finalMessages.size() - 1, UserMessage.from(prompt));
         Sinks.Many<Map<String, String>> sink = Sinks.many().unicast().onBackpressureBuffer();
-        chatModel.chat(messages, new StreamingChatResponseHandler() {
+        chatModel.chat(finalMessages, new StreamingChatResponseHandler() {
             @Override
             public void onPartialResponse(String partialResponse) {
                 sink.tryEmitNext(Map.of("content", partialResponse));
@@ -473,7 +549,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
             List<String> toolIds = toolList.stream().map(ToolEntity::getId).toList();
             application.setToolIds(toolIds);
         }
-        return this.savaApp(application);
+        return this.saveApp(application);
     }
 
 

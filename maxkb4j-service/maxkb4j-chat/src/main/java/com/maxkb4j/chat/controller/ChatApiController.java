@@ -5,10 +5,13 @@ import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.maxkb4j.application.dto.EmbedDTO;
+import com.maxkb4j.application.dto.ShareChatDTO;
 import com.maxkb4j.application.entity.*;
 import com.maxkb4j.application.service.*;
 import com.maxkb4j.application.vo.ApplicationChatRecordVO;
+import com.maxkb4j.application.vo.ShareChatVO;
 import com.maxkb4j.chat.service.ChatApiService;
+import com.maxkb4j.common.annotation.SaCheckPerm;
 import com.maxkb4j.common.api.R;
 import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.domain.dto.ChatMessageVO;
@@ -16,6 +19,7 @@ import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.common.domain.dto.ChatResponse;
 import com.maxkb4j.common.domain.dto.McpRequest;
 import com.maxkb4j.common.enums.ChatUserType;
+import com.maxkb4j.common.enums.PermissionEnum;
 import com.maxkb4j.common.exception.ApiException;
 import com.maxkb4j.common.util.StpKit;
 import com.maxkb4j.common.util.WebUtil;
@@ -33,6 +37,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyEmitter
 import reactor.core.publisher.Sinks;
 
 import java.io.IOException;
+import java.util.Map;
 
 @Tag(name = "MaxKB4J开放接口")
 @RestController
@@ -94,6 +99,7 @@ public class ChatApiController {
         params.setChatId(chatId);
         params.setChatUserId(userId);
         params.setChatUserType(ChatUserType.ANONYMOUS_USER.name());
+        params.setIpAddress(WebUtil.getIP());
         params.setDebug(false);
         if (Boolean.TRUE.equals(params.getStream())) {
             // 异步执行业务逻辑
@@ -112,11 +118,11 @@ public class ChatApiController {
         ResponseBodyEmitter emitter = new ResponseBodyEmitter();
         String secretKey = WebUtil.getTokenValue();
         ApplicationApiKeyEntity apiKey = apiKeyService.getBySecretKey(secretKey);
-        if (apiKey==null || !apiKey.getIsActive()){
+        if (apiKey == null || !apiKey.getIsActive()) {
             emitter.completeWithError(new ApiException("token不合法或被禁用"));
-        }else {
+        } else {
             // 异步处理（避免阻塞主线程）
-            chatApiService.mcpHandleAsync(apiKey,req,emitter);
+            chatApiService.mcpHandleAsync(apiKey, req, emitter);
         }
         return emitter;
     }
@@ -168,9 +174,9 @@ public class ChatApiController {
     @Hidden
     @PostMapping("/speech_to_text")
     public R<String> speechToText(MultipartFile file) throws IOException {
-        StpKit.USER.setTokenValue( WebUtil.getTokenValue());
+        StpKit.USER.setTokenValue(WebUtil.getTokenValue());
         String appId = (String) StpKit.USER.getExtra("applicationId");
-        return R.data(applicationService.speechToText(appId, file,false));
+        return R.data(applicationService.speechToText(appId, file, false));
     }
 
 
@@ -182,7 +188,7 @@ public class ChatApiController {
         headers.setContentType(MediaType.parseMediaType("audio/mp3"));
         StpKit.USER.setTokenValue(WebUtil.getTokenValue());
         String appId = (String) StpKit.USER.getExtra("applicationId");
-        return new ResponseEntity<>(applicationService.textToSpeech(appId, data,false), headers, HttpStatus.OK);
+        return new ResponseEntity<>(applicationService.textToSpeech(appId, data, false), headers, HttpStatus.OK);
     }
 
 
@@ -199,6 +205,16 @@ public class ChatApiController {
     }
 
 
+    @SaCheckPerm(PermissionEnum.APPLICATION_READ)
+    @PostMapping("/{id}/chat/{chatId}/share_chat")
+    public R<Map<String, String>> shareChat(@PathVariable String id, @PathVariable String chatId, @RequestBody ShareChatDTO dto) {
+        return R.success(chatService.shareChat(id, chatId, dto));
+    }
+
+    @GetMapping("/share/{id}")
+    public R<ShareChatVO> shareChat(@PathVariable String id) {
+        return R.success(chatService.shareChat(id));
+    }
 
 
 }

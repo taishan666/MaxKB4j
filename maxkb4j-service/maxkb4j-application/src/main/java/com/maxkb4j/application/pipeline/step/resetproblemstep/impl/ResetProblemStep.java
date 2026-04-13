@@ -45,7 +45,7 @@ public class ResetProblemStep extends AbsResetProblemStep {
 
     @Override
     public JSONObject getDetails() {
-        JSONObject details=new JSONObject();
+        JSONObject details=new JSONObject(true);
         details.put("step_type","problem_padding");
         details.put("problemText",context.get("problemText"));
         details.put("paddingProblemText",context.get("paddingProblemText"));
