@@ -1,6 +1,7 @@
 package com.maxkb4j.model.provider;
 
 
+import com.maxkb4j.model.custom.params.impl.OpenAiChatModelParams;
 import com.maxkb4j.model.enums.ModelType;
 import com.maxkb4j.model.vo.ModelInfo;
 
@@ -13,11 +14,11 @@ public class XunFeiModelProvider extends OpenAiModelProvider {
 
     private static final String BASE_URL = "https://spark-api-open.xf-yun.com/v1/";
     private static final List<ModelInfo> MODEL_INFOS = List.of(
-            new ModelInfo("4.0Ultra", "", ModelType.LLM),
-            new ModelInfo("max-32k", "", ModelType.LLM),
-            new ModelInfo("generalv3.5", "", ModelType.LLM),
-            new ModelInfo("generalv3", "", ModelType.LLM),
-            new ModelInfo("lite", "", ModelType.LLM)
+            new ModelInfo("4.0Ultra", "", ModelType.LLM, new OpenAiChatModelParams()),
+            new ModelInfo("max-32k", "", ModelType.LLM, new OpenAiChatModelParams()),
+            new ModelInfo("generalv3.5", "", ModelType.LLM, new OpenAiChatModelParams()),
+            new ModelInfo("generalv3", "", ModelType.LLM, new OpenAiChatModelParams()),
+            new ModelInfo("lite", "", ModelType.LLM, new OpenAiChatModelParams())
     );
 
     @Override

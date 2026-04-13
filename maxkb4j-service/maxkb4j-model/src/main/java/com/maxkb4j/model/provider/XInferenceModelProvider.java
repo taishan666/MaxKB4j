@@ -7,7 +7,7 @@ import com.maxkb4j.model.service.TTSModel;
 import com.maxkb4j.model.custom.credential.ModelCredentialForm;
 import com.maxkb4j.model.custom.model.OpenAiSTTModel;
 import com.maxkb4j.model.custom.model.OpenAiTTSModel;
-import com.maxkb4j.model.custom.params.impl.LlmModelParams;
+import com.maxkb4j.model.custom.params.impl.LLMChatModelParams;
 import com.maxkb4j.model.enums.ModelType;
 import com.maxkb4j.model.vo.ModelInfo;
 import dev.langchain4j.community.model.xinference.*;
@@ -26,10 +26,10 @@ public class XInferenceModelProvider extends AbsModelProvider {
 
     private static final String BASE_URL = "http://host.docker.internal:9997";
     private static final List<ModelInfo> MODEL_INFOS = List.of(
-            new ModelInfo("qwen3:8b", "", ModelType.LLM, new LlmModelParams()),
-            new ModelInfo("bge-m3", "", ModelType.EMBEDDING, new LlmModelParams()),
-            new ModelInfo("llava:7b", "", ModelType.VISION, new LlmModelParams()),
-            new ModelInfo("sdxl-turbo", "", ModelType.TTI, new LlmModelParams()),
+            new ModelInfo("qwen3:8b", "", ModelType.LLM, new LLMChatModelParams()),
+            new ModelInfo("bge-m3", "", ModelType.EMBEDDING, new LLMChatModelParams()),
+            new ModelInfo("llava:7b", "", ModelType.VISION, new LLMChatModelParams()),
+            new ModelInfo("sdxl-turbo", "", ModelType.TTI, new LLMChatModelParams()),
             new ModelInfo("bge-reranker-base", "", ModelType.RERANKER),
             new ModelInfo("ChatTTS", "", ModelType.TTS),
             new ModelInfo("whisper-large-v3", "", ModelType.STT)

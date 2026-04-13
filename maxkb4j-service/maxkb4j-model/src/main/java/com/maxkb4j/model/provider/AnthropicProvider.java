@@ -3,7 +3,7 @@ package com.maxkb4j.model.provider;
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.common.mp.entity.ModelCredential;
 import com.maxkb4j.model.custom.credential.ModelCredentialForm;
-import com.maxkb4j.model.custom.params.impl.LlmModelParams;
+import com.maxkb4j.model.custom.params.impl.LLMChatModelParams;
 import com.maxkb4j.model.enums.ModelType;
 import com.maxkb4j.model.vo.ModelInfo;
 import dev.langchain4j.model.anthropic.AnthropicChatModel;
@@ -21,12 +21,12 @@ public class AnthropicProvider extends AbsModelProvider {
     private static final String BASE_URL = "https://api.anthropic.com";
 
     private static final List<ModelInfo> MODEL_INFOS = List.of(
-            new ModelInfo("claude-3-opus-20240229", "", ModelType.LLM, new LlmModelParams()),
-            new ModelInfo("claude-3-sonnet-20240229", "", ModelType.LLM, new LlmModelParams()),
-            new ModelInfo("claude-3-haiku-20240307", "", ModelType.LLM, new LlmModelParams()),
-            new ModelInfo("claude-3-5-sonnet-20241022", "", ModelType.LLM, new LlmModelParams()),
-            new ModelInfo("claude-3-5-haiku-20241022", "", ModelType.LLM, new LlmModelParams()),
-            new ModelInfo("claude-3-5-sonnet-20241022", "", ModelType.VISION, new LlmModelParams())
+            new ModelInfo("claude-3-opus-20240229", "", ModelType.LLM, new LLMChatModelParams()),
+            new ModelInfo("claude-3-sonnet-20240229", "", ModelType.LLM, new LLMChatModelParams()),
+            new ModelInfo("claude-3-haiku-20240307", "", ModelType.LLM, new LLMChatModelParams()),
+            new ModelInfo("claude-3-5-sonnet-20241022", "", ModelType.LLM, new LLMChatModelParams()),
+            new ModelInfo("claude-3-5-haiku-20241022", "", ModelType.LLM, new LLMChatModelParams()),
+            new ModelInfo("claude-3-5-sonnet-20241022", "", ModelType.VISION, new LLMChatModelParams())
     );
 
 
