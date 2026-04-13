@@ -26,6 +26,7 @@ public class WebConfig implements WebMvcConfigurer {
         configurer.setTaskExecutor(executor);
     }
 
+
     /**
      * 注册 sa-token 的拦截器
      */
@@ -37,6 +38,11 @@ public class WebConfig implements WebMvcConfigurer {
                 .addPathPatterns("/chat/api/open")
                 .addPathPatterns("/chat/api/chat_message/*");
     }
+
+/*    @Override
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+
+    }*/
 
     @Override
     public void addViewControllers(@NotNull ViewControllerRegistry registry) {
