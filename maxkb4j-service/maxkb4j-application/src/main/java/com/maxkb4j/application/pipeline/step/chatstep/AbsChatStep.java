@@ -23,7 +23,7 @@ public abstract class AbsChatStep extends AbsStep {
 
     @Override
     @SuppressWarnings("unchecked")
-    protected void _run(PipelineManage manage) throws ExecutionException, InterruptedException, TimeoutException {
+    protected void _run(PipelineManage manage) throws Exception {
         String chatId = manage.chatParams.getChatId();
         List<ParagraphVO> paragraphList = (List<ParagraphVO>) manage.context.get("paragraphList");
         ApplicationVO application = manage.application;
