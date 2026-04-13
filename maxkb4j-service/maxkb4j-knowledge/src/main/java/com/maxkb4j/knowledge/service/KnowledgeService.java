@@ -1,5 +1,6 @@
 package com.maxkb4j.knowledge.service;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -169,8 +170,8 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
             knowledge.setWorkFlow(new JSONObject());
         }
         this.save(knowledge);
-        resourceMappingService.relation(ResourceType.KNOWLEDGE, knowledge.getId(), List.of(new TargetResource(knowledge.getEmbeddingModelId(), ResourceType.MODEL)));
         userResourcePermissionService.ownerSave(AuthTargetType.KNOWLEDGE, knowledge.getId(), knowledge.getUserId());
+        saveResourceMappings(knowledge);
         return knowledge;
     }
 
@@ -333,7 +334,48 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
         return this.lambdaQuery().select(KnowledgeEntity::getId, KnowledgeEntity::getName, KnowledgeEntity::getDesc).in(KnowledgeEntity::getId, knowledgeIds).list();
     }
 
-    public void changeResourceMapping(KnowledgeEntity knowledge) {
-        resourceMappingService.relation(ResourceType.KNOWLEDGE, knowledge.getId(), List.of(new TargetResource(knowledge.getEmbeddingModelId(), ResourceType.MODEL)));
+
+    public void saveResourceMappings(KnowledgeEntity knowledge) {
+        List<String> modelIds = new ArrayList<>();
+        modelIds.add(knowledge.getEmbeddingModelId());
+        List<String> toolIds = new ArrayList<>();
+        JSONObject workFlow = knowledge.getWorkFlow();
+        if (workFlow != null && workFlow.containsKey("nodes")) {
+            JSONArray nodes = workFlow.getJSONArray("nodes");
+            if (nodes != null) {
+                for (int i = 0; i < nodes.size(); i++) {
+                    JSONObject node = nodes.getJSONObject(i);
+                    JSONObject properties = node.getJSONObject("properties");
+                    if (properties != null && properties.containsKey("nodeData")) {
+                        JSONObject nodeData = properties.getJSONObject("nodeData");
+                        if (nodeData != null && nodeData.containsKey("toolLibId")) {
+                            toolIds.add(nodeData.getString("toolLibId"));
+                        }
+                        if (nodeData != null && nodeData.containsKey("mcpToolId")) {
+                            toolIds.add(nodeData.getString("mcpToolId"));
+                        }
+                        if (nodeData != null && nodeData.containsKey("toolIds")) {
+                            toolIds.addAll((Collection<? extends String>) nodeData.get("toolIds"));
+                        }
+                        if (nodeData != null && nodeData.containsKey("modelId")) {
+                            modelIds.add(nodeData.getString("modelId"));
+                        }
+                        if (nodeData != null && nodeData.containsKey("ttsModelId")) {
+                            modelIds.add(nodeData.getString("ttsModelId"));
+                        }
+                        if (nodeData != null && nodeData.containsKey("sttModelId")) {
+                            modelIds.add(nodeData.getString("sttModelId"));
+                        }
+                        if (nodeData != null && nodeData.containsKey("rerankerModelId")) {
+                            modelIds.add(nodeData.getString("rerankerModelId"));
+                        }
+                    }
+                }
+            }
+        }
+        List<TargetResource> targets = new ArrayList<>();
+        targets.addAll(toolIds.stream().map(id -> new TargetResource(id, ResourceType.TOOL)).toList());
+        targets.addAll(modelIds.stream().filter(Objects::nonNull).map(id -> new TargetResource(id, ResourceType.MODEL)).toList());
+        resourceMappingService.relation(ResourceType.KNOWLEDGE, knowledge.getId(), targets);
     }
 }

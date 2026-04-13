@@ -167,6 +167,9 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
                         if (nodeData != null && nodeData.containsKey("toolIds")) {
                             toolIds.addAll((Collection<? extends String>) nodeData.get("toolIds"));
                         }
+                        if (nodeData != null && nodeData.containsKey("knowledgeIds")) {
+                            knowledgeIds.addAll((Collection<? extends String>) nodeData.get("knowledgeIds"));
+                        }
                         if (nodeData != null && nodeData.containsKey("modelId")) {
                             modelIds.add(nodeData.getString("modelId"));
                         }
