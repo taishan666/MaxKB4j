@@ -212,8 +212,8 @@ public class Workflow {
      *
      * @return 超时时间
      */
-    public long getNodeExecutionTimeoutSeconds() {
-        return configuration.getNodeExecutionTimeoutSeconds();
+    public long getNodeExecutionTimeoutMinutes() {
+        return configuration.getNodeExecutionTimeoutMinutes();
     }
 
     /**

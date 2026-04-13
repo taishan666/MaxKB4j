@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.maxkb4j.workflow.enums.NodeType.FORM;
@@ -102,7 +103,7 @@ public class ApplicationNodeHandler extends AbsNodeHandler {
             });
         }
 
-        ChatResponse chatResponse = future.join();
+        ChatResponse chatResponse = future.get(5L, TimeUnit.MINUTES);
 
         // 写入详情
         putDetails(node, Map.of(

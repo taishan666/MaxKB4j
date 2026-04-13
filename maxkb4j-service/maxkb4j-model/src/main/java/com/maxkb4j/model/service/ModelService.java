@@ -133,6 +133,7 @@ public class ModelService extends ServiceImpl<ModelMapper, ModelEntity> {
     @Transactional
     public Boolean removeModelById(String id) {
         userResourcePermissionService.remove(AuthTargetType.MODEL, id);
+        MODEL_CACHE.invalidate(id);
         return this.removeById(id);
     }
 

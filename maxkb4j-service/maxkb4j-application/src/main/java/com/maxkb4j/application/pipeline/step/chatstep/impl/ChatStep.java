@@ -30,6 +30,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 @Slf4j
 @Component
@@ -41,7 +44,7 @@ public class ChatStep extends AbsChatStep {
 
 
     @Override
-    protected String execute(String chatId, String chatRecordId, ApplicationVO application, String userPrompt, PipelineManage manage) {
+    protected String execute(String chatId, String chatRecordId, ApplicationVO application, String userPrompt, PipelineManage manage) throws ExecutionException, InterruptedException, TimeoutException {
         List<String> answerTexts = new ArrayList<>();
         String modelId = application.getModelId();
         JSONObject params = application.getModelParamsSetting();
@@ -64,7 +67,7 @@ public class ChatStep extends AbsChatStep {
         Assistant assistant = aiServicesBuilder.chatMemory(AppChatMemory.withMessages(historyMessages)).streamingChatModel(chatModel).build();
         Boolean reasoningEnable = application.getModelSetting().getReasoningContentEnable();
         TokenStream tokenStream = assistant.chatStream(userPrompt);
-        CompletableFuture<ChatResponse> futureChatResponse = new CompletableFuture<>();
+        CompletableFuture<ChatResponse> future = new CompletableFuture<>();
         // 完成后释放线程
         tokenStream.onPartialThinking(thinking -> {
                     if (Boolean.TRUE.equals(reasoningEnable)) {
@@ -87,13 +90,13 @@ public class ChatStep extends AbsChatStep {
                         answerTexts.add(toolText);
                     }
                 })
-                .onCompleteResponse(futureChatResponse::complete)
+                .onCompleteResponse(future::complete)
                 .onError(error -> {
                     log.error("执行错误", error);
-                    futureChatResponse.completeExceptionally(error); // 完成后释放线程
+                    future.completeExceptionally(error); // 完成后释放线程
                 })
                 .start();
-        ChatResponse response = futureChatResponse.join();
+        ChatResponse response = future.get(5L, TimeUnit.MINUTES);
         context.put("messageList", resetMessageToJSON(historyMessages));
         context.put("reasoningContent", response.aiMessage().thinking());
         TokenUsage tokenUsage = response.tokenUsage();

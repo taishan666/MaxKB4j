@@ -61,18 +61,18 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
                         () -> runChainNode(workflow, node),
                         workflowExecutor));
             }
-            long timeoutSeconds = workflow.getNodeExecutionTimeoutSeconds();
+            long timeoutMinutes = workflow.getNodeExecutionTimeoutMinutes();
             for (int i = 0; i < futureList.size(); i++) {
                 try {
-                    List<AbsNode> nextNodeList = futureList.get(i).get(timeoutSeconds, TimeUnit.SECONDS);
+                    List<AbsNode> nextNodeList = futureList.get(i).get(timeoutMinutes, TimeUnit.MINUTES);
                     runChainNodes(workflow, nextNodeList);
                 } catch (TimeoutException e) {
-                    log.error("Node execution timeout after {} seconds", timeoutSeconds);
+                    log.error("Node execution timeout after {} minutes", timeoutMinutes);
                     futureList.get(i).cancel(true);
                     AbsNode node = nodeList.get(i);
                     // 统一使用责任链处理超时异常
                     exceptionResolverChain.resolve(workflow, node,
-                            new RuntimeException("Node execution timeout after " + timeoutSeconds + " seconds"));
+                            new RuntimeException("Node execution timeout after " + timeoutMinutes + " minutes"));
                     node.setStatus(NodeStatus.ERROR.getStatus());
                 } catch (Exception e) {
                     AbsNode node = nodeList.get(i);

@@ -15,13 +15,15 @@ import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 
 public abstract class AbsChatStep extends AbsStep {
 
     @Override
     @SuppressWarnings("unchecked")
-    protected void _run(PipelineManage manage) {
+    protected void _run(PipelineManage manage) throws ExecutionException, InterruptedException, TimeoutException {
         String chatId = manage.chatParams.getChatId();
         List<ParagraphVO> paragraphList = (List<ParagraphVO>) manage.context.get("paragraphList");
         ApplicationVO application = manage.application;
@@ -70,7 +72,7 @@ public abstract class AbsChatStep extends AbsStep {
     }
 
 
-    protected abstract String execute(String chatId,String chatRecordId,ApplicationVO application,String userPrompt,PipelineManage manage);
+    protected abstract String execute(String chatId,String chatRecordId,ApplicationVO application,String userPrompt,PipelineManage manage) throws ExecutionException, InterruptedException, TimeoutException;
 
     /**
      * 转换为聊天消息VO
