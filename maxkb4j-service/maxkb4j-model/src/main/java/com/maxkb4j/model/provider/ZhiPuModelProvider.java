@@ -22,6 +22,7 @@ import java.util.List;
 public class ZhiPuModelProvider extends AbsModelProvider {
 
     private static final List<ModelInfo> MODEL_INFOS = List.of(
+            new ModelInfo("glm-5", "", ModelType.LLM, new LlmModelParams()),
             new ModelInfo("glm-4", "", ModelType.LLM, new LlmModelParams()),
             new ModelInfo("glm-4v", "", ModelType.LLM, new LlmModelParams()),
             new ModelInfo("glm-3-turbo", "", ModelType.LLM, new LlmModelParams()),

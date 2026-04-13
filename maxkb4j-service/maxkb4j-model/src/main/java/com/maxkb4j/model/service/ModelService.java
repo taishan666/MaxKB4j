@@ -9,6 +9,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.maxkb4j.common.constant.RoleType;
+import com.maxkb4j.common.exception.ApiException;
 import com.maxkb4j.common.mp.entity.ModelCredential;
 import com.maxkb4j.common.util.BeanUtil;
 import com.maxkb4j.common.util.DataMaskUtil;
@@ -104,7 +105,7 @@ public class ModelService extends ServiceImpl<ModelMapper, ModelEntity> {
         String userId = StpKit.ADMIN.getLoginIdAsString();
         long count = this.lambdaQuery().eq(ModelEntity::getName, model.getName()).eq(ModelEntity::getUserId, userId).count();
         if (count > 0) {
-            return false;
+            throw new ApiException("模型名称已存在");
         }
         if (model.getModelParamsForm() == null){
             model.setModelParamsForm(new JSONArray());
