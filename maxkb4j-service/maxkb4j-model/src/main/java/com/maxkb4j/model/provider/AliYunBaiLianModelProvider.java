@@ -26,25 +26,26 @@ import java.util.List;
 public class AliYunBaiLianModelProvider extends AbsModelProvider {
 
     private static final List<ModelInfo> MODEL_INFOS = List.of(
-            new ModelInfo(QwenModelName.QWEN_TURBO, "大语言模型", ModelType.LLM, new QwenChatModelParams()),
-            new ModelInfo(QwenModelName.QWEN_PLUS, "大语言模型", ModelType.LLM, new QwenChatModelParams()),
-            new ModelInfo(QwenModelName.QWEN_MAX, "大语言模型", ModelType.LLM, new QwenChatModelParams()),
-            new ModelInfo("text-embedding-v4", "文本向量模型", ModelType.EMBEDDING, new TextEmbeddingV4Params()),
-            new ModelInfo("text-embedding-v3", "文本向量模型", ModelType.EMBEDDING, new TextEmbeddingV3Params()),
-            new ModelInfo("paraformer-realtime-v2", "语音识别模型", ModelType.STT),
-            new ModelInfo("fun-asr-realtime", "语音识别模型", ModelType.STT),
+            new ModelInfo(QwenModelName.QWEN_TURBO, "", ModelType.LLM, new QwenChatModelParams()),
+            new ModelInfo("qwen3.5-plus", "", ModelType.LLM, new QwenChatModelParams()),
+            new ModelInfo(QwenModelName.QWEN_PLUS, "", ModelType.LLM, new QwenChatModelParams()),
+            new ModelInfo(QwenModelName.QWEN_MAX, "", ModelType.LLM, new QwenChatModelParams()),
+            new ModelInfo("text-embedding-v4", "", ModelType.EMBEDDING, new TextEmbeddingV4Params()),
+            new ModelInfo("text-embedding-v3", "", ModelType.EMBEDDING, new TextEmbeddingV3Params()),
+            new ModelInfo("paraformer-realtime-v2", "", ModelType.STT),
+            new ModelInfo("fun-asr-realtime", "", ModelType.STT),
            // new ModelInfo("qwen3-asr-flash", "语音识别模型", ModelType.STT),
-            new ModelInfo("gummy-realtime-v1", "语音识别模型", ModelType.STT, new GummySTTParams()),
-            new ModelInfo("cosyvoice-v1", "语音生成模型", ModelType.TTS, new CosyVoiceV1TTSParams()),
-            new ModelInfo("cosyvoice-v2", "语音生成模型", ModelType.TTS, new CosyVoiceV2TTSParams()),
-            new ModelInfo("sambert-v1", "语音生成模型", ModelType.TTS, new SamBertTTSParams()),
-            new ModelInfo("qwen-tts", "语音生成模型", ModelType.TTS, new QWenTTSParams()),
-            new ModelInfo(QwenModelName.QWEN_VL_PLUS, "AI 视觉模型", ModelType.VISION, new QwenChatModelParams()),
-            new ModelInfo(QwenModelName.QWEN_VL_MAX, "AI 视觉模型", ModelType.VISION, new QwenChatModelParams()),
-            new ModelInfo(WanxModelName.WANX2_1_T2I_TURBO, "文生图模型", ModelType.TTI, new WanXImageModelParams()),
-            new ModelInfo(WanxModelName.WANX2_1_T2I_PLUS, "文生图模型", ModelType.TTI, new WanXImageModelParams()),
-            new ModelInfo("qwen-image-plus", "文生图模型", ModelType.TTI, new QwenImageModelParams()),
-            new ModelInfo("gte-rerank", "重排模型", ModelType.RERANKER)
+            new ModelInfo("gummy-realtime-v1", "", ModelType.STT, new GummySTTParams()),
+            new ModelInfo("cosyvoice-v1", "", ModelType.TTS, new CosyVoiceV1TTSParams()),
+            new ModelInfo("cosyvoice-v2", "", ModelType.TTS, new CosyVoiceV2TTSParams()),
+            new ModelInfo("sambert-v1", "", ModelType.TTS, new SamBertTTSParams()),
+            new ModelInfo("qwen-tts", "", ModelType.TTS, new QWenTTSParams()),
+            new ModelInfo(QwenModelName.QWEN_VL_PLUS, "", ModelType.VISION, new QwenChatModelParams()),
+            new ModelInfo(QwenModelName.QWEN_VL_MAX, "", ModelType.VISION, new QwenChatModelParams()),
+            new ModelInfo(WanxModelName.WANX2_1_T2I_TURBO, "", ModelType.TTI, new WanXImageModelParams()),
+            new ModelInfo(WanxModelName.WANX2_1_T2I_PLUS, "", ModelType.TTI, new WanXImageModelParams()),
+            new ModelInfo("qwen-image-plus", "", ModelType.TTI, new QwenImageModelParams()),
+            new ModelInfo("gte-rerank", "", ModelType.RERANKER)
     );
 
 

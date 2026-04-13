@@ -26,6 +26,7 @@ public class ToolNode extends AbsNode {
 
     @Data
     public static class NodeParams {
+        private String toolLibId;
         private List<ToolInputField> inputFieldList;
         private String code;
         private Map<String,Object> initParams;

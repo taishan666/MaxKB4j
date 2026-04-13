@@ -54,9 +54,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.stream.Stream;
 
-import static com.maxkb4j.workflow.enums.NodeType.BASE;
-import static com.maxkb4j.workflow.enums.NodeType.SEARCH_KNOWLEDGE;
+import static com.maxkb4j.workflow.enums.NodeType.*;
 
 
 /**
@@ -143,6 +143,49 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         return this.removeById(appId);
     }
 
+    private void saveResourceMappings(ApplicationEntity app) {
+        List<String> modelIds = new ArrayList<>(Stream.of(app.getModelId(), app.getSttModelId(), app.getTtsModelId())
+                .filter(Objects::nonNull)
+                .toList());
+        List<String> knowledgeIds = app.getKnowledgeIds() == null ? new ArrayList<>() : app.getKnowledgeIds();
+        List<String> toolIds = app.getToolIds() == null ? new ArrayList<>() : app.getToolIds();
+        JSONObject workFlow = app.getWorkFlow();
+        if (workFlow != null && workFlow.containsKey("nodes")) {
+            JSONArray nodes = workFlow.getJSONArray("nodes");
+            if (nodes != null) {
+                for (int i = 0; i < nodes.size(); i++) {
+                    JSONObject node = nodes.getJSONObject(i);
+                    JSONObject properties = node.getJSONObject("properties");
+                    if (properties != null && properties.containsKey("nodeData")) {
+                        JSONObject nodeData = properties.getJSONObject("nodeData");
+                        if (nodeData != null && nodeData.containsKey("toolLibId")) {
+                            toolIds.add(nodeData.getString("toolLibId"));
+                        }
+                        if (nodeData != null && nodeData.containsKey("mcpToolId")) {
+                            toolIds.add(nodeData.getString("mcpToolId"));
+                        }
+                        if (nodeData != null && nodeData.containsKey("toolIds")) {
+                            toolIds.addAll((Collection<? extends String>) nodeData.get("toolIds"));
+                        }
+                        if (nodeData != null && nodeData.containsKey("modelId")) {
+                            modelIds.add(nodeData.getString("modelId"));
+                        }
+                        if (nodeData != null && nodeData.containsKey("ttsModelId")) {
+                            modelIds.add(nodeData.getString("ttsModelId"));
+                        }
+                        if (nodeData != null && nodeData.containsKey("sttModelId")) {
+                            modelIds.add(nodeData.getString("sttModelId"));
+                        }
+                        if (nodeData != null && nodeData.containsKey("rerankerModelId")) {
+                            modelIds.add(nodeData.getString("rerankerModelId"));
+                        }
+                    }
+                }
+            }
+        }
+        saveResourceMappings(app.getId(), knowledgeIds, toolIds, modelIds);
+    }
+
     /**
      * 批量保存资源映射关系
      */
@@ -150,9 +193,10 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
                                       List<String> knowledgeIds,
                                       List<String> toolIds,
                                       List<String> modelIds) {
-        List<TargetResource> targets = new ArrayList<>();
-        targets.addAll(knowledgeIds.stream().filter(Objects::nonNull).map(id -> new TargetResource(id, ResourceType.KNOWLEDGE)).toList());
-        targets.addAll(toolIds.stream().filter(Objects::nonNull).map(id -> new TargetResource(id, ResourceType.TOOL)).toList());
+        knowledgeIds = knowledgeIds == null ? List.of() : knowledgeIds.stream().filter(Objects::nonNull).toList();
+        List<TargetResource> targets = new ArrayList<>(knowledgeIds.stream().map(id -> new TargetResource(id, ResourceType.KNOWLEDGE)).toList());
+        toolIds = toolIds == null ? List.of() : toolIds.stream().filter(Objects::nonNull).toList();
+        targets.addAll(toolIds.stream().map(id -> new TargetResource(id, ResourceType.TOOL)).toList());
         targets.addAll(modelIds.stream().filter(Objects::nonNull).map(id -> new TargetResource(id, ResourceType.MODEL)).toList());
         resourceMappingService.relation(ResourceType.APPLICATION, appId, targets);
     }
@@ -172,8 +216,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
                 app.setDesc(application.getDesc());
                 app.setIcon(StringUtils.isNotBlank(application.getIcon()) ? application.getIcon() : app.getIcon());
                 saveMk(maxKb4j);
-                saveResourceMappings(application.getId(), application.getKnowledgeIds(), application.getToolIds(),
-                        List.of(app.getModelId(), app.getSttModelId(), app.getTtsModelId()));
+                saveResourceMappings(app);
                 return app;
             }
         }
@@ -187,9 +230,8 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         application.setToolIds(List.of());
         application.setKnowledgeIds(List.of());
         application.setApplicationIds(List.of());
-        saveResourceMappings(application.getId(), application.getKnowledgeIds(), application.getToolIds(),
-                List.of(application.getModelId(), application.getSttModelId(), application.getTtsModelId()));
         this.saveApp(application);
+        saveResourceMappings(application);
         return application;
     }
 
@@ -315,8 +357,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
                         .map(JSONObject::new).ifPresent(baseNode -> updateAppFromBaseNode(app, baseNode));
             }
         }
-        saveResourceMappings(app.getId(), app.getKnowledgeIds(), app.getToolIds(),
-                List.of(app.getModelId(), app.getSttModelId(), app.getTtsModelId()));
+        saveResourceMappings(app);
         return this.updateById(app);
     }
 
