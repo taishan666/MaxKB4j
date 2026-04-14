@@ -26,10 +26,10 @@ import java.util.List;
 public class AliYunBaiLianModelProvider extends AbsModelProvider {
 
     private static final List<ModelInfo> MODEL_INFOS = List.of(
-            new ModelInfo(QwenModelName.QWEN_TURBO, "", ModelType.LLM, new QwenChatModelParams()),
-            new ModelInfo("qwen3.5-plus", "", ModelType.LLM, new QwenChatModelParams()),
-            new ModelInfo(QwenModelName.QWEN_PLUS, "", ModelType.LLM, new QwenChatModelParams()),
-            new ModelInfo(QwenModelName.QWEN_MAX, "", ModelType.LLM, new QwenChatModelParams()),
+            new ModelInfo(QwenModelName.QWEN_TURBO, "", ModelType.LLM, new QWenChatModelParams()),
+            new ModelInfo("qwen3.5-plus", "", ModelType.LLM, new QWenChatModelParams(true)),
+            new ModelInfo(QwenModelName.QWEN_PLUS, "", ModelType.LLM, new QWenChatModelParams()),
+            new ModelInfo(QwenModelName.QWEN_MAX, "", ModelType.LLM, new QWenChatModelParams()),
             new ModelInfo("text-embedding-v4", "", ModelType.EMBEDDING, new TextEmbeddingV4Params()),
             new ModelInfo("text-embedding-v3", "", ModelType.EMBEDDING, new TextEmbeddingV3Params()),
             new ModelInfo("paraformer-realtime-v2", "", ModelType.STT),
@@ -40,8 +40,8 @@ public class AliYunBaiLianModelProvider extends AbsModelProvider {
             new ModelInfo("cosyvoice-v2", "", ModelType.TTS, new CosyVoiceV2TTSParams()),
             new ModelInfo("sambert-v1", "", ModelType.TTS, new SamBertTTSParams()),
             new ModelInfo("qwen-tts", "", ModelType.TTS, new QWenTTSParams()),
-            new ModelInfo(QwenModelName.QWEN_VL_PLUS, "", ModelType.VISION, new QwenChatModelParams()),
-            new ModelInfo(QwenModelName.QWEN_VL_MAX, "", ModelType.VISION, new QwenChatModelParams()),
+            new ModelInfo(QwenModelName.QWEN_VL_PLUS, "", ModelType.VISION, new QWenChatModelParams()),
+            new ModelInfo(QwenModelName.QWEN_VL_MAX, "", ModelType.VISION, new QWenChatModelParams()),
             new ModelInfo(WanxModelName.WANX2_1_T2I_TURBO, "", ModelType.TTI, new WanXImageModelParams()),
             new ModelInfo(WanxModelName.WANX2_1_T2I_PLUS, "", ModelType.TTI, new WanXImageModelParams()),
             new ModelInfo("qwen-image-plus", "", ModelType.TTI, new QwenImageModelParams()),
