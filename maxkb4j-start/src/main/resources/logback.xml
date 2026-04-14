@@ -110,13 +110,12 @@
 
     <!-- 开发环境日志配置 -->
     <springProfile name="dev">
-        <root level="DEBUG">
+        <root level="INFO">
             <appender-ref ref="console"/>
             <appender-ref ref="async_info"/>
             <appender-ref ref="async_warn"/>
             <appender-ref ref="async_error"/>
         </root>
-        <logger name="com.maxkb4j" level="debug" additivity="true"/>
     </springProfile>
 
     <!-- 生产环境日志配置 - 也输出控制台方便容器环境 -->

@@ -18,81 +18,54 @@ public class RagContentInjector {
         this(DEFAULT_PROMPT_TEMPLATE);
     }
 
-
     public RagContentInjector(PromptTemplate promptTemplate) {
         this.promptTemplate = Utils.getOrDefault(promptTemplate, DEFAULT_PROMPT_TEMPLATE);
-    }
-
-    public static RagContentInjector.RagContentInjectorBuilder builder() {
-        return new RagContentInjector.RagContentInjectorBuilder();
     }
 
     public String inject(List<ParagraphVO> contents, String problemText) {
         if (contents.isEmpty()) {
             return problemText;
-        } else {
-            Prompt prompt = this.createPrompt(problemText, contents);
-            return prompt.text();
         }
+        return this.createPrompt(problemText, contents).text();
     }
 
     public String inject(List<ParagraphVO> contents, String problemText, int maxCharNumber) {
         if (contents.isEmpty()) {
             return problemText;
-        } else {
-            Prompt prompt = this.createPrompt(problemText, contents, maxCharNumber);
-            return prompt.text();
         }
+        return this.createPrompt(problemText, contents, maxCharNumber).text();
     }
 
-    protected Prompt createPrompt(String problemText, List<ParagraphVO> contents) {
+    private Prompt createPrompt(String problemText, List<ParagraphVO> contents) {
         Map<String, Object> variables = new HashMap<>();
         variables.put("userMessage", problemText);
         variables.put("contents", this.format(contents));
         return this.promptTemplate.apply(variables);
     }
 
-    protected Prompt createPrompt(String problemText, List<ParagraphVO> contents, int maxCharNumber) {
+    private Prompt createPrompt(String problemText, List<ParagraphVO> contents, int maxCharNumber) {
         Map<String, Object> variables = new HashMap<>();
         variables.put("userMessage", problemText);
         variables.put("contents", this.format(contents, maxCharNumber));
         return this.promptTemplate.apply(variables);
     }
 
-    protected String format(List<ParagraphVO> contents) {
-        return contents.stream().map(this::format).collect(Collectors.joining("\n\n"));
+    private String format(List<ParagraphVO> contents) {
+        return contents.stream().map(this::formatParagraph).collect(Collectors.joining("\n\n"));
     }
 
     public String format(List<ParagraphVO> contents, int maxCharNumber) {
-        String data = contents.stream().map(this::format).collect(Collectors.joining("\n\n"));
+        String data = format(contents);
         if (data.length() > maxCharNumber) {
             return data.substring(0, maxCharNumber);
         }
         return data;
     }
 
-    protected String format(ParagraphVO content) {
-        return this.format(content.getTitle(), content.getContent());
+    private String formatParagraph(ParagraphVO paragraph) {
+        String title = paragraph.getTitle();
+        String content = paragraph.getContent();
+        return title.isEmpty() ? content : String.format("content: %s\n%s", title, content);
     }
 
-    protected String format(String segmentContent, String segmentMetadata) {
-        return segmentMetadata.isEmpty() ? segmentContent : String.format("content: %s\n%s", segmentContent, segmentMetadata);
-    }
-
-    public static class RagContentInjectorBuilder {
-        private PromptTemplate promptTemplate;
-        private List<String> metadataKeysToInclude;
-
-        RagContentInjectorBuilder() {
-        }
-
-        public RagContentInjector.RagContentInjectorBuilder promptTemplate(PromptTemplate promptTemplate) {
-            this.promptTemplate = promptTemplate;
-            return this;
-        }
-
-        public RagContentInjector build() {
-            return new RagContentInjector(this.promptTemplate);
-        }
-    }
 }
