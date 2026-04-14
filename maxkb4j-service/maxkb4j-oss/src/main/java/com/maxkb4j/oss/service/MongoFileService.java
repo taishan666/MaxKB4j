@@ -157,7 +157,7 @@ public class MongoFileService implements IOssService{
         try {
             return resource.getContentAsByteArray();
         } catch (IOException e) {
-            log.error(e.getMessage());
+            log.error("Failed to read file content for ID: {}", fileId, e);
             throw new IllegalStateException("Failed to read file content: " + fileId, e);
         }
     }

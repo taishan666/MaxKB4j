@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.common.domain.dto.ChatRecordDTO;
 import com.maxkb4j.common.mp.entity.KnowledgeSetting;
 import com.maxkb4j.knowledge.service.IRetrieveService;
+import com.maxkb4j.knowledge.util.RagContentInjector;
 import com.maxkb4j.knowledge.vo.ParagraphVO;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.NodeType;
@@ -30,6 +31,7 @@ import java.util.Map;
 public class SearchKnowledgeNodeHandler extends AbsNodeHandler {
 
     private final IRetrieveService retrieveService;
+    public static final RagContentInjector contentInjector = new RagContentInjector();
 
     @Override
     protected NodeResult doExecute(Workflow workflow, AbsNode node) throws Exception {
@@ -54,11 +56,11 @@ public class SearchKnowledgeNodeHandler extends AbsNodeHandler {
                 "question", question,
                 "showKnowledge", params.getShowKnowledge()
         ));
-
+        int maxParagraphCharNumber = knowledgeSetting.getMaxParagraphCharNumber();
         return new NodeResult(Map.of(
                 "paragraphList", paragraphList,
                 "isHitHandlingMethodList", isHitHandlingMethodList,
-                "data", processParagraphs(paragraphList, knowledgeSetting.getMaxParagraphCharNumber()),
+                "data", contentInjector.format(paragraphList, maxParagraphCharNumber),
                 "directlyReturn", directlyReturns(isHitHandlingMethodList)
         ));
     }
@@ -98,27 +100,6 @@ public class SearchKnowledgeNodeHandler extends AbsNodeHandler {
                 result.append("\n").append(content);
             }
         }
-        return result.toString();
-    }
-
-    public String processParagraphs(List<ParagraphVO> paragraphList, int maxParagraphCharNumber) {
-        StringBuilder result = new StringBuilder();
-        for (ParagraphVO paragraph : paragraphList) {
-            String title = resetTitle(paragraph.getTitle());
-            String content = paragraph.getContent() != null ? paragraph.getContent() : "";
-            // 拼接标题和内容
-            if ((title != null && !title.isEmpty()) || !content.isEmpty()) {
-                result.append(title != null ? title : "").append(content).append("\n");
-                // 如果超出最大字符数限制，截断并返回
-                if (result.length() > maxParagraphCharNumber) {
-                    return result.substring(0, maxParagraphCharNumber);
-                }
-            }
-        }
-        if (!result.isEmpty()) {
-            result.deleteCharAt(result.length() - 1);
-        }
-        // 如果未超出限制，直接返回结果
         return result.toString();
     }
 

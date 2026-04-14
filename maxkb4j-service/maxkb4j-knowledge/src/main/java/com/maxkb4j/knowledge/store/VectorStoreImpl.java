@@ -69,7 +69,7 @@ public class VectorStoreImpl implements IDataStore {
             try {
                 processBatchWithRetry(model, batch, processedEntities, failedEntities);
             } catch (Exception e) {
-                log.error("Failed to process batch after retries: {}", e.getMessage());
+                log.error("Failed to process batch after retries: {}", e.getMessage(), e);
                 failedEntities.addAll(batch);
             }
         });

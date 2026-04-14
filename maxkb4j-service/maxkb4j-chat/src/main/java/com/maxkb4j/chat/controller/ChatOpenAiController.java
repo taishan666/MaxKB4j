@@ -86,7 +86,7 @@ public class ChatOpenAiController {
                                 .data("[DONE]")
                                 .build()
                 ))
-                .doOnError(error -> log.error("Stream error: {}", error.getMessage()))
+                .doOnError(error -> log.error("Stream error: {}", error.getMessage(), error))
                 .onErrorResume(e -> Flux.just(
                         ServerSentEvent.<String>builder()
                                 .data("[DONE]")
