@@ -21,8 +21,8 @@
         <java.version>21</java.version>
         <maven.plugin.version>3.11.0</maven.plugin.version>
         <maven.flatten.version>1.3.0</maven.flatten.version>
-        <langchain4j.version>1.12.2</langchain4j.version>
-        <langchain4j.beta.version>1.12.2-beta22</langchain4j.beta.version>
+        <langchain4j.version>1.13.0</langchain4j.version>
+        <langchain4j.beta.version>1.13.0-beta23</langchain4j.beta.version>
         <p6spy.version>1.10.0</p6spy.version>
         <knife4j.version>4.5.0</knife4j.version>
         <springdoc-openapi.version>2.8.6</springdoc-openapi.version>
@@ -331,11 +331,11 @@
                 <artifactId>langchain4j-community-xinference</artifactId>
                 <version>${langchain4j.beta.version}</version>
             </dependency>
-            <dependency>
+<!--            <dependency>
                 <groupId>dev.langchain4j</groupId>
                 <artifactId>langchain4j-embeddings-all-minilm-l6-v2-q</artifactId>
                 <version>${langchain4j.beta.version}</version>
-            </dependency>
+            </dependency>-->
             <dependency>
                 <groupId>dev.langchain4j</groupId>
                 <artifactId>langchain4j-local-ai</artifactId>

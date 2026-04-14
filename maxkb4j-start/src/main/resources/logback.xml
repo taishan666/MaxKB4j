@@ -99,12 +99,16 @@
     <!-- Spring日志级别控制  -->
     <logger name="org.springframework" level="warn"/>
     <!-- MyBatis SQL日志 -->
-    <logger name="com.maxkb4j" level="debug"/>
-    <logger name="org.mybatis" level="debug"/>
+    <logger name="org.mybatis" level="info"/>
     <!-- HikariCP连接池日志 -->
     <logger name="com.zaxxer.hikari" level="warn"/>
+    <logger name="com.zaxxer.hikari" level="error"/>
     <!-- Apache Commons日志 -->
     <logger name="org.apache" level="warn"/>
     <!-- LangChain4j日志 -->
-    <logger name="dev.langchain4j" level="info"/>
+    <logger name="dev.langchain4j" level="warn"/>
+    <logger name="dev.langchain4j" level="error"/>
+    <!-- mongodb日志 -->
+    <logger name="org.mongodb" level="warn"/>
+    <logger name="org.mongodb" level="error"/>
 </configuration>
