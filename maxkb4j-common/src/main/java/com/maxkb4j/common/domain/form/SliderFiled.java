@@ -30,6 +30,10 @@ public class SliderFiled extends BaseField {
         super.setField(field);
         super.setDefaultValue(defaultValue);
         super.setShow_default_value(true);
+        super.setProps_info(new JSONObject());
+        super.setRelation_show_field_dict(new JSONObject());
+        super.setRelation_trigger_field_dict(new JSONObject());
+        super.setTrigger_type("OPTION_LIST");
         super.setRequired(true);
     }
 }

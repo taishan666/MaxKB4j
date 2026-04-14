@@ -2,40 +2,36 @@ package com.maxkb4j.application.pipeline.step.generatehumanmessagestep.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
-import com.maxkb4j.application.enums.AIAnswerType;
 import com.maxkb4j.application.pipeline.step.generatehumanmessagestep.AbsGenerateHumanMessageStep;
 import com.maxkb4j.common.mp.entity.KnowledgeSetting;
 import com.maxkb4j.common.mp.entity.LlmModelSetting;
 import com.maxkb4j.knowledge.vo.ParagraphVO;
+import dev.langchain4j.model.input.PromptTemplate;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Component
 public class GenerateHumanMessageStep extends AbsGenerateHumanMessageStep {
+
+    public static final PromptTemplate DEFAULT_PROMPT_TEMPLATE = PromptTemplate.from("{{userMessage}}\n\nAnswer using the following information:\n{{contents}}");
     @Override
     protected String execute(LlmModelSetting llmModelSetting, KnowledgeSetting knowledgeSetting, String problemText, List<ParagraphVO> paragraphList) {
         String safeProblemText = problemText != null ? problemText : "";
         if (!CollectionUtils.isEmpty(paragraphList)) {
-            String prompt = llmModelSetting.getPrompt();
-            if (prompt != null) {
-                StringBuilder data = new StringBuilder();
-                for (ParagraphVO paragraphVO : paragraphList) {
-                    String title = paragraphVO.getTitle() != null ? paragraphVO.getTitle() : "";
-                    String content = paragraphVO.getContent() != null ? paragraphVO.getContent() : "";
-                    data.append("<data>").append(title).append(":").append(content).append("</data>");
-                }
-                prompt = prompt.replace("{question}", safeProblemText).replace("{data}", data);
-                return prompt;
+            List<String> contents=new ArrayList<>();
+            for (ParagraphVO paragraphVO : paragraphList) {
+                String title = paragraphVO.getTitle() != null ? paragraphVO.getTitle() : "";
+                String content = paragraphVO.getContent() != null ? paragraphVO.getContent() : "";
+                contents.add(String.format("content: %s\n%s", title, content));
             }
-        } else {
-            String status = knowledgeSetting.getNoReferencesSetting().getStatus();
-            if (AIAnswerType.ai_questioning.name().equals(status)) {
-                String noReferencesPrompt = llmModelSetting.getNoReferencesPrompt();
-                if (noReferencesPrompt != null) {
-                    return noReferencesPrompt.replace("{question}", safeProblemText);
-                }
-            }
+            Map<String, Object> variables = new HashMap<>();
+            variables.put("userMessage", problemText);
+            variables.put("contents", String.join("\n", contents));
+           return DEFAULT_PROMPT_TEMPLATE.apply( variables).text();
         }
         return safeProblemText;
     }

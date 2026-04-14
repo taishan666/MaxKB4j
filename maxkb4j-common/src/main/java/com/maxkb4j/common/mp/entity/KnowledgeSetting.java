@@ -15,5 +15,7 @@ public class KnowledgeSetting {
     private String searchMode;
     private Float similarity;
     private NoReferencesSetting noReferencesSetting;
+    private Boolean fallbackEnable;
+    private String fallbackResponse;
 
 }
