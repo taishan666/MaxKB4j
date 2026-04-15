@@ -39,13 +39,13 @@ public class QWenTTS  implements TTSModel {
         try {
             result = conv.call(param);
             String audioUrl = result.getOutput().getAudio().getUrl();
-            return  downloadAudio(audioUrl);
+            return  toBytes(audioUrl);
         } catch (NoApiKeyException | UploadFileException | IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public static byte[] downloadAudio(String audioUrl) throws IOException {
+    public static byte[] toBytes(String audioUrl) throws IOException {
         URL url = new URL(audioUrl);
         try (InputStream inputStream = url.openStream();
              ByteArrayOutputStream buffer = new ByteArrayOutputStream()) {

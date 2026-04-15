@@ -22,6 +22,9 @@ public class BaiLianSTTModel implements STTModel {
     }
 
     private STTModel buildInstance(String modelName) {
+        if (modelName.startsWith("gummy-")){
+            return new GummySTT(modelName, credential, params);
+        }
         return new BaiLianASRRealtime(modelName, credential, params);
     }
 
