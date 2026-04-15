@@ -22,7 +22,7 @@ public class CosyVoiceTTS  implements TTSModel {
                         .apiKey(credential.getApiKey())
                         .model(modelName)
                         .voice(voice)
-                        .speechRate(speechRate)
+                        .speechRate(speechRate==null?1.0f:speechRate)
                         .volume(volume)
                         .build();
     }

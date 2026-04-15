@@ -125,7 +125,7 @@ public class ModelService extends ServiceImpl<ModelMapper, ModelEntity> {
             credential.setBaseUrl(model.getCredential().getBaseUrl());
             model.setCredential(credential);
         }
-        MODEL_CACHE.put(id, model);
+        MODEL_CACHE.invalidate(id);
         this.updateById(model);
         return model;
     }

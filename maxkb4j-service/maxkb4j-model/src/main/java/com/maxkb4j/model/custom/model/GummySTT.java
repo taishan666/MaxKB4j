@@ -38,8 +38,8 @@ public class GummySTT implements STTModel {
         this.param = TranslationRecognizerParam.builder()
                          .apiKey(modelCredential.getApiKey())
                         .model(modelName)
-                        .format("wav") // 'pcm'、'wav'、'mp3'、'opus'、'speex'、'aac'、'amr', you
-                        .sampleRate(16000)
+                        .format("mp3") // 'pcm'、'wav'、'mp3'、'opus'、'speex'、'aac'、'amr', you
+                        .sampleRate(22050)
                         .transcriptionEnabled(true)
                         .sourceLanguage("auto")
                         .translationEnabled(false)
@@ -55,6 +55,7 @@ public class GummySTT implements STTModel {
         ResultCallback<TranslationRecognizerResult> callback = new ResultCallback<>() {
             @Override
             public void onEvent(TranslationRecognizerResult result) {
+                System.out.println(result);
                 if (result.isSentenceEnd()) {
                     texts.add(result.getTranscriptionResult().getText());
                 }
