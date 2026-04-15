@@ -103,7 +103,6 @@ public abstract class AbsNodeHandler implements INodeHandler {
      * @param node     节点实例
      */
     protected void onPreExecute(Workflow workflow, AbsNode node) {
-        node.getDetail().put("startTime", System.currentTimeMillis());
     }
 
     /**
@@ -144,7 +143,6 @@ public abstract class AbsNodeHandler implements INodeHandler {
         long endTime = System.currentTimeMillis();
         float runTime = (endTime - startTime) / 1000F;
         node.getDetail().put("runTime", runTime);
-        node.getDetail().put("endTime", endTime);
         String nodeName = node.getProperties() != null ? node.getProperties().getString("nodeName") : node.getType();
         log.info("node: {}, runTime: {} s", nodeName, runTime);
     }
