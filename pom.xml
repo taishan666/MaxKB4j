@@ -36,6 +36,7 @@
         <mybatis-plus.version>3.5.9</mybatis-plus.version>
         <jaxb-api.version>2.3.1</jaxb-api.version>
         <postgresql.version>42.7.7</postgresql.version>
+        <mysql.version>8.0.33</mysql.version>
         <pgvector.version>0.1.6</pgvector.version>
         <openai-java.version>4.9.0</openai-java.version>
         <flexmark.version>0.64.8</flexmark.version>
@@ -143,6 +144,11 @@
                 <groupId>org.postgresql</groupId>
                 <artifactId>postgresql</artifactId>
                 <version>${postgresql.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>mysql</groupId>
+                <artifactId>mysql-connector-java</artifactId>
+                <version>${mysql.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.pgvector</groupId>
