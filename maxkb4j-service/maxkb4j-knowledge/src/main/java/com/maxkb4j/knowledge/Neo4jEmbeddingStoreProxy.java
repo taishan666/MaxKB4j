@@ -1,37 +1,30 @@
 package com.maxkb4j.knowledge;
 
+import dev.langchain4j.community.store.embedding.neo4j.Neo4jEmbeddingStore;
 import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.store.embedding.EmbeddingSearchRequest;
 import dev.langchain4j.store.embedding.EmbeddingSearchResult;
 import dev.langchain4j.store.embedding.EmbeddingStore;
 import dev.langchain4j.store.embedding.filter.Filter;
-import dev.langchain4j.store.embedding.pgvector.DefaultMetadataStorageConfig;
-import dev.langchain4j.store.embedding.pgvector.MetadataStorageMode;
-import dev.langchain4j.store.embedding.pgvector.PgVectorEmbeddingStore;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import javax.sql.DataSource;
-import java.util.Collections;
 import java.util.concurrent.ConcurrentHashMap;
 
 @RequiredArgsConstructor
 @Component
-public class EmbeddingStoreProxy {
+public class Neo4jEmbeddingStoreProxy {
 
     private final ConcurrentHashMap<Integer, EmbeddingStore<TextSegment>> embeddingStores = new ConcurrentHashMap<>();
     private final DataSource dataSource;
 
 
     private EmbeddingStore<TextSegment> build(Integer dimension) {
-        return PgVectorEmbeddingStore.datasourceBuilder()
-                .datasource(dataSource)
-                .table("embeddings_" + dimension)
+        return  Neo4jEmbeddingStore.builder()
+                .withBasicAuth("", "username", "password")
                 .dimension(dimension)
-                .metadataStorageConfig(DefaultMetadataStorageConfig.builder()
-                        .storageMode(MetadataStorageMode.COMBINED_JSONB)
-                        .columnDefinitions(Collections.singletonList("metadata JSONB NULL"))
-                        .build())
+                .indexName("embeddings_" + dimension)
                 .build();
     }
 

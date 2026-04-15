@@ -363,6 +363,21 @@
                 <version>${langchain4j.beta.version}</version>
             </dependency>
             <dependency>
+                <groupId>dev.langchain4j</groupId>
+                <artifactId>langchain4j-community-neo4j</artifactId>
+                <version>${langchain4j.beta.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dev.langchain4j</groupId>
+                <artifactId>langchain4j-community-neo4j-retriever</artifactId>
+                <version>${langchain4j.beta.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dev.langchain4j</groupId>
+                <artifactId>langchain4j-redis</artifactId>
+                <version>1.0.0-alpha1</version>
+            </dependency>
+            <dependency>
                 <groupId>com.openai</groupId>
                 <artifactId>openai-java</artifactId>
                 <version>${openai-java.version}</version>

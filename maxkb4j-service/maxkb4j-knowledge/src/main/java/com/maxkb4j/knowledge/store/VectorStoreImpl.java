@@ -1,7 +1,7 @@
 package com.maxkb4j.knowledge.store;
 
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
-import com.maxkb4j.knowledge.EmbeddingStoreProxy;
+import com.maxkb4j.knowledge.PgVectorEmbeddingStoreProxy;
 import com.maxkb4j.knowledge.consts.SourceType;
 import com.maxkb4j.knowledge.entity.TextChunk;
 import com.maxkb4j.knowledge.retrieval.SearchRequest;
@@ -40,22 +40,22 @@ import java.util.stream.Collectors;
 public class VectorStoreImpl implements IDataStore {
 
     private final KnowledgeModelService knowledgeModelService;
-    private final EmbeddingStoreProxy embeddingStoreProxy;
+    private final PgVectorEmbeddingStoreProxy embeddingStoreProxy;
 
     @Override
-    public void upsert(EmbeddingModel model, List<TextChunk> entities) {
-        if (entities == null || entities.isEmpty()) {
+    public void upsert(EmbeddingModel model, List<TextChunk> textChunks) {
+        if (textChunks == null || textChunks.isEmpty()) {
             return;
         }
         // Filter valid entities
-        List<TextChunk> validEntities = entities.stream()
+        List<TextChunk> validChunks = textChunks.stream()
                 .filter(e -> e != null && StringUtils.isNotBlank(e.getContent()))
                 .toList();
 
-        if (validEntities.isEmpty()) {
+        if (validChunks.isEmpty()) {
             return;
         }
-        List<TextSegment> textSegments=validEntities.stream().map(e->{
+        List<TextSegment> textSegments=validChunks.stream().map(e->{
             Metadata metadata=Metadata.from(Map.of(
                     "sourceId",e.getSourceId(),
                     "sourceType",e.getSourceType(),
@@ -66,7 +66,7 @@ public class VectorStoreImpl implements IDataStore {
             return TextSegment.from("",metadata);
         }).toList();
         List<Embedding> embeddings=model.embedAll(textSegments).content();
-        log.debug("Processing {} valid entities for embedding", validEntities.size());
+        log.debug("Processing {} valid entities for embedding", validChunks.size());
         EmbeddingStore<TextSegment> embeddingStore = embeddingStoreProxy.get(model.dimension());
         embeddingStore.addAll(embeddings, textSegments);
     }
