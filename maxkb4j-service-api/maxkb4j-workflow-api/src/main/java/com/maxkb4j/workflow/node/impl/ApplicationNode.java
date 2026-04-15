@@ -4,10 +4,10 @@ import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.workflow.model.NodeField;
 import com.maxkb4j.workflow.model.Workflow;
 import com.maxkb4j.workflow.node.AbsNode;
-import lombok.Data;
-
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import lombok.Data;
+
 import java.util.List;
 import java.util.Map;
 

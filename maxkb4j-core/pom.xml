@@ -13,7 +13,15 @@
     <name>${project.artifactId}</name>
     <packaging>jar</packaging>
 
+    <properties>
+        <jetbrains.version>24.1.0</jetbrains.version>
+    </properties>
     <dependencies>
+        <dependency>
+            <groupId>org.jetbrains</groupId>
+            <artifactId>annotations</artifactId>
+            <version>${jetbrains.version}</version>
+        </dependency>
         <dependency>
             <groupId>com.tarzan</groupId>
             <artifactId>maxkb4j-common</artifactId>

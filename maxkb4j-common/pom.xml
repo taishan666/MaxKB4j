@@ -8,7 +8,6 @@
         <artifactId>MaxKB4j</artifactId>
         <version>${revision}</version>
     </parent>
-
     <artifactId>maxkb4j-common</artifactId>
     <name>${project.artifactId}</name>
     <packaging>jar</packaging>
@@ -35,6 +34,10 @@
         <dependency>
             <groupId>cn.dev33</groupId>
             <artifactId>sa-token-jwt</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>cn.hutool</groupId>
+            <artifactId>hutool-json</artifactId>
         </dependency>
         <dependency>
             <groupId>cn.hutool</groupId>
