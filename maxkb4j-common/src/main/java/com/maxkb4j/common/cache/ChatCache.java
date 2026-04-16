@@ -11,7 +11,7 @@ public class ChatCache {
 
     // 创建缓存实例，设置最大容量为100，过期时间为10分钟
     private static final Cache<String, ChatInfo> CHAT_CACHE = Caffeine.newBuilder()
-            .maximumSize(100) // 设置缓存的最大容量
+            .maximumSize(9999) // 设置缓存的最大容量
             .expireAfterWrite(30, TimeUnit.MINUTES) // 设置写入后30分钟过期
             .build();
 

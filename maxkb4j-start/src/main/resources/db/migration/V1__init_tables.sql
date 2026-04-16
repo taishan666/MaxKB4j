@@ -6,7 +6,6 @@ CREATE EXTENSION IF NOT EXISTS "vector";
 -- ----------------------------
 -- Table structure for system_setting
 -- ----------------------------
-DROP TABLE IF EXISTS "public"."system_setting";
 CREATE TABLE "public"."system_setting" (
                                            "type" int4 NOT NULL,
                                            "meta" jsonb NOT NULL,
@@ -22,7 +21,6 @@ ALTER TABLE "public"."system_setting" ADD CONSTRAINT "system_setting_pkey" PRIMA
 -- ----------------------------
 -- Table structure for user
 -- ----------------------------
-DROP TABLE IF EXISTS "public"."user";
 CREATE TABLE "public"."user" (
                                  "id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
                                  "email" varchar(254) COLLATE "pg_catalog"."default",
@@ -62,7 +60,6 @@ ALTER TABLE "public"."user" ADD CONSTRAINT "user_pkey" PRIMARY KEY ("id");
 -- ----------------------------
 -- Table structure for user_resource_permission
 -- ----------------------------
-DROP TABLE IF EXISTS "public"."user_resource_permission";
 CREATE TABLE "public"."user_resource_permission" (
                                                      "id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
                                                      "workspace_id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
@@ -84,7 +81,6 @@ ALTER TABLE "public"."user_resource_permission" ADD CONSTRAINT "workspace_user_r
 -- ----------------------------
 -- Table structure for application
 -- ----------------------------
-DROP TABLE IF EXISTS "public"."application";
 CREATE TABLE "public"."application" (
                                         "id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
                                         "name" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
@@ -147,7 +143,6 @@ ALTER TABLE "public"."application" ADD CONSTRAINT "application_pkey" PRIMARY KEY
 -- ----------------------------
 -- Table structure for application_access_token
 -- ----------------------------
-DROP TABLE IF EXISTS "public"."application_access_token";
 CREATE TABLE "public"."application_access_token" (
                                                      "create_time" timestamp(6) NOT NULL,
                                                      "update_time" timestamp(6) NOT NULL,
@@ -188,7 +183,6 @@ ALTER TABLE "public"."application_access_token" ADD CONSTRAINT "application_acce
 -- ----------------------------
 -- Table structure for application_api_key
 -- ----------------------------
-DROP TABLE IF EXISTS "public"."application_api_key";
 CREATE TABLE "public"."application_api_key" (
                                                 "id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
                                                 "secret_key" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
@@ -234,7 +228,6 @@ ALTER TABLE "public"."application_api_key" ADD CONSTRAINT "application_api_key_u
 -- ----------------------------
 -- Table structure for application_chat
 -- ----------------------------
-DROP TABLE IF EXISTS "public"."application_chat";
 CREATE TABLE "public"."application_chat" (
                                            "id" varchar(120) COLLATE "pg_catalog"."default" NOT NULL,
                                              "summary" varchar(1024) COLLATE "pg_catalog"."default" NOT NULL,
@@ -273,7 +266,6 @@ ALTER TABLE "public"."application_chat" ADD CONSTRAINT "application_chat_pkey" P
 -- ----------------------------
 -- Table structure for application_chat_record
 -- ----------------------------
-DROP TABLE IF EXISTS "public"."application_chat_record";
 CREATE TABLE "public"."application_chat_record" (
                                                     "id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
                                                     "vote_status" varchar(10) COLLATE "pg_catalog"."default" NOT NULL,
@@ -308,7 +300,6 @@ ALTER TABLE "public"."application_chat_record" ADD CONSTRAINT "application_chat_
 -- ----------------------------
 -- Table structure for application_chat_user_stats
 -- ----------------------------
-DROP TABLE IF EXISTS "public"."application_chat_user_stats";
 CREATE TABLE "public"."application_chat_user_stats" (
                                                         "id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
                                                         "access_num" int4 NOT NULL,
@@ -340,7 +331,6 @@ ALTER TABLE "public"."application_chat_user_stats" ADD CONSTRAINT "application_c
 -- ----------------------------
 -- Table structure for application_version
 -- ----------------------------
-DROP TABLE IF EXISTS "public"."application_version";
 CREATE TABLE "public"."application_version" (
                                                 "id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
                                                 "name" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
@@ -389,7 +379,6 @@ ALTER TABLE "public"."application_version" ADD CONSTRAINT "application_version_p
 -- ----------------------------
 -- Table structure for knowledge
 -- ----------------------------
-DROP TABLE IF EXISTS "public"."knowledge";
 CREATE TABLE "public"."knowledge" (
                                       "id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
                                       "name" varchar(150) COLLATE "pg_catalog"."default" NOT NULL,
@@ -432,7 +421,6 @@ ALTER TABLE "public"."knowledge" ADD CONSTRAINT "knowledge_user_id_fk_user_id" F
 -- ----------------------------
 -- Table structure for document
 -- ----------------------------
-DROP TABLE IF EXISTS "public"."document";
 CREATE TABLE "public"."document" (
                                      "id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
                                      "name" varchar(150) COLLATE "pg_catalog"."default" NOT NULL,
@@ -469,7 +457,6 @@ ALTER TABLE "public"."document" ADD CONSTRAINT "document_knowledge_id_fk_knowled
 -- ----------------------------
 -- Table structure for paragraph
 -- ----------------------------
-DROP TABLE IF EXISTS "public"."paragraph";
 CREATE TABLE "public"."paragraph" (
                                       "id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
                                       "content" varchar(102400) COLLATE "pg_catalog"."default" NOT NULL,
@@ -511,7 +498,6 @@ ALTER TABLE "public"."paragraph" ADD CONSTRAINT "paragraph_knowledge_id_fk_knowl
 -- ----------------------------
 -- Table structure for problem
 -- ----------------------------
-DROP TABLE IF EXISTS "public"."problem";
 CREATE TABLE "public"."problem" (
                                     "id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
                                     "content" varchar(256) COLLATE "pg_catalog"."default" NOT NULL,
@@ -538,7 +524,6 @@ ALTER TABLE "public"."problem" ADD CONSTRAINT "problem_pkey" PRIMARY KEY ("id");
 -- ----------------------------
 -- Table structure for folder
 -- ----------------------------
-DROP TABLE IF EXISTS "public"."folder";
 CREATE TABLE "public"."folder" (
                                    "id" varchar(64) COLLATE "pg_catalog"."default" NOT NULL,
                                    "name" varchar(64) COLLATE "pg_catalog"."default" NOT NULL,
@@ -589,7 +574,6 @@ ALTER TABLE "public"."folder" ADD CONSTRAINT "application_folder_pkey" PRIMARY K
 -- ----------------------------
 -- Table structure for tool
 -- ----------------------------
-DROP TABLE IF EXISTS "public"."tool";
 CREATE TABLE "public"."tool" (
                                  "id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
                                  "name" varchar(64) COLLATE "pg_catalog"."default" NOT NULL,
@@ -635,7 +619,6 @@ ALTER TABLE "public"."tool" ADD CONSTRAINT "tool_user_id_fk_user_id" FOREIGN KEY
 -- ----------------------------
 -- Table structure for model
 -- ----------------------------
-DROP TABLE IF EXISTS "public"."model";
 CREATE TABLE "public"."model" (
                                   "id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
                                   "name" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
@@ -673,7 +656,6 @@ ALTER TABLE "public"."model" ADD CONSTRAINT "model_pkey" PRIMARY KEY ("id");
 -- ----------------------------
 -- Table structure for embedding
 -- ----------------------------
-DROP TABLE IF EXISTS "public"."embedding";
 CREATE TABLE "public"."embedding" (
                                       "id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
                                       "source_id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
@@ -712,7 +694,6 @@ ALTER TABLE "public"."embedding" ADD CONSTRAINT "embedding_pkey" PRIMARY KEY ("i
 -- ----------------------------
 -- Table structure for problem_paragraph_mapping
 -- ----------------------------
-DROP TABLE IF EXISTS "public"."problem_paragraph_mapping";
 CREATE TABLE "public"."problem_paragraph_mapping" (
                                                       "id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
                                                       "knowledge_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
@@ -753,7 +734,6 @@ ALTER TABLE "public"."problem_paragraph_mapping" ADD CONSTRAINT "problem_paragra
 -- ----------------------------
 -- Table structure for knowledge_workflow_version
 -- ----------------------------
-DROP TABLE IF EXISTS "public"."knowledge_workflow_version";
 CREATE TABLE "public"."knowledge_workflow_version" (
                                                        "id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
                                                        "work_flow" jsonb ,
@@ -788,7 +768,6 @@ ALTER TABLE "public"."knowledge_workflow_version" ADD CONSTRAINT "knowledge_work
 -- ----------------------------
 -- Table structure for knowledge_action
 -- ----------------------------
-DROP TABLE IF EXISTS "public"."knowledge_action";
 CREATE TABLE "public"."knowledge_action" (
                                              "id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
                                              "state" varchar(20) COLLATE "pg_catalog"."default" NOT NULL,

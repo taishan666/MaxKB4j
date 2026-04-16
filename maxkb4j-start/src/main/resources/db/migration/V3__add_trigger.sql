@@ -1,7 +1,6 @@
 -- ----------------------------
 -- Table structure for event_trigger
 -- ----------------------------
-DROP TABLE IF EXISTS "public"."event_trigger";
 CREATE TABLE "public"."event_trigger" (
                                           "create_time" timestamptz(6) NOT NULL,
                                           "update_time" timestamptz(6) NOT NULL,
@@ -26,7 +25,6 @@ ALTER TABLE "public"."event_trigger" ADD CONSTRAINT "event_trigger_pkey" PRIMARY
 -- ----------------------------
 -- Table structure for event_trigger_task
 -- ----------------------------
-DROP TABLE IF EXISTS "public"."event_trigger_task";
 CREATE TABLE "public"."event_trigger_task" (
                                                "create_time" timestamptz(6) NOT NULL,
                                                "update_time" timestamptz(6) NOT NULL,
@@ -48,7 +46,6 @@ ALTER TABLE "public"."event_trigger_task" ADD CONSTRAINT "event_trigger_task_pke
 -- ----------------------------
 -- Table structure for event_trigger_task_record
 -- ----------------------------
-DROP TABLE IF EXISTS "public"."event_trigger_task_record";
 CREATE TABLE "public"."event_trigger_task_record" (
                                                       "create_time" timestamptz(6) NOT NULL,
                                                       "update_time" timestamptz(6) NOT NULL,

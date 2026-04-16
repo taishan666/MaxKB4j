@@ -1,4 +1,3 @@
-DROP TABLE IF EXISTS "public"."resource_mapping";
 CREATE TABLE "public"."resource_mapping" (
                                              "create_time" timestamp(6) NOT NULL,
                                              "update_time" timestamp(6) NOT NULL,
@@ -53,7 +52,6 @@ ALTER TABLE "public"."resource_mapping" ADD CONSTRAINT "resource_mapping_pkey" P
 -- ----------------------------
 -- Table structure for application_chat_share_link
 -- ----------------------------
-DROP TABLE IF EXISTS "public"."application_chat_share_link";
 CREATE TABLE "public"."application_chat_share_link" (
                                                         "id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
                                                         "share_type" varchar(25) COLLATE "pg_catalog"."default",
