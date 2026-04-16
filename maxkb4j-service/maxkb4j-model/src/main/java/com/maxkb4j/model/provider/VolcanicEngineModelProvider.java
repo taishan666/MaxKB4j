@@ -3,7 +3,7 @@ package com.maxkb4j.model.provider;
 
 import com.maxkb4j.model.custom.params.impl.ImageModelParams;
 import com.maxkb4j.model.custom.params.impl.OpenAiChatModelParams;
-import com.maxkb4j.model.custom.params.impl.TextEmbeddingV3Params;
+import com.maxkb4j.model.custom.params.impl.QWenEmbeddingParams;
 import com.maxkb4j.model.enums.ModelType;
 import com.maxkb4j.model.vo.ModelInfo;
 
@@ -23,7 +23,7 @@ public class VolcanicEngineModelProvider extends OpenAiModelProvider {
             new ModelInfo("doubao-seed-1-6-vision-250815", "", ModelType.VISION, new OpenAiChatModelParams()),
             new ModelInfo("doubao-seedream-4-0-250828", "", ModelType.TTI, new ImageModelParams()),
             new ModelInfo("doubao-seedream-4-5-251128", "", ModelType.TTI, new ImageModelParams()),
-            new ModelInfo("doubao-embedding-text-240715", "", ModelType.EMBEDDING, new TextEmbeddingV3Params())
+            new ModelInfo("doubao-embedding-text-240715", "", ModelType.EMBEDDING, new QWenEmbeddingParams())
     );
 
 

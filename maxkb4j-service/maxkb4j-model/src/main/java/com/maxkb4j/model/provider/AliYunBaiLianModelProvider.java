@@ -30,8 +30,9 @@ public class AliYunBaiLianModelProvider extends AbsModelProvider {
             new ModelInfo("qwen3.5-plus", "", ModelType.LLM, new QWenChatModelParams(true)),
             new ModelInfo(QwenModelName.QWEN_PLUS, "", ModelType.LLM, new QWenChatModelParams()),
             new ModelInfo(QwenModelName.QWEN_MAX, "", ModelType.LLM, new QWenChatModelParams()),
-            new ModelInfo("text-embedding-v4", "", ModelType.EMBEDDING, new TextEmbeddingV4Params()),
-            new ModelInfo("text-embedding-v3", "", ModelType.EMBEDDING, new TextEmbeddingV3Params()),
+            new ModelInfo("text-embedding-v3", "", ModelType.EMBEDDING, new QWenEmbeddingParams()),
+            new ModelInfo("text-embedding-v4", "", ModelType.EMBEDDING, new QWenEmbeddingParams()),
+            new ModelInfo("text-embedding-v3", "", ModelType.EMBEDDING, new QWenEmbeddingParams()),
             new ModelInfo("paraformer-realtime-v2", "", ModelType.STT),
             new ModelInfo("fun-asr-realtime", "", ModelType.STT),
             new ModelInfo("gummy-realtime-v1", "", ModelType.STT, new GummySTTParams()),
@@ -46,7 +47,8 @@ public class AliYunBaiLianModelProvider extends AbsModelProvider {
             new ModelInfo(WanxModelName.WANX2_1_T2I_TURBO, "", ModelType.TTI, new WanXImageModelParams()),
             new ModelInfo(WanxModelName.WANX2_1_T2I_PLUS, "", ModelType.TTI, new WanXImageModelParams()),
             new ModelInfo("qwen-image-plus", "", ModelType.TTI, new QwenImageModelParams()),
-            new ModelInfo("gte-rerank", "", ModelType.RERANKER)
+            new ModelInfo("gte-rerank", "", ModelType.RERANKER),
+            new ModelInfo("qwen3-rerank", "", ModelType.RERANKER)
     );
 
 

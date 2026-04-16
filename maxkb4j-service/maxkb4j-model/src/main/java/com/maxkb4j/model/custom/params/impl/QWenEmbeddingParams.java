@@ -9,19 +9,14 @@ import java.util.List;
 import java.util.Map;
 
 @Data
-public class TextEmbeddingV4Params implements IModelParams {
+public class QWenEmbeddingParams implements IModelParams {
 
     @Override
     public List<BaseField> toForm() {
         Map<String,Object> options=Map.of(
-                "2,048",2048,
-                "1,536",1536,
                 "1,024",1024,
                 "768",768,
-                "512",512,
-                "256",256,
-                "128",128,
-                "64",64
+                "512",512
         );
         BaseField dimension=new SingleSelectFiled("dimension","dimension","向量维度",options,1024);
         return List.of(dimension);
