@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.maxkb4j.application.service.IApplicationChatService;
 import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.domain.dto.*;
+import com.maxkb4j.common.enums.ChatSource;
 import com.maxkb4j.common.enums.ChatUserType;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -55,6 +56,7 @@ public class ChatOpenAiController {
                 .debug(false)
                 .stream(request.getStream())
                 .reChat(false)
+                .source(ChatSource.API_CALL)
                 .build();
     }
 

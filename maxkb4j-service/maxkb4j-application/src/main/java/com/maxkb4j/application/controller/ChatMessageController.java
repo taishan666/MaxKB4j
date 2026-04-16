@@ -5,6 +5,7 @@ import com.maxkb4j.common.api.R;
 import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.domain.dto.ChatMessageVO;
 import com.maxkb4j.common.domain.dto.ChatParams;
+import com.maxkb4j.common.enums.ChatSource;
 import com.maxkb4j.common.enums.ChatUserType;
 import com.maxkb4j.common.util.StpKit;
 import com.maxkb4j.common.util.WebUtil;
@@ -37,6 +38,7 @@ public class ChatMessageController {
         params.setChatId(chatId);
         params.setChatUserId(StpKit.ADMIN.getLoginIdAsString());
         params.setChatUserType(ChatUserType.ANONYMOUS_USER.name());
+        params.setSource(ChatSource.ONLINE);
         params.setIpAddress(WebUtil.getIP());
         params.setDebug(true);
         // 异步执行业务逻辑

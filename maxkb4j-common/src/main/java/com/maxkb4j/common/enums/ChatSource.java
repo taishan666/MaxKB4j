@@ -1,4 +1,4 @@
-package com.maxkb4j.application.enums;
+package com.maxkb4j.common.enums;
 
 public enum ChatSource {
     ONLINE, //  "线上使用"
@@ -6,7 +6,7 @@ public enum ChatSource {
     ENTERPRISE_WECHAT, // "企业微信"
     WECHAT_PUBLIC_ACCOUNT, //"微信公众号"
     LARK, //"飞书"
-    DINGTALK, //"钉钉"
+    DING_TALK, //"钉钉"
     ENTERPRISE_WECHAT_ROBOT, //"企业微信机器人"
     TRIGGER, //"触发器"
     SLACK, //"Slack"
