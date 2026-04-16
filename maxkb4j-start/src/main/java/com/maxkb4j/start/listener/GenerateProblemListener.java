@@ -13,9 +13,10 @@ import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 import java.util.List;
 
@@ -31,7 +32,7 @@ public class GenerateProblemListener {
     private final KnowledgeModelService knowledgeModelService;
 
     @Async
-    @EventListener
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleEvent(GenerateProblemEvent event) {
         log.info("收到问题生成事件消息: {}", event.getDocumentIdList());
         ChatModel chatModel=modelFactory.buildChatModel(event.getModelId());
@@ -39,22 +40,30 @@ public class GenerateProblemListener {
         documentService.updateStatusByIds(event.getDocumentIdList(), 2, 0);
         List<ProblemEntity> knowledgeProblems = problemService.lambdaQuery().eq(ProblemEntity::getKnowledgeId, event.getKnowledgeId()).list();
         for (String docId : event.getDocumentIdList()) {
-            List<ParagraphEntity> paragraphs = paragraphService.listByStateIds(docId,2, event.getStateList());
-            if (CollectionUtils.isNotEmpty(paragraphs)){
-                log.info("开始--->文档问题生成:{}", docId);
-                List<String> paragraphIds = paragraphs.stream().map(ParagraphEntity::getId).toList();
-                //重置完成分段数量
-                paragraphService.updateStatusByIds(paragraphIds, 2, 1);
-                documentService.updateStatusById(docId, 2, 1);
-                paragraphs.forEach(paragraph -> {
-                    String promptTemplate = event.getPrompt().replace("{number}", event.getNumber());
-                    problemService.generateRelated(chatModel, embeddingModel, event.getKnowledgeId(), docId, paragraph, knowledgeProblems, promptTemplate);
-                    paragraphService.updateStatusById(paragraph.getId(), 2, 2);
-                    documentService.updateStatusMetaById(docId);
-                });
-                log.info("结束--->文档问题生成:{}", docId);
+            try {
+                List<ParagraphEntity> paragraphs = paragraphService.listByStateIds(docId, 2, event.getStateList());
+                if (CollectionUtils.isNotEmpty(paragraphs)) {
+                    log.info("开始--->文档问题生成:{}", docId);
+                    List<String> paragraphIds = paragraphs.stream().map(ParagraphEntity::getId).toList();
+                    //重置完成分段数量
+                    paragraphService.updateStatusByIds(paragraphIds, 2, 1);
+                    documentService.updateStatusById(docId, 2, 1);
+                    paragraphs.forEach(paragraph -> {
+                        try {
+                            String promptTemplate = event.getPrompt().replace("{number}", event.getNumber());
+                            problemService.generateRelated(chatModel, embeddingModel, event.getKnowledgeId(), docId, paragraph, knowledgeProblems, promptTemplate);
+                            paragraphService.updateStatusById(paragraph.getId(), 2, 2);
+                            documentService.updateStatusMetaById(docId);
+                        } catch (Exception e) {
+                            log.error("段落问题生成失败: paragraphId={}, 错误: {}", paragraph.getId(), e.getMessage(), e);
+                        }
+                    });
+                    log.info("结束--->文档问题生成:{}", docId);
+                }
+                documentService.updateStatusById(docId, 2, 2);
+            } catch (Exception e) {
+                log.error("文档问题生成失败: docId={}, 错误: {}", docId, e.getMessage(), e);
             }
-            documentService.updateStatusById(docId, 2, 2);
         }
     }
 

@@ -4,13 +4,13 @@
     <property name="log.path" value="logs/maxkb4j"/>
     <!-- 项目名称 -->
     <property name="log.appname" value="maxkb4j"/>
-    <!-- 日志输出格式 - 添加 traceId 支持 -->
-    <property name="log.pattern" value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] [%X{traceId:-}] %-5level %logger{50} - [%method,%line] - %msg%n"/>
+    <!-- 日志输出格式 -->
+    <property name="log.pattern" value="%n%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] [%X{traceId}] [%logger{50}] %n%-5level: %msg%n"/>
     <!-- 彩色日志格式 -->
     <conversionRule conversionWord="clr" converterClass="org.springframework.boot.logging.logback.ColorConverter"/>
     <conversionRule conversionWord="wex" converterClass="org.springframework.boot.logging.logback.WhitespaceThrowableProxyConverter"/>
     <property name="log.pattern.console" value="${log.pattern}"/>
-    <property name="log.pattern.color" value="%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr([%thread]){blue} %clr([%X{traceId:-}]){cyan} %clr(%-5level){highlight} %clr(%logger{50}){cyan} - %clr([%method,%line]){faint} - %msg%n"/>
+    <property name="log.pattern.color" value="%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr([%thread]){blue} %clr([%X{traceId:-}]) %clr(%-5level){highlight} %clr(%logger{50}){cyan} - %clr([%method]){faint} - %msg%n"/>
 
     <!-- 控制台彩色输出 -->
     <appender name="console" class="ch.qos.logback.core.ConsoleAppender">

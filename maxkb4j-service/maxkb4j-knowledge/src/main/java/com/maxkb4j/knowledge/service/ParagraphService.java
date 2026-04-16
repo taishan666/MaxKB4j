@@ -186,6 +186,7 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
 
 
 
+    @Transactional
     public boolean saveParagraphAndProblem(ParagraphEntity paragraph, List<String> problems) {
         this.save(paragraph);
         if (!CollectionUtils.isEmpty(problems)) {
@@ -228,6 +229,7 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
     }
 
 
+    @Transactional
     public boolean save(ParagraphEntity paragraph) {
         List<ParagraphEntity> list = this.lambdaQuery().eq(ParagraphEntity::getKnowledgeId, paragraph.getKnowledgeId()).eq(ParagraphEntity::getDocumentId, paragraph.getDocumentId()).list();
         List<ParagraphEntity> updateList=list.stream().filter(e->e.getPosition()>=paragraph.getPosition()).peek(e-> e.setPosition(e.getPosition()+1)).toList();
@@ -239,7 +241,7 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
 
 
     @Transactional
-    public boolean saveBatch(List<ParagraphEntity> paragraphs) {
+    public void saveBatch(List<ParagraphEntity> paragraphs) {
         Map<String,List<ParagraphEntity>> knowledgeGroup = paragraphs.stream().collect(Collectors.groupingBy(ParagraphEntity::getKnowledgeId));
         knowledgeGroup.forEach((knowledgeId,knowledgeParagraphs)->{
             Map<String,List<ParagraphEntity>> docGroup = knowledgeParagraphs.stream().collect(Collectors.groupingBy(ParagraphEntity::getDocumentId));
@@ -255,7 +257,7 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
                 }
             });
         });
-        return super.saveBatch(paragraphs);
+        super.saveBatch(paragraphs);
     }
 
 
