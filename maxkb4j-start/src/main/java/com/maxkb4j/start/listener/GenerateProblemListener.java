@@ -33,7 +33,8 @@ public class GenerateProblemListener {
     @Async
     @EventListener
     public void handleEvent(GenerateProblemEvent event) {
-        log.info("收到事件消息: {}", event.getDocumentIdList());
+        log.info("收到问题生成" +
+                "事件消息: {}", event.getDocumentIdList());
         ChatModel chatModel=modelFactory.buildChatModel(event.getModelId());
         EmbeddingModel embeddingModel=knowledgeModelService.getEmbeddingModel(event.getKnowledgeId());
         documentService.updateStatusByIds(event.getDocumentIdList(), 2, 0);
@@ -47,7 +48,8 @@ public class GenerateProblemListener {
                 paragraphService.updateStatusByIds(paragraphIds, 2, 1);
                 documentService.updateStatusById(docId, 2, 1);
                 paragraphs.forEach(paragraph -> {
-                    problemService.generateRelated(chatModel, embeddingModel, event.getKnowledgeId(), docId, paragraph, knowledgeProblems, event.getPrompt());
+                    String promptTemplate = event.getPrompt().replace("{number}", event.getNumber());
+                    problemService.generateRelated(chatModel, embeddingModel, event.getKnowledgeId(), docId, paragraph, knowledgeProblems, promptTemplate);
                     paragraphService.updateStatusById(paragraph.getId(), 2, 2);
                     documentService.updateStatusMetaById(docId);
                 });

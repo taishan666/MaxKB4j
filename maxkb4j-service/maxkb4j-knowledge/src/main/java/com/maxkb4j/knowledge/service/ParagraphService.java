@@ -285,7 +285,7 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
 
     public Boolean batchGenerateRelated(String knowledgeId, String docId, GenerateProblemDTO dto) {
         this.updateStatusByIds(dto.getParagraphIdList(), 2, 0);
-        eventPublisher.publishEvent(new GenerateProblemEvent(this, knowledgeId,List.of(docId),dto.getModelId(),dto.getPrompt(),List.of("0")));
+        eventPublisher.publishEvent(new GenerateProblemEvent(this, knowledgeId,List.of(docId),dto.getModelId(),dto.getNumber(),dto.getPrompt(),List.of("0")));
         return true;
     }
 

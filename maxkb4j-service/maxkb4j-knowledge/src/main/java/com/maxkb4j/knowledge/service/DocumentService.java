@@ -388,7 +388,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
 
 
     public boolean batchGenerateRelated(String knowledgeId, GenerateProblemDTO dto) {
-        eventPublisher.publishEvent(new GenerateProblemEvent(this, knowledgeId, dto.getDocumentIdList(), dto.getModelId(), dto.getPrompt(), dto.getStateList()));
+        eventPublisher.publishEvent(new GenerateProblemEvent(this, knowledgeId, dto.getDocumentIdList(), dto.getModelId(), dto.getNumber(),dto.getPrompt(), dto.getStateList()));
         return true;
     }
 
