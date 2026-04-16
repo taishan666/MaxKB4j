@@ -7,10 +7,10 @@
     <!-- 日志输出格式 -->
     <property name="log.pattern" value="%n%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] [%X{traceId}] [%logger{50}] %n%-5level: %msg%n"/>
     <!-- 彩色日志格式 -->
-    <conversionRule conversionWord="clr" converterClass="org.springframework.boot.logging.logback.ColorConverter"/>
-    <conversionRule conversionWord="wex" converterClass="org.springframework.boot.logging.logback.WhitespaceThrowableProxyConverter"/>
+    <conversionRule conversionWord="clr" class="org.springframework.boot.logging.logback.ColorConverter"/>
+    <conversionRule conversionWord="wex" class="org.springframework.boot.logging.logback.WhitespaceThrowableProxyConverter"/>
     <property name="log.pattern.console" value="${log.pattern}"/>
-    <property name="log.pattern.color" value="%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr([%thread]){blue} %clr([%X{traceId:-}]) %clr(%-5level){highlight} %clr(%logger{50}){cyan} - %clr([%method]){faint} - %msg%n"/>
+    <property name="log.pattern.color" value="%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(%-5level){highlight}%clr([${PID:- }]){magenta} %clr([%thread]){blue} %clr(%logger{50}){cyan} : %msg%n"/>
 
     <!-- 控制台彩色输出 -->
     <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
@@ -150,6 +150,8 @@
     <logger name="org.apache" level="warn"/>
     <!-- LangChain4j 日志 -->
     <logger name="dev.langchain4j" level="warn"/>
+    <!-- Logback 自身日志 -->
+    <logger name="ch.qos.logback" level="error"/>
     <!-- MongoDB 日志 -->
     <logger name="org.mongodb" level="warn"/>
 </configuration>
