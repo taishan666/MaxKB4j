@@ -39,10 +39,6 @@
             <groupId>org.apache.groovy</groupId>
             <artifactId>groovy-sql</artifactId>
         </dependency>
-        <dependency>
-            <groupId>mysql</groupId>
-            <artifactId>mysql-connector-java</artifactId>
-        </dependency>
         <!-- WebFlux for reactive streams (Project Reactor) -->
         <dependency>
             <groupId>io.projectreactor</groupId>
