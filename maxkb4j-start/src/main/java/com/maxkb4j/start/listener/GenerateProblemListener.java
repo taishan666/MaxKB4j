@@ -33,8 +33,7 @@ public class GenerateProblemListener {
     @Async
     @EventListener
     public void handleEvent(GenerateProblemEvent event) {
-        log.info("收到问题生成" +
-                "事件消息: {}", event.getDocumentIdList());
+        log.info("收到问题生成事件消息: {}", event.getDocumentIdList());
         ChatModel chatModel=modelFactory.buildChatModel(event.getModelId());
         EmbeddingModel embeddingModel=knowledgeModelService.getEmbeddingModel(event.getKnowledgeId());
         documentService.updateStatusByIds(event.getDocumentIdList(), 2, 0);
