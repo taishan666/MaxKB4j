@@ -35,4 +35,35 @@
         ORDER BY score DESC
         LIMIT #{maxResults}
     </select>
+
+    <select id="search" resultType="com.maxkb4j.knowledge.vo.TextChunkVO">
+        SELECT * FROM (
+        SELECT
+        paragraph_id,
+        (1-(<![CDATA[embedding <=> #{referenceEmbedding}::vector]]>)) AS score
+        FROM embedding
+        WHERE is_active = true
+        AND dimension = #{dimension}
+        <if test="knowledgeIds != null and !knowledgeIds.isEmpty()">
+            AND knowledge_id IN
+            <foreach item="id" collection="knowledgeIds" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+        </if>
+        <if test="excludeDocumentIds != null and !excludeDocumentIds.isEmpty()">
+            AND document_id NOT IN
+            <foreach item="id" collection="excludeDocumentIds" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+        </if>
+        <if test="excludeParagraphIds != null and !excludeParagraphIds.isEmpty()">
+            AND paragraph_id NOT IN
+            <foreach item="id" collection="excludeParagraphIds" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+        </if>
+        ) AS temp_result
+        WHERE score > #{minScore}
+        ORDER BY score DESC
+    </select>
 </mapper>

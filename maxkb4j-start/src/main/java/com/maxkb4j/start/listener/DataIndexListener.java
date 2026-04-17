@@ -28,7 +28,7 @@ public class DataIndexListener {
     private final IParagraphService paragraphService;
 
     @Async
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @EventListener
     public void handleEvent(DocumentIndexEvent event) {
         log.info("收到文档向量化事件消息: {}", event.getDocIds());
         EmbeddingModel embeddingModel = knowledgeModelService.getEmbeddingModel(event.getKnowledgeId());

@@ -24,5 +24,6 @@ public interface EmbeddingMapper extends BaseMapper<EmbeddingEntity> {
      */
     List<TextChunkVO> embeddingSearch(List<String> knowledgeIds,List<String> excludeDocumentIds, List<String> excludeParagraphIds, @Param("maxResults") int maxResults, @Param("minScore") double minScore, @Param("referenceEmbedding") float[]  referenceEmbedding, int dimension);
 
+    List<TextChunkVO> search(List<String> knowledgeIds,List<String> excludeDocumentIds, List<String> excludeParagraphIds, @Param("maxResults") Integer maxResults, @Param("minScore") double minScore, @Param("referenceEmbedding") float[]  referenceEmbedding, int dimension);
 
 }

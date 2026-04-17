@@ -7,10 +7,10 @@ import com.maxkb4j.knowledge.service.DocumentService;
 import com.maxkb4j.knowledge.service.DocumentWebService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.event.TransactionPhase;
-import org.springframework.transaction.event.TransactionalEventListener;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -29,7 +29,8 @@ public class WebDocsListener {
     private final DocumentService documentService;
 
     @Async
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @Transactional
+    @EventListener
     public void handleEvent(CreateWebDocsEvent event) {
         log.info("收到Web文档创建事件: knowledgeId={}, sourceUrl={}", event.getKnowledgeId(), event.getSourceUrl());
         try {

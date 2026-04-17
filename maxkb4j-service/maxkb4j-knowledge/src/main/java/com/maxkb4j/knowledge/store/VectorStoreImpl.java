@@ -231,7 +231,7 @@ public class VectorStoreImpl implements IDataStore {
             Response<Embedding> res = embeddingModel.embed(request.getQuery());
             float[] queryVector = res.content().vector();
             // Perform vector search
-            return embeddingMapper.embeddingSearch(
+            List<TextChunkVO> results = embeddingMapper.search(
                     request.getKnowledgeIds(),
                     request.getExcludeDocumentIds(),
                     request.getExcludeParagraphIds(),
@@ -240,6 +240,8 @@ public class VectorStoreImpl implements IDataStore {
                     queryVector,
                     embeddingModel.dimension()
             );
+            //todo
+            return results;
         } catch (Exception e) {
             log.error("Vector search failed: {}", e.getMessage(), e);
             throw new RuntimeException("Vector search service error", e);
