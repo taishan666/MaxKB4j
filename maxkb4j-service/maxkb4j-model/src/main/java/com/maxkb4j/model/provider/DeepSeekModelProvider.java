@@ -1,6 +1,5 @@
 package com.maxkb4j.model.provider;
 
-import com.maxkb4j.model.custom.params.impl.OpenAiChatModelParams;
 import com.maxkb4j.model.enums.ModelType;
 import com.maxkb4j.model.vo.ModelInfo;
 
@@ -13,8 +12,8 @@ public class DeepSeekModelProvider extends OpenAiModelProvider {
 
     private static final String BASE_URL = "https://api.deepseek.com/v1";
     private static final List<ModelInfo> MODEL_INFOS = List.of(
-            new ModelInfo("deepseek-chat", "", ModelType.LLM, new OpenAiChatModelParams()),
-            new ModelInfo("deepseek-reasoner", "", ModelType.LLM, new OpenAiChatModelParams())
+            new ModelInfo("deepseek-chat", "", ModelType.LLM),
+            new ModelInfo("deepseek-reasoner", "", ModelType.LLM)
     );
 
     @Override

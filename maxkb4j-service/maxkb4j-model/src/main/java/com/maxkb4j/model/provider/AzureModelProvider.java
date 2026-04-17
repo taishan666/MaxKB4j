@@ -2,7 +2,6 @@ package com.maxkb4j.model.provider;
 
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.common.mp.entity.ModelCredential;
-import com.maxkb4j.model.custom.params.impl.LLMChatModelParams;
 import com.maxkb4j.model.enums.ModelType;
 import com.maxkb4j.model.vo.ModelInfo;
 import dev.langchain4j.model.azure.AzureOpenAiChatModel;
@@ -22,15 +21,15 @@ import java.util.List;
 public class AzureModelProvider extends AbsModelProvider {
 
     private static final List<ModelInfo> MODEL_INFOS = List.of(
-            new ModelInfo("Azure OpenAI", "", ModelType.LLM, new LLMChatModelParams()),
-            new ModelInfo("gpt-4", "", ModelType.LLM, new LLMChatModelParams()),
-            new ModelInfo("gpt-4o", "", ModelType.LLM, new LLMChatModelParams()),
-            new ModelInfo("gpt-4o-mini", "", ModelType.LLM, new LLMChatModelParams()),
+            new ModelInfo("Azure OpenAI", "", ModelType.LLM),
+            new ModelInfo("gpt-4", "", ModelType.LLM),
+            new ModelInfo("gpt-4o", "", ModelType.LLM),
+            new ModelInfo("gpt-4o-mini", "", ModelType.LLM),
             new ModelInfo("text-embedding-3-large", "", ModelType.EMBEDDING),
             new ModelInfo("text-embedding-3-small", "", ModelType.EMBEDDING),
             new ModelInfo("text-embedding-ada-002", "", ModelType.EMBEDDING),
-            new ModelInfo("gpt-4o", "", ModelType.VISION, new LLMChatModelParams()),
-            new ModelInfo("gpt-4o-mini", "", ModelType.VISION, new LLMChatModelParams()),
+            new ModelInfo("gpt-4o", "", ModelType.VISION),
+            new ModelInfo("gpt-4o-mini", "", ModelType.VISION),
             new ModelInfo("dall-e-3", "", ModelType.TTI)
     );
 

@@ -1,6 +1,7 @@
 package com.maxkb4j.model.provider;
 
 import com.alibaba.fastjson.JSONObject;
+import com.maxkb4j.common.domain.form.BaseField;
 import com.maxkb4j.common.mp.entity.ModelCredential;
 import com.maxkb4j.model.custom.credential.ModelCredentialForm;
 import com.maxkb4j.model.custom.params.impl.OLlamaChatModelParams;
@@ -24,15 +25,20 @@ public class OLlamaModelProvider extends AbsModelProvider {
 
     private static final String BASE_URL = "http://host.docker.internal:11434";
     private static final List<ModelInfo> MODEL_INFOS = List.of(
-            new ModelInfo("qwen:7b", "", ModelType.LLM, new OLlamaChatModelParams()),
-            new ModelInfo("llama3:8b", "", ModelType.LLM, new OLlamaChatModelParams()),
-            new ModelInfo("deepseek-r1:8b", "", ModelType.LLM, new OLlamaChatModelParams()),
+            new ModelInfo("qwen:7b", "", ModelType.LLM),
+            new ModelInfo("llama3:8b", "", ModelType.LLM),
+            new ModelInfo("deepseek-r1:8b", "", ModelType.LLM),
             new ModelInfo("nomic-embed-text", "", ModelType.EMBEDDING),
-            new ModelInfo("llava:7b", "", ModelType.VISION, new OLlamaChatModelParams()),
-            new ModelInfo("llava:13b", "", ModelType.VISION, new OLlamaChatModelParams())
+            new ModelInfo("llava:7b", "", ModelType.VISION),
+            new ModelInfo("llava:13b", "", ModelType.VISION)
     );
 
     private final HttpClientBuilder jdkHttpClientBuilder= new JdkHttpClientBuilder();
+
+    @Override
+    public List<BaseField> getChatModelParamsForm() {
+        return new OLlamaChatModelParams().toForm();
+    }
 
     @Override
     public ModelCredentialForm getModelCredential() {

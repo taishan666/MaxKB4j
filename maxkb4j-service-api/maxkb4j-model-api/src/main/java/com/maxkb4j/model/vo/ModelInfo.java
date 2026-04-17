@@ -1,7 +1,6 @@
 package com.maxkb4j.model.vo;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.maxkb4j.model.dto.NotModelParams;
 import com.maxkb4j.model.enums.ModelType;
 import com.maxkb4j.model.service.IModelParams;
 import lombok.Data;
@@ -19,7 +18,6 @@ public class ModelInfo {
         this.name = name;
         this.desc = desc;
         this.modelType = modelType;
-        this.modelParams = new NotModelParams();
     }
 
     public ModelInfo(String name, String desc, ModelType modelType, IModelParams modelParams) {

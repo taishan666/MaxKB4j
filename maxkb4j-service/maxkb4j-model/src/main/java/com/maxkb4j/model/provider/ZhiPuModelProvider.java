@@ -2,7 +2,6 @@ package com.maxkb4j.model.provider;
 
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.common.mp.entity.ModelCredential;
-import com.maxkb4j.model.custom.params.impl.LLMChatModelParams;
 import com.maxkb4j.model.enums.ModelType;
 import com.maxkb4j.model.vo.ModelInfo;
 import dev.langchain4j.community.model.zhipu.ZhipuAiChatModel;
@@ -22,14 +21,14 @@ import java.util.List;
 public class ZhiPuModelProvider extends AbsModelProvider {
 
     private static final List<ModelInfo> MODEL_INFOS = List.of(
-            new ModelInfo("glm-5", "", ModelType.LLM, new LLMChatModelParams()),
-            new ModelInfo("glm-4", "", ModelType.LLM, new LLMChatModelParams()),
-            new ModelInfo("glm-4v", "", ModelType.LLM, new LLMChatModelParams()),
-            new ModelInfo("glm-3-turbo", "", ModelType.LLM, new LLMChatModelParams()),
+            new ModelInfo("glm-5", "", ModelType.LLM),
+            new ModelInfo("glm-4", "", ModelType.LLM),
+            new ModelInfo("glm-4v", "", ModelType.LLM),
+            new ModelInfo("glm-3-turbo", "", ModelType.LLM),
             new ModelInfo("embedding-3", "", ModelType.EMBEDDING),
-            new ModelInfo("glm-4v-plus", "", ModelType.VISION, new LLMChatModelParams()),
-            new ModelInfo("glm-4v", "", ModelType.VISION, new LLMChatModelParams()),
-            new ModelInfo("glm-4v-flash", "", ModelType.VISION, new LLMChatModelParams()),
+            new ModelInfo("glm-4v-plus", "", ModelType.VISION),
+            new ModelInfo("glm-4v", "", ModelType.VISION),
+            new ModelInfo("glm-4v-flash", "", ModelType.VISION),
             new ModelInfo("cogview-3", "", ModelType.TTI),
             new ModelInfo("cogview-3-plus", "", ModelType.TTI),
             new ModelInfo("cogview-3-flash", "", ModelType.TTI)

@@ -1,11 +1,13 @@
 package com.maxkb4j.model.provider;
 
 import com.alibaba.fastjson.JSONObject;
+import com.maxkb4j.common.domain.form.BaseField;
 import com.maxkb4j.common.mp.entity.ModelCredential;
 import com.maxkb4j.model.custom.credential.ModelCredentialForm;
 import com.maxkb4j.model.custom.disabled.DisabledSTTModel;
 import com.maxkb4j.model.custom.disabled.DisabledScoringModel;
 import com.maxkb4j.model.custom.disabled.DisabledTTSModel;
+import com.maxkb4j.model.custom.params.impl.LLMChatModelParams;
 import com.maxkb4j.model.enums.ModelType;
 import com.maxkb4j.model.service.STTModel;
 import com.maxkb4j.model.service.TTSModel;
@@ -224,6 +226,19 @@ public abstract class AbsModelProvider {
      */
     public TTSModel buildTTSModel(String modelName, ModelCredential credential, JSONObject params) {
         return new DisabledTTSModel();
+    }
+
+    public List<BaseField> getModelParamsForm(String modelType) {
+        if (modelType != null){
+            if (ModelType.LLM.getKey().equals(modelType)){
+                 return getChatModelParamsForm();
+            }
+        }
+        return List.of();
+    }
+
+    protected List<BaseField> getChatModelParamsForm() {
+        return new LLMChatModelParams().toForm();
     }
 
 }
