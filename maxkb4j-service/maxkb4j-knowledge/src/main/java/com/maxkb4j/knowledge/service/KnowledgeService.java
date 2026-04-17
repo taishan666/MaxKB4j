@@ -385,4 +385,12 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
         targets.addAll(modelIds.stream().filter(Objects::nonNull).map(id -> new TargetResource(id, ResourceType.MODEL)).toList());
         resourceMappingService.relation(ResourceType.KNOWLEDGE, knowledge.getId(), targets);
     }
+
+    public Boolean delMulApplication(List<String> idList) {
+        Boolean result = false;
+        for (String id : idList) {
+            result = deleteById(id);
+        }
+        return result;
+    }
 }
