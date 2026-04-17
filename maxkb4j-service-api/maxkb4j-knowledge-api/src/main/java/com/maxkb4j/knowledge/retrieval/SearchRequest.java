@@ -19,7 +19,6 @@ public class SearchRequest {
      * Search query text
      */
     private String query;
-
     /**
      * Knowledge base IDs to search within
      */
@@ -47,17 +46,6 @@ public class SearchRequest {
      * Minimum similarity score threshold
      */
     private float minScore = 0.0f;
-
-    /**
-     * Page number for pagination (1-based)
-     */
-    private int page = 1;
-
-    /**
-     * Page size for pagination
-     */
-    private int pageSize = 10;
-
     /**
      * Additional filters for extended filtering capabilities
      */

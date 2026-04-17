@@ -24,6 +24,15 @@ public class RetrieveService implements IRetrieveService{
     private final IDataRetriever dataRetriever;
 
 
+    private List<TextChunkVO> dataSearch(List<String> knowledgeIds, DataSearchDTO dto) {
+        if (CollectionUtils.isEmpty(knowledgeIds)) {
+            return Collections.emptyList();
+        }
+        return dataRetriever.search(knowledgeIds, dto.getExcludeParagraphIds(),
+                                dto.getQueryText(), dto.getTopNumber(),
+                                dto.getSimilarity(), dto.getSearchMode());
+    }
+
     public List<ParagraphVO> paragraphSearch(String question, List<String> knowledgeIds, List<String> excludeParagraphIds, KnowledgeSetting datasetSetting) {
         DataSearchDTO dto = new DataSearchDTO();
         dto.setQueryText(question);
@@ -34,32 +43,29 @@ public class RetrieveService implements IRetrieveService{
         return paragraphSearch(knowledgeIds, dto);
     }
 
-    private List<TextChunkVO> dataSearch(List<String> knowledgeIds, DataSearchDTO dto) {
-        if (CollectionUtils.isEmpty(knowledgeIds)) {
-            return Collections.emptyList();
-        }
-        return dataRetriever.search(knowledgeIds, dto.getExcludeParagraphIds(),
-                                dto.getQueryText(), dto.getTopNumber(),
-                                dto.getSimilarity(), dto.getSearchMode());
-    }
-
     public List<ParagraphVO> paragraphSearch(List<String> knowledgeIds, DataSearchDTO dto) {
         List<TextChunkVO> list = dataSearch(knowledgeIds, dto);
         List<String> paragraphIds = list.stream().map(TextChunkVO::getParagraphId).toList();
         if (CollectionUtils.isEmpty(paragraphIds)) {
             return Collections.emptyList();
         }
-        Map<String, Float> map = list.stream().collect(Collectors.toMap(TextChunkVO::getParagraphId, TextChunkVO::getScore));
+        Map<String, Float> scoreMap = list.stream().collect(Collectors.toMap(TextChunkVO::getParagraphId, TextChunkVO::getScore));
+        // 记录 paragraphIds 的顺序索引
+        Map<String, Integer> orderMap = new java.util.HashMap<>();
+        for (int i = 0; i < paragraphIds.size(); i++) {
+            orderMap.put(paragraphIds.get(i), i);
+        }
         List<ParagraphVO> paragraphs = paragraphMapper.retrievalParagraph(paragraphIds);
         paragraphs.forEach(e -> {
-            float score = map.get(e.getId());
+            float score = scoreMap.get(e.getId());
             e.setSimilarity(score);
             e.setComprehensiveScore(score);
             if (e.getDocumentName()==null){
                 e.setDocumentName("");
             }
         });
-        paragraphs.sort(Comparator.comparing(ParagraphVO::getSimilarity).reversed());
+        // 按照 paragraphIds 的原始顺序排序
+        paragraphs.sort(Comparator.comparingInt(p -> orderMap.get(p.getId())));
         return paragraphs;
     }
 }
