@@ -108,7 +108,7 @@ public class ApplicationController {
         return R.success(applicationService.deleteByAppId(id));
     }
 
-    @SaCheckPerm(PermissionEnum.APPLICATION_DELETE)
+    @SaCheckPerm(PermissionEnum.APPLICATION_BATCH_DELETE)
     @DeleteMapping("/application/batchDelete")
     public R<Boolean> delMulApplication(@RequestParam("idList") List<String> idList) {
         return R.success(applicationService.delMulApplication(idList));

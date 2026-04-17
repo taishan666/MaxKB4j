@@ -114,7 +114,7 @@ public class KnowledgeController {
         return R.success(knowledgeService.deleteById(id));
     }
 
-    @SaCheckPerm(PermissionEnum.APPLICATION_DELETE)
+    @SaCheckPerm(PermissionEnum.KNOWLEDGE_BATCH_DELETE)
     @DeleteMapping("/knowledge/batchDelete")
     public R<Boolean> delMulKnowledge(@RequestParam("idList") List<String> idList) {
         return R.success(knowledgeService.delMulApplication(idList));
