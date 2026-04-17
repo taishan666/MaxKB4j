@@ -15,6 +15,7 @@ import com.maxkb4j.common.domain.dto.ChatInfo;
 import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.common.domain.dto.ChatRecordDTO;
 import com.maxkb4j.common.domain.dto.ChatResponse;
+import com.maxkb4j.common.enums.ChatSource;
 import com.maxkb4j.common.enums.ChatUserType;
 import com.maxkb4j.common.util.BeanUtil;
 import lombok.RequiredArgsConstructor;
@@ -108,7 +109,8 @@ public class ChatPostHandler implements PostResponseHandler {
                 chatEntity.setChatRecordCount(1);
                 chatEntity.setMarkSum(0);
                 chatEntity.setIpAddress(chatParams.getIpAddress());
-                chatEntity.setSource(new JSONObject(Map.of("type", chatParams.getSource())));
+                ChatSource source=chatParams.getSource()==null?ChatSource.ONLINE:chatParams.getSource();
+                chatEntity.setSource(new JSONObject(Map.of("type", source)));
                 chatMapper.insert(chatEntity);
             }else {
                 chatEntity.setChatRecordCount(chatInfo.getChatRecordList().size());

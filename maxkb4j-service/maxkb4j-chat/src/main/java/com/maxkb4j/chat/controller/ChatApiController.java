@@ -18,6 +18,7 @@ import com.maxkb4j.common.domain.dto.ChatMessageVO;
 import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.common.domain.dto.ChatResponse;
 import com.maxkb4j.common.domain.dto.McpRequest;
+import com.maxkb4j.common.enums.ChatSource;
 import com.maxkb4j.common.enums.ChatUserType;
 import com.maxkb4j.common.enums.PermissionEnum;
 import com.maxkb4j.common.exception.ApiException;
@@ -99,6 +100,7 @@ public class ChatApiController {
         params.setChatId(chatId);
         params.setChatUserId(userId);
         params.setChatUserType(ChatUserType.ANONYMOUS_USER.name());
+        params.setSource(ChatSource.ONLINE);
         params.setIpAddress(WebUtil.getIP());
         params.setDebug(false);
         if (Boolean.TRUE.equals(params.getStream())) {
