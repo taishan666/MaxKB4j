@@ -6,7 +6,6 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.maxkb4j.application.entity.ApplicationChatEntity;
 import com.maxkb4j.application.entity.ApplicationChatRecordEntity;
 import com.maxkb4j.application.entity.ApplicationChatUserStatsEntity;
-import com.maxkb4j.application.enums.ChatSource;
 import com.maxkb4j.application.handler.PostResponseHandler;
 import com.maxkb4j.application.mapper.ApplicationChatMapper;
 import com.maxkb4j.application.mapper.ApplicationChatRecordMapper;
@@ -109,7 +108,7 @@ public class ChatPostHandler implements PostResponseHandler {
                 chatEntity.setChatRecordCount(1);
                 chatEntity.setMarkSum(0);
                 chatEntity.setIpAddress(chatParams.getIpAddress());
-                chatEntity.setSource(new JSONObject(Map.of("type", ChatSource.ONLINE)));
+                chatEntity.setSource(new JSONObject(Map.of("type", chatParams.getSource())));
                 chatMapper.insert(chatEntity);
             }else {
                 chatEntity.setChatRecordCount(chatInfo.getChatRecordList().size());

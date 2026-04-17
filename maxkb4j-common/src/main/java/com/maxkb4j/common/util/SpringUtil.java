@@ -55,7 +55,7 @@ public class SpringUtil implements ApplicationContextAware {
                 context.publishEvent(event);
             } catch (Exception var2) {
                 Exception ex = var2;
-                log.error(ex.getMessage());
+                log.error("Failed to publish event: {}", ex.getMessage(), ex);
             }
 
         }

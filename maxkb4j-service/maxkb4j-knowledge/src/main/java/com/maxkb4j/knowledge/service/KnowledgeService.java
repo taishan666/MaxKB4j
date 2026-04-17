@@ -15,6 +15,7 @@ import com.maxkb4j.common.domain.form.TextInputField;
 import com.maxkb4j.common.util.BeanUtil;
 import com.maxkb4j.common.util.DateTimeUtil;
 import com.maxkb4j.common.util.StpKit;
+import com.maxkb4j.core.event.CreateWebDocsEvent;
 import com.maxkb4j.core.event.GenerateProblemEvent;
 import com.maxkb4j.knowledge.dto.GenerateProblemDTO;
 import com.maxkb4j.knowledge.dto.KnowledgeQuery;
@@ -178,7 +179,13 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
     @Transactional
     public KnowledgeEntity createKnowledgeWeb(WebKnowledgeDTO knowledge) {
         createKnowledge(knowledge);
-        documentService.createWebDocs(knowledge.getId(), knowledge.getSourceUrl(), knowledge.getSelector());
+        // 使用事件驱动异步处理，确保事务提交后再执行
+        eventPublisher.publishEvent(new CreateWebDocsEvent(
+            this,
+            knowledge.getId(),
+            knowledge.getSourceUrl(),
+            knowledge.getSelector()
+        ));
         return knowledge;
     }
 
@@ -206,7 +213,7 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
     }
 
     public Boolean generateRelated(String knowledgeId, GenerateProblemDTO dto) {
-        eventPublisher.publishEvent(new GenerateProblemEvent(this, knowledgeId, dto.getDocumentIdList(), dto.getModelId(), dto.getPrompt(), dto.getStateList()));
+        eventPublisher.publishEvent(new GenerateProblemEvent(this, knowledgeId, dto.getDocumentIdList(), dto.getModelId(),dto.getNumber(), dto.getPrompt(), dto.getStateList()));
         return true;
     }
 
@@ -377,5 +384,13 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
         targets.addAll(toolIds.stream().map(id -> new TargetResource(id, ResourceType.TOOL)).toList());
         targets.addAll(modelIds.stream().filter(Objects::nonNull).map(id -> new TargetResource(id, ResourceType.MODEL)).toList());
         resourceMappingService.relation(ResourceType.KNOWLEDGE, knowledge.getId(), targets);
+    }
+
+    public Boolean delMulApplication(List<String> idList) {
+        Boolean result = false;
+        for (String id : idList) {
+            result = deleteById(id);
+        }
+        return result;
     }
 }

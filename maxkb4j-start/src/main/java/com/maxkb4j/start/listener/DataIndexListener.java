@@ -13,6 +13,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 import java.util.List;
 
@@ -33,18 +35,28 @@ public class DataIndexListener {
         documentService.updateStatusByIds(event.getDocIds(), 1, 0);
 
         for (String docId : event.getDocIds()) {
-            List<ParagraphEntity> paragraphs = paragraphService.listByStateIds(docId, 1, event.getStateList());
-            embedBatch(embeddingModel, docId, paragraphs);
+            try {
+                List<ParagraphEntity> paragraphs = paragraphService.listByStateIds(docId, 1, event.getStateList());
+                embedBatch(embeddingModel, docId, paragraphs);
+            } catch (Exception e) {
+                log.error("文档索引失败: {}, 错误: {}", docId, e.getMessage(), e);
+                // 单个文档失败不影响其他文档继续处理
+            }
         }
     }
 
     @Async
-    @EventListener
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleEvent(ParagraphIndexEvent event) {
         log.info("收到段落向量化事件消息: {}", event.getParagraphIds());
         List<ParagraphEntity> paragraphs = paragraphService.listByIds(event.getParagraphIds());
         EmbeddingModel embeddingModel = knowledgeModelService.getEmbeddingModel(event.getKnowledgeId());
-        embedBatch(embeddingModel, event.getDocId(), paragraphs);
+        try {
+            embedBatch(embeddingModel, event.getDocId(), paragraphs);
+        } catch (Exception e) {
+            log.error("段落索引失败: docId={}, paragraphIds={}, 错误: {}",
+                event.getDocId(), event.getParagraphIds(), e.getMessage(), e);
+        }
     }
 
     /**

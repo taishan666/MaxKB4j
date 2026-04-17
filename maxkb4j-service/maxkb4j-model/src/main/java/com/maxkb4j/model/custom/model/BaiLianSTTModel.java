@@ -22,11 +22,10 @@ public class BaiLianSTTModel implements STTModel {
     }
 
     private STTModel buildInstance(String modelName) {
-        return switch (modelName) {
-            case "gummy-realtime-v1" -> new GummySTT(modelName, credential, params);
-            case "qwen3-asr-flash" -> new QwenASR(modelName, credential, params);
-            default -> new BaiLianASR(modelName, credential, params);
-        };
+        if (modelName.startsWith("gummy-")){
+            return new GummySTT(modelName, credential, params);
+        }
+        return new BaiLianASRRealtime(modelName, credential, params);
     }
 
     @Override

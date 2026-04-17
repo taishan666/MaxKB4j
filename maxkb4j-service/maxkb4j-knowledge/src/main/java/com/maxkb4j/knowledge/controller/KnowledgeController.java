@@ -114,6 +114,12 @@ public class KnowledgeController {
         return R.success(knowledgeService.deleteById(id));
     }
 
+    @SaCheckPerm(PermissionEnum.APPLICATION_DELETE)
+    @DeleteMapping("/knowledge/batchDelete")
+    public R<Boolean> delMulKnowledge(@RequestParam("idList") List<String> idList) {
+        return R.success(knowledgeService.delMulApplication(idList));
+    }
+
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_READ)
     @GetMapping("/knowledge/{current}/{size}")
     public R<IPage<KnowledgeVO>> knowledgePage(@PathVariable("current") int current, @PathVariable("size") int size, KnowledgeQuery query) {

@@ -21,8 +21,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
@@ -69,7 +68,7 @@ public class VectorStoreImpl implements IDataStore {
             try {
                 processBatchWithRetry(model, batch, processedEntities, failedEntities);
             } catch (Exception e) {
-                log.error("Failed to process batch after retries: {}", e.getMessage());
+                log.error("Failed to process batch after retries: {}", e.getMessage(), e);
                 failedEntities.addAll(batch);
             }
         });
@@ -231,15 +230,47 @@ public class VectorStoreImpl implements IDataStore {
             Response<Embedding> res = embeddingModel.embed(request.getQuery());
             float[] queryVector = res.content().vector();
             // Perform vector search
-            return embeddingMapper.embeddingSearch(
+            List<TextChunkVO> results = embeddingMapper.search(
                     request.getKnowledgeIds(),
                     request.getExcludeDocumentIds(),
                     request.getExcludeParagraphIds(),
-                    request.getTopK(),
                     request.getMinScore(),
                     queryVector,
                     embeddingModel.dimension()
             );
+            if (results == null || results.isEmpty()) {
+                return Collections.emptyList();
+            }
+            // 1. 计算每个 paragraphId 在原始结果中的总分
+            Map<String, Double> paragraphIdTotalScoreMap = new HashMap<>();
+            for (TextChunkVO result : results) {
+                paragraphIdTotalScoreMap.merge(result.getParagraphId(), result.getScore().doubleValue(), Double::sum);
+            }
+            // 2. 按 score 降序排序
+            results.sort((a, b) -> Float.compare(b.getScore(), a.getScore()));
+
+            // 3. 去重：每个 paragraphId 只保留 score 最大的（即排序后第一个出现的）
+            List<TextChunkVO> distinctResults = new ArrayList<>();
+            Set<String> seenParagraphIds = new HashSet<>();
+            for (TextChunkVO result : results) {
+                if (!seenParagraphIds.contains(result.getParagraphId())) {
+                    seenParagraphIds.add(result.getParagraphId());
+                    distinctResults.add(result);
+                }
+            }
+            // 4. 排序：score 降序 -> paragraphId 总分降序
+            distinctResults.sort((a, b) -> {
+                int scoreCompare = Float.compare(b.getScore(), a.getScore());
+                if (scoreCompare != 0) {
+                    return scoreCompare;
+                }
+                // score 相同时，按 paragraphId 总分降序
+                Double totalScoreA = paragraphIdTotalScoreMap.getOrDefault(a.getParagraphId(), 0.0);
+                Double totalScoreB = paragraphIdTotalScoreMap.getOrDefault(b.getParagraphId(), 0.0);
+                return Double.compare(totalScoreB, totalScoreA);
+            });
+            int end = Math.min(request.getTopK(), distinctResults.size());
+            return distinctResults.subList(0, end);
         } catch (Exception e) {
             log.error("Vector search failed: {}", e.getMessage(), e);
             throw new RuntimeException("Vector search service error", e);

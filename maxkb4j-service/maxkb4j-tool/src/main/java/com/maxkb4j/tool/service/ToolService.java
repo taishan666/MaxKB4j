@@ -280,4 +280,11 @@ public class ToolService  extends ServiceImpl<ToolMapper, ToolEntity> implements
         return McpToolUtil.getToolVos(mcpServersJson);
     }
 
+    public Boolean delMulApplication(List<String> idList) {
+        Boolean result = true;
+        for (String id : idList) {
+            result = removeToolById(id);
+        }
+        return result;
+    }
 }

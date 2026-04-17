@@ -7,6 +7,7 @@ import cn.dev33.satoken.jwt.exception.SaJwtException;
 import com.maxkb4j.common.api.R;
 import com.maxkb4j.common.exception.*;
 import com.maxkb4j.common.util.StpKit;
+import dev.langchain4j.exception.RateLimitException;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -103,12 +104,12 @@ public class GlobalExceptionHandler {
         return R.fail(500, e.getMessage());
     }
 
-/*    @ExceptionHandler(RateLimitException.class)
+    @ExceptionHandler(RateLimitException.class)
     @ResponseBody
     public R<String> handleException(RateLimitException e) {
         log.error("RateLimitException: {}", e.getMessage());
         return R.fail(500, e.getMessage());
-    }*/
+    }
 
     @ExceptionHandler(LoginException.class)
     @ResponseBody

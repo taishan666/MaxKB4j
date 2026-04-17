@@ -42,7 +42,8 @@ public class ApplicationNodeHandler extends AbsNodeHandler {
         List<String> questionFields = params.getQuestionReferenceAddress();
         String question = getReferenceFieldAsString(workflow, questionFields);
         ChatParams chatParams = workflow.getChatParams();
-        String chatId = chatParams.getChatId() + "_" + params.getApplicationId();
+      //  String chatId = chatParams.getChatId() + "_" + params.getApplicationId();
+        String chatId = chatParams.getChatId();
 
         // 获取各种文件列表
         List<OssFile> docList = getFileList(workflow, params.getDocumentList());

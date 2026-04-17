@@ -49,6 +49,7 @@ public class ApplicationController {
     private final ApplicationExportService exportService;
     private final ApplicationStatsService applicationStatsService;
     private final ApplicationAccessTokenService accessTokenService;
+
     @SaCheckPerm(PermissionEnum.APPLICATION_READ)
     @GetMapping("/application")
     public R<List<ApplicationListVO>> listApps(String folderId) {
@@ -105,6 +106,12 @@ public class ApplicationController {
     @DeleteMapping("/application/{id}")
     public R<Boolean> deleteByAppId(@PathVariable("id") String id) {
         return R.success(applicationService.deleteByAppId(id));
+    }
+
+    @SaCheckPerm(PermissionEnum.APPLICATION_DELETE)
+    @DeleteMapping("/application/batchDelete")
+    public R<Boolean> delMulApplication(@RequestParam("idList") List<String> idList) {
+        return R.success(applicationService.delMulApplication(idList));
     }
 
     @SaCheckPerm(PermissionEnum.APPLICATION_READ)

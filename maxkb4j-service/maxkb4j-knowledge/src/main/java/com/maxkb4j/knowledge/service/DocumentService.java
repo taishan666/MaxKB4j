@@ -7,12 +7,13 @@ import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.maxkb4j.common.domain.vo.KeyAndValueVO;
 import com.maxkb4j.common.exception.FileLimitExceededException;
-import com.maxkb4j.core.util.ExcelUtil;
 import com.maxkb4j.common.util.IoUtil;
 import com.maxkb4j.common.util.SecurityUtil;
 import com.maxkb4j.core.event.DocumentIndexEvent;
 import com.maxkb4j.core.event.GenerateProblemEvent;
+import com.maxkb4j.core.util.ExcelUtil;
 import com.maxkb4j.knowledge.consts.KnowledgeType;
 import com.maxkb4j.knowledge.dto.DatasetBatchHitHandlingDTO;
 import com.maxkb4j.knowledge.dto.DocQuery;
@@ -26,7 +27,6 @@ import com.maxkb4j.knowledge.mapper.KnowledgeMapper;
 import com.maxkb4j.knowledge.store.IDataStore;
 import com.maxkb4j.knowledge.vo.DocFileVO;
 import com.maxkb4j.knowledge.vo.DocumentVO;
-import com.maxkb4j.common.domain.vo.KeyAndValueVO;
 import com.maxkb4j.knowledge.vo.TextSegmentVO;
 import com.maxkb4j.oss.service.IOssService;
 import jakarta.servlet.http.HttpServletResponse;
@@ -36,7 +36,6 @@ import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -357,7 +356,6 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         return result;
     }
 
-    @Async
     public void createWebDocs(String knowledgeId, String sourceUrl, String selector) {
         List<DocumentSimple> docs =documentWebService.getWebDocuments(sourceUrl, selector,true);
         batchCreateDocs(knowledgeId, KnowledgeType.WEB, docs);
@@ -388,7 +386,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
 
 
     public boolean batchGenerateRelated(String knowledgeId, GenerateProblemDTO dto) {
-        eventPublisher.publishEvent(new GenerateProblemEvent(this, knowledgeId, dto.getDocumentIdList(), dto.getModelId(), dto.getPrompt(), dto.getStateList()));
+        eventPublisher.publishEvent(new GenerateProblemEvent(this, knowledgeId, dto.getDocumentIdList(), dto.getModelId(), dto.getNumber(),dto.getPrompt(), dto.getStateList()));
         return true;
     }
 

@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.maxkb4j.application.service.IApplicationChatService;
 import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.common.domain.dto.ChatResponse;
+import com.maxkb4j.common.enums.ChatSource;
 import com.maxkb4j.common.enums.ChatUserType;
 import dev.langchain4j.agent.tool.ToolExecutionRequest;
 import reactor.core.publisher.Sinks;
@@ -32,6 +33,7 @@ public class AgentExecutor extends AbsToolExecutor{
                 .chatId(String.valueOf(memoryId))
                 .chatUserId(IdWorker.get32UUID())
                 .chatUserType(ChatUserType.ANONYMOUS_USER.name())
+                .source(ChatSource.ONLINE)
                 .debug(false)
                 .build();
         ChatResponse chatResponse = chatService.chatMessage(params, Sinks.many().unicast().onBackpressureBuffer());

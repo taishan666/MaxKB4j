@@ -1,12 +1,13 @@
 package com.maxkb4j.common.domain.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.maxkb4j.common.enums.ChatSource;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Data;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Map;
 
@@ -46,6 +47,7 @@ public class ChatParams {
     private Boolean reChat;
 
     private String ipAddress;
+    private ChatSource source;
 
     @JsonIgnore
     private String appId;

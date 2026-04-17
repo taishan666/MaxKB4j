@@ -553,4 +553,11 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     }
 
 
+    public Boolean delMulApplication(List<String> idList) {
+        Boolean result = false;
+        for (String id : idList) {
+            result = deleteByAppId(id);
+        }
+        return result;
+    }
 }

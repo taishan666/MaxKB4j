@@ -1,6 +1,7 @@
 package com.maxkb4j.model.provider;
 
 import com.alibaba.fastjson.JSONObject;
+import com.maxkb4j.common.domain.form.BaseField;
 import com.maxkb4j.common.mp.entity.ModelCredential;
 import com.maxkb4j.model.custom.credential.ModelCredentialForm;
 import com.maxkb4j.model.custom.model.OpenAiSTTModel;
@@ -28,23 +29,28 @@ import java.util.List;
 public class OpenAiModelProvider extends AbsModelProvider {
 
     private static final List<ModelInfo> MODEL_INFOS = List.of(
-            new ModelInfo("gpt-3.5-turbo", "GPT-3.5 Turbo", ModelType.LLM, new OpenAiChatModelParams()),
-            new ModelInfo("gpt-4", "GPT-4", ModelType.LLM, new OpenAiChatModelParams()),
-            new ModelInfo("gpt-4o", "GPT-4 Omni", ModelType.LLM, new OpenAiChatModelParams()),
-            new ModelInfo("gpt-4o-mini", "GPT-4 Omni Mini", ModelType.LLM, new OpenAiChatModelParams()),
-            new ModelInfo("gpt-4-turbo", "GPT-4 Turbo", ModelType.LLM, new OpenAiChatModelParams()),
-            new ModelInfo("gpt-4-turbo-preview", "GPT-4 Turbo Preview", ModelType.LLM, new OpenAiChatModelParams()),
+            new ModelInfo("gpt-3.5-turbo", "GPT-3.5 Turbo", ModelType.LLM),
+            new ModelInfo("gpt-4", "GPT-4", ModelType.LLM),
+            new ModelInfo("gpt-4o", "GPT-4 Omni", ModelType.LLM),
+            new ModelInfo("gpt-4o-mini", "GPT-4 Omni Mini", ModelType.LLM),
+            new ModelInfo("gpt-4-turbo", "GPT-4 Turbo", ModelType.LLM),
+            new ModelInfo("gpt-4-turbo-preview", "GPT-4 Turbo Preview", ModelType.LLM),
             new ModelInfo("text-embedding-ada-002", "Text Embedding Ada v2", ModelType.EMBEDDING),
             new ModelInfo("whisper-1", "Whisper Speech-to-Text", ModelType.STT),
             new ModelInfo("tts-1", "Text-to-Speech", ModelType.TTS),
-            new ModelInfo("gpt-4o", "GPT-4 Vision", ModelType.VISION, new OpenAiChatModelParams()),
+            new ModelInfo("gpt-4o", "GPT-4 Vision", ModelType.VISION),
             new ModelInfo("dall-e-2", "DALL·E 2", ModelType.TTI)
     );
+
+
 
     public String getDefaultBaseUrl(){
         return "https://api.openai.com/v1";
     }
-
+    @Override
+    public List<BaseField> getChatModelParamsForm() {
+        return new OpenAiChatModelParams().toForm();
+    }
 
     @Override
     public List<ModelInfo> getModelList() {
@@ -65,6 +71,7 @@ public class OpenAiModelProvider extends AbsModelProvider {
                 .modelName(modelName)
                 .temperature(getDoubleParam(params, "temperature"))
                 .maxTokens(getIntParam(params, "maxTokens"))
+                .sendThinking(getBooleanParam(params,"returnThinking"))
                 .returnThinking(getBooleanParam(params,"returnThinking"))
                 .build();
     }
@@ -78,6 +85,7 @@ public class OpenAiModelProvider extends AbsModelProvider {
                 .modelName(modelName)
                 .temperature(getDoubleParam(params, "temperature"))
                 .maxTokens(getIntParam(params, "maxTokens"))
+                .sendThinking(getBooleanParam(params,"returnThinking"))
                 .returnThinking(getBooleanParam(params,"returnThinking"))
                 .build();
     }

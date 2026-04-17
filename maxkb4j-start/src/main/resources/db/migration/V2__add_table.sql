@@ -1,7 +1,6 @@
 -- ----------------------------
 -- Table structure for application_access
 -- ----------------------------
-DROP TABLE IF EXISTS "public"."application_access";
 CREATE TABLE "public"."application_access" (
                                                "id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
                                                "status" jsonb,

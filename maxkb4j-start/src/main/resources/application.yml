@@ -1,7 +1,5 @@
 server:
   port: 8080
-  #tomcat:
-    #relaxed-query-chars: "[,]"
   error:
     whitelabel:
       enabled: true
@@ -36,8 +34,6 @@ mybatis-plus:
   mapper-locations: classpath:mapper/**/*.xml,mapper/*.xml
   type-aliases-package: com.maxkb4j.**.entity
   type-handlers-package: com.maxkb4j.common.typehandler
-  #configuration:
-    #log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
 ############## Sa-Token 配置 (文档: https://sa-token.cc) ##############
 sa-token:
   # jwt秘钥 - 使用环境变量配置

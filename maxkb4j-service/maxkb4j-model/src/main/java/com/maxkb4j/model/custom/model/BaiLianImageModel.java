@@ -13,13 +13,11 @@ import java.util.List;
 
 public class BaiLianImageModel implements ImageModel {
 
-    private String modelName;
-    private ModelCredential credential;
-    private JSONObject params;
-    private ImageModel instance;
+    private final ModelCredential credential;
+    private final JSONObject params;
+    private final ImageModel instance;
 
     public BaiLianImageModel(String modelName, ModelCredential credential, JSONObject params) {
-        this.modelName = modelName;
         this.credential = credential;
         this.params = params;
         this.instance = buildInstance(modelName);

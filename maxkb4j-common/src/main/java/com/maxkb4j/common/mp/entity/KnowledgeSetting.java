@@ -14,6 +14,7 @@ public class KnowledgeSetting {
     private Integer maxParagraphCharNumber;
     private String searchMode;
     private Float similarity;
-    private NoReferencesSetting noReferencesSetting;
+    private Boolean fallbackEnable;
+    private String fallbackResponse;
 
 }

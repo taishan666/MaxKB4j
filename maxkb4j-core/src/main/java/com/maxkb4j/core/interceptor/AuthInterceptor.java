@@ -3,7 +3,7 @@ package com.maxkb4j.core.interceptor;
 import com.maxkb4j.core.handler.AuthHandler;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.validation.constraints.NotNull;
+import org.jetbrains.annotations.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;

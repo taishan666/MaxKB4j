@@ -123,7 +123,7 @@ public class R<T> implements Serializable {
         return this.data;
     }
 
-    public String getmessage() {
+    public String getMessage() {
         return this.message;
     }
 
@@ -136,12 +136,12 @@ public class R<T> implements Serializable {
         this.data = data;
     }
 
-    public void setmessage(final String message) {
+    public void setMessage(final String message) {
         this.message = message;
     }
 
     public String toString() {
-        return "R(code=" + this.getCode() + ", data=" + this.getData() + ", message=" + this.getmessage() + ")";
+        return "R(code=" + this.getCode() + ", data=" + this.getData() + ", message=" + this.getMessage() + ")";
     }
 
     public R() {

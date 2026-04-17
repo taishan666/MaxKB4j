@@ -10,6 +10,7 @@ import com.maxkb4j.common.constant.ResourceType;
 import com.maxkb4j.common.domain.dto.ChatMessageVO;
 import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.common.domain.dto.ChatResponse;
+import com.maxkb4j.common.enums.ChatSource;
 import com.maxkb4j.tool.entity.ToolEntity;
 import com.maxkb4j.tool.service.IToolService;
 import com.maxkb4j.trigger.entity.EventTriggerTaskEntity;
@@ -115,8 +116,9 @@ public class TriggerTaskExecutor {
                         .message(question)
                         .chatId(chatId)
                         .appId(appId)
-                        .debug(true)
+                        .debug(false)
                         .reChat(false)
+                        .source(ChatSource.TRIGGER)
                         .stream(false)
                         .build();
                 CompletableFuture<ChatResponse> future = applicationChatService.chatMessageAsync(chatParams, sink);

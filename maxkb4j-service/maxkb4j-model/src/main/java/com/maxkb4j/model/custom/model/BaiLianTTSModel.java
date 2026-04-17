@@ -22,11 +22,11 @@ public class BaiLianTTSModel implements TTSModel {
     }
 
     private TTSModel buildInstance(String modelName) {
-        return switch (modelName) {
-            case "cosyvoice-v1", "cosyvoice-v2" -> new CosyVoiceTTS(modelName, credential, params);
-            case "sambert-v1" -> new SamBertTTS(modelName, credential, params);
-            default -> new QWenTTS(modelName, credential, params);
-        };
+       if (modelName.startsWith("qwen3-tts")){
+           return new QWenTTS(modelName, credential, params);
+       }else {
+           return new BaiLianTTS(modelName, credential, params);
+       }
     }
 
     @Override

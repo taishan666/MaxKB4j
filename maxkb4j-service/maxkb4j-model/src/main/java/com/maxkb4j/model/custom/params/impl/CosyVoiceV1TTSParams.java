@@ -1,19 +1,17 @@
 package com.maxkb4j.model.custom.params.impl;
 
-import com.maxkb4j.common.domain.form.BaseField;
-import com.maxkb4j.common.domain.form.SingleSelectFiled;
-import com.maxkb4j.common.domain.form.SliderFiled;
-import com.maxkb4j.model.service.IModelParams;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
-import java.util.List;
 import java.util.Map;
 
+@EqualsAndHashCode(callSuper = true)
 @Data
-public class CosyVoiceV1TTSParams implements IModelParams {
+public class CosyVoiceV1TTSParams extends TTSParams {
+
     @Override
-    public List<BaseField> toForm() {
-        Map<String,Object> options=Map.of(
+    public Map<String,Object> getVoiceOptions(){
+        return Map.of(
                 "龙婉","longwan",
                 "龙橙","longcheng",
                 "龙华","longhua",
@@ -25,9 +23,5 @@ public class CosyVoiceV1TTSParams implements IModelParams {
                 "龙书","longshu",
                 "龙硕","longshuo"
         );
-        BaseField voiceSelectFiled=new SingleSelectFiled("音色","voice","指定音色名称",options,"longxiaochun");
-        BaseField volumeFiled=new SliderFiled(1,100,1,0,"音量","volume","指定音量，取值范围：0~100。",50);
-        BaseField speechRateField=new SliderFiled(0.5F,2F,0.1F,1,"语速","speechRate","取值范围：0.5~2倍速。",1);
-        return List.of(voiceSelectFiled,volumeFiled,speechRateField);
     }
 }

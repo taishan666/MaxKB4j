@@ -1,6 +1,7 @@
 package com.maxkb4j.model.provider;
 
 import com.alibaba.fastjson.JSONObject;
+import com.maxkb4j.common.domain.form.BaseField;
 import com.maxkb4j.common.mp.entity.ModelCredential;
 import com.maxkb4j.model.custom.model.BaiLianImageModel;
 import com.maxkb4j.model.custom.model.BaiLianReranker;
@@ -26,27 +27,35 @@ import java.util.List;
 public class AliYunBaiLianModelProvider extends AbsModelProvider {
 
     private static final List<ModelInfo> MODEL_INFOS = List.of(
-            new ModelInfo(QwenModelName.QWEN_TURBO, "", ModelType.LLM, new QwenChatModelParams()),
-            new ModelInfo("qwen3.5-plus", "", ModelType.LLM, new QwenChatModelParams()),
-            new ModelInfo(QwenModelName.QWEN_PLUS, "", ModelType.LLM, new QwenChatModelParams()),
-            new ModelInfo(QwenModelName.QWEN_MAX, "", ModelType.LLM, new QwenChatModelParams()),
-            new ModelInfo("text-embedding-v4", "", ModelType.EMBEDDING, new TextEmbeddingV4Params()),
-            new ModelInfo("text-embedding-v3", "", ModelType.EMBEDDING, new TextEmbeddingV3Params()),
+            new ModelInfo(QwenModelName.QWEN_TURBO, "", ModelType.LLM),
+            new ModelInfo("qwen3.5-plus", "", ModelType.LLM, new QWenChatModelParams(true)),
+            new ModelInfo(QwenModelName.QWEN_PLUS, "", ModelType.LLM),
+            new ModelInfo(QwenModelName.QWEN_MAX, "", ModelType.LLM),
+            new ModelInfo("text-embedding-v3", "", ModelType.EMBEDDING),
+            new ModelInfo("text-embedding-v4", "", ModelType.EMBEDDING),
+            new ModelInfo("text-embedding-v3", "", ModelType.EMBEDDING),
             new ModelInfo("paraformer-realtime-v2", "", ModelType.STT),
             new ModelInfo("fun-asr-realtime", "", ModelType.STT),
-           // new ModelInfo("qwen3-asr-flash", "语音识别模型", ModelType.STT),
             new ModelInfo("gummy-realtime-v1", "", ModelType.STT, new GummySTTParams()),
             new ModelInfo("cosyvoice-v1", "", ModelType.TTS, new CosyVoiceV1TTSParams()),
             new ModelInfo("cosyvoice-v2", "", ModelType.TTS, new CosyVoiceV2TTSParams()),
             new ModelInfo("sambert-v1", "", ModelType.TTS, new SamBertTTSParams()),
+            new ModelInfo("qwen3-tts-flash", "", ModelType.TTS, new QWenTTSParams()),
             new ModelInfo("qwen-tts", "", ModelType.TTS, new QWenTTSParams()),
-            new ModelInfo(QwenModelName.QWEN_VL_PLUS, "", ModelType.VISION, new QwenChatModelParams()),
-            new ModelInfo(QwenModelName.QWEN_VL_MAX, "", ModelType.VISION, new QwenChatModelParams()),
+            new ModelInfo("qwen3.5-plus", "", ModelType.VISION, new QWenChatModelParams(true)),
+            new ModelInfo(QwenModelName.QWEN_VL_PLUS, "", ModelType.VISION, new QWenChatModelParams(true)),
+            new ModelInfo(QwenModelName.QWEN_VL_MAX, "", ModelType.VISION, new QWenChatModelParams(true)),
             new ModelInfo(WanxModelName.WANX2_1_T2I_TURBO, "", ModelType.TTI, new WanXImageModelParams()),
             new ModelInfo(WanxModelName.WANX2_1_T2I_PLUS, "", ModelType.TTI, new WanXImageModelParams()),
             new ModelInfo("qwen-image-plus", "", ModelType.TTI, new QwenImageModelParams()),
-            new ModelInfo("gte-rerank", "", ModelType.RERANKER)
+            new ModelInfo("gte-rerank", "", ModelType.RERANKER),
+            new ModelInfo("qwen3-rerank", "", ModelType.RERANKER)
     );
+
+    @Override
+    public List<BaseField> getChatModelParamsForm() {
+        return new QWenChatModelParams().toForm();
+    }
 
 
     @Override

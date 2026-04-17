@@ -1,6 +1,5 @@
 package com.maxkb4j.application.pipeline.step.chatstep.impl;
 
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.application.pipeline.PipelineManage;
 import com.maxkb4j.application.pipeline.step.chatstep.AbsChatStep;
@@ -11,10 +10,7 @@ import com.maxkb4j.core.langchain4j.AppChatMemory;
 import com.maxkb4j.core.langchain4j.AssistantServices;
 import com.maxkb4j.model.service.IModelProviderService;
 import com.maxkb4j.tool.service.IToolProviderService;
-import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
-import dev.langchain4j.data.message.SystemMessage;
-import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.model.chat.response.ChatResponse;
 import dev.langchain4j.model.output.TokenUsage;
@@ -24,15 +20,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
-import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 @Slf4j
 @Component
@@ -44,7 +37,7 @@ public class ChatStep extends AbsChatStep {
 
 
     @Override
-    protected String execute(String chatId, String chatRecordId, ApplicationVO application, String userPrompt, PipelineManage manage) throws ExecutionException, InterruptedException, TimeoutException {
+    protected String execute(String chatId, String chatRecordId, ApplicationVO application, List<ChatMessage> historyMessages,String userPrompt, PipelineManage manage) throws Exception {
         List<String> answerTexts = new ArrayList<>();
         String modelId = application.getModelId();
         JSONObject params = application.getModelParamsSetting();
@@ -62,8 +55,6 @@ public class ChatStep extends AbsChatStep {
         }catch (ApiException e){
             manage.sink.tryEmitError(e);
         }
-        int dialogueNumber = application.getDialogueNumber();
-        List<ChatMessage> historyMessages = manage.getHistoryMessages(dialogueNumber);
         Assistant assistant = aiServicesBuilder.chatMemory(AppChatMemory.withMessages(historyMessages)).streamingChatModel(chatModel).build();
         Boolean reasoningEnable = application.getModelSetting().getReasoningContentEnable();
         TokenStream tokenStream = assistant.chatStream(userPrompt);
@@ -107,30 +98,6 @@ public class ChatStep extends AbsChatStep {
         return String.join("", answerTexts);
     }
 
-
-    public JSONArray resetMessageToJSON(List<ChatMessage> historyMessages) {
-        if (CollectionUtils.isEmpty(historyMessages)) {
-            return new JSONArray();
-        }
-        JSONArray newMessageList = new JSONArray();
-        for (ChatMessage chatMessage : historyMessages) {
-            JSONObject message = new JSONObject();
-            if (chatMessage instanceof SystemMessage systemMessage) {
-                message.put("role", "system");
-                message.put("content", systemMessage.text());
-            }
-            if (chatMessage instanceof UserMessage userMessage) {
-                message.put("role", "user");
-                message.put("content", userMessage.singleText());
-            }
-            if (chatMessage instanceof AiMessage aiMessage) {
-                message.put("role", "ai");
-                message.put("content", aiMessage.text());
-            }
-            newMessageList.add(message);
-        }
-        return newMessageList;
-    }
 
 
     @Override
