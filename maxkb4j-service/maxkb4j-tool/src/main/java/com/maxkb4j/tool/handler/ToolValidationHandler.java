@@ -31,7 +31,7 @@ public class ToolValidationHandler {
             if (jsonStr == null || jsonStr.trim().isEmpty()) {
                 return false;
             }
-            if (JSONUtil.isTypeJSONObject(jsonStr)){
+            if (!JSONUtil.isTypeJSONObject(jsonStr)){
                 throw new ToolValidationException("MCP服务器配置解析失败");
             }
             JSONObject root= JSONUtil.parseObj(jsonStr);

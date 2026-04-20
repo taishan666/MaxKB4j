@@ -15,6 +15,11 @@
 
     <dependencies>
         <dependency>
+            <groupId>org</groupId>
+            <artifactId>jaudiotagger</artifactId>
+            <version>2.0.3</version>
+        </dependency>
+        <dependency>
             <groupId>com.tarzan</groupId>
             <artifactId>maxkb4j-model-api</artifactId>
             <version>${revision}</version>

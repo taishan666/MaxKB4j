@@ -6,8 +6,8 @@ import com.alibaba.dashscope.audio.asr.recognition.RecognitionResult;
 import com.alibaba.dashscope.common.ResultCallback;
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.common.mp.entity.ModelCredential;
-import com.maxkb4j.model.service.STTModel;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
 
 import java.nio.ByteBuffer;
@@ -16,9 +16,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
+@EqualsAndHashCode(callSuper = true)
 @Slf4j
 @Data
-public class BaiLianASRRealtime implements STTModel {
+public class BaiLianASRRealtime extends AbsSTTModel {
 
 
     private RecognitionParam param;
@@ -46,9 +47,9 @@ public class BaiLianASRRealtime implements STTModel {
         return RecognitionParam.builder()
                 .apiKey(credential.getApiKey())
                 .model(modelName)
-                .format("mp3")
-                .sampleRate(22050)
                 .parameters(parameters)
+                .sampleRate(16000)
+                .format("mp3")
                 .build();
     }
 
@@ -58,10 +59,11 @@ public class BaiLianASRRealtime implements STTModel {
         log.info("使用模型: {}", modelName);
         log.info("音频数据大小: {} bytes", audioBytes.length);
         log.info("文件后缀: {}", suffix);
-
-        String format = suffix != null ? suffix.toLowerCase() : "wav";
+        int sampleRate=getSampleRate(audioBytes, "."+suffix);
+        this.param.setSampleRate(sampleRate);
+        String format = suffix != null ? suffix.toLowerCase() : "mp3";
         this.param.setFormat(format);
-        log.info("使用格式: {}, 采样率: {}", format, param.getSampleRate());
+        log.info("使用格式: {}, 采样率: {}", format, sampleRate);
         AtomicReference<String> resultText = new AtomicReference<>("");
         ResultCallback<RecognitionResult> callback = new ResultCallback<>() {
             @Override
