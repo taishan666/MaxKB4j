@@ -6,17 +6,18 @@ import com.alibaba.dashscope.audio.asr.translation.results.TranslationRecognizer
 import com.alibaba.dashscope.common.ResultCallback;
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.common.mp.entity.ModelCredential;
-import com.maxkb4j.model.service.STTModel;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
 
 import java.nio.ByteBuffer;
 import java.util.concurrent.atomic.AtomicReference;
 
 
+@EqualsAndHashCode(callSuper = true)
 @Slf4j
 @Data
-public class GummySTT implements STTModel {
+public class GummySTT extends AbsSTTModel {
 
     private TranslationRecognizerParam param;
     private String translationLanguage;
@@ -34,7 +35,7 @@ public class GummySTT implements STTModel {
                          .apiKey(modelCredential.getApiKey())
                         .model(modelName)
                         .format("mp3") // 'pcm'、'wav'、'mp3'、'opus'、'speex'、'aac'、'amr', you
-                        .sampleRate(22050)
+                        .sampleRate(16000)
                         .transcriptionEnabled(true)
                         .sourceLanguage("auto")
                         .translationEnabled(false)
@@ -63,6 +64,10 @@ public class GummySTT implements STTModel {
                 log.error("RecognitionCallback error: {}", e.getMessage());
             }
         };
+        int sampleRate=getSampleRate(audioBytes, "."+suffix);
+        this.param.setSampleRate(sampleRate);
+        String format = suffix != null ? suffix.toLowerCase() : "mp3";
+        this.param.setFormat(format);
         // 将录音音频数据发送给流式识别服务
         translator.call(param, callback);
         int sendFrameLength = 3200;
