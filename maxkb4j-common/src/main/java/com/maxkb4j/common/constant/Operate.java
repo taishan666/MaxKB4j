@@ -6,6 +6,7 @@ public interface Operate {
     String DEBUG = "READ+DEBUG";
     String EDIT = "READ+EDIT";
     String DELETE = "READ+DELETE";
+    String BATCH_DELETE = "READ+BATCH_DELETE";
     String EXPORT = "READ+EXPORT";
     String IMPORT = "READ+IMPORT";
     String DOWNLOAD = "READ+DOWNLOAD";

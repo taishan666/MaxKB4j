@@ -143,7 +143,7 @@ public class ToolController {
         return R.status(toolService.removeToolById(id));
     }
 
-    @SaCheckPerm(PermissionEnum.TOOL_DELETE)
+    @SaCheckPerm(PermissionEnum.TOOL_BATCH_DELETE)
     @DeleteMapping("/workspace/default/tool/batchDelete")
     public R<Boolean> delMulTool(@RequestParam("idList") List<String> idList) {
         return R.success(toolService.delMulApplication(idList));
