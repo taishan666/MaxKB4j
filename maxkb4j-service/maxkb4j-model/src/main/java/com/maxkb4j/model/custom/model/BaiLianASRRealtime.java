@@ -9,8 +9,19 @@ import com.maxkb4j.common.mp.entity.ModelCredential;
 import com.maxkb4j.model.service.STTModel;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.jaudiotagger.audio.AudioFile;
+import org.jaudiotagger.audio.AudioFileIO;
+import org.jaudiotagger.audio.exceptions.CannotReadException;
+import org.jaudiotagger.audio.exceptions.InvalidAudioFrameException;
+import org.jaudiotagger.audio.exceptions.ReadOnlyFileException;
+import org.jaudiotagger.tag.TagException;
 
+import java.io.File;
+import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -46,9 +57,9 @@ public class BaiLianASRRealtime implements STTModel {
         return RecognitionParam.builder()
                 .apiKey(credential.getApiKey())
                 .model(modelName)
-                .format("mp3")
-                .sampleRate(22050)
                 .parameters(parameters)
+                .sampleRate(16000)
+                .format("mp3")
                 .build();
     }
 
@@ -58,10 +69,36 @@ public class BaiLianASRRealtime implements STTModel {
         log.info("使用模型: {}", modelName);
         log.info("音频数据大小: {} bytes", audioBytes.length);
         log.info("文件后缀: {}", suffix);
+        int sampleRate;
+        Path tempFile=null;
+        try {
+            tempFile = Files.createTempFile("audio_temp_", "."+suffix);
+            // 2. 将 byte[] 写入临时文件
+            // 使用 WRITE 和 TRUNCATE_EXISTING 确保覆盖写入
+            Files.write(tempFile, audioBytes, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
+            // 3. 读取音频文件
+            // 注意：AudioFileIO.read 通常接受 File 对象，所以需要将 Path 转为 File
+            File fileObj = tempFile.toFile();
+            AudioFile audioFile = AudioFileIO.read(fileObj);
+            sampleRate = audioFile.getAudioHeader().getSampleRateAsNumber();
 
-        String format = suffix != null ? suffix.toLowerCase() : "wav";
+        } catch (ReadOnlyFileException | IOException | CannotReadException | TagException | InvalidAudioFrameException e) {
+            throw new RuntimeException(e);
+        } finally {
+            // 4. 删除临时文件
+            // 无论成功还是失败，都在 finally 块中尝试删除文件，防止磁盘垃圾堆积
+            try {
+                if (tempFile!=null&&Files.exists(tempFile)) {
+                    Files.delete(tempFile);
+                }
+            } catch (IOException e) {
+                log.error("删除临时文件失败: {}", e.getMessage());
+            }
+        }
+        this.param.setSampleRate(sampleRate);
+        String format = suffix != null ? suffix.toLowerCase() : "mp3";
         this.param.setFormat(format);
-        log.info("使用格式: {}, 采样率: {}", format, param.getSampleRate());
+        log.info("使用格式: {}, 采样率: {}", format, sampleRate);
         AtomicReference<String> resultText = new AtomicReference<>("");
         ResultCallback<RecognitionResult> callback = new ResultCallback<>() {
             @Override
