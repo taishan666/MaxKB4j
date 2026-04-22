@@ -96,7 +96,7 @@ public abstract class AbsModelProvider {
      * @return the boolean value or null if not present
      */
     protected Boolean getBooleanParam(JSONObject params, String key) {
-        return Optional.ofNullable(params).map(p -> p.getBoolean(key)).orElse(null);
+        return Optional.ofNullable(params).map(p -> p.getBoolean(key)).orElse(false);
     }
 
     /**
