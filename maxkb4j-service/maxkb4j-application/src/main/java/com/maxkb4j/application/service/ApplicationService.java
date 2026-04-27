@@ -552,12 +552,12 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         return this.saveApp(application);
     }
 
-
-    public Boolean delMulApplication(List<String> idList) {
-        Boolean result = false;
+    @Transactional
+    public boolean deleteBatch(List<String> idList) {
+        List<Boolean> result = new ArrayList<>();
         for (String id : idList) {
-            result = deleteByAppId(id);
+            result.add(deleteByAppId(id));
         }
-        return result;
+        return result.stream().allMatch(Boolean::booleanValue);
     }
 }

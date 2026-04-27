@@ -1,7 +1,7 @@
 package com.maxkb4j.workflow.handler.node.impl;
 
 import com.alibaba.fastjson.JSONObject;
-import com.maxkb4j.common.domain.form.RadioCardFiled;
+import com.maxkb4j.common.domain.form.RadioCardField;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.NodeType;
 import com.maxkb4j.workflow.handler.node.AbsNodeHandler;
@@ -43,8 +43,8 @@ public class UserSelectNodeHandler extends AbsNodeHandler {
                 options.put(branch.getOption(), branch.getId());
             }
             String labelName = workflow.renderPrompt(params.getLabelName());
-            RadioCardFiled radioCardFiled = new RadioCardFiled(labelName, SELECT_FILED, options);
-            List<RadioCardFiled> formFieldList = List.of(radioCardFiled);
+            RadioCardField radioCardFiled = new RadioCardField(labelName, SELECT_FILED, options);
+            List<RadioCardField> formFieldList = List.of(radioCardFiled);
             JSONObject formSetting = new JSONObject();
             formSetting.put("form_field_list", formFieldList);
             String formRender = "<card_selection_render>" + formSetting + "</card_selection_render>";

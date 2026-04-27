@@ -1,7 +1,7 @@
 package com.maxkb4j.model.custom.params.impl;
 
 import com.maxkb4j.common.domain.form.BaseField;
-import com.maxkb4j.common.domain.form.SingleSelectFiled;
+import com.maxkb4j.common.domain.form.SingleSelectField;
 import com.maxkb4j.common.domain.form.SwitchField;
 import com.maxkb4j.model.service.IModelParams;
 import lombok.Data;
@@ -19,7 +19,7 @@ public class ImageModelParams implements IModelParams {
                 "720*1280","720*1280",
                 "1280*720","1280*720"
         );
-        BaseField size=new SingleSelectFiled("图片尺寸","size","生成图片的尺寸",sizeOptions,"1024*1024");
+        BaseField size=new SingleSelectField("图片尺寸","size","生成图片的尺寸",sizeOptions,"1024*1024");
         BaseField watermark=new SwitchField("水印","watermark","生成的图片带水印",false);
         return List.of(size,watermark);
     }

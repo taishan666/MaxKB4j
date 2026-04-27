@@ -6,10 +6,10 @@ import lombok.EqualsAndHashCode;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class SliderFiled extends BaseField {
+public class SliderField extends BaseField {
 
 
-    public SliderFiled(float min, float max, float step,int precision, String labelName,String field,String tooltip,float defaultValue) {
+    public SliderField(float min, float max, float step, int precision, String labelName, String field, String tooltip, float defaultValue) {
         super.setInput_type("Slider");
         JSONObject attrs =new JSONObject();
         attrs.put("min",min);

@@ -1,7 +1,7 @@
 package com.maxkb4j.model.custom.params.impl;
 
 import com.maxkb4j.common.domain.form.BaseField;
-import com.maxkb4j.common.domain.form.SingleSelectFiled;
+import com.maxkb4j.common.domain.form.SingleSelectField;
 import com.maxkb4j.model.service.IModelParams;
 
 import java.util.List;
@@ -22,7 +22,7 @@ public class GummySTTParams implements IModelParams {
                 "俄语","ru",
                 "意大利语","it"
         );
-        BaseField voiceSelectFiled=new SingleSelectFiled("目标语言","targetLanguage","翻译语言",options,"none");
+        BaseField voiceSelectFiled=new SingleSelectField("目标语言","targetLanguage","翻译语言",options,"none");
         return List.of(voiceSelectFiled);
     }
 }

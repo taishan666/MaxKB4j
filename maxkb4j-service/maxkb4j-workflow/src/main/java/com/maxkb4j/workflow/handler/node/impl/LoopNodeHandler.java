@@ -19,6 +19,7 @@ import com.maxkb4j.workflow.node.AbsNode;
 import com.maxkb4j.workflow.node.impl.LoopNode;
 import com.maxkb4j.workflow.service.IWorkFlowActuator;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Sinks;
 
@@ -57,6 +58,7 @@ public class LoopNodeHandler extends AbsNodeHandler {
 
     private final IWorkFlowActuator workFlowActuator;
     private final NodeBuilder nodeBuilder;
+    private final TaskExecutor taskExecutor;
 
     @Override
     public NodeResult doExecute(Workflow workflow, AbsNode node) throws Exception {
@@ -228,7 +230,7 @@ public class LoopNodeHandler extends AbsNodeHandler {
                 loopParams, ctx.currentDetails, sink);
 
         // 异步执行并订阅结果
-        CompletableFuture<Void> future = CompletableFuture.runAsync(() -> workFlowActuator.execute(loopWorkflow));
+        CompletableFuture<Void> future = CompletableFuture.runAsync(() -> workFlowActuator.execute(loopWorkflow),taskExecutor);
         AtomicReference<ChildNode> childNodeRef = subscribeToSink(sink, loopParams, ctx, workflow, node);
 
         // 发送结束标记

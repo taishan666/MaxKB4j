@@ -19,6 +19,7 @@ import dev.langchain4j.service.Result;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
@@ -32,6 +33,7 @@ public class SearchDatasetStep extends AbsSearchDatasetStep {
     private final IRetrieveService retrieveService;
     private final IKnowledgeService knowledgeService;
     private final IModelProviderService modelFactory;
+    private final TaskExecutor taskExecutor;
 
     @Override
     protected List<ParagraphVO> execute(List<String> knowledgeIds, KnowledgeSetting datasetSetting, String problemText, String paddingProblemText, Boolean reChat, PipelineManage manage) {
@@ -59,7 +61,10 @@ public class SearchDatasetStep extends AbsSearchDatasetStep {
                 List<String> classificationIds = result.content();
                 for (String classificationId : classificationIds) {
                     if (!idToClassification.containsKey(classificationId)){
-                        knowledgeIds.remove(idToClassification.get(classificationId));
+                         String knowledgeId = idToClassification.get(classificationId);
+                         if (knowledgeId != null){
+                             knowledgeIds.remove(knowledgeId);
+                         }
                     }
                 }
                 TokenUsage tokenUsage=result.tokenUsage();
@@ -77,11 +82,12 @@ public class SearchDatasetStep extends AbsSearchDatasetStep {
 
     protected List<ParagraphVO> retrieval(List<String> knowledgeIds, KnowledgeSetting datasetSetting, String problemText, String paddingProblemText, Boolean reChat,List<String> excludeParagraphIds) {
         List<CompletableFuture<List<ParagraphVO>>> futureList = new ArrayList<>();
-        futureList.add(CompletableFuture.supplyAsync(() -> retrieveService.paragraphSearch(problemText, knowledgeIds, excludeParagraphIds, datasetSetting)));
+        CompletableFuture<List<ParagraphVO>> future = CompletableFuture.supplyAsync(() -> retrieveService.paragraphSearch(problemText, knowledgeIds, excludeParagraphIds, datasetSetting), taskExecutor);
+        futureList.add(future);
         if (StringUtils.isNotBlank(paddingProblemText) && !problemText.equals(paddingProblemText)) {
             futureList.add(CompletableFuture.supplyAsync(() -> retrieveService.paragraphSearch(paddingProblemText, knowledgeIds, excludeParagraphIds, datasetSetting)));
         }
-        List<ParagraphVO> paragraphList= futureList.stream().flatMap(future -> future.join().stream()).toList();
+        List<ParagraphVO> paragraphList= futureList.stream().flatMap(f -> f.join().stream()).toList();
         //当有优化的问题时
         if (paragraphList.size() > datasetSetting.getTopN()) {
             Map<String, ParagraphVO> map = new LinkedHashMap<>();

@@ -430,7 +430,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
             return false;
         }
         if (files.length > fileCountLimit) {
-            return false;
+            return true;
         }
         // 预计算字节上限（避免循环内重复计算）
         long fileSizeLimitBytes = (long) fileSizeLimit * 1024 * 1024;

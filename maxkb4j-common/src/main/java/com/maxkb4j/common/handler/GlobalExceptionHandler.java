@@ -45,7 +45,7 @@ public class GlobalExceptionHandler {
     @ResponseBody
     public R<String> handleException(NotPermissionException e, HttpServletResponse response) {
         log.error("无此权限异常: {}", e.getMessage(), e);
-        return R.fail(500, e.getMessage());
+        return R.fail(403, e.getMessage());
     }
 
     @ExceptionHandler(SaJwtException.class)

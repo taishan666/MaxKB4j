@@ -45,6 +45,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -79,6 +80,7 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
     private final KnowledgeExportHandler knowledgeExportHandler;
     private final NodeBuilder nodeBuilder;
     private final IResourceMappingService resourceMappingService;
+    private final TaskExecutor workflowExecutor;
 
 
     public IPage<KnowledgeVO> selectKnowledgePage(Page<KnowledgeVO> knowledgePage, KnowledgeQuery query) {
@@ -289,7 +291,7 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
         params.setKnowledgeId(id);
         params.setDebug(debug);
         KnowledgeWorkflow workflow = new KnowledgeWorkflow(nodes, logicFlow.getEdges(), params);
-        CompletableFuture.runAsync(() -> workFlowActuator.execute(workflow));
+        CompletableFuture.runAsync(() -> workFlowActuator.execute(workflow),workflowExecutor);
         return knowledgeAction;
     }
 

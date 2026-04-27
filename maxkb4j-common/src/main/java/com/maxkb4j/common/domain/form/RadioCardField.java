@@ -6,9 +6,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class RadioCardFiled extends BaseField {
+public class RadioCardField extends BaseField {
 
-    public RadioCardFiled(String labelName, String field, Map<String,Object> options, Object defaultValue) {
+    public RadioCardField(String labelName, String field, Map<String,Object> options, Object defaultValue) {
         super.setInput_type("RadioCard");
         List<JSONObject> optionList=new ArrayList<>();
         for (Map.Entry<String, Object> entry : options.entrySet()) {
@@ -28,7 +28,7 @@ public class RadioCardFiled extends BaseField {
         super.setAttrs(new JSONObject());
     }
 
-    public RadioCardFiled(String labelName, String field, Map<String,Object> options) {
+    public RadioCardField(String labelName, String field, Map<String,Object> options) {
         super.setInput_type("RadioCard");
         List<JSONObject> optionList=new ArrayList<>();
         for (Map.Entry<String, Object> entry : options.entrySet()) {

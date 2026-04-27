@@ -6,10 +6,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class SingleSelectFiled extends BaseField {
+public class SingleSelectField extends BaseField {
 
 
-    public SingleSelectFiled(String labelName, String field, String tooltip, Map<String,Object> options, Object defaultValue) {
+    public SingleSelectField(String labelName, String field, String tooltip, Map<String,Object> options, Object defaultValue) {
         super.setInput_type("SingleSelect");
         JSONObject attrs =new JSONObject();
         super.setAttrs(attrs);

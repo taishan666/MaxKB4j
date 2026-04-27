@@ -182,7 +182,6 @@ public class DocumentHandler {
             log.warn("非法的文件名: {}", fileName);
             throw new IllegalArgumentException("非法文件名");
         }
-
         List<DocumentSimple> docs = new ArrayList<>();
         // 判断是否为 CSV 文件（不区分大小写）
         boolean isCsv = fileName.toLowerCase().endsWith(".csv");
