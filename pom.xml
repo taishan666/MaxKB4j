@@ -41,7 +41,10 @@
         <openai-java.version>4.9.0</openai-java.version>
         <flexmark.version>0.64.8</flexmark.version>
         <tika.version>3.2.3</tika.version>
-        <groovy.version>4.0.20</groovy.version>
+        <groovy.version>4.0.26</groovy.version>
+        <groovy-sandbox.version>4.3.2</groovy-sandbox.version>
+        <groovy-sandbox.version>4.3.2</groovy-sandbox.version>
+        <groovy-sandbox.version>4.3.2</groovy-sandbox.version>
         <reflections.version>0.10.2</reflections.version>
         <caffeine.version>2.9.0</caffeine.version>
         <jieba.version>1.0.2</jieba.version>
@@ -123,6 +126,84 @@
                 <groupId>org.apache.groovy</groupId>
                 <artifactId>groovy-sql</artifactId>
                 <version>${groovy.version}</version>
+            </dependency>
+            <!-- Groovy Sandbox for secure script execution (Groovy 4.x compatible fork by CrafterCMS) -->
+            <dependency>
+                <groupId>org.craftercms</groupId>
+                <artifactId>groovy-sandbox</artifactId>
+                <version>${groovy-sandbox.version}</version>
+            </dependency>
+            <!-- Groovy Sandbox for runtime method call interception -->
+            <dependency>
+                <groupId>org.craftercms</groupId>
+                <artifactId>groovy-sandbox</artifactId>
+                <version>${groovy-sandbox.version}</version>
+            </dependency>
+            <!-- Groovy Sandbox for runtime method call interception -->
+            <dependency>
+                <groupId>org.craftercms</groupId>
+                <artifactId>groovy-sandbox</artifactId>
+                <version>${groovy-sandbox.version}</version>
+            </dependency>
+            <!-- Groovy Sandbox for runtime method call interception -->
+            <dependency>
+                <groupId>org.craftercms</groupId>
+                <artifactId>groovy-sandbox</artifactId>
+                <version>${groovy-sandbox.version}</version>
+            </dependency>
+            <!-- Groovy Sandbox for runtime method call interception -->
+            <dependency>
+                <groupId>org.craftercms</groupId>
+                <artifactId>groovy-sandbox</artifactId>
+                <version>${groovy-sandbox.version}</version>
+            </dependency>
+            <!-- Groovy Sandbox for runtime method call interception -->
+            <dependency>
+                <groupId>org.craftercms</groupId>
+                <artifactId>groovy-sandbox</artifactId>
+                <version>${groovy-sandbox.version}</version>
+            </dependency>
+            <!-- Groovy Sandbox for runtime method call interception -->
+            <dependency>
+                <groupId>org.craftercms</groupId>
+                <artifactId>groovy-sandbox</artifactId>
+                <version>${groovy-sandbox.version}</version>
+            </dependency>
+            <!-- Groovy Sandbox for runtime method call interception -->
+            <dependency>
+                <groupId>org.craftercms</groupId>
+                <artifactId>groovy-sandbox</artifactId>
+                <version>${groovy-sandbox.version}</version>
+            </dependency>
+            <!-- Groovy Sandbox for runtime method call interception -->
+            <dependency>
+                <groupId>org.craftercms</groupId>
+                <artifactId>groovy-sandbox</artifactId>
+                <version>${groovy-sandbox.version}</version>
+            </dependency>
+            <!-- Groovy Sandbox for runtime method call interception -->
+            <dependency>
+                <groupId>org.craftercms</groupId>
+                <artifactId>groovy-sandbox</artifactId>
+                <version>${groovy-sandbox.version}</version>
+            </dependency>
+            <!-- Groovy Sandbox for runtime method call interception -->
+            <dependency>
+                <groupId>org.craftercms</groupId>
+                <artifactId>groovy-sandbox</artifactId>
+                <version>${groovy-sandbox.version}</version>
+            </dependency>
+            <!-- Groovy Sandbox for runtime method call interception -->
+            <dependency>
+                <groupId>org.craftercms</groupId>
+                <artifactId>groovy-sandbox</artifactId>
+                <version>${groovy-sandbox.version}</version>
+            </dependency>
+            <!-- Groovy Sandbox for runtime method call interception -->
+            <dependency>
+                <groupId>org.craftercms</groupId>
+                <artifactId>groovy-sandbox</artifactId>
+                <version>${groovy-sandbox.version}</version>
             </dependency>
  <!--           <dependency>
                 <groupId>org.apache.groovy</groupId>
