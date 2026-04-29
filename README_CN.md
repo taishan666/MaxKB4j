@@ -101,14 +101,15 @@ docker-compose up -d
 
 ## 🛠 技术栈
 
-| 类别 | 技术                                   |
-|------|--------------------------------------|
-| **后端** | Java 21, Spring Boot 3, Sa-Token（鉴权） |
+| 类别        | 技术                                   |
+|-----------|--------------------------------------|
+| **后端**    | Java 21, Spring Boot 3, Sa-Token（鉴权） |
 | **AI 框架** | LangChain4j                          |
 | **向量数据库** | PostgreSQL 15 + pgvector             |
-| **全文检索** | MongoDB 5.0+                         |
-| **缓存** | Caffeine                             |
-| **前端** | Vue 3, Node.js v20.16.0              |
+| **全文检索**  | MongoDB 5.0+                         |
+| **缓存**    | Caffeine                             |
+| **前端**    | Vue 3, Node.js v20.16.0              |
+| **脚本沙箱**  | groovy-sandbox            |
 
 
 ---

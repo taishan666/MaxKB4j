@@ -39,20 +39,10 @@
             <groupId>org.apache.groovy</groupId>
             <artifactId>groovy-sql</artifactId>
         </dependency>
-        <!-- Groovy Sandbox for runtime method call interception -->
+        <!-- Expression evaluator for Groovy scripts -->
         <dependency>
-            <groupId>org.craftercms</groupId>
-            <artifactId>groovy-sandbox</artifactId>
-        </dependency>
-        <!-- Groovy Sandbox for runtime method call interception -->
-        <dependency>
-            <groupId>org.craftercms</groupId>
-            <artifactId>groovy-sandbox</artifactId>
-        </dependency>
-        <!-- Groovy Sandbox for runtime method call interception -->
-        <dependency>
-            <groupId>org.craftercms</groupId>
-            <artifactId>groovy-sandbox</artifactId>
+            <groupId>net.objecthunter</groupId>
+            <artifactId>exp4j</artifactId>
         </dependency>
         <!-- WebFlux for reactive streams (Project Reactor) -->
         <dependency>
