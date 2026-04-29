@@ -147,8 +147,8 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         List<String> modelIds = new ArrayList<>(Stream.of(app.getModelId(), app.getSttModelId(), app.getTtsModelId())
                 .filter(Objects::nonNull)
                 .toList());
-        List<String> knowledgeIds = app.getKnowledgeIds() == null ? new ArrayList<>() : app.getKnowledgeIds();
-        List<String> toolIds = app.getToolIds() == null ? new ArrayList<>() : app.getToolIds();
+        List<String> knowledgeIds = app.getKnowledgeIds() == null ? new ArrayList<>() : new ArrayList<>(app.getKnowledgeIds());
+        List<String> toolIds = app.getToolIds() == null ? new ArrayList<>() : new ArrayList<>(app.getToolIds());
         JSONObject workFlow = app.getWorkFlow();
         if (workFlow != null && workFlow.containsKey("nodes")) {
             JSONArray nodes = workFlow.getJSONArray("nodes");
@@ -165,10 +165,12 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
                             toolIds.add(nodeData.getString("mcpToolId"));
                         }
                         if (nodeData != null && nodeData.containsKey("toolIds")) {
-                            toolIds.addAll((Collection<? extends String>) nodeData.get("toolIds"));
+                            JSONArray toolIdArray = nodeData.getJSONArray("toolIds");
+                            toolIds.addAll(new ArrayList<>(toolIdArray.toJavaList(String.class)));
                         }
                         if (nodeData != null && nodeData.containsKey("knowledgeIds")) {
-                            knowledgeIds.addAll((Collection<? extends String>) nodeData.get("knowledgeIds"));
+                            JSONArray knowledgeIdArray = nodeData.getJSONArray("knowledgeIds/cl");
+                            knowledgeIds.addAll(new ArrayList<>(knowledgeIdArray.toJavaList(String.class)));
                         }
                         if (nodeData != null && nodeData.containsKey("modelId")) {
                             modelIds.add(nodeData.getString("modelId"));

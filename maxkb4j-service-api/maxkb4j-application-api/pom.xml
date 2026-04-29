@@ -39,6 +39,12 @@
             <groupId>org.apache.groovy</groupId>
             <artifactId>groovy-sql</artifactId>
         </dependency>
+        <!-- Groovy Sandbox for runtime method interception -->
+        <dependency>
+            <groupId>org.craftercms</groupId>
+            <artifactId>groovy-sandbox</artifactId>
+            <version>4.3.2</version>
+        </dependency>
         <!-- Expression evaluator for Groovy scripts -->
         <dependency>
             <groupId>net.objecthunter</groupId>
