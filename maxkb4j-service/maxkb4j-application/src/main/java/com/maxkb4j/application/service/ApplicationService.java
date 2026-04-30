@@ -169,7 +169,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
                             toolIds.addAll(new ArrayList<>(toolIdArray.toJavaList(String.class)));
                         }
                         if (nodeData != null && nodeData.containsKey("knowledgeIds")) {
-                            JSONArray knowledgeIdArray = nodeData.getJSONArray("knowledgeIds/cl");
+                            JSONArray knowledgeIdArray = nodeData.getJSONArray("knowledgeIds");
                             knowledgeIds.addAll(new ArrayList<>(knowledgeIdArray.toJavaList(String.class)));
                         }
                         if (nodeData != null && nodeData.containsKey("modelId")) {

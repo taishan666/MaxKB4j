@@ -33,7 +33,6 @@ public class AliYunBaiLianModelProvider extends AbsModelProvider {
             new ModelInfo(QwenModelName.QWEN_MAX, "", ModelType.LLM),
             new ModelInfo("text-embedding-v3", "", ModelType.EMBEDDING),
             new ModelInfo("text-embedding-v4", "", ModelType.EMBEDDING),
-            new ModelInfo("text-embedding-v3", "", ModelType.EMBEDDING),
             new ModelInfo("paraformer-realtime-v2", "", ModelType.STT),
             new ModelInfo("fun-asr-realtime", "", ModelType.STT),
             new ModelInfo("gummy-realtime-v1", "", ModelType.STT, new GummySTTParams()),
