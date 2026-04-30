@@ -7,6 +7,7 @@ import com.maxkb4j.model.custom.credential.ModelCredentialForm;
 import com.maxkb4j.model.custom.model.OpenAiSTTModel;
 import com.maxkb4j.model.custom.model.OpenAiTTSModel;
 import com.maxkb4j.model.custom.params.impl.OpenAiChatModelParams;
+import com.maxkb4j.model.custom.params.impl.OpenAiImageModelParams;
 import com.maxkb4j.model.enums.ModelType;
 import com.maxkb4j.model.service.STTModel;
 import com.maxkb4j.model.service.TTSModel;
@@ -50,6 +51,11 @@ public class OpenAiModelProvider extends AbsModelProvider {
     @Override
     public List<BaseField> getChatModelParamsForm() {
         return new OpenAiChatModelParams().toForm();
+    }
+
+    @Override
+    public List<BaseField> getImageModelParamsForm() {
+        return new OpenAiImageModelParams().toForm();
     }
 
     @Override
@@ -109,7 +115,6 @@ public class OpenAiModelProvider extends AbsModelProvider {
                 .modelName(modelName)
                 .size(getStringParam(params, "size"))
                 .quality(getStringParam(params, "quality"))
-                .style(getStringParam(params, "style"))
                 .build();
     }
 

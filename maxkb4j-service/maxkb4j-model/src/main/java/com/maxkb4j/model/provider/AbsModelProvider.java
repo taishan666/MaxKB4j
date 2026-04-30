@@ -7,6 +7,7 @@ import com.maxkb4j.model.custom.credential.ModelCredentialForm;
 import com.maxkb4j.model.custom.disabled.DisabledSTTModel;
 import com.maxkb4j.model.custom.disabled.DisabledScoringModel;
 import com.maxkb4j.model.custom.disabled.DisabledTTSModel;
+import com.maxkb4j.model.custom.params.impl.ImageModelParams;
 import com.maxkb4j.model.custom.params.impl.LLMChatModelParams;
 import com.maxkb4j.model.enums.ModelType;
 import com.maxkb4j.model.service.STTModel;
@@ -232,6 +233,8 @@ public abstract class AbsModelProvider {
         if (modelType != null){
             if (ModelType.LLM.getKey().equals(modelType)){
                  return getChatModelParamsForm();
+            }else if (ModelType.TTI.getKey().equals(modelType)){
+                return getImageModelParamsForm();
             }
         }
         return List.of();
@@ -239,6 +242,10 @@ public abstract class AbsModelProvider {
 
     protected List<BaseField> getChatModelParamsForm() {
         return new LLMChatModelParams().toForm();
+    }
+
+    protected List<BaseField> getImageModelParamsForm() {
+        return new ImageModelParams().toForm();
     }
 
 }
