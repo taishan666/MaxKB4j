@@ -1,11 +1,7 @@
 package com.maxkb4j.model.provider;
 
-import com.alibaba.fastjson.JSONObject;
-import com.maxkb4j.common.mp.entity.ModelCredential;
 import com.maxkb4j.model.enums.ModelType;
 import com.maxkb4j.model.vo.ModelInfo;
-import dev.langchain4j.community.model.zhipu.ZhipuAiImageModel;
-import dev.langchain4j.model.image.ImageModel;
 
 import java.util.List;
 
@@ -26,8 +22,8 @@ public class ZhiPuModelProvider extends OpenAiModelProvider {
             new ModelInfo("glm-4v-plus", "", ModelType.VISION),
             new ModelInfo("glm-4v", "", ModelType.VISION),
             new ModelInfo("glm-4v-flash", "", ModelType.VISION),
-            new ModelInfo("cogview-3", "", ModelType.TTI),
-            new ModelInfo("cogview-3-plus", "", ModelType.TTI),
+            new ModelInfo("glm-image", "", ModelType.TTI),
+            new ModelInfo("cogview-4", "", ModelType.TTI),
             new ModelInfo("cogview-3-flash", "", ModelType.TTI)
     );
     @Override
@@ -38,13 +34,5 @@ public class ZhiPuModelProvider extends OpenAiModelProvider {
     @Override
     public String getDefaultBaseUrl(){
         return BASE_URL;
-    }
-
-    @Override
-    public ImageModel buildImageModel(String modelName, ModelCredential credential, JSONObject params) {
-        return ZhipuAiImageModel.builder()
-                .apiKey(credential.getApiKey())
-                .model(modelName)
-                .build();
     }
 }

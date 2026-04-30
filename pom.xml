@@ -331,11 +331,6 @@
             </dependency>
             <dependency>
                 <groupId>dev.langchain4j</groupId>
-                <artifactId>langchain4j-community-zhipu-ai</artifactId>
-                <version>${langchain4j.beta.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>dev.langchain4j</groupId>
                 <artifactId>langchain4j-community-xinference</artifactId>
                 <version>${langchain4j.beta.version}</version>
             </dependency>
