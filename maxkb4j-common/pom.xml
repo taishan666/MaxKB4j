@@ -76,6 +76,11 @@
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
         </dependency>
+        <!-- dameng driver -->
+        <dependency>
+            <groupId>com.dameng</groupId>
+            <artifactId>DmJdbcDriver8</artifactId>
+        </dependency>
         <!-- mysql driver -->
         <dependency>
             <groupId>com.mysql</groupId>
