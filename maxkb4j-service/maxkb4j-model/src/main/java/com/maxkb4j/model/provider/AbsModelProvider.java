@@ -13,8 +13,6 @@ import com.maxkb4j.model.enums.ModelType;
 import com.maxkb4j.model.service.STTModel;
 import com.maxkb4j.model.service.TTSModel;
 import com.maxkb4j.model.vo.ModelInfo;
-import dev.langchain4j.http.client.HttpClientBuilder;
-import dev.langchain4j.http.client.spring.restclient.SpringRestClient;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.DisabledChatModel;
 import dev.langchain4j.model.chat.DisabledStreamingChatModel;
@@ -24,8 +22,7 @@ import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.model.image.DisabledImageModel;
 import dev.langchain4j.model.image.ImageModel;
 import dev.langchain4j.model.scoring.ScoringModel;
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
-import org.springframework.web.client.RestClient;
+import lombok.Data;
 
 import java.util.List;
 import java.util.Optional;
@@ -34,31 +31,8 @@ import java.util.Optional;
  * Abstract base class for model providers
  * Defines the contract for all model providers in the system
  */
+@Data
 public abstract class AbsModelProvider {
-
-    private volatile HttpClientBuilder httpClientBuilder;
-
-    protected AbsModelProvider() {
-        // 延迟初始化 HTTP 客户端，避免构造函数中耗时操作
-    }
-
-    protected HttpClientBuilder getHttpClientBuilder() {
-        if (httpClientBuilder == null) {
-            synchronized (this) {
-                if (httpClientBuilder == null) {
-                    httpClientBuilder = buildHttpClientBuilder();
-                }
-            }
-        }
-        return httpClientBuilder;
-    }
-
-    protected HttpClientBuilder buildHttpClientBuilder() {
-        RestClient.Builder restClientBuilder = RestClient.builder()
-                .requestFactory(new HttpComponentsClientHttpRequestFactory());
-        return SpringRestClient.builder()
-                .restClientBuilder(restClientBuilder);
-    }
 
     /**
      * Gets double value from params with null safety

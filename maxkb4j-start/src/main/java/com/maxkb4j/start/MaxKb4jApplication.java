@@ -16,6 +16,8 @@ public class MaxKb4jApplication {
         if (System.getProperty("spring.profiles.active") == null && System.getenv("SPRING_PROFILES_ACTIVE") == null) {
             System.setProperty("spring.profiles.active", "dev");
         }
+        // langchain4j classpath 上存在多个 HTTP client 实现，显式指定使用 Spring RestClient
+        System.setProperty("langchain4j.http.clientBuilderFactory", "dev.langchain4j.http.client.spring.restclient.SpringRestClientBuilderFactory");
         SpringApplication.run(MaxKb4jApplication.class, args);
     }
 

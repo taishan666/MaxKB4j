@@ -72,7 +72,6 @@ public class OLlamaModelProvider extends AbsModelProvider {
     @Override
     public EmbeddingModel buildEmbeddingModel(String modelName, ModelCredential credential, JSONObject params) {
         return OllamaEmbeddingModel.builder()
-                .httpClientBuilder(getHttpClientBuilder())
                 .baseUrl(credential.getBaseUrl())
                 .modelName(modelName)
                 .build();

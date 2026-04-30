@@ -35,7 +35,6 @@ public class GeminiModelProvider extends AbsModelProvider {
     @Override
     public ChatModel buildChatModel(String modelName, ModelCredential credential, JSONObject params) {
         return GoogleAiGeminiChatModel.builder()
-                .httpClientBuilder(getHttpClientBuilder())
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
                 .maxOutputTokens(getIntParam(params, "maxTokens"))
@@ -46,7 +45,6 @@ public class GeminiModelProvider extends AbsModelProvider {
     @Override
     public StreamingChatModel buildStreamingChatModel(String modelName, ModelCredential credential, JSONObject params) {
         return GoogleAiGeminiStreamingChatModel.builder()
-                .httpClientBuilder(getHttpClientBuilder())
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
                 .maxOutputTokens(getIntParam(params, "maxTokens"))
@@ -57,7 +55,6 @@ public class GeminiModelProvider extends AbsModelProvider {
     @Override
     public EmbeddingModel buildEmbeddingModel(String modelName, ModelCredential credential, JSONObject params) {
         return GoogleAiEmbeddingModel.builder()
-                .httpClientBuilder(getHttpClientBuilder())
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
                 .build();

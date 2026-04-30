@@ -71,7 +71,6 @@ public class OpenAiModelProvider extends AbsModelProvider {
     @Override
     public ChatModel buildChatModel(String modelName, ModelCredential credential, JSONObject params) {
         return OpenAiChatModel.builder()
-                .httpClientBuilder(getHttpClientBuilder())
                 .baseUrl(credential.getBaseUrl())
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
@@ -85,7 +84,6 @@ public class OpenAiModelProvider extends AbsModelProvider {
     @Override
     public StreamingChatModel buildStreamingChatModel(String modelName, ModelCredential credential, JSONObject params) {
         return OpenAiStreamingChatModel.builder()
-                .httpClientBuilder(getHttpClientBuilder())
                 .baseUrl(credential.getBaseUrl())
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
@@ -99,7 +97,6 @@ public class OpenAiModelProvider extends AbsModelProvider {
     @Override
     public EmbeddingModel buildEmbeddingModel(String modelName, ModelCredential credential, JSONObject params) {
         return OpenAiEmbeddingModel.builder()
-                .httpClientBuilder(getHttpClientBuilder())
                 .baseUrl(credential.getBaseUrl())
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
@@ -109,7 +106,6 @@ public class OpenAiModelProvider extends AbsModelProvider {
     @Override
     public ImageModel buildImageModel(String modelName, ModelCredential credential, JSONObject params) {
         return OpenAiImageModel.builder()
-                .httpClientBuilder(getHttpClientBuilder())
                 .baseUrl(credential.getBaseUrl())
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
