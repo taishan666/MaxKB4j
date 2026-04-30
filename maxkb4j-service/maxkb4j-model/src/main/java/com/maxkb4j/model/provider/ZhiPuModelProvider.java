@@ -4,13 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.common.mp.entity.ModelCredential;
 import com.maxkb4j.model.enums.ModelType;
 import com.maxkb4j.model.vo.ModelInfo;
-import dev.langchain4j.community.model.zhipu.ZhipuAiChatModel;
-import dev.langchain4j.community.model.zhipu.ZhipuAiEmbeddingModel;
 import dev.langchain4j.community.model.zhipu.ZhipuAiImageModel;
-import dev.langchain4j.community.model.zhipu.ZhipuAiStreamingChatModel;
-import dev.langchain4j.model.chat.ChatModel;
-import dev.langchain4j.model.chat.StreamingChatModel;
-import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.model.image.ImageModel;
 
 import java.util.List;
@@ -18,9 +12,12 @@ import java.util.List;
 /**
  * ZhiPu (GLM) Model Provider
  */
-public class ZhiPuModelProvider extends AbsModelProvider {
+public class ZhiPuModelProvider extends OpenAiModelProvider {
+
+    private static final String BASE_URL = "https://open.bigmodel.cn/api/paas/v4";
 
     private static final List<ModelInfo> MODEL_INFOS = List.of(
+            new ModelInfo("glm-5.1", "", ModelType.LLM),
             new ModelInfo("glm-5", "", ModelType.LLM),
             new ModelInfo("glm-4", "", ModelType.LLM),
             new ModelInfo("glm-4v", "", ModelType.LLM),
@@ -33,38 +30,14 @@ public class ZhiPuModelProvider extends AbsModelProvider {
             new ModelInfo("cogview-3-plus", "", ModelType.TTI),
             new ModelInfo("cogview-3-flash", "", ModelType.TTI)
     );
-
     @Override
     public List<ModelInfo> getModelList() {
         return MODEL_INFOS;
     }
 
     @Override
-    public ChatModel buildChatModel(String modelName, ModelCredential credential, JSONObject params) {
-        return ZhipuAiChatModel.builder()
-                .apiKey(credential.getApiKey())
-                .model(modelName)
-                .temperature(getDoubleParam(params, "temperature"))
-                .maxToken(getIntParam(params, "maxTokens"))
-                .build();
-    }
-
-    @Override
-    public StreamingChatModel buildStreamingChatModel(String modelName, ModelCredential credential, JSONObject params) {
-        return ZhipuAiStreamingChatModel.builder()
-                .apiKey(credential.getApiKey())
-                .model(modelName)
-                .temperature(getDoubleParam(params, "temperature"))
-                .maxToken(getIntParam(params, "maxTokens"))
-                .build();
-    }
-
-    @Override
-    public EmbeddingModel buildEmbeddingModel(String modelName, ModelCredential credential, JSONObject params) {
-        return ZhipuAiEmbeddingModel.builder()
-                .apiKey(credential.getApiKey())
-                .model(modelName)
-                .build();
+    public String getDefaultBaseUrl(){
+        return BASE_URL;
     }
 
     @Override
