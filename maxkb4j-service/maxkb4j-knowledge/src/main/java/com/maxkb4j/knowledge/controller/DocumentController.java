@@ -25,7 +25,7 @@ import java.util.List;
  * @date 2024-12-25 16:00:15
  */
 @RestController
-@RequestMapping(AppConst.ADMIN_API + "/workspace/default")
+@RequestMapping(AppConst.ADMIN_WORKSPACE_API)
 @RequiredArgsConstructor
 public class DocumentController {
 

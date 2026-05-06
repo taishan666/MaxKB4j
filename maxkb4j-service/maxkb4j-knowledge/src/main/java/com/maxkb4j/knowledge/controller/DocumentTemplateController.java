@@ -15,19 +15,19 @@ import org.springframework.web.bind.annotation.RestController;
  * @date 2024-12-25 16:00:15
  */
 @RestController
-@RequestMapping(AppConst.ADMIN_API + "/workspace")
+@RequestMapping(AppConst.ADMIN_API)
 @RequiredArgsConstructor
 public class DocumentTemplateController {
 
     private final TemplateService templateService;
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_EXPORT)
-    @GetMapping("/knowledge/document/table_template/export")
+    @GetMapping("/workspace/knowledge/document/table_template/export")
     public void tableTemplateExport(String type, HttpServletResponse response) throws Exception {
         templateService.tableTemplateExport(type, response);
     }
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_EXPORT)
-    @GetMapping("/knowledge/document/template/export")
+    @GetMapping("/workspace/knowledge/document/template/export")
     public void templateExport(String type, HttpServletResponse response) throws Exception {
         templateService.qaTemplateExport(type, response);
     }

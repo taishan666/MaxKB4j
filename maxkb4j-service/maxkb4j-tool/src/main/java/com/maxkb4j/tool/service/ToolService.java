@@ -9,7 +9,9 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.maxkb4j.common.constant.RoleType;
 import com.maxkb4j.common.domain.dto.OssFile;
 import com.maxkb4j.common.exception.ApiException;
-import com.maxkb4j.common.util.*;
+import com.maxkb4j.common.util.BeanUtil;
+import com.maxkb4j.common.util.PageUtil;
+import com.maxkb4j.common.util.StpKit;
 import com.maxkb4j.oss.service.IOssService;
 import com.maxkb4j.system.constant.AuthTargetType;
 import com.maxkb4j.tool.consts.ToolConstants;
@@ -28,8 +30,6 @@ import com.maxkb4j.user.service.IUserService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -37,8 +37,10 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 
 /**
  * @author tarzan
@@ -185,31 +187,6 @@ public class ToolService  extends ServiceImpl<ToolMapper, ToolEntity> implements
         return this.list(wrapper);
     }
 
-    public List<ToolEntity> store(String name) throws IOException {
-        List<ToolEntity> list = new ArrayList<>();
-        PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
-        Resource[] resources = resolver.getResources("classpath:templates/tool/*/*" + ToolConstants.FileType.TOOL_EXTENSION);
-        for (Resource resource : resources) {
-            String filename = resource.getFilename();
-            if (Objects.requireNonNull(filename).endsWith(ToolConstants.FileType.TOOL_EXTENSION)) {
-                // ✅ 安全获取父目录名：从 resource 的 URL 路径中解析
-                String parentDirName = JarUtil.getParentDirName(resource);
-                String text = IoUtil.readToString(resource.getInputStream());
-                ToolEntity tool = JSONObject.parseObject(text, ToolEntity.class);
-                if (tool != null) {
-                    tool.setLabel(parentDirName);
-                    if (StringUtils.isBlank(tool.getVersion())) {
-                        tool.setVersion(ToolConstants.Defaults.DEFAULT_VERSION);
-                    }
-                    list.add(tool);
-                }
-            }
-        }
-        if (StringUtils.isNotBlank(name)) {
-            list = list.stream().filter(tool -> tool.getName().contains(name)).collect(Collectors.toList());
-        }
-        return list;
-    }
 
     /**
      * 更新工具

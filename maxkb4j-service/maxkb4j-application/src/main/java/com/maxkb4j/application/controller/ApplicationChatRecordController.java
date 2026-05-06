@@ -21,7 +21,7 @@ import java.util.List;
  * @date 2024-12-25 13:09:54
  */
 @RestController
-@RequestMapping(AppConst.ADMIN_API + "/workspace/default")
+@RequestMapping(AppConst.ADMIN_WORKSPACE_API)
 @RequiredArgsConstructor
 public class ApplicationChatRecordController {
 

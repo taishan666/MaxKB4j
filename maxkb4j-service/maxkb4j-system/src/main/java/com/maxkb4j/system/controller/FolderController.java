@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@RequestMapping(AppConst.ADMIN_API + "/workspace/default")
+@RequestMapping(AppConst.ADMIN_WORKSPACE_API)
 @RequiredArgsConstructor
 public class FolderController {
 

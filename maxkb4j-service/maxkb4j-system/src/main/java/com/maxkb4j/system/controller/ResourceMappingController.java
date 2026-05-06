@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @date 2026-04-05
  */
 @RestController
-@RequestMapping(AppConst.ADMIN_API + "/workspace/default")
+@RequestMapping(AppConst.ADMIN_WORKSPACE_API)
 @RequiredArgsConstructor
 public class ResourceMappingController {
 

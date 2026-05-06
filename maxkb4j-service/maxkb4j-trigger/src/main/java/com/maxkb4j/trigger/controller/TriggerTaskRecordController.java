@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @date 2025-03-15 22:00:45
  */
 @RestController
-@RequestMapping(AppConst.ADMIN_API)
+@RequestMapping(AppConst.ADMIN_WORKSPACE_API)
 @RequiredArgsConstructor
 @Slf4j
 public class TriggerTaskRecordController {
@@ -31,12 +31,12 @@ public class TriggerTaskRecordController {
     /**
      * 分页查询触发器列表
      */
-    @GetMapping("/workspace/default/trigger/{id}/task_record/{current}/{size}")
+    @GetMapping("/trigger/{id}/task_record/{current}/{size}")
     public R<IPage<EventTriggerTaskRecordVO>> page(@PathVariable String id, @PathVariable int current, @PathVariable int size, EventTaskQuery query) {
         return R.success(eventTriggerTaskRecordService.pageList(id,current, size, query));
     }
 
-    @GetMapping("/workspace/default/trigger/{id}/trigger_task/{taskId}/trigger_task_record/{recordId}")
+    @GetMapping("/trigger/{id}/trigger_task/{taskId}/trigger_task_record/{recordId}")
     public R<EventTriggerTaskRecordEntity> get(@PathVariable String id, @PathVariable String taskId, @PathVariable String recordId) {
         return R.success(eventTriggerTaskRecordService.get(id,taskId, recordId));
     }

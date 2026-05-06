@@ -40,7 +40,7 @@ import java.util.Objects;
  */
 @Tag(name = "APP应用管理", description = "APP应用管理")
 @RestController
-@RequestMapping(AppConst.ADMIN_API + "/workspace/default")
+@RequestMapping(AppConst.ADMIN_WORKSPACE_API)
 @RequiredArgsConstructor
 public class ApplicationController {
 

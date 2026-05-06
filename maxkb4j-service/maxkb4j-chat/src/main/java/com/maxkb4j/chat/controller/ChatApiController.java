@@ -115,6 +115,7 @@ public class ChatApiController {
         }
     }
 
+    @Hidden
     @PostMapping(path = "/mcp", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseBodyEmitter handleMcpRequest(@RequestBody McpRequest req) {
         ResponseBodyEmitter emitter = new ResponseBodyEmitter();
@@ -206,13 +207,14 @@ public class ChatApiController {
         return ResponseEntity.ok().header("Content-Type", "text/javascript; charset=utf-8").body(applicationService.embed(dto));
     }
 
-
+    @Hidden
     @SaCheckPerm(PermissionEnum.APPLICATION_READ)
     @PostMapping("/{id}/chat/{chatId}/share_chat")
     public R<Map<String, String>> shareChat(@PathVariable String id, @PathVariable String chatId, @RequestBody ShareChatDTO dto) {
         return R.success(chatService.shareChat(id, chatId, dto));
     }
 
+    @Hidden
     @GetMapping("/share/{id}")
     public R<ShareChatVO> shareChat(@PathVariable String id) {
         return R.success(chatService.shareChat(id));

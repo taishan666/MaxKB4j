@@ -2,7 +2,6 @@ package com.maxkb4j.application.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.maxkb4j.application.dto.ChatQueryDTO;
-import com.maxkb4j.application.dto.ShareChatDTO;
 import com.maxkb4j.application.entity.ApplicationChatEntity;
 import com.maxkb4j.application.service.ApplicationChatService;
 import com.maxkb4j.common.annotation.SaCheckPerm;
@@ -17,7 +16,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author tarzan
@@ -26,7 +24,7 @@ import java.util.Map;
 @Tag(name = "APP会话管理", description = "APP会话管理")
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(AppConst.ADMIN_API + "/workspace/default")
+@RequestMapping(AppConst.ADMIN_WORKSPACE_API)
 @Slf4j
 public class ApplicationChatController {
 
