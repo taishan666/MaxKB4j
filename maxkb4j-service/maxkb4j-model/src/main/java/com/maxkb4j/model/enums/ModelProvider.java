@@ -22,7 +22,7 @@ public enum ModelProvider {
     WenXin("文心一言", "WenXin","wenxin_icon.svg"),
     XunFei("讯飞星火", "XunFei", "xf_icon.svg"),
     ZhiPu("智谱清言", "ZhiPu", "zhipu_ai_icon.svg"),
-    Local("本地模型", "LocalModel", "local_icon.svg"),
+   // Local("本地模型", "LocalModel", "local_icon.svg"),
    // LocalAI("LocalAI", "LocalAI", "local_ai_icon.svg"),
     OLlama("OLlama", "OLlama","ollama_icon.svg"),
     XInference("Xorbits Inference", "XInference","xinference_icon.svg");
@@ -60,7 +60,7 @@ public enum ModelProvider {
             case WenXin -> new WenXinModelProvider();
             case XunFei -> new XunFeiModelProvider();
             case ZhiPu -> new ZhiPuModelProvider();
-            case Local -> new LocalModelProvider();
+         //   case Local -> new LocalModelProvider();
             case OLlama -> new OLlamaModelProvider();
             case XInference -> new XInferenceModelProvider();
         };
