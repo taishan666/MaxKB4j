@@ -100,7 +100,8 @@ public class VariableAssignNodeHandler extends AbsNodeHandler {
                 return workflow.getReferenceField(reference);
             }
         }
-        return variable.get("value");
+        Object value = variable.get("value");
+        return workflow.renderPrompt(String.valueOf(value));
     }
 
     public String getReferenceContent(Workflow workflow, List<String> fields) {
