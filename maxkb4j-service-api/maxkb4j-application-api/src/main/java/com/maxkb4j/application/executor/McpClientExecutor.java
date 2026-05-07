@@ -30,6 +30,11 @@ public class McpClientExecutor {
                     .arguments(params.toJSONString())
                     .build();
             ToolExecutionResult toolExecutionResult=mcpClient.executeTool(toolExecutionRequest);
+            try {
+                mcpClient.close();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
             return toolExecutionResult.resultText();
         }
         return "";

@@ -30,9 +30,10 @@ public class ToolConnectionHandler {
         if (mcpClient == null){
             return false;
         }
+        boolean flag=false;
         try {
             mcpClient.checkHealth();
-            return true;
+            flag= true;
         } catch (Exception e) {
             log.warn("MCP服务器连接测试失败", e);
         } finally {
@@ -42,6 +43,6 @@ public class ToolConnectionHandler {
                 log.warn("关闭MCP客户端时发生错误", e);
             }
         }
-        return false;
+        return flag;
     }
 }
