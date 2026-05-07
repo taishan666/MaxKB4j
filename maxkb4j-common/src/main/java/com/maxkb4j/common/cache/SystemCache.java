@@ -2,12 +2,12 @@ package com.maxkb4j.common.cache;
 
 import com.alibaba.fastjson.JSONObject;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class SystemCache {
 
-    private static final Map<Integer, JSONObject> CACHE=new HashMap<>();
+    private static final Map<Integer, JSONObject> CACHE=new ConcurrentHashMap<>();
 
     public static void put(Integer type, JSONObject value) {
         CACHE.put(type,value);

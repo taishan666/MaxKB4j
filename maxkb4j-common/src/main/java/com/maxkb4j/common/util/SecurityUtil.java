@@ -48,11 +48,10 @@ public class SecurityUtil {
      * @param filename 输入的文件名
      * @return 如果文件名有效返回true，否则返回false
      */
-    public static boolean validFileName(String filename) {
+    public static boolean illegalityFileName(String filename) {
         if (filename == null) {
             return true;
         }
-
         // 检查是否包含路径穿越字符
         return filename.contains("../") || filename.contains("..\\") ||
                 filename.startsWith("..") || filename.contains("..");

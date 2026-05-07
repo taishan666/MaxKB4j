@@ -68,6 +68,7 @@ public class DatabaseUtil {
         validate(sqlQuery);
         // 使用 try-with-resources 自动管理资源
         try (Connection connection = dataSource.getConnection(); Statement statement = connection.createStatement()) {
+            connection.setReadOnly(true);
             return execute(sqlQuery, statement);
         } catch (SQLException e) {
             log.error("Failed to execute SQL query", e);

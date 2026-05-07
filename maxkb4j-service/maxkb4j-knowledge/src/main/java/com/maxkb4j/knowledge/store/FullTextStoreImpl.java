@@ -38,7 +38,10 @@ public class FullTextStoreImpl implements IDataStore {
         if (entities == null || entities.isEmpty()) {
             return;
         }
-        entities.forEach(entity -> Tokenizer.segment(entity.getContent()));
+        entities.forEach(entity -> {
+           String content = Tokenizer.segment(entity.getContent());
+           entity.setContent(content);
+        });
         // Insert into MongoDB for full-text search
         mongoTemplate.insertAll(entities);
         log.debug("Inserted {} embedding entities into MongoDB", entities.size());

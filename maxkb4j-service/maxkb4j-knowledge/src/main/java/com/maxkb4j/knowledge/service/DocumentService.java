@@ -133,7 +133,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
             String fileName = file.getOriginalFilename();
             if (fileName == null) continue;
             // 验证文件名安全性
-            if (SecurityUtil.validFileName(fileName)) {
+            if (SecurityUtil.illegalityFileName(fileName)) {
                 continue; // 跳过非法文件
             }
             if (fileName.toLowerCase().endsWith(".zip")) {
@@ -161,7 +161,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
             if (originalFilename == null) continue;
 
             // 验证文件名安全性
-            if (SecurityUtil.validFileName(originalFilename)) {
+            if (SecurityUtil.illegalityFileName(originalFilename)) {
                 continue; // 跳过非法文件
             }
 
@@ -320,7 +320,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
             String name = file.getOriginalFilename();
             if (name == null) continue;
             // 验证文件名安全性
-            if (SecurityUtil.validFileName(name)) {
+            if (SecurityUtil.illegalityFileName(name)) {
                 log.warn("非法的文件名: {}", name);
                 continue; // 跳过非法文件
             }

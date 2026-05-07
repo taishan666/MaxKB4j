@@ -84,7 +84,7 @@ public class DocumentHandler {
      */
     public List<DocumentSimple> processQaFile(byte[] bytes, String fileName) {
         // 验证文件名安全性
-        if (SecurityUtil.validFileName(fileName)) {
+        if (SecurityUtil.illegalityFileName(fileName)) {
             log.warn("非法的文件名: {}", fileName);
             throw new IllegalArgumentException("非法文件名");
         }
@@ -178,7 +178,7 @@ public class DocumentHandler {
      */
     public List<DocumentSimple> processTable(byte[] bytes, String fileName) {
         // 验证文件名安全性
-        if (SecurityUtil.validFileName(fileName)) {
+        if (SecurityUtil.illegalityFileName(fileName)) {
             log.warn("非法的文件名: {}", fileName);
             throw new IllegalArgumentException("非法文件名");
         }

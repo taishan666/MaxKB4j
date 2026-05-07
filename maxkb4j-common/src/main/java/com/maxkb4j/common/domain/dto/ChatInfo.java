@@ -5,10 +5,10 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -17,8 +17,8 @@ public class ChatInfo implements Serializable {
 
     private String chatId;
     private String appId;
-    private List<ChatRecordDTO> chatRecordList = new ArrayList<>();
-    private Map<String, Object> chatVariables = new HashMap<>(10);
+    private List<ChatRecordDTO> chatRecordList = new CopyOnWriteArrayList<>();
+    private Map<String, Object> chatVariables = new ConcurrentHashMap<>(10);
 
 
     public ChatInfo(String chatId, String appId) {
