@@ -102,7 +102,10 @@ public class WorkflowExecutionAccessor {
             List<AbsNode> targetNodes = buildNodes(targetNodeIds, currentNode);
             targetNodes.forEach(node -> {
                 if (!isAssertionNode(node.getId(), currentNodeResult, sourceEdges)) {
-                    node.setStatus(NodeStatus.SKIP.getStatus());
+                    List<String> upNodeIdList = navigator.findUpstreamNodeIds(node.getId());
+                    if (upNodeIdList.stream().allMatch(id->id.equals(currentNode.getId()))){
+                        node.setStatus(NodeStatus.SKIP.getStatus());
+                    }
                 }
             });
             return targetNodes;

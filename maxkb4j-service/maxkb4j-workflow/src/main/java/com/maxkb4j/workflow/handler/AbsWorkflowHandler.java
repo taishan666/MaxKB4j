@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
@@ -52,7 +53,7 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
             return;
         }
         if (nodeList.size() == 1) {
-            List<AbsNode> nextNodeList = runChainNode(workflow, nodeList.get(0));
+            List<AbsNode> nextNodeList = runChainNode(workflow, nodeList.getFirst());
             runChainNodes(workflow, nextNodeList);
         } else {
             List<CompletableFuture<List<AbsNode>>> futureList = new ArrayList<>();
@@ -71,8 +72,7 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
                     futureList.get(i).cancel(true);
                     AbsNode node = nodeList.get(i);
                     // 统一使用责任链处理超时异常
-                    exceptionResolverChain.resolve(workflow, node,
-                            new RuntimeException("Node execution timeout after " + timeoutMinutes + " minutes"));
+                    exceptionResolverChain.resolve(workflow, node, new RuntimeException("Node execution timeout after " + timeoutMinutes + " minutes"));
                     node.setStatus(NodeStatus.ERROR.getStatus());
                 } catch (Exception e) {
                     AbsNode node = nodeList.get(i);
@@ -103,7 +103,7 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
             }
         } else if (NodeStatus.SKIP.getStatus() == node.getStatus()) {
             // 获取下一个节点列表
-            List<AbsNode> nextNodeList = workflow.execution().nextNodes(node, new NodeResult(java.util.Map.of()));
+            List<AbsNode> nextNodeList = workflow.execution().nextNodes(node, new NodeResult(Map.of()));
             nextNodeList.forEach(nextNode -> {
                 if (!workflow.execution().isReadyJoin(nextNode)) {
                     nextNode.setStatus(NodeStatus.SKIP.getStatus());

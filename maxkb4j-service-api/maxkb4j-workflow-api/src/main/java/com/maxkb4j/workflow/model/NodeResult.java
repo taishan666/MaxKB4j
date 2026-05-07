@@ -143,18 +143,6 @@ public class NodeResult {
         private IsInterruptFunction isInterrupt = null;
         private WriteContextFunction writeContextFunc = null;
         private WriteDetailFunction writeDetailFunc = null;
-
-        /**
-         * Set the node variables.
-         *
-         * @param vars the variables map
-         * @return this builder
-         */
-        public Builder variables(Map<String, Object> vars) {
-            this.variables = vars != null ? vars : new HashMap<>();
-            return this;
-        }
-
         /**
          * Add a single variable.
          *
@@ -167,49 +155,6 @@ public class NodeResult {
             return this;
         }
 
-        /**
-         * Set whether to stream output.
-         *
-         * @param stream true for stream output
-         * @return this builder
-         */
-        public Builder streamOutput(boolean stream) {
-            this.streamOutput = stream;
-            return this;
-        }
-
-        /**
-         * Set the interrupt function.
-         *
-         * @param func the interrupt function
-         * @return this builder
-         */
-        public Builder interrupt(IsInterruptFunction func) {
-            this.isInterrupt = func;
-            return this;
-        }
-
-        /**
-         * Set the write context function.
-         *
-         * @param func the write context function
-         * @return this builder
-         */
-        public Builder writeContext(WriteContextFunction func) {
-            this.writeContextFunc = func;
-            return this;
-        }
-
-        /**
-         * Set the write detail function.
-         *
-         * @param func the write detail function
-         * @return this builder
-         */
-        public Builder writeDetail(WriteDetailFunction func) {
-            this.writeDetailFunc = func;
-            return this;
-        }
 
         // ==================== 快捷方法 ====================
 
@@ -224,27 +169,6 @@ public class NodeResult {
             this.streamOutput = false;
             return this;
         }
-
-        /**
-         * 快速创建流式输出结果
-         *
-         * @return this builder
-         */
-        public Builder streaming() {
-            this.streamOutput = true;
-            return this;
-        }
-
-   /*     *//**
-         * 快速创建可中断结果
-         *
-         * @param func 中断判断函数
-         * @return this builder
-         *//*
-        public Builder interrupt(IsInterruptFunction func) {
-            this.isInterrupt = func;
-            return this;
-        }*/
 
         /**
          * 快速创建空结果

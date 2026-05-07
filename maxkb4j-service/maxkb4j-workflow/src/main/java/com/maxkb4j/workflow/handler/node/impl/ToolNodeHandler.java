@@ -43,6 +43,11 @@ public class ToolNodeHandler extends AbsNodeHandler {
         if (Boolean.TRUE.equals(params.getIsResult())) {
             setAnswer(node, result.toString());
         }
-        return new NodeResult(Map.of("result", result));
+        Map<String, Object> nodeVariable=new HashMap<>();
+        if (result instanceof Map<?,?> resultMap){
+            nodeVariable.putAll((Map<? extends String, ?>) resultMap);
+        }
+        nodeVariable.put("result",result);
+        return new NodeResult(nodeVariable);
     }
 }
