@@ -140,9 +140,9 @@ public class NodeResult {
     public static class Builder {
         private Map<String, Object> variables = new HashMap<>();
         private boolean streamOutput = false;
-        private IsInterruptFunction isInterrupt = null;
-        private WriteContextFunction writeContextFunc = null;
-        private WriteDetailFunction writeDetailFunc = null;
+        private IsInterruptFunction isInterrupt;
+        private WriteContextFunction writeContextFunc;
+        private WriteDetailFunction writeDetailFunc;
         /**
          * Add a single variable.
          *
