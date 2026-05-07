@@ -21,7 +21,7 @@ public class LoopStartNodeHandler extends AbsNodeHandler {
     @Override
     protected NodeResult doExecute(Workflow workflow, AbsNode node) throws Exception {
         int index = 0;
-        Object item = "None";
+        Object item = null;
         if (workflow instanceof LoopWorkFlow loopWorkFlow) {
             LoopParams loopParams = loopWorkFlow.getLoopParams();
             index = loopParams.getIndex();

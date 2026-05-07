@@ -65,22 +65,4 @@ public class CompareBuilder {
         return handler;
     }
 
-    /**
-     * Check if a handler exists for the given operator code.
-     *
-     * @param operatorCode the comparison operator code
-     * @return true if a handler exists
-     */
-    public boolean supports(String operatorCode) {
-        return handlerPool.containsKey(operatorCode);
-    }
-
-    /**
-     * Get the number of registered handlers.
-     *
-     * @return the count of registered handlers
-     */
-    public int getHandlerCount() {
-        return handlerPool.size();
-    }
 }

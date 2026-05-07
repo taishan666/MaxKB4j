@@ -28,7 +28,7 @@ public class ToolNodeHandler extends AbsNodeHandler {
     protected NodeResult doExecute(Workflow workflow, AbsNode node) throws Exception {
         ToolNode.NodeParams params = parseParams(node, ToolNode.NodeParams.class);
         Map<String, Object> execParams = new HashMap<>(5);
-        execParams.put("fileService", fileService);
+       // execParams.put("fileService", fileService);
         if (!CollectionUtils.isEmpty(params.getInputFieldList())) {
             for (ToolInputField inputField : params.getInputFieldList()) {
                 Object value = workflow.getFieldValue(inputField.getValue(), inputField.getSource());
@@ -37,6 +37,7 @@ public class ToolNodeHandler extends AbsNodeHandler {
         }
         GroovyScriptExecutor scriptExecutor = new GroovyScriptExecutor(params.getCode(), params.getInitParams());
         Object result = scriptExecutor.execute(execParams);
+      //  execParams.remove("fileService");
         // 使用辅助方法写入详情
         putDetail(node, "params", execParams);
         if (Boolean.TRUE.equals(params.getIsResult())) {

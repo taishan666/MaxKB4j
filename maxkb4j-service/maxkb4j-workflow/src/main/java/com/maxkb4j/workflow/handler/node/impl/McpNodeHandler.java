@@ -41,10 +41,10 @@ public class McpNodeHandler extends AbsNodeHandler {
         String resultText = new McpClientExecutor(params.getMcpServers()).execute(params.getMcpTool(), execParams);
 
         putDetails(node, Map.of(
-                "toolParams", toolParams,
+                "toolParams", execParams,
                 "mcpTool", params.getMcpTool()
         ));
 
-        return new NodeResult(Map.of("result", resultText));
+        return new NodeResult(Map.of("result", List.of(resultText)));
     }
 }

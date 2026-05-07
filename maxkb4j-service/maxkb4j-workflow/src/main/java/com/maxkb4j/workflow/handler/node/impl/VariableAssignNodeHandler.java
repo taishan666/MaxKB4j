@@ -33,20 +33,12 @@ public class VariableAssignNodeHandler extends AbsNodeHandler {
             if (fields == null || fields.size() < 2) {
                 continue;
             }
-            String scope = fields.get(0);
+            String scope = fields.getFirst();
             if ("global".equals(scope)) {
                 resultList.add(getGlobalHandleResult(workflow, variable, fields));
             }
             if ("chat".equals(scope)) {
                 resultList.add(getChatHandleResult(workflow, variable, fields));
-                // Update chat variables
-                if (workflow.getChatParams() != null
-                        && workflow.getChatParams().getChatId() != null) {
-                    ChatInfo chatInfo = ChatCache.get(workflow.getChatParams().getChatId());
-                    if (chatInfo != null && chatInfo.getChatVariables() != null) {
-                        chatInfo.getChatVariables().putAll(workflow.getChatContext());
-                    }
-                }
             }
             if ("loop".equals(scope)) {
                 resultList.add(getLoopHandleResult(workflow, variable, fields));
@@ -85,11 +77,17 @@ public class VariableAssignNodeHandler extends AbsNodeHandler {
         String inputValue = getReferenceContent(workflow, fields);
         Object value = resolveValue(workflow, variable);
         workflow.getChatContext().put(varName, value);
-        workflow.getLoopContext().put(varName, value);
         Map<String, Object> result = new HashMap<>();
         result.put("name", variable.get("name"));
         result.put("input_value", inputValue);
         result.put("output_value", value);
+        // Update chat variables
+        if (workflow.getChatParams() != null && workflow.getChatParams().getChatId() != null) {
+            ChatInfo chatInfo = ChatCache.get(workflow.getChatParams().getChatId());
+            if (chatInfo != null && chatInfo.getChatVariables() != null) {
+                chatInfo.getChatVariables().put(varName,value);
+            }
+        }
         return result;
     }
 
