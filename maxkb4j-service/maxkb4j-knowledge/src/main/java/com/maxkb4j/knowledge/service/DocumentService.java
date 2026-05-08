@@ -335,10 +335,16 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
                                 log.warn("压缩包中存在非法的文件路径: {}", entry.getName());
                                 continue; // 跳过非法文件
                             }
-                            byte[] bytes = zis.readAllBytes();
-                            fileStreams.add(new DocFileVO(entryName, bytes, ""));
+                            try {
+                                byte[] bytes = zis.readAllBytes();
+                                fileStreams.add(new DocFileVO(entryName, bytes, ""));
+                            } catch (java.io.EOFException e) {
+                                log.warn("压缩包中文件 {} 读取不完整，已跳过: {}", entryName, e.getMessage());
+                            }
                         }
                     }
+                } catch (java.io.EOFException e) {
+                    log.warn("ZIP文件 {} 格式异常或已损坏，部分文件可能未读取: {}", name, e.getMessage());
                 }
             } else {
                 fileStreams.add(new DocFileVO(name, file.getBytes(), file.getContentType()));
