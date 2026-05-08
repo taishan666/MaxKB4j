@@ -54,6 +54,7 @@ public class ChatStep extends AbsChatStep {
             aiServicesBuilder.tools(toolProvider.getToolMap(toolIds, applicationIds));
         }catch (ApiException e){
             manage.sink.tryEmitError(e);
+            return  "";
         }
         Assistant assistant = aiServicesBuilder.chatMemory(AppChatMemory.withMessages(historyMessages)).streamingChatModel(chatModel).build();
         Boolean reasoningEnable = application.getModelSetting().getReasoningContentEnable();
