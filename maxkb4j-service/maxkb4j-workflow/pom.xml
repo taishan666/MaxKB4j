@@ -44,5 +44,9 @@
             <artifactId>maxkb4j-application-api</artifactId>
             <version>${revision}</version>
         </dependency>
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-experimental-sql</artifactId>
+        </dependency>
     </dependencies>
 </project>

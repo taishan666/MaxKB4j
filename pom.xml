@@ -21,8 +21,8 @@
         <java.version>21</java.version>
         <maven.plugin.version>3.11.0</maven.plugin.version>
         <maven.flatten.version>1.3.0</maven.flatten.version>
-        <langchain4j.version>1.13.0</langchain4j.version>
-        <langchain4j.beta.version>1.13.0-beta23</langchain4j.beta.version>
+        <langchain4j.version>1.14.0</langchain4j.version>
+        <langchain4j.beta.version>1.14.0-beta24</langchain4j.beta.version>
         <p6spy.version>1.10.0</p6spy.version>
         <knife4j.version>4.5.0</knife4j.version>
         <springdoc-openapi.version>2.8.6</springdoc-openapi.version>
@@ -252,13 +252,13 @@
             </dependency>
             <dependency>
                 <groupId>dev.langchain4j</groupId>
-                <artifactId>langchain4j-spring-boot-starter</artifactId>
-                <version>${langchain4j.beta.version}</version>
+                <artifactId>langchain4j</artifactId>
+                <version>${langchain4j.version}</version>
             </dependency>
             <dependency>
                 <groupId>dev.langchain4j</groupId>
                 <artifactId>langchain4j-experimental-sql</artifactId>
-                <version>1.9.1-beta17</version>
+                <version>${langchain4j.beta.version}</version>
                 <exclusions>
                     <exclusion>
                         <groupId>com.github.jsqlparser</groupId>
@@ -284,18 +284,18 @@
             </dependency>
             <dependency>
                 <groupId>dev.langchain4j</groupId>
-                <artifactId>langchain4j-open-ai-spring-boot-starter</artifactId>
-                <version>${langchain4j.beta.version}</version>
+                <artifactId>langchain4j-open-ai</artifactId>
+                <version>${langchain4j.version}</version>
             </dependency>
             <dependency>
                 <groupId>dev.langchain4j</groupId>
-                <artifactId>langchain4j-azure-open-ai-spring-boot-starter</artifactId>
-                <version>${langchain4j.beta.version}</version>
+                <artifactId>langchain4j-azure-open-ai</artifactId>
+                <version>${langchain4j.version}</version>
             </dependency>
             <dependency>
                 <groupId>dev.langchain4j</groupId>
-                <artifactId>langchain4j-ollama-spring-boot-starter</artifactId>
-                <version>${langchain4j.beta.version}</version>
+                <artifactId>langchain4j-ollama</artifactId>
+                <version>${langchain4j.version}</version>
             </dependency>
             <dependency>
                 <groupId>dev.langchain4j</groupId>
@@ -321,13 +321,13 @@
             </dependency>
             <dependency>
                 <groupId>dev.langchain4j</groupId>
-                <artifactId>langchain4j-google-ai-gemini-spring-boot-starter</artifactId>
-                <version>${langchain4j.beta.version}</version>
+                <artifactId>langchain4j-google-ai-gemini</artifactId>
+                <version>${langchain4j.version}</version>
             </dependency>
             <dependency>
                 <groupId>dev.langchain4j</groupId>
-                <artifactId>langchain4j-anthropic-spring-boot-starter</artifactId>
-                <version>${langchain4j.beta.version}</version>
+                <artifactId>langchain4j-anthropic</artifactId>
+                <version>${langchain4j.version}</version>
             </dependency>
             <dependency>
                 <groupId>dev.langchain4j</groupId>
