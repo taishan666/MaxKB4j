@@ -120,7 +120,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
         if (emailNum > 0) {
             throw new ApiException("邮箱已存在");
         }
-        user.setRole(Set.of(RoleType.USER));
+        user.setRole(Set.of());
         user.setIsActive(true);
         user.setSource(UserSource.LOCAL);
         user.setLanguage((String) StpKit.ADMIN.getExtra("language"));
@@ -134,7 +134,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
         user.setNickname("系统管理员");
         user.setUsername(username);
         user.setPassword(SaSecureUtil.md5(password));
-        user.setRole(Set.of(RoleType.ADMIN));
+        Set<String> role = new HashSet<>();
+        role.add(RoleType.USER);
+        user.setRole(role);
         user.setIsActive(true);
         user.setSource(UserSource.LOCAL);
         user.setLanguage("zh-CN");
@@ -151,9 +153,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
         UserVO user = BeanUtil.copy(userEntity, UserVO.class);
         user.setPermissions(stpInterface.getPermissionList(userId, null));
         if (user.getRole().contains(RoleType.ADMIN)) {
-            userEntity.getRole().add("WORKSPACE_MANAGE:/WORKSPACE/default");
+            user.getRole().add("WORKSPACE_MANAGE:/WORKSPACE/default");
         } else {
-            userEntity.getRole().add("USER:/WORKSPACE/default");
+            user.getRole().add("USER:/WORKSPACE/default");
         }
         List<Map<String, String>> workspaceList = new ArrayList<>();
         workspaceList.add(Map.of("id", "default", "name", "default"));
@@ -178,7 +180,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
 
     public boolean checkCode(String email, String code) {
         String codeCache = AuthCodeCache.getIfPresent(email);
-        return code.equals(codeCache);
+        return  Objects.equals(codeCache, code);
     }
 
     private String generateCode() {

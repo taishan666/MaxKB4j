@@ -183,7 +183,9 @@ public class Workflow {
     public Object getFieldValue(Object value, String source) {
         if ("reference".equals(source) && value instanceof List) {
             List<String> fields = (List<String>) value;
-            return workflowContext.getReferenceField(fields.get(0), fields.get(1));
+            if (fields.size() >= 2){
+                return workflowContext.getReferenceField(fields.get(0), fields.get(1));
+            }
         }
         return value;
     }

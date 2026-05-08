@@ -37,8 +37,9 @@ public class StartNode extends AbsNode {
         }
         String chatId = (String) workflow.getGlobalContext().get("chatId");
         ChatInfo chatInfo = ChatCache.get(chatId);
-        Map<String, Object> chatVariable = chatInfo.getChatVariables();
-        workflow.getChatContext().putAll(chatVariable);
+        if (chatInfo != null){
+            workflow.getChatContext().putAll(chatInfo.getChatVariables());
+        }
     }
 
     @Override

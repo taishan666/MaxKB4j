@@ -11,7 +11,7 @@ public class AuthCodeCache {
     private static final Cache<String, String> AUTH_CODE_CACHE = Caffeine.newBuilder()
             .initialCapacity(5)
             // 超出最大容量时淘汰
-            .maximumSize(100000)
+            .maximumSize(9999)
             //设置写缓存后n秒钟过期
             .expireAfterWrite(1, TimeUnit.MINUTES)
             .expireAfterAccess(1, TimeUnit.MINUTES)
