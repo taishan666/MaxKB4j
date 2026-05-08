@@ -5,7 +5,6 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import com.maxkb4j.common.domain.dto.ChatInfo;
 
 import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
 
 public class ChatCache {
 
@@ -20,11 +19,6 @@ public class ChatCache {
     }
 
     public static ChatInfo get(String chatId) {
-        // 定义一个函数，用于在缓存未命中时生成 ChatInfo 对象
-        Function<String, ChatInfo> loader = key -> {
-            // 根据键生成 ChatInfo 实例的逻辑
-            return null;
-        };
-        return CHAT_CACHE.get(chatId,loader);
+        return CHAT_CACHE.getIfPresent(chatId);
     }
 }
