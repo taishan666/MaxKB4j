@@ -4,7 +4,7 @@ import com.maxkb4j.core.interceptor.AuthInterceptor;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.web.servlet.config.annotation.*;
 
 
@@ -16,13 +16,8 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void configureAsyncSupport(AsyncSupportConfigurer configurer) {
-        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(4);
-        executor.setMaxPoolSize(10);
-        executor.setQueueCapacity(100);
-        executor.setThreadNamePrefix("Async-Executor-");
-        executor.setWaitForTasksToCompleteOnShutdown(true);
-        executor.initialize();
+        SimpleAsyncTaskExecutor executor = new SimpleAsyncTaskExecutor("async-");
+        executor.setVirtualThreads(true);
         configurer.setTaskExecutor(executor);
     }
 

@@ -15,7 +15,7 @@ public  class OpenAiChatModelParams implements IModelParams {
     public List<BaseField> toForm() {
         BaseField temperature=new SliderField(0.0F,1.5F,0.1F,0,"温度","temperature","较高的数值会使输出更加随机，而较低的数值会使其更加集中和确定",1F);
         BaseField maxTokens=new SliderField(1,1024000,1,0,"输出最大Tokens","maxTokens","指定模型可生成的最大token个数",1024);
-        BaseField switchField=new SwitchField("是否返回思考","returnThinking","是否返回思考输出",true);
+        BaseField switchField=new SwitchField("是否返回思考","enableThinking","是否返回思考输出",true);
         return List.of(temperature,maxTokens,switchField);
     }
 }

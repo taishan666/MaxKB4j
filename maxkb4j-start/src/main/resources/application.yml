@@ -4,6 +4,9 @@ server:
     whitelabel:
       enabled: true
 spring:
+  threads:
+    virtual:
+      enabled: true
   output:
     ansi:
       enabled: ALWAYS

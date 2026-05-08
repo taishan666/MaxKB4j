@@ -13,13 +13,15 @@ public class KimiModelProvider extends OpenAiModelProvider {
 
     private static final String BASE_URL = "https://api.moonshot.cn/v1";
     private static final List<ModelInfo> MODEL_INFOS = List.of(
-            new ModelInfo("kimi-latest", "", ModelType.LLM),
-            new ModelInfo("kimi-k2-turbo-preview", "", ModelType.LLM),
+            new ModelInfo("kimi-k2.6", "", ModelType.LLM),
+            new ModelInfo("kimi-k2.5", "", ModelType.LLM),
             new ModelInfo("kimi-k2-thinking", "", ModelType.LLM),
             new ModelInfo("kimi-k2-thinking-turbo", "", ModelType.LLM),
-            new ModelInfo("moonshot-v1-8k-vision-preview", "", ModelType.VISION),
-            new ModelInfo("moonshot-v1-32k-vision-preview", "", ModelType.VISION),
-            new ModelInfo("moonshot-v1-128k-vision-preview", "", ModelType.VISION)
+            new ModelInfo("moonshot-v1-8k", "", ModelType.LLM),
+            new ModelInfo("moonshot-v1-32k", "", ModelType.LLM),
+            new ModelInfo("moonshot-v1-128k", "", ModelType.LLM),
+            new ModelInfo("kimi-k2.6", "",ModelType.VISION),
+            new ModelInfo("kimi-k2.5", "", ModelType.VISION)
     );
 
     @Override
