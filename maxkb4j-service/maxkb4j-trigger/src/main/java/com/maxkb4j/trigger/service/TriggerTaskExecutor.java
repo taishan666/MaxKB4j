@@ -24,8 +24,6 @@ import reactor.core.publisher.Sinks;
 
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
 
 @Component
 @RequiredArgsConstructor
@@ -121,8 +119,7 @@ public class TriggerTaskExecutor {
                         .source(ChatSource.TRIGGER)
                         .stream(false)
                         .build();
-                CompletableFuture<ChatResponse> future = applicationChatService.chatMessageAsync(chatParams, sink);
-                ChatResponse response = future.get(10L, TimeUnit.MINUTES);
+                ChatResponse response = applicationChatService.chatMessage(chatParams, sink);
                 float runTime = (System.currentTimeMillis() - startTime) / 1000f;
                 TaskState state = (response != null && response.getAnswerTextList() != null) ? TaskState.SUCCESS : TaskState.FAILURE;
                 JSONObject meta = (response != null) ? response.getRunDetails() : new JSONObject();

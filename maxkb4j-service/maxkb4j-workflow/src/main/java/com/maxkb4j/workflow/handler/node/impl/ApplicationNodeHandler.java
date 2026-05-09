@@ -50,9 +50,6 @@ public class ApplicationNodeHandler extends AbsNodeHandler {
         List<OssFile> imageList = getFileList(workflow, params.getImageList());
         List<OssFile> audioList = getFileList(workflow, params.getAudioList());
         List<OssFile> otherList = getFileList(workflow, params.getOtherList());
-
-        Sinks.Many<ChatMessageVO> appNodeSink = Sinks.many().unicast().onBackpressureBuffer();
-
         String nodeChatRecordId = null;
         String nodeRuntimeNodeId = null;
         if (chatParams.getChildNode() != null) {
@@ -81,7 +78,7 @@ public class ApplicationNodeHandler extends AbsNodeHandler {
                 .nodeData(chatParams.getNodeData())
                 .debug(chatParams.getDebug())
                 .build();
-
+        Sinks.Many<ChatMessageVO> appNodeSink = Sinks.many().unicast().onBackpressureBuffer();
         CompletableFuture<ChatResponse> future = chatService.chatMessageAsync(nodeChatParams, appNodeSink);
 
         AtomicBoolean isInterruptExec = new AtomicBoolean(false);

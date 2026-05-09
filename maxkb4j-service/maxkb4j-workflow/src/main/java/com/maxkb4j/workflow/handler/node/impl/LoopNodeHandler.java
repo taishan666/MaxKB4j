@@ -226,8 +226,7 @@ public class LoopNodeHandler extends AbsNodeHandler {
                 .toList();
 
         LoopParams loopParams = new LoopParams(ctx.currentIndex, items.get(ctx.currentIndex));
-        LoopWorkFlow loopWorkflow = new LoopWorkFlow(workflow, nodes, logicFlow.getEdges(),
-                loopParams, ctx.currentDetails, sink);
+        LoopWorkFlow loopWorkflow = new LoopWorkFlow(workflow, nodes, logicFlow.getEdges(), loopParams, ctx.currentDetails, sink);
 
         // 异步执行并订阅结果
         CompletableFuture<Void> future = CompletableFuture.runAsync(() -> workFlowActuator.execute(loopWorkflow),taskExecutor);
@@ -248,7 +247,7 @@ public class LoopNodeHandler extends AbsNodeHandler {
      */
     private void removePreviousIterationData(LoopExecutionContext ctx) {
         if (ctx.loopDetails.size() > ctx.currentIndex) {
-            ctx.loopDetails.remove(0);
+            ctx.loopDetails.removeFirst();
         }
     }
 
