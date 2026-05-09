@@ -13,6 +13,9 @@ import com.maxkb4j.model.enums.ModelType;
 import com.maxkb4j.model.service.STTModel;
 import com.maxkb4j.model.service.TTSModel;
 import com.maxkb4j.model.vo.ModelInfo;
+import dev.langchain4j.http.client.HttpClientBuilder;
+import dev.langchain4j.http.client.spring.restclient.SpringRestClient;
+import dev.langchain4j.http.client.spring.restclient.SpringRestClientBuilder;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.DisabledChatModel;
 import dev.langchain4j.model.chat.DisabledStreamingChatModel;
@@ -23,6 +26,9 @@ import dev.langchain4j.model.image.DisabledImageModel;
 import dev.langchain4j.model.image.ImageModel;
 import dev.langchain4j.model.scoring.ScoringModel;
 import lombok.Data;
+import org.springframework.core.task.VirtualThreadTaskExecutor;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.web.client.RestClient;
 
 import java.util.List;
 import java.util.Optional;
@@ -34,10 +40,23 @@ import java.util.Optional;
 @Data
 public abstract class AbsModelProvider {
 
+    private RestClient.Builder restClientBuilder = RestClient.builder()
+            .requestFactory(new HttpComponentsClientHttpRequestFactory());
+
+    private SpringRestClientBuilder springRestClientBuilder = SpringRestClient.builder()
+            .restClientBuilder(restClientBuilder)
+            .streamingRequestExecutor(new VirtualThreadTaskExecutor());
+
+    protected HttpClientBuilder getHttpClientBuilder() {
+        return springRestClientBuilder;
+    }
+
+
     /**
      * Gets double value from params with null safety
+     *
      * @param params the params JSONObject
-     * @param key the key to lookup
+     * @param key    the key to lookup
      * @return the double value or null if not present
      */
     protected Double getDoubleParam(JSONObject params, String key) {
@@ -46,8 +65,9 @@ public abstract class AbsModelProvider {
 
     /**
      * Gets integer value from params with null safety
+     *
      * @param params the params JSONObject
-     * @param key the key to lookup
+     * @param key    the key to lookup
      * @return the integer value or null if not present
      */
     protected Integer getIntParam(JSONObject params, String key) {
@@ -56,8 +76,9 @@ public abstract class AbsModelProvider {
 
     /**
      * Gets string value from params with null safety
+     *
      * @param params the params JSONObject
-     * @param key the key to lookup
+     * @param key    the key to lookup
      * @return the string value or null if not present
      */
     protected String getStringParam(JSONObject params, String key) {
@@ -66,8 +87,9 @@ public abstract class AbsModelProvider {
 
     /**
      * Gets boolean value from params with null safety
+     *
      * @param params the params JSONObject
-     * @param key the key to lookup
+     * @param key    the key to lookup
      * @return the boolean value or null if not present
      */
     protected Boolean getBooleanParam(JSONObject params, String key) {
@@ -76,8 +98,9 @@ public abstract class AbsModelProvider {
 
     /**
      * Gets float value from params with null safety and Double to Float conversion
+     *
      * @param params the params JSONObject
-     * @param key the key to lookup
+     * @param key    the key to lookup
      * @return the float value or null if not present
      */
     protected Float getFloatParam(JSONObject params, String key) {
@@ -91,6 +114,7 @@ public abstract class AbsModelProvider {
 
     /**
      * Checks if the provider supports a specific model type
+     *
      * @param modelType the model type to check
      * @return true if supported, false otherwise
      */
@@ -100,6 +124,7 @@ public abstract class AbsModelProvider {
 
     /**
      * Gets model info for a specific model type and name
+     *
      * @param modelType the model type
      * @param modelName the model name
      * @return the model info or null if not found
@@ -107,30 +132,34 @@ public abstract class AbsModelProvider {
     public ModelInfo getModelInfo(ModelType modelType, String modelName) {
         return getModelList().stream()
                 .filter(modelInfo ->
-                    modelInfo.getModelType().equals(modelType) &&
-                    modelInfo.getName().equals(modelName))
+                        modelInfo.getModelType().equals(modelType) &&
+                                modelInfo.getName().equals(modelName))
                 .findFirst()
                 .orElse(null);
     }
 
     /**
      * Gets the model credential form configuration
+     *
      * @return the credential form configuration
      */
     public ModelCredentialForm getModelCredential() {
         return new ModelCredentialForm(false, true);
     }
+
     /**
      * Gets the list of available models for this provider
+     *
      * @return list of model info
      */
     public abstract List<ModelInfo> getModelList();
 
     /**
      * Builds a chat model instance
-     * @param modelName the model name
+     *
+     * @param modelName  the model name
      * @param credential the model credentials
-     * @param params additional parameters
+     * @param params     additional parameters
      * @return the chat model instance
      */
     public ChatModel buildChatModel(String modelName, ModelCredential credential, JSONObject params) {
@@ -139,9 +168,10 @@ public abstract class AbsModelProvider {
 
     /**
      * Builds a streaming chat model instance
-     * @param modelName the model name
+     *
+     * @param modelName  the model name
      * @param credential the model credentials
-     * @param params additional parameters
+     * @param params     additional parameters
      * @return the streaming chat model instance
      */
     public StreamingChatModel buildStreamingChatModel(String modelName, ModelCredential credential, JSONObject params) {
@@ -150,9 +180,10 @@ public abstract class AbsModelProvider {
 
     /**
      * Builds an embedding model instance
-     * @param modelName the model name
+     *
+     * @param modelName  the model name
      * @param credential the model credentials
-     * @param params additional parameters
+     * @param params     additional parameters
      * @return the embedding model instance
      */
     public EmbeddingModel buildEmbeddingModel(String modelName, ModelCredential credential, JSONObject params) {
@@ -161,9 +192,10 @@ public abstract class AbsModelProvider {
 
     /**
      * Builds an image model instance
-     * @param modelName the model name
+     *
+     * @param modelName  the model name
      * @param credential the model credentials
-     * @param params additional parameters
+     * @param params     additional parameters
      * @return the image model instance
      */
     public ImageModel buildImageModel(String modelName, ModelCredential credential, JSONObject params) {
@@ -172,9 +204,10 @@ public abstract class AbsModelProvider {
 
     /**
      * Builds a scoring model instance
-     * @param modelName the model name
+     *
+     * @param modelName  the model name
      * @param credential the model credentials
-     * @param params additional parameters
+     * @param params     additional parameters
      * @return the scoring model instance
      */
     public ScoringModel buildScoringModel(String modelName, ModelCredential credential, JSONObject params) {
@@ -183,9 +216,10 @@ public abstract class AbsModelProvider {
 
     /**
      * Builds an STT (speech-to-text) model instance
-     * @param modelName the model name
+     *
+     * @param modelName  the model name
      * @param credential the model credentials
-     * @param params additional parameters
+     * @param params     additional parameters
      * @return the STT model instance
      */
     public STTModel buildSTTModel(String modelName, ModelCredential credential, JSONObject params) {
@@ -194,9 +228,10 @@ public abstract class AbsModelProvider {
 
     /**
      * Builds a TTS (text-to-speech) model instance
-     * @param modelName the model name
+     *
+     * @param modelName  the model name
      * @param credential the model credentials
-     * @param params additional parameters
+     * @param params     additional parameters
      * @return the TTS model instance
      */
     public TTSModel buildTTSModel(String modelName, ModelCredential credential, JSONObject params) {
@@ -204,10 +239,10 @@ public abstract class AbsModelProvider {
     }
 
     public List<BaseField> getModelParamsForm(String modelType) {
-        if (modelType != null){
-            if (ModelType.LLM.getKey().equals(modelType)){
-                 return getChatModelParamsForm();
-            }else if (ModelType.TTI.getKey().equals(modelType)){
+        if (modelType != null) {
+            if (ModelType.LLM.getKey().equals(modelType)) {
+                return getChatModelParamsForm();
+            } else if (ModelType.TTI.getKey().equals(modelType)) {
                 return getImageModelParamsForm();
             }
         }
