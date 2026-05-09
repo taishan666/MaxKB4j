@@ -42,6 +42,7 @@ public class AnthropicProvider extends AbsModelProvider {
     @Override
     public ChatModel buildChatModel(String modelName, ModelCredential credential, JSONObject params) {
         return AnthropicChatModel.builder()
+                .httpClientBuilder(getSpringRestClientBuilder())
                 .baseUrl(credential.getBaseUrl())
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
@@ -53,6 +54,7 @@ public class AnthropicProvider extends AbsModelProvider {
     @Override
     public StreamingChatModel buildStreamingChatModel(String modelName, ModelCredential credential, JSONObject params) {
         return AnthropicStreamingChatModel.builder()
+                .httpClientBuilder(getSpringRestClientBuilder())
                 .baseUrl(credential.getBaseUrl())
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
