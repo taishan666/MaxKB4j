@@ -7,6 +7,7 @@ import com.maxkb4j.application.mapper.ApplicationLongTermMemoryMapper;
 import com.maxkb4j.model.service.IModelProviderService;
 import dev.langchain4j.model.chat.ChatModel;
 import lombok.RequiredArgsConstructor;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -99,6 +100,8 @@ public class ApplicationLongTermMemoryService extends ServiceImpl<ApplicationLon
     private final IModelProviderService modelProviderService;
     private static final Pattern THINK_TAG_PATTERN = Pattern.compile("<think>.*?</think>", Pattern.DOTALL);
 
+    @Async
+    @Override
     public void saveMemory(String applicationId, String chatUserId, String modelId, int pageSize) {
         long count = chatRecordService.countByAppIdAndChatUserId(applicationId, chatUserId);
         if (count <= 0 || pageSize <= 0) {
@@ -142,14 +145,16 @@ public class ApplicationLongTermMemoryService extends ServiceImpl<ApplicationLon
         System.out.println(page);
     }*/
 
+    @Override
     public String getMemory(String applicationId, String chatUserId) {
         ApplicationLongTermMemoryEntity longTermMemory = getLongTermMemory(applicationId, chatUserId);
         return longTermMemory == null ? "" : longTermMemory.getMemory();
     }
 
+    @Async
     @Override
-    public boolean deleteMemory(String applicationId) {
-        return this.lambdaUpdate().eq(ApplicationLongTermMemoryEntity::getApplicationId, applicationId).remove();
+    public void deleteMemory(String applicationId) {
+         this.lambdaUpdate().eq(ApplicationLongTermMemoryEntity::getApplicationId, applicationId).remove();
     }
 
     private ApplicationLongTermMemoryEntity getLongTermMemory(String applicationId, String chatUserId) {
