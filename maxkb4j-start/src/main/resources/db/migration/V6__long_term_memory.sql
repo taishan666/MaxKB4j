@@ -12,7 +12,7 @@ CREATE TABLE "public"."application_long_term_memory" (
                                                          "id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
                                                          "chat_user_id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
                                                          "memory" text COLLATE "pg_catalog"."default" NOT NULL,
-                                                         "application_id" uuid NOT NULL
+                                                         "application_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
 )
 ;
 

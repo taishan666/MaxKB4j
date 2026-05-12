@@ -49,13 +49,14 @@ public class ChatStep extends AbsChatStep {
         List<String> toolIds = Optional.ofNullable(application.getToolIds()).orElse(List.of());
         List<String> applicationIds = Optional.ofNullable(application.getApplicationIds()).orElse(List.of());
         AiServices<Assistant> aiServicesBuilder = AssistantServices.builder(Assistant.class);
-        if (StringUtils.isNotBlank(systemText)) {
-            aiServicesBuilder.systemMessage(systemText);
-        }
         String chatUserId = manage.chatParams.getChatUserId();
         String memory = longTermMemoryService.getMemory(appId, chatUserId);
-        if (StringUtils.isNotBlank(memory)) {
-            aiServicesBuilder.systemMessageTransformer(systemMessage -> systemMessage + "\n MEMORY: \n" + memory);
+        if (StringUtils.isNotBlank(systemText)) {
+            aiServicesBuilder.systemMessage(systemText+ "\n" + memory);
+        }else {
+            if (StringUtils.isNotBlank(memory)) {
+                aiServicesBuilder.systemMessage(memory);
+            }
         }
         try {
             aiServicesBuilder.toolProvider(toolProvider.getSkillsProvider(modelId, toolIds));
@@ -105,7 +106,7 @@ public class ChatStep extends AbsChatStep {
             context.put("answerTokens", tokenUsage.outputTokenCount());
         }
         if (Boolean.TRUE.equals(application.getLongTermEnable())) {
-            longTermMemoryService.saveMemory(appId, chatUserId, modelId, 10);
+            longTermMemoryService.saveMemory(appId, chatUserId, modelId, 5);
         } else {
             longTermMemoryService.deleteMemory(appId);
         }

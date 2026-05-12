@@ -4,12 +4,12 @@
 
     <select id="listByAppIdAndChatUserId" resultType="com.maxkb4j.application.entity.ApplicationChatRecordEntity">
         SELECT record.problem_text, record.answer_text
-        FROM application_chat chat
-                 LEFT JOIN application_chat_record record
-                           ON chat.id = record.chat_id
+        FROM application_chat_record record
+                 LEFT JOIN application_chat chat
+                 ON chat.id = record.chat_id
         WHERE chat.application_id = #{applicationId}
           AND chat.chat_user_id = #{chatUserId}
-        ORDER BY record.create_time DESC
+        ORDER BY record.create_time
         LIMIT #{pageSize} OFFSET #{offset};
     </select>
     <select id="countByAppIdAndChatUserId" resultType="java.lang.Long">
@@ -19,7 +19,6 @@
                            ON chat.id = record.chat_id
         WHERE chat.application_id = #{applicationId}
           AND chat.chat_user_id = #{chatUserId}
-        ORDER BY record.create_time DESC
     </select>
 
 </mapper>
