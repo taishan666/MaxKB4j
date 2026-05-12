@@ -46,9 +46,10 @@ public class ChatParams {
     @NotNull(message = "是否重新回答")
     private Boolean reChat;
 
+    @JsonIgnore
     private String ipAddress;
+    @JsonIgnore
     private ChatSource source;
-
     @JsonIgnore
     private String appId;
     @JsonIgnore

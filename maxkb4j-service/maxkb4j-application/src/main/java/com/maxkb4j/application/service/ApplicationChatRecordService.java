@@ -183,4 +183,11 @@ public class ApplicationChatRecordService extends ServiceImpl<ApplicationChatRec
         return paragraphService.listByIds(chatRecord.getImproveParagraphIdList());
     }
 
+    public List<ApplicationChatRecordEntity> listByAppIdAndChatUserId(String applicationId, String chatUserId,int pageSize,int offset) {
+        return baseMapper.listByAppIdAndChatUserId(applicationId, chatUserId,pageSize, offset);
+    }
+
+    public long countByAppIdAndChatUserId(String applicationId, String chatUserId) {
+        return baseMapper.countByAppIdAndChatUserId(applicationId, chatUserId);
+    }
 }

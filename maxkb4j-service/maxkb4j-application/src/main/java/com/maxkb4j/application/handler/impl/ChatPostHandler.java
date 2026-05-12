@@ -10,6 +10,7 @@ import com.maxkb4j.application.handler.PostResponseHandler;
 import com.maxkb4j.application.mapper.ApplicationChatMapper;
 import com.maxkb4j.application.mapper.ApplicationChatRecordMapper;
 import com.maxkb4j.application.service.ApplicationChatUserStatsService;
+import com.maxkb4j.application.service.IApplicationLongTermMemoryService;
 import com.maxkb4j.common.cache.ChatCache;
 import com.maxkb4j.common.domain.dto.ChatInfo;
 import com.maxkb4j.common.domain.dto.ChatParams;
@@ -30,6 +31,7 @@ import java.util.Map;
 public class ChatPostHandler implements PostResponseHandler {
 
     private final ApplicationChatUserStatsService chatUserStatsService;
+    private final IApplicationLongTermMemoryService longTermMemoryService;
     private final ApplicationChatMapper chatMapper;
     private final ApplicationChatRecordMapper chatRecordMapper;
 

@@ -96,4 +96,6 @@ public class ApplicationVersionEntity extends BaseEntity {
 
 	private Boolean toolOutputEnable;
 
+	private Boolean longTermEnable;
+
 }

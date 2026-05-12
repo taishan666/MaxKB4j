@@ -3,6 +3,7 @@ package com.maxkb4j.application.pipeline.step.chatstep.impl;
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.application.pipeline.PipelineManage;
 import com.maxkb4j.application.pipeline.step.chatstep.AbsChatStep;
+import com.maxkb4j.application.service.IApplicationLongTermMemoryService;
 import com.maxkb4j.application.vo.ApplicationVO;
 import com.maxkb4j.common.exception.ApiException;
 import com.maxkb4j.core.assistant.Assistant;
@@ -34,11 +35,13 @@ public class ChatStep extends AbsChatStep {
 
     private final IModelProviderService modelFactory;
     private final IToolProviderService toolProvider;
+    private final IApplicationLongTermMemoryService longTermMemoryService;
 
 
     @Override
     protected String execute(String chatId, String chatRecordId, ApplicationVO application, List<ChatMessage> historyMessages,String userPrompt, PipelineManage manage) throws Exception {
         List<String> answerTexts = new ArrayList<>();
+        String appId = application.getId();
         String modelId = application.getModelId();
         JSONObject params = application.getModelParamsSetting();
         StreamingChatModel chatModel = modelFactory.buildStreamingChatModel(modelId, params);
@@ -48,6 +51,11 @@ public class ChatStep extends AbsChatStep {
         AiServices<Assistant> aiServicesBuilder = AssistantServices.builder(Assistant.class);
         if (StringUtils.isNotBlank(systemText)){
             aiServicesBuilder.systemMessage(systemText);
+        }
+        String chatUserId =manage.chatParams.getChatUserId();
+        String memory=longTermMemoryService.getMemory(appId, chatUserId);
+        if (StringUtils.isNotBlank(memory)){
+            aiServicesBuilder.systemMessageTransformer(systemMessage -> systemMessage + "\n MEMORY: \n" + memory);
         }
         try {
             aiServicesBuilder.toolProvider(toolProvider.getSkillsProvider(modelId, toolIds));
@@ -95,6 +103,9 @@ public class ChatStep extends AbsChatStep {
         if (tokenUsage != null) {
             context.put("messageTokens", tokenUsage.inputTokenCount());
             context.put("answerTokens", tokenUsage.outputTokenCount());
+        }
+        if (Boolean.TRUE.equals(application.getLongTermEnable())){
+            longTermMemoryService.saveMemory(appId, chatUserId, modelId, 10);
         }
         return String.join("", answerTexts);
     }
