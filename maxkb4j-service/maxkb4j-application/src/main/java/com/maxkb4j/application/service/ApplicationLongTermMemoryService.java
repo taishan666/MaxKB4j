@@ -147,6 +147,11 @@ public class ApplicationLongTermMemoryService extends ServiceImpl<ApplicationLon
         return longTermMemory == null ? "" : longTermMemory.getMemory();
     }
 
+    @Override
+    public boolean deleteMemory(String applicationId) {
+        return this.lambdaUpdate().eq(ApplicationLongTermMemoryEntity::getApplicationId, applicationId).remove();
+    }
+
     private ApplicationLongTermMemoryEntity getLongTermMemory(String applicationId, String chatUserId) {
         return this.lambdaQuery()
                 .select(ApplicationLongTermMemoryEntity::getId, ApplicationLongTermMemoryEntity::getMemory)

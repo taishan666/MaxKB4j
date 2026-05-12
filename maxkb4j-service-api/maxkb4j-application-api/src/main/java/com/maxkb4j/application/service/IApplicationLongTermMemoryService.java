@@ -7,4 +7,5 @@ public interface IApplicationLongTermMemoryService extends IService<ApplicationL
 
     void saveMemory(String applicationId, String chatUserId, String modelId, int pageSize);
     String getMemory(String applicationId, String chatUserId);
+    boolean deleteMemory(String applicationId);
 }

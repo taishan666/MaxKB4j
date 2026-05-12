@@ -39,7 +39,7 @@ public class ChatStep extends AbsChatStep {
 
 
     @Override
-    protected String execute(String chatId, String chatRecordId, ApplicationVO application, List<ChatMessage> historyMessages,String userPrompt, PipelineManage manage) throws Exception {
+    protected String execute(String chatId, String chatRecordId, ApplicationVO application, List<ChatMessage> historyMessages, String userPrompt, PipelineManage manage) throws Exception {
         List<String> answerTexts = new ArrayList<>();
         String appId = application.getId();
         String modelId = application.getModelId();
@@ -49,20 +49,20 @@ public class ChatStep extends AbsChatStep {
         List<String> toolIds = Optional.ofNullable(application.getToolIds()).orElse(List.of());
         List<String> applicationIds = Optional.ofNullable(application.getApplicationIds()).orElse(List.of());
         AiServices<Assistant> aiServicesBuilder = AssistantServices.builder(Assistant.class);
-        if (StringUtils.isNotBlank(systemText)){
+        if (StringUtils.isNotBlank(systemText)) {
             aiServicesBuilder.systemMessage(systemText);
         }
-        String chatUserId =manage.chatParams.getChatUserId();
-        String memory=longTermMemoryService.getMemory(appId, chatUserId);
-        if (StringUtils.isNotBlank(memory)){
+        String chatUserId = manage.chatParams.getChatUserId();
+        String memory = longTermMemoryService.getMemory(appId, chatUserId);
+        if (StringUtils.isNotBlank(memory)) {
             aiServicesBuilder.systemMessageTransformer(systemMessage -> systemMessage + "\n MEMORY: \n" + memory);
         }
         try {
             aiServicesBuilder.toolProvider(toolProvider.getSkillsProvider(modelId, toolIds));
             aiServicesBuilder.tools(toolProvider.getToolMap(toolIds, applicationIds));
-        }catch (ApiException e){
+        } catch (ApiException e) {
             manage.sink.tryEmitError(e);
-            return  "";
+            return "";
         }
         Assistant assistant = aiServicesBuilder.chatMemory(AppChatMemory.withMessages(historyMessages)).streamingChatModel(chatModel).build();
         Boolean reasoningEnable = application.getModelSetting().getReasoningContentEnable();
@@ -104,12 +104,13 @@ public class ChatStep extends AbsChatStep {
             context.put("messageTokens", tokenUsage.inputTokenCount());
             context.put("answerTokens", tokenUsage.outputTokenCount());
         }
-        if (Boolean.TRUE.equals(application.getLongTermEnable())){
+        if (Boolean.TRUE.equals(application.getLongTermEnable())) {
             longTermMemoryService.saveMemory(appId, chatUserId, modelId, 10);
+        } else {
+            longTermMemoryService.deleteMemory(appId);
         }
         return String.join("", answerTexts);
     }
-
 
 
     @Override
