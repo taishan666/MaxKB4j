@@ -1,35 +1,47 @@
 package com.maxkb4j.knowledge.parser.impl;
 
 import com.benjaminwan.ocrlibrary.OcrResult;
+import com.maxkb4j.common.domain.dto.OssFile;
 import com.maxkb4j.knowledge.parser.DocumentParser;
+import com.maxkb4j.oss.service.IOssService;
 import io.github.mymonstercat.Model;
 import io.github.mymonstercat.ocr.InferenceEngine;
 import lombok.RequiredArgsConstructor;
 import org.apache.pdfbox.Loader;
+import org.apache.pdfbox.contentstream.operator.Operator;
+import org.apache.pdfbox.cos.COSBase;
+import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.PDResources;
 import org.apache.pdfbox.pdmodel.font.PDFont;
+import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
 import org.apache.pdfbox.rendering.PDFRenderer;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.apache.pdfbox.text.TextPosition;
 import org.springframework.stereotype.Component;
 
 import javax.imageio.ImageIO;
+import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @RequiredArgsConstructor
 @Component
 public class PdfParser extends PDFTextStripper implements DocumentParser {
 
+    private final IOssService mongoFileService;
+    private static final String IMAGE_STYLE = "IMAGE";
     private List<TextLine> lines;
+    private float currentPageHeight;
+    private int pageStartIndex;
+    private List<TextLine> currentPageImages;
     private final static PDFTextStripper stripper = new PDFTextStripper();
     private final static InferenceEngine engine = InferenceEngine.getInstance(Model.ONNX_PPOCR_V4);
 
@@ -39,8 +51,51 @@ public class PdfParser extends PDFTextStripper implements DocumentParser {
     }
 
     @Override
+    public void processPage(PDPage page) throws IOException {
+        currentPageHeight = page.getCropBox().getHeight();
+        currentPageImages = new ArrayList<>();
+        pageStartIndex = lines.size();
+        super.processPage(page);
+    }
+
+    @Override
+    protected void processOperator(Operator operator, List<COSBase> operands) throws IOException {
+        if ("Do".equals(operator.getName()) && !operands.isEmpty() && operands.getFirst() instanceof COSName cosName) {
+            PDResources res = getResources();
+            if (res != null && res.isImageXObject(cosName)) {
+                PDImageXObject image = (PDImageXObject) res.getXObject(cosName);
+                handleImageInStream(image);
+                return;
+            }
+        }
+        super.processOperator(operator, operands);
+    }
+
+    private void handleImageInStream(PDImageXObject image) throws IOException {
+        if (image.getWidth() < 100 || image.getHeight() < 100) return;
+
+        float translateY = getGraphicsState().getCurrentTransformationMatrix().getTranslateY();
+        float yPos = currentPageHeight - translateY;
+
+        BufferedImage bufferedImage = image.getImage();
+        byte[] imageBytes = bufferedImageToBytes(bufferedImage);
+        int pageNo = getCurrentPageNo();
+        int imgIndex = currentPageImages.size();
+        String fileName = "pdf_p" + pageNo + "_img" + imgIndex + ".png";
+        OssFile ossFile = mongoFileService.uploadFile(fileName, imageBytes);
+
+        currentPageImages.add(new TextLine(IMAGE_STYLE, ossFile.getUrl(), 0, yPos, pageNo));
+    }
+
+    @Override
     protected void writePage() throws IOException {
         super.writePage();
+        List<TextLine> pageEntries = new ArrayList<>();
+        pageEntries.addAll(lines.subList(pageStartIndex, lines.size()));
+        pageEntries.addAll(currentPageImages);
+        pageEntries.sort(Comparator.comparing(TextLine::yPos));
+        lines.subList(pageStartIndex, lines.size()).clear();
+        lines.addAll(pageEntries);
     }
 
     @Override
@@ -48,10 +103,12 @@ public class PdfParser extends PDFTextStripper implements DocumentParser {
         if (text == null || text.isEmpty() || textPositions == null || textPositions.isEmpty()) {
             return;
         }
-        TextPosition first = textPositions.get(0);
+        TextPosition first = textPositions.getFirst();
         String fontName = getFontName(first.getFont());
         float fontSize = first.getFontSizeInPt();
-        lines.add(new TextLine(fontName, text, fontSize));
+        float yPos = first.getYDirAdj();
+        int pageNo = getCurrentPageNo();
+        lines.add(new TextLine(fontName, text, fontSize, yPos, pageNo));
     }
 
     private String getFontName(PDFont font) {
@@ -68,6 +125,7 @@ public class PdfParser extends PDFTextStripper implements DocumentParser {
     @Override
     public String handle(InputStream inputStream) {
         this.lines = new ArrayList<>();
+        this.currentPageImages = new ArrayList<>();
         try {
             byte[] bytes = inputStream.readAllBytes();
             try (PDDocument document = Loader.loadPDF(bytes)) {
@@ -109,6 +167,26 @@ public class PdfParser extends PDFTextStripper implements DocumentParser {
             }
         }
         return fullText.toString();
+    }
+
+    private static byte[] bufferedImageToBytes(BufferedImage image) throws IOException {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        BufferedImage rgbImage = ensureRgbColorSpace(image);
+        ImageIO.write(rgbImage, "png", baos);
+        return baos.toByteArray();
+    }
+
+    private static BufferedImage ensureRgbColorSpace(BufferedImage image) {
+        if (image.getColorModel().getNumColorComponents() <= 3
+                && !image.getColorModel().hasAlpha()) {
+            return image;
+        }
+        BufferedImage rgbImage = new BufferedImage(
+                image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g = rgbImage.createGraphics();
+        g.drawImage(image, 0, 0, null);
+        g.dispose();
+        return rgbImage;
     }
 
     /**
@@ -171,11 +249,15 @@ public class PdfParser extends PDFTextStripper implements DocumentParser {
     }
 
     /**
-     * 将合并后的文本行转为 Markdown：标题用 #，段落用普通文本，换页用空行分隔
+     * 将合并后的文本行转为 Markdown：标题用 #，段落用普通文本，图片用 ![](url)
      */
     private static String toMarkdown(List<TextLine> lines, HeadingContext ctx) {
         StringBuilder md = new StringBuilder();
         for (TextLine line : lines) {
+            if (IMAGE_STYLE.equals(line.fontStyle())) {
+                md.append("![](").append(line.text()).append(")").append("\n\n");
+                continue;
+            }
             String text = line.text().trim();
             if (text.isEmpty() || text.equals("\n")) {
                 md.append("\n\n");
@@ -212,7 +294,8 @@ public class PdfParser extends PDFTextStripper implements DocumentParser {
             TextLine next = lines.get(i);
             if (isSameStyle(current, next)) {
                 String combinedText = current.text() + next.text();
-                current = new TextLine(current.fontStyle(), combinedText, current.fontSize());
+                current = new TextLine(current.fontStyle(), combinedText, current.fontSize(),
+                        current.yPos(), current.pageNo());
                 merged.set(merged.size() - 1, current);
             } else {
                 merged.add(next);
@@ -224,6 +307,7 @@ public class PdfParser extends PDFTextStripper implements DocumentParser {
 
     private static boolean isSameStyle(TextLine a, TextLine b) {
         if (a == null || b == null) return false;
+        if (IMAGE_STYLE.equals(a.fontStyle()) || IMAGE_STYLE.equals(b.fontStyle())) return false;
         return a.fontSize() == b.fontSize() &&
                 a.fontStyle().equals(b.fontStyle());
     }
@@ -233,8 +317,7 @@ public class PdfParser extends PDFTextStripper implements DocumentParser {
         String lower = fontName.toLowerCase();
         if (lower.contains("bold")) return true;
         if (lower.contains("simhei") || lower.contains("heiti")) return true;
-        if (fontName.contains("黑体")) return true;
-        return false;
+        return fontName.contains("黑体");
     }
 
     private record HeadingContext(
@@ -244,11 +327,13 @@ public class PdfParser extends PDFTextStripper implements DocumentParser {
             int boldAtBaselineLevel
     ) {}
 
-    public record TextLine(String fontStyle, String text, float fontSize) {
-        public TextLine(String fontStyle, String text, float fontSize) {
+    public record TextLine(String fontStyle, String text, float fontSize, float yPos, int pageNo) {
+        public TextLine(String fontStyle, String text, float fontSize, float yPos, int pageNo) {
             this.fontStyle = fontStyle != null ? fontStyle : "unknown";
             this.text = text != null ? text : "";
             this.fontSize = fontSize;
+            this.yPos = yPos;
+            this.pageNo = pageNo;
         }
     }
 }
