@@ -20,7 +20,10 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @RequiredArgsConstructor
 @Component
@@ -38,7 +41,6 @@ public class PdfParser extends PDFTextStripper implements DocumentParser {
     @Override
     protected void writePage() throws IOException {
         super.writePage();
-        // 添加换页标记（可选，用于调试或保留段落结构）
         lines.add(new TextLine("unknown", "\n", 0));
     }
 
@@ -53,9 +55,6 @@ public class PdfParser extends PDFTextStripper implements DocumentParser {
         lines.add(new TextLine(fontName, text, fontSize));
     }
 
-    /**
-     * 安全获取字体名称
-     */
     private String getFontName(PDFont font) {
         if (font == null) {
             return "unknown";
@@ -79,51 +78,99 @@ public class PdfParser extends PDFTextStripper implements DocumentParser {
                 this.setSortByPosition(true);
                 this.setStartPage(1);
                 this.setEndPage(document.getNumberOfPages());
-                this.getText(document); // 触发 writeString 调用
+                this.getText(document);
                 List<TextLine> mergedLines = mergeConsecutiveLines(lines);
-                return mergedLines.stream()
-                        .map(TextLine::text)
-                        .reduce(new StringBuilder(), StringBuilder::append, StringBuilder::append)
-                        .toString();
+                Map<Float, Integer> fontSizeToHeadingLevel = buildFontSizeHeadingMap(mergedLines);
+                return toMarkdown(mergedLines, fontSizeToHeadingLevel);
             }
         } catch (IOException e) {
             throw new RuntimeException("Failed to parse PDF from input stream", e);
         }
     }
 
-
     private static boolean isScannedPDF(PDDocument document) throws IOException {
         String text = stripper.getText(document);
-        // 去除空白字符后判断是否为空或极短
         String cleanText = text.replaceAll("\\s+", "");
-        return cleanText.length() < 10; // 阈值可调
+        return cleanText.length() < 10;
     }
 
-    /**
-     * 对扫描版 PDF 执行 OCR：逐页渲染为图像 → OCR → 合并结果
-     */
     private static String extractTextFromScannedPDF(PDDocument document) throws IOException {
         PDFRenderer renderer = new PDFRenderer(document);
         StringBuilder fullText = new StringBuilder();
         int totalPages = document.getNumberOfPages();
         for (int i = 0; i < totalPages; i++) {
-            // 渲染 PDF 页面为 BufferedImage（DPI 越高 OCR 效果越好，但速度越慢）
             BufferedImage image = renderer.renderImage(i);
-            // 将 BufferedImage 写入临时文件（因当前 OCR 库只接受文件路径）
             Path tempFile = Files.createTempFile("pdf_page_", ".png");
             try {
                 ImageIO.write(image, "png", tempFile.toFile());
-                // 执行 OCR
                 OcrResult result = engine.runOcr(tempFile.toString());
-                fullText.append(result.getStrRes()).append("\n\n"); // 每页加空行分隔
+                fullText.append(result.getStrRes()).append("\n\n");
             } finally {
-                // 删除临时文件
                 Files.deleteIfExists(tempFile);
             }
         }
         return fullText.toString();
     }
 
+    /**
+     * 统计各字号出现次数，按出现次数降序排列，
+     * 出现最多的字号视为正文基准，比基准大的字号按大小映射为标题层级
+     */
+    private static Map<Float, Integer> buildFontSizeHeadingMap(List<TextLine> lines) {
+        // 统计非换行、非零字号的频率
+        Map<Float, Integer> freq = new LinkedHashMap<>();
+        for (TextLine line : lines) {
+            if (line.fontSize() > 0 && !line.text().equals("\n")) {
+                freq.merge(line.fontSize(), 1, Integer::sum);
+            }
+        }
+        if (freq.isEmpty()) {
+            return Map.of();
+        }
+        // 找到出现次数最多的字号作为正文基准
+        float bodyFontSize = freq.entrySet().stream()
+                .max(Map.Entry.comparingByValue())
+                .map(Map.Entry::getKey)
+                .orElse(12f);
+
+        // 比基准字号大的按从大到小排序，映射为 h1 ~ h6
+        List<Float> headingSizes = freq.keySet().stream()
+                .filter(s -> s > bodyFontSize)
+                .sorted(Comparator.reverseOrder())
+                .toList();
+
+        Map<Float, Integer> sizeToLevel = new LinkedHashMap<>();
+        for (int i = 0; i < headingSizes.size() && i < 6; i++) {
+            sizeToLevel.put(headingSizes.get(i), i + 1); // h1=1, h2=2, ...
+        }
+        // 基准字号及更小的字号 → 段落（level=0）
+        sizeToLevel.put(bodyFontSize, 0);
+        freq.keySet().stream()
+                .filter(s -> s < bodyFontSize && s > 0)
+                .forEach(s -> sizeToLevel.put(s, 0));
+        return sizeToLevel;
+    }
+
+    /**
+     * 将合并后的文本行转为 Markdown：标题用 #，段落用普通文本，换页用空行分隔
+     */
+    private static String toMarkdown(List<TextLine> lines, Map<Float, Integer> fontSizeToLevel) {
+        StringBuilder md = new StringBuilder();
+        for (TextLine line : lines) {
+            String text = line.text().trim();
+            if (text.isEmpty() || text.equals("\n")) {
+                md.append("\n\n");
+                continue;
+            }
+            int level = fontSizeToLevel.getOrDefault(line.fontSize(), 0);
+            if (level > 0) {
+                md.append("#".repeat(level)).append(" ").append(text).append("\n\n");
+            } else {
+                md.append(text).append("\n\n");
+            }
+        }
+        return md.toString().trim();
+    }
 
     /**
      * 合并连续具有相同字体和字号的文本行
@@ -133,12 +180,11 @@ public class PdfParser extends PDFTextStripper implements DocumentParser {
             return new ArrayList<>();
         }
         List<TextLine> merged = new ArrayList<>();
-       TextLine current = lines.get(0);
+        TextLine current = lines.getFirst();
         merged.add(current);
         for (int i = 1; i < lines.size(); i++) {
-           TextLine next = lines.get(i);
+            TextLine next = lines.get(i);
             if (isSameStyle(current, next)) {
-                // 合并文本（保留原始内容，不强制加空格）
                 String combinedText = current.text() + next.text();
                 current = new TextLine(current.fontStyle(), combinedText, current.fontSize());
                 merged.set(merged.size() - 1, current);
@@ -156,7 +202,6 @@ public class PdfParser extends PDFTextStripper implements DocumentParser {
                 a.fontStyle().equals(b.fontStyle());
     }
 
-    // ---------------- 内部数据类 ----------------
     public record TextLine(String fontStyle, String text, float fontSize) {
         public TextLine(String fontStyle, String text, float fontSize) {
             this.fontStyle = fontStyle != null ? fontStyle : "unknown";
@@ -164,6 +209,4 @@ public class PdfParser extends PDFTextStripper implements DocumentParser {
             this.fontSize = fontSize;
         }
     }
-
-
 }
