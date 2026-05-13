@@ -41,7 +41,6 @@ public class PdfParser extends PDFTextStripper implements DocumentParser {
     @Override
     protected void writePage() throws IOException {
         super.writePage();
-        lines.add(new TextLine("unknown", "\n", 0));
     }
 
     @Override
@@ -80,8 +79,8 @@ public class PdfParser extends PDFTextStripper implements DocumentParser {
                 this.setEndPage(document.getNumberOfPages());
                 this.getText(document);
                 List<TextLine> mergedLines = mergeConsecutiveLines(lines);
-                Map<Float, Integer> fontSizeToHeadingLevel = buildFontSizeHeadingMap(mergedLines);
-                return toMarkdown(mergedLines, fontSizeToHeadingLevel);
+                HeadingContext ctx = buildFontSizeHeadingMap(mergedLines);
+                return toMarkdown(mergedLines, ctx);
             }
         } catch (IOException e) {
             throw new RuntimeException("Failed to parse PDF from input stream", e);
@@ -113,10 +112,9 @@ public class PdfParser extends PDFTextStripper implements DocumentParser {
     }
 
     /**
-     * 统计各字号出现次数，按出现次数降序排列，
-     * 出现最多的字号视为正文基准，比基准大的字号按大小映射为标题层级
+     * 统计字号频率确定正文基准，结合字体粗体特征映射标题层级
      */
-    private static Map<Float, Integer> buildFontSizeHeadingMap(List<TextLine> lines) {
+    private static HeadingContext buildFontSizeHeadingMap(List<TextLine> lines) {
         // 统计非换行、非零字号的频率
         Map<Float, Integer> freq = new LinkedHashMap<>();
         for (TextLine line : lines) {
@@ -125,13 +123,26 @@ public class PdfParser extends PDFTextStripper implements DocumentParser {
             }
         }
         if (freq.isEmpty()) {
-            return Map.of();
+            return new HeadingContext(Map.of(), 12f, false, 1);
         }
         // 找到出现次数最多的字号作为正文基准
         float bodyFontSize = freq.entrySet().stream()
                 .max(Map.Entry.comparingByValue())
                 .map(Map.Entry::getKey)
                 .orElse(12f);
+
+        // 统计正文基准字号下各字体名频率，判断正文主流字体是否粗体
+        Map<String, Integer> fontFreqAtBodySize = new LinkedHashMap<>();
+        for (TextLine line : lines) {
+            if (line.fontSize() == bodyFontSize && !line.text().equals("\n")) {
+                fontFreqAtBodySize.merge(line.fontStyle(), 1, Integer::sum);
+            }
+        }
+        String bodyFontName = fontFreqAtBodySize.entrySet().stream()
+                .max(Map.Entry.comparingByValue())
+                .map(Map.Entry::getKey)
+                .orElse("unknown");
+        boolean bodyIsBold = isBoldFont(bodyFontName);
 
         // 比基准字号大的按从大到小排序，映射为 h1 ~ h6
         List<Float> headingSizes = freq.keySet().stream()
@@ -141,20 +152,28 @@ public class PdfParser extends PDFTextStripper implements DocumentParser {
 
         Map<Float, Integer> sizeToLevel = new LinkedHashMap<>();
         for (int i = 0; i < headingSizes.size() && i < 6; i++) {
-            sizeToLevel.put(headingSizes.get(i), i + 1); // h1=1, h2=2, ...
+            sizeToLevel.put(headingSizes.get(i), i + 1);
         }
         // 基准字号及更小的字号 → 段落（level=0）
         sizeToLevel.put(bodyFontSize, 0);
         freq.keySet().stream()
                 .filter(s -> s < bodyFontSize && s > 0)
                 .forEach(s -> sizeToLevel.put(s, 0));
-        return sizeToLevel;
+
+        // 粗体正文基准字号标题层级 = 字号标题最大层级 + 1
+        int maxHeadingLevel = sizeToLevel.values().stream()
+                .filter(l -> l > 0)
+                .max(Integer::compare)
+                .orElse(0);
+        int boldAtBaselineLevel = Math.min(maxHeadingLevel + 1, 6);
+
+        return new HeadingContext(sizeToLevel, bodyFontSize, bodyIsBold, boldAtBaselineLevel);
     }
 
     /**
      * 将合并后的文本行转为 Markdown：标题用 #，段落用普通文本，换页用空行分隔
      */
-    private static String toMarkdown(List<TextLine> lines, Map<Float, Integer> fontSizeToLevel) {
+    private static String toMarkdown(List<TextLine> lines, HeadingContext ctx) {
         StringBuilder md = new StringBuilder();
         for (TextLine line : lines) {
             String text = line.text().trim();
@@ -162,7 +181,14 @@ public class PdfParser extends PDFTextStripper implements DocumentParser {
                 md.append("\n\n");
                 continue;
             }
-            int level = fontSizeToLevel.getOrDefault(line.fontSize(), 0);
+            int level = ctx.fontSizeToLevel().getOrDefault(line.fontSize(), 0);
+            // 粗体正文基准字号 → 子标题
+            if (level == 0
+                    && line.fontSize() == ctx.bodyFontSize()
+                    && isBoldFont(line.fontStyle())
+                    && !ctx.bodyIsBold()) {
+                level = ctx.boldAtBaselineLevel();
+            }
             if (level > 0) {
                 md.append("#".repeat(level)).append(" ").append(text).append("\n\n");
             } else {
@@ -201,6 +227,22 @@ public class PdfParser extends PDFTextStripper implements DocumentParser {
         return a.fontSize() == b.fontSize() &&
                 a.fontStyle().equals(b.fontStyle());
     }
+
+    private static boolean isBoldFont(String fontName) {
+        if (fontName == null || fontName.isEmpty()) return false;
+        String lower = fontName.toLowerCase();
+        if (lower.contains("bold")) return true;
+        if (lower.contains("simhei") || lower.contains("heiti")) return true;
+        if (fontName.contains("黑体")) return true;
+        return false;
+    }
+
+    private record HeadingContext(
+            Map<Float, Integer> fontSizeToLevel,
+            float bodyFontSize,
+            boolean bodyIsBold,
+            int boldAtBaselineLevel
+    ) {}
 
     public record TextLine(String fontStyle, String text, float fontSize) {
         public TextLine(String fontStyle, String text, float fontSize) {
