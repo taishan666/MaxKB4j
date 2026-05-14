@@ -359,9 +359,7 @@ public class PdfParser extends PDFTextStripper implements DocumentParser {
     private static boolean isBoldFont(String fontName) {
         if (fontName == null || fontName.isEmpty()) return false;
         String lower = fontName.toLowerCase();
-        if (lower.contains("bold")) return true;
-        if (lower.contains("simhei") || lower.contains("heiti")) return true;
-        return fontName.contains("黑体");
+        return lower.contains("simhei") || lower.contains("heiti") || lower.contains("bold") || fontName.contains("黑体");
     }
 
     private record HeadingContext(
