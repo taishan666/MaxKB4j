@@ -50,6 +50,8 @@ public class PdfParser extends PDFTextStripper implements DocumentParser {
     private static final InferenceEngine engine = InferenceEngine.getInstance(Model.ONNX_PPOCR_V4);
     private static final Pattern PAGE_NUM_DASH = Pattern.compile("^—\\d+—$");
     private static final Pattern PAGE_NUM_PURE = Pattern.compile("^\\d+$");
+    private static final int MAX_INDENTATION_DISTANCE=150;
+    private static final int MAX_TITLE_SIZE=100;
 
     @Override
     public List<String> getExtensions() {
@@ -186,7 +188,7 @@ public class PdfParser extends PDFTextStripper implements DocumentParser {
         try {
             String text = stripper.getText(document);
             String cleanText = text.replaceAll("\\s+", "");
-            return cleanText.length() < 10;
+            return cleanText.trim().length() < 10;
         } catch (IOException e) {
             log.error(e.getMessage());
             return false;
@@ -237,7 +239,7 @@ public class PdfParser extends PDFTextStripper implements DocumentParser {
         // 统计非换行、非零字号的频率
         Map<Float, Integer> freq0 = new LinkedHashMap<>();
         for (TextLine line : lines) {
-            if (line.fontSize() < 100 && line.xPos() < 150) {
+            if (line.fontSize() < MAX_TITLE_SIZE && line.xPos() < MAX_INDENTATION_DISTANCE) {
                 freq0.merge(line.fontSize(), 1, Integer::sum);
             }
         }
