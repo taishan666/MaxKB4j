@@ -25,6 +25,7 @@ import com.maxkb4j.workflow.model.KnowledgeParams;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
@@ -137,6 +138,17 @@ public class KnowledgeController {
     @GetMapping("/knowledge/{id}/export_zip")
     public void exportZip(@PathVariable("id") String id, HttpServletResponse response) throws IOException {
         knowledgeService.exportExcelZip(id, response);
+    }
+
+    @SaCheckPerm(PermissionEnum.KNOWLEDGE_EXPORT)
+    @GetMapping("/knowledge/{id}/export_knowledge")
+    public void exportKnowledge(@PathVariable("id") String id, HttpServletResponse response) throws IOException {
+        knowledgeService.exportKnowledge(id, response);
+    }
+
+    @PostMapping("/knowledge/import_knowledge")
+    public R<KnowledgeEntity> importKnowledge(@RequestParam("file") MultipartFile file) throws IOException {
+        return R.success(knowledgeService.importKnowledgeZip(file));
     }
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_CREATE)

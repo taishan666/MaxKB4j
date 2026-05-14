@@ -22,6 +22,10 @@ import com.maxkb4j.knowledge.dto.KnowledgeQuery;
 import com.maxkb4j.knowledge.dto.WebKnowledgeDTO;
 import com.maxkb4j.knowledge.entity.*;
 import com.maxkb4j.knowledge.handler.KnowledgeExportHandler;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Autowired;
+import com.maxkb4j.knowledge.handler.KnowledgeImportHandler;
 import com.maxkb4j.knowledge.mapper.KnowledgeMapper;
 import com.maxkb4j.knowledge.mapper.ParagraphMapper;
 import com.maxkb4j.knowledge.mapper.ProblemMapper;
@@ -49,6 +53,7 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.*;
@@ -78,6 +83,10 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
     private final KnowledgeVersionService knowledgeVersionService;
     private final IWorkFlowActuator workFlowActuator;
     private final KnowledgeExportHandler knowledgeExportHandler;
+    
+    @Lazy
+    @Autowired
+    private KnowledgeImportHandler knowledgeImportHandler;
     private final NodeBuilder nodeBuilder;
     private final IResourceMappingService resourceMappingService;
     private final TaskExecutor workflowExecutor;
@@ -158,6 +167,23 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
         List<DocumentEntity> docs = getDocumentsByKnowledgeId(id);
         knowledgeExportHandler.setExcelResponseHeader(response, dataset.getName());
         knowledgeExportHandler.writeMultiSheetExcel(response.getOutputStream(), docs);
+    }
+
+    // 导出知识库ZIP包（包含knowledge.json和knowledge.xlsx）
+    public void exportKnowledge(String id, HttpServletResponse response) throws IOException {
+        KnowledgeEntity knowledge = this.getById(id);
+        if (knowledge == null) {
+            throw new IllegalArgumentException("未找到知识库 ID: " + id);
+        }
+        List<DocumentEntity> docs = getDocumentsByKnowledgeId(id);
+        knowledgeExportHandler.exportKnowledgeZip(docs, knowledge.getName(), knowledge.getDesc(),
+                knowledge.getType(), knowledge.getMeta(), knowledge.getFileSizeLimit(),
+                knowledge.getFileCountLimit(), response);
+    }
+
+    // 导入知识库ZIP包
+    public KnowledgeEntity importKnowledgeZip(MultipartFile file) throws IOException {
+        return knowledgeImportHandler.importKnowledgeFromZip(file);
     }
 
 

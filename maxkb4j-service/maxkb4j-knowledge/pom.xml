@@ -113,6 +113,12 @@
             <groupId>io.github.mymonstercat</groupId>
             <artifactId>rapidocr-onnx-linux-x86_64</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.tarzan</groupId>
+            <artifactId>maxkb4j-model</artifactId>
+            <version>1.0.0</version>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
 
 </project>
