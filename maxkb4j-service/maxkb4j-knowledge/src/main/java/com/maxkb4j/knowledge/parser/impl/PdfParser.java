@@ -109,10 +109,11 @@ public class PdfParser extends PDFTextStripper implements DocumentParser {
         TextPosition first = textPositions.getFirst();
         String fontName = getFontName(first.getFont());
         float fontSize = first.getFontSizeInPt();
+        float xPos = first.getXDirAdj();
         float yPos = first.getYDirAdj();
         float maxHeight = first.getHeight();
-      //  int pageNo = getCurrentPageNo();
-        currentPageLines.add(new TextLine(fontName, text, fontSize, maxHeight, yPos));
+        TextLine textLine = new TextLine(fontName, text, fontSize, maxHeight, xPos, yPos);
+        currentPageLines.add(textLine);
     }
 
 
@@ -156,6 +157,7 @@ public class PdfParser extends PDFTextStripper implements DocumentParser {
 
 
     private void handleImageInStream(PDImageXObject image) throws IOException {
+        float translateX = getGraphicsState().getCurrentTransformationMatrix().getTranslateX();
         float translateY = getGraphicsState().getCurrentTransformationMatrix().getTranslateY();
         float yPos = currentPageHeight - translateY;
         BufferedImage bufferedImage = image.getImage();
@@ -164,7 +166,7 @@ public class PdfParser extends PDFTextStripper implements DocumentParser {
         int imgIndex = currentPageImages.size();
         String fileName = "pdf_p" + pageNo + "_img" + imgIndex + ".png";
         OssFile ossFile = mongoFileService.uploadFile(fileName, imageBytes);
-        currentPageImages.add(new TextLine(IMAGE_STYLE, ossFile.getUrl(), 0, image.getHeight(), yPos));
+        currentPageImages.add(new TextLine(IMAGE_STYLE, ossFile.getUrl(), 0, 0, translateX, yPos));
     }
 
 
@@ -233,14 +235,21 @@ public class PdfParser extends PDFTextStripper implements DocumentParser {
      */
     private static HeadingContext buildFontSizeHeadingMap(List<TextLine> lines) {
         // 统计非换行、非零字号的频率
-        Map<Float, Integer> freq = new LinkedHashMap<>();
+        Map<Float, Integer> freq0 = new LinkedHashMap<>();
         for (TextLine line : lines) {
-            if (line.fontSize() > 0) {
-                freq.merge(line.fontSize(), line.text().length(), Integer::sum);
+            if (line.fontSize() < 100 && line.xPos() < 150) {
+                freq0.merge(line.fontSize(), 1, Integer::sum);
             }
         }
-        if (freq.isEmpty()) {
+        if (freq0.isEmpty()) {
             return new HeadingContext(Map.of(), 12f, false, 1);
+        }
+        Map<Float, Integer> freq = new LinkedHashMap<>();
+        for (Float key : freq0.keySet()) {
+            Integer num = freq0.get(key);
+            if (num > 1) {
+                freq.put(key, num);
+            }
         }
         // 找到出现次数最多的字号作为正文基准
         float bodyFontSize = freq.entrySet().stream()
@@ -251,7 +260,7 @@ public class PdfParser extends PDFTextStripper implements DocumentParser {
         // 统计正文基准字号下各字体名频率，判断正文主流字体是否粗体
         Map<String, Integer> fontFreqAtBodySize = new LinkedHashMap<>();
         for (TextLine line : lines) {
-            if (line.fontSize() == bodyFontSize && !line.text().equals("\n")) {
+            if (line.fontSize() == bodyFontSize) {
                 fontFreqAtBodySize.merge(line.fontStyle(), 1, Integer::sum);
             }
         }
@@ -276,7 +285,6 @@ public class PdfParser extends PDFTextStripper implements DocumentParser {
         freq.keySet().stream()
                 .filter(s -> s < bodyFontSize && s > 0)
                 .forEach(s -> sizeToLevel.put(s, 0));
-
         // 粗体正文基准字号标题层级 = 字号标题最大层级 + 1
         int maxHeadingLevel = sizeToLevel.values().stream()
                 .filter(l -> l > 0)
@@ -309,7 +317,7 @@ public class PdfParser extends PDFTextStripper implements DocumentParser {
                     && !ctx.bodyIsBold()) {
                 level = ctx.boldAtBaselineLevel();
             }
-            if (level > 0) {
+            if (level > 0 && line.xPos() < 150) {
                 md.append("#".repeat(level)).append(" ").append(text).append("\n\n");
             } else {
                 md.append(text).append("\n");
@@ -332,7 +340,7 @@ public class PdfParser extends PDFTextStripper implements DocumentParser {
             TextLine next = lines.get(i);
             if (isSameRow(current, next)) {
                 String combinedText = current.text() + next.text();
-                current = new TextLine(current.fontStyle(), combinedText, current.fontSize(), current.maxHeight(), next.yPos());
+                current = new TextLine(current.fontStyle(), combinedText, current.fontSize(), current.maxHeight(), current.xPos(), current.yPos());
                 merged.set(merged.size() - 1, current);
             } else {
                 merged.add(next);
@@ -364,12 +372,13 @@ public class PdfParser extends PDFTextStripper implements DocumentParser {
     ) {
     }
 
-    public record TextLine(String fontStyle, String text, float fontSize, float maxHeight, float yPos) {
-        public TextLine(String fontStyle, String text, float fontSize, float maxHeight, float yPos) {
+    public record TextLine(String fontStyle, String text, float fontSize, float maxHeight, float xPos, float yPos) {
+        public TextLine(String fontStyle, String text, float fontSize, float maxHeight, float xPos, float yPos) {
             this.fontStyle = fontStyle != null ? fontStyle : "unknown";
             this.text = text != null ? text : "";
             this.fontSize = fontSize;
             this.maxHeight = maxHeight;
+            this.xPos = xPos;
             this.yPos = yPos;
         }
     }
