@@ -1,5 +1,6 @@
 package com.maxkb4j.knowledge.parser.impl;
 
+import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.benjaminwan.ocrlibrary.OcrResult;
 import com.maxkb4j.common.domain.dto.OssFile;
 import com.maxkb4j.knowledge.parser.DocumentParser;
@@ -31,6 +32,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @RequiredArgsConstructor
 @Component
@@ -40,7 +43,7 @@ public class PdfParser extends PDFTextStripper implements DocumentParser {
     private static final String IMAGE_STYLE = "IMAGE";
     private List<TextLine> lines;
     private float currentPageHeight;
-    private int pageStartIndex;
+    private List<TextLine> currentPageLines;
     private List<TextLine> currentPageImages;
     private final static PDFTextStripper stripper = new PDFTextStripper();
     private final static InferenceEngine engine = InferenceEngine.getInstance(Model.ONNX_PPOCR_V4);
@@ -52,11 +55,13 @@ public class PdfParser extends PDFTextStripper implements DocumentParser {
 
     @Override
     public void processPage(PDPage page) throws IOException {
+        System.out.println("---------processPage----------");
         currentPageHeight = page.getCropBox().getHeight();
         currentPageImages = new ArrayList<>();
-        pageStartIndex = lines.size();
+        currentPageLines = new ArrayList<>();
         super.processPage(page);
     }
+
 
     @Override
     protected void processOperator(Operator operator, List<COSBase> operands) throws IOException {
@@ -71,32 +76,47 @@ public class PdfParser extends PDFTextStripper implements DocumentParser {
         super.processOperator(operator, operands);
     }
 
-    private void handleImageInStream(PDImageXObject image) throws IOException {
-        if (image.getWidth() < 100 || image.getHeight() < 100) return;
-
-        float translateY = getGraphicsState().getCurrentTransformationMatrix().getTranslateY();
-        float yPos = currentPageHeight - translateY;
-
-        BufferedImage bufferedImage = image.getImage();
-        byte[] imageBytes = bufferedImageToBytes(bufferedImage);
-        int pageNo = getCurrentPageNo();
-        int imgIndex = currentPageImages.size();
-        String fileName = "pdf_p" + pageNo + "_img" + imgIndex + ".png";
-        OssFile ossFile = mongoFileService.uploadFile(fileName, imageBytes);
-
-        currentPageImages.add(new TextLine(IMAGE_STYLE, ossFile.getUrl(), 0, yPos, pageNo));
-    }
 
     @Override
-    protected void writePage() throws IOException {
-        super.writePage();
-        List<TextLine> pageEntries = new ArrayList<>();
-        pageEntries.addAll(lines.subList(pageStartIndex, lines.size()));
-        pageEntries.addAll(currentPageImages);
-        pageEntries.sort(Comparator.comparing(TextLine::yPos));
-        lines.subList(pageStartIndex, lines.size()).clear();
-        lines.addAll(pageEntries);
+    protected void endPage(PDPage page) throws IOException {
+        List<TextLine> mergedLines = mergeConsecutiveLines(currentPageLines);
+        if (CollectionUtils.isNotEmpty(mergedLines)) {
+            clearPageNumber(mergedLines, "^—\\d+—$");
+            clearPageNumber(mergedLines, "^\\d+$");
+        }
+        for (TextLine currentPageImage : currentPageImages) {
+            float imgYPos = currentPageImage.yPos();
+            for (int i = 0; i < mergedLines.size(); i++) {
+                TextLine textLine=mergedLines.get(i);
+                float yPos = textLine.yPos();
+                if (yPos>imgYPos){
+                    mergedLines.set(i,currentPageImage);
+                    break;
+                }
+            }
+        }
+        lines.addAll(mergedLines);
+        System.out.println("尾页: " + currentPageImages.size());
     }
+
+    private void clearPageNumber(List<TextLine> lines, String regex) {
+        if (CollectionUtils.isNotEmpty(lines)) {
+            TextLine first = lines.getFirst();
+            TextLine last = lines.getLast();
+            // 预编译Pattern对象，提高匹配效率（参考）
+            Pattern pattern = Pattern.compile(regex);
+            Matcher matcher1 = pattern.matcher(first.text());
+            Matcher matcher2 = pattern.matcher(last.text());
+            //去除pdf页码
+            if (matcher1.matches()) {
+                lines.removeFirst();
+            }
+            if (matcher2.matches()) {
+                lines.removeLast();
+            }
+        }
+    }
+
 
     @Override
     protected void writeString(String text, List<TextPosition> textPositions) {
@@ -107,20 +127,12 @@ public class PdfParser extends PDFTextStripper implements DocumentParser {
         String fontName = getFontName(first.getFont());
         float fontSize = first.getFontSizeInPt();
         float yPos = first.getYDirAdj();
+        float maxHeight = first.getHeight();
         int pageNo = getCurrentPageNo();
-        lines.add(new TextLine(fontName, text, fontSize, yPos, pageNo));
+        currentPageLines.add(new TextLine(fontName, text, fontSize, maxHeight, yPos, pageNo));
+        System.out.println("写入内容：" + text + " " + yPos);
     }
 
-    private String getFontName(PDFont font) {
-        if (font == null) {
-            return "unknown";
-        }
-        try {
-            return font.getName();
-        } catch (Exception e) {
-            return "unknown";
-        }
-    }
 
     @Override
     public String handle(InputStream inputStream) {
@@ -136,14 +148,40 @@ public class PdfParser extends PDFTextStripper implements DocumentParser {
                 this.setStartPage(1);
                 this.setEndPage(document.getNumberOfPages());
                 this.getText(document);
-                List<TextLine> mergedLines = mergeConsecutiveLines(lines);
-                HeadingContext ctx = buildFontSizeHeadingMap(mergedLines);
-                return toMarkdown(mergedLines, ctx);
+              //  List<TextLine> mergedLines = mergeConsecutiveLines(lines);
+                HeadingContext ctx = buildFontSizeHeadingMap(lines);
+                return toMarkdown(lines, ctx);
             }
         } catch (IOException e) {
             throw new RuntimeException("Failed to parse PDF from input stream", e);
         }
     }
+
+    private void handleImageInStream(PDImageXObject image) throws IOException {
+        float translateY = getGraphicsState().getCurrentTransformationMatrix().getTranslateY();
+        float yPos = currentPageHeight - translateY;
+        System.out.println("提取图片 " + image.getHeight() + " " + yPos + " " + image.getSuffix());
+        BufferedImage bufferedImage = image.getImage();
+        byte[] imageBytes = bufferedImageToBytes(bufferedImage);
+        int pageNo = getCurrentPageNo();
+        int imgIndex = currentPageImages.size();
+        String fileName = "pdf_p" + pageNo + "_img" + imgIndex + ".png";
+        OssFile ossFile = mongoFileService.uploadFile(fileName, imageBytes);
+        currentPageImages.add(new TextLine(IMAGE_STYLE, ossFile.getUrl(), 0, 0, yPos, pageNo));
+    }
+
+
+    private String getFontName(PDFont font) {
+        if (font == null) {
+            return "unknown";
+        }
+        try {
+            return font.getName();
+        } catch (Exception e) {
+            return "unknown";
+        }
+    }
+
 
     private static boolean isScannedPDF(PDDocument document) throws IOException {
         String text = stripper.getText(document);
@@ -170,10 +208,10 @@ public class PdfParser extends PDFTextStripper implements DocumentParser {
     }
 
     private static byte[] bufferedImageToBytes(BufferedImage image) throws IOException {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ByteArrayOutputStream baoStream = new ByteArrayOutputStream();
         BufferedImage rgbImage = ensureRgbColorSpace(image);
-        ImageIO.write(rgbImage, "png", baos);
-        return baos.toByteArray();
+        ImageIO.write(rgbImage, "png", baoStream);
+        return baoStream.toByteArray();
     }
 
     private static BufferedImage ensureRgbColorSpace(BufferedImage image) {
@@ -196,8 +234,8 @@ public class PdfParser extends PDFTextStripper implements DocumentParser {
         // 统计非换行、非零字号的频率
         Map<Float, Integer> freq = new LinkedHashMap<>();
         for (TextLine line : lines) {
-            if (line.fontSize() > 0 && !line.text().equals("\n")) {
-                freq.merge(line.fontSize(), 1, Integer::sum);
+            if (line.fontSize() > 0) {
+                freq.merge(line.fontSize(), line.text().length(), Integer::sum);
             }
         }
         if (freq.isEmpty()) {
@@ -255,12 +293,12 @@ public class PdfParser extends PDFTextStripper implements DocumentParser {
         StringBuilder md = new StringBuilder();
         for (TextLine line : lines) {
             if (IMAGE_STYLE.equals(line.fontStyle())) {
-                md.append("![](").append(line.text()).append(")").append("\n\n");
+                md.append("![](").append(line.text()).append(")").append("\n");
                 continue;
             }
             String text = line.text().trim();
             if (text.isEmpty() || text.equals("\n")) {
-                md.append("\n\n");
+                md.append("\n");
                 continue;
             }
             int level = ctx.fontSizeToLevel().getOrDefault(line.fontSize(), 0);
@@ -274,7 +312,7 @@ public class PdfParser extends PDFTextStripper implements DocumentParser {
             if (level > 0) {
                 md.append("#".repeat(level)).append(" ").append(text).append("\n\n");
             } else {
-                md.append(text).append("\n\n");
+                md.append(text).append("\n");
             }
         }
         return md.toString().trim();
@@ -292,10 +330,9 @@ public class PdfParser extends PDFTextStripper implements DocumentParser {
         merged.add(current);
         for (int i = 1; i < lines.size(); i++) {
             TextLine next = lines.get(i);
-            if (isSameStyle(current, next)) {
+            if (isSameRow(current, next)) {
                 String combinedText = current.text() + next.text();
-                current = new TextLine(current.fontStyle(), combinedText, current.fontSize(),
-                        current.yPos(), current.pageNo());
+                current = new TextLine(current.fontStyle(), combinedText, current.fontSize(), current.maxHeight(), next.yPos(), current.pageNo());
                 merged.set(merged.size() - 1, current);
             } else {
                 merged.add(next);
@@ -305,11 +342,10 @@ public class PdfParser extends PDFTextStripper implements DocumentParser {
         return merged;
     }
 
-    private static boolean isSameStyle(TextLine a, TextLine b) {
+    private static boolean isSameRow(TextLine a, TextLine b) {
         if (a == null || b == null) return false;
-        if (IMAGE_STYLE.equals(a.fontStyle()) || IMAGE_STYLE.equals(b.fontStyle())) return false;
-        return a.fontSize() == b.fontSize() &&
-                a.fontStyle().equals(b.fontStyle());
+        float diff = Math.abs(a.yPos - b.yPos);
+        return diff <= 2.2;
     }
 
     private static boolean isBoldFont(String fontName) {
@@ -325,13 +361,15 @@ public class PdfParser extends PDFTextStripper implements DocumentParser {
             float bodyFontSize,
             boolean bodyIsBold,
             int boldAtBaselineLevel
-    ) {}
+    ) {
+    }
 
-    public record TextLine(String fontStyle, String text, float fontSize, float yPos, int pageNo) {
-        public TextLine(String fontStyle, String text, float fontSize, float yPos, int pageNo) {
+    public record TextLine(String fontStyle, String text, float fontSize, float maxHeight, float yPos, int pageNo) {
+        public TextLine(String fontStyle, String text, float fontSize, float maxHeight, float yPos, int pageNo) {
             this.fontStyle = fontStyle != null ? fontStyle : "unknown";
             this.text = text != null ? text : "";
             this.fontSize = fontSize;
+            this.maxHeight = maxHeight;
             this.yPos = yPos;
             this.pageNo = pageNo;
         }

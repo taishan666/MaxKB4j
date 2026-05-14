@@ -60,36 +60,32 @@ public class DocParser implements DocumentParser {
 
         // 🌟 关键：用于存储提取出的嵌入资源（如图片）
         Map<String, byte[]> embeddedResources = new ConcurrentHashMap<>();
+        EmbeddedDocumentExtractor embeddedDocumentExtractor = new EmbeddedDocumentExtractor() {
+            @Override
+            public boolean shouldParseEmbedded(Metadata metadata) {
+                // 只处理图片类型
+                String contentType = metadata.get(Metadata.CONTENT_TYPE);
+                return contentType != null && contentType.startsWith("image/");
+            }
 
+            @Override
+            public void parseEmbedded(
+                    InputStream inputStream,
+                    ContentHandler handler,
+                    Metadata metadata,
+                    boolean outputHtml)
+                    throws IOException {
+                String resourceName = metadata.get(TikaCoreProperties.RESOURCE_NAME_KEY);
+                // 读取图片字节
+                ByteArrayOutputStream baoStream = new ByteArrayOutputStream();
+                inputStream.transferTo(baoStream);
+                byte[] imageBytes = baoStream.toByteArray();
+                // 存储到 map，供后续替换 src 使用
+                embeddedResources.put(resourceName, imageBytes);
+            }
+        };
         // 自定义 EmbeddedDocumentExtractor
-        parseContext.set(
-                EmbeddedDocumentExtractor.class,
-                new EmbeddedDocumentExtractor() {
-                    @Override
-                    public boolean shouldParseEmbedded(Metadata metadata) {
-                        // 只处理图片类型
-                        String contentType = metadata.get(Metadata.CONTENT_TYPE);
-                        return contentType != null && contentType.startsWith("image/");
-                    }
-
-                    @Override
-                    public void parseEmbedded(
-                            InputStream inputStream,
-                            ContentHandler handler,
-                            Metadata metadata,
-                            boolean outputHtml)
-                            throws IOException {
-                        String resourceName = metadata.get(TikaCoreProperties.RESOURCE_NAME_KEY);
-                        // 读取图片字节
-                        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                        inputStream.transferTo(baos);
-                        byte[] imageBytes = baos.toByteArray();
-
-                        // 存储到 map，供后续替换 src 使用
-                        embeddedResources.put(resourceName, imageBytes);
-                    }
-                }
-        );
+        parseContext.set(EmbeddedDocumentExtractor.class,embeddedDocumentExtractor);
         // ✅ 正确创建 ToXMLContentHandler
         ToXMLContentHandler handler = new ToXMLContentHandler();
         // 解析文档为 XHTML
