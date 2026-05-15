@@ -12,7 +12,7 @@ CREATE TABLE "public"."application_long_term_memory" (
                                                          "id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
                                                          "chat_user_id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
                                                          "memory" text COLLATE "pg_catalog"."default" NOT NULL,
-                                                         "application_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
+                                                         "application_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL
 )
 ;
 
@@ -20,11 +20,11 @@ CREATE TABLE "public"."application_long_term_memory" (
 -- Indexes structure for table application_long_term_memory
 -- ----------------------------
 CREATE INDEX "application_long_term_memory_application_id_chat_user_id_idx" ON "public"."application_long_term_memory" USING btree (
-    "application_id" "pg_catalog"."uuid_ops" ASC NULLS LAST,
+    "application_id" "pg_catalog"."varchar_pattern_ops" ASC NULLS LAST,
     "chat_user_id" COLLATE "pg_catalog"."default" "pg_catalog"."text_ops" ASC NULLS LAST
     );
 CREATE INDEX "application_long_term_memory_application_id" ON "public"."application_long_term_memory" USING btree (
-    "application_id" "pg_catalog"."uuid_ops" ASC NULLS LAST
+    "application_id" "pg_catalog"."varchar_pattern_ops" ASC NULLS LAST
     );
 CREATE INDEX "application_long_term_memory_chat_user_id" ON "public"."application_long_term_memory" USING btree (
     "chat_user_id" COLLATE "pg_catalog"."default" "pg_catalog"."text_ops" ASC NULLS LAST
