@@ -15,6 +15,7 @@ public enum ModelProvider {
     DeepSeek("DeepSeek", "DeepSeek", "deepseek_icon.svg"),
     Gemini("Google Gemini", "Gemini","gemini_icon.svg"),
     Kimi("Kimi", "Kimi","kimi_icon.svg"),
+    MinMax("MinMax", "MinMax","minmax_icon.svg"),
     OpenAI("OpenAI", "OpenAI","openai_icon.svg"),
     SiliconFlow("Silicon Flow", "SiliconFlow","silicon_flow_icon.svg"),
     Tencent("腾讯混元", "Tencent","tencent_icon.svg"),
@@ -53,6 +54,7 @@ public enum ModelProvider {
             case DeepSeek -> new DeepSeekModelProvider();
             case Gemini -> new GeminiModelProvider();
             case Kimi -> new KimiModelProvider();
+            case MinMax -> new MinMaxModelProvider();
             case OpenAI -> new OpenAiModelProvider();
             case SiliconFlow -> new SiliconFlowModelProvider();
             case Tencent -> new TencentModelProvider();
