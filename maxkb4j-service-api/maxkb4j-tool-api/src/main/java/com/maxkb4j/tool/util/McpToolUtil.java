@@ -22,8 +22,8 @@ public class McpToolUtil {
         McpClient mcpClient = getMcpClient(mcpServers);
         if (Objects.nonNull(mcpClient)){
             return mcpClient.listTools().stream().collect(Collectors.toMap(
-                    mcpTool -> mcpTool,
-                    mcpTool -> new McpToolExecutor(mcpClient)
+                    toolSpecification -> toolSpecification,
+                    toolSpecification -> new McpToolExecutor(mcpClient)
             ));
         }
         return Map.of();
@@ -40,7 +40,7 @@ public class McpToolUtil {
     }
 
     @SuppressWarnings("unchecked")
-    public static McpClient getMcpClient(String key,JSONObject serverConfig) {
+    private static McpClient getMcpClient(String key,JSONObject serverConfig) {
         String url = serverConfig.getString("url");
         String type = serverConfig.getString("type");
         Map<String, String> headers =new HashMap<>();

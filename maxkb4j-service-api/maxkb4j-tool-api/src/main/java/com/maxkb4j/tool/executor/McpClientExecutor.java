@@ -1,12 +1,11 @@
 package com.maxkb4j.tool.executor;
 
 import com.alibaba.fastjson.JSONObject;
+import com.maxkb4j.common.exception.ApiException;
 import com.maxkb4j.tool.util.McpToolUtil;
 import dev.langchain4j.agent.tool.ToolExecutionRequest;
 import dev.langchain4j.mcp.client.McpClient;
 import dev.langchain4j.service.tool.ToolExecutionResult;
-
-import java.util.Optional;
 
 public class McpClientExecutor {
 
@@ -17,24 +16,22 @@ public class McpClientExecutor {
     }
 
     public String execute(String toolName,JSONObject params) {
-        Optional<String> keyOpt = mcpServers.keySet().stream().findFirst();
-        if (keyOpt.isPresent()){
-            String key = keyOpt.get();
-            JSONObject serverConfig = mcpServers.getJSONObject(key);
-            McpClient mcpClient = McpToolUtil.getMcpClient(key,serverConfig);
-            ToolExecutionRequest toolExecutionRequest=ToolExecutionRequest.builder()
-                    .name(toolName)
-                    .arguments(params.toJSONString())
-                    .build();
-            ToolExecutionResult toolExecutionResult=mcpClient.executeTool(toolExecutionRequest);
-            try {
-                mcpClient.close();
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-            return toolExecutionResult.resultText();
+        McpClient mcpClient = McpToolUtil.getMcpClient(mcpServers);
+        if (mcpClient==null){
+            throw new ApiException("未找到工具");
         }
-        return "";
+        ToolExecutionRequest toolExecutionRequest=ToolExecutionRequest.builder()
+                .name(toolName)
+                .arguments(params.toJSONString())
+                .build();
+
+        ToolExecutionResult toolExecutionResult=mcpClient.executeTool(toolExecutionRequest);
+        try {
+            mcpClient.close();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        return toolExecutionResult.resultText();
     }
 
 }
