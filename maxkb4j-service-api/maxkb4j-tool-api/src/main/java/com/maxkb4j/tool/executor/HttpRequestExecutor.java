@@ -1,4 +1,4 @@
-package com.maxkb4j.application.executor;
+package com.maxkb4j.tool.executor;
 
 import cn.hutool.http.HttpRequest;
 import cn.hutool.http.HttpResponse;
@@ -6,6 +6,7 @@ import cn.hutool.http.HttpUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.common.domain.dto.KeyAndValue;
 import com.maxkb4j.common.domain.dto.ToolHttpRequest;
+import com.maxkb4j.common.executor.AbsToolExecutor;
 import dev.langchain4j.agent.tool.ToolExecutionRequest;
 import dev.langchain4j.model.input.PromptTemplate;
 import lombok.Getter;

@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.maxkb4j.application.executor.GroovyScriptExecutor;
+import com.maxkb4j.tool.executor.GroovyScriptExecutor;
 import com.maxkb4j.application.service.IApplicationChatService;
 import com.maxkb4j.common.constant.ResourceType;
 import com.maxkb4j.common.domain.dto.ChatMessageVO;

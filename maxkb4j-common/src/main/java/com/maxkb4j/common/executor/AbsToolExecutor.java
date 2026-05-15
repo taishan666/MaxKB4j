@@ -1,4 +1,4 @@
-package com.maxkb4j.application.executor;
+package com.maxkb4j.common.executor;
 
 import dev.langchain4j.internal.Json;
 import dev.langchain4j.internal.Utils;
@@ -30,7 +30,7 @@ public abstract class AbsToolExecutor implements ToolExecutor {
     };
 
 
-    static Map<String, Object> argumentsAsMap(String arguments) {
+    protected Map<String, Object> argumentsAsMap(String arguments) {
         if (Utils.isNullOrBlank(arguments)) {
             return Map.of();
         } else {

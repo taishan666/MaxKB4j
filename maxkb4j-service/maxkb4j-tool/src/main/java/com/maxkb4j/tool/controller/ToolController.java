@@ -2,8 +2,8 @@ package com.maxkb4j.tool.controller;
 
 import cn.hutool.http.HttpResponse;
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.maxkb4j.application.executor.GroovyScriptExecutor;
-import com.maxkb4j.application.executor.HttpRequestExecutor;
+import com.maxkb4j.tool.executor.GroovyScriptExecutor;
+import com.maxkb4j.tool.executor.HttpRequestExecutor;
 import com.maxkb4j.common.annotation.SaCheckPerm;
 import com.maxkb4j.common.api.R;
 import com.maxkb4j.common.constant.AppConst;

@@ -40,7 +40,7 @@ public class McpToolUtil {
     }
 
     @SuppressWarnings("unchecked")
-    private static McpClient getMcpClient(String key,JSONObject serverConfig) {
+    public static McpClient getMcpClient(String key,JSONObject serverConfig) {
         String url = serverConfig.getString("url");
         String type = serverConfig.getString("type");
         Map<String, String> headers =new HashMap<>();

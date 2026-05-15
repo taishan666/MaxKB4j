@@ -6,12 +6,13 @@ import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.common.domain.dto.ChatResponse;
 import com.maxkb4j.common.enums.ChatSource;
 import com.maxkb4j.common.enums.ChatUserType;
+import com.maxkb4j.common.executor.AbsToolExecutor;
 import dev.langchain4j.agent.tool.ToolExecutionRequest;
 import reactor.core.publisher.Sinks;
 
 import java.util.Map;
 
-public class AgentExecutor extends AbsToolExecutor{
+public class AgentExecutor extends AbsToolExecutor {
 
     private final String appId;
     private final IApplicationChatService chatService;

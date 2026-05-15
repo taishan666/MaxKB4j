@@ -1,4 +1,4 @@
-package com.maxkb4j.application.sandbox;
+package com.maxkb4j.tool.sandbox;
 
 import org.kohsuke.groovy.sandbox.GroovyInterceptor;
 
