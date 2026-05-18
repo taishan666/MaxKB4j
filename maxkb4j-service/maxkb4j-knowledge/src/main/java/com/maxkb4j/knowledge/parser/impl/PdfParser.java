@@ -334,7 +334,7 @@ public class PdfParser extends PDFTextStripper implements DocumentParser {
             TextLine next = lines.get(i);
             if (isSameRow(current, next)) {
                 String combinedText = current.text() + next.text();
-                current = new TextLine(current.fontStyle(), combinedText, current.fontSize(), current.maxHeight(), current.xPos(), current.yPos());
+                current = new TextLine(next.fontStyle(), combinedText, next.fontSize(), next.maxHeight(), current.xPos(), next.yPos());
                 merged.set(merged.size() - 1, current);
             } else {
                 merged.add(next);
