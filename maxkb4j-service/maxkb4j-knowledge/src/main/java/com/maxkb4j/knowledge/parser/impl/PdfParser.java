@@ -50,7 +50,6 @@ public class PdfParser extends PDFTextStripper implements DocumentParser {
     private static final InferenceEngine engine = InferenceEngine.getInstance(Model.ONNX_PPOCR_V4);
     private static final Pattern PAGE_NUM_DASH = Pattern.compile("^—\\d+—$");
     private static final Pattern PAGE_NUM_PURE = Pattern.compile("^\\d+$");
-    private static final int MAX_INDENTATION_DISTANCE=150;
     private static final int MAX_TITLE_SIZE=100;
 
     @Override
@@ -237,21 +236,14 @@ public class PdfParser extends PDFTextStripper implements DocumentParser {
      */
     private static HeadingContext buildFontSizeHeadingMap(List<TextLine> lines) {
         // 统计非换行、非零字号的频率
-        Map<Float, Integer> freq0 = new LinkedHashMap<>();
-        for (TextLine line : lines) {
-            if (line.fontSize() < MAX_TITLE_SIZE && line.xPos() < MAX_INDENTATION_DISTANCE) {
-                freq0.merge(line.fontSize(), 1, Integer::sum);
-            }
-        }
-        if (freq0.isEmpty()) {
-            return new HeadingContext(Map.of(), 12f, false, 1);
-        }
         Map<Float, Integer> freq = new LinkedHashMap<>();
-        for (Float key : freq0.keySet()) {
-            Integer num = freq0.get(key);
-            if (num > 1) {
-                freq.put(key, num);
+        for (TextLine line : lines) {
+            if (line.fontSize() < MAX_TITLE_SIZE) {
+                freq.merge(line.fontSize(), 1, Integer::sum);
             }
+        }
+        if (freq.isEmpty()) {
+            return new HeadingContext(Map.of(), 12f, false, 1);
         }
         // 找到出现次数最多的字号作为正文基准
         float bodyFontSize = freq.entrySet().stream()
