@@ -101,7 +101,7 @@ public class ApplicationNodeHandler extends AbsNodeHandler {
             });
         }
 
-        ChatResponse chatResponse = future.get(5L, TimeUnit.MINUTES);
+        ChatResponse chatResponse = future.get(10L, TimeUnit.MINUTES);
 
         // 写入详情
         putDetails(node, Map.of(

@@ -48,38 +48,34 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
         log.info("Workflow completed");
     }
 
+
     protected void runChainNodes(Workflow workflow, List<AbsNode> nodeList) {
         if (nodeList == null || nodeList.isEmpty()) {
             return;
         }
-        if (nodeList.size() == 1) {
-            List<AbsNode> nextNodeList = runChainNode(workflow, nodeList.getFirst());
-            runChainNodes(workflow, nextNodeList);
-        } else {
-            List<CompletableFuture<List<AbsNode>>> futureList = new ArrayList<>();
-            for (AbsNode node : nodeList) {
-                futureList.add(CompletableFuture.supplyAsync(
-                        () -> runChainNode(workflow, node),
-                        workflowExecutor));
-            }
-            long timeoutMinutes = workflow.getNodeExecutionTimeoutMinutes();
-            for (int i = 0; i < futureList.size(); i++) {
-                try {
-                    List<AbsNode> nextNodeList = futureList.get(i).get(timeoutMinutes, TimeUnit.MINUTES);
-                    runChainNodes(workflow, nextNodeList);
-                } catch (TimeoutException e) {
-                    log.error("Node execution timeout after {} minutes", timeoutMinutes);
-                    futureList.get(i).cancel(true);
-                    AbsNode node = nodeList.get(i);
-                    // 统一使用责任链处理超时异常
-                    exceptionResolverChain.resolve(workflow, node, new RuntimeException("Node execution timeout after " + timeoutMinutes + " minutes"));
-                    node.setStatus(NodeStatus.ERROR.getStatus());
-                } catch (Exception e) {
-                    AbsNode node = nodeList.get(i);
-                    // 统一使用责任链处理执行异常
-                    exceptionResolverChain.resolve(workflow, node, e);
-                    node.setStatus(NodeStatus.ERROR.getStatus());
-                }
+        List<CompletableFuture<List<AbsNode>>> futureList = new ArrayList<>();
+        for (AbsNode node : nodeList) {
+            futureList.add(CompletableFuture.supplyAsync(
+                    () -> runChainNode(workflow, node),
+                    workflowExecutor));
+        }
+        long timeoutMinutes = workflow.getNodeExecutionTimeoutMinutes();
+        for (int i = 0; i < futureList.size(); i++) {
+            try {
+                List<AbsNode> nextNodeList = futureList.get(i).get(timeoutMinutes, TimeUnit.MINUTES);
+                runChainNodes(workflow, nextNodeList);
+            } catch (TimeoutException e) {
+                log.error("Node execution timeout after {} minutes", timeoutMinutes);
+                futureList.get(i).cancel(true);
+                AbsNode node = nodeList.get(i);
+                // 统一使用责任链处理超时异常
+                exceptionResolverChain.resolve(workflow, node, new RuntimeException("Node execution timeout after " + timeoutMinutes + " minutes"));
+                node.setStatus(NodeStatus.ERROR.getStatus());
+            } catch (Exception e) {
+                AbsNode node = nodeList.get(i);
+                // 统一使用责任链处理执行异常
+                exceptionResolverChain.resolve(workflow, node, e);
+                node.setStatus(NodeStatus.ERROR.getStatus());
             }
         }
     }

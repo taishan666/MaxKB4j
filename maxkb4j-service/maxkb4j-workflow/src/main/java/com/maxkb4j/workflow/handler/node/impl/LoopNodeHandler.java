@@ -236,7 +236,7 @@ public class LoopNodeHandler extends AbsNodeHandler {
         emitIterationEnd(workflow, node, childNodeRef);
 
         // 等待执行完成
-        future.get(5L, TimeUnit.MINUTES);
+        future.get(10L, TimeUnit.MINUTES);
 
         // 更新状态
         updateIterationState(node, loopWorkflow, ctx);
