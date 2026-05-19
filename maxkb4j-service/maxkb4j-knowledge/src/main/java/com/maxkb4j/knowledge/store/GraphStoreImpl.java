@@ -1,10 +1,11 @@
 package com.maxkb4j.knowledge.store;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.maxkb4j.core.dto.DualKeywordResult;
-import com.maxkb4j.knowledge.entity.*;
+import com.maxkb4j.knowledge.entity.EmbeddingEntity;
+import com.maxkb4j.knowledge.entity.GraphEntityEntity;
+import com.maxkb4j.knowledge.entity.GraphRelationshipEntity;
 import com.maxkb4j.knowledge.mapper.GraphEntityMapper;
 import com.maxkb4j.knowledge.mapper.GraphRelationshipMapper;
 import com.maxkb4j.knowledge.retrieval.SearchRequest;
@@ -104,7 +105,7 @@ public class GraphStoreImpl implements IDataStore {
             return Collections.emptyList();
         }
 
-        String knowledgeId = request.getKnowledgeIds().get(0);
+        String knowledgeId = request.getKnowledgeIds().getFirst();
 
         // Step 1: Extract dual-level keywords
         DualKeywordResult keywords;

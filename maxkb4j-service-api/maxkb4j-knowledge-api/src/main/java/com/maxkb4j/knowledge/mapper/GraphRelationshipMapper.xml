@@ -4,7 +4,7 @@
 <mapper namespace="com.maxkb4j.knowledge.mapper.GraphRelationshipMapper">
 
     <select id="relationshipVectorSearch" resultType="com.maxkb4j.knowledge.entity.GraphRelationshipEntity">
-        SELECT id, source_entity_id, target_entity_id, description, keywords, weight, knowledge_id, document_id, is_active, dimension,
+        SELECT id, source_entity_id, target_entity_id, description, keywords, knowledge_id, document_id, is_active, dimension,
         (1-(<![CDATA[embedding <=> #{referenceEmbedding}::vector]]>)) AS weight
         FROM graph_relationship
         WHERE is_active = true

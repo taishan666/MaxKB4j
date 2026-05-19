@@ -43,14 +43,18 @@ public class EmbeddingTypeHandler extends BaseTypeHandler<List<Float>> {
 
     private List<Float> convert(String value){
         if(notNull(value)){
-            // 去掉首尾的方括号
-            String trimmedStr = value.substring(1, value.length() - 1);
+            // 去掉首尾的方括号（如果存在）
+            String trimmedStr = value;
+            if (trimmedStr.startsWith("[") && trimmedStr.endsWith("]")) {
+                trimmedStr = trimmedStr.substring(1, trimmedStr.length() - 1);
+            }
             // 如果字符串为空，返回空列表
             if (trimmedStr.trim().isEmpty()) {
                 return Collections.emptyList();
             }
-            // 按照逗号和空格分割字符串，并将每个元素转换为 Float
-            return Arrays.stream(trimmedStr.split(", "))
+            // 按照逗号分割字符串，并将每个元素转换为 Float
+            return Arrays.stream(trimmedStr.split(","))
+                    .map(String::trim)
                     .map(Float::parseFloat)
                     .collect(Collectors.toList());
         }

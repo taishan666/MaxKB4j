@@ -17,7 +17,7 @@ public class KnowledgeSetting {
     private Boolean fallbackEnable;
     private String fallbackResponse;
 
-    private Boolean graphEnable;
+    private Boolean graphEnable=true;
     private String graphModelId;
     private Integer graphMaxEntities;
     private Integer graphMaxRelationships;
