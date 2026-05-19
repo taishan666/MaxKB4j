@@ -97,7 +97,7 @@ public class ChatStep extends AbsChatStep {
                     future.completeExceptionally(error); // 完成后释放线程
                 })
                 .start();
-        ChatResponse response = future.get(5L, TimeUnit.MINUTES);
+        ChatResponse response = future.get(10L, TimeUnit.MINUTES);
         context.put("messageList", resetMessageToJSON(historyMessages));
         context.put("reasoningContent", response.aiMessage().thinking());
         TokenUsage tokenUsage = response.tokenUsage();
