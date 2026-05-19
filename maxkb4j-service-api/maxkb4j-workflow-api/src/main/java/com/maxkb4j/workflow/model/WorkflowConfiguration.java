@@ -54,7 +54,7 @@ public class WorkflowConfiguration {
      * 节点执行超时时间（秒）
      * 默认 5 分钟
      */
-    private final long nodeExecutionTimeoutMinutes = 5;
+    private final long nodeExecutionTimeoutMinutes = 10;
 
     /**
      * 构造器
