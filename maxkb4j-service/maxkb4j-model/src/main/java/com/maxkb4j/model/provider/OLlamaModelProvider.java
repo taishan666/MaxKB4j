@@ -7,12 +7,18 @@ import com.maxkb4j.model.custom.credential.ModelCredentialForm;
 import com.maxkb4j.model.custom.params.impl.OLlamaChatModelParams;
 import com.maxkb4j.model.enums.ModelType;
 import com.maxkb4j.model.vo.ModelInfo;
+import dev.langchain4j.http.client.HttpClientBuilder;
+import dev.langchain4j.http.client.spring.restclient.SpringRestClient;
+import dev.langchain4j.http.client.spring.restclient.SpringRestClientBuilder;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.model.ollama.OllamaChatModel;
 import dev.langchain4j.model.ollama.OllamaEmbeddingModel;
 import dev.langchain4j.model.ollama.OllamaStreamingChatModel;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.web.client.RestClient;
 
 import java.util.List;
 
@@ -31,6 +37,18 @@ public class OLlamaModelProvider extends AbsModelProvider {
             new ModelInfo("llava:13b", "", ModelType.VISION)
     );
 
+    /**
+     * 重写父类方法，为 Ollama 提供 UTF-8 编码支持的 HTTP 客户端
+     */
+    @Override
+    protected HttpClientBuilder getHttpClientBuilder() {
+        RestClient.Builder restClientBuilder = RestClient.builder()
+                .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE + "; charset=UTF-8")
+                .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE);
+
+        return SpringRestClient.builder()
+                .restClientBuilder(restClientBuilder);
+    }
 
     @Override
     public List<BaseField> getChatModelParamsForm() {
