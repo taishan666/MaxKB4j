@@ -21,7 +21,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.maxkb4j.workflow.enums.NodeType.FORM;
@@ -37,12 +36,21 @@ public class ApplicationNodeHandler extends AbsNodeHandler {
     private final IApplicationChatService chatService;
 
     @Override
+    public boolean isAsync() {
+        return true;
+    }
+
+    @Override
     protected NodeResult doExecute(Workflow workflow, AbsNode node) throws Exception {
+        throw new UnsupportedOperationException("Application node uses async execution via doExecuteAsync");
+    }
+
+    @Override
+    protected CompletableFuture<NodeResult> doExecuteAsync(Workflow workflow, AbsNode node) throws Exception {
         ApplicationNode.NodeParams params = parseParams(node, ApplicationNode.NodeParams.class);
         List<String> questionFields = params.getQuestionReferenceAddress();
         String question = getReferenceFieldAsString(workflow, questionFields);
         ChatParams chatParams = workflow.getChatParams();
-      //  String chatId = chatParams.getChatId() + "_" + params.getApplicationId();
         String chatId = chatParams.getChatId();
 
         // 获取各种文件列表
@@ -79,7 +87,7 @@ public class ApplicationNodeHandler extends AbsNodeHandler {
                 .debug(chatParams.getDebug())
                 .build();
         Sinks.Many<ChatMessageVO> appNodeSink = Sinks.many().unicast().onBackpressureBuffer();
-        CompletableFuture<ChatResponse> future = chatService.chatMessageAsync(nodeChatParams, appNodeSink);
+        CompletableFuture<ChatResponse> chatFuture = chatService.chatMessageAsync(nodeChatParams, appNodeSink);
 
         AtomicBoolean isInterruptExec = new AtomicBoolean(false);
 
@@ -101,22 +109,20 @@ public class ApplicationNodeHandler extends AbsNodeHandler {
             });
         }
 
-        ChatResponse chatResponse = future.get(5L, TimeUnit.MINUTES);
-
-        // 写入详情
-        putDetails(node, Map.of(
-                "messageTokens", chatResponse.getMessageTokens(),
-                "answerTokens", chatResponse.getAnswerTokens(),
-                "question", question,
-                "answer", chatResponse.getAnswer(),
-                "is_interrupt_exec", isInterruptExec.get()
-        ));
-
-        if (Boolean.TRUE.equals(params.getIsResult())) {
-            setAnswer(node, chatResponse.getAnswer());
-        }
-
-        return new NodeResult(Map.of("result", node.getAnswerText()), true, this::shouldInterrupt);
+        // 链式处理结果，不再阻塞线程
+        return chatFuture.thenApply(chatResponse -> {
+            putDetails(node, Map.of(
+                    "messageTokens", chatResponse.getMessageTokens(),
+                    "answerTokens", chatResponse.getAnswerTokens(),
+                    "question", question,
+                    "answer", chatResponse.getAnswer(),
+                    "is_interrupt_exec", isInterruptExec.get()
+            ));
+            if (Boolean.TRUE.equals(params.getIsResult())) {
+                setAnswer(node, chatResponse.getAnswer());
+            }
+            return new NodeResult(Map.of("result", node.getAnswerText()), true, this::shouldInterrupt);
+        });
     }
 
     @Override
