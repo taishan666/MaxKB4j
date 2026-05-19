@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -23,6 +24,7 @@ import java.util.concurrent.TimeoutException;
  * Abstract base class for workflow handlers.
  * Provides common runNodeFuture logic with template method pattern.
  * Uses dedicated thread pool for parallel node execution.
+ * Supports async node handlers that return CompletableFuture directly.
  */
 @Slf4j
 public abstract class AbsWorkflowHandler implements IWorkflowHandler {
@@ -52,13 +54,20 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
         if (nodeList == null || nodeList.isEmpty()) {
             return;
         }
+        long timeoutMinutes = workflow.getNodeExecutionTimeoutMinutes();
         List<CompletableFuture<List<AbsNode>>> futureList = new ArrayList<>();
         for (AbsNode node : nodeList) {
-            futureList.add(CompletableFuture.supplyAsync(
-                    () -> runChainNode(workflow, node),
-                    workflowExecutor));
+            INodeHandler handler = nodeCenter.getHandler(node.getType());
+            if (handler.isAsync()) {
+                // 异步节点：直接使用其返回的 CompletableFuture，不占用 workflowExecutor 线程
+                futureList.add(runAsyncChainNode(workflow, node));
+            } else {
+                // 同步节点：在 workflowExecutor 上执行
+                futureList.add(CompletableFuture.supplyAsync(
+                        () -> runChainNode(workflow, node),
+                        workflowExecutor));
+            }
         }
-        long timeoutMinutes = workflow.getNodeExecutionTimeoutMinutes();
         for (int i = 0; i < futureList.size(); i++) {
             try {
                 List<AbsNode> nextNodeList = futureList.get(i).get(timeoutMinutes, TimeUnit.MINUTES);
@@ -110,6 +119,46 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
     }
 
     /**
+     * 异步节点链式执行：直接使用节点返回的 CompletableFuture
+     * 不阻塞 workflowExecutor 线程，流式回调完成后自动推进
+     */
+    protected CompletableFuture<List<AbsNode>> runAsyncChainNode(Workflow workflow, AbsNode node) {
+        onNodeStart(workflow, node);
+        workflow.execution().recordExecution(node);
+
+        INodeHandler nodeHandler = nodeCenter.getHandler(node.getType());
+        CompletableFuture<NodeResult> resultFuture;
+        try {
+            resultFuture = nodeHandler.execute(workflow, node);
+        } catch (Exception ex) {
+            // execute() 方法本身抛出的同步异常（如预处理失败）
+            NodeResultFuture errorResult = handleNodeError(workflow, node, ex);
+            node.setStatus(errorResult.getStatus());
+            return CompletableFuture.completedFuture(List.of());
+        }
+
+        return resultFuture.handle((result, ex) -> {
+            if (ex != null) {
+                Throwable cause = ex instanceof CompletionException ? ex.getCause() : ex;
+                Exception realEx = cause instanceof Exception ? (Exception) cause : new RuntimeException(cause);
+                NodeResultFuture errorResult = handleNodeError(workflow, node, realEx);
+                node.setStatus(errorResult.getStatus());
+                return List.of();
+            }
+            node.setStatus(NodeStatus.SUCCESS.getStatus());
+            if (result != null) {
+                result.writeContext(node, workflow);
+                result.writeDetail(node);
+                if (result.isInterruptExec(node)) {
+                    node.setStatus(NodeStatus.INTERRUPT.getStatus());
+                }
+            }
+            onNodeSuccess(workflow, node, result);
+            return workflow.execution().nextNodes(node, result);
+        });
+    }
+
+    /**
      * 执行节点
      * 异常处理统一由 ExceptionResolverChain 责任链处理
      *
@@ -128,14 +177,19 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
             // 记录执行轨迹
             workflow.execution().recordExecution(node);
 
-            // 执行节点
-            NodeResult result = nodeHandler.execute(workflow, node);
+            // 执行节点（同步节点返回 completedFuture，join 立即完成）
+            CompletableFuture<NodeResult> future = nodeHandler.execute(workflow, node);
+            NodeResult result = future.join();
 
             // 调用调度层成功钩子（用于后续调度逻辑）
             onNodeSuccess(workflow, node, result);
 
             return new NodeResultFuture(result, null, NodeStatus.SUCCESS.getStatus());
 
+        } catch (CompletionException ex) {
+            Throwable cause = ex.getCause();
+            Exception realEx = cause instanceof Exception ? (Exception) cause : new RuntimeException(cause);
+            return handleNodeError(workflow, node, realEx);
         } catch (Exception ex) {
             // 统一异常处理：日志记录、详情记录、Sink发送
             return handleNodeError(workflow, node, ex);

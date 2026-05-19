@@ -36,9 +36,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.springframework.web.util.UriUtils.extractFileExtension;
@@ -53,9 +50,18 @@ public class LLMNodeHandler extends AbsNodeHandler {
     private final IToolProviderService toolProviderService;
     private final IOssService fileService;
 
+    @Override
+    public boolean isAsync() {
+        return true;
+    }
 
     @Override
     protected NodeResult doExecute(Workflow workflow, AbsNode node) throws Exception {
+        throw new UnsupportedOperationException("LLM node uses async execution via doExecuteAsync");
+    }
+
+    @Override
+    protected CompletableFuture<NodeResult> doExecuteAsync(Workflow workflow, AbsNode node) throws Exception {
         AiChatNodeParams params = parseParams(node, AiChatNodeParams.class);
         String question = workflow.renderPrompt(params.getPrompt());
         String systemPrompt = workflow.renderPrompt(params.getSystem());
@@ -79,7 +85,7 @@ public class LLMNodeHandler extends AbsNodeHandler {
 
         TokenStream tokenStream = assistant.chatStream(question, contents);
 
-        return writeContextStream(params, tokenStream, workflow, node);
+        return writeContextStreamAsync(params, tokenStream, workflow, node);
     }
 
     private Assistant buildAiServices(String modelId, JSONObject modelParamsSetting, Workflow workflow,
@@ -143,7 +149,7 @@ public class LLMNodeHandler extends AbsNodeHandler {
         ));
     }
 
-    private NodeResult handleChatResponse(ChatResponse response,String answer, AbsNode node, String errorMessage) {
+    private NodeResult handleChatResponse(ChatResponse response, String answer, AbsNode node, String errorMessage) {
         String reasoning = Optional.ofNullable(response.aiMessage().thinking()).orElse("");
         TokenUsage tokenUsage = response.tokenUsage();
         if (tokenUsage != null) {
@@ -159,8 +165,12 @@ public class LLMNodeHandler extends AbsNodeHandler {
         ), true);
     }
 
-    private NodeResult writeContextStream(AiChatNodeParams params, TokenStream tokenStream,
-                                          Workflow workflow, AbsNode node) throws ExecutionException, InterruptedException, TimeoutException {
+    /**
+     * 异步流式写入：不阻塞线程，直接返回 CompletableFuture
+     * 流式回调完成后自动 complete Future，释放线程资源
+     */
+    private CompletableFuture<NodeResult> writeContextStreamAsync(AiChatNodeParams params, TokenStream tokenStream,
+                                                                  Workflow workflow, AbsNode node) {
         List<String> answerTexts = new ArrayList<>();
         AtomicReference<String> errorMessage = new AtomicReference<>("");
         boolean isResult = Boolean.TRUE.equals(params.getIsResult());
@@ -169,7 +179,7 @@ public class LLMNodeHandler extends AbsNodeHandler {
                 .map(setting -> setting.getBooleanValue("reasoningContentEnable"))
                 .orElse(false);
 
-        CompletableFuture<ChatResponse> future = new CompletableFuture<>();
+        CompletableFuture<NodeResult> resultFuture = new CompletableFuture<>();
         tokenStream.onPartialThinking(thinking -> {
                     if (isResult && reasoningContentEnable) {
                         emitMessage(workflow, node, "", thinking.text());
@@ -190,18 +200,18 @@ public class LLMNodeHandler extends AbsNodeHandler {
                         emitMessage(workflow, node, content, "");
                         answerTexts.add(content);
                     }
-                }).onCompleteResponse(future::complete)
-                .onError(error -> {
+                }).onCompleteResponse(response -> {
+                    String answer = String.join("", answerTexts);
+                    if (isResult) {
+                        setAnswer(node, answer);
+                    }
+                    resultFuture.complete(handleChatResponse(response, answer, node, errorMessage.get()));
+                }).onError(error -> {
                     errorMessage.set(error.getMessage());
-                    future.completeExceptionally(error);
+                    resultFuture.completeExceptionally(error);
                 })
                 .start();
-        ChatResponse response = future.get(5L, TimeUnit.MINUTES);
-        String answer = String.join("", answerTexts);
-        if (isResult) {
-            setAnswer(node, answer);
-        }
-        return handleChatResponse(response, answer,node, errorMessage.get());
+        return resultFuture;
     }
 
     private void emitMessage(Workflow workflow, AbsNode node, String content, String reasoning) {
