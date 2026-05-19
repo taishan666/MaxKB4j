@@ -7,6 +7,7 @@ import com.maxkb4j.workflow.node.AbsNode;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * 节点处理器抽象基类
@@ -17,18 +18,22 @@ import java.util.Map;
  * <ul>
  *   <li>参数解析 - parseParams()</li>
  *   <li>预处理钩子 - preExecute() / onPreExecute()</li>
- *   <li>核心执行 - doExecute()</li>
+ *   <li>核心执行 - doExecute() / doExecuteAsync()</li>
  *   <li>后处理钩子 - onPostExecute() / postExecute()</li>
  *   <li>错误处理 - onError() / handleError()</li>
  * </ul>
+ *
+ * <p>异步节点（如 LLM）可覆盖 doExecuteAsync() 返回真实异步 Future，
+ * 同步节点默认通过 doExecute() 包装为 CompletableFuture.completedFuture()</p>
  *
  */
 @Slf4j
 public abstract class AbsNodeHandler implements INodeHandler {
 
     /**
-     * 核心执行逻辑
-     * 子类实现具体的业务逻辑
+     * 核心同步执行逻辑
+     * 同步子类实现具体的业务逻辑
+     * 异步子类应覆盖 doExecuteAsync() 而非此方法
      *
      * @param workflow 工作流上下文
      * @param node     节点实例
@@ -38,13 +43,28 @@ public abstract class AbsNodeHandler implements INodeHandler {
     protected abstract NodeResult doExecute(Workflow workflow, AbsNode node) throws Exception;
 
     /**
+     * 核心异步执行逻辑
+     * 默认包装 doExecute() 为 CompletableFuture.completedFuture()
+     * 异步节点（如 LLM）覆盖此方法返回真实异步 Future，无需内部阻塞等待
+     *
+     * @param workflow 工作流上下文
+     * @param node     节点实例
+     * @return 执行结果的 CompletableFuture
+     * @throws Exception 执行异常
+     */
+    protected CompletableFuture<NodeResult> doExecuteAsync(Workflow workflow, AbsNode node) throws Exception {
+        return CompletableFuture.completedFuture(doExecute(workflow, node));
+    }
+
+    /**
      * 模板方法：完整的执行流程
      * 包含参数解析、预处理、执行、后处理、错误处理
+     * 支持同步和异步节点，通过 whenComplete 链式处理生命周期钩子
      *
-     * <p>注意：此方法为 final，子类应覆盖 doExecute() 而不是此方法</p>
+     * <p>注意：此方法为 final，子类应覆盖 doExecuteAsync() 而不是此方法</p>
      */
     @Override
-    public final NodeResult execute(Workflow workflow, AbsNode node) throws Exception {
+    public final CompletableFuture<NodeResult> execute(Workflow workflow, AbsNode node) throws Exception {
         long startTime = System.currentTimeMillis();
         try {
             // 2. 内部预处理（记录开始时间等）
@@ -53,25 +73,29 @@ public abstract class AbsNodeHandler implements INodeHandler {
             // 3. 外部预处理钩子（子类可覆盖）
             preExecute(workflow, node);
 
-            // 4. 核心执行
-            NodeResult result = doExecute(workflow, node);
+            // 4. 核心执行（同步节点返回 completedFuture，异步节点返回真实 Future）
+            CompletableFuture<NodeResult> resultFuture = doExecuteAsync(workflow, node);
 
-            // 5. 内部后处理
-            onPostExecute(workflow, node, result);
-
-            // 6. 外部后处理钩子
-            postExecute(workflow, node, result);
-
-            // 7. 记录执行时间
-            recordExecutionTime(node, startTime);
-
-            return result;
+            // 5/6/7. 通过 whenComplete 链式处理后处理和错误处理
+            return resultFuture.whenComplete((result, ex) -> {
+                if (ex != null) {
+                    Exception exception = ex instanceof Exception ? (Exception) ex : new RuntimeException(ex);
+                    onError(workflow, node, exception);
+                    handleError(workflow, node, exception);
+                } else {
+                    onPostExecute(workflow, node, result);
+                    postExecute(workflow, node, result);
+                    recordExecutionTime(node, startTime);
+                }
+            });
 
         } catch (Exception ex) {
-            // 错误处理
+            // 预处理阶段的同步异常，包装为失败 Future
             onError(workflow, node, ex);
             handleError(workflow, node, ex);
-            throw ex;
+            CompletableFuture<NodeResult> failed = new CompletableFuture<>();
+            failed.completeExceptionally(ex);
+            return failed;
         }
     }
 

@@ -5,22 +5,35 @@ import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.model.Workflow;
 import com.maxkb4j.workflow.node.AbsNode;
 
+import java.util.concurrent.CompletableFuture;
+
 /**
  * 节点处理器接口
- * 支持生命周期钩子扩展
+ * 支持生命周期钩子扩展，支持异步执行
  */
 public interface INodeHandler {
 
     /**
      * 执行节点处理
-     * 核心执行方法，必须实现
+     * 核心执行方法，返回 CompletableFuture 以支持异步节点
+     * 同步节点默认返回 CompletableFuture.completedFuture(result)
      *
      * @param workflow 工作流上下文
      * @param node     节点实例
-     * @return 执行结果
-     * @throws Exception 执行异常
+     * @return 执行结果的 CompletableFuture
+     * @throws Exception 执行异常（仅限 execute 方法本身的同步异常）
      */
-    NodeResult execute(Workflow workflow, AbsNode node) throws Exception;
+    CompletableFuture<NodeResult> execute(Workflow workflow, AbsNode node) throws Exception;
+
+    /**
+     * 是否为异步节点
+     * 异步节点不会在 workflowExecutor 上阻塞等待，而是直接使用其返回的 CompletableFuture
+     *
+     * @return true 表示异步节点
+     */
+    default boolean isAsync() {
+        return false;
+    }
 
     /**
      * 预处理钩子 - 执行前调用
