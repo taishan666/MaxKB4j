@@ -8,6 +8,7 @@ import com.maxkb4j.application.pipeline.step.searchdatasetstep.AbsSearchDatasetS
 import com.maxkb4j.common.mp.entity.KnowledgeSetting;
 import com.maxkb4j.core.assistant.RouterAssistant;
 import com.maxkb4j.core.langchain4j.AssistantServices;
+import com.maxkb4j.knowledge.consts.SearchType;
 import com.maxkb4j.knowledge.entity.KnowledgeEntity;
 import com.maxkb4j.knowledge.service.IKnowledgeService;
 import com.maxkb4j.knowledge.service.IRetrieveService;
@@ -72,6 +73,10 @@ public class SearchDatasetStep extends AbsSearchDatasetStep {
                 super.context.put("answerTokens", tokenUsage.outputTokenCount());
             }
             List<String> excludeParagraphIds = reChat ? manage.getExcludeParagraphIds(problemText) : List.of();
+            // For graph search mode, ensure chatModelId is set for LLM-based keyword extraction
+            if (SearchType.GRAPH.equals(datasetSetting.getSearchMode()) && datasetSetting.getGraphModelId() == null) {
+                datasetSetting.setGraphModelId(manage.application.getModelId());
+            }
             paragraphList = retrieval(knowledgeIds,datasetSetting, problemText, paddingProblemText, reChat,excludeParagraphIds);
         }
         log.info("dataset search 耗时 {} ms", System.currentTimeMillis() - startTime);

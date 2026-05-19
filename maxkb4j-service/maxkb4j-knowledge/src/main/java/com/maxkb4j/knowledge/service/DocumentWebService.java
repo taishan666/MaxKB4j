@@ -67,7 +67,7 @@ public class DocumentWebService implements IDocumentWebService{
         if (htmlContent.isBlank()) {
             return;
         }
-        String mdText=documentParseService.extractText("file.url", new ByteArrayInputStream(htmlContent.getBytes(StandardCharsets.UTF_8)));
+        String mdText=documentParseService.extractText("file.html", new ByteArrayInputStream(htmlContent.getBytes(StandardCharsets.UTF_8)));
         JSONObject meta = new JSONObject();
         meta.put("sourceUrl", url);
         meta.put("selector", selector);

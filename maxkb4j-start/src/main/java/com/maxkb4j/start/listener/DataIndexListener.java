@@ -2,14 +2,19 @@ package com.maxkb4j.start.listener;
 
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.maxkb4j.core.event.DocumentIndexEvent;
+import com.maxkb4j.core.event.GraphExtractionEvent;
 import com.maxkb4j.core.event.ParagraphIndexEvent;
+import com.maxkb4j.common.mp.entity.KnowledgeSetting;
+import com.maxkb4j.knowledge.entity.KnowledgeEntity;
 import com.maxkb4j.knowledge.entity.ParagraphEntity;
 import com.maxkb4j.knowledge.service.IDocumentService;
+import com.maxkb4j.knowledge.service.IKnowledgeService;
 import com.maxkb4j.knowledge.service.IParagraphService;
 import com.maxkb4j.knowledge.service.KnowledgeModelService;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
@@ -26,6 +31,8 @@ public class DataIndexListener {
     private final KnowledgeModelService knowledgeModelService;
     private final IDocumentService documentService;
     private final IParagraphService paragraphService;
+    private final IKnowledgeService knowledgeService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Async
     @EventListener
@@ -43,6 +50,9 @@ public class DataIndexListener {
                 // 单个文档失败不影响其他文档继续处理
             }
         }
+
+        // Publish graph extraction event if graph is enabled for this knowledge base
+        publishGraphExtractionEventIfEnabled(event.getKnowledgeId(), event.getDocIds(), event.getStateList());
     }
 
     @Async
@@ -92,5 +102,24 @@ public class DataIndexListener {
         }
 
         documentService.updateStatusById(docId, 1, 2);
+    }
+
+    /**
+     * Publish graph extraction event if graph is enabled for this knowledge base
+     */
+    private void publishGraphExtractionEventIfEnabled(String knowledgeId, List<String> docIds, List<String> stateList) {
+        try {
+            KnowledgeEntity knowledge = knowledgeService.getById(knowledgeId);
+            if (knowledge != null && knowledge.getMeta() != null) {
+                KnowledgeSetting setting = knowledge.getMeta().toJavaObject(KnowledgeSetting.class);
+                if (setting != null && Boolean.TRUE.equals(setting.getGraphEnable())) {
+                    String chatModelId = setting.getGraphModelId() != null ? setting.getGraphModelId() : "";
+                    log.info("Publishing graph extraction event for knowledge: {}, docs: {}", knowledgeId, docIds);
+                    eventPublisher.publishEvent(new GraphExtractionEvent(this, knowledgeId, docIds, chatModelId, stateList));
+                }
+            }
+        } catch (Exception e) {
+            log.warn("Failed to check/publish graph extraction event: {}", e.getMessage());
+        }
     }
 }
