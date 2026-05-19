@@ -14,6 +14,15 @@ import java.util.List;
 @Component
 public class HtmlParser implements DocumentParser {
 
+    private static final FlexmarkHtmlConverter converter;
+
+    static {
+        // 可选：配置选项
+        MutableDataSet options = new MutableDataSet();
+        // 例如：设置缩进、换行风格等（见下文配置说明）
+        converter = FlexmarkHtmlConverter.builder(options).build();
+    }
+
     @Override
     public List<String> getExtensions() {
         return List.of(".html", ".htm");
@@ -22,10 +31,6 @@ public class HtmlParser implements DocumentParser {
     @Override
     public String handle(InputStream inputStream) {
         String html = IoUtil.readToString(inputStream);
-        // 可选：配置选项
-        MutableDataSet options = new MutableDataSet();
-        // 例如：设置缩进、换行风格等（见下文配置说明）
-        FlexmarkHtmlConverter converter = FlexmarkHtmlConverter.builder(options).build();
         return converter.convert(html);
     }
 }
