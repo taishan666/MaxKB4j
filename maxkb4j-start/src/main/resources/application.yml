@@ -4,7 +4,7 @@ server:
     whitelabel:
       enabled: true
   undertow:
-    max-http-post-size: 1000MB
+    max-http-post-size: 2048MB
 spring:
   threads:
     virtual:
@@ -16,8 +16,8 @@ spring:
       name: MaxKB4j
   servlet:
     multipart:
-      max-file-size: 1000MB
-      max-request-size: 1000MB
+      max-file-size: 1024MB
+      max-request-size: 1024MB
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss
     time-zone: GMT+8
