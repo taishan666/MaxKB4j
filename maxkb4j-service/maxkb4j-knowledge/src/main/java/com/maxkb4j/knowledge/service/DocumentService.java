@@ -362,11 +362,6 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         return result;
     }
 
-    public void createWebDocs(String knowledgeId, String sourceUrl, String selector) {
-        List<DocumentSimple> docs =documentWebService.getWebDocuments(sourceUrl, selector,true);
-        batchCreateDocs(knowledgeId, KnowledgeType.WEB, docs);
-    }
-
 
     @Transactional
     public void createWebDoc(String knowledgeId, List<String> sourceUrlList, String selector) {

@@ -34,6 +34,10 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.*;
 import java.util.regex.Pattern;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -46,7 +50,7 @@ public class PdfParser extends PDFTextStripper implements DocumentParser {
     private float currentPageHeight;
     private List<TextLine> currentPageLines;
     private List<TextLine> currentPageImages;
-    private static final PDFTextStripper stripper = new PDFTextStripper();
+    private List<ImageData> pendingImages;
     private static final InferenceEngine engine = InferenceEngine.getInstance(Model.ONNX_PPOCR_V4);
     private static final Pattern PAGE_NUM_DASH = Pattern.compile("^—\\d+—$");
     private static final Pattern PAGE_NUM_PURE = Pattern.compile("^\\d+$");
@@ -121,19 +125,19 @@ public class PdfParser extends PDFTextStripper implements DocumentParser {
     @Override
     public String handle(InputStream inputStream) {
         this.lines = new ArrayList<>();
-        this.currentPageImages = new ArrayList<>();
+        this.pendingImages = new ArrayList<>();
         try {
             byte[] bytes = inputStream.readAllBytes();
             try (PDDocument document = Loader.loadPDF(bytes)) {
                 if (isScannedPDF(document)) {
                     return extractTextFromScannedPDF(document);
-                } else {
-                    this.setSortByPosition(true);
-                    this.setStartPage(1);
-                    this.setEndPage(document.getNumberOfPages());
-                    this.getText(document);
                 }
+                this.setSortByPosition(true);
+                this.setStartPage(1);
+                this.setEndPage(document.getNumberOfPages());
+                this.getText(document);
             }
+            uploadImagesInParallel();
             HeadingContext ctx = buildFontSizeHeadingMap(lines);
             return toMarkdown(lines, ctx);
         } catch (IOException e) {
@@ -166,10 +170,35 @@ public class PdfParser extends PDFTextStripper implements DocumentParser {
         int pageNo = getCurrentPageNo();
         int imgIndex = currentPageImages.size();
         String fileName = "pdf_p" + pageNo + "_img" + imgIndex + ".png";
-        OssFile ossFile = mongoFileService.uploadFile(fileName, imageBytes);
-        currentPageImages.add(new TextLine(IMAGE_STYLE, ossFile.getUrl(), 0, 0, translateX, yPos));
+        currentPageImages.add(new TextLine(IMAGE_STYLE, fileName, 0, 0, translateX, yPos));
+        pendingImages.add(new ImageData(fileName, imageBytes));
     }
 
+    private void uploadImagesInParallel() {
+        if (pendingImages.isEmpty()) return;
+        int threads = Math.min(pendingImages.size(), 8);
+        ExecutorService executor = Executors.newFixedThreadPool(threads);
+        try {
+            Map<String, String> urlMap = new ConcurrentHashMap<>();
+            List<CompletableFuture<Void>> futures = new ArrayList<>();
+            for (ImageData img : pendingImages) {
+                futures.add(CompletableFuture.runAsync(() -> {
+                    OssFile ossFile = mongoFileService.uploadFile(img.fileName(), img.bytes());
+                    urlMap.put(img.fileName(), ossFile.getUrl());
+                }, executor));
+            }
+            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+            for (int i = 0; i < lines.size(); i++) {
+                TextLine line = lines.get(i);
+                if (IMAGE_STYLE.equals(line.fontStyle()) && urlMap.containsKey(line.text())) {
+                    lines.set(i, new TextLine(IMAGE_STYLE, urlMap.get(line.text()), 0, 0, line.xPos(), line.yPos()));
+                }
+            }
+        } finally {
+            executor.shutdown();
+            pendingImages.clear();
+        }
+    }
 
     private String getFontName(PDFont font) {
         if (font == null) {
@@ -184,8 +213,12 @@ public class PdfParser extends PDFTextStripper implements DocumentParser {
 
 
     private static boolean isScannedPDF(PDDocument document) {
+        int checkPages = Math.min(3, document.getNumberOfPages());
         try {
-            String text = stripper.getText(document);
+            PDFTextStripper checkStripper = new PDFTextStripper();
+            checkStripper.setStartPage(1);
+            checkStripper.setEndPage(checkPages);
+            String text = checkStripper.getText(document);
             String cleanText = text.replaceAll("\\s+", "");
             return cleanText.trim().length() < 10;
         } catch (IOException e) {
@@ -374,4 +407,6 @@ public class PdfParser extends PDFTextStripper implements DocumentParser {
             this.yPos = yPos;
         }
     }
+
+    private record ImageData(String fileName, byte[] bytes) {}
 }
