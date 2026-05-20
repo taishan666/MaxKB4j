@@ -20,7 +20,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.maxkb4j.workflow.enums.NodeType.FORM;
@@ -36,23 +35,12 @@ public class ApplicationNodeHandler extends AbsNodeHandler {
     private final IApplicationChatService chatService;
 
     @Override
-    public boolean isAsync() {
-        return true;
-    }
-
-    @Override
     protected NodeResult doExecute(Workflow workflow, AbsNode node) throws Exception {
-        throw new UnsupportedOperationException("Application node uses async execution via doExecuteAsync");
-    }
-
-    @Override
-    protected CompletableFuture<NodeResult> doExecuteAsync(Workflow workflow, AbsNode node) throws Exception {
         ApplicationNode.NodeParams params = parseParams(node, ApplicationNode.NodeParams.class);
         List<String> questionFields = params.getQuestionReferenceAddress();
         String question = getReferenceFieldAsString(workflow, questionFields);
         ChatParams chatParams = workflow.getChatParams();
-        String chatId = chatParams.getChatId();
-
+        String chatId = chatParams.getChatId() + "_" + params.getApplicationId();
         // 获取各种文件列表
         List<OssFile> docList = getFileList(workflow, params.getDocumentList());
         List<OssFile> imageList = getFileList(workflow, params.getImageList());
@@ -64,11 +52,9 @@ public class ApplicationNodeHandler extends AbsNodeHandler {
             nodeChatRecordId = chatParams.getChildNode().getChatRecordId();
             nodeRuntimeNodeId = chatParams.getChildNode().getRuntimeNodeId();
         }
-
         // 构建 formData
         Map<String, Object> formData = buildFormData(workflow, params.getUserInputFieldList());
         formData.putAll(buildFormData(workflow, params.getApiInputFieldList()));
-
         ChatParams nodeChatParams = ChatParams.builder()
                 .message(question)
                 .appId(params.getApplicationId())
@@ -87,10 +73,7 @@ public class ApplicationNodeHandler extends AbsNodeHandler {
                 .debug(chatParams.getDebug())
                 .build();
         Sinks.Many<ChatMessageVO> appNodeSink = Sinks.many().unicast().onBackpressureBuffer();
-        CompletableFuture<ChatResponse> chatFuture = chatService.chatMessageAsync(nodeChatParams, appNodeSink);
-
         AtomicBoolean isInterruptExec = new AtomicBoolean(false);
-
         if (Boolean.TRUE.equals(params.getIsResult())) {
             // 订阅并累积 token，同时发送消息
             appNodeSink.asFlux().subscribe(e -> {
@@ -108,22 +91,18 @@ public class ApplicationNodeHandler extends AbsNodeHandler {
                 workflow.output().emit(vo);
             });
         }
-
-        // 链式处理结果，不再阻塞线程
-        return chatFuture.thenApply(chatResponse -> {
-            putDetails(node, Map.of(
-                    "messageTokens", chatResponse.getMessageTokens(),
-                    "answerTokens", chatResponse.getAnswerTokens(),
-                    "question", question,
-                    "answer", chatResponse.getAnswer(),
-                    "is_interrupt_exec", isInterruptExec.get()
-            ));
-            if (Boolean.TRUE.equals(params.getIsResult())) {
-                setAnswer(node, chatResponse.getAnswer());
-            }
-            return new NodeResult(Map.of("result", node.getAnswerText()), true, this::shouldInterrupt);
-        });
+        ChatResponse chatResponse = chatService.chatMessage(nodeChatParams, appNodeSink);
+        // 写入详情
+        putDetails(node, Map.of(
+                "messageTokens", chatResponse.getMessageTokens(),
+                "answerTokens", chatResponse.getAnswerTokens(),
+                "question", question,
+                "answer", chatResponse.getAnswer(),
+                "is_interrupt_exec", isInterruptExec.get()
+        ));
+        return new NodeResult(Map.of("result", chatResponse.getAnswer()), true, this::shouldInterrupt);
     }
+
 
     @Override
     public boolean shouldInterrupt(AbsNode node) {
