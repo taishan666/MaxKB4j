@@ -72,7 +72,6 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
     private final DocumentHandler documentHandler;
     private final IDataStore compositeStore;
     private final KnowledgeMapper knowledgeMapper;
-    private final GraphStoreService graphStoreService;
 
     public void updateStatusMetaById(String id) {
         baseMapper.updateStatusMetaByIds(List.of(id));
@@ -253,7 +252,6 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         this.lambdaUpdate().in(DocumentEntity::getId, docIds).remove();
         paragraphService.lambdaUpdate().in(ParagraphEntity::getDocumentId, docIds).remove();
         compositeStore.deleteByDocumentIds(knowledgeId,docIds);
-        graphStoreService.deleteByDocumentIds(knowledgeId,docIds);
         return  problemParagraphService.lambdaUpdate().in(ProblemParagraphEntity::getDocumentId, docIds).remove();
     }
 

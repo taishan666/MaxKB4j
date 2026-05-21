@@ -37,8 +37,7 @@ public class RetrieveService implements IRetrieveService{
     public List<ParagraphVO> paragraphSearch(String question, List<String> knowledgeIds, List<String> excludeParagraphIds, KnowledgeSetting datasetSetting) {
         DataSearchDTO dto = new DataSearchDTO();
         dto.setQueryText(question);
-       // dto.setSearchMode(datasetSetting.getSearchMode());
-        dto.setSearchMode(SearchType.GRAPH);
+        dto.setSearchMode(datasetSetting.getSearchMode());
         dto.setSimilarity(datasetSetting.getSimilarity());
         dto.setTopNumber(datasetSetting.getTopN());
         dto.setExcludeParagraphIds(excludeParagraphIds);

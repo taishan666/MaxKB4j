@@ -3,7 +3,7 @@ package com.maxkb4j.start.listener;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.maxkb4j.core.event.GraphExtractionEvent;
 import com.maxkb4j.knowledge.entity.ParagraphEntity;
-import com.maxkb4j.knowledge.service.GraphExtractionService;
+import com.maxkb4j.knowledge.service.KeywordsExtractionService;
 import com.maxkb4j.knowledge.service.IParagraphService;
 import com.maxkb4j.model.service.IModelProviderService;
 import dev.langchain4j.model.chat.ChatModel;
@@ -22,7 +22,7 @@ public class GraphExtractionListener {
 
     private final IParagraphService paragraphService;
     private final IModelProviderService modelFactory;
-    private final GraphExtractionService graphExtractionService;
+    private final KeywordsExtractionService graphExtractionService;
 
     @Async
     @EventListener
