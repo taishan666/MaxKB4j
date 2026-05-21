@@ -3,39 +3,15 @@
 
 <mapper namespace="com.maxkb4j.knowledge.mapper.GraphRelationshipMapper">
 
-    <select id="relationshipVectorSearch" resultType="com.maxkb4j.knowledge.entity.GraphRelationshipEntity">
-        SELECT id, source_entity_id, target_entity_id, description, keywords, knowledge_id, document_id, is_active, dimension,
-        (1-(<![CDATA[embedding <=> #{referenceEmbedding}::vector]]>)) AS weight
-        FROM graph_relationship
-        WHERE is_active = true
-        AND dimension = #{dimension}
-        <if test="knowledgeIds != null and !knowledgeIds.isEmpty()">
-            AND knowledge_id IN
-            <foreach item="id" collection="knowledgeIds" open="(" separator="," close=")">
-                #{id}
-            </foreach>
-        </if>
-        <if test="excludeDocumentIds != null and !excludeDocumentIds.isEmpty()">
-            AND document_id NOT IN
-            <foreach item="id" collection="excludeDocumentIds" open="(" separator="," close=")">
-                #{id}
-            </foreach>
-        </if>
-        ORDER BY weight DESC
-        LIMIT #{maxResults}
-    </select>
-
     <select id="searchByKeywords" resultType="com.maxkb4j.knowledge.entity.GraphRelationshipEntity">
         SELECT id, source_entity_id, target_entity_id, description, keywords, weight, knowledge_id, document_id, is_active
         FROM graph_relationship
         WHERE is_active = true
         AND knowledge_id = #{knowledgeId}
         AND (
-            keywords LIKE CONCAT('%',
-            <foreach item="kw" collection="keywords" separator=" OR keywords LIKE CONCAT('%',">
-                #{kw}
+            <foreach item="kw" collection="keywords" separator=" OR ">
+                keywords LIKE CONCAT('%', #{kw}, '%')
             </foreach>
-            , '%')
         )
     </select>
 

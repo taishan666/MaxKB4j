@@ -8,13 +8,6 @@ import java.util.List;
 
 public interface GraphEntityMapper extends BaseMapper<GraphEntityEntity> {
 
-    List<GraphEntityEntity> entityVectorSearch(@Param("knowledgeIds") List<String> knowledgeIds,
-                                                @Param("excludeDocumentIds") List<String> excludeDocumentIds,
-                                                @Param("maxResults") int maxResults,
-                                                @Param("minScore") double minScore,
-                                                @Param("referenceEmbedding") float[] referenceEmbedding,
-                                                @Param("dimension") int dimension);
-
     List<GraphEntityEntity> searchByNames(@Param("knowledgeId") String knowledgeId,
                                            @Param("names") List<String> names);
 

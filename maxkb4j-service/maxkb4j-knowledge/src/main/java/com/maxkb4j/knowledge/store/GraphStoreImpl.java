@@ -13,9 +13,7 @@ import com.maxkb4j.knowledge.service.GraphKeywordService;
 import com.maxkb4j.knowledge.service.GraphStoreService;
 import com.maxkb4j.knowledge.service.KnowledgeModelService;
 import com.maxkb4j.knowledge.vo.TextChunkVO;
-import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.model.embedding.EmbeddingModel;
-import dev.langchain4j.model.output.Response;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -109,6 +107,7 @@ public class GraphStoreImpl implements IDataStore {
 
         // Step 1: Extract dual-level keywords
         DualKeywordResult keywords;
+       // request.setChatModelId("296a3398e194eb8843f59930cb0f9308");
         if (StringUtils.isNotBlank(request.getChatModelId())) {
             keywords = graphKeywordService.extractDualKeywords(request.getChatModelId(), request.getQuery());
         } else {
@@ -161,7 +160,7 @@ public class GraphStoreImpl implements IDataStore {
         for (GraphEntityEntity entity : matchedEntities) {
             entityMap.put(entity.getId(), entity);
         }
-
+/*
         if (entityMap.isEmpty()) {
             // Fallback: try vector similarity search on entity embeddings
             try {
@@ -181,7 +180,7 @@ public class GraphStoreImpl implements IDataStore {
             } catch (Exception e) {
                 log.warn("Entity vector search fallback failed: {}", e.getMessage());
             }
-        }
+        }*/
 
         if (entityMap.isEmpty()) {
             return Collections.emptyList();
@@ -247,7 +246,7 @@ public class GraphStoreImpl implements IDataStore {
         // Match relationships by keywords
         List<GraphRelationshipEntity> matchedRelationships = graphStoreService.findRelationshipsByKeywords(knowledgeId, highLevelKeywords);
 
-        if (CollectionUtils.isEmpty(matchedRelationships)) {
+/*        if (CollectionUtils.isEmpty(matchedRelationships)) {
             // Fallback: try vector similarity search on relationship embeddings
             try {
                 EmbeddingModel embeddingModel = knowledgeModelService.getEmbeddingModel(knowledgeId);
@@ -263,7 +262,7 @@ public class GraphStoreImpl implements IDataStore {
             } catch (Exception e) {
                 log.warn("Relationship vector search fallback failed: {}", e.getMessage());
             }
-        }
+        }*/
 
         if (CollectionUtils.isEmpty(matchedRelationships)) {
             return Collections.emptyList();

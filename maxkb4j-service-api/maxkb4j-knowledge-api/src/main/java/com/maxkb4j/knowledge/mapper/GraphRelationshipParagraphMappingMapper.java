@@ -8,7 +8,6 @@ import java.util.List;
 
 public interface GraphRelationshipParagraphMappingMapper extends BaseMapper<GraphRelationshipParagraphMappingEntity> {
 
-    List<String> getParagraphIdsByRelationshipIds(@Param("relationshipIds") List<String> relationshipIds);
 
     List<String> getParagraphIdsByRelationshipIdsAndKnowledgeId(@Param("relationshipIds") List<String> relationshipIds,
                                                                  @Param("knowledgeId") String knowledgeId);

@@ -1,13 +1,9 @@
 package com.maxkb4j.knowledge.entity;
 
-import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.maxkb4j.common.mp.base.BaseEntity;
-import com.maxkb4j.common.typehandler.EmbeddingTypeHandler;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-
-import java.util.List;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -30,8 +26,4 @@ public class GraphRelationshipEntity extends BaseEntity {
 
     private Boolean isActive;
 
-    @TableField(typeHandler = EmbeddingTypeHandler.class)
-    private List<Float> embedding;
-
-    private Integer dimension;
 }

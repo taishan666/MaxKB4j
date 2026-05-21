@@ -1,11 +1,13 @@
 package com.maxkb4j.core.assistant;
 
 import dev.langchain4j.service.Result;
+import dev.langchain4j.service.SystemMessage;
 import dev.langchain4j.service.UserMessage;
 import dev.langchain4j.service.V;
 
 public interface EntityExtractionAssistant {
 
+    @SystemMessage("Generate a description using the same language as the input text")
     @UserMessage("""
         From the following text, extract all named entities and relationships between them.
         Return the result as a JSON array of objects with the following format:

@@ -3,15 +3,6 @@
 
 <mapper namespace="com.maxkb4j.knowledge.mapper.GraphEntityParagraphMappingMapper">
 
-    <select id="getParagraphIdsByEntityIds" resultType="java.lang.String">
-        SELECT DISTINCT paragraph_id
-        FROM graph_entity_paragraph_mapping
-        WHERE entity_id IN
-        <foreach item="eid" collection="entityIds" open="(" separator="," close=")">
-            #{eid}
-        </foreach>
-    </select>
-
     <select id="getParagraphIdsByEntityIdsAndKnowledgeId" resultType="java.lang.String">
         SELECT DISTINCT paragraph_id
         FROM graph_entity_paragraph_mapping

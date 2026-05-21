@@ -1,11 +1,13 @@
 package com.maxkb4j.core.assistant;
 
 import dev.langchain4j.service.Result;
+import dev.langchain4j.service.SystemMessage;
 import dev.langchain4j.service.UserMessage;
 import dev.langchain4j.service.V;
 
 public interface DualKeywordExtractionAssistant {
 
+    @SystemMessage("Output in the language of Query")
     @UserMessage("""
         Given the following query, extract two types of keywords:
         1. High-level keywords: broad topics, themes, or concepts that describe the overall subject area (for searching relationship patterns)

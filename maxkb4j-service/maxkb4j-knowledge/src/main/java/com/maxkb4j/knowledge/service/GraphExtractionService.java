@@ -7,16 +7,10 @@ import com.maxkb4j.core.assistant.EntityExtractionAssistant;
 import com.maxkb4j.core.dto.ExtractionResult;
 import com.maxkb4j.core.langchain4j.AssistantServices;
 import com.maxkb4j.knowledge.entity.GraphEntityEntity;
-import com.maxkb4j.knowledge.entity.GraphEntityParagraphMappingEntity;
 import com.maxkb4j.knowledge.entity.GraphRelationshipEntity;
-import com.maxkb4j.knowledge.entity.GraphRelationshipParagraphMappingEntity;
 import com.maxkb4j.knowledge.entity.ParagraphEntity;
 import com.maxkb4j.knowledge.mapper.GraphEntityMapper;
-import dev.langchain4j.data.embedding.Embedding;
-import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.model.chat.ChatModel;
-import dev.langchain4j.model.embedding.EmbeddingModel;
-import dev.langchain4j.model.output.Response;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -37,8 +31,7 @@ public class GraphExtractionService {
     private final GraphEntityMapper graphEntityMapper;
 
     @Transactional(rollbackFor = Exception.class)
-    public void extractFromParagraph(ChatModel chatModel, EmbeddingModel embeddingModel,
-                                      String knowledgeId, String documentId, ParagraphEntity paragraph) {
+    public void extractFromParagraph(ChatModel chatModel, String knowledgeId, String documentId, ParagraphEntity paragraph) {
         if (paragraph.getContent() == null || paragraph.getContent().isBlank()) {
             log.warn("Paragraph content is empty, skipping extraction. Paragraph ID: {}", paragraph.getId());
             return;
@@ -67,23 +60,21 @@ public class GraphExtractionService {
                 .filter(ExtractionResult::isRelationship).toList();
 
         // Process entities: deduplicate and merge
-        Map<String, GraphEntityEntity> processedEntities = processEntities(
-                embeddingModel, knowledgeId, documentId, paragraph.getId(), entityResults);
+        Map<String, GraphEntityEntity> processedEntities = processEntities(knowledgeId, documentId, paragraph.getId(), entityResults);
 
         // Process relationships
-        List<GraphRelationshipEntity> processedRelationships = processRelationships(
-                embeddingModel, knowledgeId, documentId, paragraph.getId(), relationshipResults, processedEntities);
+        List<GraphRelationshipEntity> processedRelationships = processRelationships(knowledgeId, documentId, paragraph.getId(), relationshipResults, processedEntities);
 
         log.info("Extracted {} entities and {} relationships from paragraph [{}]",
                 processedEntities.size(), processedRelationships.size(), paragraph.getId());
     }
 
-    public void extractFromDocument(ChatModel chatModel, EmbeddingModel embeddingModel,
-                                     String knowledgeId, String documentId, List<ParagraphEntity> paragraphs) {
+    @Transactional(rollbackFor = Exception.class)
+    public void extractFromDocument(ChatModel chatModel, String knowledgeId, String documentId, List<ParagraphEntity> paragraphs) {
         if (CollectionUtils.isEmpty(paragraphs)) return;
         for (ParagraphEntity paragraph : paragraphs) {
             try {
-                extractFromParagraph(chatModel, embeddingModel, knowledgeId, documentId, paragraph);
+                extractFromParagraph(chatModel, knowledgeId, documentId, paragraph);
             } catch (Exception e) {
                 log.error("Failed to extract from paragraph [{}]: {}", paragraph.getId(), e.getMessage(), e);
             }
@@ -116,8 +107,7 @@ public class GraphExtractionService {
         return text;
     }
 
-    private Map<String, GraphEntityEntity> processEntities(EmbeddingModel embeddingModel,
-                                                            String knowledgeId, String documentId,
+    private Map<String, GraphEntityEntity> processEntities(String knowledgeId, String documentId,
                                                             String paragraphId,
                                                             List<ExtractionResult> entityResults) {
         Map<String, GraphEntityEntity> result = new LinkedHashMap<>();
@@ -145,12 +135,7 @@ public class GraphExtractionService {
             } else {
                 // Create new entity with embedding
                 String entityId = IdWorker.get32UUID();
-                String contentForEmbedding = entityName + ": " + description;
-
                 try {
-                    Response<Embedding> embeddingResponse = embeddingModel.embed(contentForEmbedding);
-                    List<Float> embeddingVector = embeddingResponse.content().vectorAsList();
-
                     GraphEntityEntity newEntity = new GraphEntityEntity();
                     newEntity.setId(entityId);
                     newEntity.setName(entityName);
@@ -159,9 +144,6 @@ public class GraphExtractionService {
                     newEntity.setKnowledgeId(knowledgeId);
                     newEntity.setDocumentId(documentId);
                     newEntity.setIsActive(true);
-                    newEntity.setEmbedding(embeddingVector);
-                    newEntity.setDimension(embeddingModel.dimension());
-
                     graphStoreService.saveEntity(newEntity);
                     graphStoreService.saveEntityParagraphMapping(entityId, paragraphId, knowledgeId, documentId);
                     result.put(entityName, newEntity);
@@ -176,8 +158,6 @@ public class GraphExtractionService {
                     newEntity.setKnowledgeId(knowledgeId);
                     newEntity.setDocumentId(documentId);
                     newEntity.setIsActive(true);
-                    newEntity.setDimension(embeddingModel.dimension());
-
                     graphStoreService.saveEntity(newEntity);
                     graphStoreService.saveEntityParagraphMapping(entityId, paragraphId, knowledgeId, documentId);
                     result.put(entityName, newEntity);
@@ -188,8 +168,7 @@ public class GraphExtractionService {
         return result;
     }
 
-    private List<GraphRelationshipEntity> processRelationships(EmbeddingModel embeddingModel,
-                                                                String knowledgeId, String documentId,
+    private List<GraphRelationshipEntity> processRelationships(String knowledgeId, String documentId,
                                                                 String paragraphId,
                                                                 List<ExtractionResult> relationshipResults,
                                                                 Map<String, GraphEntityEntity> processedEntities) {
@@ -224,11 +203,6 @@ public class GraphExtractionService {
             String contentForEmbedding = description + " " + keywords;
 
             try {
-                List<Float> embeddingVector = null;
-                if (StringUtils.isNotBlank(contentForEmbedding)) {
-                    Response<Embedding> embeddingResponse = embeddingModel.embed(contentForEmbedding);
-                    embeddingVector = embeddingResponse.content().vectorAsList();
-                }
 
                 GraphRelationshipEntity relationship = new GraphRelationshipEntity();
                 relationship.setId(relationshipId);
@@ -240,9 +214,6 @@ public class GraphExtractionService {
                 relationship.setKnowledgeId(knowledgeId);
                 relationship.setDocumentId(documentId);
                 relationship.setIsActive(true);
-                relationship.setEmbedding(embeddingVector);
-                relationship.setDimension(embeddingModel.dimension());
-
                 graphStoreService.saveRelationship(relationship);
                 graphStoreService.saveRelationshipParagraphMapping(relationshipId, paragraphId, knowledgeId, documentId);
                 result.add(relationship);
@@ -259,8 +230,6 @@ public class GraphExtractionService {
                 relationship.setKnowledgeId(knowledgeId);
                 relationship.setDocumentId(documentId);
                 relationship.setIsActive(true);
-                relationship.setDimension(embeddingModel.dimension());
-
                 graphStoreService.saveRelationship(relationship);
                 graphStoreService.saveRelationshipParagraphMapping(relationshipId, paragraphId, knowledgeId, documentId);
                 result.add(relationship);
