@@ -11,7 +11,6 @@ import com.maxkb4j.knowledge.mapper.GraphRelationshipMapper;
 import com.maxkb4j.knowledge.retrieval.SearchRequest;
 import com.maxkb4j.knowledge.service.GraphKeywordService;
 import com.maxkb4j.knowledge.service.GraphStoreService;
-import com.maxkb4j.knowledge.service.KnowledgeModelService;
 import com.maxkb4j.knowledge.vo.TextChunkVO;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import lombok.RequiredArgsConstructor;
@@ -34,7 +33,6 @@ public class GraphStoreImpl implements IDataStore {
     private final GraphRelationshipMapper graphRelationshipMapper;
     private final GraphStoreService graphStoreService;
     private final GraphKeywordService graphKeywordService;
-    private final KnowledgeModelService knowledgeModelService;
 
     @Override
     public void upsert(EmbeddingModel model, List<EmbeddingEntity> entities) {
@@ -107,7 +105,7 @@ public class GraphStoreImpl implements IDataStore {
 
         // Step 1: Extract dual-level keywords
         DualKeywordResult keywords;
-       // request.setChatModelId("296a3398e194eb8843f59930cb0f9308");
+        request.setChatModelId("296a3398e194eb8843f59930cb0f9308");
         if (StringUtils.isNotBlank(request.getChatModelId())) {
             keywords = graphKeywordService.extractDualKeywords(request.getChatModelId(), request.getQuery());
         } else {
@@ -194,9 +192,6 @@ public class GraphStoreImpl implements IDataStore {
         List<TextChunkVO> results = new ArrayList<>();
         Set<String> excludeParagraphIds = request.getExcludeParagraphIds() != null ?
                 new HashSet<>(request.getExcludeParagraphIds()) : Collections.emptySet();
-        Set<String> excludeDocumentIds = request.getExcludeDocumentIds() != null ?
-                new HashSet<>(request.getExcludeDocumentIds()) : Collections.emptySet();
-
         for (Map.Entry<String, Float> entry : paragraphScoreMap.entrySet()) {
             String paragraphId = entry.getKey();
             float score = entry.getValue();

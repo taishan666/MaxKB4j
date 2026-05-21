@@ -15,7 +15,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import java.util.*;
@@ -30,7 +29,6 @@ public class GraphExtractionService {
 
     private final GraphEntityMapper graphEntityMapper;
 
-    @Transactional(rollbackFor = Exception.class)
     public void extractFromParagraph(ChatModel chatModel, String knowledgeId, String documentId, ParagraphEntity paragraph) {
         if (paragraph.getContent() == null || paragraph.getContent().isBlank()) {
             log.warn("Paragraph content is empty, skipping extraction. Paragraph ID: {}", paragraph.getId());
@@ -69,7 +67,6 @@ public class GraphExtractionService {
                 processedEntities.size(), processedRelationships.size(), paragraph.getId());
     }
 
-    @Transactional(rollbackFor = Exception.class)
     public void extractFromDocument(ChatModel chatModel, String knowledgeId, String documentId, List<ParagraphEntity> paragraphs) {
         if (CollectionUtils.isEmpty(paragraphs)) return;
         for (ParagraphEntity paragraph : paragraphs) {
