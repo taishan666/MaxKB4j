@@ -48,6 +48,8 @@ public class AnthropicProvider extends AbsModelProvider {
                 .modelName(modelName)
                 .temperature(getDoubleParam(params, "temperature"))
                 .maxTokens(getIntParam(params, "maxTokens"))
+                .sendThinking(true)
+                .returnThinking(true)
                 .build();
     }
 
@@ -60,6 +62,8 @@ public class AnthropicProvider extends AbsModelProvider {
                 .modelName(modelName)
                 .temperature(getDoubleParam(params, "temperature"))
                 .maxTokens(getIntParam(params, "maxTokens"))
+                .sendThinking(true)
+                .returnThinking(true)
                 .build();
     }
 }

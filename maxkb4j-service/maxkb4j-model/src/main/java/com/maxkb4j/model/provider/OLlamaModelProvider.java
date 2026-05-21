@@ -9,7 +9,6 @@ import com.maxkb4j.model.enums.ModelType;
 import com.maxkb4j.model.vo.ModelInfo;
 import dev.langchain4j.http.client.HttpClientBuilder;
 import dev.langchain4j.http.client.spring.restclient.SpringRestClient;
-import dev.langchain4j.http.client.spring.restclient.SpringRestClientBuilder;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.model.embedding.EmbeddingModel;
@@ -73,7 +72,7 @@ public class OLlamaModelProvider extends AbsModelProvider {
                 .modelName(modelName)
                 .temperature(getDoubleParam(params, "temperature"))
                 .think(getBooleanParam(params,"enableThinking"))
-                .returnThinking(getBooleanParam(params,"enableThinking"))
+                .returnThinking(true)
                 .build();
     }
 
@@ -85,7 +84,7 @@ public class OLlamaModelProvider extends AbsModelProvider {
                 .modelName(modelName)
                 .temperature(getDoubleParam(params, "temperature"))
                 .think(getBooleanParam(params,"enableThinking"))
-                .returnThinking(getBooleanParam(params,"enableThinking"))
+                .returnThinking(true)
                 .build();
     }
 

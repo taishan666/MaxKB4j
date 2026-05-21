@@ -40,6 +40,8 @@ public class GeminiModelProvider extends AbsModelProvider {
                 .modelName(modelName)
                 .maxOutputTokens(getIntParam(params, "maxTokens"))
                 .temperature(getDoubleParam(params, "temperature"))
+                .sendThinking(true)
+                .returnThinking(true)
                 .build();
     }
 
@@ -51,6 +53,8 @@ public class GeminiModelProvider extends AbsModelProvider {
                 .modelName(modelName)
                 .maxOutputTokens(getIntParam(params, "maxTokens"))
                 .temperature(getDoubleParam(params, "temperature"))
+                .sendThinking(true)
+                .returnThinking(true)
                 .build();
     }
 
