@@ -12,6 +12,7 @@ import com.maxkb4j.knowledge.store.VectorStoreImpl;
 import com.maxkb4j.knowledge.store.FullTextStoreImpl;
 import com.maxkb4j.knowledge.store.CompositeStoreImpl;
 import com.maxkb4j.knowledge.store.GraphStoreImpl;
+import com.maxkb4j.knowledge.store.LinearGraphStoreImpl;
 import com.maxkb4j.knowledge.vo.TextChunkVO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,13 +33,15 @@ public class DataRetriever implements IDataRetriever {
     private final FullTextStoreImpl fullTextStore;
     private final CompositeStoreImpl compositeStore;
     private final GraphStoreImpl graphStore;
+    private final LinearGraphStoreImpl linearGraphStore;
     private final IDocumentService documentService;
 
     private static final Map<String, SearchMode> SEARCH_MODE_MAP = Map.of(
         SearchType.EMBEDDING, SearchMode.VECTOR,
         SearchType.FULL_TEXT, SearchMode.FULL_TEXT,
         SearchType.HYBRID, SearchMode.HYBRID,
-        SearchType.GRAPH, SearchMode.GRAPH
+        SearchType.GRAPH, SearchMode.GRAPH,
+        SearchType.LINEAR_GRAPH, SearchMode.LINEAR_GRAPH
     );
 
     @Override
@@ -69,8 +72,9 @@ public class DataRetriever implements IDataRetriever {
         return switch (searchMode) {
             case SearchType.EMBEDDING -> vectorStore;
             case SearchType.FULL_TEXT -> fullTextStore;
-            case SearchType.HYBRID -> graphStore;
-            case SearchType.GRAPH -> compositeStore;
+            case SearchType.HYBRID -> linearGraphStore;
+            case SearchType.GRAPH -> graphStore;
+            case SearchType.LINEAR_GRAPH -> compositeStore;
             default -> throw new IllegalArgumentException("Unknown search mode: " + searchMode);
         };
     }

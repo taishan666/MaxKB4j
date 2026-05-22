@@ -46,6 +46,7 @@
         <reflections.version>0.10.2</reflections.version>
         <caffeine.version>2.9.0</caffeine.version>
         <jieba.version>1.0.2</jieba.version>
+        <hanlp.version>portable-1.8.4</hanlp.version>
         <logback.version>1.5.25</logback.version>
         <easy-captcha.version>1.6.2</easy-captcha.version>
         <lombok.version>1.18.30</lombok.version>
@@ -457,6 +458,11 @@
                 <groupId>com.huaban</groupId>
                 <artifactId>jieba-analysis</artifactId>
                 <version>${jieba.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.hankcs</groupId>
+                <artifactId>hanlp</artifactId>
+                <version>${hanlp.version}</version>
             </dependency>
             <!-- Sa-Token 权限认证，在线文档：https://sa-token.cc -->
             <dependency>

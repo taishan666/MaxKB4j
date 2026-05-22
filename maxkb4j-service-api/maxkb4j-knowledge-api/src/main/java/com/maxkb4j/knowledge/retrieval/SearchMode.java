@@ -23,5 +23,12 @@ public enum SearchMode {
     /**
      * Graph-based retrieval using knowledge graph (LightRAG dual-level)
      */
-    GRAPH
+    GRAPH,
+
+    /**
+     * LinearRAG-based retrieval using Tri-Graph (Entity-Sentence-Paragraph)
+     * with LoSemB entity activation + Personalized PageRank passage ranking.
+     * Zero-token graph construction, linear complexity.
+     */
+    LINEAR_GRAPH
 }
