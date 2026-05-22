@@ -120,7 +120,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
         if (emailNum > 0) {
             throw new ApiException("邮箱已存在");
         }
-        user.setRole(Set.of());
+        user.setRole(Set.of(RoleType.USER));
         user.setIsActive(true);
         user.setSource(UserSource.LOCAL);
         user.setLanguage((String) StpKit.ADMIN.getExtra("language"));
@@ -135,12 +135,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
         user.setUsername(username);
         user.setPassword(SaSecureUtil.md5(password));
         Set<String> role = new HashSet<>();
-        role.add(RoleType.USER);
+        role.add(RoleType.ADMIN);
         user.setRole(role);
         user.setIsActive(true);
         user.setSource(UserSource.LOCAL);
         user.setLanguage("zh-CN");
-        user.setPhone("");
+        user.setPhone("13843838438");
         user.setEmail("1334512682@qq.com");
         save(user);
     }
