@@ -97,8 +97,6 @@ public class Workflow {
         return workflowContext.getChatContext();
     }
 
-
-
     /**
      * 获取聊天上下文
      *
@@ -196,8 +194,8 @@ public class Workflow {
      * @param nodeId 节点 ID
      * @return 节点实例
      */
-    public AbsNode getNode(String nodeId) {
-        return configuration.getNode(nodeId);
+    public AbsNode getExecutedNode(String nodeId) {
+        return workflowContext.getExecutedNode(nodeId);
     }
 
     /**
@@ -217,16 +215,6 @@ public class Workflow {
     public long getNodeExecutionTimeoutMinutes() {
         return configuration.getNodeExecutionTimeoutMinutes();
     }
-
-    /**
-     * 获取工作流模式
-     *
-     * @return 工作流模式
-     */
-    public WorkflowMode getWorkflowMode() {
-        return configuration.getWorkflowMode();
-    }
-
     // ==================== 分层访问器（推荐使用） ====================
 
     /**
