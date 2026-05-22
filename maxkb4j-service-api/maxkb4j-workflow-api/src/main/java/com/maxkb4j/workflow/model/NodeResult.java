@@ -77,15 +77,15 @@ public class NodeResult {
                         null,
                         false);
                 workflow.output().emit(vo);
-                ChatMessageVO nodeEndVo = node.toChatMessageVO(
-                        workflow.getChatParams().getChatId(),
-                        workflow.getChatParams().getChatRecordId(),
-                        "",
-                        "",
-                        null,
-                        true);
-                workflow.output().emit(nodeEndVo);
             }
+            ChatMessageVO nodeEndVo = node.toChatMessageVO(
+                    workflow.getChatParams().getChatId(),
+                    workflow.getChatParams().getChatRecordId(),
+                    "",
+                    "",
+                    null,
+                    true);
+            workflow.output().emit(nodeEndVo);
         }
         // Sync update to workflow context
         workflow.context().appendNode(node);

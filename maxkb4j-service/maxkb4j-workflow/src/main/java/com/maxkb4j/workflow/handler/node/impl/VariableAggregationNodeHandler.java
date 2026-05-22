@@ -52,7 +52,7 @@ public class VariableAggregationNodeHandler extends AbsNodeHandler {
         for (VariableAggregationNode.Variable e : variableList) {
             String nodeId = e.getVariable().get(0);
             String field = e.getVariable().get(1);
-            AbsNode lfNode = workflow.getNode(nodeId);
+            AbsNode lfNode = workflow.getExecutedNode(nodeId);
             Object value = workflow.getReferenceField(e.getVariable());
             String nodeName = lfNode.getProperties().getString("nodeName");
             e.setNodeName(nodeName == null ? "未知" : nodeName);

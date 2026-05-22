@@ -15,7 +15,6 @@ import com.maxkb4j.oss.service.IOssService;
 import com.maxkb4j.tool.service.IToolProviderService;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.NodeType;
-import com.maxkb4j.workflow.enums.WorkflowMode;
 import com.maxkb4j.workflow.handler.node.AbsNodeHandler;
 import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.model.Workflow;
@@ -215,7 +214,7 @@ public class LLMNodeHandler extends AbsNodeHandler {
     }
 
     private void emitMessage(Workflow workflow, AbsNode node, String content, String reasoning) {
-        if (WorkflowMode.APPLICATION.equals(workflow.getWorkflowMode())) {
+        if (workflow.output().needsSink()) {
             ChatMessageVO vo = node.toChatMessageVO(
                     workflow.getChatParams().getChatId(),
                     workflow.getChatParams().getChatRecordId(),

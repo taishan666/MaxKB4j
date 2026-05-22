@@ -6,6 +6,7 @@ import lombok.Data;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
@@ -77,5 +78,10 @@ public class WorkflowContext {
 
     public Object getReferenceField(String nodeId, String key) {
         return variableResolver.getReferenceField(nodeId, key);
+    }
+
+    public AbsNode getExecutedNode(String nodeId) {
+        Optional<AbsNode> optional=nodeContext.stream().filter(node -> node.getId().equals(nodeId)).findFirst();
+        return optional.orElse(null);
     }
 }
