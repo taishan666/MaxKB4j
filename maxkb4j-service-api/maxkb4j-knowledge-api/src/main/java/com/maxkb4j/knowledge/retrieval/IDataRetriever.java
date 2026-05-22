@@ -9,4 +9,7 @@ public interface IDataRetriever {
 
     List<TextChunkVO> search(List<String> knowledgeIds, List<String> excludeParagraphIds,
                              String keyword, int maxResults, float minScore, String searchMode);
+
+    List<TextChunkVO> search(List<String> knowledgeIds, List<String> excludeParagraphIds,
+                             String keyword, int maxResults, float minScore, String searchMode, String chatModelId);
 }

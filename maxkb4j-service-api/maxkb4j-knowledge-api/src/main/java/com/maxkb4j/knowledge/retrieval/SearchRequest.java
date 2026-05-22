@@ -51,4 +51,9 @@ public class SearchRequest {
      */
     private Map<String, Object> filters;
 
+    /**
+     * ChatModel ID for LLM-based keyword extraction (graph retrieval)
+     */
+    private String chatModelId;
+
 }

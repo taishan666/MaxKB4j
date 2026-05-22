@@ -11,4 +11,5 @@ public class DataSearchDTO {
     private Float  similarity;
     private Integer  topNumber;
     private List<String> excludeParagraphIds;
+    private String chatModelId;
 }

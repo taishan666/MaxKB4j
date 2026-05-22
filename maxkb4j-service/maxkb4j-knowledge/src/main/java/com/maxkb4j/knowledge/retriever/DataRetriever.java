@@ -11,6 +11,7 @@ import com.maxkb4j.knowledge.store.IDataStore;
 import com.maxkb4j.knowledge.store.VectorStoreImpl;
 import com.maxkb4j.knowledge.store.FullTextStoreImpl;
 import com.maxkb4j.knowledge.store.CompositeStoreImpl;
+import com.maxkb4j.knowledge.store.GraphStoreImpl;
 import com.maxkb4j.knowledge.vo.TextChunkVO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,17 +31,25 @@ public class DataRetriever implements IDataRetriever {
     private final VectorStoreImpl vectorStore;
     private final FullTextStoreImpl fullTextStore;
     private final CompositeStoreImpl compositeStore;
+    private final GraphStoreImpl graphStore;
     private final IDocumentService documentService;
 
     private static final Map<String, SearchMode> SEARCH_MODE_MAP = Map.of(
         SearchType.EMBEDDING, SearchMode.VECTOR,
         SearchType.FULL_TEXT, SearchMode.FULL_TEXT,
-        SearchType.HYBRID, SearchMode.HYBRID
+        SearchType.HYBRID, SearchMode.HYBRID,
+        SearchType.GRAPH, SearchMode.GRAPH
     );
 
     @Override
     public List<TextChunkVO> search(List<String> knowledgeIds, List<String> excludeParagraphIds,
                                      String keyword, int maxResults, float minScore, String searchMode) {
+        return search(knowledgeIds, excludeParagraphIds, keyword, maxResults, minScore, searchMode, null);
+    }
+
+    @Override
+    public List<TextChunkVO> search(List<String> knowledgeIds, List<String> excludeParagraphIds,
+                                     String keyword, int maxResults, float minScore, String searchMode, String chatModelId) {
         SearchRequest request = new SearchRequest();
         request.setKnowledgeIds(knowledgeIds);
         request.setExcludeParagraphIds(excludeParagraphIds);
@@ -48,6 +57,7 @@ public class DataRetriever implements IDataRetriever {
         request.setTopK(maxResults);
         request.setMinScore(minScore);
         request.setMode(SEARCH_MODE_MAP.get(searchMode));
+        request.setChatModelId(chatModelId);
         List<DocumentEntity> excludeDocuments =documentService.lambdaQuery().select(DocumentEntity::getId).in(DocumentEntity::getKnowledgeId, knowledgeIds).eq(DocumentEntity::getIsActive, false).list();
         if (CollectionUtils.isNotEmpty(excludeDocuments)){
             request.setExcludeDocumentIds(excludeDocuments.stream().map(DocumentEntity::getId).toList());
@@ -59,7 +69,8 @@ public class DataRetriever implements IDataRetriever {
         return switch (searchMode) {
             case SearchType.EMBEDDING -> vectorStore;
             case SearchType.FULL_TEXT -> fullTextStore;
-            case SearchType.HYBRID -> compositeStore;
+            case SearchType.HYBRID -> graphStore;
+            case SearchType.GRAPH -> compositeStore;
             default -> throw new IllegalArgumentException("Unknown search mode: " + searchMode);
         };
     }

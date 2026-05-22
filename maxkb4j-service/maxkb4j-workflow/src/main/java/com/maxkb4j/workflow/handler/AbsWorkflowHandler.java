@@ -189,6 +189,10 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
 
             return new NodeResultFuture(result, null, NodeStatus.SUCCESS.getStatus());
 
+        } catch (CompletionException ex) {
+            Throwable cause = ex.getCause();
+            Exception realEx = cause instanceof Exception ? (Exception) cause : new RuntimeException(cause);
+            return handleNodeError(workflow, node, realEx);
         } catch (Exception ex) {
             System.out.println("execute() method throws CompletionException212");
             // 统一异常处理：日志记录、详情记录、Sink发送

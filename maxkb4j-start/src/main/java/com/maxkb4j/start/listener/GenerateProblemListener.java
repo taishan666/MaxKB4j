@@ -1,18 +1,15 @@
 package com.maxkb4j.start.listener;
 
-import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.maxkb4j.core.event.GenerateProblemEvent;
-import com.maxkb4j.knowledge.entity.ParagraphEntity;
-import com.maxkb4j.knowledge.entity.ProblemEntity;
+import com.maxkb4j.core.event.GraphExtractionEvent;
 import com.maxkb4j.knowledge.service.IDocumentService;
 import com.maxkb4j.knowledge.service.IParagraphService;
 import com.maxkb4j.knowledge.service.IProblemService;
 import com.maxkb4j.knowledge.service.KnowledgeModelService;
 import com.maxkb4j.model.service.IModelProviderService;
-import dev.langchain4j.model.chat.ChatModel;
-import dev.langchain4j.model.embedding.EmbeddingModel;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
@@ -29,12 +26,14 @@ public class GenerateProblemListener {
     private final IModelProviderService modelFactory;
     private final IProblemService problemService;
     private final KnowledgeModelService knowledgeModelService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Async
     @EventListener
     public void handleEvent(GenerateProblemEvent event) {
         log.info("收到问题生成事件消息: {}", event.getDocumentIdList());
-        ChatModel chatModel=modelFactory.buildChatModel(event.getModelId());
+        publishGraphExtractionEvent(event.getKnowledgeId(), event.getModelId(), event.getDocumentIdList(), event.getStateList());
+ /*       ChatModel chatModel=modelFactory.buildChatModel(event.getModelId());
         EmbeddingModel embeddingModel=knowledgeModelService.getEmbeddingModel(event.getKnowledgeId());
         documentService.updateStatusByIds(event.getDocumentIdList(), 2, 0);
         List<ProblemEntity> knowledgeProblems = problemService.lambdaQuery().eq(ProblemEntity::getKnowledgeId, event.getKnowledgeId()).list();
@@ -63,7 +62,14 @@ public class GenerateProblemListener {
             } catch (Exception e) {
                 log.error("文档问题生成失败: docId={}, 错误: {}", docId, e.getMessage(), e);
             }
-        }
+        }*/
+    }
+
+    /**
+     * Publish graph extraction event if graph is enabled for this knowledge base
+     */
+    private void publishGraphExtractionEvent(String knowledgeId, String chatModelId,List<String> docIds, List<String> stateList) {
+        eventPublisher.publishEvent(new GraphExtractionEvent(this, knowledgeId, docIds, chatModelId, stateList));
     }
 
 }

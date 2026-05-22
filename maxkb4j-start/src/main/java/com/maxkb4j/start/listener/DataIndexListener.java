@@ -93,4 +93,5 @@ public class DataIndexListener {
 
         documentService.updateStatusById(docId, 1, 2);
     }
+
 }
