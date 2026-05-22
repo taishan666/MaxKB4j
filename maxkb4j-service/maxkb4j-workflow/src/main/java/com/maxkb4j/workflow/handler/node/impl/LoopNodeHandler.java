@@ -321,7 +321,7 @@ public class LoopNodeHandler extends AbsNodeHandler {
         node.getDetail().put(DETAIL_CURRENT_INDEX, ctx.currentIndex);
 
         // 收集运行时详情
-        JSONObject runtimeDetails = loopWorkflow.runtimeDetails();
+        JSONObject runtimeDetails = loopWorkflow.output().runtimeDetails();
         appendIterationIndex(runtimeDetails, ctx.currentIndex);
         ctx.loopDetails.add(runtimeDetails);
     }

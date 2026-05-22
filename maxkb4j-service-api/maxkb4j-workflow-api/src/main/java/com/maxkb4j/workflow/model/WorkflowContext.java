@@ -86,30 +86,4 @@ public class WorkflowContext {
         return optional.orElse(null);
     }
 
-    /**
-     * 获取运行时详情
-     *
-     * @return 节点运行时详情 JSON
-     */
-    public JSONObject runtimeDetails() {
-        JSONObject result = new JSONObject(true);
-        for (int index = 0; index < nodeContext.size(); index++) {
-            AbsNode node = nodeContext.get(index);
-            JSONObject runtimeDetail = new JSONObject(true);
-            runtimeDetail.putAll(node.getDetail());
-            runtimeDetail.put("index", index);
-            runtimeDetail.put("nodeId", node.getId());
-            runtimeDetail.put("name", node.getProperties() != null
-                    ? node.getProperties().getString("nodeName")
-                    : node.getType());
-            runtimeDetail.put("upNodeIdList", node.getUpNodeIdList());
-            runtimeDetail.put("runtimeNodeId", node.getRuntimeNodeId());
-            runtimeDetail.put("type", node.getType());
-            runtimeDetail.put("status", node.getStatus());
-            runtimeDetail.put("errMessage", node.getErrMessage());
-            result.put(node.getRuntimeNodeId(), runtimeDetail);
-        }
-        return result;
-    }
-
 }

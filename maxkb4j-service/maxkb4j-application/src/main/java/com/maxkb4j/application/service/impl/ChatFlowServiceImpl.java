@@ -37,7 +37,7 @@ public class ChatFlowServiceImpl implements IChatService {
                 .build();
         workFlowActuator.execute(workflow);
         List<Answer> answerTextList = workflow.output().answers();
-        JSONObject details = workflow.runtimeDetails();
+        JSONObject details = workflow.output().runtimeDetails();
         return new ChatResponse(answerTextList, details);
     }
 

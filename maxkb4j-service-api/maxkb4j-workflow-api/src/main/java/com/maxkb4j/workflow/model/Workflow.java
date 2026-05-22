@@ -1,6 +1,5 @@
 package com.maxkb4j.workflow.model;
 
-import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.common.domain.dto.ChatRecordDTO;
@@ -115,8 +114,6 @@ public class Workflow {
     public List<ChatRecordDTO> getHistoryChatRecords() {
         return historyManager.historyChatRecords();
     }
-
-    public JSONObject runtimeDetails(){return workflowContext.runtimeDetails();}
 
     /**
      * 获取历史消息
