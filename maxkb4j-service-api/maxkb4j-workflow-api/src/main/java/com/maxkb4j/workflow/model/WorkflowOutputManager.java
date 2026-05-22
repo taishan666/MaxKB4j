@@ -6,7 +6,6 @@ import com.maxkb4j.common.domain.dto.Answer;
 import com.maxkb4j.common.domain.dto.ChatMessageVO;
 import com.maxkb4j.workflow.enums.WorkflowMode;
 import com.maxkb4j.workflow.node.AbsNode;
-import lombok.Getter;
 import reactor.core.publisher.Sinks;
 
 import java.util.ArrayList;
@@ -17,35 +16,15 @@ import java.util.stream.Collectors;
 /**
  * 工作流输出管理器
  * 负责管理工作流的输出：响应式输出、答案列表、运行时详情等
- *
+ * <p>
  * 从 Workflow 类提取，遵循单一职责原则
+ *
+ * @param configuration 工作流配置
+ * @param context       工作流上下文
+ * @param sink          响应式输出 Sink
  */
-@Getter
-public class WorkflowOutputManager {
-
-    /**
-     * 工作流配置
-     */
-    private final WorkflowConfiguration configuration;
-
-    /**
-     * 工作流上下文
-     */
-    private final WorkflowContext context;
-
-    /**
-     * 响应式输出 Sink
-     */
-    @JsonIgnore
-    private final Sinks.Many<ChatMessageVO> sink;
-
-    public WorkflowOutputManager(WorkflowConfiguration configuration,
-                                 WorkflowContext context,
-                                 Sinks.Many<ChatMessageVO> sink) {
-        this.configuration = configuration;
-        this.context = context;
-        this.sink = sink;
-    }
+public record WorkflowOutputManager(WorkflowConfiguration configuration, WorkflowContext context,
+                                    @JsonIgnore Sinks.Many<ChatMessageVO> sink) {
 
 
     /**

@@ -23,7 +23,6 @@ public class FormNodeHandler extends AbsNodeHandler {
         FormNode.NodeParams params = parseParams(node, FormNode.NodeParams.class);
         Map<String, Object> formData = params.getFormData();
         Map<String, Object> nodeVariable = new HashMap<>();
-
         if (formData != null) {
             nodeVariable.put("is_submit", true);
             nodeVariable.put("form_data", formData);

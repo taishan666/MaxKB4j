@@ -96,8 +96,11 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
                 node.setStatus(nodeResultFuture.getStatus());
                 NodeResult nodeResult = nodeResultFuture.getResult();
                 if (nodeResult != null) {
-                    nodeResult.writeContext(node, workflow);
                     nodeResult.writeDetail(node);
+                    nodeResult.writeContext(node, workflow);
+                    if (NodeStatus.ERROR.getStatus()==node.getStatus()){
+                        return List.of();
+                    }
                     if (nodeResult.isInterruptExec(node)) {
                         node.setStatus(NodeStatus.INTERRUPT.getStatus());
                     }
@@ -186,11 +189,8 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
 
             return new NodeResultFuture(result, null, NodeStatus.SUCCESS.getStatus());
 
-        } catch (CompletionException ex) {
-            Throwable cause = ex.getCause();
-            Exception realEx = cause instanceof Exception ? (Exception) cause : new RuntimeException(cause);
-            return handleNodeError(workflow, node, realEx);
         } catch (Exception ex) {
+            System.out.println("execute() method throws CompletionException212");
             // 统一异常处理：日志记录、详情记录、Sink发送
             return handleNodeError(workflow, node, ex);
         }
@@ -231,7 +231,8 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
     protected NodeResultFuture handleNodeError(Workflow workflow, AbsNode node, Exception ex) {
         // 使用统一的异常解析器链处理异常
         exceptionResolverChain.resolve(workflow, node, ex);
-        return new NodeResultFuture(null, ex, NodeStatus.ERROR.getStatus());
+        NodeResult errorResult = new NodeResult(Map.of());
+        return new NodeResultFuture(errorResult, ex, NodeStatus.ERROR.getStatus());
     }
 
 

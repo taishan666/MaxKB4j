@@ -48,7 +48,7 @@ public class LoopNodeHandler extends AbsNodeHandler {
 
     // Detail 键常量
     private static final String DETAIL_LOOP_DATA = "loop_node_data";
-    private static final String DETAIL_LOOP_TYPE = "loopType";
+    private static final String DETAIL_LOOP_TYPE = "loop_type";
     private static final String DETAIL_NUMBER = "number";
     private static final String DETAIL_CURRENT_INDEX = "current_index";
     private static final String DETAIL_INTERRUPT_EXEC = "is_interrupt_exec";
