@@ -6,7 +6,6 @@ public interface SearchType {
     String EMBEDDING="embedding";
     String FULL_TEXT ="keywords";
     String HYBRID="hybrid";
-    String GRAPH="graph";
     /**
      * LinearRAG-based graph retrieval.
      * Uses Tri-Graph (Entity-Sentence-Paragraph) with LoSemB + PPR two-stage retrieval.
