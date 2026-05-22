@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * 工作流执行控制器
@@ -101,8 +102,7 @@ public class WorkflowExecutionAccessor {
             List<AbsNode> targetNodes = buildNodes(targetNodeIds, currentNode);
             targetNodes.forEach(node -> {
                 if (!isAssertionNode(node.getId(), currentNodeResult, sourceEdges)) {
-                    List<String> upNodeIdList = navigator.findUpstreamNodeIds(node.getId());
-                    if (upNodeIdList.stream().allMatch(id->id.equals(currentNode.getId()))){
+                    if(isSkipNode(node,currentNode.getId())){
                         node.setStatus(NodeStatus.SKIP.getStatus());
                     }
                 }
@@ -138,20 +138,32 @@ public class WorkflowExecutionAccessor {
      * @param node 待检查节点
      * @return 是否为就绪的 Join 节点
      */
-    public boolean isReadyJoin(AbsNode node) {
+    public boolean isSkipNode(AbsNode node) {
         List<String> upNodeIdList = navigator.findUpstreamNodeIds(node.getId());
         if (CollectionUtils.isEmpty(upNodeIdList)) {
-            return false;
+            return true;
         }
         // 多个上游节点时，检查是否所有上游节点都是 SKIP（排除这种情况）
-        if (upNodeIdList.size() > 1) {
-            Set<String> upNodeIdSet = new HashSet<>(upNodeIdList);
-            return !configuration.getNodes().stream()
+        return configuration.getNodes().stream()
+                .filter(n -> upNodeIdList.contains(n.getId()))
+                .allMatch(n -> NodeStatus.SKIP.getStatus() == n.getStatus());
+    }
+
+    public boolean isSkipNode(AbsNode node,String excludeNodeId) {
+        List<String> upNodeIdList = navigator.findUpstreamNodeIds(node.getId());
+        if (CollectionUtils.isEmpty(upNodeIdList)) {
+            return true;
+        }
+        Set<String> upNodeIdSet=upNodeIdList.stream().filter(id->!id.equals(excludeNodeId)).collect(Collectors.toSet());
+        // 多个上游节点时，检查是否所有上游节点都是 SKIP（排除这种情况）
+        if (!upNodeIdList.isEmpty()) {
+            return configuration.getNodes().stream()
                     .filter(n -> upNodeIdSet.contains(n.getId()))
                     .allMatch(n -> NodeStatus.SKIP.getStatus() == n.getStatus());
         }
-        return false;
+        return true;
     }
+
 
     /**
      * 加载节点状态
