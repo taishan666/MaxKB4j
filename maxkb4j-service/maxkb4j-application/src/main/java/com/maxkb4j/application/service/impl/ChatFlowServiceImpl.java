@@ -29,7 +29,6 @@ public class ChatFlowServiceImpl implements IChatService {
 
     @Override
     public ChatResponse chatMessage(ApplicationVO application, ChatParams chatParams, Sinks.Many<ChatMessageVO> sink) {
-       // chatParams.setChatRecordId(chatParams.getChatRecordId() == null ? IdWorker.get32UUID() : chatParams.getChatRecordId());
         LogicFlow logicFlow = LogicFlow.newInstance(application.getWorkFlow());
         List<AbsNode> nodes = logicFlow.getNodes().stream().map(nodeBuilder::getNode).filter(Objects::nonNull).toList();
         Workflow workflow = Workflow.builder(WorkflowMode.APPLICATION, nodes, logicFlow.getEdges())
@@ -38,7 +37,7 @@ public class ChatFlowServiceImpl implements IChatService {
                 .build();
         workFlowActuator.execute(workflow);
         List<Answer> answerTextList = workflow.output().answers();
-        JSONObject details = workflow.output().runtimeDetails();
+        JSONObject details = workflow.runtimeDetails();
         return new ChatResponse(answerTextList, details);
     }
 

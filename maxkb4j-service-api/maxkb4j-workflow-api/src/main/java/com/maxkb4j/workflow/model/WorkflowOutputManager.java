@@ -1,6 +1,5 @@
 package com.maxkb4j.workflow.model;
 
-import com.alibaba.fastjson.JSONObject;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.maxkb4j.common.domain.dto.Answer;
 import com.maxkb4j.common.domain.dto.ChatMessageVO;
@@ -59,36 +58,6 @@ public record WorkflowOutputManager(WorkflowConfiguration configuration, Workflo
             answerList.addAll(node.getAnswerList(chatRecordId));
         }
         return answerList;
-    }
-
-    /**
-     * 获取运行时详情
-     *
-     * @return 节点运行时详情 JSON
-     */
-    public JSONObject runtimeDetails() {
-        JSONObject result = new JSONObject(true);
-        List<AbsNode> validNodes = getValidNodes();
-        if (validNodes.isEmpty()) {
-            return result;
-        }
-        for (int index = 0; index < validNodes.size(); index++) {
-            AbsNode node = validNodes.get(index);
-            JSONObject runtimeDetail = new JSONObject(true);
-            runtimeDetail.putAll(node.getDetail());
-            runtimeDetail.put("index", index);
-            runtimeDetail.put("nodeId", node.getId());
-            runtimeDetail.put("name", node.getProperties() != null
-                    ? node.getProperties().getString("nodeName")
-                    : node.getType());
-            runtimeDetail.put("upNodeIdList", node.getUpNodeIdList());
-            runtimeDetail.put("runtimeNodeId", node.getRuntimeNodeId());
-            runtimeDetail.put("type", node.getType());
-            runtimeDetail.put("status", node.getStatus());
-            runtimeDetail.put("errMessage", node.getErrMessage());
-            result.put(node.getRuntimeNodeId(), runtimeDetail);
-        }
-        return result;
     }
 
     /**

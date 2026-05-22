@@ -47,7 +47,7 @@ public class KnowledgeWorkflowHandler extends AbsWorkflowHandler {
         if (workflow instanceof KnowledgeWorkflow knowledgeWorkflow) {
             String actionId = knowledgeWorkflow.getKnowledgeParams().getActionId();
             knowledgeActionService.updateState(actionId,
-                    knowledgeWorkflow.output().runtimeDetails(), actionStatus.name());
+                    knowledgeWorkflow.runtimeDetails(), actionStatus.name());
         }
     }
 
