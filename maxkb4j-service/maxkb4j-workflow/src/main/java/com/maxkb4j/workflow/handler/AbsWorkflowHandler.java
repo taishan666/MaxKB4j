@@ -57,15 +57,25 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
         long timeoutMinutes = workflow.getNodeExecutionTimeoutMinutes();
         List<CompletableFuture<List<AbsNode>>> futureList = new ArrayList<>();
         for (AbsNode node : nodeList) {
-            INodeHandler handler = nodeCenter.getHandler(node.getType());
-            if (handler.isAsync()) {
-                // 异步节点：直接使用其返回的 CompletableFuture，不占用 workflowExecutor 线程
-                futureList.add(runAsyncChainNode(workflow, node));
-            } else {
-                // 同步节点：在 workflowExecutor 上执行
-                futureList.add(CompletableFuture.supplyAsync(
-                        () -> runChainNode(workflow, node),
-                        workflowExecutor));
+            if (NodeStatus.READY.getStatus() == node.getStatus() || NodeStatus.INTERRUPT.getStatus() == node.getStatus()) {
+                INodeHandler handler = nodeCenter.getHandler(node.getType());
+                if (handler.isAsync()) {
+                    // 异步节点：直接使用其返回的 CompletableFuture，不占用 workflowExecutor 线程
+                    futureList.add(runAsyncChainNode(workflow, node));
+                } else {
+                    // 同步节点：在 workflowExecutor 上执行
+                    futureList.add(CompletableFuture.supplyAsync(
+                            () -> runChainNode(workflow, node),
+                            workflowExecutor));
+                }
+            } else if (NodeStatus.SKIP.getStatus() == node.getStatus()) {
+                // 获取下一个节点列表
+                List<AbsNode> nextNodeList = workflow.execution().nextNodes(node, new NodeResult(Map.of()));
+                nextNodeList.forEach(nextNode -> {
+                    if (workflow.execution().isSkipNode(nextNode)) {
+                        nextNode.setStatus(NodeStatus.SKIP.getStatus());
+                    }
+                });
             }
         }
         for (int i = 0; i < futureList.size(); i++) {
@@ -90,33 +100,22 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
 
 
     protected List<AbsNode> runChainNode(Workflow workflow, AbsNode node) {
-        if (NodeStatus.READY.getStatus() == node.getStatus() || NodeStatus.INTERRUPT.getStatus() == node.getStatus()) {
-            if (workflow.execution().dependenciesExecuted(node)) {
-                NodeResultFuture nodeResultFuture = runNodeFuture(workflow, node);
-                node.setStatus(nodeResultFuture.getStatus());
-                NodeResult nodeResult = nodeResultFuture.getResult();
-                if (nodeResult != null) {
-                    nodeResult.writeDetail(node);
-                    nodeResult.writeContext(node, workflow);
-                    if (NodeStatus.ERROR.getStatus()==node.getStatus()){
-                        return List.of();
-                    }
-                    if (nodeResult.isInterruptExec(node)) {
-                        node.setStatus(NodeStatus.INTERRUPT.getStatus());
-                    }
+        if (workflow.execution().dependenciesExecuted(node)) {
+            NodeResultFuture nodeResultFuture = runNodeFuture(workflow, node);
+            node.setStatus(nodeResultFuture.getStatus());
+            NodeResult nodeResult = nodeResultFuture.getResult();
+            if (nodeResult != null) {
+                nodeResult.writeDetail(node);
+                nodeResult.writeContext(node, workflow);
+                if (NodeStatus.ERROR.getStatus() == node.getStatus()) {
+                    return List.of();
                 }
-                // 获取下一个节点列表
-                return workflow.execution().nextNodes(node, nodeResult);
+                if (nodeResult.isInterruptExec(node)) {
+                    node.setStatus(NodeStatus.INTERRUPT.getStatus());
+                }
             }
-        } else if (NodeStatus.SKIP.getStatus() == node.getStatus()) {
             // 获取下一个节点列表
-            List<AbsNode> nextNodeList = workflow.execution().nextNodes(node, new NodeResult(Map.of()));
-            nextNodeList.forEach(nextNode -> {
-                if (workflow.execution().isSkipNode(nextNode)) {
-                    nextNode.setStatus(NodeStatus.SKIP.getStatus());
-                }
-            });
-            return nextNodeList;
+            return workflow.execution().nextNodes(node, nodeResult);
         }
         return List.of();
     }
@@ -128,7 +127,6 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
     protected CompletableFuture<List<AbsNode>> runAsyncChainNode(Workflow workflow, AbsNode node) {
         onNodeStart(workflow, node);
         workflow.execution().recordExecution(node);
-
         INodeHandler nodeHandler = nodeCenter.getHandler(node.getType());
         CompletableFuture<NodeResult> resultFuture;
         try {
@@ -139,7 +137,6 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
             node.setStatus(errorResult.getStatus());
             return CompletableFuture.completedFuture(List.of());
         }
-
         return resultFuture.handle((result, ex) -> {
             if (ex != null) {
                 Throwable cause = ex instanceof CompletionException ? ex.getCause() : ex;

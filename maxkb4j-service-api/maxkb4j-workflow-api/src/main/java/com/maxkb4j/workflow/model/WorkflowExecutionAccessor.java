@@ -144,9 +144,7 @@ public class WorkflowExecutionAccessor {
             return true;
         }
         // 多个上游节点时，检查是否所有上游节点都是 SKIP（排除这种情况）
-        return configuration.getNodes().stream()
-                .filter(n -> upNodeIdList.contains(n.getId()))
-                .allMatch(n -> NodeStatus.SKIP.getStatus() == n.getStatus());
+        return configuration.getNodes().stream().filter(n -> upNodeIdList.contains(n.getId())).allMatch(n -> NodeStatus.SKIP.getStatus() == n.getStatus());
     }
 
     public boolean isSkipNode(AbsNode node,String excludeNodeId) {
