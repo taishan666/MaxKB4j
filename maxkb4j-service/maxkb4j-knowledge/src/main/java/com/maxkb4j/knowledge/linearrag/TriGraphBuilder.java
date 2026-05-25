@@ -6,7 +6,6 @@ import com.maxkb4j.knowledge.linearrag.model.TriGraph;
 
 import java.text.BreakIterator;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * Builds the LinearRAG Tri-Graph (Entity-Sentence-Paragraph) per the paper specification.
@@ -23,7 +22,6 @@ import java.util.stream.Collectors;
 public class TriGraphBuilder {
 
     private static final int MIN_SENTENCE_LENGTH = 5;
-    private static final int MIN_ENTITY_LENGTH = 2;
 
     /**
      * Build a complete Tri-Graph from entities and paragraph data.
@@ -219,18 +217,4 @@ public class TriGraphBuilder {
         return sentences;
     }
 
-    /**
-     * Extract entity occurrences from a sentence given a list of entity names.
-     * Returns entity names that appear in the sentence text.
-     */
-    public static List<String> findEntitiesInText(String text, Collection<String> entityNames) {
-        if (text == null || entityNames == null) {
-            return Collections.emptyList();
-        }
-        String lowerText = text.toLowerCase();
-        return entityNames.stream()
-                .filter(name -> name.length() >= MIN_ENTITY_LENGTH)
-                .filter(name -> lowerText.contains(name.toLowerCase()))
-                .collect(Collectors.toList());
-    }
 }

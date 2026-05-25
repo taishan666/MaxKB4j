@@ -95,25 +95,20 @@ public class LinearRagGraphService {
         // Get embedding model and compute query embedding for BFS sentence similarity
         EmbeddingModel embeddingModel = getEmbeddingModel(knowledgeIds.getFirst());
         float[] queryEmbedding = computeQueryEmbedding(query, embeddingModel);
-
         // Build search context for pgvector DPR queries
         SearchRequest searchContext = new SearchRequest();
         searchContext.setKnowledgeIds(knowledgeIds);
         searchContext.setExcludeParagraphIds(excludeParagraphIds);
         searchContext.setExcludeDocumentIds(excludeDocumentIds);
-
         List<TextChunkVO> allResults = new ArrayList<>();
-
         for (String knowledgeId : knowledgeIds) {
             TriGraph graph = getOrBuildGraph(knowledgeId);
             if (graph.nodeCount() == 0) {
                 log.debug("Empty graph for knowledge: {}", knowledgeId);
                 continue;
             }
-
             LinearRagConfig config = getConfig(knowledgeId);
-            LinearRagRetriever retriever = new LinearRagRetriever(
-                    graph, config, embeddingModel, vectorStore, searchContext);
+            LinearRagRetriever retriever = new LinearRagRetriever(graph, config, embeddingModel, vectorStore, searchContext);
             List<TextChunkVO> results = retriever.retrieve(query, queryKeywords, queryEmbedding, topK, minScore);
             allResults.addAll(results);
         }

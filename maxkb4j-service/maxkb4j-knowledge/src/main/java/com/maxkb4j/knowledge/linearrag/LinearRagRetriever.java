@@ -250,7 +250,7 @@ public class LinearRagRetriever {
                 // Filter out already used sentences
                 List<String> candidateSentences = sentences.stream()
                         .filter(s -> !usedSentences.contains(s))
-                        .collect(Collectors.toList());
+                        .toList();
 
                 if (candidateSentences.isEmpty()) continue;
 
@@ -312,8 +312,7 @@ public class LinearRagRetriever {
      * paragraph embeddings. This ensures consistency with the passage embeddings
      * already stored during document indexing.
      */
-    private Map<String, Double> calculatePassageScores(String query,
-                                                        Map<String, BfsEntityScore> entityScores) {
+    private Map<String, Double> calculatePassageScores(String query, Map<String, BfsEntityScore> entityScores) {
         Set<String> paragraphIds = graph.getAllParagraphIds();
         Map<String, Double> passageScores = new HashMap<>();
 
