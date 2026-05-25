@@ -161,7 +161,7 @@ public class EntityExtractor {
             String nature = term.nature != null ? term.nature.toString() : "";
 
             if (isValidEntity(word) && isNounTag(nature)) {
-                entities.add(word);
+                entities.add(word.toLowerCase());
             }
         }
         return entities;

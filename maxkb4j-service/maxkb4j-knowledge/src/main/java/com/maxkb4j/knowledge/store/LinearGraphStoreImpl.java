@@ -15,11 +15,12 @@ import java.util.List;
 
 /**
  * LinearRAG-based graph retrieval store implementation.
+ *
  * Implements the LinearRAG paper's approach:
  * - Tri-Graph (Entity-Sentence-Paragraph) structure
- * - Zero-Token graph construction (using jieba NER, no LLM calls)
- * - Two-stage retrieval: LoSemB (Local Semantic Bridging) + PPR (Personalized PageRank)
- * - Linear complexity graph construction and retrieval
+ * - Zero-Token graph construction (using HanLP NER + TextRank + jieba, no LLM calls)
+ * - Retrieval pipeline: Seed Entities → BFS Diffusion → DPR + Entity Bonus → PPR
+ * - Linear complexity graph construction
  */
 @Slf4j
 @Component("linearGraphStore")
@@ -67,9 +68,11 @@ public class LinearGraphStoreImpl implements IDataStore {
     }
 
     /**
-     * Execute LinearRAG two-stage retrieval:
-     * Stage 1: LoSemB entity activation from query keywords
-     * Stage 2: PPR-based passage ranking
+     * Execute LinearRAG retrieval pipeline:
+     * Seed Entities → BFS Diffusion → DPR + Entity Bonus → PPR → Top-K
+     *
+     * The graph service handles keyword extraction, embedding computation,
+     * and the full retrieval pipeline internally.
      */
     @Override
     public List<TextChunkVO> search(SearchRequest request) {
@@ -83,19 +86,9 @@ public class LinearGraphStoreImpl implements IDataStore {
         long startTime = System.currentTimeMillis();
         log.debug("LinearRAG search for query: {}", request.getQuery());
 
-        // Extract query keywords using jieba (zero-token approach)
-        List<String> queryKeywords = graphService.extractQueryKeywords(request.getQuery());
-        if (queryKeywords.isEmpty()) {
-            log.warn("No keywords extracted from query: {}", request.getQuery());
-            return Collections.emptyList();
-        }
-
-        log.debug("Extracted {} keywords from query: {}", queryKeywords.size(), queryKeywords);
-
-        // Execute two-stage retrieval
         List<TextChunkVO> results = graphService.retrieve(
                 request.getKnowledgeIds(),
-                queryKeywords,
+                request.getQuery(),
                 request.getExcludeParagraphIds(),
                 request.getExcludeDocumentIds(),
                 request.getTopK(),

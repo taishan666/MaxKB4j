@@ -1,7 +1,6 @@
 package com.maxkb4j.knowledge.linearrag;
 
 import com.maxkb4j.knowledge.linearrag.entity.GraphEntityNode;
-import com.maxkb4j.knowledge.linearrag.model.GraphEdge;
 import com.maxkb4j.knowledge.linearrag.model.GraphNode;
 import com.maxkb4j.knowledge.linearrag.model.TriGraph;
 
@@ -10,16 +9,16 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * Builds the LinearRAG Tri-Graph (Entity-Sentence-Paragraph) from raw data.
- * Tri-Graph construction:
- * 1. Entity nodes  - extracted entities (from MongoDB GraphEntityNode collection)
- * 2. Sentence nodes - paragraph content split into sentences
- * 3. Paragraph nodes - original paragraphs from knowledge base
- * Edges:
- * - ENTITY_IN_SENTENCE:    entity name appears in sentence text
- * - ENTITY_IN_PARAGRAPH:   entity appears in paragraph (via sentences)
- * - SENTENCE_IN_PARAGRAPH: sentence belongs to paragraph
- * - ENTITY_CO_OCCURRENCE:  two entities co-occur in same sentence
+ * Builds the LinearRAG Tri-Graph (Entity-Sentence-Paragraph) per the paper specification.
+ *
+ * Graph construction steps:
+ * 1. Add paragraph nodes and split content into sentence nodes
+ * 2. Add entity nodes, build entity↔sentence bidirectional index
+ * 3. Build weighted entity↔paragraph edges: count(entity,passage) / total_entities_in_passage
+ * 4. Build paragraph↔paragraph adjacent edges: weight = 1.0
+ *
+ * The entity↔sentence index is used during BFS diffusion (not as explicit PPR graph edges).
+ * Only entity↔paragraph and paragraph↔paragraph edges participate in PPR.
  */
 public class TriGraphBuilder {
 
@@ -30,7 +29,8 @@ public class TriGraphBuilder {
      * Build a complete Tri-Graph from entities and paragraph data.
      *
      * @param entities   list of entity nodes from MongoDB
-     * @param paragraphs map of paragraph ID -> paragraph content (title + content)
+     * @param paragraphs ordered map of paragraph ID -> paragraph content (title + content)
+     *                   The iteration order determines paragraph adjacency.
      * @return fully constructed TriGraph
      */
     public static TriGraph build(List<GraphEntityNode> entities, Map<String, String> paragraphs) {
@@ -40,8 +40,10 @@ public class TriGraphBuilder {
             return graph;
         }
 
-        // Step 1: Add paragraph and sentence nodes
+        // Step 1: Add paragraph and sentence nodes, track paragraph ordering for adjacency
+        List<String> orderedParagraphIds = new ArrayList<>(paragraphs.keySet());
         Map<String, List<String>> paragraphSentenceMap = new HashMap<>();
+
         for (Map.Entry<String, String> entry : paragraphs.entrySet()) {
             String paragraphId = entry.getKey();
             String content = entry.getValue();
@@ -66,23 +68,15 @@ public class TriGraphBuilder {
                         GraphNode.NodeType.SENTENCE,
                         sentences.get(i)
                 ));
-
-                // SENTENCE_IN_PARAGRAPH edge
-                graph.addEdge(new GraphEdge(
-                        sentenceId,
-                        "p:" + paragraphId,
-                        GraphEdge.EdgeType.SENTENCE_IN_PARAGRAPH
-                ));
-
                 sentenceIds.add(sentenceId);
             }
 
             paragraphSentenceMap.put(paragraphId, sentenceIds);
         }
 
-        // Step 2: Add entity nodes and build entity-sentence edges
+        // Step 2: Add entity nodes, build entity↔sentence index, count occurrences per paragraph
         for (GraphEntityNode entity : entities) {
-            String entityId = "e:" + entity.getName();
+            String entityId = "e:" + entity.getName().toLowerCase();
 
             // Add entity node (may already exist from another paragraph)
             if (graph.getNode(entityId) == null) {
@@ -93,86 +87,105 @@ public class TriGraphBuilder {
                 ));
             }
 
-            // Link entity to paragraphs it appears in
-            if (entity.getParagraphIds() != null) {
-                for (String paragraphId : entity.getParagraphIds()) {
-                    if (!paragraphs.containsKey(paragraphId)) {
-                        continue;
+            if (entity.getParagraphIds() == null) continue;
+
+            for (String paragraphId : entity.getParagraphIds()) {
+                if (!paragraphs.containsKey(paragraphId)) continue;
+
+                List<String> sentenceIds = paragraphSentenceMap.getOrDefault(paragraphId, Collections.emptyList());
+                String lowerEntityName = entity.getName().toLowerCase();
+
+                // Count entity occurrences across all sentences in this paragraph
+                int totalOccurrences = 0;
+                for (String sentenceId : sentenceIds) {
+                    GraphNode sentenceNode = graph.getNode(sentenceId);
+                    if (sentenceNode == null || sentenceNode.getContent() == null) continue;
+
+                    String lowerSentence = sentenceNode.getContent().toLowerCase();
+                    int count = countOccurrences(lowerSentence, lowerEntityName);
+
+                    if (count > 0) {
+                        // Link entity to sentence in bidirectional index (for BFS)
+                        graph.linkEntityToSentence(entityId, sentenceId);
+                        totalOccurrences += count;
                     }
+                }
 
-                    // ENTITY_IN_PARAGRAPH edge
-                    graph.addEdge(new GraphEdge(
-                            entityId,
-                            "p:" + paragraphId,
-                            GraphEdge.EdgeType.ENTITY_IN_PARAGRAPH
-                    ));
-
-                    // ENTITY_IN_SENTENCE edges (check which sentences contain this entity)
-                    List<String> sentenceIds = paragraphSentenceMap.getOrDefault(paragraphId, Collections.emptyList());
-                    String lowerEntityName = entity.getName().toLowerCase();
-
-                    for (String sentenceId : sentenceIds) {
-                        GraphNode sentenceNode = graph.getNode(sentenceId);
-                        if (sentenceNode != null && sentenceNode.getContent() != null) {
-                            String lowerSentence = sentenceNode.getContent().toLowerCase();
-                            if (lowerSentence.contains(lowerEntityName)) {
-                                graph.addEdge(new GraphEdge(
-                                        entityId,
-                                        sentenceId,
-                                        GraphEdge.EdgeType.ENTITY_IN_SENTENCE
-                                ));
-                            }
-                        }
-                    }
+                // Record entity occurrence count in paragraph
+                if (totalOccurrences > 0) {
+                    graph.addEntityParagraphOccurrence(entityId, "p:" + paragraphId, totalOccurrences);
                 }
             }
         }
 
-        // Step 3: Build entity co-occurrence edges
-        buildCoOccurrenceEdges(graph, paragraphSentenceMap);
+        // Step 3: Build weighted entity↔paragraph edges
+        // Weight = count(entity, passage) / total_entity_occurrences_in_passage
+        buildEntityParagraphEdges(graph, orderedParagraphIds);
+
+        // Step 4: Build paragraph↔paragraph adjacent edges (weight = 1.0)
+        buildParagraphAdjacencyEdges(graph, orderedParagraphIds);
 
         return graph;
     }
 
     /**
-     * Build ENTITY_CO_OCCURRENCE edges between entities that appear in the same sentence.
+     * Build weighted entity↔paragraph edges for the PPR graph.
+     * Weight = count(entity, passage) / total_entity_occurrences_in_passage
      */
-    private static void buildCoOccurrenceEdges(TriGraph graph, Map<String, List<String>> paragraphSentenceMap) {
-        // For each sentence, find all entities that appear in it
-        Map<String, Set<String>> sentenceToEntities = new HashMap<>();
+    private static void buildEntityParagraphEdges(TriGraph graph, List<String> orderedParagraphIds) {
+        for (String paragraphId : orderedParagraphIds) {
+            String pNodeId = "p:" + paragraphId;
 
-        for (String entityId : graph.getAllEntityIds()) {
-            Set<String> entitySentences = graph.getEntitySentences(entityId);
-            for (String sentenceId : entitySentences) {
-                sentenceToEntities.computeIfAbsent(sentenceId, k -> new HashSet<>()).add(entityId);
-            }
-        }
+            // Calculate total entity occurrences in this paragraph
+            int totalEntityCount = 0;
+            Map<String, Integer> entityCounts = new HashMap<>();
 
-        // Create co-occurrence edges
-        Set<String> processedPairs = new HashSet<>();
-        for (Map.Entry<String, Set<String>> entry : sentenceToEntities.entrySet()) {
-            Set<String> entities = entry.getValue();
-            if (entities.size() < 2) {
-                continue;
-            }
-
-            List<String> entityList = new ArrayList<>(entities);
-            for (int i = 0; i < entityList.size(); i++) {
-                for (int j = i + 1; j < entityList.size(); j++) {
-                    String e1 = entityList.get(i);
-                    String e2 = entityList.get(j);
-                    String pairKey = e1.compareTo(e2) < 0 ? e1 + "|" + e2 : e2 + "|" + e1;
-
-                    if (processedPairs.add(pairKey)) {
-                        graph.addEdge(new GraphEdge(
-                                e1, e2,
-                                GraphEdge.EdgeType.ENTITY_CO_OCCURRENCE,
-                                1.0
-                        ));
-                    }
+            for (String entityId : graph.getAllEntityIds()) {
+                int count = graph.getEntityOccurrenceInParagraph(entityId, pNodeId);
+                if (count > 0) {
+                    entityCounts.put(entityId, count);
+                    totalEntityCount += count;
                 }
             }
+
+            if (totalEntityCount == 0) continue;
+
+            // Add weighted edges: entity → paragraph
+            for (Map.Entry<String, Integer> entry : entityCounts.entrySet()) {
+                double weight = (double) entry.getValue() / totalEntityCount;
+                graph.addWeightedEdge(entry.getKey(), pNodeId, weight);
+            }
         }
+    }
+
+    /**
+     * Build paragraph↔paragraph adjacency edges for sequential paragraphs.
+     * Adjacent paragraphs (by document order) are connected with weight = 1.0.
+     */
+    private static void buildParagraphAdjacencyEdges(TriGraph graph, List<String> orderedParagraphIds) {
+        for (int i = 0; i < orderedParagraphIds.size() - 1; i++) {
+            String p1 = "p:" + orderedParagraphIds.get(i);
+            String p2 = "p:" + orderedParagraphIds.get(i + 1);
+
+            // Only link if both nodes exist
+            if (graph.getNode(p1) != null && graph.getNode(p2) != null) {
+                graph.addWeightedEdge(p1, p2, 1.0);
+            }
+        }
+    }
+
+    /**
+     * Count non-overlapping occurrences of a substring in text.
+     */
+    static int countOccurrences(String text, String sub) {
+        if (text == null || sub == null || sub.isEmpty()) return 0;
+        int count = 0;
+        int idx = 0;
+        while ((idx = text.indexOf(sub, idx)) != -1) {
+            count++;
+            idx += sub.length();
+        }
+        return count;
     }
 
     /**

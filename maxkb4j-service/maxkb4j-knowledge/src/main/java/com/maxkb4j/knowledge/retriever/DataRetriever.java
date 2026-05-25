@@ -69,8 +69,8 @@ public class DataRetriever implements IDataRetriever {
         return switch (searchMode) {
             case SearchType.EMBEDDING -> vectorStore;
             case SearchType.FULL_TEXT -> fullTextStore;
-            case SearchType.HYBRID -> linearGraphStore;
             case SearchType.LINEAR_GRAPH -> compositeStore;
+            case SearchType.HYBRID -> linearGraphStore;
             default -> throw new IllegalArgumentException("Unknown search mode: " + searchMode);
         };
     }

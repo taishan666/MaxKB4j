@@ -6,106 +6,100 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * Personalized PageRank (PPR) implementation for LinearRAG.
- * Given a set of activated seed entity nodes, PPR propagates relevance scores
- * through the Tri-Graph to rank paragraph nodes by global importance.
+ * Personalized PageRank (PPR) implementation for LinearRAG per the paper specification.
+ *
+ * Given a combined reset distribution (BFS entity scores + passage DPR scores),
+ * PPR propagates relevance through the weighted graph to rank paragraph nodes.
+ *
  * Algorithm:
- *   p = alpha * W * p + (1 - alpha) * v
- *   where:
- *     p     = score vector (per node)
- *     W     = column-normalized adjacency matrix
- *     v     = personalization (seed) vector
- *     alpha = damping factor (typically 0.85)
+ *   p = (1 - d) * reset + d * M * p
+ *
+ * Where:
+ *   d       = damping factor (0.5, smaller than standard 0.85, more reliance on reset)
+ *   M       = column-normalized weighted adjacency matrix
+ *   reset   = personalization vector from entity scores + passage scores
+ *   maxIter = 100, tolerance = 1e-6
+ *
+ * The graph only contains entity↔paragraph and paragraph↔paragraph weighted edges.
+ * Sentence nodes are NOT part of the PPR graph (they are used in BFS only).
  */
 public class PersonalizedPageRank {
 
     private final TriGraph graph;
-    private final double dampingFactor;
-    private final int maxIterations;
-    private final double convergenceThreshold;
+    private final LinearRagConfig config;
 
-    public PersonalizedPageRank(TriGraph graph) {
-        this(graph, 0.85, 50, 1e-6);
-    }
-
-    public PersonalizedPageRank(TriGraph graph, double dampingFactor, int maxIterations, double convergenceThreshold) {
+    public PersonalizedPageRank(TriGraph graph, LinearRagConfig config) {
         this.graph = graph;
-        this.dampingFactor = dampingFactor;
-        this.maxIterations = maxIterations;
-        this.convergenceThreshold = convergenceThreshold;
+        this.config = config;
     }
 
     /**
-     * Compute PPR scores given a set of seed nodes with initial scores.
+     * Run PPR with a combined reset distribution from entity scores and passage scores.
      *
-     * @param seedScores map of node ID -> initial activation score
+     * @param entityScores  BFS-computed entity scores (entityId -> score)
+     * @param passageScores DPR-computed passage scores (paragraphId -> score, already scaled by passageNodeWeight)
      * @return map of paragraph ID -> PPR relevance score, sorted descending
      */
-    public Map<String, Double> compute(Map<String, Double> seedScores) {
-        if (seedScores == null || seedScores.isEmpty()) {
+    public Map<String, Double> runPpr(Map<String, Double> entityScores, Map<String, Double> passageScores) {
+        if ((entityScores == null || entityScores.isEmpty())
+                && (passageScores == null || passageScores.isEmpty())) {
             return Collections.emptyMap();
         }
 
-        // Collect all node IDs
-        Set<String> allNodeIds = new HashSet<>();
-        allNodeIds.addAll(graph.getAllEntityIds());
-        allNodeIds.addAll(graph.getAllSentenceIds());
-        allNodeIds.addAll(graph.getAllParagraphIds());
+        // Collect all node IDs that participate in PPR (entities + paragraphs only, not sentences)
+        Set<String> pprNodeIds = new LinkedHashSet<>();
+        pprNodeIds.addAll(graph.getAllEntityIds());
+        pprNodeIds.addAll(graph.getAllParagraphIds());
 
-        if (allNodeIds.isEmpty()) {
+        if (pprNodeIds.isEmpty()) {
             return Collections.emptyMap();
         }
 
-        // Build node index mapping for efficient computation
-        List<String> nodeIndex = new ArrayList<>(allNodeIds);
+        // Build node index mapping for matrix operations
+        List<String> nodeIndex = new ArrayList<>(pprNodeIds);
         Map<String, Integer> nodeIdToIndex = new HashMap<>();
         for (int i = 0; i < nodeIndex.size(); i++) {
             nodeIdToIndex.put(nodeIndex.get(i), i);
         }
         int n = nodeIndex.size();
 
-        // Initialize personalization vector v
-        double[] v = new double[n];
-        double totalSeedScore = seedScores.values().stream().mapToDouble(Double::doubleValue).sum();
-        for (Map.Entry<String, Double> entry : seedScores.entrySet()) {
-            Integer idx = nodeIdToIndex.get(entry.getKey());
-            if (idx != null) {
-                v[idx] = entry.getValue() / totalSeedScore; // normalize
-            }
+        // Build reset distribution (personalization vector)
+        double[] reset = buildResetDistribution(nodeIndex, nodeIdToIndex, entityScores, passageScores);
+
+        // Normalize reset to sum to 1
+        double resetSum = 0;
+        for (double v : reset) resetSum += v;
+        if (resetSum > 0) {
+            for (int i = 0; i < n; i++) reset[i] /= resetSum;
+        } else {
+            // Uniform reset if no scores
+            for (int i = 0; i < n; i++) reset[i] = 1.0 / n;
         }
 
-        // Initialize score vector p = v
-        double[] p = Arrays.copyOf(v, n);
+        // Build column-normalized weighted transition matrix M
+        // M[i][j] = weight(j->i) / sum_of_weights_from_j
+        // For efficiency, use sparse representation
+        double[][] transitionMatrix = buildTransitionMatrix(nodeIndex, nodeIdToIndex, n);
 
-        // Compute out-degree for each node (for normalization)
-        double[] outDegree = new double[n];
-        for (int i = 0; i < n; i++) {
-            String nodeId = nodeIndex.get(i);
-            Set<String> neighbors = graph.getNeighbors(nodeId);
-            outDegree[i] = Math.max(neighbors.size(), 1);
-        }
+        // Power iteration: p = (1-d)*reset + d*M*p
+        double d = config.getDamping();
+        double[] p = Arrays.copyOf(reset, n);
 
-        // Iterative PPR computation
-        for (int iter = 0; iter < maxIterations; iter++) {
+        for (int iter = 0; iter < config.getPprMaxIter(); iter++) {
             double[] newP = new double[n];
 
-            // Propagate scores through edges
+            // M * p (matrix-vector multiplication)
             for (int i = 0; i < n; i++) {
-                String nodeId = nodeIndex.get(i);
-                Set<String> neighbors = graph.getNeighbors(nodeId);
-                double propagatedScore = 0.0;
-
-                for (String neighborId : neighbors) {
-                    Integer j = nodeIdToIndex.get(neighborId);
-                    if (j != null) {
-                        propagatedScore += p[j] / outDegree[j];
+                double propagated = 0.0;
+                for (int j = 0; j < n; j++) {
+                    if (transitionMatrix[i][j] != 0.0) {
+                        propagated += transitionMatrix[i][j] * p[j];
                     }
                 }
-
-                newP[i] = dampingFactor * propagatedScore + (1 - dampingFactor) * v[i];
+                newP[i] = (1 - d) * reset[i] + d * propagated;
             }
 
-            // Check convergence
+            // Check convergence (L1 norm)
             double diff = 0.0;
             for (int i = 0; i < n; i++) {
                 diff += Math.abs(newP[i] - p[i]);
@@ -113,7 +107,7 @@ public class PersonalizedPageRank {
 
             p = newP;
 
-            if (diff < convergenceThreshold) {
+            if (diff < config.getPprTolerance()) {
                 break;
             }
         }
@@ -139,72 +133,75 @@ public class PersonalizedPageRank {
     }
 
     /**
-     * Simplified PPR that directly computes paragraph scores from seed entities,
-     * using graph structure for score propagation without full matrix operations.
-     * More efficient for large graphs.
+     * Build the reset distribution from entity scores and passage scores.
+     * Entity scores come from BFS diffusion.
+     * Passage scores come from DPR + entity bonus, scaled by passageNodeWeight.
      */
-    public Map<String, Double> computeParagraphScores(Map<String, Double> entitySeedScores) {
-        if (entitySeedScores == null || entitySeedScores.isEmpty()) {
-            return Collections.emptyMap();
-        }
+    private double[] buildResetDistribution(List<String> nodeIndex, Map<String, Integer> nodeIdToIndex,
+                                            Map<String, Double> entityScores, Map<String, Double> passageScores) {
+        int n = nodeIndex.size();
+        double[] reset = new double[n];
 
-        Map<String, Double> paragraphScores = new HashMap<>();
-
-        // Phase 1: Direct entity -> paragraph propagation
-        for (Map.Entry<String, Double> entry : entitySeedScores.entrySet()) {
-            String entityId = entry.getKey();
-            double score = entry.getValue();
-
-            Set<String> paragraphs = graph.getEntityParagraphs(entityId);
-            if (!paragraphs.isEmpty()) {
-                double perParagraphScore = score / paragraphs.size();
-                for (String paraId : paragraphs) {
-                    paragraphScores.merge(paraId, perParagraphScore, Double::sum);
+        // Add entity scores to reset
+        if (entityScores != null) {
+            for (Map.Entry<String, Double> entry : entityScores.entrySet()) {
+                Integer idx = nodeIdToIndex.get(entry.getKey());
+                if (idx != null) {
+                    reset[idx] += entry.getValue();
                 }
             }
         }
 
-        // Phase 2: Second-hop propagation via co-occurring entities
-        Map<String, Double> expandedScores = new HashMap<>(entitySeedScores);
-        for (Map.Entry<String, Double> entry : entitySeedScores.entrySet()) {
-            String entityId = entry.getKey();
-            double score = entry.getValue();
-
-            Set<String> coEntities = graph.getCoOccurringEntities(entityId);
-            double hopScore = score * 0.3; // decay factor for second hop
-            for (String coEntityId : coEntities) {
-                if (!expandedScores.containsKey(coEntityId)) {
-                    expandedScores.put(coEntityId, hopScore);
-                    // Propagate to co-entity's paragraphs
-                    Set<String> coParagraphs = graph.getEntityParagraphs(coEntityId);
-                    if (!coParagraphs.isEmpty()) {
-                        double perParaScore = hopScore / coParagraphs.size();
-                        for (String paraId : coParagraphs) {
-                            paragraphScores.merge(paraId, perParaScore, Double::sum);
-                        }
-                    }
+        // Add passage scores to reset (already scaled by passageNodeWeight)
+        if (passageScores != null) {
+            for (Map.Entry<String, Double> entry : passageScores.entrySet()) {
+                Integer idx = nodeIdToIndex.get(entry.getKey());
+                if (idx != null) {
+                    reset[idx] += entry.getValue();
                 }
             }
         }
 
-        // Phase 3: Normalize scores to [0, 1]
-        double maxScore = paragraphScores.values().stream()
-                .mapToDouble(Double::doubleValue)
-                .max()
-                .orElse(1.0);
+        return reset;
+    }
 
-        if (maxScore > 0) {
-            paragraphScores.replaceAll((k, v) -> v / maxScore);
+    /**
+     * Build column-normalized weighted transition matrix.
+     * M[i][j] = weight(j→i) / outWeight(j)
+     * where outWeight(j) = sum of all edge weights from node j.
+     */
+    private double[][] buildTransitionMatrix(List<String> nodeIndex, Map<String, Integer> nodeIdToIndex, int n) {
+        double[][] M = new double[n][n];
+
+        // Calculate out-weight for each node
+        double[] outWeight = new double[n];
+        for (int j = 0; j < n; j++) {
+            String nodeId = nodeIndex.get(j);
+            Map<String, Double> neighbors = graph.getWeightedNeighbors(nodeId);
+            for (Map.Entry<String, Double> entry : neighbors.entrySet()) {
+                Integer neighborIdx = nodeIdToIndex.get(entry.getKey());
+                if (neighborIdx != null) {
+                    outWeight[j] += entry.getValue();
+                }
+            }
         }
 
-        // Sort descending
-        return paragraphScores.entrySet().stream()
-                .sorted(Map.Entry.<String, Double>comparingByValue().reversed())
-                .collect(Collectors.toMap(
-                        Map.Entry::getKey,
-                        Map.Entry::getValue,
-                        (a, b) -> a,
-                        LinkedHashMap::new
-                ));
+        // Build column-normalized matrix
+        for (int j = 0; j < n; j++) {
+            if (outWeight[j] == 0) continue; // dangling node
+
+            String nodeId = nodeIndex.get(j);
+            Map<String, Double> neighbors = graph.getWeightedNeighbors(nodeId);
+
+            for (Map.Entry<String, Double> entry : neighbors.entrySet()) {
+                Integer i = nodeIdToIndex.get(entry.getKey());
+                if (i != null) {
+                    // M[i][j] = weight(j→i) / outWeight(j)
+                    M[i][j] = entry.getValue() / outWeight[j];
+                }
+            }
+        }
+
+        return M;
     }
 }
