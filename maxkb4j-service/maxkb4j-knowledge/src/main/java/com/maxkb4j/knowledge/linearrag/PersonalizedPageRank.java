@@ -35,6 +35,15 @@ public class PersonalizedPageRank {
 
     /**
      * Run PPR with a combined reset distribution from entity scores and passage scores.
+     * <p>
+     * Follows the Python LinearRAG implementation using sparse adjacency representation:
+     * <pre>
+     *   reset_prob = np.where(np.isnan(node_weights) | (node_weights < 0), 0, node_weights)
+     *   pagerank_scores = graph.personalized_pagerank(reset=reset_prob, damping=damping)
+     * </pre>
+     * <p>
+     * Uses sparse adjacency lists instead of a dense n×n matrix for efficiency.
+     * Matrix-vector multiplication only iterates over actual edges: O(edges) per iteration.
      *
      * @param entityScores  BFS-computed entity scores (entityId -> score)
      * @param passageScores DPR-computed passage scores (paragraphId -> score, already scaled by passageNodeWeight)
@@ -55,7 +64,7 @@ public class PersonalizedPageRank {
             return Collections.emptyMap();
         }
 
-        // Build node index mapping for matrix operations
+        // Build node index mapping
         List<String> nodeIndex = new ArrayList<>(pprNodeIds);
         Map<String, Integer> nodeIdToIndex = new HashMap<>();
         for (int i = 0; i < nodeIndex.size(); i++) {
@@ -63,10 +72,17 @@ public class PersonalizedPageRank {
         }
         int n = nodeIndex.size();
 
-        // Build reset distribution (personalization vector)
+        // Build reset distribution (personalization vector) — corresponds to node_weights in Python
         double[] reset = buildResetDistribution(nodeIndex, nodeIdToIndex, entityScores, passageScores);
 
-        // Normalize reset to sum to 1
+        // Clean reset: replace NaN and negative values with 0 (Python: np.where(isnan | <0, 0, weights))
+        for (int i = 0; i < n; i++) {
+            if (Double.isNaN(reset[i]) || reset[i] < 0) {
+                reset[i] = 0.0;
+            }
+        }
+
+        // Normalize reset to sum to 1 (probability distribution)
         double resetSum = 0;
         for (double v : reset) resetSum += v;
         if (resetSum > 0) {
@@ -76,27 +92,63 @@ public class PersonalizedPageRank {
             for (int i = 0; i < n; i++) reset[i] = 1.0 / n;
         }
 
-        // Build column-normalized weighted transition matrix M
-        // M[i][j] = weight(j->i) / sum_of_weights_from_j
-        // For efficiency, use sparse representation
-        double[][] transitionMatrix = buildTransitionMatrix(nodeIndex, nodeIdToIndex, n);
+        // Build sparse column-normalized transition structure (replaces dense n×n matrix)
+        // For each source node j: flat arrays of (targetIndex[], normalizedWeight[])
+        // This is equivalent to the column-normalized adjacency matrix M, but only stores non-zero entries
+        int[][] outNeighborIdx = new int[n][];
+        double[][] outNeighborWt = new double[n][];
+        for (int j = 0; j < n; j++) {
+            String nodeId = nodeIndex.get(j);
+            Map<String, Double> neighbors = graph.getWeightedNeighbors(nodeId);
+
+            // First pass: calculate out-weight for column normalization
+            double outWeight = 0;
+            int validCount = 0;
+            for (Map.Entry<String, Double> entry : neighbors.entrySet()) {
+                if (nodeIdToIndex.containsKey(entry.getKey())) {
+                    outWeight += entry.getValue();
+                    validCount++;
+                }
+            }
+
+            // Second pass: build flat arrays of normalized weights
+            outNeighborIdx[j] = new int[validCount];
+            outNeighborWt[j] = new double[validCount];
+            int pos = 0;
+            if (outWeight > 0) {
+                for (Map.Entry<String, Double> entry : neighbors.entrySet()) {
+                    Integer i = nodeIdToIndex.get(entry.getKey());
+                    if (i != null) {
+                        outNeighborIdx[j][pos] = i;
+                        outNeighborWt[j][pos] = entry.getValue() / outWeight;
+                        pos++;
+                    }
+                }
+            }
+        }
 
         // Power iteration: p = (1-d)*reset + d*M*p
+        // Equivalent to igraph's personalized_pagerank with damping factor
         double d = config.getDamping();
         double[] p = Arrays.copyOf(reset, n);
 
         for (int iter = 0; iter < config.getPprMaxIter(); iter++) {
             double[] newP = new double[n];
 
-            // M * p (matrix-vector multiplication)
-            for (int i = 0; i < n; i++) {
-                double propagated = 0.0;
-                for (int j = 0; j < n; j++) {
-                    if (transitionMatrix[i][j] != 0.0) {
-                        propagated += transitionMatrix[i][j] * p[j];
-                    }
+            // Sparse M * p: only iterate over actual edges instead of full n×n matrix
+            for (int j = 0; j < n; j++) {
+                if (p[j] == 0.0) continue; // skip zero-probability nodes
+                int[] idxArr = outNeighborIdx[j];
+                double[] wtArr = outNeighborWt[j];
+                double pj = p[j];
+                for (int k = 0; k < idxArr.length; k++) {
+                    newP[idxArr[k]] += wtArr[k] * pj;
                 }
-                newP[i] = (1 - d) * reset[i] + d * propagated;
+            }
+
+            // Apply damping: p = (1-d)*reset + d*M*p
+            for (int i = 0; i < n; i++) {
+                newP[i] = (1 - d) * reset[i] + d * newP[i];
             }
 
             // Check convergence (L1 norm)
@@ -165,43 +217,5 @@ public class PersonalizedPageRank {
         return reset;
     }
 
-    /**
-     * Build column-normalized weighted transition matrix.
-     * M[i][j] = weight(j→i) / outWeight(j)
-     * where outWeight(j) = sum of all edge weights from node j.
-     */
-    private double[][] buildTransitionMatrix(List<String> nodeIndex, Map<String, Integer> nodeIdToIndex, int n) {
-        double[][] M = new double[n][n];
-
-        // Calculate out-weight for each node
-        double[] outWeight = new double[n];
-        for (int j = 0; j < n; j++) {
-            String nodeId = nodeIndex.get(j);
-            Map<String, Double> neighbors = graph.getWeightedNeighbors(nodeId);
-            for (Map.Entry<String, Double> entry : neighbors.entrySet()) {
-                Integer neighborIdx = nodeIdToIndex.get(entry.getKey());
-                if (neighborIdx != null) {
-                    outWeight[j] += entry.getValue();
-                }
-            }
-        }
-
-        // Build column-normalized matrix
-        for (int j = 0; j < n; j++) {
-            if (outWeight[j] == 0) continue; // dangling node
-
-            String nodeId = nodeIndex.get(j);
-            Map<String, Double> neighbors = graph.getWeightedNeighbors(nodeId);
-
-            for (Map.Entry<String, Double> entry : neighbors.entrySet()) {
-                Integer i = nodeIdToIndex.get(entry.getKey());
-                if (i != null) {
-                    // M[i][j] = weight(j→i) / outWeight(j)
-                    M[i][j] = entry.getValue() / outWeight[j];
-                }
-            }
-        }
-
-        return M;
-    }
+    // buildTransitionMatrix removed — replaced by sparse adjacency lists built inline in runPpr
 }

@@ -339,43 +339,49 @@ public class LinearRagRetriever {
     // ==================== 2b: Passage Score Calculation ====================
 
     /**
-     * Calculate passage scores from three components:
-     *   passageScore = passageRatio × DPR_normalized + log(1 + entityBonus)
+     * Calculate passage scores following the Python LinearRAG implementation:
+     * <pre>
+     *   # Step 1: Entity bonus per paragraph (with log per entity), then min-max normalize
+     *   for entity in actived_entities:
+     *       for passage in entity_passages:
+     *           passage_scores[passage] += entity_weight * log(1 + occurrences)
+     *   normalized_passage_scores = min_max_normalize(passage_scores)
      *
-     * Then optionally add attribute keyword boost and scale by passageNodeWeight.
+     *   # Step 2: DPR cosine similarity, then min-max normalize
+     *   dpr_scores = dense_passage_retrieval(question_embedding)
+     *   normalized_dpr = min_max_normalize(dpr_scores)
      *
-     * DPR scores come from pgvector (the existing vector store), not from in-memory
-     * paragraph embeddings. This ensures consistency with the passage embeddings
-     * already stored during document indexing.
+     *   # Step 3: Combine and scale
+     *   final_scores[passage] = (passageRatio * dpr_norm + entity_bonus_norm) * passageNodeWeight
+     * </pre>
      */
     private Map<String, Double> calculatePassageScores(String query, Map<String, BfsEntityScore> entityScores) {
         Set<String> paragraphIds = graph.getAllParagraphIds();
-        Map<String, Double> passageScores = new HashMap<>();
 
-        // ① DPR dense retrieval scores from pgvector
+        // ① Entity bonus per paragraph: score × log(1 + occurrences), then min-max normalize
+        Map<String, Double> entityBonusRaw = computeEntityBonus(entityScores);
+        Map<String, Double> normalizedEntityBonus = minMaxNormalize(entityBonusRaw);
+
+        // ② DPR dense retrieval scores from pgvector, then min-max normalize
         Map<String, Double> dprScores = computeDprScores(query);
-
-        // Min-max normalize DPR scores
         Map<String, Double> normalizedDpr = minMaxNormalize(dprScores);
 
-        // ② Entity bonus per paragraph
-        Map<String, Double> entityBonusMap = computeEntityBonus(entityScores);
+        // ③ Combine: (passageRatio × DPR_normalized + entityBonus_normalized) × passageNodeWeight
+        Map<String, Double> passageScores = new HashMap<>();
+        double passageRatio = config.getPassageRatio();
+        double passageNodeWeight = config.getPassageNodeWeight();
 
-        // Combine: passageScore = passageRatio × DPR_normalized + log(1 + entityBonus)
         for (String paragraphId : paragraphIds) {
-            double dprScore = normalizedDpr.getOrDefault(paragraphId, 0.0);
-            double entityBonus = entityBonusMap.getOrDefault(paragraphId, 0.0);
+            double dprNorm = normalizedDpr.getOrDefault(paragraphId, 0.0);
+            double entityBonusNorm = normalizedEntityBonus.getOrDefault(paragraphId, 0.0);
 
-            double score = config.getPassageRatio() * dprScore + Math.log(1 + entityBonus);
+            double score = (passageRatio * dprNorm + entityBonusNorm) * passageNodeWeight;
 
-            // ③ Attribute keyword boost (optional)
+            // Attribute keyword boost (optional)
             if (config.isEnableHybridAttributeFallback()) {
                 double attrBoost = computeAttributeKeywordBoost(query, paragraphId);
-                score += attrBoost;
+                score += attrBoost * passageNodeWeight;
             }
-
-            // Scale by passageNodeWeight for PPR reset distribution
-            score *= config.getPassageNodeWeight();
 
             if (score > 0) {
                 passageScores.put(paragraphId, score);
@@ -426,9 +432,16 @@ public class LinearRagRetriever {
     }
 
     /**
-     * Compute entity bonus for each paragraph:
-     *   entityBonus += entityScore × log(1 + occurrences_in_passage) / tier
-     *   passageScore += log(1 + totalEntityBonus)
+     * Compute raw entity bonus for each paragraph (no final log transform).
+     * <p>
+     * Per the Python implementation:
+     * <pre>
+     *   for entity in actived_entities:
+     *       for passage in entity_passages:
+     *           passage_scores[passage] += entity_weight * log(1 + occurrences)
+     * </pre>
+     * The log(1+occurrences) is applied per-entity, and the raw accumulated bonus is returned.
+     * Min-max normalization is applied afterwards in {@link #calculatePassageScores}.
      */
     private Map<String, Double> computeEntityBonus(Map<String, BfsEntityScore> entityScores) {
         Map<String, Double> bonusMap = new HashMap<>();
@@ -440,14 +453,13 @@ public class LinearRagRetriever {
             Set<String> paragraphs = graph.getEntityParagraphs(entityId);
             for (String paragraphId : paragraphs) {
                 int occurrences = graph.getEntityOccurrenceInParagraph(entityId, paragraphId);
-                double bonus = bfsScore.score * Math.log(1 + occurrences) / bfsScore.tier;
+                // Per Python: entity_weight * log(1 + count)
+                double bonus = bfsScore.score * Math.log(1 + occurrences);
                 bonusMap.merge(paragraphId, bonus, Double::sum);
             }
         }
 
-        // Apply log(1 + totalBonus) transformation
-        bonusMap.replaceAll((k, v) -> Math.log(1 + v));
-
+        // Return raw accumulated bonus (no final log transform — Python doesn't do it)
         return bonusMap;
     }
 
