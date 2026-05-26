@@ -175,8 +175,7 @@ public class LinearRagRetriever {
     /**
      * Core graph search: BFS diffusion → passage scoring → PPR.
      */
-    private List<TextChunkVO> graphSearchWithSeedEntities(String query, List<SeedEntity> seedEntities,
-                                                          float[] queryEmbedding, int topK, float minScore) {
+    private List<TextChunkVO> graphSearchWithSeedEntities(String query, List<SeedEntity> seedEntities, float[] queryEmbedding, int topK, float minScore) {
         // 2a: BFS entity score diffusion (uses sentence embeddings vs query embedding)
         Map<String, BfsEntityScore> entityScores = calculateEntityScores(seedEntities, queryEmbedding);
         log.debug("BFS diffusion activated {} entities", entityScores.size());
@@ -219,11 +218,9 @@ public class LinearRagRetriever {
      *
      * Score is multiplicative decay: entities further from seeds get lower scores.
      */
-    private Map<String, BfsEntityScore> calculateEntityScores(List<SeedEntity> seedEntities,
-                                                               float[] queryEmbedding) {
+    private Map<String, BfsEntityScore> calculateEntityScores(List<SeedEntity> seedEntities, float[] queryEmbedding) {
         Map<String, BfsEntityScore> allScores = new LinkedHashMap<>();
         Set<String> usedSentences = new HashSet<>();
-
         // Initialize with seed entities (tier=1)
         Queue<BfsEntityScore> queue = new LinkedList<>();
         for (SeedEntity seed : seedEntities) {
@@ -231,29 +228,23 @@ public class LinearRagRetriever {
             allScores.put(seed.entityId, bfsScore);
             queue.add(bfsScore);
         }
-
         // BFS diffusion: maxIterations rounds
         for (int tier = 1; tier <= config.getMaxIterations(); tier++) {
             Queue<BfsEntityScore> nextQueue = new LinkedList<>();
-
             while (!queue.isEmpty()) {
                 BfsEntityScore current = queue.poll();
-
                 if (current.score < config.getIterationThreshold() && tier > 1) {
                     continue; // Prune: score too low to expand
                 }
-
                 // Find all sentences containing this entity
                 Set<String> sentences = graph.getEntitySentences(current.entityId);
                 if (sentences.isEmpty()) continue;
-
                 // Filter out already used sentences
                 List<String> candidateSentences = sentences.stream()
                         .filter(s -> !usedSentences.contains(s))
                         .toList();
 
                 if (candidateSentences.isEmpty()) continue;
-
                 // Compute sentence vs query embedding similarity, take Top-K
                 List<SentenceScore> scoredSentences = new ArrayList<>();
                 for (String sentenceId : candidateSentences) {

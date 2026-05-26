@@ -63,8 +63,7 @@ public class LinearGraphStoreImpl implements IDataStore {
 
     @Override
     public void updateActiveStatus(String knowledgeId, String paragraphId, boolean isActive) {
-        // Invalidate graph cache when paragraph status changes
-        graphService.invalidateGraph(knowledgeId);
+        // No-op: graph is rebuilt on each retrieval, no cache to invalidate
     }
 
     /**

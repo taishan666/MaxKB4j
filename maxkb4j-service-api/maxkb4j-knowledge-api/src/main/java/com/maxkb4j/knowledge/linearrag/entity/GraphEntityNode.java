@@ -17,7 +17,7 @@ import java.util.List;
  * along with its occurrence locations (paragraphs).
  */
 @Data
-@Document(collection = "linear_graph_entities")
+@Document(collection = "graph_entity_node")
 @CompoundIndex(name = "kb_name", def = "{'knowledgeId': 1, 'name': 1}", unique = true)
 @Builder
 @NoArgsConstructor
@@ -29,9 +29,6 @@ public class GraphEntityNode {
 
     /** Normalized entity name (lowercase) for dedup */
     private String name;
-
-    /** Original entity name as extracted from text */
-    private String originalName;
 
     /** Knowledge base this entity belongs to */
     private String knowledgeId;

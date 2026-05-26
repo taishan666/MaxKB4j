@@ -4,6 +4,7 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.maxkb4j.knowledge.entity.ParagraphEntity;
 import com.maxkb4j.knowledge.linearrag.entity.GraphEntityNode;
+import com.maxkb4j.knowledge.linearrag.entity.GraphSentenceNode;
 import com.maxkb4j.knowledge.linearrag.model.GraphNode;
 import com.maxkb4j.knowledge.linearrag.model.TriGraph;
 import com.maxkb4j.knowledge.mapper.ParagraphMapper;
@@ -34,7 +35,7 @@ import java.util.stream.Collectors;
  * Responsibilities:
  * 1. Extract entities from paragraphs (using EntityExtractor: HanLP NER + TextRank + jieba)
  * 2. Store/update entity nodes in MongoDB
- * 3. Build and cache the Tri-Graph with sentence + entity embeddings for retrieval
+ * 3. Build the Tri-Graph with sentence + entity embeddings for retrieval
  * 4. Provide LinearRAG retrieval pipeline (seed entities → BFS → DPR via pgvector → PPR)
  *
  * Note: Paragraph embeddings are NOT stored in the graph — they live in pgvector
@@ -50,16 +51,10 @@ public class LinearRagGraphService {
     private final KnowledgeModelService knowledgeModelService;
     private final VectorStoreImpl vectorStore;
 
-    /** Graph cache: knowledgeId -> TriGraph (expires after 30 min of no access) */
-    private final Cache<String, TriGraph> graphCache = Caffeine.newBuilder()
-            .maximumSize(100)
-            .expireAfterAccess(30, TimeUnit.MINUTES)
-            .build();
-
     /** Config cache: knowledgeId -> LinearRagConfig */
     private final Cache<String, LinearRagConfig> configCache = Caffeine.newBuilder()
             .maximumSize(100)
-            .expireAfterAccess(1, TimeUnit.HOURS)
+            .expireAfterAccess(30, TimeUnit.MINUTES)
             .build();
 
     /** Batch size for embedding computation */
@@ -102,7 +97,7 @@ public class LinearRagGraphService {
         searchContext.setExcludeDocumentIds(excludeDocumentIds);
         List<TextChunkVO> allResults = new ArrayList<>();
         for (String knowledgeId : knowledgeIds) {
-            TriGraph graph = getOrBuildGraph(knowledgeId);
+            TriGraph graph = buildGraph(knowledgeId);
             if (graph.nodeCount() == 0) {
                 log.debug("Empty graph for knowledge: {}", knowledgeId);
                 continue;
@@ -134,22 +129,38 @@ public class LinearRagGraphService {
         return !CollectionUtils.isEmpty(excludeParagraphIds) && excludeParagraphIds.contains(paragraphId);
     }
 
-    // ==================== Graph Building & Caching ====================
-
-    /**
-     * Get or build the Tri-Graph for a knowledge base.
-     * Graph includes structure + pre-computed sentence and entity embeddings.
-     * Paragraph embeddings live in pgvector and are queried during DPR scoring.
-     */
-    public TriGraph getOrBuildGraph(String knowledgeId) {
-        return graphCache.get(knowledgeId, this::buildGraph);
-    }
+    // ==================== Graph Building ====================
 
     /**
      * Get or create the LinearRagConfig for a knowledge base.
      */
     private LinearRagConfig getConfig(String knowledgeId) {
         return configCache.get(knowledgeId, k -> LinearRagConfig.builder().build());
+    }
+
+    /**
+     * Load pre-extracted sentence nodes from MongoDB, grouped by paragraph ID.
+     * Returns a map of paragraphId → ordered list of sentence texts.
+     */
+    private Map<String, List<String>> loadParagraphSentences(String knowledgeId, Set<String> paragraphIds) {
+        if (paragraphIds.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        List<GraphSentenceNode> sentenceNodes = mongoTemplate.find(
+                Query.query(Criteria.where("knowledgeId").is(knowledgeId)
+                        .and("paragraphId").in(paragraphIds)),
+                GraphSentenceNode.class
+        );
+
+        // Group by paragraphId, sort by sentenceIndex to preserve order
+        return sentenceNodes.stream()
+                .sorted(Comparator.comparingInt(GraphSentenceNode::getSentenceIndex))
+                .collect(Collectors.groupingBy(
+                        GraphSentenceNode::getParagraphId,
+                        LinkedHashMap::new,
+                        Collectors.mapping(GraphSentenceNode::getContent, Collectors.toList())
+                ));
     }
 
     /**
@@ -188,8 +199,11 @@ public class LinearRagGraphService {
             }
         }
 
+        // Load pre-extracted sentences from MongoDB
+        Map<String, List<String>> paragraphSentences = loadParagraphSentences(knowledgeId, paragraphIds);
+
         // Build graph structure
-        TriGraph graph = TriGraphBuilder.build(entities, paragraphContentMap);
+        TriGraph graph = TriGraphBuilder.build(entities, paragraphContentMap, paragraphSentences);
 
         // Compute sentence and entity embeddings (paragraph embeddings are in pgvector)
         try {
@@ -220,11 +234,11 @@ public class LinearRagGraphService {
 
         // Embed all sentences (used for BFS sentence similarity scoring)
         batchEmbed(graph.getNodesByType(GraphNode.NodeType.SENTENCE), embeddingModel,
-                (nodeId, embedding) -> graph.setSentenceEmbedding(nodeId, embedding));
+                graph::setSentenceEmbedding);
 
         // Embed all entities (used for seed entity matching via cosine similarity)
         batchEmbed(graph.getNodesByType(GraphNode.NodeType.ENTITY), embeddingModel,
-                (nodeId, embedding) -> graph.setEntityEmbedding(nodeId, embedding));
+                graph::setEntityEmbedding);
 
         // Paragraph embeddings are managed by pgvector (VectorStoreImpl), not the graph.
 
@@ -293,13 +307,6 @@ public class LinearRagGraphService {
         }
     }
 
-    /**
-     * Invalidate graph cache for a knowledge base.
-     */
-    public void invalidateGraph(String knowledgeId) {
-        graphCache.invalidate(knowledgeId);
-    }
-
     // ==================== Entity Extraction & Storage ====================
 
     /**
@@ -310,7 +317,7 @@ public class LinearRagGraphService {
         if (CollectionUtils.isEmpty(paragraphs)) return;
 
         long startTime = System.currentTimeMillis();
-        log.info("Extracting LinearRAG entities for document: {}", documentId);
+        log.info("Extracting LinearRAG entities and sentences for document: {}", documentId);
 
         List<GraphEntityNode> existingEntities = mongoTemplate.find(
                 Query.query(Criteria.where("knowledgeId").is(knowledgeId)),
@@ -320,6 +327,7 @@ public class LinearRagGraphService {
                 .collect(Collectors.toMap(GraphEntityNode::getName, e -> e, (a, b) -> a));
 
         List<GraphEntityNode> updatedEntities = new ArrayList<>();
+        int sentenceCount = 0;
 
         for (ParagraphEntity paragraph : paragraphs) {
             if (paragraph.getContent() == null || paragraph.getContent().isBlank()) continue;
@@ -344,7 +352,6 @@ public class LinearRagGraphService {
                 } else {
                     GraphEntityNode newNode = GraphEntityNode.builder()
                             .name(normalizedName)
-                            .originalName(entityName)
                             .knowledgeId(knowledgeId)
                             .documentIds(new ArrayList<>(List.of(documentId)))
                             .paragraphIds(new ArrayList<>(List.of(paragraph.getId())))
@@ -356,9 +363,12 @@ public class LinearRagGraphService {
                     updatedEntities.add(newNode);
                 }
             }
+
+            // Extract and store sentences for this paragraph
+            sentenceCount += extractAndStoreSentences(knowledgeId, documentId, paragraph.getId(), text);
         }
 
-        // Save to MongoDB (upsert)
+        // Save entities to MongoDB (upsert)
         for (GraphEntityNode entity : updatedEntities) {
             try {
                 if (entity.getId() != null) {
@@ -389,9 +399,50 @@ public class LinearRagGraphService {
             }
         }
 
-        invalidateGraph(knowledgeId);
-        log.info("Extracted {} entities from document {} in {}ms",
-                updatedEntities.size(), documentId, System.currentTimeMillis() - startTime);
+        log.info("Extracted {} entities and {} sentences from document {} in {}ms",
+                updatedEntities.size(), sentenceCount, documentId, System.currentTimeMillis() - startTime);
+    }
+
+    /**
+     * Extract sentences from paragraph text and store in MongoDB.
+     * Deletes existing sentences for the paragraph first, then inserts new ones.
+     *
+     * @return number of sentences stored
+     */
+    private int extractAndStoreSentences(String knowledgeId, String documentId, String paragraphId, String text) {
+        // Remove existing sentences for this paragraph (content may have changed)
+        mongoTemplate.remove(
+                Query.query(Criteria.where("knowledgeId").is(knowledgeId)
+                        .and("paragraphId").is(paragraphId)),
+                GraphSentenceNode.class
+        );
+
+        List<String> sentences = TriGraphBuilder.splitIntoSentences(text);
+        if (sentences.isEmpty()) return 0;
+
+        Date now = new Date();
+        for (int i = 0; i < sentences.size(); i++) {
+            GraphSentenceNode sentenceNode = GraphSentenceNode.builder()
+                    .content(sentences.get(i))
+                    .paragraphId(paragraphId)
+                    .sentenceIndex(i)
+                    .knowledgeId(knowledgeId)
+                    .documentId(documentId)
+                    .createTime(now)
+                    .updateTime(now)
+                    .build();
+            try {
+                mongoTemplate.insert(sentenceNode);
+            } catch (Exception e) {
+                if (e.getMessage() != null && e.getMessage().contains("duplicate key")) {
+                    log.debug("Sentence already exists for paragraph {} index {}", paragraphId, i);
+                } else {
+                    log.warn("Failed to save sentence for paragraph {} index {}: {}", paragraphId, i, e.getMessage());
+                }
+            }
+        }
+
+        return sentences.size();
     }
 
     /**
@@ -416,6 +467,14 @@ public class LinearRagGraphService {
     public void deleteByParagraphIds(String knowledgeId, List<String> paragraphIds) {
         if (CollectionUtils.isEmpty(paragraphIds)) return;
 
+        // Delete sentence nodes for these paragraphs
+        mongoTemplate.remove(
+                Query.query(Criteria.where("knowledgeId").is(knowledgeId)
+                        .and("paragraphId").in(paragraphIds)),
+                GraphSentenceNode.class
+        );
+
+        // Update or remove entity nodes
         List<GraphEntityNode> entities = mongoTemplate.find(
                 Query.query(Criteria.where("knowledgeId").is(knowledgeId)
                         .and("paragraphIds").in(paragraphIds)),
@@ -432,13 +491,19 @@ public class LinearRagGraphService {
                 mongoTemplate.updateFirst(query, update, GraphEntityNode.class);
             }
         }
-
-        invalidateGraph(knowledgeId);
     }
 
     public void deleteByDocumentIds(String knowledgeId, List<String> documentIds) {
         if (CollectionUtils.isEmpty(documentIds)) return;
 
+        // Delete sentence nodes for these documents
+        mongoTemplate.remove(
+                Query.query(Criteria.where("knowledgeId").is(knowledgeId)
+                        .and("documentId").in(documentIds)),
+                GraphSentenceNode.class
+        );
+
+        // Update or remove entity nodes
         List<GraphEntityNode> entities = mongoTemplate.find(
                 Query.query(Criteria.where("knowledgeId").is(knowledgeId)
                         .and("documentIds").in(documentIds)),
@@ -455,16 +520,17 @@ public class LinearRagGraphService {
                 mongoTemplate.updateFirst(query, update, GraphEntityNode.class);
             }
         }
-
-        invalidateGraph(knowledgeId);
     }
 
     public void deleteByKnowledgeId(String knowledgeId) {
         mongoTemplate.remove(
                 Query.query(Criteria.where("knowledgeId").is(knowledgeId)),
+                GraphSentenceNode.class
+        );
+        mongoTemplate.remove(
+                Query.query(Criteria.where("knowledgeId").is(knowledgeId)),
                 GraphEntityNode.class
         );
-        invalidateGraph(knowledgeId);
     }
 
     // ==================== Inner Interfaces ====================

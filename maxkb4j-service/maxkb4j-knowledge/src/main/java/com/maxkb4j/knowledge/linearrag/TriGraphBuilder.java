@@ -24,14 +24,16 @@ public class TriGraphBuilder {
     private static final int MIN_SENTENCE_LENGTH = 5;
 
     /**
-     * Build a complete Tri-Graph from entities and paragraph data.
+     * Build a complete Tri-Graph from entities, paragraph data, and pre-loaded sentences.
      *
-     * @param entities   list of entity nodes from MongoDB
-     * @param paragraphs ordered map of paragraph ID -> paragraph content (title + content)
-     *                   The iteration order determines paragraph adjacency.
+     * @param entities           list of entity nodes from MongoDB
+     * @param paragraphs         ordered map of paragraph ID -> paragraph content (title + content)
+     *                           The iteration order determines paragraph adjacency.
+     * @param paragraphSentences map of paragraph ID -> ordered list of sentence texts (from MongoDB)
      * @return fully constructed TriGraph
      */
-    public static TriGraph build(List<GraphEntityNode> entities, Map<String, String> paragraphs) {
+    public static TriGraph build(List<GraphEntityNode> entities, Map<String, String> paragraphs,
+                                  Map<String, List<String>> paragraphSentences) {
         TriGraph graph = new TriGraph();
 
         if (entities == null || entities.isEmpty() || paragraphs == null || paragraphs.isEmpty()) {
@@ -54,8 +56,8 @@ public class TriGraphBuilder {
                     content
             ));
 
-            // Split content into sentences and add sentence nodes
-            List<String> sentences = splitIntoSentences(content);
+            // Use pre-loaded sentences from MongoDB
+            List<String> sentences = paragraphSentences.getOrDefault(paragraphId, Collections.emptyList());
             List<String> sentenceIds = new ArrayList<>();
 
             for (int i = 0; i < sentences.size(); i++) {
@@ -80,7 +82,7 @@ public class TriGraphBuilder {
             if (graph.getNode(entityId) == null) {
                 graph.addNode(new GraphNode(
                         entityId,
-                        entity.getOriginalName() != null ? entity.getOriginalName() : entity.getName(),
+                        entity.getName(),
                         GraphNode.NodeType.ENTITY
                 ));
             }
