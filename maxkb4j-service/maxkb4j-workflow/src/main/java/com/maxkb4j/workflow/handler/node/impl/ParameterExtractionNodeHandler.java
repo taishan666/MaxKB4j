@@ -1,5 +1,6 @@
 package com.maxkb4j.workflow.handler.node.impl;
 
+import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.core.assistant.ParameterExtractionAssistant;
 import com.maxkb4j.core.langchain4j.AssistantServices;
 import com.maxkb4j.model.service.IModelProviderService;
@@ -49,9 +50,9 @@ public class ParameterExtractionNodeHandler extends AbsNodeHandler {
         ));
 
         Map<String, Object> nodeVariable = new HashMap<>();
-        nodeVariable.put("result", result.content());
-        nodeVariable.putAll(result.content());
-
+        Map<String, Object> arguments = result.content();
+        nodeVariable.put("result", new JSONObject(arguments));
+        nodeVariable.putAll(arguments);
         return new NodeResult(nodeVariable);
     }
 

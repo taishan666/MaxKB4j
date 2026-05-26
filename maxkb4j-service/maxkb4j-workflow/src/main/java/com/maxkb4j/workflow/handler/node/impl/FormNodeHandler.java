@@ -25,7 +25,7 @@ public class FormNodeHandler extends AbsNodeHandler {
         Map<String, Object> nodeVariable = new HashMap<>();
         if (formData != null) {
             nodeVariable.put("is_submit", true);
-            nodeVariable.put("form_data", formData);
+            nodeVariable.put("form_data", new JSONObject(formData));
             nodeVariable.putAll(formData);
             putDetail(node, "form_data", formData);
         } else {
