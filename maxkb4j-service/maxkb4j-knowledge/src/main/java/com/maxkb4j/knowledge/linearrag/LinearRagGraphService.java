@@ -483,7 +483,7 @@ public class LinearRagGraphService {
         if (embeddingModel != null) {
             List<GraphEntityNode> entitiesNeedingEmbedding = updatedEntities.stream()
                     .filter(e -> e.getEmbedding() == null)
-                    .collect(Collectors.toList());
+                    .toList();
             if (!entitiesNeedingEmbedding.isEmpty()) {
                 List<GraphNode> entityGraphNodes = entitiesNeedingEmbedding.stream()
                         .map(e -> new GraphNode("e:" + e.getName(), e.getName(), GraphNode.NodeType.ENTITY, e.getName()))

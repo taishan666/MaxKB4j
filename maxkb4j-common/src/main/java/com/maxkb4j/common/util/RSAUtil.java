@@ -29,9 +29,11 @@ import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 
 @Slf4j
-public class RSAUtil{
+public class RSAUtil {
 
-    private final static String password = "mac_kb_password";
+    private final static String PASSWORD = "mac_kb_password";
+    private static final String KEY_ALGORITHM = "RSA";
+
 
     public static String byteToBase64(byte[] encoded) {
         return Base64.getEncoder().encodeToString(encoded);
@@ -41,7 +43,7 @@ public class RSAUtil{
     public static PublicKey importPublicKey(String base64EncodedPublicKey) throws Exception {
         byte[] keyBytes = Base64.getDecoder().decode(base64EncodedPublicKey);
         X509EncodedKeySpec spec = new X509EncodedKeySpec(keyBytes);
-        KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+        KeyFactory keyFactory = KeyFactory.getInstance(KEY_ALGORITHM);
         return keyFactory.generatePublic(spec);
     }
 
@@ -49,71 +51,41 @@ public class RSAUtil{
     public static PrivateKey importPrivateKey(String base64EncodedPrivateKey) throws Exception {
         byte[] keyBytes = Base64.getDecoder().decode(base64EncodedPrivateKey);
         PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(keyBytes);
-        KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+        KeyFactory keyFactory = KeyFactory.getInstance(KEY_ALGORITHM);
         return keyFactory.generatePrivate(spec);
     }
 
     public static KeyPair generateRSAKeyPair() throws Exception {
-        KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA");
+        KeyPairGenerator keyGen = KeyPairGenerator.getInstance(KEY_ALGORITHM);
         keyGen.initialize(2048); // 指定密钥长度
         return keyGen.generateKeyPair();
     }
 
     public static String encrypt(String plainText, PublicKey publicKey) throws Exception {
-        Cipher cipher = Cipher.getInstance("RSA");
+        Cipher cipher = Cipher.getInstance(KEY_ALGORITHM);
         cipher.init(Cipher.ENCRYPT_MODE, publicKey);
         return byteToBase64(cipher.doFinal(plainText.getBytes()));
     }
+
     public static String encrypt(String plainText, String publicKey) throws Exception {
-        return encrypt(plainText,importPublicKey(publicKey));
+        return encrypt(plainText, importPublicKey(publicKey));
     }
 
     public static String encryptPem(String plainText, String publicKey) throws Exception {
-        return encrypt(plainText,readPublicKeyPEM(publicKey));
+        return encrypt(plainText, readPublicKeyPEM(publicKey));
     }
 
     public static String decrypt(String cipherText, PrivateKey privateKey) throws Exception {
-        Cipher cipher = Cipher.getInstance("RSA");
+        Cipher cipher = Cipher.getInstance(KEY_ALGORITHM);
         cipher.init(Cipher.DECRYPT_MODE, privateKey);
         return new String(cipher.doFinal(Base64.getDecoder().decode(cipherText)));
     }
 
     public static String decrypt(String cipherText, String privateKey) throws Exception {
-        return decrypt(cipherText,importPrivateKey(privateKey));
+        return decrypt(cipherText, importPrivateKey(privateKey));
     }
 
 
-
-    public static void main(String[] args) {
-        try {
-            // 生成密钥对
-            KeyPair keyPair = generateRSAKeyPair();
-            PublicKey publicKey1 = keyPair.getPublic();
-            PrivateKey privateKey1 = keyPair.getPrivate();
-            log.info("publicKey: {}", byteToBase64(publicKey1.getEncoded()));
-            log.info("privateKey: {}", byteToBase64(privateKey1.getEncoded()));
-            // 要加密的明文
-            String originalText = "Hello, RSA Encryption!";
-            PublicKey publicKey =importPublicKey(byteToBase64(publicKey1.getEncoded()));
-            PrivateKey privateKey = importPrivateKey(byteToBase64(privateKey1.getEncoded()));
-            // 加密
-            String encryptedText = encrypt(originalText, publicKey);
-            log.info("Encrypted: {}", encryptedText);
-
-            // 解密
-            String decryptedText = decrypt(encryptedText, privateKey);
-            log.info("Decrypted: {}", decryptedText);
-
-            // 验证加密和解密是否正确
-            if (originalText.equals(decryptedText)) {
-                log.info("Encryption and decryption were successful.");
-            } else {
-                log.info("Encryption and decryption failed.");
-            }
-        } catch (Exception e) {
-            log.error("RSA test failed", e);
-        }
-    }
     static {
         Security.addProvider(new BouncyCastleProvider());
     }
@@ -136,17 +108,6 @@ public class RSAUtil{
     }
 
 
-
-
-    private static PrivateKey decryptPrivateKey1(String encodedKey, String passphrase) throws Exception {
-        // 解析并解密 PKCS#8 加密私钥
-        PKCS8EncryptedPrivateKeyInfo encPrivateInfo = new PKCS8EncryptedPrivateKeyInfo(readEncryptPrivatePEM(encodedKey));
-        JcePKCSPBEInputDecryptorProviderBuilder builder = new JcePKCSPBEInputDecryptorProviderBuilder().setProvider("BC");
-        InputDecryptorProvider idp = builder.build(passphrase.toCharArray());
-        PrivateKeyInfo privateInfo = encPrivateInfo.decryptPrivateKeyInfo(idp);
-        return KeyFactory.getInstance("RSA").generatePrivate(new PKCS8EncodedKeySpec(privateInfo.getEncoded()));
-    }
-
     private static String encryptPrivateKeyPem(PrivateKey privateKey, String passphrase) throws Exception {
         PrivateKeyInfo privateKeyInfo = PrivateKeyInfo.getInstance(privateKey.getEncoded());
         // 构建加密器
@@ -161,10 +122,10 @@ public class RSAUtil{
             PemObject pemObject = new PemObject("ENCRYPTED PRIVATE KEY", encryptedPrivateKeyInfo.getEncoded());
             pemWriter.writeObject(pemObject);
         }*/
-        return convertPEM(encryptedPrivateKeyInfo.getEncoded(),"ENCRYPTED PRIVATE KEY");
+        return convertPEM(encryptedPrivateKeyInfo.getEncoded(), "ENCRYPTED PRIVATE KEY");
     }
 
-    public static String convertPEM(byte[] encoded,String type)  throws Exception {
+    public static String convertPEM(byte[] encoded, String type) throws Exception {
         // 将加密后的私钥转换为PEM格式
         StringWriter stringWriter = new StringWriter();
         try (PemWriter pemWriter = new PemWriter(stringWriter)) {
@@ -175,38 +136,40 @@ public class RSAUtil{
     }
 
     public static String publicKeyPem(PublicKey publicKey) throws Exception {
-        return convertPEM(publicKey.getEncoded(),"PUBLIC KEY");
+        return convertPEM(publicKey.getEncoded(), "PUBLIC KEY");
     }
 
     public static String encryptPrivateKeyPem(PrivateKey privateKey) throws Exception {
-        return encryptPrivateKeyPem(privateKey,password);
+        return encryptPrivateKeyPem(privateKey, PASSWORD);
     }
 
 
-    private static  PrivateKey decryptPrivateKey(String encryptPrivateKey, String passphrase)
+    private static PrivateKey decryptPrivateKey(String encryptPrivateKey)
             throws IOException, PKCSException {
         PrivateKeyInfo pki;
         try (PEMParser pemParser = new PEMParser(new StringReader(encryptPrivateKey))) {
             Object o = pemParser.readObject();
-            if (o instanceof PKCS8EncryptedPrivateKeyInfo) { // encrypted private key in pkcs8-format
-              //  System.out.println("key in pkcs8 encoding");
-                PKCS8EncryptedPrivateKeyInfo epki = (PKCS8EncryptedPrivateKeyInfo) o;
-              //  System.out.println("encryption algorithm: " + epki.getEncryptionAlgorithm().getAlgorithm());
-                JcePKCSPBEInputDecryptorProviderBuilder builder =
-                        new JcePKCSPBEInputDecryptorProviderBuilder().setProvider("BC");
-                InputDecryptorProvider idp = builder.build(passphrase.toCharArray());
-                pki = epki.decryptPrivateKeyInfo(idp);
-            } else if (o instanceof PEMEncryptedKeyPair) { // encrypted private key in pkcs1-format
-             //   System.out.println("key in pkcs1 encoding");
-                PEMEncryptedKeyPair epki = (PEMEncryptedKeyPair) o;
-                PEMKeyPair pkp = epki.decryptKeyPair(new BcPEMDecryptorProvider(passphrase.toCharArray()));
-                pki = pkp.getPrivateKeyInfo();
-            } else if (o instanceof PEMKeyPair) { // unencrypted private key
-              //  System.out.println("key unencrypted");
-                PEMKeyPair pkp = (PEMKeyPair) o;
-                pki = pkp.getPrivateKeyInfo();
-            } else {
-                throw new PKCSException("Invalid encrypted private key class: " + o.getClass().getName());
+            switch (o) {
+                case PKCS8EncryptedPrivateKeyInfo epki -> {
+                    //  System.out.println("key in pkcs8 encoding");
+                    //  System.out.println("encryption algorithm: " + epki.getEncryptionAlgorithm().getAlgorithm());
+                    JcePKCSPBEInputDecryptorProviderBuilder builder =
+                            new JcePKCSPBEInputDecryptorProviderBuilder().setProvider("BC");
+                    InputDecryptorProvider idp = builder.build(PASSWORD.toCharArray());
+                    pki = epki.decryptPrivateKeyInfo(idp);  // encrypted private key in pkcs8-format
+                }
+                case PEMEncryptedKeyPair epk -> {
+                    //   System.out.println("key in pkcs1 encoding");
+                    PEMKeyPair pkp = epk.decryptKeyPair(new BcPEMDecryptorProvider(PASSWORD.toCharArray()));
+                    pki = pkp.getPrivateKeyInfo();  // encrypted private key in pkcs1-format
+                }
+                case PEMKeyPair pkp ->  // unencrypted private key
+                    //  System.out.println("key unencrypted");
+                        pki = pkp.getPrivateKeyInfo();
+                case null, default -> {
+                    assert o != null;
+                    throw new PKCSException("Invalid encrypted private key class: " + o.getClass().getName());
+                }
             }
             JcaPEMKeyConverter converter = new JcaPEMKeyConverter().setProvider("BC");
             return converter.getPrivateKey(pki);
@@ -215,7 +178,39 @@ public class RSAUtil{
 
 
     public static String rsaLongDecrypt(String encryptedPem, String encryptPrivateKey) throws Exception {
-        PrivateKey privateKey = decryptPrivateKey(encryptPrivateKey, password);
-        return decrypt(encryptedPem,privateKey);
+        PrivateKey privateKey = decryptPrivateKey(encryptPrivateKey);
+        return decrypt(encryptedPem, privateKey);
+    }
+
+
+    public static void main(String[] args) {
+        try {
+            // 生成密钥对
+            KeyPair keyPair = generateRSAKeyPair();
+            PublicKey publicKey1 = keyPair.getPublic();
+            PrivateKey privateKey1 = keyPair.getPrivate();
+            log.info("publicKey: {}", byteToBase64(publicKey1.getEncoded()));
+            log.info("privateKey: {}", byteToBase64(privateKey1.getEncoded()));
+            // 要加密的明文
+            String originalText = "Hello, RSA Encryption!";
+            PublicKey publicKey = importPublicKey(byteToBase64(publicKey1.getEncoded()));
+            PrivateKey privateKey = importPrivateKey(byteToBase64(privateKey1.getEncoded()));
+            // 加密
+            String encryptedText = encrypt(originalText, publicKey);
+            log.info("Encrypted: {}", encryptedText);
+
+            // 解密
+            String decryptedText = decrypt(encryptedText, privateKey);
+            log.info("Decrypted: {}", decryptedText);
+
+            // 验证加密和解密是否正确
+            if (originalText.equals(decryptedText)) {
+                log.info("Encryption and decryption were successful.");
+            } else {
+                log.info("Encryption and decryption failed.");
+            }
+        } catch (Exception e) {
+            log.error("RSA test failed", e);
+        }
     }
 }

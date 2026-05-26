@@ -55,7 +55,10 @@ public class ApplicationChatController {
         chatService.chatExport(selectIds, response);
     }
 
-
+    @GetMapping("/application/{id}/open")
+    public R<String> open(@PathVariable("id") String id) {
+        return R.success(chatService.chatOpen(id, true));
+    }
 
 
 }

@@ -1,7 +1,6 @@
 package com.maxkb4j.application.controller;
 
 import com.maxkb4j.application.service.ApplicationChatService;
-import com.maxkb4j.common.api.R;
 import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.domain.dto.ChatMessageVO;
 import com.maxkb4j.common.domain.dto.ChatParams;
@@ -27,10 +26,6 @@ public class ChatMessageController {
 
     private final ApplicationChatService chatService;
 
-    @GetMapping("/workspace/default/application/{id}/open")
-    public R<String> open(@PathVariable("id") String id) {
-        return R.success(chatService.chatOpen(id, true));
-    }
 
     @PostMapping(path = "/chat_message/{chatId}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<ChatMessageVO> chatMessage(@PathVariable String chatId, @RequestBody ChatParams params) {

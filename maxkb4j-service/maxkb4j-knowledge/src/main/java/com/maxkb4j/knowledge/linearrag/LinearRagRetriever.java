@@ -221,63 +221,99 @@ public class LinearRagRetriever {
     private Map<String, BfsEntityScore> calculateEntityScores(List<SeedEntity> seedEntities, float[] queryEmbedding) {
         Map<String, BfsEntityScore> allScores = new LinkedHashMap<>();
         Set<String> usedSentences = new HashSet<>();
-        // Initialize with seed entities (tier=1)
+
+        // 使用队列进行 BFS
         Queue<BfsEntityScore> queue = new LinkedList<>();
         for (SeedEntity seed : seedEntities) {
+            // 注意：这里建议也加一个初始阈值判断，和 Python 逻辑保持一致
+            if (seed.similarity < config.getIterationThreshold()) continue;
+
             BfsEntityScore bfsScore = new BfsEntityScore(seed.entityId, seed.similarity, 1);
             allScores.put(seed.entityId, bfsScore);
             queue.add(bfsScore);
         }
-        // BFS diffusion: maxIterations rounds
+
+        // BFS 扩散
         for (int tier = 1; tier <= config.getMaxIterations(); tier++) {
             Queue<BfsEntityScore> nextQueue = new LinkedList<>();
+
             while (!queue.isEmpty()) {
                 BfsEntityScore current = queue.poll();
-                if (current.score < config.getIterationThreshold() && tier > 1) {
-                    continue; // Prune: score too low to expand
+
+                // 【修正1】去掉 tier > 1 的限制，严格对齐 Python 的剪枝逻辑
+                if (current.score < config.getIterationThreshold()) {
+                    continue;
                 }
-                // Find all sentences containing this entity
+
                 Set<String> sentences = graph.getEntitySentences(current.entityId);
-                if (sentences.isEmpty()) continue;
-                // Filter out already used sentences
+                if (sentences == null || sentences.isEmpty()) continue;
+
+                // 过滤已使用的句子
                 List<String> candidateSentences = sentences.stream()
                         .filter(s -> !usedSentences.contains(s))
                         .toList();
 
                 if (candidateSentences.isEmpty()) continue;
-                // Compute sentence vs query embedding similarity, take Top-K
+
+                // 计算句子相似度并取 Top-K
                 List<SentenceScore> scoredSentences = new ArrayList<>();
                 for (String sentenceId : candidateSentences) {
                     float[] sentenceEmb = graph.getSentenceEmbedding(sentenceId);
                     double similarity;
                     if (sentenceEmb != null && queryEmbedding != null) {
-                        similarity = cosineSimilarity(queryEmbedding, sentenceEmb);
+                        // 【修正3】如果 Python 用的是 np.dot，这里建议用 dotProduct 而不是 cosine
+                        // 如果你的向量已经 L2 normalized，那 cosine 和 dot 是一样的
+                        similarity = dotProduct(queryEmbedding, sentenceEmb);
                     } else {
-                        similarity = 0.5; // Fallback when embeddings unavailable
+                        similarity = 0.0; // 建议 fallback 为 0，避免引入噪声
                     }
                     scoredSentences.add(new SentenceScore(sentenceId, similarity));
                 }
 
+                // 降序排序并截取 Top-K
                 scoredSentences.sort(Comparator.comparingDouble((SentenceScore s) -> s.score).reversed());
-                List<SentenceScore> topSentences = scoredSentences.subList(
-                        0, Math.min(config.getTopKSentence(), scoredSentences.size()));
+                int topK = Math.min(config.getTopKSentence(), scoredSentences.size());
+                List<SentenceScore> topSentences = scoredSentences.subList(0, topK);
 
-                // For each top sentence, find all entities and propagate scores
+                // 扩展新实体
                 for (SentenceScore topSentence : topSentences) {
                     usedSentences.add(topSentence.sentenceId);
 
                     Set<String> entitiesInSentence = graph.getSentenceEntities(topSentence.sentenceId);
-                    for (String newEntityId : entitiesInSentence) {
-                        if (allScores.containsKey(newEntityId)) continue; // Already scored
+                    if (entitiesInSentence == null) continue;
 
-                        // New entity score = parent score × sentence similarity
+                    for (String newEntityId : entitiesInSentence) {
+                        // 计算新分数：父实体分数 * 句子相似度
                         double newScore = current.score * topSentence.score;
 
                         if (newScore >= config.getIterationThreshold()) {
-                            BfsEntityScore newBfsScore = new BfsEntityScore(newEntityId, newScore, tier + 1);
-                            allScores.put(newEntityId, newBfsScore);
+                            // 【修正2】处理得分累加逻辑
+                            BfsEntityScore existingScore = allScores.get(newEntityId);
+                            double finalScore = newScore;
+                            int finalTier = tier + 1;
+
+                            if (existingScore != null) {
+                                // 如果实体已存在，累加分数（对齐 Python 的 entity_weights +=）
+                                // 注意：Python 中 new_entities 是同层覆盖，但全局 weights 是累加。
+                                // 这里我们选择更新分数并保留较小的 tier（最早发现的层级通常更相关）
+                                finalScore = existingScore.score + newScore;
+                                finalTier = Math.min(existingScore.tier, tier + 1);
+                            }
+
+                            BfsEntityScore updatedScore = new BfsEntityScore(newEntityId, finalScore, finalTier);
+                            allScores.put(newEntityId, updatedScore);
+
+                            // 只有当该实体是“新发现”或者“层级允许继续扩散”时才加入下一轮队列
+                            // 这里简单处理：只要没在队列里处理过（可以通过层级判断，或者允许重复入队但依靠 usedSentences 剪枝）
+                            // 为了严格对齐 Python（Python 只要分数够就放入 new_entities 也就是下一轮的 current_entities）：
                             if (tier < config.getMaxIterations()) {
-                                nextQueue.add(newBfsScore);
+                                // 注意：如果允许分数累加，可能需要重新评估是否将其再次加入队列进行扩散
+                                // 但通常 BFS 中一个节点只作为扩展源一次。
+                                // 如果完全对齐 Python：Python 的 new_entities 是 map，同层级后面的会覆盖前面的。
+                                // 这里简化逻辑：只有第一次发现（或者分数显著更新）时加入 nextQueue
+                                if (existingScore == null) {
+                                    nextQueue.add(updatedScore);
+                                }
                             }
                         }
                     }
@@ -289,6 +325,15 @@ public class LinearRagRetriever {
         }
 
         return allScores;
+    }
+
+    // 简单的点积工具方法
+    private double dotProduct(float[] a, float[] b) {
+        double sum = 0.0;
+        for (int i = 0; i < a.length; i++) {
+            sum += a[i] * b[i];
+        }
+        return sum;
     }
 
     // ==================== 2b: Passage Score Calculation ====================
