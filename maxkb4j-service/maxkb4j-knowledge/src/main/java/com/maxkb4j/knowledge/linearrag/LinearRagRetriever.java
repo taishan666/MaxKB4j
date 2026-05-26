@@ -68,8 +68,7 @@ public class LinearRagRetriever {
      * @param minScore       minimum score threshold
      * @return ranked list of TextChunkVO (paragraph ID + score)
      */
-    public List<TextChunkVO> retrieve(String query, List<String> queryKeywords, float[] queryEmbedding,
-                                      int topK, float minScore) {
+    public List<TextChunkVO> retrieve(String query, List<String> queryKeywords, float[] queryEmbedding, int topK, float minScore) {
         if (query == null || query.isBlank()) {
             return Collections.emptyList();
         }
@@ -158,13 +157,13 @@ public class LinearRagRetriever {
         }
 
         // Deduplicate by entityId, keeping highest similarity
-        Map<String, NodeScore> deduped = new LinkedHashMap<>();
+        Map<String, NodeScore> seedMap = new LinkedHashMap<>();
         for (NodeScore seed : seeds) {
-            deduped.merge(seed.nodeId, seed, (a, b) -> a.score > b.score ? a : b);
+            seedMap.merge(seed.nodeId, seed, (a, b) -> a.score > b.score ? a : b);
         }
 
         // Sort by similarity descending, limit to maxSeedEntities
-        return deduped.values().stream()
+        return seedMap.values().stream()
                 .sorted(Comparator.comparingDouble((NodeScore s) -> s.score).reversed())
                 .collect(Collectors.toList());
     }
@@ -190,10 +189,12 @@ public class LinearRagRetriever {
 
         Map<String, Double> pprScores = ppr.runPpr(entityResetScores, passageScores);
 
+        // Post-PPR min-max normalization: map raw PPR probabilities to [0, 1]
+        Map<String, Double> normalizedPprScores = minMaxNormalize(pprScores);
+
         // Convert to TextChunkVO, filter and sort
-        return pprScores.entrySet().stream()
-                .filter(e -> e.getValue() >= minScore)
-                .limit(topK)
+        return normalizedPprScores.entrySet().stream()
+                .sorted(Map.Entry.<String, Double>comparingByValue().reversed())
                 .map(e -> {
                     String paragraphId = e.getKey().startsWith("p:") ? e.getKey().substring(2) : e.getKey();
                     return new TextChunkVO(paragraphId, e.getValue().floatValue());
