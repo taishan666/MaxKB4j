@@ -139,32 +139,21 @@ public class LinearRagGraphService {
     }
 
     /**
-     * Load pre-extracted sentence nodes from MongoDB, grouped by paragraph ID.
-     * Returns a map of paragraphId → ordered list of sentence texts.
+     * Load sentence nodes from MongoDB for the given paragraph IDs.
      */
-    private Map<String, List<String>> loadParagraphSentences(String knowledgeId, Set<String> paragraphIds) {
+    private List<GraphSentenceNode> loadSentenceNodes(String knowledgeId, Set<String> paragraphIds) {
         if (paragraphIds.isEmpty()) {
-            return Collections.emptyMap();
+            return Collections.emptyList();
         }
-
-        List<GraphSentenceNode> sentenceNodes = mongoTemplate.find(
+        return mongoTemplate.find(
                 Query.query(Criteria.where("knowledgeId").is(knowledgeId)
                         .and("paragraphId").in(paragraphIds)),
                 GraphSentenceNode.class
         );
-
-        // Group by paragraphId, sort by sentenceIndex to preserve order
-        return sentenceNodes.stream()
-                .sorted(Comparator.comparingInt(GraphSentenceNode::getSentenceIndex))
-                .collect(Collectors.groupingBy(
-                        GraphSentenceNode::getParagraphId,
-                        LinkedHashMap::new,
-                        Collectors.mapping(GraphSentenceNode::getContent, Collectors.toList())
-                ));
     }
 
     /**
-     * Build the Tri-Graph from MongoDB data, including embedding computation.
+     * Build the Tri-Graph from MongoDB data, including embedding loading/computation.
      */
     private TriGraph buildGraph(String knowledgeId) {
         long startTime = System.currentTimeMillis();
@@ -200,12 +189,37 @@ public class LinearRagGraphService {
         }
 
         // Load pre-extracted sentences from MongoDB
-        Map<String, List<String>> paragraphSentences = loadParagraphSentences(knowledgeId, paragraphIds);
+        List<GraphSentenceNode> sentenceNodes = loadSentenceNodes(knowledgeId, paragraphIds);
+
+        // Build content map from pre-loaded sentence nodes (grouped by paragraphId, ordered by index)
+        Map<String, List<String>> paragraphSentences = sentenceNodes.stream()
+                .sorted(Comparator.comparingInt(GraphSentenceNode::getSentenceIndex))
+                .collect(Collectors.groupingBy(
+                        GraphSentenceNode::getParagraphId,
+                        LinkedHashMap::new,
+                        Collectors.mapping(GraphSentenceNode::getContent, Collectors.toList())
+                ));
 
         // Build graph structure
         TriGraph graph = TriGraphBuilder.build(entities, paragraphContentMap, paragraphSentences);
 
-        // Compute sentence and entity embeddings (paragraph embeddings are in pgvector)
+        // Apply pre-loaded sentence embeddings (keyed by "s:paragraphId:index")
+        for (GraphSentenceNode sn : sentenceNodes) {
+            if (sn.getEmbedding() != null) {
+                String sentenceId = "s:" + sn.getParagraphId() + ":" + sn.getSentenceIndex();
+                graph.setSentenceEmbedding(sentenceId, sn.getEmbedding());
+            }
+        }
+
+        // Apply pre-loaded entity embeddings (keyed by "e:name")
+        for (GraphEntityNode en : entities) {
+            if (en.getEmbedding() != null) {
+                String entityId = "e:" + en.getName().toLowerCase();
+                graph.setEntityEmbedding(entityId, en.getEmbedding());
+            }
+        }
+
+        // Compute missing embeddings and persist to MongoDB (paragraph embeddings are in pgvector)
         try {
             computeAndStoreEmbeddings(graph, knowledgeId);
         } catch (Exception e) {
@@ -219,9 +233,8 @@ public class LinearRagGraphService {
     }
 
     /**
-     * Compute and store embeddings for sentence and entity nodes in the graph.
-     * Paragraph embeddings are NOT computed here — they are stored in pgvector
-     * by VectorStoreImpl during document indexing and queried directly during DPR scoring.
+     * Compute missing embeddings for sentence and entity nodes, and persist them to MongoDB.
+     * Nodes that already have pre-loaded embeddings (from MongoDB) are skipped.
      */
     private void computeAndStoreEmbeddings(TriGraph graph, String knowledgeId) {
         EmbeddingModel embeddingModel = getEmbeddingModel(knowledgeId);
@@ -232,20 +245,78 @@ public class LinearRagGraphService {
 
         long start = System.currentTimeMillis();
 
-        // Embed all sentences (used for BFS sentence similarity scoring)
-        batchEmbed(graph.getNodesByType(GraphNode.NodeType.SENTENCE), embeddingModel,
-                graph::setSentenceEmbedding);
+        // Compute only missing sentence embeddings
+        List<GraphNode> sentencesNeedingEmbedding = graph.getNodesByType(GraphNode.NodeType.SENTENCE).stream()
+                .filter(n -> graph.getSentenceEmbedding(n.getId()) == null)
+                .collect(Collectors.toList());
 
-        // Embed all entities (used for seed entity matching via cosine similarity)
-        batchEmbed(graph.getNodesByType(GraphNode.NodeType.ENTITY), embeddingModel,
-                graph::setEntityEmbedding);
+        if (!sentencesNeedingEmbedding.isEmpty()) {
+            batchEmbed(sentencesNeedingEmbedding, embeddingModel, graph::setSentenceEmbedding);
+            persistSentenceEmbeddings(knowledgeId, sentencesNeedingEmbedding, graph);
+        }
 
-        // Paragraph embeddings are managed by pgvector (VectorStoreImpl), not the graph.
+        // Compute only missing entity embeddings
+        List<GraphNode> entitiesNeedingEmbedding = graph.getNodesByType(GraphNode.NodeType.ENTITY).stream()
+                .filter(n -> graph.getEntityEmbedding(n.getId()) == null)
+                .collect(Collectors.toList());
 
-        log.debug("Computed embeddings in {}ms: {} sentences, {} entities",
+        if (!entitiesNeedingEmbedding.isEmpty()) {
+            batchEmbed(entitiesNeedingEmbedding, embeddingModel, graph::setEntityEmbedding);
+            persistEntityEmbeddings(knowledgeId, entitiesNeedingEmbedding, graph);
+        }
+
+        log.debug("Computed embeddings in {}ms: {} new sentence, {} new entity (total: {} sentence, {} entity)",
                 System.currentTimeMillis() - start,
+                sentencesNeedingEmbedding.size(),
+                entitiesNeedingEmbedding.size(),
                 graph.getAllSentenceEmbeddings().size(),
                 graph.getAllEntityEmbeddings().size());
+    }
+
+    /**
+     * Persist newly computed sentence embeddings to MongoDB.
+     */
+    private void persistSentenceEmbeddings(String knowledgeId, List<GraphNode> sentences, TriGraph graph) {
+        for (GraphNode sentence : sentences) {
+            float[] embedding = graph.getSentenceEmbedding(sentence.getId());
+            if (embedding == null) continue;
+
+            // Parse sentenceId "s:paragraphId:index" back to paragraphId and index
+            String id = sentence.getId();
+            if (!id.startsWith("s:")) continue;
+            String remainder = id.substring(2);
+            int lastColon = remainder.lastIndexOf(':');
+            if (lastColon <= 0) continue;
+
+            String paragraphId = remainder.substring(0, lastColon);
+            int index = Integer.parseInt(remainder.substring(lastColon + 1));
+
+            Query query = Query.query(Criteria.where("knowledgeId").is(knowledgeId)
+                    .and("paragraphId").is(paragraphId)
+                    .and("sentenceIndex").is(index));
+            Update update = new Update().set("embedding", embedding).set("updateTime", new Date());
+            mongoTemplate.updateFirst(query, update, GraphSentenceNode.class);
+        }
+    }
+
+    /**
+     * Persist newly computed entity embeddings to MongoDB.
+     */
+    private void persistEntityEmbeddings(String knowledgeId, List<GraphNode> entities, TriGraph graph) {
+        for (GraphNode entity : entities) {
+            float[] embedding = graph.getEntityEmbedding(entity.getId());
+            if (embedding == null) continue;
+
+            // Parse entityId "e:name" back to name
+            String id = entity.getId();
+            if (!id.startsWith("e:")) continue;
+            String name = id.substring(2);
+
+            Query query = Query.query(Criteria.where("knowledgeId").is(knowledgeId)
+                    .and("name").is(name));
+            Update update = new Update().set("embedding", embedding).set("updateTime", new Date());
+            mongoTemplate.updateFirst(query, update, GraphEntityNode.class);
+        }
     }
 
     /**
@@ -329,6 +400,15 @@ public class LinearRagGraphService {
         List<GraphEntityNode> updatedEntities = new ArrayList<>();
         int sentenceCount = 0;
 
+        // Get embedding model for pre-computing embeddings
+        EmbeddingModel embeddingModel = null;
+        try {
+            embeddingModel = knowledgeModelService.getEmbeddingModel(knowledgeId);
+        } catch (Exception e) {
+            log.warn("Failed to get embedding model for knowledge {}: {}. Embeddings will be computed on first retrieval.",
+                    knowledgeId, e.getMessage());
+        }
+
         for (ParagraphEntity paragraph : paragraphs) {
             if (paragraph.getContent() == null || paragraph.getContent().isBlank()) continue;
 
@@ -364,8 +444,8 @@ public class LinearRagGraphService {
                 }
             }
 
-            // Extract and store sentences for this paragraph
-            sentenceCount += extractAndStoreSentences(knowledgeId, documentId, paragraph.getId(), text);
+            // Extract and store sentences for this paragraph (with embeddings)
+            sentenceCount += extractAndStoreSentences(knowledgeId, documentId, paragraph.getId(), text, embeddingModel);
         }
 
         // Save entities to MongoDB (upsert)
@@ -399,6 +479,38 @@ public class LinearRagGraphService {
             }
         }
 
+        // Compute embeddings for entities that don't have one yet
+        if (embeddingModel != null) {
+            List<GraphEntityNode> entitiesNeedingEmbedding = updatedEntities.stream()
+                    .filter(e -> e.getEmbedding() == null)
+                    .collect(Collectors.toList());
+            if (!entitiesNeedingEmbedding.isEmpty()) {
+                List<GraphNode> entityGraphNodes = entitiesNeedingEmbedding.stream()
+                        .map(e -> new GraphNode("e:" + e.getName(), e.getName(), GraphNode.NodeType.ENTITY, e.getName()))
+                        .collect(Collectors.toList());
+                batchEmbed(entityGraphNodes, embeddingModel, (nodeId, embedding) -> {
+                    String name = nodeId.substring(2);
+                    entitiesNeedingEmbedding.stream()
+                            .filter(e -> e.getName().equals(name))
+                            .findFirst()
+                            .ifPresent(e -> e.setEmbedding(embedding));
+                });
+                // Persist entity embeddings to MongoDB
+                for (GraphEntityNode entity : entitiesNeedingEmbedding) {
+                    if (entity.getEmbedding() == null) continue;
+                    try {
+                        Query query = Query.query(Criteria.where("knowledgeId").is(knowledgeId)
+                                .and("name").is(entity.getName()));
+                        Update update = new Update().set("embedding", entity.getEmbedding())
+                                .set("updateTime", new Date());
+                        mongoTemplate.updateFirst(query, update, GraphEntityNode.class);
+                    } catch (Exception e) {
+                        log.warn("Failed to persist embedding for entity {}: {}", entity.getName(), e.getMessage());
+                    }
+                }
+            }
+        }
+
         log.info("Extracted {} entities and {} sentences from document {} in {}ms",
                 updatedEntities.size(), sentenceCount, documentId, System.currentTimeMillis() - startTime);
     }
@@ -409,7 +521,8 @@ public class LinearRagGraphService {
      *
      * @return number of sentences stored
      */
-    private int extractAndStoreSentences(String knowledgeId, String documentId, String paragraphId, String text) {
+    private int extractAndStoreSentences(String knowledgeId, String documentId, String paragraphId, String text,
+                                          EmbeddingModel embeddingModel) {
         // Remove existing sentences for this paragraph (content may have changed)
         mongoTemplate.remove(
                 Query.query(Criteria.where("knowledgeId").is(knowledgeId)
@@ -440,6 +553,35 @@ public class LinearRagGraphService {
                     log.warn("Failed to save sentence for paragraph {} index {}: {}", paragraphId, i, e.getMessage());
                 }
             }
+        }
+
+        // Compute and store sentence embeddings if embedding model is available
+        if (embeddingModel != null) {
+            List<GraphNode> sentenceGraphNodes = new ArrayList<>();
+            for (int i = 0; i < sentences.size(); i++) {
+                String s = sentences.get(i);
+                sentenceGraphNodes.add(new GraphNode("s:" + paragraphId + ":" + i, s,
+                        GraphNode.NodeType.SENTENCE, s));
+            }
+            batchEmbed(sentenceGraphNodes, embeddingModel, (nodeId, embedding) -> {
+                // Parse nodeId "s:paragraphId:index" back to paragraphId and index
+                String id = nodeId;
+                if (!id.startsWith("s:")) return;
+                String remainder = id.substring(2);
+                int lastColon = remainder.lastIndexOf(':');
+                if (lastColon <= 0) return;
+                int index = Integer.parseInt(remainder.substring(lastColon + 1));
+                Query q = Query.query(Criteria.where("knowledgeId").is(knowledgeId)
+                        .and("paragraphId").is(paragraphId)
+                        .and("sentenceIndex").is(index));
+                Update u = new Update().set("embedding", embedding).set("updateTime", new Date());
+                try {
+                    mongoTemplate.updateFirst(q, u, GraphSentenceNode.class);
+                } catch (Exception e) {
+                    log.warn("Failed to persist sentence embedding for paragraph {} index {}: {}",
+                            paragraphId, index, e.getMessage());
+                }
+            });
         }
 
         return sentences.size();

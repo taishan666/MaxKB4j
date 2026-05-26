@@ -42,6 +42,9 @@ public class GraphEntityNode {
     /** Number of occurrences across all paragraphs */
     private int frequency;
 
+    /** Pre-computed embedding vector for this entity */
+    private float[] embedding;
+
     private Date createTime;
 
     private Date updateTime;

@@ -41,6 +41,9 @@ public class GraphSentenceNode {
     /** Document this sentence originates from */
     private String documentId;
 
+    /** Pre-computed embedding vector for this sentence */
+    private float[] embedding;
+
     private Date createTime;
 
     private Date updateTime;
