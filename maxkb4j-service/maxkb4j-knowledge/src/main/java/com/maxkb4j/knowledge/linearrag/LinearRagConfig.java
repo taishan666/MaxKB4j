@@ -55,10 +55,6 @@ public class LinearRagConfig {
     @Builder.Default
     private double attributeKeywordBoost = 0.25;
 
-    /** Maximum number of seed entities to use (default: 30) */
-    @Builder.Default
-    private int maxSeedEntities = 30;
-
     /**
      * Attribute keywords for property-based queries (English).
      * When a question contains these words, attribute keyword boost is applied.

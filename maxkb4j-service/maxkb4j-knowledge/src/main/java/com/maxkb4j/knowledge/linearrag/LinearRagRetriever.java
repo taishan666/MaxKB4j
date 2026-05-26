@@ -78,7 +78,7 @@ public class LinearRagRetriever {
                 query.length(), queryKeywords != null ? queryKeywords.size() : 0, topK);
 
         // Step 1: Find seed entities via keyword embedding × entity embedding similarity
-        List<SeedEntity> seedEntities = getSeedEntities(queryKeywords);
+        List<NodeScore> seedEntities = getSeedEntities(queryKeywords);
 
         if (seedEntities.isEmpty()) {
             log.debug("No seed entities found, falling back to dense passage retrieval via pgvector");
@@ -108,7 +108,7 @@ public class LinearRagRetriever {
      *   3. Take the best matching entity as a seed for that keyword
      *   4. Keep exact name match as a fast-path shortcut
      */
-    private List<SeedEntity> getSeedEntities(List<String> queryKeywords) {
+    private List<NodeScore> getSeedEntities(List<String> queryKeywords) {
         if (queryKeywords == null || queryKeywords.isEmpty() || embeddingModel == null) {
             return Collections.emptyList();
         }
@@ -118,7 +118,7 @@ public class LinearRagRetriever {
             return Collections.emptyList();
         }
 
-        List<SeedEntity> seeds = new ArrayList<>();
+        List<NodeScore> seeds = new ArrayList<>();
         Set<String> allEntityIds = graph.getAllEntityIds();
 
         for (String keyword : queryKeywords) {
@@ -129,7 +129,7 @@ public class LinearRagRetriever {
             // Fast-path: exact name match → similarity = 1.0
             String exactEntityId = "e:" + lowerKeyword;
             if (allEntityIds.contains(exactEntityId)) {
-                seeds.add(new SeedEntity(exactEntityId, 1.0, 1));
+                seeds.add(new NodeScore(exactEntityId, 1.0));
                 continue;
             }
 
@@ -153,20 +153,19 @@ public class LinearRagRetriever {
             }
 
             if (bestEntityId != null && bestSimilarity > 0.3) {
-                seeds.add(new SeedEntity(bestEntityId, bestSimilarity, 1));
+                seeds.add(new NodeScore(bestEntityId, bestSimilarity));
             }
         }
 
         // Deduplicate by entityId, keeping highest similarity
-        Map<String, SeedEntity> deduped = new LinkedHashMap<>();
-        for (SeedEntity seed : seeds) {
-            deduped.merge(seed.entityId, seed, (a, b) -> a.similarity > b.similarity ? a : b);
+        Map<String, NodeScore> deduped = new LinkedHashMap<>();
+        for (NodeScore seed : seeds) {
+            deduped.merge(seed.nodeId, seed, (a, b) -> a.score > b.score ? a : b);
         }
 
         // Sort by similarity descending, limit to maxSeedEntities
         return deduped.values().stream()
-                .sorted(Comparator.comparingDouble((SeedEntity s) -> s.similarity).reversed())
-                .limit(config.getMaxSeedEntities())
+                .sorted(Comparator.comparingDouble((NodeScore s) -> s.score).reversed())
                 .collect(Collectors.toList());
     }
 
@@ -175,7 +174,7 @@ public class LinearRagRetriever {
     /**
      * Core graph search: BFS diffusion → passage scoring → PPR.
      */
-    private List<TextChunkVO> graphSearchWithSeedEntities(String query, List<SeedEntity> seedEntities, float[] queryEmbedding, int topK, float minScore) {
+    private List<TextChunkVO> graphSearchWithSeedEntities(String query, List<NodeScore> seedEntities, float[] queryEmbedding, int topK, float minScore) {
         // 2a: BFS entity score diffusion (uses sentence embeddings vs query embedding)
         Map<String, BfsEntityScore> entityScores = calculateEntityScores(seedEntities, queryEmbedding);
         log.debug("BFS diffusion activated {} entities", entityScores.size());
@@ -218,18 +217,18 @@ public class LinearRagRetriever {
      *
      * Score is multiplicative decay: entities further from seeds get lower scores.
      */
-    private Map<String, BfsEntityScore> calculateEntityScores(List<SeedEntity> seedEntities, float[] queryEmbedding) {
+    private Map<String, BfsEntityScore> calculateEntityScores(List<NodeScore> seedEntities, float[] queryEmbedding) {
         Map<String, BfsEntityScore> allScores = new LinkedHashMap<>();
         Set<String> usedSentences = new HashSet<>();
 
         // 使用队列进行 BFS
         Queue<BfsEntityScore> queue = new LinkedList<>();
-        for (SeedEntity seed : seedEntities) {
+        for (NodeScore seed : seedEntities) {
             // 注意：这里建议也加一个初始阈值判断，和 Python 逻辑保持一致
-            if (seed.similarity < config.getIterationThreshold()) continue;
+            if (seed.score < config.getIterationThreshold()) continue;
 
-            BfsEntityScore bfsScore = new BfsEntityScore(seed.entityId, seed.similarity, 1);
-            allScores.put(seed.entityId, bfsScore);
+            BfsEntityScore bfsScore = new BfsEntityScore(seed.nodeId, seed.score, 1);
+            allScores.put(seed.nodeId, bfsScore);
             queue.add(bfsScore);
         }
 
@@ -256,7 +255,7 @@ public class LinearRagRetriever {
                 if (candidateSentences.isEmpty()) continue;
 
                 // 计算句子相似度并取 Top-K
-                List<SentenceScore> scoredSentences = new ArrayList<>();
+                List<NodeScore> scoredSentences = new ArrayList<>();
                 for (String sentenceId : candidateSentences) {
                     float[] sentenceEmb = graph.getSentenceEmbedding(sentenceId);
                     double similarity;
@@ -267,19 +266,19 @@ public class LinearRagRetriever {
                     } else {
                         similarity = 0.0; // 建议 fallback 为 0，避免引入噪声
                     }
-                    scoredSentences.add(new SentenceScore(sentenceId, similarity));
+                    scoredSentences.add(new NodeScore(sentenceId, similarity));
                 }
 
                 // 降序排序并截取 Top-K
-                scoredSentences.sort(Comparator.comparingDouble((SentenceScore s) -> s.score).reversed());
+                scoredSentences.sort(Comparator.comparingDouble((NodeScore s) -> s.score).reversed());
                 int topK = Math.min(config.getTopKSentence(), scoredSentences.size());
-                List<SentenceScore> topSentences = scoredSentences.subList(0, topK);
+                List<NodeScore> topSentences = scoredSentences.subList(0, topK);
 
                 // 扩展新实体
-                for (SentenceScore topSentence : topSentences) {
-                    usedSentences.add(topSentence.sentenceId);
+                for (NodeScore topSentence : topSentences) {
+                    usedSentences.add(topSentence.nodeId);
 
-                    Set<String> entitiesInSentence = graph.getSentenceEntities(topSentence.sentenceId);
+                    Set<String> entitiesInSentence = graph.getSentenceEntities(topSentence.nodeId);
                     if (entitiesInSentence == null) continue;
 
                     for (String newEntityId : entitiesInSentence) {
@@ -577,16 +576,9 @@ public class LinearRagRetriever {
     }
 
     // ==================== Inner Classes ====================
-
-    /** Seed entity from initial matching. */
-    record SeedEntity(String entityId, double similarity, int tier) {
-    }
-
     /** BFS-activated entity with score and tier. */
-    record BfsEntityScore(String entityId, double score, int tier) {
-    }
+    record BfsEntityScore(String entityId, double score, int tier) {}
 
     /** Scored sentence during BFS. */
-    record SentenceScore(String sentenceId, double score) {
-    }
+    record NodeScore(String nodeId, double score) { }
 }
