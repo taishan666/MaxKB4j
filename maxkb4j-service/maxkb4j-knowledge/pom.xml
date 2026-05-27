@@ -15,6 +15,15 @@
 
     <dependencies>
         <dependency>
+            <groupId>ai.docling</groupId>
+            <artifactId>docling-serve-client</artifactId>
+            <version>0.5.2</version>
+        </dependency>
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-document-parser-docling</artifactId>
+        </dependency>
+        <dependency>
             <groupId>com.tarzan</groupId>
             <artifactId>maxkb4j-oss-api</artifactId>
             <version>${revision}</version>
