@@ -255,7 +255,6 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         return  problemParagraphService.lambdaUpdate().in(ProblemParagraphEntity::getDocumentId, docIds).remove();
     }
 
-    @Transactional
     public boolean embedByDocIds(String knowledgeId, List<String> docIds, List<String> stateList) {
         publishDocumentIndexEvent(knowledgeId, docIds, stateList);
         return true;

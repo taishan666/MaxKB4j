@@ -11,7 +11,6 @@ import com.maxkb4j.knowledge.store.IDataStore;
 import com.maxkb4j.knowledge.store.VectorStoreImpl;
 import com.maxkb4j.knowledge.store.FullTextStoreImpl;
 import com.maxkb4j.knowledge.store.CompositeStoreImpl;
-import com.maxkb4j.knowledge.store.GraphStoreImpl;
 import com.maxkb4j.knowledge.vo.TextChunkVO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,7 +30,6 @@ public class DataRetriever implements IDataRetriever {
     private final VectorStoreImpl vectorStore;
     private final FullTextStoreImpl fullTextStore;
     private final CompositeStoreImpl compositeStore;
-    private final GraphStoreImpl graphStore;
     private final IDocumentService documentService;
 
     private static final Map<String, SearchMode> SEARCH_MODE_MAP = Map.of(
@@ -69,7 +67,6 @@ public class DataRetriever implements IDataRetriever {
         return switch (searchMode) {
             case SearchType.EMBEDDING -> vectorStore;
             case SearchType.FULL_TEXT -> fullTextStore;
-            case SearchType.HYBRID -> graphStore;
             case SearchType.GRAPH -> compositeStore;
             default -> throw new IllegalArgumentException("Unknown search mode: " + searchMode);
         };

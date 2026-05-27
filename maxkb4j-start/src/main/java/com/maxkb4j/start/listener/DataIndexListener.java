@@ -13,8 +13,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.event.TransactionPhase;
-import org.springframework.transaction.event.TransactionalEventListener;
 
 import java.util.List;
 
@@ -33,7 +31,6 @@ public class DataIndexListener {
         log.info("收到文档向量化事件消息: {}", event.getDocIds());
         EmbeddingModel embeddingModel = knowledgeModelService.getEmbeddingModel(event.getKnowledgeId());
         documentService.updateStatusByIds(event.getDocIds(), 1, 0);
-
         for (String docId : event.getDocIds()) {
             try {
                 List<ParagraphEntity> paragraphs = paragraphService.listByStateIds(docId, 1, event.getStateList());
@@ -46,7 +43,7 @@ public class DataIndexListener {
     }
 
     @Async
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @EventListener
     public void handleEvent(ParagraphIndexEvent event) {
         log.info("收到段落向量化事件消息: {}", event.getParagraphIds());
         List<ParagraphEntity> paragraphs = paragraphService.listByIds(event.getParagraphIds());
