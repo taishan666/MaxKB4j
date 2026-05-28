@@ -28,6 +28,7 @@ public class AliYunBaiLianModelProvider extends AbsModelProvider {
 
     private static final List<ModelInfo> MODEL_INFOS = List.of(
             new ModelInfo(QwenModelName.QWEN_TURBO, "", ModelType.LLM),
+            new ModelInfo("qwen3.6-plus", "", ModelType.LLM, new QWenChatModelParams(true)),
             new ModelInfo("qwen3.5-plus", "", ModelType.LLM, new QWenChatModelParams(true)),
             new ModelInfo(QwenModelName.QWEN_PLUS, "", ModelType.LLM),
             new ModelInfo(QwenModelName.QWEN_MAX, "", ModelType.LLM),
@@ -41,6 +42,7 @@ public class AliYunBaiLianModelProvider extends AbsModelProvider {
             new ModelInfo("sambert-v1", "", ModelType.TTS, new SamBertTTSParams()),
             new ModelInfo("qwen3-tts-flash", "", ModelType.TTS, new QWenTTSParams()),
             new ModelInfo("qwen-tts", "", ModelType.TTS, new QWenTTSParams()),
+            new ModelInfo("qwen3.6-plus", "", ModelType.VISION, new QWenChatModelParams(true)),
             new ModelInfo("qwen3.5-plus", "", ModelType.VISION, new QWenChatModelParams(true)),
             new ModelInfo(QwenModelName.QWEN_VL_PLUS, "", ModelType.VISION, new QWenChatModelParams(true)),
             new ModelInfo(QwenModelName.QWEN_VL_MAX, "", ModelType.VISION, new QWenChatModelParams(true)),
