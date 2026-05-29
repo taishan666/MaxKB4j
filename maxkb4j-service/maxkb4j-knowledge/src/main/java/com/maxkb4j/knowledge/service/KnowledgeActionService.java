@@ -22,12 +22,6 @@ public class KnowledgeActionService extends ServiceImpl<KnowledgeActionMapper, K
         baseMapper.updateById(knowledgeActionEntity);
     }
 
-/*    public void updateState(Workflow workflow, ActionStatus actionStatus) {
-        if (workflow instanceof KnowledgeWorkflow knowledgeWorkflow) {
-            String actionId = knowledgeWorkflow.getKnowledgeParams().getActionId();
-            updateState(actionId, knowledgeWorkflow.getRuntimeDetails(), actionStatus.name());
-        }
-    }*/
 
     public IPage<KnowledgeActionEntity> pageList(Page<KnowledgeActionEntity> actionPage, String username, String state) {
         return baseMapper.pageList(actionPage, username, state);

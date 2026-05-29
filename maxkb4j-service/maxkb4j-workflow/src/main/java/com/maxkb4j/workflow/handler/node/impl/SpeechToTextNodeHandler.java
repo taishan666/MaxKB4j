@@ -2,7 +2,7 @@ package com.maxkb4j.workflow.handler.node.impl;
 
 import com.maxkb4j.common.domain.dto.OssFile;
 import com.maxkb4j.model.service.IModelProviderService;
-import com.maxkb4j.model.service.STTModel;
+import com.maxkb4j.model.service.ISTTModel;
 import com.maxkb4j.oss.service.IOssService;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.NodeType;
@@ -35,7 +35,7 @@ public class SpeechToTextNodeHandler extends AbsNodeHandler {
         SpeechToTextNode.NodeParams params = parseParams(node, SpeechToTextNode.NodeParams.class);
         List<String> audioList = params.getAudioList();
         Object res = workflow.getReferenceField(audioList);
-        STTModel sttModel = modelFactory.buildSTTModel(params.getSttModelId());
+        ISTTModel sttModel = modelFactory.buildSTTModel(params.getSttModelId());
         List<OssFile> audioFiles = (List<OssFile>) res;
 
         List<String> content = new ArrayList<>();

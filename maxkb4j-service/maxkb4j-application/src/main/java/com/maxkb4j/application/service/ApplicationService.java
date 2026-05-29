@@ -24,8 +24,8 @@ import com.maxkb4j.common.util.*;
 import com.maxkb4j.knowledge.entity.KnowledgeEntity;
 import com.maxkb4j.knowledge.service.IKnowledgeService;
 import com.maxkb4j.model.service.IModelProviderService;
-import com.maxkb4j.model.service.STTModel;
-import com.maxkb4j.model.service.TTSModel;
+import com.maxkb4j.model.service.ISTTModel;
+import com.maxkb4j.model.service.ITTSModel;
 import com.maxkb4j.system.constant.AuthTargetType;
 import com.maxkb4j.system.entity.TargetResource;
 import com.maxkb4j.system.service.IResourceMappingService;
@@ -328,7 +328,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
 
     public byte[] playDemoText(String appId, JSONObject modelParams) {
         String ttsModelId = modelParams.getString("ttsModelId");
-        TTSModel ttsModel = modelFactory.buildTTSModel(ttsModelId, modelParams);
+        ITTSModel ttsModel = modelFactory.buildTTSModel(ttsModelId, modelParams);
         return ttsModel.textToSpeech("你好，这里是语音播放测试");
     }
 
@@ -341,7 +341,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         if (app.getTtsModelId() == null) {
             return new byte[0];
         }
-        TTSModel ttsModel = modelFactory.buildTTSModel(app.getTtsModelId(), app.getTtsModelParamsSetting());
+        ITTSModel ttsModel = modelFactory.buildTTSModel(app.getTtsModelId(), app.getTtsModelParamsSetting());
         return ttsModel.textToSpeech(text);
     }
 
@@ -416,7 +416,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
 
     public String speechToText(String appId, MultipartFile file, boolean debug) throws IOException {
         ApplicationEntity app = this.getAppDetail(appId, debug);
-        STTModel sttModel = modelFactory.buildSTTModel(app.getSttModelId());
+        ISTTModel sttModel = modelFactory.buildSTTModel(app.getSttModelId());
         String suffix = Objects.requireNonNull(file.getContentType()).split("/")[1];
         return sttModel.speechToText(file.getBytes(), suffix);
     }

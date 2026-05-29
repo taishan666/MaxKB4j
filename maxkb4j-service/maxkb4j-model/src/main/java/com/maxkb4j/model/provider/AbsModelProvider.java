@@ -7,11 +7,11 @@ import com.maxkb4j.model.custom.credential.ModelCredentialForm;
 import com.maxkb4j.model.custom.disabled.DisabledSTTModel;
 import com.maxkb4j.model.custom.disabled.DisabledScoringModel;
 import com.maxkb4j.model.custom.disabled.DisabledTTSModel;
-import com.maxkb4j.model.custom.params.impl.ImageModelParams;
-import com.maxkb4j.model.custom.params.impl.LLMChatModelParams;
+import com.maxkb4j.model.custom.params.ImageModelParams;
+import com.maxkb4j.model.custom.params.LLMChatModelParams;
 import com.maxkb4j.model.enums.ModelType;
-import com.maxkb4j.model.service.STTModel;
-import com.maxkb4j.model.service.TTSModel;
+import com.maxkb4j.model.service.ISTTModel;
+import com.maxkb4j.model.service.ITTSModel;
 import com.maxkb4j.model.vo.ModelInfo;
 import dev.langchain4j.http.client.HttpClientBuilder;
 import dev.langchain4j.http.client.spring.restclient.SpringRestClient;
@@ -222,7 +222,7 @@ public abstract class AbsModelProvider {
      * @param params     additional parameters
      * @return the STT model instance
      */
-    public STTModel buildSTTModel(String modelName, ModelCredential credential, JSONObject params) {
+    public ISTTModel buildSTTModel(String modelName, ModelCredential credential, JSONObject params) {
         return new DisabledSTTModel();
     }
 
@@ -234,7 +234,7 @@ public abstract class AbsModelProvider {
      * @param params     additional parameters
      * @return the TTS model instance
      */
-    public TTSModel buildTTSModel(String modelName, ModelCredential credential, JSONObject params) {
+    public ITTSModel buildTTSModel(String modelName, ModelCredential credential, JSONObject params) {
         return new DisabledTTSModel();
     }
 

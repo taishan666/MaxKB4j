@@ -1,7 +1,6 @@
 package com.maxkb4j.workflow.model;
 
 import com.maxkb4j.workflow.logic.LfEdge;
-import lombok.Getter;
 
 import java.util.Collections;
 import java.util.List;
@@ -9,13 +8,10 @@ import java.util.List;
 /**
  * Navigator for workflow edges.
  * Provides methods to find upstream and downstream relationships between nodes.
- *
+ * <p>
  * Extracted from Workflow class to improve single responsibility.
  */
-@Getter
-public class EdgeNavigator {
-
-    private final List<LfEdge> edges;
+public record EdgeNavigator(List<LfEdge> edges) {
 
     public EdgeNavigator(List<LfEdge> edges) {
         this.edges = edges != null ? edges : Collections.emptyList();

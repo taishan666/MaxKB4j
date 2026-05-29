@@ -1,8 +1,8 @@
 package com.maxkb4j.model.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
-import com.maxkb4j.model.service.STTModel;
-import com.maxkb4j.model.service.TTSModel;
+import com.maxkb4j.model.service.ISTTModel;
+import com.maxkb4j.model.service.ITTSModel;
 import com.maxkb4j.model.entity.ModelEntity;
 import com.maxkb4j.model.enums.ModelProvider;
 import com.maxkb4j.model.exception.ModelNotFoundException;
@@ -86,7 +86,7 @@ public class ModelProviderServiceImpl implements IModelProviderService {
     }
 
     @Override
-    public TTSModel buildTTSModel(String modelId, JSONObject modelParams) {
+    public ITTSModel buildTTSModel(String modelId, JSONObject modelParams) {
         ModelEntity model = getModelOrThrow(modelId);
         AbsModelProvider modelProvider = getModelProviderOrThrow(model);
         modelParams = modelParams == null ? new JSONObject() : modelParams;
@@ -94,7 +94,7 @@ public class ModelProviderServiceImpl implements IModelProviderService {
     }
 
     @Override
-    public STTModel buildSTTModel(String modelId) {
+    public ISTTModel buildSTTModel(String modelId) {
         ModelEntity model = getModelOrThrow(modelId);
         AbsModelProvider modelProvider = getModelProviderOrThrow(model);
         return modelProvider.buildSTTModel(model.getModelName(), model.getCredential(), new JSONObject());

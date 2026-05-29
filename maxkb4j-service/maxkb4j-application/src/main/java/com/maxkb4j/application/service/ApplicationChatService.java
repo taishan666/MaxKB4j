@@ -136,8 +136,8 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
         return chatResponse;
     }
 
-    public CompletableFuture<ChatResponse> chatMessageAsync(ChatParams chatParams, Sinks.Many<ChatMessageVO> sink) {
-        return CompletableFuture.supplyAsync(() -> chatMessage(chatParams, sink), chatTaskExecutor)
+    public void chatMessageAsync(ChatParams chatParams, Sinks.Many<ChatMessageVO> sink) {
+        CompletableFuture.supplyAsync(() -> chatMessage(chatParams, sink), chatTaskExecutor)
                 .exceptionally(throwable -> {
                     // 记录异常日志（关键！）
                     log.error("Async chatMessage failed", throwable);

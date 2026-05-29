@@ -7,10 +7,10 @@ import com.maxkb4j.model.custom.model.BaiLianImageModel;
 import com.maxkb4j.model.custom.model.BaiLianReranker;
 import com.maxkb4j.model.custom.model.BaiLianSTTModel;
 import com.maxkb4j.model.custom.model.BaiLianTTSModel;
-import com.maxkb4j.model.custom.params.impl.*;
+import com.maxkb4j.model.custom.params.*;
 import com.maxkb4j.model.enums.ModelType;
-import com.maxkb4j.model.service.STTModel;
-import com.maxkb4j.model.service.TTSModel;
+import com.maxkb4j.model.service.ISTTModel;
+import com.maxkb4j.model.service.ITTSModel;
 import com.maxkb4j.model.vo.ModelInfo;
 import dev.langchain4j.community.model.dashscope.*;
 import dev.langchain4j.model.chat.ChatModel;
@@ -106,12 +106,12 @@ public class AliYunBaiLianModelProvider extends AbsModelProvider {
     }
 
     @Override
-    public STTModel buildSTTModel(String modelName, ModelCredential credential, JSONObject params) {
+    public ISTTModel buildSTTModel(String modelName, ModelCredential credential, JSONObject params) {
         return new BaiLianSTTModel(modelName, credential, params);
     }
 
     @Override
-    public TTSModel buildTTSModel(String modelName, ModelCredential credential, JSONObject params) {
+    public ITTSModel buildTTSModel(String modelName, ModelCredential credential, JSONObject params) {
         return new BaiLianTTSModel(modelName, credential, params);
     }
 }

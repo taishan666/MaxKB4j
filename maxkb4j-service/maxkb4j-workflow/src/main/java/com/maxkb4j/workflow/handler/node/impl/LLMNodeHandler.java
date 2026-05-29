@@ -18,8 +18,8 @@ import com.maxkb4j.workflow.enums.NodeType;
 import com.maxkb4j.workflow.handler.node.AbsNodeHandler;
 import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.model.Workflow;
-import com.maxkb4j.workflow.model.params.AiChatNodeParams;
 import com.maxkb4j.workflow.node.AbsNode;
+import com.maxkb4j.workflow.node.impl.AiChatNode;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.Content;
 import dev.langchain4j.data.message.ImageContent;
@@ -61,7 +61,7 @@ public class LLMNodeHandler extends AbsNodeHandler {
 
     @Override
     protected CompletableFuture<NodeResult> doExecuteAsync(Workflow workflow, AbsNode node) throws Exception {
-        AiChatNodeParams params = parseParams(node, AiChatNodeParams.class);
+        AiChatNode.NodeParams params = parseParams(node, AiChatNode.NodeParams.class);
         String question = workflow.renderPrompt(params.getPrompt());
         String systemPrompt = workflow.renderPrompt(params.getSystem());
         List<ChatMessage> historyMessages = workflow.getHistoryMessages(
@@ -168,7 +168,7 @@ public class LLMNodeHandler extends AbsNodeHandler {
      * 异步流式写入：不阻塞线程，直接返回 CompletableFuture
      * 流式回调完成后自动 complete Future，释放线程资源
      */
-    private CompletableFuture<NodeResult> writeContextStreamAsync(AiChatNodeParams params, TokenStream tokenStream,
+    private CompletableFuture<NodeResult> writeContextStreamAsync(AiChatNode.NodeParams params, TokenStream tokenStream,
                                                                   Workflow workflow, AbsNode node) {
         List<String> answerTexts = new ArrayList<>();
         AtomicReference<String> errorMessage = new AtomicReference<>("");

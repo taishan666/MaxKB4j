@@ -2,7 +2,7 @@ package com.maxkb4j.model.custom.model;
 
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.common.mp.entity.ModelCredential;
-import com.maxkb4j.model.service.STTModel;
+import com.maxkb4j.model.service.ISTTModel;
 import com.openai.client.OpenAIClient;
 import com.openai.client.okhttp.OpenAIOkHttpClient;
 import com.openai.models.audio.transcriptions.TranscriptionCreateParams;
@@ -10,7 +10,7 @@ import com.openai.models.audio.transcriptions.TranscriptionCreateResponse;
 import lombok.Data;
 
 @Data
-public class OpenAiSTTModel implements STTModel {
+public class OpenAiSTTModel implements ISTTModel {
 
     private OpenAIClient client;
     private String modelName;

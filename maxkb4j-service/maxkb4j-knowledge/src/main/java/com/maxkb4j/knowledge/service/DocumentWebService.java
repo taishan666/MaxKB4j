@@ -39,7 +39,7 @@ import java.util.Set;
 public class DocumentWebService implements IDocumentWebService{
 
     private final DocumentSplitService documentSpiltService;
-    private final DocumentParseService documentParseService;
+    private final IDocumentParseService documentParseService;
 
     /** MD文件输出目录 */
     private static final String MD_OUTPUT_DIR = "logs/web_md";

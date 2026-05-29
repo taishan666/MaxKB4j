@@ -6,8 +6,8 @@ import com.maxkb4j.model.custom.credential.ModelCredentialForm;
 import com.maxkb4j.model.custom.model.OpenAiSTTModel;
 import com.maxkb4j.model.custom.model.OpenAiTTSModel;
 import com.maxkb4j.model.enums.ModelType;
-import com.maxkb4j.model.service.STTModel;
-import com.maxkb4j.model.service.TTSModel;
+import com.maxkb4j.model.service.ISTTModel;
+import com.maxkb4j.model.service.ITTSModel;
 import com.maxkb4j.model.vo.ModelInfo;
 import dev.langchain4j.community.model.xinference.*;
 import dev.langchain4j.model.chat.ChatModel;
@@ -95,12 +95,12 @@ public class XInferenceModelProvider extends AbsModelProvider {
     }
 
     @Override
-    public STTModel buildSTTModel(String modelName, ModelCredential credential, JSONObject params) {
+    public ISTTModel buildSTTModel(String modelName, ModelCredential credential, JSONObject params) {
         return new OpenAiSTTModel(modelName, credential, params);
     }
 
     @Override
-    public TTSModel buildTTSModel(String modelName, ModelCredential credential, JSONObject params) {
+    public ITTSModel buildTTSModel(String modelName, ModelCredential credential, JSONObject params) {
         return new OpenAiTTSModel(modelName, credential, params);
     }
 }

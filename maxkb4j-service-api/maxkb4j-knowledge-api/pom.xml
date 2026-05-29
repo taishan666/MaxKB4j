@@ -16,7 +16,7 @@
     <dependencies>
         <dependency>
             <groupId>dev.langchain4j</groupId>
-            <artifactId>langchain4j-embeddings</artifactId>
+            <artifactId>langchain4j-core</artifactId>
         </dependency>
         <!-- MongoDB for EmbeddingEntity -->
         <dependency>

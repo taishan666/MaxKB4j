@@ -2,7 +2,7 @@ package com.maxkb4j.model.custom.model;
 
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.common.mp.entity.ModelCredential;
-import com.maxkb4j.model.service.TTSModel;
+import com.maxkb4j.model.service.ITTSModel;
 import com.openai.client.OpenAIClient;
 import com.openai.client.okhttp.OpenAIOkHttpClient;
 import com.openai.core.http.HttpResponse;
@@ -12,7 +12,7 @@ import lombok.Data;
 import java.io.IOException;
 
 @Data
-public class OpenAiTTSModel implements TTSModel {
+public class OpenAiTTSModel implements ITTSModel {
 
     private OpenAIClient client;
     private String modelName;

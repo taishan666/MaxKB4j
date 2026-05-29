@@ -29,7 +29,7 @@ public interface IModelProviderService {
 
     ScoringModel buildScoringModel(String modelId, JSONObject modelParams);
 
-    TTSModel buildTTSModel(String modelId, JSONObject modelParams);
+    ITTSModel buildTTSModel(String modelId, JSONObject modelParams);
 
-    STTModel buildSTTModel(String modelId);
+    ISTTModel buildSTTModel(String modelId);
 }

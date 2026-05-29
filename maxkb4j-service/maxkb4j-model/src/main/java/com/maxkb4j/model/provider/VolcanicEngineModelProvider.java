@@ -1,7 +1,7 @@
 package com.maxkb4j.model.provider;
 
 
-import com.maxkb4j.model.custom.params.impl.ImageModelParams;
+import com.maxkb4j.model.custom.params.ImageModelParams;
 import com.maxkb4j.model.enums.ModelType;
 import com.maxkb4j.model.vo.ModelInfo;
 

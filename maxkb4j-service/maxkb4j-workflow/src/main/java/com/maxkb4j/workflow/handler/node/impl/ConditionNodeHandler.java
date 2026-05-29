@@ -5,7 +5,7 @@ import com.maxkb4j.workflow.enums.NodeType;
 import com.maxkb4j.workflow.handler.node.AbsNodeHandler;
 import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.model.Workflow;
-import com.maxkb4j.workflow.model.params.ConditionNodeParams;
+import com.maxkb4j.workflow.model.ConditionNodeParams;
 import com.maxkb4j.workflow.node.AbsNode;
 import com.maxkb4j.workflow.util.ConditionUtil;
 import lombok.RequiredArgsConstructor;

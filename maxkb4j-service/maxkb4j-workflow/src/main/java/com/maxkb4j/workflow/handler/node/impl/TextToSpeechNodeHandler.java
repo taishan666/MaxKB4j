@@ -2,7 +2,7 @@ package com.maxkb4j.workflow.handler.node.impl;
 
 import com.maxkb4j.common.domain.dto.OssFile;
 import com.maxkb4j.model.service.IModelProviderService;
-import com.maxkb4j.model.service.TTSModel;
+import com.maxkb4j.model.service.ITTSModel;
 import com.maxkb4j.oss.service.IOssService;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.NodeType;
@@ -31,7 +31,7 @@ public class TextToSpeechNodeHandler extends AbsNodeHandler {
         TextToSpeechNode.NodeParams params = parseParams(node, TextToSpeechNode.NodeParams.class);
         List<String> contentList = params.getContentList();
         Object content = workflow.getReferenceField(contentList);
-        TTSModel ttsModel = modelFactory.buildTTSModel(params.getTtsModelId(), params.getModelParamsSetting());
+        ITTSModel ttsModel = modelFactory.buildTTSModel(params.getTtsModelId(), params.getModelParamsSetting());
         byte[] audioData = ttsModel.textToSpeech(content.toString());
         OssFile fileVO = fileService.uploadFile("generated_audio_" + UUID.randomUUID() + ".mp3", audioData);
         putDetail(node, "content", content);

@@ -1,6 +1,5 @@
-package com.maxkb4j.workflow.model.params;
+package com.maxkb4j.workflow.model;
 
-import com.maxkb4j.workflow.model.Condition;
 import lombok.Data;
 
 import java.util.List;

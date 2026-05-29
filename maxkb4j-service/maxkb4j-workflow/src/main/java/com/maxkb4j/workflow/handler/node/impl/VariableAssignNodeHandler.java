@@ -7,8 +7,8 @@ import com.maxkb4j.workflow.enums.NodeType;
 import com.maxkb4j.workflow.handler.node.AbsNodeHandler;
 import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.model.Workflow;
-import com.maxkb4j.workflow.model.params.VariableAssignNodeParams;
 import com.maxkb4j.workflow.node.AbsNode;
+import com.maxkb4j.workflow.node.impl.VariableAssignNode;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -23,7 +23,7 @@ public class VariableAssignNodeHandler extends AbsNodeHandler {
     @SuppressWarnings("unchecked")
     @Override
     protected NodeResult doExecute(Workflow workflow, AbsNode node) throws Exception {
-        VariableAssignNodeParams params = parseParams(node, VariableAssignNodeParams.class);
+        VariableAssignNode.NodeParams params = parseParams(node, VariableAssignNode.NodeParams.class);
         List<Map<String, Object>> resultList = new ArrayList<>();
         for (Map<String, Object> variable : params.getVariableList()) {
             if (variable == null || !variable.containsKey("fields")) {

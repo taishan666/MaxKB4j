@@ -2,17 +2,17 @@ package com.maxkb4j.model.custom.model;
 
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.common.mp.entity.ModelCredential;
-import com.maxkb4j.model.service.STTModel;
+import com.maxkb4j.model.service.ISTTModel;
 import lombok.Data;
 
 @Data
-public class BaiLianSTTModel implements STTModel {
+public class BaiLianSTTModel implements ISTTModel {
 
 
     private String modelName;
     private ModelCredential credential;
     private JSONObject params;
-    private STTModel instance;
+    private ISTTModel instance;
 
     public BaiLianSTTModel(String modelName, ModelCredential credential, JSONObject params) {
         this.modelName = modelName;
@@ -21,7 +21,7 @@ public class BaiLianSTTModel implements STTModel {
         this.instance = buildInstance(modelName);
     }
 
-    private STTModel buildInstance(String modelName) {
+    private ISTTModel buildInstance(String modelName) {
         if (modelName.startsWith("gummy-")){
             return new GummySTT(modelName, credential, params);
         }

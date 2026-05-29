@@ -1,4 +1,4 @@
-package com.maxkb4j.model.custom.params.impl;
+package com.maxkb4j.model.custom.params;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;

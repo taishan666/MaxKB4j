@@ -1,4 +1,4 @@
-package com.maxkb4j.core.util;
+package com.maxkb4j.knowledge.util;
 
 import java.text.BreakIterator;
 import java.util.*;
