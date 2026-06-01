@@ -88,12 +88,12 @@ public class DocumentWebService implements IDocumentWebService{
                 new ByteArrayInputStream(htmlContent.getBytes(StandardCharsets.UTF_8)));
 
         // 保存 MD 文件到磁盘
-        String mdFilePath = saveMdFile(url, doc.title(), mdText);
+//        String mdFilePath = saveMdFile(url, doc.title(), mdText);
 
         JSONObject meta = new JSONObject();
         meta.put("sourceUrl", url);
         meta.put("selector", selector);
-        meta.put("mdFilePath", mdFilePath);
+//        meta.put("mdFilePath", mdFilePath);
         String title = doc.title().isBlank() ? url : doc.title();
         list.add(new DocumentSimple(title, mdText, meta));
     }
