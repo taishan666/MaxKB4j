@@ -1,7 +1,6 @@
 package com.maxkb4j.knowledge.service;
 
 import com.maxkb4j.common.mp.entity.KnowledgeSetting;
-import com.maxkb4j.knowledge.consts.SearchType;
 import com.maxkb4j.knowledge.dto.DataSearchDTO;
 import com.maxkb4j.knowledge.mapper.ParagraphMapper;
 import com.maxkb4j.knowledge.retrieval.IDataRetriever;
@@ -41,10 +40,6 @@ public class RetrieveService implements IRetrieveService{
         dto.setSimilarity(datasetSetting.getSimilarity());
         dto.setTopNumber(datasetSetting.getTopN());
         dto.setExcludeParagraphIds(excludeParagraphIds);
-        // For graph search mode, use the graph model ID or fall back to application model ID
-        if (SearchType.GRAPH.equals(datasetSetting.getSearchMode())) {
-            dto.setChatModelId(datasetSetting.getGraphModelId());
-        }
         return paragraphSearch(knowledgeIds, dto);
     }
 
