@@ -35,8 +35,7 @@ public class DataRetriever implements IDataRetriever {
     private static final Map<String, SearchMode> SEARCH_MODE_MAP = Map.of(
         SearchType.EMBEDDING, SearchMode.VECTOR,
         SearchType.FULL_TEXT, SearchMode.FULL_TEXT,
-        SearchType.HYBRID, SearchMode.HYBRID,
-        SearchType.GRAPH, SearchMode.GRAPH
+        SearchType.HYBRID, SearchMode.HYBRID
     );
 
     @Override

@@ -18,10 +18,5 @@ public enum SearchMode {
     /**
      * Hybrid search combining vector and full-text search
      */
-    HYBRID,
-
-    /**
-     * Graph-based retrieval using knowledge graph (LightRAG dual-level)
-     */
-    GRAPH
+    HYBRID
 }
