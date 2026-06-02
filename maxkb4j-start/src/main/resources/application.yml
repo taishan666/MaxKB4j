@@ -72,3 +72,28 @@ decorator:
 system:
   default-username: admin
   default-password: ${SYSTEM_DEFAULT_PASSWORD:tarzan@123456}
+
+# MinerU 文档解析引擎
+mineru:
+  enabled: ${MINERU_ENABLED:false}
+  # 自建 MinerU 服务地址（self-hosted 模式）
+  api-url: ${MINERU_API_URL:http://localhost:30000}
+  # API Token（precision 模式必填）
+  token: ${MINERU_TOKEN:eyJ0eXBlIjoiSldUIiwiYWxnIjoiSFM1MTIifQ.eyJqdGkiOiI2MTIwMDQyNCIsInJvbCI6IlJPTEVfUkVHSVNURVIiLCJpc3MiOiJPcGVuWExhYiIsImlhdCI6MTc4MDM2OTM1NSwiY2xpZW50SWQiOiJsa3pkeDU3bnZ5MjJqa3BxOXgydyIsInBob25lIjoiIiwib3BlbklkIjpudWxsLCJ1dWlkIjoiMGFjY2VjMTgtODhmZi00ZjVlLWFlMTEtMTQ1OTc2MDFjMDI5IiwiZW1haWwiOiIiLCJleHAiOjE3ODgxNDUzNTV9.AU9ZAbi5wophEp757oMeKujzMgG6i81tx-GeavYgDWauid6SaeFmJ14yS7kNyoUzTlq9rxuVC_seqGQOafzpMg}
+  # 云 API 模型版本: pipeline / vlm / MinerU-HTML
+  model-version: ${MINERU_MODEL_VERSION:vlm}
+  language: ch
+  enable-ocr: true
+  enable-table: true
+  enable-formula: true
+  max-convert-pages: 500
+  timeout: 600000
+  supported-extensions:
+    - .pdf
+    - .doc
+    - .docx
+    - .ppt
+    - .pptx
+    - .png
+    - .jpg
+    - .jpeg
