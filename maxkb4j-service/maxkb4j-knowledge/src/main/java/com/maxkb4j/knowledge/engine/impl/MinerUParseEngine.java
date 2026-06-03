@@ -142,11 +142,11 @@ public class MinerUParseEngine implements DocumentParseEngine {
                 JSONObject item = results.getJSONObject(i);
                 String text = extractMarkdownField(item);
                 if (StrUtil.isNotBlank(text)) {
-                    if (sb.length() > 0) sb.append("\n\n");
+                    if (!sb.isEmpty()) sb.append("\n\n");
                     sb.append(text);
                 }
             }
-            if (sb.length() > 0) {
+            if (!sb.isEmpty()) {
                 return sb.toString();
             }
         }

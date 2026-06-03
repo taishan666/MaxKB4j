@@ -16,6 +16,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @TableName(value = "tag")
 public class TagEntity extends BaseEntity {
-    private String name;
+    private String key;
+    private String value;
     private String knowledgeId;
 }
