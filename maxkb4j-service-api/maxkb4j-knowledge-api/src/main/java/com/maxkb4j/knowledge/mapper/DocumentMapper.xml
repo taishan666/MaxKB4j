@@ -69,10 +69,21 @@
     <select id="selectDocPage"  resultMap="docResultMap">
         SELECT
         d.*,
-        COUNT ( p.document_id ) AS paragraph_count
-        FROM
-        document d
-        LEFT JOIN "paragraph" p ON d.ID = p.document_id
+        COALESCE(p_stats.paragraph_count, 0) AS paragraph_count,
+        COALESCE(dt_stats.tag_count, 0) AS tag_count
+        FROM document d
+        -- 使用子查询单独统计段落数
+        LEFT JOIN (
+        SELECT document_id, COUNT(*) AS paragraph_count
+        FROM paragraph
+        GROUP BY document_id
+        ) p_stats ON d.ID = p_stats.document_id
+        -- 使用子查询单独统计标签数
+        LEFT JOIN (
+        SELECT document_id, COUNT(*) AS tag_count
+        FROM document_tag
+        GROUP BY document_id
+        ) dt_stats ON d.ID = dt_stats.document_id
         <where>
             d.knowledge_id = #{knowledgeId}
             <if test="query.name != null and query.name != ''">
@@ -85,7 +96,6 @@
                 and d.hit_handling_method=#{query.hitHandlingMethod}
             </if>
         </where>
-        GROUP BY d.ID
         ORDER BY d.create_time DESC
     </select>
 </mapper>

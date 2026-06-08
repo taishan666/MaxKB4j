@@ -25,21 +25,25 @@ public class DocumentTagController {
     private final IDocumentTagService documentTagService;
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_CREATE)
-    @PutMapping("/knowledge/{id}/document/batch_add_tag")
+    @PostMapping("/knowledge/{id}/document/batch_add_tag")
     public R<Boolean> batchAddTags(@PathVariable("id") String id, @RequestBody DocumentTagAddDTO dto) {
         List<DocumentTagEntity> documentTags=new ArrayList<>();
         List<String> documentIds=dto.getDocumentIds();
         for (String documentId : documentIds) {
             List<String> tagIds=dto.getTagIds();
             for (String tagId : tagIds) {
-                DocumentTagEntity documentTag=new DocumentTagEntity();
-                documentTag.setDocumentId(documentId);
-                documentTag.setTagId(tagId);
-                documentTags.add(documentTag);
+                long count=documentTagService.lambdaQuery().eq(DocumentTagEntity::getDocumentId,documentId).eq(DocumentTagEntity::getTagId,tagId).count();
+                if (count==0){
+                    DocumentTagEntity documentTag=new DocumentTagEntity();
+                    documentTag.setDocumentId(documentId);
+                    documentTag.setTagId(tagId);
+                    documentTags.add(documentTag);
+                }
             }
         }
         return R.success(documentTagService.saveBatch(documentTags));
     }
+
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_READ)
     @DeleteMapping("/knowledge/{id}/document/{docId}/tags")

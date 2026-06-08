@@ -72,6 +72,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
     private final DocumentHandler documentHandler;
     private final IDataStore compositeStore;
     private final KnowledgeMapper knowledgeMapper;
+    private final IDocumentTagService documentTagService;
 
     public void updateStatusMetaById(String id) {
         baseMapper.updateStatusMetaByIds(List.of(id));
@@ -286,6 +287,10 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
     public IPage<DocumentVO> getDocByKnowledgeId(String knowledgeId, int current, int size, DocQuery query) {
         Page<DocumentVO> docPage = new Page<>(current, size);
         baseMapper.selectDocPage(docPage, knowledgeId, query);
+        docPage.getRecords().forEach(doc -> {
+            List<TagEntity> tags = documentTagService.listTagsByDocId(doc.getId());
+            doc.setTags(tags);
+        });
         return docPage;
     }
 

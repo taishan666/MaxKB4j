@@ -1,6 +1,7 @@
 package com.maxkb4j.model.provider;
 
 import com.alibaba.fastjson.JSONObject;
+import com.maxkb4j.common.domain.form.BaseField;
 import com.maxkb4j.common.mp.entity.ModelCredential;
 import com.maxkb4j.model.custom.model.BaiLianImageModel;
 import com.maxkb4j.model.custom.model.BaiLianReranker;
@@ -11,9 +12,9 @@ import com.maxkb4j.model.enums.ModelType;
 import com.maxkb4j.model.service.ISTTModel;
 import com.maxkb4j.model.service.ITTSModel;
 import com.maxkb4j.model.vo.ModelInfo;
-import dev.langchain4j.community.model.dashscope.QwenEmbeddingModel;
-import dev.langchain4j.community.model.dashscope.QwenModelName;
-import dev.langchain4j.community.model.dashscope.WanxModelName;
+import dev.langchain4j.community.model.dashscope.*;
+import dev.langchain4j.model.chat.ChatModel;
+import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.model.image.ImageModel;
 import dev.langchain4j.model.scoring.ScoringModel;
@@ -23,9 +24,7 @@ import java.util.List;
 /**
  * AliYun BaiLian (DashScope) Model Provider
  */
-public class AliYunBaiLianModelProvider extends OpenAiModelProvider {
-
-    private static final String BASE_URL = "https://dashscope.aliyuncs.com/compatible-mode/v1";
+public class AliYunBaiLianModelProviderOld extends AbsModelProvider {
 
     private static final List<ModelInfo> MODEL_INFOS = List.of(
             new ModelInfo(QwenModelName.QWEN_TURBO, "", ModelType.LLM),
@@ -55,8 +54,8 @@ public class AliYunBaiLianModelProvider extends OpenAiModelProvider {
     );
 
     @Override
-    public String getDefaultBaseUrl(){
-        return BASE_URL;
+    public List<BaseField> getChatModelParamsForm() {
+        return new QWenChatModelParams().toForm();
     }
 
 
@@ -65,6 +64,27 @@ public class AliYunBaiLianModelProvider extends OpenAiModelProvider {
         return MODEL_INFOS;
     }
 
+    @Override
+    public ChatModel buildChatModel(String modelName, ModelCredential credential, JSONObject params) {
+        return QwenChatModel.builder()
+                .apiKey(credential.getApiKey())
+                .modelName(modelName)
+                .temperature(getFloatParam(params, "temperature"))
+                .maxTokens(getIntParam(params, "maxTokens"))
+                .isMultimodalModel(getBooleanParam(params, "isMultimodalModel"))
+                .build();
+    }
+
+    @Override
+    public StreamingChatModel buildStreamingChatModel(String modelName, ModelCredential credential, JSONObject params) {
+        return QwenStreamingChatModel.builder()
+                .apiKey(credential.getApiKey())
+                .modelName(modelName)
+                .temperature(getFloatParam(params, "temperature"))
+                .maxTokens(getIntParam(params, "maxTokens"))
+                .isMultimodalModel(getBooleanParam(params, "isMultimodalModel"))
+                .build();
+    }
 
     @Override
     public EmbeddingModel buildEmbeddingModel(String modelName, ModelCredential credential, JSONObject params) {
