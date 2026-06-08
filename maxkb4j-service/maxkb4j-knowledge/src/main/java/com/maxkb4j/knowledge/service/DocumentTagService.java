@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.maxkb4j.knowledge.entity.DocumentTagEntity;
 import com.maxkb4j.knowledge.entity.TagEntity;
 import com.maxkb4j.knowledge.mapper.DocumentTagMapper;
+import com.maxkb4j.knowledge.util.TagUtil;
 import com.maxkb4j.knowledge.vo.DocumentTagVO;
 import com.maxkb4j.knowledge.vo.TagListVO;
 import lombok.RequiredArgsConstructor;
@@ -11,23 +12,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
 public class DocumentTagService extends ServiceImpl<DocumentTagMapper,DocumentTagEntity> implements IDocumentTagService{
     @Override
     public List<TagListVO> listTags(String docId,String name) {
-        List<TagListVO> tagList = new ArrayList<>();
         List<TagEntity> tags = baseMapper.listTags(docId,name);
-        Map<String, List<TagEntity>> groupedTags = tags.stream().collect(Collectors.groupingBy(TagEntity::getKey));
-        groupedTags.forEach((key, value) -> {
-            TagListVO tagListVO = new TagListVO();
-            tagListVO.setKey(key);
-            tagListVO.setValues(value);
-            tagList.add(tagListVO);
-        });
-        return tagList;
+        return TagUtil.convert(tags);
     }
 
     @Override

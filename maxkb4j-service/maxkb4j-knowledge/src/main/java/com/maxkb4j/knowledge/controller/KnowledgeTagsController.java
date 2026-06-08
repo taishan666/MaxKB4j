@@ -9,14 +9,12 @@ import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.enums.PermissionEnum;
 import com.maxkb4j.knowledge.entity.TagEntity;
 import com.maxkb4j.knowledge.service.ITagService;
+import com.maxkb4j.knowledge.util.TagUtil;
 import com.maxkb4j.knowledge.vo.TagListVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * @author tarzan
@@ -46,7 +44,6 @@ public class KnowledgeTagsController {
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_READ)
     @GetMapping("/knowledge/{id}/tags")
     public R<List<TagListVO>> listTags(@PathVariable String id, @RequestParam(required = false) String name) {
-        List<TagListVO> tagList = new ArrayList<>();
         LambdaQueryWrapper<TagEntity> wrapper = Wrappers.lambdaQuery();
         wrapper.eq(TagEntity::getKnowledgeId, id);
         if (StringUtils.isNotBlank(name)){
@@ -54,14 +51,7 @@ public class KnowledgeTagsController {
             wrapper.or().like(TagEntity::getValue, name);
         }
         List<TagEntity> tags = tagService.list(wrapper);
-        Map<String, List<TagEntity>> groupedTags = tags.stream().collect(Collectors.groupingBy(TagEntity::getKey));
-        groupedTags.forEach((key, value) -> {
-            TagListVO tagListVO = new TagListVO();
-            tagListVO.setKey(key);
-            tagListVO.setValues(value);
-            tagList.add(tagListVO);
-        });
-        return R.data(tagList);
+        return R.data(TagUtil.convert(tags));
     }
 
 
@@ -78,7 +68,7 @@ public class KnowledgeTagsController {
     }
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DELETE)
-    @DeleteMapping("/knowledge/{id}/tags/batch_delete")
+    @PutMapping("/knowledge/{id}/tags/batch_delete")
     public R<Boolean> batchDelete(@PathVariable("id") String id, @RequestBody List<String> tagIds) {
         return R.success(tagService.batchDelete(tagIds));
     }
