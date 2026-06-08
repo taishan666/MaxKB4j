@@ -49,7 +49,7 @@ public class KnowledgeTagsController {
         List<TagListVO> tagList = new ArrayList<>();
         LambdaQueryWrapper<TagEntity> wrapper = Wrappers.lambdaQuery();
         wrapper.eq(TagEntity::getKnowledgeId, id);
-        if (StringUtils.isNotBlank( name)){
+        if (StringUtils.isNotBlank(name)){
             wrapper.like(TagEntity::getKey, name);
             wrapper.or().like(TagEntity::getValue, name);
         }

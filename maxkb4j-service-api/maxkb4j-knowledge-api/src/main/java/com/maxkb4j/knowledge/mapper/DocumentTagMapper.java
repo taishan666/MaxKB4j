@@ -3,13 +3,13 @@ package com.maxkb4j.knowledge.mapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.maxkb4j.knowledge.entity.DocumentTagEntity;
 import com.maxkb4j.knowledge.entity.TagEntity;
+import com.maxkb4j.knowledge.vo.DocumentTagVO;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
-import java.util.Map;
 
 public interface DocumentTagMapper extends BaseMapper<DocumentTagEntity> {
-    List<TagEntity> listTagsByDocId(String docId);
+    List<TagEntity> listTags(String docId,String name);
 
-    List<Map<String, Object>> listTagsByDocIds(@Param("docIds") List<String> docIds);
+    List<DocumentTagVO> listTagsByDocIds(@Param("docIds") List<String> docIds);
 }

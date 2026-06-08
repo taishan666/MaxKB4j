@@ -2,13 +2,16 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.maxkb4j.knowledge.mapper.DocumentTagMapper">
 
-    <select id="listTagsByDocId" resultType="com.maxkb4j.knowledge.entity.TagEntity">
-        SELECT tag.* FROM TAG tag LEFT JOIN DOCUMENT_TAG dt ON tag.id=dt.tag_id
+    <select id="listTags" resultType="com.maxkb4j.knowledge.entity.TagEntity">
+        SELECT dt.id,tag.key, tag.value  FROM TAG tag LEFT JOIN DOCUMENT_TAG dt ON tag.id=dt.tag_id
                  WHERE dt.document_id=#{docId}
+        <if test="name != null and name != ''">
+            AND CONCAT(tag.key, tag.value) LIKE CONCAT('%', #{name}, '%')
+        </if>
     </select>
 
-    <select id="listTagsByDocIds" resultType="java.util.LinkedHashMap">
-        SELECT dt.document_id AS document_id, tag.id, tag.key, tag.value
+    <select id="listTagsByDocIds" resultType="com.maxkb4j.knowledge.vo.DocumentTagVO">
+        SELECT dt.document_id AS documentId, tag.id AS id, tag.key AS "key", tag.value AS value
         FROM TAG tag
         INNER JOIN DOCUMENT_TAG dt ON tag.id = dt.tag_id
         WHERE dt.document_id IN
