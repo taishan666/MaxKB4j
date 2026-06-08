@@ -287,10 +287,13 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
     public IPage<DocumentVO> getDocByKnowledgeId(String knowledgeId, int current, int size, DocQuery query) {
         Page<DocumentVO> docPage = new Page<>(current, size);
         baseMapper.selectDocPage(docPage, knowledgeId, query);
-        docPage.getRecords().forEach(doc -> {
-            List<TagEntity> tags = documentTagService.listTagsByDocId(doc.getId());
-            doc.setTags(tags);
-        });
+        List<DocumentVO> records = docPage.getRecords();
+        if (CollectionUtils.isEmpty(records)) {
+            return docPage;
+        }
+        List<String> docIds = records.stream().map(DocumentVO::getId).collect(Collectors.toList());
+        Map<String, List<TagEntity>> tagsByDocId = documentTagService.listTagsByDocIds(docIds);
+        records.forEach(doc -> doc.setTags(tagsByDocId.getOrDefault(doc.getId(), Collections.emptyList())));
         return docPage;
     }
 

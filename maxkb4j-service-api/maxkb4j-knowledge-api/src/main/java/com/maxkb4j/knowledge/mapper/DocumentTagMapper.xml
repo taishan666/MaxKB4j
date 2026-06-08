@@ -6,4 +6,14 @@
         SELECT tag.* FROM TAG tag LEFT JOIN DOCUMENT_TAG dt ON tag.id=dt.tag_id
                  WHERE dt.document_id=#{docId}
     </select>
+
+    <select id="listTagsByDocIds" resultType="java.util.LinkedHashMap">
+        SELECT dt.document_id AS document_id, tag.id, tag.key, tag.value
+        FROM TAG tag
+        INNER JOIN DOCUMENT_TAG dt ON tag.id = dt.tag_id
+        WHERE dt.document_id IN
+        <foreach collection="docIds" item="docId" open="(" separator="," close=")">
+            #{docId}
+        </foreach>
+    </select>
 </mapper>

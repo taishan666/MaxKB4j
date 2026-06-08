@@ -105,7 +105,7 @@
                     #{tagId}
                 </foreach>
                 GROUP BY dt.document_id
-                HAVING COUNT(DISTINCT dt.tag_id) = #{query.tags.size()}
+                HAVING COUNT(DISTINCT dt.tag_id) = ${query.tags.size()}
                 )
             </if>
         </where>
