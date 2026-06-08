@@ -69,13 +69,19 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
                             workflowExecutor));
                 }
             } else if (NodeStatus.SKIP.getStatus() == node.getStatus()) {
-                // 获取下一个节点列表
-                List<AbsNode> nextNodeList = workflow.execution().nextNodes(node, new NodeResult(Map.of()));
-                nextNodeList.forEach(nextNode -> {
-                    if (workflow.execution().isSkipNode(nextNode)) {
-                        nextNode.setStatus(NodeStatus.SKIP.getStatus());
-                    }
-                });
+                futureList.add(CompletableFuture.supplyAsync(
+                        () -> {
+                            // 获取下一个节点列表
+                            List<AbsNode> nextNodeList = workflow.execution().nextNodes(node, new NodeResult(Map.of()));
+                            nextNodeList.forEach(nextNode -> {
+                                if (workflow.execution().isSkipNode(nextNode)) {
+                                    nextNode.setStatus(NodeStatus.SKIP.getStatus());
+                                }
+                            });
+                            return nextNodeList;
+                        },
+                        workflowExecutor));
+
             }
         }
         for (int i = 0; i < futureList.size(); i++) {

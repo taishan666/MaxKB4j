@@ -194,8 +194,8 @@ public class Workflow {
      * @param nodeId 节点 ID
      * @return 节点实例
      */
-    public AbsNode getExecutedNode(String nodeId) {
-        return workflowContext.getExecutedNode(nodeId);
+    public AbsNode getNode(String nodeId) {
+        return configuration.getNode(nodeId);
     }
 
     /**

@@ -1,6 +1,7 @@
 package com.maxkb4j.workflow.model;
 
 import com.maxkb4j.workflow.enums.NodeStatus;
+import com.maxkb4j.workflow.enums.NodeType;
 import com.maxkb4j.workflow.enums.WorkflowMode;
 import com.maxkb4j.workflow.logic.LfEdge;
 import com.maxkb4j.workflow.node.AbsNode;
@@ -44,8 +45,10 @@ public class KnowledgeWorkflow extends Workflow {
 
     public List<AbsNode> getStartNodes() {
         String nodeId = knowledgeParams.getDataSource().getNodeId();
-        List<AbsNode> startNodes = this.configuration.getNodes().stream()
-                .filter(e -> !isTargetNode(e.getId()))
+        List<AbsNode> workflowNodes=this.configuration.getNodes();
+        List<AbsNode> startNodes = workflowNodes.stream()
+                .filter(e-> !NodeType.KNOWLEDGE_BASE.getKey().equals(e.getType()))
+                .filter(e -> isStartNode(e.getId()))
                 .toList();
         for (AbsNode startNode : startNodes) {
             if (!startNode.getId().equals(nodeId)) {
@@ -55,8 +58,8 @@ public class KnowledgeWorkflow extends Workflow {
         return startNodes;
     }
 
-    public boolean isTargetNode(String nodeId) {
+    public boolean isStartNode(String nodeId) {
         return this.configuration.getEdges().stream()
-                .anyMatch(e -> e.getTargetNodeId().equals(nodeId));
+                .noneMatch(e -> e.getTargetNodeId().equals(nodeId));
     }
 }

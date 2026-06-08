@@ -34,8 +34,8 @@ public class VariableAggregationNodeHandler extends AbsNodeHandler {
 
         for (VariableAggregationNode.Group group : groupList) {
             List<VariableAggregationNode.Variable> variableList = group.getVariableList();
-            resetVariable(variableList, workflow);
             StrategyFunction strategy = STRATEGY_MAP.get(strategyName);
+            resetVariable(variableList, workflow);
             group.setValue(strategy.apply(variableList));
             nodeVariable.put(group.getField(), group.getValue());
         }
@@ -50,16 +50,17 @@ public class VariableAggregationNodeHandler extends AbsNodeHandler {
 
     private void resetVariable(List<VariableAggregationNode.Variable> variableList, Workflow workflow) {
         for (VariableAggregationNode.Variable e : variableList) {
-            String nodeId = e.getVariable().get(0);
+            String nodeId = e.getVariable().getFirst();
+            AbsNode lfNode = workflow.getNode(nodeId);
+            String nodeName =lfNode==null?"未知节点": lfNode.getProperties().getString("nodeName");
+            e.setNodeName(nodeName == null ? "未知节点" : nodeName);
             String field = e.getVariable().get(1);
-            AbsNode lfNode = workflow.getExecutedNode(nodeId);
             Object value = workflow.getReferenceField(e.getVariable());
-            String nodeName = lfNode.getProperties().getString("nodeName");
-            e.setNodeName(nodeName == null ? "未知" : nodeName);
             e.setField(field);
             e.setValue(value);
         }
     }
+
 
     @FunctionalInterface
     public interface StrategyFunction {
