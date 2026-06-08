@@ -152,11 +152,23 @@ public class DocumentController {
         documentService.exportExcelByDocId(docId, response);
     }
 
+    @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_EXPORT)
+    @PostMapping("/knowledge/{id}/document/batch_export")
+    public void batchExport(@PathVariable("id") String id, @RequestBody List<String> docIds, HttpServletResponse response) throws IOException {
+        documentService.exportExcelByDocIds(id,docIds, response);
+    }
+
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_EXPORT)
     @GetMapping("/knowledge/{id}/document/{docId}/export_zip")
     public void exportZip(@PathVariable("id") String id, @PathVariable("docId") String docId, HttpServletResponse response) throws IOException {
         documentService.exportExcelZipByDocId(docId, response);
+    }
+
+    @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_EXPORT)
+    @PostMapping("/knowledge/{id}/document/batch_export_zip")
+    public void batchExportZip(@PathVariable("id") String id, @RequestBody List<String> docIds, HttpServletResponse response) throws IOException {
+        documentService.exportExcelZipByDocIds(id,docIds, response);
     }
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_DOWNLOAD)

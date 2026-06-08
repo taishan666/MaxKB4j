@@ -4,7 +4,9 @@ import com.alibaba.excel.EasyExcel;
 import com.alibaba.excel.ExcelWriter;
 import com.alibaba.excel.write.metadata.WriteSheet;
 import com.alibaba.fastjson.JSONObject;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.maxkb4j.common.domain.vo.KeyAndValueVO;
@@ -59,7 +61,7 @@ import java.util.zip.ZipOutputStream;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity> implements IDocumentService{
+public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity> implements IDocumentService {
 
     private final ParagraphService paragraphService;
     private final ProblemParagraphService problemParagraphService;
@@ -95,10 +97,10 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         if (CollectionUtils.isEmpty(docIds)) {
             return false;
         }
-        compositeStore.deleteByDocumentIds(targetKnowledgeId,docIds);
+        compositeStore.deleteByDocumentIds(targetKnowledgeId, docIds);
         paragraphService.lambdaUpdate().set(ParagraphEntity::getKnowledgeId, targetKnowledgeId).in(ParagraphEntity::getDocumentId, docIds).update();
         problemParagraphService.lambdaUpdate().eq(ProblemParagraphEntity::getKnowledgeId, sourceKnowledgeId).in(ProblemParagraphEntity::getDocumentId, docIds).remove();
-        publishDocumentIndexEvent(targetKnowledgeId, docIds, List.of("0","1","2","3","4","5","n"));
+        publishDocumentIndexEvent(targetKnowledgeId, docIds, List.of("0", "1", "2", "3", "4", "5", "n"));
         return this.lambdaUpdate()
                 .set(DocumentEntity::getKnowledgeId, targetKnowledgeId)
                 .in(DocumentEntity::getId, docIds)
@@ -124,11 +126,11 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
 
     @Transactional
     public void importQa(String knowledgeId, MultipartFile[] files) throws IOException {
-        if (checkFileLimit(knowledgeId,files)){
+        if (checkFileLimit(knowledgeId, files)) {
             throw new FileLimitExceededException("文件数量超出限制");
         }
         if (files == null) return;
-        List<DocumentSimple> docs =new ArrayList<>();
+        List<DocumentSimple> docs = new ArrayList<>();
         for (MultipartFile file : files) {
             if (file == null || file.isEmpty()) continue;
             String fileName = file.getOriginalFilename();
@@ -151,11 +153,11 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
 
     @Transactional
     public void importTable(String knowledgeId, MultipartFile[] files) throws IOException {
-        if (checkFileLimit(knowledgeId,files)){
+        if (checkFileLimit(knowledgeId, files)) {
             throw new FileLimitExceededException("文件数量超出限制");
         }
         if (files == null) return;
-        List<DocumentSimple> docs =new ArrayList<>();
+        List<DocumentSimple> docs = new ArrayList<>();
         for (MultipartFile uploadFile : files) {
             if (uploadFile == null || uploadFile.isEmpty()) continue;
             String originalFilename = uploadFile.getOriginalFilename();
@@ -174,17 +176,75 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         }
     }
 
-    public boolean batchCreateDocs(String knowledgeId,int knowledgeType, List<DocumentSimple> docs) {
-       return documentWriteService.batchCreateDocs(knowledgeId,knowledgeType, docs);
+    public boolean batchCreateDocs(String knowledgeId, int knowledgeType, List<DocumentSimple> docs) {
+        return documentWriteService.batchCreateDocs(knowledgeId, knowledgeType, docs);
     }
+
+    public void exportExcelByDocIds(String knowledgeId, List<String> docIds, HttpServletResponse response) throws IOException {
+        LambdaQueryWrapper<KnowledgeEntity> queryWrapper = Wrappers.lambdaQuery();
+        queryWrapper.select(KnowledgeEntity::getName).eq(KnowledgeEntity::getId, knowledgeId);
+        KnowledgeEntity knowledge = knowledgeMapper.selectOne(queryWrapper);
+        List<DocumentEntity> docs = this.lambdaQuery().select(DocumentEntity::getId, DocumentEntity::getName).in(DocumentEntity::getId, docIds).list();
+
+        response.setContentType("application/vnd.ms-excel");
+        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
+        String fileName = URLEncoder.encode(knowledge.getName(), StandardCharsets.UTF_8);
+        response.setHeader("Content-disposition", "attachment;filename=" + fileName + ".xlsx");
+
+        try (ExcelWriter excelWriter = EasyExcel.write(response.getOutputStream(), KnowledgeExcel.class).build()) {
+            for (DocumentEntity doc : docs) {
+                List<KnowledgeExcel> list = getDatasetExcelByDocId(doc.getId());
+                String sheetName = doc.getName();
+                int index = sheetName.lastIndexOf(".");
+                if (index > 0) {
+                    sheetName = sheetName.substring(0, Math.min(31, index));
+                }
+                WriteSheet sheet = EasyExcel.writerSheet(sheetName).build();
+                excelWriter.write(list, sheet);
+            }
+        }
+    }
+
+    public void exportExcelZipByDocIds(String knowledgeId, List<String> docIds, HttpServletResponse response) throws IOException {
+        LambdaQueryWrapper<KnowledgeEntity> queryWrapper = Wrappers.lambdaQuery();
+        queryWrapper.select(KnowledgeEntity::getName).eq(KnowledgeEntity::getId, knowledgeId);
+        KnowledgeEntity knowledge = knowledgeMapper.selectOne(queryWrapper);
+        List<DocumentEntity> docs = this.lambdaQuery().select(DocumentEntity::getId, DocumentEntity::getName).in(DocumentEntity::getId, docIds).list();
+        if (docs.isEmpty()) return;
+
+        response.setContentType("application/zip");
+        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
+        String fileName = URLEncoder.encode(knowledge.getName(), StandardCharsets.UTF_8);
+        response.setHeader("Content-disposition", "attachment;filename=" + fileName + ".zip");
+        try (ByteArrayOutputStream zipBuffer = new ByteArrayOutputStream();
+             ZipOutputStream zipOut = new ZipOutputStream(zipBuffer);
+             ByteArrayOutputStream excelBuffer = new ByteArrayOutputStream();
+             ExcelWriter excelWriter = EasyExcel.write(excelBuffer, KnowledgeExcel.class).build()) {
+            for (DocumentEntity doc : docs) {
+                List<KnowledgeExcel> data = getDatasetExcelByDocId(doc.getId());
+                WriteSheet sheet = EasyExcel.writerSheet(doc.getName()).build();
+                excelWriter.write(data, sheet);
+            }
+            excelWriter.finish();
+
+            ZipEntry zipEntry = new ZipEntry(knowledge.getName() + ".xlsx");
+            zipOut.putNextEntry(zipEntry);
+            zipOut.write(excelBuffer.toByteArray());
+            zipOut.closeEntry();
+            zipOut.finish();
+
+            IoUtil.copy(new ByteArrayInputStream(zipBuffer.toByteArray()), response.getOutputStream());
+        }
+    }
+
 
     public void exportExcelByDocId(String docId, HttpServletResponse response) {
         DocumentEntity doc = this.getById(docId);
         if (doc == null) return;
-        List<KnowledgeExcel> list = getDatasetExcelByDoc(doc);
-        int index=doc.getName().lastIndexOf(".");
-        int end=Math.min(31,index);
-        String sheetName=doc.getName().substring(0,end);
+        List<KnowledgeExcel> list = getDatasetExcelByDocId(docId);
+        int index = doc.getName().lastIndexOf(".");
+        int end = Math.min(31, index);
+        String sheetName = doc.getName().substring(0, end);
         ExcelUtil.export(response, doc.getName(), sheetName, list, KnowledgeExcel.class);
     }
 
@@ -194,10 +254,10 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         exportExcelZipByDocs(List.of(doc), doc.getName(), response);
     }
 
-    private List<KnowledgeExcel> getDatasetExcelByDoc(DocumentEntity doc) {
+    private List<KnowledgeExcel> getDatasetExcelByDocId(String docId) {
         List<KnowledgeExcel> list = new ArrayList<>();
         List<ParagraphEntity> paragraphs = paragraphService.lambdaQuery()
-                .eq(ParagraphEntity::getDocumentId, doc.getId())
+                .eq(ParagraphEntity::getDocumentId, docId)
                 .list();
         for (ParagraphEntity paragraph : paragraphs) {
             KnowledgeExcel excel = new KnowledgeExcel();
@@ -228,7 +288,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
              ByteArrayOutputStream excelBuffer = new ByteArrayOutputStream();
              ExcelWriter excelWriter = EasyExcel.write(excelBuffer, KnowledgeExcel.class).build()) {
             for (DocumentEntity doc : docs) {
-                List<KnowledgeExcel> data = getDatasetExcelByDoc(doc);
+                List<KnowledgeExcel> data = getDatasetExcelByDocId(doc.getId());
                 WriteSheet sheet = EasyExcel.writerSheet(doc.getName()).build();
                 excelWriter.write(data, sheet);
             }
@@ -252,8 +312,8 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         }
         this.lambdaUpdate().in(DocumentEntity::getId, docIds).remove();
         paragraphService.lambdaUpdate().in(ParagraphEntity::getDocumentId, docIds).remove();
-        compositeStore.deleteByDocumentIds(knowledgeId,docIds);
-        return  problemParagraphService.lambdaUpdate().in(ProblemParagraphEntity::getDocumentId, docIds).remove();
+        compositeStore.deleteByDocumentIds(knowledgeId, docIds);
+        return problemParagraphService.lambdaUpdate().in(ProblemParagraphEntity::getDocumentId, docIds).remove();
     }
 
     public boolean embedByDocIds(String knowledgeId, List<String> docIds, List<String> stateList) {
@@ -281,7 +341,6 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         this.updateById(documentEntity);
         return this.getById(docId);
     }
-
 
 
     public IPage<DocumentVO> getDocByKnowledgeId(String knowledgeId, int current, int size, DocQuery query) {
@@ -316,7 +375,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
     }
 
     public List<TextSegmentVO> split(String knowledgeId, MultipartFile[] files, String[] patterns, Integer limit, Boolean withFilter) throws IOException {
-        if (checkFileLimit(knowledgeId,files)){
+        if (checkFileLimit(knowledgeId, files)) {
             throw new FileLimitExceededException("文件数量超出限制");
         }
         List<TextSegmentVO> result = new ArrayList<>();
@@ -373,7 +432,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
     @Transactional
     public void createWebDoc(String knowledgeId, List<String> sourceUrlList, String selector) {
         for (String sourceUrl : sourceUrlList) {
-            List<DocumentSimple> docs =documentWebService.getWebDocuments(sourceUrl, selector,false);
+            List<DocumentSimple> docs = documentWebService.getWebDocuments(sourceUrl, selector, false);
             batchCreateDocs(knowledgeId, KnowledgeType.WEB, docs);
         }
     }
@@ -387,14 +446,13 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         String selector = doc.getMeta().getString("selector");
         if (StringUtils.isAnyBlank(sourceUrl, selector)) return;
         deleteDocByIds(knowledgeId, List.of(docId));
-        List<DocumentSimple> docs =documentWebService.getWebDocuments(sourceUrl, selector,false);
+        List<DocumentSimple> docs = documentWebService.getWebDocuments(sourceUrl, selector, false);
         batchCreateDocs(knowledgeId, KnowledgeType.WEB, docs);
     }
 
 
-
     public boolean batchGenerateRelated(String knowledgeId, GenerateProblemDTO dto) {
-        eventPublisher.publishEvent(new GenerateProblemEvent(this, knowledgeId, dto.getDocumentIdList(), dto.getModelId(), dto.getNumber(),dto.getPrompt(), dto.getStateList()));
+        eventPublisher.publishEvent(new GenerateProblemEvent(this, knowledgeId, dto.getDocumentIdList(), dto.getModelId(), dto.getNumber(), dto.getPrompt(), dto.getStateList()));
         return true;
     }
 
