@@ -36,4 +36,9 @@ public class TagService extends ServiceImpl<TagMapper, TagEntity> implements ITa
     public List<TagVO> listTags(String id, String name) {
         return baseMapper.listTags(id,name);
     }
+
+    @Override
+    public Boolean docsDelete(String tagId, List<String> docIds) {
+        return documentTagService.lambdaUpdate().eq(DocumentTagEntity::getTagId,tagId).in(DocumentTagEntity::getDocumentId,docIds).remove();
+    }
 }

@@ -60,6 +60,14 @@ public class KnowledgeTagsController {
     }
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DELETE)
+    @PutMapping("/knowledge/{id}/tag/{tagId}/docs_delete")
+    public R<Boolean> docsDelete(@PathVariable("id") String id,@PathVariable("tagId") String tagId,  @RequestBody List<String> idList) {
+        return R.success(tagService.docsDelete(tagId,idList));
+    }
+
+
+
+    @SaCheckPerm(PermissionEnum.KNOWLEDGE_DELETE)
     @PutMapping("/knowledge/{id}/tags/batch_delete")
     public R<Boolean> batchDelete(@PathVariable("id") String id, @RequestBody List<String> tagIds) {
         return R.success(tagService.batchDelete(tagIds));

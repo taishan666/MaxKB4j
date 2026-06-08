@@ -12,4 +12,6 @@ public interface ITagService extends IService<TagEntity> {
     Boolean batchDelete(List<String> tagIds);
 
     List<TagVO> listTags(String id, String name);
+
+    Boolean docsDelete(String tagId, List<String> docIds);
 }
