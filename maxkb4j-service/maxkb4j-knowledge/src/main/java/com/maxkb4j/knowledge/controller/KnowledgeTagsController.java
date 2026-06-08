@@ -1,8 +1,5 @@
 package com.maxkb4j.knowledge.controller;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.toolkit.StringUtils;
-import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.maxkb4j.common.annotation.SaCheckPerm;
 import com.maxkb4j.common.api.R;
 import com.maxkb4j.common.constant.AppConst;
@@ -11,6 +8,7 @@ import com.maxkb4j.knowledge.entity.TagEntity;
 import com.maxkb4j.knowledge.service.ITagService;
 import com.maxkb4j.knowledge.util.TagUtil;
 import com.maxkb4j.knowledge.vo.TagListVO;
+import com.maxkb4j.knowledge.vo.TagVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -44,13 +42,7 @@ public class KnowledgeTagsController {
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_READ)
     @GetMapping("/knowledge/{id}/tags")
     public R<List<TagListVO>> listTags(@PathVariable String id, @RequestParam(required = false) String name) {
-        LambdaQueryWrapper<TagEntity> wrapper = Wrappers.lambdaQuery();
-        wrapper.eq(TagEntity::getKnowledgeId, id);
-        if (StringUtils.isNotBlank(name)){
-            wrapper.like(TagEntity::getKey, name);
-            wrapper.or().like(TagEntity::getValue, name);
-        }
-        List<TagEntity> tags = tagService.list(wrapper);
+        List<TagVO> tags = tagService.listTags(id,name);
         return R.data(TagUtil.convert(tags));
     }
 

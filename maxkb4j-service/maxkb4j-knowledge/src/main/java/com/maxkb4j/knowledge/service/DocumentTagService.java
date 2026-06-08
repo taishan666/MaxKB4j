@@ -1,12 +1,14 @@
 package com.maxkb4j.knowledge.service;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.maxkb4j.common.util.BeanUtil;
 import com.maxkb4j.knowledge.entity.DocumentTagEntity;
 import com.maxkb4j.knowledge.entity.TagEntity;
 import com.maxkb4j.knowledge.mapper.DocumentTagMapper;
 import com.maxkb4j.knowledge.util.TagUtil;
 import com.maxkb4j.knowledge.vo.DocumentTagVO;
 import com.maxkb4j.knowledge.vo.TagListVO;
+import com.maxkb4j.knowledge.vo.TagVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -18,7 +20,8 @@ import java.util.*;
 public class DocumentTagService extends ServiceImpl<DocumentTagMapper,DocumentTagEntity> implements IDocumentTagService{
     @Override
     public List<TagListVO> listTags(String docId,String name) {
-        List<TagEntity> tags = baseMapper.listTags(docId,name);
+        List<TagEntity> tagEntities = baseMapper.listTags(docId,name);
+        List<TagVO> tags= BeanUtil.copyList(tagEntities, TagVO.class);
         return TagUtil.convert(tags);
     }
 

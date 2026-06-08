@@ -11,4 +11,5 @@ public class DocQuery {
     private Boolean isActive;
     private String hitHandlingMethod;
     private List<String> tags;
+    private Boolean tagExclude;
 }

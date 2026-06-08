@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.maxkb4j.knowledge.entity.DocumentTagEntity;
 import com.maxkb4j.knowledge.entity.TagEntity;
 import com.maxkb4j.knowledge.mapper.TagMapper;
+import com.maxkb4j.knowledge.vo.TagVO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -29,5 +30,10 @@ public class TagService extends ServiceImpl<TagMapper, TagEntity> implements ITa
     public Boolean batchDelete(List<String> tagIds) {
         documentTagService.lambdaUpdate().in(DocumentTagEntity::getTagId,tagIds).remove();
         return this.removeByIds(tagIds);
+    }
+
+    @Override
+    public List<TagVO> listTags(String id, String name) {
+        return baseMapper.listTags(id,name);
     }
 }
