@@ -4,6 +4,7 @@ import com.maxkb4j.common.annotation.SaCheckPerm;
 import com.maxkb4j.common.api.R;
 import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.enums.PermissionEnum;
+import com.maxkb4j.knowledge.dto.IdListDTO;
 import com.maxkb4j.knowledge.entity.TagEntity;
 import com.maxkb4j.knowledge.service.ITagService;
 import com.maxkb4j.knowledge.util.TagUtil;
@@ -61,8 +62,8 @@ public class KnowledgeTagsController {
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DELETE)
     @PutMapping("/knowledge/{id}/tag/{tagId}/docs_delete")
-    public R<Boolean> docsDelete(@PathVariable("id") String id,@PathVariable("tagId") String tagId,  @RequestBody List<String> idList) {
-        return R.success(tagService.docsDelete(tagId,idList));
+    public R<Boolean> docsDelete(@PathVariable("id") String id,@PathVariable("tagId") String tagId,  @RequestBody IdListDTO dto) {
+        return R.success(tagService.docsDelete(tagId,dto.getIdList()));
     }
 
 
