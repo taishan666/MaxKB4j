@@ -66,7 +66,7 @@
                                    ), 0)
         WHERE doc.id =#{id};
     </update>
-    <select id="selectDocPage"  resultMap="docResultMap">
+    <select id="selectDocPage" resultMap="docResultMap">
         SELECT
         d.*,
         COALESCE(p_stats.paragraph_count, 0) AS paragraph_count,
@@ -87,13 +87,26 @@
         <where>
             d.knowledge_id = #{knowledgeId}
             <if test="query.name != null and query.name != ''">
-                and d.name like CONCAT('%',#{query.name},'%')
+                AND d.name LIKE CONCAT('%', #{query.name}, '%')
             </if>
             <if test="query.isActive != null">
-                and d.is_active = #{query.isActive}
+                AND d.is_active = #{query.isActive}
             </if>
             <if test="query.hitHandlingMethod != null and query.hitHandlingMethod != ''">
-                and d.hit_handling_method=#{query.hitHandlingMethod}
+                AND d.hit_handling_method = #{query.hitHandlingMethod}
+            </if>
+            <!-- 核心修改：通过子查询过滤同时包含所有指定标签的文档 -->
+            <if test="query.tags != null and !query.tags.isEmpty()">
+                AND d.ID IN (
+                SELECT dt.document_id
+                FROM document_tag dt
+                WHERE dt.tag_id IN
+                <foreach collection="query.tags" item="tagId" open="(" separator="," close=")">
+                    #{tagId}
+                </foreach>
+                GROUP BY dt.document_id
+                HAVING COUNT(DISTINCT dt.tag_id) = #{query.tags.size()}
+                )
             </if>
         </where>
         ORDER BY d.create_time DESC
