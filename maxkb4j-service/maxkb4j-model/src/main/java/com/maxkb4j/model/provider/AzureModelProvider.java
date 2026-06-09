@@ -45,7 +45,7 @@ public class AzureModelProvider extends AbsModelProvider {
                 .apiKey(credential.getApiKey())
                 .deploymentName(modelName)
                 .temperature(getDoubleParam(params, "temperature"))
-                .maxTokens(getIntParam(params, "maxTokens"))
+                .maxTokens(getIntParam(params, "max_tokens"))
                 .build();
     }
 
@@ -55,7 +55,7 @@ public class AzureModelProvider extends AbsModelProvider {
                 .apiKey(credential.getApiKey())
                 .deploymentName(modelName)
                 .temperature(getDoubleParam(params, "temperature"))
-                .maxTokens(getIntParam(params, "maxTokens"))
+                .maxTokens(getIntParam(params, "max_tokens"))
                 .build();
     }
 

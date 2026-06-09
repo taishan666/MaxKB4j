@@ -52,7 +52,7 @@ public class XInferenceModelProvider extends AbsModelProvider {
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
                 .temperature(getDoubleParam(params, "temperature"))
-                .maxTokens(getIntParam(params, "maxTokens"))
+                .maxTokens(getIntParam(params, "max_tokens"))
                 .build();
     }
 
@@ -63,7 +63,7 @@ public class XInferenceModelProvider extends AbsModelProvider {
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
                 .temperature(getDoubleParam(params, "temperature"))
-                .maxTokens(getIntParam(params, "maxTokens"))
+                .maxTokens(getIntParam(params, "max_tokens"))
                 .build();
     }
 

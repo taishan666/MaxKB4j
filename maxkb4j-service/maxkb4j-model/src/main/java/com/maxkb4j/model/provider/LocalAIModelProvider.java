@@ -37,7 +37,7 @@ public class LocalAIModelProvider extends AbsModelProvider {
                 .baseUrl(credential.getBaseUrl())
                 .modelName(modelName)
                 .temperature(getDoubleParam(params, "temperature"))
-                .maxTokens(getIntParam(params, "maxTokens"))
+                .maxTokens(getIntParam(params, "max_tokens"))
                 .build();
     }
 
@@ -47,7 +47,7 @@ public class LocalAIModelProvider extends AbsModelProvider {
                 .baseUrl(credential.getBaseUrl())
                 .modelName(modelName)
                 .temperature(getDoubleParam(params, "temperature"))
-                .maxTokens(getIntParam(params, "maxTokens"))
+                .maxTokens(getIntParam(params, "max_tokens"))
                 .build();
     }
 

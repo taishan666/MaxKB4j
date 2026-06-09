@@ -80,7 +80,7 @@ public class OLlamaModelProvider extends AbsModelProvider {
                 .baseUrl(credential.getBaseUrl())
                 .modelName(modelName)
                 .temperature(getDoubleParam(params, "temperature"))
-                .think(getBooleanParam(params,"enableThinking"))
+                .think(getBooleanParam(params,"enable_thinking"))
                 .returnThinking(true)
                 .build();
     }
@@ -92,7 +92,7 @@ public class OLlamaModelProvider extends AbsModelProvider {
                 .baseUrl(credential.getBaseUrl())
                 .modelName(modelName)
                 .temperature(getDoubleParam(params, "temperature"))
-                .think(getBooleanParam(params,"enableThinking"))
+                .think(getBooleanParam(params,"enable_thinking"))
                 .returnThinking(true)
                 .build();
     }

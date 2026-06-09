@@ -35,16 +35,16 @@ public class DeepSeekModelProvider extends OpenAiModelProvider {
 
     @Override
     public StreamingChatModel buildStreamingChatModel(String modelName, ModelCredential credential, JSONObject params) {
-        boolean enableThinking = getBooleanParam(params, "enableThinking");
+        boolean enableThinking = getBooleanParam(params, "enable_thinking");
         String flag = enableThinking ? "enabled" : "disabled";
+        params.remove("enable_thinking");
+        params.put("thinking", Map.of("type", flag));
         return OpenAiStreamingChatModel.builder()
                 .httpClientBuilder(getHttpClientBuilder())
                 .baseUrl(getBaseUrl(credential.getBaseUrl()))
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
-                .temperature(getDoubleParam(params, "temperature"))
-                .maxTokens(getIntParam(params, "maxTokens"))
-                .customParameters(Map.of("thinking", Map.of("type", flag)))
+                .customParameters(params)
                 .sendThinking(true)
                 .returnThinking(true)
                 .build();

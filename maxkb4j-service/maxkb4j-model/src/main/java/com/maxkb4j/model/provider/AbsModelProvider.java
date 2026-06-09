@@ -6,7 +6,7 @@ import com.maxkb4j.common.mp.entity.ModelCredential;
 import com.maxkb4j.model.custom.credential.ModelCredentialForm;
 import com.maxkb4j.model.custom.params.EmbeddingModelParams;
 import com.maxkb4j.model.custom.params.ImageModelParams;
-import com.maxkb4j.model.custom.params.LLMChatModelParams;
+import com.maxkb4j.model.custom.params.OpenAiChatModelParams;
 import com.maxkb4j.model.enums.ModelType;
 import com.maxkb4j.model.service.ISTTModel;
 import com.maxkb4j.model.service.ITTSModel;
@@ -251,7 +251,7 @@ public abstract class AbsModelProvider {
     }
 
     protected List<BaseField> getChatModelParamsForm() {
-        return new LLMChatModelParams().toForm();
+        return new OpenAiChatModelParams().toForm();
     }
 
     protected List<BaseField> getEmbeddingModelParamsForm() {

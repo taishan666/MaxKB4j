@@ -23,7 +23,6 @@ import dev.langchain4j.model.openai.OpenAiImageModel;
 import dev.langchain4j.model.openai.OpenAiStreamingChatModel;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * OpenAI Model Provider Implementation
@@ -83,8 +82,7 @@ public class OpenAiModelProvider extends AbsModelProvider {
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
                 .temperature(getDoubleParam(params, "temperature"))
-                .maxTokens(getIntParam(params, "maxTokens"))
-              //  .customParameters(Map.of("enable_thinking", getBooleanParam(params, "enableThinking")))
+                .maxTokens(getIntParam(params, "max_tokens"))
                 .sendThinking(true)
                 .returnThinking(true)
                 .build();
@@ -97,9 +95,7 @@ public class OpenAiModelProvider extends AbsModelProvider {
                 .baseUrl(getBaseUrl(credential.getBaseUrl()))
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
-                .temperature(getDoubleParam(params, "temperature"))
-                .maxTokens(getIntParam(params, "maxTokens"))
-                .customParameters(Map.of("enable_thinking", getBooleanParam(params, "enableThinking")))
+                .customParameters(params)
                 .sendThinking(true)
                 .returnThinking(true)
                 .build();
