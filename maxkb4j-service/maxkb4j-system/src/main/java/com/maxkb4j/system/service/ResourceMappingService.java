@@ -122,7 +122,7 @@ public class ResourceMappingService extends ServiceImpl<ResourceMappingMapper, R
         }
         if (groupedIds.containsKey(ResourceType.MODEL)) {
             List<ModelEntity> tools = modelMapper.selectList(Wrappers.<ModelEntity>lambdaQuery()
-                    .select(ModelEntity::getId, ModelEntity::getName, ModelEntity::getModelType, ModelEntity::getUserId)
+                    .select(ModelEntity::getId, ModelEntity::getName, ModelEntity::getModelType, ModelEntity::getProvider,ModelEntity::getUserId)
                     .like(StringUtils.isNotBlank(resourceName), ModelEntity::getName, resourceName)
                     .in(StringUtils.isNotBlank(userName), ModelEntity::getUserId, getUserIds(userName))
                     .in(ModelEntity::getId, groupedIds.get(ResourceType.MODEL)));
