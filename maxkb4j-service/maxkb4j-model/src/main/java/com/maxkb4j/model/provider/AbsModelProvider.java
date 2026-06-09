@@ -4,9 +4,6 @@ import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.common.domain.form.BaseField;
 import com.maxkb4j.common.mp.entity.ModelCredential;
 import com.maxkb4j.model.custom.credential.ModelCredentialForm;
-import com.maxkb4j.model.custom.disabled.DisabledSTTModel;
-import com.maxkb4j.model.custom.disabled.DisabledScoringModel;
-import com.maxkb4j.model.custom.disabled.DisabledTTSModel;
 import com.maxkb4j.model.custom.params.EmbeddingModelParams;
 import com.maxkb4j.model.custom.params.ImageModelParams;
 import com.maxkb4j.model.custom.params.LLMChatModelParams;
@@ -17,6 +14,7 @@ import com.maxkb4j.model.vo.ModelInfo;
 import dev.langchain4j.http.client.HttpClientBuilder;
 import dev.langchain4j.http.client.spring.restclient.SpringRestClient;
 import dev.langchain4j.http.client.spring.restclient.SpringRestClientBuilder;
+import dev.langchain4j.model.ModelDisabledException;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.DisabledChatModel;
 import dev.langchain4j.model.chat.DisabledStreamingChatModel;
@@ -212,7 +210,7 @@ public abstract class AbsModelProvider {
      * @return the scoring model instance
      */
     public ScoringModel buildScoringModel(String modelName, ModelCredential credential, JSONObject params) {
-        return new DisabledScoringModel();
+        throw new ModelDisabledException("ScoringModel is disabled");
     }
 
     /**
@@ -224,7 +222,7 @@ public abstract class AbsModelProvider {
      * @return the STT model instance
      */
     public ISTTModel buildSTTModel(String modelName, ModelCredential credential, JSONObject params) {
-        return new DisabledSTTModel();
+        throw new ModelDisabledException("STTModel is disabled");
     }
 
     /**
@@ -236,7 +234,7 @@ public abstract class AbsModelProvider {
      * @return the TTS model instance
      */
     public ITTSModel buildTTSModel(String modelName, ModelCredential credential, JSONObject params) {
-        return new DisabledTTSModel();
+        throw new ModelDisabledException("TTSModel is disabled");
     }
 
     public List<BaseField> getModelParamsForm(String modelType) {
