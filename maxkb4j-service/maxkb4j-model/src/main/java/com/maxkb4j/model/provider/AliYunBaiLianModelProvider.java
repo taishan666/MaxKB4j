@@ -11,10 +11,8 @@ import com.maxkb4j.model.enums.ModelType;
 import com.maxkb4j.model.service.ISTTModel;
 import com.maxkb4j.model.service.ITTSModel;
 import com.maxkb4j.model.vo.ModelInfo;
-import dev.langchain4j.community.model.dashscope.QwenEmbeddingModel;
 import dev.langchain4j.community.model.dashscope.QwenModelName;
 import dev.langchain4j.community.model.dashscope.WanxModelName;
-import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.model.image.ImageModel;
 import dev.langchain4j.model.scoring.ScoringModel;
 
@@ -28,9 +26,9 @@ public class AliYunBaiLianModelProvider extends OpenAiModelProvider {
     private static final String BASE_URL = "https://dashscope.aliyuncs.com/compatible-mode/v1";
 
     private static final List<ModelInfo> MODEL_INFOS = List.of(
-            new ModelInfo(QwenModelName.QWEN_TURBO, "", ModelType.LLM),
-            new ModelInfo("qwen3.6-plus", "", ModelType.LLM, new QWenChatModelParams(true)),
-            new ModelInfo("qwen3.5-plus", "", ModelType.LLM, new QWenChatModelParams(true)),
+            new ModelInfo("qwen3.7-plus", "", ModelType.LLM),
+            new ModelInfo("qwen3.6-plus", "", ModelType.LLM),
+            new ModelInfo("qwen3.5-plus", "", ModelType.LLM),
             new ModelInfo(QwenModelName.QWEN_PLUS, "", ModelType.LLM),
             new ModelInfo(QwenModelName.QWEN_MAX, "", ModelType.LLM),
             new ModelInfo("text-embedding-v3", "", ModelType.EMBEDDING),
@@ -43,10 +41,10 @@ public class AliYunBaiLianModelProvider extends OpenAiModelProvider {
             new ModelInfo("sambert-v1", "", ModelType.TTS, new SamBertTTSParams()),
             new ModelInfo("qwen3-tts-flash", "", ModelType.TTS, new QWenTTSParams()),
             new ModelInfo("qwen-tts", "", ModelType.TTS, new QWenTTSParams()),
-            new ModelInfo("qwen3.6-plus", "", ModelType.VISION, new QWenChatModelParams(true)),
-            new ModelInfo("qwen3.5-plus", "", ModelType.VISION, new QWenChatModelParams(true)),
-            new ModelInfo(QwenModelName.QWEN_VL_PLUS, "", ModelType.VISION, new QWenChatModelParams(true)),
-            new ModelInfo(QwenModelName.QWEN_VL_MAX, "", ModelType.VISION, new QWenChatModelParams(true)),
+            new ModelInfo("qwen3.6-plus", "", ModelType.VISION),
+            new ModelInfo("qwen3.5-plus", "", ModelType.VISION),
+            new ModelInfo(QwenModelName.QWEN_VL_PLUS, "", ModelType.VISION),
+            new ModelInfo(QwenModelName.QWEN_VL_MAX, "", ModelType.VISION),
             new ModelInfo(WanxModelName.WANX2_1_T2I_TURBO, "", ModelType.TTI, new WanXImageModelParams()),
             new ModelInfo(WanxModelName.WANX2_1_T2I_PLUS, "", ModelType.TTI, new WanXImageModelParams()),
             new ModelInfo("qwen-image-plus", "", ModelType.TTI, new QwenImageModelParams()),
@@ -63,16 +61,6 @@ public class AliYunBaiLianModelProvider extends OpenAiModelProvider {
     @Override
     public List<ModelInfo> getModelList() {
         return MODEL_INFOS;
-    }
-
-
-    @Override
-    public EmbeddingModel buildEmbeddingModel(String modelName, ModelCredential credential, JSONObject params) {
-        return QwenEmbeddingModel.builder()
-                .apiKey(credential.getApiKey())
-                .modelName(modelName)
-                .dimension(getIntParam(params, "dimension"))
-                .build();
     }
 
     @Override

@@ -7,6 +7,7 @@ import com.maxkb4j.model.custom.credential.ModelCredentialForm;
 import com.maxkb4j.model.custom.disabled.DisabledSTTModel;
 import com.maxkb4j.model.custom.disabled.DisabledScoringModel;
 import com.maxkb4j.model.custom.disabled.DisabledTTSModel;
+import com.maxkb4j.model.custom.params.EmbeddingModelParams;
 import com.maxkb4j.model.custom.params.ImageModelParams;
 import com.maxkb4j.model.custom.params.LLMChatModelParams;
 import com.maxkb4j.model.enums.ModelType;
@@ -242,7 +243,9 @@ public abstract class AbsModelProvider {
         if (modelType != null) {
             if (ModelType.LLM.getKey().equals(modelType)) {
                 return getChatModelParamsForm();
-            } else if (ModelType.TTI.getKey().equals(modelType)) {
+            } else if (ModelType.EMBEDDING.getKey().equals(modelType)) {
+                return getEmbeddingModelParamsForm();
+            }else if (ModelType.TTI.getKey().equals(modelType)) {
                 return getImageModelParamsForm();
             }
         }
@@ -251,6 +254,10 @@ public abstract class AbsModelProvider {
 
     protected List<BaseField> getChatModelParamsForm() {
         return new LLMChatModelParams().toForm();
+    }
+
+    protected List<BaseField> getEmbeddingModelParamsForm() {
+        return new EmbeddingModelParams().toForm();
     }
 
     protected List<BaseField> getImageModelParamsForm() {

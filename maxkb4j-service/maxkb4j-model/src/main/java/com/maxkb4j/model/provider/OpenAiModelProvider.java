@@ -1,6 +1,7 @@
 package com.maxkb4j.model.provider;
 
 import com.alibaba.fastjson.JSONObject;
+import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.maxkb4j.common.domain.form.BaseField;
 import com.maxkb4j.common.mp.entity.ModelCredential;
 import com.maxkb4j.model.custom.credential.ModelCredentialForm;
@@ -22,13 +23,14 @@ import dev.langchain4j.model.openai.OpenAiImageModel;
 import dev.langchain4j.model.openai.OpenAiStreamingChatModel;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * OpenAI Model Provider Implementation
  * Provides integration with OpenAI's API services
  */
 public class OpenAiModelProvider extends AbsModelProvider {
-
+    private static final String BASE_URL = "https://api.openai.com/v1";
 
     private static final List<ModelInfo> MODEL_INFOS = List.of(
             new ModelInfo("gpt-3.5-turbo", "GPT-3.5 Turbo", ModelType.LLM),
@@ -47,7 +49,11 @@ public class OpenAiModelProvider extends AbsModelProvider {
 
 
     public String getDefaultBaseUrl(){
-        return "https://api.openai.com/v1";
+        return BASE_URL;
+    }
+
+    public String getBaseUrl(String baseUrl){
+        return StringUtils.isNotBlank(baseUrl)?baseUrl:getDefaultBaseUrl();
     }
     @Override
     public List<BaseField> getChatModelParamsForm() {
@@ -73,11 +79,12 @@ public class OpenAiModelProvider extends AbsModelProvider {
     public ChatModel buildChatModel(String modelName, ModelCredential credential, JSONObject params) {
         return OpenAiChatModel.builder()
                 .httpClientBuilder(getHttpClientBuilder())
-                .baseUrl(credential.getBaseUrl())
+                .baseUrl(getBaseUrl(credential.getBaseUrl()))
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
                 .temperature(getDoubleParam(params, "temperature"))
                 .maxTokens(getIntParam(params, "maxTokens"))
+              //  .customParameters(Map.of("enable_thinking", getBooleanParam(params, "enableThinking")))
                 .sendThinking(true)
                 .returnThinking(true)
                 .build();
@@ -87,11 +94,12 @@ public class OpenAiModelProvider extends AbsModelProvider {
     public StreamingChatModel buildStreamingChatModel(String modelName, ModelCredential credential, JSONObject params) {
         return OpenAiStreamingChatModel.builder()
                 .httpClientBuilder(getHttpClientBuilder())
-                .baseUrl(credential.getBaseUrl())
+                .baseUrl(getBaseUrl(credential.getBaseUrl()))
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
                 .temperature(getDoubleParam(params, "temperature"))
                 .maxTokens(getIntParam(params, "maxTokens"))
+                .customParameters(Map.of("enable_thinking", getBooleanParam(params, "enableThinking")))
                 .sendThinking(true)
                 .returnThinking(true)
                 .build();
@@ -101,9 +109,10 @@ public class OpenAiModelProvider extends AbsModelProvider {
     public EmbeddingModel buildEmbeddingModel(String modelName, ModelCredential credential, JSONObject params) {
         return OpenAiEmbeddingModel.builder()
                 .httpClientBuilder(getHttpClientBuilder())
-                .baseUrl(credential.getBaseUrl())
+                .baseUrl(getBaseUrl(credential.getBaseUrl()))
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
+                .dimensions(getIntParam(params, "dimension"))
                 .build();
     }
 
