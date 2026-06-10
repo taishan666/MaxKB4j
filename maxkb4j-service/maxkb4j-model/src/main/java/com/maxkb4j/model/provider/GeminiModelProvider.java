@@ -7,6 +7,7 @@ import com.maxkb4j.model.vo.ModelInfo;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.model.embedding.EmbeddingModel;
+import dev.langchain4j.model.googleai.GeminiThinkingConfig;
 import dev.langchain4j.model.googleai.GoogleAiEmbeddingModel;
 import dev.langchain4j.model.googleai.GoogleAiGeminiChatModel;
 import dev.langchain4j.model.googleai.GoogleAiGeminiStreamingChatModel;
@@ -34,12 +35,14 @@ public class GeminiModelProvider extends AbsModelProvider {
 
     @Override
     public ChatModel buildChatModel(String modelName, ModelCredential credential, JSONObject params) {
+        boolean enableThinking = getBooleanParam(params, "enable_thinking");
         return GoogleAiGeminiChatModel.builder()
                 .httpClientBuilder(getHttpClientBuilder())
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
                 .maxOutputTokens(getIntParam(params, "max_tokens"))
                 .temperature(getDoubleParam(params, "temperature"))
+                .thinkingConfig(GeminiThinkingConfig.builder().includeThoughts(enableThinking).build())
                 .sendThinking(true)
                 .returnThinking(true)
                 .build();
@@ -47,12 +50,14 @@ public class GeminiModelProvider extends AbsModelProvider {
 
     @Override
     public StreamingChatModel buildStreamingChatModel(String modelName, ModelCredential credential, JSONObject params) {
+        boolean enableThinking = getBooleanParam(params, "enable_thinking");
         return GoogleAiGeminiStreamingChatModel.builder()
                 .httpClientBuilder(getHttpClientBuilder())
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
                 .maxOutputTokens(getIntParam(params, "max_tokens"))
                 .temperature(getDoubleParam(params, "temperature"))
+                .thinkingConfig(GeminiThinkingConfig.builder().includeThoughts(enableThinking).build())
                 .sendThinking(true)
                 .returnThinking(true)
                 .build();

@@ -11,6 +11,7 @@ import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.StreamingChatModel;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Anthropic Claude Model Provider
@@ -55,13 +56,16 @@ public class AnthropicProvider extends AbsModelProvider {
 
     @Override
     public StreamingChatModel buildStreamingChatModel(String modelName, ModelCredential credential, JSONObject params) {
+        boolean enableThinking = getBooleanParam(params, "enable_thinking");
+        String flag = enableThinking ? "enabled" : "disabled";
+        params.remove("enable_thinking");
+        params.put("thinking", Map.of("type", flag));
         return AnthropicStreamingChatModel.builder()
                 .httpClientBuilder(getSpringRestClientBuilder())
                 .baseUrl(credential.getBaseUrl())
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
-                .temperature(getDoubleParam(params, "temperature"))
-                .maxTokens(getIntParam(params, "max_tokens"))
+                .customParameters(params)
                 .sendThinking(true)
                 .returnThinking(true)
                 .build();
