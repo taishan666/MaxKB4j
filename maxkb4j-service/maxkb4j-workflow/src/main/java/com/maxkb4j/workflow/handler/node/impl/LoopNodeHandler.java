@@ -274,10 +274,8 @@ public class LoopNodeHandler extends AbsNodeHandler {
         childNodeRef.set(new ChildNode(message.getChatRecordId(), runtimeNodeId));
 
         // 转发消息到主工作流
-        if (workflow.output().needsSink()) {
-            ChatMessageVO vo = buildLoopMessageVO(message, workflow, node, childNodeRef.get());
-            workflow.output().emit(vo);
-        }
+        ChatMessageVO vo = buildLoopMessageVO(message, workflow, node, childNodeRef.get());
+        workflow.output().emit(vo);
     }
 
     /**
@@ -301,16 +299,14 @@ public class LoopNodeHandler extends AbsNodeHandler {
      * 发送迭代结束标记
      */
     private void emitIterationEnd(Workflow workflow, AbsNode node, AtomicReference<ChildNode> childNodeRef) {
-        if (workflow.output().needsSink()) {
-            ChatMessageVO vo = node.toChatMessageVO(
-                    workflow.getChatParams().getChatId(),
-                    workflow.getChatParams().getChatRecordId(),
-                    "",
-                    "",
-                    childNodeRef.get(),
-                    false);
-            workflow.output().emit(vo);
-        }
+        ChatMessageVO vo = node.toChatMessageVO(
+                workflow.getChatParams().getChatId(),
+                workflow.getChatParams().getChatRecordId(),
+                "",
+                "",
+                childNodeRef.get(),
+                false);
+        workflow.output().emit(vo);
     }
 
     /**

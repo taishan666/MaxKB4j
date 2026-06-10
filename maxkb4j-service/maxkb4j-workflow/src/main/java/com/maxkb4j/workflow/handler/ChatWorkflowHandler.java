@@ -44,7 +44,7 @@ public class ChatWorkflowHandler extends AbsWorkflowHandler {
      * @param ex       the exception that occurred
      */
     protected void emitErrorToSink(Workflow workflow, AbsNode node, Exception ex) {
-        if (workflow.getChatParams() != null && workflow.output().needsSink()) {
+        if (workflow.getChatParams() != null) {
             ChatMessageVO errMessage = node.toChatMessageVO(
                     workflow.getChatParams().getChatId(),
                     workflow.getChatParams().getChatRecordId(),

@@ -120,6 +120,7 @@ public abstract class AbsChatStep extends AbsStep {
                 chatId,
                 chatRecordId,
                 "ai-chat-node",
+                 "",
                 content,
                 reasoningContent,
                 List.of(),

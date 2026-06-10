@@ -214,16 +214,14 @@ public class LLMNodeHandler extends AbsNodeHandler {
     }
 
     private void emitMessage(Workflow workflow, AbsNode node, String content, String reasoning) {
-        if (workflow.output().needsSink()) {
-            ChatMessageVO vo = node.toChatMessageVO(
-                    workflow.getChatParams().getChatId(),
-                    workflow.getChatParams().getChatRecordId(),
-                    content,
-                    reasoning,
-                    null,
-                    false
-            );
-            workflow.output().emit(vo);
-        }
+        ChatMessageVO vo = node.toChatMessageVO(
+                workflow.getChatParams().getChatId(),
+                workflow.getChatParams().getChatRecordId(),
+                content,
+                reasoning,
+                null,
+                false
+        );
+        workflow.output().emit(vo);
     }
 }

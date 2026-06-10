@@ -33,7 +33,7 @@ public record WorkflowOutputManager(WorkflowConfiguration configuration, Workflo
      *
      * @return 是否需要输出
      */
-    public boolean needsSink() {
+    private boolean needsSink() {
         WorkflowMode mode = configuration.getWorkflowMode();
         return mode == WorkflowMode.APPLICATION || mode == WorkflowMode.APPLICATION_LOOP;
     }
@@ -67,8 +67,10 @@ public record WorkflowOutputManager(WorkflowConfiguration configuration, Workflo
      * @param message 聊天消息
      */
     public void emit(ChatMessageVO message) {
-        if (sink != null && message != null) {
-            sink.tryEmitNext(message);
+        if (needsSink()){
+            if (sink != null && message != null) {
+                sink.tryEmitNext(message);
+            }
         }
     }
 

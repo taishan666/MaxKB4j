@@ -61,6 +61,10 @@ public abstract class AbsNode {
         this.runtimeNodeId = generateRuntimeNodeId();
     }
 
+    public String getNodeName() {
+        return properties.getString("nodeName");
+    }
+
     /**
      * 保存节点上下文
      * 子类需要实现具体逻辑
@@ -113,6 +117,7 @@ public abstract class AbsNode {
                 chatId,
                 chatRecordId,
                 this.getId(),
+                this.getNodeName(),
                 content,
                 reasoningContent,
                 this.getUpNodeIdList(),
