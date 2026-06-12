@@ -108,13 +108,10 @@
         <appender-ref ref="file_error"/>
     </appender>
 
-    <!-- 开发环境日志配置 -->
+    <!-- 开发环境日志配置（不生成日志文件，仅控制台输出） -->
     <springProfile name="dev">
         <root level="INFO">
             <appender-ref ref="console"/>
-            <appender-ref ref="async_info"/>
-            <appender-ref ref="async_warn"/>
-            <appender-ref ref="async_error"/>
         </root>
     </springProfile>
 

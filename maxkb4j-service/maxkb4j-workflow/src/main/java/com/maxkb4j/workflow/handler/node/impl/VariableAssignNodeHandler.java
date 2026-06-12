@@ -4,6 +4,7 @@ import com.maxkb4j.common.cache.ChatCache;
 import com.maxkb4j.common.domain.dto.ChatInfo;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.NodeType;
+import com.maxkb4j.workflow.enums.ValueType;
 import com.maxkb4j.workflow.handler.node.AbsNodeHandler;
 import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.model.Workflow;
@@ -94,7 +95,7 @@ public class VariableAssignNodeHandler extends AbsNodeHandler {
     @SuppressWarnings("unchecked")
     private Object resolveValue(Workflow workflow, Map<String, Object> variable) {
         String source = (String) variable.get("source");
-        if ("referencing".equals(source)) {
+        if (ValueType.referencing.name().equals(source)) {
             List<String> reference = (List<String>) variable.get("reference");
             if (reference != null && reference.size() >= 2) {
                 return workflow.getReferenceField(reference);

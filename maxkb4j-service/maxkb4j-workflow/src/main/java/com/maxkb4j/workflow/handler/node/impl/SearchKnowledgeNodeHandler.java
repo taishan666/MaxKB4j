@@ -8,6 +8,7 @@ import com.maxkb4j.knowledge.util.RagContentInjector;
 import com.maxkb4j.knowledge.vo.ParagraphVO;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.NodeType;
+import com.maxkb4j.workflow.enums.ValueType;
 import com.maxkb4j.workflow.handler.node.AbsNodeHandler;
 import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.model.Workflow;
@@ -34,23 +35,29 @@ public class SearchKnowledgeNodeHandler extends AbsNodeHandler {
     public static final RagContentInjector contentInjector = new RagContentInjector();
 
     @Override
+    @SuppressWarnings("unchecked")
     protected NodeResult doExecute(Workflow workflow, AbsNode node) throws Exception {
         SearchKnowledgeNode.NodeParams params = parseParams(node, SearchKnowledgeNode.NodeParams.class);
+        List<String> knowledgeIds = params.getKnowledgeIds();
+        if (ValueType.referencing.name().equals(params.getSearchScopeType())) {
+            List<String> fields = params.getSearchScopeReference();
+            Object value = workflow.getReferenceField(fields);
+            if (value instanceof List) {
+                knowledgeIds= (List<String>) value;
+            }
+        }
         KnowledgeSetting knowledgeSetting = params.getKnowledgeSetting();
         List<String> fields = params.getQuestionReferenceAddress();
         String question = getReferenceFieldAsString(workflow, fields);
-
         List<String> excludeParagraphIds = new ArrayList<>();
         if (workflow.getChatParams().getReChat()) {
             excludeParagraphIds = getExcludeParagraphIds(workflow, node.getRuntimeNodeId(), question);
         }
-
         List<ParagraphVO> paragraphList = retrieveService.paragraphSearch(
-                question, params.getKnowledgeIds(), excludeParagraphIds, knowledgeSetting);
+                question, knowledgeIds, excludeParagraphIds, knowledgeSetting);
         List<ParagraphVO> isHitHandlingMethodList = paragraphList.stream()
                 .filter(ParagraphVO::isHitHandlingMethod)
                 .toList();
-
         // 使用辅助方法写入详情
         putDetails(node, Map.of(
                 "question", question,

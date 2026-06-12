@@ -37,6 +37,8 @@ public class SearchKnowledgeNode extends AbsNode {
         private List<String> knowledgeIds;
         private KnowledgeSetting knowledgeSetting;
         private List<String> questionReferenceAddress;
+        private String searchScopeType;
+        private List<String> searchScopeReference;
         private Boolean showKnowledge;
 
     }

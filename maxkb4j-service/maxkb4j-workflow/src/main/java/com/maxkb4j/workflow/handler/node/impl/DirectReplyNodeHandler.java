@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.maxkb4j.common.util.ObjectUtil;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.NodeType;
+import com.maxkb4j.workflow.enums.ValueType;
 import com.maxkb4j.workflow.handler.node.AbsNodeHandler;
 import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.model.Workflow;
@@ -24,7 +25,7 @@ public class DirectReplyNodeHandler extends AbsNodeHandler {
     protected NodeResult doExecute(Workflow workflow, AbsNode node) throws Exception {
         DirectReplyNode.NodeParams params = parseParams(node, DirectReplyNode.NodeParams.class);
         AtomicReference<String> answerText = new AtomicReference<>("");
-        if ("referencing".equals(params.getReplyType())) {
+        if (ValueType.referencing.name().equals(params.getReplyType())) {
             List<String> fields = params.getFields();
             Object value = workflow.getReferenceField(fields);
             if (value == null) {
