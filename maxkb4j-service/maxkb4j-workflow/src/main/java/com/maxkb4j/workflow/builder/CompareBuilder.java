@@ -4,6 +4,8 @@ package com.maxkb4j.workflow.builder;
 import com.maxkb4j.workflow.compare.Compare;
 import com.maxkb4j.workflow.enums.CompareOperator;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.context.annotation.Role;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
@@ -14,9 +16,13 @@ import java.util.concurrent.ConcurrentHashMap;
  * Provides centralized handler lookup and registration.
  *
  * Refactored to Spring Bean for consistency with NodeCenter pattern.
+ *
+ * 标记为 ROLE_INFRASTRUCTURE，避免被 BeanPostProcessor 处理时产生
+ * "is not eligible for getting processed by all BeanPostProcessors" 警告。
  */
 @Slf4j
 @Component
+@Role(BeanDefinition.ROLE_INFRASTRUCTURE)
 public class CompareBuilder {
 
     private final Map<String, Compare> handlerPool = new ConcurrentHashMap<>();

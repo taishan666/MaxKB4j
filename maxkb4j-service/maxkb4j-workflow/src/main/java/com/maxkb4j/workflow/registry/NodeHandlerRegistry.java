@@ -2,6 +2,8 @@ package com.maxkb4j.workflow.registry;
 
 import com.maxkb4j.workflow.handler.node.INodeHandler;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.context.annotation.Role;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
@@ -12,9 +14,13 @@ import java.util.concurrent.ConcurrentHashMap;
  * 管理节点类型与处理器实例的映射关系
  *
  * 从 NodeCenter 分离，遵循单一职责原则
+ *
+ * 标记为 ROLE_INFRASTRUCTURE，避免被 BeanPostProcessor 处理时产生
+ * "is not eligible for getting processed by all BeanPostProcessors" 警告。
  */
 @Slf4j
 @Component
+@Role(BeanDefinition.ROLE_INFRASTRUCTURE)
 public class NodeHandlerRegistry {
 
     /**
