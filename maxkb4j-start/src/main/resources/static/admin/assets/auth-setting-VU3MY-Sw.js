@@ -1,1 +1,0 @@
-import{b3 as i,b4 as s,b2 as r}from"./admin-BTbT4DYt.js";const n="/auth",u=(t,o)=>r(`${n}/${t}/detail`,void 0,o),a=(t,o)=>i(`${n}/connection`,t,void 0,o),p=(t,o,e)=>s(`${n}/${t}/info`,o,void 0,e),g={getAuthSetting:u,postAuthSetting:a,putAuthSetting:p};export{g as a};
