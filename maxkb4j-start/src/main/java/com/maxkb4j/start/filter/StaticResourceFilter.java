@@ -12,7 +12,7 @@ import java.util.regex.Pattern;
 public class StaticResourceFilter implements Filter {
 
     private static final String ADMIN_PATH = "/admin/";
-    private static final Set<String> ALLOWED_FOLDERS = Set.of("tool", "app");
+    private static final Set<String> ALLOWED_FOLDERS = Set.of("tool");
 
     /**
      * 匹配 /admin/.../{folder}/.../file.ext 路径，其中 ext 是指定的静态资源扩展名
