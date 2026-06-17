@@ -75,6 +75,6 @@ public class WebConfig implements WebMvcConfigurer {
                         "access-control-allow-methods",
                         "access-control-allow-origin",
                         "access-control-max-age",
-                        "X-Frame-Options");
+                        "X-Frame-Options").maxAge(300);
     }
 }
