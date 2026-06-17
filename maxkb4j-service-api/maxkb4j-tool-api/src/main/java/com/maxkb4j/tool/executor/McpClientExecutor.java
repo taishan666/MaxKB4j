@@ -18,7 +18,7 @@ public class McpClientExecutor {
     public String execute(String toolName,JSONObject params) {
         McpClient mcpClient = McpToolUtil.getMcpClient(mcpServers);
         if (mcpClient==null){
-            throw new ApiException("未找到工具");
+            throw new ApiException("tool.not.found");
         }
         ToolExecutionRequest toolExecutionRequest=ToolExecutionRequest.builder()
                 .name(toolName)

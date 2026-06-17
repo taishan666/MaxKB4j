@@ -111,7 +111,7 @@ public class ToolService  extends ServiceImpl<ToolMapper, ToolEntity> implements
             try (InputStream is = mongoFileService.getStream(entity.getCode())) {
                 SkillsToolUtil.unzipSkill(is, entity.getId());
             } catch (IOException e) {
-                throw new ApiException("Failed to extract the skill file.");
+                throw new ApiException("tool.skill.file.extract.failed");
             }
         }
         return userResourcePermissionService.ownerSave(AuthTargetType.TOOL, entity.getId(), entity.getUserId());

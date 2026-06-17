@@ -12,6 +12,9 @@ common:
     error: System error
   illegal:
     argument: Illegal argument
+  file:
+    limit:
+      exceeded: File count exceeds the limit
 
 login:
   captcha:
@@ -47,3 +50,51 @@ email:
       password: "[Intelligent Knowledge Base Q&A System - Forgot Password]"
     modify:
       password: "[Intelligent Knowledge Base Q&A System - Modify Password]"
+
+application:
+  token:
+    invalid:
+      or:
+        disabled: Token is invalid or disabled
+  access:
+    white:
+      list:
+        required: Illegal access. Please contact the administrator to add the whitelist.
+  not:
+    published: The application has not been published. Please publish it before use.
+  app:
+    type:
+      not:
+        found: No appType was found
+
+model:
+  name:
+    exists: Model name already exists
+
+chat:
+  token:
+    invalid:
+      or:
+        disabled: Token is invalid or disabled
+
+tool:
+  not:
+    found: Tool not found
+  skill:
+    directory:
+      create:
+        failed: "Failed to create skill directory: {0}"
+    zip:
+      entry:
+        outside:
+          target: "Zip entry is outside target directory: {0}"
+      extract:
+        failed: Failed to extract skill zip file
+    file:
+      extract:
+        failed: Failed to extract the skill file.
+
+trigger:
+  schedule:
+    type:
+      required: Please select a trigger cycle

@@ -105,7 +105,7 @@ public class ModelService extends ServiceImpl<ModelMapper, ModelEntity> {
         String userId = StpKit.ADMIN.getLoginIdAsString();
         long count = this.lambdaQuery().eq(ModelEntity::getName, model.getName()).eq(ModelEntity::getUserId, userId).count();
         if (count > 0) {
-            throw new ApiException("模型名称已存在");
+            throw new ApiException("model.name.exists");
         }
         if (model.getModelParamsForm() == null){
             model.setModelParamsForm(new JSONArray());

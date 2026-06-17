@@ -1,5 +1,6 @@
 package com.maxkb4j.common.exception;
 
+import com.maxkb4j.common.util.I18nUtil;
 
 /**
  * 自定义异常
@@ -22,7 +23,11 @@ public class ApiException extends RuntimeException {
      */
 
     public ApiException(String message) {
-        super(message);
+        super(I18nUtil.get(message));
+    }
+
+    public ApiException(String message, Object... args) {
+        super(I18nUtil.get(message, args));
     }
 
 }

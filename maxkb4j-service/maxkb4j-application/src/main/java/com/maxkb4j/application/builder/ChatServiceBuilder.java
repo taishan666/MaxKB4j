@@ -29,7 +29,7 @@ public class ChatServiceBuilder {
     public static IChatService getChatService(String appType) {
         IChatService chatActuator = ACTUATOR_POOL.get(appType);
         if (chatActuator == null) {
-            throw new ApiException("no appType was found");
+            throw new ApiException("application.app.type.not.found");
         } else {
             return ACTUATOR_POOL.get(appType);
         }

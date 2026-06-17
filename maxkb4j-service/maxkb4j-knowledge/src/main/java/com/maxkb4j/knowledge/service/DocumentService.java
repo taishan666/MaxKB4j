@@ -111,7 +111,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
     @Transactional
     public void importQa(String knowledgeId, MultipartFile[] files) throws IOException {
         if (checkFileLimit(knowledgeId, files)) {
-            throw new FileLimitExceededException("文件数量超出限制");
+            throw new FileLimitExceededException("common.file.limit.exceeded");
         }
         if (files == null) return;
         List<DocumentSimple> docs = new ArrayList<>();
@@ -138,7 +138,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
     @Transactional
     public void importTable(String knowledgeId, MultipartFile[] files) throws IOException {
         if (checkFileLimit(knowledgeId, files)) {
-            throw new FileLimitExceededException("文件数量超出限制");
+            throw new FileLimitExceededException("common.file.limit.exceeded");
         }
         if (files == null) return;
         List<DocumentSimple> docs = new ArrayList<>();
@@ -235,7 +235,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
 
     public List<TextSegmentVO> split(String knowledgeId, MultipartFile[] files, String[] patterns, Integer limit, Boolean withFilter) throws IOException {
         if (checkFileLimit(knowledgeId, files)) {
-            throw new FileLimitExceededException("文件数量超出限制");
+            throw new FileLimitExceededException("common.file.limit.exceeded");
         }
         List<TextSegmentVO> result = new ArrayList<>();
         List<DocFileVO> fileStreams = new ArrayList<>();

@@ -12,6 +12,9 @@ common:
     error: 系统异常
   illegal:
     argument: 非法参数
+  file:
+    limit:
+      exceeded: 文件数量超出限制
 
 login:
   captcha:
@@ -47,3 +50,51 @@ email:
       password: 【智能知识库问答系统-忘记密码】
     modify:
       password: 【智能知识库问答系统-修改密码】
+
+application:
+  token:
+    invalid:
+      or:
+        disabled: token无效或未被启用
+  access:
+    white:
+      list:
+        required: 非法访问，请联系管理员添加白名单
+  not:
+    published: 应用未发布，请发布后使用。
+  app:
+    type:
+      not:
+        found: 未找到应用类型
+
+model:
+  name:
+    exists: 模型名称已存在
+
+chat:
+  token:
+    invalid:
+      or:
+        disabled: token不合法或被禁用
+
+tool:
+  not:
+    found: 未找到工具
+  skill:
+    directory:
+      create:
+        failed: 创建技能目录失败：{0}
+    zip:
+      entry:
+        outside:
+          target: Zip条目位于目标目录之外：{0}
+      extract:
+        failed: 技能压缩包解压失败
+    file:
+      extract:
+        failed: 技能文件解压失败
+
+trigger:
+  schedule:
+    type:
+      required: 请选择触发周期

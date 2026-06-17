@@ -166,7 +166,7 @@ public class ToolProviderService implements IToolProviderService {
             try (InputStream is = mongoFileService.getStream(fileId)) {
                 SkillsToolUtil.unzipSkill(is, toolId);
             } catch (IOException e) {
-                throw new ApiException("Failed to extract the skill file.");
+                throw new ApiException("tool.skill.file.extract.failed");
             }
         }
     }

@@ -85,7 +85,7 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
         if (!debug) {
             long count = applicationVersionService.lambdaQuery().eq(ApplicationVersionEntity::getApplicationId, appId).count();
             if (count == 0) {
-                throw new ApiException("应用未发布，请发布后使用。");
+                throw new ApiException("application.not.published");
             }
         }
         ChatInfo chatInfo = new ChatInfo(IdWorker.get32UUID(), appId);

@@ -426,11 +426,11 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         InputStream inputStream = classLoader.getResourceAsStream("templates/embed.txt");
         ApplicationAccessTokenEntity token = accessTokenService.getByAccessToken(dto.getToken());
         if (token == null || !token.getIsActive()) {
-            throw new ApiException("token无效或未被启用");
+            throw new ApiException("application.token.invalid.or.disabled");
         }
         List<String> whiteList = token.getWhiteList();
         if (token.getWhiteActive() && !whiteList.contains(WebUtil.getIP())) {
-            throw new ApiException("非法访问，请联系管理员添加白名单");
+            throw new ApiException("application.access.white.list.required");
         }
         String content = IoUtil.readToString(inputStream, StandardCharsets.UTF_8);
         return render(content, getParamsMap(token, dto));

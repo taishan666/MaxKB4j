@@ -116,11 +116,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
     public boolean createUser(UserEntity user) {
         long usernameNum = this.lambdaQuery().eq(UserEntity::getUsername, user.getUsername()).count();
         if (usernameNum > 0) {
-            throw new ApiException(I18nUtil.get("user.username.exists"));
+            throw new ApiException("user.username.exists");
         }
         long emailNum = this.lambdaQuery().eq(UserEntity::getEmail, user.getEmail()).count();
         if (emailNum > 0) {
-            throw new ApiException(I18nUtil.get("user.email.exists"));
+            throw new ApiException("user.email.exists");
         }
         user.setRole(Set.of(RoleType.USER));
         user.setIsActive(true);

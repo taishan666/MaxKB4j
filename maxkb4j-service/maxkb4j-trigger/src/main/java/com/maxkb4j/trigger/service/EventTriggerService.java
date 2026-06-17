@@ -91,7 +91,7 @@ public class EventTriggerService extends ServiceImpl<EventTriggerMapper, EventTr
         if (TriggerType.SCHEDULED.name().equals(dto.getTriggerType())) {
             JSONObject triggerSetting = dto.getTriggerSetting();
             if (triggerSetting == null || !triggerSetting.containsKey("scheduleType")) {
-                throw new ApiException("请选择触发周期");
+                throw new ApiException("trigger.schedule.type.required");
             }
         }
         dto.setUserId(StpKit.ADMIN.getLoginIdAsString());

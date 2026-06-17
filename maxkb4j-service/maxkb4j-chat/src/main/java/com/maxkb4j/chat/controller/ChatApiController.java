@@ -122,7 +122,7 @@ public class ChatApiController {
         String secretKey = WebUtil.getTokenValue();
         ApplicationApiKeyEntity apiKey = apiKeyService.getBySecretKey(secretKey);
         if (apiKey == null || !apiKey.getIsActive()) {
-            emitter.completeWithError(new ApiException("token不合法或被禁用"));
+            emitter.completeWithError(new ApiException("chat.token.invalid.or.disabled"));
         } else {
             // 异步处理（避免阻塞主线程）
             chatApiService.mcpHandleAsync(apiKey, req, emitter);

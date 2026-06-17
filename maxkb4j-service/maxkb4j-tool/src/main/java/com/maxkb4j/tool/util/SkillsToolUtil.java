@@ -26,7 +26,7 @@ public class SkillsToolUtil {
         try {
             Files.createDirectories(skillsFolder); // 自动创建多级目录
         } catch (IOException e) {
-            throw new ApiException("Failed to create skill directory: " + e.getMessage());
+            throw new ApiException("tool.skill.directory.create.failed", e.getMessage());
         }
         String rootFolderName = null;
         try (ZipInputStream zis = new ZipInputStream(is)) {
@@ -42,7 +42,7 @@ public class SkillsToolUtil {
                 // 防止 zip slip 漏洞：确保解压路径在目标目录内
                 Path targetPath = skillsFolder.resolve(entryName).normalize();
                 if (!targetPath.startsWith(skillsFolder)) {
-                    throw new ApiException("Zip entry is outside target directory: " + entry.getName());
+                    throw new ApiException("tool.skill.zip.entry.outside.target", entry.getName());
                 }
                 if (entry.isDirectory()) {
                     Files.createDirectories(targetPath);
@@ -53,7 +53,7 @@ public class SkillsToolUtil {
                 zis.closeEntry();
             }
         } catch (IOException e) {
-            throw new ApiException("Failed to extract skill zip file ");
+            throw new ApiException("tool.skill.zip.extract.failed");
         }
     }
 
