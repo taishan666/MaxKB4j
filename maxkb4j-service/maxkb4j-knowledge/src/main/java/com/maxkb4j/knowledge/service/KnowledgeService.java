@@ -22,9 +22,6 @@ import com.maxkb4j.knowledge.dto.KnowledgeQuery;
 import com.maxkb4j.knowledge.dto.WebKnowledgeDTO;
 import com.maxkb4j.knowledge.entity.*;
 import com.maxkb4j.knowledge.handler.KnowledgeExportHandler;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.stereotype.Service;
-import org.springframework.beans.factory.annotation.Autowired;
 import com.maxkb4j.knowledge.handler.KnowledgeImportHandler;
 import com.maxkb4j.knowledge.mapper.KnowledgeMapper;
 import com.maxkb4j.knowledge.mapper.ParagraphMapper;
@@ -48,7 +45,9 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -307,8 +306,9 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
         knowledgeAction.setDetails(new JSONObject());
         knowledgeAction.setRunTime(0F);
         JSONObject meta = new JSONObject();
-        meta.put("userId", StpKit.ADMIN.getLoginIdAsString());
-        meta.put("username", StpKit.ADMIN.getExtra("username"));
+        String userId= StpKit.ADMIN.getLoginIdAsString();
+        meta.put("userId", userId);
+        meta.put("username", userService.getUsername(userId));
         knowledgeAction.setMeta(meta);
         knowledgeActionService.save(knowledgeAction);
         LogicFlow logicFlow = LogicFlow.newInstance(knowledgeWorkFlow);
@@ -350,8 +350,9 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
         knowledgeVersion.setKnowledgeId(id);
         knowledgeVersion.setName(DateTimeUtil.now());
         knowledgeVersion.setWorkFlow(knowledge.getWorkFlow());
-        knowledgeVersion.setPublishUserId(StpKit.ADMIN.getLoginIdAsString());
-        knowledgeVersion.setPublishUserName((String) StpKit.ADMIN.getExtra("username"));
+        String userId = StpKit.ADMIN.getLoginIdAsString();
+        knowledgeVersion.setPublishUserId(userId);
+        knowledgeVersion.setPublishUserName(userService.getUsername(userId));
         return knowledgeVersionService.save(knowledgeVersion);
     }
 

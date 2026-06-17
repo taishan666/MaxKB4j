@@ -1,7 +1,10 @@
 package com.maxkb4j.common.domain.dto;
 
+import com.baomidou.mybatisplus.core.toolkit.IdWorker;
+import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.maxkb4j.common.enums.ChatSource;
+import com.maxkb4j.common.enums.ChatUserType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -63,5 +66,11 @@ public class ChatParams {
     @JsonIgnore
     private ChatRecordDTO chatRecord;
 
+    public String getChatUserId() {
+        return StringUtils.isBlank(chatUserId)? IdWorker.get32UUID() : chatUserId;
+    }
 
+    public String getChatUserType() {
+        return StringUtils.isBlank(chatUserType)? ChatUserType.ANONYMOUS_USER.name() : chatUserType;
+    }
 }

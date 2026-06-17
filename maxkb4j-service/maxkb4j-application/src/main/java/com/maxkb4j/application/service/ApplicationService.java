@@ -408,8 +408,9 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         entity.setApplicationId(id);
         entity.setApplicationName(application.getName());
         entity.setName(DateTimeUtil.now());
-        entity.setPublishUserId(StpKit.ADMIN.getLoginIdAsString());
-        entity.setPublishUserName((String) StpKit.ADMIN.getExtra("username"));
+        String userId = StpKit.ADMIN.getLoginIdAsString();
+        entity.setPublishUserId(userId);
+        entity.setPublishUserName(userService.getUsername(userId));
         applicationVersionService.save(entity);
         return application;
     }

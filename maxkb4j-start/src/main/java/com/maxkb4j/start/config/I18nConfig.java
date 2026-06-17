@@ -1,5 +1,6 @@
 package com.maxkb4j.start.config;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.YamlPropertiesFactoryBean;
 import org.springframework.context.MessageSource;
@@ -58,26 +59,26 @@ public class I18nConfig {
     private static class YamlMessageSource extends AbstractMessageSource {
 
         private final PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
-        private final String[] basenames;
+        private final String[] baseNames;
         private final Map<String, Properties> cachedProperties = new ConcurrentHashMap<>();
 
         private YamlMessageSource(String basename) {
-            this.basenames = StringUtils.commaDelimitedListToStringArray(basename);
+            this.baseNames = StringUtils.commaDelimitedListToStringArray(basename);
         }
 
         @Override
-        protected String resolveCodeWithoutArguments(String code, Locale locale) {
+        protected String resolveCodeWithoutArguments(@NotNull String code, @NotNull Locale locale) {
             return getMessage(code, locale);
         }
 
         @Override
-        protected MessageFormat resolveCode(String code, Locale locale) {
+        protected MessageFormat resolveCode(@NotNull String code, @NotNull Locale locale) {
             String message = getMessage(code, locale);
             return message == null ? null : createMessageFormat(message, locale);
         }
 
         private String getMessage(String code, Locale locale) {
-            for (String basename : basenames) {
+            for (String basename : baseNames) {
                 String message = getMergedProperties(basename.trim(), locale).getProperty(code);
                 if (message != null) {
                     return message;

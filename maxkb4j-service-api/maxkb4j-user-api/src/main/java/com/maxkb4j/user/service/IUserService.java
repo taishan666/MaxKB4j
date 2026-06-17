@@ -15,7 +15,11 @@ public interface IUserService extends IService<UserEntity> {
 
     Map<String, String> getNicknameMap();
 
+    String getUsername(String userId);
+
     String getNickname(String userId);
+
+    String getEmail(String userId);
 
     String getLanguage(String userId);
 

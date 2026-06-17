@@ -2,7 +2,6 @@ package com.maxkb4j.workflow.handler.node.impl;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.maxkb4j.common.cache.ChatCache;
 import com.maxkb4j.common.domain.dto.ChatInfo;
 import com.maxkb4j.common.domain.dto.ChatParams;
@@ -68,7 +67,7 @@ public class StartNodeHandler extends AbsNodeHandler {
         resultMap.put("time", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
         resultMap.put("historyContext", getHistoryContext(workflow));
         resultMap.put("chatId", chatParams.getChatId());
-        resultMap.put("chatUserId", IdWorker.get32UUID());
+        resultMap.put("chatUserId", chatParams.getChatUserId());
         resultMap.put("chatUserType", chatParams.getChatUserType());
         resultMap.put("chatUser", new JSONObject(Map.of("username", "游客")));
         if (chatParams.getFormData() != null){

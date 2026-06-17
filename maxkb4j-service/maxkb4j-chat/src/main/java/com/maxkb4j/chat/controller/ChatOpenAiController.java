@@ -52,7 +52,7 @@ public class ChatOpenAiController {
                 .message(request.getLastUserMessage())
                 .chatId(chatId)
                 .chatUserId(IdWorker.get32UUID())
-                .chatUserType(ChatUserType.ANONYMOUS_USER.name())
+                .chatUserType(ChatUserType.APPLICATION_API_KEY.name())
                 .debug(false)
                 .stream(request.getStream())
                 .reChat(false)

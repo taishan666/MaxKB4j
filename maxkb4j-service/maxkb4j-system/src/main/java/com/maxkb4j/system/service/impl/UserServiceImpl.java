@@ -32,6 +32,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.thymeleaf.context.Context;
@@ -99,16 +100,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
             throw new LoginException(I18nUtil.get("login.user.disabled"));
         }
         // 登录成功后立刻按用户表语言切换当前请求的返回消息
-        org.springframework.context.i18n.LocaleContextHolder.setLocale(
-                userEntity.getLanguage() != null && userEntity.getLanguage().toLowerCase().startsWith("en") ? Locale.US : Locale.SIMPLIFIED_CHINESE);
-        SaLoginModel loginModel = new SaLoginModel();
-        loginModel.setExtra("username", userEntity.getUsername());
-        loginModel.setExtra("email", userEntity.getEmail());
-        loginModel.setExtra("chatUserId", userEntity.getId());
-        loginModel.setExtra("chatUserType", ChatUserType.CHAT_USER.name());
-        loginModel.setExtra("roles", userEntity.getRole());
-        loginModel.setExtra("language", StringUtils.defaultIfBlank(userEntity.getLanguage(), "zh-CN"));
-        StpKit.ADMIN.login(userEntity.getId(), loginModel);
+        LocaleContextHolder.setLocale(userEntity.getLanguage() != null && userEntity.getLanguage().toLowerCase().startsWith("en") ? Locale.US : Locale.SIMPLIFIED_CHINESE);
+        StpKit.ADMIN.login(userEntity.getId());
         return StpKit.ADMIN.getTokenValue();
     }
 
@@ -168,7 +161,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
     }
 
     public Boolean sendEmailCode() throws MessagingException {
-        return sendEmailCode((String) StpKit.ADMIN.getExtra("email"), I18nUtil.get("email.subject.modify.password"));
+        String userId = StpKit.ADMIN.getLoginIdAsString();
+        return sendEmailCode(getEmail(userId), I18nUtil.get("email.subject.modify.password"));
     }
 
     public Boolean sendEmailCode(String email, String subject) throws MessagingException {
@@ -226,9 +220,21 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
         return this.lambdaQuery().select(UserEntity::getId, UserEntity::getNickname).list().stream().collect(Collectors.toMap(UserEntity::getId, UserEntity::getNickname));
     }
 
+    @Override
+    public String getUsername(String userId) {
+        List<UserEntity> list = this.lambdaQuery().select(UserEntity::getUsername).eq(UserEntity::getId, userId).list();
+        return list.isEmpty() ? "" : list.getFirst().getUsername();
+    }
+
     public String getNickname(String userId) {
         List<UserEntity> list = this.lambdaQuery().select(UserEntity::getNickname).eq(UserEntity::getId, userId).list();
         return list.isEmpty() ? "" : list.getFirst().getNickname();
+    }
+
+    @Override
+    public String getEmail(String userId) {
+        List<UserEntity> list = this.lambdaQuery().select(UserEntity::getEmail).eq(UserEntity::getId, userId).list();
+        return list.isEmpty() ? "" : list.getFirst().getEmail();
     }
 
     @Override
