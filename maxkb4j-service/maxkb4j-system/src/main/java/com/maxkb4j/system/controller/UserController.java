@@ -8,10 +8,12 @@ import com.maxkb4j.common.constant.LoginType;
 import com.maxkb4j.common.constant.RoleType;
 import com.maxkb4j.common.api.R;
 import com.maxkb4j.common.props.SystemProperties;
+import com.maxkb4j.common.util.StpKit;
 import com.maxkb4j.system.service.impl.UserServiceImpl;
 import com.maxkb4j.user.dto.PasswordDTO;
 import com.maxkb4j.user.dto.UserDTO;
 import com.maxkb4j.user.entity.UserEntity;
+import com.maxkb4j.user.vo.UserVO;
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -31,10 +33,11 @@ public class UserController {
     private final UserServiceImpl userService;
 	private final SystemProperties systemProperties;
 
-    @SaCheckRole(type = LoginType.ADMIN, value = RoleType.ADMIN)
-    @GetMapping("/user_manage/{page}/{size}")
-    public R<IPage<UserEntity>> userManage(@PathVariable("page") int page, @PathVariable("size") int size, UserDTO dto) {
-        return R.data(userService.selectUserPage(page, size, dto));
+
+    @GetMapping("user/profile")
+    public R<UserVO> getUserProfile(){
+        String userId = StpKit.ADMIN.getLoginIdAsString();
+        return R.data(userService.getUserById(userId));
     }
 
     @SaCheckRole(type = LoginType.ADMIN, value = RoleType.ADMIN)
@@ -42,6 +45,14 @@ public class UserController {
     public R<Boolean> language(@RequestBody UserEntity user) {
         return R.status(userService.updateLanguage(user));
     }
+
+
+    @SaCheckRole(type = LoginType.ADMIN, value = RoleType.ADMIN)
+    @GetMapping("/user_manage/{page}/{size}")
+    public R<IPage<UserEntity>> userManage(@PathVariable("page") int page, @PathVariable("size") int size, UserDTO dto) {
+        return R.data(userService.selectUserPage(page, size, dto));
+    }
+
 
     @SaCheckRole(type = LoginType.ADMIN, value = RoleType.ADMIN)
     @PostMapping("/user_manage")

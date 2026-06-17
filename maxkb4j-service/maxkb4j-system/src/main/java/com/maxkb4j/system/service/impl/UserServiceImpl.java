@@ -1,11 +1,9 @@
 package com.maxkb4j.system.service.impl;
 
 import cn.dev33.satoken.exception.NotLoginException;
-import cn.dev33.satoken.jwt.StpLogicJwtForStateless;
 import cn.dev33.satoken.secure.SaSecureUtil;
 import cn.dev33.satoken.stp.SaLoginModel;
 import cn.dev33.satoken.stp.StpInterface;
-import cn.dev33.satoken.stp.StpLogic;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -102,7 +100,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
         SaLoginModel loginModel = new SaLoginModel();
         loginModel.setExtra("username", userEntity.getUsername());
         loginModel.setExtra("email", userEntity.getEmail());
-        loginModel.setExtra("language", userEntity.getLanguage());
         loginModel.setExtra("chatUserId", userEntity.getId());
         loginModel.setExtra("chatUserType", ChatUserType.CHAT_USER.name());
         loginModel.setExtra("roles", userEntity.getRole());
@@ -123,7 +120,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
         user.setRole(Set.of(RoleType.USER));
         user.setIsActive(true);
         user.setSource(UserSource.LOCAL);
-        user.setLanguage((String) StpKit.ADMIN.getExtra("language"));
         user.setPassword(SaSecureUtil.md5(user.getPassword()));
         return save(user);
     }
@@ -208,9 +204,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
     public Boolean updateLanguage(UserEntity user) {
         String userId = StpKit.ADMIN.getLoginIdAsString();
         user.setId(userId);
-        StpLogic stpLogic = new StpLogicJwtForStateless();
-        String token = stpLogic.createTokenValue(userId, "default-device", StpKit.ADMIN.getTokenTimeout(), Map.of("language", user.getLanguage()));
-        StpKit.ADMIN.setTokenValue(token);
         return updateById(user);
     }
 
@@ -229,7 +222,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
 
     public String getNickname(String userId) {
         List<UserEntity> list = this.lambdaQuery().select(UserEntity::getNickname).eq(UserEntity::getId, userId).list();
-        return list.isEmpty() ? "" : list.get(0).getNickname();
+        return list.isEmpty() ? "" : list.getFirst().getNickname();
+    }
+
+    @Override
+    public String getLanguage(String userId) {
+        List<UserEntity> list = this.lambdaQuery().select(UserEntity::getLanguage).eq(UserEntity::getId, userId).list();
+        return list.isEmpty() ? "" : list.getFirst().getLanguage();
     }
 
 

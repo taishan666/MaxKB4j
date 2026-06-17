@@ -251,7 +251,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         this.save(application);
         ApplicationAccessTokenEntity accessToken = ApplicationAccessTokenEntity.createDefault();
         accessToken.setApplicationId(application.getId());
-        accessToken.setLanguage((String) StpKit.ADMIN.getExtra("language"));
+        accessToken.setLanguage(userService.getLanguage(application.getUserId()));
         accessTokenService.save(accessToken);
         return userResourcePermissionService.ownerSave(AuthTargetType.APPLICATION, application.getId(), application.getUserId());
     }

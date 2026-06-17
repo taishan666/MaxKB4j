@@ -65,6 +65,6 @@ public class ApplicationAccessTokenEntity {
     }
 
     public static ApplicationAccessTokenEntity createDefault() {
-        return new ApplicationAccessTokenEntity(true,100,false,List.of(),false,false,"zh-CH");
+        return new ApplicationAccessTokenEntity(true,100,false,List.of(),false,false,null);
     }
 }

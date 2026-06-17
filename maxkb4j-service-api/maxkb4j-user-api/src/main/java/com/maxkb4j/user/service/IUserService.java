@@ -17,6 +17,8 @@ public interface IUserService extends IService<UserEntity> {
 
     String getNickname(String userId);
 
+    String getLanguage(String userId);
+
     UserVO getUserById(String userId);
 
     String login(UserLoginDTO dto, HttpServletRequest request);
