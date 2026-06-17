@@ -34,10 +34,9 @@ public class WebConfig implements WebMvcConfigurer {
                 .addPathPatterns("/chat/api/chat_message/*");
     }
 
-/*    @Override
-    public void addResourceHandlers(ResourceHandlerRegistry registry) {
-
-    }*/
+    @Override
+    public void addResourceHandlers(@NotNull ResourceHandlerRegistry registry) {
+    }
 
     @Override
     public void addViewControllers(@NotNull ViewControllerRegistry registry) {
