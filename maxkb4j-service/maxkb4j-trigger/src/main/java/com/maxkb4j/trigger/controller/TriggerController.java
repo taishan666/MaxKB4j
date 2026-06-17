@@ -34,7 +34,7 @@ public class TriggerController {
      */
     @GetMapping("/trigger/{current}/{size}")
     public R<IPage<EventTriggerVO>> page(@PathVariable int current, @PathVariable int size, EventQuery query) {
-        return R.success(eventTriggerService.pageList(current, size, query));
+        return R.data(eventTriggerService.pageList(current, size, query));
     }
 
     /**
@@ -51,7 +51,7 @@ public class TriggerController {
      */
     @GetMapping("/trigger/{id}")
     public R<EventTriggerVO> getTrigger(@PathVariable String id) {
-        return R.success(eventTriggerService.getDetailById(id));
+        return R.data(eventTriggerService.getDetailById(id));
     }
 
     /**
@@ -69,7 +69,7 @@ public class TriggerController {
      */
     @DeleteMapping("/trigger/{id}")
     public R<Boolean> delete(@PathVariable String id) {
-        return R.success(eventTriggerService.deleteTrigger(id));
+        return R.data(eventTriggerService.deleteTrigger(id));
     }
 
     /**
@@ -79,7 +79,7 @@ public class TriggerController {
     public R<Boolean> batchDelete(@RequestBody EventTriggerDTO dto) {
         boolean allSuccess = dto.getIdList().stream()
                 .allMatch(eventTriggerService::deleteTrigger);
-        return R.success(allSuccess);
+        return R.status(allSuccess);
     }
 
     /**
@@ -89,7 +89,7 @@ public class TriggerController {
     public R<Boolean> batchActivate(@RequestBody EventTriggerDTO dto) {
         boolean allSuccess = dto.getIdList().stream()
                 .allMatch(id -> eventTriggerService.batchActivate(id, dto.getIsActive()));
-        return R.success(allSuccess);
+        return R.status(allSuccess);
     }
 
     @PostMapping("/{sourceType}/{sourceId}/trigger")
@@ -100,23 +100,23 @@ public class TriggerController {
 
     @GetMapping("/{sourceType}/{sourceId}/trigger/{id}")
     public R<SourceEventTriggerVO> getTriggerBySourceId(@PathVariable String sourceType, @PathVariable String sourceId, @PathVariable String id) {
-        return R.success(eventTriggerService.getDetailBySourceId(id, sourceType, sourceId));
+        return R.data(eventTriggerService.getDetailBySourceId(id, sourceType, sourceId));
     }
 
     @PutMapping("/{sourceType}/{sourceId}/trigger/{id}")
     public R<EventTriggerDTO> updateTriggerBySourceId(@PathVariable String sourceType, @PathVariable String sourceId, @PathVariable String id, @RequestBody EventTriggerDTO dto) {
         eventTriggerService.saveTrigger(dto, true);
-        return R.success(dto);
+        return R.data(dto);
     }
 
     @GetMapping("/{sourceType}/{sourceId}/trigger")
     public R<List<EventTriggerEntity>> listBySourceId(@PathVariable String sourceType, @PathVariable String sourceId) {
-        return R.success(eventTriggerService.listBySource(sourceType, sourceId));
+        return R.data(eventTriggerService.listBySource(sourceType, sourceId));
     }
 
     @DeleteMapping("/{sourceType}/{sourceId}/trigger/{id}")
     public R<Boolean> deleteBySourceId(@PathVariable String sourceType, @PathVariable String sourceId, @PathVariable String id) {
-        return R.success(eventTriggerService.deleteTrigger(id));
+        return R.status(eventTriggerService.deleteTrigger(id));
     }
 
 }

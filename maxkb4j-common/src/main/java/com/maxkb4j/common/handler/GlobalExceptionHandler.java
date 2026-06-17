@@ -6,6 +6,7 @@ import cn.dev33.satoken.exception.NotPermissionException;
 import cn.dev33.satoken.jwt.exception.SaJwtException;
 import com.maxkb4j.common.api.R;
 import com.maxkb4j.common.exception.*;
+import com.maxkb4j.common.util.I18nUtil;
 import com.maxkb4j.common.util.StpKit;
 import dev.langchain4j.exception.RateLimitException;
 import jakarta.servlet.http.HttpServletResponse;
@@ -159,7 +160,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public R<String> handleException(Exception e) {
         log.error("未知异常", e);
-        return R.fail(500, "系统异常");
+        return R.fail(500, I18nUtil.get("common.system.error"));
     }
 
 

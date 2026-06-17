@@ -5,12 +5,12 @@ import cn.dev33.satoken.secure.SaSecureUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.common.api.R;
 import com.maxkb4j.common.constant.AppConst;
+import com.maxkb4j.common.util.I18nUtil;
 import com.maxkb4j.common.util.StpKit;
 import com.maxkb4j.user.dto.ResetPasswordDTO;
 import com.maxkb4j.user.dto.UserLoginDTO;
 import com.maxkb4j.user.entity.UserEntity;
 import com.maxkb4j.user.service.IUserService;
-import com.maxkb4j.user.vo.UserVO;
 import com.wf.captcha.SpecCaptcha;
 import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -61,7 +61,7 @@ public class AuthController {
 
 	@PostMapping("/user/send_email")
 	public R<Boolean> sendEmail(@RequestBody ResetPasswordDTO dto) throws MessagingException {
-		return R.status(userService.sendEmailCode(dto.getEmail(),"【智能知识库问答系统-忘记密码】"));
+		return R.status(userService.sendEmailCode(dto.getEmail(), I18nUtil.get("email.subject.forget.password")));
 	}
 
 

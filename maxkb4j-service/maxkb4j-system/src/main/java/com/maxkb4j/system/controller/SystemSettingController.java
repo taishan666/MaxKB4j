@@ -30,14 +30,14 @@ public class SystemSettingController{
 	public R<JSONObject> getEmailSetting(){
 		SystemSettingEntity systemSetting=systemSettingService.lambdaQuery().eq(SystemSettingEntity::getType, SettingType.Email.getType()).one();
 		JSONObject json=systemSetting==null?new JSONObject():systemSetting.getMeta();
-		return R.success(json);
+		return R.data(json);
 	}
 
 	@SaCheckRole(type=LoginType.ADMIN,value = RoleType.ADMIN)
 	@PostMapping("/email_setting")
 	public R<Boolean> testEmail(@RequestBody JSONObject meta){
 		if(systemSettingService.testConnect(meta)){
-			return R.success(true);
+			return R.status(true);
 		}else {
 			return R.fail("测试连接失败");
 		}
@@ -62,6 +62,6 @@ public class SystemSettingController{
 	public R<DisplayInfo> display(){
 		SystemSettingEntity systemSetting=systemSettingService.lambdaQuery().eq(SystemSettingEntity::getType, SettingType.DISPLAY.getType()).one();
 		JSONObject json=systemSetting==null?new JSONObject():systemSetting.getMeta();
-		return R.success(json.toJavaObject(DisplayInfo.class));
+		return R.data(json.toJavaObject(DisplayInfo.class));
 	}
 }

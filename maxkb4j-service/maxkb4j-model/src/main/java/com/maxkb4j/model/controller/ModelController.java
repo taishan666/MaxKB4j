@@ -28,39 +28,39 @@ public class ModelController{
 	@SaCheckPerm(PermissionEnum.MODEL_CREATE)
 	@PostMapping("/model")
 	public R<Boolean> createModel(@RequestBody ModelEntity model){
-		return R.success(modelService.createModel(model));
+		return R.data(modelService.createModel(model));
 	}
 
 
 	@SaCheckPerm(PermissionEnum.MODEL_READ)
 	@GetMapping("/model")
 	public R<List<ModelVO>> models(String name, String createUser, String modelType, String provider){
-		return R.success(modelService.models(name,createUser,modelType,provider));
+		return R.data(modelService.models(name,createUser,modelType,provider));
 	}
 
 	@SaCheckPerm(PermissionEnum.MODEL_READ)
 	@GetMapping("/model_list")
 	public R<Map<String, List<ModelVO>>> modelList(String name, String createUser, String modelType, String provider){
 		List<ModelVO> models=modelService.models(name,createUser,modelType,provider);
-		return R.success(Map.of("model", models, "shared_model",List.of()));
+		return R.data(Map.of("model", models, "shared_model",List.of()));
 	}
 
 	@SaCheckPerm(PermissionEnum.MODEL_READ)
 	@GetMapping("/model/{id}")
 	public R<ModelEntity> getInfo(@PathVariable String id){
-		return R.success(modelService.getInfo(id));
+		return R.data(modelService.getInfo(id));
 	}
 
 	@SaCheckPerm(PermissionEnum.MODEL_DELETE)
 	@DeleteMapping("/model/{id}")
 	public R<Boolean> delete(@PathVariable String id){
-		return R.success(modelService.removeModelById(id));
+		return R.status(modelService.removeModelById(id));
 	}
 
 	@SaCheckPerm(PermissionEnum.MODEL_EDIT)
 	@PutMapping("/model/{id}")
 	public R<ModelEntity> update(@PathVariable String id,@RequestBody ModelEntity model){
-		return R.success(modelService.updateModel(id,model));
+		return R.data(modelService.updateModel(id,model));
 	}
 
 	@SaCheckPerm(PermissionEnum.MODEL_READ)
@@ -70,7 +70,7 @@ public class ModelController{
 		if (modelEntity==null){
 			return R.data(new JSONArray());
 		}
-		return R.success(modelEntity.getModelParamsForm());
+		return R.data(modelEntity.getModelParamsForm());
 	}
 
 	@SaCheckPerm(PermissionEnum.MODEL_EDIT)
@@ -80,6 +80,6 @@ public class ModelController{
 		modelEntity.setId(id);
 		modelEntity.setModelParamsForm(array);
 		modelService.updateById(modelEntity);
-		return R.success(modelEntity.getModelParamsForm());
+		return R.data(modelEntity.getModelParamsForm());
 	}
 }

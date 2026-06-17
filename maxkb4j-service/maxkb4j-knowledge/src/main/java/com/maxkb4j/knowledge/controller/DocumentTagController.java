@@ -28,7 +28,7 @@ public class DocumentTagController {
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_READ)
     @GetMapping("/knowledge/{id}/document/{docId}/tags")
     public R<List<TagListVO>> listTags(@PathVariable("id") String id, @PathVariable String docId, @RequestParam(required = false) String name) {
-        return R.success(documentTagService.listTags(docId,name));
+        return R.data(documentTagService.listTags(docId,name));
     }
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_READ)
@@ -44,7 +44,7 @@ public class DocumentTagController {
                 documentTags.add(documentTag);
             }
         }
-        return R.success(documentTagService.saveBatch(documentTags));
+        return R.status(documentTagService.saveBatch(documentTags));
     }
 
 
@@ -65,7 +65,7 @@ public class DocumentTagController {
                 }
             }
         }
-        return R.success(documentTagService.saveBatch(documentTags));
+        return R.status(documentTagService.saveBatch(documentTags));
     }
 
 
@@ -73,7 +73,7 @@ public class DocumentTagController {
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_DELETE)
     @PutMapping("/knowledge/{id}/document/{docId}/tags/batch_delete")
     public R<Boolean> batchDeleteTags(@PathVariable("id") String id,  @PathVariable String docId,@RequestBody List<String> tagIds) {
-        return R.success(documentTagService.removeBatchByIds(tagIds));
+        return R.status(documentTagService.removeBatchByIds(tagIds));
     }
 
 

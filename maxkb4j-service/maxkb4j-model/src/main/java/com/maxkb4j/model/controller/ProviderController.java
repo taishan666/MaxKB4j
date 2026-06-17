@@ -32,13 +32,13 @@ public class ProviderController {
     public R<List<ModelProviderInfo>> provider(String modelType) {
         ModelProvider[] providerEnums = ModelProvider.values();
         if (StringUtils.isBlank(modelType)) {
-            return R.success(Arrays.stream(providerEnums).map(ModelProvider::getInfo).toList());
+            return R.data(Arrays.stream(providerEnums).map(ModelProvider::getInfo).toList());
         }
         List<ModelProviderInfo> list = Arrays.stream(providerEnums).filter(e -> {
             AbsModelProvider modelProvider = e.getModelProvider();
             return modelProvider.isSupport(ModelType.getByKey(modelType));
         }).map(ModelProvider::getInfo).toList();
-        return R.success(list);
+        return R.data(list);
     }
 
 
@@ -49,13 +49,13 @@ public class ProviderController {
         Map<ModelType, List<ModelInfo>> map = modelInfos.stream().collect(Collectors.groupingBy(ModelInfo::getModelType));
         Set<ModelType> keys = map.keySet();
         List<KeyAndValueVO> list = ModelType.getModelTypeList().stream().filter(keys::contains).map(e -> new KeyAndValueVO(e.getName(), e.getKey())).toList();
-        return R.success(list);
+        return R.data(list);
     }
 
     @GetMapping("/provider/model_form")
     public R<List<BaseField>> modelForm(String provider, String modelType, String modelName) {
         AbsModelProvider modelProvider = ModelProvider.get(provider);
-        return R.success(modelProvider.getModelCredential().toForm());
+        return R.data(modelProvider.getModelCredential().toForm());
     }
 
 
@@ -63,13 +63,13 @@ public class ProviderController {
     public R<List<BaseField>> modelParamsForm(String provider, String modelType, String modelName) {
         AbsModelProvider modelProvider = ModelProvider.get(provider);
         if (modelProvider == null){
-            return R.success(List.of());
+            return R.data(List.of());
         }
         ModelInfo modelInfo = modelProvider.getModelInfo(ModelType.getByKey(modelType), modelName);
         if (modelInfo == null || modelInfo.getModelParams() == null) {
-            return R.success(modelProvider.getModelParamsForm(modelType));
+            return R.data(modelProvider.getModelParamsForm(modelType));
         }
-        return R.success(modelInfo.getModelParams().toForm());
+        return R.data(modelInfo.getModelParams().toForm());
     }
 
 
@@ -78,10 +78,10 @@ public class ProviderController {
         AbsModelProvider modelProvider = ModelProvider.get(provider);
         List<ModelInfo> modelInfos = modelProvider.getModelList();
         if (StringUtils.isBlank(modelType)) {
-            return R.success(modelInfos);
+            return R.data(modelInfos);
         }
         List<ModelInfo> modelList = modelInfos.stream().filter(e -> e.getModelType().getKey().equals(modelType)).toList();
-        return R.success(modelList);
+        return R.data(modelList);
     }
 
 

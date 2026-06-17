@@ -1,6 +1,7 @@
 package com.maxkb4j.start.config;
 
 import com.maxkb4j.core.interceptor.AuthInterceptor;
+import com.maxkb4j.system.interceptor.LocaleInterceptor;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.context.annotation.Configuration;
@@ -13,6 +14,7 @@ import org.springframework.web.servlet.config.annotation.*;
 public class WebConfig implements WebMvcConfigurer {
 
     private final AuthInterceptor authInterceptor;
+    private final LocaleInterceptor localeInterceptor;
 
     @Override
     public void configureAsyncSupport(AsyncSupportConfigurer configurer) {
@@ -27,6 +29,10 @@ public class WebConfig implements WebMvcConfigurer {
      */
     @Override
     public void addInterceptors(@NotNull InterceptorRegistry registry) {
+        // 国际化语言解析（最高优先级，覆盖所有请求）
+        registry.addInterceptor(localeInterceptor)
+                .addPathPatterns("/**")
+                .order(Integer.MIN_VALUE);
         // 拦截聊天所有请求
         registry.addInterceptor(authInterceptor)
                 .addPathPatterns("/chat/api/application/profile")

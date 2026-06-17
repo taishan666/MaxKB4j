@@ -18,7 +18,7 @@ public class ApplicationAccessController {
 
     @GetMapping("/application/{id}/platform/status")
     public R<JSONObject> platformStatus(@PathVariable("id") String id) {
-        return R.success(applicationAccessService.getPlatformStatus(id));
+        return R.data(applicationAccessService.getPlatformStatus(id));
     }
 
     @PostMapping("/application/{id}/platform/status")
@@ -28,7 +28,7 @@ public class ApplicationAccessController {
 
     @GetMapping("/application/{id}/platform/{key}")
     public R<JSONObject> platformConfig(@PathVariable("id") String id, @PathVariable("key") String key) {
-        return R.success(applicationAccessService.getPlatformConfig(id,key));
+        return R.data(applicationAccessService.getPlatformConfig(id,key));
     }
 
     @PostMapping("/application/{id}/platform/{key}")

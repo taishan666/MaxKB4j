@@ -29,7 +29,7 @@ public class ChatMessageController {
 
     @GetMapping("/workspace/default/application/{id}/open")
     public R<String> open(@PathVariable("id") String id) {
-        return R.success(chatService.chatOpen(id, true));
+        return R.data(chatService.chatOpen(id, true));
     }
 
     @PostMapping(path = "/chat_message/{chatId}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)

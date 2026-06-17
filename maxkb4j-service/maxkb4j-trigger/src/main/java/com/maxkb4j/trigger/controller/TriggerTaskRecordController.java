@@ -33,12 +33,12 @@ public class TriggerTaskRecordController {
      */
     @GetMapping("/trigger/{id}/task_record/{current}/{size}")
     public R<IPage<EventTriggerTaskRecordVO>> page(@PathVariable String id, @PathVariable int current, @PathVariable int size, EventTaskQuery query) {
-        return R.success(eventTriggerTaskRecordService.pageList(id,current, size, query));
+        return R.data(eventTriggerTaskRecordService.pageList(id,current, size, query));
     }
 
     @GetMapping("/trigger/{id}/trigger_task/{taskId}/trigger_task_record/{recordId}")
     public R<EventTriggerTaskRecordEntity> get(@PathVariable String id, @PathVariable String taskId, @PathVariable String recordId) {
-        return R.success(eventTriggerTaskRecordService.get(id,taskId, recordId));
+        return R.data(eventTriggerTaskRecordService.get(id,taskId, recordId));
     }
 
 

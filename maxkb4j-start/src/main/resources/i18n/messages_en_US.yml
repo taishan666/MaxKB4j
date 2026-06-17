@@ -1,0 +1,49 @@
+common:
+  success: Operation successful
+  fail: Operation failed
+  no:
+    data: No data available
+  pk:
+    empty: Primary key cannot be empty
+  record:
+    not:
+      exists: Record does not exist
+  system:
+    error: System error
+  illegal:
+    argument: Illegal argument
+
+login:
+  captcha:
+    expired: Captcha has expired
+    error: Captcha is incorrect
+  user:
+    not:
+      exists: Username or password is incorrect
+      found: User does not exist
+    disabled: The user has been disabled. Please contact the administrator.
+  not:
+    login: Not logged in
+  no:
+    permission: No permission
+  access:
+    denied: Access denied
+
+user:
+  username:
+    exists: Username already exists
+  email:
+    exists: Email already exists
+  password:
+    empty: Password cannot be empty
+    not:
+      match: Passwords do not match
+  admin:
+    nickname: System Administrator
+
+email:
+  subject:
+    forget:
+      password: "[Intelligent Knowledge Base Q&A System - Forgot Password]"
+    modify:
+      password: "[Intelligent Knowledge Base Q&A System - Modify Password]"

@@ -38,7 +38,7 @@ public class DocumentController {
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_SYNC)
     @PutMapping("/knowledge/{id}/document/{docId}/sync")
-    public void sync(@PathVariable("id") String id, @PathVariable("docId") String docId) throws IOException {
+    public void sync(@PathVariable("id") String id, @PathVariable("docId") String docId) {
         documentService.syncWebDoc(id, docId);
     }
 
@@ -58,91 +58,91 @@ public class DocumentController {
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_CREATE)
     @PostMapping("/knowledge/{id}/document/split")
     public R<List<TextSegmentVO>> split(@PathVariable String id, MultipartFile[] file, String[] patterns, Integer limit, Boolean withFilter) throws IOException {
-        return R.success(documentService.split(id,file, patterns, limit, withFilter));
+        return R.data(documentService.split(id,file, patterns, limit, withFilter));
     }
 
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_CREATE)
     @PutMapping("/knowledge/{id}/document/batch_create")
     public R<Boolean> createBatchDoc(@PathVariable("id") String id, @RequestBody List<DocumentSimple> docs) {
-        return R.success(documentService.batchCreateDocs(id, KnowledgeType.BASE, docs));
+        return R.status(documentService.batchCreateDocs(id, KnowledgeType.BASE, docs));
     }
 
     @GetMapping("/knowledge/{id}/document/split_pattern")
     public R<List<KeyAndValueVO>> splitPattern(@PathVariable("id") String id) {
-        return R.success(documentService.splitPattern());
+        return R.data(documentService.splitPattern());
     }
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_READ)
     @GetMapping("/knowledge/{id}/document")
     public R<List<DocumentEntity>> listDocByKnowledgeId(@PathVariable String id) {
-        return R.success(documentService.listDocByKnowledgeId(id));
+        return R.data(documentService.listDocByKnowledgeId(id));
     }
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_GENERATE)
     @PutMapping("/knowledge/{id}/document/batch_generate_related")
     public R<Boolean> batchGenerateRelated(@PathVariable String id, @RequestBody GenerateProblemDTO dto) {
-        return R.success(documentService.batchGenerateRelated(id, dto));
+        return R.status(documentService.batchGenerateRelated(id, dto));
     }
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_MIGRATE)
     @PutMapping("/knowledge/{id}/document/migrate/{targetKnowledgeId}")
     public R<Boolean> migrateDoc(@PathVariable("id") String sourceKnowledgeId, @PathVariable("targetKnowledgeId") String targetKnowledgeId, @RequestBody List<String> docIds) {
-        return R.success(documentService.migrateDoc(sourceKnowledgeId, targetKnowledgeId, docIds));
+        return R.status(documentService.migrateDoc(sourceKnowledgeId, targetKnowledgeId, docIds));
     }
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_EDIT)
     @PutMapping("/knowledge/{id}/document/batch_hit_handling")
     public R<Boolean> batchHitHandling(@PathVariable String id, @RequestBody DatasetBatchHitHandlingDTO dto) {
-        return R.success(documentService.batchHitHandling(id, dto));
+        return R.status(documentService.batchHitHandling(id, dto));
     }
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_DELETE)
     @PutMapping("/knowledge/{id}/document/batch_delete")
     public R<Boolean> deleteBatchDocByDocIds(@PathVariable("id") String id, @RequestBody IdListDTO dto) {
-        return R.success(documentService.deleteDocByIds(id, dto.getIdList()));
+        return R.status(documentService.deleteDocByIds(id, dto.getIdList()));
     }
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_READ)
     @GetMapping("/knowledge/{id}/document/{docId}")
     public R<DocumentEntity> getDocByDocId(@PathVariable String id, @PathVariable("docId") String docId) {
-        return R.success(documentService.getById(docId));
+        return R.data(documentService.getById(docId));
     }
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_VECTOR)
     @PutMapping("/knowledge/{id}/document/{docId}/refresh")
     public R<Boolean> refresh(@PathVariable String id, @PathVariable("docId") String docId, @RequestBody DocumentEmbedDTO dto) {
-        return R.success(documentService.embedByDocIds(id, List.of(docId), dto.getStateList()));
+        return R.status(documentService.embedByDocIds(id, List.of(docId), dto.getStateList()));
     }
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_VECTOR)
     @PutMapping("/knowledge/{id}/document/batch_refresh")
     public R<Boolean> batchRefresh(@PathVariable String id, @RequestBody DocumentEmbedDTO dto) {
-        return R.success(documentService.embedByDocIds(id, dto.getIdList(), dto.getStateList()));
+        return R.status(documentService.embedByDocIds(id, dto.getIdList(), dto.getStateList()));
     }
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_EDIT)
     @PutMapping("/knowledge/{id}/document/{docId}/cancel_task")
     public R<Boolean> cancelTask(@PathVariable String id, @PathVariable("docId") String docId, @RequestBody DocumentEntity documentEntity) {
-        return R.success(documentService.cancelTask(docId, documentEntity));
+        return R.status(documentService.cancelTask(docId, documentEntity));
     }
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_EDIT)
     @PutMapping("/knowledge/{id}/document/{docId}")
     public R<DocumentEntity> updateDocByDocId(@PathVariable String id, @PathVariable("docId") String docId, @RequestBody DocumentEntity documentEntity) {
-        return R.success(documentService.updateAndGetById(docId, documentEntity));
+        return R.data(documentService.updateAndGetById(docId, documentEntity));
     }
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_DELETE)
     @DeleteMapping("/knowledge/{id}/document/{docId}")
     public R<Boolean> deleteDoc(@PathVariable("id") String id, @PathVariable("docId") String docId) {
-        return R.success(documentService.deleteDocByIds(id,List.of(docId)));
+        return R.status(documentService.deleteDocByIds(id,List.of(docId)));
     }
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_READ)
     @GetMapping("/knowledge/{id}/document/{current}/{size}")
     public R<IPage<DocumentVO>> pageDocByDatasetId(@PathVariable String id, @PathVariable("current") int current, @PathVariable("size") int size, DocQuery query) {
-        return R.success(documentService.getDocByKnowledgeId(id, current, size, query));
+        return R.data(documentService.getDocByKnowledgeId(id, current, size, query));
     }
 
 

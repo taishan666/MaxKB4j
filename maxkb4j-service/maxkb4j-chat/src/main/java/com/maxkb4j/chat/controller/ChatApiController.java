@@ -63,14 +63,14 @@ public class ChatApiController {
         }
         JSONObject result = new JSONObject();
         result.put("authentication", appAccessToken.getAuthentication());
-        return R.success(result);
+        return R.data(result);
     }
 
 
     @Hidden
     @PostMapping("/auth/anonymous")
     public R<String> auth(@RequestBody JSONObject params) {
-        return R.success(chatApiService.authToken(params));
+        return R.data(chatApiService.authToken(params));
     }
 
 
@@ -140,38 +140,38 @@ public class ChatApiController {
     @Hidden
     @GetMapping("/historical_conversation/{chatId}/record/{chatRecordId}")
     public R<ApplicationChatRecordVO> historicalConversation(@PathVariable String chatId, @PathVariable String chatRecordId) {
-        return R.success(chatRecordService.getChatRecordInfo(chatId, chatRecordId));
+        return R.data(chatRecordService.getChatRecordInfo(chatId, chatRecordId));
     }
 
     @Hidden
     @PutMapping("/historical_conversation/{chatId}")
     public R<Boolean> updateConversation(@PathVariable String chatId, @RequestBody ApplicationChatEntity chatEntity) {
         chatEntity.setId(chatId);
-        return R.success(chatService.updateById(chatEntity));
+        return R.status(chatService.updateById(chatEntity));
     }
 
     @Hidden
     @DeleteMapping("/historical_conversation/{chatId}")
     public R<Boolean> deleteConversation(@PathVariable String chatId) {
-        return R.success(chatService.deleteById(chatId));
+        return R.status(chatService.deleteById(chatId));
     }
 
     @Hidden
     @DeleteMapping("/historical_conversation/clear")
     public R<Boolean> historicalConversationClear() {
-        return R.success(chatApiService.historicalConversationClear());
+        return R.status(chatApiService.historicalConversationClear());
     }
 
     @Hidden
     @GetMapping("/historical_conversation_record/{chatId}/{current}/{size}")
     public R<IPage<ApplicationChatRecordVO>> historicalConversationRecord(@PathVariable String chatId, @PathVariable int current, @PathVariable int size) {
-        return R.success(chatRecordService.chatRecordPage(chatId, current, size));
+        return R.data(chatRecordService.chatRecordPage(chatId, current, size));
     }
 
     @Hidden
     @PutMapping("/vote/chat/{chatId}/chat_record/{chatRecordId}")
     public R<Boolean> updateConversation(@PathVariable String chatId, @PathVariable String chatRecordId, @RequestBody ApplicationChatRecordEntity chatRecord) {
-        return R.success(chatApiService.updateConversation(chatId, chatRecordId, chatRecord));
+        return R.status(chatApiService.updateConversation(chatId, chatRecordId, chatRecord));
     }
 
     @Hidden
@@ -211,13 +211,13 @@ public class ChatApiController {
     @SaCheckPerm(PermissionEnum.APPLICATION_READ)
     @PostMapping("/{id}/chat/{chatId}/share_chat")
     public R<Map<String, String>> shareChat(@PathVariable String id, @PathVariable String chatId, @RequestBody ShareChatDTO dto) {
-        return R.success(chatService.shareChat(id, chatId, dto));
+        return R.data(chatService.shareChat(id, chatId, dto));
     }
 
     @Hidden
     @GetMapping("/share/{id}")
     public R<ShareChatVO> shareChat(@PathVariable String id) {
-        return R.success(chatService.shareChat(id));
+        return R.data(chatService.shareChat(id));
     }
 
 

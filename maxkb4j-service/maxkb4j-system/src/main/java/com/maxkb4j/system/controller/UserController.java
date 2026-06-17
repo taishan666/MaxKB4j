@@ -8,6 +8,7 @@ import com.maxkb4j.common.constant.LoginType;
 import com.maxkb4j.common.constant.RoleType;
 import com.maxkb4j.common.api.R;
 import com.maxkb4j.common.props.SystemProperties;
+import com.maxkb4j.common.util.I18nUtil;
 import com.maxkb4j.common.util.StpKit;
 import com.maxkb4j.system.service.impl.UserServiceImpl;
 import com.maxkb4j.user.dto.PasswordDTO;
@@ -40,7 +41,7 @@ public class UserController {
         return R.data(userService.getUserById(userId));
     }
 
-    @SaCheckRole(type = LoginType.ADMIN, value = RoleType.ADMIN)
+    @SaCheckRole(type = LoginType.ADMIN, value = {RoleType.ADMIN, RoleType.USER}, mode = SaMode.OR)
     @PostMapping("/user/language")
     public R<Boolean> language(@RequestBody UserEntity user) {
         return R.status(userService.updateLanguage(user));
@@ -83,10 +84,10 @@ public class UserController {
     @PutMapping("/user_manage/{id}/re_password")
     public R<Boolean> updatePassword(@PathVariable("id") String id, @RequestBody PasswordDTO dto) {
         if (StringUtils.isBlank(dto.getPassword()) || StringUtils.isBlank(dto.getRePassword())) {
-            return R.fail("密码不能为空");
+            return R.fail(I18nUtil.get("user.password.empty"));
         }
         if (!dto.getPassword().equals(dto.getRePassword())) {
-            return R.fail("密码输入不一致");
+            return R.fail(I18nUtil.get("user.password.not.match"));
         }
         return R.status(userService.updatePassword(id, dto));
     }

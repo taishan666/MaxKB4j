@@ -42,19 +42,19 @@ public class ToolController {
     @SaCheckPerm(PermissionEnum.TOOL_READ)
     @GetMapping("/tool/{current}/{size}")
     public R<IPage<ToolVO>> page(@PathVariable int current, @PathVariable int size, ToolQuery query) {
-        return R.success(toolService.pageList(current, size, query));
+        return R.data(toolService.pageList(current, size, query));
     }
 
     @SaCheckPerm(PermissionEnum.TOOL_READ)
     @GetMapping("/tool")
     public R<Map<String, List<ToolEntity>>> list(String folderId, String toolType) {
-        return R.success(Map.of("folders", List.of(), "tools", toolService.listTools(folderId,ToolConstants.Scope.WORKSPACE, toolType)));
+        return R.data(Map.of("folders", List.of(), "tools", toolService.listTools(folderId,ToolConstants.Scope.WORKSPACE, toolType)));
     }
 
     @SaCheckPerm(PermissionEnum.TOOL_READ)
     @GetMapping("/tool/tool_list")
     public R<Map<String, List<ToolEntity>>> toolList(String scope, String toolType) {
-        return R.success(Map.of("shared_tools", List.of(), "tools", toolService.listTools(null,scope, toolType)));
+        return R.data(Map.of("shared_tools", List.of(), "tools", toolService.listTools(null,scope, toolType)));
     }
 
     @SaCheckPerm(PermissionEnum.TOOL_CREATE)
@@ -101,13 +101,13 @@ public class ToolController {
         }
         log.info("input params: {}", params);
         String toolType = dto.getToolType();
-        Object result="";
+        Object result;
         if (ToolConstants.ToolType.HTTP.equals(toolType)){
             HttpResponse response=  new HttpRequestExecutor(dto.getCode()).execute(params);
             result=response.body();
         }else {
             // 执行脚本并返回结果
-            result=new GroovyScriptExecutor(dto.getCode(),dto.getInitParams()).execute(params);;
+            result=new GroovyScriptExecutor(dto.getCode(),dto.getInitParams()).execute(params);
         }
         return R.data(result);
 
@@ -139,12 +139,12 @@ public class ToolController {
     @SaCheckPerm(PermissionEnum.TOOL_BATCH_DELETE)
     @DeleteMapping("/tool/batchDelete")
     public R<Boolean> delMulTool(@RequestParam("idList") List<String> idList) {
-        return R.success(toolService.delMulApplication(idList));
+        return R.status(toolService.delMulApplication(idList));
     }
 
     @PostMapping("/tool/pylint")
     public R<List<ToolEntity>> pylint(@RequestBody ToolEntity dto) {
-        return R.success(Collections.emptyList());
+        return R.data(Collections.emptyList());
     }
 
     @SaCheckPerm(PermissionEnum.TOOL_EXPORT)
@@ -155,7 +155,7 @@ public class ToolController {
 
     @SaCheckPerm(PermissionEnum.TOOL_IMPORT)
     @PostMapping("/tool/import")
-    public R<Boolean> toolImport(MultipartFile file, String folderId) throws IOException {
+    public R<Boolean> toolImport(MultipartFile file, String folderId) {
         return R.status(toolService.toolImport(file, folderId));
     }
 

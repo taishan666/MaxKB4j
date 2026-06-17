@@ -28,14 +28,14 @@ public class ApplicationVersionController {
     @GetMapping("/application/{id}/application_version")
     public R<List<ApplicationVersionEntity>> workFlowVersionList(@PathVariable("id") String id) {
         List<ApplicationVersionEntity> list = applicationVersionService.lambdaQuery().eq(ApplicationVersionEntity::getApplicationId, id).orderByDesc(ApplicationVersionEntity::getCreateTime).list();
-        return R.success(list);
+        return R.data(list);
     }
 
     @SaCheckPerm(PermissionEnum.APPLICATION_EDIT)
     @PutMapping("/application/{id}/application_version/{versionId}")
     public R<Boolean> updateWorkFlowVersion(@PathVariable("id") String id, @PathVariable("versionId") String versionId, @RequestBody ApplicationVersionEntity versionEntity) {
         versionEntity.setId(versionId);
-        return R.success(applicationVersionService.updateById(versionEntity));
+        return R.status(applicationVersionService.updateById(versionEntity));
     }
 
 

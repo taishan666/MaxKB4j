@@ -16,6 +16,7 @@ import com.maxkb4j.common.exception.ApiException;
 import com.maxkb4j.common.exception.LoginException;
 import com.maxkb4j.common.props.SystemProperties;
 import com.maxkb4j.common.util.BeanUtil;
+import com.maxkb4j.common.util.I18nUtil;
 import com.maxkb4j.common.util.StpKit;
 import com.maxkb4j.system.constant.UserSource;
 import com.maxkb4j.system.service.EmailService;
@@ -82,27 +83,31 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
         //清除验证码
         session.removeAttribute("captcha");
         if (StringUtils.isBlank(sessionCaptcha)) {
-            throw new LoginException("验证码已过期");
+            throw new LoginException(I18nUtil.get("login.captcha.expired"));
         }
         if (Objects.nonNull(dto.getCaptcha()) && !sessionCaptcha.equals(dto.getCaptcha().toLowerCase())) {
-            throw new LoginException("验证码错误");
+            throw new LoginException(I18nUtil.get("login.captcha.error"));
         }
         String password = SaSecureUtil.md5(dto.getPassword());
         UserEntity userEntity = this.lambdaQuery()
                 .eq(UserEntity::getUsername, dto.getUsername())
                 .eq(UserEntity::getPassword, password).one();
         if (Objects.isNull(userEntity)) {
-            throw new LoginException("用户名或密码错误");
+            throw new LoginException(I18nUtil.get("login.user.not.exists"));
         }
         if (!userEntity.getIsActive()) {
-            throw new LoginException("该用户已被禁用，请联系管理员！");
+            throw new LoginException(I18nUtil.get("login.user.disabled"));
         }
+        // 登录成功后立刻按用户表语言切换当前请求的返回消息
+        org.springframework.context.i18n.LocaleContextHolder.setLocale(
+                userEntity.getLanguage() != null && userEntity.getLanguage().toLowerCase().startsWith("en") ? Locale.US : Locale.SIMPLIFIED_CHINESE);
         SaLoginModel loginModel = new SaLoginModel();
         loginModel.setExtra("username", userEntity.getUsername());
         loginModel.setExtra("email", userEntity.getEmail());
         loginModel.setExtra("chatUserId", userEntity.getId());
         loginModel.setExtra("chatUserType", ChatUserType.CHAT_USER.name());
         loginModel.setExtra("roles", userEntity.getRole());
+        loginModel.setExtra("language", StringUtils.defaultIfBlank(userEntity.getLanguage(), "zh-CN"));
         StpKit.ADMIN.login(userEntity.getId(), loginModel);
         return StpKit.ADMIN.getTokenValue();
     }
@@ -111,15 +116,16 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
     public boolean createUser(UserEntity user) {
         long usernameNum = this.lambdaQuery().eq(UserEntity::getUsername, user.getUsername()).count();
         if (usernameNum > 0) {
-            throw new ApiException("用户名已存在");
+            throw new ApiException(I18nUtil.get("user.username.exists"));
         }
         long emailNum = this.lambdaQuery().eq(UserEntity::getEmail, user.getEmail()).count();
         if (emailNum > 0) {
-            throw new ApiException("邮箱已存在");
+            throw new ApiException(I18nUtil.get("user.email.exists"));
         }
         user.setRole(Set.of(RoleType.USER));
         user.setIsActive(true);
         user.setSource(UserSource.LOCAL);
+        user.setLanguage(StringUtils.defaultIfBlank(user.getLanguage(), "zh-CN"));
         user.setPassword(SaSecureUtil.md5(user.getPassword()));
         return save(user);
     }
@@ -127,7 +133,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
     @Transactional
     public void createAdminUser(String username, String password) {
         UserEntity user = new UserEntity();
-        user.setNickname("系统管理员");
+        user.setNickname(I18nUtil.get("user.admin.nickname"));
         user.setUsername(username);
         user.setPassword(SaSecureUtil.md5(password));
         Set<String> role = new HashSet<>();
@@ -144,7 +150,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
     public UserVO getUserById(String userId) {
         UserEntity userEntity = this.getById(userId);
         if (Objects.isNull(userEntity)) {
-            throw new NotLoginException("用户不存在", "", "");
+            throw new NotLoginException(I18nUtil.get("login.user.not.found"), "", "");
         }
         UserVO user = BeanUtil.copy(userEntity, UserVO.class);
         user.setPermissions(stpInterface.getPermissionList(userId, null));
@@ -162,7 +168,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
     }
 
     public Boolean sendEmailCode() throws MessagingException {
-        return sendEmailCode((String) StpKit.ADMIN.getExtra("email"), "【智能知识库问答系统-修改密码】");
+        return sendEmailCode((String) StpKit.ADMIN.getExtra("email"), I18nUtil.get("email.subject.modify.password"));
     }
 
     public Boolean sendEmailCode(String email, String subject) throws MessagingException {

@@ -51,19 +51,19 @@ public class KnowledgeTagsController {
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_EDIT)
     @PutMapping("/knowledge/{id}/tags/{tagId}")
     public R<Boolean> updateTagId(@PathVariable("id") String id, @PathVariable String tagId, @RequestBody TagEntity tagEntity) {
-        return R.success(tagService.updateById(tagEntity));
+        return R.status(tagService.updateById(tagEntity));
     }
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DELETE)
     @DeleteMapping("/knowledge/{id}/tags/{tagId}/one")
     public R<Boolean> deleteTagId(@PathVariable("id") String id, @PathVariable String tagId) {
-        return R.success(tagService.deleteTagId(tagId));
+        return R.status(tagService.deleteTagId(tagId));
     }
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DELETE)
     @PutMapping("/knowledge/{id}/tag/{tagId}/docs_delete")
     public R<Boolean> docsDelete(@PathVariable("id") String id,@PathVariable("tagId") String tagId,  @RequestBody IdListDTO dto) {
-        return R.success(tagService.docsDelete(tagId,dto.getIdList()));
+        return R.status(tagService.docsDelete(tagId,dto.getIdList()));
     }
 
 
@@ -71,6 +71,6 @@ public class KnowledgeTagsController {
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DELETE)
     @PutMapping("/knowledge/{id}/tags/batch_delete")
     public R<Boolean> batchDelete(@PathVariable("id") String id, @RequestBody List<String> tagIds) {
-        return R.success(tagService.batchDelete(tagIds));
+        return R.status(tagService.batchDelete(tagIds));
     }
 }

@@ -53,13 +53,13 @@ public class ApplicationController {
     @SaCheckPerm(PermissionEnum.APPLICATION_READ)
     @GetMapping("/application")
     public R<List<ApplicationListVO>> listApps(String folderId) {
-        return R.success(applicationService.listApps(folderId));
+        return R.data(applicationService.listApps(folderId));
     }
 
     @SaCheckPerm(PermissionEnum.APPLICATION_CREATE)
     @PostMapping("/application")
     public R<ApplicationEntity> createApp(@RequestBody ApplicationDTO application) {
-        return R.success(applicationService.createApp(application));
+        return R.data(applicationService.createApp(application));
     }
 
     @SaCheckPerm(PermissionEnum.APPLICATION_IMPORT)
@@ -75,7 +75,7 @@ public class ApplicationController {
     @SaCheckPerm(PermissionEnum.APPLICATION_EDIT)
     @PutMapping("/application/{id}/publish")
     public R<ApplicationEntity> publish(@PathVariable("id") String id, @RequestBody JSONObject params) {
-        return R.success(applicationService.publish(id, params));
+        return R.data(applicationService.publish(id, params));
     }
 
     @SaCheckPerm(PermissionEnum.APPLICATION_EXPORT)
@@ -87,31 +87,31 @@ public class ApplicationController {
     @SaCheckPerm(PermissionEnum.APPLICATION_READ)
     @GetMapping("/application/{current}/{size}")
     public R<IPage<ApplicationVO>> userApplications(@PathVariable("current") int current, @PathVariable("size") int size, ApplicationQuery query) {
-        return R.success(applicationService.selectAppPage(current, size, query));
+        return R.data(applicationService.selectAppPage(current, size, query));
     }
 
     @SaCheckPerm(PermissionEnum.APPLICATION_READ)
     @GetMapping("/application/{id}")
     public R<ApplicationVO> getByAppId(@PathVariable("id") String id) {
-        return R.success(applicationService.getDetail(id));
+        return R.data(applicationService.getDetail(id));
     }
 
     @SaCheckPerm(PermissionEnum.APPLICATION_EDIT)
     @PutMapping("/application/{id}")
     public R<Boolean> updateByAppId(@PathVariable("id") String id, @RequestBody ApplicationVO appVO) {
-        return R.success(applicationService.updateAppById(id, appVO));
+        return R.status(applicationService.updateAppById(id, appVO));
     }
 
     @SaCheckPerm(PermissionEnum.APPLICATION_DELETE)
     @DeleteMapping("/application/{id}")
     public R<Boolean> deleteByAppId(@PathVariable("id") String id) {
-        return R.success(applicationService.deleteByAppId(id));
+        return R.status(applicationService.deleteByAppId(id));
     }
 
     @SaCheckPerm(PermissionEnum.APPLICATION_BATCH_DELETE)
     @DeleteMapping("/application/batchDelete")
     public R<Boolean> delMulApplication(@RequestParam("idList") List<String> idList) {
-        return R.success(applicationService.deleteBatch(idList));
+        return R.status(applicationService.deleteBatch(idList));
     }
 
     @SaCheckPerm(PermissionEnum.APPLICATION_READ)
@@ -142,13 +142,13 @@ public class ApplicationController {
     @SaCheckPerm(PermissionEnum.APPLICATION_ACCESS_READ)
     @GetMapping("/application/{id}/access_token")
     public R<ApplicationAccessTokenEntity> getAccessToken(@PathVariable("id") String id) {
-        return R.success(accessTokenService.accessToken(id));
+        return R.data(accessTokenService.accessToken(id));
     }
 
     @SaCheckPerm(PermissionEnum.APPLICATION_ACCESS_EDIT)
     @PutMapping("/application/{id}/access_token")
     public R<ApplicationAccessTokenEntity> updateAccessToken(@PathVariable("id") String id, @RequestBody ApplicationAccessTokenDTO dto) {
-        return R.success(accessTokenService.updateAccessToken(id, dto));
+        return R.data(accessTokenService.updateAccessToken(id, dto));
     }
 
     @SaCheckPerm(PermissionEnum.APPLICATION_EDIT)
@@ -160,19 +160,19 @@ public class ApplicationController {
     @SaCheckPerm(PermissionEnum.APPLICATION_READ)
     @GetMapping("/application/{id}/application_stats")
     public R<List<ApplicationStatisticsVO>> applicationStats(@PathVariable("id") String id, ChatQueryDTO query) {
-        return R.success(applicationStatsService.applicationStats(id, query));
+        return R.data(applicationStatsService.applicationStats(id, query));
     }
 
     @SaCheckPerm(PermissionEnum.APPLICATION_READ)
     @GetMapping("/application/{id}/application_token_usage")
     public R<List<ApplicationStatisticsVO>> getTokenUsage(@PathVariable("id") String id, ChatQueryDTO query) {
-        return R.success(applicationStatsService.getTokenUsage(id, query));
+        return R.data(applicationStatsService.getTokenUsage(id, query));
     }
 
     @SaCheckPerm(PermissionEnum.APPLICATION_READ)
     @GetMapping("/application/{id}/top_questions")
     public R<List<ApplicationStatisticsVO>> topQuestions(@PathVariable("id") String id, ChatQueryDTO query) {
-        return R.success(applicationStatsService.topQuestions(id, query));
+        return R.data(applicationStatsService.topQuestions(id, query));
     }
 
     @SaCheckPerm(PermissionEnum.APPLICATION_READ)

@@ -1,0 +1,49 @@
+common:
+  success: 操作成功
+  fail: 操作失败
+  no:
+    data: 暂无承载数据
+  pk:
+    empty: 主键不能为空
+  record:
+    not:
+      exists: 记录不存在
+  system:
+    error: 系统异常
+  illegal:
+    argument: 非法参数
+
+login:
+  captcha:
+    expired: 验证码已过期
+    error: 验证码错误
+  user:
+    not:
+      exists: 用户名或密码错误
+      found: 用户不存在
+    disabled: 该用户已被禁用，请联系管理员！
+  not:
+    login: 未登录
+  no:
+    permission: 无此权限
+  access:
+    denied: 禁止访问
+
+user:
+  username:
+    exists: 用户名已存在
+  email:
+    exists: 邮箱已存在
+  password:
+    empty: 密码不能为空
+    not:
+      match: 密码输入不一致
+  admin:
+    nickname: 系统管理员
+
+email:
+  subject:
+    forget:
+      password: 【智能知识库问答系统-忘记密码】
+    modify:
+      password: 【智能知识库问答系统-修改密码】

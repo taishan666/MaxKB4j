@@ -1,6 +1,7 @@
 package com.maxkb4j.common.api;
 
 
+import com.maxkb4j.common.util.I18nUtil;
 import com.maxkb4j.common.util.ObjectUtil;
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.lang.Nullable;
@@ -56,7 +57,7 @@ public class R<T> implements Serializable {
     }
 
     public static <T> R<T> data(T data) {
-        return data(data, "操作成功");
+        return data(data, I18nUtil.get("common.success"));
     }
 
     public static <T> R<T> data(T data, String message) {
@@ -64,19 +65,16 @@ public class R<T> implements Serializable {
     }
 
     public static <T> R<T> data(int code, T data, String message) {
-        return new R(code, data, data == null ? "暂无承载数据" : message);
+        return new R(code, data, data == null ? I18nUtil.get("common.no.data") : message);
     }
 
- /*   public static <T> R<T> success(String message) {
-        return new R(ResultCode.SUCCESS, message);
-    }*/
 
-    public static <T> R<T> success(T data) {
-        return new R(ResultCode.SUCCESS,data, "操作成功");
+    public static <T> R<T> success(String data) {
+        return new R(ResultCode.SUCCESS, data, I18nUtil.get("common.success"));
     }
 
     public static <T> R<T> success() {
-        return new R(ResultCode.SUCCESS, "操作成功");
+        return new R(ResultCode.SUCCESS, I18nUtil.get("common.success"));
     }
 
     public static <T> R<T> success(IResultCode resultCode) {
@@ -104,15 +102,15 @@ public class R<T> implements Serializable {
     }
 
     public static <T> R<T> status(boolean flag) {
-        return flag ? (R<T>) success("操作成功") : fail("操作失败");
+        return flag ?  success(I18nUtil.get("common.success")) : fail(I18nUtil.get("common.fail"));
     }
 
     public static <T> R<T> pkIsNull() {
-        return new R(ResultCode.FAILURE, "主键不能为空");
+        return new R(ResultCode.FAILURE, I18nUtil.get("common.pk.empty"));
     }
 
     public static <T> R<T> notExists() {
-        return new R(ResultCode.FAILURE, "记录不存在");
+        return new R(ResultCode.FAILURE, I18nUtil.get("common.record.not.exists"));
     }
 
     public int getCode() {

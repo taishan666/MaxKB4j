@@ -25,12 +25,12 @@ public class ResourceMappingController {
 
     @GetMapping("/resource_mapping/{resourceType}/{resourceId}/{current}/{size}")
     public R<IPage<ResourceUseVO>> resourceMappingKnowledgePage(@PathVariable String resourceType, @PathVariable String resourceId, @PathVariable int current, @PathVariable int size, String resourceName, String userName, String[] sourceType) {
-        return R.success(resourceMappingService.selectPage(resourceType, resourceId, current, size, resourceName, userName, sourceType));
+        return R.data(resourceMappingService.selectPage(resourceType, resourceId, current, size, resourceName, userName, sourceType));
     }
 
     @GetMapping("/mapping_resource/{resourceType}/{resourceId}/{current}/{size}")
     public R<IPage<ResourceUseVO>> mappingResourceKnowledgePage(@PathVariable String resourceType, @PathVariable String resourceId, @PathVariable int current, @PathVariable int size, String resourceName, String userName, String[] sourceType) {
-        return R.success(resourceMappingService.selectMappingResourcePage(resourceType, resourceId, current, size, resourceName, userName, sourceType));
+        return R.data(resourceMappingService.selectMappingResourcePage(resourceType, resourceId, current, size, resourceName, userName, sourceType));
     }
 
 }

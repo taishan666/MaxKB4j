@@ -40,19 +40,19 @@ public class UserResourcePermissionController {
     @SaCheckRole(type= LoginType.ADMIN,value = RoleType.ADMIN)
     @GetMapping("/user_member")
     public R<List<UserEntity>> userMembers(){
-        return R.success(userService.lambdaQuery().eq(UserEntity::getRole,RoleType.USER).eq(UserEntity::getIsActive, true).list());
+        return R.data(userService.lambdaQuery().eq(UserEntity::getRole,RoleType.USER).eq(UserEntity::getIsActive, true).list());
     }
 
     @SaCheckRole(type=LoginType.ADMIN,value = RoleType.ADMIN)
     @GetMapping("/user_resource_permission/user/{userId}/resource/{type}/{current}/{size}")
     public R<IPage<UserResourcePermissionVO>> userResourcePage(@PathVariable String userId, @PathVariable String type, @PathVariable int current, @PathVariable int size){
-        return R.success(userResourcePermissionService.userResourcePermissionPage(userId,type,current,size));
+        return R.data(userResourcePermissionService.userResourcePermissionPage(userId,type,current,size));
     }
 
     @SaCheckRole(type=LoginType.ADMIN,value = RoleType.ADMIN)
     @GetMapping("/resource_user_permission/resource/{resourceId}/resource/{type}/{current}/{size}")
     public R<IPage<ResourceUserPermissionVO>> resourceUserPage(@PathVariable String resourceId, @PathVariable String type, @PathVariable int current, @PathVariable int size, String nickname, String username, String[] permission){
-        return R.success(userResourcePermissionService.resourceUserPermissionPage(resourceId,type,current,size,nickname,username,permission));
+        return R.data(userResourcePermissionService.resourceUserPermissionPage(resourceId,type,current,size,nickname,username,permission));
     }
 
     @SaCheckRole(type=LoginType.ADMIN,value = RoleType.ADMIN)
