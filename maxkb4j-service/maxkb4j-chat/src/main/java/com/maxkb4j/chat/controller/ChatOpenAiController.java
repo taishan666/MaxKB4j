@@ -7,6 +7,7 @@ import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.domain.dto.*;
 import com.maxkb4j.common.enums.ChatSource;
 import com.maxkb4j.common.enums.ChatUserType;
+import com.maxkb4j.common.util.WebUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -36,7 +37,7 @@ public class ChatOpenAiController {
         String chatId = chatService.chatOpen(appId, false);
         Sinks.Many<ChatMessageVO> sink = Sinks.many().unicast().onBackpressureBuffer();
         // 构建 ChatParams
-        ChatParams params = convertToChatParams(request, chatId, appId);
+        ChatParams params = convertToChatParams(request, chatId);
         if (Boolean.TRUE.equals(request.getStream())) {
             return handleStreamResponse(request, params, sink);
         } else {
@@ -47,16 +48,17 @@ public class ChatOpenAiController {
     /**
      * 将 OpenAI 请求转换为内部 ChatParams
      */
-    private ChatParams convertToChatParams(OpenAIChatCompletionRequest request, String chatId, String appId) {
+    private ChatParams convertToChatParams(OpenAIChatCompletionRequest request, String chatId) {
         return ChatParams.builder()
                 .message(request.getLastUserMessage())
                 .chatId(chatId)
                 .chatUserId(IdWorker.get32UUID())
                 .chatUserType(ChatUserType.APPLICATION_API_KEY.name())
+                .source(ChatSource.API_CALL)
+                .ipAddress(WebUtil.getIP())
                 .debug(false)
                 .stream(request.getStream())
                 .reChat(false)
-                .source(ChatSource.API_CALL)
                 .build();
     }
 
