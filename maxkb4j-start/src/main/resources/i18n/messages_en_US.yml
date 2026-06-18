@@ -80,6 +80,12 @@ chat:
 tool:
   not:
     found: Tool not found
+  groovy:
+    script:
+      execution:
+        timeout: Script execution timed out (exceeded {0} seconds) and was forcibly terminated
+      dangerous:
+        call: "Script contains a disallowed dangerous call: {0}"
   skill:
     directory:
       create:

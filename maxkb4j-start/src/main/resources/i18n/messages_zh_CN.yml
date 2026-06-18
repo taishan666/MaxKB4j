@@ -80,6 +80,12 @@ chat:
 tool:
   not:
     found: 未找到工具
+  groovy:
+    script:
+      execution:
+        timeout: 脚本执行超时（超过 {0} 秒），已强制终止
+      dangerous:
+        call: 脚本包含不允许的危险调用：{0}
   skill:
     directory:
       create:

@@ -2,6 +2,7 @@ package com.maxkb4j.tool.executor;
 
 import com.alibaba.fastjson.JSON;
 import com.maxkb4j.common.executor.AbsToolExecutor;
+import com.maxkb4j.common.util.I18nUtil;
 import com.maxkb4j.tool.sandbox.GroovySandboxInterceptor;
 import dev.langchain4j.agent.tool.ToolExecutionRequest;
 import groovy.lang.Binding;
@@ -200,7 +201,7 @@ public class GroovyScriptExecutor extends AbsToolExecutor {
             return future.get(EXECUTION_TIMEOUT_SECONDS, TimeUnit.SECONDS);
 
         } catch (TimeoutException e) {
-            throw new SecurityException("脚本执行超时（超过 " + EXECUTION_TIMEOUT_SECONDS + " 秒），已强制终止");
+            throw new SecurityException(I18nUtil.get("tool.groovy.script.execution.timeout", EXECUTION_TIMEOUT_SECONDS));
         } catch (ExecutionException e) {
             Throwable cause = e.getCause();
             SecurityException securityException = findSecurityException(cause);
@@ -220,7 +221,7 @@ public class GroovyScriptExecutor extends AbsToolExecutor {
         String normalized = script.toLowerCase();
         for (String token : dangerousTokens()) {
             if (normalized.contains(token)) {
-                throw new SecurityException("脚本包含不允许的危险调用: " + token);
+                throw new SecurityException(I18nUtil.get("tool.groovy.script.dangerous.call", token));
             }
         }
     }
