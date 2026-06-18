@@ -208,10 +208,10 @@ public class GroovyScriptExecutor extends AbsToolExecutor {
             if (securityException != null) {
                 throw securityException;
             }
-            throw new RuntimeException("脚本执行失败: " + cause.getMessage(), cause);
+            throw new RuntimeException(I18nUtil.get("tool.groovy.script.execution.failed", cause.getMessage()), cause);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            throw new RuntimeException("脚本执行被中断", e);
+            throw new RuntimeException(I18nUtil.get("tool.groovy.script.execution.interrupted"), e);
         } finally {
             executor.shutdownNow();
         }

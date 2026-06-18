@@ -84,6 +84,8 @@ tool:
     script:
       execution:
         timeout: Script execution timed out (exceeded {0} seconds) and was forcibly terminated
+        failed: "Script execution failed: {0}"
+        interrupted: Script execution was interrupted
       dangerous:
         call: "Script contains a disallowed dangerous call: {0}"
   skill:
