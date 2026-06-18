@@ -141,12 +141,18 @@ public class GlobalExceptionHandler {
         return R.fail(1002, e.getMessage());
     }
 
+    @ExceptionHandler(SecurityException.class)
+    @ResponseBody
+    public R<String> handleException(SecurityException e) {
+        return R.fail(500,e.getMessage());
+    }
+
     @ExceptionHandler(IllegalArgumentException.class)
     @ResponseBody
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public R<String> handleIllegalArgumentException(IllegalArgumentException e) {
         log.error("非法参数: {}", e.getMessage(), e);
-        return R.fail(400, e.getMessage());
+        return R.fail(e.getMessage());
     }
 
     @ExceptionHandler(FileLimitExceededException.class)
