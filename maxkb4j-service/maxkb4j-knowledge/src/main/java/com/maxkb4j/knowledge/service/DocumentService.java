@@ -76,13 +76,13 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         return this.lambdaQuery().eq(DocumentEntity::getKnowledgeId, id).list();
     }
 
-    //todo 迁移文档标签
     @Transactional
     public boolean migrateDoc(String sourceKnowledgeId, String targetKnowledgeId, List<String> docIds) {
         if (CollectionUtils.isEmpty(docIds)) {
             return false;
         }
         compositeStore.deleteByDocumentIds(targetKnowledgeId, docIds);
+        documentTagService.lambdaUpdate().in(DocumentTagEntity::getDocumentId, docIds).remove();
         paragraphService.lambdaUpdate().set(ParagraphEntity::getKnowledgeId, targetKnowledgeId).in(ParagraphEntity::getDocumentId, docIds).update();
         problemParagraphService.lambdaUpdate().eq(ProblemParagraphEntity::getKnowledgeId, sourceKnowledgeId).in(ProblemParagraphEntity::getDocumentId, docIds).remove();
         publishDocumentIndexEvent(targetKnowledgeId, docIds, List.of("0", "1", "2", "3", "4", "5", "n"));
@@ -171,6 +171,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
             return false;
         }
         this.lambdaUpdate().in(DocumentEntity::getId, docIds).remove();
+        documentTagService.lambdaUpdate().in(DocumentTagEntity::getDocumentId, docIds).remove();
         paragraphService.lambdaUpdate().in(ParagraphEntity::getDocumentId, docIds).remove();
         compositeStore.deleteByDocumentIds(knowledgeId, docIds);
         return problemParagraphService.lambdaUpdate().in(ProblemParagraphEntity::getDocumentId, docIds).remove();
