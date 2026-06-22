@@ -98,10 +98,7 @@ public class DocumentTagController {
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_DELETE)
     @PutMapping("/knowledge/{id}/document/{docId}/tags/batch_delete")
     public R<Boolean> batchDeleteTags(@PathVariable("id") String id,  @PathVariable String docId,@RequestBody List<String> tagIds) {
-        return R.status(documentTagService.lambdaUpdate()
-                .eq(DocumentTagEntity::getDocumentId, docId)
-                .in(DocumentTagEntity::getTagId, tagIds)
-                .remove());
+        return R.status(documentTagService.removeBatchByIds(tagIds));
     }
 
 
