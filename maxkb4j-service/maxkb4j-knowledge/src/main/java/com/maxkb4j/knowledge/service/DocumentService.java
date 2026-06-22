@@ -76,6 +76,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         return this.lambdaQuery().eq(DocumentEntity::getKnowledgeId, id).list();
     }
 
+    //todo 迁移文档标签
     @Transactional
     public boolean migrateDoc(String sourceKnowledgeId, String targetKnowledgeId, List<String> docIds) {
         if (CollectionUtils.isEmpty(docIds)) {

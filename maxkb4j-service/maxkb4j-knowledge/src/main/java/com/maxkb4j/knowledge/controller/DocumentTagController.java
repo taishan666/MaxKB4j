@@ -12,7 +12,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author tarzan
@@ -35,16 +37,27 @@ public class DocumentTagController {
     @PostMapping("/knowledge/{id}/document/{docId}/tags")
     public R<Boolean> addTags(@PathVariable("id") String id, @PathVariable String docId, @RequestBody List<String> tagIds) {
         List<DocumentTagEntity> documentTags=new ArrayList<>();
+        if (tagIds.isEmpty()){
+            return R.status(true);
+        }
+        Set<String> existTagIds=documentTagService.lambdaQuery()
+                .select(DocumentTagEntity::getTagId)
+                .eq(DocumentTagEntity::getDocumentId,docId)
+                .in(DocumentTagEntity::getTagId,tagIds)
+                .list()
+                .stream()
+                .map(DocumentTagEntity::getTagId)
+                .collect(java.util.stream.Collectors.toSet());
+        Set<String> addTagIds=new HashSet<>();
         for (String tagId : tagIds) {
-            long count=documentTagService.lambdaQuery().eq(DocumentTagEntity::getDocumentId,docId).eq(DocumentTagEntity::getTagId,tagId).count();
-            if (count==0){
+            if (!existTagIds.contains(tagId)&&addTagIds.add(tagId)){
                 DocumentTagEntity documentTag=new DocumentTagEntity();
                 documentTag.setDocumentId(docId);
                 documentTag.setTagId(tagId);
                 documentTags.add(documentTag);
             }
         }
-        return R.status(documentTagService.saveBatch(documentTags));
+        return R.status(documentTags.isEmpty()||documentTagService.saveBatch(documentTags));
     }
 
 
@@ -53,11 +66,23 @@ public class DocumentTagController {
     public R<Boolean> batchAddTags(@PathVariable("id") String id, @RequestBody DocumentTagAddDTO dto) {
         List<DocumentTagEntity> documentTags=new ArrayList<>();
         List<String> documentIds=dto.getDocumentIds();
+        List<String> tagIds=dto.getTagIds();
+        if (documentIds.isEmpty()||tagIds.isEmpty()){
+            return R.status(true);
+        }
+        Set<String> existDocumentTags=documentTagService.lambdaQuery()
+                .select(DocumentTagEntity::getDocumentId,DocumentTagEntity::getTagId)
+                .in(DocumentTagEntity::getDocumentId,documentIds)
+                .in(DocumentTagEntity::getTagId,tagIds)
+                .list()
+                .stream()
+                .map(documentTag -> documentTag.getDocumentId()+":"+documentTag.getTagId())
+                .collect(java.util.stream.Collectors.toSet());
+        Set<String> addDocumentTags=new HashSet<>();
         for (String documentId : documentIds) {
-            List<String> tagIds=dto.getTagIds();
             for (String tagId : tagIds) {
-                long count=documentTagService.lambdaQuery().eq(DocumentTagEntity::getDocumentId,documentId).eq(DocumentTagEntity::getTagId,tagId).count();
-                if (count==0){
+                String key=documentId+":"+tagId;
+                if (!existDocumentTags.contains(key)&&addDocumentTags.add(key)){
                     DocumentTagEntity documentTag=new DocumentTagEntity();
                     documentTag.setDocumentId(documentId);
                     documentTag.setTagId(tagId);
@@ -65,7 +90,7 @@ public class DocumentTagController {
                 }
             }
         }
-        return R.status(documentTagService.saveBatch(documentTags));
+        return R.status(documentTags.isEmpty()||documentTagService.saveBatch(documentTags));
     }
 
 
@@ -73,7 +98,10 @@ public class DocumentTagController {
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_DELETE)
     @PutMapping("/knowledge/{id}/document/{docId}/tags/batch_delete")
     public R<Boolean> batchDeleteTags(@PathVariable("id") String id,  @PathVariable String docId,@RequestBody List<String> tagIds) {
-        return R.status(documentTagService.removeBatchByIds(tagIds));
+        return R.status(documentTagService.lambdaUpdate()
+                .eq(DocumentTagEntity::getDocumentId, docId)
+                .in(DocumentTagEntity::getTagId, tagIds)
+                .remove());
     }
 
 

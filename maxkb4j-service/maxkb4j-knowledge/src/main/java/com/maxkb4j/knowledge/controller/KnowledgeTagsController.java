@@ -13,7 +13,10 @@ import com.maxkb4j.knowledge.vo.TagVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author tarzan
@@ -29,10 +32,24 @@ public class KnowledgeTagsController {
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_CREATE)
     @PostMapping("/knowledge/{id}/tags")
     public R<Boolean> addTags(@PathVariable String id, @RequestBody List<TagEntity> tags) {
-        List<TagEntity> saveTags = tags.stream().filter(tag -> {
-                    long count = tagService.lambdaQuery().eq(TagEntity::getKey, tag.getKey()).eq(TagEntity::getValue, tag.getValue()).eq(TagEntity::getKnowledgeId, id).count();
-                    return count == 0;
-                }).peek(tag -> tag.setKnowledgeId(id))
+        if (tags.isEmpty()){
+            return R.success();
+        }
+        Set<String> keys = tags.stream().map(TagEntity::getKey).collect(Collectors.toSet());
+        Set<String> values = tags.stream().map(TagEntity::getValue).collect(Collectors.toSet());
+        Set<String> existTags = tagService.lambdaQuery()
+                .select(TagEntity::getKey, TagEntity::getValue)
+                .eq(TagEntity::getKnowledgeId, id)
+                .in(TagEntity::getKey, keys)
+                .in(TagEntity::getValue, values)
+                .list()
+                .stream()
+                .map(tag -> tag.getKey() + ":" + tag.getValue())
+                .collect(Collectors.toSet());
+        Set<String> addTags = new HashSet<>();
+        List<TagEntity> saveTags = tags.stream()
+                .filter(tag -> !existTags.contains(tag.getKey() + ":" + tag.getValue()) && addTags.add(tag.getKey() + ":" + tag.getValue()))
+                .peek(tag -> tag.setKnowledgeId(id))
                 .toList();
         if (saveTags.isEmpty()){
             return R.success();
