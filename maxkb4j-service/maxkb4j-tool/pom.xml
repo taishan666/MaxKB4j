@@ -14,18 +14,6 @@
     <packaging>jar</packaging>
 
     <dependencies>
-        <!-- Apache Ivy 依赖 -->
-        <dependency>
-            <groupId>org.apache.ivy</groupId>
-            <artifactId>ivy</artifactId>
-            <version>2.5.2</version>
-        </dependency>
-        <!-- OFD Reader & Writer (ofdrw) 依赖 -->
-        <dependency>
-            <groupId>org.ofdrw</groupId>
-            <artifactId>ofdrw-full</artifactId>
-            <version>2.2.3</version>
-        </dependency>
         <dependency>
             <groupId>com.tarzan</groupId>
             <artifactId>maxkb4j-tool-api</artifactId>
@@ -49,6 +37,11 @@
         <dependency>
             <groupId>com.tarzan</groupId>
             <artifactId>maxkb4j-application-api</artifactId>
+            <version>${revision}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.tarzan</groupId>
+            <artifactId>maxkb4j-model-api</artifactId>
             <version>${revision}</version>
         </dependency>
         <dependency>
@@ -76,14 +69,24 @@
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-web-search-engine-tavily</artifactId>
         </dependency>
+        <!-- mysql driver -->
+        <dependency>
+            <groupId>com.mysql</groupId>
+            <artifactId>mysql-connector-j</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.jsoup</groupId>
             <artifactId>jsoup</artifactId>
         </dependency>
+        <!-- Apache Ivy 依赖 -->
         <dependency>
-            <groupId>com.tarzan</groupId>
-            <artifactId>maxkb4j-model-api</artifactId>
-            <version>${revision}</version>
+            <groupId>org.apache.ivy</groupId>
+            <artifactId>ivy</artifactId>
+        </dependency>
+        <!-- OFD Reader & Writer (ofdrw) 依赖 -->
+        <dependency>
+            <groupId>org.ofdrw</groupId>
+            <artifactId>ofdrw-full</artifactId>
         </dependency>
     </dependencies>
 

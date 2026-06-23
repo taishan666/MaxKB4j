@@ -82,15 +82,6 @@ public class ToolProviderService implements IToolProviderService {
     }
 
 
-    @Override
-    public ShellSkills getSkills(List<String> toolIds) throws ApiException {
-        List<FileSystemSkill> list = FileSystemSkillLoader.loadSkills(SkillsToolUtil.getSkillsFolder());
-        if (list.isEmpty()) {
-            return null;
-        }
-        return ShellSkills.from(list);
-    }
-
     public ShellSkills getShellSkill(String toolId, String code) throws ApiException {
         Path skillFolder = SkillsToolUtil.getSkillFolder(toolId);
         if (!Files.exists(skillFolder)) {

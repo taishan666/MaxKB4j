@@ -36,7 +36,7 @@
         <mybatis-plus.version>3.5.9</mybatis-plus.version>
         <jaxb-api.version>2.3.1</jaxb-api.version>
         <postgresql.version>42.7.7</postgresql.version>
-        <mysql.version>8.0.33</mysql.version>
+        <mysql.version>9.3.0</mysql.version>
         <pgvector.version>0.1.6</pgvector.version>
         <openai-java.version>4.9.0</openai-java.version>
         <flexmark.version>0.64.8</flexmark.version>
@@ -53,8 +53,10 @@
         <rapidocr.version>0.0.7</rapidocr.version>
         <rapidocr.platform.version>1.2.2</rapidocr.platform.version>
         <imageio.version>1.4.0</imageio.version>
-        <jsoup.version>1.9.1</jsoup.version>
+        <jsoup.version>1.15.3</jsoup.version>
         <docling.version>0.5.2</docling.version>
+        <ivy.version>2.5.2</ivy.version>
+        <ofdrw.version>2.2.3</ofdrw.version>
     </properties>
     <modules>
         <module>maxkb4j-common</module>
@@ -261,7 +263,7 @@
                 <artifactId>langchain4j-http-client-spring-restclient</artifactId>
                 <version>${langchain4j.beta.version}</version>
             </dependency>
-            <dependency>
+      <!--      <dependency>
                 <groupId>dev.langchain4j</groupId>
                 <artifactId>langchain4j-experimental-sql</artifactId>
                 <version>${langchain4j.beta.version}</version>
@@ -271,7 +273,7 @@
                         <artifactId>jsqlparser</artifactId>
                     </exclusion>
                 </exclusions>
-            </dependency>
+            </dependency>-->
             <dependency>
                 <groupId>dev.langchain4j</groupId>
                 <artifactId>langchain4j-embeddings</artifactId>
@@ -503,6 +505,18 @@
                 <groupId>org.jsoup</groupId>
                 <artifactId>jsoup</artifactId>
                 <version>${jsoup.version}</version>
+            </dependency>
+            <!-- Apache Ivy 依赖 -->
+            <dependency>
+                <groupId>org.apache.ivy</groupId>
+                <artifactId>ivy</artifactId>
+                <version>${ivy.version}</version>
+            </dependency>
+            <!-- OFD Reader & Writer (ofdrw) 依赖 -->
+            <dependency>
+                <groupId>org.ofdrw</groupId>
+                <artifactId>ofdrw-full</artifactId>
+                <version>${ofdrw.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

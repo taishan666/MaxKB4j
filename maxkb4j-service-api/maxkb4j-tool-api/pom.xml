@@ -54,9 +54,5 @@
             <groupId>net.objecthunter</groupId>
             <artifactId>exp4j</artifactId>
         </dependency>
-        <dependency>
-            <groupId>dev.langchain4j</groupId>
-            <artifactId>langchain4j-experimental-skills-shell</artifactId>
-        </dependency>
     </dependencies>
 </project>
