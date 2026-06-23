@@ -11,8 +11,8 @@ import java.util.List;
  */
 @Data
 @Component
-@ConfigurationProperties(prefix = "mineru")
-public class MinerUProperties {
+@ConfigurationProperties(prefix = "doc-ling")
+public class DocLingProperties {
 
     /**
      * 是否启用 MinerU 引擎，关闭时全部走本地解析
@@ -20,14 +20,14 @@ public class MinerUProperties {
     private boolean enabled = false;
 
     /**
-     * MinerU 后端服务地址（self-hosted 模式使用），如 http://localhost:30000
+     * DocLing 后端服务地址（self-hosted 模式使用），如 http://localhost:5001
      */
-    private String apiUrl="http://localhost:30000";
+    private String baseUrl="http://localhost:5001";
 
     /**
      * MinerU API 鉴权 token（precision 模式必填）
      */
-    private String token;
+    private String apiKey;
 
     /**
      * 云 API 模型版本: pipeline / vlm / MinerU-HTML
@@ -62,7 +62,7 @@ public class MinerUProperties {
     /**
      * HTTP 调用超时时间，单位毫秒（整体超时，含轮询等待）
      */
-    private int timeout = 600_000;
+    private long timeout = 600_000;
 
     /**
      * MinerU 支持解析的文件扩展名（小写，含点号）

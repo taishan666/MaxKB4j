@@ -66,6 +66,10 @@
             <artifactId>flexmark-html2md-converter</artifactId>
         </dependency>
         <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-document-parser-docling</artifactId>
+        </dependency>
+        <dependency>
             <groupId>io.github.mymonstercat</groupId>
             <artifactId>rapidocr</artifactId>
             <version>${rapidocr.version}</version>

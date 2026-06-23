@@ -12,7 +12,7 @@ import java.util.List;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class LocalDParseEngine implements DocumentParseEngine {
+public class LocalParseEngine implements DocumentParseEngine {
 
     public static final String NAME = "local";
 
