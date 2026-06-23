@@ -30,7 +30,7 @@ public class SaCheckPermAspect {
         if (attributes == null) {
             throw new RuntimeException("无法获取请求上下文");
         }
-        String permissionStr = getString(saCheckPerm, attributes);
+        String permissionStr = permissionStr(saCheckPerm, attributes);
         //校验权限（精确匹配）
         if (StpKit.ADMIN.hasPermission(permissionStr)||StpKit.ADMIN.hasRole(RoleType.ADMIN)) {
             // 放行
@@ -41,7 +41,7 @@ public class SaCheckPermAspect {
     }
 
     @SuppressWarnings("unchecked")
-    private @NotNull String getString(SaCheckPerm saCheckPerm, ServletRequestAttributes attributes) {
+    private @NotNull String permissionStr(SaCheckPerm saCheckPerm, ServletRequestAttributes attributes) {
         HttpServletRequest request = attributes.getRequest();
         // 获取路径变量（Spring MVC 在 HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE 中存储了路径参数）
         Map<String, String> pathVars = (Map<String, String>) request.getAttribute(HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE);
