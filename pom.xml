@@ -54,6 +54,7 @@
         <rapidocr.platform.version>1.2.2</rapidocr.platform.version>
         <imageio.version>1.4.0</imageio.version>
         <jsoup.version>1.9.1</jsoup.version>
+        <docling.version>0.5.2</docling.version>
     </properties>
     <modules>
         <module>maxkb4j-common</module>
@@ -392,6 +393,11 @@
                 <version>${langchain4j.beta.version}</version>
             </dependency>
             <!--   langchain4j-parser -->
+            <dependency>
+                <groupId>ai.docling</groupId>
+                <artifactId>docling-serve-client</artifactId>
+                <version>${docling.version}</version>
+            </dependency>
             <dependency>
                 <groupId>dev.langchain4j</groupId>
                 <artifactId>langchain4j-document-parser-docling</artifactId>

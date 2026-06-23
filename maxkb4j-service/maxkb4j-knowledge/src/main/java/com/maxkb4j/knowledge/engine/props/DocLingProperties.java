@@ -30,16 +30,6 @@ public class DocLingProperties {
     private String apiKey;
 
     /**
-     * 云 API 模型版本: pipeline / vlm / MinerU-HTML
-     */
-    private String modelVersion = "vlm";
-
-    /**
-     * 文档解析语言，如 ch / en
-     */
-    private String language = "ch";
-
-    /**
      * 是否启用 OCR
      */
     private boolean enableOcr = true;
@@ -48,26 +38,25 @@ public class DocLingProperties {
      * 是否解析表格
      */
     private boolean enableTable = true;
+    /**
+     * 是否解析代码
+     */
+    private boolean enableCode = false;
 
     /**
      * 是否解析公式
      */
-    private boolean enableFormula = true;
+    private boolean enableFormula = false;
 
     /**
-     * 单文件最大解析页数（self-hosted 模式）
+     * HTTP 调用超时时间，单位秒（整体超时，含轮询等待）
      */
-    private int maxConvertPages = 500;
-
-    /**
-     * HTTP 调用超时时间，单位毫秒（整体超时，含轮询等待）
-     */
-    private long timeout = 600_000;
+    private long timeout = 600;
 
     /**
      * MinerU 支持解析的文件扩展名（小写，含点号）
      */
     private List<String> supportedExtensions = List.of(
-            ".pdf", ".doc", ".docx", ".ppt", ".pptx", ".png", ".jpg", ".jpeg"
+            ".pdf",  ".docx", ".pptx", ".xlsx", ".csv", ".html"
     );
 }

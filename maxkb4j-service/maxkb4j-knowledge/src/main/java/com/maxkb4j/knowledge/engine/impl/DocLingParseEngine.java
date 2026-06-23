@@ -1,9 +1,7 @@
 package com.maxkb4j.knowledge.engine.impl;
 
 import ai.docling.serve.api.DoclingServeApi;
-import ai.docling.serve.api.convert.request.options.ConvertDocumentOptions;
-import ai.docling.serve.api.convert.request.options.InputFormat;
-import ai.docling.serve.api.convert.request.options.OutputFormat;
+import ai.docling.serve.api.convert.request.options.*;
 import cn.hutool.core.io.IoUtil;
 import cn.hutool.core.util.StrUtil;
 import com.maxkb4j.knowledge.engine.DocumentParseEngine;
@@ -61,11 +59,22 @@ public class DocLingParseEngine implements DocumentParseEngine {
                 .apiKey(properties.getApiKey())
                 .connectTimeout(Duration.of(properties.getTimeout(), TimeUnit.SECONDS.toChronoUnit()))
                 .build();
-        ConvertDocumentOptions options= ConvertDocumentOptions.builder()
-                .fromFormats(List.of(InputFormat.PDF, InputFormat.DOCX))
-                .toFormats(List.of(OutputFormat.MARKDOWN))
+        ConvertDocumentOptions options = ConvertDocumentOptions.builder()
+                .fromFormats(List.of(InputFormat.PDF, InputFormat.DOCX, InputFormat.CSV, InputFormat.PPTX,InputFormat.XLSX, InputFormat.HTML))
+                .toFormat(OutputFormat.MARKDOWN)
+                .pdfBackend(PdfBackend.PYPDFIUM2)
+                .pipeline(ProcessingPipeline.STANDARD)
+                .doCodeEnrichment(properties.isEnableCode())
+                .doFormulaEnrichment(properties.isEnableFormula())
+                .includeImages(true)
+                .imageExportMode(ImageRefMode.EMBEDDED)
+                .doTableStructure(properties.isEnableTable())
+                .tableMode(TableFormerMode.ACCURATE)
+                .tableCellMatching(true)
+                .doOcr(properties.isEnableOcr())
+                .ocrEngine(OcrEngine.AUTO)
                 .build();
-        DoclingDocumentParser parser = new DoclingDocumentParser(api,options);
+        DoclingDocumentParser parser = new DoclingDocumentParser(api, options);
         Document document = parser.parse(new ByteArrayInputStream(bytes));
         return document.text();
     }

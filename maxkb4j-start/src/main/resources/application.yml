@@ -78,27 +78,22 @@ system:
   default-username: admin
   default-password: ${SYSTEM_DEFAULT_PASSWORD:tarzan@123456}
 
-# MinerU 文档解析引擎
+# Docling 文档解析引擎
 doc-ling:
-  enabled: ${MINERU_ENABLED:true}
-  # 自建 MinerU 服务地址（self-hosted 模式）
-  base-url: ${MINERU_API_URL:http://localhost:5001}
-  # API Token（precision 模式必填）
+  enabled: ${MINERU_ENABLED:false}
+  # 自建 Docling 服务地址（self-hosted 模式）
+  base-url: http://localhost:5001
+  # API Key（precision 模式必填）
   api-key:
-  # 云 API 模型版本: pipeline / vlm / MinerU-HTML
-  model-version: ${MINERU_MODEL_VERSION:vlm}
-  language: ch
   enable-ocr: true
   enable-table: true
-  enable-formula: true
-  max-convert-pages: 500
-  timeout: 600000
+  enable-code: false
+  enable-formula: false
+  timeout: 600
   supported-extensions:
     - .pdf
-    - .doc
     - .docx
-    - .ppt
     - .pptx
-    - .png
-    - .jpg
-    - .jpeg
+    - .csv
+    - .xlsx
+    - .HTML

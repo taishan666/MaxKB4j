@@ -66,6 +66,10 @@
             <artifactId>flexmark-html2md-converter</artifactId>
         </dependency>
         <dependency>
+            <groupId>ai.docling</groupId>
+            <artifactId>docling-serve-client</artifactId>
+        </dependency>
+        <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-document-parser-docling</artifactId>
         </dependency>

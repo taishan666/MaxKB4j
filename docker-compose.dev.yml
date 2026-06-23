@@ -2,6 +2,8 @@ services:
   postgres:
     image: registry.cn-hangzhou.aliyuncs.com/tarzanx/pgvector:0.7.0-pg15
     container_name: maxkb4j-pgvector
+    ports:
+      - "5432:5432"
     restart: always
     networks:
       - maxkb4j_network
@@ -14,6 +16,8 @@ services:
   mongo:
     image: registry.cn-hangzhou.aliyuncs.com/tarzanx/mongo:8.0
     container_name: maxkb4j-mongo
+    ports:
+      - "27017:27017"
     restart: always
     networks:
       - maxkb4j_network
