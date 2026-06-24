@@ -29,6 +29,7 @@ import com.maxkb4j.common.util.StpKit;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -57,6 +58,7 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
     private final ApplicationAccessTokenService accessTokenService;
     private final ApplicationVersionService applicationVersionService;
     private final PostResponseHandler postResponseHandler;
+    @Qualifier("chatTaskExecutor")
     private final TaskExecutor chatTaskExecutor;
     private final ApplicationChatShareLinkMapper chatShareLinkMapper;
 

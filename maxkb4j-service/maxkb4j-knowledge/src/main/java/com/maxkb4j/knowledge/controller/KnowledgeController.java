@@ -16,6 +16,7 @@ import com.maxkb4j.knowledge.dto.KnowledgeQuery;
 import com.maxkb4j.knowledge.entity.KnowledgeActionEntity;
 import com.maxkb4j.knowledge.entity.KnowledgeEntity;
 import com.maxkb4j.knowledge.entity.KnowledgeVersionEntity;
+import com.maxkb4j.knowledge.handler.KnowledgeImportHandler;
 import com.maxkb4j.knowledge.service.KnowledgeService;
 import com.maxkb4j.knowledge.service.RetrieveService;
 import com.maxkb4j.knowledge.vo.KnowledgeListVO;
@@ -41,6 +42,7 @@ public class KnowledgeController {
 
     private final KnowledgeService knowledgeService;
     private final RetrieveService retrieveService;
+    private final KnowledgeImportHandler knowledgeImportHandler;
 
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_READ)
@@ -148,7 +150,7 @@ public class KnowledgeController {
 
     @PostMapping("/knowledge/import_knowledge")
     public R<KnowledgeEntity> importKnowledge(@RequestParam("file") MultipartFile file) throws IOException {
-        return R.data(knowledgeService.importKnowledgeZip(file));
+        return R.data(knowledgeImportHandler.importKnowledgeFromZip(file));
     }
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_CREATE)

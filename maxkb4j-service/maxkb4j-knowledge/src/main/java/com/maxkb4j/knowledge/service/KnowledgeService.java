@@ -22,7 +22,6 @@ import com.maxkb4j.knowledge.dto.KnowledgeQuery;
 import com.maxkb4j.knowledge.dto.WebKnowledgeDTO;
 import com.maxkb4j.knowledge.entity.*;
 import com.maxkb4j.knowledge.handler.KnowledgeExportHandler;
-import com.maxkb4j.knowledge.handler.KnowledgeImportHandler;
 import com.maxkb4j.knowledge.mapper.KnowledgeMapper;
 import com.maxkb4j.knowledge.mapper.ParagraphMapper;
 import com.maxkb4j.knowledge.mapper.ProblemMapper;
@@ -45,14 +44,13 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.*;
@@ -84,10 +82,9 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
     private final KnowledgeExportHandler knowledgeExportHandler;
     
     @Lazy
-    @Autowired
-    private KnowledgeImportHandler knowledgeImportHandler;
     private final NodeBuilder nodeBuilder;
     private final IResourceMappingService resourceMappingService;
+    @Qualifier("workflowTaskExecutor")
     private final TaskExecutor workflowTaskExecutor;
 
 
@@ -180,10 +177,6 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
                 knowledge.getFileCountLimit(), response);
     }
 
-    // 导入知识库ZIP包
-    public KnowledgeEntity importKnowledgeZip(MultipartFile file) throws IOException {
-        return knowledgeImportHandler.importKnowledgeFromZip(file);
-    }
 
 
     public List<KnowledgeEntity> list(String userId, String folderId) {

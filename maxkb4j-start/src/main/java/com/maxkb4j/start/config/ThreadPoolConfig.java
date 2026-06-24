@@ -2,12 +2,10 @@ package com.maxkb4j.start.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
-import java.util.concurrent.Executor;
 import java.util.concurrent.ThreadPoolExecutor;
 
 @EnableAsync
@@ -18,7 +16,7 @@ public class ThreadPoolConfig {
      * 通用任务线程池
      */
     @Bean("taskScheduler")
-    public TaskScheduler taskScheduler() {
+    public ThreadPoolTaskScheduler taskScheduler() {
         ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
         scheduler.setPoolSize(10);
         scheduler.setThreadNamePrefix("trigger-scheduler-");
@@ -33,7 +31,7 @@ public class ThreadPoolConfig {
      * 通用任务线程池
      */
     @Bean("taskExecutor")
-    public Executor taskExecutor() {
+    public ThreadPoolTaskExecutor taskExecutor() {
         return createExecutor("task-", 8, 32, 256);
     }
 
@@ -41,7 +39,7 @@ public class ThreadPoolConfig {
      * 聊天任务线程池（通常 IO 密集型，可适当调大核心/最大线程数）
      */
     @Bean("chatTaskExecutor")
-    public Executor chatTaskExecutor() {
+    public ThreadPoolTaskExecutor chatTaskExecutor() {
         return createExecutor("chat-", 16, 64, 512);
     }
 
@@ -49,7 +47,7 @@ public class ThreadPoolConfig {
      * 工作流任务线程池
      */
     @Bean("workflowTaskExecutor")
-    public Executor workflowTaskExecutor() {
+    public ThreadPoolTaskExecutor workflowTaskExecutor() {
         return createExecutor("workflow-", 8, 32, 256);
     }
 

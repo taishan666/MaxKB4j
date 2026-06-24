@@ -19,6 +19,7 @@ import dev.langchain4j.service.Result;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Component;
 
@@ -33,6 +34,7 @@ public class SearchDatasetStep extends AbsSearchDatasetStep {
     private final IRetrieveService retrieveService;
     private final IKnowledgeService knowledgeService;
     private final IModelProviderService modelFactory;
+    @Qualifier("taskExecutor")
     private final TaskExecutor taskExecutor;
 
     @Override
