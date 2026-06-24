@@ -1,8 +1,6 @@
 package com.maxkb4j.system.controller;
 
-import cn.dev33.satoken.annotation.SaIgnore;
 import cn.dev33.satoken.secure.SaSecureUtil;
-import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.common.api.R;
 import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.util.I18nUtil;
@@ -30,18 +28,6 @@ import java.util.Map;
 public class AuthController {
 
 	private final IUserService userService;
-
-	@SaIgnore
-	@GetMapping("/profile")
-	public R<JSONObject> getProfile(){
-		JSONObject json=new JSONObject();
-		json.put("edition","CE");
-		json.put("version","v2.10.0 (build at 2026-06-23T15:28)");
-	    json.put("license_is_valid",false);
-		return R.data(json);
-	}
-
-
 
 	@PostMapping("/user/login")
 	public R<String> login(@RequestBody UserLoginDTO dto, HttpServletRequest request){

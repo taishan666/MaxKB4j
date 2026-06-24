@@ -13,4 +13,7 @@ public class DisplayInfo {
     private String theme;
     private String title;
     private String slogan;
+    private Object icon;
+    private Object loginLogo;
+    private Object loginImage;
 }
