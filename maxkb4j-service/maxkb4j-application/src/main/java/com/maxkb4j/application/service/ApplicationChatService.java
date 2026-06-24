@@ -115,7 +115,7 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
     public ChatResponse chatMessage(ChatParams chatParams, Sinks.Many<ChatMessageVO> sink) {
         long startTime = System.currentTimeMillis();
         ChatInfo chatInfo = this.getChatInfo(chatParams.getChatId(), chatParams.getAppId());
-        if (!visitCountCheck(chatParams)) {
+        if (visitCountOver(chatParams)) {
             sink.tryEmitError(new AccessNumLimitException());
             return new ChatResponse(List.of(), null);
         }
@@ -149,14 +149,14 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
                 });
     }
 
-    public boolean visitCountCheck(ChatParams chatParams) {
+    public boolean visitCountOver(ChatParams chatParams) {
         String appId = chatParams.getAppId();
         String chatUserId = chatParams.getChatUserId();
-        String chatUserType = chatParams.getChatUserType();
         boolean debug = chatParams.getDebug();
         if (!debug && Objects.nonNull(appId)) {
             ApplicationChatUserStatsEntity chatUserStats = chatUserStatsService.getByUserIdAndAppId(chatUserId, appId);
             if (Objects.isNull(chatUserStats)) {
+                String chatUserType = chatParams.getChatUserType();
                 chatUserStats = new ApplicationChatUserStatsEntity();
                 chatUserStats.setChatUserId(chatUserId);
                 chatUserStats.setChatUserType(chatUserType);
@@ -164,13 +164,14 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
                 chatUserStats.setAccessNum(0);
                 chatUserStats.setIntraDayAccessNum(0);
                 chatUserStatsService.save(chatUserStats);
-            }
-            ApplicationAccessTokenEntity appAccessToken = accessTokenService.lambdaQuery().select(ApplicationAccessTokenEntity::getAccessNum).eq(ApplicationAccessTokenEntity::getApplicationId, appId).one();
-            if (Objects.nonNull(appAccessToken)) {
-                return appAccessToken.getAccessNum() >= chatUserStats.getIntraDayAccessNum();
+            }else {
+                ApplicationAccessTokenEntity appAccessToken = accessTokenService.lambdaQuery().select(ApplicationAccessTokenEntity::getAccessNum).eq(ApplicationAccessTokenEntity::getApplicationId, appId).one();
+                if (Objects.nonNull(appAccessToken)) {
+                    return  chatUserStats.getIntraDayAccessNum()>appAccessToken.getAccessNum();
+                }
             }
         }
-        return true;
+        return false;
     }
 
 

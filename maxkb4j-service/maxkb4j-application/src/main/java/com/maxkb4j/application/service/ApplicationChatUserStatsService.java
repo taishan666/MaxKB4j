@@ -22,6 +22,8 @@ public class ApplicationChatUserStatsService extends ServiceImpl<ApplicationChat
     }
 
     public ApplicationChatUserStatsEntity getByUserIdAndAppId(String chatUserId, String appId) {
-        return this.getOne(Wrappers.<ApplicationChatUserStatsEntity>lambdaQuery().eq(ApplicationChatUserStatsEntity::getChatUserId,chatUserId).eq(ApplicationChatUserStatsEntity::getApplicationId,appId));
+        return this.getOne(Wrappers.<ApplicationChatUserStatsEntity>lambdaQuery()
+                        .select(ApplicationChatUserStatsEntity::getId,ApplicationChatUserStatsEntity::getAccessNum,ApplicationChatUserStatsEntity::getIntraDayAccessNum)
+                .eq(ApplicationChatUserStatsEntity::getChatUserId,chatUserId).eq(ApplicationChatUserStatsEntity::getApplicationId,appId));
     }
 }
