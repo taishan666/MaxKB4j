@@ -50,6 +50,9 @@ email:
       password: 【智能知识库问答系统-忘记密码】
     modify:
       password: 【智能知识库问答系统-修改密码】
+  test:
+    connect:
+      failed: 测试连接失败
 
 application:
   token:
@@ -68,6 +71,9 @@ application:
     type:
       not:
         found: 未找到应用类型
+  file:
+    format:
+      error: 文件格式错误
 
 model:
   name:
@@ -82,6 +88,8 @@ chat:
 tool:
   not:
     found: 未找到工具
+  config:
+    invalid: 请检查配置信息
   groovy:
     script:
       execution:
@@ -108,3 +116,12 @@ trigger:
   schedule:
     type:
       required: 请选择触发周期
+  event:
+    not:
+      found: 事件触发器不存在
+    type:
+      invalid: 触发器不是webhook类型
+    disabled: 事件触发器已禁用
+  token:
+    auth:
+      failed: token鉴权失败

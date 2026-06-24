@@ -6,6 +6,7 @@ import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.constant.LoginType;
 import com.maxkb4j.common.constant.RoleType;
 import com.maxkb4j.common.api.R;
+import com.maxkb4j.common.util.I18nUtil;
 import com.maxkb4j.system.dto.DisplayInfo;
 import com.maxkb4j.system.entity.SystemSettingEntity;
 import com.maxkb4j.system.enums.SettingType;
@@ -39,7 +40,7 @@ public class SystemSettingController{
 		if(systemSettingService.testConnect(meta)){
 			return R.status(true);
 		}else {
-			return R.fail("测试连接失败");
+			return R.fail(I18nUtil.get("email.test.connect.failed"));
 		}
 	}
 

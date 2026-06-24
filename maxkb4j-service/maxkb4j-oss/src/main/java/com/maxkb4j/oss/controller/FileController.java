@@ -30,7 +30,7 @@ public class FileController {
     })
     public R<String> uploadFile(MultipartFile file) throws IOException {
         OssFile chatFile = mongoFileService.uploadFile(file);
-        return R.success(chatFile.getUrl());
+        return R.data(chatFile.getUrl());
     }
 
     @GetMapping({

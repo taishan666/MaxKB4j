@@ -82,14 +82,14 @@ public class ChatApiController {
             String appId = (String) StpKit.USER.getExtra("applicationId");
             return R.data(chatApiService.appProfile(appId));
         }
-        return R.fail("未登录");
+        return R.fail(I18nUtil.get("login.not.login"));
     }
 
     @Operation(summary = "获取应用的会话ID", description = "获取应用的会话ID(首次对话前，需要调用该接口，生成对话ID)")
     @GetMapping("/open")
     public R<String> chatOpen() {
         String appId = (String) StpKit.USER.getExtra("applicationId");
-        return R.success(chatService.chatOpen(appId, false));
+        return R.data(chatService.chatOpen(appId, false));
     }
 
     @Operation(summary = "聊天对话", description = "聊天对话")

@@ -3,6 +3,7 @@ package com.maxkb4j.trigger.controller;
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.common.api.R;
 import com.maxkb4j.common.constant.AppConst;
+import com.maxkb4j.common.util.I18nUtil;
 import com.maxkb4j.common.util.WebUtil;
 import com.maxkb4j.trigger.entity.EventTriggerEntity;
 import com.maxkb4j.trigger.enums.TriggerType;
@@ -33,13 +34,13 @@ public class WebhookTriggerController {
     public R<Boolean> webhook(@PathVariable String id, @RequestBody JSONObject data) {
         EventTriggerEntity eventTrigger =eventTriggerService.getById( id);
         if (eventTrigger == null){
-            return R.fail("事件触发器不存在");
+            return R.fail(I18nUtil.get("trigger.event.not.found"));
         }
         if (!TriggerType.EVENT.name().equals(eventTrigger.getTriggerType())){
-            return R.fail("触发器不是webhook类型");
+            return R.fail(I18nUtil.get("trigger.event.type.invalid"));
         }
         if (!eventTrigger.getIsActive()){
-            return R.fail("事件触发器已禁用");
+            return R.fail(I18nUtil.get("trigger.event.disabled"));
         }
         JSONObject triggerSetting=eventTrigger.getTriggerSetting();
         if (Objects.nonNull(triggerSetting)){
@@ -52,7 +53,7 @@ public class WebhookTriggerController {
                 }
             }
         }
-        return R.fail("token鉴权失败");
+        return R.fail(I18nUtil.get("trigger.token.auth.failed"));
     }
 
 

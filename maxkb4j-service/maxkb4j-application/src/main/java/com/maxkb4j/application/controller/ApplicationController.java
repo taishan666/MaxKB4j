@@ -16,6 +16,7 @@ import com.maxkb4j.common.annotation.SaCheckPerm;
 import com.maxkb4j.common.api.R;
 import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.enums.PermissionEnum;
+import com.maxkb4j.common.util.I18nUtil;
 import com.maxkb4j.tool.service.IToolService;
 import com.maxkb4j.tool.vo.McpToolVO;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -66,7 +67,7 @@ public class ApplicationController {
     @PostMapping("/application/folder/{folderId}/import")
     public R<Boolean> appImport(@PathVariable String folderId, MultipartFile file) throws Exception {
         if (!Objects.requireNonNull(file.getOriginalFilename()).endsWith(".mk")) {
-            return R.fail("文件格式错误");
+            return R.fail(I18nUtil.get("application.file.format.error"));
         }
         boolean flag = applicationService.appImport(file.getInputStream());
         return R.status(flag);

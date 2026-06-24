@@ -2,13 +2,10 @@ package com.maxkb4j.common.api;
 
 
 import com.maxkb4j.common.util.I18nUtil;
-import com.maxkb4j.common.util.ObjectUtil;
 import io.swagger.v3.oas.annotations.media.Schema;
-import org.springframework.lang.Nullable;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.util.Optional;
 /**
  * @author tarzan
  * @date 2024-12-25 10:20:33
@@ -46,15 +43,6 @@ public class R<T> implements Serializable {
         this.message = message;
     }
 
-    public static boolean isSuccess(@Nullable R<?> result) {
-        return (Boolean)Optional.ofNullable(result).map((x) -> {
-            return ObjectUtil.nullSafeEquals(ResultCode.SUCCESS.code, x.code);
-        }).orElse(Boolean.FALSE);
-    }
-
-    public static boolean isNotSuccess(@Nullable R<?> result) {
-        return !isSuccess(result);
-    }
 
     public static <T> R<T> data(T data) {
         return data(data, I18nUtil.get("common.success"));

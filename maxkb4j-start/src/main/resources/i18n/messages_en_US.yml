@@ -50,6 +50,9 @@ email:
       password: "[Intelligent Knowledge Base Q&A System - Forgot Password]"
     modify:
       password: "[Intelligent Knowledge Base Q&A System - Modify Password]"
+  test:
+    connect:
+      failed: Test connection failed
 
 application:
   token:
@@ -68,6 +71,9 @@ application:
     type:
       not:
         found: No appType was found
+  file:
+    format:
+      error: Invalid file format
 
 model:
   name:
@@ -82,6 +88,8 @@ chat:
 tool:
   not:
     found: Tool not found
+  config:
+    invalid: Please check the configuration information
   groovy:
     script:
       execution:
@@ -108,3 +116,12 @@ trigger:
   schedule:
     type:
       required: Please select a trigger cycle
+  event:
+    not:
+      found: Event trigger does not exist
+    type:
+      invalid: The trigger is not of webhook type
+    disabled: Event trigger has been disabled
+  token:
+    auth:
+      failed: Token authentication failed

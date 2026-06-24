@@ -9,6 +9,7 @@ import com.maxkb4j.common.api.R;
 import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.enums.PermissionEnum;
 import com.maxkb4j.common.mp.entity.ToolInputField;
+import com.maxkb4j.common.util.I18nUtil;
 import com.maxkb4j.common.util.StpKit;
 import com.maxkb4j.tool.consts.ToolConstants;
 import com.maxkb4j.tool.dto.ToolDTO;
@@ -85,7 +86,7 @@ public class ToolController {
         if (toolService.mcpServerConfigValid(dto)){
             toolService.saveTool(dto);
         }else {
-            return R.fail("请检查配置信息");
+            return R.fail(I18nUtil.get("tool.config.invalid"));
         }
         return R.data(dto);
     }
@@ -126,7 +127,7 @@ public class ToolController {
         if (toolService.mcpServerConfigValid(dto)){
             return R.data(toolService.updateTool(dto));
         }else {
-            return R.fail("请检查配置信息");
+            return R.fail(I18nUtil.get("tool.config.invalid"));
         }
     }
 
