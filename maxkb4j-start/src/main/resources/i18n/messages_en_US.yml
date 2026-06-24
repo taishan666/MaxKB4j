@@ -63,6 +63,8 @@ application:
   not:
     published: The application has not been published. Please publish it before use.
   app:
+    not:
+      found: No app was found
     type:
       not:
         found: No appType was found

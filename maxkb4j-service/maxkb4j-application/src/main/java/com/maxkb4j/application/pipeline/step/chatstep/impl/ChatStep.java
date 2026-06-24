@@ -70,6 +70,7 @@ public class ChatStep extends AbsChatStep {
         TokenStream tokenStream = assistant.chatStream(userPrompt);
         CompletableFuture<ChatResponse> future = new CompletableFuture<>();
         // 完成后释放线程
+        // 完成后释放线程
         tokenStream.onPartialThinking(thinking -> {
                     if (Boolean.TRUE.equals(reasoningEnable)) {
                         manage.sink.tryEmitNext(super.toChatMessageVO(chatId, chatRecordId, "", thinking.text(), false));
@@ -92,10 +93,7 @@ public class ChatStep extends AbsChatStep {
                     }
                 })
                 .onCompleteResponse(future::complete)
-                .onError(error -> {
-                    log.error("执行错误", error);
-                    future.completeExceptionally(error); // 完成后释放线程
-                })
+                .onError(future::completeExceptionally)
                 .start();
         ChatResponse response = future.get(10L, TimeUnit.MINUTES);
         context.put("messageList", resetMessageToJSON(historyMessages));

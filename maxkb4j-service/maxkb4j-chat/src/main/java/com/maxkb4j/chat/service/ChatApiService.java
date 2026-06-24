@@ -18,6 +18,7 @@ import com.maxkb4j.common.domain.dto.ChatResponse;
 import com.maxkb4j.common.domain.dto.McpRequest;
 import com.maxkb4j.common.domain.vo.McpResponse;
 import com.maxkb4j.common.enums.ChatUserType;
+import com.maxkb4j.common.exception.ApiException;
 import com.maxkb4j.common.util.StpKit;
 import com.maxkb4j.common.util.WebUtil;
 import lombok.RequiredArgsConstructor;
@@ -46,6 +47,9 @@ public class ChatApiService {
     public String authToken(JSONObject params) {
         String accessToken = params.getString("accessToken");
         ApplicationAccessTokenEntity accessTokenEntity = accessTokenService.getByAccessToken(accessToken);
+        if (accessTokenEntity == null){
+            throw new ApiException("application.app.not.found");
+        }
         String tokenValue = WebUtil.getTokenValue();
         StpKit.USER.setTokenValue(tokenValue);
         String chatUserId = IdWorker.get32UUID();

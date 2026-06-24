@@ -27,7 +27,7 @@ public interface INodeHandler {
 
     /**
      * 是否为异步节点
-     * 异步节点不会在 workflowExecutor 上阻塞等待，而是直接使用其返回的 CompletableFuture
+     * 异步节点不会在 workflowTaskExecutor 上阻塞等待，而是直接使用其返回的 CompletableFuture
      *
      * @return true 表示异步节点
      */

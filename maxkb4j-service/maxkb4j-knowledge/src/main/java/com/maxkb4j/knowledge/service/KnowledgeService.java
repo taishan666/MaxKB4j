@@ -88,7 +88,7 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
     private KnowledgeImportHandler knowledgeImportHandler;
     private final NodeBuilder nodeBuilder;
     private final IResourceMappingService resourceMappingService;
-    private final TaskExecutor workflowExecutor;
+    private final TaskExecutor workflowTaskExecutor;
 
 
     public IPage<KnowledgeVO> selectKnowledgePage(Page<KnowledgeVO> knowledgePage, KnowledgeQuery query) {
@@ -317,7 +317,7 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
         params.setKnowledgeId(id);
         params.setDebug(debug);
         KnowledgeWorkflow workflow = new KnowledgeWorkflow(nodes, logicFlow.getEdges(), params);
-        CompletableFuture.runAsync(() -> workFlowActuator.execute(workflow),workflowExecutor);
+        CompletableFuture.runAsync(() -> workFlowActuator.execute(workflow),workflowTaskExecutor);
         return knowledgeAction;
     }
 

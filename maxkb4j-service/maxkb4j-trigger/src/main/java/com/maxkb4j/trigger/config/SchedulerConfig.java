@@ -1,3 +1,4 @@
+/*
 package com.maxkb4j.trigger.config;
 
 import org.springframework.context.annotation.Bean;
@@ -17,4 +18,4 @@ public class SchedulerConfig {
         scheduler.initialize();
         return scheduler;
     }
-}
+}*/

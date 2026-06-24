@@ -18,9 +18,9 @@ import java.util.concurrent.Executor;
 public class ChatWorkflowHandler extends AbsWorkflowHandler {
 
     public ChatWorkflowHandler(NodeCenter nodeCenter,
-                               @Qualifier("workflowExecutor") Executor workflowExecutor,
+                               @Qualifier("workflowTaskExecutor") Executor workflowTaskExecutor,
                                ExceptionResolverChain exceptionResolverChain) {
-        super(nodeCenter, workflowExecutor, exceptionResolverChain);
+        super(nodeCenter, workflowTaskExecutor, exceptionResolverChain);
     }
 
     @Override

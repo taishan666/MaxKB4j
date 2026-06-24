@@ -22,6 +22,7 @@ import com.maxkb4j.common.enums.ChatSource;
 import com.maxkb4j.common.enums.ChatUserType;
 import com.maxkb4j.common.enums.PermissionEnum;
 import com.maxkb4j.common.exception.ApiException;
+import com.maxkb4j.common.util.I18nUtil;
 import com.maxkb4j.common.util.StpKit;
 import com.maxkb4j.common.util.WebUtil;
 import io.swagger.v3.oas.annotations.Hidden;
@@ -59,7 +60,7 @@ public class ChatApiController {
     public R<JSONObject> profile(String accessToken) {
         ApplicationAccessTokenEntity appAccessToken = accessTokenService.getByAccessToken(accessToken);
         if (appAccessToken == null) {
-            return R.fail("未找到应用");
+            return R.fail(I18nUtil.get("application.app.not.found"));
         }
         JSONObject result = new JSONObject();
         result.put("authentication", appAccessToken.getAuthentication());

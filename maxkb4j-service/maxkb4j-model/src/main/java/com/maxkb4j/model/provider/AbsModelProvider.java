@@ -39,14 +39,19 @@ import java.util.Optional;
 @Data
 public abstract class AbsModelProvider {
 
-    private RestClient.Builder restClientBuilder = RestClient.builder()
-            .requestFactory(new HttpComponentsClientHttpRequestFactory());
-
-    private SpringRestClientBuilder springRestClientBuilder = SpringRestClient.builder()
-            .restClientBuilder(restClientBuilder)
-            .streamingRequestExecutor(new VirtualThreadTaskExecutor());
+    private SpringRestClientBuilder springRestClientBuilder;
 
     protected HttpClientBuilder getHttpClientBuilder() {
+        if (springRestClientBuilder == null) {
+            HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
+             requestFactory.setConnectTimeout(60_000);
+             requestFactory.setReadTimeout(600_000);
+             RestClient.Builder restClientBuilder = RestClient.builder()
+                    .requestFactory(requestFactory);
+            this.springRestClientBuilder = SpringRestClient.builder()
+                    .restClientBuilder(restClientBuilder)
+                    .streamingRequestExecutor(new VirtualThreadTaskExecutor());
+        }
         return springRestClientBuilder;
     }
 

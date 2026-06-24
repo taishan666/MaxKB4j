@@ -30,12 +30,12 @@ import java.util.concurrent.TimeoutException;
 public abstract class AbsWorkflowHandler implements IWorkflowHandler {
 
     protected final NodeCenter nodeCenter;
-    protected final Executor workflowExecutor;
+    protected final Executor workflowTaskExecutor;
     protected final ExceptionResolverChain exceptionResolverChain;
 
-    protected AbsWorkflowHandler(NodeCenter nodeCenter, Executor workflowExecutor, ExceptionResolverChain exceptionResolverChain) {
+    protected AbsWorkflowHandler(NodeCenter nodeCenter, Executor workflowTaskExecutor, ExceptionResolverChain exceptionResolverChain) {
         this.nodeCenter = nodeCenter;
-        this.workflowExecutor = workflowExecutor;
+        this.workflowTaskExecutor = workflowTaskExecutor;
         this.exceptionResolverChain = exceptionResolverChain;
     }
 
@@ -60,13 +60,13 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
             if (NodeStatus.READY.getStatus() == node.getStatus() || NodeStatus.INTERRUPT.getStatus() == node.getStatus()) {
                 INodeHandler handler = nodeCenter.getHandler(node.getType());
                 if (handler.isAsync()) {
-                    // 异步节点：直接使用其返回的 CompletableFuture，不占用 workflowExecutor 线程
+                    // 异步节点：直接使用其返回的 CompletableFuture，不占用 workflowTaskExecutor 线程
                     futureList.add(runAsyncChainNode(workflow, node));
                 } else {
-                    // 同步节点：在 workflowExecutor 上执行
+                    // 同步节点：在 workflowTaskExecutor 上执行
                     futureList.add(CompletableFuture.supplyAsync(
                             () -> runChainNode(workflow, node),
-                            workflowExecutor));
+                            workflowTaskExecutor));
                 }
             } else if (NodeStatus.SKIP.getStatus() == node.getStatus()) {
                 futureList.add(CompletableFuture.supplyAsync(
@@ -80,7 +80,7 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
                             });
                             return nextNodeList;
                         },
-                        workflowExecutor));
+                        workflowTaskExecutor));
 
             }
         }
@@ -128,7 +128,7 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
 
     /**
      * 异步节点链式执行：直接使用节点返回的 CompletableFuture
-     * 不阻塞 workflowExecutor 线程，流式回调完成后自动推进
+     * 不阻塞 workflowTaskExecutor 线程，流式回调完成后自动推进
      */
     protected CompletableFuture<List<AbsNode>> runAsyncChainNode(Workflow workflow, AbsNode node) {
         onNodeStart(workflow, node);

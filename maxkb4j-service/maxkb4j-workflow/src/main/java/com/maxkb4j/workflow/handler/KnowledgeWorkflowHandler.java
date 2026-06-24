@@ -22,10 +22,10 @@ public class KnowledgeWorkflowHandler extends AbsWorkflowHandler {
     private final IKnowledgeActionService knowledgeActionService;
 
     public KnowledgeWorkflowHandler(NodeCenter nodeCenter,
-                                     @Qualifier("workflowExecutor") Executor workflowExecutor,
+                                     @Qualifier("workflowTaskExecutor") Executor workflowTaskExecutor,
                                      ExceptionResolverChain exceptionResolverChain,
                                      IKnowledgeActionService knowledgeActionService) {
-        super(nodeCenter, workflowExecutor, exceptionResolverChain);
+        super(nodeCenter, workflowTaskExecutor, exceptionResolverChain);
         this.knowledgeActionService = knowledgeActionService;
     }
 

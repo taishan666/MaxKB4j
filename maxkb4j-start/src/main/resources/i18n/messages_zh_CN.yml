@@ -63,6 +63,8 @@ application:
   not:
     published: 应用未发布，请发布后使用。
   app:
+    not:
+      found: 未找到应用
     type:
       not:
         found: 未找到应用类型
