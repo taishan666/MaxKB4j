@@ -16,7 +16,9 @@ import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * @author tarzan
@@ -28,6 +30,16 @@ import java.util.Map;
 public class AuthController {
 
 	private final IUserService userService;
+
+	@GetMapping("/auth/types")
+	public R<List<String>> authTypes(){
+		return R.data(List.of("LDAP"));
+	}
+
+	@GetMapping("/qr_type")
+	public R<List<String>> qrType(){
+		return R.data(List.of("wecom","dingtalk","lark"));
+	}
 
 	@PostMapping("/user/login")
 	public R<String> login(@RequestBody UserLoginDTO dto, HttpServletRequest request){
@@ -60,7 +72,7 @@ public class AuthController {
 	public R<Boolean> rePassword(@RequestBody ResetPasswordDTO dto){
 		 String password=dto.getPassword();
 		 String rePassword=dto.getRePassword();
-		if (password.equals(rePassword)){
+		if (Objects.equals(password, rePassword)){
 			UserEntity user=new UserEntity();
 			user.setId(StpKit.ADMIN.getLoginIdAsString());
 			user.setPassword(SaSecureUtil.md5(password));

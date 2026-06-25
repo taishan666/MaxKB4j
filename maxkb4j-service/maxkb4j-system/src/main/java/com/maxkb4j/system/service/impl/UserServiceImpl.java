@@ -2,7 +2,6 @@ package com.maxkb4j.system.service.impl;
 
 import cn.dev33.satoken.exception.NotLoginException;
 import cn.dev33.satoken.secure.SaSecureUtil;
-import cn.dev33.satoken.stp.SaLoginModel;
 import cn.dev33.satoken.stp.StpInterface;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -11,7 +10,6 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.maxkb4j.common.cache.AuthCodeCache;
 import com.maxkb4j.common.constant.RoleType;
-import com.maxkb4j.common.enums.ChatUserType;
 import com.maxkb4j.common.exception.ApiException;
 import com.maxkb4j.common.exception.LoginException;
 import com.maxkb4j.common.props.SystemProperties;
@@ -185,7 +183,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
     }
 
     public Boolean resetPassword(PasswordDTO dto) {
-        if (dto.getPassword().equals(dto.getRePassword())) {
+        if (Objects.equals(dto.getPassword(), dto.getRePassword())) {
             UserEntity userEntity = new UserEntity();
             userEntity.setId(StpKit.ADMIN.getLoginIdAsString());
             userEntity.setPassword(SaSecureUtil.md5(dto.getPassword()));
