@@ -57,7 +57,7 @@ public class ToolProviderService implements IToolProviderService {
 
     private final IToolService toolService;
     private final IApplicationService applicationService;
-    private final IOssService mongoFileService;
+    private final IOssService ossService;
     private final IApplicationChatService chatService;
     private final IModelProviderService modelFactory;
 
@@ -154,7 +154,7 @@ public class ToolProviderService implements IToolProviderService {
 
     private void unzipSkill(String fileId, String toolId) throws ApiException {
         if (!StringUtils.isEmpty(toolId) && !StringUtils.isEmpty(fileId)) {
-            try (InputStream is = mongoFileService.getStream(fileId)) {
+            try (InputStream is = ossService.getStream(fileId)) {
                 SkillsToolUtil.unzipSkill(is, toolId);
             } catch (IOException e) {
                 throw new ApiException("tool.skill.file.extract.failed");

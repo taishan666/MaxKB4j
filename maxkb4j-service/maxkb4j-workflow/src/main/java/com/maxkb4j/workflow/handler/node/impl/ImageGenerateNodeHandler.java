@@ -34,7 +34,7 @@ import static org.springframework.web.util.UriUtils.extractFileExtension;
 public class ImageGenerateNodeHandler extends AbsNodeHandler {
 
     private final IModelProviderService modelFactory;
-    private final IOssService fileService;
+    private final IOssService ossService;
 
     @Override
     protected NodeResult doExecute(Workflow workflow, AbsNode node) throws Exception {
@@ -102,7 +102,7 @@ public class ImageGenerateNodeHandler extends AbsNodeHandler {
             putDetail(node, "imageList", imageFiles);
 
             for (OssFile file : imageFiles) {
-                byte[] bytes = fileService.getBytes(file.getFileId());
+                byte[] bytes = ossService.getBytes(file.getFileId());
                 String base64Data = Base64.getEncoder().encodeToString(bytes);
                 String extension = extractFileExtension(file.getName());
                 Image image = Image.builder().base64Data(base64Data).mimeType(MimeTypeUtils.getMimeType(extension)).build();

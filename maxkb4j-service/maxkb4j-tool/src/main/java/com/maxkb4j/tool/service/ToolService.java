@@ -51,7 +51,7 @@ import java.util.Set;
 public class ToolService  extends ServiceImpl<ToolMapper, ToolEntity> implements IToolService{
 
     private final IUserService userService;
-    private final IOssService mongoFileService;
+    private final IOssService ossService;
     private final IUserResourcePermissionService userResourcePermissionService;
     private final ToolValidationHandler validationHandler;
     private final ToolImportExportHandler importExportHandler;
@@ -108,7 +108,7 @@ public class ToolService  extends ServiceImpl<ToolMapper, ToolEntity> implements
     public boolean saveTool(ToolEntity entity) {
         this.save(entity);
         if (ToolConstants.ToolType.SKILL.equals(entity.getToolType())){
-            try (InputStream is = mongoFileService.getStream(entity.getCode())) {
+            try (InputStream is = ossService.getStream(entity.getCode())) {
                 SkillsToolUtil.unzipSkill(is, entity.getId());
             } catch (IOException e) {
                 throw new ApiException("tool.skill.file.extract.failed");
@@ -205,7 +205,7 @@ public class ToolService  extends ServiceImpl<ToolMapper, ToolEntity> implements
                 // 删除旧目录
                 SkillsToolUtil.deleteDirectory(oldTool.getId());
                 // 解压新文件
-                SkillsToolUtil.unzipSkill(mongoFileService.getStream(dto.getCode()), dto.getId());
+                SkillsToolUtil.unzipSkill(ossService.getStream(dto.getCode()), dto.getId());
             }
         }
 
@@ -239,7 +239,7 @@ public class ToolService  extends ServiceImpl<ToolMapper, ToolEntity> implements
         vo.setNickname(nickname);
         // 3. 补充非实体字段：文件列表 (仅 Skill 类型)
         if (ToolConstants.ToolType.SKILL.equals(tool.getToolType())) {
-            OssFile file = mongoFileService.getFile(tool.getCode());
+            OssFile file = ossService.getFile(tool.getCode());
             vo.setFileList(file == null ? List.of() : List.of(file));
         } else {
             // 建议：非 Skill 类型也显式设置为空，避免前端 NPE
@@ -249,7 +249,7 @@ public class ToolService  extends ServiceImpl<ToolMapper, ToolEntity> implements
     }
 
     public String uploadSkillFile(MultipartFile file) throws IOException {
-        return mongoFileService.storeFile(file);
+        return ossService.storeFile(file);
     }
 
     @Override
@@ -257,8 +257,9 @@ public class ToolService  extends ServiceImpl<ToolMapper, ToolEntity> implements
         return McpToolUtil.getToolVos(mcpServersJson);
     }
 
+    @Transactional
     public Boolean delMulApplication(List<String> idList) {
-        Boolean result = true;
+        boolean result = true;
         for (String id : idList) {
             result = removeToolById(id);
         }

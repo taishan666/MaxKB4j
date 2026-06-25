@@ -51,7 +51,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
     private final ProblemParagraphService problemParagraphService;
     private final IDocumentParseService documentParseService;
     private final DocumentSplitService documentSpiltService;
-    private final IOssService mongoFileService;
+    private final IOssService ossService;
     private final ApplicationEventPublisher eventPublisher;
     private final DocumentWebService documentWebService;
     private final DocumentWriteService documentWriteService;
@@ -280,7 +280,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         for (DocFileVO fs : fileStreams) {
             TextSegmentVO vo = new TextSegmentVO();
             vo.setName(fs.getName());
-            String fileId = mongoFileService.storeFile(fs.getBytes(), fs.getName(), fs.getContentType());
+            String fileId = ossService.storeFile(fs.getBytes(), fs.getName(), fs.getContentType());
             String text = documentParseService.extractText(fs.getName(), new ByteArrayInputStream(fs.getBytes()));
             vo.setContent(documentSpiltService.split(text, patterns, limit, withFilter));
             vo.setSourceFileId(fileId);

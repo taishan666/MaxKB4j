@@ -42,7 +42,7 @@ import java.util.*;
 @RequiredArgsConstructor
 public class DocumentHandler {
 
-    private final IOssService mongoFileService;
+    private final IOssService ossService;
 
     /**
      * 处理ZIP格式的QA文件
@@ -91,7 +91,7 @@ public class DocumentHandler {
         List<DocumentSimple> docs = new ArrayList<>();
         // 判断是否为 CSV 文件（不区分大小写）
         boolean isCsv = fileName.toLowerCase().endsWith(".csv");
-        String fileId = mongoFileService.storeFile(bytes, fileName, null);
+        String fileId = ossService.storeFile(bytes, fileName, null);
         if (isCsv) {
             DocumentSimple docSimple = new DocumentSimple();
             docSimple.setName(fileName);
@@ -185,7 +185,7 @@ public class DocumentHandler {
         List<DocumentSimple> docs = new ArrayList<>();
         // 判断是否为 CSV 文件（不区分大小写）
         boolean isCsv = fileName.toLowerCase().endsWith(".csv");
-        String fileId = mongoFileService.storeFile(bytes, fileName, null);
+        String fileId = ossService.storeFile(bytes, fileName, null);
         DocumentSimple docSimple = new DocumentSimple();
         docSimple.setName(fileName);
         docSimple.setSourceFileId(fileId);

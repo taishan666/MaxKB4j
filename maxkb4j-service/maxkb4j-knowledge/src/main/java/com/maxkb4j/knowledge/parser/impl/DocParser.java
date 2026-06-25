@@ -37,7 +37,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Component
 public class DocParser implements DocumentParser {
 
-    private final IOssService mongoFileService;
+    private final IOssService ossService;
 
     @Override
     public List<String> getExtensions() {
@@ -176,7 +176,7 @@ public class DocParser implements DocumentParser {
                             String resourceName = src.split(":")[1];
                             byte[] imageData = embeddedImages.get(resourceName);
                             if (imageData != null && imageData.length > 0) {
-                                OssFile uploadedImage = mongoFileService.uploadFile(resourceName, imageData);
+                                OssFile uploadedImage = ossService.uploadFile(resourceName, imageData);
                                 md.append("![](").append(uploadedImage.getUrl()).append(")");
                             } else {
                                 md.append("![Embedded image not found](").append(src).append(")");

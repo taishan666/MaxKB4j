@@ -2,7 +2,7 @@ package com.maxkb4j.oss.controller;
 
 import com.maxkb4j.common.api.R;
 import com.maxkb4j.common.domain.dto.OssFile;
-import com.maxkb4j.oss.service.MongoFileService;
+import com.maxkb4j.oss.service.IOssService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,7 +21,7 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class FileController {
 
-    private final MongoFileService mongoFileService;
+    private final IOssService ossService;
 
 
     @PostMapping(value = {
@@ -29,8 +29,8 @@ public class FileController {
             "/chat/api/oss/file"
     })
     public R<String> uploadFile(MultipartFile file) throws IOException {
-        OssFile chatFile = mongoFileService.uploadFile(file);
-        return R.data(chatFile.getUrl());
+        OssFile ossFile = ossService.uploadFile(file);
+        return R.data(ossFile.getUrl());
     }
 
     @GetMapping({
@@ -41,8 +41,8 @@ public class FileController {
             "/admin/oss/file/{fileId:[\\w-]+}",
             "/chat/oss/file/{fileId:[\\w-]+}",
             "/oss/file/{fileId:[\\w-]+}"})
-    public void getFile(@PathVariable("fileId") String fileId, HttpServletResponse response){
-        mongoFileService.getFile(fileId, response);
+    public void downloadFile(@PathVariable("fileId") String fileId, HttpServletResponse response){
+        ossService.downloadFile(fileId, response);
     }
 
 

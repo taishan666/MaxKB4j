@@ -27,7 +27,7 @@ import java.util.Map;
 public class SpeechToTextNodeHandler extends AbsNodeHandler {
 
     private final IModelProviderService modelFactory;
-    private final IOssService fileService;
+    private final IOssService ossService;
 
     @SuppressWarnings("unchecked")
     @Override
@@ -42,7 +42,7 @@ public class SpeechToTextNodeHandler extends AbsNodeHandler {
         List<String> answerTextList = new ArrayList<>();
 
         for (OssFile file : audioFiles) {
-            byte[] data = fileService.getBytes(file.getFileId());
+            byte[] data = ossService.getBytes(file.getFileId());
             String suffix = file.getName().substring(file.getName().lastIndexOf(".") + 1);
             String result = sttModel.speechToText(data, suffix);
             answerTextList.add(result);

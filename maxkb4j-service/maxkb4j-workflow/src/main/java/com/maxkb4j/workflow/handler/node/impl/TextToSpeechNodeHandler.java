@@ -23,7 +23,7 @@ import java.util.UUID;
 @Component
 public class TextToSpeechNodeHandler extends AbsNodeHandler {
 
-    private final IOssService fileService;
+    private final IOssService ossService;
     private final IModelProviderService modelFactory;
 
     @Override
@@ -33,12 +33,12 @@ public class TextToSpeechNodeHandler extends AbsNodeHandler {
         Object content = workflow.getReferenceField(contentList);
         ITTSModel ttsModel = modelFactory.buildTTSModel(params.getTtsModelId(), params.getModelParamsSetting());
         byte[] audioData = ttsModel.textToSpeech(content.toString());
-        OssFile fileVO = fileService.uploadFile("generated_audio_" + UUID.randomUUID() + ".mp3", audioData);
+        OssFile ossFile = ossService.uploadFile("generated_audio_" + UUID.randomUUID() + ".mp3", audioData);
         putDetail(node, "content", content);
         if (params.getIsResult()) {
-            String answer = "<audio src=\"" + fileVO.getUrl() + "\" controls style=\"width: 300px; height: 43px\"></audio>";
+            String answer = "<audio src=\"" + ossFile.getUrl() + "\" controls style=\"width: 300px; height: 43px\"></audio>";
             setAnswer(node, answer);
         }
-        return new NodeResult(Map.of("result", List.of(fileVO)));
+        return new NodeResult(Map.of("result", List.of(ossFile)));
     }
 }

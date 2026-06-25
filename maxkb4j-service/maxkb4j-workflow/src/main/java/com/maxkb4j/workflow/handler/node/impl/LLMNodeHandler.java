@@ -47,7 +47,7 @@ public class LLMNodeHandler extends AbsNodeHandler {
 
     private final IModelProviderService modelFactory;
     private final IToolProviderService toolProviderService;
-    private final IOssService fileService;
+    private final IOssService ossService;
 
     @Override
     public boolean isAsync() {
@@ -125,7 +125,7 @@ public class LLMNodeHandler extends AbsNodeHandler {
                     .map(OssFile.class::cast)
                     .toList();
             for (OssFile file : imageFiles) {
-                byte[] bytes = fileService.getBytes(file.getFileId());
+                byte[] bytes = ossService.getBytes(file.getFileId());
                 String base64Data = Base64.getEncoder().encodeToString(bytes);
                 String extension = extractFileExtension(file.getName());
                 ImageContent imageContent = ImageContent.from(base64Data, MimeTypeUtils.getMimeType(extension));

@@ -23,7 +23,7 @@ import java.util.*;
 public class DocumentExtractNodeHandler extends AbsNodeHandler {
 
     private final IDocumentParseService documentParseService;
-    private final IOssService fileService;
+    private final IOssService ossService;
 
     @Override
     protected NodeResult doExecute(Workflow workflow, AbsNode node) throws Exception {
@@ -55,7 +55,7 @@ public class DocumentExtractNodeHandler extends AbsNodeHandler {
         List<DocumentSimple> documentList = new ArrayList<>();
 
         for (OssFile sysFile : documentFiles) {
-            InputStream ins = fileService.getStream(sysFile.getFileId());
+            InputStream ins = ossService.getStream(sysFile.getFileId());
             String text = documentParseService.extractText(sysFile.getName(), ins);
             contentList.add(text);
             documentList.add(new DocumentSimple(sysFile.getName(), text, sysFile.getFileId()));

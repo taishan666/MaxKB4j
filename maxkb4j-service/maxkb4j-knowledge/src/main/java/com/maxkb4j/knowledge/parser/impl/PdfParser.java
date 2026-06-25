@@ -44,7 +44,7 @@ import java.util.concurrent.Executors;
 @Component
 public class PdfParser extends PDFTextStripper implements DocumentParser {
 
-    private final IOssService mongoFileService;
+    private final IOssService ossService;
     private static final String IMAGE_STYLE = "IMAGE";
     private List<TextLine> lines;
     private float currentPageHeight;
@@ -183,7 +183,7 @@ public class PdfParser extends PDFTextStripper implements DocumentParser {
             List<CompletableFuture<Void>> futures = new ArrayList<>();
             for (ImageData img : pendingImages) {
                 futures.add(CompletableFuture.runAsync(() -> {
-                    OssFile ossFile = mongoFileService.uploadFile(img.fileName(), img.bytes());
+                    OssFile ossFile = ossService.uploadFile(img.fileName(), img.bytes());
                     urlMap.put(img.fileName(), ossFile.getUrl());
                 }, executor));
             }

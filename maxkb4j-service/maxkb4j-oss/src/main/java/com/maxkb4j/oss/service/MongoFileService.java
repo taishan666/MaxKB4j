@@ -48,18 +48,6 @@ public class MongoFileService implements IOssService{
         return fileVO;
     }
 
-    public String storeFile(MultipartFile file) throws IOException {
-        // 新文件名
-        String originalFilename = file.getOriginalFilename();
-        // 获得文件类型
-        String contentType = file.getContentType();
-        return storeFile(file.getBytes(),originalFilename,contentType);
-    }
-
-    public String storeFile(byte[] bytes,String fileName,String contentType) {
-        ObjectId objectId =  gridFsTemplate.store(new ByteArrayInputStream(bytes), fileName, contentType);
-        return objectId.toString();
-    }
 
     public OssFile uploadFile(String fileName, byte[] fileBytes)  {
         OssFile fileVO = new OssFile();
@@ -78,6 +66,20 @@ public class MongoFileService implements IOssService{
         return fileVO;
     }
 
+    public String storeFile(MultipartFile file) throws IOException {
+        // 新文件名
+        String originalFilename = file.getOriginalFilename();
+        // 获得文件类型
+        String contentType = file.getContentType();
+        return storeFile(file.getBytes(),originalFilename,contentType);
+    }
+
+    public String storeFile(byte[] bytes,String fileName,String contentType) {
+        ObjectId objectId =  gridFsTemplate.store(new ByteArrayInputStream(bytes), fileName, contentType);
+        return objectId.toString();
+    }
+
+
     public OssFile getFile(String id) {
         GridFSFile file = this.getById(id);
         if (file == null || file.getLength() <= 0){
@@ -95,7 +97,7 @@ public class MongoFileService implements IOssService{
         return fileVO;
     }
 
-    public void getFile(String id, HttpServletResponse response) {
+    public void downloadFile(String id, HttpServletResponse response) {
         try {
             GridFSFile file = this.getById(id);
             if (file == null || file.getLength() <= 0) {
