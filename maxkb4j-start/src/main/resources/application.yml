@@ -78,6 +78,8 @@ system:
   default-username: admin
   default-password: ${SYSTEM_DEFAULT_PASSWORD:tarzan@123456}
 
+
+
 # Docling 文档解析引擎
 doc-ling:
   enabled: ${MINERU_ENABLED:false}

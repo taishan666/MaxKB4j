@@ -26,7 +26,6 @@ import org.springframework.stereotype.Component;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.stream.Collectors;
 
 /**
  * PostgreSQL pgvector implementation of VectorStore (MyBatis-Plus backend)
@@ -35,7 +34,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Component("vectorStore")
 @RequiredArgsConstructor
-@ConditionalOnProperty(name = "knowledge.store.vector.backend", havingValue = "mybatis", matchIfMissing = true)
+@ConditionalOnProperty(name = "knowledge.vector.type", havingValue = "mybatis")
 public class VectorStoreImpl extends BaseStoreImpl {
 
     private final EmbeddingMapper embeddingMapper;
@@ -47,8 +46,8 @@ public class VectorStoreImpl extends BaseStoreImpl {
      */
     private final ObjectProvider<IParagraphService> paragraphServiceProvider;
 
-    @Value("${vector.store.batch-size:100}")
-    private int batchSize = 100;
+    @Value("${vector.store.batch-size:10}")
+    private int batchSize = 10;
 
     @Value("${vector.store.retry-times:3}")
     private int retryTimes = 3;
@@ -65,8 +64,7 @@ public class VectorStoreImpl extends BaseStoreImpl {
         // Filter valid entities
         List<EmbeddingEntity> validEntities = entities.stream()
                 .filter(e -> e != null && StringUtils.isNotBlank(e.getContent()))
-                .collect(Collectors.toList());
-
+                .toList();
         if (validEntities.isEmpty()) {
             return;
         }
@@ -77,7 +75,7 @@ public class VectorStoreImpl extends BaseStoreImpl {
         // Process in batches with configurable batch size
         BatchUtil.protectBach(validEntities, batchSize, batch -> {
             try {
-                processBatchWithRetry(model, batch, processedEntities, failedEntities);
+                processBatchWithRetry(model, batch, processedEntities);
             } catch (Exception e) {
                 log.error("Failed to process batch after retries: {}", e.getMessage(), e);
                 failedEntities.addAll(batch);
@@ -104,8 +102,7 @@ public class VectorStoreImpl extends BaseStoreImpl {
      * Process a batch with retry mechanism
      */
     private void processBatchWithRetry(EmbeddingModel model, List<EmbeddingEntity> batch,
-                                       List<EmbeddingEntity> processedEntities,
-                                       List<EmbeddingEntity> failedEntities) {
+                                       List<EmbeddingEntity> processedEntities) {
         Exception lastException = null;
 
         for (int attempt = 1; attempt <= retryTimes; attempt++) {

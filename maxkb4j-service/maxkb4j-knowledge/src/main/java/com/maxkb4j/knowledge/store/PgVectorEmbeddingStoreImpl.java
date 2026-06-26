@@ -1,6 +1,7 @@
 package com.maxkb4j.knowledge.store;
 
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
+import com.maxkb4j.common.util.BatchUtil;
 import com.maxkb4j.knowledge.consts.SourceType;
 import com.maxkb4j.knowledge.entity.EmbeddingEntity;
 import com.maxkb4j.knowledge.retrieval.SearchRequest;
@@ -21,7 +22,9 @@ import dev.langchain4j.store.embedding.pgvector.MetadataStorageMode;
 import dev.langchain4j.store.embedding.pgvector.PgVectorEmbeddingStore;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
@@ -30,21 +33,28 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import static dev.langchain4j.store.embedding.filter.MetadataFilterBuilder.metadataKey;
 
 /**
  * Langchain4j {@link PgVectorEmbeddingStore} 实现的向量后端。
- * <p>与 {@link VectorStoreImpl} 互斥，由 {@code knowledge.store.vector.backend=pgvector} 启用。</p>
+ * <p>与 {@link VectorStoreImpl} 互斥，由 {@code knowledge.vector.type=pgvector} 启用。</p>
  */
 @Slf4j
 @Component("vectorStore")
 @RequiredArgsConstructor
-@ConditionalOnProperty(name = "knowledge.store.vector.backend", havingValue = "pgvector")
+@ConditionalOnProperty(name = "knowledge.vector.type", havingValue = "pgvector", matchIfMissing = true)
 public class PgVectorEmbeddingStoreImpl extends BaseStoreImpl {
 
     /** 召回放大倍数：langchain4j 检索 topK*RECALL_MULTIPLIER 条后在内存里做 paragraphId 去重 */
     private static final int RECALL_MULTIPLIER = 10;
+    @Value("${vector.store.batch-size:10}")
+    private int batchSize = 10;
+    @Value("${vector.store.retry-times:3}")
+    private int retryTimes = 3;
+    @Value("${vector.store.retry-delay-ms:1000}")
+    private int retryDelayMs = 1000;
 
     private final KnowledgeModelService knowledgeModelService;
     private final DataSource dataSource;
@@ -60,16 +70,14 @@ public class PgVectorEmbeddingStoreImpl extends BaseStoreImpl {
 
 
     private EmbeddingStore<TextSegment> build(int dimension) {
-        log.info("Building PgVectorEmbeddingStore for dimension={}", dimension);
         return PgVectorEmbeddingStore.datasourceBuilder()
                 .datasource(dataSource)
                 .table("embedding_" + dimension)
                 .dimension(dimension)
-                .useIndex(true)
-                .indexListSize(1000)
+                .searchMode(PgVectorEmbeddingStore.SearchMode.VECTOR)
                 .metadataStorageConfig(DefaultMetadataStorageConfig.builder()
                         .storageMode(MetadataStorageMode.COMBINED_JSONB)
-                        .columnDefinitions(Collections.singletonList("metadata JSON NULL"))
+                        .columnDefinitions(Collections.singletonList("metadata JSONB NULL"))
                         .build())
                 .build();
     }
@@ -83,19 +91,74 @@ public class PgVectorEmbeddingStoreImpl extends BaseStoreImpl {
         if (entities == null || entities.isEmpty()) {
             return;
         }
+        // Filter valid entities
+        List<EmbeddingEntity> validEntities = entities.stream()
+                .filter(e -> e != null && StringUtils.isNotBlank(e.getContent()))
+                .toList();
+        if (validEntities.isEmpty()) {
+            return;
+        }
         EmbeddingStore<TextSegment> store = get(model.dimension());
-        List<TextSegment> textSegments = entities.stream().map(entity -> {
-            Metadata metadata = new Metadata();
-            metadata.put("knowledgeId", entity.getKnowledgeId());
-            metadata.put("documentId", entity.getDocumentId());
-            metadata.put("paragraphId", entity.getParagraphId());
-            metadata.put("sourceId", entity.getSourceId());
-            metadata.put("sourceType", entity.getSourceType());
-            return TextSegment.from(entity.getContent(), metadata);
-        }).toList();
-        Response<List<Embedding>> response = model.embedAll(textSegments);
-        List<Embedding> embeddings = response.content();
-        store.addAll(embeddings, textSegments);
+        log.debug("Processing {} valid entities for embedding", validEntities.size());
+        // Track successfully processed entities
+        List<EmbeddingEntity> processedEntities = new CopyOnWriteArrayList<>();
+        List<EmbeddingEntity> failedEntities = new CopyOnWriteArrayList<>();
+        BatchUtil.protectBach(validEntities, batchSize, batch -> {
+            try {
+                processBatchWithRetry(model,store, batch, processedEntities);
+            } catch (Exception e) {
+                log.error("Failed to process batch after retries: {}", e.getMessage(), e);
+                failedEntities.addAll(batch);
+            }
+        });
+        // Log failed entities for later processing
+        if (!failedEntities.isEmpty()) {
+            log.warn("Failed to process {} entities. They can be retried later.", failedEntities.size());
+        }
+    }
+
+    /**
+     * Process a batch with retry mechanism
+     */
+    private void processBatchWithRetry(EmbeddingModel model,EmbeddingStore<TextSegment> store, List<EmbeddingEntity> batch,
+                                       List<EmbeddingEntity> processedEntities) {
+        Exception lastException = null;
+
+        for (int attempt = 1; attempt <= retryTimes; attempt++) {
+            try {
+                List<TextSegment> textSegments = batch.stream().map(entity -> {
+                    Metadata metadata = new Metadata();
+                    metadata.put("knowledgeId", entity.getKnowledgeId());
+                    metadata.put("documentId", entity.getDocumentId());
+                    metadata.put("paragraphId", entity.getParagraphId());
+                    metadata.put("sourceId", entity.getSourceId());
+                    metadata.put("sourceType", entity.getSourceType());
+                    return TextSegment.from(entity.getContent().trim(), metadata);
+                }).toList();
+                Response<List<Embedding>> res = model.embedAll(textSegments);
+                List<Embedding> embeddings = res.content();
+                store.addAll(embeddings, textSegments);
+                processedEntities.addAll(batch);
+                return;
+            } catch (Exception e) {
+                lastException = e;
+                log.warn("Batch processing attempt {} failed: {}", attempt, e.getMessage());
+
+                if (attempt < retryTimes) {
+                    try {
+                        Thread.sleep(retryDelayMs);
+                    } catch (InterruptedException ie) {
+                        Thread.currentThread().interrupt();
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (lastException != null) {
+            log.error("All {} retry attempts failed for batch of size {}", retryTimes, batch.size());
+            throw new RuntimeException("Batch processing failed after retries", lastException);
+        }
     }
 
     @Override
@@ -157,7 +220,7 @@ public class PgVectorEmbeddingStoreImpl extends BaseStoreImpl {
             return Collections.emptyList();
         }
         List<String> excludeParagraphIds = resolveExcludeParagraphIds(request, paragraphServiceProvider.getObject());
-        Response<Embedding> res = embeddingModel.embed(request.getQuery());
+        Response<Embedding> res = embeddingModel.embed(request.getQuery().trim());
         Embedding queryEmbedding = res.content();
         EmbeddingStore<TextSegment> store = get(queryEmbedding.dimension());
         Filter filter = metadataKey("knowledgeId").isIn(request.getKnowledgeIds());
@@ -169,6 +232,7 @@ public class PgVectorEmbeddingStoreImpl extends BaseStoreImpl {
         }
         EmbeddingSearchRequest searchRequest = EmbeddingSearchRequest.builder()
                 .filter(filter)
+                .query(request.getQuery().trim())
                 .queryEmbedding(queryEmbedding)
                 .maxResults(request.getTopK() * RECALL_MULTIPLIER)
                 .minScore(request.getMinScore())
