@@ -50,14 +50,6 @@ public interface IDataStore {
     void deleteByKnowledgeId(String knowledgeId);
 
     /**
-     * Update the active status of a paragraph
-     * @param knowledgeId knowledge base ID
-     * @param paragraphId paragraph ID
-     * @param isActive active status
-     */
-    void updateActiveStatus(String knowledgeId, String paragraphId, boolean isActive);
-
-    /**
      * Perform vector similarity search
      * @param request search request parameters
      * @return list of matching text chunks

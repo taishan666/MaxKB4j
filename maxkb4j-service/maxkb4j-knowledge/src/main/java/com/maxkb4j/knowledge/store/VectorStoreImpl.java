@@ -1,13 +1,13 @@
 package com.maxkb4j.knowledge.store;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.maxkb4j.common.util.BatchUtil;
 import com.maxkb4j.knowledge.consts.SourceType;
 import com.maxkb4j.knowledge.entity.EmbeddingEntity;
 import com.maxkb4j.knowledge.mapper.EmbeddingMapper;
 import com.maxkb4j.knowledge.retrieval.SearchRequest;
+import com.maxkb4j.knowledge.service.IParagraphService;
 import com.maxkb4j.knowledge.service.KnowledgeModelService;
 import com.maxkb4j.knowledge.util.Tokenizer;
 import com.maxkb4j.knowledge.vo.TextChunkVO;
@@ -18,23 +18,34 @@ import dev.langchain4j.model.output.Response;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
 /**
- * PostgreSQL pgvector implementation of VectorStore
+ * PostgreSQL pgvector implementation of VectorStore (MyBatis-Plus backend)
+ * <p>与 {@link PgVectorEmbeddingStoreImpl} 互斥，由配置 {@code knowledge.store.vector.backend} 控制。</p>
  */
 @Slf4j
 @Component("vectorStore")
 @RequiredArgsConstructor
-public class VectorStoreImpl implements IDataStore {
+@ConditionalOnProperty(name = "knowledge.store.vector.backend", havingValue = "mybatis", matchIfMissing = true)
+public class VectorStoreImpl extends BaseStoreImpl {
 
     private final EmbeddingMapper embeddingMapper;
     private final KnowledgeModelService knowledgeModelService;
+    /**
+     * 用 {@link ObjectProvider} 延迟解析 paragraphService，避免与 ParagraphService 形成
+     * 构造期循环依赖：paragraphService → problemService → problemParagraphService → compositeStore → vectorStore。
+     * 实际只在 {@link #search(SearchRequest)} 中通过 {@link ObjectProvider#getObject()} 取真实 bean。
+     */
+    private final ObjectProvider<IParagraphService> paragraphServiceProvider;
 
     @Value("${vector.store.batch-size:100}")
     private int batchSize = 100;
@@ -86,11 +97,8 @@ public class VectorStoreImpl implements IDataStore {
         // Log failed entities for later processing
         if (!failedEntities.isEmpty()) {
             log.warn("Failed to process {} entities. They can be retried later.", failedEntities.size());
-            // Optionally, store failed entities for later retry
         }
     }
-
-
 
     /**
      * Process a batch with retry mechanism
@@ -102,15 +110,12 @@ public class VectorStoreImpl implements IDataStore {
 
         for (int attempt = 1; attempt <= retryTimes; attempt++) {
             try {
-                // Create text segments for embedding
                 List<TextSegment> textSegments = batch.stream()
                         .map(e -> TextSegment.from(e.getContent()))
                         .toList();
-                // Generate embeddings for the batch
                 Response<List<Embedding>> res = model.embedAll(textSegments);
                 List<Embedding> embeddings = res.content();
 
-                // Update entities with embeddings
                 for (int i = 0; i < batch.size(); i++) {
                     Embedding embedding = embeddings.get(i);
                     EmbeddingEntity embeddingEntity = batch.get(i);
@@ -118,7 +123,6 @@ public class VectorStoreImpl implements IDataStore {
                     embeddingEntity.setContent(Tokenizer.segment(embeddingEntity.getContent()));
                     embeddingEntity.setDimension(model.dimension());
                 }
-                // Successfully processed
                 processedEntities.addAll(batch);
                 return;
 
@@ -137,7 +141,6 @@ public class VectorStoreImpl implements IDataStore {
             }
         }
 
-        // All retries failed
         if (lastException != null) {
             log.error("All {} retry attempts failed for batch of size {}", retryTimes, batch.size());
             throw new RuntimeException("Batch processing failed after retries", lastException);
@@ -156,12 +159,16 @@ public class VectorStoreImpl implements IDataStore {
 
     @Override
     public void deleteProblemByIds(String knowledgeId, List<String> problemIds) {
+        if (problemIds == null || problemIds.isEmpty()) {
+            return;
+        }
         LambdaQueryWrapper<EmbeddingEntity> queryWrapper = Wrappers.lambdaQuery();
         queryWrapper.eq(EmbeddingEntity::getKnowledgeId, knowledgeId);
         queryWrapper.eq(EmbeddingEntity::getSourceType, SourceType.PROBLEM);
         queryWrapper.in(EmbeddingEntity::getSourceId, problemIds);
         embeddingMapper.delete(queryWrapper);
     }
+
     @Override
     public void deleteByParagraphIds(String knowledgeId, List<String> paragraphIds) {
         if (paragraphIds == null || paragraphIds.isEmpty()) {
@@ -202,75 +209,29 @@ public class VectorStoreImpl implements IDataStore {
     }
 
     @Override
-    public void updateActiveStatus(String knowledgeId, String paragraphId, boolean isActive) {
-        LambdaUpdateWrapper<EmbeddingEntity> updateWrapper = Wrappers.lambdaUpdate();
-        updateWrapper.set(EmbeddingEntity::getIsActive, isActive)
-                .eq(EmbeddingEntity::getKnowledgeId, knowledgeId)
-                .eq(EmbeddingEntity::getParagraphId, paragraphId);
-        embeddingMapper.update(updateWrapper);
-        log.debug("Updated active status for paragraph: {} to {}", paragraphId, isActive);
-    }
-
-    @Override
     public List<TextChunkVO> search(SearchRequest request) {
-        if (request.getKnowledgeIds() == null || request.getKnowledgeIds().isEmpty()) {
-            return Collections.emptyList();
-        }
-        if (StringUtils.isBlank(request.getQuery())) {
+        if (shouldShortCircuit(request)) {
             return Collections.emptyList();
         }
         try {
             // Note: This assumes all knowledge bases in the request use the same embedding model
             EmbeddingModel embeddingModel = getEmbeddingModel(request.getKnowledgeIds().getFirst());
             if (embeddingModel == null) {
-                log.warn("No embedding model found for knowledge: {}", request.getKnowledgeIds().get(0));
+                log.warn("No embedding model found for knowledge: {}", request.getKnowledgeIds().getFirst());
                 return Collections.emptyList();
             }
-            // Generate embedding for query
+            List<String> excludeParagraphIds = resolveExcludeParagraphIds(request, paragraphServiceProvider.getObject());
             Response<Embedding> res = embeddingModel.embed(request.getQuery());
             float[] queryVector = res.content().vector();
-            // Perform vector search
             List<TextChunkVO> results = embeddingMapper.search(
                     request.getKnowledgeIds(),
                     request.getExcludeDocumentIds(),
-                    request.getExcludeParagraphIds(),
+                    excludeParagraphIds,
                     request.getMinScore(),
                     queryVector,
                     embeddingModel.dimension()
             );
-            if (results == null || results.isEmpty()) {
-                return Collections.emptyList();
-            }
-            // 1. 计算每个 paragraphId 在原始结果中的总分
-            Map<String, Double> paragraphIdTotalScoreMap = new HashMap<>();
-            for (TextChunkVO result : results) {
-                paragraphIdTotalScoreMap.merge(result.getParagraphId(), result.getScore(), Double::sum);
-            }
-            // 2. 按 score 降序排序
-            results.sort((a, b) -> Double.compare(b.getScore(), a.getScore()));
-
-            // 3. 去重：每个 paragraphId 只保留 score 最大的（即排序后第一个出现的）
-            List<TextChunkVO> distinctResults = new ArrayList<>();
-            Set<String> seenParagraphIds = new HashSet<>();
-            for (TextChunkVO result : results) {
-                if (!seenParagraphIds.contains(result.getParagraphId())) {
-                    seenParagraphIds.add(result.getParagraphId());
-                    distinctResults.add(result);
-                }
-            }
-            // 4. 排序：score 降序 -> paragraphId 总分降序
-            distinctResults.sort((a, b) -> {
-                int scoreCompare = Double.compare(b.getScore(), a.getScore());
-                if (scoreCompare != 0) {
-                    return scoreCompare;
-                }
-                // score 相同时，按 paragraphId 总分降序
-                Double totalScoreA = paragraphIdTotalScoreMap.getOrDefault(a.getParagraphId(), 0.0);
-                Double totalScoreB = paragraphIdTotalScoreMap.getOrDefault(b.getParagraphId(), 0.0);
-                return Double.compare(totalScoreB, totalScoreA);
-            });
-            int end = Math.min(request.getTopK(), distinctResults.size());
-            return distinctResults.subList(0, end);
+            return dedupAndRank(results, request.getTopK());
         } catch (Exception e) {
             log.error("Vector search failed: {}", e.getMessage(), e);
             throw new RuntimeException("Vector search service error", e);
@@ -283,6 +244,4 @@ public class VectorStoreImpl implements IDataStore {
     protected EmbeddingModel getEmbeddingModel(String knowledgeId) {
         return knowledgeModelService.getEmbeddingModel(knowledgeId);
     }
-
-
 }

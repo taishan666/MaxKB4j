@@ -21,27 +21,46 @@ import dev.langchain4j.store.embedding.pgvector.MetadataStorageMode;
 import dev.langchain4j.store.embedding.pgvector.PgVectorEmbeddingStore;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import javax.sql.DataSource;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static dev.langchain4j.store.embedding.filter.MetadataFilterBuilder.metadataKey;
 
+/**
+ * Langchain4j {@link PgVectorEmbeddingStore} 实现的向量后端。
+ * <p>与 {@link VectorStoreImpl} 互斥，由 {@code knowledge.store.vector.backend=pgvector} 启用。</p>
+ */
 @Slf4j
-@Component("PgVectorEmbeddingStore")
+@Component("vectorStore")
 @RequiredArgsConstructor
-public class PgVectorEmbeddingStoreImpl implements IDataStore {
+@ConditionalOnProperty(name = "knowledge.store.vector.backend", havingValue = "pgvector")
+public class PgVectorEmbeddingStoreImpl extends BaseStoreImpl {
+
+    /** 召回放大倍数：langchain4j 检索 topK*RECALL_MULTIPLIER 条后在内存里做 paragraphId 去重 */
+    private static final int RECALL_MULTIPLIER = 10;
 
     private final KnowledgeModelService knowledgeModelService;
     private final DataSource dataSource;
-    private final IParagraphService paragraphService;
+    /** 延迟解析以避免与 ParagraphService 之间的构造期循环依赖，仅在 search() 中使用。 */
+    private final ObjectProvider<IParagraphService> paragraphServiceProvider;
 
-    public static Map<Integer, EmbeddingStore<TextSegment>> proxy = new HashMap<>();
+    /**
+     * 按 embedding 维度缓存 PgVectorEmbeddingStore 实例。
+     * <p>原先的 {@code public static HashMap} 既线程不安全，又因 {@code getOrDefault} 而从未真正缓存（每次新建）。
+     * 这里改为实例字段 + {@link ConcurrentHashMap#computeIfAbsent} 保证原子初始化与缓存命中。</p>
+     */
+    private final Map<Integer, EmbeddingStore<TextSegment>> stores = new ConcurrentHashMap<>();
 
 
     private EmbeddingStore<TextSegment> build(int dimension) {
+        log.info("Building PgVectorEmbeddingStore for dimension={}", dimension);
         return PgVectorEmbeddingStore.datasourceBuilder()
                 .datasource(dataSource)
                 .table("embedding_" + dimension)
@@ -56,11 +75,14 @@ public class PgVectorEmbeddingStoreImpl implements IDataStore {
     }
 
     public EmbeddingStore<TextSegment> get(int dimension) {
-        return proxy.getOrDefault(dimension, build(dimension));
+        return stores.computeIfAbsent(dimension, this::build);
     }
 
     @Override
     public void upsert(EmbeddingModel model, List<EmbeddingEntity> entities) {
+        if (entities == null || entities.isEmpty()) {
+            return;
+        }
         EmbeddingStore<TextSegment> store = get(model.dimension());
         List<TextSegment> textSegments = entities.stream().map(entity -> {
             Metadata metadata = new Metadata();
@@ -81,47 +103,52 @@ public class PgVectorEmbeddingStoreImpl implements IDataStore {
         Filter filter = metadataKey("knowledgeId").isEqualTo(knowledgeId)
                 .and(metadataKey("paragraphId").isEqualTo(paragraphId))
                 .and(metadataKey("sourceId").isEqualTo(problemId));
-        proxy.forEach((dimension, store) -> store.removeAll(filter));
+        removeAllStores(filter);
     }
 
     @Override
     public void deleteProblemByIds(String knowledgeId, List<String> problemIds) {
+        if (problemIds == null || problemIds.isEmpty()) {
+            return;
+        }
         Filter filter = metadataKey("knowledgeId").isEqualTo(knowledgeId)
                 .and(metadataKey("sourceType").isEqualTo(SourceType.PROBLEM))
                 .and(metadataKey("sourceId").isIn(problemIds));
-        proxy.forEach((dimension, store) -> store.removeAll(filter));
+        removeAllStores(filter);
     }
 
     @Override
     public void deleteByParagraphIds(String knowledgeId, List<String> paragraphIds) {
+        if (paragraphIds == null || paragraphIds.isEmpty()) {
+            return;
+        }
         Filter filter = metadataKey("knowledgeId").isEqualTo(knowledgeId)
                 .and(metadataKey("paragraphId").isIn(paragraphIds));
-        proxy.forEach((dimension, store) -> store.removeAll(filter));
+        removeAllStores(filter);
     }
 
     @Override
     public void deleteByDocumentIds(String knowledgeId, List<String> documentIds) {
+        if (documentIds == null || documentIds.isEmpty()) {
+            return;
+        }
         Filter filter = metadataKey("knowledgeId").isEqualTo(knowledgeId)
                 .and(metadataKey("documentId").isIn(documentIds));
-        proxy.forEach((dimension, store) -> store.removeAll(filter));
+        removeAllStores(filter);
     }
 
     @Override
     public void deleteByKnowledgeId(String knowledgeId) {
+        if (knowledgeId == null) {
+            return;
+        }
         Filter filter = metadataKey("knowledgeId").isEqualTo(knowledgeId);
-        proxy.forEach((dimension, store) -> store.removeAll(filter));
-    }
-
-    @Override
-    public void updateActiveStatus(String knowledgeId, String paragraphId, boolean isActive) {
+        removeAllStores(filter);
     }
 
     @Override
     public List<TextChunkVO> search(SearchRequest request) {
-        if (request.getKnowledgeIds() == null || request.getKnowledgeIds().isEmpty()) {
-            return Collections.emptyList();
-        }
-        if (StringUtils.isBlank(request.getQuery())) {
+        if (shouldShortCircuit(request)) {
             return Collections.emptyList();
         }
         EmbeddingModel embeddingModel = knowledgeModelService.getEmbeddingModel(request.getKnowledgeIds().getFirst());
@@ -129,63 +156,32 @@ public class PgVectorEmbeddingStoreImpl implements IDataStore {
             log.warn("No embedding model found for knowledge: {}", request.getKnowledgeIds().getFirst());
             return Collections.emptyList();
         }
-        List<String> excludeParagraphIds = new ArrayList<>();
-        List<String> noActiveParagraphIds = paragraphService.noActiveList(request.getKnowledgeIds(), request.getExcludeDocumentIds());
-        if (CollectionUtils.isNotEmpty(noActiveParagraphIds)) {
-            excludeParagraphIds.addAll(noActiveParagraphIds);
-        }
-        if (CollectionUtils.isNotEmpty(request.getExcludeParagraphIds())) {
-            excludeParagraphIds.addAll(request.getExcludeParagraphIds());
-        }
+        List<String> excludeParagraphIds = resolveExcludeParagraphIds(request, paragraphServiceProvider.getObject());
         Response<Embedding> res = embeddingModel.embed(request.getQuery());
         Embedding queryEmbedding = res.content();
         EmbeddingStore<TextSegment> store = get(queryEmbedding.dimension());
-        Filter filter = metadataKey("knowledgeId").isIn(request.getKnowledgeIds())
-                .and(metadataKey("documentId").isNotIn(request.getExcludeDocumentIds()))
-                .and(metadataKey("paragraphId").isNotIn(excludeParagraphIds));
+        Filter filter = metadataKey("knowledgeId").isIn(request.getKnowledgeIds());
+        if (CollectionUtils.isNotEmpty(request.getExcludeDocumentIds())) {
+            filter = filter.and(metadataKey("documentId").isNotIn(request.getExcludeDocumentIds()));
+        }
+        if (CollectionUtils.isNotEmpty(excludeParagraphIds)) {
+            filter = filter.and(metadataKey("paragraphId").isNotIn(excludeParagraphIds));
+        }
         EmbeddingSearchRequest searchRequest = EmbeddingSearchRequest.builder()
                 .filter(filter)
-                .queryEmbedding(res.content())
-                .maxResults(request.getTopK() * 10)
+                .queryEmbedding(queryEmbedding)
+                .maxResults(request.getTopK() * RECALL_MULTIPLIER)
                 .minScore(request.getMinScore())
                 .build();
         EmbeddingSearchResult<TextSegment> searchResult = store.search(searchRequest);
-        List<TextChunkVO> results = new ArrayList<>(searchResult.matches().stream().map(match -> {
+        List<TextChunkVO> results = searchResult.matches().stream().map(match -> {
             TextSegment segment = match.embedded();
             return new TextChunkVO(segment.metadata().getString("paragraphId"), match.score());
-        }).toList());
-        if (results.isEmpty()) {
-            return Collections.emptyList();
-        }
-        // 1. 计算每个 paragraphId 在原始结果中的总分
-        Map<String, Double> paragraphIdTotalScoreMap = new HashMap<>();
-        for (TextChunkVO result : results) {
-            paragraphIdTotalScoreMap.merge(result.getParagraphId(), result.getScore(), Double::sum);
-        }
-        // 2. 按 score 降序排序
-        results.sort((a, b) -> Double.compare(b.getScore(), a.getScore()));
+        }).toList();
+        return dedupAndRank(results, request.getTopK());
+    }
 
-        // 3. 去重：每个 paragraphId 只保留 score 最大的（即排序后第一个出现的）
-        List<TextChunkVO> distinctResults = new ArrayList<>();
-        Set<String> seenParagraphIds = new HashSet<>();
-        for (TextChunkVO result : results) {
-            if (!seenParagraphIds.contains(result.getParagraphId())) {
-                seenParagraphIds.add(result.getParagraphId());
-                distinctResults.add(result);
-            }
-        }
-        // 4. 排序：score 降序 -> paragraphId 总分降序
-        distinctResults.sort((a, b) -> {
-            int scoreCompare = Double.compare(b.getScore(), a.getScore());
-            if (scoreCompare != 0) {
-                return scoreCompare;
-            }
-            // score 相同时，按 paragraphId 总分降序
-            Double totalScoreA = paragraphIdTotalScoreMap.getOrDefault(a.getParagraphId(), 0.0);
-            Double totalScoreB = paragraphIdTotalScoreMap.getOrDefault(b.getParagraphId(), 0.0);
-            return Double.compare(totalScoreB, totalScoreA);
-        });
-        int end = Math.min(request.getTopK(), distinctResults.size());
-        return distinctResults.subList(0, end);
+    private void removeAllStores(Filter filter) {
+        stores.forEach((dimension, store) -> store.removeAll(filter));
     }
 }

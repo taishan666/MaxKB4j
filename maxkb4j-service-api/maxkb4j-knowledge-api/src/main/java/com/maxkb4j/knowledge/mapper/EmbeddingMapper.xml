@@ -9,8 +9,7 @@
         paragraph_id,
         (1-(<![CDATA[embedding <=> #{referenceEmbedding}::vector]]>)) AS score
         FROM embedding
-        WHERE is_active=true
-        AND dimension=#{dimension}
+        WHERE dimension=#{dimension}
         <if test="knowledgeIds != null and !knowledgeIds.isEmpty()">
             AND knowledge_id IN
             <foreach item="id" collection="knowledgeIds" open="(" separator="," close=")">
@@ -42,8 +41,7 @@
         paragraph_id,
         (1-(<![CDATA[embedding <=> #{referenceEmbedding}::vector]]>)) AS score
         FROM embedding
-        WHERE is_active = true
-        AND dimension = #{dimension}
+        WHERE dimension = #{dimension}
         <if test="knowledgeIds != null and !knowledgeIds.isEmpty()">
             AND knowledge_id IN
             <foreach item="id" collection="knowledgeIds" open="(" separator="," close=")">
