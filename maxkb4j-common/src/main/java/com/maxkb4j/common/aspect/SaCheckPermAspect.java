@@ -25,13 +25,13 @@ public class SaCheckPermAspect {
 
     @Around("@annotation(saCheckPerm)")
     public Object checkPermission(ProceedingJoinPoint joinPoint, SaCheckPerm saCheckPerm) throws Throwable {
+        // 先校验是否已正常登录，未登录将抛出 NotLoginException
+        StpKit.ADMIN.checkLogin();
         // 获取 HttpServletRequest
         ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
         if (attributes == null) {
             throw new RuntimeException("无法获取请求上下文");
         }
-        // 先校验是否已正常登录，未登录将抛出 NotLoginException
-        StpKit.ADMIN.checkLogin();
         String permissionStr = permissionStr(saCheckPerm, attributes);
         //校验权限（精确匹配）
         if (StpKit.ADMIN.hasPermission(permissionStr)||StpKit.ADMIN.hasRole(RoleType.ADMIN)) {
