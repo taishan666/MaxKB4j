@@ -29,8 +29,6 @@ public class StpInterfaceImpl implements StpInterface {
      */
     @Override
     public List<String> getPermissionList(Object loginId, String loginType) {
-        String userId = loginId.toString();
-        List<UserResourcePermissionEntity> userResourcePermissions = userResourcePermissionService.getByUserId(userId);
         List<String> permissions = new ArrayList<>();
         permissions.add(PermissionEnum.APPLICATION_READ.getResourcePerm());
         permissions.add(PermissionEnum.APPLICATION_CREATE.getResourcePerm());
@@ -46,6 +44,7 @@ public class StpInterfaceImpl implements StpInterface {
         permissions.add(PermissionEnum.TOOL_IMPORT.getResourcePerm());
         permissions.add(PermissionEnum.MODEL_CREATE.getResourcePerm());
         permissions.add(PermissionEnum.MODEL_READ.getResourcePerm());
+        List<UserResourcePermissionEntity> userResourcePermissions = userResourcePermissionService.getByUserId(String.valueOf(loginId));
         for (UserResourcePermissionEntity permission : userResourcePermissions) {
             List<PermissionEnum> resourcePermissionEnums = PermissionEnum.getPermissions(permission.getAuthTargetType(),permission.getPermissionList());
             resourcePermissionEnums.forEach(e -> permissions.add(e.getResourcePerm(permission.getWorkspaceId(),permission.getTargetId())));

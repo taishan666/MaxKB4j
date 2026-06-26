@@ -150,6 +150,18 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
         }
     }
 
+    @Override
+    public List<String> noActiveList(List<String> knowledgeIds, List<String> excludeDocumentIds) {
+        LambdaQueryWrapper<ParagraphEntity> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.select(ParagraphEntity::getId);
+        queryWrapper.in(ParagraphEntity::getKnowledgeId, knowledgeIds);
+        queryWrapper.eq(ParagraphEntity::getIsActive, false);
+        if (!CollectionUtils.isEmpty(excludeDocumentIds)){
+            queryWrapper.notIn(ParagraphEntity::getDocumentId, excludeDocumentIds);
+        }
+        List<ParagraphEntity> paragraphs = super.list(queryWrapper);
+        return paragraphs.stream().map(ParagraphEntity::getId).toList();
+    }
 
 
     @Transactional

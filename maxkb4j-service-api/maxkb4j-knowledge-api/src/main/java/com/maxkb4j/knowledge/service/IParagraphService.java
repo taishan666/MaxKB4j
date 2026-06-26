@@ -27,4 +27,6 @@ public interface IParagraphService extends IService<ParagraphEntity> {
             createIndex(paragraph, embeddingModel);
         }
     }
+
+    List<String> noActiveList(List<String> knowledgeIds, List<String> excludeDocumentIds);
 }

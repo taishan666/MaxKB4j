@@ -5,7 +5,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * Search request for vector and full-text search
@@ -45,15 +44,8 @@ public class SearchRequest {
     /**
      * Minimum similarity score threshold
      */
-    private float minScore = 0.0f;
-    /**
-     * Additional filters for extended filtering capabilities
-     */
-    private Map<String, Object> filters;
+    private double minScore = 0D;
 
-    /**
-     * ChatModel ID for LLM-based keyword extraction (graph retrieval)
-     */
-    private String chatModelId;
+
 
 }

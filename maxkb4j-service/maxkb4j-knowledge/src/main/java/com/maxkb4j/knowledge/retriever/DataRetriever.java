@@ -54,7 +54,6 @@ public class DataRetriever implements IDataRetriever {
         request.setTopK(maxResults);
         request.setMinScore(minScore);
         request.setMode(SEARCH_MODE_MAP.get(searchMode));
-        request.setChatModelId(chatModelId);
         List<DocumentEntity> excludeDocuments =documentService.lambdaQuery().select(DocumentEntity::getId).in(DocumentEntity::getKnowledgeId, knowledgeIds).eq(DocumentEntity::getIsActive, false).list();
         if (CollectionUtils.isNotEmpty(excludeDocuments)){
             request.setExcludeDocumentIds(excludeDocuments.stream().map(DocumentEntity::getId).toList());

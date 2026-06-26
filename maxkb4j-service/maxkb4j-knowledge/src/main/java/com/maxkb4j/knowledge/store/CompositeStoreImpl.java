@@ -117,7 +117,7 @@ public class CompositeStoreImpl implements IDataStore {
      */
     @Override
     public List<TextChunkVO> search(SearchRequest request) {
-        Map<String, Float> map = new LinkedHashMap<>();
+        Map<String, Double> map = new LinkedHashMap<>();
         List<TextChunkVO> results = new ArrayList<>();
         List<CompletableFuture<List<TextChunkVO>>> futureList = new ArrayList<>();
         futureList.add(CompletableFuture.supplyAsync(()->vectorStore.search(request)));

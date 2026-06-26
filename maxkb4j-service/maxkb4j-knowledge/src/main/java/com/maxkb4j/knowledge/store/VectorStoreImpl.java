@@ -221,7 +221,7 @@ public class VectorStoreImpl implements IDataStore {
         }
         try {
             // Note: This assumes all knowledge bases in the request use the same embedding model
-            EmbeddingModel embeddingModel = getEmbeddingModel(request.getKnowledgeIds().get(0));
+            EmbeddingModel embeddingModel = getEmbeddingModel(request.getKnowledgeIds().getFirst());
             if (embeddingModel == null) {
                 log.warn("No embedding model found for knowledge: {}", request.getKnowledgeIds().get(0));
                 return Collections.emptyList();
@@ -244,10 +244,10 @@ public class VectorStoreImpl implements IDataStore {
             // 1. 计算每个 paragraphId 在原始结果中的总分
             Map<String, Double> paragraphIdTotalScoreMap = new HashMap<>();
             for (TextChunkVO result : results) {
-                paragraphIdTotalScoreMap.merge(result.getParagraphId(), result.getScore().doubleValue(), Double::sum);
+                paragraphIdTotalScoreMap.merge(result.getParagraphId(), result.getScore(), Double::sum);
             }
             // 2. 按 score 降序排序
-            results.sort((a, b) -> Float.compare(b.getScore(), a.getScore()));
+            results.sort((a, b) -> Double.compare(b.getScore(), a.getScore()));
 
             // 3. 去重：每个 paragraphId 只保留 score 最大的（即排序后第一个出现的）
             List<TextChunkVO> distinctResults = new ArrayList<>();
@@ -260,7 +260,7 @@ public class VectorStoreImpl implements IDataStore {
             }
             // 4. 排序：score 降序 -> paragraphId 总分降序
             distinctResults.sort((a, b) -> {
-                int scoreCompare = Float.compare(b.getScore(), a.getScore());
+                int scoreCompare = Double.compare(b.getScore(), a.getScore());
                 if (scoreCompare != 0) {
                     return scoreCompare;
                 }

@@ -49,7 +49,7 @@ public class RetrieveService implements IRetrieveService{
         if (CollectionUtils.isEmpty(paragraphIds)) {
             return Collections.emptyList();
         }
-        Map<String, Float> scoreMap = list.stream().collect(Collectors.toMap(TextChunkVO::getParagraphId, TextChunkVO::getScore));
+        Map<String, Double> scoreMap = list.stream().collect(Collectors.toMap(TextChunkVO::getParagraphId, TextChunkVO::getScore));
         // 记录 paragraphIds 的顺序索引
         Map<String, Integer> orderMap = new java.util.HashMap<>();
         for (int i = 0; i < paragraphIds.size(); i++) {
@@ -57,7 +57,7 @@ public class RetrieveService implements IRetrieveService{
         }
         List<ParagraphVO> paragraphs = paragraphMapper.retrievalParagraph(paragraphIds);
         paragraphs.forEach(e -> {
-            float score = scoreMap.get(e.getId());
+            double score = scoreMap.get(e.getId());
             e.setSimilarity(score);
             e.setComprehensiveScore(score);
             if (e.getDocumentName()==null){
