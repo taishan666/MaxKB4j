@@ -35,7 +35,10 @@ public class ModelEntity extends BaseEntity {
     
 	@TableField(typeHandler = JSONBTypeHandler.class)
     private JSONObject meta;
-    
+
+    /**
+     * 状态，取值参考 {@link com.maxkb4j.model.enums.ModelStatus}。
+     */
     private String status;
     
     @TableField(typeHandler = JSONBTypeHandler.class)
