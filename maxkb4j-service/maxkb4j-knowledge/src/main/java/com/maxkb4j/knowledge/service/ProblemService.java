@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.maxkb4j.core.assistant.ProblemGenerateAssistant;
+import com.maxkb4j.core.langchain4j.AssistantServices;
 import com.maxkb4j.knowledge.dto.ProblemDTO;
 import com.maxkb4j.knowledge.entity.ParagraphEntity;
 import com.maxkb4j.knowledge.entity.ProblemEntity;
@@ -15,7 +16,7 @@ import com.maxkb4j.knowledge.vo.ProblemParagraphVO;
 import com.maxkb4j.knowledge.vo.ProblemVO;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.embedding.EmbeddingModel;
-import dev.langchain4j.service.AiServices;
+import dev.langchain4j.service.Result;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -58,18 +59,18 @@ public class ProblemService extends ServiceImpl<ProblemMapper, ProblemEntity> im
             String docId,
             ParagraphEntity paragraph,
             List<ProblemEntity> existingProblems,
-            String promptTemplate) {
+            int problemNumber) {
         log.info("开始为段落 [{}] 生成问题", paragraph.getId());
         if (paragraph.getContent() == null) {
             log.warn("段落内容为空，跳过生成问题");
             return;
         }
         // 构建 Prompt 并调用 AI 服务
-        String prompt = promptTemplate.replace("{data}", paragraph.getContent());
-        ProblemGenerateAssistant assistant = AiServices.builder(ProblemGenerateAssistant.class)
+        ProblemGenerateAssistant assistant = AssistantServices.builder(ProblemGenerateAssistant.class)
                 .chatModel(chatModel)
                 .build();
-        List<String> generatedQuestions = assistant.generate(prompt);
+        Result<List<String>> result = assistant.generate(problemNumber,paragraph.getContent());
+        List<String> generatedQuestions= result.content();
         if (CollectionUtils.isEmpty(generatedQuestions)) {
             log.info("AI 未生成有效问题，段落 ID: {}", paragraph.getId());
             return;

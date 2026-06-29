@@ -9,5 +9,5 @@ import dev.langchain4j.model.embedding.EmbeddingModel;
 import java.util.List;
 
 public interface IProblemService extends IService<ProblemEntity> {
-    void generateRelated(ChatModel chatModel, EmbeddingModel embeddingModel, String knowledgeId, String docId, ParagraphEntity paragraph, List<ProblemEntity> existingProblems, String promptTemplate);
+    void generateRelated(ChatModel chatModel, EmbeddingModel embeddingModel, String knowledgeId, String docId, ParagraphEntity paragraph, List<ProblemEntity> existingProblems, int problemNumber);
 }

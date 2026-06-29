@@ -40,8 +40,8 @@ public class ModelController{
 
 	@SaCheckPerm(PermissionEnum.MODEL_READ)
 	@GetMapping("/model_list")
-	public R<Map<String, List<ModelVO>>> modelList(String name, String createUser, String modelType, String provider){
-		List<ModelVO> models=modelService.models(name,createUser,modelType,provider);
+	public R<Map<String, List<ModelVO>>> modelList(String name, String modelName, String modelType, String provider){
+		List<ModelVO> models=modelService.modelList(name,modelName,modelType,provider);
 		return R.data(Map.of("model", models, "shared_model",List.of()));
 	}
 

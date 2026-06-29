@@ -51,7 +51,47 @@ public class ModelService extends ServiceImpl<ModelMapper, ModelEntity> {
             .expireAfterAccess(1, TimeUnit.MINUTES)
             .build();
 
-    public List<ModelVO> models(String name, String createUser, String modelType, String provider) {
+    public List<ModelVO> modelList(String name, String modelName, String modelType, String provider) {
+        LambdaQueryWrapper<ModelEntity> wrapper = Wrappers.lambdaQuery();
+        wrapper.select(ModelEntity::getId,
+                ModelEntity::getName,
+                ModelEntity::getProvider,
+                ModelEntity::getStatus
+        );
+        if (StringUtils.isNotBlank(name)) {
+            wrapper.like(ModelEntity::getName, name);
+        }
+        if (StringUtils.isNotBlank(modelName)) {
+            wrapper.eq(ModelEntity::getModelName, modelName);
+        }
+        if (StringUtils.isNotBlank(modelType)) {
+            wrapper.eq(ModelEntity::getModelType, modelType);
+        }
+        if (StringUtils.isNotBlank(provider)) {
+            wrapper.eq(ModelEntity::getProvider, provider);
+        }
+        String loginId = StpKit.ADMIN.getLoginIdAsString();
+        Set<String> role = userService.getRoleById(loginId);
+        if (!CollectionUtils.isEmpty(role)) {
+            if (role.contains(RoleType.USER)) {
+                List<String> targetIds = userResourcePermissionService.getTargetIds(AuthTargetType.MODEL, loginId);
+                if (!org.springframework.util.CollectionUtils.isEmpty(targetIds)) {
+                    wrapper.in(ModelEntity::getId, targetIds);
+                } else {
+                    wrapper.last(" limit 0");
+                }
+            }
+        } else {
+            wrapper.last(" limit 0");
+        }
+        wrapper.orderByDesc(ModelEntity::getCreateTime);
+        List<ModelEntity> modelEntities = this.list(wrapper);
+        if (CollectionUtils.isNotEmpty(modelEntities)) {
+            return BeanUtil.copyList(modelEntities, ModelVO.class);
+        }
+        return Collections.emptyList();
+    }
+    public List<ModelVO> models(String name, String createUserId, String modelType, String provider) {
         Map<String, String> userMap = userService.getNicknameMap();
         LambdaQueryWrapper<ModelEntity> wrapper = Wrappers.lambdaQuery();
         wrapper.select(ModelEntity::getId,
@@ -67,8 +107,8 @@ public class ModelService extends ServiceImpl<ModelMapper, ModelEntity> {
         if (StringUtils.isNotBlank(name)) {
             wrapper.like(ModelEntity::getName, name);
         }
-        if (StringUtils.isNotBlank(createUser)) {
-            wrapper.eq(ModelEntity::getUserId, createUser);
+        if (StringUtils.isNotBlank(createUserId)) {
+            wrapper.eq(ModelEntity::getUserId, createUserId);
         }
         if (StringUtils.isNotBlank(modelType)) {
             wrapper.eq(ModelEntity::getModelType, modelType);
@@ -170,4 +210,6 @@ public class ModelService extends ServiceImpl<ModelMapper, ModelEntity> {
                .eq(ModelEntity::getId, modelId)
                .one());
     }
+
+
 }
