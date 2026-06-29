@@ -55,7 +55,7 @@ public class ToolController {
     @SaCheckPerm(PermissionEnum.TOOL_READ)
     @GetMapping("/tool/tool_list")
     public R<Map<String, List<ToolEntity>>> toolList(String scope, String toolType) {
-        return R.data(Map.of("shared_tools", List.of(), "tools", toolService.listTools(null,scope, toolType)));
+        return R.data(Map.of("shared_tools", List.of(), "tools", toolService.toolList(null,scope, toolType)));
     }
 
     @SaCheckPerm(PermissionEnum.TOOL_CREATE)

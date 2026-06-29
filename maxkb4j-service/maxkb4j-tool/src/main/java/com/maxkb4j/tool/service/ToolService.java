@@ -187,6 +187,38 @@ public class ToolService  extends ServiceImpl<ToolMapper, ToolEntity> implements
         return this.list(wrapper);
     }
 
+    public List<ToolEntity> toolList(String folderId,String scope, String toolType) {
+        String loginId = StpKit.ADMIN.getLoginIdAsString();
+        Set<String> role = userService.getRoleById(loginId);
+        LambdaQueryWrapper<ToolEntity> wrapper = Wrappers.lambdaQuery();
+        wrapper.select(
+                ToolEntity::getId,
+                ToolEntity::getName,
+                ToolEntity::getDesc,
+                ToolEntity::getIcon,
+                ToolEntity::getToolType,
+                ToolEntity::getIsActive
+        );
+        if (StringUtils.isNotBlank(folderId)) {
+            wrapper.eq(ToolEntity::getFolderId, folderId);
+        }
+        if (StringUtils.isNotBlank(toolType)) {
+            wrapper.eq(ToolEntity::getToolType, toolType);
+        }
+        wrapper.eq(ToolEntity::getIsActive, ToolConstants.Status.ACTIVE);
+        wrapper.eq(ToolEntity::getScope, scope);
+        wrapper.orderByDesc(ToolEntity::getCreateTime);
+        if (role.contains(RoleType.ADMIN)) {
+            return this.list(wrapper);
+        } else {
+            List<String> targetIds = userResourcePermissionService.getTargetIds(AuthTargetType.TOOL, StpKit.ADMIN.getLoginIdAsString());
+            if (!CollectionUtils.isEmpty(targetIds)) {
+                wrapper.in(ToolEntity::getId, targetIds);
+            }
+        }
+        return this.list(wrapper);
+    }
+
 
     /**
      * 更新工具

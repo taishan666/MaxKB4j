@@ -49,8 +49,7 @@ public class GenerateProblemListener {
                     documentService.updateStatusById(docId, 2, 1);
                     paragraphs.forEach(paragraph -> {
                         try {
-                            String promptTemplate = event.getPrompt().replace("{number}", event.getNumber());
-                            problemService.generateRelated(chatModel, embeddingModel, event.getKnowledgeId(), docId, paragraph, knowledgeProblems, promptTemplate);
+                            problemService.generateRelated(chatModel, embeddingModel, event.getKnowledgeId(), docId, paragraph, knowledgeProblems, event.getNumber());
                             paragraphService.updateStatusById(paragraph.getId(), 2, 2);
                             documentService.updateStatusMetaById(docId);
                         } catch (Exception e) {
