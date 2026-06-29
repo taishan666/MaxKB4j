@@ -64,7 +64,7 @@ public class ProblemParagraphService extends ServiceImpl<ProblemParagraphMapper,
                 .knowledgeId(e.getKnowledgeId())
                 .documentId(e.getDocumentId())
                 .paragraphId(e.getParagraphId())
-                .sourceId(e.getId())
+                .sourceId(e.getProblemId())
                 .sourceType(SourceType.PROBLEM)
                 .content(e.getContent())
                 .isActive(true)
