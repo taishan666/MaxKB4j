@@ -20,6 +20,7 @@ import org.springframework.web.context.request.async.AsyncRequestNotUsableExcept
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import javax.crypto.BadPaddingException;
+import java.io.IOException;
 
 
 /**
@@ -80,6 +81,40 @@ public class GlobalExceptionHandler {
     public void handleAsyncRequestNotUsable(AsyncRequestNotUsableException e) {
         // 仅记录 debug 级别日志，不抛出异常，避免干扰正常业务流程
         log.debug("Client disconnected during async request: {}", e.getMessage());
+    }
+
+    /**
+     * 处理客户端断开连接导致的 IOException
+     * 浏览器快速刷新/取消请求时，服务端仍在向 socket 写响应，会抛出：
+     *   - "你的主机中的软件中止了一个已建立的连接" (Windows)
+     *   - "Connection reset by peer" / "Broken pipe" (Linux)
+     * 这些是正常的客户端行为，不应作为 ERROR 打印完整堆栈。
+     */
+    @ExceptionHandler(IOException.class)
+    public void handleClientAbort(IOException e, HttpServletResponse response) throws IOException {
+        if (isClientAbortException(e)) {
+            log.debug("Client aborted connection: {}", e.getMessage());
+            return;
+        }
+        // 非客户端断开的 IO 异常，仍按未知异常处理
+        log.error("IO 异常", e);
+        if (!response.isCommitted()) {
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    private boolean isClientAbortException(IOException e) {
+        String msg = e.getMessage();
+        if (msg == null) {
+            return false;
+        }
+        String lower = msg.toLowerCase();
+        return lower.contains("broken pipe")
+                || lower.contains("connection reset")
+                || lower.contains("connection was aborted")
+                || lower.contains("an established connection was aborted")
+                || msg.contains("你的主机中的软件中止了一个已建立的连接")
+                || msg.contains("远程主机强迫关闭了一个现有的连接");
     }
 
     @ExceptionHandler(NoResourceFoundException.class)

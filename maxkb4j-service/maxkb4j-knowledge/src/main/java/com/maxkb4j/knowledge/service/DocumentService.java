@@ -170,11 +170,11 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
         if (CollectionUtils.isEmpty(docIds)) {
             return false;
         }
-        this.lambdaUpdate().in(DocumentEntity::getId, docIds).remove();
+        problemParagraphService.lambdaUpdate().in(ProblemParagraphEntity::getDocumentId, docIds).remove();
         documentTagService.lambdaUpdate().in(DocumentTagEntity::getDocumentId, docIds).remove();
         paragraphService.lambdaUpdate().in(ParagraphEntity::getDocumentId, docIds).remove();
         compositeStore.deleteByDocumentIds(knowledgeId, docIds);
-        return problemParagraphService.lambdaUpdate().in(ProblemParagraphEntity::getDocumentId, docIds).remove();
+        return this.lambdaUpdate().in(DocumentEntity::getId, docIds).remove();
     }
 
     public boolean embedByDocIds(String knowledgeId, List<String> docIds, List<String> stateList) {
