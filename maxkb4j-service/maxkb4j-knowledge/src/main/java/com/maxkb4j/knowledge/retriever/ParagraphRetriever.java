@@ -1,9 +1,9 @@
-package com.maxkb4j.knowledge.service;
+package com.maxkb4j.knowledge.retriever;
 
 import com.maxkb4j.common.mp.entity.KnowledgeSetting;
 import com.maxkb4j.knowledge.dto.DataSearchDTO;
 import com.maxkb4j.knowledge.mapper.ParagraphMapper;
-import com.maxkb4j.knowledge.retrieval.IDataRetriever;
+import com.maxkb4j.knowledge.service.IRetrieveService;
 import com.maxkb4j.knowledge.vo.ParagraphVO;
 import com.maxkb4j.knowledge.vo.TextChunkVO;
 import lombok.RequiredArgsConstructor;
@@ -19,10 +19,10 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class RetrieveService implements IRetrieveService {
+public class ParagraphRetriever implements IRetrieveService {
 
     private final ParagraphMapper paragraphMapper;
-    private final IDataRetriever dataRetriever;
+    private final DataRetriever dataRetriever;
 
     public List<ParagraphVO> paragraphSearch(String question, List<String> knowledgeIds, List<String> excludeParagraphIds, KnowledgeSetting datasetSetting) {
         DataSearchDTO dto = new DataSearchDTO();

@@ -230,17 +230,23 @@ public class PgVectorEmbeddingStoreImpl extends BaseStoreImpl {
         if (CollectionUtils.isNotEmpty(excludeParagraphIds)) {
             filter = filter.and(metadataKey("paragraphId").isNotIn(excludeParagraphIds));
         }
+        // langchain4j 的 RelevanceScore = (1 + cosineSim) / 2，把不相关样本抬到了 0.5 附近，
+        // 与 VectorStoreImpl(mybatis) 输出的「原始余弦相似度」不是同一刻度。
+        // 这里在入参（minScore）和出参（match.score）两端都把口径对齐回原始余弦相似度 [-1, 1]，
+        // 让上层配置与展示在两套后端之间可互换。
+        double normalizedMinScore = (request.getMinScore() + 1.0) / 2.0;
         EmbeddingSearchRequest searchRequest = EmbeddingSearchRequest.builder()
                 .filter(filter)
                 .query(request.getQuery().trim())
                 .queryEmbedding(queryEmbedding)
                 .maxResults(request.getTopK() * RECALL_MULTIPLIER)
-                .minScore(request.getMinScore())
+                .minScore(normalizedMinScore)
                 .build();
         EmbeddingSearchResult<TextSegment> searchResult = store.search(searchRequest);
         List<TextChunkVO> results = searchResult.matches().stream().map(match -> {
             TextSegment segment = match.embedded();
-            return new TextChunkVO(segment.metadata().getString("paragraphId"), match.score());
+            double cosineSimilarity = 2.0 * match.score() - 1.0;
+            return new TextChunkVO(segment.metadata().getString("paragraphId"), cosineSimilarity);
         }).toList();
         return dedupAndRank(results, request.getTopK());
     }

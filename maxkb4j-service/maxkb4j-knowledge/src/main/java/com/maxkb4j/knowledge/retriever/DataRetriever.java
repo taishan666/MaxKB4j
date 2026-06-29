@@ -3,7 +3,6 @@ package com.maxkb4j.knowledge.retriever;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.maxkb4j.knowledge.consts.SearchType;
 import com.maxkb4j.knowledge.entity.DocumentEntity;
-import com.maxkb4j.knowledge.retrieval.IDataRetriever;
 import com.maxkb4j.knowledge.retrieval.SearchMode;
 import com.maxkb4j.knowledge.retrieval.SearchRequest;
 import com.maxkb4j.knowledge.service.IDocumentService;
@@ -21,7 +20,7 @@ import java.util.Map;
  */
 @Slf4j
 @Component
-public class DataRetriever implements IDataRetriever {
+public class DataRetriever {
 
     private final IDataStore vectorStore;
     private final IDataStore fullTextStore;
@@ -45,7 +44,6 @@ public class DataRetriever implements IDataRetriever {
     );
 
 
-    @Override
     public List<TextChunkVO> search(List<String> knowledgeIds, List<String> excludeParagraphIds,
                                      String keyword, int maxResults, float minScore, String searchMode) {
         SearchRequest request = new SearchRequest();

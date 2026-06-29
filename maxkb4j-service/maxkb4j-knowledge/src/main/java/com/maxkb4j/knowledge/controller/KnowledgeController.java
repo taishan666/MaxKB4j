@@ -18,7 +18,7 @@ import com.maxkb4j.knowledge.entity.KnowledgeEntity;
 import com.maxkb4j.knowledge.entity.KnowledgeVersionEntity;
 import com.maxkb4j.knowledge.handler.KnowledgeImportHandler;
 import com.maxkb4j.knowledge.service.KnowledgeService;
-import com.maxkb4j.knowledge.service.RetrieveService;
+import com.maxkb4j.knowledge.retriever.ParagraphRetriever;
 import com.maxkb4j.knowledge.vo.KnowledgeListVO;
 import com.maxkb4j.knowledge.vo.KnowledgeVO;
 import com.maxkb4j.knowledge.vo.ParagraphVO;
@@ -41,7 +41,7 @@ import java.util.List;
 public class KnowledgeController {
 
     private final KnowledgeService knowledgeService;
-    private final RetrieveService retrieveService;
+    private final ParagraphRetriever retrieveService;
     private final KnowledgeImportHandler knowledgeImportHandler;
 
 
