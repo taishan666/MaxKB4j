@@ -44,8 +44,8 @@ public class ProblemController {
     @PutMapping("/knowledge/{id}/problem/{problemId}")
     public R<Boolean> updateProblemByDatasetId(@PathVariable String id, @PathVariable String problemId, @RequestBody ProblemEntity problem) {
         problem.setId(problemId);
-        //todo 更新向量
-        return R.status(problemService.updateById(problem));
+        problem.setKnowledgeId(id);
+        return R.status(problemService.updateProblemById(problem));
     }
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_PROBLEM_DELETE)

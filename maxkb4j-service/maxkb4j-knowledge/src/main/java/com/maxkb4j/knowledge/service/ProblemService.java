@@ -181,13 +181,11 @@ public class ProblemService extends ServiceImpl<ProblemMapper, ProblemEntity> im
         if (dto == null || dto.getContent() == null) {
             return false;
         }
-
         ProblemEntity problem = ProblemEntity.builder()
                 .knowledgeId(knowledgeId)
                 .content(dto.getContent())
                 .hitNum(0)
                 .build();
-
         boolean saved = this.save(problem);
         if (!saved) {
             return false;
@@ -225,5 +223,11 @@ public class ProblemService extends ServiceImpl<ProblemMapper, ProblemEntity> im
                 .filter(p -> Objects.equals(p.getContent(), content))
                 .findFirst()
                 .orElse(null);
+    }
+
+    @Transactional
+    public boolean updateProblemById(ProblemEntity problem) {
+        problemParagraphService.reVector(problem);
+        return this.updateById(problem);
     }
 }
