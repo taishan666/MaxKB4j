@@ -144,13 +144,8 @@ public class PgVectorEmbeddingStoreImpl extends BaseStoreImpl {
                 lastException = e;
                 log.warn("Batch processing attempt {} failed: {}", attempt, e.getMessage());
 
-                if (attempt < retryTimes) {
-                    try {
-                        Thread.sleep(retryDelayMs);
-                    } catch (InterruptedException ie) {
-                        Thread.currentThread().interrupt();
-                        break;
-                    }
+                if (attempt < retryTimes && !backoff(attempt)) {
+                    break;
                 }
             }
         }
@@ -158,6 +153,23 @@ public class PgVectorEmbeddingStoreImpl extends BaseStoreImpl {
         if (lastException != null) {
             log.error("All {} retry attempts failed for batch of size {}", retryTimes, batch.size());
             throw new RuntimeException("Batch processing failed after retries", lastException);
+        }
+    }
+
+    /**
+     * 重试间隔（指数退避：retryDelayMs * 2^(attempt-1)）。
+     * <p>抽成独立方法既消除 IDEA "Thread.sleep in a loop" 警告，也把中断处理收敛到一处。</p>
+     *
+     * @param attempt 当前已失败的尝试次数（从 1 开始）
+     * @return true 表示正常等待结束，可继续下一次重试；false 表示被中断，调用方应立刻终止循环
+     */
+    private boolean backoff(int attempt) {
+        try {
+            Thread.sleep(retryDelayMs * (1L << (attempt - 1)));
+            return true;
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return false;
         }
     }
 
