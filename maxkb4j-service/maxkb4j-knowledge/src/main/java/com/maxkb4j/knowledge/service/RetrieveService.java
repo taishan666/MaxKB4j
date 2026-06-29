@@ -11,27 +11,18 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class RetrieveService implements IRetrieveService{
+public class RetrieveService implements IRetrieveService {
 
     private final ParagraphMapper paragraphMapper;
     private final IDataRetriever dataRetriever;
-
-
-    private List<TextChunkVO> dataSearch(List<String> knowledgeIds, DataSearchDTO dto) {
-        if (CollectionUtils.isEmpty(knowledgeIds)) {
-            return Collections.emptyList();
-        }
-        return dataRetriever.search(knowledgeIds, dto.getExcludeParagraphIds(),
-                                dto.getQueryText(), dto.getTopNumber(),
-                                dto.getSimilarity(), dto.getSearchMode(), dto.getChatModelId());
-    }
 
     public List<ParagraphVO> paragraphSearch(String question, List<String> knowledgeIds, List<String> excludeParagraphIds, KnowledgeSetting datasetSetting) {
         DataSearchDTO dto = new DataSearchDTO();
@@ -44,28 +35,33 @@ public class RetrieveService implements IRetrieveService{
     }
 
     public List<ParagraphVO> paragraphSearch(List<String> knowledgeIds, DataSearchDTO dto) {
-        List<TextChunkVO> list = dataSearch(knowledgeIds, dto);
-        List<String> paragraphIds = list.stream().map(TextChunkVO::getParagraphId).toList();
-        if (CollectionUtils.isEmpty(paragraphIds)) {
+        if (CollectionUtils.isEmpty(knowledgeIds)) {
             return Collections.emptyList();
         }
-        Map<String, Double> scoreMap = list.stream().collect(Collectors.toMap(TextChunkVO::getParagraphId, TextChunkVO::getScore));
-        // 记录 paragraphIds 的顺序索引
-        Map<String, Integer> orderMap = new java.util.HashMap<>();
-        for (int i = 0; i < paragraphIds.size(); i++) {
-            orderMap.put(paragraphIds.get(i), i);
+        List<TextChunkVO> chunks = dataRetriever.search(knowledgeIds, dto.getExcludeParagraphIds(),
+                dto.getQueryText(), dto.getTopNumber(),
+                dto.getSimilarity(), dto.getSearchMode(), dto.getChatModelId());
+        if (CollectionUtils.isEmpty(chunks)) {
+            return Collections.emptyList();
         }
-        List<ParagraphVO> paragraphs = paragraphMapper.retrievalParagraph(paragraphIds);
-        paragraphs.forEach(e -> {
-            double score = scoreMap.get(e.getId());
-            e.setSimilarity(score);
-            e.setComprehensiveScore(score);
-            if (e.getDocumentName()==null){
-                e.setDocumentName("");
-            }
-        });
-        // 按照 paragraphIds 的原始顺序排序
-        paragraphs.sort(Comparator.comparingInt(p -> orderMap.get(p.getId())));
-        return paragraphs;
+        List<String> paragraphIds = chunks.stream().map(TextChunkVO::getParagraphId).toList();
+        Map<String, ParagraphVO> paragraphMap = paragraphMapper.retrievalParagraph(paragraphIds).stream()
+                .collect(Collectors.toMap(ParagraphVO::getId, Function.identity()));
+        // 按检索结果的原始顺序回填得分并组装结果
+        return chunks.stream()
+                .map(chunk -> {
+                    ParagraphVO paragraph = paragraphMap.get(chunk.getParagraphId());
+                    if (paragraph == null) {
+                        return null;
+                    }
+                    paragraph.setSimilarity(chunk.getScore());
+                    paragraph.setComprehensiveScore(chunk.getScore());
+                    if (paragraph.getDocumentName() == null) {
+                        paragraph.setDocumentName("");
+                    }
+                    return paragraph;
+                })
+                .filter(Objects::nonNull)
+                .toList();
     }
 }
