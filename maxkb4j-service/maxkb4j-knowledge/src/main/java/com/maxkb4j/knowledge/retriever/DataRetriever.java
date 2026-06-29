@@ -44,15 +44,10 @@ public class DataRetriever implements IDataRetriever {
         SearchType.HYBRID, SearchMode.HYBRID
     );
 
-    @Override
-    public List<TextChunkVO> search(List<String> knowledgeIds, List<String> excludeParagraphIds,
-                                     String keyword, int maxResults, float minScore, String searchMode) {
-        return search(knowledgeIds, excludeParagraphIds, keyword, maxResults, minScore, searchMode, null);
-    }
 
     @Override
     public List<TextChunkVO> search(List<String> knowledgeIds, List<String> excludeParagraphIds,
-                                     String keyword, int maxResults, float minScore, String searchMode, String chatModelId) {
+                                     String keyword, int maxResults, float minScore, String searchMode) {
         SearchRequest request = new SearchRequest();
         request.setKnowledgeIds(knowledgeIds);
         request.setExcludeParagraphIds(excludeParagraphIds);

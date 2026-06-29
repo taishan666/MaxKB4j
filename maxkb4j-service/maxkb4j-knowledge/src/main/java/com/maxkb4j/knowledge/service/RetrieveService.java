@@ -40,7 +40,7 @@ public class RetrieveService implements IRetrieveService {
         }
         List<TextChunkVO> chunks = dataRetriever.search(knowledgeIds, dto.getExcludeParagraphIds(),
                 dto.getQueryText(), dto.getTopNumber(),
-                dto.getSimilarity(), dto.getSearchMode(), dto.getChatModelId());
+                dto.getSimilarity(), dto.getSearchMode());
         if (CollectionUtils.isEmpty(chunks)) {
             return Collections.emptyList();
         }
