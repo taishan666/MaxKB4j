@@ -174,9 +174,8 @@ public abstract class AbsModelProvider {
                 Response<Embedding> response = model.embed("hi");
                 return response!=null;
             }
-            return true;
         }
-        return false;
+        return true;
     }
 
 

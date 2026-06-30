@@ -78,6 +78,8 @@ application:
 model:
   name:
     exists: 模型名称已存在
+  params:
+    invalid: 模型参数无效，请检查模型配置
 
 chat:
   token:

@@ -78,6 +78,8 @@ application:
 model:
   name:
     exists: Model name already exists
+  params:
+    invalid: Invalid model parameters. Please check the model configuration.
 
 chat:
   token:
