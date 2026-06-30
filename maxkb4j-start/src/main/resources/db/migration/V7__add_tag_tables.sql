@@ -29,9 +29,6 @@ CREATE INDEX "tag_knowled_cba590_idx" ON "public"."tag" USING btree (
     "knowledge_id" COLLATE "pg_catalog"."default" "pg_catalog"."text_ops" ASC NULLS LAST,
     "key" COLLATE "pg_catalog"."default" "pg_catalog"."text_ops" ASC NULLS LAST
     );
-CREATE INDEX "tag_knowledge_id_5816b5de" ON "public"."tag" USING btree (
-    "knowledge_id" COLLATE "pg_catalog"."default" "pg_catalog"."text_ops" ASC NULLS LAST
-    );
 CREATE INDEX "tag_update_time_928c2700" ON "public"."tag" USING btree (
     "update_time" "pg_catalog"."timestamptz_ops" ASC NULLS LAST
     );
