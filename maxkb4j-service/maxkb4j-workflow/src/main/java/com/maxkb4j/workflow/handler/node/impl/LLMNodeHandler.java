@@ -112,18 +112,8 @@ public class LLMNodeHandler extends AbsNodeHandler {
 
     private List<Content> buildImageContents(Workflow workflow, AbsNode node, List<String> imageFieldList) {
         List<Content> contents = new ArrayList<>();
-        if (CollectionUtils.isEmpty(imageFieldList)) {
-            return contents;
-        }
         try {
-            Object object = workflow.getReferenceField(imageFieldList);
-            if (!(object instanceof List<?> fileList)) {
-                return contents;
-            }
-            List<OssFile> imageFiles = fileList.stream()
-                    .filter(OssFile.class::isInstance)
-                    .map(OssFile.class::cast)
-                    .toList();
+            List<OssFile> imageFiles = getOssFiles(workflow,imageFieldList);
             for (OssFile file : imageFiles) {
                 byte[] bytes = ossService.getBytes(file.getFileId());
                 String base64Data = Base64.getEncoder().encodeToString(bytes);

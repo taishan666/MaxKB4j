@@ -20,12 +20,13 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 
 @Slf4j
 @Service
@@ -141,10 +142,6 @@ public class MongoFileService implements IOssService{
             log.error("Error serving file with ID: {}", id, e);
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
-    }
-
-    public List<GridFSFile> list() {
-        return  gridFsTemplate.find(new Query()).into(new ArrayList<>());
     }
 
     public GridFSFile getById(String fileId) {

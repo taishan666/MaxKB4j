@@ -87,30 +87,15 @@ public class ImageGenerateNodeHandler extends AbsNodeHandler {
 
     private List<Image> buildImages(Workflow workflow, AbsNode node, List<String> imageFieldList) {
         List<Image> images = new ArrayList<>();
-        if (CollectionUtils.isEmpty(imageFieldList)) {
-            return images;
+        List<OssFile> imageFiles = getOssFiles(workflow,imageFieldList);
+        for (OssFile file : imageFiles) {
+            byte[] bytes = ossService.getBytes(file.getFileId());
+            String base64Data = Base64.getEncoder().encodeToString(bytes);
+            String extension = extractFileExtension(file.getName());
+            Image image = Image.builder().base64Data(base64Data).mimeType(MimeTypeUtils.getMimeType(extension)).build();
+            images.add(image);
         }
-        try {
-            Object object = workflow.getReferenceField(imageFieldList);
-            if (!(object instanceof List<?> fileList)) {
-                return images;
-            }
-            List<OssFile> imageFiles = fileList.stream()
-                    .filter(OssFile.class::isInstance)
-                    .map(OssFile.class::cast)
-                    .toList();
-            putDetail(node, "imageList", imageFiles);
-
-            for (OssFile file : imageFiles) {
-                byte[] bytes = ossService.getBytes(file.getFileId());
-                String base64Data = Base64.getEncoder().encodeToString(bytes);
-                String extension = extractFileExtension(file.getName());
-                Image image = Image.builder().base64Data(base64Data).mimeType(MimeTypeUtils.getMimeType(extension)).build();
-                images.add(image);
-            }
-        } catch (Exception e) {
-            log.warn("Failed to load image contents for node: {}", node.getRuntimeNodeId(), e);
-        }
+        putDetail(node, "imageList", imageFiles);
         return images;
     }
 }

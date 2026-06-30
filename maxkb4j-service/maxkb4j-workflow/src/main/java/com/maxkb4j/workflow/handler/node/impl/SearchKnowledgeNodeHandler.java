@@ -16,7 +16,6 @@ import com.maxkb4j.workflow.node.AbsNode;
 import com.maxkb4j.workflow.node.impl.SearchKnowledgeNode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
@@ -90,13 +89,6 @@ public class SearchKnowledgeNodeHandler extends AbsNodeHandler {
             }
         }
         return excludeParagraphIds;
-    }
-
-    public String resetTitle(String title) {
-        if (StringUtils.isNotBlank(title)) {
-            return title;
-        }
-        return "";
     }
 
     public String directlyReturns(List<ParagraphVO> isHitHandlingMethodList) {

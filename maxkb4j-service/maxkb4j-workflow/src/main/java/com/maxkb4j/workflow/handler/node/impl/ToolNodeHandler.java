@@ -25,6 +25,7 @@ public class ToolNodeHandler extends AbsNodeHandler {
     private final IOssService fileService;
 
     @Override
+    @SuppressWarnings("unchecked")
     protected NodeResult doExecute(Workflow workflow, AbsNode node) throws Exception {
         ToolNode.NodeParams params = parseParams(node, ToolNode.NodeParams.class);
         Map<String, Object> execParams = new HashMap<>(5);

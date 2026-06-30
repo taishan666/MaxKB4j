@@ -35,6 +35,7 @@ public class LoopStartNodeHandler extends AbsNodeHandler {
                 }
             }
         }
+        item=item==null?"None":item.toString();
         return new NodeResult(Map.of("index", index, "item", item));
     }
 }

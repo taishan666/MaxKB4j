@@ -1,11 +1,14 @@
 package com.maxkb4j.workflow.handler.node;
 
 import com.alibaba.fastjson.JSONObject;
+import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
+import com.maxkb4j.common.domain.dto.OssFile;
 import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.model.Workflow;
 import com.maxkb4j.workflow.node.AbsNode;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
@@ -228,7 +231,7 @@ public abstract class AbsNodeHandler implements INodeHandler {
      * @param fields   字段引用路径
      * @return 字段值
      */
-    protected Object getReferenceField(Workflow workflow, java.util.List<String> fields) {
+    protected Object getReferenceField(Workflow workflow, List<String> fields) {
         return workflow.getReferenceField(fields);
     }
 
@@ -239,8 +242,23 @@ public abstract class AbsNodeHandler implements INodeHandler {
      * @param fields   字段引用路径
      * @return 字段值（字符串），如果不存在或类型不匹配返回 null
      */
-    protected String getReferenceFieldAsString(Workflow workflow, java.util.List<String> fields) {
+    protected String getReferenceFieldAsString(Workflow workflow, List<String> fields) {
         Object value = workflow.getReferenceField(fields);
         return value instanceof String ? (String) value : null;
+    }
+
+    protected List<OssFile> getOssFiles(Workflow workflow, List<String> fields) {
+        if (CollectionUtils.isEmpty(fields)) {
+            return List.of();
+        }
+        Object object = workflow.getReferenceField(fields);
+        if (!(object instanceof List<?> fileList)) {
+            return List.of();
+        }
+        return fileList.stream()
+                .filter(OssFile.class::isInstance)
+                .map(OssFile.class::cast)
+                .toList();
+
     }
 }
