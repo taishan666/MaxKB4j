@@ -46,7 +46,6 @@ public class OpenAiModelProvider extends AbsModelProvider {
     );
 
 
-
     public String getDefaultBaseUrl(){
         return BASE_URL;
     }
@@ -68,6 +67,8 @@ public class OpenAiModelProvider extends AbsModelProvider {
     public List<ModelInfo> getModelList() {
         return MODEL_INFOS;
     }
+
+
 
     @Override
     public ModelCredentialForm getModelCredential() {

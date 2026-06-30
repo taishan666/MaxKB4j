@@ -11,6 +11,8 @@ import com.maxkb4j.model.enums.ModelType;
 import com.maxkb4j.model.service.ISTTModel;
 import com.maxkb4j.model.service.ITTSModel;
 import com.maxkb4j.model.vo.ModelInfo;
+import dev.langchain4j.data.embedding.Embedding;
+import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.http.client.HttpClientBuilder;
 import dev.langchain4j.http.client.spring.restclient.SpringRestClient;
 import dev.langchain4j.http.client.spring.restclient.SpringRestClientBuilder;
@@ -19,10 +21,12 @@ import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.DisabledChatModel;
 import dev.langchain4j.model.chat.DisabledStreamingChatModel;
 import dev.langchain4j.model.chat.StreamingChatModel;
+import dev.langchain4j.model.chat.response.ChatResponse;
 import dev.langchain4j.model.embedding.DisabledEmbeddingModel;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.model.image.DisabledImageModel;
 import dev.langchain4j.model.image.ImageModel;
+import dev.langchain4j.model.output.Response;
 import dev.langchain4j.model.scoring.ScoringModel;
 import lombok.Data;
 import org.springframework.core.task.VirtualThreadTaskExecutor;
@@ -157,6 +161,24 @@ public abstract class AbsModelProvider {
      * @return list of model info
      */
     public abstract List<ModelInfo> getModelList();
+
+
+    public boolean modelIsValid(String modelType,String modelName, ModelCredential credential, JSONObject params){
+        if (modelType != null) {
+            if (ModelType.LLM.getKey().equals(modelType)) {
+                ChatModel model = buildChatModel(modelName, credential, params);
+                ChatResponse response = model.chat(UserMessage.userMessage("hi"));
+                return response!=null;
+            } else if (ModelType.EMBEDDING.getKey().equals(modelType)) {
+                EmbeddingModel model = buildEmbeddingModel(modelName, credential, params);
+                Response<Embedding> response = model.embed("hi");
+                return response!=null;
+            }
+            return true;
+        }
+        return false;
+    }
+
 
     /**
      * Builds a chat model instance

@@ -15,8 +15,10 @@ import com.maxkb4j.common.util.BeanUtil;
 import com.maxkb4j.common.util.DataMaskUtil;
 import com.maxkb4j.common.util.StpKit;
 import com.maxkb4j.model.entity.ModelEntity;
+import com.maxkb4j.model.enums.ModelProvider;
 import com.maxkb4j.model.enums.ModelStatus;
 import com.maxkb4j.model.mapper.ModelMapper;
+import com.maxkb4j.model.provider.AbsModelProvider;
 import com.maxkb4j.model.vo.ModelVO;
 import com.maxkb4j.system.constant.AuthTargetType;
 import com.maxkb4j.user.service.IUserResourcePermissionService;
@@ -111,14 +113,50 @@ public class ModelService extends ServiceImpl<ModelMapper, ModelEntity> {
         if (model.getModelParamsForm() == null){
             model.setModelParamsForm(new JSONArray());
         }
-        model.setUserId(userId);
-        model.setMeta(new JSONObject());
-        model.setStatus(ModelStatus.SUCCESS.getKey());
-        save(model);
-        return userResourcePermissionService.ownerSave(AuthTargetType.MODEL, model.getId(), model.getUserId());
+        AbsModelProvider  modelProvider= ModelProvider.get(model.getProvider());
+        JSONObject params = extractDefaultModelParams(model.getModelParamsForm());
+        if (modelProvider.modelIsValid(model.getModelType(),model.getModelName(),model.getCredential(),params)){
+            model.setUserId(userId);
+            model.setMeta(new JSONObject());
+            model.setStatus(ModelStatus.SUCCESS.getKey());
+            save(model);
+            return userResourcePermissionService.ownerSave(AuthTargetType.MODEL, model.getId(), model.getUserId());
+        }else {
+            throw new ApiException("model.params.invalid");
+        }
+    }
+
+    private JSONObject extractDefaultModelParams(JSONArray modelParamsForm) {
+        JSONObject defaultModelParams = new JSONObject();
+
+        // 防御性判断：如果传入的数组为空或 null，直接返回空对象
+        if (modelParamsForm == null || modelParamsForm.isEmpty()) {
+            return defaultModelParams;
+        }
+
+        // 遍历 JSONArray 中的每一个配置项
+        for (int i = 0; i < modelParamsForm.size(); i++) {
+            JSONObject paramConfig = modelParamsForm.getJSONObject(i);
+
+            // 获取字段名作为 key，默认值作为 value
+            String field = paramConfig.getString("field");
+            Object defaultValue = paramConfig.get("defaultValue");
+
+            // 防止 field 为 null 导致异常
+            if (field != null) {
+                defaultModelParams.put(field, defaultValue);
+            }
+        }
+        System.out.println(defaultModelParams);
+        return defaultModelParams;
     }
 
     public ModelEntity updateModel(String id, ModelEntity model) {
+        String userId = StpKit.ADMIN.getLoginIdAsString();
+        long count = this.lambdaQuery().eq(ModelEntity::getName, model.getName()).eq(ModelEntity::getUserId, userId).ne(ModelEntity::getId, id).count();
+        if (count > 0) {
+            throw new ApiException("model.name.exists");
+        }
         model.setId(id);
         ModelCredential credential = getModelCredential(id);
         String maskApiKey = DataMaskUtil.maskApiKey(credential.getApiKey());

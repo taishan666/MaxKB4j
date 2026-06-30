@@ -8,6 +8,8 @@ import com.maxkb4j.common.api.R;
 import com.maxkb4j.common.exception.*;
 import com.maxkb4j.common.util.I18nUtil;
 import com.maxkb4j.common.util.StpKit;
+import dev.langchain4j.exception.AuthenticationException;
+import dev.langchain4j.exception.InvalidRequestException;
 import dev.langchain4j.exception.RateLimitException;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -168,12 +170,27 @@ public class GlobalExceptionHandler {
         return R.fail(1002, e.getMessage());
     }
 
+
     @ExceptionHandler(UserIdentityException.class)
     @ResponseBody
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public R<String> handleException(UserIdentityException e, HttpServletResponse response) {
         response.setStatus(460); // 设置HTTP状态码为461
         return R.fail(1002, e.getMessage());
+    }
+
+    @ExceptionHandler(AuthenticationException.class)
+    @ResponseBody
+    public R<String> handleException(AuthenticationException e) {
+        log.error("模型接口token鉴权失败: {}", e.getMessage(), e);
+        return R.fail(e.getMessage());
+    }
+
+    @ExceptionHandler(InvalidRequestException.class)
+    @ResponseBody
+    public R<String> handleException(InvalidRequestException e) {
+        log.error("模型接口请求失败: {}", e.getMessage(), e);
+        return R.fail(e.getMessage());
     }
 
     @ExceptionHandler(SecurityException.class)
@@ -185,17 +202,19 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(IllegalArgumentException.class)
     @ResponseBody
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public R<String> handleIllegalArgumentException(IllegalArgumentException e) {
+    public R<String> handleException(IllegalArgumentException e) {
         log.error("非法参数: {}", e.getMessage(), e);
         return R.fail(e.getMessage());
     }
 
     @ExceptionHandler(FileLimitExceededException.class)
     @ResponseBody
-    public R<String> handleFileLimitExceededException(FileLimitExceededException e) {
+    public R<String> handleException(FileLimitExceededException e) {
         log.error("业务规则校验失败: {}", e.getMessage(), e);
         return R.fail(400, e.getMessage());
     }
+
+
 
 
     @ExceptionHandler(Exception.class)

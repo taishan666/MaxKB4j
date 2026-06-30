@@ -26,7 +26,11 @@ public class SiliconFlowModelProvider extends OpenAiModelProvider {
             new ModelInfo("BAAI/bge-reranker-v2-m3", "", ModelType.RERANKER),
             new ModelInfo("netease-youdao/bce-reranker-base_v1", "", ModelType.RERANKER),
             new ModelInfo("Qwen/Qwen3-VL-32B-Thinking", "", ModelType.VISION),
-            new ModelInfo("Qwen/Qwen3-Image", "", ModelType.TTI)
+            new ModelInfo("Qwen/Qwen3-Image", "", ModelType.TTI),
+            new ModelInfo("Kwai-Kolors/Kolors", "", ModelType.TTI),
+            new ModelInfo("TeleAI/TeleSpeechASR", "", ModelType.STT),
+            new ModelInfo("FunAudioLLM/SenseVoiceSmall", "", ModelType.STT),
+            new ModelInfo("FunAudioLLM/CosyVoice2-0.5B", "", ModelType.TTS)
     );
 
     @Override
