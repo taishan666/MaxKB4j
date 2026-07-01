@@ -16,7 +16,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Sinks;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -42,10 +41,10 @@ public class ApplicationNodeHandler extends AbsNodeHandler {
         ChatParams chatParams = workflow.getChatParams();
         String chatId = chatParams.getChatId() + "_" + params.getApplicationId();
         // 获取各种文件列表
-        List<OssFile> docList = getFileList(workflow, params.getDocumentList());
-        List<OssFile> imageList = getFileList(workflow, params.getImageList());
-        List<OssFile> audioList = getFileList(workflow, params.getAudioList());
-        List<OssFile> otherList = getFileList(workflow, params.getOtherList());
+        List<OssFile> docList = getOssFiles(workflow, params.getDocumentList());
+        List<OssFile> imageList = getOssFiles(workflow, params.getImageList());
+        List<OssFile> audioList = getOssFiles(workflow, params.getAudioList());
+        List<OssFile> otherList = getOssFiles(workflow, params.getOtherList());
         String nodeChatRecordId = null;
         String nodeRuntimeNodeId = null;
         if (chatParams.getChildNode() != null) {
@@ -107,21 +106,6 @@ public class ApplicationNodeHandler extends AbsNodeHandler {
     @Override
     public boolean shouldInterrupt(AbsNode node) {
         return getInterruptFlag(node);
-    }
-
-    /**
-     * 获取文件列表
-     */
-    @SuppressWarnings("unchecked")
-    private List<OssFile> getFileList(Workflow workflow, List<String> fields) {
-        if (CollectionUtils.isEmpty(fields)) {
-            return new ArrayList<>();
-        }
-        Object result = workflow.getReferenceField(fields);
-        if (result instanceof List<?>) {
-            return (List<OssFile>) result;
-        }
-        return new ArrayList<>();
     }
 
     /**
