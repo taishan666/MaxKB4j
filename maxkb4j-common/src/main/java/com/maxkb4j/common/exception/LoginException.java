@@ -1,6 +1,8 @@
 package com.maxkb4j.common.exception;
 
 
+import com.maxkb4j.common.util.I18nUtil;
+
 /**
  * 登录异常
  *
@@ -22,7 +24,7 @@ public class LoginException extends RuntimeException {
      */
 
     public LoginException(String message) {
-        super(message);
+        super(I18nUtil.get(message));
     }
 
 }

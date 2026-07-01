@@ -3,18 +3,21 @@ package com.maxkb4j.system.service.impl;
 import cn.dev33.satoken.exception.NotLoginException;
 import cn.dev33.satoken.secure.SaSecureUtil;
 import cn.dev33.satoken.stp.StpInterface;
+import com.alibaba.fastjson2.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.maxkb4j.common.cache.AuthCodeCache;
+import com.maxkb4j.common.cache.SystemCache;
 import com.maxkb4j.common.constant.RoleType;
 import com.maxkb4j.common.exception.ApiException;
 import com.maxkb4j.common.exception.LoginException;
 import com.maxkb4j.common.props.SystemProperties;
 import com.maxkb4j.common.util.BeanUtil;
 import com.maxkb4j.common.util.I18nUtil;
+import com.maxkb4j.common.util.RSAUtil;
 import com.maxkb4j.common.util.StpKit;
 import com.maxkb4j.system.constant.UserSource;
 import com.maxkb4j.system.service.EmailService;
@@ -77,25 +80,32 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
 
 
     public String login(UserLoginDTO dto, HttpServletRequest request) {
+        String encryptedData = dto.getEncryptedData();
+        try {
+            String text = RSAUtil.rsaLongDecrypt(encryptedData, SystemCache.getPrivateKey());
+            dto = JSON.to(UserLoginDTO.class,text);
+        } catch (Exception e) {
+            throw new LoginException("密码解密错误");
+        }
         HttpSession session = request.getSession();
         String sessionCaptcha = (String) session.getAttribute("captcha");
         //清除验证码
         session.removeAttribute("captcha");
         if (StringUtils.isBlank(sessionCaptcha)) {
-            throw new LoginException(I18nUtil.get("login.captcha.expired"));
+            throw new LoginException("login.captcha.expired");
         }
         if (Objects.nonNull(dto.getCaptcha()) && !sessionCaptcha.equals(dto.getCaptcha().toLowerCase())) {
-            throw new LoginException(I18nUtil.get("login.captcha.error"));
+            throw new LoginException("login.captcha.error");
         }
         String password = SaSecureUtil.md5(dto.getPassword());
         UserEntity userEntity = this.lambdaQuery()
                 .eq(UserEntity::getUsername, dto.getUsername())
                 .eq(UserEntity::getPassword, password).one();
         if (Objects.isNull(userEntity)) {
-            throw new LoginException(I18nUtil.get("login.user.not.exists"));
+            throw new LoginException("login.user.not.exists");
         }
         if (!userEntity.getIsActive()) {
-            throw new LoginException(I18nUtil.get("login.user.disabled"));
+            throw new LoginException("login.user.disabled");
         }
         // 登录成功后立刻按用户表语言切换当前请求的返回消息
         LocaleContextHolder.setLocale(userEntity.getLanguage() != null && userEntity.getLanguage().toLowerCase().startsWith("en") ? Locale.US : Locale.SIMPLIFIED_CHINESE);

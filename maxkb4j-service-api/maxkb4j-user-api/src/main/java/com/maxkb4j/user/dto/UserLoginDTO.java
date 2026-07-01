@@ -7,7 +7,7 @@ import lombok.NonNull;
 public class UserLoginDTO {
     @NonNull
     private String username;
-    @NonNull
     private String password;
+    private String encryptedData;
     private String captcha;
 }

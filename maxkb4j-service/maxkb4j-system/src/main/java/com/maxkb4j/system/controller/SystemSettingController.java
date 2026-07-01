@@ -4,6 +4,7 @@ import cn.dev33.satoken.annotation.SaCheckRole;
 import cn.dev33.satoken.annotation.SaIgnore;
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.common.api.R;
+import com.maxkb4j.common.cache.SystemCache;
 import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.constant.LoginType;
 import com.maxkb4j.common.constant.RoleType;
@@ -32,6 +33,7 @@ public class SystemSettingController{
 		json.put("edition","CE");
 		json.put("version","v2.10.0 (build at 2026-06-23T15:28)");
 		json.put("license_is_valid",false);
+		json.put("rsa", SystemCache.getPublicKey());
 		return R.data(json);
 	}
 

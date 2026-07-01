@@ -16,7 +16,6 @@ import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -30,16 +29,6 @@ import java.util.Objects;
 public class AuthController {
 
 	private final IUserService userService;
-
-	@GetMapping("/auth/types")
-	public R<List<String>> authTypes(){
-		return R.data(List.of("LDAP"));
-	}
-
-	@GetMapping("/qr_type")
-	public R<List<String>> qrType(){
-		return R.data(List.of("wecom","dingtalk","lark"));
-	}
 
 	@PostMapping("/user/login")
 	public R<String> login(@RequestBody UserLoginDTO dto, HttpServletRequest request){
