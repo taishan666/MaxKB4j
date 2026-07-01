@@ -3,6 +3,7 @@ package com.maxkb4j.model.provider;
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.common.domain.form.BaseField;
 import com.maxkb4j.common.mp.entity.ModelCredential;
+import com.maxkb4j.core.assistant.Assistant;
 import com.maxkb4j.model.custom.credential.ModelCredentialForm;
 import com.maxkb4j.model.custom.params.EmbeddingModelParams;
 import com.maxkb4j.model.custom.params.ImageModelParams;
@@ -11,8 +12,6 @@ import com.maxkb4j.model.enums.ModelType;
 import com.maxkb4j.model.service.ISTTModel;
 import com.maxkb4j.model.service.ITTSModel;
 import com.maxkb4j.model.vo.ModelInfo;
-import dev.langchain4j.data.embedding.Embedding;
-import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.http.client.HttpClientBuilder;
 import dev.langchain4j.http.client.spring.restclient.SpringRestClient;
 import dev.langchain4j.http.client.spring.restclient.SpringRestClientBuilder;
@@ -21,17 +20,17 @@ import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.DisabledChatModel;
 import dev.langchain4j.model.chat.DisabledStreamingChatModel;
 import dev.langchain4j.model.chat.StreamingChatModel;
-import dev.langchain4j.model.chat.response.ChatResponse;
 import dev.langchain4j.model.embedding.DisabledEmbeddingModel;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.model.image.DisabledImageModel;
 import dev.langchain4j.model.image.ImageModel;
-import dev.langchain4j.model.output.Response;
 import dev.langchain4j.model.scoring.ScoringModel;
+import dev.langchain4j.service.AiServices;
 import lombok.Data;
 import org.springframework.core.task.VirtualThreadTaskExecutor;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.web.client.RestClient;
+import reactor.core.publisher.Flux;
 
 import java.util.List;
 import java.util.Optional;
@@ -163,19 +162,19 @@ public abstract class AbsModelProvider {
     public abstract List<ModelInfo> getModelList();
 
 
-    public boolean modelIsValid(String modelType,String modelName, ModelCredential credential, JSONObject params){
+    public void modelIsValid(String modelType,String modelName, ModelCredential credential, JSONObject params) {
         if (modelType != null) {
             if (ModelType.LLM.getKey().equals(modelType)) {
-                ChatModel model = buildChatModel(modelName, credential, params);
-                ChatResponse response = model.chat(UserMessage.userMessage("hi"));
-                return response!=null;
+                StreamingChatModel model = buildStreamingChatModel(modelName, credential, params);
+                Assistant assistant = AiServices.create(Assistant.class,model);
+                Flux<String> flux = assistant.chatFlux("hi");
+                // 同步阻塞，异常才能在当前请求线程冒泡，被 GlobalExceptionHandler 捕获
+                flux.blockLast();
             } else if (ModelType.EMBEDDING.getKey().equals(modelType)) {
                 EmbeddingModel model = buildEmbeddingModel(modelName, credential, params);
-                Response<Embedding> response = model.embed("hi");
-                return response!=null;
+                model.embed("hi");
             }
         }
-        return true;
     }
 
 

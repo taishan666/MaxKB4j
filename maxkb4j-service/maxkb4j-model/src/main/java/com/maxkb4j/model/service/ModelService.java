@@ -115,15 +115,12 @@ public class ModelService extends ServiceImpl<ModelMapper, ModelEntity> {
         }
         AbsModelProvider  modelProvider= ModelProvider.get(model.getProvider());
         JSONObject params = extractDefaultModelParams(model.getModelParamsForm());
-        if (modelProvider.modelIsValid(model.getModelType(),model.getModelName(),model.getCredential(),params)){
-            model.setUserId(userId);
-            model.setMeta(new JSONObject());
-            model.setStatus(ModelStatus.SUCCESS.getKey());
-            save(model);
-            return userResourcePermissionService.ownerSave(AuthTargetType.MODEL, model.getId(), model.getUserId());
-        }else {
-            throw new ApiException("model.params.invalid");
-        }
+        modelProvider.modelIsValid(model.getModelType(),model.getModelName(),model.getCredential(),params);
+        model.setUserId(userId);
+        model.setMeta(new JSONObject());
+        model.setStatus(ModelStatus.SUCCESS.getKey());
+        save(model);
+        return userResourcePermissionService.ownerSave(AuthTargetType.MODEL, model.getId(), model.getUserId());
     }
 
     private JSONObject extractDefaultModelParams(JSONArray modelParamsForm) {
@@ -166,13 +163,10 @@ public class ModelService extends ServiceImpl<ModelMapper, ModelEntity> {
         }
         AbsModelProvider  modelProvider= ModelProvider.get(entity.getProvider());
         JSONObject params = extractDefaultModelParams(entity.getModelParamsForm());
-        if (modelProvider.modelIsValid(model.getModelType(),model.getModelName(),model.getCredential(),params)){
-            this.updateById(model);
-            evictCache(id);
-            return model;
-        }else {
-            throw new ApiException("model.params.invalid");
-        }
+        modelProvider.modelIsValid(model.getModelType(),model.getModelName(),model.getCredential(),params);
+        this.updateById(model);
+        evictCache(id);
+        return model;
     }
 
     @Transactional
@@ -190,10 +184,6 @@ public class ModelService extends ServiceImpl<ModelMapper, ModelEntity> {
             return model;
         });
     }
-
-/*    public ModelCredential getModelCredential(String id) {
-        return getOwnedModel(id, ModelEntity::getCredential);
-    }*/
 
     public ModelEntity getModelById(String id) {
         if (StringUtils.isBlank(id)) {
@@ -264,4 +254,14 @@ public class ModelService extends ServiceImpl<ModelMapper, ModelEntity> {
         MODEL_CACHE.invalidate(id);
     }
 
+    public void updateModelParamsForm(String id, JSONArray paramsForm) {
+        ModelEntity entity = this.getById(id);
+        AbsModelProvider  modelProvider= ModelProvider.get(entity.getProvider());
+        JSONObject params = extractDefaultModelParams(paramsForm);
+        modelProvider.modelIsValid(entity.getModelType(),entity.getModelName(),entity.getCredential(),params);
+        ModelEntity modelEntity= new ModelEntity();
+        modelEntity.setId(id);
+        modelEntity.setModelParamsForm(paramsForm);
+        this.updateById(modelEntity);
+    }
 }

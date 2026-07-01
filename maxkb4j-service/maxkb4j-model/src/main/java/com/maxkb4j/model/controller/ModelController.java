@@ -75,11 +75,9 @@ public class ModelController{
 
 	@SaCheckPerm(PermissionEnum.MODEL_EDIT)
 	@PutMapping("/model/{id}/model_params_form")
-	public R<JSONArray> updateModelParamsForm(@PathVariable String id,@RequestBody JSONArray array){
-		ModelEntity modelEntity= new ModelEntity();
-		modelEntity.setId(id);
-		modelEntity.setModelParamsForm(array);
-		modelService.updateById(modelEntity);
-		return R.data(modelEntity.getModelParamsForm());
+	public R<JSONArray> updateModelParamsForm(@PathVariable String id,@RequestBody JSONArray paramsForm){
+
+		modelService.updateModelParamsForm(id,paramsForm);
+		return R.data(paramsForm);
 	}
 }
