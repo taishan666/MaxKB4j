@@ -147,7 +147,6 @@ public class ModelService extends ServiceImpl<ModelMapper, ModelEntity> {
                 defaultModelParams.put(field, defaultValue);
             }
         }
-        System.out.println(defaultModelParams);
         return defaultModelParams;
     }
 
@@ -158,15 +157,22 @@ public class ModelService extends ServiceImpl<ModelMapper, ModelEntity> {
             throw new ApiException("model.name.exists");
         }
         model.setId(id);
-        ModelCredential credential = getModelCredential(id);
+        ModelEntity entity = this.getById(id);
+        ModelCredential credential = entity.getCredential();
         String maskApiKey = DataMaskUtil.maskApiKey(credential.getApiKey());
         if (maskApiKey != null && maskApiKey.equals(model.getCredential().getApiKey())) {
             credential.setBaseUrl(model.getCredential().getBaseUrl());
             model.setCredential(credential);
         }
-        this.updateById(model);
-        evictCache(id);
-        return model;
+        AbsModelProvider  modelProvider= ModelProvider.get(entity.getProvider());
+        JSONObject params = extractDefaultModelParams(entity.getModelParamsForm());
+        if (modelProvider.modelIsValid(model.getModelType(),model.getModelName(),model.getCredential(),params)){
+            this.updateById(model);
+            evictCache(id);
+            return model;
+        }else {
+            throw new ApiException("model.params.invalid");
+        }
     }
 
     @Transactional
@@ -185,9 +191,9 @@ public class ModelService extends ServiceImpl<ModelMapper, ModelEntity> {
         });
     }
 
-    public ModelCredential getModelCredential(String id) {
+/*    public ModelCredential getModelCredential(String id) {
         return getOwnedModel(id, ModelEntity::getCredential);
-    }
+    }*/
 
     public ModelEntity getModelById(String id) {
         if (StringUtils.isBlank(id)) {
