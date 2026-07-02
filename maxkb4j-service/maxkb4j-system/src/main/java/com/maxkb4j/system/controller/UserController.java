@@ -3,17 +3,17 @@ package com.maxkb4j.system.controller;
 import cn.dev33.satoken.annotation.SaCheckRole;
 import cn.dev33.satoken.annotation.SaMode;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.maxkb4j.common.api.R;
 import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.constant.LoginType;
 import com.maxkb4j.common.constant.RoleType;
-import com.maxkb4j.common.api.R;
 import com.maxkb4j.common.props.SystemProperties;
 import com.maxkb4j.common.util.I18nUtil;
 import com.maxkb4j.common.util.StpKit;
-import com.maxkb4j.system.service.impl.UserServiceImpl;
 import com.maxkb4j.user.dto.PasswordDTO;
 import com.maxkb4j.user.dto.UserDTO;
 import com.maxkb4j.user.entity.UserEntity;
+import com.maxkb4j.user.service.IUserService;
 import com.maxkb4j.user.vo.UserVO;
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
@@ -31,7 +31,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class UserController {
 
-    private final UserServiceImpl userService;
+    private final IUserService userService;
 	private final SystemProperties systemProperties;
 
 
@@ -95,7 +95,9 @@ public class UserController {
     @SaCheckRole(type = LoginType.ADMIN, value = {RoleType.ADMIN, RoleType.USER}, mode = SaMode.OR)
     @PostMapping("/user/current/send_email")
     public R<Boolean> sendEmail() throws MessagingException {
-        return R.status(userService.sendEmailCode());
+        String userId = StpKit.ADMIN.getLoginIdAsString();
+        String email = userService.getEmail(userId);
+        return R.status(userService.sendEmailCode(email, I18nUtil.get("email.subject.modify.password")));
     }
 
     @SaCheckRole(type = LoginType.ADMIN, value = {RoleType.ADMIN, RoleType.USER}, mode = SaMode.OR)

@@ -173,11 +173,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
         return user;
     }
 
-    public Boolean sendEmailCode() throws MessagingException {
-        String userId = StpKit.ADMIN.getLoginIdAsString();
-        return sendEmailCode(getEmail(userId), I18nUtil.get("email.subject.modify.password"));
-    }
-
     public Boolean sendEmailCode(String email, String subject) throws MessagingException {
         Context context = new Context();
         String code = generateCode();
@@ -197,7 +192,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
         return String.format("%06d", random.nextInt(1000000));
     }
 
-    public Boolean resetPassword(PasswordDTO dto) {
+    public boolean resetPassword(PasswordDTO dto) {
         if (Objects.equals(dto.getPassword(), dto.getRePassword())) {
             UserEntity userEntity = new UserEntity();
             userEntity.setId(StpKit.ADMIN.getLoginIdAsString());
@@ -207,14 +202,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
         return false;
     }
 
-    public Boolean updatePassword(String id, PasswordDTO dto) {
+    public boolean updatePassword(String id, PasswordDTO dto) {
         UserEntity user = new UserEntity();
         user.setId(id);
         user.setPassword(SaSecureUtil.md5(dto.getPassword()));
         return updateById(user);
     }
 
-    public Boolean updateLanguage(UserEntity user) {
+    public boolean updateLanguage(UserEntity user) {
         String userId = StpKit.ADMIN.getLoginIdAsString();
         user.setId(userId);
         return updateById(user);

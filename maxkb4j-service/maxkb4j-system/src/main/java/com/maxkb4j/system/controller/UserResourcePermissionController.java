@@ -9,6 +9,7 @@ import com.maxkb4j.common.constant.RoleType;
 import com.maxkb4j.common.util.BeanUtil;
 import com.maxkb4j.system.service.impl.UserResourcePermissionServiceImpl;
 import com.maxkb4j.user.entity.UserEntity;
+import com.maxkb4j.user.service.IUserResourcePermissionService;
 import com.maxkb4j.user.service.IUserService;
 import com.maxkb4j.user.vo.ResourceUserPermissionVO;
 import com.maxkb4j.user.vo.UserNameVO;
@@ -27,7 +28,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UserResourcePermissionController {
 
-    private final UserResourcePermissionServiceImpl userResourcePermissionService;
+    private final IUserResourcePermissionService userResourcePermissionService;
     private final IUserService userService;
 
    // @SaCheckRole(type= LoginType.ADMIN,value = {RoleType.ADMIN, RoleType.USER},mode = SaMode.OR)

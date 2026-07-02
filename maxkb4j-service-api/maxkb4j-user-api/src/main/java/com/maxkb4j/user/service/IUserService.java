@@ -1,6 +1,9 @@
 package com.maxkb4j.user.service;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.maxkb4j.user.dto.PasswordDTO;
+import com.maxkb4j.user.dto.UserDTO;
 import com.maxkb4j.user.dto.UserLoginDTO;
 import com.maxkb4j.user.entity.UserEntity;
 import com.maxkb4j.user.vo.UserVO;
@@ -32,4 +35,16 @@ public interface IUserService extends IService<UserEntity> {
     boolean checkCode(String email, String code);
 
     void createAdminUser(String defaultUsername, String defaultPassword);
+
+    boolean updateLanguage(UserEntity user);
+
+    IPage<UserEntity> selectUserPage(int page, int size, UserDTO dto);
+
+    boolean createUser(UserEntity user);
+
+    boolean deleteUserById(String id);
+
+    boolean updatePassword(String id, PasswordDTO dto);
+
+    boolean resetPassword(PasswordDTO dto);
 }
