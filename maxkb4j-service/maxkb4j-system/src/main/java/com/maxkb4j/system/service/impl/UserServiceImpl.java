@@ -81,12 +81,17 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
 
 
     public String login(UserLoginDTO dto, HttpServletRequest request) {
-        String encryptedData = dto.getEncryptedData();
-        try {
-            String text = RSAUtil.rsaLongDecrypt(encryptedData, SystemCache.getPrivateKey());
-            dto = JSON.to(UserLoginDTO.class,text);
-        } catch (Exception e) {
-            throw new LoginException("密码解密错误");
+        if (StringUtils.isNotBlank(dto.getEncryptedData())){
+            try {
+                String encryptedData = dto.getEncryptedData();
+                String text = RSAUtil.rsaLongDecrypt(encryptedData, SystemCache.getPrivateKey());
+                dto = JSON.to(UserLoginDTO.class,text);
+            } catch (Exception e) {
+                throw new LoginException("密码解密错误");
+            }
+        }
+        if (StringUtils.isBlank(dto.getPassword())){
+            throw new LoginException("密码不能为空");
         }
         HttpSession session = request.getSession();
         String sessionCaptcha = (String) session.getAttribute("captcha");
