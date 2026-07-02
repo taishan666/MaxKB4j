@@ -99,8 +99,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
         }
         String password = SaSecureUtil.md5(dto.getPassword());
         UserEntity userEntity = this.lambdaQuery()
+                .select(UserEntity::getId, UserEntity::getIsActive,  UserEntity::getLanguage)
                 .eq(UserEntity::getUsername, dto.getUsername())
-                .eq(UserEntity::getPassword, password).one();
+                .eq(UserEntity::getPassword, password)
+                .eq(UserEntity::getSource, UserSource.LOCAL)
+                .one();
         if (Objects.isNull(userEntity)) {
             throw new LoginException("login.user.not.exists");
         }
