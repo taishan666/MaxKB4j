@@ -19,6 +19,7 @@ import com.maxkb4j.common.util.BeanUtil;
 import com.maxkb4j.common.util.I18nUtil;
 import com.maxkb4j.common.util.RSAUtil;
 import com.maxkb4j.common.util.StpKit;
+import com.maxkb4j.system.constant.UserLanguage;
 import com.maxkb4j.system.constant.UserSource;
 import com.maxkb4j.system.service.EmailService;
 import com.maxkb4j.user.dto.PasswordDTO;
@@ -129,7 +130,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
         user.setRole(RoleType.USER);
         user.setIsActive(true);
         user.setSource(UserSource.LOCAL);
-        user.setLanguage(StringUtils.defaultIfBlank(user.getLanguage(), "zh-CN"));
+        user.setLanguage(StringUtils.defaultIfBlank(user.getLanguage(), UserLanguage.ZH_CN));
         user.setPassword(SaSecureUtil.md5(user.getPassword()));
         return save(user);
     }
@@ -143,7 +144,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
         user.setRole(RoleType.ADMIN);
         user.setIsActive(true);
         user.setSource(UserSource.LOCAL);
-        user.setLanguage("zh-CN");
+        user.setLanguage(UserLanguage.ZH_CN);
         user.setPhone("13843838438");
         user.setEmail("1334512682@qq.com");
         save(user);
