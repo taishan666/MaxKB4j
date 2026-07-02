@@ -126,7 +126,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
         if (emailNum > 0) {
             throw new ApiException("user.email.exists");
         }
-        user.setRole(Set.of(RoleType.USER));
+        user.setRole(RoleType.USER);
         user.setIsActive(true);
         user.setSource(UserSource.LOCAL);
         user.setLanguage(StringUtils.defaultIfBlank(user.getLanguage(), "zh-CN"));
@@ -140,9 +140,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
         user.setNickname(I18nUtil.get("user.admin.nickname"));
         user.setUsername(username);
         user.setPassword(SaSecureUtil.md5(password));
-        Set<String> role = new HashSet<>();
-        role.add(RoleType.ADMIN);
-        user.setRole(role);
+        user.setRole(RoleType.ADMIN);
         user.setIsActive(true);
         user.setSource(UserSource.LOCAL);
         user.setLanguage("zh-CN");
@@ -157,17 +155,20 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
             throw new NotLoginException(I18nUtil.get("login.user.not.found"), "", "");
         }
         UserVO user = BeanUtil.copy(userEntity, UserVO.class);
+        Set<String> role=new HashSet<>();
+        role.add(userEntity.getRole());
         user.setPermissions(stpInterface.getPermissionList(userId, null));
-        if (user.getRole().contains(RoleType.ADMIN)) {
-            user.getRole().add("WORKSPACE_MANAGE:/WORKSPACE/default");
+        if (RoleType.ADMIN.equals(userEntity.getRole())) {
+            role.add("WORKSPACE_MANAGE:/WORKSPACE/default");
         } else {
-            user.getRole().add("USER:/WORKSPACE/default");
+            role.add("USER:/WORKSPACE/default");
         }
+        user.setRole(role);
         List<Map<String, String>> workspaceList = new ArrayList<>();
         workspaceList.add(Map.of("id", "default", "name", "default"));
         user.setWorkspaceList(workspaceList);
         String defaultPassword = SaSecureUtil.md5(systemProperties.getDefaultPassword());
-        user.setIsEditPassword(defaultPassword.equals(user.getPassword()));
+        user.setIsEditPassword(defaultPassword.equals(userEntity.getPassword()));
         return user;
     }
 
@@ -224,7 +225,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
         if (Objects.isNull(user)) {
             return Set.of();
         }
-        return user.getRole();
+        return Set.of(user.getRole());
     }
 
     public Map<String, String> getNicknameMap() {
