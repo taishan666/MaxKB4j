@@ -47,7 +47,7 @@ public class RerankerNodeHandler extends AbsNodeHandler {
             List<TextSegment> textSegments = getRerankerList(workflow, rerankerReferenceList);
             String modelId = params.getRerankerModelId();
             if (params.getModelIdType() != null && params.getModelIdType().equals("reference")){
-                ModelConfig modelConfig = (ModelConfig) workflow.getReferenceField(params.getModelIdReference());
+                ModelConfig modelConfig = ModelConfig.from(workflow.getReferenceField(params.getModelIdReference()));
                 modelId = modelConfig.getModelId();
             }
             // 获取重排序模型实例

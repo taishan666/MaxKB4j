@@ -46,7 +46,7 @@ public class ImageGenerateNodeHandler extends AbsNodeHandler {
         String modelId = params.getModelId();
         JSONObject modelParamsSetting = params.getModelParamsSetting();
         if (params.getModelIdType() != null && params.getModelIdType().equals("reference")){
-            ModelConfig modelConfig = (ModelConfig) workflow.getReferenceField(params.getModelIdReference());
+            ModelConfig modelConfig = ModelConfig.from(workflow.getReferenceField(params.getModelIdReference()));
             modelId = modelConfig.getModelId();
             modelParamsSetting = modelConfig.getModelParamsSetting();
         }
