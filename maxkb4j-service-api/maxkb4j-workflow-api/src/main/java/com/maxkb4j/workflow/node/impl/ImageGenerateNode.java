@@ -29,6 +29,8 @@ public class ImageGenerateNode extends AbsNode {
     @Data
     public static class NodeParams {
         private String modelId;
+        private String modelIdType;
+        private List<String> modelIdReference;
         private String prompt;
         private String negativePrompt;
         private Integer dialogueNumber;

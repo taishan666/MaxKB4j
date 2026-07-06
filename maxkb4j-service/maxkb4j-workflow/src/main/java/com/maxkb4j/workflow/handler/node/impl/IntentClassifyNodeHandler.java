@@ -1,5 +1,6 @@
 package com.maxkb4j.workflow.handler.node.impl;
 
+import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.maxkb4j.common.domain.dto.MessageConverter;
 import com.maxkb4j.core.assistant.IntentClassifyAssistant;
@@ -10,6 +11,7 @@ import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.DialogueType;
 import com.maxkb4j.workflow.enums.NodeType;
 import com.maxkb4j.workflow.handler.node.AbsNodeHandler;
+import com.maxkb4j.workflow.model.ModelConfig;
 import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.model.Workflow;
 import com.maxkb4j.workflow.node.AbsNode;
@@ -36,7 +38,14 @@ public class IntentClassifyNodeHandler extends AbsNodeHandler {
     @Override
     protected NodeResult doExecute(Workflow workflow, AbsNode node) throws Exception {
         IntentClassifyNode.NodeParams params = parseParams(node, IntentClassifyNode.NodeParams.class);
-        ChatModel chatModel = modelFactory.buildChatModel(params.getModelId(), params.getModelParamsSetting());
+        String modelId = params.getModelId();
+        JSONObject modelParamsSetting = params.getModelParamsSetting();
+        if (params.getModelIdType() != null && params.getModelIdType().equals("reference")){
+            ModelConfig modelConfig = (ModelConfig) workflow.getReferenceField(params.getModelIdReference());
+            modelId = modelConfig.getModelId();
+            modelParamsSetting = modelConfig.getModelParamsSetting();
+        }
+        ChatModel chatModel = modelFactory.buildChatModel(modelId, modelParamsSetting);
         Object query = workflow.getReferenceField(params.getContentList());
         Map<String, String> branchMap = new HashMap<>();
         List<IntentClassifyNode.Branch> branches = params.getBranch();

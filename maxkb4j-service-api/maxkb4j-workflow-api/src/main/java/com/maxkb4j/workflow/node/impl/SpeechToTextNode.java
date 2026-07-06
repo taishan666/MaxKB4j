@@ -31,6 +31,9 @@ public class SpeechToTextNode extends AbsNode {
     @Data
     public static class NodeParams {
         private String sttModelId;
+        private String modelIdType;
+        private List<String> modelIdReference;
+        private JSONObject modelParamsSetting;
         private List<String> audioList;
         private Boolean isResult;
     }

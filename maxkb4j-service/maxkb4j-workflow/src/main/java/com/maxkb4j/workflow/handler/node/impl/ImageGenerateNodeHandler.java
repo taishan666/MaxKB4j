@@ -9,6 +9,7 @@ import com.maxkb4j.oss.service.IOssService;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.NodeType;
 import com.maxkb4j.workflow.handler.node.AbsNodeHandler;
+import com.maxkb4j.workflow.model.ModelConfig;
 import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.model.Workflow;
 import com.maxkb4j.workflow.node.AbsNode;
@@ -40,16 +41,20 @@ public class ImageGenerateNodeHandler extends AbsNodeHandler {
     protected NodeResult doExecute(Workflow workflow, AbsNode node) throws Exception {
         ImageGenerateNode.NodeParams params = parseParams(node, ImageGenerateNode.NodeParams.class);
         String prompt = workflow.renderPrompt(params.getPrompt());
-        String negativePrompt = params.getNegativePrompt();
+        List<String> answerTexts = new ArrayList<>();
+        List<String> imageUrls = new ArrayList<>();
+        String modelId = params.getModelId();
         JSONObject modelParamsSetting = params.getModelParamsSetting();
-
+        if (params.getModelIdType() != null && params.getModelIdType().equals("reference")){
+            ModelConfig modelConfig = (ModelConfig) workflow.getReferenceField(params.getModelIdReference());
+            modelId = modelConfig.getModelId();
+            modelParamsSetting = modelConfig.getModelParamsSetting();
+        }
+        String negativePrompt = params.getNegativePrompt();
         if (modelParamsSetting != null) {
             modelParamsSetting.put("negative_prompt", negativePrompt);
         }
-
-        List<String> answerTexts = new ArrayList<>();
-        List<String> imageUrls = new ArrayList<>();
-        ImageModel imageModel = modelFactory.buildImageModel(params.getModelId(), modelParamsSetting);
+        ImageModel imageModel = modelFactory.buildImageModel(modelId, modelParamsSetting);
         List<String> imageFieldList = params.getImageList();
         List<Image> outImages = new ArrayList<>();
         List<Image> editImages = new ArrayList<>();

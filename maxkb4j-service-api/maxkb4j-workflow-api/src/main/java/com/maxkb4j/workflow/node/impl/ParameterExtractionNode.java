@@ -26,6 +26,8 @@ public class ParameterExtractionNode extends AbsNode {
     @Data
     public static class NodeParams {
         private String modelId;
+        private String modelIdType;
+        private List<String> modelIdReference;
         private JSONObject modelParamsSetting;
         private List<String> inputVariable;
         private List<Field> variableList;

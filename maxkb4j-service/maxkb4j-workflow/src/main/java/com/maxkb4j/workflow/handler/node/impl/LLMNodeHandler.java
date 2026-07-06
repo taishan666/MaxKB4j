@@ -16,6 +16,7 @@ import com.maxkb4j.tool.service.IToolProviderService;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.NodeType;
 import com.maxkb4j.workflow.handler.node.AbsNodeHandler;
+import com.maxkb4j.workflow.model.ModelConfig;
 import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.model.Workflow;
 import com.maxkb4j.workflow.node.AbsNode;
@@ -77,10 +78,15 @@ public class LLMNodeHandler extends AbsNodeHandler {
 
         // 记录上下文用于调试/追踪
         recordNodeDetails(node, systemPrompt, historyMessages, question, contents);
-
+        String modelId = params.getModelId();
+        JSONObject modelParamsSetting = params.getModelParamsSetting();
+        if (params.getModelIdType() != null && params.getModelIdType().equals("reference")){
+            ModelConfig modelConfig = (ModelConfig) workflow.getReferenceField(params.getModelIdReference());
+            modelId = modelConfig.getModelId();
+            modelParamsSetting = modelConfig.getModelParamsSetting();
+        }
         // 构建 AI 服务
-        Assistant assistant = buildAiServices(params.getModelId(), params.getModelParamsSetting(),
-                workflow, systemPrompt, historyMessages, toolIds, applicationIds);
+        Assistant assistant = buildAiServices(modelId, modelParamsSetting, workflow, systemPrompt, historyMessages, toolIds, applicationIds);
 
         TokenStream tokenStream = assistant.chatStream(question, contents);
 

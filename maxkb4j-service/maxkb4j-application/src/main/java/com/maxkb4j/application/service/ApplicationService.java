@@ -417,7 +417,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
 
     public String speechToText(String appId, MultipartFile file, boolean debug) throws IOException {
         ApplicationEntity app = this.getAppDetail(appId, debug);
-        ISTTModel sttModel = modelFactory.buildSTTModel(app.getSttModelId());
+        ISTTModel sttModel = modelFactory.buildSTTModel(app.getSttModelId(),new JSONObject());
         String suffix = Objects.requireNonNull(file.getContentType()).split("/")[1];
         return sttModel.speechToText(file.getBytes(), suffix);
     }

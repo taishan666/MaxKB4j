@@ -32,6 +32,8 @@ public class AiChatNode extends AbsNode {
     @Data
     public static class NodeParams {
         private String modelId;
+        private String modelIdType;
+        private List<String> modelIdReference;
         private String system;
         private String prompt;
         private String dialogueType;

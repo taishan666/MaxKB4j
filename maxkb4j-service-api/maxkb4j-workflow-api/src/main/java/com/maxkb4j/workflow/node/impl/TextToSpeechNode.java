@@ -29,6 +29,8 @@ public class TextToSpeechNode extends AbsNode {
     @Data
     public static class NodeParams {
         private String ttsModelId;
+        private String modelIdType;
+        private List<String> modelIdReference;
         private List<String> contentList;
         private JSONObject modelParamsSetting;
         private Boolean isResult;

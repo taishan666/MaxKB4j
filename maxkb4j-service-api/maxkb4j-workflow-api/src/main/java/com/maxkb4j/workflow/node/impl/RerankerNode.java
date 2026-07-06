@@ -33,7 +33,10 @@ public class RerankerNode extends AbsNode {
         private RerankerSetting rerankerSetting;
         private List<String> questionReferenceAddress;
         private String rerankerModelId;
+        private String modelIdType;
+        private List<String> modelIdReference;
         private List<List<String>> rerankerReferenceList;
+        private Boolean showKnowledge;
     }
 
     @Data

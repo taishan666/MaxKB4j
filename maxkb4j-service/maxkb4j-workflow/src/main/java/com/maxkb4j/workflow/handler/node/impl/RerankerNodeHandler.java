@@ -6,6 +6,7 @@ import com.maxkb4j.model.service.IModelProviderService;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.NodeType;
 import com.maxkb4j.workflow.handler.node.AbsNodeHandler;
+import com.maxkb4j.workflow.model.ModelConfig;
 import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.model.Workflow;
 import com.maxkb4j.workflow.node.AbsNode;
@@ -44,9 +45,13 @@ public class RerankerNodeHandler extends AbsNodeHandler {
         if (CollectionUtils.isNotEmpty(rerankerReferenceList)) {
             double similarity = params.getRerankerSetting().getSimilarity();
             List<TextSegment> textSegments = getRerankerList(workflow, rerankerReferenceList);
-
+            String modelId = params.getRerankerModelId();
+            if (params.getModelIdType() != null && params.getModelIdType().equals("reference")){
+                ModelConfig modelConfig = (ModelConfig) workflow.getReferenceField(params.getModelIdReference());
+                modelId = modelConfig.getModelId();
+            }
             // 获取重排序模型实例
-            ScoringModel rerankerModel = modelFactory.buildScoringModel(params.getRerankerModelId());
+            ScoringModel rerankerModel = modelFactory.buildScoringModel(modelId);
             Response<List<Double>> response = rerankerModel.scoreAll(textSegments, question);
             List<Double> scores = response.content();
 

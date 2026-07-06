@@ -73,16 +73,10 @@ public class ModelProviderServiceImpl implements IModelProviderService {
     }
 
     @Override
-    public ScoringModel buildScoringModel(String modelId, JSONObject modelParams) {
+    public ScoringModel buildScoringModel(String modelId) {
         ModelEntity model = getModelOrThrow(modelId);
         AbsModelProvider modelProvider = getModelProviderOrThrow(model);
-        modelParams = modelParams == null ? new JSONObject() : modelParams;
-        return modelProvider.buildScoringModel(model.getModelName(), model.getCredential(), modelParams);
-    }
-
-    @Override
-    public ScoringModel buildScoringModel(String modelId) {
-        return buildScoringModel(modelId, new JSONObject());
+        return modelProvider.buildScoringModel(model.getModelName(), model.getCredential(), new JSONObject());
     }
 
     @Override
@@ -94,10 +88,10 @@ public class ModelProviderServiceImpl implements IModelProviderService {
     }
 
     @Override
-    public ISTTModel buildSTTModel(String modelId) {
+    public ISTTModel buildSTTModel(String modelId,JSONObject modelParams) {
         ModelEntity model = getModelOrThrow(modelId);
         AbsModelProvider modelProvider = getModelProviderOrThrow(model);
-        return modelProvider.buildSTTModel(model.getModelName(), model.getCredential(), new JSONObject());
+        return modelProvider.buildSTTModel(model.getModelName(), model.getCredential(),modelParams);
     }
 
     private ModelEntity getModelOrThrow(String modelId) {

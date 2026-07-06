@@ -5,6 +5,7 @@ import com.maxkb4j.workflow.model.Workflow;
 import com.maxkb4j.workflow.node.AbsNode;
 import lombok.Data;
 
+import java.util.List;
 import java.util.Map;
 
 import static com.maxkb4j.workflow.enums.NodeType.QUESTION;
@@ -27,6 +28,8 @@ public class QuestionNode extends AbsNode {
     @Data
     public static class NodeParams {
         private String modelId;
+        private String modelIdType;
+        private List<String> modelIdReference;
         private String system;
         private String prompt;
         private Integer dialogueNumber;
