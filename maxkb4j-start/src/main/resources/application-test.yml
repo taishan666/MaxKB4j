@@ -1,0 +1,9 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://43.143.235.194:5432/MaxKB4j?client_encoding=UTF8
+    username: tarzan_postgres
+    password: ycn4NRhjN2
+    driver-class-name: org.postgresql.Driver
+  data:
+    mongodb:
+      uri: mongodb://tarzan_mongo:ycn4NRhjN2@localhost:27017/MaxKB4J?authSource=admin&charset=UTF-8
