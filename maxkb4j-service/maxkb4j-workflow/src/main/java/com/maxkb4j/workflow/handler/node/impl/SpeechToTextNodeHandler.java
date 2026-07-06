@@ -31,7 +31,6 @@ public class SpeechToTextNodeHandler extends AbsNodeHandler {
     private final IModelProviderService modelFactory;
     private final IOssService ossService;
 
-    @SuppressWarnings("unchecked")
     @Override
     protected NodeResult doExecute(Workflow workflow, AbsNode node) throws Exception {
         SpeechToTextNode.NodeParams params = parseParams(node, SpeechToTextNode.NodeParams.class);
@@ -43,10 +42,7 @@ public class SpeechToTextNodeHandler extends AbsNodeHandler {
             modelParamsSetting = modelConfig.getModelParamsSetting();
         }
         ISTTModel sttModel = modelFactory.buildSTTModel(modelId,modelParamsSetting);
-        List<String> audioList = params.getAudioList();
-        Object res = workflow.getReferenceField(audioList);
-        List<OssFile> audioFiles = (List<OssFile>) res;
-
+        List<OssFile> audioFiles = getOssFiles(workflow,params.getAudioList());
         List<String> content = new ArrayList<>();
         List<String> answerTextList = new ArrayList<>();
 

@@ -32,28 +32,10 @@ public class DocumentExtractNodeHandler extends AbsNodeHandler {
         if (params == null || params.getDocumentList() == null || params.getDocumentList().size() < 2) {
             throw new IllegalArgumentException("Invalid documentList in node params: expected at least two elements");
         }
-
-        // 获取引用字段（workflow 中的文档列表）
-        Object res = workflow.getReferenceField(params.getDocumentList());
-        List<OssFile> documentFiles;
-
-        if (res == null) {
-            documentFiles = Collections.emptyList();
-        } else if (res instanceof List<?>) {
-            documentFiles = new ArrayList<>();
-            for (Object item : (List<?>) res) {
-                if (item instanceof OssFile) {
-                    documentFiles.add((OssFile) item);
-                }
-            }
-        } else {
-            throw new IllegalArgumentException("Expected List<SysFile> from reference field, but got: " + res.getClass());
-        }
-
+        List<OssFile> documentFiles = getOssFiles(workflow,params.getDocumentList());
         // 处理文档
         List<String> contentList = new LinkedList<>();
         List<DocumentSimple> documentList = new ArrayList<>();
-
         for (OssFile sysFile : documentFiles) {
             InputStream ins = ossService.getStream(sysFile.getFileId());
             String text = documentParseService.extractText(sysFile.getName(), ins);
