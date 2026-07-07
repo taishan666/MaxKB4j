@@ -10,12 +10,7 @@ import com.maxkb4j.system.constant.AuthTargetType;
 import com.maxkb4j.tool.consts.ToolConstants;
 import com.maxkb4j.tool.dto.ToolQuery;
 import com.maxkb4j.tool.entity.ToolEntity;
-import com.maxkb4j.tool.handler.ToolAssembleHandler;
-import com.maxkb4j.tool.handler.ToolConnectionHandler;
-import com.maxkb4j.tool.handler.ToolImportExportHandler;
-import com.maxkb4j.tool.handler.ToolPermissionHandler;
-import com.maxkb4j.tool.handler.ToolSkillHandler;
-import com.maxkb4j.tool.handler.ToolValidationHandler;
+import com.maxkb4j.tool.handler.*;
 import com.maxkb4j.tool.mapper.ToolMapper;
 import com.maxkb4j.tool.util.McpToolUtil;
 import com.maxkb4j.tool.vo.McpToolVO;
@@ -30,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
@@ -101,8 +97,8 @@ public class ToolService extends ServiceImpl<ToolMapper, ToolEntity> implements 
     }
 
     /** 完整字段版本：供需要 code / initParams / inputFieldList 等执行所需信息的场景使用。 */
-    public List<ToolEntity> listTools(String folderId, String scope, String toolType) {
-        LambdaQueryWrapper<ToolEntity> wrapper = buildListWrapper(folderId, scope, toolType)
+    public List<ToolEntity> listTools(String folderId, String scope, String[] toolTypeList) {
+        LambdaQueryWrapper<ToolEntity> wrapper = buildListWrapper(folderId, scope, toolTypeList)
                 .select(
                         ToolEntity::getId,
                         ToolEntity::getName,
@@ -120,7 +116,7 @@ public class ToolService extends ServiceImpl<ToolMapper, ToolEntity> implements 
 
     /** 轻量字段版本：供前端列表展示使用。 */
     public List<ToolEntity> toolList(String folderId, String scope, String toolType) {
-        LambdaQueryWrapper<ToolEntity> wrapper = buildListWrapper(folderId, scope, toolType)
+        LambdaQueryWrapper<ToolEntity> wrapper = buildListWrapper(folderId, scope, new String[]{toolType})
                 .select(
                         ToolEntity::getId,
                         ToolEntity::getName,
@@ -192,13 +188,13 @@ public class ToolService extends ServiceImpl<ToolMapper, ToolEntity> implements 
     }
 
     /** 构造列表查询通用条件（含权限过滤与排序，select 字段由上层指定）。 */
-    private LambdaQueryWrapper<ToolEntity> buildListWrapper(String folderId, String scope, String toolType) {
+    private LambdaQueryWrapper<ToolEntity> buildListWrapper(String folderId, String scope, String[] toolTypeList) {
         LambdaQueryWrapper<ToolEntity> wrapper = Wrappers.lambdaQuery();
         if (StringUtils.isNotBlank(folderId)) {
             wrapper.eq(ToolEntity::getFolderId, folderId);
         }
-        if (StringUtils.isNotBlank(toolType)) {
-            wrapper.eq(ToolEntity::getToolType, toolType);
+        if (toolTypeList!=null && toolTypeList.length>0) {
+            wrapper.in(ToolEntity::getToolType, Arrays.asList(toolTypeList));
         }
         wrapper.eq(ToolEntity::getIsActive, ToolConstants.Status.ACTIVE);
         wrapper.eq(ToolEntity::getScope, scope);

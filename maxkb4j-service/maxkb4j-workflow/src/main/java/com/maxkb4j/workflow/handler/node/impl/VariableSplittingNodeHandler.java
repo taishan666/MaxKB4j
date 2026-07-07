@@ -36,6 +36,7 @@ public class VariableSplittingNodeHandler extends AbsNodeHandler {
                 json = JSON.toJSONString(inputValue);
             }
             Object value = JSONPath.eval(json, variable.getExpression());
+            value = value == null ? "None" : value;
             result.put(variable.getField(), value);
         }
 
