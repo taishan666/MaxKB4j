@@ -7,7 +7,6 @@ import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.constant.LoginType;
 import com.maxkb4j.common.constant.RoleType;
 import com.maxkb4j.common.util.BeanUtil;
-import com.maxkb4j.system.service.impl.UserResourcePermissionServiceImpl;
 import com.maxkb4j.user.entity.UserEntity;
 import com.maxkb4j.user.service.IUserResourcePermissionService;
 import com.maxkb4j.user.service.IUserService;
@@ -46,8 +45,8 @@ public class UserResourcePermissionController {
 
     @SaCheckRole(type=LoginType.ADMIN,value = RoleType.ADMIN)
     @GetMapping("/user_resource_permission/user/{userId}/resource/{type}/{current}/{size}")
-    public R<IPage<UserResourcePermissionVO>> userResourcePage(@PathVariable String userId, @PathVariable String type, @PathVariable int current, @PathVariable int size){
-        return R.data(userResourcePermissionService.userResourcePermissionPage(userId,type,current,size));
+    public R<IPage<UserResourcePermissionVO>> userResourcePage(@PathVariable String userId, @PathVariable String type, @PathVariable int current, @PathVariable int size, String name, String[] permission){
+        return R.data(userResourcePermissionService.userResourcePermissionPage(userId,type,current,size,name, permission));
     }
 
     @SaCheckRole(type=LoginType.ADMIN,value = RoleType.ADMIN)

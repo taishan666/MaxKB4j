@@ -67,14 +67,15 @@ public class UserResourcePermissionServiceImpl extends ServiceImpl<UserResourceP
     }
 
 
-    public IPage<UserResourcePermissionVO> userResourcePermissionPage(String userId, String type, int current, int size) {
+    public IPage<UserResourcePermissionVO> userResourcePermissionPage(String userId, String type, int current, int size,String name, String[] permission) {
         LambdaQueryWrapper<UserResourcePermissionEntity> wrapper = Wrappers.<UserResourcePermissionEntity>lambdaQuery().eq(UserResourcePermissionEntity::getUserId, userId).eq(UserResourcePermissionEntity::getAuthTargetType, type).eq(UserResourcePermissionEntity::getWorkspaceId, DEFAULT_ID);
+
         List<UserResourcePermissionEntity> userResourcePermissions = baseMapper.selectList(wrapper);
         Map<String, List<String>> map = userResourcePermissions.stream().collect(Collectors.toMap(UserResourcePermissionEntity::getTargetId, UserResourcePermissionEntity::getPermissionList));
         switch (type) {
             case AuthTargetType.APPLICATION:
                 Page<ApplicationEntity> appPage = new Page<>(current, size);
-                applicationMapper.selectPage(appPage, null);
+                applicationMapper.selectPage(appPage, Wrappers.<ApplicationEntity>lambdaQuery().like(StringUtils.isNotBlank(name), ApplicationEntity::getName, name));
                 return PageUtil.copy(appPage, app -> {
                     UserResourcePermissionVO vo = new UserResourcePermissionVO();
                     vo.setId(app.getId());
@@ -88,7 +89,7 @@ public class UserResourcePermissionServiceImpl extends ServiceImpl<UserResourceP
                 });
             case AuthTargetType.KNOWLEDGE:
                 Page<KnowledgeEntity> datasetPage = new Page<>(current, size);
-                datasetMapper.selectPage(datasetPage, null);
+                datasetMapper.selectPage(datasetPage, Wrappers.<KnowledgeEntity>lambdaQuery().like(StringUtils.isNotBlank(name), KnowledgeEntity::getName, name));
                 return PageUtil.copy(datasetPage, dataset -> {
                     UserResourcePermissionVO vo = new UserResourcePermissionVO();
                     vo.setId(dataset.getId());
@@ -102,7 +103,8 @@ public class UserResourcePermissionServiceImpl extends ServiceImpl<UserResourceP
                 });
             case AuthTargetType.TOOL:
                 Page<ToolEntity> toolPage = new Page<>(current, size);
-                Wrapper<ToolEntity> toolWrapper = Wrappers.<ToolEntity>lambdaQuery().eq(ToolEntity::getScope, "WORKSPACE");
+                Wrapper<ToolEntity> toolWrapper = Wrappers.<ToolEntity>lambdaQuery()
+                        .like(StringUtils.isNotBlank(name), ToolEntity::getName, name).eq(ToolEntity::getScope, "WORKSPACE");
                 toolMapper.selectPage(toolPage, toolWrapper);
                 return PageUtil.copy(toolPage, tool -> {
                     UserResourcePermissionVO vo = new UserResourcePermissionVO();
@@ -117,7 +119,7 @@ public class UserResourcePermissionServiceImpl extends ServiceImpl<UserResourceP
                 });
             case AuthTargetType.MODEL:
                 Page<ModelEntity> modelPage = new Page<>(current, size);
-                modelMapper.selectPage(modelPage, null);
+                modelMapper.selectPage(modelPage, Wrappers.<ModelEntity>lambdaQuery().like(StringUtils.isNotBlank(name), ModelEntity::getName, name));
                 return PageUtil.copy(modelPage, model -> {
                     UserResourcePermissionVO vo = new UserResourcePermissionVO();
                     vo.setId(model.getId());

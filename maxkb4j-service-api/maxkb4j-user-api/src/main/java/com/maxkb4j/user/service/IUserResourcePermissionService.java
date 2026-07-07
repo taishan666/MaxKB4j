@@ -15,7 +15,7 @@ public interface IUserResourcePermissionService extends IService<UserResourcePer
     boolean remove(String type, String targetId);
     List<UserResourcePermissionEntity> getByUserId(String userId);
 
-    IPage<UserResourcePermissionVO> userResourcePermissionPage(String userId, String type, int current, int size);
+    IPage<UserResourcePermissionVO> userResourcePermissionPage(String userId, String type, int current, int size,String name, String[] permission);
 
     IPage<ResourceUserPermissionVO> resourceUserPermissionPage(String resourceId, String type, int current, int size, String nickname, String username, String[] permission);
 
