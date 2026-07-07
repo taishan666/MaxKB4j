@@ -60,11 +60,6 @@ public class ModelProviderServiceImpl implements IModelProviderService {
     }
 
     @Override
-    public EmbeddingModel buildEmbeddingModel(String modelId) {
-        return buildEmbeddingModel(modelId, new JSONObject());
-    }
-
-    @Override
     public ImageModel buildImageModel(String modelId, JSONObject modelParams) {
         ModelEntity model = getModelOrThrow(modelId);
         AbsModelProvider modelProvider = getModelProviderOrThrow(model);

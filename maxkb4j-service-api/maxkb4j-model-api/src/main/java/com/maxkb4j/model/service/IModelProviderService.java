@@ -19,8 +19,6 @@ public interface IModelProviderService {
 
     StreamingChatModel buildStreamingChatModel(String modelId, JSONObject modelParams);
 
-    EmbeddingModel buildEmbeddingModel(String modelId);
-
     EmbeddingModel buildEmbeddingModel(String modelId, JSONObject modelParams);
 
     ImageModel buildImageModel(String modelId, JSONObject modelParams);

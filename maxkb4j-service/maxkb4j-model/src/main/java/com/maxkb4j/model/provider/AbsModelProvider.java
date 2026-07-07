@@ -102,21 +102,6 @@ public abstract class AbsModelProvider {
         return Optional.ofNullable(params).map(p -> p.getBoolean(key)).orElse(false);
     }
 
-    /**
-     * Gets float value from params with null safety and Double to Float conversion
-     *
-     * @param params the params JSONObject
-     * @param key    the key to lookup
-     * @return the float value or null if not present
-     */
-    protected Float getFloatParam(JSONObject params, String key) {
-        return Optional.ofNullable(params)
-                .map(p -> {
-                    Double d = p.getDouble(key);
-                    return d != null ? d.floatValue() : null;
-                })
-                .orElse(null);
-    }
 
     /**
      * Checks if the provider supports a specific model type
@@ -263,8 +248,10 @@ public abstract class AbsModelProvider {
 
     public List<BaseField> getModelParamsForm(String modelType) {
         if (modelType != null) {
-            if (ModelType.LLM.getKey().equals(modelType)) {
+            if (ModelType.LLM.getKey().equals(modelType)||ModelType.VISION.getKey().equals(modelType)) {
                 return getChatModelParamsForm();
+            }else if (ModelType.EMBEDDING.getKey().equals(modelType)) {
+                return getEmbeddingModelParamsForm();
             }else if (ModelType.TTI.getKey().equals(modelType)) {
                 return getImageModelParamsForm();
             }
@@ -274,6 +261,10 @@ public abstract class AbsModelProvider {
 
     protected List<BaseField> getChatModelParamsForm() {
         return new OpenAiChatModelParams().toForm();
+    }
+
+    protected List<BaseField> getEmbeddingModelParamsForm() {
+        return List.of();
     }
 
     protected List<BaseField> getImageModelParamsForm() {

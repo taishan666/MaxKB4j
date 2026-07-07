@@ -1,5 +1,6 @@
 package com.maxkb4j.knowledge.service;
 
+import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.maxkb4j.knowledge.entity.KnowledgeEntity;
@@ -24,6 +25,6 @@ public class KnowledgeModelService {
         if (knowledge==null){
             throw new RuntimeException("数据集不存在");
         }
-        return modelFactory.buildEmbeddingModel(knowledge.getEmbeddingModelId());
+        return modelFactory.buildEmbeddingModel(knowledge.getEmbeddingModelId(),new JSONObject());
     }
 }

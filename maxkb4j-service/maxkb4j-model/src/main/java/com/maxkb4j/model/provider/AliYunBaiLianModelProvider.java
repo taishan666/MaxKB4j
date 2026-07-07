@@ -1,6 +1,7 @@
 package com.maxkb4j.model.provider;
 
 import com.alibaba.fastjson.JSONObject;
+import com.maxkb4j.common.domain.form.BaseField;
 import com.maxkb4j.common.mp.entity.ModelCredential;
 import com.maxkb4j.model.custom.model.BaiLianImageModel;
 import com.maxkb4j.model.custom.model.BaiLianReranker;
@@ -81,5 +82,10 @@ public class AliYunBaiLianModelProvider extends OpenAiModelProvider {
     @Override
     public ITTSModel buildTTSModel(String modelName, ModelCredential credential, JSONObject params) {
         return new BaiLianTTSModel(modelName, credential, params);
+    }
+
+    @Override
+    protected List<BaseField> getEmbeddingModelParamsForm() {
+        return new EmbeddingModelParams().toForm();
     }
 }
