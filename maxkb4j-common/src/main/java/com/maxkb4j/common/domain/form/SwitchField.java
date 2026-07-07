@@ -16,7 +16,7 @@ public class SwitchField extends BaseField {
         label.put("props_info",new JSONObject());
         super.setLabel(label);
         super.setField(field);
-        super.setDefaultValue(defaultValue);
+        super.setDefault_value(defaultValue);
         super.setShow_default_value(true);
         super.setRequired(true);
     }

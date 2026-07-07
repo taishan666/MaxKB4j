@@ -28,7 +28,7 @@ public class SliderField extends BaseField {
         label.put("props_info",new JSONObject());
         super.setLabel(label);
         super.setField(field);
-        super.setDefaultValue(defaultValue);
+        super.setDefault_value(defaultValue);
         super.setShow_default_value(true);
         super.setProps_info(new JSONObject());
         super.setRelation_show_field_dict(new JSONObject());

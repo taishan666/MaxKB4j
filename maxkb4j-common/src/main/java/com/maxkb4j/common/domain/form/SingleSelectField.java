@@ -37,7 +37,7 @@ public class SingleSelectField extends BaseField {
         super.setValue_field("value");
         super.setTrigger_type("OPTION_LIST");
         super.setRequired(true);
-        super.setDefaultValue(defaultValue);
+        super.setDefault_value(defaultValue);
         super.setShow_default_value(true);
     }
 }

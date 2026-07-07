@@ -23,7 +23,7 @@ public class RadioCardField extends BaseField {
         super.setText_field("label");
         super.setValue_field("value");
         super.setRequired(true);
-        super.setDefaultValue(defaultValue);
+        super.setDefault_value(defaultValue);
         super.setShow_default_value(true);
         super.setAttrs(new JSONObject());
     }
