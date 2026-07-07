@@ -5,7 +5,6 @@ import com.maxkb4j.common.domain.form.BaseField;
 import com.maxkb4j.common.mp.entity.ModelCredential;
 import com.maxkb4j.core.assistant.Assistant;
 import com.maxkb4j.model.custom.credential.ModelCredentialForm;
-import com.maxkb4j.model.custom.params.EmbeddingModelParams;
 import com.maxkb4j.model.custom.params.ImageModelParams;
 import com.maxkb4j.model.custom.params.OpenAiChatModelParams;
 import com.maxkb4j.model.enums.ModelType;
@@ -266,8 +265,6 @@ public abstract class AbsModelProvider {
         if (modelType != null) {
             if (ModelType.LLM.getKey().equals(modelType)) {
                 return getChatModelParamsForm();
-            } else if (ModelType.EMBEDDING.getKey().equals(modelType)) {
-                return getEmbeddingModelParamsForm();
             }else if (ModelType.TTI.getKey().equals(modelType)) {
                 return getImageModelParamsForm();
             }
@@ -277,10 +274,6 @@ public abstract class AbsModelProvider {
 
     protected List<BaseField> getChatModelParamsForm() {
         return new OpenAiChatModelParams().toForm();
-    }
-
-    protected List<BaseField> getEmbeddingModelParamsForm() {
-        return new EmbeddingModelParams().toForm();
     }
 
     protected List<BaseField> getImageModelParamsForm() {
