@@ -116,7 +116,7 @@ public class ApplicationNodeHandler extends AbsNodeHandler {
         if (CollectionUtils.isNotEmpty(fieldList)) {
             for (InputField field : fieldList) {
                 Object value = workflow.getReferenceField(field.getValue());
-                value = value == null ? field.getDefaultValue() : value;
+                value = value == null ? field.getDefault_value() : value;
                 formData.put(field.getField(), value);
             }
         }
