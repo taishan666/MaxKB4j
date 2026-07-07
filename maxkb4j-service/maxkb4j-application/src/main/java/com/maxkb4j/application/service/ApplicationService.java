@@ -485,7 +485,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
 
     public Flux<Map<String, String>> promptGenerate(String appId, String modelId, PromptGenerateDTO dto) {
         ApplicationEntity app = this.getById(appId);
-        StreamingChatModel chatModel = modelFactory.buildStreamingChatModel(modelId, null);
+        StreamingChatModel chatModel = modelFactory.buildStreamingChatModel(modelId);
         List<ChatMessage> messages = dto.getMessages().stream()
                 .map(message -> {
                     if ("user".equals(message.getRole())) {

@@ -13,11 +13,21 @@ import dev.langchain4j.model.scoring.ScoringModel;
  */
 public interface IModelProviderService {
 
-    ChatModel buildChatModel(String modelId);
+    default ChatModel buildChatModel(String modelId) {
+        return buildChatModel(modelId, new JSONObject());
+    }
 
     ChatModel buildChatModel(String modelId, JSONObject modelParams);
 
+    default StreamingChatModel buildStreamingChatModel(String modelId) {
+        return buildStreamingChatModel(modelId, new JSONObject());
+    }
+
     StreamingChatModel buildStreamingChatModel(String modelId, JSONObject modelParams);
+
+    default EmbeddingModel buildEmbeddingModel(String modelId) {
+        return buildEmbeddingModel(modelId, new JSONObject());
+    }
 
     EmbeddingModel buildEmbeddingModel(String modelId, JSONObject modelParams);
 

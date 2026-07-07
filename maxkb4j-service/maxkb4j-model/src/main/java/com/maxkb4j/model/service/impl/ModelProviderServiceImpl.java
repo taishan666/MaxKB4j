@@ -39,11 +39,6 @@ public class ModelProviderServiceImpl implements IModelProviderService {
     }
 
     @Override
-    public ChatModel buildChatModel(String modelId) {
-        return buildChatModel(modelId, new JSONObject());
-    }
-
-    @Override
     public StreamingChatModel buildStreamingChatModel(String modelId, JSONObject modelParams) {
         ModelEntity model = getModelOrThrow(modelId);
         AbsModelProvider modelProvider = getModelProviderOrThrow(model);
