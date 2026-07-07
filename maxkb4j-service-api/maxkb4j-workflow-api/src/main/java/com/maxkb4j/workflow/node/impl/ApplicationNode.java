@@ -1,7 +1,7 @@
 package com.maxkb4j.workflow.node.impl;
 
 import com.alibaba.fastjson.JSONObject;
-import com.maxkb4j.workflow.model.NodeField;
+import com.maxkb4j.workflow.model.InputField;
 import com.maxkb4j.workflow.model.Workflow;
 import com.maxkb4j.workflow.node.AbsNode;
 import jakarta.validation.constraints.NotBlank;
@@ -38,9 +38,9 @@ public class ApplicationNode extends AbsNode {
         @NotNull(message = "用户问题不能为空")
         private List<String> questionReferenceAddress;
         //api 输入
-        private List<NodeField> apiInputFieldList;
+        private List<InputField> apiInputFieldList;
         //用户输入
-        private List<NodeField> userInputFieldList;
+        private List<InputField> userInputFieldList;
         private List<String> imageList;
         private List<String> documentList;
         private List<String> audioList;

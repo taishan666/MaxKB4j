@@ -125,22 +125,18 @@ public class ModelService extends ServiceImpl<ModelMapper, ModelEntity> {
 
     private JSONObject extractDefaultModelParams(JSONArray modelParamsForm) {
         JSONObject defaultModelParams = new JSONObject();
-
         // 防御性判断：如果传入的数组为空或 null，直接返回空对象
         if (modelParamsForm == null || modelParamsForm.isEmpty()) {
             return defaultModelParams;
         }
-
         // 遍历 JSONArray 中的每一个配置项
         for (int i = 0; i < modelParamsForm.size(); i++) {
             JSONObject paramConfig = modelParamsForm.getJSONObject(i);
-
             // 获取字段名作为 key，默认值作为 value
             String field = paramConfig.getString("field");
-            Object defaultValue = paramConfig.get("defaultValue");
-
+            Object defaultValue = paramConfig.get("default_value");
             // 防止 field 为 null 导致异常
-            if (field != null) {
+            if (field != null && defaultValue != null) {
                 defaultModelParams.put(field, defaultValue);
             }
         }

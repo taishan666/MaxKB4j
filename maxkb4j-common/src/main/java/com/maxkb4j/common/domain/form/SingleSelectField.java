@@ -1,25 +1,22 @@
 package com.maxkb4j.common.domain.form;
 
 import com.alibaba.fastjson.JSONObject;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+@EqualsAndHashCode(callSuper = true)
+@Data
 public class SingleSelectField extends BaseField {
-
+    private List<JSONObject> option_list;
+    private String text_field;
+    private String value_field;
 
     public SingleSelectField(String labelName, String field, String tooltip, Map<String,Object> options, Object defaultValue) {
-        super.setInput_type("SingleSelect");
-        JSONObject attrs =new JSONObject();
-        super.setAttrs(attrs);
-        JSONObject label=new JSONObject();
-        JSONObject labelAttrs=new JSONObject();
-        labelAttrs.put("tooltip",tooltip);
-        label.put("attrs",labelAttrs);
-        label.put("input_type","TooltipLabel");
-        label.put("label",labelName);
-        label.put("props_info",new JSONObject());
+        super("SingleSelect",labelName,field,tooltip,true,defaultValue);
         List<JSONObject> optionList=new ArrayList<>();
         for (Map.Entry<String, Object> entry : options.entrySet()) {
             JSONObject option=new JSONObject();
@@ -27,17 +24,8 @@ public class SingleSelectField extends BaseField {
             option.put("value",entry.getValue());
             optionList.add(option);
         }
-        super.setProps_info(new JSONObject());
-        super.setRelation_show_field_dict(new JSONObject());
-        super.setRelation_trigger_field_dict(new JSONObject());
-        super.setOption_list(optionList);
-        super.setLabel(label);
-        super.setField(field);
-        super.setText_field("label");
-        super.setValue_field("value");
-        super.setTrigger_type("OPTION_LIST");
-        super.setRequired(true);
-        super.setDefault_value(defaultValue);
-        super.setShow_default_value(true);
+        this.setOption_list(optionList);
+        this.setText_field("label");
+        this.setValue_field("value");
     }
 }

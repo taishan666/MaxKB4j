@@ -6,7 +6,7 @@ import com.maxkb4j.common.domain.dto.*;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.NodeType;
 import com.maxkb4j.workflow.handler.node.AbsNodeHandler;
-import com.maxkb4j.workflow.model.NodeField;
+import com.maxkb4j.workflow.model.InputField;
 import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.model.Workflow;
 import com.maxkb4j.workflow.node.AbsNode;
@@ -111,10 +111,10 @@ public class ApplicationNodeHandler extends AbsNodeHandler {
     /**
      * 构建 formData
      */
-    private Map<String, Object> buildFormData(Workflow workflow, List<NodeField> fieldList) {
+    private Map<String, Object> buildFormData(Workflow workflow, List<InputField> fieldList) {
         Map<String, Object> formData = new HashMap<>();
         if (CollectionUtils.isNotEmpty(fieldList)) {
-            for (NodeField field : fieldList) {
+            for (InputField field : fieldList) {
                 Object value = workflow.getReferenceField(field.getValue());
                 value = value == null ? field.getDefaultValue() : value;
                 formData.put(field.getField(), value);

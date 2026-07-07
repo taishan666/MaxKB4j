@@ -11,13 +11,11 @@ import java.util.List;
 public class LocalFileUpload extends BaseField {
 
     public LocalFileUpload(int fileCountLimit, int fileSizeLimit,List<String> fileTypeList) {
-        super.setInput_type("LocalFileUpload");
-        super.setField("fileList");
+        super("LocalFileUpload","","fileList","",true,null);
         JSONObject attrs =new JSONObject();
         attrs.put("fileCountLimit",fileCountLimit);
         attrs.put("fileSizeLimit",fileSizeLimit);
         attrs.put("fileTypeList", fileTypeList);
         super.setAttrs(attrs);
-        super.setLabel("");
     }
 }

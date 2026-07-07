@@ -8,9 +8,9 @@ import lombok.EqualsAndHashCode;
 @Data
 public class SliderField extends BaseField {
 
-
+    private String trigger_type;
     public SliderField(float min, float max, float step, int precision, String labelName, String field, String tooltip, float defaultValue) {
-        super.setInput_type("Slider");
+        super("Slider",labelName,field,tooltip,true,defaultValue);
         JSONObject attrs =new JSONObject();
         attrs.put("min",min);
         attrs.put("max",max);
@@ -19,21 +19,6 @@ public class SliderField extends BaseField {
         attrs.put("show-input",true);
         attrs.put("show-input-controls",false);
         super.setAttrs(attrs);
-        JSONObject label=new JSONObject();
-        JSONObject labelAttrs=new JSONObject();
-        labelAttrs.put("tooltip",tooltip);
-        label.put("attrs",labelAttrs);
-        label.put("input_type","TooltipLabel");
-        label.put("label",labelName);
-        label.put("props_info",new JSONObject());
-        super.setLabel(label);
-        super.setField(field);
-        super.setDefault_value(defaultValue);
-        super.setShow_default_value(true);
-        super.setProps_info(new JSONObject());
-        super.setRelation_show_field_dict(new JSONObject());
-        super.setRelation_trigger_field_dict(new JSONObject());
-        super.setTrigger_type("OPTION_LIST");
-        super.setRequired(true);
+        this.setTrigger_type("OPTION_LIST");
     }
 }

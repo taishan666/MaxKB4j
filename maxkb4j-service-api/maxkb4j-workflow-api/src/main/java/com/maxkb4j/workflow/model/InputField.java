@@ -5,7 +5,7 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-public class NodeField {
+public class InputField {
     private String field;
     private List<String> value;
     private Object defaultValue;

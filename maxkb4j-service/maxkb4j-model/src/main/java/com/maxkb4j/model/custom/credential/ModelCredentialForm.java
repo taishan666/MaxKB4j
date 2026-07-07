@@ -30,7 +30,7 @@ public  class ModelCredentialForm {
             list.add(new TextInputField("API 域名","baseUrl",true,defaultBaseUrl));
         }
         if(showApiKey){
-            list.add(new TextInputField("API KEY" ,"apiKey",true));
+            list.add(new TextInputField("API KEY" ,"apiKey",true,""));
         }
         return list;
     }
