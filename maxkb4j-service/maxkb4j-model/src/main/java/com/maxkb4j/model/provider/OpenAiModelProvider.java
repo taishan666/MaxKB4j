@@ -109,7 +109,7 @@ public class OpenAiModelProvider extends AbsModelProvider {
                 .baseUrl(getBaseUrl(credential.getBaseUrl()))
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
-                .dimensions(getIntParam(params, "dimension"))
+                .dimensions(getIntParam(params, "dimensions"))
                 .build();
     }
 
