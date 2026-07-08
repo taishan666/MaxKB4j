@@ -69,35 +69,27 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
                             workflowTaskExecutor));
                 }
             } else if (NodeStatus.SKIP.getStatus() == node.getStatus()) {
-                futureList.add(CompletableFuture.supplyAsync(
-                        () -> {
-                            // 获取下一个节点列表
-                            List<AbsNode> nextNodeList = workflow.execution().nextNodes(node, new NodeResult(Map.of()));
-                            nextNodeList.forEach(nextNode -> {
-                                if (workflow.execution().isSkipNode(nextNode)) {
-                                    nextNode.setStatus(NodeStatus.SKIP.getStatus());
-                                }
-                            });
-                            return nextNodeList;
-                        },
-                        workflowTaskExecutor));
-
+                List<AbsNode> nextNodeList = workflow.execution().nextNodes(node, new NodeResult(Map.of()));
+                nextNodeList.forEach(nextNode -> {
+                    if (workflow.execution().isSkipNode(nextNode)) {
+                        nextNode.setStatus(NodeStatus.SKIP.getStatus());
+                    }
+                });
+                futureList.add(CompletableFuture.completedFuture(nextNodeList));
             }
         }
         for (int i = 0; i < futureList.size(); i++) {
+            CompletableFuture<List<AbsNode>> future = futureList.get(i);
+            AbsNode node = nodeList.get(i);
             try {
-                List<AbsNode> nextNodeList = futureList.get(i).get(timeoutMinutes, TimeUnit.MINUTES);
+                List<AbsNode> nextNodeList = future.get(timeoutMinutes, TimeUnit.MINUTES);
                 runChainNodes(workflow, nextNodeList);
             } catch (TimeoutException e) {
                 log.error("Node execution timeout after {} minutes", timeoutMinutes);
-                futureList.get(i).cancel(true);
-                AbsNode node = nodeList.get(i);
-                // 统一使用责任链处理超时异常
+                future.cancel(true);
                 exceptionResolverChain.resolve(workflow, node, new RuntimeException("Node execution timeout after " + timeoutMinutes + " minutes"));
                 node.setStatus(NodeStatus.ERROR.getStatus());
             } catch (Exception e) {
-                AbsNode node = nodeList.get(i);
-                // 统一使用责任链处理执行异常
                 exceptionResolverChain.resolve(workflow, node, e);
                 node.setStatus(NodeStatus.ERROR.getStatus());
             }
@@ -197,8 +189,6 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
             Exception realEx = cause instanceof Exception ? (Exception) cause : new RuntimeException(cause);
             return handleNodeError(workflow, node, realEx);
         } catch (Exception ex) {
-            System.out.println("execute() method throws CompletionException212");
-            // 统一异常处理：日志记录、详情记录、Sink发送
             return handleNodeError(workflow, node, ex);
         }
     }
