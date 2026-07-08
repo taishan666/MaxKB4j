@@ -1,5 +1,6 @@
 package com.maxkb4j.workflow.handler.node.impl;
 
+import com.maxkb4j.tool.consts.ToolConstants;
 import com.maxkb4j.tool.executor.GroovyScriptExecutor;
 import com.maxkb4j.common.mp.entity.ToolInputField;
 import com.maxkb4j.oss.service.IOssService;
@@ -37,7 +38,7 @@ public class ToolNodeHandler extends AbsNodeHandler {
             }
         }
         Object result;
-        if ("HTTP".equals(params.getToolType())){
+        if (ToolConstants.ToolType.HTTP.equals(params.getToolType())){
             HttpRequestExecutor executor =  new HttpRequestExecutor(params.getCode());
             result = executor.execute(execParams);
         }else {

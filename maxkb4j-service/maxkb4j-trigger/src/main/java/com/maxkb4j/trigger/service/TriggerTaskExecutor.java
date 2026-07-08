@@ -4,14 +4,16 @@ import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.maxkb4j.tool.executor.GroovyScriptExecutor;
 import com.maxkb4j.application.service.IApplicationChatService;
 import com.maxkb4j.common.constant.ResourceType;
 import com.maxkb4j.common.domain.dto.ChatMessageVO;
 import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.common.domain.dto.ChatResponse;
 import com.maxkb4j.common.enums.ChatSource;
+import com.maxkb4j.tool.consts.ToolConstants;
 import com.maxkb4j.tool.entity.ToolEntity;
+import com.maxkb4j.tool.executor.GroovyScriptExecutor;
+import com.maxkb4j.tool.executor.HttpRequestExecutor;
 import com.maxkb4j.tool.service.IToolService;
 import com.maxkb4j.trigger.entity.EventTriggerTaskEntity;
 import com.maxkb4j.trigger.entity.EventTriggerTaskRecordEntity;
@@ -137,10 +139,16 @@ public class TriggerTaskExecutor {
     private void executeToolTask(EventTriggerTaskEntity task, long startTime) {
         String toolId = task.getSourceId();
         try {
-            ToolEntity tool = toolService.lambdaQuery().select(ToolEntity::getCode, ToolEntity::getInitParams).eq(ToolEntity::getId, toolId).one();
-            GroovyScriptExecutor scriptExecutor = new GroovyScriptExecutor(tool.getCode(), tool.getInitParams());
+            ToolEntity tool = toolService.lambdaQuery().select(ToolEntity::getToolType,ToolEntity::getCode, ToolEntity::getInitParams).eq(ToolEntity::getId, toolId).one();
             JSONObject parameter = task.getParameter();
-            Object response = scriptExecutor.execute(parameter);
+            Object response;
+            if(ToolConstants.ToolType.HTTP.equals(tool.getToolType())){
+                HttpRequestExecutor executor =  new HttpRequestExecutor(tool.getCode());
+                response = executor.execute(parameter);
+            }else {
+                GroovyScriptExecutor scriptExecutor = new GroovyScriptExecutor(tool.getCode(), tool.getInitParams());
+                response = scriptExecutor.execute(parameter);
+            }
             float runTime = (System.currentTimeMillis() - startTime) / 1000f;
             TaskState state = (response != null) ? TaskState.SUCCESS : TaskState.FAILURE;
             JSONObject meta = new JSONObject();
