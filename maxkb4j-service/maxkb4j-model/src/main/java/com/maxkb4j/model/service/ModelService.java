@@ -41,7 +41,7 @@ import java.util.function.Function;
  */
 @Service
 @RequiredArgsConstructor
-public class ModelService extends ServiceImpl<ModelMapper, ModelEntity> {
+public class ModelService extends ServiceImpl<ModelMapper, ModelEntity> implements IModelService{
 
     private final IUserService userService;
     private final IUserResourcePermissionService userResourcePermissionService;

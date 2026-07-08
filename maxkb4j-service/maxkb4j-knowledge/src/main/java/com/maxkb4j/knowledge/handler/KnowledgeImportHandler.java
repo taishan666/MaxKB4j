@@ -3,15 +3,15 @@ package com.maxkb4j.knowledge.handler;
 import com.alibaba.excel.EasyExcel;
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.knowledge.dto.DocumentSimple;
-import com.maxkb4j.knowledge.listener.ExcelDataListener;
 import com.maxkb4j.knowledge.dto.ParagraphSimple;
 import com.maxkb4j.knowledge.entity.KnowledgeEntity;
 import com.maxkb4j.knowledge.excel.KnowledgeExcel;
+import com.maxkb4j.knowledge.listener.ExcelDataListener;
 import com.maxkb4j.knowledge.service.DocumentWriteService;
 import com.maxkb4j.knowledge.service.KnowledgeService;
 import com.maxkb4j.model.entity.ModelEntity;
 import com.maxkb4j.model.enums.ModelType;
-import com.maxkb4j.model.service.ModelService;
+import com.maxkb4j.model.service.IModelService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -38,7 +38,7 @@ public class KnowledgeImportHandler {
 
     private final KnowledgeService knowledgeService;
     private final DocumentWriteService documentWriteService;
-    private final ModelService modelService;
+    private final IModelService modelService;
 
     /**
      * 从ZIP文件导入知识库
