@@ -31,5 +31,6 @@ public class ToolNode extends AbsNode {
         private String code;
         private Map<String,Object> initParams;
         private Boolean isResult;
+        private String toolType;
     }
 }

@@ -3,6 +3,7 @@ package com.maxkb4j.workflow.handler.node.impl;
 import com.maxkb4j.tool.executor.GroovyScriptExecutor;
 import com.maxkb4j.common.mp.entity.ToolInputField;
 import com.maxkb4j.oss.service.IOssService;
+import com.maxkb4j.tool.executor.HttpRequestExecutor;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.NodeType;
 import com.maxkb4j.workflow.handler.node.AbsNodeHandler;
@@ -29,16 +30,22 @@ public class ToolNodeHandler extends AbsNodeHandler {
     protected NodeResult doExecute(Workflow workflow, AbsNode node) throws Exception {
         ToolNode.NodeParams params = parseParams(node, ToolNode.NodeParams.class);
         Map<String, Object> execParams = new HashMap<>(5);
-        execParams.put("fileService", fileService);
         if (!CollectionUtils.isEmpty(params.getInputFieldList())) {
             for (ToolInputField inputField : params.getInputFieldList()) {
                 Object value = workflow.getFieldValue(inputField.getValue(), inputField.getSource());
                 execParams.put(inputField.getName(), value);
             }
         }
-        GroovyScriptExecutor scriptExecutor = new GroovyScriptExecutor(params.getCode(), params.getInitParams());
-        Object result = scriptExecutor.execute(execParams);
-        execParams.remove("fileService");
+        Object result;
+        if ("HTTP".equals(params.getToolType())){
+            HttpRequestExecutor executor =  new HttpRequestExecutor(params.getCode());
+            result = executor.execute(execParams);
+        }else {
+            execParams.put("fileService", fileService);
+            GroovyScriptExecutor executor = new GroovyScriptExecutor(params.getCode(), params.getInitParams());
+            result = executor.execute(execParams);
+            execParams.remove("fileService");
+        }
         // 使用辅助方法写入详情
         putDetail(node, "params", execParams);
         if (Boolean.TRUE.equals(params.getIsResult())) {
