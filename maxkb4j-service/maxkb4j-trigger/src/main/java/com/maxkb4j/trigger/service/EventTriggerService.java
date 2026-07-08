@@ -7,12 +7,14 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.maxkb4j.application.entity.ApplicationEntity;
 import com.maxkb4j.application.service.IApplicationService;
 import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.constant.ResourceType;
 import com.maxkb4j.common.context.UserContext;
 import com.maxkb4j.common.exception.ApiException;
 import com.maxkb4j.common.util.BeanUtil;
+import com.maxkb4j.tool.entity.ToolEntity;
 import com.maxkb4j.tool.service.IToolService;
 import com.maxkb4j.trigger.dto.EventQuery;
 import com.maxkb4j.trigger.dto.EventTriggerDTO;
@@ -20,9 +22,7 @@ import com.maxkb4j.trigger.entity.EventTriggerEntity;
 import com.maxkb4j.trigger.entity.EventTriggerTaskEntity;
 import com.maxkb4j.trigger.enums.TriggerType;
 import com.maxkb4j.trigger.mapper.EventTriggerMapper;
-import com.maxkb4j.trigger.vo.EventTriggerTaskVO;
-import com.maxkb4j.trigger.vo.EventTriggerVO;
-import com.maxkb4j.trigger.vo.SourceEventTriggerVO;
+import com.maxkb4j.trigger.vo.*;
 import com.maxkb4j.user.service.IUserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -99,7 +99,6 @@ public class EventTriggerService extends ServiceImpl<EventTriggerMapper, EventTr
         Date now = new Date();
         boolean isEditValue = Boolean.TRUE.equals(isEdit);
         if (!isEditValue) {
-            dto.setIsActive(false);
             dto.setCreateTime(now);
         }
         dto.setWorkspaceId(AppConst.DEFAULT_WORKSPACE_ID);
@@ -221,9 +220,11 @@ public class EventTriggerService extends ServiceImpl<EventTriggerMapper, EventTr
         Optional<EventTriggerTaskEntity> sourceTask = allTasks.stream().filter(task -> sourceType.equals(task.getSourceType()) && sourceId.equals(task.getSourceId())).findFirst();
         if (sourceTask.isPresent()) {
             if (ResourceType.APPLICATION.equals(sourceType)) {
-                vo.setApplicationTask(applicationService.getById(sourceTask.get().getSourceId()));
+                ApplicationEntity app =applicationService.getById(sourceTask.get().getSourceId());
+                vo.setApplicationTask(BeanUtil.copy(app, ApplicationTaskVO.class));
             } else if (ResourceType.TOOL.equals(sourceType)) {
-                vo.setToolTask(toolService.getById(sourceTask.get().getSourceId()));
+                ToolEntity tool =toolService.getById(sourceTask.get().getSourceId());
+                vo.setToolTask(BeanUtil.copy(tool, ToolTaskVO.class));
             }
             vo.setTriggerTask(sourceTask.get());
         }
@@ -244,6 +245,6 @@ public class EventTriggerService extends ServiceImpl<EventTriggerMapper, EventTr
         }
         // 批量查询避免N+1问题
         List<String> triggerIds = allTasks.stream().map(EventTriggerTaskEntity::getTriggerId).distinct().toList();
-        return this.listByIds(triggerIds);
+        return this.lambdaQuery().in(EventTriggerEntity::getId, triggerIds).eq(EventTriggerEntity::getIsActive, true).list();
     }
 }

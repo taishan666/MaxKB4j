@@ -8,7 +8,9 @@ import com.maxkb4j.common.constant.ResourceType;
 import com.maxkb4j.common.util.BeanUtil;
 import com.maxkb4j.tool.entity.ToolEntity;
 import com.maxkb4j.tool.service.IToolService;
+import com.maxkb4j.trigger.vo.ApplicationTaskVO;
 import com.maxkb4j.trigger.vo.EventTriggerTaskVO;
+import com.maxkb4j.trigger.vo.ToolTaskVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -46,13 +48,13 @@ public class EventTriggerTaskProcessor {
         List<String> appIds = extractIds(tasks, ResourceType.APPLICATION);
         List<String> toolIds = extractIds(tasks, ResourceType.TOOL);
 
-        List<ApplicationEntity> appsList = appIds.isEmpty() ? List.of() : applicationService.listByIds(appIds);
-        List<ToolEntity> toolsList = toolIds.isEmpty() ? List.of() : toolService.listByIds(toolIds);
+        List<ApplicationTaskVO> appsList = appIds.isEmpty() ? List.of() : BeanUtil.copyList(applicationService.listByIds(appIds), ApplicationTaskVO.class);
+        List<ToolTaskVO> toolsList = toolIds.isEmpty() ? List.of() : BeanUtil.copyList(toolService.listByIds(toolIds), ToolTaskVO.class);
 
-        Map<String, ApplicationEntity> appMap = appsList.stream()
-                .collect(Collectors.toMap(ApplicationEntity::getId, a -> a));
-        Map<String, ToolEntity> toolMap = toolsList.stream()
-                .collect(Collectors.toMap(ToolEntity::getId, t -> t));
+        Map<String, ApplicationTaskVO> appMap = appsList.stream()
+                .collect(Collectors.toMap(ApplicationTaskVO::getId, a -> a));
+        Map<String, ToolTaskVO> toolMap = toolsList.stream()
+                .collect(Collectors.toMap(ToolTaskVO::getId, t -> t));
 
         List<EventTriggerTaskVO> result = tasks.stream()
                 .map(task -> enrichTask(task, appMap, toolMap))
@@ -62,18 +64,18 @@ public class EventTriggerTaskProcessor {
     }
 
     private EventTriggerTaskVO enrichTask(EventTriggerTaskVO task,
-                                          Map<String, ApplicationEntity> appMap,
-                                          Map<String, ToolEntity> toolMap) {
+                                          Map<String, ApplicationTaskVO> appMap,
+                                          Map<String, ToolTaskVO> toolMap) {
         EventTriggerTaskVO newTask = BeanUtil.copy(task, EventTriggerTaskVO.class);
         newTask.setType(task.getSourceType());
         if (ResourceType.APPLICATION.equals(task.getSourceType())) {
-            ApplicationEntity app = appMap.get(task.getSourceId());
+            ApplicationTaskVO app = appMap.get(task.getSourceId());
             if (app != null) {
                 newTask.setIcon(app.getIcon());
                 newTask.setName(app.getName());
             }
         } else if (ResourceType.TOOL.equals(task.getSourceType())) {
-            ToolEntity tool = toolMap.get(task.getSourceId());
+            ToolTaskVO tool = toolMap.get(task.getSourceId());
             if (tool != null) {
                 newTask.setIcon(tool.getIcon());
                 newTask.setName(tool.getName());
@@ -135,5 +137,5 @@ public class EventTriggerTaskProcessor {
     }
 
     public record PageResult(List<EventTriggerTaskVO> tasks) {}
-    public record DetailResult(List<EventTriggerTaskVO> tasks, List<ApplicationEntity> apps, List<ToolEntity> tools) {}
+    public record DetailResult(List<EventTriggerTaskVO> tasks, List<ApplicationTaskVO> apps, List<ToolTaskVO> tools) {}
 }

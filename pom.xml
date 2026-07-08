@@ -42,6 +42,7 @@
         <flexmark.version>0.64.8</flexmark.version>
         <tika.version>3.2.3</tika.version>
         <groovy.version>4.0.26</groovy.version>
+        <groovy.sandbox.version>4.3.2</groovy.sandbox.version>
         <exp4j.version>0.4.8</exp4j.version>
         <reflections.version>0.10.2</reflections.version>
         <caffeine.version>2.9.0</caffeine.version>
@@ -127,6 +128,11 @@
                 <groupId>org.apache.groovy</groupId>
                 <artifactId>groovy-sql</artifactId>
                 <version>${groovy.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.craftercms</groupId>
+                <artifactId>groovy-sandbox</artifactId>
+                <version>${groovy.sandbox.version}</version>
             </dependency>
             <!-- Expression evaluator for Groovy scripts -->
             <dependency>

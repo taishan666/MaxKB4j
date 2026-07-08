@@ -42,6 +42,7 @@ public class TriggerController {
      */
     @PostMapping("/trigger")
     public R<EventTriggerEntity> addTrigger(@RequestBody EventTriggerDTO dto) {
+        dto.setIsActive(false);
         eventTriggerService.saveTrigger(dto, false);
         return R.data(dto);
     }
@@ -94,6 +95,7 @@ public class TriggerController {
 
     @PostMapping("/{sourceType}/{sourceId}/trigger")
     public R<EventTriggerDTO> addTriggerBySourceId(@PathVariable String sourceType, @PathVariable String sourceId, @RequestBody EventTriggerDTO dto) {
+        dto.setIsActive(true);
         eventTriggerService.saveTrigger(dto, false);
         return R.data(dto);
     }

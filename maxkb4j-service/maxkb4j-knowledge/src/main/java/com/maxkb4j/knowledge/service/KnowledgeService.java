@@ -45,7 +45,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -80,8 +79,6 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
     private final IWorkFlowActuator workFlowActuator;
     private final KnowledgeExportHandler knowledgeExportHandler;
     private final UserContext userContext;
-    
-    @Lazy
     private final NodeBuilder nodeBuilder;
     private final IResourceMappingService resourceMappingService;
     private final TaskExecutor workflowTaskExecutor;

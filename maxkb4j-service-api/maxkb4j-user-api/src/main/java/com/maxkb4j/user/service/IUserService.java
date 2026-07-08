@@ -7,7 +7,6 @@ import com.maxkb4j.user.dto.UserDTO;
 import com.maxkb4j.user.dto.UserLoginDTO;
 import com.maxkb4j.user.entity.UserEntity;
 import com.maxkb4j.user.vo.UserVO;
-import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.Map;
@@ -30,7 +29,7 @@ public interface IUserService extends IService<UserEntity> {
 
     String login(UserLoginDTO dto, HttpServletRequest request);
 
-    Boolean sendEmailCode(String email, String subject) throws MessagingException;
+    Boolean sendEmailCode(String email, String subject);
 
     boolean checkCode(String email, String code);
 

@@ -180,12 +180,16 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
         return user;
     }
 
-    public Boolean sendEmailCode(String email, String subject) throws MessagingException {
+    public Boolean sendEmailCode(String email, String subject) {
         Context context = new Context();
         String code = generateCode();
         context.setVariable("code", code);
         AuthCodeCache.put(email, code);
-        emailService.sendMessage(email, subject, "email_template", context);
+        try {
+            emailService.sendMessage(email, subject, "email_template", context);
+        } catch (MessagingException e) {
+            throw new ApiException(e.getMessage());
+        }
         return true;
     }
 
