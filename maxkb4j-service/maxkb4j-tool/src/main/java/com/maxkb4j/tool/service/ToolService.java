@@ -115,8 +115,9 @@ public class ToolService extends ServiceImpl<ToolMapper, ToolEntity> implements 
     }
 
     /** 轻量字段版本：供前端列表展示使用。 */
-    public List<ToolEntity> toolList(String folderId, String scope, String toolType) {
-        LambdaQueryWrapper<ToolEntity> wrapper = buildListWrapper(folderId, scope, new String[]{toolType})
+    public List<ToolEntity> toolList(String scope, String toolType) {
+        LambdaQueryWrapper<ToolEntity> wrapper = buildListWrapper(null, scope, null)
+                .eq(StringUtils.isNotBlank(toolType),ToolEntity::getToolType, toolType)
                 .select(
                         ToolEntity::getId,
                         ToolEntity::getName,
