@@ -97,10 +97,6 @@
             <groupId>io.github.mymonstercat</groupId>
             <artifactId>rapidocr</artifactId>
         </dependency>
-        <dependency>
-            <groupId>io.github.mymonstercat</groupId>
-            <artifactId>rapidocr-onnx-platform</artifactId>
-        </dependency>
       <!--
       <dependency>
             <groupId>io.github.mymonstercat</groupId>
