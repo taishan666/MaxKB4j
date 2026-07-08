@@ -10,9 +10,9 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.maxkb4j.application.service.IApplicationService;
 import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.constant.ResourceType;
+import com.maxkb4j.common.context.UserContext;
 import com.maxkb4j.common.exception.ApiException;
 import com.maxkb4j.common.util.BeanUtil;
-import com.maxkb4j.common.util.StpKit;
 import com.maxkb4j.tool.service.IToolService;
 import com.maxkb4j.trigger.dto.EventQuery;
 import com.maxkb4j.trigger.dto.EventTriggerDTO;
@@ -46,6 +46,7 @@ public class EventTriggerService extends ServiceImpl<EventTriggerMapper, EventTr
     private final NextRunTimeCalculator nextRunTimeCalculator;
     private final EventTriggerTaskProcessor taskProcessor;
     private final ObjectProvider<TriggerScheduler> triggerSchedulerProvider;
+    private final UserContext userContext;
 
     @Override
     public IPage<EventTriggerVO> pageList(int current, int size, EventQuery query) {
@@ -94,7 +95,7 @@ public class EventTriggerService extends ServiceImpl<EventTriggerMapper, EventTr
                 throw new ApiException("trigger.schedule.type.required");
             }
         }
-        dto.setUserId(StpKit.ADMIN.getLoginIdAsString());
+        dto.setUserId(userContext.getUserId());
         Date now = new Date();
         boolean isEditValue = Boolean.TRUE.equals(isEdit);
         if (!isEditValue) {

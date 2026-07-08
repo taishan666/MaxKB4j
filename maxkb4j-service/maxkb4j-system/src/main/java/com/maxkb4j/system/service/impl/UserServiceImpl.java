@@ -12,6 +12,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.maxkb4j.common.cache.AuthCodeCache;
 import com.maxkb4j.common.cache.SystemCache;
 import com.maxkb4j.common.constant.RoleType;
+import com.maxkb4j.common.context.UserContext;
 import com.maxkb4j.common.exception.ApiException;
 import com.maxkb4j.common.exception.LoginException;
 import com.maxkb4j.common.props.SystemProperties;
@@ -53,6 +54,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
     private final EmailService emailService;
     private final StpInterface stpInterface;
     private final SystemProperties systemProperties;
+    private final UserContext userContext;
 
 
     public IPage<UserEntity> selectUserPage(int page, int size, UserDTO dto) {
@@ -200,7 +202,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
     public boolean resetPassword(PasswordDTO dto) {
         if (Objects.equals(dto.getPassword(), dto.getRePassword())) {
             UserEntity userEntity = new UserEntity();
-            userEntity.setId(StpKit.ADMIN.getLoginIdAsString());
+            userEntity.setId(userContext.getUserId());
             userEntity.setPassword(SaSecureUtil.md5(dto.getPassword()));
             return updateById(userEntity);
         }
@@ -215,7 +217,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
     }
 
     public boolean updateLanguage(UserEntity user) {
-        String userId = StpKit.ADMIN.getLoginIdAsString();
+        String userId = userContext.getUserId();
         user.setId(userId);
         return updateById(user);
     }

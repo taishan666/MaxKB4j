@@ -9,8 +9,8 @@ import com.maxkb4j.common.api.R;
 import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.enums.PermissionEnum;
 import com.maxkb4j.common.mp.entity.ToolInputField;
+import com.maxkb4j.common.annotation.CurrentUserId;
 import com.maxkb4j.common.util.I18nUtil;
-import com.maxkb4j.common.util.StpKit;
 import com.maxkb4j.tool.consts.ToolConstants;
 import com.maxkb4j.tool.dto.ToolDTO;
 import com.maxkb4j.tool.dto.ToolQuery;
@@ -60,9 +60,9 @@ public class ToolController {
 
     @SaCheckPerm(PermissionEnum.TOOL_CREATE)
     @PostMapping("/tool/{templateId}/add_internal_tool")
-    public R<ToolEntity> addInternalTool(@PathVariable String templateId,@RequestBody ToolEntity dto) {
+    public R<ToolEntity> addInternalTool(@PathVariable String templateId,@RequestBody ToolEntity dto, @CurrentUserId String userId) {
         dto.setId(null);
-        dto.setUserId(StpKit.ADMIN.getLoginIdAsString());
+        dto.setUserId(userId);
         dto.setTemplateId(templateId);
         dto.setScope("WORKSPACE");
         dto.setToolType(ToolConstants.ToolType.CUSTOM);
@@ -76,12 +76,12 @@ public class ToolController {
 
     @SaCheckPerm(PermissionEnum.TOOL_CREATE)
     @PostMapping("/tool")
-    public R<ToolEntity> toolLib(@RequestBody ToolEntity dto) {
+    public R<ToolEntity> toolLib(@RequestBody ToolEntity dto, @CurrentUserId String userId) {
         dto.setIsActive(true);
         if (StringUtils.isBlank(dto.getToolType())) {
             dto.setToolType(ToolConstants.ToolType.CUSTOM);
         }
-        dto.setUserId(StpKit.ADMIN.getLoginIdAsString());
+        dto.setUserId(userId);
         dto.setScope("WORKSPACE");
         if (toolService.mcpServerConfigValid(dto)){
             toolService.saveTool(dto);

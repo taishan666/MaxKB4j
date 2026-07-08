@@ -1,12 +1,17 @@
 package com.maxkb4j.start.config;
 
+import com.maxkb4j.common.interceptor.UserIdentityInterceptor;
+import com.maxkb4j.common.web.CurrentUserIdArgumentResolver;
 import com.maxkb4j.core.interceptor.AuthInterceptor;
 import com.maxkb4j.system.interceptor.LocaleInterceptor;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
+import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.config.annotation.*;
+
+import java.util.List;
 
 
 @RequiredArgsConstructor
@@ -15,6 +20,8 @@ public class WebConfig implements WebMvcConfigurer {
 
     private final AuthInterceptor authInterceptor;
     private final LocaleInterceptor localeInterceptor;
+    private final UserIdentityInterceptor userIdentityInterceptor;
+    private final CurrentUserIdArgumentResolver currentUserIdArgumentResolver;
 
     @Override
     public void configureAsyncSupport(AsyncSupportConfigurer configurer) {
@@ -38,6 +45,15 @@ public class WebConfig implements WebMvcConfigurer {
                 .addPathPatterns("/chat/api/application/profile")
                 .addPathPatterns("/chat/api/open")
                 .addPathPatterns("/chat/api/chat_message/*");
+        // 用户身份解析（填充 UserContext，供业务层获取当前用户；order=1 保证晚于 authInterceptor 解析 USER 会话）
+        registry.addInterceptor(userIdentityInterceptor)
+                .addPathPatterns("/**")
+                .order(1);
+    }
+
+    @Override
+    public void addArgumentResolvers(@NotNull List<HandlerMethodArgumentResolver> resolvers) {
+        resolvers.add(currentUserIdArgumentResolver);
     }
 
     @Override

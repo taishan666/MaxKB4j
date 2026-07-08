@@ -1,8 +1,8 @@
 package com.maxkb4j.tool.handler;
 
 import cn.hutool.json.JSONUtil;
+import com.maxkb4j.common.context.UserContext;
 import com.maxkb4j.common.util.IoUtil;
-import com.maxkb4j.common.util.StpKit;
 import com.maxkb4j.tool.consts.ToolConstants;
 import com.maxkb4j.tool.entity.ToolEntity;
 import com.maxkb4j.tool.exception.ToolImportExportException;
@@ -26,6 +26,8 @@ import java.util.Objects;
 @Component
 @RequiredArgsConstructor
 public class ToolImportExportHandler {
+
+    private final UserContext userContext;
 
     /**
      * 导出工具到文件
@@ -74,7 +76,7 @@ public class ToolImportExportHandler {
             tool.setId(null); // 清除ID，生成新ID
             tool.setIsActive(false); // 导入后默认非激活
             tool.setFolderId(folderId);
-            tool.setUserId(StpKit.ADMIN.getLoginIdAsString()); // 设置当前用户
+            tool.setUserId(userContext.getUserId()); // 设置当前用户
             return tool;
         } catch (Exception e) {
             log.error("导入工具失败", e);

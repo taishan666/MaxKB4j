@@ -11,10 +11,10 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.maxkb4j.application.entity.ApplicationEntity;
 import com.maxkb4j.application.mapper.ApplicationMapper;
 import com.maxkb4j.common.constant.Permission;
+import com.maxkb4j.common.context.UserContext;
 import com.maxkb4j.common.mp.base.BaseEntity;
 import com.maxkb4j.common.util.BeanUtil;
 import com.maxkb4j.common.util.PageUtil;
-import com.maxkb4j.common.util.StpKit;
 import com.maxkb4j.knowledge.entity.KnowledgeEntity;
 import com.maxkb4j.knowledge.mapper.KnowledgeMapper;
 import com.maxkb4j.model.entity.ModelEntity;
@@ -51,6 +51,7 @@ public class UserResourcePermissionServiceImpl extends ServiceImpl<UserResourceP
     private final ToolMapper toolMapper;
     private final ModelMapper modelMapper;
     private final UserMapper userMapper;
+    private final UserContext userContext;
 
     public boolean ownerSave(String type, String targetId, String userId) {
         UserResourcePermissionEntity entity = new UserResourcePermissionEntity();
@@ -101,7 +102,7 @@ public class UserResourcePermissionServiceImpl extends ServiceImpl<UserResourceP
         if (filter.emptyResult()) {
             return new Page<>(current, size, 0);
         }
-        String currentUserId = StpKit.ADMIN.getLoginIdAsString();
+        String currentUserId = userContext.getUserId();
         LambdaQueryWrapper<UserEntity> userWrapper = Wrappers.<UserEntity>lambdaQuery()
                 .eq(UserEntity::getIsActive, true)
                 .ne(UserEntity::getId, currentUserId)

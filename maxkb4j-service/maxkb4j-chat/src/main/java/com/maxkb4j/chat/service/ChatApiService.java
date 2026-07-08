@@ -13,14 +13,13 @@ import com.maxkb4j.application.service.IApplicationChatRecordService;
 import com.maxkb4j.application.service.IApplicationChatService;
 import com.maxkb4j.application.service.IApplicationService;
 import com.maxkb4j.application.vo.ApplicationVO;
+import com.maxkb4j.common.context.UserContext;
 import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.common.domain.dto.ChatResponse;
 import com.maxkb4j.common.domain.dto.McpRequest;
 import com.maxkb4j.common.domain.vo.McpResponse;
 import com.maxkb4j.common.enums.ChatUserType;
 import com.maxkb4j.common.exception.ApiException;
-import com.maxkb4j.common.util.StpKit;
-import com.maxkb4j.common.util.WebUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -41,6 +40,8 @@ public class ChatApiService {
     private final IApplicationService applicationService;
     private final IApplicationChatService chatService;
     private final IApplicationChatRecordService chatRecordService;
+    private final UserContext userContext;
+    private final ChatTokenService chatTokenService;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
 
@@ -50,17 +51,15 @@ public class ChatApiService {
         if (accessTokenEntity == null){
             throw new ApiException("application.app.not.found");
         }
-        String tokenValue = WebUtil.getTokenValue();
-        StpKit.USER.setTokenValue(tokenValue);
         String chatUserId = IdWorker.get32UUID();
-        if (StpKit.USER.isLogin()) {
-            chatUserId = StpKit.USER.getLoginIdAsString();
+        if (userContext.isLogin()) {
+            chatUserId = userContext.getUserId();
         }
         Map<String, Object> extraData = new HashMap<>();
         extraData.put("applicationId", accessTokenEntity.getApplicationId());
         extraData.put("chatUserType", ChatUserType.ANONYMOUS_USER.name());
         extraData.put("accessToken", accessToken);
-        return StpKit.USER.createTokenValue(chatUserId, StpKit.USER.getLoginDevice(), -1L, extraData);
+        return chatTokenService.issueAnonymousToken(chatUserId, extraData);
     }
 
     public ApplicationEntity appProfile(String appId) {
@@ -75,10 +74,8 @@ public class ChatApiService {
     }
 
     public Page<ApplicationChatEntity> historicalConversation(int current, int size) {
-        String tokenValue = WebUtil.getTokenValue();
-        StpKit.USER.setTokenValue(tokenValue);
-        String appId = (String) StpKit.USER.getExtra("applicationId");
-        String userId = StpKit.USER.getLoginIdAsString();
+        String appId = userContext.getExtra("applicationId");
+        String userId = userContext.getUserId();
         Page<ApplicationChatEntity> page = new Page<>(current, size);
         LambdaQueryWrapper<ApplicationChatEntity> wrapper = Wrappers.lambdaQuery();
         wrapper.eq(ApplicationChatEntity::getApplicationId, appId).eq(ApplicationChatEntity::getChatUserId, userId);
@@ -87,10 +84,8 @@ public class ChatApiService {
     }
 
     public boolean historicalConversationClear() {
-        String tokenValue = WebUtil.getTokenValue();
-        StpKit.USER.setTokenValue(tokenValue);
-        String appId = (String) StpKit.USER.getExtra("applicationId");
-        String userId = StpKit.USER.getLoginIdAsString();
+        String appId = userContext.getExtra("applicationId");
+        String userId = userContext.getUserId();
         LambdaQueryWrapper<ApplicationChatEntity> wrapper = Wrappers.lambdaQuery();
         wrapper.eq(ApplicationChatEntity::getApplicationId, appId).eq(ApplicationChatEntity::getChatUserId, userId);
         return chatService.remove(wrapper);

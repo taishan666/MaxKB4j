@@ -9,12 +9,12 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.maxkb4j.common.constant.ResourceType;
 import com.maxkb4j.common.constant.RoleType;
+import com.maxkb4j.common.context.UserContext;
 import com.maxkb4j.common.domain.form.BaseField;
 import com.maxkb4j.common.domain.form.LocalFileUpload;
 import com.maxkb4j.common.domain.form.TextInputField;
 import com.maxkb4j.common.util.BeanUtil;
 import com.maxkb4j.common.util.DateTimeUtil;
-import com.maxkb4j.common.util.StpKit;
 import com.maxkb4j.core.event.CreateWebDocsEvent;
 import com.maxkb4j.core.event.GenerateProblemEvent;
 import com.maxkb4j.knowledge.dto.GenerateProblemDTO;
@@ -44,7 +44,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.task.TaskExecutor;
@@ -80,16 +79,16 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
     private final KnowledgeVersionService knowledgeVersionService;
     private final IWorkFlowActuator workFlowActuator;
     private final KnowledgeExportHandler knowledgeExportHandler;
+    private final UserContext userContext;
     
     @Lazy
     private final NodeBuilder nodeBuilder;
     private final IResourceMappingService resourceMappingService;
-    @Qualifier("workflowTaskExecutor")
     private final TaskExecutor workflowTaskExecutor;
 
 
     public IPage<KnowledgeVO> selectKnowledgePage(Page<KnowledgeVO> knowledgePage, KnowledgeQuery query) {
-        String loginId = StpKit.ADMIN.getLoginIdAsString();
+        String loginId = userContext.getUserId();
         List<String> targetIds = userResourcePermissionService.getTargetIds(AuthTargetType.KNOWLEDGE, loginId);
         Set<String> role = userService.getRoleById(loginId);
         query.setIsAdmin(role.contains(RoleType.ADMIN));
@@ -186,7 +185,7 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
     @Transactional
     public KnowledgeEntity createKnowledge(KnowledgeEntity knowledge) {
         knowledge.setMeta(new JSONObject());
-        knowledge.setUserId(StpKit.ADMIN.getLoginIdAsString());
+        knowledge.setUserId(userContext.getUserId());
         if (knowledge.getWorkFlow() == null) {
             knowledge.setWorkFlow(new JSONObject());
         }
@@ -217,7 +216,7 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
     }
 
     public List<KnowledgeListVO> listKnowledge() {
-        String userId = StpKit.ADMIN.getLoginIdAsString();
+        String userId = userContext.getUserId();
         Set<String> role = userService.getRoleById(userId);
         List<KnowledgeEntity> list;
         if (role.contains(RoleType.ADMIN)) {
@@ -299,7 +298,7 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
         knowledgeAction.setDetails(new JSONObject());
         knowledgeAction.setRunTime(0F);
         JSONObject meta = new JSONObject();
-        String userId= StpKit.ADMIN.getLoginIdAsString();
+        String userId= userContext.getUserId();
         meta.put("userId", userId);
         meta.put("username", userService.getUsername(userId));
         knowledgeAction.setMeta(meta);
@@ -343,7 +342,7 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
         knowledgeVersion.setKnowledgeId(id);
         knowledgeVersion.setName(DateTimeUtil.now());
         knowledgeVersion.setWorkFlow(knowledge.getWorkFlow());
-        String userId = StpKit.ADMIN.getLoginIdAsString();
+        String userId = userContext.getUserId();
         knowledgeVersion.setPublishUserId(userId);
         knowledgeVersion.setPublishUserName(userService.getUsername(userId));
         return knowledgeVersionService.save(knowledgeVersion);

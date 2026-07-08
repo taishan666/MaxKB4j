@@ -14,6 +14,7 @@ import com.maxkb4j.chat.service.ChatApiService;
 import com.maxkb4j.common.annotation.SaCheckPerm;
 import com.maxkb4j.common.api.R;
 import com.maxkb4j.common.constant.AppConst;
+import com.maxkb4j.common.context.UserContext;
 import com.maxkb4j.common.domain.dto.ChatMessageVO;
 import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.common.domain.dto.ChatResponse;
@@ -23,7 +24,6 @@ import com.maxkb4j.common.enums.ChatUserType;
 import com.maxkb4j.common.enums.PermissionEnum;
 import com.maxkb4j.common.exception.ApiException;
 import com.maxkb4j.common.util.I18nUtil;
-import com.maxkb4j.common.util.StpKit;
 import com.maxkb4j.common.util.WebUtil;
 import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
@@ -53,6 +53,7 @@ public class ChatApiController {
     private final IApplicationChatRecordService chatRecordService;
     private final ChatApiService chatApiService;
     private final IApplicationApiKeyService apiKeyService;
+    private final UserContext userContext;
 
 
     @Hidden
@@ -78,8 +79,8 @@ public class ChatApiController {
     @Operation(summary = "获取应用相关信息", description = "获取应用相关信息")
     @GetMapping("/application/profile")
     public R<ApplicationEntity> appProfile() {
-        if (StpKit.USER.isLogin()) {
-            String appId = (String) StpKit.USER.getExtra("applicationId");
+        if (userContext.isLogin()) {
+            String appId = userContext.getExtra("applicationId");
             return R.data(chatApiService.appProfile(appId));
         }
         return R.fail(I18nUtil.get("login.not.login"));
@@ -88,7 +89,7 @@ public class ChatApiController {
     @Operation(summary = "获取应用的会话ID", description = "获取应用的会话ID(首次对话前，需要调用该接口，生成对话ID)")
     @GetMapping("/open")
     public R<String> chatOpen() {
-        String appId = (String) StpKit.USER.getExtra("applicationId");
+        String appId = userContext.getExtra("applicationId");
         return R.data(chatService.chatOpen(appId, false));
     }
 
@@ -96,7 +97,7 @@ public class ChatApiController {
     @PostMapping(path = "/chat_message/{chatId}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     @SuppressWarnings("ReactiveStreamsUnusedPublisher")
     public Object chatMessage(@PathVariable String chatId, @RequestBody ChatParams params) {
-        String userId = StpKit.USER.getLoginIdAsString();
+        String userId = userContext.getUserId();
         Sinks.Many<ChatMessageVO> sink = Sinks.many().unicast().onBackpressureBuffer();
         params.setChatId(chatId);
         params.setChatUserId(userId);
@@ -178,8 +179,7 @@ public class ChatApiController {
     @Hidden
     @PostMapping("/speech_to_text")
     public R<String> speechToText(MultipartFile file) throws IOException {
-        StpKit.USER.setTokenValue(WebUtil.getTokenValue());
-        String appId = (String) StpKit.USER.getExtra("applicationId");
+        String appId = userContext.getExtra("applicationId");
         return R.data(applicationService.speechToText(appId, file, false));
     }
 
@@ -190,8 +190,7 @@ public class ChatApiController {
         // 设置 HTTP 响应头
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.parseMediaType("audio/mp3"));
-        StpKit.USER.setTokenValue(WebUtil.getTokenValue());
-        String appId = (String) StpKit.USER.getExtra("applicationId");
+        String appId = userContext.getExtra("applicationId");
         return new ResponseEntity<>(applicationService.textToSpeech(appId, data, false), headers, HttpStatus.OK);
     }
 

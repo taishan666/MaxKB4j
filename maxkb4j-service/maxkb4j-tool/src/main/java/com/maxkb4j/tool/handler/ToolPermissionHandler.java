@@ -2,7 +2,7 @@ package com.maxkb4j.tool.handler;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.maxkb4j.common.constant.RoleType;
-import com.maxkb4j.common.util.StpKit;
+import com.maxkb4j.common.context.UserContext;
 import com.maxkb4j.system.constant.AuthTargetType;
 import com.maxkb4j.tool.entity.ToolEntity;
 import com.maxkb4j.user.service.IUserResourcePermissionService;
@@ -28,12 +28,13 @@ public class ToolPermissionHandler {
 
     private final IUserService userService;
     private final IUserResourcePermissionService userResourcePermissionService;
+    private final UserContext userContext;
 
     /**
      * 在 wrapper 上叠加角色过滤。
      */
     public void applyRoleFilter(LambdaQueryWrapper<ToolEntity> wrapper) {
-        String loginId = StpKit.ADMIN.getLoginIdAsString();
+        String loginId = userContext.getUserId();
         Set<String> roles = userService.getRoleById(loginId);
         if (CollectionUtils.isEmpty(roles)) {
             wrapper.last(" limit 0");

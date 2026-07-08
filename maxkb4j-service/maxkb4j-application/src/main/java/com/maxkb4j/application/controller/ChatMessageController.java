@@ -5,9 +5,9 @@ import com.maxkb4j.common.api.R;
 import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.domain.dto.ChatMessageVO;
 import com.maxkb4j.common.domain.dto.ChatParams;
+import com.maxkb4j.common.annotation.CurrentUserId;
 import com.maxkb4j.common.enums.ChatSource;
 import com.maxkb4j.common.enums.ChatUserType;
-import com.maxkb4j.common.util.StpKit;
 import com.maxkb4j.common.util.WebUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -33,10 +33,10 @@ public class ChatMessageController {
     }
 
     @PostMapping(path = "/chat_message/{chatId}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<ChatMessageVO> chatMessage(@PathVariable String chatId, @RequestBody ChatParams params) {
+    public Flux<ChatMessageVO> chatMessage(@PathVariable String chatId, @RequestBody ChatParams params, @CurrentUserId String userId) {
         Sinks.Many<ChatMessageVO> sink = Sinks.many().unicast().onBackpressureBuffer();
         params.setChatId(chatId);
-        params.setChatUserId(StpKit.ADMIN.getLoginIdAsString());
+        params.setChatUserId(userId);
         params.setChatUserType(ChatUserType.ANONYMOUS_USER.name());
         params.setSource(ChatSource.ONLINE);
         params.setIpAddress(WebUtil.getIP());

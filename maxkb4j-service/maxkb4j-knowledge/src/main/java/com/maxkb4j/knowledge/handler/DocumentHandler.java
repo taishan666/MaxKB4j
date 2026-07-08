@@ -6,7 +6,7 @@ import com.alibaba.excel.context.AnalysisContext;
 import com.alibaba.excel.event.AnalysisEventListener;
 import com.alibaba.excel.read.metadata.ReadSheet;
 import com.alibaba.fastjson.JSON;
-import com.maxkb4j.common.util.SecurityUtil;
+import com.maxkb4j.common.util.FilePathSecurityUtil;
 import com.maxkb4j.knowledge.dto.DocumentSimple;
 import com.maxkb4j.knowledge.dto.ParagraphSimple;
 import com.maxkb4j.knowledge.excel.KnowledgeExcel;
@@ -54,7 +54,7 @@ public class DocumentHandler {
             while ((entry = zipIn.getNextEntry()) != null) {
                 if (!entry.isDirectory() && isExcelOrCsv(entry.getName())) {
                     // 防止路径穿越攻击
-                    String entryName = SecurityUtil.normalizeFilePath(entry.getName());
+                    String entryName = FilePathSecurityUtil.normalizeFilePath(entry.getName());
                     if (entryName == null) {
                         log.warn("非法的文件路径: {}", entry.getName());
                         continue;
@@ -84,7 +84,7 @@ public class DocumentHandler {
      */
     public List<DocumentSimple> processQaFile(byte[] bytes, String fileName) {
         // 验证文件名安全性
-        if (SecurityUtil.illegalityFileName(fileName)) {
+        if (FilePathSecurityUtil.illegalityFileName(fileName)) {
             log.warn("非法的文件名: {}", fileName);
             throw new IllegalArgumentException("非法文件名");
         }
@@ -178,7 +178,7 @@ public class DocumentHandler {
      */
     public List<DocumentSimple> processTable(byte[] bytes, String fileName) {
         // 验证文件名安全性
-        if (SecurityUtil.illegalityFileName(fileName)) {
+        if (FilePathSecurityUtil.illegalityFileName(fileName)) {
             log.warn("非法的文件名: {}", fileName);
             throw new IllegalArgumentException("非法文件名");
         }

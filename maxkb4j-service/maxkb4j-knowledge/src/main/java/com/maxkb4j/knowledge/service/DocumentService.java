@@ -5,7 +5,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.maxkb4j.common.domain.vo.KeyAndValueVO;
 import com.maxkb4j.common.exception.FileLimitExceededException;
-import com.maxkb4j.common.util.SecurityUtil;
+import com.maxkb4j.common.util.FilePathSecurityUtil;
 import com.maxkb4j.core.event.DocumentIndexEvent;
 import com.maxkb4j.core.event.GenerateProblemEvent;
 import com.maxkb4j.knowledge.consts.KnowledgeType;
@@ -121,7 +121,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
             String fileName = file.getOriginalFilename();
             if (fileName == null) continue;
             // 验证文件名安全性
-            if (SecurityUtil.illegalityFileName(fileName)) {
+            if (FilePathSecurityUtil.illegalityFileName(fileName)) {
                 continue; // 跳过非法文件
             }
             if (fileName.toLowerCase().endsWith(".zip")) {
@@ -149,7 +149,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
             if (originalFilename == null) continue;
 
             // 验证文件名安全性
-            if (SecurityUtil.illegalityFileName(originalFilename)) {
+            if (FilePathSecurityUtil.illegalityFileName(originalFilename)) {
                 continue; // 跳过非法文件
             }
 
@@ -247,7 +247,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
             String name = file.getOriginalFilename();
             if (name == null) continue;
             // 验证文件名安全性
-            if (SecurityUtil.illegalityFileName(name)) {
+            if (FilePathSecurityUtil.illegalityFileName(name)) {
                 log.warn("非法的文件名: {}", name);
                 continue; // 跳过非法文件
             }
@@ -257,7 +257,7 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
                     while ((entry = zis.getNextEntry()) != null) {
                         if (!entry.isDirectory()) {
                             // 验证压缩包内文件名的安全性
-                            String entryName = SecurityUtil.normalizeFilePath(entry.getName());
+                            String entryName = FilePathSecurityUtil.normalizeFilePath(entry.getName());
                             if (entryName == null) {
                                 log.warn("压缩包中存在非法的文件路径: {}", entry.getName());
                                 continue; // 跳过非法文件

@@ -18,6 +18,7 @@ import com.maxkb4j.application.vo.ApplicationListVO;
 import com.maxkb4j.application.vo.ApplicationVO;
 import com.maxkb4j.common.constant.ResourceType;
 import com.maxkb4j.common.constant.RoleType;
+import com.maxkb4j.common.context.UserContext;
 import com.maxkb4j.common.domain.dto.KnowledgeDTO;
 import com.maxkb4j.common.exception.ApiException;
 import com.maxkb4j.common.util.*;
@@ -68,6 +69,7 @@ import static com.maxkb4j.workflow.enums.NodeType.*;
 public class ApplicationService extends ServiceImpl<ApplicationMapper, ApplicationEntity> implements IApplicationService {
 
     private final IModelProviderService modelFactory;
+    private final UserContext userContext;
     private final IKnowledgeService knowledgeService;
     private final IUserService userService;
     private final ApplicationAccessTokenService accessTokenService;
@@ -95,7 +97,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         if (Objects.nonNull(query.getCreateUser())) {
             wrapper.eq(ApplicationEntity::getUserId, query.getCreateUser());
         }
-        String loginId = StpKit.ADMIN.getLoginIdAsString();
+        String loginId = userContext.getUserId();
         Set<String> role = userService.getRoleById(loginId);
         if (!CollectionUtils.isEmpty(role)) {
             if (role.contains(RoleType.USER)) {
@@ -227,7 +229,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         }
         // 非模板方式创建
         application.setIcon("./favicon.ico");
-        application.setUserId(StpKit.ADMIN.getLoginIdAsString());
+        application.setUserId(userContext.getUserId());
         application.setTtsModelParamsSetting(new JSONObject());
         application.setFileUploadSetting(new JSONObject());
         application.setCleanTime(365);
@@ -408,7 +410,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         entity.setApplicationId(id);
         entity.setApplicationName(application.getName());
         entity.setName(DateTimeUtil.now());
-        String userId = StpKit.ADMIN.getLoginIdAsString();
+        String userId = userContext.getUserId();
         entity.setPublishUserId(userId);
         entity.setPublishUserName(userService.getUsername(userId));
         applicationVersionService.save(entity);
@@ -468,7 +470,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     }
 
     public List<ApplicationListVO> listApps(String folderId) {
-        String userId = StpKit.ADMIN.getLoginIdAsString();
+        String userId = userContext.getUserId();
         Set<String> role = userService.getRoleById(userId);
         List<ApplicationEntity> list;
         if (role.contains(RoleType.ADMIN)) {
@@ -539,11 +541,11 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         application.setIsPublish(false);
         application.setCreateTime(now);
         application.setUpdateTime(now);
-        application.setUserId(StpKit.ADMIN.getLoginIdAsString());
+        application.setUserId(userContext.getUserId());
         List<ToolEntity> toolList = maxKb4j.getToolList();
         if (!CollectionUtils.isEmpty(toolList)) {
             toolList.forEach(e -> {
-                e.setUserId(StpKit.ADMIN.getLoginIdAsString());
+                e.setUserId(userContext.getUserId());
                 e.setIsActive(true);
                 e.setCreateTime(now);
                 e.setUpdateTime(now);

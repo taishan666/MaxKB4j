@@ -9,11 +9,11 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.maxkb4j.common.constant.RoleType;
+import com.maxkb4j.common.context.UserContext;
 import com.maxkb4j.common.exception.ApiException;
 import com.maxkb4j.common.mp.entity.ModelCredential;
 import com.maxkb4j.common.util.BeanUtil;
 import com.maxkb4j.common.util.DataMaskUtil;
-import com.maxkb4j.common.util.StpKit;
 import com.maxkb4j.model.entity.ModelEntity;
 import com.maxkb4j.model.enums.ModelProvider;
 import com.maxkb4j.model.enums.ModelStatus;
@@ -45,6 +45,7 @@ public class ModelService extends ServiceImpl<ModelMapper, ModelEntity> {
 
     private final IUserService userService;
     private final IUserResourcePermissionService userResourcePermissionService;
+    private final UserContext userContext;
 
     private static final Cache<String, ModelEntity> MODEL_CACHE = Caffeine.newBuilder()
             .initialCapacity(100)
@@ -105,7 +106,7 @@ public class ModelService extends ServiceImpl<ModelMapper, ModelEntity> {
 
     @Transactional
     public boolean createModel(ModelEntity model) {
-        String userId = StpKit.ADMIN.getLoginIdAsString();
+        String userId = userContext.getUserId();
         long count = this.lambdaQuery().eq(ModelEntity::getName, model.getName()).eq(ModelEntity::getUserId, userId).count();
         if (count > 0) {
             throw new ApiException("model.name.exists");
@@ -144,7 +145,7 @@ public class ModelService extends ServiceImpl<ModelMapper, ModelEntity> {
     }
 
     public ModelEntity updateModel(String id, ModelEntity model) {
-        String userId = StpKit.ADMIN.getLoginIdAsString();
+        String userId = userContext.getUserId();
         long count = this.lambdaQuery().eq(ModelEntity::getName, model.getName()).eq(ModelEntity::getUserId, userId).ne(ModelEntity::getId, id).count();
         if (count > 0) {
             throw new ApiException("model.name.exists");
@@ -213,7 +214,7 @@ public class ModelService extends ServiceImpl<ModelMapper, ModelEntity> {
      * - 其他角色（如管理员）：不附加限制
      */
     private void applyDataPermission(LambdaQueryWrapper<ModelEntity> wrapper) {
-        String loginId = StpKit.ADMIN.getLoginIdAsString();
+        String loginId = userContext.getUserId();
         Set<String> roles = userService.getRoleById(loginId);
         if (CollectionUtils.isEmpty(roles)) {
             wrapper.last(" limit 0");
@@ -239,7 +240,7 @@ public class ModelService extends ServiceImpl<ModelMapper, ModelEntity> {
         if (model == null) {
             return null;
         }
-        String userId = StpKit.ADMIN.getLoginIdAsString();
+        String userId = userContext.getUserId();
         if (!model.getUserId().equals(userId)) {
             return null;
         }

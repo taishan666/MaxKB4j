@@ -8,8 +8,8 @@ import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.constant.LoginType;
 import com.maxkb4j.common.constant.RoleType;
 import com.maxkb4j.common.props.SystemProperties;
+import com.maxkb4j.common.annotation.CurrentUserId;
 import com.maxkb4j.common.util.I18nUtil;
-import com.maxkb4j.common.util.StpKit;
 import com.maxkb4j.user.dto.PasswordDTO;
 import com.maxkb4j.user.dto.UserDTO;
 import com.maxkb4j.user.entity.UserEntity;
@@ -36,8 +36,7 @@ public class UserController {
 
 
     @GetMapping("user/profile")
-    public R<UserVO> getUserProfile(){
-        String userId = StpKit.ADMIN.getLoginIdAsString();
+    public R<UserVO> getUserProfile(@CurrentUserId String userId){
         return R.data(userService.getUserById(userId));
     }
 
@@ -94,8 +93,7 @@ public class UserController {
 
     @SaCheckRole(type = LoginType.ADMIN, value = {RoleType.ADMIN, RoleType.USER}, mode = SaMode.OR)
     @PostMapping("/user/current/send_email")
-    public R<Boolean> sendEmail() throws MessagingException {
-        String userId = StpKit.ADMIN.getLoginIdAsString();
+    public R<Boolean> sendEmail(@CurrentUserId String userId) throws MessagingException {
         String email = userService.getEmail(userId);
         return R.status(userService.sendEmailCode(email, I18nUtil.get("email.subject.modify.password")));
     }
