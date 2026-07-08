@@ -10,7 +10,7 @@ import com.maxkb4j.common.constant.LoginType;
 import com.maxkb4j.common.constant.RoleType;
 import com.maxkb4j.common.util.I18nUtil;
 import com.maxkb4j.system.entity.SystemSettingEntity;
-import com.maxkb4j.system.enums.SettingType;
+import com.maxkb4j.common.enums.SettingType;
 import com.maxkb4j.system.service.SystemSettingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;

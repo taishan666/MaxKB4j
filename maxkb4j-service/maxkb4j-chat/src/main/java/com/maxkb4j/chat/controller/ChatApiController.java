@@ -11,7 +11,6 @@ import com.maxkb4j.application.service.*;
 import com.maxkb4j.application.vo.ApplicationChatRecordVO;
 import com.maxkb4j.application.vo.ShareChatVO;
 import com.maxkb4j.chat.service.ChatApiService;
-import com.maxkb4j.common.annotation.SaCheckPerm;
 import com.maxkb4j.common.api.R;
 import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.context.UserContext;
@@ -21,7 +20,6 @@ import com.maxkb4j.common.domain.dto.ChatResponse;
 import com.maxkb4j.common.domain.dto.McpRequest;
 import com.maxkb4j.common.enums.ChatSource;
 import com.maxkb4j.common.enums.ChatUserType;
-import com.maxkb4j.common.enums.PermissionEnum;
 import com.maxkb4j.common.exception.ApiException;
 import com.maxkb4j.common.util.I18nUtil;
 import com.maxkb4j.common.util.WebUtil;
@@ -208,7 +206,6 @@ public class ChatApiController {
     }
 
     @Hidden
-    @SaCheckPerm(PermissionEnum.APPLICATION_READ)
     @PostMapping("/{id}/chat/{chatId}/share_chat")
     public R<Map<String, String>> shareChat(@PathVariable String id, @PathVariable String chatId, @RequestBody ShareChatDTO dto) {
         return R.data(chatService.shareChat(id, chatId, dto));

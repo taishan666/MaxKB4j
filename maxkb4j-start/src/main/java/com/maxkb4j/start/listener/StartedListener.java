@@ -6,7 +6,7 @@ import com.maxkb4j.common.cache.SystemCache;
 import com.maxkb4j.common.props.SystemProperties;
 import com.maxkb4j.common.util.RSAUtil;
 import com.maxkb4j.system.entity.SystemSettingEntity;
-import com.maxkb4j.system.enums.SettingType;
+import com.maxkb4j.common.enums.SettingType;
 import com.maxkb4j.system.service.SystemSettingService;
 import com.maxkb4j.user.service.IUserService;
 import lombok.RequiredArgsConstructor;

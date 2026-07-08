@@ -1,6 +1,7 @@
 package com.maxkb4j.common.cache;
 
 import com.alibaba.fastjson.JSONObject;
+import com.maxkb4j.common.enums.SettingType;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -18,7 +19,7 @@ public class SystemCache {
     }
 
     public static String getPrivateKey() {
-        JSONObject json = CACHE.get(1);
+        JSONObject json = CACHE.get(SettingType.KEY.getType());
         if (json == null){
             return null;
         }
@@ -26,7 +27,7 @@ public class SystemCache {
     }
 
     public static String getPublicKey() {
-        JSONObject json = CACHE.get(1);
+        JSONObject json = CACHE.get(SettingType.KEY.getType());
         if (json == null){
             return null;
         }

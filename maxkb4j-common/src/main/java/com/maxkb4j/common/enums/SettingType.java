@@ -1,4 +1,4 @@
-package com.maxkb4j.system.enums;
+package com.maxkb4j.common.enums;
 
 import lombok.Getter;
 
