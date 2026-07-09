@@ -2,7 +2,6 @@ package com.maxkb4j.knowledge.service;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -10,18 +9,11 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.maxkb4j.common.constant.ResourceType;
 import com.maxkb4j.common.constant.RoleType;
 import com.maxkb4j.common.context.UserContext;
-import com.maxkb4j.common.domain.form.BaseField;
-import com.maxkb4j.common.domain.form.LocalFileUpload;
-import com.maxkb4j.common.domain.form.TextInputField;
 import com.maxkb4j.common.util.BeanUtil;
-import com.maxkb4j.common.util.DateTimeUtil;
 import com.maxkb4j.core.event.CreateWebDocsEvent;
-import com.maxkb4j.core.event.GenerateProblemEvent;
-import com.maxkb4j.knowledge.dto.GenerateProblemDTO;
 import com.maxkb4j.knowledge.dto.KnowledgeQuery;
 import com.maxkb4j.knowledge.dto.WebKnowledgeDTO;
 import com.maxkb4j.knowledge.entity.*;
-import com.maxkb4j.knowledge.handler.KnowledgeExportHandler;
 import com.maxkb4j.knowledge.mapper.KnowledgeMapper;
 import com.maxkb4j.knowledge.mapper.ParagraphMapper;
 import com.maxkb4j.knowledge.mapper.ProblemMapper;
@@ -34,30 +26,19 @@ import com.maxkb4j.system.entity.TargetResource;
 import com.maxkb4j.system.service.IResourceMappingService;
 import com.maxkb4j.user.service.IUserResourcePermissionService;
 import com.maxkb4j.user.service.IUserService;
-import com.maxkb4j.workflow.builder.NodeBuilder;
-import com.maxkb4j.workflow.logic.LogicFlow;
-import com.maxkb4j.workflow.model.KnowledgeParams;
-import com.maxkb4j.workflow.model.KnowledgeWorkflow;
-import com.maxkb4j.workflow.node.AbsNode;
-import com.maxkb4j.workflow.service.IWorkFlowActuator;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
-import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
-
-import static com.maxkb4j.workflow.enums.NodeType.DATA_SOURCE_WEB;
-
 
 /**
+ * 知识库核心服务
+ * 负责知识库的CRUD、权限映射、资源映射等
+ *
  * @author tarzan
  * @date 2024-12-25 16:00:15
  */
@@ -76,12 +57,8 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
     private final IDataStore compositeStore;
     private final KnowledgeActionService knowledgeActionService;
     private final KnowledgeVersionService knowledgeVersionService;
-    private final IWorkFlowActuator workFlowActuator;
-    private final KnowledgeExportHandler knowledgeExportHandler;
-    private final UserContext userContext;
-    private final NodeBuilder nodeBuilder;
     private final IResourceMappingService resourceMappingService;
-    private final TaskExecutor workflowTaskExecutor;
+    private final UserContext userContext;
 
 
     public IPage<KnowledgeVO> selectKnowledgePage(Page<KnowledgeVO> knowledgePage, KnowledgeQuery query) {
@@ -131,50 +108,6 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
     }
 
 
-    // 公共方法：根据 knowledgeId 获取文档列表
-    private List<DocumentEntity> getDocumentsByKnowledgeId(String knowledgeId) {
-        return documentService.list(Wrappers.<DocumentEntity>lambdaQuery().eq(DocumentEntity::getKnowledgeId, knowledgeId));
-    }
-
-    // 根据 ID 导出 ZIP
-    public void exportExcelZip(String id, HttpServletResponse response) throws IOException {
-        KnowledgeEntity dataset = this.getById(id);
-        if (dataset == null) {
-            throw new IllegalArgumentException("未找到知识库 ID: " + id);
-        }
-        List<DocumentEntity> docs = getDocumentsByKnowledgeId(id);
-        if (docs == null || docs.isEmpty()) {
-            throw new IllegalArgumentException("文档列表为空，无法导出");
-        }
-
-        knowledgeExportHandler.writeExcelToZipAndResponse(docs, dataset.getName(), response);
-    }
-
-    // 直接导出 Excel（不压缩）
-    public void exportExcel(String id, HttpServletResponse response) throws IOException {
-        KnowledgeEntity dataset = this.getById(id);
-        if (dataset == null) {
-            throw new IllegalArgumentException("未找到知识库 ID: " + id);
-        }
-        List<DocumentEntity> docs = getDocumentsByKnowledgeId(id);
-        knowledgeExportHandler.setExcelResponseHeader(response, dataset.getName());
-        knowledgeExportHandler.writeMultiSheetExcel(response.getOutputStream(), docs);
-    }
-
-    // 导出知识库ZIP包（包含knowledge.json和knowledge.xlsx）
-    public void exportKnowledge(String id, HttpServletResponse response) throws IOException {
-        KnowledgeEntity knowledge = this.getById(id);
-        if (knowledge == null) {
-            throw new IllegalArgumentException("未找到知识库 ID: " + id);
-        }
-        List<DocumentEntity> docs = getDocumentsByKnowledgeId(id);
-        knowledgeExportHandler.exportKnowledgeZip(docs, knowledge.getName(), knowledge.getDesc(),
-                knowledge.getType(), knowledge.getMeta(), knowledge.getFileSizeLimit(),
-                knowledge.getFileCountLimit(), response);
-    }
-
-
-
     public List<KnowledgeEntity> list(String userId, String folderId) {
         return this.lambdaQuery().eq(KnowledgeEntity::getUserId, userId).eq(KnowledgeEntity::getFolderId, folderId).list();
     }
@@ -206,12 +139,6 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
     }
 
 
-    public boolean embeddingKnowledge(String knowledgeId) {
-        List<DocumentEntity> documents = documentService.lambdaQuery().select(DocumentEntity::getId).eq(DocumentEntity::getKnowledgeId, knowledgeId).list();
-        documentService.embedByDocIds(knowledgeId, documents.stream().map(DocumentEntity::getId).toList(), List.of("0", "1", "2", "3", "n"));
-        return true;
-    }
-
     public List<KnowledgeListVO> listKnowledge() {
         String userId = userContext.getUserId();
         Set<String> role = userService.getRoleById(userId);
@@ -226,132 +153,6 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
             list = this.lambdaQuery().select(KnowledgeEntity::getId, KnowledgeEntity::getName, KnowledgeEntity::getDesc, KnowledgeEntity::getType, KnowledgeEntity::getFolderId).in(KnowledgeEntity::getId, targetIds).orderByDesc(KnowledgeEntity::getCreateTime).list();
         }
         return BeanUtil.copyList(list, KnowledgeListVO.class);
-    }
-
-    public Boolean generateRelated(String knowledgeId, GenerateProblemDTO dto) {
-        eventPublisher.publishEvent(new GenerateProblemEvent(this, knowledgeId, dto.getDocumentIdList(), dto.getModelId(),dto.getNumber(), dto.getPrompt(), dto.getStateList()));
-        return true;
-    }
-
-    public KnowledgeEntity updateDatasetWorkflow(String id, KnowledgeEntity dataset) {
-        dataset.setId(id);
-        return this.updateById(dataset) ? dataset : null;
-    }
-
-    public List<BaseField> datasourceFormList(String nodeType, JSONObject params) {
-        if (DATA_SOURCE_WEB.getKey().equals(nodeType)) {
-            BaseField field1 = new TextInputField("Web 根地址", "sourceUrl", "请输入 Web 根地址", true);
-            BaseField field2 = new TextInputField("选择器", "selector", "默认为 body，可输入 .classname/#idname/tagname", false);
-            return List.of(field1, field2);
-        } else {
-            BaseField localFileUpload = new LocalFileUpload(50, 100, List.of("TXT", "DOCX", "PDF", "HTML", "XLS", "XLSX", "CSV"));
-            if (params == null) {
-                return List.of(localFileUpload);
-            }
-            JSONObject node = params.getJSONObject("node");
-            if (node == null) {
-                return List.of(localFileUpload);
-            }
-            JSONObject properties = node.getJSONObject("properties");
-            if (properties == null) {
-                return List.of(localFileUpload);
-            }
-            JSONObject nodeData = properties.getJSONObject("nodeData");
-            if (nodeData == null) {
-                return List.of(localFileUpload);
-            }
-            Integer fileCountLimit = nodeData.getInteger("fileCountLimit");
-            Integer fileSizeLimit = nodeData.getInteger("fileSizeLimit");
-            List<String> fileTypeList = nodeData.getJSONArray("fileTypeList").toJavaList(String.class);
-            return List.of(new LocalFileUpload(fileCountLimit, fileSizeLimit, fileTypeList));
-        }
-    }
-
-
-    public JSONObject getKnowledgeWorkFlow(String id, boolean debug) {
-        JSONObject workFlow = null;
-        if (debug) {
-            KnowledgeEntity knowledge = baseMapper.selectById(id);
-            if (knowledge != null) {
-                workFlow = knowledge.getWorkFlow();
-            }
-        } else {
-            KnowledgeVersionEntity KnowledgeVersion = knowledgeVersionService.lambdaQuery().eq(KnowledgeVersionEntity::getKnowledgeId, id).orderByDesc(KnowledgeVersionEntity::getCreateTime).last("limit 1").one();
-            if (KnowledgeVersion != null) {
-                workFlow = KnowledgeVersion.getWorkFlow();
-            }
-        }
-        return workFlow;
-    }
-
-    public KnowledgeActionEntity uploadDocument(String id, KnowledgeParams params, boolean debug) {
-        JSONObject knowledgeWorkFlow = getKnowledgeWorkFlow(id, debug);
-        if (knowledgeWorkFlow == null) {
-            throw new IllegalArgumentException("未找到知识库 ID: " + id);
-        }
-        KnowledgeActionEntity knowledgeAction = new KnowledgeActionEntity();
-        knowledgeAction.setKnowledgeId(id);
-        knowledgeAction.setState("STARTED");
-        knowledgeAction.setDetails(new JSONObject());
-        knowledgeAction.setRunTime(0F);
-        JSONObject meta = new JSONObject();
-        String userId= userContext.getUserId();
-        meta.put("userId", userId);
-        meta.put("username", userService.getUsername(userId));
-        knowledgeAction.setMeta(meta);
-        knowledgeActionService.save(knowledgeAction);
-        LogicFlow logicFlow = LogicFlow.newInstance(knowledgeWorkFlow);
-        List<AbsNode> nodes = logicFlow.getNodes().stream().map(nodeBuilder::getNode).filter(Objects::nonNull).toList();
-        params.setActionId(knowledgeAction.getId());
-        params.setKnowledgeId(id);
-        params.setDebug(debug);
-        KnowledgeWorkflow workflow = new KnowledgeWorkflow(nodes, logicFlow.getEdges(), params);
-        CompletableFuture.runAsync(() -> workFlowActuator.execute(workflow),workflowTaskExecutor);
-        return knowledgeAction;
-    }
-
-    public KnowledgeActionEntity action(String actionId) {
-        return knowledgeActionService.getById(actionId);
-    }
-
-    public IPage<KnowledgeActionEntity> actionPage(String id, int current, int size, String username, String state) {
-        Page<KnowledgeActionEntity> actionPage = new Page<>(current, size);
-        LambdaQueryWrapper<KnowledgeActionEntity> query = Wrappers.lambdaQuery();
-        if (!StringUtils.isEmpty(username)) {
-            query.eq(KnowledgeActionEntity::getMeta, username);
-        }
-        if (!StringUtils.isEmpty(state)) {
-            query.eq(KnowledgeActionEntity::getState, state);
-        }
-        query.eq(KnowledgeActionEntity::getKnowledgeId, id);
-        query.orderByDesc(KnowledgeActionEntity::getCreateTime);
-        return knowledgeActionService.pageList(actionPage, username, state);
-    }
-
-    @Transactional
-    public Boolean publish(String id) {
-        KnowledgeEntity knowledge = new KnowledgeEntity();
-        knowledge.setId(id);
-        knowledge.setIsPublish(true);
-        this.updateById(knowledge);
-        knowledge = this.getById(id);
-        KnowledgeVersionEntity knowledgeVersion = new KnowledgeVersionEntity();
-        knowledgeVersion.setKnowledgeId(id);
-        knowledgeVersion.setName(DateTimeUtil.now());
-        knowledgeVersion.setWorkFlow(knowledge.getWorkFlow());
-        String userId = userContext.getUserId();
-        knowledgeVersion.setPublishUserId(userId);
-        knowledgeVersion.setPublishUserName(userService.getUsername(userId));
-        return knowledgeVersionService.save(knowledgeVersion);
-    }
-
-    public List<KnowledgeVersionEntity> knowledgeVersion(String id) {
-        return knowledgeVersionService.lambdaQuery().eq(KnowledgeVersionEntity::getKnowledgeId, id).list();
-    }
-
-    public Boolean knowledgeVersion(String versionId, KnowledgeVersionEntity knowledgeVersion) {
-        knowledgeVersion.setId(versionId);
-        return knowledgeVersionService.updateById(knowledgeVersion);
     }
 
     @Override

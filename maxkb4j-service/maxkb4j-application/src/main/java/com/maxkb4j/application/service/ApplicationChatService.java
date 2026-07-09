@@ -52,7 +52,7 @@ import java.util.concurrent.CompletionException;
 public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, ApplicationChatEntity> implements IApplicationChatService {
 
     private final ApplicationChatRecordService chatRecordService;
-    private final ApplicationService applicationService;
+    private final IApplicationService applicationService;
     private final ApplicationChatUserStatsService chatUserStatsService;
     private final ApplicationAccessTokenService accessTokenService;
     private final ApplicationVersionService applicationVersionService;

@@ -46,7 +46,8 @@ import java.util.Map;
 public class ChatApiController {
 
     private final IApplicationAccessTokenService accessTokenService;
-    private final IApplicationService applicationService;
+    private final IApplicationSpeechService applicationSpeechService;
+    private final IApplicationEmbedService applicationEmbedService;
     private final IApplicationChatService chatService;
     private final IApplicationChatRecordService chatRecordService;
     private final ChatApiService chatApiService;
@@ -178,7 +179,7 @@ public class ChatApiController {
     @PostMapping("/speech_to_text")
     public R<String> speechToText(MultipartFile file) throws IOException {
         String appId = userContext.getExtra("applicationId");
-        return R.data(applicationService.speechToText(appId, file, false));
+        return R.data(applicationSpeechService.speechToText(appId, file, false));
     }
 
 
@@ -189,7 +190,7 @@ public class ChatApiController {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.parseMediaType("audio/mp3"));
         String appId = userContext.getExtra("applicationId");
-        return new ResponseEntity<>(applicationService.textToSpeech(appId, data, false), headers, HttpStatus.OK);
+        return new ResponseEntity<>(applicationSpeechService.textToSpeech(appId, data, false), headers, HttpStatus.OK);
     }
 
 
@@ -202,7 +203,7 @@ public class ChatApiController {
     @GetMapping("/embed")
     @SaIgnore
     public ResponseEntity<String> embed(EmbedDTO dto) {
-        return ResponseEntity.ok().header("Content-Type", "text/javascript; charset=utf-8").body(applicationService.embed(dto));
+        return ResponseEntity.ok().header("Content-Type", "text/javascript; charset=utf-8").body(applicationEmbedService.embed(dto));
     }
 
     @Hidden

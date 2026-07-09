@@ -7,7 +7,9 @@ import com.maxkb4j.application.entity.ApplicationAccessTokenEntity;
 import com.maxkb4j.application.entity.ApplicationEntity;
 import com.maxkb4j.application.service.ApplicationAccessTokenService;
 import com.maxkb4j.application.service.ApplicationExportService;
+import com.maxkb4j.application.service.ApplicationPromptService;
 import com.maxkb4j.application.service.ApplicationService;
+import com.maxkb4j.application.service.ApplicationSpeechService;
 import com.maxkb4j.application.service.ApplicationStatsService;
 import com.maxkb4j.application.vo.ApplicationListVO;
 import com.maxkb4j.application.vo.ApplicationStatisticsVO;
@@ -50,6 +52,8 @@ public class ApplicationController {
     private final ApplicationExportService exportService;
     private final ApplicationStatsService applicationStatsService;
     private final ApplicationAccessTokenService accessTokenService;
+    private final ApplicationSpeechService applicationSpeechService;
+    private final ApplicationPromptService applicationPromptService;
 
     @SaCheckPerm(PermissionEnum.APPLICATION_READ)
     @GetMapping("/application")
@@ -121,7 +125,7 @@ public class ApplicationController {
         // 设置 HTTP 响应头
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.parseMediaType("audio/wav"));
-        return new ResponseEntity<>(applicationService.playDemoText(id, data), headers, HttpStatus.OK);
+        return new ResponseEntity<>(applicationSpeechService.playDemoText(data), headers, HttpStatus.OK);
     }
 
     @SaCheckPerm(PermissionEnum.APPLICATION_READ)
@@ -130,13 +134,13 @@ public class ApplicationController {
         // 设置 HTTP 响应头
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.parseMediaType("audio/mp3"));
-        return new ResponseEntity<>(applicationService.textToSpeech(id, data, true), headers, HttpStatus.OK);
+        return new ResponseEntity<>(applicationSpeechService.textToSpeech(id, data, true), headers, HttpStatus.OK);
     }
 
     @SaCheckPerm(PermissionEnum.APPLICATION_READ)
     @PostMapping("/application/{id}/speech_to_text")
     public R<String> speechToText(@PathVariable("id") String id, MultipartFile file) throws IOException {
-        return R.data(applicationService.speechToText(id, file, true));
+        return R.data(applicationSpeechService.speechToText(id, file,true));
     }
 
 
@@ -155,7 +159,7 @@ public class ApplicationController {
     @SaCheckPerm(PermissionEnum.APPLICATION_EDIT)
     @PostMapping(path = "application/{id}/model/{modelId}/prompt_generate", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<Map<String, String>> promptGenerate(@PathVariable String id, @PathVariable String modelId, @RequestBody PromptGenerateDTO dto) {
-        return applicationService.promptGenerate(id, modelId, dto);
+        return applicationPromptService.promptGenerate(applicationService.getById(id), modelId, dto);
     }
 
     @SaCheckPerm(PermissionEnum.APPLICATION_READ)

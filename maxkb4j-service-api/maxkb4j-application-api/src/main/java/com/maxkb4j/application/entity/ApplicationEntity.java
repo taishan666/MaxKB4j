@@ -69,14 +69,14 @@ public class ApplicationEntity extends BaseEntity {
 
     private String ttsType;
 
+    @TableField(typeHandler = JSONBTypeHandler.class)
+    private JSONObject ttsModelParamsSetting;
+
     private Boolean isPublish;
 
     private Date publishTime;
 
     private String problemOptimizationPrompt;
-
-    @TableField(typeHandler = JSONBTypeHandler.class)
-    private JSONObject ttsModelParamsSetting;
 
     /*单位天*/
     private Integer cleanTime;

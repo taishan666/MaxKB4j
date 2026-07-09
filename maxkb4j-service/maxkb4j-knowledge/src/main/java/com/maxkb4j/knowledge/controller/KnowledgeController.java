@@ -18,6 +18,9 @@ import com.maxkb4j.knowledge.entity.KnowledgeEntity;
 import com.maxkb4j.knowledge.entity.KnowledgeVersionEntity;
 import com.maxkb4j.knowledge.handler.KnowledgeImportHandler;
 import com.maxkb4j.knowledge.service.KnowledgeService;
+import com.maxkb4j.knowledge.service.KnowledgeExportService;
+import com.maxkb4j.knowledge.service.KnowledgeWorkflowService;
+import com.maxkb4j.knowledge.service.KnowledgePublishService;
 import com.maxkb4j.knowledge.retriever.ParagraphRetriever;
 import com.maxkb4j.knowledge.vo.KnowledgeListVO;
 import com.maxkb4j.knowledge.vo.KnowledgeVO;
@@ -41,6 +44,9 @@ import java.util.List;
 public class KnowledgeController {
 
     private final KnowledgeService knowledgeService;
+    private final KnowledgeExportService knowledgeExportService;
+    private final KnowledgeWorkflowService knowledgeWorkflowService;
+    private final KnowledgePublishService knowledgePublishService;
     private final ParagraphRetriever retrieveService;
     private final KnowledgeImportHandler knowledgeImportHandler;
 
@@ -75,7 +81,7 @@ public class KnowledgeController {
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_WORKFLOW_EDIT)
     @PutMapping("/knowledge/{id}/workflow")
     public R<KnowledgeEntity> updateDatasetWorkflow(@PathVariable String id,@RequestBody KnowledgeEntity knowledge) {
-        return R.data(knowledgeService.updateDatasetWorkflow(id,knowledge));
+        return R.data(knowledgeWorkflowService.updateDatasetWorkflow(id,knowledge));
     }
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_READ)
@@ -102,13 +108,13 @@ public class KnowledgeController {
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_VECTOR)
     @PutMapping("/knowledge/{id}/embedding")
     public R<Boolean> embeddingKnowledge(@PathVariable("id") String id) {
-        return R.status(knowledgeService.embeddingKnowledge(id));
+        return R.status(knowledgeWorkflowService.embeddingKnowledge(id));
     }
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_PROBLEM_RELATE)
     @PutMapping("/knowledge/{id}/generate_related")
     public R<Boolean> generateRelated(@PathVariable String id, @RequestBody GenerateProblemDTO dto) {
-        return R.status(knowledgeService.generateRelated(id, dto));
+        return R.status(knowledgeWorkflowService.generateRelated(id, dto));
     }
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DELETE)
@@ -133,19 +139,19 @@ public class KnowledgeController {
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_EXPORT)
     @GetMapping("/knowledge/{id}/export")
     public void export(@PathVariable("id") String id, HttpServletResponse response) throws IOException {
-        knowledgeService.exportExcel(id, response);
+        knowledgeExportService.exportExcel(id, response);
     }
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_EXPORT)
     @GetMapping("/knowledge/{id}/export_zip")
     public void exportZip(@PathVariable("id") String id, HttpServletResponse response) throws IOException {
-        knowledgeService.exportExcelZip(id, response);
+        knowledgeExportService.exportExcelZip(id, response);
     }
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_EXPORT)
     @GetMapping("/knowledge/{id}/export_knowledge")
     public void exportKnowledge(@PathVariable("id") String id, HttpServletResponse response) throws IOException {
-        knowledgeService.exportKnowledge(id, response);
+        knowledgeExportService.exportKnowledge(id, response);
     }
 
     @PostMapping("/knowledge/import_knowledge")
@@ -156,41 +162,41 @@ public class KnowledgeController {
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_CREATE)
     @PostMapping("/knowledge/{id}/datasource/local/{nodeType}/form_list")
     public R<List<BaseField>> datasourceFormList(@PathVariable("id") String id, @PathVariable("nodeType")String nodeType, @RequestBody JSONObject params) {
-      return R.data(knowledgeService.datasourceFormList(nodeType,params));
+      return R.data(knowledgeWorkflowService.datasourceFormList(nodeType,params));
     }
 
     @PostMapping("/knowledge/{id}/debug")
     public R<KnowledgeActionEntity> debug(@PathVariable("id") String id, @RequestBody KnowledgeParams params) {
-        return R.data(knowledgeService.uploadDocument(id,params, true));
+        return R.data(knowledgeWorkflowService.uploadDocument(id,params, true));
     }
 
     @PutMapping("/knowledge/{id}/publish")
     public R<Boolean> publish(@PathVariable("id") String id) {
-        return R.status(knowledgeService.publish(id));
+        return R.status(knowledgePublishService.publish(id));
     }
     @GetMapping("/knowledge/{id}/knowledge_version")
     public R<List<KnowledgeVersionEntity>> knowledgeVersion(@PathVariable("id") String id) {
-        return R.data(knowledgeService.knowledgeVersion(id));
+        return R.data(knowledgePublishService.knowledgeVersion(id));
     }
 
     @PutMapping("/knowledge/{id}/knowledge_version/{versionId}")
     public R<Boolean> knowledgeVersion(@PathVariable("id") String id,@PathVariable("versionId") String versionId,@RequestBody KnowledgeVersionEntity knowledgeVersionEntity) {
-        return R.status(knowledgeService.knowledgeVersion(versionId,knowledgeVersionEntity));
+        return R.status(knowledgePublishService.knowledgeVersion(versionId,knowledgeVersionEntity));
     }
 
     @GetMapping("/knowledge/{id}/action/{current}/{size}")
     public R<IPage<KnowledgeActionEntity>> actionPage(@PathVariable("id") String id,@PathVariable("current") int current, @PathVariable("size") int size, String username, String state) {
-        return R.data(knowledgeService.actionPage(id,current,size,username,state));
+        return R.data(knowledgePublishService.actionPage(id,current,size,username,state));
     }
 
     @PostMapping("/knowledge/{id}/upload_document")
     public R<KnowledgeActionEntity> uploadDocument(@PathVariable("id") String id,@RequestBody  KnowledgeParams params) {
-        return R.data(knowledgeService.uploadDocument(id,params, false));
+        return R.data(knowledgeWorkflowService.uploadDocument(id,params, false));
     }
 
     @GetMapping("/knowledge/{id}/action/{actionId}")
     public R<KnowledgeActionEntity> action(@PathVariable("id") String id, @PathVariable("actionId") String actionId) {
-        return R.data(knowledgeService.action(actionId));
+        return R.data(knowledgePublishService.action(actionId));
     }
 
 

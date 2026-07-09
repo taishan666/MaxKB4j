@@ -4,11 +4,12 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.maxkb4j.application.dto.*;
+import com.maxkb4j.application.dto.ApplicationDTO;
+import com.maxkb4j.application.dto.ApplicationQuery;
+import com.maxkb4j.application.dto.MaxKb4J;
 import com.maxkb4j.application.entity.*;
 import com.maxkb4j.application.enums.AppType;
 import com.maxkb4j.application.mapper.ApplicationChatMapper;
@@ -16,30 +17,19 @@ import com.maxkb4j.application.mapper.ApplicationMapper;
 import com.maxkb4j.application.util.ResourceUtil;
 import com.maxkb4j.application.vo.ApplicationListVO;
 import com.maxkb4j.application.vo.ApplicationVO;
-import com.maxkb4j.common.constant.ResourceType;
 import com.maxkb4j.common.constant.RoleType;
 import com.maxkb4j.common.context.UserContext;
 import com.maxkb4j.common.domain.dto.KnowledgeDTO;
-import com.maxkb4j.common.exception.ApiException;
-import com.maxkb4j.common.util.*;
+import com.maxkb4j.common.util.BeanUtil;
+import com.maxkb4j.common.util.DateTimeUtil;
+import com.maxkb4j.common.util.PageUtil;
 import com.maxkb4j.knowledge.entity.KnowledgeEntity;
 import com.maxkb4j.knowledge.service.IKnowledgeService;
-import com.maxkb4j.model.service.IModelProviderService;
-import com.maxkb4j.model.service.ISTTModel;
-import com.maxkb4j.model.service.ITTSModel;
 import com.maxkb4j.system.constant.AuthTargetType;
-import com.maxkb4j.system.entity.TargetResource;
-import com.maxkb4j.system.service.IResourceMappingService;
 import com.maxkb4j.tool.entity.ToolEntity;
 import com.maxkb4j.tool.service.IToolService;
 import com.maxkb4j.user.service.IUserResourcePermissionService;
 import com.maxkb4j.user.service.IUserService;
-import dev.langchain4j.data.message.AiMessage;
-import dev.langchain4j.data.message.ChatMessage;
-import dev.langchain4j.data.message.UserMessage;
-import dev.langchain4j.model.chat.StreamingChatModel;
-import dev.langchain4j.model.chat.response.ChatResponse;
-import dev.langchain4j.model.chat.response.StreamingChatResponseHandler;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.io.Resource;
@@ -47,17 +37,12 @@ import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
-import org.springframework.web.multipart.MultipartFile;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Sinks;
 
-import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.stream.Stream;
 
-import static com.maxkb4j.workflow.enums.NodeType.*;
+import static com.maxkb4j.workflow.enums.NodeType.BASE;
+import static com.maxkb4j.workflow.enums.NodeType.SEARCH_KNOWLEDGE;
 
 
 /**
@@ -68,7 +53,6 @@ import static com.maxkb4j.workflow.enums.NodeType.*;
 @RequiredArgsConstructor
 public class ApplicationService extends ServiceImpl<ApplicationMapper, ApplicationEntity> implements IApplicationService {
 
-    private final IModelProviderService modelFactory;
     private final UserContext userContext;
     private final IKnowledgeService knowledgeService;
     private final IUserService userService;
@@ -80,7 +64,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     private final ApplicationChatMapper applicationChatMapper;
     private final IUserResourcePermissionService userResourcePermissionService;
     private final IToolService toolService;
-    private final IResourceMappingService resourceMappingService;
+    private final ApplicationResourceMappingService applicationResourceMappingService;
 
     public IPage<ApplicationVO> selectAppPage(int page, int size, ApplicationQuery query) {
         Page<ApplicationEntity> appPage = new Page<>(page, size);
@@ -141,73 +125,9 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         }
         userResourcePermissionService.remove(AuthTargetType.APPLICATION, appId);
         // 批量删除资源映射
-        resourceMappingService.deleteBySourceId(ResourceType.APPLICATION, appId);
+        applicationResourceMappingService.deleteResourceMappings(appId);
         return this.removeById(appId);
     }
-
-    private void saveResourceMappings(ApplicationEntity app) {
-        List<String> modelIds = new ArrayList<>(Stream.of(app.getModelId(), app.getSttModelId(), app.getTtsModelId())
-                .filter(Objects::nonNull)
-                .toList());
-        List<String> knowledgeIds = app.getKnowledgeIds() == null ? new ArrayList<>() : new ArrayList<>(app.getKnowledgeIds());
-        List<String> toolIds = app.getToolIds() == null ? new ArrayList<>() : new ArrayList<>(app.getToolIds());
-        JSONObject workFlow = app.getWorkFlow();
-        if (workFlow != null && workFlow.containsKey("nodes")) {
-            JSONArray nodes = workFlow.getJSONArray("nodes");
-            if (nodes != null) {
-                for (int i = 0; i < nodes.size(); i++) {
-                    JSONObject node = nodes.getJSONObject(i);
-                    JSONObject properties = node.getJSONObject("properties");
-                    if (properties != null && properties.containsKey("nodeData")) {
-                        JSONObject nodeData = properties.getJSONObject("nodeData");
-                        if (nodeData != null && nodeData.containsKey("toolLibId")) {
-                            toolIds.add(nodeData.getString("toolLibId"));
-                        }
-                        if (nodeData != null && nodeData.containsKey("mcpToolId")) {
-                            toolIds.add(nodeData.getString("mcpToolId"));
-                        }
-                        if (nodeData != null && nodeData.containsKey("toolIds")) {
-                            JSONArray toolIdArray = nodeData.getJSONArray("toolIds");
-                            toolIds.addAll(new ArrayList<>(toolIdArray.toJavaList(String.class)));
-                        }
-                        if (nodeData != null && nodeData.containsKey("knowledgeIds")) {
-                            JSONArray knowledgeIdArray = nodeData.getJSONArray("knowledgeIds");
-                            knowledgeIds.addAll(new ArrayList<>(knowledgeIdArray.toJavaList(String.class)));
-                        }
-                        if (nodeData != null && nodeData.containsKey("modelId")) {
-                            modelIds.add(nodeData.getString("modelId"));
-                        }
-                        if (nodeData != null && nodeData.containsKey("ttsModelId")) {
-                            modelIds.add(nodeData.getString("ttsModelId"));
-                        }
-                        if (nodeData != null && nodeData.containsKey("sttModelId")) {
-                            modelIds.add(nodeData.getString("sttModelId"));
-                        }
-                        if (nodeData != null && nodeData.containsKey("rerankerModelId")) {
-                            modelIds.add(nodeData.getString("rerankerModelId"));
-                        }
-                    }
-                }
-            }
-        }
-        saveResourceMappings(app.getId(), knowledgeIds, toolIds, modelIds);
-    }
-
-    /**
-     * 批量保存资源映射关系
-     */
-    private void saveResourceMappings(String appId,
-                                      List<String> knowledgeIds,
-                                      List<String> toolIds,
-                                      List<String> modelIds) {
-        knowledgeIds = knowledgeIds == null ? List.of() : knowledgeIds.stream().filter(Objects::nonNull).toList();
-        List<TargetResource> targets = new ArrayList<>(knowledgeIds.stream().map(id -> new TargetResource(id, ResourceType.KNOWLEDGE)).toList());
-        toolIds = toolIds == null ? List.of() : toolIds.stream().filter(Objects::nonNull).toList();
-        targets.addAll(toolIds.stream().map(id -> new TargetResource(id, ResourceType.TOOL)).toList());
-        targets.addAll(modelIds.stream().filter(Objects::nonNull).map(id -> new TargetResource(id, ResourceType.MODEL)).toList());
-        resourceMappingService.relation(ResourceType.APPLICATION, appId, targets);
-    }
-
 
     @Transactional
     public ApplicationEntity createApp(ApplicationDTO application) {
@@ -223,7 +143,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
                 app.setDesc(application.getDesc());
                 app.setIcon(StringUtils.isNotBlank(application.getIcon()) ? application.getIcon() : app.getIcon());
                 saveMk(maxKb4j);
-                saveResourceMappings(app);
+                applicationResourceMappingService.saveResourceMappings(app);
                 return app;
             }
         }
@@ -238,7 +158,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         application.setKnowledgeIds(List.of());
         application.setApplicationIds(List.of());
         this.saveApp(application);
-        saveResourceMappings(application);
+        applicationResourceMappingService.saveResourceMappings(application);
         return application;
     }
 
@@ -266,6 +186,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         return this.getPublishedDetail(appId);
     }
 
+    @Override
     public ApplicationVO getAppDetail(String appId, boolean debug) {
         if (debug) {
             return this.getDetail(appId);
@@ -328,24 +249,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     }
 
 
-    public byte[] playDemoText(String appId, JSONObject modelParams) {
-        String ttsModelId = modelParams.getString("ttsModelId");
-        ITTSModel ttsModel = modelFactory.buildTTSModel(ttsModelId, modelParams);
-        return ttsModel.textToSpeech("你好，这里是语音播放测试");
-    }
 
-    public byte[] textToSpeech(String appId, JSONObject data, boolean debug) {
-        String text = data.getString("text");
-        ApplicationEntity app = this.getAppDetail(appId, debug);
-        if ("BROWSER".equals(app.getTtsType())) {
-            return new byte[0];
-        }
-        if (app.getTtsModelId() == null) {
-            return new byte[0];
-        }
-        ITTSModel ttsModel = modelFactory.buildTTSModel(app.getTtsModelId(), app.getTtsModelParamsSetting());
-        return ttsModel.textToSpeech(text);
-    }
 
     @SuppressWarnings("unchecked")
     @Transactional
@@ -364,7 +268,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
                         .map(JSONObject::new).ifPresent(baseNode -> updateAppFromBaseNode(app, baseNode));
             }
         }
-        saveResourceMappings(app);
+        applicationResourceMappingService.saveResourceMappings(app);
         return this.updateById(app);
     }
 
@@ -417,58 +321,6 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         return application;
     }
 
-    public String speechToText(String appId, MultipartFile file, boolean debug) throws IOException {
-        ApplicationEntity app = this.getAppDetail(appId, debug);
-        ISTTModel sttModel = modelFactory.buildSTTModel(app.getSttModelId(),new JSONObject());
-        String suffix = Objects.requireNonNull(file.getContentType()).split("/")[1];
-        return sttModel.speechToText(file.getBytes(), suffix);
-    }
-
-    public String embed(EmbedDTO dto) {
-        ClassLoader classLoader = getClass().getClassLoader();
-        InputStream inputStream = classLoader.getResourceAsStream("templates/embed.txt");
-        ApplicationAccessTokenEntity token = accessTokenService.getByAccessToken(dto.getToken());
-        if (token == null || !token.getIsActive()) {
-            throw new ApiException("application.token.invalid.or.disabled");
-        }
-        List<String> whiteList = token.getWhiteList();
-        if (token.getWhiteActive() && !whiteList.contains(WebUtil.getIP())) {
-            throw new ApiException("application.access.white.list.required");
-        }
-        String content = IoUtil.readToString(inputStream, StandardCharsets.UTF_8);
-        return render(content, getParamsMap(token, dto));
-    }
-
-    private Map<String, String> getParamsMap(ApplicationAccessTokenEntity token, EmbedDTO dto) {
-        String floatIcon = dto.getProtocol() + "://" + dto.getHost() + "/chat/MaxKB.gif";
-        List<String> whiteList = token.getWhiteList();
-        Map<String, String> map = new HashMap<>();
-        map.put("is_auth", String.valueOf(token.getIsActive()));
-        map.put("protocol", dto.getProtocol());
-        map.put("query", "");
-        map.put("host", dto.getHost());
-        map.put("token", dto.getToken());
-        map.put("white_list_str", whiteList == null ? "" : String.join(",", whiteList));
-        map.put("white_active", token.getWhiteActive().toString());
-        map.put("float_icon", floatIcon);
-        map.put("is_draggable", "false");
-        map.put("show_guide", "false");
-        map.put("x_type", "right");
-        map.put("y_type", "bottom");
-        map.put("x_value", "0");
-        map.put("y_value", "30");
-        map.put("max_kb_id", IdWorker.get32UUID());
-        map.put("header_font_color", "rgb(100, 106, 115");
-        return map;
-    }
-
-    private String render(String content, Map<String, String> variables) {
-        for (Map.Entry<String, String> entry : variables.entrySet()) {
-            content = content.replace("{{" + entry.getKey() + "}}", entry.getValue());
-        }
-        return content;
-    }
-
     public List<ApplicationListVO> listApps(String folderId) {
         String userId = userContext.getUserId();
         Set<String> role = userService.getRoleById(userId);
@@ -484,51 +336,6 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         }
         return list.stream().filter(e -> folderId.equals(e.getFolderId())).map(e -> BeanUtil.copy(e, ApplicationListVO.class)).toList();
     }
-
-    public Flux<Map<String, String>> promptGenerate(String appId, String modelId, PromptGenerateDTO dto) {
-        ApplicationEntity app = this.getById(appId);
-        StreamingChatModel chatModel = modelFactory.buildStreamingChatModel(modelId);
-        List<ChatMessage> messages = dto.getMessages().stream()
-                .map(message -> {
-                    if ("user".equals(message.getRole())) {
-                        return UserMessage.from(message.getContent());
-                    } else if ("ai".equals(message.getRole())) {
-                        return AiMessage.from(message.getContent());
-                    }
-                    return null;
-                })
-                .filter(Objects::nonNull)
-                .toList();
-        if (messages.isEmpty()) {
-            return Flux.error(new IllegalArgumentException("No user message found to generate prompt"));
-        }
-        String prompt = dto.getPrompt();
-        String detail = StringUtils.isBlank(app.getDesc()) ? app.getName() : app.getDesc();
-        prompt = prompt.replace("{application_name}", app.getName())
-                .replace("{detail}", detail)
-                .replace("{userInput}", dto.getMessages().get(messages.size() - 1).getContent());
-        List<ChatMessage> finalMessages = new ArrayList<>(messages);
-        finalMessages.set(finalMessages.size() - 1, UserMessage.from(prompt));
-        Sinks.Many<Map<String, String>> sink = Sinks.many().unicast().onBackpressureBuffer();
-        chatModel.chat(finalMessages, new StreamingChatResponseHandler() {
-            @Override
-            public void onPartialResponse(String partialResponse) {
-                sink.tryEmitNext(Map.of("content", partialResponse));
-            }
-
-            @Override
-            public void onCompleteResponse(ChatResponse chatResponse) {
-                sink.tryEmitComplete();
-            }
-
-            @Override
-            public void onError(Throwable throwable) {
-                sink.tryEmitError(throwable);
-            }
-        });
-        return sink.asFlux();
-    }
-
 
     @Transactional
     boolean saveMk(MaxKb4J maxKb4j) {
