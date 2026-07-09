@@ -12,6 +12,7 @@ import com.maxkb4j.core.langchain4j.AppChatMemory;
 import com.maxkb4j.core.langchain4j.AssistantServices;
 import com.maxkb4j.model.service.IModelProviderService;
 import com.maxkb4j.oss.service.IOssService;
+import com.maxkb4j.tool.service.IToolFormatterService;
 import com.maxkb4j.tool.service.IToolProviderService;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.NodeType;
@@ -48,6 +49,7 @@ public class LLMNodeHandler extends AbsNodeHandler {
 
     private final IModelProviderService modelFactory;
     private final IToolProviderService toolProviderService;
+    private final IToolFormatterService toolFormatterService;
     private final IOssService ossService;
 
     @Override
@@ -104,13 +106,10 @@ public class LLMNodeHandler extends AbsNodeHandler {
         if (CollectionUtils.isNotEmpty(historyMessages)) {
             builder.chatMemory(AppChatMemory.withMessages(historyMessages));
         }
-        if (CollectionUtils.isNotEmpty(toolIds) || CollectionUtils.isNotEmpty(applicationIds)) {
-            try {
-                builder.toolProvider(toolProviderService.getSkillsProvider(modelId, toolIds));
-                builder.tools(toolProviderService.getToolMap(toolIds, applicationIds));
-            } catch (ApiException e) {
-                workflow.output().emit(null); // Error will be propagated differently
-            }
+        try {
+            builder.tools(toolProviderService.getTools(modelId,toolIds, applicationIds));
+        } catch (ApiException e) {
+            workflow.output().emit(null); // Error will be propagated differently
         }
         StreamingChatModel chatModel = modelFactory.buildStreamingChatModel(modelId, modelParamsSetting);
         return builder.streamingChatModel(chatModel).build();
@@ -181,12 +180,12 @@ public class LLMNodeHandler extends AbsNodeHandler {
                     }
                 }).beforeToolExecution(toolExecute -> {
                     if (isResult && toolOutputEnable) {
-                        String toolMessage = toolProviderService.format(toolExecute);
+                        String toolMessage = toolFormatterService.format(toolExecute);
                         emitMessage(workflow, node, toolMessage, "");
                     }
                 }).onToolExecuted(toolExecute -> {
                     if (isResult && toolOutputEnable) {
-                        String toolMessage = toolProviderService.format(toolExecute);
+                        String toolMessage = toolFormatterService.format(toolExecute);
                         emitMessage(workflow, node, toolMessage, "");
                         answerTexts.add(toolMessage);
                     }

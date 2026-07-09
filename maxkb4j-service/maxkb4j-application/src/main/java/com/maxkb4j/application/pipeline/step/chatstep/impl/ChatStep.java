@@ -11,6 +11,7 @@ import com.maxkb4j.core.assistant.Assistant;
 import com.maxkb4j.core.langchain4j.AppChatMemory;
 import com.maxkb4j.core.langchain4j.AssistantServices;
 import com.maxkb4j.model.service.IModelProviderService;
+import com.maxkb4j.tool.service.IToolFormatterService;
 import com.maxkb4j.tool.service.IToolProviderService;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.model.chat.StreamingChatModel;
@@ -35,6 +36,7 @@ public class ChatStep extends AbsChatStep {
 
     private final IModelProviderService modelFactory;
     private final IToolProviderService toolProvider;
+    private final IToolFormatterService toolFormatterService;
     private final IApplicationLongTermMemoryService longTermMemoryService;
 
 
@@ -59,8 +61,10 @@ public class ChatStep extends AbsChatStep {
             aiServicesBuilder.systemMessageTransformer(systemMessage -> systemMessage+"\n" + memory);
         }
         try {
-            aiServicesBuilder.toolProvider(toolProvider.getSkillsProvider(toolIds));
-            aiServicesBuilder.tools(toolProvider.getTools(toolIds, applicationIds));
+            //ShellSkills skills =toolProvider.getShellSkills(toolIds);
+           // aiServicesBuilder.toolProvider(skills.toolProvider());
+          //  aiServicesBuilder.systemMessage("You have access to the following skills:\n" + skills.formatAvailableSkills() + "\nWhen the user's request relates to one of these skills, read its SKILL.md before proceeding.");
+            aiServicesBuilder.tools(toolProvider.getTools(modelId,toolIds, applicationIds));
         } catch (ApiException e) {
             manage.sink.tryEmitError(e);
             return "";
@@ -81,12 +85,12 @@ public class ChatStep extends AbsChatStep {
                 })
                 .beforeToolExecution(toolExecute -> {
                     if (Boolean.TRUE.equals(application.getToolOutputEnable())) {
-                        manage.sink.tryEmitNext(super.toChatMessageVO(chatId, chatRecordId, toolProvider.format(toolExecute), "", false));
+                        manage.sink.tryEmitNext(super.toChatMessageVO(chatId, chatRecordId, toolFormatterService.format(toolExecute), "", false));
                     }
                 })
                 .onToolExecuted(toolExecute -> {
                     if (Boolean.TRUE.equals(application.getToolOutputEnable())) {
-                        String toolText = toolProvider.format(toolExecute);
+                        String toolText = toolFormatterService.format(toolExecute);
                         manage.sink.tryEmitNext(super.toChatMessageVO(chatId, chatRecordId, toolText, "", false));
                         answerTexts.add(toolText);
                     }
