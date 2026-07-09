@@ -21,4 +21,7 @@ public class ChatCache {
     public static ChatInfo get(String chatId) {
         return CHAT_CACHE.getIfPresent(chatId);
     }
+    public static void remove(String chatId) {
+        CHAT_CACHE.invalidate(chatId);
+    }
 }
