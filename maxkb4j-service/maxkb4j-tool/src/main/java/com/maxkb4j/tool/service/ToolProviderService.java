@@ -61,6 +61,23 @@ public class ToolProviderService implements IToolProviderService {
     private final IApplicationChatService chatService;
     private final IModelProviderService modelFactory;
 
+    @Override
+    public List<AiServiceTool> getTools(List<String> toolIds, List<String> applicationIds) throws ApiException {
+        List<AiServiceTool> tools =new ArrayList<>();
+        if (CollectionUtils.isEmpty(toolIds) && CollectionUtils.isEmpty(applicationIds)) {
+            return tools;
+        }
+        // 1. 加载普通工具
+        if (!CollectionUtils.isEmpty(toolIds)) {
+            tools.addAll(buildToolsFromToolIds(toolIds));
+        }
+        // 2. 加载智能体应用工具
+        if (!CollectionUtils.isEmpty(applicationIds)) {
+            tools.addAll(buildToolsFromAppIds(applicationIds));
+        }
+        return tools;
+    }
+
     /**
      * 获取工具映射：支持普通工具 + 应用（MCP）工具
      */
@@ -165,6 +182,37 @@ public class ToolProviderService implements IToolProviderService {
     /**
      * 根据工具 ID 列表构建工具映射
      */
+    private List<AiServiceTool> buildToolsFromToolIds(List<String> toolIds) {
+        List<ToolEntity> tools = toolService.lambdaQuery()
+                .select(ToolEntity::getId, ToolEntity::getName, ToolEntity::getDesc, ToolEntity::getCode, ToolEntity::getCode, ToolEntity::getInitParams, ToolEntity::getInputFieldList, ToolEntity::getToolType)
+                .in(ToolEntity::getId, toolIds)
+                .eq(ToolEntity::getIsActive, true)
+                .in(ToolEntity::getToolType, ToolConstants.ToolType.MCP, ToolConstants.ToolType.CUSTOM, ToolConstants.ToolType.HTTP)
+                .list();
+        List<AiServiceTool> aiServiceTools = new ArrayList<>();
+        if (tools.isEmpty()) {
+            return aiServiceTools;
+        }
+        for (ToolEntity tool : tools) {
+            if (ToolConstants.ToolType.MCP.equals(tool.getToolType())) {
+                JSONObject mcpConfig = JSONObject.parseObject(tool.getCode());
+                aiServiceTools.addAll(McpToolUtil.getTools(mcpConfig));
+            } else if (ToolConstants.ToolType.HTTP.equals(tool.getToolType())) {
+                ToolSpecification spec = buildToolSpecification(tool);
+                ToolExecutor executor = new HttpRequestExecutor(tool.getCode());
+                aiServiceTools.add(AiServiceTool.builder().toolSpecification(spec).toolExecutor(executor).build());
+            } else if (ToolConstants.ToolType.CUSTOM.equals(tool.getToolType())) {
+                ToolSpecification spec = buildToolSpecification(tool);
+                ToolExecutor executor = new GroovyScriptExecutor(tool.getCode(), tool.getInitParams());
+                aiServiceTools.add(AiServiceTool.builder().toolSpecification(spec).toolExecutor(executor).build());
+            }
+        }
+        return aiServiceTools;
+    }
+
+    /**
+     * 根据工具 ID 列表构建工具映射
+     */
     private Map<ToolSpecification, ToolExecutor> buildToolMapFromToolIds(List<String> toolIds) {
         List<ToolEntity> tools = toolService.lambdaQuery()
                 .select(ToolEntity::getId, ToolEntity::getName, ToolEntity::getDesc, ToolEntity::getCode, ToolEntity::getCode, ToolEntity::getInitParams, ToolEntity::getInputFieldList, ToolEntity::getToolType)
@@ -193,6 +241,22 @@ public class ToolProviderService implements IToolProviderService {
         return toolMap;
     }
 
+    private List<AiServiceTool> buildToolsFromAppIds(List<String> applicationIds) throws ApiException {
+        LambdaQueryWrapper<ApplicationEntity> wrapper = Wrappers.lambdaQuery(ApplicationEntity.class)
+                .select(ApplicationEntity::getId, ApplicationEntity::getName, ApplicationEntity::getDesc)
+                .in(ApplicationEntity::getId, applicationIds);
+        List<ApplicationEntity> applications = applicationService.list(wrapper);
+        List<AiServiceTool> tools = new ArrayList<>();
+        if (applications.isEmpty()) {
+            return tools;
+        }
+        for (ApplicationEntity app : applications) {
+            ToolSpecification spec = buildToolSpecification(app);
+            ToolExecutor executor = new AgentExecutor(app.getId(), chatService);
+            tools.add(AiServiceTool.builder().toolSpecification(spec).toolExecutor(executor).build());
+        }
+        return tools;
+    }
 
     /**
      * 构建 MCP 服务器配置（用于应用工具）

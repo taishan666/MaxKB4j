@@ -10,6 +10,7 @@ import dev.langchain4j.mcp.client.transport.McpTransport;
 import dev.langchain4j.mcp.client.transport.http.HttpMcpTransport;
 import dev.langchain4j.mcp.client.transport.http.StreamableHttpMcpTransport;
 import dev.langchain4j.model.chat.request.json.*;
+import dev.langchain4j.service.tool.AiServiceTool;
 import dev.langchain4j.service.tool.ToolExecutor;
 
 import java.util.*;
@@ -27,6 +28,19 @@ public class McpToolUtil {
             ));
         }
         return Map.of();
+    }
+
+    public static List<AiServiceTool> getTools(JSONObject mcpServers) {
+        McpClient mcpClient = getMcpClient(mcpServers);
+        if (Objects.nonNull(mcpClient)){
+            return mcpClient.listTools().stream()
+                    .map(toolSpecification -> AiServiceTool.builder()
+                             .toolSpecification(toolSpecification)
+                             .toolExecutor(new McpToolExecutor(mcpClient))
+                             .build())
+                    .toList();
+        }
+        return List.of();
     }
 
     public static McpClient getMcpClient(JSONObject mcpServers) {

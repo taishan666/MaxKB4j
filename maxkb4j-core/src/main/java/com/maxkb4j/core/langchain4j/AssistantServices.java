@@ -20,7 +20,7 @@ public class AssistantServices {
     );
 
     public static <T> AiServices<T> builder(Class<T> aiService) {
-        return AiServices.builder(aiService).registerListeners(LISTENERS);
+        return AiServices.builder(aiService).storeRetrievedContentInChatMemory(false).registerListeners(LISTENERS);
     }
 
 }

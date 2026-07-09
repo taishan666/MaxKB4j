@@ -6,7 +6,7 @@ import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.api.R;
 import com.maxkb4j.common.enums.PermissionEnum;
 import com.maxkb4j.model.entity.ModelEntity;
-import com.maxkb4j.model.service.ModelService;
+import com.maxkb4j.model.service.IModelService;
 import com.maxkb4j.model.vo.ModelVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -23,7 +23,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class ModelController{
 
-	private final ModelService modelService;
+	private final IModelService modelService;
 
 	@SaCheckPerm(PermissionEnum.MODEL_CREATE)
 	@PostMapping("/model")

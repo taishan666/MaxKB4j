@@ -8,7 +8,7 @@ import com.maxkb4j.model.enums.ModelProvider;
 import com.maxkb4j.model.exception.ModelNotFoundException;
 import com.maxkb4j.model.provider.AbsModelProvider;
 import com.maxkb4j.model.service.IModelProviderService;
-import com.maxkb4j.model.service.ModelService;
+import com.maxkb4j.model.service.IModelService;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.model.embedding.EmbeddingModel;
@@ -28,7 +28,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class ModelProviderServiceImpl implements IModelProviderService {
 
-    private final ModelService modelService;
+    private final IModelService modelService;
 
     @Override
     public ChatModel buildChatModel(String modelId, JSONObject modelParams) {

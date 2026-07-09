@@ -19,7 +19,6 @@ import dev.langchain4j.service.AiServices;
 import dev.langchain4j.service.TokenStream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -45,22 +44,20 @@ public class ChatStep extends AbsChatStep {
         String modelId = application.getModelId();
         JSONObject params = application.getModelParamsSetting();
         StreamingChatModel chatModel = modelFactory.buildStreamingChatModel(modelId, params);
-        String systemText = application.getModelSetting().getSystem();
         List<String> toolIds = Optional.ofNullable(application.getToolIds()).orElse(List.of());
         List<String> applicationIds = Optional.ofNullable(application.getApplicationIds()).orElse(List.of());
         AiServices<Assistant> aiServicesBuilder = AssistantServices.builder(Assistant.class);
         String chatUserId = manage.chatParams.getChatUserId();
-        String memory = longTermMemoryService.getMemory(appId, chatUserId);
-        if (StringUtils.isNotBlank(systemText)) {
-            aiServicesBuilder.systemMessage(systemText+ "\n" + memory);
-        }else {
-            if (StringUtils.isNotBlank(memory)) {
-                aiServicesBuilder.systemMessage(memory);
-            }
+        String systemText = application.getModelSetting().getSystem();
+        aiServicesBuilder.systemMessage(systemText);
+        Boolean longTermEnable = application.getLongTermEnable();
+        if (Boolean.TRUE.equals(longTermEnable)){
+            String memory = longTermMemoryService.getMemory(appId, chatUserId);
+            aiServicesBuilder.systemMessageTransformer(systemMessage -> systemMessage+"\n" + memory);
         }
         try {
             aiServicesBuilder.toolProvider(toolProvider.getSkillsProvider(modelId, toolIds));
-            aiServicesBuilder.tools(toolProvider.getToolMap(toolIds, applicationIds));
+            aiServicesBuilder.tools(toolProvider.getTools(toolIds, applicationIds));
         } catch (ApiException e) {
             manage.sink.tryEmitError(e);
             return "";
@@ -69,7 +66,6 @@ public class ChatStep extends AbsChatStep {
         Boolean reasoningEnable = application.getModelSetting().getReasoningContentEnable();
         TokenStream tokenStream = assistant.chatStream(userPrompt);
         CompletableFuture<ChatResponse> future = new CompletableFuture<>();
-        // 完成后释放线程
         // 完成后释放线程
         tokenStream.onPartialThinking(thinking -> {
                     if (Boolean.TRUE.equals(reasoningEnable)) {
