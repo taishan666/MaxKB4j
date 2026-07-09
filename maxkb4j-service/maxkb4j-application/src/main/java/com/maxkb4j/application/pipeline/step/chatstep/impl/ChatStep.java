@@ -1,6 +1,7 @@
 package com.maxkb4j.application.pipeline.step.chatstep.impl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.maxkb4j.application.pipeline.PipelineManage;
 import com.maxkb4j.application.pipeline.step.chatstep.AbsChatStep;
 import com.maxkb4j.application.service.IApplicationLongTermMemoryService;
@@ -49,14 +50,16 @@ public class ChatStep extends AbsChatStep {
         AiServices<Assistant> aiServicesBuilder = AssistantServices.builder(Assistant.class);
         String chatUserId = manage.chatParams.getChatUserId();
         String systemText = application.getModelSetting().getSystem();
-        aiServicesBuilder.systemMessage(systemText);
+        if (StringUtils.isNotBlank(systemText)){
+            aiServicesBuilder.systemMessage(systemText);
+        }
         Boolean longTermEnable = application.getLongTermEnable();
         if (Boolean.TRUE.equals(longTermEnable)){
             String memory = longTermMemoryService.getMemory(appId, chatUserId);
             aiServicesBuilder.systemMessageTransformer(systemMessage -> systemMessage+"\n" + memory);
         }
         try {
-            aiServicesBuilder.toolProvider(toolProvider.getSkillsProvider(modelId, toolIds));
+            aiServicesBuilder.toolProvider(toolProvider.getSkillsProvider(toolIds));
             aiServicesBuilder.tools(toolProvider.getTools(toolIds, applicationIds));
         } catch (ApiException e) {
             manage.sink.tryEmitError(e);

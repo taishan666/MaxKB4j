@@ -14,5 +14,6 @@ public interface IToolProviderService {
     ToolProvider getSkillsProvider(String modelId, List<String> toolIds);
     String format(BeforeToolExecution toolExecute);
     String format(ToolExecution toolExecute);
+    ToolProvider getSkillsProvider(List<String> toolIds);
 
 }

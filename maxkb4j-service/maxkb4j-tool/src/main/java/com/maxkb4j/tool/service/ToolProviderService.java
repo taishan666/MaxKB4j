@@ -112,6 +112,31 @@ public class ToolProviderService implements IToolProviderService {
     }
 
 
+
+    @Override
+    public ToolProvider getSkillsProvider(List<String> toolIds) throws ApiException {
+        List<ToolEntity> toolSkills = toolService.lambdaQuery()
+                .select(ToolEntity::getId, ToolEntity::getCode, ToolEntity::getInitParams)
+                .in(ToolEntity::getId, toolIds)
+                .eq(ToolEntity::getIsActive, true)
+                .eq(ToolEntity::getToolType, ToolConstants.ToolType.SKILL)
+                .list();
+        List<FileSystemSkill> fileSystemSkills = new ArrayList<>();
+        for (ToolEntity skill : toolSkills) {
+            FileSystemSkill fileSystemSkill = this.getFileSystemSkill(skill.getId(), skill.getCode());
+            fileSystemSkills.add(fileSystemSkill);
+        }
+        return ShellSkills.from(fileSystemSkills).toolProvider();
+    }
+
+    public FileSystemSkill getFileSystemSkill(String toolId, String code) throws ApiException {
+        Path skillFolder = SkillsToolUtil.getSkillFolder(toolId);
+        if (!Files.exists(skillFolder)) {
+            unzipSkill(code, toolId);
+        }
+        return FileSystemSkillLoader.loadSkill(skillFolder);
+    }
+
     @Override
     public ToolProvider getSkillsProvider(String modelId, List<String> toolIds) throws ApiException {
         Map<ToolSpecification, ToolExecutor> toolMap = getSkillsToolMap(modelId, toolIds);
