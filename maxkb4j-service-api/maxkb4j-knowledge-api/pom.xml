@@ -14,10 +14,6 @@
     <packaging>jar</packaging>
 
     <dependencies>
-        <dependency>
-            <groupId>dev.langchain4j</groupId>
-            <artifactId>langchain4j-core</artifactId>
-        </dependency>
         <!-- MongoDB for EmbeddingEntity -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

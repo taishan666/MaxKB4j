@@ -58,6 +58,7 @@
         <docling.version>0.5.2</docling.version>
         <ivy.version>2.5.2</ivy.version>
         <ofdrw.version>2.2.3</ofdrw.version>
+        <jaudiotagger.version>2.0.3</jaudiotagger.version>
     </properties>
     <modules>
         <module>maxkb4j-common</module>
@@ -533,6 +534,11 @@
                 <groupId>org.ofdrw</groupId>
                 <artifactId>ofdrw-full</artifactId>
                 <version>${ofdrw.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org</groupId>
+                <artifactId>jaudiotagger</artifactId>
+                <version>${jaudiotagger.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

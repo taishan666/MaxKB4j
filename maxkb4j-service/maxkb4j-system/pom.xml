@@ -49,6 +49,11 @@
             <artifactId>maxkb4j-model-api</artifactId>
             <version>${revision}</version>
         </dependency>
+        <dependency>
+            <groupId>com.tarzan</groupId>
+            <artifactId>maxkb4j-oss-api</artifactId>
+            <version>${revision}</version>
+        </dependency>
         <!--验证码-->
         <dependency>
             <groupId>com.github.whvcse</groupId>
@@ -64,11 +69,6 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-thymeleaf</artifactId>
         </dependency>
-        <dependency>
-            <groupId>com.tarzan</groupId>
-            <artifactId>maxkb4j-oss-api</artifactId>
-            <version>1.0.0</version>
-            <scope>compile</scope>
-        </dependency>
+
     </dependencies>
 </project>
