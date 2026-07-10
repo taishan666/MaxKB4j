@@ -3,6 +3,7 @@ package com.maxkb4j.tool.service;
 import com.maxkb4j.application.entity.ApplicationEntity;
 import com.maxkb4j.common.mp.entity.ToolInputField;
 import com.maxkb4j.tool.entity.ToolEntity;
+import com.maxkb4j.tool.util.ToolNaming;
 import dev.langchain4j.agent.tool.ToolSpecification;
 import dev.langchain4j.model.chat.request.json.JsonArraySchema;
 import dev.langchain4j.model.chat.request.json.JsonObjectSchema;
@@ -48,7 +49,7 @@ public class ToolSpecificationBuilder {
             parametersBuilder.required(required);
         }
         return ToolSpecification.builder()
-                .name("tool_" + tool.getId())
+                .name(ToolNaming.buildToolName(tool.getId()))
                 .description("**" + tool.getName() + "**" + ":" + tool.getDesc())
                 .parameters(parametersBuilder.build())
                 .build();
@@ -63,7 +64,7 @@ public class ToolSpecificationBuilder {
                 .required("message")
                 .build();
         return ToolSpecification.builder()
-                .name("agent_" + app.getId())
+                .name(ToolNaming.buildAgentName(app.getId()))
                 .description("**" + app.getName() + "**" + ":" + app.getDesc())
                 .parameters(parameters)
                 .build();

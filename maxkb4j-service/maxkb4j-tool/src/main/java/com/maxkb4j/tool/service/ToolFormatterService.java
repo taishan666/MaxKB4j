@@ -4,6 +4,7 @@ import com.maxkb4j.application.entity.ApplicationEntity;
 import com.maxkb4j.application.service.IApplicationService;
 import com.maxkb4j.core.util.MessageUtils;
 import com.maxkb4j.tool.entity.ToolEntity;
+import com.maxkb4j.tool.util.ToolNaming;
 import dev.langchain4j.agent.tool.ToolExecutionRequest;
 import dev.langchain4j.service.tool.BeforeToolExecution;
 import dev.langchain4j.service.tool.ToolExecution;
@@ -31,26 +32,50 @@ public class ToolFormatterService implements IToolFormatterService {
         return format(toolExecute.request(), 100, "");
     }
 
-    public String format(ToolExecutionRequest request, Integer status, String resultText) {
-        String name = request.name();
-        String[] split = name.split("_");
-        if (split.length < 2) {
-            return MessageUtils.buildToolCallRender(request.id(), status, "", name, "", request.arguments(), resultText);
+    private String format(ToolExecutionRequest request, int status, String resultText) {
+        ToolNaming.Ref ref = ToolNaming.parse(request.name());
+        RenderMeta meta = ref == null ? null : resolveMeta(ref.type(), ref.id());
+        if (meta == null) {
+            meta = RenderMeta.fallback(request.name());
         }
-        String type = split[0];
-        String id = split[1];
-        if ("tool".equals(type)) {
-            ToolEntity tool = toolService.lambdaQuery().select(ToolEntity::getIcon, ToolEntity::getToolType, ToolEntity::getName).eq(ToolEntity::getId, id).one();
-            if (tool == null) {
-                return MessageUtils.buildToolCallRender(request.id(), status, "", name, "", request.arguments(), resultText);
-            }
-            return MessageUtils.buildToolCallRender(request.id(), status, tool.getIcon(), tool.getName(), tool.getToolType(), request.arguments(), resultText);
-        } else {
-            ApplicationEntity app = applicationService.lambdaQuery().select(ApplicationEntity::getIcon, ApplicationEntity::getName).eq(ApplicationEntity::getId, id).one();
-            if (app == null) {
-                return MessageUtils.buildToolCallRender(request.id(), status, "", name, "", request.arguments(), resultText);
-            }
-            return MessageUtils.buildToolCallRender(request.id(), status, app.getIcon(), app.getName(), "", request.arguments(), resultText);
+        return MessageUtils.buildToolCallRender(
+                request.id(), status, meta.icon(), meta.name(), meta.toolType(),
+                request.arguments(), resultText);
+    }
+
+    /**
+     * 按工具名称类型解析展示元数据；未命中返回 null 由调用方走 fallback
+     */
+    private RenderMeta resolveMeta(String type, String id) {
+        return switch (type) {
+            case ToolNaming.TOOL_TYPE -> resolveToolMeta(id);
+            case ToolNaming.AGENT_TYPE -> resolveAgentMeta(id);
+            default -> null;
+        };
+    }
+
+    private RenderMeta resolveToolMeta(String id) {
+        ToolEntity tool = toolService.lambdaQuery()
+                .select(ToolEntity::getIcon, ToolEntity::getToolType, ToolEntity::getName)
+                .eq(ToolEntity::getId, id)
+                .one();
+        return tool == null ? null : new RenderMeta(tool.getIcon(), tool.getName(), tool.getToolType());
+    }
+
+    private RenderMeta resolveAgentMeta(String id) {
+        ApplicationEntity app = applicationService.lambdaQuery()
+                .select(ApplicationEntity::getIcon, ApplicationEntity::getName)
+                .eq(ApplicationEntity::getId, id)
+                .one();
+        return app == null ? null : new RenderMeta(app.getIcon(), app.getName(), "");
+    }
+
+    /**
+     * 工具调用渲染所需的展示元数据
+     */
+    private record RenderMeta(String icon, String name, String toolType) {
+        static RenderMeta fallback(String name) {
+            return new RenderMeta("", name, "");
         }
     }
 }

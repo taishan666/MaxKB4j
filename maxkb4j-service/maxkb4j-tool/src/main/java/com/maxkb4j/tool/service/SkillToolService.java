@@ -6,6 +6,7 @@ import com.maxkb4j.oss.service.IOssService;
 import com.maxkb4j.tool.consts.ToolConstants;
 import com.maxkb4j.tool.entity.ToolEntity;
 import com.maxkb4j.tool.util.SkillsToolUtil;
+import com.maxkb4j.tool.util.ToolNaming;
 import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.service.tool.AiServiceTool;
 import dev.langchain4j.service.tool.ToolProviderRequest;
@@ -71,7 +72,7 @@ public class SkillToolService {
     public List<AiServiceTool> getSkillsTools(String userMessage, ToolEntity tool) throws ApiException {
         FileSystemSkill fileSystemSkill = getFileSystemSkill(tool.getId(), tool.getCode());
         RunShellCommandToolConfig config = RunShellCommandToolConfig.builder()
-                .name("tool_" + tool.getId())
+                .name(ToolNaming.buildToolName(tool.getId()))
                 .build();
         ShellSkills skills = ShellSkills.builder()
                 .skills(fileSystemSkill)
