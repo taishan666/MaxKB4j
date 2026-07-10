@@ -57,7 +57,7 @@ public class ApplicationChatRecordService extends ServiceImpl<ApplicationChatRec
         }
         if (Objects.isNull(chatRecord)) {
             ApplicationChatRecordEntity  chatRecordEntity= this.getById(chatRecordId);
-            chatRecord=BeanUtil.copy(chatRecordEntity, ChatRecordDTO.class);
+            chatRecord=chatRecordEntity==null?null:BeanUtil.copy(chatRecordEntity, ChatRecordDTO.class);
         }
         return chatRecord;
     }

@@ -1,56 +1,41 @@
 package com.maxkb4j.tool.service;
 
 import com.alibaba.fastjson.JSONObject;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
-import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.maxkb4j.application.entity.ApplicationEntity;
-import com.maxkb4j.application.executor.AgentExecutor;
-import com.maxkb4j.application.service.IApplicationChatService;
-import com.maxkb4j.application.service.IApplicationService;
 import com.maxkb4j.common.exception.ApiException;
-import com.maxkb4j.common.mp.entity.ToolInputField;
-import com.maxkb4j.core.assistant.Assistant;
 import com.maxkb4j.model.service.IModelProviderService;
-import com.maxkb4j.oss.service.IOssService;
 import com.maxkb4j.tool.consts.ToolConstants;
 import com.maxkb4j.tool.entity.ToolEntity;
 import com.maxkb4j.tool.executor.GroovyScriptExecutor;
 import com.maxkb4j.tool.executor.HttpRequestExecutor;
 import com.maxkb4j.tool.util.McpToolUtil;
-import com.maxkb4j.tool.util.SkillsToolUtil;
 import dev.langchain4j.agent.tool.ToolSpecification;
-import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.mcp.McpToolProvider;
 import dev.langchain4j.model.chat.ChatModel;
-import dev.langchain4j.model.chat.request.json.JsonArraySchema;
-import dev.langchain4j.model.chat.request.json.JsonObjectSchema;
-import dev.langchain4j.service.AiServices;
-import dev.langchain4j.service.Result;
-import dev.langchain4j.service.tool.*;
-import dev.langchain4j.skills.FileSystemSkill;
-import dev.langchain4j.skills.FileSystemSkillLoader;
-import dev.langchain4j.skills.shell.RunShellCommandToolConfig;
+import dev.langchain4j.service.tool.AiServiceTool;
+import dev.langchain4j.service.tool.ToolExecutor;
+import dev.langchain4j.service.tool.ToolProvider;
+import dev.langchain4j.service.tool.ToolProviderResult;
 import dev.langchain4j.skills.shell.ShellSkills;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
-
 /**
- * 工具服务工具类，用于创建和管理工具规范和执行器
+ * 工具提供者服务，用于创建和管理工具规范和执行器。
+ * <p>
+ * 作为编排器，将不同工具类型（MCP/HTTP/SKILL/CUSTOM）的分发委托给专门的子服务：
+ * <ul>
+ *   <li>{@link SkillToolService} — Skill 工具的文件管理与执行</li>
+ *   <li>{@link ApplicationToolService} — 智能体应用工具构建</li>
+ *   <li>{@link ToolSpecificationBuilder} — 工具规范（参数 schema）构建</li>
+ * </ul>
  */
 @RequiredArgsConstructor
 @Service
@@ -58,10 +43,12 @@ import java.util.stream.Collectors;
 public class ToolProviderService implements IToolProviderService {
 
     private final IToolService toolService;
-    private final IApplicationService applicationService;
-    private final IOssService ossService;
-    private final IApplicationChatService chatService;
     private final IModelProviderService modelFactory;
+    private final SkillToolService skillToolService;
+    private final ApplicationToolService applicationToolService;
+    private final ToolSpecificationBuilder toolSpecificationBuilder;
+
+    // ===== 接口方法实现 =====
 
     @Override
     public List<AiServiceTool> getTools(String chatModelId, List<String> toolIds, List<String> applicationIds) throws ApiException {
@@ -69,13 +56,48 @@ public class ToolProviderService implements IToolProviderService {
         if (CollectionUtils.isEmpty(toolIds) && CollectionUtils.isEmpty(applicationIds)) {
             return tools;
         }
-        // 1. 加载普通工具
         if (!CollectionUtils.isEmpty(toolIds)) {
-            tools.addAll(buildToolsFromToolIds(chatModelId, toolIds));
+            ChatModel chatModel = StringUtils.isNotBlank(chatModelId) ? modelFactory.buildChatModel(chatModelId) : null;
+            tools.addAll(buildAiServiceTools(toolIds, tool -> {
+                if (chatModel == null) {
+                    return List.of();
+                }
+                AiServiceTool skillTool = skillToolService.getSkillsTool(chatModel, tool);
+                return skillTool != null ? List.of(skillTool) : List.of();
+            }));
         }
-        // 2. 加载智能体应用工具
         if (!CollectionUtils.isEmpty(applicationIds)) {
-            tools.addAll(buildToolsFromAppIds(applicationIds));
+            tools.addAll(applicationToolService.buildTools(applicationIds));
+        }
+        return tools;
+    }
+
+    @Override
+    public List<AiServiceTool> getTools(Object chatMemoryId, String userMessage, List<String> toolIds, List<String> applicationIds) throws ApiException {
+        List<AiServiceTool> tools = new ArrayList<>();
+        if (CollectionUtils.isEmpty(toolIds) && CollectionUtils.isEmpty(applicationIds)) {
+            return tools;
+        }
+        if (!CollectionUtils.isEmpty(toolIds)) {
+            tools.addAll(buildAiServiceTools(toolIds, tool -> skillToolService.getSkillsTools(chatMemoryId, userMessage, tool)));
+        }
+        if (!CollectionUtils.isEmpty(applicationIds)) {
+            tools.addAll(applicationToolService.buildTools(applicationIds));
+        }
+        return tools;
+    }
+
+    @Override
+    public List<AiServiceTool> getTools(List<String> toolIds, List<String> applicationIds) throws ApiException {
+        List<AiServiceTool> tools = new ArrayList<>();
+        if (CollectionUtils.isEmpty(toolIds) && CollectionUtils.isEmpty(applicationIds)) {
+            return tools;
+        }
+        if (!CollectionUtils.isEmpty(toolIds)) {
+            tools.addAll(buildAiServiceTools(toolIds, null));
+        }
+        if (!CollectionUtils.isEmpty(applicationIds)) {
+            tools.addAll(applicationToolService.buildTools(applicationIds));
         }
         return tools;
     }
@@ -86,356 +108,139 @@ public class ToolProviderService implements IToolProviderService {
         if (CollectionUtils.isEmpty(toolIds) && CollectionUtils.isEmpty(applicationIds)) {
             return toolProviders;
         }
-        // 1. 加载普通工具
         if (!CollectionUtils.isEmpty(toolIds)) {
-            toolProviders.addAll(buildToolsFromToolIds(toolIds));
+            toolProviders.addAll(buildToolProviders(toolIds));
         }
-        // 2. 加载智能体应用工具
         if (!CollectionUtils.isEmpty(applicationIds)) {
-         //   tools.addAll(buildToolsFromAppIds(applicationIds));
+            ToolProvider toolProvider =applicationToolService.buildToolProvider(applicationIds);
+            if (toolProvider != null){
+                toolProviders.add(toolProvider);
+            }
         }
         return toolProviders;
     }
 
-    @Override
-    public List<ToolProvider> getMcpToolProviders(List<String> toolIds) throws ApiException {
-        List<ToolProvider> toolProviders = new ArrayList<>();
-        List<ToolEntity> tools = toolService.lambdaQuery()
-                .select(ToolEntity::getId, ToolEntity::getName, ToolEntity::getDesc, ToolEntity::getCode, ToolEntity::getCode, ToolEntity::getInitParams, ToolEntity::getInputFieldList, ToolEntity::getToolType)
-                .in(ToolEntity::getId, toolIds)
-                .eq(ToolEntity::getIsActive, true)
-                .eq(ToolEntity::getToolType, ToolConstants.ToolType.MCP)
-                .list();
-        for (ToolEntity tool : tools) {
-            JSONObject mcpConfig = JSONObject.parseObject(tool.getCode());
-            toolProviders.add(McpToolUtil.getMcpToolProvider(mcpConfig));
-        }
-        return toolProviders;
-    }
-
-    @Override
-    public List<AiServiceTool> getTools(Object chatMemoryId, String userMessage, List<String> toolIds, List<String> applicationIds) throws ApiException {
-        List<AiServiceTool> tools = new ArrayList<>();
-        if (CollectionUtils.isEmpty(toolIds) && CollectionUtils.isEmpty(applicationIds)) {
-            return tools;
-        }
-        // 1. 加载普通工具
-        if (!CollectionUtils.isEmpty(toolIds)) {
-            tools.addAll(buildToolsFromToolIds(chatMemoryId,userMessage, toolIds));
-        }
-        // 2. 加载智能体应用工具
-        if (!CollectionUtils.isEmpty(applicationIds)) {
-            tools.addAll(buildToolsFromAppIds(applicationIds));
-        }
-        return tools;
-    }
-
-
-    public ShellSkills getShellSkill(String toolId, String code) throws ApiException {
-        Path skillFolder = SkillsToolUtil.getSkillFolder(toolId);
-        if (!Files.exists(skillFolder)) {
-            unzipSkill(code, toolId);
-        }
-        FileSystemSkill fileSystemSkill = FileSystemSkillLoader.loadSkill(skillFolder);
-        if (fileSystemSkill == null) {
-            return null;
-        }
-        return ShellSkills.from(fileSystemSkill);
-    }
 
     @Override
     public ShellSkills getShellSkills(List<String> toolIds) throws ApiException {
-        List<ToolEntity> toolSkills = toolService.lambdaQuery()
-                .select(ToolEntity::getId, ToolEntity::getCode, ToolEntity::getInitParams)
-                .in(ToolEntity::getId, toolIds)
-                .eq(ToolEntity::getIsActive, true)
-                .eq(ToolEntity::getToolType, ToolConstants.ToolType.SKILL)
-                .list();
-        if (toolSkills.isEmpty()){
-            return null;
-        }
-        List<FileSystemSkill> fileSystemSkills = new ArrayList<>();
-        for (ToolEntity skill : toolSkills) {
-            FileSystemSkill fileSystemSkill = this.getFileSystemSkill(skill.getId(), skill.getCode());
-            fileSystemSkills.add(fileSystemSkill);
-        }
-        RunShellCommandToolConfig config =RunShellCommandToolConfig.builder()
-                .name("shell_skill")
-                .build();
-        return ShellSkills.builder()
-                .skills(fileSystemSkills)
-                .runShellCommandToolConfig(config)
-                .build();
+        return skillToolService.getShellSkillsByToolIds(toolIds);
     }
 
-
-    public FileSystemSkill getFileSystemSkill(String toolId, String code) throws ApiException {
-        Path skillFolder = SkillsToolUtil.getSkillFolder(toolId);
-        if (!Files.exists(skillFolder)) {
-            unzipSkill(code, toolId);
-        }
-        return FileSystemSkillLoader.loadSkill(skillFolder);
-    }
-
-
-    public AiServiceTool getSkillsTool(ChatModel chatModel, ToolEntity skill) throws ApiException {
-        ShellSkills skills = this.getShellSkill(skill.getId(), skill.getCode());
-        if (skills != null) {
-            String availableSkills = skills.formatAvailableSkills();
-            Document doc = Jsoup.parse(availableSkills);
-            Elements skillsElements = doc.getElementsByTag("skill");
-            for (Element skillElement : skillsElements) {
-                String name = skillElement.getElementsByTag("name").text();
-                String description = skillElement.getElementsByTag("description").text();
-                ToolSpecification spec = ToolSpecification.builder()
-                        .name("tool_" + skill.getId())
-                        .description("**" + name + "**" + ":" + description)
-                        .parameters(JsonObjectSchema.builder().addStringProperty("question", "User's input question").required("question").build())
-                        .build();
-                ToolExecutor executor = (toolExecutionRequest, memoryId) -> {
-                    JSONObject initParams = skill.getInitParams();
-                    if (initParams != null && !initParams.isEmpty()) {
-                        for (String key : initParams.keySet()) {
-                            System.setProperty(key, initParams.getString(key));
-                        }
-                    }
-                    Assistant assistant = AiServices.builder(Assistant.class)
-                            .chatModel(chatModel)
-                            .toolProvider(skills.toolProvider())
-                            .systemMessage("You have access to the following skills:\n" + availableSkills + "\nWhen the user's request relates to one of these skills, read its SKILL.md before proceeding.")
-                            .build();
-                    JSONObject arguments = JSONObject.parseObject(toolExecutionRequest.arguments());
-                    Result<String> result = assistant.chat(arguments.getString("question"));
-                    if (initParams != null && !initParams.isEmpty()) {
-                        for (String key : initParams.keySet()) {
-                            System.clearProperty(key);
-                        }
-                    }
-                    return result.content();
-                };
-                return AiServiceTool.builder().toolSpecification(spec).toolExecutor(executor).build();
-            }
-        }
-        return null;
-    }
-
-    public List<AiServiceTool> getSkillsTools(Object chatMemoryId,String userMessage,ToolEntity tool) throws ApiException {
-        FileSystemSkill fileSystemSkill = this.getFileSystemSkill(tool.getId(), tool.getCode());
-        RunShellCommandToolConfig config =RunShellCommandToolConfig.builder().name("tool_"+tool.getId()).build();
-        ShellSkills skills = ShellSkills.builder()
-                .skills(fileSystemSkill)
-                .runShellCommandToolConfig(config)
-                .build();
-        ToolProviderRequest toolProviderRequest =new ToolProviderRequest(chatMemoryId, UserMessage.from(userMessage));
-        ToolProviderResult toolProviderResult=skills.toolProvider().provideTools(toolProviderRequest);
-        return toolProviderResult.aiServiceTools();
-    }
-
-    private void unzipSkill(String fileId, String toolId) throws ApiException {
-        if (!StringUtils.isEmpty(toolId) && !StringUtils.isEmpty(fileId)) {
-            try (InputStream is = ossService.getStream(fileId)) {
-                SkillsToolUtil.unzipSkill(is, toolId);
-            } catch (IOException e) {
-                throw new ApiException("tool.skill.file.extract.failed");
-            }
-        }
-    }
+    // ===== 私有方法：查询 =====
 
     /**
-     * 根据工具 ID 列表构建工具映射
+     * 查询激活状态的工具，可选按工具类型过滤
      */
-    private List<AiServiceTool> buildToolsFromToolIds(Object chatMemoryId,String userMessage,List<String> toolIds) {
-        List<ToolEntity> tools = toolService.lambdaQuery()
-                .select(ToolEntity::getId, ToolEntity::getName, ToolEntity::getDesc, ToolEntity::getCode, ToolEntity::getCode, ToolEntity::getInitParams, ToolEntity::getInputFieldList, ToolEntity::getToolType)
+    private List<ToolEntity> queryActiveTools(List<String> toolIds, String... toolTypes) {
+        var query = toolService.lambdaQuery()
+                .select(ToolEntity::getId, ToolEntity::getName, ToolEntity::getDesc,
+                        ToolEntity::getCode, ToolEntity::getInitParams,
+                        ToolEntity::getInputFieldList, ToolEntity::getToolType)
                 .in(ToolEntity::getId, toolIds)
-                .eq(ToolEntity::getIsActive, true)
-                .list();
-        List<AiServiceTool> aiServiceTools = new ArrayList<>();
-        if (tools.isEmpty()) {
-            return aiServiceTools;
+                .eq(ToolEntity::getIsActive, true);
+        if (toolTypes != null && toolTypes.length > 0) {
+            query.in(ToolEntity::getToolType, (Object[]) toolTypes);
         }
+        return query.list();
+    }
+
+    // ===== 私有方法：构建 AiServiceTool =====
+
+    /**
+     * 构建工具列表为 AiServiceTool，通过 skillResolver 处理 SKILL 类型
+     */
+    private List<AiServiceTool> buildAiServiceTools(List<String> toolIds, SkillToolResolver skillResolver) {
+        List<ToolEntity> tools = queryActiveTools(toolIds);
+        List<AiServiceTool> aiServiceTools = new ArrayList<>();
         for (ToolEntity tool : tools) {
-            if (ToolConstants.ToolType.MCP.equals(tool.getToolType())) {
-                JSONObject mcpConfig = JSONObject.parseObject(tool.getCode());
-                aiServiceTools.addAll(McpToolUtil.getTools(mcpConfig));
-            } else if (ToolConstants.ToolType.HTTP.equals(tool.getToolType())) {
-                ToolSpecification spec = buildToolSpecification(tool);
-                ToolExecutor executor = new HttpRequestExecutor(tool.getCode());
-                aiServiceTools.add(AiServiceTool.builder().toolSpecification(spec).toolExecutor(executor).build());
-            } else if (ToolConstants.ToolType.SKILL.equals(tool.getToolType())) {
-                List<AiServiceTool> skillsTools = this.getSkillsTools(chatMemoryId,userMessage, tool);
+            String toolType = tool.getToolType();
+            if (ToolConstants.ToolType.MCP.equals(toolType)) {
+                aiServiceTools.addAll(buildMcpTools(tool));
+            } else if (ToolConstants.ToolType.HTTP.equals(toolType)) {
+                aiServiceTools.add(buildHttpTool(tool));
+            } else if (ToolConstants.ToolType.SKILL.equals(toolType)&&skillResolver!=null) {
+                List<AiServiceTool> skillsTools = skillResolver.resolve(tool);
                 if (CollectionUtils.isNotEmpty(skillsTools)) {
                     aiServiceTools.addAll(skillsTools);
                 }
-            } else if (ToolConstants.ToolType.CUSTOM.equals(tool.getToolType())) {
-                ToolSpecification spec = buildToolSpecification(tool);
-                ToolExecutor executor = new GroovyScriptExecutor(tool.getCode(), tool.getInitParams());
-                aiServiceTools.add(AiServiceTool.builder().toolSpecification(spec).toolExecutor(executor).build());
+            } else if (ToolConstants.ToolType.CUSTOM.equals(toolType)) {
+                aiServiceTools.add(buildCustomTool(tool));
             }
         }
         return aiServiceTools;
     }
 
-    /**
-     * 根据工具 ID 列表构建工具映射
-     */
-    private List<AiServiceTool> buildToolsFromToolIds(String chatModelId, List<String> toolIds) {
-        List<ToolEntity> tools = toolService.lambdaQuery()
-                .select(ToolEntity::getId, ToolEntity::getName, ToolEntity::getDesc, ToolEntity::getCode, ToolEntity::getCode, ToolEntity::getInitParams, ToolEntity::getInputFieldList, ToolEntity::getToolType)
-                .in(ToolEntity::getId, toolIds)
-                .eq(ToolEntity::getIsActive, true)
-                .list();
-        List<AiServiceTool> aiServiceTools = new ArrayList<>();
-        if (tools.isEmpty()) {
-            return aiServiceTools;
-        }
-        ChatModel chatModel = null;
-        if (StringUtils.isNotBlank(chatModelId)){
-             chatModel = modelFactory.buildChatModel(chatModelId);
-        }
-        for (ToolEntity tool : tools) {
-            if (ToolConstants.ToolType.MCP.equals(tool.getToolType())) {
-                JSONObject mcpConfig = JSONObject.parseObject(tool.getCode());
-                aiServiceTools.addAll(McpToolUtil.getTools(mcpConfig));
-            } else if (ToolConstants.ToolType.HTTP.equals(tool.getToolType())) {
-                ToolSpecification spec = buildToolSpecification(tool);
-                ToolExecutor executor = new HttpRequestExecutor(tool.getCode());
-                aiServiceTools.add(AiServiceTool.builder().toolSpecification(spec).toolExecutor(executor).build());
-            } else if (ToolConstants.ToolType.SKILL.equals(tool.getToolType()) && chatModel!=null) {
-                AiServiceTool aiServiceTool = this.getSkillsTool(chatModel, tool);
-                if (aiServiceTool != null) {
-                    aiServiceTools.add(aiServiceTool);
-                }
-            } else if (ToolConstants.ToolType.CUSTOM.equals(tool.getToolType())) {
-                ToolSpecification spec = buildToolSpecification(tool);
-                ToolExecutor executor = new GroovyScriptExecutor(tool.getCode(), tool.getInitParams());
-                aiServiceTools.add(AiServiceTool.builder().toolSpecification(spec).toolExecutor(executor).build());
-            }
-        }
-        return aiServiceTools;
+    private List<AiServiceTool> buildMcpTools(ToolEntity tool) {
+        JSONObject mcpConfig = JSONObject.parseObject(tool.getCode());
+        return McpToolUtil.getTools(mcpConfig);
     }
 
+    private AiServiceTool buildHttpTool(ToolEntity tool) {
+        ToolSpecification spec = toolSpecificationBuilder.build(tool);
+        ToolExecutor executor = new HttpRequestExecutor(tool.getCode());
+        return AiServiceTool.builder().toolSpecification(spec).toolExecutor(executor).build();
+    }
+
+    private AiServiceTool buildCustomTool(ToolEntity tool) {
+        ToolSpecification spec = toolSpecificationBuilder.build(tool);
+        ToolExecutor executor = new GroovyScriptExecutor(tool.getCode(), tool.getInitParams());
+        return AiServiceTool.builder().toolSpecification(spec).toolExecutor(executor).build();
+    }
+
+    // ===== 私有方法：构建 ToolProvider =====
+
     /**
-     * 根据工具 ID 列表构建工具映射
+     * 构建工具列表为 ToolProvider（仅 MCP/HTTP/CUSTOM）
      */
-    private List<ToolProvider> buildToolsFromToolIds(List<String> toolIds) {
-        List<ToolEntity> tools = toolService.lambdaQuery()
-                .select(ToolEntity::getId, ToolEntity::getName, ToolEntity::getDesc, ToolEntity::getCode, ToolEntity::getCode, ToolEntity::getInitParams, ToolEntity::getInputFieldList, ToolEntity::getToolType)
-                .in(ToolEntity::getId, toolIds)
-                .eq(ToolEntity::getIsActive, true)
-                .in(ToolEntity::getToolType, ToolConstants.ToolType.MCP, ToolConstants.ToolType.HTTP, ToolConstants.ToolType.CUSTOM)
-                .list();
+    private List<ToolProvider> buildToolProviders(List<String> toolIds) {
+        List<ToolEntity> tools = queryActiveTools(toolIds,
+                ToolConstants.ToolType.MCP,ToolConstants.ToolType.HTTP, ToolConstants.ToolType.CUSTOM);
         List<ToolProvider> toolProviders = new ArrayList<>();
         if (tools.isEmpty()) {
             return toolProviders;
         }
-        Map<String,List<ToolEntity>> toolMap = tools.stream().collect(Collectors.groupingBy(ToolEntity::getToolType));
-        toolMap.forEach((toolType,toolList)->{
+        Map<String, List<ToolEntity>> toolMap = tools.stream()
+                .collect(Collectors.groupingBy(ToolEntity::getToolType));
+        toolMap.forEach((toolType, toolList) -> {
             if (ToolConstants.ToolType.MCP.equals(toolType)) {
                 for (ToolEntity tool : toolList) {
                     JSONObject mcpConfig = JSONObject.parseObject(tool.getCode());
-                    McpToolProvider mcpToolProvider= McpToolUtil.getMcpToolProvider(mcpConfig);
-                    if (mcpToolProvider!=null){
+                    McpToolProvider mcpToolProvider = McpToolUtil.getMcpToolProvider(mcpConfig);
+                    if (mcpToolProvider != null) {
                         toolProviders.add(mcpToolProvider);
                     }
                 }
-            } else if (ToolConstants.ToolType.HTTP.equals(toolType)) {
-                List<AiServiceTool> aiServiceTools = new ArrayList<>();
-                for (ToolEntity tool : toolList) {
-                    ToolSpecification spec = buildToolSpecification(tool);
-                    ToolExecutor executor = new HttpRequestExecutor(tool.getCode());
-                    aiServiceTools.add(AiServiceTool.builder().toolSpecification(spec).toolExecutor(executor).build());
-                }
-                ToolProvider httpToolProvider = (toolProviderRequest) -> ToolProviderResult.builder()
-                        .addAll(aiServiceTools)
-                        .build();
-                toolProviders.add(httpToolProvider);
+            }else if (ToolConstants.ToolType.HTTP.equals(toolType)) {
+                toolProviders.add(wrapAsToolProvider(toolList, tool -> new HttpRequestExecutor(tool.getCode())));
             } else if (ToolConstants.ToolType.CUSTOM.equals(toolType)) {
-                List<AiServiceTool> aiServiceTools = new ArrayList<>();
-                for (ToolEntity tool : toolList) {
-                    ToolSpecification spec = buildToolSpecification(tool);
-                    ToolExecutor executor = new GroovyScriptExecutor(tool.getCode(), tool.getInitParams());
-                    aiServiceTools.add(AiServiceTool.builder().toolSpecification(spec).toolExecutor(executor).build());
-                }
-                ToolProvider customToolProvider = (toolProviderRequest) -> ToolProviderResult.builder()
-                        .addAll(aiServiceTools)
-                        .build();
-                toolProviders.add(customToolProvider);
+                toolProviders.add(wrapAsToolProvider(toolList, tool -> new GroovyScriptExecutor(tool.getCode(), tool.getInitParams())));
             }
         });
-
         return toolProviders;
     }
 
-
     /**
-     * 根据工具 ID 列表构建工具映射
+     * 将多个工具包装为单个 ToolProvider
      */
-
-    private List<AiServiceTool> buildToolsFromAppIds(List<String> applicationIds) throws ApiException {
-        LambdaQueryWrapper<ApplicationEntity> wrapper = Wrappers.lambdaQuery(ApplicationEntity.class)
-                .select(ApplicationEntity::getId, ApplicationEntity::getName, ApplicationEntity::getDesc)
-                .in(ApplicationEntity::getId, applicationIds);
-        List<ApplicationEntity> applications = applicationService.list(wrapper);
-        List<AiServiceTool> tools = new ArrayList<>();
-        if (applications.isEmpty()) {
-            return tools;
+    private ToolProvider wrapAsToolProvider(List<ToolEntity> toolList, ToolExecutorFactory executorFactory) {
+        List<AiServiceTool> aiServiceTools = new ArrayList<>();
+        for (ToolEntity tool : toolList) {
+            ToolSpecification spec = toolSpecificationBuilder.build(tool);
+            ToolExecutor executor = executorFactory.create(tool);
+            aiServiceTools.add(AiServiceTool.builder().toolSpecification(spec).toolExecutor(executor).build());
         }
-        for (ApplicationEntity app : applications) {
-            ToolSpecification spec = buildToolSpecification(app);
-            ToolExecutor executor = new AgentExecutor(app.getId(), chatService);
-            tools.add(AiServiceTool.builder().toolSpecification(spec).toolExecutor(executor).build());
-        }
-        return tools;
+        return toolProviderRequest -> ToolProviderResult.builder().addAll(aiServiceTools).build();
     }
 
+    // ===== 函数式接口 =====
 
-    /**
-     * 构建 ToolSpecification（参数 schema）
-     */
-    private ToolSpecification buildToolSpecification(ToolEntity tool) {
-        JsonObjectSchema.Builder parametersBuilder = JsonObjectSchema.builder();
-        List<ToolInputField> params = Optional.ofNullable(tool.getInputFieldList()).orElse(Collections.emptyList());
-        List<String> required = new ArrayList<>();
-        for (ToolInputField param : params) {
-            String type = param.getType();
-            String name = param.getName();
-            boolean isRequired = param.getIsRequired();
-            if (isRequired) {
-                required.add(name);
-            }
-            switch (type) {
-                case "string" -> parametersBuilder.addStringProperty(name);
-                case "int" -> parametersBuilder.addIntegerProperty(name);
-                case "number" -> parametersBuilder.addNumberProperty(name);
-                case "boolean" -> parametersBuilder.addBooleanProperty(name);
-                case "array" -> parametersBuilder.addProperty(name, JsonArraySchema.builder().build());
-                case "object" -> parametersBuilder.addProperty(name, JsonObjectSchema.builder().build());
-                default -> log.warn("Unsupported parameter type: {} for field: {}", type, name);
-            }
-        }
-        if (!required.isEmpty()) {
-            parametersBuilder.required(required);
-        }
-        return ToolSpecification.builder()
-                .name("tool_" + tool.getId())
-                .description("**" + tool.getName() + "**" + ":" + tool.getDesc())
-                .parameters(parametersBuilder.build())
-                .build();
+    @FunctionalInterface
+    private interface SkillToolResolver {
+        List<AiServiceTool> resolve(ToolEntity tool);
     }
 
-
-    private ToolSpecification buildToolSpecification(ApplicationEntity app) {
-        JsonObjectSchema parameters = JsonObjectSchema.builder()
-                .addStringProperty("message")
-                .required("message")
-                .build();
-        return ToolSpecification.builder()
-                .name("agent_" + app.getId())
-                .description("**" + app.getName() + "**" + ":" + app.getDesc())
-                .parameters(parameters)
-                .build();
+    @FunctionalInterface
+    private interface ToolExecutorFactory {
+        ToolExecutor create(ToolEntity tool);
     }
-
-
 }

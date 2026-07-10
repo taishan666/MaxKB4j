@@ -99,6 +99,7 @@ public class OpenAiModelProvider extends AbsModelProvider {
                 .customParameters(params)
                 .sendThinking(true)
                 .returnThinking(true)
+                .parallelToolCalls(true)
                 .build();
     }
 

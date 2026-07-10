@@ -68,7 +68,8 @@ public class ChatStep extends AbsChatStep {
                 aiServicesBuilder.systemMessage("You have access to the following skills:\n" + skills.formatAvailableSkills() + "\nWhen the user's request relates to one of these skills, read its SKILL.md before proceeding.");
             }
         // aiServicesBuilder.tools(toolProvider.getTools(chatId,manage.chatParams.getMessage(),toolIds, applicationIds));
-            aiServicesBuilder.toolProviders(toolProvider.getToolProviders(toolIds, applicationIds));
+         //   aiServicesBuilder.tools(toolProvider.getTools(toolIds, applicationIds));
+          //  aiServicesBuilder.toolProviders(toolProvider.getToolProviders(toolIds, applicationIds));
         } catch (ApiException e) {
             manage.sink.tryEmitError(e);
             return "";
