@@ -58,7 +58,7 @@ public class NL2SqlNodeHandler extends AbsNodeHandler {
 
         NL2SqlAssistant assistant = AssistantServices.builder(NL2SqlAssistant.class)
                 .chatModel(chatModel)
-                .chatMemory(AppChatMemory.withMessages(historyMessages))
+                .chatMemory(AppChatMemory.withMessages("",historyMessages))
                 .build();
 
         Result<String> result = assistant.generateSqlQuery(sqlDialect, databaseStructure, question);

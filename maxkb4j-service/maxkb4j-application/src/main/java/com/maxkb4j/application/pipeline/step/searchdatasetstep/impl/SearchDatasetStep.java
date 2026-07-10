@@ -34,7 +34,6 @@ public class SearchDatasetStep extends AbsSearchDatasetStep {
     private final IRetrieveService retrieveService;
     private final IKnowledgeService knowledgeService;
     private final IModelProviderService modelFactory;
-    @Qualifier("taskExecutor")
     private final TaskExecutor taskExecutor;
 
     @Override

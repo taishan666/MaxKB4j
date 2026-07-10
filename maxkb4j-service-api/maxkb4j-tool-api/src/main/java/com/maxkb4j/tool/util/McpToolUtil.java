@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.tool.vo.McpToolVO;
 import dev.langchain4j.agent.tool.ToolSpecification;
 import dev.langchain4j.mcp.McpToolExecutor;
+import dev.langchain4j.mcp.McpToolProvider;
 import dev.langchain4j.mcp.client.DefaultMcpClient;
 import dev.langchain4j.mcp.client.McpClient;
 import dev.langchain4j.mcp.client.transport.McpTransport;
@@ -41,6 +42,16 @@ public class McpToolUtil {
                     .toList();
         }
         return List.of();
+    }
+
+    public static McpToolProvider getMcpToolProvider(JSONObject mcpServers) {
+        McpClient mcpClient = getMcpClient(mcpServers);
+        if (Objects.nonNull(mcpClient)){
+            return McpToolProvider.builder()
+                    .mcpClients(mcpClient)
+                    .build();
+        }
+        return null;
     }
 
     public static McpClient getMcpClient(JSONObject mcpServers) {

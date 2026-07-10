@@ -19,6 +19,7 @@ import dev.langchain4j.model.chat.response.ChatResponse;
 import dev.langchain4j.model.output.TokenUsage;
 import dev.langchain4j.service.AiServices;
 import dev.langchain4j.service.TokenStream;
+import dev.langchain4j.skills.shell.ShellSkills;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -61,15 +62,18 @@ public class ChatStep extends AbsChatStep {
             aiServicesBuilder.systemMessageTransformer(systemMessage -> systemMessage+"\n" + memory);
         }
         try {
-            //ShellSkills skills =toolProvider.getShellSkills(toolIds);
-           // aiServicesBuilder.toolProvider(skills.toolProvider());
-          //  aiServicesBuilder.systemMessage("You have access to the following skills:\n" + skills.formatAvailableSkills() + "\nWhen the user's request relates to one of these skills, read its SKILL.md before proceeding.");
-            aiServicesBuilder.tools(toolProvider.getTools(modelId,toolIds, applicationIds));
+            ShellSkills skills =toolProvider.getShellSkills(toolIds);
+            if (skills != null){
+                aiServicesBuilder.toolProvider(skills.toolProvider());
+                aiServicesBuilder.systemMessage("You have access to the following skills:\n" + skills.formatAvailableSkills() + "\nWhen the user's request relates to one of these skills, read its SKILL.md before proceeding.");
+            }
+        // aiServicesBuilder.tools(toolProvider.getTools(chatId,manage.chatParams.getMessage(),toolIds, applicationIds));
+            aiServicesBuilder.toolProviders(toolProvider.getToolProviders(toolIds, applicationIds));
         } catch (ApiException e) {
             manage.sink.tryEmitError(e);
             return "";
         }
-        Assistant assistant = aiServicesBuilder.chatMemory(AppChatMemory.withMessages(historyMessages)).streamingChatModel(chatModel).build();
+        Assistant assistant = aiServicesBuilder.chatMemory(AppChatMemory.withMessages(chatId,historyMessages)).streamingChatModel(chatModel).build();
         Boolean reasoningEnable = application.getModelSetting().getReasoningContentEnable();
         TokenStream tokenStream = assistant.chatStream(userPrompt);
         CompletableFuture<ChatResponse> future = new CompletableFuture<>();

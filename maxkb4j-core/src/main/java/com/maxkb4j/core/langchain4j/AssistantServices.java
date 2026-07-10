@@ -6,6 +6,7 @@ import com.maxkb4j.core.listener.AssistantStartedListener;
 import com.maxkb4j.core.listener.AssistantToolExecutedEventListener;
 import dev.langchain4j.observability.api.listener.AiServiceListener;
 import dev.langchain4j.service.AiServices;
+import dev.langchain4j.service.tool.search.simple.SimpleToolSearchStrategy;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -20,7 +21,10 @@ public class AssistantServices {
     );
 
     public static <T> AiServices<T> builder(Class<T> aiService) {
-        return AiServices.builder(aiService).storeRetrievedContentInChatMemory(false).registerListeners(LISTENERS);
+        return AiServices.builder(aiService)
+                .storeRetrievedContentInChatMemory(false)
+                .toolSearchStrategy(SimpleToolSearchStrategy.builder().build())
+                .registerListeners(LISTENERS);
     }
 
 }

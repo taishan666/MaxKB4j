@@ -54,7 +54,7 @@ public class QuestionNodeHandler extends AbsNodeHandler {
 
         Assistant assistant = AssistantServices.builder(Assistant.class)
                 .systemMessage(systemPrompt)
-                .chatMemory(AppChatMemory.withMessages(historyMessages))
+                .chatMemory(AppChatMemory.withMessages("",historyMessages))
                 .chatModel(chatModel)
                 .build();
 

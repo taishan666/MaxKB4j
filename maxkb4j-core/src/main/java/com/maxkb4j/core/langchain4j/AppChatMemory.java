@@ -26,7 +26,7 @@ public class AppChatMemory implements ChatMemory {
     @Override
     public void add(ChatMessage message) {
         if (message instanceof SystemMessage){
-            messages.add(0,message);
+            messages.addFirst(message);
         }else {
             messages.add(message);
         }
@@ -72,6 +72,9 @@ public class AppChatMemory implements ChatMemory {
         }
     }
 
+    public static AppChatMemory withMessages(Object id,List<ChatMessage> messages) {
+        return builder().id(id).messages(messages).build();
+    }
     public static AppChatMemory withMessages(List<ChatMessage> messages) {
         return builder().messages(messages).build();
     }
