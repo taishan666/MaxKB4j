@@ -107,7 +107,7 @@ public class LLMNodeHandler extends AbsNodeHandler {
             builder.chatMemory(AppChatMemory.withMessages(historyMessages));
         }
         try {
-            builder.tools(toolProviderService.getTools(modelId,toolIds, applicationIds));
+            builder.tools(toolProviderService.getToolProviders(toolIds, applicationIds));
         } catch (ApiException e) {
             workflow.output().emit(null); // Error will be propagated differently
         }
