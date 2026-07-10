@@ -1,7 +1,6 @@
 package com.maxkb4j.application.pipeline.step.chatstep.impl;
 
 import com.alibaba.fastjson.JSONObject;
-import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.maxkb4j.application.pipeline.PipelineManage;
 import com.maxkb4j.application.pipeline.step.chatstep.AbsChatStep;
 import com.maxkb4j.application.service.IApplicationLongTermMemoryService;
@@ -19,9 +18,9 @@ import dev.langchain4j.model.chat.response.ChatResponse;
 import dev.langchain4j.model.output.TokenUsage;
 import dev.langchain4j.service.AiServices;
 import dev.langchain4j.service.TokenStream;
-import dev.langchain4j.skills.shell.ShellSkills;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -59,17 +58,12 @@ public class ChatStep extends AbsChatStep {
         Boolean longTermEnable = application.getLongTermEnable();
         if (Boolean.TRUE.equals(longTermEnable)){
             String memory = longTermMemoryService.getMemory(appId, chatUserId);
-            aiServicesBuilder.systemMessageTransformer(systemMessage -> systemMessage+"\n" + memory);
+            if (StringUtils.isNotBlank(memory)){
+                aiServicesBuilder.systemMessageTransformer(systemMessage -> systemMessage==null?memory:systemMessage+"\n" + memory);
+            }
         }
         try {
-            ShellSkills skills =toolProvider.getShellSkills(toolIds);
-            if (skills != null){
-                aiServicesBuilder.toolProvider(skills.toolProvider());
-                aiServicesBuilder.systemMessage("You have access to the following skills:\n" + skills.formatAvailableSkills() + "\nWhen the user's request relates to one of these skills, read its SKILL.md before proceeding.");
-            }
-        // aiServicesBuilder.tools(toolProvider.getTools(chatId,manage.chatParams.getMessage(),toolIds, applicationIds));
-         //   aiServicesBuilder.tools(toolProvider.getTools(toolIds, applicationIds));
-          //  aiServicesBuilder.toolProviders(toolProvider.getToolProviders(toolIds, applicationIds));
+            aiServicesBuilder.toolProviders(toolProvider.getToolProviders(toolIds, applicationIds));
         } catch (ApiException e) {
             manage.sink.tryEmitError(e);
             return "";

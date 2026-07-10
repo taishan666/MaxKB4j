@@ -32,8 +32,6 @@ public class AssistantServices {
         return AiServices.builder(aiService)
                 .storeRetrievedContentInChatMemory(false)
                 .hallucinatedToolNameStrategy(strategy)
-                .beforeToolExecution(request -> System.out.println("正在调用工具: " + request.toString()))
-                .afterToolExecution(result -> System.out.println("工具调用完成: " + result.toString()))
                 .registerListeners(LISTENERS);
     }
 

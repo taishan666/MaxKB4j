@@ -194,7 +194,7 @@ public class ToolProviderService implements IToolProviderService {
      */
     private List<ToolProvider> buildToolProviders(List<String> toolIds) {
         List<ToolEntity> tools = queryActiveTools(toolIds,
-                ToolConstants.ToolType.MCP,ToolConstants.ToolType.HTTP, ToolConstants.ToolType.CUSTOM);
+                ToolConstants.ToolType.MCP,ToolConstants.ToolType.SKILL,ToolConstants.ToolType.HTTP, ToolConstants.ToolType.CUSTOM);
         List<ToolProvider> toolProviders = new ArrayList<>();
         if (tools.isEmpty()) {
             return toolProviders;
@@ -209,6 +209,11 @@ public class ToolProviderService implements IToolProviderService {
                     if (mcpToolProvider != null) {
                         toolProviders.add(mcpToolProvider);
                     }
+                }
+            }else if (ToolConstants.ToolType.SKILL.equals(toolType)) {
+                ShellSkills skillsTools = skillToolService.getShellSkills(toolList);
+                if (skillsTools!= null) {
+                    toolProviders.add(skillsTools.toolProvider());
                 }
             }else if (ToolConstants.ToolType.HTTP.equals(toolType)) {
                 toolProviders.add(wrapAsToolProvider(toolList, tool -> new HttpRequestExecutor(tool.getCode())));
