@@ -2,19 +2,12 @@ package com.maxkb4j.tool.service;
 
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.common.exception.ApiException;
-import com.maxkb4j.core.assistant.Assistant;
 import com.maxkb4j.oss.service.IOssService;
 import com.maxkb4j.tool.consts.ToolConstants;
 import com.maxkb4j.tool.entity.ToolEntity;
 import com.maxkb4j.tool.util.SkillsToolUtil;
-import dev.langchain4j.agent.tool.ToolSpecification;
 import dev.langchain4j.data.message.UserMessage;
-import dev.langchain4j.model.chat.ChatModel;
-import dev.langchain4j.model.chat.request.json.JsonObjectSchema;
-import dev.langchain4j.service.AiServices;
-import dev.langchain4j.service.Result;
 import dev.langchain4j.service.tool.AiServiceTool;
-import dev.langchain4j.service.tool.ToolExecutor;
 import dev.langchain4j.service.tool.ToolProviderRequest;
 import dev.langchain4j.service.tool.ToolProviderResult;
 import dev.langchain4j.skills.FileSystemSkill;
@@ -24,10 +17,6 @@ import dev.langchain4j.skills.shell.ShellSkills;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -77,53 +66,9 @@ public class SkillToolService {
     }
 
     /**
-     * 构建单个 Skill 工具的 AiServiceTool（基于 ChatModel 模式）
-     */
-    public AiServiceTool getSkillsTool(ChatModel chatModel, ToolEntity skill) throws ApiException {
-        ShellSkills skills = getShellSkill(skill.getId(), skill.getCode());
-        if (skills == null) {
-            return null;
-        }
-        String availableSkills = skills.formatAvailableSkills();
-        Document doc = Jsoup.parse(availableSkills);
-        Elements skillsElements = doc.getElementsByTag("skill");
-        for (Element skillElement : skillsElements) {
-            String name = skillElement.getElementsByTag("name").text();
-            String description = skillElement.getElementsByTag("description").text();
-            ToolSpecification spec = ToolSpecification.builder()
-                    .name("tool_" + skill.getId())
-                    .description("**" + name + "**" + ":" + description)
-                    .parameters(JsonObjectSchema.builder()
-                            .addStringProperty("question", "User's input question")
-                            .required("question")
-                            .build())
-                    .build();
-            ToolExecutor executor = (toolExecutionRequest, memoryId) -> {
-                JSONObject initParams = skill.getInitParams();
-                setInitParams(initParams);
-                try {
-                    Assistant assistant = AiServices.builder(Assistant.class)
-                            .chatModel(chatModel)
-                            .toolProvider(skills.toolProvider())
-                            .systemMessage("You have access to the following skills:\n" + availableSkills
-                                    + "\nWhen the user's request relates to one of these skills, read its SKILL.md before proceeding.")
-                            .build();
-                    JSONObject arguments = JSONObject.parseObject(toolExecutionRequest.arguments());
-                    Result<String> result = assistant.chat(arguments.getString("question"));
-                    return result.content();
-                } finally {
-                    clearInitParams(initParams);
-                }
-            };
-            return AiServiceTool.builder().toolSpecification(spec).toolExecutor(executor).build();
-        }
-        return null;
-    }
-
-    /**
      * 构建单个 Skill 工具的 AiServiceTool 列表（基于 chatMemoryId 模式）
      */
-    public List<AiServiceTool> getSkillsTools(Object chatMemoryId, String userMessage, ToolEntity tool) throws ApiException {
+    public List<AiServiceTool> getSkillsTools(String userMessage, ToolEntity tool) throws ApiException {
         FileSystemSkill fileSystemSkill = getFileSystemSkill(tool.getId(), tool.getCode());
         RunShellCommandToolConfig config = RunShellCommandToolConfig.builder()
                 .name("tool_" + tool.getId())
@@ -132,24 +77,11 @@ public class SkillToolService {
                 .skills(fileSystemSkill)
                 .runShellCommandToolConfig(config)
                 .build();
-        ToolProviderRequest toolProviderRequest = new ToolProviderRequest(chatMemoryId, UserMessage.from(userMessage));
+        ToolProviderRequest toolProviderRequest = new ToolProviderRequest("default", UserMessage.from(userMessage));
         ToolProviderResult toolProviderResult = skills.toolProvider().provideTools(toolProviderRequest);
         return toolProviderResult.aiServiceTools();
     }
 
-    // ===== 内部方法 =====
-
-    private ShellSkills getShellSkill(String toolId, String code) throws ApiException {
-        Path skillFolder = SkillsToolUtil.getSkillFolder(toolId);
-        if (!Files.exists(skillFolder)) {
-            unzipSkill(code, toolId);
-        }
-        FileSystemSkill fileSystemSkill = FileSystemSkillLoader.loadSkill(skillFolder);
-        if (fileSystemSkill == null) {
-            return null;
-        }
-        return ShellSkills.from(fileSystemSkill);
-    }
 
     private FileSystemSkill getFileSystemSkill(String toolId, String code) throws ApiException {
         Path skillFolder = SkillsToolUtil.getSkillFolder(toolId);

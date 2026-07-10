@@ -3,7 +3,6 @@ package com.maxkb4j.tool.service;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.maxkb4j.common.exception.ApiException;
-import com.maxkb4j.model.service.IModelProviderService;
 import com.maxkb4j.tool.consts.ToolConstants;
 import com.maxkb4j.tool.entity.ToolEntity;
 import com.maxkb4j.tool.executor.GroovyScriptExecutor;
@@ -11,7 +10,6 @@ import com.maxkb4j.tool.executor.HttpRequestExecutor;
 import com.maxkb4j.tool.util.McpToolUtil;
 import dev.langchain4j.agent.tool.ToolSpecification;
 import dev.langchain4j.mcp.McpToolProvider;
-import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.service.tool.AiServiceTool;
 import dev.langchain4j.service.tool.ToolExecutor;
 import dev.langchain4j.service.tool.ToolProvider;
@@ -43,58 +41,19 @@ import java.util.stream.Collectors;
 public class ToolProviderService implements IToolProviderService {
 
     private final IToolService toolService;
-    private final IModelProviderService modelFactory;
     private final SkillToolService skillToolService;
     private final ApplicationToolService applicationToolService;
     private final ToolSpecificationBuilder toolSpecificationBuilder;
 
-    // ===== 接口方法实现 =====
 
     @Override
-    public List<AiServiceTool> getTools(String chatModelId, List<String> toolIds, List<String> applicationIds) throws ApiException {
+    public List<AiServiceTool> getTools(String userMessage, List<String> toolIds, List<String> applicationIds) throws ApiException {
         List<AiServiceTool> tools = new ArrayList<>();
         if (CollectionUtils.isEmpty(toolIds) && CollectionUtils.isEmpty(applicationIds)) {
             return tools;
         }
-        if (!CollectionUtils.isEmpty(toolIds)) {
-            ChatModel chatModel = StringUtils.isNotBlank(chatModelId) ? modelFactory.buildChatModel(chatModelId) : null;
-            tools.addAll(buildAiServiceTools(toolIds, tool -> {
-                if (chatModel == null) {
-                    return List.of();
-                }
-                AiServiceTool skillTool = skillToolService.getSkillsTool(chatModel, tool);
-                return skillTool != null ? List.of(skillTool) : List.of();
-            }));
-        }
-        if (!CollectionUtils.isEmpty(applicationIds)) {
-            tools.addAll(applicationToolService.buildTools(applicationIds));
-        }
-        return tools;
-    }
-
-    @Override
-    public List<AiServiceTool> getTools(Object chatMemoryId, String userMessage, List<String> toolIds, List<String> applicationIds) throws ApiException {
-        List<AiServiceTool> tools = new ArrayList<>();
-        if (CollectionUtils.isEmpty(toolIds) && CollectionUtils.isEmpty(applicationIds)) {
-            return tools;
-        }
-        if (!CollectionUtils.isEmpty(toolIds)) {
-            tools.addAll(buildAiServiceTools(toolIds, tool -> skillToolService.getSkillsTools(chatMemoryId, userMessage, tool)));
-        }
-        if (!CollectionUtils.isEmpty(applicationIds)) {
-            tools.addAll(applicationToolService.buildTools(applicationIds));
-        }
-        return tools;
-    }
-
-    @Override
-    public List<AiServiceTool> getTools(List<String> toolIds, List<String> applicationIds) throws ApiException {
-        List<AiServiceTool> tools = new ArrayList<>();
-        if (CollectionUtils.isEmpty(toolIds) && CollectionUtils.isEmpty(applicationIds)) {
-            return tools;
-        }
-        if (!CollectionUtils.isEmpty(toolIds)) {
-            tools.addAll(buildAiServiceTools(toolIds, null));
+        if (!CollectionUtils.isEmpty(toolIds)&& StringUtils.isNotBlank(userMessage)) {
+            tools.addAll(buildAiServiceTools(toolIds, tool -> skillToolService.getSkillsTools(userMessage, tool)));
         }
         if (!CollectionUtils.isEmpty(applicationIds)) {
             tools.addAll(applicationToolService.buildTools(applicationIds));

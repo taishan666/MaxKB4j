@@ -9,10 +9,11 @@ import java.util.List;
 
 public interface IToolProviderService {
 
-    List<AiServiceTool> getTools(Object chatMemoryId, String userMessage, List<String> toolIds, List<String> applicationIds) throws ApiException;
-    List<AiServiceTool> getTools(String chatModelId,List<String> toolIds, List<String> applicationIds) throws ApiException;
     ShellSkills getShellSkills(List<String> toolIds);
-    List<AiServiceTool> getTools(List<String> toolIds, List<String> applicationIds) throws ApiException;
+    List<AiServiceTool> getTools(String userMessage, List<String> toolIds, List<String> applicationIds) throws ApiException;
+    default List<AiServiceTool> getTools(List<String> toolIds, List<String> applicationIds) throws ApiException {
+        return getTools(null, toolIds, applicationIds);
+    }
     List<ToolProvider> getToolProviders(List<String> toolIds, List<String> applicationIds) throws ApiException;
 
 
