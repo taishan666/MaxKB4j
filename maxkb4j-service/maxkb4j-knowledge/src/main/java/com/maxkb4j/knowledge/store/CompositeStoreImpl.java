@@ -51,8 +51,8 @@ public class CompositeStoreImpl extends BaseStoreImpl {
     }
 
     @Override
-    public void deleteProblemByIds(String knowledgeId, List<String> problemIds) {
-        dualWrite("deleteProblemByIds", s -> s.deleteProblemByIds(knowledgeId, problemIds));
+    public void deleteByProblemIds(String knowledgeId, List<String> problemIds) {
+        dualWrite("deleteByProblemIds", s -> s.deleteByProblemIds(knowledgeId, problemIds));
     }
 
     @Override

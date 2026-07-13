@@ -44,22 +44,29 @@ public class DocumentEntity extends BaseEntity {
 	@TableField(typeHandler = JSONBTypeHandler.class,fill = FieldFill.INSERT)
 	private JSONObject statusMeta;
 
+	/** 名称最大字符数 */
+	public static final int MAX_NAME_LENGTH = 150;
+	/** 命中处理方式：直接返回（相似度达标时直接返回段落内容，不再走 LLM） */
+	public static final String HIT_HANDLING_DIRECTLY_RETURN = "directlyReturn";
+	/** 命中处理方式：优化（交由 LLM 结合段落内容作答） */
+	public static final String HIT_HANDLING_OPTIMIZATION = "optimization";
+	/** 默认直接返回相似度阈值 */
+	public static final double DEFAULT_DIRECTLY_RETURN_SIMILARITY = 0.9;
+	/** 文档初始状态码 */
+	public static final String STATUS_INITIAL = "nn0";
+
 	public DocumentEntity(String knowledgeId, String name, Integer type) {
 		super.setId(IdWorker.get32UUID());
 		this.knowledgeId = knowledgeId;
-		// 限制 name 长度不超过 150 个字符
-		if (name != null && name.length() > 150) {
-			this.name = name.substring(0, 150);
-		} else {
-			this.name = name;
-		}
+		// 限制 name 长度不超过 MAX_NAME_LENGTH 个字符
+		this.name = (name != null && name.length() > MAX_NAME_LENGTH) ? name.substring(0, MAX_NAME_LENGTH) : name;
 		this.type = type;
-		this.status = "nn0";
+		this.status = STATUS_INITIAL;
 		this.isActive = true;
 		this.charLength = 0;
 		this.meta = new JSONObject();
 		this.statusMeta = new JSONObject();
-		this.hitHandlingMethod = "optimization";
-		this.directlyReturnSimilarity = 0.9;
+		this.hitHandlingMethod = HIT_HANDLING_OPTIMIZATION;
+		this.directlyReturnSimilarity = DEFAULT_DIRECTLY_RETURN_SIMILARITY;
 	}
 }

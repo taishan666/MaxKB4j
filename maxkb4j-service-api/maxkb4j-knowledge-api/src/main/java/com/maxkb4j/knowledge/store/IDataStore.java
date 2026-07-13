@@ -22,11 +22,17 @@ public interface IDataStore {
 
     void deleteByProblemIdAndParagraphId(String knowledgeId, String problemId, String paragraphId);
 
-    void deleteProblemByIds(String knowledgeId, List<String> problemIds);
+    /**
+     * Delete embeddings by problem IDs
+     * @param knowledgeId knowledge base ID
+     * @param problemIds problem IDs to delete
+     */
+    void deleteByProblemIds(String knowledgeId, List<String> problemIds);
 
     default void deleteByParagraphId(String knowledgeId, String paragraphId){
         deleteByParagraphIds(knowledgeId, List.of(paragraphId));
-    };
+    }
+
 
 
     /**

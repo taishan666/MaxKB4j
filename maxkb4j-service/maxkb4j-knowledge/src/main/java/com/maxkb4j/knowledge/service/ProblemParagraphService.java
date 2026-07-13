@@ -78,7 +78,7 @@ public class ProblemParagraphService extends ServiceImpl<ProblemParagraphMapper,
                        .build();
                embeddingEntities.add(embeddingEntity);
            }
-           compositeStore.deleteProblemByIds(problem.getKnowledgeId(),List.of(problem.getId()));
+           compositeStore.deleteByProblemIds(problem.getKnowledgeId(),List.of(problem.getId()));
            EmbeddingModel embeddingModel=knowledgeModelService.getEmbeddingModel(problem.getKnowledgeId());
            compositeStore.upsert(embeddingModel,embeddingEntities);
        }

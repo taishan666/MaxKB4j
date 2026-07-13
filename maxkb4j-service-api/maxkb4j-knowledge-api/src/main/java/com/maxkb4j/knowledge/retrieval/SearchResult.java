@@ -50,8 +50,8 @@ public class SearchResult {
         return SearchResult.builder()
                 .chunks(Collections.emptyList())
                 .total(0)
-                .maxScore(0.0f)
-                .minScore(0.0f)
+                .maxScore(0.0d)
+                .minScore(0.0d)
                 .tookMs(0)
                 .build();
     }
@@ -64,8 +64,10 @@ public class SearchResult {
             return empty();
         }
 
-        double max = Double.MIN_VALUE;
-        double min = Double.MAX_VALUE;
+        // 注意：不能用 Double.MIN_VALUE 作为最大值初值——它是最小正数(4.9E-324)，
+        // 当所有得分 <= 0 时会得到错误的 max。用负/正无穷作为上下界最稳健。
+        double max = Double.NEGATIVE_INFINITY;
+        double min = Double.POSITIVE_INFINITY;
 
         for (TextChunkVO chunk : chunks) {
             double score = chunk.getScore() != null ? chunk.getScore() : 0d;

@@ -34,6 +34,7 @@ public class DocumentSimple {
         this.name = name;
         this.content = content;
         this.sourceFileId = sourceFileId;
+        this.meta = new JSONObject();
         this.paragraphs = new ArrayList<>();
     }
 }

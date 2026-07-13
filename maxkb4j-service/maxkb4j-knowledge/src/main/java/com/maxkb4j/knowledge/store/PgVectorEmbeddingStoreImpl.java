@@ -182,7 +182,7 @@ public class PgVectorEmbeddingStoreImpl extends BaseStoreImpl {
     }
 
     @Override
-    public void deleteProblemByIds(String knowledgeId, List<String> problemIds) {
+    public void deleteByProblemIds(String knowledgeId, List<String> problemIds) {
         if (problemIds == null || problemIds.isEmpty()) {
             return;
         }

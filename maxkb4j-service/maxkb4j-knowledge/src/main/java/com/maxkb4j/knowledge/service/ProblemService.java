@@ -207,7 +207,7 @@ public class ProblemService extends ServiceImpl<ProblemMapper, ProblemEntity> im
                 .in(ProblemParagraphEntity::getProblemId, problemIds)
                 .remove();
         // 删除向量索引
-        compositeStore.deleteProblemByIds(knowledgeId, problemIds);
+        compositeStore.deleteByProblemIds(knowledgeId, problemIds);
         // 删除问题本体
         return this.removeByIds(problemIds);
     }

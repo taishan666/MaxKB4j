@@ -23,7 +23,7 @@ public class SearchRequest {
      */
     private List<String> knowledgeIds;
     /**
-     * Paragraph IDs to exclude from results
+     * Document IDs to exclude from results
      */
     private List<String> excludeDocumentIds;
     /**
